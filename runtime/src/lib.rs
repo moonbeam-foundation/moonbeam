@@ -41,9 +41,6 @@ pub use frame_support::{
 
 pub use contracts::Gas as ContractsGas;
 
-/// Importing a template pallet
-pub use template;
-
 /// Importing the moonbeam core pallet
 pub use mb_core;
 
@@ -286,11 +283,6 @@ impl sudo::Trait for Runtime {
 	type Call = Call;
 }
 
-/// Used for the module template in `./template.rs`
-impl template::Trait for Runtime {
-	type Event = Event;
-}
-
 impl mb_core::Trait for Runtime {
 	type Event = Event;
 }
@@ -309,8 +301,6 @@ construct_runtime!(
 		Balances: balances::{Module, Call, Storage, Config<T>, Event<T>},
 		TransactionPayment: transaction_payment::{Module, Storage},
 		Sudo: sudo::{Module, Call, Config<T>, Storage, Event<T>},
-		// Used for the module template in `./template.rs`
-		TemplateModule: template::{Module, Call, Storage, Event<T>},
 		MoonbeamCore: mb_core::{Module, Call, Storage, Event<T>},
 		RandomnessCollectiveFlip: randomness_collective_flip::{Module, Call, Storage},
 		Contracts: contracts::{Module, Call, Config<T>, Storage, Event<T>},

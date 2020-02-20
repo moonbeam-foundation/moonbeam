@@ -40,7 +40,6 @@ transaction-payment = { package = 'pallet-transaction-payment', git = 'https://g
 contracts = { package = 'pallet-contracts', git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02', default-features = false }
 contracts-primitives = { package = 'pallet-contracts-primitives', git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02', default-features = false }
 contracts-rpc-runtime-api = { package = 'pallet-contracts-rpc-runtime-api', git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02', default-features = false }
-template = { version = "2.0.0", default-features = false, path = "../pallets/template", package = "pallet-template" }
 mb-core = { version = "0.1.0", default-features = false, path = "../pallets/mb-core", package = "mb-core" }
 
 [build-dependencies]
@@ -77,6 +76,5 @@ std = [
 	"contracts/std",
 	"contracts-primitives/std",
 	"contracts-rpc-runtime-api/std",
-	"template/std",
 	"mb-core/std",
 ]
