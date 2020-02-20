@@ -36,4 +36,4 @@ moonbeam-runtime = { version = "2.0.0", path = "../runtime" }
 
 [build-dependencies]
 vergen = "3.0.4"
-build-script-utils = { version = "2.0.0", package = "substrate-build-script-utils", git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }
+build-script-utils = { package = "substrate-build-script-utils", git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }

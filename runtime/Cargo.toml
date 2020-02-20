@@ -34,6 +34,7 @@ sp-transaction-pool = { git = 'https://github.com/paritytech/substrate.git', rev
 sp-version = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02', default-features = false }
 
 template = { version = "2.0.0", default-features = false, path = "../pallets/template", package = "pallet-template" }
+mb-core = { version = "0.1.0", default-features = false, path = "../pallets/mb-core", package = "mb-core" }
 
 [build-dependencies]
 wasm-builder-runner = { package = "substrate-wasm-builder-runner", version = "1.0.5" }
@@ -67,4 +68,5 @@ std = [
 	"timestamp/std",
 	"transaction-payment/std",
 	"template/std",
+	"mb-core/std",
 ]

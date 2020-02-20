@@ -40,6 +40,9 @@ pub use frame_support::{
 /// Importing a template pallet
 pub use template;
 
+/// Importing the moonbeam core pallet
+pub use mb_core;
+
 /// An index to a block.
 pub type BlockNumber = u32;
 
@@ -92,8 +95,8 @@ pub mod opaque {
 
 /// This runtime version.
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("node-template"),
-	impl_name: create_runtime_str!("node-template"),
+	spec_name: create_runtime_str!("moonbeam-runtime"),
+	impl_name: create_runtime_str!("moonbeam-runtime"),
 	authoring_version: 1,
 	spec_version: 1,
 	impl_version: 1,
@@ -243,6 +246,10 @@ impl template::Trait for Runtime {
 	type Event = Event;
 }
 
+impl mb_core::Trait for Runtime {
+	type Event = Event;
+}
+
 construct_runtime!(
 	pub enum Runtime where
 		Block = Block,
@@ -259,6 +266,7 @@ construct_runtime!(
 		Sudo: sudo::{Module, Call, Config<T>, Storage, Event<T>},
 		// Used for the module template in `./template.rs`
 		TemplateModule: template::{Module, Call, Storage, Event<T>},
+		MoonbeamCore: mb_core::{Module, Call, Storage, Event<T>},
 		RandomnessCollectiveFlip: randomness_collective_flip::{Module, Call, Storage},
 	}
 );
