@@ -1,0 +1,11 @@
+# md book build directory
+book
+
+# MacOS thing
+**/.DS_Store
+
+# Rust directories
+**/node/target
+*.lock
+
+
