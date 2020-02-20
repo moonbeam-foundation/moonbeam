@@ -1,13 +1,13 @@
 [package]
-name = "node-template"
-version = "2.0.0"
-authors = ["Anonymous"]
+name = "moonbeam-node"
+version = "0.1.0"
+authors = ["PureStake"]
 edition = "2018"
 license = "Unlicense"
 build = "build.rs"
 
 [[bin]]
-name = "node-template"
+name = "moonbeam"
 path = "src/main.rs"
 
 [dependencies]
@@ -32,7 +32,7 @@ sc-client = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea
 sp-runtime = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }
 sc-basic-authorship = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }
 
-node-template-runtime = { version = "2.0.0", path = "../runtime" }
+moonbeam-runtime = { version = "2.0.0", path = "../runtime" }
 
 [build-dependencies]
 vergen = "3.0.4"

@@ -11,14 +11,14 @@ pub use sc_cli::{VersionInfo, error};
 
 fn main() -> Result<(), error::Error> {
 	let version = VersionInfo {
-		name: "Substrate Node",
+		name: "Moonbeam",
 		commit: env!("VERGEN_SHA_SHORT"),
 		version: env!("CARGO_PKG_VERSION"),
-		executable_name: "node-template",
-		author: "Anonymous",
-		description: "Template Node",
-		support_url: "support.anonymous.an",
-		copyright_start_year: 2017,
+		executable_name: "moonbeam",
+		author: "PureStake",
+		description: "Moonbeam core",
+		support_url: "purestake.io",
+		copyright_start_year: 2020,
 	};
 
 	command::run(version)

@@ -3,7 +3,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 use sc_client::LongestChain;
-use node_template_runtime::{self, GenesisConfig, opaque::Block, RuntimeApi};
+use moonbeam_runtime::{self, GenesisConfig, opaque::Block, RuntimeApi};
 use sc_service::{error::{Error as ServiceError}, AbstractService, Configuration, ServiceBuilder};
 use sp_inherents::InherentDataProviders;
 use sc_network::{construct_simple_protocol};
@@ -15,8 +15,8 @@ use grandpa::{self, FinalityProofProvider as GrandpaFinalityProofProvider};
 // Our native executor instance.
 native_executor_instance!(
 	pub Executor,
-	node_template_runtime::api::dispatch,
-	node_template_runtime::native_version,
+	moonbeam_runtime::api::dispatch,
+	moonbeam_runtime::native_version,
 );
 
 construct_simple_protocol! {
@@ -34,7 +34,7 @@ macro_rules! new_full_start {
 		let inherent_data_providers = sp_inherents::InherentDataProviders::new();
 
 		let builder = sc_service::ServiceBuilder::new_full::<
-			node_template_runtime::opaque::Block, node_template_runtime::RuntimeApi, crate::service::Executor
+			moonbeam_runtime::opaque::Block, moonbeam_runtime::RuntimeApi, crate::service::Executor
 		>($config)?
 			.with_select_chain(|_config, backend| {
 				Ok(sc_client::LongestChain::new(backend.clone()))
@@ -48,7 +48,7 @@ macro_rules! new_full_start {
 					.ok_or_else(|| sc_service::Error::SelectChainRequired)?;
 
 				let (grandpa_block_import, grandpa_link) =
-					grandpa::block_import::<_, _, _, node_template_runtime::RuntimeApi, _>(
+					grandpa::block_import::<_, _, _, moonbeam_runtime::RuntimeApi, _>(
 						client.clone(), &*client, select_chain
 					)?;
 
