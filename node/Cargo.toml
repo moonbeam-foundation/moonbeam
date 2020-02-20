@@ -8,31 +8,32 @@ build = "build.rs"
 
 [[bin]]
 name = "node-template"
+path = "src/main.rs"
 
 [dependencies]
 futures = "0.3.1"
 log = "0.4.8"
 structopt = "0.3.8"
 
-sc-cli = { version = "0.8.0", path = "../../../client/cli" }
-sp-core = { version = "2.0.0", path = "../../../primitives/core" }
-sc-executor = { version = "0.8", path = "../../../client/executor" }
-sc-service = { version = "0.8", path = "../../../client/service" }
-sp-inherents = { version = "2.0.0", path = "../../../primitives/inherents" }
-sc-transaction-pool = { version = "2.0.0", path = "../../../client/transaction-pool" }
-sp-transaction-pool = { version = "2.0.0", path = "../../../primitives/transaction-pool" }
-sc-network = { version = "0.8", path = "../../../client/network" }
-sc-consensus-aura = { version = "0.8", path = "../../../client/consensus/aura" }
-sp-consensus-aura = { version = "0.8", path = "../../../primitives/consensus/aura" }
-sp-consensus = { version = "0.8", path = "../../../primitives/consensus/common" }
-grandpa = { version = "0.8", package = "sc-finality-grandpa", path = "../../../client/finality-grandpa" }
-grandpa-primitives = { version = "2.0.0", package = "sp-finality-grandpa", path = "../../../primitives/finality-grandpa" }
-sc-client = { version = "0.8", path = "../../../client/" }
-sp-runtime = { version = "2.0.0", path = "../../../primitives/runtime" }
-sc-basic-authorship = { path = "../../../client/basic-authorship" }
+sc-cli = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }
+sp-core = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }
+sc-executor = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }
+sc-service = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }
+sp-inherents = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }
+sc-transaction-pool = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }
+sp-transaction-pool = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }
+sc-network = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }
+sc-consensus-aura = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }
+sp-consensus-aura = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }
+sp-consensus = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }
+grandpa = { package = "sc-finality-grandpa", git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }
+grandpa-primitives = { package = "sp-finality-grandpa", git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }
+sc-client = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }
+sp-runtime = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }
+sc-basic-authorship = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }
 
 node-template-runtime = { version = "2.0.0", path = "../runtime" }
 
 [build-dependencies]
 vergen = "3.0.4"
-build-script-utils = { version = "2.0.0", package = "substrate-build-script-utils", path = "../../../utils/build-script-utils" }
+build-script-utils = { version = "2.0.0", package = "substrate-build-script-utils", git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }
