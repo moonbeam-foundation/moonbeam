@@ -39,6 +39,9 @@ pub use frame_support::{
 	weights::Weight,
 };
 
+pub mod constants;
+pub use constants::{time::*, currency::*};
+
 pub use contracts::Gas as ContractsGas;
 
 /// Importing the moonbeam core pallet
@@ -103,20 +106,6 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 };
-
-pub const MILLISECS_PER_BLOCK: u64 = 6000;
-
-pub const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
-
-// These time units are defined in number of blocks.
-pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
-pub const HOURS: BlockNumber = MINUTES * 60;
-pub const DAYS: BlockNumber = HOURS * 24;
-
-/// Contracts pallet
-pub const MILLICENTS: Balance = 1_000_000_000;
-pub const CENTS: Balance = 1_000 * MILLICENTS;
-pub const DOLLARS: Balance = 100 * CENTS;
 
 /// The version information used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]

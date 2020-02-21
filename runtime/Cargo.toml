@@ -12,6 +12,7 @@ codec = { package = "parity-scale-codec", version = "1.0.0", default-features = 
 serde = { version = "1.0.101", optional = true, features = ["derive"] }
 
 # primitives
+node-primitives = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02', default-features = false }
 sp-api = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02', default-features = false }
 sp-block-builder = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02', default-features = false }
 sp-consensus-aura = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02', default-features = false }
