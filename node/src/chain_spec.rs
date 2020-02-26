@@ -1,4 +1,5 @@
 use serde::{Serialize, Deserialize};
+use serde_json::{json};
 //use hex_literal::hex;
 
 use sc_chain_spec::ChainSpecExtension;
@@ -183,6 +184,12 @@ fn development_config_genesis() -> GenesisConfig {
 /// Development config
 /// https://crates.parity.io/sc_chain_spec/struct.ChainSpec.html#method.from_genesis
 pub fn development_config() -> ChainSpec {
+
+	let properties = json!({
+        "tokenSymbol": "GLMR",
+		"tokenDecimals": 12
+    });
+
 	ChainSpec::from_genesis(
 		"Development",
 		"dev",
@@ -190,7 +197,7 @@ pub fn development_config() -> ChainSpec {
 		vec![],
 		None,
 		None,
-		None,
+		Some(properties.as_object().unwrap().clone()),
 		Default::default(),
 	)
 }
