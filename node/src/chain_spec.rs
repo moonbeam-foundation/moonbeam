@@ -159,9 +159,9 @@ fn testnet_genesis(
 fn development_config_genesis() -> GenesisConfig {
 
 	let seeds = vec![
-		"Amstrong",
+		"Armstrong",
 		"Aldrin",
-		"Amstrong//stash",
+		"Armstrong//stash",
 		"Aldrin//stash"
 	];
 	let mut accounts: Vec<AccountId> = vec![];
