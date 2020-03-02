@@ -37,7 +37,7 @@ TODO
 
 ### Multi-node local testnet
 
-This will create 2 validator accounts - `//Amstrong` and `//Aldrin` - on genesis. To be able to finalize blocks, Grandpa requires a min. of 2/3 of the validators to cast finality votes over a produced block, so we need to run both nodes.
+This will create 2 validator accounts - `//Armstrong` and `//Aldrin` - on genesis. To be able to finalize blocks, Grandpa requires a min. of 2/3 of the validators to cast finality votes over a produced block, so we need to run both nodes.
 
 ```bash
 cd scripts/staging
@@ -45,7 +45,7 @@ cd scripts/staging
 ```
 Two files - `spec.json` and `rawspec.json` - are created.
 
-Next, execute `./run-node-amstrong.sh` and `./run-node-aldrin.sh` in two separate terminals.
+Next, execute `./run-node-armstrong.sh` and `./run-node-aldrin.sh` in two separate terminals.
 
 > At this moment the chain *should* work as expected. However you will notice that blocks are not being produced. 
 > 
