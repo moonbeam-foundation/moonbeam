@@ -1,16 +1,14 @@
 use serde::{Serialize, Deserialize};
 use serde_json::{json};
-//use hex_literal::hex;
 
+use sc_service;
 use sc_chain_spec::ChainSpecExtension;
 use sp_core::{Pair, Public, sr25519};
-//use sp_core::{crypto::UncheckedInto};
 use sp_consensus_babe::{AuthorityId as BabeId};
 use grandpa_primitives::{AuthorityId as GrandpaId};
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
-use sc_service;
 use sp_runtime::{Perbill, traits::{Verify, IdentifyAccount}};
-//use sc_telemetry::TelemetryEndpoints;
+use sc_telemetry::TelemetryEndpoints;
 
 use pallet_im_online::sr25519::{AuthorityId as ImOnlineId};
 
@@ -19,14 +17,15 @@ pub use node_primitives::{AccountId, Balance, Signature, Block};
 use moonbeam_runtime::{
 	GenesisConfig, AuthorityDiscoveryConfig, BabeConfig, BalancesConfig, ContractsConfig,
 	GrandpaConfig, ImOnlineConfig, SessionConfig, SessionKeys, StakerStatus, StakingConfig,
-	IndicesConfig, SudoConfig, SystemConfig, WASM_BINARY,
+	IndicesConfig, SudoConfig, SystemConfig, WASM_BINARY, MoonbeamCoreConfig
 };
 
+use moonbeam_runtime::constants::mb_genesis::*;
 use moonbeam_runtime::constants::currency::*;
 
 type AccountPublic = <Signature as Verify>::Signer;
 
-//const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
+const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
 
 #[derive(Default, Clone, Serialize, Deserialize, ChainSpecExtension)]
 #[serde(rename_all = "camelCase")]
@@ -86,30 +85,17 @@ pub fn get_authority_keys_from_seed(seed: &str) -> (
 
 fn testnet_genesis(
 	initial_authorities: Vec<(AccountId, AccountId, GrandpaId, BabeId, ImOnlineId, AuthorityDiscoveryId)>,
+	endowed_accounts: Vec<AccountId>,
 	root_key: AccountId,
-	endowed_accounts: Option<Vec<AccountId>>,
 	enable_println: bool
 ) -> GenesisConfig {
-	
-	let endowed_accounts: Vec<AccountId> = endowed_accounts.unwrap_or_else(|| {
-		vec![
-			get_account_id_from_seed::<sr25519::Public>("Alice"),
-			get_account_id_from_seed::<sr25519::Public>("Bob"),
-			get_account_id_from_seed::<sr25519::Public>("Charlie"),
-			get_account_id_from_seed::<sr25519::Public>("Dave"),
-			get_account_id_from_seed::<sr25519::Public>("Eve"),
-			get_account_id_from_seed::<sr25519::Public>("Ferdie"),
-			get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Charlie//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Dave//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
-		]
-	});
 
-	const ENDOWMENT: Balance = 10_000_000 * DOLLARS;
-	const STASH: Balance = 100 * DOLLARS;
+	const ENDOWMENT: Balance = 10_000_000 * GLMR;
+	const STASH: Balance = 100 * GLMR;
+
+	let keys = initial_authorities.iter().map(|x| {
+		(x.0.clone(), session_keys(x.2.clone(), x.3.clone(), x.4.clone(), x.5.clone()))
+	}).collect::<Vec<_>>();
 
 	GenesisConfig {
 		frame_system: Some(SystemConfig {
@@ -123,9 +109,7 @@ fn testnet_genesis(
 				.collect(),
 		}),
 		pallet_session: Some(SessionConfig {
-			keys: initial_authorities.iter().map(|x| {
-				(x.0.clone(), session_keys(x.2.clone(), x.3.clone(), x.4.clone(), x.5.clone()))
-			}).collect::<Vec<_>>(),
+			keys: keys,
 		}),
 		// https://crates.parity.io/pallet_staking/struct.GenesisConfig.html
 		pallet_staking: Some(StakingConfig {
@@ -135,8 +119,7 @@ fn testnet_genesis(
 			stakers: initial_authorities.iter().map(|x| {
 				(x.0.clone(), x.1.clone(), STASH, StakerStatus::Validator)
 			}).collect(),
-			//invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
-			invulnerables: vec![],
+			invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
 			slash_reward_fraction: Perbill::from_percent(10),
 			.. Default::default()
 		}),
@@ -163,20 +146,45 @@ fn testnet_genesis(
 				enable_println, // this should only be enabled on development chains
 				..Default::default()
 			},
-			gas_price: 1 * MILLICENTS,
+			gas_price: 1 * MILLIGLMR,
 		}),
 		pallet_vesting: Some(Default::default()),
+		mb_core: Some(MoonbeamCoreConfig {
+			treasury: TREASURY_ENDOWMENT,
+			genesis_accounts: endowed_accounts,
+		}),
 	}
 }
 
 fn development_config_genesis() -> GenesisConfig {
+
+	let seeds = vec![
+		"Amstrong",
+		"Aldrin",
+		"Amstrong//stash",
+		"Aldrin//stash"
+	];
+	let mut accounts: Vec<AccountId> = vec![];
+	let mut initial_authorities: Vec<(
+		AccountId,
+		AccountId,
+		GrandpaId,
+		BabeId,
+		ImOnlineId,
+		AuthorityDiscoveryId,
+	)> = vec![];
+
+	for s in seeds {
+		accounts.push( get_account_id_from_seed::<sr25519::Public>(&s) );
+        if !s.contains("//stash") {
+            initial_authorities.push( get_authority_keys_from_seed(&s) );
+        }
+	}
+
 	testnet_genesis(
-		vec![
-			get_authority_keys_from_seed("Alice"),
-			get_authority_keys_from_seed("Bob"),
-		],
+		initial_authorities,
+		accounts,
 		get_account_id_from_seed::<sr25519::Public>("Alice"),
-		None,
 		true,
 	)
 }
@@ -187,7 +195,7 @@ pub fn development_config() -> ChainSpec {
 
 	let properties = json!({
         "tokenSymbol": "GLMR",
-		"tokenDecimals": 12
+		"tokenDecimals": 8
     });
 
 	ChainSpec::from_genesis(
@@ -195,7 +203,7 @@ pub fn development_config() -> ChainSpec {
 		"dev",
 		development_config_genesis,
 		vec![],
-		None,
+		Some(TelemetryEndpoints::new(vec![(STAGING_TELEMETRY_URL.to_string(), 0)])),
 		None,
 		Some(properties.as_object().unwrap().clone()),
 		Default::default(),

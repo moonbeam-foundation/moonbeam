@@ -25,7 +25,16 @@ pub trait Trait: system::Trait + pallet_balances::Trait {
 decl_storage! {
 	trait Store for Module<T: Trait> as MoonbeamModule {
 		Treasury get(treasury): BalanceOf<T>;
+		GenesisAccounts get(genesis_accounts): Vec<T::AccountId>;
 	}
+    add_extra_genesis {
+		config(treasury): BalanceOf<T>;
+		config(genesis_accounts): Vec<T::AccountId>;
+        build(|config: &GenesisConfig<T>| {
+			<Treasury<T>>::put(config.treasury);
+			let _ = <GenesisAccounts<T>>::append(config.genesis_accounts.clone());
+        });
+    }
 }
 
 decl_event!(

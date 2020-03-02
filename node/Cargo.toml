@@ -49,6 +49,7 @@ sc-authority-discovery = { git = 'https://github.com/paritytech/substrate.git', 
 substrate-frame-rpc-system = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }
 pallet-transaction-payment-rpc = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }
 sc-consensus-babe-rpc = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }
+sc-telemetry = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }
 
 # frame dependencies
 pallet-indices = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02' }

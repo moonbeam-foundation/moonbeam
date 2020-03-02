@@ -468,7 +468,7 @@ construct_runtime!(
 		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Module, Call, Storage},
 		Recovery: pallet_recovery::{Module, Call, Storage, Event<T>},
 		Vesting: pallet_vesting::{Module, Call, Storage, Event<T>, Config<T>},
-		MoonbeamCore: mb_core::{Module, Call, Storage, Event<T>},
+		MoonbeamCore: mb_core::{Module, Call, Storage, Event<T>, Config<T>},
 	}
 );
 
