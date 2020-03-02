@@ -1,20 +1,12 @@
-// Copyright 2019-2020 Parity Technologies (UK) Ltd.
-// This file is part of Substrate.
-
-// Substrate is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-// Substrate is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with Substrate.  If not, see <http://www.gnu.org/licenses/>.
-
 //! A set of constant values used in substrate runtime.
+
+pub mod mb_genesis {
+	use node_primitives::{Balance};
+	use super::currency::{GLMR};
+	/// Six decimals for 500_000 glmr units
+	pub const TOTAL_GLMR_SUPPLY: Balance = 500_000 * GLMR;
+	pub const TREASURY_ENDOWMENT: Balance = 100_000 * GLMR;
+}
 
 /// Money matters.
 pub mod currency {
@@ -23,6 +15,10 @@ pub mod currency {
 	pub const MILLICENTS: Balance = 1_000_000_000;
 	pub const CENTS: Balance = 1_000 * MILLICENTS;    // assume this is worth about a cent.
 	pub const DOLLARS: Balance = 100 * CENTS;
+
+	pub const MILLIGLMR: Balance = 1_000;
+	pub const CENTIGLMR: Balance = 1_000 * MILLIGLMR;
+	pub const GLMR: Balance = 100 * CENTIGLMR;
 }
 
 /// Time.

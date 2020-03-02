@@ -33,7 +33,7 @@ use frame_support::{
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use pallet_contracts_rpc_runtime_api::ContractExecResult;
-use sp_core::u32_trait::{_0, _5};
+use sp_core::u32_trait::{_1, _4};
 
 use pallet_transaction_payment_rpc_runtime_api::RuntimeDispatchInfo;
 
@@ -54,7 +54,7 @@ use node_primitives::{AccountIndex, Balance, BlockNumber, Hash, Index, Moment};
 pub use node_primitives::{AccountId, Signature};
 
 pub mod constants;
-pub use constants::{time::*, currency::*};
+pub use constants::{time::*, currency::*, mb_genesis::*};
 
 /// Importing the moonbeam core pallet
 pub use mb_core;
@@ -96,8 +96,8 @@ type NegativeImbalance = <Balances as Currency<AccountId>>::NegativeImbalance;
 pub type DealWithFees = SplitTwoWays<
 	Balance,
 	NegativeImbalance,
-	_0, MoonbeamCore,   // 4 parts (80%) goes to the treasury.
-	_5, Author,     // 1 part (20%) goes to the block author.
+	_4, mb_core::Absorb<Runtime>,   // 4 parts (80%) goes to the treasury.
+	_1, Author,     // 1 part (20%) goes to the block author.
 >;
 
 parameter_types! {
@@ -132,9 +132,9 @@ impl frame_system::Trait for Runtime {
 
 parameter_types! {
 	// One storage item; value is size 4+4+16+32 bytes = 56 bytes.
-	pub const MultisigDepositBase: Balance = 30 * CENTS;
+	pub const MultisigDepositBase: Balance = 30 * CENTIGLMR;
 	// Additional storage item size of 32 bytes.
-	pub const MultisigDepositFactor: Balance = 5 * CENTS;
+	pub const MultisigDepositFactor: Balance = 5 * CENTIGLMR;
 	pub const MaxSignatories: u16 = 100;
 }
 
@@ -164,7 +164,7 @@ impl pallet_grandpa::Trait for Runtime {
 
 parameter_types! {
 	/// How much an index costs.
-	pub const IndexDeposit: Balance = 1 * DOLLARS;
+	pub const IndexDeposit: Balance = 1 * GLMR;
 }
 
 impl pallet_indices::Trait for Runtime {
@@ -191,7 +191,7 @@ impl pallet_timestamp::Trait for Runtime {
 }
 
 parameter_types! {
-	pub const ExistentialDeposit: u128 = 500;
+	pub const ExistentialDeposit: Balance = 500;
 }
 
 impl pallet_balances::Trait for Runtime {
@@ -203,10 +203,10 @@ impl pallet_balances::Trait for Runtime {
 }
 
 parameter_types! {
-	pub const TransactionBaseFee: Balance = 1 * CENTS;
-	pub const TransactionByteFee: Balance = 10 * MILLICENTS;
+	pub const TransactionBaseFee: Balance = 1 * CENTIGLMR;
+	pub const TransactionByteFee: Balance = 10 * MILLIGLMR;
 	// setting this to zero will disable the weight fee.
-	pub const WeightFeeCoefficient: Balance = 1_000;
+	pub const WeightFeeCoefficient: Balance = 0; // original at 1_000
 	// for a sane configuration, this should always be less than `AvailableBlockRatio`.
 	pub const TargetBlockFullness: Perbill = Perbill::from_percent(25);
 }
@@ -262,6 +262,17 @@ pallet_staking_reward_curve::build! {
 	);
 }
 
+// TODO read theory, figure out how to disable inflation.
+// https://research.web3.foundation/en/latest/polkadot/Token%20Economics.html#inflation-model
+// https://github.com/paritytech/substrate/blob/db1ab7d18fbe7876cdea43bbf30f147ddd263f94/frame/staking/reward-curve/src/lib.rs#L267
+// const REWARD_CURVE: PiecewiseLinear<'static> = PiecewiseLinear {
+// 	points: &[
+// 		(Perbill::from_parts(0),Perbill::from_parts(1000000)),
+// 		(Perbill::from_parts(1000000),Perbill::from_parts(1000000)),
+// 	],
+// 	maximum: Perbill::from_parts(1000000)
+// };
+
 parameter_types! {
 	pub const SessionsPerEra: sp_staking::SessionIndex = 6;
 	pub const BondingDuration: pallet_staking::EraIndex = 24 * 28;
@@ -273,10 +284,10 @@ impl pallet_staking::Trait for Runtime {
 	type Currency = Balances;
 	type Time = Timestamp;
 	type CurrencyToVote = CurrencyToVoteHandler;
-	type RewardRemainder = MoonbeamCore;
+	type RewardRemainder = mb_core::RewardRemainder<Runtime>;
 	type Event = Event;
-	type Slash = MoonbeamCore; // send the slashed funds to the treasury.
-	type Reward = (); // rewards are minted from the void
+	type Slash = mb_core::Absorb<Runtime>; // send the slashed funds to the treasury.
+	type Reward = mb_core::Reward<Runtime>; // rewards are minted from the void
 	type SessionsPerEra = SessionsPerEra;
 	type BondingDuration = BondingDuration;
 	type SlashDeferDuration = SlashDeferDuration;
@@ -288,13 +299,13 @@ impl pallet_staking::Trait for Runtime {
 }
 
 parameter_types! {
-	pub const ContractTransactionBaseFee: Balance = 1 * CENTS;
-	pub const ContractTransactionByteFee: Balance = 10 * MILLICENTS;
-	pub const ContractFee: Balance = 1 * CENTS;
-	pub const TombstoneDeposit: Balance = 1 * DOLLARS;
-	pub const RentByteFee: Balance = 1 * DOLLARS;
-	pub const RentDepositOffset: Balance = 1000 * DOLLARS;
-	pub const SurchargeReward: Balance = 150 * DOLLARS;
+	pub const ContractTransactionBaseFee: Balance = 1 * CENTIGLMR;
+	pub const ContractTransactionByteFee: Balance = 10 * MILLIGLMR;
+	pub const ContractFee: Balance = 1 * CENTIGLMR;
+	pub const TombstoneDeposit: Balance = 1 * GLMR;
+	pub const RentByteFee: Balance = 1 * GLMR;
+	pub const RentDepositOffset: Balance = 1000 * GLMR;
+	pub const SurchargeReward: Balance = 150 * GLMR;
 }
 
 impl pallet_contracts::Trait for Runtime {
@@ -399,10 +410,10 @@ impl frame_system::offchain::CreateTransaction<Runtime, UncheckedExtrinsic> for 
 }
 
 parameter_types! {
-	pub const ConfigDepositBase: Balance = 5 * DOLLARS;
-	pub const FriendDepositFactor: Balance = 50 * CENTS;
+	pub const ConfigDepositBase: Balance = 5 * GLMR;
+	pub const FriendDepositFactor: Balance = 50 * GLMR;
 	pub const MaxFriends: u16 = 9;
-	pub const RecoveryDeposit: Balance = 5 * DOLLARS;
+	pub const RecoveryDeposit: Balance = 5 * GLMR;
 }
 
 impl pallet_recovery::Trait for Runtime {
