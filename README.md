@@ -1,3 +1,4 @@
+
 # Moonbeam
 
 ## Build
@@ -20,56 +21,45 @@ Build Wasm and native code:
 cd node
 cargo build --release
 ```
+## Dev dependencies
+
+Install subkey:
+```bash
+cargo install --force subkey --git https://github.com/paritytech/substrate
+```
+
 
 ## Run
 
-### Single node development chain
+### Single node dev
 
-Purge any existing developer chain state:
-
-```bash
-.target/release/moonbeam purge-chain --dev
-```
-
-Start a development chain with:
-
-```bash
-.target/release/moonbeam --dev
-```
-
-Detailed logs may be shown by running the node with the following environment variables set: `RUST_LOG=debug RUST_BACKTRACE=1 cargo run -- --dev`.
+TODO
 
 ### Multi-node local testnet
 
-If you want to see the multi-node consensus algorithm in action locally, then you can create a local testnet with two validator nodes for Alice and Bob, who are the initial authorities of the genesis chain that have been endowed with testnet units.
-
-Optionally, give each node a name and expose them so they are listed on the Polkadot [telemetry site](https://telemetry.polkadot.io/#/Local%20Testnet).
-
-You'll need two terminal windows open.
-
-We'll start Alice's substrate node first on default TCP port 30333 with her chain database stored locally at `/tmp/alice`. The bootnode ID of her node is `QmRpheLN4JWdAnY7HGJfWFNbfkQCb6tFf4vvA6hgjMZKrR`, which is generated from the `--node-key` value that we specify below:
+This will create 2 validator accounts - `//Amstrong` and `//Aldrin` - on genesis. To be able to finalize blocks, Grandpa requires a min. of 2/3 of the validators to cast finality votes over a produced block, so we need to run both nodes.
 
 ```bash
-cargo run -- \
-  --base-path /tmp/alice \
-  --chain=local \
-  --alice \
-  --node-key 0000000000000000000000000000000000000000000000000000000000000001 \
-  --telemetry-url ws://telemetry.polkadot.io:1024 \
-  --validator
+cd scripts/staging
+./build-spec.sh
 ```
+Two files - `spec.json` and `rawspec.json` - are created.
 
-In the second terminal, we'll start Bob's substrate node on a different TCP port of 30334, and with his chain database stored locally at `/tmp/bob`. We'll specify a value for the `--bootnodes` option that will connect his node to Alice's bootnode ID on TCP port 30333:
+Next, execute `./run-node-amstrong.sh` and `./run-node-aldrin.sh` in two separate terminals.
 
-```bash
-cargo run -- \
-  --base-path /tmp/bob \
-  --bootnodes /ip4/127.0.0.1/tcp/30333/p2p/QmRpheLN4JWdAnY7HGJfWFNbfkQCb6tFf4vvA6hgjMZKrR \
-  --chain=local \
-  --bob \
-  --port 30334 \
-  --telemetry-url ws://telemetry.polkadot.io:1024 \
-  --validator
-```
+> At this moment the chain *should* work as expected. However you will notice that blocks are not being produced. 
+> 
+> We are injecting `SessionKeys` on the `pallet_session` GenesisConfig. Theory says that should set the session keys on boot and start validating right away. Further investigation needs to be done to determine why it does not work and how to fix it. Proceed with the next steps to inject the keys manually.
 
-Additional CLI usage options are available and may be shown by running `cargo run -- --help`.
+Next, with both nodes running, manually inject the Public keys to the keystore using the `./set-keys.sh` helper script. Be aware that this assumes you are on a Unix machine. `subkey`, `curl`, `grep` and `cut` commands must be available in your environment to execute it.
+
+> Confirmed by Joshy, **is not possible** to make effective the underlying `author_insertKey` rpc we just made without restarting the nodes. So we need to:
+
+Restart both nodes.
+
+They are now producing blocks and finalizing them.
+
+Telemetry is enabled and can be seen here:
+[https://telemetry.polkadot.io/#/Development](https://telemetry.polkadot.io/#/Development)
+
+
