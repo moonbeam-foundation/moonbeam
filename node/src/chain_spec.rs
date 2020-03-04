@@ -7,7 +7,7 @@ use sp_core::{Pair, Public, sr25519};
 use sp_consensus_babe::{AuthorityId as BabeId};
 use grandpa_primitives::{AuthorityId as GrandpaId};
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
-use sp_runtime::{Perbill, traits::{Verify, IdentifyAccount}};
+use sp_runtime::{traits::{Verify, IdentifyAccount}};
 use sc_telemetry::TelemetryEndpoints;
 
 use pallet_im_online::sr25519::{AuthorityId as ImOnlineId};
@@ -16,8 +16,8 @@ pub use node_primitives::{AccountId, Balance, Signature, Block};
 
 use moonbeam_runtime::{
 	GenesisConfig, AuthorityDiscoveryConfig, BabeConfig, BalancesConfig, ContractsConfig,
-	GrandpaConfig, ImOnlineConfig, SessionConfig, SessionKeys, StakerStatus, StakingConfig,
-	IndicesConfig, SudoConfig, SystemConfig, WASM_BINARY, MoonbeamCoreConfig
+	GrandpaConfig, ImOnlineConfig, SessionConfig, SessionKeys,
+	IndicesConfig, SudoConfig, SystemConfig, WASM_BINARY, MoonbeamCoreConfig, MoonbeamStakingConfig
 };
 
 use moonbeam_runtime::constants::mb_genesis::*;
@@ -111,18 +111,6 @@ fn testnet_genesis(
 		pallet_session: Some(SessionConfig {
 			keys: keys,
 		}),
-		// https://crates.parity.io/pallet_staking/struct.GenesisConfig.html
-		pallet_staking: Some(StakingConfig {
-			current_era: 0,
-			validator_count: initial_authorities.len() as u32 * 2,
-			minimum_validator_count: initial_authorities.len() as u32,
-			stakers: initial_authorities.iter().map(|x| {
-				(x.0.clone(), x.1.clone(), STASH, StakerStatus::Validator)
-			}).collect(),
-			invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
-			slash_reward_fraction: Perbill::from_percent(10),
-			.. Default::default()
-		}),
 		pallet_indices: Some(IndicesConfig {
 			indices: vec![],
 		}),
@@ -151,7 +139,12 @@ fn testnet_genesis(
 		pallet_vesting: Some(Default::default()),
 		mb_core: Some(MoonbeamCoreConfig {
 			treasury: TREASURY_ENDOWMENT,
-			genesis_accounts: endowed_accounts,
+			genesis_accounts: endowed_accounts.clone(),
+		}),
+		mb_staking: Some(MoonbeamStakingConfig {
+			session_validators: initial_authorities.iter().map(|x| {
+				x.0.clone()
+			}).collect(),
 		}),
 	}
 }

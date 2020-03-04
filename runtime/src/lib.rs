@@ -16,7 +16,6 @@ use sp_runtime::traits::{
 	self, BlakeTwo256, Block as BlockT, SaturatedConversion, StaticLookup, 
 	ConvertInto, OpaqueKeys
 };
-use sp_runtime::curve::PiecewiseLinear;
 use sp_api::impl_runtime_apis;
 use sp_version::RuntimeVersion;
 use sp_inherents::{InherentData, CheckInherentsResult};
@@ -58,10 +57,11 @@ pub use constants::{time::*, currency::*, mb_genesis::*};
 
 /// Importing the moonbeam core pallet
 pub use mb_core;
+pub use mb_staking;
 
 /// Implementations of some helper traits passed into runtime modules as associated types.
 pub mod impls;
-use impls::{CurrencyToVoteHandler, Author, LinearWeightToFee, TargetedFeeAdjustment};
+use impls::{Author, LinearWeightToFee, TargetedFeeAdjustment};
 
 impl_opaque_keys! {
 	pub struct SessionKeys {
@@ -127,7 +127,7 @@ impl frame_system::Trait for Runtime {
 	type ModuleToIndex = ModuleToIndex;
 	type AccountData = pallet_balances::AccountData<Balance>;
 	type OnNewAccount = ();
-	type OnReapAccount = (Balances, Staking, Contracts, Session, Recovery);
+	type OnReapAccount = ();
 }
 
 parameter_types! {
@@ -228,7 +228,7 @@ impl pallet_authorship::Trait for Runtime {
 	type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Babe>;
 	type UncleGenerations = UncleGenerations;
 	type FilterUncle = ();
-	type EventHandler = (Staking, ImOnline);
+	type EventHandler = (mb_staking::AuthorshipEventHandler<Runtime>, ImOnline);
 }
 
 parameter_types! {
@@ -238,64 +238,17 @@ parameter_types! {
 impl pallet_session::Trait for Runtime {
 	type Event = Event;
 	type ValidatorId = <Self as frame_system::Trait>::AccountId;
-	type ValidatorIdOf = pallet_staking::StashOf<Self>;
+	type ValidatorIdOf = ConvertInto;
 	type ShouldEndSession = Babe;
-	type SessionManager = Staking;
+	type SessionManager = mb_staking::SessionManager<Runtime>;
 	type SessionHandler = <SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
 	type Keys = SessionKeys;
 	type DisabledValidatorsThreshold = DisabledValidatorsThreshold;
 }
 
 impl pallet_session::historical::Trait for Runtime {
-	type FullIdentification = pallet_staking::Exposure<AccountId, Balance>;
-	type FullIdentificationOf = pallet_staking::ExposureOf<Runtime>;
-}
-
-pallet_staking_reward_curve::build! {
-	const REWARD_CURVE: PiecewiseLinear<'static> = curve!(
-		min_inflation: 0_025_000,
-		max_inflation: 0_100_000,
-		ideal_stake: 0_500_000,
-		falloff: 0_050_000,
-		max_piece_count: 40,
-		test_precision: 0_005_000,
-	);
-}
-
-// TODO read theory, figure out how to disable inflation.
-// https://research.web3.foundation/en/latest/polkadot/Token%20Economics.html#inflation-model
-// https://github.com/paritytech/substrate/blob/db1ab7d18fbe7876cdea43bbf30f147ddd263f94/frame/staking/reward-curve/src/lib.rs#L267
-// const REWARD_CURVE: PiecewiseLinear<'static> = PiecewiseLinear {
-// 	points: &[
-// 		(Perbill::from_parts(0),Perbill::from_parts(1000000)),
-// 		(Perbill::from_parts(1000000),Perbill::from_parts(1000000)),
-// 	],
-// 	maximum: Perbill::from_parts(1000000)
-// };
-
-parameter_types! {
-	pub const SessionsPerEra: sp_staking::SessionIndex = 6;
-	pub const BondingDuration: pallet_staking::EraIndex = 24 * 28;
-	pub const SlashDeferDuration: pallet_staking::EraIndex = 24 * 7; // 1/4 the bonding duration.
-	pub const RewardCurve: &'static PiecewiseLinear<'static> = &REWARD_CURVE;
-}
-
-impl pallet_staking::Trait for Runtime {
-	type Currency = Balances;
-	type Time = Timestamp;
-	type CurrencyToVote = CurrencyToVoteHandler;
-	type RewardRemainder = mb_core::RewardRemainder<Runtime>;
-	type Event = Event;
-	type Slash = mb_core::Absorb<Runtime>; // send the slashed funds to the treasury.
-	type Reward = mb_core::Reward<Runtime>; // rewards are minted from the void
-	type SessionsPerEra = SessionsPerEra;
-	type BondingDuration = BondingDuration;
-	type SlashDeferDuration = SlashDeferDuration;
-	/// A super-majority of the council can cancel the slash.
-	//type SlashCancelOrigin = pallet_collective::EnsureProportionAtLeast<_3, _4, AccountId, CouncilCollective>;
-	type SlashCancelOrigin = mb_core::Collective<AccountId>;
-	type SessionInterface = Self;
-	type RewardCurve = RewardCurve;
+	type FullIdentification = mb_staking::Exposure<AccountId, Balance>;
+	type FullIdentificationOf = mb_staking::ExposureOf<Runtime>;
 }
 
 parameter_types! {
@@ -353,7 +306,7 @@ impl pallet_im_online::Trait for Runtime {
 impl pallet_offences::Trait for Runtime {
 	type Event = Event;
 	type IdentificationTuple = pallet_session::historical::IdentificationTuple<Self>;
-	type OnOffenceHandler = Staking;
+	type OnOffenceHandler = mb_staking::Offences<Runtime>;
 }
 
 impl pallet_authority_discovery::Trait for Runtime {}
@@ -442,6 +395,12 @@ impl mb_core::Trait for Runtime {
 	type Event = Event;
 }
 
+impl mb_staking::Trait for Runtime {
+	type Currency = Balances;
+	type Event = Event;
+}
+
+
 construct_runtime!(
 	pub enum Runtime where
 		Block = Block,
@@ -456,7 +415,6 @@ construct_runtime!(
 		Indices: pallet_indices::{Module, Call, Storage, Config<T>, Event<T>},
 		Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
 		TransactionPayment: pallet_transaction_payment::{Module, Storage},
-		Staking: pallet_staking::{Module, Call, Config<T>, Storage, Event<T>},
 		Session: pallet_session::{Module, Call, Storage, Event, Config<T>},
 		FinalityTracker: pallet_finality_tracker::{Module, Call, Inherent},
 		Grandpa: pallet_grandpa::{Module, Call, Storage, Config, Event},
@@ -469,6 +427,7 @@ construct_runtime!(
 		Recovery: pallet_recovery::{Module, Call, Storage, Event<T>},
 		Vesting: pallet_vesting::{Module, Call, Storage, Event<T>, Config<T>},
 		MoonbeamCore: mb_core::{Module, Call, Storage, Event<T>, Config<T>},
+		MoonbeamStaking: mb_staking::{Module, Call, Storage, Event<T>, Config<T>},
 	}
 );
 

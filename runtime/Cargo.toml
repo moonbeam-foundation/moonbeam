@@ -58,6 +58,7 @@ pallet-transaction-payment = { git = 'https://github.com/paritytech/substrate.gi
 pallet-transaction-payment-rpc-runtime-api = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02', default-features = false }
 pallet-vesting = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02', default-features = false }
 mb-core = { version = "0.1.0", default-features = false, path = "../pallets/mb-core", package = "mb-core" }
+mb-staking = { version = "0.1.0", default-features = false, path = "../pallets/mb-staking", package = "mb-staking" }
 
 [build-dependencies]
 wasm-builder-runner = { package = "substrate-wasm-builder-runner", version = "1.0.5" }
@@ -113,4 +114,5 @@ std = [
 	"pallet-recovery/std",
 	"pallet-vesting/std",
 	"mb-core/std",
+	"mb-staking/std",
 ]
