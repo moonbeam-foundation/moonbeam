@@ -395,9 +395,14 @@ impl mb_core::Trait for Runtime {
 	type Event = Event;
 }
 
+parameter_types! {
+	pub const SessionsPerEra: u8 = EPOCH_PER_ERA;
+}
+
 impl mb_staking::Trait for Runtime {
 	type Currency = Balances;
 	type Event = Event;
+	type SessionsPerEra = SessionsPerEra;
 }
 
 

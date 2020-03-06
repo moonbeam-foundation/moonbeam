@@ -138,10 +138,11 @@ fn testnet_genesis(
 		}),
 		pallet_vesting: Some(Default::default()),
 		mb_core: Some(MoonbeamCoreConfig {
-			treasury: TREASURY_ENDOWMENT,
+			treasury: TREASURY_FUND,
 			genesis_accounts: endowed_accounts.clone(),
 		}),
 		mb_staking: Some(MoonbeamStakingConfig {
+			treasury: TREASURY_FUND,
 			session_validators: initial_authorities.iter().map(|x| {
 				x.0.clone()
 			}).collect(),
@@ -173,6 +174,9 @@ fn development_config_genesis() -> GenesisConfig {
             initial_authorities.push( get_authority_keys_from_seed(&s) );
         }
 	}
+	
+	// default accounts with some endorsement
+	accounts.push( get_account_id_from_seed::<sr25519::Public>("Alice") );
 
 	testnet_genesis(
 		initial_authorities,
