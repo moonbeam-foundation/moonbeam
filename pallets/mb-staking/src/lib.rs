@@ -4,7 +4,7 @@ use sp_std::prelude::*;
 use codec::{HasCompact, Encode, Decode};
 use sp_runtime::{RuntimeDebug,Perbill};
 // use sp_runtime::traits::{OpaqueKeys,Convert};
-use sp_runtime::traits::{Convert,SaturatedConversion,CheckedSub};
+use sp_runtime::traits::{Hash,Convert,SaturatedConversion,CheckedSub};
 use sp_staking::offence::{OffenceDetails};
 use frame_support::{decl_module, decl_storage, decl_event, decl_error, debug};
 use frame_support::dispatch::{DispatchResult};
@@ -43,19 +43,39 @@ decl_storage! {
 		SessionValidatorAuthoring: 
 			map hasher(blake2_256) T::AccountId => u32;
 
-		EndorsementQueue:
-			map hasher(blake2_256) T::AccountId => (EndorserStatus, u32); // Endorser =>
+		/// Hashed key and status by endorser AccountId.
+		/// 
+		/// 	- Used to access `Endorser` - endorser-validator association - using 
+		/// 	  an Endorser AccountId.
+		EndorserKeys:
+			map hasher(blake2_256) T::AccountId => (EndorserStatus, T::Hash);
 
-		EndorsementQueueIndex:
-			map hasher(blake2_256) EndorserStatus => Vec<u32>;
+		/// List of hashed keys for a status. 
+		/// 
+		/// A hashed key is the result of hashing endorser and validator AccountIds.
+		/// 
+		/// 	- Used on era start to change status of endorsements.
+		/// 	- Used for validator selection.
+		EndorserQueue:
+			map hasher(blake2_256) EndorserStatus => Vec<T::Hash>;
 
-		EndorsementQueueStatus:
-			map hasher(blake2_256) (EndorserStatus, u32) => (T::AccountId, T::AccountId); // Vec<(Endorser,Validator)>
+		/// Tuples of (endorser,validator)'s AccountIds mapped by status and hashed key .
+		/// 
+		/// The actual association between endorser and validator AccountIds.
+		Endorsers:
+			map hasher(blake2_256) (EndorserStatus, T::Hash) => (T::AccountId, T::AccountId);
 
 
-		// Endorser, Validator => (session_block_index,endorser_balance)
-		EndorsementSnapshot:
-			double_map hasher(blake2_256) T::AccountId, hasher(blake2_256) T::AccountId => (u32,BalanceOf<T>);
+		/// A timeline of free_balances for an endorser that allows us to calculate
+		/// the average of free_balance of an era.
+		/// 
+		/// TODO: Used to select era validators at the start (or end TODO) of an era. 
+		/// We are by now supposing that an endorsement represents all the free_balance of the token holder.
+		/// When the free_balance of an endorser changes, a new snapshot is created together with the current block_index of the current era.
+		/// 
+		/// Endorser, Validator => (session_block_index,endorser_balance)
+		EndorserSnapshots:
+			double_map hasher(blake2_256) T::AccountId, hasher(blake2_256) T::AccountId => Vec<(u32,BalanceOf<T>)>;
 
 		// Treasury
 		Treasury get(treasury): T::Balance;
@@ -105,6 +125,15 @@ decl_module! {
 			let from = ensure_signed(origin)?;
 			Self::add_to_queue(&EndorserStatus::Raised,&from,&to)
 		}
+
+		pub fn unendorse(
+			origin
+		) -> DispatchResult {
+			let from = ensure_signed(origin)?;
+			let (status, key) = <EndorserKeys<T>>::get(&from);
+			Self::remove_from_queue(&status,key,&from);
+			Ok(())
+		}
 	}
 }
 
@@ -113,53 +142,44 @@ impl<T: Trait> Module<T> {
 	fn add_to_queue(
 		status: &EndorserStatus, from: &T::AccountId, to: &T::AccountId
 	) -> DispatchResult {
-		
-		let max_idx: u32 = match EndorsementQueueIndex::get(status).iter().max() {
-			Some(v) => *v,
-			None => 0
-		};
-		let idx: u32 = max_idx.checked_add(1)
-			.ok_or("SessionOfEraIndex Overflow").unwrap();
 
-		<EndorsementQueue<T>>::insert(from,(status, idx));
-		EndorsementQueueIndex::append(status, vec![idx])?;
-		<EndorsementQueueStatus<T>>::insert((status, idx),(from,to));
+		let key = (from,to).using_encoded(<T as system::Trait>::Hashing::hash);
+
+		<EndorserKeys<T>>::insert(from,(status, key));
+		<EndorserQueue<T>>::append(status, vec![key])?;
+		<Endorsers<T>>::insert((status, key),(from,to));
+
 		Ok(())
 	}
 
-	fn remove_from_queue(status: &EndorserStatus, index: u32, endorser: &T::AccountId) {
-		<EndorsementQueue<T>>::remove(endorser);
-		// Cant we use mutate() for this?
-		// https://crates.parity.io/frame_support/storage/trait.StorageMap.html
-		EndorsementQueueIndex::insert(status, EndorsementQueueIndex::get(status)
-			.iter().cloned()
-			.filter(|x| {
-				*x != index
-			})
-			.collect::<Vec<_>>()
-		);
-		<EndorsementQueueStatus<T>>::remove((status,index));
+	fn remove_from_queue(status: &EndorserStatus, key: T::Hash, endorser: &T::AccountId) {
+		<EndorserKeys<T>>::remove(endorser);
+		let mut queue_items = <EndorserQueue<T>>::get(status);
+		queue_items.retain(|x| *x != key);
+		<EndorserQueue<T>>::insert(status, queue_items);
+		<Endorsers<T>>::remove((status,key));
 	}
 
 	fn queue_update() -> DispatchResult {
 
-		let raised: Vec<u32> = 
-			EndorsementQueueIndex::get(EndorserStatus::Raised);
+		let raised_queue: Vec<T::Hash> = 
+			<EndorserQueue<T>>::get(EndorserStatus::Raised);
 
-		for idx in raised {
-			let d = <EndorsementQueueStatus<T>>::get((EndorserStatus::Raised, idx));
+		for key in raised_queue {
+			let d = <Endorsers<T>>::get((EndorserStatus::Raised, key));
 			let endorser: &T::AccountId = &d.0;
 			let validator: &T::AccountId = &d.1;
 
-			<EndorsementSnapshot<T>>::insert(
+			<EndorserSnapshots<T>>::append(
 				endorser,
 				validator,
-				(1, T::Currency::free_balance(&endorser))
-			);
+				vec![(1, T::Currency::free_balance(&endorser))]
+			)?;
 
-			Self::remove_from_queue(&EndorserStatus::Raised,idx,validator);
+			<Endorsers<T>>::remove((EndorserStatus::Raised,key));
 			Self::add_to_queue(&EndorserStatus::Active,endorser,validator)?;
 		}
+		<EndorserQueue<T>>::insert(EndorserStatus::Raised,<Vec<T::Hash>>::new());
 		Ok(())
 	}
 }
