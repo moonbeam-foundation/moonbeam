@@ -26,45 +26,24 @@ pub trait Trait: system::Trait + pallet_balances::Trait + pallet_session::Trait 
 	type SessionsPerEra: Get<u8>;
 }
 
-#[derive(Debug, Encode, Decode)]
-enum EndorserStatus { Raised, Active, Chill }
-impl Default for EndorserStatus {
-    fn default() -> Self {
-        EndorserStatus::Raised
-    }
-}
-
 decl_storage! {
 	trait Store for Module<T: Trait> as MoonbeamStakingModule {
 		EraIndex: u32;
+
+		Validators: Vec<T::AccountId>;
+
 		// Session
 		SessionOfEraIndex: u32;
+		BlockOfEraIndex: u32;
 		SessionValidators get(session_validators): Vec<T::AccountId>;
 		SessionValidatorAuthoring: 
 			map hasher(blake2_256) T::AccountId => u32;
 
-		/// Hashed key and status by endorser AccountId.
-		/// 
-		/// 	- Used to access `Endorser` - endorser-validator association - using 
-		/// 	  an Endorser AccountId.
-		EndorserKeys:
-			map hasher(blake2_256) T::AccountId => (EndorserStatus, T::Hash);
+		// validator -> endorsers
+		ValidatorEndorsers: map hasher(blake2_256) T::AccountId => Vec<T::AccountId>;
 
-		/// List of hashed keys for a status. 
-		/// 
-		/// A hashed key is the result of hashing endorser and validator AccountIds.
-		/// 
-		/// 	- Used on era start to change status of endorsements.
-		/// 	- Used for validator selection.
-		EndorserQueue:
-			map hasher(blake2_256) EndorserStatus => Vec<T::Hash>;
-
-		/// Tuples of (endorser,validator)'s AccountIds mapped by status and hashed key .
-		/// 
-		/// The actual association between endorser and validator AccountIds.
-		Endorsers:
-			map hasher(blake2_256) (EndorserStatus, T::Hash) => (T::AccountId, T::AccountId);
-
+		// endorser => validator
+		Endorser: map hasher(blake2_256) T::AccountId => T::AccountId; 
 
 		/// A timeline of free_balances for an endorser that allows us to calculate
 		/// the average of free_balance of an era.
@@ -84,7 +63,9 @@ decl_storage! {
 		config(session_validators): Vec<T::AccountId>;
 		config(treasury): T::Balance;
         build(|config: &GenesisConfig<T>| {
-			// set validators
+			// set all validators
+			let _ = <Validators<T>>::append(config.session_validators.clone());
+			// set initial selected validators
 			let _ = <SessionValidators<T>>::append(config.session_validators.clone());
 			// set treasury
 			<Treasury<T>>::put(config.treasury);
@@ -123,64 +104,65 @@ decl_module! {
 			origin, to:T::AccountId
 		) -> DispatchResult {
 			let from = ensure_signed(origin)?;
-			Self::add_to_queue(&EndorserStatus::Raised,&from,&to)
+			if <Endorser<T>>::contains_key(&from) {
+				// TODO already endorsing
+			}
+			<Endorser<T>>::insert(&from,&to);
+			<ValidatorEndorsers<T>>::append(&to,vec![&from])?;
+
+			Self::snapshot(&from,&to,T::Currency::free_balance(&from))?;
+
+			Ok(())
 		}
 
 		pub fn unendorse(
 			origin
 		) -> DispatchResult {
 			let from = ensure_signed(origin)?;
-			let (status, key) = <EndorserKeys<T>>::get(&from);
-			Self::remove_from_queue(&status,key,&from);
+			if !<Endorser<T>>::contains_key(&from) {
+				// TODO is not endorsing
+			}
+			let validator = <Endorser<T>>::get(&from);
+			let mut endorsers = <ValidatorEndorsers<T>>::get(&validator);
+			
+			// remove from validator's endorser list
+			endorsers.retain(|x| x != &from);
+			<ValidatorEndorsers<T>>::insert(&validator, endorsers);
+			// remove as an endorser
+			<Endorser<T>>::remove(&from);
+			// remove all snapshots associated to the endorser
+			<EndorserSnapshots<T>>::remove_prefix(&from);
+
+			// Self::snapshot(&from,&validator,BalanceOf::<T>::from(0))?;
+
 			Ok(())
 		}
 	}
 }
 
 impl<T: Trait> Module<T> {
-
-	fn add_to_queue(
-		status: &EndorserStatus, from: &T::AccountId, to: &T::AccountId
+	fn snapshot(
+		endorser: &T::AccountId, validator: &T::AccountId, amount: BalanceOf<T>
 	) -> DispatchResult {
-
-		let key = (from,to).using_encoded(<T as system::Trait>::Hashing::hash);
-
-		<EndorserKeys<T>>::insert(from,(status, key));
-		<EndorserQueue<T>>::append(status, vec![key])?;
-		<Endorsers<T>>::insert((status, key),(from,to));
-
+		<EndorserSnapshots<T>>::append(&endorser,&validator,
+			vec![(
+				BlockOfEraIndex::get(),
+				amount
+			)])?;
 		Ok(())
 	}
 
-	fn remove_from_queue(status: &EndorserStatus, key: T::Hash, endorser: &T::AccountId) {
-		<EndorserKeys<T>>::remove(endorser);
-		let mut queue_items = <EndorserQueue<T>>::get(status);
-		queue_items.retain(|x| *x != key);
-		<EndorserQueue<T>>::insert(status, queue_items);
-		<Endorsers<T>>::remove((status,key));
-	}
-
-	fn queue_update() -> DispatchResult {
-
-		let raised_queue: Vec<T::Hash> = 
-			<EndorserQueue<T>>::get(EndorserStatus::Raised);
-
-		for key in raised_queue {
-			let d = <Endorsers<T>>::get((EndorserStatus::Raised, key));
-			let endorser: &T::AccountId = &d.0;
-			let validator: &T::AccountId = &d.1;
-
-			<EndorserSnapshots<T>>::append(
-				endorser,
-				validator,
-				vec![(1, T::Currency::free_balance(&endorser))]
-			)?;
-
-			<Endorsers<T>>::remove((EndorserStatus::Raised,key));
-			Self::add_to_queue(&EndorserStatus::Active,endorser,validator)?;
+	fn reset_snapshots() {
+		let validators = <Validators<T>>::get();
+		for validator in validators.iter() {
+			let endorsers = <ValidatorEndorsers<T>>::get(validator);
+			for endorser in endorsers.iter() {
+				<EndorserSnapshots<T>>::insert(endorser,validator,vec![(
+					1 as u32,
+					T::Currency::free_balance(endorser)
+				)]);
+			}
 		}
-		<EndorserQueue<T>>::insert(EndorserStatus::Raised,<Vec<T::Hash>>::new());
-		Ok(())
 	}
 }
 
@@ -198,12 +180,15 @@ impl<T: Trait> pallet_session::SessionManager<T::AccountId> for SessionManager<T
 				// Era change. Reset SessionOfEraIndex to 1, increase the EraIndex by 1
 				SessionOfEraIndex::put(1);
 
+				// Reset BlockOfEraIndex to 1
+				BlockOfEraIndex::put(1);
+
 				let new_era_idx = EraIndex::get().checked_add(1)
 					.ok_or("SessionOfEraIndex Overflow").unwrap();
 					
 				EraIndex::put(new_era_idx);
 
-				<Module<T>>::queue_update();
+				<Module<T>>::reset_snapshots();
 				// TODO reset snapshots
 					
 				// TODO new validator set?
@@ -232,6 +217,7 @@ impl<T: Trait> pallet_authorship::EventHandler<T::AccountId,u32> for AuthorshipE
 		let authored_blocks = 
 			<SessionValidatorAuthoring<T>>::get(&author).checked_add(1).ok_or("Overflow").unwrap();
 		<SessionValidatorAuthoring<T>>::insert(&author,authored_blocks);
+		BlockOfEraIndex::mutate(|x| *x += 1);
 		// <Module<T>>::deposit_event(
 		// 	RawEvent::BlockAuthored(author)
 		// );
