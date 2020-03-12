@@ -7,6 +7,8 @@ pub mod mb_genesis {
 	pub const TOTAL_GLMR_SUPPLY: Balance = 10_000_000 * GLMR;
 	pub const TREASURY_FUND: Balance = TOTAL_GLMR_SUPPLY / 5;
 	pub const REWARD_PER_YEAR: Balance = 250_000 * GLMR;
+	
+	pub const VALIDATORS_PER_SESSION: u8 = 2;
 }
 
 /// Money matters.

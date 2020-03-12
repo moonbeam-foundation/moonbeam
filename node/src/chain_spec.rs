@@ -155,8 +155,10 @@ fn development_config_genesis() -> GenesisConfig {
 	let seeds = vec![
 		"Armstrong",
 		"Aldrin",
+		"Collins",
 		"Armstrong//stash",
-		"Aldrin//stash"
+		"Aldrin//stash",
+		"Collins//stash"
 	];
 	let mut accounts: Vec<AccountId> = vec![];
 	let mut initial_authorities: Vec<(
@@ -177,6 +179,8 @@ fn development_config_genesis() -> GenesisConfig {
 	
 	// default accounts with some endorsement
 	accounts.push( get_account_id_from_seed::<sr25519::Public>("Alice") );
+	accounts.push( get_account_id_from_seed::<sr25519::Public>("Bob") );
+	accounts.push( get_account_id_from_seed::<sr25519::Public>("Ferdie") );
 
 	testnet_genesis(
 		initial_authorities,

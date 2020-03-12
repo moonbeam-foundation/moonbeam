@@ -7,12 +7,20 @@ echo $ARMSTRONG_BABE
 echo "Armstrong granpa:"
 ARMSTRONG_GRANPA=$(echo $(subkey --ed25519 inspect "//Armstrong" | grep "^  Public key (hex)" | cut -f2- -d:) | xargs)
 echo $ARMSTRONG_GRANPA
+
 echo "Aldrin babe:"
 ALDRIN_BABE=$(echo $(subkey inspect "//Aldrin" | grep "^  Public key (hex)" | cut -f2- -d:) | xargs)
 echo $ALDRIN_BABE
 echo "Aldrin granpa:"
 ALDRIN_GRANPA=$(echo $(subkey --ed25519 inspect "//Aldrin" | grep "^  Public key (hex)" | cut -f2- -d:) | xargs)
 echo $ALDRIN_GRANPA
+
+echo "Collins babe:"
+COLLINS_BABE=$(echo $(subkey inspect "//Collins" | grep "^  Public key (hex)" | cut -f2- -d:) | xargs)
+echo $COLLINS_BABE
+echo "Collins granpa:"
+COLLINS_GRANPA=$(echo $(subkey --ed25519 inspect "//Collins" | grep "^  Public key (hex)" | cut -f2- -d:) | xargs)
+echo $COLLINS_GRANPA
 
 curl http://localhost:9933 -H "Content-Type:application/json;charset=utf-8" -d \
   '{
@@ -59,5 +67,29 @@ curl http://localhost:9934 -H "Content-Type:application/json;charset=utf-8" -d \
       "gran",
       "//Aldrin",
       "'"$ALDRIN_GRANPA"'"
+    ]
+  }'
+
+curl http://localhost:9935 -H "Content-Type:application/json;charset=utf-8" -d \
+  '{
+    "jsonrpc":"2.0",
+    "id":1,
+    "method":"author_insertKey",
+    "params": [
+      "babe",
+      "//Collins",
+      "'"$COLLINS_BABE"'"
+    ]
+  }'
+
+curl http://localhost:9935 -H "Content-Type:application/json;charset=utf-8" -d \
+  '{
+    "jsonrpc":"2.0",
+    "id":1,
+    "method":"author_insertKey",
+    "params": [
+      "gran",
+      "//Collins",
+      "'"$COLLINS_GRANPA"'"
     ]
   }'

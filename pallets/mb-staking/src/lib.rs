@@ -15,7 +15,7 @@ use system::{ensure_signed};
 #[allow(dead_code)]
 mod constants;
 use constants::time::{MILLISECS_PER_YEAR,EPOCH_DURATION_IN_BLOCKS};
-use constants::mb_genesis::{REWARD_PER_YEAR};
+use constants::mb_genesis::{REWARD_PER_YEAR,VALIDATORS_PER_SESSION};
 
 type BalanceOf<T> = 
 	<<T as Trait>::Currency as Currency<<T as system::Trait>::AccountId>>::Balance;
@@ -28,35 +28,38 @@ pub trait Trait: system::Trait + pallet_balances::Trait + pallet_session::Trait 
 
 decl_storage! {
 	trait Store for Module<T: Trait> as MoonbeamStakingModule {
+		/// The number of Era.
 		EraIndex: u32;
-
+		/// The total validator pool.
 		Validators: Vec<T::AccountId>;
-
-		// Session
+		/// The current session of an Era.
 		SessionOfEraIndex: u32;
+		/// The current Block Index of an Era.
 		BlockOfEraIndex: u32;
+		/// The validator set selected for the Era.
 		SessionValidators get(session_validators): Vec<T::AccountId>;
+		/// Number of blocks authored by a given validator in this Era.
 		SessionValidatorAuthoring: 
 			map hasher(blake2_256) T::AccountId => u32;
-
-		// validator -> endorsers
+		/// One to Many Validator -> Endorsers.
 		ValidatorEndorsers: map hasher(blake2_256) T::AccountId => Vec<T::AccountId>;
-
-		// endorser => validator
+		/// One to One Endorser -> Validator.
 		Endorser: map hasher(blake2_256) T::AccountId => T::AccountId; 
-
 		/// A timeline of free_balances for an endorser that allows us to calculate
 		/// the average of free_balance of an era.
 		/// 
 		/// TODO: Used to select era validators at the start (or end TODO) of an era. 
-		/// We are by now supposing that an endorsement represents all the free_balance of the token holder.
-		/// When the free_balance of an endorser changes, a new snapshot is created together with the current block_index of the current era.
+		/// We are by now supposing that an endorsement represents all the free_balance 
+		/// of the token holder.
+		/// When the free_balance of an endorser changes, a new snapshot is created 
+		/// together with the current block_index of the current era.
 		/// 
 		/// Endorser, Validator => (session_block_index,endorser_balance)
 		EndorserSnapshots:
 			double_map hasher(blake2_256) T::AccountId, hasher(blake2_256) T::AccountId => Vec<(u32,BalanceOf<T>)>;
 
-		// Treasury
+		/// TODO the Treasury balance. It is still unclear if this will be a pallet account or 
+		/// will remain as a Storage balance.
 		Treasury get(treasury): T::Balance;
 	}
     add_extra_genesis {
@@ -69,8 +72,9 @@ decl_storage! {
 			let _ = <SessionValidators<T>>::append(config.session_validators.clone());
 			// set treasury
 			<Treasury<T>>::put(config.treasury);
-			// set genesis era
+			// set genesis era data
 			EraIndex::put(1);
+			BlockOfEraIndex::put(1);
         });
     }
 }
@@ -100,40 +104,44 @@ decl_module! {
 		type Error = Error<T>;
 		fn deposit_event() = default;
 
+		/// Endorsing dispatchable function
 		pub fn endorse(
 			origin, to:T::AccountId
 		) -> DispatchResult {
 			let from = ensure_signed(origin)?;
+			/// Check if the Account is already endorsing.
 			if <Endorser<T>>::contains_key(&from) {
-				// TODO already endorsing
+				Err(Error::<T>::AlreadyEndorsing).map_err(Into::into)
 			}
+			/// Set One to One endorser->validator association.
 			<Endorser<T>>::insert(&from,&to);
+			/// Set One to Many validator->endorsers association.
 			<ValidatorEndorsers<T>>::append(&to,vec![&from])?;
-
-			Self::snapshot(&from,&to,T::Currency::free_balance(&from))?;
-
+			/// Create a snapshot with the current free balance of the endorser.
+			Self::set_snapshot(&from,&to,T::Currency::free_balance(&from))?;
 			Ok(())
 		}
 
+		/// Unndorsing dispatchable function
 		pub fn unendorse(
 			origin
 		) -> DispatchResult {
 			let from = ensure_signed(origin)?;
+			/// Check if the Account is actively endorsing.
 			if !<Endorser<T>>::contains_key(&from) {
-				// TODO is not endorsing
+				Err(Error::<T>::NotEndorsing).map_err(Into::into)
 			}
+
 			let validator = <Endorser<T>>::get(&from);
 			let mut endorsers = <ValidatorEndorsers<T>>::get(&validator);
-			
-			// remove from validator's endorser list
+
+			/// Remove One to Many validator->endorsers association
 			endorsers.retain(|x| x != &from);
 			<ValidatorEndorsers<T>>::insert(&validator, endorsers);
-			// remove as an endorser
+			/// Remove One to One endorser->validator association
 			<Endorser<T>>::remove(&from);
-			// remove all snapshots associated to the endorser
+			/// Remove all snapshots associated to the endorser, using the double map prefix
 			<EndorserSnapshots<T>>::remove_prefix(&from);
-
-			// Self::snapshot(&from,&validator,BalanceOf::<T>::from(0))?;
 
 			Ok(())
 		}
@@ -141,17 +149,91 @@ decl_module! {
 }
 
 impl<T: Trait> Module<T> {
-	fn snapshot(
+	
+	/// Sets a snapshot using the current era's block index and the Account free_balance.
+	fn set_snapshot(
 		endorser: &T::AccountId, validator: &T::AccountId, amount: BalanceOf<T>
 	) -> DispatchResult {
 		<EndorserSnapshots<T>>::append(&endorser,&validator,
-			vec![(
-				BlockOfEraIndex::get(),
-				amount
-			)])?;
+			vec![(BlockOfEraIndex::get(),amount)])?;
 		Ok(())
 	}
+	/// Calculates a single endorser weighted balance for the era by measuring the 
+	/// block index distances.
+	fn calculate_endorsement(
+		endorser: &T::AccountId, validator: &T::AccountId
+	) -> f64 {
 
+		let duration: u32 = EPOCH_DURATION_IN_BLOCKS;
+		let points = <EndorserSnapshots<T>>::get(endorser,validator);
+		let points_dim: usize = points.len();
+
+		if points_dim == 0 {
+			return 0 as f64;
+		}
+
+		let n: usize = points_dim-1;
+		let (points,n) = Self::set_snapshot_boundaries(duration,n,points);
+		let mut previous: (u32,BalanceOf<T>) = (0,BalanceOf::<T>::from(0));
+		// Find the distances between snapshots, weight the free_balance against them.
+		// Finally sum all values.
+		let mut endorsement: f64 = points.iter().map(|p| {
+			let out: f64;
+			if previous != (0,BalanceOf::<T>::from(0)) {
+				let delta = p.0-previous.0;
+				let w = delta as f64 / duration as f64;
+				out = w * previous.1.saturated_into() as f64;
+			} else {
+				out = 0 as f64;
+			}
+			previous = *p;
+			out
+		})
+		.sum::<f64>();
+		// The above iterative approach excludes the last block, sum it to the result.
+		endorsement += (1 as f64 / duration as f64) * points[n].1.saturated_into() as f64;
+		endorsement
+	}
+	/// Selects a new validator set based on their amount of weighted endorsement. 
+	fn select_validators() -> Vec<T::AccountId> {
+		let validators = <Validators<T>>::get();
+		// Get the calculated endorsement per validator.
+		let mut selected_validators = validators.iter().map(|v| {
+			let endorsers = <ValidatorEndorsers<T>>::get(v);
+			let total_validator_endorsement = endorsers.iter().map(|ed| {
+				Self::calculate_endorsement(ed,v)
+			})
+			.sum::<f64>();
+			(total_validator_endorsement,v)
+		})
+		.collect::<Vec<_>>();
+		// Sort descendant validators by amount.
+		selected_validators.sort_by(|(x0, _y0), (x1, _y1)| x0.partial_cmp(&x1).unwrap());
+		selected_validators.reverse();
+		// Take the by-configuration amount of validators.
+		selected_validators.into_iter().take(VALIDATORS_PER_SESSION as usize)
+			.map(|(_x,y)| y.clone())
+			.collect::<Vec<_>>()
+	}
+	/// Conditionally set the boundary balances to complete a snapshot series.
+	/// (if no snapshot is defined on block 1 or {era_len} indexes).
+	fn set_snapshot_boundaries(
+		duration: u32, 
+		mut last_index: usize, 
+		mut collection: Vec<(u32,BalanceOf<T>)>
+	) -> (Vec<(u32,BalanceOf<T>)>,usize) {
+		
+		if collection[0].0 != 1 {
+			collection.insert(0,(1,BalanceOf::<T>::from(0)));
+			last_index += 1;
+		}
+		if collection[last_index].0 != duration {
+			collection.push((duration,collection[last_index].1));
+		}
+		(collection,last_index)
+	}
+	/// All snapshots are reset on era change with a single checkpoint of the
+	/// current endorser's Account free_balance.
 	fn reset_snapshots() {
 		let validators = <Validators<T>>::get();
 		for validator in validators.iter() {
@@ -177,21 +259,20 @@ impl<T: Trait> pallet_session::SessionManager<T::AccountId> for SessionManager<T
 		if new_index > 1 {
 			let current_era = EraIndex::get();
 			if new_index > (current_era * (T::SessionsPerEra::get() as u32)) {
-				// Era change. Reset SessionOfEraIndex to 1, increase the EraIndex by 1
+				// Era change
+				// Reset SessionOfEraIndex to 1
 				SessionOfEraIndex::put(1);
-
 				// Reset BlockOfEraIndex to 1
 				BlockOfEraIndex::put(1);
-
+				// Increase the EraIndex by 1
 				let new_era_idx = EraIndex::get().checked_add(1)
 					.ok_or("SessionOfEraIndex Overflow").unwrap();
-					
 				EraIndex::put(new_era_idx);
-
+				// Select a new validator set
+				let selected_validatiors = <Module<T>>::select_validators();
+				<SessionValidators<T>>::put(selected_validatiors.clone());
+				// Reset all snapshots
 				<Module<T>>::reset_snapshots();
-				// TODO reset snapshots
-					
-				// TODO new validator set?
 			} else {
 				// Same Era, next session. Increase SessionOfEraIndex by 1.
 				let new_era_session_idx = SessionOfEraIndex::get().checked_add(1)
@@ -227,8 +308,9 @@ impl<T: Trait> pallet_authorship::EventHandler<T::AccountId,u32> for AuthorshipE
 	}
 }
 
+// !!!!!!
 // All below are trait implemenations that we need to satisfy for the historical feature of the pallet-session
-// and by offences. Find a way to remove without having to implement.
+// and by offences. Find a way to remove without having to implement or move outside of the pallet.
 
 /// The amount of exposure (to slashing) than an individual nominator has.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, RuntimeDebug)]
