@@ -109,15 +109,15 @@ decl_module! {
 			origin, to:T::AccountId
 		) -> DispatchResult {
 			let from = ensure_signed(origin)?;
-			/// Check if the Account is already endorsing.
+			// Check if the Account is already endorsing.
 			if <Endorser<T>>::contains_key(&from) {
-				Err(Error::<T>::AlreadyEndorsing).map_err(Into::into)
+				return Err(Error::<T>::AlreadyEndorsing).map_err(Into::into);
 			}
-			/// Set One to One endorser->validator association.
+			// Set One to One endorser->validator association.
 			<Endorser<T>>::insert(&from,&to);
-			/// Set One to Many validator->endorsers association.
+			// Set One to Many validator->endorsers association.
 			<ValidatorEndorsers<T>>::append(&to,vec![&from])?;
-			/// Create a snapshot with the current free balance of the endorser.
+			// Create a snapshot with the current free balance of the endorser.
 			Self::set_snapshot(&from,&to,T::Currency::free_balance(&from))?;
 			Ok(())
 		}
@@ -127,20 +127,20 @@ decl_module! {
 			origin
 		) -> DispatchResult {
 			let from = ensure_signed(origin)?;
-			/// Check if the Account is actively endorsing.
+			// Check if the Account is actively endorsing.
 			if !<Endorser<T>>::contains_key(&from) {
-				Err(Error::<T>::NotEndorsing).map_err(Into::into)
+				return Err(Error::<T>::NotEndorsing).map_err(Into::into);
 			}
 
 			let validator = <Endorser<T>>::get(&from);
 			let mut endorsers = <ValidatorEndorsers<T>>::get(&validator);
 
-			/// Remove One to Many validator->endorsers association
+			// Remove One to Many validator->endorsers association
 			endorsers.retain(|x| x != &from);
 			<ValidatorEndorsers<T>>::insert(&validator, endorsers);
-			/// Remove One to One endorser->validator association
+			// Remove One to One endorser->validator association
 			<Endorser<T>>::remove(&from);
-			/// Remove all snapshots associated to the endorser, using the double map prefix
+			// Remove all snapshots associated to the endorser, using the double map prefix
 			<EndorserSnapshots<T>>::remove_prefix(&from);
 
 			Ok(())
