@@ -4,24 +4,37 @@ use sp_std::prelude::*;
 use codec::{HasCompact, Encode, Decode};
 use sp_runtime::{RuntimeDebug,Perbill};
 // use sp_runtime::traits::{OpaqueKeys,Convert};
-use sp_runtime::traits::{Hash,Convert,SaturatedConversion,CheckedSub};
+use sp_runtime::traits::{Convert,SaturatedConversion};
 use sp_staking::offence::{OffenceDetails};
 use frame_support::{decl_module, decl_storage, decl_event, decl_error, debug};
 use frame_support::dispatch::{DispatchResult};
 use frame_support::traits::{Currency,Get};
 use system::{ensure_signed};
 
+use sp_core::crypto::KeyTypeId;
+use system::offchain::{SubmitSignedTransaction};
+
 #[path = "../../../runtime/src/constants.rs"]
 #[allow(dead_code)]
 mod constants;
-use constants::time::{MILLISECS_PER_YEAR,EPOCH_DURATION_IN_BLOCKS};
-use constants::mb_genesis::{REWARD_PER_YEAR,VALIDATORS_PER_SESSION};
+use constants::time::{EPOCH_DURATION_IN_BLOCKS};
+use constants::mb_genesis::{VALIDATORS_PER_SESSION};
+
+pub const KEY_TYPE: KeyTypeId = KeyTypeId(*b"mbst");
 
 type BalanceOf<T> = 
 	<<T as Trait>::Currency as Currency<<T as system::Trait>::AccountId>>::Balance;
 
+pub mod crypto {
+  pub use super::KEY_TYPE;
+  use sp_runtime::app_crypto::{app_crypto, sr25519};
+  app_crypto!(sr25519, KEY_TYPE);
+}
+
 pub trait Trait: system::Trait + pallet_balances::Trait + pallet_session::Trait {
 	type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
+	type Call: From<Call<Self>>;
+	type SubmitTransaction: SubmitSignedTransaction<Self,<Self as Trait>::Call>;
 	type Currency: Currency<Self::AccountId>;
 	type SessionsPerEra: Get<u8>;
 }
@@ -145,10 +158,46 @@ decl_module! {
 
 			Ok(())
 		}
+
+		fn offchain_worker(block_number: T::BlockNumber) {
+			// Select validators off-chain
+			Self::offchain_validator_selection(block_number);
+		}
+
+		fn persist_selected_validators(
+			origin,selected_validators: Vec<T::AccountId>
+		) -> DispatchResult {
+			ensure_signed(origin)?;
+			<SessionValidators<T>>::put(selected_validators.clone());
+			Ok(())
+		}
 	}
 }
 
 impl<T: Trait> Module<T> {
+
+	/// Offchain task to select validators
+	fn offchain_validator_selection(block_number: T::BlockNumber) {
+		// Find out where we are in Era
+		let current_era: u128 = EraIndex::get() as u128;
+		let last_block_of_era: u128 = 
+			(current_era * (T::SessionsPerEra::get() as u128) * (EPOCH_DURATION_IN_BLOCKS as u128)).saturated_into();
+		let validator_selection_delta: u128 = 5;
+		let current_block_number: u128 = block_number.saturated_into();
+		// When we are 5 blocks away of a new Era, run the validator selection.
+		if (last_block_of_era - current_block_number) == validator_selection_delta {
+			// Perform the validator selection
+			let selected_validators = <Module<T>>::select_validators();
+			// Send signed transaction to persist the new validators to the on-chain storage
+			let call = Call::persist_selected_validators(selected_validators);
+			let res = T::SubmitTransaction::submit_signed(call);
+			if res.is_empty() {
+				debug::native::info!("No local accounts found.");
+			} else {
+				debug::native::info!("Sending selected validator transaction.");
+			}
+		}
+	}
 	
 	/// Sets a snapshot using the current era's block index and the Account free_balance.
 	fn set_snapshot(
@@ -268,9 +317,6 @@ impl<T: Trait> pallet_session::SessionManager<T::AccountId> for SessionManager<T
 				let new_era_idx = EraIndex::get().checked_add(1)
 					.ok_or("SessionOfEraIndex Overflow").unwrap();
 				EraIndex::put(new_era_idx);
-				// Select a new validator set
-				let selected_validatiors = <Module<T>>::select_validators();
-				<SessionValidators<T>>::put(selected_validatiors.clone());
 				// Reset all snapshots
 				<Module<T>>::reset_snapshots();
 			} else {

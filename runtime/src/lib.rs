@@ -399,8 +399,16 @@ parameter_types! {
 	pub const SessionsPerEra: u8 = EPOCH_PER_ERA;
 }
 
+type SubmitMBTransaction = TransactionSubmitter<
+	mb_staking::crypto::Public,
+	Runtime,
+	UncheckedExtrinsic
+>;
+
 impl mb_staking::Trait for Runtime {
 	type Currency = Balances;
+	type SubmitTransaction = SubmitMBTransaction;
+	type Call = Call;
 	type Event = Event;
 	type SessionsPerEra = SessionsPerEra;
 }
