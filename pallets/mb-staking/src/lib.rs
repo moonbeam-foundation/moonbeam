@@ -160,6 +160,8 @@ decl_module! {
 		}
 
 		fn offchain_worker(block_number: T::BlockNumber) {
+			// Set snapshots
+			Self::offchain_set_snapshots();
 			// Select validators off-chain
 			Self::offchain_validator_selection(block_number);
 		}
@@ -171,10 +173,59 @@ decl_module! {
 			<SessionValidators<T>>::put(selected_validators.clone());
 			Ok(())
 		}
+
+		fn persist_snapshots(
+			origin,snapshots: Vec<(T::AccountId,T::AccountId,BalanceOf<T>)>
+		) -> DispatchResult {
+			ensure_signed(origin)?;
+			for s in &snapshots {
+				Self::set_snapshot(&s.0,&s.1,s.2)?;
+			}
+			Ok(())
+		}
 	}
 }
 
 impl<T: Trait> Module<T> {
+
+	/// First approach to keep moving forward until we find out how to track BalanceOf 
+	/// changes in real-time.
+	/// 
+	/// This approach, although functional, is invalid as it has multiple issues like 
+	/// sending signed transactions potentially every block.
+	/// 
+	/// Other messy ways could be, again a per-block offchain task, pattern matching the
+	/// <system::Module<T>>::events() to find pallet_balances events that are registered
+	/// in the Storage.
+	fn offchain_set_snapshots() {
+		let mut output: Vec<(T::AccountId,T::AccountId,BalanceOf<T>)> = vec![];
+		let validators = <Validators<T>>::get();
+		for v in &validators {
+			let endorsers = <ValidatorEndorsers<T>>::get(v);
+			for ed in &endorsers {
+				let snapshots = <EndorserSnapshots<T>>::get(ed,v.clone());
+				let len = snapshots.len();
+				// Make sure we have a previous block reference in this Era
+				if len > 0 {
+					let snapshot_balance = snapshots[len-1].1;
+					let current_balance = T::Currency::free_balance(ed);
+					if snapshot_balance != current_balance {
+						output.push((ed.clone(),v.clone(),current_balance));
+					}
+				}
+			}
+		}
+		// If there are snapshots, send signed transaction 
+		if output.len() > 0 {
+			let call = Call::persist_snapshots(output);
+			let res = T::SubmitTransaction::submit_signed(call);
+			if res.is_empty() {
+				debug::native::info!("No local accounts found.");
+			} else {
+				debug::native::info!("Sending snapshots transaction.");
+			}
+		}
+	} 
 
 	/// Offchain task to select validators
 	fn offchain_validator_selection(block_number: T::BlockNumber) {
@@ -384,7 +435,6 @@ pub struct Exposure<AccountId, Balance: HasCompact> {
 /// A typed conversion from stash account ID to the current exposure of nominators
 /// on that account.
 pub struct ExposureOf<T>(sp_std::marker::PhantomData<T>);
-
 impl<T: Trait> Convert<T::AccountId, Option<Exposure<T::AccountId, BalanceOf<T>>>>
 	for ExposureOf<T>
 {
