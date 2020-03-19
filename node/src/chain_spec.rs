@@ -17,7 +17,7 @@ pub use node_primitives::{AccountId, Balance, Signature, Block};
 use moonbeam_runtime::{
 	GenesisConfig, AuthorityDiscoveryConfig, BabeConfig, BalancesConfig, ContractsConfig,
 	GrandpaConfig, ImOnlineConfig, SessionConfig, SessionKeys,
-	IndicesConfig, SudoConfig, SystemConfig, WASM_BINARY, MoonbeamCoreConfig, MoonbeamStakingConfig
+	IndicesConfig, SudoConfig, SystemConfig, WASM_BINARY, MoonbeamCoreConfig, MoonbeamSessionConfig
 };
 
 use moonbeam_runtime::constants::mb_genesis::*;
@@ -141,7 +141,7 @@ fn testnet_genesis(
 			treasury: TREASURY_FUND,
 			genesis_accounts: endowed_accounts.clone(),
 		}),
-		mb_staking: Some(MoonbeamStakingConfig {
+		mb_session: Some(MoonbeamSessionConfig {
 			treasury: TREASURY_FUND,
 			session_validators: initial_authorities.iter().map(|x| {
 				x.0.clone()

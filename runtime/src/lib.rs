@@ -57,7 +57,7 @@ pub use constants::{time::*, currency::*, mb_genesis::*};
 
 /// Importing the moonbeam core pallet
 pub use mb_core;
-pub use mb_staking;
+pub use mb_session;
 
 /// Implementations of some helper traits passed into runtime modules as associated types.
 pub mod impls;
@@ -228,7 +228,7 @@ impl pallet_authorship::Trait for Runtime {
 	type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Babe>;
 	type UncleGenerations = UncleGenerations;
 	type FilterUncle = ();
-	type EventHandler = (mb_staking::AuthorshipEventHandler<Runtime>, ImOnline);
+	type EventHandler = (mb_session::AuthorshipEventHandler<Runtime>, ImOnline);
 }
 
 parameter_types! {
@@ -240,15 +240,15 @@ impl pallet_session::Trait for Runtime {
 	type ValidatorId = <Self as frame_system::Trait>::AccountId;
 	type ValidatorIdOf = ConvertInto;
 	type ShouldEndSession = Babe;
-	type SessionManager = mb_staking::SessionManager<Runtime>;
+	type SessionManager = mb_session::SessionManager<Runtime>;
 	type SessionHandler = <SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
 	type Keys = SessionKeys;
 	type DisabledValidatorsThreshold = DisabledValidatorsThreshold;
 }
 
 impl pallet_session::historical::Trait for Runtime {
-	type FullIdentification = mb_staking::Exposure<AccountId, Balance>;
-	type FullIdentificationOf = mb_staking::ExposureOf<Runtime>;
+	type FullIdentification = mb_session::Exposure<AccountId, Balance>;
+	type FullIdentificationOf = mb_session::ExposureOf<Runtime>;
 }
 
 parameter_types! {
@@ -306,7 +306,7 @@ impl pallet_im_online::Trait for Runtime {
 impl pallet_offences::Trait for Runtime {
 	type Event = Event;
 	type IdentificationTuple = pallet_session::historical::IdentificationTuple<Self>;
-	type OnOffenceHandler = mb_staking::Offences<Runtime>;
+	type OnOffenceHandler = mb_session::Offences<Runtime>;
 }
 
 impl pallet_authority_discovery::Trait for Runtime {}
@@ -400,12 +400,12 @@ parameter_types! {
 }
 
 type SubmitMBTransaction = TransactionSubmitter<
-	mb_staking::crypto::Public,
+	mb_session::crypto::Public,
 	Runtime,
 	UncheckedExtrinsic
 >;
 
-impl mb_staking::Trait for Runtime {
+impl mb_session::Trait for Runtime {
 	type Currency = Balances;
 	type SubmitTransaction = SubmitMBTransaction;
 	type Call = Call;
@@ -440,7 +440,7 @@ construct_runtime!(
 		Recovery: pallet_recovery::{Module, Call, Storage, Event<T>},
 		Vesting: pallet_vesting::{Module, Call, Storage, Event<T>, Config<T>},
 		MoonbeamCore: mb_core::{Module, Call, Storage, Event<T>, Config<T>},
-		MoonbeamStaking: mb_staking::{Module, Call, Storage, Event<T>, Config<T>},
+		MoonbeamSession: mb_session::{Module, Call, Storage, Event<T>, Config<T>},
 	}
 );
 
