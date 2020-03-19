@@ -61,7 +61,7 @@ pub use mb_session;
 
 /// Implementations of some helper traits passed into runtime modules as associated types.
 pub mod impls;
-use impls::{Author, LinearWeightToFee, TargetedFeeAdjustment};
+use impls::{Author, LinearWeightToFee, TargetedFeeAdjustment, Exposure, ExposureOf, StakingOffences};
 
 impl_opaque_keys! {
 	pub struct SessionKeys {
@@ -247,8 +247,8 @@ impl pallet_session::Trait for Runtime {
 }
 
 impl pallet_session::historical::Trait for Runtime {
-	type FullIdentification = mb_session::Exposure<AccountId, Balance>;
-	type FullIdentificationOf = mb_session::ExposureOf<Runtime>;
+	type FullIdentification = Exposure<AccountId, Balance>;
+	type FullIdentificationOf = ExposureOf<Runtime>;
 }
 
 parameter_types! {
@@ -306,7 +306,7 @@ impl pallet_im_online::Trait for Runtime {
 impl pallet_offences::Trait for Runtime {
 	type Event = Event;
 	type IdentificationTuple = pallet_session::historical::IdentificationTuple<Self>;
-	type OnOffenceHandler = mb_session::Offences<Runtime>;
+	type OnOffenceHandler = StakingOffences<Runtime>;
 }
 
 impl pallet_authority_discovery::Trait for Runtime {}
@@ -404,6 +404,9 @@ type SubmitMBTransaction = TransactionSubmitter<
 	Runtime,
 	UncheckedExtrinsic
 >;
+
+pub type BalanceOf<T> = 
+	<<T as mb_session::Trait>::Currency as Currency<<T as frame_system::Trait>::AccountId>>::Balance;
 
 impl mb_session::Trait for Runtime {
 	type Currency = Balances;
