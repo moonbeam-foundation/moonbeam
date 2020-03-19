@@ -1,11 +1,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use sp_std::prelude::*;
-use codec::{HasCompact, Encode, Decode};
-use sp_runtime::{RuntimeDebug,Perbill};
 // use sp_runtime::traits::{OpaqueKeys,Convert};
-use sp_runtime::traits::{Convert,SaturatedConversion};
-use sp_staking::offence::{OffenceDetails};
+use sp_runtime::traits::{SaturatedConversion};
 use frame_support::{decl_module, decl_storage, decl_event, decl_error, debug};
 use frame_support::dispatch::{DispatchResult};
 use frame_support::traits::{Currency,Get};
@@ -404,85 +401,3 @@ impl<T: Trait> pallet_authorship::EventHandler<T::AccountId,u32> for AuthorshipE
 		
 	}
 }
-
-// !!!!!!
-// All below are trait implemenations that we need to satisfy for the historical feature of the pallet-session
-// and by offences. Find a way to remove without having to implement or move outside of the pallet.
-
-/// The amount of exposure (to slashing) than an individual nominator has.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, RuntimeDebug)]
-pub struct IndividualExposure<AccountId, Balance: HasCompact> {
-	/// The stash account of the nominator in question.
-	who: AccountId,
-	/// Amount of funds exposed.
-	#[codec(compact)]
-	value: Balance,
-}
-
-/// A snapshot of the stake backing a single validator in the system.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, Default, RuntimeDebug)]
-pub struct Exposure<AccountId, Balance: HasCompact> {
-	/// The total balance backing this validator.
-	#[codec(compact)]
-	pub total: Balance,
-	/// The validator's own stash that is exposed.
-	#[codec(compact)]
-	pub own: Balance,
-	/// The portions of nominators stashes that are exposed.
-	pub others: Vec<IndividualExposure<AccountId, Balance>>,
-}
-
-/// A typed conversion from stash account ID to the current exposure of nominators
-/// on that account.
-pub struct ExposureOf<T>(sp_std::marker::PhantomData<T>);
-impl<T: Trait> Convert<T::AccountId, Option<Exposure<T::AccountId, BalanceOf<T>>>>
-	for ExposureOf<T>
-{
-	fn convert(_validator: T::AccountId) -> Option<Exposure<T::AccountId, BalanceOf<T>>> {
-		None
-	}
-}
-
-pub struct Offences<T>(sp_std::marker::PhantomData<T>);
-impl <T: Trait> sp_staking::offence::OnOffenceHandler<T::AccountId, pallet_session::historical::IdentificationTuple<T>> for Offences<T> where
-	T: pallet_session::Trait<ValidatorId = <T as system::Trait>::AccountId>,
-	T: pallet_session::historical::Trait<
-		FullIdentification = Exposure<<T as system::Trait>::AccountId, BalanceOf<T>>,
-		FullIdentificationOf = ExposureOf<T>,
-	>,
-	T::SessionHandler: pallet_session::SessionHandler<<T as system::Trait>::AccountId>,
-	T::SessionManager: pallet_session::SessionManager<<T as system::Trait>::AccountId>,
-	T::ValidatorIdOf: Convert<<T as system::Trait>::AccountId, Option<<T as system::Trait>::AccountId>>
-{
-	fn on_offence(
-		_offenders: &[OffenceDetails<T::AccountId, pallet_session::historical::IdentificationTuple<T>>],
-		_slash_fraction: &[Perbill],
-		_slash_session: u32,
-	) {
-		
-	}
-}
-
-// struct SessionHandler<T>(T);
-// impl<T: Trait> pallet_session::SessionHandler<T::AccountId> for SessionHandler<T> {
-
-// 	const KEY_TYPE_IDS: &'static [KeyTypeId] = &[];
-
-// 	fn on_genesis_session<Ks: OpaqueKeys>(_validators: &[(T::AccountId, Ks)]) {}
-
-// 	fn on_new_session<Ks: OpaqueKeys>(
-// 		_changed: bool,
-// 		validators: &[(T::AccountId, Ks)],
-// 		_queued_validators: &[(T::AccountId, Ks)],
-// 	) {
-// 		SessionIndex::mutate(|x| *x + 1);
-// 		let current_session = SessionIndex::get();
-// 		<Module<T>>::deposit_event(
-// 			RawEvent::NewSessionIndex(current_session)
-// 		);
-// 	}
-
-// 	fn on_disabled(validator_index: usize) {
-		
-// 	}
-// }

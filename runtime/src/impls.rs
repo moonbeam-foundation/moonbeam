@@ -15,13 +15,16 @@
 // along with Substrate.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Some configurable implementations as associated type for the substrate runtime.
+use sp_std::prelude::*;
 
 use sp_runtime::traits::{Convert, Saturating};
-use sp_runtime::{Fixed64, Perbill};
+use sp_runtime::{Fixed64, Perbill,RuntimeDebug};
 use frame_support::{traits::{OnUnbalanced, Currency, Get}, weights::Weight};
+use codec::{HasCompact, Encode, Decode};
+use sp_staking::offence::{OffenceDetails};
 
 use node_primitives::Balance;
-use crate::{Balances, System, Authorship, MaximumBlockWeight, NegativeImbalance};
+use crate::{Balances, System, Authorship, MaximumBlockWeight, NegativeImbalance, BalanceOf};
 
 pub struct Author;
 impl OnUnbalanced<NegativeImbalance> for Author {
@@ -110,5 +113,62 @@ impl<T: Get<Perbill>> Convert<Fixed64, Fixed64> for TargetedFeeAdjustment<T> {
 				// became more busy.
 				.max(Fixed64::from_rational(-1, 1))
 		}
+	}
+}
+
+// All below are trait implemenations that we need to satisfy for the historical feature of the pallet-session
+// and by offences.
+
+/// The amount of exposure (to slashing) than an individual nominator has.
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, RuntimeDebug)]
+pub struct IndividualExposure<AccountId, Balance: HasCompact> {
+	/// The stash account of the nominator in question.
+	who: AccountId,
+	/// Amount of funds exposed.
+	#[codec(compact)]
+	value: Balance,
+}
+
+/// A snapshot of the stake backing a single validator in the system.
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, Default, RuntimeDebug)]
+pub struct Exposure<AccountId, Balance: HasCompact> {
+	/// The total balance backing this validator.
+	#[codec(compact)]
+	pub total: Balance,
+	/// The validator's own stash that is exposed.
+	#[codec(compact)]
+	pub own: Balance,
+	/// The portions of nominators stashes that are exposed.
+	pub others: Vec<IndividualExposure<AccountId, Balance>>,
+}
+
+/// A typed conversion from stash account ID to the current exposure of nominators
+/// on that account.
+pub struct ExposureOf<T>(sp_std::marker::PhantomData<T>);
+impl<T: mb_session::Trait> Convert<T::AccountId, Option<Exposure<T::AccountId, BalanceOf<T>>>>
+	for ExposureOf<T>
+{
+	fn convert(_validator: T::AccountId) -> Option<Exposure<T::AccountId, BalanceOf<T>>> {
+		None
+	}
+}
+
+pub struct StakingOffences<T>(sp_std::marker::PhantomData<T>);
+impl <T: mb_session::Trait> sp_staking::offence::OnOffenceHandler<T::AccountId, pallet_session::historical::IdentificationTuple<T>> for StakingOffences<T> where
+	T: pallet_session::Trait<ValidatorId = <T as frame_system::Trait>::AccountId>,
+	T: pallet_session::historical::Trait<
+		FullIdentification = Exposure<<T as frame_system::Trait>::AccountId, BalanceOf<T>>,
+		FullIdentificationOf = ExposureOf<T>,
+	>,
+	T::SessionHandler: pallet_session::SessionHandler<<T as frame_system::Trait>::AccountId>,
+	T::SessionManager: pallet_session::SessionManager<<T as frame_system::Trait>::AccountId>,
+	T::ValidatorIdOf: Convert<<T as frame_system::Trait>::AccountId, Option<<T as frame_system::Trait>::AccountId>>
+{
+	fn on_offence(
+		_offenders: &[OffenceDetails<T::AccountId, pallet_session::historical::IdentificationTuple<T>>],
+		_slash_fraction: &[Perbill],
+		_slash_session: u32,
+	) {
+		
 	}
 }
