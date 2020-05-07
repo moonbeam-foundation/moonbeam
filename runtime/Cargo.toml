@@ -121,6 +121,11 @@ version = '1.0.5'
 [package.metadata.docs.rs]
 targets = ['x86_64-unknown-linux-gnu']
 
+[dependencies.evm]
+default-features = false
+version = '2.0.0-alpha.7'
+package = 'pallet-evm'
+
 [features]
 default = ['std']
 std = [
@@ -148,4 +153,5 @@ std = [
     'system/std',
     'timestamp/std',
     'transaction-payment/std',
+	'evm/std',
 ]

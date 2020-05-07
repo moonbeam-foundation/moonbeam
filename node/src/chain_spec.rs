@@ -1,13 +1,14 @@
 use node_moonbeam_runtime::{
-	AccountId, AuraConfig, BalancesConfig, GenesisConfig, GrandpaConfig, Signature, SudoConfig,
-	SystemConfig, WASM_BINARY,
+	AccountId, AuraConfig, BalancesConfig, EVMAccount, EVMConfig, GenesisConfig, GrandpaConfig,
+	Signature, SudoConfig, SystemConfig, WASM_BINARY,
 };
 use sc_service::ChainType;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-use sp_core::{sr25519, Pair, Public};
+use sp_core::{sr25519, Pair, Public, U256};
 use sp_finality_grandpa::AuthorityId as GrandpaId;
-use sp_runtime::traits::{IdentifyAccount, Verify};
+use sp_runtime::traits::{BlakeTwo256, IdentifyAccount, Verify};
 
+use evm::{ConvertAccountId, HashTruncateConvertAccountId};
 // Note this is the URL for the telemetry server
 //const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
 
@@ -105,6 +106,10 @@ fn testnet_genesis(
 	endowed_accounts: Vec<AccountId>,
 	_enable_println: bool,
 ) -> GenesisConfig {
+	let alice_account_id = get_account_id_from_seed::<sr25519::Public>("Alice");
+	let alice_evm_account_id =
+		HashTruncateConvertAccountId::<BlakeTwo256>::convert_account_id(&alice_account_id);
+
 	GenesisConfig {
 		system: Some(SystemConfig {
 			code: WASM_BINARY.to_vec(),
@@ -127,5 +132,14 @@ fn testnet_genesis(
 				.collect(),
 		}),
 		sudo: Some(SudoConfig { key: root_key }),
+		evm: Some(EVMConfig {
+			accounts: vec![(
+				alice_evm_account_id,
+				EVMAccount {
+					nonce: 0.into(),
+					balance: U256::MAX,
+				},
+			)],
+		}),
 	}
 }

@@ -12,22 +12,25 @@ use grandpa::fg_primitives;
 use grandpa::AuthorityList as GrandpaAuthorityList;
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-use sp_core::OpaqueMetadata;
+use sp_core::{OpaqueMetadata, U256};
 use sp_runtime::traits::{
 	BlakeTwo256, Block as BlockT, ConvertInto, IdentifyAccount, IdentityLookup, Verify,
 };
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, MultiSignature,
+	ApplyExtrinsicResult, ModuleId, MultiSignature,
 };
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
+use evm::{FeeCalculator, HashTruncateConvertAccountId};
+
 // A few exports that help ease life for downstream crates.
 pub use balances::Call as BalancesCall;
+pub use evm::Account as EVMAccount;
 pub use frame_support::{
 	construct_runtime, parameter_types,
 	traits::Randomness,
@@ -67,6 +70,9 @@ pub type Hash = sp_core::H256;
 
 /// Digest item type.
 pub type DigestItem = generic::DigestItem<Hash>;
+
+// EVM structs
+pub struct FixedGasPrice;
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
@@ -128,6 +134,8 @@ parameter_types! {
 	pub const AvailableBlockRatio: Perbill = Perbill::from_percent(75);
 	pub const MaximumBlockLength: u32 = 5 * 1024 * 1024;
 	pub const Version: RuntimeVersion = VERSION;
+
+	pub const EVMModuleId: ModuleId = ModuleId(*b"py/evmpa");
 }
 
 impl system::Trait for Runtime {
@@ -231,6 +239,24 @@ impl sudo::Trait for Runtime {
 	type Call = Call;
 }
 
+impl FeeCalculator for FixedGasPrice {
+	fn min_gas_price() -> U256 {
+		// Gas price is always one token per gas.
+		1.into()
+	}
+}
+
+impl evm::Trait for Runtime {
+	type ModuleId = EVMModuleId;
+	type FeeCalculator = FixedGasPrice;
+	type ConvertAccountId = HashTruncateConvertAccountId<BlakeTwo256>;
+	type Currency = Balances;
+	type Event = Event;
+	type Precompiles = (); // We can use () here because paint_evm provides an
+					   // `impl Precompiles for ()``
+					   // block that always returns none (line 75)
+}
+
 construct_runtime!(
 	pub enum Runtime where
 		Block = Block,
@@ -245,6 +271,7 @@ construct_runtime!(
 		Balances: balances::{Module, Call, Storage, Config<T>, Event<T>},
 		TransactionPayment: transaction_payment::{Module, Storage},
 		Sudo: sudo::{Module, Call, Config<T>, Storage, Event<T>},
+		EVM: evm::{Module, Config, Call, Storage, Event<T>},
 	}
 );
 

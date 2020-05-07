@@ -74,5 +74,10 @@ version = '2.0.0-alpha.7'
 [build-dependencies.substrate-build-script-utils]
 version = '2.0.0-alpha.7'
 
+[dependencies.evm]
+default-features = false
+version = '2.0.0-alpha.7'
+package = 'pallet-evm'
+
 [[bin]]
 name = 'node-moonbeam'
