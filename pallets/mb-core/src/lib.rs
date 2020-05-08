@@ -4,11 +4,11 @@ use sp_std::prelude::*;
 
 use frame_support::{decl_module, decl_storage, decl_event};
 use frame_support::dispatch::{DispatchResult};
-use frame_support::traits::{OnUnbalanced,Currency,LockableCurrency,Imbalance};
+use frame_support::traits::{OnUnbalanced,Currency,LockableCurrency,Imbalance, EnsureOrigin};
 use system::{ensure_root,RawOrigin};
-use sp_runtime::{traits::{EnsureOrigin,CheckedAdd,CheckedSub}};
+use sp_runtime::traits::{CheckedAdd,CheckedSub};
 
-type BalanceOf<T> = 
+type BalanceOf<T> =
 	<<T as Trait>::Currency as Currency<<T as system::Trait>::AccountId>>::Balance;
 
 type NegativeImbalanceOf<T> =
@@ -24,22 +24,23 @@ pub trait Trait: system::Trait + pallet_balances::Trait {
 
 decl_storage! {
 	trait Store for Module<T: Trait> as MoonbeamModule {
-		Treasury get(treasury): BalanceOf<T>;
-		GenesisAccounts get(genesis_accounts): Vec<T::AccountId>;
+		Treasury get(fn treasury): BalanceOf<T>;
+		GenesisAccounts get(fn genesis_accounts): Vec<T::AccountId>;
 	}
     add_extra_genesis {
 		config(treasury): BalanceOf<T>;
 		config(genesis_accounts): Vec<T::AccountId>;
         build(|config: &GenesisConfig<T>| {
 			<Treasury<T>>::put(config.treasury);
-			let _ = <GenesisAccounts<T>>::append(config.genesis_accounts.clone());
+			// TODO Telmo:  fix
+			// let _ = <GenesisAccounts<T>>::append(config.genesis_accounts.clone());
         });
     }
 }
 
 decl_event!(
-	pub enum Event<T> 
-	where 
+	pub enum Event<T>
+	where
 		AccountId = <T as system::Trait>::AccountId,
 		BalanceOf = BalanceOf<T>,
 	{
@@ -55,6 +56,7 @@ decl_module! {
 		fn deposit_event() = default;
 
 		// TODO work in progress mint from pot
+		#[weight = 0]
 		fn mint(
             origin, _to: T::AccountId, _ammount: BalanceOf<T>
         ) -> DispatchResult {
@@ -67,7 +69,7 @@ decl_module! {
 
 pub struct Collective<AccountId>(AccountId);
 impl<
-    O: Into<Result<RawOrigin<AccountId>, O>> + From<RawOrigin<AccountId>>, 
+    O: Into<Result<RawOrigin<AccountId>, O>> + From<RawOrigin<AccountId>>,
     AccountId
 > EnsureOrigin<O> for Collective<AccountId> {
 	type Success = ();
@@ -101,7 +103,7 @@ impl<T: Trait> OnUnbalanced<NegativeImbalanceOf<T>> for Absorb<T>
 		}
 		<Module<T>>::deposit_event(
 			RawEvent::Absorbed(
-				raw_amount, 
+				raw_amount,
 				<Treasury<T>>::get()
 			)
 		);
@@ -123,7 +125,7 @@ impl<T: Trait> OnUnbalanced<PositiveImbalanceOf<T>> for Reward<T>
 		}
 		<Module<T>>::deposit_event(
 			RawEvent::Rewarded(
-				raw_amount, 
+				raw_amount,
 				<Treasury<T>>::get()
 			)
 		);

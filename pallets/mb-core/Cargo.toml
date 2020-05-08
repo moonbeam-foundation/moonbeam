@@ -1,8 +1,13 @@
 [package]
 authors = ['PureStake']
+description = 'Moonbeam Core'
 edition = '2018'
-name = 'mb-core'
+homepage = 'https://moonbeam.network'
+license = 'Unlicense'
+name = 'mb-evm'
+repository = 'https://github.com/PureStake/moonbeam/'
 version = '0.1.0'
+
 
 [dependencies]
 codec = { package = "parity-scale-codec", version = "1.0.0", default-features = false, features = ["derive"] }
@@ -10,17 +15,17 @@ safe-mix = { default-features = false, version = '1.0.0' }
 serde = { version = "1.0.102", features = ["derive"] }
 
 # primitives
-sp-core = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02', default-features = false }
-sp-io = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02', default-features = false }
-sp-runtime = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02', default-features = false }
-sp-std = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02', default-features = false }
-sp-staking = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02', default-features = false }
+sp-core = { git = 'https://github.com/paritytech/substrate.git', version = '2.0.0-alpha.7', default-features = false }
+sp-io = { git = 'https://github.com/paritytech/substrate.git', version = '2.0.0-alpha.7', default-features = false }
+sp-runtime = { git = 'https://github.com/paritytech/substrate.git', version = '2.0.0-alpha.7', default-features = false }
+sp-std = { git = 'https://github.com/paritytech/substrate.git', version = '2.0.0-alpha.7', default-features = false }
+sp-staking = { git = 'https://github.com/paritytech/substrate.git', version = '2.0.0-alpha.7', default-features = false }
 
 # frame dependencies
-frame-support = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02', default-features = false }
-system = { package = 'frame-system', git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02', default-features = false }
-pallet-balances = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02', default-features = false }
-pallet-staking = { git = 'https://github.com/paritytech/substrate.git', rev = '992aea815a753da256a9c0bff053df408532df02', default-features = false }
+frame-support = { git = 'https://github.com/paritytech/substrate.git', version = '2.0.0-alpha.7', default-features = false }
+system = { package = 'frame-system', git = 'https://github.com/paritytech/substrate.git', version = '2.0.0-alpha.7', default-features = false }
+pallet-balances = { git = 'https://github.com/paritytech/substrate.git', version = '2.0.0-alpha.7', default-features = false }
+pallet-staking = { git = 'https://github.com/paritytech/substrate.git', version = '2.0.0-alpha.7', default-features = false }
 
 [features]
 default = ['std']
