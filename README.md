@@ -45,6 +45,14 @@ target/release/node-moonbeam --dev
 
 
 ## Pallets
+* aura: Time-based Authority Consensus (*for simplicity until more development is done)
+* balances: Account & Balance management
+* grandpa: GRANDPA Authority consensus
+* sudo: Allow specific account to call any dispatchable ("Alice": `0x57d213d0927ccc7596044c6ba013dd05522aacba`)
+* timestamp: On-Chain time management
+* transaction-payment: Transaction payement (fee) management
+* evm: EVM Execution. (Temporary until we work on pallet-ethereum)
+
 * mb-core: Currently serves as a way to experiments with pallets and substrate
 * mb-session: WIP implementation of governance
 * mb-evm: Pallet to support EVM. It provides extra dispatchables
