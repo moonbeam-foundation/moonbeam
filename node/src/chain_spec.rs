@@ -1,9 +1,10 @@
 use node_moonbeam_runtime::{
-	AccountId, AuraConfig, BalancesConfig, EVMAccount, EVMConfig, GenesisConfig, GrandpaConfig,
+	AccountId, BabeConfig, AuthorityDiscoveryConfig, ImOnlineConfig, SessionConfig, 
+	BalancesConfig, EVMAccount, EVMConfig, GenesisConfig, GrandpaConfig,
 	Signature, SudoConfig, SystemConfig, WASM_BINARY,
 };
 use sc_service::ChainType;
-use sp_consensus_aura::sr25519::AuthorityId as AuraId;
+use sp_consensus_babe::{AuthorityId as BabeId};
 use sp_core::{sr25519, Pair, Public, U256};
 use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::traits::{BlakeTwo256, IdentifyAccount, Verify};
@@ -11,6 +12,8 @@ use sp_runtime::traits::{BlakeTwo256, IdentifyAccount, Verify};
 use evm::{ConvertAccountId, HashTruncateConvertAccountId};
 // Note this is the URL for the telemetry server
 //const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
+
+use node_moonbeam_runtime::constants::mb_genesis::*;
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig>;
@@ -32,9 +35,9 @@ where
 	AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
 }
 
-/// Helper function to generate an authority key for Aura
-pub fn authority_keys_from_seed(s: &str) -> (AuraId, GrandpaId) {
-	(get_from_seed::<AuraId>(s), get_from_seed::<GrandpaId>(s))
+/// Helper function to generate an authority key for Babe and Grandpa
+pub fn authority_keys_from_seed(s: &str) -> (BabeId, GrandpaId) {
+	(get_from_seed::<BabeId>(s), get_from_seed::<GrandpaId>(s))
 }
 
 pub fn development_config() -> ChainSpec {
@@ -101,7 +104,7 @@ pub fn local_testnet_config() -> ChainSpec {
 }
 
 fn testnet_genesis(
-	initial_authorities: Vec<(AuraId, GrandpaId)>,
+	initial_authorities: Vec<(BabeId, GrandpaId)>,
 	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,
 	_enable_println: bool,
@@ -122,7 +125,7 @@ fn testnet_genesis(
 				.map(|k| (k, 1 << 60))
 				.collect(),
 		}),
-		aura: Some(AuraConfig {
+		pallet_babe: Some(BabeConfig {
 			authorities: initial_authorities.iter().map(|x| (x.0.clone())).collect(),
 		}),
 		grandpa: Some(GrandpaConfig {
@@ -140,6 +143,25 @@ fn testnet_genesis(
 					balance: U256::MAX,
 				},
 			)],
+		}),
+		pallet_session: Some(SessionConfig {
+			keys: keys,
+		}),
+		pallet_im_online: Some(ImOnlineConfig {
+			keys: vec![],
+		}),
+		pallet_authority_discovery: Some(AuthorityDiscoveryConfig {
+			keys: vec![],
+		}),
+		mb_core: Some(MoonbeamCoreConfig {
+			treasury: TREASURY_FUND,
+			genesis_accounts: endowed_accounts.clone(),
+		}),
+		mb_session: Some(MoonbeamSessionConfig {
+			treasury: TREASURY_FUND,
+			session_validators: initial_authorities.iter().map(|x| {
+				x.0.clone()
+			}).collect(),
 		}),
 	}
 }

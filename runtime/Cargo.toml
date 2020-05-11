@@ -7,9 +7,9 @@ name = 'node-moonbeam-runtime'
 repository = 'https://github.com/PureStake/moonbeam/'
 version = '0.1.0'
 
-[dependencies.aura]
+[dependencies.babe]
 default-features = false
-package = 'pallet-aura'
+package = 'pallet-babe'
 version = '2.0.0-alpha.7'
 
 [dependencies.balances]
@@ -54,7 +54,7 @@ version = '2.0.0-alpha.7'
 default-features = false
 version = '2.0.0-alpha.7'
 
-[dependencies.sp-consensus-aura]
+[dependencies.sp-consensus-babe]
 default-features = false
 version = '0.8.0-alpha.7'
 
@@ -114,6 +114,37 @@ default-features = false
 package = 'pallet-transaction-payment'
 version = '2.0.0-alpha.7'
 
+[dependencies.sp-authority-discovery]
+default-features = false
+version = '2.0.0-alpha.7'
+
+[dependencies.pallet-authority-discovery]
+default-features = false
+version = '2.0.0-alpha.7'
+
+[dependencies.pallet-im-online]
+default-features = false
+version = '2.0.0-alpha.7'
+
+[dependencies.pallet-session]
+features = ["historical"]
+default-features = false
+version = '2.0.0-alpha.7'
+
+[dependencies.pallet-authorship]
+default-features = false
+version = '2.0.0-alpha.7'
+
+[dependencies.mb-core]
+default-features = false
+version = '0.1.0'
+path = '../pallets/mb-core'
+
+[dependencies.mb-session]
+default-features = false
+version = '0.1.0'
+path = '../pallets/mb-session'
+
 [build-dependencies.wasm-builder-runner]
 package = 'substrate-wasm-builder-runner'
 version = '1.0.5'
@@ -129,7 +160,7 @@ package = 'pallet-evm'
 [features]
 default = ['std']
 std = [
-    'aura/std',
+    'babe/std',
     'balances/std',
     'codec/std',
     'frame-executive/std',
@@ -139,7 +170,7 @@ std = [
     'serde',
     'sp-api/std',
     'sp-block-builder/std',
-    'sp-consensus-aura/std',
+    'sp-consensus-babe/std',
     'sp-core/std',
     'sp-inherents/std',
     'sp-io/std',
@@ -149,9 +180,14 @@ std = [
     'sp-std/std',
     'sp-transaction-pool/std',
     'sp-version/std',
+    'sp-authority-discovery/std',
     'sudo/std',
     'system/std',
     'timestamp/std',
     'transaction-payment/std',
 	'evm/std',
+	"pallet-authority-discovery/std",
+	"pallet-im-online/std",
+	"pallet-session/std",
+	"pallet-authorship/std"
 ]

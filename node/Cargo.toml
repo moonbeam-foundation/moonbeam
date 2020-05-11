@@ -16,6 +16,7 @@ targets = ['x86_64-unknown-linux-gnu']
 futures = '0.3.4'
 log = '0.4.8'
 structopt = '0.3.8'
+jsonrpc-core = '14.0.3'
 
 [dependencies.node-moonbeam-runtime]
 path = '../runtime'
@@ -33,7 +34,7 @@ version = '2.0.0-alpha.7'
 [dependencies.sc-consensus]
 version = '0.8.0-alpha.7'
 
-[dependencies.sc-consensus-aura]
+[dependencies.sc-consensus-babe]
 version = '0.8.0-alpha.7'
 
 [dependencies.sc-executor]
@@ -48,13 +49,16 @@ version = '0.8.0-alpha.7'
 [dependencies.sc-service]
 version = '0.8.0-alpha.7'
 
+[dependencies.sc-rpc]
+version = '2.0.0-alpha.7'
+
 [dependencies.sc-transaction-pool]
 version = '2.0.0-alpha.7'
 
 [dependencies.sp-consensus]
 version = '0.8.0-alpha.7'
 
-[dependencies.sp-consensus-aura]
+[dependencies.sp-consensus-babe]
 version = '0.8.0-alpha.7'
 
 [dependencies.sp-core]
@@ -71,6 +75,23 @@ version = '2.0.0-alpha.7'
 
 [dependencies.sp-transaction-pool]
 version = '2.0.0-alpha.7'
+
+[dependencies.pallet-transaction-payment-rpc]
+version = '2.0.0-alpha.7'
+
+[dependencies.sp-authority-discovery]
+version = '2.0.0-alpha.7'
+
+[dependencies.pallet-authority-discovery]
+version = '2.0.0-alpha.7'
+
+[dependencies.pallet-im-online]
+version = '2.0.0-alpha.7'
+
+[dependencies.node-primitives]
+version = '2.0.0'
+path = '../primitives'
+
 [build-dependencies.substrate-build-script-utils]
 version = '2.0.0-alpha.7'
 
