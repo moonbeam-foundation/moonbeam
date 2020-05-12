@@ -43,6 +43,22 @@ cargo build --release
 target/release/node-moonbeam --dev
 ```
 
+### Docker image
+
+You can run the moonbeam node within Docker directly.  
+The Dockerfile is optimized for development speed.  
+(Running the `docker run...` command will recompile the binaries but not the dependencies)
+
+Building (takes 5-10 min):
+```bash
+docker build -t moonbeam-node-dev .
+```
+
+Running (takes 1 min to rebuild binaries):
+```bash
+docker run -t moonbeam-node-dev
+```
+
 
 ## Pallets
 * *aura*: Time-based Authority Consensus (for simplicity until more development is done)
