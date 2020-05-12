@@ -11,8 +11,7 @@ variables:
 
 before_script:
   - apt-get update -yq
-  - apt-get install -o dir::cache::archives="$APT_CACHE_DIR" -y {{ DEPENDENCIES }}
-  - apt-get install -yq cmake pkg-config libssl-dev git gcc build-essential clang libclang-dev
+  - apt-get install -o dir::cache::archives="$APT_CACHE_DIR" -y cmake pkg-config libssl-dev git gcc build-essential clang libclang-dev
   - rustup target add wasm32-unknown-unknown
 
 test:
