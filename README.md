@@ -59,7 +59,6 @@ Running (takes 1 min to rebuild binaries):
 docker run -t moonbeam-node-dev
 ```
 
-
 ## Pallets
 * *aura*: Time-based Authority Consensus (for simplicity until more development is done)
 * *balances*: Account & Balance management
@@ -71,6 +70,15 @@ docker run -t moonbeam-node-dev
 
 * ***mb-core***: Currently serves as a way to experiments with pallets and substrate (will get removed)
 * ***mb-session***: Logic for selecting validators based on a endorsement system
+
+## Tests
+
+Tests are run with the following command:
+```bash
+cargo test --verbose
+```
+
+This github repository is also linked to Gitlab CI
 
 ## Contribute
 
