@@ -1,6 +1,7 @@
 //! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
-
-use node_moonbeam_runtime::{self, opaque::Block, RuntimeApi};
+use futures::prelude::*;
+use node_moonbeam_runtime::{self, RuntimeApi};
+use node_primitives::{AccountId, Block, Index};
 use sc_client_api::ExecutorProvider;
 use sc_consensus::LongestChain;
 use sc_executor::native_executor_instance;
@@ -9,7 +10,8 @@ use sc_finality_grandpa::{
 	FinalityProofProvider as GrandpaFinalityProofProvider, SharedVoterState,
 	StorageAndProofProvider,
 };
-use sc_service::{error::Error as ServiceError, AbstractService, Configuration, ServiceBuilder};
+use sc_network::{Event};
+use sc_service::{error::Error as ServiceError, AbstractService, config::Configuration, ServiceBuilder};
 use sp_consensus_babe;
 use sp_inherents::InherentDataProviders;
 use std::sync::Arc;
@@ -37,7 +39,7 @@ macro_rules! new_full_start {
 		let inherent_data_providers = sp_inherents::InherentDataProviders::new();
 
 		let builder = sc_service::ServiceBuilder::new_full::<
-			node_moonbeam_runtime::opaque::Block,
+			node_primitives::Block,
 			node_moonbeam_runtime::RuntimeApi,
 			crate::service::Executor,
 		>($config)?
@@ -68,7 +70,6 @@ macro_rules! new_full_start {
 					sc_consensus_babe::Config::get_or_compute(&*client)?,
 					grandpa_block_import,
 					client.clone(),
-					client.clone(),
 				)?;
 
 				let import_queue = sc_consensus_babe::import_queue(
@@ -77,8 +78,8 @@ macro_rules! new_full_start {
 					Some(Box::new(justification_import)),
 					None,
 					client.clone(),
-					client,
 					inherent_data_providers.clone(),
+					spawn_task_handle,
 				)?;
 
 				import_setup = Some((block_import, grandpa_link, babe_link));
@@ -88,6 +89,7 @@ macro_rules! new_full_start {
 		)?
 		.with_rpc_extensions(|builder| -> Result<RpcExtension, _> {
 
+			use substrate_frame_rpc_system::{FullSystem, SystemApi};
 			use sc_consensus_babe_rpc::BabeRPCHandler;
 			use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
 
@@ -96,6 +98,9 @@ macro_rules! new_full_start {
 			let babe_link = import_setup.as_ref().map(|s| &s.2)
 				.expect("BabeLink is present for full services or set up failed; qed.");
 
+			io.extend_with(
+				SystemApi::to_delegate(FullSystem::new(builder.client().clone(), builder.pool()))
+			);
 			io.extend_with(
 				TransactionPaymentApi::to_delegate(TransactionPayment::new(builder.client().clone()))
 			);
@@ -123,7 +128,7 @@ macro_rules! new_full_start {
 /// Builds a new service for a full client.
 pub fn new_full(config: Configuration) -> Result<impl AbstractService, ServiceError> {
 	let role = config.role.clone();
-	let is_authority = config.roles.is_authority();
+	let is_authority = role.is_authority();
 	let force_authoring = config.force_authoring;
 	let name = config.network.node_name.clone();
 	let disable_grandpa = config.disable_grandpa;
@@ -131,7 +136,7 @@ pub fn new_full(config: Configuration) -> Result<impl AbstractService, ServiceEr
 	// sentry nodes announce themselves as authorities to the network
 	// and should run the same protocols authorities do, but it should
 	// never actively participate in any consensus process.
-	let participates_in_consensus = is_authority && !config.sentry_mode;
+	let participates_in_consensus = is_authority;
 
 	let (builder, mut import_setup, inherent_data_providers) = new_full_start!(config);
 
@@ -146,6 +151,20 @@ pub fn new_full(config: Configuration) -> Result<impl AbstractService, ServiceEr
 			Ok(Arc::new(GrandpaFinalityProofProvider::new(backend, provider)) as _)
 		})?
 		.build()?;
+
+	let (sentries, authority_discovery_role) = match role {
+		sc_service::config::Role::Authority { ref sentry_nodes } => (
+			sentry_nodes.clone(),
+			sc_authority_discovery::Role::Authority (
+				service.keystore(),
+			),
+		),
+		sc_service::config::Role::Sentry {..} => (
+			vec![],
+			sc_authority_discovery::Role::Sentry,
+		),
+		_ => unreachable!("Due to outer matches! constraint; qed.")
+	};
 
 	if participates_in_consensus {
 		let proposer =
@@ -176,16 +195,17 @@ pub fn new_full(config: Configuration) -> Result<impl AbstractService, ServiceEr
 		service.spawn_essential_task("babe-proposer", babe);
 
 		let network = service.network();
-		let dht_event_stream = network.event_stream().filter_map(|e| async move { match e {
+		let dht_event_stream = network.event_stream("authority-discovery").filter_map(|e| async move { match e {
 			Event::Dht(e) => Some(e),
 			_ => None,
 		}}).boxed();
 		let authority_discovery = sc_authority_discovery::AuthorityDiscovery::new(
 			service.client(),
 			network,
-			sentry_nodes,
-			service.keystore(),
+			sentries,
 			dht_event_stream,
+			authority_discovery_role,
+			service.prometheus_registry(),
 		);
 
 		service.spawn_task("authority-discovery", authority_discovery);
@@ -251,7 +271,7 @@ pub fn new_light(config: Configuration) -> Result<impl AbstractService, ServiceE
 	type RpcExtension = jsonrpc_core::IoHandler<sc_rpc::Metadata>;
 	let inherent_data_providers = InherentDataProviders::new();
 
-	ServiceBuilder::new_light::<Block, RuntimeApi, Executor>(config)?
+	let service = ServiceBuilder::new_light::<Block, RuntimeApi, Executor>(config)?
 		.with_select_chain(|_config, backend| Ok(LongestChain::new(backend.clone())))?
 		.with_transaction_pool(|config, client, fetcher, prometheus_registry| {
 			let fetcher = fetcher
@@ -287,7 +307,6 @@ pub fn new_light(config: Configuration) -> Result<impl AbstractService, ServiceE
 					sc_consensus_babe::Config::get_or_compute(&*client)?,
 					grandpa_block_import,
 					client.clone(),
-					client.clone(),
 				)?;
 
 				let import_queue = sc_consensus_babe::import_queue(
@@ -296,8 +315,8 @@ pub fn new_light(config: Configuration) -> Result<impl AbstractService, ServiceE
 					None,
 					Some(Box::new(finality_proof_import)),
 					client.clone(),
-					client,
 					inherent_data_providers.clone(),
+					spawn_task_handle,
 				)?;
 
 				Ok((import_queue, finality_proof_request_builder))
@@ -331,5 +350,7 @@ pub fn new_light(config: Configuration) -> Result<impl AbstractService, ServiceE
 			);
 			Ok(io)
 		})?
-		.build()?
+		.build()?;
+
+	Ok(service)
 }

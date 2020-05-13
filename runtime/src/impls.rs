@@ -155,20 +155,24 @@ impl<T: mb_session::Trait> Convert<T::AccountId, Option<Exposure<T::AccountId, B
 
 pub struct StakingOffences<T>(sp_std::marker::PhantomData<T>);
 impl <T: mb_session::Trait> sp_staking::offence::OnOffenceHandler<T::AccountId, pallet_session::historical::IdentificationTuple<T>> for StakingOffences<T> where
-	T: pallet_session::Trait<ValidatorId = <T as frame_system::Trait>::AccountId>,
+	T: pallet_session::Trait<ValidatorId = <T as system::Trait>::AccountId>,
 	T: pallet_session::historical::Trait<
-		FullIdentification = Exposure<<T as frame_system::Trait>::AccountId, BalanceOf<T>>,
+		FullIdentification = Exposure<<T as system::Trait>::AccountId, BalanceOf<T>>,
 		FullIdentificationOf = ExposureOf<T>,
 	>,
-	T::SessionHandler: pallet_session::SessionHandler<<T as frame_system::Trait>::AccountId>,
-	T::SessionManager: pallet_session::SessionManager<<T as frame_system::Trait>::AccountId>,
-	T::ValidatorIdOf: Convert<<T as frame_system::Trait>::AccountId, Option<<T as frame_system::Trait>::AccountId>>
+	T::SessionHandler: pallet_session::SessionHandler<<T as system::Trait>::AccountId>,
+	T::SessionManager: pallet_session::SessionManager<<T as system::Trait>::AccountId>,
+	T::ValidatorIdOf: Convert<<T as system::Trait>::AccountId, Option<<T as system::Trait>::AccountId>>
 {
 	fn on_offence(
 		_offenders: &[OffenceDetails<T::AccountId, pallet_session::historical::IdentificationTuple<T>>],
 		_slash_fraction: &[Perbill],
 		_slash_session: u32,
-	) {
-		
+	) -> Result<(), ()> {
+		Ok(())
+	}
+
+	fn can_report() -> bool {
+		true
 	}
 }

@@ -31,8 +31,8 @@ decl_storage! {
 		config(fntreasury): BalanceOf<T>;
 		config(genesis_accounts): Vec<T::AccountId>;
         build(|config: &GenesisConfig<T>| {
-			<Treasury<T>>::put(config.treasury);
-			let _ = <GenesisAccounts<T>>::append(config.genesis_accounts.clone());
+			<Treasury<T>>::put(config.fntreasury);
+			let _ = <GenesisAccounts<T>>::put(config.genesis_accounts.clone());
         });
     }
 }
