@@ -13,13 +13,13 @@ use grandpa::AuthorityList as GrandpaAuthorityList;
 use sp_api::impl_runtime_apis;
 use sp_core::{OpaqueMetadata, U256};
 use sp_runtime::traits::{
-	self, BlakeTwo256, Block as BlockT, ConvertInto, IdentifyAccount, 
-	StaticLookup, IdentityLookup, Verify, OpaqueKeys, SaturatedConversion
+	self, BlakeTwo256, Block as BlockT, ConvertInto, 
+	StaticLookup, OpaqueKeys, SaturatedConversion
 };
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, ModuleId, MultiSignature,
+	ApplyExtrinsicResult, ModuleId,
 };
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
@@ -28,7 +28,7 @@ use sp_version::RuntimeVersion;
 
 use evm::{FeeCalculator, HashTruncateConvertAccountId};
 
-use codec::{Encode, Decode};
+use codec::Encode;
 
 // A few exports that help ease life for downstream crates.
 pub use balances::Call as BalancesCall;
@@ -64,7 +64,7 @@ pub use mb_session;
 
 /// Implementations of some helper traits passed into runtime modules as associated types.
 pub mod impls;
-use impls::{Author, LinearWeightToFee, TargetedFeeAdjustment, Exposure, ExposureOf, StakingOffences};
+use impls::{Author, Exposure, ExposureOf, StakingOffences};
 
 use sp_core::u32_trait::{_1, _4};
 
@@ -99,15 +99,6 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
 };
-
-pub const MILLISECS_PER_BLOCK: u64 = 6000;
-
-pub const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
-
-// These time units are defined in number of blocks.
-pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
-pub const HOURS: BlockNumber = MINUTES * 60;
-pub const DAYS: BlockNumber = HOURS * 24;
 
 /// The version information used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]
@@ -405,6 +396,7 @@ impl mb_session::Trait for Runtime {
 	type Call = Call;
 	type Event = Event;
 	type SessionsPerEra = SessionsPerEra;
+	type UnsignedPriority = ();
 }
 
 construct_runtime!(
@@ -429,7 +421,7 @@ construct_runtime!(
 		ImOnline: pallet_im_online::{Module, Call, Storage, Event<T>, ValidateUnsigned, Config<T>},
 		Authorship: pallet_authorship::{Module, Call, Storage, Inherent},
 		MoonbeamCore: mb_core::{Module, Call, Storage, Event<T>, Config<T>},
-		MoonbeamSession: mb_session::{Module, Call, Storage, Event<T>, Config<T>},
+		MoonbeamSession: mb_session::{Module, Call, Storage, Event<T>, ValidateUnsigned, Config<T>},
 	}
 );
 
@@ -530,6 +522,10 @@ impl_runtime_apis! {
 			// slot duration and expected target block time, for safely
 			// resisting network delays of maximum two seconds.
 			// <https://research.web3.foundation/en/latest/polkadot/BABE/Babe/#6-practical-results>
+
+			debug::native::info!("--------------------------------");
+			debug::native::info!("{:#?}",Babe::slot_duration());
+
 			sp_consensus_babe::BabeGenesisConfiguration {
 				slot_duration: Babe::slot_duration(),
 				epoch_length: EpochDuration::get(),

@@ -1,10 +1,13 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use sp_std::prelude::*;
-use sp_runtime::traits::{OpaqueKeys};
 use sp_runtime::traits::{SaturatedConversion};
 use sp_runtime::{
 	RuntimeDebug,
+};
+use sp_runtime::transaction_validity::{
+	InvalidTransaction, ValidTransaction, TransactionValidity, TransactionSource,
+	TransactionPriority,
 };
 use frame_support::{decl_module, decl_storage, decl_event, decl_error, debug};
 use frame_support::dispatch::{DispatchResult};
@@ -15,13 +18,12 @@ use system::{
 	ensure_none,
 	offchain::{
 		AppCrypto, CreateSignedTransaction, SendUnsignedTransaction,
-		SignedPayload, SigningTypes, Signer, SubmitTransaction,
+		SignedPayload, Signer,
 	}
 };
 use codec::{Encode, Decode};
 
 use sp_core::crypto::KeyTypeId;
-use system::offchain::{SendSignedTransaction};
 
 #[path = "../../../runtime/src/constants.rs"]
 #[allow(dead_code)]
@@ -65,6 +67,7 @@ pub trait Trait: system::Trait + pallet_balances::Trait + pallet_session::Trait 
 	// type SubmitTransaction: SendSignedTransaction<Self,<Self as Trait>::Call>;
 	type Currency: Currency<Self::AccountId>;
 	type SessionsPerEra: Get<u8>;
+	type UnsignedPriority: Get<TransactionPriority>;
 }
 
 /// TODOS: payloads
@@ -112,11 +115,12 @@ decl_storage! {
 		/// One to Many Validator -> Endorsers.
 		ValidatorEndorsers: map hasher(blake2_128_concat) T::AccountId => Vec<T::AccountId>;
 		/// One to One Endorser -> Validator.
+		/// A restriction for number of endorsers per validator must be implemented to predict complexity.
 		Endorser: map hasher(blake2_128_concat) T::AccountId => T::AccountId; 
 		/// A timeline of free_balances for an endorser that allows us to calculate
 		/// the average of free_balance of an era.
 		/// 
-		/// TODO: Used to select era validators at the start (or end TODO) of an era. 
+		/// TODO: Used to select era validators at the start (or end?) of an era. 
 		/// We are by now supposing that an endorsement represents all the free_balance 
 		/// of the token holder.
 		/// When the free_balance of an endorser changes, a new snapshot is created 
@@ -219,11 +223,12 @@ decl_module! {
 
 		fn offchain_worker(block_number: T::BlockNumber) {
 			// Set snapshots
-			Self::offchain_set_snapshots(block_number);
+			let _ = Self::offchain_set_snapshots(block_number);
 			// Select validators off-chain
-			Self::offchain_validator_selection(block_number);
+			let _ = Self::offchain_validator_selection(block_number);
 		}
 
+		/// Set new selected validators. Called offchain as an unsigned transaction.
 		#[weight = 0]
 		fn persist_selected_validators(
 			origin,
@@ -231,10 +236,13 @@ decl_module! {
 			_signature: T::Signature
 		) -> DispatchResult {
 			ensure_none(origin)?;
+			debug::native::info!("##### Offchain validators:");
+			debug::native::info!("> {:#?}",validators_payload.validators.clone());
 			<SessionValidators<T>>::put(validators_payload.validators.clone());
 			Ok(())
 		}
 
+		/// Set new snapshots. Called offchain as an unsigned transaction.
 		#[weight = 0]
 		fn persist_snapshots(
 			origin,
@@ -242,6 +250,8 @@ decl_module! {
 			_signature: T::Signature
 		) -> DispatchResult {
 			ensure_none(origin)?;
+			debug::native::info!("##### Offchain snapshots:");
+			debug::native::info!("> {:#?}",snapshots_payload.snapshots);
 			for s in &snapshots_payload.snapshots {
 				Self::set_snapshot(&s.0,&s.1,s.2)?;
 			}
@@ -252,26 +262,56 @@ decl_module! {
 
 impl<T: Trait> Module<T> {
 
-	/// First approach to keep moving forward until we find out how to track BalanceOf 
+	/// Offchain task to select validators
+	fn offchain_validator_selection(block_number: T::BlockNumber) -> Result<(), &'static str> {
+		// Find out where we are in Era
+		let current_era: u128 = EraIndex::get() as u128;
+		let last_block_of_era: u128 = 
+			(current_era * (T::SessionsPerEra::get() as u128) * (EPOCH_DURATION_IN_BLOCKS as u128)).saturated_into();
+		let validator_selection_delta: u128 = 5;
+		let current_block_number: u128 = block_number.saturated_into();
+		// When we are 5 blocks away of a new Era, run the validator selection.
+		if (last_block_of_era - current_block_number) == validator_selection_delta {
+			// Perform the validator selection
+			let validators = <Module<T>>::select_validators();
+			// Submit unsigned transaction with signed payload
+			let (_, result) = Signer::<T, T::AuthorityId>::any_account().send_unsigned_transaction(
+				|account| {
+					ValidatorsPayload {
+						validators: validators.clone(),
+						block_number,
+						public: account.public.clone()
+					}
+				},
+				|payload, signature| {
+					Call::persist_selected_validators(payload, signature)
+				}
+			).ok_or("No local accounts accounts available.")?;
+			result.map_err(|()| "Unable to submit transaction")?;
+		}
+
+		Ok(())
+	}
+
+	/// The below is TODO, just a 1st approach to keep moving forward until we find out how to track BalanceOf 
 	/// changes in real-time.
 	/// 
 	/// This approach, although functional, is invalid as it has multiple issues like 
 	/// sending signed transactions potentially every block.
 	/// 
 	/// Other messy ways could be, again a per-block offchain task, pattern matching the
-	/// <system::Module<T>>::events() to find pallet_balances events that are registered
-	/// in the Storage.
+	/// <system::Module<T>>::events() to find pallet_balances events for the current block?
 	fn offchain_set_snapshots(block_number: T::BlockNumber) -> Result<(), &'static str> {
 		let mut snapshots: Vec<(T::AccountId,T::AccountId,BalanceOf<T>)> = vec![];
 		let validators = <Validators<T>>::get();
 		for v in &validators {
 			let endorsers = <ValidatorEndorsers<T>>::get(v);
 			for ed in &endorsers {
-				let snapshotsTmp = <EndorserSnapshots<T>>::get(ed,v.clone());
-				let len = snapshotsTmp.len();
+				let snapshots_tmp = <EndorserSnapshots<T>>::get(ed,v.clone());
+				let len = snapshots_tmp.len();
 				// Make sure we have a previous block reference in this Era
 				if len > 0 {
-					let snapshot_balance = snapshotsTmp[len-1].1;
+					let snapshot_balance = snapshots_tmp[len-1].1;
 					let current_balance = T::Currency::free_balance(ed);
 					if snapshot_balance != current_balance {
 						snapshots.push((ed.clone(),v.clone(),current_balance));
@@ -281,6 +321,7 @@ impl<T: Trait> Module<T> {
 		}
 		// If there are snapshots, send unsigned transaction with signed payload 
 		if snapshots.len() > 0 {
+			// Submit unsigned transaction with signed payload
 			let (_, result) = Signer::<T, T::AuthorityId>::any_account().send_unsigned_transaction(
 				|account| {
 					SnapshotsPayload {
@@ -297,44 +338,6 @@ impl<T: Trait> Module<T> {
 		}
 		Ok(())
 	} 
-
-	/// Offchain task to select validators
-	fn offchain_validator_selection(block_number: T::BlockNumber) -> Result<(), &'static str> {
-		// Find out where we are in Era
-		let current_era: u128 = EraIndex::get() as u128;
-		let last_block_of_era: u128 = 
-			(current_era * (T::SessionsPerEra::get() as u128) * (EPOCH_DURATION_IN_BLOCKS as u128)).saturated_into();
-		let validator_selection_delta: u128 = 5;
-		let current_block_number: u128 = block_number.saturated_into();
-		// When we are 5 blocks away of a new Era, run the validator selection.
-		if (last_block_of_era - current_block_number) == validator_selection_delta {
-			// Perform the validator selection
-			let validators = <Module<T>>::select_validators();
-			// Send signed transaction to persist the new validators to the on-chain storage
-			// let call = Call::persist_selected_validators(selected_validators);
-			// let res = T::SubmitTransaction::submit_signed(call);
-			// if res.is_empty() {
-			// 	debug::native::info!("No local accounts found.");
-			// } else {
-			// 	debug::native::info!("Sending selected validator transaction.");
-			// }
-
-
-			let (_, result) = Signer::<T, T::AuthorityId>::any_account().send_unsigned_transaction(
-				|account| ValidatorsPayload {
-					validators: validators.clone(),
-					block_number,
-					public: account.public.clone()
-				},
-				|payload, signature| {
-					Call::persist_selected_validators(payload, signature)
-				}
-			).ok_or("No local accounts accounts available.")?;
-			result.map_err(|()| "Unable to submit transaction")?;
-		}
-
-		Ok(())
-	}
 	
 	/// Sets a snapshot using the current era's block index and the Account free_balance.
 	fn set_snapshot(
@@ -432,6 +435,32 @@ impl<T: Trait> Module<T> {
 			}
 		}
 	}
+
+	/// TODO, needs the right config
+	fn validate_validator_transaction(
+		_validators: &Vec<T::AccountId>,
+	) -> TransactionValidity {
+
+		ValidTransaction::with_tag_prefix("MbSession")
+			.priority(T::UnsignedPriority::get())
+			.and_provides(0)
+			.longevity(5)
+			.propagate(true)
+			.build()
+	}
+
+	/// TODO, needs the right config
+	fn validate_snapshots_transaction(
+		_snapshots: &Vec<(T::AccountId,T::AccountId,BalanceOf<T>)>,
+	) -> TransactionValidity {
+
+		ValidTransaction::with_tag_prefix("MbSession")
+			.priority(T::UnsignedPriority::get())
+			.and_provides(0)
+			.longevity(5)
+			.propagate(true)
+			.build()
+	}
 }
 
 pub struct SessionManager<T>(T);
@@ -494,5 +523,34 @@ impl<T: Trait> pallet_authorship::EventHandler<T::AccountId,u32> for AuthorshipE
 	}
 	fn note_uncle(_author: T::AccountId, _age: u32) {
 		
+	}
+}
+
+#[allow(deprecated)] // ValidateUnsigned
+impl<T: Trait> frame_support::unsigned::ValidateUnsigned for Module<T> {
+	type Call = Call<T>;
+	fn validate_unsigned(
+		_source: TransactionSource,
+		call: &Self::Call,
+	) -> TransactionValidity {
+		if let Call::persist_selected_validators(
+			ref payload, ref signature
+		) = call {
+			let signature_valid = SignedPayload::<T>::verify::<T::AuthorityId>(payload, signature.clone());
+			if !signature_valid {
+				return InvalidTransaction::BadProof.into();
+			}
+			Self::validate_validator_transaction(&payload.validators)
+		} else if let Call::persist_snapshots(
+			ref payload, ref signature
+		) = call {
+			let signature_valid = SignedPayload::<T>::verify::<T::AuthorityId>(payload, signature.clone());
+			if !signature_valid {
+				return InvalidTransaction::BadProof.into();
+			}
+			Self::validate_snapshots_transaction(&payload.snapshots)
+		} else {
+			InvalidTransaction::Call.into()
+		}
 	}
 }
