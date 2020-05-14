@@ -12,7 +12,6 @@ use sc_finality_grandpa::{
 };
 use sc_network::{Event};
 use sc_service::{error::Error as ServiceError, AbstractService, config::Configuration, ServiceBuilder};
-use sp_consensus_babe;
 use sp_inherents::InherentDataProviders;
 use std::sync::Arc;
 use std::time::Duration;
