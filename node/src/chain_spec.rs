@@ -99,8 +99,7 @@ pub fn local_testnet_config() -> ChainSpec {
 		|| {
 			testnet_genesis(
 				vec![
-					authority_keys_from_seed("Alice"),
-					authority_keys_from_seed("Bob"),
+					authority_keys_from_seed("Alice")
 				],
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
 				vec![
@@ -139,7 +138,7 @@ fn testnet_genesis(
 		HashTruncateConvertAccountId::<BlakeTwo256>::convert_account_id(&alice_account_id);
 
 	let keys = initial_authorities.iter().map(|x| {
-		(x.0.clone(), x.0.clone(), session_keys(x.2.clone(), x.3.clone(), x.4.clone(), x.5.clone()))
+		(x.1.clone(), x.1.clone(), session_keys(x.2.clone(), x.3.clone(), x.4.clone(), x.5.clone()))
 	}).collect::<Vec<_>>();
 
 	GenesisConfig {
@@ -189,7 +188,7 @@ fn testnet_genesis(
 		mb_session: Some(MoonbeamSessionConfig {
 			treasury: TREASURY_FUND,
 			session_validators: initial_authorities.iter().map(|x| {
-				x.0.clone()
+				x.1.clone()
 			}).collect(),
 		}),
 	}
