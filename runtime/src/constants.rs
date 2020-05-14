@@ -55,7 +55,7 @@ pub mod time {
 
 	// Sessions are set low (1 per minute) for debugging purposes.
 	// As a block is produced every 3 seconds by configuration, a new session will occur every X blocks.
-	pub const EPOCH_DURATION_IN_BLOCKS: BlockNumber = 5 * MINUTES;
+	pub const EPOCH_DURATION_IN_BLOCKS: BlockNumber = 1 * MINUTES;
 	pub const EPOCH_DURATION_IN_SLOTS: u64 = {
 		const SLOT_FILL_RATE: f64 = MILLISECS_PER_BLOCK as f64 / SLOT_DURATION as f64;
 
