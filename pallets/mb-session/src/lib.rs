@@ -64,13 +64,11 @@ pub trait Trait: system::Trait + pallet_balances::Trait + pallet_session::Trait 
 	type AuthorityId: AppCrypto<Self::Public, Self::Signature>;
 	type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
 	type Call: From<Call<Self>>;
-	// type SubmitTransaction: SendSignedTransaction<Self,<Self as Trait>::Call>;
 	type Currency: Currency<Self::AccountId>;
 	type SessionsPerEra: Get<u8>;
 	type UnsignedPriority: Get<TransactionPriority>;
 }
 
-/// TODOS: payloads
 #[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug)]
 pub struct SnapshotsPayload<AccountId, Public, BlockNumber, BalanceOf> {
 	block_number: BlockNumber,

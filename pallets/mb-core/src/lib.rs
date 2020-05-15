@@ -54,7 +54,6 @@ decl_module! {
 
 		fn deposit_event() = default;
 
-		// TODO work in progress mint from pot
 		#[weight = 0]
 		fn mint(
             origin, _to: T::AccountId, _ammount: BalanceOf<T>

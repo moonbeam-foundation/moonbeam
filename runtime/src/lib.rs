@@ -522,10 +522,6 @@ impl_runtime_apis! {
 			// slot duration and expected target block time, for safely
 			// resisting network delays of maximum two seconds.
 			// <https://research.web3.foundation/en/latest/polkadot/BABE/Babe/#6-practical-results>
-
-			debug::native::info!("--------------------------------");
-			debug::native::info!("{:#?}",Babe::slot_duration());
-
 			sp_consensus_babe::BabeGenesisConfiguration {
 				slot_duration: Babe::slot_duration(),
 				epoch_length: EpochDuration::get(),
