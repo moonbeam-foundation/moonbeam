@@ -1,7 +1,11 @@
 [package]
 authors = ['PureStake']
+description = 'Moonbeam Core'
 edition = '2018'
+homepage = 'https://moonbeam.network'
+license = 'Unlicense'
 name = 'mb-core'
+repository = 'https://github.com/PureStake/moonbeam/'
 version = '0.1.0'
 
 [dependencies]
