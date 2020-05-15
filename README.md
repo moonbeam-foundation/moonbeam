@@ -33,6 +33,7 @@ Initialize your Wasm Build environment (*required for compiling Rust to Wasm*):
 
 Build Wasm and native code:  
 ```bash
+cd node
 cargo build --release
 ```  
 (Building for the first time will take a long time, to install and compile all the libraries)
@@ -42,8 +43,30 @@ cargo build --release
 ### Single node dev
 
 ```bash
-target/release/node-moonbeam --dev
+./target/release/node-moonbeam --dev --unsafe-rpc-expose --execution=native
 ```
+
+### Multi node local testnet
+
+On terminal A:
+
+```bash
+./scripts/run-alice.sh
+```
+
+On terminal B:
+
+```bash
+./scripts/run-bob.sh
+```
+
+To inject the Alice offchain worker key:
+
+```bash
+./scripts/set-offchain-key-alice.sh
+```
+
+To purge the chain, delete the `./scripts/tmp` folder.
 
 ### Docker image
 
