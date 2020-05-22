@@ -7,6 +7,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - name: Cache Rust dependencies
+        uses: actions/cache@v1.1.2
+        with:
+          path: target
+          key: ${{ runner.OS }}-build-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.OS }}-build-
     - uses: actions-rs/toolchain@v1
       with:
         target: wasm32-unknown-unknown
