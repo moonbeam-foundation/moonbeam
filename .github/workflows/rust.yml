@@ -19,6 +19,8 @@ jobs:
         target: wasm32-unknown-unknown
         toolchain: nightly
         default: true
+    - name: Install Wasm toolchain
+      run: rustup target add wasm32-unknown-unknown
     - name: Build
       run: cargo build --verbose --all
     - name: Run tests
