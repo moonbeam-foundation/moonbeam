@@ -1,7 +1,6 @@
 
 # ![moonbeam](media/moonbeam-cover.jpg)
-[![pipeline status](https://gitlab.com/asapede/moonbeam/badges/master/pipeline.svg)](https://gitlab.com/asapede/moonbeam/-/commits/master)
-
+![Tests](https://github.com/PureStake/moonbeam/workflows/Tests/badge.svg)
 
 Run an Ethereum compatible ~~parachain~~ (blockchain for now, until parachains are available) based on Substrate.
 
