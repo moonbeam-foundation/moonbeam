@@ -17,14 +17,14 @@
 //! Some configurable implementations as associated type for the substrate runtime.
 use sp_std::prelude::*;
 
+use codec::{Decode, Encode, HasCompact};
+use frame_support::traits::{Currency, OnUnbalanced};
 use sp_runtime::traits::Convert;
-use sp_runtime::{Perbill,RuntimeDebug};
-use frame_support::traits::{OnUnbalanced, Currency};
-use codec::{HasCompact, Encode, Decode};
-use sp_staking::offence::{OffenceDetails};
+use sp_runtime::{Perbill, RuntimeDebug};
+use sp_staking::offence::OffenceDetails;
 
+use crate::{Authorship, BalanceOf, Balances, NegativeImbalance};
 use node_primitives::Balance;
-use crate::{Balances, Authorship, NegativeImbalance, BalanceOf};
 
 pub struct Author;
 impl OnUnbalanced<NegativeImbalance> for Author {
@@ -38,15 +38,21 @@ impl OnUnbalanced<NegativeImbalance> for Author {
 pub struct CurrencyToVoteHandler;
 
 impl CurrencyToVoteHandler {
-	fn factor() -> Balance { (Balances::total_issuance() / u64::max_value() as Balance).max(1) }
+	fn factor() -> Balance {
+		(Balances::total_issuance() / u64::max_value() as Balance).max(1)
+	}
 }
 
 impl Convert<Balance, u64> for CurrencyToVoteHandler {
-	fn convert(x: Balance) -> u64 { (x / Self::factor()) as u64 }
+	fn convert(x: Balance) -> u64 {
+		(x / Self::factor()) as u64
+	}
 }
 
 impl Convert<u128, Balance> for CurrencyToVoteHandler {
-	fn convert(x: u128) -> Balance { x * Self::factor() }
+	fn convert(x: u128) -> Balance {
+		x * Self::factor()
+	}
 }
 
 // All below are trait implemenations that we need to satisfy for the historical feature of the pallet-session
@@ -87,7 +93,12 @@ impl<T: mb_session::Trait> Convert<T::AccountId, Option<Exposure<T::AccountId, B
 }
 
 pub struct StakingOffences<T>(sp_std::marker::PhantomData<T>);
-impl <T: mb_session::Trait> sp_staking::offence::OnOffenceHandler<T::AccountId, pallet_session::historical::IdentificationTuple<T>> for StakingOffences<T> where
+impl<T: mb_session::Trait>
+	sp_staking::offence::OnOffenceHandler<
+		T::AccountId,
+		pallet_session::historical::IdentificationTuple<T>,
+	> for StakingOffences<T>
+where
 	T: pallet_session::Trait<ValidatorId = <T as system::Trait>::AccountId>,
 	T: pallet_session::historical::Trait<
 		FullIdentification = Exposure<<T as system::Trait>::AccountId, BalanceOf<T>>,
@@ -95,10 +106,14 @@ impl <T: mb_session::Trait> sp_staking::offence::OnOffenceHandler<T::AccountId, 
 	>,
 	T::SessionHandler: pallet_session::SessionHandler<<T as system::Trait>::AccountId>,
 	T::SessionManager: pallet_session::SessionManager<<T as system::Trait>::AccountId>,
-	T::ValidatorIdOf: Convert<<T as system::Trait>::AccountId, Option<<T as system::Trait>::AccountId>>
+	T::ValidatorIdOf:
+		Convert<<T as system::Trait>::AccountId, Option<<T as system::Trait>::AccountId>>,
 {
 	fn on_offence(
-		_offenders: &[OffenceDetails<T::AccountId, pallet_session::historical::IdentificationTuple<T>>],
+		_offenders: &[OffenceDetails<
+			T::AccountId,
+			pallet_session::historical::IdentificationTuple<T>,
+		>],
 		_slash_fraction: &[Perbill],
 		_slash_session: u32,
 	) -> Result<(), ()> {

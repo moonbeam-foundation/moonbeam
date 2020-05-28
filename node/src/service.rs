@@ -10,8 +10,10 @@ use sc_finality_grandpa::{
 	FinalityProofProvider as GrandpaFinalityProofProvider, SharedVoterState,
 	StorageAndProofProvider,
 };
-use sc_network::{Event};
-use sc_service::{error::Error as ServiceError, AbstractService, config::Configuration, ServiceBuilder};
+use sc_network::Event;
+use sc_service::{
+	config::Configuration, error::Error as ServiceError, AbstractService, ServiceBuilder,
+};
 use sp_inherents::InherentDataProviders;
 use std::sync::Arc;
 use std::time::Duration;
@@ -29,7 +31,6 @@ native_executor_instance!(
 /// be able to perform chain operations.
 macro_rules! new_full_start {
 	($config:expr) => {{
-
 		type RpcExtension = jsonrpc_core::IoHandler<sc_rpc::Metadata>;
 
 		use std::sync::Arc;
@@ -85,37 +86,39 @@ macro_rules! new_full_start {
 
 				Ok(import_queue)
 			},
-		)?
+			)?
 		.with_rpc_extensions(|builder| -> Result<RpcExtension, _> {
-
-			use substrate_frame_rpc_system::{FullSystem, SystemApi};
-			use sc_consensus_babe_rpc::BabeRPCHandler;
 			use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
+			use sc_consensus_babe_rpc::BabeRPCHandler;
+			use substrate_frame_rpc_system::{FullSystem, SystemApi};
 
 			let mut io = jsonrpc_core::IoHandler::default();
 
-			let babe_link = import_setup.as_ref().map(|s| &s.2)
+			let babe_link = import_setup
+				.as_ref()
+				.map(|s| &s.2)
 				.expect("BabeLink is present for full services or set up failed; qed.");
 
-			io.extend_with(
-				SystemApi::to_delegate(FullSystem::new(builder.client().clone(), builder.pool()))
-			);
-			io.extend_with(
-				TransactionPaymentApi::to_delegate(TransactionPayment::new(builder.client().clone()))
-			);
+			io.extend_with(SystemApi::to_delegate(FullSystem::new(
+				builder.client().clone(),
+				builder.pool(),
+			)));
+			io.extend_with(TransactionPaymentApi::to_delegate(TransactionPayment::new(
+				builder.client().clone(),
+			)));
 
-			io.extend_with(
-				sc_consensus_babe_rpc::BabeApi::to_delegate(
-					BabeRPCHandler::new(
-						builder.client().clone(), 
-						sc_consensus_babe::BabeLink::epoch_changes(babe_link).clone(), 
-						builder.keystore(), 
-						sc_consensus_babe::BabeLink::config(babe_link).clone(), 
-						builder.select_chain().cloned()
-							.expect("SelectChain is present for full services or set up failed; qed.")
-					)
-				)
-			);
+			io.extend_with(sc_consensus_babe_rpc::BabeApi::to_delegate(
+				BabeRPCHandler::new(
+					builder.client().clone(),
+					sc_consensus_babe::BabeLink::epoch_changes(babe_link).clone(),
+					builder.keystore(),
+					sc_consensus_babe::BabeLink::config(babe_link).clone(),
+					builder
+						.select_chain()
+						.cloned()
+						.expect("SelectChain is present for full services or set up failed; qed."),
+				),
+			));
 
 			Ok(io)
 		})?;
@@ -154,15 +157,10 @@ pub fn new_full(config: Configuration) -> Result<impl AbstractService, ServiceEr
 	let (sentries, authority_discovery_role) = match role {
 		sc_service::config::Role::Authority { ref sentry_nodes } => (
 			sentry_nodes.clone(),
-			sc_authority_discovery::Role::Authority (
-				service.keystore(),
-			),
+			sc_authority_discovery::Role::Authority(service.keystore()),
 		),
-		sc_service::config::Role::Sentry {..} => (
-			vec![],
-			sc_authority_discovery::Role::Sentry,
-		),
-		_ => unreachable!("Due to outer matches! constraint; qed.")
+		sc_service::config::Role::Sentry { .. } => (vec![], sc_authority_discovery::Role::Sentry),
+		_ => unreachable!("Due to outer matches! constraint; qed."),
 	};
 
 	if participates_in_consensus {
@@ -194,10 +192,15 @@ pub fn new_full(config: Configuration) -> Result<impl AbstractService, ServiceEr
 		service.spawn_essential_task("babe-proposer", babe);
 
 		let network = service.network();
-		let dht_event_stream = network.event_stream("authority-discovery").filter_map(|e| async move { match e {
-			Event::Dht(e) => Some(e),
-			_ => None,
-		}}).boxed();
+		let dht_event_stream = network
+			.event_stream("authority-discovery")
+			.filter_map(|e| async move {
+				match e {
+					Event::Dht(e) => Some(e),
+					_ => None,
+				}
+			})
+			.boxed();
 		let authority_discovery = sc_authority_discovery::AuthorityDiscovery::new(
 			service.client(),
 			network,
@@ -266,7 +269,6 @@ pub fn new_full(config: Configuration) -> Result<impl AbstractService, ServiceEr
 
 /// Builds a new service for a light client.
 pub fn new_light(config: Configuration) -> Result<impl AbstractService, ServiceError> {
-
 	type RpcExtension = jsonrpc_core::IoHandler<sc_rpc::Metadata>;
 	let inherent_data_providers = InherentDataProviders::new();
 
@@ -326,27 +328,25 @@ pub fn new_light(config: Configuration) -> Result<impl AbstractService, ServiceE
 			let provider = client as Arc<dyn StorageAndProofProvider<_, _>>;
 			Ok(Arc::new(GrandpaFinalityProofProvider::new(backend, provider)) as _)
 		})?
-		.with_rpc_extensions(|builder,| ->
-			Result<RpcExtension, _>
-		{
+		.with_rpc_extensions(|builder| -> Result<RpcExtension, _> {
 			use substrate_frame_rpc_system::{LightSystem, SystemApi};
-			
-			let fetcher = builder.fetcher()
+
+			let fetcher = builder
+				.fetcher()
 				.ok_or_else(|| "Trying to start node RPC without active fetcher")?;
-			let remote_blockchain = builder.remote_backend()
+			let remote_blockchain = builder
+				.remote_backend()
 				.ok_or_else(|| "Trying to start node RPC without active remote blockchain")?;
 
 			let mut io = jsonrpc_core::IoHandler::default();
-			io.extend_with(
-				SystemApi::<AccountId, Index>::to_delegate(
-					LightSystem::new(
-						builder.client().clone(),
-						remote_blockchain,
-						fetcher,
-						builder.pool()
-					)
-				)
-			);
+			io.extend_with(SystemApi::<AccountId, Index>::to_delegate(
+				LightSystem::new(
+					builder.client().clone(),
+					remote_blockchain,
+					fetcher,
+					builder.pool(),
+				),
+			));
 			Ok(io)
 		})?
 		.build()?;

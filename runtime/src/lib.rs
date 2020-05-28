@@ -13,8 +13,7 @@ use grandpa::AuthorityList as GrandpaAuthorityList;
 use sp_api::impl_runtime_apis;
 use sp_core::{OpaqueMetadata, U256};
 use sp_runtime::traits::{
-	self, BlakeTwo256, Block as BlockT, ConvertInto, 
-	StaticLookup, OpaqueKeys, SaturatedConversion
+	self, BlakeTwo256, Block as BlockT, ConvertInto, OpaqueKeys, SaturatedConversion, StaticLookup,
 };
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
@@ -34,28 +33,27 @@ use codec::Encode;
 pub use balances::Call as BalancesCall;
 pub use evm::Account as EVMAccount;
 pub use frame_support::{
-	construct_runtime, parameter_types,
-	traits::{Randomness,Currency,SplitTwoWays},
+	construct_runtime, debug, parameter_types,
+	traits::{Currency, Randomness, SplitTwoWays},
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
 		Weight,
 	},
 	StorageValue,
-	debug,
 };
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
 pub use timestamp::Call as TimestampCall;
 
+use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
-use pallet_im_online::sr25519::{AuthorityId as ImOnlineId};
 
-use node_primitives::{AccountIndex, Balance, BlockNumber, Hash, Index, Moment};
 pub use node_primitives::{AccountId, Signature};
+use node_primitives::{AccountIndex, Balance, BlockNumber, Hash, Index, Moment};
 
 pub mod constants;
-pub use constants::{time::*, currency::*, mb_genesis::*};
+pub use constants::{currency::*, mb_genesis::*, time::*};
 
 use pallet_transaction_payment_rpc_runtime_api::RuntimeDispatchInfo;
 
@@ -73,8 +71,10 @@ type NegativeImbalance = <Balances as Currency<AccountId>>::NegativeImbalance;
 pub type DealWithFees = SplitTwoWays<
 	Balance,
 	NegativeImbalance,
-	_4, mb_core::Absorb<Runtime>,   // 4 parts (80%) goes to the treasury.
-	_1, Author,     // 1 part (20%) goes to the block author.
+	_4,
+	mb_core::Absorb<Runtime>, // 4 parts (80%) goes to the treasury.
+	_1,
+	Author, // 1 part (20%) goes to the block author.
 >;
 
 // EVM structs
@@ -330,7 +330,8 @@ impl mb_core::Trait for Runtime {
 // 	UncheckedExtrinsic
 // >;
 
-impl<LocalCall> system::offchain::CreateSignedTransaction<LocalCall> for Runtime where
+impl<LocalCall> system::offchain::CreateSignedTransaction<LocalCall> for Runtime
+where
 	Call: From<LocalCall>,
 {
 	fn create_transaction<C: system::offchain::AppCrypto<Self::Public, Self::Signature>>(
@@ -338,7 +339,10 @@ impl<LocalCall> system::offchain::CreateSignedTransaction<LocalCall> for Runtime
 		public: <Signature as traits::Verify>::Signer,
 		account: AccountId,
 		nonce: Index,
-	) -> Option<(Call, <UncheckedExtrinsic as traits::Extrinsic>::SignaturePayload)> {
+	) -> Option<(
+		Call,
+		<UncheckedExtrinsic as traits::Extrinsic>::SignaturePayload,
+	)> {
 		// take the biggest period possible.
 		let period = BlockHashCount::get()
 			.checked_next_power_of_two()
@@ -358,12 +362,12 @@ impl<LocalCall> system::offchain::CreateSignedTransaction<LocalCall> for Runtime
 			system::CheckWeight::<Runtime>::new(),
 			transaction_payment::ChargeTransactionPayment::<Runtime>::from(tip),
 		);
-		let raw_payload = SignedPayload::new(call, extra).map_err(|e| {
-			debug::warn!("Unable to create signed payload: {:?}", e);
-		}).ok()?;
-		let signature = raw_payload.using_encoded(|payload| {
-			C::sign(payload, public)
-		})?;
+		let raw_payload = SignedPayload::new(call, extra)
+			.map_err(|e| {
+				debug::warn!("Unable to create signed payload: {:?}", e);
+			})
+			.ok()?;
+		let signature = raw_payload.using_encoded(|payload| C::sign(payload, public))?;
 		let address = Indices::unlookup(account);
 		let (call, extra, _) = raw_payload.deconstruct();
 		Some((call, (address, signature.into(), extra)))
@@ -375,7 +379,8 @@ impl system::offchain::SigningTypes for Runtime {
 	type Signature = Signature;
 }
 
-impl<C> system::offchain::SendTransactionTypes<C> for Runtime where
+impl<C> system::offchain::SendTransactionTypes<C> for Runtime
+where
 	Call: From<C>,
 {
 	type OverarchingCall = Call;
@@ -386,7 +391,7 @@ parameter_types! {
 	pub const SessionsPerEra: u8 = EPOCH_PER_ERA;
 }
 
-pub type BalanceOf<T> = 
+pub type BalanceOf<T> =
 	<<T as mb_session::Trait>::Currency as Currency<<T as system::Trait>::AccountId>>::Balance;
 
 impl mb_session::Trait for Runtime {
