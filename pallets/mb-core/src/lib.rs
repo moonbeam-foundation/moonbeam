@@ -2,14 +2,13 @@
 
 use sp_std::prelude::*;
 
-use frame_support::{decl_module, decl_storage, decl_event};
-use frame_support::dispatch::{DispatchResult};
-use frame_support::traits::{OnUnbalanced,Currency,LockableCurrency,Imbalance, EnsureOrigin};
-use system::{ensure_root,RawOrigin};
-use sp_runtime::traits::{CheckedAdd,CheckedSub};
+use frame_support::dispatch::DispatchResult;
+use frame_support::traits::{Currency, EnsureOrigin, Imbalance, LockableCurrency, OnUnbalanced};
+use frame_support::{decl_event, decl_module, decl_storage};
+use sp_runtime::traits::{CheckedAdd, CheckedSub};
+use system::{ensure_root, RawOrigin};
 
-type BalanceOf<T> =
-	<<T as Trait>::Currency as Currency<<T as system::Trait>::AccountId>>::Balance;
+type BalanceOf<T> = <<T as Trait>::Currency as Currency<<T as system::Trait>::AccountId>>::Balance;
 
 type NegativeImbalanceOf<T> =
 	<<T as Trait>::Currency as Currency<<T as system::Trait>::AccountId>>::NegativeImbalance;
@@ -19,7 +18,7 @@ type PositiveImbalanceOf<T> =
 
 pub trait Trait: system::Trait + pallet_balances::Trait {
 	type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
-	type Currency: LockableCurrency<Self::AccountId, Moment=Self::BlockNumber>;
+	type Currency: LockableCurrency<Self::AccountId, Moment = Self::BlockNumber>;
 }
 
 decl_storage! {
@@ -27,15 +26,14 @@ decl_storage! {
 		Treasury get(fn treasury): BalanceOf<T>;
 		GenesisAccounts get(fn genesis_accounts): Vec<T::AccountId>;
 	}
-    add_extra_genesis {
-		config(treasury): BalanceOf<T>;
+	add_extra_genesis {
+		config(fntreasury): BalanceOf<T>;
 		config(genesis_accounts): Vec<T::AccountId>;
-        build(|config: &GenesisConfig<T>| {
-			<Treasury<T>>::put(config.treasury);
-			// TODO Telmo:  fix
-			// let _ = <GenesisAccounts<T>>::append(config.genesis_accounts.clone());
-        });
-    }
+		build(|config: &GenesisConfig<T>| {
+			<Treasury<T>>::put(config.fntreasury);
+			let _ = <GenesisAccounts<T>>::put(config.genesis_accounts.clone());
+		});
+	}
 }
 
 decl_event!(
@@ -55,23 +53,21 @@ decl_module! {
 
 		fn deposit_event() = default;
 
-		// TODO work in progress mint from pot
 		#[weight = 0]
 		fn mint(
-            origin, _to: T::AccountId, _ammount: BalanceOf<T>
-        ) -> DispatchResult {
+			origin, _to: T::AccountId, _ammount: BalanceOf<T>
+		) -> DispatchResult {
 			let _caller = ensure_root(origin);
-            Ok(())
-        }
+			Ok(())
+		}
 
 	}
 }
 
 pub struct Collective<AccountId>(AccountId);
-impl<
-    O: Into<Result<RawOrigin<AccountId>, O>> + From<RawOrigin<AccountId>>,
-    AccountId
-> EnsureOrigin<O> for Collective<AccountId> {
+impl<O: Into<Result<RawOrigin<AccountId>, O>> + From<RawOrigin<AccountId>>, AccountId>
+	EnsureOrigin<O> for Collective<AccountId>
+{
 	type Success = ();
 	fn try_origin(_o: O) -> Result<Self::Success, O> {
 		Ok(())
@@ -80,8 +76,7 @@ impl<
 
 // https://substrate.dev/rustdocs/pre-v2.0-3e65111/pallet_staking/trait.Trait.html#associatedtype.RewardRemainder
 pub struct RewardRemainder<T>(T);
-impl<T: Trait> OnUnbalanced<NegativeImbalanceOf<T>> for RewardRemainder<T>
-{
+impl<T: Trait> OnUnbalanced<NegativeImbalanceOf<T>> for RewardRemainder<T> {
 	fn on_nonzero_unbalanced(_amount: NegativeImbalanceOf<T>) {
 		// TODO Tokens have been minted and are unused for validator-reward.
 		let _a = 1;
@@ -91,8 +86,7 @@ impl<T: Trait> OnUnbalanced<NegativeImbalanceOf<T>> for RewardRemainder<T>
 // NegativeImbalance:
 // Some balance has been subtracted somewhere, needs to be added somewhere else.
 pub struct Absorb<T>(T);
-impl<T: Trait> OnUnbalanced<NegativeImbalanceOf<T>> for Absorb<T>
-{
+impl<T: Trait> OnUnbalanced<NegativeImbalanceOf<T>> for Absorb<T> {
 	fn on_nonzero_unbalanced(amount: NegativeImbalanceOf<T>) {
 		let raw_amount = amount.peek();
 		let treasury = <Treasury<T>>::get();
@@ -101,20 +95,14 @@ impl<T: Trait> OnUnbalanced<NegativeImbalanceOf<T>> for Absorb<T>
 		} else {
 			// TODO
 		}
-		<Module<T>>::deposit_event(
-			RawEvent::Absorbed(
-				raw_amount,
-				<Treasury<T>>::get()
-			)
-		);
+		<Module<T>>::deposit_event(RawEvent::Absorbed(raw_amount, <Treasury<T>>::get()));
 	}
 }
 
 // PositiveImbalance:
 // Some balance has been added somewhere, needs to be subtracted somewhere else.
 pub struct Reward<T>(T);
-impl<T: Trait> OnUnbalanced<PositiveImbalanceOf<T>> for Reward<T>
-{
+impl<T: Trait> OnUnbalanced<PositiveImbalanceOf<T>> for Reward<T> {
 	fn on_nonzero_unbalanced(amount: PositiveImbalanceOf<T>) {
 		let raw_amount = amount.peek();
 		let treasury = <Treasury<T>>::get();
@@ -123,11 +111,6 @@ impl<T: Trait> OnUnbalanced<PositiveImbalanceOf<T>> for Reward<T>
 		} else {
 			// TODO
 		}
-		<Module<T>>::deposit_event(
-			RawEvent::Rewarded(
-				raw_amount,
-				<Treasury<T>>::get()
-			)
-		);
+		<Module<T>>::deposit_event(RawEvent::Rewarded(raw_amount, <Treasury<T>>::get()));
 	}
 }
