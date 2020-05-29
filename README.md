@@ -33,7 +33,6 @@ Initialize your Wasm Build environment (*required for compiling Rust to Wasm*):
 
 Build Wasm and native code:  
 ```bash
-cd node
 cargo build --release
 ```  
 (Building for the first time will take a long time, to install and compile all the libraries)
