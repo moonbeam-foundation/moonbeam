@@ -1,17 +1,17 @@
 use node_moonbeam_runtime::{
-	AccountId, BabeConfig, AuthorityDiscoveryConfig, ImOnlineConfig, SessionConfig,
-	BalancesConfig, EVMConfig, GenesisConfig, GrandpaConfig, SessionKeys,
-	Signature, IndicesConfig, SudoConfig, SystemConfig, WASM_BINARY, MoonbeamCoreConfig, MoonbeamSessionConfig
+	AccountId, AuthorityDiscoveryConfig, BabeConfig, BalancesConfig, EVMConfig, GenesisConfig,
+	GrandpaConfig, ImOnlineConfig, IndicesConfig, MoonbeamCoreConfig, MoonbeamSessionConfig,
+	SessionConfig, SessionKeys, Signature, SudoConfig, SystemConfig, WASM_BINARY,
 };
 use sc_service::ChainType;
 use sp_core::{sr25519, Pair, Public, U256};
 use sp_runtime::traits::{BlakeTwo256, IdentifyAccount, Verify};
 
-use sp_consensus_babe::{AuthorityId as BabeId};
-use sp_finality_grandpa::AuthorityId as GrandpaId;
-use pallet_im_online::sr25519::{AuthorityId as ImOnlineId};
-use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use evm::{ConvertAccountId, HashTruncateConvertAccountId};
+use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
+use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
+use sp_consensus_babe::AuthorityId as BabeId;
+use sp_finality_grandpa::AuthorityId as GrandpaId;
 use std::collections::BTreeMap;
 // Note this is the URL for the telemetry server
 //const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
@@ -27,7 +27,12 @@ fn session_keys(
 	im_online: ImOnlineId,
 	authority_discovery: AuthorityDiscoveryId,
 ) -> SessionKeys {
-	SessionKeys { grandpa, babe, im_online, authority_discovery }
+	SessionKeys {
+		grandpa,
+		babe,
+		im_online,
+		authority_discovery,
+	}
 }
 
 /// Helper function to generate a crypto pair from seed
@@ -48,7 +53,9 @@ where
 }
 
 /// Helper function to generate an authority key for Babe and Grandpa
-pub fn authority_keys_from_seed(seed: &str) -> (
+pub fn authority_keys_from_seed(
+	seed: &str,
+) -> (
 	AccountId,
 	AccountId,
 	GrandpaId,
@@ -101,7 +108,7 @@ pub fn local_testnet_config() -> ChainSpec {
 			testnet_genesis(
 				vec![
 					authority_keys_from_seed("Alice"),
-					authority_keys_from_seed("Bob")
+					authority_keys_from_seed("Bob"),
 				],
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
 				vec![
@@ -130,7 +137,14 @@ pub fn local_testnet_config() -> ChainSpec {
 }
 
 fn testnet_genesis(
-	initial_authorities: Vec<(AccountId, AccountId, GrandpaId, BabeId, ImOnlineId, AuthorityDiscoveryId)>,
+	initial_authorities: Vec<(
+		AccountId,
+		AccountId,
+		GrandpaId,
+		BabeId,
+		ImOnlineId,
+		AuthorityDiscoveryId,
+	)>,
 	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,
 	_enable_println: bool,
@@ -150,9 +164,16 @@ fn testnet_genesis(
 		},
 	);
 
-	let keys = initial_authorities.iter().map(|x| {
-		(x.1.clone(), x.1.clone(), session_keys(x.2.clone(), x.3.clone(), x.4.clone(), x.5.clone()))
-	}).collect::<Vec<_>>();
+	let keys = initial_authorities
+		.iter()
+		.map(|x| {
+			(
+				x.1.clone(),
+				x.1.clone(),
+				session_keys(x.2.clone(), x.3.clone(), x.4.clone(), x.5.clone()),
+			)
+		})
+		.collect::<Vec<_>>();
 
 	GenesisConfig {
 		system: Some(SystemConfig {
@@ -166,9 +187,7 @@ fn testnet_genesis(
 				.map(|k| (k, 1 << 60))
 				.collect(),
 		}),
-		pallet_indices: Some(IndicesConfig {
-			indices: vec![],
-		}),
+		pallet_indices: Some(IndicesConfig { indices: vec![] }),
 		babe: Some(BabeConfig {
 			authorities: vec![],
 		}),
@@ -179,24 +198,16 @@ fn testnet_genesis(
 		evm: Some(EVMConfig {
 			accounts: evm_accounts,
 		}),
-		pallet_session: Some(SessionConfig {
-			keys: keys,
-		}),
-		pallet_im_online: Some(ImOnlineConfig {
-			keys: vec![],
-		}),
-		pallet_authority_discovery: Some(AuthorityDiscoveryConfig {
-			keys: vec![],
-		}),
+		pallet_session: Some(SessionConfig { keys: keys }),
+		pallet_im_online: Some(ImOnlineConfig { keys: vec![] }),
+		pallet_authority_discovery: Some(AuthorityDiscoveryConfig { keys: vec![] }),
 		mb_core: Some(MoonbeamCoreConfig {
 			fntreasury: TREASURY_FUND,
 			genesis_accounts: endowed_accounts.clone(),
 		}),
 		mb_session: Some(MoonbeamSessionConfig {
 			treasury: TREASURY_FUND,
-			session_validators: initial_authorities.iter().map(|x| {
-				x.1.clone()
-			}).collect(),
+			session_validators: initial_authorities.iter().map(|x| x.1.clone()).collect(),
 		}),
 	}
 }
