@@ -33,6 +33,8 @@ macro_rules! new_full_start {
 		type RpcExtension = jsonrpc_core::IoHandler<sc_rpc::Metadata>;
 
 		use std::sync::Arc;
+		use sc_consensus_babe_rpc::BabeRpcHandler;
+		use sc_rpc::DenyUnsafe;
 
 		let mut import_setup = None;
 		let inherent_data_providers = sp_inherents::InherentDataProviders::new();
@@ -50,9 +52,14 @@ macro_rules! new_full_start {
 				std::sync::Arc::new(pool_api),
 				prometheus_registry,
 			))
-		})?
-		.with_import_queue(
-			|_config, client, mut select_chain, _transaction_pool, spawn_task_handle| {
+		})?			.with_import_queue(|
+			_config,
+			client,
+			mut select_chain,
+			_transaction_pool,
+			spawn_task_handle,
+			registry,
+		| {
 				let select_chain = select_chain
 					.take()
 					.ok_or_else(|| sc_service::Error::SelectChainRequired)?;
@@ -79,6 +86,7 @@ macro_rules! new_full_start {
 					client.clone(),
 					inherent_data_providers.clone(),
 					spawn_task_handle,
+					registry
 				)?;
 
 				import_setup = Some((block_import, grandpa_link, babe_link));
@@ -89,7 +97,6 @@ macro_rules! new_full_start {
 		.with_rpc_extensions(|builder| -> Result<RpcExtension, _> {
 
 			use substrate_frame_rpc_system::{FullSystem, SystemApi};
-			use sc_consensus_babe_rpc::BabeRPCHandler;
 			use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
 
 			let mut io = jsonrpc_core::IoHandler::default();
@@ -106,13 +113,14 @@ macro_rules! new_full_start {
 
 			io.extend_with(
 				sc_consensus_babe_rpc::BabeApi::to_delegate(
-					BabeRPCHandler::new(
-						builder.client().clone(), 
-						sc_consensus_babe::BabeLink::epoch_changes(babe_link).clone(), 
-						builder.keystore(), 
-						sc_consensus_babe::BabeLink::config(babe_link).clone(), 
+					BabeRpcHandler::new(
+						builder.client().clone(),
+						sc_consensus_babe::BabeLink::epoch_changes(babe_link).clone(),
+						builder.keystore(),
+						sc_consensus_babe::BabeLink::config(babe_link).clone(),
 						builder.select_chain().cloned()
-							.expect("SelectChain is present for full services or set up failed; qed.")
+							.expect("SelectChain is present for full services or set up failed; qed."),
+						DenyUnsafe::Yes, // TODO: understand what it means
 					)
 				)
 			);
@@ -167,7 +175,8 @@ pub fn new_full(config: Configuration) -> Result<impl AbstractService, ServiceEr
 
 	if participates_in_consensus {
 		let proposer =
-			sc_basic_authorship::ProposerFactory::new(service.client(), service.transaction_pool());
+			sc_basic_authorship::ProposerFactory::new(service.client(), service.transaction_pool(),
+			service.prometheus_registry().as_ref());
 
 		let client = service.client();
 		let select_chain = service
@@ -284,9 +293,16 @@ pub fn new_light(config: Configuration) -> Result<impl AbstractService, ServiceE
 				sc_transaction_pool::RevalidationType::Light,
 			);
 			Ok(pool)
-		})?
-		.with_import_queue_and_fprb(
-			|_config, client, backend, fetcher, _select_chain, _tx_pool, spawn_task_handle| {
+		})?		.with_import_queue_and_fprb(|
+			_config,
+			client,
+			backend,
+			fetcher,
+			_select_chain,
+			_tx_pool,
+			spawn_task_handle,
+			prometheus_registry,
+		| {
 				let fetch_checker = fetcher
 					.map(|fetcher| fetcher.checker().clone())
 					.ok_or_else(|| {
@@ -316,6 +332,7 @@ pub fn new_light(config: Configuration) -> Result<impl AbstractService, ServiceE
 					client.clone(),
 					inherent_data_providers.clone(),
 					spawn_task_handle,
+					prometheus_registry,
 				)?;
 
 				Ok((import_queue, finality_proof_request_builder))
@@ -330,7 +347,7 @@ pub fn new_light(config: Configuration) -> Result<impl AbstractService, ServiceE
 			Result<RpcExtension, _>
 		{
 			use substrate_frame_rpc_system::{LightSystem, SystemApi};
-			
+
 			let fetcher = builder.fetcher()
 				.ok_or_else(|| "Trying to start node RPC without active fetcher")?;
 			let remote_blockchain = builder.remote_backend()
