@@ -1,13 +1,12 @@
 //! A set of constant values used in substrate runtime.
 
 pub mod mb_genesis {
-	use node_primitives::{Balance};
-	use super::currency::{GLMR};
+	use super::currency::GLMR;
+	use node_primitives::Balance;
 	/// 8 decimals for 500_000 glmr units
 	pub const TOTAL_GLMR_SUPPLY: Balance = 10_000_000 * GLMR;
 	pub const TREASURY_FUND: Balance = TOTAL_GLMR_SUPPLY / 5;
 	pub const REWARD_PER_YEAR: Balance = 250_000 * GLMR;
-	
 	pub const VALIDATORS_PER_SESSION: u8 = 1;
 }
 
@@ -16,7 +15,7 @@ pub mod currency {
 	use node_primitives::Balance;
 
 	pub const MILLICENTS: Balance = 1_000_000_000;
-	pub const CENTS: Balance = 1_000 * MILLICENTS;    // assume this is worth about a cent.
+	pub const CENTS: Balance = 1_000 * MILLICENTS; // assume this is worth about a cent.
 	pub const DOLLARS: Balance = 100 * CENTS;
 
 	pub const MILLIGLMR: Balance = 1_000;
@@ -26,7 +25,7 @@ pub mod currency {
 
 /// Time.
 pub mod time {
-	use node_primitives::{Moment, BlockNumber};
+	use node_primitives::{BlockNumber, Moment};
 
 	/// Since BABE is probabilistic this is the average expected block time that
 	/// we are targetting. Blocks will be produced at a minimum duration defined
