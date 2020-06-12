@@ -33,6 +33,7 @@ macro_rules! new_full_start {
 	($config:expr) => {{
 		type RpcExtension = jsonrpc_core::IoHandler<sc_rpc::Metadata>;
 
+		use sc_rpc::DenyUnsafe;
 		use std::sync::Arc;
 
 		let mut import_setup = None;
@@ -53,7 +54,7 @@ macro_rules! new_full_start {
 			))
 		})?
 		.with_import_queue(
-			|_config, client, mut select_chain, _transaction_pool, spawn_task_handle| {
+			|_config, client, mut select_chain, _transaction_pool, spawn_task_handle, registry| {
 				let select_chain = select_chain
 					.take()
 					.ok_or_else(|| sc_service::Error::SelectChainRequired)?;
@@ -80,6 +81,7 @@ macro_rules! new_full_start {
 					client.clone(),
 					inherent_data_providers.clone(),
 					spawn_task_handle,
+					registry,
 				)?;
 
 				import_setup = Some((block_import, grandpa_link, babe_link));
@@ -89,7 +91,7 @@ macro_rules! new_full_start {
 			)?
 		.with_rpc_extensions(|builder| -> Result<RpcExtension, _> {
 			use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
-			use sc_consensus_babe_rpc::BabeRPCHandler;
+			use sc_consensus_babe_rpc::BabeRpcHandler;
 			use substrate_frame_rpc_system::{FullSystem, SystemApi};
 
 			let mut io = jsonrpc_core::IoHandler::default();
@@ -108,7 +110,7 @@ macro_rules! new_full_start {
 			)));
 
 			io.extend_with(sc_consensus_babe_rpc::BabeApi::to_delegate(
-				BabeRPCHandler::new(
+				BabeRpcHandler::new(
 					builder.client().clone(),
 					sc_consensus_babe::BabeLink::epoch_changes(babe_link).clone(),
 					builder.keystore(),
@@ -117,6 +119,7 @@ macro_rules! new_full_start {
 						.select_chain()
 						.cloned()
 						.expect("SelectChain is present for full services or set up failed; qed."),
+					DenyUnsafe::Yes, // TODO: understand what it means
 				),
 			));
 
@@ -164,8 +167,11 @@ pub fn new_full(config: Configuration) -> Result<impl AbstractService, ServiceEr
 	};
 
 	if participates_in_consensus {
-		let proposer =
-			sc_basic_authorship::ProposerFactory::new(service.client(), service.transaction_pool());
+		let proposer = sc_basic_authorship::ProposerFactory::new(
+			service.client(),
+			service.transaction_pool(),
+			service.prometheus_registry().as_ref(),
+		);
 
 		let client = service.client();
 		let select_chain = service
@@ -288,7 +294,14 @@ pub fn new_light(config: Configuration) -> Result<impl AbstractService, ServiceE
 			Ok(pool)
 		})?
 		.with_import_queue_and_fprb(
-			|_config, client, backend, fetcher, _select_chain, _tx_pool, spawn_task_handle| {
+			|_config,
+			 client,
+			 backend,
+			 fetcher,
+			 _select_chain,
+			 _tx_pool,
+			 spawn_task_handle,
+			 prometheus_registry| {
 				let fetch_checker = fetcher
 					.map(|fetcher| fetcher.checker().clone())
 					.ok_or_else(|| {
@@ -318,6 +331,7 @@ pub fn new_light(config: Configuration) -> Result<impl AbstractService, ServiceE
 					client.clone(),
 					inherent_data_providers.clone(),
 					spawn_task_handle,
+					prometheus_registry,
 				)?;
 
 				Ok((import_queue, finality_proof_request_builder))

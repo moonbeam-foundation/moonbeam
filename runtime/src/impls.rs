@@ -19,6 +19,7 @@ use sp_std::prelude::*;
 
 use codec::{Decode, Encode, HasCompact};
 use frame_support::traits::{Currency, OnUnbalanced};
+use frame_support::weights::Weight;
 use sp_runtime::traits::Convert;
 use sp_runtime::{Perbill, RuntimeDebug};
 use sp_staking::offence::OffenceDetails;
@@ -97,6 +98,7 @@ impl<T: mb_session::Trait>
 	sp_staking::offence::OnOffenceHandler<
 		T::AccountId,
 		pallet_session::historical::IdentificationTuple<T>,
+		Weight,
 	> for StakingOffences<T>
 where
 	T: pallet_session::Trait<ValidatorId = <T as system::Trait>::AccountId>,
@@ -116,8 +118,8 @@ where
 		>],
 		_slash_fraction: &[Perbill],
 		_slash_session: u32,
-	) -> Result<(), ()> {
-		Ok(())
+	) -> Result<Weight, ()> {
+		Ok(0)
 	}
 
 	fn can_report() -> bool {

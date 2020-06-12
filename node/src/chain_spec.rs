@@ -1,8 +1,7 @@
 use node_moonbeam_runtime::{
-	AccountId, AuthorityDiscoveryConfig, BabeConfig, BalancesConfig, EVMAccount, EVMConfig,
-	GenesisConfig, GrandpaConfig, ImOnlineConfig, IndicesConfig, MoonbeamCoreConfig,
-	MoonbeamSessionConfig, SessionConfig, SessionKeys, Signature, SudoConfig, SystemConfig,
-	WASM_BINARY,
+	AccountId, AuthorityDiscoveryConfig, BabeConfig, BalancesConfig, EVMConfig, GenesisConfig,
+	GrandpaConfig, ImOnlineConfig, IndicesConfig, MoonbeamCoreConfig, MoonbeamSessionConfig,
+	SessionConfig, SessionKeys, Signature, SudoConfig, SystemConfig, WASM_BINARY,
 };
 use sc_service::ChainType;
 use sp_core::{sr25519, Pair, Public, U256};
@@ -13,6 +12,7 @@ use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_consensus_babe::AuthorityId as BabeId;
 use sp_finality_grandpa::AuthorityId as GrandpaId;
+use std::collections::BTreeMap;
 // Note this is the URL for the telemetry server
 //const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
 
@@ -153,6 +153,17 @@ fn testnet_genesis(
 	let alice_evm_account_id =
 		HashTruncateConvertAccountId::<BlakeTwo256>::convert_account_id(&alice_account_id);
 
+	let mut evm_accounts = BTreeMap::new();
+	evm_accounts.insert(
+		alice_evm_account_id,
+		evm::GenesisAccount {
+			nonce: 0.into(),
+			balance: U256::MAX,
+			storage: BTreeMap::new(),
+			code: WASM_BINARY.to_vec(),
+		},
+	);
+
 	let keys = initial_authorities
 		.iter()
 		.map(|x| {
@@ -185,13 +196,7 @@ fn testnet_genesis(
 		}),
 		sudo: Some(SudoConfig { key: root_key }),
 		evm: Some(EVMConfig {
-			accounts: vec![(
-				alice_evm_account_id,
-				EVMAccount {
-					nonce: 0.into(),
-					balance: U256::MAX,
-				},
-			)],
+			accounts: evm_accounts,
 		}),
 		pallet_session: Some(SessionConfig { keys: keys }),
 		pallet_im_online: Some(ImOnlineConfig { keys: vec![] }),

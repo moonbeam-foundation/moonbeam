@@ -332,6 +332,7 @@ impl<T: Trait> Module<T> {
 		}
 		Ok(())
 	}
+
 	/// Sets a snapshot using the current era's block index and the Account free_balance.
 	fn set_snapshot(
 		endorser: &T::AccountId,
