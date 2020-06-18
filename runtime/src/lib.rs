@@ -8,85 +8,97 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+use codec::{Decode, Encode};
 use grandpa::fg_primitives;
 use grandpa::{AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList};
 use sp_api::impl_runtime_apis;
-use sp_core::{crypto::KeyTypeId, OpaqueMetadata, U256};
+use sp_consensus_aura::sr25519::AuthorityId as AuraId;
+use sp_core::{crypto::KeyTypeId, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::traits::{
-	self, BlakeTwo256, Block as BlockT, ConvertInto, NumberFor, OpaqueKeys, SaturatedConversion,
-	Saturating, StaticLookup,
+	BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, NumberFor, Saturating, Verify,
 };
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, ModuleId,
+	ApplyExtrinsicResult, ModuleId, MultiSignature,
 };
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
-use evm::{FeeCalculator, HashTruncateConvertAccountId};
-
-use codec::Encode;
-
+use evm::{ConvertAccountId, FeeCalculator, HashTruncateConvertAccountId};
 // A few exports that help ease life for downstream crates.
 pub use balances::Call as BalancesCall;
+use ethereum::{Block as EthereumBlock, Transaction as EthereumTransaction};
 pub use evm::Account as EVMAccount;
 pub use frame_support::{
-	construct_runtime, debug, parameter_types,
-	traits::{Currency, KeyOwnerProofSystem, Randomness, SplitTwoWays},
+	construct_runtime, parameter_types,
+	traits::{FindAuthor, KeyOwnerProofSystem, Randomness},
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
 		IdentityFee, Weight,
 	},
 	StorageValue,
 };
+use frontier_rpc_primitives::TransactionStatus;
+
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
 pub use timestamp::Call as TimestampCall;
 
-use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
-use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
-
-pub use node_primitives::{AccountId, Signature};
-use node_primitives::{AccountIndex, Balance, BlockNumber, Hash, Index, Moment};
-
 pub mod constants;
-pub use constants::{currency::*, mb_genesis::*, time::*};
 
-use pallet_transaction_payment_rpc_runtime_api::RuntimeDispatchInfo;
+/// An index to a block.
+pub type BlockNumber = constants::time::BlockNumber;
 
-pub use mb_core;
-pub use mb_session;
+/// Alias to 512-bit hash when used in the context of a transaction signature on the chain.
+pub type Signature = MultiSignature;
 
-/// Implementations of some helper traits passed into runtime modules as associated types.
-pub mod impls;
-use impls::{Author, Exposure, ExposureOf, StakingOffences};
+/// Some way of identifying an account on the chain. We intentionally make it equivalent
+/// to the public key of our transaction signing scheme.
+pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::AccountId;
 
-use sp_core::u32_trait::{_1, _4};
+/// The type for looking up accounts. We don't expect more than 4 billion of them, but you
+/// never know...
+pub type AccountIndex = u32;
 
-type NegativeImbalance = <Balances as Currency<AccountId>>::NegativeImbalance;
+/// Balance of an account.
+pub type Balance = constants::currency::Balance;
 
-pub type DealWithFees = SplitTwoWays<
-	Balance,
-	NegativeImbalance,
-	_4,
-	mb_core::Absorb<Runtime>, // 4 parts (80%) goes to the treasury.
-	_1,
-	Author, // 1 part (20%) goes to the block author.
->;
+/// Index of a transaction in the chain.
+pub type Index = u32;
+
+/// A hash of some data used by the chain.
+pub type Hash = sp_core::H256;
+
+/// Digest item type.
+pub type DigestItem = generic::DigestItem<Hash>;
 
 // EVM structs
 pub struct FixedGasPrice;
+/// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
+/// the specifics of the runtime. They can then be made to be agnostic over specific formats
+/// of data like extrinsics, allowing for them to continue syncing the network through upgrades
+/// to even the core data structures.
+pub mod opaque {
+	use super::*;
 
-impl_opaque_keys! {
-	pub struct SessionKeys {
-		pub grandpa: Grandpa,
-		pub babe: Babe,
-		pub im_online: ImOnline,
-		pub authority_discovery: AuthorityDiscovery,
+	pub use sp_runtime::OpaqueExtrinsic as UncheckedExtrinsic;
+
+	/// Opaque block header type.
+	pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
+	/// Opaque block type.
+	pub type Block = generic::Block<Header, UncheckedExtrinsic>;
+	/// Opaque block identifier type.
+	pub type BlockId = generic::BlockId<Block>;
+
+	impl_opaque_keys! {
+		pub struct SessionKeys {
+			pub aura: Aura,
+			pub grandpa: Grandpa,
+		}
 	}
 }
 
@@ -117,21 +129,22 @@ parameter_types! {
 	pub const MaximumBlockWeight: Weight = 2 * WEIGHT_PER_SECOND;
 	pub const AvailableBlockRatio: Perbill = Perbill::from_percent(75);
 	/// Assume 10% of weight for average on_initialize calls.
-	pub MaximumExtrinsicWeight: Weight = AvailableBlockRatio::get()
-		.saturating_sub(AVERAGE_ON_INITIALIZE_WEIGHT) * MaximumBlockWeight::get();
+	pub MaximumExtrinsicWeight: Weight =
+		AvailableBlockRatio::get().saturating_sub(AVERAGE_ON_INITIALIZE_WEIGHT)
+		* MaximumBlockWeight::get();
 	pub const MaximumBlockLength: u32 = 5 * 1024 * 1024;
 	pub const Version: RuntimeVersion = VERSION;
-
-	pub const EVMModuleId: ModuleId = ModuleId(*b"py/evmpa");
 }
 
 impl system::Trait for Runtime {
+	/// The basic call filter to use in Origin
+	type BaseCallFilter = ();
 	/// The identifier used to distinguish between accounts.
 	type AccountId = AccountId;
 	/// The aggregated dispatch type that is available for extrinsics.
 	type Call = Call;
 	/// The lookup mechanism to get account ID from whatever is passed in dispatchers.
-	type Lookup = Indices;
+	type Lookup = IdentityLookup<AccountId>;
 	/// The index type for storing how many extrinsics an account has signed.
 	type Index = Index;
 	/// The index type for blocks.
@@ -180,6 +193,10 @@ impl system::Trait for Runtime {
 	type AccountData = balances::AccountData<Balance>;
 }
 
+impl aura::Trait for Runtime {
+	type AuthorityId = AuraId;
+}
+
 impl grandpa::Trait for Runtime {
 	type Event = Event;
 	type Call = Call;
@@ -198,13 +215,13 @@ impl grandpa::Trait for Runtime {
 }
 
 parameter_types! {
-	pub const MinimumPeriod: u64 = SLOT_DURATION / 2;
+	pub const MinimumPeriod: u64 = constants::time::SLOT_DURATION / 2;
 }
 
 impl timestamp::Trait for Runtime {
 	/// A timestamp: milliseconds since the unix epoch.
-	type Moment = u64;
-	type OnTimestampSet = Babe;
+	type Moment = constants::time::Moment;
+	type OnTimestampSet = Aura;
 	type MinimumPeriod = MinimumPeriod;
 }
 
@@ -224,6 +241,7 @@ impl balances::Trait for Runtime {
 
 parameter_types! {
 	pub const TransactionByteFee: Balance = 1;
+	pub const EVMModuleId: ModuleId = ModuleId(*b"py/evmpa");
 }
 
 impl transaction_payment::Trait for Runtime {
@@ -257,206 +275,55 @@ impl evm::Trait for Runtime {
 					   // block that always returns none (line 75)
 }
 
-parameter_types! {
-	pub const EpochDuration: u64 = EPOCH_DURATION_IN_SLOTS;
-	pub const ExpectedBlockTime: Moment = MILLISECS_PER_BLOCK;
-}
-
-impl babe::Trait for Runtime {
-	type EpochDuration = EpochDuration;
-	type ExpectedBlockTime = ExpectedBlockTime;
-	type EpochChangeTrigger = babe::ExternalTrigger;
-}
-
-parameter_types! {
-	pub const DisabledValidatorsThreshold: Perbill = Perbill::from_percent(17);
-}
-
-impl pallet_session::Trait for Runtime {
+impl ethereum::Trait for Runtime {
 	type Event = Event;
-	type ValidatorId = <Self as system::Trait>::AccountId;
-	type ValidatorIdOf = ConvertInto;
-	type ShouldEndSession = Babe;
-	type SessionManager = mb_session::SessionManager<Runtime>;
-	type SessionHandler = <SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
-	type Keys = SessionKeys;
-	type DisabledValidatorsThreshold = DisabledValidatorsThreshold;
-	type NextSessionRotation = Babe;
-}
-
-impl pallet_session::historical::Trait for Runtime {
-	type FullIdentification = Exposure<AccountId, Balance>;
-	type FullIdentificationOf = ExposureOf<Runtime>;
-}
-
-impl pallet_authority_discovery::Trait for Runtime {}
-
-// pub type SubmitTransaction = TransactionSubmitter<ImOnlineId, Runtime, UncheckedExtrinsic>;
-
-parameter_types! {
-	pub const SessionDuration: BlockNumber = EPOCH_DURATION_IN_SLOTS as _;
-	pub OffencesWeightSoftLimit: Weight = Perbill::from_percent(60) * MaximumBlockWeight::get();
-}
-
-impl pallet_im_online::Trait for Runtime {
-	type AuthorityId = ImOnlineId;
-	type Event = Event;
-	// type Call = Call;
-	// type SubmitTransaction = SubmitTransaction;
-	type SessionDuration = SessionDuration;
-	type ReportUnresponsiveness = Offences;
-	type UnsignedPriority = ();
-}
-
-impl pallet_offences::Trait for Runtime {
-	type Event = Event;
-	type IdentificationTuple = pallet_session::historical::IdentificationTuple<Self>;
-	type OnOffenceHandler = StakingOffences<Runtime>;
-	type WeightSoftLimit = OffencesWeightSoftLimit;
-}
-
-parameter_types! {
-	/// How much an index costs.
-	pub const IndexDeposit: Balance = 1 * GLMR;
-}
-
-impl pallet_indices::Trait for Runtime {
-	/// The type for recording indexing into the account enumeration. If this ever overflows, there
-	/// will be problems!
-	type AccountIndex = AccountIndex;
-	/// The ubiquitous event type.
-	type Event = Event;
-	/// The currency type.
-	type Currency = Balances;
-	/// How much an index costs.
-	type Deposit = IndexDeposit;
-}
-
-parameter_types! {
-	pub const UncleGenerations: BlockNumber = 5;
-}
-
-impl pallet_authorship::Trait for Runtime {
-	type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Babe>;
-	type UncleGenerations = UncleGenerations;
-	type FilterUncle = ();
-	type EventHandler = (mb_session::AuthorshipEventHandler<Runtime>, ImOnline);
-}
-
-impl mb_core::Trait for Runtime {
-	type Currency = Balances;
-	type Event = Event;
-}
-
-// type SubmitMBTransaction = TransactionSubmitter<
-// 	mb_session::crypto::Public,
-// 	Runtime,
-// 	UncheckedExtrinsic
-// >;
-
-impl<LocalCall> system::offchain::CreateSignedTransaction<LocalCall> for Runtime
-where
-	Call: From<LocalCall>,
-{
-	fn create_transaction<C: system::offchain::AppCrypto<Self::Public, Self::Signature>>(
-		call: Call,
-		public: <Signature as traits::Verify>::Signer,
-		account: AccountId,
-		nonce: Index,
-	) -> Option<(
-		Call,
-		<UncheckedExtrinsic as traits::Extrinsic>::SignaturePayload,
-	)> {
-		// take the biggest period possible.
-		let period = BlockHashCount::get()
-			.checked_next_power_of_two()
-			.map(|c| c / 2)
-			.unwrap_or(2) as u64;
-		let current_block = System::block_number()
-			.saturated_into::<u64>()
-			// The `System::block_number` is initialized with `n+1`,
-			// so the actual block number is `n`.
-			.saturating_sub(1);
-		let tip = 0;
-		let extra: SignedExtra = (
-			system::CheckSpecVersion::<Runtime>::new(),
-			system::CheckTxVersion::<Runtime>::new(),
-			system::CheckGenesis::<Runtime>::new(),
-			system::CheckEra::<Runtime>::from(generic::Era::mortal(period, current_block)),
-			system::CheckNonce::<Runtime>::from(nonce),
-			system::CheckWeight::<Runtime>::new(),
-			transaction_payment::ChargeTransactionPayment::<Runtime>::from(tip),
-		);
-		let raw_payload = SignedPayload::new(call, extra)
-			.map_err(|e| {
-				debug::warn!("Unable to create signed payload: {:?}", e);
-			})
-			.ok()?;
-		let signature = raw_payload.using_encoded(|payload| C::sign(payload, public))?;
-		let address = Indices::unlookup(account);
-		let (call, extra, _) = raw_payload.deconstruct();
-		Some((call, (address, signature.into(), extra)))
-	}
-}
-
-impl system::offchain::SigningTypes for Runtime {
-	type Public = <Signature as traits::Verify>::Signer;
-	type Signature = Signature;
-}
-
-impl<C> system::offchain::SendTransactionTypes<C> for Runtime
-where
-	Call: From<C>,
-{
-	type OverarchingCall = Call;
-	type Extrinsic = UncheckedExtrinsic;
-}
-
-parameter_types! {
-	pub const SessionsPerEra: u8 = EPOCH_PER_ERA;
-}
-
-pub type BalanceOf<T> =
-	<<T as mb_session::Trait>::Currency as Currency<<T as system::Trait>::AccountId>>::Balance;
-
-impl mb_session::Trait for Runtime {
-	type AuthorityId = mb_session::crypto::AuthId;
-	type Currency = Balances;
-	// type SubmitTransaction = SubmitMBTransaction;
-	type Call = Call;
-	type Event = Event;
-	type SessionsPerEra = SessionsPerEra;
-	type UnsignedPriority = ();
 }
 
 construct_runtime!(
 	pub enum Runtime where
 		Block = Block,
-		NodeBlock = node_primitives::Block,
+		NodeBlock = opaque::Block,
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
 		System: system::{Module, Call, Config, Storage, Event<T>},
 		RandomnessCollectiveFlip: randomness_collective_flip::{Module, Call, Storage},
 		Timestamp: timestamp::{Module, Call, Storage, Inherent},
-		Babe: babe::{Module, Call, Storage, Config, Inherent(Timestamp)},
+		Aura: aura::{Module, Config<T>, Inherent(Timestamp)},
 		Grandpa: grandpa::{Module, Call, Storage, Config, Event},
 		Balances: balances::{Module, Call, Storage, Config<T>, Event<T>},
-		Indices: pallet_indices::{Module, Call, Storage, Config<T>, Event<T>},
-		Offences: pallet_offences::{Module, Call, Storage, Event},
 		TransactionPayment: transaction_payment::{Module, Storage},
 		Sudo: sudo::{Module, Call, Config<T>, Storage, Event<T>},
+		Ethereum: ethereum::{Module, Call, Storage, Event<T>, ValidateUnsigned},
 		EVM: evm::{Module, Config, Call, Storage, Event<T>},
-		AuthorityDiscovery: pallet_authority_discovery::{Module, Call, Config},
-		Session: pallet_session::{Module, Call, Storage, Event, Config<T>},
-		ImOnline: pallet_im_online::{Module, Call, Storage, Event<T>, ValidateUnsigned, Config<T>},
-		Authorship: pallet_authorship::{Module, Call, Storage, Inherent},
-		MoonbeamCore: mb_core::{Module, Call, Storage, Event<T>, Config<T>},
-		MoonbeamSession: mb_session::{Module, Call, Storage, Event<T>, ValidateUnsigned, Config<T>},
 	}
 );
 
+pub struct TransactionConverter;
+
+impl frontier_rpc_primitives::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
+	fn convert_transaction(&self, transaction: ethereum::Transaction) -> UncheckedExtrinsic {
+		UncheckedExtrinsic::new_unsigned(ethereum::Call::<Runtime>::transact(transaction).into())
+	}
+}
+
+impl frontier_rpc_primitives::ConvertTransaction<opaque::UncheckedExtrinsic>
+	for TransactionConverter
+{
+	fn convert_transaction(
+		&self,
+		transaction: ethereum::Transaction,
+	) -> opaque::UncheckedExtrinsic {
+		let extrinsic = UncheckedExtrinsic::new_unsigned(
+			ethereum::Call::<Runtime>::transact(transaction).into(),
+		);
+		let encoded = extrinsic.encode();
+		opaque::UncheckedExtrinsic::decode(&mut &encoded[..])
+			.expect("Encoded extrinsic is always valid")
+	}
+}
+
 /// The address format for describing accounts.
-pub type Address = <Indices as StaticLookup>::Source;
+pub type Address = AccountId;
 /// Block header type as expected by this runtime.
 pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
 /// Block type as expected by this runtime.
@@ -477,8 +344,6 @@ pub type SignedExtra = (
 );
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic = generic::UncheckedExtrinsic<Address, Call, Signature, SignedExtra>;
-/// The payload being signed in transactions.
-pub type SignedPayload = generic::SignedPayload<Call, SignedExtra>;
 /// Extrinsic type that has already been checked.
 pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, Call, SignedExtra>;
 /// Executive: handles dispatch to the various modules.
@@ -546,37 +411,129 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl sp_consensus_babe::BabeApi<Block> for Runtime {
-		fn configuration() -> sp_consensus_babe::BabeGenesisConfiguration {
-			// The choice of `c` parameter (where `1 - c` represents the
-			// probability of a slot being empty), is done in accordance to the
-			// slot duration and expected target block time, for safely
-			// resisting network delays of maximum two seconds.
-			// <https://research.web3.foundation/en/latest/polkadot/BABE/Babe/#6-practical-results>
-			sp_consensus_babe::BabeGenesisConfiguration {
-				slot_duration: Babe::slot_duration(),
-				epoch_length: EpochDuration::get(),
-				c: PRIMARY_PROBABILITY,
-				genesis_authorities: Babe::authorities(),
-				randomness: Babe::randomness(),
-				allowed_slots: sp_consensus_babe::AllowedSlots::PrimaryAndSecondaryPlainSlots,
+	impl sp_consensus_aura::AuraApi<Block, AuraId> for Runtime {
+		fn slot_duration() -> u64 {
+			Aura::slot_duration()
+		}
+
+		fn authorities() -> Vec<AuraId> {
+			Aura::authorities()
+		}
+	}
+
+	impl frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Index> for Runtime {
+		fn account_nonce(account: AccountId) -> Index {
+			System::account_nonce(account)
+		}
+	}
+
+	impl frontier_rpc_primitives::EthereumRuntimeApi<Block> for Runtime {
+		fn chain_id() -> u64 {
+			sp_io::misc::chain_id()
+		}
+
+		fn account_basic(address: H160) -> EVMAccount {
+			evm::Module::<Runtime>::accounts(address)
+		}
+
+		fn transaction_status(hash: H256) -> Option<ethereum::TransactionStatus> {
+			ethereum::Module::<Runtime>::transaction_status(hash)
+		}
+
+		fn gas_price() -> U256 {
+			FixedGasPrice::min_gas_price()
+		}
+
+		fn account_code_at(address: H160) -> Vec<u8> {
+			evm::Module::<Runtime>::account_codes(address)
+		}
+
+		fn author() -> H160 {
+			let digest = <system::Module<Runtime>>::digest();
+			let pre_runtime_digests = digest.logs.iter().filter_map(|d| d.as_pre_runtime());
+			if let Some(index) = <aura::Module<Runtime>>::find_author(pre_runtime_digests) {
+				let authority_id = &<aura::Module<Runtime>>::authorities()[index as usize];
+				<evm::HashTruncateConvertAccountId<BlakeTwo256>>::convert_account_id(&authority_id)
+			} else {
+				H160::zero()
 			}
 		}
 
-		fn current_epoch_start() -> sp_consensus_babe::SlotNumber {
-			Babe::current_epoch_start()
+		fn storage_at(address: H160, index: U256) -> H256 {
+			let mut tmp = [0u8; 32];
+			index.to_big_endian(&mut tmp);
+			evm::Module::<Runtime>::account_storages(address, H256::from_slice(&tmp[..]))
+		}
+
+		fn block_by_number(number: u32) -> Option<EthereumBlock> {
+			<ethereum::Module<Runtime>>::block_by_number(number)
+		}
+
+		fn block_transaction_count_by_number(number: u32) -> Option<U256> {
+			if let Some(block) = <ethereum::Module<Runtime>>::block_by_number(number) {
+				return Some(U256::from(block.transactions.len()))
+			}
+			None
+		}
+
+		fn block_transaction_count_by_hash(hash: H256) -> Option<U256> {
+			if let Some(block) = <ethereum::Module<Runtime>>::block_by_hash(hash) {
+				return Some(U256::from(block.transactions.len()))
+			}
+			None
+		}
+
+		fn block_by_hash(hash: H256) -> Option<EthereumBlock> {
+			<ethereum::Module<Runtime>>::block_by_hash(hash)
+		}
+
+		fn transaction_by_hash(hash: H256) -> Option<(
+			EthereumTransaction,
+			EthereumBlock,
+			TransactionStatus)> {
+			<ethereum::Module<Runtime>>::transaction_by_hash(hash)
+		}
+
+		fn transaction_by_block_hash_and_index(hash: H256, index: u32) -> Option<(
+			EthereumTransaction,
+			EthereumBlock,
+			TransactionStatus)> {
+			<ethereum::Module<Runtime>>::transaction_by_block_hash_and_index(hash, index)
+		}
+
+		fn transaction_by_block_number_and_index(number: u32, index: u32) -> Option<(
+			EthereumTransaction,
+			EthereumBlock,
+			TransactionStatus)> {
+			<ethereum::Module<Runtime>>::transaction_by_block_number_and_index(
+				number,
+				index
+			)
+		}
+	}
+
+	impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<
+		Block,
+		Balance,
+		UncheckedExtrinsic,
+	> for Runtime {
+		fn query_info(
+			uxt: UncheckedExtrinsic,
+			len: u32
+		) -> pallet_transaction_payment_rpc_runtime_api::RuntimeDispatchInfo<Balance> {
+			TransactionPayment::query_info(uxt, len)
 		}
 	}
 
 	impl sp_session::SessionKeys<Block> for Runtime {
 		fn generate_session_keys(seed: Option<Vec<u8>>) -> Vec<u8> {
-			SessionKeys::generate(seed)
+			opaque::SessionKeys::generate(seed)
 		}
 
 		fn decode_session_keys(
 			encoded: Vec<u8>,
 		) -> Option<Vec<(Vec<u8>, KeyTypeId)>> {
-			SessionKeys::decode_into_raw_public_keys(&encoded)
+			opaque::SessionKeys::decode_into_raw_public_keys(&encoded)
 		}
 	}
 
@@ -603,28 +560,6 @@ impl_runtime_apis! {
 			// defined our key owner proof type as a bottom type (i.e. a type
 			// with no values).
 			None
-		}
-	}
-
-	impl sp_authority_discovery::AuthorityDiscoveryApi<Block> for Runtime {
-		fn authorities() -> Vec<AuthorityDiscoveryId> {
-			AuthorityDiscovery::authorities()
-		}
-	}
-
-	impl frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Index> for Runtime {
-		fn account_nonce(account: AccountId) -> Index {
-			System::account_nonce(account)
-		}
-	}
-
-	impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<
-		Block,
-		Balance,
-		UncheckedExtrinsic,
-	> for Runtime {
-		fn query_info(uxt: UncheckedExtrinsic, len: u32) -> RuntimeDispatchInfo<Balance> {
-			TransactionPayment::query_info(uxt, len)
 		}
 	}
 }

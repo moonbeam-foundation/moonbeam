@@ -1,7 +1,6 @@
 //! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
-use futures::prelude::*;
-use node_moonbeam_runtime::{self, RuntimeApi};
-use node_primitives::{AccountId, Block, Index};
+
+use moonbeam_runtime::{self, opaque::Block, RuntimeApi};
 use sc_client_api::ExecutorProvider;
 use sc_consensus::LongestChain;
 use sc_executor::native_executor_instance;
@@ -10,10 +9,8 @@ use sc_finality_grandpa::{
 	FinalityProofProvider as GrandpaFinalityProofProvider, SharedVoterState,
 	StorageAndProofProvider,
 };
-use sc_network::Event;
-use sc_service::{
-	config::Configuration, error::Error as ServiceError, AbstractService, ServiceBuilder,
-};
+use sc_service::{error::Error as ServiceError, AbstractService, Configuration, ServiceBuilder};
+use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
 use sp_inherents::InherentDataProviders;
 use std::sync::Arc;
 use std::time::Duration;
@@ -21,8 +18,8 @@ use std::time::Duration;
 // Our native executor instance.
 native_executor_instance!(
 	pub Executor,
-	node_moonbeam_runtime::api::dispatch,
-	node_moonbeam_runtime::native_version,
+	moonbeam_runtime::api::dispatch,
+	moonbeam_runtime::native_version,
 );
 
 /// Starts a `ServiceBuilder` for a full service.
@@ -31,26 +28,22 @@ native_executor_instance!(
 /// be able to perform chain operations.
 macro_rules! new_full_start {
 	($config:expr) => {{
-		type RpcExtension = jsonrpc_core::IoHandler<sc_rpc::Metadata>;
-
-		use sc_rpc::DenyUnsafe;
+		use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
 		use std::sync::Arc;
 
 		let mut import_setup = None;
 		let inherent_data_providers = sp_inherents::InherentDataProviders::new();
 
 		let builder = sc_service::ServiceBuilder::new_full::<
-			node_primitives::Block,
-			node_moonbeam_runtime::RuntimeApi,
+			moonbeam_runtime::opaque::Block,
+			moonbeam_runtime::RuntimeApi,
 			crate::service::Executor,
 		>($config)?
 		.with_select_chain(|_config, backend| Ok(sc_consensus::LongestChain::new(backend.clone())))?
 		.with_transaction_pool(|builder| {
 			let pool_api = sc_transaction_pool::FullChainApi::new(builder.client().clone());
-			let config = builder.config();
-
 			Ok(sc_transaction_pool::BasicPool::new(
-				config.transaction_pool.clone(),
+				builder.config().transaction_pool.clone(),
 				std::sync::Arc::new(pool_api),
 				builder.prometheus_registry(),
 			))
@@ -67,65 +60,48 @@ macro_rules! new_full_start {
 					select_chain,
 				)?;
 
-				let justification_import = grandpa_block_import.clone();
+				let aura_block_import =
+					sc_consensus_aura::AuraBlockImport::<_, _, _, AuraPair>::new(
+						grandpa_block_import.clone(),
+						client.clone(),
+					);
 
-				let (block_import, babe_link) = sc_consensus_babe::block_import(
-					sc_consensus_babe::Config::get_or_compute(&*client)?,
-					grandpa_block_import,
-					client.clone(),
-				)?;
-
-				let import_queue = sc_consensus_babe::import_queue(
-					babe_link.clone(),
-					block_import.clone(),
-					Some(Box::new(justification_import)),
+				let import_queue = sc_consensus_aura::import_queue::<_, _, _, AuraPair, _>(
+					sc_consensus_aura::slot_duration(&*client)?,
+					aura_block_import,
+					Some(Box::new(grandpa_block_import.clone())),
 					None,
-					client.clone(),
+					client,
 					inherent_data_providers.clone(),
 					spawn_task_handle,
 					registry,
 				)?;
 
-				import_setup = Some((block_import, grandpa_link, babe_link));
+				import_setup = Some((grandpa_block_import, grandpa_link));
 
 				Ok(import_queue)
 			},
 			)?
-		.with_rpc_extensions(|builder| -> Result<RpcExtension, _> {
-			use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
-			use sc_consensus_babe_rpc::BabeRpcHandler;
-			use substrate_frame_rpc_system::{FullSystem, SystemApi};
+		.with_rpc_extensions_builder(|builder| {
+			let client = builder.client().clone();
+			let is_authority: bool = builder.config().role.is_authority();
+			let pool = builder.pool().clone();
+			let select_chain = builder
+				.select_chain()
+				.cloned()
+				.expect("SelectChain is present for full services or set up failed; qed.");
 
-			let mut io = jsonrpc_core::IoHandler::default();
+			Ok(move |deny_unsafe| {
+				let deps = crate::rpc::FullDeps {
+					client: client.clone(),
+					pool: pool.clone(),
+					select_chain: select_chain.clone(),
+					deny_unsafe,
+					is_authority,
+				};
 
-			let babe_link = import_setup
-				.as_ref()
-				.map(|s| &s.2)
-				.expect("BabeLink is present for full services or set up failed; qed.");
-
-			io.extend_with(SystemApi::to_delegate(FullSystem::new(
-				builder.client().clone(),
-				builder.pool(),
-			)));
-			io.extend_with(TransactionPaymentApi::to_delegate(TransactionPayment::new(
-				builder.client().clone(),
-			)));
-
-			io.extend_with(sc_consensus_babe_rpc::BabeApi::to_delegate(
-				BabeRpcHandler::new(
-					builder.client().clone(),
-					sc_consensus_babe::BabeLink::epoch_changes(babe_link).clone(),
-					builder.keystore(),
-					sc_consensus_babe::BabeLink::config(babe_link).clone(),
-					builder
-						.select_chain()
-						.cloned()
-						.expect("SelectChain is present for full services or set up failed; qed."),
-					DenyUnsafe::Yes, // TODO: understand what it means
-				),
-			));
-
-			Ok(io)
+				crate::rpc::create_full(deps)
+			})
 		})?;
 
 		(builder, import_setup, inherent_data_providers)
@@ -135,19 +111,13 @@ macro_rules! new_full_start {
 /// Builds a new service for a full client.
 pub fn new_full(config: Configuration) -> Result<impl AbstractService, ServiceError> {
 	let role = config.role.clone();
-	let is_authority = role.is_authority();
 	let force_authoring = config.force_authoring;
 	let name = config.network.node_name.clone();
 	let disable_grandpa = config.disable_grandpa;
 
-	// sentry nodes announce themselves as authorities to the network
-	// and should run the same protocols authorities do, but it should
-	// never actively participate in any consensus process.
-	let participates_in_consensus = is_authority;
-
 	let (builder, mut import_setup, inherent_data_providers) = new_full_start!(config);
 
-	let (block_import, grandpa_link, babe_link) = import_setup.take().expect(
+	let (block_import, grandpa_link) = import_setup.take().expect(
 		"Link Half and Block Import are present for Full Services or setup failed before. qed",
 	);
 
@@ -157,18 +127,9 @@ pub fn new_full(config: Configuration) -> Result<impl AbstractService, ServiceEr
 			let provider = client as Arc<dyn StorageAndProofProvider<_, _>>;
 			Ok(Arc::new(GrandpaFinalityProofProvider::new(backend, provider)) as _)
 		})?
-		.build()?;
+		.build_full()?;
 
-	let (sentries, authority_discovery_role) = match role {
-		sc_service::config::Role::Authority { ref sentry_nodes } => (
-			sentry_nodes.clone(),
-			sc_authority_discovery::Role::Authority(service.keystore()),
-		),
-		sc_service::config::Role::Sentry { .. } => (vec![], sc_authority_discovery::Role::Sentry),
-		_ => unreachable!("Due to outer matches! constraint; qed."),
-	};
-
-	if participates_in_consensus {
+	if role.is_authority() {
 		let proposer = sc_basic_authorship::ProposerFactory::new(
 			service.client(),
 			service.transaction_pool(),
@@ -183,48 +144,28 @@ pub fn new_full(config: Configuration) -> Result<impl AbstractService, ServiceEr
 		let can_author_with =
 			sp_consensus::CanAuthorWithNativeVersion::new(client.executor().clone());
 
-		let babe_config = sc_consensus_babe::BabeParams {
-			keystore: service.keystore(),
+		let aura = sc_consensus_aura::start_aura::<_, _, _, _, _, AuraPair, _, _, _>(
+			sc_consensus_aura::slot_duration(&*client)?,
 			client,
 			select_chain,
-			env: proposer,
 			block_import,
-			sync_oracle: service.network(),
-			inherent_data_providers: inherent_data_providers.clone(),
+			proposer,
+			service.network(),
+			inherent_data_providers.clone(),
 			force_authoring,
-			babe_link,
+			service.keystore(),
 			can_author_with,
-		};
+		)?;
 
-		let babe = sc_consensus_babe::start_babe(babe_config)?;
-		service.spawn_essential_task("babe-proposer", babe);
-
-		let network = service.network();
-		let dht_event_stream = network
-			.event_stream("authority-discovery")
-			.filter_map(|e| async move {
-				match e {
-					Event::Dht(e) => Some(e),
-					_ => None,
-				}
-			})
-			.boxed();
-		let authority_discovery = sc_authority_discovery::AuthorityDiscovery::new(
-			service.client(),
-			network,
-			sentries,
-			dht_event_stream,
-			authority_discovery_role,
-			service.prometheus_registry(),
-		);
-
-		service.spawn_task("authority-discovery", authority_discovery);
+		// the AURA authoring task is considered essential, i.e. if it
+		// fails we take down the service with it.
+		service.spawn_essential_task("aura", aura);
 	}
 
 	// if the node isn't actively participating in consensus then it doesn't
 	// need a keystore, regardless of which protocol we use below.
 	let keystore = if role.is_authority() {
-		Some(service.keystore())
+		Some(service.keystore() as sp_core::traits::BareCryptoStorePtr)
 	} else {
 		None
 	};
@@ -277,17 +218,17 @@ pub fn new_full(config: Configuration) -> Result<impl AbstractService, ServiceEr
 
 /// Builds a new service for a light client.
 pub fn new_light(config: Configuration) -> Result<impl AbstractService, ServiceError> {
-	type RpcExtension = jsonrpc_core::IoHandler<sc_rpc::Metadata>;
 	let inherent_data_providers = InherentDataProviders::new();
 
-	let service = ServiceBuilder::new_light::<Block, RuntimeApi, Executor>(config)?
+	ServiceBuilder::new_light::<Block, RuntimeApi, Executor>(config)?
 		.with_select_chain(|_config, backend| Ok(LongestChain::new(backend.clone())))?
 		.with_transaction_pool(|builder| {
 			let fetcher = builder
 				.fetcher()
 				.ok_or_else(|| "Trying to start light transaction pool without active fetcher")?;
+
 			let pool_api =
-				sc_transaction_pool::LightChainApi::new(builder.client().clone(), fetcher);
+				sc_transaction_pool::LightChainApi::new(builder.client().clone(), fetcher.clone());
 			let pool = sc_transaction_pool::BasicPool::with_revalidation_type(
 				builder.config().transaction_pool.clone(),
 				Arc::new(pool_api),
@@ -320,18 +261,12 @@ pub fn new_light(config: Configuration) -> Result<impl AbstractService, ServiceE
 				let finality_proof_request_builder =
 					finality_proof_import.create_finality_proof_request_builder();
 
-				let (babe_block_import, babe_link) = sc_consensus_babe::block_import(
-					sc_consensus_babe::Config::get_or_compute(&*client)?,
+				let import_queue = sc_consensus_aura::import_queue::<_, _, _, AuraPair, _>(
+					sc_consensus_aura::slot_duration(&*client)?,
 					grandpa_block_import,
-					client.clone(),
-				)?;
-
-				let import_queue = sc_consensus_babe::import_queue(
-					babe_link,
-					babe_block_import,
 					None,
 					Some(Box::new(finality_proof_import)),
-					client.clone(),
+					client,
 					inherent_data_providers.clone(),
 					spawn_task_handle,
 					prometheus_registry,
@@ -345,9 +280,7 @@ pub fn new_light(config: Configuration) -> Result<impl AbstractService, ServiceE
 			let provider = client as Arc<dyn StorageAndProofProvider<_, _>>;
 			Ok(Arc::new(GrandpaFinalityProofProvider::new(backend, provider)) as _)
 		})?
-		.with_rpc_extensions(|builder| -> Result<RpcExtension, _> {
-			use substrate_frame_rpc_system::{LightSystem, SystemApi};
-
+		.with_rpc_extensions(|builder| {
 			let fetcher = builder
 				.fetcher()
 				.ok_or_else(|| "Trying to start node RPC without active fetcher")?;
@@ -355,18 +288,14 @@ pub fn new_light(config: Configuration) -> Result<impl AbstractService, ServiceE
 				.remote_backend()
 				.ok_or_else(|| "Trying to start node RPC without active remote blockchain")?;
 
-			let mut io = jsonrpc_core::IoHandler::default();
-			io.extend_with(SystemApi::<AccountId, Index>::to_delegate(
-				LightSystem::new(
-					builder.client().clone(),
-					remote_blockchain,
-					fetcher,
-					builder.pool(),
-				),
-			));
-			Ok(io)
-		})?
-		.build()?;
+			let light_deps = crate::rpc::LightDeps {
+				remote_blockchain,
+				fetcher,
+				client: builder.client().clone(),
+				pool: builder.pool(),
+			};
 
-	Ok(service)
+			Ok(crate::rpc::create_light(light_deps))
+		})?
+		.build_light()
 }

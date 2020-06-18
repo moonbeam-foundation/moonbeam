@@ -3,256 +3,79 @@ authors = ['PureStake']
 edition = '2018'
 homepage = 'https://moonbeam.network'
 license = 'Unlicense'
-name = 'node-moonbeam-runtime'
+name = 'moonbeam-runtime'
 repository = 'https://github.com/PureStake/moonbeam/'
 version = '0.1.0'
 
-[dependencies.babe]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-package = 'pallet-babe'
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.balances]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-package = 'pallet-balances'
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.codec]
-default-features = false
-features = ['derive']
-package = 'parity-scale-codec'
-version = '1.3.0'
-
-[dependencies.frame-executive]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.frame-support]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.grandpa]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-package = 'pallet-grandpa'
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.randomness-collective-flip]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-package = 'pallet-randomness-collective-flip'
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.serde]
-features = ['derive']
-optional = true
-version = '1.0.101'
-
-[dependencies.sp-api]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.sp-staking]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.sp-block-builder]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.sp-consensus-babe]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.sp-core]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.sp-inherents]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.sp-io]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.sp-offchain]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.sp-runtime]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.sp-session]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.sp-std]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.sp-transaction-pool]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.sp-version]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.sudo]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-package = 'pallet-sudo'
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.system]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-package = 'frame-system'
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.timestamp]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-package = 'pallet-timestamp'
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.transaction-payment]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-package = 'pallet-transaction-payment'
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.sp-authority-discovery]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.pallet-authority-discovery]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.pallet-im-online]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.pallet-session]
-git = 'https://github.com/paritytech/substrate.git'
-features = ["historical"]
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.pallet-authorship]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.mb-core]
-default-features = false
-version = '0.1.0'
-path = '../pallets/mb-core'
-
-[dependencies.mb-session]
-default-features = false
-version = '0.1.0'
-path = '../pallets/mb-session'
-
-[dependencies.node-primitives]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.pallet-indices]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.pallet-offences]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.frame-system-rpc-runtime-api]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[dependencies.pallet-transaction-payment-rpc-runtime-api]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
-
-[build-dependencies.wasm-builder-runner]
-package = 'substrate-wasm-builder-runner'
-version = '1.0.5'
-
 [package.metadata.docs.rs]
-targets = ['x86_64-unknown-linux-gnu']
+targets = ["x86_64-unknown-linux-gnu"]
 
-[dependencies.evm]
-git = 'https://github.com/paritytech/substrate.git'
-default-features = false
-package = 'pallet-evm'
-rev = '34695a85650b58bcd7d7e2a677cafc2921251d68'
+[dependencies]
+codec = { package = "parity-scale-codec", version = "1.3.0", default-features = false, features = ["derive"] }
+
+aura = { version = "2.0.0-dev", default-features = false, package = "pallet-aura", path = "../vendor/frontier/vendor/substrate/frame/aura" }
+balances = { version = "2.0.0-dev", default-features = false, package = "pallet-balances", path = "../vendor/frontier/vendor/substrate/frame/balances" }
+frame-support = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/frame/support" }
+grandpa = { version = "2.0.0-dev", default-features = false, package = "pallet-grandpa", path = "../vendor/frontier/vendor/substrate/frame/grandpa" }
+randomness-collective-flip = { version = "2.0.0-dev", default-features = false, package = "pallet-randomness-collective-flip", path = "../vendor/frontier/vendor/substrate/frame/randomness-collective-flip" }
+sudo = { version = "2.0.0-dev", default-features = false, package = "pallet-sudo", path = "../vendor/frontier/vendor/substrate/frame/sudo" }
+system = { version = "2.0.0-dev", default-features = false, package = "frame-system", path = "../vendor/frontier/vendor/substrate/frame/system" }
+timestamp = { version = "2.0.0-dev", default-features = false, package = "pallet-timestamp", path = "../vendor/frontier/vendor/substrate/frame/timestamp" }
+transaction-payment = { version = "2.0.0-dev", default-features = false, package = "pallet-transaction-payment", path = "../vendor/frontier/vendor/substrate/frame/transaction-payment" }
+evm = { version = "2.0.0-dev", default-features = false, package = "pallet-evm", path = "../vendor/frontier/vendor/substrate/frame/evm" }
+frame-executive = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/frame/executive" }
+serde = { version = "1.0.101", optional = true, features = ["derive"] }
+sp-api = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/primitives/api" }
+sp-block-builder = { path = "../vendor/frontier/vendor/substrate/primitives/block-builder", default-features = false, version = "2.0.0-dev"}
+sp-consensus-aura = { version = "0.8.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/primitives/consensus/aura" }
+sp-core = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/primitives/core" }
+sp-inherents = { path = "../vendor/frontier/vendor/substrate/primitives/inherents", default-features = false, version = "2.0.0-dev"}
+sp-io = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/primitives/io" }
+sp-offchain = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/primitives/offchain" }
+sp-runtime = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/primitives/runtime" }
+sp-session = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/primitives/session" }
+sp-std = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/primitives/std" }
+sp-transaction-pool = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/primitives/transaction-pool" }
+sp-version = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/primitives/version" }
+frame-system-rpc-runtime-api = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/frame/system/rpc/runtime-api/" }
+pallet-transaction-payment-rpc-runtime-api = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/frame/transaction-payment/rpc/runtime-api/" }
+
+frontier-rpc-primitives = { default-features = false, path = "../vendor/frontier/rpc/primitives" }
+ethereum = { version = "0.1.0", default-features = false, package = "pallet-ethereum", path = "../vendor/frontier/frame/ethereum" }
+
+[build-dependencies]
+wasm-builder-runner = { version = "1.0.5", package = "substrate-wasm-builder-runner", path = "../vendor/frontier/vendor/substrate/utils/wasm-builder-runner" }
 
 [features]
-default = ['std']
+default = ["std"]
 std = [
-    'babe/std',
-    'balances/std',
-    'codec/std',
-    'frame-executive/std',
-    'frame-support/std',
-    'grandpa/std',
-    'randomness-collective-flip/std',
-    'serde',
-    'sp-api/std',
-    'sp-block-builder/std',
-    'sp-consensus-babe/std',
-    'sp-core/std',
-    'sp-inherents/std',
-    'sp-io/std',
-    'sp-offchain/std',
-    'sp-runtime/std',
-    'sp-session/std',
-    'sp-std/std',
-    'sp-transaction-pool/std',
-    'sp-version/std',
-    'sp-authority-discovery/std',
-    'node-primitives/std',
-    'sudo/std',
-    'system/std',
-    'timestamp/std',
-    'transaction-payment/std',
-	'evm/std',
-	"pallet-authority-discovery/std",
-	"pallet-im-online/std",
-	"pallet-session/std",
-	"pallet-authorship/std",
-	"pallet-indices/std",
-	"pallet-offences/std",
-	"mb-session/std",
+	"aura/std",
+	"balances/std",
+	"codec/std",
+	"frame-executive/std",
+	"frame-support/std",
+	"grandpa/std",
+	"randomness-collective-flip/std",
+	"serde",
+	"sp-api/std",
+	"sp-block-builder/std",
+	"sp-consensus-aura/std",
+	"sp-core/std",
+	"sp-inherents/std",
+	"sp-io/std",
+	"sp-offchain/std",
+	"sp-runtime/std",
+	"sp-session/std",
+	"sp-std/std",
+	"sp-transaction-pool/std",
+	"sp-version/std",
+	"sudo/std",
+	"system/std",
+	"timestamp/std",
+	"transaction-payment/std",
+	"ethereum/std",
+	"evm/std",
 	"frame-system-rpc-runtime-api/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
-	"mb-core/std"
+	"frontier-rpc-primitives/std",
 ]

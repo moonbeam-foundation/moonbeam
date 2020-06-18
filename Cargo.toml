@@ -3,5 +3,10 @@ members = [
     'node',
     'runtime',
 ]
+exclude = ["vendor"]
+
 [profile.release]
 panic = 'unwind'
+
+[patch.crates-io]
+ethereum = { path = "vendor/ethereum" }
