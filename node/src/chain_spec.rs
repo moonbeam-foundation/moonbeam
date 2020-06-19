@@ -114,7 +114,7 @@ fn testnet_genesis(
 			nonce: 0.into(),
 			balance: U256::from(123456_123_000_000_000_000_000u128),
 			storage: BTreeMap::new(),
-			code: WASM_BINARY.to_vec(),
+			code: vec![],
 		},
 	);
 
