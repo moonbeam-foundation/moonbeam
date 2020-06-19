@@ -13,8 +13,10 @@ Run an Ethereum compatible ~~parachain~~ (blockchain for now, until parachains a
 ### Moonbeam
 
 ```bash
-git clone https://github.com/PureStake/moonbeam
-cd moonbeam
+git clone -b crystalin-moonbeam-frontier https://github.com/PureStake/moonbeam
+cd moonbeam && git submodule init && git submodule update && \
+  cd vendor/frontier && git submodule init && git submodule update && \
+  cd ../..
 ```
 
 ### Dependencies
@@ -42,31 +44,8 @@ cargo build --release
 ### Single node dev
 
 ```bash
-./target/release/node-moonbeam --dev --unsafe-rpc-expose --execution=native
+./target/release/node-moonbeam --dev
 ```
-
-### Multi node local testnet
-
-On terminal A:
-
-```bash
-./scripts/run-alice.sh
-```
-
-On terminal B:
-
-```bash
-./scripts/run-bob.sh
-```
-
-To inject the Alice offchain worker key:
-
-```bash
-./scripts/set-offchain-key-alice.sh
-```
-
-To purge the chain, delete the `./scripts/tmp` folder.
-
 ### Docker image
 
 You can run the moonbeam node within Docker directly.  
