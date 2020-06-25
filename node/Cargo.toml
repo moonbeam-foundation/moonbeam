@@ -42,6 +42,7 @@ sp-finality-grandpa = { version = "2.0.0-dev", path = "../vendor/frontier/vendor
 sc-client-api = { version = "2.0.0-dev", path = "../vendor/frontier/vendor/substrate/client/api" }
 sp-runtime = { version = "2.0.0-dev", path = "../vendor/frontier/vendor/substrate/primitives/runtime" }
 sc-basic-authorship = { path = "../vendor/frontier/vendor/substrate/client/basic-authorship" }
+sp-block-builder = { path = "../vendor/frontier/vendor/substrate/primitives/block-builder" }
 
 moonbeam-runtime = { path = "../runtime" }
 frontier-rpc = { version = "0.1.0", path = "../vendor/frontier/rpc" }

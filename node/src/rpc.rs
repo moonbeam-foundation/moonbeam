@@ -2,10 +2,11 @@
 
 use std::{fmt, sync::Arc};
 
-use moonbeam_runtime::{opaque::Block, AccountId, Balance, Index, UncheckedExtrinsic};
+use moonbeam_runtime::{opaque::Block, AccountId, Balance, Hash, Index, UncheckedExtrinsic};
 use sc_client_api::backend::{Backend, StateBackend, StorageProvider};
 use sc_rpc_api::DenyUnsafe;
 use sp_api::ProvideRuntimeApi;
+use sp_block_builder::BlockBuilder;
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
 use sp_consensus::SelectChain;
 use sp_runtime::traits::BlakeTwo256;
@@ -46,6 +47,7 @@ where
 	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
 	C: Send + Sync + 'static,
 	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>,
+	C::Api: BlockBuilder<Block>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<
 		Block,
 		Balance,
@@ -66,13 +68,14 @@ where
 		client,
 		pool,
 		select_chain,
-		deny_unsafe: _,
+		deny_unsafe,
 		is_authority,
 	} = deps;
 
 	io.extend_with(SystemApi::to_delegate(FullSystem::new(
 		client.clone(),
 		pool.clone(),
+		deny_unsafe,
 	)));
 	io.extend_with(TransactionPaymentApi::to_delegate(TransactionPayment::new(
 		client.clone(),
@@ -106,7 +109,7 @@ where
 		fetcher,
 	} = deps;
 	let mut io = jsonrpc_core::IoHandler::default();
-	io.extend_with(SystemApi::<AccountId, Index>::to_delegate(
+	io.extend_with(SystemApi::<Hash, AccountId, Index>::to_delegate(
 		LightSystem::new(client, remote_blockchain, fetcher, pool),
 	));
 
