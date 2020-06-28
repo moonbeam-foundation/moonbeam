@@ -1,0 +1,10 @@
+{
+  "name": "substrate-evm-contracts",
+  "version": "0.0.0",
+  "dependencies": {
+    "@openzeppelin/contracts": "^2.5.0",
+    "ethereumjs-wallet": "^1.0.0",
+    "truffle": "^5.1.32",
+    "web3-provider-engine": "^15.0.12"
+  }
+}
