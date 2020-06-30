@@ -1,19 +1,22 @@
-pragma solidity ^0.5.16;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity >=0.4.21 <0.7.0;
 
-contract Migrations {
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
+contract Migrations is ERC20 {
   address public owner;
   uint public last_completed_migration;
-
-  modifier restricted() {
-    if (msg.sender == owner) _;
-  }
-
-  constructor() public {
+  
+  constructor() ERC20() public {
     owner = msg.sender;
+    _mint(msg.sender,  2110000);
   }
 
   function setCompleted(uint completed) public restricted {
     last_completed_migration = completed;
+  }
+  modifier restricted() {
+    if (msg.sender == owner) _;
   }
 
   function upgrade(address new_address) public restricted {
