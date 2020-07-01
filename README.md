@@ -21,14 +21,9 @@ cd moonbeam && git submodule init && git submodule update && \
 
 ### Dependencies
 
-Install Rust:  
+Install Substrate and its pre-requisites (including Rust):  
 ```bash
-curl https://sh.rustup.rs -sSf | sh
-```
-
-Initialize your Wasm Build environment (*required for compiling Rust to Wasm*):  
-```bash
-./scripts/init.sh
+curl https://getsubstrate.io -sSf | bash -s -- --fast 
 ```
 
 ## Build
@@ -38,6 +33,11 @@ Build Wasm and native code:
 cargo build --release
 ```  
 (Building for the first time will take a long time, to install and compile all the libraries)
+
+If a _cargo not found_ error appears in the terminal, manually add Rust to your system path (or restart your system):
+```bash
+source $HOME/.cargo/env
+```
 
 ## Run
 
