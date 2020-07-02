@@ -1,5 +1,5 @@
-import { gerald, web3, ERC20_BYTECODE } from "./init-web3";
-
+import { gerald, web3, ERC20_BYTECODE, init } from "./init-web3";
+init();
 
 const main = async () => {
 	console.log(`\nCreating contract using Eth RPC "sendTransaction" from gerald`);
