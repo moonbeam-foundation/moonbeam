@@ -30,7 +30,9 @@ use sp_version::RuntimeVersion;
 use evm::{ConvertAccountId, FeeCalculator, HashTruncateConvertAccountId};
 // A few exports that help ease life for downstream crates.
 pub use balances::Call as BalancesCall;
-use ethereum::{Block as EthereumBlock, Transaction as EthereumTransaction};
+use ethereum::{
+	Block as EthereumBlock, Receipt as EthereumReceipt, Transaction as EthereumTransaction,
+};
 pub use evm::Account as EVMAccount;
 pub use frame_support::{
 	construct_runtime, parameter_types,
@@ -438,10 +440,6 @@ impl_runtime_apis! {
 			evm::Module::<Runtime>::accounts(address)
 		}
 
-		fn transaction_status(hash: H256) -> Option<ethereum::TransactionStatus> {
-			ethereum::Module::<Runtime>::transaction_status(hash)
-		}
-
 		fn gas_price() -> U256 {
 			FixedGasPrice::min_gas_price()
 		}
@@ -467,8 +465,17 @@ impl_runtime_apis! {
 			evm::Module::<Runtime>::account_storages(address, H256::from_slice(&tmp[..]))
 		}
 
-		fn block_by_number(number: u32) -> Option<EthereumBlock> {
-			<ethereum::Module<Runtime>>::block_by_number(number)
+		fn block_by_number(number: u32) -> (
+			Option<EthereumBlock>, Vec<Option<ethereum::TransactionStatus>>
+		) {
+			if let Some(block) = <ethereum::Module<Runtime>>::block_by_number(number) {
+				let statuses = <ethereum::Module<Runtime>>::block_transaction_statuses(&block);
+				return (
+					Some(block), 
+					statuses
+				);
+			}
+			(None,vec![])
 		}
 
 		fn block_transaction_count_by_number(number: u32) -> Option<U256> {
@@ -476,6 +483,19 @@ impl_runtime_apis! {
 				return Some(U256::from(block.transactions.len()))
 			}
 			None
+		}
+		
+		fn block_by_hash_with_statuses(hash: H256) -> (
+			Option<EthereumBlock>, Vec<Option<ethereum::TransactionStatus>>
+		) {
+			if let Some(block) = <ethereum::Module<Runtime>>::block_by_hash(hash) {
+				let statuses = <ethereum::Module<Runtime>>::block_transaction_statuses(&block);
+				return (
+					Some(block), 
+					statuses
+				);
+			}
+			(None, vec![])
 		}
 
 		fn block_transaction_count_by_hash(hash: H256) -> Option<U256> {
@@ -492,7 +512,8 @@ impl_runtime_apis! {
 		fn transaction_by_hash(hash: H256) -> Option<(
 			EthereumTransaction,
 			EthereumBlock,
-			TransactionStatus)> {
+			TransactionStatus,
+			EthereumReceipt)> {
 			<ethereum::Module<Runtime>>::transaction_by_hash(hash)
 		}
 
