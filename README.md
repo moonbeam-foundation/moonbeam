@@ -13,7 +13,7 @@ Run an Ethereum compatible ~~parachain~~ (blockchain for now, until parachains a
 ### Moonbeam
 
 ```bash
-git clone -b crystalin-moonbeam-frontier https://github.com/PureStake/moonbeam
+git clone -b moonbeam-tutorials https://github.com/PureStake/moonbeam
 cd moonbeam && git submodule init && git submodule update && \
   cd vendor/frontier && git submodule init && git submodule update && \
   cd ../..
