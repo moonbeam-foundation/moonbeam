@@ -6,6 +6,5 @@ book
 
 # Rust directories
 **/target
-*.lock
 **/scripts/tmp
 **/node_modules
