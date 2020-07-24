@@ -1,5 +1,5 @@
 use moonbeam_runtime::{
-	AccountId, AuraConfig, BalancesConfig, EVMConfig, GenesisConfig, GrandpaConfig, Signature,
+	AccountId, AuraConfig, BalancesConfig, EVMConfig, EthereumConfig, GenesisConfig, GrandpaConfig, Signature,
 	SudoConfig, SystemConfig, WASM_BINARY,
 };
 use sc_service::ChainType;
@@ -143,5 +143,6 @@ fn testnet_genesis(
 		evm: Some(EVMConfig {
 			accounts: evm_accounts,
 		}),
+		ethereum: Some(EthereumConfig {}),
 	}
 }

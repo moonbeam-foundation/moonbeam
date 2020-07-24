@@ -22,7 +22,7 @@ use sp_runtime::{
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, ModuleId, MultiSignature,
 };
-use sp_std::prelude::*;
+use sp_std::{prelude::*, marker::PhantomData};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
@@ -41,7 +41,7 @@ pub use frame_support::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
 		IdentityFee, Weight,
 	},
-	StorageValue,
+	StorageValue, ConsensusEngineId
 };
 use frontier_rpc_primitives::TransactionStatus;
 
@@ -141,6 +141,8 @@ parameter_types! {
 impl system::Trait for Runtime {
 	/// The basic call filter to use in Origin
 	type BaseCallFilter = ();
+	/// System weight info.
+	type SystemWeightInfo = ();
 	/// The identifier used to distinguish between accounts.
 	type AccountId = AccountId;
 	/// The aggregated dispatch type that is available for extrinsics.
@@ -225,6 +227,7 @@ impl timestamp::Trait for Runtime {
 	type Moment = constants::time::Moment;
 	type OnTimestampSet = Aura;
 	type MinimumPeriod = MinimumPeriod;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -239,6 +242,7 @@ impl balances::Trait for Runtime {
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -276,11 +280,27 @@ impl evm::Trait for Runtime {
 	type Precompiles = (); // We can use () here because paint_evm provides an
 					   // `impl Precompiles for ()``
 					   // block that always returns none (line 75)
+	type ChainId = ChainId;
+}
+
+
+pub struct EthereumFindAuthor<F>(PhantomData<F>);
+impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F>
+{
+	fn find_author<'a, I>(digests: I) -> Option<H160> where
+		I: 'a + IntoIterator<Item=(ConsensusEngineId, &'a [u8])>
+	{
+		if let Some(author_index) = F::find_author(digests) {
+			let authority_id = Aura::authorities()[author_index as usize].clone();
+			return Some(HashTruncateConvertAccountId::<BlakeTwo256>::convert_account_id(&authority_id));
+		}
+		None
+	}
 }
 
 impl ethereum::Trait for Runtime {
 	type Event = Event;
-	type ChainId = ChainId;
+	type FindAuthor = EthereumFindAuthor<Aura>;
 }
 
 construct_runtime!(
@@ -292,12 +312,12 @@ construct_runtime!(
 		System: system::{Module, Call, Config, Storage, Event<T>},
 		RandomnessCollectiveFlip: randomness_collective_flip::{Module, Call, Storage},
 		Timestamp: timestamp::{Module, Call, Storage, Inherent},
-		Aura: aura::{Module, Config<T>, Inherent(Timestamp)},
+		Aura: aura::{Module, Config<T>, Inherent},
 		Grandpa: grandpa::{Module, Call, Storage, Config, Event},
 		Balances: balances::{Module, Call, Storage, Config<T>, Event<T>},
 		TransactionPayment: transaction_payment::{Module, Storage},
 		Sudo: sudo::{Module, Call, Config<T>, Storage, Event<T>},
-		Ethereum: ethereum::{Module, Call, Storage, Event<T>, ValidateUnsigned},
+		Ethereum: ethereum::{Module, Call, Storage, Event<T>, Config, ValidateUnsigned},
 		EVM: evm::{Module, Config, Call, Storage, Event<T>},
 	}
 );
@@ -465,6 +485,40 @@ impl_runtime_apis! {
 			evm::Module::<Runtime>::account_storages(address, H256::from_slice(&tmp[..]))
 		}
 
+		fn call(
+			from: H160,
+			data: Vec<u8>,
+			value: U256,
+			gas_limit: U256,
+			gas_price: U256,
+			nonce: Option<U256>,
+			action: ethereum::TransactionAction,
+		) -> Option<(Vec<u8>, U256)> {
+			match action {
+				ethereum::TransactionAction::Call(to) =>
+					evm::Module::<Runtime>::execute_call(
+						from,
+						to,
+						data,
+						value,
+						gas_limit.low_u32(),
+						gas_price,
+						nonce,
+						false,
+					).ok().map(|(_, ret, gas)| (ret, gas)),
+				ethereum::TransactionAction::Create =>
+					evm::Module::<Runtime>::execute_create(
+						from,
+						data,
+						value,
+						gas_limit.low_u32(),
+						gas_price,
+						nonce,
+						false,
+					).ok().map(|(_, _, gas)| (vec![], gas)),
+			}
+		}
+
 		fn block_by_number(number: u32) -> (
 			Option<EthereumBlock>, Vec<Option<ethereum::TransactionStatus>>
 		) {
@@ -485,6 +539,17 @@ impl_runtime_apis! {
 			None
 		}
 
+		fn block_transaction_count_by_hash(hash: H256) -> Option<U256> {
+			if let Some(block) = <ethereum::Module<Runtime>>::block_by_hash(hash) {
+				return Some(U256::from(block.transactions.len()))
+			}
+			None
+		}
+
+		fn block_by_hash(hash: H256) -> Option<EthereumBlock> {
+			<ethereum::Module<Runtime>>::block_by_hash(hash)
+		}
+
 		fn block_by_hash_with_statuses(hash: H256) -> (
 			Option<EthereumBlock>, Vec<Option<ethereum::TransactionStatus>>
 		) {
@@ -498,22 +563,11 @@ impl_runtime_apis! {
 			(None, vec![])
 		}
 
-		fn block_transaction_count_by_hash(hash: H256) -> Option<U256> {
-			if let Some(block) = <ethereum::Module<Runtime>>::block_by_hash(hash) {
-				return Some(U256::from(block.transactions.len()))
-			}
-			None
-		}
-
-		fn block_by_hash(hash: H256) -> Option<EthereumBlock> {
-			<ethereum::Module<Runtime>>::block_by_hash(hash)
-		}
-
 		fn transaction_by_hash(hash: H256) -> Option<(
 			EthereumTransaction,
 			EthereumBlock,
 			TransactionStatus,
-			EthereumReceipt)> {
+			Vec<EthereumReceipt>)> {
 			<ethereum::Module<Runtime>>::transaction_by_hash(hash)
 		}
 
@@ -534,25 +588,34 @@ impl_runtime_apis! {
 			)
 		}
 
-		fn call(
-			from: H160,
-			to: H160,
-			data: Vec<u8>,
-			value: U256,
-			gas_limit: U256,
-			gas_price: U256,
-			nonce: Option<U256>,
-		) -> Option<(Vec<u8>, U256)> {
-			evm::Module::<Runtime>::execute_call(
-				from,
-				to,
-				data,
-				value,
-				gas_limit.low_u32(),
-				gas_price,
-				nonce,
-				false,
-			).ok().map(|(_, ret, gas)| (ret, gas))
+		fn logs(
+			from_block: Option<u32>,
+			to_block: Option<u32>,
+			block_hash: Option<H256>,
+			address: Option<H160>,
+			topic: Option<Vec<H256>>
+		) -> Vec<(
+			H160, // address
+			Vec<H256>, // topics
+			Vec<u8>, // data
+			Option<H256>, // block_hash
+			Option<U256>, // block_number
+			Option<H256>, // transaction_hash
+			Option<U256>, // transaction_index
+			Option<U256>, // log index in block
+			Option<U256>, // log index in transaction
+		)> {
+			let output = <ethereum::Module<Runtime>>::filtered_logs(
+				from_block,
+				to_block,
+				block_hash,
+				address,
+				topic
+			);
+			if let Some(output) = output {
+				return output;
+			}
+			return vec![];
 		}
 	}
 
