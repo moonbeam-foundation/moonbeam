@@ -15,10 +15,8 @@ RUN apt-get update -y && \
 RUN rustup target add wasm32-unknown-unknown
 
 # Download Moonbeam repo
-RUN git clone -b crystalin-moonbeam-frontier https://github.com/PureStake/moonbeam /moonbeam
-RUN cd /moonbeam && git submodule init && git submodule update && \
-    cd vendor/frontier && git submodule init && git submodule update && \
-    cd ../..
+RUN git clone -b moonbeam-tutorials https://github.com/PureStake/moonbeam /moonbeam
+RUN cd /moonbeam && git submodule update --init --recursive
 
 # Download rust dependencies and build the rust binary
 RUN cargo build "--$PROFILE"
