@@ -1,6 +1,6 @@
 //! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
 
-use node_moonbeam_runtime::{self, opaque::Block, RuntimeApi};
+use moonbeam_runtime::{self, opaque::Block, RuntimeApi};
 use sc_client_api::ExecutorProvider;
 use sc_consensus::LongestChain;
 use sc_executor::native_executor_instance;
@@ -18,8 +18,8 @@ use std::time::Duration;
 // Our native executor instance.
 native_executor_instance!(
 	pub Executor,
-	node_moonbeam_runtime::api::dispatch,
-	node_moonbeam_runtime::native_version,
+	moonbeam_runtime::api::dispatch,
+	moonbeam_runtime::native_version,
 );
 
 /// Starts a `ServiceBuilder` for a full service.
@@ -35,21 +35,21 @@ macro_rules! new_full_start {
 		let inherent_data_providers = sp_inherents::InherentDataProviders::new();
 
 		let builder = sc_service::ServiceBuilder::new_full::<
-			node_moonbeam_runtime::opaque::Block,
-			node_moonbeam_runtime::RuntimeApi,
+			moonbeam_runtime::opaque::Block,
+			moonbeam_runtime::RuntimeApi,
 			crate::service::Executor,
 		>($config)?
 		.with_select_chain(|_config, backend| Ok(sc_consensus::LongestChain::new(backend.clone())))?
-		.with_transaction_pool(|config, client, _fetcher, prometheus_registry| {
-			let pool_api = sc_transaction_pool::FullChainApi::new(client.clone());
+		.with_transaction_pool(|builder| {
+			let pool_api = sc_transaction_pool::FullChainApi::new(builder.client().clone());
 			Ok(sc_transaction_pool::BasicPool::new(
-				config,
+				builder.config().transaction_pool.clone(),
 				std::sync::Arc::new(pool_api),
-				prometheus_registry,
+				builder.prometheus_registry(),
 			))
 		})?
 		.with_import_queue(
-			|_config, client, mut select_chain, _transaction_pool, spawn_task_handle| {
+			|_config, client, mut select_chain, _transaction_pool, spawn_task_handle, registry| {
 				let select_chain = select_chain
 					.take()
 					.ok_or_else(|| sc_service::Error::SelectChainRequired)?;
@@ -74,13 +74,35 @@ macro_rules! new_full_start {
 					client,
 					inherent_data_providers.clone(),
 					spawn_task_handle,
+					registry,
 				)?;
 
 				import_setup = Some((grandpa_block_import, grandpa_link));
 
 				Ok(import_queue)
 			},
-		)?;
+			)?
+		.with_rpc_extensions_builder(|builder| {
+			let client = builder.client().clone();
+			let is_authority: bool = builder.config().role.is_authority();
+			let pool = builder.pool().clone();
+			let select_chain = builder
+				.select_chain()
+				.cloned()
+				.expect("SelectChain is present for full services or set up failed; qed.");
+
+			Ok(move |deny_unsafe| {
+				let deps = crate::rpc::FullDeps {
+					client: client.clone(),
+					pool: pool.clone(),
+					select_chain: select_chain.clone(),
+					deny_unsafe,
+					is_authority,
+				};
+
+				crate::rpc::create_full(deps)
+			})
+		})?;
 
 		(builder, import_setup, inherent_data_providers)
 		}};
@@ -105,11 +127,14 @@ pub fn new_full(config: Configuration) -> Result<impl AbstractService, ServiceEr
 			let provider = client as Arc<dyn StorageAndProofProvider<_, _>>;
 			Ok(Arc::new(GrandpaFinalityProofProvider::new(backend, provider)) as _)
 		})?
-		.build()?;
+		.build_full()?;
 
 	if role.is_authority() {
-		let proposer =
-			sc_basic_authorship::ProposerFactory::new(service.client(), service.transaction_pool());
+		let proposer = sc_basic_authorship::ProposerFactory::new(
+			service.client(),
+			service.transaction_pool(),
+			service.prometheus_registry().as_ref(),
+		);
 
 		let client = service.client();
 		let select_chain = service
@@ -140,7 +165,7 @@ pub fn new_full(config: Configuration) -> Result<impl AbstractService, ServiceEr
 	// if the node isn't actively participating in consensus then it doesn't
 	// need a keystore, regardless of which protocol we use below.
 	let keystore = if role.is_authority() {
-		Some(service.keystore())
+		Some(service.keystore() as sp_core::traits::BareCryptoStorePtr)
 	} else {
 		None
 	};
@@ -197,21 +222,30 @@ pub fn new_light(config: Configuration) -> Result<impl AbstractService, ServiceE
 
 	ServiceBuilder::new_light::<Block, RuntimeApi, Executor>(config)?
 		.with_select_chain(|_config, backend| Ok(LongestChain::new(backend.clone())))?
-		.with_transaction_pool(|config, client, fetcher, prometheus_registry| {
-			let fetcher = fetcher
+		.with_transaction_pool(|builder| {
+			let fetcher = builder
+				.fetcher()
 				.ok_or_else(|| "Trying to start light transaction pool without active fetcher")?;
 
-			let pool_api = sc_transaction_pool::LightChainApi::new(client.clone(), fetcher.clone());
+			let pool_api =
+				sc_transaction_pool::LightChainApi::new(builder.client().clone(), fetcher.clone());
 			let pool = sc_transaction_pool::BasicPool::with_revalidation_type(
-				config,
+				builder.config().transaction_pool.clone(),
 				Arc::new(pool_api),
-				prometheus_registry,
+				builder.prometheus_registry(),
 				sc_transaction_pool::RevalidationType::Light,
 			);
 			Ok(pool)
 		})?
 		.with_import_queue_and_fprb(
-			|_config, client, backend, fetcher, _select_chain, _tx_pool, spawn_task_handle| {
+			|_config,
+			 client,
+			 backend,
+			 fetcher,
+			 _select_chain,
+			 _tx_pool,
+			 spawn_task_handle,
+			 prometheus_registry| {
 				let fetch_checker = fetcher
 					.map(|fetcher| fetcher.checker().clone())
 					.ok_or_else(|| {
@@ -235,6 +269,7 @@ pub fn new_light(config: Configuration) -> Result<impl AbstractService, ServiceE
 					client,
 					inherent_data_providers.clone(),
 					spawn_task_handle,
+					prometheus_registry,
 				)?;
 
 				Ok((import_queue, finality_proof_request_builder))
@@ -245,5 +280,22 @@ pub fn new_light(config: Configuration) -> Result<impl AbstractService, ServiceE
 			let provider = client as Arc<dyn StorageAndProofProvider<_, _>>;
 			Ok(Arc::new(GrandpaFinalityProofProvider::new(backend, provider)) as _)
 		})?
-		.build()
+		.with_rpc_extensions(|builder| {
+			let fetcher = builder
+				.fetcher()
+				.ok_or_else(|| "Trying to start node RPC without active fetcher")?;
+			let remote_blockchain = builder
+				.remote_backend()
+				.ok_or_else(|| "Trying to start node RPC without active remote blockchain")?;
+
+			let light_deps = crate::rpc::LightDeps {
+				remote_blockchain,
+				fetcher,
+				client: builder.client().clone(),
+				pool: builder.pool(),
+			};
+
+			Ok(crate::rpc::create_light(light_deps))
+		})?
+		.build_light()
 }

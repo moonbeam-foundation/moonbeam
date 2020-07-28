@@ -6,7 +6,5 @@ book
 
 # Rust directories
 **/target
-*.lock
-**/scripts/staging/tmp
-**/scripts/staging/spec.json
-**/scripts/staging/rawspec.json
+**/scripts/tmp
+**/node_modules

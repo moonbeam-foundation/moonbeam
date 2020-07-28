@@ -12,20 +12,15 @@ Run an Ethereum compatible ~~parachain~~ (blockchain for now, until parachains a
 ### Moonbeam
 
 ```bash
-git clone https://github.com/PureStake/moonbeam
-cd moonbeam
+git clone -b moonbeam-tutorials https://github.com/PureStake/moonbeam
+cd moonbeam && git submodule update --init --recursive
 ```
 
 ### Dependencies
 
-Install Rust:  
+Install Substrate and its pre-requisites (including Rust):  
 ```bash
-curl https://sh.rustup.rs -sSf | sh
-```
-
-Initialize your Wasm Build environment (*required for compiling Rust to Wasm*):  
-```bash
-./scripts/init.sh
+curl https://getsubstrate.io -sSf | bash -s -- --fast 
 ```
 
 ## Build
@@ -36,14 +31,18 @@ cargo build --release
 ```  
 (Building for the first time will take a long time, to install and compile all the libraries)
 
+If a _cargo not found_ error appears in the terminal, manually add Rust to your system path (or restart your system):
+```bash
+source $HOME/.cargo/env
+```
+
 ## Run
 
 ### Single node dev
 
 ```bash
-target/release/node-moonbeam --dev
+./target/release/node-moonbeam --dev
 ```
-
 ### Docker image
 
 You can run the moonbeam node within Docker directly.  

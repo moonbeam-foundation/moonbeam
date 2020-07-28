@@ -1,0 +1,6 @@
+[submodule "vendor/ethereum"]
+	path = vendor/ethereum
+	url = https://github.com/rust-blockchain/ethereum.git
+[submodule "vendor/frontier"]
+	path = vendor/frontier
+	url = https://github.com/PureStake/frontier
