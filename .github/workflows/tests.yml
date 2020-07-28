@@ -7,6 +7,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - name: Submodules
+      run: git submodule update --init --recursive
     - name: Cache Rust dependencies
       uses: actions/cache@v1.1.2
       with:
