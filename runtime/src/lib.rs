@@ -8,47 +8,43 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-use codec::{Decode, Encode};
-use grandpa::fg_primitives;
-use grandpa::{AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList};
+use sp_std::{prelude::*, marker::PhantomData};
+use codec::{Encode, Decode};
+use sp_core::{crypto::KeyTypeId, OpaqueMetadata, U256, H160, H256};
+use sp_runtime::{
+	ApplyExtrinsicResult, generic, create_runtime_str, impl_opaque_keys, MultiSignature,
+	transaction_validity::{TransactionValidity, TransactionSource},
+};
+use sp_runtime::traits::{
+	BlakeTwo256, Block as BlockT, IdentityLookup, Verify, IdentifyAccount, NumberFor, Saturating,
+};
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-use sp_core::{crypto::KeyTypeId, OpaqueMetadata, H160, H256, U256};
-use sp_runtime::traits::{
-	BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, NumberFor, Saturating, Verify,
-};
-use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
-	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, ModuleId, MultiSignature,
-};
-use sp_std::prelude::*;
+use grandpa::{AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList};
+use grandpa::fg_primitives;
+use sp_version::RuntimeVersion;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
-use sp_version::RuntimeVersion;
+use sp_core::crypto::Public;
 
-use evm::{ConvertAccountId, FeeCalculator, HashTruncateConvertAccountId};
 // A few exports that help ease life for downstream crates.
-pub use balances::Call as BalancesCall;
-use ethereum::{
-	Block as EthereumBlock, Receipt as EthereumReceipt, Transaction as EthereumTransaction,
-};
-pub use evm::Account as EVMAccount;
-pub use frame_support::{
-	construct_runtime, parameter_types,
-	traits::{FindAuthor, KeyOwnerProofSystem, Randomness},
-	weights::{
-		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
-		IdentityFee, Weight,
-	},
-	StorageValue,
-};
-use frontier_rpc_primitives::TransactionStatus;
-
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
-pub use sp_runtime::{Perbill, Permill};
 pub use timestamp::Call as TimestampCall;
+pub use balances::Call as BalancesCall;
+pub use sp_runtime::{Permill, Perbill};
+pub use frame_support::{
+	construct_runtime, parameter_types, StorageValue,
+	traits::{KeyOwnerProofSystem, Randomness, FindAuthor},
+	weights::{
+		Weight, IdentityFee,
+		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
+	},
+	ConsensusEngineId,
+};
+use ethereum::{Block as EthereumBlock, Transaction as EthereumTransaction, Receipt as EthereumReceipt};
+use evm::{Account as EVMAccount, FeeCalculator, HashedAddressMapping, EnsureAddressTruncated};
+use frontier_rpc_primitives::{TransactionStatus};
 
 pub mod constants;
 
@@ -78,8 +74,6 @@ pub type Hash = sp_core::H256;
 /// Digest item type.
 pub type DigestItem = generic::DigestItem<Hash>;
 
-// EVM structs
-pub struct FixedGasPrice;
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
@@ -104,7 +98,6 @@ pub mod opaque {
 	}
 }
 
-/// This runtime version.
 pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("node-moonbeam"),
 	impl_name: create_runtime_str!("node-moonbeam"),
@@ -115,6 +108,15 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	transaction_version: 1,
 };
 
+pub const MILLISECS_PER_BLOCK: u64 = 6000;
+
+pub const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
+
+// Time is measured by number of blocks.
+pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
+pub const HOURS: BlockNumber = MINUTES * 60;
+pub const DAYS: BlockNumber = HOURS * 24;
+
 /// The version information used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]
 pub fn native_version() -> NativeVersion {
@@ -124,22 +126,22 @@ pub fn native_version() -> NativeVersion {
 	}
 }
 
-const AVERAGE_ON_INITIALIZE_WEIGHT: Perbill = Perbill::from_percent(10);
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 2400;
 	/// We allow for 2 seconds of compute with a 6 second average block time.
 	pub const MaximumBlockWeight: Weight = 2 * WEIGHT_PER_SECOND;
 	pub const AvailableBlockRatio: Perbill = Perbill::from_percent(75);
 	/// Assume 10% of weight for average on_initialize calls.
-	pub MaximumExtrinsicWeight: Weight =
-		AvailableBlockRatio::get().saturating_sub(AVERAGE_ON_INITIALIZE_WEIGHT)
-		* MaximumBlockWeight::get();
+	pub MaximumExtrinsicWeight: Weight = AvailableBlockRatio::get()
+		.saturating_sub(Perbill::from_percent(10)) * MaximumBlockWeight::get();
 	pub const MaximumBlockLength: u32 = 5 * 1024 * 1024;
 	pub const Version: RuntimeVersion = VERSION;
 }
 
+// Configure FRAME pallets to include in runtime.
+
 impl system::Trait for Runtime {
-	/// The basic call filter to use in Origin
+	/// The basic call filter to use in dispatchable.
 	type BaseCallFilter = ();
 	/// The identifier used to distinguish between accounts.
 	type AccountId = AccountId;
@@ -193,6 +195,8 @@ impl system::Trait for Runtime {
 	type OnKilledAccount = ();
 	/// The data to be stored in an account.
 	type AccountData = balances::AccountData<Balance>;
+	/// Weight information for the extrinsics of this pallet.
+	type SystemWeightInfo = ();
 }
 
 impl aura::Trait for Runtime {
@@ -225,6 +229,7 @@ impl timestamp::Trait for Runtime {
 	type Moment = constants::time::Moment;
 	type OnTimestampSet = Aura;
 	type MinimumPeriod = MinimumPeriod;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -239,12 +244,11 @@ impl balances::Trait for Runtime {
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
+	type WeightInfo = ();
 }
 
 parameter_types! {
 	pub const TransactionByteFee: Balance = 1;
-	pub const ChainId: u64 = 43;
-	pub const EVMModuleId: ModuleId = ModuleId(*b"py/evmpa");
 }
 
 impl transaction_payment::Trait for Runtime {
@@ -260,6 +264,9 @@ impl sudo::Trait for Runtime {
 	type Call = Call;
 }
 
+/// Fixed gas price of `1`.
+pub struct FixedGasPrice;
+
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
 		// Gas price is always one token per gas.
@@ -267,22 +274,41 @@ impl FeeCalculator for FixedGasPrice {
 	}
 }
 
+parameter_types! {
+	pub const ChainId: u64 = 43;
+}
+
 impl evm::Trait for Runtime {
-	type ModuleId = EVMModuleId;
 	type FeeCalculator = FixedGasPrice;
-	type ConvertAccountId = HashTruncateConvertAccountId<BlakeTwo256>;
+	type CallOrigin = EnsureAddressTruncated;
+	type WithdrawOrigin = EnsureAddressTruncated;
+	type AddressMapping = HashedAddressMapping<BlakeTwo256>;
 	type Currency = Balances;
 	type Event = Event;
-	type Precompiles = (); // We can use () here because paint_evm provides an
-					   // `impl Precompiles for ()``
-					   // block that always returns none (line 75)
+	type Precompiles = ();
+	type ChainId = ChainId;
+}
+
+pub struct EthereumFindAuthor<F>(PhantomData<F>);
+impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F>
+{
+	fn find_author<'a, I>(digests: I) -> Option<H160> where
+		I: 'a + IntoIterator<Item=(ConsensusEngineId, &'a [u8])>
+	{
+		if let Some(author_index) = F::find_author(digests) {
+			let authority_id = Aura::authorities()[author_index as usize].clone();
+			return Some(H160::from_slice(&authority_id.to_raw_vec()[4..24]));
+		}
+		None
+	}
 }
 
 impl ethereum::Trait for Runtime {
 	type Event = Event;
-	type ChainId = ChainId;
+	type FindAuthor = EthereumFindAuthor<Aura>;
 }
 
+// Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
 		Block = Block,
@@ -292,12 +318,12 @@ construct_runtime!(
 		System: system::{Module, Call, Config, Storage, Event<T>},
 		RandomnessCollectiveFlip: randomness_collective_flip::{Module, Call, Storage},
 		Timestamp: timestamp::{Module, Call, Storage, Inherent},
-		Aura: aura::{Module, Config<T>, Inherent(Timestamp)},
+		Aura: aura::{Module, Config<T>, Inherent},
 		Grandpa: grandpa::{Module, Call, Storage, Config, Event},
 		Balances: balances::{Module, Call, Storage, Config<T>, Event<T>},
 		TransactionPayment: transaction_payment::{Module, Storage},
 		Sudo: sudo::{Module, Call, Config<T>, Storage, Event<T>},
-		Ethereum: ethereum::{Module, Call, Storage, Event<T>, ValidateUnsigned},
+		Ethereum: ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 		EVM: evm::{Module, Config, Call, Storage, Event<T>},
 	}
 );
@@ -310,19 +336,11 @@ impl frontier_rpc_primitives::ConvertTransaction<UncheckedExtrinsic> for Transac
 	}
 }
 
-impl frontier_rpc_primitives::ConvertTransaction<opaque::UncheckedExtrinsic>
-	for TransactionConverter
-{
-	fn convert_transaction(
-		&self,
-		transaction: ethereum::Transaction,
-	) -> opaque::UncheckedExtrinsic {
-		let extrinsic = UncheckedExtrinsic::new_unsigned(
-			ethereum::Call::<Runtime>::transact(transaction).into(),
-		);
+impl frontier_rpc_primitives::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConverter {
+	fn convert_transaction(&self, transaction: ethereum::Transaction) -> opaque::UncheckedExtrinsic {
+		let extrinsic = UncheckedExtrinsic::new_unsigned(ethereum::Call::<Runtime>::transact(transaction).into());
 		let encoded = extrinsic.encode();
-		opaque::UncheckedExtrinsic::decode(&mut &encoded[..])
-			.expect("Encoded extrinsic is always valid")
+		opaque::UncheckedExtrinsic::decode(&mut &encoded[..]).expect("Encoded extrinsic is always valid")
 	}
 }
 
@@ -437,7 +455,7 @@ impl_runtime_apis! {
 		}
 
 		fn account_basic(address: H160) -> EVMAccount {
-			evm::Module::<Runtime>::accounts(address)
+			evm::Module::<Runtime>::account_basic(&address)
 		}
 
 		fn gas_price() -> U256 {
@@ -449,20 +467,47 @@ impl_runtime_apis! {
 		}
 
 		fn author() -> H160 {
-			let digest = <system::Module<Runtime>>::digest();
-			let pre_runtime_digests = digest.logs.iter().filter_map(|d| d.as_pre_runtime());
-			if let Some(index) = <aura::Module<Runtime>>::find_author(pre_runtime_digests) {
-				let authority_id = &<aura::Module<Runtime>>::authorities()[index as usize];
-				<evm::HashTruncateConvertAccountId<BlakeTwo256>>::convert_account_id(&authority_id)
-			} else {
-				H160::zero()
-			}
+			<ethereum::Module<Runtime>>::find_author()
 		}
 
 		fn storage_at(address: H160, index: U256) -> H256 {
 			let mut tmp = [0u8; 32];
 			index.to_big_endian(&mut tmp);
 			evm::Module::<Runtime>::account_storages(address, H256::from_slice(&tmp[..]))
+		}
+
+		fn call(
+			from: H160,
+			data: Vec<u8>,
+			value: U256,
+			gas_limit: U256,
+			gas_price: U256,
+			nonce: Option<U256>,
+			action: ethereum::TransactionAction,
+		) -> Option<(Vec<u8>, U256)> {
+			match action {
+				ethereum::TransactionAction::Call(to) =>
+					evm::Module::<Runtime>::execute_call(
+						from,
+						to,
+						data,
+						value,
+						gas_limit.low_u32(),
+						gas_price,
+						nonce,
+						false,
+					).ok().map(|(_, ret, gas)| (ret, gas)),
+				ethereum::TransactionAction::Create =>
+					evm::Module::<Runtime>::execute_create(
+						from,
+						data,
+						value,
+						gas_limit.low_u32(),
+						gas_price,
+						nonce,
+						false,
+					).ok().map(|(_, _, gas)| (vec![], gas)),
+			}
 		}
 
 		fn block_by_number(number: u32) -> (
@@ -485,6 +530,17 @@ impl_runtime_apis! {
 			None
 		}
 
+		fn block_transaction_count_by_hash(hash: H256) -> Option<U256> {
+			if let Some(block) = <ethereum::Module<Runtime>>::block_by_hash(hash) {
+				return Some(U256::from(block.transactions.len()))
+			}
+			None
+		}
+
+		fn block_by_hash(hash: H256) -> Option<EthereumBlock> {
+			<ethereum::Module<Runtime>>::block_by_hash(hash)
+		}
+
 		fn block_by_hash_with_statuses(hash: H256) -> (
 			Option<EthereumBlock>, Vec<Option<ethereum::TransactionStatus>>
 		) {
@@ -498,22 +554,11 @@ impl_runtime_apis! {
 			(None, vec![])
 		}
 
-		fn block_transaction_count_by_hash(hash: H256) -> Option<U256> {
-			if let Some(block) = <ethereum::Module<Runtime>>::block_by_hash(hash) {
-				return Some(U256::from(block.transactions.len()))
-			}
-			None
-		}
-
-		fn block_by_hash(hash: H256) -> Option<EthereumBlock> {
-			<ethereum::Module<Runtime>>::block_by_hash(hash)
-		}
-
 		fn transaction_by_hash(hash: H256) -> Option<(
 			EthereumTransaction,
 			EthereumBlock,
 			TransactionStatus,
-			EthereumReceipt)> {
+			Vec<EthereumReceipt>)> {
 			<ethereum::Module<Runtime>>::transaction_by_hash(hash)
 		}
 
@@ -534,25 +579,34 @@ impl_runtime_apis! {
 			)
 		}
 
-		fn call(
-			from: H160,
-			to: H160,
-			data: Vec<u8>,
-			value: U256,
-			gas_limit: U256,
-			gas_price: U256,
-			nonce: Option<U256>,
-		) -> Option<(Vec<u8>, U256)> {
-			evm::Module::<Runtime>::execute_call(
-				from,
-				to,
-				data,
-				value,
-				gas_limit.low_u32(),
-				gas_price,
-				nonce,
-				false,
-			).ok().map(|(_, ret, gas)| (ret, gas))
+		fn logs(
+			from_block: Option<u32>,
+			to_block: Option<u32>,
+			block_hash: Option<H256>,
+			address: Option<H160>,
+			topic: Option<Vec<H256>>
+		) -> Vec<(
+			H160, // address
+			Vec<H256>, // topics
+			Vec<u8>, // data
+			Option<H256>, // block_hash
+			Option<U256>, // block_number
+			Option<H256>, // transaction_hash
+			Option<U256>, // transaction_index
+			Option<U256>, // log index in block
+			Option<U256>, // log index in transaction
+		)> {
+			let output = <ethereum::Module<Runtime>>::filtered_logs(
+				from_block,
+				to_block,
+				block_hash,
+				address,
+				topic
+			);
+			if let Some(output) = output {
+				return output;
+			}
+			return vec![];
 		}
 	}
 
@@ -586,7 +640,7 @@ impl_runtime_apis! {
 			Grandpa::grandpa_authorities()
 		}
 
-		fn submit_report_equivocation_extrinsic(
+		fn submit_report_equivocation_unsigned_extrinsic(
 			_equivocation_proof: fg_primitives::EquivocationProof<
 				<Block as BlockT>::Hash,
 				NumberFor<Block>,

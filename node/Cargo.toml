@@ -22,6 +22,7 @@ jsonrpc-core = "14.0.3"
 sp-api = { version = "2.0.0-dev", path = "../vendor/frontier/vendor/substrate/primitives/api" }
 sp-blockchain = { version = "2.0.0-dev", path = "../vendor/frontier/vendor/substrate/primitives/blockchain" }
 sc-rpc-api = { version = "0.8.0-dev", path = "../vendor/frontier/vendor/substrate/client/rpc-api" }
+sc-rpc = { version = "2.0.0-dev", path = "../vendor/frontier/vendor/substrate/client/rpc" }
 substrate-frame-rpc-system = { version = "2.0.0-dev", path = "../vendor/frontier/vendor/substrate/utils/frame/rpc/system" }
 pallet-transaction-payment-rpc = { version = "2.0.0-dev", path = "../vendor/frontier/vendor/substrate/frame/transaction-payment/rpc/" }
 sc-cli = { version = "0.8.0-dev", path = "../vendor/frontier/vendor/substrate/client/cli" }
@@ -34,9 +35,12 @@ sp-transaction-pool = { version = "2.0.0-dev", path = "../vendor/frontier/vendor
 sc-network = { version = "0.8.0-dev", path = "../vendor/frontier/vendor/substrate/client/network" }
 sc-consensus-aura = { version = "0.8.0-dev", path = "../vendor/frontier/vendor/substrate/client/consensus/aura" }
 sp-consensus-aura = { version = "0.8.0-dev", path = "../vendor/frontier/vendor/substrate/primitives/consensus/aura" }
+sc-consensus-manual-seal = { path = "../vendor/frontier/vendor/substrate/client/consensus/manual-seal" }
 sp-consensus = { version = "0.8.0-dev", path = "../vendor/frontier/vendor/substrate/primitives/consensus/common" }
 sc-consensus = { version = "0.8.0-dev", path = "../vendor/frontier/vendor/substrate/client/consensus/common" }
+sp-timestamp = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/primitives/timestamp" }
 evm = { version = "2.0.0-dev", package = "pallet-evm", path = "../vendor/frontier/vendor/substrate/frame/evm" }
+ethereum = { version = "0.1.0", package = "pallet-ethereum", path = "../vendor/frontier/frame/ethereum" }
 sc-finality-grandpa = { version = "0.8.0-dev", path = "../vendor/frontier/vendor/substrate/client/finality-grandpa" }
 sp-finality-grandpa = { version = "2.0.0-dev", path = "../vendor/frontier/vendor/substrate/primitives/finality-grandpa" }
 sc-client-api = { version = "2.0.0-dev", path = "../vendor/frontier/vendor/substrate/client/api" }
