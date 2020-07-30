@@ -10,7 +10,3 @@ panic = 'unwind'
 
 [patch.crates-io]
 ethereum = { path = "vendor/ethereum" }
-evm = { path = "vendor/frontier/vendor/evm" }
-evm-core = { path = "vendor/frontier/vendor/evm/core" }
-evm-gasometer = { path = "vendor/frontier/vendor/evm/gasometer" }
-evm-runtime = { path = "vendor/frontier/vendor/evm/runtime" }

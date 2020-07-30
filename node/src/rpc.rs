@@ -1,16 +1,19 @@
 //! A collection of node-specific RPC methods.
 
-use std::{fmt, sync::Arc};
+use std::{sync::Arc, fmt};
 
-use moonbeam_runtime::{opaque::Block, AccountId, Balance, Hash, Index, UncheckedExtrinsic};
-use sc_client_api::backend::{Backend, StateBackend, StorageProvider};
-use sc_rpc_api::DenyUnsafe;
+use sc_consensus_manual_seal::rpc::{ManualSeal, ManualSealApi};
+use moonbeam_runtime::{Hash, AccountId, Index, opaque::Block, Balance, UncheckedExtrinsic};
 use sp_api::ProvideRuntimeApi;
-use sp_block_builder::BlockBuilder;
-use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
-use sp_consensus::SelectChain;
-use sp_runtime::traits::BlakeTwo256;
 use sp_transaction_pool::TransactionPool;
+use sp_blockchain::{Error as BlockChainError, HeaderMetadata, HeaderBackend};
+use sp_consensus::SelectChain;
+use sc_rpc_api::DenyUnsafe;
+use sc_client_api::backend::{StorageProvider, Backend, StateBackend};
+use sp_runtime::traits::BlakeTwo256;
+use sp_block_builder::BlockBuilder;
+
+pub type IoHandler = jsonrpc_core::IoHandler<sc_rpc::Metadata>;
 
 /// Light client extra dependencies.
 pub struct LightDeps<C, F, P> {
@@ -36,32 +39,31 @@ pub struct FullDeps<C, P, SC> {
 	pub deny_unsafe: DenyUnsafe,
 	/// The Node authority flag
 	pub is_authority: bool,
+	/// Manual seal command sink
+	pub command_sink: Option<futures::channel::mpsc::Sender<sc_consensus_manual_seal::rpc::EngineCommand<Hash>>>,
 }
 
 /// Instantiate all Full RPC extensions.
-pub fn create_full<C, P, M, SC, BE>(deps: FullDeps<C, P, SC>) -> jsonrpc_core::IoHandler<M>
-where
+pub fn create_full<C, P, M, SC, BE>(
+	deps: FullDeps<C, P, SC>,
+) -> jsonrpc_core::IoHandler<M> where
 	BE: Backend<Block> + 'static,
 	BE::State: StateBackend<BlakeTwo256>,
 	C: ProvideRuntimeApi<Block> + StorageProvider<Block, BE>,
-	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
+	C: HeaderBackend<Block> + HeaderMetadata<Block, Error=BlockChainError> + 'static,
 	C: Send + Sync + 'static,
 	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>,
 	C::Api: BlockBuilder<Block>,
-	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<
-		Block,
-		Balance,
-		UncheckedExtrinsic,
-	>,
+	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance, UncheckedExtrinsic>,
 	C::Api: frontier_rpc_primitives::EthereumRuntimeApi<Block>,
 	<C::Api as sp_api::ApiErrorExt>::Error: fmt::Debug,
-	P: TransactionPool<Block = Block> + 'static,
+	P: TransactionPool<Block=Block> + 'static,
 	M: jsonrpc_core::Metadata + Default,
-	SC: SelectChain<Block> + 'static,
+	SC: SelectChain<Block> +'static,
 {
-	use frontier_rpc::{EthApi, EthApiServer};
-	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
 	use substrate_frame_rpc_system::{FullSystem, SystemApi};
+	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
+	use frontier_rpc::{EthApi, EthApiServer};
 
 	let mut io = jsonrpc_core::IoHandler::default();
 	let FullDeps {
@@ -70,30 +72,43 @@ where
 		select_chain,
 		deny_unsafe,
 		is_authority,
+		command_sink
 	} = deps;
 
-	io.extend_with(SystemApi::to_delegate(FullSystem::new(
-		client.clone(),
-		pool.clone(),
-		deny_unsafe,
-	)));
-	io.extend_with(TransactionPaymentApi::to_delegate(TransactionPayment::new(
-		client.clone(),
-	)));
-	io.extend_with(EthApiServer::to_delegate(EthApi::new(
-		client.clone(),
-		select_chain,
-		pool.clone(),
-		moonbeam_runtime::TransactionConverter,
-		is_authority,
-	)));
+	io.extend_with(
+		SystemApi::to_delegate(FullSystem::new(client.clone(), pool.clone(), deny_unsafe))
+	);
+	io.extend_with(
+		TransactionPaymentApi::to_delegate(TransactionPayment::new(client.clone()))
+	);
+	io.extend_with(
+		EthApiServer::to_delegate(EthApi::new(
+			client.clone(),
+			select_chain,
+			pool.clone(),
+			moonbeam_runtime::TransactionConverter,
+			is_authority,
+		))
+	);
+
+	match command_sink {
+		Some(command_sink) => {
+			io.extend_with(
+				// We provide the rpc handler with the sending end of the channel to allow the rpc
+				// send EngineCommands to the background block authorship task.
+				ManualSealApi::to_delegate(ManualSeal::new(command_sink)),
+			);
+		}
+		_ => {}
+	}
 
 	io
 }
 
 /// Instantiate all Light RPC extensions.
-pub fn create_light<C, P, M, F>(deps: LightDeps<C, F, P>) -> jsonrpc_core::IoHandler<M>
-where
+pub fn create_light<C, P, M, F>(
+	deps: LightDeps<C, F, P>,
+) -> jsonrpc_core::IoHandler<M> where
 	C: sp_blockchain::HeaderBackend<Block>,
 	C: Send + Sync + 'static,
 	F: sc_client_api::light::Fetcher<Block> + 'static,
@@ -106,12 +121,14 @@ where
 		client,
 		pool,
 		remote_blockchain,
-		fetcher,
+		fetcher
 	} = deps;
 	let mut io = jsonrpc_core::IoHandler::default();
-	io.extend_with(SystemApi::<Hash, AccountId, Index>::to_delegate(
-		LightSystem::new(client, remote_blockchain, fetcher, pool),
-	));
+	io.extend_with(
+		SystemApi::<Hash, AccountId, Index>::to_delegate(
+			LightSystem::new(client, remote_blockchain, fetcher, pool)
+		)
+	);
 
 	io
 }
