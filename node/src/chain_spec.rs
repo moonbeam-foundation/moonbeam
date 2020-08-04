@@ -152,10 +152,10 @@ fn testnet_genesis(
 	endowed_accounts: Vec<AccountId>,
 	_enable_println: bool,
 ) -> GenesisConfig {
-	let alice_evm_account_id = H160::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap();
+	let gerald_evm_account_id = H160::from_str("6be02d1d3665660d22ff9624b7be0551ee1ac91b").unwrap();
 	let mut evm_accounts = BTreeMap::new();
 	evm_accounts.insert(
-		alice_evm_account_id,
+		gerald_evm_account_id,
 		evm::GenesisAccount {
 			nonce: 0.into(),
 			balance: U256::from(123456_123_000_000_000_000_000u128),
@@ -163,6 +163,7 @@ fn testnet_genesis(
 			code: vec![],
 		},
 	);
+	log::info!("Adding balance for {}", gerald_evm_account_id);
 	GenesisConfig {
 		system: Some(SystemConfig {
 			// Add Wasm runtime to storage.
