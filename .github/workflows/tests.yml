@@ -6,7 +6,7 @@ jobs:
   build:
     runs-on: self-hosted
     steps:
-    - name: Checkout submodules --recursive
+    - name: Checkout submodules
       uses: actions/checkout@v2
       with:
         submodules: recursive
