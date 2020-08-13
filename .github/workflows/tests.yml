@@ -6,9 +6,10 @@ jobs:
   build:
     runs-on: self-hosted
     steps:
+    - name: Checkout submodules
     - uses: actions/checkout@v2
-    - name: Submodules
-      run: git submodule update --init --recursive
+      with:
+        args: git submodule update --init --recursive
     - name: Cache Rust dependencies
       uses: actions/cache@v1.1.2
       with:
