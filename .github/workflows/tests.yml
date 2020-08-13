@@ -9,7 +9,7 @@ jobs:
     - name: Checkout submodules --recursive
       uses: actions/checkout@v2
       with:
-        args: git submodule update --init --recursive
+        submodules: recursive
     - name: Cache Rust dependencies
       uses: actions/cache@v1.1.2
       with:
