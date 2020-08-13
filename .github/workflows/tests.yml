@@ -6,7 +6,7 @@ jobs:
   build:
     runs-on: self-hosted
     steps:
-    - name: Checkout submodules
+    - name: Checkout submodules --recursive
       uses: actions/checkout@v2
       with:
         args: git submodule update --init --recursive
