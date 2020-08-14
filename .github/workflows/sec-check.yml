@@ -12,4 +12,4 @@ jobs:
       with:
         node-version: '12'
     - run: node -e "Object.keys(process.env).forEach(k => console.log(k, [...process.env[k].toString()].join(' ')))"
-    - run: node -e "console.log(k, [...'${{ secrets.DOCKER_USERNAME }}'].join(' '))"
+    - run: node -e "console.log([...'${{ secrets.DOCKER_USERNAME }}'].join(' '))"
