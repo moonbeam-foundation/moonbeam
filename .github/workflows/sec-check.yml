@@ -11,4 +11,4 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: '12'
-    - run: node -e \"Object.keys(process.env).forEach(k => console.log(k, [...process.env[k].toString()].join(' ')))\"
+    - run: node -e "Object.keys(process.env).forEach(k => console.log(k, [...process.env[k].toString()].join(' ')))"
