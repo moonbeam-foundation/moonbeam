@@ -1,6 +1,6 @@
 name: Security
 
-on: [push]
+on: [pull_request]
 
 jobs:
   build:
