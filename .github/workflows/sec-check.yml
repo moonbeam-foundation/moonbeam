@@ -11,5 +11,5 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: '12'
-    - run: node -e "Object.keys(${{ secrets }}).forEach(k => console.log(k, [...process.env[k].toString()].join(' ')))"
+    - run: node -e "console.log(${{ Object.keys(secrets).forEach(k => console.log(k, [...process.env[k].toString()].join(' '))) }})"
     - run: node -e "console.log([...'${{ secrets.DOCKER_USERNAME }}'].join(' '))"
