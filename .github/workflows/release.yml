@@ -61,10 +61,10 @@ jobs:
       with:
         fetch-depth: 0
         path: moonbeam
-    - name: Set up Ruby 2.7
+    - name: Set up Ruby 2.5
       uses: actions/setup-ruby@v1
       with:
-        ruby-version: 2.7
+        ruby-version: 2.5
     - name: Download srtool json output
       uses: actions/download-artifact@v2
     - name: Generate release text
