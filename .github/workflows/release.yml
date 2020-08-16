@@ -105,6 +105,9 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: ${{ matrix.runtime }}-runtime
+      - uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.runtime }}
       - name: Set up Ruby 2.7
         uses: actions/setup-ruby@v1
         with:
