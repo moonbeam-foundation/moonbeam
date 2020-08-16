@@ -120,7 +120,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
-          asset_path: ./${{ matirx.runtime }}_runtime.compact.wasm
+          asset_path: ./${{ matrix.runtime }}_runtime.compact.wasm
           asset_name: ${{ matrix.runtime }}_runtime-v${{ steps.get-runtime-ver.outputs.runtime_ver }}.compact.wasm
           asset_content_type: application/wasm
       - name: Upload ${{ matrix.runtime }} node
