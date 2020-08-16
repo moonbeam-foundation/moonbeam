@@ -25,7 +25,7 @@ jobs:
         toolchain: nightly
         default: true
     - name: Build
-      run: cargo build --verbose --all
+      run: cargo build --release --verbose --all
     - name: Upload moonbeam runtime
       uses: actions/upload-artifact@v2
       with:

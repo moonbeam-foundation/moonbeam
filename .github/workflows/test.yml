@@ -22,6 +22,6 @@ jobs:
         toolchain: nightly
         default: true
     - name: Build
-      run: cargo build --verbose --all
+      run: cargo build --release --verbose --all
     - name: Run tests
-      run: cargo test --verbose --all
+      run: cargo test --release --verbose --all
