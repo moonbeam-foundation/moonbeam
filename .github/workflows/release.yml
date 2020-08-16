@@ -92,7 +92,7 @@ jobs:
           room_id: ${{ secrets.INTERNAL_MOONBEAM_MATRIX_ROOM_ID }}
           access_token: ${{ secrets.MATRIX_ACCESS_TOKEN }}
           message: "**New version of moonbeam tagged**: ${{ github.ref }}<br/>Alan: Draft release created: ${{ needs.publish-draft-release.outputs.release_url }}"
-          server: "matrix.parity.io"
+          server: "matrix-client.matrix.org"
 
   publish-runtimes:
     runs-on: ubuntu-latest
