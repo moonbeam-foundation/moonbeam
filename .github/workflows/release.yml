@@ -120,6 +120,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
-          asset_path: ./${{ matrix.runtime }}_runtime.compact.wasm
+          asset_path: ./${{ matirx.runtime }}_runtime.compact.wasm
           asset_name: ${{ matrix.runtime }}_runtime-v${{ steps.get-runtime-ver.outputs.runtime_ver }}.compact.wasm
           asset_content_type: application/wasm
+          
+      - name: Upload ${{ matrix.runtime }} node
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
+          asset_path: ./${{ matrix.runtime }}
+          asset_name: ${{ matrix.runtime }}
+          asset_content_type: application/octet-stream
