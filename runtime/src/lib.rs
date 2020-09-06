@@ -357,14 +357,13 @@ impl collective::Trait<CouncilCollective> for Runtime {
 
 ////////////////////// historical instantiation
 
-pub struct SessionBoundariesController
-{
-}
+pub struct SessionBoundariesController;
 
 impl sp_api_hidden_includes_construct_runtime::hidden_include::traits::EstimateNextSessionRotation<u32> for SessionBoundariesController {
     // TODO: impl
-    fn estimate_next_session_rotation(_now: BlockNumber) -> Option<BlockNumber> {
-        None
+    fn estimate_next_session_rotation(now: BlockNumber) -> Option<BlockNumber> {
+        let blocks_per_session: BlockNumber = constants::time::BLOCKS_PER_SESSION as BlockNumber;
+        Some((now / blocks_per_session) * blocks_per_session + 1)
     }
     // TODO: impl
     fn weight(_now: BlockNumber) -> Weight {
@@ -383,8 +382,9 @@ impl pallet_session::ShouldEndSession<u32> for SessionBoundariesController {
 //    }
 
     // TODO: impl
-    fn should_end_session(_now: BlockNumber) -> bool {
-            false
+    fn should_end_session(now: BlockNumber) -> bool {
+            let blocks_per_session: BlockNumber = constants::time::BLOCKS_PER_SESSION as BlockNumber;
+            now % blocks_per_session == 0
     }
 }
 
@@ -457,7 +457,7 @@ impl staking::Trait for Runtime {
         >;
         type SessionInterface = Self;
         type RewardCurve = RewardCurve;
-        type NextNewSession = (); // Session;
+        type NextNewSession = Session;
         type ElectionLookahead = ElectionLookahead;
         type Call = Call;
         type MaxIterations = MaxIterations;

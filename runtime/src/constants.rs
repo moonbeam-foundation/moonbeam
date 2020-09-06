@@ -77,6 +77,7 @@ pub mod time {
 
 	// epochs/session per era
 	pub const EPOCH_PER_ERA: u8 = 1;
+	pub const BLOCKS_PER_SESSION: u32 = 2400;
 
 	// convenience year in milliseconds. TODO.
 	pub const MILLISECS_PER_YEAR: u64 = 3660 * 24 * 365 * 1000;
