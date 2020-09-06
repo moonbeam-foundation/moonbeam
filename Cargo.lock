@@ -2879,12 +2879,17 @@ dependencies = [
  "frame-system",
  "frame-system-rpc-runtime-api",
  "frontier-rpc-primitives",
+ "node-primitives",
  "pallet-aura",
  "pallet-balances",
+ "pallet-collective",
  "pallet-ethereum 0.1.0",
  "pallet-evm",
  "pallet-grandpa",
  "pallet-randomness-collective-flip",
+ "pallet-session",
+ "pallet-staking",
+ "pallet-staking-reward-curve",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
@@ -2900,6 +2905,7 @@ dependencies = [
  "sp-offchain",
  "sp-runtime",
  "sp-session",
+ "sp-staking",
  "sp-std",
  "sp-transaction-pool",
  "sp-version",
@@ -3046,6 +3052,17 @@ dependencies = [
  "structopt",
  "substrate-build-script-utils",
  "substrate-frame-rpc-system",
+]
+
+[[package]]
+name = "node-primitives"
+version = "2.0.0-rc5"
+dependencies = [
+ "frame-system",
+ "parity-scale-codec",
+ "sp-application-crypto",
+ "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -3239,6 +3256,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-collective"
+version = "2.0.0-rc5"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-ethereum"
 version = "0.1.0"
 dependencies = [
@@ -3352,6 +3383,35 @@ dependencies = [
  "sp-staking",
  "sp-std",
  "sp-trie",
+]
+
+[[package]]
+name = "pallet-staking"
+version = "2.0.0-rc5"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "pallet-authorship",
+ "pallet-session",
+ "parity-scale-codec",
+ "serde",
+ "sp-application-crypto",
+ "sp-io",
+ "sp-npos-elections",
+ "sp-runtime",
+ "sp-staking",
+ "sp-std",
+ "static_assertions",
+]
+
+[[package]]
+name = "pallet-staking-reward-curve"
+version = "2.0.0-rc5"
+dependencies = [
+ "proc-macro-crate",
+ "proc-macro2",
+ "quote 1.0.7",
+ "syn 1.0.33",
 ]
 
 [[package]]
@@ -5755,6 +5815,27 @@ dependencies = [
  "sp-core",
  "sp-runtime",
  "strum",
+]
+
+[[package]]
+name = "sp-npos-elections"
+version = "2.0.0-rc5"
+dependencies = [
+ "parity-scale-codec",
+ "serde",
+ "sp-arithmetic",
+ "sp-npos-elections-compact",
+ "sp-std",
+]
+
+[[package]]
+name = "sp-npos-elections-compact"
+version = "2.0.0-rc5"
+dependencies = [
+ "proc-macro-crate",
+ "proc-macro2",
+ "quote 1.0.7",
+ "syn 1.0.33",
 ]
 
 [[package]]
