@@ -415,14 +415,15 @@ impl pallet_session::historical::Trait for Runtime {
 ////////////////////// Pallet-Staking instantiation
 
 pallet_staking_reward_curve::build! {
-        const REWARD_CURVE: PiecewiseLinear<'static> = curve!(
-                min_inflation: 0_025_000,
-                max_inflation: 0_100_000,
-                ideal_stake: 0_500_000,
-                falloff: 0_050_000,
-                max_piece_count: 40,
-                test_precision: 0_005_000,
-        );
+    // Details in https://research.web3.foundation/en/latest/polkadot/Token%20Economics.html#inflation-model
+    const REWARD_CURVE: PiecewiseLinear<'static> = curve!(
+        min_inflation: 0_025_000,
+        max_inflation: 0_100_000,
+        ideal_stake: 0_500_000,
+        falloff: 0_050_000, // "decay rate" in the article
+        max_piece_count: 40,
+        test_precision: 0_005_000,
+    );
 }
 
 parameter_types! {
@@ -431,7 +432,7 @@ parameter_types! {
         pub const SlashDeferDuration: staking::EraIndex = 24 * 7; // 1/4 the bonding duration.
         pub const RewardCurve: &'static PiecewiseLinear<'static> = &REWARD_CURVE;
         pub const MaxNominatorRewardedPerValidator: u32 = 64;
-        pub const ElectionLookahead: BlockNumber = time::EPOCH_DURATION_IN_BLOCKS / 4;
+        pub const ElectionLookahead: BlockNumber = constants::time::EPOCH_DURATION_IN_BLOCKS / 4;
         pub const MaxIterations: u32 = 10;
         // 0.05%. The higher the value, the more strict solution acceptance becomes.
         pub MinSolutionScoreBump: Perbill = Perbill::from_rational_approximation(5u32, 10_000);
@@ -466,51 +467,9 @@ impl staking::Trait for Runtime {
         type WeightInfo = ();
 }
 
-/// TODO: where do we get this in moonbeam? This was copied from node for staking
-pub mod time {
-        use super::{Moment, BlockNumber};
-
-        /// Since BABE is probabilistic this is the average expected block time that
-        /// we are targetting. Blocks will be produced at a minimum duration defined
-        /// by `SLOT_DURATION`, but some slots will not be allocated to any
-        /// authority and hence no block will be produced. We expect to have this
-        /// block time on average following the defined slot duration and the value
-        /// of `c` configured for BABE (where `1 - c` represents the probability of
-        /// a slot being empty).
-        /// This value is only used indirectly to define the unit constants below
-        /// that are expressed in blocks. The rest of the code should use
-        /// `SLOT_DURATION` instead (like the Timestamp pallet for calculating the
-        /// minimum period).
-        ///
-        /// If using BABE with secondary slots (default) then all of the slots will
-        /// always be assigned, in which case `MILLISECS_PER_BLOCK` and
-        /// `SLOT_DURATION` should have the same value.
-        ///
-        /// <https://research.web3.foundation/en/latest/polkadot/BABE/Babe/#6-practical-results>
-        pub const MILLISECS_PER_BLOCK: Moment = 3000;
-        pub const SECS_PER_BLOCK: Moment = MILLISECS_PER_BLOCK / 1000;
-
-        pub const SLOT_DURATION: Moment = MILLISECS_PER_BLOCK;
-
-        // 1 in 4 blocks (on average, not counting collisions) will be primary BABE blocks.
-        pub const PRIMARY_PROBABILITY: (u64, u64) = (1, 4);
-
-        pub const EPOCH_DURATION_IN_BLOCKS: BlockNumber = 10 * MINUTES;
-        pub const EPOCH_DURATION_IN_SLOTS: u64 = {
-                const SLOT_FILL_RATE: f64 = MILLISECS_PER_BLOCK as f64 / SLOT_DURATION as f64;
-
-                (EPOCH_DURATION_IN_BLOCKS as f64 * SLOT_FILL_RATE) as u64
-        };
-
-        // These time units are defined in number of blocks.
-        pub const MINUTES: BlockNumber = 60 / (SECS_PER_BLOCK as BlockNumber);
-        pub const HOURS: BlockNumber = MINUTES * 60;
-        pub const DAYS: BlockNumber = HOURS * 24;
-}
-
 // staking parameters
 parameter_types! {
-        pub const SessionDuration: BlockNumber = time::EPOCH_DURATION_IN_SLOTS as _;
+        pub const SessionDuration: BlockNumber = constants::time::EPOCH_DURATION_IN_SLOTS as _;
         pub const ImOnlineUnsignedPriority: TransactionPriority = TransactionPriority::max_value();
         /// We prioritize im-online heartbeats over election solution submission.
         pub const StakingUnsignedPriority: TransactionPriority = TransactionPriority::max_value() / 2;
