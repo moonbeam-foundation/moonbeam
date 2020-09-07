@@ -2881,11 +2881,14 @@ dependencies = [
  "frontier-rpc-primitives",
  "node-primitives",
  "pallet-aura",
+ "pallet-authorship",
  "pallet-balances",
  "pallet-collective",
  "pallet-ethereum 0.1.0",
  "pallet-evm",
  "pallet-grandpa",
+ "pallet-im-online",
+ "pallet-offences",
  "pallet-randomness-collective-flip",
  "pallet-session",
  "pallet-staking",
@@ -3350,6 +3353,38 @@ dependencies = [
  "sp-finality-grandpa",
  "sp-runtime",
  "sp-session",
+ "sp-staking",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-im-online"
+version = "2.0.0-rc5"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "pallet-authorship",
+ "pallet-session",
+ "parity-scale-codec",
+ "serde",
+ "sp-application-crypto",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-staking",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-offences"
+version = "2.0.0-rc5"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
+ "parity-scale-codec",
+ "serde",
+ "sp-runtime",
  "sp-staking",
  "sp-std",
 ]

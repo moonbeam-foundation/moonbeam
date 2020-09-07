@@ -19,10 +19,13 @@ aura = { version = "2.0.0-dev", default-features = false, package = "pallet-aura
 balances = { version = "2.0.0-dev", default-features = false, package = "pallet-balances", path = "../vendor/frontier/vendor/substrate/frame/balances" }
 frame-support = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/frame/support" }
 grandpa = { version = "2.0.0-dev", default-features = false, package = "pallet-grandpa", path = "../vendor/frontier/vendor/substrate/frame/grandpa" }
+im-online = { version = "2.0.0-dev", default-features = false, package = "pallet-im-online", path = "../vendor/frontier/vendor/substrate/frame/im-online" }
+authorship = { version = "2.0.0-dev", default-features = false, package = "pallet-authorship", path = "../vendor/frontier/vendor/substrate/frame/authorship" }
 randomness-collective-flip = { version = "2.0.0-dev", default-features = false, package = "pallet-randomness-collective-flip", path = "../vendor/frontier/vendor/substrate/frame/randomness-collective-flip" }
 staking = { version = "2.0.0-dev", default-features = false, package = "pallet-staking", path = "../vendor/frontier/vendor/substrate/frame/staking" }
 pallet-staking-reward-curve = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/frame/staking/reward-curve" }
 pallet-session = { version = "2.0.0-dev", features = ["historical"], path = "../vendor/frontier/vendor/substrate/frame/session", default-features = false }
+offences = { version = "2.0.0-dev", default-features = false, package = "pallet-offences", path = "../vendor/frontier/vendor/substrate/frame/offences" }
 collective = { version = "2.0.0-dev", default-features = false, package = "pallet-collective", path = "../vendor/frontier/vendor/substrate/frame/collective" }
 sudo = { version = "2.0.0-dev", default-features = false, package = "pallet-sudo", path = "../vendor/frontier/vendor/substrate/frame/sudo" }
 system = { version = "2.0.0-dev", default-features = false, package = "frame-system", path = "../vendor/frontier/vendor/substrate/frame/system" }
@@ -57,13 +60,16 @@ wasm-builder-runner = { version = "1.0.5", package = "substrate-wasm-builder-run
 default = ["std"]
 std = [
 	"aura/std",
+	"authorship/std",
 	"balances/std",
 	"codec/std",
 	"frame-executive/std",
 	"frame-support/std",
 	"grandpa/std",
 	"collective/std",
+	"im-online/std",
 	"node-primitives/std",
+	"offences/std",
 	"pallet-session/std",
 	"staking/std",
 	"randomness-collective-flip/std",

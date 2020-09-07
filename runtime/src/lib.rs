@@ -37,6 +37,7 @@ use sp_runtime::traits::{
 
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
+use im_online::sr25519::AuthorityId as ImOnlineId;
 use grandpa::{AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList};
 use grandpa::fg_primitives;
 use sp_version::RuntimeVersion;
@@ -417,9 +418,9 @@ impl pallet_session::historical::Trait for Runtime {
 pallet_staking_reward_curve::build! {
     // Details in https://research.web3.foundation/en/latest/polkadot/Token%20Economics.html#inflation-model
     const REWARD_CURVE: PiecewiseLinear<'static> = curve!(
-        min_inflation: 0_025_000,
-        max_inflation: 0_100_000,
-        ideal_stake: 0_500_000,
+        min_inflation: 0_025_000, // 2.5%
+        max_inflation: 0_050_000, // 5%
+        ideal_stake: 0_500_000,   // 50% ideally staked
         falloff: 0_050_000, // "decay rate" in the article
         max_piece_count: 40,
         test_precision: 0_005_000,
@@ -477,6 +478,50 @@ parameter_types! {
 
 //////////////////////
 
+////////////////////// offences-pallet instantiation
+
+parameter_types! {
+    pub OffencesWeightSoftLimit: Weight = Perbill::from_percent(60) * MaximumBlockWeight::get();
+}
+
+impl offences::Trait for Runtime {
+    type Event = Event;
+    type IdentificationTuple = pallet_session::historical::IdentificationTuple<Self>;
+    type OnOffenceHandler = Staking;
+    type WeightSoftLimit = OffencesWeightSoftLimit;
+    type WeightInfo = ();
+}
+
+//////////////////////
+
+////////////////////// im-online-pallet instantiation
+
+impl im_online::Trait for Runtime {
+    type AuthorityId = ImOnlineId;
+    type Event = Event;
+    type SessionDuration = SessionDuration;
+    type ReportUnresponsiveness = Offences;
+    type UnsignedPriority = ImOnlineUnsignedPriority;
+    type WeightInfo = ();
+}
+
+//////////////////////
+
+////////////////////// Authorship-pallet instantiation
+
+parameter_types! {
+    pub const UncleGenerations: BlockNumber = 5;
+}
+
+impl authorship::Trait for Runtime {
+    type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Aura>;
+    type UncleGenerations = UncleGenerations;
+    type FilterUncle = ();
+    type EventHandler = (Staking, ImOnline);
+}
+
+//////////////////////
+
 impl balances::Trait for Runtime {
         /// The type for recording an account's balance.
         type Balance = Balance;
@@ -492,9 +537,34 @@ parameter_types! {
         pub const TransactionByteFee: Balance = 1;
 }
 
+pub struct Author;
+impl OnUnbalanced<NegativeImbalance> for Author {
+    fn on_nonzero_unbalanced(amount: NegativeImbalance) {
+        Balances::resolve_creating(&Authorship::author(), amount);
+    }
+}
+
+type NegativeImbalance = <Balances as Currency<AccountId>>::NegativeImbalance;
+
+pub struct DealWithFees;
+impl OnUnbalanced<NegativeImbalance> for DealWithFees {
+    fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item=NegativeImbalance>) {
+        if let Some(fees) = fees_then_tips.next() {
+            // for fees, 80% to treasury (we burn it below in the commented part), 20% to author
+            let mut split = fees.ration(80, 20);
+            if let Some(tips) = fees_then_tips.next() {
+                // for tips, if any, 80% to treasury, 20% to author (though this can be anything)
+                tips.ration_merge_into(80, 20, &mut split);
+            }
+            // Treasury::on_unbalanced(split.0); // commented = burned
+            Author::on_unbalanced(split.1);
+        }
+    }
+}
+
 impl transaction_payment::Trait for Runtime {
         type Currency = balances::Module<Runtime>;
-        type OnTransactionPayment = ();
+        type OnTransactionPayment = DealWithFees;
         type TransactionByteFee = TransactionByteFee;
         type WeightToFee = IdentityFee<Balance>;
         type FeeMultiplierUpdate = ();
@@ -569,6 +639,9 @@ construct_runtime!(
                 Session: pallet_session::{Module, Call, Storage, Event, Config<T>},
                 Council: collective::<Instance1>::{Module, Call, Storage, Origin<T>, Event<T>, Config<T>},
                 Historical: pallet_session::{Module},
+                Offences: offences::{Module, Call, Storage, Event},
+                ImOnline: im_online::{Module, Call, Storage, Event<T>, ValidateUnsigned, Config<T>},
+                Authorship: authorship::{Module, Call, Storage, Inherent},
                 Staking: staking::{Module, Call, Config<T>, Storage, Event<T>, ValidateUnsigned},
         }
 );

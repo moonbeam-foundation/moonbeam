@@ -190,5 +190,6 @@ fn testnet_genesis(
                 collective_Instance1: Some(CouncilConfig::default()),
                 pallet_session: None,
                 staking: None,
+                im_online: None,
         }
 }
