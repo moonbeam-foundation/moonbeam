@@ -2,7 +2,9 @@ import Web3 from "web3";
 import { JsonRpcResponse } from "web3-core-helpers";
 import { spawn, ChildProcess } from "child_process";
 
-export const RPC_PORT = 19933;
+export const PORT = 19931;
+export const RPC_PORT = 19932;
+export const WS_PORT = 19933;
 export const SPECS_PATH = `./moonbeam-test-specs`;
 
 export const DISPLAY_LOG = process.env.MOONBEAM_LOG || false;
@@ -57,8 +59,9 @@ export async function startMoonbeamNode(specFilename: string): Promise<{ web3: W
 		`--no-grandpa`,
 		`--force-authoring`,
 		`-l${MOONBEAM_LOG}`,
+		`--port=${PORT}`,
 		`--rpc-port=${RPC_PORT}`,
-		`--ws-port=19944`, // not used
+		`--ws-port=${WS_PORT}`, // not used
 		`--tmp`,
 	];
 	const binary = spawn(cmd, args);
