@@ -20,7 +20,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract)", `simple-specs.json`, (context) =
 				from: GENESIS_ACCOUNT,
 				data: TEST_CONTRACT_BYTECODE,
 				value: "0x00",
-				gasPrice: "0x00",
+				gasPrice: "0x01",
 				gas: "0x100000",
 			},
 			GENESIS_ACCOUNT_PRIVATE_KEY
@@ -29,7 +29,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract)", `simple-specs.json`, (context) =
 		expect(await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction])).to.deep.equal({
 			id: 1,
 			jsonrpc: "2.0",
-			result: "0x57c335014ba0eed4de4160f87d2c77f07f6f0d749fe8ccb944c92d157bb93a79",
+			result: "0xa791fec7c4b10661a937635abfbdb933c57acb2e7399c2562c9c31a9d6ad8435",
 		});
 
 		// Verify the contract is not yet stored

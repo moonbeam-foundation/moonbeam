@@ -16,7 +16,7 @@ describeWithMoonbeam("Moonbeam RPC (Deprecated)", `simple-specs.json`, (context)
 			expect(await customRequest(context.web3, method, params)).to.deep.equal({
 				id: 1,
 				jsonrpc: "2.0",
-				error: { message: `Method ${method} not supported.`, code: -32600 },
+				error: { message: `Method not found`, code: -32601 },
 			});
 		});
 	});

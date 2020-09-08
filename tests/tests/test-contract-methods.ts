@@ -30,7 +30,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
 				from: GENESIS_ACCOUNT,
 				data: TEST_CONTRACT_BYTECODE,
 				value: "0x00",
-				gasPrice: "0x00",
+				gasPrice: "0x01",
 				gas: "0x100000",
 			},
 			GENESIS_ACCOUNT_PRIVATE_KEY
@@ -42,7 +42,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
 	it("should return contract method result", async function () {
 		const contract = new context.web3.eth.Contract([TEST_CONTRACT_ABI], FIRST_CONTRACT_ADDRESS, {
 			from: GENESIS_ACCOUNT,
-			gasPrice: "0",
+			gasPrice: "0x01",
 		});
 
 		expect(await contract.methods.multiply(3).call()).to.equal("21");
@@ -52,7 +52,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
 	it.skip("should fail for missing parameters", async function () {
 		const contract = new context.web3.eth.Contract([{ ...TEST_CONTRACT_ABI, inputs: [] }], FIRST_CONTRACT_ADDRESS, {
 			from: GENESIS_ACCOUNT,
-			gasPrice: "0",
+			gasPrice: "0x01",
 		});
 		await contract.methods
 			.multiply()
@@ -77,7 +77,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
 			FIRST_CONTRACT_ADDRESS,
 			{
 				from: GENESIS_ACCOUNT,
-				gasPrice: "0",
+				gasPrice: "0x01",
 			}
 		);
 		await contract.methods
@@ -93,7 +93,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
 		const contract = new context.web3.eth.Contract(
 			[{ ...TEST_CONTRACT_ABI, inputs: [{ internalType: "address", name: "a", type: "address" }] }],
 			FIRST_CONTRACT_ADDRESS,
-			{ from: GENESIS_ACCOUNT, gasPrice: "0" }
+			{ from: GENESIS_ACCOUNT, gasPrice: "0x01" }
 		);
 		await contract.methods
 			.multiply("0x0123456789012345678901234567890123456789")
