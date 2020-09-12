@@ -20,12 +20,12 @@ describeWithMoonbeam("Frontier RPC (Balance)", `simple-specs.json`, (context) =>
 			from: GENESIS_ACCOUNT,
 			to: TEST_ACCOUNT,
 			value: "0x200", // Must me higher than ExistentialDeposit (500)
-			gasPrice: "0x00",
+			gasPrice: "0x01",
 			gas: "0x100000",
 		}, GENESIS_ACCOUNT_PRIVATE_KEY);
 		await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
 		await createAndFinalizeBlock(context.web3);
-		expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT)).to.equal("340282366920938463463374607431768210943");
+		expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT)).to.equal("340282366920938463463374607431768189943");
 		expect(await context.web3.eth.getBalance(TEST_ACCOUNT)).to.equal("512");
 	});
 });

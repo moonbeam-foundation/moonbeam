@@ -7,7 +7,7 @@ homepage = 'https://moonbeam.network'
 license = 'Unlicense'
 name = 'node-moonbeam'
 repository = 'https://github.com/PureStake/moonbeam/'
-version = '0.1.0'
+version = '0.1.1'
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
@@ -16,7 +16,6 @@ targets = ["x86_64-unknown-linux-gnu"]
 futures = "0.3.4"
 log = "0.4.8"
 structopt = "0.3.8"
-parking_lot = "0.10.0"
 jsonrpc-core = "14.0.3"
 
 sp-api = { version = "2.0.0-dev", path = "../vendor/frontier/vendor/substrate/primitives/api" }
@@ -49,6 +48,8 @@ sc-basic-authorship = { path = "../vendor/frontier/vendor/substrate/client/basic
 sp-block-builder = { path = "../vendor/frontier/vendor/substrate/primitives/block-builder" }
 
 moonbeam-runtime = { path = "../runtime" }
+
+frontier-consensus = { version = "0.1.0", path = "../vendor/frontier/consensus" }
 frontier-rpc = { version = "0.1.0", path = "../vendor/frontier/rpc" }
 frontier-rpc-primitives = { version = "0.1.0", path = "../vendor/frontier/rpc/primitives" }
 
