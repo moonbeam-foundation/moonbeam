@@ -334,7 +334,8 @@ fn get_precompiled_func_from_address(address: &H160) -> Option<PrecompiledCallab
     use core::str::FromStr;
     use frame_evm::Precompile;
 
-    let addr1 = H160::from_str("0x0000000000000000000000000000000000001000").expect("Invalid address at precompiles generation");
+    // Note that addresses from_str should not start with 0x, just the hex value
+    let addr1 = H160::from_str("0000000000000000000000000000000000001000").expect("Invalid address at precompiles generation");
 
     if *address == addr1 {
         return Some(DoSomethingPrecompiled::execute);
