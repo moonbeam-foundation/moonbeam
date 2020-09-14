@@ -314,16 +314,27 @@ fn ensure_linear_cost(
     Ok(cost)
 }
 
-struct DoSomethingPrecompiled;
+struct DeadbeefPrecompiled;
 
-impl frame_evm::Precompile for DoSomethingPrecompiled {
+impl frame_evm::Precompile for DeadbeefPrecompiled {
     fn execute(
         input: &[u8],
         target_gas: Option<usize>
     ) -> core::result::Result<(frame_evm::ExitSucceed, Vec<u8>, usize), frame_evm::ExitError> {
-        ensure_linear_cost(target_gas, input.len(), 15, 3)?;
+        let cost = ensure_linear_cost(target_gas, input.len(), 15, 3)?;
 
-        Err(frame_evm::ExitError::Other("Unimplemented"))
+        log::info!("Calling deadbeef precompiled contract");
+
+        let mut result_vec = hex_literal::hex!("deadbeef").to_vec();
+
+        // for some reason, we have to pad the result to be at least 32 bytes, otherwise tests will crash
+        // regardless of what size the return value is in the contract
+        while result_vec.len() < 32 {
+            result_vec.push('0' as u8);
+        }
+
+        // this does nothing to the input
+        Ok((frame_evm::ExitSucceed::Returned, result_vec, cost))
     }
 }
 
@@ -335,10 +346,10 @@ fn get_precompiled_func_from_address(address: &H160) -> Option<PrecompiledCallab
     use frame_evm::Precompile;
 
     // Note that addresses from_str should not start with 0x, just the hex value
-    let addr1 = H160::from_str("0000000000000000000000000000000000001000").expect("Invalid address at precompiles generation");
+    let addr_deadbeef = H160::from_str("0000000000000000000000000000000000001000").expect("Invalid address at precompiles generation");
 
-    if *address == addr1 {
-        return Some(DoSomethingPrecompiled::execute);
+    if *address == addr_deadbeef {
+        return Some(DeadbeefPrecompiled::execute);
     }
 
     None
