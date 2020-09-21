@@ -58,7 +58,6 @@ pub use frame_support::{
 	},
 	ConsensusEngineId,
 };
-//use frame_ethereum::{Block as EthereumBlock, Transaction as EthereumTransaction, Receipt as EthereumReceipt};
 use frame_evm::{Account as EVMAccount, FeeCalculator, HashedAddressMapping, EnsureAddressTruncated};
 use frontier_rpc_primitives::{TransactionStatus};
 
