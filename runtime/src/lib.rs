@@ -582,8 +582,8 @@ impl_runtime_apis! {
 			let gas_limit_considered_256: U256 = gas_limit_considered.into();
 			if gas_limit_considered_256 != gas_limit {
 				log::warn!("WARNING: An invalid gas_limit amount was submitted.
-							 Make sure your gas_limit fits within a 32-bit integer
-							 (gas_limit: {:?})", gas_limit);
+							Make sure your gas_limit fits within a 32-bit integer
+							(gas_limit: {:?})", gas_limit);
 			}
 			match action {
 				frame_ethereum::TransactionAction::Call(to) =>
