@@ -314,6 +314,7 @@ fn ensure_linear_cost(
 	Ok(cost)
 }
 
+// prepends "deadbeef" to any data provided
 struct DeadbeefPrecompiled;
 
 impl frame_evm::Precompile for DeadbeefPrecompiled {
@@ -326,14 +327,8 @@ impl frame_evm::Precompile for DeadbeefPrecompiled {
 		log::info!("Calling deadbeef precompiled contract");
 
 		let mut result_vec = hex_literal::hex!("deadbeef").to_vec();
+		result_vec.extend(input.to_vec());
 
-		// for some reason, we have to pad the result to be at least 32 bytes, otherwise tests will crash
-		// regardless of what size the return value is in the contract
-		while result_vec.len() < 32 {
-			result_vec.push('0' as u8);
-		}
-
-		// this does nothing to the input
 		Ok((frame_evm::ExitSucceed::Returned, result_vec, cost))
 	}
 }
@@ -582,6 +577,15 @@ impl_runtime_apis! {
 			nonce: Option<U256>,
 			action: frame_ethereum::TransactionAction,
 		) -> Option<(Vec<u8>, U256)> {
+			// ensure that the gas_limit fits within a u32; otherwise the wrong value will be passed
+			use sp_runtime::traits::UniqueSaturatedInto;
+			let gas_limit_considered: u32 = gas_limit.unique_saturated_into();
+			let gas_limit_considered_256: U256 = gas_limit_considered.into();
+			if gas_limit_considered_256 != gas_limit {
+				log::warn!("WARNING: An invalid gas_limit amount was submitted.
+							 Make sure your gas_limit fits within a 32-bit integer
+							 (gas_limit: {:?})", gas_limit);
+			}
 			match action {
 				frame_ethereum::TransactionAction::Call(to) =>
 				EVM::execute_call(
@@ -589,7 +593,7 @@ impl_runtime_apis! {
 						to,
 						data,
 						value,
-						gas_limit.low_u32(),
+						gas_limit_considered,
 						gas_price,
 						nonce,
 						false,
@@ -599,7 +603,7 @@ impl_runtime_apis! {
 						from,
 						data,
 						value,
-						gas_limit.low_u32(),
+						gas_limit_considered,
 						gas_price,
 						nonce,
 						false,
