@@ -9,6 +9,7 @@ const FAUCET_SEND_INTERVAL = 1; // hours
 const EMBED_COLOR_CORRECT = 0x642f95;
 const EMBED_COLOR_ERROR = 0xc0392b;
 const SLACK_MSG_CONTENT_FILEPATH = "./msg-alert-to-slack.json";
+const BALANCE_AMOUNT_THRESHOLD = 100; // DEV
 
 const params = {
 	// Discord app information
@@ -51,8 +52,9 @@ client.on("ready", () => {
 });
 
 /**
- * 
- * @param account_balance 
+ * Send notification to Slack using a webhook URL and the 
+ * message payload read from SLACK_MSG_CONTENT_FILEPATH.
+ * @param {BigInt} account_balance Balance of the account in DEV
  */
 const sendSlackNotification = async (account_balance: BigInt) => {
 	// Message to send to Slack (JSON payload)
@@ -207,6 +209,18 @@ const botActionFaucetSend = async (msg: Message, authorId: string, messageConten
 		).rawTransaction
 	);
 	const accountBalance = BigInt(await web3Api.eth.getBalance(`0x${address}`));
+
+	// Check balance every 10min (minimum interval, dependent on when the function is called)
+	if (lastBalanceCheck.timestamp < Date.now() - 600 * 1000) {
+		// Update cached info for last balance check
+		lastBalanceCheck.balance = BigInt(await web3Api.eth.getBalance(`0x${params.ACCOUNT_ID}`));
+		lastBalanceCheck.timestamp = Date.now();
+
+		// If balance is low, send notification to Slack
+		if (lastBalanceCheck.balance < BigInt(BALANCE_AMOUNT_THRESHOLD)) {
+			await sendSlackNotification(lastBalanceCheck.balance / (10n ** TOKEN_DECIMAL));
+		}
+	}
 
 	const fundsTransactionEmbed = new MessageEmbed()
 		.setColor(EMBED_COLOR_CORRECT)
