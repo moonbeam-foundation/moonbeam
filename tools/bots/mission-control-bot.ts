@@ -47,10 +47,6 @@ const lastBalanceCheck = {
 	balance: BigInt(0)
 };
 
-client.on("ready", () => {
-	console.log(`Logged in as ${client.user.tag}!`);
-});
-
 /**
  * Send notification to Slack using a webhook URL and the 
  * message payload read from SLACK_MSG_CONTENT_FILEPATH.
@@ -274,6 +270,13 @@ const onReceiveMessage = async (msg: Message) => {
 	}
 };
 
+// Prompt when logged in
+client.on("ready", () => {
+	console.log(`Logged in as ${client.user.tag}!`);
+});
+
+// Bind message event to custom listener
 client.on("message", onReceiveMessage);
 
+// Perform login and listen for new events
 client.login(params.DISCORD_TOKEN);
