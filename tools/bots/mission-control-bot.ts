@@ -1,6 +1,6 @@
 import { Client, MessageEmbed, Message } from "discord.js";
 import Web3 from "web3";
-import http from "http";
+import https from "https";
 import fs from "fs";
 
 
@@ -65,7 +65,6 @@ const sendSlackNotification = async (account_balance: BigInt) => {
 
 	// Options for the HTTP request (data is written later)
 	const options = {
-		hostname: params.SLACK_WEBHOOK,
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
@@ -76,7 +75,7 @@ const sendSlackNotification = async (account_balance: BigInt) => {
 	// Promise to "await" until request has ended
 	const completed_request = new Promise((resolve, reject) => {
 		// Send request to Slack webhook
-		const request = http.request(options, (response) => {
+		const request = https.request(params.SLACK_WEBHOOK, options, (response) => {
 			let data = '';
 
 			response.on('data', (chunk) => {
@@ -213,7 +212,7 @@ const botActionFaucetSend = async (msg: Message, authorId: string, messageConten
 		lastBalanceCheck.timestamp = Date.now();
 
 		// If balance is low, send notification to Slack
-		if (lastBalanceCheck.balance < params.BALANCE_AMOUNT_THRESHOLD) {
+		if (lastBalanceCheck.balance < params.BALANCE_AMOUNT_THRESHOLD * (10n ** TOKEN_DECIMAL)) {
 			await sendSlackNotification(lastBalanceCheck.balance / (10n ** TOKEN_DECIMAL));
 		}
 	}
