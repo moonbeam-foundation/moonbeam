@@ -1,19 +1,26 @@
 import { Client, MessageEmbed, Message } from "discord.js";
 import Web3 from "web3";
+import http from "http";
+import fs from "fs";
 
 
 const TOKEN_DECIMAL = 18n;
 const FAUCET_SEND_INTERVAL = 1; // hours
 const EMBED_COLOR_CORRECT = 0x642f95;
 const EMBED_COLOR_ERROR = 0xc0392b;
+const SLACK_MSG_CONTENT_FILEPATH = "./msg-alert-to-slack.json";
 
 const params = {
 	// Discord app information
 	DISCORD_TOKEN: process.env.DISCORD_TOKEN,
 	DISCORD_CHANNEL: process.env.DISCORD_CHANNEL,
 
+	// Slack app information
+	SLACK_WEBHOOK: process.env.SLACK_WEBHOOK,
+
 	// Web3 RPC access
 	RPC_URL: process.env.RPC_URL,
+	ACCOUNT_ID: process.env.ACCOUNT_ID,
 	ACCOUNT_KEY: process.env.ACCOUNT_KEY,
 
 	// Token distribution
@@ -34,10 +41,66 @@ console.log(`Connecting web3 to ${params.RPC_URL}...`);
 
 const client: Client = new Client();
 const receivers: { [author: string]: number } = {};
+const lastBalanceCheck = {
+	timestamp: 0,
+	balance: BigInt(0)
+};
 
 client.on("ready", () => {
 	console.log(`Logged in as ${client.user.tag}!`);
 });
+
+/**
+ * 
+ * @param account_balance 
+ */
+const sendSlackNotification = async (account_balance: BigInt) => {
+	// Message to send to Slack (JSON payload)
+	const data = fs.readFileSync(
+		// file where the msg is written
+		SLACK_MSG_CONTENT_FILEPATH, 
+		// options used to open the file
+		{ encoding: "utf8", flag: "r" }
+	)
+	.replace("{{ account-fix-me }}", params.ACCOUNT_ID)
+	.replace("{{ balance-fix-me }}", account_balance.toString());
+
+	// Options for the HTTP request (data is written later)
+	const options = {
+		hostname: params.SLACK_WEBHOOK,
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			"Content-Length": data.length
+		}
+	};
+
+	// Promise to "await" until request has ended
+	const completed_request = new Promise((resolve, reject) => {
+		// Send request to Slack webhook
+		const request = http.request(options, (response) => {
+			let data = '';
+
+			response.on('data', (chunk) => {
+				data += chunk;
+			});
+
+			response.on('end', () => {
+				console.log("Received data from Slack webhook:", JSON.parse(data));
+				resolve(data);
+			});
+			
+		}).on("error", (err) => {
+			console.log("Error while sending Slack notification:", err.message);
+			reject(err);
+		});
+	
+		request.write(data);
+		request.end();
+	});
+
+	return await completed_request;
+}
 
 /**
  * Returns the approximated remaining time until being able to request tokens again.
