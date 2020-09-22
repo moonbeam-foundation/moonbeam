@@ -5,11 +5,9 @@ import fs from "fs";
 
 
 const TOKEN_DECIMAL = 18n;
-const FAUCET_SEND_INTERVAL = 1; // hours
 const EMBED_COLOR_CORRECT = 0x642f95;
 const EMBED_COLOR_ERROR = 0xc0392b;
 const SLACK_MSG_CONTENT_FILEPATH = "./msg-alert-to-slack.json";
-const BALANCE_AMOUNT_THRESHOLD = 100; // DEV
 
 const params = {
 	// Discord app information
@@ -26,6 +24,8 @@ const params = {
 
 	// Token distribution
 	TOKEN_COUNT: BigInt(process.env.TOKEN_COUNT || 10),
+	FAUCET_SEND_INTERVAL: parseInt(process.env.FAUCET_SEND_INTERVAL || "1"), // hours
+	BALANCE_AMOUNT_THRESHOLD: BigInt(process.env.BALANCE_AMOUNT_THRESHOLD || 100), // DEV
 }
 
 Object.keys(params).forEach(param => {
@@ -110,7 +110,7 @@ const nextAvailableToken = (lastTokenRequestMoment: number) => {
 	const msPerHour = msPerMinute * 60;
 
 	// when the author of the message will be able to request more tokens
-	const availableAt = lastTokenRequestMoment + (FAUCET_SEND_INTERVAL * msPerHour);
+	const availableAt = lastTokenRequestMoment + (params.FAUCET_SEND_INTERVAL * msPerHour);
 	// remaining time until able to request more tokens
 	let remain = availableAt - Date.now();
 
@@ -213,7 +213,7 @@ const botActionFaucetSend = async (msg: Message, authorId: string, messageConten
 		lastBalanceCheck.timestamp = Date.now();
 
 		// If balance is low, send notification to Slack
-		if (lastBalanceCheck.balance < BigInt(BALANCE_AMOUNT_THRESHOLD)) {
+		if (lastBalanceCheck.balance < params.BALANCE_AMOUNT_THRESHOLD) {
 			await sendSlackNotification(lastBalanceCheck.balance / (10n ** TOKEN_DECIMAL));
 		}
 	}
