@@ -170,7 +170,7 @@ const checkH160AddressIsCorrect = (address: string, msg: Message) => {
  * @param {string} messageContent Content of the message
  */
 const botActionFaucetSend = async (msg: Message, authorId: string, messageContent: string) => {
-	if (receivers[authorId] > Date.now() - 3600 * 1000) {
+	if (receivers[authorId] > Date.now() - params.FAUCET_SEND_INTERVAL * 3600 * 1000) {
 		const errorEmbed = new MessageEmbed()
 			.setColor(EMBED_COLOR_ERROR)
 			.setTitle(`You already received tokens!`)
