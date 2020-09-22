@@ -83,7 +83,7 @@ const sendSlackNotification = async (account_balance: BigInt) => {
 			});
 
 			response.on('end', () => {
-				console.log("Received data from Slack webhook:", JSON.parse(data));
+				console.log("Received data from Slack webhook:", data);
 				resolve(data);
 			});
 			
