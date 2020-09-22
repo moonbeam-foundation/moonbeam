@@ -1,21 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
-// This file is part of Moonbeam.
-
-// Moonbeam is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-// Moonbeam is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-
-//! The Substrate Node Moonbeam runtime. This can be compiled with `#[no_std]`, ready for Wasm.
-
+// Copyright 2020 Parity Technologies (UK) Ltd.
 #![cfg_attr(not(feature = "std"), no_std)]
 // `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
 #![recursion_limit = "256"]
@@ -24,48 +7,45 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+use sp_api::impl_runtime_apis;
+use sp_core::{OpaqueMetadata, U256, H160, H256};
+use sp_runtime::{
+	create_runtime_str, generic, impl_opaque_keys,
+	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Saturating, Verify},
+	transaction_validity::{TransactionSource, TransactionValidity},
+	ApplyExtrinsicResult, MultiSignature,
+};
 use sp_std::{prelude::*, marker::PhantomData};
 use codec::{Encode, Decode};
-use sp_core::{crypto::KeyTypeId, OpaqueMetadata, U256, H160, H256};
-use sp_runtime::{
-	ApplyExtrinsicResult, generic, create_runtime_str, impl_opaque_keys, MultiSignature,
-	transaction_validity::{TransactionValidity, TransactionSource},
-};
-use sp_runtime::traits::{
-	BlakeTwo256, Block as BlockT, IdentityLookup, Verify, IdentifyAccount, NumberFor, Saturating,
-};
-use sp_api::impl_runtime_apis;
-use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-use pallet_grandpa::{AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList};
-use pallet_grandpa::fg_primitives;
-use sp_version::RuntimeVersion;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
-use sp_core::crypto::Public;
+use sp_version::RuntimeVersion;
 
 // A few exports that help ease life for downstream crates.
-#[cfg(any(feature = "std", test))]
-pub use sp_runtime::BuildStorage;
-pub use pallet_timestamp::Call as TimestampCall;
-pub use pallet_balances::Call as BalancesCall;
-pub use sp_runtime::{Permill, Perbill};
 pub use frame_support::{
-	construct_runtime, parameter_types, StorageValue,
-	traits::{KeyOwnerProofSystem, Randomness, FindAuthor},
-	weights::{
-		Weight, IdentityFee,
-		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
-	},
+	construct_runtime, parameter_types,
+	traits::{Randomness, FindAuthor},
+	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
+	StorageValue,
 	ConsensusEngineId,
 };
-use frame_ethereum::{Block as EthereumBlock, Transaction as EthereumTransaction, Receipt as EthereumReceipt};
-use frame_evm::{Account as EVMAccount, FeeCalculator, HashedAddressMapping, EnsureAddressTruncated};
+pub use pallet_balances::Call as BalancesCall;
+pub use pallet_timestamp::Call as TimestampCall;
+#[cfg(any(feature = "std", test))]
+pub use sp_runtime::BuildStorage;
+pub use sp_runtime::{Perbill, Permill};
+use ethereum::{Block as EthereumBlock, Transaction as EthereumTransaction, Receipt as EthereumReceipt};
+use pallet_evm::{Account as EVMAccount, FeeCalculator, HashedAddressMapping, EnsureAddressTruncated};
 use frontier_rpc_primitives::{TransactionStatus};
 
-pub mod constants;
+/// Import the template pallet.
+pub use template;
+
+/// Import the message pallet.
+pub use cumulus_token_dealer;
 
 /// An index to a block.
-pub type BlockNumber = constants::time::BlockNumber;
+pub type BlockNumber = u32;
 
 /// Alias to 512-bit hash when used in the context of a transaction signature on the chain.
 pub type Signature = MultiSignature;
@@ -79,7 +59,7 @@ pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::Account
 pub type AccountIndex = u32;
 
 /// Balance of an account.
-pub type Balance = constants::currency::Balance;
+pub type Balance = u128;
 
 /// Index of a transaction in the chain.
 pub type Index = u32;
@@ -93,7 +73,7 @@ pub type DigestItem = generic::DigestItem<Hash>;
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
-/// to even the core data structures.
+/// to even the core datastructures.
 pub mod opaque {
 	use super::*;
 
@@ -106,17 +86,17 @@ pub mod opaque {
 	/// Opaque block identifier type.
 	pub type BlockId = generic::BlockId<Block>;
 
+	pub type SessionHandlers = ();
+
 	impl_opaque_keys! {
-		pub struct SessionKeys {
-			pub aura: Aura,
-			pub grandpa: Grandpa,
-		}
+		pub struct SessionKeys {}
 	}
 }
 
+/// This runtime version.
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("node-moonbeam"),
-	impl_name: create_runtime_str!("node-moonbeam"),
+	spec_name: create_runtime_str!("parachain-template"),
+	impl_name: create_runtime_str!("parachain-template"),
 	authoring_version: 1,
 	spec_version: 1,
 	impl_version: 1,
@@ -128,12 +108,17 @@ pub const MILLISECS_PER_BLOCK: u64 = 6000;
 
 pub const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
 
-// Time is measured by number of blocks.
+pub const EPOCH_DURATION_IN_BLOCKS: u32 = 10 * MINUTES;
+
+// These time units are defined in number of blocks.
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
 pub const HOURS: BlockNumber = MINUTES * 60;
 pub const DAYS: BlockNumber = HOURS * 24;
 
-/// The version information used to identify this runtime when compiled natively.
+// 1 in 4 blocks (on average, not counting collisions) will be primary babe blocks.
+pub const PRIMARY_PROBABILITY: (u64, u64) = (1, 4);
+
+/// The version infromation used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]
 pub fn native_version() -> NativeVersion {
 	NativeVersion {
@@ -143,22 +128,18 @@ pub fn native_version() -> NativeVersion {
 }
 
 parameter_types! {
-	pub const BlockHashCount: BlockNumber = 2400;
-	/// We allow for 2 seconds of compute with a 6 second average block time.
+	pub const BlockHashCount: BlockNumber = 250;
 	pub const MaximumBlockWeight: Weight = 2 * WEIGHT_PER_SECOND;
-	pub const AvailableBlockRatio: Perbill = Perbill::from_percent(75);
 	/// Assume 10% of weight for average on_initialize calls.
 	pub MaximumExtrinsicWeight: Weight = AvailableBlockRatio::get()
 		.saturating_sub(Perbill::from_percent(10)) * MaximumBlockWeight::get();
+	pub const AvailableBlockRatio: Perbill = Perbill::from_percent(75);
 	pub const MaximumBlockLength: u32 = 5 * 1024 * 1024;
 	pub const Version: RuntimeVersion = VERSION;
+	pub const ExtrinsicBaseWeight: Weight = 10_000_000;
 }
 
-// Configure FRAME pallets to include in runtime.
-
 impl frame_system::Trait for Runtime {
-	/// The basic call filter to use in dispatchable.
-	type BaseCallFilter = ();
 	/// The identifier used to distinguish between accounts.
 	type AccountId = AccountId;
 	/// The aggregated dispatch type that is available for extrinsics.
@@ -181,75 +162,44 @@ impl frame_system::Trait for Runtime {
 	type Origin = Origin;
 	/// Maximum number of block number to block hash mappings to keep (oldest pruned first).
 	type BlockHashCount = BlockHashCount;
-	/// Maximum weight of each block.
+	/// Maximum weight of each block. With a default weight system of 1byte == 1weight, 4mb is ok.
 	type MaximumBlockWeight = MaximumBlockWeight;
-	/// The weight of database operations that the runtime can invoke.
-	type DbWeight = RocksDbWeight;
-	/// The weight of the overhead invoked on the block import process, independent of the
-	/// extrinsics included in that block.
-	type BlockExecutionWeight = BlockExecutionWeight;
-	/// The base weight of any extrinsic processed by the runtime, independent of the
-	/// logic of that extrinsic. (Signature verification, nonce increment, fee, etc...)
-	type ExtrinsicBaseWeight = ExtrinsicBaseWeight;
-	/// The maximum weight that a single extrinsic of `Normal` dispatch class can have,
-	/// idependent of the logic of that extrinsics. (Roughly max block weight - average on
-	/// initialize cost).
-	type MaximumExtrinsicWeight = MaximumExtrinsicWeight;
 	/// Maximum size of all encoded transactions (in bytes) that are allowed in one block.
 	type MaximumBlockLength = MaximumBlockLength;
 	/// Portion of the block weight that is available to all normal transactions.
 	type AvailableBlockRatio = AvailableBlockRatio;
-	/// Version of the runtime.
+	/// Runtime version.
 	type Version = Version;
-	/// Converts a module to the index of the module in `construct_runtime!`.
-	///
-	/// This type is being generated by `construct_runtime!`.
+	/// Converts a module to an index of this module in the runtime.
 	type ModuleToIndex = ModuleToIndex;
-	/// What to do if a new account is created.
-	type OnNewAccount = ();
-	/// What to do if an account is fully reaped from the system.
-	type OnKilledAccount = ();
-	/// The data to be stored in an account.
 	type AccountData = pallet_balances::AccountData<Balance>;
-	/// Weight information for the extrinsics of this pallet.
+	type OnNewAccount = ();
+	type OnKilledAccount = ();
+	type DbWeight = ();
+	type ExtrinsicBaseWeight = ExtrinsicBaseWeight;
+	type BlockExecutionWeight = ();
+	type MaximumExtrinsicWeight = MaximumExtrinsicWeight;
+	type BaseCallFilter = ();
 	type SystemWeightInfo = ();
 }
 
-impl pallet_aura::Trait for Runtime {
-	type AuthorityId = AuraId;
-}
-
-impl pallet_grandpa::Trait for Runtime {
-	type Event = Event;
-	type Call = Call;
-
-	type KeyOwnerProofSystem = ();
-
-	type KeyOwnerProof =
-		<Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(KeyTypeId, GrandpaId)>>::Proof;
-
-	type KeyOwnerIdentification = <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(
-		KeyTypeId,
-		GrandpaId,
-	)>>::IdentificationTuple;
-
-	type HandleEquivocation = ();
-}
-
 parameter_types! {
-	pub const MinimumPeriod: u64 = constants::time::SLOT_DURATION / 2;
+	pub const MinimumPeriod: u64 = SLOT_DURATION / 2;
 }
 
 impl pallet_timestamp::Trait for Runtime {
 	/// A timestamp: milliseconds since the unix epoch.
-	type Moment = constants::time::Moment;
-	type OnTimestampSet = Aura;
+	type Moment = u64;
+	type OnTimestampSet = ();
 	type MinimumPeriod = MinimumPeriod;
 	type WeightInfo = ();
 }
 
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 500;
+	pub const TransferFee: u128 = 0;
+	pub const CreationFee: u128 = 0;
+	pub const TransactionByteFee: u128 = 1;
 }
 
 impl pallet_balances::Trait for Runtime {
@@ -263,10 +213,6 @@ impl pallet_balances::Trait for Runtime {
 	type WeightInfo = ();
 }
 
-parameter_types! {
-	pub const TransactionByteFee: Balance = 1;
-}
-
 impl pallet_transaction_payment::Trait for Runtime {
 	type Currency = Balances;
 	type OnTransactionPayment = ();
@@ -276,8 +222,37 @@ impl pallet_transaction_payment::Trait for Runtime {
 }
 
 impl pallet_sudo::Trait for Runtime {
-	type Event = Event;
 	type Call = Call;
+	type Event = Event;
+}
+
+impl cumulus_parachain_upgrade::Trait for Runtime {
+	type Event = Event;
+	type OnValidationFunctionParams = ();
+}
+
+impl cumulus_message_broker::Trait for Runtime {
+	type Event = Event;
+	type DownwardMessageHandlers = TokenDealer;
+	type UpwardMessage = cumulus_upward_message::RococoUpwardMessage;
+	type ParachainId = ParachainInfo;
+	type XCMPMessage = cumulus_token_dealer::XCMPMessage<AccountId, Balance>;
+	type XCMPMessageHandlers = TokenDealer;
+}
+
+impl parachain_info::Trait for Runtime {}
+
+impl cumulus_token_dealer::Trait for Runtime {
+	type Event = Event;
+	type UpwardMessageSender = MessageBroker;
+	type UpwardMessage = cumulus_upward_message::RococoUpwardMessage;
+	type Currency = Balances;
+	type XCMPMessageSender = MessageBroker;
+}
+
+/// Configure the pallet template in pallets/template.
+impl template::Trait for Runtime {
+	type Event = Event;
 }
 
 /// Fixed gas price of `1`.
@@ -286,7 +261,7 @@ pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
 		// Gas price is always one token per gas.
-		1.into()
+		0.into()
 	}
 }
 
@@ -294,7 +269,7 @@ parameter_types! {
 	pub const ChainId: u64 = 43;
 }
 
-impl frame_evm::Trait for Runtime {
+impl pallet_evm::Trait for Runtime {
 	type FeeCalculator = FixedGasPrice;
 	type CallOrigin = EnsureAddressTruncated;
 	type WithdrawOrigin = EnsureAddressTruncated;
@@ -305,58 +280,67 @@ impl frame_evm::Trait for Runtime {
 	type ChainId = ChainId;
 }
 
+pub struct TransactionConverter;
+
+impl frontier_rpc_primitives::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
+	fn convert_transaction(&self, transaction: ethereum::Transaction) -> UncheckedExtrinsic {
+		UncheckedExtrinsic::new_unsigned(ethereum::Call::<Runtime>::transact(transaction).into())
+	}
+}
+
+impl frontier_rpc_primitives::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConverter {
+	fn convert_transaction(&self, transaction: ethereum::Transaction) -> opaque::UncheckedExtrinsic {
+		let extrinsic = UncheckedExtrinsic::new_unsigned(ethereum::Call::<Runtime>::transact(transaction).into());
+		let encoded = extrinsic.encode();
+		opaque::UncheckedExtrinsic::decode(&mut &encoded[..]).expect("Encoded extrinsic is always valid")
+	}
+}
+
+// TODO consensus not supported
 pub struct EthereumFindAuthor<F>(PhantomData<F>);
 impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F>
 {
-	fn find_author<'a, I>(digests: I) -> Option<H160> where
+	fn find_author<'a, I>(_digests: I) -> Option<H160> where
 		I: 'a + IntoIterator<Item=(ConsensusEngineId, &'a [u8])>
 	{
-		if let Some(author_index) = F::find_author(digests) {
-			let authority_id = Aura::authorities()[author_index as usize].clone();
-			return Some(H160::from_slice(&authority_id.to_raw_vec()[4..24]));
-		}
 		None
 	}
 }
 
-impl frame_ethereum::Trait for Runtime {
-	type Event = Event;
-	type FindAuthor = EthereumFindAuthor<Aura>;
+// TODO consensus not supported
+pub struct PhantomAura;
+impl FindAuthor<u32> for PhantomAura {
+	fn find_author<'a, I>(_digests: I) -> Option<u32> where
+		I: 'a + IntoIterator<Item=(ConsensusEngineId, &'a [u8])>
+	{
+		Some(0 as u32)
+	}
 }
 
-// Create the runtime by composing the FRAME pallets that were previously configured.
-construct_runtime!(
+impl ethereum::Trait for Runtime {
+	type Event = Event;
+	type FindAuthor = EthereumFindAuthor<PhantomAura>;
+}
+
+construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
 		NodeBlock = opaque::Block,
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
-		System: frame_system::{Module, Call, Config, Storage, Event<T>},
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Module, Call, Storage},
+		System: frame_system::{Module, Call, Storage, Config, Event<T>},
 		Timestamp: pallet_timestamp::{Module, Call, Storage, Inherent},
-		Aura: pallet_aura::{Module, Config<T>, Inherent},
-		Grandpa: pallet_grandpa::{Module, Call, Storage, Config, Event},
 		Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
+		Sudo: pallet_sudo::{Module, Call, Storage, Config<T>, Event<T>},
+		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Module, Call, Storage},
+		ParachainUpgrade: cumulus_parachain_upgrade::{Module, Call, Storage, Inherent, Event},
+		MessageBroker: cumulus_message_broker::{Module, Call, Inherent, Event<T>},
 		TransactionPayment: pallet_transaction_payment::{Module, Storage},
-		Sudo: pallet_sudo::{Module, Call, Config<T>, Storage, Event<T>},
-		Ethereum: frame_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
-		EVM: frame_evm::{Module, Config, Call, Storage, Event<T>},
-	}
-);
-
-pub struct TransactionConverter;
-
-impl frontier_rpc_primitives::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
-	fn convert_transaction(&self, transaction: frame_ethereum::Transaction) -> UncheckedExtrinsic {
-		UncheckedExtrinsic::new_unsigned(frame_ethereum::Call::<Runtime>::transact(transaction).into())
-	}
-}
-
-impl frontier_rpc_primitives::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConverter {
-	fn convert_transaction(&self, transaction: frame_ethereum::Transaction) -> opaque::UncheckedExtrinsic {
-		let extrinsic = UncheckedExtrinsic::new_unsigned(frame_ethereum::Call::<Runtime>::transact(transaction).into());
-		let encoded = extrinsic.encode();
-		opaque::UncheckedExtrinsic::decode(&mut &encoded[..]).expect("Encoded extrinsic is always valid")
+		ParachainInfo: parachain_info::{Module, Storage, Config},
+		TokenDealer: cumulus_token_dealer::{Module, Call, Event<T>},
+		TemplateModule: template::{Module, Call, Storage, Event<T>},
+		EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
+		Ethereum: ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 	}
 }
 
@@ -373,7 +357,6 @@ pub type BlockId = generic::BlockId<Block>;
 /// The SignedExtension to the basic transaction logic.
 pub type SignedExtra = (
 	frame_system::CheckSpecVersion<Runtime>,
-	frame_system::CheckTxVersion<Runtime>,
 	frame_system::CheckGenesis<Runtime>,
 	frame_system::CheckEra<Runtime>,
 	frame_system::CheckNonce<Runtime>,
@@ -390,7 +373,7 @@ pub type Executive = frame_executive::Executive<
 	Block,
 	frame_system::ChainContext<Runtime>,
 	Runtime,
-	AllModules
+	AllModules,
 >;
 
 impl_runtime_apis! {
@@ -415,7 +398,9 @@ impl_runtime_apis! {
 	}
 
 	impl sp_block_builder::BlockBuilder<Block> for Runtime {
-		fn apply_extrinsic(extrinsic: <Block as BlockT>::Extrinsic) -> ApplyExtrinsicResult {
+		fn apply_extrinsic(
+			extrinsic: <Block as BlockT>::Extrinsic,
+		) -> ApplyExtrinsicResult {
 			Executive::apply_extrinsic(extrinsic)
 		}
 
@@ -427,10 +412,7 @@ impl_runtime_apis! {
 			data.create_extrinsics()
 		}
 
-		fn check_inherents(
-			block: Block,
-			data: sp_inherents::InherentData,
-		) -> sp_inherents::CheckInherentsResult {
+		fn check_inherents(block: Block, data: sp_inherents::InherentData) -> sp_inherents::CheckInherentsResult {
 			data.check_extrinsics(&block)
 		}
 
@@ -454,16 +436,18 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl sp_consensus_aura::AuraApi<Block, AuraId> for Runtime {
-		fn slot_duration() -> u64 {
-			Aura::slot_duration()
+	impl sp_session::SessionKeys<Block> for Runtime {
+		fn decode_session_keys(
+			encoded: Vec<u8>,
+		) -> Option<Vec<(Vec<u8>, sp_core::crypto::KeyTypeId)>> {
+			opaque::SessionKeys::decode_into_raw_public_keys(&encoded)
 		}
 
-		fn authorities() -> Vec<AuraId> {
-			Aura::authorities()
+		fn generate_session_keys(seed: Option<Vec<u8>>) -> Vec<u8> {
+			opaque::SessionKeys::generate(seed)
 		}
 	}
-
+	
 	impl frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Index> for Runtime {
 		fn account_nonce(account: AccountId) -> Index {
 			System::account_nonce(account)
@@ -476,7 +460,7 @@ impl_runtime_apis! {
 		}
 
 		fn account_basic(address: H160) -> EVMAccount {
-			frame_evm::Module::<Runtime>::account_basic(&address)
+			EVM::account_basic(&address)
 		}
 
 		fn gas_price() -> U256 {
@@ -484,17 +468,17 @@ impl_runtime_apis! {
 		}
 
 		fn account_code_at(address: H160) -> Vec<u8> {
-			frame_evm::Module::<Runtime>::account_codes(address)
+			EVM::account_codes(address)
 		}
 
 		fn author() -> H160 {
-			<frame_ethereum::Module<Runtime>>::find_author()
+			<ethereum::Module<Runtime>>::find_author()
 		}
 
 		fn storage_at(address: H160, index: U256) -> H256 {
 			let mut tmp = [0u8; 32];
 			index.to_big_endian(&mut tmp);
-			frame_evm::Module::<Runtime>::account_storages(address, H256::from_slice(&tmp[..]))
+			EVM::account_storages(address, H256::from_slice(&tmp[..]))
 		}
 
 		fn call(
@@ -504,30 +488,34 @@ impl_runtime_apis! {
 			gas_limit: U256,
 			gas_price: Option<U256>,
 			nonce: Option<U256>,
-			action: frame_ethereum::TransactionAction,
-		) -> Option<(Vec<u8>, U256)> {
+			action: ethereum::TransactionAction,
+		) -> Result<(Vec<u8>, U256), sp_runtime::DispatchError> {
 			match action {
-				frame_ethereum::TransactionAction::Call(to) =>
-				EVM::execute_call(
+				ethereum::TransactionAction::Call(to) =>
+					EVM::execute_call(
 						from,
 						to,
 						data,
 						value,
 						gas_limit.low_u32(),
-						gas_price,
+						gas_price.unwrap_or(U256::from(0)),
 						nonce,
 						false,
-					).ok().map(|(_, ret, gas)| (ret, gas)),
-				frame_ethereum::TransactionAction::Create =>
-				EVM::execute_create(
+					)
+					.map(|(_, ret, gas)| (ret, gas))
+					.map_err(|err| err.into()),
+				ethereum::TransactionAction::Create =>
+					EVM::execute_create(
 						from,
 						data,
 						value,
 						gas_limit.low_u32(),
-						gas_price,
+						gas_price.unwrap_or(U256::from(0)),
 						nonce,
 						false,
-					).ok().map(|(_, _, gas)| (vec![], gas)),
+					)
+					.map(|(_, _, gas)| (vec![], gas))
+					.map_err(|err| err.into()),
 			}
 		}
 
@@ -535,18 +523,18 @@ impl_runtime_apis! {
 			Ethereum::current_transaction_statuses()
 		}
 
-		fn current_block() -> Option<frame_ethereum::Block> {
+		fn current_block() -> Option<ethereum::Block> {
 			Ethereum::current_block()
 		}
 
-		fn current_receipts() -> Option<Vec<frame_ethereum::Receipt>> {
+		fn current_receipts() -> Option<Vec<ethereum::Receipt>> {
 			Ethereum::current_receipts()
 		}
 	}
 
 	impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<
 		Block,
-		Balance,
+		Balance
 	> for Runtime {
 		fn query_info(
 			uxt: <Block as BlockT>::Extrinsic,
@@ -555,42 +543,6 @@ impl_runtime_apis! {
 			TransactionPayment::query_info(uxt, len)
 		}
 	}
-
-	impl sp_session::SessionKeys<Block> for Runtime {
-		fn generate_session_keys(seed: Option<Vec<u8>>) -> Vec<u8> {
-			opaque::SessionKeys::generate(seed)
-		}
-
-		fn decode_session_keys(
-			encoded: Vec<u8>,
-		) -> Option<Vec<(Vec<u8>, KeyTypeId)>> {
-			opaque::SessionKeys::decode_into_raw_public_keys(&encoded)
-		}
-	}
-
-	impl fg_primitives::GrandpaApi<Block> for Runtime {
-		fn grandpa_authorities() -> GrandpaAuthorityList {
-			Grandpa::grandpa_authorities()
-		}
-
-		fn submit_report_equivocation_unsigned_extrinsic(
-			_equivocation_proof: fg_primitives::EquivocationProof<
-				<Block as BlockT>::Hash,
-				NumberFor<Block>,
-			>,
-			_key_owner_proof: fg_primitives::OpaqueKeyOwnershipProof,
-		) -> Option<()> {
-			None
-		}
-
-		fn generate_key_ownership_proof(
-			_set_id: fg_primitives::SetId,
-			_authority_id: GrandpaId,
-		) -> Option<fg_primitives::OpaqueKeyOwnershipProof> {
-			// NOTE: this is the only implementation possible since we've
-			// defined our key owner proof type as a bottom type (i.e. a type
-			// with no values).
-			None
-		}
-	}
 }
+
+cumulus_runtime::register_validate_block!(Block, Executive);

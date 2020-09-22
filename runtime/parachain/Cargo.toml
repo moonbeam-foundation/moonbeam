@@ -1,0 +1,99 @@
+[package]
+name = 'moonbase-runtime'
+description = 'Moonbase Parachain Collator Runtime'
+homepage = 'https://moonbeam.network'
+license = 'Unlicense'
+version = '0.1.0'
+authors = ["PureStake"]
+edition = '2018'
+
+[dependencies]
+serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
+codec = { package = "parity-scale-codec", version = "1.0.0", default-features = false, features = ["derive"] }
+
+parachain-info = { path = "../../pallets/parachain-info", default-features = false}
+cumulus-token-dealer = { path = "../../pallets/token-dealer", default-features = false}
+template = { package = "pallet-template", path = "../../pallets/template", version = "2.0.0-rc5", default-features = false}
+
+# Substrate dependencies
+sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-version = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-session = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-offchain = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-block-builder = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-transaction-pool = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-inherents = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+
+frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+frame-executive = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+pallet-balances = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+pallet-randomness-collective-flip = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+pallet-timestamp = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+pallet-sudo = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+
+frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+pallet-evm = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+
+frontier-rpc-primitives = { default-features = false, path = "../../vendor/frontier/rpc/primitives" }
+ethereum = { default-features = false, package = "pallet-ethereum", path = "../../vendor/frontier/frame/ethereum" }
+
+# Cumulus dependencies
+cumulus-runtime = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0' }
+cumulus-parachain-upgrade = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0' }
+cumulus-message-broker = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0' }
+cumulus-upward-message = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0' }
+cumulus-primitives = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0' }
+
+[build-dependencies]
+wasm-builder-runner = { package = "substrate-wasm-builder-runner", version = "1.0.6" }
+
+[features]
+default = [ "std" ]
+std = [
+	"codec/std",
+	"serde",
+	"sp-api/std",
+	"sp-std/std",
+	"sp-io/std",
+	"sp-core/std",
+	"sp-runtime/std",
+	"sp-version/std",
+	"sp-offchain/std",
+	"sp-session/std",
+	"sp-block-builder/std",
+	"sp-transaction-pool/std",
+	"sp-inherents/std",
+	"frame-support/std",
+	"frame-executive/std",
+	"frame-system/std",
+	"pallet-balances/std",
+	"pallet-randomness-collective-flip/std",
+	"pallet-timestamp/std",
+	"pallet-sudo/std",
+	"pallet-transaction-payment/std",
+	"parachain-info/std",
+	"cumulus-runtime/std",
+	"cumulus-parachain-upgrade/std",
+	"cumulus-message-broker/std",
+	"cumulus-upward-message/std",
+	"cumulus-primitives/std",
+	"cumulus-token-dealer/std",
+	"template/std",
+	"ethereum/std",
+	"pallet-evm/std",
+	"frontier-rpc-primitives/std",
+	"frame-system-rpc-runtime-api/std",
+	"pallet-transaction-payment-rpc-runtime-api/std",
+]
+
+# Will be enabled by the `wasm-builder` when building the runtime for WASM.
+runtime-wasm = [
+	"cumulus-upward-message/runtime-wasm",
+]
