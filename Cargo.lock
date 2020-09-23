@@ -3637,7 +3637,7 @@ dependencies = [
  "sp-std",
  "sp-transaction-pool",
  "sp-version",
- "substrate-wasm-builder-runner 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "substrate-wasm-builder-runner 1.0.6 (git+https://github.com/paritytech/substrate.git?branch=rococo-branch)",
 ]
 
 [[package]]

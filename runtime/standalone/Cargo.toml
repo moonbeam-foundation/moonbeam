@@ -46,7 +46,7 @@ frontier-rpc-primitives = { default-features = false, path = "../../vendor/front
 frame-ethereum = { version = "0.1.0", default-features = false, package = "pallet-ethereum", path = "../../vendor/frontier/frame/ethereum" }
 
 [build-dependencies]
-wasm-builder-runner = { version = "1.0.5", package = "substrate-wasm-builder-runner", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+wasm-builder-runner = { version = "1.0.6", package = "substrate-wasm-builder-runner", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 
 [features]
 default = ["std"]
