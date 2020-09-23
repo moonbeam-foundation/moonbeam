@@ -294,7 +294,14 @@ client.on("ready", () => {
 });
 
 // Bind message event to custom listener
-client.on("message", onReceiveMessage);
+client.on("message", async (msg) => {
+	try {
+		await onReceiveMessage(msg);
+	} catch (e) {
+		console.log(new Date().toISOString(), "ERROR", e.stack || e);
+	}
+});
+
 
 // Perform login and listen for new events
 client.login(params.DISCORD_TOKEN);
