@@ -19,10 +19,9 @@ jobs:
     - uses: actions-rs/toolchain@v1
       with:
         target: wasm32-unknown-unknown
-        toolchain: nightly-2020-05-07
+        toolchain: nightly
         default: true
-        override: true
     - name: Build
-      run: cargo build --verbose --all
+      run: RUST_BACKTRACE=1 cargo build --verbose --all
     - name: Run tests
-      run: cargo test --verbose --all
+      run: RUST_BACKTRACE=1 cargo test --verbose --all
