@@ -24,7 +24,7 @@ pallet-sudo = { default-features = false, package = "pallet-sudo", git = "https:
 frame-system = { default-features = false, package = "frame-system", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 pallet-timestamp = { default-features = false, package = "pallet-timestamp", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 pallet-transaction-payment = { default-features = false, package = "pallet-transaction-payment", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
-frame-evm = { default-features = false, package = "pallet-evm", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+frame-evm = { default-features = false, package = "pallet-evm", git = "https://github.com/purestake/substrate", branch = "tgmichel-rococo-branch" }
 frame-executive = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 serde = { version = "1.0.101", optional = true, features = ["derive"] }
 sp-api = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
