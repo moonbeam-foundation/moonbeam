@@ -19,7 +19,7 @@ jobs:
     - uses: actions-rs/toolchain@v1
       with:
         target: wasm32-unknown-unknown
-        toolchain: nightly-2020-08-01
+        toolchain: nightly-2020-07-20
         default: true
     - name: Build
       run: cargo build --verbose --all
