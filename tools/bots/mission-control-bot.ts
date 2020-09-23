@@ -25,7 +25,7 @@ const params = {
 	// Token distribution
 	TOKEN_COUNT: BigInt(process.env.TOKEN_COUNT || 10),
 	FAUCET_SEND_INTERVAL: parseInt(process.env.FAUCET_SEND_INTERVAL || "1"), // hours
-	BALANCE_AMOUNT_THRESHOLD: BigInt(process.env.BALANCE_AMOUNT_THRESHOLD || 100), // DEV
+	BALANCE_ALERT_THRESHOLD: BigInt(process.env.BALANCE_ALERT_THRESHOLD || 100), // DEV
 }
 
 Object.keys(params).forEach(param => {
@@ -212,7 +212,7 @@ const botActionFaucetSend = async (msg: Message, authorId: string, messageConten
 		lastBalanceCheck.timestamp = Date.now();
 
 		// If balance is low, send notification to Slack
-		if (lastBalanceCheck.balance < params.BALANCE_AMOUNT_THRESHOLD * (10n ** TOKEN_DECIMAL)) {
+		if (lastBalanceCheck.balance < params.BALANCE_ALERT_THRESHOLD * (10n ** TOKEN_DECIMAL)) {
 			await sendSlackNotification(lastBalanceCheck.balance / (10n ** TOKEN_DECIMAL));
 		}
 	}
