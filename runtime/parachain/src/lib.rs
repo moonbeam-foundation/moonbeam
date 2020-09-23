@@ -38,9 +38,6 @@ use ethereum::{Block as EthereumBlock, Transaction as EthereumTransaction, Recei
 use pallet_evm::{Account as EVMAccount, FeeCalculator, HashedAddressMapping, EnsureAddressTruncated};
 use frontier_rpc_primitives::{TransactionStatus};
 
-/// Import the template pallet.
-pub use template;
-
 /// Import the message pallet.
 pub use cumulus_token_dealer;
 
@@ -250,11 +247,6 @@ impl cumulus_token_dealer::Trait for Runtime {
 	type XCMPMessageSender = MessageBroker;
 }
 
-/// Configure the pallet template in pallets/template.
-impl template::Trait for Runtime {
-	type Event = Event;
-}
-
 /// Fixed gas price of `1`.
 pub struct FixedGasPrice;
 
@@ -338,7 +330,6 @@ construct_runtime! {
 		TransactionPayment: pallet_transaction_payment::{Module, Storage},
 		ParachainInfo: parachain_info::{Module, Storage, Config},
 		TokenDealer: cumulus_token_dealer::{Module, Call, Event<T>},
-		TemplateModule: template::{Module, Call, Storage, Event<T>},
 		EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
 		Ethereum: ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 	}
