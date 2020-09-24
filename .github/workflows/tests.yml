@@ -16,11 +16,15 @@ jobs:
         key: ${{ runner.OS }}-build-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
           ${{ runner.OS }}-build-
-    - uses: actions-rs/toolchain@v1
-      with:
-        target: wasm32-unknown-unknown
-        toolchain: nightly
-        default: true
+    - name: Init
+      run: |
+        scripts/init.sh
+        cargo --version
+        rustc --version
+        cargo +$WASM_BUILD_TOOLCHAIN --version
+        rustc +$WASM_BUILD_TOOLCHAIN --version
+      env:
+        WASM_BUILD_TOOLCHAIN: nightly-2020-05-14
     - name: Build
       run: cargo build --verbose --all
     - name: Run tests

@@ -1,0 +1,57 @@
+[package]
+authors = ['PureStake']
+build = 'build.rs'
+description = 'Substrate Moonbeam Node '
+edition = '2018'
+homepage = 'https://moonbeam.network'
+license = 'Unlicense'
+name = 'node-moonbeam'
+repository = 'https://github.com/PureStake/moonbeam/'
+version = '0.1.1'
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+futures = "0.3.4"
+log = "0.4.8"
+structopt = "0.3.8"
+jsonrpc-core = "14.0.3"
+
+sp-api = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+sp-blockchain = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+sc-rpc-api = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+sc-rpc = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+substrate-frame-rpc-system = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+pallet-transaction-payment-rpc = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+sc-cli = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+sp-core = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+sc-executor = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+sc-service = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+sp-inherents = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+sc-transaction-pool = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+sp-transaction-pool = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+sc-network = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+sc-consensus-aura = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+sp-consensus-aura = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+sc-consensus-manual-seal = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+sp-consensus = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+sc-consensus = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+sp-timestamp = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+evm = { package = "pallet-evm", git = "https://github.com/purestake/substrate", branch = "tgmichel-rococo-branch" }
+sc-finality-grandpa = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+sp-finality-grandpa = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+sc-client-api = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+sp-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+sc-basic-authorship = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+sp-block-builder = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+
+moonbeam-runtime = { path = "../../runtime/standalone" }
+
+ethereum = { package = "pallet-ethereum", path = "../../vendor/frontier/frame/ethereum" }
+frontier-consensus = { path = "../../vendor/frontier/consensus" }
+frontier-rpc = { path = "../../vendor/frontier/rpc" }
+frontier-rpc-primitives = { path = "../../vendor/frontier/rpc/primitives" }
+
+[build-dependencies]
+substrate-build-script-utils = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
