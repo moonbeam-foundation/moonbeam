@@ -1,12 +1,11 @@
 [workspace]
 members = [
-    'node',
-    'runtime',
+    'node/standalone',
+    'runtime/standalone',
+    'node/parachain',
+    'runtime/parachain',
 ]
 exclude = ["vendor"]
 
 [profile.release]
 panic = 'unwind'
-
-[patch.crates-io]
-ethereum = { path = "vendor/ethereum" }

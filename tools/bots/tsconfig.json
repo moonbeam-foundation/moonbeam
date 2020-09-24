@@ -1,11 +1,9 @@
 {
 	"compilerOptions": {
 		"baseUrl": ".",
-		"paths": {
-			"web3": ["node_modules/web3/dist/web3"],
-			"discord.js": ["node_modules/discord.js/webpack/discord.min"],
-		},
-		"target": "esnext"
+		"moduleResolution": "node",
+		"target": "esnext",
+		"esModuleInterop": true
 	},
 	"files": ["mission-control-bot.ts"]
 }

@@ -106,14 +106,15 @@ pub fn new_partial(config: &Configuration, manual_seal: bool) -> Result<
 
 	let frontier_block_import = FrontierBlockImport::new(
 		grandpa_block_import.clone(),
-		client.clone()
+		client.clone(),
+		true
 	);
 
 	let aura_block_import = sc_consensus_aura::AuraBlockImport::<_, _, _, AuraPair>::new(
 		frontier_block_import, client.clone(),
 	);
 
-	let import_queue = sc_consensus_aura::import_queue::<_, _, _, AuraPair, _, _>(
+	let import_queue = sc_consensus_aura::import_queue::<_, _, _, AuraPair, _>(
 		sc_consensus_aura::slot_duration(&*client)?,
 		aura_block_import.clone(),
 		Some(Box::new(grandpa_block_import.clone())),
@@ -122,7 +123,6 @@ pub fn new_partial(config: &Configuration, manual_seal: bool) -> Result<
 		inherent_data_providers.clone(),
 		&task_manager.spawn_handle(),
 		config.prometheus_registry(),
-		sp_consensus::CanAuthorWithNativeVersion::new(client.executor().clone()),
 	)?;
 
 	Ok(sc_service::PartialComponents {
@@ -191,7 +191,7 @@ pub fn new_full(config: Configuration, manual_seal: bool) -> Result<TaskManager,
 		let client = client.clone();
 		let select_chain = select_chain.clone();
 		let pool = transaction_pool.clone();
-		Box::new(move |deny_unsafe, _| {
+		Box::new(move |deny_unsafe| {
 			let deps = crate::rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
@@ -348,7 +348,7 @@ pub fn new_light(config: Configuration) -> Result<TaskManager, ServiceError> {
 	let finality_proof_request_builder =
 		finality_proof_import.create_finality_proof_request_builder();
 
-	let import_queue = sc_consensus_aura::import_queue::<_, _, _, AuraPair, _, _>(
+	let import_queue = sc_consensus_aura::import_queue::<_, _, _, AuraPair, _>(
 		sc_consensus_aura::slot_duration(&*client)?,
 		grandpa_block_import,
 		None,
@@ -357,7 +357,6 @@ pub fn new_light(config: Configuration) -> Result<TaskManager, ServiceError> {
 		InherentDataProviders::new(),
 		&task_manager.spawn_handle(),
 		config.prometheus_registry(),
-		sp_consensus::NeverCanAuthor,
 	)?;
 
 	let light_deps = crate::rpc::LightDeps {
