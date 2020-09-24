@@ -9,13 +9,6 @@ jobs:
     - uses: actions/checkout@v2
     - name: Submodules
       run: git submodule update --init --recursive
-    - name: Cache Rust dependencies
-      uses: actions/cache@v1.1.2
-      with:
-        path: target
-        key: ${{ runner.OS }}-build-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.OS }}-build-
     - name: Init
       run: |
         scripts/init.sh
