@@ -2,8 +2,7 @@
   "name": "Moonbase Relay Testnet ",
   "id": "rococo_moonbase_relay_testnet",
   "chainType": "Local",
-  "bootNodes": [
-  ],
+  "bootNodes": [],
   "telemetryEndpoints": null,
   "protocolId": "dot",
   "properties": null,
@@ -42,29 +41,29 @@
       },
       "session": {
         "keys": [
-			[
-				"1gNafhMQMsZwntbSCUT1n8toPp6G8gDk7owaf9z7VXWQQM7",
-				"1gNafhMQMsZwntbSCUT1n8toPp6G8gDk7owaf9z7VXWQQM7",
-				{
-				  "grandpa": "12Xct2dQgcnXSNa9Kpf9KRRDWuTfJijiJC2y33rHK2hNkmUE",
-				  "babe": "14Gjs1TD93gnwEBfDMHoCgsuf1s2TVKUP6Z1qKmAZnZ8cW5q",
-				  "im_online": "14Gjs1TD93gnwEBfDMHoCgsuf1s2TVKUP6Z1qKmAZnZ8cW5q",
-				  "parachain_validator": "14Gjs1TD93gnwEBfDMHoCgsuf1s2TVKUP6Z1qKmAZnZ8cW5q",
-				  "authority_discovery": "14Gjs1TD93gnwEBfDMHoCgsuf1s2TVKUP6Z1qKmAZnZ8cW5q"
-				}
-			  ],
-			  [
-				"16kZJGPJ37uYxjs7adswyEHbPYeHS9jQHSaSUJhkfvWPcoeF",
-				"16kZJGPJ37uYxjs7adswyEHbPYeHS9jQHSaSUJhkfvWPcoeF",
-				{
-				  "grandpa": "15jftzMaVPDfhKQ98RbYZ82t1wNxNdw6cS8E6kgSmMhcrxVz",
-				  "babe": "14E5nqKAp3oAJcmzgZhUD2RcptBeUBScxKHgJKU4HPNcKVf3",
-				  "im_online": "14E5nqKAp3oAJcmzgZhUD2RcptBeUBScxKHgJKU4HPNcKVf3",
-				  "parachain_validator": "14E5nqKAp3oAJcmzgZhUD2RcptBeUBScxKHgJKU4HPNcKVf3",
-				  "authority_discovery": "14E5nqKAp3oAJcmzgZhUD2RcptBeUBScxKHgJKU4HPNcKVf3"
-				}
-			  ]
-			]
+          [
+            "1gNafhMQMsZwntbSCUT1n8toPp6G8gDk7owaf9z7VXWQQM7",
+            "1gNafhMQMsZwntbSCUT1n8toPp6G8gDk7owaf9z7VXWQQM7",
+            {
+              "grandpa": "12Xct2dQgcnXSNa9Kpf9KRRDWuTfJijiJC2y33rHK2hNkmUE",
+              "babe": "14Gjs1TD93gnwEBfDMHoCgsuf1s2TVKUP6Z1qKmAZnZ8cW5q",
+              "im_online": "14Gjs1TD93gnwEBfDMHoCgsuf1s2TVKUP6Z1qKmAZnZ8cW5q",
+              "parachain_validator": "14Gjs1TD93gnwEBfDMHoCgsuf1s2TVKUP6Z1qKmAZnZ8cW5q",
+              "authority_discovery": "14Gjs1TD93gnwEBfDMHoCgsuf1s2TVKUP6Z1qKmAZnZ8cW5q"
+            }
+          ],
+          [
+            "16kZJGPJ37uYxjs7adswyEHbPYeHS9jQHSaSUJhkfvWPcoeF",
+            "16kZJGPJ37uYxjs7adswyEHbPYeHS9jQHSaSUJhkfvWPcoeF",
+            {
+              "grandpa": "15jftzMaVPDfhKQ98RbYZ82t1wNxNdw6cS8E6kgSmMhcrxVz",
+              "babe": "14E5nqKAp3oAJcmzgZhUD2RcptBeUBScxKHgJKU4HPNcKVf3",
+              "im_online": "14E5nqKAp3oAJcmzgZhUD2RcptBeUBScxKHgJKU4HPNcKVf3",
+              "parachain_validator": "14E5nqKAp3oAJcmzgZhUD2RcptBeUBScxKHgJKU4HPNcKVf3",
+              "authority_discovery": "14E5nqKAp3oAJcmzgZhUD2RcptBeUBScxKHgJKU4HPNcKVf3"
+            }
+          ]
+        ]
       },
       "grandpa": {
         "authorities": []
