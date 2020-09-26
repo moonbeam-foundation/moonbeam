@@ -15,8 +15,10 @@ jobs:
       with:
         path: target
         key: ${{ runner.OS }}-build-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.OS }}-build-
+    - name: Info on cache
+      run: echo "Hitting the cache? $CACHE_HIT"
+      env:
+        CACHE_HIT: ${{ steps.cache.outputs.cache-hit }}
     - name: Init
       run: |
         scripts/init.sh
@@ -26,8 +28,6 @@ jobs:
         rustc +$WASM_BUILD_TOOLCHAIN --version
       env:
         WASM_BUILD_TOOLCHAIN: nightly-2020-05-14
-    - name: Info on cache
-      run: echo "Hitting the cache? ${{ steps.cache.outputs.cache-hit }}"
     - name: Build
       run: cargo build --verbose --all
     - name: Run tests
