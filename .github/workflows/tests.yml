@@ -10,7 +10,8 @@ jobs:
     - name: Submodules
       run: git submodule update --init --recursive
     - name: Cache Rust dependencies
-      uses: actions/cache@v1.1.2
+      uses: actions/cache@v2
+      id: cache
       with:
         path: target
         key: ${{ runner.OS }}-build-${{ hashFiles('**/Cargo.lock') }}
@@ -25,6 +26,8 @@ jobs:
         rustc +$WASM_BUILD_TOOLCHAIN --version
       env:
         WASM_BUILD_TOOLCHAIN: nightly-2020-05-14
+    - name: Info on cache
+      run: echo "Hitting the cache? ${{ steps.cache.outputs.cache-hit }}"
     - name: Build
       run: cargo build --verbose --all
     - name: Run tests
