@@ -42,7 +42,6 @@ jobs:
       with:
         name: moonbase-alphanet
     - name: Generate specs
-      uses: actions/upload-artifact@v2
       run: PARACHAIN_BINARY=moonbase-alphanet scripts/generate-parachain-specs.sh
     - name: Upload parachain spec plain
       uses: actions/upload-artifact@v2
