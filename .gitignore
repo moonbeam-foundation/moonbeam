@@ -8,3 +8,6 @@ book
 **/target
 **/scripts/tmp
 **/node_modules
+
+# Spec/Wasm build directory
+/build/

@@ -1,5 +1,5 @@
 [package]
-name = 'moonbase-testnet'
+name = 'moonbase-alphanet'
 description = 'Moonbase Parachain Collator'
 homepage = 'https://moonbeam.network'
 license = 'Unlicense'
@@ -9,7 +9,7 @@ build = 'build.rs'
 edition = '2018'
 
 [[bin]]
-name = 'moonbase-testnet'
+name = 'moonbase-alphanet'
 path = 'src/main.rs'
 
 [dependencies]
