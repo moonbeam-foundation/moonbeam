@@ -2,11 +2,12 @@ name: Tests
 
 on: [push]
 
+env:
+  WASM_BUILD_TOOLCHAIN: nightly-2020-05-14
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      WASM_BUILD_TOOLCHAIN: nightly-2020-05-14
     steps:
     - uses: actions/checkout@v2
     - name: Submodules
@@ -16,9 +17,9 @@ jobs:
       id: cache
       with:
         path: target
-        key: ${{ runner.OS }}-build-${{ jobs.build.env.WASM_BUILD_TOOLCHAIN }}-${{ hashFiles('**/Cargo.lock') }}
+        key: ${{ runner.OS }}-build-${{ env.WASM_BUILD_TOOLCHAIN }}-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
-          ${{ runner.OS }}-build--${{ jobs.build.env.WASM_BUILD_TOOLCHAIN }}
+          ${{ runner.OS }}-build--${{ env.WASM_BUILD_TOOLCHAIN }}
     - name: Init
       run: |
         scripts/init.sh
