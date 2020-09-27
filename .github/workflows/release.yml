@@ -16,7 +16,10 @@ jobs:
       uses: actions/cache@v2
       id: cache
       with:
-        path: target
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
         key: ${{ runner.OS }}-build-${{ env.WASM_BUILD_TOOLCHAIN }}-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
           ${{ runner.OS }}-build--${{ env.WASM_BUILD_TOOLCHAIN }}
