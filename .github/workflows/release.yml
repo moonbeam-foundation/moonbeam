@@ -43,7 +43,9 @@ jobs:
         name: moonbase-alphanet
         path: moonbase-alphanet
     - name: Generate specs
-      run: PARACHAIN_BINARY=moonbase-alphanet scripts/generate-parachain-specs.sh
+      run: pwd
+    - name: Generate specs
+      run: PARACHAIN_BINARY=/home/runner/work/moonbeam/moonbeam/moonbase-alphanet scripts/generate-parachain-specs.sh
     - name: Upload parachain spec plain
       uses: actions/upload-artifact@v2
       with:
