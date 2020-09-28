@@ -64,16 +64,16 @@ jobs:
     - name: Upload parachain wasm
       uses: actions/upload-artifact@v2
       with:
-        name: parachain-runtime.wasm
+        name: moonbase-alphanet-runtime.wasm
         path: build/alphanet/parachain.wasm
     - name: Upload parachain genesis state
       uses: actions/upload-artifact@v2
       with:
-        name: parachain-genesis.txt
+        name: moonbase-alphanet-genesis.txt
         path: build/alphanet/parachain.genesis
 
   publish-draft-release:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: ['build', 'generate-specs']
     outputs:
       release_url: ${{ steps.create-release.outputs.html_url }}
@@ -107,7 +107,7 @@ jobs:
     needs: ['publish-draft-release']
     strategy:
       matrix:
-        runtime: ['moonbeam']
+        runtime: ['moonbeam-alphanet']
     steps:
       - uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
@@ -131,8 +131,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
-          asset_path: ./${{ matrix.runtime }}_runtime.compact.wasm
-          asset_name: ${{ matrix.runtime }}_runtime-v${{ steps.get-runtime-ver.outputs.runtime_ver }}.compact.wasm
+          asset_path: ./${{ matrix.runtime }}-runtime.wasm
+          asset_name: ${{ matrix.runtime }}-runtime-v${{ steps.get-runtime-ver.outputs.runtime_ver }}.wasm
           asset_content_type: application/wasm
       - name: Upload ${{ matrix.runtime }} node
         uses: actions/upload-release-asset@v1
@@ -140,6 +140,42 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
-          asset_path: ./node-${{ matrix.runtime }}
+          asset_path: ./${{ matrix.runtime }}
           asset_name: ${{ matrix.runtime }}
+          asset_content_type: application/octet-stream 
+      - uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.runtime }}-specs-plain.json
+      - name: Upload ${{ matrix.runtime }} specs plain
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
+          asset_path: ./${{ matrix.runtime }}-specs-plain.json
+          asset_name: ${{ matrix.runtime }}-specs-plain.json
+          asset_content_type: application/octet-stream 
+      - uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.runtime }}-specs-raw.json
+      - name: Upload ${{ matrix.runtime }} specs raw
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
+          asset_path: ./${{ matrix.runtime }}-specs-raw.json
+          asset_name: ${{ matrix.runtime }}-specs-raw.json
+          asset_content_type: application/octet-stream 
+      - uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.runtime }}-genesis-txt
+      - name: Upload ${{ matrix.runtime }} genesis
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
+          asset_path: ./${{ matrix.runtime }}-genesis-txt
+          asset_name: ${{ matrix.runtime }}-genesis-txt
           asset_content_type: application/octet-stream 
