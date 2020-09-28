@@ -23,7 +23,6 @@ use moonbeam_runtime::{Hash, AccountId, Index, opaque::Block, Balance};
 use sp_api::ProvideRuntimeApi;
 use sp_transaction_pool::TransactionPool;
 use sp_blockchain::{Error as BlockChainError, HeaderMetadata, HeaderBackend};
-use sp_consensus::SelectChain;
 use sc_rpc_api::DenyUnsafe;
 use sc_client_api::backend::{StorageProvider, Backend, StateBackend, AuxStore};
 use sp_runtime::traits::BlakeTwo256;
@@ -42,13 +41,11 @@ pub struct LightDeps<C, F, P> {
 }
 
 /// Full client dependencies.
-pub struct FullDeps<C, P, SC> {
+pub struct FullDeps<C, P> {
 	/// The client instance to use.
 	pub client: Arc<C>,
 	/// Transaction pool instance.
 	pub pool: Arc<P>,
-	/// The SelectChain Strategy
-	pub select_chain: SC,
 	/// Whether to deny unsafe calls
 	pub deny_unsafe: DenyUnsafe,
 	/// The Node authority flag
@@ -58,8 +55,8 @@ pub struct FullDeps<C, P, SC> {
 }
 
 /// Instantiate all Full RPC extensions.
-pub fn create_full<C, P, M, SC, BE>(
-	deps: FullDeps<C, P, SC>,
+pub fn create_full<C, P, M, BE>(
+	deps: FullDeps<C, P>,
 ) -> jsonrpc_core::IoHandler<M> where
 	BE: Backend<Block> + 'static,
 	BE::State: StateBackend<BlakeTwo256>,
@@ -73,7 +70,6 @@ pub fn create_full<C, P, M, SC, BE>(
 	<C::Api as sp_api::ApiErrorExt>::Error: fmt::Debug,
 	P: TransactionPool<Block=Block> + 'static,
 	M: jsonrpc_core::Metadata + Default,
-	SC: SelectChain<Block> +'static,
 {
 	use substrate_frame_rpc_system::{FullSystem, SystemApi};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
@@ -83,7 +79,6 @@ pub fn create_full<C, P, M, SC, BE>(
 	let FullDeps {
 		client,
 		pool,
-		select_chain,
 		deny_unsafe,
 		is_authority,
 		command_sink
@@ -98,7 +93,6 @@ pub fn create_full<C, P, M, SC, BE>(
 	io.extend_with(
 		EthApiServer::to_delegate(EthApi::new(
 			client.clone(),
-			select_chain.clone(),
 			pool.clone(),
 			moonbeam_runtime::TransactionConverter,
 			is_authority,
@@ -107,7 +101,6 @@ pub fn create_full<C, P, M, SC, BE>(
 	io.extend_with(
 		NetApiServer::to_delegate(NetApi::new(
 			client.clone(),
-			select_chain,
 		))
 	);
 

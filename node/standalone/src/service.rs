@@ -189,13 +189,11 @@ pub fn new_full(config: Configuration, manual_seal: bool) -> Result<TaskManager,
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
-		let select_chain = select_chain.clone();
 		let pool = transaction_pool.clone();
 		Box::new(move |deny_unsafe| {
 			let deps = crate::rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
-				select_chain: select_chain.clone(),
 				deny_unsafe,
 				is_authority,
 				command_sink: Some(command_sink.clone())
