@@ -24,6 +24,7 @@ jobs:
           ~/.cargo/registry
           ~/.cargo/git
           target
+          vendor
         key: ${{ runner.OS }}-build-${{ env.WASM_BUILD_TOOLCHAIN }}-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
           ${{ runner.OS }}-build--${{ env.WASM_BUILD_TOOLCHAIN }}
