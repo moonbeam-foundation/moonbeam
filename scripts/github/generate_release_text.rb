@@ -58,8 +58,8 @@ runtime_changes = Changelog.changes_with_label(all_changes, 'B7-runtimenoteworth
 release_priority = Changelog.highest_priority_for_changes(all_changes)
 
 # Pulled from the previous Github step
-rustc_stable = ENV['RUSTC_STABLE']
-rustc_nightly = ENV['RUSTC_NIGHTLY']
+rustc = ENV['RUSTC']
+toolchain_nightly = ENV['WASM_BUILD_TOOLCHAIN']
 
 moonbeam_runtime = get_runtime('moonbeam', moonbeam_path)
 

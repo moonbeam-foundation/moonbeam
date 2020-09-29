@@ -32,11 +32,11 @@ if [ -z "$PARACHAIN_SPEC_TMP" ]; then
 fi
 
 if [ -z "$PARACHAIN_WASM" ]; then
-    PARACHAIN_WASM="$PARACHAIN_BUILD_FOLDER/parachain.wasm"
+    PARACHAIN_WASM="$PARACHAIN_BUILD_FOLDER/moonbase-alphanet-runtime.wasm"
 fi
 
 if [ -z "$PARACHAIN_GENESIS" ]; then
-    PARACHAIN_GENESIS="$PARACHAIN_BUILD_FOLDER/parachain.genesis"
+    PARACHAIN_GENESIS="$PARACHAIN_BUILD_FOLDER/moonbase-alphanet-genesis.txt"
 fi
 
 if [ -z "$PARACHAIN_ID" ]; then
