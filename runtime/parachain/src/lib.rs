@@ -34,7 +34,6 @@ pub use pallet_timestamp::Call as TimestampCall;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
-use ethereum::{Block as EthereumBlock, Transaction as EthereumTransaction, Receipt as EthereumReceipt};
 use pallet_evm::{Account as EVMAccount, FeeCalculator, HashedAddressMapping, EnsureAddressTruncated};
 use frontier_rpc_primitives::{TransactionStatus};
 
@@ -493,7 +492,7 @@ impl_runtime_apis! {
 						nonce,
 						false,
 					)
-					.map(|(_, ret, gas)| (ret, gas))
+					.map(|(_, ret, gas, _)| (ret, gas))
 					.map_err(|err| err.into()),
 				ethereum::TransactionAction::Create =>
 					EVM::execute_create(
@@ -505,7 +504,7 @@ impl_runtime_apis! {
 						nonce,
 						false,
 					)
-					.map(|(_, _, gas)| (vec![], gas))
+					.map(|(_, _, gas, _)| (vec![], gas))
 					.map_err(|err| err.into()),
 			}
 		}

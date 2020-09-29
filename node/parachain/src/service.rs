@@ -158,7 +158,6 @@ pub fn run_node(
 	let mut task_manager = params.task_manager;
 	let import_queue = params.import_queue;
 	let block_import = params.other;
-	let select_chain = params.select_chain;
 	let (network, network_status_sinks, system_rpc_tx, start_network) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 				config: &parachain_config,
@@ -173,6 +172,7 @@ pub fn run_node(
 		})?;
 
 	let is_authority = parachain_config.role.is_authority();
+	let subscription_task_executor = sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 
 	// Channel for the rpc handler to communicate with the authorship task.
 	let (command_sink, _commands_stream) = futures::channel::mpsc::channel(1000);
@@ -180,19 +180,23 @@ pub fn run_node(
 	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
-		let select_chain = select_chain.clone();
+		let network = network.clone();
 
 		Box::new(move |deny_unsafe| {
 			let deps = crate::rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
-				select_chain: select_chain.clone(),
+				graph_pool: pool.pool().clone(),
 				deny_unsafe,
 				is_authority,
+				network: network.clone(),
 				command_sink: Some(command_sink.clone())
 			};
 
-			crate::rpc::create_full(deps)
+			crate::rpc::create_full(
+				deps,
+				subscription_task_executor.clone()
+			)
 		})
 	};
 
