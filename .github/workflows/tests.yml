@@ -10,12 +10,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    
     - name: Submodules
       run: git submodule update --init --recursive
+      
     - name: get shortsha
       id: vars
       run: |
         echo ::set-output name=sha_short::$(git rev-parse --short=4 ${{ github.sha }})
+        
     - name: Cache Rust dependencies
       uses: actions/cache@v2
       id: cache
@@ -28,10 +31,12 @@ jobs:
         key: ${{ runner.OS }}-build-${{ env.WASM_BUILD_TOOLCHAIN }}-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
           ${{ runner.OS }}-build--${{ env.WASM_BUILD_TOOLCHAIN }}
+          
     - uses: actions-rs/toolchain@v1
       with:
         target: wasm32-unknown-unknown
         toolchain: ${{ env.WASM_BUILD_TOOLCHAIN }}
         default: true
+        
     - name: Run tests
       run: cargo test --release --verbose --all
