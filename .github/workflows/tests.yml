@@ -2,30 +2,36 @@ name: Tests
 
 on: [push]
 
+env:
+  WASM_BUILD_TOOLCHAIN: nightly-2020-05-14
+
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: Submodules
       run: git submodule update --init --recursive
-    - name: Cache Rust dependencies
-      uses: actions/cache@v1.1.2
-      with:
-        path: target
-        key: ${{ runner.OS }}-build-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.OS }}-build-
-    - name: Init
+    - name: get shortsha
+      id: vars
       run: |
-        scripts/init.sh
-        cargo --version
-        rustc --version
-        cargo +$WASM_BUILD_TOOLCHAIN --version
-        rustc +$WASM_BUILD_TOOLCHAIN --version
-      env:
-        WASM_BUILD_TOOLCHAIN: nightly-2020-05-14
-    - name: Build
-      run: cargo build --verbose --all
+        echo ::set-output name=sha_short::$(git rev-parse --short=4 ${{ github.sha }})
+    - name: Cache Rust dependencies
+      uses: actions/cache@v2
+      id: cache
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+          vendor
+        key: ${{ runner.OS }}-build-${{ env.WASM_BUILD_TOOLCHAIN }}-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.OS }}-build--${{ env.WASM_BUILD_TOOLCHAIN }}
+    - uses: actions-rs/toolchain@v1
+      with:
+        target: wasm32-unknown-unknown
+        toolchain: ${{ env.WASM_BUILD_TOOLCHAIN }}
+        default: true
     - name: Run tests
-      run: cargo test --verbose --all
+      run: cargo test --release --verbose --all
