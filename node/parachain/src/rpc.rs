@@ -23,6 +23,7 @@ use sc_consensus_manual_seal::rpc::{ManualSeal, ManualSealApi};
 use moonbase_runtime::{Hash, AccountId, Index, opaque::Block, Balance};
 use sp_api::ProvideRuntimeApi;
 use sp_transaction_pool::TransactionPool;
+use sc_transaction_graph::{Pool, ChainApi};
 use sp_blockchain::{Error as BlockChainError, HeaderMetadata, HeaderBackend};
 use sc_rpc_api::DenyUnsafe;
 use sc_client_api::{
@@ -36,11 +37,13 @@ use sc_network::NetworkService;
 use jsonrpc_pubsub::manager::SubscriptionManager;
 
 /// Full client dependencies.
-pub struct FullDeps<C, P> {
+pub struct FullDeps<C, P, A: ChainApi> {
 	/// The client instance to use.
 	pub client: Arc<C>,
 	/// Transaction pool instance.
 	pub pool: Arc<P>,
+	/// Validated pool access.
+	pub graph_pool: Arc<Pool<A>>,
 	/// Whether to deny unsafe calls
 	pub deny_unsafe: DenyUnsafe,
 	/// The Node authority flag
@@ -52,8 +55,8 @@ pub struct FullDeps<C, P> {
 }
 
 /// Instantiate all Full RPC extensions.
-pub fn create_full<C, P, BE>(
-	deps: FullDeps<C, P>,
+pub fn create_full<C, P, BE, A>(
+	deps: FullDeps<C, P, A>,
 	subscription_task_executor: SubscriptionTaskExecutor
 ) -> jsonrpc_core::IoHandler<sc_rpc::Metadata> where
 	BE: Backend<Block> + 'static,
@@ -68,6 +71,7 @@ pub fn create_full<C, P, BE>(
 	C::Api: frontier_rpc_primitives::EthereumRuntimeRPCApi<Block>,
 	<C::Api as sp_api::ApiErrorExt>::Error: fmt::Debug,
 	P: TransactionPool<Block=Block> + 'static,
+	A: ChainApi<Block=Block> + 'static,
 {
 	use substrate_frame_rpc_system::{FullSystem, SystemApi};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
@@ -77,6 +81,7 @@ pub fn create_full<C, P, BE>(
 	let FullDeps {
 		client,
 		pool,
+		graph_pool,
 		deny_unsafe,
 		is_authority,
 		network,
@@ -92,6 +97,7 @@ pub fn create_full<C, P, BE>(
 	io.extend_with(
 		EthApiServer::to_delegate(EthApi::new(
 			client.clone(),
+			graph_pool.clone(),
 			pool.clone(),
 			moonbase_runtime::TransactionConverter,
 			is_authority,

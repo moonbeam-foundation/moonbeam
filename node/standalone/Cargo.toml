@@ -32,6 +32,7 @@ sc-service = { git = "https://github.com/paritytech/substrate.git", branch = "ro
 sp-inherents = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 sc-transaction-pool = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 sp-transaction-pool = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+sc-transaction-graph = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
 sc-network = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 sc-consensus-aura = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 sp-consensus-aura = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
