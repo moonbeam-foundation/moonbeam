@@ -24,6 +24,7 @@ structopt = "0.3.3"
 ansi_term = "0.12.1"
 serde = { version = "1.0.101", features = ["derive"] }
 jsonrpc-core = "14.0.3"
+jsonrpc-pubsub = "14.0.3"
 
 # Parachain dependencies
 moonbase-runtime = { path = "../../runtime/parachain" }

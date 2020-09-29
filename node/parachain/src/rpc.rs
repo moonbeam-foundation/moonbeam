@@ -25,9 +25,15 @@ use sp_api::ProvideRuntimeApi;
 use sp_transaction_pool::TransactionPool;
 use sp_blockchain::{Error as BlockChainError, HeaderMetadata, HeaderBackend};
 use sc_rpc_api::DenyUnsafe;
-use sc_client_api::backend::{StorageProvider, Backend, StateBackend, AuxStore};
+use sc_client_api::{
+	backend::{StorageProvider, Backend, StateBackend, AuxStore},
+	client::BlockchainEvents
+};
+use sc_rpc::SubscriptionTaskExecutor;
 use sp_runtime::traits::BlakeTwo256;
 use sp_block_builder::BlockBuilder;
+use sc_network::NetworkService;
+use jsonrpc_pubsub::manager::SubscriptionManager;
 
 /// Full client dependencies.
 pub struct FullDeps<C, P> {
@@ -39,6 +45,8 @@ pub struct FullDeps<C, P> {
 	pub deny_unsafe: DenyUnsafe,
 	/// The Node authority flag
 	pub is_authority: bool,
+	/// Network service
+	pub network: Arc<NetworkService<Block, Hash>>,
 	/// Manual seal command sink
 	pub command_sink: Option<futures::channel::mpsc::Sender<sc_consensus_manual_seal::rpc::EngineCommand<Hash>>>,
 }
@@ -46,10 +54,12 @@ pub struct FullDeps<C, P> {
 /// Instantiate all Full RPC extensions.
 pub fn create_full<C, P, BE>(
 	deps: FullDeps<C, P>,
+	subscription_task_executor: SubscriptionTaskExecutor
 ) -> jsonrpc_core::IoHandler<sc_rpc::Metadata> where
 	BE: Backend<Block> + 'static,
 	BE::State: StateBackend<BlakeTwo256>,
 	C: ProvideRuntimeApi<Block> + StorageProvider<Block, BE> + AuxStore,
+	C: BlockchainEvents<Block>,
 	C: HeaderBackend<Block> + HeaderMetadata<Block, Error=BlockChainError> + 'static,
 	C: Send + Sync + 'static,
 	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>,
@@ -61,7 +71,7 @@ pub fn create_full<C, P, BE>(
 {
 	use substrate_frame_rpc_system::{FullSystem, SystemApi};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
-	use frontier_rpc::{EthApi, EthApiServer, NetApi, NetApiServer};
+	use frontier_rpc::{EthApi, EthApiServer, NetApi, NetApiServer, EthPubSubApi, EthPubSubApiServer};
 
 	let mut io = jsonrpc_core::IoHandler::default();
 	let FullDeps {
@@ -69,6 +79,7 @@ pub fn create_full<C, P, BE>(
 		pool,
 		deny_unsafe,
 		is_authority,
+		network,
 		command_sink
 	} = deps;
 
@@ -86,10 +97,17 @@ pub fn create_full<C, P, BE>(
 			is_authority,
 		))
 	);
-
 	io.extend_with(
 		NetApiServer::to_delegate(NetApi::new(
 			client.clone(),
+		))
+	);
+	io.extend_with(
+		EthPubSubApiServer::to_delegate(EthPubSubApi::new(
+			pool.clone(),
+			client.clone(),
+			network.clone(),
+			SubscriptionManager::new(Arc::new(subscription_task_executor)),
 		))
 	);
 
