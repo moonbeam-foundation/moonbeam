@@ -3583,47 +3583,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "moonbase-runtime"
-version = "0.1.0"
-dependencies = [
- "cumulus-message-broker",
- "cumulus-parachain-upgrade",
- "cumulus-primitives",
- "cumulus-runtime",
- "cumulus-token-dealer",
- "cumulus-upward-message",
- "frame-executive",
- "frame-support",
- "frame-system",
- "frame-system-rpc-runtime-api",
- "frontier-rpc-primitives",
- "pallet-balances",
- "pallet-ethereum 0.1.0",
- "pallet-evm",
- "pallet-randomness-collective-flip",
- "pallet-sudo",
- "pallet-timestamp",
- "pallet-transaction-payment",
- "pallet-transaction-payment-rpc-runtime-api",
- "parachain-info",
- "parity-scale-codec",
- "serde",
- "sp-api",
- "sp-block-builder",
- "sp-core",
- "sp-inherents",
- "sp-io",
- "sp-offchain",
- "sp-runtime",
- "sp-session",
- "sp-std",
- "sp-transaction-pool",
- "sp-version",
- "substrate-wasm-builder-runner 1.0.6 (git+https://github.com/paritytech/substrate.git?branch=rococo-branch)",
-]
-
-[[package]]
-name = "moonbase-testnet"
+name = "moonbase-alphanet"
 version = "0.1.0"
 dependencies = [
  "ansi_term 0.12.1",
@@ -3693,6 +3653,46 @@ dependencies = [
  "substrate-test-runtime-client",
  "tokio 0.2.22",
  "trie-root 0.15.2",
+]
+
+[[package]]
+name = "moonbase-runtime"
+version = "0.1.0"
+dependencies = [
+ "cumulus-message-broker",
+ "cumulus-parachain-upgrade",
+ "cumulus-primitives",
+ "cumulus-runtime",
+ "cumulus-token-dealer",
+ "cumulus-upward-message",
+ "frame-executive",
+ "frame-support",
+ "frame-system",
+ "frame-system-rpc-runtime-api",
+ "frontier-rpc-primitives",
+ "pallet-balances",
+ "pallet-ethereum 0.1.0",
+ "pallet-evm",
+ "pallet-randomness-collective-flip",
+ "pallet-sudo",
+ "pallet-timestamp",
+ "pallet-transaction-payment",
+ "pallet-transaction-payment-rpc-runtime-api",
+ "parachain-info",
+ "parity-scale-codec",
+ "serde",
+ "sp-api",
+ "sp-block-builder",
+ "sp-core",
+ "sp-inherents",
+ "sp-io",
+ "sp-offchain",
+ "sp-runtime",
+ "sp-session",
+ "sp-std",
+ "sp-transaction-pool",
+ "sp-version",
+ "substrate-wasm-builder-runner 1.0.6 (git+https://github.com/paritytech/substrate.git?branch=rococo-branch)",
 ]
 
 [[package]]

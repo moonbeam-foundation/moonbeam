@@ -1,0 +1,33 @@
+
+Native runtimes:
+
+- Moonbeam: **<%= moonbeam_runtime %>**
+
+WASM runtimes built using `<%= rustc %>` and toolchain `<%= toolchain_nightly %>`
+
+Proposal hashes:
+* `moonbeam_runtime-v<%= moonbeam_runtime %>.compact.wasm - TBD`
+
+<% unless misc_changes.empty? %>
+## Changes
+
+<% misc_changes.each do |c| %>
+* <%= c[:pretty_title] %>
+<% end %>
+<% end %>
+
+<% unless client_changes.empty? %>
+## Client
+
+<% client_changes.each do |c| %>
+* <%= c[:pretty_title] %>
+<% end %>
+<% end %>
+
+<% unless runtime_changes.empty? %>
+## Runtime
+
+<% runtime_changes.each do |c| %>
+* <%= c[:pretty_title] %>
+<% end %>
+<% end %>
