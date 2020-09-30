@@ -4256,7 +4256,7 @@ checksum = "bd4556fb64842e71bb6e2f98b7541c0d310069eb607d432c6ac9bdaecbfd3118"
 [[package]]
 name = "pallet-evm"
 version = "2.0.0-rc6"
-source = "git+https://github.com/purestake/substrate?branch=tgmichel-rococo-branch#c73712eb7cc51a68de915baf8eb1312ebd6a84ab"
+source = "git+https://github.com/purestake/substrate?branch=tgmichel-rococo-branch#9c3a6b1d198cee2b542579752b096ef1968ef0c8"
 dependencies = [
  "evm",
  "frame-support",
