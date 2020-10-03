@@ -90,6 +90,7 @@ pub fn new_partial(config: &Configuration, manual_seal: bool) -> Result<
 		let frontier_block_import = FrontierBlockImport::new(
 			client.clone(),
 			client.clone(),
+			true,
 		);
 
 		let import_queue = sc_consensus_manual_seal::import_queue(
@@ -112,13 +113,14 @@ pub fn new_partial(config: &Configuration, manual_seal: bool) -> Result<
 	let frontier_block_import = FrontierBlockImport::new(
 		grandpa_block_import.clone(),
 		client.clone(),
+		true
 	);
 
 	let aura_block_import = sc_consensus_aura::AuraBlockImport::<_, _, _, AuraPair>::new(
 		frontier_block_import, client.clone(),
 	);
 
-	let import_queue = sc_consensus_aura::import_queue::<_, _, _, AuraPair, _, _>(
+	let import_queue = sc_consensus_aura::import_queue::<_, _, _, AuraPair, _>(
 		sc_consensus_aura::slot_duration(&*client)?,
 		aura_block_import.clone(),
 		Some(Box::new(grandpa_block_import.clone())),
@@ -127,7 +129,6 @@ pub fn new_partial(config: &Configuration, manual_seal: bool) -> Result<
 		inherent_data_providers.clone(),
 		&task_manager.spawn_handle(),
 		config.prometheus_registry(),
-		sp_consensus::CanAuthorWithNativeVersion::new(client.executor().clone()),
 	)?;
 
 	Ok(sc_service::PartialComponents {
@@ -191,21 +192,26 @@ pub fn new_full(config: Configuration, manual_seal: bool) -> Result<TaskManager,
 	let prometheus_registry = config.prometheus_registry().cloned();
 	let telemetry_connection_sinks = sc_service::TelemetryConnectionSinks::default();
 	let is_authority = role.is_authority();
+	let subscription_task_executor = sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
-		let select_chain = select_chain.clone();
 		let pool = transaction_pool.clone();
-		Box::new(move |deny_unsafe, _| {
+		let network = network.clone();
+		Box::new(move |deny_unsafe| {
 			let deps = crate::rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
-				select_chain: select_chain.clone(),
+				graph_pool: pool.pool().clone(),
 				deny_unsafe,
 				is_authority,
+				network: network.clone(),
 				command_sink: Some(command_sink.clone())
 			};
-			crate::rpc::create_full(deps)
+			crate::rpc::create_full(
+				deps,
+				subscription_task_executor.clone()
+			)
 		})
 	};
 
@@ -353,7 +359,7 @@ pub fn new_light(config: Configuration) -> Result<TaskManager, ServiceError> {
 	let finality_proof_request_builder =
 		finality_proof_import.create_finality_proof_request_builder();
 
-	let import_queue = sc_consensus_aura::import_queue::<_, _, _, AuraPair, _, _>(
+	let import_queue = sc_consensus_aura::import_queue::<_, _, _, AuraPair, _>(
 		sc_consensus_aura::slot_duration(&*client)?,
 		grandpa_block_import,
 		None,
@@ -362,7 +368,6 @@ pub fn new_light(config: Configuration) -> Result<TaskManager, ServiceError> {
 		InherentDataProviders::new(),
 		&task_manager.spawn_handle(),
 		config.prometheus_registry(),
-		sp_consensus::NeverCanAuthor,
 	)?;
 
 	let light_deps = crate::rpc::LightDeps {
