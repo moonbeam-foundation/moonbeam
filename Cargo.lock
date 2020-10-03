@@ -5629,17 +5629,8 @@ dependencies = [
  "hex-literal 0.3.1",
  "log 0.4.11",
  "pallet-evm",
- "sp-api",
- "sp-block-builder",
  "sp-core",
- "sp-inherents",
- "sp-io",
- "sp-offchain",
- "sp-runtime",
- "sp-session",
  "sp-std",
- "sp-transaction-pool",
- "sp-version",
 ]
 
 [[package]]
@@ -8643,13 +8634,13 @@ dependencies = [
 [[package]]
 name = "substrate-wasm-builder-runner"
 version = "1.0.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d2a965994514ab35d3893e9260245f2947fd1981cdd4fffd2c6e6d1a9ce02e6a"
+source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
 
 [[package]]
 name = "substrate-wasm-builder-runner"
 version = "1.0.6"
-source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d2a965994514ab35d3893e9260245f2947fd1981cdd4fffd2c6e6d1a9ce02e6a"
 
 [[package]]
 name = "substrate-wasmtime"
