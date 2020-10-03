@@ -3703,6 +3703,8 @@ dependencies = [
  "frame-system",
  "frame-system-rpc-runtime-api",
  "frontier-rpc-primitives",
+ "hex-literal 0.3.1",
+ "log 0.4.11",
  "pallet-balances",
  "pallet-ethereum 0.1.0",
  "pallet-evm",
