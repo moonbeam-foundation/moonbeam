@@ -19,6 +19,7 @@ hex-literal = "0.3.1"
 pallet-aura = { default-features = false, package = "pallet-aura", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 pallet-balances = { default-features = false, package = "pallet-balances", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 frame-support = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+precompiles = { path = "../precompiles/", default-features = false }
 pallet-grandpa = { default-features = false, package = "pallet-grandpa", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 pallet-randomness-collective-flip = { default-features = false, package = "pallet-randomness-collective-flip", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 pallet-sudo = { default-features = false, package = "pallet-sudo", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }

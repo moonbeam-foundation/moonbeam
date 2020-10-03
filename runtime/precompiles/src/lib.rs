@@ -1,3 +1,4 @@
+#![cfg_attr(not(feature = "std"), no_std)]
 
 use sp_std::{prelude::*};
 use sp_core::H160;
@@ -73,3 +74,12 @@ impl pallet_evm::Precompiles for MoonbeamPrecompiles {
 	}
 }
 
+
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
+        assert_eq!(2 + 2, 4);
+    }
+}

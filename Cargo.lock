@@ -3715,6 +3715,7 @@ dependencies = [
  "pallet-transaction-payment-rpc-runtime-api",
  "parachain-info",
  "parity-scale-codec",
+ "precompiles",
  "serde",
  "sp-api",
  "sp-block-builder",
@@ -3752,6 +3753,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "parity-scale-codec",
+ "precompiles",
  "serde",
  "sp-api",
  "sp-block-builder",
@@ -5619,6 +5621,26 @@ name = "ppv-lite86"
 version = "0.2.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c36fa947111f5c62a733b652544dd0016a43ce89619538a8ef92724a6f501a20"
+
+[[package]]
+name = "precompiles"
+version = "0.1.0"
+dependencies = [
+ "hex-literal 0.3.1",
+ "log 0.4.11",
+ "pallet-evm",
+ "sp-api",
+ "sp-block-builder",
+ "sp-core",
+ "sp-inherents",
+ "sp-io",
+ "sp-offchain",
+ "sp-runtime",
+ "sp-session",
+ "sp-std",
+ "sp-transaction-pool",
+ "sp-version",
+]
 
 [[package]]
 name = "predicates"

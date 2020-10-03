@@ -7,8 +7,6 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-mod moonbeam_precompiles;
-
 use sp_api::impl_runtime_apis;
 use sp_core::{OpaqueMetadata, U256, H160, H256};
 use sp_runtime::{
@@ -269,7 +267,7 @@ impl pallet_evm::Trait for Runtime {
 	type AddressMapping = HashedAddressMapping<BlakeTwo256>;
 	type Currency = Balances;
 	type Event = Event;
-	type Precompiles = moonbeam_precompiles::MoonbeamPrecompiles;
+	type Precompiles = precompiles::MoonbeamPrecompiles;
 	type ChainId = ChainId;
 }
 
