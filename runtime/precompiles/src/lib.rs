@@ -3,7 +3,7 @@
 use sp_std::{prelude::*};
 use sp_core::H160;
 
-pub struct MoonbeamPrecompiles;
+pub struct ExperimentalMoonbeamPrecompiles;
 
 /// Linear gas cost
 fn ensure_linear_cost(
@@ -60,7 +60,7 @@ fn get_precompiled_func_from_address(address: &H160) -> Option<PrecompiledCallab
 	None
 }
 
-impl pallet_evm::Precompiles for MoonbeamPrecompiles {
+impl pallet_evm::Precompiles for ExperimentalMoonbeamPrecompiles {
 	fn execute(
 		address: H160,
 		input: &[u8],
@@ -75,6 +75,13 @@ impl pallet_evm::Precompiles for MoonbeamPrecompiles {
 	}
 }
 
+pub type MoonbeamPrecompiles =
+(
+	pallet_evm::precompiles::ECRecover,
+	pallet_evm::precompiles::Sha256,
+	pallet_evm::precompiles::Ripemd160,
+	pallet_evm::precompiles::Identity,
+);
 
 
 #[cfg(test)]
