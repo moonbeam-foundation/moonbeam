@@ -35,7 +35,7 @@ impl pallet_evm::Precompile for DeadbeefPrecompiled {
 
 		log::info!("Calling deadbeef precompiled contract");
 
-		let mut result_vec = hex_literal::hex!("deadbeef").to_vec();
+		let mut result_vec = hex_literal::hex!["deadbeef"].to_vec();
 		result_vec.extend(input.to_vec());
 
 		Ok((pallet_evm::ExitSucceed::Returned, result_vec, cost))
