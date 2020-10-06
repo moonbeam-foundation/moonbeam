@@ -118,7 +118,12 @@ pub fn run() -> sc_cli::Result<()> {
 			let runner = cli.create_runner(&cli.run.base)?;
 			runner.run_node_until_exit(|config| match config.role {
 				Role::Light => service::new_light(config),
-				_ => service::new_full(config, cli.run.manual_seal),
+				_ => service::new_full(
+					config,
+					cli.run.manual_seal,
+					cli.eth.block_limit,
+					cli.eth.log_limit,
+				),
 			})
 		}
 	}

@@ -114,6 +114,8 @@ pub fn run_node(
 	mut polkadot_config: polkadot_collator::Configuration,
 	id: polkadot_primitives::v0::Id,
 	validator: bool,
+	eth_block_limit: Option<u32>,
+	eth_log_limit: Option<u32>
 ) -> sc_service::error::Result<(
 	TaskManager,
 	Arc<
@@ -189,6 +191,8 @@ pub fn run_node(
 				graph_pool: pool.pool().clone(),
 				deny_unsafe,
 				is_authority,
+				eth_block_limit,
+				eth_log_limit,
 				network: network.clone(),
 				command_sink: Some(command_sink.clone())
 			};

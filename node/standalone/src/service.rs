@@ -139,7 +139,9 @@ pub fn new_partial(config: &Configuration, manual_seal: bool) -> Result<
 }
 
 /// Builds a new service for a full client.
-pub fn new_full(config: Configuration, manual_seal: bool) -> Result<TaskManager, ServiceError> {
+pub fn new_full(
+	config: Configuration, manual_seal: bool, eth_block_limit: Option<u32>, eth_log_limit: Option<u32>
+) -> Result<TaskManager, ServiceError> {
 	let sc_service::PartialComponents {
 		client, backend, mut task_manager, import_queue, keystore, select_chain, transaction_pool,
 		inherent_data_providers,
@@ -205,6 +207,8 @@ pub fn new_full(config: Configuration, manual_seal: bool) -> Result<TaskManager,
 				graph_pool: pool.pool().clone(),
 				deny_unsafe,
 				is_authority,
+				eth_block_limit,
+				eth_log_limit,
 				network: network.clone(),
 				command_sink: Some(command_sink.clone())
 			};
