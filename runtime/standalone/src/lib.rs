@@ -300,7 +300,7 @@ impl frame_evm::Trait for Runtime {
 	type AddressMapping = HashedAddressMapping<BlakeTwo256>;
 	type Currency = Balances;
 	type Event = Event;
-	type Precompiles = ();
+	type Precompiles = precompiles::MoonbeamPrecompiles;
 	type ChainId = ChainId;
 }
 
@@ -505,6 +505,15 @@ impl_runtime_apis! {
 			nonce: Option<U256>,
 			action: frame_ethereum::TransactionAction,
 		) -> Result<(Vec<u8>, U256), sp_runtime::DispatchError> {
+			// ensure that the gas_limit fits within a u32; otherwise the wrong value will be passed
+			use sp_runtime::traits::UniqueSaturatedInto;
+			let gas_limit_considered: u32 = gas_limit.unique_saturated_into();
+			let gas_limit_considered_256: U256 = gas_limit_considered.into();
+			if gas_limit_considered_256 != gas_limit {
+				log::warn!("WARNING: An invalid gas_limit amount was submitted.
+							Make sure your gas_limit fits within a 32-bit integer
+							(gas_limit: {:?})", gas_limit);
+			}
 			match action {
 				frame_ethereum::TransactionAction::Call(to) =>
 				EVM::execute_call(
@@ -512,7 +521,7 @@ impl_runtime_apis! {
 						to,
 						data,
 						value,
-						gas_limit.low_u32(),
+						gas_limit_considered,
 						gas_price.unwrap_or(U256::from(0)),
 						nonce,
 						false,
@@ -524,7 +533,7 @@ impl_runtime_apis! {
 						from,
 						data,
 						value,
-						gas_limit.low_u32(),
+						gas_limit_considered,
 						gas_price.unwrap_or(U256::from(0)),
 						nonce,
 						false,

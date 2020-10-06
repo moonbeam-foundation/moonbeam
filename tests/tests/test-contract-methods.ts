@@ -39,6 +39,15 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
 		await createAndFinalizeBlock(context.web3);
 	});
 
+	it("get transaction by hash", async () => {
+		const latestBlock = await context.web3.eth.getBlock("latest");
+		expect(latestBlock.transactions.length).to.equal(1);
+
+		const tx_hash = latestBlock.transactions[0];
+		const tx = await context.web3.eth.getTransaction(tx_hash);
+		expect(tx.hash).to.equal(tx_hash);
+	});
+
 	it("should return contract method result", async function () {
 		const contract = new context.web3.eth.Contract([TEST_CONTRACT_ABI], FIRST_CONTRACT_ADDRESS, {
 			from: GENESIS_ACCOUNT,

@@ -14,6 +14,11 @@ codec = { package = "parity-scale-codec", version = "1.0.0", default-features = 
 parachain-info = { path = "../../pallets/parachain-info", default-features = false}
 cumulus-token-dealer = { path = "../../pallets/token-dealer", default-features = false}
 
+log = "0.4.8"
+hex-literal = "0.3.1"
+
+precompiles = { path = "../precompiles/", default-features = false }
+
 # Substrate dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
 sp-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }

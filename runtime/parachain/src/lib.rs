@@ -267,7 +267,7 @@ impl pallet_evm::Trait for Runtime {
 	type AddressMapping = HashedAddressMapping<BlakeTwo256>;
 	type Currency = Balances;
 	type Event = Event;
-	type Precompiles = ();
+	type Precompiles = precompiles::MoonbeamPrecompiles;
 	type ChainId = ChainId;
 }
 
