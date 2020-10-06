@@ -3732,6 +3732,51 @@ dependencies = [
 ]
 
 [[package]]
+name = "moonbase-standalone"
+version = "0.1.1"
+dependencies = [
+ "frontier-consensus",
+ "frontier-rpc",
+ "frontier-rpc-primitives",
+ "futures 0.3.5",
+ "jsonrpc-core",
+ "jsonrpc-pubsub",
+ "log 0.4.11",
+ "moonbeam-runtime",
+ "pallet-ethereum 0.1.0",
+ "pallet-evm",
+ "pallet-transaction-payment-rpc",
+ "sc-basic-authorship",
+ "sc-cli",
+ "sc-client-api",
+ "sc-consensus",
+ "sc-consensus-aura",
+ "sc-consensus-manual-seal",
+ "sc-executor",
+ "sc-finality-grandpa",
+ "sc-network",
+ "sc-rpc",
+ "sc-rpc-api",
+ "sc-service",
+ "sc-transaction-graph",
+ "sc-transaction-pool",
+ "sp-api",
+ "sp-block-builder",
+ "sp-blockchain",
+ "sp-consensus",
+ "sp-consensus-aura",
+ "sp-core",
+ "sp-finality-grandpa",
+ "sp-inherents",
+ "sp-runtime",
+ "sp-timestamp",
+ "sp-transaction-pool",
+ "structopt",
+ "substrate-build-script-utils",
+ "substrate-frame-rpc-system",
+]
+
+[[package]]
 name = "moonbeam-runtime"
 version = "0.1.1"
 dependencies = [
@@ -3897,51 +3942,6 @@ dependencies = [
  "cfg-if",
  "libc",
  "void",
-]
-
-[[package]]
-name = "node-moonbeam"
-version = "0.1.1"
-dependencies = [
- "frontier-consensus",
- "frontier-rpc",
- "frontier-rpc-primitives",
- "futures 0.3.5",
- "jsonrpc-core",
- "jsonrpc-pubsub",
- "log 0.4.11",
- "moonbeam-runtime",
- "pallet-ethereum 0.1.0",
- "pallet-evm",
- "pallet-transaction-payment-rpc",
- "sc-basic-authorship",
- "sc-cli",
- "sc-client-api",
- "sc-consensus",
- "sc-consensus-aura",
- "sc-consensus-manual-seal",
- "sc-executor",
- "sc-finality-grandpa",
- "sc-network",
- "sc-rpc",
- "sc-rpc-api",
- "sc-service",
- "sc-transaction-graph",
- "sc-transaction-pool",
- "sp-api",
- "sp-block-builder",
- "sp-blockchain",
- "sp-consensus",
- "sp-consensus-aura",
- "sp-core",
- "sp-finality-grandpa",
- "sp-inherents",
- "sp-runtime",
- "sp-timestamp",
- "sp-transaction-pool",
- "structopt",
- "substrate-build-script-utils",
- "substrate-frame-rpc-system",
 ]
 
 [[package]]
@@ -5626,9 +5626,9 @@ checksum = "c36fa947111f5c62a733b652544dd0016a43ce89619538a8ef92724a6f501a20"
 name = "precompiles"
 version = "0.1.0"
 dependencies = [
- "hex-literal 0.3.1",
  "log 0.4.11",
  "pallet-evm",
+ "rustc-hex",
  "sp-core",
  "sp-std",
 ]
