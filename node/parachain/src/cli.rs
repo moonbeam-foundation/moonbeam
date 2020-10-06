@@ -58,7 +58,6 @@ pub struct RunCmd {
 	pub parachain_id: Option<u32>,
 }
 
-#[allow(missing_docs)]
 #[derive(Debug, StructOpt)]
 pub struct EthCmd {
 	/// Number of past blocks allowed for querying ethereum events.
