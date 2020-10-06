@@ -74,7 +74,7 @@ It also generates the `build/parachain.wasm` and `build/parachain.genesis`
 
 ## Running Relay nodes
 
-You can run up to 3 relay nodes with this script (which runs the docker image).
+You can run up to 3 relay chain validators with this script. We use the `purestake/moonbase-relay-testnet` docker image for validators. Currently this image is manually published from commit (TODO), but this will change in the future.
 Each node will get its key inserted 5 seconds after starting.
 
 ```bash
