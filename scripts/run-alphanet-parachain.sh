@@ -1,14 +1,19 @@
 #!/bin/bash
 
-# User port X0000
-# 1xxx for each type (relay vs parachain)
+# User port XX000
+# Relay port XX000
 # 1xx for each node
 # 42 for p2p
 # 43 for http
 # 44 for ws
 #
-# Ex: USER_PORT=20000 scripts/run-parachain.sh
-# Will open port 21042, 21043, 21044
+# Parachain port (XX+1)000
+# 52 for p2p
+# 53 for http
+# 54 for ws
+#
+# Ex: USER_PORT=20000 scripts/run-alphanet-parachain.sh
+# will open port 21052, 21053, 21054
 
 # Loading binary/specs variables
 source scripts/_init_var.sh
@@ -35,10 +40,10 @@ done
 PARACHAIN_PORT=$((USER_PORT + 1000 + 42))
 PARACHAIN_INDEX=0
 PARACHAIN_BOOTNODES_ARGS=""
-while nc -z -v -w5 ${PARACHAIN_IP} ${PARACHAIN_PORT} 2> /dev/null
+while nc -z -v -w5 ${PARACHAIN_IP} $((PARACHAIN_PORT + 10)) 2> /dev/null
 do 
-    echo "Found existing parachain on ${PARACHAIN_PORT}."
-    PARACHAIN_BOOTNODES_ARGS="$PARACHAIN_BOOTNODES_ARGS --bootnodes /ip4/$PARACHAIN_IP/tcp/${PARACHAIN_PORT}/p2p/${PARACHAIN_LOCAL_IDS[$PARACHAIN_INDEX]}"
+    echo "Found existing parachain on $((PARACHAIN_PORT + 10))."
+    PARACHAIN_BOOTNODES_ARGS="$PARACHAIN_BOOTNODES_ARGS --bootnodes /ip4/$PARACHAIN_IP/tcp/$((PARACHAIN_PORT + 10))/p2p/${PARACHAIN_LOCAL_IDS[$PARACHAIN_INDEX]}"
     PARACHAIN_INDEX=$((PARACHAIN_INDEX + 1))
     PARACHAIN_PORT=$((PARACHAIN_PORT + 100))
     
@@ -50,7 +55,7 @@ do
 done
 
 
-echo "parachain $PARACHAIN_INDEX ($PARACHAIN_ID) - p2p-port: $PARACHAIN_PORT, http-port: $((PARACHAIN_PORT + 1)) , ws-port: $((PARACHAIN_PORT + 2))"
+echo "parachain $PARACHAIN_INDEX ($PARACHAIN_ID) - p2p-port: $((PARACHAIN_PORT + 10)), http-port: $((PARACHAIN_PORT + 10 + 1)) , ws-port: $((PARACHAIN_PORT + 10 + 2))"
 
 $PARACHAIN_BINARY \
     --node-key ${PARACHAIN_KEYS[$PARACHAIN_INDEX]} \
@@ -58,6 +63,7 @@ $PARACHAIN_BINARY \
     --rpc-port $((PARACHAIN_PORT + 10 + 1)) \
     --ws-port $((PARACHAIN_PORT + 10 + 2)) \
     --validator \
+    --name parachain_$PARACHAIN_INDEX \
     --tmp \
     '-linfo,evm=trace,ethereum=trace,rpc=trace' \
     --chain $PARACHAIN_SPEC_PLAIN  \
