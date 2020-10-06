@@ -1469,9 +1469,9 @@ dependencies = [
 
 [[package]]
 name = "ethereum"
-version = "0.3.0"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f873613a1191fe9d63794b5d0b636712446153ef0df192e9381bf1f951d3b94"
+checksum = "da7fef4d2da1de3a4f4f85408379644276db9b46c4af7b0fe38a3debec5cb7cd"
 dependencies = [
  "ethereum-types",
  "parity-scale-codec",
@@ -2377,6 +2377,12 @@ dependencies = [
  "hex-literal-impl",
  "proc-macro-hack",
 ]
+
+[[package]]
+name = "hex-literal"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5af1f635ef1bc545d78392b136bfe1c9809e029023c84a3638a864a10b8819c8"
 
 [[package]]
 name = "hex-literal-impl"
@@ -3697,6 +3703,8 @@ dependencies = [
  "frame-system",
  "frame-system-rpc-runtime-api",
  "frontier-rpc-primitives",
+ "hex-literal 0.3.1",
+ "log 0.4.11",
  "pallet-balances",
  "pallet-ethereum 0.1.0",
  "pallet-evm",
@@ -3707,6 +3715,7 @@ dependencies = [
  "pallet-transaction-payment-rpc-runtime-api",
  "parachain-info",
  "parity-scale-codec",
+ "precompiles",
  "serde",
  "sp-api",
  "sp-block-builder",
@@ -3731,6 +3740,7 @@ dependencies = [
  "frame-system",
  "frame-system-rpc-runtime-api",
  "frontier-rpc-primitives",
+ "hex-literal 0.3.1",
  "log 0.4.11",
  "pallet-aura",
  "pallet-balances",
@@ -3743,6 +3753,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "parity-scale-codec",
+ "precompiles",
  "serde",
  "sp-api",
  "sp-block-builder",
@@ -5218,7 +5229,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-rpc-runtime-api",
- "hex-literal",
+ "hex-literal 0.2.1",
  "log 0.3.9",
  "pallet-authority-discovery",
  "pallet-authorship",
@@ -5346,7 +5357,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-system-rpc-runtime-api",
  "futures 0.3.5",
- "hex-literal",
+ "hex-literal 0.2.1",
  "kusama-runtime",
  "lazy_static",
  "log 0.4.11",
@@ -5610,6 +5621,17 @@ name = "ppv-lite86"
 version = "0.2.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c36fa947111f5c62a733b652544dd0016a43ce89619538a8ef92724a6f501a20"
+
+[[package]]
+name = "precompiles"
+version = "0.1.0"
+dependencies = [
+ "hex-literal 0.3.1",
+ "log 0.4.11",
+ "pallet-evm",
+ "sp-core",
+ "sp-std",
+]
 
 [[package]]
 name = "predicates"
@@ -6278,7 +6300,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-rpc-runtime-api",
- "hex-literal",
+ "hex-literal 0.2.1",
  "log 0.3.9",
  "pallet-authority-discovery",
  "pallet-authorship",
@@ -6588,7 +6610,7 @@ dependencies = [
  "fnv",
  "futures 0.3.5",
  "hash-db",
- "hex-literal",
+ "hex-literal 0.2.1",
  "kvdb",
  "lazy_static",
  "log 0.4.11",
@@ -9787,7 +9809,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-rpc-runtime-api",
- "hex-literal",
+ "hex-literal 0.2.1",
  "log 0.3.9",
  "pallet-authority-discovery",
  "pallet-authorship",
