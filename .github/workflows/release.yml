@@ -115,7 +115,7 @@ jobs:
 
   docker-parachain:
     runs-on: ubuntu-latest
-    needs: ['get-variables', 'build', 'generate-specs']
+    needs: ['get-variables', 'build', 'generate-parachain-specs']
     if: needs.get-variables.outputs.tag-exists == 0 && github.event_name != 'pull_request'
     steps:
       - 
@@ -270,7 +270,7 @@ jobs:
 
   publish-draft-release:
     runs-on: ubuntu-latest
-    needs: ['build', 'generate-specs']
+    needs: ['build', 'generate-parachain-specs']
     if: needs.get-tag-version.outputs.tag-exists == 1 
     outputs:
       release_url: ${{ steps.create-release.outputs.html_url }}
