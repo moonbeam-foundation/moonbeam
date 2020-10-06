@@ -554,6 +554,18 @@ impl_runtime_apis! {
 		fn current_receipts() -> Option<Vec<frame_ethereum::Receipt>> {
 			Ethereum::current_receipts()
 		}
+
+		fn current_all() -> (
+			Option<frame_ethereum::Block>,
+			Option<Vec<frame_ethereum::Receipt>>,
+			Option<Vec<TransactionStatus>>
+		) {
+			(
+				Ethereum::current_block(),
+				Ethereum::current_receipts(),
+				Ethereum::current_transaction_statuses()
+			)
+		}
 	}
 
 	impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<
