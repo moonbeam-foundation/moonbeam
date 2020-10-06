@@ -317,16 +317,11 @@ jobs:
     steps:
       - 
         uses: actions/checkout@v2
-        - 
-          uses: actions/download-artifact@v2
-          with:
-            name: moonbase-alphanet
-            path: build/alphanet
       - 
         uses: actions/download-artifact@v2
         with:
-          name: moonbase-standalone
-          path: build/standalone
+          name: moonbase-alphanet
+          path: build/alphanet
       - 
         name: Set up Ruby 2.7
         uses: actions/setup-ruby@v1
