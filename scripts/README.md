@@ -16,7 +16,7 @@ The node scripts are based on the USER_PORT env variable to set their
 ports, following this strategy:  
 (for USER_PORT=33000)  
 ```
-Relay Nodes: 33[0-9]XX (supports 9 relay nodes)
+Relay Nodes: 33[0-2]XX (supports 3 relay nodes)
 P2P: 33[0-9]42  
 RPC: 33[0-9]43  
 WS: 33[0-9]44  
@@ -74,7 +74,8 @@ It also generates the `build/parachain.wasm` and `build/parachain.genesis`
 
 ## Running Relay nodes
 
-You can run up to 9 relay nodes with this script (which runs the docker image)
+You can run up to 3 relay chain validators with this script. We use the `purestake/moonbase-relay-testnet` docker image for validators. Currently this image is manually published from commit (TODO), but this will change in the future.
+Each node will get its key inserted 5 seconds after starting.
 
 ```bash
 scripts/run-alphanet-relay.sh
