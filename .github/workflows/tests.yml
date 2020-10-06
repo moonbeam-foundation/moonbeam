@@ -10,9 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    
-    - name: Submodules
-      run: git submodule update --init --recursive
       
     - name: get shortsha
       id: vars
@@ -31,6 +28,9 @@ jobs:
         key: ${{ runner.OS }}-build-${{ env.WASM_BUILD_TOOLCHAIN }}-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
           ${{ runner.OS }}-build--${{ env.WASM_BUILD_TOOLCHAIN }}
+    
+    - name: Submodules
+      run: git submodule update --init --recursive
           
     - uses: actions-rs/toolchain@v1
       with:
