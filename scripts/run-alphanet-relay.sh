@@ -43,14 +43,17 @@ echo "relay ${RELAY_INDEX} - p2p-port: $((RELAY_PORT)), http-port: $((RELAY_PORT
 # This part will insert the keys in the node
 bash -c "sleep 5; \
 insertKey() { \
-    polkadot-js-api \
-        --ws 'ws://localhost:$((RELAY_PORT + 2))' \
-        --sudo \
-        --seed "$SUDO_SEED" \
-        rpc.author.insertKey \
-            \"\$1\" \
-            \"\$2\" \
-            \"\$3\" > /dev/null; \
+	curl http://localhost:$((RELAY_PORT + 2)) -H \"Content-Type:application/json;charset=utf-8\" -d '
+	{
+		\"jsonrpc\":\"2.0\",
+		\"id\":1,
+		\"method\":\"author_insertKey\",
+		\"params\": [
+			\"$1\",
+			\"$2\",
+			\"$3\"
+		]
+	}'; \
 }; \
 \
 insertKey acco '${RELAY_SEEDS[$RELAY_INDEX]}' '${RELAY_SR25519_PUB[$RELAY_INDEX]}'; \
