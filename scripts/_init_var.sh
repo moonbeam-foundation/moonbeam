@@ -6,13 +6,13 @@ fi
 
 mkdir -p $PARACHAIN_BUILD_FOLDER
 
-if [ -z "$PARACHAIN_BINARY" ]; then
-    PARACHAIN_BINARY="target/release/moonbase-alphanet"
+
+if [ -z "$STANDALONE_BINARY" ]; then
+    STANDALONE_BINARY="target/release/moonbase-standalone"
 fi
 
-if [ ! -f "$PARACHAIN_BINARY" ]; then
-    echo "Parachain binary $PARACHAIN_BINARY is missing"
-    echo "Please run: cargo build --release -p moonbase-alphanet"
+if [ -z "$PARACHAIN_BINARY" ]; then
+    PARACHAIN_BINARY="target/release/moonbase-alphanet"
 fi
 
 if [ -z "$PARACHAIN_SPEC_TEMPLATE" ]; then
@@ -76,7 +76,7 @@ if [ -z "$SUDO_SEED" ]; then
     SUDO_SEED="0x078782a1f82fd4f9ab59131646f92caa3104dfb6b6975d025647760f693991b3"
 fi
 
-RELAY_NODE_KEYS=(
+NODE_KEYS=(
     0000000000000000000000000000000000000000000000000000000000000000
     1111111111111111111111111111111111111111111111111111111111111111
     2222222222222222222222222222222222222222222222222222222222222222

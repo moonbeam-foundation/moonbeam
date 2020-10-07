@@ -43,17 +43,17 @@ echo "relay ${RELAY_INDEX} - p2p-port: $((RELAY_PORT)), http-port: $((RELAY_PORT
 # This part will insert the keys in the node
 bash -c "sleep 5; \
 insertKey() { \
-	curl http://localhost:$((RELAY_PORT + 2)) -H \"Content-Type:application/json;charset=utf-8\" -d '
+	curl http://localhost:$((RELAY_PORT + 1)) -H 'Content-Type:application/json;charset=utf-8' -d \"
 	{
-		\"jsonrpc\":\"2.0\",
-		\"id\":1,
-		\"method\":\"author_insertKey\",
-		\"params\": [
-			\"$1\",
-			\"$2\",
-			\"$3\"
+		\\\"jsonrpc\\\":\\\"2.0\\\",
+		\\\"id\\\":1,
+		\\\"method\\\":\\\"author_insertKey\\\",
+		\\\"params\\\": [
+			\\\"\$1\\\",
+			\\\"\$2\\\",
+			\\\"\$3\\\"
 		]
-	}'; \
+	}\"; \
 }; \
 \
 insertKey acco '${RELAY_SEEDS[$RELAY_INDEX]}' '${RELAY_SR25519_PUB[$RELAY_INDEX]}'; \
@@ -65,6 +65,11 @@ insertKey audi '${RELAY_SEEDS[$RELAY_INDEX]}' '${RELAY_SR25519_PUB[$RELAY_INDEX]
 insertKey para '${RELAY_SEEDS[$RELAY_INDEX]}' '${RELAY_SR25519_PUB[$RELAY_INDEX]}'; \
  " &
 
+if [ -z "$RELAY_BASE_PREFIX" ]; then
+    RELAY_BASE_PATH="--tmp"
+else
+    RELAY_BASE_PATH="$RELAY_BASE_PREFIX-relay-$RELAY_INDEX"
+fi
 
 # The -v build:/build allows to pass the spec files from the build folder to the docker container
 docker run \
@@ -75,8 +80,8 @@ docker run \
     -it purestake/moonbase-relay-testnet:latest \
     /usr/local/bin/polkadot \
         --chain /$POLKADOT_SPEC_RAW \
-        --node-key ${RELAY_NODE_KEYS[$RELAY_INDEX]} \
-        --tmp \
+        --node-key ${NODE_KEYS[$RELAY_INDEX]} \
+        $RELAY_BASE_PATH \
         --validator \
         --force-authoring \
         --name relay_$RELAY_INDEX \

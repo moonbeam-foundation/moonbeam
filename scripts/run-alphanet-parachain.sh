@@ -18,6 +18,12 @@
 # Loading binary/specs variables
 source scripts/_init_var.sh
 
+if [ ! -f "$PARACHAIN_BINARY" ]; then
+    echo "Parachain binary $PARACHAIN_BINARY is missing"
+    echo "Please run: cargo build --release -p moonbase-alphanet"
+    exit 1
+fi
+
 # We retrieve the list of relay node for 
 RELAY_PORT=$((USER_PORT + 42))
 RELAY_INDEX=0
@@ -54,6 +60,13 @@ do
     fi
 done
 
+if [ -z "$PARACHAIN_BASE_PREFIX" ]; then
+    PARACHAIN_BASE_PATH="--tmp"
+    RELAY_BASE_PATH="--tmp"
+else
+    PARACHAIN_BASE_PATH="$PARACHAIN_BASE_PREFIX-parachain-$PARACHAIN_INDEX"
+    RELAY_BASE_PATH="$PARACHAIN_BASE_PREFIX-relay-$PARACHAIN_INDEX"
+fi
 
 echo "parachain $PARACHAIN_INDEX ($PARACHAIN_ID) - p2p-port: $((PARACHAIN_PORT + 10)), http-port: $((PARACHAIN_PORT + 10 + 1)) , ws-port: $((PARACHAIN_PORT + 10 + 2))"
 
@@ -64,13 +77,13 @@ $PARACHAIN_BINARY \
     --ws-port $((PARACHAIN_PORT + 10 + 2)) \
     --validator \
     --name parachain_$PARACHAIN_INDEX \
-    --tmp \
+    $PARACHAIN_BASE_PATH \
     '-linfo,evm=trace,ethereum=trace,rpc=trace' \
     --chain $PARACHAIN_SPEC_PLAIN  \
     $PARACHAIN_BOOTNODES_ARGS \
     -- \
       --node-key ${PARACHAIN_KEYS[$PARACHAIN_INDEX]} \
-      --tmp \
+      $RELAY_BASE_PATH \
       --port $((PARACHAIN_PORT)) \
       --rpc-port $((PARACHAIN_PORT + 1)) \
       --ws-port $((PARACHAIN_PORT + 2)) \
