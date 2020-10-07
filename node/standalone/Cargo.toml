@@ -5,7 +5,7 @@ description = 'Substrate Moonbeam Node '
 edition = '2018'
 homepage = 'https://moonbeam.network'
 license = 'Unlicense'
-name = 'node-moonbeam'
+name = 'moonbase-standalone'
 repository = 'https://github.com/PureStake/moonbeam/'
 version = '0.1.1'
 

@@ -10,7 +10,7 @@ export const SPECS_PATH = `./moonbeam-test-specs`;
 export const DISPLAY_LOG = process.env.MOONBEAM_LOG || false;
 export const MOONBEAM_LOG = process.env.MOONBEAM_LOG || "info";
 
-export const BINARY_PATH = `../target/debug/node-moonbeam`;
+export const BINARY_PATH = `../target/debug/moonbase-standalone`;
 export const SPAWNING_TIME = 30000;
 
 export async function customRequest(web3: Web3, method: string, params: any[]) {
