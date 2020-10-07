@@ -43,7 +43,12 @@ else
     BASE_PATH="$BASE_PREFIX-relay-$STANDALONE_INDEX"
 fi
 
-$STANDALONE_BINARY \
+EXECUTABLE=$STANDALONE_BINARY
+if [ ! -z "$PERF" ]; then
+    EXECUTABLE="$PERF $STANDALONE_BINARY"
+fi
+
+$EXECUTABLE \
     --node-key ${NODE_KEYS[$STANDALONE_INDEX]} \
     --dev \
     --port $((STANDALONE_PORT)) \

@@ -9,12 +9,22 @@ For running nodes, you need to have **docker** running.
 It is used to run the polkadot relay node (also needed to generate the relay specs for the parachain)
 
 
-All the commands are to be executed from the repository root folder.
+!!All the commands are to be executed from the repository root folder.!!
 
 
 The node scripts are based on the USER_PORT env variable to set their
 ports, following this strategy:  
 (for USER_PORT=33000)  
+
+```
+Standalone Nodes: 33[5-8]XX (supports 3 standalone nodes)  
+P2P: 34[5-8]42  
+RPC: 34[5-8]43  
+WS: 34[5-8]44  
+```
+(so your first standalone node will have RPC at 33443)
+
+
 ```
 Relay Nodes: 33[0-2]XX (supports 3 relay nodes)
 P2P: 33[0-9]42  
@@ -50,7 +60,23 @@ export USER_PORT=<XX000>
 cargo build --release
 ```
 
-### Generating the relay specs
+# Standalone nodes
+The standalone nodes are made to be executed without any specs.  
+They also don't require any runtime wasm file or genesis state.
+
+```bash
+scripts/run-moonbase-standalone.sh
+```
+
+
+
+# Alphanet nodes
+The alphanet nodes require having relay nodes (at least 2) and parachain nodes (at least 1).
+Those require sharing many files (specs, runtime wasm, genesis state).
+
+The following steps will guide you through the generation of those files.
+
+## Generating the relay specs
 
 ```bash
 scripts/generate-relay-specs.sh
@@ -60,22 +86,31 @@ The script downloads `purestake/moonbase-relay-testnet:$POLKADOT_VERSION` docker
 It also relies on the `/specs/rococo-alphanet-specs-template.json` for the specs template.
 The files generated are (by default) stored in `build/rococo-alphanet-specs-[plain,raw].json`
 
-### Generating the parachain specs
+## Generating the parachain specs
 
 ```bash
 scripts/generate-parachain-specs.sh
 ```
 
 The script executes (by default) `target/release/moonbase-alphanet` `build-spec`
-It also relies on the `/specs/rococo-alphanet-specs-template.json` for the specs template.
-The files generated are (by default) stored in `build/rococo-alphanet-specs-[plain,raw].json`
+It also relies on the `/specs/moonbase-alphanet-specs-template.json` for the specs template.
+The files generated are (by default) stored in `build/moonbase-alphanet-specs-[plain,raw].json`
 
 It also generates the `build/parachain.wasm` and `build/parachain.genesis`
+
+### Alternate parachain specs
+If you want to use an alternative spec template (like [../moonbase-alphanet-dev-specs-template.json](moonbase-alphanet-dev-specs-template.json which contains gerald funds)),
+you can provide the template like this:
+
+```bash
+PARACHAIN_SPEC_TEMPLATE=specs/moonbase-alphanet-dev-specs-template.json scripts/generate-parachain-specs.sh
+```
 
 ## Running Relay nodes
 
 You can run up to 3 relay chain validators with this script. We use the `purestake/moonbase-relay-testnet` docker image for validators. Currently this image is manually published from commit (TODO), but this will change in the future.
-Each node will get its key inserted 5 seconds after starting.
+Each node will get its key inserted 5 seconds after starting, using curl command.
+(*The grandpa consensus is not yet supported as it requires to restart the node.*)
 
 ```bash
 scripts/run-alphanet-relay.sh
@@ -83,7 +118,7 @@ scripts/run-alphanet-relay.sh
 
 ## Running Parachain nodes
 
-You can run up to 9 relay nodes with this script
+You can run up to 3 relay nodes with this script
 
 ```bash
 scripts/run-alphanet-parachain.sh
