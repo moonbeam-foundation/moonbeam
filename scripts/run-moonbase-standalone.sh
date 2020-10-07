@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # User port XX000
-# Standalone port (XX+5)000
+# Standalone port XX500
 # 42 for p2p
 # 43 for http
 # 44 for ws
