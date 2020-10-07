@@ -201,8 +201,8 @@ jobs:
       - 
         uses: actions/download-artifact@v2
         with:
-          name: moonbase-alphanet
-          path: build/alphanet
+          name: moonbase-standalone
+          path: build/standalone
       -
         name: Prepare
         id: prep
