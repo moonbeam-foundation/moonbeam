@@ -41,7 +41,7 @@ jobs:
       name: Find un-copyrighted files
       run: |
         find . -name '*.rs' -exec grep  -H -E -o -c Copyright {} \; | grep ':0' || true
-        FILECOUNT=$(find . -name '*.rs' -exec grep  -H -E -o -c  'Copyright'  {} \; | grep ':0' || true)
+        FILECOUNT=$(find . -name '*.rs' -exec grep  -H -E -o -c  'Copyright'  {} \; | grep -c ':0' || true)
         if [[ $FILECOUNT -eq 0 ]]; then
           true
         else
