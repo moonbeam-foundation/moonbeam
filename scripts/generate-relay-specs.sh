@@ -1,10 +1,10 @@
 #!/bin/bash
 source scripts/_init_var.sh
 
-POLKADOT_VERSION=`egrep -o 'paritytech/polkadot.*#([^\"]*)' Cargo.lock | head -1 | sed 's/.*#//' |  cut -c1-8`
+if [ -z "$POLKADOT_VERSION" ]; then
+  POLKADOT_VERSION="sha-`egrep -o 'paritytech/polkadot.*#([^\"]*)' Cargo.lock | head -1 | sed 's/.*#//' |  cut -c1-8`"
+fi
 
-# TODO remove this once docker images are tagger with revision
-POLKADOT_VERSION="latest"
 
 echo "Using Polkadot revision #${POLKADOT_VERSION}"
 
