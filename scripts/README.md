@@ -61,7 +61,7 @@ cargo build --release
 ```
 
 # Standalone nodes
-The standalone nodes are made to be executed without any specs.  
+The standalone nodes are made to be executed without explicitly supplied specs.  
 They also don't require any runtime wasm file or genesis state.
 
 ```bash
