@@ -32,6 +32,16 @@ jobs:
         echo tag-count: ${{ steps.variables.outputs.count }}
         echo sha-8: ${{ steps.variables.outputs.sha-8 }}
 
+  check-copyright:
+    runs-on: ubuntu-latest
+    steps:
+    - 
+      uses: actions/checkout@v2
+    - 
+      id: find-non-copyright-rust-files
+      run: |
+        find . -name '*.rs' -exec grep  -H -E -o -c  "Copyright"  {} \; | grep 0
+
   build:
     runs-on: ubuntu-latest
     outputs:
