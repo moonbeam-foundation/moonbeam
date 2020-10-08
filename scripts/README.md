@@ -110,7 +110,7 @@ PARACHAIN_SPEC_TEMPLATE=specs/moonbase-alphanet-dev-specs-template.json scripts/
 
 You can run up to 3 relay chain validators with this script. We use the `purestake/moonbase-relay-testnet` docker image for validators. Currently this image is manually published from commit (TODO), but this will change in the future.
 Each node will get its key inserted 5 seconds after starting, using curl command.
-(*The grandpa consensus is not yet supported as it requires to restart the node.*)
+(*The grandpa finality gadget is not yet supported as it requires to restart the node.*)
 
 ```bash
 scripts/run-alphanet-relay.sh
