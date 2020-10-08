@@ -41,7 +41,7 @@ jobs:
       id: find-non-copyright-rust-files
       run: |
         find . -name '*.rs' -exec grep  -H -E -o -c  "Copyright"  {} \; | grep 0
-        [[ `find . -name '*.rs' -exec grep  -H -E -o -c  "Copyright"  {} \; | grep -c 0` -eq 0 ]]
+        [[ $(find . -name '*.rs' -exec grep  -H -E -o -c  'Copyright'  {} \; | grep -c 0) -eq 0 ]]
 
   build:
     runs-on: ubuntu-latest
