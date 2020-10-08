@@ -38,10 +38,15 @@ jobs:
     - 
       uses: actions/checkout@v2
     - 
-      id: find-non-copyright-rust-files
+      name: Find un-copyrighted files
       run: |
         find . -name '*.rs' -exec grep  -H -E -o -c  "Copyright"  {} \; | grep 0
-        [[ $(find . -name '*.rs' -exec grep  -H -E -o -c  'Copyright'  {} \; | grep -c 0) -eq 0 ]]
+        FILECOUNT=$(find . -name '*.rs' -exec grep  -H -E -o -c  'Copyright'  {} \; | grep -c 0)
+        if [[ $FILECOUNT -eq 0 ]]; then
+          true
+        else
+          false
+        fi
 
   build:
     runs-on: ubuntu-latest
