@@ -106,11 +106,11 @@ pub mod opaque {
 
 /// This runtime version.
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("parachain-template"),
-	impl_name: create_runtime_str!("parachain-template"),
-	authoring_version: 1,
-	spec_version: 1,
-	impl_version: 1,
+	spec_name: create_runtime_str!("moonbeam-alphanet"),
+	impl_name: create_runtime_str!("moonbeam-alphanet"),
+	authoring_version: 2,
+	spec_version: 2,
+	impl_version: 2,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
 };
