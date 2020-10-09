@@ -51,6 +51,7 @@ fi
 $EXECUTABLE \
     --node-key ${NODE_KEYS[$STANDALONE_INDEX]} \
     --dev \
+    --tmp \
     --port $((STANDALONE_PORT)) \
     --rpc-port $((STANDALONE_PORT + 1)) \
     --ws-port $((STANDALONE_PORT + 2)) \

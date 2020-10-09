@@ -18,6 +18,7 @@
 
 use sp_std::{prelude::*};
 use sp_core::H160;
+use pallet_evm::{ExitError, ExitSucceed, Precompile};
 
 pub struct ExperimentalMoonbeamPrecompiles;
 
@@ -64,7 +65,6 @@ type PrecompiledCallable = fn(&[u8], Option<usize>)
 
 fn get_precompiled_func_from_address(address: &H160) -> Option<PrecompiledCallable> {
 	use core::str::FromStr;
-	use pallet_evm::Precompile;
 
 	// Note that addresses from_str should not start with 0x, just the hex value
 	let addr_deadbeef = H160::from_str("0000000000000000000000000000000000001000").expect("Invalid address at precompiles generation");
@@ -91,11 +91,31 @@ impl pallet_evm::Precompiles for ExperimentalMoonbeamPrecompiles {
 	}
 }
 
+
+
+use ripemd160::Digest;
+/// The ripemd precompile.
+pub struct Ripemd160;
+
+impl Precompile for Ripemd160 {
+	fn execute(
+		input: &[u8],
+		target_gas: Option<usize>,
+	) -> core::result::Result<(ExitSucceed, Vec<u8>, usize), ExitError> {
+		let cost = ensure_linear_cost(target_gas, input.len(), 600, 120)?;
+
+		let mut v32 = [0u8; 32];
+		v32[12..32].copy_from_slice(&ripemd160::Ripemd160::digest(input));
+		Ok((ExitSucceed::Returned, v32.to_vec(), cost))
+	}
+}
+
+
 pub type MoonbeamPrecompiles =
 (
 	pallet_evm::precompiles::ECRecover,
 	pallet_evm::precompiles::Sha256,
-	pallet_evm::precompiles::Ripemd160,
+	Ripemd160, // Reset to pallet_evm ripemd160 once https://github.com/paritytech/substrate/pull/7296 is included
 	pallet_evm::precompiles::Identity,
 );
 
