@@ -14,6 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! The Moonbeam Runtime.
+//!
+//! This runtime powers both the moonbeam standalone node and the moonbeam parachain
+//! Use the `standalone` and `parachain` features.
+//!
+//! Primary features of this runtime include:
+//! * Ethereum compatability
+//! * Moonbeam tokenomics
+//! * Dual parachain / standalone support
+
 #![cfg_attr(not(feature = "std"), no_std)]
 // `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
 #![recursion_limit = "256"]
@@ -22,16 +32,22 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+use codec::{Decode, Encode};
+#[cfg(feature = "standalone")]
+use pallet_grandpa::{fg_primitives, AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList};
 use sp_api::impl_runtime_apis;
-use sp_core::{OpaqueMetadata, U256, H160, H256};
+#[cfg(feature = "standalone")]
+use sp_consensus_aura::sr25519::AuthorityId as AuraId;
+#[cfg(feature = "standalone")]
+use sp_core::crypto::Public;
+use sp_core::{OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Saturating, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, MultiSignature,
 };
-use sp_std::{prelude::*, marker::PhantomData};
-use codec::{Encode, Decode};
+use sp_std::{marker::PhantomData, prelude::*};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
@@ -39,18 +55,19 @@ use sp_version::RuntimeVersion;
 // A few exports that help ease life for downstream crates.
 pub use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Randomness, FindAuthor},
+	traits::{FindAuthor, Randomness},
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
-	StorageValue,
-	ConsensusEngineId,
+	ConsensusEngineId, StorageValue,
 };
+use frontier_rpc_primitives::TransactionStatus;
 pub use pallet_balances::Call as BalancesCall;
+use pallet_evm::{
+	Account as EVMAccount, EnsureAddressTruncated, FeeCalculator, HashedAddressMapping,
+};
 pub use pallet_timestamp::Call as TimestampCall;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
-use pallet_evm::{Account as EVMAccount, FeeCalculator, HashedAddressMapping, EnsureAddressTruncated};
-use frontier_rpc_primitives::{TransactionStatus};
 
 /// Import the message pallet.
 pub use cumulus_token_dealer;
@@ -294,20 +311,28 @@ impl frontier_rpc_primitives::ConvertTransaction<UncheckedExtrinsic> for Transac
 	}
 }
 
-impl frontier_rpc_primitives::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConverter {
-	fn convert_transaction(&self, transaction: ethereum::Transaction) -> opaque::UncheckedExtrinsic {
-		let extrinsic = UncheckedExtrinsic::new_unsigned(ethereum::Call::<Runtime>::transact(transaction).into());
+impl frontier_rpc_primitives::ConvertTransaction<opaque::UncheckedExtrinsic>
+	for TransactionConverter
+{
+	fn convert_transaction(
+		&self,
+		transaction: ethereum::Transaction,
+	) -> opaque::UncheckedExtrinsic {
+		let extrinsic = UncheckedExtrinsic::new_unsigned(
+			ethereum::Call::<Runtime>::transact(transaction).into(),
+		);
 		let encoded = extrinsic.encode();
-		opaque::UncheckedExtrinsic::decode(&mut &encoded[..]).expect("Encoded extrinsic is always valid")
+		opaque::UncheckedExtrinsic::decode(&mut &encoded[..])
+			.expect("Encoded extrinsic is always valid")
 	}
 }
 
 // TODO consensus not supported
 pub struct EthereumFindAuthor<F>(PhantomData<F>);
-impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F>
-{
-	fn find_author<'a, I>(_digests: I) -> Option<H160> where
-		I: 'a + IntoIterator<Item=(ConsensusEngineId, &'a [u8])>
+impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F> {
+	fn find_author<'a, I>(_digests: I) -> Option<H160>
+	where
+		I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
 	{
 		None
 	}
@@ -316,8 +341,9 @@ impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F>
 // TODO consensus not supported
 pub struct PhantomAura;
 impl FindAuthor<u32> for PhantomAura {
-	fn find_author<'a, I>(_digests: I) -> Option<u32> where
-		I: 'a + IntoIterator<Item=(ConsensusEngineId, &'a [u8])>
+	fn find_author<'a, I>(_digests: I) -> Option<u32>
+	where
+		I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
 	{
 		Some(0 as u32)
 	}
@@ -452,7 +478,7 @@ impl_runtime_apis! {
 			opaque::SessionKeys::generate(seed)
 		}
 	}
-	
+
 	impl frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Index> for Runtime {
 		fn account_nonce(account: AccountId) -> Index {
 			System::account_nonce(account)
