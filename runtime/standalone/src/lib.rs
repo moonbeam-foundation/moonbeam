@@ -56,8 +56,6 @@ pub use frame_support::{
 	ConsensusEngineId, StorageValue,
 };
 use frontier_rpc_primitives::TransactionStatus;
-pub use pallet_balances::Call as BalancesCall;
-pub use pallet_timestamp::Call as TimestampCall;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
@@ -98,13 +96,7 @@ pub mod opaque {
 	use super::*;
 
 	pub use sp_runtime::OpaqueExtrinsic as UncheckedExtrinsic;
-
-	/// Opaque block header type.
-	pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
-	/// Opaque block type.
 	pub type Block = generic::Block<Header, UncheckedExtrinsic>;
-	/// Opaque block identifier type.
-	pub type BlockId = generic::BlockId<Block>;
 
 	impl_opaque_keys! {
 		pub struct SessionKeys {
@@ -125,13 +117,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 };
 
 pub const MILLISECS_PER_BLOCK: u64 = 6000;
-
 pub const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
-
-// Time is measured by number of blocks.
-pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
-pub const HOURS: BlockNumber = MINUTES * 60;
-pub const DAYS: BlockNumber = HOURS * 24;
 
 /// The version information used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]

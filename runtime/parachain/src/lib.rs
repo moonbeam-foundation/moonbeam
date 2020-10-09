@@ -52,24 +52,24 @@ use sp_std::{marker::PhantomData, prelude::*};
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
-// A few exports that help ease life for downstream crates.
 pub use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{FindAuthor, Randomness},
-	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
+	weights::{
+		constants::WEIGHT_PER_SECOND,
+		IdentityFee, Weight
+	},
 	ConsensusEngineId, StorageValue,
 };
 use frontier_rpc_primitives::TransactionStatus;
-pub use pallet_balances::Call as BalancesCall;
 use pallet_evm::{
 	Account as EVMAccount, EnsureAddressTruncated, FeeCalculator, HashedAddressMapping,
 };
-pub use pallet_timestamp::Call as TimestampCall;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
 
-/// Import the message pallet.
+#[cfg(feature = "parachain")]
 pub use cumulus_token_dealer;
 
 /// An index to a block.
@@ -106,18 +106,20 @@ pub mod opaque {
 	use super::*;
 
 	pub use sp_runtime::OpaqueExtrinsic as UncheckedExtrinsic;
-
-	/// Opaque block header type.
-	pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
-	/// Opaque block type.
 	pub type Block = generic::Block<Header, UncheckedExtrinsic>;
-	/// Opaque block identifier type.
-	pub type BlockId = generic::BlockId<Block>;
 
-	pub type SessionHandlers = ();
-
+	#[cfg(feature = "parachain")]
 	impl_opaque_keys! {
 		pub struct SessionKeys {}
+	}
+
+
+	#[cfg(feature = "standalone")]
+	impl_opaque_keys! {
+		pub struct SessionKeys {
+			pub aura: Aura,
+			pub grandpa: Grandpa,
+		}
 	}
 }
 
@@ -133,18 +135,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 };
 
 pub const MILLISECS_PER_BLOCK: u64 = 6000;
-
 pub const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
-
-pub const EPOCH_DURATION_IN_BLOCKS: u32 = 10 * MINUTES;
-
-// These time units are defined in number of blocks.
-pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
-pub const HOURS: BlockNumber = MINUTES * 60;
-pub const DAYS: BlockNumber = HOURS * 24;
-
-// 1 in 4 blocks (on average, not counting collisions) will be primary babe blocks.
-pub const PRIMARY_PROBABILITY: (u64, u64) = (1, 4);
 
 /// The version infromation used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]
