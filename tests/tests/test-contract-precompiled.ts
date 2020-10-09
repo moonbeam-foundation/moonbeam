@@ -35,7 +35,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract of precompiled function)", `simple-
         expect(tx_receipt.result.transactionHash).equals('0x44f5a9a11af7d9253f4b34acd87a2f1714610b45c1562783406174e5b70e2c0a');
     });
 
-    it("Call precompiled function with eth_call and ensure the return value is as expected", async function () {
+    it.skip("Call precompiled function with eth_call and ensure the return value is as expected", async function () {
         this.timeout(15000);
 
         const tx_call = await customRequest(context.web3, "eth_call", [{from: GENESIS_ACCOUNT, 'value': "0x0", 'gas': "0x10000", 'gasPrice': "0x01", 'to': '0x0000000000000000000000000000000000001000', 'data': '0x12345678'}]);
