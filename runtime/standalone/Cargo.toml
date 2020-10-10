@@ -14,7 +14,7 @@ targets = ["x86_64-unknown-linux-gnu"]
 codec = { package = "parity-scale-codec", version = "1.3.0", default-features = false, features = ["derive"] }
 log = "0.4.8"
 hex-literal = "0.3.1"
-
+serde = { version = "1.0.101", optional = true, features = ["derive"] }
 
 pallet-aura = { default-features = false, package = "pallet-aura", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 pallet-balances = { default-features = false, package = "pallet-balances", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
@@ -28,7 +28,6 @@ pallet-timestamp = { default-features = false, package = "pallet-timestamp", git
 pallet-transaction-payment = { default-features = false, package = "pallet-transaction-payment", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 frame-evm = { default-features = false, package = "pallet-evm", git = "https://github.com/purestake/substrate", branch = "tgmichel-rococo-branch" }
 frame-executive = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
-serde = { version = "1.0.101", optional = true, features = ["derive"] }
 sp-api = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 sp-block-builder = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch"}
 sp-consensus-aura = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }

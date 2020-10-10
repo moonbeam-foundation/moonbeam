@@ -39,7 +39,7 @@ use sp_api::impl_runtime_apis;
 #[cfg(feature = "standalone")]
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 #[cfg(feature = "standalone")]
-use sp_core::crypto::Public;
+use sp_core::crypto::{KeyTypeId, Public};
 use sp_core::{OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
@@ -47,6 +47,8 @@ use sp_runtime::{
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, MultiSignature,
 };
+#[cfg(feature = "standalone")]
+use sp_runtime::traits::NumberFor;
 use sp_std::{marker::PhantomData, prelude::*};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
@@ -61,6 +63,8 @@ pub use frame_support::{
 	},
 	ConsensusEngineId, StorageValue,
 };
+#[cfg(feature = "standalone")]
+use frame_support::traits::KeyOwnerProofSystem;
 use frontier_rpc_primitives::TransactionStatus;
 use pallet_evm::{
 	Account as EVMAccount, EnsureAddressTruncated, FeeCalculator, HashedAddressMapping,
@@ -334,8 +338,8 @@ impl pallet_evm::Trait for Runtime {
 pub struct TransactionConverter;
 
 impl frontier_rpc_primitives::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
-	fn convert_transaction(&self, transaction: ethereum::Transaction) -> UncheckedExtrinsic {
-		UncheckedExtrinsic::new_unsigned(ethereum::Call::<Runtime>::transact(transaction).into())
+	fn convert_transaction(&self, transaction: pallet_ethereum::Transaction) -> UncheckedExtrinsic {
+		UncheckedExtrinsic::new_unsigned(pallet_ethereum::Call::<Runtime>::transact(transaction).into())
 	}
 }
 
@@ -344,10 +348,10 @@ impl frontier_rpc_primitives::ConvertTransaction<opaque::UncheckedExtrinsic>
 {
 	fn convert_transaction(
 		&self,
-		transaction: ethereum::Transaction,
+		transaction: pallet_ethereum::Transaction,
 	) -> opaque::UncheckedExtrinsic {
 		let extrinsic = UncheckedExtrinsic::new_unsigned(
-			ethereum::Call::<Runtime>::transact(transaction).into(),
+			pallet_ethereum::Call::<Runtime>::transact(transaction).into(),
 		);
 		let encoded = extrinsic.encode();
 		opaque::UncheckedExtrinsic::decode(&mut &encoded[..])
@@ -395,7 +399,7 @@ impl FindAuthor<u32> for PhantomAura {
 	}
 }
 
-impl ethereum::Trait for Runtime {
+impl pallet_ethereum::Trait for Runtime {
 	type Event = Event;
 	type FindAuthor = EthereumFindAuthor<PhantomAura>;
 }
@@ -421,7 +425,7 @@ construct_runtime! {
 		ParachainInfo: parachain_info::{Module, Storage, Config},
 		TokenDealer: cumulus_token_dealer::{Module, Call, Event<T>},
 		EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
-		Ethereum: ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
+		Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 	}
 }
 
@@ -440,8 +444,8 @@ construct_runtime!(
 		Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
 		TransactionPayment: pallet_transaction_payment::{Module, Storage},
 		Sudo: pallet_sudo::{Module, Call, Config<T>, Storage, Event<T>},
-		Ethereum: frame_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
-		EVM: frame_evm::{Module, Config, Call, Storage, Event<T>},
+		Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
+		EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
 	}
 );
 
@@ -578,7 +582,7 @@ impl_runtime_apis! {
 		}
 
 		fn author() -> H160 {
-			<ethereum::Module<Runtime>>::find_author()
+			Ethereum::find_author()
 		}
 
 		fn storage_at(address: H160, index: U256) -> H256 {
@@ -594,10 +598,10 @@ impl_runtime_apis! {
 			gas_limit: U256,
 			gas_price: Option<U256>,
 			nonce: Option<U256>,
-			action: ethereum::TransactionAction,
+			action: pallet_ethereum::TransactionAction,
 		) -> Result<(Vec<u8>, U256), sp_runtime::DispatchError> {
 			match action {
-				ethereum::TransactionAction::Call(to) =>
+				pallet_ethereum::TransactionAction::Call(to) =>
 					EVM::execute_call(
 						from,
 						to,
@@ -610,7 +614,7 @@ impl_runtime_apis! {
 					)
 					.map(|(_, ret, gas, _)| (ret, gas))
 					.map_err(|err| err.into()),
-				ethereum::TransactionAction::Create =>
+				pallet_ethereum::TransactionAction::Create =>
 					EVM::execute_create(
 						from,
 						data,
@@ -629,17 +633,17 @@ impl_runtime_apis! {
 			Ethereum::current_transaction_statuses()
 		}
 
-		fn current_block() -> Option<ethereum::Block> {
+		fn current_block() -> Option<pallet_ethereum::Block> {
 			Ethereum::current_block()
 		}
 
-		fn current_receipts() -> Option<Vec<ethereum::Receipt>> {
+		fn current_receipts() -> Option<Vec<pallet_ethereum::Receipt>> {
 			Ethereum::current_receipts()
 		}
 
 		fn current_all() -> (
-			Option<ethereum::Block>,
-			Option<Vec<ethereum::Receipt>>,
+			Option<pallet_ethereum::Block>,
+			Option<Vec<pallet_ethereum::Receipt>>,
 			Option<Vec<TransactionStatus>>
 		) {
 			(

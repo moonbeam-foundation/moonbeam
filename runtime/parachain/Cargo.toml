@@ -10,12 +10,11 @@ edition = '2018'
 [dependencies]
 serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
 codec = { package = "parity-scale-codec", version = "1.0.0", default-features = false, features = ["derive"] }
+log = "0.4.8"
+hex-literal = "0.3.1"
 
 parachain-info = { path = "../../pallets/parachain-info", default-features = false}
 cumulus-token-dealer = { path = "../../pallets/token-dealer", default-features = false}
-
-log = "0.4.8"
-hex-literal = "0.3.1"
 
 precompiles = { path = "../precompiles/", default-features = false }
 
@@ -47,7 +46,10 @@ pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/parityt
 pallet-evm = { git = "https://github.com/purestake/substrate", default-features = false, branch = "tgmichel-rococo-branch" }
 
 frontier-rpc-primitives = { default-features = false, path = "../../vendor/frontier/rpc/primitives" }
-ethereum = { default-features = false, package = "pallet-ethereum", path = "../../vendor/frontier/frame/ethereum" }
+pallet-ethereum = { default-features = false, path = "../../vendor/frontier/frame/ethereum" }
+
+sp-consensus-aura = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch", optional = true }
+pallet-grandpa = { default-features = false, package = "pallet-grandpa", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch", optional = true }
 
 # Cumulus dependencies
 cumulus-runtime = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0' }
@@ -63,7 +65,11 @@ wasm-builder-runner = { version = "1.0.6", package = "substrate-wasm-builder-run
 default = [ "std", "parachain" ]
 #TODO Mark parachain dependencies as optional
 parachain = []
-standalone = ["pallet-aura"]
+standalone = [
+	"pallet-aura",
+	"sp-consensus-aura",
+	"pallet-grandpa",
+	]
 std = [
 	"pallet-aura/std",
 	"codec/std",
@@ -94,7 +100,7 @@ std = [
 	"cumulus-upward-message/std",
 	"cumulus-primitives/std",
 	"cumulus-token-dealer/std",
-	"ethereum/std",
+	"pallet-ethereum/std",
 	"pallet-evm/std",
 	"frontier-rpc-primitives/std",
 	"frame-system-rpc-runtime-api/std",
