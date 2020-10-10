@@ -87,6 +87,12 @@ jobs:
       name: Run tests
       run: cargo test --release --verbose --all
     - 
+      name: Typescript tests
+      run: |
+        cd tools
+        npm install
+        BINARY_PATH='../target/release/moonbase-standalone' npm run test;
+    - 
       name: Save parachain binary
       run: |
         mkdir -p build/alphanet
