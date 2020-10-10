@@ -378,10 +378,9 @@ impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F> {
 	}
 }
 
-// TODO consensus not supported
-// Wait, why was this included in the parachain implementation?
-// Where are we even using FindAuthor?
+#[cfg(feature = "parachain")]
 pub struct PhantomAura;
+#[cfg(feature = "parachain")]
 impl FindAuthor<u32> for PhantomAura {
 	fn find_author<'a, I>(_digests: I) -> Option<u32>
 	where
@@ -393,7 +392,10 @@ impl FindAuthor<u32> for PhantomAura {
 
 impl pallet_ethereum::Trait for Runtime {
 	type Event = Event;
+	#[cfg(feature = "parachain")]
 	type FindAuthor = EthereumFindAuthor<PhantomAura>;
+	#[cfg(feature = "standalone")]
+	type FindAuthor = EthereumFindAuthor<Aura>;
 }
 
 // The construct_runtime macro does not recognize conditional compilation flags inside.
