@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use cumulus_primitives::ParaId;
-use moonbase_runtime::{
+use moonbeam_runtime::{
 	AccountId, BalancesConfig, GenesisConfig, Signature, SudoConfig, SystemConfig,
 	ParachainInfoConfig, WASM_BINARY, EVMConfig, EthereumConfig,
 };

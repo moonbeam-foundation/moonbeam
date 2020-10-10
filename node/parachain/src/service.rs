@@ -30,12 +30,12 @@ use std::sync::Arc;
 use sc_consensus::LongestChain;
 use sc_client_db::Backend;
 use frontier_consensus::FrontierBlockImport;
-use moonbase_runtime::{RuntimeApi, opaque::Block};
+use moonbeam_runtime::{RuntimeApi, opaque::Block};
 // Our native executor instance.
 native_executor_instance!(
 	pub Executor,
-	moonbase_runtime::api::dispatch,
-	moonbase_runtime::native_version,
+	moonbeam_runtime::api::dispatch,
+	moonbeam_runtime::native_version,
 );
 
 type FullClient = TFullClient<Block, RuntimeApi, Executor>;
@@ -63,7 +63,7 @@ pub fn new_partial(
 			FullClient,
 		>,
 		FrontierBlockImport<
-			moonbase_runtime::opaque::Block,
+			moonbeam_runtime::opaque::Block,
 			Arc<FullClient>,
 			FullClient
 		>,
@@ -134,8 +134,8 @@ pub fn run_node(
 	TaskManager,
 	Arc<
 		TFullClient<
-			moonbase_runtime::opaque::Block,
-			moonbase_runtime::RuntimeApi,
+			moonbeam_runtime::opaque::Block,
+			moonbeam_runtime::RuntimeApi,
 			crate::service::Executor,
 		>,
 	>,
