@@ -13,8 +13,9 @@ codec = { package = "parity-scale-codec", version = "1.0.0", default-features = 
 log = "0.4.8"
 hex-literal = "0.3.1"
 
-parachain-info = { path = "../../pallets/parachain-info", default-features = false}
-cumulus-token-dealer = { path = "../../pallets/token-dealer", default-features = false}
+# TODO Why can't these come directly from cumulus
+parachain-info = { path = "../../pallets/parachain-info", default-features = false, optional = true}
+cumulus-token-dealer = { path = "../../pallets/token-dealer", default-features = false, optional = true}
 
 precompiles = { path = "../precompiles/", default-features = false }
 
@@ -52,19 +53,26 @@ sp-consensus-aura = { default-features = false, git = "https://github.com/parity
 pallet-grandpa = { default-features = false, package = "pallet-grandpa", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch", optional = true }
 
 # Cumulus dependencies
-cumulus-runtime = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0' }
-cumulus-parachain-upgrade = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0' }
-cumulus-message-broker = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0' }
-cumulus-upward-message = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0' }
-cumulus-primitives = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0' }
+cumulus-runtime = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0', optional = true }
+cumulus-parachain-upgrade = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0', optional = true }
+cumulus-message-broker = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0', optional = true }
+cumulus-upward-message = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0', optional = true }
+cumulus-primitives = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0', optional = true }
 
 [build-dependencies]
 wasm-builder-runner = { version = "1.0.6", package = "substrate-wasm-builder-runner", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 
 [features]
 default = [ "std" ]
-#TODO Mark parachain dependencies as optional
-parachain = []
+parachain = [
+	"cumulus-runtime",
+	"cumulus-parachain-upgrade",
+	"cumulus-message-broker",
+	"cumulus-upward-message",
+	"cumulus-primitives",
+	"cumulus-token-dealer",
+	"parachain-info",
+]
 standalone = [
 	"pallet-aura",
 	"sp-consensus-aura",
