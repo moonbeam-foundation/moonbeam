@@ -7,7 +7,7 @@ It is written in typescript, using Mocha/Chai as Test framework.
 ## Test flow
 
 Tests are separated depending of their genesis requirements.
-Each group will start a standalone moonbeam node with the [test spec](moonbeam-test-specs/simple-specs.json]) before executing the tests.
+Each group will start a standalone moonbeam node with the [test spec](moonbeam-test-specs/simple-specs.json) before executing the tests.
 
 ## Installation
 
