@@ -62,7 +62,7 @@ cumulus-primitives = { git = "https://github.com/paritytech/cumulus",  default-f
 wasm-builder-runner = { version = "1.0.6", package = "substrate-wasm-builder-runner", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 
 [features]
-default = [ "std", "parachain" ]
+default = [ "std" ]
 #TODO Mark parachain dependencies as optional
 parachain = []
 standalone = [
