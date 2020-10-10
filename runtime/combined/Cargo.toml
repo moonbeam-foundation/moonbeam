@@ -1,6 +1,6 @@
 [package]
-name = 'parachain-runtime'
-description = 'Moonbase Runtime'
+name = 'moonbeam-runtime'
+description = 'Moonbeam Runtime'
 homepage = 'https://moonbeam.network'
 license = 'Unlicense'
 version = '0.1.0'
