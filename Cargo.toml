@@ -1,7 +1,7 @@
 [workspace]
 members = [
     'node/standalone',
-    'runtime/combined',
+    'runtime',
     'node/parachain',
 ]
 exclude = ["vendor"]

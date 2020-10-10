@@ -14,10 +14,10 @@ log = "0.4.8"
 hex-literal = "0.3.1"
 
 # TODO Why can't these come directly from cumulus
-parachain-info = { path = "../../pallets/parachain-info", default-features = false, optional = true}
-cumulus-token-dealer = { path = "../../pallets/token-dealer", default-features = false, optional = true}
+parachain-info = { path = "../pallets/parachain-info", default-features = false, optional = true}
+cumulus-token-dealer = { path = "../pallets/token-dealer", default-features = false, optional = true}
 
-precompiles = { path = "../precompiles/", default-features = false }
+precompiles = { path = "precompiles/", default-features = false }
 
 # Substrate dependencies
 pallet-aura = { git = "https://github.com/paritytech/substrate.git", default-features = false, branch = "rococo-branch", optional = true }
@@ -46,8 +46,8 @@ frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate"
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
 pallet-evm = { git = "https://github.com/purestake/substrate", default-features = false, branch = "tgmichel-rococo-branch" }
 
-frontier-rpc-primitives = { default-features = false, path = "../../vendor/frontier/rpc/primitives" }
-pallet-ethereum = { default-features = false, path = "../../vendor/frontier/frame/ethereum" }
+frontier-rpc-primitives = { default-features = false, path = "../vendor/frontier/rpc/primitives" }
+pallet-ethereum = { default-features = false, path = "../vendor/frontier/frame/ethereum" }
 
 sp-consensus-aura = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch", optional = true }
 pallet-grandpa = { default-features = false, package = "pallet-grandpa", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch", optional = true }
