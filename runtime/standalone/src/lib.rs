@@ -140,8 +140,6 @@ parameter_types! {
 	pub const Version: RuntimeVersion = VERSION;
 }
 
-// Configure FRAME pallets to include in runtime.
-
 impl frame_system::Trait for Runtime {
 	/// The basic call filter to use in dispatchable.
 	type BaseCallFilter = ();
@@ -266,12 +264,12 @@ impl pallet_sudo::Trait for Runtime {
 	type Call = Call;
 }
 
-/// Fixed gas price of `1`.
+/// Fixed gas price of `0`.
 pub struct FixedGasPrice;
 
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		// Gas price is always one token per gas.
+		// Gas price is always free.
 		0.into()
 	}
 }

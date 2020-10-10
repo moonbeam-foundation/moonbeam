@@ -123,6 +123,10 @@ pub mod opaque {
 	}
 }
 
+//TODO There is a module called constants in the other runtime.
+// Most of it is irrelevant babe stuff, but it looks like there is some potentialy-relevant
+// tokenomics stuff in there.
+
 /// This runtime version.
 pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam-alphanet"),
@@ -134,6 +138,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	transaction_version: 1,
 };
 
+//TODO Are these actually used anywhere? Aura slot duration comes from pallet aura it seems??
 pub const MILLISECS_PER_BLOCK: u64 = 6000;
 pub const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
 
@@ -202,7 +207,34 @@ impl frame_system::Trait for Runtime {
 	type SystemWeightInfo = ();
 }
 
+
+#[cfg(feature = "standalone")]
+impl pallet_aura::Trait for Runtime {
+	type AuthorityId = AuraId;
+}
+
+#[cfg(feature = "standalone")]
+impl pallet_grandpa::Trait for Runtime {
+	type Event = Event;
+	type Call = Call;
+
+	type KeyOwnerProofSystem = ();
+
+	type KeyOwnerProof =
+		<Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(KeyTypeId, GrandpaId)>>::Proof;
+
+	type KeyOwnerIdentification = <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(
+		KeyTypeId,
+		GrandpaId,
+	)>>::IdentificationTuple;
+
+	type HandleEquivocation = ();
+}
+
 parameter_types! {
+	//TODO pull this from constants module?
+	// How to handle this on standalone vs parachain?
+	// Should I just hardcode 3 seconds?
 	pub const MinimumPeriod: u64 = SLOT_DURATION / 2;
 }
 
@@ -216,9 +248,6 @@ impl pallet_timestamp::Trait for Runtime {
 
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 500;
-	pub const TransferFee: u128 = 0;
-	pub const CreationFee: u128 = 0;
-	pub const TransactionByteFee: u128 = 1;
 }
 
 impl pallet_balances::Trait for Runtime {
@@ -230,6 +259,10 @@ impl pallet_balances::Trait for Runtime {
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
+}
+
+parameter_types! {
+	pub const TransactionByteFee: Balance = 1;
 }
 
 impl pallet_transaction_payment::Trait for Runtime {
@@ -245,11 +278,13 @@ impl pallet_sudo::Trait for Runtime {
 	type Event = Event;
 }
 
+#[cfg(feature = "parachain")]
 impl cumulus_parachain_upgrade::Trait for Runtime {
 	type Event = Event;
 	type OnValidationFunctionParams = ();
 }
 
+#[cfg(feature = "parachain")]
 impl cumulus_message_broker::Trait for Runtime {
 	type Event = Event;
 	type DownwardMessageHandlers = TokenDealer;
@@ -259,8 +294,10 @@ impl cumulus_message_broker::Trait for Runtime {
 	type XCMPMessageHandlers = TokenDealer;
 }
 
+#[cfg(feature = "parachain")]
 impl parachain_info::Trait for Runtime {}
 
+#[cfg(feature = "parachain")]
 impl cumulus_token_dealer::Trait for Runtime {
 	type Event = Event;
 	type UpwardMessageSender = MessageBroker;
@@ -269,12 +306,12 @@ impl cumulus_token_dealer::Trait for Runtime {
 	type XCMPMessageSender = MessageBroker;
 }
 
-/// Fixed gas price of `1`.
+/// Fixed gas price of `0`.
 pub struct FixedGasPrice;
 
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		// Gas price is always one token per gas.
+		// Gas price is always free.
 		0.into()
 	}
 }

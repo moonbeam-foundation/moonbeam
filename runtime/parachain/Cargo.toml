@@ -20,6 +20,7 @@ hex-literal = "0.3.1"
 precompiles = { path = "../precompiles/", default-features = false }
 
 # Substrate dependencies
+pallet-aura = { git = "https://github.com/paritytech/substrate.git", default-features = false, branch = "rococo-branch", optional = true }
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
 sp-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
 sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
@@ -60,9 +61,11 @@ wasm-builder-runner = { version = "1.0.6", package = "substrate-wasm-builder-run
 
 [features]
 default = [ "std", "parachain" ]
+#TODO Mark parachain dependencies as optional
 parachain = []
-standalone = []
+standalone = ["pallet-aura"]
 std = [
+	"pallet-aura/std",
 	"codec/std",
 	"serde",
 	"sp-api/std",
