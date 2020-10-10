@@ -127,9 +127,10 @@ fn testnet_genesis(
 	endowed_accounts: Vec<AccountId>,
 	id: ParaId,
 ) -> GenesisConfig {
+	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	GenesisConfig {
 		frame_system: Some(SystemConfig {
-			code: WASM_BINARY.to_vec(),
+			code: wasm_binary,
 			changes_trie_config: Default::default(),
 		}),
 		pallet_balances: Some(BalancesConfig {
