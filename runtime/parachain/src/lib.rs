@@ -355,8 +355,10 @@ impl frontier_rpc_primitives::ConvertTransaction<opaque::UncheckedExtrinsic>
 	}
 }
 
-// TODO consensus not supported
 pub struct EthereumFindAuthor<F>(PhantomData<F>);
+
+// TODO Consensus not supported in parachain
+#[cfg(feature = "parachain")]
 impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F> {
 	fn find_author<'a, I>(_digests: I) -> Option<H160>
 	where
@@ -366,7 +368,23 @@ impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F> {
 	}
 }
 
+#[cfg(feature = "standalone")]
+impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F> {
+	fn find_author<'a, I>(digests: I) -> Option<H160>
+	where
+		I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
+	{
+		if let Some(author_index) = F::find_author(digests) {
+			let authority_id = Aura::authorities()[author_index as usize].clone();
+			return Some(H160::from_slice(&authority_id.to_raw_vec()[4..24]));
+		}
+		None
+	}
+}
+
 // TODO consensus not supported
+// Wait, why was this included in the parachain implementation?
+// Where are we even using FindAuthor?
 pub struct PhantomAura;
 impl FindAuthor<u32> for PhantomAura {
 	fn find_author<'a, I>(_digests: I) -> Option<u32>
@@ -382,6 +400,10 @@ impl ethereum::Trait for Runtime {
 	type FindAuthor = EthereumFindAuthor<PhantomAura>;
 }
 
+// The construct_runtime macro does not recognize conditional compilation flags inside.
+// So we have two different instances of the macro; One for parachain and one for standalone.
+// This could possibly be improved by looking at how Polkadot handles the multiple runtime situation.
+#[cfg(feature = "parachain")]
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -403,6 +425,26 @@ construct_runtime! {
 	}
 }
 
+#[cfg(feature = "standalone")]
+construct_runtime!(
+	pub enum Runtime where
+		Block = Block,
+		NodeBlock = opaque::Block,
+		UncheckedExtrinsic = UncheckedExtrinsic
+	{
+		System: frame_system::{Module, Call, Config, Storage, Event<T>},
+		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Module, Call, Storage},
+		Timestamp: pallet_timestamp::{Module, Call, Storage, Inherent},
+		Aura: pallet_aura::{Module, Config<T>, Inherent},
+		Grandpa: pallet_grandpa::{Module, Call, Storage, Config, Event},
+		Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
+		TransactionPayment: pallet_transaction_payment::{Module, Storage},
+		Sudo: pallet_sudo::{Module, Call, Config<T>, Storage, Event<T>},
+		Ethereum: frame_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
+		EVM: frame_evm::{Module, Config, Call, Storage, Event<T>},
+	}
+);
+
 /// The address format for describing accounts.
 pub type Address = AccountId;
 /// Block header type as expected by this runtime.
@@ -416,6 +458,8 @@ pub type BlockId = generic::BlockId<Block>;
 /// The SignedExtension to the basic transaction logic.
 pub type SignedExtra = (
 	frame_system::CheckSpecVersion<Runtime>,
+	// TODO CheckTxVersion was not included in the parachain runtime before mergin. Maybe becase it wasn't a thing in substrate rc5?
+	frame_system::CheckTxVersion<Runtime>,
 	frame_system::CheckGenesis<Runtime>,
 	frame_system::CheckEra<Runtime>,
 	frame_system::CheckNonce<Runtime>,
@@ -471,7 +515,10 @@ impl_runtime_apis! {
 			data.create_extrinsics()
 		}
 
-		fn check_inherents(block: Block, data: sp_inherents::InherentData) -> sp_inherents::CheckInherentsResult {
+		fn check_inherents(
+			block: Block,
+			data: sp_inherents::InherentData,
+		) -> sp_inherents::CheckInherentsResult {
 			data.check_extrinsics(&block)
 		}
 
@@ -614,6 +661,45 @@ impl_runtime_apis! {
 			TransactionPayment::query_info(uxt, len)
 		}
 	}
+
+	#[cfg(feature = "standalone")]
+	impl sp_consensus_aura::AuraApi<Block, AuraId> for Runtime {
+		fn slot_duration() -> u64 {
+			Aura::slot_duration()
+		}
+
+		fn authorities() -> Vec<AuraId> {
+			Aura::authorities()
+		}
+	}
+
+	#[cfg(feature = "standalone")]
+	impl fg_primitives::GrandpaApi<Block> for Runtime {
+		fn grandpa_authorities() -> GrandpaAuthorityList {
+			Grandpa::grandpa_authorities()
+		}
+
+		fn submit_report_equivocation_unsigned_extrinsic(
+			_equivocation_proof: fg_primitives::EquivocationProof<
+				<Block as BlockT>::Hash,
+				NumberFor<Block>,
+			>,
+			_key_owner_proof: fg_primitives::OpaqueKeyOwnershipProof,
+		) -> Option<()> {
+			None
+		}
+
+		fn generate_key_ownership_proof(
+			_set_id: fg_primitives::SetId,
+			_authority_id: GrandpaId,
+		) -> Option<fg_primitives::OpaqueKeyOwnershipProof> {
+			// NOTE: this is the only implementation possible since we've
+			// defined our key owner proof type as a bottom type (i.e. a type
+			// with no values).
+			None
+		}
+	}
 }
 
+#[cfg(feature = "parachain")]
 cumulus_runtime::register_validate_block!(Block, Executive);
