@@ -400,7 +400,7 @@ jobs:
           asset_name: ${{ matrix.runtime }}-genesis.txt
           asset_content_type: text/plain
 
-  link-check:
+  check-links:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
