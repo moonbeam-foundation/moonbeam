@@ -3,7 +3,7 @@ authors = ['PureStake']
 edition = '2018'
 homepage = 'https://moonbeam.network'
 license = 'Unlicense'
-name = 'moonbeam-runtime'
+name = 'standalone-runtime'
 repository = 'https://github.com/PureStake/moonbeam/'
 version = '0.1.1'
 

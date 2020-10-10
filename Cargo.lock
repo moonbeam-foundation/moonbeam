@@ -3633,12 +3633,12 @@ dependencies = [
  "jsonrpc-core",
  "jsonrpc-pubsub",
  "log 0.4.11",
- "moonbase-runtime",
  "nix 0.17.0",
  "pallet-ethereum 0.1.0",
  "pallet-evm",
  "pallet-sudo",
  "pallet-transaction-payment-rpc",
+ "parachain-runtime",
  "parity-scale-codec",
  "parking_lot 0.9.0",
  "polkadot-cli",
@@ -3689,50 +3689,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "moonbase-runtime"
-version = "0.1.0"
-dependencies = [
- "cumulus-message-broker",
- "cumulus-parachain-upgrade",
- "cumulus-primitives",
- "cumulus-runtime",
- "cumulus-token-dealer",
- "cumulus-upward-message",
- "frame-executive",
- "frame-support",
- "frame-system",
- "frame-system-rpc-runtime-api",
- "frontier-rpc-primitives",
- "hex-literal 0.3.1",
- "log 0.4.11",
- "pallet-aura",
- "pallet-balances",
- "pallet-ethereum 0.1.0",
- "pallet-evm",
- "pallet-randomness-collective-flip",
- "pallet-sudo",
- "pallet-timestamp",
- "pallet-transaction-payment",
- "pallet-transaction-payment-rpc-runtime-api",
- "parachain-info",
- "parity-scale-codec",
- "precompiles",
- "serde",
- "sp-api",
- "sp-block-builder",
- "sp-core",
- "sp-inherents",
- "sp-io",
- "sp-offchain",
- "sp-runtime",
- "sp-session",
- "sp-std",
- "sp-transaction-pool",
- "sp-version",
- "substrate-wasm-builder-runner 1.0.6 (git+https://github.com/paritytech/substrate.git?branch=rococo-branch)",
-]
-
-[[package]]
 name = "moonbase-standalone"
 version = "0.1.1"
 dependencies = [
@@ -3743,7 +3699,6 @@ dependencies = [
  "jsonrpc-core",
  "jsonrpc-pubsub",
  "log 0.4.11",
- "moonbeam-runtime",
  "pallet-ethereum 0.1.0",
  "pallet-evm",
  "pallet-transaction-payment-rpc",
@@ -3772,48 +3727,10 @@ dependencies = [
  "sp-runtime",
  "sp-timestamp",
  "sp-transaction-pool",
+ "standalone-runtime",
  "structopt",
  "substrate-build-script-utils",
  "substrate-frame-rpc-system",
-]
-
-[[package]]
-name = "moonbeam-runtime"
-version = "0.1.1"
-dependencies = [
- "frame-executive",
- "frame-support",
- "frame-system",
- "frame-system-rpc-runtime-api",
- "frontier-rpc-primitives",
- "hex-literal 0.3.1",
- "log 0.4.11",
- "pallet-aura",
- "pallet-balances",
- "pallet-ethereum 0.1.0",
- "pallet-evm",
- "pallet-grandpa",
- "pallet-randomness-collective-flip",
- "pallet-sudo",
- "pallet-timestamp",
- "pallet-transaction-payment",
- "pallet-transaction-payment-rpc-runtime-api",
- "parity-scale-codec",
- "precompiles",
- "serde",
- "sp-api",
- "sp-block-builder",
- "sp-consensus-aura",
- "sp-core",
- "sp-inherents",
- "sp-io",
- "sp-offchain",
- "sp-runtime",
- "sp-session",
- "sp-std",
- "sp-transaction-pool",
- "sp-version",
- "substrate-wasm-builder-runner 1.0.6 (git+https://github.com/paritytech/substrate.git?branch=rococo-branch)",
 ]
 
 [[package]]
@@ -4690,6 +4607,50 @@ dependencies = [
  "frame-system",
  "parity-scale-codec",
  "serde",
+]
+
+[[package]]
+name = "parachain-runtime"
+version = "0.1.0"
+dependencies = [
+ "cumulus-message-broker",
+ "cumulus-parachain-upgrade",
+ "cumulus-primitives",
+ "cumulus-runtime",
+ "cumulus-token-dealer",
+ "cumulus-upward-message",
+ "frame-executive",
+ "frame-support",
+ "frame-system",
+ "frame-system-rpc-runtime-api",
+ "frontier-rpc-primitives",
+ "hex-literal 0.3.1",
+ "log 0.4.11",
+ "pallet-aura",
+ "pallet-balances",
+ "pallet-ethereum 0.1.0",
+ "pallet-evm",
+ "pallet-randomness-collective-flip",
+ "pallet-sudo",
+ "pallet-timestamp",
+ "pallet-transaction-payment",
+ "pallet-transaction-payment-rpc-runtime-api",
+ "parachain-info",
+ "parity-scale-codec",
+ "precompiles",
+ "serde",
+ "sp-api",
+ "sp-block-builder",
+ "sp-core",
+ "sp-inherents",
+ "sp-io",
+ "sp-offchain",
+ "sp-runtime",
+ "sp-session",
+ "sp-std",
+ "sp-transaction-pool",
+ "sp-version",
+ "substrate-wasm-builder-runner 1.0.6 (git+https://github.com/paritytech/substrate.git?branch=rococo-branch)",
 ]
 
 [[package]]
@@ -8402,6 +8363,45 @@ name = "stable_deref_trait"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
+
+[[package]]
+name = "standalone-runtime"
+version = "0.1.1"
+dependencies = [
+ "frame-executive",
+ "frame-support",
+ "frame-system",
+ "frame-system-rpc-runtime-api",
+ "frontier-rpc-primitives",
+ "hex-literal 0.3.1",
+ "log 0.4.11",
+ "pallet-aura",
+ "pallet-balances",
+ "pallet-ethereum 0.1.0",
+ "pallet-evm",
+ "pallet-grandpa",
+ "pallet-randomness-collective-flip",
+ "pallet-sudo",
+ "pallet-timestamp",
+ "pallet-transaction-payment",
+ "pallet-transaction-payment-rpc-runtime-api",
+ "parity-scale-codec",
+ "precompiles",
+ "serde",
+ "sp-api",
+ "sp-block-builder",
+ "sp-consensus-aura",
+ "sp-core",
+ "sp-inherents",
+ "sp-io",
+ "sp-offchain",
+ "sp-runtime",
+ "sp-session",
+ "sp-std",
+ "sp-transaction-pool",
+ "sp-version",
+ "substrate-wasm-builder-runner 1.0.6 (git+https://github.com/paritytech/substrate.git?branch=rococo-branch)",
+]
 
 [[package]]
 name = "static_assertions"

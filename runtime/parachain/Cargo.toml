@@ -1,5 +1,5 @@
 [package]
-name = 'moonbase-runtime'
+name = 'parachain-runtime'
 description = 'Moonbase Parachain Collator Runtime'
 homepage = 'https://moonbeam.network'
 license = 'Unlicense'
