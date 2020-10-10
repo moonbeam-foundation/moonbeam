@@ -14,9 +14,9 @@ jobs:
       tag-count: ${{ steps.variables.outputs.count }}
       sha-8: ${{ steps.variables.outputs.sha-8 }}
     steps:
-    - 
+    -
       uses: actions/checkout@v2
-    - 
+    -
       id: variables
       run: |
         echo ::set-output name=version::$(git tag -l | tail -n1 | cut -c2- )
@@ -24,7 +24,7 @@ jobs:
         echo ${{ github.ref }}
         echo ::set-output name=tag-exists::$(git describe --exact-match HEAD 2>/dev/null && echo 1 || echo 0)
         echo ::set-output name=sha-8::$(git rev-parse HEAD | cut -c1-8)
-    - 
+    -
       id: show-variables
       run: |
         echo tag-version: ${{ steps.variables.outputs.version }}
@@ -35,9 +35,9 @@ jobs:
   check-copyright:
     runs-on: ubuntu-latest
     steps:
-    - 
+    -
       uses: actions/checkout@v2
-    - 
+    -
       name: Find un-copyrighted files
       run: |
         find . -name '*.rs' -exec grep  -H -E -o -c Copyright {} \; | grep ':0' || true
@@ -53,9 +53,9 @@ jobs:
     outputs:
       RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
     steps:
-    - 
+    -
       uses: actions/checkout@v2
-    - 
+    -
       name: Cache Rust dependencies
       uses: actions/cache@v2
       id: cache
@@ -67,39 +67,39 @@ jobs:
         key: ${{ runner.OS }}-build-${{ env.WASM_BUILD_TOOLCHAIN }}-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
           ${{ runner.OS }}-build--${{ env.WASM_BUILD_TOOLCHAIN }}
-    - 
+    -
       name: Submodules
       run: git submodule update --init --recursive
-    - 
+    -
       uses: actions-rs/toolchain@v1
       with:
         target: wasm32-unknown-unknown
         toolchain: ${{ env.WASM_BUILD_TOOLCHAIN }}
         default: true
-    - 
+    -
       id: get-rust-versions
       run: |
         echo "::set-output name=rustc::$(rustc --version)"
-    - 
+    -
       name: Build
       run: cargo build --release --verbose --all
-    - 
+    -
       name: Run tests
       run: cargo test --release --verbose --all
-    - 
+    -
       name: Save parachain binary
       run: |
         mkdir -p build/alphanet
         mkdir -p build/standalone
         cp target/release/moonbase-alphanet build/alphanet/moonbase-alphanet;
         cp target/release/moonbase-standalone build/standalone/moonbase-standalone;
-    - 
+    -
       name: Upload moonbase-alphanet node
       uses: actions/upload-artifact@v2
       with:
         name: moonbase-alphanet
         path: build/alphanet
-    - 
+    -
       name: Upload moonbase-standalone node
       uses: actions/upload-artifact@v2
       with:
@@ -110,19 +110,19 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-    - 
+    -
       uses: actions/checkout@v2
-    - 
+    -
       uses: actions/download-artifact@v2
       with:
         name: moonbase-alphanet
         path: build/alphanet
-    - 
+    -
       name: Generate specs
       run: |
         chmod uog+x build/alphanet/moonbase-alphanet
         PARACHAIN_BINARY=build/alphanet/moonbase-alphanet scripts/generate-parachain-specs.sh
-    - 
+    -
       name: Upload parachain specs
       uses: actions/upload-artifact@v2
       with:
@@ -134,9 +134,9 @@ jobs:
     needs: ['get-variables', 'build', 'generate-parachain-specs']
     if: needs.get-variables.outputs.tag-exists == 0 && github.event_name != 'pull_request'
     steps:
-      - 
+      -
         uses: actions/checkout@v2
-      - 
+      -
         uses: actions/download-artifact@v2
         with:
           name: moonbase-alphanet
@@ -182,7 +182,7 @@ jobs:
             image=moby/buildkit:master
       -
         name: Login to DockerHub
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -212,9 +212,9 @@ jobs:
     needs: ['get-variables', 'build']
     if: needs.get-variables.outputs.tag-exists == 0 && github.event_name != 'pull_request'
     steps:
-      - 
+      -
         uses: actions/checkout@v2
-      - 
+      -
         uses: actions/download-artifact@v2
         with:
           name: moonbase-standalone
@@ -260,7 +260,7 @@ jobs:
             image=moby/buildkit:master
       -
         name: Login to DockerHub
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -287,22 +287,22 @@ jobs:
   publish-draft-release:
     runs-on: ubuntu-latest
     needs: ['build', 'generate-parachain-specs']
-    if: needs.get-tag-version.outputs.tag-exists == 1 
+    if: needs.get-tag-version.outputs.tag-exists == 1
     outputs:
       release_url: ${{ steps.create-release.outputs.html_url }}
       asset_upload_url: ${{ steps.create-release.outputs.upload_url }}
     steps:
-    - 
+    -
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
         path: moonbeam
-    - 
+    -
       name: Set up Ruby 2.7
       uses: actions/setup-ruby@v1
       with:
         ruby-version: 2.7
-    - 
+    -
       name: Generate release text
       env:
         RUSTC: ${{ needs.build.outputs.rustc }}
@@ -310,7 +310,7 @@ jobs:
       run: |
         gem install changelogerator git toml
         ruby $GITHUB_WORKSPACE/moonbeam/scripts/github/generate_release_text.rb | tee release_text.md
-    - 
+    -
       name: Create draft release
       id: create-release
       uses: actions/create-release@v1
@@ -326,24 +326,24 @@ jobs:
   publish-runtimes:
     runs-on: ubuntu-latest
     needs: ['publish-draft-release']
-    if: needs.get-tag-version.outputs.tag-exists == 1 
+    if: needs.get-tag-version.outputs.tag-exists == 1
     strategy:
       matrix:
         runtime: ['moonbase-alphanet']
     steps:
-      - 
+      -
         uses: actions/checkout@v2
-      - 
+      -
         uses: actions/download-artifact@v2
         with:
           name: moonbase-alphanet
           path: build/alphanet
-      - 
+      -
         name: Set up Ruby 2.7
         uses: actions/setup-ruby@v1
         with:
           ruby-version: 2.7
-      - 
+      -
         name: Get runtime version
         id: get-runtime-ver
         run: |
@@ -359,7 +359,7 @@ jobs:
           asset_path: build/alphanet/${{ matrix.runtime }}-runtime.wasm
           asset_name: ${{ matrix.runtime }}-runtime-v${{ steps.get-runtime-ver.outputs.runtime_ver }}.wasm
           asset_content_type: application/wasm
-      - 
+      -
         name: Upload ${{ matrix.runtime }} node
         uses: actions/upload-release-asset@v1
         env:
@@ -368,8 +368,8 @@ jobs:
           upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
           asset_path: build/alphanet/${{ matrix.runtime }}
           asset_name: ${{ matrix.runtime }}
-          asset_content_type: application/octet-stream 
-      - 
+          asset_content_type: application/octet-stream
+      -
         name: Upload ${{ matrix.runtime }} specs plain
         uses: actions/upload-release-asset@v1
         env:
@@ -378,8 +378,8 @@ jobs:
           upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
           asset_path: build/alphanet/${{ matrix.runtime }}-specs-plain.json
           asset_name: ${{ matrix.runtime }}-specs-plain.json
-          asset_content_type: application/json 
-      - 
+          asset_content_type: application/json
+      -
         name: Upload ${{ matrix.runtime }} specs raw
         uses: actions/upload-release-asset@v1
         env:
@@ -388,8 +388,8 @@ jobs:
           upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
           asset_path: build/alphanet/${{ matrix.runtime }}-specs-raw.json
           asset_name: ${{ matrix.runtime }}-specs-raw.json
-          asset_content_type: application/json 
-      - 
+          asset_content_type: application/json
+      -
         name: Upload ${{ matrix.runtime }} genesis
         uses: actions/upload-release-asset@v1
         env:
@@ -398,4 +398,12 @@ jobs:
           upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
           asset_path: build/alphanet/${{ matrix.runtime }}-genesis.txt
           asset_name: ${{ matrix.runtime }}-genesis.txt
-          asset_content_type: text/plain 
+          asset_content_type: text/plain
+
+  link-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: gaurav-nelson/github-action-markdown-link-check@v1
+      with:
+        use-quiet-mode: 'yes'
