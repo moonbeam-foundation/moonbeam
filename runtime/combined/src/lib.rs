@@ -138,10 +138,6 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	transaction_version: 1,
 };
 
-//TODO Are these actually used anywhere? Aura slot duration comes from pallet aura it seems??
-pub const MILLISECS_PER_BLOCK: u64 = 6000;
-pub const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
-
 /// The version infromation used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]
 pub fn native_version() -> NativeVersion {
@@ -232,10 +228,10 @@ impl pallet_grandpa::Trait for Runtime {
 }
 
 parameter_types! {
-	//TODO pull this from constants module?
-	// How to handle this on standalone vs parachain?
-	// Should I just hardcode 3 seconds?
-	pub const MinimumPeriod: u64 = SLOT_DURATION / 2;
+	// When running in standalone mode, this controls the block time.
+	// Block time is double the minimum period.
+	// https://github.com/paritytech/substrate/blob/e4803bdaf228328cef4cba7be3e5951439555478/frame/aura/src/lib.rs#L197-L199
+	pub const MinimumPeriod: u64 = 3_000;
 }
 
 impl pallet_timestamp::Trait for Runtime {
