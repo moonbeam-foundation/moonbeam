@@ -89,7 +89,7 @@ jobs:
     - 
       name: Typescript tests
       run: |
-        cd tools
+        cd tests
         npm install
         BINARY_PATH='../target/release/moonbase-standalone' npm run test;
     - 
