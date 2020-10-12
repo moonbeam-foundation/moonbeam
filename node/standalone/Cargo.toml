@@ -48,7 +48,7 @@ sp-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "ro
 sc-basic-authorship = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 sp-block-builder = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 
-moonbeam-runtime = {path = "../../runtime", features = ["standalone"] }
+moonbeam-runtime = {path = "../../runtime", default-features = false, features = ["std", "standalone"] }
 
 ethereum = { package = "pallet-ethereum", path = "../../vendor/frontier/frame/ethereum" }
 frontier-consensus = { path = "../../vendor/frontier/consensus" }

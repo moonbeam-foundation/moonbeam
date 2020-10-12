@@ -73,7 +73,7 @@ use pallet_evm::{
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
 
-#[cfg(feature = "parachain")]
+#[cfg(not(feature = "standalone"))]
 pub use cumulus_token_dealer;
 
 /// An index to a block.
@@ -112,7 +112,7 @@ pub mod opaque {
 	pub use sp_runtime::OpaqueExtrinsic as UncheckedExtrinsic;
 	pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 
-	#[cfg(feature = "parachain")]
+	#[cfg(not(feature = "standalone"))]
 	impl_opaque_keys! {
 		pub struct SessionKeys {}
 	}
@@ -274,13 +274,13 @@ impl pallet_sudo::Trait for Runtime {
 	type Event = Event;
 }
 
-#[cfg(feature = "parachain")]
+#[cfg(not(feature = "standalone"))]
 impl cumulus_parachain_upgrade::Trait for Runtime {
 	type Event = Event;
 	type OnValidationFunctionParams = ();
 }
 
-#[cfg(feature = "parachain")]
+#[cfg(not(feature = "standalone"))]
 impl cumulus_message_broker::Trait for Runtime {
 	type Event = Event;
 	type DownwardMessageHandlers = TokenDealer;
@@ -290,10 +290,10 @@ impl cumulus_message_broker::Trait for Runtime {
 	type XCMPMessageHandlers = TokenDealer;
 }
 
-#[cfg(feature = "parachain")]
+#[cfg(not(feature = "standalone"))]
 impl parachain_info::Trait for Runtime {}
 
-#[cfg(feature = "parachain")]
+#[cfg(not(feature = "standalone"))]
 impl cumulus_token_dealer::Trait for Runtime {
 	type Event = Event;
 	type UpwardMessageSender = MessageBroker;
@@ -354,7 +354,7 @@ impl frontier_rpc_primitives::ConvertTransaction<opaque::UncheckedExtrinsic>
 pub struct EthereumFindAuthor<F>(PhantomData<F>);
 
 // TODO Consensus not supported in parachain
-#[cfg(feature = "parachain")]
+#[cfg(not(feature = "standalone"))]
 impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F> {
 	fn find_author<'a, I>(_digests: I) -> Option<H160>
 	where
@@ -378,9 +378,9 @@ impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F> {
 	}
 }
 
-#[cfg(feature = "parachain")]
+#[cfg(not(feature = "standalone"))]
 pub struct PhantomAura;
-#[cfg(feature = "parachain")]
+#[cfg(not(feature = "standalone"))]
 impl FindAuthor<u32> for PhantomAura {
 	fn find_author<'a, I>(_digests: I) -> Option<u32>
 	where
@@ -392,7 +392,7 @@ impl FindAuthor<u32> for PhantomAura {
 
 impl pallet_ethereum::Trait for Runtime {
 	type Event = Event;
-	#[cfg(feature = "parachain")]
+	#[cfg(not(feature = "standalone"))]
 	type FindAuthor = EthereumFindAuthor<PhantomAura>;
 	#[cfg(feature = "standalone")]
 	type FindAuthor = EthereumFindAuthor<Aura>;
@@ -401,7 +401,7 @@ impl pallet_ethereum::Trait for Runtime {
 // The construct_runtime macro does not recognize conditional compilation flags inside.
 // So we have two different instances of the macro; One for parachain and one for standalone.
 // This could possibly be improved by looking at how Polkadot handles the multiple runtime situation.
-#[cfg(feature = "parachain")]
+#[cfg(not(feature = "standalone"))]
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -698,5 +698,5 @@ impl_runtime_apis! {
 	}
 }
 
-#[cfg(feature = "parachain")]
+#[cfg(not(feature = "standalone"))]
 cumulus_runtime::register_validate_block!(Block, Executive);
