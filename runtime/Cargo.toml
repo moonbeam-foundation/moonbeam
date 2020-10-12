@@ -66,8 +66,8 @@ wasm-builder-runner = { version = "1.0.6", package = "substrate-wasm-builder-run
 # By default, we build the parachain runtime
 default = [
 	"std"
-	# TODO I think the cumulus dependencies should be optional, and listed here,
-	# but for some reason the runtime isn't building when I do that.
+	# parachain-only dependencies can't be conditionally included here.
+	# Default feature dependencies must not be optional (aparently)
 ]
 # Standalone runtime is enabled by a feature
 standalone = [
