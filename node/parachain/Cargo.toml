@@ -2,7 +2,7 @@
 name = 'moonbase-alphanet'
 description = 'Moonbase Parachain Collator'
 homepage = 'https://moonbeam.network'
-license = 'Unlicense'
+license = 'GPL-3.0-only'
 version = '0.1.0'
 authors = ["PureStake"]
 build = 'build.rs'

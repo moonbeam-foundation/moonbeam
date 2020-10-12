@@ -10,7 +10,7 @@ export const SPECS_PATH = `./moonbeam-test-specs`;
 export const DISPLAY_LOG = process.env.MOONBEAM_LOG || false;
 export const MOONBEAM_LOG = process.env.MOONBEAM_LOG || "info";
 
-export const BINARY_PATH = `../target/debug/moonbase-standalone`;
+export const BINARY_PATH = process.env.BINARY_PATH || `../target/debug/moonbase-standalone`;
 export const SPAWNING_TIME = 30000;
 
 export async function customRequest(web3: Web3, method: string, params: any[]) {
@@ -68,7 +68,7 @@ export async function startMoonbeamNode(specFilename: string): Promise<{ web3: W
 	binary.on("error", (err) => {
 		if ((err as any).errno == "ENOENT") {
 			console.error(
-				`\x1b[31mMissing Moonbeam binary (${BINARY_PATH}).\nPlease compile the Moonbeam project:\ncargo build --bin moonbeam-node\x1b[0m`
+				`\x1b[31mMissing Moonbeam binary (${BINARY_PATH}).\nPlease compile the Moonbeam project\x1b[0m`
 			);
 		} else {
 			console.error(err);
