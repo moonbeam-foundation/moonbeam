@@ -124,17 +124,6 @@ pub mod opaque {
 	}
 }
 
-/// This runtime version.
-pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("moonbeam-alphanet"),
-	impl_name: create_runtime_str!("moonbeam-alphanet"),
-	authoring_version: 2,
-	spec_version: 2,
-	impl_version: 1,
-	apis: RUNTIME_API_VERSIONS,
-	transaction_version: 1,
-};
-
 /// The version infromation used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]
 pub fn native_version() -> NativeVersion {

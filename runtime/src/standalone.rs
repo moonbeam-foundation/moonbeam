@@ -23,24 +23,36 @@ pub use frame_support::traits::KeyOwnerProofSystem;
 #[macro_export]
 macro_rules! runtime_standalone {
     () => {
+
+		/// This runtime version.
+		pub const VERSION: RuntimeVersion = RuntimeVersion {
+			spec_name: create_runtime_str!("moonbeam-standalone"),
+			impl_name: create_runtime_str!("moonbeam-standalone"),
+			authoring_version: 2,
+			spec_version: 2,
+			impl_version: 1,
+			apis: RUNTIME_API_VERSIONS,
+			transaction_version: 1,
+		};
+
         impl pallet_aura::Trait for Runtime {
             type AuthorityId = AuraId;
         }
-        
+
         impl pallet_grandpa::Trait for Runtime {
             type Event = Event;
             type Call = Call;
-        
+
             type KeyOwnerProofSystem = ();
-        
+
             type KeyOwnerProof =
                 <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(KeyTypeId, GrandpaId)>>::Proof;
-        
+
             type KeyOwnerIdentification = <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(
                 KeyTypeId,
                 GrandpaId,
             )>>::IdentificationTuple;
-        
+
             type HandleEquivocation = ();
         }
 

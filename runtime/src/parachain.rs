@@ -19,6 +19,18 @@ pub use cumulus_token_dealer;
 #[macro_export]
 macro_rules! runtime_parachain {
     () => {
+
+		/// This runtime version.
+		pub const VERSION: RuntimeVersion = RuntimeVersion {
+			spec_name: create_runtime_str!("moonbase-alphanet"),
+			impl_name: create_runtime_str!("moonbase-alphanet"),
+			authoring_version: 2,
+			spec_version: 2,
+			impl_version: 1,
+			apis: RUNTIME_API_VERSIONS,
+			transaction_version: 1,
+		};
+
         impl cumulus_parachain_upgrade::Trait for Runtime {
             type Event = Event;
             type OnValidationFunctionParams = ();
