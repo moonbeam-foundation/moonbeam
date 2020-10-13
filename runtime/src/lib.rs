@@ -32,14 +32,18 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+#[cfg(feature = "standalone")]
+mod standalone;
+#[cfg(not(feature = "standalone"))]
+mod parachain;
+
+#[cfg(feature = "standalone")]
+use standalone::*;
+#[cfg(not(feature = "standalone"))]
+use parachain::*;
+
 use codec::{Decode, Encode};
-#[cfg(feature = "standalone")]
-use pallet_grandpa::{fg_primitives, AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList};
 use sp_api::impl_runtime_apis;
-#[cfg(feature = "standalone")]
-use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-#[cfg(feature = "standalone")]
-use sp_core::crypto::{KeyTypeId, Public};
 use sp_core::{OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
@@ -47,8 +51,6 @@ use sp_runtime::{
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, MultiSignature,
 };
-#[cfg(feature = "standalone")]
-use sp_runtime::traits::NumberFor;
 use sp_std::{marker::PhantomData, prelude::*};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
@@ -63,8 +65,6 @@ pub use frame_support::{
 	},
 	ConsensusEngineId, StorageValue,
 };
-#[cfg(feature = "standalone")]
-use frame_support::traits::KeyOwnerProofSystem;
 use frontier_rpc_primitives::TransactionStatus;
 use pallet_evm::{
 	Account as EVMAccount, EnsureAddressTruncated, FeeCalculator, HashedAddressMapping,
@@ -72,9 +72,6 @@ use pallet_evm::{
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
-
-#[cfg(not(feature = "standalone"))]
-pub use cumulus_token_dealer;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -116,7 +113,6 @@ pub mod opaque {
 	impl_opaque_keys! {
 		pub struct SessionKeys {}
 	}
-
 
 	#[cfg(feature = "standalone")]
 	impl_opaque_keys! {
@@ -203,30 +199,6 @@ impl frame_system::Trait for Runtime {
 	type SystemWeightInfo = ();
 }
 
-
-#[cfg(feature = "standalone")]
-impl pallet_aura::Trait for Runtime {
-	type AuthorityId = AuraId;
-}
-
-#[cfg(feature = "standalone")]
-impl pallet_grandpa::Trait for Runtime {
-	type Event = Event;
-	type Call = Call;
-
-	type KeyOwnerProofSystem = ();
-
-	type KeyOwnerProof =
-		<Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(KeyTypeId, GrandpaId)>>::Proof;
-
-	type KeyOwnerIdentification = <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(
-		KeyTypeId,
-		GrandpaId,
-	)>>::IdentificationTuple;
-
-	type HandleEquivocation = ();
-}
-
 parameter_types! {
 	// When running in standalone mode, this controls the block time.
 	// Block time is double the minimum period.
@@ -272,34 +244,6 @@ impl pallet_transaction_payment::Trait for Runtime {
 impl pallet_sudo::Trait for Runtime {
 	type Call = Call;
 	type Event = Event;
-}
-
-#[cfg(not(feature = "standalone"))]
-impl cumulus_parachain_upgrade::Trait for Runtime {
-	type Event = Event;
-	type OnValidationFunctionParams = ();
-}
-
-#[cfg(not(feature = "standalone"))]
-impl cumulus_message_broker::Trait for Runtime {
-	type Event = Event;
-	type DownwardMessageHandlers = TokenDealer;
-	type UpwardMessage = cumulus_upward_message::RococoUpwardMessage;
-	type ParachainId = ParachainInfo;
-	type XCMPMessage = cumulus_token_dealer::XCMPMessage<AccountId, Balance>;
-	type XCMPMessageHandlers = TokenDealer;
-}
-
-#[cfg(not(feature = "standalone"))]
-impl parachain_info::Trait for Runtime {}
-
-#[cfg(not(feature = "standalone"))]
-impl cumulus_token_dealer::Trait for Runtime {
-	type Event = Event;
-	type UpwardMessageSender = MessageBroker;
-	type UpwardMessage = cumulus_upward_message::RococoUpwardMessage;
-	type Currency = Balances;
-	type XCMPMessageSender = MessageBroker;
 }
 
 /// Fixed gas price of `0`.
@@ -353,43 +297,6 @@ impl frontier_rpc_primitives::ConvertTransaction<opaque::UncheckedExtrinsic>
 
 pub struct EthereumFindAuthor<F>(PhantomData<F>);
 
-// TODO Consensus not supported in parachain
-#[cfg(not(feature = "standalone"))]
-impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F> {
-	fn find_author<'a, I>(_digests: I) -> Option<H160>
-	where
-		I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
-	{
-		None
-	}
-}
-
-#[cfg(feature = "standalone")]
-impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F> {
-	fn find_author<'a, I>(digests: I) -> Option<H160>
-	where
-		I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
-	{
-		if let Some(author_index) = F::find_author(digests) {
-			let authority_id = Aura::authorities()[author_index as usize].clone();
-			return Some(H160::from_slice(&authority_id.to_raw_vec()[4..24]));
-		}
-		None
-	}
-}
-
-#[cfg(not(feature = "standalone"))]
-pub struct PhantomAura;
-#[cfg(not(feature = "standalone"))]
-impl FindAuthor<u32> for PhantomAura {
-	fn find_author<'a, I>(_digests: I) -> Option<u32>
-	where
-		I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
-	{
-		Some(0 as u32)
-	}
-}
-
 impl pallet_ethereum::Trait for Runtime {
 	type Event = Event;
 	#[cfg(not(feature = "standalone"))]
@@ -398,50 +305,11 @@ impl pallet_ethereum::Trait for Runtime {
 	type FindAuthor = EthereumFindAuthor<Aura>;
 }
 
-// The construct_runtime macro does not recognize conditional compilation flags inside.
-// So we have two different instances of the macro; One for parachain and one for standalone.
-// This could possibly be improved by looking at how Polkadot handles the multiple runtime situation.
-#[cfg(not(feature = "standalone"))]
-construct_runtime! {
-	pub enum Runtime where
-		Block = Block,
-		NodeBlock = opaque::Block,
-		UncheckedExtrinsic = UncheckedExtrinsic
-	{
-		System: frame_system::{Module, Call, Storage, Config, Event<T>},
-		Timestamp: pallet_timestamp::{Module, Call, Storage, Inherent},
-		Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
-		Sudo: pallet_sudo::{Module, Call, Storage, Config<T>, Event<T>},
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Module, Call, Storage},
-		ParachainUpgrade: cumulus_parachain_upgrade::{Module, Call, Storage, Inherent, Event},
-		MessageBroker: cumulus_message_broker::{Module, Call, Inherent, Event<T>},
-		TransactionPayment: pallet_transaction_payment::{Module, Storage},
-		ParachainInfo: parachain_info::{Module, Storage, Config},
-		TokenDealer: cumulus_token_dealer::{Module, Call, Event<T>},
-		EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
-		Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
-	}
-}
-
 #[cfg(feature = "standalone")]
-construct_runtime!(
-	pub enum Runtime where
-		Block = Block,
-		NodeBlock = opaque::Block,
-		UncheckedExtrinsic = UncheckedExtrinsic
-	{
-		System: frame_system::{Module, Call, Config, Storage, Event<T>},
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Module, Call, Storage},
-		Timestamp: pallet_timestamp::{Module, Call, Storage, Inherent},
-		Aura: pallet_aura::{Module, Config<T>, Inherent},
-		Grandpa: pallet_grandpa::{Module, Call, Storage, Config, Event},
-		Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
-		TransactionPayment: pallet_transaction_payment::{Module, Storage},
-		Sudo: pallet_sudo::{Module, Call, Config<T>, Storage, Event<T>},
-		Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
-		EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
-	}
-);
+runtime_standalone!();
+
+#[cfg(not(feature = "standalone"))]
+runtime_parachain!();
 
 /// The address format for describing accounts.
 pub type Address = AccountId;
