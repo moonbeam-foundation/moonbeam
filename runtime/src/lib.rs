@@ -17,7 +17,8 @@
 //! The Moonbeam Runtime.
 //!
 //! This runtime powers both the moonbeam standalone node and the moonbeam parachain
-//! Use the `standalone` and `parachain` features.
+//! By default it builds the parachain runtime. To enable the standalone runtime, enable
+//! the `standalone` feature.
 //!
 //! Primary features of this runtime include:
 //! * Ethereum compatability
