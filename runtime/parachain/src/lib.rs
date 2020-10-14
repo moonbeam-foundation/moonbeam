@@ -261,22 +261,12 @@ impl cumulus_token_dealer::Trait for Runtime {
 	type XCMPMessageSender = MessageBroker;
 }
 
-/// Fixed gas price of `1`.
-pub struct FixedGasPrice;
-
-impl FeeCalculator for FixedGasPrice {
-	fn min_gas_price() -> U256 {
-		// Gas price is always one token per gas.
-		0.into()
-	}
-}
-
 parameter_types! {
 	pub const ChainId: u64 = 43;
 }
 
 impl pallet_evm::Trait for Runtime {
-	type FeeCalculator = FixedGasPrice;
+	type FeeCalculator = ();
 	type CallOrigin = EnsureAddressTruncated;
 	type WithdrawOrigin = EnsureAddressTruncated;
 	type AddressMapping = HashedAddressMapping<BlakeTwo256>;
@@ -452,7 +442,7 @@ impl_runtime_apis! {
 			opaque::SessionKeys::generate(seed)
 		}
 	}
-	
+
 	impl frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Index> for Runtime {
 		fn account_nonce(account: AccountId) -> Index {
 			System::account_nonce(account)
