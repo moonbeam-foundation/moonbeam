@@ -41,7 +41,7 @@ source $HOME/.cargo/env
 ### Single node dev
 
 ```bash
-./target/release/node-moonbeam --dev
+./target/release/moonbase-standalone --dev
 ```
 ### Docker image
 
