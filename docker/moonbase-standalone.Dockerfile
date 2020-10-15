@@ -20,7 +20,7 @@ RUN mv /usr/share/ca* /tmp && \
 
 USER moonbeam
 
-COPY build/standalone /moonbase
+COPY --chown=moonbeam build/standalone /moonbase
 
 # 30333 for p2p traffic
 # 9933 for RPC call
