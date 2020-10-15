@@ -21,6 +21,7 @@ RUN mv /usr/share/ca* /tmp && \
 USER moonbeam
 
 COPY --chown=moonbeam build/standalone /moonbase
+RUN chmod uog+x /moonbase/moonbase-standalone
 
 # 30333 for p2p traffic
 # 9933 for RPC call
