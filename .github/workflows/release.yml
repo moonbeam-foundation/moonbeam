@@ -86,8 +86,8 @@ jobs:
     -
       name: Build Standalone Node
       run: |
-        cd node/standalone \
-        cargo build --release --verbose --all \
+        cd node/standalone
+        cargo build --release --verbose --all
         cd ../..
     -
       name: Run tests
