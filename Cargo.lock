@@ -1827,6 +1827,7 @@ dependencies = [
 [[package]]
 name = "frontier-consensus"
 version = "0.1.0"
+source = "git+https://github.com/purestake/frontier?rev=085ed1611a926d8c351786b43af058b2f18abadf#085ed1611a926d8c351786b43af058b2f18abadf"
 dependencies = [
  "derive_more 0.99.10",
  "ethereum",
@@ -1849,6 +1850,7 @@ dependencies = [
 [[package]]
 name = "frontier-consensus-primitives"
 version = "0.1.0"
+source = "git+https://github.com/purestake/frontier?rev=085ed1611a926d8c351786b43af058b2f18abadf#085ed1611a926d8c351786b43af058b2f18abadf"
 dependencies = [
  "parity-scale-codec",
  "sp-core",
@@ -1859,6 +1861,7 @@ dependencies = [
 [[package]]
 name = "frontier-rpc"
 version = "0.1.0"
+source = "git+https://github.com/purestake/frontier?rev=085ed1611a926d8c351786b43af058b2f18abadf#085ed1611a926d8c351786b43af058b2f18abadf"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -1891,6 +1894,7 @@ dependencies = [
 [[package]]
 name = "frontier-rpc-core"
 version = "0.1.0"
+source = "git+https://github.com/purestake/frontier?rev=085ed1611a926d8c351786b43af058b2f18abadf#085ed1611a926d8c351786b43af058b2f18abadf"
 dependencies = [
  "ethereum-types",
  "jsonrpc-core",
@@ -1905,6 +1909,7 @@ dependencies = [
 [[package]]
 name = "frontier-rpc-primitives"
 version = "0.1.0"
+source = "git+https://github.com/purestake/frontier?rev=085ed1611a926d8c351786b43af058b2f18abadf#085ed1611a926d8c351786b43af058b2f18abadf"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3630,7 +3635,7 @@ dependencies = [
  "log 0.4.11",
  "moonbase-runtime",
  "nix 0.17.0",
- "pallet-ethereum 0.1.0",
+ "pallet-ethereum 0.1.0 (git+https://github.com/purestake/frontier?rev=085ed1611a926d8c351786b43af058b2f18abadf)",
  "pallet-evm",
  "pallet-sudo",
  "pallet-transaction-payment-rpc",
@@ -3701,7 +3706,7 @@ dependencies = [
  "hex-literal 0.3.1",
  "log 0.4.11",
  "pallet-balances",
- "pallet-ethereum 0.1.0",
+ "pallet-ethereum 0.1.0 (git+https://github.com/purestake/frontier?rev=085ed1611a926d8c351786b43af058b2f18abadf)",
  "pallet-evm",
  "pallet-randomness-collective-flip",
  "pallet-sudo",
@@ -3738,7 +3743,7 @@ dependencies = [
  "jsonrpc-pubsub",
  "log 0.4.11",
  "moonbeam-runtime",
- "pallet-ethereum 0.1.0",
+ "pallet-ethereum 0.1.0 (git+https://github.com/purestake/frontier?rev=085ed1611a926d8c351786b43af058b2f18abadf)",
  "pallet-evm",
  "pallet-transaction-payment-rpc",
  "sc-basic-authorship",
@@ -3784,7 +3789,7 @@ dependencies = [
  "log 0.4.11",
  "pallet-aura",
  "pallet-balances",
- "pallet-ethereum 0.1.0",
+ "pallet-ethereum 0.1.0 (git+https://github.com/purestake/frontier?rev=085ed1611a926d8c351786b43af058b2f18abadf)",
  "pallet-evm",
  "pallet-grandpa",
  "pallet-randomness-collective-flip",
@@ -4231,6 +4236,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "0.1.0"
+source = "git+https://github.com/purestake/frontier?rev=085ed1611a926d8c351786b43af058b2f18abadf#085ed1611a926d8c351786b43af058b2f18abadf"
 dependencies = [
  "ethereum",
  "ethereum-types",
