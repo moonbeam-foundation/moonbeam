@@ -12,6 +12,15 @@ version = '0.1.1'
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
 
+# We use a dedicated workspace for the standalone node.
+# This is necessary because it builds the runtime with the `standalone` feature, and Cargo only
+# supports a single feature set per workspace.
+[workspace]
+exclude = [
+  "../../runtime",
+  "../../vendor",
+]
+
 [dependencies]
 futures = "0.3.4"
 log = "0.4.8"
