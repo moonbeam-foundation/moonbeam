@@ -52,6 +52,7 @@ export async function startMoonbeamNode(specFilename: string): Promise<{ web3: W
 	const args = [
 		`--chain=${SPECS_PATH}/${specFilename}`,
 		`--validator`, // Required by manual sealing to author the blocks
+		`--execution=Native`, // Faster execution using native
 		`--no-telemetry`,
 		`--no-prometheus`,
 		`--manual-seal`,
