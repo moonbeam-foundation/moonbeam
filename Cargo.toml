@@ -5,7 +5,6 @@ members = [
     'node/parachain',
     'runtime/parachain',
 ]
-exclude = ["vendor"]
 
 [profile.release]
 panic = 'unwind'
