@@ -1,6 +1,12 @@
 name: Release
 
-on: ['push']
+on:
+  pull_request:
+    branches:
+    - master
+  push:
+    branches:
+    - master
 
 env:
   WASM_BUILD_TOOLCHAIN: nightly-2020-07-20
@@ -92,7 +98,7 @@ jobs:
         cd tests
         npm install
         BINARY_PATH='../target/release/moonbase-standalone' npm run test;
-    - 
+    -
       name: Save parachain binary
       run: |
         mkdir -p build/alphanet
