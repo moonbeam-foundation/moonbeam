@@ -50,13 +50,14 @@ pub enum ConsensusResult {
 			FrontierBlockImport<
 				Block,
 				sc_finality_grandpa::GrandpaBlockImport<FullBackend, Block, FullClient, FullSelectChain>,
-				FullClient
+				FullClient,
+				FullBackend,
 			>,
 			AuraPair
 		>,
 		sc_finality_grandpa::LinkHalf<Block, FullClient, FullSelectChain>
 	),
-	ManualSeal(FrontierBlockImport<Block, Arc<FullClient>, FullClient>)
+	ManualSeal(FrontierBlockImport<Block, Arc<FullClient>, FullClient, FullBackend>)
 }
 
 pub fn new_partial(config: &Configuration, manual_seal: bool) -> Result<

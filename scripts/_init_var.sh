@@ -15,6 +15,10 @@ if [ -z "$PARACHAIN_BINARY" ]; then
     PARACHAIN_BINARY="target/release/moonbase-alphanet"
 fi
 
+if [ -z "$STANDALONE_SPEC_TMP" ]; then
+    STANDALONE_SPEC_TMP="/tmp/moonbase-standalone-specs-tmp.json"
+fi
+
 if [ -z "$PARACHAIN_SPEC_TEMPLATE" ]; then
     PARACHAIN_SPEC_TEMPLATE="specs/moonbase-alphanet-specs-template.json"
 fi
@@ -28,7 +32,7 @@ if [ -z "$PARACHAIN_SPEC_RAW" ]; then
 fi
 
 if [ -z "$PARACHAIN_SPEC_TMP" ]; then
-    PARACHAIN_SPEC_TMP="/tmp/moonbase-alphanet-specs-tpm.json"
+    PARACHAIN_SPEC_TMP="/tmp/moonbase-alphanet-specs-tmp.json"
 fi
 
 if [ -z "$PARACHAIN_WASM" ]; then
