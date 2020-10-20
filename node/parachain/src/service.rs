@@ -39,6 +39,7 @@ native_executor_instance!(
 );
 
 type FullClient = TFullClient<Block, RuntimeApi, Executor>;
+type FullBackend = TFullBackend<Block>;
 
 /// Starts a `ServiceBuilder` for a full service.
 ///
@@ -49,7 +50,7 @@ pub fn new_partial(
 ) -> Result<
 	PartialComponents<
 		FullClient,
-		TFullBackend<Block>,
+		FullBackend,
 		LongestChain<
 			Backend<Block>,
 			Block
@@ -65,7 +66,8 @@ pub fn new_partial(
 		FrontierBlockImport<
 			moonbase_runtime::opaque::Block,
 			Arc<FullClient>,
-			FullClient
+			FullClient,
+			FullBackend,
 		>,
 	>,
 	sc_service::Error,
