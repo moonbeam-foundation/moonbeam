@@ -1,7 +1,7 @@
 #!/bin/bash
 source scripts/_init_var.sh
 
-$PARACHAIN_BINARY build-spec --disable-default-bootnode  | grep '\"code\"' > $PARACHAIN_SPEC_TMP
+$PARACHAIN_BINARY build-spec --disable-default-bootnode  | grep '\"code\"' | head -n1 > $PARACHAIN_SPEC_TMP
 echo $PARACHAIN_SPEC_TMP generated
 
 echo "Using $PARACHAIN_SPEC_TEMPLATE..."
