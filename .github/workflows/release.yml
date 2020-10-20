@@ -68,9 +68,6 @@ jobs:
         restore-keys: |
           ${{ runner.OS }}-build--${{ env.WASM_BUILD_TOOLCHAIN }}
     -
-      name: Submodules
-      run: git submodule update --init --recursive
-    -
       uses: actions-rs/toolchain@v1
       with:
         target: wasm32-unknown-unknown
@@ -98,7 +95,7 @@ jobs:
         npm install
         BINARY_PATH='..node/standalone/target/release/moonbase-standalone' npm run test;
     -
-      name: Save parachain and standalone binaries
+      name: Save parachain binary
       run: |
         mkdir -p build/alphanet
         mkdir -p build/standalone
