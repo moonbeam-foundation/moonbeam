@@ -1,3 +1,0 @@
-[submodule "vendor/frontier"]
-	path = vendor/frontier
-	url = https://github.com/purestake/frontier.git
