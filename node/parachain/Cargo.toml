@@ -19,7 +19,7 @@ futures = { version = "0.3.1", features = ["compat"] }
 log = '0.4.8'
 parking_lot = '0.9.0'
 trie-root = '0.15.2'
-codec = { package = 'parity-scale-codec', version = '1.0.0' }
+parity-scale-codec = '1.0.0'
 structopt = "0.3.3"
 ansi_term = "0.12.1"
 serde = { version = "1.0.101", features = ["derive"] }
@@ -60,9 +60,9 @@ substrate-frame-rpc-system = { git = "https://github.com/paritytech/substrate", 
 pallet-transaction-payment-rpc = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
 sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
 sc-consensus-manual-seal = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
-evm = { package = "pallet-evm", git = "https://github.com/purestake/substrate", branch = "tgmichel-rococo-branch" }
+pallet-evm = { git = "https://github.com/purestake/substrate", branch = "tgmichel-rococo-branch" }
 
-ethereum = { version = "0.1.0", package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
+pallet-ethereum = { version = "0.1.0", git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
 
 frontier-rpc = { version = "0.1.0", git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
 frontier-rpc-primitives = { version = "0.1.0", git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }

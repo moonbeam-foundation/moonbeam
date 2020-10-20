@@ -43,7 +43,7 @@ use standalone::*;
 #[cfg(not(feature = "standalone"))]
 use parachain::*;
 
-use codec::{Decode, Encode};
+use parity_scale_codec::{Decode, Encode};
 use sp_api::impl_runtime_apis;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{

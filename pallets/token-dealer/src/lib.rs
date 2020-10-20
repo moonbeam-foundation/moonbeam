@@ -22,7 +22,7 @@ use frame_support::{
 };
 use frame_system::ensure_signed;
 
-use codec::{Decode, Encode};
+use parity_scale_codec::{Decode, Encode};
 use cumulus_primitives::{
 	relay_chain::DownwardMessage,
 	xcmp::{XCMPMessageHandler, XCMPMessageSender},
@@ -49,7 +49,7 @@ pub trait Trait: frame_system::Trait {
 	type UpwardMessageSender: UpwardMessageSender<Self::UpwardMessage>;
 
 	/// The upward message type used by the Parachain runtime.
-	type UpwardMessage: codec::Codec + BalancesMessage<Self::AccountId, BalanceOf<Self>>;
+	type UpwardMessage: parity_scale_codec::Codec + BalancesMessage<Self::AccountId, BalanceOf<Self>>;
 
 	/// Currency of the runtime.
 	type Currency: Currency<Self::AccountId>;

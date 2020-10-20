@@ -9,7 +9,7 @@ edition = '2018'
 
 [dependencies]
 serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
-codec = { package = "parity-scale-codec", version = "1.0.0", default-features = false, features = ["derive"] }
+parity-scale-codec = { version = "1.0.0", default-features = false, features = ["derive"] }
 log = "0.4.8"
 hex-literal = "0.3.1"
 
@@ -42,10 +42,10 @@ frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate"
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
 pallet-evm = { git = "https://github.com/purestake/substrate", default-features = false, branch = "tgmichel-rococo-branch" }
 frontier-rpc-primitives = { default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
-pallet-ethereum = { default-features = false, package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
+pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
 
 sp-consensus-aura = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch", optional = true }
-pallet-grandpa = { default-features = false, package = "pallet-grandpa", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch", optional = true }
+pallet-grandpa = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch", optional = true }
 
 # Cumulus dependencies
 cumulus-runtime = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0' }
@@ -59,7 +59,7 @@ parachain-info = { path = "../pallets/parachain-info", default-features = false 
 cumulus-token-dealer = { path = "../pallets/token-dealer", default-features = false }
 
 [build-dependencies]
-wasm-builder-runner = { version = "1.0.6", package = "substrate-wasm-builder-runner", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
+substrate-wasm-builder-runner = { version = "1.0.6", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 
 [features]
 # By default, we build the parachain runtime
@@ -75,7 +75,7 @@ standalone = [
 	"pallet-grandpa",
 	]
 std = [
-	"codec/std",
+	"parity-scale-codec/std",
 	"serde",
 	"sp-api/std",
 	"sp-std/std",

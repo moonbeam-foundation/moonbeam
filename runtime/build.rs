@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use wasm_builder_runner::WasmBuilder;
+use substrate_wasm_builder_runner::WasmBuilder;
 
 fn main() {
 	WasmBuilder::new()
