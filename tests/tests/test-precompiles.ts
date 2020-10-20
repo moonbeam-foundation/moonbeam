@@ -34,7 +34,7 @@ describeWithMoonbeam("Moonbeam (Precompiles)", `simple-specs.json`, (context) =>
 
 
 
-	// TODO: Restore this test once manual sealing is fixed
+	// TODO: Restore this test once manual sealing is fixed https://purestake.atlassian.net/browse/MOON-81
     it.skip("ripemd160 is valid inside a contract", async function () {
 		this.timeout(15000);
 		const tx = await context.web3.eth.accounts.signTransaction(
