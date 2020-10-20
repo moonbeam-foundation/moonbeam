@@ -93,7 +93,7 @@ jobs:
       run: |
         cd tests
         npm install
-        BINARY_PATH='..node/standalone/target/release/moonbase-standalone' npm run test;
+        BINARY_PATH='../node/standalone/target/release/moonbase-standalone' npm run test;
     -
       name: Save parachain binary
       run: |
