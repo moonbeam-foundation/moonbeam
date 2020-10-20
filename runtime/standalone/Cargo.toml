@@ -44,8 +44,8 @@ sp-version = { default-features = false, git = "https://github.com/paritytech/su
 frame-system-rpc-runtime-api = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 pallet-transaction-payment-rpc-runtime-api = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 
-frontier-rpc-primitives = { default-features = false, path = "../../vendor/frontier/rpc/primitives" }
-frame-ethereum = { version = "0.1.0", default-features = false, package = "pallet-ethereum", path = "../../vendor/frontier/frame/ethereum" }
+frontier-rpc-primitives = { default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
+frame-ethereum = { version = "0.1.0", default-features = false, package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
 
 [build-dependencies]
 wasm-builder-runner = { version = "1.0.6", package = "substrate-wasm-builder-runner", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
