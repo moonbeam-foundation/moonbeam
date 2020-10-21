@@ -13,7 +13,7 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
 		expect(await context.web3.eth.getBlockNumber()).to.equal(0);
 	});
 
-	it.skip("should return genesis block", async function () {
+	it("should return genesis block", async function () {
 		expect(await context.web3.eth.getBlockNumber()).to.equal(0);
 
 		const block = await context.web3.eth.getBlock(0);
