@@ -422,3 +422,7 @@ jobs:
     - uses: gaurav-nelson/github-action-markdown-link-check@v1
       with:
         use-quiet-mode: 'yes'
+
+  check-editorconfig:
+    runs-on: ubuntu-latest
+    uses: zbeekman/EditorConfig-Action@v1.1.0
