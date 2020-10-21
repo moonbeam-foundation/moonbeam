@@ -12,6 +12,14 @@ version = '0.1.1'
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
 
+# We use a dedicated workspace for the standalone node.
+# This is necessary because it builds the runtime with the `standalone` feature, and Cargo only
+# supports a single feature set per workspace.
+[workspace]
+exclude = [
+  "../../runtime",
+]
+
 [dependencies]
 futures = "0.3.4"
 log = "0.4.8"
@@ -48,12 +56,12 @@ sp-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "ro
 sc-basic-authorship = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 sp-block-builder = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 
-moonbeam-runtime = { path = "../../runtime/standalone" }
+moonbeam-runtime = {path = "../../runtime", default-features = false, features = ["std", "standalone"] }
 
-ethereum = { package = "pallet-ethereum", path = "../../vendor/frontier/frame/ethereum" }
-frontier-consensus = { path = "../../vendor/frontier/consensus" }
-frontier-rpc = { path = "../../vendor/frontier/rpc" }
-frontier-rpc-primitives = { path = "../../vendor/frontier/rpc/primitives" }
+ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
+frontier-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
+frontier-rpc = { git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
+frontier-rpc-primitives = { git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
 
 [build-dependencies]
 substrate-build-script-utils = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
