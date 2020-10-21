@@ -21,7 +21,7 @@ use crate::{
 use codec::Encode;
 use cumulus_primitives::ParaId;
 use log::info;
-use moonbase_runtime::Block;
+use moonbeam_runtime::Block;
 use polkadot_parachain::primitives::AccountIdConversion;
 use sc_cli::{
 	ChainSpec, CliConfiguration, ImportParams, KeystoreParams, NetworkParams, Result,
@@ -78,7 +78,7 @@ impl SubstrateCli for Cli {
 	}
 
 	fn native_runtime_version(_: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
-		&moonbase_runtime::VERSION
+		&moonbeam_runtime::VERSION
 	}
 }
 

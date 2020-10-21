@@ -19,7 +19,7 @@
 use std::{sync::Arc, fmt};
 
 use sc_consensus_manual_seal::rpc::{ManualSeal, ManualSealApi};
-use moonbase_runtime::{Hash, AccountId, Index, opaque::Block, Balance};
+use moonbeam_runtime::{Hash, AccountId, Index, opaque::Block, Balance};
 use sp_api::ProvideRuntimeApi;
 use sp_transaction_pool::TransactionPool;
 use sc_transaction_graph::{Pool, ChainApi};
@@ -104,7 +104,7 @@ pub fn create_full<C, P, BE, A>(
 			client.clone(),
 			graph_pool.clone(),
 			pool.clone(),
-			moonbase_runtime::TransactionConverter,
+			moonbeam_runtime::TransactionConverter,
 			is_authority,
 			eth_block_limit,
 			eth_log_limit,

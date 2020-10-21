@@ -1,6 +1,6 @@
 [package]
-name = 'moonbase-runtime'
-description = 'Moonbase Parachain Collator Runtime'
+name = 'moonbeam-runtime'
+description = 'Moonbeam Runtime'
 homepage = 'https://moonbeam.network'
 license = 'GPL-3.0-only'
 version = '0.1.0'
@@ -10,16 +10,13 @@ edition = '2018'
 [dependencies]
 serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
 codec = { package = "parity-scale-codec", version = "1.0.0", default-features = false, features = ["derive"] }
-
-parachain-info = { path = "../../pallets/parachain-info", default-features = false}
-cumulus-token-dealer = { path = "../../pallets/token-dealer", default-features = false}
-
 log = "0.4.8"
 hex-literal = "0.3.1"
 
-precompiles = { path = "../precompiles/", default-features = false }
+precompiles = { path = "precompiles/", default-features = false }
 
 # Substrate dependencies
+pallet-aura = { git = "https://github.com/paritytech/substrate.git", default-features = false, branch = "rococo-branch", optional = true }
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
 sp-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
 sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
@@ -45,8 +42,12 @@ frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate"
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
 pallet-evm = { git = "https://github.com/purestake/substrate", default-features = false, branch = "tgmichel-rococo-branch" }
 
+sp-consensus-aura = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch", optional = true }
+pallet-grandpa = { default-features = false, package = "pallet-grandpa", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch", optional = true }
+
 frontier-rpc-primitives = { default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
-ethereum = { default-features = false, package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
+pallet-ethereum = { default-features = false, package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
+
 
 # Cumulus dependencies
 cumulus-runtime = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0' }
@@ -55,11 +56,26 @@ cumulus-message-broker = { git = "https://github.com/paritytech/cumulus",  defau
 cumulus-upward-message = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0' }
 cumulus-primitives = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0' }
 
+# TODO Why can't these come directly from cumulus
+parachain-info = { path = "../pallets/parachain-info", default-features = false }
+cumulus-token-dealer = { path = "../pallets/token-dealer", default-features = false }
+
 [build-dependencies]
 wasm-builder-runner = { version = "1.0.6", package = "substrate-wasm-builder-runner", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 
 [features]
-default = [ "std" ]
+# By default, we build the parachain runtime
+default = [
+	"std"
+	# parachain-only dependencies can't be conditionally included here.
+	# Default feature dependencies must not be optional (aparently)
+]
+# Standalone runtime is enabled by a feature
+standalone = [
+	"pallet-aura",
+	"sp-consensus-aura",
+	"pallet-grandpa",
+	]
 std = [
 	"codec/std",
 	"serde",
@@ -82,6 +98,16 @@ std = [
 	"pallet-timestamp/std",
 	"pallet-sudo/std",
 	"pallet-transaction-payment/std",
+	"pallet-ethereum/std",
+	"pallet-evm/std",
+	"frontier-rpc-primitives/std",
+	"frame-system-rpc-runtime-api/std",
+	"pallet-transaction-payment-rpc-runtime-api/std",
+
+	# TODO These dependencies are only necessary when building without the standalone feature. I don't
+	# see a way to express that. Everything is correct, like this, but we unnecessarily build these
+	# dependencies when building the standalone runtime which is a big waste of CPU time as one of them
+	# builds all the polkadot runtimes. See https://github.com/paritytech/cumulus/issues/175
 	"parachain-info/std",
 	"cumulus-runtime/std",
 	"cumulus-parachain-upgrade/std",
@@ -89,11 +115,11 @@ std = [
 	"cumulus-upward-message/std",
 	"cumulus-primitives/std",
 	"cumulus-token-dealer/std",
-	"ethereum/std",
-	"pallet-evm/std",
-	"frontier-rpc-primitives/std",
-	"frame-system-rpc-runtime-api/std",
-	"pallet-transaction-payment-rpc-runtime-api/std",
+	# TODO These dependencies are only necessary when _both_  the `std` _and_ `standalone` features
+	# are enabled. I don't see a way to express that. Everything is correct, like this, but we
+	# unnecessarily build these dependencies when building the parachain runtime.
+	"pallet-aura/std",
+	"pallet-grandpa/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.

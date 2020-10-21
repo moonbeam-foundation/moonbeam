@@ -27,7 +27,7 @@ jsonrpc-core = "14.0.3"
 jsonrpc-pubsub = "14.0.3"
 
 # Parachain dependencies
-moonbase-runtime = { path = "../../runtime/parachain" }
+moonbeam-runtime = { path = "../../runtime" }
 
 # Substrate dependencies
 sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }

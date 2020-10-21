@@ -64,6 +64,7 @@ jobs:
           ~/.cargo/registry
           ~/.cargo/git
           target
+          node/standalone/target
         key: ${{ runner.OS }}-build-${{ env.WASM_BUILD_TOOLCHAIN }}-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
           ${{ runner.OS }}-build--${{ env.WASM_BUILD_TOOLCHAIN }}
@@ -78,24 +79,29 @@ jobs:
       run: |
         echo "::set-output name=rustc::$(rustc --version)"
     -
-      name: Build
+      name: Build Parachain Node
       run: cargo build --release --verbose --all
+    -
+      name: Build Standalone Node
+      run: |
+        cd node/standalone
+        cargo build --release --verbose --all
     -
       name: Run tests
       run: cargo test --release --verbose --all
     -
-      name: Typescript tests
+      name: Typescript tests (against standalone node)
       run: |
         cd tests
         npm install
-        BINARY_PATH='../target/release/moonbase-standalone' npm run test;
+        BINARY_PATH='../node/standalone/target/release/moonbase-standalone' npm run test;
     -
       name: Save parachain binary
       run: |
         mkdir -p build/alphanet
         mkdir -p build/standalone
         cp target/release/moonbase-alphanet build/alphanet/moonbase-alphanet;
-        cp target/release/moonbase-standalone build/standalone/moonbase-standalone;
+        cp node/standalone/target/release/moonbase-standalone build/standalone/moonbase-standalone;
     -
       name: Upload moonbase-alphanet node
       uses: actions/upload-artifact@v2
@@ -268,7 +274,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
-        name: Build and push parachain
+        name: Build and push standalone node
         id: docker_build
         uses: docker/build-push-action@v2
         with:
