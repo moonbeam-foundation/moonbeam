@@ -424,6 +424,14 @@ jobs:
         use-quiet-mode: 'yes'
 
   check-editorconfig:
+    name: 'Check editorconfig'
     runs-on: ubuntu-latest
     steps:
-    - uses: zbeekman/EditorConfig-Action@v1.1.0
+      - uses: actions/checkout@v2
+      - name: Setup editorconfig checker
+        run: |
+          wget https://github.com/editorconfig-checker/editorconfig-checker/releases/download/2.1.0/ec-linux-amd64.tar.gz
+          tar xvf ec-linux-amd64.tar.gz
+          chmod +x bin/ec-linux-amd64
+      - name: Check files
+        run: bin/ec-linux-amd64
