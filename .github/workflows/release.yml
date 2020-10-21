@@ -73,7 +73,7 @@ jobs:
           node/standalone/target
         key: ${{ runner.OS }}-build-${{ env.WASM_BUILD_TOOLCHAIN }}-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
-          ${{ runner.OS }}-build--${{ env.WASM_BUILD_TOOLCHAIN }}
+          ${{ runner.OS }}-build-${{ env.WASM_BUILD_TOOLCHAIN }}
     -
       uses: actions-rs/toolchain@v1
       with:
