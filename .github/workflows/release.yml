@@ -425,4 +425,5 @@ jobs:
 
   check-editorconfig:
     runs-on: ubuntu-latest
-    uses: zbeekman/EditorConfig-Action@v1.1.0
+    steps:
+    - uses: zbeekman/EditorConfig-Action@v1.1.0
