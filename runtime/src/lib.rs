@@ -100,6 +100,9 @@ pub type Hash = sp_core::H256;
 /// Digest item type.
 pub type DigestItem = generic::DigestItem<Hash>;
 
+/// Minimum time between blocks.
+pub const MINIMUM_PERIOD: u64 = 3000;
+
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
@@ -193,7 +196,7 @@ parameter_types! {
 	// When running in standalone mode, this controls the block time.
 	// Block time is double the minimum period.
 	// https://github.com/paritytech/substrate/blob/e4803bdaf228328cef4cba7be3e5951439555478/frame/aura/src/lib.rs#L197-L199
-	pub const MinimumPeriod: u64 = 3_000;
+	pub const MinimumPeriod: u64 = MINIMUM_PERIOD;
 }
 
 impl pallet_timestamp::Trait for Runtime {

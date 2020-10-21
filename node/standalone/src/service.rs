@@ -30,6 +30,7 @@ use sp_consensus_aura::sr25519::{AuthorityPair as AuraPair};
 use sc_finality_grandpa::{
 	FinalityProofProvider as GrandpaFinalityProofProvider, SharedVoterState,
 };
+use crate::mock_timestamp::MockTimestampInherentDataProvider;
 
 // Our native executor instance.
 native_executor_instance!(
@@ -84,7 +85,7 @@ pub fn new_partial(config: &Configuration, manual_seal: bool) -> Result<
 
 	if manual_seal {
 		inherent_data_providers
-			.register_provider(sp_timestamp::InherentDataProvider)
+			.register_provider(MockTimestampInherentDataProvider)
 			.map_err(Into::into)
 			.map_err(sp_consensus::error::Error::InherentData)?;
 
