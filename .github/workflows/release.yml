@@ -1,6 +1,12 @@
 name: Release
 
-on: ['push']
+on:
+  pull_request:
+    branches:
+    - master
+  push:
+    branches:
+    - master
 
 env:
   WASM_BUILD_TOOLCHAIN: nightly-2020-07-20
@@ -67,7 +73,7 @@ jobs:
           node/standalone/target
         key: ${{ runner.OS }}-build-${{ env.WASM_BUILD_TOOLCHAIN }}-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
-          ${{ runner.OS }}-build--${{ env.WASM_BUILD_TOOLCHAIN }}
+          ${{ runner.OS }}-build-${{ env.WASM_BUILD_TOOLCHAIN }}
     -
       uses: actions-rs/toolchain@v1
       with:
