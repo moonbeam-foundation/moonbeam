@@ -15,7 +15,11 @@ ChainIdSubProvider.prototype.setEngine = function(engine) {
   self.engine = engine
 }
 ChainIdSubProvider.prototype.handleRequest = function(payload, next, end) {
-  if (payload.method == "eth_sendTransaction" && payload.params.length > 0 && typeof payload.params[0].chainId == "undefined") {
+  if (
+    payload.method == "eth_sendTransaction" &&
+    payload.params.length > 0 &&
+    typeof payload.params[0].chainId == "undefined"
+  ) {
     payload.params[0].chainId = this.chainId;
   }
   next()
@@ -61,14 +65,13 @@ function PrivateKeyProvider(privateKey, providerUrl, chainId) {
   this.address = "0x" + this.wallet.getAddress().toString("hex");
 
   this.engine = new ProviderEngine({useSkipCache: false});
-  
+
   this.engine.addProvider(new ChainIdSubProvider(chainId));
   this.engine.addProvider(new NonceSubProvider());
   this.engine.addProvider(new WalletSubprovider(this.wallet, {}));
   this.engine.addProvider(new RpcSubprovider({ rpcUrl: providerUrl }));
 
   this.engine.start();
-  
 }
 
 
