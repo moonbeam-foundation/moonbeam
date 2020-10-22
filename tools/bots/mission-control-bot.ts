@@ -193,7 +193,10 @@ const botActionFaucetSend = async (msg: Message, authorId: string, messageConten
     const errorEmbed = new MessageEmbed()
       .setColor(EMBED_COLOR_ERROR)
       .setTitle(`You already received tokens!`)
-      .addField("Remaining time", `You still need to wait ${nextAvailableToken(receivers[authorId])} to receive more tokens`)
+      .addField(
+        "Remaining time",
+        `You still need to wait ${nextAvailableToken(receivers[authorId])} to receive more tokens`
+      )
       .setFooter("Funds transactions are limited to once per hour");
 
     msg.channel.send(errorEmbed);
