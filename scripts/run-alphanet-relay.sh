@@ -23,12 +23,12 @@ RELAY_PORT=$((USER_PORT + 42))
 RELAY_INDEX=0
 BOOTNODES_ARGS=""
 while nc -z -v -w5 ${RELAY_IP} ${RELAY_PORT} 2> /dev/null
-do 
+do
     echo "Found existing relay on ${RELAY_PORT}."
     BOOTNODES_ARGS="$BOOTNODES_ARGS --bootnodes /ip4/$RELAY_IP/tcp/${RELAY_PORT}/p2p/${RELAY_LOCAL_IDS[$RELAY_INDEX]}"
     RELAY_INDEX=$((RELAY_INDEX + 1))
     RELAY_PORT=$((RELAY_PORT + 100))
-    
+
     if [ $RELAY_PORT -ge $((USER_PORT + 300)) ]
     then
         echo "No more relay port available! (limited to 3 relays)"
@@ -43,17 +43,17 @@ echo "relay ${RELAY_INDEX} - p2p-port: $((RELAY_PORT)), http-port: $((RELAY_PORT
 # This part will insert the keys in the node
 bash -c "sleep 5; \
 insertKey() { \
-	curl http://localhost:$((RELAY_PORT + 1)) -H 'Content-Type:application/json;charset=utf-8' -d \"
-	{
-		\\\"jsonrpc\\\":\\\"2.0\\\",
-		\\\"id\\\":1,
-		\\\"method\\\":\\\"author_insertKey\\\",
-		\\\"params\\\": [
-			\\\"\$1\\\",
-			\\\"\$2\\\",
-			\\\"\$3\\\"
-		]
-	}\"; \
+  curl http://localhost:$((RELAY_PORT + 1)) -H 'Content-Type:application/json;charset=utf-8' -d \"
+  {
+    \\\"jsonrpc\\\":\\\"2.0\\\",
+    \\\"id\\\":1,
+    \\\"method\\\":\\\"author_insertKey\\\",
+    \\\"params\\\": [
+      \\\"\$1\\\",
+      \\\"\$2\\\",
+      \\\"\$3\\\"
+    ]
+  }\"; \
 }; \
 \
 insertKey acco '${RELAY_SEEDS[$RELAY_INDEX]}' '${RELAY_SR25519_PUB[$RELAY_INDEX]}'; \
