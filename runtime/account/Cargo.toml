@@ -1,0 +1,52 @@
+[package]
+authors = ['PureStake']
+edition = '2018'
+homepage = 'https://moonbeam.network'
+license = 'GPL-3.0-only'
+name = 'account'
+repository = 'https://github.com/PureStake/moonbeam/'
+version = '0.1.1'
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
+zeroize = { version = "1.0.0", default-features = false }
+codec = { package = "parity-scale-codec", version = "1.0.0", default-features = false, features = ["derive"] }
+log = "0.4.8"
+hex = { version = "0.4", default-features = false }
+sha3 = { version = "0.8", default-features = false }
+
+blake2-rfc = { version = "0.2.18", default-features = false, optional = true }
+sp-runtime-interface = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+
+
+sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+pallet-evm = { git = "https://github.com/purestake/substrate", default-features = false, branch = "tgmichel-rococo-branch" }
+
+
+[features]
+default = ["std"]
+std = [
+	"codec/std",
+	"serde/std",
+	"hex/std",
+	"sha3/std",
+	
+	"sp-core/std",
+	"sp-io/std",
+	"sp-runtime/std",
+	"sp-std/std",
+	"pallet-evm/std",
+
+	"full_crypto",
+]
+
+full_crypto = [
+	"blake2-rfc",
+	"sp-runtime-interface/disable_target_static_assertions",
+]

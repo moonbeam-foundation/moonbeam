@@ -68,7 +68,7 @@ pub use frame_support::{
 };
 use frontier_rpc_primitives::TransactionStatus;
 use pallet_evm::{
-	Account as EVMAccount, EnsureAddressTruncated, FeeCalculator, HashedAddressMapping,
+	Account as EVMAccount, EnsureAddressRoot, FeeCalculator,
 };
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
@@ -78,11 +78,11 @@ pub use sp_runtime::{Perbill, Permill};
 pub type BlockNumber = u32;
 
 /// Alias to 512-bit hash when used in the context of a transaction signature on the chain.
-pub type Signature = MultiSignature;
+pub type Signature = account::EthereumSignature;
 
 /// Some way of identifying an account on the chain. We intentionally make it equivalent
 /// to the public key of our transaction signing scheme.
-pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::AccountId;
+pub type AccountId = account::AccountId20;
 
 /// The type for looking up accounts. We don't expect more than 4 billion of them, but you
 /// never know...
@@ -242,9 +242,9 @@ parameter_types! {
 
 impl pallet_evm::Trait for Runtime {
 	type FeeCalculator = ();
-	type CallOrigin = EnsureAddressTruncated;
-	type WithdrawOrigin = EnsureAddressTruncated;
-	type AddressMapping = HashedAddressMapping<BlakeTwo256>;
+	type CallOrigin = EnsureAddressRoot<AccountId>;
+	type WithdrawOrigin = EnsureAddressRoot<AccountId>;
+	type AddressMapping = account:: IdentityAddressMapping;
 	type Currency = Balances;
 	type Event = Event;
 	type Precompiles = precompiles::MoonbeamPrecompiles;

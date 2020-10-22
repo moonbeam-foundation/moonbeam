@@ -14,6 +14,7 @@ log = "0.4.8"
 hex-literal = "0.3.1"
 
 precompiles = { path = "precompiles/", default-features = false }
+account = { path = "account/", default-features = false }
 
 # Substrate dependencies
 pallet-aura = { git = "https://github.com/paritytech/substrate.git", default-features = false, branch = "rococo-branch", optional = true }
@@ -120,6 +121,7 @@ std = [
 	# unnecessarily build these dependencies when building the parachain runtime.
 	"pallet-aura/std",
 	"pallet-grandpa/std",
+	"account/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
