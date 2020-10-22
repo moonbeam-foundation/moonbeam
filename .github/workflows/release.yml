@@ -8,9 +8,6 @@ on:
     branches:
     - master
 
-env:
-  WASM_BUILD_TOOLCHAIN: nightly-2020-07-20
-
 jobs:
   get-variables:
     runs-on: ubuntu-latest
@@ -71,14 +68,16 @@ jobs:
           ~/.cargo/git
           target
           node/standalone/target
-        key: ${{ runner.OS }}-build-${{ env.WASM_BUILD_TOOLCHAIN }}-${{ hashFiles('**/Cargo.lock') }}
+        key: ${{ runner.OS }}-build-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
-          ${{ runner.OS }}-build-${{ env.WASM_BUILD_TOOLCHAIN }}
+          ${{ runner.OS }}-build
     -
       uses: actions-rs/toolchain@v1
       with:
         target: wasm32-unknown-unknown
-        toolchain: ${{ env.WASM_BUILD_TOOLCHAIN }}
+        # Toolchain is autodetected from `rust-toolchain` file
+        # https://github.com/actions-rs/toolchain#the-toolchain-file
+        #toolchain: ${{ env.WASM_BUILD_TOOLCHAIN }}
         default: true
     -
       id: get-rust-versions
