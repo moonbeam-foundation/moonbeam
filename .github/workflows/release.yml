@@ -428,8 +428,10 @@ jobs:
     - uses: actions/checkout@v2
     - run: |
          echo "The following Cargo.lock files have uncommitted changes"
+         echo "a"
          git diff-index --name-only HEAD | grep Cargo.lock
          FILECOUNT=$(git diff-index --name-only HEAD | grep Cargo.lock | wc -l)
+         echo "b"
          echo $FILECOUNT
          if [[ $FILECOUNT -eq 0 ]]; then
            echo "no invalid lock files"
