@@ -433,7 +433,7 @@ jobs:
          FILECOUNT=$(git diff-index --name-only HEAD | grep Cargo.lock | wc -l)
 
          if [[ $FILECOUNT -eq 0 ]]; then
-           false
-         else
            true
+         else
+           false
          fi
