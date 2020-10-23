@@ -15,4 +15,5 @@ if [ -z $CI_PROJECT_NAME ] ; then
    rustup update stable
 fi
 
+rustup toolchain install $RUST_NIGHTLY_VERSION
 rustup target add wasm32-unknown-unknown --toolchain $WASM_BUILD_TOOLCHAIN
