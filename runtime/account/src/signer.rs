@@ -14,6 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! The Ethereum Signature implementation.
+//!
+//! It includes the Verify and IdentifyAccount traits for the AccountId20
+
 use sp_core::{H160, H256, ecdsa, ed25519, sr25519, RuntimeDebug};
 use codec::{Decode, Encode, Input, Output, Error};
 use sha3::{Digest, Keccak256};

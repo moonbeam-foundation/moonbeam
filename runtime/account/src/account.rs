@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! The AccountId20 implementation.
+//!
+//! It includes AccountId conversations
 
 use sp_core::{H160};
 use sp_std::hash::Hash;
