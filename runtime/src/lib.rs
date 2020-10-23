@@ -231,11 +231,6 @@ impl pallet_transaction_payment::Trait for Runtime {
 	type FeeMultiplierUpdate = ();
 }
 
-impl pallet_sudo::Trait for Runtime {
-	type Call = Call;
-	type Event = Event;
-}
-
 parameter_types! {
 	pub const ChainId: u64 = 43;
 }
