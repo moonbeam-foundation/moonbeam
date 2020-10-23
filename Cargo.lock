@@ -3713,7 +3713,6 @@ dependencies = [
  "pallet-evm",
  "pallet-grandpa",
  "pallet-randomness-collective-flip",
- "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
