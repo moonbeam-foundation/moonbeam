@@ -424,8 +424,8 @@ jobs:
 
   check-cargo-toml:
     runs-on: ubuntu-latest
+    needs: build
     steps:
-    - uses: actions/checkout@v2
     # We determine whether there are unmodified Cargo.lock files by:
     # 1. Asking git for a list of all modified files
     # 2. Using grep to reduce the list to only Cargo.lock files
