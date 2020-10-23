@@ -426,7 +426,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    run: |
+    - run: |
          echo "The following Cargo.lock files have uncommitted changes"
          git diff-index --name-only HEAD | grep Cargo.lock
 
