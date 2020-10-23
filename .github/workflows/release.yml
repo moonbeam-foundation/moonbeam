@@ -425,4 +425,5 @@ jobs:
   check-cargo-toml:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v2
     - run: git diff-index --name-only HEAD | grep Cargo.lock
