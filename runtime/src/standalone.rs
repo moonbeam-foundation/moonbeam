@@ -82,6 +82,7 @@ macro_rules! runtime_standalone {
                 Grandpa: pallet_grandpa::{Module, Call, Storage, Config, Event},
                 Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
                 TransactionPayment: pallet_transaction_payment::{Module, Storage},
+                Sudo: pallet_sudo::{Module, Call, Config<T>, Storage, Event<T>},
                 Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
                 EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
             }

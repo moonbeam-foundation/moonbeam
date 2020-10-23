@@ -84,6 +84,7 @@ macro_rules! runtime_parachain {
                 System: frame_system::{Module, Call, Storage, Config, Event<T>},
                 Timestamp: pallet_timestamp::{Module, Call, Storage, Inherent},
                 Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
+                Sudo: pallet_sudo::{Module, Call, Storage, Config<T>, Event<T>},
                 RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Module, Call, Storage},
                 ParachainUpgrade: cumulus_parachain_upgrade::{Module, Call, Storage, Inherent, Event},
                 MessageBroker: cumulus_message_broker::{Module, Call, Inherent, Event<T>},
