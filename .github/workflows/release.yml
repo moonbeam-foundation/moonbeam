@@ -425,6 +425,15 @@ jobs:
   check-cargo-toml:
     runs-on: ubuntu-latest
     steps:
-    - run: which git
     - uses: actions/checkout@v2
-    - run: git diff-index --name-only HEAD #| grep Cargo.lock
+    run: |
+         echo "The following Cargo.lock files have uncommitted changes"
+         git diff-index --name-only HEAD | grep Cargo.lock
+
+         FILECOUNT=$(git diff-index --name-only HEAD | grep Cargo.lock | wc -l)
+
+         if [[ $FILECOUNT -eq 0 ]]; then
+           false
+         else
+           true
+         fi
