@@ -11,6 +11,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "account"
+version = "0.1.1"
+dependencies = [
+ "blake2-rfc",
+ "hex",
+ "log 0.4.11",
+ "pallet-evm",
+ "parity-scale-codec",
+ "serde",
+ "sha3 0.8.2",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-runtime-interface",
+ "sp-std",
+ "zeroize",
+]
+
+[[package]]
 name = "addr2line"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1043,6 +1062,7 @@ dependencies = [
  "frame-system",
  "parity-scale-codec",
  "polkadot-parachain",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -3512,6 +3532,7 @@ dependencies = [
 name = "moonbeam-runtime"
 version = "0.1.0"
 dependencies = [
+ "account",
  "cumulus-message-broker",
  "cumulus-parachain-upgrade",
  "cumulus-primitives",
@@ -3981,12 +4002,6 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bd4556fb64842e71bb6e2f98b7541c0d310069eb607d432c6ac9bdaecbfd3118"
-
-[[package]]
-name = "pallet-ethereum"
-version = "0.1.0"
 source = "git+https://github.com/purestake/frontier?branch=v0.2-hotfixes#10fad78914af371e9f46e7836e5742b94feeda16"
 dependencies = [
  "ethereum 0.3.3",
@@ -4009,6 +4024,12 @@ dependencies = [
  "sp-runtime",
  "sp-std",
 ]
+
+[[package]]
+name = "pallet-ethereum"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd4556fb64842e71bb6e2f98b7541c0d310069eb607d432c6ac9bdaecbfd3118"
 
 [[package]]
 name = "pallet-evm"
@@ -7725,13 +7746,13 @@ dependencies = [
 [[package]]
 name = "substrate-wasm-builder-runner"
 version = "1.0.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d2a965994514ab35d3893e9260245f2947fd1981cdd4fffd2c6e6d1a9ce02e6a"
+source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
 
 [[package]]
 name = "substrate-wasm-builder-runner"
 version = "1.0.6"
-source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d2a965994514ab35d3893e9260245f2947fd1981cdd4fffd2c6e6d1a9ce02e6a"
 
 [[package]]
 name = "substrate-wasmtime"

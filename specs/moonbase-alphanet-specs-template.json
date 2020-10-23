@@ -16,19 +16,10 @@
         "code": "<runtime_code>"
       },
       "palletBalances": {
-        "balances": [
-          [
-            "15ozwjkTsjscc8raJFMdoEkzxE8NeqWWXwi4JGeC3DzAbGoi",
-            115292150460684697600
-          ],
-          [
-            "16f4zjGB1XyXfdr7swiJFr91mSnHrb4CtEt95pz3htF8fHGQ",
-            115292150460684697600
-          ]
-        ]
+        "balances": []
       },
       "palletSudo": {
-        "key": "13jU2C8jiAMkMv5iXiJ8Ue2xLTmJo4byfKm5gBehqPAvkGC4"
+        "key": "0x30a5e0cbe6729895f4188000b4ec61f8a659d2d6"
       },
       "parachainInfo": {
         "parachainId": 1000
