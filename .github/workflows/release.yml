@@ -433,6 +433,7 @@ jobs:
          FILECOUNT=$(git diff-index --name-only HEAD | grep Cargo.lock | wc -l)
 
          if [[ $FILECOUNT -eq 0 ]]; then
+           echo "no invalid lock files"
            true
          else
            false
