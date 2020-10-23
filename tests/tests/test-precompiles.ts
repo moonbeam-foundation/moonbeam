@@ -18,24 +18,23 @@ describeWithMoonbeam("Moonbeam (Precompiles)", `simple-specs.json`, (context) =>
 
     it("ripemd160 should be valid", async function () {
         const tx_call = await customRequest(
-			context.web3, 
-			"eth_call", 
+			context.web3,
+			"eth_call",
 			[{
-				from: GENESIS_ACCOUNT, 
-				'value': "0x0", 
-				'gas': "0x10000", 
-				'gasPrice': "0x01", 
-				'to': '0x0000000000000000000000000000000000000003', 
+				from: GENESIS_ACCOUNT,
+				'value': "0x0",
+				'gas': "0x10000",
+				'gasPrice': "0x01",
+				'to': '0x0000000000000000000000000000000000000003',
 				'data': `0x${Buffer.from('Hello world!').toString('hex')}`
 			}]);
 
 		expect(tx_call.result).equals("0x0000000000000000000000007f772647d88750add82d8e1a7a3e5c0902a346a3");
-    });
+	});
 
 
 
-	// TODO: Restore this test once manual sealing is fixed https://purestake.atlassian.net/browse/MOON-81
-    it.skip("ripemd160 is valid inside a contract", async function () {
+	it("ripemd160 is valid inside a contract", async function () {
 		this.timeout(15000);
 		const tx = await context.web3.eth.accounts.signTransaction(
 			{
