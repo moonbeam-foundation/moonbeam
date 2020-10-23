@@ -427,4 +427,4 @@ jobs:
     steps:
     - run: which git
     - uses: actions/checkout@v2
-    - run: git diff-index --name-only HEAD | grep Cargo.lock
+    - run: git diff-index --name-only HEAD #| grep Cargo.lock
