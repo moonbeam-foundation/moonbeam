@@ -146,7 +146,6 @@ jobs:
   docker-parachain:
     runs-on: ubuntu-latest
     needs: ['get-variables', 'build', 'generate-parachain-specs']
-    if: needs.get-variables.outputs.tag-exists == 0 && github.event_name != 'pull_request'
     steps:
       -
         uses: actions/checkout@v2
@@ -224,7 +223,6 @@ jobs:
   docker-standalone:
     runs-on: ubuntu-latest
     needs: ['get-variables', 'build']
-    if: needs.get-variables.outputs.tag-exists == 0 && github.event_name != 'pull_request'
     steps:
       -
         uses: actions/checkout@v2
