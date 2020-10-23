@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
+source $HOME/.cargo/env
 
 echo "*** Initializing WASM build environment"
 
@@ -15,5 +16,4 @@ if [ -z $CI_PROJECT_NAME ] ; then
    rustup update stable
 fi
 
-source $HOME/.cargo/env
 rustup target add wasm32-unknown-unknown --toolchain $WASM_BUILD_TOOLCHAIN
