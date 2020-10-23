@@ -426,17 +426,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    # We determine whether there are unmodified Cargo.lock files by:
+    # 1. Asking git for a list of all modified files
+    # 2. Using grep to reduce the list to only Cargo.lock files
+    # 3. Counting the number of lines of output
     - run: |
-         echo "The following Cargo.lock files have uncommitted changes"
-         echo "a"
-         git diff-index --name-only HEAD | grep Cargo.lock
-         echo "b"
          FILECOUNT=$(git diff-index --name-only HEAD | grep Cargo.lock | wc -l)
-         echo "c"
-         echo $FILECOUNT
          if [[ $FILECOUNT -eq 0 ]]; then
-           echo "no invalid lock files"
-           true
+           echo "All lock files are valid"
          else
+           echo "The following Cargo.lock files have uncommitted changes"
+           git diff-index --name-only HEAD | grep Cargo.lock
            false
          fi
