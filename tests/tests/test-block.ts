@@ -58,7 +58,6 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
 		firstBlockCreated = true;
 	});
 
-	// TODO requires fix the manual sealing
 	it("should have valid timestamp after block production", async function () {
 		const block = await context.web3.eth.getBlock("latest");
 		const last5Minutes= (Date.now() / 1000) - 300;
@@ -67,7 +66,6 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
 		expect(block.timestamp).to.be.below(next5Minutes);
 	});
 
-	// TODO requires fix the manual sealing
 	it("retrieve block information", async function () {
 		expect(firstBlockCreated).to.be.true;
 
@@ -107,14 +105,12 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
 		expect(block.timestamp).to.be.a("number");
 	});
 
-	// TODO requires fix the manual sealing
 	it("get block by hash", async function() {
 		const latest_block = await context.web3.eth.getBlock("latest");
 		const block = await context.web3.eth.getBlock(latest_block.hash);
 		expect(block.hash).to.be.eq(latest_block.hash);
 	});
 
-	// TODO requires fix the manual sealing
 	it("get block by number", async function() {
 		const block = await context.web3.eth.getBlock(1);
 		expect(block).not.null;
