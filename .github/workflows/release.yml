@@ -1,12 +1,6 @@
 name: Release
 
-on:
-  pull_request:
-    branches:
-    - master
-  push:
-    branches:
-    - master
+on: ['push']
 
 jobs:
   get-variables:
@@ -421,3 +415,21 @@ jobs:
     - uses: gaurav-nelson/github-action-markdown-link-check@v1
       with:
         use-quiet-mode: 'yes'
+
+  check-cargo-toml:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    # We determine whether there are unmodified Cargo.lock files by:
+    # 1. Asking git for a list of all modified files
+    # 2. Using grep to reduce the list to only Cargo.lock files
+    # 3. Counting the number of lines of output
+    - run: |
+         FILECOUNT=$(git diff-index --name-only HEAD | grep Cargo.lock | wc -l)
+         if [[ $FILECOUNT -eq 0 ]]; then
+           echo "All lock files are valid"
+         else
+           echo "The following Cargo.lock files have uncommitted changes"
+           git diff-index --name-only HEAD | grep Cargo.lock
+           false
+         fi
