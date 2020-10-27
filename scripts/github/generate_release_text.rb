@@ -66,4 +66,4 @@ moonbeam_runtime = get_runtime('moonbeam', moonbeam_path)
 # These json files should have been downloaded as part of the build-runtimes
 # github action
 
-puts renderer.result 
+puts renderer.result

@@ -63,33 +63,33 @@ insertKey gran '${RELAY_SEEDS[$RELAY_INDEX]}' '${RELAY_ED25519_PUB[$RELAY_INDEX]
 insertKey imon '${RELAY_SEEDS[$RELAY_INDEX]}' '${RELAY_SR25519_PUB[$RELAY_INDEX]}'; \
 insertKey audi '${RELAY_SEEDS[$RELAY_INDEX]}' '${RELAY_SR25519_PUB[$RELAY_INDEX]}'; \
 insertKey para '${RELAY_SEEDS[$RELAY_INDEX]}' '${RELAY_SR25519_PUB[$RELAY_INDEX]}'; \
- " &
+" &
 
 if [ -z "$RELAY_BASE_PREFIX" ]; then
-    RELAY_BASE_PATH="--tmp"
+  RELAY_BASE_PATH="--tmp"
 else
-    RELAY_BASE_PATH="$RELAY_BASE_PREFIX-relay-$RELAY_INDEX"
+  RELAY_BASE_PATH="$RELAY_BASE_PREFIX-relay-$RELAY_INDEX"
 fi
 
 # The -v build:/build allows to pass the spec files from the build folder to the docker container
 docker run \
-    -v $(pwd)/build:/build \
-    -p $RELAY_PORT:$RELAY_PORT \
-    -p $((RELAY_PORT + 1)):$((RELAY_PORT + 1)) \
-    -p $((RELAY_PORT + 2)):$((RELAY_PORT + 2)) \
-    -it purestake/moonbase-relay-testnet:latest \
-    /usr/local/bin/polkadot \
-        --chain /$POLKADOT_SPEC_RAW \
-        --node-key ${NODE_KEYS[$RELAY_INDEX]} \
-        $RELAY_BASE_PATH \
-        --validator \
-        --force-authoring \
-        --name relay_$RELAY_INDEX \
-        --rpc-methods=Unsafe \
-        --unsafe-rpc-external \
-        --unsafe-ws-external \
-        --port $((RELAY_PORT)) \
-        --rpc-port $((RELAY_PORT + 1)) \
-        --ws-port $((RELAY_PORT + 2)) \
-        $BOOTNODES_ARGS \
-        '-linfo,evm=trace,ethereum=trace,rpc=trace'
+  -v $(pwd)/build:/build \
+  -p $RELAY_PORT:$RELAY_PORT \
+  -p $((RELAY_PORT + 1)):$((RELAY_PORT + 1)) \
+  -p $((RELAY_PORT + 2)):$((RELAY_PORT + 2)) \
+  -it purestake/moonbase-relay-testnet:latest \
+  /usr/local/bin/polkadot \
+    --chain /$POLKADOT_SPEC_RAW \
+    --node-key ${NODE_KEYS[$RELAY_INDEX]} \
+    $RELAY_BASE_PATH \
+    --validator \
+    --force-authoring \
+    --name relay_$RELAY_INDEX \
+    --rpc-methods=Unsafe \
+    --unsafe-rpc-external \
+    --unsafe-ws-external \
+    --port $((RELAY_PORT)) \
+    --rpc-port $((RELAY_PORT + 1)) \
+    --ws-port $((RELAY_PORT + 2)) \
+    $BOOTNODES_ARGS \
+    '-linfo,evm=trace,ethereum=trace,rpc=trace'
