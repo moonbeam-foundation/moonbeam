@@ -13,12 +13,11 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     expect(await context.web3.eth.getBlockNumber()).to.equal(0);
   });
 
-  it.skip("should return genesis block", async function () {
+  it("should return genesis block", async function () {
     expect(await context.web3.eth.getBlockNumber()).to.equal(0);
-
     const block = await context.web3.eth.getBlock(0);
     expect(block).to.include({
-      author: "0x0000000000000000000000000000001234567890",
+      author: "0x0000000000000000000000000000000000000000",
       difficulty: "0",
       extraData: "0x0000000000000000000000000000000000000000000000000000000000000000",
       gasLimit: 0,
@@ -26,12 +25,12 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
       //hash: "0x14fe6f7c93597f79b901f8b5d7a84277a90915b8d355959b587e18de34f1dc17",
       logsBloom:
         "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-      miner: "0x0000000000000000000000000000001234567890",
-      number: 1,
+      miner: "0x0000000000000000000000000000000000000000",
+      number: 0,
       //parentHash: "0x2cc74f91423ba20e9bb0b2c7d8924eacd14bc98aa1daad078f8844e529221cde",
       receiptsRoot: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
       sha3Uncles: "0x0000000000000000000000000000000000000000000000000000000000000000",
-      size: 539,
+      size: 533,
       stateRoot: "0x0000000000000000000000000000000000000000000000000000000000000000",
       //timestamp: 1595012243836,
       totalDifficulty: null,
@@ -52,15 +51,14 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
   });
 
   let firstBlockCreated = false;
-  step("should be at block 1 after block production", async function () {
+  it("should be at block 1 after block production", async function () {
     this.timeout(15000);
     await createAndFinalizeBlock(context.web3);
     expect(await context.web3.eth.getBlockNumber()).to.equal(1);
     firstBlockCreated = true;
   });
 
-  // TODO requires fix the manual sealing
-  it.skip("should have valid timestamp after block production", async function () {
+  it("should have valid timestamp after block production", async function () {
     const block = await context.web3.eth.getBlock("latest");
     const last5Minutes= (Date.now() / 1000) - 300;
     const next5Minutes= (Date.now() / 1000) + 300;
@@ -68,8 +66,7 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     expect(block.timestamp).to.be.below(next5Minutes);
   });
 
-  // TODO requires fix the manual sealing
-  it.skip("retrieve block information", async function () {
+  it("retrieve block information", async function () {
     expect(firstBlockCreated).to.be.true;
 
     const block = await context.web3.eth.getBlock("latest");
@@ -108,21 +105,18 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     expect(block.timestamp).to.be.a("number");
   });
 
-  // TODO requires fix the manual sealing
-  it.skip("get block by hash", async function() {
+  it("get block by hash", async function() {
     const latest_block = await context.web3.eth.getBlock("latest");
     const block = await context.web3.eth.getBlock(latest_block.hash);
     expect(block.hash).to.be.eq(latest_block.hash);
   });
 
-  // TODO requires fix the manual sealing
-  it.skip("get block by number", async function() {
+  it("get block by number", async function() {
     const block = await context.web3.eth.getBlock(1);
     expect(block).not.null;
   });
 
-  // TODO requires fix the manual sealing
-  it.skip("should include previous block hash as parent", async function () {
+  it("should include previous block hash as parent", async function () {
     this.timeout(15000);
     await createAndFinalizeBlock(context.web3);
     const block = await context.web3.eth.getBlock("latest");
