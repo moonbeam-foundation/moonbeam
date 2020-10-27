@@ -162,7 +162,9 @@ pub fn new_full(
 				import_queue,
 				on_demand: None,
 				block_announce_validator_builder: None,
-				finality_proof_request_builder: Some(Box::new(sc_network::config::DummyFinalityProofRequestBuilder)),
+				finality_proof_request_builder: Some(
+					Box::new(sc_network::config::DummyFinalityProofRequestBuilder)
+				),
 				finality_proof_provider: None,
 			})?
 		},
@@ -176,7 +178,10 @@ pub fn new_full(
 				on_demand: None,
 				block_announce_validator_builder: None,
 				finality_proof_request_builder: None,
-				finality_proof_provider: Some(GrandpaFinalityProofProvider::new_for_service(backend.clone(), client.clone())),
+				finality_proof_provider: Some(
+					GrandpaFinalityProofProvider::new_for_service(backend.clone(),
+					client.clone())
+				),
 			})?
 		}
 	};
@@ -198,7 +203,9 @@ pub fn new_full(
 	let prometheus_registry = config.prometheus_registry().cloned();
 	let telemetry_connection_sinks = sc_service::TelemetryConnectionSinks::default();
 	let is_authority = role.is_authority();
-	let subscription_task_executor = sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
+	let subscription_task_executor = sc_rpc::SubscriptionTaskExecutor::new(
+		task_manager.spawn_handle()
+	);
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
@@ -257,7 +264,10 @@ pub fn new_full(
 				);
 
 				// we spawn the future on a background thread managed by service.
-				task_manager.spawn_essential_handle().spawn_blocking("manual-seal", authorship_future);
+				task_manager.spawn_essential_handle().spawn_blocking(
+					"manual-seal",
+					authorship_future,
+				);
 			}
 			log::info!("Manual Seal Ready");
 		},
