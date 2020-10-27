@@ -73,7 +73,8 @@ pub mod crypto {
 }
 
 pub trait Trait:
-	system::Trait + pallet_balances::Trait + pallet_session::Trait + CreateSignedTransaction<Call<Self>>
+	system::Trait + pallet_balances::Trait
+	+ pallet_session::Trait + CreateSignedTransaction<Call<Self>>
 {
 	type AuthorityId: AppCrypto<Self::Public, Self::Signature>;
 	type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
@@ -129,7 +130,8 @@ decl_storage! {
 		/// One to Many Validator -> Endorsers.
 		ValidatorEndorsers: map hasher(blake2_128_concat) T::AccountId => Vec<T::AccountId>;
 		/// One to One Endorser -> Validator.
-		/// A restriction for number of endorsers per validator must be implemented to predict complexity.
+		/// A restriction for number of endorsers per validator.
+		/// Must be implemented to predict complexity.
 		Endorser: map hasher(blake2_128_concat) T::AccountId => T::AccountId;
 		/// A timeline of free_balances for an endorser that allows us to calculate
 		/// the average of free_balance of an era.
@@ -142,7 +144,8 @@ decl_storage! {
 		///
 		/// Endorser, Validator => (session_block_index,endorser_balance)
 		EndorserSnapshots:
-			double_map hasher(blake2_128_concat) T::AccountId, hasher(blake2_128_concat) T::AccountId => Vec<(u32,BalanceOf<T>)>;
+			double_map hasher(blake2_128_concat) T::AccountId, hasher(blake2_128_concat)
+			T::AccountId => Vec<(u32,BalanceOf<T>)>;
 
 		/// TODO the Treasury balance. It is still unclear if this will be a pallet account or
 		/// will remain as a Storage balance.
@@ -260,7 +263,12 @@ decl_module! {
 		#[weight = 0]
 		fn persist_snapshots(
 			origin,
-			snapshots_payload: SnapshotsPayload<T::AccountId, T::Public, T::BlockNumber, BalanceOf<T>>,
+			snapshots_payload: SnapshotsPayload<
+				T::AccountId,
+				T::Public,
+				T::BlockNumber,
+				BalanceOf<T>
+			>,
 			_signature: T::Signature
 		) -> DispatchResult {
 			ensure_none(origin)?;
