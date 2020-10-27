@@ -28,7 +28,7 @@ use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
 use sp_consensus_aura::sr25519::{AuthorityPair as AuraPair};
 use sc_finality_grandpa::{
-	FinalityProofProvider as GrandpaFinalityProofProvider, SharedVoterState,
+	GrandpaBlockImprot, FinalityProofProvider as GrandpaFinalityProofProvider, SharedVoterState,
 };
 
 // Our native executor instance.
@@ -49,7 +49,7 @@ pub enum ConsensusResult {
 			FullClient,
 			FrontierBlockImport<
 				Block,
-				sc_finality_grandpa::GrandpaBlockImport<FullBackend, Block, FullClient, FullSelectChain>,
+				GrandpaBlockImport<FullBackend, Block, FullClient, FullSelectChain>,
 				FullClient,
 				FullBackend,
 			>,
@@ -141,7 +141,10 @@ pub fn new_partial(config: &Configuration, manual_seal: bool) -> Result<
 
 /// Builds a new service for a full client.
 pub fn new_full(
-	config: Configuration, manual_seal: bool, eth_block_limit: Option<u32>, eth_log_limit: Option<u32>
+	config: Configuration,
+	manual_seal: bool,
+	eth_block_limit: Option<u32>,
+	eth_log_limit: Option<u32>,
 ) -> Result<TaskManager, ServiceError> {
 	let sc_service::PartialComponents {
 		client, backend, mut task_manager, import_queue, keystore, select_chain, transaction_pool,
