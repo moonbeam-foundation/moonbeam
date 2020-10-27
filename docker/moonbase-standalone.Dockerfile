@@ -1,5 +1,5 @@
-# Node for Moonbase Alphanet. 
-# 
+# Node for Moonbase Alphanet.
+#
 # Requires to run from repository root and to copy the binary in the build folder (part of the release workflow)
 
 FROM phusion/baseimage:0.11
@@ -32,7 +32,7 @@ CMD ["/moonbase/moonbase", \
 	"--dev" \
 	"--tmp" \
 	"--charlie" \
-    "--port","30333", \
-    "--rpc-port","9933", \
-    "--ws-port","9944", \
+	"--port","30333", \
+	"--rpc-port","9933", \
+	"--ws-port","9944", \
 ]
