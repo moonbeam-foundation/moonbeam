@@ -5,7 +5,8 @@ import { AbiItem } from "web3-utils";
 
 describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (context) => {
   const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
-  const GENESIS_ACCOUNT_PRIVATE_KEY = "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
+  const GENESIS_ACCOUNT_PRIVATE_KEY =
+    "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
 
   // Solidity: contract test { function multiply(uint a) public pure returns(uint d) {return a * 7;}}
   const TEST_CONTRACT_BYTECODE =
@@ -21,7 +22,9 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
     type: "function",
   } as AbiItem;
 
-  const FIRST_CONTRACT_ADDRESS = "0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a"; // Those test are ordered. In general this should be avoided, but due to the time it takes  // to spin up a Moonbeam node, it saves a lot of time.
+  // Those test are ordered. In general this should be avoided, but due to the time it takes
+  // to spin up a Moonbeam node, it saves a lot of time.
+  const FIRST_CONTRACT_ADDRESS = "0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a";
 
   before("create the contract", async function () {
     this.timeout(15000);
@@ -59,15 +62,20 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
 
   // Requires error handling
   it.skip("should fail for missing parameters", async function () {
-    const contract = new context.web3.eth.Contract([{ ...TEST_CONTRACT_ABI, inputs: [] }], FIRST_CONTRACT_ADDRESS, {
-      from: GENESIS_ACCOUNT,
-      gasPrice: "0x01",
-    });
+    const contract = new context.web3.eth.Contract(
+      [{ ...TEST_CONTRACT_ABI, inputs: [] }],
+      FIRST_CONTRACT_ADDRESS,
+      {
+        from: GENESIS_ACCOUNT,
+        gasPrice: "0x01",
+      }
+    );
     await contract.methods
       .multiply()
       .call()
       .catch((err) =>
-        expect(err.message).to.equal(`Returned error: VM Exception while processing transaction: revert.`)
+        expect(err.message)
+          .to.equal(`Returned error: VM Exception while processing transaction: revert.`)
       );
   });
 
@@ -93,7 +101,8 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
       .multiply(3, 4)
       .call()
       .catch((err) =>
-        expect(err.message).to.equal(`Returned error: VM Exception while processing transaction: revert.`)
+        expect(err.message)
+          .to.equal(`Returned error: VM Exception while processing transaction: revert.`)
       );
   });
 
@@ -108,7 +117,8 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
       .multiply("0x0123456789012345678901234567890123456789")
       .call()
       .catch((err) =>
-        expect(err.message).to.equal(`Returned error: VM Exception while processing transaction: revert.`)
+        expect(err.message)
+          .to.equal(`Returned error: VM Exception while processing transaction: revert.`)
       );
   });
 });

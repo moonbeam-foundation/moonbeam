@@ -5,7 +5,8 @@ import { AbiItem } from "web3-utils";
 
 describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
   const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
-  const GENESIS_ACCOUNT_PRIVATE_KEY = "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
+  const GENESIS_ACCOUNT_PRIVATE_KEY =
+    "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
 
   // Solidity: contract test { function multiply(uint a) public pure returns(uint d) {return a * 7;}}
   const TEST_CONTRACT_BYTECODE =
@@ -21,7 +22,9 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
     type: "function",
   } as AbiItem;
 
-  const FIRST_CONTRACT_ADDRESS = "0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a"; // Those test are ordered. In general this should be avoided, but due to the time it takes  // to spin up a Moonbeam node, it saves a lot of time.
+  // Those test are ordered. In general this should be avoided, but due to the time it takes
+  // to spin up a Moonbeam node, it saves a lot of time.
+  const FIRST_CONTRACT_ADDRESS = "0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a";
 
   it("eth_estimateGas for contract creation", async function () {
     expect(
@@ -43,7 +46,8 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
     const gasLimit = (await context.web3.eth.getBlock("latest")).gasLimit;
     await createAndFinalizeBlock(context.web3);
 
-    // Gas limit is expected to have decreased as the gasUsed by the block is lower than 2/3 of the previous gas limit
+    // Gas limit is expected to have decreased as the gasUsed by the block is lower than 2/3 of the
+    // previous gas limit.
     const newGasLimit = (await context.web3.eth.getBlock("latest")).gasLimit;
     expect(newGasLimit).to.be.below(gasLimit);
   });
