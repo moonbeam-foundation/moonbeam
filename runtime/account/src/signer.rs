@@ -19,7 +19,7 @@
 //! It includes the Verify and IdentifyAccount traits for the AccountId20
 
 use sp_core::{H160, H256, ecdsa, ed25519, sr25519, RuntimeDebug};
-use codec::{Decode, Encode, Input, Output, Error};
+use codec::{Decode, Encode, Input};
 use sha3::{Digest, Keccak256};
 
 #[cfg(feature = "std")]
@@ -106,12 +106,6 @@ impl sp_runtime::traits::IdentifyAccount for EthereumSigner {
 	type AccountId = super::account::AccountId20;
 	fn into_account(self) -> super::account::AccountId20 {
 		self.0.into()
-	}
-}
-
-impl sp_core::crypto::UncheckedFrom<[u8; 20]> for EthereumSigner {
-	fn unchecked_from(x: [u8; 20]) -> Self {
-		EthereumSigner(x)
 	}
 }
 

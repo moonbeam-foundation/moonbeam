@@ -24,7 +24,6 @@
 
 use sp_core::{H160};
 use sp_std::hash::Hash;
-use sp_std::convert::TryFrom;
 use codec::{Encode, Decode};
 #[cfg(feature = "std")]
 use sp_core::hexdisplay::HexDisplay;
@@ -34,7 +33,6 @@ use std::str::FromStr;
 
 #[cfg(feature = "full_crypto")]
 use sp_core::crypto::{PublicError};
-use sp_core::crypto::{UncheckedFrom};
 
 use pallet_evm::AddressMapping;
 
