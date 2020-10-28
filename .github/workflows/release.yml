@@ -385,11 +385,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Setup prettier check
-        run: |
-          npm install -g prettier prettier-check
       - name: Check with Prettier
-        run: prettier-check **/*.ts **/*.yml **/*.js **/*.json
+      uses: creyD/prettier_action@v3.0
+      with:
+        # This part is also where you can pass other options, for example:
+        prettier_options: **/*.{js,ts,yml,json}
 
   check-cargo-toml:
     runs-on: ubuntu-latest
