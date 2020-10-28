@@ -60,7 +60,7 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     // Originally ,this test required the timestamp be in the last finve minutes.
     // This requirement doesn't make sense when we forge timestamps in manual seal.
     const block = await context.web3.eth.getBlock("latest");
-    const next5Minutes= (Date.now() / 1000) + 300;
+    const next5Minutes = Date.now() / 1000 + 300;
     expect(block.timestamp).to.be.least(0);
     expect(block.timestamp).to.be.below(next5Minutes);
   });
