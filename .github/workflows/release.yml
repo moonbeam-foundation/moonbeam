@@ -320,7 +320,8 @@ jobs:
         with:
           upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
           asset_path: build/alphanet/${{ matrix.runtime }}-runtime.wasm
-          asset_name: ${{ matrix.runtime }}-runtime-v${{ steps.get-runtime-ver.outputs.runtime_ver }}.wasm
+          asset_name:
+            ${{ matrix.runtime }}-runtime-v${{ steps.get-runtime-ver.outputs.runtime_ver }}.wasm
           asset_content_type: application/wasm
       - name: Upload ${{ matrix.runtime }} node
         uses: actions/upload-release-asset@v1
