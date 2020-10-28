@@ -46,7 +46,9 @@ export async function createAndFinalizeBlock(web3: Web3) {
   }
 }
 
-export async function startMoonbeamNode(specFilename: string): Promise<{ web3: Web3; binary: ChildProcess }> {
+export async function startMoonbeamNode(
+  specFilename: string
+): Promise<{ web3: Web3; binary: ChildProcess }> {
   const web3 = new Web3(`http://localhost:${RPC_PORT}`);
 
   const cmd = BINARY_PATH;
@@ -69,7 +71,8 @@ export async function startMoonbeamNode(specFilename: string): Promise<{ web3: W
   binary.on("error", (err) => {
     if ((err as any).errno == "ENOENT") {
       console.error(
-        `\x1b[31mMissing Moonbeam binary (${BINARY_PATH}).\nPlease compile the Moonbeam project\x1b[0m`
+        `\x1b[31mMissing Moonbeam binary ` +
+          `(${BINARY_PATH}).\nPlease compile the Moonbeam project\x1b[0m`
       );
     } else {
       console.error(err);
@@ -112,7 +115,11 @@ export async function startMoonbeamNode(specFilename: string): Promise<{ web3: W
   return { web3, binary };
 }
 
-export function describeWithMoonbeam(title: string, specFilename: string, cb: (context: { web3: Web3 }) => void) {
+export function describeWithMoonbeam(
+  title: string,
+  specFilename: string,
+  cb: (context: { web3: Web3 }) => void
+) {
   describe(title, () => {
     let context: { web3: Web3 } = { web3: null };
     let binary: ChildProcess;

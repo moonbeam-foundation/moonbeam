@@ -24,7 +24,8 @@ STANDALONE_BOOTNODES_ARGS=""
 while nc -z -v -w5 ${RELAY_IP} ${STANDALONE_PORT} 2> /dev/null
 do
   echo "Found existing relay on ${STANDALONE_PORT}."
-  BOOTNODES_ARGS="$BOOTNODES_ARGS --bootnodes /ip4/$RELAY_IP/tcp/${STANDALONE_PORT}/p2p/${RELAY_LOCAL_IDS[$STANDALONE_INDEX]}"
+  BOOTNODES_ARGS="$BOOTNODES_ARGS --bootnodes \
+    /ip4/$RELAY_IP/tcp/${STANDALONE_PORT}/p2p/${RELAY_LOCAL_IDS[$STANDALONE_INDEX]}"
   STANDALONE_INDEX=$((STANDALONE_INDEX + 1))
   STANDALONE_PORT=$((STANDALONE_PORT + 100))
 
@@ -35,7 +36,8 @@ do
   fi
 done
 
-echo "Node $STANDALONE_INDEX - p2p-port: $((STANDALONE_PORT)), http-port: $((STANDALONE_PORT + 1)) , ws-port: $((STANDALONE_PORT + 2))"
+echo "Node $STANDALONE_INDEX - p2p-port: $((STANDALONE_PORT)), \
+http-port: $((STANDALONE_PORT + 1)) , ws-port: $((STANDALONE_PORT + 2))"
 
 if [ -z "$BASE_PREFIX" ]; then
   BASE_PATH="--tmp"

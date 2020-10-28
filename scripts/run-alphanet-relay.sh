@@ -25,7 +25,8 @@ BOOTNODES_ARGS=""
 while nc -z -v -w5 ${RELAY_IP} ${RELAY_PORT} 2> /dev/null
 do
     echo "Found existing relay on ${RELAY_PORT}."
-    BOOTNODES_ARGS="$BOOTNODES_ARGS --bootnodes /ip4/$RELAY_IP/tcp/${RELAY_PORT}/p2p/${RELAY_LOCAL_IDS[$RELAY_INDEX]}"
+    BOOTNODES_ARGS="$BOOTNODES_ARGS --bootnodes \
+      /ip4/$RELAY_IP/tcp/${RELAY_PORT}/p2p/${RELAY_LOCAL_IDS[$RELAY_INDEX]}"
     RELAY_INDEX=$((RELAY_INDEX + 1))
     RELAY_PORT=$((RELAY_PORT + 100))
 
@@ -38,7 +39,8 @@ done
 
 
 
-echo "relay ${RELAY_INDEX} - p2p-port: $((RELAY_PORT)), http-port: $((RELAY_PORT + 1)) , ws-port: $((RELAY_PORT + 2))"
+echo "relay ${RELAY_INDEX} - p2p-port: $((RELAY_PORT)), \
+http-port: $((RELAY_PORT + 1)) , ws-port: $((RELAY_PORT + 2))"
 
 # This part will insert the keys in the node
 bash -c "sleep 5; \

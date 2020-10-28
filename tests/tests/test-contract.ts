@@ -9,7 +9,11 @@ describeWithMoonbeam("Moonbeam RPC (Contract)", `simple-specs.json`, (context) =
 
   // Solidity: contract test {function multiply(uint a) public pure returns(uint d) {return a * 7;}}
   const TEST_CONTRACT_BYTECODE =
-    "0x6080604052348015600f57600080fd5b5060ae8061001e6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c8063c6888fa114602d575b600080fd5b605660048036036020811015604157600080fd5b8101908080359060200190929190505050606c565b6040518082815260200191505060405180910390f35b600060078202905091905056fea265627a7a72315820f06085b229f27f9ad48b2ff3dd9714350c1698a37853a30136fa6c5a7762af7364736f6c63430005110032";
+    "0x6080604052348015600f57600080fd5b5060ae8061001e6000396000f3fe6080604052348015600f57600080fd" +
+    "5b506004361060285760003560e01c8063c6888fa114602d575b600080fd5b605660048036036020811015604157" +
+    "600080fd5b8101908080359060200190929190505050606c565b6040518082815260200191505060405180910390" +
+    "f35b600060078202905091905056fea265627a7a72315820f06085b229f27f9ad48b2ff3dd9714350c1698a37853" +
+    "a30136fa6c5a7762af7364736f6c63430005110032";
   const FIRST_CONTRACT_ADDRESS = "0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a";
   // Those test are ordered. In general this should be avoided, but due to the time it takes
   // to spin up a Moonbeam node, it saves a lot of time.
@@ -27,29 +31,36 @@ describeWithMoonbeam("Moonbeam RPC (Contract)", `simple-specs.json`, (context) =
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
 
-    expect(await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]))
-      .to.deep.equal({
-        id: 1,
-        jsonrpc: "2.0",
-        result: "0xa791fec7c4b10661a937635abfbdb933c57acb2e7399c2562c9c31a9d6ad8435",
-      });
+    expect(
+      await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction])
+    ).to.deep.equal({
+      id: 1,
+      jsonrpc: "2.0",
+      result: "0xa791fec7c4b10661a937635abfbdb933c57acb2e7399c2562c9c31a9d6ad8435",
+    });
 
     // Verify the contract is not yet stored
-    expect(await customRequest(context.web3, "eth_getCode", [FIRST_CONTRACT_ADDRESS]))
-      .to.deep.equal({
-        id: 1,
-        jsonrpc: "2.0",
-        result: "0x",
-      });
+    expect(
+      await customRequest(context.web3, "eth_getCode", [FIRST_CONTRACT_ADDRESS])
+    ).to.deep.equal({
+      id: 1,
+      jsonrpc: "2.0",
+      result: "0x",
+    });
 
     // Verify the contract is stored after the block is produced
     await createAndFinalizeBlock(context.web3);
-    expect(await customRequest(context.web3, "eth_getCode", [FIRST_CONTRACT_ADDRESS]))
-      .to.deep.equal({
-        id: 1,
-        jsonrpc: "2.0",
-        result:
-          "0x6080604052348015600f57600080fd5b506004361060285760003560e01c8063c6888fa114602d575b600080fd5b605660048036036020811015604157600080fd5b8101908080359060200190929190505050606c565b6040518082815260200191505060405180910390f35b600060078202905091905056fea265627a7a72315820f06085b229f27f9ad48b2ff3dd9714350c1698a37853a30136fa6c5a7762af7364736f6c63430005110032",
-      });
+    expect(
+      await customRequest(context.web3, "eth_getCode", [FIRST_CONTRACT_ADDRESS])
+    ).to.deep.equal({
+      id: 1,
+      jsonrpc: "2.0",
+      result:
+        "0x6080604052348015600f57600080fd5b506004361060285760003560e01c8063c6888fa114602d575b60" +
+        "0080fd5b605660048036036020811015604157600080fd5b8101908080359060200190929190505050606c" +
+        "565b6040518082815260200191505060405180910390f35b600060078202905091905056fea265627a7a72" +
+        "315820f06085b229f27f9ad48b2ff3dd9714350c1698a37853a30136fa6c5a7762af7364736f6c63430005" +
+        "110032",
+    });
   });
 });

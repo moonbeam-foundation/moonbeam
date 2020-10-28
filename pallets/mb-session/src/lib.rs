@@ -313,8 +313,8 @@ impl<T: Trait> Module<T> {
 		Ok(())
 	}
 
-	/// The below is TODO, just a 1st approach to keep moving forward until we find out how to track BalanceOf
-	/// changes in real-time.
+	/// The below is TODO, just a 1st approach to keep moving forward
+	/// until we find out how to track BalanceOf changes in real-time.
 	///
 	/// This approach, although functional, is invalid as it has multiple issues like
 	/// sending signed transactions potentially every block.

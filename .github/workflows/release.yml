@@ -428,6 +428,18 @@ jobs:
           chmod +x bin/ec-linux-amd64
       - name: Check files
         run: bin/ec-linux-amd64
+  
+  check-typescript-prettier:
+    name: 'Check typescript with prettier'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup prettier check
+        run: |
+          cd tests
+          npm install prettier prettier-check
+      - name: Check typescript
+        run: node_modules/.bin/prettier-check **/*.ts
 
   check-cargo-toml:
     runs-on: ubuntu-latest
@@ -446,3 +458,5 @@ jobs:
            git diff-index --name-only HEAD | grep Cargo.lock
            false
          fi
+
+         

@@ -2,7 +2,8 @@
 source scripts/_init_var.sh
 
 if [ -z "$POLKADOT_VERSION" ]; then
-  POLKADOT_VERSION="sha-`egrep -o 'paritytech/polkadot.*#([^\"]*)' Cargo.lock | head -1 | sed 's/.*#//' |  cut -c1-8`"
+  POLKADOT_VERSION="sha-`egrep -o 'paritytech/polkadot.*#([^\"]*)' Cargo.lock | \
+    head -1 | sed 's/.*#//' |  cut -c1-8`"
 fi
 
 

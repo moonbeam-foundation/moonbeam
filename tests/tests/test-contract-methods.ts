@@ -8,9 +8,16 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
   const GENESIS_ACCOUNT_PRIVATE_KEY =
     "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
 
-  // Solidity: contract test { function multiply(uint a) public pure returns(uint d) {return a * 7;}}
+  // Solidity:
+  // contract test {
+  //   function multiply(uint a) public pure returns(uint d) {return a * 7;}
+  // }
   const TEST_CONTRACT_BYTECODE =
-    "0x6080604052348015600f57600080fd5b5060ae8061001e6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c8063c6888fa114602d575b600080fd5b605660048036036020811015604157600080fd5b8101908080359060200190929190505050606c565b6040518082815260200191505060405180910390f35b600060078202905091905056fea265627a7a72315820f06085b229f27f9ad48b2ff3dd9714350c1698a37853a30136fa6c5a7762af7364736f6c63430005110032";
+    "0x6080604052348015600f57600080fd5b5060ae8061001e6000396000f3fe6080604052348015600f57600080f" +
+    "d5b506004361060285760003560e01c8063c6888fa114602d575b600080fd5b6056600480360360208110156041" +
+    "57600080fd5b8101908080359060200190929190505050606c565b6040518082815260200191505060405180910" +
+    "390f35b600060078202905091905056fea265627a7a72315820f06085b229f27f9ad48b2ff3dd9714350c1698a3" +
+    "7853a30136fa6c5a7762af7364736f6c63430005110032";
 
   const TEST_CONTRACT_ABI = {
     constant: true,
@@ -74,8 +81,9 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
       .multiply()
       .call()
       .catch((err) =>
-        expect(err.message)
-          .to.equal(`Returned error: VM Exception while processing transaction: revert.`)
+        expect(err.message).to.equal(
+          `Returned error: VM Exception while processing transaction: revert.`
+        )
       );
   });
 
@@ -101,15 +109,27 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
       .multiply(3, 4)
       .call()
       .catch((err) =>
-        expect(err.message)
-          .to.equal(`Returned error: VM Exception while processing transaction: revert.`)
+        expect(err.message).to.equal(
+          `Returned error: VM Exception while processing transaction: revert.`
+        )
       );
   });
 
   // Requires error handling
   it.skip("should fail for invalid parameters", async function () {
     const contract = new context.web3.eth.Contract(
-      [{ ...TEST_CONTRACT_ABI, inputs: [{ internalType: "address", name: "a", type: "address" }] }],
+      [
+        {
+          ...TEST_CONTRACT_ABI,
+          inputs: [
+            {
+              internalType: "address",
+              name: "a",
+              type: "address",
+            },
+          ],
+        },
+      ],
       FIRST_CONTRACT_ADDRESS,
       { from: GENESIS_ACCOUNT, gasPrice: "0x01" }
     );
@@ -117,8 +137,9 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
       .multiply("0x0123456789012345678901234567890123456789")
       .call()
       .catch((err) =>
-        expect(err.message)
-          .to.equal(`Returned error: VM Exception while processing transaction: revert.`)
+        expect(err.message).to.equal(
+          `Returned error: VM Exception while processing transaction: revert.`
+        )
       );
   });
 });
