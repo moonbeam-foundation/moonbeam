@@ -13,7 +13,7 @@ RUN mv /usr/share/ca* /tmp && \
 	rm -rf /usr/lib/python* && \
 	useradd -m -u 1000 -U -s /bin/sh -d /moonbase-alphanet moonbeam && \
 	mkdir -p /moonbase-alphanet/.local/share/moonbase-alphanet && \
-	chown -R moonbeam:moonbeam /moonbase-alphanet/.local && \
+	chown -R moonbeam:moonbeam /moonbase-alphanet && \
 	ln -s /moonbase-alphanet/.local/share/moonbase-alphanet /data && \
 	rm -rf /usr/bin /usr/sbin
 
@@ -21,6 +21,7 @@ RUN mv /usr/share/ca* /tmp && \
 USER moonbeam
 
 COPY build/alphanet /moonbase-alphanet
+RUN chmod uog+x /moonbase-alphanet/moonbase-alphanet
 
 # 30333 for p2p traffic
 # 9933 for RPC call
