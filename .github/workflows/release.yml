@@ -380,8 +380,8 @@ jobs:
       - name: Check files
         run: bin/ec-linux-amd64
 
-  check-typescript-prettier:
-    name: "Check typescript/yaml with prettier"
+  check-prettier:
+    name: "Check with Prettier"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -389,8 +389,8 @@ jobs:
         run: |
           cd tests
           npm install prettier prettier-check
-      - name: Check typescript
-        run: cd tests && node_modules/.bin/prettier-check ../**/*.ts ../**/*.yml ../**/*.js
+      - name: Check with Prettier
+        run: cd tests && node_modules/.bin/prettier-check ../**/*.ts ../**/*.yml ../**/*.js ../**/*.json
 
   check-cargo-toml:
     runs-on: ubuntu-latest
