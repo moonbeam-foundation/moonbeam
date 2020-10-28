@@ -21,22 +21,10 @@
       },
       "balances": {
         "balances": [
-          [
-            "1uV7ZJDW37CHeiWFppogK5JsV59tUrbuf1PcaDW5cTE1DHG",
-            100000000000000000000
-          ],
-          [
-            "14dmc8KjuXgKrmrBneJdpTZQhjStJoWnVipAhf2vcwcMWRBM",
-            100000000000000000000
-          ],
-          [
-            "16S1pBxHVpbHZE5DacwucvzXo3T6vDi9nsrTdwFvo3Vmm2xL",
-            100000000000000000000
-          ],
-          [
-            "5GshoQVQ1xc9Abr4LcJdf5vr6c8ixXxNTSya8yeqV8xeQwsE",
-            100000000000000000000
-          ]
+          ["1uV7ZJDW37CHeiWFppogK5JsV59tUrbuf1PcaDW5cTE1DHG", 100000000000000000000],
+          ["14dmc8KjuXgKrmrBneJdpTZQhjStJoWnVipAhf2vcwcMWRBM", 100000000000000000000],
+          ["16S1pBxHVpbHZE5DacwucvzXo3T6vDi9nsrTdwFvo3Vmm2xL", 100000000000000000000],
+          ["5GshoQVQ1xc9Abr4LcJdf5vr6c8ixXxNTSya8yeqV8xeQwsE", 100000000000000000000]
         ]
       },
       "session": {

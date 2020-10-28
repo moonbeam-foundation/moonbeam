@@ -17,14 +17,8 @@
       },
       "palletBalances": {
         "balances": [
-          [
-            "15ozwjkTsjscc8raJFMdoEkzxE8NeqWWXwi4JGeC3DzAbGoi",
-            115292150460684697600
-          ],
-          [
-            "16f4zjGB1XyXfdr7swiJFr91mSnHrb4CtEt95pz3htF8fHGQ",
-            115292150460684697600
-          ]
+          ["15ozwjkTsjscc8raJFMdoEkzxE8NeqWWXwi4JGeC3DzAbGoi", 115292150460684697600],
+          ["16f4zjGB1XyXfdr7swiJFr91mSnHrb4CtEt95pz3htF8fHGQ", 115292150460684697600]
         ]
       },
       "palletSudo": {
