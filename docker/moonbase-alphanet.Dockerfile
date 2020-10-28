@@ -20,7 +20,7 @@ RUN mv /usr/share/ca* /tmp && \
 
 USER moonbeam
 
-COPY build/alphanet /moonbase-alphanet
+COPY --chown=moonbeam build/alphanet /moonbase-alphanet
 RUN chmod uog+x /moonbase-alphanet/moonbase-alphanet
 
 # 30333 for p2p traffic
