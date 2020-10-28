@@ -41,7 +41,7 @@ Build the corresponding binary file:
 ```bash
 cargo build --release
 ```  
-The first build takes a long time, as it install and compiles all the necessary libraries.
+The first build takes a long time, as it compiles all the necessary libraries.
 
 ### Troubleshooting
 If a _cargo not found_ error appears in the terminal, manually add Rust to your system path (or restart your system):
