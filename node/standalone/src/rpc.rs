@@ -18,7 +18,7 @@
 
 use std::{sync::Arc, fmt};
 
-use sc_consensus_manual_seal::rpc::{ManualSeal, ManualSealApi};
+use sc_consensus_manual_seal::rpc::{EngineCommand, ManualSeal, ManualSealApi};
 use moonbeam_runtime::{Hash, AccountId, Index, opaque::Block, Balance};
 use sp_api::ProvideRuntimeApi;
 use sp_transaction_pool::TransactionPool;
@@ -66,7 +66,7 @@ pub struct FullDeps<C, P, A: ChainApi> {
 	/// Network service
 	pub network: Arc<NetworkService<Block, Hash>>,
 	/// Manual seal command sink
-	pub command_sink: Option<futures::channel::mpsc::Sender<sc_consensus_manual_seal::rpc::EngineCommand<Hash>>>,
+	pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
 }
 
 /// Instantiate all Full RPC extensions.

@@ -67,7 +67,8 @@ fn get_precompiled_func_from_address(address: &H160) -> Option<PrecompiledCallab
 	use core::str::FromStr;
 
 	// Note that addresses from_str should not start with 0x, just the hex value
-	let addr_deadbeef = H160::from_str("0000000000000000000000000000000000001000").expect("Invalid address at precompiles generation");
+	let addr_deadbeef = H160::from_str("0000000000000000000000000000000000001000")
+		.expect("Invalid address at precompiles generation");
 
 	if *address == addr_deadbeef {
 		return Some(DeadbeefPrecompiled::execute);
@@ -81,10 +82,15 @@ impl pallet_evm::Precompiles for ExperimentalMoonbeamPrecompiles {
 		address: H160,
 		input: &[u8],
 		target_gas: Option<usize>
-	) -> Option<core::result::Result<(pallet_evm::ExitSucceed, Vec<u8>, usize), pallet_evm::ExitError>> {
+	) -> Option<
+		core::result::Result<
+			(pallet_evm::ExitSucceed, Vec<u8>, usize),
+			pallet_evm::ExitError,
+		>
+	> {
 		match get_precompiled_func_from_address(&address) {
-		   Some(func) => return Some(func(input, target_gas)),
-		   _ => {},
+			Some(func) => return Some(func(input, target_gas)),
+			_ => {},
 		};
 
 		None
@@ -115,7 +121,9 @@ pub type MoonbeamPrecompiles =
 (
 	pallet_evm::precompiles::ECRecover,
 	pallet_evm::precompiles::Sha256,
-	Ripemd160, // Reset to pallet_evm ripemd160 once https://github.com/paritytech/substrate/pull/7296 is included
+	// Reset to pallet_evm ripemd160 once
+	// https://github.com/paritytech/substrate/pull/7296 is included
+	Ripemd160,
 	pallet_evm::precompiles::Identity,
 );
 

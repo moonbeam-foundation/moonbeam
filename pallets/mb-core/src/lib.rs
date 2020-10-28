@@ -90,7 +90,7 @@ impl<O: Into<Result<RawOrigin<AccountId>, O>> + From<RawOrigin<AccountId>>, Acco
 	}
 }
 
-// https://substrate.dev/rustdocs/pre-v2.0-3e65111/pallet_staking/trait.Trait.html#associatedtype.RewardRemainder
+// https://substrate.dev/rustdocs/pre-v2.0-3e65111/pallet_staking/trait.Trait.html
 pub struct RewardRemainder<T>(T);
 impl<T: Trait> OnUnbalanced<NegativeImbalanceOf<T>> for RewardRemainder<T> {
 	fn on_nonzero_unbalanced(_amount: NegativeImbalanceOf<T>) {

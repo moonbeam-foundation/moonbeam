@@ -7,7 +7,11 @@ if [ ! -f "$STANDALONE_BINARY" ]; then
     exit 1
 fi
 
-$STANDALONE_BINARY build-spec --disable-default-bootnode  | grep '\"code\"' | head -n1 > $STANDALONE_SPEC_TMP
+$STANDALONE_BINARY build-spec \
+  --disable-default-bootnode \
+  | grep '\"code\"' \
+  | head -n1 \
+  > $STANDALONE_SPEC_TMP
 echo $STANDALONE_SPEC_TMP generated
 
 TEST_SPEC_TEMPLATE="tests/moonbeam-test-specs/templates/simple-specs-template.json"

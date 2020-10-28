@@ -16,9 +16,9 @@ RUN apt-get update && \
 
 # Download rust dependencies and build the rust binary
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
-        export PATH=$PATH:$HOME/.cargo/bin && \
-        scripts/init.sh && \
-        cargo build --$PROFIL
+	export PATH=$PATH:$HOME/.cargo/bin && \
+	scripts/init.sh && \
+	cargo build --$PROFILE
 
 # ===== SECOND STAGE ======
 
