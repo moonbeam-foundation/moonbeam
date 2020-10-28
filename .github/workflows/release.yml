@@ -390,7 +390,7 @@ jobs:
           cd tests
           npm install prettier prettier-check
       - name: Check typescript
-        run: node_modules/.bin/prettier-check ../**/*.ts ../**/*.yml ../**/*.js
+        run: cd tests && node_modules/.bin/prettier-check ../**/*.ts ../**/*.yml ../**/*.js
 
   check-cargo-toml:
     runs-on: ubuntu-latest
