@@ -8,7 +8,7 @@ mkdir -p $PARACHAIN_BUILD_FOLDER
 
 
 if [ -z "$STANDALONE_BINARY" ]; then
-    STANDALONE_BINARY="target/release/moonbase-standalone"
+    STANDALONE_BINARY="node/standalone/target/release/moonbase-standalone"
 fi
 
 if [ -z "$PARACHAIN_BINARY" ]; then
