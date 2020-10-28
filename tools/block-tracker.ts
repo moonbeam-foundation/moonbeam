@@ -21,7 +21,6 @@ const displayBlock = async (blockNumber) => {
     if (t.creates) {
       console.log(`     [${index}] creates: ${t.creates}`);
     }
-
   });
 };
 blockTracker.on("latest", (data) => displayBlock(parseInt(data, 16)));

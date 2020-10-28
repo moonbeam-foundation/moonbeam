@@ -1,6 +1,5 @@
 import { importAccount, web3, gerald, contractAddress } from "./init-web3";
 
-
 const main = async () => {
   const nonce = await web3.eth.getTransactionCount(gerald.address);
 

@@ -4,4 +4,3 @@ module.exports = function (deployer) {
   // deployment steps
   deployer.deploy(MyToken, "8000000000000000000000000");
 };
-
