@@ -19,7 +19,7 @@
 mod account;
 mod signer;
 
-pub use account::AccountId20;
-pub use account::IdentityAddressMapping;
-pub use signer::EthereumSignature;
-pub use signer::MultiSignature;
+pub use self::account::AccountId20;
+pub use self::account::IdentityAddressMapping;
+pub use self::signer::EthereumSignature;
+pub use self::signer::MultiSignature;
