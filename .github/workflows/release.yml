@@ -386,11 +386,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Check with Prettier
-        uses: creyD/prettier_action@v3.0
-        with:
-          # This part is also where you can pass other options, for example:
-          prettier_options: "**/*.js **/*.ts **/*.yml **/*.json"
-          dry: true
+        run: npx prettier --check --ignore-path .gitignore  **.json **.js **.ts **.yml
 
   check-cargo-toml:
     runs-on: ubuntu-latest
