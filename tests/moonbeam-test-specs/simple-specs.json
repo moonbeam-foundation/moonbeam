@@ -16,7 +16,7 @@
       "palletBalances": {
         "balances": [["5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", 1152921504606846976]]
       },
-	"palletSudo": {
+      "palletSudo": {
         "key": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
       },
       "palletEvm": {
@@ -25,9 +25,7 @@
             "nonce": "0x0",
             "balance": "0xffffffffffffffffffffffffffffffff",
             "storage": {},
-            "code": [
-
-            ]
+            "code": []
           }
         }
       },
