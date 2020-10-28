@@ -4,7 +4,7 @@ source scripts/_init_var.sh
 
 RELAY_PORT=$((USER_PORT + 42))
 RELAY_INDEX=0
-BOOTNODES_ARGS=""      
+BOOTNODES_ARGS=""
 
 
 if [ -z "$SUDO_SEED" ]; then

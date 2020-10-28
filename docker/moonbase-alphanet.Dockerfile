@@ -1,5 +1,5 @@
-# Node for Moonbase Alphanet. 
-# 
+# Node for Moonbase Alphanet.
+#
 # Requires to run from repository root and to copy the binary in the build folder (part of the release workflow)
 
 FROM phusion/baseimage:0.11
@@ -32,11 +32,11 @@ EXPOSE 30333 9933 9944 9615
 VOLUME ["/data"]
 
 CMD ["/moonbase-alphanet/moonbase-alphanet", \
-    "--port","30333", \
-    "--rpc-port","9933", \
-    "--ws-port","9944", \
-    "--validator", \
-    "--chain", "/moonbase-alphanet/moonbase-alphanet-specs-plain.json", \
-    "--", \
-      "--chain", "/moonbase-alphanet/rococo-alphanet-specs-raw.json" \
+	"--port","30333", \
+		"--rpc-port","9933", \
+		"--ws-port","9944", \
+		"--validator", \
+		"--chain", "/moonbase-alphanet/moonbase-alphanet-specs-plain.json", \
+		"--", \
+			"--chain", "/moonbase-alphanet/rococo-alphanet-specs-raw.json" \
 ]

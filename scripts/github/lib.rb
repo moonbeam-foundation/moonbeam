@@ -9,5 +9,4 @@ def get_runtime(runtime, path = '.')
   File.open(path + "/runtime/src/lib.rs") do |f|
     f.find { |l| l =~ /spec_version/ }.match(/[0-9]+/)[0]
   end
-end 
-  
+end
