@@ -190,7 +190,8 @@ pub fn run_node(
 		})?;
 
 	let is_authority = parachain_config.role.is_authority();
-	let subscription_task_executor = sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
+	let subscription_task_executor =
+		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 
 	// Channel for the rpc handler to communicate with the authorship task.
 	let (command_sink, _commands_stream) = futures::channel::mpsc::channel(1000);

@@ -10,59 +10,60 @@ Run an Ethereum compatible ~~parachain~~ (and blockchain for now, until parachai
 ## Install (linux)
 
 ### Get the code
-
+Get the tutorial specific tag of the PureStake/Moonbeam repo:
 ```bash
-git clone -b moonbeam-tutorials https://github.com/PureStake/moonbeam
+git clone -b tutorial-v2 https://github.com/PureStake/moonbeam
 cd moonbeam
 ```
 
-### Rust developer environment
+### Setting up enviroment
 
 Install Substrate pre-requisites (including Rust):  
 ```bash
 curl https://getsubstrate.io -sSf | bash -s -- --fast
 ```
 
-## Build Parachain
-
-Build Wasm and native code:  
+Run the initialization script, which checks the correct rust nightly version and adds the WASM to that specific version:
 ```bash
-cargo build --release
-```  
-(Building for the first time will take a long time, to install and compile all the libraries)
-
-If a _cargo not found_ error appears in the terminal, manually add Rust to your system path (or restart your system):
-```bash
-source $HOME/.cargo/env
+./scripts/init.sh
 ```
 
 ## Build Standalone
+Build the corresponding binary file:
+
 ```bash
 cd node/standalone
 cargo build --release
 ```  
 
+## Build Parachain
+Build the corresponding binary file:
+```bash
+cargo build --release
+```  
+The first build takes a long time, as it compiles all the necessary libraries.
+
+### Troubleshooting
+If a _cargo not found_ error appears in the terminal, manually add Rust to your system path (or restart your system):
+```bash
+source $HOME/.cargo/env
+```
+
 ## Run
 
-### Single node dev
+### Standalone Node in dev mode
 
 ```bash
 ./node/standalone/target/release/moonbase-standalone --dev
 ```
-### Docker image
 
-You can run the moonbeam node within Docker directly.  
-The Dockerfile is optimized for development speed.  
-(Running the `docker run...` command will recompile the binaries but not the dependencies)
+## Docker image
 
-Building (takes 5-10 min):
+### Standlone node
+
+You can run a standalone Moonbeam node with Docker directly:
 ```bash
-docker build -t moonbeam-node-dev .
-```
-
-Running (takes 1 min to rebuild binaries):
-```bash
-docker run -t moonbeam-node-dev
+docker run purestake/moonbase /moonbase/moonbase-standalone
 ```
 
 ## Pallets

@@ -192,7 +192,7 @@ impl frame_system::Trait for Runtime {
 parameter_types! {
 	// When running in standalone mode, this controls the block time.
 	// Block time is double the minimum period.
-	// https://github.com/paritytech/substrate/blob/e4803bdaf228328cef4cba7be3e5951439555478/frame/aura/src/lib.rs#L197-L199
+	// https://github.com/paritytech/substrate/blob/e4803bd/frame/aura/src/lib.rs#L197-L199
 	pub const MinimumPeriod: u64 = 3_000;
 }
 

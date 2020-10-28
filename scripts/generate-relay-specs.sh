@@ -2,7 +2,8 @@
 source scripts/_init_var.sh
 
 if [ -z "$POLKADOT_VERSION" ]; then
-  POLKADOT_VERSION="sha-`egrep -o 'paritytech/polkadot.*#([^\"]*)' Cargo.lock | head -1 | sed 's/.*#//' |  cut -c1-8`"
+  POLKADOT_VERSION="sha-`egrep -o 'paritytech/polkadot.*#([^\"]*)' Cargo.lock | \
+    head -1 | sed 's/.*#//' |  cut -c1-8`"
 fi
 
 
@@ -17,11 +18,12 @@ docker run -it purestake/moonbase-relay-testnet:$POLKADOT_VERSION /usr/local/bin
 echo $POLKADOT_SPEC_TMP generated
 
 echo "Using $POLKADOT_SPEC_TEMPLATE..."
-sed -e "/\"<runtime_code>\"/{r $POLKADOT_SPEC_TMP" -e 'd}' $POLKADOT_SPEC_TEMPLATE > $POLKADOT_SPEC_PLAIN
+sed -e "/\"<runtime_code>\"/{r $POLKADOT_SPEC_TMP" -e 'd}' $POLKADOT_SPEC_TEMPLATE \
+  > $POLKADOT_SPEC_PLAIN
 echo $POLKADOT_SPEC_PLAIN generated
 
-docker run -it -v $(pwd)/build:/build purestake/moonbase-relay-testnet:$POLKADOT_VERSION /usr/local/bin/polkadot \
-  build-spec \
+docker run -it -v $(pwd)/build:/build purestake/moonbase-relay-testnet:$POLKADOT_VERSION \
+  /usr/local/bin/polkadot build-spec \
   -lerror \
   --disable-default-bootnode \
   --raw \
