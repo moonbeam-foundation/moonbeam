@@ -387,10 +387,9 @@ jobs:
       - uses: actions/checkout@v2
       - name: Setup prettier check
         run: |
-          cd tests
-          npm install prettier prettier-check
+          npm install -g prettier prettier-check
       - name: Check with Prettier
-        run: cd tests && node_modules/.bin/prettier-check ../**/*.ts ../**/*.yml ../**/*.js ../**/*.json
+        run: prettier-check **/*.ts **/*.yml **/*.js **/*.json
 
   check-cargo-toml:
     runs-on: ubuntu-latest
