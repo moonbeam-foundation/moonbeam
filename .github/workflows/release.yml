@@ -1,6 +1,6 @@
 name: Release
 
-on: ['push']
+on: ["push"]
 
 jobs:
   get-variables:
@@ -11,146 +11,123 @@ jobs:
       tag-count: ${{ steps.variables.outputs.count }}
       sha-8: ${{ steps.variables.outputs.sha-8 }}
     steps:
-    -
-      uses: actions/checkout@v2
-    -
-      id: variables
-      run: |
-        echo ::set-output name=version::$(git tag -l | tail -n1 | cut -c2- )
-        echo ::set-output name=count::$(git tag -l | wc -l )
-        echo ${{ github.ref }}
-        echo ::set-output name=tag-exists::$(git describe --exact-match HEAD 2>/dev/null && echo 1 || echo 0)
-        echo ::set-output name=sha-8::$(git rev-parse HEAD | cut -c1-8)
-    -
-      id: show-variables
-      run: |
-        echo tag-version: ${{ steps.variables.outputs.version }}
-        echo tag-exists: ${{ steps.variables.outputs.tag-exists }}
-        echo tag-count: ${{ steps.variables.outputs.count }}
-        echo sha-8: ${{ steps.variables.outputs.sha-8 }}
+      - uses: actions/checkout@v2
+      - id: variables
+        run: |
+          echo ::set-output name=version::$(git tag -l | tail -n1 | cut -c2- )
+          echo ::set-output name=count::$(git tag -l | wc -l )
+          echo ${{ github.ref }}
+          echo ::set-output name=tag-exists::$(git describe --exact-match HEAD 2>/dev/null && echo 1 || echo 0)
+          echo ::set-output name=sha-8::$(git rev-parse HEAD | cut -c1-8)
+      - id: show-variables
+        run: |
+          echo tag-version: ${{ steps.variables.outputs.version }}
+          echo tag-exists: ${{ steps.variables.outputs.tag-exists }}
+          echo tag-count: ${{ steps.variables.outputs.count }}
+          echo sha-8: ${{ steps.variables.outputs.sha-8 }}
 
   check-copyright:
     runs-on: ubuntu-latest
     steps:
-    -
-      uses: actions/checkout@v2
-    -
-      name: Find un-copyrighted files
-      run: |
-        find . -name '*.rs' -exec grep  -H -E -o -c Copyright {} \; | grep ':0' || true
-        FILECOUNT=$(find . -name '*.rs' -exec grep  -H -E -o -c  'Copyright'  {} \; | grep -c ':0' || true)
-        if [[ $FILECOUNT -eq 0 ]]; then
-          true
-        else
-          false
-        fi
+      - uses: actions/checkout@v2
+      - name: Find un-copyrighted files
+        run: |
+          find . -name '*.rs' -exec grep  -H -E -o -c Copyright {} \; | grep ':0' || true
+          FILECOUNT=$(find . -name '*.rs' -exec grep  -H -E -o -c  'Copyright'  {} \; | grep -c ':0' || true)
+          if [[ $FILECOUNT -eq 0 ]]; then
+            true
+          else
+            false
+          fi
 
   build:
     runs-on: ubuntu-latest
     outputs:
       RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
     steps:
-    -
-      uses: actions/checkout@v2
-    -
-      name: Cache Rust dependencies
-      uses: actions/cache@v2
-      id: cache
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-          node/standalone/target
-        key: ${{ runner.OS }}-build-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.OS }}-build
-    -
-      uses: actions-rs/toolchain@v1
-      with:
-        target: wasm32-unknown-unknown
-        # Toolchain is autodetected from `rust-toolchain` file
-        # https://github.com/actions-rs/toolchain#the-toolchain-file
-        #toolchain: ${{ env.WASM_BUILD_TOOLCHAIN }}
-        default: true
-    -
-      id: get-rust-versions
-      run: |
-        echo "::set-output name=rustc::$(rustc --version)"
-    -
-      name: Build Parachain Node
-      run: cargo build --release --verbose --all
-    -
-      name: Build Standalone Node
-      run: |
-        cd node/standalone
-        cargo build --release --verbose --all
-    -
-      name: Run tests
-      run: cargo test --release --verbose --all
-    -
-      name: Typescript tests (against standalone node)
-      run: |
-        cd tests
-        npm install
-        BINARY_PATH='../node/standalone/target/release/moonbase-standalone' npm run test;
-    -
-      name: Save parachain binary
-      run: |
-        mkdir -p build/alphanet
-        mkdir -p build/standalone
-        cp target/release/moonbase-alphanet build/alphanet/moonbase-alphanet;
-        cp node/standalone/target/release/moonbase-standalone build/standalone/moonbase-standalone;
-    -
-      name: Upload moonbase-alphanet node
-      uses: actions/upload-artifact@v2
-      with:
-        name: moonbase-alphanet
-        path: build/alphanet
-    -
-      name: Upload moonbase-standalone node
-      uses: actions/upload-artifact@v2
-      with:
-        name: moonbase-standalone
-        path: build/standalone
+      - uses: actions/checkout@v2
+      - name: Cache Rust dependencies
+        uses: actions/cache@v2
+        id: cache
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+            node/standalone/target
+          key: ${{ runner.OS }}-build-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.OS }}-build
+      - uses: actions-rs/toolchain@v1
+        with:
+          target: wasm32-unknown-unknown
+          # Toolchain is autodetected from `rust-toolchain` file
+          # https://github.com/actions-rs/toolchain#the-toolchain-file
+          #toolchain: ${{ env.WASM_BUILD_TOOLCHAIN }}
+          default: true
+      - id: get-rust-versions
+        run: |
+          echo "::set-output name=rustc::$(rustc --version)"
+      - name: Build Parachain Node
+        run: cargo build --release --verbose --all
+      - name: Build Standalone Node
+        run: |
+          cd node/standalone
+          cargo build --release --verbose --all
+      - name: Run tests
+        run: cargo test --release --verbose --all
+      - name: Typescript tests (against standalone node)
+        run: |
+          cd tests
+          npm install
+          BINARY_PATH='../node/standalone/target/release/moonbase-standalone' npm run test;
+      - name: Save parachain binary
+        run: |
+          mkdir -p build/alphanet
+          mkdir -p build/standalone
+          cp target/release/moonbase-alphanet build/alphanet/moonbase-alphanet;
+          cp node/standalone/target/release/moonbase-standalone build/standalone/moonbase-standalone;
+      - name: Upload moonbase-alphanet node
+        uses: actions/upload-artifact@v2
+        with:
+          name: moonbase-alphanet
+          path: build/alphanet
+      - name: Upload moonbase-standalone node
+        uses: actions/upload-artifact@v2
+        with:
+          name: moonbase-standalone
+          path: build/standalone
 
   generate-parachain-specs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-    -
-      uses: actions/checkout@v2
-    -
-      uses: actions/download-artifact@v2
-      with:
-        name: moonbase-alphanet
-        path: build/alphanet
-    -
-      name: Generate specs
-      run: |
-        chmod uog+x build/alphanet/moonbase-alphanet
-        PARACHAIN_BINARY=build/alphanet/moonbase-alphanet scripts/generate-parachain-specs.sh
-    -
-      name: Upload parachain specs
-      uses: actions/upload-artifact@v2
-      with:
-        name: moonbase-alphanet
-        path: build/alphanet
-
-  docker-parachain:
-    runs-on: ubuntu-latest
-    needs: ['get-variables', 'build', 'generate-parachain-specs']
-    if: needs.get-variables.outputs.tag-exists == 0 && github.event_name != 'pull_request'
-    steps:
-      -
-        uses: actions/checkout@v2
-      -
-        uses: actions/download-artifact@v2
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
         with:
           name: moonbase-alphanet
           path: build/alphanet
-      -
-        name: Prepare
+      - name: Generate specs
+        run: |
+          chmod uog+x build/alphanet/moonbase-alphanet
+          PARACHAIN_BINARY=build/alphanet/moonbase-alphanet scripts/generate-parachain-specs.sh
+      - name: Upload parachain specs
+        uses: actions/upload-artifact@v2
+        with:
+          name: moonbase-alphanet
+          path: build/alphanet
+
+  docker-parachain:
+    runs-on: ubuntu-latest
+    needs: ["get-variables", "build", "generate-parachain-specs"]
+    if: needs.get-variables.outputs.tag-exists == 0 && github.event_name != 'pull_request'
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: moonbase-alphanet
+          path: build/alphanet
+      - name: Prepare
         id: prep
         run: |
           DOCKER_IMAGE=purestake/moonbase-parachain-testnet
@@ -178,24 +155,20 @@ jobs:
           echo ::set-output name=version::${VERSION}
           echo ::set-output name=tags::${TAGS}
           echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-      -
-        name: Set up QEMU
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
-      -
-        name: Set up Docker Buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
         with:
           version: latest
           driver-opts: |
             image=moby/buildkit:master
-      -
-        name: Login to DockerHub
+      - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      -
-        name: Build and push parachain
+      - name: Build and push parachain
         id: docker_build
         uses: docker/build-push-action@v2
         with:
@@ -214,21 +187,17 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
 
-
   docker-standalone:
     runs-on: ubuntu-latest
-    needs: ['get-variables', 'build']
+    needs: ["get-variables", "build"]
     if: needs.get-variables.outputs.tag-exists == 0 && github.event_name != 'pull_request'
     steps:
-      -
-        uses: actions/checkout@v2
-      -
-        uses: actions/download-artifact@v2
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
         with:
           name: moonbase-standalone
           path: build/standalone
-      -
-        name: Prepare
+      - name: Prepare
         id: prep
         run: |
           DOCKER_IMAGE=purestake/moonbase
@@ -256,24 +225,20 @@ jobs:
           echo ::set-output name=version::${VERSION}
           echo ::set-output name=tags::${TAGS}
           echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-      -
-        name: Set up QEMU
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
-      -
-        name: Set up Docker Buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
         with:
           version: latest
           driver-opts: |
             image=moby/buildkit:master
-      -
-        name: Login to DockerHub
+      - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      -
-        name: Build and push standalone node
+      - name: Build and push standalone node
         id: docker_build
         uses: docker/build-push-action@v2
         with:
@@ -294,71 +259,61 @@ jobs:
 
   publish-draft-release:
     runs-on: ubuntu-latest
-    needs: ['build', 'generate-parachain-specs']
+    needs: ["build", "generate-parachain-specs"]
     if: needs.get-tag-version.outputs.tag-exists == 1
     outputs:
       release_url: ${{ steps.create-release.outputs.html_url }}
       asset_upload_url: ${{ steps.create-release.outputs.upload_url }}
     steps:
-    -
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-        path: moonbeam
-    -
-      name: Set up Ruby 2.7
-      uses: actions/setup-ruby@v1
-      with:
-        ruby-version: 2.7
-    -
-      name: Generate release text
-      env:
-        RUSTC: ${{ needs.build.outputs.rustc }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        gem install changelogerator git toml
-        ruby $GITHUB_WORKSPACE/moonbeam/scripts/github/generate_release_text.rb | tee release_text.md
-    -
-      name: Create draft release
-      id: create-release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Moonbase Alphanet ${{ github.ref }}
-        body_path: ./release_text.md
-        draft: true
-
-
-  publish-runtimes:
-    runs-on: ubuntu-latest
-    needs: ['publish-draft-release']
-    if: needs.get-tag-version.outputs.tag-exists == 1
-    strategy:
-      matrix:
-        runtime: ['moonbase-alphanet']
-    steps:
-      -
-        uses: actions/checkout@v2
-      -
-        uses: actions/download-artifact@v2
+      - uses: actions/checkout@v2
         with:
-          name: moonbase-alphanet
-          path: build/alphanet
-      -
-        name: Set up Ruby 2.7
+          fetch-depth: 0
+          path: moonbeam
+      - name: Set up Ruby 2.7
         uses: actions/setup-ruby@v1
         with:
           ruby-version: 2.7
-      -
-        name: Get runtime version
+      - name: Generate release text
+        env:
+          RUSTC: ${{ needs.build.outputs.rustc }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gem install changelogerator git toml
+          ruby $GITHUB_WORKSPACE/moonbeam/scripts/github/generate_release_text.rb | tee release_text.md
+      - name: Create draft release
+        id: create-release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Moonbase Alphanet ${{ github.ref }}
+          body_path: ./release_text.md
+          draft: true
+
+  publish-runtimes:
+    runs-on: ubuntu-latest
+    needs: ["publish-draft-release"]
+    if: needs.get-tag-version.outputs.tag-exists == 1
+    strategy:
+      matrix:
+        runtime: ["moonbase-alphanet"]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: moonbase-alphanet
+          path: build/alphanet
+      - name: Set up Ruby 2.7
+        uses: actions/setup-ruby@v1
+        with:
+          ruby-version: 2.7
+      - name: Get runtime version
         id: get-runtime-ver
         run: |
           runtime_ver="$(ruby -e 'require "./scripts/github/lib.rb"; puts get_runtime("${{ matrix.runtime }}")')"
           echo "::set-output name=runtime_ver::$runtime_ver"
-      -
-        name: Upload ${{ matrix.runtime }} wasm
+      - name: Upload ${{ matrix.runtime }} wasm
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -367,8 +322,7 @@ jobs:
           asset_path: build/alphanet/${{ matrix.runtime }}-runtime.wasm
           asset_name: ${{ matrix.runtime }}-runtime-v${{ steps.get-runtime-ver.outputs.runtime_ver }}.wasm
           asset_content_type: application/wasm
-      -
-        name: Upload ${{ matrix.runtime }} node
+      - name: Upload ${{ matrix.runtime }} node
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -377,8 +331,7 @@ jobs:
           asset_path: build/alphanet/${{ matrix.runtime }}
           asset_name: ${{ matrix.runtime }}
           asset_content_type: application/octet-stream
-      -
-        name: Upload ${{ matrix.runtime }} specs plain
+      - name: Upload ${{ matrix.runtime }} specs plain
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -387,8 +340,7 @@ jobs:
           asset_path: build/alphanet/${{ matrix.runtime }}-specs-plain.json
           asset_name: ${{ matrix.runtime }}-specs-plain.json
           asset_content_type: application/json
-      -
-        name: Upload ${{ matrix.runtime }} specs raw
+      - name: Upload ${{ matrix.runtime }} specs raw
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -397,8 +349,7 @@ jobs:
           asset_path: build/alphanet/${{ matrix.runtime }}-specs-raw.json
           asset_name: ${{ matrix.runtime }}-specs-raw.json
           asset_content_type: application/json
-      -
-        name: Upload ${{ matrix.runtime }} genesis
+      - name: Upload ${{ matrix.runtime }} genesis
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -411,13 +362,13 @@ jobs:
   check-links:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: gaurav-nelson/github-action-markdown-link-check@v1
-      with:
-        use-quiet-mode: 'yes'
+      - uses: actions/checkout@v2
+      - uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-quiet-mode: "yes"
 
   check-editorconfig:
-    name: 'Check editorconfig'
+    name: "Check editorconfig"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -428,9 +379,9 @@ jobs:
           chmod +x bin/ec-linux-amd64
       - name: Check files
         run: bin/ec-linux-amd64
-  
+
   check-typescript-prettier:
-    name: 'Check typescript with prettier'
+    name: "Check typescript with prettier"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -445,18 +396,16 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-    # We determine whether there are unmodified Cargo.lock files by:
-    # 1. Asking git for a list of all modified files
-    # 2. Using grep to reduce the list to only Cargo.lock files
-    # 3. Counting the number of lines of output
-    - run: |
-         FILECOUNT=$(git diff-index --name-only HEAD | grep Cargo.lock | wc -l)
-         if [[ $FILECOUNT -eq 0 ]]; then
-           echo "All lock files are valid"
-         else
-           echo "The following Cargo.lock files have uncommitted changes"
-           git diff-index --name-only HEAD | grep Cargo.lock
-           false
-         fi
-
-         
+      # We determine whether there are unmodified Cargo.lock files by:
+      # 1. Asking git for a list of all modified files
+      # 2. Using grep to reduce the list to only Cargo.lock files
+      # 3. Counting the number of lines of output
+      - run: |
+          FILECOUNT=$(git diff-index --name-only HEAD | grep Cargo.lock | wc -l)
+          if [[ $FILECOUNT -eq 0 ]]; then
+            echo "All lock files are valid"
+          else
+            echo "The following Cargo.lock files have uncommitted changes"
+            git diff-index --name-only HEAD | grep Cargo.lock
+            false
+          fi
