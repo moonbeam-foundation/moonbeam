@@ -1,3 +1,19 @@
+// Copyright 2019-2020 PureStake Inc.
+// This file is part of Moonbeam.
+
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use codec::{Decode, Encode};
@@ -57,7 +73,8 @@ pub mod crypto {
 }
 
 pub trait Trait:
-	system::Trait + pallet_balances::Trait + pallet_session::Trait + CreateSignedTransaction<Call<Self>>
+	system::Trait + pallet_balances::Trait
+	+ pallet_session::Trait + CreateSignedTransaction<Call<Self>>
 {
 	type AuthorityId: AppCrypto<Self::Public, Self::Signature>;
 	type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
@@ -113,7 +130,8 @@ decl_storage! {
 		/// One to Many Validator -> Endorsers.
 		ValidatorEndorsers: map hasher(blake2_128_concat) T::AccountId => Vec<T::AccountId>;
 		/// One to One Endorser -> Validator.
-		/// A restriction for number of endorsers per validator must be implemented to predict complexity.
+		/// A restriction for number of endorsers per validator.
+		/// Must be implemented to predict complexity.
 		Endorser: map hasher(blake2_128_concat) T::AccountId => T::AccountId;
 		/// A timeline of free_balances for an endorser that allows us to calculate
 		/// the average of free_balance of an era.
@@ -126,7 +144,8 @@ decl_storage! {
 		///
 		/// Endorser, Validator => (session_block_index,endorser_balance)
 		EndorserSnapshots:
-			double_map hasher(blake2_128_concat) T::AccountId, hasher(blake2_128_concat) T::AccountId => Vec<(u32,BalanceOf<T>)>;
+			double_map hasher(blake2_128_concat) T::AccountId, hasher(blake2_128_concat)
+			T::AccountId => Vec<(u32,BalanceOf<T>)>;
 
 		/// TODO the Treasury balance. It is still unclear if this will be a pallet account or
 		/// will remain as a Storage balance.
@@ -244,7 +263,12 @@ decl_module! {
 		#[weight = 0]
 		fn persist_snapshots(
 			origin,
-			snapshots_payload: SnapshotsPayload<T::AccountId, T::Public, T::BlockNumber, BalanceOf<T>>,
+			snapshots_payload: SnapshotsPayload<
+				T::AccountId,
+				T::Public,
+				T::BlockNumber,
+				BalanceOf<T>
+			>,
 			_signature: T::Signature
 		) -> DispatchResult {
 			ensure_none(origin)?;
@@ -289,8 +313,8 @@ impl<T: Trait> Module<T> {
 		Ok(())
 	}
 
-	/// The below is TODO, just a 1st approach to keep moving forward until we find out how to track BalanceOf
-	/// changes in real-time.
+	/// The below is TODO, just a 1st approach to keep moving forward
+	/// until we find out how to track BalanceOf changes in real-time.
 	///
 	/// This approach, although functional, is invalid as it has multiple issues like
 	/// sending signed transactions potentially every block.

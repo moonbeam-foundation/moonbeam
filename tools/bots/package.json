@@ -1,0 +1,16 @@
+{
+  "name": "mission-control-discord-bot",
+  "version": "1.0.0",
+  "description": "Ground control to Major Tom",
+  "main": "mission-control-discord-bot.js",
+  "type": "module",
+  "dependencies": {
+    "discord.js": "^12.3.1",
+    "web3": "^1.3.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "PureStake"
+}

@@ -1,81 +1,128 @@
 [package]
-authors = ['PureStake']
-edition = '2018'
-homepage = 'https://moonbeam.network'
-license = 'Unlicense'
 name = 'moonbeam-runtime'
-repository = 'https://github.com/PureStake/moonbeam/'
+description = 'Moonbeam Runtime'
+homepage = 'https://moonbeam.network'
+license = 'GPL-3.0-only'
 version = '0.1.0'
-
-[package.metadata.docs.rs]
-targets = ["x86_64-unknown-linux-gnu"]
+authors = ["PureStake"]
+edition = '2018'
 
 [dependencies]
-codec = { package = "parity-scale-codec", version = "1.3.0", default-features = false, features = ["derive"] }
+serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
+codec = { package = "parity-scale-codec", version = "1.0.0", default-features = false, features = ["derive"] }
+log = "0.4.8"
+hex-literal = "0.3.1"
 
-aura = { version = "2.0.0-dev", default-features = false, package = "pallet-aura", path = "../vendor/frontier/vendor/substrate/frame/aura" }
-balances = { version = "2.0.0-dev", default-features = false, package = "pallet-balances", path = "../vendor/frontier/vendor/substrate/frame/balances" }
-frame-support = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/frame/support" }
-grandpa = { version = "2.0.0-dev", default-features = false, package = "pallet-grandpa", path = "../vendor/frontier/vendor/substrate/frame/grandpa" }
-randomness-collective-flip = { version = "2.0.0-dev", default-features = false, package = "pallet-randomness-collective-flip", path = "../vendor/frontier/vendor/substrate/frame/randomness-collective-flip" }
-sudo = { version = "2.0.0-dev", default-features = false, package = "pallet-sudo", path = "../vendor/frontier/vendor/substrate/frame/sudo" }
-system = { version = "2.0.0-dev", default-features = false, package = "frame-system", path = "../vendor/frontier/vendor/substrate/frame/system" }
-timestamp = { version = "2.0.0-dev", default-features = false, package = "pallet-timestamp", path = "../vendor/frontier/vendor/substrate/frame/timestamp" }
-transaction-payment = { version = "2.0.0-dev", default-features = false, package = "pallet-transaction-payment", path = "../vendor/frontier/vendor/substrate/frame/transaction-payment" }
-evm = { version = "2.0.0-dev", default-features = false, package = "pallet-evm", path = "../vendor/frontier/vendor/substrate/frame/evm" }
-frame-executive = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/frame/executive" }
-serde = { version = "1.0.101", optional = true, features = ["derive"] }
-sp-api = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/primitives/api" }
-sp-block-builder = { path = "../vendor/frontier/vendor/substrate/primitives/block-builder", default-features = false, version = "2.0.0-dev"}
-sp-consensus-aura = { version = "0.8.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/primitives/consensus/aura" }
-sp-core = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/primitives/core" }
-sp-inherents = { path = "../vendor/frontier/vendor/substrate/primitives/inherents", default-features = false, version = "2.0.0-dev"}
-sp-io = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/primitives/io" }
-sp-offchain = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/primitives/offchain" }
-sp-runtime = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/primitives/runtime" }
-sp-session = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/primitives/session" }
-sp-std = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/primitives/std" }
-sp-transaction-pool = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/primitives/transaction-pool" }
-sp-version = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/primitives/version" }
-frame-system-rpc-runtime-api = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/frame/system/rpc/runtime-api/" }
-pallet-transaction-payment-rpc-runtime-api = { version = "2.0.0-dev", default-features = false, path = "../vendor/frontier/vendor/substrate/frame/transaction-payment/rpc/runtime-api/" }
+precompiles = { path = "precompiles/", default-features = false }
 
-frontier-rpc-primitives = { default-features = false, path = "../vendor/frontier/rpc/primitives" }
-ethereum = { version = "0.1.0", default-features = false, package = "pallet-ethereum", path = "../vendor/frontier/frame/ethereum" }
+# Substrate dependencies
+pallet-aura = { git = "https://github.com/paritytech/substrate.git", default-features = false, branch = "rococo-branch", optional = true }
+sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-version = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-session = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-offchain = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-block-builder = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-transaction-pool = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-inherents = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+
+frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+frame-executive = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+pallet-balances = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+pallet-randomness-collective-flip = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+pallet-timestamp = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+pallet-sudo = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+
+frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+pallet-evm = { git = "https://github.com/purestake/substrate", default-features = false, branch = "tgmichel-rococo-branch" }
+
+sp-consensus-aura = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch", optional = true }
+pallet-grandpa = { default-features = false, package = "pallet-grandpa", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch", optional = true }
+
+frontier-rpc-primitives = { default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
+pallet-ethereum = { default-features = false, package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
+
+
+# Cumulus dependencies
+cumulus-runtime = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0' }
+cumulus-parachain-upgrade = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0' }
+cumulus-message-broker = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0' }
+cumulus-upward-message = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0' }
+cumulus-primitives = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = '8a445a425086fc927f946a72b245e829fba200d0' }
+
+# TODO Why can't these come directly from cumulus
+parachain-info = { path = "../pallets/parachain-info", default-features = false }
+cumulus-token-dealer = { path = "../pallets/token-dealer", default-features = false }
 
 [build-dependencies]
-wasm-builder-runner = { version = "1.0.5", package = "substrate-wasm-builder-runner", path = "../vendor/frontier/vendor/substrate/utils/wasm-builder-runner" }
+wasm-builder-runner = { version = "1.0.6", package = "substrate-wasm-builder-runner", git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 
 [features]
-default = ["std"]
+# By default, we build the parachain runtime
+default = [
+	"std"
+	# parachain-only dependencies can't be conditionally included here.
+	# Default feature dependencies must not be optional (aparently)
+]
+# Standalone runtime is enabled by a feature
+standalone = [
+	"pallet-aura",
+	"sp-consensus-aura",
+	"pallet-grandpa",
+	]
 std = [
-	"aura/std",
-	"balances/std",
 	"codec/std",
-	"frame-executive/std",
-	"frame-support/std",
-	"grandpa/std",
-	"randomness-collective-flip/std",
 	"serde",
 	"sp-api/std",
-	"sp-block-builder/std",
-	"sp-consensus-aura/std",
-	"sp-core/std",
-	"sp-inherents/std",
-	"sp-io/std",
-	"sp-offchain/std",
-	"sp-runtime/std",
-	"sp-session/std",
 	"sp-std/std",
-	"sp-transaction-pool/std",
+	"sp-io/std",
+	"sp-core/std",
+	"sp-runtime/std",
 	"sp-version/std",
-	"sudo/std",
-	"system/std",
-	"timestamp/std",
-	"transaction-payment/std",
-	"ethereum/std",
-	"evm/std",
+	"sp-offchain/std",
+	"sp-session/std",
+	"sp-block-builder/std",
+	"sp-transaction-pool/std",
+	"sp-inherents/std",
+	"frame-support/std",
+	"frame-executive/std",
+	"frame-system/std",
+	"pallet-balances/std",
+	"pallet-randomness-collective-flip/std",
+	"pallet-timestamp/std",
+	"pallet-sudo/std",
+	"pallet-transaction-payment/std",
+	"pallet-ethereum/std",
+	"pallet-evm/std",
+	"frontier-rpc-primitives/std",
 	"frame-system-rpc-runtime-api/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
-	"frontier-rpc-primitives/std",
+
+	# TODO These dependencies are only necessary when building without the standalone feature. I don't
+	# see a way to express that. Everything is correct, like this, but we unnecessarily build these
+	# dependencies when building the standalone runtime which is a big waste of CPU time as one of them
+	# builds all the polkadot runtimes. See https://github.com/paritytech/cumulus/issues/175
+	"parachain-info/std",
+	"cumulus-runtime/std",
+	"cumulus-parachain-upgrade/std",
+	"cumulus-message-broker/std",
+	"cumulus-upward-message/std",
+	"cumulus-primitives/std",
+	"cumulus-token-dealer/std",
+	# TODO These dependencies are only necessary when _both_  the `std` _and_ `standalone` features
+	# are enabled. I don't see a way to express that. Everything is correct, like this, but we
+	# unnecessarily build these dependencies when building the parachain runtime.
+	"pallet-aura/std",
+	"pallet-grandpa/std",
+]
+
+# Will be enabled by the `wasm-builder` when building the runtime for WASM.
+runtime-wasm = [
+	"cumulus-upward-message/runtime-wasm",
 ]

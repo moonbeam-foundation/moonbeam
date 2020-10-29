@@ -2,35 +2,48 @@
 # ![moonbeam](media/moonbeam-cover.jpg)
 ![Tests](https://github.com/PureStake/moonbeam/workflows/Tests/badge.svg)
 
-Run an Ethereum compatible ~~parachain~~ (blockchain for now, until parachains are available) based on Substrate.
+Run an Ethereum compatible ~~parachain~~ (and blockchain for now, until parachains are more stable) based on Substrate.
 
 *See [moonbeam.network](https://moonbeam.network) for the moonbeam blockchain description.*  
 *See [www.substrate.io](https://www.substrate.io/) for substrate information.*
 
 ## Install (linux)
 
-### Moonbeam
-
+### Get the code
+Get the tutorial specific tag of the PureStake/Moonbeam repo:
 ```bash
-git clone -b moonbeam-tutorials https://github.com/PureStake/moonbeam
-cd moonbeam && git submodule update --init --recursive
+git clone -b tutorial-v2 https://github.com/PureStake/moonbeam
+cd moonbeam
 ```
 
-### Dependencies
+### Setting up enviroment
 
-Install Substrate and its pre-requisites (including Rust):  
+Install Substrate pre-requisites (including Rust):  
 ```bash
-curl https://getsubstrate.io -sSf | bash -s -- --fast 
+curl https://getsubstrate.io -sSf | bash -s -- --fast
 ```
 
-## Build
+Run the initialization script, which checks the correct rust nightly version and adds the WASM to that specific version:
+```bash
+./scripts/init.sh
+```
 
-Build Wasm and native code:  
+## Build Standalone
+Build the corresponding binary file:
+
+```bash
+cd node/standalone
+cargo build --release
+```  
+
+## Build Parachain
+Build the corresponding binary file:
 ```bash
 cargo build --release
 ```  
-(Building for the first time will take a long time, to install and compile all the libraries)
+The first build takes a long time, as it compiles all the necessary libraries.
 
+### Troubleshooting
 If a _cargo not found_ error appears in the terminal, manually add Rust to your system path (or restart your system):
 ```bash
 source $HOME/.cargo/env
@@ -38,25 +51,19 @@ source $HOME/.cargo/env
 
 ## Run
 
-### Single node dev
+### Standalone Node in dev mode
 
 ```bash
-./target/release/node-moonbeam --dev
-```
-### Docker image
-
-You can run the moonbeam node within Docker directly.  
-The Dockerfile is optimized for development speed.  
-(Running the `docker run...` command will recompile the binaries but not the dependencies)
-
-Building (takes 5-10 min):
-```bash
-docker build -t moonbeam-node-dev .
+./node/standalone/target/release/moonbase-standalone --dev
 ```
 
-Running (takes 1 min to rebuild binaries):
+## Docker image
+
+### Standlone node
+
+You can run a standalone Moonbeam node with Docker directly:
 ```bash
-docker run -t moonbeam-node-dev
+docker run purestake/moonbase:tutorial-v2.2 /moonbase/moonbase-standalone
 ```
 
 ## Pallets
@@ -84,5 +91,5 @@ This github repository is also linked to Gitlab CI
 
 ### Code style
 
-Moonbeam is following the [substrate code style](https://openethereum.github.io/wiki/Substrate-Style-Guide)  
+Moonbeam is following the [Substrate code style](https://github.com/paritytech/substrate/blob/master/docs/STYLE_GUIDE.md)  
 We provide a [.editorconfig](.editorconfig) (*compatible with VSCode using RLS*)

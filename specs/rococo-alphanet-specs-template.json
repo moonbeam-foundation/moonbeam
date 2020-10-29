@@ -1,0 +1,91 @@
+{
+  "name": "Moonbase Relay Testnet ",
+  "id": "rococo_moonbase_relay_testnet",
+  "chainType": "Local",
+  "bootNodes": [],
+  "telemetryEndpoints": null,
+  "protocolId": "dot",
+  "properties": null,
+  "consensusEngine": null,
+  "genesis": {
+    "runtime": {
+      "system": {
+        "changesTrieConfig": null,
+        "code": "<runtime_code>"
+      },
+      "babe": {
+        "authorities": []
+      },
+      "indices": {
+        "indices": []
+      },
+      "balances": {
+        "balances": [
+          ["1uV7ZJDW37CHeiWFppogK5JsV59tUrbuf1PcaDW5cTE1DHG", 100000000000000000000],
+          ["14dmc8KjuXgKrmrBneJdpTZQhjStJoWnVipAhf2vcwcMWRBM", 100000000000000000000],
+          ["16S1pBxHVpbHZE5DacwucvzXo3T6vDi9nsrTdwFvo3Vmm2xL", 100000000000000000000],
+          ["5GshoQVQ1xc9Abr4LcJdf5vr6c8ixXxNTSya8yeqV8xeQwsE", 100000000000000000000]
+        ]
+      },
+      "session": {
+        "keys": [
+          [
+            "152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L",
+            "152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L",
+            {
+              "babe": "152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L",
+              "grandpa": "14f6jcSAnXH5M9jsjssQeDMkPX7mq8cJ7A5bcSjr8DkfMX9o",
+              "im_online": "152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L",
+              "parachain_validator": "152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L",
+              "authority_discovery": "152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L"
+            }
+          ],
+          [
+            "145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5",
+            "145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5",
+            {
+              "babe": "145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5",
+              "grandpa": "15dyZ5jt5967TaBcsq4B3zrgWDxJd4JZdpH4CZ1LuTBG61fX",
+              "im_online": "145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5",
+              "parachain_validator": "145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5",
+              "authority_discovery": "145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5"
+            }
+          ],
+          [
+            "153RovQzgTQzR2woFKnMpWET8Bgjv24eqVwPvY6mTaL4nCwf",
+            "153RovQzgTQzR2woFKnMpWET8Bgjv24eqVwPvY6mTaL4nCwf",
+            {
+              "babe": "153RovQzgTQzR2woFKnMpWET8Bgjv24eqVwPvY6mTaL4nCwf",
+              "grandpa": "12j65FikHJs42zabKTpMavGBDwVyxDhJjCfWsYzJmNa2EV1k",
+              "im_online": "153RovQzgTQzR2woFKnMpWET8Bgjv24eqVwPvY6mTaL4nCwf",
+              "parachain_validator": "153RovQzgTQzR2woFKnMpWET8Bgjv24eqVwPvY6mTaL4nCwf",
+              "authority_discovery": "153RovQzgTQzR2woFKnMpWET8Bgjv24eqVwPvY6mTaL4nCwf"
+            }
+          ]
+        ]
+      },
+      "grandpa": {
+        "authorities": []
+      },
+      "imOnline": {
+        "keys": []
+      },
+      "authorityDiscovery": {
+        "keys": []
+      },
+      "parachains": {
+        "authorities": []
+      },
+      "registrar": {
+        "parachains": [],
+        "phdata": null
+      },
+      "vesting": {
+        "vesting": []
+      },
+      "sudo": {
+        "key": "5GshoQVQ1xc9Abr4LcJdf5vr6c8ixXxNTSya8yeqV8xeQwsE"
+      }
+    }
+  }
+}
