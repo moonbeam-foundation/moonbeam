@@ -57,10 +57,11 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
   });
 
   it("should have valid timestamp after block production", async function () {
+    // Originally ,this test required the timestamp be in the last finve minutes.
+    // This requirement doesn't make sense when we forge timestamps in manual seal.
     const block = await context.web3.eth.getBlock("latest");
-    const last5Minutes = Date.now() / 1000 - 300;
     const next5Minutes = Date.now() / 1000 + 300;
-    expect(block.timestamp).to.be.least(last5Minutes);
+    expect(block.timestamp).to.be.least(0);
     expect(block.timestamp).to.be.below(next5Minutes);
   });
 
@@ -81,7 +82,7 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
       //parentHash: "0x04540257811b46d103d9896e7807040e7de5080e285841c5430d1a81588a0ce4",
       receiptsRoot: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
       sha3Uncles: "0x0000000000000000000000000000000000000000000000000000000000000000",
-      size: 539,
+      size: 535,
       stateRoot: "0x0000000000000000000000000000000000000000000000000000000000000000",
       //timestamp: 1595012243836,
       totalDifficulty: null,

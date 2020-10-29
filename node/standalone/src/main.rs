@@ -23,6 +23,7 @@ mod service;
 mod cli;
 mod command;
 mod rpc;
+mod mock_timestamp;
 
 fn main() -> sc_cli::Result<()> {
 	command::run()
