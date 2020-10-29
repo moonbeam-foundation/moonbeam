@@ -13,7 +13,7 @@ const main = async () => {
 	const code = await web3.eth.getCode(contractAdd);
 	const storageAdd = await web3.eth.getBalance(contractAdd, "0");
 	console.log(`Gerald contract[0]: ${contractAdd} (code: ${code.length} bytes)`);
-	console.log(`           storage: ${storageAdd}`);
+	console.log(`           storage: ${storageAdd}`); 
 };
 
 main().catch((err) => {
