@@ -52,8 +52,8 @@ impl From<EthereumSignature> for MultiSignature {
 impl sp_runtime::traits::Verify for MultiSignature {
 	type Signer = EthereumSigner;
 	fn verify<L: sp_runtime::traits::Lazy<[u8]>>(
-		&self, 
-		mut msg: L, 
+		&self,
+		mut msg: L,
 		signer: &super::account::AccountId20
 	) -> bool {
 		match (self, signer) {
