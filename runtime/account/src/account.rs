@@ -18,7 +18,7 @@
 //!
 //! It includes AccountId conversations
 //!
-//! Ex: 
+//! Ex:
 //! use std::str::FromStr;
 //! AccountId20::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()
 

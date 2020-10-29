@@ -51,7 +51,11 @@ impl From<EthereumSignature> for MultiSignature {
 
 impl sp_runtime::traits::Verify for MultiSignature {
 	type Signer = EthereumSigner;
-	fn verify<L: sp_runtime::traits::Lazy<[u8]>>(&self, mut msg: L, signer: &super::account::AccountId20) -> bool {
+	fn verify<L: sp_runtime::traits::Lazy<[u8]>>(
+		&self, 
+		mut msg: L, 
+		signer: &super::account::AccountId20
+	) -> bool {
 		match (self, signer) {
 			(MultiSignature::Ecdsa(ref sig), who) => {
 				let mut m = [0u8; 32];
@@ -59,7 +63,9 @@ impl sp_runtime::traits::Verify for MultiSignature {
 				match sp_io::crypto::secp256k1_ecdsa_recover(sig.0.as_ref(), &m) {
 					Ok(pubkey) => {
 						let mut value = [0u8; 20];
-						value.copy_from_slice(&H160::from(H256::from_slice(Keccak256::digest(&pubkey).as_slice()))[..]);
+						value.copy_from_slice(
+							&H160::from(H256::from_slice(Keccak256::digest(&pubkey).as_slice()))[..]
+						);
 						&value == <dyn AsRef<[u8; 20]>>::as_ref(who)
 					},
 					Err(sp_io::EcdsaVerifyError::BadRS) => {

@@ -35,7 +35,7 @@ std = [
 	"serde/std",
 	"hex/std",
 	"sha3/std",
-	
+
 	"sp-core/std",
 	"sp-io/std",
 	"sp-runtime/std",
