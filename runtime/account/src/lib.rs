@@ -16,10 +16,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-mod account;
 mod signer;
 
-pub use self::account::AccountId20;
-pub use self::account::IdentityAddressMapping;
 pub use self::signer::EthereumSignature;
 pub use self::signer::MultiSignature;

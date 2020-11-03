@@ -15,8 +15,6 @@ describeWithMoonbeam("Frontier RPC (Balance)", `simple-specs.json`, (context) =>
   });
   step("genesis balance is setup correctly (polkadotJs)", async function () {
     const account = await context.polkadotApi.query.system.account(GENESIS_ACCOUNT);
-    console.log(account.data.free.toHex());
-    console.log(account.data.free.toHuman());
     expect(account.data.free.toString()).to.equal(GENESIS_ACCOUNT_BALANCE);
   });
 
@@ -57,8 +55,7 @@ describeWithMoonbeam("Frontier RPC (Balance)", `simple-specs.json`, (context) =>
     await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
     await createAndFinalizeBlock(context.web3);
     expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT)).to.equal(
-      "340282366920938463463374607431768189943"
+      (await context.polkadotApi.query.system.account(GENESIS_ACCOUNT)).data.free.toString()
     );
-    expect(await context.web3.eth.getBalance(TEST_ACCOUNT)).to.equal("512");
   });
 });

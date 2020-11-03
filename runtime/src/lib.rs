@@ -68,7 +68,7 @@ pub use frame_support::{
 };
 use frontier_rpc_primitives::TransactionStatus;
 use pallet_evm::{
-	Account as EVMAccount, EnsureAddressRoot, EnsureAddressNever, FeeCalculator,
+	Account as EVMAccount, IdentityAddressMapping, EnsureAddressSame, EnsureAddressNever, FeeCalculator,
 };
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
@@ -242,9 +242,9 @@ parameter_types! {
 
 impl pallet_evm::Trait for Runtime {
 	type FeeCalculator = ();
-	type CallOrigin = EnsureAddressRoot<AccountId>;
+	type CallOrigin = EnsureAddressSame;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
-	type AddressMapping = account::IdentityAddressMapping;
+	type AddressMapping = IdentityAddressMapping;
 	type Currency = Balances;
 	type Event = Event;
 	type Precompiles = precompiles::MoonbeamPrecompiles;

@@ -129,6 +129,7 @@ export async function startMoonbeamNode(
       AccountId: "EthereumAccountId",
       Address: "AccountId",
       Balance: "u128",
+      RefCount: "u8",
       // mapping the lookup
       LookupSource: "AccountId",
       Account: {

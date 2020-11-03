@@ -54,7 +54,7 @@ impl sp_runtime::traits::Verify for MultiSignature {
 	fn verify<L: sp_runtime::traits::Lazy<[u8]>>(
 		&self,
 		mut msg: L,
-		signer: &super::account::AccountId20
+		signer: &H160
 	) -> bool {
 		match (self, signer) {
 			(MultiSignature::Ecdsa(ref sig), who) => {
@@ -62,11 +62,8 @@ impl sp_runtime::traits::Verify for MultiSignature {
 				m.copy_from_slice(Keccak256::digest(msg.get()).as_slice());
 				match sp_io::crypto::secp256k1_ecdsa_recover(sig.0.as_ref(), &m) {
 					Ok(pubkey) => {
-						let mut value = [0u8; 20];
-						value.copy_from_slice(
-							&H160::from(H256::from_slice(Keccak256::digest(&pubkey).as_slice()))[..]
-						);
-						&value == <dyn AsRef<[u8; 20]>>::as_ref(who)
+						H160::from(H256::from_slice(Keccak256::digest(&pubkey).as_slice())) == 
+						*who
 					},
 					Err(sp_io::EcdsaVerifyError::BadRS) => {
 						log::error!(target: "evm", "Error recovering: Incorrect value of R or S");
@@ -109,8 +106,8 @@ impl Decode for EthereumSigner {
 }
 
 impl sp_runtime::traits::IdentifyAccount for EthereumSigner {
-	type AccountId = super::account::AccountId20;
-	fn into_account(self) -> super::account::AccountId20 {
+	type AccountId = H160;
+	fn into_account(self) -> H160 {
 		self.0.into()
 	}
 }
