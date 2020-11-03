@@ -75,7 +75,7 @@ standalone = [
 	"pallet-aura",
 	"sp-consensus-aura",
 	"pallet-grandpa",
-	]
+]
 std = [
 	"codec/std",
 	"serde",
