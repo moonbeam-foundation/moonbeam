@@ -19,7 +19,7 @@
 //! It includes the Verify and IdentifyAccount traits for the AccountId20
 
 use sp_core::{H160, H256, ecdsa, ed25519, sr25519, RuntimeDebug};
-use codec::{Decode, Encode, Input};
+use codec::{Decode, Encode};
 use sha3::{Digest, Keccak256};
 
 #[cfg(feature = "std")]
@@ -62,7 +62,7 @@ impl sp_runtime::traits::Verify for MultiSignature {
 				m.copy_from_slice(Keccak256::digest(msg.get()).as_slice());
 				match sp_io::crypto::secp256k1_ecdsa_recover(sig.0.as_ref(), &m) {
 					Ok(pubkey) => {
-						H160::from(H256::from_slice(Keccak256::digest(&pubkey).as_slice())) == 
+						H160::from(H256::from_slice(Keccak256::digest(&pubkey).as_slice())) ==
 						*who
 					},
 					Err(sp_io::EcdsaVerifyError::BadRS) => {
@@ -86,24 +86,9 @@ impl sp_runtime::traits::Verify for MultiSignature {
 
 
 /// Public key for any known crypto algorithm.
-#[derive(Eq, PartialEq, Ord, PartialOrd, Clone, Encode, sp_core::RuntimeDebug)]
+#[derive(Eq, PartialEq, Ord, PartialOrd, Clone, Encode, Decode, sp_core::RuntimeDebug)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct EthereumSigner ([u8; 20]);
-
-impl Decode for EthereumSigner {
-	fn decode<I: Input>(input: &mut I) -> Result<Self, codec::Error> {
-		match H160::decode(input) {
-			Ok(h) => {
-				log::info!(target: "evm", "Decoding H160: {:?}", h);
-				Err(codec::Error::from("OK !!"))
-			},
-			Err(e) => {
-				log::info!(target: "evm", "Failed decoding H160");
-				Err(e)
-			}
-		}
-	}
-}
 
 impl sp_runtime::traits::IdentifyAccount for EthereumSigner {
 	type AccountId = H160;

@@ -68,7 +68,8 @@ pub use frame_support::{
 };
 use frontier_rpc_primitives::TransactionStatus;
 use pallet_evm::{
-	Account as EVMAccount, IdentityAddressMapping, EnsureAddressSame, EnsureAddressNever, FeeCalculator,
+	Account as EVMAccount, IdentityAddressMapping, EnsureAddressSame, 
+	EnsureAddressNever, FeeCalculator,
 };
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
@@ -255,7 +256,9 @@ pub struct TransactionConverter;
 
 impl frontier_rpc_primitives::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
 	fn convert_transaction(&self, transaction: pallet_ethereum::Transaction) -> UncheckedExtrinsic {
-		UncheckedExtrinsic::new_unsigned(pallet_ethereum::Call::<Runtime>::transact(transaction).into())
+		UncheckedExtrinsic::new_unsigned(
+			pallet_ethereum::Call::<Runtime>::transact(transaction).into()
+		)
 	}
 }
 
@@ -356,7 +359,9 @@ impl_runtime_apis! {
 			Executive::finalize_block()
 		}
 
-		fn inherent_extrinsics(data: sp_inherents::InherentData) -> Vec<<Block as BlockT>::Extrinsic> {
+		fn inherent_extrinsics(
+			data: sp_inherents::InherentData
+		) -> Vec<<Block as BlockT>::Extrinsic> {
 			data.create_extrinsics()
 		}
 
