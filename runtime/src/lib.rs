@@ -68,7 +68,7 @@ pub use frame_support::{
 };
 use frontier_rpc_primitives::TransactionStatus;
 use pallet_evm::{
-	Account as EVMAccount, IdentityAddressMapping, EnsureAddressSame, 
+	Account as EVMAccount, IdentityAddressMapping, EnsureAddressSame,
 	EnsureAddressNever, FeeCalculator,
 };
 #[cfg(any(feature = "std", test))]
