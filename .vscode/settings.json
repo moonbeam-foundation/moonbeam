@@ -1,5 +1,5 @@
 {
-  "editor.formatOnSave": false,
+  "editor.formatOnSave": true,
   "editor.rulers": [100],
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
