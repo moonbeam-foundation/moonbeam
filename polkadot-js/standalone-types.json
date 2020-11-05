@@ -1,26 +1,26 @@
 {
-      "AccountId": "EthereumAccountId",
-      "Address": "AccountId",
-      "Balance": "u128",
-      "RefCount": "u8",
-      // mapping the lookup
-      "LookupSource": "AccountId",
-      "Account": {
-        "nonce": "U256",
-        "balance": "u128",
-      },
-      "Transaction": {
-        "nonce": "U256",
-        "action": "String",
-        "gas_price": "u64",
-        "gas_limit": "u64",
-        "value": "U256",
-        "input": "Vec<u8>",
-        "signature": "Signature",
-      },
-      "Signature": {
-        "v": "u64",
-        "r": "H256",
-        "s": "H256",
-      },
-    }
+  "AccountId": "EthereumAccountId",
+  "Address": "AccountId",
+  "Balance": "u128",
+  "RefCount": "u8",
+  // mapping the lookup
+  "LookupSource": "AccountId",
+  "Account": {
+    "nonce": "U256",
+    "balance": "u128"
+  },
+  "Transaction": {
+    "nonce": "U256",
+    "action": "String",
+    "gas_price": "u64",
+    "gas_limit": "u64",
+    "value": "U256",
+    "input": "Vec<u8>",
+    "signature": "Signature"
+  },
+  "Signature": {
+    "v": "u64",
+    "r": "H256",
+    "s": "H256"
+  }
+}
