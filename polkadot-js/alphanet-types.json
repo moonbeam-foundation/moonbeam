@@ -3,7 +3,6 @@
   "Address": "AccountId",
   "Balance": "u128",
   "RefCount": "u8",
-  // mapping the lookup
   "LookupSource": "AccountId",
   "Account": {
     "nonce": "U256",
