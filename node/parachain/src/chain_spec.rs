@@ -149,7 +149,7 @@ fn testnet_genesis(
 		}),
 		pallet_sudo: Some(SudoConfig { key: root_key }),
 		parachain_info: Some(ParachainInfoConfig { parachain_id: para_id }),
-		moonbeam_chain_id: Some(MoonbeamChainIdConfig { chain_id: chain_id }),
+		pallet_moonbeam_chain_id: Some(MoonbeamChainIdConfig { chain_id: chain_id }),
 		pallet_evm: Some(EVMConfig {
 			accounts: BTreeMap::new(),
 		}),

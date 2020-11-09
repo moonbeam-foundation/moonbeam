@@ -3509,16 +3509,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "moonbeam-chain-id"
-version = "0.1.0"
-dependencies = [
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "serde",
-]
-
-[[package]]
 name = "moonbeam-runtime"
 version = "0.1.0"
 dependencies = [
@@ -3535,12 +3525,12 @@ dependencies = [
  "frontier-rpc-primitives",
  "hex-literal 0.3.1",
  "log 0.4.11",
- "moonbeam-chain-id",
  "pallet-aura",
  "pallet-balances",
  "pallet-ethereum 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.2-hotfixes)",
  "pallet-evm",
  "pallet-grandpa",
+ "pallet-moonbeam-chain-id",
  "pallet-randomness-collective-flip",
  "pallet-sudo",
  "pallet-timestamp",
@@ -4146,6 +4136,16 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "pallet-moonbeam-chain-id"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "serde",
 ]
 
 [[package]]

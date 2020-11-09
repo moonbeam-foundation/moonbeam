@@ -14,7 +14,7 @@ log = "0.4.8"
 hex-literal = "0.3.1"
 
 precompiles = { path = "precompiles/", default-features = false }
-moonbeam-chain-id = { path = "../pallets/moonbeam-chain-id", default-features = false }
+pallet-moonbeam-chain-id = { path = "../pallets/moonbeam-chain-id", default-features = false }
 
 # Substrate dependencies
 pallet-aura = { git = "https://github.com/paritytech/substrate.git", default-features = false, branch = "rococo-branch", optional = true }
@@ -104,7 +104,7 @@ std = [
 	"frontier-rpc-primitives/std",
 	"frame-system-rpc-runtime-api/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
-	"moonbeam-chain-id/std",
+	"pallet-moonbeam-chain-id/std",
 
 	# TODO These dependencies are only necessary when building without the standalone feature. I don't
 	# see a way to express that. Everything is correct, like this, but we unnecessarily build these
