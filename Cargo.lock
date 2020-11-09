@@ -1893,7 +1893,7 @@ dependencies = [
 [[package]]
 name = "frontier-consensus"
 version = "0.1.0"
-source = "git+https://github.com/joshorndorff/frontier?branch=joshy-parachains-v1#c220303c06cdcd2f5887bc4af35fb93679607f52"
+source = "git+https://github.com/purestake/frontier?branch=joshy-parachains-v1#c220303c06cdcd2f5887bc4af35fb93679607f52"
 dependencies = [
  "derive_more 0.99.11",
  "ethereum",
@@ -1916,7 +1916,7 @@ dependencies = [
 [[package]]
 name = "frontier-consensus-primitives"
 version = "0.1.0"
-source = "git+https://github.com/joshorndorff/frontier?branch=joshy-parachains-v1#c220303c06cdcd2f5887bc4af35fb93679607f52"
+source = "git+https://github.com/purestake/frontier?branch=joshy-parachains-v1#c220303c06cdcd2f5887bc4af35fb93679607f52"
 dependencies = [
  "parity-scale-codec",
  "sp-core",
@@ -1927,7 +1927,7 @@ dependencies = [
 [[package]]
 name = "frontier-rpc"
 version = "0.1.0"
-source = "git+https://github.com/joshorndorff/frontier?branch=joshy-parachains-v1#c220303c06cdcd2f5887bc4af35fb93679607f52"
+source = "git+https://github.com/purestake/frontier?branch=joshy-parachains-v1#c220303c06cdcd2f5887bc4af35fb93679607f52"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -1961,7 +1961,7 @@ dependencies = [
 [[package]]
 name = "frontier-rpc-core"
 version = "0.1.0"
-source = "git+https://github.com/joshorndorff/frontier?branch=joshy-parachains-v1#c220303c06cdcd2f5887bc4af35fb93679607f52"
+source = "git+https://github.com/purestake/frontier?branch=joshy-parachains-v1#c220303c06cdcd2f5887bc4af35fb93679607f52"
 dependencies = [
  "ethereum-types",
  "jsonrpc-core 15.1.0",
@@ -1976,7 +1976,7 @@ dependencies = [
 [[package]]
 name = "frontier-rpc-primitives"
 version = "0.1.0"
-source = "git+https://github.com/joshorndorff/frontier?branch=joshy-parachains-v1#c220303c06cdcd2f5887bc4af35fb93679607f52"
+source = "git+https://github.com/purestake/frontier?branch=joshy-parachains-v1#c220303c06cdcd2f5887bc4af35fb93679607f52"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4493,7 +4493,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "0.1.0"
-source = "git+https://github.com/joshorndorff/frontier?branch=joshy-parachains-v1#c220303c06cdcd2f5887bc4af35fb93679607f52"
+source = "git+https://github.com/purestake/frontier?branch=joshy-parachains-v1#c220303c06cdcd2f5887bc4af35fb93679607f52"
 dependencies = [
  "ethereum",
  "ethereum-types",

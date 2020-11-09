@@ -45,8 +45,8 @@ pallet-evm = { git = "https://github.com/joshorndorff/pallet-evm.git", default-f
 sp-consensus-aura = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master", optional = true }
 pallet-grandpa = { default-features = false, package = "pallet-grandpa", git = "https://github.com/paritytech/substrate.git", branch = "master", optional = true }
 
-frontier-rpc-primitives = { default-features = false, git = "https://github.com/joshorndorff/frontier", branch = "joshy-parachains-v1" }
-pallet-ethereum = { default-features = false, git = "https://github.com/joshorndorff/frontier", branch = "joshy-parachains-v1" }
+frontier-rpc-primitives = { default-features = false, git = "https://github.com/purestake/frontier", branch = "joshy-parachains-v1" }
+pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "joshy-parachains-v1" }
 
 
 # Cumulus dependencies
