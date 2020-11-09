@@ -24,8 +24,8 @@ exclude = [
 futures = "0.3.4"
 log = "0.4.8"
 structopt = "0.3.8"
-jsonrpc-core = "14.0.3"
-jsonrpc-pubsub = "14.0.3"
+jsonrpc-core = "14.2.0"
+jsonrpc-pubsub = "14.2.0"
 
 sp-api = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 sp-blockchain = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
@@ -40,7 +40,6 @@ sc-service = { git = "https://github.com/paritytech/substrate.git", branch = "ro
 sp-inherents = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 sc-transaction-pool = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 sp-transaction-pool = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
-sc-transaction-graph = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
 sc-network = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 sc-consensus-aura = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 sp-consensus-aura = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
@@ -48,7 +47,7 @@ sc-consensus-manual-seal = { git = "https://github.com/paritytech/substrate.git"
 sp-consensus = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 sc-consensus = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 sp-timestamp = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
-evm = { package = "pallet-evm", git = "https://github.com/purestake/substrate", branch = "tgmichel-rococo-branch" }
+evm = { package = "pallet-evm", git = "https://github.com/purestake/substrate", branch = "v0.3-hotfixes" }
 sc-finality-grandpa = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 sp-finality-grandpa = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 sc-client-api = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
@@ -58,10 +57,10 @@ sp-block-builder = { git = "https://github.com/paritytech/substrate.git", branch
 
 moonbeam-runtime = {path = "../../runtime", default-features = false, features = ["std", "standalone"] }
 
-ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
-frontier-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
-frontier-rpc = { git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
-frontier-rpc-primitives = { git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
+ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "v0.3-hotfixes" }
+frontier-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.3-hotfixes" }
+frontier-rpc = { git = "https://github.com/purestake/frontier", branch = "v0.3-hotfixes" }
+frontier-rpc-primitives = { git = "https://github.com/purestake/frontier", branch = "v0.3-hotfixes" }
 
 [build-dependencies]
 substrate-build-script-utils = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
