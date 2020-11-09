@@ -52,13 +52,10 @@ pallet-ethereum = { default-features = false, git = "https://github.com/joshornd
 # Cumulus dependencies
 cumulus-runtime = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
 cumulus-parachain-upgrade = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
-# cumulus-message-broker = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
-# cumulus-upward-message = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
 cumulus-primitives = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
 
-# TODO Why can't these come directly from cumulus
+# TODO Why can't this come directly from cumulus
 parachain-info = { path = "../pallets/parachain-info", default-features = false }
-# cumulus-token-dealer = { path = "../pallets/token-dealer", default-features = false }
 
 [build-dependencies]
 wasm-builder-runner = { version = "2.0.0", package = "substrate-wasm-builder-runner", git = "https://github.com/paritytech/substrate.git", branch = "master" }

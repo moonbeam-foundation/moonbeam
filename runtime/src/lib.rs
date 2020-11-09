@@ -40,8 +40,8 @@ mod parachain;
 
 #[cfg(feature = "standalone")]
 use standalone::*;
-#[cfg(not(feature = "standalone"))]
-use parachain::*;
+// #[cfg(not(feature = "standalone"))]
+// use parachain::*;
 
 use codec::{Decode, Encode};
 use sp_api::impl_runtime_apis;

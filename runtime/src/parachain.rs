@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-pub use cumulus_token_dealer;
-
 #[macro_export]
 macro_rules! runtime_parachain {
 	() => {
@@ -33,27 +31,10 @@ macro_rules! runtime_parachain {
 
 		impl cumulus_parachain_upgrade::Trait for Runtime {
 			type Event = Event;
-			type OnValidationFunctionParams = ();
-		}
-
-		impl cumulus_message_broker::Trait for Runtime {
-			type Event = Event;
-			type DownwardMessageHandlers = TokenDealer;
-			type UpwardMessage = cumulus_upward_message::RococoUpwardMessage;
-			type ParachainId = ParachainInfo;
-			type XCMPMessage = cumulus_token_dealer::XCMPMessage<AccountId, Balance>;
-			type XCMPMessageHandlers = TokenDealer;
+			type OnValidationData = ();
 		}
 
 		impl parachain_info::Trait for Runtime {}
-
-		impl cumulus_token_dealer::Trait for Runtime {
-			type Event = Event;
-			type UpwardMessageSender = MessageBroker;
-			type UpwardMessage = cumulus_upward_message::RococoUpwardMessage;
-			type Currency = Balances;
-			type XCMPMessageSender = MessageBroker;
-		}
 
 		// TODO Consensus not supported in parachain
 		impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F> {
@@ -87,10 +68,8 @@ macro_rules! runtime_parachain {
 				Sudo: pallet_sudo::{Module, Call, Storage, Config<T>, Event<T>},
 				RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Module, Call, Storage},
 				ParachainUpgrade: cumulus_parachain_upgrade::{Module, Call, Storage, Inherent, Event},
-				MessageBroker: cumulus_message_broker::{Module, Call, Inherent, Event<T>},
 				TransactionPayment: pallet_transaction_payment::{Module, Storage},
 				ParachainInfo: parachain_info::{Module, Storage, Config},
-				TokenDealer: cumulus_token_dealer::{Module, Call, Event<T>},
 				EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
 				Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 			}
