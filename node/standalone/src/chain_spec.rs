@@ -186,7 +186,7 @@ fn testnet_genesis(
 			// Assign network admin rights.
 			key: root_key,
 		}),
-		pallet_moonbeam_chain_id: Some(MoonbeamChainIdConfig{chain_id})
+		moonbeam_chain_id: Some(MoonbeamChainIdConfig{chain_id}),
 		pallet_evm: Some(EVMConfig {
 			accounts: evm_accounts,
 		}),

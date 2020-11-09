@@ -97,7 +97,7 @@ pub fn get_chain_spec(para_id: ParaId) -> Result<ChainSpec, String> {
 		None,
 		Extensions {
 			relay_chain: "local_testnet".into(),
-			para_id: id.into(),
+			para_id: para_id.into(),
 		},
 	))
 }
@@ -123,7 +123,7 @@ pub fn staging_test_net(para_id: ParaId) -> Result<ChainSpec, String> {
 		None,
 		Extensions {
 			relay_chain: "rococo_local_testnet".into(),
-			para_id: id.into(),
+			para_id: para_id.into(),
 		},
 	))
 }
@@ -149,7 +149,7 @@ fn testnet_genesis(
 		}),
 		pallet_sudo: Some(SudoConfig { key: root_key }),
 		parachain_info: Some(ParachainInfoConfig { parachain_id: para_id }),
-		pallet_moonbeam_chain_id: Some(MoonbeamChainIdConfig { chain_id: chain_id }),
+		moonbeam_chain_id: Some(MoonbeamChainIdConfig { chain_id: chain_id }),
 		pallet_evm: Some(EVMConfig {
 			accounts: BTreeMap::new(),
 		}),
