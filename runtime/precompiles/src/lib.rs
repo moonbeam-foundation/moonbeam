@@ -16,7 +16,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use sp_std::{prelude::*};
+use sp_std::{prelude::*, borrow::Cow};
 use sp_core::H160;
 use pallet_evm::{ExitError, ExitSucceed, Precompile};
 
@@ -53,7 +53,7 @@ impl pallet_evm::Precompile for DeadbeefPrecompiled {
 		log::info!("Calling deadbeef precompiled contract");
 
 		let mut result_vec: Vec<u8> = rustc_hex::FromHex::from_hex("deadbeef")
-			.map_err(|_| pallet_evm::ExitError::Other("unexpected deadbeef conversion"))?;
+			.map_err(|_| pallet_evm::ExitError::Other(Cow::from("unexpected deadbeef conversion")))?;
 		result_vec.extend(input.to_vec());
 
 		Ok((pallet_evm::ExitSucceed::Returned, result_vec, cost))
