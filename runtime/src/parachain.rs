@@ -91,6 +91,7 @@ macro_rules! runtime_parachain {
 				TransactionPayment: pallet_transaction_payment::{Module, Storage},
 				ParachainInfo: parachain_info::{Module, Storage, Config},
 				TokenDealer: cumulus_token_dealer::{Module, Call, Event<T>},
+				MoonbeamChainId: moonbeam_chain_id::{Module, Storage, Config},
 				EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
 				Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 			}

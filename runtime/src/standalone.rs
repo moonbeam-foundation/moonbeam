@@ -87,6 +87,7 @@ macro_rules! runtime_standalone {
 				Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
 				TransactionPayment: pallet_transaction_payment::{Module, Storage},
 				Sudo: pallet_sudo::{Module, Call, Config<T>, Storage, Event<T>},
+				MoonbeamChainId: moonbeam_chain_id::{Module, Storage, Config},
 				Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 				EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
 			}

@@ -17,7 +17,7 @@
 use sp_core::{Pair, Public, sr25519, H160, U256};
 use moonbeam_runtime::{
 	AccountId, AuraConfig, BalancesConfig, EVMConfig, EthereumConfig, GenesisConfig, GrandpaConfig,
-	SudoConfig, SystemConfig, WASM_BINARY, Signature
+	SudoConfig, SystemConfig, WASM_BINARY, Signature, MoonbeamChainIdConfig,
 };
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_finality_grandpa::AuthorityId as GrandpaId;
@@ -81,6 +81,7 @@ pub fn development_config() -> Result<ChainSpec, String> {
 				get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
 			],
 			true,
+			45, // ChainId
 		),
 		// Bootnodes
 		vec![],
@@ -129,6 +130,7 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 				get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
 			],
 			true,
+			46, // ChainId
 		),
 		// Bootnodes
 		vec![],
@@ -150,6 +152,7 @@ fn testnet_genesis(
 	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,
 	_enable_println: bool,
+	chain_id: u64,
 ) -> GenesisConfig {
 	let gerald_evm_account_id = H160::from_str("6be02d1d3665660d22ff9624b7be0551ee1ac91b").unwrap();
 	let mut evm_accounts = BTreeMap::new();
@@ -183,6 +186,7 @@ fn testnet_genesis(
 			// Assign network admin rights.
 			key: root_key,
 		}),
+		pallet_moonbeam_chain_id: Some(MoonbeamChainIdConfig{chain_id})
 		pallet_evm: Some(EVMConfig {
 			accounts: evm_accounts,
 		}),
