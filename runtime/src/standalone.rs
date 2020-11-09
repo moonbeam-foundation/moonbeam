@@ -58,6 +58,7 @@ macro_rules! runtime_standalone {
 			)>>::IdentificationTuple;
 
 			type HandleEquivocation = ();
+			type WeightInfo = ();
 		}
 
 		impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F> {

@@ -53,7 +53,7 @@ impl pallet_evm::Precompile for DeadbeefPrecompiled {
 		log::info!("Calling deadbeef precompiled contract");
 
 		let mut result_vec: Vec<u8> = rustc_hex::FromHex::from_hex("deadbeef")
-			.map_err(|_| pallet_evm::ExitError::Other("unexpected deadbeef conversion"))?;
+			.map_err(|_| pallet_evm::ExitError::Other(sp_std::borrow::Cow::Borrowed("unexpected deadbeef conversion")))?;
 		result_vec.extend(input.to_vec());
 
 		Ok((pallet_evm::ExitSucceed::Returned, result_vec, cost))
