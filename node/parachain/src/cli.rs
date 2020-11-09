@@ -72,18 +72,6 @@ pub struct RunCmd {
 	pub parachain_id: Option<u32>,
 }
 
-#[derive(Debug, StructOpt)]
-pub struct EthCmd {
-	/// Number of past blocks allowed for querying ethereum events.
-	#[structopt(long = "eth-block-limit")]
-	pub block_limit: Option<u32>,
-
-	/// Number of logs allowed for querying ethereum events.
-	#[structopt(long = "eth-log-limit")]
-	pub log_limit: Option<u32>,
-}
-
-
 impl std::ops::Deref for RunCmd {
 	type Target = sc_cli::RunCmd;
 
@@ -108,9 +96,6 @@ pub struct Cli {
 	/// Relaychain arguments
 	#[structopt(raw = true)]
 	pub relaychain_args: Vec<String>,
-
-	#[structopt(flatten)]
-	pub eth: EthCmd,
 }
 
 #[derive(Debug)]
