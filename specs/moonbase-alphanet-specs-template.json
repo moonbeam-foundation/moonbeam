@@ -29,6 +29,9 @@
       "parachainInfo": {
         "parachainId": 1000
       },
+      "palletEthereumChainId": {
+        "chainId": 1287
+      },
       "palletEvm": {
         "accounts": {
           "0x7833fB364439759A6EDC3BCc243774b815B8e2A6": {
@@ -44,7 +47,8 @@
             "code": []
           }
         }
-      }
+      },
+      "palletEthereum": {}
     }
   }
 }

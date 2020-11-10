@@ -59,7 +59,7 @@ use sp_version::RuntimeVersion;
 
 pub use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{FindAuthor, Randomness},
+	traits::{FindAuthor, Get, Randomness},
 	weights::{
 		constants::WEIGHT_PER_SECOND,
 		IdentityFee, Weight
@@ -239,9 +239,7 @@ impl pallet_sudo::Trait for Runtime {
 	type Event = Event;
 }
 
-parameter_types! {
-	pub const ChainId: u64 = 43;
-}
+impl pallet_ethereum_chain_id::Trait for Runtime {}
 
 impl pallet_evm::Trait for Runtime {
 	type FeeCalculator = ();
@@ -251,7 +249,7 @@ impl pallet_evm::Trait for Runtime {
 	type Currency = Balances;
 	type Event = Event;
 	type Precompiles = precompiles::MoonbeamPrecompiles;
-	type ChainId = ChainId;
+	type ChainId = EthereumChainId;
 }
 
 pub struct TransactionConverter;
