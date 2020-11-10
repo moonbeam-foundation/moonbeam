@@ -27,7 +27,7 @@ describeWithMoonbeam("Frontier RPC (Constructor Revert)", `simple-specs.json`, (
 
   it("should provide a tx receipt after successful deployment", async function () {
     this.timeout(15000);
-    const GOOD_TX_HASH = "0xae813c533aac0719fbca4db6e3bb05cfb5859bdeaaa7dc5c9dbd24083301be8d";
+    const GOOD_TX_HASH = "0x4886592b3430d568e9a36a4654028da5d2bbeef474166879b579200b675b8ad5";
 
     const tx = await context.web3.eth.accounts.signTransaction(
       {
@@ -58,7 +58,7 @@ describeWithMoonbeam("Frontier RPC (Constructor Revert)", `simple-specs.json`, (
       id: 1,
       jsonrpc: "2.0",
       result: {
-        blockHash: "0xfe01d44b7f1c13e36819ecc6daf39fc28c57e6e4f6646036d7d8b79ed940fb91",
+        blockHash: "0x7c78c047e89b2c8ca34026cd1b0a8b9eee582f16250f4c32c98dacca6bae76af",
         blockNumber: "0x1",
         contractAddress: "0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a",
         cumulativeGasUsed: "0x1069f",
@@ -77,7 +77,7 @@ describeWithMoonbeam("Frontier RPC (Constructor Revert)", `simple-specs.json`, (
   it("should provide a tx receipt after failed deployment", async function () {
     this.timeout(15000);
     // Transaction hash depends on which nonce we're using. This hash is for nonce 2.
-    const FAIL_TX_HASH = "0x640df9deb183d565addc45bdc8f95b30c7c03ce7e69df49456be9929352e4347";
+    const FAIL_TX_HASH = "0x2353300f83c9a1f174b31ca8f1857666e6667372238dc15e876df0a13b8139b2";
 
     const tx = await context.web3.eth.accounts.signTransaction(
       {
@@ -105,7 +105,7 @@ describeWithMoonbeam("Frontier RPC (Constructor Revert)", `simple-specs.json`, (
       id: 1,
       jsonrpc: "2.0",
       result: {
-        blockHash: "0x8761d0bf47b6644e9e420d16b6fe046420c609a9d990e9432c30b254e02902d0",
+        blockHash: "0xb97d9bf925d8d5bff501e6d545f60d2a9881753a19dedf954b7d370c5bc436a3",
         blockNumber: "0x2",
         contractAddress: "0x5c4242beb94de30b922f57241f1d02f36e906915",
         cumulativeGasUsed: "0xd548",
