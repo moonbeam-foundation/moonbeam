@@ -135,7 +135,7 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 				get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
 			],
 			true,
-			1282, // ChainId
+			1281, // ChainId
 		),
 		// Bootnodes
 		vec![],
