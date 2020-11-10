@@ -93,7 +93,12 @@ pub fn get_chain_spec(id: ParaId) -> Result<ChainSpec, String> {
 		vec![],
 		None,
 		None,
-		None,
+		Some(
+			serde_json::from_str(
+				"{\"tokenDecimals\": 18}"
+			)
+			.expect("Provided valid json map")
+		),
 		Extensions {
 			relay_chain: "local_testnet".into(),
 			para_id: id.into(),
@@ -118,7 +123,12 @@ pub fn staging_test_net(id: ParaId) -> Result<ChainSpec, String> {
 		Vec::new(),
 		None,
 		None,
-		None,
+		Some(
+			serde_json::from_str(
+				"{\"tokenDecimals\": 18}"
+			)
+			.expect("Provided valid json map")
+		),
 		Extensions {
 			relay_chain: "rococo_local_testnet".into(),
 			para_id: id.into(),
