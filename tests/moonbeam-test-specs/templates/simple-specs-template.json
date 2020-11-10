@@ -5,7 +5,9 @@
   "bootNodes": [],
   "telemetryEndpoints": null,
   "protocolId": null,
-  "properties": null,
+  "properties": {
+    "tokenDecimals": 18
+  },
   "consensusEngine": null,
   "genesis": {
     "runtime": {

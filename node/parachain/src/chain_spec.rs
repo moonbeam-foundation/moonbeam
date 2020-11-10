@@ -94,7 +94,12 @@ pub fn get_chain_spec(para_id: ParaId) -> Result<ChainSpec, String> {
 		vec![],
 		None,
 		None,
-		None,
+		Some(
+			serde_json::from_str(
+				"{\"tokenDecimals\": 18}"
+			)
+			.expect("Provided valid json map")
+		),
 		Extensions {
 			relay_chain: "local_testnet".into(),
 			para_id: para_id.into(),

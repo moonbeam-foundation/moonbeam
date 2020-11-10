@@ -5,7 +5,9 @@
   "bootNodes": [],
   "telemetryEndpoints": null,
   "protocolId": null,
-  "properties": null,
+  "properties": {
+    "tokenDecimals": 18
+  },
   "relay_chain": "local_testnet",
   "para_id": 1000,
   "consensusEngine": null,
