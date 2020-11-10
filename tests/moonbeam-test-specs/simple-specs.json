@@ -21,7 +21,7 @@
       "palletSudo": {
         "key": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
       },
-      "ethereumChainId" :{
+      "ethereumChainId": {
         "chainId": 1281
       },
       "palletEvm": {
