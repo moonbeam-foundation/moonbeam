@@ -32,7 +32,8 @@ export default function (): Record<string, Record<string, DefinitionRpc>> {
         numberParam,
       ]),
       chainId: generateDescription(
-        "Returns the chain ID used for transaction signing at the current best block. None is returned if not available.",
+        "Returns the chain ID used for transaction signing at " +
+          "the current best block. None is returned if not available.",
         "U64"
       ),
       coinbase: generateDescription("Returns block author.", "H160"),
@@ -121,7 +122,8 @@ export default function (): Record<string, Record<string, DefinitionRpc>> {
         [numberParam]
       ),
       getWork: generateDescription(
-        "Returns the hash of the current block, the seedHash, and the boundary condition to be met.",
+        "Returns the hash of the current block, the seedHash," +
+          " and the boundary condition to be met.",
         "Work"
       ),
       hashrate: generateDescription(
