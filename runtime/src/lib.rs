@@ -239,7 +239,7 @@ impl pallet_sudo::Trait for Runtime {
 	type Event = Event;
 }
 
-impl pallet_moonbeam_chain_id::Trait for Runtime {}
+impl pallet_ethereum_chain_id::Trait for Runtime {}
 
 impl pallet_evm::Trait for Runtime {
 	type FeeCalculator = ();

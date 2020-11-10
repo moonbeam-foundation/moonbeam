@@ -17,7 +17,7 @@
 use cumulus_primitives::ParaId;
 use moonbeam_runtime::{
 	AccountId, BalancesConfig, GenesisConfig, Signature, SudoConfig, SystemConfig,
-	ParachainInfoConfig, WASM_BINARY, MoonbeamChainIdConfig, EVMConfig, EthereumConfig,
+	ParachainInfoConfig, WASM_BINARY, EthereumChainIdConfig, EVMConfig, EthereumConfig,
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
@@ -148,8 +148,7 @@ fn testnet_genesis(
 				.collect(),
 		}),
 		pallet_sudo: Some(SudoConfig { key: root_key }),
-		parachain_info: Some(ParachainInfoConfig { parachain_id: para_id }),
-		pallet_moonbeam_chain_id: Some(MoonbeamChainIdConfig { chain_id: chain_id }),
+		parachain_info: Some(ParachainIEthereumChainIdConfig { chain_id: chain_id }),
 		pallet_evm: Some(EVMConfig {
 			accounts: BTreeMap::new(),
 		}),

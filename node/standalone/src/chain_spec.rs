@@ -17,7 +17,7 @@
 use sp_core::{Pair, Public, sr25519, H160, U256};
 use moonbeam_runtime::{
 	AccountId, AuraConfig, BalancesConfig, EVMConfig, EthereumConfig, GenesisConfig, GrandpaConfig,
-	SudoConfig, SystemConfig, WASM_BINARY, Signature, MoonbeamChainIdConfig,
+	SudoConfig, SystemConfig, WASM_BINARY, Signature, EthereumChainIdConfig,
 };
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_finality_grandpa::AuthorityId as GrandpaId;
@@ -186,7 +186,7 @@ fn testnet_genesis(
 			// Assign network admin rights.
 			key: root_key,
 		}),
-		pallet_moonbeam_chain_id: Some(MoonbeamChainIdConfig{chain_id}),
+		pallet_ethereum_chain_id: Some(EthereumChainIdConfig{chain_id}),
 		pallet_evm: Some(EVMConfig {
 			accounts: evm_accounts,
 		}),
