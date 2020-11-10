@@ -50,9 +50,9 @@ export async function startMoonbeamNode(
   specFilename: string, provider?: string
 ): Promise<{ web3: Web3; binary: ChildProcess }> {
   var web3;
-	if (!provider || provider == 'http') {
-		web3 = new Web3(`http://localhost:${RPC_PORT}`);
-	}
+    if (!provider || provider == 'http') {
+        web3 = new Web3(`http://localhost:${RPC_PORT}`);
+    }
 
   const cmd = BINARY_PATH;
   const args = [
@@ -100,9 +100,9 @@ export async function startMoonbeamNode(
       binaryLogs.push(chunk);
       if (chunk.toString().match(/Manual Seal Ready/)) {
         if (!provider || provider == "http") {
-					// This is needed as the EVM runtime needs to warmup with a first call
-					await web3.eth.getChainId();
-				}
+                    // This is needed as the EVM runtime needs to warmup with a first call
+                    await web3.eth.getChainId();
+                }
 
         clearTimeout(timer);
         if (!DISPLAY_LOG) {
@@ -117,9 +117,9 @@ export async function startMoonbeamNode(
     binary.stdout.on("data", onData);
   });
 
-	if (provider == 'ws') {
-		web3 = new Web3(`ws://localhost:${WS_PORT}`);
-	}
+    if (provider == 'ws') {
+        web3 = new Web3(`ws://localhost:${WS_PORT}`);
+    }
 
   return { web3, binary };
 }
