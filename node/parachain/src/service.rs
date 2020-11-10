@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use ansi_term::Color;
-use cumulus_network::DelayedBlockAnnounceValidator;
+use cumulus_network::build_block_announce_validator;
 use cumulus_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
@@ -51,6 +51,7 @@ pub fn new_partial(
 	PartialComponents<
 		FullClient,
 		FullBackend,
+		// Cumulus test collator uses () here rather than longest chain
 		LongestChain<
 			Backend<Block>,
 			Block
@@ -63,35 +64,34 @@ pub fn new_partial(
 			Block,
 			FullClient,
 		>,
+		// Cumulus test collator uses () here
 		FrontierBlockImport<
-			moonbeam_runtime::opaque::Block,
+			Block,
 			Arc<FullClient>,
 			FullClient,
-			FullBackend,
 		>,
 	>,
 	sc_service::Error,
 > {
 	let inherent_data_providers = sp_inherents::InherentDataProviders::new();
 
-	let (client, backend, keystore, task_manager) = sc_service::new_full_parts::<
-		Block,
-		RuntimeApi,
-		Executor,
-	>(&config)?;
+	let (client, backend, keystore_container, task_manager) =
+		sc_service::new_full_parts::<Block, RuntimeApi, Executor>(&config)?;
 	let client = Arc::new(client);
+
+	// Cumulus test collator does not have this
 	let select_chain = sc_consensus::LongestChain::new(backend.clone());
 
 	let registry = config.prometheus_registry();
 
 	let transaction_pool = sc_transaction_pool::BasicPool::new_full(
 		config.transaction_pool.clone(),
-		//std::sync::Arc::new(pool_api),
 		config.prometheus_registry(),
 		task_manager.spawn_handle(),
 		client.clone(),
 	);
 
+	// Cumulus test collator does not have this
 	let frontier_block_import = FrontierBlockImport::new(
 		client.clone(),
 		client.clone(),
@@ -110,7 +110,7 @@ pub fn new_partial(
 		backend,
 		client,
 		import_queue,
-		keystore,
+		keystore_container,
 		task_manager,
 		transaction_pool,
 		inherent_data_providers,
@@ -121,41 +121,43 @@ pub fn new_partial(
 	Ok(params)
 }
 
-/// Run a node with the given parachain `Configuration` and relay chain `Configuration`
+/// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///
-/// This function blocks until done.
-pub fn run_node(
+/// This is the actual implementation that is abstract over the executor and the runtime api.
+async fn start_node_impl<RB>(
 	parachain_config: Configuration,
-	collator_key: Arc<CollatorPair>,
-	mut polkadot_config: polkadot_collator::Configuration,
+	collator_key: CollatorPair,
+	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	validator: bool,
-	eth_block_limit: Option<u32>,
-	eth_log_limit: Option<u32>
-) -> sc_service::error::Result<(
-	TaskManager,
-	Arc<
-		TFullClient<
-			moonbeam_runtime::opaque::Block,
-			moonbeam_runtime::RuntimeApi,
-			crate::service::Executor,
-		>,
-	>,
-)> {
+	rpc_ext_builder: RB,
+) -> sc_service::error::Result<(TaskManager,Arc<FullClient>)>
+where
+	RB: Fn(
+			Arc<TFullClient<Block, RuntimeApi, Executor>>,
+		) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
+		+ Send
+		+ 'static,
+{
 	if matches!(parachain_config.role, Role::Light) {
 		return Err("Light client not supported!".into());
 	}
 
 	let mut parachain_config = prepare_node_config(parachain_config);
 
-	parachain_config.informant_output_format = OutputFormat {
-		enable_color: true,
-		prefix: format!("[{}] ", Color::Yellow.bold().paint("Parachain")),
-	};
-	polkadot_config.informant_output_format = OutputFormat {
-		enable_color: true,
-		prefix: format!("[{}] ", Color::Blue.bold().paint("Relaychain")),
-	};
+	let polkadot_full_node =
+		cumulus_service::build_polkadot_full_node(polkadot_config, collator_key.public())?;
+
+	// Cumulus test collator does not have these. Maybe they're no longer necessary.
+	// But we want color, so I'll keep these for now in case they're necessary.
+	// parachain_config.informant_output_format = OutputFormat {
+	// 	enable_color: true,
+	// 	prefix: format!("[{}] ", Color::Yellow.bold().paint("Parachain")),
+	// };
+	// polkadot_config.informant_output_format = OutputFormat {
+	// 	enable_color: true,
+	// 	prefix: format!("[{}] ", Color::Blue.bold().paint("Relaychain")),
+	// };
 
 	let params = new_partial(&mut parachain_config)?;
 	params
@@ -165,11 +167,11 @@ pub fn run_node(
 
 	let client = params.client.clone();
 	let backend = params.backend.clone();
-	let block_announce_validator = DelayedBlockAnnounceValidator::new();
-	let block_announce_validator_builder = {
-		let block_announce_validator = block_announce_validator.clone();
-		move |_| Box::new(block_announce_validator) as Box<_>
-	};
+	let block_announce_validator = build_block_announce_validator(
+		polkadot_full_node.client.clone(),
+		id,
+		Box::new(polkadot_full_node.network.clone()),
+	);
 
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
 	let transaction_pool = params.transaction_pool.clone();
@@ -184,7 +186,7 @@ pub fn run_node(
 				spawn_handle: task_manager.spawn_handle(),
 				import_queue,
 				on_demand: None,
-				block_announce_validator_builder: Some(Box::new(block_announce_validator_builder)),
+				block_announce_validator_builder: Some(Box::new(block_announce_validator)),
 				finality_proof_request_builder: None,
 				finality_proof_provider: None,
 		})?;
@@ -193,25 +195,20 @@ pub fn run_node(
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 
-	// Channel for the rpc handler to communicate with the authorship task.
-	let (command_sink, _commands_stream) = futures::channel::mpsc::channel(1000);
-
 	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
 		let network = network.clone();
 
-		Box::new(move |deny_unsafe| {
+		Box::new(move |deny_unsafe, _| {
 			let deps = crate::rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
 				graph_pool: pool.pool().clone(),
 				deny_unsafe,
 				is_authority,
-				eth_block_limit,
-				eth_log_limit,
 				network: network.clone(),
-				command_sink: Some(command_sink.clone())
+				command_sink: None,
 			};
 
 			crate::rpc::create_full(
@@ -230,21 +227,26 @@ pub fn run_node(
 		task_manager: &mut task_manager,
 		telemetry_connection_sinks: Default::default(),
 		config: parachain_config,
-		keystore: params.keystore,
-		backend,
+		keystore: params.keystore_container.sync_keystore(),
+		backend: backend.clone(),
 		network: network.clone(),
 		network_status_sinks,
 		system_rpc_tx,
 	})?;
 
-	let announce_block = Arc::new(move |hash, data| network.announce_block(hash, data));
+	let announce_block = {
+		let network = network.clone();
+		Arc::new(move |hash, data| network.announce_block(hash, data))
+	};
 
 	if validator {
 		let proposer_factory = sc_basic_authorship::ProposerFactory::new(
+			task_manager.spawn_handle(),
 			client.clone(),
 			transaction_pool,
 			prometheus_registry.as_ref(),
 		);
+		let spawner = task_manager.spawn_handle();
 
 		let params = StartCollatorParams {
 			para_id: id,
@@ -254,22 +256,21 @@ pub fn run_node(
 			block_status: client.clone(),
 			announce_block,
 			client: client.clone(),
-			block_announce_validator,
 			task_manager: &mut task_manager,
-			polkadot_config,
 			collator_key,
+			polkadot_full_node,
+			spawner,
+			backend,
 		};
 
-		start_collator(params)?;
+		start_collator(params).await?;
 	} else {
 		let params = StartFullNodeParams {
 			client: client.clone(),
 			announce_block,
-			polkadot_config,
-			collator_key,
-			block_announce_validator,
 			task_manager: &mut task_manager,
 			para_id: id,
+			polkadot_full_node,
 		};
 
 		start_full_node(params)?;
@@ -278,4 +279,23 @@ pub fn run_node(
 	start_network.start_network();
 
 	Ok((task_manager, client))
+}
+
+/// Start a normal parachain node.
+pub async fn start_node(
+	parachain_config: Configuration,
+	collator_key: CollatorPair,
+	polkadot_config: Configuration,
+	id: polkadot_primitives::v0::Id,
+	validator: bool,
+) -> sc_service::error::Result<(TaskManager, Arc<FullClient>)> {
+	start_node_impl(
+		parachain_config,
+		collator_key,
+		polkadot_config,
+		id,
+		validator,
+		|_| Default::default(),
+	)
+	.await
 }

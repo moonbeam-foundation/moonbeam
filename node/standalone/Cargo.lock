@@ -4351,7 +4351,7 @@ checksum = "feb3b2b1033b8a60b4da6ee470325f887758c95d5320f52f9ce0df055a55940e"
 [[package]]
 name = "polkadot-core-primitives"
 version = "0.7.30"
-source = "git+https://github.com/paritytech/polkadot?branch=master#abc8c09aa18ee69a53c7910240e9cf8fac8cf6e1"
+source = "git+https://github.com/paritytech/polkadot?branch=master#cfde07678a4086b724c6333f8607df92c7fbf92b"
 dependencies = [
  "parity-scale-codec",
  "sp-core",
@@ -4362,7 +4362,7 @@ dependencies = [
 [[package]]
 name = "polkadot-parachain"
 version = "0.8.26"
-source = "git+https://github.com/paritytech/polkadot?branch=master#abc8c09aa18ee69a53c7910240e9cf8fac8cf6e1"
+source = "git+https://github.com/paritytech/polkadot?branch=master#cfde07678a4086b724c6333f8607df92c7fbf92b"
 dependencies = [
  "derive_more",
  "futures 0.3.6",
@@ -4385,7 +4385,7 @@ dependencies = [
 [[package]]
 name = "polkadot-primitives"
 version = "0.8.26"
-source = "git+https://github.com/paritytech/polkadot?branch=master#abc8c09aa18ee69a53c7910240e9cf8fac8cf6e1"
+source = "git+https://github.com/paritytech/polkadot?branch=master#cfde07678a4086b724c6333f8607df92c7fbf92b"
 dependencies = [
  "bitvec",
  "frame-system",

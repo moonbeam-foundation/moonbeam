@@ -102,12 +102,10 @@ pub fn create_full<C, P, BE, A>(
 	io.extend_with(
 		EthApiServer::to_delegate(EthApi::new(
 			client.clone(),
-			graph_pool.clone(),
 			pool.clone(),
 			moonbeam_runtime::TransactionConverter,
+			network.clone(),
 			is_authority,
-			eth_block_limit,
-			eth_log_limit,
 		))
 	);
 	io.extend_with(
