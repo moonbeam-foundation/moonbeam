@@ -88,7 +88,7 @@ pub fn get_chain_spec(para_id: ParaId) -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
 				],
 				para_id,
-				43, //ChainId
+				1280, //ChainId
 			)
 		},
 		vec![],
@@ -97,32 +97,6 @@ pub fn get_chain_spec(para_id: ParaId) -> Result<ChainSpec, String> {
 		None,
 		Extensions {
 			relay_chain: "local_testnet".into(),
-			para_id: para_id.into(),
-		},
-	))
-}
-
-pub fn staging_test_net(para_id: ParaId) -> Result<ChainSpec, String> {
-	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
-	Ok(ChainSpec::from_genesis(
-		"Moonbase Parachain Testnet",
-		"staging_testnet",
-		ChainType::Live,
-		move || {
-			testnet_genesis(
-				wasm_binary,
-				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
-				para_id,
-				44, //ChainId
-			)
-		},
-		Vec::new(),
-		None,
-		None,
-		None,
-		Extensions {
-			relay_chain: "rococo_local_testnet".into(),
 			para_id: para_id.into(),
 		},
 	))
@@ -148,7 +122,8 @@ fn testnet_genesis(
 				.collect(),
 		}),
 		pallet_sudo: Some(SudoConfig { key: root_key }),
-		parachain_info: Some(ParachainIEthereumChainIdConfig { chain_id: chain_id }),
+		parachain_info: Some(ParachainInfoConfig { parachain_id: para_id }),
+		pallet_ethereum_chain_id: Some(EthereumChainIdConfig { chain_id: chain_id }),
 		pallet_evm: Some(EVMConfig {
 			accounts: BTreeMap::new(),
 		}),

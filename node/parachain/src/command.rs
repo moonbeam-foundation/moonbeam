@@ -65,9 +65,6 @@ impl SubstrateCli for Cli {
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		Ok(match id {
-			"staging" => Box::new(chain_spec::staging_test_net(
-				self.run.parachain_id.unwrap_or(200).into(),
-			)?),
 			"" => Box::new(chain_spec::get_chain_spec(
 				self.run.parachain_id.unwrap_or(200).into(),
 			)?),

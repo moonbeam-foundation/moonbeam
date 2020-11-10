@@ -81,7 +81,7 @@ pub fn development_config() -> Result<ChainSpec, String> {
 				get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
 			],
 			true,
-			45, // ChainId
+			1281, // ChainId
 		),
 		// Bootnodes
 		vec![],
@@ -130,7 +130,7 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 				get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
 			],
 			true,
-			46, // ChainId
+			1282, // ChainId
 		),
 		// Bootnodes
 		vec![],

@@ -249,7 +249,7 @@ impl pallet_evm::Trait for Runtime {
 	type Currency = Balances;
 	type Event = Event;
 	type Precompiles = precompiles::MoonbeamPrecompiles;
-	type ChainId = MoonbeamChainId;
+	type ChainId = EthereumChainId;
 }
 
 pub struct TransactionConverter;
