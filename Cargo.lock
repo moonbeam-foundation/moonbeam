@@ -3796,6 +3796,7 @@ dependencies = [
  "pallet-aura",
  "pallet-balances",
  "pallet-ethereum",
+ "pallet-ethereum-chain-id",
  "pallet-evm",
  "pallet-grandpa",
  "pallet-randomness-collective-flip",
@@ -4271,6 +4272,16 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "pallet-ethereum-chain-id"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "serde",
 ]
 
 [[package]]

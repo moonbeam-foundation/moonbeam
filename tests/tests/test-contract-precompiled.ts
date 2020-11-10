@@ -33,7 +33,7 @@ describeWithMoonbeam("Moonbeam RPC (Precompiles)", `simple-specs.json`, (context
 
     // there's no way to retrieve the return value, so we just verify the tx hash
     expect(tx_receipt.result.transactionHash).equals(
-      "0x44f5a9a11af7d9253f4b34acd87a2f1714610b45c1562783406174e5b70e2c0a"
+      "0xf5b4d02ae12bd600adfc110cc91461bb19a39c456fbc57884f40752ecab28d3e"
     );
   });
 
