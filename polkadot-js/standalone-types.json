@@ -8,7 +8,7 @@
     "nonce": "U256",
     "balance": "u128"
   },
-  "TransactionCondition":{
+  "TransactionCondition": {
     "_enum": {
       "block": "u64",
       "time": "u64"
@@ -51,7 +51,7 @@
     "to": "Option<H160>",
     "contract_address": "Option<H160>",
     "logs": "Vec<Log>",
-    "logs_bloom": "Bloom",
+    "logs_bloom": "Bloom"
   },
   "Receipt": {
     "transaction_hash": "Option<H256>",
@@ -66,6 +66,6 @@
     "logs": "Vec<Log>",
     "state_root": "Option<H256>",
     "logs_bloom": "H2048",
-    "status_code": "Option<U64>",
+    "status_code": "Option<U64>"
   }
 }
