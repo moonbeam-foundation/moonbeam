@@ -29,7 +29,7 @@
       "parachainInfo": {
         "parachainId": 1000
       },
-      "ethereumChainId": {
+      "palletEthereumChainId": {
         "chainId": 1287
       },
       "palletEvm": {
