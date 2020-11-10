@@ -32,7 +32,7 @@ use sc_service::{
 	PartialComponents,
 };
 use sp_core::hexdisplay::HexDisplay;
-use sp_runtime::traits::{Block as BlockT, Hash as HashT, Header as HeaderT, Zero};
+use sp_runtime::traits::Block as _;
 use std::{io::Write, net::SocketAddr, sync::Arc};
 
 fn load_spec(
@@ -40,8 +40,8 @@ fn load_spec(
 	para_id: ParaId,
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	match id {
-		"staging" => Ok(Box::new(chain_spec::staging_test_net(para_id))),
-		"" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
+		"staging" => Ok(Box::new(chain_spec::staging_test_net(para_id)?)),
+		"" => Ok(Box::new(chain_spec::get_chain_spec(para_id)?)),
 		path => Ok(Box::new(chain_spec::ChainSpec::from_json_file(
 			path.into(),
 		)?)),

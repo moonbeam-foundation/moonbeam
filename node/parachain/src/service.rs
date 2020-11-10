@@ -24,6 +24,7 @@ use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
 use sc_informant::OutputFormat;
 use sc_service::{Configuration, PartialComponents, Role, TFullBackend, TFullClient, TaskManager};
+use sp_core::Pair;
 use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
 use std::sync::Arc;
@@ -46,7 +47,7 @@ type FullBackend = TFullBackend<Block>;
 /// Use this macro if you don't actually need the full service, but just the builder in order to
 /// be able to perform chain operations.
 pub fn new_partial(
-	config: &mut Configuration,
+	config: &Configuration,
 ) -> Result<
 	PartialComponents<
 		FullClient,
@@ -143,7 +144,7 @@ where
 		return Err("Light client not supported!".into());
 	}
 
-	let mut parachain_config = prepare_node_config(parachain_config);
+	let parachain_config = prepare_node_config(parachain_config);
 
 	let polkadot_full_node =
 		cumulus_service::build_polkadot_full_node(polkadot_config, collator_key.public())?;
@@ -159,7 +160,7 @@ where
 	// 	prefix: format!("[{}] ", Color::Blue.bold().paint("Relaychain")),
 	// };
 
-	let params = new_partial(&mut parachain_config)?;
+	let params = new_partial(&parachain_config)?;
 	params
 		.inherent_data_providers
 		.register_provider(sp_timestamp::InherentDataProvider)
@@ -186,7 +187,7 @@ where
 				spawn_handle: task_manager.spawn_handle(),
 				import_queue,
 				on_demand: None,
-				block_announce_validator_builder: Some(Box::new(block_announce_validator)),
+				block_announce_validator_builder: Some(Box::new(|_| block_announce_validator)),
 				finality_proof_request_builder: None,
 				finality_proof_provider: None,
 		})?;

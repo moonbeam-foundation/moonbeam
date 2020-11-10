@@ -47,10 +47,6 @@ pub struct FullDeps<C, P, A: ChainApi> {
 	pub deny_unsafe: DenyUnsafe,
 	/// The Node authority flag
 	pub is_authority: bool,
-	/// Number of past blocks allowed for querying ethereum events.
-	pub eth_block_limit: Option<u32>,
-	/// Number of logs allowed for querying ethereum events.
-	pub eth_log_limit: Option<u32>,
 	/// Network service
 	pub network: Arc<NetworkService<Block, Hash>>,
 	/// Manual seal command sink
@@ -87,8 +83,6 @@ pub fn create_full<C, P, BE, A>(
 		graph_pool,
 		deny_unsafe,
 		is_authority,
-		eth_block_limit,
-		eth_log_limit,
 		network,
 		command_sink
 	} = deps;
