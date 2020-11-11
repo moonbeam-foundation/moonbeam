@@ -3721,6 +3721,7 @@ dependencies = [
  "jsonrpc-core",
  "jsonrpc-pubsub",
  "log 0.4.11",
+ "moonbeam-rpc",
  "moonbeam-runtime",
  "nix 0.17.0",
  "pallet-ethereum",
@@ -3774,6 +3775,33 @@ dependencies = [
  "substrate-test-runtime-client",
  "tokio 0.2.22",
  "trie-root 0.15.2",
+]
+
+[[package]]
+name = "moonbeam-rpc"
+version = "0.1.0"
+dependencies = [
+ "frontier-rpc",
+ "frontier-rpc-primitives",
+ "futures 0.3.7",
+ "jsonrpc-core",
+ "jsonrpc-pubsub",
+ "moonbeam-runtime",
+ "pallet-transaction-payment-rpc",
+ "parity-scale-codec",
+ "sc-client-api",
+ "sc-consensus-manual-seal",
+ "sc-network",
+ "sc-rpc",
+ "sc-rpc-api",
+ "serde",
+ "serde_json",
+ "sp-api",
+ "sp-block-builder",
+ "sp-blockchain",
+ "sp-runtime",
+ "sp-transaction-pool",
+ "substrate-frame-rpc-system",
 ]
 
 [[package]]

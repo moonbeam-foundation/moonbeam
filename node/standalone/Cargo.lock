@@ -923,7 +923,7 @@ dependencies = [
  "lazy_static",
  "maybe-uninit",
  "memoffset",
- "scopeguard",
+ "scopeguard 1.1.0",
 ]
 
 [[package]]
@@ -937,7 +937,7 @@ dependencies = [
  "crossbeam-utils 0.8.0",
  "lazy_static",
  "memoffset",
- "scopeguard",
+ "scopeguard 1.1.0",
 ]
 
 [[package]]
@@ -1010,6 +1010,56 @@ dependencies = [
 ]
 
 [[package]]
+name = "cumulus-collator"
+version = "0.1.0"
+source = "git+https://github.com/paritytech/cumulus?rev=8a445a425086fc927f946a72b245e829fba200d0#8a445a425086fc927f946a72b245e829fba200d0"
+dependencies = [
+ "cumulus-consensus",
+ "cumulus-network",
+ "cumulus-primitives",
+ "cumulus-runtime",
+ "futures 0.3.7",
+ "log 0.4.11",
+ "parity-scale-codec",
+ "parking_lot 0.9.0",
+ "polkadot-collator",
+ "polkadot-parachain",
+ "polkadot-primitives",
+ "polkadot-service",
+ "polkadot-validation",
+ "sc-cli",
+ "sc-client-api",
+ "sp-api",
+ "sp-blockchain",
+ "sp-consensus",
+ "sp-core",
+ "sp-inherents",
+ "sp-runtime",
+]
+
+[[package]]
+name = "cumulus-consensus"
+version = "0.1.0"
+source = "git+https://github.com/paritytech/cumulus?rev=8a445a425086fc927f946a72b245e829fba200d0#8a445a425086fc927f946a72b245e829fba200d0"
+dependencies = [
+ "futures 0.3.7",
+ "log 0.4.11",
+ "parity-scale-codec",
+ "polkadot-primitives",
+ "polkadot-runtime",
+ "sc-client-api",
+ "sp-api",
+ "sp-block-builder",
+ "sp-blockchain",
+ "sp-consensus",
+ "sp-core",
+ "sp-inherents",
+ "sp-runtime",
+ "substrate-prometheus-endpoint",
+ "tokio 0.1.22",
+]
+
+[[package]]
 name = "cumulus-message-broker"
 version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus?rev=8a445a425086fc927f946a72b245e829fba200d0#8a445a425086fc927f946a72b245e829fba200d0"
@@ -1023,6 +1073,28 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "cumulus-network"
+version = "0.1.0"
+source = "git+https://github.com/paritytech/cumulus?rev=8a445a425086fc927f946a72b245e829fba200d0#8a445a425086fc927f946a72b245e829fba200d0"
+dependencies = [
+ "cumulus-primitives",
+ "futures 0.3.7",
+ "log 0.4.11",
+ "parity-scale-codec",
+ "parking_lot 0.10.2",
+ "polkadot-collator",
+ "polkadot-network",
+ "polkadot-primitives",
+ "polkadot-statement-table",
+ "polkadot-validation",
+ "sp-api",
+ "sp-blockchain",
+ "sp-consensus",
+ "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -1078,6 +1150,28 @@ dependencies = [
  "sp-std",
  "sp-trie",
  "trie-db",
+]
+
+[[package]]
+name = "cumulus-service"
+version = "0.1.0"
+source = "git+https://github.com/paritytech/cumulus?rev=8a445a425086fc927f946a72b245e829fba200d0#8a445a425086fc927f946a72b245e829fba200d0"
+dependencies = [
+ "cumulus-collator",
+ "cumulus-consensus",
+ "cumulus-network",
+ "cumulus-primitives",
+ "polkadot-collator",
+ "polkadot-primitives",
+ "polkadot-service",
+ "sc-client-api",
+ "sc-service",
+ "sp-api",
+ "sp-blockchain",
+ "sp-consensus",
+ "sp-core",
+ "sp-inherents",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -1137,6 +1231,32 @@ name = "data-encoding"
 version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "993a608597367c6377b258c25d7120740f00ed23a2252b729b1932dd7866f908"
+
+[[package]]
+name = "derive_more"
+version = "0.14.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d944ac6003ed268757ef1ee686753b57efc5fcf0ebe7b64c9fc81e7e32ff839"
+dependencies = [
+ "proc-macro2 0.4.30",
+ "quote 0.6.13",
+ "rustc_version",
+ "syn 0.15.44",
+]
+
+[[package]]
+name = "derive_more"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7a141330240c921ec6d074a3e188a7c7ef95668bb95e7d44fa0e5778ec2a7afe"
+dependencies = [
+ "lazy_static",
+ "proc-macro2 0.4.30",
+ "quote 0.6.13",
+ "regex",
+ "rustc_version",
+ "syn 0.15.44",
+]
 
 [[package]]
 name = "derive_more"
@@ -1454,6 +1574,16 @@ dependencies = [
 
 [[package]]
 name = "exit-future"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d8013f441e38e31c670e7f34ec8f1d5d3a2bd9d303c1ff83976ca886005e8f48"
+dependencies = [
+ "futures 0.1.30",
+ "parking_lot 0.7.1",
+]
+
+[[package]]
+name = "exit-future"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e43f2f1833d64e33f15592464d6fdd70f349dda7b1a53088eb83cd94014008c5"
@@ -1611,6 +1741,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "frame-benchmarking-cli"
+version = "2.0.0-rc5"
+source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
+dependencies = [
+ "frame-benchmarking",
+ "parity-scale-codec",
+ "sc-cli",
+ "sc-client-db",
+ "sc-executor",
+ "sc-service",
+ "sp-core",
+ "sp-externalities",
+ "sp-runtime",
+ "sp-state-machine",
+ "structopt",
+]
+
+[[package]]
 name = "frame-executive"
 version = "2.0.0-rc5"
 source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
@@ -1724,7 +1872,7 @@ name = "frontier-consensus"
 version = "0.1.0"
 source = "git+https://github.com/purestake/frontier?branch=v0.3-hotfixes#5b8a2b3af8fffcd8c5a50429dc569987d3279899"
 dependencies = [
- "derive_more",
+ "derive_more 0.99.11",
  "ethereum",
  "frontier-consensus-primitives",
  "futures 0.3.7",
@@ -3289,11 +3437,21 @@ dependencies = [
 
 [[package]]
 name = "lock_api"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "62ebf1391f6acad60e5c8b43706dde4582df75c06698ab44511d15016bc2442c"
+dependencies = [
+ "owning_ref",
+ "scopeguard 0.3.3",
+]
+
+[[package]]
+name = "lock_api"
 version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c4da24a77a3d8a6d4862d95f72e6fdb9c09a643ecdb402d754004a557f2bec75"
 dependencies = [
- "scopeguard",
+ "scopeguard 1.1.0",
 ]
 
 [[package]]
@@ -3302,7 +3460,7 @@ version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "28247cc5a5be2f05fbcd76dd0cf2c7d3b5400cb978a28042abcd4fa0b3f8261c"
 dependencies = [
- "scopeguard",
+ "scopeguard 1.1.0",
 ]
 
 [[package]]
@@ -3522,6 +3680,7 @@ dependencies = [
  "jsonrpc-core",
  "jsonrpc-pubsub",
  "log 0.4.11",
+ "moonbeam-rpc",
  "moonbeam-runtime",
  "pallet-ethereum",
  "pallet-evm",
@@ -3554,6 +3713,71 @@ dependencies = [
  "structopt",
  "substrate-build-script-utils",
  "substrate-frame-rpc-system",
+]
+
+[[package]]
+name = "moonbeam-rpc"
+version = "0.1.0"
+dependencies = [
+ "ansi_term 0.12.1",
+ "cumulus-collator",
+ "cumulus-consensus",
+ "cumulus-network",
+ "cumulus-primitives",
+ "cumulus-service",
+ "derive_more 0.15.0",
+ "exit-future 0.1.4",
+ "frontier-consensus",
+ "frontier-rpc",
+ "frontier-rpc-primitives",
+ "futures 0.3.7",
+ "jsonrpc-core",
+ "jsonrpc-pubsub",
+ "log 0.4.11",
+ "moonbeam-runtime",
+ "pallet-ethereum",
+ "pallet-evm",
+ "pallet-transaction-payment-rpc",
+ "parity-scale-codec",
+ "parking_lot 0.9.0",
+ "polkadot-cli",
+ "polkadot-collator",
+ "polkadot-parachain",
+ "polkadot-primitives",
+ "polkadot-service",
+ "polkadot-test-service",
+ "sc-basic-authorship",
+ "sc-chain-spec",
+ "sc-cli",
+ "sc-client-api",
+ "sc-client-db",
+ "sc-consensus",
+ "sc-consensus-manual-seal",
+ "sc-executor",
+ "sc-finality-grandpa",
+ "sc-informant",
+ "sc-network",
+ "sc-rpc",
+ "sc-rpc-api",
+ "sc-service",
+ "sc-transaction-pool",
+ "serde",
+ "serde_json",
+ "sp-api",
+ "sp-block-builder",
+ "sp-blockchain",
+ "sp-consensus",
+ "sp-core",
+ "sp-inherents",
+ "sp-io",
+ "sp-runtime",
+ "sp-timestamp",
+ "sp-transaction-pool",
+ "sp-trie",
+ "structopt",
+ "substrate-build-script-utils",
+ "substrate-frame-rpc-system",
+ "trie-root 0.15.2",
 ]
 
 [[package]]
@@ -4617,6 +4841,16 @@ checksum = "427c3892f9e783d91cc128285287e70a59e206ca452770ece88a76f7a3eddd72"
 
 [[package]]
 name = "parking_lot"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ab41b4aed082705d1056416ae4468b6ea99d52599ecf3169b00088d43113e337"
+dependencies = [
+ "lock_api 0.1.5",
+ "parking_lot_core 0.4.0",
+]
+
+[[package]]
+name = "parking_lot"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f842b1982eb6c2fe34036a4fbfb06dd185a3f5c8edfaacdf7d1ea10b07de6252"
@@ -4645,6 +4879,19 @@ dependencies = [
  "instant",
  "lock_api 0.4.1",
  "parking_lot_core 0.8.0",
+]
+
+[[package]]
+name = "parking_lot_core"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "94c8c7923936b28d546dfd14d4472eaf34c99b14e1c973a32b3e6d4eb04298c9"
+dependencies = [
+ "libc",
+ "rand 0.6.5",
+ "rustc_version",
+ "smallvec 0.6.13",
+ "winapi 0.3.9",
 ]
 
 [[package]]
@@ -4719,6 +4966,12 @@ dependencies = [
  "byteorder",
  "crypto-mac 0.7.0",
 ]
+
+[[package]]
+name = "pdqselect"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ec91767ecc0a0bbe558ce8c9da33c068066c57ecc8bb8477ef8c1ad3ef77c27"
 
 [[package]]
 name = "peeking_take_while"
@@ -4813,6 +5066,83 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "feb3b2b1033b8a60b4da6ee470325f887758c95d5320f52f9ce0df055a55940e"
 
 [[package]]
+name = "polkadot-availability-store"
+version = "0.8.22"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#9d2324b24a8e616b67a96b862e048e75b0ec211b"
+dependencies = [
+ "derive_more 0.99.11",
+ "exit-future 0.2.0",
+ "futures 0.3.7",
+ "kvdb",
+ "kvdb-memorydb",
+ "kvdb-rocksdb",
+ "log 0.4.11",
+ "parity-scale-codec",
+ "parking_lot 0.9.0",
+ "polkadot-erasure-coding",
+ "polkadot-primitives",
+ "sc-client-api",
+ "sc-keystore",
+ "sc-network",
+ "sp-api",
+ "sp-blockchain",
+ "sp-consensus",
+ "sp-core",
+ "sp-runtime",
+ "tokio 0.2.22",
+]
+
+[[package]]
+name = "polkadot-cli"
+version = "0.8.22"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#9d2324b24a8e616b67a96b862e048e75b0ec211b"
+dependencies = [
+ "frame-benchmarking-cli",
+ "futures 0.3.7",
+ "log 0.4.11",
+ "polkadot-service",
+ "sc-cli",
+ "sc-client-api",
+ "sc-client-db",
+ "sc-executor",
+ "sc-service",
+ "sp-api",
+ "sp-core",
+ "sp-runtime",
+ "sp-trie",
+ "structopt",
+ "substrate-build-script-utils",
+ "tokio 0.2.22",
+]
+
+[[package]]
+name = "polkadot-collator"
+version = "0.8.22"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#9d2324b24a8e616b67a96b862e048e75b0ec211b"
+dependencies = [
+ "futures 0.3.7",
+ "futures-timer 2.0.2",
+ "log 0.4.11",
+ "parity-scale-codec",
+ "polkadot-cli",
+ "polkadot-network",
+ "polkadot-primitives",
+ "polkadot-service",
+ "polkadot-validation",
+ "sc-cli",
+ "sc-client-api",
+ "sc-executor",
+ "sc-network",
+ "sc-service",
+ "sp-api",
+ "sp-blockchain",
+ "sp-consensus",
+ "sp-core",
+ "sp-runtime",
+ "tokio 0.2.22",
+]
+
+[[package]]
 name = "polkadot-core-primitives"
 version = "0.7.30"
 source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#9d2324b24a8e616b67a96b862e048e75b0ec211b"
@@ -4824,11 +5154,53 @@ dependencies = [
 ]
 
 [[package]]
+name = "polkadot-erasure-coding"
+version = "0.8.22"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#9d2324b24a8e616b67a96b862e048e75b0ec211b"
+dependencies = [
+ "derive_more 0.15.0",
+ "parity-scale-codec",
+ "polkadot-primitives",
+ "reed-solomon-erasure",
+ "sp-core",
+ "sp-trie",
+]
+
+[[package]]
+name = "polkadot-network"
+version = "0.8.22"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#9d2324b24a8e616b67a96b862e048e75b0ec211b"
+dependencies = [
+ "arrayvec 0.4.12",
+ "bytes 0.5.6",
+ "derive_more 0.14.1",
+ "exit-future 0.2.0",
+ "futures 0.3.7",
+ "futures-timer 2.0.2",
+ "log 0.4.11",
+ "parity-scale-codec",
+ "parking_lot 0.9.0",
+ "polkadot-availability-store",
+ "polkadot-erasure-coding",
+ "polkadot-primitives",
+ "polkadot-validation",
+ "rand 0.7.3",
+ "sc-network",
+ "sc-network-gossip",
+ "sp-api",
+ "sp-blockchain",
+ "sp-consensus",
+ "sp-core",
+ "sp-runtime",
+ "wasm-timer",
+]
+
+[[package]]
 name = "polkadot-parachain"
 version = "0.8.22"
 source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#9d2324b24a8e616b67a96b862e048e75b0ec211b"
 dependencies = [
- "derive_more",
+ "derive_more 0.99.11",
  "futures 0.3.7",
  "log 0.4.11",
  "parity-scale-codec",
@@ -4865,6 +5237,33 @@ dependencies = [
  "sp-std",
  "sp-trie",
  "sp-version",
+]
+
+[[package]]
+name = "polkadot-rpc"
+version = "0.8.22"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#9d2324b24a8e616b67a96b862e048e75b0ec211b"
+dependencies = [
+ "jsonrpc-core",
+ "pallet-transaction-payment-rpc",
+ "parity-scale-codec",
+ "polkadot-primitives",
+ "sc-client-api",
+ "sc-consensus-babe",
+ "sc-consensus-babe-rpc",
+ "sc-consensus-epochs",
+ "sc-finality-grandpa",
+ "sc-finality-grandpa-rpc",
+ "sc-keystore",
+ "sc-rpc",
+ "sp-api",
+ "sp-block-builder",
+ "sp-blockchain",
+ "sp-consensus",
+ "sp-consensus-babe",
+ "sp-runtime",
+ "sp-transaction-pool",
+ "substrate-frame-rpc-system",
 ]
 
 [[package]]
@@ -4995,6 +5394,217 @@ dependencies = [
  "sp-session",
  "sp-staking",
  "sp-std",
+]
+
+[[package]]
+name = "polkadot-service"
+version = "0.8.22"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#9d2324b24a8e616b67a96b862e048e75b0ec211b"
+dependencies = [
+ "frame-benchmarking",
+ "frame-system-rpc-runtime-api",
+ "futures 0.3.7",
+ "hex-literal 0.2.1",
+ "kusama-runtime",
+ "lazy_static",
+ "log 0.4.11",
+ "pallet-babe",
+ "pallet-im-online",
+ "pallet-staking",
+ "pallet-transaction-payment-rpc-runtime-api",
+ "parity-scale-codec",
+ "parking_lot 0.9.0",
+ "polkadot-availability-store",
+ "polkadot-network",
+ "polkadot-primitives",
+ "polkadot-rpc",
+ "polkadot-runtime",
+ "polkadot-validation",
+ "rococo-runtime",
+ "sc-authority-discovery",
+ "sc-block-builder",
+ "sc-chain-spec",
+ "sc-client-api",
+ "sc-client-db",
+ "sc-consensus",
+ "sc-consensus-babe",
+ "sc-executor",
+ "sc-finality-grandpa",
+ "sc-keystore",
+ "sc-network",
+ "sc-service",
+ "sc-telemetry",
+ "sc-transaction-pool",
+ "serde",
+ "slog",
+ "sp-api",
+ "sp-authority-discovery",
+ "sp-block-builder",
+ "sp-blockchain",
+ "sp-consensus",
+ "sp-consensus-babe",
+ "sp-core",
+ "sp-finality-grandpa",
+ "sp-inherents",
+ "sp-io",
+ "sp-offchain",
+ "sp-runtime",
+ "sp-session",
+ "sp-transaction-pool",
+ "sp-trie",
+ "substrate-prometheus-endpoint",
+ "westend-runtime",
+]
+
+[[package]]
+name = "polkadot-statement-table"
+version = "0.8.22"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#9d2324b24a8e616b67a96b862e048e75b0ec211b"
+dependencies = [
+ "parity-scale-codec",
+ "polkadot-primitives",
+ "sp-core",
+]
+
+[[package]]
+name = "polkadot-test-runtime"
+version = "0.8.22"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#9d2324b24a8e616b67a96b862e048e75b0ec211b"
+dependencies = [
+ "bitvec",
+ "frame-executive",
+ "frame-support",
+ "frame-system",
+ "frame-system-rpc-runtime-api",
+ "log 0.3.9",
+ "pallet-authority-discovery",
+ "pallet-authorship",
+ "pallet-babe",
+ "pallet-balances",
+ "pallet-finality-tracker",
+ "pallet-grandpa",
+ "pallet-indices",
+ "pallet-nicks",
+ "pallet-offences",
+ "pallet-randomness-collective-flip",
+ "pallet-session",
+ "pallet-staking",
+ "pallet-staking-reward-curve",
+ "pallet-sudo",
+ "pallet-timestamp",
+ "pallet-transaction-payment",
+ "pallet-transaction-payment-rpc-runtime-api",
+ "pallet-vesting",
+ "parity-scale-codec",
+ "polkadot-parachain",
+ "polkadot-primitives",
+ "polkadot-runtime-common",
+ "rustc-hex",
+ "serde",
+ "serde_derive",
+ "smallvec 1.4.2",
+ "sp-api",
+ "sp-authority-discovery",
+ "sp-block-builder",
+ "sp-consensus-babe",
+ "sp-core",
+ "sp-inherents",
+ "sp-io",
+ "sp-offchain",
+ "sp-runtime",
+ "sp-session",
+ "sp-staking",
+ "sp-std",
+ "sp-transaction-pool",
+ "sp-version",
+ "substrate-wasm-builder-runner 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "polkadot-test-service"
+version = "0.8.2"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#9d2324b24a8e616b67a96b862e048e75b0ec211b"
+dependencies = [
+ "frame-benchmarking",
+ "frame-system",
+ "futures 0.1.30",
+ "futures 0.3.7",
+ "hex",
+ "log 0.4.11",
+ "pallet-staking",
+ "pallet-sudo",
+ "pallet-transaction-payment",
+ "polkadot-availability-store",
+ "polkadot-network",
+ "polkadot-primitives",
+ "polkadot-rpc",
+ "polkadot-runtime-common",
+ "polkadot-service",
+ "polkadot-test-runtime",
+ "polkadot-validation",
+ "rand 0.7.3",
+ "sc-authority-discovery",
+ "sc-chain-spec",
+ "sc-client-api",
+ "sc-consensus",
+ "sc-consensus-babe",
+ "sc-executor",
+ "sc-finality-grandpa",
+ "sc-informant",
+ "sc-network",
+ "sc-service",
+ "sc-transaction-pool",
+ "sp-arithmetic",
+ "sp-blockchain",
+ "sp-consensus",
+ "sp-consensus-babe",
+ "sp-core",
+ "sp-finality-grandpa",
+ "sp-inherents",
+ "sp-keyring",
+ "sp-runtime",
+ "sp-state-machine",
+ "substrate-test-client",
+ "tempfile",
+]
+
+[[package]]
+name = "polkadot-validation"
+version = "0.8.22"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#9d2324b24a8e616b67a96b862e048e75b0ec211b"
+dependencies = [
+ "ansi_term 0.12.1",
+ "bitvec",
+ "derive_more 0.14.1",
+ "exit-future 0.2.0",
+ "futures 0.3.7",
+ "futures-timer 2.0.2",
+ "log 0.4.11",
+ "pallet-babe",
+ "parity-scale-codec",
+ "parking_lot 0.9.0",
+ "polkadot-availability-store",
+ "polkadot-erasure-coding",
+ "polkadot-parachain",
+ "polkadot-primitives",
+ "polkadot-statement-table",
+ "sc-basic-authorship",
+ "sc-block-builder",
+ "sc-client-api",
+ "sc-finality-grandpa",
+ "sc-keystore",
+ "sp-api",
+ "sp-blockchain",
+ "sp-consensus",
+ "sp-consensus-babe",
+ "sp-core",
+ "sp-inherents",
+ "sp-runtime",
+ "sp-timestamp",
+ "sp-transaction-pool",
+ "sp-trie",
+ "substrate-prometheus-endpoint",
+ "tokio 0.2.22",
 ]
 
 [[package]]
@@ -5511,6 +6121,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "reed-solomon-erasure"
+version = "4.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a415a013dd7c5d4221382329a5a3482566da675737494935cbbbcdec04662f9d"
+dependencies = [
+ "smallvec 1.4.2",
+]
+
+[[package]]
 name = "ref-cast"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5845,6 +6464,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "sc-authority-discovery"
+version = "0.8.0-rc5"
+source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
+dependencies = [
+ "bytes 0.5.6",
+ "derive_more 0.99.11",
+ "futures 0.3.7",
+ "futures-timer 3.0.2",
+ "libp2p",
+ "log 0.4.11",
+ "parity-scale-codec",
+ "prost",
+ "prost-build",
+ "rand 0.7.3",
+ "sc-client-api",
+ "sc-keystore",
+ "sc-network",
+ "serde_json",
+ "sp-api",
+ "sp-authority-discovery",
+ "sp-blockchain",
+ "sp-core",
+ "sp-runtime",
+ "substrate-prometheus-endpoint",
+]
+
+[[package]]
 name = "sc-basic-authorship"
 version = "0.8.0-rc5"
 source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
@@ -5920,7 +6566,7 @@ dependencies = [
  "ansi_term 0.12.1",
  "atty",
  "chrono",
- "derive_more",
+ "derive_more 0.99.11",
  "env_logger",
  "fdlimit",
  "futures 0.3.7",
@@ -5958,7 +6604,7 @@ name = "sc-client-api"
 version = "2.0.0-rc5"
 source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
 dependencies = [
- "derive_more",
+ "derive_more 0.99.11",
  "fnv",
  "futures 0.3.7",
  "hash-db",
@@ -6035,7 +6681,7 @@ name = "sc-consensus-aura"
 version = "0.8.0-rc5"
 source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
 dependencies = [
- "derive_more",
+ "derive_more 0.99.11",
  "futures 0.3.7",
  "futures-timer 3.0.2",
  "log 0.4.11",
@@ -6062,12 +6708,93 @@ dependencies = [
 ]
 
 [[package]]
+name = "sc-consensus-babe"
+version = "0.8.0-rc5"
+source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
+dependencies = [
+ "derive_more 0.99.11",
+ "fork-tree",
+ "futures 0.3.7",
+ "futures-timer 3.0.2",
+ "log 0.4.11",
+ "merlin",
+ "num-bigint",
+ "num-rational",
+ "num-traits 0.2.14",
+ "parity-scale-codec",
+ "parking_lot 0.10.2",
+ "pdqselect",
+ "rand 0.7.3",
+ "retain_mut",
+ "sc-client-api",
+ "sc-consensus-epochs",
+ "sc-consensus-slots",
+ "sc-consensus-uncles",
+ "sc-keystore",
+ "sc-telemetry",
+ "schnorrkel",
+ "serde",
+ "sp-api",
+ "sp-application-crypto",
+ "sp-block-builder",
+ "sp-blockchain",
+ "sp-consensus",
+ "sp-consensus-babe",
+ "sp-consensus-vrf",
+ "sp-core",
+ "sp-inherents",
+ "sp-io",
+ "sp-runtime",
+ "sp-timestamp",
+ "sp-utils",
+ "sp-version",
+ "substrate-prometheus-endpoint",
+]
+
+[[package]]
+name = "sc-consensus-babe-rpc"
+version = "0.8.0-rc5"
+source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
+dependencies = [
+ "derive_more 0.99.11",
+ "futures 0.3.7",
+ "jsonrpc-core",
+ "jsonrpc-core-client",
+ "jsonrpc-derive",
+ "sc-consensus-babe",
+ "sc-consensus-epochs",
+ "sc-keystore",
+ "sc-rpc-api",
+ "serde",
+ "sp-api",
+ "sp-application-crypto",
+ "sp-blockchain",
+ "sp-consensus",
+ "sp-consensus-babe",
+ "sp-core",
+ "sp-runtime",
+]
+
+[[package]]
+name = "sc-consensus-epochs"
+version = "0.8.0-rc5"
+source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
+dependencies = [
+ "fork-tree",
+ "parity-scale-codec",
+ "parking_lot 0.10.2",
+ "sc-client-api",
+ "sp-blockchain",
+ "sp-runtime",
+]
+
+[[package]]
 name = "sc-consensus-manual-seal"
 version = "0.8.0-rc5"
 source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
 dependencies = [
  "assert_matches",
- "derive_more",
+ "derive_more 0.99.11",
  "futures 0.3.7",
  "jsonrpc-core",
  "jsonrpc-core-client",
@@ -6110,11 +6837,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "sc-consensus-uncles"
+version = "0.8.0-rc5"
+source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
+dependencies = [
+ "log 0.4.11",
+ "sc-client-api",
+ "sp-authorship",
+ "sp-consensus",
+ "sp-core",
+ "sp-inherents",
+ "sp-runtime",
+]
+
+[[package]]
 name = "sc-executor"
 version = "0.8.0-rc5"
 source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
 dependencies = [
- "derive_more",
+ "derive_more 0.99.11",
  "lazy_static",
  "libsecp256k1",
  "log 0.4.11",
@@ -6142,7 +6883,7 @@ name = "sc-executor-common"
 version = "0.8.0-rc5"
 source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
 dependencies = [
- "derive_more",
+ "derive_more 0.99.11",
  "log 0.4.11",
  "parity-scale-codec",
  "parity-wasm",
@@ -6196,7 +6937,7 @@ version = "0.8.0-rc5"
 source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
 dependencies = [
  "assert_matches",
- "derive_more",
+ "derive_more 0.99.11",
  "finality-grandpa",
  "fork-tree",
  "futures 0.3.7",
@@ -6229,6 +6970,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "sc-finality-grandpa-rpc"
+version = "0.8.0-rc5"
+source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
+dependencies = [
+ "derive_more 0.99.11",
+ "finality-grandpa",
+ "futures 0.3.7",
+ "jsonrpc-core",
+ "jsonrpc-core-client",
+ "jsonrpc-derive",
+ "log 0.4.11",
+ "sc-finality-grandpa",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "sc-informant"
 version = "0.8.0-rc5"
 source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
@@ -6251,7 +7009,7 @@ name = "sc-keystore"
 version = "2.0.0-rc5"
 source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
 dependencies = [
- "derive_more",
+ "derive_more 0.99.11",
  "hex",
  "merlin",
  "parking_lot 0.10.2",
@@ -6289,7 +7047,7 @@ dependencies = [
  "bitflags",
  "bs58 0.3.1",
  "bytes 0.5.6",
- "derive_more",
+ "derive_more 0.99.11",
  "either",
  "erased-serde",
  "fnv",
@@ -6434,7 +7192,7 @@ name = "sc-rpc-api"
 version = "0.8.0-rc5"
 source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
 dependencies = [
- "derive_more",
+ "derive_more 0.99.11",
  "futures 0.3.7",
  "jsonrpc-core",
  "jsonrpc-core-client",
@@ -6474,9 +7232,9 @@ name = "sc-service"
 version = "0.8.0-rc5"
 source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
 dependencies = [
- "derive_more",
+ "derive_more 0.99.11",
  "directories",
- "exit-future",
+ "exit-future 0.2.0",
  "futures 0.1.30",
  "futures 0.3.7",
  "futures-timer 3.0.2",
@@ -6589,7 +7347,7 @@ name = "sc-transaction-graph"
 version = "2.0.0-rc5"
 source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
 dependencies = [
- "derive_more",
+ "derive_more 0.99.11",
  "futures 0.3.7",
  "linked-hash-map",
  "log 0.4.11",
@@ -6610,7 +7368,7 @@ name = "sc-transaction-pool"
 version = "2.0.0-rc5"
 source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
 dependencies = [
- "derive_more",
+ "derive_more 0.99.11",
  "futures 0.3.7",
  "futures-diagnose",
  "intervalier",
@@ -6664,6 +7422,12 @@ name = "scoped-tls"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ea6a9290e3c9cf0f18145ef7ffa62d68ee0bf5fcd651017e586dc7fd5da448c2"
+
+[[package]]
+name = "scopeguard"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "94258f53601af11e6a49f722422f6e3425c52b06245a5cf9bc09908b174f5e27"
 
 [[package]]
 name = "scopeguard"
@@ -7021,7 +7785,7 @@ name = "sp-allocator"
 version = "2.0.0-rc5"
 source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
 dependencies = [
- "derive_more",
+ "derive_more 0.99.11",
  "log 0.4.11",
  "sp-core",
  "sp-std",
@@ -7120,7 +7884,7 @@ name = "sp-blockchain"
 version = "2.0.0-rc5"
 source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
 dependencies = [
- "derive_more",
+ "derive_more 0.99.11",
  "log 0.4.11",
  "lru",
  "parity-scale-codec",
@@ -7146,7 +7910,7 @@ name = "sp-consensus"
 version = "0.8.0-rc5"
 source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
 dependencies = [
- "derive_more",
+ "derive_more 0.99.11",
  "futures 0.3.7",
  "futures-timer 3.0.2",
  "libp2p",
@@ -7229,7 +7993,7 @@ dependencies = [
  "base58",
  "blake2-rfc",
  "byteorder",
- "derive_more",
+ "derive_more 0.99.11",
  "dyn-clonable",
  "ed25519-dalek",
  "futures 0.3.7",
@@ -7338,7 +8102,7 @@ name = "sp-inherents"
 version = "2.0.0-rc5"
 source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
 dependencies = [
- "derive_more",
+ "derive_more 0.99.11",
  "parity-scale-codec",
  "parking_lot 0.10.2",
  "sp-core",
@@ -7527,7 +8291,7 @@ dependencies = [
  "sp-panic-handler",
  "sp-trie",
  "trie-db",
- "trie-root",
+ "trie-root 0.16.0",
 ]
 
 [[package]]
@@ -7576,7 +8340,7 @@ name = "sp-transaction-pool"
 version = "2.0.0-rc5"
 source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
 dependencies = [
- "derive_more",
+ "derive_more 0.99.11",
  "futures 0.3.7",
  "log 0.4.11",
  "parity-scale-codec",
@@ -7597,7 +8361,7 @@ dependencies = [
  "sp-core",
  "sp-std",
  "trie-db",
- "trie-root",
+ "trie-root 0.16.0",
 ]
 
 [[package]]
@@ -7782,12 +8546,38 @@ version = "0.8.0-rc5"
 source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
 dependencies = [
  "async-std",
- "derive_more",
+ "derive_more 0.99.11",
  "futures-util",
  "hyper 0.13.9",
  "log 0.4.11",
  "prometheus",
  "tokio 0.2.22",
+]
+
+[[package]]
+name = "substrate-test-client"
+version = "2.0.0-rc5"
+source = "git+https://github.com/paritytech/substrate.git?branch=rococo-branch#83544d41abcc0e3d3cbbd6aa510e04dc50863e5c"
+dependencies = [
+ "futures 0.1.30",
+ "futures 0.3.7",
+ "hash-db",
+ "hex",
+ "parity-scale-codec",
+ "sc-client-api",
+ "sc-client-db",
+ "sc-consensus",
+ "sc-executor",
+ "sc-light",
+ "sc-service",
+ "serde",
+ "serde_json",
+ "sp-blockchain",
+ "sp-consensus",
+ "sp-core",
+ "sp-keyring",
+ "sp-runtime",
+ "sp-state-machine",
 ]
 
 [[package]]
@@ -8396,6 +9186,15 @@ dependencies = [
  "log 0.4.11",
  "rustc-hex",
  "smallvec 1.4.2",
+]
+
+[[package]]
+name = "trie-root"
+version = "0.15.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0b779f7c1c8fe9276365d9d5be5c4b5adeacf545117bb3f64c974305789c5c0b"
+dependencies = [
+ "hash-db",
 ]
 
 [[package]]

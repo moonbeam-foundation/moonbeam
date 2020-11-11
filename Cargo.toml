@@ -2,6 +2,7 @@
 members = [
     'runtime',
     'node/parachain',
+    'node/rpc',#Temporary
     # We do NOT include the standalone node in this main workspace because it builds the
     # runtime with the `standalone` feature, which the parachain does not support.
 ]

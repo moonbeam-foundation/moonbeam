@@ -199,7 +199,7 @@ pub fn run_node(
 		let network = network.clone();
 
 		Box::new(move |deny_unsafe| {
-			let deps = crate::rpc::FullDeps {
+			let deps = moonbeam_rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
 				deny_unsafe,
@@ -208,7 +208,7 @@ pub fn run_node(
 				command_sink: Some(command_sink.clone())
 			};
 
-			crate::rpc::create_full(
+			moonbeam_rpc::create_full(
 				deps,
 				subscription_task_executor.clone()
 			)
