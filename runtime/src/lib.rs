@@ -45,7 +45,7 @@ use parachain::*;
 
 use codec::{Decode, Encode};
 use sp_api::impl_runtime_apis;
-use sp_core::{OpaqueMetadata, H160, H256, U256};
+use sp_core::{OpaqueMetadata, H160, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentityLookup, Saturating, IdentifyAccount, Verify},
@@ -66,7 +66,6 @@ pub use frame_support::{
 	},
 	ConsensusEngineId, StorageValue,
 };
-use frontier_rpc_primitives::TransactionStatus;
 use pallet_evm::{
 	Account as EVMAccount, IdentityAddressMapping, EnsureAddressSame,
 	EnsureAddressNever, FeeCalculator,
@@ -249,6 +248,7 @@ impl pallet_evm::Trait for Runtime {
 	type AddressMapping = IdentityAddressMapping;
 	type Currency = Balances;
 	type Event = Event;
+	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type Precompiles = precompiles::MoonbeamPrecompiles;
 	type ChainId = EthereumChainId;
 }
@@ -424,80 +424,42 @@ impl_runtime_apis! {
 			<Runtime as pallet_evm::Trait>::FeeCalculator::min_gas_price()
 		}
 
-		fn account_code_at(address: H160) -> Vec<u8> {
-			EVM::account_codes(address)
-		}
-
-		fn author() -> H160 {
-			Ethereum::find_author()
-		}
-
-		fn storage_at(address: H160, index: U256) -> H256 {
-			let mut tmp = [0u8; 32];
-			index.to_big_endian(&mut tmp);
-			EVM::account_storages(address, H256::from_slice(&tmp[..]))
-		}
-
 		fn call(
+			from: H160,
+			to: H160,
+			data: Vec<u8>,
+			value: U256,
+			gas_limit: U256,
+			gas_price: Option<U256>,
+			nonce: Option<U256>,
+		) -> Result<pallet_evm::CallInfo, sp_runtime::DispatchError> {
+			<Runtime as pallet_evm::Trait>::Runner::call(
+				from,
+				to,
+				data,
+				value,
+				gas_limit.low_u32(),
+				gas_price,
+				nonce,
+			).map_err(|err| err.into())
+		}
+
+		fn create(
 			from: H160,
 			data: Vec<u8>,
 			value: U256,
 			gas_limit: U256,
 			gas_price: Option<U256>,
 			nonce: Option<U256>,
-			action: pallet_ethereum::TransactionAction,
-		) -> Result<(Vec<u8>, U256), sp_runtime::DispatchError> {
-			match action {
-				pallet_ethereum::TransactionAction::Call(to) =>
-					EVM::execute_call(
-						from,
-						to,
-						data,
-						value,
-						gas_limit.low_u32(),
-						gas_price.unwrap_or(U256::from(0)),
-						nonce,
-						false,
-					)
-					.map(|(_, ret, gas, _)| (ret, gas))
-					.map_err(|err| err.into()),
-				pallet_ethereum::TransactionAction::Create =>
-					EVM::execute_create(
-						from,
-						data,
-						value,
-						gas_limit.low_u32(),
-						gas_price.unwrap_or(U256::from(0)),
-						nonce,
-						false,
-					)
-					.map(|(_, _, gas, _)| (vec![], gas))
-					.map_err(|err| err.into()),
-			}
-		}
-
-		fn current_transaction_statuses() -> Option<Vec<TransactionStatus>> {
-			Ethereum::current_transaction_statuses()
-		}
-
-		fn current_block() -> Option<pallet_ethereum::Block> {
-			Ethereum::current_block()
-		}
-
-		fn current_receipts() -> Option<Vec<pallet_ethereum::Receipt>> {
-			Ethereum::current_receipts()
-		}
-
-		fn current_all() -> (
-			Option<pallet_ethereum::Block>,
-			Option<Vec<pallet_ethereum::Receipt>>,
-			Option<Vec<TransactionStatus>>
-		) {
-			(
-				Ethereum::current_block(),
-				Ethereum::current_receipts(),
-				Ethereum::current_transaction_statuses()
-			)
+		) -> Result<pallet_evm::CreateInfo, sp_runtime::DispatchError> {
+			<Runtime as pallet_evm::Trait>::Runner::create(
+				from,
+				data,
+				value,
+				gas_limit.low_u32(),
+				gas_price,
+				nonce,
+			).map_err(|err| err.into())
 		}
 	}
 

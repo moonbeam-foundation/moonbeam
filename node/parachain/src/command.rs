@@ -250,8 +250,6 @@ pub fn run() -> Result<()> {
 					polkadot_config,
 					id,
 					cli.run.base.validator,
-					cli.eth.block_limit,
-					cli.eth.log_limit,
 				)
 				.map(|(x, _)| x)
 			})

@@ -57,9 +57,13 @@ export interface Context {
 }
 
 export async function startMoonbeamNode(
-  specFilename: string
+  specFilename: string,
+  provider?: string
 ): Promise<{ context: Context; binary: ChildProcess }> {
-  const web3 = new Web3(`http://localhost:${RPC_PORT}`);
+  let web3;
+  if (!provider || provider == "http") {
+    web3 = new Web3(`http://localhost:${RPC_PORT}`);
+  }
 
   const cmd = BINARY_PATH;
   const args = [
@@ -74,7 +78,7 @@ export async function startMoonbeamNode(
     `-l${MOONBEAM_LOG}`,
     `--port=${PORT}`,
     `--rpc-port=${RPC_PORT}`,
-    `--ws-port=${WS_PORT}`, // not used
+    `--ws-port=${WS_PORT}`,
     `--tmp`,
   ];
   const binary = spawn(cmd, args);
@@ -106,8 +110,10 @@ export async function startMoonbeamNode(
       }
       binaryLogs.push(chunk);
       if (chunk.toString().match(/Manual Seal Ready/)) {
-        // This is needed as the EVM runtime needs to warmup with a first call
-        await web3.eth.getChainId();
+        if (!provider || provider == "http") {
+          // This is needed as the EVM runtime needs to warmup with a first call
+          await web3.eth.getChainId();
+        }
 
         clearTimeout(timer);
         if (!DISPLAY_LOG) {
@@ -153,13 +159,18 @@ export async function startMoonbeamNode(
     },
   });
 
+  if (provider == "ws") {
+    web3 = new Web3(`ws://localhost:${WS_PORT}`);
+  }
+
   return { context: { web3, polkadotApi, wsProvider }, binary };
 }
 
 export function describeWithMoonbeam(
   title: string,
   specFilename: string,
-  cb: (context: Context) => void
+  cb: (context: Context) => void,
+  provider?: string
 ) {
   describe(title, () => {
     let context: Context = { web3: null, wsProvider: null, polkadotApi: null };
@@ -168,7 +179,7 @@ export function describeWithMoonbeam(
     // Making sure the Moonbeam node has started
     before("Starting Moonbeam Test Node", async function () {
       this.timeout(SPAWNING_TIME);
-      const init = await startMoonbeamNode(specFilename);
+      const init = await startMoonbeamNode(specFilename, provider);
       // Context is given prior to this assignement, so doing
       // context = init.context will fail because it replace the variable;
       context.web3 = init.context.web3;

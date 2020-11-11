@@ -121,8 +121,6 @@ pub fn run() -> sc_cli::Result<()> {
 				_ => service::new_full(
 					config,
 					cli.run.manual_seal,
-					cli.eth.block_limit,
-					cli.eth.log_limit,
 				),
 			})
 		}

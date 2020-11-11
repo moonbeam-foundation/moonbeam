@@ -28,18 +28,6 @@ pub struct RunCmd {
 	pub manual_seal: bool,
 }
 
-#[allow(missing_docs)]
-#[derive(Debug, StructOpt)]
-pub struct EthCmd {
-	/// Number of past blocks allowed for querying ethereum events.
-	#[structopt(long = "eth-block-limit")]
-	pub block_limit: Option<u32>,
-
-	/// Number of logs allowed for querying ethereum events.
-	#[structopt(long = "eth-log-limit")]
-	pub log_limit: Option<u32>,
-}
-
 #[derive(Debug, StructOpt)]
 pub struct Cli {
 	#[structopt(subcommand)]
@@ -47,9 +35,6 @@ pub struct Cli {
 
 	#[structopt(flatten)]
 	pub run: RunCmd,
-
-	#[structopt(flatten)]
-	pub eth: EthCmd,
 }
 
 #[derive(Debug, StructOpt)]
