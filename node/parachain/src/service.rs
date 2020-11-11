@@ -190,9 +190,6 @@ pub fn run_node(
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 
-	// Channel for the rpc handler to communicate with the authorship task.
-	let (command_sink, _commands_stream) = futures::channel::mpsc::channel(1000);
-
 	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
@@ -205,7 +202,7 @@ pub fn run_node(
 				deny_unsafe,
 				is_authority,
 				network: network.clone(),
-				command_sink: Some(command_sink.clone())
+				command_sink: None,
 			};
 
 			moonbeam_rpc::create_full(
