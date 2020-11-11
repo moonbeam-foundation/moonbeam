@@ -47,9 +47,13 @@ export async function createAndFinalizeBlock(web3: Web3) {
 }
 
 export async function startMoonbeamNode(
-  specFilename: string
+  specFilename: string,
+  provider?: string
 ): Promise<{ web3: Web3; binary: ChildProcess }> {
-  const web3 = new Web3(`http://localhost:${RPC_PORT}`);
+  var web3;
+  if (!provider || provider == "http") {
+    web3 = new Web3(`http://localhost:${RPC_PORT}`);
+  }
 
   const cmd = BINARY_PATH;
   const args = [
@@ -64,7 +68,7 @@ export async function startMoonbeamNode(
     `-l${MOONBEAM_LOG}`,
     `--port=${PORT}`,
     `--rpc-port=${RPC_PORT}`,
-    `--ws-port=${WS_PORT}`, // not used
+    `--ws-port=${WS_PORT}`,
     `--tmp`,
   ];
   const binary = spawn(cmd, args);
@@ -96,8 +100,10 @@ export async function startMoonbeamNode(
       }
       binaryLogs.push(chunk);
       if (chunk.toString().match(/Manual Seal Ready/)) {
-        // This is needed as the EVM runtime needs to warmup with a first call
-        await web3.eth.getChainId();
+        if (!provider || provider == "http") {
+          // This is needed as the EVM runtime needs to warmup with a first call
+          await web3.eth.getChainId();
+        }
 
         clearTimeout(timer);
         if (!DISPLAY_LOG) {
@@ -112,13 +118,18 @@ export async function startMoonbeamNode(
     binary.stdout.on("data", onData);
   });
 
+  if (provider == "ws") {
+    web3 = new Web3(`ws://localhost:${WS_PORT}`);
+  }
+
   return { web3, binary };
 }
 
 export function describeWithMoonbeam(
   title: string,
   specFilename: string,
-  cb: (context: { web3: Web3 }) => void
+  cb: (context: { web3: Web3 }) => void,
+  provider?: string
 ) {
   describe(title, () => {
     let context: { web3: Web3 } = { web3: null };
@@ -127,7 +138,7 @@ export function describeWithMoonbeam(
     // Making sure the Moonbeam node has started
     before("Starting Moonbeam Test Node", async function () {
       this.timeout(SPAWNING_TIME);
-      const init = await startMoonbeamNode(specFilename);
+      const init = await startMoonbeamNode(specFilename, provider);
       context.web3 = init.web3;
       binary = init.binary;
     });

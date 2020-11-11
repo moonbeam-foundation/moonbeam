@@ -11,7 +11,7 @@ ripemd160 = { version = "0.9", default-features = false }
 
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
 sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
-pallet-evm = { git = "https://github.com/purestake/substrate", default-features = false, branch = "tgmichel-rococo-branch" }
+pallet-evm = { git = "https://github.com/purestake/substrate", default-features = false, branch = "v0.3-hotfixes" }
 
 [features]
 default = [ "std" ]

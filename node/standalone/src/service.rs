@@ -52,13 +52,12 @@ pub enum ConsensusResult {
 				Block,
 				GrandpaBlockImport<FullBackend, Block, FullClient, FullSelectChain>,
 				FullClient,
-				FullBackend,
 			>,
 			AuraPair
 		>,
 		sc_finality_grandpa::LinkHalf<Block, FullClient, FullSelectChain>
 	),
-	ManualSeal(FrontierBlockImport<Block, Arc<FullClient>, FullClient, FullBackend>)
+	ManualSeal(FrontierBlockImport<Block, Arc<FullClient>, FullClient>)
 }
 
 pub fn new_partial(config: &Configuration, manual_seal: bool) -> Result<
@@ -144,8 +143,6 @@ pub fn new_partial(config: &Configuration, manual_seal: bool) -> Result<
 pub fn new_full(
 	config: Configuration,
 	manual_seal: bool,
-	eth_block_limit: Option<u32>,
-	eth_log_limit: Option<u32>,
 ) -> Result<TaskManager, ServiceError> {
 	let sc_service::PartialComponents {
 		client, backend, mut task_manager, import_queue, keystore, select_chain, transaction_pool,
@@ -216,11 +213,8 @@ pub fn new_full(
 			let deps = crate::rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
-				graph_pool: pool.pool().clone(),
 				deny_unsafe,
 				is_authority,
-				eth_block_limit,
-				eth_log_limit,
 				network: network.clone(),
 				command_sink: Some(command_sink.clone())
 			};

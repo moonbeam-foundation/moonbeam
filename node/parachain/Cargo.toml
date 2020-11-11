@@ -24,8 +24,8 @@ structopt = "0.3.3"
 ansi_term = "0.12.1"
 serde = { version = "1.0.101", features = ["derive"] }
 serde_json = "1.0"
-jsonrpc-core = "14.0.3"
-jsonrpc-pubsub = "14.0.3"
+jsonrpc-core = "14.2.0"
+jsonrpc-pubsub = "14.2.0"
 
 # Parachain dependencies
 moonbeam-runtime = { path = "../../runtime" }
@@ -45,7 +45,6 @@ sc-executor = { git = "https://github.com/paritytech/substrate", branch = "rococ
 sc-service = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
 sc-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
 sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
-sc-transaction-graph = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
 sc-network = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
 sc-basic-authorship = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch", version = "0.8.0-rc5" }
 sp-timestamp = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
@@ -61,13 +60,13 @@ substrate-frame-rpc-system = { git = "https://github.com/paritytech/substrate", 
 pallet-transaction-payment-rpc = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
 sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
 sc-consensus-manual-seal = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
-evm = { package = "pallet-evm", git = "https://github.com/purestake/substrate", branch = "tgmichel-rococo-branch" }
+evm = { package = "pallet-evm", git = "https://github.com/purestake/substrate", branch = "v0.3-hotfixes" }
 
-ethereum = { version = "0.1.0", package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
+ethereum = { version = "0.1.0", package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "v0.3-hotfixes" }
 
-frontier-rpc = { version = "0.1.0", git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
-frontier-rpc-primitives = { version = "0.1.0", git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
-frontier-consensus = { version = "0.1.0", git = "https://github.com/purestake/frontier", branch = "v0.2-hotfixes" }
+frontier-rpc = { version = "0.1.0", git = "https://github.com/purestake/frontier", branch = "v0.3-hotfixes" }
+frontier-rpc-primitives = { version = "0.1.0", git = "https://github.com/purestake/frontier", branch = "v0.3-hotfixes" }
+frontier-consensus = { version = "0.1.0", git = "https://github.com/purestake/frontier", branch = "v0.3-hotfixes" }
 
 # Cumulus dependencies
 cumulus-consensus = { git = "https://github.com/paritytech/cumulus", rev = '8a445a425086fc927f946a72b245e829fba200d0' }
