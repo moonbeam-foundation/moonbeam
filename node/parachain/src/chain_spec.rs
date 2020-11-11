@@ -16,8 +16,8 @@
 
 use cumulus_primitives::ParaId;
 use moonbeam_runtime::{
-	AccountId, BalancesConfig, GenesisConfig, Signature, SudoConfig, SystemConfig,
-	ParachainInfoConfig, WASM_BINARY, EthereumChainIdConfig, EVMConfig, EthereumConfig,
+	AccountId, BalancesConfig, GenesisConfig, SudoConfig, SystemConfig,
+	ParachainInfoConfig, WASM_BINARY, EthereumChainIdConfig, EVMConfig, EthereumConfig
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
@@ -43,16 +43,6 @@ impl Extensions {
 	pub fn try_get(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Option<&Self> {
 		sc_chain_spec::get_extension(chain_spec.extensions())
 	}
-}
-
-type AccountPublic = <Signature as Verify>::Signer;
-
-/// Helper function to generate an account ID from seed
-pub fn get_account_id_from_seed<TPublic: Public>(seed: &str) -> AccountId
-where
-	AccountPublic: From<<TPublic::Pair as Pair>::Public>,
-{
-	AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
 }
 
 pub fn get_chain_spec(para_id: ParaId) -> Result<ChainSpec, String> {

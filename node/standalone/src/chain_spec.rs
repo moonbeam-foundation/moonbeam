@@ -17,7 +17,7 @@
 use sp_core::{Pair, Public};
 use moonbeam_runtime::{
 	AccountId, AuraConfig, BalancesConfig, EVMConfig, EthereumConfig, GenesisConfig, GrandpaConfig,
-	SudoConfig, SystemConfig, WASM_BINARY, Signature, EthereumChainIdConfig,
+	SudoConfig, SystemConfig, WASM_BINARY, EthereumChainIdConfig,
 };
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_finality_grandpa::AuthorityId as GrandpaId;
