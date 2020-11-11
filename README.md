@@ -84,17 +84,37 @@ Moonbeam nodes support multiple public chains and testnets, with the following C
 | Public parachain testnet (alphanet) | 1287 |
 | Reserved for other public networks | 1288 - 1289 |
 
-## Pallets
-* *aura*: Time-based Authority Consensus (for simplicity until more development is done)
-* *balances*: Account & Balance management
-* *grandpa*: GRANDPA Authority consensus (This will be removed once it becomes a parachain)
-* *sudo*: Allow specific account to call any dispatchable ("Alice": `0x57d213d0927ccc7596044c6ba013dd05522aacba`, will get removed at some point)
-* *timestamp*: On-Chain time management
-* *transaction*-payment: Transaction payement (fee) management
-* *evm*: EVM Execution. (Temporary until we work on pallet-ethereum)
+## Runtime Architecture
 
-* ***mb-core***: Currently serves as a way to experiments with pallets and substrate (will get removed)
-* ***mb-session***: Logic for selecting validators based on a endorsement system
+The Moonbeam Runtime is built using FRAME and consists of several core pallets, as well as a few
+pallets that are only present conditionally. The core pallets are:
+
+- _Balances_: Tracks GLMR token balances
+- _Sudo_: Allows a privledged acocunt to make arbitrary runtime changes - will be removed before
+  launch
+- _Timestamp_: On-Chain notion of time
+- _EVM_: Encapsulates execution logic for an Ethereum Virtual Machine
+- _Ethereum_: Ethereum-style data encoding and access for the EVM.
+- _Ethereum Chain Id_: A place to store the chain id for each Moonbeam network
+- _Transaction Payment_: Transaction payment (fee) management
+- _Randomness Collective Flip_: A (mock) onchain randomness beacon. Will be replaced by parachain
+  randomness by mainnet.
+
+### Parachain
+
+In addition to the core pallets above, the parachain node also features
+
+- _ParachainUpgrade_: A helper to perform runtime upgrades on parachains
+- _MessageBroker_: A helper to receive incoming XCPM messages
+- _ParachainInfo_: A place to store parachain-relevant constants like parachain id
+- _TokenDealer_: A helper for accepting incoming cross-chain asset transfers
+
+### Standalone
+
+In addition to the core pallets above, the standalone node also features
+
+- _Aura_: Slot-based Authority Consensus
+- _Grandpa_: GRANDPA Authority consensus (This will be removed once it becomes a parachain)
 
 ## Tests
 
