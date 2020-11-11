@@ -59,7 +59,7 @@ use sp_version::RuntimeVersion;
 
 pub use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{FindAuthor, Randomness},
+	traits::{FindAuthor, Get, Randomness},
 	weights::{
 		constants::WEIGHT_PER_SECOND,
 		IdentityFee, Weight
@@ -100,6 +100,9 @@ pub type Hash = sp_core::H256;
 
 /// Digest item type.
 pub type DigestItem = generic::DigestItem<Hash>;
+
+/// Minimum time between blocks.
+pub const MINIMUM_PERIOD: u64 = 3000;
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
@@ -194,7 +197,7 @@ parameter_types! {
 	// When running in standalone mode, this controls the block time.
 	// Block time is double the minimum period.
 	// https://github.com/paritytech/substrate/blob/e4803bd/frame/aura/src/lib.rs#L197-L199
-	pub const MinimumPeriod: u64 = 3_000;
+	pub const MinimumPeriod: u64 = MINIMUM_PERIOD;
 }
 
 impl pallet_timestamp::Trait for Runtime {
@@ -237,9 +240,7 @@ impl pallet_sudo::Trait for Runtime {
 	type Event = Event;
 }
 
-parameter_types! {
-	pub const ChainId: u64 = 43;
-}
+impl pallet_ethereum_chain_id::Trait for Runtime {}
 
 impl pallet_evm::Trait for Runtime {
 	type FeeCalculator = ();
@@ -249,7 +250,7 @@ impl pallet_evm::Trait for Runtime {
 	type Currency = Balances;
 	type Event = Event;
 	type Precompiles = precompiles::MoonbeamPrecompiles;
-	type ChainId = ChainId;
+	type ChainId = EthereumChainId;
 }
 
 pub struct TransactionConverter;

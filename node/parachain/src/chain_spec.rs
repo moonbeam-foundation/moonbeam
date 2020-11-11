@@ -16,8 +16,8 @@
 
 use cumulus_primitives::ParaId;
 use moonbeam_runtime::{
-	AccountId, BalancesConfig, GenesisConfig, SudoConfig, SystemConfig,
-	ParachainInfoConfig, WASM_BINARY, EVMConfig, EthereumConfig,
+	AccountId, BalancesConfig, GenesisConfig, Signature, SudoConfig, SystemConfig,
+	ParachainInfoConfig, WASM_BINARY, EthereumChainIdConfig, EVMConfig, EthereumConfig,
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
@@ -45,7 +45,17 @@ impl Extensions {
 	}
 }
 
-pub fn get_chain_spec(id: ParaId) -> Result<ChainSpec, String> {
+type AccountPublic = <Signature as Verify>::Signer;
+
+/// Helper function to generate an account ID from seed
+pub fn get_account_id_from_seed<TPublic: Public>(seed: &str) -> AccountId
+where
+	AccountPublic: From<<TPublic::Pair as Pair>::Public>,
+{
+	AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
+}
+
+pub fn get_chain_spec(para_id: ParaId) -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	Ok(ChainSpec::from_genesis(
 		"Moonbase Parachain Local Testnet",
@@ -58,41 +68,22 @@ pub fn get_chain_spec(id: ParaId) -> Result<ChainSpec, String> {
 				vec![
 					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
 				],
-				id,
+				para_id,
+				1280, //ChainId
 			)
 		},
 		vec![],
 		None,
 		None,
-		None,
+		Some(
+			serde_json::from_str(
+				"{\"tokenDecimals\": 18}"
+			)
+			.expect("Provided valid json map")
+		),
 		Extensions {
 			relay_chain: "local_testnet".into(),
-			para_id: id.into(),
-		},
-	))
-}
-
-pub fn staging_test_net(id: ParaId) -> Result<ChainSpec, String> {
-	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
-	Ok(ChainSpec::from_genesis(
-		"Moonbase Parachain Testnet",
-		"staging_testnet",
-		ChainType::Live,
-		move || {
-			testnet_genesis(
-				wasm_binary,
-				AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
-				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
-				id,
-			)
-		},
-		Vec::new(),
-		None,
-		None,
-		None,
-		Extensions {
-			relay_chain: "rococo_local_testnet".into(),
-			para_id: id.into(),
+			para_id: para_id.into(),
 		},
 	))
 }
@@ -101,7 +92,8 @@ fn testnet_genesis(
 	wasm_binary: &[u8],
 	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,
-	id: ParaId,
+	para_id: ParaId,
+	chain_id: u64,
 ) -> GenesisConfig {
 	GenesisConfig {
 		frame_system: Some(SystemConfig {
@@ -116,7 +108,8 @@ fn testnet_genesis(
 				.collect(),
 		}),
 		pallet_sudo: Some(SudoConfig { key: root_key }),
-		parachain_info: Some(ParachainInfoConfig { parachain_id: id }),
+		parachain_info: Some(ParachainInfoConfig { parachain_id: para_id }),
+		pallet_ethereum_chain_id: Some(EthereumChainIdConfig { chain_id: chain_id }),
 		pallet_evm: Some(EVMConfig {
 			accounts: BTreeMap::new(),
 		}),

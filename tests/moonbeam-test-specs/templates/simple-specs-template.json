@@ -5,7 +5,9 @@
   "bootNodes": [],
   "telemetryEndpoints": null,
   "protocolId": null,
-  "properties": null,
+  "properties": {
+    "tokenDecimals": 18
+  },
   "consensusEngine": null,
   "genesis": {
     "runtime": {
@@ -18,6 +20,9 @@
       },
       "palletSudo": {
         "key": "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b"
+      },
+      "palletEthereumChainId": {
+        "chainId": 1281
       },
       "palletEvm": {
         "accounts": {

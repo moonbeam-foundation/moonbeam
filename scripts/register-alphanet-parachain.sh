@@ -12,12 +12,12 @@ if [ -z "$SUDO_SEED" ]; then
     exit 1
 fi
 
-polkadot-js-api \
+docker run --rm --network=host -v $(pwd)/$PARACHAIN_WASM:/wasm jacogr/polkadot-js-tools api \
     --ws "ws://localhost:$((RELAY_PORT + 2))" \
     --sudo \
     --seed "$SUDO_SEED" \
     tx.registrar.registerPara \
         1000 \
         "{\"scheduling\":\"Always\"}" \
-        @"$PARACHAIN_WASM" \
+        @"/wasm" \
         "$(cat $PARACHAIN_GENESIS)"

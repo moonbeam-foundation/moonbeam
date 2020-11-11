@@ -15,6 +15,7 @@ hex-literal = "0.3.1"
 
 precompiles = { path = "precompiles/", default-features = false }
 account = { path = "account/", default-features = false }
+pallet-ethereum-chain-id = { path = "../pallets/ethereum-chain-id", default-features = false }
 
 # Substrate dependencies
 pallet-aura = { git = "https://github.com/paritytech/substrate.git", default-features = false, branch = "rococo-branch", optional = true }
@@ -76,7 +77,7 @@ standalone = [
 	"pallet-aura",
 	"sp-consensus-aura",
 	"pallet-grandpa",
-	]
+]
 std = [
 	"codec/std",
 	"serde",
@@ -104,6 +105,7 @@ std = [
 	"frontier-rpc-primitives/std",
 	"frame-system-rpc-runtime-api/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
+	"pallet-ethereum-chain-id/std",
 
 	# TODO These dependencies are only necessary when building without the standalone feature. I don't
 	# see a way to express that. Everything is correct, like this, but we unnecessarily build these

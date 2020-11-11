@@ -63,8 +63,26 @@ source $HOME/.cargo/env
 
 You can run a standalone Moonbeam node with Docker directly:
 ```bash
-docker run purestake/moonbase /moonbase/moonbase-standalone
+docker run purestake/moonbase:tutorial-v2.2 /moonbase/moonbase-standalone
 ```
+
+## Chain IDs
+
+The ethereum specification described a numeric Chain Id. The Moonbeam mainnet Chain Id will be 1284
+because it takes 1284 milliseconds for a moonbeam to reach Earth.
+
+Moonbeam nodes support multiple public chains and testnets, with the following Chain Ids.
+
+| Network Description | Chain ID |
+| --- | --- |
+| Local parachain testnet | 1280 |
+| Local standalone testnet | 1281 |
+| Reserved for other testnets | 1282 - 1283 |
+| Moonbeam (Polkadot) | 1284 |
+| Moonriver (Kusama) | 1285|
+| Moonrock (Rococo) | 1286 |
+| Public parachain testnet (alphanet) | 1287 |
+| Reserved for other public networks | 1288 - 1289 |
 
 ## Pallets
 * *aura*: Time-based Authority Consensus (for simplicity until more development is done)

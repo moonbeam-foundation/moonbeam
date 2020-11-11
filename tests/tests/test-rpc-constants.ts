@@ -8,9 +8,9 @@ describeWithMoonbeam("Moonbeam RPC (Constant)", `simple-specs.json`, (context) =
     expect(await context.web3.eth.getHashrate()).to.equal(0);
   });
 
-  it("should have chainId 42", async function () {
-    // The chainId for moonbeam is 43
-    expect(await context.web3.eth.getChainId()).to.equal(43);
+  it("should have chainId 1281", async function () {
+    // The chainId for moonbase-standalone is 1281 (see Readme for more information)
+    expect(await context.web3.eth.getChainId()).to.equal(1281);
   });
 
   it("should have no account", async function () {

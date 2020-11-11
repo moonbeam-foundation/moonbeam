@@ -17,7 +17,7 @@
 use sp_core::{Pair, Public};
 use moonbeam_runtime::{
 	AccountId, AuraConfig, BalancesConfig, EVMConfig, EthereumConfig, GenesisConfig, GrandpaConfig,
-	SudoConfig, SystemConfig, WASM_BINARY
+	SudoConfig, SystemConfig, WASM_BINARY, Signature, EthereumChainIdConfig,
 };
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_finality_grandpa::AuthorityId as GrandpaId;
@@ -68,6 +68,7 @@ pub fn development_config() -> Result<ChainSpec, String> {
 				AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
 			],
 			true,
+			1281, // ChainId
 		),
 		// Bootnodes
 		vec![],
@@ -76,7 +77,12 @@ pub fn development_config() -> Result<ChainSpec, String> {
 		// Protocol ID
 		None,
 		// Properties
-		None,
+		Some(
+			serde_json::from_str(
+				"{\"tokenDecimals\": 18}"
+			)
+			.expect("Provided valid json map")
+		),
 		// Extensions
 		None,
 	))
@@ -105,6 +111,7 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 				AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
 			],
 			true,
+			1281, // ChainId
 		),
 		// Bootnodes
 		vec![],
@@ -113,7 +120,12 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 		// Protocol ID
 		None,
 		// Properties
-		None,
+		Some(
+			serde_json::from_str(
+				"{\"tokenDecimals\": 18}"
+			)
+			.expect("Provided valid json map")
+		),
 		// Extensions
 		None,
 	))
@@ -126,6 +138,7 @@ fn testnet_genesis(
 	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,
 	_enable_println: bool,
+	chain_id: u64,
 ) -> GenesisConfig {
 	GenesisConfig {
 		frame_system: Some(SystemConfig {
@@ -147,6 +160,7 @@ fn testnet_genesis(
 			// Assign network admin rights.
 			key: root_key,
 		}),
+		pallet_ethereum_chain_id: Some(EthereumChainIdConfig{chain_id}),
 		pallet_evm: Some(EVMConfig {
 			accounts: BTreeMap::new(),
 		}),

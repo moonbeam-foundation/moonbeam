@@ -5,7 +5,9 @@
   "bootNodes": [],
   "telemetryEndpoints": null,
   "protocolId": null,
-  "properties": null,
+  "properties": {
+    "tokenDecimals": 18
+  },
   "relay_chain": "local_testnet",
   "para_id": 1000,
   "consensusEngine": null,
@@ -24,6 +26,9 @@
       "parachainInfo": {
         "parachainId": 1000
       },
+      "palletEthereumChainId": {
+        "chainId": 1287
+      },
       "palletEvm": {
         "accounts": {
           "0x7833fB364439759A6EDC3BCc243774b815B8e2A6": {
@@ -39,7 +44,8 @@
             "code": []
           }
         }
-      }
+      },
+      "palletEthereum": {}
     }
   }
 }
