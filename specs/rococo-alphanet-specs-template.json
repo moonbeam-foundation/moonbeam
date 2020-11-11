@@ -6,28 +6,56 @@
   "telemetryEndpoints": null,
   "protocolId": "dot",
   "properties": null,
+  "forkBlocks": null,
+  "badBlocks": null,
   "consensusEngine": null,
+  "lightSyncState": null,
   "genesis": {
     "runtime": {
-      "system": {
+      "frameSystem": {
         "changesTrieConfig": null,
         "code": "<runtime_code>"
       },
-      "babe": {
+      "palletBabe": {
         "authorities": []
       },
-      "indices": {
+      "palletIndices": {
         "indices": []
       },
-      "balances": {
+      "palletBalances": {
         "balances": [
           ["1uV7ZJDW37CHeiWFppogK5JsV59tUrbuf1PcaDW5cTE1DHG", 100000000000000000000],
           ["14dmc8KjuXgKrmrBneJdpTZQhjStJoWnVipAhf2vcwcMWRBM", 100000000000000000000],
           ["16S1pBxHVpbHZE5DacwucvzXo3T6vDi9nsrTdwFvo3Vmm2xL", 100000000000000000000],
-          ["5GshoQVQ1xc9Abr4LcJdf5vr6c8ixXxNTSya8yeqV8xeQwsE", 100000000000000000000]
+          ["5GshoQVQ1xc9Abr4LcJdf5vr6c8ixXxNTSya8yeqV8xeQwsE", 100000000000000000000],
+          ["152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L", 100000000000000000000],
+          ["145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5", 100000000000000000000]
         ]
       },
-      "session": {
+      "palletStaking": {
+        "historyDepth": 84,
+        "validatorCount": 2,
+        "minimumValidatorCount": 0,
+        "invulnerables": [],
+        "forceEra": "NotForcing",
+        "slashRewardFraction": 0,
+        "canceledPayout": 0,
+        "stakers": [
+          [
+            "152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L",
+            "152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L",
+            10000000000000000,
+            "Validator"
+          ],
+          [
+            "145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5",
+            "145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5",
+            10000000000000000,
+            "Validator"
+          ]
+        ]
+      },
+      "palletSession": {
         "keys": [
           [
             "152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L",
@@ -64,26 +92,48 @@
           ]
         ]
       },
-      "grandpa": {
+      "palletGrandpa": {
         "authorities": []
       },
-      "imOnline": {
+      "palletImOnline": {
         "keys": []
       },
-      "authorityDiscovery": {
+      "palletAuthorityDiscovery": {
         "keys": []
       },
-      "parachains": {
-        "authorities": []
+      "parachainsConfiguration": {
+        "config": {
+          "validation_upgrade_frequency": 600,
+          "validation_upgrade_delay": 300,
+          "acceptance_period": 1200,
+          "max_code_size": 5242880,
+          "max_head_data_size": 32768,
+          "parathread_cores": 0,
+          "parathread_retries": 0,
+          "group_rotation_frequency": 10,
+          "chain_availability_period": 0,
+          "thread_availability_period": 0,
+          "scheduling_lookahead": 0,
+          "max_upward_queue_count": 0,
+          "max_upward_queue_size": 0,
+          "max_downward_message_size": 0,
+          "preferred_dispatchable_upward_messages_step_weight": 0,
+          "max_upward_message_size": 0,
+          "max_upward_message_num_per_candidate": 0,
+          "hrmp_open_request_ttl": 0,
+          "hrmp_sender_deposit": 0,
+          "hrmp_recipient_deposit": 0,
+          "hrmp_channel_max_capacity": 0,
+          "hrmp_channel_max_total_size": 0,
+          "hrmp_max_parachain_inbound_channels": 0,
+          "hrmp_max_parathread_inbound_channels": 0,
+          "hrmp_channel_max_message_size": 0,
+          "hrmp_max_parachain_outbound_channels": 0,
+          "hrmp_max_parathread_outbound_channels": 0,
+          "hrmp_max_message_num_per_candidate": 0
+        }
       },
-      "registrar": {
-        "parachains": [],
-        "phdata": null
-      },
-      "vesting": {
-        "vesting": []
-      },
-      "sudo": {
+      "palletSudo": {
         "key": "5GshoQVQ1xc9Abr4LcJdf5vr6c8ixXxNTSya8yeqV8xeQwsE"
       }
     }

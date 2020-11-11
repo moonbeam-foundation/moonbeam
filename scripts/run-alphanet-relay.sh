@@ -43,7 +43,7 @@ echo "relay ${RELAY_INDEX} - p2p-port: $((RELAY_PORT)), \
 http-port: $((RELAY_PORT + 1)) , ws-port: $((RELAY_PORT + 2))"
 
 # This part will insert the keys in the node
-bash -c "sleep 5; \
+bash -c "sleep 10; \
 insertKey() { \
   curl http://localhost:$((RELAY_PORT + 1)) -H 'Content-Type:application/json;charset=utf-8' -d \"
   {
@@ -73,13 +73,20 @@ else
   RELAY_BASE_PATH="$RELAY_BASE_PREFIX-relay-$RELAY_INDEX"
 fi
 
+if [ -z "$POLKADOT_VERSION" ]; then
+  POLKADOT_VERSION="sha-`egrep -o 'paritytech/polkadot.*#([^\"]*)' Cargo.lock | \
+    head -1 | sed 's/.*#//' |  cut -c1-8`"
+fi
+
+echo "Using Polkadot revision #${POLKADOT_VERSION}"
+
 # The -v build:/build allows to pass the spec files from the build folder to the docker container
 docker run \
   -v $(pwd)/build:/build \
   -p $RELAY_PORT:$RELAY_PORT \
   -p $((RELAY_PORT + 1)):$((RELAY_PORT + 1)) \
   -p $((RELAY_PORT + 2)):$((RELAY_PORT + 2)) \
-  -it purestake/moonbase-relay-testnet:latest \
+  -it purestake/moonbase-relay-testnet:$POLKADOT_VERSION \
   /usr/local/bin/polkadot \
     --chain /$POLKADOT_SPEC_RAW \
     --node-key ${NODE_KEYS[$RELAY_INDEX]} \
