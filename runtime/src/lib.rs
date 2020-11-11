@@ -68,7 +68,7 @@ pub use frame_support::{
 };
 use pallet_evm::{
 	Account as EVMAccount, IdentityAddressMapping, EnsureAddressSame,
-	EnsureAddressNever, FeeCalculator,
+	EnsureAddressNever, FeeCalculator, Runner
 };
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;

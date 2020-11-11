@@ -3595,7 +3595,7 @@ dependencies = [
  "log 0.4.11",
  "pallet-aura",
  "pallet-balances",
- "pallet-ethereum 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.2-hotfixes)",
+ "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-evm",
  "pallet-grandpa",
