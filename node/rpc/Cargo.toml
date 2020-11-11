@@ -1,16 +1,11 @@
 [package]
-name = 'moonbase-alphanet'
-description = 'Moonbase Parachain Collator'
+name = 'moonbeam-rpc'
+description = 'RPC extensions for the moonbeam standalone and parachain nodes'
 homepage = 'https://moonbeam.network'
 license = 'GPL-3.0-only'
 version = '0.1.0'
 authors = ["PureStake"]
-build = 'build.rs'
 edition = '2018'
-
-[[bin]]
-name = 'moonbase-alphanet'
-path = 'src/main.rs'
 
 [dependencies]
 derive_more = '0.15.0'
@@ -29,7 +24,6 @@ jsonrpc-pubsub = "14.2.0"
 
 # Parachain dependencies
 moonbeam-runtime = { path = "../../runtime" }
-moonbeam-rpc = { path = "../rpc" }
 
 # Substrate dependencies
 sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }

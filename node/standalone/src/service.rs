@@ -210,7 +210,7 @@ pub fn new_full(
 		let pool = transaction_pool.clone();
 		let network = network.clone();
 		Box::new(move |deny_unsafe| {
-			let deps = crate::rpc::FullDeps {
+			let deps = moonbeam_rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
 				deny_unsafe,
@@ -218,7 +218,7 @@ pub fn new_full(
 				network: network.clone(),
 				command_sink: Some(command_sink.clone())
 			};
-			crate::rpc::create_full(
+			moonbeam_rpc::create_full(
 				deps,
 				subscription_task_executor.clone()
 			)
@@ -383,14 +383,14 @@ pub fn new_light(config: Configuration) -> Result<TaskManager, ServiceError> {
 		config.prometheus_registry(),
 	)?;
 
-	let light_deps = crate::rpc::LightDeps {
+	let light_deps = moonbeam_rpc::LightDeps {
 		remote_blockchain: backend.remote_blockchain(),
 		fetcher: on_demand.clone(),
 		client: client.clone(),
 		pool: transaction_pool.clone(),
 	};
 
-	let rpc_extensions = crate::rpc::create_light(light_deps);
+	let rpc_extensions = moonbeam_rpc::create_light(light_deps);
 
 	let finality_proof_provider =
 		Arc::new(GrandpaFinalityProofProvider::new(backend.clone(), client.clone() as Arc<_>));
