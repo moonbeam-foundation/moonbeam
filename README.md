@@ -1,16 +1,19 @@
-
 # ![moonbeam](media/moonbeam-cover.jpg)
+
 ![Tests](https://github.com/PureStake/moonbeam/workflows/Tests/badge.svg)
 
-Run an Ethereum compatible ~~parachain~~ (and blockchain for now, until parachains are more stable) based on Substrate.
+Run an Ethereum compatible ~~parachain~~ (and blockchain for now, until parachains are more stable)
+based on Substrate.
 
-*See [moonbeam.network](https://moonbeam.network) for the moonbeam blockchain description.*  
-*See [www.substrate.io](https://www.substrate.io/) for substrate information.*
+_See [moonbeam.network](https://moonbeam.network) for the moonbeam blockchain description._  
+_See [www.substrate.io](https://www.substrate.io/) for substrate information._
 
 ## Install (linux)
 
 ### Get the code
+
 Get the tutorial specific tag of the PureStake/Moonbeam repo:
+
 ```bash
 git clone -b tutorial-v2 https://github.com/PureStake/moonbeam
 cd moonbeam
@@ -18,33 +21,43 @@ cd moonbeam
 
 ### Setting up enviroment
 
-Install Substrate pre-requisites (including Rust):  
+Install Substrate pre-requisites (including Rust):
+
 ```bash
 curl https://getsubstrate.io -sSf | bash -s -- --fast
 ```
 
-Run the initialization script, which checks the correct rust nightly version and adds the WASM to that specific version:
+Run the initialization script, which checks the correct rust nightly version and adds the WASM to
+that specific version:
+
 ```bash
 ./scripts/init.sh
 ```
 
 ## Build Standalone
+
 Build the corresponding binary file:
 
 ```bash
 cd node/standalone
 cargo build --release
-```  
+```
 
 ## Build Parachain
+
 Build the corresponding binary file:
+
 ```bash
 cargo build --release
-```  
+```
+
 The first build takes a long time, as it compiles all the necessary libraries.
 
 ### Troubleshooting
-If a _cargo not found_ error appears in the terminal, manually add Rust to your system path (or restart your system):
+
+If a _cargo not found_ error appears in the terminal, manually add Rust to your system path (or
+restart your system):
+
 ```bash
 source $HOME/.cargo/env
 ```
@@ -62,6 +75,7 @@ source $HOME/.cargo/env
 ### Standlone node
 
 You can run a standalone Moonbeam node with Docker directly:
+
 ```bash
 docker run purestake/moonbase:tutorial-v2.2 /moonbase/moonbase-standalone
 ```
@@ -73,32 +87,53 @@ because it takes 1284 milliseconds for a moonbeam to reach Earth.
 
 Moonbeam nodes support multiple public chains and testnets, with the following Chain Ids.
 
-| Network Description | Chain ID |
-| --- | --- |
-| Local parachain testnet | 1280 |
-| Local standalone testnet | 1281 |
-| Reserved for other testnets | 1282 - 1283 |
-| Moonbeam (Polkadot) | 1284 |
-| Moonriver (Kusama) | 1285|
-| Moonrock (Rococo) | 1286 |
-| Public parachain testnet (alphanet) | 1287 |
-| Reserved for other public networks | 1288 - 1289 |
+| Network Description                 | Chain ID    |
+| ----------------------------------- | ----------- |
+| Local parachain testnet             | 1280        |
+| Local standalone testnet            | 1281        |
+| Reserved for other testnets         | 1282 - 1283 |
+| Moonbeam (Polkadot)                 | 1284        |
+| Moonriver (Kusama)                  | 1285        |
+| Moonrock (Rococo)                   | 1286        |
+| Public parachain testnet (alphanet) | 1287        |
+| Reserved for other public networks  | 1288 - 1289 |
 
-## Pallets
-* *aura*: Time-based Authority Consensus (for simplicity until more development is done)
-* *balances*: Account & Balance management
-* *grandpa*: GRANDPA Authority consensus (This will be removed once it becomes a parachain)
-* *sudo*: Allow specific account to call any dispatchable ("Alice": `0x57d213d0927ccc7596044c6ba013dd05522aacba`, will get removed at some point)
-* *timestamp*: On-Chain time management
-* *transaction*-payment: Transaction payement (fee) management
-* *evm*: EVM Execution. (Temporary until we work on pallet-ethereum)
+## Runtime Architecture
 
-* ***mb-core***: Currently serves as a way to experiments with pallets and substrate (will get removed)
-* ***mb-session***: Logic for selecting validators based on a endorsement system
+The Moonbeam Runtime is built using FRAME and consists of several core pallets, as well as a few
+pallets that are only present conditionally. The core pallets are:
+
+- _Balances_: Tracks GLMR token balances
+- _Sudo_: Allows a privledged acocunt to make arbitrary runtime changes - will be removed before
+  launch
+- _Timestamp_: On-Chain notion of time
+- _EVM_: Encapsulates execution logic for an Ethereum Virtual Machine
+- _Ethereum_: Ethereum-style data encoding and access for the EVM.
+- _Ethereum Chain Id_: A place to store the chain id for each Moonbeam network
+- _Transaction Payment_: Transaction payment (fee) management
+- _Randomness Collective Flip_: A (mock) onchain randomness beacon. Will be replaced by parachain
+  randomness by mainnet.
+
+### Parachain
+
+In addition to the core pallets above, the parachain node also features
+
+- _ParachainUpgrade_: A helper to perform runtime upgrades on parachains
+- _MessageBroker_: A helper to receive incoming XCPM messages
+- _ParachainInfo_: A place to store parachain-relevant constants like parachain id
+- _TokenDealer_: A helper for accepting incoming cross-chain asset transfers
+
+### Standalone
+
+In addition to the core pallets above, the standalone node also features
+
+- _Aura_: Slot-based Authority Consensus
+- _Grandpa_: GRANDPA Authority consensus (This will be removed once it becomes a parachain)
 
 ## Tests
 
 Tests are run with the following command:
+
 ```bash
 cargo test --verbose
 ```
@@ -109,5 +144,6 @@ This github repository is also linked to Gitlab CI
 
 ### Code style
 
-Moonbeam is following the [Substrate code style](https://github.com/paritytech/substrate/blob/master/docs/STYLE_GUIDE.md)  
-We provide a [.editorconfig](.editorconfig) (*compatible with VSCode using RLS*)
+Moonbeam is following the
+[Substrate code style](https://github.com/paritytech/substrate/blob/master/docs/STYLE_GUIDE.md)  
+We provide a [.editorconfig](.editorconfig) (_compatible with VSCode using RLS_)
