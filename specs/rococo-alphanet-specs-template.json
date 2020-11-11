@@ -6,8 +6,6 @@
   "telemetryEndpoints": null,
   "protocolId": "dot",
   "properties": null,
-  "forkBlocks": null,
-  "badBlocks": null,
   "consensusEngine": null,
   "lightSyncState": null,
   "genesis": {
