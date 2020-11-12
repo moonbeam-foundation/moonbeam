@@ -1,4 +1,6 @@
 import Web3 from "web3";
+import { ApiPromise, WsProvider } from "@polkadot/api";
+
 import { JsonRpcResponse } from "web3-core-helpers";
 import { spawn, ChildProcess } from "child_process";
 
@@ -46,11 +48,19 @@ export async function createAndFinalizeBlock(web3: Web3) {
   }
 }
 
+export interface Context {
+  web3: Web3;
+
+  // WsProvider for the PolkadotJs API
+  wsProvider: WsProvider;
+  polkadotApi: ApiPromise;
+}
+
 export async function startMoonbeamNode(
   specFilename: string,
   provider?: string
-): Promise<{ web3: Web3; binary: ChildProcess }> {
-  var web3;
+): Promise<{ context: Context; binary: ChildProcess }> {
+  let web3;
   if (!provider || provider == "http") {
     web3 = new Web3(`http://localhost:${RPC_PORT}`);
   }
@@ -118,34 +128,71 @@ export async function startMoonbeamNode(
     binary.stdout.on("data", onData);
   });
 
+  const wsProvider = new WsProvider(`ws://localhost:${WS_PORT}`);
+  const polkadotApi = await ApiPromise.create({
+    provider: wsProvider,
+    types: {
+      AccountId: "EthereumAccountId",
+      Address: "AccountId",
+      Balance: "u128",
+      RefCount: "u8",
+      // mapping the lookup
+      LookupSource: "AccountId",
+      Account: {
+        nonce: "U256",
+        balance: "u128",
+      },
+      Transaction: {
+        nonce: "U256",
+        action: "String",
+        gas_price: "u64",
+        gas_limit: "u64",
+        value: "U256",
+        input: "Vec<u8>",
+        signature: "Signature",
+      },
+      Signature: {
+        v: "u64",
+        r: "H256",
+        s: "H256",
+      },
+    },
+  });
+
   if (provider == "ws") {
     web3 = new Web3(`ws://localhost:${WS_PORT}`);
   }
 
-  return { web3, binary };
+  return { context: { web3, polkadotApi, wsProvider }, binary };
 }
 
 export function describeWithMoonbeam(
   title: string,
   specFilename: string,
-  cb: (context: { web3: Web3 }) => void,
+  cb: (context: Context) => void,
   provider?: string
 ) {
   describe(title, () => {
-    let context: { web3: Web3 } = { web3: null };
+    let context: Context = { web3: null, wsProvider: null, polkadotApi: null };
     let binary: ChildProcess;
 
     // Making sure the Moonbeam node has started
     before("Starting Moonbeam Test Node", async function () {
       this.timeout(SPAWNING_TIME);
       const init = await startMoonbeamNode(specFilename, provider);
-      context.web3 = init.web3;
+      // Context is given prior to this assignement, so doing
+      // context = init.context will fail because it replace the variable;
+      context.web3 = init.context.web3;
+      context.wsProvider = init.context.wsProvider;
+      context.polkadotApi = init.context.polkadotApi;
       binary = init.binary;
     });
 
     after(async function () {
-      //console.log(`\x1b[31m Killing RPC\x1b[0m`);
+      // console.log(`\x1b[31m Killing RPC\x1b[0m`);
+      context.wsProvider.disconnect();
       binary.kill();
+      binary = null;
     });
 
     cb(context);

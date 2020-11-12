@@ -48,9 +48,9 @@ use sp_api::impl_runtime_apis;
 use sp_core::{OpaqueMetadata, H160, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Saturating, Verify},
+	traits::{BlakeTwo256, Block as BlockT, IdentityLookup, Saturating, IdentifyAccount, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, MultiSignature,
+	ApplyExtrinsicResult,
 };
 use sp_std::{marker::PhantomData, prelude::*};
 #[cfg(feature = "std")]
@@ -67,8 +67,8 @@ pub use frame_support::{
 	ConsensusEngineId, StorageValue,
 };
 use pallet_evm::{
-	Account as EVMAccount, EnsureAddressTruncated, FeeCalculator, HashedAddressMapping,
-	Runner,
+	Account as EVMAccount, IdentityAddressMapping, EnsureAddressSame,
+	EnsureAddressNever, FeeCalculator, Runner
 };
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
@@ -78,7 +78,7 @@ pub use sp_runtime::{Perbill, Permill};
 pub type BlockNumber = u32;
 
 /// Alias to 512-bit hash when used in the context of a transaction signature on the chain.
-pub type Signature = MultiSignature;
+pub type Signature = account::MultiSignature;
 
 /// Some way of identifying an account on the chain. We intentionally make it equivalent
 /// to the public key of our transaction signing scheme.
@@ -243,9 +243,9 @@ impl pallet_ethereum_chain_id::Trait for Runtime {}
 
 impl pallet_evm::Trait for Runtime {
 	type FeeCalculator = ();
-	type CallOrigin = EnsureAddressTruncated;
-	type WithdrawOrigin = EnsureAddressTruncated;
-	type AddressMapping = HashedAddressMapping<BlakeTwo256>;
+	type CallOrigin = EnsureAddressSame;
+	type WithdrawOrigin = EnsureAddressNever<AccountId>;
+	type AddressMapping = IdentityAddressMapping;
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
@@ -257,7 +257,9 @@ pub struct TransactionConverter;
 
 impl frontier_rpc_primitives::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
 	fn convert_transaction(&self, transaction: pallet_ethereum::Transaction) -> UncheckedExtrinsic {
-		UncheckedExtrinsic::new_unsigned(pallet_ethereum::Call::<Runtime>::transact(transaction).into())
+		UncheckedExtrinsic::new_unsigned(
+			pallet_ethereum::Call::<Runtime>::transact(transaction).into()
+		)
 	}
 }
 
@@ -358,7 +360,9 @@ impl_runtime_apis! {
 			Executive::finalize_block()
 		}
 
-		fn inherent_extrinsics(data: sp_inherents::InherentData) -> Vec<<Block as BlockT>::Extrinsic> {
+		fn inherent_extrinsics(
+			data: sp_inherents::InherentData
+		) -> Vec<<Block as BlockT>::Extrinsic> {
 			data.create_extrinsics()
 		}
 

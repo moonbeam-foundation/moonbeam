@@ -18,5 +18,6 @@ TEST_SPEC_TEMPLATE="tests/moonbeam-test-specs/templates/simple-specs-template.js
 TEST_SPEC_PLAIN="tests/moonbeam-test-specs/simple-specs.json"
 
 echo "Using $TEST_SPEC_TEMPLATE..."
-sed -e "/\"<runtime_code>\"/{r $STANDALONE_SPEC_TMP" -e 'd}'  $TEST_SPEC_TEMPLATE > $TEST_SPEC_PLAIN
+sed -e "/\"<runtime_code>\"/{r $STANDALONE_SPEC_TMP" -e 'd;}'  $TEST_SPEC_TEMPLATE\
+  > $TEST_SPEC_PLAIN
 echo $TEST_SPEC_PLAIN generated

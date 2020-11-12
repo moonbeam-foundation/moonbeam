@@ -11,6 +11,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "account"
+version = "0.1.1"
+dependencies = [
+ "blake2-rfc",
+ "hex",
+ "log 0.4.11",
+ "pallet-evm",
+ "parity-scale-codec",
+ "serde",
+ "sha3 0.8.2",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-runtime-interface",
+ "sp-std",
+]
+
+[[package]]
 name = "addr2line"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1198,6 +1216,7 @@ dependencies = [
  "frame-system",
  "parity-scale-codec",
  "polkadot-parachain",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -3808,6 +3827,7 @@ dependencies = [
 name = "moonbeam-runtime"
 version = "0.1.0"
 dependencies = [
+ "account",
  "cumulus-message-broker",
  "cumulus-parachain-upgrade",
  "cumulus-primitives",
