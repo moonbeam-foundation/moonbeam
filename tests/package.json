@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha -r ts-node/register 'tests/**/*.ts'"
+    "generate-specs": "cd .. && scripts/generate-test-specs.sh",
+    "test-only": "mocha -r ts-node/register 'tests/**/*.ts'",
+    "test": "npm run generate-specs && npm run test-only"
   },
   "author": "",
   "license": "ISC",
