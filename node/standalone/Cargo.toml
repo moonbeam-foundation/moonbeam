@@ -57,6 +57,7 @@ sc-basic-authorship = { git = "https://github.com/paritytech/substrate.git", bra
 sp-block-builder = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-branch" }
 
 moonbeam-runtime = {path = "../../runtime", default-features = false, features = ["std", "standalone"] }
+moonbeam-rpc = { path = "../rpc" }
 
 ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "v0.3-hotfixes" }
 frontier-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.3-hotfixes" }

@@ -32,9 +32,9 @@ macro_rules! runtime_standalone {
 		pub const VERSION: RuntimeVersion = RuntimeVersion {
 			spec_name: create_runtime_str!("moonbeam-standalone"),
 			impl_name: create_runtime_str!("moonbeam-standalone"),
-			authoring_version: 2,
-			spec_version: 2,
-			impl_version: 3,
+			authoring_version: 3,
+			spec_version: 3,
+			impl_version: 0,
 			apis: RUNTIME_API_VERSIONS,
 			transaction_version: 1,
 		};
