@@ -26,7 +26,7 @@ macro_rules! runtime_parachain {
 			impl_name: create_runtime_str!("moonbase-alphanet"),
 			authoring_version: 3,
 			spec_version: 3,
-			impl_version: 1,
+			impl_version: 0,
 			apis: RUNTIME_API_VERSIONS,
 			transaction_version: 1,
 		};
