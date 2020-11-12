@@ -31,6 +31,18 @@
       },
       "palletEvm": {
         "accounts": {
+          "0x5a7869f6aEfC93F45b30514023324B8D38e2a11c": {
+            "balance": "0x64000000000000000",
+            "nonce": "0x0",
+            "storage": {},
+            "code": []
+          },
+          "0x664c6BAc48F4109e1071de90d9FaEBe12820B411": {
+            "balance": "0x64000000000000000",
+            "nonce": "0x0",
+            "storage": {},
+            "code": []
+          },
           "0x7833fB364439759A6EDC3BCc243774b815B8e2A6": {
             "balance": "0x11529215046068469760001",
             "nonce": "0x0",
