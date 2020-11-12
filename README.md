@@ -77,7 +77,7 @@ source $HOME/.cargo/env
 You can run a standalone Moonbeam node with Docker directly:
 
 ```bash
-docker run purestake/moonbase:tutorial-v2.2 /moonbase/moonbase-standalone
+docker run --rm --name moonbeam_standalone --network host purestake/moonbase:tutorial-v2.2 /moonbase/moonbase-standalone --dev
 ```
 
 ## Chain IDs
