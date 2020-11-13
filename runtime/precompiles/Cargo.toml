@@ -1,0 +1,22 @@
+[package]
+name = "precompiles"
+version = "0.1.0"
+authors = ["Samer Afach <info@afach.de>"]
+edition = "2018"
+
+[dependencies]
+log = "0.4.8"
+rustc-hex = { version = "2.0.1", default-features = false }
+ripemd160 = { version = "0.9", default-features = false }
+
+sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+pallet-evm = { git = "https://github.com/purestake/substrate", default-features = false, branch = "v0.3-hotfixes" }
+
+[features]
+default = [ "std" ]
+std = [
+	"sp-std/std",
+	"sp-core/std",
+	"ripemd160/std",
+]

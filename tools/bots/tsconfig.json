@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "moduleResolution": "node",
+    "target": "esnext",
+    "esModuleInterop": true
+  },
+  "files": ["mission-control-bot.ts"]
+}
