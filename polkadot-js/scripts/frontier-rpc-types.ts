@@ -1,9 +1,36 @@
 // Copyright 2017-2020 @polkadot/apps-config authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { DefinitionRpc, DefinitionRpcParam } from "@polkadot/types/types";
+//import { DefinitionRpc, DefinitionRpcParam } from "@polkadot/types/types";
+export declare type DefinitionTypeType = string;
+export declare type DefinitionTypeEnum = {
+  _enum: DefinitionTypeType[];
+} | {
+  _enum: Record<string, DefinitionTypeType | null>;
+};
+export declare type DefinitionTypeSet = {
+  _set: Record<string, number>;
+};
+export declare type DefinitionTypeStruct = Record<string, DefinitionTypeType> | {
+  _alias?: Record<string, DefinitionTypeType>;
+} & Record<string, unknown>;
+export declare type DefinitionType = string | DefinitionTypeEnum | DefinitionTypeSet | DefinitionTypeStruct;
+interface DefinitionRpcParam {
+    isCached?: boolean;
+    isHistoric?: boolean;
+    isOptional?: boolean;
+    name: string;
+    type: DefinitionTypeType;
+}
+interface DefinitionRpc {
+    alias?: string[];
+    description: string;
+    endpoint?: string;
+    params: DefinitionRpcParam[];
+    type: DefinitionTypeType;
+}
 
-export default function (): Record<string, Record<string, DefinitionRpc>> {
+export default function rpcTypes (): Record<string, Record<string, DefinitionRpc>> {
   function generateDescription(
     description: string,
     returnType: string,
@@ -174,3 +201,4 @@ export default function (): Record<string, Record<string, DefinitionRpc>> {
     },
   };
 }
+console.log( JSON.stringify(rpcTypes()))
