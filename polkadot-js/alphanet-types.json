@@ -65,7 +65,7 @@
       "Succeed": "ExitSucceed",
       "Error": "ExitError",
       "Revert": "ExitRevert",
-      "verFatal": "ExitFatal"
+      "Fatal": "ExitFatal"
     }
   },
   "ExitSucceed": {
