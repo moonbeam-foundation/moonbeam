@@ -3,6 +3,8 @@ import { ApiPromise, WsProvider } from "@polkadot/api";
 
 import { JsonRpcResponse } from "web3-core-helpers";
 import { spawn, ChildProcess } from "child_process";
+import {SignedTransaction, TransactionConfig} from 'web3-core'
+import { basicTransfertx, GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
 
 export const PORT = 19931;
 export const RPC_PORT = 19932;
@@ -197,4 +199,39 @@ export function describeWithMoonbeam(
 
     cb(context);
   });
+}
+
+export async function fillBlockWithTx(context: { web3: Web3 },numberOfTx:number, expectFunction){
+  let nonce:number= await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT)
+
+  const numberArray=new Array(numberOfTx).fill(1)
+    
+  await Promise.all(numberArray.map(async(_,i)=>{
+    const tx:SignedTransaction = await context.web3.eth.accounts.signTransaction(
+      {...basicTransfertx,nonce:nonce+i},
+      GENESIS_ACCOUNT_PRIVATE_KEY
+    );
+    try{
+      return customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
+    }catch(e){
+      console.log('error sending customreq',e)
+    }
+  })) 
+
+  const tx:SignedTransaction = await context.web3.eth.accounts.signTransaction(
+    {...basicTransfertx,nonce:await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT)},
+    GENESIS_ACCOUNT_PRIVATE_KEY
+  );
+  console.log(await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT))
+  console.log(tx)
+  try{
+    console.log(await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]));
+  }catch(e){
+    console.log('error sending customreq',e)
+  }
+
+  await createAndFinalizeBlock(context.web3);
+  const block = await context.web3.eth.getBlock("latest");
+  console.log('block.gasUsed',block.gasUsed,'block.number',block.number,'block.transactions.length',block.transactions.length)
+  expectFunction(block.transactions.length).to.eq(numberOfTx)
 }

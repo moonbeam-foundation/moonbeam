@@ -1,9 +1,8 @@
 import { expect } from "chai";
 import { step } from "mocha-steps";
 
-import { createAndFinalizeBlock, customRequest, describeWithMoonbeam } from "./util";
+import { createAndFinalizeBlock, customRequest, describeWithMoonbeam, fillBlockWithTx } from "./util";
 
-import {SignedTransaction, TransactionConfig} from 'web3-core'
 
 describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
   let previousBlock;
@@ -124,89 +123,44 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     expect(block.parentHash).to.equal(previousBlock.hash);
   });
 
-  it.skip("should include a tx in the block (block 3)", async function () {
-    const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
-    const GENESIS_ACCOUNT_BALANCE = "340282366920938463463374607431768211455";
-    const GENESIS_ACCOUNT_PRIVATE_KEY =
-      "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
-    const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
-    const NUMBER_OF_TRANSACTIONS: number = 1
-    const basicTransfertx: TransactionConfig={
-      from: GENESIS_ACCOUNT,
-      to: TEST_ACCOUNT,
-      value: "0x200", // Must me higher than ExistentialDeposit (500)
-      gasPrice: "0x01",
-      gas: "0x100000",
-    }
-    
-    this.timeout(20000);
-
-    const thousand=new Array(NUMBER_OF_TRANSACTIONS).fill(1)
-
-    const txList:SignedTransaction[] = await Promise.all(thousand.map(async()=>{
-      return await context.web3.eth.accounts.signTransaction(
-        basicTransfertx,
-        GENESIS_ACCOUNT_PRIVATE_KEY
-      );
-    })) 
-    const txRawList:string[]=txList.map((tx:SignedTransaction)=>{
-      return tx.rawTransaction
-    })
-    await customRequest(context.web3, "eth_sendRawTransaction", txRawList);
-    await createAndFinalizeBlock(context.web3);
-    const block = await context.web3.eth.getBlock("latest");
-    //console.log(block)
-    expect(block.number).to.eq(3)
+  it("should be able to fill a block with a single tx", async function () {
+    this.timeout(6000);
+    await fillBlockWithTx(context,1,expect)
   });
 
-  it("should include previous block hash as parent (block 3)", async function () {
-    const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
-    //const GENESIS_ACCOUNT_BALANCE = "340282366920938463463374607431768211455";
-    const GENESIS_ACCOUNT_PRIVATE_KEY =
-      "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
-    const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
-    //const NUMBER_OF_TRANSACTIONS: number = 1
-    const basicTransfertx: TransactionConfig={
-      from: GENESIS_ACCOUNT,
-      to: TEST_ACCOUNT,
-      value: "0x200", // Must me higher than ExistentialDeposit (500)
-      gasPrice: "0x01",
-      gas: "0x100000",
-    }
-    // const basicTransfertx2: TransactionConfig={
-    //   from: GENESIS_ACCOUNT,
-    //   to: TEST_ACCOUNT,
-    //   value: "0x2000", // Must me higher than ExistentialDeposit (500)
-    //   gasPrice: "0x01",
-    //   gas: "0x100000",
-    // }
-    
-    this.timeout(20000);
+  it("should be able to fill a block with a 10 tx", async function () {
+    this.timeout(6000);
+    await fillBlockWithTx(context,10,expect)
+  });
 
-    async function fillBlockWithTx(numberOfTx:number, expectFunction, startingNonce:number){
-      console.log('filling block with ',numberOfTx,' transactions')
+  it("should be able to fill a block with a 100 tx", async function () {
+    this.timeout(6000);
+    await fillBlockWithTx(context,100,expect)
+  });
 
-      let nonce:number=startingNonce
+  it("should be able to fill a block with a 1000 tx", async function () {
+    this.timeout(0);
+    await fillBlockWithTx(context,1000,expect)
+  });
 
-      const numberArray=new Array(numberOfTx).fill(1)
-        
-      await Promise.all(numberArray.map(async(_,i)=>{
-        console.log('another one',nonce+i)
-        const tx:SignedTransaction = await context.web3.eth.accounts.signTransaction(
-          {...basicTransfertx,nonce:nonce+i},
-          GENESIS_ACCOUNT_PRIVATE_KEY
-        );
-        return customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
-      })) 
+  it("should be able to fill a block with a 1500 tx", async function () {
+    this.timeout(0);
+    await fillBlockWithTx(context,1500,expect)
+    await createAndFinalizeBlock(context.web3);
+    const block = await context.web3.eth.getBlock("latest");
+    console.log('block.gasUsed',block.gasUsed,'block.number',block.number,'block.transactions.length',block.transactions.length)
+  });
 
-      await createAndFinalizeBlock(context.web3);
-      const block = await context.web3.eth.getBlock("latest");
-      console.log(block)
-      expectFunction(block.transactions.length).to.eq(numberOfTx)
-    }
-    await fillBlockWithTx(5,expect,0)
-    await fillBlockWithTx(50,expect,0)
-    await fillBlockWithTx(500,expect,0)
-    await fillBlockWithTx(5000,expect,0)
+  it("should be able to fill a block with a 1600 tx", async function () {
+    this.timeout(0);
+    await fillBlockWithTx(context,1600,expect)
+    await createAndFinalizeBlock(context.web3);
+    const block = await context.web3.eth.getBlock("latest");
+    console.log('block.gasUsed',block.gasUsed,'block.number',block.number,'block.transactions.length',block.transactions.length)
+  });
+
+  it("should be able to fill a block with a 2000 tx", async function () {
+    this.timeout(0);
+    await fillBlockWithTx(context,2000,expect)
   });
 });
