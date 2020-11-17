@@ -4,6 +4,10 @@ What important points reviewers should know?
 
 Is there something left for follow-up PRs?
 
+What alternative implementations were considered?
+
+Are there relevant PRs or issues in other repositories (Substrate, Polkadot, Frontier, Cumulus)?
+
 [ ] Does it require a purge of the network?
 [ ] You bumped the runtime version if there are breaking changes in the **runtime** ?
 [ ] Does it require changes in documentation/tutorials ?
