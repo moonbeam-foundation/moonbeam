@@ -21,7 +21,7 @@
         "balances": []
       },
       "palletSudo": {
-        "key": "0x30a5e0cbe6729895f4188000b4ec61f8a659d2d6"
+        "key": "0x5a7869f6aEfC93F45b30514023324B8D38e2a11c"
       },
       "parachainInfo": {
         "parachainId": 1000
@@ -32,25 +32,31 @@
       "palletEvm": {
         "accounts": {
           "0x5a7869f6aEfC93F45b30514023324B8D38e2a11c": {
-            "balance": "0x64000000000000000",
+            "balance": "0x152D02C7E14AF6800000",
             "nonce": "0x0",
             "storage": {},
             "code": []
           },
           "0x664c6BAc48F4109e1071de90d9FaEBe12820B411": {
-            "balance": "0x64000000000000000",
-            "nonce": "0x0",
-            "storage": {},
-            "code": []
-          },
-          "0x7833fB364439759A6EDC3BCc243774b815B8e2A6": {
-            "balance": "0x11529215046068469760001",
+            "balance": "0x152D02C7E14AF6800000",
             "nonce": "0x0",
             "storage": {},
             "code": []
           },
           "0x30a5e0cbe6729895f4188000b4ec61f8a659d2d6": {
-            "balance": "0x3635c9adc5dea00000",
+            "balance": "0x43C33C1937564800000",
+            "nonce": "0x0",
+            "storage": {},
+            "code": []
+          },
+          "0xf02d804b19b0665690f6B312691B2eb8F80Cd3b8": {
+            "balance": "0x2B5E3AF16B1880000",
+            "nonce": "0x0",
+            "storage": {},
+            "code": []
+          },
+          "0x5FdCf221e987966b296714953fb6952AfC24aeFE": {
+            "balance": "0x2B5E3AF16B1880000",
             "nonce": "0x0",
             "storage": {},
             "code": []
