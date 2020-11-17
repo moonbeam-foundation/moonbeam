@@ -1,6 +1,10 @@
 {
   "eth": {
-    "accounts": { "description": "Returns accounts list.", "params": [], "type": "Vec<H160>" },
+    "accounts": {
+      "description": "Returns accounts list.",
+      "params": [],
+      "type": "Vec<H160>"
+    },
     "blockNumber": {
       "description": "Returns balance of the given account.",
       "params": [],
@@ -19,7 +23,11 @@
       "params": [],
       "type": "U64"
     },
-    "coinbase": { "description": "Returns block author.", "params": [], "type": "H160" },
+    "coinbase": {
+      "description": "Returns block author.",
+      "params": [],
+      "type": "H160"
+    },
     "estimateGas": {
       "description": "Estimate gas needed for execution of given contract.",
       "params": [
@@ -28,7 +36,11 @@
       ],
       "type": "U256"
     },
-    "gasPrice": { "description": "Returns current gas_price.", "params": [], "type": "U256" },
+    "gasPrice": {
+      "description": "Returns current gas_price.",
+      "params": [],
+      "type": "U256"
+    },
     "getBalance": {
       "description": "Returns balance of the given account.",
       "params": [
@@ -142,7 +154,9 @@
     },
     "getUncleCountByBlockNumber": {
       "description": "Returns the number of uncles in a block with given block number.",
-      "params": [{ "isOptional": true, "name": "number", "type": "BlockNumber" }],
+      "params": [
+        { "isOptional": true, "name": "number", "type": "BlockNumber" }
+      ],
       "type": "U256"
     },
     "getWork": {
@@ -222,6 +236,10 @@
       "params": [],
       "type": "String"
     },
-    "version": { "description": "Returns protocol version.", "params": [], "type": "String" }
+    "version": {
+      "description": "Returns protocol version.",
+      "params": [],
+      "type": "String"
+    }
   }
 }
