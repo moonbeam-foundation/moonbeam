@@ -1,5 +1,6 @@
 name: Build
 
+# This workflow compiles the binaries and run the tests
 # Only executes when the checks are passing
 on:
   workflow_run:

@@ -1,5 +1,6 @@
 name: Deploy Docker Images
 
+# This workflow produces the docker images and publishes them to dockerhub.
 # Only executes once the Build workflow is done
 on:
   workflow_run:
@@ -8,29 +9,6 @@ on:
       - completed
 
 jobs:
-  get-variables:
-    runs-on: ubuntu-latest
-    outputs:
-      tag-version: ${{ steps.variables.outputs.version }}
-      tag-exists: ${{ steps.variables.outputs.tag-exists }}
-      tag-count: ${{ steps.variables.outputs.count }}
-      sha-8: ${{ steps.variables.outputs.sha-8 }}
-    steps:
-      - uses: actions/checkout@v2
-      - id: variables
-        run: |
-          echo ::set-output name=version::$(git tag -l | tail -n1 | cut -c2- )
-          echo ::set-output name=count::$(git tag -l | wc -l )
-          echo ${{ github.ref }}
-          echo ::set-output name=tag-exists::$(git describe --exact-match HEAD 2>/dev/null && echo 1 || echo 0)
-          echo ::set-output name=sha-8::$(git rev-parse HEAD | cut -c1-8)
-      - id: show-variables
-        run: |
-          echo tag-version: ${{ steps.variables.outputs.version }}
-          echo tag-exists: ${{ steps.variables.outputs.tag-exists }}
-          echo tag-count: ${{ steps.variables.outputs.count }}
-          echo sha-8: ${{ steps.variables.outputs.sha-8 }}
-
   generate-parachain-specs:
     runs-on: ubuntu-latest
     steps:
@@ -51,7 +29,7 @@ jobs:
 
   docker-parachain:
     runs-on: ubuntu-latest
-    needs: ["get-variables", "generate-parachain-specs"]
+    needs: ["generate-parachain-specs"]
     if: github.event_name != 'pull_request_target'
     steps:
       - uses: actions/checkout@v2
