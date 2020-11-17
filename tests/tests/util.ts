@@ -3,7 +3,7 @@ import { ApiPromise, WsProvider } from "@polkadot/api";
 
 import { JsonRpcResponse } from "web3-core-helpers";
 import { spawn, ChildProcess } from "child_process";
-import {SignedTransaction, TransactionConfig} from 'web3-core'
+import { SignedTransaction, TransactionConfig } from "web3-core";
 import { basicTransfertx, GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
 
 export const PORT = 19931;
@@ -201,53 +201,62 @@ export function describeWithMoonbeam(
   });
 }
 
-export async function fillBlockWithTx(context: { web3: Web3 },numberOfTx:number, expectFunction){
-  let nonce:number= await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT)
+export async function fillBlockWithTx(context: { web3: Web3 }, numberOfTx: number, expectFunction, customTxConfig:TransactionConfig =basicTransfertx) {
+  let nonce: number = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
 
-  const numberArray=new Array(numberOfTx).fill(1)
+  const numberArray = new Array(numberOfTx).fill(1);
 
   interface ErrorReport {
-    [key:string]:{
-      [key:string]:number
+    [key: string]: {
+      [key: string]: number;
+    };
+  }
+
+  let errorReport: ErrorReport = {
+    signing: {},
+    customreq: {},
+  };
+  function reportError(e, context: string) {
+    let message: string = e.error ? e.error.message : e;
+    if (errorReport[context][message]) {
+      errorReport[context][message] += 1;
+    } else {
+      errorReport[context][message] = 1;
     }
   }
 
-  let errorReport:ErrorReport={
-    signing:{},
-    customreq:{}
-  }
-  function reportError(e,context:string){
-    let message:string=e.error?e.error.message:e
-    if (errorReport[context][message]){
-      errorReport[context][message]+=1
-    }else {
-      errorReport[context][message]=1
-    }
-  }
-    
-  await Promise.all(numberArray.map(async(_,i)=>{
-    let tx:SignedTransaction;
-    // sign tx
-    try{
-      tx = await context.web3.eth.accounts.signTransaction(
-        {...basicTransfertx,nonce:nonce+i},
-        GENESIS_ACCOUNT_PRIVATE_KEY
-      );
-    }catch(e){
-      reportError(e,'signing')
-    }
-    // send it
-    try{
-      return customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
-    }catch(e){
-      reportError(e,'customreq')
-    }
-  })) 
-  
-  console.log('Error Report : ',errorReport)
+  await Promise.all(
+    numberArray.map(async (_, i) => {
+      let tx: SignedTransaction;
+      // sign tx
+      try {
+        tx = await context.web3.eth.accounts.signTransaction(
+          { ...customTxConfig, nonce: nonce + i },
+          GENESIS_ACCOUNT_PRIVATE_KEY
+        );
+      } catch (e) {
+        reportError(e, "signing");
+      }
+      // send it
+      try {
+        return customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
+      } catch (e) {
+        reportError(e, "customreq");
+      }
+    })
+  );
+
+  console.log("Error Report : ", errorReport);
 
   await createAndFinalizeBlock(context.web3);
   const block = await context.web3.eth.getBlock("latest");
-  console.log('block.gasUsed',block.gasUsed,'block.number',block.number,'block.transactions.length',block.transactions.length)
-  expectFunction(block.transactions.length).to.eq(numberOfTx)
+  console.log(
+    "block.gasUsed",
+    block.gasUsed,
+    "block.number",
+    block.number,
+    "block.transactions.length",
+    block.transactions.length
+  );
+  expectFunction(block.transactions.length).to.eq(numberOfTx);
 }

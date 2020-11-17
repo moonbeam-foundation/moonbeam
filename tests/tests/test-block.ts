@@ -1,7 +1,8 @@
 import { expect } from "chai";
 import { step } from "mocha-steps";
+import { contractCreation} from "./constants";
 
-import { createAndFinalizeBlock, customRequest, describeWithMoonbeam, fillBlockWithTx } from "./util";
+import { createAndFinalizeBlock, describeWithMoonbeam, fillBlockWithTx } from "./util";
 
 
 describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
@@ -123,6 +124,8 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     expect(block.parentHash).to.equal(previousBlock.hash);
   });
 
+  // tx/block tests
+
   it("should be able to fill a block with a single tx", async function () {
     this.timeout(6000);
     await fillBlockWithTx(context,1,expect)
@@ -143,24 +146,31 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     await fillBlockWithTx(context,1000,expect)
   });
 
-  it("should be able to fill a block with a 1500 tx", async function () {
-    this.timeout(0);
-    await fillBlockWithTx(context,1500,expect)
-    await createAndFinalizeBlock(context.web3);
-    const block = await context.web3.eth.getBlock("latest");
-    console.log('block.gasUsed',block.gasUsed,'block.number',block.number,'block.transactions.length',block.transactions.length)
-  });
+  // the maximum number of blocks is not constant but is always around 1500
 
-  it("should be able to fill a block with a 1600 tx", async function () {
-    this.timeout(0);
-    await fillBlockWithTx(context,1600,expect)
-    await createAndFinalizeBlock(context.web3);
-    const block = await context.web3.eth.getBlock("latest");
-    console.log('block.gasUsed',block.gasUsed,'block.number',block.number,'block.transactions.length',block.transactions.length)
-  });
-
-  it("should be able to fill a block with a 2000 tx", async function () {
+  it.skip("should be able to fill a block with a 2000 tx", async function () {
     this.timeout(0);
     await fillBlockWithTx(context,2000,expect)
   });
+
+  it("should be able to fill a block with 1 contract creations tx", async function () {
+    this.timeout(6000);
+    await fillBlockWithTx(context,1,expect,contractCreation)
+  });
+  it("should be able to fill a block with 100 contract creations tx", async function () {
+    this.timeout(6000);
+    await fillBlockWithTx(context,100,expect,contractCreation)
+  });
+  it("should be able to fill a block with 500 contract creations tx", async function () {
+    this.timeout(6000);
+    await fillBlockWithTx(context,500,expect,contractCreation)
+  });
+
+  // pretty random, rarely makes it to a thousand
+
+  it.skip("should be able to fill a block with 1000 contract creations tx", async function () {
+    this.timeout(6000);
+    await fillBlockWithTx(context,1000,expect,contractCreation)
+  });
+
 });
