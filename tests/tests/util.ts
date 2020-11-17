@@ -205,30 +205,46 @@ export async function fillBlockWithTx(context: { web3: Web3 },numberOfTx:number,
   let nonce:number= await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT)
 
   const numberArray=new Array(numberOfTx).fill(1)
+
+  interface ErrorReport {
+    [key:string]:{
+      [key:string]:number
+    }
+  }
+
+  let errorReport:ErrorReport={
+    signing:{},
+    customreq:{}
+  }
+  function reportError(e,context:string){
+    let message:string=e.error?e.error.message:e
+    if (errorReport[context][message]){
+      errorReport[context][message]+=1
+    }else {
+      errorReport[context][message]=1
+    }
+  }
     
   await Promise.all(numberArray.map(async(_,i)=>{
-    const tx:SignedTransaction = await context.web3.eth.accounts.signTransaction(
-      {...basicTransfertx,nonce:nonce+i},
-      GENESIS_ACCOUNT_PRIVATE_KEY
-    );
+    let tx:SignedTransaction;
+    // sign tx
+    try{
+      tx = await context.web3.eth.accounts.signTransaction(
+        {...basicTransfertx,nonce:nonce+i},
+        GENESIS_ACCOUNT_PRIVATE_KEY
+      );
+    }catch(e){
+      reportError(e,'signing')
+    }
+    // send it
     try{
       return customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
     }catch(e){
-      console.log('error sending customreq',e)
+      reportError(e,'customreq')
     }
   })) 
-
-  const tx:SignedTransaction = await context.web3.eth.accounts.signTransaction(
-    {...basicTransfertx,nonce:await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT)},
-    GENESIS_ACCOUNT_PRIVATE_KEY
-  );
-  console.log(await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT))
-  console.log(tx)
-  try{
-    console.log(await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]));
-  }catch(e){
-    console.log('error sending customreq',e)
-  }
+  
+  console.log('Error Report : ',errorReport)
 
   await createAndFinalizeBlock(context.web3);
   const block = await context.web3.eth.getBlock("latest");
