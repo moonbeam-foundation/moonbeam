@@ -11,3 +11,6 @@ book
 
 # Spec/Wasm build directory
 /build/
+
+# Generated test specs
+/tests/moonbeam-test-specs/*.json
