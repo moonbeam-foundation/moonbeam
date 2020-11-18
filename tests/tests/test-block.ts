@@ -15,7 +15,7 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     expect(await context.web3.eth.getBlockNumber()).to.equal(0);
   });
 
-  it("should return genesis block", async function () {
+  step("should return genesis block", async function () {
     expect(await context.web3.eth.getBlockNumber()).to.equal(0);
     const block = await context.web3.eth.getBlock(0);
     expect(block).to.include({
@@ -51,14 +51,14 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
   });
 
   let firstBlockCreated = false;
-  it("should be at block 1 after block production", async function () {
+  step("should be at block 1 after block production", async function () {
     this.timeout(15000);
     await createAndFinalizeBlock(context.web3);
     expect(await context.web3.eth.getBlockNumber()).to.equal(1);
     firstBlockCreated = true;
   });
 
-  it("should have valid timestamp after block production", async function () {
+  step("should have valid timestamp after block production", async function () {
     // Originally ,this test required the timestamp be in the last finve minutes.
     // This requirement doesn't make sense when we forge timestamps in manual seal.
     const block = await context.web3.eth.getBlock("latest");
@@ -67,7 +67,7 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     expect(block.timestamp).to.be.below(next5Minutes);
   });
 
-  it("retrieve block information", async function () {
+  step("retrieve block information", async function () {
     expect(firstBlockCreated).to.be.true;
 
     const block = await context.web3.eth.getBlock("latest");
@@ -105,18 +105,18 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     expect(block.timestamp).to.be.a("number");
   });
 
-  it("get block by hash", async function () {
+  step("get block by hash", async function () {
     const latest_block = await context.web3.eth.getBlock("latest");
     const block = await context.web3.eth.getBlock(latest_block.hash);
     expect(block.hash).to.be.eq(latest_block.hash);
   });
 
-  it("get block by number", async function () {
+  step("get block by number", async function () {
     const block = await context.web3.eth.getBlock(1);
     expect(block).not.null;
   });
 
-  it("should include previous block hash as parent (block 2)", async function () {
+  step("should include previous block hash as parent (block 2)", async function () {
     this.timeout(15000);
     await createAndFinalizeBlock(context.web3);
     const block = await context.web3.eth.getBlock("latest");
@@ -169,7 +169,7 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
   // pretty random, rarely makes it to a thousand
 
   it.skip("should be able to fill a block with 1000 contract creations tx", async function () {
-    this.timeout(6000);
+    this.timeout(0);
     await fillBlockWithTx(context,1000,expect,contractCreation)
   });
 
