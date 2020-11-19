@@ -15,7 +15,7 @@ _See [www.substrate.io](https://www.substrate.io/) for substrate information._
 Get the tutorial specific tag of the PureStake/Moonbeam repo:
 
 ```bash
-git clone -b tutorial-v2 https://github.com/PureStake/moonbeam
+git clone -b tutorial-v3 https://github.com/PureStake/moonbeam
 cd moonbeam
 ```
 
@@ -73,11 +73,16 @@ source $HOME/.cargo/env
 ## Docker image
 
 ### Standlone node
-
-You can run a standalone Moonbeam node with Docker directly:
+An alternative to the steps higlighted before is to use docker to run a pre-build binary. Doing so, you prevent having to install Substrate and all the dependencies, and you can skip the building the node process as well. The only requirement is to have Docker installed, and then you can execute the following command to download the corresponding image:
 
 ```bash
-docker run --rm --name moonbeam_standalone --network host purestake/moonbase:tutorial-v2.2 /moonbase/moonbase-standalone --dev
+docker pull purestake/moonbase:tutorial-v3
+```
+
+Once the Docker image is downloaded, you can run it with the following line:
+
+```bash
+docker run --rm --name moonbeam_standalone --network host purestake/moonbase:tutorial-v3 /moonbase/moonbase-standalone --dev
 ```
 
 ## Chain IDs
@@ -89,13 +94,13 @@ Moonbeam nodes support multiple public chains and testnets, with the following C
 
 | Network Description                 | Chain ID    |
 | ----------------------------------- | ----------- |
-| Local parachain testnet             | 1280        |
-| Local standalone testnet            | 1281        |
-| Reserved for other testnets         | 1282 - 1283 |
+| Local Parachain TestNet             | 1280        |
+| Local Standalone TestNet            | 1281        |
+| Reserved for other TestNets         | 1282 - 1283 |
 | Moonbeam (Polkadot)                 | 1284        |
 | Moonriver (Kusama)                  | 1285        |
 | Moonrock (Rococo)                   | 1286        |
-| Public parachain testnet (alphanet) | 1287        |
+| Moonbase Alpha TestNet              | 1287        |
 | Reserved for other public networks  | 1288 - 1289 |
 
 ## Runtime Architecture
