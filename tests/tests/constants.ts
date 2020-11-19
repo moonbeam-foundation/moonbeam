@@ -1,4 +1,5 @@
 import { SignedTransaction, TransactionConfig } from "web3-core";
+import { AbiItem } from "web3-utils";
 
 // Test variables
 export const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
@@ -14,6 +15,16 @@ export const TEST_CONTRACT_BYTECODE =
   "f35b600060078202905091905056fea265627a7a72315820f06085b229f27f9ad48b2ff3dd9714350c1698a37853" +
   "a30136fa6c5a7762af7364736f6c63430005110032";
 
+export const TEST_CONTRACT_ABI = {
+  constant: true,
+  inputs: [{ internalType: "uint256", name: "a", type: "uint256" }],
+  name: "multiply",
+  outputs: [{ internalType: "uint256", name: "d", type: "uint256" }],
+  payable: false,
+  stateMutability: "pure",
+  type: "function",
+} as AbiItem;
+
 // Solidity: contract test {function infinite(uint a) public pure returns(uint d) {while (true) {}}}
 export const INFINITE_CONTRACT_BYTECODE =
   "608060405234801561001057600080fd5b5060b48061001f6000396000f3fe6080604052348015600f57600080fd" +
@@ -21,6 +32,26 @@ export const INFINITE_CONTRACT_BYTECODE =
   "00080fd5b8101908080359060200190929190505050606c565b6040518082815260200191505060405180910390f3" +
   "5b60005b600115607957606f565b91905056fea264697066735822122029865d4742dc7d1f055f91831d08b2578193" +
   "c309ece13e9359d19877ec83fd8864736f6c63430007040033";
+
+export const INFINITE_CONTRACT_ABI = {
+  inputs: [
+    {
+      internalType: "uint256",
+      name: "a",
+      type: "uint256",
+    },
+  ],
+  name: "infinite",
+  outputs: [
+    {
+      internalType: "uint256",
+      name: "d",
+      type: "uint256",
+    },
+  ],
+  stateMutability: "pure",
+  type: "function",
+} as AbiItem;
 
 export const FIRST_CONTRACT_ADDRESS = "0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a";
 
