@@ -7,7 +7,7 @@ It is written in typescript, using Mocha/Chai as Test framework.
 ## Test flow
 
 Tests are separated depending of their genesis requirements.
-Each group will start a standalone moonbeam node with the [test spec](moonbeam-test-specs/simple-specs.json) before executing the tests.
+Each group will start a standalone moonbeam node with the [test spec](moonbeam-test-specs/templates/simple-specs-template.json) before executing the tests.
 
 ## Installation
 
@@ -20,6 +20,9 @@ npm install
 ```
 npm run test
 ```
+
+This command will generate the simple-specs.json file from the template and execute the tests.  
+To only run the tests use `npm run test-only` instead.
 
 You can also add the Frontier Node logs to the output using the `MOONBEAM_LOG` env variable. Ex:
 
