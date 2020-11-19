@@ -19,4 +19,4 @@
 mod signer;
 
 pub use self::signer::EthereumSignature;
-pub use self::signer::MultiSignature;
+// pub use self::signer::MultiSignature;
