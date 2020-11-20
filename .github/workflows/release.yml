@@ -96,7 +96,7 @@ jobs:
         if: github.event_name != 'pull_request_target'
         uses: actions/checkout@v2
       - name: Check with Prettier
-        run: npx prettier --check --ignore-path .gitignore  '**/*.(yml|js|ts|json)' **.json **.js **.ts **.yml
+        run: npx prettier --check --ignore-path .gitignore  '**/*.(yml|js|ts|json)'
 
   ####### Building and Testing binaries #######
 
