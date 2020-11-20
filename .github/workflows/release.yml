@@ -56,7 +56,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Check with Prettier
-        run: npx prettier --check --ignore-path .gitignore  **.json **.js **.ts **.yml
+        run: npx prettier --check --ignore-path .gitignore  '**/*.(yml|js|ts|json)' **.json **.js **.ts **.yml
 
   ####### Building and Testing binaries #######
 
