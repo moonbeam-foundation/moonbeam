@@ -214,6 +214,7 @@ pub fn new_full(
 			let deps = crate::rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
+				graph_pool: pool.pool().clone(),
 				deny_unsafe,
 				is_authority,
 				network: network.clone(),
