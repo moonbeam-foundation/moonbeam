@@ -128,35 +128,14 @@ export async function startMoonbeamNode(
     binary.stdout.on("data", onData);
   });
 
+  const polkadotJsTypes = require("../../polkadot-js/standalone-types.json");
+  const polkadotJsRpc = require("../../polkadot-js/frontier-rpc-types");
+
   const wsProvider = new WsProvider(`ws://localhost:${WS_PORT}`);
   const polkadotApi = await ApiPromise.create({
     provider: wsProvider,
-    types: {
-      AccountId: "EthereumAccountId",
-      Address: "AccountId",
-      Balance: "u128",
-      RefCount: "u8",
-      // mapping the lookup
-      LookupSource: "AccountId",
-      Account: {
-        nonce: "U256",
-        balance: "u128",
-      },
-      Transaction: {
-        nonce: "U256",
-        action: "String",
-        gas_price: "u64",
-        gas_limit: "u64",
-        value: "U256",
-        input: "Vec<u8>",
-        signature: "Signature",
-      },
-      Signature: {
-        v: "u64",
-        r: "H256",
-        s: "H256",
-      },
-    },
+    types: polkadotJsTypes,
+    rpc: polkadotJsRpc,
   });
 
   if (provider == "ws") {
