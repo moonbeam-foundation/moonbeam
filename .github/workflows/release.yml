@@ -33,7 +33,7 @@ jobs:
           # repository: ${{github.event.pull_request.head.repo.full_name}}
       - name: Checkout
         # for non PR runs we just checkout the default, which is a sha on a branch probably
-        if: github.event_name != 'pull_request' && github.event_name != 'pull_request_target'
+        if: github.event_name != 'pull_request_target'
         uses: actions/checkout@v2
       - name: Find un-copyrighted files
         run: |
@@ -55,7 +55,7 @@ jobs:
           fetch-depth: 0
           ref: refs/pull/${{ github.event.pull_request.number }}/merge
       - name: Checkout
-        if: github.event_name != 'pull_request' && github.event_name != 'pull_request_target'
+        if: github.event_name != 'pull_request_target'
         uses: actions/checkout@v2
       - uses: gaurav-nelson/github-action-markdown-link-check@v1
         with:
@@ -72,7 +72,7 @@ jobs:
           fetch-depth: 0
           ref: refs/pull/${{ github.event.pull_request.number }}/merge
       - name: Checkout
-        if: github.event_name != 'pull_request' && github.event_name != 'pull_request_target'
+        if: github.event_name != 'pull_request_target'
         uses: actions/checkout@v2
       - name: Setup editorconfig checker
         run: |
@@ -93,7 +93,7 @@ jobs:
           fetch-depth: 0
           ref: refs/pull/${{ github.event.pull_request.number }}/merge
       - name: Checkout
-        if: github.event_name != 'pull_request' && github.event_name != 'pull_request_target'
+        if: github.event_name != 'pull_request_target'
         uses: actions/checkout@v2
       - name: Check with Prettier
         run: npx prettier --check --ignore-path .gitignore  '**/*.(yml|js|ts|json)' **.json **.js **.ts **.yml
@@ -112,7 +112,7 @@ jobs:
           fetch-depth: 0
           ref: refs/pull/${{ github.event.pull_request.number }}/merge
       - name: Checkout
-        if: github.event_name != 'pull_request' && github.event_name != 'pull_request_target'
+        if: github.event_name != 'pull_request_target'
         uses: actions/checkout@v2
       - name: Cache Rust dependencies
         uses: actions/cache@v2
@@ -147,7 +147,7 @@ jobs:
       # 2. Using grep to reduce the list to only Cargo.lock files
       # 3. Counting the number of lines of output
       - name: Check Cargo Toml
-      - run: |
+        run: |
           FILECOUNT=$(git diff-index --name-only HEAD | grep Cargo.lock | wc -l)
           if [[ $FILECOUNT -eq 0 ]]; then
             echo "All lock files are valid"
