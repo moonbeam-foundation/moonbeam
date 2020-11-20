@@ -46,18 +46,18 @@ jobs:
       RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
     steps:
       - uses: actions/checkout@v2
-      - name: Cache Rust dependencies
-        uses: actions/cache@v2
-        id: cache
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-            node/standalone/target
-          key: ${{ runner.OS }}-build-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.OS }}-build
+      # - name: Cache Rust dependencies
+      #   uses: actions/cache@v2
+      #   id: cache
+      #   with:
+      #     path: |
+      #       ~/.cargo/registry
+      #       ~/.cargo/git
+      #       target
+      #       node/standalone/target
+      #     key: ${{ runner.OS }}-build-${{ hashFiles('**/Cargo.lock') }}
+      #     restore-keys: |
+      #       ${{ runner.OS }}-build
       - uses: actions-rs/toolchain@v1
         with:
           target: wasm32-unknown-unknown
