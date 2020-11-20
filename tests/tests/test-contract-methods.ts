@@ -82,12 +82,14 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
     console.log('tx',tx)
     console.log('customreq',await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]));
     await createAndFinalizeBlock(context.web3);
-    const contract = new context.web3.eth.Contract([INFINITE_CONTRACT_ABI], FIRST_CONTRACT_ADDRESS, {
-      from: GENESIS_ACCOUNT,
-      gasPrice: "0x01",
-    });
+    const contract = new context.web3.eth.Contract([INFINITE_CONTRACT_ABI])
+    //   , {
+    //   from: GENESIS_ACCOUNT,
+    //   gasPrice: "0x01",
+    // });
+    console.log('contract',contract)
 
-    expect(await contract.methods.multiply(3).call()).to.equal("21");
+    expect(await contract.methods.infinit().call()).to.equal("21");
   });
 
   // Requires error handling

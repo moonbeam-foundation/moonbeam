@@ -127,17 +127,17 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
   // tx/block tests
 
   it("should be able to fill a block with a single tx", async function () {
-    this.timeout(6000);
+    this.timeout(11000);
     await fillBlockWithTx(context,1,expect)
   });
 
   it("should be able to fill a block with a 10 tx", async function () {
-    this.timeout(6000);
+    this.timeout(11000);
     await fillBlockWithTx(context,10,expect)
   });
 
   it("should be able to fill a block with a 100 tx", async function () {
-    this.timeout(6000);
+    this.timeout(11000);
     await fillBlockWithTx(context,100,expect)
   });
 
@@ -148,21 +148,21 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
 
   // the maximum number of blocks is not constant but is always around 1500
 
-  it.skip("should be able to fill a block with a 2000 tx", async function () {
+  it("should be able to fill a block with a 2000 tx", async function () {
     this.timeout(0);
     await fillBlockWithTx(context,2000,expect)
   });
 
   it("should be able to fill a block with 1 contract creations tx", async function () {
-    this.timeout(6000);
+    this.timeout(11000);
     await fillBlockWithTx(context,1,expect,contractCreation)
   });
   it("should be able to fill a block with 100 contract creations tx", async function () {
-    this.timeout(6000);
+    this.timeout(11000);
     await fillBlockWithTx(context,100,expect,contractCreation)
   });
   it("should be able to fill a block with 500 contract creations tx", async function () {
-    this.timeout(6000);
+    this.timeout(11000);
     await fillBlockWithTx(context,500,expect,contractCreation)
   });
 

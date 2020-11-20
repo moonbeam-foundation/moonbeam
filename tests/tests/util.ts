@@ -201,6 +201,9 @@ export function describeWithMoonbeam(
   });
 }
 
+//TODO: add description and specify test
+// expectations should be separated from fun and ddisplayed in test file
+
 export async function fillBlockWithTx(context: { web3: Web3 }, numberOfTx: number, expectFunction, customTxConfig:TransactionConfig =basicTransfertx) {
   let nonce: number = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
 
@@ -216,6 +219,7 @@ export async function fillBlockWithTx(context: { web3: Web3 }, numberOfTx: numbe
     signing: {},
     customreq: {},
   };
+
   function reportError(e, context: string) {
     let message: string = e.error ? e.error.message : e;
     if (errorReport[context][message]) {
@@ -225,30 +229,77 @@ export async function fillBlockWithTx(context: { web3: Web3 }, numberOfTx: numbe
     }
   }
 
-  await Promise.all(
+  const startSigningTime:number=Date.now()
+
+  // First sign all transactions
+  let txList:SignedTransaction[] =(await Promise.all(
     numberArray.map(async (_, i) => {
-      let tx: SignedTransaction;
       // sign tx
       try {
-        tx = await context.web3.eth.accounts.signTransaction(
+        let tx=await context.web3.eth.accounts.signTransaction(
           { ...customTxConfig, nonce: nonce + i },
           GENESIS_ACCOUNT_PRIVATE_KEY
         );
+        return tx
       } catch (e) {
         reportError(e, "signing");
-      }
-      // send it
-      try {
-        return customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
-      } catch (e) {
-        reportError(e, "customreq");
+        return undefined
       }
     })
-  );
+  )).filter((e)=>{
+    //if (e==undefined){console.log('undefined1')}
+    return e!==undefined
+  });
+  // txList.forEach((tx)=>{
+  //   if (tx.error)
+  // })
+  const endSigningTime:number=Date.now()
+
+  console.log('Time it took to sign '+txList.length+' tx is '+(endSigningTime-startSigningTime)/1000+" seconds")
+  
+  const startSendingTime:number=Date.now()
+
+  //Then, send them to the pool
+  let resL=(await Promise.all(
+    txList.map(async (tx, i) => {
+      // send it
+      try {
+        let res=await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
+        return res
+      } catch (e) {
+        reportError(e, "customreq");
+        return undefined
+      }
+    })
+  )).filter((e)=>{
+    //if (e==undefined){console.log('undefined2')}
+    return e!==undefined
+  });
+  resL.forEach((res=>{
+    if (res.error){
+      console.log('res',res)
+      //@ts-ignore
+      reportError(res.error.message, "customreq");
+    }
+  }))
+
+  const endSendingTime:number=Date.now()
+
+  console.log('Time it took to send '+resL.length+' tx is '+(endSendingTime-startSendingTime)/1000+" seconds")
+
+  // TODO : use tx receipt to fetch tx status agao
+
+  // create another blockc and see remaining tx
+
+  // separate tx signing and tx sending
+
+  // TODO : verify resp
 
   console.log("Error Report : ", errorReport);
 
   await createAndFinalizeBlock(context.web3);
+
+
   const block = await context.web3.eth.getBlock("latest");
   console.log(
     "block.gasUsed",
@@ -258,5 +309,19 @@ export async function fillBlockWithTx(context: { web3: Web3 }, numberOfTx: numbe
     "block.transactions.length",
     block.transactions.length
   );
+
+  await createAndFinalizeBlock(context.web3);
+
+
+  const block2 = await context.web3.eth.getBlock("latest");
+  console.log(
+    "following, block2.gasUsed",
+    block2.gasUsed,
+    "block2.number",
+    block2.number,
+    "block2.transactions.length",
+    block2.transactions.length
+  );
+
   expectFunction(block.transactions.length).to.eq(numberOfTx);
 }
