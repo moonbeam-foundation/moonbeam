@@ -21,7 +21,6 @@ async function wrappedSignTx(
     let tx = await web3.eth.accounts.signTransaction(txConfig, privateKey);
     return tx;
   } catch (e) {
-    //reportError(e, "signing");
     return new Error(e.toString());
   }
 }
@@ -65,13 +64,20 @@ async function serialSendTx(
   return resArray;
 }
 
+interface FillBlockReport {
+    txPassed:number,
+    numberOfBlocks:number,
+    signingTime:number,
+    sendingTime:number
+}
+
 //TODO: add description and specify test
 // expectations should be separated from fun and ddisplayed in test file
 export async function fillBlockWithTx(
   context: { web3: Web3 },
   numberOfTx: number,
   customTxConfig: TransactionConfig = basicTransfertx
-) {
+):Promise<FillBlockReport> {
   let nonce: number = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
 
   const numberArray = new Array(numberOfTx).fill(1);
@@ -107,13 +113,13 @@ export async function fillBlockWithTx(
     customTxConfig
   );
 
-  const endSigningTime: number = Date.now();
+  const signingTime:number=Date.now()-startSigningTime
 
   console.log(
     "Time it took to sign " +
       txList.length +
       " tx is " +
-      (endSigningTime - startSigningTime) / 1000 +
+      signingTime / 1000 +
       " seconds"
   );
 
@@ -132,13 +138,13 @@ export async function fillBlockWithTx(
     }
   });
 
-  const endSendingTime: number = Date.now();
+  const sendingTime:number=Date.now()-startSendingTime
 
   console.log(
     "Time it took to send " +
       respList.length +
       " tx is " +
-      (endSendingTime - startSendingTime) / 1000 +
+      sendingTime / 1000 +
       " seconds"
   );
 
@@ -146,6 +152,7 @@ export async function fillBlockWithTx(
 
   await createAndFinalizeBlock(context.web3);
 
+  let numberOfBlocks=0;
   let block = await context.web3.eth.getBlock("latest");
   let txPassed: number = block.transactions.length;
   console.log(
@@ -172,6 +179,7 @@ export async function fillBlockWithTx(
       block.transactions.length
     );
     txPassed += block.transactions.length;
+    numberOfTx+=1
     i += 1;
   }
 
@@ -188,7 +196,7 @@ export async function fillBlockWithTx(
   //   })
   // );
   console.log("tx   passed", txPassed);
-  return txPassed;
+  return {txPassed,sendingTime,signingTime,numberOfBlocks};
 }
 
 //todo: test web3 limits and serial vs parallel
