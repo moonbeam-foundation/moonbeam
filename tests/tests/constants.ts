@@ -1,6 +1,18 @@
 import { SignedTransaction, TransactionConfig } from "web3-core";
 import { AbiItem } from "web3-utils";
 
+export const PORT = 19931;
+export const RPC_PORT = 19932;
+export const WS_PORT = 19933;
+export const SPECS_PATH = `./moonbeam-test-specs`;
+
+export const DISPLAY_LOG = process.env.MOONBEAM_LOG || false;
+export const MOONBEAM_LOG = process.env.MOONBEAM_LOG || "info";
+
+export const BINARY_PATH =
+  process.env.BINARY_PATH || `../node/standalone/target/release/moonbase-standalone`;
+export const SPAWNING_TIME = 30000;
+
 // Test variables
 export const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
 export const GENESIS_ACCOUNT_PRIVATE_KEY =

@@ -140,49 +140,59 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     let txPassed:number=await fillBlockWithTx(context,10)
     expect(txPassed).to.eq(10);
   });
-  // it("should be able to fill a block with a 100 tx", async function () {
-  //   this.timeout(0);
-  //   let txPassed:number=await fillBlockWithTx(context,100)
-  //   expect(txPassed).to.eq(100);
-  // });
+  it("should be able to fill a block with a 100 tx", async function () {
+    this.timeout(0);
+    let txPassed:number=await fillBlockWithTx(context,100)
+    expect(txPassed).to.eq(100);
+  });
 
-  // it("should be able to fill a block with a 1000 tx", async function () {
-  //   this.timeout(0);
-  //   let txPassed:number=await fillBlockWithTx(context,1000)
-  //   expect(txPassed).to.eq(1000);
-  // });
+  it("should be able to fill a block with a 1000 tx", async function () {
+    this.timeout(0);
+    let txPassed:number=await fillBlockWithTx(context,1000)
+    expect(txPassed).to.eq(1000);
+  });
 
-  // // the maximum number of blocks is not constant but is always around 1500
+  // the maximum number of blocks is not constant but is always around 1500 (for parallel testing)
 
-  // it("should be able to fill a block with a 2000 tx", async function () {
-  //   this.timeout(0);
-  //   let txPassed:number=await fillBlockWithTx(context,2000)
-  //   expect(txPassed).to.eq(2000);
-  // });
+  it("should be able to fill a block with a 2000 tx", async function () {
+    this.timeout(0);
+    let txPassed:number=await fillBlockWithTx(context,2000)
+    expect(txPassed).to.eq(2000);
+  });
 
-  // it("should be able to fill a block with 1 contract creations tx", async function () {
-  //   this.timeout(0);
-  //   let txPassed:number=await fillBlockWithTx(context,1,contractCreation)
-  //   expect(txPassed).to.eq(1);
-  // });
+  it("should be able to fill a block with a 3000 tx", async function () {
+    this.timeout(0);
+    let txPassed:number=await fillBlockWithTx(context,3000)
+    expect(txPassed).to.eq(3000);
+  });
 
-  // it("should be able to fill a block with 100 contract creations tx", async function () {
-  //   this.timeout(0);
-  //   let txPassed:number=await fillBlockWithTx(context,100,contractCreation)
-  //   expect(txPassed).to.eq(100);
-  // });
+  it("should be able to fill a block with 1 contract creations tx", async function () {
+    this.timeout(0);
+    let txPassed:number=await fillBlockWithTx(context,1,contractCreation)
+    expect(txPassed).to.eq(1);
+  });
 
-  // it("should be able to fill a block with 500 contract creations tx", async function () {
-  //   this.timeout(0);
-  //   let txPassed:number=await fillBlockWithTx(context,500,contractCreation)
-  //   expect(txPassed).to.eq(500);
-  // });
+  it("should be able to fill a block with 100 contract creations tx", async function () {
+    this.timeout(0);
+    let txPassed:number=await fillBlockWithTx(context,100,contractCreation)
+    expect(txPassed).to.eq(100);
+  });
 
-  // // pretty random, rarely makes it to a thousand
+  it("should be able to fill a block with 500 contract creations tx", async function () {
+    this.timeout(0);
+    let txPassed:number=await fillBlockWithTx(context,500,contractCreation)
+    expect(txPassed).to.eq(500);
+  });
 
-  // it("should be able to fill a block with 1000 contract creations tx", async function () {
-  //   this.timeout(0);
-  //   let txPassed:number=await fillBlockWithTx(context,1000,contractCreation)
-  //   expect(txPassed).to.eq(1000);
-  // });
+  it("should be able to fill a block with 1000 contract creations tx", async function () {
+    this.timeout(0);
+    let txPassed:number=await fillBlockWithTx(context,1000,contractCreation)
+    expect(txPassed).to.eq(1000);
+  });
+
+  it("should be able to fill a block with 2000 contract creations tx", async function () {
+    this.timeout(0);
+    let txPassed:number=await fillBlockWithTx(context,2000,contractCreation)
+    expect(txPassed).to.eq(2000);
+  });
 });
