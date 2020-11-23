@@ -150,7 +150,7 @@ export async function fillBlockWithTx(
 
   console.log("Error Report : ", errorReport);
 
-  await createAndFinalizeBlock(context.web3);
+  console.log('created block in ',(await createAndFinalizeBlock(context.web3))/1000," seconds");
 
   let numberOfBlocks=0;
   let block = await context.web3.eth.getBlock("latest");

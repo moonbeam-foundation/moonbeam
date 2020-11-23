@@ -44,7 +44,8 @@ export async function wrappedCustomRequest(
 
 // Create a block and finalize it.
 // It will include all previously executed transactions since the last finalized block.
-export async function createAndFinalizeBlock(web3: Web3) {
+export async function createAndFinalizeBlock(web3: Web3):Promise<number> {
+    const startTime:number=Date.now()
   const response: JsonRpcResponse = await customRequest(web3, "engine_createBlock", [
     true,
     true,
@@ -54,4 +55,5 @@ export async function createAndFinalizeBlock(web3: Web3) {
     console.log("error during block creation");
     throw new Error(`Unexpected result: ${JSON.stringify(response)}`);
   }
+  return Date.now()-startTime
 }

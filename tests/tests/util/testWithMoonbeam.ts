@@ -93,8 +93,8 @@ export async function startMoonbeamNode(
     binary.stdout.on("data", onData);
   });
 
-  const polkadotJsTypes = require("../../polkadot-js/standalone-types.json");
-  const polkadotJsRpc = require("../../polkadot-js/frontier-rpc-types");
+  const polkadotJsTypes = require("../../../polkadot-js/standalone-types.json");
+  const polkadotJsRpc = require("../../../polkadot-js/frontier-rpc-types");
 
   const wsProvider = new WsProvider(`ws://localhost:${WS_PORT}`);
   const polkadotApi = await ApiPromise.create({
