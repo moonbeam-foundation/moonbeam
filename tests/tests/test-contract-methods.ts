@@ -1,7 +1,11 @@
 import { expect } from "chai";
 
+import {
+  expectRevert, // Assertions for transactions that should fail
+} from '@openzeppelin/test-helpers'
+
 import { createAndFinalizeBlock, customRequest, describeWithMoonbeam } from "./util";
-import { FIRST_CONTRACT_ADDRESS, GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY, INFINITE_CONTRACT_ABI, INFINITE_CONTRACT_BYTECODE, TEST_CONTRACT_ABI, TEST_CONTRACT_BYTECODE } from "./constants";
+import { FIRST_CONTRACT_ADDRESS, GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY, INFINITE_CONTRACT_ABI, INFINITE_CONTRACT_ABI_VAR, INFINITE_CONTRACT_BYTECODE, INFINITE_CONTRACT_BYTECODE_VAR, TEST_CONTRACT_ABI, TEST_CONTRACT_BYTECODE } from "./constants";
 
 describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (context) => {
   // const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
@@ -69,6 +73,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
 
 
   it("inifinite loop", async function () {
+    this.timeout(0);
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
@@ -79,17 +84,43 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
       },
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
-    console.log('tx',tx)
-    console.log('customreq',await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]));
-    await createAndFinalizeBlock(context.web3);
-    const contract = new context.web3.eth.Contract([INFINITE_CONTRACT_ABI])
-    //   , {
-    //   from: GENESIS_ACCOUNT,
-    //   gasPrice: "0x01",
-    // });
-    console.log('contract',contract)
+    //console.log('tx',tx)
+    let res=await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction])
+    //console.log('customreq',res);
+    await createAndFinalizeBlock(context.web3); 
+    let res2=await context.web3.eth.getTransactionReceipt((tx).transactionHash)
+    //console.log('res2',res2)
+    const contract = new context.web3.eth.Contract([INFINITE_CONTRACT_ABI],res2.contractAddress)
+    //should revert with out of gas error
+    //console.log(await contract.methods.infinite().call({from:GENESIS_ACCOUNT}))
 
-    expect(await contract.methods.infinit().call()).to.equal("21");
+    //expectRevert(contract.methods.infinite().call(),'evm error: OutOfGas');
+    expect(await contract.methods.infinite().call()).to.throw('evm error: OutOfGas');
+  });
+
+  it.skip("inifinite loop with incr", async function () {
+    this.timeout(10000);
+    const tx = await context.web3.eth.accounts.signTransaction(
+      {
+        from: GENESIS_ACCOUNT,
+        data: INFINITE_CONTRACT_BYTECODE_VAR,
+        value: "0x00",
+        gasPrice: "0x01",
+        gas: "0x100000",
+      },
+      GENESIS_ACCOUNT_PRIVATE_KEY
+    );
+    //console.log('tx',tx)
+    let res=await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction])
+    //console.log('customreq',res);
+    await createAndFinalizeBlock(context.web3); 
+    let res2=await context.web3.eth.getTransactionReceipt((tx).transactionHash)
+    //console.log('res2',res2)
+    const contract = new context.web3.eth.Contract(INFINITE_CONTRACT_ABI_VAR,res2.contractAddress)
+    //should revert with out of gas error
+    //console.log(await contract.methods.infinite().call({from:GENESIS_ACCOUNT}))
+
+    expectRevert(contract.methods.infinite().call(),'evm error: OutOfGas');
   });
 
   // Requires error handling
