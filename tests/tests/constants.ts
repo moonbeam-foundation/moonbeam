@@ -44,7 +44,7 @@ export const FIRST_CONTRACT_ADDRESS = "0xc2bf5f29a4384b1ab0c063e1c666f02121b6084
 export const basicTransfertx: TransactionConfig = {
   from: GENESIS_ACCOUNT,
   to: TEST_ACCOUNT,
-  value: "0x200", // Must me higher than ExistentialDeposit (500)
+  value: "0x200", // =512 Must me higher than ExistentialDeposit (500)
   gasPrice: "0x01",
   gas: "0x100000",
 };

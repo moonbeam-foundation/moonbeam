@@ -18,6 +18,13 @@ export const BINARY_PATH =
   process.env.BINARY_PATH || `../node/standalone/target/release/moonbase-standalone`;
 export const SPAWNING_TIME = 30000;
 
+function isSignedTransaction(tx: Error | SignedTransaction): tx is SignedTransaction {
+  return (tx as SignedTransaction).rawTransaction !== undefined;
+}
+function isJsonRpcResponse(res: Error | JsonRpcResponse): res is JsonRpcResponse {
+  return (res as JsonRpcResponse).jsonrpc !== undefined;
+}
+
 export async function customRequest(web3: Web3, method: string, params: any[]) {
   return new Promise<JsonRpcResponse>((resolve, reject) => {
     (web3.currentProvider as any).send(
@@ -30,9 +37,9 @@ export async function customRequest(web3: Web3, method: string, params: any[]) {
       (error: Error | null, result?: JsonRpcResponse) => {
         if (error) {
           reject(
-            `Failed to send custom request (${method} (${params.join(",")})): ${
-              error.message || error.toString()
-            }`
+            //`Failed to send custom request (${method} (${params.join(",")})): ${
+            error.message || error.toString()
+            //}`
           );
         }
         resolve(result);
@@ -40,12 +47,34 @@ export async function customRequest(web3: Web3, method: string, params: any[]) {
     );
   });
 }
+export async function wrappedCustomRequest(
+  web3: Web3,
+  method: string,
+  params: any[]
+): Promise<JsonRpcResponse> {
+  try {
+    let resp = await customRequest(web3, method, params);
+    return resp;
+  } catch (e) {
+    console.log("thrown error in wrapped custom req");
+    return {
+      jsonrpc: "req error",
+      id: 0,
+      error: typeof e === "string" ? e.toString() : JSON.stringify(e),
+    };
+  }
+}
 
 // Create a block and finalize it.
 // It will include all previously executed transactions since the last finalized block.
 export async function createAndFinalizeBlock(web3: Web3) {
-  const response = await customRequest(web3, "engine_createBlock", [true, true, null]);
-  if (!response.result) {
+  const response: JsonRpcResponse = await customRequest(web3, "engine_createBlock", [
+    true,
+    true,
+    null,
+  ]);
+  if (response.error) {
+    console.log("error during block creation");
     throw new Error(`Unexpected result: ${JSON.stringify(response)}`);
   }
 }
@@ -204,7 +233,11 @@ export function describeWithMoonbeam(
 //TODO: add description and specify test
 // expectations should be separated from fun and ddisplayed in test file
 
-export async function fillBlockWithTx(context: { web3: Web3 }, numberOfTx: number, expectFunction, customTxConfig:TransactionConfig =basicTransfertx) {
+export async function fillBlockWithTx(
+  context: { web3: Web3 },
+  numberOfTx: number,
+  customTxConfig: TransactionConfig = basicTransfertx
+) {
   let nonce: number = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
 
   const numberArray = new Array(numberOfTx).fill(1);
@@ -220,72 +253,151 @@ export async function fillBlockWithTx(context: { web3: Web3 }, numberOfTx: numbe
     customreq: {},
   };
 
-  function reportError(e, context: string) {
-    let message: string = e.error ? e.error.message : e;
-    if (errorReport[context][message]) {
-      errorReport[context][message] += 1;
+  function reportError(e, domain: string) {
+    let message: string = e.error ? e.error.message : e.message ? e.message : JSON.stringify(e);
+    if (errorReport[domain][message]) {
+      errorReport[domain][message] += 1;
     } else {
-      errorReport[context][message] = 1;
+      errorReport[domain][message] = 1;
     }
   }
 
-  const startSigningTime:number=Date.now()
+  const startSigningTime: number = Date.now();
+
+  async function wrappedSignTx(
+    web3:Web3,
+    txConfig: TransactionConfig,
+    privateKey: string
+  ): Promise<SignedTransaction | Error> {
+    try {
+      let tx = await web3.eth.accounts.signTransaction(txConfig, privateKey);
+      return tx;
+    } catch (e) {
+      //reportError(e, "signing");
+      return new Error(e.toString());
+    }
+  }
 
   // First sign all transactions
-  let txList:SignedTransaction[] =(await Promise.all(
-    numberArray.map(async (_, i) => {
-      // sign tx
-      try {
-        let tx=await context.web3.eth.accounts.signTransaction(
-          { ...customTxConfig, nonce: nonce + i },
-          GENESIS_ACCOUNT_PRIVATE_KEY
-        );
-        return tx
-      } catch (e) {
-        reportError(e, "signing");
-        return undefined
-      }
-    })
-  )).filter((e)=>{
-    //if (e==undefined){console.log('undefined1')}
-    return e!==undefined
-  });
-  // txList.forEach((tx)=>{
-  //   if (tx.error)
-  // })
-  const endSigningTime:number=Date.now()
+  // let txList: (Error | SignedTransaction)[] = await Promise.all(
+  //   numberArray.map(async (_, i) => {
+  //     // sign tx
+  //     return wrappedSignTx({ ...customTxConfig, nonce: nonce + i }, GENESIS_ACCOUNT_PRIVATE_KEY);
+  //   })
+  // );
 
-  console.log('Time it took to sign '+txList.length+' tx is '+(endSigningTime-startSigningTime)/1000+" seconds")
-  
-  const startSendingTime:number=Date.now()
+    // async function serialSignTx(web3:Web3, n: number): Promise<(Error | SignedTransaction)[]> {
+    //   if (n === 0) {
+    //     return [];
+    //   } else {
+    //     const resArray: (Error | SignedTransaction)[] = await serialSignTx(web3,n - 1);
+    //     console.log('i',nonce+n)
+    //     resArray.push(
+    //       await wrappedSignTx(web3,{ ...customTxConfig, nonce: nonce + n }, GENESIS_ACCOUNT_PRIVATE_KEY)
+    //     );
+    //     return resArray;
+    //   }
+    // }
+  async function serialSignTx(web3:Web3, n: number, startingNonce:number): Promise<(Error | SignedTransaction)[]> {
+    const resArray=[]
+    for (let index = 0; index < n; index++) {
+      resArray.push(
+        await wrappedSignTx(web3,{ ...customTxConfig, nonce: startingNonce + index + 1 }, GENESIS_ACCOUNT_PRIVATE_KEY)
+      );
+    }
+    return resArray;
+  }
+
+  let txList: (Error | SignedTransaction)[] = await serialSignTx(context.web3,numberOfTx,nonce);
+  console.log('txList',txList)
+
+  const endSigningTime: number = Date.now();
+
+  console.log(
+    "Time it took to sign " +
+      txList.length +
+      " tx is " +
+      (endSigningTime - startSigningTime) / 1000 +
+      " seconds"
+  );
+
+  const startSendingTime: number = Date.now();
 
   //Then, send them to the pool
-  let resL=(await Promise.all(
-    txList.map(async (tx, i) => {
-      // send it
-      try {
-        let res=await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
-        return res
-      } catch (e) {
-        reportError(e, "customreq");
-        return undefined
-      }
-    })
-  )).filter((e)=>{
-    //if (e==undefined){console.log('undefined2')}
-    return e!==undefined
-  });
-  resL.forEach((res=>{
-    if (res.error){
-      console.log('res',res)
-      //@ts-ignore
-      reportError(res.error.message, "customreq");
+  // let respList: JsonRpcResponse[] = await Promise.all(
+  //   txList.map(async (tx, i) => {
+  //     // send it
+  //     if (isSignedTransaction(tx)) {
+  //       return wrappedCustomRequest(context.web3, "eth_sendRawTransaction", [
+  //         (tx as SignedTransaction).rawTransaction,
+  //       ]);
+  //     } else {
+  //       return {
+  //         jsonrpc: "signature error",
+  //         id: 0,
+  //         error: tx.message,
+  //       };
+  //     }
+  //   })
+  // );
+
+  // async function serialSendTx(web3:Web3, n: number): Promise<(Error | JsonRpcResponse)[]> {
+  //   if (n === 0) {
+  //     return [];
+  //   } else {
+  //     const resArray: (Error | JsonRpcResponse)[] = await serialSendTx(web3,n - 1);
+  //     if (isSignedTransaction(txList[n-1])) {
+  //       resArray.push(
+  //         await wrappedCustomRequest(web3, "eth_sendRawTransaction", [
+  //           (txList[n-1] as SignedTransaction).rawTransaction,
+  //         ])
+  //       );
+  //     } else {
+  //       resArray.push(txList[n-1] as Error);
+  //     }
+  //     return resArray;
+  //   }
+  // }
+
+  async function serialSendTx(web3:Web3, n: number, _txList: (Error | SignedTransaction)[]): Promise<(Error | JsonRpcResponse)[]> {
+    const resArray=[]
+    for (let index = 0; index < n; index++) {
+      if (isSignedTransaction(_txList[index])) {
+      resArray.push(
+        await wrappedCustomRequest(web3, "eth_sendRawTransaction", [
+                    (_txList[index] as SignedTransaction).rawTransaction,
+                  ])
+      );
+                } else {
+                       resArray.push(_txList[index] as Error);
+                }
     }
-  }))
+    return resArray;
+  }
 
-  const endSendingTime:number=Date.now()
+  let respList: (Error | JsonRpcResponse)[] = await serialSendTx(context.web3,numberOfTx, txList);
+  console.log('respList',respList)
 
-  console.log('Time it took to send '+resL.length+' tx is '+(endSendingTime-startSendingTime)/1000+" seconds")
+  respList.forEach((res) => {
+    //console.log('res',res)
+    if (isJsonRpcResponse(res) && res.error) {
+      //console.log("error in final array", res);
+      //@ts-ignore
+      reportError(res.error, "customreq"); //res.jsonrpc == "signature error" ? "signing" : "customreq");
+    } else if (!isJsonRpcResponse(res)) {
+      reportError(res, "signing");
+    }
+  });
+
+  const endSendingTime: number = Date.now();
+
+  console.log(
+    "Time it took to send " +
+      respList.length +
+      " tx is " +
+      (endSendingTime - startSendingTime) / 1000 +
+      " seconds"
+  );
 
   // TODO : use tx receipt to fetch tx status agao
 
@@ -299,8 +411,9 @@ export async function fillBlockWithTx(context: { web3: Web3 }, numberOfTx: numbe
 
   await createAndFinalizeBlock(context.web3);
 
-
-  const block = await context.web3.eth.getBlock("latest");
+  let block = await context.web3.eth.getBlock("latest");
+  console.log(block)
+  let txPassed: number = block.transactions.length;
   console.log(
     "block.gasUsed",
     block.gasUsed,
@@ -310,18 +423,39 @@ export async function fillBlockWithTx(context: { web3: Web3 }, numberOfTx: numbe
     block.transactions.length
   );
 
-  await createAndFinalizeBlock(context.web3);
+  let i: number = 2;
 
+  while (i < 5) {
+    //(block.transactions.length!==0){
 
-  const block2 = await context.web3.eth.getBlock("latest");
-  console.log(
-    "following, block2.gasUsed",
-    block2.gasUsed,
-    "block2.number",
-    block2.number,
-    "block2.transactions.length",
-    block2.transactions.length
-  );
+    await createAndFinalizeBlock(context.web3);
 
-  expectFunction(block.transactions.length).to.eq(numberOfTx);
+    block = await context.web3.eth.getBlock("latest");
+    console.log(
+      "following block, block" + i + ".gasUsed",
+      block.gasUsed,
+      "block" + i + ".number",
+      block.number,
+      "block" + i + ".transactions.length",
+      block.transactions.length
+    );
+    i += 1;
+  }
+
+  // await Promise.all(
+  //   txList.map(async (tx, i) => {
+  //     // send it
+  //     if (isSignedTransaction(tx)) {
+  //       try {
+  //         console.log((tx as SignedTransaction).transactionHash); //return console.log(await context.web3.eth.getTransactionReceipt((tx as SignedTransaction).transactionHash))
+  //       } catch (e) {
+  //         console.log("gettxrceipt error", e);
+  //       }
+  //     }
+  //   })
+  // );
+
+  return txPassed;
 }
+
+//todo: test web3 limits and serial vs parallel
