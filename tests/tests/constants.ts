@@ -148,3 +148,10 @@ export const contractCreation: TransactionConfig = {
   gasPrice: "0x01",
   gas: "0x100000",
 };
+
+
+// TESTING NOTES
+// - block dont seem to have gas limit but it's usually around 1500 tx per block 
+// and the time it takes to construct the block increases until around 12s for 1500tx
+// - after the first 1500tx block, following block have aroudn 100-300 tx per block until all blocks are incuded. 10 blockds for 3000tx
+// - infinite loop contract should throw out of gas error, but they don't and they are included in the block. there are some rpc errors sometimes
