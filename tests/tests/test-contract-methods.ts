@@ -5,7 +5,7 @@ import {
 } from '@openzeppelin/test-helpers'
 
 import { createAndFinalizeBlock, customRequest, describeWithMoonbeam } from "./util";
-import { FIRST_CONTRACT_ADDRESS, GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY, INFINITE_CONTRACT_ABI, INFINITE_CONTRACT_ABI_VAR, INFINITE_CONTRACT_BYTECODE, INFINITE_CONTRACT_BYTECODE_VAR, TEST_CONTRACT_ABI, TEST_CONTRACT_BYTECODE } from "./constants";
+import { FIRST_CONTRACT_ADDRESS, GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY, INFINITE_CONTRACT_ABI, INFINITE_CONTRACT_ABI_VAR, INFINITE_CONTRACT_BYTECODE, INFINITE_CONTRACT_BYTECODE_VAR, TEST_CONTRACT_ABI, TEST_CONTRACT_BYTECODE, TEST_CONTRACT_BYTECODE_INCR, TEST_CONTRACT_INCR_ABI } from "./constants";
 
 describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (context) => {
 
@@ -43,9 +43,58 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
     expect(await contract.methods.multiply(3).call()).to.equal("21");
   });
 
+  it("should increment contract state", async function () {
+      // get nonce
+      let nonce: number = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
+
+      // sign contract deployement
+      const tx = await context.web3.eth.accounts.signTransaction(
+        {
+          from: GENESIS_ACCOUNT,
+          data: TEST_CONTRACT_BYTECODE_INCR,
+          value: "0x00",
+          gasPrice: "0x01",
+          gas: "0x100000",
+          nonce:nonce
+        },
+        GENESIS_ACCOUNT_PRIVATE_KEY
+      );
+      await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction])
+      await createAndFinalizeBlock(context.web3); 
+
+      // instantiate contract
+      let res2=await context.web3.eth.getTransactionReceipt((tx).transactionHash)
+      const contract = new context.web3.eth.Contract(TEST_CONTRACT_INCR_ABI,res2.contractAddress)
+      
+      // check variable initializaion
+      expect(await contract.methods.count().call()).to.eq('0')
+
+      // call incr function
+      let bytesCode:string=await contract.methods.incr().encodeABI()
+      const contractCall = {
+        from: GENESIS_ACCOUNT,
+        to:res2.contractAddress,
+        data: bytesCode,
+        gasPrice: "0x01",
+        gas: "0x100000",
+        nonce:nonce+1
+      };
+      const txCall = await context.web3.eth.accounts.signTransaction(
+        contractCall,
+        GENESIS_ACCOUNT_PRIVATE_KEY
+      );
+      await customRequest(context.web3, "eth_sendRawTransaction", [txCall.rawTransaction])
+      await createAndFinalizeBlock(context.web3);
+      
+      // check variable incrementation
+      expect(await contract.methods.count().call()).to.eq('1')
+  });
+
 
   it("inifinite loop", async function () {
     this.timeout(0);
+    
+    //deploy infinite contract
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
@@ -56,25 +105,17 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
       },
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
-    //console.log('tx',tx)
-    let res=await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction])
-    //console.log('customreq',res);
+    await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction])
     await createAndFinalizeBlock(context.web3); 
     let res2=await context.web3.eth.getTransactionReceipt((tx).transactionHash)
-    //console.log('res2',res2)
     const contract = new context.web3.eth.Contract([INFINITE_CONTRACT_ABI],res2.contractAddress)
-    //should revert with out of gas error
-    //console.log(await contract.methods.infinite().call({from:GENESIS_ACCOUNT}))
 
-    //expectRevert(contract.methods.infinite().call(),'evm error: OutOfGas');
-    //expect(await contract.methods.infinite().call()).to.throw('evm error: OutOfGas');
-
+    //make infinite loop function call
       let bytesCode:string=await contract.methods.infinite().encodeABI()
-      console.log('bytes',bytesCode)
       const contractCall = {
         from: GENESIS_ACCOUNT,
         data: bytesCode,
-        value: "0x00",
+        to:res2.contractAddress,
         gasPrice: "0x01",
         gas: "0x100000",
       };
@@ -89,19 +130,18 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
         let block = await context.web3.eth.getBlock("latest");
         console.log(block)
       } catch(e){
-        console.log('errorattrappee',e)
+        console.log('error caught',e)
       }
-      console.log('FINI')
       
 
-    await contract.methods
-      .infinite()
-      .call()
-      .catch((err) =>
-        expect(err.message).to.equal(
-          `Returned error: evm error: OutOfGas`
-        )
-      );
+    // await contract.methods
+    //   .infinite()
+    //   .call()
+    //   .catch((err) =>
+    //     expect(err.message).to.equal(
+    //       `Returned error: evm error: OutOfGas`
+    //     )
+    //   );
       // try{
       //   await contract.methods.infinite().call()
       // } catch(e){
@@ -110,8 +150,9 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
       // }
   });
 
-  it.skip("inifinite loop with incr", async function () {
-    this.timeout(10000);
+  it("inifinite loop with incr", async function () {
+    this.timeout(0);
+    //deploy infinite contract
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
@@ -122,17 +163,34 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
       },
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
-    //console.log('tx',tx)
-    let res=await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction])
-    //console.log('customreq',res);
+    await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction])
     await createAndFinalizeBlock(context.web3); 
     let res2=await context.web3.eth.getTransactionReceipt((tx).transactionHash)
-    //console.log('res2',res2)
     const contract = new context.web3.eth.Contract(INFINITE_CONTRACT_ABI_VAR,res2.contractAddress)
-    //should revert with out of gas error
-    //console.log(await contract.methods.infinite().call({from:GENESIS_ACCOUNT}))
 
-    expectRevert(contract.methods.infinite().call(),'evm error: OutOfGas');
+    //make infinite loop function call
+      let bytesCode:string=await contract.methods.infinite().encodeABI()
+      const contractCall = {
+        from: GENESIS_ACCOUNT,
+        data: bytesCode,
+        to:res2.contractAddress,
+        gasPrice: "0x01",
+        gas: "0x100000",
+      };
+      const txCall = await context.web3.eth.accounts.signTransaction(
+        contractCall,
+        GENESIS_ACCOUNT_PRIVATE_KEY
+      );
+      try{
+        let res=await customRequest(context.web3, "eth_sendRawTransaction", [txCall.rawTransaction])
+        console.log('res',res)
+        await createAndFinalizeBlock(context.web3);
+        let block = await context.web3.eth.getBlock("latest");
+        console.log(block)
+        console.log('data',await contract.methods.data().call())
+      } catch(e){
+        console.log('errorattrappee',e)
+      }
   });
 
   // Requires error handling
@@ -157,7 +215,6 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
       try{
         await contract.methods.multiply().call()
       } catch(e){
-        //console.log('error caught : ',e)
         expect(e.toString()).to.eq(`Error: Returned error: evm revert: Reverted`)
       }
       // expectRevert( contract.methods

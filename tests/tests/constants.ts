@@ -39,6 +39,51 @@ export const TEST_CONTRACT_ABI = {
 
 export const FIRST_CONTRACT_ADDRESS = "0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a";
 
+// simple incremental count contract to test contract with state changes
+
+// Solidity: 
+// contract Test3 {
+//   uint public count;
+
+//   constructor() public {
+//       count = 0;
+//   }
+
+//   function incr() public {
+//       count=count+1;
+//   }
+// }
+export const TEST_CONTRACT_BYTECODE_INCR =
+  "6080604052348015600f57600080fd5b506000808190555060a5806100256000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c806306661abd146037578063119fbbd4146053575b600080fd5b603d605b565b6040518082815260200191505060405180910390f35b60596061565b005b60005481565b60016000540160008190555056fea26469706673582212204780263fff0edc01286caed1851cc629033bc25ec1f84995a71199017a4623dd64736f6c634300060b0033";
+
+export const TEST_CONTRACT_INCR_ABI = [
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [],
+		"name": "count",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "incr",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+] as AbiItem[];
+
 // infinite loop call
 
 // Solidity: contract test {function infinite(uint a) public pure returns(uint d) {while (true) {}}}
@@ -55,7 +100,7 @@ export const INFINITE_CONTRACT_ABI = {
 
 // infinite loop call with variable alocation
 
-// Solidity: contract test {function infinite(uint a) public pure returns(uint d) {while (true) {}}}
+// Solidity: contract test {function infinite(uint a) public pure returns(uint d) {while (true) {data=data+1;}}}
 export const INFINITE_CONTRACT_BYTECODE_VAR =
   "608060405234801561001057600080fd5b50600160008190555060b0806100276000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c80635bec9e6714603757806373d4a13a14603f575b600080fd5b603d605b565b005b60456074565b6040518082815260200191505060405180910390f35b5b600115607257600160005401600081905550605c565b565b6000548156fea264697066735822122053e7fd0d4629f7d9cd16b0456521ea0cf78e595e9627c45ee8a4f27f4119f39c64736f6c634300060b0033";
 
