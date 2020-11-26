@@ -112,3 +112,60 @@ export const INFINITE_CONTRACT_ABI_VAR = [
     type: "function",
   },
 ] as AbiItem[];
+
+
+// definite loop call with variable alocation
+
+// Solidity:
+// contract Test4 {
+//     uint public count;
+
+//     constructor() public {
+//         count = 0;
+//     }
+
+//     function incr(uint n) public {
+//         uint i=0;
+//         while (i<n) {
+//             count=count+1;
+//             i+=1;
+//         }
+//     }
+// }
+
+export const FINITE_LOOP_CONTRACT_BYTECODE =
+  "608060405234801561001057600080fd5b506000808190555060e1806100266000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c806306661abd14603757806321b13c48146053575b600080fd5b603d607e565b6040518082815260200191505060405180910390f35b607c60048036036020811015606757600080fd5b81019080803590602001909291905050506084565b005b60005481565b60008090505b8181101560a757600160005401600081905550600181019050608a565b505056fea264697066735822122055c3057e9a4de212a72858fab41c167c7c616b47ec2ce4e7e1ebf152e8f83dc464736f6c634300060b0033";
+
+export const FINITE_LOOP_CONTRACT_ABI= [
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [],
+		"name": "count",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "n",
+				"type": "uint256"
+			}
+		],
+		"name": "incr",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+] as AbiItem[];

@@ -8,6 +8,8 @@ export {
   INFINITE_CONTRACT_ABI,
   INFINITE_CONTRACT_BYTECODE_VAR,
   INFINITE_CONTRACT_ABI_VAR,
+  FINITE_LOOP_CONTRACT_BYTECODE,
+  FINITE_LOOP_CONTRACT_ABI
 } from "./testContracts";
 
 export {basicTransfertx,contractCreation } from './transactionConfigs'
@@ -44,3 +46,9 @@ export const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
 // - infinite loop contract should throw out of gas error, but they don't and they are included in the block.
 // - there are some rpc errors sometimes
 // - the state remains unchanged tho (test with infinite incremental contract)
+//
+// FINITE LOOP
+// - making a 1000 loop incr on a smart contract doesnt pass but doesnt throw error either
+// => is there a problem with out of gas error
+// =>probably because we don't have the concept of gas?
+// - posting a tx that goes over the gas limit/tx does throw an out of gas error in the debug log but not in js

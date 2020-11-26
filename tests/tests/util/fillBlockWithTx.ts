@@ -195,8 +195,5 @@ export async function fillBlockWithTx(
   //     }
   //   })
   // );
-  console.log("tx   passed", txPassed);
   return {txPassed,sendingTime,signingTime,numberOfBlocks};
 }
-
-//todo: test web3 limits and serial vs parallel
