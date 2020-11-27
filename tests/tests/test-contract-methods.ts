@@ -3,6 +3,7 @@ import { expect } from "chai";
 import { TransactionReceipt } from "web3-core";
 
 import {
+  callContractFunctionMS,
   createAndFinalizeBlock,
   customRequest,
   deployContractManualSeal,
@@ -64,9 +65,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
     const contract = await deployContractManualSeal(
       context.web3,
       TEST_CONTRACT_BYTECODE_INCR,
-      TEST_CONTRACT_INCR_ABI,
-      GENESIS_ACCOUNT,
-      GENESIS_ACCOUNT_PRIVATE_KEY
+      TEST_CONTRACT_INCR_ABI
     );
 
     // check variable initializaion
@@ -74,19 +73,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
 
     // call incr function
     let bytesCode: string = await contract.methods.incr().encodeABI();
-    const contractCall = {
-      from: GENESIS_ACCOUNT,
-      to: contract.options.address,
-      data: bytesCode,
-      gasPrice: "0x01",
-      gas: "0x100000",
-    };
-    const txCall = await context.web3.eth.accounts.signTransaction(
-      contractCall,
-      GENESIS_ACCOUNT_PRIVATE_KEY
-    );
-    await customRequest(context.web3, "eth_sendRawTransaction", [txCall.rawTransaction]);
-    await createAndFinalizeBlock(context.web3);
+    await callContractFunctionMS (context.web3,contract.options.address,bytesCode)
 
     // check variable incrementation
     expect(await contract.methods.count().call()).to.eq("1");
@@ -102,36 +89,12 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
     const contract = await deployContractManualSeal(
       context.web3,
       INFINITE_CONTRACT_BYTECODE,
-      [INFINITE_CONTRACT_ABI],
-      GENESIS_ACCOUNT,
-      GENESIS_ACCOUNT_PRIVATE_KEY
+      [INFINITE_CONTRACT_ABI]
     );
 
     //make infinite loop function call
     let bytesCode: string = await contract.methods.infinite().encodeABI();
-    const contractCall = {
-      from: GENESIS_ACCOUNT,
-      data: bytesCode,
-      to: contract.options.address,
-      gasPrice: "0x01",
-      gas: "0x100000",
-      nonce: nonce + 1,
-    };
-    const txCall = await context.web3.eth.accounts.signTransaction(
-      contractCall,
-      GENESIS_ACCOUNT_PRIVATE_KEY
-    );
-    try {
-      let res = await customRequest(context.web3, "eth_sendRawTransaction", [
-        txCall.rawTransaction,
-      ]);
-      console.log("res", res);
-      await createAndFinalizeBlock(context.web3);
-      let block = await context.web3.eth.getBlock("latest");
-      console.log(block);
-    } catch (e) {
-      console.log("error caught", e);
-    }
+    await callContractFunctionMS (context.web3,contract.options.address,bytesCode)
     // TODO: this should throw an error
 
     // await contract.methods
@@ -157,30 +120,13 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
     const contract = await deployContractManualSeal(
       context.web3,
       INFINITE_CONTRACT_BYTECODE_VAR,
-      INFINITE_CONTRACT_ABI_VAR,
-      GENESIS_ACCOUNT,
-      GENESIS_ACCOUNT_PRIVATE_KEY
+      INFINITE_CONTRACT_ABI_VAR
     );
 
     //make infinite loop function call
     let bytesCode: string = await contract.methods.infinite().encodeABI();
-    const contractCall = {
-      from: GENESIS_ACCOUNT,
-      data: bytesCode,
-      to: contract.options.address,
-      gasPrice: "0x01",
-      gas: "0x100000",
-    };
-    const txCall = await context.web3.eth.accounts.signTransaction(
-      contractCall,
-      GENESIS_ACCOUNT_PRIVATE_KEY
-    );
     try {
-      let res = await customRequest(context.web3, "eth_sendRawTransaction", [
-        txCall.rawTransaction,
-      ]);
-      console.log("res", res);
-      await createAndFinalizeBlock(context.web3);
+      await callContractFunctionMS (context.web3,contract.options.address,bytesCode)
       let block = await context.web3.eth.getBlock("latest");
       console.log(block);
       console.log("data", await contract.methods.data().call());
@@ -197,9 +143,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
     const contract = await deployContractManualSeal(
       context.web3,
       FINITE_LOOP_CONTRACT_BYTECODE,
-      FINITE_LOOP_CONTRACT_ABI,
-      GENESIS_ACCOUNT,
-      GENESIS_ACCOUNT_PRIVATE_KEY
+      FINITE_LOOP_CONTRACT_ABI
     );
 
     //make finite loop function call
@@ -211,7 +155,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
         data: bytesCode,
         to: contract.options.address,
         gasPrice: "0x01",
-        gas: "0x100000", //gas: "0x100000", //TODO: exceeding the gas limit should throw some kind of error
+        gas: "0x100000", //gas: "0x100000", //TODO: exceeding the gas limit should throw some kind of error //todo test with and without gas limit
       };
       const txCall = await context.web3.eth.accounts.signTransaction(
         contractCall,
@@ -265,9 +209,14 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
       "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
     );
     // 700 loop
-    expect(await callLoopIncrContract(700)).to.eq(700);
+    // expect(await callLoopIncrContract(700)).to.eq(700);
+    // block = await context.web3.eth.getBlock("latest");
+    // console.log("700 block gas used", block);
+    let i=await callLoopIncrContract(700)
     block = await context.web3.eth.getBlock("latest");
     console.log("700 block gas used", block.gasUsed);
+    console.log('receipt',await context.web3.eth.getTransactionReceipt(block.transactions[0]))
+    expect(i).to.eq(700);
 
     // //1000 loop
     // expect(await callLoopIncrContract(1000)).to.eq(1000)

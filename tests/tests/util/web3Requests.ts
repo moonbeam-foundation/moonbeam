@@ -1,8 +1,9 @@
 import Web3 from "web3";
 import { JsonRpcResponse } from "web3-core-helpers";
-import { TransactionReceipt,  } from "web3-core"; 
+import { TransactionReceipt } from "web3-core";
 import { AbiItem } from "web3-utils";
-import {Contract} from 'web3-eth-contract';
+import { Contract } from "web3-eth-contract";
+import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../constants";
 
 // make a web3 request, adapted to manual seal testing
 export async function customRequest(web3: Web3, method: string, params: any[]) {
@@ -18,7 +19,7 @@ export async function customRequest(web3: Web3, method: string, params: any[]) {
         if (error) {
           reject(
             `Failed to send custom request (${method} (${params.join(",")})): ${
-            error.message || error.toString()
+              error.message || error.toString()
             }`
           );
         }
@@ -61,14 +62,20 @@ export async function createAndFinalizeBlock(web3: Web3): Promise<number> {
       console.log("error during block creation");
       throw new Error(`Unexpected result: ${JSON.stringify(response)}`);
     }
-  } catch(e){
-      console.log('ERROR DURING BLOCK FINALIZATION',e)
+  } catch (e) {
+    console.log("ERROR DURING BLOCK FINALIZATION", e);
   }
   return Date.now() - startTime;
 }
 
 // Deploy and instantiate a contract with manuel seal
-export async function deployContractManualSeal(web3:Web3, contractByteCode:string,contractABI:AbiItem[],account:string,privateKey:string):Promise<Contract>{
+export async function deployContractManualSeal(
+  web3: Web3,
+  contractByteCode: string,
+  contractABI: AbiItem[],
+  account: string = GENESIS_ACCOUNT,
+  privateKey: string = GENESIS_ACCOUNT_PRIVATE_KEY
+): Promise<Contract> {
   const tx = await web3.eth.accounts.signTransaction(
     {
       from: account,
@@ -83,4 +90,28 @@ export async function deployContractManualSeal(web3:Web3, contractByteCode:strin
   await createAndFinalizeBlock(web3);
   let rcpt: TransactionReceipt = await web3.eth.getTransactionReceipt(tx.transactionHash);
   return new web3.eth.Contract(contractABI, rcpt.contractAddress);
+}
+
+export async function callContractFunctionMS(
+  web3: Web3,
+  contractAddress: string,
+  bytesCode: string,
+  account: string = GENESIS_ACCOUNT,
+  privateKey: string = GENESIS_ACCOUNT_PRIVATE_KEY
+) {
+  try{
+    const contractCall = {
+      from: account,
+      to: contractAddress,
+      data: bytesCode,
+      gasPrice: "0x01",
+      gas: "0x100000",
+    };
+    const txCall = await web3.eth.accounts.signTransaction(contractCall, privateKey);
+    await customRequest(web3, "eth_sendRawTransaction", [txCall.rawTransaction]);
+    return await createAndFinalizeBlock(web3);
+  } catch(e){
+    console.log('error caught during callContractFunctionMS',e)
+    throw new Error(e)
+  }
 }
