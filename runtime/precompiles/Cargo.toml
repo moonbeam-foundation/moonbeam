@@ -11,7 +11,7 @@ ripemd160 = { version = "0.9", default-features = false }
 
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "master" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "joshy-parachains-v1" }
 
 [features]
 default = [ "std" ]

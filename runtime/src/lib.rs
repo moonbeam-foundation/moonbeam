@@ -45,13 +45,14 @@ use standalone::*;
 
 use codec::{Decode, Encode};
 use sp_api::impl_runtime_apis;
-use sp_core::{OpaqueMetadata, H160, U256};
+use sp_core::{OpaqueMetadata, H160, U256, H256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentityLookup, Saturating, IdentifyAccount, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult,
 };
+use frontier_rpc_primitives::TransactionStatus;
 use sp_std::{marker::PhantomData, prelude::*};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
@@ -212,7 +213,7 @@ impl pallet_timestamp::Trait for Runtime {
 }
 
 parameter_types! {
-	//TODO Do I need max lock 50 here?
+	pub const MaxLocks: u32 = 50;
 	pub const ExistentialDeposit: u128 = 0;
 }
 
@@ -248,6 +249,7 @@ impl pallet_ethereum_chain_id::Trait for Runtime {}
 
 impl pallet_evm::Trait for Runtime {
 	type FeeCalculator = ();
+	type GasToWeight = ();
 	type CallOrigin = EnsureAddressSame;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = IdentityAddressMapping;
@@ -427,6 +429,20 @@ impl_runtime_apis! {
 
 		fn gas_price() -> U256 {
 			<Runtime as pallet_evm::Trait>::FeeCalculator::min_gas_price()
+		}
+
+		fn account_code_at(address: H160) -> Vec<u8> {
+			EVM::account_codes(address)
+		}
+
+		fn author() -> H160 {
+			<pallet_ethereum::Module<Runtime>>::find_author()
+		}
+
+		fn storage_at(address: H160, index: U256) -> H256 {
+			let mut tmp = [0u8; 32];
+			index.to_big_endian(&mut tmp);
+			EVM::account_storages(address, H256::from_slice(&tmp[..]))
 		}
 
 		fn call(

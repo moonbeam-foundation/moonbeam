@@ -70,6 +70,7 @@ macro_rules! runtime_parachain {
 				ParachainUpgrade: cumulus_parachain_upgrade::{Module, Call, Storage, Inherent, Event},
 				TransactionPayment: pallet_transaction_payment::{Module, Storage},
 				ParachainInfo: parachain_info::{Module, Storage, Config},
+				EthereumChainId: pallet_ethereum_chain_id::{Module, Storage, Config},
 				EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
 				Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 			}

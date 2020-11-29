@@ -48,7 +48,7 @@ sc-consensus-manual-seal = { git = "https://github.com/paritytech/substrate.git"
 sp-consensus = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
 sc-consensus = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
 sp-timestamp = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-evm = { package = "pallet-evm", git = "https://github.com/purestake/substrate", branch = "master" }
+evm = { package = "pallet-evm", git = "https://github.com/purestake/frontier", branch = "joshy-parachains-v1" }
 sc-finality-grandpa = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
 sp-finality-grandpa = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
 sc-client-api = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
