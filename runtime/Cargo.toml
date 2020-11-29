@@ -47,7 +47,7 @@ pallet-evm = { git = "https://github.com/purestake/frontier", default-features =
 sp-consensus-aura = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master", optional = true }
 pallet-grandpa = { default-features = false, package = "pallet-grandpa", git = "https://github.com/paritytech/substrate.git", branch = "master", optional = true }
 
-frontier-rpc-primitives = { default-features = false, git = "https://github.com/purestake/frontier", branch = "master" }
+frontier-rpc-primitives = { package = "fp-rpc", default-features = false, git = "https://github.com/purestake/frontier", branch = "master" }
 pallet-ethereum = { default-features = false, package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "master" }
 
 
@@ -60,7 +60,7 @@ cumulus-primitives = { git = "https://github.com/paritytech/cumulus",  default-f
 parachain-info = { path = "../pallets/parachain-info", default-features = false }
 
 [build-dependencies]
-wasm-builder-runner = { version = "2.0.0", package = "substrate-wasm-builder-runner", git = "https://github.com/paritytech/substrate.git", branch = "master" }
+substrate-wasm-builder = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git", branch = "master" }
 
 [features]
 # By default, we build the parachain runtime
