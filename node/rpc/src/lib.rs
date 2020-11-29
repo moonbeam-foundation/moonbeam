@@ -33,7 +33,7 @@ use sp_runtime::traits::BlakeTwo256;
 use sp_block_builder::BlockBuilder;
 use sc_network::NetworkService;
 use jsonrpc_pubsub::manager::SubscriptionManager;
-use frontier_rpc::{EthSigner, EthDevSigner};
+use frontier_rpc::{EthSigner, EthDevSigner, HexEncodedIdProvider};
 
 /// Light client extra dependencies.
 pub struct LightDeps<C, F, P> {
@@ -130,7 +130,10 @@ pub fn create_full<C, P, BE>(
 			pool.clone(),
 			client.clone(),
 			network.clone(),
-			SubscriptionManager::new(Arc::new(subscription_task_executor)),
+			SubscriptionManager::<HexEncodedIdProvider>::with_id_provider(
+				HexEncodedIdProvider::default(),
+				Arc::new(subscription_task_executor)
+			),
 		))
 	);
 
