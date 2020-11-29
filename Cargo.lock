@@ -3943,6 +3943,7 @@ dependencies = [
  "sc-rpc",
  "sc-rpc-api",
  "sc-service",
+ "sc-tracing",
  "sc-transaction-pool",
  "serde",
  "serde_json",

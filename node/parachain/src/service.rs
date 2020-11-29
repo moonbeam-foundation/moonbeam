@@ -172,6 +172,7 @@ where
 		polkadot_full_node.client.clone(),
 		id,
 		Box::new(polkadot_full_node.network.clone()),
+		polkadot_full_node.backend.clone(),
 	);
 
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
@@ -188,8 +189,6 @@ where
 				import_queue,
 				on_demand: None,
 				block_announce_validator_builder: Some(Box::new(|_| block_announce_validator)),
-				finality_proof_request_builder: None,
-				finality_proof_provider: None,
 		})?;
 
 	let is_authority = parachain_config.role.is_authority();
@@ -202,11 +201,12 @@ where
 		let network = network.clone();
 
 		Box::new(move |deny_unsafe, _| {
-			let deps = crate::rpc::FullDeps {
+			let deps = moonbeam_rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
 				deny_unsafe,
 				is_authority,
+				enable_dev_signer: false, // Just disable this for now. If we want it, wire it through to the CLI.
 				network: network.clone(),
 				command_sink: None,
 			};
