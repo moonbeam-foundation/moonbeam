@@ -59,10 +59,10 @@ sp-block-builder = { git = "https://github.com/paritytech/substrate.git", branch
 moonbeam-runtime = {path = "../../runtime", default-features = false, features = ["std", "standalone"] }
 moonbeam-rpc = { path = "../rpc" }
 
-ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "master" }
-frontier-consensus = { git = "https://github.com/purestake/frontier", branch = "master" }
-frontier-rpc = { git = "https://github.com/purestake/frontier", branch = "master" }
-frontier-rpc-primitives = { git = "https://github.com/purestake/frontier", branch = "master" }
+ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "joshy-parachains-v1" }
+frontier-consensus = { git = "https://github.com/purestake/frontier", branch = "joshy-parachains-v1" }
+frontier-rpc = { git = "https://github.com/purestake/frontier", branch = "joshy-parachains-v1" }
+frontier-rpc-primitives = { git = "https://github.com/purestake/frontier", branch = "joshy-parachains-v1" }
 
 [build-dependencies]
 substrate-build-script-utils = { git = "https://github.com/paritytech/substrate", branch = "master" }
