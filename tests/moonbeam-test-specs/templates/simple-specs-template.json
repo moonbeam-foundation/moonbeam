@@ -5,7 +5,9 @@
   "bootNodes": [],
   "telemetryEndpoints": null,
   "protocolId": null,
-  "properties": null,
+  "properties": {
+    "tokenDecimals": 18
+  },
   "consensusEngine": null,
   "genesis": {
     "runtime": {
@@ -14,12 +16,15 @@
         "code": "<runtime_code>"
       },
       "palletBalances": {
-        "balances": [["5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", 1152921504606846976]]
+        "balances": []
       },
       "palletSudo": {
-        "key": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+        "key": "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b"
       },
-      "frameEvm": {
+      "palletEthereumChainId": {
+        "chainId": 1281
+      },
+      "palletEvm": {
         "accounts": {
           "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b": {
             "nonce": "0x0",
@@ -28,7 +33,8 @@
             "code": []
           }
         }
-      }
+      },
+      "palletEthereum": {}
     }
   }
 }

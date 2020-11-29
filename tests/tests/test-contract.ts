@@ -36,7 +36,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract)", `simple-specs.json`, (context) =
     ).to.deep.equal({
       id: 1,
       jsonrpc: "2.0",
-      result: "0xa791fec7c4b10661a937635abfbdb933c57acb2e7399c2562c9c31a9d6ad8435",
+      result: "0xe87ed993e4d186748404a52a2d13612eef8356331f30fa6b3fb9bc2c16be2e9c",
     });
 
     // Verify the contract is not yet stored

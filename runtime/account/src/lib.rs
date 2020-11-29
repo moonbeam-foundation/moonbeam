@@ -14,16 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Substrate Node Template CLI library.
-#![warn(missing_docs)]
+#![cfg_attr(not(feature = "std"), no_std)]
 
-mod chain_spec;
-#[macro_use]
-mod service;
-mod cli;
-mod command;
-mod mock_timestamp;
+mod signer;
 
-fn main() -> sc_cli::Result<()> {
-	command::run()
-}
+pub use self::signer::EthereumSignature;
+pub use self::signer::MultiSignature;

@@ -205,14 +205,13 @@ where
 			let deps = crate::rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
-				graph_pool: pool.pool().clone(),
 				deny_unsafe,
 				is_authority,
 				network: network.clone(),
 				command_sink: None,
 			};
 
-			crate::rpc::create_full(
+			moonbeam_rpc::create_full(
 				deps,
 				subscription_task_executor.clone()
 			)

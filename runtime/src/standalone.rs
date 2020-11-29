@@ -32,9 +32,9 @@ macro_rules! runtime_standalone {
 		pub const VERSION: RuntimeVersion = RuntimeVersion {
 			spec_name: create_runtime_str!("moonbeam-standalone"),
 			impl_name: create_runtime_str!("moonbeam-standalone"),
-			authoring_version: 2,
-			spec_version: 2,
-			impl_version: 3,
+			authoring_version: 3,
+			spec_version: 4,
+			impl_version: 0,
 			apis: RUNTIME_API_VERSIONS,
 			transaction_version: 1,
 		};
@@ -88,6 +88,7 @@ macro_rules! runtime_standalone {
 				Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
 				TransactionPayment: pallet_transaction_payment::{Module, Storage},
 				Sudo: pallet_sudo::{Module, Call, Config<T>, Storage, Event<T>},
+				EthereumChainId: pallet_ethereum_chain_id::{Module, Storage, Config},
 				Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 				EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
 			}

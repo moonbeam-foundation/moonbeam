@@ -12,12 +12,22 @@ if [ -z "$SUDO_SEED" ]; then
     exit 1
 fi
 
-polkadot-js-api \
+if [ ! -f "$PARACHAIN_WASM" ]; then
+    echo "Missing $PARACHAIN_WASM. Please run scripts/generate-parachain-specs.sh"
+    exit 1
+fi
+
+if [ ! -f "$PARACHAIN_GENESIS" ]; then
+    echo "Missing $PARACHAIN_GENESIS. Please run scripts/generate-parachain-specs.sh"
+    exit 1
+fi
+
+docker run --rm --network=host -v $(pwd)/$PARACHAIN_WASM:/wasm jacogr/polkadot-js-tools api \
     --ws "ws://localhost:$((RELAY_PORT + 2))" \
     --sudo \
     --seed "$SUDO_SEED" \
     tx.registrar.registerPara \
         1000 \
         "{\"scheduling\":\"Always\"}" \
-        @"$PARACHAIN_WASM" \
+        @"/wasm" \
         "$(cat $PARACHAIN_GENESIS)"

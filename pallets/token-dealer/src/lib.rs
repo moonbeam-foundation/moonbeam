@@ -40,6 +40,8 @@ pub enum XCMPMessage<XAccountId, XBalance> {
 type BalanceOf<T> =
 	<<T as Trait>::Currency as Currency<<T as frame_system::Trait>::AccountId>>::Balance;
 
+type RelayAccountId = sp_runtime::AccountId32;
+
 /// Configuration trait of this pallet.
 pub trait Trait: frame_system::Trait {
 	/// Event type used by the runtime.
@@ -49,7 +51,7 @@ pub trait Trait: frame_system::Trait {
 	type UpwardMessageSender: UpwardMessageSender<Self::UpwardMessage>;
 
 	/// The upward message type used by the Parachain runtime.
-	type UpwardMessage: codec::Codec + BalancesMessage<Self::AccountId, BalanceOf<Self>>;
+	type UpwardMessage: codec::Codec + BalancesMessage<RelayAccountId, BalanceOf<Self>>;
 
 	/// Currency of the runtime.
 	type Currency: Currency<Self::AccountId>;
@@ -64,7 +66,7 @@ decl_event! {
 		Balance = BalanceOf<T>
 	{
 		/// Transferred tokens to the account on the relay chain.
-		TransferredTokensToRelayChain(AccountId, Balance),
+		TransferredTokensToRelayChain(RelayAccountId, Balance),
 		/// Transferred tokens to the account on request from the relay chain.
 		TransferredTokensFromRelayChain(AccountId, Balance),
 		/// Transferred tokens to the account from the given parachain account.
@@ -77,7 +79,7 @@ decl_module! {
 		/// Transfer `amount` of tokens on the relay chain from the Parachain account to
 		/// the given `dest` account.
 		#[weight = 10]
-		fn transfer_tokens_to_relay_chain(origin, dest: T::AccountId, amount: BalanceOf<T>) {
+		fn transfer_tokens_to_relay_chain(origin, dest: RelayAccountId, amount: BalanceOf<T>) {
 			let who = ensure_signed(origin)?;
 
 			let _ = T::Currency::withdraw(

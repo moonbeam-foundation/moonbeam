@@ -1,0 +1,34 @@
+[package]
+name = 'moonbeam-rpc'
+description = 'RPC extensions for the moonbeam standalone and parachain nodes'
+homepage = 'https://moonbeam.network'
+license = 'GPL-3.0-only'
+version = '0.1.0'
+authors = ["PureStake"]
+edition = '2018'
+
+[dependencies]
+futures = { version = "0.3.1", features = ["compat"] }
+codec = { package = 'parity-scale-codec', version = '1.0.0' }
+serde = { version = "1.0.101", features = ["derive"] }
+serde_json = "1.0"
+jsonrpc-core = "14.2.0"
+jsonrpc-pubsub = "14.2.0"
+
+moonbeam-runtime = { path = "../../runtime" }
+
+sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-branch" }
+sp-api = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+sc-network = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+sc-rpc-api = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+sc-rpc = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+substrate-frame-rpc-system = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+pallet-transaction-payment-rpc = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+sc-consensus-manual-seal = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+
+frontier-rpc = { version = "0.1.0", git = "https://github.com/purestake/frontier", branch = "v0.3-hotfixes" }
+frontier-rpc-primitives = { version = "0.1.0", git = "https://github.com/purestake/frontier", branch = "v0.3-hotfixes" }

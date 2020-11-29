@@ -16,7 +16,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use sp_std::{prelude::*};
+use sp_std::{prelude::*, borrow::Cow};
 use sp_core::H160;
 use pallet_evm::{ExitError, ExitSucceed, Precompile};
 

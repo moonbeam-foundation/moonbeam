@@ -1,35 +1,40 @@
 name: Release
 
-on: ["push"]
+# Using a single file workflow is the preferred solution for our CI over workflow_runs.
+# 1. It generates only 1 action item in the list making it more readable
+# 2. It includes the PR/Commit text in the action item
+# 3. Artifacts are not available between workflows.
+
+# This is only allowing pushes on the moonbeam repo or pull request.
+# In the case of pull request, the CI executes the workflow from
+# the commit the **PR is merging into**. This prevents malicious attack trying
+# to change the CI in the PR.
+####### DO NOT CHANGE THIS !! #######
+on: ["push", "pull_request_target"]
 
 jobs:
-  get-variables:
-    runs-on: ubuntu-latest
-    outputs:
-      tag-version: ${{ steps.variables.outputs.version }}
-      tag-exists: ${{ steps.variables.outputs.tag-exists }}
-      tag-count: ${{ steps.variables.outputs.count }}
-      sha-8: ${{ steps.variables.outputs.sha-8 }}
-    steps:
-      - uses: actions/checkout@v2
-      - id: variables
-        run: |
-          echo ::set-output name=version::$(git tag -l | tail -n1 | cut -c2- )
-          echo ::set-output name=count::$(git tag -l | wc -l )
-          echo ${{ github.ref }}
-          echo ::set-output name=tag-exists::$(git describe --exact-match HEAD 2>/dev/null && echo 1 || echo 0)
-          echo ::set-output name=sha-8::$(git rev-parse HEAD | cut -c1-8)
-      - id: show-variables
-        run: |
-          echo tag-version: ${{ steps.variables.outputs.version }}
-          echo tag-exists: ${{ steps.variables.outputs.tag-exists }}
-          echo tag-count: ${{ steps.variables.outputs.count }}
-          echo sha-8: ${{ steps.variables.outputs.sha-8 }}
+  ####### Check files and formatting #######
 
   check-copyright:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v2
+        # by default the pull_requst_target event checks out the base branch, i.e. dev
+        # so we need to explicitly checkout the head of the PR
+        # we use fetch-depth 0 to make sure the full history is checked out and we can compare against
+        # the base commit (branch) of the PR
+        # more info https://github.community/t/github-actions-are-severely-limited-on-prs/18179/16
+        # we checkout merge_commit here as this contains all new code from dev also. we don't need to compare against base_commit
+        with:
+          fetch-depth: 0
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+          # repository: ${{github.event.pull_request.head.repo.full_name}}
+      - name: Checkout
+        # for non PR runs we just checkout the default, which is a sha on a branch probably
+        if: github.event_name != 'pull_request_target'
+        uses: actions/checkout@v2
       - name: Find un-copyrighted files
         run: |
           find . -name '*.rs' -exec grep  -H -E -o -c Copyright {} \; | grep ':0' || true
@@ -40,24 +45,87 @@ jobs:
             false
           fi
 
+  check-links:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+      - name: Checkout
+        if: github.event_name != 'pull_request_target'
+        uses: actions/checkout@v2
+      - uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-quiet-mode: "yes"
+
+  check-editorconfig:
+    name: "Check editorconfig"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+      - name: Checkout
+        if: github.event_name != 'pull_request_target'
+        uses: actions/checkout@v2
+      - name: Setup editorconfig checker
+        run: |
+          wget https://github.com/editorconfig-checker/editorconfig-checker/releases/download/2.1.0/ec-linux-amd64.tar.gz
+          tar xvf ec-linux-amd64.tar.gz
+          chmod +x bin/ec-linux-amd64
+      - name: Check files
+        run: bin/ec-linux-amd64
+
+  check-prettier:
+    name: "Check with Prettier"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+      - name: Checkout
+        if: github.event_name != 'pull_request_target'
+        uses: actions/checkout@v2
+      - name: Check with Prettier
+        run: npx prettier --check --ignore-path .gitignore  '**/*.(yml|js|ts|json)'
+
+  ####### Building and Testing binaries #######
+
   build:
     runs-on: ubuntu-latest
     outputs:
       RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
     steps:
-      - uses: actions/checkout@v2
-      # - name: Cache Rust dependencies
-      #   uses: actions/cache@v2
-      #   id: cache
-      #   with:
-      #     path: |
-      #       ~/.cargo/registry
-      #       ~/.cargo/git
-      #       target
-      #       node/standalone/target
-      #     key: ${{ runner.OS }}-build-${{ hashFiles('**/Cargo.lock') }}
-      #     restore-keys: |
-      #       ${{ runner.OS }}-build
+      - name: Checkout
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+      - name: Checkout
+        if: github.event_name != 'pull_request_target'
+        uses: actions/checkout@v2
+      - name: Cache Rust dependencies
+        uses: actions/cache@v2
+        id: cache
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+            node/standalone/target
+          key: ${{ runner.OS }}-build-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.OS }}-build
       - uses: actions-rs/toolchain@v1
         with:
           target: wasm32-unknown-unknown
@@ -74,13 +142,27 @@ jobs:
         run: |
           cd node/standalone
           cargo build --release --verbose --all
+      # We determine whether there are unmodified Cargo.lock files by:
+      # 1. Asking git for a list of all modified files
+      # 2. Using grep to reduce the list to only Cargo.lock files
+      # 3. Counting the number of lines of output
+      - name: Check Cargo Toml
+        run: |
+          FILECOUNT=$(git diff-index --name-only HEAD | grep Cargo.lock | wc -l)
+          if [[ $FILECOUNT -eq 0 ]]; then
+            echo "All lock files are valid"
+          else
+            echo "The following Cargo.lock files have uncommitted changes"
+            git diff-index --name-only HEAD | grep Cargo.lock
+            false
+          fi
       - name: Run tests
         run: cargo test --release --verbose --all
       - name: Typescript tests (against standalone node)
         run: |
           cd tests
           npm install
-          BINARY_PATH='../node/standalone/target/release/moonbase-standalone' npm run test;
+          npm run test;
       - name: Save parachain binary
         run: |
           mkdir -p build/alphanet
@@ -98,11 +180,15 @@ jobs:
           name: moonbase-standalone
           path: build/standalone
 
+  ####### Prepare and Deploy Docker images #######
+
   generate-parachain-specs:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     needs: build
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
           name: moonbase-alphanet
@@ -119,10 +205,11 @@ jobs:
 
   docker-parachain:
     runs-on: ubuntu-latest
-    needs: ["get-variables", "build", "generate-parachain-specs"]
-    if: needs.get-variables.outputs.tag-exists == 0 && github.event_name != 'pull_request'
+    needs: ["build", "generate-parachain-specs"]
+    if: github.event_name == 'push'
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
           name: moonbase-alphanet
@@ -189,10 +276,11 @@ jobs:
 
   docker-standalone:
     runs-on: ubuntu-latest
-    needs: ["get-variables", "build"]
-    if: needs.get-variables.outputs.tag-exists == 0 && github.event_name != 'pull_request'
+    needs: ["build"]
+    if: github.event_name == 'push'
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
           name: moonbase-standalone
@@ -257,15 +345,20 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
 
+  ####### Prepare the release draft #######
+
   publish-draft-release:
     runs-on: ubuntu-latest
     needs: ["build", "generate-parachain-specs"]
-    if: needs.get-tag-version.outputs.tag-exists == 1
+    if: |
+      github.event_name == 'push' &&
+      startsWith(github.ref, 'refs/tags/v')
     outputs:
       release_url: ${{ steps.create-release.outputs.html_url }}
       asset_upload_url: ${{ steps.create-release.outputs.upload_url }}
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
         with:
           fetch-depth: 0
           path: moonbeam
@@ -294,12 +387,17 @@ jobs:
   publish-runtimes:
     runs-on: ubuntu-latest
     needs: ["publish-draft-release"]
-    if: needs.get-tag-version.outputs.tag-exists == 1
+    # We want to store the binaries also when it is not a version release. This is used
+    # in case such as providing binaries when creating a new tutorial version.
+    if: |
+      github.event_name == 'push' &&
+      startsWith(github.ref, 'refs/tags/')
     strategy:
       matrix:
         runtime: ["moonbase-alphanet"]
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
           name: moonbase-alphanet
@@ -358,50 +456,3 @@ jobs:
           asset_path: build/alphanet/${{ matrix.runtime }}-genesis.txt
           asset_name: ${{ matrix.runtime }}-genesis.txt
           asset_content_type: text/plain
-
-  check-links:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: gaurav-nelson/github-action-markdown-link-check@v1
-        with:
-          use-quiet-mode: "yes"
-
-  check-editorconfig:
-    name: "Check editorconfig"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Setup editorconfig checker
-        run: |
-          wget https://github.com/editorconfig-checker/editorconfig-checker/releases/download/2.1.0/ec-linux-amd64.tar.gz
-          tar xvf ec-linux-amd64.tar.gz
-          chmod +x bin/ec-linux-amd64
-      - name: Check files
-        run: bin/ec-linux-amd64
-
-  check-prettier:
-    name: "Check with Prettier"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Check with Prettier
-        run: npx prettier --check --ignore-path .gitignore  **.json **.js **.ts **.yml
-
-  check-cargo-toml:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      # We determine whether there are unmodified Cargo.lock files by:
-      # 1. Asking git for a list of all modified files
-      # 2. Using grep to reduce the list to only Cargo.lock files
-      # 3. Counting the number of lines of output
-      - run: |
-          FILECOUNT=$(git diff-index --name-only HEAD | grep Cargo.lock | wc -l)
-          if [[ $FILECOUNT -eq 0 ]]; then
-            echo "All lock files are valid"
-          else
-            echo "The following Cargo.lock files have uncommitted changes"
-            git diff-index --name-only HEAD | grep Cargo.lock
-            false
-          fi

@@ -4,11 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha -r ts-node/register 'tests/**/*.ts'"
+    "generate-specs": "cd .. && scripts/generate-test-specs.sh",
+    "test-only": "mocha -r ts-node/register 'tests/**/*.ts'",
+    "test": "npm run generate-specs && npm run test-only"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@polkadot/api": "^2.4.1",
     "@types/chai": "^4.2.11",
     "@types/mocha": "^8.0.0",
     "chai": "^4.2.0",

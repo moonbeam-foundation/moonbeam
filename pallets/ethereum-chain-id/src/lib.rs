@@ -14,16 +14,28 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Substrate Node Template CLI library.
-#![warn(missing_docs)]
+//! Minimal Pallet that stores the numeric Ethereum-style chain id in the runtime.
 
-mod chain_spec;
-#[macro_use]
-mod service;
-mod cli;
-mod command;
-mod mock_timestamp;
+#![cfg_attr(not(feature = "std"), no_std)]
 
-fn main() -> sc_cli::Result<()> {
-	command::run()
+use frame_support::{decl_module, decl_storage, traits::Get};
+
+
+/// Configuration trait of this pallet.
+pub trait Trait: frame_system::Trait {}
+
+impl <T: Trait> Get<u64> for Module<T> {
+	fn get() -> u64 {
+		Self::chain_id()
+	}
+}
+
+decl_storage! {
+	trait Store for Module<T: Trait> as MoonbeamChainId {
+		ChainId get(fn chain_id) config(): u64 = 43;
+	}
+}
+
+decl_module! {
+	pub struct Module<T: Trait> for enum Call where origin: T::Origin {}
 }

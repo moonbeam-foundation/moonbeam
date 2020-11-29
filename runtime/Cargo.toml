@@ -14,6 +14,8 @@ log = "0.4.8"
 hex-literal = "0.3.1"
 
 precompiles = { path = "precompiles/", default-features = false }
+account = { path = "account/", default-features = false }
+pallet-ethereum-chain-id = { path = "../pallets/ethereum-chain-id", default-features = false }
 
 # Substrate dependencies
 pallet-aura = { git = "https://github.com/paritytech/substrate.git", default-features = false, branch = "master", optional = true }
@@ -40,13 +42,13 @@ pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", 
 
 frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
-pallet-evm = { git = "https://github.com/joshorndorff/pallet-evm.git", default-features = false, branch = "master" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "master" }
 
 sp-consensus-aura = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master", optional = true }
 pallet-grandpa = { default-features = false, package = "pallet-grandpa", git = "https://github.com/paritytech/substrate.git", branch = "master", optional = true }
 
-frontier-rpc-primitives = { default-features = false, git = "https://github.com/purestake/frontier", branch = "joshy-parachains-v1" }
-pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "joshy-parachains-v1" }
+frontier-rpc-primitives = { default-features = false, git = "https://github.com/purestake/frontier", branch = "master" }
+pallet-ethereum = { default-features = false, package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "master" }
 
 
 # Cumulus dependencies
@@ -100,6 +102,7 @@ std = [
 	"frontier-rpc-primitives/std",
 	"frame-system-rpc-runtime-api/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
+	"pallet-ethereum-chain-id/std",
 
 	# TODO These dependencies are only necessary when building without the standalone feature. I don't
 	# see a way to express that. Everything is correct, like this, but we unnecessarily build these
@@ -117,6 +120,7 @@ std = [
 	# unnecessarily build these dependencies when building the parachain runtime.
 	"pallet-aura/std",
 	"pallet-grandpa/std",
+	"account/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.

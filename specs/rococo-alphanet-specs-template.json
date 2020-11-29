@@ -5,7 +5,9 @@
   "bootNodes": [],
   "telemetryEndpoints": null,
   "protocolId": "dot",
-  "properties": null,
+  "properties": {
+    "tokenDecimals": 18
+  },
   "consensusEngine": null,
   "lightSyncState": null,
   "genesis": {
@@ -22,12 +24,22 @@
       },
       "palletBalances": {
         "balances": [
-          ["1uV7ZJDW37CHeiWFppogK5JsV59tUrbuf1PcaDW5cTE1DHG", 100000000000000000000],
-          ["14dmc8KjuXgKrmrBneJdpTZQhjStJoWnVipAhf2vcwcMWRBM", 100000000000000000000],
-          ["16S1pBxHVpbHZE5DacwucvzXo3T6vDi9nsrTdwFvo3Vmm2xL", 100000000000000000000],
-          ["5GshoQVQ1xc9Abr4LcJdf5vr6c8ixXxNTSya8yeqV8xeQwsE", 100000000000000000000],
-          ["152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L", 100000000000000000000],
-          ["145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5", 100000000000000000000]
+          [
+            "1uV7ZJDW37CHeiWFppogK5JsV59tUrbuf1PcaDW5cTE1DHG",
+            100000000000000000000
+          ],
+          [
+            "14dmc8KjuXgKrmrBneJdpTZQhjStJoWnVipAhf2vcwcMWRBM",
+            100000000000000000000
+          ],
+          [
+            "16S1pBxHVpbHZE5DacwucvzXo3T6vDi9nsrTdwFvo3Vmm2xL",
+            100000000000000000000
+          ],
+          [
+            "5GshoQVQ1xc9Abr4LcJdf5vr6c8ixXxNTSya8yeqV8xeQwsE",
+            100000000000000000000
+          ]
         ]
       },
       "palletStaking": {
