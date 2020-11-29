@@ -33,6 +33,7 @@ use sp_runtime::traits::BlakeTwo256;
 use sp_block_builder::BlockBuilder;
 use sc_network::NetworkService;
 use jsonrpc_pubsub::manager::SubscriptionManager;
+use frontier_rpc::{EthSigner, EthDevSigner};
 
 /// Light client extra dependencies.
 pub struct LightDeps<C, F, P> {
@@ -56,6 +57,8 @@ pub struct FullDeps<C, P> {
 	pub deny_unsafe: DenyUnsafe,
 	/// The Node authority flag
 	pub is_authority: bool,
+	/// Whether to enable dev signer
+	pub enable_dev_signer: bool,
 	/// Network service
 	pub network: Arc<NetworkService<Block, Hash>>,
 	/// Manual seal command sink
@@ -91,7 +94,8 @@ pub fn create_full<C, P, BE>(
 		deny_unsafe,
 		is_authority,
 		network,
-		command_sink
+		command_sink,
+		enable_dev_signer,
 	} = deps;
 
 	io.extend_with(
@@ -100,18 +104,25 @@ pub fn create_full<C, P, BE>(
 	io.extend_with(
 		TransactionPaymentApi::to_delegate(TransactionPayment::new(client.clone()))
 	);
+
+	let mut signers = Vec::new();
+	if enable_dev_signer {
+		signers.push(Box::new(EthDevSigner::new()) as Box<dyn EthSigner>);
+	}
 	io.extend_with(
 		EthApiServer::to_delegate(EthApi::new(
 			client.clone(),
 			pool.clone(),
 			moonbeam_runtime::TransactionConverter,
 			network.clone(),
+			signers,
 			is_authority,
 		))
 	);
 	io.extend_with(
 		NetApiServer::to_delegate(NetApi::new(
 			client.clone(),
+			network.clone(),
 		))
 	);
 	io.extend_with(
