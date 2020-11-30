@@ -44,26 +44,13 @@
       },
       "palletStaking": {
         "historyDepth": 84,
-        "validatorCount": 2,
+        "validatorCount": 0,
         "minimumValidatorCount": 0,
         "invulnerables": [],
         "forceEra": "NotForcing",
         "slashRewardFraction": 0,
         "canceledPayout": 0,
-        "stakers": [
-          [
-            "152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L",
-            "152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L",
-            10000000000000000,
-            "Validator"
-          ],
-          [
-            "145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5",
-            "145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5",
-            10000000000000000,
-            "Validator"
-          ]
-        ]
+        "stakers": []
       },
       "palletSession": {
         "keys": [
@@ -118,29 +105,36 @@
           "acceptance_period": 1200,
           "max_code_size": 5242880,
           "max_head_data_size": 32768,
+          "max_pov_size": 52428800,
           "parathread_cores": 0,
           "parathread_retries": 0,
           "group_rotation_frequency": 10,
           "chain_availability_period": 0,
           "thread_availability_period": 0,
           "scheduling_lookahead": 0,
-          "max_upward_queue_count": 0,
-          "max_upward_queue_size": 0,
-          "max_downward_message_size": 0,
-          "preferred_dispatchable_upward_messages_step_weight": 0,
-          "max_upward_message_size": 0,
-          "max_upward_message_num_per_candidate": 0,
-          "hrmp_open_request_ttl": 0,
+          "dispute_period": 0,
+          "no_show_slots": 0,
+          "n_delay_tranches": 0,
+          "zeroth_delay_tranche_width": 0,
+          "needed_approvals": 0,
+          "relay_vrf_modulo_samples": 0,
+          "max_upward_queue_count": 8,
+          "max_upward_queue_size": 8192,
+          "max_downward_message_size": 1024,
+          "preferred_dispatchable_upward_messages_step_weight": 4000000000,
+          "max_upward_message_size": 1024,
+          "max_upward_message_num_per_candidate": 5,
+          "hrmp_open_request_ttl": 5,
           "hrmp_sender_deposit": 0,
           "hrmp_recipient_deposit": 0,
-          "hrmp_channel_max_capacity": 0,
-          "hrmp_channel_max_total_size": 0,
-          "hrmp_max_parachain_inbound_channels": 0,
-          "hrmp_max_parathread_inbound_channels": 0,
-          "hrmp_channel_max_message_size": 0,
-          "hrmp_max_parachain_outbound_channels": 0,
-          "hrmp_max_parathread_outbound_channels": 0,
-          "hrmp_max_message_num_per_candidate": 0
+          "hrmp_channel_max_capacity": 8,
+          "hrmp_channel_max_total_size": 8192,
+          "hrmp_max_parachain_inbound_channels": 4,
+          "hrmp_max_parathread_inbound_channels": 4,
+          "hrmp_channel_max_message_size": 1024,
+          "hrmp_max_parachain_outbound_channels": 4,
+          "hrmp_max_parathread_outbound_channels": 4,
+          "hrmp_max_message_num_per_candidate": 5
         }
       },
       "palletSudo": {

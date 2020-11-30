@@ -87,7 +87,6 @@ docker run \
   -p $((RELAY_PORT + 1)):$((RELAY_PORT + 1)) \
   -p $((RELAY_PORT + 2)):$((RELAY_PORT + 2)) \
   -it purestake/moonbase-relay-testnet:$POLKADOT_VERSION \
-  /usr/local/bin/polkadot \
     --chain /$POLKADOT_SPEC_RAW \
     --node-key ${NODE_KEYS[$RELAY_INDEX]} \
     $RELAY_BASE_PATH \

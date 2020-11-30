@@ -5,7 +5,9 @@ LABEL maintainer "alan@purestake.com"
 LABEL description="This is the build stage for Polkadot. Here we create the binary."
 
 ARG PROFILE=release
-WORKDIR /moonbeam
+ARG POLKADOT_COMMIT=master
+RUN echo "Using polkadot ${POLKADOT_COMMIT}"
+WORKDIR /
 
 # Install OS dependencies
 RUN apt-get update && \
@@ -14,9 +16,9 @@ RUN apt-get update && \
 
 # Grab the Polkadot Code
 # TODO how to grab the correct commit from the lock file?
-RUN git clone https://github.com/paritytech/polkadot && \
-	git checkout 0d3218665039dc0a5935964299cd4333026423d5
-
+RUN git clone https://github.com/paritytech/polkadot
+WORKDIR /polkadot
+RUN git checkout ${POLKADOT_COMMIT}
 
 # Download rust dependencies and build the rust binary
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
@@ -30,7 +32,7 @@ FROM phusion/baseimage:0.11
 LABEL maintainer "alan@purestake.com"
 LABEL description="Polkadot for Moonbeam Alphanet Relay Chain"
 ARG PROFILE=release
-COPY --from=builder /moonbeam/target/$PROFILE/polkadot /usr/local/bin
+COPY --from=builder /polkadot/target/$PROFILE/polkadot /usr/local/bin
 
 RUN mv /usr/share/ca* /tmp && \
 	rm -rf /usr/share/*  && \
