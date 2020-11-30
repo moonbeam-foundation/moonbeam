@@ -49,28 +49,18 @@ describeWithMoonbeam("Frontier RPC (Constructor Revert)", `simple-specs.json`, (
     });
 
     // Verify the receipt exists after the block is created
-    //TODO Actually, why doesn't this receipt have a status in it?
-    // I guess because the RPC handler in eth.rs sets `status_code: None`??
     await createAndFinalizeBlock(context.web3);
-    expect(
-      await customRequest(context.web3, "eth_getTransactionReceipt", [GOOD_TX_HASH])
-    ).to.deep.equal({
-      id: 1,
-      jsonrpc: "2.0",
-      result: {
-        blockHash: "0x4f8ae51b3c94d2969622e16c8c42382ab1ae86a396ec7710dc96e9a19a7bef09",
-        blockNumber: "0x1",
-        contractAddress: "0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a",
-        cumulativeGasUsed: "0x1069f",
-        from: "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b",
-        gasUsed: "0x1069f",
-        logs: [],
-        logsBloom: `0x${"0".repeat(512)}`,
-        root: "0x0000000000000000000000000000000000000000000000000000000000000000",
-        to: null,
-        transactionHash: GOOD_TX_HASH,
-        transactionIndex: "0x0",
-      },
+    const receipt = await context.web3.eth.getTransactionReceipt(GOOD_TX_HASH);
+    expect(receipt).to.include({
+      blockNumber: 1,
+      contractAddress: '0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a',
+      cumulativeGasUsed: 67231,
+      from: '0x6be02d1d3665660d22ff9624b7be0551ee1ac91b',
+      gasUsed: 67231,
+      to: null,
+      transactionHash: GOOD_TX_HASH,
+      transactionIndex: 0,
+      status: true
     });
   });
 
@@ -99,25 +89,17 @@ describeWithMoonbeam("Frontier RPC (Constructor Revert)", `simple-specs.json`, (
     });
 
     await createAndFinalizeBlock(context.web3);
-    expect(
-      await customRequest(context.web3, "eth_getTransactionReceipt", [FAIL_TX_HASH])
-    ).to.deep.equal({
-      id: 1,
-      jsonrpc: "2.0",
-      result: {
-        blockHash: "0x04949e1d949d2d60767a62b1cac172bf0d7c90013943de68ab42ce376c3fbf6d",
-        blockNumber: "0x2",
-        contractAddress: "0x5c4242beb94de30b922f57241f1d02f36e906915",
-        cumulativeGasUsed: "0xd548",
-        from: "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b",
-        gasUsed: "0xd548",
-        logs: [],
-        logsBloom: `0x${"0".repeat(512)}`,
-        root: "0x0000000000000000000000000000000000000000000000000000000000000000",
-        to: null,
-        transactionHash: FAIL_TX_HASH,
-        transactionIndex: "0x0",
-      },
+    const receipt = await context.web3.eth.getTransactionReceipt(FAIL_TX_HASH);
+    expect(receipt).to.include({
+      blockNumber: 2,
+      contractAddress: '0x5c4242beB94dE30b922f57241f1D02f36e906915',
+      cumulativeGasUsed: 54600,
+      from: '0x6be02d1d3665660d22ff9624b7be0551ee1ac91b',
+      gasUsed: 54600,
+      to: null,
+      transactionHash: FAIL_TX_HASH,
+      transactionIndex: 0,
+      status: false
     });
   });
 });
