@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use ansi_term::Color;
 use cumulus_network::build_block_announce_validator;
 use cumulus_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
@@ -22,7 +21,6 @@ use cumulus_service::{
 use polkadot_primitives::v0::CollatorPair;
 use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
-use sc_informant::OutputFormat;
 use sc_service::{Configuration, PartialComponents, Role, TFullBackend, TFullClient, TaskManager};
 use sp_core::Pair;
 use sp_runtime::traits::BlakeTwo256;
@@ -148,17 +146,6 @@ where
 
 	let polkadot_full_node =
 		cumulus_service::build_polkadot_full_node(polkadot_config, collator_key.public())?;
-
-	// Cumulus test collator does not have these. Maybe they're no longer necessary.
-	// But we want color, so I'll keep these for now in case they're necessary.
-	// parachain_config.informant_output_format = OutputFormat {
-	// 	enable_color: true,
-	// 	prefix: format!("[{}] ", Color::Yellow.bold().paint("Parachain")),
-	// };
-	// polkadot_config.informant_output_format = OutputFormat {
-	// 	enable_color: true,
-	// 	prefix: format!("[{}] ", Color::Blue.bold().paint("Relaychain")),
-	// };
 
 	let params = new_partial(&parachain_config)?;
 	params
