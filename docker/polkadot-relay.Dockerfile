@@ -15,6 +15,7 @@ RUN apt-get update && \
 # Grab the Polkadot Code
 # TODO how to grab the correct commit from the lock file?
 RUN git clone https://github.com/paritytech/polkadot && \
+	cd polkadot && \
 	git checkout 0d3218665039dc0a5935964299cd4333026423d5
 
 
