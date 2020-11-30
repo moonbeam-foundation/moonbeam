@@ -206,7 +206,7 @@ where
 				pool: pool.clone(),
 				deny_unsafe,
 				is_authority,
-				enable_dev_signer: false, // Just disable this for now. If we want it, wire it through to the CLI.
+				enable_dev_signer: false, // Disable dev signer for now. Maybe later, wire it to the CLI.
 				network: network.clone(),
 				command_sink: None,
 			};

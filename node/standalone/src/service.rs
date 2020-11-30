@@ -133,8 +133,8 @@ pub fn new_partial(config: &Configuration, manual_seal: bool) -> Result<
 	)?;
 
 	Ok(sc_service::PartialComponents {
-		client, backend, task_manager, import_queue, keystore_container, select_chain, transaction_pool,
-		inherent_data_providers,
+		client, backend, task_manager, import_queue, keystore_container, select_chain,
+		transaction_pool, inherent_data_providers,
 		other: ConsensusResult::Aura(aura_block_import, grandpa_link)
 	})
 }
@@ -145,8 +145,8 @@ pub fn new_full(
 	manual_seal: bool,
 ) -> Result<TaskManager, ServiceError> {
 	let sc_service::PartialComponents {
-		client, backend, mut task_manager, import_queue, keystore_container, select_chain, transaction_pool,
-		inherent_data_providers,
+		client, backend, mut task_manager, import_queue, keystore_container, select_chain,
+		transaction_pool, inherent_data_providers,
 		other: consensus_result
 	} = new_partial(&config, manual_seal)?;
 
@@ -208,7 +208,7 @@ pub fn new_full(
 				pool: pool.clone(),
 				deny_unsafe,
 				is_authority,
-				enable_dev_signer: false, // Disable dev signer for now. If we want it later, wire it to the CLI.
+				enable_dev_signer: false, // Disable dev signer for now. Maybe later, wire it to the CLI.
 				network: network.clone(),
 				command_sink: Some(command_sink.clone())
 			};
