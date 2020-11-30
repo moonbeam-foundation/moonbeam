@@ -187,7 +187,8 @@ pub fn new_full(
 
 	let role = config.role.clone();
 	let force_authoring = config.force_authoring;
-	let backoff_authoring_blocks: Option<()> = None; //TODO what is this, and do we want it?
+	// Don't backoff authoring. See https://github.com/paritytech/substrate/pull/7186 for details
+	let backoff_authoring_blocks: Option<()> = None;
 	let name = config.network.node_name.clone();
 	let enable_grandpa = !config.disable_grandpa;
 	let prometheus_registry = config.prometheus_registry().cloned();
@@ -207,7 +208,7 @@ pub fn new_full(
 				pool: pool.clone(),
 				deny_unsafe,
 				is_authority,
-				enable_dev_signer: false, // Just disable this for now. If we want it, wire it through to the CLI.
+				enable_dev_signer: false, // Disable dev signer for now. If we want it later, wire it to the CLI.
 				network: network.clone(),
 				command_sink: Some(command_sink.clone())
 			};
