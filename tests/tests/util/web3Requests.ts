@@ -58,6 +58,7 @@ export async function createAndFinalizeBlock(web3: Web3): Promise<number> {
       true,
       null,
     ]);
+    console.log('res finalized block',response)
     if (response.error) {
       console.log("error during block creation");
       throw new Error(`Unexpected result: ${JSON.stringify(response)}`);
@@ -92,26 +93,35 @@ export async function deployContractManualSeal(
   return new web3.eth.Contract(contractABI, rcpt.contractAddress);
 }
 
+interface FnCallOptions {
+  account?: string;
+  privateKey?: string;
+  gas?: string;
+}
+
+// Call a function from a contract instance using manual seal
 export async function callContractFunctionMS(
   web3: Web3,
   contractAddress: string,
   bytesCode: string,
-  account: string = GENESIS_ACCOUNT,
-  privateKey: string = GENESIS_ACCOUNT_PRIVATE_KEY
+  options?: FnCallOptions
 ) {
-  try{
+  try {
     const contractCall = {
-      from: account,
+      from: options && options.account ? options.account : GENESIS_ACCOUNT,
       to: contractAddress,
       data: bytesCode,
       gasPrice: "0x01",
-      gas: "0x100000",
+      gas: options && options.gas ? options.gas : "0x100000",
     };
-    const txCall = await web3.eth.accounts.signTransaction(contractCall, privateKey);
-    await customRequest(web3, "eth_sendRawTransaction", [txCall.rawTransaction]);
+    const txCall = await web3.eth.accounts.signTransaction(
+      contractCall,
+      options && options.privateKey ? options.privateKey : GENESIS_ACCOUNT_PRIVATE_KEY
+    );
+    console.log('custReq resp',await customRequest(web3, "eth_sendRawTransaction", [txCall.rawTransaction]));
     return await createAndFinalizeBlock(web3);
-  } catch(e){
-    console.log('error caught during callContractFunctionMS',e)
-    throw new Error(e)
+  } catch (e) {
+    console.log("error caught during callContractFunctionMS", e);
+    throw new Error(e);
   }
 }

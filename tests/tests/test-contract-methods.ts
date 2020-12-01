@@ -61,6 +61,9 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
   });
 
   it.only("should increment contract state", async function () {
+    console.log('HANDLE REVERT',context.web3.eth.handleRevert)
+    context.web3.eth.handleRevert=true
+    console.log('HANDLE REVERT 2',context.web3.eth.handleRevert)
     // // instantiate contract
     const contract = await deployContractManualSeal(
       context.web3,
@@ -73,38 +76,33 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
 
     // call incr function
     let bytesCode: string = await contract.methods.incr().encodeABI();
-    await callContractFunctionMS (context.web3,contract.options.address,bytesCode)
+    await callContractFunctionMS(context.web3, contract.options.address, bytesCode);
 
     // check variable incrementation
     expect(await contract.methods.count().call()).to.eq("1");
   });
 
-  it.skip("inifinite loop", async function () {
+  it.only("inifinite loop", async function () {
     this.timeout(0);
 
-    // get nonce
-    let nonce: number = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
-
     //deploy infinite contract
-    const contract = await deployContractManualSeal(
-      context.web3,
-      INFINITE_CONTRACT_BYTECODE,
-      [INFINITE_CONTRACT_ABI]
-    );
+    const contract = await deployContractManualSeal(context.web3, INFINITE_CONTRACT_BYTECODE, [
+      INFINITE_CONTRACT_ABI,
+    ]);
 
     //make infinite loop function call
-    let bytesCode: string = await contract.methods.infinite().encodeABI();
-    await callContractFunctionMS (context.web3,contract.options.address,bytesCode)
+    // let bytesCode: string = await contract.methods.infinite().encodeABI();
+    // await callContractFunctionMS(context.web3, contract.options.address, bytesCode);
     // TODO: this should throw an error
 
-    // await contract.methods
-    //   .infinite()
-    //   .call()
-    //   .catch((err) =>
-    //     expect(err.message).to.equal(
-    //       `Returned error: evm error: OutOfGas`
-    //     )
-    //   );
+    await contract.methods
+      .infinite()
+      .call({gas:10000})
+      .catch((err) =>
+        expect(err.message).to.equal(
+          `Returned error: evm error: OutOfGas`
+        )
+      );
     // try{
     //   await contract.methods.infinite().call()
     // } catch(e){
@@ -126,7 +124,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
     //make infinite loop function call
     let bytesCode: string = await contract.methods.infinite().encodeABI();
     try {
-      await callContractFunctionMS (context.web3,contract.options.address,bytesCode)
+      await callContractFunctionMS(context.web3, contract.options.address, bytesCode);
       let block = await context.web3.eth.getBlock("latest");
       console.log(block);
       console.log("data", await contract.methods.data().call());
@@ -136,7 +134,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
     // TODO: this should throw an error
   });
 
-  it.only("finite loop with incr: check gas usage", async function () {
+  it.skip("finite loop with incr: check gas usage, with normal gas limit", async function () {
     this.timeout(0);
 
     //deploy finite loop contract
@@ -150,22 +148,8 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
     async function callLoopIncrContract(nb: number): Promise<number> {
       const startIncr: number = Number(await contract.methods.count().call());
       const bytesCode: string = await contract.methods.incr(nb).encodeABI();
-      const contractCall = {
-        from: GENESIS_ACCOUNT,
-        data: bytesCode,
-        to: contract.options.address,
-        gasPrice: "0x01",
-        gas: "0x100000", //gas: "0x100000", //TODO: exceeding the gas limit should throw some kind of error //todo test with and without gas limit
-      };
-      const txCall = await context.web3.eth.accounts.signTransaction(
-        contractCall,
-        GENESIS_ACCOUNT_PRIVATE_KEY
-      );
       try {
-        let res = await customRequest(context.web3, "eth_sendRawTransaction", [
-          txCall.rawTransaction,
-        ]);
-        await createAndFinalizeBlock(context.web3);
+        await callContractFunctionMS(context.web3, contract.options.address, bytesCode);
         return Number(await contract.methods.count().call()) - startIncr;
       } catch (e) {
         console.log("error caught", e);
@@ -212,11 +196,96 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
     // expect(await callLoopIncrContract(700)).to.eq(700);
     // block = await context.web3.eth.getBlock("latest");
     // console.log("700 block gas used", block);
-    let i=await callLoopIncrContract(700)
+    let i = await callLoopIncrContract(700);
     block = await context.web3.eth.getBlock("latest");
     console.log("700 block gas used", block.gasUsed);
-    console.log('receipt',await context.web3.eth.getTransactionReceipt(block.transactions[0]))
+    console.log("receipt", await context.web3.eth.getTransactionReceipt(block.transactions[0]));
     expect(i).to.eq(700);
+
+    // //1000 loop
+    // expect(await callLoopIncrContract(1000)).to.eq(1000)
+    // block = await context.web3.eth.getBlock("latest");
+    // console.log('block gas used',block.gasUsed);
+
+    // // 10 000 loop
+    // expect(await callLoopIncrContract(10000)).to.eq(10000)
+    // block = await context.web3.eth.getBlock("latest");
+    // console.log('block gas used',block.gasUsed);
+
+    // // 1000 000 loop
+    // expect(await callLoopIncrContract(1000000)).to.eq(1000000)
+    // block = await context.web3.eth.getBlock("latest");
+    // console.log('1000 000 block gas used',block.gasUsed);
+  });
+
+  it.skip("finite loop with incr: check gas usage, with gas limit>block limit", async function () {
+    this.timeout(0);
+    console.log('HANDLE REVERT 3',context.web3.eth.handleRevert)
+
+    //deploy finite loop contract
+    const contract = await deployContractManualSeal(
+      context.web3,
+      FINITE_LOOP_CONTRACT_BYTECODE,
+      FINITE_LOOP_CONTRACT_ABI
+    );
+
+    //make finite loop function call
+    async function callLoopIncrContract(nb: number): Promise<number> {
+      const startIncr: number = Number(await contract.methods.count().call());
+      const bytesCode: string = await contract.methods.incr(nb).encodeABI();
+      try {
+        console.log('callContractFunctionMS res',await callContractFunctionMS(context.web3, contract.options.address, bytesCode,{gas:"0x1000000000000000"}));
+        return Number(await contract.methods.count().call()) - startIncr;
+      } catch (e) {
+        console.log("error caught", e);
+      }
+    }
+    // 1 loop
+   // expect(await callLoopIncrContract(1)).to.eq(1);
+    let block = await context.web3.eth.getBlock("latest");
+    console.log("1 block gas used", block.gasUsed);
+
+    // // 10 loop
+    // expect(await callLoopIncrContract(10)).to.eq(10)
+    // block = await context.web3.eth.getBlock("latest");
+    // console.log('10 block gas used',block.gasUsed);
+
+    // // 20 loop
+    // expect(await callLoopIncrContract(20)).to.eq(20)
+    // block = await context.web3.eth.getBlock("latest");
+    // console.log('10 block gas used',block.gasUsed);
+
+    // // 100 loop
+    // expect(await callLoopIncrContract(100)).to.eq(100)
+    // block = await context.web3.eth.getBlock("latest");
+    // console.log('100 block gas used',block.gasUsed);
+
+    // // 200 loop
+    // expect(await callLoopIncrContract(200)).to.eq(200)
+    // block = await context.web3.eth.getBlock("latest");
+    // console.log('200 block gas used',block.gasUsed);
+
+    // // 500 loop
+    // expect(await callLoopIncrContract(500)).to.eq(500)
+    // block = await context.web3.eth.getBlock("latest");
+    // console.log('500 block gas used',block.gasUsed);
+
+    // // 600 loop
+    // expect(await callLoopIncrContract(600)).to.eq(600)
+    // block = await context.web3.eth.getBlock("latest");
+    // console.log('600 block gas used',block.gasUsed);
+    console.log(
+      "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+    );
+    // 700 loop
+    // expect(await callLoopIncrContract(700)).to.eq(700);
+    // block = await context.web3.eth.getBlock("latest");
+    // console.log("700 block gas used", block);
+    let i = await callLoopIncrContract(100000);
+    block = await context.web3.eth.getBlock("latest");
+    console.log("100000 block gas used", block.gasUsed);
+    console.log("receipt", await context.web3.eth.getTransactionReceipt(block.transactions[0]));
+    expect(i).to.eq(100000);
 
     // //1000 loop
     // expect(await callLoopIncrContract(1000)).to.eq(1000)

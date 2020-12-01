@@ -9,10 +9,10 @@ export {
   INFINITE_CONTRACT_BYTECODE_VAR,
   INFINITE_CONTRACT_ABI_VAR,
   FINITE_LOOP_CONTRACT_BYTECODE,
-  FINITE_LOOP_CONTRACT_ABI
+  FINITE_LOOP_CONTRACT_ABI,
 } from "./testContracts";
 
-export {basicTransfertx,contractCreation } from './transactionConfigs'
+export { basicTransfertx, contractCreation } from "./transactionConfigs";
 
 export const PORT = 19931;
 export const RPC_PORT = 19932;
@@ -32,7 +32,6 @@ export const GENESIS_ACCOUNT_PRIVATE_KEY =
   "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
 export const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
 
-
 // TESTING NOTES
 //
 // BLOCK TESTING
@@ -48,7 +47,13 @@ export const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
 // - the state remains unchanged tho (test with infinite incremental contract)
 //
 // FINITE LOOP
-// - making a 1000 loop incr on a smart contract doesnt pass but doesnt throw error either
+// - making a 1000 loop incr on a smart contract doesnt pass but doesnt throw error either (although it does include the tx in a block)
 // => is there a problem with out of gas error
 // =>probably because we don't have the concept of gas?
 // - posting a tx that goes over the gas limit/tx does throw an out of gas error in the debug log but not in js
+
+//NB: https://github.com/paritytech/frontier/blob/master/frame/ethereum/src/lib.rs show that root=0 when error is thrown,
+//which is something we can see when fethcing receipt
+// also the current block limit is zero
+
+// Should I test without manual seal?
