@@ -1,0 +1,23 @@
+# If the author of the issues is not a contributor to the project, label
+# the issue with 'Z0-unconfirmed'
+
+name: Check required labels
+on:
+  pull_request:
+    types: [opened, labeled, unlabeled, synchronize]
+
+jobs:
+  check-required-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Changelog labels
+        uses: NathanielHill/check-pr-label-action@v4.0.0
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+          valid-labels: "B0-silent, B3-apinoteworthy, B5-clientnoteworthy, B7-runtimenoteworthy"
+
+      - name: Check Criticality labels
+        uses: NathanielHill/check-pr-label-action@v4.0.0
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+          valid-labels: "C1-low, C3-medium, C7-high, C9-critical"
