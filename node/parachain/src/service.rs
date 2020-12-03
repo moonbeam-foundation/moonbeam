@@ -27,7 +27,6 @@ use sc_service::{Configuration, PartialComponents, Role, TFullBackend, TFullClie
 use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
 use std::sync::Arc;
-use sc_consensus::LongestChain;
 use sc_client_db::Backend;
 use frontier_consensus::FrontierBlockImport;
 use moonbeam_runtime::{RuntimeApi, opaque::Block};
@@ -51,10 +50,7 @@ pub fn new_partial(
 	PartialComponents<
 		FullClient,
 		FullBackend,
-		LongestChain<
-			Backend<Block>,
-			Block
-		>,
+		(),
 		sp_consensus::import_queue::BasicQueue<
 			Block,
 			PrefixedMemoryDB<BlakeTwo256>,
@@ -79,7 +75,6 @@ pub fn new_partial(
 		Executor,
 	>(&config)?;
 	let client = Arc::new(client);
-	let select_chain = sc_consensus::LongestChain::new(backend.clone());
 
 	let registry = config.prometheus_registry();
 
@@ -113,7 +108,7 @@ pub fn new_partial(
 		task_manager,
 		transaction_pool,
 		inherent_data_providers,
-		select_chain: select_chain,
+		select_chain: (),
 		other: frontier_block_import,
 	};
 
