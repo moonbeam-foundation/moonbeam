@@ -49,16 +49,20 @@ export const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
 // It does say however, 8182/20480kB ready, 819/2048kB future and I’m not sure what that means
 //
 // INFINITE LOOP
-// - infinite loop contract should throw out of gas error, but they don't and they are included in the block.
+// - infinite loop contract should throw out of gas error, but they don't and
+// they are included in the block.
 // - there are some rpc errors sometimes
 // - the state remains unchanged tho (test with infinite incremental contract)
 //
 // FINITE LOOP
-// - making a 1000 loop incr on a smart contract doesnt pass but doesnt throw error either (although it does include the tx in a block)
+// - making a 1000 loop incr on a smart contract doesnt pass but doesnt throw
+// error either (although it does include the tx in a block)
 // => is there a problem with out of gas error
 // =>probably because we don't have the concept of gas?
-// - posting a tx that goes over the gas limit/tx does throw an out of gas error in the debug log but not in js
+// - posting a tx that goes over the gas limit/tx does throw an out of gas error
+//  in the debug log but not in js
 
-//NB: https://github.com/paritytech/frontier/blob/master/frame/ethereum/src/lib.rs show that root=0 when error is thrown,
+//NB: https://github.com/paritytech/frontier/blob/master/frame/ethereum/src/lib.rs
+// show that root=0 when error is thrown,
 //which is something we can see when fethcing receipt
 // also the current block limit is zero

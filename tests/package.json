@@ -22,7 +22,5 @@
     "typescript": "^3.9.6",
     "web3": "^1.2.9"
   },
-  "devDependencies": {
-    "@openzeppelin/test-helpers": "^0.5.9"
-  }
+  "devDependencies": {}
 }
