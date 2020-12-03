@@ -149,9 +149,11 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     expect(txPassedFirstBlock).to.eq(1000);
   });
 
-  // 8192 is the number of tx that can be sent to the Pool before it throws an error and drops all tx
+  // 8192 is the number of tx that can be sent to the Pool
+  // before it throws an error and drops all tx
 
-  it("should be able to send 8192 tx to the pool and have them all published within the following blocks", async function () {
+  it("should be able to send 8192 tx to the pool and have them all published\
+   within the following blocks", async function () {
     this.timeout(0);
     let { txPassed } = await fillBlockWithTx(context, 8192);
     expect(txPassed).to.eq(8192);
@@ -163,7 +165,8 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     expect(txPassed).to.eq(0);
   });
 
-  it("should be able to send 8192 tx to the pool and have them all published within the following blocks - bigger tx", async function () {
+  it("should be able to send 8192 tx to the pool and have them all published\
+   within the following blocks - bigger tx", async function () {
     this.timeout(0);
     let { txPassed } = await fillBlockWithTx(context, 8192, contractCreation);
     expect(txPassed).to.eq(8192);

@@ -79,7 +79,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
   // TODO: this test will pass when we merge frontier's update
   // that adds the status field to the receipt
   it.skip("finite loop with incr: check gas usage, with normal gas limit,\
-   should error before 700 loops", async function () {
+  should error before 700 loops", async function () {
     this.timeout(0);
     // For a normal 1048576 gas limit, loop should revert out of gas between 600 and 700 loops
 
