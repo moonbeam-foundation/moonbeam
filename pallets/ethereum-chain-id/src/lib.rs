@@ -22,7 +22,7 @@ use frame_support::{decl_module, decl_storage, traits::Get};
 
 
 /// Configuration trait of this pallet.
-pub trait Trait: frame_system::Trait {}
+pub trait Trait: frame_system::Config {}
 
 impl <T: Trait> Get<u64> for Module<T> {
 	fn get() -> u64 {

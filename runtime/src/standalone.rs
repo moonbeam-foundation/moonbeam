@@ -39,11 +39,11 @@ macro_rules! runtime_standalone {
 			transaction_version: 1,
 		};
 
-		impl pallet_aura::Trait for Runtime {
+		impl pallet_aura::Config for Runtime {
 			type AuthorityId = AuraId;
 		}
 
-		impl pallet_grandpa::Trait for Runtime {
+		impl pallet_grandpa::Config for Runtime {
 			type Event = Event;
 			type Call = Call;
 
