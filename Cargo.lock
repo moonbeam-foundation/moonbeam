@@ -1921,7 +1921,7 @@ dependencies = [
 [[package]]
 name = "frontier-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.3-hotfixes#2c7139c768d675c8a6f360014a472297b74169f7"
+source = "git+https://github.com/purestake/frontier?branch=v0.3-hotfixes#06ffc598983d8ac51133eb0b516769ea42855010"
 dependencies = [
  "derive_more 0.99.11",
  "ethereum",
@@ -1944,7 +1944,7 @@ dependencies = [
 [[package]]
 name = "frontier-consensus-primitives"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.3-hotfixes#2c7139c768d675c8a6f360014a472297b74169f7"
+source = "git+https://github.com/purestake/frontier?branch=v0.3-hotfixes#06ffc598983d8ac51133eb0b516769ea42855010"
 dependencies = [
  "parity-scale-codec",
  "sp-core",
@@ -1955,7 +1955,7 @@ dependencies = [
 [[package]]
 name = "frontier-rpc"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.3-hotfixes#2c7139c768d675c8a6f360014a472297b74169f7"
+source = "git+https://github.com/purestake/frontier?branch=v0.3-hotfixes#06ffc598983d8ac51133eb0b516769ea42855010"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -1989,7 +1989,7 @@ dependencies = [
 [[package]]
 name = "frontier-rpc-core"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.3-hotfixes#2c7139c768d675c8a6f360014a472297b74169f7"
+source = "git+https://github.com/purestake/frontier?branch=v0.3-hotfixes#06ffc598983d8ac51133eb0b516769ea42855010"
 dependencies = [
  "ethereum-types",
  "jsonrpc-core",
@@ -2004,7 +2004,7 @@ dependencies = [
 [[package]]
 name = "frontier-rpc-primitives"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.3-hotfixes#2c7139c768d675c8a6f360014a472297b74169f7"
+source = "git+https://github.com/purestake/frontier?branch=v0.3-hotfixes#06ffc598983d8ac51133eb0b516769ea42855010"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4298,7 +4298,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.3-hotfixes#2c7139c768d675c8a6f360014a472297b74169f7"
+source = "git+https://github.com/purestake/frontier?branch=v0.3-hotfixes#06ffc598983d8ac51133eb0b516769ea42855010"
 dependencies = [
  "ethereum",
  "ethereum-types",
