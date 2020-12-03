@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { Keyring } from "@polkadot/keyring";
 import { step } from "mocha-steps";
 
 import { createAndFinalizeBlock, describeWithMoonbeam, customRequest } from "./util";
@@ -57,5 +58,17 @@ describeWithMoonbeam("Frontier RPC (Balance)", `simple-specs.json`, (context) =>
     expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT)).to.equal(
       (await context.polkadotApi.query.system.account(GENESIS_ACCOUNT)).data.free.toString()
     );
+  });
+
+  const TEST_ACCOUNT_2 = "0x1111111111111111111111111111111111111112";
+  step("transfer from polkadotjs should appear in ethereum", async function () {
+    this.timeout(15000);
+
+    const keyring = new Keyring({ type: "ethereum" });
+    const testAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+    await context.polkadotApi.tx.balances.transfer(TEST_ACCOUNT_2, 123).signAndSend(testAccount);
+
+    await createAndFinalizeBlock(context.web3);
+    expect(await context.web3.eth.getBalance(TEST_ACCOUNT_2)).to.equal("123");
   });
 });
