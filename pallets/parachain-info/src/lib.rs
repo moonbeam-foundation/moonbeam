@@ -23,7 +23,7 @@ use frame_support::{decl_module, decl_storage, traits::Get};
 use cumulus_primitives::ParaId;
 
 /// Configuration trait of this pallet.
-pub trait Trait: frame_system::Trait {}
+pub trait Trait: frame_system::Config {}
 
 impl <T: Trait> Get<ParaId> for Module<T> {
 	fn get() -> ParaId {

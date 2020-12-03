@@ -29,7 +29,7 @@ macro_rules! runtime_parachain {
 			transaction_version: 1,
 		};
 
-		impl cumulus_parachain_upgrade::Trait for Runtime {
+		impl cumulus_parachain_upgrade::Config for Runtime {
 			type Event = Event;
 			type OnValidationData = ();
 		}
