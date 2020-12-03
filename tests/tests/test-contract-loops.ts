@@ -2,11 +2,7 @@ import { expect } from "chai";
 
 import { TransactionReceipt } from "web3-core";
 
-import {
-  callContractFunctionMS,
-  deployContractManualSeal,
-  describeWithMoonbeam,
-} from "./util";
+import { callContractFunctionMS, deployContractManualSeal, describeWithMoonbeam } from "./util";
 import {
   FINITE_LOOP_CONTRACT_ABI,
   FINITE_LOOP_CONTRACT_BYTECODE,
@@ -48,12 +44,8 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
 
     await contract.methods
       .infinite()
-      .call({gas:"0x100000"})
-      .catch((err) =>
-        expect(err.message).to.equal(
-          `Returned error: evm error: OutOfGas`
-        )
-      );
+      .call({ gas: "0x100000" })
+      .catch((err) => expect(err.message).to.equal(`Returned error: evm error: OutOfGas`));
   });
 
   // TODO: this test will pass when we merge frontier's update that adds the status field to the receipt
@@ -72,11 +64,13 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
     try {
       await callContractFunctionMS(context.web3, contract.options.address, bytesCode);
       let block = await context.web3.eth.getBlock("latest");
-      const receipt:TransactionReceipt=await context.web3.eth.getTransactionReceipt(block.transactions[0])
-      expect(receipt.status).to.eq(false)
+      const receipt: TransactionReceipt = await context.web3.eth.getTransactionReceipt(
+        block.transactions[0]
+      );
+      expect(receipt.status).to.eq(false);
     } catch (e) {
       console.log("error caught", e);
-      throw new Error(e)
+      throw new Error(e);
     }
   });
 
@@ -106,19 +100,21 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
     // 1 loop to make sure it works
     expect(await callLoopIncrContract(1)).to.eq(1);
     let block = await context.web3.eth.getBlock("latest");
-    expect(block.gasUsed).to.eq(42343) //check that gas costs stay the same
+    expect(block.gasUsed).to.eq(42343); //check that gas costs stay the same
 
     // // 600 loop
-    expect(await callLoopIncrContract(600)).to.eq(600)
+    expect(await callLoopIncrContract(600)).to.eq(600);
     block = await context.web3.eth.getBlock("latest");
-    expect(block.gasUsed).to.eq(1028284) //check that gas costs stay the same
+    expect(block.gasUsed).to.eq(1028284); //check that gas costs stay the same
 
     // 700 loop should revert out of gas
     expect(await callLoopIncrContract(700)).to.eq(0);
     block = await context.web3.eth.getBlock("latest");
-    expect(block.gasUsed).to.eq(1048576) //check that gas is the gas limit
-    const receipt:TransactionReceipt=await context.web3.eth.getTransactionReceipt(block.transactions[0])
-    expect(receipt.status).to.eq(false)
+    expect(block.gasUsed).to.eq(1048576); //check that gas is the gas limit
+    const receipt: TransactionReceipt = await context.web3.eth.getTransactionReceipt(
+      block.transactions[0]
+    );
+    expect(receipt.status).to.eq(false);
   });
   // TODO : add test when we have a block limit
 });

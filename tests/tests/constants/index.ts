@@ -37,13 +37,13 @@ export const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
 // BLOCK TESTING
 // - block dont seem to have gas limit but it's usually around 1500 tx per block
 // and the time it takes to construct the block increases until around 12s for 1500tx
-// - after the first 1500tx block, following block have aroudn 100-300 tx per block 
+// - after the first 1500tx block, following block have around 100-300 tx per block
 // until all blocks are incuded. 10 blockds for 3000tx
-// - between 7k and 10k, for some reason block creation doesnt work and we get 
+// - between 7k and 10k, for some reason block creation doesnt work and we get
 // one Pool(ImmediatelyDropped) error
 // and  Pool(TooLowPriority { old: 0, new: 0 })': 819 for the contract creation
 
-// 8192 is the number of tx that can be sent to the Pool before it throws an error and drops all tx 
+// 8192 is the number of tx that can be sent to the Pool before it throws an error and drops all tx
 // from the pool (we can see in the logs that the ‘ready’ field goes from 8192 to zero)
 
 // It does say however, 8182/20480kB ready, 819/2048kB future and I’m not sure what that means

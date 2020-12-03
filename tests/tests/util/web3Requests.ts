@@ -116,7 +116,7 @@ export async function callContractFunctionMS(
       contractCall,
       options && options.privateKey ? options.privateKey : GENESIS_ACCOUNT_PRIVATE_KEY
     );
-    await customRequest(web3, "eth_sendRawTransaction", [txCall.rawTransaction])
+    await customRequest(web3, "eth_sendRawTransaction", [txCall.rawTransaction]);
     return await createAndFinalizeBlock(web3);
   } catch (e) {
     console.log("error caught during callContractFunctionMS", e);

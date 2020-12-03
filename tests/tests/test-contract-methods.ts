@@ -72,11 +72,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
     await contract.methods
       .multiply()
       .call()
-      .catch((err) =>
-        expect(err.message).to.equal(
-          `Returned error: evm revert: Reverted`
-        )
-      );
+      .catch((err) => expect(err.message).to.equal(`Returned error: evm revert: Reverted`));
   });
 
   // Requires error handling
@@ -100,11 +96,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
     await contract.methods
       .multiply(3, 4)
       .call()
-      .catch((err) =>
-        expect(err.message).to.equal(
-          `Returned error: evm revert: Reverted`
-        )
-      );
+      .catch((err) => expect(err.message).to.equal(`Returned error: evm revert: Reverted`));
   });
 
   // Requires error handling
@@ -128,10 +120,6 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
     await contract.methods
       .multiply("0x0123456789012345678901234567890123456789")
       .call()
-      .catch((err) =>
-        expect(err.message).to.equal(
-          `Returned error: evm revert: Reverted`
-        )
-      );
+      .catch((err) => expect(err.message).to.equal(`Returned error: evm revert: Reverted`));
   });
 });

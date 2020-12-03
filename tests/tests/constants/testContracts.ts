@@ -22,7 +22,7 @@ export const FIRST_CONTRACT_ADDRESS = "0xc2bf5f29a4384b1ab0c063e1c666f02121b6084
 
 // simple incremental count contract to test contract with state changes
 
-// Solidity: 
+// Solidity:
 // contract Test3 {
 //   uint public count;
 
@@ -38,31 +38,31 @@ export const TEST_CONTRACT_BYTECODE_INCR =
   "6080604052348015600f57600080fd5b506000808190555060a5806100256000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c806306661abd146037578063119fbbd4146053575b600080fd5b603d605b565b6040518082815260200191505060405180910390f35b60596061565b005b60005481565b60016000540160008190555056fea26469706673582212204780263fff0edc01286caed1851cc629033bc25ec1f84995a71199017a4623dd64736f6c634300060b0033";
 
 export const TEST_CONTRACT_INCR_ABI = [
-	{
-		"inputs": [],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"inputs": [],
-		"name": "count",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "incr",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	}
+  {
+    inputs: [],
+    stateMutability: "nonpayable",
+    type: "constructor",
+  },
+  {
+    inputs: [],
+    name: "count",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "incr",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
 ] as AbiItem[];
 
 // infinite loop call
@@ -113,7 +113,6 @@ export const INFINITE_CONTRACT_ABI_VAR = [
   },
 ] as AbiItem[];
 
-
 // definite loop call with variable alocation
 
 // Solidity:
@@ -136,36 +135,36 @@ export const INFINITE_CONTRACT_ABI_VAR = [
 export const FINITE_LOOP_CONTRACT_BYTECODE =
   "608060405234801561001057600080fd5b506000808190555060e1806100266000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c806306661abd14603757806321b13c48146053575b600080fd5b603d607e565b6040518082815260200191505060405180910390f35b607c60048036036020811015606757600080fd5b81019080803590602001909291905050506084565b005b60005481565b60008090505b8181101560a757600160005401600081905550600181019050608a565b505056fea264697066735822122055c3057e9a4de212a72858fab41c167c7c616b47ec2ce4e7e1ebf152e8f83dc464736f6c634300060b0033";
 
-export const FINITE_LOOP_CONTRACT_ABI= [
-	{
-		"inputs": [],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"inputs": [],
-		"name": "count",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "n",
-				"type": "uint256"
-			}
-		],
-		"name": "incr",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	}
+export const FINITE_LOOP_CONTRACT_ABI = [
+  {
+    inputs: [],
+    stateMutability: "nonpayable",
+    type: "constructor",
+  },
+  {
+    inputs: [],
+    name: "count",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "n",
+        type: "uint256",
+      },
+    ],
+    name: "incr",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
 ] as AbiItem[];
