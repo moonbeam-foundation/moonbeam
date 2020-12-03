@@ -12,6 +12,7 @@ function isJsonRpcResponse(res: Error | JsonRpcResponse): res is JsonRpcResponse
   return (res as JsonRpcResponse).jsonrpc !== undefined;
 }
 
+// sign tx with error catching
 async function wrappedSignTx(
   web3: Web3,
   txConfig: TransactionConfig,
@@ -25,6 +26,7 @@ async function wrappedSignTx(
   }
 }
 
+// Sign tx sequentially
 async function serialSignTx(
   web3: Web3,
   n: number,
@@ -44,6 +46,7 @@ async function serialSignTx(
   return resArray;
 }
 
+// Send tx to the pool sequentially
 async function serialSendTx(
   web3: Web3,
   n: number,
@@ -65,19 +68,22 @@ async function serialSendTx(
 }
 
 interface FillBlockReport {
-    txPassed:number,
-    numberOfBlocks:number,
-    signingTime:number,
-    sendingTime:number
+  txPassed: number;
+  txPassedFirstBlock: number;
+  numberOfBlocks: number;
+  signingTime: number;
+  sendingTime: number;
 }
 
-//TODO: add description and specify test
-// expectations should be separated from fun and ddisplayed in test file
+// This functiom sends a batch of signed transactions to the pool and records both 
+// how many tx were included in the first block and the total numbe rof tx that were 
+// included in a block
+// By default, the tx is a simple transfer, but a TransactionConfig can be specified as an option
 export async function fillBlockWithTx(
   context: { web3: Web3 },
   numberOfTx: number,
   customTxConfig: TransactionConfig = basicTransfertx
-):Promise<FillBlockReport> {
+): Promise<FillBlockReport> {
   let nonce: number = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
 
   const numberArray = new Array(numberOfTx).fill(1);
@@ -113,14 +119,10 @@ export async function fillBlockWithTx(
     customTxConfig
   );
 
-  const signingTime:number=Date.now()-startSigningTime
+  const signingTime: number = Date.now() - startSigningTime;
 
   console.log(
-    "Time it took to sign " +
-      txList.length +
-      " tx is " +
-      signingTime / 1000 +
-      " seconds"
+    "Time it took to sign " + txList.length + " tx is " + signingTime / 1000 + " seconds"
   );
 
   const startSendingTime: number = Date.now();
@@ -131,30 +133,26 @@ export async function fillBlockWithTx(
 
   respList.forEach((res) => {
     if (isJsonRpcResponse(res) && res.error) {
-      //@ts-ignore
       reportError(res.error, "customreq");
     } else if (!isJsonRpcResponse(res)) {
       reportError(res, "signing");
     }
   });
 
-  const sendingTime:number=Date.now()-startSendingTime
+  const sendingTime: number = Date.now() - startSendingTime;
 
   console.log(
-    "Time it took to send " +
-      respList.length +
-      " tx is " +
-      sendingTime / 1000 +
-      " seconds"
+    "Time it took to send " + respList.length + " tx is " + sendingTime / 1000 + " seconds"
   );
 
   console.log("Error Report : ", errorReport);
 
-  console.log('created block in ',(await createAndFinalizeBlock(context.web3))/1000," seconds");
+  console.log("created block in ", (await createAndFinalizeBlock(context.web3)) / 1000, " seconds");
 
-  let numberOfBlocks=0;
+  let numberOfBlocks = 0;
   let block = await context.web3.eth.getBlock("latest");
   let txPassed: number = block.transactions.length;
+  const txPassedFirstBlock: number = txPassed;
   console.log(
     "block.gasUsed",
     block.gasUsed,
@@ -179,21 +177,9 @@ export async function fillBlockWithTx(
       block.transactions.length
     );
     txPassed += block.transactions.length;
-    numberOfTx+=1
+    numberOfTx += 1;
     i += 1;
   }
 
-  // await Promise.all(
-  //   txList.map(async (tx, i) => {
-  //     // send it
-  //     if (isSignedTransaction(tx)) {
-  //       try {
-  //         console.log((tx as SignedTransaction).transactionHash); //return console.log(await context.web3.eth.getTransactionReceipt((tx as SignedTransaction).transactionHash))
-  //       } catch (e) {
-  //         console.log("gettxrceipt error", e);
-  //       }
-  //     }
-  //   })
-  // );
-  return {txPassed,sendingTime,signingTime,numberOfBlocks};
+  return { txPassed, txPassedFirstBlock, sendingTime, signingTime, numberOfBlocks };
 }

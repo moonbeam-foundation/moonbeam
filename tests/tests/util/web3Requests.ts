@@ -39,7 +39,6 @@ export async function wrappedCustomRequest(
     let resp = await customRequest(web3, method, params);
     return resp;
   } catch (e) {
-    console.log("thrown error in wrapped custom req");
     return {
       jsonrpc: "req error",
       id: 0,
@@ -58,7 +57,6 @@ export async function createAndFinalizeBlock(web3: Web3): Promise<number> {
       true,
       null,
     ]);
-    console.log('res finalized block',response)
     if (response.error) {
       console.log("error during block creation");
       throw new Error(`Unexpected result: ${JSON.stringify(response)}`);
@@ -118,7 +116,7 @@ export async function callContractFunctionMS(
       contractCall,
       options && options.privateKey ? options.privateKey : GENESIS_ACCOUNT_PRIVATE_KEY
     );
-    console.log('custReq resp',await customRequest(web3, "eth_sendRawTransaction", [txCall.rawTransaction]));
+    await customRequest(web3, "eth_sendRawTransaction", [txCall.rawTransaction])
     return await createAndFinalizeBlock(web3);
   } catch (e) {
     console.log("error caught during callContractFunctionMS", e);
