@@ -1,5 +1,6 @@
-# md book build directory
-book
+# Parachain testing files
+genesis-state
+genesis-wasm
 
 # MacOS thing
 **/.DS_Store
