@@ -2,16 +2,26 @@
   "name": "frontier-contract-web3",
   "version": "0.0.0",
   "dependencies": {
-    "@polkadot/api": "^2.1.1",
-    "@polkadot/util-crypto": "^2.10.1",
+    "@polkadot/api": "^2.9.1",
+    "@polkadot/util-crypto": "^4.2.1",
+    "bip39": "^3.0.3",
     "eth-block-tracker": "^4.4.3",
+    "ethereumjs-wallet": "^1.0.0",
     "ethjs-provider-http": "^0.1.6",
     "minimist": ">=0.2.1",
+    "pkg": "^4.4.9",
     "substrate-evm-contracts": "file:truffle",
     "truffle-privatekey-provider": "^1.5.0",
     "ts-node": "^8.10.1",
     "typescript": "^3.9.5",
     "web3": "^1.2.9",
-    "web3x": "^4.0.6"
+    "web3x": "^4.0.6",
+    "yargs": "^13.3.2"
+  },
+  "devDependencies": {
+    "@types/yargs": "^15.0.11"
+  },
+  "scripts": {
+    "package-moon-key": "node_modules/.bin/tsc moon-key.ts; node_modules/.bin/pkg -t node14 moon-key.js; rm moon-key.js"
   }
 }
