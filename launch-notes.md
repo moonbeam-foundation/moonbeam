@@ -90,7 +90,7 @@ Repeat similarly for Bet
 ./polkadot-550d84a8f-real-overseer key insert --keystore-path ./bet/chains/rococo_local_testnet/keystore --base-path bet --suri "planet ill puzzle mirror fog system admit genre subject dance aim limit"  --key-type audi
 ```
 
-TODO Report these issues against Polkadot
+`polkadot key insert` was unintuitive to me for several reasons. I've reported these in https://github.com/paritytech/polkadot/issues/2072
 * Specifying `--chain` doesn't seem to have any effect.
 * Specifying `--base-path` alone "works" but puts the keys in the wrong place.
 * Sepcifying `--keystore-path` alone complains that `--base-path` is not specified.
