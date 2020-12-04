@@ -10,7 +10,7 @@ name: Release
 # the commit the **PR is merging into**. This prevents malicious attack trying
 # to change the CI in the PR.
 ####### DO NOT CHANGE THIS !! #######
-on: ["push", "pull_request_target"]
+on: ["push"]
 
 jobs:
   ####### Check files and formatting #######
