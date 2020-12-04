@@ -1,6 +1,7 @@
 # Parachain testing files
 genesis-state
 genesis-wasm
+parachain-config
 
 # MacOS thing
 **/.DS_Store
