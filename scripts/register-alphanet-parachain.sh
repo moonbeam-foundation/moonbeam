@@ -29,11 +29,9 @@ echo -n "\",\"parachain\":true}" >> $PARACHAIN_CONFIG;
 
 docker run --rm --network=host \
   -v $(pwd)/$PARACHAIN_CONFIG:/config \
-  -v $(pwd)/polkadot-js/alphanet-relay-types.json:/types.json \
   jacogr/polkadot-js-tools:latest api \
     --ws "ws://localhost:$((RELAY_PORT + 2))" \
     --sudo \
-    --types "/types.json" \
     --seed "$SUDO_SEED" \
     --params /config \
     tx.parasSudoWrapper.sudoScheduleParaInitialize
