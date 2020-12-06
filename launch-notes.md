@@ -18,11 +18,12 @@ cargo build --release
 
 ## Validator Keys
 
-
+Determining what session keys are needed requires looking at the code in a few places.
 * Rococo Session Key Definition - https://github.com/paritytech/polkadot/blob/master/runtime/rococo/src/lib.rs#L148-L152
 * Substrate Session key codes - https://github.com/paritytech/substrate/blob/master/primitives/core/src/crypto.rs#L1085
-* Polkadot Session key codes (I think. I'm not so sure about this one) - https://github.com/paritytech/polkadot/blob/master/primitives/src/v0.rs#L71
-* Open question: Doe we need session keys for "acco" and "stak"? I don't think so based on the list above, but it was in the old validator script
+* Polkadot Session key codes - https://github.com/paritytech/polkadot/blob/master/primitives/src/v0.rs#L71
+* Upcoming (but not currently used) Polkadot session keys - https://github.com/paritytech/polkadot/blob/master/primitives/src/v1.rs#L62-L83
+* Observation: We don't need session keys for "acco" and "stak", but they were in the old validator script.
 
 ```bash
 # Generate a key and note the mnemonic
@@ -163,7 +164,7 @@ This version of Polkadot is known to throw the warning `Ran out of free WASM ins
 
 ## Launch Collators
 
-Collators don't need keys yet (They will once we have aura on the parachain). They only differ in port numbers.
+Collators don't need session keys yet (They will once we have aura on the parachain). They only differ from each other in port numbers.
 
 ```bash
 ./target/release/moonbase-alphanet --collator --tmp --parachain-id 200 --port 40335 --ws-port 9946 -- --execution wasm --chain ../polkadot/rococo-local-550d84a8f-real-overseer-raw.json --port 30335
