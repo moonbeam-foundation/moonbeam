@@ -23,7 +23,8 @@ if [ ! -f "$PARACHAIN_GENESIS" ]; then
 fi
 
 PARACHAIN_CONFIG="$PARACHAIN_BUILD_FOLDER/moonbase-alphanet-runtime.config.json";
-echo -n "1000 {\"genesis_head\":\"$(cat $PARACHAIN_GENESIS)\",\"validation_code\":\"" > $PARACHAIN_CONFIG;
+echo -n "1000 {\"genesis_head\":\"$(cat $PARACHAIN_GENESIS)\",\"validation_code\":\"" \
+    > $PARACHAIN_CONFIG;
 cat $PARACHAIN_WASM  >> $PARACHAIN_CONFIG;
 echo -n "\",\"parachain\":true}" >> $PARACHAIN_CONFIG;
 
