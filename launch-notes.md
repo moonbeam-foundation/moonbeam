@@ -142,10 +142,10 @@ Finally, bake a raw spec
 
 ## Validator Commands
 
+This version of Polkadot is known to throw the warning `Ran out of free WASM instances`. This harmless, and is [issue #2070](https://github.com/paritytech/polkadot/issues/2070) and addressed by [PR #2069](https://github.com/paritytech/polkadot/pull/2069).
+
 ```bash
 # Alfie
-# Weird. I get an unfamiliar warning here 5 times (maybe because 5 session keys?)
-# Ran out of free WASM instances
 ./polkadot-550d84a8f-real-overseer --chain rococo-local-550d84a8f-real-overseer-raw.json --validator --base-path ./alfie/
 
 # Bet
