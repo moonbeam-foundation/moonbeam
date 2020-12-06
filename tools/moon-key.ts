@@ -1,17 +1,19 @@
 import { mnemonicToSeedSync, generateMnemonic } from "bip39";
 import { hdkey } from "ethereumjs-wallet";
-import * as yargs from "yargs";
+import yargs from "yargs";
 
-const argv = (yargs as any)(process.argv.slice(2))
+const argv = yargs(process.argv.slice(2))
   .usage('Usage: $0 [--mnemonic "..."] [--account-index x]')
   .version("1.0.0")
   .options({
     mnemonic: { type: "string" },
     "account-index": { type: "number", default: 0 },
+    strength: { type: "number", default: 256 },
   }).argv;
 
 const account_index = argv["account-index"];
-const mnemonic = argv["mnemonic"] || generateMnemonic();
+const strength = argv["strength"];
+const mnemonic = argv["mnemonic"] || generateMnemonic(strength);
 
 const main = async () => {
   const hdwallet = hdkey.fromMasterSeed(mnemonicToSeedSync(mnemonic));
