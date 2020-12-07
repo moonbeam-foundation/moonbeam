@@ -2,14 +2,14 @@
 
 ## Compile Polkadot with the real overseer feature
 ```bash
-git checkout 550d84a8f
+git checkout d7257026
 cargo build --release --features=real-overseer
 ./target/release/polkadot --version
 ```
 
 ## Compile Moonbeam
 ```bash
-git checkout 47821963cb
+git checkout a4d257b0
 cargo build --release
 ./target/release/moonbase-alphanet --version
 ```
@@ -27,7 +27,7 @@ Determining what session keys are needed requires looking at the code in a few p
 
 ```bash
 # Generate a key and note the mnemonic
-./polkadot-550d84a8f-real-overseer key generate
+./polkadot-d7257026-real-overseer key generate
 ```
 
 For this write up I'll be using these example keys.
@@ -35,7 +35,7 @@ For this write up I'll be using these example keys.
 ### Alfie
 ```bash
 # SR25519 - most keys
-$ ./polkadot-550d84a8f-real-overseer key inspect-key --scheme sr25519 "rail order express dynamic sketch tip mask double cave medal guitar between"
+$ ./polkadot-d7257026-real-overseer key inspect-key --scheme sr25519 "rail order express dynamic sketch tip mask double cave medal guitar between"
 Secret phrase `rail order express dynamic sketch tip mask double cave medal guitar between` is account:
   Secret seed:      0xb7c888bf9f01da9a2cb5805d6d6ada744ed22d8a24aa41c509a26268ec701461
   Public key (hex): 0xc0671bd602df3430ea648f52baef5068f1082ce03e6563677255d163220ddd42
@@ -43,7 +43,7 @@ Secret phrase `rail order express dynamic sketch tip mask double cave medal guit
   SS58 Address:     5GQygSBSa7BjEeYiE41Q7uFNMUVfMEuU3bjtPmjZQBUEvgjn
 
 # ED25519 - grandpa
-$ ./polkadot-550d84a8f-real-overseer key inspect-key --scheme ed25519 "rail order express dynamic sketch tip mask double cave medal guitar between"
+$ ./polkadot-d7257026-real-overseer key inspect-key --scheme ed25519 "rail order express dynamic sketch tip mask double cave medal guitar between"
 Secret phrase `rail order express dynamic sketch tip mask double cave medal guitar between` is account:
   Secret seed:      0xb7c888bf9f01da9a2cb5805d6d6ada744ed22d8a24aa41c509a26268ec701461
   Public key (hex): 0x9a35999189aeac73680dbccc89b18335a545f62045a54c9225105a428976cc16
@@ -55,7 +55,7 @@ Secret phrase `rail order express dynamic sketch tip mask double cave medal guit
 ### Bet
 ```bash
 # SR25519 - most keys
-$ ./polkadot-550d84a8f-real-overseer key inspect-key --scheme sr25519 "planet ill puzzle mirror fog system admit genre subject dance aim limit"
+$ ./polkadot-d7257026-real-overseer key inspect-key --scheme sr25519 "planet ill puzzle mirror fog system admit genre subject dance aim limit"
 Secret phrase `planet ill puzzle mirror fog system admit genre subject dance aim limit` is account:
   Secret seed:      0xa7854968eaa257ed5e87b3dc765feca8e7dadf5322b2d04e6ba60e080164da15
   Public key (hex): 0x80d42ee5b73818f4cf65d9a4cbe87c990c83af82c9baceb565d85d0f2a3e4807
@@ -63,7 +63,7 @@ Secret phrase `planet ill puzzle mirror fog system admit genre subject dance aim
   SS58 Address:     5Eyd1zj8BSFaAt66y152neBFhZTaQ1TJNoxZYdYkXqqXRf1X
 
 # ED25519 - grandpa
-$ ./polkadot-550d84a8f-real-overseer key inspect-key --scheme ed25519 "planet ill puzzle mirror fog system admit genre subject dance aim limit"
+$ ./polkadot-d7257026-real-overseer key inspect-key --scheme ed25519 "planet ill puzzle mirror fog system admit genre subject dance aim limit"
 Secret phrase `planet ill puzzle mirror fog system admit genre subject dance aim limit` is account:
   Secret seed:      0xa7854968eaa257ed5e87b3dc765feca8e7dadf5322b2d04e6ba60e080164da15
   Public key (hex): 0xbd8d705b2742bb237d662b0a60414c9d7cef8f9407f816dac0912cac6b933f13
@@ -73,22 +73,22 @@ Secret phrase `planet ill puzzle mirror fog system admit genre subject dance aim
 
 Insert Alfie's session keys
 ```bash
-./polkadot-550d84a8f-real-overseer key insert --keystore-path ./alfie/chains/rococo_local_testnet/keystore --base-path alfie --suri "rail order express dynamic sketch tip mask double cave medal guitar between"  --key-type gran --scheme ed25519 && \
-./polkadot-550d84a8f-real-overseer key insert --keystore-path ./alfie/chains/rococo_local_testnet/keystore --base-path alfie --suri "rail order express dynamic sketch tip mask double cave medal guitar between"  --key-type babe && \
-./polkadot-550d84a8f-real-overseer key insert --keystore-path ./alfie/chains/rococo_local_testnet/keystore --base-path alfie --suri "rail order express dynamic sketch tip mask double cave medal guitar between"  --key-type imon && \
-./polkadot-550d84a8f-real-overseer key insert --keystore-path ./alfie/chains/rococo_local_testnet/keystore --base-path alfie --suri "rail order express dynamic sketch tip mask double cave medal guitar between"  --key-type para && \
-./polkadot-550d84a8f-real-overseer key insert --keystore-path ./alfie/chains/rococo_local_testnet/keystore --base-path alfie --suri "rail order express dynamic sketch tip mask double cave medal guitar between"  --key-type audi
+./polkadot-d7257026-real-overseer key insert --keystore-path ./alfie/chains/rococo_local_testnet/keystore --base-path alfie --suri "rail order express dynamic sketch tip mask double cave medal guitar between"  --key-type gran --scheme ed25519 && \
+./polkadot-d7257026-real-overseer key insert --keystore-path ./alfie/chains/rococo_local_testnet/keystore --base-path alfie --suri "rail order express dynamic sketch tip mask double cave medal guitar between"  --key-type babe && \
+./polkadot-d7257026-real-overseer key insert --keystore-path ./alfie/chains/rococo_local_testnet/keystore --base-path alfie --suri "rail order express dynamic sketch tip mask double cave medal guitar between"  --key-type imon && \
+./polkadot-d7257026-real-overseer key insert --keystore-path ./alfie/chains/rococo_local_testnet/keystore --base-path alfie --suri "rail order express dynamic sketch tip mask double cave medal guitar between"  --key-type para && \
+./polkadot-d7257026-real-overseer key insert --keystore-path ./alfie/chains/rococo_local_testnet/keystore --base-path alfie --suri "rail order express dynamic sketch tip mask double cave medal guitar between"  --key-type audi
 
 #TODO Should we use different derivation paths for each keypair like Telmo recommended? Probably. But NOT for stash or controller. Session keys are HOT keys.
 ```
 
 Repeat similarly for Bet
 ```bash
-./polkadot-550d84a8f-real-overseer key insert --keystore-path ./bet/chains/rococo_local_testnet/keystore --base-path bet --suri "planet ill puzzle mirror fog system admit genre subject dance aim limit"  --key-type gran --scheme ed25519 && \
-./polkadot-550d84a8f-real-overseer key insert --keystore-path ./bet/chains/rococo_local_testnet/keystore --base-path bet --suri "planet ill puzzle mirror fog system admit genre subject dance aim limit"  --key-type babe && \
-./polkadot-550d84a8f-real-overseer key insert --keystore-path ./bet/chains/rococo_local_testnet/keystore --base-path bet --suri "planet ill puzzle mirror fog system admit genre subject dance aim limit"  --key-type imon && \
-./polkadot-550d84a8f-real-overseer key insert --keystore-path ./bet/chains/rococo_local_testnet/keystore --base-path bet --suri "planet ill puzzle mirror fog system admit genre subject dance aim limit"  --key-type para && \
-./polkadot-550d84a8f-real-overseer key insert --keystore-path ./bet/chains/rococo_local_testnet/keystore --base-path bet --suri "planet ill puzzle mirror fog system admit genre subject dance aim limit"  --key-type audi
+./polkadot-d7257026-real-overseer key insert --keystore-path ./bet/chains/rococo_local_testnet/keystore --base-path bet --suri "planet ill puzzle mirror fog system admit genre subject dance aim limit"  --key-type gran --scheme ed25519 && \
+./polkadot-d7257026-real-overseer key insert --keystore-path ./bet/chains/rococo_local_testnet/keystore --base-path bet --suri "planet ill puzzle mirror fog system admit genre subject dance aim limit"  --key-type babe && \
+./polkadot-d7257026-real-overseer key insert --keystore-path ./bet/chains/rococo_local_testnet/keystore --base-path bet --suri "planet ill puzzle mirror fog system admit genre subject dance aim limit"  --key-type imon && \
+./polkadot-d7257026-real-overseer key insert --keystore-path ./bet/chains/rococo_local_testnet/keystore --base-path bet --suri "planet ill puzzle mirror fog system admit genre subject dance aim limit"  --key-type para && \
+./polkadot-d7257026-real-overseer key insert --keystore-path ./bet/chains/rococo_local_testnet/keystore --base-path bet --suri "planet ill puzzle mirror fog system admit genre subject dance aim limit"  --key-type audi
 ```
 
 `polkadot key insert` was unintuitive to me for several reasons. I've reported these in https://github.com/paritytech/polkadot/issues/2072
@@ -101,7 +101,7 @@ Repeat similarly for Bet
 Rococo local is known to throw the warning `💸 Chain does not have enough staking candidates to operate. Era Some(0)`. This is normal and harmless.
 
 ```bash
-./polkadot-550d84a8f-real-overseer build-spec --chain rococo-local --disable-default-bootnode > rococo-local-550d84a8f-real-overseer.json
+./polkadot-d7257026-real-overseer build-spec --chain rococo-local --disable-default-bootnode > rococo-local-d7257026-real-overseer.json
 ```
 
 Insert the custom session keys like so in the chain spec. (TODO as I mentioned above, we should eventually use different offline keys for stash and controller.)
@@ -138,7 +138,7 @@ Insert the custom session keys like so in the chain spec. (TODO as I mentioned a
 Finally, bake a raw spec
 
 ```bash
-./polkadot-550d84a8f-real-overseer build-spec --chain rococo-local-550d84a8f-real-overseer.json --disable-default-bootnode > rococo-local-550d84a8f-real-overseer-raw.json
+./polkadot-d7257026-real-overseer build-spec --chain rococo-local-d7257026-real-overseer.json --disable-default-bootnode > rococo-local-d7257026-real-overseer-raw.json
 ```
 
 ## Validator Commands
@@ -147,10 +147,10 @@ This version of Polkadot is known to throw the warning `Ran out of free WASM ins
 
 ```bash
 # Alfie
-./polkadot-550d84a8f-real-overseer --chain rococo-local-550d84a8f-real-overseer-raw.json --validator --base-path ./alfie/
+./polkadot-d7257026-real-overseer --chain rococo-local-d7257026-real-overseer-raw.json --validator --base-path ./alfie/
 
 # Bet
-./polkadot-550d84a8f-real-overseer --chain rococo-local-550d84a8f-real-overseer-raw.json --validator  --base-path ./bet/ --port 30334
+./polkadot-d7257026-real-overseer --chain rococo-local-d7257026-real-overseer-raw.json --validator  --base-path ./bet/ --port 30334
 ```
 
 # Launch Parachain
@@ -167,8 +167,8 @@ This version of Polkadot is known to throw the warning `Ran out of free WASM ins
 Collators don't need session keys yet (They will once we have aura on the parachain). They only differ from each other in port numbers.
 
 ```bash
-./target/release/moonbase-alphanet --collator --tmp --parachain-id 200 --port 40335 --ws-port 9946 -- --execution wasm --chain ../polkadot/rococo-local-550d84a8f-real-overseer-raw.json --port 30335
-./target/release/moonbase-alphanet --collator --tmp --parachain-id 200 --port 40336 --ws-port 9947 -- --execution wasm --chain ../polkadot/rococo-local-550d84a8f-real-overseer-raw.json --port 30336
+./target/release/moonbase-alphanet --collator --tmp --parachain-id 200 --port 40335 --ws-port 9946 -- --execution wasm --chain ../polkadot/rococo-local-d7257026-real-overseer-raw.json --port 30335
+./target/release/moonbase-alphanet --collator --tmp --parachain-id 200 --port 40336 --ws-port 9947 -- --execution wasm --chain ../polkadot/rococo-local-d7257026-real-overseer-raw.json --port 30336
 ```
 
 ## Launch Parachain Full Nodes
@@ -176,8 +176,8 @@ Collators don't need session keys yet (They will once we have aura on the parach
 Same as the Collators but no `--collator` flag (and different ports)
 
 ```bash
-./target/release/moonbase-alphanet --tmp --parachain-id 200 --port 40337 --ws-port 9948 -- --execution wasm --chain ../polkadot/rococo-local-550d84a8f-real-overseer-raw.json --port 30337
-./target/release/moonbase-alphanet --tmp --parachain-id 200 --port 40338 --ws-port 9949 -- --execution wasm --chain ../polkadot/rococo-local-550d84a8f-real-overseer-raw.json --port 30338
+./target/release/moonbase-alphanet --tmp --parachain-id 200 --port 40337 --ws-port 9948 -- --execution wasm --chain ../polkadot/rococo-local-d7257026-real-overseer-raw.json --port 30337
+./target/release/moonbase-alphanet --tmp --parachain-id 200 --port 40338 --ws-port 9949 -- --execution wasm --chain ../polkadot/rococo-local-d7257026-real-overseer-raw.json --port 30338
 ```
 
 # Registration Transaction
