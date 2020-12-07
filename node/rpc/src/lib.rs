@@ -16,6 +16,9 @@
 
 //! A collection of node-specific RPC methods.
 
+// Our drop-in replacements for Frontier's RPC servers.
+mod server_hotfixes;
+
 use std::{sync::Arc, fmt};
 
 use sc_consensus_manual_seal::rpc::{EngineCommand, ManualSeal, ManualSealApi};
