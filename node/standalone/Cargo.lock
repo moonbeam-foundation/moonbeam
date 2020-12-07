@@ -3406,7 +3406,11 @@ dependencies = [
 name = "moonbeam-rpc"
 version = "0.1.0"
 dependencies = [
+ "ethereum",
+ "ethereum-types",
+ "fc-consensus",
  "fc-rpc",
+ "fc-rpc-core",
  "fp-rpc",
  "futures 0.3.8",
  "jsonrpc-core 15.1.0",
@@ -3414,6 +3418,7 @@ dependencies = [
  "moonbeam-runtime",
  "pallet-transaction-payment-rpc",
  "parity-scale-codec",
+ "rlp",
  "sc-client-api",
  "sc-consensus-manual-seal",
  "sc-network",
@@ -3421,10 +3426,13 @@ dependencies = [
  "sc-rpc-api",
  "serde",
  "serde_json",
+ "sha3 0.8.2",
  "sp-api",
  "sp-block-builder",
  "sp-blockchain",
+ "sp-io",
  "sp-runtime",
+ "sp-storage",
  "sp-transaction-pool",
  "substrate-frame-rpc-system",
 ]

@@ -88,7 +88,10 @@ pub fn create_full<C, P, BE>(
 {
 	use substrate_frame_rpc_system::{FullSystem, SystemApi};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
-	use frontier_rpc::{EthApi, EthApiServer, NetApi, NetApiServer, EthPubSubApi, EthPubSubApiServer};
+	use frontier_rpc::{EthApiServer, NetApi, NetApiServer, EthPubSubApi, EthPubSubApiServer};
+	// This is our drop in replacement for the Eth API. This can be removed after
+	// https://github.com/paritytech/frontier/pull/199 lands
+	use server_hotfixes::EthApi;
 
 	let mut io = jsonrpc_core::IoHandler::default();
 	let FullDeps {
