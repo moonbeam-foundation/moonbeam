@@ -30,5 +30,5 @@ pallet-transaction-payment-rpc = { git = "https://github.com/paritytech/substrat
 sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sc-consensus-manual-seal = { git = "https://github.com/paritytech/substrate", branch = "master" }
 
-frontier-rpc = { package = "fc-rpc", git = "https://github.com/purestake/frontier", branch = "joshy-parachains-v1" }
-frontier-rpc-primitives = { package = "fp-rpc", git = "https://github.com/purestake/frontier", branch = "joshy-parachains-v1" }
+frontier-rpc = { package = "fc-rpc", git = "https://github.com/purestake/frontier", branch = "v0.4-hotfixes" }
+frontier-rpc-primitives = { package = "fp-rpc", git = "https://github.com/purestake/frontier", branch = "v0.4-hotfixes" }

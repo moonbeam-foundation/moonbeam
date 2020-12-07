@@ -42,13 +42,13 @@ pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", 
 
 frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "joshy-parachains-v1" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.4-hotfixes" }
 
 sp-consensus-aura = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master", optional = true }
 pallet-grandpa = { default-features = false, package = "pallet-grandpa", git = "https://github.com/paritytech/substrate.git", branch = "master", optional = true }
 
-frontier-rpc-primitives = { package = "fp-rpc", default-features = false, git = "https://github.com/purestake/frontier", branch = "joshy-parachains-v1" }
-pallet-ethereum = { default-features = false, package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "joshy-parachains-v1" }
+frontier-rpc-primitives = { package = "fp-rpc", default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.4-hotfixes" }
+pallet-ethereum = { default-features = false, package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "v0.4-hotfixes" }
 
 
 # Cumulus dependencies

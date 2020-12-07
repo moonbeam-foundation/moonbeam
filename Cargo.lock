@@ -1634,7 +1634,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=joshy-parachains-v1#40b23f899eb2d07a49f10abb4b25cf2b3cad5a7f"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#22d6cfcd44184fb7b2a72ed7639d4a73adcc081a"
 dependencies = [
  "derive_more 0.99.11",
  "ethereum",
@@ -1657,7 +1657,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=joshy-parachains-v1#40b23f899eb2d07a49f10abb4b25cf2b3cad5a7f"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#22d6cfcd44184fb7b2a72ed7639d4a73adcc081a"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -1693,7 +1693,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=joshy-parachains-v1#40b23f899eb2d07a49f10abb4b25cf2b3cad5a7f"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#22d6cfcd44184fb7b2a72ed7639d4a73adcc081a"
 dependencies = [
  "ethereum-types",
  "jsonrpc-core 15.1.0",
@@ -1797,7 +1797,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=joshy-parachains-v1#40b23f899eb2d07a49f10abb4b25cf2b3cad5a7f"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#22d6cfcd44184fb7b2a72ed7639d4a73adcc081a"
 dependencies = [
  "parity-scale-codec",
  "sp-core",
@@ -1808,7 +1808,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "0.8.0"
-source = "git+https://github.com/purestake/frontier?branch=joshy-parachains-v1#40b23f899eb2d07a49f10abb4b25cf2b3cad5a7f"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#22d6cfcd44184fb7b2a72ed7639d4a73adcc081a"
 dependencies = [
  "evm",
  "parity-scale-codec",
@@ -1820,7 +1820,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=joshy-parachains-v1#40b23f899eb2d07a49f10abb4b25cf2b3cad5a7f"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#22d6cfcd44184fb7b2a72ed7639d4a73adcc081a"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4453,7 +4453,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=joshy-parachains-v1#40b23f899eb2d07a49f10abb4b25cf2b3cad5a7f"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#22d6cfcd44184fb7b2a72ed7639d4a73adcc081a"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4490,7 +4490,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "2.0.0"
-source = "git+https://github.com/purestake/frontier?branch=joshy-parachains-v1#40b23f899eb2d07a49f10abb4b25cf2b3cad5a7f"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#22d6cfcd44184fb7b2a72ed7639d4a73adcc081a"
 dependencies = [
  "evm",
  "evm-gasometer",
