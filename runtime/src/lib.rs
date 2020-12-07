@@ -242,9 +242,9 @@ impl pallet_sudo::Config for Runtime {
 	type Event = Event;
 }
 
-impl pallet_ethereum_chain_id::Trait for Runtime {}
+impl pallet_ethereum_chain_id::Config for Runtime {}
 
-impl pallet_evm::Trait for Runtime {
+impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasToWeight = ();
 	type CallOrigin = EnsureAddressSame;
@@ -285,7 +285,7 @@ impl frontier_rpc_primitives::ConvertTransaction<opaque::UncheckedExtrinsic>
 
 pub struct EthereumFindAuthor<F>(PhantomData<F>);
 
-impl pallet_ethereum::Trait for Runtime {
+impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
 	#[cfg(not(feature = "standalone"))]
 	type FindAuthor = EthereumFindAuthor<PhantomAura>;
@@ -417,7 +417,7 @@ impl_runtime_apis! {
 
 	impl frontier_rpc_primitives::EthereumRuntimeRPCApi<Block> for Runtime {
 		fn chain_id() -> u64 {
-			<Runtime as pallet_evm::Trait>::ChainId::get()
+			<Runtime as pallet_evm::Config>::ChainId::get()
 		}
 
 		fn account_basic(address: H160) -> EVMAccount {
@@ -425,7 +425,7 @@ impl_runtime_apis! {
 		}
 
 		fn gas_price() -> U256 {
-			<Runtime as pallet_evm::Trait>::FeeCalculator::min_gas_price()
+			<Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price()
 		}
 
 		fn account_code_at(address: H160) -> Vec<u8> {
@@ -450,8 +450,17 @@ impl_runtime_apis! {
 			gas_limit: U256,
 			gas_price: Option<U256>,
 			nonce: Option<U256>,
+			estimate: bool,
 		) -> Result<pallet_evm::CallInfo, sp_runtime::DispatchError> {
-			<Runtime as pallet_evm::Trait>::Runner::call(
+			let config = if estimate {
+				let mut config = <Runtime as pallet_evm::Config>::config().clone();
+				config.estimate = true;
+				Some(config)
+			} else {
+				None
+			};
+
+			<Runtime as pallet_evm::Config>::Runner::call(
 				from,
 				to,
 				data,
@@ -459,6 +468,7 @@ impl_runtime_apis! {
 				gas_limit.low_u32(),
 				gas_price,
 				nonce,
+				config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 			).map_err(|err| err.into())
 		}
 
@@ -469,14 +479,24 @@ impl_runtime_apis! {
 			gas_limit: U256,
 			gas_price: Option<U256>,
 			nonce: Option<U256>,
+			estimate: bool,
 		) -> Result<pallet_evm::CreateInfo, sp_runtime::DispatchError> {
-			<Runtime as pallet_evm::Trait>::Runner::create(
+			let config = if estimate {
+				let mut config = <Runtime as pallet_evm::Config>::config().clone();
+				config.estimate = true;
+				Some(config)
+			} else {
+				None
+			};
+
+			<Runtime as pallet_evm::Config>::Runner::create(
 				from,
 				data,
 				value,
 				gas_limit.low_u32(),
 				gas_price,
 				nonce,
+				config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 			).map_err(|err| err.into())
 		}
 

@@ -207,7 +207,7 @@ pub fn run() -> Result<()> {
 			})
 		}
 		Some(Subcommand::ExportGenesisState(params)) => {
-			sc_cli::init_logger("", sc_tracing::TracingReceiver::Log, None)?;
+			sc_cli::init_logger("", sc_tracing::TracingReceiver::Log, None, false)?;
 
 			let block: Block = generate_genesis_block(&load_spec(
 				&params.chain.clone().unwrap_or_default(),
@@ -229,7 +229,7 @@ pub fn run() -> Result<()> {
 			Ok(())
 		}
 		Some(Subcommand::ExportGenesisWasm(params)) => {
-			sc_cli::init_logger("", sc_tracing::TracingReceiver::Log, None)?;
+			sc_cli::init_logger("", sc_tracing::TracingReceiver::Log, None, false)?;
 
 			let raw_wasm_blob =
 				extract_genesis_wasm(&cli.load_spec(&params.chain.clone().unwrap_or_default())?)?;

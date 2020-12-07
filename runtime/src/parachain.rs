@@ -34,7 +34,7 @@ macro_rules! runtime_parachain {
 			type OnValidationData = ();
 		}
 
-		impl parachain_info::Trait for Runtime {}
+		impl parachain_info::Config for Runtime {}
 
 		// TODO Consensus not supported in parachain
 		impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F> {

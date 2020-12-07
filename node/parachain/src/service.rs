@@ -26,7 +26,6 @@ use sp_core::Pair;
 use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
 use std::sync::Arc;
-use sc_client_db::Backend;
 use frontier_consensus::FrontierBlockImport;
 use moonbeam_runtime::{RuntimeApi, opaque::Block};
 // Our native executor instance.
