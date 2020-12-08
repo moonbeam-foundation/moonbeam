@@ -10,6 +10,7 @@ fi
 echo "Using Polkadot revision #${POLKADOT_VERSION}"
 
 docker run -it purestake/moonbase-relay-testnet:$POLKADOT_VERSION \
+  /usr/local/bin/polkadot \
     build-spec \
     -lerror \
     --disable-default-bootnode \
@@ -27,11 +28,12 @@ echo $POLKADOT_SPEC_PLAIN generated
 # staker is given at genesis
 
 docker run -it -v $(pwd)/build:/build purestake/moonbase-relay-testnet:$POLKADOT_VERSION \
-  build-spec \
-  -lerror \
-  --disable-default-bootnode \
-  --raw \
-  --chain /$POLKADOT_SPEC_PLAIN \
-  | grep -v 'Chain does not have enough staking candidates to operate' \
-  > $POLKADOT_SPEC_RAW
+  /usr/local/bin/polkadot \
+    build-spec \
+    -lerror \
+    --disable-default-bootnode \
+    --raw \
+    --chain /$POLKADOT_SPEC_PLAIN \
+    | grep -v 'Chain does not have enough staking candidates to operate' \
+    > $POLKADOT_SPEC_RAW
 echo $POLKADOT_SPEC_RAW generated

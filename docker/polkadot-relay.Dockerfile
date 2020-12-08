@@ -54,5 +54,4 @@ EXPOSE 30333 9933 9944 9615
 
 VOLUME ["/data"]
 
-# Using ENTRYPOINT rather than CMD allows users to pass arguments into polkadot
-ENTRYPOINT ["/usr/local/bin/polkadot"]
+CMD ["/usr/local/bin/polkadot"]
