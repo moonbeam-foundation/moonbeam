@@ -42,3 +42,4 @@ sp-storage = { git = "https://github.com/paritytech/substrate.git", branch = "ma
 frontier-rpc-core = { package = "fc-rpc-core", git = "https://github.com/purestake/frontier", branch = "v0.4-hotfixes" }
 rlp = "0.4"
 frontier-consensus = { package = "fc-consensus", git = "https://github.com/purestake/frontier", branch = "v0.4-hotfixes" }
+log = "0.4.8"

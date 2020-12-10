@@ -18,6 +18,7 @@
 
 // Our drop-in replacements for Frontier's RPC servers.
 mod server_hotfixes;
+mod pubsub_hotfixes;
 
 use std::{sync::Arc, fmt};
 
@@ -88,10 +89,11 @@ pub fn create_full<C, P, BE>(
 {
 	use substrate_frame_rpc_system::{FullSystem, SystemApi};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
-	use frontier_rpc::{EthApiServer, NetApi, NetApiServer, EthPubSubApi, EthPubSubApiServer};
-	// This is our drop in replacement for the Eth API. This can be removed after
+	use frontier_rpc::{EthApiServer, NetApi, NetApiServer, EthPubSubApiServer};
+	// Our drop in replacements for the Eth APIs. These can be removed after
 	// https://github.com/paritytech/frontier/pull/199 lands
 	use server_hotfixes::EthApi;
+	use pubsub_hotfixes::EthPubSubApi;
 
 	let mut io = jsonrpc_core::IoHandler::default();
 	let FullDeps {
