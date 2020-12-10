@@ -3412,6 +3412,7 @@ dependencies = [
  "futures 0.3.8",
  "jsonrpc-core 15.1.0",
  "jsonrpc-pubsub 15.1.0",
+ "log",
  "moonbeam-runtime",
  "pallet-transaction-payment-rpc",
  "parity-scale-codec",
