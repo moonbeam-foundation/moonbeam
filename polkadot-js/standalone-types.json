@@ -99,5 +99,7 @@
       "CallErrorAsFatal(ExitError)",
       "Other(Cow<'static, str>)"
     ]
-  }
+  },
+  "EthereumSignature": "[u8; 65]",
+  "ExtrinsicSignature": "AnySignature"
 }
