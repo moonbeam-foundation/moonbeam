@@ -208,7 +208,6 @@ pub fn new_full(
 				pool: pool.clone(),
 				deny_unsafe,
 				is_authority,
-				enable_dev_signer: false, // Disable dev signer for now. Maybe later, wire it to the CLI.
 				network: network.clone(),
 				command_sink: Some(command_sink.clone())
 			};
