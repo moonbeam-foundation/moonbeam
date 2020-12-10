@@ -57,7 +57,6 @@ pub fn new_partial(
 			Block,
 			FullClient,
 		>,
-		// Cumulus test collator uses () here
 		FrontierBlockImport<
 			Block,
 			Arc<FullClient>,
@@ -81,7 +80,6 @@ pub fn new_partial(
 		client.clone(),
 	);
 
-	// Cumulus test collator does not have this
 	let frontier_block_import = FrontierBlockImport::new(
 		client.clone(),
 		client.clone(),
