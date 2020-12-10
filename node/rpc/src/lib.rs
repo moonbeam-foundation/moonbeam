@@ -110,7 +110,8 @@ pub fn create_full<C, P, BE>(
 		TransactionPaymentApi::to_delegate(TransactionPayment::new(client.clone()))
 	);
 
-	// We currently don't support EthSigners, so use an empty vec.
+	// We currently don't want to support signing in the node. We prefer users to use external tools to sign transactions.
+	// So just pass in an empty vector of signers.
 	let signers = Vec::new();
 	io.extend_with(
 		EthApiServer::to_delegate(EthApi::new(
