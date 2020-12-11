@@ -22,9 +22,6 @@ use structopt::StructOpt;
 /// Sub-commands supported by the collator.
 #[derive(Debug, StructOpt)]
 pub enum Subcommand {
-	#[structopt(flatten)]
-	Base(sc_cli::Subcommand),
-
 	/// Export the genesis state of the parachain.
 	#[structopt(name = "export-genesis-state")]
 	ExportGenesisState(ExportGenesisStateCommand),
@@ -32,6 +29,27 @@ pub enum Subcommand {
 	/// Export the genesis wasm of the parachain.
 	#[structopt(name = "export-genesis-wasm")]
 	ExportGenesisWasm(ExportGenesisWasmCommand),
+
+	/// Build a chain specification.
+	BuildSpec(sc_cli::BuildSpecCmd),
+
+	/// Validate blocks.
+	CheckBlock(sc_cli::CheckBlockCmd),
+
+	/// Export blocks.
+	ExportBlocks(sc_cli::ExportBlocksCmd),
+
+	/// Export the state of a given block into a chain spec.
+	ExportState(sc_cli::ExportStateCmd),
+
+	/// Import blocks.
+	ImportBlocks(sc_cli::ImportBlocksCmd),
+
+	/// Remove the whole chain.
+	PurgeChain(sc_cli::PurgeChainCmd),
+
+	/// Revert the chain to a previous state.
+	Revert(sc_cli::RevertCmd),
 }
 
 /// Command for exporting the genesis state of the parachain
@@ -42,8 +60,12 @@ pub struct ExportGenesisStateCommand {
 	pub output: Option<PathBuf>,
 
 	/// Id of the parachain this state is for.
-	#[structopt(long, default_value = "200")]
+	#[structopt(long, default_value = "1000")]
 	pub parachain_id: u32,
+
+	/// Write output in binary. Default is to write in hex.
+	#[structopt(short, long)]
+	pub raw: bool,
 
 	/// The name of the chain for that the genesis state should be exported.
 	#[structopt(long)]
@@ -56,6 +78,10 @@ pub struct ExportGenesisWasmCommand {
 	/// Output file name or stdout if unspecified.
 	#[structopt(parse(from_os_str))]
 	pub output: Option<PathBuf>,
+
+	/// Write output in binary. Default is to write in hex.
+	#[structopt(short, long)]
+	pub raw: bool,
 
 	/// The name of the chain for that the genesis wasm file should be exported.
 	#[structopt(long)]
@@ -92,6 +118,12 @@ pub struct Cli {
 
 	#[structopt(flatten)]
 	pub run: RunCmd,
+
+	/// Run node as collator.
+	///
+	/// Note that this is the same as running with `--validator`.
+	#[structopt(long, conflicts_with = "validator")]
+	pub collator: bool,
 
 	/// Relaychain arguments
 	#[structopt(raw = true)]

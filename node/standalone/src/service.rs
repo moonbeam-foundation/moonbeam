@@ -28,7 +28,7 @@ use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
 use sp_consensus_aura::sr25519::{AuthorityPair as AuraPair};
 use sc_finality_grandpa::{
-	GrandpaBlockImport, FinalityProofProvider as GrandpaFinalityProofProvider, SharedVoterState,
+	GrandpaBlockImport, SharedVoterState,
 };
 use crate::mock_timestamp::MockTimestampInherentDataProvider;
 
@@ -69,7 +69,7 @@ pub fn new_partial(config: &Configuration, manual_seal: bool) -> Result<
 >, ServiceError> {
 	let inherent_data_providers = sp_inherents::InherentDataProviders::new();
 
-	let (client, backend, keystore, task_manager) =
+	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, RuntimeApi, Executor>(&config)?;
 	let client = Arc::new(client);
 
@@ -101,7 +101,7 @@ pub fn new_partial(config: &Configuration, manual_seal: bool) -> Result<
 		);
 
 		return Ok(sc_service::PartialComponents {
-			client, backend, task_manager, import_queue, keystore, select_chain, transaction_pool,
+			client, backend, task_manager, import_queue, keystore_container, select_chain, transaction_pool,
 			inherent_data_providers,
 			other: ConsensusResult::ManualSeal(frontier_block_import)
 		})
@@ -121,20 +121,20 @@ pub fn new_partial(config: &Configuration, manual_seal: bool) -> Result<
 		frontier_block_import, client.clone(),
 	);
 
-	let import_queue = sc_consensus_aura::import_queue::<_, _, _, AuraPair, _>(
+	let import_queue = sc_consensus_aura::import_queue::<_, _, _, AuraPair, _, _>(
 		sc_consensus_aura::slot_duration(&*client)?,
 		aura_block_import.clone(),
 		Some(Box::new(grandpa_block_import.clone())),
-		None,
 		client.clone(),
 		inherent_data_providers.clone(),
 		&task_manager.spawn_handle(),
 		config.prometheus_registry(),
+		sp_consensus::CanAuthorWithNativeVersion::new(client.executor().clone()),
 	)?;
 
 	Ok(sc_service::PartialComponents {
-		client, backend, task_manager, import_queue, keystore, select_chain, transaction_pool,
-		inherent_data_providers,
+		client, backend, task_manager, import_queue, keystore_container, select_chain,
+		transaction_pool, inherent_data_providers,
 		other: ConsensusResult::Aura(aura_block_import, grandpa_link)
 	})
 }
@@ -145,8 +145,8 @@ pub fn new_full(
 	manual_seal: bool,
 ) -> Result<TaskManager, ServiceError> {
 	let sc_service::PartialComponents {
-		client, backend, mut task_manager, import_queue, keystore, select_chain, transaction_pool,
-		inherent_data_providers,
+		client, backend, mut task_manager, import_queue, keystore_container, select_chain,
+		transaction_pool, inherent_data_providers,
 		other: consensus_result
 	} = new_partial(&config, manual_seal)?;
 
@@ -160,10 +160,6 @@ pub fn new_full(
 				import_queue,
 				on_demand: None,
 				block_announce_validator_builder: None,
-				finality_proof_request_builder: Some(
-					Box::new(sc_network::config::DummyFinalityProofRequestBuilder)
-				),
-				finality_proof_provider: None,
 			})?
 		},
 		ConsensusResult::Aura(_, _) => {
@@ -175,11 +171,6 @@ pub fn new_full(
 				import_queue,
 				on_demand: None,
 				block_announce_validator_builder: None,
-				finality_proof_request_builder: None,
-				finality_proof_provider: Some(
-					GrandpaFinalityProofProvider::new_for_service(backend.clone(),
-					client.clone())
-				),
 			})?
 		}
 	};
@@ -196,6 +187,8 @@ pub fn new_full(
 
 	let role = config.role.clone();
 	let force_authoring = config.force_authoring;
+	// Don't backoff authoring. See https://github.com/paritytech/substrate/pull/7186 for details
+	let backoff_authoring_blocks: Option<()> = None;
 	let name = config.network.node_name.clone();
 	let enable_grandpa = !config.disable_grandpa;
 	let prometheus_registry = config.prometheus_registry().cloned();
@@ -209,7 +202,7 @@ pub fn new_full(
 		let client = client.clone();
 		let pool = transaction_pool.clone();
 		let network = network.clone();
-		Box::new(move |deny_unsafe| {
+		Box::new(move |deny_unsafe, _| {
 			let deps = moonbeam_rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
@@ -228,7 +221,7 @@ pub fn new_full(
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		network: network.clone(),
 		client: client.clone(),
-		keystore: keystore.clone(),
+		keystore: keystore_container.sync_keystore(),
 		task_manager: &mut task_manager,
 		transaction_pool: transaction_pool.clone(),
 		telemetry_connection_sinks: telemetry_connection_sinks.clone(),
@@ -241,7 +234,8 @@ pub fn new_full(
 	match consensus_result {
 		ConsensusResult::ManualSeal(block_import) => {
 			if role.is_authority() {
-				let proposer = sc_basic_authorship::ProposerFactory::new(
+				let env = sc_basic_authorship::ProposerFactory::new(
+					task_manager.spawn_handle(),
 					client.clone(),
 					transaction_pool.clone(),
 					prometheus_registry.as_ref(),
@@ -249,13 +243,16 @@ pub fn new_full(
 
 				// Background authorship future
 				let authorship_future = manual_seal::run_manual_seal(
-					Box::new(block_import.clone()),
-					proposer,
-					client.clone(),
-					transaction_pool.pool().clone(),
-					commands_stream,
-					select_chain.clone(),
-					inherent_data_providers,
+					manual_seal::ManualSealParams {
+						block_import,
+						env,
+						client,
+						pool: transaction_pool.pool().clone(),
+						commands_stream,
+						select_chain,
+						consensus_data_provider: None,
+						inherent_data_providers,
+					}
 				);
 
 				// we spawn the future on a background thread managed by service.
@@ -269,6 +266,7 @@ pub fn new_full(
 		ConsensusResult::Aura(aura_block_import, grandpa_link) => {
 			if role.is_authority() {
 				let proposer = sc_basic_authorship::ProposerFactory::new(
+					task_manager.spawn_handle(),
 					client.clone(),
 					transaction_pool.clone(),
 					prometheus_registry.as_ref(),
@@ -276,7 +274,7 @@ pub fn new_full(
 
 				let can_author_with =
 					sp_consensus::CanAuthorWithNativeVersion::new(client.executor().clone());
-				let aura = sc_consensus_aura::start_aura::<_, _, _, _, _, AuraPair, _, _, _>(
+				let aura = sc_consensus_aura::start_aura::<_, _, _, _, _, AuraPair, _, _, _, _>(
 					sc_consensus_aura::slot_duration(&*client)?,
 					client.clone(),
 					select_chain,
@@ -285,7 +283,8 @@ pub fn new_full(
 					network.clone(),
 					inherent_data_providers.clone(),
 					force_authoring,
-					keystore.clone(),
+					backoff_authoring_blocks,
+					keystore_container.sync_keystore(),
 					can_author_with,
 				)?;
 
@@ -293,11 +292,10 @@ pub fn new_full(
 				// fails we take down the service with it.
 				task_manager.spawn_essential_handle().spawn_blocking("aura", aura);
 
-
 				// if the node isn't actively participating in consensus then it doesn't
 				// need a keystore, regardless of which protocol we use below.
 				let keystore = if role.is_authority() {
-					Some(keystore as sp_core::traits::BareCryptoStorePtr)
+					Some(keystore_container.sync_keystore())
 				} else {
 					None
 				};
@@ -322,7 +320,6 @@ pub fn new_full(
 						config: grandpa_config,
 						link: grandpa_link,
 						network,
-						inherent_data_providers,
 						telemetry_on_connect: Some(telemetry_connection_sinks.on_connect_stream()),
 						voting_rule: sc_finality_grandpa::VotingRulesBuilder::default().build(),
 						prometheus_registry,
@@ -335,12 +332,6 @@ pub fn new_full(
 						"grandpa-voter",
 						sc_finality_grandpa::run_grandpa_voter(grandpa_config)?
 					);
-				} else {
-					sc_finality_grandpa::setup_disabled_grandpa(
-						client,
-						&inherent_data_providers,
-						network,
-					)?;
 				}
 			}
 		}
@@ -352,8 +343,10 @@ pub fn new_full(
 
 /// Builds a new service for a light client.
 pub fn new_light(config: Configuration) -> Result<TaskManager, ServiceError> {
-	let (client, backend, keystore, mut task_manager, on_demand) =
+	let (client, backend, keystore_container, mut task_manager, on_demand) =
 		sc_service::new_light_parts::<Block, RuntimeApi, Executor>(&config)?;
+
+	let select_chain = sc_consensus::LongestChain::new(backend.clone());
 
 	let transaction_pool = Arc::new(sc_transaction_pool::BasicPool::new_light(
 		config.transaction_pool.clone(),
@@ -363,24 +356,21 @@ pub fn new_light(config: Configuration) -> Result<TaskManager, ServiceError> {
 		on_demand.clone(),
 	));
 
-	let grandpa_block_import = sc_finality_grandpa::light_block_import(
-		client.clone(), backend.clone(), &(client.clone() as Arc<_>),
-		Arc::new(on_demand.checker().clone()) as Arc<_>,
+	let (grandpa_block_import, _) = sc_finality_grandpa::block_import(
+		client.clone(),
+		&(client.clone() as Arc<_>),
+		select_chain.clone(),
 	)?;
 
-	let finality_proof_import = grandpa_block_import.clone();
-	let finality_proof_request_builder =
-		finality_proof_import.create_finality_proof_request_builder();
-
-	let import_queue = sc_consensus_aura::import_queue::<_, _, _, AuraPair, _>(
+	let import_queue = sc_consensus_aura::import_queue::<_, _, _, AuraPair, _, _>(
 		sc_consensus_aura::slot_duration(&*client)?,
-		grandpa_block_import,
-		None,
-		Some(Box::new(finality_proof_import)),
+		grandpa_block_import.clone(),
+		Some(Box::new(grandpa_block_import)),
 		client.clone(),
 		InherentDataProviders::new(),
 		&task_manager.spawn_handle(),
 		config.prometheus_registry(),
+		sp_consensus::NeverCanAuthor,
 	)?;
 
 	let light_deps = moonbeam_rpc::LightDeps {
@@ -392,9 +382,6 @@ pub fn new_light(config: Configuration) -> Result<TaskManager, ServiceError> {
 
 	let rpc_extensions = moonbeam_rpc::create_light(light_deps);
 
-	let finality_proof_provider =
-		Arc::new(GrandpaFinalityProofProvider::new(backend.clone(), client.clone() as Arc<_>));
-
 	let (network, network_status_sinks, system_rpc_tx, network_starter) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &config,
@@ -404,8 +391,6 @@ pub fn new_light(config: Configuration) -> Result<TaskManager, ServiceError> {
 			import_queue,
 			on_demand: Some(on_demand.clone()),
 			block_announce_validator_builder: None,
-			finality_proof_request_builder: Some(finality_proof_request_builder),
-			finality_proof_provider: Some(finality_proof_provider),
 		})?;
 
 	if config.offchain_worker.enabled {
@@ -423,7 +408,7 @@ pub fn new_light(config: Configuration) -> Result<TaskManager, ServiceError> {
 		telemetry_connection_sinks: sc_service::TelemetryConnectionSinks::default(),
 		config,
 		client,
-		keystore,
+		keystore: keystore_container.sync_keystore(),
 		backend,
 		network,
 		network_status_sinks,

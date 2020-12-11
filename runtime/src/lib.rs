@@ -40,18 +40,19 @@ mod parachain;
 
 #[cfg(feature = "standalone")]
 use standalone::*;
-#[cfg(not(feature = "standalone"))]
-use parachain::*;
+// #[cfg(not(feature = "standalone"))]
+// use parachain::*;
 
 use codec::{Decode, Encode};
 use sp_api::impl_runtime_apis;
-use sp_core::{OpaqueMetadata, H160, U256};
+use sp_core::{OpaqueMetadata, H160, U256, H256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentityLookup, Saturating, IdentifyAccount, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult,
 };
+use frontier_rpc_primitives::TransactionStatus;
 use sp_std::{marker::PhantomData, prelude::*};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
@@ -70,6 +71,8 @@ use pallet_evm::{
 	Account as EVMAccount, IdentityAddressMapping, EnsureAddressSame,
 	EnsureAddressNever, FeeCalculator, Runner
 };
+use pallet_transaction_payment::CurrencyAdapter;
+
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
@@ -148,7 +151,7 @@ parameter_types! {
 	pub const ExtrinsicBaseWeight: Weight = 10_000_000;
 }
 
-impl frame_system::Trait for Runtime {
+impl frame_system::Config for Runtime {
 	/// The identifier used to distinguish between accounts.
 	type AccountId = AccountId;
 	/// The aggregated dispatch type that is available for extrinsics.
@@ -179,8 +182,7 @@ impl frame_system::Trait for Runtime {
 	type AvailableBlockRatio = AvailableBlockRatio;
 	/// Runtime version.
 	type Version = Version;
-	/// Converts a module to an index of this module in the runtime.
-	type ModuleToIndex = ModuleToIndex;
+	type PalletInfo = PalletInfo;
 	type AccountData = pallet_balances::AccountData<Balance>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
@@ -199,7 +201,7 @@ parameter_types! {
 	pub const MinimumPeriod: u64 = MINIMUM_PERIOD;
 }
 
-impl pallet_timestamp::Trait for Runtime {
+impl pallet_timestamp::Config for Runtime {
 	/// A timestamp: milliseconds since the unix epoch.
 	type Moment = u64;
 	type OnTimestampSet = ();
@@ -208,10 +210,12 @@ impl pallet_timestamp::Trait for Runtime {
 }
 
 parameter_types! {
+	pub const MaxLocks: u32 = 50;
 	pub const ExistentialDeposit: u128 = 0;
 }
 
-impl pallet_balances::Trait for Runtime {
+impl pallet_balances::Config for Runtime {
+	type MaxLocks = MaxLocks;
 	/// The type for recording an account's balance.
 	type Balance = Balance;
 	/// The ubiquitous event type.
@@ -226,23 +230,23 @@ parameter_types! {
 	pub const TransactionByteFee: Balance = 1;
 }
 
-impl pallet_transaction_payment::Trait for Runtime {
-	type Currency = Balances;
-	type OnTransactionPayment = ();
+impl pallet_transaction_payment::Config for Runtime {
+	type OnChargeTransaction = CurrencyAdapter<Balances, ()>;
 	type TransactionByteFee = TransactionByteFee;
 	type WeightToFee = IdentityFee<Balance>;
 	type FeeMultiplierUpdate = ();
 }
 
-impl pallet_sudo::Trait for Runtime {
+impl pallet_sudo::Config for Runtime {
 	type Call = Call;
 	type Event = Event;
 }
 
-impl pallet_ethereum_chain_id::Trait for Runtime {}
+impl pallet_ethereum_chain_id::Config for Runtime {}
 
-impl pallet_evm::Trait for Runtime {
+impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
+	type GasToWeight = ();
 	type CallOrigin = EnsureAddressSame;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = IdentityAddressMapping;
@@ -281,7 +285,7 @@ impl frontier_rpc_primitives::ConvertTransaction<opaque::UncheckedExtrinsic>
 
 pub struct EthereumFindAuthor<F>(PhantomData<F>);
 
-impl pallet_ethereum::Trait for Runtime {
+impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
 	#[cfg(not(feature = "standalone"))]
 	type FindAuthor = EthereumFindAuthor<PhantomAura>;
@@ -413,7 +417,7 @@ impl_runtime_apis! {
 
 	impl frontier_rpc_primitives::EthereumRuntimeRPCApi<Block> for Runtime {
 		fn chain_id() -> u64 {
-			<Runtime as pallet_evm::Trait>::ChainId::get()
+			<Runtime as pallet_evm::Config>::ChainId::get()
 		}
 
 		fn account_basic(address: H160) -> EVMAccount {
@@ -421,7 +425,21 @@ impl_runtime_apis! {
 		}
 
 		fn gas_price() -> U256 {
-			<Runtime as pallet_evm::Trait>::FeeCalculator::min_gas_price()
+			<Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price()
+		}
+
+		fn account_code_at(address: H160) -> Vec<u8> {
+			EVM::account_codes(address)
+		}
+
+		fn author() -> H160 {
+			<pallet_ethereum::Module<Runtime>>::find_author()
+		}
+
+		fn storage_at(address: H160, index: U256) -> H256 {
+			let mut tmp = [0u8; 32];
+			index.to_big_endian(&mut tmp);
+			EVM::account_storages(address, H256::from_slice(&tmp[..]))
 		}
 
 		fn call(
@@ -432,8 +450,17 @@ impl_runtime_apis! {
 			gas_limit: U256,
 			gas_price: Option<U256>,
 			nonce: Option<U256>,
+			estimate: bool,
 		) -> Result<pallet_evm::CallInfo, sp_runtime::DispatchError> {
-			<Runtime as pallet_evm::Trait>::Runner::call(
+			let config = if estimate {
+				let mut config = <Runtime as pallet_evm::Config>::config().clone();
+				config.estimate = true;
+				Some(config)
+			} else {
+				None
+			};
+
+			<Runtime as pallet_evm::Config>::Runner::call(
 				from,
 				to,
 				data,
@@ -441,6 +468,7 @@ impl_runtime_apis! {
 				gas_limit.low_u32(),
 				gas_price,
 				nonce,
+				config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 			).map_err(|err| err.into())
 		}
 
@@ -451,15 +479,49 @@ impl_runtime_apis! {
 			gas_limit: U256,
 			gas_price: Option<U256>,
 			nonce: Option<U256>,
+			estimate: bool,
 		) -> Result<pallet_evm::CreateInfo, sp_runtime::DispatchError> {
-			<Runtime as pallet_evm::Trait>::Runner::create(
+			let config = if estimate {
+				let mut config = <Runtime as pallet_evm::Config>::config().clone();
+				config.estimate = true;
+				Some(config)
+			} else {
+				None
+			};
+
+			<Runtime as pallet_evm::Config>::Runner::create(
 				from,
 				data,
 				value,
 				gas_limit.low_u32(),
 				gas_price,
 				nonce,
+				config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 			).map_err(|err| err.into())
+		}
+
+		fn current_transaction_statuses() -> Option<Vec<TransactionStatus>> {
+			Ethereum::current_transaction_statuses()
+		}
+
+		fn current_block() -> Option<pallet_ethereum::Block> {
+			Ethereum::current_block()
+		}
+
+		fn current_receipts() -> Option<Vec<pallet_ethereum::Receipt>> {
+			Ethereum::current_receipts()
+		}
+
+		fn current_all() -> (
+			Option<pallet_ethereum::Block>,
+			Option<Vec<pallet_ethereum::Receipt>>,
+			Option<Vec<TransactionStatus>>
+		) {
+			(
+				Ethereum::current_block(),
+				Ethereum::current_receipts(),
+				Ethereum::current_transaction_statuses()
+			)
 		}
 	}
 
