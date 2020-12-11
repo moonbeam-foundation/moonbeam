@@ -1635,7 +1635,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#22d6cfcd44184fb7b2a72ed7639d4a73adcc081a"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#c8d3a83e371d9e171bec1a9eee79dfe07a56d18d"
 dependencies = [
  "derive_more 0.99.11",
  "ethereum",
@@ -1658,7 +1658,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#22d6cfcd44184fb7b2a72ed7639d4a73adcc081a"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#c8d3a83e371d9e171bec1a9eee79dfe07a56d18d"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -1694,7 +1694,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#22d6cfcd44184fb7b2a72ed7639d4a73adcc081a"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#c8d3a83e371d9e171bec1a9eee79dfe07a56d18d"
 dependencies = [
  "ethereum-types",
  "jsonrpc-core 15.1.0",
@@ -1788,7 +1788,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#22d6cfcd44184fb7b2a72ed7639d4a73adcc081a"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#c8d3a83e371d9e171bec1a9eee79dfe07a56d18d"
 dependencies = [
  "parity-scale-codec",
  "sp-core",
@@ -1799,7 +1799,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "0.8.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#22d6cfcd44184fb7b2a72ed7639d4a73adcc081a"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#c8d3a83e371d9e171bec1a9eee79dfe07a56d18d"
 dependencies = [
  "evm",
  "parity-scale-codec",
@@ -1811,7 +1811,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#22d6cfcd44184fb7b2a72ed7639d4a73adcc081a"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#c8d3a83e371d9e171bec1a9eee79dfe07a56d18d"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4444,7 +4444,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#22d6cfcd44184fb7b2a72ed7639d4a73adcc081a"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#c8d3a83e371d9e171bec1a9eee79dfe07a56d18d"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4481,7 +4481,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "2.0.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#22d6cfcd44184fb7b2a72ed7639d4a73adcc081a"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#c8d3a83e371d9e171bec1a9eee79dfe07a56d18d"
 dependencies = [
  "evm",
  "evm-gasometer",
