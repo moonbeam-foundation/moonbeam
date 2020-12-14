@@ -49,9 +49,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
       .catch((err) => expect(err.message).to.equal(`Returned error: evm error: OutOfGas`));
   });
 
-  // TODO: this test will pass when we merge frontier's update
-  // that adds the status field to the receipt
-  it.skip("inifinite loop send with incr should return OutOfGas", async function () {
+  it("inifinite loop send with incr should return OutOfGas", async function () {
     this.timeout(0);
 
     // deploy contract
@@ -76,9 +74,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
     }
   });
 
-  // TODO: this test will pass when we merge frontier's update
-  // that adds the status field to the receipt
-  it.skip("finite loop with incr: check gas usage, with normal gas limit,\
+  it("finite loop with incr: check gas usage, with normal gas limit,\
   should error before 700 loops", async function () {
     this.timeout(0);
     // For a normal 1048576 gas limit, loop should revert out of gas between 600 and 700 loops
