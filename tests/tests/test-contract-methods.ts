@@ -1,28 +1,16 @@
 import { expect } from "chai";
 
-import { TransactionReceipt } from "web3-core";
-
 import {
-  callContractFunctionMS,
   createAndFinalizeBlock,
   customRequest,
-  deployContractManualSeal,
   describeWithMoonbeam,
 } from "./util";
 import {
-  FINITE_LOOP_CONTRACT_ABI,
-  FINITE_LOOP_CONTRACT_BYTECODE,
   FIRST_CONTRACT_ADDRESS,
   GENESIS_ACCOUNT,
   GENESIS_ACCOUNT_PRIVATE_KEY,
-  INFINITE_CONTRACT_ABI,
-  INFINITE_CONTRACT_ABI_VAR,
-  INFINITE_CONTRACT_BYTECODE,
-  INFINITE_CONTRACT_BYTECODE_VAR,
   TEST_CONTRACT_ABI,
   TEST_CONTRACT_BYTECODE,
-  TEST_CONTRACT_BYTECODE_INCR,
-  TEST_CONTRACT_INCR_ABI,
 } from "./constants";
 
 describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (context) => {
@@ -72,7 +60,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
     await contract.methods
       .multiply()
       .call()
-      .catch((err) => expect(err.message).to.equal(`Returned error: evm revert: Reverted`));
+      .catch((err) => expect(err.message).to.equal(`Returned error: VM Exception while processing transaction: revert`));
   });
 
   // Requires error handling
@@ -96,7 +84,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
     await contract.methods
       .multiply(3, 4)
       .call()
-      .catch((err) => expect(err.message).to.equal(`Returned error: evm revert: Reverted`));
+      .catch((err) => expect(err.message).to.equal(`Returned error: VM Exception while processing transaction: revert`));
   });
 
   // Requires error handling
@@ -120,6 +108,6 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
     await contract.methods
       .multiply("0x0123456789012345678901234567890123456789")
       .call()
-      .catch((err) => expect(err.message).to.equal(`Returned error: evm revert: Reverted`));
+      .catch((err) => expect(err.message).to.equal(`Returned error: VM Exception while processing transaction: revert`));
   });
 });
