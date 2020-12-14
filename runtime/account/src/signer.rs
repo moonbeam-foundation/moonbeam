@@ -60,6 +60,7 @@ impl sp_runtime::traits::Verify for EthereumSignature {
 		m.copy_from_slice(Keccak256::digest(msg.get()).as_slice());
 		match sp_io::crypto::secp256k1_ecdsa_recover(self.0.as_ref(), &m) {
 			Ok(pubkey) => {
+				// TODO This conversion could use a comment. Why H256 first, then H160?
 				H160::from(H256::from_slice(Keccak256::digest(&pubkey).as_slice())) ==
 				*signer
 			},
