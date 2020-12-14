@@ -35,20 +35,6 @@ impl From<ecdsa::Signature> for EthereumSignature {
 	}
 }
 
-// #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-// #[derive(Eq, PartialEq, Clone, Encode, Decode, RuntimeDebug)]
-// pub enum MultiSignature {
-// 	Ed25519(ed25519::Signature),
-// 	Sr25519(sr25519::Signature),
-// 	Ecdsa(EthereumSignature),
-// }
-
-// impl From<EthereumSignature> for MultiSignature {
-// 	fn from(x: EthereumSignature) -> Self {
-// 		MultiSignature::Ecdsa(x)
-// 	}
-// }
-
 impl sp_runtime::traits::Verify for EthereumSignature {
 	type Signer = EthereumSigner;
 	fn verify<L: sp_runtime::traits::Lazy<[u8]>>(
