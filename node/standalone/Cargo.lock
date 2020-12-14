@@ -4492,7 +4492,6 @@ version = "0.1.0"
 dependencies = [
  "log",
  "pallet-evm",
- "ripemd160",
  "rustc-hex",
  "sp-core",
  "sp-std",
