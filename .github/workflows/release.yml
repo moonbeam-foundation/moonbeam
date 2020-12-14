@@ -409,7 +409,7 @@ jobs:
       - name: Get runtime version
         id: get-runtime-ver
         run: |
-          runtime_ver="$(ruby -e 'require "./scripts/github/lib.rb"; puts get_runtime("${{ matrix.runtime }}")')"
+          runtime_ver="$(ruby -e 'require "./scripts/github/lib.rb"; puts get_runtime("parachain.rs")')"
           echo "::set-output name=runtime_ver::$runtime_ver"
       - name: Upload ${{ matrix.runtime }} wasm
         uses: actions/upload-release-asset@v1

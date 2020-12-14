@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-pub use cumulus_token_dealer;
-
 #[macro_export]
 macro_rules! runtime_parachain {
 	() => {
@@ -25,35 +23,18 @@ macro_rules! runtime_parachain {
 			spec_name: create_runtime_str!("moonbase-alphanet"),
 			impl_name: create_runtime_str!("moonbase-alphanet"),
 			authoring_version: 3,
-			spec_version: 4,
+			spec_version: 5,
 			impl_version: 0,
 			apis: RUNTIME_API_VERSIONS,
 			transaction_version: 1,
 		};
 
-		impl cumulus_parachain_upgrade::Trait for Runtime {
+		impl cumulus_parachain_upgrade::Config for Runtime {
 			type Event = Event;
-			type OnValidationFunctionParams = ();
+			type OnValidationData = ();
 		}
 
-		impl cumulus_message_broker::Trait for Runtime {
-			type Event = Event;
-			type DownwardMessageHandlers = TokenDealer;
-			type UpwardMessage = cumulus_upward_message::RococoUpwardMessage;
-			type ParachainId = ParachainInfo;
-			type XCMPMessage = cumulus_token_dealer::XCMPMessage<AccountId, Balance>;
-			type XCMPMessageHandlers = TokenDealer;
-		}
-
-		impl parachain_info::Trait for Runtime {}
-
-		impl cumulus_token_dealer::Trait for Runtime {
-			type Event = Event;
-			type UpwardMessageSender = MessageBroker;
-			type UpwardMessage = cumulus_upward_message::RococoUpwardMessage;
-			type Currency = Balances;
-			type XCMPMessageSender = MessageBroker;
-		}
+		impl parachain_info::Config for Runtime {}
 
 		// TODO Consensus not supported in parachain
 		impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F> {
@@ -87,10 +68,8 @@ macro_rules! runtime_parachain {
 				Sudo: pallet_sudo::{Module, Call, Storage, Config<T>, Event<T>},
 				RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Module, Call, Storage},
 				ParachainUpgrade: cumulus_parachain_upgrade::{Module, Call, Storage, Inherent, Event},
-				MessageBroker: cumulus_message_broker::{Module, Call, Inherent, Event<T>},
 				TransactionPayment: pallet_transaction_payment::{Module, Storage},
 				ParachainInfo: parachain_info::{Module, Storage, Config},
-				TokenDealer: cumulus_token_dealer::{Module, Call, Event<T>},
 				EthereumChainId: pallet_ethereum_chain_id::{Module, Storage, Config},
 				EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
 				Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},

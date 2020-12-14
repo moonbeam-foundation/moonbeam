@@ -61,7 +61,7 @@ release_priority = Changelog.highest_priority_for_changes(all_changes)
 rustc = ENV['RUSTC']
 toolchain_nightly = ENV['WASM_BUILD_TOOLCHAIN']
 
-moonbeam_runtime = get_runtime('moonbeam', moonbeam_path)
+moonbeam_runtime = get_runtime('parachain.rs', moonbeam_path)
 
 # These json files should have been downloaded as part of the build-runtimes
 # github action
