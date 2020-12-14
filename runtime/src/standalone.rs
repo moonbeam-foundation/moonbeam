@@ -33,17 +33,17 @@ macro_rules! runtime_standalone {
 			spec_name: create_runtime_str!("moonbeam-standalone"),
 			impl_name: create_runtime_str!("moonbeam-standalone"),
 			authoring_version: 3,
-			spec_version: 4,
+			spec_version: 5,
 			impl_version: 0,
 			apis: RUNTIME_API_VERSIONS,
 			transaction_version: 1,
 		};
 
-		impl pallet_aura::Trait for Runtime {
+		impl pallet_aura::Config for Runtime {
 			type AuthorityId = AuraId;
 		}
 
-		impl pallet_grandpa::Trait for Runtime {
+		impl pallet_grandpa::Config for Runtime {
 			type Event = Event;
 			type Call = Call;
 
@@ -58,6 +58,7 @@ macro_rules! runtime_standalone {
 			)>>::IdentificationTuple;
 
 			type HandleEquivocation = ();
+			type WeightInfo = ();
 		}
 
 		impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F> {

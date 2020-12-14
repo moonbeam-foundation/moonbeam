@@ -22,20 +22,20 @@ use frame_support::{decl_module, decl_storage, traits::Get};
 
 
 /// Configuration trait of this pallet.
-pub trait Trait: frame_system::Trait {}
+pub trait Config: frame_system::Config {}
 
-impl <T: Trait> Get<u64> for Module<T> {
+impl <T: Config> Get<u64> for Module<T> {
 	fn get() -> u64 {
 		Self::chain_id()
 	}
 }
 
 decl_storage! {
-	trait Store for Module<T: Trait> as MoonbeamChainId {
+	trait Store for Module<T: Config> as MoonbeamChainId {
 		ChainId get(fn chain_id) config(): u64 = 43;
 	}
 }
 
 decl_module! {
-	pub struct Module<T: Trait> for enum Call where origin: T::Origin {}
+	pub struct Module<T: Config> for enum Call where origin: T::Origin {}
 }

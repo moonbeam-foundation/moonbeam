@@ -16,6 +16,10 @@
 
 //! A collection of node-specific RPC methods.
 
+// Our drop-in replacements for Frontier's RPC servers.
+mod server_hotfixes;
+mod pubsub_hotfixes;
+
 use std::{sync::Arc, fmt};
 
 use sc_consensus_manual_seal::rpc::{EngineCommand, ManualSeal, ManualSealApi};
@@ -33,6 +37,7 @@ use sp_runtime::traits::BlakeTwo256;
 use sp_block_builder::BlockBuilder;
 use sc_network::NetworkService;
 use jsonrpc_pubsub::manager::SubscriptionManager;
+use frontier_rpc::HexEncodedIdProvider;
 
 /// Light client extra dependencies.
 pub struct LightDeps<C, F, P> {
@@ -82,7 +87,11 @@ pub fn create_full<C, P, BE>(
 {
 	use substrate_frame_rpc_system::{FullSystem, SystemApi};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
-	use frontier_rpc::{EthApi, EthApiServer, NetApi, NetApiServer, EthPubSubApi, EthPubSubApiServer};
+	use frontier_rpc::{EthApiServer, NetApi, NetApiServer, EthPubSubApiServer};
+	// Our drop in replacements for the Eth APIs. These can be removed after
+	// https://github.com/paritytech/frontier/pull/199 lands
+	use server_hotfixes::EthApi;
+	use pubsub_hotfixes::EthPubSubApi;
 
 	let mut io = jsonrpc_core::IoHandler::default();
 	let FullDeps {
@@ -91,7 +100,7 @@ pub fn create_full<C, P, BE>(
 		deny_unsafe,
 		is_authority,
 		network,
-		command_sink
+		command_sink,
 	} = deps;
 
 	io.extend_with(
@@ -100,18 +109,24 @@ pub fn create_full<C, P, BE>(
 	io.extend_with(
 		TransactionPaymentApi::to_delegate(TransactionPayment::new(client.clone()))
 	);
+
+	// We currently don't want to support signing in the node. Users should prefer external tools
+	// for transaction signing. So just pass in an empty vector of signers.
+	let signers = Vec::new();
 	io.extend_with(
 		EthApiServer::to_delegate(EthApi::new(
 			client.clone(),
 			pool.clone(),
 			moonbeam_runtime::TransactionConverter,
 			network.clone(),
+			signers,
 			is_authority,
 		))
 	);
 	io.extend_with(
 		NetApiServer::to_delegate(NetApi::new(
 			client.clone(),
+			network.clone(),
 		))
 	);
 	io.extend_with(
@@ -119,7 +134,10 @@ pub fn create_full<C, P, BE>(
 			pool.clone(),
 			client.clone(),
 			network.clone(),
-			SubscriptionManager::new(Arc::new(subscription_task_executor)),
+			SubscriptionManager::<HexEncodedIdProvider>::with_id_provider(
+				HexEncodedIdProvider::default(),
+				Arc::new(subscription_task_executor)
+			),
 		))
 	);
 

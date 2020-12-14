@@ -10,7 +10,7 @@ name: Release
 # the commit the **PR is merging into**. This prevents malicious attack trying
 # to change the CI in the PR.
 ####### DO NOT CHANGE THIS !! #######
-on: ["push", "pull_request_target"]
+on: ["push"]
 
 jobs:
   ####### Check files and formatting #######
@@ -18,7 +18,23 @@ jobs:
   check-copyright:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v2
+        # by default the pull_requst_target event checks out the base branch, i.e. dev
+        # so we need to explicitly checkout the head of the PR
+        # we use fetch-depth 0 to make sure the full history is checked out and we can compare against
+        # the base commit (branch) of the PR
+        # more info https://github.community/t/github-actions-are-severely-limited-on-prs/18179/16
+        # we checkout merge_commit here as this contains all new code from dev also. we don't need to compare against base_commit
+        with:
+          fetch-depth: 0
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+          # repository: ${{github.event.pull_request.head.repo.full_name}}
+      - name: Checkout
+        # for non PR runs we just checkout the default, which is a sha on a branch probably
+        if: github.event_name != 'pull_request_target'
+        uses: actions/checkout@v2
       - name: Find un-copyrighted files
         run: |
           find . -name '*.rs' -exec grep  -H -E -o -c Copyright {} \; | grep ':0' || true
@@ -32,7 +48,15 @@ jobs:
   check-links:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+      - name: Checkout
+        if: github.event_name != 'pull_request_target'
+        uses: actions/checkout@v2
       - uses: gaurav-nelson/github-action-markdown-link-check@v1
         with:
           use-quiet-mode: "yes"
@@ -41,7 +65,15 @@ jobs:
     name: "Check editorconfig"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+      - name: Checkout
+        if: github.event_name != 'pull_request_target'
+        uses: actions/checkout@v2
       - name: Setup editorconfig checker
         run: |
           wget https://github.com/editorconfig-checker/editorconfig-checker/releases/download/2.1.0/ec-linux-amd64.tar.gz
@@ -54,9 +86,17 @@ jobs:
     name: "Check with Prettier"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+      - name: Checkout
+        if: github.event_name != 'pull_request_target'
+        uses: actions/checkout@v2
       - name: Check with Prettier
-        run: npx prettier --check --ignore-path .gitignore  **.json **.js **.ts **.yml
+        run: npx prettier --check --ignore-path .gitignore  '**/*.(yml|js|ts|json)'
 
   ####### Building and Testing binaries #######
 
@@ -65,7 +105,15 @@ jobs:
     outputs:
       RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+      - name: Checkout
+        if: github.event_name != 'pull_request_target'
+        uses: actions/checkout@v2
       - name: Cache Rust dependencies
         uses: actions/cache@v2
         id: cache
@@ -94,6 +142,20 @@ jobs:
         run: |
           cd node/standalone
           cargo build --release --verbose --all
+      # We determine whether there are unmodified Cargo.lock files by:
+      # 1. Asking git for a list of all modified files
+      # 2. Using grep to reduce the list to only Cargo.lock files
+      # 3. Counting the number of lines of output
+      - name: Check Cargo Toml
+        run: |
+          FILECOUNT=$(git diff-index --name-only HEAD | grep Cargo.lock | wc -l)
+          if [[ $FILECOUNT -eq 0 ]]; then
+            echo "All lock files are valid"
+          else
+            echo "The following Cargo.lock files have uncommitted changes"
+            git diff-index --name-only HEAD | grep Cargo.lock
+            false
+          fi
       - name: Run tests
         run: cargo test --release --verbose --all
       - name: Typescript tests (against standalone node)
@@ -118,33 +180,15 @@ jobs:
           name: moonbase-standalone
           path: build/standalone
 
-  ####### Checking generated Cargo files #######
-
-  check-cargo-toml:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      # We determine whether there are unmodified Cargo.lock files by:
-      # 1. Asking git for a list of all modified files
-      # 2. Using grep to reduce the list to only Cargo.lock files
-      # 3. Counting the number of lines of output
-      - run: |
-          FILECOUNT=$(git diff-index --name-only HEAD | grep Cargo.lock | wc -l)
-          if [[ $FILECOUNT -eq 0 ]]; then
-            echo "All lock files are valid"
-          else
-            echo "The following Cargo.lock files have uncommitted changes"
-            git diff-index --name-only HEAD | grep Cargo.lock
-            false
-          fi
-
   ####### Prepare and Deploy Docker images #######
 
   generate-parachain-specs:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     needs: build
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
           name: moonbase-alphanet
@@ -164,7 +208,8 @@ jobs:
     needs: ["build", "generate-parachain-specs"]
     if: github.event_name == 'push'
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
           name: moonbase-alphanet
@@ -234,7 +279,8 @@ jobs:
     needs: ["build"]
     if: github.event_name == 'push'
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
           name: moonbase-standalone
@@ -311,7 +357,8 @@ jobs:
       release_url: ${{ steps.create-release.outputs.html_url }}
       asset_upload_url: ${{ steps.create-release.outputs.upload_url }}
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
         with:
           fetch-depth: 0
           path: moonbeam
@@ -349,7 +396,8 @@ jobs:
       matrix:
         runtime: ["moonbase-alphanet"]
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
           name: moonbase-alphanet
@@ -361,7 +409,7 @@ jobs:
       - name: Get runtime version
         id: get-runtime-ver
         run: |
-          runtime_ver="$(ruby -e 'require "./scripts/github/lib.rb"; puts get_runtime("${{ matrix.runtime }}")')"
+          runtime_ver="$(ruby -e 'require "./scripts/github/lib.rb"; puts get_runtime("parachain.rs")')"
           echo "::set-output name=runtime_ver::$runtime_ver"
       - name: Upload ${{ matrix.runtime }} wasm
         uses: actions/upload-release-asset@v1

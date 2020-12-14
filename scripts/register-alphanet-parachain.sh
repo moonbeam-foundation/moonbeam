@@ -22,12 +22,17 @@ if [ ! -f "$PARACHAIN_GENESIS" ]; then
     exit 1
 fi
 
-docker run --rm --network=host -v $(pwd)/$PARACHAIN_WASM:/wasm jacogr/polkadot-js-tools api \
+PARACHAIN_CONFIG="$PARACHAIN_BUILD_FOLDER/moonbase-alphanet-runtime.config.json";
+echo -n "1000 {\"genesis_head\":\"$(cat $PARACHAIN_GENESIS)\",\"validation_code\":\"" \
+    > $PARACHAIN_CONFIG;
+cat $PARACHAIN_WASM  >> $PARACHAIN_CONFIG;
+echo -n "\",\"parachain\":true}" >> $PARACHAIN_CONFIG;
+
+docker run --rm --network=host \
+  -v $(pwd)/$PARACHAIN_CONFIG:/config \
+  jacogr/polkadot-js-tools:latest api \
     --ws "ws://localhost:$((RELAY_PORT + 2))" \
     --sudo \
     --seed "$SUDO_SEED" \
-    tx.registrar.registerPara \
-        1000 \
-        "{\"scheduling\":\"Always\"}" \
-        @"/wasm" \
-        "$(cat $PARACHAIN_GENESIS)"
+    --params /config \
+    tx.parasSudoWrapper.sudoScheduleParaInitialize
