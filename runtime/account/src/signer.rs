@@ -67,13 +67,11 @@ impl sp_runtime::traits::Verify for EthereumSignature {
 }
 
 
-/// Public key for any known crypto algorithm.
-/// TODO this doc comment needs updated
+/// Public key for an Ethereum / H160 compatible account
 #[derive(Eq, PartialEq, Ord, PartialOrd, Clone, Encode, Decode, sp_core::RuntimeDebug)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct EthereumSigner ([u8; 20]);
 
-//TODO where did we need this trait? Could we just be using H160 directly?
 impl sp_runtime::traits::IdentifyAccount for EthereumSigner {
 	type AccountId = H160;
 	fn into_account(self) -> H160 {
