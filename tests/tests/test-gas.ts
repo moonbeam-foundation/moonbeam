@@ -51,7 +51,7 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
     this.timeout(15000);
 
     const gasLimit = (await context.web3.eth.getBlock("latest")).gasLimit;
-    await createAndFinalizeBlock(context.web3);
+    await createAndFinalizeBlock(context.polkadotApi);
 
     // Gas limit is expected to have decreased as the gasUsed by the block is lower than 2/3 of the
     // previous gas limit.

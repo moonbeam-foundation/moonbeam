@@ -33,7 +33,7 @@ describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) =>
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
     await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
-    await createAndFinalizeBlock(context.web3);
+    await createAndFinalizeBlock(context.polkadotApi);
     expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT)).to.equal(
       "340282366920938463463374607431768189943"
     );
@@ -54,7 +54,7 @@ describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) =>
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
     await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
-    await createAndFinalizeBlock(context.web3);
+    await createAndFinalizeBlock(context.polkadotApi);
     expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT)).to.equal(
       (await context.polkadotApi.query.system.account(GENESIS_ACCOUNT)).data.free.toString()
     );
@@ -68,7 +68,7 @@ describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) =>
     const testAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     await context.polkadotApi.tx.balances.transfer(TEST_ACCOUNT_2, 123).signAndSend(testAccount);
 
-    await createAndFinalizeBlock(context.web3);
+    await createAndFinalizeBlock(context.polkadotApi);
     expect(await context.web3.eth.getBalance(TEST_ACCOUNT_2)).to.equal("123");
   });
 });

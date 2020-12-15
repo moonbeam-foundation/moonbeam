@@ -22,7 +22,7 @@ describeWithMoonbeam("Moonbeam RPC (Existential Deposit)", `simple-specs.json`, 
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
     await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
-    await createAndFinalizeBlock(context.web3);
+    await createAndFinalizeBlock(context.polkadotApi);
     expect(parseInt(await context.web3.eth.getBalance(GENESIS_ACCOUNT))).to.eq(0);
     expect(await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT)).to.eq(1);
   });

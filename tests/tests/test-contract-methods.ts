@@ -23,7 +23,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
     await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
-    await createAndFinalizeBlock(context.web3);
+    await createAndFinalizeBlock(context.polkadotApi);
   });
 
   it("get transaction by hash", async () => {
@@ -57,8 +57,9 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
       .multiply()
       .call()
       .catch((err) =>
-        expect(err.message).to.equal(`Returned error: VM Exception\
-       while processing transaction: revert`)
+        expect(err.message).to.equal(
+          `Returned error: VM Exception while processing transaction: revert`
+        )
       );
   });
 
@@ -84,8 +85,9 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
       .multiply(3, 4)
       .call()
       .catch((err) =>
-        expect(err.message).to.equal(`Returned error: VM Exception\
-       while processing transaction: revert`)
+        expect(err.message).to.equal(
+          `Returned error: VM Exception while processing transaction: revert`
+        )
       );
   });
 
@@ -111,8 +113,9 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
       .multiply("0x0123456789012345678901234567890123456789")
       .call()
       .catch((err) =>
-        expect(err.message).to.equal(`Returned error: VM Exception\
-       while processing transaction: revert`)
+        expect(err.message).to.equal(
+          `Returned error: VM Exception while processing transaction: revert`
+        )
       );
   });
 });

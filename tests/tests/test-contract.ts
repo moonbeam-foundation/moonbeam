@@ -43,7 +43,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract)", `simple-specs.json`, (context) =
     });
 
     // Verify the contract is stored after the block is produced
-    await createAndFinalizeBlock(context.web3);
+    await createAndFinalizeBlock(context.polkadotApi);
     expect(
       await customRequest(context.web3, "eth_getCode", [FIRST_CONTRACT_ADDRESS])
     ).to.deep.equal({

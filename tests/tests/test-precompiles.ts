@@ -56,7 +56,7 @@ describeWithMoonbeam("Moonbeam (Precompiles)", `simple-specs.json`, (context) =>
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
     await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
-    await createAndFinalizeBlock(context.web3);
+    await createAndFinalizeBlock(context.polkadotApi);
     expect(await context.web3.eth.getCode("0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a")).equals(
       "0x6080604052600080fdfea26469706673582212202febccafbee65a134279d3397fecfc56a3d21259" +
         "87802a91add0260c7efa94d264736f6c634300060c0033"

@@ -3,7 +3,9 @@ import Web3 from "web3";
 import { JsonRpcResponse } from "web3-core-helpers";
 import { SignedTransaction, TransactionConfig } from "web3-core";
 import { basicTransfertx, GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../constants";
-import { createAndFinalizeBlock, wrappedCustomRequest } from "./web3Requests";
+import { wrappedCustomRequest } from "./web3Requests";
+import { createAndFinalizeBlock } from ".";
+import { Context } from "./testWithMoonbeam";
 
 function isSignedTransaction(tx: Error | SignedTransaction): tx is SignedTransaction {
   return (tx as SignedTransaction).rawTransaction !== undefined;
@@ -80,7 +82,7 @@ interface FillBlockReport {
 // included in a block
 // By default, the tx is a simple transfer, but a TransactionConfig can be specified as an option
 export async function fillBlockWithTx(
-  context: { web3: Web3 },
+  context: Context,
   numberOfTx: number,
   customTxConfig: TransactionConfig = basicTransfertx
 ): Promise<FillBlockReport> {
@@ -147,7 +149,11 @@ export async function fillBlockWithTx(
 
   console.log("Error Report : ", errorReport);
 
-  console.log("created block in ", (await createAndFinalizeBlock(context.web3)) / 1000, " seconds");
+  console.log(
+    "created block in ",
+    (await createAndFinalizeBlock(context.polkadotApi)) / 1000,
+    " seconds"
+  );
 
   let numberOfBlocks = 0;
   let block = await context.web3.eth.getBlock("latest");
@@ -165,7 +171,7 @@ export async function fillBlockWithTx(
   let i: number = 2;
 
   while (block.transactions.length !== 0) {
-    await createAndFinalizeBlock(context.web3);
+    await createAndFinalizeBlock(context.polkadotApi);
 
     block = await context.web3.eth.getBlock("latest");
     console.log(
