@@ -18,7 +18,7 @@
 
 use sp_std::prelude::*;
 use sp_core::H160;
-use pallet_evm::{ExitError, ExitSucceed, Precompile};
+use pallet_evm::{Precompile, Precompiles};
 
 pub struct ExperimentalMoonbeamPrecompiles;
 
@@ -43,7 +43,7 @@ fn ensure_linear_cost(
 // prepends "deadbeef" to any data provided
 struct DeadbeefPrecompiled;
 
-impl pallet_evm::Precompile for DeadbeefPrecompiled {
+impl Precompile for DeadbeefPrecompiled {
 	fn execute(
 		input: &[u8],
 		target_gas: Option<usize>
@@ -79,7 +79,7 @@ fn get_precompiled_func_from_address(address: &H160) -> Option<PrecompiledCallab
 	None
 }
 
-impl pallet_evm::Precompiles for ExperimentalMoonbeamPrecompiles {
+impl Precompiles for ExperimentalMoonbeamPrecompiles {
 	fn execute(
 		address: H160,
 		input: &[u8],
@@ -99,33 +99,11 @@ impl pallet_evm::Precompiles for ExperimentalMoonbeamPrecompiles {
 	}
 }
 
-
-
-use ripemd160::Digest;
-/// The ripemd precompile.
-pub struct Ripemd160;
-
-impl Precompile for Ripemd160 {
-	fn execute(
-		input: &[u8],
-		target_gas: Option<usize>,
-	) -> core::result::Result<(ExitSucceed, Vec<u8>, usize), ExitError> {
-		let cost = ensure_linear_cost(target_gas, input.len(), 600, 120)?;
-
-		let mut v32 = [0u8; 32];
-		v32[12..32].copy_from_slice(&ripemd160::Ripemd160::digest(input));
-		Ok((ExitSucceed::Returned, v32.to_vec(), cost))
-	}
-}
-
-
 pub type MoonbeamPrecompiles =
 (
 	pallet_evm::precompiles::ECRecover,
 	pallet_evm::precompiles::Sha256,
-	// Reset to pallet_evm ripemd160 once
-	// https://github.com/paritytech/substrate/pull/7296 is included
-	Ripemd160,
+	pallet_evm::precompiles::Ripemd160,
 	pallet_evm::precompiles::Identity,
 );
 
