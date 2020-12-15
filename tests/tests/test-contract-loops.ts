@@ -29,12 +29,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
 
     // call incr function
     let bytesCode: string = await contract.methods.incr().encodeABI();
-    await callContractFunctionMS(
-      context.polkadotApi,
-      context.web3,
-      contract.options.address,
-      bytesCode
-    );
+    await callContractFunctionMS(context, contract.options.address, bytesCode);
 
     // check variable incrementation
     expect(await contract.methods.count().call()).to.eq("1");
@@ -72,12 +67,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
     //make infinite loop function call
     let bytesCode: string = await contract.methods.infinite().encodeABI();
     try {
-      await callContractFunctionMS(
-        context.polkadotApi,
-        context.web3,
-        contract.options.address,
-        bytesCode
-      );
+      await callContractFunctionMS(context, contract.options.address, bytesCode);
       let block = await context.web3.eth.getBlock("latest");
       const receipt: TransactionReceipt = await context.web3.eth.getTransactionReceipt(
         block.transactions[0]
@@ -107,12 +97,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
       const startIncr: number = Number(await contract.methods.count().call());
       const bytesCode: string = await contract.methods.incr(nb).encodeABI();
       try {
-        await callContractFunctionMS(
-          context.polkadotApi,
-          context.web3,
-          contract.options.address,
-          bytesCode
-        );
+        await callContractFunctionMS(context, contract.options.address, bytesCode);
         return Number(await contract.methods.count().call()) - startIncr;
       } catch (e) {
         console.log("error caught", e);
