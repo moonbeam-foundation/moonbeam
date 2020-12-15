@@ -20,7 +20,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use sp_core::{H160, H256, ecdsa, ed25519, sr25519, RuntimeDebug};
+use sp_core::{H160, H256, ecdsa};
 use codec::{Decode, Encode};
 use sha3::{Digest, Keccak256};
 
