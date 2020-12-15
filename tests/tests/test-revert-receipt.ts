@@ -49,7 +49,7 @@ describeWithMoonbeam("Frontier RPC (Constructor Revert)", `simple-specs.json`, (
     });
 
     // Verify the receipt exists after the block is created
-    await createAndFinalizeBlock(context.web3);
+    await createAndFinalizeBlock(context.polkadotApi);
     const receipt = await context.web3.eth.getTransactionReceipt(GOOD_TX_HASH);
     expect(receipt).to.include({
       blockNumber: 1,
@@ -88,7 +88,7 @@ describeWithMoonbeam("Frontier RPC (Constructor Revert)", `simple-specs.json`, (
       result: FAIL_TX_HASH,
     });
 
-    await createAndFinalizeBlock(context.web3);
+    await createAndFinalizeBlock(context.polkadotApi);
     const receipt = await context.web3.eth.getTransactionReceipt(FAIL_TX_HASH);
     expect(receipt).to.include({
       blockNumber: 2,

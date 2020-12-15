@@ -1,52 +1,17 @@
 import Web3 from "web3";
 import { ApiPromise, WsProvider } from "@polkadot/api";
 
-import { JsonRpcResponse } from "web3-core-helpers";
 import { spawn, ChildProcess } from "child_process";
-
-export const PORT = 19931;
-export const RPC_PORT = 19932;
-export const WS_PORT = 19933;
-export const SPECS_PATH = `./moonbeam-test-specs`;
-
-export const DISPLAY_LOG = process.env.MOONBEAM_LOG || false;
-export const MOONBEAM_LOG = process.env.MOONBEAM_LOG || "info";
-
-export const BINARY_PATH =
-  process.env.BINARY_PATH || `../node/standalone/target/release/moonbase-standalone`;
-export const SPAWNING_TIME = 30000;
-
-export async function customRequest(web3: Web3, method: string, params: any[]) {
-  return new Promise<JsonRpcResponse>((resolve, reject) => {
-    (web3.currentProvider as any).send(
-      {
-        jsonrpc: "2.0",
-        id: 1,
-        method,
-        params,
-      },
-      (error: Error | null, result?: JsonRpcResponse) => {
-        if (error) {
-          reject(
-            `Failed to send custom request (${method} (${params.join(",")})): ${
-              error.message || error.toString()
-            }`
-          );
-        }
-        resolve(result);
-      }
-    );
-  });
-}
-
-// Create a block and finalize it.
-// It will include all previously executed transactions since the last finalized block.
-export async function createAndFinalizeBlock(web3: Web3) {
-  const response = await customRequest(web3, "engine_createBlock", [true, true, null]);
-  if (!response.result) {
-    throw new Error(`Unexpected result: ${JSON.stringify(response)}`);
-  }
-}
+import {
+  BINARY_PATH,
+  DISPLAY_LOG,
+  MOONBEAM_LOG,
+  PORT,
+  RPC_PORT,
+  SPAWNING_TIME,
+  SPECS_PATH,
+  WS_PORT,
+} from "../constants";
 
 export interface Context {
   web3: Web3;
@@ -128,8 +93,8 @@ export async function startMoonbeamNode(
     binary.stdout.on("data", onData);
   });
 
-  const polkadotJsTypes = require("../../polkadot-js/standalone-types.json");
-  const polkadotJsRpc = require("../../polkadot-js/frontier-rpc-types");
+  const polkadotJsTypes = require("../../../polkadot-js/standalone-types.json");
+  const polkadotJsRpc = require("../../../polkadot-js/frontier-rpc-types");
 
   const wsProvider = new WsProvider(`ws://localhost:${WS_PORT}`);
   const polkadotApi = await ApiPromise.create({

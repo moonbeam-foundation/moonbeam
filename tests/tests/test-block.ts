@@ -1,7 +1,8 @@
 import { expect } from "chai";
 import { step } from "mocha-steps";
+import { contractCreation, GENESIS_ACCOUNT } from "./constants";
 
-import { createAndFinalizeBlock, describeWithMoonbeam } from "./util";
+import { createAndFinalizeBlock, describeWithMoonbeam, fillBlockWithTx } from "./util";
 
 describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
   let previousBlock;
@@ -13,7 +14,7 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     expect(await context.web3.eth.getBlockNumber()).to.equal(0);
   });
 
-  it("should return genesis block", async function () {
+  step("should return genesis block", async function () {
     expect(await context.web3.eth.getBlockNumber()).to.equal(0);
     const block = await context.web3.eth.getBlock(0);
     expect(block).to.include({
@@ -42,14 +43,14 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
   });
 
   let firstBlockCreated = false;
-  it("should be at block 1 after block production", async function () {
+  step("should be at block 1 after block production", async function () {
     this.timeout(15000);
-    await createAndFinalizeBlock(context.web3);
+    await createAndFinalizeBlock(context.polkadotApi);
     expect(await context.web3.eth.getBlockNumber()).to.equal(1);
     firstBlockCreated = true;
   });
 
-  it("should have valid timestamp after block production", async function () {
+  step("should have valid timestamp after block production", async function () {
     // Originally ,this test required the timestamp be in the last finve minutes.
     // This requirement doesn't make sense when we forge timestamps in manual seal.
     const block = await context.web3.eth.getBlock("latest");
@@ -58,7 +59,7 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     expect(block.timestamp).to.be.below(next5Minutes);
   });
 
-  it("retrieve block information", async function () {
+  step("retrieve block information", async function () {
     expect(firstBlockCreated).to.be.true;
 
     const block = await context.web3.eth.getBlock("latest");
@@ -93,22 +94,77 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     expect(block.timestamp).to.be.a("number");
   });
 
-  it("get block by hash", async function () {
+  step("get block by hash", async function () {
     const latest_block = await context.web3.eth.getBlock("latest");
     const block = await context.web3.eth.getBlock(latest_block.hash);
     expect(block.hash).to.be.eq(latest_block.hash);
   });
 
-  it("get block by number", async function () {
+  step("get block by number", async function () {
     const block = await context.web3.eth.getBlock(1);
     expect(block).not.null;
   });
 
-  it("should include previous block hash as parent", async function () {
+  step("should include previous block hash as parent (block 2)", async function () {
     this.timeout(15000);
-    await createAndFinalizeBlock(context.web3);
+    await createAndFinalizeBlock(context.polkadotApi);
     const block = await context.web3.eth.getBlock("latest");
     expect(block.hash).to.not.equal(previousBlock.hash);
     expect(block.parentHash).to.equal(previousBlock.hash);
+  });
+
+  // tx/block tests
+
+  step("genesis balance enough to make all the transfers", async function () {
+    expect(Number(await context.web3.eth.getBalance(GENESIS_ACCOUNT))).to.gte(512 * 100000);
+  });
+
+  // the maximum number of tx/ blocks is not constant but is always around 1500
+
+  it("should be able to fill a block with a 1 tx", async function () {
+    this.timeout(0);
+    let { txPassedFirstBlock } = await fillBlockWithTx(context, 1);
+    expect(txPassedFirstBlock).to.eq(1);
+  });
+
+  it("should be able to fill a block with a 1000 tx", async function () {
+    this.timeout(0);
+    let { txPassedFirstBlock } = await fillBlockWithTx(context, 1000);
+    expect(txPassedFirstBlock).to.eq(1000);
+  });
+
+  it("should be able to fill a block with 1000 contract creations tx", async function () {
+    this.timeout(0);
+    let { txPassedFirstBlock } = await fillBlockWithTx(context, 1000, contractCreation);
+    expect(txPassedFirstBlock).to.eq(1000);
+  });
+
+  // 8192 is the number of tx that can be sent to the Pool
+  // before it throws an error and drops all tx
+
+  it("should be able to send 8192 tx to the pool and have them all published\
+  within the following blocks", async function () {
+    this.timeout(0);
+    let { txPassed } = await fillBlockWithTx(context, 8192);
+    expect(txPassed).to.eq(8192);
+  });
+
+  it("but shouldn't work for 8193", async function () {
+    this.timeout(0);
+    let { txPassed } = await fillBlockWithTx(context, 8193);
+    expect(txPassed).to.eq(0);
+  });
+
+  it("should be able to send 8192 tx to the pool and have them all published\
+  within the following blocks - bigger tx", async function () {
+    this.timeout(0);
+    let { txPassed } = await fillBlockWithTx(context, 8192, contractCreation);
+    expect(txPassed).to.eq(8192);
+  });
+
+  it("but shouldn't work for 8193 - bigger tx", async function () {
+    this.timeout(0);
+    let { txPassed } = await fillBlockWithTx(context, 8193, contractCreation);
+    expect(txPassed).to.eq(0);
   });
 });
