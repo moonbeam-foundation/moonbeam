@@ -4,6 +4,9 @@ import { TransactionReceipt } from "web3-core";
 import { AbiItem } from "web3-utils";
 import { Contract } from "web3-eth-contract";
 import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../constants";
+import { createAndFinalizeBlock } from "./polkadotApiRequests";
+import { ApiPromise } from "@polkadot/api";
+import { Context } from "./testWithMoonbeam";
 
 // make a web3 request, adapted to manual seal testing
 export async function customRequest(web3: Web3, method: string, params: any[]) {
@@ -47,28 +50,9 @@ export async function wrappedCustomRequest(
   }
 }
 
-// Create a block and finalize it.
-// It will include all previously executed transactions since the last finalized block.
-export async function createAndFinalizeBlock(web3: Web3): Promise<number> {
-  const startTime: number = Date.now();
-  try {
-    const response: JsonRpcResponse = await customRequest(web3, "engine_createBlock", [
-      true,
-      true,
-      null,
-    ]);
-    if (response.error) {
-      console.log("error during block creation");
-      throw new Error(`Unexpected result: ${JSON.stringify(response)}`);
-    }
-  } catch (e) {
-    console.log("ERROR DURING BLOCK FINALIZATION", e);
-  }
-  return Date.now() - startTime;
-}
-
 // Deploy and instantiate a contract with manuel seal
 export async function deployContractManualSeal(
+  api: ApiPromise,
   web3: Web3,
   contractByteCode: string,
   contractABI: AbiItem[],
@@ -86,7 +70,7 @@ export async function deployContractManualSeal(
     privateKey
   );
   await customRequest(web3, "eth_sendRawTransaction", [tx.rawTransaction]);
-  await createAndFinalizeBlock(web3);
+  await createAndFinalizeBlock(api);
   let rcpt: TransactionReceipt = await web3.eth.getTransactionReceipt(tx.transactionHash);
   return new web3.eth.Contract(contractABI, rcpt.contractAddress);
 }
@@ -99,7 +83,7 @@ interface FnCallOptions {
 
 // Call a function from a contract instance using manual seal
 export async function callContractFunctionMS(
-  web3: Web3,
+  context: Context,
   contractAddress: string,
   bytesCode: string,
   options?: FnCallOptions
@@ -112,12 +96,12 @@ export async function callContractFunctionMS(
       gasPrice: "0x01",
       gas: options && options.gas ? options.gas : "0x100000",
     };
-    const txCall = await web3.eth.accounts.signTransaction(
+    const txCall = await context.web3.eth.accounts.signTransaction(
       contractCall,
       options && options.privateKey ? options.privateKey : GENESIS_ACCOUNT_PRIVATE_KEY
     );
-    await customRequest(web3, "eth_sendRawTransaction", [txCall.rawTransaction]);
-    return await createAndFinalizeBlock(web3);
+    await customRequest(context.web3, "eth_sendRawTransaction", [txCall.rawTransaction]);
+    return await createAndFinalizeBlock(context.polkadotApi);
   } catch (e) {
     console.log("error caught during callContractFunctionMS", e);
     throw new Error(e);

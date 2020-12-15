@@ -29,7 +29,7 @@ describeWithMoonbeam("Moonbeam RPC (Nonce)", `simple-specs.json`, (context) => {
     expect(await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT, "latest")).to.eq(0);
     expect(await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT, "pending")).to.eq(1);
 
-    await createAndFinalizeBlock(context.web3);
+    await createAndFinalizeBlock(context.polkadotApi);
 
     expect(await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT, "latest")).to.eq(1);
     expect(await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT, "pending")).to.eq(1);
