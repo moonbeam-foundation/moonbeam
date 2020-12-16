@@ -211,7 +211,7 @@ decl_module! {
 			let from = ensure_signed(origin)?;
 			// Check if the Account is already endorsing.
 			if <Endorser<T>>::contains_key(&from) {
-				return Err(Error::<T>::AlreadyEndorsing).map_err(Into::into);
+				return Err(Error::<T>::AlreadyEndorsing.into());
 			}
 			// Set One to One endorser->validator association.
 			<Endorser<T>>::insert(&from,&to);
@@ -230,7 +230,7 @@ decl_module! {
 			let from = ensure_signed(origin)?;
 			// Check if the Account is actively endorsing.
 			if !<Endorser<T>>::contains_key(&from) {
-				return Err(Error::<T>::NotEndorsing).map_err(Into::into);
+				return Err(Error::<T>::NotEndorsing.into());
 			}
 
 			let validator = <Endorser<T>>::get(&from);
