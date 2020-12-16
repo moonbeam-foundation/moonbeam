@@ -19,7 +19,7 @@
 use codec::{Decode, Encode};
 use frame_support::dispatch::DispatchResult;
 use frame_support::traits::{Currency, Get};
-use frame_support::{debug, decl_error, decl_event, decl_module, decl_storage};
+use frame_support::{debug, decl_error, decl_event, decl_module, decl_storage, ensure};
 use sp_runtime::traits::SaturatedConversion;
 use sp_runtime::transaction_validity::{
 	InvalidTransaction, TransactionPriority, TransactionSource, TransactionValidity,
@@ -88,9 +88,9 @@ pub trait Config:
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug)]
 pub struct Endorsement<AccountId, BalanceOf> {
-	pub endorser: AccountId,
-	pub validator: AccountId,
-	pub amount: BalanceOf,
+	endorser: AccountId,
+	validator: AccountId,
+	amount: BalanceOf,
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug)]
@@ -210,9 +210,7 @@ decl_module! {
 		) -> DispatchResult {
 			let from = ensure_signed(origin)?;
 			// Check if the Account is already endorsing.
-			if <Endorser<T>>::contains_key(&from) {
-				return Err(Error::<T>::AlreadyEndorsing.into());
-			}
+			ensure!(!<Endorser<T>>::contains_key(&from),Error::<T>::AlreadyEndorsing);
 			// Set One to One endorser->validator association.
 			<Endorser<T>>::insert(&from,&to);
 			// Set One to Many validator->endorsers association.
@@ -229,9 +227,7 @@ decl_module! {
 		) -> DispatchResult {
 			let from = ensure_signed(origin)?;
 			// Check if the Account is actively endorsing.
-			if !<Endorser<T>>::contains_key(&from) {
-				return Err(Error::<T>::NotEndorsing.into());
-			}
+			ensure!(<Endorser<T>>::contains_key(&from),Error::<T>::NotEndorsing);
 
 			let validator = <Endorser<T>>::get(&from);
 			let mut endorsers = <ValidatorEndorsers<T>>::get(&validator);
@@ -417,6 +413,7 @@ impl<T: Config> Module<T> {
 			.iter()
 			.map(|v| {
 				let endorsers = <ValidatorEndorsers<T>>::get(v);
+				// TODO: isn't floating point nondeterministic so ill-advised?
 				let total_validator_endorsement = endorsers
 					.iter()
 					.map(|ed| Self::calculate_endorsement(ed, v))
