@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    'pallets/mb-session',
     'runtime',
     'node/parachain',
     'node/rpc',#Temporary

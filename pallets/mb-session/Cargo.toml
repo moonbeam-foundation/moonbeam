@@ -20,7 +20,7 @@ node-primitives = { git = 'https://github.com/paritytech/substrate.git', branch 
 
 # frame dependencies
 frame-support = { git = 'https://github.com/paritytech/substrate.git', branch = "master", default-features = false }
-system = { package = 'frame-system', git = 'https://github.com/paritytech/substrate.git', branch = "master", default-features = false }
+frame-system = { git = 'https://github.com/paritytech/substrate.git', branch = "master", default-features = false }
 pallet-balances = { git = 'https://github.com/paritytech/substrate.git', branch = "master", default-features = false }
 pallet-session = { features = ["historical"], git = 'https://github.com/paritytech/substrate.git', branch = "master", default-features = false }
 pallet-authorship = { git = 'https://github.com/paritytech/substrate.git', branch = "master", default-features = false }
@@ -39,7 +39,7 @@ std = [
 	"sp-staking/std",
 	"node-primitives/std",
     'frame-support/std',
-    'system/std',
+    'frame-system/std',
 	"pallet-balances/std",
 	"pallet-session/std",
 	"pallet-authorship/std"

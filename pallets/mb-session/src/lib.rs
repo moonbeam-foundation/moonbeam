@@ -27,7 +27,7 @@ use sp_runtime::transaction_validity::{
 };
 use sp_runtime::RuntimeDebug;
 use sp_std::prelude::*;
-use system::{
+use frame_system::{
 	self as system, ensure_none, ensure_signed,
 	offchain::{
 		AppCrypto, CreateSignedTransaction, SendUnsignedTransaction, SignedPayload, Signer,
@@ -36,15 +36,17 @@ use system::{
 
 use sp_core::crypto::KeyTypeId;
 
-#[path = "../../../runtime/src/constants.rs"]
-#[allow(dead_code)]
-mod constants;
-use constants::mb_genesis::VALIDATORS_PER_SESSION;
-use constants::time::EPOCH_DURATION_IN_BLOCKS;
-
+// #[path = "../../../runtime/src/constants.rs"]
+// #[allow(dead_code)]
+// mod constants;
+// use constants::mb_genesis::VALIDATORS_PER_SESSION;
+// use constants::time::EPOCH_DURATION_IN_BLOCKS;
+// TODO: get actual values and/or import from above, definitions below are TEMPORARY
+pub const VALIDATORS_PER_SESSION: u64 = 10;
+pub const EPOCH_DURATION_IN_BLOCKS: u32 = 10;
 pub const KEY_TYPE: KeyTypeId = KeyTypeId(*b"mbst");
 
-type BalanceOf<T> = <<T as Trait>::Currency as Currency<<T as system::Trait>::AccountId>>::Balance;
+type BalanceOf<T> = <<T as Trait>::Currency as Currency<<T as system::Config>::AccountId>>::Balance;
 
 pub mod crypto {
 	pub use super::KEY_TYPE;
@@ -57,7 +59,7 @@ pub mod crypto {
 	app_crypto!(sr25519, KEY_TYPE);
 
 	pub struct AuthId;
-	impl system::offchain::AppCrypto<<Sr25519Signature as Verify>::Signer, Sr25519Signature>
+	impl frame_system::offchain::AppCrypto<<Sr25519Signature as Verify>::Signer, Sr25519Signature>
 		for AuthId
 	{
 		type RuntimeAppPublic = Public;
@@ -65,7 +67,7 @@ pub mod crypto {
 		type GenericPublic = sp_core::sr25519::Public;
 	}
 
-	impl system::offchain::AppCrypto<MultiSigner, MultiSignature> for AuthId {
+	impl frame_system::offchain::AppCrypto<MultiSigner, MultiSignature> for AuthId {
 		type RuntimeAppPublic = Public;
 		type GenericSignature = sp_core::sr25519::Signature;
 		type GenericPublic = sp_core::sr25519::Public;
@@ -73,11 +75,11 @@ pub mod crypto {
 }
 
 pub trait Trait:
-	system::Trait + pallet_balances::Trait
-	+ pallet_session::Trait + CreateSignedTransaction<Call<Self>>
+	system::Config + pallet_balances::Config
+	+ pallet_session::Config + CreateSignedTransaction<Call<Self>>
 {
 	type AuthorityId: AppCrypto<Self::Public, Self::Signature>;
-	type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
+	type Event: From<Event<Self>> + Into<<Self as system::Config>::Event>;
 	type Call: From<Call<Self>>;
 	type Currency: Currency<Self::AccountId>;
 	type SessionsPerEra: Get<u8>;
@@ -178,7 +180,7 @@ decl_error! {
 decl_event!(
 	pub enum Event<T>
 	where
-		AccountId = <T as system::Trait>::AccountId,
+		AccountId = <T as system::Config>::AccountId,
 	{
 		BlockAuthored(AccountId),
 		NewEra(u32),
