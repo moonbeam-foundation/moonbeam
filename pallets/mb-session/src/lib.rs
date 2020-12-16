@@ -218,7 +218,7 @@ decl_module! {
 			// Set One to Many validator->endorsers association.
 			<ValidatorEndorsers<T>>::append(&to,&from);
 			// Create a snapshot with the current free balance of the endorser.
-			Self::set_snapshot(&from,&to,T::Currency::free_balance(&from))?;
+			Self::set_snapshot(&from,&to,T::Currency::free_balance(&from));
 			Ok(())
 		}
 
@@ -284,7 +284,7 @@ decl_module! {
 			debug::native::info!("##### Offchain snapshots:");
 			debug::native::info!("> {:#?}",snapshots_payload.snapshots);
 			for s in &snapshots_payload.snapshots {
-				Self::set_snapshot(&s.endorser,&s.validator,s.amount)?;
+				Self::set_snapshot(&s.endorser,&s.validator,s.amount);
 			}
 			Ok(())
 		}
@@ -371,9 +371,8 @@ impl<T: Config> Module<T> {
 		endorser: &T::AccountId,
 		validator: &T::AccountId,
 		amount: BalanceOf<T>,
-	) -> DispatchResult {
+	) {
 		<EndorserSnapshots<T>>::append(&endorser, &validator, (BlockOfEraIndex::get(), amount));
-		Ok(())
 	}
 	/// Calculates a single endorser weighted balance for the era by measuring the
 	/// block index distances.
