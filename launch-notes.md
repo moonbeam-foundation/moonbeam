@@ -138,7 +138,7 @@ Insert the custom session keys like so in the chain spec. (TODO as I mentioned a
 Finally, bake a raw spec
 
 ```bash
-./polkadot-d7257026-real-overseer build-spec --chain rococo-local-d7257026-real-overseer.json --disable-default-bootnode > rococo-local-d7257026-real-overseer-raw.json
+./polkadot-d7257026-real-overseer build-spec --chain rococo-local-d7257026-real-overseer.json --disable-default-bootnode --raw > rococo-local-d7257026-real-overseer-raw.json
 ```
 
 ## Validator Commands
