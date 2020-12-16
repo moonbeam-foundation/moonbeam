@@ -87,9 +87,16 @@ pub trait Config:
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug)]
+pub struct Endorsement<AccountId, BalanceOf> {
+	pub endorser: AccountId,
+	pub validator: AccountId,
+	pub amount: BalanceOf,
+}
+
+#[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug)]
 pub struct SnapshotsPayload<AccountId, Public, BlockNumber, BalanceOf> {
 	block_number: BlockNumber,
-	snapshots: Vec<(AccountId, AccountId, BalanceOf)>,
+	snapshots: Vec<Endorsement<AccountId, BalanceOf>>,
 	public: Public,
 }
 
@@ -215,7 +222,7 @@ decl_module! {
 			Ok(())
 		}
 
-		/// Unndorsing dispatchable function
+		/// Unendorsing dispatchable function
 		#[weight = 0]
 		pub fn unendorse(
 			origin
@@ -277,7 +284,7 @@ decl_module! {
 			debug::native::info!("##### Offchain snapshots:");
 			debug::native::info!("> {:#?}",snapshots_payload.snapshots);
 			for s in &snapshots_payload.snapshots {
-				Self::set_snapshot(&s.0,&s.1,s.2)?;
+				Self::set_snapshot(&s.endorser,&s.validator,s.amount)?;
 			}
 			Ok(())
 		}
@@ -324,7 +331,7 @@ impl<T: Config> Module<T> {
 	/// Other messy ways could be, again a per-block offchain task, pattern matching the
 	/// <system::Module<T>>::events() to find pallet_balances events for the current block?
 	fn offchain_set_snapshots(block_number: T::BlockNumber) -> Result<(), &'static str> {
-		let mut snapshots: Vec<(T::AccountId, T::AccountId, BalanceOf<T>)> = vec![];
+		let mut snapshots: Vec<Endorsement<T::AccountId, BalanceOf<T>>> = vec![];
 		let validators = <Validators<T>>::get();
 		for v in &validators {
 			let endorsers = <ValidatorEndorsers<T>>::get(v);
@@ -336,7 +343,7 @@ impl<T: Config> Module<T> {
 					let snapshot_balance = snapshots_tmp[len - 1].1;
 					let current_balance = T::Currency::free_balance(ed);
 					if snapshot_balance != current_balance {
-						snapshots.push((ed.clone(), v.clone(), current_balance));
+						snapshots.push(Endorsement {endorser: ed.clone(), validator: v.clone(), amount: current_balance});
 					}
 				}
 			}
@@ -472,7 +479,7 @@ impl<T: Config> Module<T> {
 
 	/// TODO, needs the right config
 	fn validate_snapshots_transaction(
-		_snapshots: &Vec<(T::AccountId, T::AccountId, BalanceOf<T>)>,
+		_snapshots: &Vec<Endorsement<T::AccountId, BalanceOf<T>>>,
 	) -> TransactionValidity {
 		ValidTransaction::with_tag_prefix("MbSession")
 			.priority(T::UnsignedPriority::get())
