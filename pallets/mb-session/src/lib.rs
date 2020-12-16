@@ -86,6 +86,24 @@ pub trait Config:
 	type UnsignedPriority: Get<TransactionPriority>;
 }
 
+#[derive(Encode, Decode, Copy, Clone, PartialEq, Eq, RuntimeDebug)]
+pub struct Snapshot<BalanceOf> {
+	index: u32,
+	amount: BalanceOf,
+}
+
+impl<T> Snapshot<T> {
+	fn new(index: u32, amount: T) -> Self {
+		Snapshot{index, amount}
+	}
+}
+
+impl<T: sp_runtime::traits::Zero> Default for Snapshot<T> {
+	fn default() -> Self {
+		Snapshot::new(0u32,T::zero())
+	}
+}
+
 #[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug)]
 pub struct Endorsement<AccountId, BalanceOf> {
 	endorser: AccountId,
@@ -154,7 +172,7 @@ decl_storage! {
 		/// Endorser, Validator => (session_block_index,endorser_balance)
 		EndorserSnapshots:
 			double_map hasher(blake2_128_concat) T::AccountId, hasher(blake2_128_concat)
-			T::AccountId => Vec<(u32,BalanceOf<T>)>;
+			T::AccountId => Vec<Snapshot<BalanceOf<T>>>;
 
 		/// TODO the Treasury balance. It is still unclear if this will be a pallet account or
 		/// will remain as a Storage balance.
@@ -336,10 +354,14 @@ impl<T: Config> Module<T> {
 				let len = snapshots_tmp.len();
 				// Make sure we have a previous block reference in this Era
 				if len > 0 {
-					let snapshot_balance = snapshots_tmp[len - 1].1;
+					let snapshot_balance = snapshots_tmp[len - 1].amount;
 					let current_balance = T::Currency::free_balance(ed);
 					if snapshot_balance != current_balance {
-						snapshots.push(Endorsement {endorser: ed.clone(), validator: v.clone(), amount: current_balance});
+						snapshots.push(Endorsement {
+							endorser: ed.clone(), 
+							validator: v.clone(), 
+							amount: current_balance
+						});
 					}
 				}
 			}
@@ -368,7 +390,10 @@ impl<T: Config> Module<T> {
 		validator: &T::AccountId,
 		amount: BalanceOf<T>,
 	) {
-		<EndorserSnapshots<T>>::append(&endorser, &validator, (BlockOfEraIndex::get(), amount));
+		<EndorserSnapshots<T>>::append(&endorser, &validator, Snapshot { 
+				index: BlockOfEraIndex::get(), 
+				amount,}
+			);
 	}
 	/// Calculates a single endorser weighted balance for the era by measuring the
 	/// block index distances.
@@ -383,17 +408,17 @@ impl<T: Config> Module<T> {
 
 		let n: usize = points_dim - 1;
 		let (points, n) = Self::set_snapshot_boundaries(duration, n, points);
-		let mut previous: (u32, BalanceOf<T>) = (0, BalanceOf::<T>::from(0));
+		let mut previous: Snapshot<BalanceOf<T>> = Snapshot::default();
 		// Find the distances between snapshots, weight the free_balance against them.
 		// Finally sum all values.
 		let mut endorsement: f64 = points
 			.iter()
 			.map(|p| {
 				let out: f64;
-				if previous != (0, BalanceOf::<T>::from(0)) {
-					let delta = p.0 - previous.0;
+				if previous != Snapshot::default() {
+					let delta = p.index - previous.index;
 					let w = delta as f64 / duration as f64;
-					out = w * previous.1.saturated_into() as f64;
+					out = w * previous.amount.saturated_into() as f64;
 				} else {
 					out = 0 as f64;
 				}
@@ -402,7 +427,7 @@ impl<T: Config> Module<T> {
 			})
 			.sum::<f64>();
 		// The above iterative approach excludes the last block, sum it to the result.
-		endorsement += (1 as f64 / duration as f64) * points[n].1.saturated_into() as f64;
+		endorsement += (1 as f64 / duration as f64) * points[n].amount.saturated_into() as f64;
 		endorsement
 	}
 	/// Selects a new validator set based on their amount of weighted endorsement.
@@ -413,7 +438,6 @@ impl<T: Config> Module<T> {
 			.iter()
 			.map(|v| {
 				let endorsers = <ValidatorEndorsers<T>>::get(v);
-				// TODO: isn't floating point nondeterministic so ill-advised?
 				let total_validator_endorsement = endorsers
 					.iter()
 					.map(|ed| Self::calculate_endorsement(ed, v))
@@ -436,14 +460,14 @@ impl<T: Config> Module<T> {
 	fn set_snapshot_boundaries(
 		duration: u32,
 		mut last_index: usize,
-		mut collection: Vec<(u32, BalanceOf<T>)>,
-	) -> (Vec<(u32, BalanceOf<T>)>, usize) {
-		if collection[0].0 != 1 {
-			collection.insert(0, (1, BalanceOf::<T>::from(0)));
+		mut collection: Vec<Snapshot<BalanceOf<T>>>,
+	) -> (Vec<Snapshot<BalanceOf<T>>>, usize) {
+		if collection[0].index != 1 {
+			collection.insert(0, Snapshot::new(1,BalanceOf::<T>::from(0)));
 			last_index += 1;
 		}
-		if collection[last_index].0 != duration {
-			collection.push((duration, collection[last_index].1));
+		if collection[last_index].index != duration {
+			collection.push(Snapshot::new(duration, collection[last_index].amount));
 		}
 		(collection, last_index)
 	}
@@ -457,7 +481,7 @@ impl<T: Config> Module<T> {
 				<EndorserSnapshots<T>>::insert(
 					endorser,
 					validator,
-					vec![(1 as u32, T::Currency::free_balance(endorser))],
+					vec![Snapshot::new(1u32,T::Currency::free_balance(endorser))],
 				);
 			}
 		}
