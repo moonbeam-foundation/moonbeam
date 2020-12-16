@@ -16,7 +16,8 @@ fi
 if [ -z $CI_PROJECT_NAME ] ; then
   rustup update $WASM_BUILD_TOOLCHAIN
   rustup update stable
-  rustup component add clippy
 fi
+
+rustup component add clippy
 
 rustup target add wasm32-unknown-unknown --toolchain $WASM_BUILD_TOOLCHAIN

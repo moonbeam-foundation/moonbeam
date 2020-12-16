@@ -113,6 +113,15 @@ jobs:
         if: github.event_name != 'pull_request_target'
         uses: actions/checkout@v2
 
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly-2020-10-03
+          components: clippy, rustfmt
+          target: wasm32-unknown-unknown
+          default: true
+
       - name: Check with Clippy
         run: cargo clippy --workspace --tests -- -D warnings
 
