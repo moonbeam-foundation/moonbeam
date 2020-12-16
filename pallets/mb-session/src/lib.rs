@@ -46,7 +46,7 @@ pub const VALIDATORS_PER_SESSION: u64 = 10;
 pub const EPOCH_DURATION_IN_BLOCKS: u32 = 10;
 pub const KEY_TYPE: KeyTypeId = KeyTypeId(*b"mbst");
 
-type BalanceOf<T> = <<T as Trait>::Currency as Currency<<T as system::Config>::AccountId>>::Balance;
+type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as system::Config>::AccountId>>::Balance;
 
 pub mod crypto {
 	pub use super::KEY_TYPE;
@@ -74,7 +74,7 @@ pub mod crypto {
 	}
 }
 
-pub trait Trait:
+pub trait Config:
 	system::Config + pallet_balances::Config
 	+ pallet_session::Config + CreateSignedTransaction<Call<Self>>
 {
@@ -93,7 +93,7 @@ pub struct SnapshotsPayload<AccountId, Public, BlockNumber, BalanceOf> {
 	public: Public,
 }
 
-impl<T: Trait> SignedPayload<T>
+impl<T: Config> SignedPayload<T>
 	for SnapshotsPayload<T::AccountId, T::Public, T::BlockNumber, BalanceOf<T>>
 {
 	fn public(&self) -> T::Public {
@@ -108,14 +108,14 @@ pub struct ValidatorsPayload<AccountId, Public, BlockNumber> {
 	public: Public,
 }
 
-impl<T: Trait> SignedPayload<T> for ValidatorsPayload<T::AccountId, T::Public, T::BlockNumber> {
+impl<T: Config> SignedPayload<T> for ValidatorsPayload<T::AccountId, T::Public, T::BlockNumber> {
 	fn public(&self) -> T::Public {
 		self.public.clone()
 	}
 }
 
 decl_storage! {
-	trait Store for Module<T: Trait> as MoonbeamStakingModule {
+	trait Store for Module<T: Config> as MoonbeamStakingModule {
 		/// The number of Era.
 		EraIndex: u32;
 		/// The total validator pool.
@@ -171,7 +171,7 @@ decl_storage! {
 }
 
 decl_error! {
-	pub enum Error for Module<T: Trait> {
+	pub enum Error for Module<T: Config> {
 		AlreadyEndorsing,
 		NotEndorsing,
 	}
@@ -191,7 +191,7 @@ decl_event!(
 );
 
 decl_module! {
-	pub struct Module<T: Trait> for enum Call where origin: T::Origin {
+	pub struct Module<T: Config> for enum Call where origin: T::Origin {
 
 		type Error = Error<T>;
 		fn deposit_event() = default;
@@ -284,7 +284,7 @@ decl_module! {
 	}
 }
 
-impl<T: Trait> Module<T> {
+impl<T: Config> Module<T> {
 	/// Offchain task to select validators
 	fn offchain_validator_selection(block_number: T::BlockNumber) -> Result<(), &'static str> {
 		// Find out where we are in Era
@@ -484,7 +484,7 @@ impl<T: Trait> Module<T> {
 }
 
 pub struct SessionManager<T>(T);
-impl<T: Trait> pallet_session::SessionManager<T::AccountId> for SessionManager<T> {
+impl<T: Config> pallet_session::SessionManager<T::AccountId> for SessionManager<T> {
 	fn new_session(new_index: u32) -> Option<Vec<T::AccountId>> {
 		<Module<T>>::deposit_event(RawEvent::NewSession(new_index));
 
@@ -528,7 +528,7 @@ impl<T: Trait> pallet_session::SessionManager<T::AccountId> for SessionManager<T
 }
 
 pub struct AuthorshipEventHandler<T>(T);
-impl<T: Trait> pallet_authorship::EventHandler<T::AccountId, u32> for AuthorshipEventHandler<T> {
+impl<T: Config> pallet_authorship::EventHandler<T::AccountId, u32> for AuthorshipEventHandler<T> {
 	fn note_author(author: T::AccountId) {
 		let authored_blocks = <SessionValidatorAuthoring<T>>::get(&author)
 			.checked_add(1)
@@ -544,7 +544,7 @@ impl<T: Trait> pallet_authorship::EventHandler<T::AccountId, u32> for Authorship
 }
 
 #[allow(deprecated)] // ValidateUnsigned
-impl<T: Trait> frame_support::unsigned::ValidateUnsigned for Module<T> {
+impl<T: Config> frame_support::unsigned::ValidateUnsigned for Module<T> {
 	type Call = Call<T>;
 	fn validate_unsigned(_source: TransactionSource, call: &Self::Call) -> TransactionValidity {
 		if let Call::persist_selected_validators(ref payload, ref signature) = call {
