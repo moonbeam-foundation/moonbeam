@@ -35,15 +35,6 @@ use frame_system::{
 };
 
 use sp_core::crypto::KeyTypeId;
-
-// #[path = "../../../runtime/src/constants.rs"]
-// #[allow(dead_code)]
-// mod constants;
-// use constants::mb_genesis::VALIDATORS_PER_SESSION;
-// use constants::time::EPOCH_DURATION_IN_BLOCKS;
-// TODO: get actual values and/or import from above, definitions below are TEMPORARY
-pub const VALIDATORS_PER_SESSION: u64 = 10;
-pub const EPOCH_DURATION_IN_BLOCKS: u32 = 10;
 pub const KEY_TYPE: KeyTypeId = KeyTypeId(*b"mbst");
 
 type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as system::Config>::AccountId>>::Balance;
@@ -84,6 +75,8 @@ pub trait Config:
 	type Currency: Currency<Self::AccountId>;
 	type SessionsPerEra: Get<u8>;
 	type UnsignedPriority: Get<TransactionPriority>;
+	type ValidatorsPerSession: Get<u64>;
+	type EpochDuration: Get<u32>;
 }
 
 #[derive(Encode, Decode, Copy, Clone, PartialEq, Eq, RuntimeDebug)]
@@ -311,7 +304,7 @@ impl<T: Config> Module<T> {
 		// Find out where we are in Era
 		let current_era: u128 = EraIndex::get() as u128;
 		let last_block_of_era: u128 =
-			(current_era * (T::SessionsPerEra::get() as u128) * (EPOCH_DURATION_IN_BLOCKS as u128))
+			(current_era * (T::SessionsPerEra::get() as u128) * (T::EpochDuration::get() as u128))
 				.saturated_into();
 		let validator_selection_delta: u128 = 5;
 		let current_block_number: u128 = block_number.saturated_into();
@@ -398,7 +391,7 @@ impl<T: Config> Module<T> {
 	/// Calculates a single endorser weighted balance for the era by measuring the
 	/// block index distances.
 	fn calculate_endorsement(endorser: &T::AccountId, validator: &T::AccountId) -> f64 {
-		let duration: u32 = EPOCH_DURATION_IN_BLOCKS;
+		let duration: u32 = T::EpochDuration::get();
 		let points = <EndorserSnapshots<T>>::get(endorser, validator);
 		let points_dim: usize = points.len();
 
@@ -451,7 +444,7 @@ impl<T: Config> Module<T> {
 		// Take the by-configuration amount of validators.
 		selected_validators
 			.into_iter()
-			.take(VALIDATORS_PER_SESSION as usize)
+			.take(T::ValidatorsPerSession::get() as usize)
 			.map(|(_x, y)| y.clone())
 			.collect::<Vec<_>>()
 	}
