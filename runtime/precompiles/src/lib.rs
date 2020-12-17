@@ -17,40 +17,23 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use sp_std::prelude::*;
-use sp_core::H160;
-use pallet_evm::{Precompile, Precompiles};
+use pallet_evm::LinearCostPrecompile;
 
 pub struct ExperimentalMoonbeamPrecompiles;
-
-/// Linear gas cost
-fn ensure_linear_cost(
-	target_gas: Option<usize>,
-	len: usize,
-	base: usize,
-	word: usize
-) -> Result<usize, pallet_evm::ExitError> {
-	let cost = base.checked_add(
-		word.checked_mul(len.saturating_add(31) / 32).ok_or(pallet_evm::ExitError::OutOfGas)?
-	).ok_or(pallet_evm::ExitError::OutOfGas)?;
-	if let Some(target_gas) = target_gas {
-		if cost > target_gas {
-			return Err(pallet_evm::ExitError::OutOfGas)
-		}
-	}
-	Ok(cost)
-}
 
 // prepends "deadbeef" to any data provided
 struct DeadbeefPrecompiled;
 
-impl Precompile for DeadbeefPrecompiled {
+impl LinearCostPrecompile for DeadbeefPrecompiled {
+	const BASE: usize = 10;
+	const WORD: usize = 0;
+
 	fn execute(
 		input: &[u8],
-		target_gas: Option<usize>
-	) -> core::result::Result<(pallet_evm::ExitSucceed, Vec<u8>, usize), pallet_evm::ExitError> {
-		let cost = ensure_linear_cost(target_gas, input.len(), 15, 3)?;
+		_: usize,
+	) -> core::result::Result<(pallet_evm::ExitSucceed, Vec<u8>), pallet_evm::ExitError> {
 
-		log::info!("Calling deadbeef precompiled contract");
+		// log::info!("Calling deadbeef precompiled contract");
 
 		let mut result_vec: Vec<u8> = rustc_hex::FromHex::from_hex("deadbeef")
 			.map_err(|_| pallet_evm::ExitError::Other(
@@ -58,53 +41,20 @@ impl Precompile for DeadbeefPrecompiled {
 			))?;
 		result_vec.extend(input.to_vec());
 
-		Ok((pallet_evm::ExitSucceed::Returned, result_vec, cost))
+		Ok((pallet_evm::ExitSucceed::Returned, result_vec))
 	}
 }
 
-type PrecompiledCallable = fn(&[u8], Option<usize>)
-	-> core::result::Result<(pallet_evm::ExitSucceed, Vec<u8>, usize), pallet_evm::ExitError>;
-
-fn get_precompiled_func_from_address(address: &H160) -> Option<PrecompiledCallable> {
-	use core::str::FromStr;
-
-	// Note that addresses from_str should not start with 0x, just the hex value
-	let addr_deadbeef = H160::from_str("0000000000000000000000000000000000001000")
-		.expect("Invalid address at precompiles generation");
-
-	if *address == addr_deadbeef {
-		return Some(DeadbeefPrecompiled::execute);
-	}
-
-	None
-}
-
-impl Precompiles for ExperimentalMoonbeamPrecompiles {
-	fn execute(
-		address: H160,
-		input: &[u8],
-		target_gas: Option<usize>
-	) -> Option<
-		core::result::Result<
-			(pallet_evm::ExitSucceed, Vec<u8>, usize),
-			pallet_evm::ExitError,
-		>
-	> {
-		match get_precompiled_func_from_address(&address) {
-			Some(func) => return Some(func(input, target_gas)),
-			_ => {},
-		};
-
-		None
-	}
-}
-
-pub type MoonbeamPrecompiles =
+pub type MoonbeamPrecompiles<Runtime> =
 (
-	pallet_evm::precompiles::ECRecover,
-	pallet_evm::precompiles::Sha256,
-	pallet_evm::precompiles::Ripemd160,
-	pallet_evm::precompiles::Identity,
+	pallet_evm_precompile_simple::ECRecover,
+	pallet_evm_precompile_simple::Sha256,
+	pallet_evm_precompile_simple::Ripemd160,
+	pallet_evm_precompile_simple::Identity,
+	// TODO Should we add blake2 or others from Frontier?
+	// What all precompiles do we want?
+	// https://github.com/ethereum/go-ethereum/blob/master/core/vm/contracts.go
+	pallet_evm_precompile_dispatch::Dispatch<Runtime>,
 );
 
 
