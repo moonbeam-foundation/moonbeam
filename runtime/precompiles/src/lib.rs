@@ -33,7 +33,7 @@ impl LinearCostPrecompile for DeadbeefPrecompiled {
 		_: usize,
 	) -> core::result::Result<(pallet_evm::ExitSucceed, Vec<u8>), pallet_evm::ExitError> {
 
-		// log::info!("Calling deadbeef precompiled contract");
+		log::info!("Calling deadbeef precompiled contract");
 
 		let mut result_vec: Vec<u8> = rustc_hex::FromHex::from_hex("deadbeef")
 			.map_err(|_| pallet_evm::ExitError::Other(
