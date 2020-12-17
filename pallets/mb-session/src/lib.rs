@@ -16,6 +16,8 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+mod tests;
+
 use codec::{Decode, Encode};
 use frame_support::dispatch::DispatchResult;
 use frame_support::traits::{Currency, Get};
@@ -33,35 +35,27 @@ use frame_system::{
 		AppCrypto, CreateSignedTransaction, SendUnsignedTransaction, SignedPayload, Signer,
 	},
 };
-
 use sp_core::crypto::KeyTypeId;
-pub const KEY_TYPE: KeyTypeId = KeyTypeId(*b"mbst");
 
+pub const KEY_TYPE: KeyTypeId = KeyTypeId(*b"mbst");
 type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as system::Config>::AccountId>>::Balance;
 
 pub mod crypto {
 	pub use super::KEY_TYPE;
-	use sp_core::sr25519::Signature as Sr25519Signature;
+	use sp_core::ecdsa::Signature as EcdsaSignature;
 	use sp_runtime::{
-		app_crypto::{app_crypto, sr25519},
+		app_crypto::{app_crypto, ecdsa},
 		traits::Verify,
-		MultiSignature, MultiSigner,
 	};
-	app_crypto!(sr25519, KEY_TYPE);
+	app_crypto!(ecdsa, KEY_TYPE);
 
 	pub struct AuthId;
-	impl frame_system::offchain::AppCrypto<<Sr25519Signature as Verify>::Signer, Sr25519Signature>
+	impl frame_system::offchain::AppCrypto<<EcdsaSignature as Verify>::Signer, EcdsaSignature>
 		for AuthId
 	{
 		type RuntimeAppPublic = Public;
-		type GenericSignature = sp_core::sr25519::Signature;
-		type GenericPublic = sp_core::sr25519::Public;
-	}
-
-	impl frame_system::offchain::AppCrypto<MultiSigner, MultiSignature> for AuthId {
-		type RuntimeAppPublic = Public;
-		type GenericSignature = sp_core::sr25519::Signature;
-		type GenericPublic = sp_core::sr25519::Public;
+		type GenericSignature = sp_core::ecdsa::Signature;
+		type GenericPublic = sp_core::ecdsa::Public;
 	}
 }
 
