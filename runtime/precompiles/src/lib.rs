@@ -25,8 +25,8 @@ pub struct ExperimentalMoonbeamPrecompiles;
 struct DeadbeefPrecompiled;
 
 impl LinearCostPrecompile for DeadbeefPrecompiled {
-	const BASE: usize = 10;
-	const WORD: usize = 0;
+	const BASE: usize = 15;
+	const WORD: usize = 3;
 
 	fn execute(
 		input: &[u8],
