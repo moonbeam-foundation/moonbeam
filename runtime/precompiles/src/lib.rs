@@ -19,6 +19,9 @@
 use sp_std::prelude::*;
 use pallet_evm::LinearCostPrecompile;
 use pallet_evm_precompile_simple::{ECRecover, Sha256, Ripemd160, Identity};
+// use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
+use pallet_evm_precompile_modexp::Modexp;
+use pallet_evm_precompile_dispatch::Dispatch;
 
 /// An example of implementing a simple precompile.
 /// prepends "deadbeef" to any data provided
@@ -45,17 +48,24 @@ impl LinearCostPrecompile for DeadbeefPrecompiled {
 	}
 }
 
-/// The PrecompileSet installed in the Moonbeam runtime
+/// The PrecompileSet installed in the Moonbeam runtime.
+/// We include the nine Istanbul precompiles
+/// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
+/// as well as a special precompile for dispatching Substrate extrinsics
+///
+/// TODO I had trouble getting the BN precompiles to compile.
+/// Also, Why are the BN precompiles in geth called bn256*, but in Frontier they are called Bn128*
 pub type MoonbeamPrecompiles<Runtime> =
 (
 	ECRecover,
 	Sha256,
 	Ripemd160,
 	Identity,
-	// TODO Should we add blake2 or others from Frontier?
-	// What all precompiles do we want?
-	// https://github.com/ethereum/go-ethereum/blob/master/core/vm/contracts.go
-	pallet_evm_precompile_dispatch::Dispatch<Runtime>,
+	Modexp,
+	// Bn128Add,
+	// Bn128Mul,
+	// Bn128Pairing,
+	Dispatch<Runtime>,
 );
 
 
