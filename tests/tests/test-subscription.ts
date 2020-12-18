@@ -127,7 +127,7 @@ describeWithMoonbeam(
     }
 
     step("should connect", async function () {
-      await createAndFinalizeBlock(context.web3);
+      await createAndFinalizeBlock(context.polkadotApi);
       // @ts-ignore
       const connected = context.web3.currentProvider.connected;
       expect(connected).to.equal(true);
@@ -155,7 +155,7 @@ describeWithMoonbeam(
       subscription = context.web3.eth.subscribe("newBlockHeaders", function (error, result) {});
       let data = null;
       await new Promise((resolve) => {
-        createAndFinalizeBlock(context.web3);
+        createAndFinalizeBlock(context.polkadotApi);
         subscription.on("data", function (d: any) {
           data = d;
           resolve();
@@ -192,7 +192,7 @@ describeWithMoonbeam(
       const tx = await sendTransaction(context);
       let data = null;
       await new Promise((resolve) => {
-        createAndFinalizeBlock(context.web3);
+        createAndFinalizeBlock(context.polkadotApi);
         subscription.on("data", function (d: any) {
           data = d;
           logs_generated += 1;
@@ -218,7 +218,7 @@ describeWithMoonbeam(
       const tx = await sendTransaction(context);
       let data = null;
       await new Promise((resolve) => {
-        createAndFinalizeBlock(context.web3);
+        createAndFinalizeBlock(context.polkadotApi);
         subscription.on("data", function (d: any) {
           data = d;
           logs_generated += 1;
@@ -259,7 +259,7 @@ describeWithMoonbeam(
       const tx = await sendTransaction(context);
       let data = null;
       await new Promise((resolve) => {
-        createAndFinalizeBlock(context.web3);
+        createAndFinalizeBlock(context.polkadotApi);
         subscription.on("data", function (d: any) {
           data = d;
           logs_generated += 1;
@@ -290,7 +290,7 @@ describeWithMoonbeam(
       const tx = await sendTransaction(context);
       let data = null;
       await new Promise((resolve) => {
-        createAndFinalizeBlock(context.web3);
+        createAndFinalizeBlock(context.polkadotApi);
         subscription.on("data", function (d: any) {
           data = d;
           logs_generated += 1;
@@ -345,7 +345,7 @@ describeWithMoonbeam(
       const tx = await sendTransaction(context);
       let data = null;
       await new Promise((resolve) => {
-        createAndFinalizeBlock(context.web3);
+        createAndFinalizeBlock(context.polkadotApi);
         subscription.on("data", function (d: any) {
           data = d;
           logs_generated += 1;
@@ -379,7 +379,7 @@ describeWithMoonbeam(
       const tx = await sendTransaction(context);
       let data = null;
       await new Promise((resolve) => {
-        createAndFinalizeBlock(context.web3);
+        createAndFinalizeBlock(context.polkadotApi);
         subscription.on("data", function (d: any) {
           data = d;
           logs_generated += 1;
@@ -416,7 +416,7 @@ describeWithMoonbeam(
       const tx = await sendTransaction(context);
       let data = null;
       await new Promise((resolve) => {
-        createAndFinalizeBlock(context.web3);
+        createAndFinalizeBlock(context.polkadotApi);
         subscription.on("data", function (d: any) {
           data = d;
           logs_generated += 1;
@@ -457,7 +457,7 @@ describeWithMoonbeam(
       const tx = await sendTransaction(context);
       let data = null;
       await new Promise((resolve) => {
-        createAndFinalizeBlock(context.web3);
+        createAndFinalizeBlock(context.polkadotApi);
         subscription.on("data", function (d: any) {
           data = d;
           logs_generated += 1;
@@ -495,7 +495,7 @@ describeWithMoonbeam(
       const tx = await sendTransaction(context);
       let data = null;
       await new Promise((resolve) => {
-        createAndFinalizeBlock(context.web3);
+        createAndFinalizeBlock(context.polkadotApi);
         subscription.on("data", function (d: any) {
           data = d;
           logs_generated += 1;

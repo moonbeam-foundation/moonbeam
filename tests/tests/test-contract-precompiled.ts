@@ -24,7 +24,7 @@ describeWithMoonbeam("Moonbeam RPC (Precompiles)", `simple-specs.json`, (context
     const tx = await context.web3.eth.accounts.signTransaction(RAW_TX, GENESIS_ACCOUNT_PRIVATE_KEY);
 
     const tx_res = await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
-    await createAndFinalizeBlock(context.web3);
+    await createAndFinalizeBlock(context.polkadotApi);
 
     let tx_receipt = await customRequest(context.web3, "eth_getTransactionReceipt", [
       tx_res.result,
