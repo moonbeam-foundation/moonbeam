@@ -16,9 +16,9 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use sp_std::prelude::*;
-use sp_core::H160;
 use pallet_evm::{Precompile, Precompiles};
+use sp_core::H160;
+use sp_std::prelude::*;
 
 pub struct ExperimentalMoonbeamPrecompiles;
 
@@ -27,14 +27,17 @@ fn ensure_linear_cost(
 	target_gas: Option<usize>,
 	len: usize,
 	base: usize,
-	word: usize
+	word: usize,
 ) -> Result<usize, pallet_evm::ExitError> {
-	let cost = base.checked_add(
-		word.checked_mul(len.saturating_add(31) / 32).ok_or(pallet_evm::ExitError::OutOfGas)?
-	).ok_or(pallet_evm::ExitError::OutOfGas)?;
+	let cost = base
+		.checked_add(
+			word.checked_mul(len.saturating_add(31) / 32)
+				.ok_or(pallet_evm::ExitError::OutOfGas)?,
+		)
+		.ok_or(pallet_evm::ExitError::OutOfGas)?;
 	if let Some(target_gas) = target_gas {
 		if cost > target_gas {
-			return Err(pallet_evm::ExitError::OutOfGas)
+			return Err(pallet_evm::ExitError::OutOfGas);
 		}
 	}
 	Ok(cost)
@@ -46,24 +49,28 @@ struct DeadbeefPrecompiled;
 impl Precompile for DeadbeefPrecompiled {
 	fn execute(
 		input: &[u8],
-		target_gas: Option<usize>
+		target_gas: Option<usize>,
 	) -> core::result::Result<(pallet_evm::ExitSucceed, Vec<u8>, usize), pallet_evm::ExitError> {
 		let cost = ensure_linear_cost(target_gas, input.len(), 15, 3)?;
 
 		log::info!("Calling deadbeef precompiled contract");
 
-		let mut result_vec: Vec<u8> = rustc_hex::FromHex::from_hex("deadbeef")
-			.map_err(|_| pallet_evm::ExitError::Other(
-				sp_std::borrow::Cow::Borrowed("unexpected deadbeef conversion")
-			))?;
+		let mut result_vec: Vec<u8> = rustc_hex::FromHex::from_hex("deadbeef").map_err(|_| {
+			pallet_evm::ExitError::Other(sp_std::borrow::Cow::Borrowed(
+				"unexpected deadbeef conversion",
+			))
+		})?;
 		result_vec.extend(input.to_vec());
 
 		Ok((pallet_evm::ExitSucceed::Returned, result_vec, cost))
 	}
 }
 
-type PrecompiledCallable = fn(&[u8], Option<usize>)
-	-> core::result::Result<(pallet_evm::ExitSucceed, Vec<u8>, usize), pallet_evm::ExitError>;
+type PrecompiledCallable =
+	fn(
+		&[u8],
+		Option<usize>,
+	) -> core::result::Result<(pallet_evm::ExitSucceed, Vec<u8>, usize), pallet_evm::ExitError>;
 
 fn get_precompiled_func_from_address(address: &H160) -> Option<PrecompiledCallable> {
 	use core::str::FromStr;
@@ -83,30 +90,25 @@ impl Precompiles for ExperimentalMoonbeamPrecompiles {
 	fn execute(
 		address: H160,
 		input: &[u8],
-		target_gas: Option<usize>
+		target_gas: Option<usize>,
 	) -> Option<
-		core::result::Result<
-			(pallet_evm::ExitSucceed, Vec<u8>, usize),
-			pallet_evm::ExitError,
-		>
+		core::result::Result<(pallet_evm::ExitSucceed, Vec<u8>, usize), pallet_evm::ExitError>,
 	> {
 		match get_precompiled_func_from_address(&address) {
 			Some(func) => return Some(func(input, target_gas)),
-			_ => {},
+			_ => {}
 		};
 
 		None
 	}
 }
 
-pub type MoonbeamPrecompiles =
-(
+pub type MoonbeamPrecompiles = (
 	pallet_evm::precompiles::ECRecover,
 	pallet_evm::precompiles::Sha256,
 	pallet_evm::precompiles::Ripemd160,
 	pallet_evm::precompiles::Identity,
 );
-
 
 #[cfg(test)]
 mod tests {

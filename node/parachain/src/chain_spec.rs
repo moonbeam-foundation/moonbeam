@@ -16,8 +16,8 @@
 
 use cumulus_primitives::ParaId;
 use moonbeam_runtime::{
-	AccountId, BalancesConfig, GenesisConfig, SudoConfig, SystemConfig,
-	ParachainInfoConfig, WASM_BINARY, EthereumChainIdConfig, EVMConfig, EthereumConfig
+	AccountId, BalancesConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig, GenesisConfig,
+	ParachainInfoConfig, SudoConfig, SystemConfig, WASM_BINARY,
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
@@ -55,9 +55,7 @@ pub fn get_chain_spec(para_id: ParaId) -> Result<ChainSpec, String> {
 			testnet_genesis(
 				wasm_binary,
 				AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
-				vec![
-					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
-				],
+				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
 				para_id,
 				1280, //ChainId
 			)
@@ -65,12 +63,7 @@ pub fn get_chain_spec(para_id: ParaId) -> Result<ChainSpec, String> {
 		vec![],
 		None,
 		None,
-		Some(
-			serde_json::from_str(
-				"{\"tokenDecimals\": 18}"
-			)
-			.expect("Provided valid json map")
-		),
+		Some(serde_json::from_str("{\"tokenDecimals\": 18}").expect("Provided valid json map")),
 		Extensions {
 			relay_chain: "local_testnet".into(),
 			para_id: para_id.into(),
@@ -98,7 +91,9 @@ fn testnet_genesis(
 				.collect(),
 		}),
 		pallet_sudo: Some(SudoConfig { key: root_key }),
-		parachain_info: Some(ParachainInfoConfig { parachain_id: para_id }),
+		parachain_info: Some(ParachainInfoConfig {
+			parachain_id: para_id,
+		}),
 		pallet_ethereum_chain_id: Some(EthereumChainIdConfig { chain_id: chain_id }),
 		pallet_evm: Some(EVMConfig {
 			accounts: BTreeMap::new(),

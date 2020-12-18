@@ -25,7 +25,7 @@ use cumulus_primitives::ParaId;
 /// Configuration trait of this pallet.
 pub trait Config: frame_system::Config {}
 
-impl <T: Config> Get<ParaId> for Module<T> {
+impl<T: Config> Get<ParaId> for Module<T> {
 	fn get() -> ParaId {
 		Self::parachain_id()
 	}
