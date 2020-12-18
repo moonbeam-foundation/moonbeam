@@ -18,10 +18,10 @@
 
 use sp_std::prelude::*;
 use pallet_evm::LinearCostPrecompile;
+use pallet_evm_precompile_simple::{ECRecover, Sha256, Ripemd160, Identity};
 
-pub struct ExperimentalMoonbeamPrecompiles;
-
-// prepends "deadbeef" to any data provided
+/// An example of implementing a simple precompile.
+/// prepends "deadbeef" to any data provided
 struct DeadbeefPrecompiled;
 
 impl LinearCostPrecompile for DeadbeefPrecompiled {
@@ -45,12 +45,13 @@ impl LinearCostPrecompile for DeadbeefPrecompiled {
 	}
 }
 
+/// The PrecompileSet installed in the Moonbeam runtime
 pub type MoonbeamPrecompiles<Runtime> =
 (
-	pallet_evm_precompile_simple::ECRecover,
-	pallet_evm_precompile_simple::Sha256,
-	pallet_evm_precompile_simple::Ripemd160,
-	pallet_evm_precompile_simple::Identity,
+	ECRecover,
+	Sha256,
+	Ripemd160,
+	Identity,
 	// TODO Should we add blake2 or others from Frontier?
 	// What all precompiles do we want?
 	// https://github.com/ethereum/go-ethereum/blob/master/core/vm/contracts.go
