@@ -33,10 +33,10 @@ macro_rules! runtime_standalone {
 			spec_name: create_runtime_str!("moonbeam-standalone"),
 			impl_name: create_runtime_str!("moonbeam-standalone"),
 			authoring_version: 3,
-			spec_version: 5,
-			impl_version: 1,
+			spec_version: 6,
+			impl_version: 0,
 			apis: RUNTIME_API_VERSIONS,
-			transaction_version: 1,
+			transaction_version: 2,
 		};
 
 		impl pallet_aura::Config for Runtime {
