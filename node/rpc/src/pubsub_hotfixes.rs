@@ -79,6 +79,7 @@ impl<B: BlockT, P, C, BE, H: ExHashT> EthPubSubApi<B, P, C, BE, H> {
 }
 
 struct SubscriptionResult {}
+#[allow(clippy::all)]
 impl SubscriptionResult {
 	pub fn new() -> Self {
 		SubscriptionResult {}
@@ -209,6 +210,7 @@ macro_rules! stream_build {
 		}};
 }
 
+#[allow(clippy::all)]
 impl<B: BlockT, P, C, BE, H: ExHashT> EthPubSubApiT for EthPubSubApi<B, P, C, BE, H>
 where
 	B: BlockT<Hash = H256> + Send + Sync + 'static,

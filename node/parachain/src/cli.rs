@@ -16,7 +16,6 @@
 
 use std::path::PathBuf;
 
-use sc_cli;
 use structopt::StructOpt;
 
 /// Sub-commands supported by the collator.

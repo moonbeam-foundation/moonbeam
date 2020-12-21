@@ -42,6 +42,7 @@ type FullBackend = TFullBackend<Block>;
 ///
 /// Use this macro if you don't actually need the full service, but just the builder in order to
 /// be able to perform chain operations.
+#[allow(clippy::type_complexity)]
 pub fn new_partial(
 	config: &Configuration,
 ) -> Result<
@@ -77,7 +78,7 @@ pub fn new_partial(
 		frontier_block_import.clone(),
 		inherent_data_providers.clone(),
 		&task_manager.spawn_handle(),
-		registry.clone(),
+		registry,
 	)?;
 
 	let params = PartialComponents {
@@ -179,7 +180,7 @@ where
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		on_demand: None,
 		remote_blockchain: None,
-		rpc_extensions_builder: rpc_extensions_builder,
+		rpc_extensions_builder,
 		client: client.clone(),
 		transaction_pool: transaction_pool.clone(),
 		task_manager: &mut task_manager,
@@ -208,7 +209,7 @@ where
 
 		let params = StartCollatorParams {
 			para_id: id,
-			block_import: block_import,
+			block_import,
 			proposer_factory,
 			inherent_data_providers: params.inherent_data_providers,
 			block_status: client.clone(),

@@ -457,6 +457,7 @@ impl_runtime_apis! {
 				None
 			};
 
+			#[allow(clippy::or_fun_call)] // suggestion not helpful here
 			<Runtime as pallet_evm::Config>::Runner::call(
 				from,
 				to,
@@ -486,6 +487,7 @@ impl_runtime_apis! {
 				None
 			};
 
+			#[allow(clippy::or_fun_call)] // suggestion not helpful here
 			<Runtime as pallet_evm::Config>::Runner::create(
 				from,
 				data,

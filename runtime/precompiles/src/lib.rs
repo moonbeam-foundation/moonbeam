@@ -87,6 +87,7 @@ fn get_precompiled_func_from_address(address: &H160) -> Option<PrecompiledCallab
 }
 
 impl Precompiles for ExperimentalMoonbeamPrecompiles {
+	#[allow(clippy::type_complexity)] // this code is removed in another PR anyway
 	fn execute(
 		address: H160,
 		input: &[u8],
@@ -94,12 +95,11 @@ impl Precompiles for ExperimentalMoonbeamPrecompiles {
 	) -> Option<
 		core::result::Result<(pallet_evm::ExitSucceed, Vec<u8>, usize), pallet_evm::ExitError>,
 	> {
-		match get_precompiled_func_from_address(&address) {
-			Some(func) => return Some(func(input, target_gas)),
-			_ => {}
-		};
-
-		None
+		if let Some(func) = get_precompiled_func_from_address(&address) {
+			Some(func(input, target_gas))
+		} else {
+			None
+		}
 	}
 }
 

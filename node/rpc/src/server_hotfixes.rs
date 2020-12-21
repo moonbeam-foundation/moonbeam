@@ -212,6 +212,7 @@ fn blake2_128_extend(bytes: &[u8]) -> Vec<u8> {
 	ext
 }
 
+#[allow(clippy::all)]
 impl<B, C, P, CT, BE, H: ExHashT> EthApi<B, C, P, CT, BE, H>
 where
 	C: ProvideRuntimeApi<B> + StorageProvider<B, BE> + AuxStore,
@@ -332,6 +333,7 @@ where
 	}
 }
 
+#[allow(clippy::all)]
 impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H>
 where
 	C: ProvideRuntimeApi<B> + StorageProvider<B, BE> + AuxStore,

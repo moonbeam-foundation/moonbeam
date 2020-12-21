@@ -40,12 +40,14 @@ pub struct Extensions {
 
 impl Extensions {
 	/// Try to get the extension from the given `ChainSpec`.
+	#[allow(clippy::borrowed_box)]
 	pub fn try_get(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Option<&Self> {
 		sc_chain_spec::get_extension(chain_spec.extensions())
 	}
 }
 
 pub fn get_chain_spec(para_id: ParaId) -> Result<ChainSpec, String> {
+	#[allow(clippy::or_fun_call)]
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	Ok(ChainSpec::from_genesis(
 		"Moonbase Parachain Local Testnet",
@@ -94,7 +96,7 @@ fn testnet_genesis(
 		parachain_info: Some(ParachainInfoConfig {
 			parachain_id: para_id,
 		}),
-		pallet_ethereum_chain_id: Some(EthereumChainIdConfig { chain_id: chain_id }),
+		pallet_ethereum_chain_id: Some(EthereumChainIdConfig { chain_id }),
 		pallet_evm: Some(EVMConfig {
 			accounts: BTreeMap::new(),
 		}),
