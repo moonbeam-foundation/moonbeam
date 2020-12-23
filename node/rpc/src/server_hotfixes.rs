@@ -51,7 +51,7 @@ use frontier_rpc_core::types::{
 use frontier_rpc_primitives::{EthereumRuntimeRPCApi, ConvertTransaction, TransactionStatus};
 use frontier_rpc::{internal_err, error_on_execution_failure, EthSigner};
 
-pub use frontier_rpc_core::{EthApiServer, NetApiServer};
+pub use frontier_rpc_core::EthApiServer;
 use codec::{self, Encode};
 
 pub struct EthApi<B: BlockT, C, P, CT, BE, H: ExHashT> {

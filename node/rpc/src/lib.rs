@@ -87,11 +87,11 @@ pub fn create_full<C, P, BE>(
 {
 	use substrate_frame_rpc_system::{FullSystem, SystemApi};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
-	use frontier_rpc::{EthApiServer, NetApi, NetApiServer, EthPubSubApiServer};
+	use frontier_rpc::{NetApi, NetApiServer, Web3Api, Web3ApiServer};
 	// Our drop in replacements for the Eth APIs. These can be removed after
 	// https://github.com/paritytech/frontier/pull/199 lands
-	use server_hotfixes::EthApi;
-	use pubsub_hotfixes::EthPubSubApi;
+	use server_hotfixes::{EthApi, EthApiServer};
+	use pubsub_hotfixes::{EthPubSubApi, EthPubSubApiServer};
 
 	let mut io = jsonrpc_core::IoHandler::default();
 	let FullDeps {
@@ -127,6 +127,11 @@ pub fn create_full<C, P, BE>(
 		NetApiServer::to_delegate(NetApi::new(
 			client.clone(),
 			network.clone(),
+		))
+	);
+	io.extend_with(
+		Web3ApiServer::to_delegate(Web3Api::new(
+			client.clone(),
 		))
 	);
 	io.extend_with(
