@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    'pallets/stake',
     'runtime',
     'node/parachain',
     'node/rpc',#Temporary
