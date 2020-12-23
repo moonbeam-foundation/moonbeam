@@ -13,6 +13,8 @@ use frame_support::{
 		Currency,
 		//ExistenceRequirement::KeepAlive, //needed for transfer
 		Get,
+		Imbalance,
+		LockableCurrency,
 		ReservableCurrency,
 	},
 };
@@ -148,6 +150,8 @@ impl<
 type RoundIndex = u32;
 type RewardPoint = u32;
 type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as System>::AccountId>>::Balance;
+type PositiveImbalanceOf<T> =
+	<<T as Config>::Currency as Currency<<T as System>::AccountId>>::PositiveImbalance;
 type ValidatorState<T> = ValState<<T as System>::AccountId, BalanceOf<T>>;
 type RewardPolicy<T> = Reward<Destination<<T as System>::AccountId>>;
 
@@ -155,7 +159,8 @@ pub trait Config: System {
 	/// The overarching event type
 	type Event: From<Event<Self>> + Into<<Self as System>::Event>;
 	/// The currency type
-	type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
+	type Currency: ReservableCurrency<Self::AccountId>
+		+ LockableCurrency<Self::AccountId, Moment = Self::BlockNumber>;
 	/// Maximum number of validators for any given round
 	type MaxValidators: Get<usize>;
 	/// Maximum individual nominators for all validators
@@ -243,7 +248,7 @@ decl_storage! {
 			hasher(blake2_128_concat) T::AccountId => RewardPoint;
 		/// Track recipient preferences for receiving rewards
 		pub Payee get(fn payee): map
-			hasher(blake2_128_concat) T::AccountId => Option<RewardPolicy<T>>;
+			hasher(blake2_128_concat) T::AccountId => RewardPolicy<T>;
 	}
 }
 
@@ -345,12 +350,16 @@ decl_module! {
 			let all = pct * T::Reward::get();
 			let val = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
 			let fee = val.prefs.fee * all;
-			Self::make_payout(&validator,fee);
+			if let Some(imbalance) = Self::make_payout(&validator,fee) {
+				Self::deposit_event(RawEvent::Rewarded(validator.clone(),imbalance.peek()));
+			}
 			let remaining = all - fee;
 			for Nomination{owner,amount} in val.nominations {
 				let percent = Perbill::from_rational_approximation(amount,val.total);
 				let for_nom = percent * remaining;
-				Self::make_payout(&owner,for_nom);
+				if let Some(imbalance) = Self::make_payout(&owner,for_nom) {
+					Self::deposit_event(RawEvent::Rewarded(owner.clone(),imbalance.peek()));
+				}
 			}
 			let remaining_pts = all_pts - points;
 			<Points>::insert(round,remaining_pts);
@@ -393,7 +402,38 @@ impl<T: Config> Module<T> {
 		Self::deposit_event(RawEvent::ValidatorLeft(validator, state.total, new_total));
 		Ok(())
 	}
-	pub fn make_payout(_acc: &T::AccountId, _amt: BalanceOf<T>) -> Option<()> {
-		todo!() // use my PR open in substrate
+	pub fn make_payout(
+		stash: &T::AccountId,
+		amount: BalanceOf<T>,
+	) -> Option<PositiveImbalanceOf<T>> {
+		let policy = Self::payee(stash);
+		let payout = |dest: Destination<T::AccountId>,
+		              amount: BalanceOf<T>|
+		 -> Option<PositiveImbalanceOf<T>> {
+			match dest {
+				Destination::Stash => T::Currency::deposit_into_existing(stash, amount).ok(),
+				Destination::Account(dest_account) => {
+					Some(T::Currency::deposit_creating(&dest_account, amount))
+				}
+			}
+		};
+		match policy {
+			Reward::One(destination) => payout(destination, amount),
+			Reward::Two(dest1, pct, dest2) => {
+				if pct.is_one() {
+					return payout(dest1, amount);
+				}
+				if pct.is_zero() {
+					return payout(dest2, amount);
+				}
+				let first_amt = pct * amount;
+				let remaining = amount - first_amt;
+				if let Some(payout1) = payout(dest1, first_amt) {
+					Some(payout1.maybe_merge(payout(dest2, remaining)))
+				} else {
+					payout(dest2, remaining)
+				}
+			}
+		}
 	}
 }
