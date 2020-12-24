@@ -17,25 +17,23 @@
 //! Test utilities
 use crate::*;
 use frame_support::{
-	impl_outer_origin, parameter_types, weights::Weight,
-	impl_outer_event,traits::FindAuthor,
+	impl_outer_event, impl_outer_origin, parameter_types, traits::FindAuthor, weights::Weight,
 };
 use sp_core::H256;
 use sp_io;
 use sp_runtime::{
-    ModuleId,
+	testing::{Header, UintAuthorityId},
 	traits::{BlakeTwo256, IdentityLookup},
-	testing::{Header,UintAuthorityId},
-	Perbill,
+	ModuleId, Perbill,
 };
-use std::{cell::RefCell,collections::HashSet};
+use std::{cell::RefCell, collections::HashSet};
 
 pub type AccountId = u64;
 pub type Balance = u128;
 pub type BlockNumber = u64;
 
 impl_outer_origin! {
-    pub enum Origin for Test where system = frame_system {}
+	pub enum Origin for Test where system = frame_system {}
 }
 
 thread_local! {
@@ -48,16 +46,19 @@ impl pallet_session::OneSessionHandler<AccountId> for OtherSessionHandler {
 	type Key = UintAuthorityId;
 
 	fn on_genesis_session<'a, I: 'a>(_: I)
-		where I: Iterator<Item=(&'a AccountId, Self::Key)>, AccountId: 'a {}
+	where
+		I: Iterator<Item = (&'a AccountId, Self::Key)>,
+		AccountId: 'a,
+	{
+	}
 
-	fn on_new_session<'a, I: 'a>(_: bool, validators: I, _: I,)
-		where I: Iterator<Item=(&'a AccountId, Self::Key)>, AccountId: 'a
+	fn on_new_session<'a, I: 'a>(_: bool, validators: I, _: I)
+	where
+		I: Iterator<Item = (&'a AccountId, Self::Key)>,
+		AccountId: 'a,
 	{
 		SESSION.with(|x| {
-			*x.borrow_mut() = (
-				validators.map(|x| x.0.clone()).collect(),
-				HashSet::new(),
-			)
+			*x.borrow_mut() = (validators.map(|x| x.0.clone()).collect(), HashSet::new())
 		});
 	}
 
@@ -78,32 +79,33 @@ impl sp_runtime::BoundToRuntimeAppPublic for OtherSessionHandler {
 pub struct Author11;
 impl FindAuthor<AccountId> for Author11 {
 	fn find_author<'a, I>(_digests: I) -> Option<AccountId>
-		where I: 'a + IntoIterator<Item = (frame_support::ConsensusEngineId, &'a [u8])>,
+	where
+		I: 'a + IntoIterator<Item = (frame_support::ConsensusEngineId, &'a [u8])>,
 	{
 		Some(11)
 	}
 }
 
 mod stake {
-    pub use super::super::*;
+	pub use super::super::*;
 }
 
 impl_outer_event! {
-    pub enum Event for Test {
-        frame_system<T>,
+	pub enum Event for Test {
+		frame_system<T>,
 		pallet_balances<T>,
 		pallet_session,
-        stake<T>,
-    }
+		stake<T>,
+	}
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct Test;
 parameter_types! {
-    pub const BlockHashCount: u64 = 250;
-    pub const MaximumBlockWeight: Weight = 1024;
-    pub const MaximumBlockLength: u32 = 2 * 1024;
-    pub const AvailableBlockRatio: Perbill = Perbill::one();
+	pub const BlockHashCount: u64 = 250;
+	pub const MaximumBlockWeight: Weight = 1024;
+	pub const MaximumBlockLength: u32 = 2 * 1024;
+	pub const AvailableBlockRatio: Perbill = Perbill::one();
 }
 impl System for Test {
 	type BaseCallFilter = ();
@@ -124,13 +126,13 @@ impl System for Test {
 	type AccountData = pallet_balances::AccountData<Balance>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
-    type SystemWeightInfo = ();
-    type MaximumBlockWeight = MaximumBlockWeight;
-    type MaximumBlockLength = MaximumBlockLength;
-    type ExtrinsicBaseWeight = ();
-    type MaximumExtrinsicWeight = ();
-    type BlockExecutionWeight = ();
-    type AvailableBlockRatio = AvailableBlockRatio;
+	type SystemWeightInfo = ();
+	type MaximumBlockWeight = MaximumBlockWeight;
+	type MaximumBlockLength = MaximumBlockLength;
+	type ExtrinsicBaseWeight = ();
+	type MaximumExtrinsicWeight = ();
+	type BlockExecutionWeight = ();
+	type AvailableBlockRatio = AvailableBlockRatio;
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 1;
@@ -181,31 +183,31 @@ impl pallet_authorship::Config for Test {
 }
 parameter_types! {
 	pub const MaxValidators: usize = 5;
-    pub const MaxNomPerVal: usize = 10;
-    pub const MinNomPerVal: usize = 1;
-    pub const MinStakeBond: u128 = 5;
-    pub const MinNomBond: u128 = 3;
-    pub const MaxValFee: Perbill = Perbill::from_percent(50);
-    pub const BlocksPerRound: u64 = 10;
-    pub const HistoryDepth: usize = 100;
-    pub const Reward: u128 = 10;
+	pub const MaxNomPerVal: usize = 10;
+	pub const MinNomPerVal: usize = 1;
+	pub const MinStakeBond: u128 = 5;
+	pub const MinNomBond: u128 = 3;
+	pub const MaxValFee: Perbill = Perbill::from_percent(50);
+	pub const BlocksPerRound: u64 = 10;
+	pub const HistoryDepth: usize = 100;
+	pub const Reward: u128 = 10;
 	pub const Treasury: ModuleId = ModuleId(*b"py/trsry");
 }
 impl Config for Test {
 	type Event = Event;
-    type Currency = pallet_balances::Module<Test>;
-    type SessionInterface = Self;
-    type NextNewSession = pallet_session::Module<Test>;
-    type MaxValidators = MaxValidators;
-    type MaxNomPerVal = MaxNomPerVal;
-    type MinNomPerVal = MinNomPerVal;
-    type MinStakeBond = MinStakeBond;
-    type MinNomBond = MinNomBond;
-    type MaxValFee = MaxValFee;
-    type BlocksPerRound = BlocksPerRound;
-    type HistoryDepth = HistoryDepth;
-    type Reward = Reward;
-    type Treasury = Treasury;
+	type Currency = pallet_balances::Module<Test>;
+	type SessionInterface = Self;
+	type NextNewSession = pallet_session::Module<Test>;
+	type MaxValidators = MaxValidators;
+	type MaxNomPerVal = MaxNomPerVal;
+	type MinNomPerVal = MinNomPerVal;
+	type MinStakeBond = MinStakeBond;
+	type MinNomBond = MinNomBond;
+	type MaxValFee = MaxValFee;
+	type BlocksPerRound = BlocksPerRound;
+	type HistoryDepth = HistoryDepth;
+	type Reward = Reward;
+	type Treasury = Treasury;
 }
 pub type Sys = frame_system::Module<Test>;
 pub type Balances = pallet_balances::Module<Test>;
@@ -213,33 +215,26 @@ pub type Session = pallet_session::Module<Test>;
 type Stake = Module<Test>;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
-    let mut storage = frame_system::GenesisConfig::default()
-        .build_storage::<Test>()
-        .unwrap();
-    let genesis = pallet_balances::GenesisConfig::<Test> {
-        balances: vec![
-            (1, 1000),
-            (2, 100),
-            (3, 100),
-            (4, 100),
-            (5, 100),
-            (6, 100),
-        ],
-    };
-    genesis.assimilate_storage(&mut storage).unwrap();
-    storage.into()
-    // let mut ext = sp_io::TestExternalities::from(t);
-    // ext.execute_with(|| Sys::set_block_number(1));
-    // ext
+	let mut storage = frame_system::GenesisConfig::default()
+		.build_storage::<Test>()
+		.unwrap();
+	let genesis = pallet_balances::GenesisConfig::<Test> {
+		balances: vec![(1, 1000), (2, 100), (3, 100), (4, 100), (5, 100), (6, 100)],
+	};
+	genesis.assimilate_storage(&mut storage).unwrap();
+	storage.into()
+	// let mut ext = sp_io::TestExternalities::from(t);
+	// ext.execute_with(|| Sys::set_block_number(1));
+	// ext
 }
 
 #[test]
 fn genesis_config_works() {
-    new_test_ext().execute_with(|| {
+	new_test_ext().execute_with(|| {
 		assert!(Sys::events().is_empty());
 		// for x in 2..7 {
 		// 	assert_eq!(Balances::free_balance(&x),100);
 		// }
 		// assert_eq!(Balances::free_balance(&1),1000);
-    });
+	});
 }
