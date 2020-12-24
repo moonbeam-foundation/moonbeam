@@ -16,7 +16,7 @@
 
 //! # Minimal Staking Pallet
 //!
-//! Minimal viable staking pallet, intended as drop-in replacement for pallet-staking for substrate chains. Each
+//! Minimal viable staking pallet, drop-in replacement for pallet-staking for substrate chains. Each
 //! nominator can choose at most one validator to share profit and slashing risk.
 
 #![recursion_limit = "256"]
@@ -49,6 +49,10 @@ use sp_std::prelude::*;
 // directly from pallet-staking
 mod substrate;
 use substrate::*;
+#[cfg(test)]
+pub(crate) mod mock;
+// #[cfg(test)]
+// mod tests;
 
 #[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
 // TODO: make for adding Staked variant, compounding rewards is an additional feature, not mvp
@@ -394,8 +398,9 @@ decl_module! {
 			if n % T::BlocksPerRound::get() == T::BlockNumber::zero() {
 				let last = <Round>::get();
 				let next = last + 1;
-				// insert next set of validators
+				// insert exposure for next validator set
 				<Candidates<T>>::iter().for_each(|(acc,info)| {
+					// convert from ValState to Exposure
 					let exposure: Exposure<T::AccountId,BalanceOf<T>> = info.into();
 					<AtStake<T>>::insert(next,&acc,exposure);
 				});
@@ -417,7 +422,7 @@ impl<T: Config> Module<T> {
 		<Candidates<T>>::get(acc).is_some()
 	}
 	pub fn is_validator(round: RoundIndex, acc: &T::AccountId) -> bool {
-		<AtStake<T>>::get(round, acc) == Exposure::default()
+		<AtStake<T>>::get(round, acc) != Exposure::default()
 	}
 	pub fn return_nominations(validator: T::AccountId) -> DispatchResult {
 		let state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
@@ -546,5 +551,15 @@ impl<T: Config> Convert<T::AccountId, Option<Exposure<T::AccountId, BalanceOf<T>
 {
 	fn convert(validator: T::AccountId) -> Option<Exposure<T::AccountId, BalanceOf<T>>> {
 		Some(<Module<T>>::at_stake(<Round>::get(), &validator)) // TODO: except chilled validators
+	}
+}
+
+/// A `Convert` implementation that finds the stash of the given controller account,
+/// if any.
+pub struct StashOf<T>(sp_std::marker::PhantomData<T>);
+
+impl<T: Config> Convert<T::AccountId, Option<T::AccountId>> for StashOf<T> {
+	fn convert(controller: T::AccountId) -> Option<T::AccountId> {
+		Some(controller)
 	}
 }
