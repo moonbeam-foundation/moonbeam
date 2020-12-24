@@ -11,6 +11,7 @@ use frame_support::{
 	//storage::IterableStorageMap,
 	traits::{
 		Currency,
+		EstimateNextNewSession,
 		//ExistenceRequirement::KeepAlive, //needed for transfer
 		Get,
 		Imbalance,
@@ -21,10 +22,13 @@ use frame_support::{
 use frame_system::{ensure_signed, Config as System};
 use parity_scale_codec::{Decode, Encode};
 use sp_runtime::{
-	traits::{AccountIdConversion, AtLeast32BitUnsigned, Zero},
+	traits::{AccountIdConversion, AtLeast32BitUnsigned, Convert, Zero},
 	DispatchResult, ModuleId, Perbill, RuntimeDebug,
 };
 use sp_std::prelude::*;
+// directly from pallet-staking
+mod substrate;
+use substrate::*;
 
 #[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
 // TODO: make for adding Staked variant, compounding rewards is an additional feature, not mvp
@@ -93,6 +97,7 @@ pub enum ValStatus {
 
 #[derive(PartialEq, Eq, Encode, Decode, RuntimeDebug)]
 pub struct ValState<AccountId, Balance> {
+	pub validator: AccountId,
 	pub prefs: ValPrefs<Balance>,
 	pub nominations: Vec<Nomination<AccountId, Balance>>,
 	pub total: Balance,
@@ -106,6 +111,7 @@ impl<
 {
 	pub fn new(validator: A, prefs: ValPrefs<B>, bond: B) -> ValState<A, B> {
 		ValState {
+			validator: validator.clone(),
 			prefs,
 			nominations: vec![Nomination::new(validator, bond)],
 			total: bond,
@@ -161,6 +167,12 @@ pub trait Config: System {
 	/// The currency type
 	type Currency: ReservableCurrency<Self::AccountId>
 		+ LockableCurrency<Self::AccountId, Moment = Self::BlockNumber>;
+	// ~~ SESSION STUFF ~~
+	/// Interface for interacting with a session module.
+	type SessionInterface: substrate::SessionInterface<Self::AccountId>;
+	/// Something that can estimate the next session change, accurately or as a best effort guess.
+	type NextNewSession: EstimateNextNewSession<Self::BlockNumber>;
+	// ~~ CONSTANTS ~~
 	/// Maximum number of validators for any given round
 	type MaxValidators: Get<usize>;
 	/// Maximum individual nominators for all validators
@@ -236,14 +248,18 @@ decl_storage! {
 		/// Validator candidates with nomination state (includes all current validators by default)
 		pub Candidates get(fn candidates): map
 			hasher(blake2_128_concat) T::AccountId => Option<ValidatorState<T>>;
-		/// Total locked capital for a given round
+		/// Total at stake per round
 		pub Total get(fn total): map
 			hasher(blake2_128_concat) RoundIndex => BalanceOf<T>;
+		/// Stake exposure per round, per account (canonical validator set for round)
+		pub AtStake get(fn at_stake): double_map
+			hasher(blake2_128_concat) RoundIndex,
+			hasher(blake2_128_concat) T::AccountId => Option<Exposure<T::AccountId,BalanceOf<T>>>;
 		/// Total points awarded in this round
 		pub Points get(fn points): map
 			hasher(blake2_128_concat) RoundIndex => RewardPoint;
 		/// Validator set for the given round, stores individual points accrued for round per validator
-		pub Validators get(fn validators): double_map
+		pub ValidatorPts get(fn validator_pts): double_map
 			hasher(blake2_128_concat) RoundIndex,
 			hasher(blake2_128_concat) T::AccountId => RewardPoint;
 		/// Track recipient preferences for receiving rewards
@@ -336,14 +352,14 @@ decl_module! {
 			Ok(())
 		}
 		#[weight = 0]
-		fn pay_validator_and_nominators(
+		fn pay_stakers(
 			origin,
 			validator: T::AccountId,
 			round: RoundIndex,
 		) -> DispatchResult {
 			ensure_signed(origin)?;
 			ensure!(<Round>::get() > round,Error::<T>::CurrentRndRewardsUnClaimable);
-			let points = <Validators<T>>::get(round,&validator);
+			let points = <ValidatorPts<T>>::get(round,&validator);
 			ensure!(points > Zero::zero(), Error::<T>::NoPointsNoReward);
 			let all_pts = <Points>::get(round);
 			let pct = Perbill::from_rational_approximation(points,all_pts);
@@ -363,14 +379,22 @@ decl_module! {
 			}
 			let remaining_pts = all_pts - points;
 			<Points>::insert(round,remaining_pts);
-			<Validators<T>>::remove(round,&validator);
+			<ValidatorPts<T>>::remove(round,&validator);
 			Ok(())
 		}
 		fn on_finalize(n: T::BlockNumber) {
 			if n % T::BlocksPerRound::get() == T::BlockNumber::zero() {
-				let next = <Round>::get() + 1;
+				let last = <Round>::get();
+				let next = last + 1;
+				// insert next set of validators
+				<Candidates<T>>::iter().for_each(|(acc,info)| {
+					let exposure: Exposure<T::AccountId,BalanceOf<T>> = info.into();
+					<AtStake<T>>::insert(next,&acc,exposure);
+				});
+				// TODO: fix total semantics per round vs forever, it's not proper
+				<Total<T>>::insert(next,<Total<T>>::get(last));
+				// start the next round
 				<Round>::put(next);
-				// TODO: choose validators from candidates, using IterableStorageAPI
 			}
 		}
 	}
@@ -387,7 +411,7 @@ impl<T: Config> Module<T> {
 		<Candidates<T>>::get(acc).is_some()
 	}
 	pub fn is_validator(round: RoundIndex, acc: &T::AccountId) -> bool {
-		!<Validators<T>>::get(round, acc).is_zero()
+		<AtStake<T>>::get(round, acc).is_some()
 	}
 	pub fn return_nominations(validator: T::AccountId) -> DispatchResult {
 		let state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::ValidatorDNE)?;
@@ -435,5 +459,17 @@ impl<T: Config> Module<T> {
 				}
 			}
 		}
+	}
+}
+
+/// A typed conversion from stash account ID to the active exposure of nominators
+/// on that account.
+pub struct ExposureOf<T>(sp_std::marker::PhantomData<T>);
+
+impl<T: Config> Convert<T::AccountId, Option<Exposure<T::AccountId, BalanceOf<T>>>>
+	for ExposureOf<T>
+{
+	fn convert(validator: T::AccountId) -> Option<Exposure<T::AccountId, BalanceOf<T>>> {
+		<Module<T>>::at_stake(<Round>::get(), &validator)
 	}
 }
