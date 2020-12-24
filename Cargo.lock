@@ -9211,6 +9211,7 @@ version = "0.1.0"
 dependencies = [
  "frame-support",
  "frame-system",
+ "pallet-authorship",
  "pallet-balances",
  "pallet-session",
  "parity-scale-codec",
