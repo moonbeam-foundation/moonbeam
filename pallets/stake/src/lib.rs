@@ -23,20 +23,9 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::{
-	decl_error,
-	decl_event,
-	decl_module,
-	decl_storage,
-	ensure,
-	//storage::IterableStorageMap,
+	decl_error, decl_event, decl_module, decl_storage, ensure,
 	traits::{
-		Currency,
-		EstimateNextNewSession,
-		//ExistenceRequirement::KeepAlive, //needed for transfer
-		Get,
-		Imbalance,
-		LockableCurrency,
-		ReservableCurrency,
+		Currency, EstimateNextNewSession, Get, Imbalance, LockableCurrency, ReservableCurrency,
 	},
 };
 use frame_system::{ensure_signed, Config as System};
@@ -46,7 +35,7 @@ use sp_runtime::{
 	DispatchResult, ModuleId, Perbill, RuntimeDebug,
 };
 use sp_std::prelude::*;
-pub mod substrate;
+mod substrate;
 pub use substrate::*;
 #[cfg(test)]
 pub(crate) mod mock;
@@ -54,7 +43,7 @@ pub(crate) mod mock;
 mod tests;
 
 #[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
-// TODO: make for adding Staked variant, compounding rewards is an additional feature, not mvp
+/// Destination set by payee for receiving rewards
 pub enum Destination<AccountId> {
 	/// Pay into the stash account, not increasing the amount at stake.
 	Stash,
@@ -69,6 +58,7 @@ impl<AccountId> Default for Destination<AccountId> {
 }
 
 #[derive(Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
+/// Wrapper around destination for configurable reward splitting
 pub enum Reward<Dest> {
 	/// Pay into single RewardDestination
 	One(Dest),
@@ -188,7 +178,7 @@ pub trait Config: System {
 	type NextNewSession: EstimateNextNewSession<Self::BlockNumber>;
 	// ~~ CONSTANTS ~~
 	/// Maximum number of validators for any given round
-	type MaxValidators: Get<usize>;
+	type MaxValidators: Get<u32>;
 	/// Maximum individual nominators for all validators
 	type MaxNominatorsPerValidator: Get<usize>;
 	/// Minimum individual nominators for all validators
@@ -220,16 +210,17 @@ decl_event!(
 	{
 		// Account, Amount Locked
 		CandidateJoined(AccountId, Balance),
-		//ValidatorRegistered(RoundIndex,AccountId,Balance),
 		ValidatorChilled(RoundIndex, AccountId),
 		ValidatorActivated(RoundIndex, AccountId),
+		// Round, Validator Account, Total Exposed Amount (includes all nominations)
+		ValidatorChosen(RoundIndex, AccountId, Balance),
 		// Account, Amount Unlocked, New Total Amt Locked
 		ValidatorLeft(AccountId, Balance, Balance),
 		// Nominator, Amount Locked, Validator, New Total Amt Locked
 		ValidatorNominated(AccountId, Balance, AccountId, Balance),
 		NominationRevoked(AccountId, Balance, AccountId, Balance),
 		Rewarded(AccountId, Balance),
-		NewRound(BlockNumber, RoundIndex),
+		NewRound(BlockNumber, RoundIndex, u32, Balance),
 	}
 );
 
@@ -242,7 +233,6 @@ decl_error! {
 		ValidatorExists,
 		CandidateBondBelowMin,
 		NominatorBondBelowMin,
-		NomBondBelowMin,
 		FeeExceedsMaxValidatorFee,
 		CannotRmNomNotFound,
 		TooManyNomForVal,
@@ -343,7 +333,7 @@ decl_module! {
 			ensure!(!Self::is_candidate(&acc),Error::<T>::ValidatorExists);
 			ensure!(!Self::is_nominator(&acc),Error::<T>::NominatorExists);
 			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
-			ensure!(amount >= state.prefs.min,Error::<T>::NomBondBelowMin);
+			ensure!(amount >= state.prefs.min,Error::<T>::NominatorBondBelowMin);
 			state.add_nomination(acc.clone(),amount);
 			ensure!(state.nominations.len() <= T::MaxNominatorsPerValidator::get(), Error::<T>::TooManyNomForVal);
 			T::Currency::reserve(&acc,amount)?;
@@ -387,7 +377,8 @@ decl_module! {
 						let _ = Self::pay_staker(val,round_to_delete);
 					});
 				}
-				let mut val_count = 0usize;
+				let mut val_count = 0u32;
+				let mut total_locked = BalanceOf::<T>::zero();
 				let (min_bond,min_noms,max_noms,max_vals) = (
 					T::MinValidatorBond::get(),
 					T::MinNominatorsPerValidator::get(),
@@ -395,25 +386,31 @@ decl_module! {
 					T::MaxValidators::get()
 				);
 				// insert exposure for next validator set
-				<Candidates<T>>::iter().for_each(|(acc,info)| {
+				for (acc,info) in <Candidates<T>>::iter() {
+					if val_count >= max_vals {
+						break;
+					}
 					// next validator set is all unchilled validators above minimum validator capital threshold
 					// -> these validators are by defn exposed to slashing risk for this round because no
 					// transaction that called `exit` was processed before this point in time (tacit consent)
 					let num_noms = info.nominations.len();
+					let total = info.total;
 					let qualified_validator: bool = info.is_active()
-						&& info.total >= min_bond
+						&& total >= min_bond
 						&& num_noms >= min_noms
-						&& num_noms <= max_noms
-						&& val_count < max_vals;// is equivalent to val_count+1 <= val_max
+						&& num_noms <= max_noms;
 					if qualified_validator {
 						// convert from ValState to Exposure
 						let exposure: Exposure<T::AccountId,BalanceOf<T>> = info.into();
 						<AtStake<T>>::insert(next,&acc,exposure);
-						val_count += 1usize;
+						val_count += 1u32;
+						total_locked += total;
+						Self::deposit_event(RawEvent::ValidatorChosen(next,acc.clone(),total));
 					}
-				});
+				}
 				// start the next round
 				<Round>::put(next);
+				Self::deposit_event(RawEvent::NewRound(n,next,val_count,total_locked));
 			}
 		}
 	}

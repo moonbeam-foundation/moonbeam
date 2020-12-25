@@ -280,7 +280,7 @@ impl pallet_session::historical::Config for Runtime {
 }
 #[cfg(feature = "standalone")]
 parameter_types! {
-	pub const MaxValidators: usize = 5;
+	pub const MaxValidators: u32 = 5;
 	pub const MaxNominatorsPerValidator: usize = 10;
 	pub const MinNominatorsPerValidator: usize = 0;
 	pub const MinCandidateBond: u128 = 10;
