@@ -4004,6 +4004,7 @@ dependencies = [
  "pallet-evm",
  "pallet-grandpa",
  "pallet-randomness-collective-flip",
+ "pallet-session",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
@@ -4024,6 +4025,7 @@ dependencies = [
  "sp-std",
  "sp-transaction-pool",
  "sp-version",
+ "stake",
  "substrate-wasm-builder 3.0.0 (git+https://github.com/paritytech/substrate)",
 ]
 

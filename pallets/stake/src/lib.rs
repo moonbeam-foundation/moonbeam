@@ -46,8 +46,8 @@ use sp_runtime::{
 	DispatchResult, ModuleId, Perbill, RuntimeDebug,
 };
 use sp_std::prelude::*;
-mod substrate;
-use substrate::*;
+pub mod substrate;
+pub use substrate::*;
 #[cfg(test)]
 pub(crate) mod mock;
 #[cfg(test)]
@@ -190,15 +190,17 @@ pub trait Config: System {
 	/// Maximum number of validators for any given round
 	type MaxValidators: Get<usize>;
 	/// Maximum individual nominators for all validators
-	type MaxNomPerVal: Get<usize>;
+	type MaxNominatorsPerValidator: Get<usize>;
 	/// Minimum individual nominators for all validators
-	type MinNomPerVal: Get<usize>;
-	/// Minimum stake for any registered on-chain account to become a validator
-	type MinStakeBond: Get<BalanceOf<Self>>;
+	type MinNominatorsPerValidator: Get<usize>;
+	/// Minimum stake for any registered on-chain account to become a validator candidate
+	type MinCandidateBond: Get<BalanceOf<Self>>;
+	/// Total minimum backed stake for any candidate to become a validator
+	type MinValidatorBond: Get<BalanceOf<Self>>;
 	/// Minimum stake for any registered on-chain account to become a nominator
-	type MinNomBond: Get<BalanceOf<Self>>;
+	type MinNominatorBond: Get<BalanceOf<Self>>;
 	/// Maximum fee a validator can charge (taken off the top of revenue, before stake-weighted payouts)
-	type MaxValFee: Get<Perbill>;
+	type MaxValidatorFee: Get<Perbill>;
 	/// Timer for triggering periodic tasks in `on_finalize`
 	type BlocksPerRound: Get<Self::BlockNumber>;
 	/// Number of rounds kept in-memory for retroactive rewards/penalties
@@ -238,10 +240,10 @@ decl_error! {
 		CandidateDNE,
 		NominatorExists,
 		ValidatorExists,
-		StakeBondBelowMin,
-		StakeNomReqBelowMin,
+		CandidateBondBelowMin,
+		NominatorBondBelowMin,
 		NomBondBelowMin,
-		FeeExceedsMaxValFee,
+		FeeExceedsMaxValidatorFee,
 		CannotRmNomNotFound,
 		TooManyNomForVal,
 		AlreadyActive,
@@ -296,9 +298,9 @@ decl_module! {
 			let acc = ensure_signed(origin)?;
 			ensure!(!Self::is_nominator(&acc),Error::<T>::NominatorExists);
 			ensure!(!Self::is_candidate(&acc),Error::<T>::ValidatorExists);
-			ensure!(stake >= T::MinStakeBond::get(),Error::<T>::StakeBondBelowMin);
-			ensure!(min >= T::MinNomBond::get(),Error::<T>::StakeNomReqBelowMin);
-			ensure!(fee <= T::MaxValFee::get(),Error::<T>::FeeExceedsMaxValFee);
+			ensure!(stake >= T::MinCandidateBond::get(),Error::<T>::CandidateBondBelowMin);
+			ensure!(min >= T::MinNominatorBond::get(),Error::<T>::NominatorBondBelowMin);
+			ensure!(fee <= T::MaxValidatorFee::get(),Error::<T>::FeeExceedsMaxValidatorFee);
 			T::Currency::reserve(&acc,stake)?;
 			let state: ValidatorState<T> = ValState::new(acc.clone(),ValPrefs{fee,min},stake);
 			<Candidates<T>>::insert(&acc,state);
@@ -343,7 +345,7 @@ decl_module! {
 			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(amount >= state.prefs.min,Error::<T>::NomBondBelowMin);
 			state.add_nomination(acc.clone(),amount);
-			ensure!(state.nominations.len() <= T::MaxNomPerVal::get(), Error::<T>::TooManyNomForVal);
+			ensure!(state.nominations.len() <= T::MaxNominatorsPerValidator::get(), Error::<T>::TooManyNomForVal);
 			T::Currency::reserve(&acc,amount)?;
 			let new_total = state.total;
 			<Candidates<T>>::insert(&validator,state);
@@ -385,15 +387,29 @@ decl_module! {
 						let _ = Self::pay_staker(val,round_to_delete);
 					});
 				}
+				let mut val_count = 0usize;
+				let (min_bond,min_noms,max_noms,max_vals) = (
+					T::MinValidatorBond::get(),
+					T::MinNominatorsPerValidator::get(),
+					T::MaxNominatorsPerValidator::get(),
+					T::MaxValidators::get()
+				);
 				// insert exposure for next validator set
 				<Candidates<T>>::iter().for_each(|(acc,info)| {
 					// next validator set is all unchilled validators above minimum validator capital threshold
 					// -> these validators are by defn exposed to slashing risk for this round because no
 					// transaction that called `exit` was processed before this point in time (tacit consent)
-					if info.is_active() && info.total > T::MinStakeBond::get() {
+					let num_noms = info.nominations.len();
+					let qualified_validator: bool = info.is_active()
+						&& info.total >= min_bond
+						&& num_noms >= min_noms
+						&& num_noms <= max_noms
+						&& val_count < max_vals;// is equivalent to val_count+1 <= val_max
+					if qualified_validator {
 						// convert from ValState to Exposure
 						let exposure: Exposure<T::AccountId,BalanceOf<T>> = info.into();
 						<AtStake<T>>::insert(next,&acc,exposure);
+						val_count += 1usize;
 					}
 				});
 				// start the next round
@@ -553,6 +569,7 @@ where
 		let now = <Round>::get();
 		let score_plus_20 = <ValidatorPts<T>>::get(now, &author) + 20;
 		<ValidatorPts<T>>::insert(now, author, score_plus_20);
+		<Points>::mutate(now, |x| *x += 20);
 	}
 	fn note_uncle(author: T::AccountId, _age: T::BlockNumber) {
 		let now = <Round>::get();
@@ -561,6 +578,7 @@ where
 		let score_plus_1 = <ValidatorPts<T>>::get(now, &author) + 1;
 		<ValidatorPts<T>>::insert(now, p_auth, score_plus_2);
 		<ValidatorPts<T>>::insert(now, author, score_plus_1);
+		<Points>::mutate(now, |x| *x += 3);
 	}
 }
 

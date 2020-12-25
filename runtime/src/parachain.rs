@@ -17,7 +17,6 @@
 #[macro_export]
 macro_rules! runtime_parachain {
 	() => {
-
 		/// This runtime version.
 		pub const VERSION: RuntimeVersion = RuntimeVersion {
 			spec_name: create_runtime_str!("moonbase-alphanet"),

@@ -33,10 +33,10 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-#[cfg(feature = "standalone")]
-mod standalone;
 #[cfg(not(feature = "standalone"))]
 mod parachain;
+#[cfg(feature = "standalone")]
+mod standalone;
 
 #[cfg(feature = "standalone")]
 use standalone::*;
@@ -44,15 +44,15 @@ use standalone::*;
 // use parachain::*;
 
 use codec::{Decode, Encode};
+use frontier_rpc_primitives::TransactionStatus;
 use sp_api::impl_runtime_apis;
-use sp_core::{OpaqueMetadata, H160, U256, H256};
+use sp_core::{OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, IdentityLookup, Saturating, IdentifyAccount, Verify},
+	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Saturating, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult,
 };
-use frontier_rpc_primitives::TransactionStatus;
 use sp_std::{marker::PhantomData, prelude::*};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
@@ -61,21 +61,18 @@ use sp_version::RuntimeVersion;
 pub use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{FindAuthor, Get, Randomness},
-	weights::{
-		constants::WEIGHT_PER_SECOND,
-		IdentityFee, Weight
-	},
+	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 	ConsensusEngineId, StorageValue,
 };
 use pallet_evm::{
-	Account as EVMAccount, IdentityAddressMapping, EnsureAddressSame,
-	EnsureAddressNever, FeeCalculator, Runner
+	Account as EVMAccount, EnsureAddressNever, EnsureAddressSame, FeeCalculator,
+	IdentityAddressMapping, Runner,
 };
 use pallet_transaction_payment::CurrencyAdapter;
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
-pub use sp_runtime::{Perbill, Permill};
+pub use sp_runtime::{ModuleId, Perbill, Permill};
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -130,7 +127,7 @@ pub mod opaque {
 	}
 }
 
-/// The version infromation used to identify this runtime when compiled natively.
+/// The version information used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]
 pub fn native_version() -> NativeVersion {
 	NativeVersion {
@@ -256,13 +253,70 @@ impl pallet_evm::Config for Runtime {
 	type Precompiles = precompiles::MoonbeamPrecompiles;
 	type ChainId = EthereumChainId;
 }
+#[cfg(feature = "standalone")]
+parameter_types! {
+	pub const DisabledValidatorsThreshold: Perbill = Perbill::from_percent(16);
+	pub const Period: BlockNumber = 5;
+	pub const Offset: BlockNumber = 0;
+}
+#[cfg(feature = "standalone")]
+impl pallet_session::Config for Runtime {
+	type Event = Event;
+	type ValidatorId = AccountId;
+	type ValidatorIdOf = stake::StashOf<Runtime>;
+	type ShouldEndSession = pallet_session::PeriodicSessions<Period, Offset>;
+	type NextSessionRotation = ();
+	type SessionManager = pallet_session::historical::NoteHistoricalRoot<Self, Stake>;
+	type SessionHandler =
+		<opaque::SessionKeys as sp_runtime::traits::OpaqueKeys>::KeyTypeIdProviders;
+	type Keys = opaque::SessionKeys;
+	type DisabledValidatorsThreshold = DisabledValidatorsThreshold;
+	type WeightInfo = ();
+}
+#[cfg(feature = "standalone")]
+impl pallet_session::historical::Config for Runtime {
+	type FullIdentification = stake::Exposure<sp_core::H160, u128>;
+	type FullIdentificationOf = stake::ExposureOf<Self>;
+}
+#[cfg(feature = "standalone")]
+parameter_types! {
+	pub const MaxValidators: usize = 5;
+	pub const MaxNominatorsPerValidator: usize = 10;
+	pub const MinNominatorsPerValidator: usize = 0;
+	pub const MinCandidateBond: u128 = 10;
+	pub const MinValidatorBond: u128 = 10;
+	pub const MinNominatorBond: u128 = 3;
+	pub const MaxValidatorFee: Perbill = Perbill::from_percent(50);
+	pub const BlocksPerRound: u32 = 10;
+	pub const HistoryDepth: u32 = 5;
+	pub const Reward: u128 = 10;
+	pub const Treasury: ModuleId = ModuleId(*b"py/trsry");
+}
+#[cfg(feature = "standalone")]
+impl stake::Config for Runtime {
+	type Event = Event;
+	type Currency = Balances;
+	type SessionInterface = Self;
+	type NextNewSession = pallet_session::Module<Self>;
+	type MaxValidators = MaxValidators;
+	type MaxNominatorsPerValidator = MaxNominatorsPerValidator;
+	type MinNominatorsPerValidator = MinNominatorsPerValidator;
+	type MinCandidateBond = MinCandidateBond;
+	type MinValidatorBond = MinValidatorBond;
+	type MinNominatorBond = MinNominatorBond;
+	type MaxValidatorFee = MaxValidatorFee;
+	type BlocksPerRound = BlocksPerRound;
+	type HistoryDepth = HistoryDepth;
+	type Reward = Reward;
+	type Treasury = Treasury;
+}
 
 pub struct TransactionConverter;
 
 impl frontier_rpc_primitives::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
 	fn convert_transaction(&self, transaction: pallet_ethereum::Transaction) -> UncheckedExtrinsic {
 		UncheckedExtrinsic::new_unsigned(
-			pallet_ethereum::Call::<Runtime>::transact(transaction).into()
+			pallet_ethereum::Call::<Runtime>::transact(transaction).into(),
 		)
 	}
 }

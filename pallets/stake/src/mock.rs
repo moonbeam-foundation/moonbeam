@@ -183,27 +183,29 @@ impl pallet_authorship::Config for Test {
 }
 parameter_types! {
 	pub const MaxValidators: usize = 5;
-	pub const MaxNomPerVal: usize = 10;
-	pub const MinNomPerVal: usize = 1;
-	pub const MinStakeBond: u128 = 5;
-	pub const MinNomBond: u128 = 3;
-	pub const MaxValFee: Perbill = Perbill::from_percent(50);
-	pub const BlocksPerRound: u64 = 10;
+	pub const MaxNominatorsPerValidator: usize = 10;
+	pub const MinNominatorsPerValidator: usize = 0;
+	pub const MinCandidateBond: u128 = 10;
+	pub const MinValidatorBond: u128 = 10;
+	pub const MinNominatorBond: u128 = 3;
+	pub const MaxValidatorFee: Perbill = Perbill::from_percent(50);
+	pub const BlocksPerRound: u32 = 10;
 	pub const HistoryDepth: u32 = 5;
 	pub const Reward: u128 = 10;
 	pub const Treasury: ModuleId = ModuleId(*b"py/trsry");
 }
 impl Config for Test {
 	type Event = Event;
-	type Currency = pallet_balances::Module<Test>;
+	type Currency = Balances;
 	type SessionInterface = Self;
 	type NextNewSession = pallet_session::Module<Test>;
 	type MaxValidators = MaxValidators;
-	type MaxNomPerVal = MaxNomPerVal;
-	type MinNomPerVal = MinNomPerVal;
-	type MinStakeBond = MinStakeBond;
-	type MinNomBond = MinNomBond;
-	type MaxValFee = MaxValFee;
+	type MaxNominatorsPerValidator = MaxNominatorsPerValidator;
+	type MinNominatorsPerValidator = MinNominatorsPerValidator;
+	type MinCandidateBond = MinCandidateBond;
+	type MinValidatorBond = MinValidatorBond;
+	type MinNominatorBond = MinNominatorBond;
+	type MaxValidatorFee = MaxValidatorFee;
 	type BlocksPerRound = BlocksPerRound;
 	type HistoryDepth = HistoryDepth;
 	type Reward = Reward;
