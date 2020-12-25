@@ -189,7 +189,7 @@ parameter_types! {
 	pub const MinNomBond: u128 = 3;
 	pub const MaxValFee: Perbill = Perbill::from_percent(50);
 	pub const BlocksPerRound: u64 = 10;
-	pub const HistoryDepth: usize = 100;
+	pub const HistoryDepth: u32 = 5;
 	pub const Reward: u128 = 10;
 	pub const Treasury: ModuleId = ModuleId(*b"py/trsry");
 }
@@ -211,7 +211,6 @@ impl Config for Test {
 }
 pub type Sys = frame_system::Module<Test>;
 pub type Balances = pallet_balances::Module<Test>;
-pub type Session = pallet_session::Module<Test>;
 type Stake = Module<Test>;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
@@ -222,19 +221,7 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 		balances: vec![(1, 1000), (2, 100), (3, 100), (4, 100), (5, 100), (6, 100)],
 	};
 	genesis.assimilate_storage(&mut storage).unwrap();
-	storage.into()
-	// let mut ext = sp_io::TestExternalities::from(t);
-	// ext.execute_with(|| Sys::set_block_number(1));
-	// ext
-}
-
-#[test]
-fn genesis_config_works() {
-	new_test_ext().execute_with(|| {
-		assert!(Sys::events().is_empty());
-		// for x in 2..7 {
-		// 	assert_eq!(Balances::free_balance(&x),100);
-		// }
-		// assert_eq!(Balances::free_balance(&1),1000);
-	});
+	let mut ext = sp_io::TestExternalities::from(storage);
+	ext.execute_with(|| Sys::set_block_number(1));
+	ext
 }

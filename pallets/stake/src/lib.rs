@@ -46,13 +46,12 @@ use sp_runtime::{
 	DispatchResult, ModuleId, Perbill, RuntimeDebug,
 };
 use sp_std::prelude::*;
-// directly from pallet-staking
 mod substrate;
 use substrate::*;
 #[cfg(test)]
 pub(crate) mod mock;
-// #[cfg(test)]
-// mod tests;
+#[cfg(test)]
+mod tests;
 
 #[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
 // TODO: make for adding Staked variant, compounding rewards is an additional feature, not mvp
@@ -203,7 +202,7 @@ pub trait Config: System {
 	/// Timer for triggering periodic tasks in `on_finalize`
 	type BlocksPerRound: Get<Self::BlockNumber>;
 	/// Number of rounds kept in-memory for retroactive rewards/penalties
-	type HistoryDepth: Get<usize>;
+	type HistoryDepth: Get<u32>;
 	/// Maximum reward (per Round)
 	type Reward: Get<BalanceOf<Self>>;
 	/// The treasury's module id, used for deriving its sovereign account ID.
@@ -328,7 +327,9 @@ decl_module! {
 			Ok(())
 		}
 		#[weight = 0]
-		fn exit(origin) -> DispatchResult { Self::return_nominations(ensure_signed(origin)?) }
+		fn exit(origin) -> DispatchResult {
+			Self::return_nominations(ensure_signed(origin)?)
+		}
 		#[weight = 0]
 		fn nominate(
 			origin,
@@ -370,39 +371,30 @@ decl_module! {
 			round: RoundIndex,
 		) -> DispatchResult {
 			ensure_signed(origin)?;
-			ensure!(<Round>::get() > round,Error::<T>::CurrentRndRewardsUnClaimable);
-			let points = <ValidatorPts<T>>::get(round,&validator);
-			ensure!(points > Zero::zero(), Error::<T>::NoPointsNoReward);
-			let all_pts = <Points>::get(round);
-			let pct = Perbill::from_rational_approximation(points,all_pts);
-			let all = pct * T::Reward::get();
-			let val = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
-			let fee = val.prefs.fee * all;
-			if let Some(imbalance) = Self::make_payout(&validator,fee) {
-				Self::deposit_event(RawEvent::Rewarded(validator.clone(),imbalance.peek()));
-			}
-			let remaining = all - fee;
-			for Nomination{owner,amount} in val.nominations {
-				let percent = Perbill::from_rational_approximation(amount,val.total);
-				let for_nom = percent * remaining;
-				if let Some(imbalance) = Self::make_payout(&owner,for_nom) {
-					Self::deposit_event(RawEvent::Rewarded(owner.clone(),imbalance.peek()));
-				}
-			}
-			let remaining_pts = all_pts - points;
-			<Points>::insert(round,remaining_pts);
-			<ValidatorPts<T>>::remove(round,&validator);
-			Ok(())
+			Self::pay_staker(validator,round)
 		}
 		fn on_finalize(n: T::BlockNumber) {
-			if n % T::BlocksPerRound::get() == T::BlockNumber::zero() {
+			if (n % T::BlocksPerRound::get()).is_zero() {
 				let last = <Round>::get();
 				let next = last + 1;
+				// pay remaining validators in next-HistoryDepth
+				if next > T::HistoryDepth::get() {
+					let round_to_delete = next - T::HistoryDepth::get();
+					<ValidatorPts<T>>::iter_prefix(round_to_delete).for_each(|(val,_)| {
+						// pay stakers that haven't claimed payment
+						let _ = Self::pay_staker(val,round_to_delete);
+					});
+				}
 				// insert exposure for next validator set
 				<Candidates<T>>::iter().for_each(|(acc,info)| {
-					// convert from ValState to Exposure
-					let exposure: Exposure<T::AccountId,BalanceOf<T>> = info.into();
-					<AtStake<T>>::insert(next,&acc,exposure);
+					// next validator set is all unchilled validators above minimum validator capital threshold
+					// -> these validators are by defn exposed to slashing risk for this round because no
+					// transaction that called `exit` was processed before this point in time (tacit consent)
+					if info.is_active() && info.total > T::MinStakeBond::get() {
+						// convert from ValState to Exposure
+						let exposure: Exposure<T::AccountId,BalanceOf<T>> = info.into();
+						<AtStake<T>>::insert(next,&acc,exposure);
+					}
 				});
 				// start the next round
 				<Round>::put(next);
@@ -436,6 +428,36 @@ impl<T: Config> Module<T> {
 		Self::deposit_event(RawEvent::ValidatorLeft(validator, state.total, new_total));
 		Ok(())
 	}
+	/// Pay validator for points awarded in the given round
+	pub fn pay_staker(validator: T::AccountId, round: RoundIndex) -> DispatchResult {
+		ensure!(
+			<Round>::get() > round,
+			Error::<T>::CurrentRndRewardsUnClaimable
+		);
+		let points = <ValidatorPts<T>>::get(round, &validator);
+		ensure!(points > Zero::zero(), Error::<T>::NoPointsNoReward);
+		let all_pts = <Points>::get(round);
+		let pct = Perbill::from_rational_approximation(points, all_pts);
+		let all = pct * T::Reward::get();
+		let val = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
+		let fee = val.prefs.fee * all;
+		if let Some(imbalance) = Self::make_payout(&validator, fee) {
+			Self::deposit_event(RawEvent::Rewarded(validator.clone(), imbalance.peek()));
+		}
+		let remaining = all - fee;
+		for Nomination { owner, amount } in val.nominations {
+			let percent = Perbill::from_rational_approximation(amount, val.total);
+			let for_nom = percent * remaining;
+			if let Some(imbalance) = Self::make_payout(&owner, for_nom) {
+				Self::deposit_event(RawEvent::Rewarded(owner.clone(), imbalance.peek()));
+			}
+		}
+		let remaining_pts = all_pts - points;
+		<Points>::insert(round, remaining_pts);
+		<ValidatorPts<T>>::remove(round, &validator);
+		Ok(())
+	}
+	/// Pay specific account
 	pub fn make_payout(
 		stash: &T::AccountId,
 		amount: BalanceOf<T>,
@@ -550,7 +572,7 @@ impl<T: Config> Convert<T::AccountId, Option<Exposure<T::AccountId, BalanceOf<T>
 	for ExposureOf<T>
 {
 	fn convert(validator: T::AccountId) -> Option<Exposure<T::AccountId, BalanceOf<T>>> {
-		Some(<Module<T>>::at_stake(<Round>::get(), &validator)) // TODO: except chilled validators
+		Some(<Module<T>>::at_stake(<Round>::get(), &validator))
 	}
 }
 
