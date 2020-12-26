@@ -22,8 +22,6 @@
 #![recursion_limit = "256"]
 #![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(feature = "std")]
-use serde::{Serialize,Deserialize};
 use frame_support::{
 	decl_error, decl_event, decl_module, decl_storage, ensure,
 	traits::{
@@ -32,6 +30,8 @@ use frame_support::{
 };
 use frame_system::{ensure_signed, Config as System};
 use parity_scale_codec::{Decode, Encode};
+#[cfg(feature = "std")]
+use serde::{Deserialize, Serialize};
 use sp_runtime::{
 	traits::{AccountIdConversion, AtLeast32BitUnsigned, Convert, Zero},
 	DispatchResult, ModuleId, Perbill, RuntimeDebug,
@@ -160,7 +160,7 @@ impl<
 }
 
 #[derive(Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
-#[cfg_attr(feature = "std", derive(Serialize,Deserialize))]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub enum Staker<AccountId> {
 	Validator(AccountId),
 	Nominator(AccountId, AccountId),
@@ -248,6 +248,7 @@ decl_error! {
 		// Nominator Does Not Exist
 		NominatorDNE,
 		CandidateDNE,
+		ValidatorDNE,
 		NominatorExists,
 		ValidatorExists,
 		CandidateBondBelowMin,
@@ -516,11 +517,13 @@ impl<T: Config> Module<T> {
 		);
 		let points = <ValidatorPts<T>>::get(round, &validator);
 		ensure!(points > Zero::zero(), Error::<T>::NoPointsNoReward);
+		let val = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
+		let at_stake = <AtStake<T>>::get(round, &validator);
+		ensure!(at_stake != Exposure::default(), Error::<T>::ValidatorDNE);
 		let all_pts = <Points>::get(round);
 		let pts_pct = Perbill::from_rational_approximation(points, all_pts) * 100u32;
 		let all_stake = <TotalStake<T>>::get(round);
-		let val = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
-		let stake_pct = Perbill::from_rational_approximation(val.total, all_stake) * 100u32;
+		let stake_pct = Perbill::from_rational_approximation(at_stake.total, all_stake) * 100u32;
 		let ratio = T::Pts2StakeRewardRatio::get();
 		let ratio_as_u32 = ratio * 100u32;
 		let inv = Perbill::from_percent(100u32 - ratio_as_u32);
@@ -541,6 +544,7 @@ impl<T: Config> Module<T> {
 		let remaining_pts = all_pts - points;
 		<Points>::insert(round, remaining_pts);
 		<ValidatorPts<T>>::remove(round, &validator);
+		<AtStake<T>>::remove(round, &validator);
 		Ok(())
 	}
 	/// Pay specific account
