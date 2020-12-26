@@ -428,13 +428,15 @@ decl_module! {
 			if (n % T::BlocksPerRound::get()).is_zero() {
 				let last = <Round>::get();
 				let next = last + 1;
-				// pay remaining validators in next-HistoryDepth
+				// pay remaining validators in next-HistoryDepth and remove exposure for all validators
 				if next > T::HistoryDepth::get() {
 					let round_to_delete = next - T::HistoryDepth::get();
 					<ValidatorPts<T>>::iter_prefix(round_to_delete).for_each(|(val,_)| {
 						// pay stakers that haven't claimed payment
-						let _ = Self::pay_staker(val,round_to_delete);
+						let _ = Self::pay_staker(val.clone(),round_to_delete);
 					});
+					// remove exposure for all validators in this round
+					<AtStake<T>>::remove_prefix(round_to_delete);
 				}
 				// insert exposure for next validator set
 				Self::qualified_candidates_become_validators(n,next);
@@ -544,7 +546,6 @@ impl<T: Config> Module<T> {
 		let remaining_pts = all_pts - points;
 		<Points>::insert(round, remaining_pts);
 		<ValidatorPts<T>>::remove(round, &validator);
-		<AtStake<T>>::remove(round, &validator);
 		Ok(())
 	}
 	/// Pay specific account
