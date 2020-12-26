@@ -20,39 +20,44 @@
 //! replacements will be removed and we will head in the direction of
 //! https://github.com/paritytech/frontier/pull/199
 
-use std::{marker::PhantomData, sync::Arc};
-use std::collections::BTreeMap;
+use codec::Decode;
 use ethereum::{
 	Block as EthereumBlock, Transaction as EthereumTransaction,
 	TransactionMessage as EthereumTransactionMessage,
 };
-use ethereum_types::{H160, H256, H64, U256, U64, H512};
-use jsonrpc_core::{BoxFuture, Result, futures::future::{self, Future}};
-use futures::future::TryFutureExt;
-use sp_runtime::{
-	traits::{Block as BlockT, Header as _, UniqueSaturatedInto, Zero, One, Saturating, BlakeTwo256},
-	transaction_validity::TransactionSource
-};
-use sp_api::{ProvideRuntimeApi, BlockId};
-use sp_transaction_pool::{TransactionPool, InPoolTransaction};
-use sc_client_api::backend::{StorageProvider, Backend, StateBackend, AuxStore};
-use sha3::{Keccak256, Digest};
-use sp_blockchain::{Error as BlockChainError, HeaderMetadata, HeaderBackend};
-use sp_storage::StorageKey;
-use codec::Decode;
-use sp_io::hashing::{twox_128, blake2_128};
-use sc_network::{NetworkService, ExHashT};
-use frontier_rpc_core::EthApi as EthApiT;
+use ethereum_types::{H160, H256, H512, H64, U256, U64};
+use frontier_rpc::{error_on_execution_failure, internal_err, EthSigner};
 use frontier_rpc_core::types::{
-	BlockNumber, Bytes, CallRequest, Filter, FilteredParams, Index, Log, Receipt, RichBlock,
-	SyncStatus, SyncInfo, Transaction, Work, Rich, Block, BlockTransactions, VariadicValue,
-	TransactionRequest,
+	Block, BlockNumber, BlockTransactions, Bytes, CallRequest, Filter, FilteredParams, Index, Log,
+	Receipt, Rich, RichBlock, SyncInfo, SyncStatus, Transaction, TransactionRequest, VariadicValue,
+	Work,
 };
-use frontier_rpc_primitives::{EthereumRuntimeRPCApi, ConvertTransaction, TransactionStatus};
-use frontier_rpc::{internal_err, error_on_execution_failure, EthSigner};
+use frontier_rpc_core::EthApi as EthApiT;
+use frontier_rpc_primitives::{ConvertTransaction, EthereumRuntimeRPCApi, TransactionStatus};
+use futures::future::TryFutureExt;
+use jsonrpc_core::{
+	futures::future::{self, Future},
+	BoxFuture, Result,
+};
+use sc_client_api::backend::{AuxStore, Backend, StateBackend, StorageProvider};
+use sc_network::{ExHashT, NetworkService};
+use sha3::{Digest, Keccak256};
+use sp_api::{BlockId, ProvideRuntimeApi};
+use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
+use sp_io::hashing::{blake2_128, twox_128};
+use sp_runtime::{
+	traits::{
+		BlakeTwo256, Block as BlockT, Header as _, One, Saturating, UniqueSaturatedInto, Zero,
+	},
+	transaction_validity::TransactionSource,
+};
+use sp_storage::StorageKey;
+use sp_transaction_pool::{InPoolTransaction, TransactionPool};
+use std::collections::BTreeMap;
+use std::{marker::PhantomData, sync::Arc};
 
-pub use frontier_rpc_core::{EthApiServer, NetApiServer};
 use codec::{self, Encode};
+pub use frontier_rpc_core::{EthApiServer, NetApiServer};
 
 pub struct EthApi<B: BlockT, C, P, CT, BE, H: ExHashT> {
 	pool: Arc<P>,
@@ -89,14 +94,12 @@ fn rich_block_build(
 	block: ethereum::Block,
 	statuses: Vec<Option<TransactionStatus>>,
 	hash: Option<H256>,
-	full_transactions: bool
+	full_transactions: bool,
 ) -> RichBlock {
 	Rich {
 		inner: Block {
 			hash: Some(hash.unwrap_or_else(|| {
-				H256::from_slice(
-					Keccak256::digest(&rlp::encode(&block.header)).as_slice()
-				)
+				H256::from_slice(Keccak256::digest(&rlp::encode(&block.header)).as_slice())
 			})),
 			parent_hash: block.header.parent_hash,
 			uncles_hash: block.header.ommers_hash,
@@ -115,40 +118,50 @@ fn rich_block_build(
 			total_difficulty: None,
 			seal_fields: vec![
 				Bytes(block.header.mix_hash.as_bytes().to_vec()),
-				Bytes(block.header.nonce.as_bytes().to_vec())
+				Bytes(block.header.nonce.as_bytes().to_vec()),
 			],
 			uncles: vec![],
 			transactions: {
 				if full_transactions {
 					BlockTransactions::Full(
-						block.transactions.iter().enumerate().map(|(index, transaction)|{
-							transaction_build(
-								transaction.clone(),
-								block.clone(),
-								statuses[index].clone().unwrap_or_default()
-							)
-						}).collect()
+						block
+							.transactions
+							.iter()
+							.enumerate()
+							.map(|(index, transaction)| {
+								transaction_build(
+									transaction.clone(),
+									block.clone(),
+									statuses[index].clone().unwrap_or_default(),
+								)
+							})
+							.collect(),
 					)
 				} else {
 					BlockTransactions::Hashes(
-						block.transactions.iter().map(|transaction|{
-							H256::from_slice(
-								Keccak256::digest(&rlp::encode(&transaction.clone())).as_slice()
-							)
-						}).collect()
+						block
+							.transactions
+							.iter()
+							.map(|transaction| {
+								H256::from_slice(
+									Keccak256::digest(&rlp::encode(&transaction.clone()))
+										.as_slice(),
+								)
+							})
+							.collect(),
 					)
 				}
 			},
-			size: Some(U256::from(rlp::encode(&block).len() as u32))
+			size: Some(U256::from(rlp::encode(&block).len() as u32)),
 		},
-		extra_info: BTreeMap::new()
+		extra_info: BTreeMap::new(),
 	}
 }
 
 fn transaction_build(
 	transaction: EthereumTransaction,
 	block: EthereumBlock,
-	status: TransactionStatus
+	status: TransactionStatus,
 ) -> Transaction {
 	let mut sig = [0u8; 65];
 	let mut msg = [0u8; 32];
@@ -163,18 +176,14 @@ fn transaction_build(
 	};
 
 	Transaction {
-		hash: H256::from_slice(
-			Keccak256::digest(&rlp::encode(&transaction)).as_slice()
-		),
+		hash: H256::from_slice(Keccak256::digest(&rlp::encode(&transaction)).as_slice()),
 		nonce: transaction.nonce,
 		block_hash: Some(H256::from_slice(
-			Keccak256::digest(&rlp::encode(&block.header)).as_slice()
+			Keccak256::digest(&rlp::encode(&block.header)).as_slice(),
 		)),
 		block_number: Some(block.header.number),
 		transaction_index: Some(U256::from(
-			UniqueSaturatedInto::<u32>::unique_saturated_into(
-				status.transaction_index
-			)
+			UniqueSaturatedInto::<u32>::unique_saturated_into(status.transaction_index),
 		)),
 		from: status.from,
 		to: status.to,
@@ -203,115 +212,103 @@ fn blake2_128_extend(bytes: &[u8]) -> Vec<u8> {
 	ext
 }
 
-impl<B, C, P, CT, BE, H: ExHashT> EthApi<B, C, P, CT, BE, H> where
+impl<B, C, P, CT, BE, H: ExHashT> EthApi<B, C, P, CT, BE, H>
+where
 	C: ProvideRuntimeApi<B> + StorageProvider<B, BE> + AuxStore,
-	C: HeaderBackend<B> + HeaderMetadata<B, Error=BlockChainError> + 'static,
+	C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError> + 'static,
 	C::Api: EthereumRuntimeRPCApi<B>,
 	BE: Backend<B> + 'static,
 	BE::State: StateBackend<BlakeTwo256>,
-	B: BlockT<Hash=H256> + Send + Sync + 'static,
+	B: BlockT<Hash = H256> + Send + Sync + 'static,
 	C: Send + Sync + 'static,
-	P: TransactionPool<Block=B> + Send + Sync + 'static,
+	P: TransactionPool<Block = B> + Send + Sync + 'static,
 	CT: ConvertTransaction<<B as BlockT>::Extrinsic> + Send + Sync + 'static,
 {
 	fn native_block_id(&self, number: Option<BlockNumber>) -> Result<Option<BlockId<B>>> {
 		Ok(match number.unwrap_or(BlockNumber::Latest) {
-			BlockNumber::Hash { hash, .. } => {
-				self.load_hash(hash).unwrap_or(None)
-			},
-			BlockNumber::Num(number) => {
-				Some(BlockId::Number(number.unique_saturated_into()))
-			},
-			BlockNumber::Latest => {
-				Some(BlockId::Hash(
-					self.client.info().best_hash
-				))
-			},
-			BlockNumber::Earliest => {
-				Some(BlockId::Number(Zero::zero()))
-			},
-			BlockNumber::Pending => {
-				None
-			}
+			BlockNumber::Hash { hash, .. } => self.load_hash(hash).unwrap_or(None),
+			BlockNumber::Num(number) => Some(BlockId::Number(number.unique_saturated_into())),
+			BlockNumber::Latest => Some(BlockId::Hash(self.client.info().best_hash)),
+			BlockNumber::Earliest => Some(BlockId::Number(Zero::zero())),
+			BlockNumber::Pending => None,
 		})
 	}
 
 	// Asumes there is only one mapped canonical block in the AuxStore, otherwise something is wrong
 	fn load_hash(&self, hash: H256) -> Result<Option<BlockId<B>>> {
 		let hashes = match frontier_consensus::load_block_hash::<B, _>(self.client.as_ref(), hash)
-			.map_err(|err| internal_err(format!("fetch aux store failed: {:?}", err)))?
-		{
+			.map_err(|err| {
+			internal_err(format!("fetch aux store failed: {:?}", err))
+		})? {
 			Some(hashes) => hashes,
 			None => return Ok(None),
 		};
-		let out: Vec<H256> = hashes.into_iter()
+		let out: Vec<H256> = hashes
+			.into_iter()
 			.filter_map(|h| {
 				if let Ok(Some(_)) = self.client.header(BlockId::Hash(h)) {
 					Some(h)
 				} else {
 					None
 				}
-			}).collect();
+			})
+			.collect();
 
 		if out.len() == 1 {
-			return Ok(Some(
-				BlockId::Hash(out[0])
-			));
+			return Ok(Some(BlockId::Hash(out[0])));
 		}
 		Ok(None)
 	}
 
-	fn headers(&self, id: &BlockId<B>) -> Result<(u64,u64)> {
-		match self.client.header(id.clone())
+	fn headers(&self, id: &BlockId<B>) -> Result<(u64, u64)> {
+		match self
+			.client
+			.header(id.clone())
 			.map_err(|_| internal_err(format!("failed to retrieve header at: {:#?}", id)))?
 		{
 			Some(h) => {
 				let best_number: u64 = UniqueSaturatedInto::<u64>::unique_saturated_into(
-					self.client.info().best_number
+					self.client.info().best_number,
 				);
-				let header_number: u64 = UniqueSaturatedInto::<u64>::unique_saturated_into(
-					*h.number()
-				);
+				let header_number: u64 =
+					UniqueSaturatedInto::<u64>::unique_saturated_into(*h.number());
 				Ok((best_number, header_number))
 			}
-			_ => Err(internal_err(format!("failed to retrieve header at: {:#?}", id)))
+			_ => Err(internal_err(format!(
+				"failed to retrieve header at: {:#?}",
+				id
+			))),
 		}
 	}
 
 	fn current_block(&self, id: &BlockId<B>) -> Option<ethereum::Block> {
 		self.query_storage::<ethereum::Block>(
 			id,
-			&StorageKey(
-				storage_prefix_build(b"Ethereum", b"CurrentBlock")
-			)
+			&StorageKey(storage_prefix_build(b"Ethereum", b"CurrentBlock")),
 		)
 	}
 
 	fn current_statuses(&self, id: &BlockId<B>) -> Option<Vec<TransactionStatus>> {
 		self.query_storage::<Vec<TransactionStatus>>(
 			id,
-			&StorageKey(
-				storage_prefix_build(b"Ethereum", b"CurrentTransactionStatuses")
-			)
+			&StorageKey(storage_prefix_build(
+				b"Ethereum",
+				b"CurrentTransactionStatuses",
+			)),
 		)
 	}
 
 	fn current_receipts(&self, id: &BlockId<B>) -> Option<Vec<ethereum::Receipt>> {
 		self.query_storage::<Vec<ethereum::Receipt>>(
 			id,
-			&StorageKey(
-				storage_prefix_build(b"Ethereum", b"CurrentReceipts")
-			)
+			&StorageKey(storage_prefix_build(b"Ethereum", b"CurrentReceipts")),
 		)
 	}
 
 	fn account_codes(&self, id: &BlockId<B>, address: H160) -> Option<Vec<u8>> {
 		let mut key: Vec<u8> = storage_prefix_build(b"EVM", b"AccountCodes");
 		key.extend(blake2_128_extend(address.as_bytes()));
-		self.query_storage::<Vec<u8>>(
-			id,
-			&StorageKey(key)
-		)
+		self.query_storage::<Vec<u8>>(id, &StorageKey(key))
 	}
 
 	fn account_storages(&self, id: &BlockId<B>, address: H160, index: U256) -> Option<H256> {
@@ -322,17 +319,11 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApi<B, C, P, CT, BE, H> where
 		key.extend(blake2_128_extend(address.as_bytes()));
 		key.extend(blake2_128_extend(tmp));
 
-		self.query_storage::<H256>(
-			id,
-			&StorageKey(key)
-		)
+		self.query_storage::<H256>(id, &StorageKey(key))
 	}
 
 	fn query_storage<T: Decode>(&self, id: &BlockId<B>, key: &StorageKey) -> Option<T> {
-		if let Ok(Some(data)) = self.client.storage(
-			id,
-			key
-		) {
+		if let Ok(Some(data)) = self.client.storage(id, key) {
 			if let Ok(result) = Decode::decode(&mut &data.0[..]) {
 				return Some(result);
 			}
@@ -341,15 +332,16 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApi<B, C, P, CT, BE, H> where
 	}
 }
 
-impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
+impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H>
+where
 	C: ProvideRuntimeApi<B> + StorageProvider<B, BE> + AuxStore,
-	C: HeaderBackend<B> + HeaderMetadata<B, Error=BlockChainError> + 'static,
+	C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError> + 'static,
 	C::Api: EthereumRuntimeRPCApi<B>,
 	BE: Backend<B> + 'static,
 	BE::State: StateBackend<BlakeTwo256>,
-	B: BlockT<Hash=H256> + Send + Sync + 'static,
+	B: BlockT<Hash = H256> + Send + Sync + 'static,
 	C: Send + Sync + 'static,
-	P: TransactionPool<Block=B> + Send + Sync + 'static,
+	P: TransactionPool<Block = B> + Send + Sync + 'static,
 	CT: ConvertTransaction<<B as BlockT>::Extrinsic> + Send + Sync + 'static,
 {
 	fn protocol_version(&self) -> Result<u64> {
@@ -359,7 +351,11 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 	fn syncing(&self) -> Result<SyncStatus> {
 		if self.network.is_major_syncing() {
 			let block_number = U256::from(
-				self.client.info().best_number.clone().unique_saturated_into()
+				self.client
+					.info()
+					.best_number
+					.clone()
+					.unique_saturated_into(),
 			);
 			Ok(SyncStatus::Info(SyncInfo {
 				starting_block: U256::zero(),
@@ -381,14 +377,13 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 	}
 
 	fn author(&self) -> Result<H160> {
-		let block: Option<ethereum::Block> = self.current_block(&BlockId::Hash(
-			self.client.info().best_hash
-		));
+		let block: Option<ethereum::Block> =
+			self.current_block(&BlockId::Hash(self.client.info().best_hash));
 		return if let Some(block) = block {
 			Ok(block.header.beneficiary)
 		} else {
 			Err(internal_err("Failed to retrieve block."))
-		}
+		};
 	}
 
 	fn is_mining(&self) -> Result<bool> {
@@ -397,19 +392,23 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 
 	fn chain_id(&self) -> Result<Option<U64>> {
 		let hash = self.client.info().best_hash;
-		Ok(Some(self.client.runtime_api().chain_id(&BlockId::Hash(hash))
-				.map_err(|err| internal_err(format!("fetch runtime chain id failed: {:?}", err)))?.into()))
+		Ok(Some(
+			self.client
+				.runtime_api()
+				.chain_id(&BlockId::Hash(hash))
+				.map_err(|err| internal_err(format!("fetch runtime chain id failed: {:?}", err)))?
+				.into(),
+		))
 	}
 
 	fn gas_price(&self) -> Result<U256> {
 		let hash = self.client.info().best_hash;
-		Ok(
-			self.client
-				.runtime_api()
-				.gas_price(&BlockId::Hash(hash))
-				.map_err(|err| internal_err(format!("fetch runtime chain id failed: {:?}", err)))?
-				.into(),
-		)
+		Ok(self
+			.client
+			.runtime_api()
+			.gas_price(&BlockId::Hash(hash))
+			.map_err(|err| internal_err(format!("fetch runtime chain id failed: {:?}", err)))?
+			.into())
 	}
 
 	fn accounts(&self) -> Result<Vec<H160>> {
@@ -421,18 +420,24 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 	}
 
 	fn block_number(&self) -> Result<U256> {
-		Ok(U256::from(self.client.info().best_number.clone().unique_saturated_into()))
+		Ok(U256::from(
+			self.client
+				.info()
+				.best_number
+				.clone()
+				.unique_saturated_into(),
+		))
 	}
 
 	fn balance(&self, address: H160, number: Option<BlockNumber>) -> Result<U256> {
 		if let Ok(Some(id)) = self.native_block_id(number) {
-			return Ok(
-				self.client
-					.runtime_api()
-					.account_basic(&id, address)
-					.map_err(|err| internal_err(format!("fetch runtime chain id failed: {:?}", err)))?
-					.balance.into(),
-			);
+			return Ok(self
+				.client
+				.runtime_api()
+				.account_basic(&id, address)
+				.map_err(|err| internal_err(format!("fetch runtime chain id failed: {:?}", err)))?
+				.balance
+				.into());
 		}
 		Ok(U256::zero())
 	}
@@ -448,7 +453,8 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 	}
 
 	fn block_by_hash(&self, hash: H256, full: bool) -> Result<Option<RichBlock>> {
-		let id = match self.load_hash(hash)
+		let id = match self
+			.load_hash(hash)
 			.map_err(|err| internal_err(format!("{:?}", err)))?
 		{
 			Some(hash) => hash,
@@ -464,17 +470,13 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 		let statuses: Option<Vec<TransactionStatus>> = self.current_statuses(&id);
 
 		match (block, statuses) {
-			(Some(block), Some(statuses)) => {
-				Ok(Some(rich_block_build(
-					block,
-					statuses.into_iter().map(|s| Some(s)).collect(),
-					Some(hash),
-					full,
-				)))
-			},
-			_ => {
-				Ok(None)
-			},
+			(Some(block), Some(statuses)) => Ok(Some(rich_block_build(
+				block,
+				statuses.into_iter().map(|s| Some(s)).collect(),
+				Some(hash),
+				full,
+			))),
+			_ => Ok(None),
 		}
 	}
 
@@ -489,9 +491,8 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 
 		match (block, statuses) {
 			(Some(block), Some(statuses)) => {
-				let hash = H256::from_slice(
-					Keccak256::digest(&rlp::encode(&block.header)).as_slice(),
-				);
+				let hash =
+					H256::from_slice(Keccak256::digest(&rlp::encode(&block.header)).as_slice());
 
 				Ok(Some(rich_block_build(
 					block,
@@ -499,10 +500,8 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 					Some(hash),
 					full,
 				)))
-			},
-			_ => {
-				Ok(None)
-			},
+			}
+			_ => Ok(None),
 		}
 	}
 
@@ -510,9 +509,13 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 		if let Some(BlockNumber::Pending) = number {
 			// Find future nonce
 			let id = BlockId::hash(self.client.info().best_hash);
-			let nonce: U256 = self.client.runtime_api()
+			let nonce: U256 = self
+				.client
+				.runtime_api()
 				.account_basic(&id, address)
-				.map_err(|err| internal_err(format!("fetch runtime account basic failed: {:?}", err)))?
+				.map_err(|err| {
+					internal_err(format!("fetch runtime account basic failed: {:?}", err))
+				})?
 				.nonce;
 
 			let mut current_nonce = nonce;
@@ -534,16 +537,20 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 			None => return Ok(U256::zero()),
 		};
 
-		let nonce = self.client.runtime_api()
+		let nonce = self
+			.client
+			.runtime_api()
 			.account_basic(&id, address)
 			.map_err(|err| internal_err(format!("fetch runtime account basic failed: {:?}", err)))?
-			.nonce.into();
+			.nonce
+			.into();
 
 		Ok(nonce)
 	}
 
 	fn block_transaction_count_by_hash(&self, hash: H256) -> Result<Option<U256>> {
-		let id = match self.load_hash(hash)
+		let id = match self
+			.load_hash(hash)
 			.map_err(|err| internal_err(format!("{:?}", err)))?
 		{
 			Some(hash) => hash,
@@ -589,7 +596,7 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 	fn code_at(&self, address: H160, number: Option<BlockNumber>) -> Result<Bytes> {
 		let mut out: Bytes = Bytes(Vec::new());
 		if let Ok(Some(id)) = self.native_block_id(number) {
-			if let Some(account_codes) = self.account_codes(&id,address) {
+			if let Some(account_codes) = self.account_codes(&id, address) {
 				out = Bytes(account_codes);
 			}
 		}
@@ -607,18 +614,18 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 
 				match accounts.get(0) {
 					Some(account) => account.clone(),
-					None => return Box::new(future::result(Err(internal_err("no signer available")))),
+					None => {
+						return Box::new(future::result(Err(internal_err("no signer available"))))
+					}
 				}
-			},
+			}
 		};
 
 		let nonce = match request.nonce {
 			Some(nonce) => nonce,
-			None => {
-				match self.transaction_count(from, None) {
-					Ok(nonce) => nonce,
-					Err(e) => return Box::new(future::result(Err(e))),
-				}
+			None => match self.transaction_count(from, None) {
+				Ok(nonce) => nonce,
+				Err(e) => return Box::new(future::result(Err(e))),
 			},
 		};
 
@@ -648,7 +655,7 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 					Ok(t) => transaction = Some(t),
 					Err(e) => return Box::new(future::result(Err(e))),
 				}
-				break
+				break;
 			}
 		}
 
@@ -656,9 +663,8 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 			Some(transaction) => transaction,
 			None => return Box::new(future::result(Err(internal_err("no signer available")))),
 		};
-		let transaction_hash = H256::from_slice(
-			Keccak256::digest(&rlp::encode(&transaction)).as_slice()
-		);
+		let transaction_hash =
+			H256::from_slice(Keccak256::digest(&rlp::encode(&transaction)).as_slice());
 		let hash = self.client.info().best_hash;
 		Box::new(
 			self.pool
@@ -669,20 +675,23 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 				)
 				.compat()
 				.map(move |_| transaction_hash)
-				.map_err(|err| internal_err(format!("submit transaction to pool failed: {:?}", err)))
+				.map_err(|err| {
+					internal_err(format!("submit transaction to pool failed: {:?}", err))
+				}),
 		)
 	}
 
 	fn send_raw_transaction(&self, bytes: Bytes) -> BoxFuture<H256> {
 		let transaction = match rlp::decode::<ethereum::Transaction>(&bytes.0[..]) {
 			Ok(transaction) => transaction,
-			Err(_) => return Box::new(
-				future::result(Err(internal_err("decode transaction failed")))
-			),
+			Err(_) => {
+				return Box::new(future::result(Err(internal_err(
+					"decode transaction failed",
+				))))
+			}
 		};
-		let transaction_hash = H256::from_slice(
-			Keccak256::digest(&rlp::encode(&transaction)).as_slice()
-		);
+		let transaction_hash =
+			H256::from_slice(Keccak256::digest(&rlp::encode(&transaction)).as_slice());
 		let hash = self.client.info().best_hash;
 		Box::new(
 			self.pool
@@ -693,7 +702,9 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 				)
 				.compat()
 				.map(move |_| transaction_hash)
-				.map_err(|err| internal_err(format!("submit transaction to pool failed: {:?}", err)))
+				.map_err(|err| {
+					internal_err(format!("submit transaction to pool failed: {:?}", err))
+				}),
 		)
 	}
 
@@ -707,7 +718,7 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 			gas,
 			value,
 			data,
-			nonce
+			nonce,
 		} = request;
 
 		let gas_limit = gas.unwrap_or(U256::max_value()); // TODO: set a limit
@@ -715,7 +726,9 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 
 		match to {
 			Some(to) => {
-				let info = self.client.runtime_api()
+				let info = self
+					.client
+					.runtime_api()
 					.call(
 						&BlockId::Hash(hash),
 						from.unwrap_or_default(),
@@ -733,9 +746,11 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 				error_on_execution_failure(&info.exit_reason, &info.value)?;
 
 				Ok(Bytes(info.value))
-			},
+			}
 			None => {
-				let info = self.client.runtime_api()
+				let info = self
+					.client
+					.runtime_api()
 					.create(
 						&BlockId::Hash(hash),
 						from.unwrap_or_default(),
@@ -752,7 +767,7 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 				error_on_execution_failure(&info.exit_reason, &[])?;
 
 				Ok(Bytes(info.value[..].to_vec()))
-			},
+			}
 		}
 	}
 
@@ -766,7 +781,7 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 			gas,
 			value,
 			data,
-			nonce
+			nonce,
 		} = request;
 
 		let gas_limit = gas.unwrap_or(U256::max_value()); // TODO: set a limit
@@ -774,7 +789,9 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 
 		let used_gas = match to {
 			Some(to) => {
-				let info = self.client.runtime_api()
+				let info = self
+					.client
+					.runtime_api()
 					.call(
 						&BlockId::Hash(hash),
 						from.unwrap_or_default(),
@@ -792,9 +809,11 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 				error_on_execution_failure(&info.exit_reason, &info.value)?;
 
 				info.used_gas
-			},
+			}
 			None => {
-				let info = self.client.runtime_api()
+				let info = self
+					.client
+					.runtime_api()
 					.create(
 						&BlockId::Hash(hash),
 						from.unwrap_or_default(),
@@ -811,22 +830,23 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 				error_on_execution_failure(&info.exit_reason, &[])?;
 
 				info.used_gas
-			},
+			}
 		};
 
 		Ok(used_gas)
 	}
 
 	fn transaction_by_hash(&self, hash: H256) -> Result<Option<Transaction>> {
-		let (hash, index) = match frontier_consensus::load_transaction_metadata(
-			self.client.as_ref(),
-			hash,
-		).map_err(|err| internal_err(format!("fetch aux store failed: {:?})", err)))? {
-			Some((hash, index)) => (hash, index as usize),
-			None => return Ok(None),
-		};
+		let (hash, index) =
+			match frontier_consensus::load_transaction_metadata(self.client.as_ref(), hash)
+				.map_err(|err| internal_err(format!("fetch aux store failed: {:?})", err)))?
+			{
+				Some((hash, index)) => (hash, index as usize),
+				None => return Ok(None),
+			};
 
-		let id = match self.load_hash(hash)
+		let id = match self
+			.load_hash(hash)
 			.map_err(|err| internal_err(format!("{:?}", err)))?
 		{
 			Some(hash) => hash,
@@ -842,14 +862,12 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 		let statuses: Option<Vec<TransactionStatus>> = self.current_statuses(&id);
 
 		match (block, statuses) {
-			(Some(block), Some(statuses)) => {
-				Ok(Some(transaction_build(
-					block.transactions[index].clone(),
-					block,
-					statuses[index].clone(),
-				)))
-			},
-			_ => Ok(None)
+			(Some(block), Some(statuses)) => Ok(Some(transaction_build(
+				block.transactions[index].clone(),
+				block,
+				statuses[index].clone(),
+			))),
+			_ => Ok(None),
 		}
 	}
 
@@ -858,7 +876,8 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 		hash: H256,
 		index: Index,
 	) -> Result<Option<Transaction>> {
-		let id = match self.load_hash(hash)
+		let id = match self
+			.load_hash(hash)
 			.map_err(|err| internal_err(format!("{:?}", err)))?
 		{
 			Some(hash) => hash,
@@ -875,14 +894,12 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 		let statuses: Option<Vec<TransactionStatus>> = self.current_statuses(&id);
 
 		match (block, statuses) {
-			(Some(block), Some(statuses)) => {
-				Ok(Some(transaction_build(
-					block.transactions[index].clone(),
-					block,
-					statuses[index].clone(),
-				)))
-			},
-			_ => Ok(None)
+			(Some(block), Some(statuses)) => Ok(Some(transaction_build(
+				block.transactions[index].clone(),
+				block,
+				statuses[index].clone(),
+			))),
+			_ => Ok(None),
 		}
 	}
 
@@ -901,27 +918,26 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 		let statuses: Option<Vec<TransactionStatus>> = self.current_statuses(&id);
 
 		match (block, statuses) {
-			(Some(block), Some(statuses)) => {
-				Ok(Some(transaction_build(
-					block.transactions[index].clone(),
-					block,
-					statuses[index].clone(),
-				)))
-			},
-			_ => Ok(None)
+			(Some(block), Some(statuses)) => Ok(Some(transaction_build(
+				block.transactions[index].clone(),
+				block,
+				statuses[index].clone(),
+			))),
+			_ => Ok(None),
 		}
 	}
 
 	fn transaction_receipt(&self, hash: H256) -> Result<Option<Receipt>> {
-		let (hash, index) = match frontier_consensus::load_transaction_metadata(
-			self.client.as_ref(),
-			hash,
-		).map_err(|err| internal_err(format!("fetch aux store failed : {:?}", err)))? {
-			Some((hash, index)) => (hash, index as usize),
-			None => return Ok(None),
-		};
+		let (hash, index) =
+			match frontier_consensus::load_transaction_metadata(self.client.as_ref(), hash)
+				.map_err(|err| internal_err(format!("fetch aux store failed : {:?}", err)))?
+			{
+				Some((hash, index)) => (hash, index as usize),
+				None => return Ok(None),
+			};
 
-		let id = match self.load_hash(hash)
+		let id = match self
+			.load_hash(hash)
 			.map_err(|err| internal_err(format!("{:?}", err)))?
 		{
 			Some(hash) => hash,
@@ -939,9 +955,8 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 
 		match (block, statuses, receipts) {
 			(Some(block), Some(statuses), Some(receipts)) => {
-				let block_hash = H256::from_slice(
-					Keccak256::digest(&rlp::encode(&block.header)).as_slice()
-				);
+				let block_hash =
+					H256::from_slice(Keccak256::digest(&rlp::encode(&block.header)).as_slice());
 				let receipt = receipts[index].clone();
 				let status = statuses[index].clone();
 				let mut cumulative_receipts = receipts.clone();
@@ -955,9 +970,10 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 					to: status.to,
 					block_number: Some(block.header.number),
 					cumulative_gas_used: {
-						let cumulative_gas: u32 = cumulative_receipts.iter().map(|r| {
-							r.used_gas.as_u32()
-						}).sum();
+						let cumulative_gas: u32 = cumulative_receipts
+							.iter()
+							.map(|r| r.used_gas.as_u32())
+							.sum();
 						U256::from(cumulative_gas)
 					},
 					gas_used: Some(receipt.used_gas),
@@ -966,12 +982,18 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 						let mut pre_receipts_log_index = None;
 						if cumulative_receipts.len() > 0 {
 							cumulative_receipts.truncate(cumulative_receipts.len() - 1);
-							pre_receipts_log_index = Some(cumulative_receipts.iter().map(|r| {
-								r.logs.len() as u32
-							}).sum::<u32>());
+							pre_receipts_log_index = Some(
+								cumulative_receipts
+									.iter()
+									.map(|r| r.logs.len() as u32)
+									.sum::<u32>(),
+							);
 						}
-						receipt.logs.iter().enumerate().map(|(i, log)| {
-							Log {
+						receipt
+							.logs
+							.iter()
+							.enumerate()
+							.map(|(i, log)| Log {
 								address: log.address,
 								topics: log.topics.clone(),
 								data: Bytes(log.data.clone()),
@@ -980,17 +1002,17 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 								transaction_hash: Some(hash),
 								transaction_index: Some(status.transaction_index.into()),
 								log_index: Some(U256::from(
-									(pre_receipts_log_index.unwrap_or(0)) + i as u32
+									(pre_receipts_log_index.unwrap_or(0)) + i as u32,
 								)),
 								transaction_log_index: Some(U256::from(i)),
 								removed: false,
-							}
-						}).collect()
+							})
+							.collect()
 					},
 					status_code: Some(U64::from(receipt.state_root.to_low_u64_be())),
 					logs_bloom: receipt.logs_bloom,
 					state_root: None,
-				}))
+				}));
 			}
 			_ => Ok(None),
 		}
@@ -1014,7 +1036,8 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 		let params = FilteredParams::new(Some(filter.clone()));
 
 		if let Some(hash) = filter.block_hash {
-			let id = match self.load_hash(hash)
+			let id = match self
+				.load_hash(hash)
 				.map_err(|err| internal_err(format!("{:?}", err)))?
 			{
 				Some(hash) => hash,
@@ -1033,19 +1056,17 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 				blocks_and_statuses.push((block, statuses));
 			}
 		} else {
-			let mut current_number = filter.to_block
+			let mut current_number = filter
+				.to_block
 				.and_then(|v| v.to_min_block_num())
 				.map(|s| s.unique_saturated_into())
-				.unwrap_or(
-					self.client.info().best_number
-				);
+				.unwrap_or(self.client.info().best_number);
 
-			let from_number = filter.from_block
+			let from_number = filter
+				.from_block
 				.and_then(|v| v.to_min_block_num())
 				.map(|s| s.unique_saturated_into())
-				.unwrap_or(
-					self.client.info().best_number
-				);
+				.unwrap_or(self.client.info().best_number);
 			while current_number >= from_number {
 				let id = BlockId::Number(current_number);
 
@@ -1057,7 +1078,7 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 				}
 
 				if current_number == Zero::zero() {
-					break
+					break;
 				} else {
 					current_number = current_number.saturating_sub(One::one());
 				}
@@ -1066,9 +1087,8 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 
 		for (block, statuses) in blocks_and_statuses {
 			let mut block_log_index: u32 = 0;
-			let block_hash = H256::from_slice(
-				Keccak256::digest(&rlp::encode(&block.header)).as_slice()
-			);
+			let block_hash =
+				H256::from_slice(Keccak256::digest(&rlp::encode(&block.header)).as_slice());
 			for status in statuses.iter() {
 				let logs = status.logs.clone();
 				let mut transaction_log_index: u32 = 0;
@@ -1087,13 +1107,9 @@ impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H> where
 						removed: false,
 					};
 					let mut add: bool = false;
-					if let (
-						Some(VariadicValue::Single(_)),
-						Some(VariadicValue::Multiple(_))
-					) = (
-						filter.address.clone(),
-						filter.topics.clone(),
-					) {
+					if let (Some(VariadicValue::Single(_)), Some(VariadicValue::Multiple(_))) =
+						(filter.address.clone(), filter.topics.clone())
+					{
 						if !params.filter_address(&log) && params.filter_topics(&log) {
 							add = true;
 						}

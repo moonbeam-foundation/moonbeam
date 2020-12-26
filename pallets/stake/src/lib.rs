@@ -429,7 +429,7 @@ impl<T: Config> Module<T> {
 	pub fn is_validator(round: RoundIndex, acc: &T::AccountId) -> bool {
 		<AtStake<T>>::get(round, acc) != Exposure::default()
 	}
-	pub fn return_nominations(validator: T::AccountId) -> DispatchResult {
+	fn return_nominations(validator: T::AccountId) -> DispatchResult {
 		let state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
 		for Nomination { owner, amount } in state.nominations {
 			// return stake
@@ -442,7 +442,7 @@ impl<T: Config> Module<T> {
 		Ok(())
 	}
 	/// Pay validator for points awarded in the given round
-	pub fn pay_staker(validator: T::AccountId, round: RoundIndex) -> DispatchResult {
+	fn pay_staker(validator: T::AccountId, round: RoundIndex) -> DispatchResult {
 		ensure!(
 			<Round>::get() > round,
 			Error::<T>::CurrentRndRewardsUnClaimable
@@ -471,10 +471,7 @@ impl<T: Config> Module<T> {
 		Ok(())
 	}
 	/// Pay specific account
-	pub fn make_payout(
-		stash: &T::AccountId,
-		amount: BalanceOf<T>,
-	) -> Option<PositiveImbalanceOf<T>> {
+	fn make_payout(stash: &T::AccountId, amount: BalanceOf<T>) -> Option<PositiveImbalanceOf<T>> {
 		let policy = Self::payee(stash);
 		let payout = |dest: Destination<T::AccountId>,
 		              amount: BalanceOf<T>|
@@ -506,18 +503,43 @@ impl<T: Config> Module<T> {
 		}
 	}
 	fn new_session() -> Option<Vec<T::AccountId>> {
-		Some(<Candidates<T>>::iter().map(|(acc, _)| acc).collect())
+		let (min_bond, min_noms, max_noms, max_vals) = (
+			T::MinValidatorBond::get(),
+			T::MinNominatorsPerValidator::get(),
+			T::MaxNominatorsPerValidator::get(),
+			T::MaxValidators::get(),
+		);
+		let mut all_vals = 0u32;
+		let ret: Vec<T::AccountId> = <Candidates<T>>::iter()
+			.filter_map(|(acc, info)| {
+				let num_noms = info.nominations.len();
+				let qualified_validator: bool = info.is_active()
+					&& info.total >= min_bond
+					&& num_noms >= min_noms
+					&& num_noms <= max_noms
+					&& all_vals < max_vals;
+				if qualified_validator {
+					all_vals += 1u32;
+					Some(acc)
+				} else {
+					None
+				}
+			})
+			.collect();
+		if ret.is_empty() {
+			None
+		} else {
+			Some(ret)
+		}
 	}
 	fn start_session(index: RoundIndex) {
-		<Round>::put(index);
+		if index > <Round>::get() {
+			<Round>::put(index);
+		}
 	}
 }
 
-/// In this implementation `new_session(session)` must be called before `end_session(session-1)`
-/// i.e. the new session must be planned before the ending of the previous session.
-///
-/// Once the first new_session is planned, all session must start and then end in order, though
-/// some session can lag in between the newest session planned and the latest session started.
+/// Minimal implementation that ensures Round is strictly monotonically increasing.
 impl<T: Config> pallet_session::SessionManager<T::AccountId> for Module<T> {
 	fn new_session(_new_index: RoundIndex) -> Option<Vec<T::AccountId>> {
 		Self::new_session()
@@ -597,6 +619,11 @@ pub struct StashOf<T>(sp_std::marker::PhantomData<T>);
 
 impl<T: Config> Convert<T::AccountId, Option<T::AccountId>> for StashOf<T> {
 	fn convert(controller: T::AccountId) -> Option<T::AccountId> {
-		Some(controller)
+		// our module only has one account per user so we just return the input if it is a validator or nominator
+		if <Module<T>>::is_nominator(&controller) || <Module<T>>::is_candidate(&controller) {
+			Some(controller)
+		} else {
+			None
+		}
 	}
 }
