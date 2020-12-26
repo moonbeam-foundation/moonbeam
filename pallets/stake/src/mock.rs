@@ -189,6 +189,7 @@ parameter_types! {
 	pub const MinValidatorBond: u128 = 10;
 	pub const MinNominatorBond: u128 = 3;
 	pub const MaxValidatorFee: Perbill = Perbill::from_percent(50);
+	pub const Pts2StakeRewardRatio: Perbill = Perbill::from_percent(50);
 	pub const BlocksPerRound: u32 = 10;
 	pub const HistoryDepth: u32 = 5;
 	pub const Reward: u128 = 10;
@@ -206,6 +207,7 @@ impl Config for Test {
 	type MinValidatorBond = MinValidatorBond;
 	type MinNominatorBond = MinNominatorBond;
 	type MaxValidatorFee = MaxValidatorFee;
+	type Pts2StakeRewardRatio = Pts2StakeRewardRatio;
 	type BlocksPerRound = BlocksPerRound;
 	type HistoryDepth = HistoryDepth;
 	type Reward = Reward;
@@ -220,9 +222,21 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 		.build_storage::<Test>()
 		.unwrap();
 	let genesis = pallet_balances::GenesisConfig::<Test> {
-		balances: vec![(1, 1000), (2, 100), (3, 100), (4, 100), (5, 100), (6, 100)],
+		balances: vec![(1, 1000), (2, 300), (3, 100), (4, 100), (5, 100), (6, 100)],
 	};
 	genesis.assimilate_storage(&mut storage).unwrap();
+	GenesisConfig::<Test> {
+		stakers: vec![
+			(Staker::Validator(1), 500),
+			(Staker::Validator(2), 200),
+			(Staker::Nominator(3, 2), 100),
+			(Staker::Nominator(4, 1), 100),
+			(Staker::Nominator(5, 2), 100),
+			(Staker::Nominator(6, 2), 100),
+		],
+	}
+	.assimilate_storage(&mut storage)
+	.unwrap();
 	let mut ext = sp_io::TestExternalities::from(storage);
 	ext.execute_with(|| Sys::set_block_number(1));
 	ext

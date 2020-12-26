@@ -87,7 +87,7 @@ macro_rules! runtime_standalone {
 				TransactionPayment: pallet_transaction_payment::{Module, Storage},
 				Sudo: pallet_sudo::{Module, Call, Config<T>, Storage, Event<T>},
 				Session: pallet_session::{Module, Call, Storage, Event, Config<T>},
-				Stake: stake::{Module,Storage,Event<T>},
+				Stake: stake::{Module,Storage,Event<T>,Config<T>},
 				EthereumChainId: pallet_ethereum_chain_id::{Module, Storage, Config},
 				Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 				EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},

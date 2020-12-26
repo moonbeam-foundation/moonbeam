@@ -22,9 +22,15 @@ use mock::*;
 fn genesis_config_works() {
 	new_test_ext().execute_with(|| {
 		assert!(Sys::events().is_empty());
-		for x in 2..7 {
-			assert_eq!(Balances::free_balance(&x), 100);
+		// validators
+		assert_eq!(Balances::reserved_balance(&1), 500);
+		assert_eq!(Balances::free_balance(&1), 500);
+		assert_eq!(Balances::reserved_balance(&2), 200);
+		assert_eq!(Balances::free_balance(&2), 100);
+		// nominators
+		for x in 3..7 {
+			assert_eq!(Balances::free_balance(&x), 0);
+			assert_eq!(Balances::reserved_balance(&x), 100);
 		}
-		assert_eq!(Balances::free_balance(&1), 1000);
 	});
 }

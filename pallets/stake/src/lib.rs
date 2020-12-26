@@ -22,6 +22,8 @@
 #![recursion_limit = "256"]
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(feature = "std")]
+use serde::{Serialize,Deserialize};
 use frame_support::{
 	decl_error, decl_event, decl_module, decl_storage, ensure,
 	traits::{
@@ -157,6 +159,21 @@ impl<
 	}
 }
 
+#[derive(Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
+#[cfg_attr(feature = "std", derive(Serialize,Deserialize))]
+pub enum Staker<AccountId> {
+	Validator(AccountId),
+	Nominator(AccountId, AccountId),
+}
+impl<AccountId: Clone> Staker<AccountId> {
+	fn account(self) -> AccountId {
+		match self {
+			Staker::Validator(acc) => acc.clone(),
+			Staker::Nominator(acc, _) => acc.clone(),
+		}
+	}
+}
+
 type RoundIndex = u32;
 type RewardPoint = u32;
 type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as System>::AccountId>>::Balance;
@@ -195,6 +212,8 @@ pub trait Config: System {
 	type BlocksPerRound: Get<Self::BlockNumber>;
 	/// Number of rounds kept in-memory for retroactive rewards/penalties
 	type HistoryDepth: Get<u32>;
+	/// Weighting to determine reward payouts as Perbill * PtsPercent + (1-Perbill)* StakePercent
+	type Pts2StakeRewardRatio: Get<Perbill>;
 	/// Maximum reward (per Round)
 	type Reward: Get<BalanceOf<Self>>;
 	/// The treasury's module id, used for deriving its sovereign account ID.
@@ -253,8 +272,11 @@ decl_storage! {
 		/// Validator candidates with nomination state (includes all current validators by default)
 		pub Candidates get(fn candidates): map
 			hasher(blake2_128_concat) T::AccountId => Option<ValidatorState<T>>;
-		/// Total locked at stake
+		/// Total locked
 		pub TotalLocked get(fn total_locked): BalanceOf<T>;
+		/// Total at stake per round
+		pub TotalStake get(fn total_stake): map
+			hasher(blake2_128_concat) RoundIndex => BalanceOf<T>;
 		/// Stake exposure per round, per account (canonical validator set for round)
 		pub AtStake get(fn at_stake): double_map
 			hasher(blake2_128_concat) RoundIndex,
@@ -269,6 +291,39 @@ decl_storage! {
 		/// Track recipient preferences for receiving rewards
 		pub Payee get(fn payee): map
 			hasher(blake2_128_concat) T::AccountId => RewardPolicy<T>;
+	}
+	add_extra_genesis {
+		config(stakers):
+			Vec<(Staker<T::AccountId>,BalanceOf<T>)>;
+		build(|config: &GenesisConfig<T>| {
+			for &(ref staker, balance) in &config.stakers {
+				assert!(
+					T::Currency::free_balance(&staker.clone().account()) >= balance,
+					"Stash does not have enough balance to bond."
+				);
+				let _ = match staker {
+					Staker::Validator(acc) => {
+						<Module<T>>::join_candidates(
+							T::Origin::from(Some(acc.clone()).into()),
+							balance,
+							Perbill::from_percent(2), // default fee
+							T::MinNominatorBond::get(), // default minimum nominator bond
+							Default::default(),
+						)
+					},
+					Staker::Nominator(acc,val) => {
+						<Module<T>>::nominate(
+							T::Origin::from(Some(acc.clone()).into()),
+							val.clone(),
+							balance,
+							Default::default(),
+						)
+					},
+				};
+			}
+			// starts with Round 1 at Block 0
+			<Module<T>>::qualified_candidates_become_validators(T::BlockNumber::zero(),1u32);
+		});
 	}
 }
 
@@ -338,6 +393,8 @@ decl_module! {
 			ensure!(state.nominations.len() <= T::MaxNominatorsPerValidator::get(), Error::<T>::TooManyNomForVal);
 			T::Currency::reserve(&acc,amount)?;
 			let new_total = state.total;
+			let new_total_locked = <TotalLocked<T>>::get() + amount;
+			<TotalLocked<T>>::put(new_total_locked);
 			<Candidates<T>>::insert(&validator,state);
 			<Payee<T>>::insert(&acc,payee);
 			Self::deposit_event(RawEvent::ValidatorNominated(acc,amount,validator,new_total));
@@ -349,8 +406,9 @@ decl_module! {
 			let validator = <Nominators<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
 			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
 			let amt_unstaked = state.rm_nomination(acc.clone()).ok_or(Error::<T>::CannotRmNomNotFound)?;
-			let new_total = <TotalLocked<T>>::get() - amt_unstaked;
-			<TotalLocked<T>>::put(new_total);
+			let new_total = state.total;
+			let new_total_locked = <TotalLocked<T>>::get() - amt_unstaked;
+			<TotalLocked<T>>::put(new_total_locked);
 			<Candidates<T>>::insert(&validator,state);
 			<Nominators<T>>::remove(&acc);
 			Self::deposit_event(RawEvent::NominationRevoked(acc,amt_unstaked,validator,new_total));
@@ -377,40 +435,8 @@ decl_module! {
 						let _ = Self::pay_staker(val,round_to_delete);
 					});
 				}
-				let mut val_count = 0u32;
-				let mut total_locked = BalanceOf::<T>::zero();
-				let (min_bond,min_noms,max_noms,max_vals) = (
-					T::MinValidatorBond::get(),
-					T::MinNominatorsPerValidator::get(),
-					T::MaxNominatorsPerValidator::get(),
-					T::MaxValidators::get()
-				);
 				// insert exposure for next validator set
-				for (acc,info) in <Candidates<T>>::iter() {
-					if val_count >= max_vals {
-						break;
-					}
-					// next validator set is all unchilled validators above minimum validator capital threshold
-					// -> these validators are by defn exposed to slashing risk for this round because no
-					// transaction that called `exit` was processed before this point in time (tacit consent)
-					let num_noms = info.nominations.len();
-					let total = info.total;
-					let qualified_validator: bool = info.is_active()
-						&& total >= min_bond
-						&& num_noms >= min_noms
-						&& num_noms <= max_noms;
-					if qualified_validator {
-						// convert from ValState to Exposure
-						let exposure: Exposure<T::AccountId,BalanceOf<T>> = info.into();
-						<AtStake<T>>::insert(next,&acc,exposure);
-						val_count += 1u32;
-						total_locked += total;
-						Self::deposit_event(RawEvent::ValidatorChosen(next,acc.clone(),total));
-					}
-				}
-				// start the next round
-				<Round>::put(next);
-				Self::deposit_event(RawEvent::NewRound(n,next,val_count,total_locked));
+				Self::qualified_candidates_become_validators(n,next);
 			}
 		}
 	}
@@ -429,16 +455,57 @@ impl<T: Config> Module<T> {
 	pub fn is_validator(round: RoundIndex, acc: &T::AccountId) -> bool {
 		<AtStake<T>>::get(round, acc) != Exposure::default()
 	}
+	fn qualified_candidates_become_validators(block: T::BlockNumber, round: RoundIndex) {
+		let mut val_count = 0u32;
+		let mut total_at_stake = BalanceOf::<T>::zero();
+		let (min_bond, min_noms, max_noms, max_vals) = (
+			T::MinValidatorBond::get(),
+			T::MinNominatorsPerValidator::get(),
+			T::MaxNominatorsPerValidator::get(),
+			T::MaxValidators::get(),
+		);
+		// insert exposure for next validator set
+		for (acc, info) in <Candidates<T>>::iter() {
+			if val_count >= max_vals {
+				break;
+			}
+			// next validator set is all unchilled validators above minimum validator capital threshold
+			// -> these validators are by defn exposed to slashing risk for this round because no
+			// transaction that called `exit` was processed before this point in time (tacit consent)
+			let num_noms = info.nominations.len();
+			let total = info.total;
+			let qualified_validator: bool = info.is_active()
+				&& total >= min_bond
+				&& num_noms >= min_noms
+				&& num_noms <= max_noms;
+			if qualified_validator {
+				// convert from ValState to Exposure
+				let exposure: Exposure<T::AccountId, BalanceOf<T>> = info.into();
+				<AtStake<T>>::insert(round, &acc, exposure);
+				val_count += 1u32;
+				total_at_stake += total;
+				Self::deposit_event(RawEvent::ValidatorChosen(round, acc.clone(), total));
+			}
+			// start the next round
+			<Round>::put(round);
+			<TotalStake<T>>::insert(round, total_at_stake);
+			Self::deposit_event(RawEvent::NewRound(block, round, val_count, total_at_stake));
+		}
+	}
 	fn return_nominations(validator: T::AccountId) -> DispatchResult {
 		let state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
 		for Nomination { owner, amount } in state.nominations {
 			// return stake
 			let _ = T::Currency::unreserve(&owner, amount);
 		}
-		let new_total = <TotalLocked<T>>::get() - state.total;
-		<TotalLocked<T>>::put(new_total);
+		let new_total_locked = <TotalLocked<T>>::get() - state.total;
+		<TotalLocked<T>>::put(new_total_locked);
 		<Candidates<T>>::remove(&validator);
-		Self::deposit_event(RawEvent::ValidatorLeft(validator, state.total, new_total));
+		Self::deposit_event(RawEvent::ValidatorLeft(
+			validator,
+			state.total,
+			new_total_locked,
+		));
 		Ok(())
 	}
 	/// Pay validator for points awarded in the given round
@@ -450,9 +517,15 @@ impl<T: Config> Module<T> {
 		let points = <ValidatorPts<T>>::get(round, &validator);
 		ensure!(points > Zero::zero(), Error::<T>::NoPointsNoReward);
 		let all_pts = <Points>::get(round);
-		let pct = Perbill::from_rational_approximation(points, all_pts);
-		let all = pct * T::Reward::get();
+		let pts_pct = Perbill::from_rational_approximation(points, all_pts) * 100u32;
+		let all_stake = <TotalStake<T>>::get(round);
 		let val = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
+		let stake_pct = Perbill::from_rational_approximation(val.total, all_stake) * 100u32;
+		let ratio = T::Pts2StakeRewardRatio::get();
+		let ratio_as_u32 = ratio * 100u32;
+		let inv = Perbill::from_percent(100u32 - ratio_as_u32);
+		let pct_for_val = (ratio * pts_pct) + (inv * stake_pct);
+		let all = Perbill::from_percent(pct_for_val) * T::Reward::get();
 		let fee = val.prefs.fee * all;
 		if let Some(imbalance) = Self::make_payout(&validator, fee) {
 			Self::deposit_event(RawEvent::Rewarded(validator.clone(), imbalance.peek()));

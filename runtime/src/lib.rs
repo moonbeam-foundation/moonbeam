@@ -287,6 +287,7 @@ parameter_types! {
 	pub const MinValidatorBond: u128 = 10;
 	pub const MinNominatorBond: u128 = 3;
 	pub const MaxValidatorFee: Perbill = Perbill::from_percent(50);
+	pub const Pts2StakeRewardRatio: Perbill = Perbill::from_percent(50);
 	pub const BlocksPerRound: u32 = 10;
 	pub const HistoryDepth: u32 = 5;
 	pub const Reward: u128 = 10;
@@ -305,6 +306,7 @@ impl stake::Config for Runtime {
 	type MinValidatorBond = MinValidatorBond;
 	type MinNominatorBond = MinNominatorBond;
 	type MaxValidatorFee = MaxValidatorFee;
+	type Pts2StakeRewardRatio = Pts2StakeRewardRatio;
 	type BlocksPerRound = BlocksPerRound;
 	type HistoryDepth = HistoryDepth;
 	type Reward = Reward;
