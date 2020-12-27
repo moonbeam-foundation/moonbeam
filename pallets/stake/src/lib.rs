@@ -30,8 +30,6 @@ use frame_support::{
 };
 use frame_system::{ensure_signed, Config as System};
 use parity_scale_codec::{Decode, Encode};
-#[cfg(feature = "std")]
-use serde::{Deserialize, Serialize};
 use sp_runtime::{
 	traits::{AccountIdConversion, AtLeast32BitUnsigned, Convert, Zero},
 	DispatchResult, ModuleId, Perbill, RuntimeDebug,
@@ -159,21 +157,6 @@ impl<
 	}
 }
 
-#[derive(Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
-#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-pub enum Staker<AccountId> {
-	Validator(AccountId),
-	Nominator(AccountId, AccountId),
-}
-impl<AccountId: Clone> Staker<AccountId> {
-	fn account(self) -> AccountId {
-		match self {
-			Staker::Validator(acc) => acc.clone(),
-			Staker::Nominator(acc, _) => acc.clone(),
-		}
-	}
-}
-
 type RoundIndex = u32;
 type RewardPoint = u32;
 type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as System>::AccountId>>::Balance;
@@ -295,31 +278,28 @@ decl_storage! {
 	}
 	add_extra_genesis {
 		config(stakers):
-			Vec<(Staker<T::AccountId>,BalanceOf<T>)>;
+			Vec<(T::AccountId,Option<T::AccountId>,BalanceOf<T>)>;
 		build(|config: &GenesisConfig<T>| {
-			for &(ref staker, balance) in &config.stakers {
+			for &(ref actor, ref opt_val, balance) in &config.stakers {
 				assert!(
-					T::Currency::free_balance(&staker.clone().account()) >= balance,
+					T::Currency::free_balance(&actor) >= balance,
 					"Stash does not have enough balance to bond."
 				);
-				let _ = match staker {
-					Staker::Validator(acc) => {
-						<Module<T>>::join_candidates(
-							T::Origin::from(Some(acc.clone()).into()),
-							balance,
-							Perbill::from_percent(2), // default fee
-							T::MinNominatorBond::get(), // default minimum nominator bond
-							Default::default(),
-						)
-					},
-					Staker::Nominator(acc,val) => {
-						<Module<T>>::nominate(
-							T::Origin::from(Some(acc.clone()).into()),
-							val.clone(),
-							balance,
-							Default::default(),
-						)
-					},
+				let _ = if let Some(nominated_val) = opt_val {
+					<Module<T>>::nominate(
+						T::Origin::from(Some(actor.clone()).into()),
+						nominated_val.clone(),
+						balance,
+						Default::default(),
+					)
+				} else {
+					<Module<T>>::join_candidates(
+						T::Origin::from(Some(actor.clone()).into()),
+						balance,
+						Perbill::from_percent(2), // default fee
+						T::MinNominatorBond::get(), // default minimum nominator bond
+						Default::default(),
+					)
 				};
 			}
 			// starts with Round 1 at Block 0
@@ -433,7 +413,7 @@ decl_module! {
 					let round_to_delete = next - T::HistoryDepth::get();
 					<ValidatorPts<T>>::iter_prefix(round_to_delete).for_each(|(val,_)| {
 						// pay stakers that haven't claimed payment
-						let _ = Self::pay_staker(val.clone(),round_to_delete);
+						let _ = Self::pay_staker(val,round_to_delete);
 					});
 					// remove exposure for all validators in this round
 					<AtStake<T>>::remove_prefix(round_to_delete);
@@ -489,11 +469,11 @@ impl<T: Config> Module<T> {
 				total_at_stake += total;
 				Self::deposit_event(RawEvent::ValidatorChosen(round, acc.clone(), total));
 			}
-			// start the next round
-			<Round>::put(round);
-			<TotalStake<T>>::insert(round, total_at_stake);
-			Self::deposit_event(RawEvent::NewRound(block, round, val_count, total_at_stake));
 		}
+		// start the next round
+		<Round>::put(round);
+		<TotalStake<T>>::insert(round, total_at_stake);
+		Self::deposit_event(RawEvent::NewRound(block, round, val_count, total_at_stake));
 	}
 	fn return_nominations(validator: T::AccountId) -> DispatchResult {
 		let state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;

@@ -227,12 +227,12 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	genesis.assimilate_storage(&mut storage).unwrap();
 	GenesisConfig::<Test> {
 		stakers: vec![
-			(Staker::Validator(1), 500),
-			(Staker::Validator(2), 200),
-			(Staker::Nominator(3, 2), 100),
-			(Staker::Nominator(4, 1), 100),
-			(Staker::Nominator(5, 2), 100),
-			(Staker::Nominator(6, 2), 100),
+			(1, None, 500),
+			(2, None, 200),
+			(3, Some(1), 100),
+			(4, Some(1), 100),
+			(5, Some(1), 100),
+			(6, Some(1), 100),
 		],
 	}
 	.assimilate_storage(&mut storage)
