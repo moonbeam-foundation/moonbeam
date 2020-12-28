@@ -40,8 +40,7 @@ pub struct Extensions {
 
 impl Extensions {
 	/// Try to get the extension from the given `ChainSpec`.
-	#[allow(clippy::borrowed_box)]
-	pub fn try_get(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Option<&Self> {
+	pub fn try_get(chain_spec: &dyn sc_service::ChainSpec) -> Option<&Self> {
 		sc_chain_spec::get_extension(chain_spec.extensions())
 	}
 }
