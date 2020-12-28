@@ -117,8 +117,10 @@ describeWithMoonbeam("Moonbeam (Precompiles)", `simple-specs.json`, (context) =>
   });
 
   it("ModExp is valid inside a contract", async function () {
+    // See also the ModExp unit tests at
+    // github.com/paritytech/frontier/blob/378221a4/frame/evm/precompile/modexp/src/lib.rs#L101
     this.timeout(15000);
-    const tx = await context.web3.eth.accounts.signTransaction(
+    const {rawTransaction, transactionHash } = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
         data: MODEXP_CONTRACT_BYTECODE,
@@ -128,17 +130,12 @@ describeWithMoonbeam("Moonbeam (Precompiles)", `simple-specs.json`, (context) =>
       },
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
-    await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
+    await customRequest(context.web3, "eth_sendRawTransaction", [rawTransaction]);
     await createAndFinalizeBlock(context.polkadotApi);
 
-    console.log(tx);
-    // There is no transaction receipt!?
-    console.log(await customRequest(context.web3, "eth_getTransactionReceipt", ["0xea00ef1d755e87b9ddc8ab740ec0746dfda32541156af8632627a48e755fe3f9"]));
+    // The contract should deploy successfully and the receipt should show success.
+    let receipt = await customRequest(context.web3, "eth_getTransactionReceipt", [transactionHash]);
+    expect(receipt.result.status).equals("0x1");
 
-    //TODO This is copied from the previous test. Where did these values come from?
-    // expect(await context.web3.eth.getCode("0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a")).equals(
-    //   "0x6080604052600080fdfea26469706673582212202febccafbee65a134279d3397fecfc56a3d21259" +
-    //     "87802a91add0260c7efa94d264736f6c634300060c0033"
-    // );
   });
 });
