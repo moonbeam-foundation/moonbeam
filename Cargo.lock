@@ -1635,7 +1635,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#84621f80f0f63567d0d492a921a6dfd4fdde99ad"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#6e8512c8d7e72ad927901b7a30eda4a4e76ce1d5"
 dependencies = [
  "derive_more 0.99.11",
  "ethereum",
@@ -1658,7 +1658,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#84621f80f0f63567d0d492a921a6dfd4fdde99ad"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#6e8512c8d7e72ad927901b7a30eda4a4e76ce1d5"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -1694,7 +1694,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#84621f80f0f63567d0d492a921a6dfd4fdde99ad"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#6e8512c8d7e72ad927901b7a30eda4a4e76ce1d5"
 dependencies = [
  "ethereum-types",
  "jsonrpc-core 15.1.0",
@@ -1788,7 +1788,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#84621f80f0f63567d0d492a921a6dfd4fdde99ad"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#6e8512c8d7e72ad927901b7a30eda4a4e76ce1d5"
 dependencies = [
  "parity-scale-codec",
  "sp-core",
@@ -1799,7 +1799,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "0.8.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#84621f80f0f63567d0d492a921a6dfd4fdde99ad"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#6e8512c8d7e72ad927901b7a30eda4a4e76ce1d5"
 dependencies = [
  "evm",
  "impl-trait-for-tuples",
@@ -1812,7 +1812,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#84621f80f0f63567d0d492a921a6dfd4fdde99ad"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#6e8512c8d7e72ad927901b7a30eda4a4e76ce1d5"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4502,7 +4502,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#84621f80f0f63567d0d492a921a6dfd4fdde99ad"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#6e8512c8d7e72ad927901b7a30eda4a4e76ce1d5"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4539,7 +4539,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "2.0.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#84621f80f0f63567d0d492a921a6dfd4fdde99ad"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#6e8512c8d7e72ad927901b7a30eda4a4e76ce1d5"
 dependencies = [
  "evm",
  "evm-gasometer",
@@ -4563,7 +4563,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "2.0.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#84621f80f0f63567d0d492a921a6dfd4fdde99ad"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#6e8512c8d7e72ad927901b7a30eda4a4e76ce1d5"
 dependencies = [
  "evm",
  "fp-evm",
@@ -4577,7 +4577,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "2.0.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#84621f80f0f63567d0d492a921a6dfd4fdde99ad"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#6e8512c8d7e72ad927901b7a30eda4a4e76ce1d5"
 dependencies = [
  "evm",
  "fp-evm",
@@ -4589,7 +4589,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "2.0.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#84621f80f0f63567d0d492a921a6dfd4fdde99ad"
+source = "git+https://github.com/purestake/frontier?branch=v0.4-hotfixes#6e8512c8d7e72ad927901b7a30eda4a4e76ce1d5"
 dependencies = [
  "evm",
  "fp-evm",
