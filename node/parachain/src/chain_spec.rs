@@ -47,8 +47,7 @@ impl Extensions {
 }
 
 pub fn get_chain_spec(para_id: ParaId) -> Result<ChainSpec, String> {
-	#[allow(clippy::or_fun_call)]
-	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
+	let wasm_binary = WASM_BINARY.ok_or_else(|| "Wasm binary not available".to_string())?;
 	Ok(ChainSpec::from_genesis(
 		"Moonbase Parachain Local Testnet",
 		"local_testnet",
