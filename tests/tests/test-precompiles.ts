@@ -120,7 +120,7 @@ describeWithMoonbeam("Moonbeam (Precompiles)", `simple-specs.json`, (context) =>
     // See also the ModExp unit tests at
     // github.com/paritytech/frontier/blob/378221a4/frame/evm/precompile/modexp/src/lib.rs#L101
     this.timeout(15000);
-    const {rawTransaction, transactionHash } = await context.web3.eth.accounts.signTransaction(
+    const { rawTransaction, transactionHash } = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
         data: MODEXP_CONTRACT_BYTECODE,
@@ -136,6 +136,5 @@ describeWithMoonbeam("Moonbeam (Precompiles)", `simple-specs.json`, (context) =>
     // The contract should deploy successfully and the receipt should show success.
     let receipt = await customRequest(context.web3, "eth_getTransactionReceipt", [transactionHash]);
     expect(receipt.result.status).equals("0x1");
-
   });
 });
