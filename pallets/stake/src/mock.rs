@@ -189,6 +189,8 @@ parameter_types! {
 	pub const MinValidatorBond: u128 = 10;
 	pub const MinNominatorBond: u128 = 3;
 	pub const MaxValidatorFee: Perbill = Perbill::from_percent(50);
+	pub const MaxStrikes: u8 = 3;
+	pub const SlashPct: Perbill = Perbill::from_percent(50);
 	pub const Pts2StakeRewardRatio: Perbill = Perbill::from_percent(50);
 	pub const BlocksPerRound: u32 = 10;
 	pub const HistoryDepth: u32 = 5;
@@ -207,6 +209,9 @@ impl Config for Test {
 	type MinValidatorBond = MinValidatorBond;
 	type MinNominatorBond = MinNominatorBond;
 	type MaxValidatorFee = MaxValidatorFee;
+	type SlashOrigin = frame_system::EnsureRoot<u64>;
+	type MaxStrikes = MaxStrikes;
+	type SlashPct = SlashPct;
 	type Pts2StakeRewardRatio = Pts2StakeRewardRatio;
 	type BlocksPerRound = BlocksPerRound;
 	type HistoryDepth = HistoryDepth;
@@ -227,12 +232,14 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	genesis.assimilate_storage(&mut storage).unwrap();
 	GenesisConfig::<Test> {
 		stakers: vec![
+			// validators
 			(1, None, 500),
 			(2, None, 200),
+			// nominators
 			(3, Some(1), 100),
 			(4, Some(1), 100),
-			(5, Some(1), 100),
-			(6, Some(1), 100),
+			(5, Some(2), 100),
+			(6, Some(2), 100),
 		],
 	}
 	.assimilate_storage(&mut storage)

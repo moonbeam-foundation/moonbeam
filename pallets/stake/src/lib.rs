@@ -25,7 +25,8 @@
 use frame_support::{
 	decl_error, decl_event, decl_module, decl_storage, ensure,
 	traits::{
-		Currency, EstimateNextNewSession, Get, Imbalance, LockableCurrency, ReservableCurrency,
+		Currency, EnsureOrigin, EstimateNextNewSession, ExistenceRequirement, Get, Imbalance,
+		LockableCurrency, ReservableCurrency,
 	},
 };
 use frame_system::{ensure_signed, Config as System};
@@ -41,6 +42,23 @@ pub use substrate::*;
 pub(crate) mod mock;
 #[cfg(test)]
 mod tests;
+
+#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
+/// Slash status of the validator
+pub enum Slash {
+	/// Clean record
+	Innocent,
+	/// Should be removed from the validator set ASAP and slashed
+	Remove,
+	/// Has strikes and will be removed, slashed if strikes exceeds MaxStrikes
+	Strike(u8),
+}
+
+impl Default for Slash {
+	fn default() -> Slash {
+		Slash::Innocent
+	}
+}
 
 #[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
 /// Destination set by payee for receiving rewards
@@ -99,13 +117,14 @@ pub enum ValStatus {
 	Chill,
 }
 
-#[derive(PartialEq, Eq, Encode, Decode, RuntimeDebug)]
+#[derive(Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
 pub struct ValState<AccountId, Balance> {
 	pub validator: AccountId,
 	pub prefs: ValPrefs<Balance>,
 	pub nominations: Vec<Nomination<AccountId, Balance>>,
 	pub total: Balance,
 	pub status: ValStatus,
+	pub slash: Slash,
 }
 
 impl<
@@ -120,6 +139,21 @@ impl<
 			nominations: vec![Nomination::new(validator, bond)],
 			total: bond,
 			status: ValStatus::Active,
+			slash: Slash::default(), // default innocent
+		}
+	}
+	pub fn is_active(&self) -> bool {
+		self.status == ValStatus::Active
+	}
+	pub fn set_guilty(&mut self) {
+		self.slash = Slash::Remove;
+		self.chill();
+	}
+	pub fn inc_strike(&mut self) {
+		if self.slash == Slash::Innocent {
+			self.slash = Slash::Strike(1u8);
+		} else if let Slash::Strike(c) = self.slash {
+			self.slash = Slash::Strike(c + 1u8);
 		}
 	}
 	pub fn chill(&mut self) {
@@ -127,9 +161,6 @@ impl<
 	}
 	pub fn activate(&mut self) {
 		self.status = ValStatus::Active;
-	}
-	pub fn is_active(&self) -> bool {
-		self.status == ValStatus::Active
 	}
 	/// Adds new nomination (assumes nomination does not already exist for nominator A)
 	pub fn add_nomination(&mut self, nominator: A, amount: B) {
@@ -191,7 +222,13 @@ pub trait Config: System {
 	type MinNominatorBond: Get<BalanceOf<Self>>;
 	/// Maximum fee a validator can charge (taken off the top of revenue, before stake-weighted payouts)
 	type MaxValidatorFee: Get<Perbill>;
-	/// Timer for triggering periodic tasks in `on_finalize`
+	/// Origin from which all slashes come from
+	type SlashOrigin: EnsureOrigin<Self::Origin>;
+	/// Maximum slash strike count a validator can incur before they are removed
+	type MaxStrikes: Get<u8>;
+	/// Percentage of collateral slashed
+	type SlashPct: Get<Perbill>;
+	/// Length of each round in blocks
 	type BlocksPerRound: Get<Self::BlockNumber>;
 	/// Number of rounds kept in-memory for retroactive rewards/penalties
 	type HistoryDepth: Get<u32>;
@@ -222,6 +259,8 @@ decl_event!(
 		ValidatorNominated(AccountId, Balance, AccountId, Balance),
 		NominationRevoked(AccountId, Balance, AccountId, Balance),
 		Rewarded(AccountId, Balance),
+		// Validator, Nominator, Balance Slashed
+		Slashed(AccountId, AccountId, Balance),
 		NewRound(BlockNumber, RoundIndex, u32, Balance),
 	}
 );
@@ -243,6 +282,7 @@ decl_error! {
 		AlreadyChill,
 		NoPointsNoReward,
 		CurrentRndRewardsUnClaimable,
+		CannotRevokeIfValidatorAwaitingSlash,
 	}
 }
 
@@ -386,6 +426,7 @@ decl_module! {
 			let acc = ensure_signed(origin)?;
 			let validator = <Nominators<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
 			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
+			ensure!(state.slash == Slash::Innocent, Error::<T>::CannotRevokeIfValidatorAwaitingSlash);
 			let amt_unstaked = state.rm_nomination(acc.clone()).ok_or(Error::<T>::CannotRmNomNotFound)?;
 			let new_total = state.total;
 			let new_total_locked = <TotalLocked<T>>::get() - amt_unstaked;
@@ -403,6 +444,24 @@ decl_module! {
 		) -> DispatchResult {
 			ensure_signed(origin)?;
 			Self::pay_staker(validator,round)
+		}
+		#[weight = 0]
+		fn report_offline(
+			origin,
+			validator: T::AccountId,
+			round: RoundIndex
+		) -> DispatchResult {
+			T::SlashOrigin::ensure_origin(origin)?;
+			Self::slash_staker(validator,round,Slash::Strike(1u8))
+		}
+		#[weight = 0]
+		fn report_equivocation(
+			origin,
+			validator: T::AccountId,
+			round: RoundIndex
+		) -> DispatchResult {
+			T::SlashOrigin::ensure_origin(origin)?;
+			Self::slash_staker(validator,round,Slash::Remove)
 		}
 		fn on_finalize(n: T::BlockNumber) {
 			if (n % T::BlocksPerRound::get()).is_zero() {
@@ -447,14 +506,50 @@ impl<T: Config> Module<T> {
 			T::MaxNominatorsPerValidator::get(),
 			T::MaxValidators::get(),
 		);
-		// insert exposure for next validator set
-		for (acc, info) in <Candidates<T>>::iter() {
-			if val_count >= max_vals {
-				break;
+		// apply slash and remove from validator set
+		let apply_slash = |acc: T::AccountId, info: ValidatorState<T>| {
+			let slash_pct = T::SlashPct::get();
+			let treasury = Self::treasury();
+			for Nomination { owner, amount } in info.nominations {
+				let slashed = slash_pct * amount;
+				T::Currency::unreserve(&owner, amount);
+				if let Ok(_) = T::Currency::transfer(
+					&owner,
+					&treasury,
+					slashed,
+					ExistenceRequirement::KeepAlive,
+				) {
+					Self::deposit_event(RawEvent::Slashed(acc.clone(), owner.clone(), slashed));
+				}
+				<Nominators<T>>::remove(&owner);
 			}
-			// next validator set is all unchilled validators above minimum validator capital threshold
-			// -> these validators are by defn exposed to slashing risk for this round because no
-			// transaction that called `exit` was processed before this point in time (tacit consent)
+			<Candidates<T>>::remove(&acc);
+			// make sure to disable validator till the end of this session
+			let _ = T::SessionInterface::disable_validator(&acc);
+		};
+		// apply queued slashes and choose next validator set
+		for (acc, info) in <Candidates<T>>::iter() {
+			// First, apply all slashes
+			match info.slash {
+				Slash::Remove => {
+					// apply slash and remove from validator set
+					apply_slash(acc.clone(), info.clone());
+				}
+				Slash::Strike(count) => {
+					// TODO: per-strike fee?
+					if count > T::MaxStrikes::get() {
+						// apply slash and remove from validator set
+						apply_slash(acc.clone(), info.clone());
+					}
+				}
+				_ => (),
+			}
+			if val_count >= max_vals {
+				continue; // skip validator selection if so
+			}
+			// Next, choose the next validator set
+			// it is all unchilled validators above minimum validator capital threshold
+			// -> these validators are exposed to slashing risk for next round
 			let num_noms = info.nominations.len();
 			let total = info.total;
 			let qualified_validator: bool = info.is_active()
@@ -477,6 +572,10 @@ impl<T: Config> Module<T> {
 	}
 	fn return_nominations(validator: T::AccountId) -> DispatchResult {
 		let state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
+		ensure!(
+			state.slash == Slash::Innocent,
+			Error::<T>::CannotRevokeIfValidatorAwaitingSlash
+		);
 		for Nomination { owner, amount } in state.nominations {
 			// return stake
 			let _ = T::Currency::unreserve(&owner, amount);
@@ -490,6 +589,25 @@ impl<T: Config> Module<T> {
 			new_total_locked,
 		));
 		Ok(())
+	}
+	fn slash_staker(validator: T::AccountId, round: RoundIndex, ty: Slash) -> DispatchResult {
+		let mut val = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
+		let at_stake = <AtStake<T>>::get(round, &validator);
+		ensure!(at_stake != Exposure::default(), Error::<T>::ValidatorDNE);
+		match ty {
+			Slash::Remove => {
+				val.set_guilty(); // chills by default to keep staker out of future validator sets
+				<Candidates<T>>::insert(&validator, val);
+				Ok(())
+			}
+			Slash::Strike(_) => {
+				val.inc_strike();
+				// TODO: apply per strike fee?
+				<Candidates<T>>::insert(&validator, val);
+				Ok(())
+			}
+			_ => Ok(()),
+		}
 	}
 	/// Pay validator for points awarded in the given round
 	fn pay_staker(validator: T::AccountId, round: RoundIndex) -> DispatchResult {
@@ -597,7 +715,6 @@ impl<T: Config> Module<T> {
 	}
 }
 
-/// Minimal implementation that ensures Round is strictly monotonically increasing.
 impl<T: Config> pallet_session::SessionManager<T::AccountId> for Module<T> {
 	fn new_session(_new_index: RoundIndex) -> Option<Vec<T::AccountId>> {
 		Self::new_session()

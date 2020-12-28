@@ -60,7 +60,7 @@ use sp_version::RuntimeVersion;
 
 pub use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{FindAuthor, Get, Randomness},
+	traits::{EnsureOrigin, FindAuthor, Get, Randomness},
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 	ConsensusEngineId, StorageValue,
 };
@@ -287,6 +287,8 @@ parameter_types! {
 	pub const MinValidatorBond: u128 = 10;
 	pub const MinNominatorBond: u128 = 3;
 	pub const MaxValidatorFee: Perbill = Perbill::from_percent(50);
+	pub const MaxStrikes: u8 = 3;
+	pub const SlashPct: Perbill = Perbill::from_percent(50);
 	pub const Pts2StakeRewardRatio: Perbill = Perbill::from_percent(50);
 	pub const BlocksPerRound: u32 = 10;
 	pub const HistoryDepth: u32 = 5;
@@ -306,6 +308,9 @@ impl stake::Config for Runtime {
 	type MinValidatorBond = MinValidatorBond;
 	type MinNominatorBond = MinNominatorBond;
 	type MaxValidatorFee = MaxValidatorFee;
+	type SlashOrigin = EnsureRoot<AccountId>;
+	type MaxStrikes = MaxStrikes;
+	type SlashPct = SlashPct;
 	type Pts2StakeRewardRatio = Pts2StakeRewardRatio;
 	type BlocksPerRound = BlocksPerRound;
 	type HistoryDepth = HistoryDepth;
