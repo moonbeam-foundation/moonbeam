@@ -17,7 +17,9 @@
 //! Test utilities
 use crate::*;
 use frame_support::{
-	impl_outer_event, impl_outer_origin, parameter_types, traits::FindAuthor, weights::Weight,
+	impl_outer_event, impl_outer_origin, parameter_types,
+	traits::{FindAuthor, OnFinalize, OnInitialize},
+	weights::Weight,
 };
 use sp_core::H256;
 use sp_io;
@@ -91,7 +93,7 @@ mod stake {
 }
 
 impl_outer_event! {
-	pub enum Event for Test {
+	pub enum MetaEvent for Test {
 		frame_system<T>,
 		pallet_balances<T>,
 		pallet_session,
@@ -119,7 +121,7 @@ impl System for Test {
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = Header;
-	type Event = Event;
+	type Event = MetaEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = ();
@@ -140,7 +142,7 @@ parameter_types! {
 impl pallet_balances::Config for Test {
 	type MaxLocks = ();
 	type Balance = Balance;
-	type Event = Event;
+	type Event = MetaEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = frame_system::Module<Test>;
@@ -157,7 +159,7 @@ sp_runtime::impl_opaque_keys! {
 	}
 }
 impl pallet_session::Config for Test {
-	type Event = Event;
+	type Event = MetaEvent;
 	type ValidatorId = AccountId;
 	type ValidatorIdOf = crate::StashOf<Test>;
 	type ShouldEndSession = pallet_session::PeriodicSessions<Period, Offset>;
@@ -186,19 +188,18 @@ parameter_types! {
 	pub const MaxNominatorsPerValidator: usize = 10;
 	pub const MinNominatorsPerValidator: usize = 0;
 	pub const MinCandidateBond: u128 = 10;
-	pub const MinValidatorBond: u128 = 10;
-	pub const MinNominatorBond: u128 = 3;
+	pub const MinValidatorBond: u128 = 20;
+	pub const MinNominatorBond: u128 = 5;
 	pub const MaxValidatorFee: Perbill = Perbill::from_percent(50);
 	pub const MaxStrikes: u8 = 3;
 	pub const SlashPct: Perbill = Perbill::from_percent(50);
 	pub const Pts2StakeRewardRatio: Perbill = Perbill::from_percent(50);
 	pub const BlocksPerRound: u32 = 10;
-	pub const HistoryDepth: u32 = 5;
 	pub const Reward: u128 = 10;
 	pub const Treasury: ModuleId = ModuleId(*b"py/trsry");
 }
 impl Config for Test {
-	type Event = Event;
+	type Event = MetaEvent;
 	type Currency = Balances;
 	type SessionInterface = Self;
 	type NextNewSession = pallet_session::Module<Test>;
@@ -214,20 +215,29 @@ impl Config for Test {
 	type SlashPct = SlashPct;
 	type Pts2StakeRewardRatio = Pts2StakeRewardRatio;
 	type BlocksPerRound = BlocksPerRound;
-	type HistoryDepth = HistoryDepth;
 	type Reward = Reward;
 	type Treasury = Treasury;
 }
 pub type Sys = frame_system::Module<Test>;
 pub type Balances = pallet_balances::Module<Test>;
-type Stake = Module<Test>;
+pub type Stake = Module<Test>;
 
-pub fn new_test_ext() -> sp_io::TestExternalities {
+pub fn genesis() -> sp_io::TestExternalities {
 	let mut storage = frame_system::GenesisConfig::default()
 		.build_storage::<Test>()
 		.unwrap();
 	let genesis = pallet_balances::GenesisConfig::<Test> {
-		balances: vec![(1, 1000), (2, 300), (3, 100), (4, 100), (5, 100), (6, 100)],
+		balances: vec![
+			(1, 1000),
+			(2, 300),
+			(3, 100),
+			(4, 100),
+			(5, 100),
+			(6, 100),
+			(7, 100),
+			(8, 9),
+			(9, 4),
+		],
 	};
 	genesis.assimilate_storage(&mut storage).unwrap();
 	GenesisConfig::<Test> {
@@ -247,4 +257,20 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut ext = sp_io::TestExternalities::from(storage);
 	ext.execute_with(|| Sys::set_block_number(1));
 	ext
+}
+
+pub fn roll_to(n: u64) {
+	while Sys::block_number() < n {
+		Stake::on_finalize(Sys::block_number());
+		Balances::on_finalize(Sys::block_number());
+		Sys::on_finalize(Sys::block_number());
+		Sys::set_block_number(Sys::block_number() + 1);
+		Sys::on_initialize(Sys::block_number());
+		Balances::on_initialize(Sys::block_number());
+		Stake::on_initialize(Sys::block_number());
+	}
+}
+
+pub fn last_event() -> MetaEvent {
+	Sys::events().pop().expect("Event expected").event
 }

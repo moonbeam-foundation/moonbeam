@@ -291,7 +291,6 @@ parameter_types! {
 	pub const SlashPct: Perbill = Perbill::from_percent(50);
 	pub const Pts2StakeRewardRatio: Perbill = Perbill::from_percent(50);
 	pub const BlocksPerRound: u32 = 10;
-	pub const HistoryDepth: u32 = 5;
 	pub const Reward: u128 = 10;
 	pub const Treasury: ModuleId = ModuleId(*b"py/trsry");
 }
@@ -313,7 +312,6 @@ impl stake::Config for Runtime {
 	type SlashPct = SlashPct;
 	type Pts2StakeRewardRatio = Pts2StakeRewardRatio;
 	type BlocksPerRound = BlocksPerRound;
-	type HistoryDepth = HistoryDepth;
 	type Reward = Reward;
 	type Treasury = Treasury;
 }

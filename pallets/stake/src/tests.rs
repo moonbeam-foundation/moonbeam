@@ -16,21 +16,118 @@
 
 //! Unit testing
 use crate::*;
+use frame_support::{assert_noop, assert_ok};
 use mock::*;
+use sp_runtime::DispatchError;
 
 #[test]
 fn genesis_config_works() {
-	new_test_ext().execute_with(|| {
+	genesis().execute_with(|| {
 		assert!(Sys::events().is_empty());
 		// validators
 		assert_eq!(Balances::reserved_balance(&1), 500);
 		assert_eq!(Balances::free_balance(&1), 500);
+		assert!(Stake::is_candidate(&1));
 		assert_eq!(Balances::reserved_balance(&2), 200);
 		assert_eq!(Balances::free_balance(&2), 100);
+		assert!(Stake::is_candidate(&2));
 		// nominators
 		for x in 3..7 {
+			assert!(Stake::is_nominator(&x));
 			assert_eq!(Balances::free_balance(&x), 0);
 			assert_eq!(Balances::reserved_balance(&x), 100);
 		}
+		// uninvolved
+		for x in 7..10 {
+			assert!(!Stake::is_nominator(&x));
+		}
+		assert_eq!(Balances::free_balance(&7), 100);
+		assert_eq!(Balances::reserved_balance(&7), 0);
+		assert_eq!(Balances::free_balance(&8), 9);
+		assert_eq!(Balances::reserved_balance(&8), 0);
+		assert_eq!(Balances::free_balance(&9), 4);
+		assert_eq!(Balances::reserved_balance(&9), 0);
+	});
+}
+
+#[test]
+fn join_candidates_works() {
+	genesis().execute_with(|| {
+		assert_noop!(
+			Stake::join_candidates(
+				Origin::signed(1),
+				11u128,
+				Perbill::from_percent(2),
+				5u128,
+				RewardPolicy::<Test>::default()
+			),
+			Error::<Test>::ValidatorExists
+		);
+		assert_noop!(
+			Stake::join_candidates(
+				Origin::signed(3),
+				11u128,
+				Perbill::from_percent(2),
+				5u128,
+				RewardPolicy::<Test>::default()
+			),
+			Error::<Test>::NominatorExists
+		);
+		assert_noop!(
+			Stake::join_candidates(
+				Origin::signed(7),
+				9u128,
+				Perbill::from_percent(2),
+				5u128,
+				RewardPolicy::<Test>::default()
+			),
+			Error::<Test>::CandidateBondBelowMin
+		);
+		assert_noop!(
+			Stake::join_candidates(
+				Origin::signed(7),
+				10u128,
+				Perbill::from_percent(2),
+				4u128,
+				RewardPolicy::<Test>::default()
+			),
+			Error::<Test>::NominatorBondBelowMin
+		);
+		assert_noop!(
+			Stake::join_candidates(
+				Origin::signed(8),
+				10u128,
+				Perbill::from_percent(2),
+				5u128,
+				RewardPolicy::<Test>::default()
+			),
+			DispatchError::Module {
+				index: 0,
+				error: 3,
+				message: Some("InsufficientBalance")
+			}
+		);
+		assert_noop!(
+			Stake::join_candidates(
+				Origin::signed(7),
+				10u128,
+				Perbill::from_percent(51),
+				5u128,
+				RewardPolicy::<Test>::default()
+			),
+			Error::<Test>::FeeExceedsMaxValidatorFee
+		);
+		assert!(Sys::events().is_empty());
+		assert_ok!(Stake::join_candidates(
+			Origin::signed(7),
+			10u128,
+			Perbill::from_percent(3),
+			5u128,
+			RewardPolicy::<Test>::default()
+		));
+		assert_eq!(
+			last_event(),
+			MetaEvent::stake(RawEvent::CandidateJoined(7, 10u128))
+		);
 	});
 }

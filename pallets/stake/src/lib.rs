@@ -14,10 +14,57 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! # Minimal Staking Pallet
+//! # Stake Pallet
 //!
-//! Minimal viable staking pallet, drop-in replacement for pallet-staking for substrate chains. Each
+//! Minimal viable stake pallet, drop-in replacement for pallet-staking for substrate chains. Each
 //! nominator can choose at most one validator to share profit and slashing risk.
+//!
+//! **Goals**:
+//! * enable nominators to share profit and slashing risk with validators
+//! * choose validator set for each session from validator candidates
+//!
+//! These goals are 3 distinct requirements:
+//! 1. choosing canonical validator set
+//! 2. paying rewards
+//! 3. enforcing punishment
+//!
+//! ### Rules
+//!
+//! **Nominator Rules**
+//! * nominators may bond in support of validator candidates (`nominate`)
+//!     * if a candidate becomes a validator, its nominators share profit and slashing risk
+//! * to become a nominator, an account must not be a validator candidate nor an existing nominator
+//!
+//! **Validator Rules**
+//! * all validators are/were validator candidates at some time
+//! * validators are selected at the beginning of each Round from the viable candidates and are only
+//! defined as being validators in the context of the specific `Round`
+//! * to become a validator candidate, an account must not be a validator candidate nor an existing
+//! nominator
+//!
+//! ### Choosing Canonical Validator Set
+//!
+//! Implement `SessionManager`, this is the only API to query new validator sets and allow the
+//! validator set to be rewarded once the era ends.
+//!
+//! There is a new round every `BlocksPerRound` and, upon every round change, a new validator set
+//! is selected from the candidates stored in `Candidates: T::AccountId => Option<ValState>`.
+//! Validator selection and insertion is executed in `qualified_candidates_become_validators`.
+//!
+//! ### Paying Rewards
+//! * every validator takes a fee off the top and there is a maximum fee for the whole module
+//! * preventing double-withdrawals
+//! * weighting relative points vs relative stake for reward distributions
+//!
+//! ### Enforcing Punishment (Slashing)
+//!
+//! Bad behavior:
+//! 1. not producing blocks (offline without calling `go_offline`)
+//! 2. equivocation (signing two different blocks at the same height)
+//!
+//! Could charge per-round fee if validator does not produce blocks and/or goes offline (1)
+//!
+//! (2) is a big deal and should result in a large penalty, possibly forced immediate removal from the validator set
 
 #![recursion_limit = "256"]
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -42,23 +89,6 @@ pub use substrate::*;
 pub(crate) mod mock;
 #[cfg(test)]
 mod tests;
-
-#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
-/// Slash status of the validator
-pub enum Slash {
-	/// Clean record
-	Innocent,
-	/// Should be removed from the validator set ASAP and slashed
-	Remove,
-	/// Has strikes and will be removed, slashed if strikes exceeds MaxStrikes
-	Strike(u8),
-}
-
-impl Default for Slash {
-	fn default() -> Slash {
-		Slash::Innocent
-	}
-}
 
 #[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
 /// Destination set by payee for receiving rewards
@@ -112,9 +142,32 @@ impl<A, B> Nomination<A, B> {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
+/// Slash status of the validator
+pub enum Slash {
+	/// Clean record
+	Innocent,
+	/// Should be removed from the validator set ASAP and slashed
+	Remove,
+	/// Has strikes and will be removed, slashed if strikes exceeds MaxStrikes
+	Strike(u8),
+}
+
+impl Default for Slash {
+	fn default() -> Slash {
+		Slash::Innocent
+	}
+}
+
+#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
 pub enum ValStatus {
 	Active,
-	Chill,
+	Idle,
+}
+
+impl Default for ValStatus {
+	fn default() -> ValStatus {
+		ValStatus::Active
+	}
 }
 
 #[derive(Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
@@ -123,7 +176,7 @@ pub struct ValState<AccountId, Balance> {
 	pub prefs: ValPrefs<Balance>,
 	pub nominations: Vec<Nomination<AccountId, Balance>>,
 	pub total: Balance,
-	pub status: ValStatus,
+	pub state: ValStatus,
 	pub slash: Slash,
 }
 
@@ -138,16 +191,16 @@ impl<
 			prefs,
 			nominations: vec![Nomination::new(validator, bond)],
 			total: bond,
-			status: ValStatus::Active,
-			slash: Slash::default(), // default innocent
+			state: ValStatus::default(), // default active
+			slash: Slash::default(),     // default innocent
 		}
 	}
 	pub fn is_active(&self) -> bool {
-		self.status == ValStatus::Active
+		self.state == ValStatus::Active
 	}
 	pub fn set_guilty(&mut self) {
 		self.slash = Slash::Remove;
-		self.chill();
+		self.go_offline();
 	}
 	pub fn inc_strike(&mut self) {
 		if self.slash == Slash::Innocent {
@@ -156,11 +209,11 @@ impl<
 			self.slash = Slash::Strike(c + 1u8);
 		}
 	}
-	pub fn chill(&mut self) {
-		self.status = ValStatus::Chill;
+	pub fn go_offline(&mut self) {
+		self.state = ValStatus::Idle;
 	}
 	pub fn activate(&mut self) {
-		self.status = ValStatus::Active;
+		self.state = ValStatus::Active;
 	}
 	/// Adds new nomination (assumes nomination does not already exist for nominator A)
 	pub fn add_nomination(&mut self, nominator: A, amount: B) {
@@ -230,8 +283,6 @@ pub trait Config: System {
 	type SlashPct: Get<Perbill>;
 	/// Length of each round in blocks
 	type BlocksPerRound: Get<Self::BlockNumber>;
-	/// Number of rounds kept in-memory for retroactive rewards/penalties
-	type HistoryDepth: Get<u32>;
 	/// Weighting to determine reward payouts as Perbill * PtsPercent + (1-Perbill)* StakePercent
 	type Pts2StakeRewardRatio: Get<Perbill>;
 	/// Maximum reward (per Round)
@@ -249,7 +300,7 @@ decl_event!(
 	{
 		// Account, Amount Locked
 		CandidateJoined(AccountId, Balance),
-		ValidatorChilled(RoundIndex, AccountId),
+		ValidatorOffline(RoundIndex, AccountId),
 		ValidatorActivated(RoundIndex, AccountId),
 		// Round, Validator Account, Total Exposed Amount (includes all nominations)
 		ValidatorChosen(RoundIndex, AccountId, Balance),
@@ -279,7 +330,7 @@ decl_error! {
 		CannotRmNomNotFound,
 		TooManyNomForVal,
 		AlreadyActive,
-		AlreadyChill,
+		AlreadyOffline,
 		NoPointsNoReward,
 		CurrentRndRewardsUnClaimable,
 		CannotRevokeIfValidatorAwaitingSlash,
@@ -375,13 +426,13 @@ decl_module! {
 			Ok(())
 		}
 		#[weight = 0]
-		fn chill(origin) -> DispatchResult {
+		fn go_offline(origin) -> DispatchResult {
 			let acc = ensure_signed(origin)?;
 			let mut validator = <Candidates<T>>::get(&acc).ok_or(Error::<T>::CandidateDNE)?;
-			ensure!(validator.is_active(),Error::<T>::AlreadyChill);
-			validator.chill();
+			ensure!(validator.is_active(),Error::<T>::AlreadyOffline);
+			validator.go_offline();
 			<Candidates<T>>::insert(&acc,validator);
-			Self::deposit_event(RawEvent::ValidatorChilled(<Round>::get(),acc));
+			Self::deposit_event(RawEvent::ValidatorOffline(<Round>::get(),acc));
 			Ok(())
 		}
 		#[weight = 0]
@@ -416,6 +467,7 @@ decl_module! {
 			let new_total = state.total;
 			let new_total_locked = <TotalLocked<T>>::get() + amount;
 			<TotalLocked<T>>::put(new_total_locked);
+			<Nominators<T>>::insert(&acc,validator.clone());
 			<Candidates<T>>::insert(&validator,state);
 			<Payee<T>>::insert(&acc,payee);
 			Self::deposit_event(RawEvent::ValidatorNominated(acc,amount,validator,new_total));
@@ -467,16 +519,6 @@ decl_module! {
 			if (n % T::BlocksPerRound::get()).is_zero() {
 				let last = <Round>::get();
 				let next = last + 1;
-				// pay remaining validators in next-HistoryDepth and remove exposure for all validators
-				if next > T::HistoryDepth::get() {
-					let round_to_delete = next - T::HistoryDepth::get();
-					<ValidatorPts<T>>::iter_prefix(round_to_delete).for_each(|(val,_)| {
-						// pay stakers that haven't claimed payment
-						let _ = Self::pay_staker(val,round_to_delete);
-					});
-					// remove exposure for all validators in this round
-					<AtStake<T>>::remove_prefix(round_to_delete);
-				}
 				// insert exposure for next validator set
 				Self::qualified_candidates_become_validators(n,next);
 			}
@@ -536,7 +578,6 @@ impl<T: Config> Module<T> {
 					apply_slash(acc.clone(), info.clone());
 				}
 				Slash::Strike(count) => {
-					// TODO: per-strike fee?
 					if count > T::MaxStrikes::get() {
 						// apply slash and remove from validator set
 						apply_slash(acc.clone(), info.clone());
@@ -548,7 +589,7 @@ impl<T: Config> Module<T> {
 				continue; // skip validator selection if so
 			}
 			// Next, choose the next validator set
-			// it is all unchilled validators above minimum validator capital threshold
+			// it is all not offline validators above minimum validator capital threshold
 			// -> these validators are exposed to slashing risk for next round
 			let num_noms = info.nominations.len();
 			let total = info.total;
@@ -596,13 +637,12 @@ impl<T: Config> Module<T> {
 		ensure!(at_stake != Exposure::default(), Error::<T>::ValidatorDNE);
 		match ty {
 			Slash::Remove => {
-				val.set_guilty(); // chills by default to keep staker out of future validator sets
+				val.set_guilty(); // sets offline by default to keep staker out of future validator sets
 				<Candidates<T>>::insert(&validator, val);
 				Ok(())
 			}
 			Slash::Strike(_) => {
 				val.inc_strike();
-				// TODO: apply per strike fee?
 				<Candidates<T>>::insert(&validator, val);
 				Ok(())
 			}
