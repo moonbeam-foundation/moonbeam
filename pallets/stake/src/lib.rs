@@ -196,13 +196,6 @@ impl<
 	pub fn innocent(&self) -> bool {
 		self.slash == Slash::Strike(0u8)
 	}
-	pub fn has_strikes(&self) -> bool {
-		if let Slash::Strike(_) = self.slash {
-			true
-		} else {
-			false
-		}
-	}
 	pub fn cannot_return(&self) -> bool {
 		self.slash == Slash::Remove
 	}
@@ -210,7 +203,7 @@ impl<
 		self.state == ValStatus::Active
 	}
 	pub fn can_validate(&self) -> bool {
-		self.is_active() && self.has_strikes()
+		self.is_active() && !self.cannot_return()
 	}
 	pub fn remove(&mut self) {
 		self.slash = Slash::Remove;
