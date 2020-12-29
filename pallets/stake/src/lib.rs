@@ -144,8 +144,6 @@ impl<A, B> Nomination<A, B> {
 #[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
 /// Slash status of the validator
 pub enum Slash {
-	/// Clean record
-	Innocent,
 	/// Should be removed from the validator set ASAP and slashed
 	Remove,
 	/// Has strikes and will be removed, slashed if strikes exceeds MaxStrikes
@@ -154,7 +152,7 @@ pub enum Slash {
 
 impl Default for Slash {
 	fn default() -> Slash {
-		Slash::Innocent
+		Slash::Strike(0u8)
 	}
 }
 
@@ -195,19 +193,36 @@ impl<
 			slash: Slash::default(),     // default innocent
 		}
 	}
+	pub fn innocent(&self) -> bool {
+		self.slash == Slash::Strike(0u8)
+	}
+	pub fn has_strikes(&self) -> bool {
+		if let Slash::Strike(_) = self.slash {
+			true
+		} else {
+			false
+		}
+	}
+	pub fn cannot_return(&self) -> bool {
+		self.slash == Slash::Remove
+	}
 	pub fn is_active(&self) -> bool {
 		self.state == ValStatus::Active
 	}
-	pub fn set_guilty(&mut self) {
+	pub fn can_validate(&self) -> bool {
+		self.is_active() && self.has_strikes()
+	}
+	pub fn remove(&mut self) {
 		self.slash = Slash::Remove;
 		self.go_offline();
 	}
-	pub fn inc_strike(&mut self) {
-		if self.slash == Slash::Innocent {
-			self.slash = Slash::Strike(1u8);
-		} else if let Slash::Strike(c) = self.slash {
+	pub fn add_strike(&mut self) {
+		if let Slash::Strike(c) = self.slash {
 			self.slash = Slash::Strike(c + 1u8);
 		}
+	}
+	pub fn reset_strikes(&mut self) {
+		self.slash = Slash::Strike(0u8)
 	}
 	pub fn go_offline(&mut self) {
 		self.state = ValStatus::Idle;
@@ -478,7 +493,7 @@ decl_module! {
 			let acc = ensure_signed(origin)?;
 			let validator = <Nominators<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
 			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
-			ensure!(state.slash == Slash::Innocent, Error::<T>::CannotRevokeIfValidatorAwaitingSlash);
+			ensure!(state.innocent(), Error::<T>::CannotRevokeIfValidatorAwaitingSlash);
 			let amt_unstaked = state.rm_nomination(acc.clone()).ok_or(Error::<T>::CannotRmNomNotFound)?;
 			let new_total = state.total;
 			let new_total_locked = <TotalLocked<T>>::get() - amt_unstaked;
@@ -583,7 +598,6 @@ impl<T: Config> Module<T> {
 						apply_slash(acc.clone(), info.clone());
 					}
 				}
-				_ => (),
 			}
 			if val_count >= max_vals {
 				continue; // skip validator selection if so
@@ -593,7 +607,7 @@ impl<T: Config> Module<T> {
 			// -> these validators are exposed to slashing risk for next round
 			let num_noms = info.nominations.len();
 			let total = info.total;
-			let qualified_validator: bool = info.is_active()
+			let qualified_validator: bool = info.can_validate()
 				&& total >= min_bond
 				&& num_noms >= min_noms
 				&& num_noms <= max_noms;
@@ -614,7 +628,7 @@ impl<T: Config> Module<T> {
 	fn return_nominations(validator: T::AccountId) -> DispatchResult {
 		let state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
 		ensure!(
-			state.slash == Slash::Innocent,
+			state.innocent(),
 			Error::<T>::CannotRevokeIfValidatorAwaitingSlash
 		);
 		for Nomination { owner, amount } in state.nominations {
@@ -637,16 +651,15 @@ impl<T: Config> Module<T> {
 		ensure!(at_stake != Exposure::default(), Error::<T>::ValidatorDNE);
 		match ty {
 			Slash::Remove => {
-				val.set_guilty(); // sets offline by default to keep staker out of future validator sets
+				val.remove(); // sets offline by default to keep staker out of future validator sets
 				<Candidates<T>>::insert(&validator, val);
 				Ok(())
 			}
 			Slash::Strike(_) => {
-				val.inc_strike();
+				val.add_strike();
 				<Candidates<T>>::insert(&validator, val);
 				Ok(())
 			}
-			_ => Ok(()),
 		}
 	}
 	/// Pay validator for points awarded in the given round
@@ -729,7 +742,7 @@ impl<T: Config> Module<T> {
 		let ret: Vec<T::AccountId> = <Candidates<T>>::iter()
 			.filter_map(|(acc, info)| {
 				let num_noms = info.nominations.len();
-				let qualified_validator: bool = info.is_active()
+				let qualified_validator: bool = info.can_validate()
 					&& info.total >= min_bond
 					&& num_noms >= min_noms
 					&& num_noms <= max_noms
