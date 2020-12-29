@@ -1,6 +1,6 @@
 {
   "name": "moonbeam-types-bundle",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "bundle types to instantiate the polkadot api",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
