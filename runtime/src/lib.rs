@@ -246,14 +246,14 @@ impl pallet_ethereum_chain_id::Config for Runtime {}
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
-	type GasToWeight = ();
+	type GasWeightMapping = ();
 	type CallOrigin = EnsureAddressSame;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = IdentityAddressMapping;
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type Precompiles = precompiles::MoonbeamPrecompiles;
+	type Precompiles = precompiles::MoonbeamPrecompiles<Self>;
 	type ChainId = EthereumChainId;
 }
 
