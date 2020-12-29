@@ -1,5 +1,5 @@
 import type { OverrideBundleDefinition, OverrideBundleType } from "@polkadot/types/types";
-const moonbeam = {
+export const moonbeamDefinitions = {
   types: [
     {
       minmax: [0, 4],
@@ -135,9 +135,9 @@ const moonbeam = {
 
 export const typesBundle = {
   spec: {
-    "moonbase-alphanet": moonbeam,
-    moonbeam,
-    "moonbeam-standalone": moonbeam,
-    "node-moonbeam": moonbeam,
+    "moonbase-alphanet": moonbeamDefinitions,
+    moonbeamDefinitions,
+    "moonbeam-standalone": moonbeamDefinitions,
+    "node-moonbeam": moonbeamDefinitions,
   },
 } as OverrideBundleType;
