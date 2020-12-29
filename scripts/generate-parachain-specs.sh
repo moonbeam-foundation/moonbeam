@@ -8,7 +8,7 @@ $PARACHAIN_BINARY build-spec \
 echo $PARACHAIN_SPEC_TMP generated
 
 echo "Using $PARACHAIN_SPEC_TEMPLATE..."
-sed -e "/\"<runtime_code>\"/{r $PARACHAIN_SPEC_TMP" -e 'd}'  $PARACHAIN_SPEC_TEMPLATE \
+sed -e "/\"<runtime_code>\"/{r $PARACHAIN_SPEC_TMP" -e 'd;}'  $PARACHAIN_SPEC_TEMPLATE \
   > $PARACHAIN_SPEC_PLAIN
 echo $PARACHAIN_SPEC_PLAIN generated
 
