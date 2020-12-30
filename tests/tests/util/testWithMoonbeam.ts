@@ -12,10 +12,11 @@ import {
   SPECS_PATH,
   WS_PORT,
 } from "../constants";
+import { ErrorReport } from "./fillBlockWithTx";
 
-export function log(...msg: (string | number)[]) {
-  if (process.argv0 && process.argv0 === "printlogs") {
-    console.log(msg);
+export function log(...msg: (string | number | ErrorReport)[]) {
+  if (process.argv && process.argv[2] && process.argv[2] === "--printlogs") {
+    console.log(...msg);
   }
 }
 

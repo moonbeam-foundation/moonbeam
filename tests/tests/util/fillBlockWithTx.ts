@@ -77,6 +77,12 @@ interface FillBlockReport {
   sendingTime: number;
 }
 
+export interface ErrorReport {
+  [key: string]: {
+    [key: string]: number;
+  };
+}
+
 // This functiom sends a batch of signed transactions to the pool and records both
 // how many tx were included in the first block and the total numbe rof tx that were
 // included in a block
@@ -89,12 +95,6 @@ export async function fillBlockWithTx(
   let nonce: number = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
 
   const numberArray = new Array(numberOfTx).fill(1);
-
-  interface ErrorReport {
-    [key: string]: {
-      [key: string]: number;
-    };
-  }
 
   let errorReport: ErrorReport = {
     signing: {},
@@ -143,7 +143,7 @@ export async function fillBlockWithTx(
 
   log("Time it took to send " + respList.length + " tx is " + sendingTime / 1000 + " seconds");
 
-  log("Error Report : ", errorReport.toString());
+  log("Error Report : ", errorReport);
 
   log("created block in ", (await createAndFinalizeBlock(context.polkadotApi)) / 1000, " seconds");
 
