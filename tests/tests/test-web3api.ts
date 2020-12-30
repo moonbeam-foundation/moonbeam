@@ -5,7 +5,7 @@ import { describeWithMoonbeam, customRequest } from "./util";
 describeWithMoonbeam("Moonbeam RPC (Web3Api)", `simple-specs.json`, (context) => {
   step("should get client version", async function () {
     const version = await context.web3.eth.getNodeInfo();
-    expect(version).to.be.equal("moonbeam-standalone/v6.0/fc-rpc-0.1.0");
+    expect(version).to.be.match(/moonbeam-standalone\/v[0-9]+\.0\/fc-rpc-0.1.0/);
   });
 
   step("should remote sha3", async function () {

@@ -12,134 +12,141 @@
   "lightSyncState": null,
   "genesis": {
     "runtime": {
-      "frameSystem": {
-        "changesTrieConfig": null,
-        "code": "<runtime_code>"
-      },
-      "palletBabe": {
-        "authorities": []
-      },
-      "palletIndices": {
-        "indices": []
-      },
-      "palletBalances": {
-        "balances": [
-          [
-            "1uV7ZJDW37CHeiWFppogK5JsV59tUrbuf1PcaDW5cTE1DHG",
-            100000000000000000000
-          ],
-          [
-            "14dmc8KjuXgKrmrBneJdpTZQhjStJoWnVipAhf2vcwcMWRBM",
-            100000000000000000000
-          ],
-          [
-            "16S1pBxHVpbHZE5DacwucvzXo3T6vDi9nsrTdwFvo3Vmm2xL",
-            100000000000000000000
-          ],
-          [
-            "5GshoQVQ1xc9Abr4LcJdf5vr6c8ixXxNTSya8yeqV8xeQwsE",
-            100000000000000000000
+      "runtime_genesis_config": {
+        "frameSystem": {
+          "changesTrieConfig": null,
+          "code": "<runtime_code>"
+        },
+        "palletBabe": {
+          "authorities": []
+        },
+        "palletIndices": {
+          "indices": []
+        },
+        "palletBalances": {
+          "balances": [
+            [
+              "1uV7ZJDW37CHeiWFppogK5JsV59tUrbuf1PcaDW5cTE1DHG",
+              100000000000000000000
+            ],
+            [
+              "14dmc8KjuXgKrmrBneJdpTZQhjStJoWnVipAhf2vcwcMWRBM",
+              100000000000000000000
+            ],
+            [
+              "16S1pBxHVpbHZE5DacwucvzXo3T6vDi9nsrTdwFvo3Vmm2xL",
+              100000000000000000000
+            ],
+            [
+              "5GshoQVQ1xc9Abr4LcJdf5vr6c8ixXxNTSya8yeqV8xeQwsE",
+              100000000000000000000
+            ]
           ]
-        ]
-      },
-      "palletStaking": {
-        "historyDepth": 84,
-        "validatorCount": 0,
-        "minimumValidatorCount": 0,
-        "invulnerables": [],
-        "forceEra": "NotForcing",
-        "slashRewardFraction": 0,
-        "canceledPayout": 0,
-        "stakers": []
-      },
-      "palletSession": {
-        "keys": [
-          [
-            "152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L",
-            "152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L",
-            {
-              "babe": "152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L",
-              "grandpa": "14f6jcSAnXH5M9jsjssQeDMkPX7mq8cJ7A5bcSjr8DkfMX9o",
-              "im_online": "152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L",
-              "parachain_validator": "152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L",
-              "authority_discovery": "152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L"
-            }
-          ],
-          [
-            "145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5",
-            "145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5",
-            {
-              "babe": "145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5",
-              "grandpa": "15dyZ5jt5967TaBcsq4B3zrgWDxJd4JZdpH4CZ1LuTBG61fX",
-              "im_online": "145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5",
-              "parachain_validator": "145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5",
-              "authority_discovery": "145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5"
-            }
-          ],
-          [
-            "153RovQzgTQzR2woFKnMpWET8Bgjv24eqVwPvY6mTaL4nCwf",
-            "153RovQzgTQzR2woFKnMpWET8Bgjv24eqVwPvY6mTaL4nCwf",
-            {
-              "babe": "153RovQzgTQzR2woFKnMpWET8Bgjv24eqVwPvY6mTaL4nCwf",
-              "grandpa": "12j65FikHJs42zabKTpMavGBDwVyxDhJjCfWsYzJmNa2EV1k",
-              "im_online": "153RovQzgTQzR2woFKnMpWET8Bgjv24eqVwPvY6mTaL4nCwf",
-              "parachain_validator": "153RovQzgTQzR2woFKnMpWET8Bgjv24eqVwPvY6mTaL4nCwf",
-              "authority_discovery": "153RovQzgTQzR2woFKnMpWET8Bgjv24eqVwPvY6mTaL4nCwf"
-            }
+        },
+        "palletStaking": {
+          "historyDepth": 84,
+          "validatorCount": 0,
+          "minimumValidatorCount": 0,
+          "invulnerables": [],
+          "forceEra": "NotForcing",
+          "slashRewardFraction": 0,
+          "canceledPayout": 0,
+          "stakers": []
+        },
+        "palletSession": {
+          "keys": [
+            [
+              "152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L",
+              "152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L",
+              {
+                "babe": "152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L",
+                "grandpa": "14f6jcSAnXH5M9jsjssQeDMkPX7mq8cJ7A5bcSjr8DkfMX9o",
+                "im_online": "152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L",
+                "para_validator": "152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L",
+                "para_assignment": "152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L",
+                "authority_discovery": "152iAMmpndGc9oox2d1BSmGvwTJBg9MkDA3LzEd5BX22241L"
+              }
+            ],
+            [
+              "145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5",
+              "145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5",
+              {
+                "babe": "145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5",
+                "grandpa": "15dyZ5jt5967TaBcsq4B3zrgWDxJd4JZdpH4CZ1LuTBG61fX",
+                "im_online": "145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5",
+                "para_validator": "145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5",
+                "para_assignment": "145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5",
+                "authority_discovery": "145LKiLp8hKquLRXLAAw9fY5uMdeeGr5hRzsRNvCnuH3fcA5"
+              }
+            ],
+            [
+              "153RovQzgTQzR2woFKnMpWET8Bgjv24eqVwPvY6mTaL4nCwf",
+              "153RovQzgTQzR2woFKnMpWET8Bgjv24eqVwPvY6mTaL4nCwf",
+              {
+                "babe": "153RovQzgTQzR2woFKnMpWET8Bgjv24eqVwPvY6mTaL4nCwf",
+                "grandpa": "12j65FikHJs42zabKTpMavGBDwVyxDhJjCfWsYzJmNa2EV1k",
+                "im_online": "153RovQzgTQzR2woFKnMpWET8Bgjv24eqVwPvY6mTaL4nCwf",
+                "para_validator": "153RovQzgTQzR2woFKnMpWET8Bgjv24eqVwPvY6mTaL4nCwf",
+                "para_assignment": "153RovQzgTQzR2woFKnMpWET8Bgjv24eqVwPvY6mTaL4nCwf",
+                "authority_discovery": "153RovQzgTQzR2woFKnMpWET8Bgjv24eqVwPvY6mTaL4nCwf"
+              }
+            ]
           ]
-        ]
-      },
-      "palletGrandpa": {
-        "authorities": []
-      },
-      "palletImOnline": {
-        "keys": []
-      },
-      "palletAuthorityDiscovery": {
-        "keys": []
-      },
-      "parachainsConfiguration": {
-        "config": {
-          "validation_upgrade_frequency": 600,
-          "validation_upgrade_delay": 300,
-          "acceptance_period": 1200,
-          "max_code_size": 5242880,
-          "max_head_data_size": 32768,
-          "max_pov_size": 52428800,
-          "parathread_cores": 0,
-          "parathread_retries": 0,
-          "group_rotation_frequency": 10,
-          "chain_availability_period": 0,
-          "thread_availability_period": 0,
-          "scheduling_lookahead": 0,
-          "dispute_period": 0,
-          "no_show_slots": 0,
-          "n_delay_tranches": 0,
-          "zeroth_delay_tranche_width": 0,
-          "needed_approvals": 0,
-          "relay_vrf_modulo_samples": 0,
-          "max_upward_queue_count": 8,
-          "max_upward_queue_size": 8192,
-          "max_downward_message_size": 1024,
-          "preferred_dispatchable_upward_messages_step_weight": 4000000000,
-          "max_upward_message_size": 1024,
-          "max_upward_message_num_per_candidate": 5,
-          "hrmp_open_request_ttl": 5,
-          "hrmp_sender_deposit": 0,
-          "hrmp_recipient_deposit": 0,
-          "hrmp_channel_max_capacity": 8,
-          "hrmp_channel_max_total_size": 8192,
-          "hrmp_max_parachain_inbound_channels": 4,
-          "hrmp_max_parathread_inbound_channels": 4,
-          "hrmp_channel_max_message_size": 1024,
-          "hrmp_max_parachain_outbound_channels": 4,
-          "hrmp_max_parathread_outbound_channels": 4,
-          "hrmp_max_message_num_per_candidate": 5
+        },
+        "palletGrandpa": {
+          "authorities": []
+        },
+        "palletImOnline": {
+          "keys": []
+        },
+        "palletAuthorityDiscovery": {
+          "keys": []
+        },
+        "parachainsConfiguration": {
+          "config": {
+            "validation_upgrade_frequency": 600,
+            "validation_upgrade_delay": 300,
+            "acceptance_period": 1200,
+            "max_code_size": 5242880,
+            "max_head_data_size": 32768,
+            "max_pov_size": 52428800,
+            "parathread_cores": 0,
+            "parathread_retries": 0,
+            "group_rotation_frequency": 20,
+            "chain_availability_period": 4,
+            "thread_availability_period": 4,
+            "scheduling_lookahead": 0,
+            "max_validators_per_core": null,
+            "dispute_period": 0,
+            "no_show_slots": 10,
+            "n_delay_tranches": 0,
+            "zeroth_delay_tranche_width": 0,
+            "needed_approvals": 0,
+            "relay_vrf_modulo_samples": 0,
+            "max_upward_queue_count": 8,
+            "max_upward_queue_size": 8192,
+            "max_downward_message_size": 1024,
+            "preferred_dispatchable_upward_messages_step_weight": 4000000000,
+            "max_upward_message_size": 1024,
+            "max_upward_message_num_per_candidate": 5,
+            "hrmp_open_request_ttl": 5,
+            "hrmp_sender_deposit": 0,
+            "hrmp_recipient_deposit": 0,
+            "hrmp_channel_max_capacity": 8,
+            "hrmp_channel_max_total_size": 8192,
+            "hrmp_max_parachain_inbound_channels": 4,
+            "hrmp_max_parathread_inbound_channels": 4,
+            "hrmp_channel_max_message_size": 1024,
+            "hrmp_max_parachain_outbound_channels": 4,
+            "hrmp_max_parathread_outbound_channels": 4,
+            "hrmp_max_message_num_per_candidate": 5
+          }
+        },
+        "palletSudo": {
+          "key": "5GshoQVQ1xc9Abr4LcJdf5vr6c8ixXxNTSya8yeqV8xeQwsE"
         }
       },
-      "palletSudo": {
-        "key": "5GshoQVQ1xc9Abr4LcJdf5vr6c8ixXxNTSya8yeqV8xeQwsE"
-      }
+      "session_length_in_blocks": 10
     }
   }
 }
