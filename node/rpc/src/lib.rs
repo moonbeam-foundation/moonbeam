@@ -86,13 +86,13 @@ where
 	<C::Api as sp_api::ApiErrorExt>::Error: fmt::Debug,
 	P: TransactionPool<Block = Block> + 'static,
 {
-	use frontier_rpc::{EthApiServer, EthPubSubApiServer, NetApi, NetApiServer};
+	use frontier_rpc::{NetApi, NetApiServer, Web3Api, Web3ApiServer};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
 	use substrate_frame_rpc_system::{FullSystem, SystemApi};
 	// Our drop in replacements for the Eth APIs. These can be removed after
 	// https://github.com/paritytech/frontier/pull/199 lands
-	use pubsub_hotfixes::EthPubSubApi;
-	use server_hotfixes::EthApi;
+	use pubsub_hotfixes::{EthPubSubApi, EthPubSubApiServer};
+	use server_hotfixes::{EthApi, EthApiServer};
 
 	let mut io = jsonrpc_core::IoHandler::default();
 	let FullDeps {
@@ -128,6 +128,7 @@ where
 		client.clone(),
 		network.clone(),
 	)));
+	io.extend_with(Web3ApiServer::to_delegate(Web3Api::new(client.clone())));
 	io.extend_with(EthPubSubApiServer::to_delegate(EthPubSubApi::new(
 		pool,
 		client,

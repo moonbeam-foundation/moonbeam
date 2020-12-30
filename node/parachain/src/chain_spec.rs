@@ -45,15 +45,13 @@ impl Extensions {
 	}
 }
 
-pub fn get_chain_spec(para_id: ParaId) -> Result<ChainSpec, String> {
-	let wasm_binary = WASM_BINARY.ok_or_else(|| "Wasm binary not available".to_string())?;
-	Ok(ChainSpec::from_genesis(
+pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
+	ChainSpec::from_genesis(
 		"Moonbase Parachain Local Testnet",
 		"local_testnet",
 		ChainType::Local,
 		move || {
 			testnet_genesis(
-				wasm_binary,
 				AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
 				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
 				para_id,
@@ -68,11 +66,10 @@ pub fn get_chain_spec(para_id: ParaId) -> Result<ChainSpec, String> {
 			relay_chain: "local_testnet".into(),
 			para_id: para_id.into(),
 		},
-	))
+	)
 }
 
 fn testnet_genesis(
-	wasm_binary: &[u8],
 	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,
 	para_id: ParaId,
@@ -80,7 +77,9 @@ fn testnet_genesis(
 ) -> GenesisConfig {
 	GenesisConfig {
 		frame_system: Some(SystemConfig {
-			code: wasm_binary.to_vec(),
+			code: WASM_BINARY
+				.expect("WASM binary was not build, please build it!")
+				.to_vec(),
 			changes_trie_config: Default::default(),
 		}),
 		pallet_balances: Some(BalancesConfig {

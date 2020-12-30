@@ -11,10 +11,18 @@ rustc-hex = { version = "2.0.1", default-features = false }
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.4-hotfixes" }
+# pallet-evm-precompile-bn128 = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.4-hotfixes" }
+pallet-evm-precompile-dispatch = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.4-hotfixes" }
+pallet-evm-precompile-modexp = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.4-hotfixes" }
+pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.4-hotfixes" }
 
 [features]
 default = [ "std" ]
 std = [
 	"sp-std/std",
 	"sp-core/std",
+	# "pallet-evm-precompile-bn128/std",
+	"pallet-evm-precompile-dispatch/std",
+	"pallet-evm-precompile-modexp/std",
+	"pallet-evm-precompile-simple/std",
 ]

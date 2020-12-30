@@ -57,7 +57,7 @@ use std::collections::BTreeMap;
 use std::{marker::PhantomData, sync::Arc};
 
 use codec::{self, Encode};
-pub use frontier_rpc_core::{EthApiServer, NetApiServer};
+pub use frontier_rpc_core::EthApiServer;
 
 pub struct EthApi<B: BlockT, C, P, CT, BE, H: ExHashT> {
 	pool: Arc<P>,

@@ -16,43 +16,25 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use pallet_evm::{Precompile, Precompiles};
-use sp_core::H160;
+use pallet_evm::LinearCostPrecompile;
+use pallet_evm_precompile_simple::{ECRecover, Identity, Ripemd160, Sha256};
 use sp_std::prelude::*;
+// use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
+use pallet_evm_precompile_dispatch::Dispatch;
+use pallet_evm_precompile_modexp::Modexp;
 
-pub struct ExperimentalMoonbeamPrecompiles;
-
-/// Linear gas cost
-fn ensure_linear_cost(
-	target_gas: Option<usize>,
-	len: usize,
-	base: usize,
-	word: usize,
-) -> Result<usize, pallet_evm::ExitError> {
-	let cost = base
-		.checked_add(
-			word.checked_mul(len.saturating_add(31) / 32)
-				.ok_or(pallet_evm::ExitError::OutOfGas)?,
-		)
-		.ok_or(pallet_evm::ExitError::OutOfGas)?;
-	if let Some(target_gas) = target_gas {
-		if cost > target_gas {
-			return Err(pallet_evm::ExitError::OutOfGas);
-		}
-	}
-	Ok(cost)
-}
-
-// prepends "deadbeef" to any data provided
+/// An example of implementing a simple precompile.
+/// prepends "deadbeef" to any data provided
 struct DeadbeefPrecompiled;
 
-impl Precompile for DeadbeefPrecompiled {
+impl LinearCostPrecompile for DeadbeefPrecompiled {
+	const BASE: usize = 15;
+	const WORD: usize = 3;
+
 	fn execute(
 		input: &[u8],
-		target_gas: Option<usize>,
-	) -> core::result::Result<(pallet_evm::ExitSucceed, Vec<u8>, usize), pallet_evm::ExitError> {
-		let cost = ensure_linear_cost(target_gas, input.len(), 15, 3)?;
-
+		_: usize,
+	) -> core::result::Result<(pallet_evm::ExitSucceed, Vec<u8>), pallet_evm::ExitError> {
 		log::info!("Calling deadbeef precompiled contract");
 
 		let mut result_vec: Vec<u8> = rustc_hex::FromHex::from_hex("deadbeef").map_err(|_| {
@@ -62,58 +44,25 @@ impl Precompile for DeadbeefPrecompiled {
 		})?;
 		result_vec.extend(input.to_vec());
 
-		Ok((pallet_evm::ExitSucceed::Returned, result_vec, cost))
+		Ok((pallet_evm::ExitSucceed::Returned, result_vec))
 	}
 }
 
-type PrecompiledCallable =
-	fn(
-		&[u8],
-		Option<usize>,
-	) -> core::result::Result<(pallet_evm::ExitSucceed, Vec<u8>, usize), pallet_evm::ExitError>;
-
-fn get_precompiled_func_from_address(address: &H160) -> Option<PrecompiledCallable> {
-	use core::str::FromStr;
-
-	// Note that addresses from_str should not start with 0x, just the hex value
-	let addr_deadbeef = H160::from_str("0000000000000000000000000000000000001000")
-		.expect("Invalid address at precompiles generation");
-
-	if *address == addr_deadbeef {
-		return Some(DeadbeefPrecompiled::execute);
-	}
-
-	None
-}
-
-impl Precompiles for ExperimentalMoonbeamPrecompiles {
-	#[allow(clippy::type_complexity)] // this code is removed in another PR anyway
-	fn execute(
-		address: H160,
-		input: &[u8],
-		target_gas: Option<usize>,
-	) -> Option<
-		core::result::Result<(pallet_evm::ExitSucceed, Vec<u8>, usize), pallet_evm::ExitError>,
-	> {
-		if let Some(func) = get_precompiled_func_from_address(&address) {
-			Some(func(input, target_gas))
-		} else {
-			None
-		}
-	}
-}
-
-pub type MoonbeamPrecompiles = (
-	pallet_evm::precompiles::ECRecover,
-	pallet_evm::precompiles::Sha256,
-	pallet_evm::precompiles::Ripemd160,
-	pallet_evm::precompiles::Identity,
+/// The PrecompileSet installed in the Moonbeam runtime.
+/// We include the nine Istanbul precompiles
+/// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
+/// as well as a special precompile for dispatching Substrate extrinsics
+///
+/// TODO I had trouble getting the BN precompiles to compile.
+/// Also, Why are the BN precompiles in geth called bn256*, but in Frontier they are called Bn128*
+pub type MoonbeamPrecompiles<Runtime> = (
+	ECRecover,
+	Sha256,
+	Ripemd160,
+	Identity,
+	Modexp,
+	// Bn128Add,
+	// Bn128Mul,
+	// Bn128Pairing,
+	Dispatch<Runtime>,
 );
-
-#[cfg(test)]
-mod tests {
-	#[test]
-	fn it_works() {
-		assert_eq!(2 + 2, 4);
-	}
-}
