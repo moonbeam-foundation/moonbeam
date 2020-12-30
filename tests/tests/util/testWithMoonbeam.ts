@@ -13,6 +13,12 @@ import {
   WS_PORT,
 } from "../constants";
 
+export function log(...msg: (string | number)[]) {
+  if (process.argv0 && process.argv0 === "printlogs") {
+    console.log(msg);
+  }
+}
+
 export interface Context {
   web3: Web3;
 

@@ -5,7 +5,7 @@ import { SignedTransaction, TransactionConfig } from "web3-core";
 import { basicTransfertx, GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../constants";
 import { wrappedCustomRequest } from "./web3Requests";
 import { createAndFinalizeBlock } from ".";
-import { Context } from "./testWithMoonbeam";
+import { Context, log } from "./testWithMoonbeam";
 
 function isSignedTransaction(tx: Error | SignedTransaction): tx is SignedTransaction {
   return (tx as SignedTransaction).rawTransaction !== undefined;
@@ -123,9 +123,7 @@ export async function fillBlockWithTx(
 
   const signingTime: number = Date.now() - startSigningTime;
 
-  console.log(
-    "Time it took to sign " + txList.length + " tx is " + signingTime / 1000 + " seconds"
-  );
+  log("Time it took to sign " + txList.length + " tx is " + signingTime / 1000 + " seconds");
 
   const startSendingTime: number = Date.now();
 
@@ -143,23 +141,17 @@ export async function fillBlockWithTx(
 
   const sendingTime: number = Date.now() - startSendingTime;
 
-  console.log(
-    "Time it took to send " + respList.length + " tx is " + sendingTime / 1000 + " seconds"
-  );
+  log("Time it took to send " + respList.length + " tx is " + sendingTime / 1000 + " seconds");
 
-  console.log("Error Report : ", errorReport);
+  log("Error Report : ", errorReport.toString());
 
-  console.log(
-    "created block in ",
-    (await createAndFinalizeBlock(context.polkadotApi)) / 1000,
-    " seconds"
-  );
+  log("created block in ", (await createAndFinalizeBlock(context.polkadotApi)) / 1000, " seconds");
 
   let numberOfBlocks = 0;
   let block = await context.web3.eth.getBlock("latest");
   let txPassed: number = block.transactions.length;
   const txPassedFirstBlock: number = txPassed;
-  console.log(
+  log(
     "block.gasUsed",
     block.gasUsed,
     "block.number",
@@ -174,7 +166,7 @@ export async function fillBlockWithTx(
     await createAndFinalizeBlock(context.polkadotApi);
 
     block = await context.web3.eth.getBlock("latest");
-    console.log(
+    log(
       "following block, block" + i + ".gasUsed",
       block.gasUsed,
       "block" + i + ".number",
