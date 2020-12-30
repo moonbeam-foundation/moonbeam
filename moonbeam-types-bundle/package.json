@@ -1,7 +1,7 @@
 {
   "name": "moonbeam-types-bundle",
   "version": "1.0.1",
-  "description": "bundle types to instantiate the polkadot api",
+  "description": "Bundled types to instantiate the Polkadot JS api with a Moonbeam network",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "prepublish": "tsc",
@@ -10,13 +10,14 @@
   },
   "keywords": [
     "moonbeam",
+    "moonriver",
     "types",
     "bundle",
     "polkadot",
     "api"
   ],
   "author": "Antoine Estienne",
-  "license": "ISC",
+  "license": "GPL-3.0-only",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/PureStake/moonbeam.git"
