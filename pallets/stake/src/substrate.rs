@@ -52,8 +52,8 @@ impl<A, B: HasCompact> From<Nomination<A, B>> for IndividualExposure<A, B> {
 	}
 }
 
-impl<A: PartialEq, B: HasCompact + Zero> From<ValState<A, B>> for Exposure<A, B> {
-	fn from(state: ValState<A, B>) -> Exposure<A, B> {
+impl<A: PartialEq, B: HasCompact + Zero, C> From<ValState<A, B, C>> for Exposure<A, B> {
+	fn from(state: ValState<A, B, C>) -> Exposure<A, B> {
 		let mut others = Vec::<IndividualExposure<A, B>>::new();
 		let mut own = Zero::zero();
 		for Nomination { owner, amount } in state.nominations {

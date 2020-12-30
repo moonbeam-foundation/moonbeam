@@ -192,9 +192,11 @@ parameter_types! {
 	pub const MinNominatorBond: u128 = 5;
 	pub const MaxValidatorFee: Perbill = Perbill::from_percent(50);
 	pub const MaxStrikes: u8 = 3;
+	pub const StrikeFee: u128 = 1;
+	pub const SlashWindow: u32 = 10;
 	pub const SlashPct: Perbill = Perbill::from_percent(50);
 	pub const Pts2StakeRewardRatio: Perbill = Perbill::from_percent(50);
-	pub const BlocksPerRound: u32 = 10;
+	pub const BlocksPerRound: u32 = 5;
 	pub const Reward: u128 = 10;
 	pub const Treasury: ModuleId = ModuleId(*b"py/trsry");
 }
@@ -212,6 +214,8 @@ impl Config for Test {
 	type MaxValidatorFee = MaxValidatorFee;
 	type SlashOrigin = frame_system::EnsureRoot<u64>;
 	type MaxStrikes = MaxStrikes;
+	type StrikeFee = StrikeFee;
+	type SlashWindow = SlashWindow;
 	type SlashPct = SlashPct;
 	type Pts2StakeRewardRatio = Pts2StakeRewardRatio;
 	type BlocksPerRound = BlocksPerRound;

@@ -157,37 +157,51 @@ impl Default for Slash {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
-pub enum ValStatus {
+/// The activity status of the validator
+pub enum ValStatus<BlockNumber> {
+	/// Committed to be online and producing valid blocks (not equivocating)
 	Active,
+	/// Temporarily inactive and excused for inactivity
 	Idle,
+	/// Bonded until the wrapped block
+	Leaving(BlockNumber),
 }
 
-impl Default for ValStatus {
-	fn default() -> ValStatus {
+impl<B> Default for ValStatus<B> {
+	fn default() -> ValStatus<B> {
 		ValStatus::Active
 	}
 }
 
 #[derive(Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
-pub struct ValState<AccountId, Balance> {
+pub struct ExitRequest<Nomination, BlockNumber> {
+	pub nomination: Nomination,
+	pub when: BlockNumber,
+}
+
+#[derive(Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
+pub struct ValState<AccountId, Balance, BlockNumber> {
 	pub validator: AccountId,
 	pub prefs: ValPrefs<Balance>,
 	pub nominations: Vec<Nomination<AccountId, Balance>>,
+	pub exits: Vec<ExitRequest<Nomination<AccountId, Balance>, BlockNumber>>,
 	pub total: Balance,
-	pub state: ValStatus,
+	pub state: ValStatus<BlockNumber>,
 	pub slash: Slash,
 }
 
 impl<
 		A: Ord + Clone,
 		B: AtLeast32BitUnsigned + Ord + Copy + sp_std::ops::AddAssign + sp_std::ops::SubAssign,
-	> ValState<A, B>
+		C: Ord + Copy,
+	> ValState<A, B, C>
 {
-	pub fn new(validator: A, prefs: ValPrefs<B>, bond: B) -> ValState<A, B> {
+	pub fn new(validator: A, prefs: ValPrefs<B>, bond: B) -> ValState<A, B, C> {
 		ValState {
 			validator: validator.clone(),
 			prefs,
 			nominations: vec![Nomination::new(validator, bond)],
+			exits: vec![],
 			total: bond,
 			state: ValStatus::default(), // default active
 			slash: Slash::default(),     // default innocent
@@ -196,18 +210,25 @@ impl<
 	pub fn innocent(&self) -> bool {
 		self.slash == Slash::Strike(0u8)
 	}
-	pub fn cannot_return(&self) -> bool {
-		self.slash == Slash::Remove
-	}
 	pub fn is_active(&self) -> bool {
 		self.state == ValStatus::Active
 	}
+	pub fn is_leaving(&self) -> bool {
+		if let ValStatus::Leaving(_) = self.state {
+			true
+		} else {
+			false
+		}
+	}
 	pub fn can_validate(&self) -> bool {
-		self.is_active() && !self.cannot_return()
+		self.is_active() && self.slash != Slash::Remove
 	}
 	pub fn remove(&mut self) {
 		self.slash = Slash::Remove;
 		self.go_offline();
+	}
+	pub fn leave(&mut self, when: C) {
+		self.state = ValStatus::Leaving(when);
 	}
 	pub fn add_strike(&mut self) {
 		if let Slash::Strike(c) = self.slash {
@@ -254,7 +275,8 @@ type RewardPoint = u32;
 type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as System>::AccountId>>::Balance;
 type PositiveImbalanceOf<T> =
 	<<T as Config>::Currency as Currency<<T as System>::AccountId>>::PositiveImbalance;
-type ValidatorState<T> = ValState<<T as System>::AccountId, BalanceOf<T>>;
+type ValidatorState<T> =
+	ValState<<T as System>::AccountId, BalanceOf<T>, <T as System>::BlockNumber>;
 type RewardPolicy<T> = Reward<Destination<<T as System>::AccountId>>;
 
 pub trait Config: System {
@@ -287,6 +309,10 @@ pub trait Config: System {
 	type SlashOrigin: EnsureOrigin<Self::Origin>;
 	/// Maximum slash strike count a validator can incur before they are removed
 	type MaxStrikes: Get<u8>;
+	/// Fee to be paid per strike
+	type StrikeFee: Get<BalanceOf<Self>>;
+	/// Delay for which slashes can retroactively be applied
+	type SlashWindow: Get<Self::BlockNumber>;
 	/// Percentage of collateral slashed
 	type SlashPct: Get<Perbill>;
 	/// Length of each round in blocks
@@ -312,12 +338,17 @@ decl_event!(
 		ValidatorActivated(RoundIndex, AccountId),
 		// Round, Validator Account, Total Exposed Amount (includes all nominations)
 		ValidatorChosen(RoundIndex, AccountId, Balance),
+		ValidatorScheduledExit(AccountId, BlockNumber, Balance),
 		// Account, Amount Unlocked, New Total Amt Locked
 		ValidatorLeft(AccountId, Balance, Balance),
 		// Nominator, Amount Locked, Validator, New Total Amt Locked
 		ValidatorNominated(AccountId, Balance, AccountId, Balance),
-		NominationRevoked(AccountId, Balance, AccountId, Balance),
+		// Nominator, Validator, Scheduled Exit Block
+		NominatorScheduleExit(AccountId, AccountId, BlockNumber),
+		// Nominator, Amount Left, Validator, Amount Left
+		NominatorLeft(AccountId, Balance, AccountId, Balance),
 		Rewarded(AccountId, Balance),
+		FeesPaidOff(AccountId),
 		// Validator, Nominator, Balance Slashed
 		Slashed(AccountId, AccountId, Balance),
 		NewRound(BlockNumber, RoundIndex, u32, Balance),
@@ -339,9 +370,13 @@ decl_error! {
 		TooManyNomForVal,
 		AlreadyActive,
 		AlreadyOffline,
+		AlreadyInnocent,
+		AlreadyLeaving,
+		CannotActivateIfLeaving,
 		NoPointsNoReward,
 		CurrentRndRewardsUnClaimable,
 		CannotRevokeIfValidatorAwaitingSlash,
+		ExitRequestAlreadyExistsForAccount,
 	}
 }
 
@@ -444,18 +479,27 @@ decl_module! {
 			Ok(())
 		}
 		#[weight = 0]
-		fn activate(origin) -> DispatchResult {
+		fn go_online(origin) -> DispatchResult {
 			let acc = ensure_signed(origin)?;
 			let mut validator = <Candidates<T>>::get(&acc).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!validator.is_active(),Error::<T>::AlreadyActive);
+			ensure!(!validator.is_leaving(),Error::<T>::CannotActivateIfLeaving);
 			validator.activate();
 			<Candidates<T>>::insert(&acc,validator);
 			Self::deposit_event(RawEvent::ValidatorActivated(<Round>::get(),acc));
 			Ok(())
 		}
 		#[weight = 0]
-		fn exit(origin) -> DispatchResult {
-			Self::return_nominations(ensure_signed(origin)?)
+		fn request_exit(origin) -> DispatchResult { // TODO: add cancel request runtime method
+			let validator = ensure_signed(origin)?;
+			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
+			ensure!(!state.is_leaving(), Error::<T>::AlreadyLeaving);
+			let when = frame_system::Module::<T>::block_number() + T::SlashWindow::get();
+			state.leave(when);
+			let amt = state.total;
+			<Candidates<T>>::insert(&validator,state);
+			Self::deposit_event(RawEvent::ValidatorScheduledExit(validator,when,amt));
+			Ok(())
 		}
 		#[weight = 0]
 		fn nominate(
@@ -485,15 +529,50 @@ decl_module! {
 		fn revoke_nomination(origin) -> DispatchResult {
 			let acc = ensure_signed(origin)?;
 			let validator = <Nominators<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
-			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
-			ensure!(state.innocent(), Error::<T>::CannotRevokeIfValidatorAwaitingSlash);
-			let amt_unstaked = state.rm_nomination(acc.clone()).ok_or(Error::<T>::CannotRmNomNotFound)?;
-			let new_total = state.total;
-			let new_total_locked = <TotalLocked<T>>::get() - amt_unstaked;
-			<TotalLocked<T>>::put(new_total_locked);
+			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::ValidatorDNE)?;
+			let mut contained = false;
+			state.exits.iter().for_each(|x| {
+				if x.nomination.owner == acc {
+					contained = true
+				}
+			});
+			ensure!(!contained,Error::<T>::ExitRequestAlreadyExistsForAccount);
+			let nomination = state.nominations.iter()
+				.filter_map(|x| if x.owner == acc { Some(x.clone()) } else { None })
+				.collect::<Vec<Nomination<T::AccountId,BalanceOf<T>>>>()
+				.pop().expect("TODO: proof");
+			let when = frame_system::Module::<T>::block_number() + T::SlashWindow::get();
+			state.exits.push(ExitRequest{nomination,when});
 			<Candidates<T>>::insert(&validator,state);
-			<Nominators<T>>::remove(&acc);
-			Self::deposit_event(RawEvent::NominationRevoked(acc,amt_unstaked,validator,new_total));
+			Self::deposit_event(RawEvent::NominatorScheduleExit(acc,validator,when));
+			Ok(())
+		}
+		#[weight = 0]
+		fn pay_fees(
+			origin,
+			validator: T::AccountId,
+		) -> DispatchResult {
+			let payer = ensure_signed(origin)?;
+			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
+			ensure!(!state.innocent(), Error::<T>::AlreadyInnocent);
+			let mut idle = false;
+			let fee = match state.slash {
+				Slash::Remove => {
+					idle = true;
+					// pay slash penalty to exculpate validator
+					T::SlashPct::get() * state.total
+				},
+				Slash::Strike(strikes) => {
+					T::StrikeFee::get() * (strikes as u32).into()
+				}
+			};
+			T::Currency::transfer(&payer,&Self::treasury(),fee,ExistenceRequirement::KeepAlive)?;
+			state.reset_strikes();
+			if idle {
+				state.activate();
+			}
+			<Candidates<T>>::insert(&validator,state);
+			Self::deposit_event(RawEvent::FeesPaidOff(validator));
 			Ok(())
 		}
 		#[weight = 0]
@@ -578,7 +657,7 @@ impl<T: Config> Module<T> {
 			let _ = T::SessionInterface::disable_validator(&acc);
 		};
 		// apply queued slashes and choose next validator set
-		for (acc, info) in <Candidates<T>>::iter() {
+		for (acc, mut info) in <Candidates<T>>::iter() {
 			// First, apply all slashes
 			match info.slash {
 				Slash::Remove => {
@@ -592,11 +671,56 @@ impl<T: Config> Module<T> {
 					}
 				}
 			}
+			// Next, remove all pending validator exits
+			if let ValStatus::Leaving(b) = info.state {
+				if b < block {
+					if info.innocent() {
+						for Nomination { owner, amount } in info.nominations.clone() {
+							// return stake
+							let _ = T::Currency::unreserve(&owner, amount);
+						}
+						let new_total_locked = <TotalLocked<T>>::get() - info.total;
+						<TotalLocked<T>>::put(new_total_locked);
+						<Candidates<T>>::remove(&acc);
+						Self::deposit_event(RawEvent::ValidatorLeft(
+							acc.clone(),
+							info.total,
+							new_total_locked,
+						));
+					} // TODO: log if not innocent so the validator knows to pay off fees
+				}
+			}
+			// Next, execute all pending nominator exits
+			for ExitRequest { nomination, when } in info.exits.clone() {
+				if when < block {
+					let new_total = info.total - nomination.amount;
+					// remove nomination
+					info.nominations.retain(|x| x != &nomination);
+					let (owner, amount) = (nomination.owner.clone(), nomination.amount);
+					info.exits.retain(|x| {
+						x != &ExitRequest {
+							nomination: nomination.clone(),
+							when,
+						}
+					});
+					info.total = new_total;
+					let new_total_locked = <TotalLocked<T>>::get() - amount; // TODO: saturating_sub
+														 // return stake
+					let _ = T::Currency::unreserve(&owner, amount);
+					<TotalLocked<T>>::put(new_total_locked);
+					<Candidates<T>>::insert(&acc, info.clone());
+					Self::deposit_event(RawEvent::NominatorLeft(
+						owner,
+						amount,
+						acc.clone(),
+						new_total,
+					));
+				}
+			}
 			if val_count >= max_vals {
 				continue; // skip validator selection if so
 			}
-			// Next, choose the next validator set
-			// it is all not offline validators above minimum validator capital threshold
+			// Finally, choose the next validator set
 			// -> these validators are exposed to slashing risk for next round
 			let num_noms = info.nominations.len();
 			let total = info.total;
@@ -617,26 +741,6 @@ impl<T: Config> Module<T> {
 		<Round>::put(round);
 		<TotalStake<T>>::insert(round, total_at_stake);
 		Self::deposit_event(RawEvent::NewRound(block, round, val_count, total_at_stake));
-	}
-	fn return_nominations(validator: T::AccountId) -> DispatchResult {
-		let state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
-		ensure!(
-			state.innocent(),
-			Error::<T>::CannotRevokeIfValidatorAwaitingSlash
-		);
-		for Nomination { owner, amount } in state.nominations {
-			// return stake
-			let _ = T::Currency::unreserve(&owner, amount);
-		}
-		let new_total_locked = <TotalLocked<T>>::get() - state.total;
-		<TotalLocked<T>>::put(new_total_locked);
-		<Candidates<T>>::remove(&validator);
-		Self::deposit_event(RawEvent::ValidatorLeft(
-			validator,
-			state.total,
-			new_total_locked,
-		));
-		Ok(())
 	}
 	fn slash_staker(validator: T::AccountId, round: RoundIndex, ty: Slash) -> DispatchResult {
 		let mut val = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;

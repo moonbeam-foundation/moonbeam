@@ -131,3 +131,128 @@ fn join_candidates_works() {
 		);
 	});
 }
+
+#[test]
+fn online_offline_behaves() {
+	genesis().execute_with(|| {
+		roll_to(4);
+		assert_noop!(
+			Stake::go_offline(Origin::signed(3)),
+			Error::<Test>::CandidateDNE
+		);
+		roll_to(11);
+		assert_noop!(
+			Stake::go_online(Origin::signed(3)),
+			Error::<Test>::CandidateDNE
+		);
+		assert_noop!(
+			Stake::go_online(Origin::signed(2)),
+			Error::<Test>::AlreadyActive
+		);
+		assert_ok!(Stake::go_offline(Origin::signed(2)));
+		assert_eq!(
+			last_event(),
+			MetaEvent::stake(RawEvent::ValidatorOffline(3, 2))
+		);
+		roll_to(21);
+		let events = Sys::events()
+			.into_iter()
+			.map(|r| r.event)
+			.filter_map(|e| {
+				if let MetaEvent::stake(inner) = e {
+					Some(inner)
+				} else {
+					None
+				}
+			})
+			.collect::<Vec<_>>();
+		let mut expected = vec![
+			RawEvent::ValidatorChosen(2, 1, 700),
+			RawEvent::ValidatorChosen(2, 2, 400),
+			RawEvent::NewRound(5, 2, 2, 1100),
+			RawEvent::ValidatorChosen(3, 1, 700),
+			RawEvent::ValidatorChosen(3, 2, 400),
+			RawEvent::NewRound(10, 3, 2, 1100),
+			RawEvent::ValidatorOffline(3, 2),
+			RawEvent::ValidatorChosen(4, 1, 700),
+			RawEvent::NewRound(15, 4, 1, 700),
+			RawEvent::ValidatorChosen(5, 1, 700),
+			RawEvent::NewRound(20, 5, 1, 700),
+		];
+		assert_eq!(events, expected);
+		assert_noop!(
+			Stake::go_offline(Origin::signed(2)),
+			Error::<Test>::AlreadyOffline
+		);
+		assert_ok!(Stake::go_online(Origin::signed(2)));
+		assert_eq!(
+			last_event(),
+			MetaEvent::stake(RawEvent::ValidatorActivated(5, 2))
+		);
+		expected.push(RawEvent::ValidatorActivated(5, 2));
+		roll_to(26);
+		expected.push(RawEvent::ValidatorChosen(6, 1, 700));
+		expected.push(RawEvent::ValidatorChosen(6, 2, 400));
+		expected.push(RawEvent::NewRound(25, 6, 2, 1100));
+		let events = Sys::events()
+			.into_iter()
+			.map(|r| r.event)
+			.filter_map(|e| {
+				if let MetaEvent::stake(inner) = e {
+					Some(inner)
+				} else {
+					None
+				}
+			})
+			.collect::<Vec<_>>();
+		assert_eq!(events, expected);
+	});
+}
+
+#[test]
+fn validator_exit_enforces_slash_window_delay() {
+	genesis().execute_with(|| {
+		roll_to(4);
+		assert_noop!(
+			Stake::request_exit(Origin::signed(3)),
+			Error::<Test>::CandidateDNE
+		);
+		roll_to(8);
+		assert_ok!(Stake::request_exit(Origin::signed(2)));
+		assert_eq!(
+			last_event(),
+			MetaEvent::stake(RawEvent::ValidatorScheduledExit(2, 18, 400))
+		);
+		let info = Stake::candidates(&2).unwrap();
+		assert_eq!(info.state, ValStatus::Leaving(18));
+		roll_to(21);
+		let events = Sys::events()
+			.into_iter()
+			.map(|r| r.event)
+			.filter_map(|e| {
+				if let MetaEvent::stake(inner) = e {
+					Some(inner)
+				} else {
+					None
+				}
+			})
+			.collect::<Vec<_>>();
+		// we must exclude leaving validators from rewards while
+		// holding them retroactively accountable for previous faults
+		// (within the last T::SlashingWindow blocks)
+		let expected = vec![
+			RawEvent::ValidatorChosen(2, 1, 700),
+			RawEvent::ValidatorChosen(2, 2, 400),
+			RawEvent::NewRound(5, 2, 2, 1100),
+			RawEvent::ValidatorScheduledExit(2, 18, 400),
+			RawEvent::ValidatorChosen(3, 1, 700),
+			RawEvent::NewRound(10, 3, 1, 700),
+			RawEvent::ValidatorChosen(4, 1, 700),
+			RawEvent::NewRound(15, 4, 1, 700),
+			RawEvent::ValidatorChosen(5, 1, 700),
+			RawEvent::ValidatorLeft(2, 400, 0),
+			RawEvent::NewRound(20, 5, 1, 700),
+		];
+		assert_eq!(events, expected);
+	});
+}
