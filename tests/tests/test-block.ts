@@ -122,19 +122,19 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
   // the maximum number of tx/ blocks is not constant but is always around 1500
 
   it("should be able to fill a block with a 1 tx", async function () {
-    this.timeout(0);
+    this.timeout(10000);
     let { txPassedFirstBlock } = await fillBlockWithTx(context, 1);
     expect(txPassedFirstBlock).to.eq(1);
   });
 
   it("should be able to fill a block with a 1000 tx", async function () {
-    this.timeout(0);
+    this.timeout(10000);
     let { txPassedFirstBlock } = await fillBlockWithTx(context, 1000);
     expect(txPassedFirstBlock).to.eq(1000);
   });
 
   it("should be able to fill a block with 1000 contract creations tx", async function () {
-    this.timeout(0);
+    this.timeout(10000);
     let { txPassedFirstBlock } = await fillBlockWithTx(context, 1000, contractCreation);
     expect(txPassedFirstBlock).to.eq(1000);
   });
@@ -144,26 +144,26 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
 
   it("should be able to send 8192 tx to the pool and have them all published\
   within the following blocks", async function () {
-    this.timeout(0);
+    this.timeout(20000);
     let { txPassed } = await fillBlockWithTx(context, 8192);
     expect(txPassed).to.eq(8192);
   });
 
   it("but shouldn't work for 8193", async function () {
-    this.timeout(0);
+    this.timeout(20000);
     let { txPassed } = await fillBlockWithTx(context, 8193);
     expect(txPassed).to.eq(0);
   });
 
   it("should be able to send 8192 tx to the pool and have them all published\
   within the following blocks - bigger tx", async function () {
-    this.timeout(0);
+    this.timeout(40000);
     let { txPassed } = await fillBlockWithTx(context, 8192, contractCreation);
     expect(txPassed).to.eq(8192);
   });
 
   it("but shouldn't work for 8193 - bigger tx", async function () {
-    this.timeout(0);
+    this.timeout(150000);
     let { txPassed } = await fillBlockWithTx(context, 8193, contractCreation);
     expect(txPassed).to.eq(0);
   });
