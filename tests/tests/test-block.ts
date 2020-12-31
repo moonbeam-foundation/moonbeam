@@ -144,26 +144,26 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
 
   it("should be able to send 8192 tx to the pool and have them all published\
   within the following blocks", async function () {
-    this.timeout(20000);
+    this.timeout(40000);
     let { txPassed } = await fillBlockWithTx(context, 8192);
     expect(txPassed).to.eq(8192);
   });
 
   it("but shouldn't work for 8193", async function () {
-    this.timeout(20000);
+    this.timeout(40000);
     let { txPassed } = await fillBlockWithTx(context, 8193);
     expect(txPassed).to.eq(0);
   });
 
   it("should be able to send 8192 tx to the pool and have them all published\
   within the following blocks - bigger tx", async function () {
-    this.timeout(40000);
+    this.timeout(60000);
     let { txPassed } = await fillBlockWithTx(context, 8192, contractCreation);
     expect(txPassed).to.eq(8192);
   });
 
   it("but shouldn't work for 8193 - bigger tx", async function () {
-    this.timeout(150000);
+    this.timeout(40000);
     let { txPassed } = await fillBlockWithTx(context, 8193, contractCreation);
     expect(txPassed).to.eq(0);
   });
