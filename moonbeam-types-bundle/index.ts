@@ -1,4 +1,7 @@
-import type { OverrideBundleDefinition, OverrideBundleType } from "@polkadot/types/types";
+import type {
+  OverrideBundleDefinition,
+  OverrideBundleType,
+} from "@polkadot/api/node_modules/@polkadot/types/types";
 export const moonbeamDefinitions = {
   types: [
     {
