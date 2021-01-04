@@ -17,13 +17,13 @@
 use cumulus_primitives::ParaId;
 use moonbeam_runtime::{
 	AccountId, BalancesConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig, GenesisConfig,
-	ParachainInfoConfig, SudoConfig, SystemConfig, WASM_BINARY, Signature,
+	ParachainInfoConfig, Signature, SudoConfig, SystemConfig, WASM_BINARY,
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
 use sp_core::{ecdsa, Pair, Public};
-use sp_runtime::traits::{Verify, IdentifyAccount};
+use sp_runtime::traits::{IdentifyAccount, Verify};
 use std::collections::BTreeMap;
 use std::str::FromStr;
 
@@ -40,8 +40,9 @@ pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Pu
 type AccountPublic = <Signature as Verify>::Signer;
 
 /// Generate an account ID from seed.
-pub fn get_account_id_from_seed<TPublic: Public>(seed: &str) -> AccountId where
-	AccountPublic: From<<TPublic::Pair as Pair>::Public>
+pub fn get_account_id_from_seed<TPublic: Public>(seed: &str) -> AccountId
+where
+	AccountPublic: From<<TPublic::Pair as Pair>::Public>,
 {
 	AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
 }
@@ -75,7 +76,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 					get_account_id_from_seed::<ecdsa::Public>("Alice"),
 					get_account_id_from_seed::<ecdsa::Public>("Bob"),
 					// The old Gerald account bots, tests, etc don't break
-					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()
+					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
 				],
 				para_id,
 				1280, //ChainId
