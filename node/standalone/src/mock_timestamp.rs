@@ -24,14 +24,13 @@
 // This code was taken from https://github.com/paritytech/frontier/pull/170
 // When moonbeam updates to a Frontier version that includes that PR, we should re-evaluate
 // whether it makes sense to keep this here.
-
 use sp_inherents::{InherentData, InherentIdentifier, ProvideInherentData};
 use sp_timestamp::InherentError;
 use std::cell::RefCell;
 
 use moonbeam_runtime::MINIMUM_PERIOD;
 
-const SLOT_DURATION : u64 = MINIMUM_PERIOD * 2;
+const SLOT_DURATION: u64 = MINIMUM_PERIOD * 2;
 
 /// Provide a mock duration starting at 0 in millisecond for timestamp inherent.
 /// Each call will increment timestamp by slot_duration making Aura think time has passed.

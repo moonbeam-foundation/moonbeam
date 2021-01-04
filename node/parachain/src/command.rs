@@ -24,8 +24,8 @@ use log::info;
 use moonbeam_runtime::Block;
 use polkadot_parachain::primitives::AccountIdConversion;
 use sc_cli::{
-	ChainSpec, CliConfiguration, ImportParams, KeystoreParams, NetworkParams, Result,
-	RuntimeVersion, SharedParams, SubstrateCli, DefaultConfigurationValues,
+	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
+	NetworkParams, Result, RuntimeVersion, SharedParams, SubstrateCli,
 };
 use sc_service::{
 	config::{BasePath, PrometheusConfig},
@@ -117,8 +117,7 @@ impl SubstrateCli for RelayChainCli {
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-		polkadot_cli::Cli::from_iter([RelayChainCli::executable_name().to_string()].iter())
-			.load_spec(id)
+		polkadot_cli::Cli::from_iter([RelayChainCli::executable_name()].iter()).load_spec(id)
 	}
 
 	fn native_runtime_version(chain_spec: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
@@ -126,6 +125,7 @@ impl SubstrateCli for RelayChainCli {
 	}
 }
 
+#[allow(clippy::borrowed_box)]
 fn extract_genesis_wasm(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Result<Vec<u8>> {
 	let mut storage = chain_spec.build_storage()?;
 
@@ -254,14 +254,14 @@ pub fn run() -> Result<()> {
 				// TODO
 				let key = sp_core::Pair::generate().0;
 
-				let extension = chain_spec::Extensions::try_get(&config.chain_spec);
+				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
 				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
 				let para_id = extension.map(|e| e.para_id);
 
 				let polkadot_cli = RelayChainCli::new(
 					config.base_path.as_ref().map(|x| x.path().join("polkadot")),
 					relay_chain_id,
-					[RelayChainCli::executable_name().to_string()]
+					[RelayChainCli::executable_name()]
 						.iter()
 						.chain(cli.relaychain_args.iter()),
 				);

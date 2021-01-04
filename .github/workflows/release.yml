@@ -98,6 +98,36 @@ jobs:
       - name: Check with Prettier
         run: npx prettier --check --ignore-path .gitignore  '**/*.(yml|js|ts|json)'
 
+  check-clippy:
+    name: "Code checks"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+
+      - name: Checkout
+        if: github.event_name != 'pull_request_target'
+        uses: actions/checkout@v2
+
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly-2020-10-03
+          components: clippy, rustfmt
+          target: wasm32-unknown-unknown
+          default: true
+
+          # - name: Check with Clippy
+        # run: cargo clippy --workspace --tests -- -D warnings
+
+      - name: Format code with rustfmt
+        run: cargo fmt -- --check
+
   ####### Building and Testing binaries #######
 
   build:

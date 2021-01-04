@@ -18,6 +18,8 @@ use cumulus_network::build_block_announce_validator;
 use cumulus_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
+use frontier_consensus::FrontierBlockImport;
+use moonbeam_runtime::{opaque::Block, RuntimeApi};
 use polkadot_primitives::v0::CollatorPair;
 use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
@@ -26,8 +28,6 @@ use sp_core::Pair;
 use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
 use std::sync::Arc;
-use frontier_consensus::FrontierBlockImport;
-use moonbeam_runtime::{RuntimeApi, opaque::Block};
 // Our native executor instance.
 native_executor_instance!(
 	pub Executor,
@@ -42,6 +42,7 @@ type FullBackend = TFullBackend<Block>;
 ///
 /// Use this macro if you don't actually need the full service, but just the builder in order to
 /// be able to perform chain operations.
+#[allow(clippy::type_complexity)]
 pub fn new_partial(
 	config: &Configuration,
 ) -> Result<
@@ -49,19 +50,9 @@ pub fn new_partial(
 		FullClient,
 		FullBackend,
 		(),
-		sp_consensus::import_queue::BasicQueue<
-			Block,
-			PrefixedMemoryDB<BlakeTwo256>,
-		>,
-		sc_transaction_pool::FullPool<
-			Block,
-			FullClient,
-		>,
-		FrontierBlockImport<
-			Block,
-			Arc<FullClient>,
-			FullClient,
-		>,
+		sp_consensus::import_queue::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
+		sc_transaction_pool::FullPool<Block, FullClient>,
+		FrontierBlockImport<Block, Arc<FullClient>, FullClient>,
 	>,
 	sc_service::Error,
 > {
@@ -80,18 +71,14 @@ pub fn new_partial(
 		client.clone(),
 	);
 
-	let frontier_block_import = FrontierBlockImport::new(
-		client.clone(),
-		client.clone(),
-		true
-	);
+	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone(), true);
 
 	let import_queue = cumulus_consensus::import_queue::import_queue(
 		client.clone(),
 		frontier_block_import.clone(),
 		inherent_data_providers.clone(),
 		&task_manager.spawn_handle(),
-		registry.clone(),
+		registry,
 	)?;
 
 	let params = PartialComponents {
@@ -119,7 +106,7 @@ async fn start_node_impl<RB>(
 	id: polkadot_primitives::v0::Id,
 	validator: bool,
 	_rpc_ext_builder: RB,
-) -> sc_service::error::Result<(TaskManager,Arc<FullClient>)>
+) -> sc_service::error::Result<(TaskManager, Arc<FullClient>)>
 where
 	RB: Fn(
 			Arc<TFullClient<Block, RuntimeApi, Executor>>,
@@ -163,13 +150,13 @@ where
 	let block_import = params.other;
 	let (network, network_status_sinks, system_rpc_tx, start_network) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
-				config: &parachain_config,
-				client: client.clone(),
-				transaction_pool: transaction_pool.clone(),
-				spawn_handle: task_manager.spawn_handle(),
-				import_queue,
-				on_demand: None,
-				block_announce_validator_builder: Some(Box::new(|_| block_announce_validator)),
+			config: &parachain_config,
+			client: client.clone(),
+			transaction_pool: transaction_pool.clone(),
+			spawn_handle: task_manager.spawn_handle(),
+			import_queue,
+			on_demand: None,
+			block_announce_validator_builder: Some(Box::new(|_| block_announce_validator)),
 		})?;
 
 	let is_authority = parachain_config.role.is_authority();
@@ -191,17 +178,14 @@ where
 				command_sink: None,
 			};
 
-			moonbeam_rpc::create_full(
-				deps,
-				subscription_task_executor.clone()
-			)
+			moonbeam_rpc::create_full(deps, subscription_task_executor.clone())
 		})
 	};
 
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		on_demand: None,
 		remote_blockchain: None,
-		rpc_extensions_builder: rpc_extensions_builder,
+		rpc_extensions_builder,
 		client: client.clone(),
 		transaction_pool: transaction_pool.clone(),
 		task_manager: &mut task_manager,
@@ -232,7 +216,7 @@ where
 
 		let params = StartCollatorParams {
 			para_id: id,
-			block_import: block_import,
+			block_import,
 			proposer_factory,
 			inherent_data_providers: params.inherent_data_providers,
 			block_status: client.clone(),
