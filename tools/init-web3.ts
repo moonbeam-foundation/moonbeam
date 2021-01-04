@@ -1,5 +1,7 @@
 import Web3 from "web3";
 import { Account } from "web3-core";
+import solc from "solc";
+import { JsonRpcResponse } from "web3-core-helpers";
 
 import * as RLP from "rlp";
 import * as web3Utils from "web3-utils";
@@ -127,6 +129,58 @@ export const importAccount = (privateKey: string) => {
   const storageKey = web3Utils.sha3("0x".concat(mapKey.concat(mapStorageSlot)));
   return { ...account, storageKey };
 };
+
+export function compileSolidity(contractContent: string, contractName: string = "Test") {
+  let result = JSON.parse(
+    solc.compile(
+      JSON.stringify({
+        language: "Solidity",
+        sources: {
+          "main.sol": {
+            content: contractContent,
+          },
+        },
+        settings: {
+          outputSelection: {
+            "*": {
+              "*": ["*"],
+            },
+          },
+        },
+      })
+    )
+  );
+
+  const contract = result.contracts["main.sol"][contractName];
+  return {
+    bytecode: "0x" + contract.evm.bytecode.object,
+    contract,
+  };
+}
+
+// make a web3 request, adapted to manual seal testing
+export async function customRequest(method: string, params: any[]) {
+  return new Promise<JsonRpcResponse>((resolve, reject) => {
+    (web3.currentProvider as any).send(
+      {
+        jsonrpc: "2.0",
+        id: 1,
+        method,
+        params,
+      },
+      (error: Error | null, result?: JsonRpcResponse) => {
+        if (error) {
+          reject(
+            `Failed to send custom request (${method} (${params.join(",")})): ${
+              error.message || error.toString()
+            }`
+          );
+        }
+        resolve(result);
+      }
+    );
+  });
+}
 
 export const init = (url = "http://localhost:9933") => {
   web3 = new Web3(url);
