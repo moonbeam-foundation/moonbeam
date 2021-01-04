@@ -17,16 +17,34 @@
 use cumulus_primitives::ParaId;
 use moonbeam_runtime::{
 	AccountId, BalancesConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig, GenesisConfig,
-	ParachainInfoConfig, SudoConfig, SystemConfig, WASM_BINARY,
+	ParachainInfoConfig, SudoConfig, SystemConfig, WASM_BINARY, Signature,
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
+use sp_core::{ecdsa, Pair, Public};
+use sp_runtime::traits::{Verify, IdentifyAccount};
 use std::collections::BTreeMap;
 use std::str::FromStr;
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
+
+/// Generate a crypto pair from seed.
+pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
+	TPublic::Pair::from_string(&format!("//{}", seed), None)
+		.expect("static values are valid; qed")
+		.public()
+}
+
+type AccountPublic = <Signature as Verify>::Signer;
+
+/// Generate an account ID from seed.
+pub fn get_account_id_from_seed<TPublic: Public>(seed: &str) -> AccountId where
+	AccountPublic: From<<TPublic::Pair as Pair>::Public>
+{
+	AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
+}
 
 /// The extensions for the [`ChainSpec`].
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
@@ -49,11 +67,16 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 	ChainSpec::from_genesis(
 		"Moonbase Parachain Local Testnet",
 		"local_testnet",
-		ChainType::Local,
+		ChainType::Development,
 		move || {
 			testnet_genesis(
-				AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
-				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
+				get_account_id_from_seed::<ecdsa::Public>("Alice"),
+				vec![
+					get_account_id_from_seed::<ecdsa::Public>("Alice"),
+					get_account_id_from_seed::<ecdsa::Public>("Bob"),
+					// The old Gerald account bots, tests, etc don't break
+					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()
+				],
 				para_id,
 				1280, //ChainId
 			)

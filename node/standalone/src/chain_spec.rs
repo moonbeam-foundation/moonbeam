@@ -16,12 +16,13 @@
 
 use moonbeam_runtime::{
 	AccountId, AuraConfig, BalancesConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig,
-	GenesisConfig, GrandpaConfig, SudoConfig, SystemConfig, WASM_BINARY,
+	GenesisConfig, GrandpaConfig, SudoConfig, SystemConfig, WASM_BINARY, Signature,
 };
 use sc_service::ChainType;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-use sp_core::{Pair, Public};
+use sp_core::{Pair, Public, ecdsa};
 use sp_finality_grandpa::AuthorityId as GrandpaId;
+use sp_runtime::traits::{Verify, IdentifyAccount};
 use std::collections::BTreeMap;
 use std::str::FromStr;
 
@@ -36,6 +37,15 @@ pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Pu
 	TPublic::Pair::from_string(&format!("//{}", seed), None)
 		.expect("static values are valid; qed")
 		.public()
+}
+
+type AccountPublic = <Signature as Verify>::Signer;
+
+/// Generate an account ID from seed.
+pub fn get_account_id_from_seed<TPublic: Public>(seed: &str) -> AccountId where
+	AccountPublic: From<<TPublic::Pair as Pair>::Public>
+{
+	AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
 }
 
 /// Generate an Aura authority key.
@@ -58,9 +68,14 @@ pub fn development_config() -> Result<ChainSpec, String> {
 				// Initial PoA authorities
 				vec![authority_keys_from_seed("Alice")],
 				// Sudo account
-				AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
+				get_account_id_from_seed::<ecdsa::Public>("Alice"),
 				// Pre-funded accounts
-				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
+				vec![
+					get_account_id_from_seed::<ecdsa::Public>("Alice"),
+					get_account_id_from_seed::<ecdsa::Public>("Bob"),
+					// The old Gerald account bots, tests, etc don't break
+					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()
+				],
 				true,
 				1281, // ChainId
 			)
