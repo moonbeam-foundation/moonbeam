@@ -4,10 +4,9 @@ import yargs from "yargs";
 import * as rlp from "rlp";
 
 const argv = yargs(process.argv.slice(2))
-  .usage("Usage: $0  [--net stagenet] [--step 10]")
+  .usage("Usage: $0  [--net stagenet]")
   .version("1.0.0")
   .options({
-    step: { type: "number", default: 10 },
     net: { type: "string", default: "stagenet" },
   }).argv;
 
@@ -101,7 +100,7 @@ const callContract = async (loopCount: number) => {
       to: contractAddress,
       data: encoded,
       gasPrice: 0,
-      gas: 12000000,
+      gas: "9627370496",
       nonce: 0,
     },
     freshAccount.privateKey
@@ -130,9 +129,10 @@ const callContract = async (loopCount: number) => {
 
 const main = async () => {
   await deployContract();
-  let loopCount = 1;
-  while (true) {
-    await callContract(loopCount++ * argv.step);
+  let loopCount = 2;
+  while (loopCount > 0) {
+    await callContract(loopCount);
+    loopCount *= 2;
   }
 };
 
