@@ -87,6 +87,7 @@ where
 	P: TransactionPool<Block = Block> + 'static,
 {
 	use frontier_rpc::{NetApi, NetApiServer, Web3Api, Web3ApiServer};
+	use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
 	use substrate_frame_rpc_system::{FullSystem, SystemApi};
 	// Our drop in replacements for the Eth APIs. These can be removed after
@@ -138,6 +139,7 @@ where
 			Arc::new(subscription_task_executor),
 		),
 	)));
+	io.extend_with(TxPoolServer::to_delegate(TxPool::new()));
 
 	if let Some(command_sink) = command_sink {
 		io.extend_with(
