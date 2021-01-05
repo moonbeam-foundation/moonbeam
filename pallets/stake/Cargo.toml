@@ -8,7 +8,6 @@ description = "staking pallet for validator selection and rewards"
 [dependencies]
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
-orml-utilities = { version = "0.3.2", default-features = false }
 pallet-authorship = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
 pallet-session = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
@@ -27,7 +26,6 @@ default = ["std"]
 std = [
 	"frame-support/std",
 	"frame-system/std",
-	"orml-utilities/std",
 	"pallet-authorship/std",
 	"pallet-balances/std",
 	"pallet-session/std",
