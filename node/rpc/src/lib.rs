@@ -131,7 +131,7 @@ where
 	)));
 	io.extend_with(Web3ApiServer::to_delegate(Web3Api::new(client.clone())));
 	io.extend_with(EthPubSubApiServer::to_delegate(EthPubSubApi::new(
-		pool,
+		pool.clone(),
 		client,
 		network,
 		SubscriptionManager::<HexEncodedIdProvider>::with_id_provider(
@@ -139,7 +139,7 @@ where
 			Arc::new(subscription_task_executor),
 		),
 	)));
-	io.extend_with(TxPoolServer::to_delegate(TxPool::new()));
+	io.extend_with(TxPoolServer::to_delegate(TxPool::new(pool)));
 
 	if let Some(command_sink) = command_sink {
 		io.extend_with(
