@@ -292,6 +292,33 @@ impl pallet_ethereum::Config for Runtime {
 	type FindAuthor = EthereumFindAuthor<Aura>;
 }
 
+parameter_types! {
+	// We aren't considering uncles at all at this point. Just focused on the author.
+	pub const UncleGenerations: BlockNumber = 0;
+}
+
+// This is an attempt to make Polkadot js apps display the author of the block. I don't know for
+// sure whether this pallet is how Apps even detects the author
+impl pallet_authorship::Config for Runtime {
+	// TODO this conditional find author is duplicated with the above trait.
+	// There are two options to get past this in the short term.
+	// 1. Aliases in the two conditional files like `type FindAuthor = EthereumFindAuthor<Aura>;`
+	// 2. Use the inherent-base approach everywhere. Before we dive for this, let's see how well
+	//    it works with the rest of the substrate ecosystem.
+	#[cfg(not(feature = "standalone"))]
+	type FindAuthor = AuthorshipInherent;
+	#[cfg(feature = "standalone")]
+	type FindAuthor = EthereumFindAuthor<Aura>;
+
+	type UncleGenerations = UncleGenerations;
+	type FilterUncle = ();
+
+	// This is not going to work for us. These handlers are notified i non_initialize, but, since we
+	// are using an inherent, the author won't be set until after on_initialize.
+	// In fact, this will notify about the author of the previous block, which we still have set.
+	type EventHandler = ();
+}
+
 #[cfg(feature = "standalone")]
 runtime_standalone!();
 

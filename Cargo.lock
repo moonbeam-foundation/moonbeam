@@ -4132,6 +4132,7 @@ dependencies = [
  "hex-literal",
  "log",
  "pallet-aura",
+ "pallet-authorship",
  "pallet-balances",
  "pallet-ethereum",
  "pallet-ethereum-chain-id",

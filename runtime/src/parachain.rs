@@ -77,6 +77,7 @@ macro_rules! runtime_parachain {
 				EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
 				Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 				AuthorshipInherent: author::{Module, Call, Storage, Inherent},
+				PalletAuthorship: pallet_authorship::{Module, Call, Storage, Inherent},
 			}
 		}
 	};
