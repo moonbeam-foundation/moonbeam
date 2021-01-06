@@ -49,7 +49,10 @@ use sp_api::impl_runtime_apis;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Saturating, Verify},
+	traits::{
+		BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, OpaqueKeys, Saturating,
+		Verify,
+	},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult,
 };
@@ -290,6 +293,60 @@ impl pallet_ethereum::Config for Runtime {
 	type FindAuthor = EthereumFindAuthor<PhantomAura>;
 	#[cfg(feature = "standalone")]
 	type FindAuthor = EthereumFindAuthor<Aura>;
+}
+
+parameter_types! {
+	pub const DisabledValidatorsThreshold: Perbill = Perbill::from_percent(17);
+	pub const Period: BlockNumber = 5;
+	pub const Offset: BlockNumber = 0;
+}
+#[cfg(feature = "standalone")]
+impl pallet_session::Config for Runtime {
+	type Event = Event;
+	type ValidatorId = AccountId;
+	type ValidatorIdOf = stake::StashOf<Runtime>;
+	type ShouldEndSession = pallet_session::PeriodicSessions<Period, Offset>;
+	type NextSessionRotation = ();
+	type SessionManager = pallet_session::historical::NoteHistoricalRoot<Runtime, Stake>;
+	type SessionHandler = <crate::opaque::SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
+	type Keys = crate::opaque::SessionKeys;
+	type DisabledValidatorsThreshold = DisabledValidatorsThreshold;
+	type WeightInfo = ();
+}
+#[cfg(feature = "standalone")]
+impl pallet_session::historical::Config for Runtime {
+	type FullIdentification = pallet_staking::Exposure<AccountId, Balance>;
+	type FullIdentificationOf = stake::ExposureOf<Runtime>;
+}
+
+parameter_types! {
+	pub const BlocksPerRound: u32 = 5;
+	pub const BondDuration: u32 = 2;
+	pub const MaxValidators: u32 = 5;
+	pub const MaxNominatorsPerValidator: usize = 10;
+	pub const MaxFee: Perbill = Perbill::from_percent(50);
+	pub const MinValidatorStk: u128 = 10;
+	pub const MinNominatorStk: u128 = 5;
+}
+#[cfg(feature = "standalone")]
+impl stake::Config for Runtime {
+	type Event = Event;
+	type Currency = Balances;
+	type SessionInterface = Self;
+	type NextNewSession = pallet_session::Module<Runtime>;
+	type BlocksPerRound = BlocksPerRound;
+	type BondDuration = BondDuration;
+	type MaxValidators = MaxValidators;
+	type MaxNominatorsPerValidator = MaxNominatorsPerValidator;
+	type MaxFee = MaxFee;
+	type MinValidatorStk = MinValidatorStk;
+	type MinNominatorStk = MinNominatorStk;
+}
+#[cfg(feature = "standalone")]
+impl author::Config for Runtime {
+	type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Aura>;
+	type EventHandler = Stake;
+	type Account = account::EthereumSigner;
 }
 
 #[cfg(feature = "standalone")]

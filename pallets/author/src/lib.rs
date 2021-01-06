@@ -23,7 +23,7 @@ pub trait Config: System {
 	type FindAuthor: FindAuthor<Self::AccountId>;
 	/// An event handler for authored blocks.
 	type EventHandler: EventHandler<Self::AccountId>;
-	/// A workaround for converting ecdsa::Public to AccountId
+	/// A workaround for converting ecdsa::Public to AccountId, inside a pallet
 	type Account: From<ecdsa::Public> + Into<Self::AccountId>;
 }
 

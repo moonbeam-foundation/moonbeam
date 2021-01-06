@@ -501,28 +501,16 @@ impl<T: Config> Module<T> {
 }
 
 /// Add reward points to block authors:
-/// * 20 points to the block producer for producing a (non-uncle) block in the relay chain,
-/// * 2 points to the block producer for each reference to a previously unreferenced uncle, and
-/// * 1 point to the producer of each referenced uncle block.
-impl<T> pallet_authorship::EventHandler<T::AccountId, T::BlockNumber> for Module<T>
+/// * 20 points to the block producer for producing a block in the chain
+impl<T> author::EventHandler<T::AccountId> for Module<T>
 where
-	T: Config + pallet_authorship::Config + pallet_session::Config,
+	T: Config + author::Config + pallet_session::Config,
 {
 	fn note_author(author: T::AccountId) {
 		let now = <Round>::get();
 		let score_plus_20 = <AwardedPts<T>>::get(now, &author) + 20;
 		<AwardedPts<T>>::insert(now, author, score_plus_20);
 		<Points>::mutate(now, |x| *x += 20);
-	}
-	// TODO: what is the necessary ratio between uncle rewards and uncle reporting rewards
-	fn note_uncle(author: T::AccountId, _age: T::BlockNumber) {
-		let now = <Round>::get();
-		let p_auth = <pallet_authorship::Module<T>>::author();
-		let score_plus_2 = <AwardedPts<T>>::get(now, &p_auth) + 2;
-		let score_plus_1 = <AwardedPts<T>>::get(now, &author) + 1;
-		<AwardedPts<T>>::insert(now, p_auth, score_plus_2);
-		<AwardedPts<T>>::insert(now, author, score_plus_1);
-		<Points>::mutate(now, |x| *x += 3);
 	}
 }
 

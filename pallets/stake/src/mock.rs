@@ -157,11 +157,21 @@ impl pallet_session::historical::Config for Test {
 parameter_types! {
 	pub const UncleGenerations: u64 = 0;
 }
-impl pallet_authorship::Config for Test {
+pub struct Account(u64);
+impl From<sp_core::ecdsa::Public> for Account {
+	fn from(_other: sp_core::ecdsa::Public) -> Self {
+		Account(0u64)
+	}
+}
+impl Into<u64> for Account {
+	fn into(self) -> u64 {
+		self.0
+	}
+}
+impl author::Config for Test {
 	type FindAuthor = Author11;
-	type UncleGenerations = UncleGenerations;
-	type FilterUncle = ();
 	type EventHandler = Module<Test>;
+	type Account = Account;
 }
 parameter_types! {
 	pub const BlocksPerRound: u32 = 5;

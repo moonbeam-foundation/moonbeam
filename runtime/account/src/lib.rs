@@ -75,6 +75,12 @@ impl sp_runtime::traits::IdentifyAccount for EthereumSigner {
 	}
 }
 
+impl Into<H160> for EthereumSigner {
+	fn into(self) -> H160 {
+		self.0.into()
+	}
+}
+
 impl From<[u8; 20]> for EthereumSigner {
 	fn from(x: [u8; 20]) -> Self {
 		EthereumSigner(x)
