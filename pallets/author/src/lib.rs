@@ -13,9 +13,6 @@ use sp_runtime::RuntimeString;
 use sp_std::vec::Vec;
 
 pub trait Config: System {
-	// An event handler for authored blocks.
-	// type EventHandler: EventHandler<Self::AccountId>;
-
 	//TODO event for author set.
 }
 
