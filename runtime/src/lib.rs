@@ -43,8 +43,8 @@ use standalone::*;
 // #[cfg(not(feature = "standalone"))]
 // use parachain::*;
 
-use codec::{Decode, Encode};
-use frontier_rpc_primitives::TransactionStatus;
+use parity_scale_codec::{Decode, Encode};
+use fp_rpc::TransactionStatus;
 use sp_api::impl_runtime_apis;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
@@ -258,7 +258,7 @@ impl pallet_evm::Config for Runtime {
 
 pub struct TransactionConverter;
 
-impl frontier_rpc_primitives::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
+impl fp_rpc::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
 	fn convert_transaction(&self, transaction: pallet_ethereum::Transaction) -> UncheckedExtrinsic {
 		UncheckedExtrinsic::new_unsigned(
 			pallet_ethereum::Call::<Runtime>::transact(transaction).into(),
@@ -266,7 +266,7 @@ impl frontier_rpc_primitives::ConvertTransaction<UncheckedExtrinsic> for Transac
 	}
 }
 
-impl frontier_rpc_primitives::ConvertTransaction<opaque::UncheckedExtrinsic>
+impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic>
 	for TransactionConverter
 {
 	fn convert_transaction(
@@ -414,7 +414,7 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl frontier_rpc_primitives::EthereumRuntimeRPCApi<Block> for Runtime {
+	impl fp_rpc::EthereumRuntimeRPCApi<Block> for Runtime {
 		fn chain_id() -> u64 {
 			<Runtime as pallet_evm::Config>::ChainId::get()
 		}
