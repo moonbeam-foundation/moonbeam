@@ -84,7 +84,8 @@ impl<T: Config> FindAuthor<T::AccountId> for Module<T> {
 	where
 		I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
 	{
-		// We don't use the digests at all. That assumes an implementation, and should be removed from the trait IMO
+		// We don't use the digests at all.
+		// That assumes an implementation, and should be removed from the trait IMO
 
 		// This will only return the correct author _after_ the authorship inherent is processed. Is
 		// it valid to assume that inherents are the first extrinsics in a block? How does timestamp
