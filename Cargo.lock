@@ -4012,8 +4012,6 @@ dependencies = [
  "moonbeam-rpc",
  "moonbeam-runtime",
  "nix 0.17.0",
- "pallet-ethereum",
- "pallet-evm",
  "pallet-sudo",
  "pallet-transaction-payment-rpc",
  "parity-scale-codec",

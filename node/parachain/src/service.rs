@@ -18,7 +18,7 @@ use cumulus_network::build_block_announce_validator;
 use cumulus_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
-use frontier_consensus::FrontierBlockImport;
+use fc_consensus::FrontierBlockImport;
 use moonbeam_runtime::{opaque::Block, RuntimeApi};
 use polkadot_primitives::v0::CollatorPair;
 use sc_executor::native_executor_instance;
