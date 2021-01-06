@@ -3600,16 +3600,12 @@ name = "moonbase-standalone"
 version = "0.1.1"
 dependencies = [
  "fc-consensus",
- "fc-rpc",
- "fp-rpc",
  "futures 0.3.8",
  "jsonrpc-core 15.1.0",
  "jsonrpc-pubsub 15.1.0",
  "log",
  "moonbeam-rpc",
  "moonbeam-runtime",
- "pallet-ethereum",
- "pallet-evm",
  "pallet-transaction-payment-rpc",
  "sc-basic-authorship",
  "sc-cli",
