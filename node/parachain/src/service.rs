@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use codec::Encode;
 use cumulus_network::build_block_announce_validator;
 use cumulus_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
@@ -29,7 +30,6 @@ use sp_inherents::InherentDataProviders;
 use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
 use std::sync::Arc;
-use codec::Encode;
 // Our native executor instance.
 native_executor_instance!(
 	pub Executor,
@@ -38,7 +38,9 @@ native_executor_instance!(
 );
 
 /// Build the inherent data providers (timestamp and authorship) for the node.
-pub fn build_inherent_data_providers(author: H160) -> Result<InherentDataProviders, sc_service::Error> {
+pub fn build_inherent_data_providers(
+	author: H160,
+) -> Result<InherentDataProviders, sc_service::Error> {
 	let providers = InherentDataProviders::new();
 
 	providers
@@ -47,9 +49,7 @@ pub fn build_inherent_data_providers(author: H160) -> Result<InherentDataProvide
 		.map_err(sp_consensus::error::Error::InherentData)?;
 
 	providers
-		.register_provider(author::InherentDataProvider(
-			author.encode(),
-		))
+		.register_provider(author::InherentDataProvider(author.encode()))
 		.map_err(Into::into)
 		.map_err(sp_consensus::error::Error::InherentData)?;
 
@@ -78,7 +78,6 @@ pub fn new_partial(
 	>,
 	sc_service::Error,
 > {
-
 	// TODO this author id should not be hard coded. This is just for simple testing. We need to
 	// wire this back to the CLI.
 	let example_author = H160::from_low_u64_le(0x0123456789abcdef);

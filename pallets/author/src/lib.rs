@@ -137,12 +137,13 @@ impl<T: Config> ProvideInherent for Module<T> {
 
 	fn create_inherent(data: &InherentData) -> Option<Self::Call> {
 		// Grab the Vec<u8> labelled with "author__" from the map of all inherent data
-		let author_raw = data.get_data::<InherentType>(&INHERENT_IDENTIFIER)
+		let author_raw = data
+			.get_data::<InherentType>(&INHERENT_IDENTIFIER)
 			.expect("Gets and decodes authorship inherent data")?;
 
 		// Decode the Vec<u8> into an account Id
-		let author = T::AccountId::decode(&mut &author_raw[..])
-			.expect("Decodes author raw inherent data");
+		let author =
+			T::AccountId::decode(&mut &author_raw[..]).expect("Decodes author raw inherent data");
 
 		Some(Call::set_author(author))
 	}

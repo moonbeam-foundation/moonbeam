@@ -55,9 +55,7 @@ macro_rules! runtime_parachain {
 		// 	}
 		// }
 
-		impl author::Config for Runtime {
-
-		}
+		impl author::Config for Runtime {}
 
 		construct_runtime! {
 			pub enum Runtime where
