@@ -1,3 +1,20 @@
+// Copyright 2019-2020 PureStake Inc.
+// This file is part of Moonbeam.
+
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+
+//! Block author tracking by inherents
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::{decl_error, decl_module, decl_storage, ensure, weights::Weight};
@@ -9,7 +26,6 @@ use sp_inherents::{InherentData, InherentIdentifier, IsFatalError, ProvideInhere
 use sp_runtime::RuntimeString;
 use sp_std::vec::Vec;
 
-#[impl_trait_for_tuples::impl_for_tuples(30)]
 pub trait EventHandler<Author> {
 	/// Note that the given account ID is the author of the current block.
 	fn note_author(author: Author);

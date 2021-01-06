@@ -1,9 +1,24 @@
-#![recursion_limit = "256"]
+// Copyright 2019-2020 PureStake Inc.
+// This file is part of Moonbeam.
+
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+
 //! Minimal staking module with ordered validator selection
+#![recursion_limit = "256"]
 #![cfg_attr(not(feature = "std"), no_std)]
 
 mod set;
-
 use frame_support::{
 	decl_error, decl_event, decl_module, decl_storage, ensure,
 	traits::{Currency, Get, ReservableCurrency},
@@ -164,7 +179,7 @@ pub trait Config: System {
 	type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 	/// Blocks per round
 	type BlocksPerRound: Get<Self::BlockNumber>;
-	/// Number of rounds that candidates remain bonded after requesting exit for retroactive accountability
+	/// Number of rounds that validators remain bonded before exit request is executed
 	type BondDuration: Get<RoundIndex>;
 	/// Maximum validators per round
 	type MaxValidators: Get<u32>;
@@ -231,7 +246,7 @@ decl_storage! {
 		/// Current nominators with their validator
 		pub Nominators get(fn nominators): map
 			hasher(blake2_128_concat) T::AccountId => Option<T::AccountId>;
-		/// Current candidates with associated state (includes validator settings for all validators)
+		/// Current candidates with associated state
 		pub Candidates get(fn candidates): map
 			hasher(blake2_128_concat) T::AccountId => Option<Candidate<T>>;
 		/// Pool of candidates, ordered by account id
@@ -278,7 +293,9 @@ decl_storage! {
 			let (v_count, total_staked) = <Module<T>>::best_candidates_become_validators(1u32);
 			// start Round 1 at Block 0
 			<Round>::put(1u32);
-			<Module<T>>::deposit_event(RawEvent::NewRound(T::BlockNumber::zero(), 1u32, v_count, total_staked));
+			<Module<T>>::deposit_event(
+				RawEvent::NewRound(T::BlockNumber::zero(), 1u32, v_count, total_staked)
+			);
 		});
 	}
 }
@@ -300,7 +317,10 @@ decl_module! {
 			ensure!(fee <= T::MaxFee::get(),Error::<T>::FeeOverMax);
 			ensure!(bond >= T::MinValidatorStk::get(),Error::<T>::ValBondBelowMin);
 			let mut candidates = <CandidateQueue<T>>::get();
-			ensure!(candidates.insert(Bond{owner: acc.clone(), amount: bond}),Error::<T>::CandidateExists);
+			ensure!(
+				candidates.insert(Bond{owner: acc.clone(), amount: bond}),
+				Error::<T>::CandidateExists
+			);
 			T::Currency::reserve(&acc,bond)?;
 			let candidate: Candidate<T> = CandidateState::new(acc.clone(),fee,bond);
 			let new_total = <Total<T>>::get() + bond;
@@ -379,7 +399,10 @@ decl_module! {
 				amount,
 			};
 			ensure!(state.nominators.insert(nomination),Error::<T>::NominatorExists);
-			ensure!(state.nominators.0.len() <= T::MaxNominatorsPerValidator::get(),Error::<T>::TooManyNominators);
+			ensure!(
+				state.nominators.0.len() <= T::MaxNominatorsPerValidator::get(),
+				Error::<T>::TooManyNominators
+			);
 			T::Currency::reserve(&acc,amount)?;
 			let new_total = state.total + amount;
 			if state.is_active() {
@@ -418,7 +441,9 @@ decl_module! {
 			state.total = new_total;
 			<Candidates<T>>::insert(&validator,state);
 			<Nominators<T>>::remove(&nominator);
-			Self::deposit_event(RawEvent::NominatorLeft(nominator,validator,nominator_stake,new_total));
+			Self::deposit_event(
+				RawEvent::NominatorLeft(nominator,validator,nominator_stake,new_total)
+			);
 			Ok(())
 		}
 		fn on_finalize(n: T::BlockNumber) {
@@ -449,7 +474,10 @@ impl<T: Config> Module<T> {
 	fn update_active_candidate(candidate: T::AccountId, new_total: BalanceOf<T>) {
 		let mut candidates = <CandidateQueue<T>>::get();
 		candidates.remove(&Bond::from_owner(candidate.clone()));
-		candidates.insert(Bond{owner:candidate.clone(),amount:new_total});
+		candidates.insert(Bond {
+			owner: candidate.clone(),
+			amount: new_total,
+		});
 		<CandidateQueue<T>>::put(candidates);
 	}
 	fn execute_delayed_validator_exits(next: RoundIndex) {
