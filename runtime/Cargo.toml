@@ -61,6 +61,7 @@ cumulus-primitives = { git = "https://github.com/paritytech/cumulus",  default-f
 
 # TODO Why can't this come directly from cumulus
 parachain-info = { path = "../pallets/parachain-info", default-features = false }
+author = { path = "../pallets/author", default-features = false }
 
 [build-dependencies]
 substrate-wasm-builder = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git", branch = "master" }
@@ -106,6 +107,7 @@ std = [
 	"frame-system-rpc-runtime-api/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-ethereum-chain-id/std",
+	"author/std",
 
 	# TODO These dependencies are only necessary when building without the standalone feature. I don't
 	# see a way to express that. Everything is correct, like this, but we unnecessarily build these

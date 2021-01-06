@@ -386,6 +386,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "author"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "sp-authorship",
+ "sp-inherents",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "autocfg"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3995,6 +4009,7 @@ version = "0.1.0"
 dependencies = [
  "ansi_term 0.12.1",
  "assert_cmd",
+ "author",
  "cumulus-collator",
  "cumulus-consensus",
  "cumulus-network",
@@ -4105,6 +4120,7 @@ name = "moonbeam-runtime"
 version = "0.1.0"
 dependencies = [
  "account",
+ "author",
  "cumulus-parachain-upgrade",
  "cumulus-primitives",
  "cumulus-runtime",
