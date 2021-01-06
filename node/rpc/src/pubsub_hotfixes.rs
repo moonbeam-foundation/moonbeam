@@ -31,7 +31,6 @@ use sp_transaction_pool::TransactionPool;
 use std::collections::BTreeMap;
 use std::{marker::PhantomData, sync::Arc};
 
-use parity_scale_codec::Decode;
 use ethereum_types::{H256, U256};
 use fc_rpc_core::types::{
 	pubsub::{Kind, Params, PubSubSyncStatus, Result as PubSubResult},
@@ -39,6 +38,7 @@ use fc_rpc_core::types::{
 };
 use fc_rpc_core::EthPubSubApi::{self as EthPubSubApiT};
 use jsonrpc_pubsub::{manager::SubscriptionManager, typed::Subscriber, SubscriptionId};
+use parity_scale_codec::Decode;
 use sha3::{Digest, Keccak256};
 
 pub use fc_rpc_core::EthPubSubApiServer;

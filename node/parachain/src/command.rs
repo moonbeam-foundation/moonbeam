@@ -18,10 +18,10 @@ use crate::{
 	chain_spec,
 	cli::{Cli, RelayChainCli, Subcommand},
 };
-use parity_scale_codec::Encode;
 use cumulus_primitives::{genesis::generate_genesis_block, ParaId};
 use log::info;
 use moonbeam_runtime::Block;
+use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::AccountIdConversion;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,

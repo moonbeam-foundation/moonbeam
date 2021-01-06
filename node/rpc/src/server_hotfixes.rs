@@ -20,7 +20,6 @@
 //! replacements will be removed and we will head in the direction of
 //! https://github.com/paritytech/frontier/pull/199
 
-use parity_scale_codec::{Encode, Decode};
 use ethereum::{
 	Block as EthereumBlock, Transaction as EthereumTransaction,
 	TransactionMessage as EthereumTransactionMessage,
@@ -39,6 +38,7 @@ use jsonrpc_core::{
 	futures::future::{self, Future},
 	BoxFuture, Result,
 };
+use parity_scale_codec::{Decode, Encode};
 use sc_client_api::backend::{AuxStore, Backend, StateBackend, StorageProvider};
 use sc_network::{ExHashT, NetworkService};
 use sha3::{Digest, Keccak256};
@@ -237,9 +237,8 @@ where
 	// Asumes there is only one mapped canonical block in the AuxStore, otherwise something is wrong
 	fn load_hash(&self, hash: H256) -> Result<Option<BlockId<B>>> {
 		let hashes = match fc_consensus::load_block_hash::<B, _>(self.client.as_ref(), hash)
-			.map_err(|err| {
-			internal_err(format!("fetch aux store failed: {:?}", err))
-		})? {
+			.map_err(|err| internal_err(format!("fetch aux store failed: {:?}", err)))?
+		{
 			Some(hashes) => hashes,
 			None => return Ok(None),
 		};
