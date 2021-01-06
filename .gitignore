@@ -11,5 +11,3 @@
 
 # Generated test specs
 /tests/moonbeam-test-specs/*.json
-
-artifacts
