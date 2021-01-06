@@ -16,7 +16,7 @@
 
 use moonbeam_runtime::{
 	AccountId, AuraConfig, BalancesConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig,
-	GenesisConfig, GrandpaConfig, SudoConfig, SessionConfig, StakeConfig, SystemConfig, WASM_BINARY,
+	GenesisConfig, GrandpaConfig, SudoConfig, StakeConfig, SystemConfig, WASM_BINARY,
 };
 use sc_service::ChainType;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -151,9 +151,6 @@ fn testnet_genesis(
 		pallet_sudo: Some(SudoConfig {
 			// Assign network admin rights.
 			key: root_key,
-		}),
-		pallet_session: Some(SessionConfig{
-			keys: vec![],
 		}),
 		stake: Some(StakeConfig {
 			stakers: vec![],

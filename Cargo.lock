@@ -9415,7 +9415,6 @@ dependencies = [
  "frame-support",
  "frame-system",
  "pallet-balances",
- "pallet-session",
  "pallet-staking",
  "parity-scale-codec",
  "serde",

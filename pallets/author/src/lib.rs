@@ -1,8 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{
-	decl_error, decl_module, decl_storage, ensure, traits::FindAuthor, weights::Weight,
-};
+use frame_support::{decl_error, decl_module, decl_storage, ensure, weights::Weight};
 use frame_system::{ensure_none, Config as System};
 use parity_scale_codec::{Decode, Encode};
 #[cfg(feature = "std")]
@@ -18,8 +16,6 @@ pub trait EventHandler<Author> {
 }
 
 pub trait Config: System {
-	/// Find the author of a block.
-	type FindAuthor: FindAuthor<Self::AccountId>;
 	/// An event handler for authored blocks.
 	type EventHandler: EventHandler<Self::AccountId>;
 }

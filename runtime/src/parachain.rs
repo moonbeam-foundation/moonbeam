@@ -72,7 +72,6 @@ macro_rules! runtime_parachain {
 				EthereumChainId: pallet_ethereum_chain_id::{Module, Storage, Config},
 				EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
 				Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
-				Session: pallet_session::{Module, Call, Storage, Event, Config<T>},
 				Stake: stake::{Module, Storage, Event<T>, Config<T>},
 				Author: author::{Module, Storage},
 			}

@@ -1,19 +1,19 @@
 #![recursion_limit = "256"]
-//! Minimal staking module with ordered validator selection and reward curve distribution
+//! Minimal staking module with ordered validator selection
 #![cfg_attr(not(feature = "std"), no_std)]
 
 mod set;
 
 use frame_support::{
 	decl_error, decl_event, decl_module, decl_storage, ensure,
-	traits::{Currency, EstimateNextNewSession, Get, ReservableCurrency},
+	traits::{Currency, Get, ReservableCurrency},
 };
 use frame_system::{ensure_signed, Config as System};
 use pallet_staking::{Exposure, IndividualExposure};
 use parity_scale_codec::{Decode, Encode, HasCompact};
 use set::OrderedSet;
 use sp_runtime::{
-	traits::{AtLeast32BitUnsigned, Convert, Zero},
+	traits::{AtLeast32BitUnsigned, Zero},
 	DispatchResult, Perbill, RuntimeDebug,
 };
 use sp_std::{cmp::Ordering, prelude::*};
@@ -26,6 +26,15 @@ mod tests;
 pub struct Bond<AccountId, Balance> {
 	pub owner: AccountId,
 	pub amount: Balance,
+}
+
+impl<A, B: Default> Bond<A, B> {
+	fn from_owner(owner: A) -> Self {
+		Bond {
+			owner,
+			amount: B::default(),
+		}
+	}
 }
 
 impl<AccountId: Ord, Balance> Eq for Bond<AccountId, Balance> {}
@@ -153,10 +162,6 @@ pub trait Config: System {
 	type Event: From<Event<Self>> + Into<<Self as System>::Event>;
 	/// The currency type
 	type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
-	/// Interface for interacting with sessions module
-	type SessionInterface: SessionInterface<Self::AccountId>;
-	/// Something that can estimate the next session change, accurately or as a best effort guess.
-	type NextNewSession: EstimateNextNewSession<Self::BlockNumber>;
 	/// Blocks per round
 	type BlocksPerRound: Get<Self::BlockNumber>;
 	/// Number of rounds that candidates remain bonded after requesting exit for retroactive accountability
@@ -192,6 +197,8 @@ decl_event!(
 		ValidatorScheduledExit(RoundIndex, AccountId, RoundIndex),
 		// Account, Amount Unlocked, New Total Amt Locked
 		ValidatorLeft(AccountId, Balance, Balance),
+		// Nominator, Validator, Amount Unstaked, New Total Amt Staked for Validator
+		NominatorLeft(AccountId, AccountId, Balance, Balance),
 		// Nominator, Amount Locked, Validator, New Total Amt Locked
 		ValidatorNominated(AccountId, Balance, AccountId, Balance),
 	}
@@ -292,14 +299,14 @@ decl_module! {
 			ensure!(!Self::is_nominator(&acc),Error::<T>::NominatorExists);
 			ensure!(fee <= T::MaxFee::get(),Error::<T>::FeeOverMax);
 			ensure!(bond >= T::MinValidatorStk::get(),Error::<T>::ValBondBelowMin);
-			let mut pool = <CandidateQueue<T>>::get();
-			ensure!(pool.insert(Bond{owner: acc.clone(), amount: bond}),Error::<T>::CandidateExists);
+			let mut candidates = <CandidateQueue<T>>::get();
+			ensure!(candidates.insert(Bond{owner: acc.clone(), amount: bond}),Error::<T>::CandidateExists);
 			T::Currency::reserve(&acc,bond)?;
 			let candidate: Candidate<T> = CandidateState::new(acc.clone(),fee,bond);
 			let new_total = <Total<T>>::get() + bond;
 			<Total<T>>::put(new_total);
 			<Candidates<T>>::insert(&acc,candidate);
-			<CandidateQueue<T>>::put(pool);
+			<CandidateQueue<T>>::put(candidates);
 			Self::deposit_event(RawEvent::JoinedValidatorCandidates(acc,bond,new_total));
 			Ok(())
 		}
@@ -310,8 +317,9 @@ decl_module! {
 			ensure!(state.is_active(),Error::<T>::AlreadyOffline);
 			state.go_offline();
 			let mut candidates = <CandidateQueue<T>>::get();
-			candidates.0.retain(|c| &c.owner != &validator);
-			<CandidateQueue<T>>::put(candidates);
+			if candidates.remove(&Bond::from_owner(validator.clone())) {
+				<CandidateQueue<T>>::put(candidates);
+			}
 			<Candidates<T>>::insert(&validator,state);
 			Self::deposit_event(RawEvent::ValidatorWentOffline(<Round>::get(),validator));
 			Ok(())
@@ -346,9 +354,10 @@ decl_module! {
 				Error::<T>::AlreadyLeaving
 			);
 			state.leave_candidates(when);
-			let mut pool = <CandidateQueue<T>>::get();
-			pool.0.retain(|c| &c.owner != &validator);
-			<CandidateQueue<T>>::put(pool);
+			let mut candidates = <CandidateQueue<T>>::get();
+			if candidates.remove(&Bond::from_owner(validator.clone())) {
+				<CandidateQueue<T>>::put(candidates);
+			}
 			<ExitQueue<T>>::put(exits);
 			<Candidates<T>>::insert(&validator,state);
 			Self::deposit_event(RawEvent::ValidatorScheduledExit(now,validator,when));
@@ -373,16 +382,8 @@ decl_module! {
 			ensure!(state.nominators.0.len() <= T::MaxNominatorsPerValidator::get(),Error::<T>::TooManyNominators);
 			T::Currency::reserve(&acc,amount)?;
 			let new_total = state.total + amount;
-			// update total for candidate if in candidate pool
-			let mut candidates = <CandidateQueue<T>>::get();
-			// only insert if nominated validator is a viable candidate
-			let changed = if candidates.remove(&Bond{owner:validator.clone(),amount:state.total}) || state.is_active() {
-				candidates.insert(Bond{owner:validator.clone(),amount:new_total})
-			} else {
-				false
-			};
-			if changed {
-				<CandidateQueue<T>>::put(candidates);
+			if state.is_active() {
+				Self::update_active_candidate(validator.clone(),new_total);
 			}
 			let new_total_locked = <Total<T>>::get() + amount;
 			<Total<T>>::put(new_total_locked);
@@ -391,7 +392,35 @@ decl_module! {
 			<Candidates<T>>::insert(&validator,state);
 			Self::deposit_event(RawEvent::ValidatorNominated(acc,amount,validator,new_total));
 			Ok(())
-		}// TODO: enable switching nominations, going offline, leaving
+		}
+		#[weight = 0]
+		fn leave_nominators(origin) -> DispatchResult {
+			let nominator = ensure_signed(origin)?;
+			let validator = <Nominators<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
+			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
+			let mut exists: Option<BalanceOf<T>> = None;
+			let noms = state.nominators.0.into_iter().filter_map(|nom| {
+				if nom.owner != nominator {
+					Some(nom)
+				} else {
+					exists = Some(nom.amount);
+					None
+				}
+			}).collect();
+			let nominators = OrderedSet::from(noms);
+			let nominator_stake = exists.ok_or(Error::<T>::NominatorDNE)?;
+			T::Currency::unreserve(&nominator,nominator_stake);
+			state.nominators = nominators;
+			let new_total = state.total - nominator_stake;
+			if state.is_active() {
+				Self::update_active_candidate(validator.clone(),new_total);
+			}
+			state.total = new_total;
+			<Candidates<T>>::insert(&validator,state);
+			<Nominators<T>>::remove(&nominator);
+			Self::deposit_event(RawEvent::NominatorLeft(nominator,validator,nominator_stake,new_total));
+			Ok(())
+		}
 		fn on_finalize(n: T::BlockNumber) {
 			if (n % T::BlocksPerRound::get()).is_zero() {
 				let next = <Round>::get() + 1;
@@ -415,6 +444,13 @@ impl<T: Config> Module<T> {
 	}
 	pub fn is_validator(round: RoundIndex, acc: &T::AccountId) -> bool {
 		<AtStake<T>>::get(round, acc) != Exposure::default()
+	}
+	// ensure candidate is active before calling
+	fn update_active_candidate(candidate: T::AccountId, new_total: BalanceOf<T>) {
+		let mut candidates = <CandidateQueue<T>>::get();
+		candidates.remove(&Bond::from_owner(candidate.clone()));
+		candidates.insert(Bond{owner:candidate.clone(),amount:new_total});
+		<CandidateQueue<T>>::put(candidates);
 	}
 	fn execute_delayed_validator_exits(next: RoundIndex) {
 		let mut exits = <ExitQueue<T>>::get().0;
@@ -475,147 +511,16 @@ impl<T: Config> Module<T> {
 	}
 }
 
-impl<T: Config> Module<T> {
-	fn new_session() -> Option<Vec<T::AccountId>> {
-		let mut candidates = <CandidateQueue<T>>::get().0;
-		// order candidates by stake (least to greatest so requires `rev()`)
-		candidates.sort_unstable_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
-		let max_validators = T::MaxValidators::get() as usize;
-		// choose the top MaxValidators qualified candidates, ordered by stake
-		let validators = candidates
-			.into_iter()
-			.rev()
-			.take(max_validators)
-			.map(|x| x.owner)
-			.collect::<Vec<T::AccountId>>();
-		if validators.is_empty() {
-			return None;
-		}
-		Some(validators)
-	}
-	fn start_session(index: RoundIndex) {
-		if index > <Round>::get() {
-			<Round>::put(index);
-		}
-	}
-}
-
 /// Add reward points to block authors:
 /// * 20 points to the block producer for producing a block in the chain
 impl<T> author::EventHandler<T::AccountId> for Module<T>
 where
-	T: Config + author::Config + pallet_session::Config,
+	T: Config + author::Config,
 {
 	fn note_author(author: T::AccountId) {
 		let now = <Round>::get();
 		let score_plus_20 = <AwardedPts<T>>::get(now, &author) + 20;
 		<AwardedPts<T>>::insert(now, author, score_plus_20);
 		<Points>::mutate(now, |x| *x += 20);
-	}
-}
-
-impl<T: Config> pallet_session::SessionManager<T::AccountId> for Module<T> {
-	fn new_session(_new_index: RoundIndex) -> Option<Vec<T::AccountId>> {
-		Self::new_session()
-	}
-	fn start_session(start_index: RoundIndex) {
-		Self::start_session(start_index)
-	}
-	fn end_session(_end_index: RoundIndex) {}
-}
-
-impl<T: Config>
-	pallet_session::historical::SessionManager<T::AccountId, Exposure<T::AccountId, BalanceOf<T>>>
-	for Module<T>
-{
-	fn new_session(
-		new_index: RoundIndex,
-	) -> Option<Vec<(T::AccountId, Exposure<T::AccountId, BalanceOf<T>>)>> {
-		<Self as pallet_session::SessionManager<_>>::new_session(new_index).map(|validators| {
-			let current_era = Self::round();
-			validators
-				.into_iter()
-				.map(|v| {
-					let exposure = Self::at_stake(current_era, &v);
-					(v, exposure)
-				})
-				.collect()
-		})
-	}
-	fn start_session(start_index: RoundIndex) {
-		<Self as pallet_session::SessionManager<_>>::start_session(start_index)
-	}
-	fn end_session(end_index: RoundIndex) {
-		<Self as pallet_session::SessionManager<_>>::end_session(end_index)
-	}
-}
-
-/// A typed conversion from stash account ID to the active exposure of nominators
-/// on that account.
-pub struct ExposureOf<T>(sp_std::marker::PhantomData<T>);
-
-impl<T: Config> Convert<T::AccountId, Option<Exposure<T::AccountId, BalanceOf<T>>>>
-	for ExposureOf<T>
-{
-	fn convert(validator: T::AccountId) -> Option<Exposure<T::AccountId, BalanceOf<T>>> {
-		Some(<Module<T>>::at_stake(<Round>::get(), &validator))
-	}
-}
-
-/// A `Convert` implementation that finds the stash of the given controller account,
-/// if any.
-pub struct StashOf<T>(sp_std::marker::PhantomData<T>);
-
-impl<T: Config> Convert<T::AccountId, Option<T::AccountId>> for StashOf<T> {
-	fn convert(controller: T::AccountId) -> Option<T::AccountId> {
-		// our module only has one account per user so we just return the input if it is a validator or nominator
-		if <Module<T>>::is_nominator(&controller) || <Module<T>>::is_candidate(&controller) {
-			Some(controller)
-		} else {
-			None
-		}
-	}
-}
-
-/// Means for interacting with a specialized version of the `session` trait.
-///
-/// This is needed because `Staking` sets the `ValidatorIdOf` of the `pallet_session::Config`
-pub trait SessionInterface<AccountId>: frame_system::Config {
-	/// Disable a given validator by stash ID.
-	///
-	/// Returns `true` if new era should be forced at the end of this session.
-	/// This allows preventing a situation where there is too many validators
-	/// disabled and block production stalls.
-	fn disable_validator(validator: &AccountId) -> Result<bool, ()>;
-	/// Get the validators from session.
-	fn validators() -> Vec<AccountId>;
-	/// Prune historical session tries up to but not including the given index.
-	fn prune_historical_up_to(up_to: RoundIndex);
-}
-
-impl<T: Config> SessionInterface<<T as frame_system::Config>::AccountId> for T
-where
-	T: pallet_session::Config<ValidatorId = <T as frame_system::Config>::AccountId>,
-	T: pallet_session::historical::Config<
-		FullIdentification = Exposure<<T as frame_system::Config>::AccountId, BalanceOf<T>>,
-		FullIdentificationOf = ExposureOf<T>,
-	>,
-	T::SessionHandler: pallet_session::SessionHandler<<T as frame_system::Config>::AccountId>,
-	T::SessionManager: pallet_session::SessionManager<<T as frame_system::Config>::AccountId>,
-	T::ValidatorIdOf: Convert<
-		<T as frame_system::Config>::AccountId,
-		Option<<T as frame_system::Config>::AccountId>,
-	>,
-{
-	fn disable_validator(validator: &<T as frame_system::Config>::AccountId) -> Result<bool, ()> {
-		<pallet_session::Module<T>>::disable(validator)
-	}
-
-	fn validators() -> Vec<<T as frame_system::Config>::AccountId> {
-		<pallet_session::Module<T>>::validators()
-	}
-
-	fn prune_historical_up_to(up_to: RoundIndex) {
-		<pallet_session::historical::Module<T>>::prune_up_to(up_to);
 	}
 }
