@@ -22,7 +22,7 @@ macro_rules! runtime_parachain {
 			spec_name: create_runtime_str!("moonbase-alphanet"),
 			impl_name: create_runtime_str!("moonbase-alphanet"),
 			authoring_version: 3,
-			spec_version: 7,
+			spec_version: 8,
 			impl_version: 0,
 			apis: RUNTIME_API_VERSIONS,
 			transaction_version: 2,
