@@ -22,7 +22,7 @@ mod server_hotfixes;
 
 use std::{fmt, sync::Arc};
 
-use frontier_rpc::HexEncodedIdProvider;
+use fc_rpc::HexEncodedIdProvider;
 use jsonrpc_pubsub::manager::SubscriptionManager;
 use moonbeam_runtime::{opaque::Block, AccountId, Balance, Hash, Index};
 use sc_client_api::{
@@ -82,11 +82,11 @@ where
 	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>,
 	C::Api: BlockBuilder<Block>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
-	C::Api: frontier_rpc_primitives::EthereumRuntimeRPCApi<Block>,
+	C::Api: fp_rpc::EthereumRuntimeRPCApi<Block>,
 	<C::Api as sp_api::ApiErrorExt>::Error: fmt::Debug,
 	P: TransactionPool<Block = Block> + 'static,
 {
-	use frontier_rpc::{NetApi, NetApiServer, Web3Api, Web3ApiServer};
+	use fc_rpc::{NetApi, NetApiServer, Web3Api, Web3ApiServer};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
 	use substrate_frame_rpc_system::{FullSystem, SystemApi};
 	// Our drop in replacements for the Eth APIs. These can be removed after
