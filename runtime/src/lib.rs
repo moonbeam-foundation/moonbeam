@@ -300,7 +300,6 @@ parameter_types! {
 	pub const Period: BlockNumber = 5;
 	pub const Offset: BlockNumber = 0;
 }
-#[cfg(feature = "standalone")]
 impl pallet_session::Config for Runtime {
 	type Event = Event;
 	type ValidatorId = AccountId;
@@ -313,7 +312,6 @@ impl pallet_session::Config for Runtime {
 	type DisabledValidatorsThreshold = DisabledValidatorsThreshold;
 	type WeightInfo = ();
 }
-#[cfg(feature = "standalone")]
 impl pallet_session::historical::Config for Runtime {
 	type FullIdentification = pallet_staking::Exposure<AccountId, Balance>;
 	type FullIdentificationOf = stake::ExposureOf<Runtime>;
@@ -328,7 +326,6 @@ parameter_types! {
 	pub const MinValidatorStk: u128 = 10;
 	pub const MinNominatorStk: u128 = 5;
 }
-#[cfg(feature = "standalone")]
 impl stake::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
@@ -342,11 +339,9 @@ impl stake::Config for Runtime {
 	type MinValidatorStk = MinValidatorStk;
 	type MinNominatorStk = MinNominatorStk;
 }
-#[cfg(feature = "standalone")]
 impl author::Config for Runtime {
 	type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Aura>;
 	type EventHandler = Stake;
-	type Account = account::EthereumSigner;
 }
 
 #[cfg(feature = "standalone")]

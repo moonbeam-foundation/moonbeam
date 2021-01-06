@@ -5,7 +5,6 @@ use frame_support::{
 };
 use frame_system::{ensure_none, Config as System};
 use parity_scale_codec::{Decode, Encode};
-use sp_core::ecdsa;
 #[cfg(feature = "std")]
 use sp_inherents::ProvideInherentData;
 use sp_inherents::{InherentData, InherentIdentifier, IsFatalError, ProvideInherent};
@@ -23,8 +22,6 @@ pub trait Config: System {
 	type FindAuthor: FindAuthor<Self::AccountId>;
 	/// An event handler for authored blocks.
 	type EventHandler: EventHandler<Self::AccountId>;
-	/// A workaround for converting ecdsa::Public to AccountId, inside a pallet
-	type Account: From<ecdsa::Public> + Into<Self::AccountId>;
 }
 
 decl_error! {
@@ -47,11 +44,10 @@ decl_module! {
 
 		/// Inherent to set the author of a block
 		#[weight = 1_000_000]
-		fn set_author(origin, raw_author: ecdsa::Public) {
+		fn set_author(origin, author: T::AccountId) {
 			ensure_none(origin)?;
 			ensure!(<Author<T>>::get().is_none(), Error::<T>::AuthorAlreadySet);
-			let author: T::Account = raw_author.into();
-			<Self as Store>::Author::put(author.into());
+			<Self as Store>::Author::put(author);
 		}
 
 		fn on_initialize() -> Weight {
@@ -136,7 +132,7 @@ impl<T: Config> ProvideInherent for Module<T> {
 
 		// Decode the Vec<u8> into an actual author
 		let author =
-			ecdsa::Public::decode(&mut &author_raw[..]).expect("Decodes author raw inherent data");
+			T::AccountId::decode(&mut &author_raw[..]).expect("Decodes author raw inherent data");
 		Some(Call::set_author(author))
 	}
 }
