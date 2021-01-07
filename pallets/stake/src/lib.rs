@@ -253,23 +253,25 @@ decl_storage! {
 		/// Current candidates with associated state
 		pub Candidates get(fn candidates): map
 			hasher(blake2_128_concat) T::AccountId => Option<Candidate<T>>;
+		/// Current validator set
+		pub Validators get(fn validators): OrderedSet<T::AccountId>;
+		/// Total Locked
+		pub Total get(fn total): BalanceOf<T>;
 		/// Pool of candidates, ordered by account id
-		pub CandidateQueue get(fn candidate_queue): OrderedSet<Bond<T::AccountId,BalanceOf<T>>>;
+		CandidateQueue get(fn candidate_queue): OrderedSet<Bond<T::AccountId,BalanceOf<T>>>;
 		/// Queue of validator exit requests, ordered by account id
-		pub ExitQueue get(fn exit_queue): OrderedSet<Bond<T::AccountId,RoundIndex>>;
+		ExitQueue : OrderedSet<Bond<T::AccountId,RoundIndex>>;
 		/// Exposure at stake per round, per validator
-		pub AtStake get(fn at_stake): double_map
+		AtStake get(fn at_stake): double_map
 			hasher(blake2_128_concat) RoundIndex,
 			hasher(blake2_128_concat) T::AccountId => Exposure<T::AccountId,BalanceOf<T>>;
 		/// Total points awarded in this round
-		pub Points get(fn points): map
+		Points get(fn points): map
 			hasher(blake2_128_concat) RoundIndex => RewardPoint;
 		/// Individual points accrued each round per validator
-		pub AwardedPts get(fn awarded_pts): double_map
+		AwardedPts get(fn awarded_pts): double_map
 			hasher(blake2_128_concat) RoundIndex,
 			hasher(blake2_128_concat) T::AccountId => RewardPoint;
-		/// Total Locked
-		pub Total get(fn total): BalanceOf<T>;
 	}
 	add_extra_genesis {
 		config(stakers):
@@ -366,7 +368,7 @@ decl_module! {
 			Ok(())
 		}
 		#[weight = 0]
-		fn leave_candidates(origin) -> DispatchResult { //TODO: method to cancel leave request
+		fn leave_candidates(origin) -> DispatchResult {
 			let validator = ensure_signed(origin)?;
 			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_leaving(),Error::<T>::AlreadyLeaving);
@@ -443,6 +445,8 @@ decl_module! {
 				Self::update_active_candidate(validator.clone(),new_total);
 			}
 			state.total = new_total;
+			let new_total_locked = <Total<T>>::get() - nominator_stake;
+			<Total<T>>::put(new_total_locked);
 			<Candidates<T>>::insert(&validator,state);
 			<Nominators<T>>::remove(&nominator);
 			Self::deposit_event(
@@ -474,8 +478,11 @@ impl<T: Config> Module<T> {
 	pub fn is_candidate(acc: &T::AccountId) -> bool {
 		<Candidates<T>>::get(acc).is_some()
 	}
-	pub fn is_validator(round: RoundIndex, acc: &T::AccountId) -> bool {
+	pub fn was_validator(round: RoundIndex, acc: &T::AccountId) -> bool {
 		<AtStake<T>>::get(round, acc) != Exposure::default()
+	}
+	pub fn is_validator(acc: &T::AccountId) -> bool {
+		<Validators<T>>::get().contains(acc)
 	}
 	// ensure candidate is active before calling
 	fn update_active_candidate(candidate: T::AccountId, new_total: BalanceOf<T>) {
@@ -498,7 +505,7 @@ impl<T: Config> Module<T> {
 			for (val, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
 				let pct_due = Perbill::from_rational_approximation(pts, total);
 				let mut amt_due = pct_due * issuance;
-				if amt_due == T::Currency::minimum_balance() {
+				if amt_due < T::Currency::minimum_balance() {
 					continue;
 				}
 				if let Some(state) = <Candidates<T>>::get(&val) {
@@ -561,6 +568,8 @@ impl<T: Config> Module<T> {
 			.map(|x| x.owner)
 			.collect::<Vec<T::AccountId>>();
 		// insert canonical validator set
+		<Validators<T>>::put(OrderedSet::from(validators.clone()));
+		// snapshot exposure for round
 		for account in validators.iter() {
 			let state = <Candidates<T>>::get(&account)
 				.expect("all members of CandidateQ must be viable candidates by construction; qed");
