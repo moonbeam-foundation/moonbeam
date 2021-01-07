@@ -21,6 +21,12 @@ npm install
 npm run test
 ```
 
+and to print more information:
+
+```
+npm run test-with-logs
+```
+
 This command will generate the simple-specs.json file from the template and execute the tests.  
 To only generate the specs use `npm run generate-specs`.  
 To only run the tests use `npm run test-only`.

@@ -33,10 +33,10 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-#[cfg(feature = "standalone")]
-mod standalone;
 #[cfg(not(feature = "standalone"))]
 mod parachain;
+#[cfg(feature = "standalone")]
+mod standalone;
 
 #[cfg(feature = "standalone")]
 use standalone::*;
@@ -44,15 +44,15 @@ use standalone::*;
 // use parachain::*;
 
 use codec::{Decode, Encode};
+use frontier_rpc_primitives::TransactionStatus;
 use sp_api::impl_runtime_apis;
-use sp_core::{OpaqueMetadata, H160, U256, H256};
+use sp_core::{OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, IdentityLookup, Saturating, IdentifyAccount, Verify},
+	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Saturating, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult,
 };
-use frontier_rpc_primitives::TransactionStatus;
 use sp_std::{marker::PhantomData, prelude::*};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
@@ -61,15 +61,12 @@ use sp_version::RuntimeVersion;
 pub use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{FindAuthor, Get, Randomness},
-	weights::{
-		constants::WEIGHT_PER_SECOND,
-		IdentityFee, Weight
-	},
+	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 	ConsensusEngineId, StorageValue,
 };
 use pallet_evm::{
-	Account as EVMAccount, IdentityAddressMapping, EnsureAddressSame,
-	EnsureAddressNever, FeeCalculator, Runner
+	Account as EVMAccount, EnsureAddressNever, EnsureAddressSame, FeeCalculator,
+	IdentityAddressMapping, Runner,
 };
 use pallet_transaction_payment::CurrencyAdapter;
 
@@ -139,6 +136,8 @@ pub fn native_version() -> NativeVersion {
 	}
 }
 
+const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
+
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 250;
 	pub const MaximumBlockWeight: Weight = 2 * WEIGHT_PER_SECOND;
@@ -146,9 +145,14 @@ parameter_types! {
 	pub MaximumExtrinsicWeight: Weight = AvailableBlockRatio::get()
 		.saturating_sub(Perbill::from_percent(10)) * MaximumBlockWeight::get();
 	pub const AvailableBlockRatio: Perbill = Perbill::from_percent(75);
-	pub const MaximumBlockLength: u32 = 5 * 1024 * 1024;
 	pub const Version: RuntimeVersion = VERSION;
 	pub const ExtrinsicBaseWeight: Weight = 10_000_000;
+
+
+	pub BlockWeights: frame_system::limits::BlockWeights = frame_system::limits::BlockWeights
+		::with_sensible_defaults(2 * WEIGHT_PER_SECOND, NORMAL_DISPATCH_RATIO);
+	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
+		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
 }
 
 impl frame_system::Config for Runtime {
@@ -175,11 +179,9 @@ impl frame_system::Config for Runtime {
 	/// Maximum number of block number to block hash mappings to keep (oldest pruned first).
 	type BlockHashCount = BlockHashCount;
 	/// Maximum weight of each block. With a default weight system of 1byte == 1weight, 4mb is ok.
-	type MaximumBlockWeight = MaximumBlockWeight;
+	type BlockWeights = BlockWeights;
 	/// Maximum size of all encoded transactions (in bytes) that are allowed in one block.
-	type MaximumBlockLength = MaximumBlockLength;
-	/// Portion of the block weight that is available to all normal transactions.
-	type AvailableBlockRatio = AvailableBlockRatio;
+	type BlockLength = BlockLength;
 	/// Runtime version.
 	type Version = Version;
 	type PalletInfo = PalletInfo;
@@ -187,9 +189,6 @@ impl frame_system::Config for Runtime {
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 	type DbWeight = ();
-	type ExtrinsicBaseWeight = ExtrinsicBaseWeight;
-	type BlockExecutionWeight = ();
-	type MaximumExtrinsicWeight = MaximumExtrinsicWeight;
 	type BaseCallFilter = ();
 	type SystemWeightInfo = ();
 }
@@ -262,7 +261,7 @@ pub struct TransactionConverter;
 impl frontier_rpc_primitives::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
 	fn convert_transaction(&self, transaction: pallet_ethereum::Transaction) -> UncheckedExtrinsic {
 		UncheckedExtrinsic::new_unsigned(
-			pallet_ethereum::Call::<Runtime>::transact(transaction).into()
+			pallet_ethereum::Call::<Runtime>::transact(transaction).into(),
 		)
 	}
 }
@@ -468,7 +467,7 @@ impl_runtime_apis! {
 				gas_limit.low_u32(),
 				gas_price,
 				nonce,
-				config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
+				config.as_ref().unwrap_or_else(|| <Runtime as pallet_evm::Config>::config()),
 			).map_err(|err| err.into())
 		}
 
@@ -489,6 +488,7 @@ impl_runtime_apis! {
 				None
 			};
 
+			#[allow(clippy::or_fun_call)] // suggestion not helpful here
 			<Runtime as pallet_evm::Config>::Runner::create(
 				from,
 				data,
