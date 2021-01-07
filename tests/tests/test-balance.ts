@@ -78,18 +78,18 @@ describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) =>
       let hash = await context.polkadotApi.tx.balances
         .transfer(TEST_ACCOUNT_2, 123)
         .signAndSend(testAccount);
-      console.log("hash", Number(hash));
-      let event = await context.polkadotApi.events.balances.Transfer;
-      console.log("event", event);
-      const event2 = {} as IEvent;
+      // console.log("hash", Number(hash));
+      // let event = await context.polkadotApi.events.balances.Transfer;
+      // console.log("event", event);
+      // const event2 = {} as IEvent;
 
-      // existing
-      if (await context.polkadotApi.events.balances.Transfer.is(event2)) {
-        // the types are correctly expanded
-        const [from, to, amount] = event2.data;
+      // // existing
+      // if (await context.polkadotApi.events.balances.Transfer.is(event2)) {
+      //   // the types are correctly expanded
+      //   const [from, to, amount] = event2.data;
 
-        console.log(from.toHuman(), to.toHuman(), amount.toString());
-      }
+      //   console.log(from.toHuman(), to.toHuman(), amount.toString());
+      // }
     } catch (e) {
       expect(false, "error during polkadot api transfer" + e);
     }

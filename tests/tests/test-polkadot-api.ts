@@ -30,9 +30,9 @@ describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) =>
     //expect(account.data.free.toString()).to.equal(GENESIS_ACCOUNT_BALANCE);
   });
 
-  it("genesis balance is setup correctly (polkadotJs)", async function () {
+  it.only("genesis balance is setup correctly (polkadotJs)", async function () {
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
-    console.log("signedBlock", signedBlock.block.header.number);
+    console.log("signedBlock", signedBlock.block.header.number.toString());
     //expect(account.data.free.toString()).to.equal(GENESIS_ACCOUNT_BALANCE);
   });
 
