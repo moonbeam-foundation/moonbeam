@@ -100,6 +100,9 @@ pub type Hash = sp_core::H256;
 /// Digest item type.
 pub type DigestItem = generic::DigestItem<Hash>;
 
+/// Minimum time between blocks. Slot duration is double this.
+pub const MINIMUM_PERIOD: u64 = 3000;
+
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
@@ -187,10 +190,11 @@ impl frame_system::Config for Runtime {
 
 parameter_types! {
 	// When running in standalone mode, this controls the block time.
-	// Block time is double the minimum period.
+	// Slot duration is double the minimum period.
 	// https://github.com/paritytech/substrate/blob/e4803bd/frame/aura/src/lib.rs#L197-L199
 	// We maintain a six second block time in standalone to imitate parachain-like performance
-	pub const MinimumPeriod: u64 = 3000;
+	// This value is stored in a seperate constant because it is used in our mock timestamp provider
+	pub const MinimumPeriod: u64 = MINIMUM_PERIOD;
 }
 
 impl pallet_timestamp::Config for Runtime {
