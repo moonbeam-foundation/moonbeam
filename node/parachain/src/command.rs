@@ -40,7 +40,8 @@ fn load_spec(
 	para_id: ParaId,
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	match id {
-		"" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
+		"alphanet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(&include_bytes!("../../../specs/MoonbaseAlphaV4.json")[..]))),
+		"dev" | "development" | "" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
 		path => Ok(Box::new(chain_spec::ChainSpec::from_json_file(
 			path.into(),
 		)?)),
@@ -117,7 +118,16 @@ impl SubstrateCli for RelayChainCli {
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-		polkadot_cli::Cli::from_iter([RelayChainCli::executable_name()].iter()).load_spec(id)
+		// Debugging to make sure the id is passed here as well.
+		// I guess maybe we need to pass the same chain argument to both nodes? Maybe we can override relay based on para?
+		println!("Loading polkadot spec based on id string: {}", id);
+
+		//TODO is this where I'm supposed to bake in the relay chain binary?
+		match id {
+			"alphanet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(&include_bytes!("../../../specs/MoonbaseAlphaV4-Relay.json")[..]))),
+			// This is the "default" I guess. It is copied directly from cumulus.
+			_ => polkadot_cli::Cli::from_iter([RelayChainCli::executable_name()].iter()).load_spec(id),
+		}
 	}
 
 	fn native_runtime_version(chain_spec: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
@@ -255,6 +265,7 @@ pub fn run() -> Result<()> {
 				let key = sp_core::Pair::generate().0;
 
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
+				//TODO I think this is where I can override the relay chai nspec based on the parachain spec.
 				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
 				let para_id = extension.map(|e| e.para_id);
 

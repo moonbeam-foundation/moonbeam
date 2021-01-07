@@ -45,6 +45,7 @@ impl Extensions {
 	}
 }
 
+// This is the only hard-coded spec for the parachain. All deployments are based on it.
 pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 	ChainSpec::from_genesis(
 		"Moonbase Parachain Local Testnet",
@@ -86,7 +87,7 @@ fn testnet_genesis(
 			balances: endowed_accounts
 				.iter()
 				.cloned()
-				.map(|k| (k, 1 << 60))
+				.map(|k| (k, 1 << 80))
 				.collect(),
 		}),
 		pallet_sudo: Some(SudoConfig { key: root_key }),
