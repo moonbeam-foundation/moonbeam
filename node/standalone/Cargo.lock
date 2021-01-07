@@ -359,10 +359,8 @@ version = "0.1.0"
 dependencies = [
  "frame-support",
  "frame-system",
- "impl-trait-for-tuples",
  "parity-scale-codec",
  "sp-authorship",
- "sp-core",
  "sp-inherents",
  "sp-runtime",
  "sp-std",
@@ -7178,7 +7176,6 @@ dependencies = [
  "frame-support",
  "frame-system",
  "pallet-balances",
- "pallet-session",
  "pallet-staking",
  "parity-scale-codec",
  "serde",
