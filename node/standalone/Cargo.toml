@@ -22,7 +22,7 @@ exclude = [
 
 [dependencies]
 futures = "0.3.4"
-log = "0.4.8"
+log = { version = "0.4.8", features = ["release_max_level_debug" ] }
 structopt = "0.3"
 jsonrpc-core = "15.0.0"
 jsonrpc-pubsub = "15.0.0"
