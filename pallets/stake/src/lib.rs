@@ -21,7 +21,8 @@
 mod set;
 use frame_support::{
 	decl_error, decl_event, decl_module, decl_storage, ensure,
-	traits::{Currency, Get, ReservableCurrency},
+	storage::IterableStorageDoubleMap,
+	traits::{Currency, Get, Imbalance, ReservableCurrency},
 };
 use frame_system::{ensure_signed, Config as System};
 use pallet_staking::{Exposure, IndividualExposure};
@@ -185,6 +186,8 @@ pub trait Config: System {
 	type MaxValidators: Get<u32>;
 	/// Maximum nominators per validator
 	type MaxNominatorsPerValidator: Get<usize>;
+	/// Balance issued as rewards per round (constant issuance)
+	type Issuance: Get<BalanceOf<Self>>;
 	/// Maximum fee for any validator
 	type MaxFee: Get<Perbill>;
 	/// Minimum stake for any registered on-chain account to become a validator
@@ -200,22 +203,23 @@ decl_event!(
 		Balance = BalanceOf<T>,
 		BlockNumber = <T as System>::BlockNumber,
 	{
-		// Starting Block, Round, Number of Validators, Total Balance
+		/// Starting Block, Round, Number of Validators, Total Balance
 		NewRound(BlockNumber, RoundIndex, u32, Balance),
-		// Account, Amount Locked, New Total Amt Locked
+		/// Account, Amount Locked, New Total Amt Locked
 		JoinedValidatorCandidates(AccountId, Balance, Balance),
-		// Round, Validator Account, Total Exposed Amount (includes all nominations)
+		/// Round, Validator Account, Total Exposed Amount (includes all nominations)
 		ValidatorChosen(RoundIndex, AccountId, Balance),
 		ValidatorWentOffline(RoundIndex, AccountId),
 		ValidatorBackOnline(RoundIndex, AccountId),
-		// Round, Validator Account, Scheduled Exit
+		/// Round, Validator Account, Scheduled Exit
 		ValidatorScheduledExit(RoundIndex, AccountId, RoundIndex),
-		// Account, Amount Unlocked, New Total Amt Locked
+		/// Account, Amount Unlocked, New Total Amt Locked
 		ValidatorLeft(AccountId, Balance, Balance),
-		// Nominator, Validator, Amount Unstaked, New Total Amt Staked for Validator
+		/// Nominator, Validator, Amount Unstaked, New Total Amt Staked for Validator
 		NominatorLeft(AccountId, AccountId, Balance, Balance),
-		// Nominator, Amount Locked, Validator, New Total Amt Locked
+		/// Nominator, Amount Locked, Validator, New Total Amt Locked
 		ValidatorNominated(AccountId, Balance, AccountId, Balance),
+		Rewarded(AccountId, Balance),
 	}
 );
 
@@ -449,6 +453,9 @@ decl_module! {
 		fn on_finalize(n: T::BlockNumber) {
 			if (n % T::BlocksPerRound::get()).is_zero() {
 				let next = <Round>::get() + 1;
+				// pay all stakers for T::BondDuration rounds ago
+				Self::pay_stakers(next);
+				// execute all delayed validator exits
 				Self::execute_delayed_validator_exits(next);
 				// insert exposure for next validator set
 				let (validator_count, total_staked) = Self::best_candidates_become_validators(next);
@@ -480,11 +487,40 @@ impl<T: Config> Module<T> {
 		});
 		<CandidateQueue<T>>::put(candidates);
 	}
+	fn pay_stakers(next: RoundIndex) {
+		if next > T::BondDuration::get() {
+			let round_to_payout = next - T::BondDuration::get();
+			let total = <Points>::get(round_to_payout);
+			if total == 0u32 {
+				return;
+			}
+			let issuance = T::Issuance::get();
+			for (val, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
+				let pct_due = Perbill::from_rational_approximation(pts, total);
+				let mut amt_due = pct_due * issuance;
+				if amt_due == T::Currency::minimum_balance() {
+					continue;
+				}
+				if let Some(state) = <Candidates<T>>::get(&val) {
+					let fee_off_top = state.fee * amt_due;
+					if let Some(imb) = T::Currency::deposit_into_existing(&val, fee_off_top).ok() {
+						Self::deposit_event(RawEvent::Rewarded(val.clone(), imb.peek()));
+					}
+					amt_due -= fee_off_top;
+					for Bond { owner, amount } in state.nominators.0 {
+						let percent = Perbill::from_rational_approximation(amount, state.total);
+						let due = percent * amt_due;
+						if let Some(imb) = T::Currency::deposit_into_existing(&owner, due).ok() {
+							Self::deposit_event(RawEvent::Rewarded(owner.clone(), imb.peek()));
+						}
+					}
+				}
+			}
+		}
+	}
 	fn execute_delayed_validator_exits(next: RoundIndex) {
-		let mut exits = <ExitQueue<T>>::get().0;
-		// order exits by round
-		exits.sort_unstable_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
-		let remain_exits = exits
+		let remain_exits = <ExitQueue<T>>::get()
+			.0
 			.into_iter()
 			.filter_map(|x| {
 				if x.amount > next {

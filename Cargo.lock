@@ -4138,8 +4138,6 @@ dependencies = [
  "pallet-evm",
  "pallet-grandpa",
  "pallet-randomness-collective-flip",
- "pallet-session",
- "pallet-staking",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
