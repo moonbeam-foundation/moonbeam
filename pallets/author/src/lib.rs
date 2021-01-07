@@ -190,6 +190,7 @@ impl<T: Config> ProvideInherent for Module<T> {
 		// TODO make sure that the current author is in the set.
 		// maybe call into another pallet to confirm that.
 		// Currently all authorship inherents are considered good.
+		// Maybe this checking logic should be decoupled somehow so I can hand it off to the stake pallet.
 		Ok(())
 	}
 }
