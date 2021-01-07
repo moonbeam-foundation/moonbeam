@@ -1,7 +1,7 @@
 import { ApiPromise, WsProvider } from "@polkadot/api";
 import { typesBundle } from "moonbeam-types-bundle";
 async function main() {
-  const wsProvider = new WsProvider(`wss://wss.testnet.moonbeam.network`);
+  const wsProvider = new WsProvider(`ws://localhost:30544`);
   const polkadotApi = await ApiPromise.create({
     provider: wsProvider,
     typesBundle,
