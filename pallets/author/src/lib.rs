@@ -59,7 +59,16 @@ decl_module! {
 		fn set_author(origin, author: T::AccountId) {
 			ensure_none(origin)?;
 			ensure!(<Author<T>>::get().is_none(), Error::<T>::AuthorAlreadySet);
+
 			<Self as Store>::Author::put(author);
+
+			// TODO we should add a digest item so Apps can detect the block author
+			// should that go in on finalize?
+
+			// TODO should we notify an event handler here? Amar had done that in on_finalize earlier.
+			// I wonder if either approach is better than the other.
+
+			// TODO we should have an event for author set.
 		}
 
 		fn on_initialize() -> Weight {
@@ -76,6 +85,14 @@ decl_module! {
 		// 		T::EventHandler::note_author(author);
 		// 	}
 		// }
+
+		//TODO we want to ensure that the inherent is set exactly once per block.
+		// This is how timestamp pallet does it.
+		// But there is also this provided method on the ProvideInherent trait. I wonder how it works
+		// https://crates.parity.io/sp_inherents/trait.ProvideInherent.html#method.is_inherent_required
+		fn on_finalize() {
+			assert!(<Self as Store>::DidUpdate::take(), "Timestamp must be updated once in the block");
+		}
 	}
 }
 
@@ -159,10 +176,20 @@ impl<T: Config> ProvideInherent for Module<T> {
 			.get_data::<InherentType>(&INHERENT_IDENTIFIER)
 			.expect("Gets and decodes authorship inherent data")?;
 
+		//TODO we need to make the author _prove_ their identity, not just claim it.
+		// we should have them sign something here. Best idea so far: parent block hash.
+
 		// Decode the Vec<u8> into an account Id
 		let author =
 			T::AccountId::decode(&mut &author_raw[..]).expect("Decodes author raw inherent data");
 
 		Some(Call::set_author(author))
+	}
+
+	fn check_inherent(call: &Self::Call, data: &InherentData) -> result::Result<(), Self::Error> {
+		// TODO make sure that the current author is in the set.
+		// maybe call into another pallet to confirm that.
+		// Currently all authorship inherents are considered good.
+		Ok(())
 	}
 }
