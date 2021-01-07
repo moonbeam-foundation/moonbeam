@@ -40,7 +40,9 @@ fn load_spec(
 	para_id: ParaId,
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	match id {
-		"alphanet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(&include_bytes!("../../../specs/MoonbaseAlphaV4.json")[..]))),
+		"alphanet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
+			&include_bytes!("../../../specs/MoonbaseAlphaV4.json")[..],
+		)?)),
 		"dev" | "development" | "" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
 		path => Ok(Box::new(chain_spec::ChainSpec::from_json_file(
 			path.into(),
@@ -119,14 +121,16 @@ impl SubstrateCli for RelayChainCli {
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		// Debugging to make sure the id is passed here as well.
-		// I guess maybe we need to pass the same chain argument to both nodes? Maybe we can override relay based on para?
 		println!("Loading polkadot spec based on id string: {}", id);
 
-		//TODO is this where I'm supposed to bake in the relay chain binary?
 		match id {
-			"alphanet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(&include_bytes!("../../../specs/MoonbaseAlphaV4-Relay.json")[..]))),
-			// This is the "default" I guess. It is copied directly from cumulus.
-			_ => polkadot_cli::Cli::from_iter([RelayChainCli::executable_name()].iter()).load_spec(id),
+			"moonbasealpha" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
+				&include_bytes!("../../../specs/MoonbaseAlphaV4-Relay.json")[..],
+			)?)),
+			// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the
+			// Polkadot service to interpret the id.
+			_ => polkadot_cli::Cli::from_iter([RelayChainCli::executable_name()].iter())
+				.load_spec(id),
 		}
 	}
 
@@ -265,17 +269,29 @@ pub fn run() -> Result<()> {
 				let key = sp_core::Pair::generate().0;
 
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
-				//TODO I think this is where I can override the relay chai nspec based on the parachain spec.
 				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
 				let para_id = extension.map(|e| e.para_id);
 
-				let polkadot_cli = RelayChainCli::new(
+				let mut polkadot_cli = RelayChainCli::new(
 					config.base_path.as_ref().map(|x| x.path().join("polkadot")),
 					relay_chain_id,
 					[RelayChainCli::executable_name()]
 						.iter()
 						.chain(cli.relaychain_args.iter()),
 				);
+
+				// We override the relay chain id for a few well-known parachain ids.
+				if let Some(chain) = cli.run.base.shared_params.chain {
+					polkadot_cli.base.base.shared_params.chain = Some(
+						match chain.as_str() {
+							"alphanet" => "moonbasealpha",
+							//"moonrock" => "rococo",
+							//"moonriver" => "kusama",
+							//"" | "moonbeam" => "polkadot",
+							other => other,
+						}.to_string()
+					)
+				}
 
 				let id = ParaId::from(cli.run.parachain_id.or(para_id).unwrap_or(1000));
 
