@@ -120,6 +120,7 @@ impl SubstrateCli for RelayChainCli {
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
+		//TODO Remove this
 		// Debugging to make sure the id is passed here as well.
 		println!("Loading polkadot spec based on id string: {}", id);
 
