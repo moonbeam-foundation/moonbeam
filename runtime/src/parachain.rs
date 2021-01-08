@@ -55,11 +55,6 @@ macro_rules! runtime_parachain {
 			}
 		}
 
-		impl author_inherent::Config for Runtime {
-			type Event = Event;
-			type EventHandler = ();
-		}
-
 		construct_runtime! {
 			pub enum Runtime where
 				Block = Block,

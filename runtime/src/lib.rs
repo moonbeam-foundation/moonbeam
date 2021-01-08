@@ -294,6 +294,11 @@ impl pallet_ethereum::Config for Runtime {
 	type FindAuthor = EthereumFindAuthor<Aura>;
 }
 
+impl author_inherent::Config for Runtime {
+	type Event = Event;
+	type EventHandler = ();
+}
+
 #[cfg(feature = "standalone")]
 runtime_standalone!();
 
