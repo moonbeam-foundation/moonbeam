@@ -16,7 +16,6 @@ export const moonbeamDefinitions = {
           nonce: "U256",
           balance: "u128",
         },
-        RoundIndex: "u32",
       },
     },
     {
