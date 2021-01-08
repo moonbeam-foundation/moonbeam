@@ -31,15 +31,22 @@ pub trait EventHandler<Author> {
 	fn note_author(author: Author);
 }
 
+pub trait IsValidator<AccountId> {
+	fn is_validator(account: AccountId) -> bool;
+}
+
 pub trait Config: System {
 	/// An event handler for authored blocks.
 	type EventHandler: EventHandler<Self::AccountId>;
+	/// Checks if account is a validator
+	type IsAuthority: IsValidator<Self::AccountId>;
 }
 
 decl_error! {
 	pub enum Error for Module<T: Config> {
 		/// Author already set in block.
 		AuthorAlreadySet,
+		NotValidator,
 	}
 }
 
@@ -59,6 +66,7 @@ decl_module! {
 		fn set_author(origin, author: T::AccountId) {
 			ensure_none(origin)?;
 			ensure!(<Author<T>>::get().is_none(), Error::<T>::AuthorAlreadySet);
+			ensure!(T::IsAuthority::is_validator(author.clone()), Error::<T>::NotValidator);
 			<Self as Store>::Author::put(author);
 		}
 

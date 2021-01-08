@@ -597,3 +597,12 @@ where
 		<Points>::mutate(now, |x| *x += 20);
 	}
 }
+
+impl<T> author::IsValidator<T::AccountId> for Module<T>
+where
+	T: Config + author::Config,
+{
+	fn is_validator(account: T::AccountId) -> bool {
+		Self::is_validator(&account)
+	}
+}

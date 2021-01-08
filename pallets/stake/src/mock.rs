@@ -94,6 +94,7 @@ impl pallet_balances::Config for Test {
 }
 impl author::Config for Test {
 	type EventHandler = Module<Test>;
+	type IsAuthority = Module<Test>;
 }
 parameter_types! {
 	pub const BlocksPerRound: u32 = 5;

@@ -316,6 +316,7 @@ impl stake::Config for Runtime {
 }
 impl author::Config for Runtime {
 	type EventHandler = Stake;
+	type IsAuthority = Stake;
 }
 
 #[cfg(feature = "standalone")]
