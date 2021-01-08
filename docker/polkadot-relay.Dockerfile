@@ -19,6 +19,7 @@ RUN apt-get update && \
 RUN git clone https://github.com/paritytech/polkadot
 WORKDIR /polkadot
 RUN git checkout ${POLKADOT_COMMIT}
+RUN sed -i '/sc_executor::WasmExecutionMethod::Interpreted/c\\t\tsc_executor::WasmExecutionMethod::Compiled,' parachain/src/wasm_executor/mod.rs
 
 # Download rust dependencies and build the rust binary
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
