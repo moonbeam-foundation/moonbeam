@@ -246,15 +246,15 @@ decl_error! {
 decl_storage! {
 	trait Store for Module<T: Config> as Stake {
 		/// Current round, incremented every `BlocksPerRound` in `fn on_finalize`
-		pub Round: RoundIndex;
+		Round: RoundIndex;
 		/// Current nominators with their validator
 		Nominators: map hasher(blake2_128_concat) T::AccountId => Option<T::AccountId>;
 		/// Current candidates with associated state
 		Candidates: map hasher(blake2_128_concat) T::AccountId => Option<Candidate<T>>;
 		/// Current validator set
-		pub Validators: Vec<T::AccountId>;
+		Validators: Vec<T::AccountId>;
 		/// Total Locked
-		pub Total: BalanceOf<T>;
+		Total: BalanceOf<T>;
 		/// Pool of candidates, ordered by account id
 		CandidateQueue: OrderedSet<Bond<T::AccountId,BalanceOf<T>>>;
 		/// Queue of validator exit requests, ordered by account id
@@ -562,9 +562,6 @@ impl<T: Config> Module<T> {
 			.take(max_validators)
 			.map(|x| x.owner)
 			.collect::<Vec<T::AccountId>>();
-		validators.sort();
-		// insert canonical validator set
-		<Validators<T>>::put(validators.clone());
 		// snapshot exposure for round
 		for account in validators.iter() {
 			let state = <Candidates<T>>::get(&account)
@@ -576,6 +573,9 @@ impl<T: Config> Module<T> {
 			total += amount;
 			Self::deposit_event(RawEvent::ValidatorChosen(next, account.clone(), amount));
 		}
+		validators.sort();
+		// insert canonical validator set
+		<Validators<T>>::put(validators);
 		(all_validators, total)
 	}
 }
