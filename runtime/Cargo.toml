@@ -53,6 +53,7 @@ pallet-grandpa = { default-features = false, package = "pallet-grandpa", git = "
 frontier-rpc-primitives = { package = "fp-rpc", default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.4-hotfixes" }
 pallet-ethereum = { default-features = false, package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "v0.4-hotfixes" }
 
+moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool", default-features = false }
 
 # Cumulus dependencies
 cumulus-runtime = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
@@ -103,6 +104,7 @@ std = [
 	"pallet-ethereum/std",
 	"pallet-evm/std",
 	"frontier-rpc-primitives/std",
+	"moonbeam-rpc-primitives-txpool/std",
 	"frame-system-rpc-runtime-api/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-ethereum-chain-id/std",
