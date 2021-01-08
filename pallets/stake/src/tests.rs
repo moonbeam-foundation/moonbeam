@@ -181,7 +181,7 @@ fn validator_exit_executes_after_delay() {
 			last_event(),
 			MetaEvent::stake(RawEvent::ValidatorScheduledExit(3, 2, 5))
 		);
-		let info = Stake::candidates(&2).unwrap();
+		let info = <Stake as Store>::Candidates::get(&2).unwrap();
 		assert_eq!(info.state, ValidatorStatus::Leaving(5));
 		roll_to(21);
 		let events = Sys::events()

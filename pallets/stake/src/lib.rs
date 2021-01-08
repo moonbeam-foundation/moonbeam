@@ -246,30 +246,28 @@ decl_error! {
 decl_storage! {
 	trait Store for Module<T: Config> as Stake {
 		/// Current round, incremented every `BlocksPerRound` in `fn on_finalize`
-		pub Round get(fn round): RoundIndex;
+		pub Round: RoundIndex;
 		/// Current nominators with their validator
-		pub Nominators get(fn nominators): map
-			hasher(blake2_128_concat) T::AccountId => Option<T::AccountId>;
+		Nominators: map hasher(blake2_128_concat) T::AccountId => Option<T::AccountId>;
 		/// Current candidates with associated state
-		pub Candidates get(fn candidates): map
-			hasher(blake2_128_concat) T::AccountId => Option<Candidate<T>>;
+		Candidates: map hasher(blake2_128_concat) T::AccountId => Option<Candidate<T>>;
 		/// Current validator set
-		pub Validators get(fn validators): OrderedSet<T::AccountId>;
+		pub Validators: Vec<T::AccountId>;
 		/// Total Locked
-		pub Total get(fn total): BalanceOf<T>;
+		pub Total: BalanceOf<T>;
 		/// Pool of candidates, ordered by account id
-		CandidateQueue get(fn candidate_queue): OrderedSet<Bond<T::AccountId,BalanceOf<T>>>;
+		CandidateQueue: OrderedSet<Bond<T::AccountId,BalanceOf<T>>>;
 		/// Queue of validator exit requests, ordered by account id
-		ExitQueue : OrderedSet<Bond<T::AccountId,RoundIndex>>;
+		ExitQueue: OrderedSet<Bond<T::AccountId,RoundIndex>>;
 		/// Exposure at stake per round, per validator
-		AtStake get(fn at_stake): double_map
+		AtStake: double_map
 			hasher(blake2_128_concat) RoundIndex,
 			hasher(blake2_128_concat) T::AccountId => Exposure<T::AccountId,BalanceOf<T>>;
 		/// Total points awarded in this round
-		Points get(fn points): map
+		Points: map
 			hasher(blake2_128_concat) RoundIndex => RewardPoint;
 		/// Individual points accrued each round per validator
-		AwardedPts get(fn awarded_pts): double_map
+		AwardedPts: double_map
 			hasher(blake2_128_concat) RoundIndex,
 			hasher(blake2_128_concat) T::AccountId => RewardPoint;
 	}
@@ -479,7 +477,7 @@ impl<T: Config> Module<T> {
 		<Candidates<T>>::get(acc).is_some()
 	}
 	pub fn is_validator(acc: &T::AccountId) -> bool {
-		<Validators<T>>::get().contains(acc)
+		<Validators<T>>::get().binary_search(acc).is_ok()
 	}
 	// ensure candidate is active before calling
 	fn update_active_candidate(candidate: T::AccountId, new_total: BalanceOf<T>) {
@@ -558,14 +556,15 @@ impl<T: Config> Module<T> {
 		candidates.sort_unstable_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
 		let max_validators = T::MaxValidators::get() as usize;
 		// choose the top MaxValidators qualified candidates, ordered by stake
-		let validators = candidates
+		let mut validators = candidates
 			.into_iter()
 			.rev()
 			.take(max_validators)
 			.map(|x| x.owner)
 			.collect::<Vec<T::AccountId>>();
+		validators.sort();
 		// insert canonical validator set
-		<Validators<T>>::put(OrderedSet::from(validators.clone()));
+		<Validators<T>>::put(validators.clone());
 		// snapshot exposure for round
 		for account in validators.iter() {
 			let state = <Candidates<T>>::get(&account)
