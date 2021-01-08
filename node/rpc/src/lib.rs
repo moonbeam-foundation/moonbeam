@@ -83,6 +83,7 @@ where
 	C::Api: BlockBuilder<Block>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
 	C::Api: frontier_rpc_primitives::EthereumRuntimeRPCApi<Block>,
+	C::Api: moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>,
 	<C::Api as sp_api::ApiErrorExt>::Error: fmt::Debug,
 	P: TransactionPool<Block = Block> + 'static,
 {
@@ -132,14 +133,14 @@ where
 	io.extend_with(Web3ApiServer::to_delegate(Web3Api::new(client.clone())));
 	io.extend_with(EthPubSubApiServer::to_delegate(EthPubSubApi::new(
 		pool.clone(),
-		client,
+		client.clone(),
 		network,
 		SubscriptionManager::<HexEncodedIdProvider>::with_id_provider(
 			HexEncodedIdProvider::default(),
 			Arc::new(subscription_task_executor),
 		),
 	)));
-	io.extend_with(TxPoolServer::to_delegate(TxPool::new(pool)));
+	io.extend_with(TxPoolServer::to_delegate(TxPool::new(client, pool)));
 
 	if let Some(command_sink) = command_sink {
 		io.extend_with(
