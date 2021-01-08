@@ -287,7 +287,7 @@ pub struct EthereumFindAuthor<F>(PhantomData<F>);
 impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
 	#[cfg(not(feature = "standalone"))]
-	type FindAuthor = AuthorshipInherent;
+	type FindAuthor = AuthorInherent;
 	#[cfg(feature = "standalone")]
 	type FindAuthor = EthereumFindAuthor<Aura>;
 }

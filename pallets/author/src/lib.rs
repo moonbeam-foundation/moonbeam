@@ -91,7 +91,7 @@ decl_module! {
 		// But there is also this provided method on the ProvideInherent trait. I wonder how it works
 		// https://crates.parity.io/sp_inherents/trait.ProvideInherent.html#method.is_inherent_required
 		fn on_finalize() {
-			assert!(<Self as Store>::DidUpdate::take(), "Timestamp must be updated once in the block");
+			// assert!(<Self as Store>::DidUpdate::take(), "Timestamp must be updated once in the block");
 		}
 	}
 }
@@ -186,7 +186,7 @@ impl<T: Config> ProvideInherent for Module<T> {
 		Some(Call::set_author(author))
 	}
 
-	fn check_inherent(call: &Self::Call, data: &InherentData) -> result::Result<(), Self::Error> {
+	fn check_inherent(call: &Self::Call, data: &InherentData) -> Result<(), Self::Error> {
 		// TODO make sure that the current author is in the set.
 		// maybe call into another pallet to confirm that.
 		// Currently all authorship inherents are considered good.

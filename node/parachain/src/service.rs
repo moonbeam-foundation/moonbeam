@@ -49,7 +49,7 @@ pub fn build_inherent_data_providers(
 		.map_err(sp_consensus::error::Error::InherentData)?;
 
 	providers
-		.register_provider(author-inherent::InherentDataProvider(author.encode()))
+		.register_provider(author_inherent::InherentDataProvider(author.encode()))
 		.map_err(Into::into)
 		.map_err(sp_consensus::error::Error::InherentData)?;
 
