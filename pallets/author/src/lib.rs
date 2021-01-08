@@ -32,7 +32,7 @@ pub trait EventHandler<Author> {
 }
 
 pub trait IsValidator<AccountId> {
-	fn is_validator(account: AccountId) -> bool;
+	fn is_validator(account: &AccountId) -> bool;
 }
 
 pub trait Config: System {
@@ -62,11 +62,11 @@ decl_module! {
 		type Error = Error<T>;
 
 		/// Inherent to set the author of a block
-		#[weight = 1_000_000]
+		#[weight = 0]
 		fn set_author(origin, author: T::AccountId) {
 			ensure_none(origin)?;
 			ensure!(<Author<T>>::get().is_none(), Error::<T>::AuthorAlreadySet);
-			ensure!(T::IsAuthority::is_validator(author.clone()), Error::<T>::NotValidator);
+			ensure!(T::IsAuthority::is_validator(&author), Error::<T>::NotValidator);
 			<Self as Store>::Author::put(author);
 		}
 
@@ -79,9 +79,8 @@ decl_module! {
 		}
 
 		fn on_finalize() {
-			if let Some(author) = <Author<T>>::get() {
-				T::EventHandler::note_author(author);
-			}
+			let author = <Author<T>>::get().expect("author must be set before on_finalize");
+			T::EventHandler::note_author(author);
 		}
 	}
 }

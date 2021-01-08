@@ -118,9 +118,9 @@ impl Config for Test {
 	type MinValidatorStk = MinValidatorStk;
 	type MinNominatorStk = MinNominatorStk;
 }
-pub type Sys = frame_system::Module<Test>;
 pub type Balances = pallet_balances::Module<Test>;
 pub type Stake = Module<Test>;
+pub type Sys = frame_system::Module<Test>;
 
 pub fn genesis() -> sp_io::TestExternalities {
 	let mut storage = frame_system::GenesisConfig::default()

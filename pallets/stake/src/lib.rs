@@ -478,9 +478,6 @@ impl<T: Config> Module<T> {
 	pub fn is_candidate(acc: &T::AccountId) -> bool {
 		<Candidates<T>>::get(acc).is_some()
 	}
-	pub fn was_validator(round: RoundIndex, acc: &T::AccountId) -> bool {
-		<AtStake<T>>::get(round, acc) != Exposure::default()
-	}
 	pub fn is_validator(acc: &T::AccountId) -> bool {
 		<Validators<T>>::get().contains(acc)
 	}
@@ -602,7 +599,7 @@ impl<T> author::IsValidator<T::AccountId> for Module<T>
 where
 	T: Config + author::Config,
 {
-	fn is_validator(account: T::AccountId) -> bool {
-		Self::is_validator(&account)
+	fn is_validator(account: &T::AccountId) -> bool {
+		Self::is_validator(account)
 	}
 }
