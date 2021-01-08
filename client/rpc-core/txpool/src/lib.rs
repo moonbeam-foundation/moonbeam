@@ -4,7 +4,7 @@ use jsonrpc_derive::rpc;
 
 mod types;
 
-pub use crate::types::{Response as TxnPoolResult, Summary, Transaction};
+pub use crate::types::{ResponseData as TxnPoolResult, Summary, Transaction};
 
 pub use rpc_impl_TxPool::gen_server::TxPool as TxPoolServer;
 
