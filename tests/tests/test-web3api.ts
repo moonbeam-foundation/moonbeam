@@ -6,7 +6,8 @@ describeWithMoonbeam("Moonbeam RPC (Web3Api)", `simple-specs.json`, (context) =>
     const version = await context.web3.eth.getNodeInfo();
     let specName: string = await context.polkadotApi.runtimeVersion.specName.toString();
     let specVersion: string = await context.polkadotApi.runtimeVersion.specVersion.toString();
-    let regex = new RegExp(specName + "/v" + specVersion + "+.0/fc-rpc-0.1.0");
+    let implVersion: string = await context.polkadotApi.runtimeVersion.implVersion.toString();
+    let regex = new RegExp(specName + "/v" + specVersion + "." + implVersion +"/fc-rpc-0.1.0");
     expect(version).to.be.match(regex);
   });
 
