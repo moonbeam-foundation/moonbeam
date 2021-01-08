@@ -21,7 +21,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::{
-	decl_error, decl_module, decl_storage, ensure, traits::FindAuthor, weights::Weight,
+	decl_event, decl_error, decl_module, decl_storage, ensure, traits::FindAuthor, weights::Weight,
 	ConsensusEngineId,
 };
 use frame_system::{ensure_none, Config as System};
@@ -31,9 +31,25 @@ use sp_inherents::ProvideInherentData;
 use sp_inherents::{InherentData, InherentIdentifier, IsFatalError, ProvideInherent};
 use sp_runtime::RuntimeString;
 use sp_std::vec::Vec;
+use pallet_authorship::EventHandler;
 
 pub trait Config: System {
-	//TODO event for author set.
+	/// Event type used by the runtime.
+	type Event: From<Event<Self>> + Into<<Self as System>::Event>;
+
+	/// Other pallets that want to be informed about block authorship.
+	/// We reuse the `pallet_authorship::EventHandler` for easy compatability with existing pallets.
+	type EventHandler: EventHandler<Self::AccountId, Self::BlockNumber>;
+}
+
+decl_event! {
+	pub enum Event<T> where
+		AccountId = <T as System>::AccountId,
+		BlockNumber = <T as System>::BlockNumber,
+	{
+		/// Set Author. Fields are Author, Block height
+		AuthorSet(AccountId, BlockNumber),
+	}
 }
 
 decl_error! {
@@ -54,21 +70,24 @@ decl_module! {
 	pub struct Module<T: Config> for enum Call where origin: T::Origin {
 		type Error = Error<T>;
 
+		fn deposit_event() = default;
+
 		/// Inherent to set the author of a block
 		#[weight = 1_000_000]
 		fn set_author(origin, author: T::AccountId) {
 			ensure_none(origin)?;
 			ensure!(<Author<T>>::get().is_none(), Error::<T>::AuthorAlreadySet);
 
-			<Self as Store>::Author::put(author);
+			let current_block = frame_system::Module::<T>::block_number();
+
+			<Self as Store>::Author::put(&author);
 
 			// TODO we should add a digest item so Apps can detect the block author
-			// should that go in on finalize?
 
-			// TODO should we notify an event handler here? Amar had done that in on_finalize earlier.
-			// I wonder if either approach is better than the other.
+			// Notify any other pallets that are listening (eg rewards) about the author
+			T::EventHandler::note_author(author.clone());
 
-			// TODO we should have an event for author set.
+			Self::deposit_event(Event::<T>::AuthorSet(author, current_block));
 		}
 
 		fn on_initialize() -> Weight {
@@ -77,14 +96,6 @@ decl_module! {
 			// TODO how much weight should we actually be returning here.
 			0
 		}
-
-
-		//TODO what is this?
-		// fn on_finalize() {
-		// 	if let Some(author) = <Author<T>>::get() {
-		// 		T::EventHandler::note_author(author);
-		// 	}
-		// }
 
 		//TODO we want to ensure that the inherent is set exactly once per block.
 		// This is how timestamp pallet does it.
