@@ -19,6 +19,7 @@
 use crate::mock_timestamp::MockTimestampInherentDataProvider;
 use frontier_consensus::FrontierBlockImport;
 use moonbeam_runtime::{self, opaque::Block, RuntimeApi};
+use parity_scale_codec::Encode;
 use sc_client_api::{ExecutorProvider, RemoteBackend};
 use sc_consensus_manual_seal::{self as manual_seal};
 use sc_executor::native_executor_instance;
@@ -26,11 +27,10 @@ pub use sc_executor::NativeExecutor;
 use sc_finality_grandpa::{GrandpaBlockImport, SharedVoterState};
 use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
 use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
+use sp_core::H160;
 use sp_inherents::InherentDataProviders;
 use std::sync::Arc;
 use std::time::Duration;
-use sp_core::H160;
-use parity_scale_codec::Encode;
 
 // Our native executor instance.
 native_executor_instance!(

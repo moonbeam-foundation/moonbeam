@@ -20,17 +20,15 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{
-	decl_event, decl_error, decl_module, decl_storage, ensure, weights::Weight,
-};
+use frame_support::{decl_error, decl_event, decl_module, decl_storage, ensure, weights::Weight};
 use frame_system::{ensure_none, Config as System};
+use pallet_authorship::EventHandler;
 use parity_scale_codec::{Decode, Encode};
 #[cfg(feature = "std")]
 use sp_inherents::ProvideInherentData;
 use sp_inherents::{InherentData, InherentIdentifier, IsFatalError, ProvideInherent};
-use sp_runtime::{DigestItem, RuntimeString, ConsensusEngineId};
+use sp_runtime::{ConsensusEngineId, DigestItem, RuntimeString};
 use sp_std::vec::Vec;
-use pallet_authorship::EventHandler;
 
 pub trait Config: System {
 	/// Event type used by the runtime.
