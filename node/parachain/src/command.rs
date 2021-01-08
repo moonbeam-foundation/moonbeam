@@ -125,7 +125,7 @@ impl SubstrateCli for RelayChainCli {
 		println!("Loading polkadot spec based on id string: {}", id);
 
 		match id {
-			"moonbasealpha" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
+			"moonbase-alpha-relay" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
 				&include_bytes!("../../../specs/MoonbaseAlphaV4-Relay.json")[..],
 			)?)),
 			// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the
@@ -281,11 +281,11 @@ pub fn run() -> Result<()> {
 						.chain(cli.relaychain_args.iter()),
 				);
 
-				// We override the relay chain id for a few well-known parachain ids.
+				// We override the relay chain spec for a few well-known parachain specs.
 				if let Some(chain) = cli.run.base.shared_params.chain {
 					polkadot_cli.base.base.shared_params.chain = Some(
 						match chain.as_str() {
-							"alphanet" => "moonbasealpha",
+							"alphanet" => "moonbase-alpha-relay",
 							//"moonrock" => "rococo",
 							//"moonriver" => "kusama",
 							//"" | "moonbeam" => "polkadot",
