@@ -6,7 +6,7 @@ This directory contains chain specs for well-known public networks.
 
 The Moonbase node is designed to support multiple networks including Moonbase Alpha, MoonRiver (Kusama) and Moonbeam (Polkadot). Some of these networks are already live and others are planned.
 
-In order to support multiple networks with the same binary, Moonbase relies on a chain sepcification to know which network to sync. Rather than require node operators to obtain spec files separately, it is convenient to "bake" specs for popular networks into the node.
+In order to support multiple networks with the same binary, Moonbase relies on a chain specification to know which network to sync. Rather than require node operators to obtain spec files separately, it is convenient to "bake" specs for popular networks into the node.
 
 ## Which specs will come pre-baked?
 
