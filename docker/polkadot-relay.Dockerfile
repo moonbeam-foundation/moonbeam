@@ -19,6 +19,8 @@ RUN apt-get update && \
 RUN git clone https://github.com/paritytech/polkadot
 WORKDIR /polkadot
 RUN git checkout ${POLKADOT_COMMIT}
+
+# Forces to use the compiled wasm engine for parachain validation
 RUN sed -i '/sc_executor::WasmExecutionMethod::Interpreted/c\\t\tsc_executor::WasmExecutionMethod::Compiled,' parachain/src/wasm_executor/mod.rs
 
 # Download rust dependencies and build the rust binary
