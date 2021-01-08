@@ -28,7 +28,7 @@ use parity_scale_codec::{Decode, Encode};
 #[cfg(feature = "std")]
 use sp_inherents::ProvideInherentData;
 use sp_inherents::{InherentData, InherentIdentifier, IsFatalError, ProvideInherent};
-use sp_runtime::RuntimeString;
+use sp_runtime::{DigestItem, RuntimeString, ConsensusEngineId};
 use sp_std::vec::Vec;
 use pallet_authorship::EventHandler;
 
@@ -86,7 +86,14 @@ decl_module! {
 			Author::<T>::put(&author);
 			DidUpdate::put(true);
 
-			// TODO we should add a digest item so Apps can detect the block author
+			// Add a digest item so Apps can detect the block author
+			// For now we use the Consensus digest item.
+			// Maybe this will change later.
+			let digest = DigestItem::<T::Hash>::Consensus(
+				ENGINE_ID,
+				author.encode(),
+			);
+			frame_system::Module::<T>::deposit_log(digest.into());
 
 			// Notify any other pallets that are listening (eg rewards) about the author
 			T::EventHandler::note_author(author.clone());
@@ -111,6 +118,9 @@ decl_module! {
 		}
 	}
 }
+
+// Can I express this as `*b"auth"` like we do for the inherent id?
+pub const ENGINE_ID: ConsensusEngineId = [b'a', b'u', b't', b'h'];
 
 pub const INHERENT_IDENTIFIER: InherentIdentifier = *b"author__";
 
