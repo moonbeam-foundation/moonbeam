@@ -386,7 +386,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "author"
+name = "author-inherent"
 version = "0.1.0"
 dependencies = [
  "frame-support",
@@ -4009,7 +4009,7 @@ version = "0.1.0"
 dependencies = [
  "ansi_term 0.12.1",
  "assert_cmd",
- "author",
+ "author-inherent",
  "cumulus-collator",
  "cumulus-consensus",
  "cumulus-network",
@@ -4120,7 +4120,7 @@ name = "moonbeam-runtime"
 version = "0.1.0"
 dependencies = [
  "account",
- "author",
+ "author-inherent",
  "cumulus-parachain-upgrade",
  "cumulus-primitives",
  "cumulus-runtime",

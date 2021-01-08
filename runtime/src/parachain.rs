@@ -55,7 +55,7 @@ macro_rules! runtime_parachain {
 		// 	}
 		// }
 
-		impl author::Config for Runtime {}
+		impl author_inherent::Config for Runtime {}
 
 		construct_runtime! {
 			pub enum Runtime where
@@ -74,7 +74,7 @@ macro_rules! runtime_parachain {
 				EthereumChainId: pallet_ethereum_chain_id::{Module, Storage, Config},
 				EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
 				Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
-				AuthorshipInherent: author::{Module, Call, Storage, Inherent},
+				AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
 				PalletAuthorship: pallet_authorship::{Module, Call, Storage, Inherent},
 			}
 		}
