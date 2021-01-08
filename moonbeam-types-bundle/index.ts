@@ -16,6 +16,7 @@ export const moonbeamDefinitions = {
           nonce: "U256",
           balance: "u128",
         },
+        RoundIndex: "u32",
       },
     },
     {
@@ -29,6 +30,7 @@ export const moonbeamDefinitions = {
           nonce: "U256",
           balance: "u128",
         },
+        RoundIndex: "u32",
       },
     },
     {
@@ -43,6 +45,7 @@ export const moonbeamDefinitions = {
           balance: "u128",
         },
         ExtrinsicSignature: "EthereumSignature",
+        RoundIndex: "u32",
       },
     },
   ],
