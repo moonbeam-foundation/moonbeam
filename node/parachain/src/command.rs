@@ -290,7 +290,8 @@ pub fn run() -> Result<()> {
 							//"moonriver" => "kusama",
 							//"" | "moonbeam" => "polkadot",
 							other => other,
-						}.to_string()
+						}
+						.to_string(),
 					)
 				}
 
