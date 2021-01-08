@@ -36,26 +36,29 @@ macro_rules! runtime_parachain {
 		impl parachain_info::Config for Runtime {}
 
 		// TODO Consensus not supported in parachain
-		// impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F> {
-		// 	fn find_author<'a, I>(_digests: I) -> Option<H160>
-		// 	where
-		// 		I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
-		// 	{
-		// 		None
-		// 	}
-		// }
-		//
-		// pub struct PhantomAura;
-		// impl FindAuthor<u32> for PhantomAura {
-		// 	fn find_author<'a, I>(_digests: I) -> Option<u32>
-		// 	where
-		// 		I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
-		// 	{
-		// 		Some(0 as u32)
-		// 	}
-		// }
+		impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F> {
+			fn find_author<'a, I>(_digests: I) -> Option<H160>
+			where
+				I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
+			{
+				None
+			}
+		}
 
-		impl author_inherent::Config for Runtime {}
+		pub struct PhantomAura;
+		impl FindAuthor<u32> for PhantomAura {
+			fn find_author<'a, I>(_digests: I) -> Option<u32>
+			where
+				I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
+			{
+				Some(0 as u32)
+			}
+		}
+
+		impl author_inherent::Config for Runtime {
+			type Event = Event;
+			type EventHandler = ();
+		}
 
 		construct_runtime! {
 			pub enum Runtime where
@@ -74,7 +77,7 @@ macro_rules! runtime_parachain {
 				EthereumChainId: pallet_ethereum_chain_id::{Module, Storage, Config},
 				EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
 				Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
-				AuthorInherent: author_inherent::{Module, Call, Storage, Inherent, Event},
+				AuthorInherent: author_inherent::{Module, Call, Storage, Inherent, Event<T>},
 			}
 		}
 	};

@@ -87,11 +87,10 @@ decl_module! {
 			// Add a digest item so Apps can detect the block author
 			// For now we use the Consensus digest item.
 			// Maybe this will change later.
-			let digest = DigestItem::<T::Hash>::Consensus(
+			frame_system::Module::<T>::deposit_log(DigestItem::<T::Hash>::Consensus(
 				ENGINE_ID,
 				author.encode(),
-			);
-			frame_system::Module::<T>::deposit_log(digest.into());
+			));
 
 			// Notify any other pallets that are listening (eg rewards) about the author
 			T::EventHandler::note_author(author.clone());
@@ -195,7 +194,7 @@ impl<T: Config> ProvideInherent for Module<T> {
 		Some(Call::set_author(author))
 	}
 
-	fn check_inherent(call: &Self::Call, data: &InherentData) -> Result<(), Self::Error> {
+	fn check_inherent(_call: &Self::Call, _data: &InherentData) -> Result<(), Self::Error> {
 		// TODO make sure that the current author is in the set.
 		// maybe call into another pallet to confirm that.
 		// Currently all authorship inherents are considered good.
