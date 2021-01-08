@@ -12,8 +12,6 @@ pub type TransactionMap<T> = HashMap<H160, HashMap<U256, T>>;
 
 #[derive(Debug, Serialize)]
 pub struct ResponseData<T: Serialize> {
-	pending: T,
-	queued: T,
+	pub pending: T,
+	pub queued: T,
 }
-
-pub type Response<T> = ResponseData<TransactionMap<T>>;
