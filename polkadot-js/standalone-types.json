@@ -100,5 +100,6 @@
     ]
   },
   "EthereumSignature": "[u8; 65]",
-  "ExtrinsicSignature": "EthereumSignature"
+  "ExtrinsicSignature": "EthereumSignature",
+  "RoundIndex": "u32"
 }
