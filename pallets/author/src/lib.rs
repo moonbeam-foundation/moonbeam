@@ -62,6 +62,9 @@ decl_storage! {
 	trait Store for Module<T: Config> as Author {
 		/// Author of current block.
 		Author: Option<T::AccountId>;
+
+		/// Did the author get set in this block?
+		DidUpdate: bool;
 	}
 }
 
@@ -79,7 +82,9 @@ decl_module! {
 
 			let current_block = frame_system::Module::<T>::block_number();
 
-			<Self as Store>::Author::put(&author);
+			// Update storage
+			Author::<T>::put(&author);
+			DidUpdate::put(true);
 
 			// TODO we should add a digest item so Apps can detect the block author
 
@@ -90,18 +95,19 @@ decl_module! {
 		}
 
 		fn on_initialize() -> Weight {
-			// Reset the author to None at the beginning of the block
-			<Self as Store>::Author::kill();
+			// Reset the author at the beginning of the block
+			Author::<T>::kill();
+
 			// TODO how much weight should we actually be returning here.
 			0
 		}
 
-		//TODO we want to ensure that the inherent is set exactly once per block.
-		// This is how timestamp pallet does it.
-		// But there is also this provided method on the ProvideInherent trait. I wonder how it works
-		// https://crates.parity.io/sp_inherents/trait.ProvideInherent.html#method.is_inherent_required
 		fn on_finalize() {
-			// assert!(<Self as Store>::DidUpdate::take(), "Timestamp must be updated once in the block");
+			// Ensure that the inherent is included in each block.
+			// This is how timestamp pallet does it.
+			// But there is also this provided method on the ProvideInherent trait.
+			// I wonder how it works
+			assert!(<Self as Store>::DidUpdate::take(), "Author inherent must be in the block");
 		}
 	}
 }
