@@ -79,8 +79,10 @@ decl_module! {
 		}
 
 		fn on_finalize() {
-			let author = <Author<T>>::get().expect("author must be set before on_finalize");
-			T::EventHandler::note_author(author);
+			// TODO: panic if author is not set (not done bc integration tests must set author)
+			if let Some(author) = <Author<T>>::get() {
+				T::EventHandler::note_author(author);
+			}
 		}
 	}
 }

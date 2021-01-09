@@ -490,8 +490,9 @@ impl<T: Config> Module<T> {
 		<CandidateQueue<T>>::put(candidates);
 	}
 	fn pay_stakers(next: RoundIndex) {
-		if next > T::BondDuration::get() {
-			let round_to_payout = next - T::BondDuration::get();
+		let duration = T::BondDuration::get();
+		if next > duration {
+			let round_to_payout = next - duration;
 			let total = <Points>::get(round_to_payout);
 			if total == 0u32 {
 				return;
