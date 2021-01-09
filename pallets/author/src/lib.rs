@@ -17,7 +17,7 @@
 //! Block author tracking by inherents
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{decl_error, decl_module, decl_storage, ensure, weights::Weight};
+use frame_support::{decl_error, decl_module, decl_storage, ensure};
 use frame_system::{ensure_none, Config as System};
 use parity_scale_codec::{Decode, Encode};
 #[cfg(feature = "std")]
@@ -70,19 +70,9 @@ decl_module! {
 			<Self as Store>::Author::put(author);
 		}
 
-		fn on_initialize() -> Weight {
-			// Reset the author to None at the beginning of the block
-			<Self as Store>::Author::kill();
-			// Return zero weight because we are not using weight-based
-			// transaction fees.
-			0
-		}
-
 		fn on_finalize() {
-			// TODO: panic if author is not set (not done bc integration tests must set author)
-			if let Some(author) = <Author<T>>::get() {
-				T::EventHandler::note_author(author);
-			}
+			let author = <Author<T>>::take().expect("must set author for every block");
+			T::EventHandler::note_author(author);
 		}
 	}
 }
