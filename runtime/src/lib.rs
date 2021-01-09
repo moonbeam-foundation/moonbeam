@@ -289,6 +289,33 @@ impl pallet_ethereum::Config for Runtime {
 	type FindAuthor = EthereumFindAuthor<Aura>;
 }
 
+parameter_types! {
+	pub const BlocksPerRound: u32 = 5;
+	pub const BondDuration: u32 = 2;
+	pub const MaxValidators: u32 = 5;
+	pub const MaxNominatorsPerValidator: usize = 10;
+	pub const Issuance: u128 = 100;
+	pub const MaxFee: Perbill = Perbill::from_percent(50);
+	pub const MinValidatorStk: u128 = 10;
+	pub const MinNominatorStk: u128 = 5;
+}
+impl stake::Config for Runtime {
+	type Event = Event;
+	type Currency = Balances;
+	type BlocksPerRound = BlocksPerRound;
+	type BondDuration = BondDuration;
+	type MaxValidators = MaxValidators;
+	type MaxNominatorsPerValidator = MaxNominatorsPerValidator;
+	type Issuance = Issuance;
+	type MaxFee = MaxFee;
+	type MinValidatorStk = MinValidatorStk;
+	type MinNominatorStk = MinNominatorStk;
+}
+impl author::Config for Runtime {
+	type EventHandler = Stake;
+	type IsAuthority = Stake;
+}
+
 #[cfg(feature = "standalone")]
 runtime_standalone!();
 

@@ -19,6 +19,8 @@ hex-literal = "0.3.1"
 precompiles = { path = "precompiles/", default-features = false }
 account = { path = "account/", default-features = false }
 pallet-ethereum-chain-id = { path = "../pallets/ethereum-chain-id", default-features = false }
+stake = { path = "../pallets/stake", default-features = false }
+author = { path = "../pallets/author", default-features = false }
 
 # Substrate dependencies
 pallet-aura = { git = "https://github.com/paritytech/substrate.git", default-features = false, branch = "master", optional = true }
@@ -124,6 +126,8 @@ std = [
 	"pallet-aura/std",
 	"pallet-grandpa/std",
 	"account/std",
+	"stake/std",
+	"author/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
