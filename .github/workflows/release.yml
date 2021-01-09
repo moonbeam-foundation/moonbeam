@@ -190,7 +190,9 @@ jobs:
         run: cargo test --release --verbose --all
       - name: Typescript tests (against standalone node)
         run: |
-          cd tests
+          cd moonbeam-types-bundle
+          npm install
+          cd ../tests
           npm install
           npm run test;
       - name: Save parachain binary
