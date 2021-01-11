@@ -39,25 +39,6 @@ native_executor_instance!(
 	moonbeam_runtime::native_version,
 );
 
-/// Build the inherent data providers (timestamp and authorship) for the node.
-pub fn build_inherent_data_providers(
-	author: H160,
-) -> Result<InherentDataProviders, sc_service::Error> {
-	let providers = InherentDataProviders::new();
-
-	providers
-		.register_provider(sp_timestamp::InherentDataProvider)
-		.map_err(Into::into)
-		.map_err(sp_consensus::error::Error::InherentData)?;
-
-	providers
-		.register_provider(author_inherent::InherentDataProvider(author.encode()))
-		.map_err(Into::into)
-		.map_err(sp_consensus::error::Error::InherentData)?;
-
-	Ok(providers)
-}
-
 type FullClient = sc_service::TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = sc_service::TFullBackend<Block>;
 type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
@@ -93,10 +74,15 @@ pub fn new_partial(
 	>,
 	ServiceError,
 > {
+	let inherent_data_providers = InherentDataProviders::new();
+
 	// TODO this author id should not be hard coded. This is just for simple testing. We need to
 	// wire this back to the CLI.
 	let example_author = H160::from_low_u64_le(0x0123456789abcdef);
-	let inherent_data_providers = build_inherent_data_providers(example_author)?;
+	inherent_data_providers
+		.register_provider(author_inherent::InherentDataProvider(example_author.encode()))
+		.map_err(Into::into)
+		.map_err(sp_consensus::error::Error::InherentData)?;
 
 	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, RuntimeApi, Executor>(&config)?;
