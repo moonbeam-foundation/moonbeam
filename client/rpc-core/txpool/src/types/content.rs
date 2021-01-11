@@ -1,3 +1,5 @@
+use crate::GetT;
+use ethereum::{Transaction as EthereumTransaction, TransactionAction};
 use ethereum_types::{H160, H256, U256};
 use fc_rpc_core::types::Bytes;
 use serde::Serialize;
@@ -25,4 +27,24 @@ pub struct Transaction {
 	pub gas: U256,
 	/// Data
 	pub input: Bytes,
+}
+
+impl GetT for Transaction {
+	fn get(hash: H256, from_address: H160, txn: &EthereumTransaction) -> Self {
+		Self {
+			hash,
+			nonce: txn.nonce,
+			block_hash: Some(H256::default()), // or None?
+			block_number: None,
+			from: from_address,
+			to: match txn.action {
+				TransactionAction::Call(to) => Some(to),
+				_ => None,
+			},
+			value: txn.value,
+			gas_price: txn.gas_price,
+			gas: txn.gas_limit,
+			input: Bytes(txn.input.clone()),
+		}
+	}
 }

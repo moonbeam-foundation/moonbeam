@@ -20,7 +20,6 @@ sp-std = { git = "https://github.com/paritytech/substrate.git", branch = "master
 sp-blockchain = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
 sp-transaction-pool = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
 frame-system = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
+serde = { version = "1.0", features = ["derive"] }
 
 moonbeam-rpc-primitives-txpool = { path = "../../../primitives/rpc/txpool" }
-
-fc-rpc-core = { git = "https://github.com/paritytech/frontier" }
