@@ -80,7 +80,9 @@ pub fn new_partial(
 	// wire this back to the CLI.
 	let example_author = H160::from_low_u64_be(0x0123456789abcdef);
 	inherent_data_providers
-		.register_provider(author_inherent::InherentDataProvider(example_author.encode()))
+		.register_provider(author_inherent::InherentDataProvider(
+			example_author.encode(),
+		))
 		.map_err(Into::into)
 		.map_err(sp_consensus::error::Error::InherentData)?;
 

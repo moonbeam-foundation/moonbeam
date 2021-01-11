@@ -21,7 +21,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::{
-	decl_event, decl_error, decl_module, decl_storage, ensure, traits::FindAuthor, weights::Weight,
+	decl_error, decl_event, decl_module, decl_storage, ensure, traits::FindAuthor, weights::Weight,
 };
 use frame_system::{ensure_none, Config as System};
 use pallet_authorship::EventHandler;
@@ -136,7 +136,9 @@ pub trait EligibleAuthor<AccountId> {
 }
 
 impl<AccountId> EligibleAuthor<AccountId> for () {
-	fn is_eligible(_: &AccountId) -> bool { true }
+	fn is_eligible(_: &AccountId) -> bool {
+		true
+	}
 }
 
 impl<T: Config> FindAuthor<T::AccountId> for Module<T> {

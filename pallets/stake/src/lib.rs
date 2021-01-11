@@ -583,8 +583,7 @@ impl<T: Config> Module<T> {
 
 /// Add reward points to block authors:
 /// * 20 points to the block producer for producing a block in the chain
-impl<T: Config> pallet_authorship::EventHandler<T::AccountId, T::BlockNumber> for Module<T>
-{
+impl<T: Config> pallet_authorship::EventHandler<T::AccountId, T::BlockNumber> for Module<T> {
 	fn note_author(author: T::AccountId) {
 		let now = <Round>::get();
 		let score_plus_20 = <AwardedPts<T>>::get(now, &author) + 20;
@@ -600,8 +599,7 @@ impl<T: Config> pallet_authorship::EventHandler<T::AccountId, T::BlockNumber> fo
 	}
 }
 
-impl<T: Config> author_inherent::EligibleAuthor<T::AccountId> for Module<T>
-{
+impl<T: Config> author_inherent::EligibleAuthor<T::AccountId> for Module<T> {
 	fn is_eligible(account: &T::AccountId) -> bool {
 		Self::is_validator(account)
 	}
