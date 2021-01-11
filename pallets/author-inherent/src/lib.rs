@@ -80,7 +80,7 @@ decl_module! {
 		fn deposit_event() = default;
 
 		/// Inherent to set the author of a block
-		#[weight = 1_000_000]
+		#[weight = 0]
 		fn set_author(origin, author: T::AccountId) {
 			ensure_none(origin)?;
 			ensure!(<Author<T>>::get().is_none(), Error::<T>::AuthorAlreadySet);

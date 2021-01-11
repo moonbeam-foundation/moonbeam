@@ -1,0 +1,24 @@
+NODE_NAME="amar"
+/home/alan/workshop/target/release/moonbase-alphanet \
+ --port $((42000 + 10)) \
+ --rpc-port $((42000 + 10 + 1)) \
+ --ws-port $((42000 + 10 + 2)) \
+ --execution wasm \
+ --wasm-execution compiled \
+ --validator \
+ --rpc-cors all \
+ --name ${NODE_NAME}\_parachain \
+ --tmp \
+ -linfo,evm=debug,ethereum=trace,txpool=debug,cumulus-collator=debug \
+ --chain /home/alan/workshop/moonbase-alphanet-specs-plain.json \
+ --bootnodes /dns4/ferrari.gcp.purestake.run/tcp/56052/p2p/12D3KooWJ8BACzWs2x7yt1UozRrZrtcgUhpJrBbYrYqAQBa1ZXFN \
+ -- \
+ --tmp \
+ --port $((42000)) \
+ --rpc-port $((42000 + 1)) \
+ --ws-port $((42000 + 2)) \
+ --execution wasm \
+ --wasm-execution compiled \
+ --name ${NODE_NAME}\_embedded_relay \
+ --chain /home/alan/workshop/rococo-alphanet-specs-raw.json \
+ --bootnodes /dns4/ferrari.gcp.purestake.run/tcp/55142/p2p/12D3KooWPqT2nMDSiXUSx5D7fasaxhxKigVhcqfkKqrLghCq9jxz

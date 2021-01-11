@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use codec::Encode;
 use cumulus_network::build_block_announce_validator;
 use cumulus_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
 use frontier_consensus::FrontierBlockImport;
 use moonbeam_runtime::{opaque::Block, RuntimeApi};
+use parity_scale_codec::Encode;
 use polkadot_primitives::v0::CollatorPair;
 use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
@@ -66,7 +66,7 @@ type FullBackend = TFullBackend<Block>;
 #[allow(clippy::type_complexity)]
 pub fn new_partial(
 	config: &Configuration,
-	// author: H160,
+	author: H160,
 ) -> Result<
 	PartialComponents<
 		FullClient,
@@ -78,10 +78,7 @@ pub fn new_partial(
 	>,
 	sc_service::Error,
 > {
-	// TODO this author id should not be hard coded. This is just for simple testing. We need to
-	// wire this back to the CLI.
-	let example_author = H160::from_low_u64_le(0x0123456789abcdef);
-	let inherent_data_providers = build_inherent_data_providers(example_author)?;
+	let inherent_data_providers = build_inherent_data_providers(author)?;
 
 	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, RuntimeApi, Executor>(&config)?;
@@ -127,6 +124,7 @@ pub fn new_partial(
 async fn start_node_impl<RB>(
 	parachain_config: Configuration,
 	collator_key: CollatorPair,
+	account_id: H160,
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	validator: bool,
@@ -153,7 +151,7 @@ where
 			},
 		)?;
 
-	let params = new_partial(&parachain_config)?;
+	let params = new_partial(&parachain_config, account_id)?;
 
 	let client = params.client.clone();
 	let backend = params.backend.clone();
@@ -273,6 +271,7 @@ where
 pub async fn start_node(
 	parachain_config: Configuration,
 	collator_key: CollatorPair,
+	account_id: H160,
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	validator: bool,
@@ -280,6 +279,7 @@ pub async fn start_node(
 	start_node_impl(
 		parachain_config,
 		collator_key,
+		account_id,
 		polkadot_config,
 		id,
 		validator,

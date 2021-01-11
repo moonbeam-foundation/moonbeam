@@ -15,8 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use std::path::PathBuf;
-
 use structopt::StructOpt;
+use sp_core::H160;
 
 /// Sub-commands supported by the collator.
 #[derive(Debug, StructOpt)]
@@ -123,6 +123,10 @@ pub struct Cli {
 	/// Note that this is the same as running with `--validator`.
 	#[structopt(long, conflicts_with = "validator")]
 	pub collator: bool,
+
+	/// Public identity
+	#[structopt(raw = true)]
+	pub account_id: H160,
 
 	/// Relaychain arguments
 	#[structopt(raw = true)]

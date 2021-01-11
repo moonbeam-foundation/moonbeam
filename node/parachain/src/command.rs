@@ -18,10 +18,10 @@ use crate::{
 	chain_spec,
 	cli::{Cli, RelayChainCli, Subcommand},
 };
-use codec::Encode;
 use cumulus_primitives::{genesis::generate_genesis_block, ParaId};
 use log::info;
 use moonbeam_runtime::Block;
+use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::AccountIdConversion;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
@@ -152,7 +152,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					import_queue,
 					..
-				} = crate::service::new_partial(&config)?;
+				} = crate::service::new_partial(&config, cli.account_id)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -163,7 +163,7 @@ pub fn run() -> Result<()> {
 					client,
 					task_manager,
 					..
-				} = crate::service::new_partial(&config)?;
+				} = crate::service::new_partial(&config, cli.account_id)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
 		}
@@ -174,7 +174,7 @@ pub fn run() -> Result<()> {
 					client,
 					task_manager,
 					..
-				} = crate::service::new_partial(&config)?;
+				} = crate::service::new_partial(&config, cli.account_id)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
 		}
@@ -186,7 +186,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					import_queue,
 					..
-				} = crate::service::new_partial(&config)?;
+				} = crate::service::new_partial(&config, cli.account_id)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -202,7 +202,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					backend,
 					..
-				} = crate::service::new_partial(&config)?;
+				} = crate::service::new_partial(&config, cli.account_id)?;
 				Ok((cmd.run(client, backend), task_manager))
 			})
 		}
@@ -286,9 +286,16 @@ pub fn run() -> Result<()> {
 				info!("Parachain genesis state: {}", genesis_state);
 				info!("Is collating: {}", if collator { "yes" } else { "no" });
 
-				crate::service::start_node(config, key, polkadot_config, id, collator)
-					.await
-					.map(|r| r.0)
+				crate::service::start_node(
+					config,
+					key,
+					cli.account_id,
+					polkadot_config,
+					id,
+					collator,
+				)
+				.await
+				.map(|r| r.0)
 			})
 		}
 	}
