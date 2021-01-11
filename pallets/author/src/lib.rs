@@ -64,9 +64,6 @@ decl_storage! {
 	trait Store for Module<T: Config> as Author {
 		/// Author of current block.
 		Author: Option<T::AccountId>;
-
-		/// Did the author get set in this block?
-		DidUpdate: bool;
 	}
 }
 
@@ -86,7 +83,6 @@ decl_module! {
 
 			// Update storage
 			Author::<T>::put(&author);
-			DidUpdate::put(true);
 
 			// Add a digest item so Apps can detect the block author
 			// For now we use the Consensus digest item.
