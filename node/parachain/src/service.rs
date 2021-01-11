@@ -154,10 +154,6 @@ where
 		)?;
 
 	let params = new_partial(&parachain_config)?;
-	params
-		.inherent_data_providers
-		.register_provider(sp_timestamp::InherentDataProvider)
-		.unwrap();
 
 	let client = params.client.clone();
 	let backend = params.backend.clone();
