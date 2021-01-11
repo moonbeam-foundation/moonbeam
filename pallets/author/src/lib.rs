@@ -89,6 +89,10 @@ decl_module! {
 			// Add a digest item so Apps can detect the block author
 			// For now we use the Consensus digest item.
 			// Maybe this will change later.
+			// Jaco's explanation
+			// github.com/PureStake/moonbeam/pull/159#discussion_r552939663
+			// Relevant code in Apps
+			// github.com/polkadot-js/api/blob/6dc75acd/packages/api-derive/src/type/util.ts
 			frame_system::Module::<T>::deposit_log(DigestItem::<T::Hash>::Consensus(
 				ENGINE_ID,
 				author.encode(),
