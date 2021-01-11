@@ -41,8 +41,8 @@ native_executor_instance!(
 
 /// Build the inherent data providers (timestamp and authorship) for the node.
 pub fn build_inherent_data_providers(
-	author: H160,
 	manual_seal: bool,
+	author: H160,
 ) -> Result<InherentDataProviders, sc_service::Error> {
 	let providers = InherentDataProviders::new();
 
@@ -89,6 +89,7 @@ pub enum ConsensusResult {
 pub fn new_partial(
 	config: &Configuration,
 	manual_seal: bool,
+	author: H160,
 ) -> Result<
 	sc_service::PartialComponents<
 		FullClient,
@@ -100,10 +101,7 @@ pub fn new_partial(
 	>,
 	ServiceError,
 > {
-	// TODO this author id should not be hard coded. This is just for simple testing. We need to
-	// wire this back to the CLI.
-	let example_author = H160::from_low_u64_le(0x0123456789abcdef);
-	let inherent_data_providers = build_inherent_data_providers(example_author, manual_seal)?;
+	let inherent_data_providers = build_inherent_data_providers(manual_seal, author)?;
 
 	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, RuntimeApi, Executor>(&config)?;
@@ -179,7 +177,11 @@ pub fn new_partial(
 }
 
 /// Builds a new service for a full client.
-pub fn new_full(config: Configuration, manual_seal: bool) -> Result<TaskManager, ServiceError> {
+pub fn new_full(
+	config: Configuration,
+	manual_seal: bool,
+	author: H160,
+) -> Result<TaskManager, ServiceError> {
 	let sc_service::PartialComponents {
 		client,
 		backend,
@@ -190,7 +192,7 @@ pub fn new_full(config: Configuration, manual_seal: bool) -> Result<TaskManager,
 		transaction_pool,
 		inherent_data_providers,
 		other: consensus_result,
-	} = new_partial(&config, manual_seal)?;
+	} = new_partial(&config, manual_seal, author)?;
 
 	let (network, network_status_sinks, system_rpc_tx, network_starter) = match consensus_result {
 		ConsensusResult::ManualSeal(_) => {
