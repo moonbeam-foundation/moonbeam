@@ -1699,7 +1699,7 @@ dependencies = [
  "ethereum",
  "ethereum-types",
  "fc-consensus",
- "fc-rpc-core",
+ "fc-rpc-core 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.4-hotfixes)",
  "fp-rpc",
  "futures 0.3.8",
  "jsonrpc-core 15.1.0",
@@ -1725,6 +1725,21 @@ dependencies = [
  "sp-runtime",
  "sp-storage",
  "sp-transaction-pool",
+]
+
+[[package]]
+name = "fc-rpc-core"
+version = "0.1.0"
+source = "git+https://github.com/paritytech/frontier#78fb3bcbb5bdbce2d0e4a75b9bdf79555f79a9f4"
+dependencies = [
+ "ethereum-types",
+ "jsonrpc-core 15.1.0",
+ "jsonrpc-core-client 14.2.0",
+ "jsonrpc-derive 14.2.2",
+ "jsonrpc-pubsub 15.1.0",
+ "rustc-hex",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -4072,12 +4087,14 @@ dependencies = [
  "ethereum-types",
  "fc-consensus",
  "fc-rpc",
- "fc-rpc-core",
+ "fc-rpc-core 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.4-hotfixes)",
  "fp-rpc",
  "futures 0.3.8",
  "jsonrpc-core 15.1.0",
  "jsonrpc-pubsub 15.1.0",
  "log",
+ "moonbeam-rpc-primitives-txpool",
+ "moonbeam-rpc-txpool",
  "moonbeam-runtime",
  "pallet-transaction-payment-rpc",
  "parity-scale-codec",
@@ -4101,6 +4118,51 @@ dependencies = [
 ]
 
 [[package]]
+name = "moonbeam-rpc-core-txpool"
+version = "0.1.0"
+dependencies = [
+ "ethereum",
+ "ethereum-types",
+ "fc-rpc-core 0.1.0 (git+https://github.com/paritytech/frontier)",
+ "jsonrpc-core 15.1.0",
+ "jsonrpc-core-client 14.2.0",
+ "jsonrpc-derive 14.2.2",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "moonbeam-rpc-primitives-txpool"
+version = "0.1.0"
+dependencies = [
+ "ethereum",
+ "sp-api",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "moonbeam-rpc-txpool"
+version = "0.1.0"
+dependencies = [
+ "ethereum",
+ "ethereum-types",
+ "frame-system",
+ "jsonrpc-core 15.1.0",
+ "moonbeam-rpc-core-txpool",
+ "moonbeam-rpc-primitives-txpool",
+ "serde",
+ "sha3 0.8.2",
+ "sp-api",
+ "sp-blockchain",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "sp-transaction-pool",
+]
+
+[[package]]
 name = "moonbeam-runtime"
 version = "0.1.0"
 dependencies = [
@@ -4115,6 +4177,7 @@ dependencies = [
  "frame-system-rpc-runtime-api",
  "hex-literal",
  "log",
+ "moonbeam-rpc-primitives-txpool",
  "pallet-aura",
  "pallet-balances",
  "pallet-ethereum",
