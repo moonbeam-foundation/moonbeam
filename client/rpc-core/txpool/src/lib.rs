@@ -4,18 +4,18 @@ use jsonrpc_derive::rpc;
 
 mod types;
 
-pub use crate::types::{ResponseData as TxnPoolResult, Summary, Transaction};
+pub use crate::types::{Summary, Transaction, TransactionMap, TxPoolResult};
 
 pub use rpc_impl_TxPool::gen_server::TxPool as TxPoolServer;
 
 #[rpc(server)]
 pub trait TxPool {
 	#[rpc(name = "txpool_content")]
-	fn content(&self) -> Result<TxnPoolResult<Transaction>>;
+	fn content(&self) -> Result<TxPoolResult<TransactionMap<Transaction>>>;
 
 	#[rpc(name = "txpool_inspect")]
-	fn inspect(&self) -> Result<TxnPoolResult<Summary>>;
+	fn inspect(&self) -> Result<TxPoolResult<TransactionMap<Summary>>>;
 
 	#[rpc(name = "txpool_status")]
-	fn status(&self) -> Result<TxnPoolResult<U256>>;
+	fn status(&self) -> Result<TxPoolResult<U256>>;
 }

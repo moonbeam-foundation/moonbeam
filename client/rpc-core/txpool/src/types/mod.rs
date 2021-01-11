@@ -11,7 +11,7 @@ pub use self::inspect::Summary;
 pub type TransactionMap<T> = HashMap<H160, HashMap<U256, T>>;
 
 #[derive(Debug, Serialize)]
-pub struct ResponseData<T: Serialize> {
+pub struct TxPoolResult<T: Serialize> {
 	pub pending: T,
 	pub queued: T,
 }

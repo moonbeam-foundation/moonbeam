@@ -2,7 +2,7 @@ use ethereum_types::{H256, U256};
 use jsonrpc_core::Result;
 use jsonrpc_core::{Error, ErrorCode};
 pub use moonbeam_rpc_core_txpool::{
-	Summary, Transaction, TxPool as TxPoolT, TxPoolServer, TxnPoolResult,
+	Summary, Transaction, TransactionMap, TxPool as TxPoolT, TxPoolResult, TxPoolServer,
 };
 use sp_api::{BlockId, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
@@ -50,7 +50,7 @@ where
 	P: TransactionPool<Block = B> + Send + Sync + 'static,
 	C::Api: TxPoolRuntimeApi<B>,
 {
-	fn content(&self) -> Result<TxnPoolResult<Transaction>> {
+	fn content(&self) -> Result<TxPoolResult<TransactionMap<Transaction>>> {
 		let txs: Vec<<B as BlockT>::Extrinsic> = self
 			.pool
 			.ready()
@@ -63,13 +63,13 @@ where
 		unimplemented!();
 	}
 
-	fn inspect(&self) -> Result<TxnPoolResult<Summary>> {
+	fn inspect(&self) -> Result<TxPoolResult<TransactionMap<Summary>>> {
 		unimplemented!();
 	}
 
-	fn status(&self) -> Result<TxnPoolResult<U256>> {
+	fn status(&self) -> Result<TxPoolResult<U256>> {
 		let status = self.pool.status();
-		Ok(TxnPoolResult {
+		Ok(TxPoolResult {
 			pending: U256::from(status.ready),
 			queued: U256::from(status.future),
 		})

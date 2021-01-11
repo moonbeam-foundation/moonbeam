@@ -13,8 +13,6 @@ pub struct Transaction {
 	pub block_hash: Option<H256>,
 	/// Block number
 	pub block_number: Option<U256>,
-	/// Transaction Index
-	pub transaction_index: Option<U256>,
 	/// Sender
 	pub from: H160,
 	/// Recipient
