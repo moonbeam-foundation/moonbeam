@@ -354,19 +354,11 @@ dependencies = [
 ]
 
 [[package]]
-<<<<<<< HEAD
-name = "author"
-=======
 name = "author-inherent"
->>>>>>> origin/joshy-authorship-inherent
 version = "0.1.0"
 dependencies = [
  "frame-support",
  "frame-system",
-<<<<<<< HEAD
-=======
- "pallet-authorship",
->>>>>>> origin/joshy-authorship-inherent
  "parity-scale-codec",
  "sp-authorship",
  "sp-inherents",
@@ -3705,11 +3697,7 @@ name = "moonbeam-runtime"
 version = "0.1.0"
 dependencies = [
  "account",
-<<<<<<< HEAD
- "author",
-=======
  "author-inherent",
->>>>>>> origin/joshy-authorship-inherent
  "cumulus-parachain-upgrade",
  "cumulus-primitives",
  "cumulus-runtime",
@@ -7538,7 +7526,7 @@ checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
 name = "stake"
 version = "0.1.0"
 dependencies = [
- "author",
+ "author-inherent",
  "frame-support",
  "frame-system",
  "pallet-balances",

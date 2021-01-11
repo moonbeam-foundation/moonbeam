@@ -89,7 +89,7 @@ macro_rules! runtime_standalone {
 				EthereumChainId: pallet_ethereum_chain_id::{Module, Storage, Config},
 				Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 				EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
-				Stake: stake::{Module, Storage, Event<T>, Config<T>},
+				Stake: stake::{Module, Call, Storage, Event<T>, Config<T>},
 				AuthorInherent: author_inherent::{Module, Call, Storage, Inherent, Event<T>},
 			}
 		);
