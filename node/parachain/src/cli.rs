@@ -98,7 +98,7 @@ pub struct RunCmd {
 
 	/// Public identity for participating in staking and receiving rewards
 	#[structopt(long, parse(try_from_str = parse_h160))]
-	pub account_id: H160,
+	pub account_id: Option<H160>,
 }
 
 fn parse_h160(i: &str) -> Result<H160, String> {

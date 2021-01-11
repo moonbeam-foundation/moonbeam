@@ -31,7 +31,7 @@ use sc_service::{
 	config::{BasePath, PrometheusConfig},
 	PartialComponents,
 };
-use sp_core::hexdisplay::HexDisplay;
+use sp_core::{hexdisplay::HexDisplay, H160};
 use sp_runtime::traits::Block as _;
 use std::{io::Write, net::SocketAddr};
 
@@ -138,7 +138,7 @@ fn extract_genesis_wasm(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Result<V
 /// Parse command line arguments into service configuration.
 pub fn run() -> Result<()> {
 	let cli = Cli::from_args();
-
+	let account: H160 = cli.run.account_id.unwrap_or_default();
 	match &cli.subcommand {
 		Some(Subcommand::BuildSpec(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
@@ -152,7 +152,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					import_queue,
 					..
-				} = crate::service::new_partial(&config, cli.run.account_id)?;
+				} = crate::service::new_partial(&config, account)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -163,7 +163,7 @@ pub fn run() -> Result<()> {
 					client,
 					task_manager,
 					..
-				} = crate::service::new_partial(&config, cli.run.account_id)?;
+				} = crate::service::new_partial(&config, account)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
 		}
@@ -174,7 +174,7 @@ pub fn run() -> Result<()> {
 					client,
 					task_manager,
 					..
-				} = crate::service::new_partial(&config, cli.run.account_id)?;
+				} = crate::service::new_partial(&config, account)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
 		}
@@ -186,7 +186,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					import_queue,
 					..
-				} = crate::service::new_partial(&config, cli.run.account_id)?;
+				} = crate::service::new_partial(&config, account)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -202,7 +202,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					backend,
 					..
-				} = crate::service::new_partial(&config, cli.run.account_id)?;
+				} = crate::service::new_partial(&config, account)?;
 				Ok((cmd.run(client, backend), task_manager))
 			})
 		}
@@ -286,16 +286,9 @@ pub fn run() -> Result<()> {
 				info!("Parachain genesis state: {}", genesis_state);
 				info!("Is collating: {}", if collator { "yes" } else { "no" });
 
-				crate::service::start_node(
-					config,
-					key,
-					cli.run.account_id,
-					polkadot_config,
-					id,
-					collator,
-				)
-				.await
-				.map(|r| r.0)
+				crate::service::start_node(config, key, account, polkadot_config, id, collator)
+					.await
+					.map(|r| r.0)
 			})
 		}
 	}
