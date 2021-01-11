@@ -125,7 +125,11 @@ where
 	}
 
 	fn inspect(&self) -> RpcResult<TxPoolResult<TransactionMap<Summary>>> {
-		unimplemented!();
+		let pending = self.map_build::<Summary>()?;
+		Ok(TxPoolResult {
+			pending,
+			queued: HashMap::new(),
+		})
 	}
 
 	fn status(&self) -> RpcResult<TxPoolResult<U256>> {
