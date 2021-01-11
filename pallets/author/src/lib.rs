@@ -117,7 +117,7 @@ decl_module! {
 			// This is how timestamp pallet does it.
 			// But there is also this provided method on the ProvideInherent trait.
 			// I wonder how it works
-			assert!(<Self as Store>::DidUpdate::take(), "Author inherent must be in the block");
+			assert!(<Author<T>>::get().is_some(), "Author inherent must be in the block");
 		}
 	}
 }
