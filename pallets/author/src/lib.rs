@@ -41,6 +41,8 @@ pub trait Config: System {
 	type EventHandler: EventHandler<Self::AccountId, Self::BlockNumber>;
 }
 
+//TODO Do we actually want an event here? It will fire on every block. Timestamp doesn't have one.
+// For now I'm leaving it. It has already been useful for debugging.
 decl_event! {
 	pub enum Event<T> where
 		AccountId = <T as System>::AccountId,
