@@ -152,7 +152,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					import_queue,
 					..
-				} = crate::service::new_partial(&config, cli.account_id)?;
+				} = crate::service::new_partial(&config, cli.run.account_id)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -163,7 +163,7 @@ pub fn run() -> Result<()> {
 					client,
 					task_manager,
 					..
-				} = crate::service::new_partial(&config, cli.account_id)?;
+				} = crate::service::new_partial(&config, cli.run.account_id)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
 		}
@@ -174,7 +174,7 @@ pub fn run() -> Result<()> {
 					client,
 					task_manager,
 					..
-				} = crate::service::new_partial(&config, cli.account_id)?;
+				} = crate::service::new_partial(&config, cli.run.account_id)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
 		}
@@ -186,7 +186,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					import_queue,
 					..
-				} = crate::service::new_partial(&config, cli.account_id)?;
+				} = crate::service::new_partial(&config, cli.run.account_id)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -202,7 +202,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					backend,
 					..
-				} = crate::service::new_partial(&config, cli.account_id)?;
+				} = crate::service::new_partial(&config, cli.run.account_id)?;
 				Ok((cmd.run(client, backend), task_manager))
 			})
 		}
@@ -289,7 +289,7 @@ pub fn run() -> Result<()> {
 				crate::service::start_node(
 					config,
 					key,
-					cli.account_id,
+					cli.run.account_id,
 					polkadot_config,
 					id,
 					collator,
