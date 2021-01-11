@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use sp_core::H160;
 use structopt::StructOpt;
 
 #[allow(missing_docs)]
@@ -26,6 +27,20 @@ pub struct RunCmd {
 	/// Force using Kusama native runtime.
 	#[structopt(long = "manual-seal")]
 	pub manual_seal: bool,
+
+	/// Public identity for participating in staking and receiving rewards
+	#[structopt(long, parse(try_from_str = parse_h160))]
+	pub account_id: H160,
+}
+
+fn parse_h160(i: &str) -> Result<H160, String> {
+	let hex = hex::decode(i).map_err(|e| e.to_string())?;
+	let x = hex.as_slice();
+	if x.len() == 20 {
+		Ok(H160::from_slice(x))
+	} else {
+		Err("invalid length for H160 public key".to_string())
+	}
 }
 
 #[derive(Debug, StructOpt)]

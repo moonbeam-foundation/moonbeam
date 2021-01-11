@@ -42,6 +42,7 @@ native_executor_instance!(
 /// Build the inherent data providers (timestamp and authorship) for the node.
 pub fn build_inherent_data_providers(
 	author: H160,
+	manual_seal: bool,
 ) -> Result<InherentDataProviders, sc_service::Error> {
 	let providers = InherentDataProviders::new();
 
@@ -49,11 +50,17 @@ pub fn build_inherent_data_providers(
 		.register_provider(sp_timestamp::InherentDataProvider)
 		.map_err(Into::into)
 		.map_err(sp_consensus::error::Error::InherentData)?;
-
-	providers
-		.register_provider(author_inherent::InherentDataProvider(author.encode()))
-		.map_err(Into::into)
-		.map_err(sp_consensus::error::Error::InherentData)?;
+	if manual_seal {
+		providers
+			.register_provider(MockTimestampInherentDataProvider)
+			.map_err(Into::into)
+			.map_err(sp_consensus::error::Error::InherentData)?;
+	} else {
+		providers
+			.register_provider(author_inherent::InherentDataProvider(author.encode()))
+			.map_err(Into::into)
+			.map_err(sp_consensus::error::Error::InherentData)?;
+	}
 
 	Ok(providers)
 }
@@ -96,7 +103,7 @@ pub fn new_partial(
 	// TODO this author id should not be hard coded. This is just for simple testing. We need to
 	// wire this back to the CLI.
 	let example_author = H160::from_low_u64_le(0x0123456789abcdef);
-	let inherent_data_providers = build_inherent_data_providers(example_author)?;
+	let inherent_data_providers = build_inherent_data_providers(example_author, manual_seal)?;
 
 	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, RuntimeApi, Executor>(&config)?;
@@ -112,11 +119,6 @@ pub fn new_partial(
 	);
 
 	if manual_seal {
-		inherent_data_providers
-			.register_provider(MockTimestampInherentDataProvider)
-			.map_err(Into::into)
-			.map_err(sp_consensus::error::Error::InherentData)?;
-
 		let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone(), true);
 
 		let import_queue = sc_consensus_manual_seal::import_queue(
