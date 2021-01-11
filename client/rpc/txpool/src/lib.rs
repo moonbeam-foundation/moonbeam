@@ -98,13 +98,9 @@ where
 				Err(_e) => H160::default(),
 			};
 
-			if !out.contains_key(&from_address) {
-				out.insert(from_address, HashMap::new());
-			}
-
-			if let Some(nonce_map) = out.get_mut(&from_address) {
-				nonce_map.insert(txn.nonce, T::get(hash, from_address, txn));
-			}
+			out.entry(from_address)
+				.or_insert_with(HashMap::new)
+				.insert(txn.nonce, T::get(hash, from_address, txn));
 		}
 		Ok(out)
 	}
