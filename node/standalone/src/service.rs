@@ -78,7 +78,7 @@ pub fn new_partial(
 
 	// TODO this author id should not be hard coded. This is just for simple testing. We need to
 	// wire this back to the CLI.
-	let example_author = H160::from_low_u64_le(0x0123456789abcdef);
+	let example_author = H160::from_low_u64_be(0x0123456789abcdef);
 	inherent_data_providers
 		.register_provider(author_inherent::InherentDataProvider(example_author.encode()))
 		.map_err(Into::into)
