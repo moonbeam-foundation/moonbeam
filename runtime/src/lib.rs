@@ -314,6 +314,7 @@ impl stake::Config for Runtime {
 	type MinNominatorStk = MinNominatorStk;
 }
 impl author_inherent::Config for Runtime {
+	type Event = Event;
 	type EventHandler = Stake;
 	type IsAuthority = Stake;
 }

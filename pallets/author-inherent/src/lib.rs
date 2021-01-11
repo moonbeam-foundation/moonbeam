@@ -189,11 +189,23 @@ impl<T: Config> ProvideInherent for Module<T> {
 		Some(Call::set_author(author))
 	}
 
-	fn check_inherent(_call: &Self::Call, _data: &InherentData) -> Result<(), Self::Error> {
-		// TODO make sure that the current author is in the set.
-		// maybe call into another pallet to confirm that.
-		// Currently all authorship inherents are considered good.
-		// Maybe this checking logic should be decoupled somehow so I can hand it off to the stake pallet.
+	fn check_inherent(_call: &Self::Call, data: &InherentData) -> Result<(), Self::Error> {
+		let author_raw = data
+			.get_data::<InherentType>(&INHERENT_IDENTIFIER)
+			.expect("Gets and decodes authorship inherent data")
+			.ok_or_else(|| {
+				InherentError::Other(sp_runtime::RuntimeString::Borrowed(
+					"Decode authorship inherent data failed",
+				))
+			})?;
+		let author =
+			T::AccountId::decode(&mut &author_raw[..]).expect("Decodes author raw inherent data");
+		ensure!(
+			T::IsAuthority::is_validator(&author),
+			InherentError::Other(sp_runtime::RuntimeString::Borrowed(
+				"Author must be in current validator set"
+			))
+		);
 		Ok(())
 	}
 }
