@@ -354,11 +354,19 @@ dependencies = [
 ]
 
 [[package]]
+<<<<<<< HEAD
 name = "author"
+=======
+name = "author-inherent"
+>>>>>>> origin/joshy-authorship-inherent
 version = "0.1.0"
 dependencies = [
  "frame-support",
  "frame-system",
+<<<<<<< HEAD
+=======
+ "pallet-authorship",
+>>>>>>> origin/joshy-authorship-inherent
  "parity-scale-codec",
  "sp-authorship",
  "sp-inherents",
@@ -3612,6 +3620,7 @@ dependencies = [
 name = "moonbase-standalone"
 version = "0.1.1"
 dependencies = [
+ "author-inherent",
  "fc-consensus",
  "fc-rpc",
  "fp-rpc",
@@ -3624,6 +3633,7 @@ dependencies = [
  "pallet-ethereum",
  "pallet-evm",
  "pallet-transaction-payment-rpc",
+ "parity-scale-codec",
  "sc-basic-authorship",
  "sc-cli",
  "sc-client-api",
@@ -3695,7 +3705,11 @@ name = "moonbeam-runtime"
 version = "0.1.0"
 dependencies = [
  "account",
+<<<<<<< HEAD
  "author",
+=======
+ "author-inherent",
+>>>>>>> origin/joshy-authorship-inherent
  "cumulus-parachain-upgrade",
  "cumulus-primitives",
  "cumulus-runtime",

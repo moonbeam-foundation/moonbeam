@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use codec::Encode;
 use cumulus_network::build_block_announce_validator;
 use cumulus_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
@@ -24,7 +25,8 @@ use polkadot_primitives::v0::CollatorPair;
 use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
 use sc_service::{Configuration, PartialComponents, Role, TFullBackend, TFullClient, TaskManager};
-use sp_core::Pair;
+use sp_core::{Pair, H160};
+use sp_inherents::InherentDataProviders;
 use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
 use std::sync::Arc;
@@ -34,6 +36,25 @@ native_executor_instance!(
 	moonbeam_runtime::api::dispatch,
 	moonbeam_runtime::native_version,
 );
+
+/// Build the inherent data providers (timestamp and authorship) for the node.
+pub fn build_inherent_data_providers(
+	author: H160,
+) -> Result<InherentDataProviders, sc_service::Error> {
+	let providers = InherentDataProviders::new();
+
+	providers
+		.register_provider(sp_timestamp::InherentDataProvider)
+		.map_err(Into::into)
+		.map_err(sp_consensus::error::Error::InherentData)?;
+
+	providers
+		.register_provider(author_inherent::InherentDataProvider(author.encode()))
+		.map_err(Into::into)
+		.map_err(sp_consensus::error::Error::InherentData)?;
+
+	Ok(providers)
+}
 
 type FullClient = TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = TFullBackend<Block>;
@@ -45,6 +66,7 @@ type FullBackend = TFullBackend<Block>;
 #[allow(clippy::type_complexity)]
 pub fn new_partial(
 	config: &Configuration,
+	// author: H160,
 ) -> Result<
 	PartialComponents<
 		FullClient,
@@ -56,7 +78,10 @@ pub fn new_partial(
 	>,
 	sc_service::Error,
 > {
-	let inherent_data_providers = sp_inherents::InherentDataProviders::new();
+	// TODO this author id should not be hard coded. This is just for simple testing. We need to
+	// wire this back to the CLI.
+	let example_author = H160::from_low_u64_le(0x0123456789abcdef);
+	let inherent_data_providers = build_inherent_data_providers(example_author)?;
 
 	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, RuntimeApi, Executor>(&config)?;

@@ -583,9 +583,9 @@ impl<T: Config> Module<T> {
 
 /// Add reward points to block authors:
 /// * 20 points to the block producer for producing a block in the chain
-impl<T> author::EventHandler<T::AccountId> for Module<T>
+impl<T> author_inherent::EventHandler<T::AccountId> for Module<T>
 where
-	T: Config + author::Config,
+	T: Config + author_inherent::Config,
 {
 	fn note_author(author: T::AccountId) {
 		let now = <Round>::get();
@@ -595,9 +595,9 @@ where
 	}
 }
 
-impl<T> author::IsValidator<T::AccountId> for Module<T>
+impl<T> author_inherent::IsValidator<T::AccountId> for Module<T>
 where
-	T: Config + author::Config,
+	T: Config + author_inherent::Config,
 {
 	fn is_validator(account: &T::AccountId) -> bool {
 		Self::is_validator(account)
