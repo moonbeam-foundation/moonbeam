@@ -154,6 +154,7 @@ where
 		)?;
 
 	let params = new_partial(&parachain_config)?;
+	//TODO uhhh. remove this?
 	params
 		.inherent_data_providers
 		.register_provider(sp_timestamp::InherentDataProvider)

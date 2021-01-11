@@ -49,7 +49,7 @@ use sp_api::impl_runtime_apis;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Saturating, Verify},
+	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult,
 };
@@ -100,7 +100,7 @@ pub type Hash = sp_core::H256;
 /// Digest item type.
 pub type DigestItem = generic::DigestItem<Hash>;
 
-/// Minimum time between blocks.
+/// Minimum time between blocks. Slot duration is double this.
 pub const MINIMUM_PERIOD: u64 = 3000;
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
@@ -140,17 +140,12 @@ const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 250;
-	pub const MaximumBlockWeight: Weight = 2 * WEIGHT_PER_SECOND;
-	/// Assume 10% of weight for average on_initialize calls.
-	pub MaximumExtrinsicWeight: Weight = AvailableBlockRatio::get()
-		.saturating_sub(Perbill::from_percent(10)) * MaximumBlockWeight::get();
-	pub const AvailableBlockRatio: Perbill = Perbill::from_percent(75);
 	pub const Version: RuntimeVersion = VERSION;
-	pub const ExtrinsicBaseWeight: Weight = 10_000_000;
-
-
+	/// We allow for one half second of compute with a 6 second average block time.
+	/// These values are dictated by Polkadot for the parachain.
 	pub BlockWeights: frame_system::limits::BlockWeights = frame_system::limits::BlockWeights
-		::with_sensible_defaults(2 * WEIGHT_PER_SECOND, NORMAL_DISPATCH_RATIO);
+		::with_sensible_defaults(WEIGHT_PER_SECOND / 2, NORMAL_DISPATCH_RATIO);
+	/// We allow for 5 MB blocks.
 	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
 		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
 }
@@ -195,8 +190,10 @@ impl frame_system::Config for Runtime {
 
 parameter_types! {
 	// When running in standalone mode, this controls the block time.
-	// Block time is double the minimum period.
+	// Slot duration is double the minimum period.
 	// https://github.com/paritytech/substrate/blob/e4803bd/frame/aura/src/lib.rs#L197-L199
+	// We maintain a six second block time in standalone to imitate parachain-like performance
+	// This value is stored in a seperate constant because it is used in our mock timestamp provider
 	pub const MinimumPeriod: u64 = MINIMUM_PERIOD;
 }
 
@@ -294,9 +291,34 @@ impl pallet_ethereum::Config for Runtime {
 	type FindAuthor = EthereumFindAuthor<Aura>;
 }
 
+parameter_types! {
+	pub const BlocksPerRound: u32 = 5;
+	pub const BondDuration: u32 = 2;
+	pub const MaxValidators: u32 = 5;
+	pub const MaxNominatorsPerValidator: usize = 10;
+	pub const Issuance: u128 = 100;
+	pub const MaxFee: Perbill = Perbill::from_percent(50);
+	pub const MinValidatorStk: u128 = 10;
+	pub const MinNominatorStk: u128 = 5;
+}
+impl stake::Config for Runtime {
+	type Event = Event;
+	type Currency = Balances;
+	type BlocksPerRound = BlocksPerRound;
+	type BondDuration = BondDuration;
+	type MaxValidators = MaxValidators;
+	type MaxNominatorsPerValidator = MaxNominatorsPerValidator;
+	type Issuance = Issuance;
+	type MaxFee = MaxFee;
+	type MinValidatorStk = MinValidatorStk;
+	type MinNominatorStk = MinNominatorStk;
+}
+
 impl author_inherent::Config for Runtime {
 	type Event = Event;
-	type EventHandler = ();
+	type EventHandler = Stake;
+	//TODO wire this filter to the stake pallet
+	type EligibleAuthor = ();
 }
 
 #[cfg(feature = "standalone")]

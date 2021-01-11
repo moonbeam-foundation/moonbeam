@@ -32,6 +32,7 @@ use sp_inherents::{InherentData, InherentIdentifier, IsFatalError, ProvideInhere
 use sp_runtime::{ConsensusEngineId, DigestItem, RuntimeString};
 use sp_std::vec::Vec;
 
+/// Configuration for the Author Inherent pallet.
 pub trait Config: System {
 	/// Event type used by the runtime.
 	type Event: From<Event<Self>> + Into<<Self as System>::Event>;
@@ -39,10 +40,15 @@ pub trait Config: System {
 	/// Other pallets that want to be informed about block authorship.
 	/// We reuse the `pallet_authorship::EventHandler` for easy compatability with existing pallets.
 	type EventHandler: EventHandler<Self::AccountId, Self::BlockNumber>;
+
+	/// A pallet that filters who can author. If this filter determines that the author is not
+	/// eligible, this pallet will panic in on_finalize and the block will therefore be invalid.
+	type EligibleAuthor: EligibleAuthor<Self::AccountId>;
 }
 
 //TODO Do we actually want an event here? It will fire on every block. Timestamp doesn't have one.
 // For now I'm leaving it. It has already been useful for debugging.
+// If we do want it, do we really want block number?
 decl_event! {
 	pub enum Event<T> where
 		AccountId = <T as System>::AccountId,
@@ -57,6 +63,8 @@ decl_error! {
 	pub enum Error for Module<T: Config> {
 		/// Author already set in block.
 		AuthorAlreadySet,
+		/// Author is not eligible to author blocks.
+		AuthorNotEligible,
 	}
 }
 
@@ -78,6 +86,7 @@ decl_module! {
 		fn set_author(origin, author: T::AccountId) {
 			ensure_none(origin)?;
 			ensure!(<Author<T>>::get().is_none(), Error::<T>::AuthorAlreadySet);
+			ensure!(T::EligibleAuthor::is_eligible(&author), Error::<T>::AuthorNotEligible);
 
 			let current_block = frame_system::Module::<T>::block_number();
 
@@ -118,6 +127,16 @@ decl_module! {
 			assert!(<Author<T>>::get().is_some(), "Author inherent must be in the block");
 		}
 	}
+}
+
+/// A filter to determine whether the Author is eligible. This has an implementation for ()
+/// where all authors are eligible
+pub trait EligibleAuthor<AccountId> {
+	fn is_eligible(account: &AccountId) -> bool;
+}
+
+impl<AccountId> EligibleAuthor<AccountId> for () {
+	fn is_eligible(_: &AccountId) -> bool { true }
 }
 
 impl<T: Config> FindAuthor<T::AccountId> for Module<T> {

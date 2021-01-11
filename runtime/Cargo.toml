@@ -19,6 +19,8 @@ hex-literal = "0.3.1"
 precompiles = { path = "precompiles/", default-features = false }
 account = { path = "account/", default-features = false }
 pallet-ethereum-chain-id = { path = "../pallets/ethereum-chain-id", default-features = false }
+stake = { path = "../pallets/stake", default-features = false }
+author-inherent = { path = "../pallets/author", default-features = false }
 
 # Substrate dependencies
 pallet-aura = { git = "https://github.com/paritytech/substrate.git", default-features = false, branch = "master", optional = true }
@@ -61,7 +63,6 @@ cumulus-primitives = { git = "https://github.com/paritytech/cumulus",  default-f
 
 # TODO Why can't this come directly from cumulus
 parachain-info = { path = "../pallets/parachain-info", default-features = false }
-author-inherent = { path = "../pallets/author", default-features = false }
 
 [build-dependencies]
 substrate-wasm-builder = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git", branch = "master" }
@@ -126,6 +127,7 @@ std = [
 	"pallet-aura/std",
 	"pallet-grandpa/std",
 	"account/std",
+	"stake/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
