@@ -42,6 +42,7 @@ impl Serialize for Summary {
 		serializer.serialize_str(&res)
 	}
 }
+
 impl GetT for Summary {
 	fn get(_hash: H256, _from_address: H160, txn: &EthereumTransaction) -> Self {
 		Self {

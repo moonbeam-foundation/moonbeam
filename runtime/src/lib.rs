@@ -419,14 +419,10 @@ impl_runtime_apis! {
 		fn extrinsic_filter(
 			xts: Vec<<Block as BlockT>::Extrinsic>
 		) -> Vec<pallet_ethereum::Transaction> {
-			xts.into_iter().filter_map(|xt| {
-				match xt.function {
-					Call::Ethereum(transact(t)) =>{
-						Some(t)
-					},
-					_ => None
-				}
-			}).collect::<Vec<pallet_ethereum::Transaction>>()
+			xts.into_iter().filter_map(|xt| match xt.function {
+				Call::Ethereum(transact(t)) => Some(t),
+				_ => None
+			}).collect()
 		}
 	}
 
