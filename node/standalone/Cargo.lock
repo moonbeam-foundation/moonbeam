@@ -3677,6 +3677,7 @@ dependencies = [
  "sc-network",
  "sc-rpc",
  "sc-rpc-api",
+ "sc-transaction-graph",
  "serde",
  "serde_json",
  "sha3 0.8.2",

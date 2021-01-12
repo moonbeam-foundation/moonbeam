@@ -222,6 +222,7 @@ pub fn new_full(config: Configuration, manual_seal: bool) -> Result<TaskManager,
 			let deps = moonbeam_rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
+				graph: pool.pool().clone(),
 				deny_unsafe,
 				is_authority,
 				network: network.clone(),

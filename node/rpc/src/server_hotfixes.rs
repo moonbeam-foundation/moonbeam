@@ -21,6 +21,7 @@
 //! https://github.com/paritytech/frontier/pull/199
 
 use codec::Decode;
+use codec::{self, Encode};
 use ethereum::{
 	Block as EthereumBlock, Transaction as EthereumTransaction,
 	TransactionMessage as EthereumTransactionMessage,
@@ -33,6 +34,7 @@ use frontier_rpc_core::types::{
 	Work,
 };
 use frontier_rpc_core::EthApi as EthApiT;
+pub use frontier_rpc_core::EthApiServer;
 use frontier_rpc_primitives::{ConvertTransaction, EthereumRuntimeRPCApi, TransactionStatus};
 use futures::future::TryFutureExt;
 use jsonrpc_core::{
@@ -41,6 +43,7 @@ use jsonrpc_core::{
 };
 use sc_client_api::backend::{AuxStore, Backend, StateBackend, StorageProvider};
 use sc_network::{ExHashT, NetworkService};
+use sc_transaction_graph::{ChainApi, Pool};
 use sha3::{Digest, Keccak256};
 use sp_api::{BlockId, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
@@ -56,11 +59,9 @@ use sp_transaction_pool::{InPoolTransaction, TransactionPool};
 use std::collections::BTreeMap;
 use std::{marker::PhantomData, sync::Arc};
 
-use codec::{self, Encode};
-pub use frontier_rpc_core::EthApiServer;
-
-pub struct EthApi<B: BlockT, C, P, CT, BE, H: ExHashT> {
+pub struct EthApi<B: BlockT, C, P, CT, BE, H: ExHashT, A: ChainApi> {
 	pool: Arc<P>,
+	graph: Arc<Pool<A>>,
 	client: Arc<C>,
 	convert_transaction: CT,
 	network: Arc<NetworkService<B, H>>,
@@ -69,10 +70,11 @@ pub struct EthApi<B: BlockT, C, P, CT, BE, H: ExHashT> {
 	_marker: PhantomData<(B, BE)>,
 }
 
-impl<B: BlockT, C, P, CT, BE, H: ExHashT> EthApi<B, C, P, CT, BE, H> {
+impl<B: BlockT, C, P, CT, BE, H: ExHashT, A: ChainApi> EthApi<B, C, P, CT, BE, H, A> {
 	pub fn new(
 		client: Arc<C>,
 		pool: Arc<P>,
+		graph: Arc<Pool<A>>,
 		convert_transaction: CT,
 		network: Arc<NetworkService<B, H>>,
 		signers: Vec<Box<dyn EthSigner>>,
@@ -81,6 +83,7 @@ impl<B: BlockT, C, P, CT, BE, H: ExHashT> EthApi<B, C, P, CT, BE, H> {
 		Self {
 			client,
 			pool,
+			graph,
 			convert_transaction,
 			network,
 			is_authority,
@@ -213,7 +216,7 @@ fn blake2_128_extend(bytes: &[u8]) -> Vec<u8> {
 }
 
 #[allow(clippy::all)]
-impl<B, C, P, CT, BE, H: ExHashT> EthApi<B, C, P, CT, BE, H>
+impl<B, C, P, CT, BE, H: ExHashT, A> EthApi<B, C, P, CT, BE, H, A>
 where
 	C: ProvideRuntimeApi<B> + StorageProvider<B, BE> + AuxStore,
 	C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError> + 'static,
@@ -223,6 +226,7 @@ where
 	B: BlockT<Hash = H256> + Send + Sync + 'static,
 	C: Send + Sync + 'static,
 	P: TransactionPool<Block = B> + Send + Sync + 'static,
+	A: ChainApi<Block = B> + 'static,
 	CT: ConvertTransaction<<B as BlockT>::Extrinsic> + Send + Sync + 'static,
 {
 	fn native_block_id(&self, number: Option<BlockNumber>) -> Result<Option<BlockId<B>>> {
@@ -334,7 +338,7 @@ where
 }
 
 #[allow(clippy::all)]
-impl<B, C, P, CT, BE, H: ExHashT> EthApiT for EthApi<B, C, P, CT, BE, H>
+impl<B, C, P, CT, BE, H: ExHashT, A> EthApiT for EthApi<B, C, P, CT, BE, H, A>
 where
 	C: ProvideRuntimeApi<B> + StorageProvider<B, BE> + AuxStore,
 	C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError> + 'static,
@@ -344,6 +348,7 @@ where
 	B: BlockT<Hash = H256> + Send + Sync + 'static,
 	C: Send + Sync + 'static,
 	P: TransactionPool<Block = B> + Send + Sync + 'static,
+	A: ChainApi<Block = B> + 'static,
 	CT: ConvertTransaction<<B as BlockT>::Extrinsic> + Send + Sync + 'static,
 {
 	fn protocol_version(&self) -> Result<u64> {
@@ -668,19 +673,28 @@ where
 		let transaction_hash =
 			H256::from_slice(Keccak256::digest(&rlp::encode(&transaction)).as_slice());
 		let hash = self.client.info().best_hash;
-		Box::new(
-			self.pool
-				.submit_one(
-					&BlockId::hash(hash),
-					TransactionSource::Local,
-					self.convert_transaction.convert_transaction(transaction),
-				)
-				.compat()
-				.map(move |_| transaction_hash)
-				.map_err(|err| {
-					internal_err(format!("submit transaction to pool failed: {:?}", err))
-				}),
-		)
+		let uxt = self
+			.convert_transaction
+			.convert_transaction(transaction.clone());
+		let (uxt_hash, _bytes) = self.graph.validated_pool().api().hash_and_length(&uxt);
+		let check_is_known = self.graph.validated_pool().check_is_known(&uxt_hash, false);
+
+		match check_is_known {
+			Ok(_) => Box::new(
+				self.pool
+					.submit_one(
+						&BlockId::hash(hash),
+						TransactionSource::Local,
+						self.convert_transaction.convert_transaction(transaction),
+					)
+					.compat()
+					.map(move |_| transaction_hash)
+					.map_err(|err| {
+						internal_err(format!("submit transaction to pool failed: {:?}", err))
+					}),
+			),
+			_ => Box::new(futures::future::ok(transaction_hash).compat()),
+		}
 	}
 
 	fn send_raw_transaction(&self, bytes: Bytes) -> BoxFuture<H256> {
@@ -695,19 +709,29 @@ where
 		let transaction_hash =
 			H256::from_slice(Keccak256::digest(&rlp::encode(&transaction)).as_slice());
 		let hash = self.client.info().best_hash;
-		Box::new(
-			self.pool
-				.submit_one(
-					&BlockId::hash(hash),
-					TransactionSource::Local,
-					self.convert_transaction.convert_transaction(transaction),
-				)
-				.compat()
-				.map(move |_| transaction_hash)
-				.map_err(|err| {
-					internal_err(format!("submit transaction to pool failed: {:?}", err))
-				}),
-		)
+
+		let uxt = self
+			.convert_transaction
+			.convert_transaction(transaction.clone());
+		let (uxt_hash, _bytes) = self.graph.validated_pool().api().hash_and_length(&uxt);
+		let check_is_known = self.graph.validated_pool().check_is_known(&uxt_hash, false);
+
+		match check_is_known {
+			Ok(_) => Box::new(
+				self.pool
+					.submit_one(
+						&BlockId::hash(hash),
+						TransactionSource::Local,
+						self.convert_transaction.convert_transaction(transaction),
+					)
+					.compat()
+					.map(move |_| transaction_hash)
+					.map_err(|err| {
+						internal_err(format!("submit transaction to pool failed: {:?}", err))
+					}),
+			),
+			_ => Box::new(futures::future::ok(transaction_hash).compat()),
+		}
 	}
 
 	fn call(&self, request: CallRequest, _: Option<BlockNumber>) -> Result<Bytes> {
