@@ -83,8 +83,8 @@ export interface ErrorReport {
   };
 }
 
-// This functiom sends a batch of signed transactions to the pool and records both
-// how many tx were included in the first block and the total numbe rof tx that were
+// This function sends a batch of signed transactions to the pool and records both
+// how many tx were included in the first block and the total number of tx that were
 // included in a block
 // By default, the tx is a simple transfer, but a TransactionConfig can be specified as an option
 export async function fillBlockWithTx(
