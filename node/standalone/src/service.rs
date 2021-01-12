@@ -45,9 +45,8 @@ pub fn build_inherent_data_providers(
 	author: H160,
 ) -> Result<InherentDataProviders, sc_service::Error> {
 	let providers = InherentDataProviders::new();
-
 	providers
-		.register_provider(sp_timestamp::InherentDataProvider)
+		.register_provider(author_inherent::InherentDataProvider(author.encode()))
 		.map_err(Into::into)
 		.map_err(sp_consensus::error::Error::InherentData)?;
 	if manual_seal {
@@ -57,7 +56,7 @@ pub fn build_inherent_data_providers(
 			.map_err(sp_consensus::error::Error::InherentData)?;
 	} else {
 		providers
-			.register_provider(author_inherent::InherentDataProvider(author.encode()))
+			.register_provider(sp_timestamp::InherentDataProvider)
 			.map_err(Into::into)
 			.map_err(sp_consensus::error::Error::InherentData)?;
 	}
