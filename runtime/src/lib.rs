@@ -240,22 +240,28 @@ impl pallet_sudo::Config for Runtime {
 
 impl pallet_ethereum_chain_id::Config for Runtime {}
 
-pub const GAS_PER_SECOND: u128 = 4_000_000;
-pub const WEIGHT_PER_GAS: u128 = WEIGHT_PER_SECOND as u128 / GAS_PER_SECOND;
-pub struct GasMapper {}
+// Current (safe) approximation of the gas/s consumption considering
+// EVM execution over compiled WASM.
+pub const GAS_PER_SECOND: u64 = 4_000_000;
 
-impl pallet_evm::GasWeightMapping for GasMapper {
+// Approximate ratio of the amount of Weight per Gas.
+// u64 works for approximations because Weight is a very small unit compared to gas.
+pub const WEIGHT_PER_GAS: u64 = WEIGHT_PER_SECOND as u64 / GAS_PER_SECOND;
+
+pub struct MoonbeamGasWeightMapping {}
+
+impl pallet_evm::GasWeightMapping for MoonbeamGasWeightMapping {
 	fn gas_to_weight(gas: usize) -> Weight {
-		Weight::try_from((gas as u128).saturating_mul(WEIGHT_PER_GAS)).unwrap_or(Weight::MAX)
+		Weight::try_from(gas.saturating_mul(WEIGHT_PER_GAS as usize)).unwrap_or(Weight::MAX)
 	}
 	fn weight_to_gas(weight: Weight) -> usize {
-		usize::try_from((weight as u128).wrapping_div(WEIGHT_PER_GAS)).unwrap_or(usize::MAX)
+		usize::try_from(weight.wrapping_div(WEIGHT_PER_GAS)).unwrap_or(usize::MAX)
 	}
 }
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
-	type GasWeightMapping = GasMapper;
+	type GasWeightMapping = MoonbeamGasWeightMapping;
 	type CallOrigin = EnsureAddressSame;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = IdentityAddressMapping;
