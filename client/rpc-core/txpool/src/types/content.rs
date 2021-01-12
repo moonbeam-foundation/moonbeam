@@ -18,7 +18,7 @@ use crate::GetT;
 use ethereum::{Transaction as EthereumTransaction, TransactionAction};
 use ethereum_types::{H160, H256, U256};
 use fc_rpc_core::types::Bytes;
-use serde::Serialize;
+use serde::{Serialize, Serializer};
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -28,6 +28,7 @@ pub struct Transaction {
 	/// Nonce
 	pub nonce: U256,
 	/// Block hash
+	#[serde(serialize_with = "block_hash_serialize")]
 	pub block_hash: Option<H256>,
 	/// Block number
 	pub block_number: Option<U256>,
@@ -45,12 +46,19 @@ pub struct Transaction {
 	pub input: Bytes,
 }
 
+fn block_hash_serialize<S>(hash: &Option<H256>, serializer: S) -> Result<S::Ok, S::Error>
+where
+	S: Serializer,
+{
+	serializer.serialize_str(&format!("0x{:x}", hash.unwrap_or(H256::default())))
+}
+
 impl GetT for Transaction {
 	fn get(hash: H256, from_address: H160, txn: &EthereumTransaction) -> Self {
 		Self {
 			hash,
 			nonce: txn.nonce,
-			block_hash: Some(H256::default()), // or None?
+			block_hash: None,
 			block_number: None,
 			from: from_address,
 			to: match txn.action {
