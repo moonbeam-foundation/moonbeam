@@ -240,8 +240,8 @@ impl pallet_sudo::Config for Runtime {
 
 impl pallet_ethereum_chain_id::Config for Runtime {}
 
-// Current (safe) approximation of the gas/s consumption considering
-// EVM execution over compiled WASM.
+/// Current (safe) approximation of the gas/s consumption considering
+/// EVM execution over compiled WASM.
 pub const GAS_PER_SECOND: u64 = 4_000_000;
 
 // Approximate ratio of the amount of Weight per Gas.
