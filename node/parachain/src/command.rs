@@ -138,10 +138,16 @@ fn extract_genesis_wasm(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Result<V
 /// Parse command line arguments into service configuration.
 pub fn run() -> Result<()> {
 	let cli = Cli::from_args();
-	let account = cli
-		.run
-		.account_id
-		.ok_or(sc_cli::Error::Input("Account ID not set".to_string()))?;
+	let no_account = matches!(&cli.subcommand, Some(Subcommand::BuildSpec(_)))
+		|| matches!(&cli.subcommand, Some(Subcommand::CheckBlock(_)))
+		|| matches!(&cli.subcommand, Some(Subcommand::PurgeChain(_)));
+	let account = if no_account {
+		sp_core::H160::default()
+	} else {
+		cli.run.account_id.ok_or(sc_cli::Error::Input(
+			"Account ID required but not set".to_string(),
+		))?
+	};
 	match &cli.subcommand {
 		Some(Subcommand::BuildSpec(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
