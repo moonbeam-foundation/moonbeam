@@ -53,7 +53,7 @@ use sp_runtime::{
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult,
 };
-use sp_std::{marker::PhantomData, prelude::*};
+use sp_std::{convert::TryFrom, marker::PhantomData, prelude::*};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
@@ -240,9 +240,22 @@ impl pallet_sudo::Config for Runtime {
 
 impl pallet_ethereum_chain_id::Config for Runtime {}
 
+pub const GAS_PER_SECOND: u128 = 4_000_000;
+pub const WEIGHT_PER_GAS: u128 = WEIGHT_PER_SECOND as u128 / GAS_PER_SECOND;
+pub struct GasMapper {}
+
+impl pallet_evm::GasWeightMapping for GasMapper {
+	fn gas_to_weight(gas: usize) -> Weight {
+		Weight::try_from((gas as u128).saturating_mul(WEIGHT_PER_GAS)).unwrap_or(Weight::MAX)
+	}
+	fn weight_to_gas(weight: Weight) -> usize {
+		usize::try_from((weight as u128).wrapping_div(WEIGHT_PER_GAS)).unwrap_or(usize::MAX)
+	}
+}
+
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
-	type GasWeightMapping = ();
+	type GasWeightMapping = GasMapper;
 	type CallOrigin = EnsureAddressSame;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = IdentityAddressMapping;

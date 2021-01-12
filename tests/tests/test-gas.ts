@@ -80,4 +80,46 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
 
     expect(await contract.methods.multiply(3).estimateGas()).to.equal(21204);
   });
+
+  it("gas limit should be fine under the weight limit", async function () {
+    const maxBlockGas = 2000000 * 0.65; // 2M per block limited to 65% for transactions
+
+    const nonce = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
+    const goodTx = await context.web3.eth.accounts.signTransaction(
+      {
+        from: GENESIS_ACCOUNT,
+        data: TEST_CONTRACT_BYTECODE,
+        value: "0x00",
+        gasPrice: "0x01",
+        gas: Math.floor(maxBlockGas * 0.9),
+        nonce,
+      },
+      GENESIS_ACCOUNT_PRIVATE_KEY
+    );
+    expect(
+      (await customRequest(context.web3, "eth_sendRawTransaction", [goodTx.rawTransaction])).result
+    ).to.be.length(66);
+  });
+
+  it("gas limit should be limited by weight", async function () {
+    const maxBlockGas = 2000000 * 0.65; // 2M per block limited to 65% for transactions
+    const nonce = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
+    const badTx = await context.web3.eth.accounts.signTransaction(
+      {
+        from: GENESIS_ACCOUNT,
+        data: TEST_CONTRACT_BYTECODE,
+        value: "0x00",
+        gasPrice: "0x01",
+        gas: Math.floor(maxBlockGas * 1.1),
+        nonce: nonce,
+      },
+      GENESIS_ACCOUNT_PRIVATE_KEY
+    );
+    expect(
+      ((await customRequest(context.web3, "eth_sendRawTransaction", [badTx.rawTransaction]))
+        .error as any).message
+    ).to.equal(
+      "submit transaction to pool failed: Pool(InvalidTransaction(InvalidTransaction::ExhaustsResources))"
+    );
+  });
 });
