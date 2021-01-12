@@ -31,7 +31,7 @@ macro_rules! runtime_standalone {
 			spec_name: create_runtime_str!("moonbeam-standalone"),
 			impl_name: create_runtime_str!("moonbeam-standalone"),
 			authoring_version: 3,
-			spec_version: 7,
+			spec_version: 8,
 			impl_version: 1,
 			apis: RUNTIME_API_VERSIONS,
 			transaction_version: 2,
@@ -89,6 +89,8 @@ macro_rules! runtime_standalone {
 				EthereumChainId: pallet_ethereum_chain_id::{Module, Storage, Config},
 				Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 				EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
+				Stake: stake::{Module, Storage, Event<T>, Config<T>},
+				Author: author::{Module, Storage},
 			}
 		);
 	};

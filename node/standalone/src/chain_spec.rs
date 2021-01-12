@@ -16,7 +16,7 @@
 
 use moonbeam_runtime::{
 	AccountId, AuraConfig, BalancesConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig,
-	GenesisConfig, GrandpaConfig, SudoConfig, SystemConfig, WASM_BINARY,
+	GenesisConfig, GrandpaConfig, StakeConfig, SudoConfig, SystemConfig, WASM_BINARY,
 };
 use sc_service::ChainType;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -157,5 +157,6 @@ fn testnet_genesis(
 			accounts: BTreeMap::new(),
 		}),
 		pallet_ethereum: Some(EthereumConfig {}),
+		stake: Some(StakeConfig { stakers: vec![] }),
 	}
 }
