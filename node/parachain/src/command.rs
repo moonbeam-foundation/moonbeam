@@ -31,7 +31,7 @@ use sc_service::{
 	config::{BasePath, PrometheusConfig},
 	PartialComponents,
 };
-use sp_core::{hexdisplay::HexDisplay, H160};
+use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::Block as _;
 use std::{io::Write, net::SocketAddr};
 
@@ -138,7 +138,10 @@ fn extract_genesis_wasm(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Result<V
 /// Parse command line arguments into service configuration.
 pub fn run() -> Result<()> {
 	let cli = Cli::from_args();
-	let account: H160 = cli.run.account_id.unwrap_or_default();
+	let account = cli
+		.run
+		.account_id
+		.ok_or(sc_cli::Error::Input("Account ID not set".to_string()))?;
 	match &cli.subcommand {
 		Some(Subcommand::BuildSpec(cmd)) => {
 			let runner = cli.create_runner(cmd)?;

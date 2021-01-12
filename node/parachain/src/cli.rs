@@ -101,14 +101,10 @@ pub struct RunCmd {
 	pub account_id: Option<H160>,
 }
 
-fn parse_h160(i: &str) -> Result<H160, String> {
-	let hex = hex::decode(i).map_err(|e| e.to_string())?;
-	let x = hex.as_slice();
-	if x.len() == 20 {
-		Ok(H160::from_slice(x))
-	} else {
-		Err("invalid length for H160 public key".to_string())
-	}
+fn parse_h160(input: &str) -> Result<H160, String> {
+	input
+		.parse::<H160>()
+		.map_err(|_| "Failed to parse H160".to_string())
 }
 
 impl std::ops::Deref for RunCmd {

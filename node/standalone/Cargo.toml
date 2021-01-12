@@ -21,7 +21,6 @@ exclude = [
 ]
 
 [dependencies]
-hex = "0.4"
 futures = "0.3.4"
 log = "0.4.8"
 structopt = "0.3"

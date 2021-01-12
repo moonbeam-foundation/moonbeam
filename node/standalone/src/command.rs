@@ -20,7 +20,6 @@ use crate::service;
 use crate::service::new_partial;
 use sc_cli::{ChainSpec, Role, RuntimeVersion, SubstrateCli};
 use sc_service::PartialComponents;
-use sp_core::H160;
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
@@ -65,7 +64,10 @@ impl SubstrateCli for Cli {
 /// Parse and run command line arguments
 pub fn run() -> sc_cli::Result<()> {
 	let cli = Cli::from_args();
-	let account = cli.run.account_id.unwrap_or_default();
+	let account = cli
+		.run
+		.account_id
+		.ok_or(sc_cli::Error::Input("Account ID not set".to_string()))?;
 	match &cli.subcommand {
 		Some(Subcommand::BuildSpec(cmd)) => {
 			let runner = cli.create_runner(cmd)?;

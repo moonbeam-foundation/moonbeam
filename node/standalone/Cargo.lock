@@ -3617,7 +3617,6 @@ dependencies = [
  "fc-rpc",
  "fp-rpc",
  "futures 0.3.8",
- "hex",
  "jsonrpc-core 15.1.0",
  "jsonrpc-pubsub 15.1.0",
  "log",
