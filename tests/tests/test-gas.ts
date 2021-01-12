@@ -119,7 +119,8 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
       ((await customRequest(context.web3, "eth_sendRawTransaction", [badTx.rawTransaction]))
         .error as any).message
     ).to.equal(
-      "submit transaction to pool failed: Pool(InvalidTransaction(InvalidTransaction::ExhaustsResources))"
+      "submit transaction to pool failed: " +
+        "Pool(InvalidTransaction(InvalidTransaction::ExhaustsResources))"
     );
   });
 });
