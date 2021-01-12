@@ -75,7 +75,7 @@ where
 	where
 		T: GetT,
 	{
-		let txs: Vec<<B as BlockT>::Extrinsic> = self
+		let txs: Vec<_> = self
 			.pool
 			.ready()
 			.map(|in_pool_tx| in_pool_tx.data().clone())
@@ -89,7 +89,7 @@ where
 			.map_err(|err| {
 				internal_err(format!("fetch runtime extrinsic filter failed: {:?}", err))
 			})?;
-		let mut out: TransactionMap<T> = HashMap::new();
+		let mut out = TransactionMap::<T>::new();
 		for txn in ethereum_txns.iter() {
 			let transaction_message = TransactionMessage::from(txn.clone());
 			let hash = transaction_message.hash();
@@ -119,7 +119,7 @@ impl<B: BlockT, C, P> TxPool<B, C, P> {
 impl<B, C, P> TxPoolT for TxPool<B, C, P>
 where
 	C: ProvideRuntimeApi<B>,
-	C: HeaderMetadata<B, Error = BlockChainError> + HeaderBackend<B> + 'static,
+	C: HeaderMetadata<B, Error = BlockChainError> + HeaderBackend<B>,
 	C: Send + Sync + 'static,
 	B: BlockT<Hash = H256> + Send + Sync + 'static,
 	P: TransactionPool<Block = B> + Send + Sync + 'static,
