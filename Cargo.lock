@@ -1072,7 +1072,7 @@ dependencies = [
 [[package]]
 name = "cumulus-collator"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=master#09b27cec90276348cc292a7b4180d90255b1b52c"
+source = "git+https://github.com/paritytech/cumulus?branch=master#95d3b001d575c880926226a68c766ecbe147d9a6"
 dependencies = [
  "cumulus-consensus",
  "cumulus-network",
@@ -1105,7 +1105,7 @@ dependencies = [
 [[package]]
 name = "cumulus-consensus"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=master#09b27cec90276348cc292a7b4180d90255b1b52c"
+source = "git+https://github.com/paritytech/cumulus?branch=master#95d3b001d575c880926226a68c766ecbe147d9a6"
 dependencies = [
  "futures 0.3.8",
  "log",
@@ -1127,7 +1127,7 @@ dependencies = [
 [[package]]
 name = "cumulus-network"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=master#09b27cec90276348cc292a7b4180d90255b1b52c"
+source = "git+https://github.com/paritytech/cumulus?branch=master#95d3b001d575c880926226a68c766ecbe147d9a6"
 dependencies = [
  "cumulus-primitives",
  "derive_more 0.99.11",
@@ -1154,7 +1154,7 @@ dependencies = [
 [[package]]
 name = "cumulus-parachain-upgrade"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=master#09b27cec90276348cc292a7b4180d90255b1b52c"
+source = "git+https://github.com/paritytech/cumulus?branch=master#95d3b001d575c880926226a68c766ecbe147d9a6"
 dependencies = [
  "cumulus-primitives",
  "cumulus-runtime",
@@ -1176,7 +1176,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=master#09b27cec90276348cc292a7b4180d90255b1b52c"
+source = "git+https://github.com/paritytech/cumulus?branch=master#95d3b001d575c880926226a68c766ecbe147d9a6"
 dependencies = [
  "impl-trait-for-tuples 0.1.3",
  "parity-scale-codec",
@@ -1194,7 +1194,7 @@ dependencies = [
 [[package]]
 name = "cumulus-runtime"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=master#09b27cec90276348cc292a7b4180d90255b1b52c"
+source = "git+https://github.com/paritytech/cumulus?branch=master#95d3b001d575c880926226a68c766ecbe147d9a6"
 dependencies = [
  "cumulus-primitives",
  "frame-executive",
@@ -1215,7 +1215,7 @@ dependencies = [
 [[package]]
 name = "cumulus-service"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=master#09b27cec90276348cc292a7b4180d90255b1b52c"
+source = "git+https://github.com/paritytech/cumulus?branch=master#95d3b001d575c880926226a68c766ecbe147d9a6"
 dependencies = [
  "cumulus-collator",
  "cumulus-consensus",
@@ -3151,16 +3151,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0de8b303297635ad57c9f5059fd9cee7a47f8e8daa09df0fcd07dd39fb22977f"
 dependencies = [
  "log",
-]
-
-[[package]]
-name = "kvdb"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0315ef2f688e33844400b31f11c263f2b3dc21d8b9355c6891c5f185fae43f9a"
-dependencies = [
- "parity-util-mem",
- "smallvec 1.5.1",
 ]
 
 [[package]]
@@ -5243,33 +5233,6 @@ dependencies = [
  "tokio-named-pipes",
  "tokio-uds",
  "winapi 0.3.9",
-]
-
-[[package]]
-name = "parity-util-mem"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "297ff91fa36aec49ce183484b102f6b75b46776822bd81525bfc4cc9b0dd0f5c"
-dependencies = [
- "cfg-if 0.1.10",
- "hashbrown 0.8.2",
- "impl-trait-for-tuples 0.1.3",
- "parity-util-mem-derive",
- "parking_lot 0.10.2",
- "primitive-types",
- "smallvec 1.5.1",
- "winapi 0.3.9",
-]
-
-[[package]]
-name = "parity-util-mem-derive"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f557c32c6d268a07c921471619c0295f5efad3a0e76d4f97a05c091a51d110b2"
-dependencies = [
- "proc-macro2 1.0.24",
- "syn 1.0.56",
- "synstructure",
 ]
 
 [[package]]
@@ -9710,28 +9673,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1e81da0851ada1f3e9d4312c704aa4f8806f0f9d69faaf8df2f3464b4a9437c2"
 
 [[package]]
-name = "syn"
-version = "0.15.44"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ca4b3b69a77cbe1ffc9e198781b7acb0c7365a883670e8f1c1bc66fba79a5c5"
-dependencies = [
- "proc-macro2 0.4.30",
- "quote 0.6.13",
- "unicode-xid 0.1.0",
-]
-
-[[package]]
-name = "syn"
-version = "1.0.56"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a9802ddde94170d186eeee5005b798d9c159fa970403f1be19976d0cfb939b72"
-dependencies = [
- "proc-macro2 1.0.24",
- "quote 1.0.8",
- "unicode-xid 0.2.1",
-]
-
-[[package]]
 name = "synstructure"
 version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10283,19 +10224,6 @@ name = "treeline"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a7f741b240f1a48843f9b8e0444fb55fb2a4ff67293b50a9179dfd5ea67f8d41"
-
-[[package]]
-name = "trie-db"
-version = "0.22.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e55f7ace33d6237e14137e386f4e1672e2a5c6bbc97fef9f438581a143971f0"
-dependencies = [
- "hash-db",
- "hashbrown 0.8.2",
- "log",
- "rustc-hex",
- "smallvec 1.5.1",
-]
 
 [[package]]
 name = "trie-root"
