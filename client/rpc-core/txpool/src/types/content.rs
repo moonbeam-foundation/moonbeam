@@ -35,6 +35,7 @@ pub struct Transaction {
 	/// Sender
 	pub from: H160,
 	/// Recipient
+	#[serde(serialize_with = "to_serialize")]
 	pub to: Option<H160>,
 	/// Transfered value
 	pub value: U256,
@@ -51,6 +52,13 @@ where
 	S: Serializer,
 {
 	serializer.serialize_str(&format!("0x{:x}", hash.unwrap_or(H256::default())))
+}
+
+fn to_serialize<S>(hash: &Option<H160>, serializer: S) -> Result<S::Ok, S::Error>
+where
+	S: Serializer,
+{
+	serializer.serialize_str(&format!("0x{:x}", hash.unwrap_or(H160::default())))
 }
 
 impl GetT for Transaction {

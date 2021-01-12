@@ -39,7 +39,7 @@ describeWithMoonbeam("Moonbeam RPC (TxPool RPC module)", `simple-specs.json`, (c
       gasPrice: "0x1",
       hash: "0x6073b838b5cb04e04e57d6f25dd9387ff2a3d1de5c9a7bd89206f269cb64fe1b",
       nonce: "0x0",
-      to: null,
+      to: "0x0000000000000000000000000000000000000000",
       value: "0x0",
     });
   });
