@@ -14,7 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Minimal staking module with ordered validator selection
+//! # Stake
+//! Minimal staking pallet that implements ordered validator selection by total amount at stake
+//!
+//! ### Rules
+//! There is a new round every `BlocksPerRound` blocks.
+//!
+//! At the start of every round,
+//! * `IssuancePerRound` is distributed to validators for `BondDuration` rounds ago
+//! in proportion to the points they received in that round (for authoring blocks)
+//! * queued validator exits are executed
+//! * new set of validators is chosen from the candidates
+//!
+//! To join the set of candidates, an account must call `join_candidates` with
+//! stake >= `MinValidatorStk` and fee <= `MaxFee`. The fee is taken off the top
+//! of any rewards for the validator before the remaining capital is distributed to nominators in
+//! proportion to stake (and the validator always self-nominates)
+//!
+//! To leave the set of candidates, the validator calls `leave_candidates` and is immediately
+//! removed from candidates and queued in `ExitQueue` to be removed `BondDuration` rounds later.
+//!
+//! To join the set of nominators, an account must not be a validator candidate nor an existing
+//! nominator. To join the set of nominators, an account must call `join_nominators` with
+//! stake >= `MinNominatorStk`.
+
 #![recursion_limit = "256"]
 #![cfg_attr(not(feature = "std"), no_std)]
 
