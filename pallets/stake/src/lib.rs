@@ -187,7 +187,7 @@ pub trait Config: System {
 	/// Maximum nominators per validator
 	type MaxNominatorsPerValidator: Get<usize>;
 	/// Balance issued as rewards per round (constant issuance)
-	type Issuance: Get<BalanceOf<Self>>;
+	type IssuancePerRound: Get<BalanceOf<Self>>;
 	/// Maximum fee for any validator
 	type MaxFee: Get<Perbill>;
 	/// Minimum stake for any registered on-chain account to become a validator
@@ -497,7 +497,7 @@ impl<T: Config> Module<T> {
 			if total == 0u32 {
 				return;
 			}
-			let issuance = T::Issuance::get();
+			let issuance = T::IssuancePerRound::get();
 			for (val, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
 				let pct_due = Perbill::from_rational_approximation(pts, total);
 				let mut amt_due = pct_due * issuance;
