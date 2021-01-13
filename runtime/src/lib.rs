@@ -41,7 +41,6 @@ mod standalone;
 #[cfg(feature = "standalone")]
 use standalone::*;
 
-
 use fp_rpc::TransactionStatus;
 use parity_scale_codec::{Decode, Encode};
 use sp_api::impl_runtime_apis;
