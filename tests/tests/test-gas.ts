@@ -83,10 +83,17 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
 
   // Current gas per second is at 8M and our weight limit is 500ms.
   // This computes to 4M gas per block.
-  // Current implementation is limiting block operation to ~0.65% of the block gas limit
-  const MAX_BLOCK_TX_GAS = 4000000 * 0.65;
+  const BLOCK_TX_LIMIT = 4_000_000;
 
-  it("gas limit should be fine under the weight limit", async function () {
+  // Current implementation is limiting block transactions to 0.75% of the block gas limit
+  const BLOCK_TX_GAS_LIMIT = BLOCK_TX_LIMIT * 0.75;
+  const EXTRINSIC_BASE_COST = 1_000; // 125_000_000 Weight => 1_000 gas
+
+  // Maximum extrinsic weight is taken from the max allowed transaction weight per block,
+  // minus the block initialization (10%) and minus the extrinsic base cost.
+  const EXTRINSIC_GAS_LIMIT = BLOCK_TX_GAS_LIMIT - BLOCK_TX_LIMIT * 0.1 - EXTRINSIC_BASE_COST;
+
+  it("gas limit should be fine up to the weight limit", async function () {
     const nonce = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
     const goodTx = await context.web3.eth.accounts.signTransaction(
       {
@@ -94,7 +101,7 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
         data: TEST_CONTRACT_BYTECODE,
         value: "0x00",
         gasPrice: "0x01",
-        gas: Math.floor(MAX_BLOCK_TX_GAS * 0.9),
+        gas: EXTRINSIC_GAS_LIMIT, // Todo: fix (remove eth base cost)
         nonce,
       },
       GENESIS_ACCOUNT_PRIVATE_KEY
@@ -112,7 +119,7 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
         data: TEST_CONTRACT_BYTECODE,
         value: "0x00",
         gasPrice: "0x01",
-        gas: Math.floor(MAX_BLOCK_TX_GAS * 1.1),
+        gas: EXTRINSIC_GAS_LIMIT + 1,
         nonce: nonce,
       },
       GENESIS_ACCOUNT_PRIVATE_KEY
