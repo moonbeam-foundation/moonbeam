@@ -49,7 +49,6 @@ sc-consensus-manual-seal = { git = "https://github.com/paritytech/substrate", br
 sp-consensus = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sc-consensus = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sp-timestamp = { git = "https://github.com/paritytech/substrate", branch = "master" }
-evm = { package = "pallet-evm", git = "https://github.com/purestake/frontier", branch = "v0.4-hotfixes" }
 sc-finality-grandpa = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sp-finality-grandpa = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "master" }
@@ -59,11 +58,7 @@ sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "
 
 moonbeam-runtime = {path = "../../runtime", default-features = false, features = ["std", "standalone"] }
 moonbeam-rpc = { path = "../rpc" }
-
-ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "v0.4-hotfixes" }
-frontier-consensus = { package = "fc-consensus", git = "https://github.com/purestake/frontier", branch = "v0.4-hotfixes" }
-frontier-rpc = { package = "fc-rpc", git = "https://github.com/purestake/frontier", branch = "v0.4-hotfixes" }
-frontier-rpc-primitives = { package = "fp-rpc", git = "https://github.com/purestake/frontier", branch = "v0.4-hotfixes" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.4-hotfixes" }
 
 author-inherent = { path = "../../pallets/author-inherent"}
 
