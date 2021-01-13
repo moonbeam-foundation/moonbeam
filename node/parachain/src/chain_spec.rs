@@ -102,7 +102,7 @@ fn testnet_genesis(
 			stakers: endowed_accounts
 				.iter()
 				.cloned()
-				.map(|k| (k, None, 100))
+				.map(|k| (k, None, 100_000))
 				.collect(),
 		}),
 	}
