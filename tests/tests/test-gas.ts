@@ -81,10 +81,10 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
     expect(await contract.methods.multiply(3).estimateGas()).to.equal(21204);
   });
 
-  // Current gas per second is at 4M and our weight limit is 500ms.
-  // This computes to 2M gas per block.
+  // Current gas per second is at 8M and our weight limit is 500ms.
+  // This computes to 4M gas per block.
   // Current implementation is limiting block operation to ~0.65% of the block gas limit
-  const MAX_BLOCK_TX_GAS = 2000000 * 0.65;
+  const MAX_BLOCK_TX_GAS = 4000000 * 0.65;
 
   it("gas limit should be fine under the weight limit", async function () {
     const nonce = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
