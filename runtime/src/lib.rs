@@ -281,8 +281,6 @@ impl frontier_rpc_primitives::ConvertTransaction<opaque::UncheckedExtrinsic>
 
 pub struct EthereumFindAuthor<F>(PhantomData<F>);
 
-//TODO This is a reason we may want to bring back the FindAuthor implementation
-// Although I guess we could also change pallet ethereum act as an event listener?
 impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
 	#[cfg(not(feature = "standalone"))]
