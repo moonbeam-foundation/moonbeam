@@ -390,3 +390,153 @@ fn exit_queue_works() {
 		assert_eq!(events, expected);
 	});
 }
+
+#[test]
+fn payout_distribution_works() {
+	genesis2().execute_with(|| {
+		// same storage changes as EventHandler::note_author impl
+		fn set_pts(round: u32, acc: u64, pts: u32) {
+			<Stake as Store>::Points::mutate(round, |p| *p += pts);
+			<Stake as Store>::AwardedPts::insert(round, acc, pts);
+		}
+		roll_to(4);
+		roll_to(8);
+		let events = Sys::events()
+			.into_iter()
+			.map(|r| r.event)
+			.filter_map(|e| {
+				if let MetaEvent::stake(inner) = e {
+					Some(inner)
+				} else {
+					None
+				}
+			})
+			.collect::<Vec<_>>();
+		// should choose top MaxValidators (5), in order
+		let mut expected = vec![
+			RawEvent::ValidatorChosen(2, 1, 100),
+			RawEvent::ValidatorChosen(2, 2, 90),
+			RawEvent::ValidatorChosen(2, 3, 80),
+			RawEvent::ValidatorChosen(2, 4, 70),
+			RawEvent::ValidatorChosen(2, 5, 60),
+			RawEvent::NewRound(5, 2, 5, 400),
+		];
+		assert_eq!(events, expected);
+		// ~ set block author as 1 for all blocks this round
+		set_pts(2, 1, 100);
+		roll_to(16);
+		let events = Sys::events()
+			.into_iter()
+			.map(|r| r.event)
+			.filter_map(|e| {
+				if let MetaEvent::stake(inner) = e {
+					Some(inner)
+				} else {
+					None
+				}
+			})
+			.collect::<Vec<_>>();
+		// pay total issuance (=10) to 1
+		let mut new = vec![
+			RawEvent::ValidatorChosen(3, 1, 100),
+			RawEvent::ValidatorChosen(3, 2, 90),
+			RawEvent::ValidatorChosen(3, 3, 80),
+			RawEvent::ValidatorChosen(3, 4, 70),
+			RawEvent::ValidatorChosen(3, 5, 60),
+			RawEvent::NewRound(10, 3, 5, 400),
+			RawEvent::Rewarded(1, 10),
+			RawEvent::ValidatorChosen(4, 1, 100),
+			RawEvent::ValidatorChosen(4, 2, 90),
+			RawEvent::ValidatorChosen(4, 3, 80),
+			RawEvent::ValidatorChosen(4, 4, 70),
+			RawEvent::ValidatorChosen(4, 5, 60),
+			RawEvent::NewRound(15, 4, 5, 400),
+		];
+		expected.append(&mut new);
+		assert_eq!(events, expected);
+		// ~ set block author as 1 for 3 blocks this round
+		set_pts(4, 1, 60);
+		// ~ set block author as 2 for 2 blocks this round
+		set_pts(4, 2, 40);
+		roll_to(26);
+		let events = Sys::events()
+			.into_iter()
+			.map(|r| r.event)
+			.filter_map(|e| {
+				if let MetaEvent::stake(inner) = e {
+					Some(inner)
+				} else {
+					None
+				}
+			})
+			.collect::<Vec<_>>();
+		// pay 60% total issuance to 1 and 40% total issuance to 2
+		let mut new1 = vec![
+			RawEvent::ValidatorChosen(5, 1, 100),
+			RawEvent::ValidatorChosen(5, 2, 90),
+			RawEvent::ValidatorChosen(5, 3, 80),
+			RawEvent::ValidatorChosen(5, 4, 70),
+			RawEvent::ValidatorChosen(5, 5, 60),
+			RawEvent::NewRound(20, 5, 5, 400),
+			RawEvent::Rewarded(1, 6),
+			RawEvent::Rewarded(2, 4),
+			RawEvent::ValidatorChosen(6, 1, 100),
+			RawEvent::ValidatorChosen(6, 2, 90),
+			RawEvent::ValidatorChosen(6, 3, 80),
+			RawEvent::ValidatorChosen(6, 4, 70),
+			RawEvent::ValidatorChosen(6, 5, 60),
+			RawEvent::NewRound(25, 6, 5, 400),
+		];
+		expected.append(&mut new1);
+		assert_eq!(events, expected);
+		// ~ each validator produces 1 block this round
+		set_pts(6, 1, 20);
+		set_pts(6, 2, 20);
+		set_pts(6, 3, 20);
+		set_pts(6, 4, 20);
+		set_pts(6, 5, 20);
+		roll_to(36);
+		let events = Sys::events()
+			.into_iter()
+			.map(|r| r.event)
+			.filter_map(|e| {
+				if let MetaEvent::stake(inner) = e {
+					Some(inner)
+				} else {
+					None
+				}
+			})
+			.collect::<Vec<_>>();
+		// pay 20% issuance for all validators
+		let mut new2 = vec![
+			RawEvent::ValidatorChosen(7, 1, 100),
+			RawEvent::ValidatorChosen(7, 2, 90),
+			RawEvent::ValidatorChosen(7, 3, 80),
+			RawEvent::ValidatorChosen(7, 4, 70),
+			RawEvent::ValidatorChosen(7, 5, 60),
+			RawEvent::NewRound(30, 7, 5, 400),
+			RawEvent::Rewarded(5, 2),
+			RawEvent::Rewarded(3, 2),
+			RawEvent::Rewarded(1, 2),
+			RawEvent::Rewarded(4, 2),
+			RawEvent::Rewarded(2, 2),
+			RawEvent::ValidatorChosen(8, 1, 100),
+			RawEvent::ValidatorChosen(8, 2, 90),
+			RawEvent::ValidatorChosen(8, 3, 80),
+			RawEvent::ValidatorChosen(8, 4, 70),
+			RawEvent::ValidatorChosen(8, 5, 60),
+			RawEvent::NewRound(35, 8, 5, 400),
+		];
+		expected.append(&mut new2);
+		assert_eq!(events, expected);
+		// check that distributing rewards clears awarded pts
+		assert!(<Stake as Store>::AwardedPts::get(1, 1).is_zero());
+		assert!(<Stake as Store>::AwardedPts::get(4, 1).is_zero());
+		assert!(<Stake as Store>::AwardedPts::get(4, 2).is_zero());
+		assert!(<Stake as Store>::AwardedPts::get(6, 1).is_zero());
+		assert!(<Stake as Store>::AwardedPts::get(6, 2).is_zero());
+		assert!(<Stake as Store>::AwardedPts::get(6, 3).is_zero());
+		assert!(<Stake as Store>::AwardedPts::get(6, 4).is_zero());
+		assert!(<Stake as Store>::AwardedPts::get(6, 5).is_zero());
+	});
+}

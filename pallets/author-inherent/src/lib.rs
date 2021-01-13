@@ -29,13 +29,19 @@ use sp_inherents::{InherentData, InherentIdentifier, IsFatalError, ProvideInhere
 use sp_runtime::{ConsensusEngineId, DigestItem, RuntimeString};
 use sp_std::vec::Vec;
 
+/// Note that the given account ID is the author of the current block.
 pub trait EventHandler<Author> {
-	/// Note that the given account ID is the author of the current block.
 	fn note_author(author: Author);
 }
-
-pub trait IsValidator<AccountId> {
-	fn is_validator(account: &AccountId) -> bool;
+/// Permissions for what block author can be set in this pallet
+pub trait CanAuthor<AccountId> {
+	fn can_author(account: &AccountId) -> bool;
+}
+/// Default permissions is none, see `stake` pallet for different impl used in runtime
+impl<T> CanAuthor<T> for () {
+	fn can_author(_: &T) -> bool {
+		true
+	}
 }
 
 pub trait Config: System {
@@ -45,8 +51,8 @@ pub trait Config: System {
 	/// Other pallets that want to be informed about block authorship
 	type EventHandler: EventHandler<Self::AccountId>;
 
-	/// Checks if account is a validator
-	type IsAuthority: IsValidator<Self::AccountId>;
+	/// Checks if account can be set as block author
+	type CanAuthor: CanAuthor<Self::AccountId>;
 }
 
 decl_event! {
@@ -54,7 +60,7 @@ decl_event! {
 		AccountId = <T as System>::AccountId,
 		BlockNumber = <T as System>::BlockNumber,
 	{
-		/// Set Author. Fields are Author, Block height
+		/// Author, Block Height
 		AuthorSet(AccountId, BlockNumber),
 	}
 }
@@ -63,7 +69,7 @@ decl_error! {
 	pub enum Error for Module<T: Config> {
 		/// Author already set in block.
 		AuthorAlreadySet,
-		NotValidator,
+		CannotBeAuthor,
 	}
 }
 
@@ -84,7 +90,7 @@ decl_module! {
 		fn set_author(origin, author: T::AccountId) {
 			ensure_none(origin)?;
 			ensure!(<Author<T>>::get().is_none(), Error::<T>::AuthorAlreadySet);
-			ensure!(T::IsAuthority::is_validator(&author), Error::<T>::NotValidator);
+			ensure!(T::CanAuthor::can_author(&author), Error::<T>::CannotBeAuthor);
 
 			let current_block = frame_system::Module::<T>::block_number();
 
@@ -201,7 +207,7 @@ impl<T: Config> ProvideInherent for Module<T> {
 		let author =
 			T::AccountId::decode(&mut &author_raw[..]).expect("Decodes author raw inherent data");
 		ensure!(
-			T::IsAuthority::is_validator(&author),
+			T::CanAuthor::can_author(&author),
 			InherentError::Other(sp_runtime::RuntimeString::Borrowed(
 				"Author must be in current validator set"
 			))

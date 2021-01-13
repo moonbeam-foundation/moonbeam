@@ -43,8 +43,8 @@ use standalone::*;
 // #[cfg(not(feature = "standalone"))]
 // use parachain::*;
 
-use codec::{Decode, Encode};
 use frontier_rpc_primitives::TransactionStatus;
+use parity_scale_codec::{Decode, Encode};
 use sp_api::impl_runtime_apis;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
@@ -316,7 +316,7 @@ impl stake::Config for Runtime {
 impl author_inherent::Config for Runtime {
 	type Event = Event;
 	type EventHandler = Stake;
-	type IsAuthority = Stake;
+	type CanAuthor = Stake;
 }
 
 #[cfg(feature = "standalone")]

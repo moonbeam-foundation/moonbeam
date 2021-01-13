@@ -505,16 +505,24 @@ impl<T: Config> Module<T> {
 					continue;
 				}
 				if let Some(state) = <Candidates<T>>::get(&val) {
-					let fee_off_top = state.fee * amt_due;
-					if let Some(imb) = T::Currency::deposit_into_existing(&val, fee_off_top).ok() {
-						Self::deposit_event(RawEvent::Rewarded(val.clone(), imb.peek()));
-					}
-					amt_due -= fee_off_top;
-					for Bond { owner, amount } in state.nominators.0 {
-						let percent = Perbill::from_rational_approximation(amount, state.total);
-						let due = percent * amt_due;
-						if let Some(imb) = T::Currency::deposit_into_existing(&owner, due).ok() {
-							Self::deposit_event(RawEvent::Rewarded(owner.clone(), imb.peek()));
+					if state.nominators.0.len() == 1usize {
+						// solo validator with no nominators
+						if let Some(imb) = T::Currency::deposit_into_existing(&val, amt_due).ok() {
+							Self::deposit_event(RawEvent::Rewarded(val.clone(), imb.peek()));
+						}
+					} else {
+						let fee = state.fee * amt_due;
+						if let Some(imb) = T::Currency::deposit_into_existing(&val, fee).ok() {
+							Self::deposit_event(RawEvent::Rewarded(val.clone(), imb.peek()));
+						}
+						amt_due -= fee;
+						for Bond { owner, amount } in state.nominators.0 {
+							let percent = Perbill::from_rational_approximation(amount, state.total);
+							let due = percent * amt_due;
+							if let Some(imb) = T::Currency::deposit_into_existing(&owner, due).ok()
+							{
+								Self::deposit_event(RawEvent::Rewarded(owner.clone(), imb.peek()));
+							}
 						}
 					}
 				}
@@ -595,11 +603,11 @@ where
 	}
 }
 
-impl<T> author_inherent::IsValidator<T::AccountId> for Module<T>
+impl<T> author_inherent::CanAuthor<T::AccountId> for Module<T>
 where
 	T: Config + author_inherent::Config,
 {
-	fn is_validator(account: &T::AccountId) -> bool {
+	fn can_author(account: &T::AccountId) -> bool {
 		Self::is_validator(account)
 	}
 }

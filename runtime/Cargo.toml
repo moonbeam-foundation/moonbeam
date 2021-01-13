@@ -12,7 +12,7 @@ rusty-hook = "^0.11.2"
 
 [dependencies]
 serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
-codec = { package = "parity-scale-codec", version = "1.0.0", default-features = false, features = ["derive"] }
+parity-scale-codec = { version = "1.0.0", default-features = false, features = ["derive"] }
 log = "0.4.8"
 hex-literal = "0.3.1"
 
@@ -81,7 +81,7 @@ standalone = [
 	"pallet-grandpa",
 ]
 std = [
-	"codec/std",
+	"parity-scale-codec/std",
 	"serde",
 	"sp-api/std",
 	"sp-std/std",

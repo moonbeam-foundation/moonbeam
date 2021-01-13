@@ -45,7 +45,6 @@ impl_outer_event! {
 	pub enum MetaEvent for Test {
 		frame_system<T>,
 		pallet_balances<T>,
-		author_inherent<T>,
 		stake<T>,
 	}
 }
@@ -92,11 +91,6 @@ impl pallet_balances::Config for Test {
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = frame_system::Module<Test>;
 	type WeightInfo = ();
-}
-impl author_inherent::Config for Test {
-	type Event = MetaEvent;
-	type EventHandler = Module<Test>;
-	type IsAuthority = Module<Test>;
 }
 parameter_types! {
 	pub const BlocksPerRound: u32 = 5;
