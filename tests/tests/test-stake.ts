@@ -5,7 +5,7 @@ import { describeWithMoonbeam } from "./util";
 
 describeWithMoonbeam("Moonbeam RPC (Stake)", `simple-specs.json`, (context) => {
   const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
-  const GENESIS_STAKED = "100";
+  const GENESIS_STAKED = "100000";
   step("validator bond reserved in genesis", async function () {
     const account = await context.polkadotApi.query.system.account(GENESIS_ACCOUNT);
     expect(account.data.reserved.toString()).to.equal(GENESIS_STAKED);
