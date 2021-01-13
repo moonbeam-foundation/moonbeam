@@ -682,11 +682,7 @@ where
 		match check_is_known {
 			Ok(_) => Box::new(
 				self.pool
-					.submit_one(
-						&BlockId::hash(hash),
-						TransactionSource::Local,
-						self.convert_transaction.convert_transaction(transaction),
-					)
+					.submit_one(&BlockId::hash(hash), TransactionSource::Local, uxt)
 					.compat()
 					.map(move |_| transaction_hash)
 					.map_err(|err| {
@@ -719,11 +715,7 @@ where
 		match check_is_known {
 			Ok(_) => Box::new(
 				self.pool
-					.submit_one(
-						&BlockId::hash(hash),
-						TransactionSource::Local,
-						self.convert_transaction.convert_transaction(transaction),
-					)
+					.submit_one(&BlockId::hash(hash), TransactionSource::Local, uxt)
 					.compat()
 					.map(move |_| transaction_hash)
 					.map_err(|err| {
