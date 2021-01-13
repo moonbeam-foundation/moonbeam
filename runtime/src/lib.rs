@@ -40,8 +40,6 @@ mod standalone;
 
 #[cfg(feature = "standalone")]
 use standalone::*;
-// #[cfg(not(feature = "standalone"))]
-// use parachain::*;
 
 use frontier_rpc_primitives::TransactionStatus;
 use parity_scale_codec::{Decode, Encode};
