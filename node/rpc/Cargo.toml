@@ -35,7 +35,7 @@ frontier-rpc-primitives = { package = "fp-rpc", git = "https://github.com/purest
 
 # Dependencies I've added for the server hotfixes
 ethereum = { version = "0.5", features = ["with-codec"] }
-ethereum-types = "0.9.0"
+ethereum-types = "0.10.0"
 sha3 = "0.8"
 sp-io = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
 sp-storage = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
