@@ -91,6 +91,7 @@ macro_rules! runtime_standalone {
 				EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
 				Stake: stake::{Module, Storage, Event<T>, Config<T>},
 				Author: author::{Module, Storage},
+				Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
 			}
 		);
 	};

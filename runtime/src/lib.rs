@@ -64,6 +64,7 @@ pub use frame_support::{
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 	ConsensusEngineId, StorageValue,
 };
+use frame_system::{EnsureRoot, EnsureSigned};
 use pallet_evm::{
 	Account as EVMAccount, EnsureAddressNever, EnsureAddressSame, FeeCalculator,
 	IdentityAddressMapping, Runner,
@@ -251,6 +252,72 @@ impl pallet_evm::Config for Runtime {
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type Precompiles = precompiles::MoonbeamPrecompiles<Self>;
 	type ChainId = EthereumChainId;
+}
+
+mod scheduler {
+	use super::*;
+
+	parameter_types! {
+		pub MaximumSchedulerWeight: Weight = Perbill::from_percent(80) * BlockWeights::get().max_block;
+	}
+	impl pallet_scheduler::Config for Runtime {
+		type Event = Event;
+		type Origin = Origin;
+		type PalletsOrigin = OriginCaller;
+		type Call = Call;
+		type MaximumWeight = MaximumSchedulerWeight;
+		type ScheduleOrigin = EnsureRoot<AccountId>;
+		type MaxScheduledPerBlock = ();
+		type WeightInfo = ();
+	}
+}
+
+mod democracy {
+	use super::*;
+
+	parameter_types! {
+		pub const LaunchPeriod: BlockNumber = 2;
+		pub const VotingPeriod: BlockNumber = 2;
+		pub const FastTrackVotingPeriod: BlockNumber = 2;
+		pub const MinimumDeposit: BlockNumber = 1;
+		pub const EnactmentPeriod: BlockNumber = 2;
+		pub const CooloffPeriod: BlockNumber = 2;
+		pub const MaxVotes: u32 = 100;
+		pub const MaxProposals: u32 = 100;
+		pub const PreimageByteDeposit: BlockNumber = 0;
+		pub const InstantAllowed: bool = false;
+	}
+
+	// todo : ensure better origins
+	impl pallet_democracy::Config for Runtime {
+		type Proposal = Call;
+		type Event = Event;
+		type Currency = pallet_balances::Module<Self>;
+		type EnactmentPeriod = EnactmentPeriod;
+		type LaunchPeriod = LaunchPeriod;
+		type VotingPeriod = VotingPeriod;
+		type FastTrackVotingPeriod = FastTrackVotingPeriod;
+		type MinimumDeposit = MinimumDeposit;
+		type ExternalOrigin = EnsureSigned<AccountId>;
+		type ExternalMajorityOrigin = EnsureSigned<AccountId>;
+		type ExternalDefaultOrigin = EnsureSigned<AccountId>;
+		type FastTrackOrigin = EnsureSigned<AccountId>;
+		type CancellationOrigin = EnsureSigned<AccountId>;
+		type BlacklistOrigin = EnsureRoot<AccountId>;
+		type CancelProposalOrigin = EnsureRoot<AccountId>;
+		type VetoOrigin = EnsureSigned<AccountId>;
+		type CooloffPeriod = CooloffPeriod;
+		type PreimageByteDeposit = PreimageByteDeposit;
+		type Slash = ();
+		type InstantOrigin = EnsureSigned<AccountId>;
+		type InstantAllowed = InstantAllowed;
+		type Scheduler = Scheduler;
+		type MaxVotes = MaxVotes;
+		type OperationalPreimageOrigin = EnsureSigned<AccountId>;
+		type PalletsOrigin = OriginCaller;
+		type WeightInfo = ();
+		type MaxProposals = MaxProposals;
+	}
 }
 
 pub struct TransactionConverter;

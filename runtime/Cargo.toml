@@ -55,6 +55,8 @@ pallet-grandpa = { default-features = false, package = "pallet-grandpa", git = "
 frontier-rpc-primitives = { package = "fp-rpc", default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.4-hotfixes" }
 pallet-ethereum = { default-features = false, package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "v0.4-hotfixes" }
 
+pallet-democracy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 
 # Cumulus dependencies
 cumulus-runtime = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
@@ -108,6 +110,7 @@ std = [
 	"frame-system-rpc-runtime-api/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-ethereum-chain-id/std",
+	"pallet-democracy/std",
 
 	# TODO These dependencies are only necessary when building without the standalone feature. I don't
 	# see a way to express that. Everything is correct, like this, but we unnecessarily build these

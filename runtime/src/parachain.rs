@@ -74,6 +74,8 @@ macro_rules! runtime_parachain {
 				Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 				Stake: stake::{Module, Storage, Event<T>, Config<T>},
 				Author: author::{Module, Storage},
+				Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
+				Scheduler: pallet_scheduler::{Module, Storage, Config, Event<T>, Call},
 			}
 		}
 	};
