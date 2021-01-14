@@ -138,16 +138,6 @@ fn extract_genesis_wasm(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Result<V
 /// Parse command line arguments into service configuration.
 pub fn run() -> Result<()> {
 	let cli = Cli::from_args();
-	let no_account = matches!(&cli.subcommand, Some(Subcommand::BuildSpec(_)))
-		|| matches!(&cli.subcommand, Some(Subcommand::CheckBlock(_)))
-		|| matches!(&cli.subcommand, Some(Subcommand::PurgeChain(_)));
-	let account = if no_account {
-		sp_core::H160::default()
-	} else {
-		cli.run.account_id.ok_or(sc_cli::Error::Input(
-			"Account ID required but not set".to_string(),
-		))?
-	};
 	match &cli.subcommand {
 		Some(Subcommand::BuildSpec(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
@@ -162,7 +152,7 @@ pub fn run() -> Result<()> {
 					import_queue,
 					..
 				// NOTE: account is not used in this call and passed in value is H160::default()
-				} = crate::service::new_partial(&config, account)?;
+				} = crate::service::new_partial(&config, None)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -173,7 +163,7 @@ pub fn run() -> Result<()> {
 					client,
 					task_manager,
 					..
-				} = crate::service::new_partial(&config, account)?;
+				} = crate::service::new_partial(&config, None)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
 		}
@@ -184,7 +174,7 @@ pub fn run() -> Result<()> {
 					client,
 					task_manager,
 					..
-				} = crate::service::new_partial(&config, account)?;
+				} = crate::service::new_partial(&config, None)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
 		}
@@ -196,7 +186,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					import_queue,
 					..
-				} = crate::service::new_partial(&config, account)?;
+				} = crate::service::new_partial(&config, None)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -212,7 +202,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					backend,
 					..
-				} = crate::service::new_partial(&config, account)?;
+				} = crate::service::new_partial(&config, None)?;
 				Ok((cmd.run(client, backend), task_manager))
 			})
 		}
@@ -259,9 +249,10 @@ pub fn run() -> Result<()> {
 		}
 		None => {
 			let runner = cli.create_runner(&*cli.run)?;
-
+			let account = cli.run.account_id.ok_or(sc_cli::Error::Input(
+				"Account ID required but not set".to_string(),
+			))?;
 			runner.run_node_until_exit(|config| async move {
-				// TODO
 				let key = sp_core::Pair::generate().0;
 
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);

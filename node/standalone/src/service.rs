@@ -42,13 +42,15 @@ native_executor_instance!(
 /// Build the inherent data providers (timestamp and authorship) for the node.
 pub fn build_inherent_data_providers(
 	manual_seal: bool,
-	author: H160,
+	author: Option<H160>,
 ) -> Result<InherentDataProviders, sc_service::Error> {
 	let providers = InherentDataProviders::new();
-	providers
-		.register_provider(author_inherent::InherentDataProvider(author.encode()))
-		.map_err(Into::into)
-		.map_err(sp_consensus::error::Error::InherentData)?;
+	if let Some(account) = author {
+		providers
+			.register_provider(author_inherent::InherentDataProvider(account.encode()))
+			.map_err(Into::into)
+			.map_err(sp_consensus::error::Error::InherentData)?;
+	}
 	if manual_seal {
 		providers
 			.register_provider(MockTimestampInherentDataProvider)
@@ -88,7 +90,7 @@ pub enum ConsensusResult {
 pub fn new_partial(
 	config: &Configuration,
 	manual_seal: bool,
-	author: H160,
+	author: Option<H160>,
 ) -> Result<
 	sc_service::PartialComponents<
 		FullClient,
@@ -191,7 +193,7 @@ pub fn new_full(
 		transaction_pool,
 		inherent_data_providers,
 		other: consensus_result,
-	} = new_partial(&config, manual_seal, author)?;
+	} = new_partial(&config, manual_seal, Some(author))?;
 
 	let (network, network_status_sinks, system_rpc_tx, network_starter) = match consensus_result {
 		ConsensusResult::ManualSeal(_) => {

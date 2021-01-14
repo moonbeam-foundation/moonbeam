@@ -39,7 +39,7 @@ native_executor_instance!(
 
 /// Build the inherent data providers (timestamp and authorship) for the node.
 pub fn build_inherent_data_providers(
-	author: H160,
+	author: Option<H160>,
 ) -> Result<InherentDataProviders, sc_service::Error> {
 	let providers = InherentDataProviders::new();
 
@@ -47,11 +47,12 @@ pub fn build_inherent_data_providers(
 		.register_provider(sp_timestamp::InherentDataProvider)
 		.map_err(Into::into)
 		.map_err(sp_consensus::error::Error::InherentData)?;
-
-	providers
-		.register_provider(author_inherent::InherentDataProvider(author.encode()))
-		.map_err(Into::into)
-		.map_err(sp_consensus::error::Error::InherentData)?;
+	if let Some(account) = author {
+		providers
+			.register_provider(author_inherent::InherentDataProvider(account.encode()))
+			.map_err(Into::into)
+			.map_err(sp_consensus::error::Error::InherentData)?;
+	}
 
 	Ok(providers)
 }
@@ -66,7 +67,7 @@ type FullBackend = TFullBackend<Block>;
 #[allow(clippy::type_complexity)]
 pub fn new_partial(
 	config: &Configuration,
-	author: H160,
+	author: Option<H160>,
 ) -> Result<
 	PartialComponents<
 		FullClient,
@@ -151,7 +152,7 @@ where
 			},
 		)?;
 
-	let params = new_partial(&parachain_config, account_id)?;
+	let params = new_partial(&parachain_config, Some(account_id))?;
 
 	let client = params.client.clone();
 	let backend = params.backend.clone();
