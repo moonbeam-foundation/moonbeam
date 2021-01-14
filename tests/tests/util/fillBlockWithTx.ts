@@ -2,7 +2,12 @@ import Web3 from "web3";
 
 import { JsonRpcResponse } from "web3-core-helpers";
 import { SignedTransaction, TransactionConfig } from "web3-core";
-import { basicTransfertx, GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../constants";
+import {
+  basicTransfertx,
+  CompleteTransactionConfig,
+  GENESIS_ACCOUNT,
+  GENESIS_ACCOUNT_PRIVATE_KEY,
+} from "../constants";
 import { wrappedCustomRequest } from "./web3Requests";
 import { createAndFinalizeBlock } from ".";
 import { Context, log } from "./testWithMoonbeam";
@@ -90,7 +95,7 @@ export interface ErrorReport {
 export async function fillBlockWithTx(
   context: Context,
   numberOfTx: number,
-  customTxConfig: TransactionConfig = basicTransfertx
+  customTxConfig: CompleteTransactionConfig = basicTransfertx
 ): Promise<FillBlockReport> {
   let nonce: number = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
 
@@ -118,7 +123,7 @@ export async function fillBlockWithTx(
     context.web3,
     numberOfTx,
     nonce,
-    customTxConfig
+    customTxConfig as any // needed as the web3 types don't support chainId but the code does.
   );
 
   const signingTime: number = Date.now() - startSigningTime;
