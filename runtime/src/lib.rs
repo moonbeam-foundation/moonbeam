@@ -38,6 +38,8 @@ mod parachain;
 #[cfg(feature = "standalone")]
 mod standalone;
 
+#[cfg(not(feature = "standalone"))]
+use parachain::*;
 #[cfg(feature = "standalone")]
 use standalone::*;
 

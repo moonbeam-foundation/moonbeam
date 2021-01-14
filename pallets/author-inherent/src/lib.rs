@@ -208,9 +208,10 @@ impl<T: Config> ProvideInherent for Module<T> {
 			T::AccountId::decode(&mut &author_raw[..]).expect("Decodes author raw inherent data");
 		ensure!(
 			T::CanAuthor::can_author(&author),
-			InherentError::Other(sp_runtime::RuntimeString::Borrowed(
-				format!("{} cannot author", &author)
-			))
+			InherentError::Other(sp_runtime::RuntimeString::Borrowed(format!(
+				"{} cannot author",
+				&author
+			)))
 		);
 		Ok(())
 	}
