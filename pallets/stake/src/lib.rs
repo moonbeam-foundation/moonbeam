@@ -28,8 +28,9 @@
 //!
 //! To join the set of candidates, an account must call `join_candidates` with
 //! stake >= `MinValidatorStk` and fee <= `MaxFee`. The fee is taken off the top
-//! of any rewards for the validator before the remaining capital is distributed to nominators in
-//! proportion to stake (and the validator always self-nominates)
+//! of any rewards for the validator before the remaining rewards are distributed
+//! in proportion to stake to all nominators (including the validator, who always
+//! self-nominates).
 //!
 //! To leave the set of candidates, the validator calls `leave_candidates` and is immediately
 //! removed from candidates and queued in `ExitQueue` to be removed `BondDuration` rounds later.
