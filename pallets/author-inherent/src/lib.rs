@@ -209,7 +209,7 @@ impl<T: Config> ProvideInherent for Module<T> {
 		ensure!(
 			T::CanAuthor::can_author(&author),
 			InherentError::Other(sp_runtime::RuntimeString::Borrowed(
-				"Author must be in current validator set"
+				format!("{} cannot author", &author)
 			))
 		);
 		Ok(())
