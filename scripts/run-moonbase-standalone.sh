@@ -58,7 +58,7 @@ $EXECUTABLE \
   --rpc-port $((STANDALONE_PORT + 1)) \
   --ws-port $((STANDALONE_PORT + 2)) \
   --validator \
-  --cors all \
+  --rpc-cors all \
   --rpc-methods=unsafe \
   --execution wasm \
   --wasm-execution compiled \

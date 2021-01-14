@@ -98,7 +98,7 @@ docker run \
         --rpc-methods=Unsafe \
         --unsafe-rpc-external \
         --unsafe-ws-external \
-        --cors all \
+        --rpc-cors all \
         --port $((RELAY_PORT)) \
         --rpc-port $((RELAY_PORT + 1)) \
         --ws-port $((RELAY_PORT + 2)) \

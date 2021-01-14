@@ -77,7 +77,7 @@ $PARACHAIN_BINARY \
   --rpc-port $((PARACHAIN_PORT + 10 + 1)) \
   --ws-port $((PARACHAIN_PORT + 10 + 2)) \
   --validator \
-  --cors all \
+  --rpc-cors all \
   --rpc-methods=unsafe \
   --execution wasm \
   --wasm-execution compiled \
