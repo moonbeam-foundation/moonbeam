@@ -19,7 +19,7 @@ docker run -it purestake/moonbase-relay-testnet:$POLKADOT_VERSION \
 echo $POLKADOT_SPEC_TMP generated
 
 echo "Using $POLKADOT_SPEC_TEMPLATE..."
-sed -e "/\"<runtime_code>\"/{r $POLKADOT_SPEC_TMP" -e 'd}' $POLKADOT_SPEC_TEMPLATE \
+sed -e "/\"<runtime_code>\"/{r $POLKADOT_SPEC_TMP" -e 'd;}' $POLKADOT_SPEC_TEMPLATE \
   > $POLKADOT_SPEC_PLAIN
 echo $POLKADOT_SPEC_PLAIN generated
 
