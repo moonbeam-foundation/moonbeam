@@ -87,6 +87,7 @@ pub fn run() -> sc_cli::Result<()> {
 					task_manager,
 					import_queue,
 					..
+				// NOTE: account is not used in this call and passed in value is H160::default()
 				} = new_partial(&config, cli.run.manual_seal, account)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
