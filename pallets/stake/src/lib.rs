@@ -24,7 +24,7 @@
 //! * `IssuancePerRound` is distributed to validators for `BondDuration` rounds ago
 //! in proportion to the points they received in that round (for authoring blocks)
 //! * queued validator exits are executed
-//! * new set of validators is chosen from the candidates
+//! * a new set of validators is chosen from the candidates
 //!
 //! To join the set of candidates, an account must call `join_candidates` with
 //! stake >= `MinValidatorStk` and fee <= `MaxFee`. The fee is taken off the top
