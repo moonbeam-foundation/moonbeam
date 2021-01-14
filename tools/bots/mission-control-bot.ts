@@ -282,7 +282,11 @@ const onReceiveMessage = async (msg: Message) => {
   const messageContent = msg && msg.content;
   const channelId = msg && msg.channel && msg.channel.id;
 
-  if (!messageContent || !authorId || ![params.DISCORD_CHANNEL, params.TESTS_DISCORD_CHANNEL].includes(channelId)) {
+  if (
+    !messageContent ||
+    !authorId ||
+    ![params.DISCORD_CHANNEL, params.TESTS_DISCORD_CHANNEL].includes(channelId)
+  ) {
     return;
   }
 

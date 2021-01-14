@@ -9,9 +9,13 @@ fi
 
 echo "Using Polkadot revision #${POLKADOT_VERSION}"
 
+# "Chain does not have enough staking candidates to operate" is displayed when no
+# staker is given at genesis
+
 docker run -it -v $(pwd)/build:/build purestake/moonbase-relay-testnet:$POLKADOT_VERSION \
   /usr/local/bin/polkadot \
     build-spec \
+    --chain rococo-local \
     -lerror \
     --disable-default-bootnode \
     --raw \
