@@ -23,6 +23,7 @@ use log::info;
 use moonbeam_runtime::Block;
 use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::AccountIdConversion;
+use polkadot_service::PolkadotChainSpec;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
 	NetworkParams, Result, RuntimeVersion, SharedParams, SubstrateCli,
@@ -30,7 +31,6 @@ use sc_cli::{
 use sc_service::{
 	config::{BasePath, PrometheusConfig},
 	PartialComponents,
-	PolkadotChainSpec,
 };
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::Block as _;
