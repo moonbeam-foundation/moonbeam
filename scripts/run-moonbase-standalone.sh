@@ -58,7 +58,11 @@ $EXECUTABLE \
   --rpc-port $((STANDALONE_PORT + 1)) \
   --ws-port $((STANDALONE_PORT + 2)) \
   --validator \
+  --cors all \
+  --rpc-methods=unsafe \
+  --execution wasm \
+  --wasm-execution compiled \
   --name STANDALONE_$STANDALONE_INDEX \
   $STANDALONE_BASE_PATH \
-  '-linfo,evm=trace,ethereum=trace,rpc=trace' \
+  '-lerror,evm=debug,ethereum=trace,rpc=trace,cumulus_collator=debug,txpool=debug' \
   $STANDALONE_BOOTNODES_ARGS

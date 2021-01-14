@@ -98,8 +98,9 @@ docker run \
         --rpc-methods=Unsafe \
         --unsafe-rpc-external \
         --unsafe-ws-external \
+        --cors all \
         --port $((RELAY_PORT)) \
         --rpc-port $((RELAY_PORT + 1)) \
         --ws-port $((RELAY_PORT + 2)) \
         $BOOTNODES_ARGS \
-        '-linfo,evm=trace,ethereum=trace,rpc=trace'"
+        '-linfo,evm=debug,ethereum=trace,rpc=trace,txpool=debug,polkadot_parachain=debug'"

@@ -77,10 +77,14 @@ $PARACHAIN_BINARY \
   --rpc-port $((PARACHAIN_PORT + 10 + 1)) \
   --ws-port $((PARACHAIN_PORT + 10 + 2)) \
   --validator \
+  --cors all \
+  --rpc-methods=unsafe \
+  --execution wasm \
+  --wasm-execution compiled \
   --name parachain_$PARACHAIN_INDEX \
   $PARACHAIN_BASE_PATH \
-  '-linfo,evm=trace,ethereum=trace,rpc=trace' \
-  --chain $PARACHAIN_SPEC_PLAIN  \
+  '-linfo,evm=debug,ethereum=trace,rpc=trace,cumulus_collator=debug,txpool=debug' \
+  --chain $PARACHAIN_SPEC_RAW  \
   $PARACHAIN_BOOTNODES_ARGS \
   -- \
     --node-key ${PARACHAIN_KEYS[$PARACHAIN_INDEX]} \
