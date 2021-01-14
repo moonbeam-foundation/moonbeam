@@ -31,26 +31,26 @@ use sp_transaction_pool::TransactionPool;
 use std::collections::BTreeMap;
 use std::{marker::PhantomData, sync::Arc};
 
-use codec::Decode;
 use ethereum_types::{H256, U256};
-use frontier_rpc_core::types::{
+use fc_rpc_core::types::{
 	pubsub::{Kind, Params, PubSubSyncStatus, Result as PubSubResult},
 	Bytes, FilteredParams, Header, Log, Rich,
 };
-use frontier_rpc_core::EthPubSubApi::{self as EthPubSubApiT};
+use fc_rpc_core::EthPubSubApi::{self as EthPubSubApiT};
 use jsonrpc_pubsub::{manager::SubscriptionManager, typed::Subscriber, SubscriptionId};
+use parity_scale_codec::Decode;
 use sha3::{Digest, Keccak256};
 
-pub use frontier_rpc_core::EthPubSubApiServer;
+pub use fc_rpc_core::EthPubSubApiServer;
 use futures::{StreamExt as _, TryStreamExt as _};
 
-use frontier_rpc_primitives::{EthereumRuntimeRPCApi, TransactionStatus};
+use fp_rpc::{EthereumRuntimeRPCApi, TransactionStatus};
 use jsonrpc_core::{
 	futures::{Future, Sink},
 	Result as JsonRpcResult,
 };
 
-use frontier_rpc::HexEncodedIdProvider;
+use fc_rpc::HexEncodedIdProvider;
 use sc_network::{ExHashT, NetworkService};
 
 pub struct EthPubSubApi<B: BlockT, P, C, BE, H: ExHashT> {

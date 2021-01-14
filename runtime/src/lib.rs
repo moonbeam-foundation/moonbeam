@@ -43,17 +43,17 @@ use standalone::*;
 // #[cfg(not(feature = "standalone"))]
 // use parachain::*;
 
-use codec::{Decode, Encode};
-use frontier_rpc_primitives::TransactionStatus;
+use fp_rpc::TransactionStatus;
+use parity_scale_codec::{Decode, Encode};
 use sp_api::impl_runtime_apis;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Saturating, Verify},
+	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult,
 };
-use sp_std::{marker::PhantomData, prelude::*};
+use sp_std::{convert::TryFrom, marker::PhantomData, prelude::*};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
@@ -100,7 +100,7 @@ pub type Hash = sp_core::H256;
 /// Digest item type.
 pub type DigestItem = generic::DigestItem<Hash>;
 
-/// Minimum time between blocks.
+/// Minimum time between blocks. Slot duration is double this.
 pub const MINIMUM_PERIOD: u64 = 3000;
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
@@ -140,17 +140,12 @@ const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 250;
-	pub const MaximumBlockWeight: Weight = 2 * WEIGHT_PER_SECOND;
-	/// Assume 10% of weight for average on_initialize calls.
-	pub MaximumExtrinsicWeight: Weight = AvailableBlockRatio::get()
-		.saturating_sub(Perbill::from_percent(10)) * MaximumBlockWeight::get();
-	pub const AvailableBlockRatio: Perbill = Perbill::from_percent(75);
 	pub const Version: RuntimeVersion = VERSION;
-	pub const ExtrinsicBaseWeight: Weight = 10_000_000;
-
-
+	/// We allow for one half second of compute with a 6 second average block time.
+	/// These values are dictated by Polkadot for the parachain.
 	pub BlockWeights: frame_system::limits::BlockWeights = frame_system::limits::BlockWeights
-		::with_sensible_defaults(2 * WEIGHT_PER_SECOND, NORMAL_DISPATCH_RATIO);
+		::with_sensible_defaults(WEIGHT_PER_SECOND / 2, NORMAL_DISPATCH_RATIO);
+	/// We allow for 5 MB blocks.
 	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
 		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
 }
@@ -195,8 +190,10 @@ impl frame_system::Config for Runtime {
 
 parameter_types! {
 	// When running in standalone mode, this controls the block time.
-	// Block time is double the minimum period.
+	// Slot duration is double the minimum period.
 	// https://github.com/paritytech/substrate/blob/e4803bd/frame/aura/src/lib.rs#L197-L199
+	// We maintain a six second block time in standalone to imitate parachain-like performance
+	// This value is stored in a seperate constant because it is used in our mock timestamp provider
 	pub const MinimumPeriod: u64 = MINIMUM_PERIOD;
 }
 
@@ -243,9 +240,30 @@ impl pallet_sudo::Config for Runtime {
 
 impl pallet_ethereum_chain_id::Config for Runtime {}
 
+/// Current approximation of the gas/s consumption considering
+/// EVM execution over compiled WASM (on 4.4Ghz CPU).
+/// Given the 500ms Weight, from which 75% only are used for transactions,
+/// the total EVM execution gas limit is: GAS_PER_SECOND * 0.500 * 0.75 => 3_000_000.
+pub const GAS_PER_SECOND: u64 = 8_000_000;
+
+/// Approximate ratio of the amount of Weight per Gas.
+/// u64 works for approximations because Weight is a very small unit compared to gas.
+pub const WEIGHT_PER_GAS: u64 = WEIGHT_PER_SECOND / GAS_PER_SECOND;
+
+pub struct MoonbeamGasWeightMapping;
+
+impl pallet_evm::GasWeightMapping for MoonbeamGasWeightMapping {
+	fn gas_to_weight(gas: usize) -> Weight {
+		Weight::try_from(gas.saturating_mul(WEIGHT_PER_GAS as usize)).unwrap_or(Weight::MAX)
+	}
+	fn weight_to_gas(weight: Weight) -> usize {
+		usize::try_from(weight.wrapping_div(WEIGHT_PER_GAS)).unwrap_or(usize::MAX)
+	}
+}
+
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
-	type GasWeightMapping = ();
+	type GasWeightMapping = MoonbeamGasWeightMapping;
 	type CallOrigin = EnsureAddressSame;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = IdentityAddressMapping;
@@ -258,7 +276,7 @@ impl pallet_evm::Config for Runtime {
 
 pub struct TransactionConverter;
 
-impl frontier_rpc_primitives::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
+impl fp_rpc::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
 	fn convert_transaction(&self, transaction: pallet_ethereum::Transaction) -> UncheckedExtrinsic {
 		UncheckedExtrinsic::new_unsigned(
 			pallet_ethereum::Call::<Runtime>::transact(transaction).into(),
@@ -266,9 +284,7 @@ impl frontier_rpc_primitives::ConvertTransaction<UncheckedExtrinsic> for Transac
 	}
 }
 
-impl frontier_rpc_primitives::ConvertTransaction<opaque::UncheckedExtrinsic>
-	for TransactionConverter
-{
+impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConverter {
 	fn convert_transaction(
 		&self,
 		transaction: pallet_ethereum::Transaction,
@@ -290,6 +306,33 @@ impl pallet_ethereum::Config for Runtime {
 	type FindAuthor = EthereumFindAuthor<PhantomAura>;
 	#[cfg(feature = "standalone")]
 	type FindAuthor = EthereumFindAuthor<Aura>;
+}
+
+parameter_types! {
+	pub const BlocksPerRound: u32 = 5;
+	pub const BondDuration: u32 = 2;
+	pub const MaxValidators: u32 = 5;
+	pub const MaxNominatorsPerValidator: usize = 10;
+	pub const Issuance: u128 = 100;
+	pub const MaxFee: Perbill = Perbill::from_percent(50);
+	pub const MinValidatorStk: u128 = 10;
+	pub const MinNominatorStk: u128 = 5;
+}
+impl stake::Config for Runtime {
+	type Event = Event;
+	type Currency = Balances;
+	type BlocksPerRound = BlocksPerRound;
+	type BondDuration = BondDuration;
+	type MaxValidators = MaxValidators;
+	type MaxNominatorsPerValidator = MaxNominatorsPerValidator;
+	type Issuance = Issuance;
+	type MaxFee = MaxFee;
+	type MinValidatorStk = MinValidatorStk;
+	type MinNominatorStk = MinNominatorStk;
+}
+impl author::Config for Runtime {
+	type EventHandler = Stake;
+	type IsAuthority = Stake;
 }
 
 #[cfg(feature = "standalone")]
@@ -414,7 +457,7 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl frontier_rpc_primitives::EthereumRuntimeRPCApi<Block> for Runtime {
+	impl fp_rpc::EthereumRuntimeRPCApi<Block> for Runtime {
 		fn chain_id() -> u64 {
 			<Runtime as pallet_evm::Config>::ChainId::get()
 		}
