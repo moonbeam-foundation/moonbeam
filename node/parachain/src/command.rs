@@ -30,6 +30,7 @@ use sc_cli::{
 use sc_service::{
 	config::{BasePath, PrometheusConfig},
 	PartialComponents,
+	PolkadotChainSpec,
 };
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::Block as _;
@@ -41,7 +42,7 @@ fn load_spec(
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	match id {
 		"alphanet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
-			&include_bytes!("../../../specs/MoonbaseAlphaV4.json")[..],
+			&include_bytes!("../../../specs/MoonbaseAlphaV5.json")[..],
 		)?)),
 		"dev" | "development" | "" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
 		path => Ok(Box::new(chain_spec::ChainSpec::from_json_file(
@@ -120,14 +121,12 @@ impl SubstrateCli for RelayChainCli {
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-		//TODO Remove this
-		// Debugging to make sure the id is passed here as well.
-		println!("Loading polkadot spec based on id string: {}", id);
 
 		match id {
-			"moonbase-alpha-relay" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
-				&include_bytes!("../../../specs/MoonbaseAlphaV4-Relay.json")[..],
-			)?)),
+			// Seems like this should be RococoChainSpec. But even Polkadot codebase does it this way
+			// github.com/paritytech/polkadot/blob/49207c02/node/service/src/chain_spec.rs#L68-L69
+			// github.com/paritytech/polkadot/blob/49207c02/node/service/src/chain_spec.rs#L108-L110
+			"moonbase_alpha_relay" => Ok(Box::new(PolkadotChainSpec::from_json_bytes(&include_bytes!("../../../specs/MoonbaseAlphaV5-Relay.json")[..])?)),
 			// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the
 			// Polkadot service to interpret the id.
 			_ => polkadot_cli::Cli::from_iter([RelayChainCli::executable_name()].iter())
@@ -273,27 +272,13 @@ pub fn run() -> Result<()> {
 				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
 				let para_id = extension.map(|e| e.para_id);
 
-				let mut polkadot_cli = RelayChainCli::new(
+				let polkadot_cli = RelayChainCli::new(
 					config.base_path.as_ref().map(|x| x.path().join("polkadot")),
 					relay_chain_id,
 					[RelayChainCli::executable_name()]
 						.iter()
 						.chain(cli.relaychain_args.iter()),
 				);
-
-				// We override the relay chain spec for a few well-known parachain specs.
-				if let Some(chain) = cli.run.base.shared_params.chain {
-					polkadot_cli.base.base.shared_params.chain = Some(
-						match chain.as_str() {
-							"alphanet" => "moonbase-alpha-relay",
-							//"moonrock" => "rococo",
-							//"moonriver" => "kusama",
-							//"" | "moonbeam" => "polkadot",
-							other => other,
-						}
-						.to_string(),
-					)
-				}
 
 				let id = ParaId::from(cli.run.parachain_id.or(para_id).unwrap_or(1000));
 
