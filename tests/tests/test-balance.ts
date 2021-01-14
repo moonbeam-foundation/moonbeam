@@ -47,7 +47,7 @@ describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) =>
       {
         from: GENESIS_ACCOUNT,
         to: TEST_ACCOUNT,
-        value: "0x200", // Must be higher than ExistentialDeposit (500)
+        value: "0x200", // Must be higher than ExistentialDeposit (currently 0)
         gasPrice: "0x01",
         gas: "0x100000",
       },
