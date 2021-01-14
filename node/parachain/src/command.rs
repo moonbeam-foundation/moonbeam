@@ -23,7 +23,7 @@ use log::info;
 use moonbeam_runtime::Block;
 use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::AccountIdConversion;
-use polkadot_service::PolkadotChainSpec;
+use polkadot_service::RococoChainSpec;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
 	NetworkParams, Result, RuntimeVersion, SharedParams, SubstrateCli,
@@ -122,10 +122,7 @@ impl SubstrateCli for RelayChainCli {
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		match id {
-			// Seems like this should be RococoChainSpec. But even Polkadot codebase does it this way
-			// github.com/paritytech/polkadot/blob/49207c02/node/service/src/chain_spec.rs#L68-L69
-			// github.com/paritytech/polkadot/blob/49207c02/node/service/src/chain_spec.rs#L108-L110
-			"moonbase_alpha_relay" => Ok(Box::new(PolkadotChainSpec::from_json_bytes(
+			"moonbase_alpha_relay" => Ok(Box::new(RococoChainSpec::from_json_bytes(
 				&include_bytes!("../../../specs/MoonbaseAlphaV5-Relay.json")[..],
 			)?)),
 			// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the
