@@ -29,7 +29,7 @@ use sp_inherents::{InherentData, InherentIdentifier, IsFatalError, ProvideInhere
 use sp_runtime::{ConsensusEngineId, DigestItem, RuntimeString};
 use sp_std::vec::Vec;
 
-/// Note that the given account ID is the author of the current block.
+/// The given account ID is the author of the current block.
 pub trait EventHandler<Author> {
 	fn note_author(author: Author);
 }
