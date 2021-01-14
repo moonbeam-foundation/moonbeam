@@ -32,8 +32,11 @@
 //! in proportion to stake to all nominators (including the validator, who always
 //! self-nominates).
 //!
-//! To leave the set of candidates, the validator calls `leave_candidates` and is immediately
-//! removed from candidates and queued in `ExitQueue` to be removed `BondDuration` rounds later.
+//! To leave the set of candidates, the validator calls `leave_candidates`. If the call succeeds,
+//! the validator is removed from the pool of candidates so they cannot be selected for future
+//! validator sets, but they are not unstaked until `BondDuration` rounds later. The exit request is
+//! stored in the `ExitQueue` and processed `BondDuration` rounds later to unstake the validator
+//! and all of its nominators.
 //!
 //! To join the set of nominators, an account must not be a validator candidate nor an existing
 //! nominator. To join the set of nominators, an account must call `join_nominators` with
@@ -280,7 +283,7 @@ decl_storage! {
 		/// Total Locked
 		Total: BalanceOf<T>;
 		/// Pool of candidates, ordered by account id
-		CandidateQueue: OrderedSet<Bond<T::AccountId,BalanceOf<T>>>;
+		CandidatePool: OrderedSet<Bond<T::AccountId,BalanceOf<T>>>;
 		/// Queue of validator exit requests, ordered by account id
 		ExitQueue: OrderedSet<Bond<T::AccountId,RoundIndex>>;
 		/// Exposure at stake per round, per validator
@@ -313,7 +316,7 @@ decl_storage! {
 				} else {
 					<Module<T>>::join_candidates(
 						T::Origin::from(Some(actor.clone()).into()),
-						Perbill::from_percent(2),
+						Perbill::from_percent(2),// default fee for validators set at genesis is 2%
 						balance,
 					)
 				};
@@ -344,7 +347,7 @@ decl_module! {
 			ensure!(!Self::is_nominator(&acc),Error::<T>::NominatorExists);
 			ensure!(fee <= T::MaxFee::get(),Error::<T>::FeeOverMax);
 			ensure!(bond >= T::MinValidatorStk::get(),Error::<T>::ValBondBelowMin);
-			let mut candidates = <CandidateQueue<T>>::get();
+			let mut candidates = <CandidatePool<T>>::get();
 			ensure!(
 				candidates.insert(Bond{owner: acc.clone(), amount: bond}),
 				Error::<T>::CandidateExists
@@ -354,7 +357,7 @@ decl_module! {
 			let new_total = <Total<T>>::get() + bond;
 			<Total<T>>::put(new_total);
 			<Candidates<T>>::insert(&acc,candidate);
-			<CandidateQueue<T>>::put(candidates);
+			<CandidatePool<T>>::put(candidates);
 			Self::deposit_event(RawEvent::JoinedValidatorCandidates(acc,bond,new_total));
 			Ok(())
 		}
@@ -364,9 +367,9 @@ decl_module! {
 			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(state.is_active(),Error::<T>::AlreadyOffline);
 			state.go_offline();
-			let mut candidates = <CandidateQueue<T>>::get();
+			let mut candidates = <CandidatePool<T>>::get();
 			if candidates.remove(&Bond::from_owner(validator.clone())) {
-				<CandidateQueue<T>>::put(candidates);
+				<CandidatePool<T>>::put(candidates);
 			}
 			<Candidates<T>>::insert(&validator,state);
 			Self::deposit_event(RawEvent::ValidatorWentOffline(<Round>::get(),validator));
@@ -379,12 +382,12 @@ decl_module! {
 			ensure!(!state.is_active(),Error::<T>::AlreadyActive);
 			ensure!(!state.is_leaving(),Error::<T>::CannotActivateIfLeaving);
 			state.go_online();
-			let mut candidates = <CandidateQueue<T>>::get();
+			let mut candidates = <CandidatePool<T>>::get();
 			ensure!(
 				candidates.insert(Bond{owner:validator.clone(),amount:state.total}),
 				Error::<T>::AlreadyActive
 			);
-			<CandidateQueue<T>>::put(candidates);
+			<CandidatePool<T>>::put(candidates);
 			<Candidates<T>>::insert(&validator,state);
 			Self::deposit_event(RawEvent::ValidatorBackOnline(<Round>::get(),validator));
 			Ok(())
@@ -402,9 +405,9 @@ decl_module! {
 				Error::<T>::AlreadyLeaving
 			);
 			state.leave_candidates(when);
-			let mut candidates = <CandidateQueue<T>>::get();
+			let mut candidates = <CandidatePool<T>>::get();
 			if candidates.remove(&Bond::from_owner(validator.clone())) {
-				<CandidateQueue<T>>::put(candidates);
+				<CandidatePool<T>>::put(candidates);
 			}
 			<ExitQueue<T>>::put(exits);
 			<Candidates<T>>::insert(&validator,state);
@@ -505,13 +508,13 @@ impl<T: Config> Module<T> {
 	}
 	// ensure candidate is active before calling
 	fn update_active_candidate(candidate: T::AccountId, new_total: BalanceOf<T>) {
-		let mut candidates = <CandidateQueue<T>>::get();
+		let mut candidates = <CandidatePool<T>>::get();
 		candidates.remove(&Bond::from_owner(candidate.clone()));
 		candidates.insert(Bond {
 			owner: candidate.clone(),
 			amount: new_total,
 		});
-		<CandidateQueue<T>>::put(candidates);
+		<CandidatePool<T>>::put(candidates);
 	}
 	fn pay_stakers(next: RoundIndex) {
 		let duration = T::BondDuration::get();
@@ -584,7 +587,7 @@ impl<T: Config> Module<T> {
 	/// Best as in most cumulatively supported in terms of stake
 	fn best_candidates_become_validators(next: RoundIndex) -> (u32, BalanceOf<T>) {
 		let (mut all_validators, mut total) = (0u32, BalanceOf::<T>::zero());
-		let mut candidates = <CandidateQueue<T>>::get().0;
+		let mut candidates = <CandidatePool<T>>::get().0;
 		// order candidates by stake (least to greatest so requires `rev()`)
 		candidates.sort_unstable_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
 		let max_validators = T::MaxValidators::get() as usize;

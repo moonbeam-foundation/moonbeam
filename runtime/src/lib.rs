@@ -309,13 +309,21 @@ impl pallet_ethereum::Config for Runtime {
 }
 
 parameter_types! {
+	/// Moonbeam starts a new round every 2 minutes (20 * block_time)
 	pub const BlocksPerRound: u32 = 20;
+	/// Reward payments and validator exit requests are delayed by 4 minutes (2 * 20 * block_time)
 	pub const BondDuration: u32 = 2;
-	pub const MaxValidators: u32 = 16;
+	/// Maximum 8 valid block authors at any given time
+	pub const MaxValidators: u32 = 8;
+	/// Maximum 10 nominators per validator
 	pub const MaxNominatorsPerValidator: usize = 10;
-	pub const IssuancePerRound: u128 = 10_000;
+	/// Issue 49 new tokens as rewards to validators every 2 minutes (round)
+	pub const IssuancePerRound: u128 = 49;
+	/// The maximum percent a validator can take off the top of its rewards is 50%
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
+	/// Minimum stake required to be reserved to be a validator is 5
 	pub const MinValidatorStk: u128 = 100_000;
+	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5;
 }
 impl stake::Config for Runtime {
