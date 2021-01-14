@@ -121,12 +121,13 @@ impl SubstrateCli for RelayChainCli {
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-
 		match id {
 			// Seems like this should be RococoChainSpec. But even Polkadot codebase does it this way
 			// github.com/paritytech/polkadot/blob/49207c02/node/service/src/chain_spec.rs#L68-L69
 			// github.com/paritytech/polkadot/blob/49207c02/node/service/src/chain_spec.rs#L108-L110
-			"moonbase_alpha_relay" => Ok(Box::new(PolkadotChainSpec::from_json_bytes(&include_bytes!("../../../specs/MoonbaseAlphaV5-Relay.json")[..])?)),
+			"moonbase_alpha_relay" => Ok(Box::new(PolkadotChainSpec::from_json_bytes(
+				&include_bytes!("../../../specs/MoonbaseAlphaV5-Relay.json")[..],
+			)?)),
 			// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the
 			// Polkadot service to interpret the id.
 			_ => polkadot_cli::Cli::from_iter([RelayChainCli::executable_name()].iter())
