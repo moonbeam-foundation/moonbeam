@@ -19,6 +19,7 @@
 use std::{fmt, sync::Arc};
 
 use fc_rpc_core::types::PendingTransactions;
+use fc_rpc::HexEncodedIdProvider;
 use jsonrpc_pubsub::manager::SubscriptionManager;
 use moonbeam_runtime::{opaque::Block, AccountId, Balance, Hash, Index};
 use sc_client_api::{
@@ -83,12 +84,12 @@ where
 	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>,
 	C::Api: BlockBuilder<Block>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
-	C::Api: frontier_rpc_primitives::EthereumRuntimeRPCApi<Block>,
 	A: ChainApi<Block = Block> + 'static,
+	C::Api: fp_rpc::EthereumRuntimeRPCApi<Block>,
 	<C::Api as sp_api::ApiErrorExt>::Error: fmt::Debug,
 	P: TransactionPool<Block = Block> + 'static,
 {
-	use frontier_rpc::{
+	use fc_rpc::{
 		EthApi, EthApiServer, EthPubSubApi, EthPubSubApiServer, HexEncodedIdProvider, NetApi,
 		NetApiServer, Web3Api, Web3ApiServer,
 	};

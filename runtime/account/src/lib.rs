@@ -20,7 +20,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use codec::{Decode, Encode};
+use parity_scale_codec::{Decode, Encode};
 use sha3::{Digest, Keccak256};
 use sp_core::{ecdsa, H160, H256};
 
