@@ -1812,7 +1812,7 @@ dependencies = [
  "ethereum 0.5.1 (git+https://github.com/rust-blockchain/ethereum)",
  "ethereum-types 0.10.0",
  "fc-consensus",
- "fc-rpc-core",
+ "fc-rpc-core 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.5-hotfixes)",
  "fp-rpc 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.5-hotfixes)",
  "futures 0.3.10",
  "jsonrpc-core 15.1.0",
@@ -1854,6 +1854,12 @@ dependencies = [
  "serde",
  "serde_json",
 ]
+
+[[package]]
+name = "fc-rpc-core"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d0fbd2db67d4342acf4d9d815214202fe325eed9855a93d83275cf9ad3679f0c"
 
 [[package]]
 name = "fdlimit"
@@ -4243,20 +4249,15 @@ dependencies = [
 name = "moonbeam-rpc"
 version = "0.1.0"
 dependencies = [
- "ethereum 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "ethereum-types 0.10.0",
- "fc-consensus",
  "fc-rpc",
- "fc-rpc-core",
+ "fc-rpc-core 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "fp-rpc 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.5-hotfixes)",
  "futures 0.3.10",
  "jsonrpc-core 15.1.0",
  "jsonrpc-pubsub 15.1.0",
- "log",
  "moonbeam-runtime",
  "pallet-transaction-payment-rpc",
  "parity-scale-codec",
- "rlp 0.4.6",
  "sc-client-api",
  "sc-consensus-manual-seal",
  "sc-network",
@@ -4264,13 +4265,10 @@ dependencies = [
  "sc-rpc-api",
  "serde",
  "serde_json",
- "sha3 0.8.2",
  "sp-api",
  "sp-block-builder",
  "sp-blockchain",
- "sp-io",
  "sp-runtime",
- "sp-storage",
  "sp-transaction-pool",
  "substrate-frame-rpc-system",
 ]

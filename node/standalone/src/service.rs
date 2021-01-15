@@ -16,6 +16,8 @@
 
 //! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
 
+use std::{sync::{Arc, Mutex}, cell::RefCell, time::Duration, collections::HashMap};
+use fc_rpc_core::types::PendingTransactions;
 use crate::mock_timestamp::MockTimestampInherentDataProvider;
 use frontier_consensus::FrontierBlockImport;
 use moonbeam_runtime::{self, opaque::Block, RuntimeApi};
@@ -27,8 +29,6 @@ use sc_finality_grandpa::{GrandpaBlockImport, SharedVoterState};
 use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
 use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
 use sp_inherents::InherentDataProviders;
-use std::sync::Arc;
-use std::time::Duration;
 
 // Our native executor instance.
 native_executor_instance!(
@@ -68,7 +68,7 @@ pub fn new_partial(
 		FullSelectChain,
 		sp_consensus::import_queue::BasicQueue<Block, sp_api::TransactionFor<FullClient, Block>>,
 		sc_transaction_pool::FullPool<Block, FullClient>,
-		ConsensusResult,
+		(ConsensusResult, PendingTransactions),
 	>,
 	ServiceError,
 > {
@@ -86,6 +86,9 @@ pub fn new_partial(
 		task_manager.spawn_handle(),
 		client.clone(),
 	);
+
+	let pending_transactions: PendingTransactions
+		= Some(Arc::new(Mutex::new(HashMap::new())));
 
 	if manual_seal {
 		inherent_data_providers
@@ -110,7 +113,7 @@ pub fn new_partial(
 			select_chain,
 			transaction_pool,
 			inherent_data_providers,
-			other: ConsensusResult::ManualSeal(frontier_block_import),
+			other: (ConsensusResult::ManualSeal(frontier_block_import), pending_transactions),
 		});
 	}
 
@@ -148,7 +151,7 @@ pub fn new_partial(
 		select_chain,
 		transaction_pool,
 		inherent_data_providers,
-		other: ConsensusResult::Aura(aura_block_import, grandpa_link),
+		other: (ConsensusResult::Aura(aura_block_import, grandpa_link), pending_transactions),
 	})
 }
 
@@ -163,7 +166,7 @@ pub fn new_full(config: Configuration, manual_seal: bool) -> Result<TaskManager,
 		select_chain,
 		transaction_pool,
 		inherent_data_providers,
-		other: consensus_result,
+		other: (consensus_result, pending_transactions),
 	} = new_partial(&config, manual_seal)?;
 
 	let (network, network_status_sinks, system_rpc_tx, network_starter) = match consensus_result {
@@ -218,6 +221,7 @@ pub fn new_full(config: Configuration, manual_seal: bool) -> Result<TaskManager,
 		let client = client.clone();
 		let pool = transaction_pool.clone();
 		let network = network.clone();
+		let pending = pending_transactions.clone();
 		Box::new(move |deny_unsafe, _| {
 			let deps = moonbeam_rpc::FullDeps {
 				client: client.clone(),
@@ -225,6 +229,7 @@ pub fn new_full(config: Configuration, manual_seal: bool) -> Result<TaskManager,
 				deny_unsafe,
 				is_authority,
 				network: network.clone(),
+				pending_transactions: pending.clone(),
 				command_sink: Some(command_sink.clone()),
 			};
 			moonbeam_rpc::create_full(deps, subscription_task_executor.clone())
