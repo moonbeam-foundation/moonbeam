@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use std::{sync::{Arc, Mutex}, collections::HashMap};
-use fc_rpc_core::types::PendingTransactions;
 use cumulus_network::build_block_announce_validator;
 use cumulus_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
+use fc_rpc_core::types::PendingTransactions;
 use frontier_consensus::FrontierBlockImport;
 use moonbeam_runtime::{opaque::Block, RuntimeApi};
 use polkadot_primitives::v0::CollatorPair;
@@ -29,6 +28,10 @@ use sc_service::{Configuration, PartialComponents, Role, TFullBackend, TFullClie
 use sp_core::Pair;
 use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
+use std::{
+	collections::HashMap,
+	sync::{Arc, Mutex},
+};
 // Our native executor instance.
 native_executor_instance!(
 	pub Executor,
@@ -53,7 +56,10 @@ pub fn new_partial(
 		(),
 		sp_consensus::import_queue::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
 		sc_transaction_pool::FullPool<Block, FullClient>,
-		(FrontierBlockImport<Block, Arc<FullClient>, FullClient>, PendingTransactions),
+		(
+			FrontierBlockImport<Block, Arc<FullClient>, FullClient>,
+			PendingTransactions,
+		),
 	>,
 	sc_service::Error,
 > {
@@ -72,8 +78,7 @@ pub fn new_partial(
 		client.clone(),
 	);
 
-	let pending_transactions: PendingTransactions
-		= Some(Arc::new(Mutex::new(HashMap::new())));
+	let pending_transactions: PendingTransactions = Some(Arc::new(Mutex::new(HashMap::new())));
 
 	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone(), true);
 
