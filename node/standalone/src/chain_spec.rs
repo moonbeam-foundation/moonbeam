@@ -161,6 +161,12 @@ fn testnet_genesis(
 			accounts: BTreeMap::new(),
 		}),
 		pallet_ethereum: Some(EthereumConfig {}),
-		stake: Some(StakeConfig { stakers: vec![] }),
+		stake: Some(StakeConfig {
+			stakers: endowed_accounts
+				.iter()
+				.cloned()
+				.map(|k| (k, None, 100_000))
+				.collect(),
+		}),
 	}
 }

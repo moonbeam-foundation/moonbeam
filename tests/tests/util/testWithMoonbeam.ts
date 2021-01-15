@@ -6,6 +6,7 @@ import { spawn, ChildProcess } from "child_process";
 import {
   BINARY_PATH,
   DISPLAY_LOG,
+  GENESIS_ACCOUNT,
   MOONBEAM_LOG,
   PORT,
   RPC_PORT,
@@ -48,6 +49,7 @@ export async function startMoonbeamNode(
     `--no-telemetry`,
     `--no-prometheus`,
     `--manual-seal`,
+    `--account-id=${GENESIS_ACCOUNT.substring(2)}`, // Required by author inherent
     `--no-grandpa`,
     `--force-authoring`,
     `-l${MOONBEAM_LOG}`,

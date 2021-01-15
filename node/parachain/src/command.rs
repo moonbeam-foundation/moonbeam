@@ -150,7 +150,6 @@ fn extract_genesis_wasm(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Result<V
 /// Parse command line arguments into service configuration.
 pub fn run() -> Result<()> {
 	let cli = Cli::from_args();
-
 	match &cli.subcommand {
 		Some(Subcommand::BuildSpec(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
@@ -164,7 +163,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					import_queue,
 					..
-				} = crate::service::new_partial(&config)?;
+				} = crate::service::new_partial(&config, None)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -175,7 +174,7 @@ pub fn run() -> Result<()> {
 					client,
 					task_manager,
 					..
-				} = crate::service::new_partial(&config)?;
+				} = crate::service::new_partial(&config, None)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
 		}
@@ -186,7 +185,7 @@ pub fn run() -> Result<()> {
 					client,
 					task_manager,
 					..
-				} = crate::service::new_partial(&config)?;
+				} = crate::service::new_partial(&config, None)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
 		}
@@ -198,7 +197,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					import_queue,
 					..
-				} = crate::service::new_partial(&config)?;
+				} = crate::service::new_partial(&config, None)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -214,7 +213,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					backend,
 					..
-				} = crate::service::new_partial(&config)?;
+				} = crate::service::new_partial(&config, None)?;
 				Ok((cmd.run(client, backend), task_manager))
 			})
 		}
@@ -261,9 +260,10 @@ pub fn run() -> Result<()> {
 		}
 		None => {
 			let runner = cli.create_runner(&*cli.run)?;
-
+			let account = cli.run.account_id.ok_or(sc_cli::Error::Input(
+				"Account ID required but not set".to_string(),
+			))?;
 			runner.run_node_until_exit(|config| async move {
-				// TODO
 				let key = sp_core::Pair::generate().0;
 
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
@@ -298,7 +298,7 @@ pub fn run() -> Result<()> {
 				info!("Parachain genesis state: {}", genesis_state);
 				info!("Is collating: {}", if collator { "yes" } else { "no" });
 
-				crate::service::start_node(config, key, polkadot_config, id, collator)
+				crate::service::start_node(config, key, account, polkadot_config, id, collator)
 					.await
 					.map(|r| r.0)
 			})

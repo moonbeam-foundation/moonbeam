@@ -38,10 +38,10 @@ mod parachain;
 #[cfg(feature = "standalone")]
 mod standalone;
 
+#[cfg(not(feature = "standalone"))]
+use parachain::*;
 #[cfg(feature = "standalone")]
 use standalone::*;
-// #[cfg(not(feature = "standalone"))]
-// use parachain::*;
 
 use fp_rpc::TransactionStatus;
 use parity_scale_codec::{Decode, Encode};
@@ -309,13 +309,21 @@ impl pallet_ethereum::Config for Runtime {
 }
 
 parameter_types! {
-	pub const BlocksPerRound: u32 = 5;
+	/// Moonbeam starts a new round every 2 minutes (20 * block_time)
+	pub const BlocksPerRound: u32 = 20;
+	/// Reward payments and validator exit requests are delayed by 4 minutes (2 * 20 * block_time)
 	pub const BondDuration: u32 = 2;
-	pub const MaxValidators: u32 = 5;
+	/// Maximum 8 valid block authors at any given time
+	pub const MaxValidators: u32 = 8;
+	/// Maximum 10 nominators per validator
 	pub const MaxNominatorsPerValidator: usize = 10;
-	pub const Issuance: u128 = 100;
+	/// Issue 49 new tokens as rewards to validators every 2 minutes (round)
+	pub const IssuancePerRound: u128 = 49;
+	/// The maximum percent a validator can take off the top of its rewards is 50%
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
-	pub const MinValidatorStk: u128 = 10;
+	/// Minimum stake required to be reserved to be a validator is 5
+	pub const MinValidatorStk: u128 = 100_000;
+	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5;
 }
 impl stake::Config for Runtime {
@@ -325,14 +333,15 @@ impl stake::Config for Runtime {
 	type BondDuration = BondDuration;
 	type MaxValidators = MaxValidators;
 	type MaxNominatorsPerValidator = MaxNominatorsPerValidator;
-	type Issuance = Issuance;
+	type IssuancePerRound = IssuancePerRound;
 	type MaxFee = MaxFee;
 	type MinValidatorStk = MinValidatorStk;
 	type MinNominatorStk = MinNominatorStk;
 }
-impl author::Config for Runtime {
+impl author_inherent::Config for Runtime {
+	type Event = Event;
 	type EventHandler = Stake;
-	type IsAuthority = Stake;
+	type CanAuthor = Stake;
 }
 
 #[cfg(feature = "standalone")]

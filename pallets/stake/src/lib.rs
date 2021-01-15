@@ -14,7 +14,34 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Minimal staking module with ordered validator selection
+//! # Stake
+//! Minimal staking pallet that implements ordered validator selection by total amount at stake
+//!
+//! ### Rules
+//! There is a new round every `BlocksPerRound` blocks.
+//!
+//! At the start of every round,
+//! * `IssuancePerRound` is distributed to validators for `BondDuration` rounds ago
+//! in proportion to the points they received in that round (for authoring blocks)
+//! * queued validator exits are executed
+//! * a new set of validators is chosen from the candidates
+//!
+//! To join the set of candidates, an account must call `join_candidates` with
+//! stake >= `MinValidatorStk` and fee <= `MaxFee`. The fee is taken off the top
+//! of any rewards for the validator before the remaining rewards are distributed
+//! in proportion to stake to all nominators (including the validator, who always
+//! self-nominates).
+//!
+//! To leave the set of candidates, the validator calls `leave_candidates`. If the call succeeds,
+//! the validator is removed from the pool of candidates so they cannot be selected for future
+//! validator sets, but they are not unstaked until `BondDuration` rounds later. The exit request is
+//! stored in the `ExitQueue` and processed `BondDuration` rounds later to unstake the validator
+//! and all of its nominators.
+//!
+//! To join the set of nominators, an account must not be a validator candidate nor an existing
+//! nominator. To join the set of nominators, an account must call `join_nominators` with
+//! stake >= `MinNominatorStk`.
+
 #![recursion_limit = "256"]
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -187,7 +214,7 @@ pub trait Config: System {
 	/// Maximum nominators per validator
 	type MaxNominatorsPerValidator: Get<usize>;
 	/// Balance issued as rewards per round (constant issuance)
-	type Issuance: Get<BalanceOf<Self>>;
+	type IssuancePerRound: Get<BalanceOf<Self>>;
 	/// Maximum fee for any validator
 	type MaxFee: Get<Perbill>;
 	/// Minimum stake for any registered on-chain account to become a validator
@@ -256,7 +283,7 @@ decl_storage! {
 		/// Total Locked
 		Total: BalanceOf<T>;
 		/// Pool of candidates, ordered by account id
-		CandidateQueue: OrderedSet<Bond<T::AccountId,BalanceOf<T>>>;
+		CandidatePool: OrderedSet<Bond<T::AccountId,BalanceOf<T>>>;
 		/// Queue of validator exit requests, ordered by account id
 		ExitQueue: OrderedSet<Bond<T::AccountId,RoundIndex>>;
 		/// Exposure at stake per round, per validator
@@ -289,7 +316,7 @@ decl_storage! {
 				} else {
 					<Module<T>>::join_candidates(
 						T::Origin::from(Some(actor.clone()).into()),
-						Perbill::from_percent(2),
+						Perbill::from_percent(2),// default fee for validators set at genesis is 2%
 						balance,
 					)
 				};
@@ -320,7 +347,7 @@ decl_module! {
 			ensure!(!Self::is_nominator(&acc),Error::<T>::NominatorExists);
 			ensure!(fee <= T::MaxFee::get(),Error::<T>::FeeOverMax);
 			ensure!(bond >= T::MinValidatorStk::get(),Error::<T>::ValBondBelowMin);
-			let mut candidates = <CandidateQueue<T>>::get();
+			let mut candidates = <CandidatePool<T>>::get();
 			ensure!(
 				candidates.insert(Bond{owner: acc.clone(), amount: bond}),
 				Error::<T>::CandidateExists
@@ -330,7 +357,7 @@ decl_module! {
 			let new_total = <Total<T>>::get() + bond;
 			<Total<T>>::put(new_total);
 			<Candidates<T>>::insert(&acc,candidate);
-			<CandidateQueue<T>>::put(candidates);
+			<CandidatePool<T>>::put(candidates);
 			Self::deposit_event(RawEvent::JoinedValidatorCandidates(acc,bond,new_total));
 			Ok(())
 		}
@@ -340,9 +367,9 @@ decl_module! {
 			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(state.is_active(),Error::<T>::AlreadyOffline);
 			state.go_offline();
-			let mut candidates = <CandidateQueue<T>>::get();
+			let mut candidates = <CandidatePool<T>>::get();
 			if candidates.remove(&Bond::from_owner(validator.clone())) {
-				<CandidateQueue<T>>::put(candidates);
+				<CandidatePool<T>>::put(candidates);
 			}
 			<Candidates<T>>::insert(&validator,state);
 			Self::deposit_event(RawEvent::ValidatorWentOffline(<Round>::get(),validator));
@@ -355,12 +382,12 @@ decl_module! {
 			ensure!(!state.is_active(),Error::<T>::AlreadyActive);
 			ensure!(!state.is_leaving(),Error::<T>::CannotActivateIfLeaving);
 			state.go_online();
-			let mut candidates = <CandidateQueue<T>>::get();
+			let mut candidates = <CandidatePool<T>>::get();
 			ensure!(
 				candidates.insert(Bond{owner:validator.clone(),amount:state.total}),
 				Error::<T>::AlreadyActive
 			);
-			<CandidateQueue<T>>::put(candidates);
+			<CandidatePool<T>>::put(candidates);
 			<Candidates<T>>::insert(&validator,state);
 			Self::deposit_event(RawEvent::ValidatorBackOnline(<Round>::get(),validator));
 			Ok(())
@@ -378,9 +405,9 @@ decl_module! {
 				Error::<T>::AlreadyLeaving
 			);
 			state.leave_candidates(when);
-			let mut candidates = <CandidateQueue<T>>::get();
+			let mut candidates = <CandidatePool<T>>::get();
 			if candidates.remove(&Bond::from_owner(validator.clone())) {
-				<CandidateQueue<T>>::put(candidates);
+				<CandidatePool<T>>::put(candidates);
 			}
 			<ExitQueue<T>>::put(exits);
 			<Candidates<T>>::insert(&validator,state);
@@ -481,13 +508,13 @@ impl<T: Config> Module<T> {
 	}
 	// ensure candidate is active before calling
 	fn update_active_candidate(candidate: T::AccountId, new_total: BalanceOf<T>) {
-		let mut candidates = <CandidateQueue<T>>::get();
+		let mut candidates = <CandidatePool<T>>::get();
 		candidates.remove(&Bond::from_owner(candidate.clone()));
 		candidates.insert(Bond {
 			owner: candidate.clone(),
 			amount: new_total,
 		});
-		<CandidateQueue<T>>::put(candidates);
+		<CandidatePool<T>>::put(candidates);
 	}
 	fn pay_stakers(next: RoundIndex) {
 		let duration = T::BondDuration::get();
@@ -497,7 +524,7 @@ impl<T: Config> Module<T> {
 			if total == 0u32 {
 				return;
 			}
-			let issuance = T::Issuance::get();
+			let issuance = T::IssuancePerRound::get();
 			for (val, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
 				let pct_due = Perbill::from_rational_approximation(pts, total);
 				let mut amt_due = pct_due * issuance;
@@ -505,16 +532,24 @@ impl<T: Config> Module<T> {
 					continue;
 				}
 				if let Some(state) = <Candidates<T>>::get(&val) {
-					let fee_off_top = state.fee * amt_due;
-					if let Some(imb) = T::Currency::deposit_into_existing(&val, fee_off_top).ok() {
-						Self::deposit_event(RawEvent::Rewarded(val.clone(), imb.peek()));
-					}
-					amt_due -= fee_off_top;
-					for Bond { owner, amount } in state.nominators.0 {
-						let percent = Perbill::from_rational_approximation(amount, state.total);
-						let due = percent * amt_due;
-						if let Some(imb) = T::Currency::deposit_into_existing(&owner, due).ok() {
-							Self::deposit_event(RawEvent::Rewarded(owner.clone(), imb.peek()));
+					if state.nominators.0.len() == 1usize {
+						// solo validator with no nominators
+						if let Some(imb) = T::Currency::deposit_into_existing(&val, amt_due).ok() {
+							Self::deposit_event(RawEvent::Rewarded(val.clone(), imb.peek()));
+						}
+					} else {
+						let fee = state.fee * amt_due;
+						if let Some(imb) = T::Currency::deposit_into_existing(&val, fee).ok() {
+							Self::deposit_event(RawEvent::Rewarded(val.clone(), imb.peek()));
+						}
+						amt_due -= fee;
+						for Bond { owner, amount } in state.nominators.0 {
+							let percent = Perbill::from_rational_approximation(amount, state.total);
+							let due = percent * amt_due;
+							if let Some(imb) = T::Currency::deposit_into_existing(&owner, due).ok()
+							{
+								Self::deposit_event(RawEvent::Rewarded(owner.clone(), imb.peek()));
+							}
 						}
 					}
 				}
@@ -552,7 +587,7 @@ impl<T: Config> Module<T> {
 	/// Best as in most cumulatively supported in terms of stake
 	fn best_candidates_become_validators(next: RoundIndex) -> (u32, BalanceOf<T>) {
 		let (mut all_validators, mut total) = (0u32, BalanceOf::<T>::zero());
-		let mut candidates = <CandidateQueue<T>>::get().0;
+		let mut candidates = <CandidatePool<T>>::get().0;
 		// order candidates by stake (least to greatest so requires `rev()`)
 		candidates.sort_unstable_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
 		let max_validators = T::MaxValidators::get() as usize;
@@ -583,9 +618,9 @@ impl<T: Config> Module<T> {
 
 /// Add reward points to block authors:
 /// * 20 points to the block producer for producing a block in the chain
-impl<T> author::EventHandler<T::AccountId> for Module<T>
+impl<T> author_inherent::EventHandler<T::AccountId> for Module<T>
 where
-	T: Config + author::Config,
+	T: Config + author_inherent::Config,
 {
 	fn note_author(author: T::AccountId) {
 		let now = <Round>::get();
@@ -595,11 +630,11 @@ where
 	}
 }
 
-impl<T> author::IsValidator<T::AccountId> for Module<T>
+impl<T> author_inherent::CanAuthor<T::AccountId> for Module<T>
 where
-	T: Config + author::Config,
+	T: Config + author_inherent::Config,
 {
-	fn is_validator(account: &T::AccountId) -> bool {
+	fn can_author(account: &T::AccountId) -> bool {
 		Self::is_validator(account)
 	}
 }

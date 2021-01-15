@@ -385,16 +385,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "author"
+name = "author-inherent"
 version = "0.1.0"
 dependencies = [
  "frame-support",
  "frame-system",
  "parity-scale-codec",
  "sp-authorship",
- "sp-core",
  "sp-inherents",
- "sp-io",
  "sp-runtime",
  "sp-std",
 ]
@@ -4009,6 +4007,7 @@ version = "0.1.0"
 dependencies = [
  "ansi_term 0.12.1",
  "assert_cmd",
+ "author-inherent",
  "cumulus-collator",
  "cumulus-consensus",
  "cumulus-network",
@@ -4117,7 +4116,7 @@ name = "moonbeam-runtime"
 version = "0.1.0"
 dependencies = [
  "account",
- "author",
+ "author-inherent",
  "cumulus-parachain-upgrade",
  "cumulus-primitives",
  "cumulus-runtime",
@@ -9403,9 +9402,9 @@ checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
 
 [[package]]
 name = "stake"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
- "author",
+ "author-inherent",
  "frame-support",
  "frame-system",
  "pallet-balances",
