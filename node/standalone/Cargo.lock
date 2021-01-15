@@ -3668,6 +3668,7 @@ dependencies = [
  "jsonrpc-core 15.1.0",
  "jsonrpc-pubsub 15.1.0",
  "log",
+ "moonbeam-rpc-debug",
  "moonbeam-runtime",
  "pallet-transaction-payment-rpc",
  "parity-scale-codec",
@@ -3688,6 +3689,17 @@ dependencies = [
  "sp-storage",
  "sp-transaction-pool",
  "substrate-frame-rpc-system",
+]
+
+[[package]]
+name = "moonbeam-rpc-debug"
+version = "0.1.0"
+dependencies = [
+ "evm",
+ "frame-support",
+ "pallet-evm",
+ "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]

@@ -33,6 +33,8 @@ sc-consensus-manual-seal = { git = "https://github.com/paritytech/substrate", br
 frontier-rpc = { package = "fc-rpc", git = "https://github.com/purestake/frontier", branch = "v0.4-hotfixes" }
 frontier-rpc-primitives = { package = "fp-rpc", git = "https://github.com/purestake/frontier", branch = "v0.4-hotfixes" }
 
+moonbeam-rpc-debug = { path = "../../client/rpc/debug" }
+
 # Dependencies I've added for the server hotfixes
 ethereum = { version = "0.5", features = ["with-codec"] }
 ethereum-types = "0.9.0"

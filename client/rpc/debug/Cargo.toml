@@ -1,0 +1,15 @@
+[package]
+name = "moonbeam-rpc-debug"
+version = '0.1.0'
+authors = ['PureStake']
+edition = '2018'
+homepage = 'https://moonbeam.network'
+license = 'GPL-3.0-only'
+repository = 'https://github.com/PureStake/moonbeam/'
+
+[dependencies]
+frame-support = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "master" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.4-hotfixes" }
+evm = { version = "0.20.0", default-features = false, features = ["with-codec"] }
