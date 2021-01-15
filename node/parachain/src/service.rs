@@ -21,6 +21,7 @@ use cumulus_service::{
 use fc_rpc_core::types::PendingTransactions;
 use frontier_consensus::FrontierBlockImport;
 use moonbeam_runtime::{opaque::Block, RuntimeApi};
+use sc_client_api::{ExecutorProvider, RemoteBackend, BlockchainEvents};
 use polkadot_primitives::v0::CollatorPair;
 use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
@@ -176,7 +177,7 @@ where
 		let client = client.clone();
 		let pool = transaction_pool.clone();
 		let network = network.clone();
-
+		let pending = pending_transactions.clone();
 		Box::new(move |deny_unsafe, _| {
 			let deps = moonbeam_rpc::FullDeps {
 				client: client.clone(),
@@ -185,7 +186,7 @@ where
 				deny_unsafe,
 				is_authority,
 				network: network.clone(),
-				pending_transactions: pending_transactions.clone(),
+				pending_transactions: pending.clone(),
 				command_sink: None,
 			};
 
@@ -208,6 +209,48 @@ where
 		network_status_sinks,
 		system_rpc_tx,
 	})?;
+
+	// Spawn Frontier pending transactions maintenance task (as essential, otherwise we leak).
+	if pending_transactions.is_some() {
+		use futures::StreamExt;
+		use fp_consensus::{FRONTIER_ENGINE_ID, ConsensusLog};
+		use sp_runtime::generic::OpaqueDigestItemId;
+
+		const TRANSACTION_RETAIN_THRESHOLD: u64 = 5;
+		task_manager.spawn_essential_handle().spawn(
+			"frontier-pending-transactions",
+			client.import_notification_stream().for_each(move |notification| {
+
+				if let Ok(locked) = &mut pending_transactions.clone().unwrap().lock() {
+					// As pending transactions have a finite lifespan anyway
+					// we can ignore MultiplePostRuntimeLogs error checks.
+					let mut frontier_log: Option<_> = None;
+					for log in notification.header.digest.logs {
+						let log = log.try_to::<ConsensusLog>(OpaqueDigestItemId::Consensus(&FRONTIER_ENGINE_ID));
+						if let Some(log) = log {
+							frontier_log = Some(log);
+						}
+					}
+
+					let imported_number: u64 = notification.header.number as u64;
+
+					if let Some(ConsensusLog::EndBlock {
+						block_hash: _, transaction_hashes,
+					}) = frontier_log {
+						// Retain all pending transactions that were not
+						// processed in the current block.
+						locked.retain(|&k, _| !transaction_hashes.contains(&k));
+					}
+					locked.retain(|_, v| {
+						// Drop all the transactions that exceeded the given lifespan.
+						let lifespan_limit = v.at_block + TRANSACTION_RETAIN_THRESHOLD;
+						lifespan_limit > imported_number
+					});
+				}
+				futures::future::ready(())
+			})
+		);
+	}
 
 	let announce_block = {
 		let network = network.clone();

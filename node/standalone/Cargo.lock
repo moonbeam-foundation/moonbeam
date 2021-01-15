@@ -3634,6 +3634,7 @@ dependencies = [
  "fc-consensus",
  "fc-rpc",
  "fc-rpc-core",
+ "fp-consensus",
  "fp-rpc",
  "futures 0.3.10",
  "jsonrpc-core 15.1.0",

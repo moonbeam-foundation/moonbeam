@@ -69,6 +69,7 @@ frontier-rpc = { package = "fc-rpc", git = "https://github.com/purestake/frontie
 frontier-rpc-primitives = { package = "fp-rpc", git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 frontier-consensus = { package = "fc-consensus", git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
+fp-consensus = { package = "fp-consensus", git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 
 # Cumulus dependencies
 cumulus-consensus = { git = "https://github.com/paritytech/cumulus", branch = "master" }

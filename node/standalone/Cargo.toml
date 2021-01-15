@@ -64,6 +64,7 @@ frontier-consensus = { package = "fc-consensus", git = "https://github.com/pures
 frontier-rpc = { package = "fc-rpc", git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 frontier-rpc-primitives = { package = "fp-rpc", git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
+fp-consensus = { package = "fp-consensus", git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 
 [build-dependencies]
 substrate-build-script-utils = { git = "https://github.com/paritytech/substrate", branch = "master" }
