@@ -16,7 +16,7 @@
 
 //! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
 
-use std::{sync::{Arc, Mutex}, cell::RefCell, time::Duration, collections::HashMap};
+use std::{sync::{Arc, Mutex}, time::Duration, collections::HashMap};
 use fc_rpc_core::types::PendingTransactions;
 use crate::mock_timestamp::MockTimestampInherentDataProvider;
 use frontier_consensus::FrontierBlockImport;
@@ -226,6 +226,7 @@ pub fn new_full(config: Configuration, manual_seal: bool) -> Result<TaskManager,
 			let deps = moonbeam_rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
+				graph: pool.pool().clone(),
 				deny_unsafe,
 				is_authority,
 				network: network.clone(),

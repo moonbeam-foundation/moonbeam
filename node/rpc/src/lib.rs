@@ -25,6 +25,7 @@ use sp_api::ProvideRuntimeApi;
 use sp_transaction_pool::TransactionPool;
 use sp_blockchain::{Error as BlockChainError, HeaderMetadata, HeaderBackend};
 use sc_rpc_api::DenyUnsafe;
+use sc_transaction_graph::{ChainApi, Pool};
 use sc_client_api::{
 	backend::{StorageProvider, Backend, StateBackend, AuxStore},
 	client::BlockchainEvents
@@ -48,11 +49,13 @@ pub struct LightDeps<C, F, P> {
 }
 
 /// Full client dependencies.
-pub struct FullDeps<C, P> {
+pub struct FullDeps<C, P, A: ChainApi> {
 	/// The client instance to use.
 	pub client: Arc<C>,
 	/// Transaction pool instance.
 	pub pool: Arc<P>,
+	/// Graph pool instance.
+	pub graph: Arc<Pool<A>>,
 	/// Whether to deny unsafe calls
 	pub deny_unsafe: DenyUnsafe,
 	/// The Node authority flag
@@ -66,8 +69,8 @@ pub struct FullDeps<C, P> {
 }
 
 /// Instantiate all Full RPC extensions.
-pub fn create_full<C, P, BE>(
-	deps: FullDeps<C, P>,
+pub fn create_full<C, P, BE, A>(
+	deps: FullDeps<C, P, A>,
 	subscription_task_executor: SubscriptionTaskExecutor
 ) -> jsonrpc_core::IoHandler<sc_rpc::Metadata> where
 	BE: Backend<Block> + 'static,
@@ -80,6 +83,7 @@ pub fn create_full<C, P, BE>(
 	C::Api: BlockBuilder<Block>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
 	C::Api: frontier_rpc_primitives::EthereumRuntimeRPCApi<Block>,
+	A: ChainApi<Block = Block> + 'static,
 	<C::Api as sp_api::ApiErrorExt>::Error: fmt::Debug,
 	P: TransactionPool<Block=Block> + 'static,
 {
@@ -91,6 +95,7 @@ pub fn create_full<C, P, BE>(
 	let FullDeps {
 		client,
 		pool,
+		graph,
 		deny_unsafe,
 		is_authority,
 		network,
@@ -106,12 +111,13 @@ pub fn create_full<C, P, BE>(
 	);
 
 	// TODO: are we supporting signing?
-	let mut signers = Vec::new();
+	let signers = Vec::new();
 
 	io.extend_with(
 		EthApiServer::to_delegate(EthApi::new(
 			client.clone(),
 			pool.clone(),
+			graph,
 			moonbeam_runtime::TransactionConverter,
 			network.clone(),
 			pending_transactions.clone(),
