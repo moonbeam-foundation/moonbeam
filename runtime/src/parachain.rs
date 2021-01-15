@@ -31,6 +31,7 @@ macro_rules! runtime_parachain {
 		impl cumulus_parachain_upgrade::Config for Runtime {
 			type Event = Event;
 			type OnValidationData = ();
+			type SelfParaId = ParachainInfo;
 		}
 
 		impl parachain_info::Config for Runtime {}
