@@ -20,11 +20,13 @@ use cumulus_service::{
 };
 use fc_consensus::FrontierBlockImport;
 use moonbeam_runtime::{opaque::Block, RuntimeApi};
+use parity_scale_codec::Encode;
 use polkadot_primitives::v0::CollatorPair;
 use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
 use sc_service::{Configuration, PartialComponents, Role, TFullBackend, TFullClient, TaskManager};
-use sp_core::Pair;
+use sp_core::{Pair, H160};
+use sp_inherents::InherentDataProviders;
 use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
 use std::sync::Arc;
@@ -34,6 +36,26 @@ native_executor_instance!(
 	moonbeam_runtime::api::dispatch,
 	moonbeam_runtime::native_version,
 );
+
+/// Build the inherent data providers (timestamp and authorship) for the node.
+pub fn build_inherent_data_providers(
+	author: Option<H160>,
+) -> Result<InherentDataProviders, sc_service::Error> {
+	let providers = InherentDataProviders::new();
+
+	providers
+		.register_provider(sp_timestamp::InherentDataProvider)
+		.map_err(Into::into)
+		.map_err(sp_consensus::error::Error::InherentData)?;
+	if let Some(account) = author {
+		providers
+			.register_provider(author_inherent::InherentDataProvider(account.encode()))
+			.map_err(Into::into)
+			.map_err(sp_consensus::error::Error::InherentData)?;
+	}
+
+	Ok(providers)
+}
 
 type FullClient = TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = TFullBackend<Block>;
@@ -45,6 +67,7 @@ type FullBackend = TFullBackend<Block>;
 #[allow(clippy::type_complexity)]
 pub fn new_partial(
 	config: &Configuration,
+	author: Option<H160>,
 ) -> Result<
 	PartialComponents<
 		FullClient,
@@ -56,7 +79,7 @@ pub fn new_partial(
 	>,
 	sc_service::Error,
 > {
-	let inherent_data_providers = sp_inherents::InherentDataProviders::new();
+	let inherent_data_providers = build_inherent_data_providers(author)?;
 
 	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, RuntimeApi, Executor>(&config)?;
@@ -102,6 +125,7 @@ pub fn new_partial(
 async fn start_node_impl<RB>(
 	parachain_config: Configuration,
 	collator_key: CollatorPair,
+	account_id: H160,
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	validator: bool,
@@ -128,11 +152,7 @@ where
 			},
 		)?;
 
-	let params = new_partial(&parachain_config)?;
-	params
-		.inherent_data_providers
-		.register_provider(sp_timestamp::InherentDataProvider)
-		.unwrap();
+	let params = new_partial(&parachain_config, Some(account_id))?;
 
 	let client = params.client.clone();
 	let backend = params.backend.clone();
@@ -252,6 +272,7 @@ where
 pub async fn start_node(
 	parachain_config: Configuration,
 	collator_key: CollatorPair,
+	account_id: H160,
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	validator: bool,
@@ -259,6 +280,7 @@ pub async fn start_node(
 	start_node_impl(
 		parachain_config,
 		collator_key,
+		account_id,
 		polkadot_config,
 		id,
 		validator,

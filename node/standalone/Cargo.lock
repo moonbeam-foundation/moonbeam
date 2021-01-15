@@ -353,7 +353,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "author"
+name = "author-inherent"
 version = "0.1.0"
 dependencies = [
  "frame-support",
@@ -3611,6 +3611,7 @@ dependencies = [
 name = "moonbase-standalone"
 version = "0.1.1"
 dependencies = [
+ "author-inherent",
  "fc-consensus",
  "futures 0.3.8",
  "jsonrpc-core 15.1.0",
@@ -3619,6 +3620,7 @@ dependencies = [
  "moonbeam-rpc",
  "moonbeam-runtime",
  "pallet-transaction-payment-rpc",
+ "parity-scale-codec",
  "sc-basic-authorship",
  "sc-cli",
  "sc-client-api",
@@ -3690,7 +3692,7 @@ name = "moonbeam-runtime"
 version = "0.1.0"
 dependencies = [
  "account",
- "author",
+ "author-inherent",
  "cumulus-parachain-upgrade",
  "cumulus-primitives",
  "cumulus-runtime",
@@ -7517,9 +7519,9 @@ checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
 
 [[package]]
 name = "stake"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
- "author",
+ "author-inherent",
  "frame-support",
  "frame-system",
  "pallet-balances",

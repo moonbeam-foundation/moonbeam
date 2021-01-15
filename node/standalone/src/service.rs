@@ -19,6 +19,7 @@
 use crate::mock_timestamp::MockTimestampInherentDataProvider;
 use fc_consensus::FrontierBlockImport;
 use moonbeam_runtime::{self, opaque::Block, RuntimeApi};
+use parity_scale_codec::Encode;
 use sc_client_api::{ExecutorProvider, RemoteBackend};
 use sc_consensus_manual_seal::{self as manual_seal};
 use sc_executor::native_executor_instance;
@@ -26,6 +27,7 @@ pub use sc_executor::NativeExecutor;
 use sc_finality_grandpa::{GrandpaBlockImport, SharedVoterState};
 use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
 use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
+use sp_core::H160;
 use sp_inherents::InherentDataProviders;
 use std::sync::Arc;
 use std::time::Duration;
@@ -36,6 +38,33 @@ native_executor_instance!(
 	moonbeam_runtime::api::dispatch,
 	moonbeam_runtime::native_version,
 );
+
+/// Build the inherent data providers (timestamp and authorship) for the node.
+pub fn build_inherent_data_providers(
+	manual_seal: bool,
+	author: Option<H160>,
+) -> Result<InherentDataProviders, sc_service::Error> {
+	let providers = InherentDataProviders::new();
+	if let Some(account) = author {
+		providers
+			.register_provider(author_inherent::InherentDataProvider(account.encode()))
+			.map_err(Into::into)
+			.map_err(sp_consensus::error::Error::InherentData)?;
+	}
+	if manual_seal {
+		providers
+			.register_provider(MockTimestampInherentDataProvider)
+			.map_err(Into::into)
+			.map_err(sp_consensus::error::Error::InherentData)?;
+	} else {
+		providers
+			.register_provider(sp_timestamp::InherentDataProvider)
+			.map_err(Into::into)
+			.map_err(sp_consensus::error::Error::InherentData)?;
+	}
+
+	Ok(providers)
+}
 
 type FullClient = sc_service::TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = sc_service::TFullBackend<Block>;
@@ -61,6 +90,7 @@ pub enum ConsensusResult {
 pub fn new_partial(
 	config: &Configuration,
 	manual_seal: bool,
+	author: Option<H160>,
 ) -> Result<
 	sc_service::PartialComponents<
 		FullClient,
@@ -72,7 +102,7 @@ pub fn new_partial(
 	>,
 	ServiceError,
 > {
-	let inherent_data_providers = sp_inherents::InherentDataProviders::new();
+	let inherent_data_providers = build_inherent_data_providers(manual_seal, author)?;
 
 	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, RuntimeApi, Executor>(&config)?;
@@ -88,11 +118,6 @@ pub fn new_partial(
 	);
 
 	if manual_seal {
-		inherent_data_providers
-			.register_provider(MockTimestampInherentDataProvider)
-			.map_err(Into::into)
-			.map_err(sp_consensus::error::Error::InherentData)?;
-
 		let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone(), true);
 
 		let import_queue = sc_consensus_manual_seal::import_queue(
@@ -153,7 +178,11 @@ pub fn new_partial(
 }
 
 /// Builds a new service for a full client.
-pub fn new_full(config: Configuration, manual_seal: bool) -> Result<TaskManager, ServiceError> {
+pub fn new_full(
+	config: Configuration,
+	manual_seal: bool,
+	author: H160,
+) -> Result<TaskManager, ServiceError> {
 	let sc_service::PartialComponents {
 		client,
 		backend,
@@ -164,7 +193,7 @@ pub fn new_full(config: Configuration, manual_seal: bool) -> Result<TaskManager,
 		transaction_pool,
 		inherent_data_providers,
 		other: consensus_result,
-	} = new_partial(&config, manual_seal)?;
+	} = new_partial(&config, manual_seal, Some(author))?;
 
 	let (network, network_status_sinks, system_rpc_tx, network_starter) = match consensus_result {
 		ConsensusResult::ManualSeal(_) => {
