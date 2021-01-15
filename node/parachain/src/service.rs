@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use std::{sync::{Arc, Mutex}, collections::HashMap};
+use fc_rpc_core::types::PendingTransactions;
 use cumulus_network::build_block_announce_validator;
 use cumulus_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
@@ -27,7 +29,6 @@ use sc_service::{Configuration, PartialComponents, Role, TFullBackend, TFullClie
 use sp_core::Pair;
 use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
-use std::sync::Arc;
 // Our native executor instance.
 native_executor_instance!(
 	pub Executor,
@@ -52,7 +53,7 @@ pub fn new_partial(
 		(),
 		sp_consensus::import_queue::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
 		sc_transaction_pool::FullPool<Block, FullClient>,
-		FrontierBlockImport<Block, Arc<FullClient>, FullClient>,
+		(FrontierBlockImport<Block, Arc<FullClient>, FullClient>, PendingTransactions),
 	>,
 	sc_service::Error,
 > {
@@ -70,6 +71,9 @@ pub fn new_partial(
 		task_manager.spawn_handle(),
 		client.clone(),
 	);
+
+	let pending_transactions: PendingTransactions
+		= Some(Arc::new(Mutex::new(HashMap::new())));
 
 	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone(), true);
 
@@ -90,7 +94,7 @@ pub fn new_partial(
 		transaction_pool,
 		inherent_data_providers,
 		select_chain: (),
-		other: frontier_block_import,
+		other: (frontier_block_import, pending_transactions),
 	};
 
 	Ok(params)
@@ -147,7 +151,7 @@ where
 	let transaction_pool = params.transaction_pool.clone();
 	let mut task_manager = params.task_manager;
 	let import_queue = params.import_queue;
-	let block_import = params.other;
+	let (block_import, pending_transactions) = params.other;
 	let (network, network_status_sinks, system_rpc_tx, start_network) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &parachain_config,
@@ -175,6 +179,7 @@ where
 				deny_unsafe,
 				is_authority,
 				network: network.clone(),
+				pending_transactions: pending_transactions.clone(),
 				command_sink: None,
 			};
 
