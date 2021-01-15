@@ -28,8 +28,6 @@ jsonrpc-core = "15.0.0"
 jsonrpc-pubsub = "15.0.0"
 serde_json = "1.0"
 
-fc-rpc-core = "0.1.0"
-
 sp-api = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sc-rpc-api = { git = "https://github.com/paritytech/substrate", branch = "master" }
@@ -65,6 +63,7 @@ ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/fr
 frontier-consensus = { package = "fc-consensus", git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 frontier-rpc = { package = "fc-rpc", git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 frontier-rpc-primitives = { package = "fp-rpc", git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
+fc-rpc-core  { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 
 [build-dependencies]
 substrate-build-script-utils = { git = "https://github.com/paritytech/substrate", branch = "master" }
