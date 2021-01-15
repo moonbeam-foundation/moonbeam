@@ -60,6 +60,7 @@ sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "
 moonbeam-runtime = {path = "../../runtime", default-features = false, features = ["std", "standalone"] }
 moonbeam-rpc = { path = "../rpc" }
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
+fp-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 
 ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 frontier-rpc = { package = "fc-rpc", git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }

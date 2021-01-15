@@ -19,10 +19,9 @@ use cumulus_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
 use fc_rpc_core::types::PendingTransactions;
-use frontier_consensus::FrontierBlockImport;
+use fc_consensus::FrontierBlockImport;
 use moonbeam_runtime::{opaque::Block, RuntimeApi};
 use sc_client_api::{ExecutorProvider, RemoteBackend, BlockchainEvents};
-use fc_consensus::FrontierBlockImport;
 use parity_scale_codec::Encode;
 use polkadot_primitives::v0::CollatorPair;
 use sc_executor::native_executor_instance;
