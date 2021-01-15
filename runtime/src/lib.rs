@@ -553,7 +553,9 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance> for Runtime {
+	impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
+		for Runtime {
+
 		fn query_info(
 			uxt: <Block as BlockT>::Extrinsic,
 			len: u32,
