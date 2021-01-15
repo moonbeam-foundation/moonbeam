@@ -4008,6 +4008,7 @@ dependencies = [
  "exit-future 0.1.4",
  "fc-consensus",
  "fc-rpc",
+ "fc-rpc-core",
  "fp-rpc",
  "futures 0.3.12",
  "jsonrpc-core 15.1.0",
