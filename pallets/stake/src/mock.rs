@@ -56,6 +56,7 @@ parameter_types! {
 	pub const MaximumBlockWeight: Weight = 1024;
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
+	pub const SS58Prefix: u8 = 42;
 }
 impl System for Test {
 	type BaseCallFilter = ();
@@ -79,6 +80,7 @@ impl System for Test {
 	type SystemWeightInfo = ();
 	type BlockWeights = ();
 	type BlockLength = ();
+	type SS58Prefix = SS58Prefix;
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 1;
