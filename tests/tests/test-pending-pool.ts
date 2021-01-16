@@ -44,7 +44,7 @@ describeWithMoonbeam("Frontier RPC (Pending Pool)", `simple-specs.json`, (contex
       publicKey:
         "0x624f720eae676a04111631c9ca338c11d0f5a80ee42210c6be72983ceb620fbf645a96f951529f" +
         "a2d70750432d11b7caba5270c4d677255be90b3871c8c58069",
-      r: "0x5431b25e8100a21ced6af01868357b19d58b94afa6f57dc7cbf81f4a922ddecc",
+      r: "0xe6f6ef2c1072b0e4a6b91f6b8ca408478814611124a54f3bb5c02c039e9541f1",
       s: "0x22e05530d015ea702ffb37af313e691ce4423565c2734c267edd3c74aea0a010",
       v: "0x77",
     });
@@ -60,7 +60,7 @@ describeWithMoonbeam("Frontier RPC (Pending Pool)", `simple-specs.json`, (contex
       publicKey:
         "0x624f720eae676a04111631c9ca338c11d0f5a80ee42210c6be72983ceb620fbf645a96f951529f" +
         "a2d70750432d11b7caba5270c4d677255be90b3871c8c58069",
-      r: "0x5431b25e8100a21ced6af01868357b19d58b94afa6f57dc7cbf81f4a922ddecc",
+      r: "0xe6f6ef2c1072b0e4a6b91f6b8ca408478814611124a54f3bb5c02c039e9541f1",
       s: "0x22e05530d015ea702ffb37af313e691ce4423565c2734c267edd3c74aea0a010",
       v: "0x77",
     });

@@ -6,15 +6,8 @@ import { createAndFinalizeBlock, describeWithMoonbeam } from "./util";
 
 describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) => {
   const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
-  const GENESIS_ACCOUNT_BALANCE = "340282366920938463463374607431768211455";
   const GENESIS_ACCOUNT_PRIVATE_KEY =
     "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
-
-  // Duplicate of test-balance test //TODO: decide what to do with this duplicate
-  step("genesis balance is setup correctly (polkadotJs)", async function () {
-    const account = await context.polkadotApi.query.system.account(GENESIS_ACCOUNT);
-    expect(account.data.free.toString()).to.equal(GENESIS_ACCOUNT_BALANCE);
-  });
 
   step("api can retrieve last header", async function () {
     const lastHeader = await context.polkadotApi.rpc.chain.getHeader();
