@@ -44,7 +44,7 @@ describeWithMoonbeam("Moonbeam Polkadot API", `simple-specs.json`, (context) => 
 
     // Expecting 2 extrinsics so far:
     // timestamp, and the balances transfer
-    expect(signedBlock.block.extrinsics).to.be.of.length(2);
+    expect(signedBlock.block.extrinsics).to.be.of.length(3);
 
     signedBlock.block.extrinsics.forEach((ex, index) => {
       const {
@@ -58,6 +58,11 @@ describeWithMoonbeam("Moonbeam Polkadot API", `simple-specs.json`, (context) => 
           expect(message).to.eq(`timestamp.set(6000)`);
           break;
         case 1:
+          expect(message).to.eq(
+            `authorInherent.setAuthor(0x6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b)`
+          );
+          break;
+        case 2:
           expect(ex.signer.toString().toLocaleLowerCase()).to.eq(GENESIS_ACCOUNT);
           expect(message).to.eq(
             `balances.transfer(0x1111111111111111111111111111111111111112, 123)`
