@@ -19,9 +19,11 @@ use cumulus_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
 use fc_consensus::FrontierBlockImport;
+use fc_rpc_core::types::PendingTransactions;
 use moonbeam_runtime::{opaque::Block, RuntimeApi};
 use parity_scale_codec::Encode;
 use polkadot_primitives::v0::CollatorPair;
+use sc_client_api::BlockchainEvents;
 use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
 use sc_service::{Configuration, PartialComponents, Role, TFullBackend, TFullClient, TaskManager};
@@ -29,7 +31,10 @@ use sp_core::{Pair, H160};
 use sp_inherents::InherentDataProviders;
 use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
-use std::sync::Arc;
+use std::{
+	collections::HashMap,
+	sync::{Arc, Mutex},
+};
 // Our native executor instance.
 native_executor_instance!(
 	pub Executor,
@@ -75,7 +80,10 @@ pub fn new_partial(
 		(),
 		sp_consensus::import_queue::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
 		sc_transaction_pool::FullPool<Block, FullClient>,
-		FrontierBlockImport<Block, Arc<FullClient>, FullClient>,
+		(
+			FrontierBlockImport<Block, Arc<FullClient>, FullClient>,
+			PendingTransactions,
+		),
 	>,
 	sc_service::Error,
 > {
@@ -93,6 +101,8 @@ pub fn new_partial(
 		task_manager.spawn_handle(),
 		client.clone(),
 	);
+
+	let pending_transactions: PendingTransactions = Some(Arc::new(Mutex::new(HashMap::new())));
 
 	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone(), true);
 
@@ -113,7 +123,7 @@ pub fn new_partial(
 		transaction_pool,
 		inherent_data_providers,
 		select_chain: (),
-		other: frontier_block_import,
+		other: (frontier_block_import, pending_transactions),
 	};
 
 	Ok(params)
@@ -167,7 +177,7 @@ where
 	let transaction_pool = params.transaction_pool.clone();
 	let mut task_manager = params.task_manager;
 	let import_queue = params.import_queue;
-	let block_import = params.other;
+	let (block_import, pending_transactions) = params.other;
 	let (network, network_status_sinks, system_rpc_tx, start_network) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &parachain_config,
@@ -187,14 +197,16 @@ where
 		let client = client.clone();
 		let pool = transaction_pool.clone();
 		let network = network.clone();
-
+		let pending = pending_transactions.clone();
 		Box::new(move |deny_unsafe, _| {
 			let deps = moonbeam_rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
+				graph: pool.pool().clone(),
 				deny_unsafe,
 				is_authority,
 				network: network.clone(),
+				pending_transactions: pending.clone(),
 				command_sink: None,
 			};
 
@@ -217,6 +229,53 @@ where
 		network_status_sinks,
 		system_rpc_tx,
 	})?;
+
+	// Spawn Frontier pending transactions maintenance task (as essential, otherwise we leak).
+	if pending_transactions.is_some() {
+		use fp_consensus::{ConsensusLog, FRONTIER_ENGINE_ID};
+		use futures::StreamExt;
+		use sp_runtime::generic::OpaqueDigestItemId;
+
+		const TRANSACTION_RETAIN_THRESHOLD: u64 = 5;
+		task_manager.spawn_essential_handle().spawn(
+			"frontier-pending-transactions",
+			client
+				.import_notification_stream()
+				.for_each(move |notification| {
+					if let Ok(locked) = &mut pending_transactions.clone().unwrap().lock() {
+						// As pending transactions have a finite lifespan anyway
+						// we can ignore MultiplePostRuntimeLogs error checks.
+						let mut frontier_log: Option<_> = None;
+						for log in notification.header.digest.logs {
+							let log = log.try_to::<ConsensusLog>(OpaqueDigestItemId::Consensus(
+								&FRONTIER_ENGINE_ID,
+							));
+							if let Some(log) = log {
+								frontier_log = Some(log);
+							}
+						}
+
+						let imported_number: u64 = notification.header.number as u64;
+
+						if let Some(ConsensusLog::EndBlock {
+							block_hash: _,
+							transaction_hashes,
+						}) = frontier_log
+						{
+							// Retain all pending transactions that were not
+							// processed in the current block.
+							locked.retain(|&k, _| !transaction_hashes.contains(&k));
+						}
+						locked.retain(|_, v| {
+							// Drop all the transactions that exceeded the given lifespan.
+							let lifespan_limit = v.at_block + TRANSACTION_RETAIN_THRESHOLD;
+							lifespan_limit > imported_number
+						});
+					}
+					futures::future::ready(())
+				}),
+		);
+	}
 
 	let announce_block = {
 		let network = network.clone();
