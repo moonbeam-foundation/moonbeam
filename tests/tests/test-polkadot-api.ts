@@ -4,7 +4,7 @@ import { step } from "mocha-steps";
 
 import { createAndFinalizeBlock, describeWithMoonbeam } from "./util";
 
-describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) => {
+describeWithMoonbeam("Moonbeam Polkadot API", `simple-specs.json`, (context) => {
   const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
   const GENESIS_ACCOUNT_PRIVATE_KEY =
     "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
@@ -41,18 +41,30 @@ describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) =>
   step("read extrinsic information", async function () {
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
     expect(signedBlock.block.header.number.toNumber() >= 0).to.be.true;
+
+    // Expecting 2 extrinsics so far:
+    // timestamp, and the balances transfer
+    expect(signedBlock.block.extrinsics).to.be.of.length(2);
+
     signedBlock.block.extrinsics.forEach((ex, index) => {
-      if (index === 1) {
-        const {
-          isSigned,
-          method: { args, method, section },
-        } = ex;
+      const {
+        isSigned,
+        method: { args, method, section },
+      } = ex;
+      const message = `${section}.${method}(${args.map((a) => a.toString()).join(", ")})`;
 
-        expect(`${section}.${method}(${args.map((a) => a.toString()).join(", ")})`).to.eq(
-          `balances.transfer(0x1111111111111111111111111111111111111112, 123)`
-        );
-
-        expect(ex.signer.toString().toLocaleLowerCase()).to.eq(GENESIS_ACCOUNT);
+      switch (index) {
+        case 0:
+          expect(message).to.eq(`timestamp.set(6000)`);
+          break;
+        case 1:
+          expect(ex.signer.toString().toLocaleLowerCase()).to.eq(GENESIS_ACCOUNT);
+          expect(message).to.eq(
+            `balances.transfer(0x1111111111111111111111111111111111111112, 123)`
+          );
+          break;
+        default:
+          throw new Error(`Unexpected extrinsic: ${message}`);
       }
     });
   });
