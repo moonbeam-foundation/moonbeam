@@ -180,42 +180,6 @@ describeWithMoonbeam(
       setTimeout(done, 10000);
     }).timeout(20000);
 
-    step("should subscribe to logs by multiple addresses", async function (done) {
-      subscription = context.web3.eth.subscribe(
-        "logs",
-        {
-          address: [
-            "0xF8cef78E923919054037a1D03662bBD884fF4edf",
-            "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
-            "0x5c4242beB94dE30b922f57241f1D02f36e906915",
-            "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
-          ],
-        },
-        function (error, result) {}
-      );
-
-      await new Promise((resolve) => {
-        subscription.on("connected", function (d: any) {
-          resolve();
-        });
-      });
-
-      const tx = await sendTransaction(context);
-      let data = null;
-      await new Promise((resolve) => {
-        createAndFinalizeBlock(context.polkadotApi);
-        subscription.on("data", function (d: any) {
-          data = d;
-          logs_generated += 1;
-          resolve();
-        });
-      });
-      subscription.unsubscribe();
-
-      expect(data).to.not.be.null;
-      setTimeout(done, 10000);
-    }).timeout(20000);
-
     step("should get newPendingTransactions stream", async function (done) {
       subscription = context.web3.eth.subscribe("pendingTransactions", function (error, result) {});
 
@@ -282,6 +246,42 @@ describeWithMoonbeam(
         "logs",
         {
           address: "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
+        },
+        function (error, result) {}
+      );
+
+      await new Promise((resolve) => {
+        subscription.on("connected", function (d: any) {
+          resolve();
+        });
+      });
+
+      const tx = await sendTransaction(context);
+      let data = null;
+      await new Promise((resolve) => {
+        createAndFinalizeBlock(context.polkadotApi);
+        subscription.on("data", function (d: any) {
+          data = d;
+          logs_generated += 1;
+          resolve();
+        });
+      });
+      subscription.unsubscribe();
+
+      expect(data).to.not.be.null;
+      setTimeout(done, 10000);
+    }).timeout(20000);
+
+    step("should subscribe to logs by multiple addresses", async function (done) {
+      subscription = context.web3.eth.subscribe(
+        "logs",
+        {
+          address: [
+            "0xF8cef78E923919054037a1D03662bBD884fF4edf",
+            "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
+            "0x5c4242beB94dE30b922f57241f1D02f36e906915",
+            "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
+          ],
         },
         function (error, result) {}
       );
