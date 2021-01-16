@@ -2,7 +2,7 @@ import { expect } from "chai";
 
 import { createAndFinalizeBlock, customRequest, describeWithMoonbeam } from "./util";
 
-describeWithFrontier("Frontier RPC (Pending Pool)", `simple-specs.json`, (context) => {
+describeWithMoonbeam("Frontier RPC (Pending Pool)", `simple-specs.json`, (context) => {
   const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
   const GENESIS_ACCOUNT_PRIVATE_KEY =
     "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
@@ -49,7 +49,7 @@ describeWithFrontier("Frontier RPC (Pending Pool)", `simple-specs.json`, (contex
       v: "0x77",
     });
 
-    await createAndFinalizeBlock(context.web3);
+    await createAndFinalizeBlock(context.polkadotApi);
 
     const processed_transaction = (
       await customRequest(context.web3, "eth_getTransactionByHash", [tx_hash])

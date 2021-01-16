@@ -203,7 +203,7 @@ describeWithMoonbeam(
       const tx = await sendTransaction(context);
       let data = null;
       await new Promise((resolve) => {
-        createAndFinalizeBlock(context.web3);
+        createAndFinalizeBlock(context.polkadotApi);
         subscription.on("data", function (d: any) {
           data = d;
           logs_generated += 1;
