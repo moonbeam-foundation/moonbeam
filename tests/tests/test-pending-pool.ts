@@ -45,8 +45,8 @@ describeWithMoonbeam("Frontier RPC (Pending Pool)", `simple-specs.json`, (contex
         "0x624f720eae676a04111631c9ca338c11d0f5a80ee42210c6be72983ceb620fbf645a96f951529f" +
         "a2d70750432d11b7caba5270c4d677255be90b3871c8c58069",
       r: "0xe6f6ef2c1072b0e4a6b91f6b8ca408478814611124a54f3bb5c02c039e9541f1",
-      s: "0x22e05530d015ea702ffb37af313e691ce4423565c2734c267edd3c74aea0a010",
-      v: "0x77",
+      s: "0x5c3a49963649c8812de3aa8b84adf77c14e74eea6191a7827e1273158007bac8",
+      v: "0xa26",
     });
 
     await createAndFinalizeBlock(context.polkadotApi);
@@ -61,8 +61,8 @@ describeWithMoonbeam("Frontier RPC (Pending Pool)", `simple-specs.json`, (contex
         "0x624f720eae676a04111631c9ca338c11d0f5a80ee42210c6be72983ceb620fbf645a96f951529f" +
         "a2d70750432d11b7caba5270c4d677255be90b3871c8c58069",
       r: "0xe6f6ef2c1072b0e4a6b91f6b8ca408478814611124a54f3bb5c02c039e9541f1",
-      s: "0x22e05530d015ea702ffb37af313e691ce4423565c2734c267edd3c74aea0a010",
-      v: "0x77",
+      s: "0x5c3a49963649c8812de3aa8b84adf77c14e74eea6191a7827e1273158007bac8",
+      v: "0xa26",
     });
   });
 });
