@@ -66,6 +66,7 @@ evm = { package = "pallet-evm", git = "https://github.com/purestake/frontier", b
 ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
+fp-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 fc-rpc = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 
