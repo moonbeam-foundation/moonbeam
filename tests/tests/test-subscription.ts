@@ -272,6 +272,42 @@ describeWithMoonbeam(
       setTimeout(done, 10000);
     }).timeout(20000);
 
+    step("should subscribe to logs by multiple addresses", async function (done) {
+      subscription = context.web3.eth.subscribe(
+        "logs",
+        {
+          address: [
+            "0xF8cef78E923919054037a1D03662bBD884fF4edf",
+            "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
+            "0x5c4242beB94dE30b922f57241f1D02f36e906915",
+            "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
+          ],
+        },
+        function (error, result) {}
+      );
+
+      await new Promise((resolve) => {
+        subscription.on("connected", function (d: any) {
+          resolve();
+        });
+      });
+
+      const tx = await sendTransaction(context);
+      let data = null;
+      await new Promise((resolve) => {
+        createAndFinalizeBlock(context.polkadotApi);
+        subscription.on("data", function (d: any) {
+          data = d;
+          logs_generated += 1;
+          resolve();
+        });
+      });
+      subscription.unsubscribe();
+
+      expect(data).to.not.be.null;
+      setTimeout(done, 10000);
+    }).timeout(20000);
+
     step("should subscribe to logs by topic", async function (done) {
       subscription = context.web3.eth.subscribe(
         "logs",
@@ -303,11 +339,12 @@ describeWithMoonbeam(
       setTimeout(done, 10000);
     }).timeout(20000);
 
-    step("should get past events on subscription", async function (done) {
+    step("should get past events #1: by topic", async function (done) {
       subscription = context.web3.eth.subscribe(
         "logs",
         {
           fromBlock: "0x0",
+          topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
         },
         function (error, result) {}
       );
@@ -316,9 +353,92 @@ describeWithMoonbeam(
       await new Promise((resolve) => {
         subscription.on("data", function (d: any) {
           data.push(d);
-          if (data.length == logs_generated) {
-            resolve();
-          }
+          setTimeout(function () {
+            if (data.length == logs_generated) resolve();
+          }, 2000);
+        });
+      });
+      subscription.unsubscribe();
+
+      expect(data).to.not.be.empty;
+      setTimeout(done, 10000);
+    }).timeout(20000);
+
+    step("should get past events #2: by address", async function (done) {
+      subscription = context.web3.eth.subscribe(
+        "logs",
+        {
+          fromBlock: "0x0",
+          address: "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
+        },
+        function (error, result) {}
+      );
+
+      let data = [];
+      await new Promise((resolve) => {
+        subscription.on("data", function (d: any) {
+          data.push(d);
+          setTimeout(function () {
+            if (data.length == 1) resolve();
+          }, 2000);
+        });
+      });
+      subscription.unsubscribe();
+
+      expect(data).to.not.be.empty;
+      setTimeout(done, 10000);
+    }).timeout(20000);
+
+    step("should get past events #3: by address + topic", async function (done) {
+      subscription = context.web3.eth.subscribe(
+        "logs",
+        {
+          fromBlock: "0x0",
+          topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+          address: "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
+        },
+        function (error, result) {}
+      );
+
+      let data = [];
+      await new Promise((resolve) => {
+        subscription.on("data", function (d: any) {
+          data.push(d);
+          setTimeout(function () {
+            if (data.length == 1) resolve();
+          }, 2000);
+        });
+      });
+      subscription.unsubscribe();
+
+      expect(data).to.not.be.empty;
+      setTimeout(done, 10000);
+    }).timeout(20000);
+
+    step("should get past events #3: multiple addresses", async function (done) {
+      subscription = context.web3.eth.subscribe(
+        "logs",
+        {
+          fromBlock: "0x0",
+          topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+          address: [
+            "0xe573BCA813c741229ffB2488F7856C6cAa841041",
+            "0xF8cef78E923919054037a1D03662bBD884fF4edf",
+            "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
+            "0x5c4242beB94dE30b922f57241f1D02f36e906915",
+            "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
+          ],
+        },
+        function (error, result) {}
+      );
+
+      let data = [];
+      await new Promise((resolve) => {
+        subscription.on("data", function (d: any) {
+          data.push(d);
+          setTimeout(function () {
+            if (data.length == logs_generated) resolve();
+          }, 2000);
         });
       });
       subscription.unsubscribe();
