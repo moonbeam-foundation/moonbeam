@@ -38,10 +38,10 @@ mod parachain;
 #[cfg(feature = "standalone")]
 mod standalone;
 
+#[cfg(not(feature = "standalone"))]
+use parachain::*;
 #[cfg(feature = "standalone")]
 use standalone::*;
-// #[cfg(not(feature = "standalone"))]
-// use parachain::*;
 
 use fp_rpc::TransactionStatus;
 use parity_scale_codec::{Decode, Encode};
@@ -148,6 +148,7 @@ parameter_types! {
 	/// We allow for 5 MB blocks.
 	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
 		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
+	pub const SS58Prefix: u8 = 42;
 }
 
 impl frame_system::Config for Runtime {
@@ -186,6 +187,8 @@ impl frame_system::Config for Runtime {
 	type DbWeight = ();
 	type BaseCallFilter = ();
 	type SystemWeightInfo = ();
+	/// This is used as an identifier of the chain. 42 is the generic substrate prefix.
+	type SS58Prefix = SS58Prefix;
 }
 
 parameter_types! {
@@ -306,16 +309,25 @@ impl pallet_ethereum::Config for Runtime {
 	type FindAuthor = EthereumFindAuthor<PhantomAura>;
 	#[cfg(feature = "standalone")]
 	type FindAuthor = EthereumFindAuthor<Aura>;
+	type StateRoot = pallet_ethereum::IntermediateStateRoot;
 }
 
 parameter_types! {
-	pub const BlocksPerRound: u32 = 5;
+	/// Moonbeam starts a new round every 2 minutes (20 * block_time)
+	pub const BlocksPerRound: u32 = 20;
+	/// Reward payments and validator exit requests are delayed by 4 minutes (2 * 20 * block_time)
 	pub const BondDuration: u32 = 2;
-	pub const MaxValidators: u32 = 5;
+	/// Maximum 8 valid block authors at any given time
+	pub const MaxValidators: u32 = 8;
+	/// Maximum 10 nominators per validator
 	pub const MaxNominatorsPerValidator: usize = 10;
-	pub const Issuance: u128 = 100;
+	/// Issue 49 new tokens as rewards to validators every 2 minutes (round)
+	pub const IssuancePerRound: u128 = 49;
+	/// The maximum percent a validator can take off the top of its rewards is 50%
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
-	pub const MinValidatorStk: u128 = 10;
+	/// Minimum stake required to be reserved to be a validator is 5
+	pub const MinValidatorStk: u128 = 100_000;
+	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5;
 }
 impl stake::Config for Runtime {
@@ -325,14 +337,15 @@ impl stake::Config for Runtime {
 	type BondDuration = BondDuration;
 	type MaxValidators = MaxValidators;
 	type MaxNominatorsPerValidator = MaxNominatorsPerValidator;
-	type Issuance = Issuance;
+	type IssuancePerRound = IssuancePerRound;
 	type MaxFee = MaxFee;
 	type MinValidatorStk = MinValidatorStk;
 	type MinNominatorStk = MinNominatorStk;
 }
-impl author::Config for Runtime {
+impl author_inherent::Config for Runtime {
+	type Event = Event;
 	type EventHandler = Stake;
-	type IsAuthority = Stake;
+	type CanAuthor = Stake;
 }
 
 #[cfg(feature = "standalone")]
@@ -568,13 +581,12 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<
-		Block,
-		Balance
-	> for Runtime {
+	impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
+		for Runtime {
+
 		fn query_info(
 			uxt: <Block as BlockT>::Extrinsic,
-			len: u32
+			len: u32,
 		) -> pallet_transaction_payment_rpc_runtime_api::RuntimeDispatchInfo<Balance> {
 			TransactionPayment::query_info(uxt, len)
 		}

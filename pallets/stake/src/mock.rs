@@ -56,6 +56,7 @@ parameter_types! {
 	pub const MaximumBlockWeight: Weight = 1024;
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
+	pub const SS58Prefix: u8 = 42;
 }
 impl System for Test {
 	type BaseCallFilter = ();
@@ -79,6 +80,7 @@ impl System for Test {
 	type SystemWeightInfo = ();
 	type BlockWeights = ();
 	type BlockLength = ();
+	type SS58Prefix = SS58Prefix;
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 1;
@@ -92,16 +94,12 @@ impl pallet_balances::Config for Test {
 	type AccountStore = frame_system::Module<Test>;
 	type WeightInfo = ();
 }
-impl author::Config for Test {
-	type EventHandler = Module<Test>;
-	type IsAuthority = Module<Test>;
-}
 parameter_types! {
 	pub const BlocksPerRound: u32 = 5;
 	pub const BondDuration: u32 = 2;
 	pub const MaxValidators: u32 = 5;
 	pub const MaxNominatorsPerValidator: usize = 10;
-	pub const Issuance: u128 = 10;
+	pub const IssuancePerRound: u128 = 10;
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
 	pub const MinValidatorStk: u128 = 10;
 	pub const MinNominatorStk: u128 = 5;
@@ -113,7 +111,7 @@ impl Config for Test {
 	type BondDuration = BondDuration;
 	type MaxValidators = MaxValidators;
 	type MaxNominatorsPerValidator = MaxNominatorsPerValidator;
-	type Issuance = Issuance;
+	type IssuancePerRound = IssuancePerRound;
 	type MaxFee = MaxFee;
 	type MinValidatorStk = MinValidatorStk;
 	type MinNominatorStk = MinNominatorStk;
