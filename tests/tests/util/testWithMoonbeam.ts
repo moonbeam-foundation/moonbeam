@@ -31,6 +31,8 @@ export interface Context {
 }
 
 export async function startMoonbeamNode(
+  //TODO Make this parameter optional and just default to development.
+  // For now I'm just ignoring the param and hardcoding development below.
   specFilename: string,
   provider?: string
 ): Promise<{ context: Context; binary: ChildProcess }> {
@@ -41,7 +43,7 @@ export async function startMoonbeamNode(
 
   const cmd = BINARY_PATH;
   const args = [
-    `--chain=${SPECS_PATH}/${specFilename}`,
+    `--chain=development`,
     `--validator`, // Required by manual sealing to author the blocks
     `--execution=Native`, // Faster execution using native
     `--no-telemetry`,

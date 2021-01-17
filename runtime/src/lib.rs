@@ -312,6 +312,9 @@ impl pallet_ethereum::Config for Runtime {
 	type StateRoot = pallet_ethereum::IntermediateStateRoot;
 }
 
+// 18 decimals
+pub const GLMR: Balance = 1_000_000_000_000_000_000;
+
 parameter_types! {
 	/// Moonbeam starts a new round every 2 minutes (20 * block_time)
 	pub const BlocksPerRound: u32 = 20;
@@ -322,13 +325,13 @@ parameter_types! {
 	/// Maximum 10 nominators per validator
 	pub const MaxNominatorsPerValidator: usize = 10;
 	/// Issue 49 new tokens as rewards to validators every 2 minutes (round)
-	pub const IssuancePerRound: u128 = 49;
+	pub const IssuancePerRound: u128 = 49 * GLMR;
 	/// The maximum percent a validator can take off the top of its rewards is 50%
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
 	/// Minimum stake required to be reserved to be a validator is 5
-	pub const MinValidatorStk: u128 = 100_000;
+	pub const MinValidatorStk: u128 = 100_000 * GLMR;
 	/// Minimum stake required to be reserved to be a nominator is 5
-	pub const MinNominatorStk: u128 = 5;
+	pub const MinNominatorStk: u128 = 5 * GLMR;
 }
 impl stake::Config for Runtime {
 	type Event = Event;

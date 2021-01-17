@@ -23,6 +23,7 @@ use log::info;
 use moonbeam_runtime::Block;
 use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::AccountIdConversion;
+use polkadot_service::RococoChainSpec;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, InitLoggerParams,
 	KeystoreParams, NetworkParams, Result, RuntimeVersion, SharedParams, SubstrateCli,
@@ -40,7 +41,10 @@ fn load_spec(
 	para_id: ParaId,
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	match id {
-		"" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
+		"alphanet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
+			&include_bytes!("../../../specs/MoonbaseAlphaV5.json")[..],
+		)?)),
+		"dev" | "development" | "" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
 		path => Ok(Box::new(chain_spec::ChainSpec::from_json_file(
 			path.into(),
 		)?)),
@@ -117,7 +121,15 @@ impl SubstrateCli for RelayChainCli {
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-		polkadot_cli::Cli::from_iter([RelayChainCli::executable_name()].iter()).load_spec(id)
+		match id {
+			"moonbase_alpha_relay" => Ok(Box::new(RococoChainSpec::from_json_bytes(
+				&include_bytes!("../../../specs/MoonbaseAlphaV5-Relay.json")[..],
+			)?)),
+			// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the
+			// Polkadot service to interpret the id.
+			_ => polkadot_cli::Cli::from_iter([RelayChainCli::executable_name()].iter())
+				.load_spec(id),
+		}
 	}
 
 	fn native_runtime_version(chain_spec: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {

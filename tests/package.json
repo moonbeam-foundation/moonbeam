@@ -4,11 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "generate-specs": "cd .. && scripts/generate-test-specs.sh",
-    "test-only-with-logs": "mocha  --printlogs -r ts-node/register 'tests/**/*.ts'",
-    "test-only": "mocha -r ts-node/register 'tests/**/*.ts'",
-    "test": "npm run generate-specs && npm run test-only",
-    "test-with-logs": "npm run generate-specs && npm run test-only-with-logs"
+    "test-with-logs": "mocha  --printlogs -r ts-node/register 'tests/**/*.ts'",
+    "test": "mocha -r ts-node/register 'tests/**/*.ts'"
   },
   "author": "",
   "license": "ISC",

@@ -16,7 +16,7 @@
 
 use moonbeam_runtime::{
 	AccountId, AuraConfig, BalancesConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig,
-	GenesisConfig, GrandpaConfig, StakeConfig, SudoConfig, SystemConfig, WASM_BINARY,
+	GenesisConfig, GrandpaConfig, StakeConfig, SudoConfig, SystemConfig, GLMR, WASM_BINARY,
 };
 use sc_service::ChainType;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -43,6 +43,9 @@ pub fn authority_keys_from_seed(s: &str) -> (AuraId, GrandpaId) {
 	(get_from_seed::<AuraId>(s), get_from_seed::<GrandpaId>(s))
 }
 
+// The development config is useful for starting a single-node local network to test your runtime.
+// This is not useful for testing ntworking or consensus.
+// It is used in the typescript integration tests found in `/tests`.
 pub fn development_config() -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 
@@ -78,6 +81,7 @@ pub fn development_config() -> Result<ChainSpec, String> {
 	))
 }
 
+// The local testnet is useful for spinning up a two-node network.
 pub fn local_testnet_config() -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 
@@ -161,7 +165,7 @@ fn testnet_genesis(
 			stakers: endowed_accounts
 				.iter()
 				.cloned()
-				.map(|k| (k, None, 100_000))
+				.map(|k| (k, None, 100_000 * GLMR))
 				.collect(),
 		}),
 	}
