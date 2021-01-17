@@ -16,7 +16,7 @@ jobs:
   ####### Check files and formatting #######
 
   check-copyright:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout
         if: github.event_name == 'pull_request_target'
@@ -46,7 +46,7 @@ jobs:
           fi
 
   check-links:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout
         if: github.event_name == 'pull_request_target'
@@ -63,7 +63,7 @@ jobs:
 
   check-editorconfig:
     name: "Check editorconfig"
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout
         if: github.event_name == 'pull_request_target'
@@ -84,7 +84,7 @@ jobs:
 
   check-prettier:
     name: "Check with Prettier"
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout
         if: github.event_name == 'pull_request_target'
@@ -100,7 +100,7 @@ jobs:
 
   check-clippy:
     name: "Code checks"
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout
         if: github.event_name == 'pull_request_target'
@@ -131,7 +131,7 @@ jobs:
   ####### Building and Testing binaries #######
 
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
     steps:
@@ -215,7 +215,7 @@ jobs:
   ####### Prepare and Deploy Docker images #######
 
   docker-parachain:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: ["build"]
     if: github.event_name == 'push'
     steps:
@@ -286,7 +286,7 @@ jobs:
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
 
   docker-standalone:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: ["build"]
     if: github.event_name == 'push'
     steps:
@@ -359,7 +359,7 @@ jobs:
   ####### Prepare the release draft #######
 
   publish-draft-release:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: ["build"]
     if: |
       github.event_name == 'push' &&
@@ -396,7 +396,7 @@ jobs:
           draft: true
 
   publish-runtimes:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: ["publish-draft-release"]
     # We want to store the binaries also when it is not a version release. This is used
     # in case such as providing binaries when creating a new tutorial version.
