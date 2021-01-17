@@ -76,11 +76,13 @@ jobs:
         uses: actions/checkout@v2
       - name: Setup editorconfig checker
         run: |
-          wget https://github.com/editorconfig-checker/editorconfig-checker/releases/download/2.1.0/ec-linux-amd64.tar.gz
-          tar xvf ec-linux-amd64.tar.gz
-          chmod +x /tmp/ec-linux-amd64
+          ls /tmp/bin/ec-linux-amd64 || \
+          cd /tmp && \
+          wget https://github.com/editorconfig-checker/editorconfig-checker/releases/download/2.1.0/ec-linux-amd64.tar.gz && \
+          tar xvf ec-linux-amd64.tar.gz && \
+          chmod +x bin/ec-linux-amd64
       - name: Check files
-        run: /tmp/ec-linux-amd64
+        run: /tmp/bin/ec-linux-amd64
 
   check-prettier:
     name: "Check with Prettier"
