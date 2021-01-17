@@ -16,7 +16,7 @@
 
 use moonbeam_runtime::{
 	AccountId, AuraConfig, BalancesConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig,
-	GenesisConfig, GrandpaConfig, StakeConfig, SudoConfig, SystemConfig, WASM_BINARY,
+	GenesisConfig, GrandpaConfig, StakeConfig, SudoConfig, SystemConfig, GLMR, WASM_BINARY,
 };
 use sc_service::ChainType;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -165,7 +165,7 @@ fn testnet_genesis(
 			stakers: endowed_accounts
 				.iter()
 				.cloned()
-				.map(|k| (k, None, 100_000))
+				.map(|k| (k, None, 100_000 * GLMR))
 				.collect(),
 		}),
 	}

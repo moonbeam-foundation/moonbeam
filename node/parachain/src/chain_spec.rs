@@ -17,7 +17,7 @@
 use cumulus_primitives::ParaId;
 use moonbeam_runtime::{
 	AccountId, BalancesConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig, GenesisConfig,
-	ParachainInfoConfig, StakeConfig, SudoConfig, SystemConfig, WASM_BINARY,
+	ParachainInfoConfig, StakeConfig, SudoConfig, SystemConfig, GLMR, WASM_BINARY,
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
@@ -103,7 +103,7 @@ fn testnet_genesis(
 			stakers: endowed_accounts
 				.iter()
 				.cloned()
-				.map(|k| (k, None, 100_000))
+				.map(|k| (k, None, 100_000 * GLMR))
 				.collect(),
 		}),
 	}
