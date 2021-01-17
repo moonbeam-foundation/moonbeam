@@ -78,9 +78,9 @@ jobs:
         run: |
           wget https://github.com/editorconfig-checker/editorconfig-checker/releases/download/2.1.0/ec-linux-amd64.tar.gz
           tar xvf ec-linux-amd64.tar.gz
-          chmod +x bin/ec-linux-amd64
+          chmod +x /tmp/ec-linux-amd64
       - name: Check files
-        run: bin/ec-linux-amd64
+        run: /tmp/ec-linux-amd64
 
   check-prettier:
     name: "Check with Prettier"
