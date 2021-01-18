@@ -11,5 +11,5 @@ repository = 'https://github.com/PureStake/moonbeam/'
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "master" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.4-hotfixes" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.5-hotfixes" }
 evm = { version = "0.20.0", default-features = false, features = ["with-codec"] }
