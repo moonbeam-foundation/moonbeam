@@ -1,32 +1,6 @@
-export {
-  TEST_CONTRACT_BYTECODE,
-  TEST_CONTRACT_ABI,
-  FIRST_CONTRACT_ADDRESS,
-  TEST_CONTRACT_BYTECODE_INCR,
-  TEST_CONTRACT_INCR_ABI,
-  INFINITE_CONTRACT_BYTECODE,
-  INFINITE_CONTRACT_ABI,
-  INFINITE_CONTRACT_BYTECODE_VAR,
-  INFINITE_CONTRACT_ABI_VAR,
-  FINITE_LOOP_CONTRACT_BYTECODE,
-  FINITE_LOOP_CONTRACT_ABI,
-} from "./testContracts";
-
-export {
-  PORT,
-  RPC_PORT,
-  WS_PORT,
-  SPECS_PATH,
-  DISPLAY_LOG,
-  MOONBEAM_LOG,
-  BINARY_PATH,
-  SPAWNING_TIME,
-  GENESIS_ACCOUNT,
-  GENESIS_ACCOUNT_PRIVATE_KEY,
-  TEST_ACCOUNT,
-} from "./constants";
-
-export { basicTransfertx, contractCreation, CompleteTransactionConfig } from "./transactionConfigs";
+export * from "./testContracts";
+export * from "./constants";
+export * from "./transactionConfigs";
 
 // TESTING NOTES
 //
