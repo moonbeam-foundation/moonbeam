@@ -127,9 +127,10 @@ impl<B> Default for ValidatorStatus<B> {
 }
 
 #[derive(Encode, Decode, RuntimeDebug)]
-pub struct CandidateState<AccountId, Balance, RoundIndex> {
-	pub validator: AccountId,
+pub struct Validator<AccountId, Balance> {
+	pub account: AccountId,
 	pub fee: Perbill,
+	pub bond: Balance,
 	pub nominators: OrderedSet<Bond<AccountId, Balance>>,
 	pub total: Balance,
 	pub state: ValidatorStatus<RoundIndex>,
@@ -138,19 +139,15 @@ pub struct CandidateState<AccountId, Balance, RoundIndex> {
 impl<
 		A: Ord + Clone,
 		B: AtLeast32BitUnsigned + Ord + Copy + sp_std::ops::AddAssign + sp_std::ops::SubAssign,
-		C: Ord + Copy,
-	> CandidateState<A, B, C>
+	> Validator<A, B>
 {
-	pub fn new(validator: A, fee: Perbill, bond: B) -> Self {
-		let nominators = OrderedSet::from(vec![Bond {
-			owner: validator.clone(),
-			amount: bond,
-		}]);
+	pub fn new(account: A, fee: Perbill, bond: B) -> Self {
 		let total = bond;
-		CandidateState {
-			validator,
+		Validator {
+			account,
 			fee,
-			nominators,
+			bond,
+			nominators: OrderedSet::new(),
 			total,
 			state: ValidatorStatus::default(), // default active
 		}
@@ -171,26 +168,17 @@ impl<
 	pub fn go_online(&mut self) {
 		self.state = ValidatorStatus::Active;
 	}
-	pub fn leave_candidates(&mut self, block: C) {
+	pub fn leave_candidates(&mut self, block: RoundIndex) {
 		self.state = ValidatorStatus::Leaving(block);
 	}
 }
 
-impl<A: PartialEq, B: HasCompact + Zero, C> Into<Exposure<A, B>> for CandidateState<A, B, C> {
+impl<A: PartialEq, B: HasCompact + Zero> Into<Exposure<A, B>> for Validator<A, B> {
 	fn into(self) -> Exposure<A, B> {
-		let mut others = Vec::<IndividualExposure<A, B>>::new();
-		let mut own = Zero::zero();
-		for Bond { owner, amount } in self.nominators.0 {
-			if owner == self.validator {
-				own = amount;
-			} else {
-				others.push(Bond { owner, amount }.into());
-			}
-		}
 		Exposure {
 			total: self.total,
-			own,
-			others,
+			own: self.bond,
+			others: self.nominators.0.into_iter().map(|x| x.into()).collect(),
 		}
 	}
 }
@@ -198,7 +186,7 @@ impl<A: PartialEq, B: HasCompact + Zero, C> Into<Exposure<A, B>> for CandidateSt
 type RoundIndex = u32;
 type RewardPoint = u32;
 type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as System>::AccountId>>::Balance;
-type Candidate<T> = CandidateState<<T as System>::AccountId, BalanceOf<T>, RoundIndex>;
+type Candidate<T> = Validator<<T as System>::AccountId, BalanceOf<T>>;
 
 pub trait Config: System {
 	/// The overarching event type
@@ -353,7 +341,7 @@ decl_module! {
 				Error::<T>::CandidateExists
 			);
 			T::Currency::reserve(&acc,bond)?;
-			let candidate: Candidate<T> = CandidateState::new(acc.clone(),fee,bond);
+			let candidate: Candidate<T> = Validator::new(acc.clone(),fee,bond);
 			let new_total = <Total<T>>::get() + bond;
 			<Total<T>>::put(new_total);
 			<Candidates<T>>::insert(&acc,candidate);
@@ -532,7 +520,7 @@ impl<T: Config> Module<T> {
 					continue;
 				}
 				if let Some(state) = <Candidates<T>>::get(&val) {
-					if state.nominators.0.len() == 1usize {
+					if state.nominators.0.len() == 0usize {
 						// solo validator with no nominators
 						if let Some(imb) = T::Currency::deposit_into_existing(&val, amt_due).ok() {
 							Self::deposit_event(RawEvent::Rewarded(val.clone(), imb.peek()));
@@ -551,6 +539,16 @@ impl<T: Config> Module<T> {
 								Self::deposit_event(RawEvent::Rewarded(owner.clone(), imb.peek()));
 							}
 						}
+						let pct = Perbill::from_rational_approximation(state.bond, state.total);
+						let due = pct * amt_due;
+						if let Some(imb) =
+							T::Currency::deposit_into_existing(&state.account, due).ok()
+						{
+							Self::deposit_event(RawEvent::Rewarded(
+								state.account.clone(),
+								imb.peek(),
+							));
+						}
 					}
 				}
 			}
@@ -566,9 +564,11 @@ impl<T: Config> Module<T> {
 				} else {
 					if let Some(state) = <Candidates<T>>::get(&x.owner) {
 						for bond in state.nominators.0 {
-							// return funds to nominator
+							// return stake to nominator
 							T::Currency::unreserve(&bond.owner, bond.amount);
 						}
+						// return stake to validator
+						T::Currency::unreserve(&state.account, state.bond);
 						let new_total = <Total<T>>::get() - state.total;
 						<Total<T>>::put(new_total);
 						<Candidates<T>>::remove(&x.owner);
