@@ -1,0 +1,25 @@
+[package]
+name = "moonbeam-rpc-txpool"
+version = '0.1.0'
+authors = ['PureStake']
+edition = '2018'
+homepage = 'https://moonbeam.network'
+license = 'GPL-3.0-only'
+repository = 'https://github.com/PureStake/moonbeam/'
+
+[dependencies]
+sha3 = "0.8"
+jsonrpc-core = "15.0.0"
+ethereum-types = "0.10.0"
+ethereum = { git = "https://github.com/rust-blockchain/ethereum", branch = "master", features = ["with-codec"] }
+moonbeam-rpc-core-txpool = { path = "../../rpc-core/txpool" }
+sp-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
+sp-api = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
+sp-io = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
+sp-std = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
+sp-blockchain = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
+sp-transaction-pool = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
+frame-system = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
+serde = { version = "1.0", features = ["derive"] }
+
+moonbeam-rpc-primitives-txpool = { path = "../../../primitives/rpc/txpool" }
