@@ -9,7 +9,7 @@ edition = '2018'
 
 [dependencies]
 futures = { version = "0.3.1", features = ["compat"] }
-codec = { package = 'parity-scale-codec', version = '1.0.0' }
+parity-scale-codec = '1.0.0'
 serde = { version = "1.0.101", features = ["derive"] }
 serde_json = "1.0"
 jsonrpc-core = "15.0.0"
@@ -29,19 +29,10 @@ substrate-frame-rpc-system = { git = "https://github.com/paritytech/substrate", 
 pallet-transaction-payment-rpc = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sc-consensus-manual-seal = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sc-transaction-graph = { git = "https://github.com/paritytech/substrate", branch = "master" }
 
-frontier-rpc = { package = "fc-rpc", git = "https://github.com/purestake/frontier", branch = "v0.4-hotfixes" }
-frontier-rpc-primitives = { package = "fp-rpc", git = "https://github.com/purestake/frontier", branch = "v0.4-hotfixes" }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 
 moonbeam-rpc-debug = { path = "../../client/rpc/debug" }
-
-# Dependencies I've added for the server hotfixes
-ethereum = { version = "0.5", features = ["with-codec"] }
-ethereum-types = "0.9.0"
-sha3 = "0.8"
-sp-io = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-sp-storage = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-frontier-rpc-core = { package = "fc-rpc-core", git = "https://github.com/purestake/frontier", branch = "v0.4-hotfixes" }
-rlp = "0.4"
-frontier-consensus = { package = "fc-consensus", git = "https://github.com/purestake/frontier", branch = "v0.4-hotfixes" }
-log = "0.4.8"

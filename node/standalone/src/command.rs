@@ -48,7 +48,7 @@ impl SubstrateCli for Cli {
 
 	fn load_spec(&self, id: &str) -> Result<Box<dyn sc_service::ChainSpec>, String> {
 		Ok(match id {
-			"dev" => Box::new(chain_spec::development_config()?),
+			"dev" | "development" => Box::new(chain_spec::development_config()?),
 			"" | "local" => Box::new(chain_spec::local_testnet_config()?),
 			path => Box::new(chain_spec::ChainSpec::from_json_file(
 				std::path::PathBuf::from(path),
@@ -64,7 +64,6 @@ impl SubstrateCli for Cli {
 /// Parse and run command line arguments
 pub fn run() -> sc_cli::Result<()> {
 	let cli = Cli::from_args();
-
 	match &cli.subcommand {
 		Some(Subcommand::BuildSpec(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
@@ -78,7 +77,7 @@ pub fn run() -> sc_cli::Result<()> {
 					task_manager,
 					import_queue,
 					..
-				} = new_partial(&config, cli.run.manual_seal)?;
+				} = new_partial(&config, cli.run.manual_seal, None)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -89,7 +88,7 @@ pub fn run() -> sc_cli::Result<()> {
 					client,
 					task_manager,
 					..
-				} = new_partial(&config, cli.run.manual_seal)?;
+				} = new_partial(&config, cli.run.manual_seal, None)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
 		}
@@ -100,7 +99,7 @@ pub fn run() -> sc_cli::Result<()> {
 					client,
 					task_manager,
 					..
-				} = new_partial(&config, cli.run.manual_seal)?;
+				} = new_partial(&config, cli.run.manual_seal, None)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
 		}
@@ -112,7 +111,7 @@ pub fn run() -> sc_cli::Result<()> {
 					task_manager,
 					import_queue,
 					..
-				} = new_partial(&config, cli.run.manual_seal)?;
+				} = new_partial(&config, cli.run.manual_seal, None)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -128,16 +127,19 @@ pub fn run() -> sc_cli::Result<()> {
 					task_manager,
 					backend,
 					..
-				} = new_partial(&config, cli.run.manual_seal)?;
+				} = new_partial(&config, cli.run.manual_seal, None)?;
 				Ok((cmd.run(client, backend), task_manager))
 			})
 		}
 		None => {
 			let runner = cli.create_runner(&cli.run.base)?;
+			let account = cli.run.account_id.ok_or(sc_cli::Error::Input(
+				"Account ID required but not set".to_string(),
+			))?;
 			runner.run_node_until_exit(|config| async move {
 				match config.role {
 					Role::Light => service::new_light(config),
-					_ => service::new_full(config, cli.run.manual_seal),
+					_ => service::new_full(config, cli.run.manual_seal, account),
 				}
 			})
 		}
