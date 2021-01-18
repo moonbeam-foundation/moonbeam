@@ -2,7 +2,6 @@
 members = [
     'runtime',
     'node/parachain',
-    'node/rpc',#Temporary
     'client/rpc/txpool',
     'client/rpc-core/txpool',
     # We do NOT include the standalone node in this main workspace because it builds the

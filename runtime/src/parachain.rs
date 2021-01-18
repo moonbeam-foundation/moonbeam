@@ -22,8 +22,8 @@ macro_rules! runtime_parachain {
 			spec_name: create_runtime_str!("moonbase-alphanet"),
 			impl_name: create_runtime_str!("moonbase-alphanet"),
 			authoring_version: 3,
-			spec_version: 8,
-			impl_version: 0,
+			spec_version: 9,
+			impl_version: 2,
 			apis: RUNTIME_API_VERSIONS,
 			transaction_version: 2,
 		};
@@ -31,6 +31,7 @@ macro_rules! runtime_parachain {
 		impl cumulus_parachain_upgrade::Config for Runtime {
 			type Event = Event;
 			type OnValidationData = ();
+			type SelfParaId = ParachainInfo;
 		}
 
 		impl parachain_info::Config for Runtime {}
@@ -72,6 +73,8 @@ macro_rules! runtime_parachain {
 				EthereumChainId: pallet_ethereum_chain_id::{Module, Storage, Config},
 				EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
 				Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
+				Stake: stake::{Module, Call, Storage, Event<T>, Config<T>},
+				AuthorInherent: author_inherent::{Module, Call, Storage, Inherent, Event<T>},
 			}
 		}
 	};

@@ -1,14 +1,17 @@
 import { expect } from "chai";
-import { step } from "mocha-steps";
 import { describeWithMoonbeam, customRequest } from "./util";
 
 describeWithMoonbeam("Moonbeam RPC (Web3Api)", `simple-specs.json`, (context) => {
-  step("should get client version", async function () {
+  it("should get client version", async function () {
     const version = await context.web3.eth.getNodeInfo();
-    expect(version).to.be.match(/moonbeam-standalone\/v[0-9]+\.0\/fc-rpc-0.1.0/);
+    let specName: string = await context.polkadotApi.runtimeVersion.specName.toString();
+    let specVersion: string = await context.polkadotApi.runtimeVersion.specVersion.toString();
+    let implVersion: string = await context.polkadotApi.runtimeVersion.implVersion.toString();
+    let regex = new RegExp(specName + "/v" + specVersion + "." + implVersion + "/fc-rpc-0.1.0");
+    expect(version).to.be.match(regex);
   });
 
-  step("should remote sha3", async function () {
+  it("should remote sha3", async function () {
     const data = context.web3.utils.stringToHex("hello");
     const hash = await customRequest(context.web3, "web3_sha3", [data]);
     const local_hash = context.web3.utils.sha3("hello");
