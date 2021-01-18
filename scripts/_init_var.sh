@@ -76,6 +76,11 @@ if [ -z "$PARACHAIN_IP" ]; then
   PARACHAIN_IP="127.0.0.1"
 fi
 
+# Alice private key
+if [ -z "$SUDO_SEED" ]; then
+  SUDO_SEED="0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a"
+fi
+
 NODE_KEYS=(
   0000000000000000000000000000000000000000000000000000000000000000
   1111111111111111111111111111111111111111111111111111111111111111
@@ -88,14 +93,13 @@ RELAY_SEEDS=(
   "six stumble adjust guide delay rail waste ivory hood peasant seminar fluid"
 )
 
-RELAY_USERS=(
+WELL_KNOWN_USERS=(
   "alice"
   "bob"
   "charlie"
   "dave"
   "eve"
   "ferdie"
-
 )
 
 RELAY_LOCAL_IDS=(

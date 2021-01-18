@@ -56,7 +56,7 @@ docker run \
   -it purestake/moonbase-relay-testnet:$POLKADOT_VERSION \
     /usr/local/bin/polkadot \
       --chain rococo-local \
-      --${RELAY_USERS[$RELAY_INDEX]}
+      --${WELL_KNOWN_USERS[$RELAY_INDEX]} \
       --node-key ${NODE_KEYS[$RELAY_INDEX]} \
       --base-path /tmp \
       --validator \
@@ -70,4 +70,4 @@ docker run \
       --rpc-port $((RELAY_PORT + 1)) \
       --ws-port $((RELAY_PORT + 2)) \
       $BOOTNODES_ARGS \
-      '-linfo,evm=debug,ethereum=trace,rpc=trace,txpool=debug,polkadot_parachain=debug'"
+      '-linfo,evm=debug,ethereum=trace,rpc=trace,txpool=debug,polkadot_parachain=debug'
