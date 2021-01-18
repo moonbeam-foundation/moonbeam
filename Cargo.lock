@@ -4079,6 +4079,8 @@ dependencies = [
  "futures 0.3.12",
  "jsonrpc-core 15.1.0",
  "jsonrpc-pubsub 15.1.0",
+ "moonbeam-rpc-primitives-txpool",
+ "moonbeam-rpc-txpool",
  "moonbeam-runtime",
  "pallet-transaction-payment-rpc",
  "parity-scale-codec",
@@ -4099,6 +4101,51 @@ dependencies = [
 ]
 
 [[package]]
+name = "moonbeam-rpc-core-txpool"
+version = "0.1.0"
+dependencies = [
+ "ethereum",
+ "ethereum-types",
+ "fc-rpc-core",
+ "jsonrpc-core 15.1.0",
+ "jsonrpc-core-client 14.2.0",
+ "jsonrpc-derive 14.2.2",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "moonbeam-rpc-primitives-txpool"
+version = "0.1.0"
+dependencies = [
+ "ethereum",
+ "sp-api",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "moonbeam-rpc-txpool"
+version = "0.1.0"
+dependencies = [
+ "ethereum",
+ "ethereum-types",
+ "frame-system",
+ "jsonrpc-core 15.1.0",
+ "moonbeam-rpc-core-txpool",
+ "moonbeam-rpc-primitives-txpool",
+ "serde",
+ "sha3 0.8.2",
+ "sp-api",
+ "sp-blockchain",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "sp-transaction-pool",
+]
+
+[[package]]
 name = "moonbeam-runtime"
 version = "0.1.0"
 dependencies = [
@@ -4114,6 +4161,7 @@ dependencies = [
  "frame-system-rpc-runtime-api",
  "hex-literal",
  "log",
+ "moonbeam-rpc-primitives-txpool",
  "pallet-aura",
  "pallet-balances",
  "pallet-ethereum",
