@@ -84,13 +84,15 @@ $PARACHAIN_BINARY \
   --name parachain_$PARACHAIN_INDEX \
   $PARACHAIN_BASE_PATH \
   '-linfo,evm=debug,ethereum=trace,rpc=trace,cumulus_collator=debug,txpool=debug' \
-  --chain $PARACHAIN_SPEC_RAW  \
+  --alice  \
+  --chain staging \
+  --account-id 6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b \
   $PARACHAIN_BOOTNODES_ARGS \
   -- \
     --node-key ${PARACHAIN_KEYS[$PARACHAIN_INDEX]} \
+    --chain rococo-local \
     $PARACHAIN_BASE_PATH \
     --port $((PARACHAIN_PORT)) \
     --rpc-port $((PARACHAIN_PORT + 1)) \
     --ws-port $((PARACHAIN_PORT + 2)) \
-    $RELAY_BOOTNODES_ARGS \
-    --chain $POLKADOT_SPEC_RAW;
+    $RELAY_BOOTNODES_ARGS;
