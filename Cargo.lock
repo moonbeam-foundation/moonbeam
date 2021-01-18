@@ -1554,6 +1554,7 @@ dependencies = [
  "fixed-hash 0.6.1",
  "impl-codec",
  "impl-rlp 0.2.1",
+ "impl-serde",
  "tiny-keccak",
 ]
 
@@ -1613,6 +1614,7 @@ dependencies = [
  "fixed-hash 0.6.1",
  "impl-codec",
  "impl-rlp 0.2.1",
+ "impl-serde",
  "primitive-types 0.7.3",
  "uint 0.8.5",
 ]
@@ -1911,6 +1913,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "11498d382790b7a8f2fd211780bec78619bba81cdad3a283997c0c41f836759c"
 dependencies = [
  "byteorder",
+ "rand 0.7.3",
  "rustc-hex",
  "static_assertions",
 ]
@@ -4193,6 +4196,7 @@ dependencies = [
  "jsonrpc-core 15.1.0",
  "jsonrpc-pubsub 15.1.0",
  "moonbeam-rpc-debug",
+ "moonbeam-rpc-primitives-debug",
  "moonbeam-runtime",
  "pallet-transaction-payment-rpc",
  "parity-scale-codec",
@@ -4213,14 +4217,47 @@ dependencies = [
 ]
 
 [[package]]
+name = "moonbeam-rpc-core-debug"
+version = "0.1.0"
+dependencies = [
+ "ethereum-types 0.9.2",
+ "jsonrpc-core 15.1.0",
+ "jsonrpc-core-client 14.2.0",
+ "jsonrpc-derive 14.2.2",
+ "serde",
+ "serde_json",
+ "sp-core",
+]
+
+[[package]]
 name = "moonbeam-rpc-debug"
 version = "0.1.0"
 dependencies = [
+ "ethereum-types 0.9.2",
  "evm 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "fc-consensus",
  "frame-support",
+ "jsonrpc-core 15.1.0",
+ "moonbeam-rpc-core-debug",
+ "moonbeam-rpc-primitives-debug",
  "pallet-evm",
+ "sc-client-api",
+ "sp-api",
+ "sp-blockchain",
  "sp-core",
  "sp-runtime",
+]
+
+[[package]]
+name = "moonbeam-rpc-primitives-debug"
+version = "0.1.0"
+dependencies = [
+ "ethereum-types 0.9.2",
+ "sp-api",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -4239,6 +4276,7 @@ dependencies = [
  "frame-system-rpc-runtime-api",
  "hex-literal",
  "log",
+ "moonbeam-rpc-primitives-debug",
  "pallet-aura",
  "pallet-balances",
  "pallet-ethereum",
@@ -6662,6 +6700,7 @@ dependencies = [
  "fixed-hash 0.6.1",
  "impl-codec",
  "impl-rlp 0.2.1",
+ "impl-serde",
  "uint 0.8.5",
 ]
 

@@ -36,3 +36,4 @@ fc-rpc = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixe
 fp-rpc = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 
 moonbeam-rpc-debug = { path = "../../client/rpc/debug" }
+moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug" }

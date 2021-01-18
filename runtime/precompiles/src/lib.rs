@@ -28,12 +28,12 @@ use pallet_evm_precompile_modexp::Modexp;
 struct DeadbeefPrecompiled;
 
 impl LinearCostPrecompile for DeadbeefPrecompiled {
-	const BASE: usize = 15;
-	const WORD: usize = 3;
+	const BASE: u64 = 15;
+	const WORD: u64 = 3;
 
 	fn execute(
 		input: &[u8],
-		_: usize,
+		_: u64,
 	) -> core::result::Result<(pallet_evm::ExitSucceed, Vec<u8>), pallet_evm::ExitError> {
 		log::info!("Calling deadbeef precompiled contract");
 

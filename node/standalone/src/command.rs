@@ -141,6 +141,7 @@ pub fn run() -> sc_cli::Result<()> {
 					Role::Light => service::new_light(config),
 					_ => service::new_full(config, cli.run.manual_seal, account),
 				}
+				.map_err(sc_cli::Error::Service)
 			})
 		}
 	}

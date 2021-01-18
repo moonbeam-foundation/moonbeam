@@ -54,6 +54,7 @@ pallet-grandpa = { default-features = false, git = "https://github.com/paritytec
 pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 
+moonbeam-rpc-primitives-debug = { path = "../primitives/rpc/debug", default-features = false }
 
 # Cumulus dependencies
 cumulus-runtime = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }

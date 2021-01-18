@@ -256,11 +256,11 @@ pub const WEIGHT_PER_GAS: u64 = WEIGHT_PER_SECOND / GAS_PER_SECOND;
 pub struct MoonbeamGasWeightMapping;
 
 impl pallet_evm::GasWeightMapping for MoonbeamGasWeightMapping {
-	fn gas_to_weight(gas: usize) -> Weight {
-		Weight::try_from(gas.saturating_mul(WEIGHT_PER_GAS as usize)).unwrap_or(Weight::MAX)
+	fn gas_to_weight(gas: u64) -> Weight {
+		Weight::try_from(gas.saturating_mul(WEIGHT_PER_GAS as u64)).unwrap_or(Weight::MAX)
 	}
-	fn weight_to_gas(weight: Weight) -> usize {
-		usize::try_from(weight.wrapping_div(WEIGHT_PER_GAS)).unwrap_or(usize::MAX)
+	fn weight_to_gas(weight: Weight) -> u64 {
+		u64::try_from(weight.wrapping_div(WEIGHT_PER_GAS)).unwrap_or(u64::MAX)
 	}
 }
 
@@ -472,6 +472,24 @@ impl_runtime_apis! {
 			System::account_nonce(account)
 		}
 	}
+	impl moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block> for Runtime {
+		fn trace_transaction(
+			transaction_index: u32
+		) -> H256 { // TODO return
+
+			let pending = <pallet_ethereum::Module<Runtime>>::current_pending();
+			// <Runtime as pallet_evm::Config>::Runner::create(
+			// 	from,
+			// 	data,
+			// 	value,
+			// 	gas_limit.low_u32(),
+			// 	gas_price,
+			// 	nonce,
+			// 	config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
+			// ).map_err(|err| err.into())
+			H256::default() // TODO
+		}
+	}
 
 	impl fp_rpc::EthereumRuntimeRPCApi<Block> for Runtime {
 		fn chain_id() -> u64 {
@@ -592,6 +610,13 @@ impl_runtime_apis! {
 			len: u32,
 		) -> pallet_transaction_payment_rpc_runtime_api::RuntimeDispatchInfo<Balance> {
 			TransactionPayment::query_info(uxt, len)
+		}
+
+		fn query_fee_details(
+			uxt: <Block as BlockT>::Extrinsic,
+			len: u32,
+		) -> pallet_transaction_payment::FeeDetails<Balance> {
+			TransactionPayment::query_fee_details(uxt, len)
 		}
 	}
 

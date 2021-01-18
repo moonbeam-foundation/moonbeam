@@ -31,7 +31,7 @@ pub trait TraceExecutor {
 		address: H160,
 		value: U256,
 		data: Vec<u8>,
-		gas_limit: usize,
+		gas_limit: u64,
 	) -> (ExitReason, Vec<u8>);
 
 	fn trace_call_inner(
@@ -39,7 +39,7 @@ pub trait TraceExecutor {
 		code_address: H160,
 		transfer: Option<Transfer>,
 		input: Vec<u8>,
-		target_gas: Option<usize>,
+		target_gas: Option<u64>,
 		is_static: bool,
 		take_l64: bool,
 		take_stipend: bool,
@@ -51,7 +51,7 @@ pub trait TraceExecutor {
 		caller: H160,
 		value: U256,
 		init_code: Vec<u8>,
-		gas_limit: usize,
+		gas_limit: u64,
 	) -> ExitReason;
 
 	fn trace_create_inner(
@@ -60,7 +60,7 @@ pub trait TraceExecutor {
 		scheme: CreateScheme,
 		value: U256,
 		init_code: Vec<u8>,
-		target_gas: Option<usize>,
+		target_gas: Option<u64>,
 		take_l64: bool,
 	) -> Capture<(ExitReason, Option<H160>, Vec<u8>), Infallible>;
 }
@@ -72,7 +72,7 @@ impl<'backend, 'config, B: BackendT> TraceExecutor for StackExecutor<'backend, '
 		address: H160,
 		value: U256,
 		data: Vec<u8>,
-		gas_limit: usize,
+		gas_limit: u64,
 	) -> (ExitReason, Vec<u8>) {
 		debug::debug!(
 			target: "evm",
@@ -123,7 +123,7 @@ impl<'backend, 'config, B: BackendT> TraceExecutor for StackExecutor<'backend, '
 		code_address: H160,
 		transfer: Option<Transfer>,
 		input: Vec<u8>,
-		target_gas: Option<usize>,
+		target_gas: Option<u64>,
 		is_static: bool,
 		take_l64: bool,
 		take_stipend: bool,
@@ -143,7 +143,7 @@ impl<'backend, 'config, B: BackendT> TraceExecutor for StackExecutor<'backend, '
 			"----> Call inner"
 		);
 
-		fn l64(gas: usize) -> usize {
+		fn l64(gas: u64) -> u64 {
 			gas - gas / 64
 		}
 
@@ -195,7 +195,7 @@ impl<'backend, 'config, B: BackendT> TraceExecutor for StackExecutor<'backend, '
 		caller: H160,
 		value: U256,
 		init_code: Vec<u8>,
-		gas_limit: usize,
+		gas_limit: u64,
 	) -> ExitReason {
 		debug::debug!(
 			target: "evm",
@@ -232,7 +232,7 @@ impl<'backend, 'config, B: BackendT> TraceExecutor for StackExecutor<'backend, '
 		scheme: CreateScheme,
 		value: U256,
 		init_code: Vec<u8>,
-		target_gas: Option<usize>,
+		target_gas: Option<u64>,
 		take_l64: bool,
 	) -> Capture<(ExitReason, Option<H160>, Vec<u8>), Infallible> {
 		macro_rules! try_or_fail {
@@ -249,7 +249,7 @@ impl<'backend, 'config, B: BackendT> TraceExecutor for StackExecutor<'backend, '
 			"----> Create inner"
 		);
 
-		fn l64(gas: usize) -> usize {
+		fn l64(gas: u64) -> u64 {
 			gas - gas / 64
 		}
 

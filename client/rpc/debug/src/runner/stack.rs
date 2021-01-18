@@ -67,7 +67,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		let mut backend = Backend::<T>::new(&vicinity);
 		let mut executor = StackExecutor::new_with_precompile(
 			&backend,
-			gas_limit as usize,
+			gas_limit as u64,
 			config,
 			T::Precompiles::execute,
 		);
@@ -120,7 +120,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 			gas_price,
 			nonce,
 			config,
-			|executor| executor.trace_call(source, target, value, input, gas_limit as usize),
+			|executor| executor.trace_call(source, target, value, input, gas_limit as u64),
 		)
 	}
 
@@ -143,7 +143,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 			|executor| {
 				let address = executor.create_address(evm::CreateScheme::Legacy { caller: source });
 				(
-					executor.trace_create(source, value, init, gas_limit as usize),
+					executor.trace_create(source, value, init, gas_limit as u64),
 					address,
 				)
 			},
