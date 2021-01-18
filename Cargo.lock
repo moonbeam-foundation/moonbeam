@@ -4128,7 +4128,6 @@ dependencies = [
  "parachain-info",
  "parity-scale-codec",
  "precompiles",
- "rusty-hook",
  "serde",
  "sp-api",
  "sp-block-builder",
@@ -7337,18 +7336,6 @@ dependencies = [
  "rustls 0.18.1",
  "schannel",
  "security-framework",
-]
-
-[[package]]
-name = "rusty-hook"
-version = "0.11.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96cee9be61be7e1cbadd851e58ed7449c29c620f00b23df937cb9cbc04ac21a3"
-dependencies = [
- "ci_info",
- "getopts",
- "nias",
- "toml",
 ]
 
 [[package]]
