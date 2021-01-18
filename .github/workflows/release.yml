@@ -134,6 +134,8 @@ jobs:
 
   build:
     runs-on: self-hosted
+    env:
+      CARGO_SCCACHE_VERSION: 0.2.14-alpha.0-parity
     outputs:
       RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
     steps:
@@ -146,6 +148,23 @@ jobs:
       - name: Checkout
         if: github.event_name != 'pull_request_target'
         uses: actions/checkout@v2
+        # Install sccache
+      - uses: actions/cache@v2
+        with:
+          path: ${{ runner.tool_cache }}/cargo-sccache
+          key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_VERSION }}-v1
+      - name: Install sccache
+        run: |
+          if [ ! -f ${{ runner.tool_cache }}/cargo-sccache/bin/sccache ]; then
+            cargo install sccache --git https://github.com/paritytech/sccache.git --no-default-features --features=dist-client --root ${{ runner.tool_cache }}/cargo-sccache
+          fi
+        shell: bash
+      - name: Start sccache
+        run: |
+          chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
+          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
+          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
+          echo "RUSTC_WRAPPER=${{ runner.tool_cache }}/cargo-sccache/bin/sccache" >> $GITHUB_ENV
       # - name: Cache Rust dependencies
       #   uses: actions/cache@v2
       #   id: cache
