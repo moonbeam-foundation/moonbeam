@@ -528,5 +528,25 @@ fn multiple_nomination_works() {
 		];
 		expected.append(&mut new2);
 		assert_eq!(events(), expected);
+		assert_ok!(Stake::leave_candidates(Origin::signed(2)));
+		assert_eq!(
+			last_event(),
+			MetaEvent::stake(RawEvent::ValidatorScheduledExit(6, 2, 8))
+		);
+		roll_to(31);
+		let mut new3 = vec![
+			RawEvent::ValidatorScheduledExit(6, 2, 8),
+			RawEvent::ValidatorChosen(7, 1, 50),
+			RawEvent::ValidatorChosen(7, 4, 30),
+			RawEvent::ValidatorChosen(7, 3, 30),
+			RawEvent::ValidatorChosen(7, 5, 10),
+			RawEvent::NewRound(30, 7, 4, 120)
+		];
+		expected.append(&mut new3);
+		assert_eq!(events(), expected);
+		// check that nominations are removed after validator leaves, not before
+		assert_eq!(<Stake as Store>::Nominators::get(7).unwrap().nominations.0.len(),2usize);
+		roll_to(40);
+		assert_eq!(<Stake as Store>::Nominators::get(7).unwrap().nominations.0.len(),1usize);
 	});
 }

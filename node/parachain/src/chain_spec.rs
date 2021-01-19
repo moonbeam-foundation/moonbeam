@@ -16,8 +16,8 @@
 
 use cumulus_primitives::ParaId;
 use moonbeam_runtime::{
-	AccountId, BalancesConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig, GenesisConfig,
-	ParachainInfoConfig, StakeConfig, SudoConfig, SystemConfig, GLMR, WASM_BINARY,
+	AccountId, Balance, BalancesConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig,
+	GenesisConfig, ParachainInfoConfig, StakeConfig, SudoConfig, SystemConfig, GLMR, WASM_BINARY,
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
@@ -54,6 +54,12 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		move || {
 			testnet_genesis(
 				AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
+				// Validator
+				vec![(
+					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
+					None,
+					100_000 * GLMR,
+				)],
 				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
 				para_id,
 				1280, //ChainId
@@ -72,6 +78,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 
 fn testnet_genesis(
 	root_key: AccountId,
+	stakers: Vec<(AccountId, Option<AccountId>, Balance)>,
 	endowed_accounts: Vec<AccountId>,
 	para_id: ParaId,
 	chain_id: u64,
@@ -99,12 +106,6 @@ fn testnet_genesis(
 			accounts: BTreeMap::new(),
 		}),
 		pallet_ethereum: Some(EthereumConfig {}),
-		stake: Some(StakeConfig {
-			stakers: endowed_accounts
-				.iter()
-				.cloned()
-				.map(|k| (k, None, 100_000 * GLMR))
-				.collect(),
-		}),
+		stake: Some(StakeConfig { stakers }),
 	}
 }

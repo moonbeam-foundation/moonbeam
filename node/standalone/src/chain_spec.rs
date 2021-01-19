@@ -15,8 +15,9 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use moonbeam_runtime::{
-	AccountId, AuraConfig, BalancesConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig,
-	GenesisConfig, GrandpaConfig, StakeConfig, SudoConfig, SystemConfig, GLMR, WASM_BINARY,
+	AccountId, AuraConfig, Balance, BalancesConfig, EVMConfig, EthereumChainIdConfig,
+	EthereumConfig, GenesisConfig, GrandpaConfig, StakeConfig, SudoConfig, SystemConfig, GLMR,
+	WASM_BINARY,
 };
 use sc_service::ChainType;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -62,6 +63,12 @@ pub fn development_config() -> Result<ChainSpec, String> {
 				vec![authority_keys_from_seed("Alice")],
 				// Sudo account
 				AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
+				// Validator at genesis
+				vec![(
+					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
+					None,
+					100_000 * GLMR,
+				)],
 				// Pre-funded accounts
 				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
 				true,
@@ -101,6 +108,12 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 				],
 				// Sudo account
 				AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
+				// Validator
+				vec![(
+					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
+					None,
+					100_000 * GLMR,
+				)],
 				// Pre-funded accounts
 				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
 				true,
@@ -125,6 +138,7 @@ fn testnet_genesis(
 	wasm_binary: &[u8],
 	initial_authorities: Vec<(AuraId, GrandpaId)>,
 	root_key: AccountId,
+	stakers: Vec<(AccountId, Option<AccountId>, Balance)>,
 	endowed_accounts: Vec<AccountId>,
 	_enable_println: bool,
 	chain_id: u64,
@@ -161,12 +175,6 @@ fn testnet_genesis(
 			accounts: BTreeMap::new(),
 		}),
 		pallet_ethereum: Some(EthereumConfig {}),
-		stake: Some(StakeConfig {
-			stakers: endowed_accounts
-				.iter()
-				.cloned()
-				.map(|k| (k, None, 100_000 * GLMR))
-				.collect(),
-		}),
+		stake: Some(StakeConfig { stakers }),
 	}
 }
