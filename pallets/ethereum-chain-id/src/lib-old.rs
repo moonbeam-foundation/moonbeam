@@ -18,39 +18,23 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::pallet;
+use frame_support::{decl_module, decl_storage, traits::Get};
 
-#[pallet]
-pub mod pallet {
+/// Configuration trait of this pallet.
+pub trait Config: frame_system::Config {}
 
-	use frame_support::pallet_prelude::*;
-	use frame_system::pallet_prelude::*;
-
-	/// The Ethereum Chain Id Pallet
-	#[pallet::pallet]
-	pub struct Pallet<T>(PhantomData<T>);
-
-	/// Configuration trait of this pallet.
-	#[pallet::config]
-	pub trait Config: frame_system::Config {}
-
-	impl<T: Config> Get<u64> for Module<T> {
-		fn get() -> u64 {
-			Self::chain_id()
-		}
+impl<T: Config> Get<u64> for Module<T> {
+	fn get() -> u64 {
+		Self::chain_id()
 	}
+}
 
-	#[pallet::hooks]
-	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
+decl_storage! {
+	trait Store for Module<T: Config> as MoonbeamChainId {
+		ChainId get(fn chain_id) config(): u64 = 43;
+	}
+}
 
-	#[pallet::call]
-	impl<T: Config> Pallet<T> {}
-
-	// Is this how I give the default storage value of 43?
-	#[pallet::type_value]
-	pub fn DefaultChainId() -> u64 { 43 }
-
-	#[pallet::storage]
-	#[pallet::getter(fn chain_id)]
-	pub(super) type ChainId<T> = StorageValue<_, u64, ValueQuery, DefaultChainId>;
+decl_module! {
+	pub struct Module<T: Config> for enum Call where origin: T::Origin {}
 }
