@@ -38,9 +38,9 @@
 //! stored in the `ExitQueue` and processed `BondDuration` rounds later to unstake the validator
 //! and all of its nominators.
 //!
-//! To join the set of nominators, an account must not be a validator candidate nor an existing
-//! nominator. To join the set of nominators, an account must call `join_nominators` with
-//! stake >= `MinNominatorStk`.
+//! To join the set of nominators, an account must call `join_nominators` with
+//! stake >= `MinNominatorStk`. There are also runtime methods for nominating additional validators
+//! and revoking nominations.
 
 #![recursion_limit = "256"]
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -506,22 +506,8 @@ decl_module! {
 			Ok(())
 		}
 		#[weight = 0]
-		fn revoke_nominate(origin, validator: T::AccountId) -> DispatchResult {
-			let acc = ensure_signed(origin)?;
-			let mut nominator = <Nominators<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
-			ensure!(
-				nominator.nominations.0.len() > 1usize,
-				Error::<T>::MustNominateAtLeastOne
-			);
-			let remaining = nominator.sub_nomination(validator.clone())
-				.ok_or(Error::<T>::NominationDNE)?;
-			ensure!(
-				remaining >= T::MinNominatorStk::get(),
-				Error::<T>::NomBondBelowMin
-			);
-			Self::nominator_leaves_validator(acc.clone(), validator.clone())?;
-			<Nominators<T>>::insert(&acc, nominator);
-			Ok(())
+		fn revoke_nomination(origin, validator: T::AccountId) -> DispatchResult {
+			Self::nominator_revokes_validator(ensure_signed(origin)?, validator.clone())
 		}
 		#[weight = 0]
 		fn leave_nominators(origin) -> DispatchResult {
@@ -601,6 +587,19 @@ impl<T: Config> Module<T> {
 		Self::deposit_event(RawEvent::ValidatorNominated(
 			nominator, amount, validator, new_total,
 		));
+		Ok(())
+	}
+	fn nominator_revokes_validator(acc: T::AccountId, validator: T::AccountId) -> DispatchResult {
+		let mut nominator = <Nominators<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
+		let remaining = nominator
+			.sub_nomination(validator.clone())
+			.ok_or(Error::<T>::NominationDNE)?;
+		ensure!(
+			remaining >= T::MinNominatorStk::get(),
+			Error::<T>::NomBondBelowMin
+		);
+		Self::nominator_leaves_validator(acc.clone(), validator.clone())?;
+		<Nominators<T>>::insert(&acc, nominator);
 		Ok(())
 	}
 	fn nominator_leaves_validator(
@@ -704,6 +703,16 @@ impl<T: Config> Module<T> {
 						for bond in state.nominators.0 {
 							// return stake to nominator
 							T::Currency::unreserve(&bond.owner, bond.amount);
+							// remove nomination from nominator state
+							if let Some(mut nominator) = <Nominators<T>>::get(&bond.owner) {
+								if let Some(remaining) = nominator.sub_nomination(x.owner.clone()) {
+									if remaining.is_zero() {
+										<Nominators<T>>::remove(&bond.owner);
+									} else {
+										<Nominators<T>>::insert(&bond.owner, nominator);
+									}
+								}
+							}
 						}
 						// return stake to validator
 						T::Currency::unreserve(&state.account, state.bond);
