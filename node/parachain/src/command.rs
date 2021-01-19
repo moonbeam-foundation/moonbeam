@@ -268,7 +268,7 @@ pub fn run() -> Result<()> {
 		None => {
 			let runner = cli.create_runner(&*cli.run)?;
 			let collator = cli.run.base.validator || cli.collator;
-			let author_id: Option<H160> = cli.run.account_id;
+			let author_id: Option<H160> = cli.run.author_id;
 			if collator {
 				if author_id.is_none() {
 					return Err("Collator nodes must specify an author account id".into());
