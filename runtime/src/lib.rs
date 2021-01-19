@@ -59,11 +59,13 @@ use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
 pub use frame_support::{
-	construct_runtime, parameter_types,
+	construct_runtime, debug, parameter_types,
 	traits::{FindAuthor, Get, Randomness},
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 	ConsensusEngineId, StorageValue,
 };
+use moonbeam_extensions_evm::runner::stack::TraceRunner as TraceRunnerT;
+use pallet_ethereum::TransactionAction;
 use pallet_evm::{
 	Account as EVMAccount, EnsureAddressNever, EnsureAddressSame, FeeCalculator,
 	IdentityAddressMapping, Runner,
@@ -477,7 +479,64 @@ impl_runtime_apis! {
 			transaction_index: u32
 		) -> H256 { // TODO return
 
-			let pending = <pallet_ethereum::Module<Runtime>>::current_pending();
+			debug::native::debug!(
+				target: "tgm",
+				"----> trace_transaction {:?}", transaction_index
+			);
+
+			if let Some(block) = <pallet_ethereum::Module<Runtime>>::current_block() {
+				let transactions = block.transactions;
+				debug::native::debug!(
+					target: "tgm",
+					"----> transactions {:?}", transactions
+				);
+				let mut c = <Runtime as pallet_evm::Config>::config().clone();
+				c.estimate = true;
+				let config = Some(c);
+				if let Some(transaction) = transactions.get(transaction_index as usize) {
+					debug::native::debug!(
+						target: "tgm",
+						"----> its there {:?}", transaction
+					);
+					let from = H160::default(); // TODO
+					match transaction.action {
+						TransactionAction::Call(to) => {
+							let res = <Runtime as pallet_evm::Config>::Runner::trace_call(
+								from,
+								to,
+								transaction.input.clone(),
+								transaction.value,
+								transaction.gas_limit.low_u32(),
+								Some(transaction.gas_price),
+								Some(transaction.nonce),
+								config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
+							);
+
+							debug::native::debug!(
+								target: "tgm",
+								"----> Result tgm {:?}", res
+							);
+						},
+						TransactionAction::Create => {
+							let res = <Runtime as pallet_evm::Config>::Runner::trace_create(
+								from,
+								transaction.input.clone(),
+								transaction.value,
+								transaction.gas_limit.low_u32(),
+								Some(transaction.gas_price),
+								Some(transaction.nonce),
+								config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
+							);
+
+							debug::native::debug!(
+								target: "tgm",
+								"----> Result tgm {:?}", res
+							);
+						}
+					}
+				}
+
+			}
 			// <Runtime as pallet_evm::Config>::Runner::create(
 			// 	from,
 			// 	data,

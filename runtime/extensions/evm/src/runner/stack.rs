@@ -1,15 +1,16 @@
-use crate::executor::stack::TraceExecutor as TraceExecutorT;
+use crate::executor::stack::{TraceExecutor as TraceExecutorT, TraceExecutorResponse};
 use evm::{executor::StackExecutor, Config as EvmConfig, ExitReason};
 use pallet_evm::{
 	runner::stack::{Backend, Runner},
 	CallInfo, Config, CreateInfo, Error, ExecutionInfo, PrecompileSet, Vicinity,
 };
 use sp_core::{H160, U256};
+use sp_std::vec::Vec;
 
 pub trait TraceRunner<T: Config> {
 	type Error: Into<sp_runtime::DispatchError>;
 
-	fn trace_execute<F, R>(
+	fn trace_execute<F>(
 		source: H160,
 		value: U256,
 		gas_limit: u32,
@@ -17,9 +18,9 @@ pub trait TraceRunner<T: Config> {
 		nonce: Option<U256>,
 		config: &EvmConfig,
 		f: F,
-	) -> Result<ExecutionInfo<R>, Error<T>>
+	) -> Result<TraceExecutorResponse, Error<T>>
 	where
-		F: FnOnce(&mut StackExecutor<Backend<T>>) -> (ExitReason, R);
+		F: FnOnce(&mut StackExecutor<Backend<T>>) -> TraceExecutorResponse;
 
 	fn trace_call(
 		source: H160,
@@ -30,7 +31,7 @@ pub trait TraceRunner<T: Config> {
 		gas_price: Option<U256>,
 		nonce: Option<U256>,
 		config: &EvmConfig,
-	) -> Result<CallInfo, Self::Error>;
+	) -> Result<TraceExecutorResponse, Self::Error>;
 
 	fn trace_create(
 		source: H160,
@@ -40,12 +41,12 @@ pub trait TraceRunner<T: Config> {
 		gas_price: Option<U256>,
 		nonce: Option<U256>,
 		config: &EvmConfig,
-	) -> Result<CreateInfo, Self::Error>;
+	) -> Result<TraceExecutorResponse, Self::Error>;
 }
 
 impl<T: Config> TraceRunner<T> for Runner<T> {
 	type Error = Error<T>;
-	fn trace_execute<F, R>(
+	fn trace_execute<F>(
 		source: H160,
 		value: U256,
 		gas_limit: u32,
@@ -53,12 +54,10 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		nonce: Option<U256>,
 		config: &EvmConfig,
 		f: F,
-	) -> Result<ExecutionInfo<R>, Error<T>>
+	) -> Result<TraceExecutorResponse, Error<T>>
 	where
-		F: FnOnce(&mut StackExecutor<Backend<T>>) -> (ExitReason, R),
+		F: FnOnce(&mut StackExecutor<Backend<T>>) -> TraceExecutorResponse,
 	{
-		let gas_price = U256::zero(); // TODO price not really needed for this, or is it?
-
 		let vicinity = Vicinity {
 			gas_price: U256::zero(),
 			origin: source,
@@ -72,35 +71,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 			T::Precompiles::execute,
 		);
 
-		// let total_fee = gas_price
-		// 	.checked_mul(U256::from(gas_limit))
-		// 	.ok_or(Error::<T>::FeeOverflow)?;
-		// let total_payment = value
-		// 	.checked_add(total_fee)
-		// 	.ok_or(Error::<T>::PaymentOverflow)?;
-		// let source_account = Module::<T>::account_basic(&source);
-		// ensure!(
-		// 	source_account.balance >= total_payment,
-		// 	Error::<T>::BalanceLow
-		// );
-		// executor
-		// 	.withdraw(source, total_fee)
-		// 	.map_err(|_| Error::<T>::WithdrawFailed)?;
-
-		// if let Some(nonce) = nonce {
-		// 	ensure!(source_account.nonce == nonce, Error::<T>::InvalidNonce);
-		// }
-
-		let (reason, retv) = f(&mut executor);
-
-		let used_gas = U256::from(executor.used_gas());
-
-		Ok(ExecutionInfo {
-			value: retv,
-			exit_reason: reason,
-			used_gas,
-			logs: Vec::new(),
-		})
+		Ok(f(&mut executor))
 	}
 
 	fn trace_call(
@@ -112,7 +83,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		gas_price: Option<U256>,
 		nonce: Option<U256>,
 		config: &EvmConfig,
-	) -> Result<CallInfo, Self::Error> {
+	) -> Result<TraceExecutorResponse, Self::Error> {
 		Self::trace_execute(
 			source,
 			value,
@@ -132,7 +103,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		gas_price: Option<U256>,
 		nonce: Option<U256>,
 		config: &EvmConfig,
-	) -> Result<CreateInfo, Self::Error> {
+	) -> Result<TraceExecutorResponse, Self::Error> {
 		Self::trace_execute(
 			source,
 			value,
@@ -140,13 +111,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 			gas_price,
 			nonce,
 			config,
-			|executor| {
-				let address = executor.create_address(evm::CreateScheme::Legacy { caller: source });
-				(
-					executor.trace_create(source, value, init, gas_limit as u64),
-					address,
-				)
-			},
+			|executor| executor.trace_create(source, value, init, gas_limit as u64),
 		)
 	}
 }

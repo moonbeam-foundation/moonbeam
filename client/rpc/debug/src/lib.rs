@@ -14,9 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-pub mod executor;
-pub mod runner;
-
 use jsonrpc_core::Result as RpcResult;
 use jsonrpc_core::{Error as RpcError, ErrorCode};
 pub use moonbeam_rpc_core_debug::{Debug as DebugT, DebugServer, StepLog};
@@ -79,6 +76,10 @@ where
 	}
 
 	fn is_canon(&self, target_hash: H256) -> bool {
+		println!(
+			"#####################3 {:?}",
+			self.client.number(target_hash)
+		);
 		if let Ok(Some(number)) = self.client.number(target_hash) {
 			if let Ok(Some(header)) = self.client.header(BlockId::Number(number)) {
 				return header.hash() == target_hash;

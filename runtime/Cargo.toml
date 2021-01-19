@@ -55,6 +55,7 @@ pallet-ethereum = { default-features = false, git = "https://github.com/purestak
 fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 
 moonbeam-rpc-primitives-debug = { path = "../primitives/rpc/debug", default-features = false }
+moonbeam-extensions-evm = { path = "extensions/evm", default-features = false }
 
 # Cumulus dependencies
 cumulus-runtime = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
@@ -110,6 +111,7 @@ std = [
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-ethereum-chain-id/std",
 	"author-inherent/std",
+	"moonbeam-extensions-evm/std",
 
 	# TODO These dependencies are only necessary when building without the standalone feature. I don't
 	# see a way to express that. Everything is correct, like this, but we unnecessarily build these

@@ -1584,6 +1584,7 @@ dependencies = [
  "parity-scale-codec",
  "rlp 0.4.6",
  "rlp-derive",
+ "serde",
  "sha3 0.9.1",
  "triehash",
 ]
@@ -1654,6 +1655,7 @@ dependencies = [
  "parity-scale-codec",
  "primitive-types 0.7.3",
  "rlp 0.4.6",
+ "serde",
  "sha3 0.8.2",
 ]
 
@@ -1682,6 +1684,7 @@ checksum = "cad7ff84008aa24272cf3e9f7a71054271ede93613665cd9fdfa65447ae6e017"
 dependencies = [
  "parity-scale-codec",
  "primitive-types 0.7.3",
+ "serde",
 ]
 
 [[package]]
@@ -4186,6 +4189,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "moonbeam-extensions-evm"
+version = "0.1.0"
+dependencies = [
+ "evm 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "frame-support",
+ "pallet-evm",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "moonbeam-rpc"
 version = "0.1.0"
 dependencies = [
@@ -4234,13 +4250,10 @@ name = "moonbeam-rpc-debug"
 version = "0.1.0"
 dependencies = [
  "ethereum-types 0.9.2",
- "evm 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "fc-consensus",
- "frame-support",
  "jsonrpc-core 15.1.0",
  "moonbeam-rpc-core-debug",
  "moonbeam-rpc-primitives-debug",
- "pallet-evm",
  "sc-client-api",
  "sp-api",
  "sp-blockchain",
@@ -4276,6 +4289,7 @@ dependencies = [
  "frame-system-rpc-runtime-api",
  "hex-literal",
  "log",
+ "moonbeam-extensions-evm",
  "moonbeam-rpc-primitives-debug",
  "pallet-aura",
  "pallet-balances",
