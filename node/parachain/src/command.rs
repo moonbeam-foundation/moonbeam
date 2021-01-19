@@ -33,6 +33,7 @@ use sc_service::{
 	PartialComponents,
 };
 use sp_core::hexdisplay::HexDisplay;
+use sp_core::H160;
 use sp_runtime::traits::Block as _;
 use std::{io::Write, net::SocketAddr};
 
@@ -266,9 +267,13 @@ pub fn run() -> Result<()> {
 		}
 		None => {
 			let runner = cli.create_runner(&*cli.run)?;
-			let account = cli.run.account_id.ok_or(sc_cli::Error::Input(
-				"Account ID required but not set".to_string(),
-			))?;
+			let collator = cli.run.base.validator || cli.collator;
+			let author_id: Option<H160> = cli.run.account_id;
+			if collator {
+				if author_id.is_none() {
+					return Err("Collator nodes must specify an author account id".into());
+				}
+			}
 			runner.run_node_until_exit(|config| async move {
 				let key = sp_core::Pair::generate().0;
 
@@ -297,14 +302,13 @@ pub fn run() -> Result<()> {
 				let polkadot_config =
 					SubstrateCli::create_configuration(&polkadot_cli, &polkadot_cli, task_executor)
 						.map_err(|err| format!("Relay chain argument error: {}", err))?;
-				let collator = cli.run.base.validator || cli.collator;
 
 				info!("Parachain id: {:?}", id);
 				info!("Parachain Account: {}", parachain_account);
 				info!("Parachain genesis state: {}", genesis_state);
 				info!("Is collating: {}", if collator { "yes" } else { "no" });
 
-				crate::service::start_node(config, key, account, polkadot_config, id, collator)
+				crate::service::start_node(config, key, author_id, polkadot_config, id, collator)
 					.await
 					.map(|r| r.0)
 			})

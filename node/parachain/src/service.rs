@@ -135,7 +135,7 @@ pub fn new_partial(
 async fn start_node_impl<RB>(
 	parachain_config: Configuration,
 	collator_key: CollatorPair,
-	account_id: H160,
+	author_id: Option<H160>,
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	validator: bool,
@@ -162,7 +162,7 @@ where
 			},
 		)?;
 
-	let params = new_partial(&parachain_config, Some(account_id))?;
+	let params = new_partial(&parachain_config, author_id)?;
 
 	let client = params.client.clone();
 	let backend = params.backend.clone();
@@ -331,7 +331,7 @@ where
 pub async fn start_node(
 	parachain_config: Configuration,
 	collator_key: CollatorPair,
-	account_id: H160,
+	author_id: Option<H160>,
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	validator: bool,
@@ -339,7 +339,7 @@ pub async fn start_node(
 	start_node_impl(
 		parachain_config,
 		collator_key,
-		account_id,
+		author_id,
 		polkadot_config,
 		id,
 		validator,
