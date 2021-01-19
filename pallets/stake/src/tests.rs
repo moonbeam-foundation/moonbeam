@@ -21,7 +21,7 @@ use mock::*;
 use sp_runtime::DispatchError;
 
 #[test]
-fn genesis_config_works() {
+fn genesis_works() {
 	genesis().execute_with(|| {
 		assert!(Sys::events().is_empty());
 		// validators
@@ -51,6 +51,28 @@ fn genesis_config_works() {
 }
 
 #[test]
+fn genesis3_works() {
+	genesis3().execute_with(|| {
+		assert!(Sys::events().is_empty());
+		// validators
+		for x in 1..5 {
+			assert!(Stake::is_candidate(&x));
+			assert_eq!(Balances::free_balance(&x), 80);
+			assert_eq!(Balances::reserved_balance(&x), 20);
+		}
+		assert!(Stake::is_candidate(&5));
+		assert_eq!(Balances::free_balance(&5), 90);
+		assert_eq!(Balances::reserved_balance(&5), 10);
+		// nominators
+		for x in 6..11 {
+			assert!(Stake::is_nominator(&x));
+			assert_eq!(Balances::free_balance(&x), 90);
+			assert_eq!(Balances::reserved_balance(&x), 10);
+		}
+	});
+}
+
+#[test]
 fn online_offline_behaves() {
 	genesis().execute_with(|| {
 		roll_to(4);
@@ -73,17 +95,6 @@ fn online_offline_behaves() {
 			MetaEvent::stake(RawEvent::ValidatorWentOffline(3, 2))
 		);
 		roll_to(21);
-		let events = Sys::events()
-			.into_iter()
-			.map(|r| r.event)
-			.filter_map(|e| {
-				if let MetaEvent::stake(inner) = e {
-					Some(inner)
-				} else {
-					None
-				}
-			})
-			.collect::<Vec<_>>();
 		let mut expected = vec![
 			RawEvent::ValidatorChosen(2, 1, 700),
 			RawEvent::ValidatorChosen(2, 2, 400),
@@ -97,7 +108,7 @@ fn online_offline_behaves() {
 			RawEvent::ValidatorChosen(5, 1, 700),
 			RawEvent::NewRound(20, 5, 1, 700),
 		];
-		assert_eq!(events, expected);
+		assert_eq!(events(), expected);
 		assert_noop!(
 			Stake::go_offline(Origin::signed(2)),
 			Error::<Test>::AlreadyOffline
@@ -112,18 +123,7 @@ fn online_offline_behaves() {
 		expected.push(RawEvent::ValidatorChosen(6, 1, 700));
 		expected.push(RawEvent::ValidatorChosen(6, 2, 400));
 		expected.push(RawEvent::NewRound(25, 6, 2, 1100));
-		let events = Sys::events()
-			.into_iter()
-			.map(|r| r.event)
-			.filter_map(|e| {
-				if let MetaEvent::stake(inner) = e {
-					Some(inner)
-				} else {
-					None
-				}
-			})
-			.collect::<Vec<_>>();
-		assert_eq!(events, expected);
+		assert_eq!(events(), expected);
 	});
 }
 
@@ -184,17 +184,6 @@ fn validator_exit_executes_after_delay() {
 		let info = <Stake as Store>::Candidates::get(&2).unwrap();
 		assert_eq!(info.state, ValidatorStatus::Leaving(5));
 		roll_to(21);
-		let events = Sys::events()
-			.into_iter()
-			.map(|r| r.event)
-			.filter_map(|e| {
-				if let MetaEvent::stake(inner) = e {
-					Some(inner)
-				} else {
-					None
-				}
-			})
-			.collect::<Vec<_>>();
 		// we must exclude leaving validators from rewards while
 		// holding them retroactively accountable for previous faults
 		// (within the last T::SlashingWindow blocks)
@@ -212,7 +201,7 @@ fn validator_exit_executes_after_delay() {
 			RawEvent::ValidatorChosen(5, 1, 700),
 			RawEvent::NewRound(20, 5, 1, 700),
 		];
-		assert_eq!(events, expected);
+		assert_eq!(events(), expected);
 	});
 }
 
@@ -221,17 +210,6 @@ fn validator_selection_chooses_top_candidates() {
 	genesis2().execute_with(|| {
 		roll_to(4);
 		roll_to(8);
-		let events = Sys::events()
-			.into_iter()
-			.map(|r| r.event)
-			.filter_map(|e| {
-				if let MetaEvent::stake(inner) = e {
-					Some(inner)
-				} else {
-					None
-				}
-			})
-			.collect::<Vec<_>>();
 		// should choose top MaxValidators (5), in order
 		let expected = vec![
 			RawEvent::ValidatorChosen(2, 1, 100),
@@ -241,7 +219,7 @@ fn validator_selection_chooses_top_candidates() {
 			RawEvent::ValidatorChosen(2, 5, 60),
 			RawEvent::NewRound(5, 2, 5, 400),
 		];
-		assert_eq!(events, expected);
+		assert_eq!(events(), expected);
 		assert_ok!(Stake::leave_candidates(Origin::signed(6)));
 		assert_eq!(
 			last_event(),
@@ -258,17 +236,6 @@ fn validator_selection_chooses_top_candidates() {
 			MetaEvent::stake(RawEvent::JoinedValidatorCandidates(6, 69u128, 469u128))
 		);
 		roll_to(27);
-		let events = Sys::events()
-			.into_iter()
-			.map(|r| r.event)
-			.filter_map(|e| {
-				if let MetaEvent::stake(inner) = e {
-					Some(inner)
-				} else {
-					None
-				}
-			})
-			.collect::<Vec<_>>();
 		// should choose top MaxValidators (5), in order
 		let expected = vec![
 			RawEvent::ValidatorChosen(2, 1, 100),
@@ -305,7 +272,7 @@ fn validator_selection_chooses_top_candidates() {
 			RawEvent::ValidatorChosen(6, 6, 69),
 			RawEvent::NewRound(25, 6, 5, 409),
 		];
-		assert_eq!(events, expected);
+		assert_eq!(events(), expected);
 	});
 }
 
@@ -314,17 +281,6 @@ fn exit_queue_works() {
 	genesis2().execute_with(|| {
 		roll_to(4);
 		roll_to(8);
-		let events = Sys::events()
-			.into_iter()
-			.map(|r| r.event)
-			.filter_map(|e| {
-				if let MetaEvent::stake(inner) = e {
-					Some(inner)
-				} else {
-					None
-				}
-			})
-			.collect::<Vec<_>>();
 		// should choose top MaxValidators (5), in order
 		let mut expected = vec![
 			RawEvent::ValidatorChosen(2, 1, 100),
@@ -334,7 +290,7 @@ fn exit_queue_works() {
 			RawEvent::ValidatorChosen(2, 5, 60),
 			RawEvent::NewRound(5, 2, 5, 400),
 		];
-		assert_eq!(events, expected);
+		assert_eq!(events(), expected);
 		assert_ok!(Stake::leave_candidates(Origin::signed(6)));
 		assert_eq!(
 			last_event(),
@@ -353,17 +309,6 @@ fn exit_queue_works() {
 			MetaEvent::stake(RawEvent::ValidatorScheduledExit(4, 4, 6))
 		);
 		roll_to(21);
-		let events = Sys::events()
-			.into_iter()
-			.map(|r| r.event)
-			.filter_map(|e| {
-				if let MetaEvent::stake(inner) = e {
-					Some(inner)
-				} else {
-					None
-				}
-			})
-			.collect::<Vec<_>>();
 		let mut new_events = vec![
 			RawEvent::ValidatorScheduledExit(2, 6, 4),
 			RawEvent::ValidatorChosen(3, 1, 100),
@@ -387,7 +332,7 @@ fn exit_queue_works() {
 			RawEvent::NewRound(20, 5, 3, 270),
 		];
 		expected.append(&mut new_events);
-		assert_eq!(events, expected);
+		assert_eq!(events(), expected);
 	});
 }
 
@@ -401,17 +346,6 @@ fn payout_distribution_works() {
 		}
 		roll_to(4);
 		roll_to(8);
-		let events = Sys::events()
-			.into_iter()
-			.map(|r| r.event)
-			.filter_map(|e| {
-				if let MetaEvent::stake(inner) = e {
-					Some(inner)
-				} else {
-					None
-				}
-			})
-			.collect::<Vec<_>>();
 		// should choose top MaxValidators (5), in order
 		let mut expected = vec![
 			RawEvent::ValidatorChosen(2, 1, 100),
@@ -421,21 +355,10 @@ fn payout_distribution_works() {
 			RawEvent::ValidatorChosen(2, 5, 60),
 			RawEvent::NewRound(5, 2, 5, 400),
 		];
-		assert_eq!(events, expected);
+		assert_eq!(events(), expected);
 		// ~ set block author as 1 for all blocks this round
 		set_pts(2, 1, 100);
 		roll_to(16);
-		let events = Sys::events()
-			.into_iter()
-			.map(|r| r.event)
-			.filter_map(|e| {
-				if let MetaEvent::stake(inner) = e {
-					Some(inner)
-				} else {
-					None
-				}
-			})
-			.collect::<Vec<_>>();
 		// pay total issuance (=10) to 1
 		let mut new = vec![
 			RawEvent::ValidatorChosen(3, 1, 100),
@@ -453,23 +376,12 @@ fn payout_distribution_works() {
 			RawEvent::NewRound(15, 4, 5, 400),
 		];
 		expected.append(&mut new);
-		assert_eq!(events, expected);
+		assert_eq!(events(), expected);
 		// ~ set block author as 1 for 3 blocks this round
 		set_pts(4, 1, 60);
 		// ~ set block author as 2 for 2 blocks this round
 		set_pts(4, 2, 40);
 		roll_to(26);
-		let events = Sys::events()
-			.into_iter()
-			.map(|r| r.event)
-			.filter_map(|e| {
-				if let MetaEvent::stake(inner) = e {
-					Some(inner)
-				} else {
-					None
-				}
-			})
-			.collect::<Vec<_>>();
 		// pay 60% total issuance to 1 and 40% total issuance to 2
 		let mut new1 = vec![
 			RawEvent::ValidatorChosen(5, 1, 100),
@@ -488,7 +400,7 @@ fn payout_distribution_works() {
 			RawEvent::NewRound(25, 6, 5, 400),
 		];
 		expected.append(&mut new1);
-		assert_eq!(events, expected);
+		assert_eq!(events(), expected);
 		// ~ each validator produces 1 block this round
 		set_pts(6, 1, 20);
 		set_pts(6, 2, 20);
@@ -496,17 +408,6 @@ fn payout_distribution_works() {
 		set_pts(6, 4, 20);
 		set_pts(6, 5, 20);
 		roll_to(36);
-		let events = Sys::events()
-			.into_iter()
-			.map(|r| r.event)
-			.filter_map(|e| {
-				if let MetaEvent::stake(inner) = e {
-					Some(inner)
-				} else {
-					None
-				}
-			})
-			.collect::<Vec<_>>();
 		// pay 20% issuance for all validators
 		let mut new2 = vec![
 			RawEvent::ValidatorChosen(7, 1, 100),
@@ -528,7 +429,7 @@ fn payout_distribution_works() {
 			RawEvent::NewRound(35, 8, 5, 400),
 		];
 		expected.append(&mut new2);
-		assert_eq!(events, expected);
+		assert_eq!(events(), expected);
 		// check that distributing rewards clears awarded pts
 		assert!(<Stake as Store>::AwardedPts::get(1, 1).is_zero());
 		assert!(<Stake as Store>::AwardedPts::get(4, 1).is_zero());
@@ -538,5 +439,94 @@ fn payout_distribution_works() {
 		assert!(<Stake as Store>::AwardedPts::get(6, 3).is_zero());
 		assert!(<Stake as Store>::AwardedPts::get(6, 4).is_zero());
 		assert!(<Stake as Store>::AwardedPts::get(6, 5).is_zero());
+	});
+}
+
+#[test]
+fn multiple_nomination_works() {
+	genesis3().execute_with(|| {
+		roll_to(4);
+		roll_to(8);
+		// chooses top MaxValidators (5), in order
+		let mut expected = vec![
+			RawEvent::ValidatorChosen(2, 1, 50),
+			RawEvent::ValidatorChosen(2, 2, 40),
+			RawEvent::ValidatorChosen(2, 4, 20),
+			RawEvent::ValidatorChosen(2, 3, 20),
+			RawEvent::ValidatorChosen(2, 5, 10),
+			RawEvent::NewRound(5, 2, 5, 140),
+		];
+		assert_eq!(events(), expected);
+		assert_noop!(
+			Stake::nominate(Origin::signed(5), 2, 10),
+			Error::<Test>::NominatorDNE,
+		);
+		assert_noop!(
+			Stake::nominate(Origin::signed(11), 1, 10),
+			Error::<Test>::NominatorDNE,
+		);
+		assert_noop!(
+			Stake::nominate(Origin::signed(6), 1, 10),
+			Error::<Test>::AlreadyNominatedValidator,
+		);
+		assert_noop!(
+			Stake::nominate(Origin::signed(6), 2, 4),
+			Error::<Test>::NominationBelowMin,
+		);
+		assert_ok!(Stake::nominate(Origin::signed(6), 2, 10));
+		assert_ok!(Stake::nominate(Origin::signed(6), 3, 10));
+		assert_ok!(Stake::nominate(Origin::signed(6), 4, 10));
+		assert_noop!(
+			Stake::nominate(Origin::signed(6), 5, 10),
+			Error::<Test>::ExceedMaxValidatorsPerNom,
+		);
+		roll_to(16);
+		let mut new = vec![
+			RawEvent::ValidatorNominated(6, 10, 2, 50),
+			RawEvent::ValidatorNominated(6, 10, 3, 30),
+			RawEvent::ValidatorNominated(6, 10, 4, 30),
+			RawEvent::ValidatorChosen(3, 2, 50),
+			RawEvent::ValidatorChosen(3, 1, 50),
+			RawEvent::ValidatorChosen(3, 4, 30),
+			RawEvent::ValidatorChosen(3, 3, 30),
+			RawEvent::ValidatorChosen(3, 5, 10),
+			RawEvent::NewRound(10, 3, 5, 170),
+			RawEvent::ValidatorChosen(4, 2, 50),
+			RawEvent::ValidatorChosen(4, 1, 50),
+			RawEvent::ValidatorChosen(4, 4, 30),
+			RawEvent::ValidatorChosen(4, 3, 30),
+			RawEvent::ValidatorChosen(4, 5, 10),
+			RawEvent::NewRound(15, 4, 5, 170),
+		];
+		expected.append(&mut new);
+		assert_eq!(events(), expected);
+		roll_to(21);
+		assert_ok!(Stake::nominate(Origin::signed(7), 2, 80));
+		assert_noop!(
+			Stake::nominate(Origin::signed(7), 3, 11),
+			DispatchError::Module {
+				index: 0,
+				error: 3,
+				message: Some("InsufficientBalance")
+			},
+		);
+		roll_to(26);
+		let mut new2 = vec![
+			RawEvent::ValidatorChosen(5, 2, 50),
+			RawEvent::ValidatorChosen(5, 1, 50),
+			RawEvent::ValidatorChosen(5, 4, 30),
+			RawEvent::ValidatorChosen(5, 3, 30),
+			RawEvent::ValidatorChosen(5, 5, 10),
+			RawEvent::NewRound(20, 5, 5, 170),
+			RawEvent::ValidatorNominated(7, 80, 2, 130),
+			RawEvent::ValidatorChosen(6, 2, 130),
+			RawEvent::ValidatorChosen(6, 1, 50),
+			RawEvent::ValidatorChosen(6, 4, 30),
+			RawEvent::ValidatorChosen(6, 3, 30),
+			RawEvent::ValidatorChosen(6, 5, 10),
+			RawEvent::NewRound(25, 6, 5, 250),
+		];
+		expected.append(&mut new2);
+		assert_eq!(events(), expected);
 	});
 }

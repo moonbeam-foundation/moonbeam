@@ -99,7 +99,7 @@ parameter_types! {
 	pub const BondDuration: u32 = 2;
 	pub const MaxValidators: u32 = 5;
 	pub const MaxNominatorsPerValidator: usize = 10;
-	pub const MaxValidatorsPerNominator: usize = 5;
+	pub const MaxValidatorsPerNominator: usize = 4;
 	pub const IssuancePerRound: u128 = 10;
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
 	pub const MinValidatorStk: u128 = 10;
@@ -196,6 +196,48 @@ pub fn genesis2() -> sp_io::TestExternalities {
 	ext
 }
 
+pub fn genesis3() -> sp_io::TestExternalities {
+	let mut storage = frame_system::GenesisConfig::default()
+		.build_storage::<Test>()
+		.unwrap();
+	let genesis = pallet_balances::GenesisConfig::<Test> {
+		balances: vec![
+			(1, 100),
+			(2, 100),
+			(3, 100),
+			(4, 100),
+			(5, 100),
+			(6, 100),
+			(7, 100),
+			(8, 100),
+			(9, 100),
+			(10, 100),
+		],
+	};
+	genesis.assimilate_storage(&mut storage).unwrap();
+	GenesisConfig::<Test> {
+		stakers: vec![
+			// validators
+			(1, None, 20),
+			(2, None, 20),
+			(3, None, 20),
+			(4, None, 20),
+			(5, None, 10),
+			// nominators
+			(6, Some(1), 10),
+			(7, Some(1), 10),
+			(8, Some(2), 10),
+			(9, Some(2), 10),
+			(10, Some(1), 10),
+		],
+	}
+	.assimilate_storage(&mut storage)
+	.unwrap();
+	let mut ext = sp_io::TestExternalities::from(storage);
+	ext.execute_with(|| Sys::set_block_number(1));
+	ext
+}
+
 pub fn roll_to(n: u64) {
 	while Sys::block_number() < n {
 		Stake::on_finalize(Sys::block_number());
@@ -210,4 +252,18 @@ pub fn roll_to(n: u64) {
 
 pub fn last_event() -> MetaEvent {
 	Sys::events().pop().expect("Event expected").event
+}
+
+pub fn events() -> Vec<RawEvent<u64, u128, u64>> {
+	Sys::events()
+		.into_iter()
+		.map(|r| r.event)
+		.filter_map(|e| {
+			if let MetaEvent::stake(inner) = e {
+				Some(inner)
+			} else {
+				None
+			}
+		})
+		.collect::<Vec<_>>()
 }
