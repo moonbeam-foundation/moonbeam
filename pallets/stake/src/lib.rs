@@ -183,6 +183,59 @@ impl<A: PartialEq, B: HasCompact + Zero> Into<Exposure<A, B>> for Validator<A, B
 	}
 }
 
+#[derive(Encode, Decode, RuntimeDebug)]
+pub struct Nominator<AccountId, Balance> {
+	pub nominations: OrderedSet<Bond<AccountId, Balance>>,
+	pub total: Balance,
+}
+
+impl<AccountId: Ord + Clone, Balance: Copy + sp_std::ops::AddAssign + sp_std::ops::SubAssign>
+	Nominator<AccountId, Balance>
+{
+	pub fn new(validator: AccountId, nomination: Balance) -> Self {
+		Nominator {
+			nominations: OrderedSet::from(vec![Bond {
+				owner: validator.clone(),
+				amount: nomination,
+			}]),
+			total: nomination,
+		}
+	}
+	pub fn add_nomination(&mut self, bond: Bond<AccountId, Balance>) -> bool {
+		let amt = bond.amount;
+		if self.nominations.insert(bond) {
+			self.total += amt;
+			true
+		} else {
+			false
+		}
+	}
+	// returns remaining balance, must be more than MinNominatorStk
+	pub fn sub_nomination(&mut self, validator: AccountId) -> Option<Balance> {
+		let mut amt: Option<Balance> = None;
+		let nominations = self
+			.nominations
+			.0
+			.iter()
+			.filter_map(|x| {
+				if x.owner == validator {
+					amt = Some(x.amount);
+					None
+				} else {
+					Some(x.clone())
+				}
+			})
+			.collect();
+		if let Some(balance) = amt {
+			self.nominations = OrderedSet::from(nominations);
+			self.total -= balance;
+			Some(self.total)
+		} else {
+			None
+		}
+	}
+}
+
 type RoundIndex = u32;
 type RewardPoint = u32;
 type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as System>::AccountId>>::Balance;
@@ -201,12 +254,16 @@ pub trait Config: System {
 	type MaxValidators: Get<u32>;
 	/// Maximum nominators per validator
 	type MaxNominatorsPerValidator: Get<usize>;
+	/// Maximum validators per nominator
+	type MaxValidatorsPerNominator: Get<usize>;
 	/// Balance issued as rewards per round (constant issuance)
 	type IssuancePerRound: Get<BalanceOf<Self>>;
 	/// Maximum fee for any validator
 	type MaxFee: Get<Perbill>;
 	/// Minimum stake for any registered on-chain account to become a validator
 	type MinValidatorStk: Get<BalanceOf<Self>>;
+	/// Minimum stake for any registered on-chain account to nominate
+	type MinNomination: Get<BalanceOf<Self>>;
 	/// Minimum stake for any registered on-chain account to become a nominator
 	type MinNominatorStk: Get<BalanceOf<Self>>;
 }
@@ -230,10 +287,14 @@ decl_event!(
 		ValidatorScheduledExit(RoundIndex, AccountId, RoundIndex),
 		/// Account, Amount Unlocked, New Total Amt Locked
 		ValidatorLeft(AccountId, Balance, Balance),
-		/// Nominator, Validator, Amount Unstaked, New Total Amt Staked for Validator
-		NominatorLeft(AccountId, AccountId, Balance, Balance),
+		/// Nominator, Amount Staked
+		NominatorJoined(AccountId, Balance),
+		/// Nominator, Amount Unstaked
+		NominatorLeft(AccountId, Balance),
 		/// Nominator, Amount Locked, Validator, New Total Amt Locked
 		ValidatorNominated(AccountId, Balance, AccountId, Balance),
+		/// Nominator, Validator, Amount Unstaked, New Total Amt Staked for Validator
+		NominatorLeftValidator(AccountId, AccountId, Balance, Balance),
 		Rewarded(AccountId, Balance),
 	}
 );
@@ -250,11 +311,16 @@ decl_error! {
 		FeeOverMax,
 		ValBondBelowMin,
 		NomBondBelowMin,
+		NominationBelowMin,
 		AlreadyOffline,
 		AlreadyActive,
 		AlreadyLeaving,
 		TooManyNominators,
 		CannotActivateIfLeaving,
+		ExceedMaxValidatorsPerNom,
+		AlreadyNominatedValidator,
+		MustNominateAtLeastOne,
+		NominationDNE,
 	}
 }
 
@@ -263,7 +329,8 @@ decl_storage! {
 		/// Current round, incremented every `BlocksPerRound` in `fn on_finalize`
 		Round: RoundIndex;
 		/// Current nominators with their validator
-		Nominators: map hasher(blake2_128_concat) T::AccountId => Option<T::AccountId>;
+		Nominators: map
+			hasher(blake2_128_concat) T::AccountId => Option<Nominator<T::AccountId, BalanceOf<T>>>;
 		/// Current candidates with associated state
 		Candidates: map hasher(blake2_128_concat) T::AccountId => Option<Candidate<T>>;
 		/// Current validator set
@@ -296,7 +363,7 @@ decl_storage! {
 					"Stash does not have enough balance to bond."
 				);
 				let _ = if let Some(nominated_val) = opt_val {
-					<Module<T>>::nominate(
+					<Module<T>>::join_nominators(
 						T::Origin::from(Some(actor.clone()).into()),
 						nominated_val.clone(),
 						balance,
@@ -403,68 +470,68 @@ decl_module! {
 			Ok(())
 		}
 		#[weight = 0]
+		fn join_nominators(
+			origin,
+			validator: T::AccountId,
+			amount: BalanceOf<T>,
+		) -> DispatchResult {
+			let acc = ensure_signed(origin)?;
+			ensure!(amount >= T::MinNominatorStk::get(), Error::<T>::NomBondBelowMin);
+			ensure!(!Self::is_nominator(&acc),Error::<T>::NominatorExists);
+			ensure!(!Self::is_candidate(&acc),Error::<T>::CandidateExists);
+			Self::nominator_joins_validator(acc.clone(), amount, validator.clone())?;
+			<Nominators<T>>::insert(&acc, Nominator::new(validator.clone(),amount));
+			Self::deposit_event(RawEvent::NominatorJoined(acc,amount));
+			Ok(())
+		}
+		#[weight = 0]
 		fn nominate(
 			origin,
 			validator: T::AccountId,
 			amount: BalanceOf<T>,
 		) -> DispatchResult {
 			let acc = ensure_signed(origin)?;
-			ensure!(!Self::is_nominator(&acc),Error::<T>::NominatorExists);
-			ensure!(!Self::is_candidate(&acc),Error::<T>::CandidateExists);
-			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
-			ensure!(amount >= T::MinNominatorStk::get(), Error::<T>::NomBondBelowMin);
-			let nomination = Bond {
-				owner: acc.clone(),
-				amount,
-			};
-			ensure!(state.nominators.insert(nomination),Error::<T>::NominatorExists);
+			ensure!(amount >= T::MinNomination::get(), Error::<T>::NominationBelowMin);
+			let mut nominator = <Nominators<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
 			ensure!(
-				state.nominators.0.len() <= T::MaxNominatorsPerValidator::get(),
-				Error::<T>::TooManyNominators
+				nominator.nominations.0.len() < T::MaxValidatorsPerNominator::get(),
+				Error::<T>::ExceedMaxValidatorsPerNom
 			);
-			T::Currency::reserve(&acc,amount)?;
-			let new_total = state.total + amount;
-			if state.is_active() {
-				Self::update_active_candidate(validator.clone(),new_total);
-			}
-			let new_total_locked = <Total<T>>::get() + amount;
-			<Total<T>>::put(new_total_locked);
-			<Nominators<T>>::insert(&acc,validator.clone());
-			state.total = new_total;
-			<Candidates<T>>::insert(&validator,state);
-			Self::deposit_event(RawEvent::ValidatorNominated(acc,amount,validator,new_total));
+			ensure!(
+				nominator.add_nomination(Bond{owner:validator.clone(), amount}),
+				Error::<T>::AlreadyNominatedValidator
+			);
+			Self::nominator_joins_validator(acc.clone(), amount, validator.clone())?;
+			<Nominators<T>>::insert(&acc, nominator);
+			Ok(())
+		}
+		#[weight = 0]
+		fn revoke_nominate(origin, validator: T::AccountId) -> DispatchResult {
+			let acc = ensure_signed(origin)?;
+			let mut nominator = <Nominators<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
+			ensure!(
+				nominator.nominations.0.len() > 1usize,
+				Error::<T>::MustNominateAtLeastOne
+			);
+			let remaining = nominator.sub_nomination(validator.clone())
+				.ok_or(Error::<T>::NominationDNE)?;
+			ensure!(
+				remaining >= T::MinNominatorStk::get(),
+				Error::<T>::NomBondBelowMin
+			);
+			Self::nominator_leaves_validator(acc.clone(), validator.clone())?;
+			<Nominators<T>>::insert(&acc, nominator);
 			Ok(())
 		}
 		#[weight = 0]
 		fn leave_nominators(origin) -> DispatchResult {
-			let nominator = ensure_signed(origin)?;
-			let validator = <Nominators<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
-			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
-			let mut exists: Option<BalanceOf<T>> = None;
-			let noms = state.nominators.0.into_iter().filter_map(|nom| {
-				if nom.owner != nominator {
-					Some(nom)
-				} else {
-					exists = Some(nom.amount);
-					None
-				}
-			}).collect();
-			let nominators = OrderedSet::from(noms);
-			let nominator_stake = exists.ok_or(Error::<T>::NominatorDNE)?;
-			T::Currency::unreserve(&nominator,nominator_stake);
-			state.nominators = nominators;
-			let new_total = state.total - nominator_stake;
-			if state.is_active() {
-				Self::update_active_candidate(validator.clone(),new_total);
+			let acc = ensure_signed(origin)?;
+			let nominator = <Nominators<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
+			for bond in nominator.nominations.0 {
+				Self::nominator_leaves_validator(acc.clone(), bond.owner.clone())?;
 			}
-			state.total = new_total;
-			let new_total_locked = <Total<T>>::get() - nominator_stake;
-			<Total<T>>::put(new_total_locked);
-			<Candidates<T>>::insert(&validator,state);
-			<Nominators<T>>::remove(&nominator);
-			Self::deposit_event(
-				RawEvent::NominatorLeft(nominator,validator,nominator_stake,new_total)
-			);
+			<Nominators<T>>::remove(&acc);
+			Self::deposit_event(RawEvent::NominatorLeft(acc.clone(), nominator.total));
 			Ok(())
 		}
 		fn on_finalize(n: T::BlockNumber) {
@@ -503,6 +570,77 @@ impl<T: Config> Module<T> {
 			amount: new_total,
 		});
 		<CandidatePool<T>>::put(candidates);
+	}
+	fn nominator_joins_validator(
+		nominator: T::AccountId,
+		amount: BalanceOf<T>,
+		validator: T::AccountId,
+	) -> DispatchResult {
+		let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
+		let nomination = Bond {
+			owner: nominator.clone(),
+			amount,
+		};
+		ensure!(
+			state.nominators.insert(nomination),
+			Error::<T>::NominatorExists
+		);
+		ensure!(
+			state.nominators.0.len() <= T::MaxNominatorsPerValidator::get(),
+			Error::<T>::TooManyNominators
+		);
+		T::Currency::reserve(&nominator, amount)?;
+		let new_total = state.total + amount;
+		if state.is_active() {
+			Self::update_active_candidate(validator.clone(), new_total);
+		}
+		let new_total_locked = <Total<T>>::get() + amount;
+		<Total<T>>::put(new_total_locked);
+		state.total = new_total;
+		<Candidates<T>>::insert(&validator, state);
+		Self::deposit_event(RawEvent::ValidatorNominated(
+			nominator, amount, validator, new_total,
+		));
+		Ok(())
+	}
+	fn nominator_leaves_validator(
+		nominator: T::AccountId,
+		validator: T::AccountId,
+	) -> DispatchResult {
+		let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
+		let mut exists: Option<BalanceOf<T>> = None;
+		let noms = state
+			.nominators
+			.0
+			.into_iter()
+			.filter_map(|nom| {
+				if nom.owner != nominator {
+					Some(nom)
+				} else {
+					exists = Some(nom.amount);
+					None
+				}
+			})
+			.collect();
+		let nominators = OrderedSet::from(noms);
+		let nominator_stake = exists.ok_or(Error::<T>::NominatorDNE)?;
+		T::Currency::unreserve(&nominator, nominator_stake);
+		state.nominators = nominators;
+		let new_total = state.total - nominator_stake;
+		if state.is_active() {
+			Self::update_active_candidate(validator.clone(), new_total);
+		}
+		state.total = new_total;
+		let new_total_locked = <Total<T>>::get() - nominator_stake;
+		<Total<T>>::put(new_total_locked);
+		<Candidates<T>>::insert(&validator, state);
+		Self::deposit_event(RawEvent::NominatorLeftValidator(
+			nominator,
+			validator,
+			nominator_stake,
+			new_total,
+		));
+		Ok(())
 	}
 	fn pay_stakers(next: RoundIndex) {
 		let duration = T::BondDuration::get();

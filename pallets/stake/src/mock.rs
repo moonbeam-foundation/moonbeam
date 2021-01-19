@@ -99,6 +99,7 @@ parameter_types! {
 	pub const BondDuration: u32 = 2;
 	pub const MaxValidators: u32 = 5;
 	pub const MaxNominatorsPerValidator: usize = 10;
+	pub const MaxValidatorsPerNominator: usize = 5;
 	pub const IssuancePerRound: u128 = 10;
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
 	pub const MinValidatorStk: u128 = 10;
@@ -111,9 +112,11 @@ impl Config for Test {
 	type BondDuration = BondDuration;
 	type MaxValidators = MaxValidators;
 	type MaxNominatorsPerValidator = MaxNominatorsPerValidator;
+	type MaxValidatorsPerNominator = MaxValidatorsPerNominator;
 	type IssuancePerRound = IssuancePerRound;
 	type MaxFee = MaxFee;
 	type MinValidatorStk = MinValidatorStk;
+	type MinNomination = MinNominatorStk;
 	type MinNominatorStk = MinNominatorStk;
 }
 pub type Balances = pallet_balances::Module<Test>;
