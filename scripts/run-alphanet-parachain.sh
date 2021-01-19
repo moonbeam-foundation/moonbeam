@@ -84,7 +84,7 @@ $PARACHAIN_BINARY \
   --name parachain_$PARACHAIN_INDEX \
   $PARACHAIN_BASE_PATH \
   '-linfo,evm=debug,ethereum=trace,rpc=trace,cumulus_collator=debug,txpool=debug' \
-  --account-id 6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b \
+  --author-id 6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b \
   $PARACHAIN_BOOTNODES_ARGS \
   -- \
     --node-key ${PARACHAIN_KEYS[$PARACHAIN_INDEX]} \

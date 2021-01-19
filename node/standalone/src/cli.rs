@@ -30,7 +30,7 @@ pub struct RunCmd {
 
 	/// Public identity for participating in staking and receiving rewards
 	#[structopt(long, parse(try_from_str = parse_h160))]
-	pub account_id: Option<H160>,
+	pub author_id: Option<H160>,
 }
 
 fn parse_h160(input: &str) -> Result<H160, String> {
