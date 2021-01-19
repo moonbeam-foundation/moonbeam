@@ -223,25 +223,25 @@ jobs:
 
   ####### Prepare and Deploy Docker images #######
 
-  generate-parachain-specs:	
-    runs-on: ubuntu-latest	
-    if: github.event_name == 'push'	
-    needs: build	
-    steps:	
-      - name: Checkout	
-        uses: actions/checkout@v2	
-      - uses: actions/download-artifact@v2	
-        with:	
-          name: moonbase-alphanet	
-          path: build/alphanet	
-      - name: Generate specs	
-        run: |	
+  generate-parachain-specs:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: moonbase-alphanet
+          path: build/alphanet
+      - name: Generate specs
+        run: |
           chmod uog+x build/alphanet/moonbase-alphanet	
-          PARACHAIN_BINARY=build/alphanet/moonbase-alphanet scripts/generate-parachain-specs.sh	
-      - name: Upload parachain specs	
-        uses: actions/upload-artifact@v2	
-        with:	
-          name: moonbase-alphanet	
+          PARACHAIN_BINARY=build/alphanet/moonbase-alphanet scripts/generate-parachain-specs.sh
+      - name: Upload parachain specs
+        uses: actions/upload-artifact@v2
+        with:
+          name: moonbase-alphanet
           path: build/alphanet
 
   docker-parachain:
@@ -470,12 +470,12 @@ jobs:
           asset_path: build/alphanet/${{ matrix.runtime }}
           asset_name: ${{ matrix.runtime }}
           asset_content_type: application/octet-stream
-      - name: Upload ${{ matrix.runtime }} genesis	
-        uses: actions/upload-release-asset@v1	
-        env:	
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}	
-        with:	
-          upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}	
-          asset_path: build/alphanet/${{ matrix.runtime }}-genesis.txt	
-          asset_name: ${{ matrix.runtime }}-genesis.txt	
+      - name: Upload ${{ matrix.runtime }} genesis
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
+          asset_path: build/alphanet/${{ matrix.runtime }}-genesis.txt
+          asset_name: ${{ matrix.runtime }}-genesis.txt
           asset_content_type: text/plain
