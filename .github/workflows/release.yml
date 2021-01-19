@@ -165,18 +165,6 @@ jobs:
           ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
           ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
           echo "RUSTC_WRAPPER=${{ runner.tool_cache }}/cargo-sccache/bin/sccache" >> $GITHUB_ENV
-      # - name: Cache Rust dependencies
-      #   uses: actions/cache@v2
-      #   id: cache
-      #   with:
-      #     path: |
-      #       ~/.cargo/registry
-      #       ~/.cargo/git
-      #       target
-      #       node/standalone/target
-      #     key: ${{ runner.OS }}-build-${{ hashFiles('**/Cargo.lock') }}
-      #     restore-keys: |
-      #       ${{ runner.OS }}-build
       - uses: actions-rs/toolchain@v1
         with:
           target: wasm32-unknown-unknown
@@ -235,9 +223,30 @@ jobs:
 
   ####### Prepare and Deploy Docker images #######
 
+  generate-parachain-specs:	
+    runs-on: ubuntu-latest	
+    if: github.event_name == 'push'	
+    needs: build	
+    steps:	
+      - name: Checkout	
+        uses: actions/checkout@v2	
+      - uses: actions/download-artifact@v2	
+        with:	
+          name: moonbase-alphanet	
+          path: build/alphanet	
+      - name: Generate specs	
+        run: |	
+          chmod uog+x build/alphanet/moonbase-alphanet	
+          PARACHAIN_BINARY=build/alphanet/moonbase-alphanet scripts/generate-parachain-specs.sh	
+      - name: Upload parachain specs	
+        uses: actions/upload-artifact@v2	
+        with:	
+          name: moonbase-alphanet	
+          path: build/alphanet
+
   docker-parachain:
     runs-on: self-hosted
-    needs: ["build"]
+    needs: ["build", "generate-parachain-specs"]
     if: github.event_name == 'push'
     steps:
       - name: Checkout
@@ -381,7 +390,7 @@ jobs:
 
   publish-draft-release:
     runs-on: self-hosted
-    needs: ["build"]
+    needs: ["build", "generate-parachain-specs"]
     if: |
       github.event_name == 'push' &&
       startsWith(github.ref, 'refs/tags/v')
@@ -461,3 +470,12 @@ jobs:
           asset_path: build/alphanet/${{ matrix.runtime }}
           asset_name: ${{ matrix.runtime }}
           asset_content_type: application/octet-stream
+      - name: Upload ${{ matrix.runtime }} genesis	
+        uses: actions/upload-release-asset@v1	
+        env:	
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}	
+        with:	
+          upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}	
+          asset_path: build/alphanet/${{ matrix.runtime }}-genesis.txt	
+          asset_name: ${{ matrix.runtime }}-genesis.txt	
+          asset_content_type: text/plain
