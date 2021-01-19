@@ -20,6 +20,8 @@
 
 use frame_support::pallet;
 
+pub use pallet::*;
+
 #[pallet]
 pub mod pallet {
 
@@ -52,5 +54,18 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn chain_id)]
-	pub(super) type ChainId<T> = StorageValue<_, u64, ValueQuery, DefaultChainId>;
+	pub type ChainId<T> = StorageValue<_, u64, ValueQuery, DefaultChainId>;
+
+	#[pallet::genesis_config]
+	#[derive(Default)]
+	pub struct GenesisConfig {
+		pub chain_id: u64,
+	}
+
+	#[pallet::genesis_build]
+	impl<T: Config> GenesisBuild<T> for GenesisConfig {
+		fn build(&self) {
+			ChainId::<T>::put(self.chain_id);
+		}
+	}
 }
