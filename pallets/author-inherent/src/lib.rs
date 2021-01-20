@@ -195,21 +195,40 @@ impl<T: Config> ProvideInherent for Module<T> {
 		Some(Call::set_author(author))
 	}
 
-	fn check_inherent(_call: &Self::Call, data: &InherentData) -> Result<(), Self::Error> {
-		let author_raw = data
-			.get_data::<InherentType>(&INHERENT_IDENTIFIER)
-			.expect("Gets and decodes authorship inherent data")
-			.ok_or_else(|| {
-				InherentError::Other(sp_runtime::RuntimeString::Borrowed(
-					"Decode authorship inherent data failed",
-				))
-			})?;
-		let author =
-			T::AccountId::decode(&mut &author_raw[..]).expect("Decodes author raw inherent data");
-		ensure!(
-			T::CanAuthor::can_author(&author),
-			InherentError::Other(sp_runtime::RuntimeString::Borrowed("Cannot Be Author"))
-		);
+	fn check_inherent(call: &Self::Call, data: &InherentData) -> Result<(), Self::Error> {
+		use sp_std::if_std;
+		if_std!{
+			println!("{:?}", call);
+		}
+		// This if let should always be true. This is the only call that the inehrent could make.
+		if let Self::Call::set_author(claimed_author) = call {
+			if_std!{
+				println!("Made it into the if let");
+			}
+			ensure!(
+				T::CanAuthor::can_author(&claimed_author),
+				InherentError::Other(sp_runtime::RuntimeString::Borrowed("Cannot Be Author"))
+			);
+		}
+
+
+		// This is the old logic. It is incorrect because it is based on what the inherent would
+		// have contained if the verifying node created it, rather than the actual inherent
+		// that the actual author created.
+		// let author_raw = data
+		// 	.get_data::<InherentType>(&INHERENT_IDENTIFIER)
+		// 	.expect("Gets and decodes authorship inherent data")
+		// 	.ok_or_else(|| {
+		// 		InherentError::Other(sp_runtime::RuntimeString::Borrowed(
+		// 			"Decode authorship inherent data failed",
+		// 		))
+		// 	})?;
+		// let author =
+		// 	T::AccountId::decode(&mut &author_raw[..]).expect("Decodes author raw inherent data");
+		// ensure!(
+		// 	T::CanAuthor::can_author(&author),
+		// 	InherentError::Other(sp_runtime::RuntimeString::Borrowed("Cannot Be Author"))
+		// );
 		Ok(())
 	}
 }
