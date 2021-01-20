@@ -34,6 +34,8 @@ use sp_inherents::{InherentData, InherentIdentifier, IsFatalError, ProvideInhere
 use sp_runtime::{ConsensusEngineId, DigestItem, RuntimeString};
 use sp_std::vec::Vec;
 
+mod benchmarking;
+
 /// The given account ID is the author of the current block.
 pub trait EventHandler<Author> {
 	fn note_author(author: Author);
@@ -293,7 +295,8 @@ mod tests {
 	parameter_types! {
 		pub const BlockHashCount: u64 = 250;
 	}
-	impl System for Test {
+
+	impl frame_system::Config for Test {
 		type BaseCallFilter = ();
 		type BlockWeights = ();
 		type BlockLength = ();
@@ -353,5 +356,12 @@ mod tests {
 				Error::<Test>::AuthorAlreadySet
 			);
 		});
+	parameter_types! {
+		pub const MinimumPeriod: u64 = 5;
+	}
+	impl Config for Test {
+		type Event: // TODO 
+		type EventHandler: // TODO 
+		type CanAuthor: // TODO 
 	}
 }
