@@ -196,7 +196,7 @@ impl<T: Config> ProvideInherent for Module<T> {
 	}
 
 	fn check_inherent(call: &Self::Call, _data: &InherentData) -> Result<(), Self::Error> {
-		// This if let should always be true. This is the only call that the inehrent could make.
+		// This if let should always be true. This is the only call that the inherent could make.
 		if let Self::Call::set_author(claimed_author) = call {
 			ensure!(
 				T::CanAuthor::can_author(&claimed_author),
