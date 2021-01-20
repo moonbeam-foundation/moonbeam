@@ -14,15 +14,21 @@ sp-authorship = { git = "https://github.com/paritytech/substrate", branch = "mas
 sp-inherents = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
+frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "master", optional = true }
+
+[dev-dependencies]
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
 
 [features]
 default = ["std"]
 std = [
 	"frame-support/std",
 	"frame-system/std",
+	"frame-benchmarking/std",
 	"parity-scale-codec/std",
 	"sp-authorship/std",
 	"sp-inherents/std",
 	"sp-runtime/std",
 	"sp-std/std",
 ]
+runtime-benchmarks = ["frame-benchmarking"]

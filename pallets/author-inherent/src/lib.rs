@@ -29,6 +29,8 @@ use sp_inherents::{InherentData, InherentIdentifier, IsFatalError, ProvideInhere
 use sp_runtime::{ConsensusEngineId, DigestItem, RuntimeString};
 use sp_std::vec::Vec;
 
+mod benchmarking;
+
 /// The given account ID is the author of the current block.
 pub trait EventHandler<Author> {
 	fn note_author(author: Author);
@@ -211,5 +213,57 @@ impl<T: Config> ProvideInherent for Module<T> {
 			InherentError::Other(sp_runtime::RuntimeString::Borrowed("Cannot Be Author"))
 		);
 		Ok(())
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	use frame_support::{impl_outer_origin, parameter_types};
+	use sp_core::H256;
+	use sp_runtime::{traits::{BlakeTwo256, IdentityLookup}, testing::Header};
+
+	impl_outer_origin! {
+		pub enum Origin for Test where system = frame_system {}
+	}
+
+	#[derive(Clone, Eq, PartialEq)]
+	pub struct Test;
+	parameter_types! {
+		pub const BlockHashCount: u64 = 250;
+	}
+
+	impl frame_system::Config for Test {
+		type BaseCallFilter = ();
+		type BlockWeights = ();
+		type BlockLength = ();
+		type DbWeight = ();
+		type Origin = Origin;
+		type Index = u64;
+		type BlockNumber = u64;
+		type Call = ();
+		type Hash = H256;
+		type Hashing = BlakeTwo256;
+		type AccountId = u64;
+		type Lookup = IdentityLookup<Self::AccountId>;
+		type Header = Header;
+		type Event = ();
+		type BlockHashCount = BlockHashCount;
+		type Version = ();
+		type PalletInfo = ();
+		type AccountData = ();
+		type OnNewAccount = ();
+		type OnKilledAccount = ();
+		type SystemWeightInfo = ();
+		type SS58Prefix = ();
+	}
+	parameter_types! {
+		pub const MinimumPeriod: u64 = 5;
+	}
+	impl Config for Test {
+		type Event: // TODO 
+		type EventHandler: // TODO 
+		type CanAuthor: // TODO 
 	}
 }
