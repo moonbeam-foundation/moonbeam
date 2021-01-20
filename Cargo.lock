@@ -390,6 +390,7 @@ dependencies = [
 name = "author-inherent"
 version = "0.6.0"
 dependencies = [
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
