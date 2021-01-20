@@ -3794,6 +3794,7 @@ version = "0.1.0"
 dependencies = [
  "evm 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "frame-support",
+ "moonbeam-rpc-primitives-debug",
  "pallet-evm",
  "sp-core",
  "sp-io",
@@ -3866,6 +3867,7 @@ name = "moonbeam-rpc-primitives-debug"
 version = "0.1.0"
 dependencies = [
  "ethereum-types 0.9.2",
+ "parity-scale-codec",
  "sp-api",
  "sp-core",
  "sp-io",
