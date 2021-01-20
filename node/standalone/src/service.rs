@@ -193,7 +193,7 @@ pub fn new_partial(
 pub fn new_full(
 	config: Configuration,
 	manual_seal: bool,
-	author: H160,
+	author_id: Option<H160>,
 ) -> Result<TaskManager, ServiceError> {
 	let sc_service::PartialComponents {
 		client,
@@ -205,7 +205,7 @@ pub fn new_full(
 		transaction_pool,
 		inherent_data_providers,
 		other: (consensus_result, pending_transactions),
-	} = new_partial(&config, manual_seal, Some(author))?;
+	} = new_partial(&config, manual_seal, author_id)?;
 
 	let (network, network_status_sinks, system_rpc_tx, network_starter) = match consensus_result {
 		ConsensusResult::ManualSeal(_) => {

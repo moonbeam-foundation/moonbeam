@@ -36,7 +36,7 @@ CMD ["/moonbase-alphanet/moonbase-alphanet", \
 		"--rpc-port","9933", \
 		"--ws-port","9944", \
 		"--validator", \
-		"--chain", "/moonbase-alphanet/moonbase-alphanet-specs-plain.json", \
+		"--chain", "/moonbase-alphanet/moonbase-alphanet-specs-raw.json", \
 		"--", \
 			"--chain", "/moonbase-alphanet/rococo-alphanet-specs-raw.json" \
 ]
