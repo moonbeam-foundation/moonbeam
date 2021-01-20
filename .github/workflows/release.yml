@@ -379,46 +379,8 @@ jobs:
 
   ####### Prepare the release draft #######
 
-  publish-draft-release:
-    runs-on: self-hosted
-    needs: ["build"]
-    if: |
-      github.event_name == 'push' &&
-      startsWith(github.ref, 'refs/tags/v')
-    outputs:
-      release_url: ${{ steps.create-release.outputs.html_url }}
-      asset_upload_url: ${{ steps.create-release.outputs.upload_url }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          path: moonbeam
-      - name: Set up Ruby 2.7
-        uses: actions/setup-ruby@v1
-        with:
-          ruby-version: 2.7
-      - name: Generate release text
-        env:
-          RUSTC: ${{ needs.build.outputs.rustc }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gem install changelogerator git toml
-          ruby $GITHUB_WORKSPACE/moonbeam/scripts/github/generate_release_text.rb | tee release_text.md
-      - name: Create draft release
-        id: create-release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Moonbase Alphanet ${{ github.ref }}
-          body_path: ./release_text.md
-          draft: true
-
   publish-runtimes:
-    runs-on: self-hosted
-    needs: ["publish-draft-release"]
+    runs-on: ubuntu-latest
     # We want to store the binaries also when it is not a version release. This is used
     # in case such as providing binaries when creating a new tutorial version.
     if: |
