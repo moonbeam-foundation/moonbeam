@@ -195,7 +195,7 @@ impl<T: Config> ProvideInherent for Module<T> {
 		Some(Call::set_author(author))
 	}
 
-	fn check_inherent(call: &Self::Call, data: &InherentData) -> Result<(), Self::Error> {
+	fn check_inherent(call: &Self::Call, _data: &InherentData) -> Result<(), Self::Error> {
 		// This if let should always be true. This is the only call that the inehrent could make.
 		if let Self::Call::set_author(claimed_author) = call {
 			ensure!(
