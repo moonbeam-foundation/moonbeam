@@ -540,13 +540,55 @@ fn multiple_nomination_works() {
 			RawEvent::ValidatorChosen(7, 4, 30),
 			RawEvent::ValidatorChosen(7, 3, 30),
 			RawEvent::ValidatorChosen(7, 5, 10),
-			RawEvent::NewRound(30, 7, 4, 120)
+			RawEvent::NewRound(30, 7, 4, 120),
 		];
 		expected.append(&mut new3);
 		assert_eq!(events(), expected);
-		// check that nominations are removed after validator leaves, not before
-		assert_eq!(<Stake as Store>::Nominators::get(7).unwrap().nominations.0.len(),2usize);
+		// verify that nominations are removed after validator leaves, not before
+		assert_eq!(<Stake as Store>::Nominators::get(7).unwrap().total, 90);
+		assert_eq!(
+			<Stake as Store>::Nominators::get(7)
+				.unwrap()
+				.nominations
+				.0
+				.len(),
+			2usize
+		);
+		assert_eq!(<Stake as Store>::Nominators::get(6).unwrap().total, 40);
+		assert_eq!(
+			<Stake as Store>::Nominators::get(6)
+				.unwrap()
+				.nominations
+				.0
+				.len(),
+			4usize
+		);
+		assert_eq!(Balances::reserved_balance(&6), 40);
+		assert_eq!(Balances::reserved_balance(&7), 90);
+		assert_eq!(Balances::free_balance(&6), 60);
+		assert_eq!(Balances::free_balance(&7), 10);
 		roll_to(40);
-		assert_eq!(<Stake as Store>::Nominators::get(7).unwrap().nominations.0.len(),1usize);
+		assert_eq!(<Stake as Store>::Nominators::get(7).unwrap().total, 10);
+		assert_eq!(<Stake as Store>::Nominators::get(6).unwrap().total, 30);
+		assert_eq!(
+			<Stake as Store>::Nominators::get(7)
+				.unwrap()
+				.nominations
+				.0
+				.len(),
+			1usize
+		);
+		assert_eq!(
+			<Stake as Store>::Nominators::get(6)
+				.unwrap()
+				.nominations
+				.0
+				.len(),
+			3usize
+		);
+		assert_eq!(Balances::reserved_balance(&6), 30);
+		assert_eq!(Balances::reserved_balance(&7), 10);
+		assert_eq!(Balances::free_balance(&6), 70);
+		assert_eq!(Balances::free_balance(&7), 90);
 	});
 }
