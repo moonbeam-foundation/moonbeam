@@ -383,10 +383,12 @@ dependencies = [
 name = "author-inherent"
 version = "0.1.0"
 dependencies = [
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
  "sp-authorship",
+ "sp-core",
  "sp-inherents",
  "sp-runtime",
  "sp-std",
