@@ -282,6 +282,11 @@ mod tests {
 		TestExternalities::new(t)
 	}
 
+	pub fn new_test_ext() -> TestExternalities {
+		let t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
+		TestExternalities::new(t)
+	}
+
 	impl_outer_origin! {
 		pub enum Origin for Test where system = frame_system {}
 	}
