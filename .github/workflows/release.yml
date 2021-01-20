@@ -381,6 +381,7 @@ jobs:
 
   publish-runtimes:
     runs-on: ubuntu-latest
+    needs: ["build"]
     # We want to store the binaries also when it is not a version release. This is used
     # in case such as providing binaries when creating a new tutorial version.
     if: |
