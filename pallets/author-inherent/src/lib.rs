@@ -296,6 +296,11 @@ mod tests {
 		pub const BlockHashCount: u64 = 250;
 	}
 
+	// noop impl for EventHandler
+	impl<T> EventHandler<T> for () {
+		fn note_author(_: T) {}
+	}
+
 	impl frame_system::Config for Test {
 		type BaseCallFilter = ();
 		type BlockWeights = ();
@@ -360,8 +365,8 @@ mod tests {
 		pub const MinimumPeriod: u64 = 5;
 	}
 	impl Config for Test {
-		type Event: // TODO 
-		type EventHandler: // TODO 
-		type CanAuthor: // TODO 
+		type Event = ();
+		type EventHandler = ();
+		type CanAuthor = ();
 	}
 }

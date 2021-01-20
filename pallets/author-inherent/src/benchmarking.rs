@@ -31,8 +31,6 @@ benchmarks! {
 		let caller: T::AccountId = whitelisted_caller();
 		let author: T::AccountId = account("author", 0, AUTHOR_SEED);
 
-		AuthorInherent::<T>::set_author(caller, author);
-
 	}: _(RawOrigin::Signed(caller.clone()), author)
 	verify {
 	}
