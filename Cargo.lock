@@ -390,6 +390,7 @@ dependencies = [
  "sp-authorship",
  "sp-core",
  "sp-inherents",
+ "sp-io",
  "sp-runtime",
  "sp-std",
 ]

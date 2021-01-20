@@ -221,8 +221,14 @@ mod tests {
 	use super::*;
 
 	use frame_support::{impl_outer_origin, parameter_types};
+	use sp_io::TestExternalities;
 	use sp_core::H256;
 	use sp_runtime::{traits::{BlakeTwo256, IdentityLookup}, testing::Header};
+
+	pub fn new_test_ext() -> TestExternalities {
+		let t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
+		TestExternalities::new(t)
+	}
 
 	impl_outer_origin! {
 		pub enum Origin for Test where system = frame_system {}

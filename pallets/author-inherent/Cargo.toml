@@ -18,6 +18,7 @@ frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch =
 
 [dev-dependencies]
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
 
 [features]
 default = ["std"]
