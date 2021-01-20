@@ -13,139 +13,42 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-use ethereum_types::{H256, U256};
 use serde::{Serialize, Serializer};
+use sp_core::{H256, U256};
 use std::collections::BTreeMap;
 
-#[derive(Debug)]
-pub enum Opcode {
-	/// `STOP`
-	Stop,
-	/// `ADD`
-	Add,
-	/// `MUL`
-	Mul,
-	/// `SUB`
-	Sub,
-	/// `DIV`
-	Div,
-	/// `SDIV`
-	SDiv,
-	/// `MOD`
-	Mod,
-	/// `SMOD`
-	SMod,
-	/// `ADDMOD`
-	AddMod,
-	/// `MULMOD`
-	MulMod,
-	/// `EXP`
-	Exp,
-	/// `SIGNEXTEND`
-	SignExtend,
-
-	/// `LT`
-	Lt,
-	/// `GT`
-	Gt,
-	/// `SLT`
-	SLt,
-	/// `SGT`
-	SGt,
-	/// `EQ`
-	Eq,
-	/// `ISZERO`
-	IsZero,
-	/// `AND`
-	And,
-	/// `OR`
-	Or,
-	/// `XOR`
-	Xor,
-	/// `NOT`
-	Not,
-	/// `BYTE`
-	Byte,
-
-	/// `CALLDATALOAD`
-	CallDataLoad,
-	/// `CALLDATASIZE`
-	CallDataSize,
-	/// `CALLDATACOPY`
-	CallDataCopy,
-	/// `CODESIZE`
-	CodeSize,
-	/// `CODECOPY`
-	CodeCopy,
-
-	/// `SHL`
-	Shl,
-	/// `SHR`
-	Shr,
-	/// `SAR`
-	Sar,
-
-	/// `POP`
-	Pop,
-	/// `MLOAD`
-	MLoad,
-	/// `MSTORE`
-	MStore,
-	/// `MSTORE8`
-	MStore8,
-	/// `JUMP`
-	Jump,
-	/// `JUMPI`
-	JumpI,
-	/// `PC`
-	PC,
-	/// `MSIZE`
-	MSize,
-	/// `JUMPDEST`
-	JumpDest,
-
-	/// `PUSHn`
-	Push(u8),
-	/// `DUPn`
-	Dup(u8),
-	/// `SWAPn`
-	Swap(u8),
-
-	/// `RETURN`
-	Return,
-	/// `REVERT`
-	Revert,
-
-	/// `INVALID`
-	Invalid,
+#[derive(Eq, PartialEq, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TraceExecutorResponse {
+	pub gas: U256,
+	pub return_value: Vec<u8>,
+	pub step_logs: Vec<StepLog>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Eq, PartialEq, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct StepLog {
-	depth: U256,
-	//error:
-	gas: U256,
-	gas_cost: U256,
-	memory: Vec<H256>,
-	//pc:
-	stack: Vec<H256>,
-	storage: BTreeMap<H256, H256>,
+	pub depth: U256,
+	//error: TODO
+	pub gas: U256,
+	pub gas_cost: U256,
+	pub memory: Vec<u8>,
+	#[serde(serialize_with = "opcode_serialize")]
+	pub op: Vec<u8>,
+	pub pc: U256,
+	pub stack: Vec<H256>,
+	//storage: BTreeMap<H256, H256>, TODO
 }
 
-impl std::fmt::Display for Opcode {
-	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-		write!(f, "{:?}", self)
-	}
-}
-
-fn opcode_serialize<S>(opcode: &Opcode, serializer: S) -> Result<S::Ok, S::Error>
+fn opcode_serialize<S>(opcode: &Vec<u8>, serializer: S) -> Result<S::Ok, S::Error>
 where
 	S: Serializer,
 {
 	serializer.serialize_str(&format!(
-		"{:?}",
-		opcode
-			.to_string()
+		"{}",
+		std::str::from_utf8(opcode)
+			.unwrap() // TODO
+			// .to_string()
 			.to_uppercase()
 			.replace("(", "")
 			.replace(")", "")

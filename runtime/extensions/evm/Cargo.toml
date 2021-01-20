@@ -15,6 +15,7 @@ sp-std = { default-features = false, git = "https://github.com/paritytech/substr
 sp-io = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }
 sp-runtime = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }
 frame-support= { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }
+moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug", default-features = false }
 
 [features]
 default = ["std"]

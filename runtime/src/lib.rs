@@ -477,7 +477,7 @@ impl_runtime_apis! {
 	impl moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block> for Runtime {
 		fn trace_transaction(
 			transaction_index: u32
-		) -> H256 { // TODO return
+		) -> Option<moonbeam_rpc_primitives_debug::TraceExecutorResponse> { // TODO return
 
 			debug::native::debug!(
 				target: "tgm",
@@ -501,7 +501,7 @@ impl_runtime_apis! {
 					let from = H160::default(); // TODO
 					match transaction.action {
 						TransactionAction::Call(to) => {
-							let res = <Runtime as pallet_evm::Config>::Runner::trace_call(
+							return Some(<Runtime as pallet_evm::Config>::Runner::trace_call(
 								from,
 								to,
 								transaction.input.clone(),
@@ -510,15 +510,22 @@ impl_runtime_apis! {
 								Some(transaction.gas_price),
 								Some(transaction.nonce),
 								config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
-							);
+							).unwrap());
 
-							debug::native::debug!(
-								target: "tgm",
-								"----> Result tgm {:?}", res
-							);
+							// for s in res.unwrap().step_logs.iter() {
+							// 	debug::native::debug!(
+							// 		target: "tgm",
+							// 		"----> Result tgm {:?}", sp_std::str::from_utf8(&s.op[..])
+							// 	);
+							// }
+
+							// debug::native::debug!(
+							// 	target: "tgm",
+							// 	"----> Result tgm {:?}", res
+							// );
 						},
 						TransactionAction::Create => {
-							let res = <Runtime as pallet_evm::Config>::Runner::trace_create(
+							return Some(<Runtime as pallet_evm::Config>::Runner::trace_create(
 								from,
 								transaction.input.clone(),
 								transaction.value,
@@ -526,12 +533,12 @@ impl_runtime_apis! {
 								Some(transaction.gas_price),
 								Some(transaction.nonce),
 								config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
-							);
+							).unwrap());
 
-							debug::native::debug!(
-								target: "tgm",
-								"----> Result tgm {:?}", res
-							);
+							// debug::native::debug!(
+							// 	target: "tgm",
+							// 	"----> Result tgm {:?}", res
+							// );
 						}
 					}
 				}
@@ -546,7 +553,7 @@ impl_runtime_apis! {
 			// 	nonce,
 			// 	config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 			// ).map_err(|err| err.into())
-			H256::default() // TODO
+			None
 		}
 	}
 

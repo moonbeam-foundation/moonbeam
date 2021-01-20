@@ -1,5 +1,6 @@
-use crate::executor::stack::{TraceExecutor as TraceExecutorT, TraceExecutorResponse};
+use crate::executor::stack::TraceExecutor as TraceExecutorT;
 use evm::{executor::StackExecutor, Config as EvmConfig, ExitReason};
+use moonbeam_rpc_primitives_debug::TraceExecutorResponse;
 use pallet_evm::{
 	runner::stack::{Backend, Runner},
 	CallInfo, Config, CreateInfo, Error, ExecutionInfo, PrecompileSet, Vicinity,

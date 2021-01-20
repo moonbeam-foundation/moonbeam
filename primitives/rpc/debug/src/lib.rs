@@ -16,14 +16,34 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use sp_core::H256;
-use sp_runtime::traits::Block as BlockT;
+use codec::{Decode, Encode};
+use sp_core::{H256, U256};
 use sp_std::vec::Vec;
 
 //pub use moonbeam_rpc_core_debug::types::StepLog;
 
+#[derive(Eq, PartialEq, Debug, Encode, Decode)]
+pub struct TraceExecutorResponse {
+	pub gas: U256,
+	pub return_value: Vec<u8>,
+	pub step_logs: Vec<StepLog>,
+}
+
+#[derive(Eq, PartialEq, Debug, Encode, Decode)]
+pub struct StepLog {
+	pub depth: U256,
+	//error: TODO
+	pub gas: U256,
+	pub gas_cost: U256,
+	pub memory: Vec<u8>,
+	pub op: Vec<u8>,
+	pub pc: U256,
+	pub stack: Vec<H256>,
+	//storage: BTreeMap<H256, H256>, TODO
+}
+
 sp_api::decl_runtime_apis! {
 	pub trait DebugRuntimeApi {
-		fn trace_transaction(transaction_index: u32) -> H256; // TODO return
+		fn trace_transaction(transaction_index: u32) -> Option<TraceExecutorResponse>; // TODO return
 	}
 }

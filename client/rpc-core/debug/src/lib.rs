@@ -20,12 +20,12 @@ use sp_core::H256;
 
 pub mod types;
 
-pub use crate::types::StepLog;
+pub use crate::types::{StepLog, TraceExecutorResponse};
 
 pub use rpc_impl_Debug::gen_server::Debug as DebugServer;
 
 #[rpc(server)]
 pub trait Debug {
 	#[rpc(name = "debug_traceTransaction")]
-	fn trace_transaction(&self, transaction_hash: H256) -> Result<Vec<StepLog>>;
+	fn trace_transaction(&self, transaction_hash: H256) -> Result<TraceExecutorResponse>;
 }

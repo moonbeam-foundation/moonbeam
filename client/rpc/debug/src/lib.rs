@@ -16,7 +16,7 @@
 
 use jsonrpc_core::Result as RpcResult;
 use jsonrpc_core::{Error as RpcError, ErrorCode};
-pub use moonbeam_rpc_core_debug::{Debug as DebugT, DebugServer, StepLog};
+pub use moonbeam_rpc_core_debug::{Debug as DebugT, DebugServer, StepLog, TraceExecutorResponse};
 use sc_client_api::backend::AuxStore;
 use sp_api::{BlockId, HeaderT, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
@@ -124,13 +124,13 @@ where
 	B: BlockT<Hash = H256> + Send + Sync + 'static,
 	C::Api: DebugRuntimeApi<B>,
 {
-	fn trace_transaction(&self, transaction_hash: H256) -> RpcResult<Vec<StepLog>> {
+	fn trace_transaction(&self, transaction_hash: H256) -> RpcResult<TraceExecutorResponse> {
 		let (hash, index) = match self
 			.load_transactions(transaction_hash)
 			.map_err(|err| internal_err(format!("{:?}", err)))?
 		{
 			Some((hash, index)) => (hash, index as usize),
-			None => return Ok(Vec::new()),
+			None => return Err(internal_err(format!("could not decode transaction"))),
 		};
 
 		let id = match self
@@ -138,15 +138,35 @@ where
 			.map_err(|err| internal_err(format!("{:?}", err)))?
 		{
 			Some(hash) => hash,
-			_ => return Ok(Vec::new()),
+			_ => return Err(internal_err(format!("could not decode block"))),
 		};
 
-		let _ = self
+		let res = self
 			.client
 			.runtime_api()
 			.trace_transaction(&id, index as u32)
 			.map_err(|err| internal_err(format!("call runtime failed: {:?}", err)))?;
 
-		Ok(Vec::new())
+		if let Some(res) = res {
+			return Ok(TraceExecutorResponse {
+				gas: res.gas,
+				return_value: res.return_value,
+				step_logs: res
+					.step_logs
+					.iter()
+					.map(|s| StepLog {
+						depth: s.depth,
+						gas: s.gas,
+						gas_cost: s.gas_cost,
+						memory: s.memory.clone(),
+						op: s.op.clone(),
+						pc: s.pc,
+						stack: s.stack.clone(),
+					})
+					.collect(),
+			});
+		}
+
+		Err(internal_err(format!("could not decode evm")))
 	}
 }

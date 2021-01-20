@@ -1,3 +1,3 @@
 mod step;
 
-pub use self::step::StepLog;
+pub use self::step::{StepLog, TraceExecutorResponse};
