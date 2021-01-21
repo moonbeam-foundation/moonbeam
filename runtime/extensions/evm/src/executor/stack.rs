@@ -95,7 +95,6 @@ impl<'backend, 'config, B: BackendT> TraceExecutor for StackExecutor<'backend, '
 				let gasometer_instance = substate.gasometer.clone();
 				let gas = gasometer_instance.gas();
 				let gas_cost = gasometer_instance.inner?.gas_cost(opcode_cost, gas)?;
-
 				let position = match &runtime.machine().position {
 					Ok(p) => p,
 					Err(reason) => match reason {
@@ -115,6 +114,10 @@ impl<'backend, 'config, B: BackendT> TraceExecutor for StackExecutor<'backend, '
 					},
 					pc: U256::from(*position),
 					stack: runtime.machine().stack().data.clone(),
+					storage: match self.account(contract_address) {
+						Some(account) => account.storage.clone(),
+						_ => BTreeMap::new(),
+					},
 				});
 			} else {
 				break;

@@ -18,7 +18,7 @@
 
 use codec::{Decode, Encode};
 use ethereum_types::{H256, U256};
-use sp_std::vec::Vec;
+use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
 //pub use moonbeam_rpc_core_debug::types::StepLog;
 
@@ -39,7 +39,7 @@ pub struct StepLog {
 	pub op: Vec<u8>,
 	pub pc: U256,
 	pub stack: Vec<H256>,
-	//storage: BTreeMap<H256, H256>, TODO
+	pub storage: BTreeMap<H256, H256>,
 }
 
 sp_api::decl_runtime_apis! {

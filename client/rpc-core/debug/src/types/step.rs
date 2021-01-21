@@ -37,7 +37,7 @@ pub struct StepLog {
 	pub op: Vec<u8>,
 	pub pc: U256,
 	pub stack: Vec<H256>,
-	//storage: BTreeMap<H256, H256>, TODO
+	pub storage: BTreeMap<H256, H256>,
 }
 
 fn opcode_serialize<S>(opcode: &Vec<u8>, serializer: S) -> Result<S::Ok, S::Error>

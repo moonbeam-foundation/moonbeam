@@ -158,6 +158,7 @@ where
 					op: s.op.clone(),
 					pc: s.pc,
 					stack: s.stack.clone(),
+					storage: s.storage.clone(),
 				})
 				.collect(),
 		})
