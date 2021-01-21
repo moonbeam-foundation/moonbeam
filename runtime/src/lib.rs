@@ -496,8 +496,6 @@ impl_runtime_apis! {
 								transaction.input.clone(),
 								transaction.value,
 								transaction.gas_limit.low_u32(),
-								Some(transaction.gas_price),
-								Some(transaction.nonce),
 								config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 							) {
 								return Ok(res);
@@ -511,8 +509,6 @@ impl_runtime_apis! {
 								transaction.input.clone(),
 								transaction.value,
 								transaction.gas_limit.low_u32(),
-								Some(transaction.gas_price),
-								Some(transaction.nonce),
 								config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 							) {
 								return Ok(res);

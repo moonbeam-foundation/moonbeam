@@ -20,8 +20,6 @@ use codec::{Decode, Encode};
 use ethereum_types::{H256, U256};
 use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
-//pub use moonbeam_rpc_core_debug::types::StepLog;
-
 #[derive(Eq, PartialEq, Debug, Encode, Decode)]
 pub struct TraceExecutorResponse {
 	pub gas: U256,

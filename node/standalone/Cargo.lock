@@ -3794,7 +3794,6 @@ version = "0.1.0"
 dependencies = [
  "ethereum-types 0.10.0",
  "evm 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "frame-support",
  "moonbeam-rpc-primitives-debug",
  "pallet-evm",
  "sp-core",

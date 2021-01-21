@@ -14,7 +14,6 @@ sp-core = { default-features = false, git = "https://github.com/paritytech/subst
 sp-std = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }
 sp-io = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }
 sp-runtime = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }
-frame-support= { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug", default-features = false }
 ethereum-types = { version = "0.10.0", default-features = false }
 
@@ -27,6 +26,5 @@ std = [
 	"sp-core/std",
 	"sp-std/std",
 	"sp-runtime/std",
-	"frame-support/std",
 	"ethereum-types/std",
 ]

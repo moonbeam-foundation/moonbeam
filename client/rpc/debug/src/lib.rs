@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+pub use moonbeam_rpc_core_debug::{Debug as DebugT, DebugServer, StepLog, TraceExecutorResponse};
+
 use ethereum_types::H256;
 use jsonrpc_core::Result as RpcResult;
 use jsonrpc_core::{Error as RpcError, ErrorCode};
-pub use moonbeam_rpc_core_debug::{Debug as DebugT, DebugServer, StepLog, TraceExecutorResponse};
 use sc_client_api::backend::AuxStore;
 use sp_api::{BlockId, HeaderT, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
