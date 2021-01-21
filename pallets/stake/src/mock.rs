@@ -104,6 +104,7 @@ parameter_types! {
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
 	pub const MinValidatorStk: u128 = 10;
 	pub const MinNominatorStk: u128 = 5;
+	pub const MinNomination: u128 = 3;
 }
 impl Config for Test {
 	type Event = MetaEvent;
@@ -116,8 +117,8 @@ impl Config for Test {
 	type IssuancePerRound = IssuancePerRound;
 	type MaxFee = MaxFee;
 	type MinValidatorStk = MinValidatorStk;
-	type MinNomination = MinNominatorStk;
 	type MinNominatorStk = MinNominatorStk;
+	type MinNomination = MinNomination;
 }
 pub type Balances = pallet_balances::Module<Test>;
 pub type Stake = Module<Test>;

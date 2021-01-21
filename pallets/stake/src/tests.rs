@@ -470,7 +470,7 @@ fn multiple_nomination_works() {
 			Error::<Test>::AlreadyNominatedValidator,
 		);
 		assert_noop!(
-			Stake::nominate(Origin::signed(6), 2, 4),
+			Stake::nominate(Origin::signed(6), 2, 2),
 			Error::<Test>::NominationBelowMin,
 		);
 		assert_ok!(Stake::nominate(Origin::signed(6), 2, 10));
@@ -624,6 +624,10 @@ fn validators_bond_more_less() {
 		assert_ok!(Stake::candidate_bond_less(Origin::signed(2), 90));
 		assert_ok!(Stake::candidate_bond_less(Origin::signed(3), 10));
 		assert_noop!(
+			Stake::candidate_bond_less(Origin::signed(2), 11),
+			Error::<Test>::Underflow
+		);
+		assert_noop!(
 			Stake::candidate_bond_less(Origin::signed(2), 1),
 			Error::<Test>::ValBondBelowMin
 		);
@@ -636,5 +640,56 @@ fn validators_bond_more_less() {
 			Error::<Test>::ValBondBelowMin
 		);
 		assert_ok!(Stake::candidate_bond_less(Origin::signed(4), 10));
+	});
+}
+
+#[test]
+fn nominators_bond_more_less() {
+	genesis3().execute_with(|| {
+		roll_to(4);
+		assert_noop!(
+			Stake::nominator_bond_more(Origin::signed(1), 2, 50),
+			Error::<Test>::NominatorDNE
+		);
+		assert_noop!(
+			Stake::nominator_bond_more(Origin::signed(6), 2, 50),
+			Error::<Test>::NominationDNE
+		);
+		assert_noop!(
+			Stake::nominator_bond_more(Origin::signed(7), 6, 50),
+			Error::<Test>::CandidateDNE
+		);
+		assert_noop!(
+			Stake::nominator_bond_less(Origin::signed(6), 1, 11),
+			Error::<Test>::Underflow
+		);
+		assert_noop!(
+			Stake::nominator_bond_less(Origin::signed(6), 1, 8),
+			Error::<Test>::NominationBelowMin
+		);
+		assert_noop!(
+			Stake::nominator_bond_less(Origin::signed(6), 1, 6),
+			Error::<Test>::NomBondBelowMin
+		);
+		assert_ok!(Stake::nominator_bond_more(Origin::signed(6), 1, 10));
+		assert_noop!(
+			Stake::nominator_bond_less(Origin::signed(6), 2, 5),
+			Error::<Test>::NominationDNE
+		);
+		assert_noop!(
+			Stake::nominator_bond_more(Origin::signed(6), 1, 81),
+			DispatchError::Module {
+				index: 0,
+				error: 3,
+				message: Some("InsufficientBalance")
+			}
+		);
+		roll_to(9);
+		assert_eq!(Balances::reserved_balance(&6), 20);
+		assert_ok!(Stake::leave_candidates(Origin::signed(1)));
+		roll_to(31);
+		assert!(!Stake::is_nominator(&6));
+		assert_eq!(Balances::reserved_balance(&6), 0);
+		assert_eq!(Balances::free_balance(&6), 100);
 	});
 }

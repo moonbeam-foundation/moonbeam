@@ -166,10 +166,33 @@ impl<
 		self.bond += more;
 		self.total += more;
 	}
-	pub fn bond_less(&mut self, less: B) -> B {
-		self.bond -= less;
-		self.total -= less;
-		self.bond
+	// Returns None if underflow or less == self.bond (in which case validator should leave instead of bonding less)
+	pub fn bond_less(&mut self, less: B) -> Option<B> {
+		if self.bond > less {
+			self.bond -= less;
+			self.total -= less;
+			Some(self.bond)
+		} else {
+			None
+		}
+	}
+	pub fn inc_nominator(&mut self, nominator: A, more: B) {
+		for x in &mut self.nominators.0 {
+			if x.owner == nominator {
+				x.amount += more;
+				self.total += more;
+				return;
+			}
+		}
+	}
+	pub fn dec_nominator(&mut self, nominator: A, less: B) {
+		for x in &mut self.nominators.0 {
+			if x.owner == nominator {
+				x.amount -= less;
+				self.total -= less;
+				return;
+			}
+		}
 	}
 	pub fn go_offline(&mut self) {
 		self.state = ValidatorStatus::Idle;
@@ -198,8 +221,10 @@ pub struct Nominator<AccountId, Balance> {
 	pub total: Balance,
 }
 
-impl<AccountId: Ord + Clone, Balance: Copy + sp_std::ops::AddAssign + sp_std::ops::SubAssign>
-	Nominator<AccountId, Balance>
+impl<
+		AccountId: Ord + Clone,
+		Balance: Copy + sp_std::ops::AddAssign + sp_std::ops::SubAssign + PartialOrd,
+	> Nominator<AccountId, Balance>
 {
 	pub fn new(validator: AccountId, nomination: Balance) -> Self {
 		Nominator {
@@ -219,7 +244,8 @@ impl<AccountId: Ord + Clone, Balance: Copy + sp_std::ops::AddAssign + sp_std::op
 			false
 		}
 	}
-	// returns remaining balance, must be more than MinNominatorStk
+	// Returns Some(remaining balance), must be more than MinNominatorStk
+	// Returns None if nomination not found
 	pub fn sub_nomination(&mut self, validator: AccountId) -> Option<Balance> {
 		let mut amt: Option<Balance> = None;
 		let nominations = self
@@ -242,6 +268,39 @@ impl<AccountId: Ord + Clone, Balance: Copy + sp_std::ops::AddAssign + sp_std::op
 		} else {
 			None
 		}
+	}
+	// Returns None if nomination not found
+	pub fn inc_nomination(&mut self, validator: AccountId, more: Balance) -> Option<Balance> {
+		for x in &mut self.nominations.0 {
+			if x.owner == validator {
+				x.amount += more;
+				self.total += more;
+				return Some(x.amount);
+			}
+		}
+		None
+	}
+	// Returns Some(Some(balance)) if successful
+	// None if nomination not found
+	// Some(None) if underflow
+	pub fn dec_nomination(
+		&mut self,
+		validator: AccountId,
+		less: Balance,
+	) -> Option<Option<Balance>> {
+		for x in &mut self.nominations.0 {
+			if x.owner == validator {
+				if x.amount > less {
+					x.amount -= less;
+					self.total -= less;
+					return Some(Some(x.amount));
+				} else {
+					// underflow error; should rm entire nomination if x.amount == validator
+					return Some(None);
+				}
+			}
+		}
+		None
 	}
 }
 
@@ -294,6 +353,10 @@ decl_event!(
 		ValidatorBondedMore(AccountId, Balance, Balance),
 		/// Validator Account, Old Bond, New Bond
 		ValidatorBondedLess(AccountId, Balance, Balance),
+		// Nominator, Validator, Old Nomination, New Nomination
+		NominationIncreased(AccountId, AccountId, Balance, Balance),
+		// Nominator, Validator, Old Nomination, New Nomination
+		NominationDecreased(AccountId, AccountId, Balance, Balance),
 		ValidatorWentOffline(RoundIndex, AccountId),
 		ValidatorBackOnline(RoundIndex, AccountId),
 		/// Round, Validator Account, Scheduled Exit
@@ -334,6 +397,7 @@ decl_error! {
 		AlreadyNominatedValidator,
 		MustNominateAtLeastOne,
 		NominationDNE,
+		Underflow,
 	}
 }
 
@@ -491,11 +555,8 @@ decl_module! {
 			let before = state.bond;
 			state.bond_more(more);
 			let after = state.bond;
-			let mut candidates = <CandidatePool<T>>::get();
-			if candidates.remove(&Bond::from_owner(validator.clone())) {
-				if candidates.insert(Bond{owner:validator.clone(),amount:state.total}) {
-					<CandidatePool<T>>::put(candidates);
-				}
+			if state.is_active() {
+				Self::update_active(validator.clone(), state.total);
 			}
 			<Candidates<T>>::insert(&validator,state);
 			Self::deposit_event(RawEvent::ValidatorBondedMore(validator, before, after));
@@ -507,16 +568,13 @@ decl_module! {
 			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_leaving(),Error::<T>::CannotActivateIfLeaving);
 			let before = state.bond;
-			ensure!(state.bond_less(less) >= T::MinValidatorStk::get(), Error::<T>::ValBondBelowMin);
-			let after = state.bond;
-			// TODO: make this into an update_if_candidates method (shared with candidate_bond_more)
-			let mut candidates = <CandidatePool<T>>::get();
-			if candidates.remove(&Bond::from_owner(validator.clone())) {
-				if candidates.insert(Bond{owner:validator.clone(),amount:state.total}) {
-					<CandidatePool<T>>::put(candidates);
-				}
+			let after = state.bond_less(less).ok_or(Error::<T>::Underflow)?;
+			ensure!(after >= T::MinValidatorStk::get(), Error::<T>::ValBondBelowMin);
+			T::Currency::unreserve(&validator, less);
+			if state.is_active() {
+				Self::update_active(validator.clone(), state.total);
 			}
-			<Candidates<T>>::insert(&validator,state);
+			<Candidates<T>>::insert(&validator, state);
 			Self::deposit_event(RawEvent::ValidatorBondedLess(validator, before, after));
 			Ok(())
 		}
@@ -547,14 +605,6 @@ decl_module! {
 			Ok(())
 		}
 		#[weight = 0]
-		fn nominator_bond_more(origin, candidate: T::AccountId, more: BalanceOf<T>) -> DispatchResult {
-			Ok(())
-		}
-		#[weight = 0]
-		fn nominator_bond_less(origin, candidate: T::AccountId, less: BalanceOf<T>) -> DispatchResult {
-			Ok(())
-		}
-		#[weight = 0]
 		fn nominate(
 			origin,
 			validator: T::AccountId,
@@ -578,6 +628,49 @@ decl_module! {
 		#[weight = 0]
 		fn revoke_nomination(origin, validator: T::AccountId) -> DispatchResult {
 			Self::nominator_revokes_validator(ensure_signed(origin)?, validator.clone())
+		}
+		#[weight = 0]
+		fn nominator_bond_more(origin, candidate: T::AccountId, more: BalanceOf<T>) -> DispatchResult {
+			let nominator = ensure_signed(origin)?;
+			let mut nominations = <Nominators<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
+			let mut validator = <Candidates<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
+			let _ = nominations
+				.inc_nomination(candidate.clone(), more)
+				.ok_or(Error::<T>::NominationDNE)?;
+			T::Currency::reserve(&nominator, more)?;
+			let before = validator.total;
+			validator.inc_nominator(nominator.clone(), more);
+			let after = validator.total;
+			if validator.is_active() {
+				Self::update_active(candidate.clone(), validator.total);
+			}
+			<Candidates<T>>::insert(&candidate, validator);
+			<Nominators<T>>::insert(&nominator, nominations);
+			Self::deposit_event(RawEvent::NominationIncreased(nominator, candidate, before, after));
+			Ok(())
+		}
+		#[weight = 0]
+		fn nominator_bond_less(origin, candidate: T::AccountId, less: BalanceOf<T>) -> DispatchResult {
+			let nominator = ensure_signed(origin)?;
+			let mut nominations = <Nominators<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
+			let mut validator = <Candidates<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
+			let remaining = nominations
+				.dec_nomination(candidate.clone(), less)
+				.ok_or(Error::<T>::NominationDNE)?
+				.ok_or(Error::<T>::Underflow)?;
+			ensure!(remaining >= T::MinNomination::get(), Error::<T>::NominationBelowMin);
+			ensure!(nominations.total >= T::MinNominatorStk::get(), Error::<T>::NomBondBelowMin);
+			T::Currency::unreserve(&nominator, less);
+			let before = validator.total;
+			validator.dec_nominator(nominator.clone(), less);
+			let after = validator.total;
+			if validator.is_active() {
+				Self::update_active(candidate.clone(), validator.total);
+			}
+			<Candidates<T>>::insert(&candidate, validator);
+			<Nominators<T>>::insert(&nominator, nominations);
+			Self::deposit_event(RawEvent::NominationDecreased(nominator, candidate, before, after));
+			Ok(())
 		}
 		fn on_finalize(n: T::BlockNumber) {
 			if (n % T::BlocksPerRound::get()).is_zero() {
@@ -607,12 +700,12 @@ impl<T: Config> Module<T> {
 		<Validators<T>>::get().binary_search(acc).is_ok()
 	}
 	// ensure candidate is active before calling
-	fn update_active_candidate(candidate: T::AccountId, new_total: BalanceOf<T>) {
+	fn update_active(candidate: T::AccountId, total: BalanceOf<T>) {
 		let mut candidates = <CandidatePool<T>>::get();
 		candidates.remove(&Bond::from_owner(candidate.clone()));
 		candidates.insert(Bond {
 			owner: candidate.clone(),
-			amount: new_total,
+			amount: total,
 		});
 		<CandidatePool<T>>::put(candidates);
 	}
@@ -637,7 +730,7 @@ impl<T: Config> Module<T> {
 		T::Currency::reserve(&nominator, amount)?;
 		let new_total = state.total + amount;
 		if state.is_active() {
-			Self::update_active_candidate(validator.clone(), new_total);
+			Self::update_active(validator.clone(), new_total);
 		}
 		let new_total_locked = <Total<T>>::get() + amount;
 		<Total<T>>::put(new_total_locked);
@@ -684,13 +777,13 @@ impl<T: Config> Module<T> {
 		let nominator_stake = exists.ok_or(Error::<T>::NominatorDNE)?;
 		T::Currency::unreserve(&nominator, nominator_stake);
 		state.nominators = nominators;
-		let new_total = state.total - nominator_stake;
+		state.total -= nominator_stake;
 		if state.is_active() {
-			Self::update_active_candidate(validator.clone(), new_total);
+			Self::update_active(validator.clone(), state.total);
 		}
-		state.total = new_total;
 		let new_total_locked = <Total<T>>::get() - nominator_stake;
 		<Total<T>>::put(new_total_locked);
+		let new_total = state.total;
 		<Candidates<T>>::insert(&validator, state);
 		Self::deposit_event(RawEvent::NominatorLeftValidator(
 			nominator,
