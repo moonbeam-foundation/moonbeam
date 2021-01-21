@@ -44,11 +44,12 @@ fn opcode_serialize<S>(opcode: &Vec<u8>, serializer: S) -> Result<S::Ok, S::Erro
 where
 	S: Serializer,
 {
+	// TODO: how to propagate Err here (i.e. `from_utf8` fails), so the rpc requests also
+	// returns an error?
 	serializer.serialize_str(&format!(
 		"{}",
 		std::str::from_utf8(opcode)
-			.unwrap() // TODO
-			// .to_string()
+			.unwrap_or("")
 			.to_uppercase()
 			.replace("(", "")
 			.replace(")", "")

@@ -76,10 +76,6 @@ where
 	}
 
 	fn is_canon(&self, target_hash: H256) -> bool {
-		println!(
-			"#####################3 {:?}",
-			self.client.number(target_hash)
-		);
 		if let Ok(Some(number)) = self.client.number(target_hash) {
 			if let Ok(Some(header)) = self.client.header(BlockId::Number(number)) {
 				return header.hash() == target_hash;
@@ -130,7 +126,7 @@ where
 			.map_err(|err| internal_err(format!("{:?}", err)))?
 		{
 			Some((hash, index)) => (hash, index as usize),
-			None => return Err(internal_err(format!("could not decode transaction"))),
+			None => return Err(internal_err(format!("Transaction hash not found"))),
 		};
 
 		let id = match self
@@ -138,35 +134,32 @@ where
 			.map_err(|err| internal_err(format!("{:?}", err)))?
 		{
 			Some(hash) => hash,
-			_ => return Err(internal_err(format!("could not decode block"))),
+			_ => return Err(internal_err(format!("Block hash not found"))),
 		};
 
 		let res = self
 			.client
 			.runtime_api()
 			.trace_transaction(&id, index as u32)
-			.map_err(|err| internal_err(format!("call runtime failed: {:?}", err)))?;
+			.map_err(|err| internal_err(format!("Runtime call failed: {:?}", err)))?
+			.unwrap();
 
-		if let Some(res) = res {
-			return Ok(TraceExecutorResponse {
-				gas: res.gas,
-				return_value: res.return_value,
-				step_logs: res
-					.step_logs
-					.iter()
-					.map(|s| StepLog {
-						depth: s.depth,
-						gas: s.gas,
-						gas_cost: s.gas_cost,
-						memory: s.memory.clone(),
-						op: s.op.clone(),
-						pc: s.pc,
-						stack: s.stack.clone(),
-					})
-					.collect(),
-			});
-		}
-
-		Err(internal_err(format!("could not decode evm")))
+		Ok(TraceExecutorResponse {
+			gas: res.gas,
+			return_value: res.return_value,
+			step_logs: res
+				.step_logs
+				.iter()
+				.map(|s| StepLog {
+					depth: s.depth,
+					gas: s.gas,
+					gas_cost: s.gas_cost,
+					memory: s.memory.clone(),
+					op: s.op.clone(),
+					pc: s.pc,
+					stack: s.stack.clone(),
+				})
+				.collect(),
+		})
 	}
 }

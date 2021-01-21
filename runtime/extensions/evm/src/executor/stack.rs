@@ -5,8 +5,9 @@ pub use evm::{
 	backend::{Backend as BackendT, Basic},
 	executor::StackExecutor,
 	gasometer::{self as gasometer},
-	Capture, Context, CreateScheme, ExitReason, ExitSucceed, ExternalOpcode as EvmExternalOpcode,
-	Handler as HandlerT, Opcode as EvmOpcode, Runtime, Transfer,
+	Capture, Context, CreateScheme, ExitError, ExitReason, ExitSucceed,
+	ExternalOpcode as EvmExternalOpcode, Handler as HandlerT, Opcode as EvmOpcode, Runtime,
+	Transfer,
 };
 use frame_support::debug;
 use moonbeam_rpc_primitives_debug::{StepLog, TraceExecutorResponse};
@@ -39,7 +40,7 @@ pub trait TraceExecutor {
 		value: U256,
 		data: Vec<u8>,
 		gas_limit: u64,
-	) -> TraceExecutorResponse;
+	) -> Result<TraceExecutorResponse, ExitError>;
 
 	fn trace_create(
 		&mut self,
@@ -47,7 +48,7 @@ pub trait TraceExecutor {
 		value: U256,
 		code: Vec<u8>,
 		gas_limit: u64,
-	) -> TraceExecutorResponse;
+	) -> Result<TraceExecutorResponse, ExitError>;
 
 	fn trace(
 		&mut self,
@@ -56,7 +57,7 @@ pub trait TraceExecutor {
 		value: U256,
 		code: Vec<u8>,
 		data: Vec<u8>,
-	) -> TraceExecutorResponse;
+	) -> Result<TraceExecutorResponse, ExitError>;
 }
 
 impl<'backend, 'config, B: BackendT> TraceExecutor for StackExecutor<'backend, 'config, B> {
@@ -67,7 +68,7 @@ impl<'backend, 'config, B: BackendT> TraceExecutor for StackExecutor<'backend, '
 		value: U256,
 		code: Vec<u8>,
 		data: Vec<u8>,
-	) -> TraceExecutorResponse {
+	) -> Result<TraceExecutorResponse, ExitError> {
 		let context = Context {
 			caller,
 			address: contract_address,
@@ -77,43 +78,43 @@ impl<'backend, 'config, B: BackendT> TraceExecutor for StackExecutor<'backend, '
 		let mut step_logs = Vec::new();
 		loop {
 			if let Some((opcode, stack)) = runtime.machine().inspect() {
-				let is_static = self
+				let substate = self
 					.substates
 					.last()
-					.expect("substate vec always have length greater than one; qed")
-					.is_static;
+					.expect("substate vec always have length greater than one; qed");
 
 				let (opcode_cost, _memory_cost) = gasometer::opcode_cost(
 					contract_address,
 					opcode,
 					stack,
-					is_static,
+					substate.is_static,
 					&self.config,
 					self,
-				)
-				.unwrap();
-
-				let substate = self.substates.last().unwrap();
+				)?;
 
 				let gasometer_instance = substate.gasometer.clone();
+				let gas = gasometer_instance.gas();
+				let gas_cost = gasometer_instance.inner?.gas_cost(opcode_cost, gas)?;
 
-				let gas_cost = gasometer_instance
-					.clone()
-					.inner
-					.unwrap()
-					.gas_cost(opcode_cost, gasometer_instance.clone().gas());
+				let position = match &runtime.machine().position {
+					Ok(p) => p,
+					Err(reason) => match reason {
+						ExitReason::Error(e) => return Err(e.clone()),
+						_ => break,
+					},
+				};
 
 				step_logs.push(StepLog {
-					depth: U256::from(substate.depth.unwrap()), //Some -> U256,
-					gas: U256::from(self.used_gas()),           //U256,
-					gas_cost: U256::from(gas_cost.unwrap()),    //Result->U256,
-					memory: runtime.machine().memory().data.clone(), //Vec<u8>,
+					depth: U256::from(substate.depth.unwrap_or_default()),
+					gas: U256::from(self.used_gas()),
+					gas_cost: U256::from(gas_cost),
+					memory: runtime.machine().memory().data.clone(),
 					op: match opcode {
 						Ok(i) => Opcode(i).to_string().as_bytes().to_vec(),
 						Err(e) => ExternalOpcode(e).to_string().as_bytes().to_vec(),
-					}, // Result -> Vec<u8>
-					pc: U256::from(runtime.machine().position.clone().unwrap()), //Result -> U256,
-					stack: runtime.machine().stack().data.clone(), //Vec<H256>,
+					},
+					pc: U256::from(*position),
+					stack: runtime.machine().stack().data.clone(),
 				});
 			} else {
 				break;
@@ -125,11 +126,11 @@ impl<'backend, 'config, B: BackendT> TraceExecutor for StackExecutor<'backend, '
 			}
 		}
 
-		TraceExecutorResponse {
+		Ok(TraceExecutorResponse {
 			gas: U256::from(self.used_gas()),
 			return_value: runtime.machine().return_value(),
 			step_logs,
-		}
+		})
 	}
 
 	fn trace_call(
@@ -139,7 +140,7 @@ impl<'backend, 'config, B: BackendT> TraceExecutor for StackExecutor<'backend, '
 		value: U256,
 		data: Vec<u8>,
 		gas_limit: u64,
-	) -> TraceExecutorResponse {
+	) -> Result<TraceExecutorResponse, ExitError> {
 		let code = self.code(address);
 		self.enter_substate(gas_limit, false);
 		self.account_mut(address);
@@ -152,7 +153,7 @@ impl<'backend, 'config, B: BackendT> TraceExecutor for StackExecutor<'backend, '
 		value: U256,
 		code: Vec<u8>,
 		gas_limit: u64,
-	) -> TraceExecutorResponse {
+	) -> Result<TraceExecutorResponse, ExitError> {
 		let scheme = CreateScheme::Legacy { caller };
 		let address = self.create_address(scheme);
 		self.enter_substate(gas_limit, false);

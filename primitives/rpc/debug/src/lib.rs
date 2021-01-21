@@ -44,6 +44,8 @@ pub struct StepLog {
 
 sp_api::decl_runtime_apis! {
 	pub trait DebugRuntimeApi {
-		fn trace_transaction(transaction_index: u32) -> Option<TraceExecutorResponse>; // TODO return
+		fn trace_transaction(
+			transaction_index: u32
+		) -> Result<TraceExecutorResponse, sp_runtime::DispatchError>;
 	}
 }

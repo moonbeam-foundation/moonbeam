@@ -477,31 +477,20 @@ impl_runtime_apis! {
 	impl moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block> for Runtime {
 		fn trace_transaction(
 			transaction_index: u32
-		) -> Option<moonbeam_rpc_primitives_debug::TraceExecutorResponse> { // TODO return
-
-			debug::native::debug!(
-				target: "tgm",
-				"----> trace_transaction {:?}", transaction_index
-			);
-
+		) -> Result<
+			moonbeam_rpc_primitives_debug::TraceExecutorResponse,
+			sp_runtime::DispatchError
+		> {
 			if let Some(block) = <pallet_ethereum::Module<Runtime>>::current_block() {
 				let transactions = block.transactions;
-				debug::native::debug!(
-					target: "tgm",
-					"----> transactions {:?}", transactions
-				);
 				let mut c = <Runtime as pallet_evm::Config>::config().clone();
 				c.estimate = true;
 				let config = Some(c);
 				if let Some(transaction) = transactions.get(transaction_index as usize) {
-					debug::native::debug!(
-						target: "tgm",
-						"----> its there {:?}", transaction
-					);
 					let from = H160::default(); // TODO
 					match transaction.action {
 						TransactionAction::Call(to) => {
-							return Some(<Runtime as pallet_evm::Config>::Runner::trace_call(
+							if let Ok(res) = <Runtime as pallet_evm::Config>::Runner::trace_call(
 								from,
 								to,
 								transaction.input.clone(),
@@ -510,22 +499,14 @@ impl_runtime_apis! {
 								Some(transaction.gas_price),
 								Some(transaction.nonce),
 								config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
-							).unwrap());
-
-							// for s in res.unwrap().step_logs.iter() {
-							// 	debug::native::debug!(
-							// 		target: "tgm",
-							// 		"----> Result tgm {:?}", sp_std::str::from_utf8(&s.op[..])
-							// 	);
-							// }
-
-							// debug::native::debug!(
-							// 	target: "tgm",
-							// 	"----> Result tgm {:?}", res
-							// );
+							) {
+								return Ok(res);
+							} else {
+								return Err(sp_runtime::DispatchError::Other("Evm error"));
+							}
 						},
 						TransactionAction::Create => {
-							return Some(<Runtime as pallet_evm::Config>::Runner::trace_create(
+							if let Ok(res) = <Runtime as pallet_evm::Config>::Runner::trace_create(
 								from,
 								transaction.input.clone(),
 								transaction.value,
@@ -533,27 +514,17 @@ impl_runtime_apis! {
 								Some(transaction.gas_price),
 								Some(transaction.nonce),
 								config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
-							).unwrap());
-
-							// debug::native::debug!(
-							// 	target: "tgm",
-							// 	"----> Result tgm {:?}", res
-							// );
+							) {
+								return Ok(res);
+							} else {
+								return Err(sp_runtime::DispatchError::Other("Evm error"));
+							}
 						}
 					}
 				}
 
 			}
-			// <Runtime as pallet_evm::Config>::Runner::create(
-			// 	from,
-			// 	data,
-			// 	value,
-			// 	gas_limit.low_u32(),
-			// 	gas_price,
-			// 	nonce,
-			// 	config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
-			// ).map_err(|err| err.into())
-			None
+			Err(sp_runtime::DispatchError::Other("Failed to retrieve block from storage"))
 		}
 	}
 

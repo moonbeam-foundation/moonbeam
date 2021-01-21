@@ -4,13 +4,11 @@ use evm::{executor::StackExecutor, Config as EvmConfig, ExitReason};
 use moonbeam_rpc_primitives_debug::TraceExecutorResponse;
 use pallet_evm::{
 	runner::stack::{Backend, Runner},
-	CallInfo, Config, CreateInfo, Error, ExecutionInfo, PrecompileSet, Vicinity,
+	CallInfo, Config, CreateInfo, Error, ExecutionInfo, ExitError, PrecompileSet, Vicinity,
 };
 use sp_std::vec::Vec;
 
 pub trait TraceRunner<T: Config> {
-	type Error: Into<sp_runtime::DispatchError>;
-
 	fn trace_execute<F>(
 		source: H160,
 		value: U256,
@@ -19,9 +17,9 @@ pub trait TraceRunner<T: Config> {
 		nonce: Option<U256>,
 		config: &EvmConfig,
 		f: F,
-	) -> Result<TraceExecutorResponse, Error<T>>
+	) -> Result<TraceExecutorResponse, ExitError>
 	where
-		F: FnOnce(&mut StackExecutor<Backend<T>>) -> TraceExecutorResponse;
+		F: FnOnce(&mut StackExecutor<Backend<T>>) -> Result<TraceExecutorResponse, ExitError>;
 
 	fn trace_call(
 		source: H160,
@@ -32,7 +30,7 @@ pub trait TraceRunner<T: Config> {
 		gas_price: Option<U256>,
 		nonce: Option<U256>,
 		config: &EvmConfig,
-	) -> Result<TraceExecutorResponse, Self::Error>;
+	) -> Result<TraceExecutorResponse, ExitError>;
 
 	fn trace_create(
 		source: H160,
@@ -42,11 +40,10 @@ pub trait TraceRunner<T: Config> {
 		gas_price: Option<U256>,
 		nonce: Option<U256>,
 		config: &EvmConfig,
-	) -> Result<TraceExecutorResponse, Self::Error>;
+	) -> Result<TraceExecutorResponse, ExitError>;
 }
 
 impl<T: Config> TraceRunner<T> for Runner<T> {
-	type Error = Error<T>;
 	fn trace_execute<F>(
 		source: H160,
 		value: U256,
@@ -55,9 +52,9 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		nonce: Option<U256>,
 		config: &EvmConfig,
 		f: F,
-	) -> Result<TraceExecutorResponse, Error<T>>
+	) -> Result<TraceExecutorResponse, ExitError>
 	where
-		F: FnOnce(&mut StackExecutor<Backend<T>>) -> TraceExecutorResponse,
+		F: FnOnce(&mut StackExecutor<Backend<T>>) -> Result<TraceExecutorResponse, ExitError>,
 	{
 		let vicinity = Vicinity {
 			gas_price: U256::zero(),
@@ -72,7 +69,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 			T::Precompiles::execute,
 		);
 
-		Ok(f(&mut executor))
+		f(&mut executor)
 	}
 
 	fn trace_call(
@@ -84,7 +81,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		gas_price: Option<U256>,
 		nonce: Option<U256>,
 		config: &EvmConfig,
-	) -> Result<TraceExecutorResponse, Self::Error> {
+	) -> Result<TraceExecutorResponse, ExitError> {
 		Self::trace_execute(
 			source,
 			value,
@@ -104,7 +101,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		gas_price: Option<U256>,
 		nonce: Option<U256>,
 		config: &EvmConfig,
-	) -> Result<TraceExecutorResponse, Self::Error> {
+	) -> Result<TraceExecutorResponse, ExitError> {
 		Self::trace_execute(
 			source,
 			value,
