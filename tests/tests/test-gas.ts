@@ -93,7 +93,7 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
   // minus the block initialization (10%) and minus the extrinsic base cost.
   const EXTRINSIC_GAS_LIMIT = BLOCK_TX_GAS_LIMIT - BLOCK_TX_LIMIT * 0.1 - EXTRINSIC_BASE_COST;
 
-  it("gas limit should be fine up to the weight limit", async function () {
+  it.skip("gas limit should be fine up to the weight limit", async function () {
     const nonce = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
     const goodTx = await context.web3.eth.accounts.signTransaction(
       {
