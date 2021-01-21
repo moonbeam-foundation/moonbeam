@@ -65,6 +65,10 @@ cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus",  defa
 parachain-info = { path = "../pallets/parachain-info", default-features = false }
 author-inherent = { path = "../pallets/author-inherent", default-features = false }
 
+# Used for runtime benchmarking
+frame-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master", optional = true }
+frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master", optional = true }
+
 [build-dependencies]
 substrate-wasm-builder = { version = "4.0.0", git = "https://github.com/paritytech/substrate.git", branch = "master" }
 
@@ -118,4 +122,8 @@ std = [
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
 runtime-wasm = [
 	# "cumulus-upward-message/runtime-wasm",
+]
+
+runtime-benchmarks = [
+    "author-inherent/runtime-benchmarks",
 ]

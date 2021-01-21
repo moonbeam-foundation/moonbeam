@@ -2146,6 +2146,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "frame-system-benchmarking"
+version = "2.0.1"
+source = "git+https://github.com/paritytech/substrate#f977fb8a16548534481ba1dac948fa6835c1835d"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "frame-system-rpc-runtime-api"
 version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate#ca63242fc848b9bff739c246e07310dd15ec25eb"
@@ -3831,15 +3845,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "mach"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b823e83b2affd8f40a9ee8c29dbc56404c1e34cd2710921f2801e2cf29527afa"
-dependencies = [
- "libc",
-]
-
-[[package]]
 name = "maplit"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4212,9 +4217,11 @@ dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
  "fp-rpc",
+ "frame-benchmarking",
  "frame-executive",
  "frame-support",
  "frame-system",
+ "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "hex-literal",
  "log",
@@ -4725,20 +4732,6 @@ dependencies = [
  "parity-scale-codec",
  "serde",
  "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-elections-phragmen"
-version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate#ca63242fc848b9bff739c246e07310dd15ec25eb"
-dependencies = [
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "serde",
- "sp-npos-elections",
  "sp-runtime",
  "sp-std",
 ]
@@ -10519,17 +10512,6 @@ name = "try-lock"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "59547bce71d9c38b83d9c0e92b6066c4253371f15005def0c30d9657f50c7642"
-
-[[package]]
-name = "twox-hash"
-version = "1.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04f8ab788026715fa63b31960869617cba39117e520eb415b0139543e325ab59"
-dependencies = [
- "cfg-if 0.1.10",
- "rand 0.3.23",
- "static_assertions",
-]
 
 [[package]]
 name = "typenum"
