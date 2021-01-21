@@ -71,6 +71,7 @@ fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "v0.5-ho
 fc-rpc = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 
 author-inherent = { path = "../../pallets/author-inherent"}
+account = { path = "../../runtime/account"}
 
 # Cumulus dependencies
 cumulus-consensus = { git = "https://github.com/paritytech/cumulus", branch = "master" }
