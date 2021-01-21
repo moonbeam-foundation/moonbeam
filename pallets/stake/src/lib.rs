@@ -166,7 +166,7 @@ impl<
 		self.bond += more;
 		self.total += more;
 	}
-	// Returns None if underflow or less == self.bond (in which case validator should leave instead of bonding less)
+	// Returns None if underflow or less == self.bond (in which case validator should leave instead)
 	pub fn bond_less(&mut self, less: B) -> Option<B> {
 		if self.bond > less {
 			self.bond -= less;
@@ -630,7 +630,11 @@ decl_module! {
 			Self::nominator_revokes_validator(ensure_signed(origin)?, validator.clone())
 		}
 		#[weight = 0]
-		fn nominator_bond_more(origin, candidate: T::AccountId, more: BalanceOf<T>) -> DispatchResult {
+		fn nominator_bond_more(
+			origin,
+			candidate: T::AccountId,
+			more: BalanceOf<T>
+		) -> DispatchResult {
 			let nominator = ensure_signed(origin)?;
 			let mut nominations = <Nominators<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
 			let mut validator = <Candidates<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
@@ -650,7 +654,11 @@ decl_module! {
 			Ok(())
 		}
 		#[weight = 0]
-		fn nominator_bond_less(origin, candidate: T::AccountId, less: BalanceOf<T>) -> DispatchResult {
+		fn nominator_bond_less(
+			origin,
+			candidate: T::AccountId,
+			less: BalanceOf<T>
+		) -> DispatchResult {
 			let nominator = ensure_signed(origin)?;
 			let mut nominations = <Nominators<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
 			let mut validator = <Candidates<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
