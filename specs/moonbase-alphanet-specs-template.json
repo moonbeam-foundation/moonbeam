@@ -58,7 +58,7 @@
         "parachainId": 1000
       },
       "palletEthereumChainId": {
-        "chainId": 1281
+        "chainId": 1287
       },
       "palletEvm": {
         "accounts": {}
