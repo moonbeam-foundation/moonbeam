@@ -89,7 +89,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		None,
 		Some(serde_json::from_str("{\"tokenDecimals\": 18}").expect("Provided valid json map")),
 		Extensions {
-			relay_chain: "local_testnet".into(),
+			relay_chain: "rococo-local".into(),
 			para_id: para_id.into(),
 		},
 	)
