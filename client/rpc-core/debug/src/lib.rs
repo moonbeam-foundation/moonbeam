@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use ethereum_types::H256;
 use jsonrpc_core::Result;
 use jsonrpc_derive::rpc;
-use sp_core::H256;
 
 pub mod types;
 

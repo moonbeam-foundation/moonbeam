@@ -1,11 +1,11 @@
 use crate::executor::stack::TraceExecutor as TraceExecutorT;
+use ethereum_types::{H160, U256};
 use evm::{executor::StackExecutor, Config as EvmConfig, ExitReason};
 use moonbeam_rpc_primitives_debug::TraceExecutorResponse;
 use pallet_evm::{
 	runner::stack::{Backend, Runner},
 	CallInfo, Config, CreateInfo, Error, ExecutionInfo, PrecompileSet, Vicinity,
 };
-use sp_core::{H160, U256};
 use sp_std::vec::Vec;
 
 pub trait TraceRunner<T: Config> {

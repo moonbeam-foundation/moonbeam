@@ -17,7 +17,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use codec::{Decode, Encode};
-use sp_core::{H256, U256};
+use ethereum_types::{H256, U256};
 use sp_std::vec::Vec;
 
 //pub use moonbeam_rpc_core_debug::types::StepLog;

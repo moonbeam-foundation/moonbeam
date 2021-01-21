@@ -3792,6 +3792,7 @@ dependencies = [
 name = "moonbeam-extensions-evm"
 version = "0.1.0"
 dependencies = [
+ "ethereum-types 0.10.0",
  "evm 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "frame-support",
  "moonbeam-rpc-primitives-debug",
@@ -3837,7 +3838,7 @@ dependencies = [
 name = "moonbeam-rpc-core-debug"
 version = "0.1.0"
 dependencies = [
- "ethereum-types 0.9.2",
+ "ethereum-types 0.10.0",
  "jsonrpc-core 15.1.0",
  "jsonrpc-core-client 14.2.0",
  "jsonrpc-derive 14.2.2",
@@ -3850,7 +3851,7 @@ dependencies = [
 name = "moonbeam-rpc-debug"
 version = "0.1.0"
 dependencies = [
- "ethereum-types 0.9.2",
+ "ethereum-types 0.10.0",
  "fc-consensus",
  "jsonrpc-core 15.1.0",
  "moonbeam-rpc-core-debug",
@@ -3866,7 +3867,7 @@ dependencies = [
 name = "moonbeam-rpc-primitives-debug"
 version = "0.1.0"
 dependencies = [
- "ethereum-types 0.9.2",
+ "ethereum-types 0.10.0",
  "parity-scale-codec",
  "sp-api",
  "sp-core",

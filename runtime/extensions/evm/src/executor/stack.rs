@@ -1,5 +1,6 @@
 extern crate alloc;
 use alloc::string::ToString;
+use ethereum_types::{H160, H256, U256};
 pub use evm::{
 	backend::{Backend as BackendT, Basic},
 	executor::StackExecutor,
@@ -9,7 +10,6 @@ pub use evm::{
 };
 use frame_support::debug;
 use moonbeam_rpc_primitives_debug::{StepLog, TraceExecutorResponse};
-use sp_core::{H160, H256, U256};
 use sp_std::{cmp::min, collections::btree_map::BTreeMap, convert::Infallible, rc::Rc, vec::Vec};
 
 macro_rules! displayable {

@@ -13,8 +13,8 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+use ethereum_types::{H256, U256};
 use serde::{Serialize, Serializer};
-use sp_core::{H256, U256};
 use std::collections::BTreeMap;
 
 #[derive(Eq, PartialEq, Debug, Serialize)]
