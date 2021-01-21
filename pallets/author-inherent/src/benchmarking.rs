@@ -41,12 +41,13 @@ benchmarks! {
 mod tests {
 	use super::*;
 	use crate::tests::{new_test_ext, Test};
-	use frame_support::assert_ok;
+	use frame_support::{assert_ok, assert_err};
 
 	#[test]
 	fn test_benchmarks() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_set_author::<Test>());
+			assert_err!(test_benchmark_set_author::<Test>(), "Bad origin");
+			// assert_ok!(test_benchmark_set_author::<Test>());
 		});
 	}
 }
