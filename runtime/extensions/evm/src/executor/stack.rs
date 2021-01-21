@@ -89,12 +89,12 @@ impl<'backend, 'config, B: BackendT> TraceExecutor for StackExecutor<'backend, '
 			address: contract_address,
 			apparent_value: value,
 		};
-		let mut runtime = Runtime::new(Rc::new(code), Rc::new(data), context, self.config);
+		let mut runtime = Runtime::new(Rc::new(code), Rc::new(data), context, self.config());
 		let mut step_logs = Vec::new();
 		loop {
 			if let Some((opcode, stack)) = runtime.machine().inspect() {
 				let substate = self
-					.substates
+					.substates()
 					.last()
 					.expect("substate vec always have length greater than one; qed");
 
@@ -102,15 +102,15 @@ impl<'backend, 'config, B: BackendT> TraceExecutor for StackExecutor<'backend, '
 					contract_address,
 					opcode,
 					stack,
-					substate.is_static,
-					&self.config,
+					substate.is_static(),
+					self.config(),
 					self,
 				)?;
 
-				let gasometer_instance = substate.gasometer.clone();
+				let gasometer_instance = substate.gasometer().clone();
 				let gas = gasometer_instance.gas();
-				let gas_cost = gasometer_instance.inner?.gas_cost(opcode_cost, gas)?;
-				let position = match &runtime.machine().position {
+				let gas_cost = gasometer_instance.inner()?.gas_cost(opcode_cost, gas)?;
+				let position = match runtime.machine().position() {
 					Ok(p) => p,
 					Err(reason) => match reason {
 						ExitReason::Error(e) => return Err(e.clone()),
@@ -119,16 +119,16 @@ impl<'backend, 'config, B: BackendT> TraceExecutor for StackExecutor<'backend, '
 				};
 
 				step_logs.push(StepLog {
-					depth: U256::from(substate.depth.unwrap_or_default()),
+					depth: U256::from(substate.depth().unwrap_or_default()),
 					gas: U256::from(self.used_gas()),
 					gas_cost: U256::from(gas_cost),
-					memory: runtime.machine().memory().data.clone(),
+					memory: runtime.machine().memory().data().clone(),
 					op: match opcode {
 						Ok(i) => Opcode(i).to_string().as_bytes().to_vec(),
 						Err(e) => ExternalOpcode(e).to_string().as_bytes().to_vec(),
 					},
 					pc: U256::from(*position),
-					stack: runtime.machine().stack().data.clone(),
+					stack: runtime.machine().stack().data().clone(),
 					storage: match self.account(contract_address) {
 						Some(account) => account.storage.clone(),
 						_ => BTreeMap::new(),
