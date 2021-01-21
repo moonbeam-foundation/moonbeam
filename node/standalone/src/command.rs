@@ -18,9 +18,9 @@ use crate::chain_spec;
 use crate::cli::{Cli, Subcommand};
 use crate::service;
 use crate::service::new_partial;
+use account::EthereumSigner;
 use sc_cli::{ChainSpec, Role, RuntimeVersion, SubstrateCli};
 use sc_service::PartialComponents;
-use account::EthereumSigner;
 use sp_core::{ecdsa, Pair};
 use sp_runtime::traits::IdentifyAccount;
 

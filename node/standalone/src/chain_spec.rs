@@ -16,13 +16,14 @@
 
 use moonbeam_runtime::{
 	AccountId, AuraConfig, BalancesConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig,
-	GenesisConfig, GrandpaConfig, Signature, StakeConfig, SudoConfig, SystemConfig, GLMR, WASM_BINARY,
+	GenesisConfig, GrandpaConfig, Signature, StakeConfig, SudoConfig, SystemConfig, GLMR,
+	WASM_BINARY,
 };
 use sc_service::ChainType;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::{ecdsa, Pair, Public};
-use sp_runtime::traits::{IdentifyAccount, Verify};
 use sp_finality_grandpa::AuthorityId as GrandpaId;
+use sp_runtime::traits::{IdentifyAccount, Verify};
 use std::collections::BTreeMap;
 use std::str::FromStr;
 
