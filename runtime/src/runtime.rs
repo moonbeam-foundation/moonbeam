@@ -15,7 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Exposes the core runtime types.
-//! Feature `standalone` allows to configure the runtime for a standalone node instead of a parachain.
+//! Feature `standalone` allows to configure the runtime for a standalone node instead of a
+//! parachain.
 
 use crate::{common::*, ethereum::EthereumFindAuthor, opaque, Box, Vec};
 use fp_rpc::TransactionStatus;

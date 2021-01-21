@@ -266,9 +266,9 @@ pub fn run() -> Result<()> {
 		}
 		None => {
 			let runner = cli.create_runner(&*cli.run)?;
-			let account = cli.run.account_id.ok_or(sc_cli::Error::Input(
-				"Account ID required but not set".to_string(),
-			))?;
+			let account = cli.run.account_id.ok_or_else(|| {
+				sc_cli::Error::Input("Account ID required but not set".to_string())
+			})?;
 			runner.run_node_until_exit(|config| async move {
 				let key = sp_core::Pair::generate().0;
 
