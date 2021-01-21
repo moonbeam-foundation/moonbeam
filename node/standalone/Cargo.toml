@@ -63,6 +63,7 @@ fc-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.5-h
 fp-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 
 author-inherent = { path = "../../pallets/author-inherent"}
+account = { path = "../../runtime/account"}
 
 [build-dependencies]
 substrate-build-script-utils = { git = "https://github.com/paritytech/substrate", branch = "master" }

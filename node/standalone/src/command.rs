@@ -20,6 +20,9 @@ use crate::service;
 use crate::service::new_partial;
 use sc_cli::{ChainSpec, Role, RuntimeVersion, SubstrateCli};
 use sc_service::PartialComponents;
+use account::EthereumSigner;
+use sp_core::{ecdsa, Pair};
+use sp_runtime::traits::IdentifyAccount;
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
@@ -133,10 +136,58 @@ pub fn run() -> sc_cli::Result<()> {
 		}
 		None => {
 			let runner = cli.create_runner(&cli.run.base)?;
+
+			// Supply the correct author id for wellknown validators.
+			// This isn't super elegant, but the alternative is modifying Substrate
+			// and this will go away when we start signing blocks
+			let author_id = if cli.run.base.shared_params.dev {
+				let alice_public = ecdsa::Pair::from_string("//Alice", None)
+					.expect("Alice is a valid phrase")
+					.public();
+				Some(EthereumSigner::from(alice_public).into_account())
+			} else if cli.run.base.alice {
+				let alice_public = ecdsa::Pair::from_string("//Alice", None)
+					.expect("Alice is a valid phrase")
+					.public();
+				Some(EthereumSigner::from(alice_public).into_account())
+			} else if cli.run.base.bob {
+				let alice_public = ecdsa::Pair::from_string("//Bob", None)
+					.expect("Alice is a valid phrase")
+					.public();
+				Some(EthereumSigner::from(alice_public).into_account())
+			} else if cli.run.base.charlie {
+				let alice_public = ecdsa::Pair::from_string("//Charlie", None)
+					.expect("Alice is a valid phrase")
+					.public();
+				Some(EthereumSigner::from(alice_public).into_account())
+			} else if cli.run.base.dave {
+				let alice_public = ecdsa::Pair::from_string("//Dave", None)
+					.expect("Alice is a valid phrase")
+					.public();
+				Some(EthereumSigner::from(alice_public).into_account())
+			} else if cli.run.base.eve {
+				let alice_public = ecdsa::Pair::from_string("//Eve", None)
+					.expect("Alice is a valid phrase")
+					.public();
+				Some(EthereumSigner::from(alice_public).into_account())
+			} else if cli.run.base.ferdie {
+				let alice_public = ecdsa::Pair::from_string("//Ferdie", None)
+					.expect("Alice is a valid phrase")
+					.public();
+				Some(EthereumSigner::from(alice_public).into_account())
+			} else {
+				// Leave it as it was
+				cli.run.author_id
+			};
+
+			if cli.run.base.validator && author_id.is_none() {
+				return Err("Authoring nodes must specify an author account id".into());
+			}
+
 			runner.run_node_until_exit(|config| async move {
 				match config.role {
 					Role::Light => service::new_light(config),
-					_ => service::new_full(config, cli.run.manual_seal, cli.run.author_id),
+					_ => service::new_full(config, cli.run.manual_seal, author_id),
 				}
 			})
 		}
