@@ -34,7 +34,7 @@ use sc_service::{
 	PartialComponents,
 };
 use sp_core::hexdisplay::HexDisplay;
-use sp_core::{ecdsa, Pair, H160};
+use sp_core::{ecdsa, Pair};
 use sp_runtime::traits::{Block as _, IdentifyAccount};
 use std::{io::Write, net::SocketAddr};
 
@@ -269,12 +269,11 @@ pub fn run() -> Result<()> {
 		None => {
 			let runner = cli.create_runner(&*cli.run)?;
 			let collator = cli.run.base.validator || cli.collator;
-			let mut author_id: Option<H160> = cli.run.author_id;
 
 			// Supply the correct author id for wellknown validators.
 			// This isn't super elegant, but the alternative is modifying Substrate
 			// and this will go away when we start signing blocks
-			author_id = if cli.run.base.shared_params.dev {
+			let author_id = if cli.run.base.shared_params.dev {
 				//TODO what do we actually expect `--dev` to do in the parachain context
 				let alice_public = ecdsa::Pair::from_string("//Alice", None)
 					.expect("Alice is a valid phrase")
@@ -312,14 +311,13 @@ pub fn run() -> Result<()> {
 				Some(EthereumSigner::from(alice_public).into_account())
 			} else {
 				// Leave it as it was
-				author_id
+				cli.run.author_id
 			};
 
-			if collator {
-				if author_id.is_none() {
-					return Err("Collator nodes must specify an author account id".into());
-				}
+			if collator && author_id.is_none() {
+				return Err("Collator nodes must specify an author account id".into());
 			}
+
 			runner.run_node_until_exit(|config| async move {
 				let key = sp_core::Pair::generate().0;
 
