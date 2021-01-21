@@ -128,7 +128,7 @@ impl<B> Default for ValidatorStatus<B> {
 
 #[derive(Encode, Decode, RuntimeDebug)]
 pub struct Validator<AccountId, Balance> {
-	pub account: AccountId,
+	pub id: AccountId,
 	pub fee: Perbill,
 	pub bond: Balance,
 	pub nominators: OrderedSet<Bond<AccountId, Balance>>,
@@ -141,10 +141,10 @@ impl<
 		B: AtLeast32BitUnsigned + Ord + Copy + sp_std::ops::AddAssign + sp_std::ops::SubAssign,
 	> Validator<A, B>
 {
-	pub fn new(account: A, fee: Perbill, bond: B) -> Self {
+	pub fn new(id: A, fee: Perbill, bond: B) -> Self {
 		let total = bond;
 		Validator {
-			account,
+			id,
 			fee,
 			bond,
 			nominators: OrderedSet::new(),
@@ -161,6 +161,15 @@ impl<
 		} else {
 			false
 		}
+	}
+	pub fn bond_more(&mut self, more: B) {
+		self.bond += more;
+		self.total += more;
+	}
+	pub fn bond_less(&mut self, less: B) -> B {
+		self.bond -= less;
+		self.total -= less;
+		self.bond
 	}
 	pub fn go_offline(&mut self) {
 		self.state = ValidatorStatus::Idle;
@@ -281,6 +290,10 @@ decl_event!(
 		JoinedValidatorCandidates(AccountId, Balance, Balance),
 		/// Round, Validator Account, Total Exposed Amount (includes all nominations)
 		ValidatorChosen(RoundIndex, AccountId, Balance),
+		/// Validator Account, Old Bond, New Bond
+		ValidatorBondedMore(AccountId, Balance, Balance),
+		/// Validator Account, Old Bond, New Bond
+		ValidatorBondedLess(AccountId, Balance, Balance),
 		ValidatorWentOffline(RoundIndex, AccountId),
 		ValidatorBackOnline(RoundIndex, AccountId),
 		/// Round, Validator Account, Scheduled Exit
@@ -417,6 +430,28 @@ decl_module! {
 			Ok(())
 		}
 		#[weight = 0]
+		fn leave_candidates(origin) -> DispatchResult {
+			let validator = ensure_signed(origin)?;
+			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
+			ensure!(!state.is_leaving(),Error::<T>::AlreadyLeaving);
+			let mut exits = <ExitQueue<T>>::get();
+			let now = <Round>::get();
+			let when = now + T::BondDuration::get();
+			ensure!(
+				exits.insert(Bond{owner:validator.clone(),amount:when}),
+				Error::<T>::AlreadyLeaving
+			);
+			state.leave_candidates(when);
+			let mut candidates = <CandidatePool<T>>::get();
+			if candidates.remove(&Bond::from_owner(validator.clone())) {
+				<CandidatePool<T>>::put(candidates);
+			}
+			<ExitQueue<T>>::put(exits);
+			<Candidates<T>>::insert(&validator,state);
+			Self::deposit_event(RawEvent::ValidatorScheduledExit(now,validator,when));
+			Ok(())
+		}
+		#[weight = 0]
 		fn go_offline(origin) -> DispatchResult {
 			let validator = ensure_signed(origin)?;
 			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
@@ -448,25 +483,41 @@ decl_module! {
 			Ok(())
 		}
 		#[weight = 0]
-		fn leave_candidates(origin) -> DispatchResult {
+		fn candidate_bond_more(origin, more: BalanceOf<T>) -> DispatchResult {
 			let validator = ensure_signed(origin)?;
 			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
-			ensure!(!state.is_leaving(),Error::<T>::AlreadyLeaving);
-			let mut exits = <ExitQueue<T>>::get();
-			let now = <Round>::get();
-			let when = now + T::BondDuration::get();
-			ensure!(
-				exits.insert(Bond{owner:validator.clone(),amount:when}),
-				Error::<T>::AlreadyLeaving
-			);
-			state.leave_candidates(when);
+			ensure!(!state.is_leaving(),Error::<T>::CannotActivateIfLeaving);
+			T::Currency::reserve(&validator, more)?;
+			let before = state.bond;
+			state.bond_more(more);
+			let after = state.bond;
 			let mut candidates = <CandidatePool<T>>::get();
 			if candidates.remove(&Bond::from_owner(validator.clone())) {
-				<CandidatePool<T>>::put(candidates);
+				if candidates.insert(Bond{owner:validator.clone(),amount:state.total}) {
+					<CandidatePool<T>>::put(candidates);
+				}
 			}
-			<ExitQueue<T>>::put(exits);
 			<Candidates<T>>::insert(&validator,state);
-			Self::deposit_event(RawEvent::ValidatorScheduledExit(now,validator,when));
+			Self::deposit_event(RawEvent::ValidatorBondedMore(validator, before, after));
+			Ok(())
+		}
+		#[weight = 0]
+		fn candidate_bond_less(origin, less: BalanceOf<T>) -> DispatchResult {
+			let validator = ensure_signed(origin)?;
+			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
+			ensure!(!state.is_leaving(),Error::<T>::CannotActivateIfLeaving);
+			let before = state.bond;
+			ensure!(state.bond_less(less) >= T::MinValidatorStk::get(), Error::<T>::ValBondBelowMin);
+			let after = state.bond;
+			// TODO: make this into an update_if_candidates method (shared with candidate_bond_more)
+			let mut candidates = <CandidatePool<T>>::get();
+			if candidates.remove(&Bond::from_owner(validator.clone())) {
+				if candidates.insert(Bond{owner:validator.clone(),amount:state.total}) {
+					<CandidatePool<T>>::put(candidates);
+				}
+			}
+			<Candidates<T>>::insert(&validator,state);
+			Self::deposit_event(RawEvent::ValidatorBondedLess(validator, before, after));
 			Ok(())
 		}
 		#[weight = 0]
@@ -482,6 +533,25 @@ decl_module! {
 			Self::nominator_joins_validator(acc.clone(), amount, validator.clone())?;
 			<Nominators<T>>::insert(&acc, Nominator::new(validator.clone(),amount));
 			Self::deposit_event(RawEvent::NominatorJoined(acc,amount));
+			Ok(())
+		}
+		#[weight = 0]
+		fn leave_nominators(origin) -> DispatchResult {
+			let acc = ensure_signed(origin)?;
+			let nominator = <Nominators<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
+			for bond in nominator.nominations.0 {
+				Self::nominator_leaves_validator(acc.clone(), bond.owner.clone())?;
+			}
+			<Nominators<T>>::remove(&acc);
+			Self::deposit_event(RawEvent::NominatorLeft(acc.clone(), nominator.total));
+			Ok(())
+		}
+		#[weight = 0]
+		fn nominator_bond_more(origin, candidate: T::AccountId, more: BalanceOf<T>) -> DispatchResult {
+			Ok(())
+		}
+		#[weight = 0]
+		fn nominator_bond_less(origin, candidate: T::AccountId, less: BalanceOf<T>) -> DispatchResult {
 			Ok(())
 		}
 		#[weight = 0]
@@ -508,17 +578,6 @@ decl_module! {
 		#[weight = 0]
 		fn revoke_nomination(origin, validator: T::AccountId) -> DispatchResult {
 			Self::nominator_revokes_validator(ensure_signed(origin)?, validator.clone())
-		}
-		#[weight = 0]
-		fn leave_nominators(origin) -> DispatchResult {
-			let acc = ensure_signed(origin)?;
-			let nominator = <Nominators<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
-			for bond in nominator.nominations.0 {
-				Self::nominator_leaves_validator(acc.clone(), bond.owner.clone())?;
-			}
-			<Nominators<T>>::remove(&acc);
-			Self::deposit_event(RawEvent::NominatorLeft(acc.clone(), nominator.total));
-			Ok(())
 		}
 		fn on_finalize(n: T::BlockNumber) {
 			if (n % T::BlocksPerRound::get()).is_zero() {
@@ -678,13 +737,8 @@ impl<T: Config> Module<T> {
 						}
 						let pct = Perbill::from_rational_approximation(state.bond, state.total);
 						let due = pct * amt_due;
-						if let Some(imb) =
-							T::Currency::deposit_into_existing(&state.account, due).ok()
-						{
-							Self::deposit_event(RawEvent::Rewarded(
-								state.account.clone(),
-								imb.peek(),
-							));
+						if let Some(imb) = T::Currency::deposit_into_existing(&state.id, due).ok() {
+							Self::deposit_event(RawEvent::Rewarded(state.id.clone(), imb.peek()));
 						}
 					}
 				}
@@ -715,7 +769,7 @@ impl<T: Config> Module<T> {
 							}
 						}
 						// return stake to validator
-						T::Currency::unreserve(&state.account, state.bond);
+						T::Currency::unreserve(&state.id, state.bond);
 						let new_total = <Total<T>>::get() - state.total;
 						<Total<T>>::put(new_total);
 						<Candidates<T>>::remove(&x.owner);

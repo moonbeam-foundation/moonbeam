@@ -592,3 +592,49 @@ fn multiple_nomination_works() {
 		assert_eq!(Balances::free_balance(&7), 90);
 	});
 }
+
+#[test]
+fn validators_bond_more_less() {
+	genesis3().execute_with(|| {
+		roll_to(4);
+		assert_noop!(
+			Stake::candidate_bond_more(Origin::signed(6), 50),
+			Error::<Test>::CandidateDNE
+		);
+		assert_ok!(Stake::candidate_bond_more(Origin::signed(1), 50));
+		assert_noop!(
+			Stake::candidate_bond_more(Origin::signed(1), 40),
+			DispatchError::Module {
+				index: 0,
+				error: 3,
+				message: Some("InsufficientBalance")
+			}
+		);
+		assert_ok!(Stake::leave_candidates(Origin::signed(1)));
+		assert_noop!(
+			Stake::candidate_bond_more(Origin::signed(1), 30),
+			Error::<Test>::CannotActivateIfLeaving
+		);
+		roll_to(30);
+		assert_noop!(
+			Stake::candidate_bond_more(Origin::signed(1), 40),
+			Error::<Test>::CandidateDNE
+		);
+		assert_ok!(Stake::candidate_bond_more(Origin::signed(2), 80));
+		assert_ok!(Stake::candidate_bond_less(Origin::signed(2), 90));
+		assert_ok!(Stake::candidate_bond_less(Origin::signed(3), 10));
+		assert_noop!(
+			Stake::candidate_bond_less(Origin::signed(2), 1),
+			Error::<Test>::ValBondBelowMin
+		);
+		assert_noop!(
+			Stake::candidate_bond_less(Origin::signed(3), 1),
+			Error::<Test>::ValBondBelowMin
+		);
+		assert_noop!(
+			Stake::candidate_bond_less(Origin::signed(4), 11),
+			Error::<Test>::ValBondBelowMin
+		);
+		assert_ok!(Stake::candidate_bond_less(Origin::signed(4), 10));
+	});
+}
