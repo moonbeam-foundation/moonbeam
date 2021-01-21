@@ -4666,8 +4666,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-elections-phragmen"
-version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=master#d9e56efe6ada3fdd3b7bb9098a5edbc5c086cf90"
+version = "2.0.1"
+source = "git+https://github.com/paritytech/substrate?branch=master#f977fb8a16548534481ba1dac948fa6835c1835d"
 dependencies = [
  "frame-support",
  "frame-system",
