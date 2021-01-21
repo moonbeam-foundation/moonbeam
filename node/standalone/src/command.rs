@@ -20,6 +20,7 @@ use crate::service;
 use crate::service::new_partial;
 use sc_cli::{ChainSpec, Role, RuntimeVersion, SubstrateCli};
 use sc_service::PartialComponents;
+use moonbeam_runtime::opaque::Block;
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
@@ -131,6 +132,16 @@ pub fn run() -> sc_cli::Result<()> {
 				Ok((cmd.run(client, backend), task_manager))
 			})
 		}
+		Some(Subcommand::Benchmark(cmd)) => {
+			if cfg!(feature = "runtime-benchmarks") {
+				let runner = cli.create_runner(cmd)?;
+
+				runner.sync_run(|config| cmd.run::<Block, service::Executor>(config))
+			} else {
+				Err("Benchmarking wasn't enabled when building the node. \
+				You can enable it with `--features runtime-benchmarks`.".into())
+			}
+		},
 		None => {
 			let runner = cli.create_runner(&cli.run.base)?;
 			runner.run_node_until_exit(|config| async move {
