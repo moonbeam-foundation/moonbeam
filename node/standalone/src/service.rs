@@ -41,6 +41,7 @@ native_executor_instance!(
 	pub Executor,
 	moonbeam_runtime::api::dispatch,
 	moonbeam_runtime::native_version,
+	frame_benchmarking::benchmarking::HostFunctions,
 );
 
 /// Build the inherent data providers (timestamp and authorship) for the node.
