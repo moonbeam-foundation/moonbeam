@@ -4737,6 +4737,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-elections-phragmen"
+version = "2.0.1"
+source = "git+https://github.com/paritytech/substrate?branch=master#f977fb8a16548534481ba1dac948fa6835c1835d"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "serde",
+ "sp-npos-elections",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-ethereum"
 version = "0.1.0"
 source = "git+https://github.com/purestake/frontier?branch=v0.7-moonbeam#506d64b044aa1737e7097ed1bd4f780d5c09c199"
