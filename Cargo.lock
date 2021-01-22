@@ -1716,7 +1716,7 @@ dependencies = [
  "ethereum",
  "ethereum-types",
  "fc-consensus",
- "fc-rpc-core",
+ "fc-rpc-core 0.1.0 (git+https://github.com/purestake/frontier?branch=tgm-v0.5-hotfixes-debug)",
  "fp-rpc",
  "futures 0.3.12",
  "jsonrpc-core 15.1.0",
@@ -1749,6 +1749,21 @@ dependencies = [
 name = "fc-rpc-core"
 version = "0.1.0"
 source = "git+https://github.com/purestake/frontier?branch=tgm-v0.5-hotfixes-debug#c09b6fec82acf0292a892d4b7e11db7729cd901b"
+dependencies = [
+ "ethereum-types",
+ "jsonrpc-core 15.1.0",
+ "jsonrpc-core-client 14.2.0",
+ "jsonrpc-derive 14.2.2",
+ "jsonrpc-pubsub 15.1.0",
+ "rustc-hex",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "fc-rpc-core"
+version = "0.1.0"
+source = "git+https://github.com/purestake/frontier?branch=v0.5-hotfixes#1f38522d2c9126bf30372345d0c9282ac90da010"
 dependencies = [
  "ethereum-types",
  "jsonrpc-core 15.1.0",
@@ -3976,7 +3991,7 @@ dependencies = [
  "exit-future 0.1.4",
  "fc-consensus",
  "fc-rpc",
- "fc-rpc-core",
+ "fc-rpc-core 0.1.0 (git+https://github.com/purestake/frontier?branch=tgm-v0.5-hotfixes-debug)",
  "fp-consensus",
  "futures 0.3.12",
  "jsonrpc-core 15.1.0",
@@ -4056,7 +4071,7 @@ name = "moonbeam-rpc"
 version = "0.1.0"
 dependencies = [
  "fc-rpc",
- "fc-rpc-core",
+ "fc-rpc-core 0.1.0 (git+https://github.com/purestake/frontier?branch=tgm-v0.5-hotfixes-debug)",
  "fp-rpc",
  "futures 0.3.12",
  "jsonrpc-core 15.1.0",
@@ -4098,6 +4113,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "moonbeam-rpc-core-txpool"
+version = "0.1.0"
+dependencies = [
+ "ethereum",
+ "ethereum-types",
+ "fc-rpc-core 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.5-hotfixes)",
+ "jsonrpc-core 15.1.0",
+ "jsonrpc-core-client 14.2.0",
+ "jsonrpc-derive 14.2.2",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "moonbeam-rpc-debug"
 version = "0.1.0"
 dependencies = [
@@ -4124,20 +4153,6 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
-]
-
-[[package]]
-name = "moonbeam-rpc-core-txpool"
-version = "0.1.0"
-dependencies = [
- "ethereum",
- "ethereum-types",
- "fc-rpc-core",
- "jsonrpc-core 15.1.0",
- "jsonrpc-core-client 14.2.0",
- "jsonrpc-derive 14.2.2",
- "serde",
- "serde_json",
 ]
 
 [[package]]
