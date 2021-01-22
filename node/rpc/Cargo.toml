@@ -31,9 +31,9 @@ sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "
 sc-consensus-manual-seal = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sc-transaction-graph = { git = "https://github.com/paritytech/substrate", branch = "master" }
 
-fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "disable-intermediate-state-root" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "disable-intermediate-state-root" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "disable-intermediate-state-root" }
 moonbeam-rpc-txpool = { path = "../../client/rpc/txpool" }
 moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool" }
 

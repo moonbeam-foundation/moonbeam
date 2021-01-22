@@ -58,9 +58,9 @@ sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "
 
 moonbeam-runtime = {path = "../../runtime", default-features = false, features = ["std", "standalone"] }
 moonbeam-rpc = { path = "../rpc" }
-fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
-fp-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "disable-intermediate-state-root" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "disable-intermediate-state-root" }
+fp-consensus = { git = "https://github.com/purestake/frontier", branch = "disable-intermediate-state-root" }
 
 author-inherent = { path = "../../pallets/author-inherent"}
 
