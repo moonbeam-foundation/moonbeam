@@ -86,6 +86,7 @@ where
 	A: ChainApi<Block = Block> + 'static,
 	C::Api: fp_rpc::EthereumRuntimeRPCApi<Block>,
 	C::Api: moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>,
+	C::Api: moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>,
 	<C::Api as sp_api::ApiErrorExt>::Error: fmt::Debug,
 	P: TransactionPool<Block = Block> + 'static,
 {
@@ -94,6 +95,7 @@ where
 		NetApiServer, Web3Api, Web3ApiServer,
 	};
 	use moonbeam_rpc_debug::{Debug, DebugServer};
+	use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
 	use substrate_frame_rpc_system::{FullSystem, SystemApi};
 
@@ -137,7 +139,7 @@ where
 	)));
 	io.extend_with(Web3ApiServer::to_delegate(Web3Api::new(client.clone())));
 	io.extend_with(EthPubSubApiServer::to_delegate(EthPubSubApi::new(
-		pool,
+		pool.clone(),
 		client.clone(),
 		network,
 		SubscriptionManager::<HexEncodedIdProvider>::with_id_provider(
@@ -145,7 +147,8 @@ where
 			Arc::new(subscription_task_executor),
 		),
 	)));
-	io.extend_with(DebugServer::to_delegate(Debug::new(client)));
+	io.extend_with(DebugServer::to_delegate(Debug::new(client.clone())));
+	io.extend_with(TxPoolServer::to_delegate(TxPool::new(client, pool)));
 
 	match command_sink {
 		Some(command_sink) => {

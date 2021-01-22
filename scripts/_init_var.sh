@@ -76,8 +76,9 @@ if [ -z "$PARACHAIN_IP" ]; then
   PARACHAIN_IP="127.0.0.1"
 fi
 
+# Alice private key
 if [ -z "$SUDO_SEED" ]; then
-  SUDO_SEED="0x078782a1f82fd4f9ab59131646f92caa3104dfb6b6975d025647760f693991b3"
+  SUDO_SEED="0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a"
 fi
 
 NODE_KEYS=(
@@ -92,16 +93,13 @@ RELAY_SEEDS=(
   "six stumble adjust guide delay rail waste ivory hood peasant seminar fluid"
 )
 
-RELAY_SR25519_PUB=(
-  "0xb23ebd9c1c2c0b65eebbc6d3db6bbbd287219bfb5468931a1c129119a3369d07"
-  "0x8802ba4e93c98107e70884ca3b1510824351100dace655e0dc3bbe304b1c5205"
-  "0xb2caf068a6e89d13a1ae47884fcedb35a4481339d168f5aba5fa77f0a6d0755d"
-)
-
-RELAY_ED25519_PUB=(
-  "0xa1c35491bd3487995756678c3bc5e5491897d8bdfa9b512e2e1b1bf7e11664c2"
-  "0xcd2424a7c0f1ec30aeb0124e732d13406f63abaee72b2b4e6d0817935bb02099"
-  "0x4c559e6b50b27ad7a54af29fe99c4c5b7d064eb3bd9c4d2141daf426719a75b9"
+WELL_KNOWN_USERS=(
+  "alice"
+  "bob"
+  "charlie"
+  "dave"
+  "eve"
+  "ferdie"
 )
 
 RELAY_LOCAL_IDS=(

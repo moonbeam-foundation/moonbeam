@@ -133,13 +133,10 @@ pub fn run() -> sc_cli::Result<()> {
 		}
 		None => {
 			let runner = cli.create_runner(&cli.run.base)?;
-			let account = cli.run.account_id.ok_or(sc_cli::Error::Input(
-				"Account ID required but not set".to_string(),
-			))?;
 			runner.run_node_until_exit(|config| async move {
 				match config.role {
 					Role::Light => service::new_light(config),
-					_ => service::new_full(config, cli.run.manual_seal, account),
+					_ => service::new_full(config, cli.run.manual_seal, cli.run.author_id),
 				}
 				.map_err(sc_cli::Error::Service)
 			})

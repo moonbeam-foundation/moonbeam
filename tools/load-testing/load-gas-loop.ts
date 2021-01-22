@@ -62,7 +62,7 @@ const deployContract = async () => {
       data: contractBytecode,
       value: "0x00",
       gasPrice: "0x00",
-      gas: "0x1000000",
+      gas: 172663,
       nonce: 0,
     },
     deployer.privateKey
@@ -100,7 +100,7 @@ const callContract = async (loopCount: number) => {
       to: contractAddress,
       data: encoded,
       gasPrice: 0,
-      gas: "9627370496",
+      gas: 21829 + 381 * loopCount,
       nonce: 0,
     },
     freshAccount.privateKey

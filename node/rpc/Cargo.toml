@@ -34,6 +34,7 @@ sc-transaction-graph = { git = "https://github.com/paritytech/substrate", branch
 fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "tgm-v0.5-hotfixes-debug" }
 fc-rpc = { git = "https://github.com/purestake/frontier", branch = "tgm-v0.5-hotfixes-debug" }
 fp-rpc = { git = "https://github.com/purestake/frontier", branch = "tgm-v0.5-hotfixes-debug" }
-
+moonbeam-rpc-txpool = { path = "../../client/rpc/txpool" }
+moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool" }
 moonbeam-rpc-debug = { path = "../../client/rpc/debug" }
 moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug" }
