@@ -8,8 +8,8 @@ license = 'GPL-3.0-only'
 repository = 'https://github.com/PureStake/moonbeam/'
 
 [dependencies]
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.5-hotfixes" }
-evm = { version = "0.20.0", default-features = false, features = ["with-codec"] }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "tgm-v0.5-hotfixes-debug" }
+evm = { git = "https://github.com/purestake/evm", branch = "tgm-getters", default-features = false, features = ["with-codec"] }
 sp-core = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }
 sp-std = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }
 sp-io = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }

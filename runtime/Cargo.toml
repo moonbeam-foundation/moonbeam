@@ -46,13 +46,13 @@ pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", 
 
 frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.5-hotfixes" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "tgm-v0.5-hotfixes-debug" }
 
 sp-consensus-aura = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master", optional = true }
 pallet-grandpa = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master", optional = true }
 
-pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
-fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
+pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "tgm-v0.5-hotfixes-debug" }
+fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "tgm-v0.5-hotfixes-debug" }
 
 moonbeam-rpc-primitives-debug = { path = "../primitives/rpc/debug", default-features = false }
 moonbeam-extensions-evm = { path = "extensions/evm", default-features = false }

@@ -18,4 +18,4 @@ sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "master
 
 moonbeam-rpc-core-debug = { path = "../../rpc-core/debug" }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug" }
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "tgm-v0.5-hotfixes-debug" }

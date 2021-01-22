@@ -24,7 +24,7 @@ sp-core = { git = "https://github.com/paritytech/substrate", default-features = 
 sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.5-hotfixes" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "tgm-v0.5-hotfixes-debug" }
 
 
 [features]

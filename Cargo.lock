@@ -1546,78 +1546,33 @@ dependencies = [
 
 [[package]]
 name = "ethbloom"
-version = "0.9.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "71a6567e6fd35589fea0c63b94b4cf2e55573e413901bdbe60ab15cf0e25e5df"
-dependencies = [
- "crunchy",
- "fixed-hash 0.6.1",
- "impl-codec",
- "impl-rlp 0.2.1",
- "impl-serde",
- "tiny-keccak",
-]
-
-[[package]]
-name = "ethbloom"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "22a621dcebea74f2a6f2002d0a885c81ccf6cbdf86760183316a7722b5707ca4"
 dependencies = [
  "crunchy",
- "fixed-hash 0.7.0",
+ "fixed-hash",
  "impl-codec",
- "impl-rlp 0.3.0",
+ "impl-rlp",
  "impl-serde",
  "tiny-keccak",
 ]
 
 [[package]]
 name = "ethereum"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "01ea35e1b0845310ade8eb048d401b0b899b8eff05c4d2a3454d29ef4eb1b8af"
-dependencies = [
- "ethereum-types 0.9.2",
- "hash-db",
- "hash256-std-hasher",
- "parity-scale-codec",
- "rlp 0.4.6",
- "rlp-derive",
- "serde",
- "sha3 0.9.1",
- "triehash",
-]
-
-[[package]]
-name = "ethereum"
 version = "0.6.0"
-source = "git+https://github.com/rust-blockchain/ethereum?branch=master#d2e9a1a8a0ffcc3ddcb89bee9c5bf075495b5610"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d8603f637f22e3ab9aff8466b37850cd7ea2ae52034b07e41fdc82f1f68dfa2c"
 dependencies = [
- "ethereum-types 0.10.0",
+ "ethereum-types",
  "hash-db",
  "hash256-std-hasher",
  "parity-scale-codec",
- "rlp 0.5.0",
+ "rlp",
  "rlp-derive",
  "serde",
  "sha3 0.9.1",
  "triehash",
-]
-
-[[package]]
-name = "ethereum-types"
-version = "0.9.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "473aecff686bd8e7b9db0165cbbb53562376b39bf35b427f0c60446a9e1634b0"
-dependencies = [
- "ethbloom 0.9.2",
- "fixed-hash 0.6.1",
- "impl-codec",
- "impl-rlp 0.2.1",
- "impl-serde",
- "primitive-types 0.7.3",
- "uint 0.8.5",
 ]
 
 [[package]]
@@ -1626,13 +1581,13 @@ version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "05dc5f0df4915fa6dff7f975a8366ecfaaa8959c74235469495153e7bb1b280e"
 dependencies = [
- "ethbloom 0.10.0",
- "fixed-hash 0.7.0",
+ "ethbloom",
+ "fixed-hash",
  "impl-codec",
- "impl-rlp 0.3.0",
+ "impl-rlp",
  "impl-serde",
- "primitive-types 0.8.0",
- "uint 0.9.0",
+ "primitive-types",
+ "uint",
 ]
 
 [[package]]
@@ -1643,99 +1598,48 @@ checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
 
 [[package]]
 name = "evm"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52494176f51e37ac07f10f0368a162391a3c368d6c859b69d4ebc52cfc090952"
+version = "0.21.0"
+source = "git+https://github.com/purestake/evm?branch=tgm-getters#24f6ce900c97147718b4e50c71ae17b837bdaecb"
 dependencies = [
- "ethereum 0.5.1",
- "evm-core 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "evm-gasometer 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "evm-runtime 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ethereum",
+ "evm-core",
+ "evm-gasometer",
+ "evm-runtime",
  "log",
  "parity-scale-codec",
- "primitive-types 0.7.3",
- "rlp 0.4.6",
- "serde",
- "sha3 0.8.2",
-]
-
-[[package]]
-name = "evm"
-version = "0.20.0"
-source = "git+https://github.com/joshorndorff/evm.git?branch=joshy-update#0c6fa0d6efefc13a967140f0fe6ab19f36b97cf6"
-dependencies = [
- "ethereum 0.6.0",
- "evm-core 0.20.0 (git+https://github.com/joshorndorff/evm.git?branch=joshy-update)",
- "evm-gasometer 0.20.0 (git+https://github.com/joshorndorff/evm.git?branch=joshy-update)",
- "evm-runtime 0.20.0 (git+https://github.com/joshorndorff/evm.git?branch=joshy-update)",
- "log",
- "parity-scale-codec",
- "primitive-types 0.8.0",
- "rlp 0.5.0",
+ "primitive-types",
+ "rlp",
  "serde",
  "sha3 0.8.2",
 ]
 
 [[package]]
 name = "evm-core"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cad7ff84008aa24272cf3e9f7a71054271ede93613665cd9fdfa65447ae6e017"
+version = "0.21.0"
+source = "git+https://github.com/purestake/evm?branch=tgm-getters#24f6ce900c97147718b4e50c71ae17b837bdaecb"
 dependencies = [
  "parity-scale-codec",
- "primitive-types 0.7.3",
- "serde",
-]
-
-[[package]]
-name = "evm-core"
-version = "0.20.0"
-source = "git+https://github.com/joshorndorff/evm.git?branch=joshy-update#0c6fa0d6efefc13a967140f0fe6ab19f36b97cf6"
-dependencies = [
- "parity-scale-codec",
- "primitive-types 0.8.0",
+ "primitive-types",
  "serde",
 ]
 
 [[package]]
 name = "evm-gasometer"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8aed6fc83d542d58a63b7827bd9e4808e1e2a9324b503c255f9e2acccfa0bef9"
+version = "0.21.0"
+source = "git+https://github.com/purestake/evm?branch=tgm-getters#24f6ce900c97147718b4e50c71ae17b837bdaecb"
 dependencies = [
- "evm-core 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "evm-runtime 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "primitive-types 0.7.3",
-]
-
-[[package]]
-name = "evm-gasometer"
-version = "0.20.0"
-source = "git+https://github.com/joshorndorff/evm.git?branch=joshy-update#0c6fa0d6efefc13a967140f0fe6ab19f36b97cf6"
-dependencies = [
- "evm-core 0.20.0 (git+https://github.com/joshorndorff/evm.git?branch=joshy-update)",
- "evm-runtime 0.20.0 (git+https://github.com/joshorndorff/evm.git?branch=joshy-update)",
- "primitive-types 0.8.0",
+ "evm-core",
+ "evm-runtime",
+ "primitive-types",
 ]
 
 [[package]]
 name = "evm-runtime"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "507a6d0c3377f34335a264b387e13dc56c7946c34073e0c1250b923018bdf3fa"
+version = "0.21.0"
+source = "git+https://github.com/purestake/evm?branch=tgm-getters#24f6ce900c97147718b4e50c71ae17b837bdaecb"
 dependencies = [
- "evm-core 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "primitive-types 0.7.3",
- "sha3 0.8.2",
-]
-
-[[package]]
-name = "evm-runtime"
-version = "0.20.0"
-source = "git+https://github.com/joshorndorff/evm.git?branch=joshy-update#0c6fa0d6efefc13a967140f0fe6ab19f36b97cf6"
-dependencies = [
- "evm-core 0.20.0 (git+https://github.com/joshorndorff/evm.git?branch=joshy-update)",
- "primitive-types 0.8.0",
+ "evm-core",
+ "primitive-types",
  "sha3 0.8.2",
 ]
 
@@ -1804,7 +1708,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.5-hotfixes#1f38522d2c9126bf30372345d0c9282ac90da010"
+source = "git+https://github.com/purestake/frontier?branch=tgm-v0.5-hotfixes-debug#c09b6fec82acf0292a892d4b7e11db7729cd901b"
 dependencies = [
  "derive_more 0.99.11",
  "fp-consensus",
@@ -1826,10 +1730,10 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.5-hotfixes#1f38522d2c9126bf30372345d0c9282ac90da010"
+source = "git+https://github.com/purestake/frontier?branch=tgm-v0.5-hotfixes-debug#c09b6fec82acf0292a892d4b7e11db7729cd901b"
 dependencies = [
- "ethereum 0.6.0",
- "ethereum-types 0.10.0",
+ "ethereum",
+ "ethereum-types",
  "fc-consensus",
  "fc-rpc-core",
  "fp-rpc",
@@ -1844,7 +1748,7 @@ dependencies = [
  "pallet-evm",
  "parity-scale-codec",
  "rand 0.7.3",
- "rlp 0.5.0",
+ "rlp",
  "rustc-hex",
  "sc-client-api",
  "sc-network",
@@ -1863,9 +1767,9 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.5-hotfixes#1f38522d2c9126bf30372345d0c9282ac90da010"
+source = "git+https://github.com/purestake/frontier?branch=tgm-v0.5-hotfixes-debug#c09b6fec82acf0292a892d4b7e11db7729cd901b"
 dependencies = [
- "ethereum-types 0.10.0",
+ "ethereum-types",
  "jsonrpc-core 15.1.0",
  "jsonrpc-core-client 14.2.0",
  "jsonrpc-derive 14.2.2",
@@ -1907,18 +1811,6 @@ dependencies = [
  "num-traits 0.2.14",
  "parity-scale-codec",
  "parking_lot 0.9.0",
-]
-
-[[package]]
-name = "fixed-hash"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "11498d382790b7a8f2fd211780bec78619bba81cdad3a283997c0c41f836759c"
-dependencies = [
- "byteorder",
- "rand 0.7.3",
- "rustc-hex",
- "static_assertions",
 ]
 
 [[package]]
@@ -1979,7 +1871,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.5-hotfixes#1f38522d2c9126bf30372345d0c9282ac90da010"
+source = "git+https://github.com/purestake/frontier?branch=tgm-v0.5-hotfixes-debug#c09b6fec82acf0292a892d4b7e11db7729cd901b"
 dependencies = [
  "parity-scale-codec",
  "sp-core",
@@ -1990,9 +1882,9 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "0.8.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.5-hotfixes#1f38522d2c9126bf30372345d0c9282ac90da010"
+source = "git+https://github.com/purestake/frontier?branch=tgm-v0.5-hotfixes-debug#c09b6fec82acf0292a892d4b7e11db7729cd901b"
 dependencies = [
- "evm 0.20.0 (git+https://github.com/joshorndorff/evm.git?branch=joshy-update)",
+ "evm",
  "impl-trait-for-tuples 0.1.3",
  "parity-scale-codec",
  "serde",
@@ -2003,10 +1895,10 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.5-hotfixes#1f38522d2c9126bf30372345d0c9282ac90da010"
+source = "git+https://github.com/purestake/frontier?branch=tgm-v0.5-hotfixes-debug#c09b6fec82acf0292a892d4b7e11db7729cd901b"
 dependencies = [
- "ethereum 0.6.0",
- "ethereum-types 0.10.0",
+ "ethereum",
+ "ethereum-types",
  "fp-evm",
  "parity-scale-codec",
  "sp-api",
@@ -2849,20 +2741,11 @@ dependencies = [
 
 [[package]]
 name = "impl-rlp"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f7a72f11830b52333f36e3b09a288333888bf54380fd0ac0790a3c31ab0f3c5"
-dependencies = [
- "rlp 0.4.6",
-]
-
-[[package]]
-name = "impl-rlp"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f28220f89297a075ddc7245cd538076ee98b01f2a9c23a53a4f1105d5a322808"
 dependencies = [
- "rlp 0.5.0",
+ "rlp",
 ]
 
 [[package]]
@@ -3535,7 +3418,7 @@ dependencies = [
  "rand 0.7.3",
  "sha2 0.9.2",
  "smallvec 1.6.1",
- "uint 0.9.0",
+ "uint",
  "unsigned-varint 0.6.0",
  "void",
  "wasm-timer",
@@ -4192,8 +4075,8 @@ dependencies = [
 name = "moonbeam-extensions-evm"
 version = "0.1.0"
 dependencies = [
- "ethereum-types 0.10.0",
- "evm 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ethereum-types",
+ "evm",
  "moonbeam-rpc-primitives-debug",
  "pallet-evm",
  "sp-core",
@@ -4237,7 +4120,7 @@ dependencies = [
 name = "moonbeam-rpc-core-debug"
 version = "0.1.0"
 dependencies = [
- "ethereum-types 0.10.0",
+ "ethereum-types",
  "jsonrpc-core 15.1.0",
  "jsonrpc-core-client 14.2.0",
  "jsonrpc-derive 14.2.2",
@@ -4250,7 +4133,7 @@ dependencies = [
 name = "moonbeam-rpc-debug"
 version = "0.1.0"
 dependencies = [
- "ethereum-types 0.10.0",
+ "ethereum-types",
  "fc-consensus",
  "jsonrpc-core 15.1.0",
  "moonbeam-rpc-core-debug",
@@ -4266,7 +4149,7 @@ dependencies = [
 name = "moonbeam-rpc-primitives-debug"
 version = "0.1.0"
 dependencies = [
- "ethereum-types 0.10.0",
+ "ethereum-types",
  "parity-scale-codec",
  "sp-api",
  "sp-core",
@@ -4834,11 +4717,11 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.5-hotfixes#1f38522d2c9126bf30372345d0c9282ac90da010"
+source = "git+https://github.com/purestake/frontier?branch=tgm-v0.5-hotfixes-debug#c09b6fec82acf0292a892d4b7e11db7729cd901b"
 dependencies = [
- "ethereum 0.6.0",
- "ethereum-types 0.10.0",
- "evm 0.20.0 (git+https://github.com/joshorndorff/evm.git?branch=joshy-update)",
+ "ethereum",
+ "ethereum-types",
+ "evm",
  "fp-consensus",
  "fp-evm",
  "fp-rpc",
@@ -4849,7 +4732,7 @@ dependencies = [
  "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
- "rlp 0.5.0",
+ "rlp",
  "rustc-hex",
  "serde",
  "sha3 0.8.2",
@@ -4871,19 +4754,19 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "2.0.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.5-hotfixes#1f38522d2c9126bf30372345d0c9282ac90da010"
+source = "git+https://github.com/purestake/frontier?branch=tgm-v0.5-hotfixes-debug#c09b6fec82acf0292a892d4b7e11db7729cd901b"
 dependencies = [
- "evm 0.20.0 (git+https://github.com/joshorndorff/evm.git?branch=joshy-update)",
- "evm-gasometer 0.20.0 (git+https://github.com/joshorndorff/evm.git?branch=joshy-update)",
- "evm-runtime 0.20.0 (git+https://github.com/joshorndorff/evm.git?branch=joshy-update)",
+ "evm",
+ "evm-gasometer",
+ "evm-runtime",
  "fp-evm",
  "frame-support",
  "frame-system",
  "pallet-balances",
  "pallet-timestamp",
  "parity-scale-codec",
- "primitive-types 0.8.0",
- "rlp 0.5.0",
+ "primitive-types",
+ "rlp",
  "serde",
  "sha3 0.8.2",
  "sp-core",
@@ -4895,9 +4778,9 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "2.0.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.5-hotfixes#1f38522d2c9126bf30372345d0c9282ac90da010"
+source = "git+https://github.com/purestake/frontier?branch=tgm-v0.5-hotfixes-debug#c09b6fec82acf0292a892d4b7e11db7729cd901b"
 dependencies = [
- "evm 0.20.0 (git+https://github.com/joshorndorff/evm.git?branch=joshy-update)",
+ "evm",
  "fp-evm",
  "frame-support",
  "pallet-evm",
@@ -4909,9 +4792,9 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "2.0.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.5-hotfixes#1f38522d2c9126bf30372345d0c9282ac90da010"
+source = "git+https://github.com/purestake/frontier?branch=tgm-v0.5-hotfixes-debug#c09b6fec82acf0292a892d4b7e11db7729cd901b"
 dependencies = [
- "evm 0.20.0 (git+https://github.com/joshorndorff/evm.git?branch=joshy-update)",
+ "evm",
  "fp-evm",
  "num",
  "sp-core",
@@ -4921,9 +4804,9 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "2.0.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.5-hotfixes#1f38522d2c9126bf30372345d0c9282ac90da010"
+source = "git+https://github.com/purestake/frontier?branch=tgm-v0.5-hotfixes-debug#c09b6fec82acf0292a892d4b7e11db7729cd901b"
 dependencies = [
- "evm 0.20.0 (git+https://github.com/joshorndorff/evm.git?branch=joshy-update)",
+ "evm",
  "fp-evm",
  "ripemd160",
  "sp-core",
@@ -5420,7 +5303,7 @@ dependencies = [
  "impl-trait-for-tuples 0.2.0",
  "parity-util-mem-derive",
  "parking_lot 0.11.1",
- "primitive-types 0.8.0",
+ "primitive-types",
  "smallvec 1.6.1",
  "winapi 0.3.9",
 ]
@@ -6709,28 +6592,15 @@ dependencies = [
 
 [[package]]
 name = "primitive-types"
-version = "0.7.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7dd39dcacf71411ba488570da7bbc89b717225e46478b30ba99b92db6b149809"
-dependencies = [
- "fixed-hash 0.6.1",
- "impl-codec",
- "impl-rlp 0.2.1",
- "impl-serde",
- "uint 0.8.5",
-]
-
-[[package]]
-name = "primitive-types"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b3824ae2c5e27160113b9e029a10ec9e3f0237bad8029f69c7724393c9fdefd8"
 dependencies = [
- "fixed-hash 0.7.0",
+ "fixed-hash",
  "impl-codec",
- "impl-rlp 0.3.0",
+ "impl-rlp",
  "impl-serde",
- "uint 0.9.0",
+ "uint",
 ]
 
 [[package]]
@@ -7344,15 +7214,6 @@ dependencies = [
  "block-buffer 0.9.0",
  "digest 0.9.0",
  "opaque-debug 0.3.0",
-]
-
-[[package]]
-name = "rlp"
-version = "0.4.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1190dcc8c3a512f1eef5d09bb8c84c7f39e1054e174d1795482e18f5272f2e73"
-dependencies = [
- "rustc-hex",
 ]
 
 [[package]]
@@ -9235,7 +9096,7 @@ dependencies = [
  "parity-scale-codec",
  "parity-util-mem",
  "parking_lot 0.11.1",
- "primitive-types 0.8.0",
+ "primitive-types",
  "rand 0.7.3",
  "regex",
  "schnorrkel",
@@ -9446,7 +9307,7 @@ source = "git+https://github.com/paritytech/substrate?branch=master#74a50abd6cba
 dependencies = [
  "impl-trait-for-tuples 0.2.0",
  "parity-scale-codec",
- "primitive-types 0.8.0",
+ "primitive-types",
  "sp-externalities",
  "sp-runtime-interface-proc-macro",
  "sp-std",
@@ -10595,7 +10456,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a1631b201eb031b563d2e85ca18ec8092508e262a3196ce9bd10a67ec87b9f5c"
 dependencies = [
  "hash-db",
- "rlp 0.5.0",
+ "rlp",
 ]
 
 [[package]]
@@ -10626,18 +10487,6 @@ name = "ucd-trie"
 version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "56dee185309b50d1f11bfedef0fe6d036842e3fb77413abef29f8f8d1c5d4c1c"
-
-[[package]]
-name = "uint"
-version = "0.8.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9db035e67dfaf7edd9aebfe8676afcd63eed53c8a4044fed514c8cccf1835177"
-dependencies = [
- "byteorder",
- "crunchy",
- "rustc-hex",
- "static_assertions",
-]
 
 [[package]]
 name = "uint"
