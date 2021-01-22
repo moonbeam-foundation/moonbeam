@@ -55,7 +55,7 @@ pub fn authority_keys_from_seed(s: &str) -> (AuraId, GrandpaId) {
 	(get_from_seed::<AuraId>(s), get_from_seed::<GrandpaId>(s))
 }
 
-// The development chain spec is useful for starting a single-node local network to test your runtime.
+// The development chain spec is useful for starting a single-node local test network.
 // This is not useful for testing ntworking or consensus.
 // It is used in the typescript integration tests found in `/tests`.
 pub fn development_chain_spec() -> Result<ChainSpec, String> {
