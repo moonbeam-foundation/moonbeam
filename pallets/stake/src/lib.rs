@@ -176,6 +176,56 @@ impl<
 			None
 		}
 	}
+	// infallible so nominator must exist before calling
+	pub fn rm_nominator(&mut self, nominator: A) -> B {
+		let mut total = self.total;
+		let nominators = self
+			.nominators
+			.0
+			.iter()
+			.filter_map(|x| {
+				if x.owner == nominator {
+					total -= x.amount;
+					None
+				} else {
+					Some(x.clone())
+				}
+			})
+			.collect();
+		self.nominators = OrderedSet::from(nominators);
+		self.total = total;
+		total
+	}
+	// infallible so nominator dne before calling
+	pub fn add_nominator(&mut self, owner: A, amount: B) -> B {
+		self.nominators.insert(Bond { owner, amount });
+		self.total += amount;
+		self.total
+	}
+	// only call with an amount larger than existing amount
+	pub fn update_nominator(&mut self, nominator: A, amount: B) -> B {
+		let mut difference: B = 0u32.into();
+		let nominators = self
+			.nominators
+			.0
+			.iter()
+			.filter_map(|x| {
+				if x.owner == nominator {
+					// new amount must be greater or will underflow
+					difference = amount - x.amount;
+					Some(Bond {
+						owner: x.owner.clone(),
+						amount,
+					})
+				} else {
+					Some(x.clone())
+				}
+			})
+			.collect();
+		self.nominators = OrderedSet::from(nominators);
+		self.total += difference;
+		self.total
+	}
 	pub fn inc_nominator(&mut self, nominator: A, more: B) {
 		for x in &mut self.nominators.0 {
 			if x.owner == nominator {
@@ -223,7 +273,11 @@ pub struct Nominator<AccountId, Balance> {
 
 impl<
 		AccountId: Ord + Clone,
-		Balance: Copy + sp_std::ops::AddAssign + sp_std::ops::SubAssign + PartialOrd,
+		Balance: Copy
+			+ sp_std::ops::AddAssign
+			+ sp_std::ops::Add<Output = Balance>
+			+ sp_std::ops::SubAssign
+			+ PartialOrd,
 	> Nominator<AccountId, Balance>
 {
 	pub fn new(validator: AccountId, nomination: Balance) -> Self {
@@ -246,7 +300,7 @@ impl<
 	}
 	// Returns Some(remaining balance), must be more than MinNominatorStk
 	// Returns None if nomination not found
-	pub fn sub_nomination(&mut self, validator: AccountId) -> Option<Balance> {
+	pub fn rm_nomination(&mut self, validator: AccountId) -> Option<Balance> {
 		let mut amt: Option<Balance> = None;
 		let nominations = self
 			.nominations
@@ -267,6 +321,64 @@ impl<
 			Some(self.total)
 		} else {
 			None
+		}
+	}
+	// Returns Some(new balances) if old was nominated and None if it wasn't nominated
+	pub fn swap_nomination(
+		&mut self,
+		old: AccountId,
+		new: AccountId,
+	) -> Option<(Balance, Balance)> {
+		let mut amt: Option<Balance> = None;
+		let nominations = self
+			.nominations
+			.0
+			.iter()
+			.filter_map(|x| {
+				if x.owner == old {
+					amt = Some(x.amount);
+					None
+				} else {
+					Some(x.clone())
+				}
+			})
+			.collect();
+		if let Some(swapped_amt) = amt {
+			let mut old_new_amt: Option<Balance> = None;
+			let nominations2 = self
+				.nominations
+				.0
+				.iter()
+				.filter_map(|x| {
+					if x.owner == new {
+						old_new_amt = Some(x.amount);
+						None
+					} else {
+						Some(x.clone())
+					}
+				})
+				.collect();
+			let new_amount = if let Some(old_amt) = old_new_amt {
+				// update existing nomination
+				self.nominations = OrderedSet::from(nominations2);
+				let new_amt = old_amt + swapped_amt;
+				self.nominations.insert(Bond {
+					owner: new,
+					amount: new_amt,
+				});
+				new_amt
+			} else {
+				// insert completely new nomination
+				self.nominations = OrderedSet::from(nominations);
+				self.nominations.insert(Bond {
+					owner: new,
+					amount: swapped_amt,
+				});
+				swapped_amt
+			};
+			Some((swapped_amt, new_amount))
+		} else {
+			return None;
 		}
 	}
 	// Returns None if nomination not found
@@ -353,16 +465,18 @@ decl_event!(
 		ValidatorBondedMore(AccountId, Balance, Balance),
 		/// Validator Account, Old Bond, New Bond
 		ValidatorBondedLess(AccountId, Balance, Balance),
-		// Nominator, Validator, Old Nomination, New Nomination
-		NominationIncreased(AccountId, AccountId, Balance, Balance),
-		// Nominator, Validator, Old Nomination, New Nomination
-		NominationDecreased(AccountId, AccountId, Balance, Balance),
 		ValidatorWentOffline(RoundIndex, AccountId),
 		ValidatorBackOnline(RoundIndex, AccountId),
 		/// Round, Validator Account, Scheduled Exit
 		ValidatorScheduledExit(RoundIndex, AccountId, RoundIndex),
 		/// Account, Amount Unlocked, New Total Amt Locked
 		ValidatorLeft(AccountId, Balance, Balance),
+		// Nominator, Validator, Old Nomination, New Nomination
+		NominationIncreased(AccountId, AccountId, Balance, Balance),
+		// Nominator, Validator, Old Nomination, New Nomination
+		NominationDecreased(AccountId, AccountId, Balance, Balance),
+		// Nominator, Swapped Amount, Old Nominator, New Nominator
+		NominationSwapped(AccountId, Balance, AccountId, AccountId),
 		/// Nominator, Amount Staked
 		NominatorJoined(AccountId, Balance),
 		/// Nominator, Amount Unstaked
@@ -605,7 +719,7 @@ decl_module! {
 			Ok(())
 		}
 		#[weight = 0]
-		fn nominate(
+		fn nominate_new(
 			origin,
 			validator: T::AccountId,
 			amount: BalanceOf<T>,
@@ -617,12 +731,62 @@ decl_module! {
 				nominator.nominations.0.len() < T::MaxValidatorsPerNominator::get(),
 				Error::<T>::ExceedMaxValidatorsPerNom
 			);
+			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(
 				nominator.add_nomination(Bond{owner:validator.clone(), amount}),
 				Error::<T>::AlreadyNominatedValidator
 			);
-			Self::nominator_joins_validator(acc.clone(), amount, validator.clone())?;
+			let nomination = Bond {
+				owner: acc.clone(),
+				amount,
+			};
+			ensure!(
+				state.nominators.0.len() < T::MaxNominatorsPerValidator::get(),
+				Error::<T>::TooManyNominators
+			);
+			ensure!(
+				state.nominators.insert(nomination),
+				Error::<T>::NominatorExists
+			);
+			T::Currency::reserve(&acc, amount)?;
+			let new_total = state.total + amount;
+			if state.is_active() {
+				Self::update_active(validator.clone(), new_total);
+			}
+			let new_total_locked = <Total<T>>::get() + amount;
+			<Total<T>>::put(new_total_locked);
+			state.total = new_total;
+			<Candidates<T>>::insert(&validator, state);
 			<Nominators<T>>::insert(&acc, nominator);
+			Self::deposit_event(RawEvent::ValidatorNominated(
+				acc, amount, validator, new_total,
+			));
+			Ok(())
+		}
+		#[weight = 0]
+		fn switch_nomination(origin, old: T::AccountId, new: T::AccountId) -> DispatchResult {
+			let acc = ensure_signed(origin)?;
+			let mut nominator = <Nominators<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
+			let mut old_validator = <Candidates<T>>::get(&old).ok_or(Error::<T>::CandidateDNE)?;
+			let mut new_validator = <Candidates<T>>::get(&new).ok_or(Error::<T>::CandidateDNE)?;
+			let (swapped_amt, new_amt) = nominator
+				.swap_nomination(old.clone(), new.clone())
+				.ok_or(Error::<T>::NominationDNE)?;
+			let (new_old, new_new) = if new_amt > swapped_amt {
+				(old_validator.rm_nominator(acc.clone()), new_validator.update_nominator(acc.clone(), new_amt))
+			} else {
+				(old_validator.rm_nominator(acc.clone()), new_validator.add_nominator(acc.clone(), swapped_amt))
+			};
+			if old_validator.is_active() {
+				Self::update_active(old.clone(), new_old);
+			}
+			if new_validator.is_active() {
+				Self::update_active(new.clone(), new_new);
+			}
+			<Candidates<T>>::insert(&old, old_validator);
+			<Candidates<T>>::insert(&new, new_validator);
+			<Nominators<T>>::insert(&acc, nominator);
+			Self::deposit_event(RawEvent::NominationSwapped(acc, swapped_amt, old, new));
 			Ok(())
 		}
 		#[weight = 0]
@@ -752,7 +916,7 @@ impl<T: Config> Module<T> {
 	fn nominator_revokes_validator(acc: T::AccountId, validator: T::AccountId) -> DispatchResult {
 		let mut nominator = <Nominators<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
 		let remaining = nominator
-			.sub_nomination(validator.clone())
+			.rm_nomination(validator.clone())
 			.ok_or(Error::<T>::NominationDNE)?;
 		ensure!(
 			remaining >= T::MinNominatorStk::get(),
@@ -860,7 +1024,7 @@ impl<T: Config> Module<T> {
 							T::Currency::unreserve(&bond.owner, bond.amount);
 							// remove nomination from nominator state
 							if let Some(mut nominator) = <Nominators<T>>::get(&bond.owner) {
-								if let Some(remaining) = nominator.sub_nomination(x.owner.clone()) {
+								if let Some(remaining) = nominator.rm_nomination(x.owner.clone()) {
 									if remaining.is_zero() {
 										<Nominators<T>>::remove(&bond.owner);
 									} else {

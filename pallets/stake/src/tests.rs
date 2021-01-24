@@ -458,26 +458,26 @@ fn multiple_nomination_works() {
 		];
 		assert_eq!(events(), expected);
 		assert_noop!(
-			Stake::nominate(Origin::signed(5), 2, 10),
+			Stake::nominate_new(Origin::signed(5), 2, 10),
 			Error::<Test>::NominatorDNE,
 		);
 		assert_noop!(
-			Stake::nominate(Origin::signed(11), 1, 10),
+			Stake::nominate_new(Origin::signed(11), 1, 10),
 			Error::<Test>::NominatorDNE,
 		);
 		assert_noop!(
-			Stake::nominate(Origin::signed(6), 1, 10),
+			Stake::nominate_new(Origin::signed(6), 1, 10),
 			Error::<Test>::AlreadyNominatedValidator,
 		);
 		assert_noop!(
-			Stake::nominate(Origin::signed(6), 2, 2),
+			Stake::nominate_new(Origin::signed(6), 2, 2),
 			Error::<Test>::NominationBelowMin,
 		);
-		assert_ok!(Stake::nominate(Origin::signed(6), 2, 10));
-		assert_ok!(Stake::nominate(Origin::signed(6), 3, 10));
-		assert_ok!(Stake::nominate(Origin::signed(6), 4, 10));
+		assert_ok!(Stake::nominate_new(Origin::signed(6), 2, 10));
+		assert_ok!(Stake::nominate_new(Origin::signed(6), 3, 10));
+		assert_ok!(Stake::nominate_new(Origin::signed(6), 4, 10));
 		assert_noop!(
-			Stake::nominate(Origin::signed(6), 5, 10),
+			Stake::nominate_new(Origin::signed(6), 5, 10),
 			Error::<Test>::ExceedMaxValidatorsPerNom,
 		);
 		roll_to(16);
@@ -501,9 +501,9 @@ fn multiple_nomination_works() {
 		expected.append(&mut new);
 		assert_eq!(events(), expected);
 		roll_to(21);
-		assert_ok!(Stake::nominate(Origin::signed(7), 2, 80));
+		assert_ok!(Stake::nominate_new(Origin::signed(7), 2, 80));
 		assert_noop!(
-			Stake::nominate(Origin::signed(7), 3, 11),
+			Stake::nominate_new(Origin::signed(7), 3, 11),
 			DispatchError::Module {
 				index: 0,
 				error: 3,
@@ -691,5 +691,88 @@ fn nominators_bond_more_less() {
 		assert!(!Stake::is_nominator(&6));
 		assert_eq!(Balances::reserved_balance(&6), 0);
 		assert_eq!(Balances::free_balance(&6), 100);
+	});
+}
+
+#[test]
+fn switch_nomination_works() {
+	genesis3().execute_with(|| {
+		roll_to(4);
+		roll_to(8);
+		let mut expected = vec![
+			RawEvent::ValidatorChosen(2, 1, 50),
+			RawEvent::ValidatorChosen(2, 2, 40),
+			RawEvent::ValidatorChosen(2, 4, 20),
+			RawEvent::ValidatorChosen(2, 3, 20),
+			RawEvent::ValidatorChosen(2, 5, 10),
+			RawEvent::NewRound(5, 2, 5, 140),
+		];
+		assert_eq!(events(), expected);
+		assert_noop!(
+			Stake::switch_nomination(Origin::signed(1), 1, 2),
+			Error::<Test>::NominatorDNE
+		);
+		assert_noop!(
+			Stake::switch_nomination(Origin::signed(6), 1, 7),
+			Error::<Test>::CandidateDNE
+		);
+		assert_noop!(
+			Stake::switch_nomination(Origin::signed(6), 2, 1),
+			Error::<Test>::NominationDNE
+		);
+		assert_ok!(Stake::switch_nomination(Origin::signed(6), 1, 2));
+		assert_eq!(
+			last_event(),
+			MetaEvent::stake(RawEvent::NominationSwapped(6, 10, 1, 2))
+		);
+		assert_ok!(Stake::switch_nomination(Origin::signed(7), 1, 2));
+		assert_ok!(Stake::switch_nomination(Origin::signed(8), 2, 1));
+		assert_eq!(
+			last_event(),
+			MetaEvent::stake(RawEvent::NominationSwapped(8, 10, 2, 1))
+		);
+		assert_ok!(Stake::switch_nomination(Origin::signed(9), 2, 1));
+		assert_ok!(Stake::switch_nomination(Origin::signed(10), 1, 2));
+		assert_eq!(
+			last_event(),
+			MetaEvent::stake(RawEvent::NominationSwapped(10, 10, 1, 2))
+		);
+		// verify nothing changed with roles or balances since genesis
+		for x in 1..5 {
+			assert!(Stake::is_candidate(&x));
+			assert_eq!(Balances::free_balance(&x), 80);
+			assert_eq!(Balances::reserved_balance(&x), 20);
+		}
+		assert!(Stake::is_candidate(&5));
+		assert_eq!(Balances::free_balance(&5), 90);
+		assert_eq!(Balances::reserved_balance(&5), 10);
+		for x in 6..11 {
+			assert!(Stake::is_nominator(&x));
+			assert_eq!(Balances::free_balance(&x), 90);
+			assert_eq!(Balances::reserved_balance(&x), 10);
+		}
+		roll_to(10);
+		roll_to(16);
+		let mut new = vec![
+			RawEvent::NominationSwapped(6, 10, 1, 2),
+			RawEvent::NominationSwapped(7, 10, 1, 2),
+			RawEvent::NominationSwapped(8, 10, 2, 1),
+			RawEvent::NominationSwapped(9, 10, 2, 1),
+			RawEvent::NominationSwapped(10, 10, 1, 2),
+			RawEvent::ValidatorChosen(3, 2, 50),
+			RawEvent::ValidatorChosen(3, 1, 40),
+			RawEvent::ValidatorChosen(3, 4, 20),
+			RawEvent::ValidatorChosen(3, 3, 20),
+			RawEvent::ValidatorChosen(3, 5, 10),
+			RawEvent::NewRound(10, 3, 5, 140),
+			RawEvent::ValidatorChosen(4, 2, 50),
+			RawEvent::ValidatorChosen(4, 1, 40),
+			RawEvent::ValidatorChosen(4, 4, 20),
+			RawEvent::ValidatorChosen(4, 3, 20),
+			RawEvent::ValidatorChosen(4, 5, 10),
+			RawEvent::NewRound(15, 4, 5, 140),
+		];
+		expected.append(&mut new);
+		assert_eq!(events(), expected);
 	});
 }
