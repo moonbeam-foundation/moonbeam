@@ -167,7 +167,6 @@ pub fn new_full(
 	}
 
 	let role = config.role.clone();
-	// Don't backoff authoring. See https://github.com/paritytech/substrate/pull/7186 for details
 	let prometheus_registry = config.prometheus_registry().cloned();
 	let telemetry_connection_sinks = sc_service::TelemetryConnectionSinks::default();
 	let is_authority = role.is_authority();
