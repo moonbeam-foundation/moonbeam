@@ -138,6 +138,7 @@ pub fn native_version() -> NativeVersion {
 }
 
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
+const MAX_BLOCK_WEIGHT: u64 = WEIGHT_PER_SECOND / 2;
 
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 250;
@@ -145,7 +146,7 @@ parameter_types! {
 	/// We allow for one half second of compute with a 6 second average block time.
 	/// These values are dictated by Polkadot for the parachain.
 	pub BlockWeights: frame_system::limits::BlockWeights = frame_system::limits::BlockWeights
-		::with_sensible_defaults(WEIGHT_PER_SECOND / 2, NORMAL_DISPATCH_RATIO);
+		::with_sensible_defaults(MAX_BLOCK_WEIGHT, NORMAL_DISPATCH_RATIO);
 	/// We allow for 5 MB blocks.
 	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
 		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
@@ -306,6 +307,7 @@ pub struct EthereumFindAuthor<F>(PhantomData<F>);
 
 parameter_types! {
 	pub const DefaultStateRoot: H256 = H256::zero();
+	pub const BlockGasLimit: u64 = MAX_BLOCK_WEIGHT / WEIGHT_PER_GAS;
 }
 
 impl pallet_ethereum::Config for Runtime {
@@ -315,6 +317,7 @@ impl pallet_ethereum::Config for Runtime {
 	#[cfg(feature = "standalone")]
 	type FindAuthor = EthereumFindAuthor<Aura>;
 	type StateRoot = DefaultStateRoot;
+	type BlockGasLimit = BlockGasLimit;
 }
 
 // 18 decimals
