@@ -509,6 +509,7 @@ decl_error! {
 		AlreadyNominatedValidator,
 		NominationDNE,
 		Underflow,
+		CannotSwitchToSameNomination,
 	}
 }
 
@@ -763,6 +764,7 @@ decl_module! {
 		#[weight = 0]
 		fn switch_nomination(origin, old: T::AccountId, new: T::AccountId) -> DispatchResult {
 			let acc = ensure_signed(origin)?;
+			ensure!(old != new, Error::<T>::CannotSwitchToSameNomination);
 			let mut nominator = <Nominators<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
 			let mut old_validator = <Candidates<T>>::get(&old).ok_or(Error::<T>::CandidateDNE)?;
 			let mut new_validator = <Candidates<T>>::get(&new).ok_or(Error::<T>::CandidateDNE)?;

@@ -720,6 +720,10 @@ fn switch_nomination_works() {
 			Stake::switch_nomination(Origin::signed(6), 2, 1),
 			Error::<Test>::NominationDNE
 		);
+		assert_noop!(
+			Stake::switch_nomination(Origin::signed(6), 1, 1),
+			Error::<Test>::CannotSwitchToSameNomination
+		);
 		assert_ok!(Stake::switch_nomination(Origin::signed(6), 1, 2));
 		assert_eq!(
 			last_event(),
