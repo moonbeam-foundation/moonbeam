@@ -64,11 +64,15 @@ fp-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.5-h
 
 author-inherent = { path = "../../pallets/author-inherent"}
 
-frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "master", optional = true }
+frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "master" }
 frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", branch = "master" }
+
 
 [build-dependencies]
 substrate-build-script-utils = { git = "https://github.com/paritytech/substrate", branch = "master" }
 
 [features]
-runtime-benchmarks = ["frame-benchmarking"]
+default = []
+runtime-benchmarks = [
+  "moonbeam-runtime/runtime-benchmarks",
+]
