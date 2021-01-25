@@ -494,10 +494,8 @@ decl_error! {
 		// Nominator Does Not Exist
 		NominatorDNE,
 		CandidateDNE,
-		ValidatorDNE,
 		NominatorExists,
 		CandidateExists,
-		ValidatorExists,
 		FeeOverMax,
 		ValBondBelowMin,
 		NomBondBelowMin,
@@ -509,7 +507,6 @@ decl_error! {
 		CannotActivateIfLeaving,
 		ExceedMaxValidatorsPerNom,
 		AlreadyNominatedValidator,
-		MustNominateAtLeastOne,
 		NominationDNE,
 		Underflow,
 	}
