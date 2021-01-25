@@ -62,13 +62,13 @@ pallet-transaction-payment-rpc = { git = "https://github.com/paritytech/substrat
 sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sc-consensus-manual-seal = { git = "https://github.com/paritytech/substrate", branch = "master" }
 
-evm = { package = "pallet-evm", git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
-ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
+evm = { package = "pallet-evm", git = "https://github.com/purestake/frontier", branch = "joshy-v0.5-hotfixes-rebased" }
+ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "joshy-v0.5-hotfixes-rebased" }
 
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
-fp-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
-fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "joshy-v0.5-hotfixes-rebased" }
+fp-consensus = { git = "https://github.com/purestake/frontier", branch = "joshy-v0.5-hotfixes-rebased" }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "joshy-v0.5-hotfixes-rebased" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "joshy-v0.5-hotfixes-rebased" }
 
 author-inherent = { path = "../../pallets/author-inherent"}
 
