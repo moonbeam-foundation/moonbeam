@@ -72,7 +72,7 @@ export async function startMoonbeamNode(
   });
 
   const binaryLogs = [];
-  await new Promise((resolve) => {
+  await new Promise<void>((resolve) => {
     const timer = setTimeout(() => {
       console.error(`\x1b[31m Failed to start Moonbeam Test Node.\x1b[0m`);
       console.error(`Command: ${cmd} ${args.join(" ")}`);
