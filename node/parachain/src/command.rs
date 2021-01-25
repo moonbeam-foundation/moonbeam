@@ -274,7 +274,15 @@ pub fn run() -> Result<()> {
 					return Err("Collator nodes must specify an author account id".into());
 				}
 			}
+
 			runner.run_node_until_exit(|config| async move {
+
+				// If this is a --dev node, start up manual or instant seal.
+				if cli.run.base.shared_params.dev {
+					return crate::dev_service::new_full(config, author_id)
+				}
+
+				// Not a dev node, so boot up the whole parachain setup
 				let key = sp_core::Pair::generate().0;
 
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);

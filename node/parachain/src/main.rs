@@ -24,6 +24,8 @@ mod chain_spec;
 mod service;
 mod cli;
 mod command;
+mod dev_service;
+mod mock_timestamp;
 
 fn main() -> sc_cli::Result<()> {
 	command::run()
