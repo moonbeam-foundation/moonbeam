@@ -111,17 +111,17 @@ impl<A, B: HasCompact> Into<IndividualExposure<A, B>> for Bond<A, B> {
 
 #[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
 /// The activity status of the validator
-pub enum ValidatorStatus<BlockNumber> {
+pub enum ValidatorStatus {
 	/// Committed to be online and producing valid blocks (not equivocating)
 	Active,
 	/// Temporarily inactive and excused for inactivity
 	Idle,
-	/// Bonded until the wrapped block
-	Leaving(BlockNumber),
+	/// Bonded until the inner round
+	Leaving(RoundIndex),
 }
 
-impl<B> Default for ValidatorStatus<B> {
-	fn default() -> ValidatorStatus<B> {
+impl Default for ValidatorStatus {
+	fn default() -> ValidatorStatus {
 		ValidatorStatus::Active
 	}
 }
@@ -133,7 +133,7 @@ pub struct Validator<AccountId, Balance> {
 	pub bond: Balance,
 	pub nominators: OrderedSet<Bond<AccountId, Balance>>,
 	pub total: Balance,
-	pub state: ValidatorStatus<RoundIndex>,
+	pub state: ValidatorStatus,
 }
 
 impl<
