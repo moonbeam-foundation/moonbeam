@@ -74,11 +74,10 @@ pub fn new_partial(
 		FullSelectChain,
 		sp_consensus::import_queue::BasicQueue<Block, sp_api::TransactionFor<FullClient, Block>>,
 		sc_transaction_pool::FullPool<Block, FullClient>,
-		(FrontierBlockImport<
-			Block,
-			Arc<FullClient>,
-			FullClient,
-		>, PendingTransactions),
+		(
+			FrontierBlockImport<Block, Arc<FullClient>, FullClient>,
+			PendingTransactions,
+		),
 	>,
 	ServiceError,
 > {
@@ -116,12 +115,8 @@ pub fn new_partial(
 		select_chain,
 		transaction_pool,
 		inherent_data_providers,
-		other: (
-			frontier_block_import,
-			pending_transactions,
-		),
+		other: (frontier_block_import, pending_transactions),
 	})
-
 }
 
 /// Builds a new service for a full client.
@@ -265,17 +260,16 @@ pub fn new_full(
 		);
 
 		// Background authorship future
-		let authorship_future =
-			manual_seal::run_manual_seal(manual_seal::ManualSealParams {
-				block_import,
-				env,
-				client,
-				pool: transaction_pool.pool().clone(),
-				commands_stream,
-				select_chain,
-				consensus_data_provider: None,
-				inherent_data_providers,
-			});
+		let authorship_future = manual_seal::run_manual_seal(manual_seal::ManualSealParams {
+			block_import,
+			env,
+			client,
+			pool: transaction_pool.pool().clone(),
+			commands_stream,
+			select_chain,
+			consensus_data_provider: None,
+			inherent_data_providers,
+		});
 
 		// we spawn the future on a background thread managed by service.
 		task_manager
