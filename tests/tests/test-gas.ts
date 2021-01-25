@@ -97,7 +97,7 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
   // minus the block initialization (10%) and minus the extrinsic base cost.
   const EXTRINSIC_GAS_LIMIT = BLOCK_TX_GAS_LIMIT - BLOCK_TX_LIMIT * 0.1 - EXTRINSIC_BASE_COST;
 
-  it("gas limit should be fine up to the weight limit", async function () {
+  it.only("gas limit should be fine up to the weight limit", async function () {
     const nonce = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
     const goodTx = await context.web3.eth.accounts.signTransaction(
       {
@@ -110,9 +110,9 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
       },
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
-    expect(
-      (await customRequest(context.web3, "eth_sendRawTransaction", [goodTx.rawTransaction])).result
-    ).to.be.length(66);
+    let resp = await customRequest(context.web3, "eth_sendRawTransaction", [goodTx.rawTransaction]);
+    console.log("RESP", resp);
+    expect(resp.result).to.be.length(66);
   });
 
   it("gas limit should be limited by weight", async function () {
