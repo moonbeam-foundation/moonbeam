@@ -49,14 +49,14 @@ export const moonbeamDefinitions = {
           fee: "Perbill",
           nominators: "Vec<Bond>",
           total: "Balance",
-          state: "ValidatorStatus<RoundIndex>",
+          state: "ValidatorStatus",
         },
         Bond: {
           owner: "AccountId",
           amount: "Balance",
         },
         ValidatorStatus: {
-          _enum: ["Active", "Idle", "Leaving(BlockNumber)"],
+          _enum: ["Active", "Idle", "Leaving(RoundIndex)"],
         },
       },
     },
