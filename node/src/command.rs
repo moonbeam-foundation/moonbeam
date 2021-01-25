@@ -43,7 +43,7 @@ fn load_spec(
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	match id {
 		"alphanet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
-			&include_bytes!("../../../specs/MoonbaseAlphaV5.json")[..],
+			&include_bytes!("../../specs/MoonbaseAlphaV5.json")[..],
 		)?)),
 		"dev" | "development" | "" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
 		path => Ok(Box::new(chain_spec::ChainSpec::from_json_file(
@@ -124,7 +124,7 @@ impl SubstrateCli for RelayChainCli {
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		match id {
 			"moonbase_alpha_relay" => Ok(Box::new(RococoChainSpec::from_json_bytes(
-				&include_bytes!("../../../specs/MoonbaseAlphaV5-Relay.json")[..],
+				&include_bytes!("../../specs/MoonbaseAlphaV5-Relay.json")[..],
 			)?)),
 			// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the
 			// Polkadot service to interpret the id.

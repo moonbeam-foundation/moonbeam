@@ -1,6 +1,6 @@
 [package]
 name = 'moonbase-alphanet'
-description = 'Moonbase Parachain Collator'
+description = 'Moonbase Collator'
 homepage = 'https://moonbeam.network'
 license = 'GPL-3.0-only'
 version = '0.1.0'
@@ -28,8 +28,8 @@ jsonrpc-core = "15.0.0"
 jsonrpc-pubsub = "15.0.0"
 
 # Parachain dependencies
-moonbeam-runtime = { path = "../../runtime" }
-moonbeam-rpc = { path = "../rpc" }
+moonbeam-runtime = { path = "../runtime" }
+moonbeam-rpc = { path = "./rpc" }
 
 # Substrate dependencies
 sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
@@ -70,7 +70,7 @@ fp-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.5-h
 fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 fc-rpc = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 
-author-inherent = { path = "../../pallets/author-inherent"}
+author-inherent = { path = "../pallets/author-inherent"}
 
 # Cumulus dependencies
 cumulus-consensus = { git = "https://github.com/paritytech/cumulus", branch = "master" }
