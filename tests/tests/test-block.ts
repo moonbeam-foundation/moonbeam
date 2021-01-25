@@ -127,53 +127,52 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     expect(txPassedFirstBlock).to.eq(1);
   });
 
-  it("should be able to fill a block with 136 tx", async function () {
+  it.skip("should be able to fill a block with 260 tx", async function () {
     this.timeout(15000);
-    // We have 3_000_000 Gas available for transactions per block.
-    // Each transaction needs 1_000 (extrinsic cost) + 21_000 (eth cost)
-    // 3_000_000 / 22_000 = ~136.36
-
-    // The test will send 137 tx and verify the first block contains only 136.
-    let { txPassed, txPassedFirstBlock } = await fillBlockWithTx(context, 137);
-    expect(txPassedFirstBlock).to.eq(136);
-    expect(txPassed).to.eq(137); // including all blocks
+    // We have 6_000_000 Gas available for transactions per block.
+    // Each transaction needs 2_000 (extrinsic cost) + 21_000 (eth cost)
+    // 6_000_000 / 23_000 = ~260.86
+    // The test will send 261 tx and verify the first block contains only 260.
+    let { txPassed, txPassedFirstBlock } = await fillBlockWithTx(context, 261);
+    expect(txPassedFirstBlock).to.eq(260);
+    expect(txPassed).to.eq(261); // including all blocks
   });
 
-  it("should be able to fill a block with 32 contract creations tx", async function () {
+  it.skip("should be able to fill a block with 64 contract creations tx", async function () {
     this.timeout(15000);
-    // We have 3_000_000 Gas available for transactions per block.
-    // Each transaction needs 1_000 (extrinsic cost) + 91019 (contract cost)
-    // 3_000_000 / 92_019 = ~32.96
+    // We have 6_000_000 Gas available for transactions per block.
+    // Each transaction needs 2_000 (extrinsic cost) + 91019 (contract cost)
+    // 6_000_000 / 92_019 = ~64.50
 
-    // The test will send 33 contract tx and verify the first block contains only 32.
-    let { txPassedFirstBlock } = await fillBlockWithTx(context, 33, contractCreation);
-    expect(txPassedFirstBlock).to.eq(32);
+    // The test will send 65 contract tx and verify the first block contains only 64.
+    let { txPassedFirstBlock } = await fillBlockWithTx(context, 65, contractCreation);
+    expect(txPassedFirstBlock).to.eq(64);
   });
 
   // 8192 is the number of tx that can be sent to the Pool
   // before it throws an error and drops all tx
 
-  it("should be able to send 8192 tx to the pool and have them all published\
+  it.skip("should be able to send 8192 tx to the pool and have them all published\
   within the following blocks", async function () {
     this.timeout(120000);
     let { txPassed } = await fillBlockWithTx(context, 8192);
     expect(txPassed).to.eq(8192);
   });
 
-  it("but shouldn't work for 8193", async function () {
+  it.skip("but shouldn't work for 8193", async function () {
     this.timeout(120000);
     let { txPassed } = await fillBlockWithTx(context, 8193);
     expect(txPassed).to.eq(0);
   });
 
-  it("should be able to send 8192 tx to the pool and have them all published\
+  it.skip("should be able to send 8192 tx to the pool and have them all published\
   within the following blocks - bigger tx", async function () {
     this.timeout(120000);
     let { txPassed } = await fillBlockWithTx(context, 8192, contractCreation);
     expect(txPassed).to.eq(8192);
   });
 
-  it("but shouldn't work for 8193 - bigger tx", async function () {
+  it.skip("but shouldn't work for 8193 - bigger tx", async function () {
     this.timeout(120000);
     let { txPassed } = await fillBlockWithTx(context, 8193, contractCreation);
     expect(txPassed).to.eq(0);
