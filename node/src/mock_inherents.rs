@@ -27,7 +27,11 @@
 use sp_inherents::{InherentData, InherentIdentifier, ProvideInherentData};
 use sp_timestamp::InherentError;
 use std::cell::RefCell;
-use cumulus_primitives::inherents::{VALIDATION_DATA_IDENTIFIER, ValidationDataType};
+use cumulus_primitives::{
+	inherents::{VALIDATION_DATA_IDENTIFIER, ValidationDataType},
+	ValidationData, PersistedValidationData,
+};
+use sp_core::H256;
 
 use moonbeam_runtime::MINIMUM_PERIOD;
 
@@ -80,7 +84,28 @@ impl ProvideInherentData for MockValidationDataInherentDataProvider {
 	) -> Result<(), sp_inherents::Error> {
 
 		let data = ValidationDataType {
-			validation_data: todo!(),
+			validation_data: ValidationData {
+				persisted: PersistedValidationData {
+					/// The parent head-data.
+					parent_head: Vec::new().into(),
+					/// The relay-chain block number this is in the context of.
+					block_number: 0,
+					/// The relay-chain block storage root this is in the context of.
+					relay_storage_root: H256::zero(),
+					/// The list of MQC heads for the inbound channels paired with the sender para ids. This
+					/// vector is sorted ascending by the para id and doesn't contain multiple entries with the same
+					/// sender.
+					hrmp_mqc_heads: Vec::new(),
+					/// The MQC head for the DMQ.
+					///
+					/// The DMQ MQC head will be used by the validation function to authorize the downward messages
+					/// passed by the collator.
+					dmq_mqc_head: H256::zero(),
+					/// The maximum legal size of a POV block, in bytes.
+					max_pov_size: u32::max_value(),
+				},
+				transient: todo!(),
+			},
 			relay_chain_state: sp_trie::StorageProof::empty(),
 		};
 
