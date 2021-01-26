@@ -270,43 +270,43 @@ pub fn run() -> Result<()> {
 			let runner = cli.create_runner(&*cli.run)?;
 			let collator = cli.run.base.validator || cli.collator;
 
+			if cli.run.base.shared_params.dev {
+				// Dev node does not make sense in a parachain-only context.
+				// This is being adressed in a big way in github.com/PureStake/moonbeam/pull/204
+				return Err("--dev does not make sense in a parachain context".into());
+			}
+
 			// Supply the correct author id for wellknown validators.
 			// This isn't super elegant, but the alternative is modifying Substrate
 			// and this will go away when we start signing blocks
-			let author_id = if cli.run.base.shared_params.dev {
-				//TODO what do we actually expect `--dev` to do in the parachain context
-				let alice_public = ecdsa::Pair::from_string("//Alice", None)
-					.expect("Alice is a valid phrase")
-					.public();
-				Some(EthereumSigner::from(alice_public).into_account())
-			} else if cli.run.base.alice {
+			let author_id = if cli.run.base.alice {
 				let alice_public = ecdsa::Pair::from_string("//Alice", None)
 					.expect("Alice is a valid phrase")
 					.public();
 				Some(EthereumSigner::from(alice_public).into_account())
 			} else if cli.run.base.bob {
 				let alice_public = ecdsa::Pair::from_string("//Bob", None)
-					.expect("Alice is a valid phrase")
+					.expect("Bob is a valid phrase")
 					.public();
 				Some(EthereumSigner::from(alice_public).into_account())
 			} else if cli.run.base.charlie {
 				let alice_public = ecdsa::Pair::from_string("//Charlie", None)
-					.expect("Alice is a valid phrase")
+					.expect("Charlie is a valid phrase")
 					.public();
 				Some(EthereumSigner::from(alice_public).into_account())
 			} else if cli.run.base.dave {
 				let alice_public = ecdsa::Pair::from_string("//Dave", None)
-					.expect("Alice is a valid phrase")
+					.expect("Dave is a valid phrase")
 					.public();
 				Some(EthereumSigner::from(alice_public).into_account())
 			} else if cli.run.base.eve {
 				let alice_public = ecdsa::Pair::from_string("//Eve", None)
-					.expect("Alice is a valid phrase")
+					.expect("Eve is a valid phrase")
 					.public();
 				Some(EthereumSigner::from(alice_public).into_account())
 			} else if cli.run.base.ferdie {
 				let alice_public = ecdsa::Pair::from_string("//Ferdie", None)
-					.expect("Alice is a valid phrase")
+					.expect("Ferdie is a valid phrase")
 					.public();
 				Some(EthereumSigner::from(alice_public).into_account())
 			} else {
