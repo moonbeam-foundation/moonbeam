@@ -40,6 +40,22 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     expect(block.hash).to.be.a("string").lengthOf(66);
     expect(block.parentHash).to.be.a("string").lengthOf(66);
     expect(block.timestamp).to.be.a("number");
+    //fetch block again using hash
+    const blockByHash = await context.web3.eth.getBlock(block.hash);
+    console.log("blockbyhash", blockByHash);
+    expect(blockByHash).to.include({
+      author: "0x0000000000000000000000000000000000000000",
+      difficulty: "0",
+      extraData: "0x",
+      gasLimit: 4294967295,
+      gasUsed: 0,
+      logsBloom: `0x${"0".repeat(512)}`,
+      number: 0,
+      receiptsRoot: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+      sha3Uncles: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+      totalDifficulty: null,
+      transactionsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+    });
   });
 
   let firstBlockCreated = false;
