@@ -16,7 +16,7 @@
 
 //! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
 
-use crate::mock_inherents::MockTimestampInherentDataProvider;
+use crate::mock_inherents::{MockTimestampInherentDataProvider, MockValidationDataInherentDataProvider};
 use fc_consensus::FrontierBlockImport;
 use fc_rpc_core::types::PendingTransactions;
 use moonbeam_runtime::{self, opaque::Block, RuntimeApi};
@@ -53,6 +53,11 @@ pub fn build_inherent_data_providers(
 	}
 	providers
 		.register_provider(MockTimestampInherentDataProvider)
+		.map_err(Into::into)
+		.map_err(sp_consensus::error::Error::InherentData)?;
+
+	providers
+		.register_provider(MockValidationDataInherentDataProvider{})
 		.map_err(Into::into)
 		.map_err(sp_consensus::error::Error::InherentData)?;
 
