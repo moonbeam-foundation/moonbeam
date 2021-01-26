@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use moonbeam_runtime::{
-	AccountId, AuraConfig, BalancesConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig,
+	AccountId, AuraConfig, BalancesConfig, DemocracyConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig,
 	GenesisConfig, GrandpaConfig, StakeConfig, SudoConfig, SystemConfig, GLMR, WASM_BINARY,
 };
 use sc_service::ChainType;
@@ -168,5 +168,6 @@ fn testnet_genesis(
 				.map(|k| (k, None, 100_000 * GLMR))
 				.collect(),
 		}),
+		pallet_democracy: Some(DemocracyConfig {})
 	}
 }
