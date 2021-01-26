@@ -655,6 +655,8 @@ impl_runtime_apis! {
 			use frame_system_benchmarking::Module as SystemBench;
 			impl frame_system_benchmarking::Config for Runtime {}
 
+			use author_inherent::Module as AuthorInherentBench;
+
 			let whitelist: Vec<TrackedStorageKey> = vec![
 			];
 
@@ -662,7 +664,7 @@ impl_runtime_apis! {
 			let params = (&config, &whitelist);
 
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
-			// add_benchmark!(params, batches, pallet_author_inherent, Balances);
+			add_benchmark!(params, batches, author_inherent, AuthorInherentBench::<Runtime>);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)
