@@ -87,11 +87,17 @@ export const moonbeamDefinitions = {
         Candidate: {
           validator: "AccountId",
           fee: "Perbill",
-          nominators: "OrderedSet<Bond<AccountId, Balance>>",
+          nominators: "Vec<Bond>",
           total: "Balance",
-          state: "ValidatorStatus<RoundIndex>",
+          state: "ValidatorStatus",
         },
-        OrderedSet: "Vec",
+        Bond: {
+          owner: "AccountId",
+          amount: "Balance",
+        },
+        ValidatorStatus: {
+          _enum: ["Active", "Idle", "Leaving(RoundIndex)"],
+        },
       },
     },
   ],
