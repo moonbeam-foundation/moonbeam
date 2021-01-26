@@ -18,7 +18,7 @@ use cumulus_primitives::ParaId;
 use moonbeam_runtime::{
 	AccountId, BalancesConfig, DemocracyConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig,
 	GenesisConfig, ParachainInfoConfig, SchedulerConfig, StakeConfig, SudoConfig, SystemConfig,
-	WASM_BINARY,
+	WASM_BINARY, GLMR,
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
@@ -46,6 +46,7 @@ impl Extensions {
 	}
 }
 
+// This is the only hard-coded spec for the parachain. All deployments are based on it.
 pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 	ChainSpec::from_genesis(
 		"Moonbase Parachain Local Testnet",
@@ -87,7 +88,7 @@ fn testnet_genesis(
 			balances: endowed_accounts
 				.iter()
 				.cloned()
-				.map(|k| (k, 1 << 60))
+				.map(|k| (k, 1 << 80))
 				.collect(),
 		}),
 		pallet_sudo: Some(SudoConfig { key: root_key }),
@@ -99,7 +100,14 @@ fn testnet_genesis(
 			accounts: BTreeMap::new(),
 		}),
 		pallet_ethereum: Some(EthereumConfig {}),
-		stake: Some(StakeConfig { stakers: vec![] }),
+
+		stake: Some(StakeConfig {
+			stakers: endowed_accounts
+				.iter()
+				.cloned()
+				.map(|k| (k, None, 100_000 * GLMR))
+				.collect(),
+		}),
 		pallet_democracy: Some(DemocracyConfig {}),
 		pallet_scheduler: Some(SchedulerConfig {}),
 	}

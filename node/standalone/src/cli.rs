@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use sp_core::H160;
 use structopt::StructOpt;
 
 #[allow(missing_docs)]
@@ -24,8 +25,18 @@ pub struct RunCmd {
 	pub base: sc_cli::RunCmd,
 
 	/// Force using Kusama native runtime.
-	#[structopt(long = "manual-seal")]
+	#[structopt(long)]
 	pub manual_seal: bool,
+
+	/// Public identity for participating in staking and receiving rewards
+	#[structopt(long, parse(try_from_str = parse_h160))]
+	pub author_id: Option<H160>,
+}
+
+fn parse_h160(input: &str) -> Result<H160, String> {
+	input
+		.parse::<H160>()
+		.map_err(|_| "Failed to parse H160".to_string())
 }
 
 #[derive(Debug, StructOpt)]
