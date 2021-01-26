@@ -66,7 +66,7 @@ impl ProvideInherentData for MockTimestampInherentDataProvider {
 
 
 pub struct MockValidationDataInherentDataProvider {
-	para_id: u64,//todo type?
+	para_id: u64,//todo type? // todo also, do I even need this?
 }
 
 impl ProvideInherentData for MockValidationDataInherentDataProvider {
@@ -81,7 +81,7 @@ impl ProvideInherentData for MockValidationDataInherentDataProvider {
 
 		let data = ValidationDataType {
 			validation_data: todo!(),
-			relay_chain_state: todo!(),
+			relay_chain_state: sp_trie::StorageProof::empty(),
 		};
 
 		inherent_data.put_data(VALIDATION_DATA_IDENTIFIER, &data)
