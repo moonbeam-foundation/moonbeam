@@ -250,8 +250,8 @@ impl<
 	pub fn go_online(&mut self) {
 		self.state = ValidatorStatus::Active;
 	}
-	pub fn leave_candidates(&mut self, block: RoundIndex) {
-		self.state = ValidatorStatus::Leaving(block);
+	pub fn leave_candidates(&mut self, round: RoundIndex) {
+		self.state = ValidatorStatus::Leaving(round);
 	}
 }
 
@@ -965,6 +965,13 @@ impl<T: Config> Module<T> {
 		Ok(())
 	}
 	fn pay_stakers(next: RoundIndex) {
+		let mint = |amt: BalanceOf<T>, to: T::AccountId| {
+			if amt > T::Currency::minimum_balance() {
+				if let Some(imb) = T::Currency::deposit_into_existing(&to, amt).ok() {
+					Self::deposit_event(RawEvent::Rewarded(to.clone(), imb.peek()));
+				}
+			}
+		};
 		let duration = T::BondDuration::get();
 		if next > duration {
 			let round_to_payout = next - duration;
@@ -976,34 +983,31 @@ impl<T: Config> Module<T> {
 			for (val, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
 				let pct_due = Perbill::from_rational_approximation(pts, total);
 				let mut amt_due = pct_due * issuance;
-				if amt_due < T::Currency::minimum_balance() {
+				if amt_due <= T::Currency::minimum_balance() {
 					continue;
 				}
 				if let Some(state) = <Candidates<T>>::get(&val) {
-					if state.nominators.0.len() == 0usize {
+					if state.nominators.0.is_empty() {
 						// solo validator with no nominators
 						if let Some(imb) = T::Currency::deposit_into_existing(&val, amt_due).ok() {
 							Self::deposit_event(RawEvent::Rewarded(val.clone(), imb.peek()));
 						}
 					} else {
 						let fee = state.fee * amt_due;
-						if let Some(imb) = T::Currency::deposit_into_existing(&val, fee).ok() {
-							Self::deposit_event(RawEvent::Rewarded(val.clone(), imb.peek()));
+						if fee > T::Currency::minimum_balance() {
+							if let Some(imb) = T::Currency::deposit_into_existing(&val, fee).ok() {
+								amt_due -= fee;
+								Self::deposit_event(RawEvent::Rewarded(val.clone(), imb.peek()));
+							}
 						}
-						amt_due -= fee;
 						for Bond { owner, amount } in state.nominators.0 {
 							let percent = Perbill::from_rational_approximation(amount, state.total);
 							let due = percent * amt_due;
-							if let Some(imb) = T::Currency::deposit_into_existing(&owner, due).ok()
-							{
-								Self::deposit_event(RawEvent::Rewarded(owner.clone(), imb.peek()));
-							}
+							mint(due, owner);
 						}
 						let pct = Perbill::from_rational_approximation(state.bond, state.total);
 						let due = pct * amt_due;
-						if let Some(imb) = T::Currency::deposit_into_existing(&state.id, due).ok() {
-							Self::deposit_event(RawEvent::Rewarded(state.id.clone(), imb.peek()));
-						}
+						mint(due, val.clone());
 					}
 				}
 			}

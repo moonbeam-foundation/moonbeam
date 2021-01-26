@@ -337,13 +337,8 @@ fn exit_queue_works() {
 }
 
 #[test]
-fn payout_distribution_works() {
+fn payout_distribution_for_just_validators_works() {
 	genesis2().execute_with(|| {
-		// same storage changes as EventHandler::note_author impl
-		fn set_pts(round: u32, acc: u64, pts: u32) {
-			<Stake as Store>::Points::mutate(round, |p| *p += pts);
-			<Stake as Store>::AwardedPts::insert(round, acc, pts);
-		}
 		roll_to(4);
 		roll_to(8);
 		// should choose top MaxValidators (5), in order
@@ -357,7 +352,7 @@ fn payout_distribution_works() {
 		];
 		assert_eq!(events(), expected);
 		// ~ set block author as 1 for all blocks this round
-		set_pts(2, 1, 100);
+		set_author(2, 1, 100);
 		roll_to(16);
 		// pay total issuance (=10) to 1
 		let mut new = vec![
@@ -378,9 +373,9 @@ fn payout_distribution_works() {
 		expected.append(&mut new);
 		assert_eq!(events(), expected);
 		// ~ set block author as 1 for 3 blocks this round
-		set_pts(4, 1, 60);
+		set_author(4, 1, 60);
 		// ~ set block author as 2 for 2 blocks this round
-		set_pts(4, 2, 40);
+		set_author(4, 2, 40);
 		roll_to(26);
 		// pay 60% total issuance to 1 and 40% total issuance to 2
 		let mut new1 = vec![
@@ -402,11 +397,11 @@ fn payout_distribution_works() {
 		expected.append(&mut new1);
 		assert_eq!(events(), expected);
 		// ~ each validator produces 1 block this round
-		set_pts(6, 1, 20);
-		set_pts(6, 2, 20);
-		set_pts(6, 3, 20);
-		set_pts(6, 4, 20);
-		set_pts(6, 5, 20);
+		set_author(6, 1, 20);
+		set_author(6, 2, 20);
+		set_author(6, 3, 20);
+		set_author(6, 4, 20);
+		set_author(6, 5, 20);
 		roll_to(36);
 		// pay 20% issuance for all validators
 		let mut new2 = vec![
@@ -439,6 +434,48 @@ fn payout_distribution_works() {
 		assert!(<Stake as Store>::AwardedPts::get(6, 3).is_zero());
 		assert!(<Stake as Store>::AwardedPts::get(6, 4).is_zero());
 		assert!(<Stake as Store>::AwardedPts::get(6, 5).is_zero());
+	});
+}
+
+#[test]
+fn payout_distribution_for_validators_with_nominators_works() {
+	genesis3().execute_with(|| {
+		roll_to(4);
+		roll_to(8);
+		// chooses top MaxValidators (5), in order
+		let mut expected = vec![
+			RawEvent::ValidatorChosen(2, 1, 50),
+			RawEvent::ValidatorChosen(2, 2, 40),
+			RawEvent::ValidatorChosen(2, 4, 20),
+			RawEvent::ValidatorChosen(2, 3, 20),
+			RawEvent::ValidatorChosen(2, 5, 10),
+			RawEvent::NewRound(5, 2, 5, 140),
+		];
+		assert_eq!(events(), expected);
+		// ~ set block author as 1 for all blocks this round
+		set_author(2, 1, 100);
+		roll_to(16);
+		// distribute total issuance (=10) to validator 1 and its nominators 6, 7, 19
+		let mut new = vec![
+			RawEvent::ValidatorChosen(3, 1, 50),
+			RawEvent::ValidatorChosen(3, 2, 40),
+			RawEvent::ValidatorChosen(3, 4, 20),
+			RawEvent::ValidatorChosen(3, 3, 20),
+			RawEvent::ValidatorChosen(3, 5, 10),
+			RawEvent::NewRound(10, 3, 5, 140),
+			RawEvent::Rewarded(6, 2),
+			RawEvent::Rewarded(7, 2),
+			RawEvent::Rewarded(10, 2),
+			RawEvent::Rewarded(1, 4),
+			RawEvent::ValidatorChosen(4, 1, 50),
+			RawEvent::ValidatorChosen(4, 2, 40),
+			RawEvent::ValidatorChosen(4, 4, 20),
+			RawEvent::ValidatorChosen(4, 3, 20),
+			RawEvent::ValidatorChosen(4, 5, 10),
+			RawEvent::NewRound(15, 4, 5, 140),
+		];
+		expected.append(&mut new);
+		assert_eq!(events(), expected);
 	});
 }
 

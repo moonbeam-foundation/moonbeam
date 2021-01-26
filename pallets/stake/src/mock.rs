@@ -268,3 +268,9 @@ pub fn events() -> Vec<RawEvent<u64, u128, u64>> {
 		})
 		.collect::<Vec<_>>()
 }
+
+// Same storage changes as EventHandler::note_author impl
+pub fn set_author(round: u32, acc: u64, pts: u32) {
+	<Stake as Store>::Points::mutate(round, |p| *p += pts);
+	<Stake as Store>::AwardedPts::mutate(round, acc, |p| *p += pts);
+}
