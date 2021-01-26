@@ -2,10 +2,15 @@ import Web3 from "web3";
 
 import { JsonRpcResponse } from "web3-core-helpers";
 import { SignedTransaction, TransactionConfig } from "web3-core";
-import { basicTransfertx, GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../constants";
+import {
+  basicTransfertx,
+  CompleteTransactionConfig,
+  GENESIS_ACCOUNT,
+  GENESIS_ACCOUNT_PRIVATE_KEY,
+} from "../constants";
 import { wrappedCustomRequest } from "./web3Requests";
 import { createAndFinalizeBlock } from ".";
-import { Context } from "./testWithMoonbeam";
+import { Context, log } from "./testWithMoonbeam";
 
 function isSignedTransaction(tx: Error | SignedTransaction): tx is SignedTransaction {
   return (tx as SignedTransaction).rawTransaction !== undefined;
@@ -77,24 +82,24 @@ interface FillBlockReport {
   sendingTime: number;
 }
 
-// This functiom sends a batch of signed transactions to the pool and records both
-// how many tx were included in the first block and the total numbe rof tx that were
+export interface ErrorReport {
+  [key: string]: {
+    [key: string]: number;
+  };
+}
+
+// This function sends a batch of signed transactions to the pool and records both
+// how many tx were included in the first block and the total number of tx that were
 // included in a block
 // By default, the tx is a simple transfer, but a TransactionConfig can be specified as an option
 export async function fillBlockWithTx(
   context: Context,
   numberOfTx: number,
-  customTxConfig: TransactionConfig = basicTransfertx
+  customTxConfig: CompleteTransactionConfig = basicTransfertx
 ): Promise<FillBlockReport> {
   let nonce: number = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
 
   const numberArray = new Array(numberOfTx).fill(1);
-
-  interface ErrorReport {
-    [key: string]: {
-      [key: string]: number;
-    };
-  }
 
   let errorReport: ErrorReport = {
     signing: {},
@@ -118,14 +123,12 @@ export async function fillBlockWithTx(
     context.web3,
     numberOfTx,
     nonce,
-    customTxConfig
+    customTxConfig as any // needed as the web3 types don't support chainId but the code does.
   );
 
   const signingTime: number = Date.now() - startSigningTime;
 
-  console.log(
-    "Time it took to sign " + txList.length + " tx is " + signingTime / 1000 + " seconds"
-  );
+  log("Time it took to sign " + txList.length + " tx is " + signingTime / 1000 + " seconds");
 
   const startSendingTime: number = Date.now();
 
@@ -143,23 +146,17 @@ export async function fillBlockWithTx(
 
   const sendingTime: number = Date.now() - startSendingTime;
 
-  console.log(
-    "Time it took to send " + respList.length + " tx is " + sendingTime / 1000 + " seconds"
-  );
+  log("Time it took to send " + respList.length + " tx is " + sendingTime / 1000 + " seconds");
 
-  console.log("Error Report : ", errorReport);
+  log("Error Report : ", errorReport);
 
-  console.log(
-    "created block in ",
-    (await createAndFinalizeBlock(context.polkadotApi)) / 1000,
-    " seconds"
-  );
+  log("created block in ", (await createAndFinalizeBlock(context.polkadotApi)) / 1000, " seconds");
 
   let numberOfBlocks = 0;
   let block = await context.web3.eth.getBlock("latest");
   let txPassed: number = block.transactions.length;
   const txPassedFirstBlock: number = txPassed;
-  console.log(
+  log(
     "block.gasUsed",
     block.gasUsed,
     "block.number",
@@ -174,7 +171,7 @@ export async function fillBlockWithTx(
     await createAndFinalizeBlock(context.polkadotApi);
 
     block = await context.web3.eth.getBlock("latest");
-    console.log(
+    log(
       "following block, block" + i + ".gasUsed",
       block.gasUsed,
       "block" + i + ".number",

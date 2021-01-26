@@ -54,52 +54,20 @@ docker run \
   -p $((RELAY_PORT + 1)):$((RELAY_PORT + 1)) \
   -p $((RELAY_PORT + 2)):$((RELAY_PORT + 2)) \
   -it purestake/moonbase-relay-testnet:$POLKADOT_VERSION \
-    bash -c "
-      echo 'Inserting keys...';
-      /usr/local/bin/polkadot \
-        key insert \
-        --keystore-path /tmp/chains/rococo_moonbase_relay_testnet/keystore \
-        --base-path /tmp \
-        --suri '${RELAY_SEEDS[$RELAY_INDEX]}'  \
-        --key-type gran \
-        --scheme ed25519;
-      /usr/local/bin/polkadot \
-        key insert \
-        --keystore-path /tmp/chains/rococo_moonbase_relay_testnet/keystore \
-        --base-path /tmp \
-        --suri '${RELAY_SEEDS[$RELAY_INDEX]}' \
-        --key-type babe;
-      /usr/local/bin/polkadot \
-        key insert \
-        --keystore-path /tmp/chains/rococo_moonbase_relay_testnet/keystore \
-        --base-path /tmp \
-        --suri '${RELAY_SEEDS[$RELAY_INDEX]}' \
-        --key-type imon;
-      /usr/local/bin/polkadot \
-        key insert \
-        --keystore-path /tmp/chains/rococo_moonbase_relay_testnet/keystore \
-        --base-path /tmp \
-        --suri '${RELAY_SEEDS[$RELAY_INDEX]}' \
-        --key-type para;
-      /usr/local/bin/polkadot \
-        key insert \
-        --keystore-path /tmp/chains/rococo_moonbase_relay_testnet/keystore \
-        --base-path /tmp \
-        --suri '${RELAY_SEEDS[$RELAY_INDEX]}' \
-        --key-type audi;
-      echo 'Starting node...';
-      /usr/local/bin/polkadot \
-        --chain /$POLKADOT_SPEC_RAW \
-        --node-key ${NODE_KEYS[$RELAY_INDEX]} \
-        --base-path /tmp \
-        --validator \
-        --force-authoring \
-        --name relay_$RELAY_INDEX \
-        --rpc-methods=Unsafe \
-        --unsafe-rpc-external \
-        --unsafe-ws-external \
-        --port $((RELAY_PORT)) \
-        --rpc-port $((RELAY_PORT + 1)) \
-        --ws-port $((RELAY_PORT + 2)) \
-        $BOOTNODES_ARGS \
-        '-linfo,evm=trace,ethereum=trace,rpc=trace'"
+    /usr/local/bin/polkadot \
+      --chain rococo-local \
+      --${WELL_KNOWN_USERS[$RELAY_INDEX]} \
+      --node-key ${NODE_KEYS[$RELAY_INDEX]} \
+      --base-path /tmp \
+      --validator \
+      --force-authoring \
+      --name relay_$RELAY_INDEX \
+      --rpc-methods=Unsafe \
+      --unsafe-rpc-external \
+      --unsafe-ws-external \
+      --rpc-cors all \
+      --port $((RELAY_PORT)) \
+      --rpc-port $((RELAY_PORT + 1)) \
+      --ws-port $((RELAY_PORT + 2)) \
+      $BOOTNODES_ARGS \
+      '-linfo,evm=debug,ethereum=trace,rpc=trace,txpool=debug,polkadot_parachain=debug'

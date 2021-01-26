@@ -14,15 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+pub use frame_support::traits::KeyOwnerProofSystem;
 pub use pallet_grandpa::{
-	fg_primitives,
-	AuthorityId as GrandpaId,
-	AuthorityList as GrandpaAuthorityList
+	fg_primitives, AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList,
 };
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 pub use sp_core::crypto::{KeyTypeId, Public};
 pub use sp_runtime::traits::NumberFor;
-pub use frame_support::traits::KeyOwnerProofSystem;
 
 #[macro_export]
 macro_rules! runtime_standalone {
@@ -33,8 +31,8 @@ macro_rules! runtime_standalone {
 			spec_name: create_runtime_str!("moonbeam-standalone"),
 			impl_name: create_runtime_str!("moonbeam-standalone"),
 			authoring_version: 3,
-			spec_version: 7,
-			impl_version: 0,
+			spec_version: 10,
+			impl_version: 1,
 			apis: RUNTIME_API_VERSIONS,
 			transaction_version: 2,
 		};
@@ -91,6 +89,8 @@ macro_rules! runtime_standalone {
 				EthereumChainId: pallet_ethereum_chain_id::{Module, Storage, Config},
 				Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 				EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
+				Stake: stake::{Module, Call, Storage, Event<T>, Config<T>},
+				AuthorInherent: author_inherent::{Module, Call, Storage, Inherent, Event<T>},
 			}
 		);
 	};

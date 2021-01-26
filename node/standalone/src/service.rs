@@ -16,21 +16,25 @@
 
 //! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
 
-use std::sync::Arc;
-use std::time::Duration;
-use sc_client_api::{ExecutorProvider, RemoteBackend};
-use sc_consensus_manual_seal::{self as manual_seal};
-use frontier_consensus::FrontierBlockImport;
+use crate::mock_timestamp::MockTimestampInherentDataProvider;
+use fc_consensus::FrontierBlockImport;
+use fc_rpc_core::types::PendingTransactions;
 use moonbeam_runtime::{self, opaque::Block, RuntimeApi};
-use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
-use sp_inherents::InherentDataProviders;
+use parity_scale_codec::Encode;
+use sc_client_api::{BlockchainEvents, ExecutorProvider, RemoteBackend};
+use sc_consensus_manual_seal::{self as manual_seal};
 use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
-use sp_consensus_aura::sr25519::{AuthorityPair as AuraPair};
-use sc_finality_grandpa::{
-	GrandpaBlockImport, SharedVoterState,
+use sc_finality_grandpa::{GrandpaBlockImport, SharedVoterState};
+use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
+use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
+use sp_core::H160;
+use sp_inherents::InherentDataProviders;
+use std::{
+	collections::HashMap,
+	sync::{Arc, Mutex},
+	time::Duration,
 };
-use crate::mock_timestamp::MockTimestampInherentDataProvider;
 
 // Our native executor instance.
 native_executor_instance!(
@@ -38,6 +42,33 @@ native_executor_instance!(
 	moonbeam_runtime::api::dispatch,
 	moonbeam_runtime::native_version,
 );
+
+/// Build the inherent data providers (timestamp and authorship) for the node.
+pub fn build_inherent_data_providers(
+	manual_seal: bool,
+	author: Option<H160>,
+) -> Result<InherentDataProviders, sc_service::Error> {
+	let providers = InherentDataProviders::new();
+	if let Some(account) = author {
+		providers
+			.register_provider(author_inherent::InherentDataProvider(account.encode()))
+			.map_err(Into::into)
+			.map_err(sp_consensus::error::Error::InherentData)?;
+	}
+	if manual_seal {
+		providers
+			.register_provider(MockTimestampInherentDataProvider)
+			.map_err(Into::into)
+			.map_err(sp_consensus::error::Error::InherentData)?;
+	} else {
+		providers
+			.register_provider(sp_timestamp::InherentDataProvider)
+			.map_err(Into::into)
+			.map_err(sp_consensus::error::Error::InherentData)?;
+	}
+
+	Ok(providers)
+}
 
 type FullClient = sc_service::TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = sc_service::TFullBackend<Block>;
@@ -53,21 +84,29 @@ pub enum ConsensusResult {
 				GrandpaBlockImport<FullBackend, Block, FullClient, FullSelectChain>,
 				FullClient,
 			>,
-			AuraPair
+			AuraPair,
 		>,
-		sc_finality_grandpa::LinkHalf<Block, FullClient, FullSelectChain>
+		sc_finality_grandpa::LinkHalf<Block, FullClient, FullSelectChain>,
 	),
-	ManualSeal(FrontierBlockImport<Block, Arc<FullClient>, FullClient>)
+	ManualSeal(FrontierBlockImport<Block, Arc<FullClient>, FullClient>),
 }
 
-pub fn new_partial(config: &Configuration, manual_seal: bool) -> Result<
+pub fn new_partial(
+	config: &Configuration,
+	manual_seal: bool,
+	author: Option<H160>,
+) -> Result<
 	sc_service::PartialComponents<
-		FullClient, FullBackend, FullSelectChain,
+		FullClient,
+		FullBackend,
+		FullSelectChain,
 		sp_consensus::import_queue::BasicQueue<Block, sp_api::TransactionFor<FullClient, Block>>,
 		sc_transaction_pool::FullPool<Block, FullClient>,
-		ConsensusResult,
->, ServiceError> {
-	let inherent_data_providers = sp_inherents::InherentDataProviders::new();
+		(ConsensusResult, PendingTransactions),
+	>,
+	ServiceError,
+> {
+	let inherent_data_providers = build_inherent_data_providers(manual_seal, author)?;
 
 	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, RuntimeApi, Executor>(&config)?;
@@ -82,17 +121,10 @@ pub fn new_partial(config: &Configuration, manual_seal: bool) -> Result<
 		client.clone(),
 	);
 
-	if manual_seal {
-		inherent_data_providers
-			.register_provider(MockTimestampInherentDataProvider)
-			.map_err(Into::into)
-			.map_err(sp_consensus::error::Error::InherentData)?;
+	let pending_transactions: PendingTransactions = Some(Arc::new(Mutex::new(HashMap::new())));
 
-		let frontier_block_import = FrontierBlockImport::new(
-			client.clone(),
-			client.clone(),
-			true,
-		);
+	if manual_seal {
+		let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone(), true);
 
 		let import_queue = sc_consensus_manual_seal::import_queue(
 			Box::new(frontier_block_import.clone()),
@@ -101,24 +133,33 @@ pub fn new_partial(config: &Configuration, manual_seal: bool) -> Result<
 		);
 
 		return Ok(sc_service::PartialComponents {
-			client, backend, task_manager, import_queue, keystore_container, select_chain, transaction_pool,
+			client,
+			backend,
+			task_manager,
+			import_queue,
+			keystore_container,
+			select_chain,
+			transaction_pool,
 			inherent_data_providers,
-			other: ConsensusResult::ManualSeal(frontier_block_import)
-		})
+			other: (
+				ConsensusResult::ManualSeal(frontier_block_import),
+				pending_transactions,
+			),
+		});
 	}
 
 	let (grandpa_block_import, grandpa_link) = sc_finality_grandpa::block_import(
-		client.clone(), &(client.clone() as Arc<_>), select_chain.clone(),
+		client.clone(),
+		&(client.clone() as Arc<_>),
+		select_chain.clone(),
 	)?;
 
-	let frontier_block_import = FrontierBlockImport::new(
-		grandpa_block_import.clone(),
-		client.clone(),
-		true
-	);
+	let frontier_block_import =
+		FrontierBlockImport::new(grandpa_block_import.clone(), client.clone(), true);
 
 	let aura_block_import = sc_consensus_aura::AuraBlockImport::<_, _, _, AuraPair>::new(
-		frontier_block_import, client.clone(),
+		frontier_block_import,
+		client.clone(),
 	);
 
 	let import_queue = sc_consensus_aura::import_queue::<_, _, _, AuraPair, _, _>(
@@ -133,9 +174,18 @@ pub fn new_partial(config: &Configuration, manual_seal: bool) -> Result<
 	)?;
 
 	Ok(sc_service::PartialComponents {
-		client, backend, task_manager, import_queue, keystore_container, select_chain,
-		transaction_pool, inherent_data_providers,
-		other: ConsensusResult::Aura(aura_block_import, grandpa_link)
+		client,
+		backend,
+		task_manager,
+		import_queue,
+		keystore_container,
+		select_chain,
+		transaction_pool,
+		inherent_data_providers,
+		other: (
+			ConsensusResult::Aura(aura_block_import, grandpa_link),
+			pending_transactions,
+		),
 	})
 }
 
@@ -143,12 +193,19 @@ pub fn new_partial(config: &Configuration, manual_seal: bool) -> Result<
 pub fn new_full(
 	config: Configuration,
 	manual_seal: bool,
+	author_id: Option<H160>,
 ) -> Result<TaskManager, ServiceError> {
 	let sc_service::PartialComponents {
-		client, backend, mut task_manager, import_queue, keystore_container, select_chain,
-		transaction_pool, inherent_data_providers,
-		other: consensus_result
-	} = new_partial(&config, manual_seal)?;
+		client,
+		backend,
+		mut task_manager,
+		import_queue,
+		keystore_container,
+		select_chain,
+		transaction_pool,
+		inherent_data_providers,
+		other: (consensus_result, pending_transactions),
+	} = new_partial(&config, manual_seal, author_id)?;
 
 	let (network, network_status_sinks, system_rpc_tx, network_starter) = match consensus_result {
 		ConsensusResult::ManualSeal(_) => {
@@ -161,27 +218,28 @@ pub fn new_full(
 				on_demand: None,
 				block_announce_validator_builder: None,
 			})?
-		},
-		ConsensusResult::Aura(_, _) => {
-			sc_service::build_network(sc_service::BuildNetworkParams {
-				config: &config,
-				client: client.clone(),
-				transaction_pool: transaction_pool.clone(),
-				spawn_handle: task_manager.spawn_handle(),
-				import_queue,
-				on_demand: None,
-				block_announce_validator_builder: None,
-			})?
 		}
+		ConsensusResult::Aura(_, _) => sc_service::build_network(sc_service::BuildNetworkParams {
+			config: &config,
+			client: client.clone(),
+			transaction_pool: transaction_pool.clone(),
+			spawn_handle: task_manager.spawn_handle(),
+			import_queue,
+			on_demand: None,
+			block_announce_validator_builder: None,
+		})?,
 	};
-
 
 	// Channel for the rpc handler to communicate with the authorship task.
 	let (command_sink, commands_stream) = futures::channel::mpsc::channel(1000);
 
 	if config.offchain_worker.enabled {
 		sc_service::build_offchain_workers(
-			&config, backend.clone(), task_manager.spawn_handle(), client.clone(), network.clone(),
+			&config,
+			backend.clone(),
+			task_manager.spawn_handle(),
+			client.clone(),
+			network.clone(),
 		);
 	}
 
@@ -194,27 +252,26 @@ pub fn new_full(
 	let prometheus_registry = config.prometheus_registry().cloned();
 	let telemetry_connection_sinks = sc_service::TelemetryConnectionSinks::default();
 	let is_authority = role.is_authority();
-	let subscription_task_executor = sc_rpc::SubscriptionTaskExecutor::new(
-		task_manager.spawn_handle()
-	);
+	let subscription_task_executor =
+		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
 		let network = network.clone();
+		let pending = pending_transactions.clone();
 		Box::new(move |deny_unsafe, _| {
 			let deps = moonbeam_rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
+				graph: pool.pool().clone(),
 				deny_unsafe,
 				is_authority,
 				network: network.clone(),
-				command_sink: Some(command_sink.clone())
+				pending_transactions: pending.clone(),
+				command_sink: Some(command_sink.clone()),
 			};
-			moonbeam_rpc::create_full(
-				deps,
-				subscription_task_executor.clone()
-			)
+			moonbeam_rpc::create_full(deps, subscription_task_executor.clone())
 		})
 	};
 
@@ -228,8 +285,58 @@ pub fn new_full(
 		rpc_extensions_builder: rpc_extensions_builder,
 		on_demand: None,
 		remote_blockchain: None,
-		backend, network_status_sinks, system_rpc_tx, config,
+		backend,
+		network_status_sinks,
+		system_rpc_tx,
+		config,
 	})?;
+
+	// Spawn Frontier pending transactions maintenance task (as essential, otherwise we leak).
+	if pending_transactions.is_some() {
+		use fp_consensus::{ConsensusLog, FRONTIER_ENGINE_ID};
+		use futures::StreamExt;
+		use sp_runtime::generic::OpaqueDigestItemId;
+
+		const TRANSACTION_RETAIN_THRESHOLD: u64 = 5;
+		task_manager.spawn_essential_handle().spawn(
+			"frontier-pending-transactions",
+			client
+				.import_notification_stream()
+				.for_each(move |notification| {
+					if let Ok(locked) = &mut pending_transactions.clone().unwrap().lock() {
+						// As pending transactions have a finite lifespan anyway
+						// we can ignore MultiplePostRuntimeLogs error checks.
+						let mut frontier_log: Option<_> = None;
+						for log in notification.header.digest.logs {
+							let log = log.try_to::<ConsensusLog>(OpaqueDigestItemId::Consensus(
+								&FRONTIER_ENGINE_ID,
+							));
+							if let Some(log) = log {
+								frontier_log = Some(log);
+							}
+						}
+
+						let imported_number: u64 = notification.header.number as u64;
+
+						if let Some(ConsensusLog::EndBlock {
+							block_hash: _,
+							transaction_hashes,
+						}) = frontier_log
+						{
+							// Retain all pending transactions that were not
+							// processed in the current block.
+							locked.retain(|&k, _| !transaction_hashes.contains(&k));
+						}
+						locked.retain(|_, v| {
+							// Drop all the transactions that exceeded the given lifespan.
+							let lifespan_limit = v.at_block + TRANSACTION_RETAIN_THRESHOLD;
+							lifespan_limit > imported_number
+						});
+					}
+					futures::future::ready(())
+				}),
+		);
+	}
 
 	match consensus_result {
 		ConsensusResult::ManualSeal(block_import) => {
@@ -242,8 +349,8 @@ pub fn new_full(
 				);
 
 				// Background authorship future
-				let authorship_future = manual_seal::run_manual_seal(
-					manual_seal::ManualSealParams {
+				let authorship_future =
+					manual_seal::run_manual_seal(manual_seal::ManualSealParams {
 						block_import,
 						env,
 						client,
@@ -252,17 +359,15 @@ pub fn new_full(
 						select_chain,
 						consensus_data_provider: None,
 						inherent_data_providers,
-					}
-				);
+					});
 
 				// we spawn the future on a background thread managed by service.
-				task_manager.spawn_essential_handle().spawn_blocking(
-					"manual-seal",
-					authorship_future,
-				);
+				task_manager
+					.spawn_essential_handle()
+					.spawn_blocking("manual-seal", authorship_future);
 			}
 			log::info!("Manual Seal Ready");
-		},
+		}
 		ConsensusResult::Aura(aura_block_import, grandpa_link) => {
 			if role.is_authority() {
 				let proposer = sc_basic_authorship::ProposerFactory::new(
@@ -290,7 +395,9 @@ pub fn new_full(
 
 				// the AURA authoring task is considered essential, i.e. if it
 				// fails we take down the service with it.
-				task_manager.spawn_essential_handle().spawn_blocking("aura", aura);
+				task_manager
+					.spawn_essential_handle()
+					.spawn_blocking("aura", aura);
 
 				// if the node isn't actively participating in consensus then it doesn't
 				// need a keystore, regardless of which protocol we use below.
@@ -330,7 +437,7 @@ pub fn new_full(
 					// if it fails we take down the service with it.
 					task_manager.spawn_essential_handle().spawn_blocking(
 						"grandpa-voter",
-						sc_finality_grandpa::run_grandpa_voter(grandpa_config)?
+						sc_finality_grandpa::run_grandpa_voter(grandpa_config)?,
 					);
 				}
 			}
@@ -395,7 +502,11 @@ pub fn new_light(config: Configuration) -> Result<TaskManager, ServiceError> {
 
 	if config.offchain_worker.enabled {
 		sc_service::build_offchain_workers(
-			&config, backend.clone(), task_manager.spawn_handle(), client.clone(), network.clone(),
+			&config,
+			backend.clone(),
+			task_manager.spawn_handle(),
+			client.clone(),
+			network.clone(),
 		);
 	}
 

@@ -20,11 +20,10 @@
 
 use frame_support::{decl_module, decl_storage, traits::Get};
 
-
 /// Configuration trait of this pallet.
 pub trait Config: frame_system::Config {}
 
-impl <T: Config> Get<u64> for Module<T> {
+impl<T: Config> Get<u64> for Module<T> {
 	fn get() -> u64 {
 		Self::chain_id()
 	}

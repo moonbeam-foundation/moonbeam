@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use sp_core::H160;
 use std::path::PathBuf;
-
-use sc_cli;
 use structopt::StructOpt;
 
 /// Sub-commands supported by the collator.
@@ -96,6 +95,16 @@ pub struct RunCmd {
 	/// Id of the parachain this collator collates for.
 	#[structopt(long)]
 	pub parachain_id: Option<u32>,
+
+	/// Public identity for participating in staking and receiving rewards
+	#[structopt(long, parse(try_from_str = parse_h160))]
+	pub author_id: Option<H160>,
+}
+
+fn parse_h160(input: &str) -> Result<H160, String> {
+	input
+		.parse::<H160>()
+		.map_err(|_| "Failed to parse H160".to_string())
 }
 
 impl std::ops::Deref for RunCmd {

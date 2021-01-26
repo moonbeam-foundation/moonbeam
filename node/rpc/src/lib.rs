@@ -16,28 +16,25 @@
 
 //! A collection of node-specific RPC methods.
 
-// Our drop-in replacements for Frontier's RPC servers.
-mod server_hotfixes;
-mod pubsub_hotfixes;
+use std::{fmt, sync::Arc};
 
-use std::{sync::Arc, fmt};
-
-use sc_consensus_manual_seal::rpc::{EngineCommand, ManualSeal, ManualSealApi};
-use moonbeam_runtime::{Hash, AccountId, Index, opaque::Block, Balance};
-use sp_api::ProvideRuntimeApi;
-use sp_transaction_pool::TransactionPool;
-use sp_blockchain::{Error as BlockChainError, HeaderMetadata, HeaderBackend};
-use sc_rpc_api::DenyUnsafe;
-use sc_client_api::{
-	backend::{StorageProvider, Backend, StateBackend, AuxStore},
-	client::BlockchainEvents
-};
-use sc_rpc::SubscriptionTaskExecutor;
-use sp_runtime::traits::BlakeTwo256;
-use sp_block_builder::BlockBuilder;
-use sc_network::NetworkService;
+use fc_rpc_core::types::PendingTransactions;
 use jsonrpc_pubsub::manager::SubscriptionManager;
-use frontier_rpc::HexEncodedIdProvider;
+use moonbeam_runtime::{opaque::Block, AccountId, Balance, Hash, Index};
+use sc_client_api::{
+	backend::{AuxStore, Backend, StateBackend, StorageProvider},
+	client::BlockchainEvents,
+};
+use sc_consensus_manual_seal::rpc::{EngineCommand, ManualSeal, ManualSealApi};
+use sc_network::NetworkService;
+use sc_rpc::SubscriptionTaskExecutor;
+use sc_rpc_api::DenyUnsafe;
+use sc_transaction_graph::{ChainApi, Pool};
+use sp_api::ProvideRuntimeApi;
+use sp_block_builder::BlockBuilder;
+use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
+use sp_runtime::traits::BlakeTwo256;
+use sp_transaction_pool::TransactionPool;
 
 /// Light client extra dependencies.
 pub struct LightDeps<C, F, P> {
@@ -52,99 +49,103 @@ pub struct LightDeps<C, F, P> {
 }
 
 /// Full client dependencies.
-pub struct FullDeps<C, P> {
+pub struct FullDeps<C, P, A: ChainApi> {
 	/// The client instance to use.
 	pub client: Arc<C>,
 	/// Transaction pool instance.
 	pub pool: Arc<P>,
+	/// Graph pool instance.
+	pub graph: Arc<Pool<A>>,
 	/// Whether to deny unsafe calls
 	pub deny_unsafe: DenyUnsafe,
 	/// The Node authority flag
 	pub is_authority: bool,
 	/// Network service
 	pub network: Arc<NetworkService<Block, Hash>>,
+	/// Ethereum pending transactions.
+	pub pending_transactions: PendingTransactions,
 	/// Manual seal command sink
 	pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
 }
 
 /// Instantiate all Full RPC extensions.
-pub fn create_full<C, P, BE>(
-	deps: FullDeps<C, P>,
-	subscription_task_executor: SubscriptionTaskExecutor
-) -> jsonrpc_core::IoHandler<sc_rpc::Metadata> where
+pub fn create_full<C, P, BE, A>(
+	deps: FullDeps<C, P, A>,
+	subscription_task_executor: SubscriptionTaskExecutor,
+) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
+where
 	BE: Backend<Block> + 'static,
 	BE::State: StateBackend<BlakeTwo256>,
 	C: ProvideRuntimeApi<Block> + StorageProvider<Block, BE> + AuxStore,
 	C: BlockchainEvents<Block>,
-	C: HeaderBackend<Block> + HeaderMetadata<Block, Error=BlockChainError> + 'static,
+	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
 	C: Send + Sync + 'static,
 	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>,
 	C::Api: BlockBuilder<Block>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
-	C::Api: frontier_rpc_primitives::EthereumRuntimeRPCApi<Block>,
+	A: ChainApi<Block = Block> + 'static,
+	C::Api: fp_rpc::EthereumRuntimeRPCApi<Block>,
+	C::Api: moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>,
 	<C::Api as sp_api::ApiErrorExt>::Error: fmt::Debug,
-	P: TransactionPool<Block=Block> + 'static,
+	P: TransactionPool<Block = Block> + 'static,
 {
-	use substrate_frame_rpc_system::{FullSystem, SystemApi};
+	use fc_rpc::{
+		EthApi, EthApiServer, EthPubSubApi, EthPubSubApiServer, HexEncodedIdProvider, NetApi,
+		NetApiServer, Web3Api, Web3ApiServer,
+	};
+	use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
-	use frontier_rpc::{NetApi, NetApiServer, Web3Api, Web3ApiServer};
-	// Our drop in replacements for the Eth APIs. These can be removed after
-	// https://github.com/paritytech/frontier/pull/199 lands
-	use server_hotfixes::{EthApi, EthApiServer};
-	use pubsub_hotfixes::{EthPubSubApi, EthPubSubApiServer};
+	use substrate_frame_rpc_system::{FullSystem, SystemApi};
 
 	let mut io = jsonrpc_core::IoHandler::default();
 	let FullDeps {
 		client,
 		pool,
+		graph,
 		deny_unsafe,
 		is_authority,
 		network,
+		pending_transactions,
 		command_sink,
 	} = deps;
 
-	io.extend_with(
-		SystemApi::to_delegate(FullSystem::new(client.clone(), pool.clone(), deny_unsafe))
-	);
-	io.extend_with(
-		TransactionPaymentApi::to_delegate(TransactionPayment::new(client.clone()))
-	);
+	io.extend_with(SystemApi::to_delegate(FullSystem::new(
+		client.clone(),
+		pool.clone(),
+		deny_unsafe,
+	)));
+	io.extend_with(TransactionPaymentApi::to_delegate(TransactionPayment::new(
+		client.clone(),
+	)));
 
-	// We currently don't want to support signing in the node. Users should prefer external tools
-	// for transaction signing. So just pass in an empty vector of signers.
+	// TODO: are we supporting signing?
 	let signers = Vec::new();
-	io.extend_with(
-		EthApiServer::to_delegate(EthApi::new(
-			client.clone(),
-			pool.clone(),
-			moonbeam_runtime::TransactionConverter,
-			network.clone(),
-			signers,
-			is_authority,
-		))
-	);
-	io.extend_with(
-		NetApiServer::to_delegate(NetApi::new(
-			client.clone(),
-			network.clone(),
-		))
-	);
-	io.extend_with(
-		Web3ApiServer::to_delegate(Web3Api::new(
-			client.clone(),
-		))
-	);
-	io.extend_with(
-		EthPubSubApiServer::to_delegate(EthPubSubApi::new(
-			pool.clone(),
-			client.clone(),
-			network.clone(),
-			SubscriptionManager::<HexEncodedIdProvider>::with_id_provider(
-				HexEncodedIdProvider::default(),
-				Arc::new(subscription_task_executor)
-			),
-		))
-	);
+
+	io.extend_with(EthApiServer::to_delegate(EthApi::new(
+		client.clone(),
+		pool.clone(),
+		graph,
+		moonbeam_runtime::TransactionConverter,
+		network.clone(),
+		pending_transactions.clone(),
+		signers,
+		is_authority,
+	)));
+	io.extend_with(NetApiServer::to_delegate(NetApi::new(
+		client.clone(),
+		network.clone(),
+	)));
+	io.extend_with(Web3ApiServer::to_delegate(Web3Api::new(client.clone())));
+	io.extend_with(EthPubSubApiServer::to_delegate(EthPubSubApi::new(
+		pool.clone(),
+		client.clone(),
+		network.clone(),
+		SubscriptionManager::<HexEncodedIdProvider>::with_id_provider(
+			HexEncodedIdProvider::default(),
+			Arc::new(subscription_task_executor),
+		),
+	)));
+	io.extend_with(TxPoolServer::to_delegate(TxPool::new(client, pool)));
 
 	match command_sink {
 		Some(command_sink) => {
@@ -161,9 +162,8 @@ pub fn create_full<C, P, BE>(
 }
 
 /// Instantiate all Light RPC extensions.
-pub fn create_light<C, P, M, F>(
-	deps: LightDeps<C, F, P>,
-) -> jsonrpc_core::IoHandler<M> where
+pub fn create_light<C, P, M, F>(deps: LightDeps<C, F, P>) -> jsonrpc_core::IoHandler<M>
+where
 	C: sp_blockchain::HeaderBackend<Block>,
 	C: Send + Sync + 'static,
 	F: sc_client_api::light::Fetcher<Block> + 'static,
@@ -176,14 +176,12 @@ pub fn create_light<C, P, M, F>(
 		client,
 		pool,
 		remote_blockchain,
-		fetcher
+		fetcher,
 	} = deps;
 	let mut io = jsonrpc_core::IoHandler::default();
-	io.extend_with(
-		SystemApi::<Hash, AccountId, Index>::to_delegate(
-			LightSystem::new(client, remote_blockchain, fetcher, pool)
-		)
-	);
+	io.extend_with(SystemApi::<Hash, AccountId, Index>::to_delegate(
+		LightSystem::new(client, remote_blockchain, fetcher, pool),
+	));
 
 	io
 }

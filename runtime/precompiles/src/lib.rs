@@ -16,12 +16,12 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use sp_std::prelude::*;
 use pallet_evm::LinearCostPrecompile;
-use pallet_evm_precompile_simple::{ECRecover, Sha256, Ripemd160, Identity};
+use pallet_evm_precompile_simple::{ECRecover, Identity, Ripemd160, Sha256};
+use sp_std::prelude::*;
 // use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
-use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_dispatch::Dispatch;
+use pallet_evm_precompile_modexp::Modexp;
 
 /// An example of implementing a simple precompile.
 /// prepends "deadbeef" to any data provided
@@ -35,13 +35,13 @@ impl LinearCostPrecompile for DeadbeefPrecompiled {
 		input: &[u8],
 		_: usize,
 	) -> core::result::Result<(pallet_evm::ExitSucceed, Vec<u8>), pallet_evm::ExitError> {
-
 		log::info!("Calling deadbeef precompiled contract");
 
-		let mut result_vec: Vec<u8> = rustc_hex::FromHex::from_hex("deadbeef")
-			.map_err(|_| pallet_evm::ExitError::Other(
-				sp_std::borrow::Cow::Borrowed("unexpected deadbeef conversion")
-			))?;
+		let mut result_vec: Vec<u8> = rustc_hex::FromHex::from_hex("deadbeef").map_err(|_| {
+			pallet_evm::ExitError::Other(sp_std::borrow::Cow::Borrowed(
+				"unexpected deadbeef conversion",
+			))
+		})?;
 		result_vec.extend(input.to_vec());
 
 		Ok((pallet_evm::ExitSucceed::Returned, result_vec))
@@ -55,8 +55,7 @@ impl LinearCostPrecompile for DeadbeefPrecompiled {
 ///
 /// TODO I had trouble getting the BN precompiles to compile.
 /// Also, Why are the BN precompiles in geth called bn256*, but in Frontier they are called Bn128*
-pub type MoonbeamPrecompiles<Runtime> =
-(
+pub type MoonbeamPrecompiles<Runtime> = (
 	ECRecover,
 	Sha256,
 	Ripemd160,

@@ -36,6 +36,7 @@ const params = {
   // Discord app information
   DISCORD_TOKEN: process.env.DISCORD_TOKEN,
   DISCORD_CHANNEL: process.env.DISCORD_CHANNEL,
+  TESTS_DISCORD_CHANNEL: process.env.TESTS_DISCORD_CHANNEL,
 
   // Slack app information
   SLACK_WEBHOOK: process.env.SLACK_WEBHOOK,
@@ -281,7 +282,11 @@ const onReceiveMessage = async (msg: Message) => {
   const messageContent = msg && msg.content;
   const channelId = msg && msg.channel && msg.channel.id;
 
-  if (!messageContent || !authorId || channelId != params.DISCORD_CHANNEL) {
+  if (
+    !messageContent ||
+    !authorId ||
+    ![params.DISCORD_CHANNEL, params.TESTS_DISCORD_CHANNEL].includes(channelId)
+  ) {
     return;
   }
 

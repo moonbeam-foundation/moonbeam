@@ -71,16 +71,26 @@ fi
 echo "parachain $PARACHAIN_INDEX ($PARACHAIN_ID) - p2p-port: $((PARACHAIN_PORT + 10)), \
 http-port: $((PARACHAIN_PORT + 10 + 1)), ws-port: $((PARACHAIN_PORT + 10 + 2))"
 
+
+if [ -z "$CHAIN" ]; then
+  CHAIN=$PARACHAIN_SPEC_RAW
+fi
+
 $PARACHAIN_BINARY \
   --node-key ${PARACHAIN_KEYS[$PARACHAIN_INDEX]} \
   --port $((PARACHAIN_PORT + 10)) \
   --rpc-port $((PARACHAIN_PORT + 10 + 1)) \
   --ws-port $((PARACHAIN_PORT + 10 + 2)) \
   --validator \
+  --rpc-cors all \
+  --rpc-methods=unsafe \
+  --execution wasm \
+  --wasm-execution compiled \
   --name parachain_$PARACHAIN_INDEX \
   $PARACHAIN_BASE_PATH \
-  '-linfo,evm=trace,ethereum=trace,rpc=trace' \
-  --chain $PARACHAIN_SPEC_PLAIN  \
+  '-linfo,evm=debug,ethereum=trace,rpc=trace,cumulus_collator=debug,txpool=debug' \
+  --author-id 6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b \
+  --chain $CHAIN \
   $PARACHAIN_BOOTNODES_ARGS \
   -- \
     --node-key ${PARACHAIN_KEYS[$PARACHAIN_INDEX]} \
@@ -88,5 +98,4 @@ $PARACHAIN_BINARY \
     --port $((PARACHAIN_PORT)) \
     --rpc-port $((PARACHAIN_PORT + 1)) \
     --ws-port $((PARACHAIN_PORT + 2)) \
-    $RELAY_BOOTNODES_ARGS \
     --chain $POLKADOT_SPEC_RAW;

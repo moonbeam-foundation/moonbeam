@@ -1,10 +1,12 @@
 import Web3 from "web3";
 import { ApiPromise, WsProvider } from "@polkadot/api";
+import { typesBundle } from "../../../moonbeam-types-bundle";
 
 import { spawn, ChildProcess } from "child_process";
 import {
   BINARY_PATH,
   DISPLAY_LOG,
+  GENESIS_ACCOUNT,
   MOONBEAM_LOG,
   PORT,
   RPC_PORT,
@@ -12,6 +14,13 @@ import {
   SPECS_PATH,
   WS_PORT,
 } from "../constants";
+import { ErrorReport } from "./fillBlockWithTx";
+
+export function log(...msg: (string | number | ErrorReport)[]) {
+  if (process.argv && process.argv[2] && process.argv[2] === "--printlogs") {
+    console.log(...msg);
+  }
+}
 
 export interface Context {
   web3: Web3;
@@ -22,6 +31,8 @@ export interface Context {
 }
 
 export async function startMoonbeamNode(
+  //TODO Make this parameter optional and just default to development.
+  // For now I'm just ignoring the param and hardcoding development below.
   specFilename: string,
   provider?: string
 ): Promise<{ context: Context; binary: ChildProcess }> {
@@ -32,12 +43,13 @@ export async function startMoonbeamNode(
 
   const cmd = BINARY_PATH;
   const args = [
-    `--chain=${SPECS_PATH}/${specFilename}`,
+    `--chain=development`,
     `--validator`, // Required by manual sealing to author the blocks
     `--execution=Native`, // Faster execution using native
     `--no-telemetry`,
     `--no-prometheus`,
     `--manual-seal`,
+    `--author-id=${GENESIS_ACCOUNT.substring(2)}`, // Required by author inherent
     `--no-grandpa`,
     `--force-authoring`,
     `-l${MOONBEAM_LOG}`,
@@ -60,7 +72,7 @@ export async function startMoonbeamNode(
   });
 
   const binaryLogs = [];
-  await new Promise((resolve) => {
+  await new Promise<void>((resolve) => {
     const timer = setTimeout(() => {
       console.error(`\x1b[31m Failed to start Moonbeam Test Node.\x1b[0m`);
       console.error(`Command: ${cmd} ${args.join(" ")}`);
@@ -93,14 +105,10 @@ export async function startMoonbeamNode(
     binary.stdout.on("data", onData);
   });
 
-  const polkadotJsTypes = require("../../../polkadot-js/standalone-types.json");
-  const polkadotJsRpc = require("../../../polkadot-js/frontier-rpc-types");
-
   const wsProvider = new WsProvider(`ws://localhost:${WS_PORT}`);
   const polkadotApi = await ApiPromise.create({
     provider: wsProvider,
-    types: polkadotJsTypes,
-    rpc: polkadotJsRpc,
+    typesBundle: typesBundle as any,
   });
 
   if (provider == "ws") {
