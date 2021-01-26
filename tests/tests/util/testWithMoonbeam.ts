@@ -108,7 +108,7 @@ export async function startMoonbeamNode(
   const wsProvider = new WsProvider(`ws://localhost:${WS_PORT}`);
   const polkadotApi = await ApiPromise.create({
     provider: wsProvider,
-    typesBundle: typesBundle as any,
+    typesBundle: typesBundle,
   });
 
   if (provider == "ws") {
