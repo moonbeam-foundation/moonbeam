@@ -317,7 +317,7 @@ mod democracy {
 	impl pallet_democracy::Config for Runtime {
 		type Proposal = Call;
 		type Event = Event;
-		type Currency = pallet_balances::Module<Self>;
+		type Currency = Balances;
 		type EnactmentPeriod = EnactmentPeriod;
 		type LaunchPeriod = LaunchPeriod;
 		type VotingPeriod = VotingPeriod;
