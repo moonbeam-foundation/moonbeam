@@ -88,7 +88,7 @@ macro_rules! runtime_standalone {
 				EthereumChainId: pallet_ethereum_chain_id::{Module, Storage, Config},
 				EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
 				RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Module, Call, Storage},
-				Scheduler: pallet_scheduler::{Module, Storage, Config, Event<T>, Call},
+				Scheduler: pallet_scheduler::{Module, Storage, Event<T>, Call},
 				Stake: stake::{Module, Call, Storage, Event<T>, Config<T>},
 				Sudo: pallet_sudo::{Module, Call, Config<T>, Storage, Event<T>},
 				System: frame_system::{Module, Call, Config, Storage, Event<T>},
