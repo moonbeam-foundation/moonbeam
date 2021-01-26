@@ -45,6 +45,11 @@ impl Extensions {
 	}
 }
 
+// TODO This one was copied from the standalone node. Do we need any of it?
+pub fn development_config() -> Result<ChainSpec, String> {
+	todo!()
+}
+
 // This is the only hard-coded spec for the parachain. All deployments are based on it.
 pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 	ChainSpec::from_genesis(

@@ -166,7 +166,7 @@ pub fn new_full(
 	let telemetry_connection_sinks = sc_service::TelemetryConnectionSinks::default();
 	let is_authority = role.is_authority();
 	let subscription_task_executor =
-		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle()); // This one isn't in frontier template.
+		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
