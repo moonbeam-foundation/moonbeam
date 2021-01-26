@@ -194,7 +194,7 @@ pub fn new_full(
 		keystore: keystore_container.sync_keystore(),
 		task_manager: &mut task_manager,
 		transaction_pool: transaction_pool.clone(),
-		telemetry_connection_sinks: telemetry_connection_sinks.clone(),
+		telemetry_connection_sinks,
 		rpc_extensions_builder,
 		on_demand: None,
 		remote_blockchain: None,
