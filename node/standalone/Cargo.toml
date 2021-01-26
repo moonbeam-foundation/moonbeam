@@ -62,7 +62,7 @@ fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "v0.5-ho
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 fp-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 
-author-inherent = { path = "../../pallets/author-inherent"}
+author-inherent = { path = "../../pallets/author-inherent" }
 
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "master" }
 frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", branch = "master" }
