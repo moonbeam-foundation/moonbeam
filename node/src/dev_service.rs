@@ -16,7 +16,7 @@
 
 //! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
 
-use crate::mock_timestamp::MockTimestampInherentDataProvider;
+use crate::mock_inherents::MockTimestampInherentDataProvider;
 use fc_consensus::FrontierBlockImport;
 use fc_rpc_core::types::PendingTransactions;
 use moonbeam_runtime::{self, opaque::Block, RuntimeApi};

@@ -27,6 +27,7 @@
 use sp_inherents::{InherentData, InherentIdentifier, ProvideInherentData};
 use sp_timestamp::InherentError;
 use std::cell::RefCell;
+use cumulus_primitives::inherents::{VALIDATION_DATA_IDENTIFIER, ValidationDataType};
 
 use moonbeam_runtime::MINIMUM_PERIOD;
 
@@ -70,25 +71,23 @@ pub struct MockValidationDataInherentDataProvider {
 
 impl ProvideInherentData for MockValidationDataInherentDataProvider {
 	fn inherent_identifier(&self) -> &'static InherentIdentifier {
-		&VALIDATION_IDENTIFIER
+		&VALIDATION_DATA_IDENTIFIER
 	}
 
 	fn provide_inherent_data(
 		&self,
 		inherent_data: &mut InherentData,
 	) -> Result<(), sp_inherents::Error> {
-		todo!("what data do I actually need to mock here? Into the implementors guide we go")
 
-		// polkadot/runtime/src/parachains/inclusion_inherent.rs
-		// polkadot/primitives/src/v1.rs
+		let data = ValidationDataType {
+			validation_data: todo!(),
+			relay_chain_state: todo!(),
+		};
 
-		// TIMESTAMP.with(|x| {
-		// 	*x.borrow_mut() += SLOT_DURATION;
-		// 	inherent_data.put_data(TIMESTAMP_IDENTIFIER, &*x.borrow())
-		// })
+		inherent_data.put_data(VALIDATION_DATA_IDENTIFIER, &data)
 	}
 
 	fn error_to_string(&self, error: &[u8]) -> Option<String> {
-		InherentError::try_from(&VALIDATION_IDENTIFIER, error).map(|e| format!("{:?}", e))
+		InherentError::try_from(&VALIDATION_DATA_IDENTIFIER, error).map(|e| format!("{:?}", e))
 	}
 }
