@@ -6,40 +6,31 @@ import {
 } from "@polkadot/types/types";
 
 // Moonbeam specific rpc methods
-const rpcDefinitions: Record<string, Record<string, DefinitionRpc | DefinitionRpcSub>> = {
+export const rpcDefinitions: Record<string, Record<string, DefinitionRpc | DefinitionRpcSub>> = {
   txpool: {
     content: {
       aliasSection: "txpool",
       description:
         "The detailed information regarding Ethereum transactions that are currently in the Substrate transaction pool.",
       params: [],
-      type: "TxPoolResult<TransactionMap<Transaction>>",
+      type: "TxPoolResultContent",
     },
     inspect: {
       aliasSection: "txpool",
       description:
         "Summarized information of the Ethereum transactions that are currently in the Substrate transaction pool.",
       params: [],
-      type: "TxPoolResult<TransactionMap<Summary>>",
+      type: "TxPoolResultInspect",
     },
     status: {
       aliasSection: "txpool",
       description:
         "The number of Ethereum transaction that are currently in the Substrate transaction pool.",
       params: [],
-      type: "TxPoolResult<U256>",
+      type: "TxPoolResultStatus",
     },
   },
 };
-
-// #[rpc(name = "txpool_content")]
-// 	fn content(&self) -> Result<TxPoolResult<TransactionMap<Transaction>>>;
-
-// 	#[rpc(name = "txpool_inspect")]
-// 	fn inspect(&self) -> Result<TxPoolResult<TransactionMap<Summary>>>;
-
-// 	#[rpc(name = "txpool_status")]
-// 	fn status(&self) -> Result<TxPoolResult<U256>>;
 
 export const moonbeamDefinitions = {
   rpc: rpcDefinitions,
@@ -97,6 +88,18 @@ export const moonbeamDefinitions = {
         },
         ValidatorStatus: {
           _enum: ["Active", "Idle", "Leaving(RoundIndex)"],
+        },
+        TxPoolResultContent: {
+          pending: "HashMap<H160, HashMap<U256, Transaction>>",
+          queued: "HashMap<H160, HashMap<U256, Transaction>>",
+        },
+        TxPoolResultInspect: {
+          pending: "HashMap<H160, HashMap<U256, Summary>>",
+          queued: "HashMap<H160, HashMap<U256, Summary>>",
+        },
+        TxPoolResultStatus: {
+          pending: "U256",
+          queued: "U256",
         },
       },
     },
