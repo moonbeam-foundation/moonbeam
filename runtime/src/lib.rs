@@ -304,12 +304,12 @@ mod democracy {
 		pub const LaunchPeriod: BlockNumber = 20;
 		pub const VotingPeriod: BlockNumber = 20;
 		pub const FastTrackVotingPeriod: BlockNumber = 10;
-		pub const MinimumDeposit: Balance = GLMR;
+		pub const MinimumDeposit: Balance = 4 * GLMR;
 		pub const EnactmentPeriod: BlockNumber = 20;
 		pub const CooloffPeriod: BlockNumber = 40;
 		pub const MaxVotes: u32 = 100;
 		pub const MaxProposals: u32 = 100;
-		pub const PreimageByteDeposit: Balance = GLMR;
+		pub const PreimageByteDeposit: Balance = 2 * GLMR;
 		pub const InstantAllowed: bool = true;
 	}
 
