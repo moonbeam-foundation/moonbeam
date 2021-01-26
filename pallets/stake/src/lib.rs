@@ -156,11 +156,7 @@ impl<
 		self.state == ValidatorStatus::Active
 	}
 	pub fn is_leaving(&self) -> bool {
-		if let ValidatorStatus::Leaving(_) = self.state {
-			true
-		} else {
-			false
-		}
+		matches!(self.state, ValidatorStatus::Leaving(_))
 	}
 	pub fn bond_more(&mut self, more: B) {
 		self.bond += more;
@@ -209,16 +205,16 @@ impl<
 			.nominators
 			.0
 			.iter()
-			.filter_map(|x| {
+			.map(|x| {
 				if x.owner == nominator {
 					// new amount must be greater or will underflow
 					difference = amount - x.amount;
-					Some(Bond {
+					Bond {
 						owner: x.owner.clone(),
 						amount,
-					})
+					}
 				} else {
-					Some(x.clone())
+					x.clone()
 				}
 			})
 			.collect();
@@ -283,7 +279,7 @@ impl<
 	pub fn new(validator: AccountId, nomination: Balance) -> Self {
 		Nominator {
 			nominations: OrderedSet::from(vec![Bond {
-				owner: validator.clone(),
+				owner: validator,
 				amount: nomination,
 			}]),
 			total: nomination,
@@ -378,7 +374,7 @@ impl<
 			};
 			Some((swapped_amt, new_amount))
 		} else {
-			return None;
+			None
 		}
 	}
 	// Returns None if nomination not found
@@ -701,8 +697,8 @@ decl_module! {
 			ensure!(!Self::is_nominator(&acc),Error::<T>::NominatorExists);
 			ensure!(!Self::is_candidate(&acc),Error::<T>::CandidateExists);
 			Self::nominator_joins_validator(acc.clone(), amount, validator.clone())?;
-			<Nominators<T>>::insert(&acc, Nominator::new(validator.clone(),amount));
-			Self::deposit_event(RawEvent::NominatorJoined(acc,amount));
+			<Nominators<T>>::insert(&acc, Nominator::new(validator, amount));
+			Self::deposit_event(RawEvent::NominatorJoined(acc, amount));
 			Ok(())
 		}
 		#[weight = 0]
@@ -713,7 +709,7 @@ decl_module! {
 				Self::nominator_leaves_validator(acc.clone(), bond.owner.clone())?;
 			}
 			<Nominators<T>>::remove(&acc);
-			Self::deposit_event(RawEvent::NominatorLeft(acc.clone(), nominator.total));
+			Self::deposit_event(RawEvent::NominatorLeft(acc, nominator.total));
 			Ok(())
 		}
 		#[weight = 0]
@@ -790,7 +786,7 @@ decl_module! {
 		}
 		#[weight = 0]
 		fn revoke_nomination(origin, validator: T::AccountId) -> DispatchResult {
-			Self::nominator_revokes_validator(ensure_signed(origin)?, validator.clone())
+			Self::nominator_revokes_validator(ensure_signed(origin)?, validator)
 		}
 		#[weight = 0]
 		fn nominator_bond_more(
@@ -875,7 +871,7 @@ impl<T: Config> Module<T> {
 		let mut candidates = <CandidatePool<T>>::get();
 		candidates.remove(&Bond::from_owner(candidate.clone()));
 		candidates.insert(Bond {
-			owner: candidate.clone(),
+			owner: candidate,
 			amount: total,
 		});
 		<CandidatePool<T>>::put(candidates);
@@ -921,7 +917,7 @@ impl<T: Config> Module<T> {
 			remaining >= T::MinNominatorStk::get(),
 			Error::<T>::NomBondBelowMin
 		);
-		Self::nominator_leaves_validator(acc.clone(), validator.clone())?;
+		Self::nominator_leaves_validator(acc.clone(), validator)?;
 		<Nominators<T>>::insert(&acc, nominator);
 		Ok(())
 	}
@@ -967,7 +963,7 @@ impl<T: Config> Module<T> {
 	fn pay_stakers(next: RoundIndex) {
 		let mint = |amt: BalanceOf<T>, to: T::AccountId| {
 			if amt > T::Currency::minimum_balance() {
-				if let Some(imb) = T::Currency::deposit_into_existing(&to, amt).ok() {
+				if let Ok(imb) = T::Currency::deposit_into_existing(&to, amt) {
 					Self::deposit_event(RawEvent::Rewarded(to.clone(), imb.peek()));
 				}
 			}
@@ -989,13 +985,11 @@ impl<T: Config> Module<T> {
 				if let Some(state) = <Candidates<T>>::get(&val) {
 					if state.nominators.0.is_empty() {
 						// solo validator with no nominators
-						if let Some(imb) = T::Currency::deposit_into_existing(&val, amt_due).ok() {
-							Self::deposit_event(RawEvent::Rewarded(val.clone(), imb.peek()));
-						}
+						mint(amt_due, val.clone());
 					} else {
 						let fee = state.fee * amt_due;
 						if fee > T::Currency::minimum_balance() {
-							if let Some(imb) = T::Currency::deposit_into_existing(&val, fee).ok() {
+							if let Ok(imb) = T::Currency::deposit_into_existing(&val, fee) {
 								amt_due -= fee;
 								Self::deposit_event(RawEvent::Rewarded(val.clone(), imb.peek()));
 							}
@@ -1042,7 +1036,7 @@ impl<T: Config> Module<T> {
 						<Total<T>>::put(new_total);
 						<Candidates<T>>::remove(&x.owner);
 						Self::deposit_event(RawEvent::ValidatorLeft(
-							x.owner.clone(),
+							x.owner,
 							state.total,
 							new_total,
 						));

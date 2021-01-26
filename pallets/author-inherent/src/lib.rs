@@ -199,11 +199,9 @@ impl<T: Config> ProvideInherent for Module<T> {
 		let author_raw = data
 			.get_data::<InherentType>(&INHERENT_IDENTIFIER)
 			.expect("Gets and decodes authorship inherent data")
-			.ok_or_else(|| {
-				InherentError::Other(sp_runtime::RuntimeString::Borrowed(
-					"Decode authorship inherent data failed",
-				))
-			})?;
+			.ok_or(InherentError::Other(sp_runtime::RuntimeString::Borrowed(
+				"Decode authorship inherent data failed",
+			)))?;
 		let author =
 			T::AccountId::decode(&mut &author_raw[..]).expect("Decodes author raw inherent data");
 		ensure!(
