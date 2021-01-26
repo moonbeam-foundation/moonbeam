@@ -3,7 +3,6 @@ import { step } from "mocha-steps";
 
 import { describeWithMoonbeam, createAndFinalizeBlock } from "./util";
 import { GLMR, GENESIS_ACCOUNT_BALANCE } from "./constants";
-import { Codec } from "@polkadot/types/types";
 
 describeWithMoonbeam("Moonbeam RPC (Stake)", `simple-specs.json`, (context) => {
   const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
@@ -37,7 +36,7 @@ describeWithMoonbeam("Moonbeam RPC (Stake)", `simple-specs.json`, (context) => {
     );
   });
   it("candidates set in genesis", async function () {
-    const candidates: Codec = await context.polkadotApi.query.stake.candidates(GENESIS_ACCOUNT);
+    const candidates = await context.polkadotApi.query.stake.candidates(GENESIS_ACCOUNT);
     expect((candidates.toHuman() as any).validator.toLowerCase()).equal(GENESIS_ACCOUNT);
   });
 });
