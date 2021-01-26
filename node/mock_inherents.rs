@@ -30,19 +30,22 @@ use std::cell::RefCell;
 
 use moonbeam_runtime::MINIMUM_PERIOD;
 
+//TODO make this a field on the struct
 const SLOT_DURATION: u64 = MINIMUM_PERIOD * 2;
 
-/// Provide a mock duration starting at 0 in millisecond for timestamp inherent.
-/// Each call will increment timestamp by slot_duration making Aura think time has passed.
+/// Mocked timestamp inherent data provider.
+/// Provides a fake duration starting at 0 in millisecond for timestamp inherent.
+/// Each call will increment timestamp by slot_duration making the runtime think time has passed.
 pub struct MockTimestampInherentDataProvider;
 
-pub const INHERENT_IDENTIFIER: InherentIdentifier = *b"timstap0";
+// todo, should I be importing this from somewhere rather than recreating it myself
+pub const TIMESTAMP_IDENTIFIER: InherentIdentifier = *b"timstap0";
 
 thread_local!(static TIMESTAMP: RefCell<u64> = RefCell::new(0));
 
 impl ProvideInherentData for MockTimestampInherentDataProvider {
 	fn inherent_identifier(&self) -> &'static InherentIdentifier {
-		&INHERENT_IDENTIFIER
+		&TIMESTAMP_IDENTIFIER
 	}
 
 	fn provide_inherent_data(
@@ -51,11 +54,41 @@ impl ProvideInherentData for MockTimestampInherentDataProvider {
 	) -> Result<(), sp_inherents::Error> {
 		TIMESTAMP.with(|x| {
 			*x.borrow_mut() += SLOT_DURATION;
-			inherent_data.put_data(INHERENT_IDENTIFIER, &*x.borrow())
+			inherent_data.put_data(TIMESTAMP_IDENTIFIER, &*x.borrow())
 		})
 	}
 
 	fn error_to_string(&self, error: &[u8]) -> Option<String> {
-		InherentError::try_from(&INHERENT_IDENTIFIER, error).map(|e| format!("{:?}", e))
+		InherentError::try_from(&TIMESTAMP_IDENTIFIER, error).map(|e| format!("{:?}", e))
+	}
+}
+
+
+pub struct MockValidationDataInherentDataProvider {
+	para_id: u64,//todo type?
+}
+
+impl ProvideInherentData for MockValidationDataInherentDataProvider {
+	fn inherent_identifier(&self) -> &'static InherentIdentifier {
+		&VALIDATION_IDENTIFIER
+	}
+
+	fn provide_inherent_data(
+		&self,
+		inherent_data: &mut InherentData,
+	) -> Result<(), sp_inherents::Error> {
+		todo!("what data do I actually need to mock here? Into the implementors guide we go")
+
+		// polkadot/runtime/src/parachains/inclusion_inherent.rs
+		// polkadot/primitives/src/v1.rs
+
+		// TIMESTAMP.with(|x| {
+		// 	*x.borrow_mut() += SLOT_DURATION;
+		// 	inherent_data.put_data(TIMESTAMP_IDENTIFIER, &*x.borrow())
+		// })
+	}
+
+	fn error_to_string(&self, error: &[u8]) -> Option<String> {
+		InherentError::try_from(&VALIDATION_IDENTIFIER, error).map(|e| format!("{:?}", e))
 	}
 }

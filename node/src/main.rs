@@ -25,7 +25,7 @@ mod service;
 mod cli;
 mod command;
 mod dev_service;
-mod mock_timestamp;
+mod mock_inherents;
 
 fn main() -> sc_cli::Result<()> {
 	command::run()
