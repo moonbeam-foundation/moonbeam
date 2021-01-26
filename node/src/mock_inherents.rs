@@ -29,7 +29,7 @@ use sp_timestamp::InherentError;
 use std::cell::RefCell;
 use cumulus_primitives::{
 	inherents::{VALIDATION_DATA_IDENTIFIER, ValidationDataType},
-	ValidationData, PersistedValidationData,
+	ValidationData, PersistedValidationData, TransientValidationData,
 };
 use sp_core::H256;
 
@@ -104,7 +104,28 @@ impl ProvideInherentData for MockValidationDataInherentDataProvider {
 					/// The maximum legal size of a POV block, in bytes.
 					max_pov_size: u32::max_value(),
 				},
-				transient: todo!(),
+				transient: TransientValidationData {
+					/// The maximum code size permitted, in bytes.
+					max_code_size: u32::max_value(),
+					/// The maximum head-data size permitted, in bytes.
+					max_head_data_size: u32::max_value(),
+					/// The balance of the parachain at the moment of validation.
+					balance: 0,
+					/// Whether the parachain is allowed to upgrade its validation code.
+					///
+					/// This is `Some` if so, and contains the number of the minimum relay-chain
+					/// height at which the upgrade will be applied, if an upgrade is signaled
+					/// now.
+					///
+					/// A parachain should enact its side of the upgrade at the end of the first
+					/// parablock executing in the context of a relay-chain block with at least this
+					/// height. This may be equal to the current perceived relay-chain block height, in
+					/// which case the code upgrade should be applied at the end of the signaling
+					/// block.
+					code_upgrade_allowed: None,
+					/// The number of messages pending of the downward message queue.
+					dmq_length: 0,
+				},
 			},
 			relay_chain_state: sp_trie::StorageProof::empty(),
 		};
