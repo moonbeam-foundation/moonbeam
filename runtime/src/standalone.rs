@@ -78,21 +78,22 @@ macro_rules! runtime_standalone {
 				NodeBlock = opaque::Block,
 				UncheckedExtrinsic = UncheckedExtrinsic
 			{
-				System: frame_system::{Module, Call, Config, Storage, Event<T>},
-				RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Module, Call, Storage},
-				Timestamp: pallet_timestamp::{Module, Call, Storage, Inherent},
 				Aura: pallet_aura::{Module, Config<T>, Inherent},
 				Grandpa: pallet_grandpa::{Module, Call, Storage, Config, Event},
+
+				AuthorInherent: author_inherent::{Module, Call, Storage, Inherent, Event<T>},
 				Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
-				TransactionPayment: pallet_transaction_payment::{Module, Storage},
-				Sudo: pallet_sudo::{Module, Call, Config<T>, Storage, Event<T>},
-				EthereumChainId: pallet_ethereum_chain_id::{Module, Storage, Config},
-				Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
-				EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
 				Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
+				Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
+				EthereumChainId: pallet_ethereum_chain_id::{Module, Storage, Config},
+				EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
+				RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Module, Call, Storage},
 				Scheduler: pallet_scheduler::{Module, Storage, Config, Event<T>, Call},
 				Stake: stake::{Module, Call, Storage, Event<T>, Config<T>},
-				AuthorInherent: author_inherent::{Module, Call, Storage, Inherent, Event<T>},
+				Sudo: pallet_sudo::{Module, Call, Config<T>, Storage, Event<T>},
+				System: frame_system::{Module, Call, Config, Storage, Event<T>},
+				Timestamp: pallet_timestamp::{Module, Call, Storage, Inherent},
+				TransactionPayment: pallet_transaction_payment::{Module, Storage},
 			}
 		);
 	};

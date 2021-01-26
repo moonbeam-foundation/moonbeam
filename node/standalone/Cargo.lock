@@ -3768,11 +3768,13 @@ dependencies = [
  "moonbeam-rpc-primitives-txpool",
  "pallet-aura",
  "pallet-balances",
+ "pallet-democracy",
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-evm",
  "pallet-grandpa",
  "pallet-randomness-collective-flip",
+ "pallet-scheduler",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
@@ -4171,6 +4173,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-democracy"
+version = "2.0.1"
+source = "git+https://github.com/paritytech/substrate#f977fb8a16548534481ba1dac948fa6835c1835d"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "serde",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-ethereum"
 version = "0.1.0"
 source = "git+https://github.com/purestake/frontier?branch=v0.5-hotfixes#1f38522d2c9126bf30372345d0c9282ac90da010"
@@ -4299,6 +4316,19 @@ dependencies = [
  "frame-system",
  "parity-scale-codec",
  "safe-mix",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-scheduler"
+version = "2.0.1"
+source = "git+https://github.com/paritytech/substrate#f977fb8a16548534481ba1dac948fa6835c1835d"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "sp-io",
  "sp-runtime",
  "sp-std",
 ]

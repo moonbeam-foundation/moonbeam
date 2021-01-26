@@ -301,16 +301,16 @@ mod democracy {
 	use super::*;
 
 	parameter_types! {
-		pub const LaunchPeriod: BlockNumber = 2;
-		pub const VotingPeriod: BlockNumber = 2;
-		pub const FastTrackVotingPeriod: BlockNumber = 2;
-		pub const MinimumDeposit: BlockNumber = 1;
-		pub const EnactmentPeriod: BlockNumber = 2;
-		pub const CooloffPeriod: BlockNumber = 2;
+		pub const LaunchPeriod: BlockNumber = 20;
+		pub const VotingPeriod: BlockNumber = 20;
+		pub const FastTrackVotingPeriod: BlockNumber = 10;
+		pub const MinimumDeposit: Balance = GLMR;
+		pub const EnactmentPeriod: BlockNumber = 20;
+		pub const CooloffPeriod: BlockNumber = 40;
 		pub const MaxVotes: u32 = 100;
 		pub const MaxProposals: u32 = 100;
-		pub const PreimageByteDeposit: BlockNumber = 0;
-		pub const InstantAllowed: bool = false;
+		pub const PreimageByteDeposit: Balance = GLMR;
+		pub const InstantAllowed: bool = true;
 	}
 
 	// todo : ensure better origins
