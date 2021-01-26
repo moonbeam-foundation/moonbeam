@@ -140,39 +140,34 @@ pub fn run() -> sc_cli::Result<()> {
 			// Supply the correct author id for wellknown validators.
 			// This isn't super elegant, but the alternative is modifying Substrate
 			// and this will go away when we start signing blocks
-			let author_id = if cli.run.base.shared_params.dev {
-				let alice_public = ecdsa::Pair::from_string("//Alice", None)
-					.expect("Alice is a valid phrase")
-					.public();
-				Some(EthereumSigner::from(alice_public).into_account())
-			} else if cli.run.base.alice {
+			let author_id = if cli.run.base.alice || cli.run.base.shared_params.dev {
 				let alice_public = ecdsa::Pair::from_string("//Alice", None)
 					.expect("Alice is a valid phrase")
 					.public();
 				Some(EthereumSigner::from(alice_public).into_account())
 			} else if cli.run.base.bob {
 				let alice_public = ecdsa::Pair::from_string("//Bob", None)
-					.expect("Alice is a valid phrase")
+					.expect("Bob is a valid phrase")
 					.public();
 				Some(EthereumSigner::from(alice_public).into_account())
 			} else if cli.run.base.charlie {
 				let alice_public = ecdsa::Pair::from_string("//Charlie", None)
-					.expect("Alice is a valid phrase")
+					.expect("Charlie is a valid phrase")
 					.public();
 				Some(EthereumSigner::from(alice_public).into_account())
 			} else if cli.run.base.dave {
 				let alice_public = ecdsa::Pair::from_string("//Dave", None)
-					.expect("Alice is a valid phrase")
+					.expect("Dave is a valid phrase")
 					.public();
 				Some(EthereumSigner::from(alice_public).into_account())
 			} else if cli.run.base.eve {
 				let alice_public = ecdsa::Pair::from_string("//Eve", None)
-					.expect("Alice is a valid phrase")
+					.expect("Eve is a valid phrase")
 					.public();
 				Some(EthereumSigner::from(alice_public).into_account())
 			} else if cli.run.base.ferdie {
 				let alice_public = ecdsa::Pair::from_string("//Ferdie", None)
-					.expect("Alice is a valid phrase")
+					.expect("Ferdie is a valid phrase")
 					.public();
 				Some(EthereumSigner::from(alice_public).into_account())
 			} else {
