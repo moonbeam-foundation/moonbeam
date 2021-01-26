@@ -90,8 +90,8 @@ export const moonbeamDefinitions = {
           _enum: ["Active", "Idle", "Leaving(RoundIndex)"],
         },
         TxPoolResultContent: {
-          pending: "HashMap<H160, HashMap<U256, Transaction>>",
-          queued: "HashMap<H160, HashMap<U256, Transaction>>",
+          pending: "HashMap<H160, HashMap<U256, PoolTransaction>>",
+          queued: "HashMap<H160, HashMap<U256, PoolTransaction>>",
         },
         TxPoolResultInspect: {
           pending: "HashMap<H160, HashMap<U256, Summary>>",
@@ -100,6 +100,19 @@ export const moonbeamDefinitions = {
         TxPoolResultStatus: {
           pending: "U256",
           queued: "U256",
+        },
+        Summary: "Bytes",
+        PoolTransaction: {
+          hash: "H256",
+          nonce: "U256",
+          block_hash: "Option<H256>",
+          block_number: "Option<U256>",
+          from: "H160",
+          to: "Option<H160>",
+          value: "U256",
+          gas_price: "U256",
+          gas: "U256",
+          input: "Bytes",
         },
       },
     },
