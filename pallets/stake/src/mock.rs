@@ -124,7 +124,7 @@ pub type Balances = pallet_balances::Module<Test>;
 pub type Stake = Module<Test>;
 pub type Sys = frame_system::Module<Test>;
 
-pub fn genesis() -> sp_io::TestExternalities {
+pub(crate) fn genesis() -> sp_io::TestExternalities {
 	let mut storage = frame_system::GenesisConfig::default()
 		.build_storage::<Test>()
 		.unwrap();
@@ -161,7 +161,7 @@ pub fn genesis() -> sp_io::TestExternalities {
 	ext
 }
 
-pub fn genesis2() -> sp_io::TestExternalities {
+pub(crate) fn genesis2() -> sp_io::TestExternalities {
 	let mut storage = frame_system::GenesisConfig::default()
 		.build_storage::<Test>()
 		.unwrap();
@@ -197,7 +197,7 @@ pub fn genesis2() -> sp_io::TestExternalities {
 	ext
 }
 
-pub fn genesis3() -> sp_io::TestExternalities {
+pub(crate) fn genesis3() -> sp_io::TestExternalities {
 	let mut storage = frame_system::GenesisConfig::default()
 		.build_storage::<Test>()
 		.unwrap();
@@ -239,7 +239,31 @@ pub fn genesis3() -> sp_io::TestExternalities {
 	ext
 }
 
-pub fn roll_to(n: u64) {
+pub(crate) fn genesis4() -> sp_io::TestExternalities {
+	let mut storage = frame_system::GenesisConfig::default()
+		.build_storage::<Test>()
+		.unwrap();
+	let genesis = pallet_balances::GenesisConfig::<Test> {
+		balances: vec![(1, 100), (2, 100), (3, 100), (4, 100), (5, 100), (6, 100)],
+	};
+	genesis.assimilate_storage(&mut storage).unwrap();
+	GenesisConfig::<Test> {
+		stakers: vec![
+			// validators
+			(1, None, 20),
+			// nominators
+			(2, Some(1), 10),
+			(3, Some(1), 10),
+		],
+	}
+	.assimilate_storage(&mut storage)
+	.unwrap();
+	let mut ext = sp_io::TestExternalities::from(storage);
+	ext.execute_with(|| Sys::set_block_number(1));
+	ext
+}
+
+pub(crate) fn roll_to(n: u64) {
 	while Sys::block_number() < n {
 		Stake::on_finalize(Sys::block_number());
 		Balances::on_finalize(Sys::block_number());
@@ -251,11 +275,11 @@ pub fn roll_to(n: u64) {
 	}
 }
 
-pub fn last_event() -> MetaEvent {
+pub(crate) fn last_event() -> MetaEvent {
 	Sys::events().pop().expect("Event expected").event
 }
 
-pub fn events() -> Vec<RawEvent<u64, u128, u64>> {
+pub(crate) fn events() -> Vec<RawEvent<u64, u128, u64>> {
 	Sys::events()
 		.into_iter()
 		.map(|r| r.event)
@@ -270,7 +294,7 @@ pub fn events() -> Vec<RawEvent<u64, u128, u64>> {
 }
 
 // Same storage changes as EventHandler::note_author impl
-pub fn set_author(round: u32, acc: u64, pts: u32) {
+pub(crate) fn set_author(round: u32, acc: u64, pts: u32) {
 	<Stake as Store>::Points::mutate(round, |p| *p += pts);
 	<Stake as Store>::AwardedPts::mutate(round, acc, |p| *p += pts);
 }

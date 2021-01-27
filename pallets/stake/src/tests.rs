@@ -337,7 +337,7 @@ fn exit_queue_works() {
 }
 
 #[test]
-fn payout_distribution_for_just_validators_works() {
+fn payout_distribution_to_solo_validators() {
 	genesis2().execute_with(|| {
 		roll_to(4);
 		roll_to(8);
@@ -438,7 +438,7 @@ fn payout_distribution_for_just_validators_works() {
 }
 
 #[test]
-fn payout_distribution_for_validators_with_nominators_works() {
+fn payout_distribution_to_nominators() {
 	genesis3().execute_with(|| {
 		roll_to(4);
 		roll_to(8);
@@ -456,6 +456,8 @@ fn payout_distribution_for_validators_with_nominators_works() {
 		set_author(2, 1, 100);
 		roll_to(16);
 		// distribute total issuance (=10) to validator 1 and its nominators 6, 7, 19
+		// -> NOTE that no fee is taken because validators at genesis set default 2% fee
+		// and 2% of 10 is ~0 by the Perbill arithmetic
 		let mut new = vec![
 			RawEvent::ValidatorChosen(3, 1, 50),
 			RawEvent::ValidatorChosen(3, 2, 40),
@@ -463,10 +465,10 @@ fn payout_distribution_for_validators_with_nominators_works() {
 			RawEvent::ValidatorChosen(3, 3, 20),
 			RawEvent::ValidatorChosen(3, 5, 10),
 			RawEvent::NewRound(10, 3, 5, 140),
+			RawEvent::Rewarded(1, 4),
 			RawEvent::Rewarded(6, 2),
 			RawEvent::Rewarded(7, 2),
 			RawEvent::Rewarded(10, 2),
-			RawEvent::Rewarded(1, 4),
 			RawEvent::ValidatorChosen(4, 1, 50),
 			RawEvent::ValidatorChosen(4, 2, 40),
 			RawEvent::ValidatorChosen(4, 4, 20),
@@ -480,7 +482,64 @@ fn payout_distribution_for_validators_with_nominators_works() {
 }
 
 #[test]
-fn multiple_nomination_works() {
+fn pays_validator_commission() {
+	genesis4().execute_with(|| {
+		roll_to(4);
+		roll_to(8);
+		// chooses top MaxValidators (5), in order
+		let mut expected = vec![
+			RawEvent::ValidatorChosen(2, 1, 40),
+			RawEvent::NewRound(5, 2, 1, 40),
+		];
+		assert_eq!(events(), expected);
+		assert_ok!(Stake::join_candidates(
+			Origin::signed(4),
+			Perbill::from_percent(20),
+			20u128
+		));
+		assert_eq!(
+			last_event(),
+			MetaEvent::stake(RawEvent::JoinedValidatorCandidates(4, 20u128, 60u128))
+		);
+		roll_to(9);
+		assert_ok!(Stake::join_nominators(Origin::signed(5), 4, 10));
+		assert_ok!(Stake::join_nominators(Origin::signed(6), 4, 10));
+		roll_to(11);
+		let mut new = vec![
+			RawEvent::JoinedValidatorCandidates(4, 20, 60),
+			RawEvent::ValidatorNominated(5, 10, 4, 30),
+			RawEvent::NominatorJoined(5, 10),
+			RawEvent::ValidatorNominated(6, 10, 4, 40),
+			RawEvent::NominatorJoined(6, 10),
+			RawEvent::ValidatorChosen(3, 4, 40),
+			RawEvent::ValidatorChosen(3, 1, 40),
+			RawEvent::NewRound(10, 3, 2, 80),
+		];
+		expected.append(&mut new);
+		assert_eq!(events(), expected);
+		// only reward author with id 4
+		set_author(3, 4, 100);
+		roll_to(21);
+		// 20% of 10 is commission + due_portion (4) = 2 + 4 = 6
+		// all nominator payouts are 10-2 = 8 * stake_pct
+		let mut new2 = vec![
+			RawEvent::ValidatorChosen(4, 4, 40),
+			RawEvent::ValidatorChosen(4, 1, 40),
+			RawEvent::NewRound(15, 4, 2, 80),
+			RawEvent::Rewarded(4, 6),
+			RawEvent::Rewarded(5, 2),
+			RawEvent::Rewarded(6, 2),
+			RawEvent::ValidatorChosen(5, 4, 40),
+			RawEvent::ValidatorChosen(5, 1, 40),
+			RawEvent::NewRound(20, 5, 2, 80),
+		];
+		expected.append(&mut new2);
+		assert_eq!(events(), expected);
+	});
+}
+
+#[test]
+fn multiple_nominations() {
 	genesis3().execute_with(|| {
 		roll_to(4);
 		roll_to(8);

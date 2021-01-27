@@ -987,21 +987,23 @@ impl<T: Config> Module<T> {
 						// solo validator with no nominators
 						mint(amt_due, val.clone());
 					} else {
-						let fee = state.fee * amt_due;
-						if fee > T::Currency::minimum_balance() {
-							if let Ok(imb) = T::Currency::deposit_into_existing(&val, fee) {
-								amt_due -= fee;
-								Self::deposit_event(RawEvent::Rewarded(val.clone(), imb.peek()));
-							}
-						}
+						// pay validator first; commission + due_portion
+						let val_pct = Perbill::from_rational_approximation(state.bond, state.total);
+						let commission = state.fee * amt_due;
+						let val_due = if commission > T::Currency::minimum_balance() {
+							amt_due -= commission;
+							(val_pct * amt_due) + commission
+						} else {
+							// commission is negligible so not applied
+							val_pct * amt_due
+						};
+						mint(val_due, val.clone());
+						// pay nominators due portion
 						for Bond { owner, amount } in state.nominators.0 {
 							let percent = Perbill::from_rational_approximation(amount, state.total);
 							let due = percent * amt_due;
 							mint(due, owner);
 						}
-						let pct = Perbill::from_rational_approximation(state.bond, state.total);
-						let due = pct * amt_due;
-						mint(due, val.clone());
 					}
 				}
 			}
