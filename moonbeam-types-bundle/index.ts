@@ -29,7 +29,6 @@ export const moonbeamDefinitions = {
           nonce: "U256",
           balance: "u128",
         },
-        RoundIndex: "u32",
       },
     },
     {
@@ -45,6 +44,14 @@ export const moonbeamDefinitions = {
         },
         ExtrinsicSignature: "EthereumSignature",
         RoundIndex: "u32",
+        Candidate: {
+          validator: "AccountId",
+          fee: "Perbill",
+          nominators: "OrderedSet<Bond<AccountId, Balance>>",
+          total: "Balance",
+          state: "ValidatorStatus<RoundIndex>",
+        },
+        OrderedSet: "Vec",
       },
     },
   ],

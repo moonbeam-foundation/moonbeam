@@ -195,19 +195,15 @@ impl<T: Config> ProvideInherent for Module<T> {
 		Some(Call::set_author(author))
 	}
 
-	fn check_inherent(_call: &Self::Call, data: &InherentData) -> Result<(), Self::Error> {
-		let author_raw = data
-			.get_data::<InherentType>(&INHERENT_IDENTIFIER)
-			.expect("Gets and decodes authorship inherent data")
-			.ok_or(InherentError::Other(sp_runtime::RuntimeString::Borrowed(
-				"Decode authorship inherent data failed",
-			)))?;
-		let author =
-			T::AccountId::decode(&mut &author_raw[..]).expect("Decodes author raw inherent data");
-		ensure!(
-			T::CanAuthor::can_author(&author),
-			InherentError::Other(sp_runtime::RuntimeString::Borrowed("Cannot Be Author"))
-		);
+	fn check_inherent(call: &Self::Call, _data: &InherentData) -> Result<(), Self::Error> {
+		// This if let should always be true. This is the only call that the inherent could make.
+		if let Self::Call::set_author(claimed_author) = call {
+			ensure!(
+				T::CanAuthor::can_author(&claimed_author),
+				InherentError::Other(sp_runtime::RuntimeString::Borrowed("Cannot Be Author"))
+			);
+		}
+
 		Ok(())
 	}
 }
