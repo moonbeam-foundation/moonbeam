@@ -1,6 +1,6 @@
 {
   "name": "Moonbase Alpha",
-  "id": "local_testnet",
+  "id": "moonbase_alpha",
   "chainType": "Local",
   "bootNodes": [],
   "telemetryEndpoints": null,
