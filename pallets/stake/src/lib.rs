@@ -554,9 +554,8 @@ decl_storage! {
 						balance,
 					)
 				} else {
-					<Module<T>>::join_candidates(
+					<Module<T>>::join_candidates_no_fee(
 						T::Origin::from(Some(actor.clone()).into()),
-						Perbill::from_percent(2),// default fee for validators set at genesis is 2%
 						balance,
 					)
 				};
@@ -577,6 +576,30 @@ decl_module! {
 		fn deposit_event() = default;
 
 		#[weight = 0]
+		fn join_candidates_no_fee(
+			origin,
+			bond: BalanceOf<T>,
+		) -> DispatchResult {
+			let acc = ensure_signed(origin)?;
+			ensure!(!Self::is_candidate(&acc),Error::<T>::CandidateExists);
+			ensure!(!Self::is_nominator(&acc),Error::<T>::NominatorExists);
+			ensure!(bond >= T::MinValidatorStk::get(),Error::<T>::ValBondBelowMin);
+			let mut candidates = <CandidatePool<T>>::get();
+			ensure!(
+				candidates.insert(Bond{owner: acc.clone(), amount: bond}),
+				Error::<T>::CandidateExists
+			);
+			T::Currency::reserve(&acc, bond)?;
+			// fee is 0
+			let candidate: Candidate<T> = Validator::new(acc.clone(), Perbill::zero(), bond);
+			let new_total = <Total<T>>::get() + bond;
+			<Total<T>>::put(new_total);
+			<Candidates<T>>::insert(&acc, candidate);
+			<CandidatePool<T>>::put(candidates);
+			Self::deposit_event(RawEvent::JoinedValidatorCandidates(acc, bond, new_total));
+			Ok(())
+		}
+		#[weight = 0]
 		fn join_candidates(
 			origin,
 			fee: Perbill,
@@ -592,13 +615,13 @@ decl_module! {
 				candidates.insert(Bond{owner: acc.clone(), amount: bond}),
 				Error::<T>::CandidateExists
 			);
-			T::Currency::reserve(&acc,bond)?;
-			let candidate: Candidate<T> = Validator::new(acc.clone(),fee,bond);
+			T::Currency::reserve(&acc, bond)?;
+			let candidate: Candidate<T> = Validator::new(acc.clone(), fee, bond);
 			let new_total = <Total<T>>::get() + bond;
 			<Total<T>>::put(new_total);
-			<Candidates<T>>::insert(&acc,candidate);
+			<Candidates<T>>::insert(&acc, candidate);
 			<CandidatePool<T>>::put(candidates);
-			Self::deposit_event(RawEvent::JoinedValidatorCandidates(acc,bond,new_total));
+			Self::deposit_event(RawEvent::JoinedValidatorCandidates(acc, bond, new_total));
 			Ok(())
 		}
 		#[weight = 0]
@@ -972,9 +995,6 @@ impl<T: Config> Module<T> {
 		if next > duration {
 			let round_to_payout = next - duration;
 			let total = <Points>::get(round_to_payout);
-			if total == 0u32 {
-				return;
-			}
 			let issuance = T::IssuancePerRound::get();
 			for (val, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
 				let pct_due = Perbill::from_rational_approximation(pts, total);
