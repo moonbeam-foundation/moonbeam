@@ -33,7 +33,7 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
 
 FROM phusion/baseimage:0.11
 LABEL maintainer "alan@purestake.com"
-LABEL description="Polkadot for Moonbeam Alphanet Relay Chain"
+LABEL description="Polkadot for Moonbeam Relay Chains"
 ARG PROFILE=release
 COPY --from=builder /polkadot/target/$PROFILE/polkadot /usr/local/bin
 
@@ -48,6 +48,9 @@ RUN mv /usr/share/ca* /tmp && \
 	rm -rf /usr/bin /usr/sbin
 
 USER moonbeam
+
+COPY --chown=moonbeam specs/MoonbaseStageV5-Relay.json /moonbeam/stagenet-relay.json
+COPY --chown=moonbeam specs/MoonbaseAlphaV5-Relay.json /moonbeam/alphanet-relay.json
 
 # 30333 for p2p traffic
 # 9933 for RPC call
