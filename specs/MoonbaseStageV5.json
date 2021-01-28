@@ -11,7 +11,7 @@
   "properties": {
     "tokenDecimals": 18
   },
-  "relay_chain": "moonbase_alpha_relay",
+  "relay_chain": "moonbase_stage_relay",
   "para_id": 1000,
   "consensusEngine": null,
   "lightSyncState": null,
