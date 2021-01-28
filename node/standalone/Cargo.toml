@@ -63,6 +63,7 @@ fc-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.5-h
 fp-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 
 author-inherent = { path = "../../pallets/author-inherent" }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "master" }
 frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", branch = "master" }
