@@ -70,9 +70,7 @@ impl ProvideInherentData for MockTimestampInherentDataProvider {
 	}
 }
 
-pub struct MockValidationDataInherentDataProvider {
-	//para_id: u64,//todo type? // todo also, do I even need this?
-}
+pub struct MockValidationDataInherentDataProvider;
 
 impl ProvideInherentData for MockValidationDataInherentDataProvider {
 	fn inherent_identifier(&self) -> &'static InherentIdentifier {

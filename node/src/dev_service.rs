@@ -59,7 +59,7 @@ pub fn build_inherent_data_providers(
 		.map_err(sp_consensus::error::Error::InherentData)?;
 
 	providers
-		.register_provider(MockValidationDataInherentDataProvider {})
+		.register_provider(MockValidationDataInherentDataProvider)
 		.map_err(Into::into)
 		.map_err(sp_consensus::error::Error::InherentData)?;
 
