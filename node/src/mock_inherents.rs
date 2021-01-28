@@ -1,3 +1,8 @@
+use cumulus_primitives::{
+	inherents::{ValidationDataType, VALIDATION_DATA_IDENTIFIER},
+	PersistedValidationData, TransientValidationData, ValidationData,
+};
+use sp_core::H256;
 /// Provide a mock duration starting at 0 in millisecond for timestamp inherent.
 /// Each call will increment timestamp by slot_duration making Aura think time has passed.
 // Copyright 2019-2020 PureStake Inc.
@@ -27,11 +32,6 @@
 use sp_inherents::{InherentData, InherentIdentifier, ProvideInherentData};
 use sp_timestamp::InherentError;
 use std::cell::RefCell;
-use cumulus_primitives::{
-	inherents::{VALIDATION_DATA_IDENTIFIER, ValidationDataType},
-	ValidationData, PersistedValidationData, TransientValidationData,
-};
-use sp_core::H256;
 
 use moonbeam_runtime::MINIMUM_PERIOD;
 //TODO get this from cumulus
@@ -70,7 +70,6 @@ impl ProvideInherentData for MockTimestampInherentDataProvider {
 	}
 }
 
-
 pub struct MockValidationDataInherentDataProvider {
 	//para_id: u64,//todo type? // todo also, do I even need this?
 }
@@ -84,7 +83,6 @@ impl ProvideInherentData for MockValidationDataInherentDataProvider {
 		&self,
 		inherent_data: &mut InherentData,
 	) -> Result<(), sp_inherents::Error> {
-
 		// Use the "sproof" (spoof proof) builder to build valid mock state root and proof.
 		let (root, proof) = RelayStateSproofBuilder::default().into_state_root_and_proof();
 

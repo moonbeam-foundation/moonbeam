@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Cumulus.  If not, see <http://www.gnu.org/licenses/>.
 
+use cumulus_primitives::relay_chain;
 use sp_runtime::traits::HashFor;
 use sp_state_machine::MemoryDB;
-use cumulus_primitives::relay_chain;
 
 /// Builds a sproof (portmanteau of 'spoof' and 'proof') of the relay chain state.
 #[derive(Clone)]
