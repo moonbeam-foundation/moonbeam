@@ -222,3 +222,135 @@ impl<T: Config> ProvideInherent for Module<T> {
 		Ok(())
 	}
 }
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	use frame_support::{
+		assert_err, assert_ok, impl_outer_event, impl_outer_origin, parameter_types,
+		traits::{OnFinalize, OnInitialize},
+	};
+	use sp_core::H256;
+	use sp_io::TestExternalities;
+	use sp_runtime::{
+		testing::Header,
+		traits::{BlakeTwo256, IdentityLookup},
+	};
+
+	pub fn new_test_ext() -> TestExternalities {
+		let t = frame_system::GenesisConfig::default()
+			.build_storage::<Test>()
+			.unwrap();
+		TestExternalities::new(t)
+	}
+
+	impl_outer_origin! {
+		pub enum Origin for Test where system = frame_system {}
+	}
+
+	mod author_inherent {
+		pub use super::super::*;
+	}
+
+	impl_outer_event! {
+		pub enum MetaEvent for Test {
+			frame_system<T>,
+			author_inherent<T>,
+		}
+	}
+
+	impl<T> EventHandler<T> for () {
+		fn note_author(_author: T) {}
+	}
+
+	#[derive(Clone, Eq, PartialEq)]
+	pub struct Test;
+	parameter_types! {
+		pub const BlockHashCount: u64 = 250;
+		pub BlockWeights: frame_system::limits::BlockWeights =
+			frame_system::limits::BlockWeights::simple_max(1024);
+	}
+	impl System for Test {
+		type BaseCallFilter = ();
+		type BlockWeights = ();
+		type BlockLength = ();
+		type DbWeight = ();
+		type Origin = Origin;
+		type Index = u64;
+		type BlockNumber = u64;
+		type Call = ();
+		type Hash = H256;
+		type Hashing = BlakeTwo256;
+		type AccountId = u64;
+		type Lookup = IdentityLookup<Self::AccountId>;
+		type Header = Header;
+		type Event = MetaEvent;
+		type BlockHashCount = BlockHashCount;
+		type Version = ();
+		type PalletInfo = ();
+		type AccountData = ();
+		type OnNewAccount = ();
+		type OnKilledAccount = ();
+		type SystemWeightInfo = ();
+		type SS58Prefix = ();
+	}
+	parameter_types! {
+		pub const MinimumPeriod: u64 = 5;
+	}
+	impl Config for Test {
+		type Event = MetaEvent;
+		type EventHandler = ();
+		type CanAuthor = ();
+	}
+	type AuthorInherent = Module<Test>;
+	type Sys = frame_system::Module<Test>;
+
+	pub fn roll_to(n: u64) {
+		while Sys::block_number() < n {
+			AuthorInherent::on_finalize(Sys::block_number());
+			Sys::on_finalize(Sys::block_number());
+			Sys::set_block_number(Sys::block_number() + 1);
+			Sys::on_initialize(Sys::block_number());
+		}
+	}
+
+	#[test]
+	fn set_author_works() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(AuthorInherent::set_author(Origin::none(), 1));
+			roll_to(1);
+			assert_ok!(AuthorInherent::set_author(Origin::none(), 1));
+			roll_to(2);
+		});
+	}
+
+	#[test]
+	#[should_panic(expected = "Author inherent must be in the block")]
+	fn author_required_every_block() {
+		new_test_ext().execute_with(|| {
+			roll_to(1);
+		});
+	}
+
+	#[test]
+	fn double_author_fails() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(AuthorInherent::set_author(Origin::none(), 1));
+			assert_err!(
+				AuthorInherent::set_author(Origin::none(), 1),
+				Error::<Test>::AuthorAlreadySet
+			);
+		});
+	}
+
+	// #[test]
+	// #[should_panic(expected = "Timestamp must increment by at least <MinimumPeriod> between sequential blocks")]
+	// fn block_period_minimum_enforced() {
+	// 	new_test_ext().execute_with(|| {
+	// 		assert!(false);
+	// 		// Timestamp::set_timestamp(42);
+	// 		// let _ = Timestamp::set(Origin::none(), 46);
+	// 	});
+	// }
+}
