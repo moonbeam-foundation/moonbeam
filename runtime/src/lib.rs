@@ -723,6 +723,9 @@ impl_runtime_apis! {
 
 			use author_inherent::Module as AuthorInherentBench;
 
+			use pallet_evm::Module as EvmBench;
+			use pallet_ethereum::Module as EthereumBench;
+
 			let whitelist: Vec<TrackedStorageKey> = vec![
 			];
 
@@ -731,6 +734,8 @@ impl_runtime_apis! {
 
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 			add_benchmark!(params, batches, author_inherent, AuthorInherentBench::<Runtime>);
+			// add_benchmark!(params, batches, pallet_evm, EvmBench::<Runtime>);
+			add_benchmark!(params, batches, pallet_ethereum, EthereumBench::<Runtime>);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)
