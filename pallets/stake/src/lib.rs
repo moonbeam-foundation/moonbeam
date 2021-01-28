@@ -554,8 +554,9 @@ decl_storage! {
 						balance,
 					)
 				} else {
-					<Module<T>>::join_candidates_no_fee(
+					<Module<T>>::join_candidates(
 						T::Origin::from(Some(actor.clone()).into()),
+						Perbill::zero(), // default fee for validators registered at genesis is 0%
 						balance,
 					)
 				};
@@ -575,30 +576,6 @@ decl_module! {
 		type Error = Error<T>;
 		fn deposit_event() = default;
 
-		#[weight = 0]
-		fn join_candidates_no_fee(
-			origin,
-			bond: BalanceOf<T>,
-		) -> DispatchResult {
-			let acc = ensure_signed(origin)?;
-			ensure!(!Self::is_candidate(&acc),Error::<T>::CandidateExists);
-			ensure!(!Self::is_nominator(&acc),Error::<T>::NominatorExists);
-			ensure!(bond >= T::MinValidatorStk::get(),Error::<T>::ValBondBelowMin);
-			let mut candidates = <CandidatePool<T>>::get();
-			ensure!(
-				candidates.insert(Bond{owner: acc.clone(), amount: bond}),
-				Error::<T>::CandidateExists
-			);
-			T::Currency::reserve(&acc, bond)?;
-			// fee is 0
-			let candidate: Candidate<T> = Validator::new(acc.clone(), Perbill::zero(), bond);
-			let new_total = <Total<T>>::get() + bond;
-			<Total<T>>::put(new_total);
-			<Candidates<T>>::insert(&acc, candidate);
-			<CandidatePool<T>>::put(candidates);
-			Self::deposit_event(RawEvent::JoinedValidatorCandidates(acc, bond, new_total));
-			Ok(())
-		}
 		#[weight = 0]
 		fn join_candidates(
 			origin,
