@@ -1,14 +1,21 @@
 import { expect } from "chai";
 import { step } from "mocha-steps";
+import { Subscription as Web3Subscription } from "web3-core-subscriptions";
+import { BlockHeader } from "web3-eth";
+import { Log } from "web3-core";
 
 import { createAndFinalizeBlock, customRequest, describeWithMoonbeam } from "./util";
+
+// Extra type because web3 is not well typed
+interface Subscription<T> extends Web3Subscription<T> {
+  once: (type: "data" | "connected", handler: (data: T) => void) => Subscription<T>;
+}
 
 describeWithMoonbeam(
   "Frontier RPC (Subscription)",
   `simple-specs.json`,
   (context) => {
-    let subscription;
-    let logs_generated = 0;
+    let logs_generated = 0; // TODO: remove global variable used by tests
 
     const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
     const GENESIS_ACCOUNT_PRIVATE_KEY =
@@ -126,49 +133,44 @@ describeWithMoonbeam(
       return tx;
     }
 
+    // Little helper to hack web3 that are not complete.
+    function web3Subscribe(type: "newBlockHeaders"): Subscription<BlockHeader>;
+    function web3Subscribe(type: "pendingTransactions"): Subscription<string>;
+    function web3Subscribe(type: "logs", params: {}): Subscription<Log>;
+    function web3Subscribe(type: "newBlockHeaders" | "pendingTransactions" | "logs", params?: any) {
+      return (context.web3.eth as any).subscribe(...arguments);
+    }
+
     step("should connect", async function () {
       await createAndFinalizeBlock(context.polkadotApi);
       // @ts-ignore
-      const connected = context.web3.currentProvider.connected;
-      expect(connected).to.equal(true);
+      expect(context.web3.currentProvider.connected).to.equal(true);
     });
 
     step("should subscribe", async function () {
-      subscription = context.web3.eth.subscribe("newBlockHeaders", function (error, result) {});
-
-      let connected = false;
-      let subscriptionId = "";
-      await new Promise((resolve) => {
-        subscription.on("connected", function (d: any) {
-          connected = true;
-          subscriptionId = d;
-          resolve();
-        });
-      });
+      const subscription = web3Subscribe("newBlockHeaders");
+      const subscriptionId = await new Promise((resolve) =>
+        subscription.once("connected", resolve)
+      );
 
       subscription.unsubscribe();
-      expect(connected).to.equal(true);
       expect(subscriptionId).to.have.lengthOf(34);
     });
 
-    step("should get newHeads stream", async function (done) {
-      subscription = context.web3.eth.subscribe("newBlockHeaders", function (error, result) {});
-      let data = null;
-      await new Promise((resolve) => {
+    step("should get newHeads stream", async function () {
+      const subscription = web3Subscribe("newBlockHeaders");
+      const data = await new Promise<BlockHeader>((resolve) => {
         createAndFinalizeBlock(context.polkadotApi);
-        subscription.on("data", function (d: any) {
-          data = d;
-          resolve();
-        });
+        subscription.once("data", resolve);
       });
       subscription.unsubscribe();
+
       expect(data).to.include({
         author: "0x0000000000000000000000000000000000000000",
         difficulty: "0",
         extraData: "0x",
         logsBloom: `0x${"0".repeat(512)}`,
         miner: "0x0000000000000000000000000000000000000000",
-        number: 2,
         receiptsRoot: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
         sha3Uncles: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
         transactionsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
@@ -177,54 +179,37 @@ describeWithMoonbeam(
         "0x0000000000000000000000000000000000000000000000000000000000000000",
         "0x0000000000000000",
       ]);
-      setTimeout(done, 10000);
-    }).timeout(20000);
+    });
 
-    step("should get newPendingTransactions stream", async function (done) {
-      subscription = context.web3.eth.subscribe("pendingTransactions", function (error, result) {});
-
-      await new Promise((resolve) => {
-        subscription.on("connected", function (d: any) {
-          resolve();
-        });
-      });
+    step("should get newPendingTransactions stream", async function () {
+      const subscription = web3Subscribe("pendingTransactions");
+      await new Promise((resolve) => subscription.once("connected", resolve));
 
       const tx = await sendTransaction(context);
-      let data = null;
-      await new Promise((resolve) => {
+      const data = await new Promise((resolve) => {
         createAndFinalizeBlock(context.polkadotApi);
-        subscription.on("data", function (d: any) {
-          data = d;
-          logs_generated += 1;
-          resolve();
-        });
+        subscription.once("data", resolve);
       });
+      logs_generated += 1; //TODO: this is wrong, test should not be dependant of other tests
       subscription.unsubscribe();
 
       expect(data).to.be.not.null;
       expect(tx["transactionHash"]).to.be.eq(data);
-      setTimeout(done, 10000);
-    }).timeout(20000);
+    });
 
-    step("should subscribe to all logs", async function (done) {
-      subscription = context.web3.eth.subscribe("logs", {}, function (error, result) {});
+    step("should subscribe to all logs", async function () {
+      const subscription = web3Subscribe("logs", {});
 
       await new Promise((resolve) => {
-        subscription.on("connected", function (d: any) {
-          resolve();
-        });
+        subscription.once("connected", resolve);
       });
 
-      const tx = await sendTransaction(context);
-      let data = null;
-      await new Promise((resolve) => {
+      await sendTransaction(context);
+      const data = await new Promise((resolve) => {
         createAndFinalizeBlock(context.polkadotApi);
-        subscription.on("data", function (d: any) {
-          data = d;
-          logs_generated += 1;
-          resolve();
-        });
+        subscription.once("data", resolve);
       });
+      logs_generated += 1;
       subscription.unsubscribe();
 
       const block = await context.web3.eth.getBlock("latest");
@@ -238,395 +223,276 @@ describeWithMoonbeam(
         transactionIndex: 0,
         transactionLogIndex: "0x0",
       });
-      setTimeout(done, 10000);
-    }).timeout(20000);
+    });
 
-    step("should subscribe to logs by address", async function (done) {
-      subscription = context.web3.eth.subscribe(
-        "logs",
-        {
-          address: "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
-        },
-        function (error, result) {}
-      );
-
-      await new Promise((resolve) => {
-        subscription.on("connected", function (d: any) {
-          resolve();
-        });
+    step("should subscribe to logs by address", async function () {
+      const subscription = web3Subscribe("logs", {
+        address: "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
       });
 
-      const tx = await sendTransaction(context);
-      let data = null;
       await new Promise((resolve) => {
+        subscription.once("connected", resolve);
+      });
+
+      await sendTransaction(context);
+      const data = await new Promise((resolve) => {
         createAndFinalizeBlock(context.polkadotApi);
-        subscription.on("data", function (d: any) {
-          data = d;
-          logs_generated += 1;
-          resolve();
-        });
+        subscription.once("data", resolve);
       });
       subscription.unsubscribe();
 
       expect(data).to.not.be.null;
-      setTimeout(done, 10000);
-    }).timeout(20000);
+    });
 
-    step("should subscribe to logs by multiple addresses", async function (done) {
-      subscription = context.web3.eth.subscribe(
-        "logs",
-        {
-          address: [
-            "0xF8cef78E923919054037a1D03662bBD884fF4edf",
-            "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
-            "0x5c4242beB94dE30b922f57241f1D02f36e906915",
-            "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
-          ],
-        },
-        function (error, result) {}
-      );
-
-      await new Promise((resolve) => {
-        subscription.on("connected", function (d: any) {
-          resolve();
-        });
+    step("should subscribe to logs by multiple addresses", async function () {
+      const subscription = web3Subscribe("logs", {
+        address: [
+          "0xF8cef78E923919054037a1D03662bBD884fF4edf",
+          "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
+          "0x5c4242beB94dE30b922f57241f1D02f36e906915",
+          "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
+        ],
       });
 
-      const tx = await sendTransaction(context);
-      let data = null;
       await new Promise((resolve) => {
+        subscription.once("connected", resolve);
+      });
+
+      await sendTransaction(context);
+      const data = await new Promise((resolve) => {
         createAndFinalizeBlock(context.polkadotApi);
-        subscription.on("data", function (d: any) {
-          data = d;
-          logs_generated += 1;
-          resolve();
-        });
+        subscription.once("data", resolve);
       });
+      logs_generated += 1;
       subscription.unsubscribe();
 
       expect(data).to.not.be.null;
-      setTimeout(done, 10000);
-    }).timeout(20000);
+    });
 
-    step("should subscribe to logs by topic", async function (done) {
-      subscription = context.web3.eth.subscribe(
-        "logs",
-        {
-          topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
-        },
-        function (error, result) {}
-      );
-
-      await new Promise((resolve) => {
-        subscription.on("connected", function (d: any) {
-          resolve();
-        });
+    step("should subscribe to logs by topic", async function () {
+      const subscription = web3Subscribe("logs", {
+        topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
       });
 
-      const tx = await sendTransaction(context);
-      let data = null;
       await new Promise((resolve) => {
+        subscription.once("connected", resolve);
+      });
+
+      await sendTransaction(context);
+      const data = await new Promise((resolve) => {
         createAndFinalizeBlock(context.polkadotApi);
-        subscription.on("data", function (d: any) {
-          data = d;
-          logs_generated += 1;
-          resolve();
-        });
+        subscription.once("data", resolve);
       });
+      logs_generated += 1;
       subscription.unsubscribe();
 
       expect(data).to.not.be.null;
-      setTimeout(done, 10000);
-    }).timeout(20000);
+    });
 
-    step("should get past events #1: by topic", async function (done) {
-      subscription = context.web3.eth.subscribe(
-        "logs",
-        {
-          fromBlock: "0x0",
-          topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
-        },
-        function (error, result) {}
-      );
+    step("should get past events #1: by topic", async function () {
+      const subscription = web3Subscribe("logs", {
+        fromBlock: "0x0",
+        topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+      });
 
-      let data = [];
-      await new Promise((resolve) => {
+      const data = await new Promise((resolve) => {
+        const data = [];
         subscription.on("data", function (d: any) {
           data.push(d);
-          setTimeout(function () {
-            if (data.length == logs_generated) resolve();
-          }, 2000);
+          if (data.length == logs_generated) resolve(data);
         });
       });
       subscription.unsubscribe();
 
       expect(data).to.not.be.empty;
-      setTimeout(done, 10000);
-    }).timeout(20000);
+    });
 
-    step("should get past events #2: by address", async function (done) {
-      subscription = context.web3.eth.subscribe(
-        "logs",
-        {
-          fromBlock: "0x0",
-          address: "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
-        },
-        function (error, result) {}
-      );
+    step("should get past events #2: by address", async function () {
+      const subscription = web3Subscribe("logs", {
+        fromBlock: "0x0",
+        address: "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
+      });
 
-      let data = [];
-      await new Promise((resolve) => {
+      const data = await new Promise((resolve) => {
+        const data = [];
         subscription.on("data", function (d: any) {
           data.push(d);
-          setTimeout(function () {
-            if (data.length == 1) resolve();
-          }, 2000);
+          if (data.length == 1) resolve(data);
         });
       });
       subscription.unsubscribe();
 
       expect(data).to.not.be.empty;
-      setTimeout(done, 10000);
-    }).timeout(20000);
+    });
 
-    step("should get past events #3: by address + topic", async function (done) {
-      subscription = context.web3.eth.subscribe(
-        "logs",
-        {
-          fromBlock: "0x0",
-          topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
-          address: "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
-        },
-        function (error, result) {}
-      );
+    step("should get past events #3: by address + topic", async function () {
+      const subscription = web3Subscribe("logs", {
+        fromBlock: "0x0",
+        topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+        address: "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
+      });
 
-      let data = [];
-      await new Promise((resolve) => {
+      const data = await new Promise((resolve) => {
+        const data = [];
         subscription.on("data", function (d: any) {
           data.push(d);
-          setTimeout(function () {
-            if (data.length == 1) resolve();
-          }, 2000);
+          if (data.length == 1) resolve(data);
         });
       });
       subscription.unsubscribe();
 
       expect(data).to.not.be.empty;
-      setTimeout(done, 10000);
-    }).timeout(20000);
+    });
 
-    step("should get past events #3: multiple addresses", async function (done) {
-      subscription = context.web3.eth.subscribe(
-        "logs",
-        {
-          fromBlock: "0x0",
-          topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
-          address: [
-            "0xe573BCA813c741229ffB2488F7856C6cAa841041",
-            "0xF8cef78E923919054037a1D03662bBD884fF4edf",
-            "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
-            "0x5c4242beB94dE30b922f57241f1D02f36e906915",
-            "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
-          ],
-        },
-        function (error, result) {}
-      );
+    step("should get past events #3: multiple addresses", async function () {
+      const subscription = web3Subscribe("logs", {
+        fromBlock: "0x0",
+        topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+        address: [
+          "0xe573BCA813c741229ffB2488F7856C6cAa841041",
+          "0xF8cef78E923919054037a1D03662bBD884fF4edf",
+          "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
+          "0x5c4242beB94dE30b922f57241f1D02f36e906915",
+          "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
+        ],
+      });
 
-      let data = [];
-      await new Promise((resolve) => {
+      const data = await new Promise((resolve) => {
+        const data = [];
         subscription.on("data", function (d: any) {
           data.push(d);
-          setTimeout(function () {
-            if (data.length == logs_generated) resolve();
-          }, 2000);
+          if (data.length == logs_generated) resolve(data);
         });
       });
       subscription.unsubscribe();
 
       expect(data).to.not.be.empty;
-      setTimeout(done, 10000);
-    }).timeout(20000);
+    });
 
-    step("should support topic wildcards", async function (done) {
-      subscription = context.web3.eth.subscribe(
-        "logs",
-        {
-          topics: [null, "0x0000000000000000000000000000000000000000000000000000000000000000"],
-        },
-        function (error, result) {}
-      );
-
-      await new Promise((resolve) => {
-        subscription.on("connected", function (d: any) {
-          resolve();
-        });
+    step("should support topic wildcards", async function () {
+      const subscription = web3Subscribe("logs", {
+        topics: [null, "0x0000000000000000000000000000000000000000000000000000000000000000"],
       });
 
-      const tx = await sendTransaction(context);
-      let data = null;
       await new Promise((resolve) => {
+        subscription.once("connected", resolve);
+      });
+
+      await sendTransaction(context);
+      const data = await new Promise((resolve) => {
         createAndFinalizeBlock(context.polkadotApi);
-        subscription.on("data", function (d: any) {
-          data = d;
-          logs_generated += 1;
-          resolve();
-        });
+        subscription.once("data", resolve);
       });
+      logs_generated += 1;
       subscription.unsubscribe();
 
       expect(data).to.not.be.null;
-      setTimeout(done, 10000);
-    }).timeout(20000);
+    });
 
-    step("should support single values wrapped around a sequence", async function (done) {
-      subscription = context.web3.eth.subscribe(
-        "logs",
-        {
-          topics: [
-            ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
-            ["0x0000000000000000000000000000000000000000000000000000000000000000"],
+    step("should support single values wrapped around a sequence", async function () {
+      const subscription = web3Subscribe("logs", {
+        topics: [
+          ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+          ["0x0000000000000000000000000000000000000000000000000000000000000000"],
+        ],
+      });
+
+      await new Promise((resolve) => {
+        subscription.once("connected", resolve);
+      });
+
+      const tx = await sendTransaction(context);
+      const data = await new Promise((resolve) => {
+        createAndFinalizeBlock(context.polkadotApi);
+        subscription.once("data", resolve);
+      });
+      logs_generated += 1;
+      subscription.unsubscribe();
+
+      expect(data).to.not.be.null;
+    });
+
+    step("should support topic conditional parameters", async function () {
+      const subscription = web3Subscribe("logs", {
+        topics: [
+          "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+          [
+            "0x0000000000000000000000006be02d1d3665660d22ff9624b7be0551ee1ac91b",
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
           ],
-        },
-        function (error, result) {}
-      );
-
-      await new Promise((resolve) => {
-        subscription.on("connected", function (d: any) {
-          resolve();
-        });
+        ],
       });
 
+      await new Promise((resolve) => {
+        subscription.once("connected", resolve);
+      });
       const tx = await sendTransaction(context);
-      let data = null;
-      await new Promise((resolve) => {
+      const data = await new Promise((resolve) => {
         createAndFinalizeBlock(context.polkadotApi);
-        subscription.on("data", function (d: any) {
-          data = d;
-          logs_generated += 1;
-          resolve();
-        });
+        subscription.once("data", resolve);
       });
+      logs_generated += 1;
       subscription.unsubscribe();
 
       expect(data).to.not.be.null;
-      setTimeout(done, 10000);
-    }).timeout(20000);
+    });
 
-    step("should support topic conditional parameters", async function (done) {
-      subscription = context.web3.eth.subscribe(
-        "logs",
-        {
-          topics: [
-            "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-            [
-              "0x0000000000000000000000006be02d1d3665660d22ff9624b7be0551ee1ac91b",
-              "0x0000000000000000000000000000000000000000000000000000000000000000",
-            ],
+    step("should support multiple topic conditional parameters", async function () {
+      const subscription = web3Subscribe("logs", {
+        topics: [
+          "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+          [
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "0x0000000000000000000000006be02d1d3665660d22ff9624b7be0551ee1ac91b",
           ],
-        },
-        function (error, result) {}
-      );
-
-      await new Promise((resolve) => {
-        subscription.on("connected", function (d: any) {
-          resolve();
-        });
-      });
-
-      const tx = await sendTransaction(context);
-      let data = null;
-      await new Promise((resolve) => {
-        createAndFinalizeBlock(context.polkadotApi);
-        subscription.on("data", function (d: any) {
-          data = d;
-          logs_generated += 1;
-          resolve();
-        });
-      });
-      subscription.unsubscribe();
-
-      expect(data).to.not.be.null;
-      setTimeout(done, 10000);
-    }).timeout(20000);
-
-    step("should support multiple topic conditional parameters", async function (done) {
-      subscription = context.web3.eth.subscribe(
-        "logs",
-        {
-          topics: [
-            "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-            [
-              "0x0000000000000000000000000000000000000000000000000000000000000000",
-              "0x0000000000000000000000006be02d1d3665660d22ff9624b7be0551ee1ac91b",
-            ],
-            [
-              "0x0000000000000000000000006be02d1d3665660d22ff9624b7be0551ee1ac91b",
-              "0x0000000000000000000000000000000000000000000000000000000000000000",
-            ],
+          [
+            "0x0000000000000000000000006be02d1d3665660d22ff9624b7be0551ee1ac91b",
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
           ],
-        },
-        function (error, result) {}
-      );
+        ],
+      });
 
       await new Promise((resolve) => {
-        subscription.on("connected", function (d: any) {
-          resolve();
-        });
+        subscription.once("connected", resolve);
       });
 
       const tx = await sendTransaction(context);
-      let data = null;
-      await new Promise((resolve) => {
+      const data = await new Promise((resolve) => {
         createAndFinalizeBlock(context.polkadotApi);
-        subscription.on("data", function (d: any) {
-          data = d;
-          logs_generated += 1;
-          resolve();
-        });
+        subscription.once("data", resolve);
       });
+      logs_generated += 1;
       subscription.unsubscribe();
 
       expect(data).to.not.be.null;
-      setTimeout(done, 10000);
-    }).timeout(20000);
+    });
 
-    step("should combine topic wildcards and conditional parameters", async function (done) {
-      subscription = context.web3.eth.subscribe(
-        "logs",
-        {
-          topics: [
-            null,
-            [
-              "0x0000000000000000000000006be02d1d3665660d22ff9624b7be0551ee1ac91b",
-              "0x0000000000000000000000000000000000000000000000000000000000000000",
-            ],
-            null,
+    step("should combine topic wildcards and conditional parameters", async function () {
+      const subscription = web3Subscribe("logs", {
+        topics: [
+          null,
+          [
+            "0x0000000000000000000000006be02d1d3665660d22ff9624b7be0551ee1ac91b",
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
           ],
-        },
-        function (error, result) {}
-      );
-
-      await new Promise((resolve) => {
-        subscription.on("connected", function (d: any) {
-          resolve();
-        });
+          null,
+        ],
       });
 
-      const tx = await sendTransaction(context);
-      let data = null;
       await new Promise((resolve) => {
+        subscription.once("connected", resolve);
+      });
+
+      await sendTransaction(context);
+      const data = await new Promise((resolve) => {
         createAndFinalizeBlock(context.polkadotApi);
-        subscription.on("data", function (d: any) {
-          data = d;
-          logs_generated += 1;
-          resolve();
-        });
+        subscription.once("data", resolve);
       });
+      logs_generated += 1;
       subscription.unsubscribe();
 
       expect(data).to.not.be.null;
-      setTimeout(done, 10000);
-    }).timeout(20000);
+    });
   },
   "ws"
 );
