@@ -304,17 +304,13 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 
 pub struct EthereumFindAuthor<F>(PhantomData<F>);
 
-parameter_types! {
-	pub const DefaultStateRoot: H256 = H256::zero();
-}
-
 impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
 	#[cfg(not(feature = "standalone"))]
 	type FindAuthor = EthereumFindAuthor<PhantomAura>;
 	#[cfg(feature = "standalone")]
 	type FindAuthor = EthereumFindAuthor<Aura>;
-	type StateRoot = DefaultStateRoot;
+	type StateRoot = pallet_ethereum::IntermediateStateRoot;
 }
 
 // 18 decimals
