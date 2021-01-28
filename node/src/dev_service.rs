@@ -179,7 +179,7 @@ pub fn new_full(
 		let network = network.clone();
 		let pending = pending_transactions.clone();
 		Box::new(move |deny_unsafe, _| {
-			let deps = moonbeam_rpc::FullDeps {
+			let deps = crate::rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
 				graph: pool.pool().clone(),
@@ -189,7 +189,7 @@ pub fn new_full(
 				pending_transactions: pending.clone(),
 				command_sink: Some(command_sink.clone()),
 			};
-			moonbeam_rpc::create_full(deps, subscription_task_executor.clone())
+			crate::rpc::create_full(deps, subscription_task_executor.clone())
 		})
 	};
 

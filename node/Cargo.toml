@@ -27,9 +27,11 @@ serde_json = "1.0"
 jsonrpc-core = "15.0.0"
 jsonrpc-pubsub = "15.0.0"
 
-# Parachain dependencies
+# Moonbeam dependencies
 moonbeam-runtime = { path = "../runtime" }
-moonbeam-rpc = { path = "./rpc" }
+moonbeam-rpc-txpool = { path = "../client/rpc/txpool" }
+moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool" }
+author-inherent = { path = "../pallets/author-inherent"}
 
 # Substrate dependencies
 sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
@@ -48,6 +50,7 @@ sc-transaction-pool = { git = "https://github.com/paritytech/substrate", branch 
 sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sc-network = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sc-basic-authorship = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sc-transaction-graph = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sp-timestamp = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sp-trie = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sc-finality-grandpa = { git = "https://github.com/paritytech/substrate", branch = "master" }
@@ -62,6 +65,7 @@ pallet-transaction-payment-rpc = { git = "https://github.com/paritytech/substrat
 sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sc-consensus-manual-seal = { git = "https://github.com/paritytech/substrate", branch = "master" }
 
+# Frontier Dependencies
 evm = { package = "pallet-evm", git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 
@@ -69,8 +73,7 @@ fc-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.5-h
 fp-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 fc-rpc = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
-
-author-inherent = { path = "../pallets/author-inherent"}
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 
 # Cumulus dependencies
 cumulus-consensus = { git = "https://github.com/paritytech/cumulus", branch = "master" }
@@ -99,12 +102,12 @@ nix = "0.17"
 rand = "0.7.3"
 tokio = { version = "0.2.13", features = ["macros"] }
 
-# Polkadot dependencies
+# Polkadot dev-dependencies
 polkadot-runtime-common = { git = "https://github.com/paritytech/polkadot", branch = "master" }
 polkadot-test-runtime = { git = "https://github.com/paritytech/polkadot", branch = "master" }
 polkadot-test-service = { git = "https://github.com/paritytech/polkadot", branch = "master" }
 
-# Substrate dependencies
+# Substrate dev-dependencies
 pallet-sudo = { git = "https://github.com/paritytech/substrate", branch = "master" }
 substrate-test-client = { git = "https://github.com/paritytech/substrate", branch = "master" }
 substrate-test-runtime-client = { git = "https://github.com/paritytech/substrate", branch = "master" }
