@@ -47,6 +47,10 @@ if [ -z "$ALPHANET_SPEC_TMP" ]; then
   ALPHANET_SPEC_TMP="/tmp/moonbase-alphanet-specs-tmp.json"
 fi
 
+if [ -z "$STAGENET_SPEC_TMP" ]; then
+  STAGENET_SPEC_TMP="/tmp/moonbase-stagenet-specs-tmp.json"
+fi
+
 if [ -z "$PARACHAIN_WASM" ]; then
   PARACHAIN_WASM="$PARACHAIN_BUILD_FOLDER/moonbase-alphanet-runtime.wasm"
 fi
