@@ -28,13 +28,7 @@ macro_rules! runtime_parachain {
 			transaction_version: 2,
 		};
 
-		impl cumulus_parachain_upgrade::Config for Runtime {
-			type Event = Event;
-			type OnValidationData = ();
-			type SelfParaId = ParachainInfo;
-		}
 
-		impl parachain_info::Config for Runtime {}
 
 		// TODO Consensus not supported in parachain
 		impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F> {
@@ -56,26 +50,6 @@ macro_rules! runtime_parachain {
 			}
 		}
 
-		construct_runtime! {
-			pub enum Runtime where
-				Block = Block,
-				NodeBlock = opaque::Block,
-				UncheckedExtrinsic = UncheckedExtrinsic
-			{
-				System: frame_system::{Module, Call, Storage, Config, Event<T>},
-				Timestamp: pallet_timestamp::{Module, Call, Storage, Inherent},
-				Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
-				Sudo: pallet_sudo::{Module, Call, Storage, Config<T>, Event<T>},
-				RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Module, Call, Storage},
-				ParachainUpgrade: cumulus_parachain_upgrade::{Module, Call, Storage, Inherent, Event},
-				TransactionPayment: pallet_transaction_payment::{Module, Storage},
-				ParachainInfo: parachain_info::{Module, Storage, Config},
-				EthereumChainId: pallet_ethereum_chain_id::{Module, Storage, Config},
-				EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
-				Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
-				Stake: stake::{Module, Call, Storage, Event<T>, Config<T>},
-				AuthorInherent: author_inherent::{Module, Call, Storage, Inherent, Event<T>},
-			}
-		}
+
 	};
 }
