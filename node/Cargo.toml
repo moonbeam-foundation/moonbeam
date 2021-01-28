@@ -79,6 +79,10 @@ cumulus-network = { git = "https://github.com/paritytech/cumulus", branch = "mas
 cumulus-primitives = { git = "https://github.com/paritytech/cumulus", branch = "master" }
 cumulus-service = { git = "https://github.com/paritytech/cumulus", branch = "master" }
 
+#TODO reenable this import, and remove the ones immediately below it. They are only necessary for the workaround.
+# cumulus-test-relay-sproof-builder = { git = "https://github.com/paritytech/cumulus", branch = "master" }
+sp-state-machine = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+
 # Polkadot dependencies
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "master" }
 polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "master" }

@@ -4023,6 +4023,7 @@ dependencies = [
  "sp-inherents",
  "sp-io",
  "sp-runtime",
+ "sp-state-machine",
  "sp-timestamp",
  "sp-transaction-pool",
  "sp-trie",

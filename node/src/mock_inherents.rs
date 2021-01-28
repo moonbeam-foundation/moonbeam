@@ -34,6 +34,8 @@ use cumulus_primitives::{
 use sp_core::H256;
 
 use moonbeam_runtime::MINIMUM_PERIOD;
+//TODO get this from cumulus
+use crate::sproof::RelayStateSproofBuilder;
 
 //TODO make this a field on the struct
 const SLOT_DURATION: u64 = MINIMUM_PERIOD * 2;
@@ -83,6 +85,9 @@ impl ProvideInherentData for MockValidationDataInherentDataProvider {
 		inherent_data: &mut InherentData,
 	) -> Result<(), sp_inherents::Error> {
 
+		// Use the "sproof" (spoof proof) builder to build valid mock state root and proof.
+		let (root, proof) = RelayStateSproofBuilder::default().into_state_root_and_proof();
+
 		let data = ValidationDataType {
 			validation_data: ValidationData {
 				persisted: PersistedValidationData {
@@ -91,7 +96,7 @@ impl ProvideInherentData for MockValidationDataInherentDataProvider {
 					/// The relay-chain block number this is in the context of.
 					block_number: 0,
 					/// The relay-chain block storage root this is in the context of.
-					relay_storage_root: H256::zero(),
+					relay_storage_root: root,
 					/// The list of MQC heads for the inbound channels paired with the sender para ids. This
 					/// vector is sorted ascending by the para id and doesn't contain multiple entries with the same
 					/// sender.
@@ -127,7 +132,7 @@ impl ProvideInherentData for MockValidationDataInherentDataProvider {
 					dmq_length: 0,
 				},
 			},
-			relay_chain_state: sp_trie::StorageProof::empty(),
+			relay_chain_state: proof,
 		};
 
 		inherent_data.put_data(VALIDATION_DATA_IDENTIFIER, &data)
