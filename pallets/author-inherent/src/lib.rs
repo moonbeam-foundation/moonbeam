@@ -20,7 +20,9 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{decl_error, decl_event, decl_module, decl_storage, ensure};
+use frame_support::{
+	decl_error, decl_event, decl_module, decl_storage, ensure, traits::FindAuthor,
+};
 use frame_system::{ensure_none, Config as System};
 use parity_scale_codec::{Decode, Encode};
 #[cfg(feature = "std")]
@@ -114,6 +116,21 @@ decl_module! {
 		fn on_finalize() {
 			assert!(<Author<T>>::take().is_some(), "Author inherent must be in the block");
 		}
+	}
+}
+
+impl<T: Config> FindAuthor<T::AccountId> for Module<T> {
+	fn find_author<'a, I>(_digests: I) -> Option<T::AccountId>
+	where
+		I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
+	{
+		// We don't use the digests at all.
+		// That assumes an implementation, and should be removed from the trait IMO
+
+		// This will only return the correct author _after_ the authorship inherent is processed. Is
+		// it valid to assume that inherents are the first extrinsics in a block? How does timestamp
+		// handle this?
+		<Author<T>>::get()
 	}
 }
 

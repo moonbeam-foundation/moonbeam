@@ -22,7 +22,7 @@ macro_rules! runtime_parachain {
 			spec_name: create_runtime_str!("moonbase-alphanet"),
 			impl_name: create_runtime_str!("moonbase-alphanet"),
 			authoring_version: 3,
-			spec_version: 11,
+			spec_version: 12,
 			impl_version: 1,
 			apis: RUNTIME_API_VERSIONS,
 			transaction_version: 2,
@@ -35,26 +35,6 @@ macro_rules! runtime_parachain {
 		}
 
 		impl parachain_info::Config for Runtime {}
-
-		// TODO Consensus not supported in parachain
-		impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F> {
-			fn find_author<'a, I>(_digests: I) -> Option<H160>
-			where
-				I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
-			{
-				None
-			}
-		}
-
-		pub struct PhantomAura;
-		impl FindAuthor<u32> for PhantomAura {
-			fn find_author<'a, I>(_digests: I) -> Option<u32>
-			where
-				I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
-			{
-				Some(0 as u32)
-			}
-		}
 
 		construct_runtime! {
 			pub enum Runtime where
