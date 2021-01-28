@@ -73,12 +73,14 @@ pub fn build_inherent_data_providers(
 			.map_err(sp_consensus::error::Error::InherentData)?;
 	}
 
+	// When we are not mocking the validation data ,we do not register the real validation data
+	// provider here. It must be that cumulus does that itself. But where?
 	if mock_validation_data {
 		providers
 			.register_provider(MockValidationDataInherentDataProvider)
 			.map_err(Into::into)
 			.map_err(sp_consensus::error::Error::InherentData)?;
-	} //TODO else... how do I register the real one? Maybe cumulus does it for me? Should I do it explicitly anyway?
+	}
 
 	Ok(providers)
 }
