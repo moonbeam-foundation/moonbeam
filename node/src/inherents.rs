@@ -32,7 +32,7 @@ use cumulus_primitives::{
 use parity_scale_codec::Encode;
 use sp_core::H160;
 use sp_inherents::{InherentData, InherentDataProviders, InherentIdentifier, ProvideInherentData};
-use sp_timestamp::InherentError;
+use sp_timestamp::{InherentError, INHERENT_IDENTIFIER as TIMESTAMP_IDENTIFIER};
 use std::cell::RefCell;
 
 use moonbeam_runtime::MINIMUM_PERIOD;
@@ -61,7 +61,9 @@ pub fn build_inherent_data_providers(
 
 	if mock_timestamp {
 		providers
-			.register_provider(MockTimestampInherentDataProvider)
+			.register_provider(MockTimestampInherentDataProvider {
+				duration: MINIMUM_PERIOD * 2,
+			})
 			.map_err(Into::into)
 			.map_err(sp_consensus::error::Error::InherentData)?;
 	} else {
@@ -81,17 +83,13 @@ pub fn build_inherent_data_providers(
 	Ok(providers)
 }
 
-//TODO make this a field on the struct
-const SLOT_DURATION: u64 = MINIMUM_PERIOD * 2;
-
 /// Mocked timestamp inherent data provider.
 /// Provides a fake duration starting at 0 in millisecond for timestamp inherent.
 /// Each call will increment timestamp by slot_duration making the runtime think time has passed.
-// This code was inspired by https://github.com/paritytech/frontier/pull/170
-struct MockTimestampInherentDataProvider;
-
-// todo, should I be importing this from somewhere rather than recreating it myself
-pub const TIMESTAMP_IDENTIFIER: InherentIdentifier = *b"timstap0";
+/// This code was inspired by https://github.com/paritytech/frontier/pull/170
+struct MockTimestampInherentDataProvider {
+	duration: u64,
+}
 
 thread_local!(static TIMESTAMP: RefCell<u64> = RefCell::new(0));
 
@@ -105,7 +103,7 @@ impl ProvideInherentData for MockTimestampInherentDataProvider {
 		inherent_data: &mut InherentData,
 	) -> Result<(), sp_inherents::Error> {
 		TIMESTAMP.with(|x| {
-			*x.borrow_mut() += SLOT_DURATION;
+			*x.borrow_mut() += self.duration;
 			inherent_data.put_data(TIMESTAMP_IDENTIFIER, &*x.borrow())
 		})
 	}
@@ -131,7 +129,8 @@ impl ProvideInherentData for MockValidationDataInherentDataProvider {
 		inherent_data: &mut InherentData,
 	) -> Result<(), sp_inherents::Error> {
 		// Use the "sproof" (spoof proof) builder to build valid mock state root and proof.
-		let (relay_storage_root, proof) = RelayStateSproofBuilder::default().into_state_root_and_proof();
+		let (relay_storage_root, proof) =
+			RelayStateSproofBuilder::default().into_state_root_and_proof();
 
 		let data = ValidationDataType {
 			validation_data: ValidationData {
@@ -143,7 +142,7 @@ impl ProvideInherentData for MockValidationDataInherentDataProvider {
 					dmq_mqc_head: Default::default(),
 					max_pov_size: Default::default(),
 				},
-				transient: Default::default()
+				transient: Default::default(),
 			},
 			relay_chain_state: proof,
 		};
