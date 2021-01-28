@@ -14,22 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
+//! Service and ServiceFactory implementation. Specialized wrapper over Substrate service.
+//! This one is used specifically for the --dev service.
 
-use crate::mock_inherents::{
-	MockTimestampInherentDataProvider, MockValidationDataInherentDataProvider,
-};
 use fc_consensus::FrontierBlockImport;
 use fc_rpc_core::types::PendingTransactions;
 use moonbeam_runtime::{self, opaque::Block, RuntimeApi};
-use parity_scale_codec::Encode;
 use sc_client_api::BlockchainEvents;
 use sc_consensus_manual_seal::{self as manual_seal};
 use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
 use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
 use sp_core::H160;
-use sp_inherents::InherentDataProviders;
 use std::{
 	collections::HashMap,
 	sync::{Arc, Mutex},
@@ -41,30 +37,6 @@ native_executor_instance!(
 	moonbeam_runtime::api::dispatch,
 	moonbeam_runtime::native_version,
 );
-
-/// Build the inherent data providers (timestamp and authorship) for the node.
-pub fn build_inherent_data_providers(
-	author: Option<H160>,
-) -> Result<InherentDataProviders, sc_service::Error> {
-	let providers = InherentDataProviders::new();
-	if let Some(account) = author {
-		providers
-			.register_provider(author_inherent::InherentDataProvider(account.encode()))
-			.map_err(Into::into)
-			.map_err(sp_consensus::error::Error::InherentData)?;
-	}
-	providers
-		.register_provider(MockTimestampInherentDataProvider)
-		.map_err(Into::into)
-		.map_err(sp_consensus::error::Error::InherentData)?;
-
-	providers
-		.register_provider(MockValidationDataInherentDataProvider)
-		.map_err(Into::into)
-		.map_err(sp_consensus::error::Error::InherentData)?;
-
-	Ok(providers)
-}
 
 type FullClient = sc_service::TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = sc_service::TFullBackend<Block>;
@@ -88,7 +60,8 @@ pub fn new_partial(
 	>,
 	ServiceError,
 > {
-	let inherent_data_providers = build_inherent_data_providers(author)?;
+	let inherent_data_providers =
+		crate::inherents::build_inherent_data_providers(author, true, true)?;
 
 	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, RuntimeApi, Executor>(&config)?;

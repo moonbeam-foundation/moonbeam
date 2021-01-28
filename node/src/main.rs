@@ -25,7 +25,7 @@ mod service;
 mod cli;
 mod command;
 mod dev_service;
-mod mock_inherents;
+mod inherents;
 mod rpc;
 // TODO remove this module and import it from cumulus. it's just here for PoC atm.
 mod sproof;
