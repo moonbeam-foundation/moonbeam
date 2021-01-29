@@ -17,11 +17,18 @@ RUN mv /usr/share/ca* /tmp && \
 	ln -s /moonbase-alphanet/.local/share/moonbase-alphanet /data && \
 	rm -rf /usr/bin /usr/sbin
 
-
 USER moonbeam
 
 COPY --chown=moonbeam build/alphanet /moonbase-alphanet
+COPY --chown=moonbeam specs/MoonbaseStageV5.json /moonbeam/stagenet-raw-specs.json
+COPY --chown=moonbeam specs/MoonbaseStageV5-Relay.json /moonbeam/stagenet-relay-raw-specs.json
+COPY --chown=moonbeam specs/MoonbaseAlphaV5.json /moonbeam/alphanet-raw-specs.json
+COPY --chown=moonbeam specs/MoonbaseAlphaV5-Relay.json /moonbeam/alphanet-relay-raw-specs.json
 RUN chmod uog+x /moonbase-alphanet/moonbase-alphanet
+RUN /moonbase-alphanet/moonbase-alphanet build-spec --raw --no-default-bootnodes --chain /moonbeam/stagenet-raw-specs.json > /moonbeam/stagenet-raw-specs-no-bootnodes.json
+RUN /moonbase-alphanet/moonbase-alphanet build-spec --raw --no-default-bootnodes --chain /moonbeam/stagenet-relay-raw-specs.json > /moonbeam/stagenet-relay-raw-specs-no-bootnodes.json
+RUN /moonbase-alphanet/moonbase-alphanet build-spec --raw --no-default-bootnodes --chain /moonbeam/alphanet-raw-specs.json > /moonbeam/alphanet-raw-specs-no-bootnodes.json
+RUN /moonbase-alphanet/moonbase-alphanet build-spec --raw --no-default-bootnodes --chain /moonbeam/alphanet-relay-raw-specs.json > /moonbeam/alphanet-relay-raw-specs-no-bootnodes.json
 
 # 30333 for parachain p2p 
 # 30334 for relaychain p2p 
