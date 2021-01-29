@@ -1036,7 +1036,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus#464e54affd89eeddaf14fa6820be56dd83f18093"
+source = "git+https://github.com/paritytech/cumulus#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
 dependencies = [
  "impl-trait-for-tuples 0.1.3",
  "parity-scale-codec",
@@ -1054,7 +1054,7 @@ dependencies = [
 [[package]]
 name = "cumulus-runtime"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus#464e54affd89eeddaf14fa6820be56dd83f18093"
+source = "git+https://github.com/paritytech/cumulus#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
 dependencies = [
  "cumulus-primitives",
  "frame-executive",
@@ -4765,7 +4765,7 @@ checksum = "feb3b2b1033b8a60b4da6ee470325f887758c95d5320f52f9ce0df055a55940e"
 [[package]]
 name = "polkadot-core-primitives"
 version = "0.7.30"
-source = "git+https://github.com/paritytech/polkadot#93fcd8fa601534aa0002dff933fd55dad709d591"
+source = "git+https://github.com/paritytech/polkadot#71a528e822af63b96bdb03efac9b4927fb11a25e"
 dependencies = [
  "parity-scale-codec",
  "sp-core",
@@ -4776,7 +4776,7 @@ dependencies = [
 [[package]]
 name = "polkadot-parachain"
 version = "0.8.27"
-source = "git+https://github.com/paritytech/polkadot#93fcd8fa601534aa0002dff933fd55dad709d591"
+source = "git+https://github.com/paritytech/polkadot#71a528e822af63b96bdb03efac9b4927fb11a25e"
 dependencies = [
  "derive_more",
  "futures 0.3.10",
@@ -4799,7 +4799,7 @@ dependencies = [
 [[package]]
 name = "polkadot-primitives"
 version = "0.8.27"
-source = "git+https://github.com/paritytech/polkadot#93fcd8fa601534aa0002dff933fd55dad709d591"
+source = "git+https://github.com/paritytech/polkadot#71a528e822af63b96bdb03efac9b4927fb11a25e"
 dependencies = [
  "bitvec",
  "frame-system",

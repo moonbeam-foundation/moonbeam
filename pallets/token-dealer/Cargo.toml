@@ -12,8 +12,8 @@ frame-support = { git = "https://github.com/paritytech/substrate", default-featu
 frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 
 # Cumulus dependencies
-cumulus-upward-message = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = "464e54a" }
-cumulus-primitives = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = "464e54a" }
+cumulus-upward-message = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = "6438d32" }
+cumulus-primitives = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = "6438d32" }
 
 # Polkadot dependencies
 polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "master", default-features = false }

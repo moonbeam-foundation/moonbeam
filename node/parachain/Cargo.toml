@@ -73,11 +73,11 @@ fc-rpc = { git = "https://github.com/purestake/frontier", branch = "v0.6-moonbea
 author-inherent = { path = "../../pallets/author-inherent"}
 
 # Cumulus dependencies
-cumulus-consensus = { git = "https://github.com/paritytech/cumulus", rev = "464e54a" }
-cumulus-collator = { git = "https://github.com/paritytech/cumulus", rev = "464e54a" }
-cumulus-network = { git = "https://github.com/paritytech/cumulus", rev = "464e54a" }
-cumulus-primitives = { git = "https://github.com/paritytech/cumulus", rev = "464e54a" }
-cumulus-service = { git = "https://github.com/paritytech/cumulus", rev = "464e54a" }
+cumulus-consensus = { git = "https://github.com/paritytech/cumulus", rev = "6438d32" }
+cumulus-collator = { git = "https://github.com/paritytech/cumulus", rev = "6438d32" }
+cumulus-network = { git = "https://github.com/paritytech/cumulus", rev = "6438d32" }
+cumulus-primitives = { git = "https://github.com/paritytech/cumulus", rev = "6438d32" }
+cumulus-service = { git = "https://github.com/paritytech/cumulus", rev = "6438d32" }
 
 # Polkadot dependencies
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "master" }
