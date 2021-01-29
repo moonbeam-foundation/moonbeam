@@ -306,7 +306,7 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 pub struct EthereumFindAuthor<F>(PhantomData<F>);
 
 parameter_types! {
-	pub const BlockGasLimit: u64 = MAX_BLOCK_WEIGHT / WEIGHT_PER_GAS * NORMAL_DISPATCH_RATIO;
+	pub BlockGasLimit: u64 = NORMAL_DISPATCH_RATIO * MAX_BLOCK_WEIGHT / WEIGHT_PER_GAS;
 }
 
 impl pallet_ethereum::Config for Runtime {
