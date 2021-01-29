@@ -283,7 +283,7 @@ pub fn run() -> Result<()> {
 
 			runner.run_node_until_exit(|config| async move {
 				// If this is a --dev node, start up manual or instant seal.
-				// Otherwise continue with the nirmal parachain node.
+				// Otherwise continue with the normal parachain node.
 				if cli.run.base.shared_params.dev {
 					// If no author id was supplied, use the one that is staked at genesis
 					let author_id = author_id.or(Some(
