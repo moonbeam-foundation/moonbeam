@@ -21,7 +21,7 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
       author: "0x0000000000000000000000000000000000000000",
       difficulty: "0",
       extraData: "0x",
-      gasLimit: 4294967295,
+      gasLimit: 6000000,
       gasUsed: 0,
       logsBloom: `0x${"0".repeat(512)}`,
       number: 0,
