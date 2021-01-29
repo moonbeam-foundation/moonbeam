@@ -1036,7 +1036,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus#9b6448c6575cbe38bf9dd414186e06dd47b2168c"
+source = "git+https://github.com/paritytech/cumulus#464e54affd89eeddaf14fa6820be56dd83f18093"
 dependencies = [
  "impl-trait-for-tuples 0.1.3",
  "parity-scale-codec",
@@ -1054,7 +1054,7 @@ dependencies = [
 [[package]]
 name = "cumulus-runtime"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus#9b6448c6575cbe38bf9dd414186e06dd47b2168c"
+source = "git+https://github.com/paritytech/cumulus#464e54affd89eeddaf14fa6820be56dd83f18093"
 dependencies = [
  "cumulus-primitives",
  "frame-executive",
@@ -1440,7 +1440,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.5-hotfixes#1f38522d2c9126bf30372345d0c9282ac90da010"
+source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam#1f38522d2c9126bf30372345d0c9282ac90da010"
 dependencies = [
  "derive_more",
  "fp-consensus",
@@ -1462,7 +1462,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.5-hotfixes#1f38522d2c9126bf30372345d0c9282ac90da010"
+source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam#1f38522d2c9126bf30372345d0c9282ac90da010"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -1499,7 +1499,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.5-hotfixes#1f38522d2c9126bf30372345d0c9282ac90da010"
+source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam#1f38522d2c9126bf30372345d0c9282ac90da010"
 dependencies = [
  "ethereum-types",
  "jsonrpc-core 15.1.0",
@@ -1593,7 +1593,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.5-hotfixes#1f38522d2c9126bf30372345d0c9282ac90da010"
+source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam#1f38522d2c9126bf30372345d0c9282ac90da010"
 dependencies = [
  "parity-scale-codec",
  "sp-core",
@@ -1604,7 +1604,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "0.8.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.5-hotfixes#1f38522d2c9126bf30372345d0c9282ac90da010"
+source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam#1f38522d2c9126bf30372345d0c9282ac90da010"
 dependencies = [
  "evm",
  "impl-trait-for-tuples 0.1.3",
@@ -1617,7 +1617,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.5-hotfixes#1f38522d2c9126bf30372345d0c9282ac90da010"
+source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam#1f38522d2c9126bf30372345d0c9282ac90da010"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2772,45 +2772,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0de8b303297635ad57c9f5059fd9cee7a47f8e8daa09df0fcd07dd39fb22977f"
 dependencies = [
  "log",
-]
-
-[[package]]
-name = "kvdb"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "92312348daade49976a6dc59263ad39ed54f840aacb5664874f7c9aa16e5f848"
-dependencies = [
- "parity-util-mem",
- "smallvec 1.5.0",
-]
-
-[[package]]
-name = "kvdb-memorydb"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "986052a8d16c692eaebe775391f9a3ac26714f3907132658500b601dec94c8c2"
-dependencies = [
- "kvdb",
- "parity-util-mem",
- "parking_lot 0.11.1",
-]
-
-[[package]]
-name = "kvdb-rocksdb"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8d92c36be64baba5ea549116ff0d7ffd445456a7be8aaee21ec05882b980cd11"
-dependencies = [
- "fs-swap",
- "kvdb",
- "log",
- "num_cpus",
- "owning_ref",
- "parity-util-mem",
- "parking_lot 0.11.1",
- "regex",
- "rocksdb",
- "smallvec 1.5.0",
 ]
 
 [[package]]
@@ -4148,7 +4109,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.5-hotfixes#1f38522d2c9126bf30372345d0c9282ac90da010"
+source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam#1f38522d2c9126bf30372345d0c9282ac90da010"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4185,7 +4146,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "2.0.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.5-hotfixes#1f38522d2c9126bf30372345d0c9282ac90da010"
+source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam#1f38522d2c9126bf30372345d0c9282ac90da010"
 dependencies = [
  "evm",
  "evm-gasometer",
@@ -4209,7 +4170,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "2.0.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.5-hotfixes#1f38522d2c9126bf30372345d0c9282ac90da010"
+source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam#1f38522d2c9126bf30372345d0c9282ac90da010"
 dependencies = [
  "evm",
  "fp-evm",
@@ -4223,7 +4184,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "2.0.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.5-hotfixes#1f38522d2c9126bf30372345d0c9282ac90da010"
+source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam#1f38522d2c9126bf30372345d0c9282ac90da010"
 dependencies = [
  "evm",
  "fp-evm",
@@ -4235,7 +4196,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "2.0.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.5-hotfixes#1f38522d2c9126bf30372345d0c9282ac90da010"
+source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam#1f38522d2c9126bf30372345d0c9282ac90da010"
 dependencies = [
  "evm",
  "fp-evm",
@@ -4487,22 +4448,6 @@ dependencies = [
  "tokio 0.1.22",
  "tokio-named-pipes",
  "tokio-uds",
- "winapi 0.3.9",
-]
-
-[[package]]
-name = "parity-util-mem"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f17f15cb05897127bf36a240085a1f0bbef7bce3024849eccf7f93f6171bc27"
-dependencies = [
- "cfg-if 1.0.0",
- "hashbrown",
- "impl-trait-for-tuples 0.2.0",
- "parity-util-mem-derive",
- "parking_lot 0.11.1",
- "primitive-types",
- "smallvec 1.5.0",
  "winapi 0.3.9",
 ]
 
