@@ -11,14 +11,16 @@ export const rpcDefinitions: Record<string, Record<string, DefinitionRpc | Defin
     content: {
       aliasSection: "txpool",
       description:
-        "The detailed information regarding Ethereum transactions that are currently in the Substrate transaction pool.",
+        "The detailed information regarding Ethereum transactions that are currently in the " +
+        "Substrate transaction pool.",
       params: [],
       type: "TxPoolResultContent",
     },
     inspect: {
       aliasSection: "txpool",
       description:
-        "Summarized information of the Ethereum transactions that are currently in the Substrate transaction pool.",
+        "Summarized information of the Ethereum transactions that are currently in the Substrate" +
+        " transaction pool.",
       params: [],
       type: "TxPoolResultInspect",
     },
