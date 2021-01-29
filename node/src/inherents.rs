@@ -35,8 +35,8 @@ use sp_inherents::{InherentData, InherentDataProviders, InherentIdentifier, Prov
 use sp_timestamp::{InherentError, INHERENT_IDENTIFIER as TIMESTAMP_IDENTIFIER};
 use std::cell::RefCell;
 
-use moonbeam_runtime::MINIMUM_PERIOD;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
+use moonbeam_runtime::MINIMUM_PERIOD;
 
 /// Build the inherent data providers for the node.
 ///
