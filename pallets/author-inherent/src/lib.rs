@@ -229,7 +229,7 @@ mod tests {
 	use super::*;
 
 	use frame_support::{
-		assert_err, assert_ok, impl_outer_event, impl_outer_origin, parameter_types,
+		assert_noop, assert_ok, impl_outer_event, impl_outer_origin, parameter_types,
 		traits::{OnFinalize, OnInitialize},
 	};
 	use sp_core::H256;
@@ -325,7 +325,7 @@ mod tests {
 	fn double_author_fails() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(AuthorInherent::set_author(Origin::none(), 1));
-			assert_err!(
+			assert_noop!(
 				AuthorInherent::set_author(Origin::none(), 1),
 				Error::<Test>::AuthorAlreadySet
 			);
