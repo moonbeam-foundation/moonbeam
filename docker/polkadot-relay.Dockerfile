@@ -51,6 +51,10 @@ USER moonbeam
 
 COPY --chown=moonbeam specs/MoonbaseStageV5-Relay.json /moonbeam/stagenet-relay-raw-specs.json
 COPY --chown=moonbeam specs/MoonbaseAlphaV5-Relay.json /moonbeam/alphanet-relay-raw-specs.json
+RUN grep -v '/p2p/' /moonbeam/stagenet-relay-raw-specs.json > \
+    /moonbeam/stagenet-relay-raw-specs-no-bootnodes.json && \
+	grep -v '/p2p/' /moonbeam/alphanet-relay-raw-specs.json > \
+    /moonbeam/alphanet-relay-raw-specs-no-bootnodes.json
 
 # 30333 for p2p traffic
 # 9933 for RPC call
