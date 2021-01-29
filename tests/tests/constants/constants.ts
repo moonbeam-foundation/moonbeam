@@ -7,7 +7,7 @@ export const DISPLAY_LOG = process.env.MOONBEAM_LOG || false;
 export const MOONBEAM_LOG = process.env.MOONBEAM_LOG || "info";
 
 export const BINARY_PATH =
-  process.env.BINARY_PATH || `../node/standalone/target/release/moonbase-standalone`;
+  process.env.BINARY_PATH || `../target/release/moonbase-alphanet`;
 export const SPAWNING_TIME = 30000;
 
 // Test variables

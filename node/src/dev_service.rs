@@ -257,6 +257,8 @@ pub fn new_full(
 			.spawn_blocking("manual-seal", authorship_future);
 	}
 
+	log::info!("Development Service Ready");
+
 	network_starter.start_network();
 	Ok(task_manager)
 }
