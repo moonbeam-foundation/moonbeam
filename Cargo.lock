@@ -1244,6 +1244,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "cumulus-test-relay-sproof-builder"
+version = "0.1.0"
+source = "git+https://github.com/paritytech/cumulus#464e54affd89eeddaf14fa6820be56dd83f18093"
+dependencies = [
+ "cumulus-primitives",
+ "parity-scale-codec",
+ "polkadot-primitives",
+ "sp-runtime",
+ "sp-state-machine",
+]
+
+[[package]]
 name = "curve25519-dalek"
 version = "2.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3970,6 +3982,7 @@ dependencies = [
  "cumulus-network",
  "cumulus-primitives",
  "cumulus-service",
+ "cumulus-test-relay-sproof-builder",
  "derive_more 0.15.0",
  "exit-future 0.1.4",
  "fc-consensus",
@@ -4026,7 +4039,6 @@ dependencies = [
  "sp-inherents",
  "sp-io",
  "sp-runtime",
- "sp-state-machine",
  "sp-timestamp",
  "sp-transaction-pool",
  "sp-trie",

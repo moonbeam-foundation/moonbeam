@@ -36,8 +36,7 @@ use sp_timestamp::{InherentError, INHERENT_IDENTIFIER as TIMESTAMP_IDENTIFIER};
 use std::cell::RefCell;
 
 use moonbeam_runtime::MINIMUM_PERIOD;
-//TODO get this from cumulus
-use crate::sproof::RelayStateSproofBuilder;
+use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 
 /// Build the inherent data providers for the node.
 ///

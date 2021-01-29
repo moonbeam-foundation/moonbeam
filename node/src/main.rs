@@ -27,8 +27,6 @@ mod command;
 mod dev_service;
 mod inherents;
 mod rpc;
-// TODO remove this module and import it from cumulus. it's just here for PoC atm.
-mod sproof;
 
 fn main() -> sc_cli::Result<()> {
 	command::run()
