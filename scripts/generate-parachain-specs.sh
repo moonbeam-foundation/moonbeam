@@ -31,6 +31,11 @@ $PARACHAIN_BINARY export-genesis-state \
   > $PARACHAIN_GENESIS;
 echo $PARACHAIN_GENESIS generated
 
+cp specs/MoonbaseAlphaV5.json $PARACHAIN_BUILD_FOLDER/alphanet-raw-specs.json
+cp specs/MoonbaseAlphaV5-Relay.json $PARACHAIN_BUILD_FOLDER/alphanet-relay-raw-specs.json
+grep -v '/p2p/' specs/MoonbaseAlphaV5.json > $PARACHAIN_BUILD_FOLDER/alphanet-raw-specs-no-bootnodes.json
+grep -v '/p2p/' specs/MoonbaseAlphaV5-Relay.json > $PARACHAIN_BUILD_FOLDER/alphanet-relay-raw-specs-no-bootnodes.json
+
 echo "\n=================== Stagenet ==================="
 $PARACHAIN_BINARY build-spec \
   --disable-default-bootnode \
@@ -60,3 +65,8 @@ $PARACHAIN_BINARY export-genesis-state \
   --chain $STAGENET_SPEC_RAW \
   > $PARACHAIN_GENESIS;
 echo $PARACHAIN_GENESIS generated
+
+cp specs/MoonbaseStageV5.json $PARACHAIN_BUILD_FOLDER/stagenet-raw-specs.json
+cp specs/MoonbaseStageV5-Relay.json $PARACHAIN_BUILD_FOLDER/stagenet-relay-raw-specs.json
+grep -v '/p2p/' specs/MoonbaseStageV5.json > $PARACHAIN_BUILD_FOLDER/stagenet-raw-specs-no-bootnodes.json
+grep -v '/p2p/' specs/MoonbaseStageV5-Relay.json > $PARACHAIN_BUILD_FOLDER/stagenet-relay-raw-specs-no-bootnodes.json
