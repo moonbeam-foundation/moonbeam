@@ -96,7 +96,7 @@ Moonbeam nodes support multiple public chains and testnets, with the following C
 | Network Description                | Chain ID    |
 | ---------------------------------- | ----------- |
 | Local Parachain TestNet            | 1280        |
-| Local Standalone TestNet           | 1281        |
+| Local Development TestNet          | 1281        |
 | Reserved for other TestNets        | 1282 - 1283 |
 | Moonbeam (Polkadot)                | 1284        |
 | Moonriver (Kusama)                 | 1285        |

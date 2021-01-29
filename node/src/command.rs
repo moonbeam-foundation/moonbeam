@@ -45,7 +45,13 @@ fn load_spec(
 		"alphanet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
 			&include_bytes!("../../specs/MoonbaseAlphaV5.json")[..],
 		)?)),
-		"dev" | "development" | "" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
+		"dev" | "development" => Ok(Box::new(chain_spec::development_chain_spec())),
+		"local" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
+		"" => Err(
+			"You have not specified what chain to sync. In the future, this will default to \
+				Moonbeam mainnet. Mainnet is not yet live so you must choose a spec."
+				.into(),
+		),
 		path => Ok(Box::new(chain_spec::ChainSpec::from_json_file(
 			path.into(),
 		)?)),

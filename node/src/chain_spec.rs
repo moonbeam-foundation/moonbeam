@@ -46,8 +46,28 @@ impl Extensions {
 }
 
 // TODO This one was copied from the standalone node. Do we need any of it?
-pub fn development_config() -> Result<ChainSpec, String> {
-	todo!()
+pub fn development_chain_spec() -> ChainSpec {
+	ChainSpec::from_genesis(
+		"Moonbase Development Testnet",
+		"development",
+		ChainType::Development,
+		move || {
+			testnet_genesis(
+				AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
+				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
+				Default::default(), // para_id
+				1281,               //ChainId
+			)
+		},
+		vec![],
+		None,
+		None,
+		Some(serde_json::from_str("{\"tokenDecimals\": 18}").expect("Provided valid json map")),
+		Extensions {
+			relay_chain: Default::default(),
+			para_id: Default::default(),
+		},
+	)
 }
 
 // This is the only hard-coded spec for the parachain. All deployments are based on it.
