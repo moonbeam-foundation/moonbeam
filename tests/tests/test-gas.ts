@@ -110,9 +110,8 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
       },
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
-    expect(
-      (await customRequest(context.web3, "eth_sendRawTransaction", [goodTx.rawTransaction])).result
-    ).to.be.length(66);
+    let resp = await customRequest(context.web3, "eth_sendRawTransaction", [goodTx.rawTransaction]);
+    expect(resp.result).to.be.length(66);
   });
 
   it("gas limit should be limited by weight", async function () {

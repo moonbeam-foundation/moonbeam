@@ -306,8 +306,7 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 pub struct EthereumFindAuthor<F>(PhantomData<F>);
 
 parameter_types! {
-	pub const DefaultStateRoot: H256 = H256::zero();
-	pub const BlockGasLimit: u64 = MAX_BLOCK_WEIGHT / WEIGHT_PER_GAS;
+	pub const BlockGasLimit: u64 = MAX_BLOCK_WEIGHT / WEIGHT_PER_GAS * NORMAL_DISPATCH_RATIO;
 }
 
 impl pallet_ethereum::Config for Runtime {
@@ -316,7 +315,7 @@ impl pallet_ethereum::Config for Runtime {
 	type FindAuthor = EthereumFindAuthor<PhantomAura>;
 	#[cfg(feature = "standalone")]
 	type FindAuthor = EthereumFindAuthor<Aura>;
-	type StateRoot = DefaultStateRoot;
+	type StateRoot = pallet_ethereum::IntermediateStateRoot;
 	type BlockGasLimit = BlockGasLimit;
 }
 
