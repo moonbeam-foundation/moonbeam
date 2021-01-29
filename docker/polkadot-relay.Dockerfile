@@ -41,20 +41,20 @@ RUN mv /usr/share/ca* /tmp && \
 	rm -rf /usr/share/*  && \
 	mv /tmp/ca-certificates /usr/share/ && \
 	rm -rf /usr/lib/python* && \
-	useradd -m -u 1000 -U -s /bin/sh -d /moonbeam moonbeam && \
-	mkdir -p /moonbeam/.local/share/moonbeam && \
-	chown -R moonbeam:moonbeam /moonbeam/.local && \
-	ln -s /moonbeam/.local/share/moonbeam /data && \
+	useradd -m -u 1000 -U -s /bin/sh -d /moonbase-alphanet moonbeam && \
+	mkdir -p /moonbase-alphanet/.local/share/moonbase-alphanet && \
+	chown -R moonbeam:moonbeam /moonbase-alphanet && \
+	ln -s /moonbase-alphanet/.local/share/moonbase-alphanet /data && \
 	rm -rf /usr/bin /usr/sbin
 
 USER moonbeam
 
-COPY --chown=moonbeam specs/MoonbaseStageV5-Relay.json /moonbeam/stagenet-relay-raw-specs.json
-COPY --chown=moonbeam specs/MoonbaseAlphaV5-Relay.json /moonbeam/alphanet-relay-raw-specs.json
-RUN grep -v '/p2p/' /moonbeam/stagenet-relay-raw-specs.json > \
-    /moonbeam/stagenet-relay-raw-specs-no-bootnodes.json && \
-	grep -v '/p2p/' /moonbeam/alphanet-relay-raw-specs.json > \
-    /moonbeam/alphanet-relay-raw-specs-no-bootnodes.json
+COPY --chown=moonbeam specs/MoonbaseStageV5-Relay.json /moonbase-alphanet/stagenet-relay-raw-specs.json
+COPY --chown=moonbeam specs/MoonbaseAlphaV5-Relay.json /moonbase-alphanet/alphanet-relay-raw-specs.json
+RUN grep -v '/p2p/' /moonbase-alphanet/stagenet-relay-raw-specs.json > \
+    /moonbase-alphanet/stagenet-relay-raw-specs-no-bootnodes.json && \
+	grep -v '/p2p/' /moonbase-alphanet/alphanet-relay-raw-specs.json > \
+    /moonbase-alphanet/alphanet-relay-raw-specs-no-bootnodes.json
 
 # 30333 for p2p traffic
 # 9933 for RPC call
