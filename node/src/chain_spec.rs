@@ -45,7 +45,7 @@ impl Extensions {
 	}
 }
 
-// TODO This one was copied from the standalone node. Do we need any of it?
+/// Generate a chain spec for use with the development service.
 pub fn development_chain_spec() -> ChainSpec {
 	ChainSpec::from_genesis(
 		"Moonbase Development Testnet",
@@ -70,7 +70,8 @@ pub fn development_chain_spec() -> ChainSpec {
 	)
 }
 
-// This is the only hard-coded spec for the parachain. All deployments are based on it.
+/// Generate a default spec for the parachain service. Use this as a starting point when launching
+/// a custom chain.
 pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 	ChainSpec::from_genesis(
 		"Moonbase Parachain Local Testnet",
