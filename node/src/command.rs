@@ -20,7 +20,7 @@ use crate::{
 };
 use cumulus_primitives::{genesis::generate_genesis_block, ParaId};
 use log::info;
-use moonbeam_runtime::Block;
+use moonbeam_runtime::{AccountId, Block};
 use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::AccountIdConversion;
 use polkadot_service::RococoChainSpec;
@@ -35,7 +35,7 @@ use sc_service::{
 use sp_core::hexdisplay::HexDisplay;
 use sp_core::H160;
 use sp_runtime::traits::Block as _;
-use std::{io::Write, net::SocketAddr};
+use std::{io::Write, net::SocketAddr, str::FromStr};
 
 fn load_spec(
 	id: &str,
@@ -283,11 +283,17 @@ pub fn run() -> Result<()> {
 
 			runner.run_node_until_exit(|config| async move {
 				// If this is a --dev node, start up manual or instant seal.
+				// Otherwise continue with the nirmal parachain node.
 				if cli.run.base.shared_params.dev {
+					// If no author id was supplied, use the one that is staked at genesis
+					let author_id = author_id.or(Some(
+						AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")
+							.expect("Gerald is a valid account"),
+					));
+
 					return crate::dev_service::new_full(config, author_id);
 				}
 
-				// Not a dev node, so boot up the whole parachain setup
 				let key = sp_core::Pair::generate().0;
 
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
