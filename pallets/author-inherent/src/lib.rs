@@ -20,7 +20,9 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{decl_error, decl_event, decl_module, decl_storage, ensure};
+use frame_support::{
+	decl_error, decl_event, decl_module, decl_storage, ensure, weights::DispatchClass,
+};
 use frame_system::{ensure_none, Config as System};
 use parity_scale_codec::{Decode, Encode};
 #[cfg(feature = "std")]
@@ -69,6 +71,7 @@ decl_error! {
 	pub enum Error for Module<T: Config> {
 		/// Author already set in block.
 		AuthorAlreadySet,
+		/// The author in the inherent is not an eligible author.
 		CannotBeAuthor,
 	}
 }
@@ -86,7 +89,10 @@ decl_module! {
 		fn deposit_event() = default;
 
 		/// Inherent to set the author of a block
-		#[weight = 0]
+		#[weight = (
+			0,
+			DispatchClass::Mandatory
+		)]
 		fn set_author(origin, author: T::AccountId) {
 			ensure_none(origin)?;
 			ensure!(<Author<T>>::get().is_none(), Error::<T>::AuthorAlreadySet);
@@ -112,6 +118,7 @@ decl_module! {
 		}
 
 		fn on_finalize() {
+			// Do we still need this now that it is required?
 			assert!(<Author<T>>::take().is_some(), "Author inherent must be in the block");
 		}
 	}
@@ -178,6 +185,14 @@ impl<T: Config> ProvideInherent for Module<T> {
 	type Call = Call<T>;
 	type Error = InherentError;
 	const INHERENT_IDENTIFIER: InherentIdentifier = INHERENT_IDENTIFIER;
+
+	fn is_inherent_required(_: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
+		// Return Ok(Some(_)) unconditionally because this inherent is required in every block
+		// If it is not found, throw an AuthorInherentRequired error.
+		Ok(Some(InherentError::Other(
+			sp_runtime::RuntimeString::Borrowed("AuthorInherentRequired"),
+		)))
+	}
 
 	fn create_inherent(data: &InherentData) -> Option<Self::Call> {
 		// Grab the Vec<u8> labelled with "author__" from the map of all inherent data
