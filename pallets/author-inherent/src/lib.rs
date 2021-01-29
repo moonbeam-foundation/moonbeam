@@ -21,7 +21,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::{
-	decl_error, decl_event, decl_module, decl_storage, ensure, weights::DispatchClass,
+	decl_error, decl_event, decl_module, decl_storage, ensure,
+	weights::{DispatchClass, Weight},
 };
 use frame_system::{ensure_none, Config as System};
 use parity_scale_codec::{Decode, Encode};
@@ -88,6 +89,11 @@ decl_module! {
 		type Error = Error<T>;
 		fn deposit_event() = default;
 
+		fn on_initialize() -> Weight {
+			<Author<T>>::kill();
+			0
+		}
+
 		/// Inherent to set the author of a block
 		#[weight = (
 			0,
@@ -115,11 +121,6 @@ decl_module! {
 			T::EventHandler::note_author(author.clone());
 
 			Self::deposit_event(Event::<T>::AuthorSet(author, current_block));
-		}
-
-		fn on_finalize() {
-			// Do we still need this now that it is required?
-			assert!(<Author<T>>::take().is_some(), "Author inherent must be in the block");
 		}
 	}
 }
@@ -295,9 +296,6 @@ mod tests {
 		type SystemWeightInfo = ();
 		type SS58Prefix = ();
 	}
-	parameter_types! {
-		pub const MinimumPeriod: u64 = 5;
-	}
 	impl Config for Test {
 		type Event = MetaEvent;
 		type EventHandler = ();
@@ -308,10 +306,10 @@ mod tests {
 
 	pub fn roll_to(n: u64) {
 		while Sys::block_number() < n {
-			AuthorInherent::on_finalize(Sys::block_number());
 			Sys::on_finalize(Sys::block_number());
 			Sys::set_block_number(Sys::block_number() + 1);
 			Sys::on_initialize(Sys::block_number());
+			AuthorInherent::on_initialize(Sys::block_number());
 		}
 	}
 
@@ -326,14 +324,6 @@ mod tests {
 	}
 
 	#[test]
-	#[should_panic(expected = "Author inherent must be in the block")]
-	fn author_required_every_block() {
-		new_test_ext().execute_with(|| {
-			roll_to(1);
-		});
-	}
-
-	#[test]
 	fn double_author_fails() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(AuthorInherent::set_author(Origin::none(), 1));
@@ -343,14 +333,4 @@ mod tests {
 			);
 		});
 	}
-
-	// #[test]
-	// #[should_panic(expected = "Timestamp must increment by at least <MinimumPeriod> between sequential blocks")]
-	// fn block_period_minimum_enforced() {
-	// 	new_test_ext().execute_with(|| {
-	// 		assert!(false);
-	// 		// Timestamp::set_timestamp(42);
-	// 		// let _ = Timestamp::set(Origin::none(), 46);
-	// 	});
-	// }
 }
