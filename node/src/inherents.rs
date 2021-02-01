@@ -43,7 +43,7 @@ use moonbeam_runtime::MINIMUM_PERIOD;
 /// Not all nodes will need all inherent data providers:
 /// - The author provider is entirely optional.
 /// - The timestamp provider can be mocked.
-/// -The validation data provider can be mocked.
+/// - The validation data provider can be mocked.
 pub fn build_inherent_data_providers(
 	author: Option<H160>,
 	mock_timestamp: bool,
