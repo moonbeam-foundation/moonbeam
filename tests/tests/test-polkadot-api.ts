@@ -42,9 +42,9 @@ describeWithMoonbeam("Moonbeam Polkadot API", `simple-specs.json`, (context) => 
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
     expect(signedBlock.block.header.number.toNumber() >= 0).to.be.true;
 
-    // Expecting 2 extrinsics so far:
-    // timestamp, and the balances transfer
-    expect(signedBlock.block.extrinsics).to.be.of.length(3);
+    // Expecting 4 extrinsics so far:
+    // timestamp, author, the parachain validation data and the balances transfer.
+    expect(signedBlock.block.extrinsics).to.be.of.length(4);
 
     signedBlock.block.extrinsics.forEach((ex, index) => {
       const {
@@ -52,17 +52,21 @@ describeWithMoonbeam("Moonbeam Polkadot API", `simple-specs.json`, (context) => 
         method: { args, method, section },
       } = ex;
       const message = `${section}.${method}(${args.map((a) => a.toString()).join(", ")})`;
-
       switch (index) {
         case 0:
           expect(message).to.eq(`timestamp.set(6000)`);
           break;
         case 1:
           expect(message).to.eq(
-            `authorInherent.setAuthor(0x6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b)`
+            `parachainUpgrade.setValidationData({"validationData":{"persisted":{"parentHead":"0x","blockNumber":0,"relayStorageRoot":"0xd806e3afb4d36275caf5ce33158f64e860d90e47f39207caf581a54648b8828d","hrmpMqcHeads":[],"dmqMqcHead":"0x0000000000000000000000000000000000000000000000000000000000000000","maxPovSize":0},"transient":{"maxCodeSize":0,"maxHeadDataSize":0,"balance":0,"codeUpgradeAllowed":null,"dmqLength":0}},"relayChainState":["0x7f0106de3d8a54d27e44a9d5ce189618f22db4b49d95320d9021994c850f25b8e38590000020000000100008000000000400000001000005000000050000000600000006000000"]})`
           );
           break;
         case 2:
+          expect(message).to.eq(
+            `authorInherent.setAuthor(0x6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b)`
+          );
+          break;
+        case 3:
           expect(ex.signer.toString().toLocaleLowerCase()).to.eq(GENESIS_ACCOUNT);
           expect(message).to.eq(
             `balances.transfer(0x1111111111111111111111111111111111111112, 123)`
