@@ -20,7 +20,7 @@
 //! the node needs based on the parameters it passed in.
 //!
 //! This module also includes MOCK inherent data providers for both the timestamp and validataion
-//! data inherents. Thes emock providers provide stub data that does not represent anything "real"
+//! data inherents. These mock providers provide stub data that does not represent anything "real"
 //! about the external world, but can pass the runtime's checks. This is useful in testing
 //! for example, running the --dev service without a relay chain backbone, or authoring block
 //! extremely quickly in testing scenarios.
