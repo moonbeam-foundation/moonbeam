@@ -31,7 +31,7 @@ macro_rules! runtime_standalone {
 			spec_name: create_runtime_str!("moonbeam-standalone"),
 			impl_name: create_runtime_str!("moonbeam-standalone"),
 			authoring_version: 3,
-			spec_version: 13,
+			spec_version: 14,
 			impl_version: 1,
 			apis: RUNTIME_API_VERSIONS,
 			transaction_version: 2,

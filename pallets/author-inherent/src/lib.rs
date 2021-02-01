@@ -22,6 +22,7 @@
 
 use frame_support::{
 	decl_error, decl_event, decl_module, decl_storage, ensure,
+	traits::FindAuthor,
 	weights::{DispatchClass, Weight},
 };
 use frame_system::{ensure_none, Config as System};
@@ -122,6 +123,17 @@ decl_module! {
 
 			Self::deposit_event(Event::<T>::AuthorSet(author, current_block));
 		}
+	}
+}
+
+impl<T: Config> FindAuthor<T::AccountId> for Module<T> {
+	fn find_author<'a, I>(_digests: I) -> Option<T::AccountId>
+	where
+		I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
+	{
+		// We don't use the digests at all.
+		// This will only return the correct author _after_ the authorship inherent is processed.
+		<Author<T>>::get()
 	}
 }
 
