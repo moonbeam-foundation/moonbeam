@@ -109,7 +109,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase-alphanet"),
 	impl_name: create_runtime_str!("moonbase-alphanet"),
 	authoring_version: 3,
-	spec_version: 13,
+	spec_version: 14,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -284,31 +284,9 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 	}
 }
 
-pub struct EthereumFindAuthor<F>(PhantomData<F>);
-
-// TODO Consensus not supported in parachain
-impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F> {
-	fn find_author<'a, I>(_digests: I) -> Option<H160>
-	where
-		I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
-	{
-		None
-	}
-}
-
-pub struct PhantomAura;
-impl FindAuthor<u32> for PhantomAura {
-	fn find_author<'a, I>(_digests: I) -> Option<u32>
-	where
-		I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
-	{
-		Some(0 as u32)
-	}
-}
-
 impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
-	type FindAuthor = EthereumFindAuthor<PhantomAura>;
+	type FindAuthor = AuthorInherent;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot;
 }
 
