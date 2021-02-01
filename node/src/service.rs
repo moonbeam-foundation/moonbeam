@@ -66,7 +66,7 @@ pub fn new_partial(
 	sc_service::Error,
 > {
 	let inherent_data_providers =
-		crate::inherents::build_inherent_data_providers(author, false, false)?;
+		crate::inherents::build_inherent_data_providers(author, false)?;
 
 	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, RuntimeApi, Executor>(&config)?;

@@ -46,8 +46,7 @@ use moonbeam_runtime::MINIMUM_PERIOD;
 /// - The validation data provider can be mocked.
 pub fn build_inherent_data_providers(
 	author: Option<H160>,
-	mock_timestamp: bool,
-	mock_validation_data: bool,
+	mock: bool,
 ) -> Result<InherentDataProviders, sc_service::Error> {
 	let providers = InherentDataProviders::new();
 
@@ -58,11 +57,16 @@ pub fn build_inherent_data_providers(
 			.map_err(sp_consensus::error::Error::InherentData)?;
 	}
 
-	if mock_timestamp {
+	if mock {
 		providers
 			.register_provider(MockTimestampInherentDataProvider {
 				duration: MINIMUM_PERIOD * 2,
 			})
+			.map_err(Into::into)
+			.map_err(sp_consensus::error::Error::InherentData)?;
+
+		providers
+			.register_provider(MockValidationDataInherentDataProvider)
 			.map_err(Into::into)
 			.map_err(sp_consensus::error::Error::InherentData)?;
 	} else {
@@ -70,15 +74,10 @@ pub fn build_inherent_data_providers(
 			.register_provider(sp_timestamp::InherentDataProvider)
 			.map_err(Into::into)
 			.map_err(sp_consensus::error::Error::InherentData)?;
-	}
 
-	// When we are not mocking the validation data ,we do not register the real validation data
-	// provider here. It must be that cumulus does that itself. But where?
-	if mock_validation_data {
-		providers
-			.register_provider(MockValidationDataInherentDataProvider)
-			.map_err(Into::into)
-			.map_err(sp_consensus::error::Error::InherentData)?;
+		// When we are not mocking the validation data ,we do not register a real validation data
+		// provider here. The validation data inherent is inserted manually by the cumulus colaltor
+		// https://github.com/paritytech/cumulus/blob/c3e3f443/collator/src/lib.rs#L274-L321
 	}
 
 	Ok(providers)
