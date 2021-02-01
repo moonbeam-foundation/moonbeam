@@ -57,8 +57,8 @@ describeWithMoonbeam("Moonbeam Polkadot API", `simple-specs.json`, (context) => 
           expect(message).to.eq(`timestamp.set(6000)`);
           break;
         case 1:
-          expect(message).to.eq(
-            `parachainUpgrade.setValidationData({"validationData":{"persisted":{"parentHead":"0x","blockNumber":0,"relayStorageRoot":"0xd806e3afb4d36275caf5ce33158f64e860d90e47f39207caf581a54648b8828d","hrmpMqcHeads":[],"dmqMqcHead":"0x0000000000000000000000000000000000000000000000000000000000000000","maxPovSize":0},"transient":{"maxCodeSize":0,"maxHeadDataSize":0,"balance":0,"codeUpgradeAllowed":null,"dmqLength":0}},"relayChainState":["0x7f0106de3d8a54d27e44a9d5ce189618f22db4b49d95320d9021994c850f25b8e38590000020000000100008000000000400000001000005000000050000000600000006000000"]})`
+          expect(message.substring(0, 34)).to.eq(
+            `parachainUpgrade.setValidationData`
           );
           break;
         case 2:
