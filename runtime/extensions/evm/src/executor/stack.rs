@@ -99,7 +99,9 @@ impl<'backend, 'config, B: BackendT> TraceExecutor for StackExecutor<'backend, '
 					.expect("substate vec always have length greater than one; qed");
 
 				let (opcode_cost, _memory_cost) = gasometer::opcode_cost(
-					contract_address,
+					// TODO check if getting the address like this is right.
+					// Is the goal is to get the address of the current machine in the callstack?
+					runtime.context().address,
 					opcode,
 					stack,
 					substate.is_static(),
@@ -120,7 +122,7 @@ impl<'backend, 'config, B: BackendT> TraceExecutor for StackExecutor<'backend, '
 
 				step_logs.push(StepLog {
 					depth: U256::from(substate.depth().unwrap_or_default()),
-					gas: U256::from(self.used_gas()),
+					gas: U256::from(self.used_gas()), // or use "gas" (aka remaining gas) here?
 					gas_cost: U256::from(gas_cost),
 					memory: runtime.machine().memory().data().clone(),
 					op: match opcode {
@@ -129,7 +131,9 @@ impl<'backend, 'config, B: BackendT> TraceExecutor for StackExecutor<'backend, '
 					},
 					pc: U256::from(*position),
 					stack: runtime.machine().stack().data().clone(),
-					storage: match self.account(contract_address) {
+					storage: match self.account(runtime.context().address) {
+						// TODO check if getting the address like this is right.
+						// Is the goal is to get the address of the current machine in the callstack?
 						Some(account) => account.storage.clone(),
 						_ => BTreeMap::new(),
 					},
