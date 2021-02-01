@@ -198,8 +198,7 @@ impl<T: Config> ProvideInherent for Module<T> {
 	fn check_inherent(_call: &Self::Call, data: &InherentData) -> Result<(), Self::Error> {
 		let author_raw = data
 			.get_data::<InherentType>(&INHERENT_IDENTIFIER)
-			.expect("Gets and decodes authorship inherent data")
-			.ok_or_else(|| {
+			.expect("Gets and decodes authorship inherent data").ok_or({
 				InherentError::Other(sp_runtime::RuntimeString::Borrowed(
 					"Decode authorship inherent data failed",
 				))
