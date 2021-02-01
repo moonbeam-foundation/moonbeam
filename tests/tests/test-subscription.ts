@@ -166,11 +166,11 @@ describeWithMoonbeam(
       subscription.unsubscribe();
 
       expect(data).to.include({
-        author: "0x0000000000000000000000000000000000000000",
+        author: "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b",
         difficulty: "0",
         extraData: "0x",
         logsBloom: `0x${"0".repeat(512)}`,
-        miner: "0x0000000000000000000000000000000000000000",
+        miner: "0x6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b",
         receiptsRoot: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
         sha3Uncles: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
         transactionsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
