@@ -21,7 +21,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::{
-	decl_error, decl_event, decl_module, decl_storage, ensure,
+	decl_error, decl_module, decl_storage, ensure,
 	traits::FindAuthor,
 	weights::{DispatchClass, Weight},
 };
@@ -49,24 +49,11 @@ impl<T> CanAuthor<T> for () {
 }
 
 pub trait Config: System {
-	/// Event type used by the runtime.
-	type Event: From<Event<Self>> + Into<<Self as System>::Event>;
-
 	/// Other pallets that want to be informed about block authorship
 	type EventHandler: EventHandler<Self::AccountId>;
 
 	/// Checks if account can be set as block author
 	type CanAuthor: CanAuthor<Self::AccountId>;
-}
-
-decl_event! {
-	pub enum Event<T> where
-		AccountId = <T as System>::AccountId,
-		BlockNumber = <T as System>::BlockNumber,
-	{
-		/// Author, Block Height
-		AuthorSet(AccountId, BlockNumber),
-	}
 }
 
 decl_error! {
@@ -88,7 +75,6 @@ decl_storage! {
 decl_module! {
 	pub struct Module<T: Config> for enum Call where origin: T::Origin {
 		type Error = Error<T>;
-		fn deposit_event() = default;
 
 		fn on_initialize() -> Weight {
 			<Author<T>>::kill();
@@ -105,8 +91,6 @@ decl_module! {
 			ensure!(<Author<T>>::get().is_none(), Error::<T>::AuthorAlreadySet);
 			ensure!(T::CanAuthor::can_author(&author), Error::<T>::CannotBeAuthor);
 
-			let current_block = frame_system::Module::<T>::block_number();
-
 			// Update storage
 			Author::<T>::put(&author);
 
@@ -120,8 +104,6 @@ decl_module! {
 
 			// Notify any other pallets that are listening (eg rewards) about the author
 			T::EventHandler::note_author(author.clone());
-
-			Self::deposit_event(Event::<T>::AuthorSet(author, current_block));
 		}
 	}
 }
@@ -241,7 +223,7 @@ mod tests {
 	use super::*;
 
 	use frame_support::{
-		assert_noop, assert_ok, impl_outer_event, impl_outer_origin, parameter_types,
+		assert_noop, assert_ok, impl_outer_origin, parameter_types,
 		traits::{OnFinalize, OnInitialize},
 	};
 	use sp_core::H256;
@@ -264,13 +246,6 @@ mod tests {
 
 	mod author_inherent {
 		pub use super::super::*;
-	}
-
-	impl_outer_event! {
-		pub enum MetaEvent for Test {
-			frame_system<T>,
-			author_inherent<T>,
-		}
 	}
 
 	impl<T> EventHandler<T> for () {
@@ -296,7 +271,7 @@ mod tests {
 		type AccountId = u64;
 		type Lookup = IdentityLookup<Self::AccountId>;
 		type Header = Header;
-		type Event = MetaEvent;
+		type Event = ();
 		type BlockHashCount = BlockHashCount;
 		type Version = ();
 		type PalletInfo = ();
@@ -307,7 +282,6 @@ mod tests {
 		type SS58Prefix = ();
 	}
 	impl Config for Test {
-		type Event = MetaEvent;
 		type EventHandler = ();
 		type CanAuthor = ();
 	}
