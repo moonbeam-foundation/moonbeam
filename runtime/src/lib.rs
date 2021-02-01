@@ -332,7 +332,6 @@ impl stake::Config for Runtime {
 	type MinNominatorStk = MinNominatorStk;
 }
 impl author_inherent::Config for Runtime {
-	type Event = Event;
 	type EventHandler = Stake;
 	type CanAuthor = Stake;
 }
@@ -355,7 +354,7 @@ construct_runtime! {
 		EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
 		Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 		Stake: stake::{Module, Call, Storage, Event<T>, Config<T>},
-		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent, Event<T>},
+		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
 	}
 }
 
