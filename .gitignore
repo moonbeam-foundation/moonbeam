@@ -11,3 +11,8 @@
 
 # Generated test specs
 /tests/moonbeam-test-specs/*.json
+
+# Moonbeam-Launch
+*.log
+rococo-local.json
+rococo-local-raw.json

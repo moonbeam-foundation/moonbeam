@@ -1,5 +1,11 @@
 {
   "compilerOptions": {
-    "esModuleInterop": true
-  }
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "target": "es5",
+    "module": "commonjs",
+    "lib": ["es2017", "es7", "es6", "dom", "esnext"],
+    "allowJs": true
+  },
+  "exclude": ["node_modules", "tests"]
 }

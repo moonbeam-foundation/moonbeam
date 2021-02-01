@@ -10,6 +10,7 @@
     "ethjs-provider-http": "^0.1.6",
     "minimist": ">=0.2.1",
     "pkg": "^4.4.9",
+    "polkadot-launch": "PureStake/polkadot-launch#moonbeam-launch",
     "rlp": "^2.2.6",
     "solc": "^0.8.0",
     "substrate-evm-contracts": "file:truffle",
@@ -24,6 +25,8 @@
     "@types/yargs": "^15.0.12"
   },
   "scripts": {
-    "package-moon-key": "node_modules/.bin/tsc moon-key.ts; node_modules/.bin/pkg -t node14 moon-key.js; rm moon-key.js"
+    "package-moon-key": "node_modules/.bin/tsc moon-key.ts; node_modules/.bin/pkg -t node14 moon-key.js; rm moon-key.js",
+    "build-moonbeam-launch": "yarn add PureStake/polkadot-launch#moonbeam-launch",
+    "moonbeam-launch": "yarn run build-moonbeam-launch && node moonbeam-launch.js"
   }
 }
