@@ -109,8 +109,8 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase-alphanet"),
 	impl_name: create_runtime_str!("moonbase-alphanet"),
 	authoring_version: 3,
-	spec_version: 11,
-	impl_version: 2,
+	spec_version: 13,
+	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
 };
