@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test-with-logs": "mocha  --printlogs -r ts-node/register 'tests/**/*.ts'",
-    "test": "mocha -r ts-node/register 'tests/**/*.ts'"
+    "test": "mocha -r ts-node/register 'tests/**/*.ts'",
+    "build-moonbeam-launch": "yarn add PureStake/polkadot-launch#moonbeam-launch",
+    "moonbeam-launch": "yarn run build-moonbeam-launch && node moonbeam-launch.js"
   },
   "author": "",
   "license": "ISC",
@@ -17,6 +19,7 @@
     "chai": "^4.2.0",
     "mocha": "^8.1.3",
     "mocha-steps": "^1.3.0",
+    "polkadot-launch": "PureStake/polkadot-launch#moonbeam-launch",
     "rimraf": "^3.0.2",
     "ts-node": "^8.10.2",
     "typescript": "^3.9.6",
