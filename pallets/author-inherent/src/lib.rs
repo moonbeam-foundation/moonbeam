@@ -271,7 +271,7 @@ mod tests {
 		type AccountId = u64;
 		type Lookup = IdentityLookup<Self::AccountId>;
 		type Header = Header;
-		type Event = MetaEvent;
+		type Event = ();
 		type BlockHashCount = BlockHashCount;
 		type Version = ();
 		type PalletInfo = ();
