@@ -64,10 +64,11 @@ macro_rules! runtime_parachain {
 			{
 				ParachainInfo: parachain_info::{Module, Storage, Config},
 				ParachainUpgrade: cumulus_parachain_upgrade::{Module, Call, Storage, Inherent, Event},
-				
+
 				AuthorInherent: author_inherent::{Module, Call, Storage, Inherent, Event<T>},
 				Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
 				Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
+				DemocracyCollective: pallet_collective::{Module, Storage, Config<T>, Event<T>, Call, Origin<T>},
 				Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 				EthereumChainId: pallet_ethereum_chain_id::{Module, Storage, Config},
 				EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},

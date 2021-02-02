@@ -15,15 +15,15 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use moonbeam_runtime::{
-	AccountId, AuraConfig, BalancesConfig, DemocracyConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig,
-	GenesisConfig, GrandpaConfig, StakeConfig, SudoConfig, SystemConfig, GLMR, WASM_BINARY,
+	AccountId, AuraConfig, BalancesConfig, DemocracyCollectiveConfig, DemocracyConfig, EVMConfig,
+	EthereumChainIdConfig, EthereumConfig, GenesisConfig, GrandpaConfig, StakeConfig, SudoConfig,
+	SystemConfig, GLMR, WASM_BINARY,
 };
 use sc_service::ChainType;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::{Pair, Public};
 use sp_finality_grandpa::AuthorityId as GrandpaId;
-use std::collections::BTreeMap;
-use std::str::FromStr;
+use std::{collections::BTreeMap, str::FromStr};
 
 // The URL for the telemetry server.
 // const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
@@ -168,6 +168,10 @@ fn testnet_genesis(
 				.map(|k| (k, None, 100_000 * GLMR))
 				.collect(),
 		}),
-		pallet_democracy: Some(DemocracyConfig {})
+		pallet_democracy: Some(DemocracyConfig {}),
+		pallet_collective: Some(DemocracyCollectiveConfig {
+			phantom: Default::default(),
+			members: vec![],
+		}),
 	}
 }

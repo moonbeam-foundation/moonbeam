@@ -279,70 +279,81 @@ impl pallet_evm::Config for Runtime {
 	type ChainId = EthereumChainId;
 }
 
-mod scheduler {
-	use super::*;
-
-	parameter_types! {
-		pub MaximumSchedulerWeight: Weight = Perbill::from_percent(80) * BlockWeights::get().max_block;
-	}
-	impl pallet_scheduler::Config for Runtime {
-		type Event = Event;
-		type Origin = Origin;
-		type PalletsOrigin = OriginCaller;
-		type Call = Call;
-		type MaximumWeight = MaximumSchedulerWeight;
-		type ScheduleOrigin = EnsureRoot<AccountId>;
-		type MaxScheduledPerBlock = ();
-		type WeightInfo = ();
-	}
+parameter_types! {
+	pub const CouncilMotionDuration: BlockNumber = 24 * 60 * 10; // 1 day
+	pub const CouncilMaxProposals: u32 = 20;
+	pub const CouncilMaxMembers: u32 = 100;
 }
 
-mod democracy {
-	use super::*;
+// TODO : Use an Instance (couldn't get it work with one)
+impl pallet_collective::Config for Runtime {
+	type Origin = Origin;
+	type Proposal = Call;
+	type Event = Event;
+	type MotionDuration = CouncilMotionDuration;
+	type MaxProposals = CouncilMaxProposals;
+	type MaxMembers = CouncilMaxMembers;
+	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
+	type WeightInfo = ();
+}
 
-	parameter_types! {
-		pub const LaunchPeriod: BlockNumber = 20;
-		pub const VotingPeriod: BlockNumber = 20;
-		pub const FastTrackVotingPeriod: BlockNumber = 10;
-		pub const MinimumDeposit: Balance = 4 * GLMR;
-		pub const EnactmentPeriod: BlockNumber = 20;
-		pub const CooloffPeriod: BlockNumber = 40;
-		pub const MaxVotes: u32 = 100;
-		pub const MaxProposals: u32 = 100;
-		pub const PreimageByteDeposit: Balance = 2 * GLMR;
-		pub const InstantAllowed: bool = true;
-	}
+parameter_types! {
+	pub MaximumSchedulerWeight: Weight = Perbill::from_percent(80) * BlockWeights::get().max_block;
+}
 
-	// todo : ensure better origins
-	impl pallet_democracy::Config for Runtime {
-		type Proposal = Call;
-		type Event = Event;
-		type Currency = Balances;
-		type EnactmentPeriod = EnactmentPeriod;
-		type LaunchPeriod = LaunchPeriod;
-		type VotingPeriod = VotingPeriod;
-		type FastTrackVotingPeriod = FastTrackVotingPeriod;
-		type MinimumDeposit = MinimumDeposit;
-		type ExternalOrigin = EnsureSigned<AccountId>;
-		type ExternalMajorityOrigin = EnsureSigned<AccountId>;
-		type ExternalDefaultOrigin = EnsureSigned<AccountId>;
-		type FastTrackOrigin = EnsureSigned<AccountId>;
-		type CancellationOrigin = EnsureSigned<AccountId>;
-		type BlacklistOrigin = EnsureRoot<AccountId>;
-		type CancelProposalOrigin = EnsureRoot<AccountId>;
-		type VetoOrigin = EnsureSigned<AccountId>;
-		type CooloffPeriod = CooloffPeriod;
-		type PreimageByteDeposit = PreimageByteDeposit;
-		type Slash = ();
-		type InstantOrigin = EnsureSigned<AccountId>;
-		type InstantAllowed = InstantAllowed;
-		type Scheduler = Scheduler;
-		type MaxVotes = MaxVotes;
-		type OperationalPreimageOrigin = EnsureSigned<AccountId>;
-		type PalletsOrigin = OriginCaller;
-		type WeightInfo = ();
-		type MaxProposals = MaxProposals;
-	}
+impl pallet_scheduler::Config for Runtime {
+	type Event = Event;
+	type Origin = Origin;
+	type PalletsOrigin = OriginCaller;
+	type Call = Call;
+	type MaximumWeight = MaximumSchedulerWeight;
+	type ScheduleOrigin = EnsureRoot<AccountId>;
+	type MaxScheduledPerBlock = ();
+	type WeightInfo = ();
+}
+
+parameter_types! {
+	pub const LaunchPeriod: BlockNumber = 7 * 24 * 60 * 10; // 7 days
+	pub const VotingPeriod: BlockNumber = 7 * 24 * 60 * 10; // 7 days
+	pub const FastTrackVotingPeriod: BlockNumber = 3 * 24 * 60 * 10; // 3 days
+	pub const MinimumDeposit: Balance = 4 * GLMR;
+	pub const EnactmentPeriod: BlockNumber = 24 * 60 * 10; // 1 day
+	pub const CooloffPeriod: BlockNumber = 7 * 24 * 60 * 10; // 7 days
+	pub const MaxVotes: u32 = 100;
+	pub const MaxProposals: u32 = 100;
+	pub const PreimageByteDeposit: Balance = 2 * GLMR;
+	pub const InstantAllowed: bool = false; // too sketchy to enable ?
+}
+
+// todo : ensure better origins
+impl pallet_democracy::Config for Runtime {
+	type Proposal = Call;
+	type Event = Event;
+	type Currency = Balances;
+	type EnactmentPeriod = EnactmentPeriod;
+	type LaunchPeriod = LaunchPeriod;
+	type VotingPeriod = VotingPeriod;
+	type FastTrackVotingPeriod = FastTrackVotingPeriod;
+	type MinimumDeposit = MinimumDeposit;
+	type ExternalOrigin = pallet_collective::EnsureMember<AccountId>;
+	type ExternalMajorityOrigin = pallet_collective::EnsureMember<AccountId>;
+	type ExternalDefaultOrigin = pallet_collective::EnsureMember<AccountId>;
+	type FastTrackOrigin = pallet_collective::EnsureMember<AccountId>;
+	type CancellationOrigin = EnsureRoot<AccountId>;
+	type BlacklistOrigin = EnsureRoot<AccountId>;
+	type CancelProposalOrigin = EnsureRoot<AccountId>;
+	type VetoOrigin = pallet_collective::EnsureMember<AccountId>; // (root not possible)
+	type CooloffPeriod = CooloffPeriod;
+	type PreimageByteDeposit = PreimageByteDeposit;
+	type Slash = ();
+	type InstantOrigin = pallet_collective::EnsureMember<AccountId>;
+	type InstantAllowed = InstantAllowed;
+	type Scheduler = Scheduler;
+	type MaxVotes = MaxVotes;
+	type OperationalPreimageOrigin = EnsureSigned<AccountId>;
+	type PalletsOrigin = OriginCaller;
+	type WeightInfo = ();
+	type MaxProposals = MaxProposals;
 }
 
 pub struct TransactionConverter;
