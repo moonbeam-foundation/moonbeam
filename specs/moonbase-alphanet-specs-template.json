@@ -1,6 +1,6 @@
 {
   "name": "Moonbase Alpha",
-  "id": "local_testnet",
+  "id": "moonbase_alpha",
   "chainType": "Local",
   "bootNodes": [],
   "telemetryEndpoints": null,
@@ -21,7 +21,7 @@
         "balances": [
           [
             "0x5a7869f6aEfC93F45b30514023324B8D38e2a11c",
-            2000000000000000000000000
+            2000000000000000000000001
           ],
           [
             "0x664c6BAc48F4109e1071de90d9FaEBe12820B411",

@@ -76,12 +76,6 @@ default = [
 	# parachain-only dependencies can't be conditionally included here.
 	# Default feature dependencies must not be optional (aparently)
 ]
-# Standalone runtime is enabled by a feature
-standalone = [
-	"pallet-aura",
-	"sp-consensus-aura",
-	"pallet-grandpa",
-]
 std = [
 	"parity-scale-codec/std",
 	"serde",
@@ -115,23 +109,10 @@ std = [
 	"pallet-scheduler/std",
 	"pallet-collective/std",
 	"author-inherent/std",
-
-	# TODO These dependencies are only necessary when building without the standalone feature. I don't
-	# see a way to express that. Everything is correct, like this, but we unnecessarily build these
-	# dependencies when building the standalone runtime which is a big waste of CPU time as one of them
-	# builds all the polkadot runtimes. See https://github.com/paritytech/cumulus/issues/175
 	"parachain-info/std",
 	"cumulus-runtime/std",
 	"cumulus-parachain-upgrade/std",
-	# "cumulus-message-broker/std",
-	# "cumulus-upward-message/std",
 	"cumulus-primitives/std",
-	# "cumulus-token-dealer/std",
-	# TODO These dependencies are only necessary when _both_  the `std` _and_ `standalone` features
-	# are enabled. I don't see a way to express that. Everything is correct, like this, but we
-	# unnecessarily build these dependencies when building the parachain runtime.
-	"pallet-aura/std",
-	"pallet-grandpa/std",
 	"account/std",
 	"stake/std",
 ]

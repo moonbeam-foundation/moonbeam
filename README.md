@@ -27,23 +27,14 @@ Install Substrate pre-requisites (including Rust):
 curl https://getsubstrate.io -sSf | bash -s -- --fast
 ```
 
-Run the initialization script, which checks the correct rust nightly version and adds the WASM to
-that specific version:
+Run the initialization script, which checks the correct rust nightly version and adds the
+`wasm32-unknown-unknown` target to that specific version:
 
 ```bash
 ./scripts/init.sh
 ```
 
-## Build Standalone
-
-Build the corresponding binary file:
-
-```bash
-cd node/standalone
-cargo build --release
-```
-
-## Build Parachain
+## Build the Moonbeam Node
 
 Build the corresponding binary file:
 
@@ -53,42 +44,41 @@ cargo build --release
 
 The first build takes a long time, as it compiles all the necessary libraries.
 
-### Troubleshooting
+> If a _cargo not found_ error appears in the terminal, manually add Rust to your system path (or
+> restart your system):
+>
+> ```bash
+> source $HOME/.cargo/env
+> ```
 
-If a _cargo not found_ error appears in the terminal, manually add Rust to your system path (or
-restart your system):
+## Run a Development Node
+
+Moonbeam is designed to be a parachain on the Polkadot network. For testing your
+contracts locally, spinning up a full relay-para network is a lot of overhead.
+
+A simpler solution is to run the `--dev` node, a simple node that is not backed
+by any relay chain, but still runs the Moonbeam runtime logic.
 
 ```bash
-source $HOME/.cargo/env
+./target/release/moonbase-standalone --dev
 ```
 
-## Run
+### Docker image
 
-### Standalone Node in dev mode
-
-```bash
-./node/standalone/target/release/moonbase-standalone --dev
-```
-
-## Docker image
-
-### Standlone node
-
-An alternative to the steps higlighted before is to use docker to run a pre-build binary. Doing so, you prevent having to install Substrate and all the dependencies, and you can skip the building the node process as well. The only requirement is to have Docker installed, and then you can execute the following command to download the corresponding image:
+An alternative to building locally is to use docker to run a pre-build binary.
+The only requirement is to have Docker installed.
 
 ```bash
-docker pull purestake/moonbase:tutorial-v3
-```
+# Pull the docker image
+docker pull purestake/moonbase-parachain-testnet:latest
 
-Once the Docker image is downloaded, you can run it with the following line:
-
-```bash
-docker run --rm --name moonbeam_standalone --network host purestake/moonbase:tutorial-v3 /moonbase/moonbase-standalone --dev
+# Start a dev node
+docker run --rm --network host purestake/moonbase /moonbase/moonbase-standalone --dev
 ```
 
 ## Chain IDs
 
-The ethereum specification described a numeric Chain Id. The Moonbeam mainnet Chain Id will be 1284
+The Ethereum specification described a numeric Chain Id. The Moonbeam mainnet Chain Id will be 1284
 because it takes 1284 milliseconds for a moonbeam to reach Earth.
 
 Moonbeam nodes support multiple public chains and testnets, with the following Chain Ids.
@@ -96,7 +86,7 @@ Moonbeam nodes support multiple public chains and testnets, with the following C
 | Network Description                | Chain ID    |
 | ---------------------------------- | ----------- |
 | Local Parachain TestNet            | 1280        |
-| Local Standalone TestNet           | 1281        |
+| Local Development TestNet          | 1281        |
 | Reserved for other TestNets        | 1282 - 1283 |
 | Moonbeam (Polkadot)                | 1284        |
 | Moonriver (Kusama)                 | 1285        |
@@ -106,35 +96,33 @@ Moonbeam nodes support multiple public chains and testnets, with the following C
 
 ## Runtime Architecture
 
-The Moonbeam Runtime is built using FRAME and consists of several core pallets, as well as a few
-pallets that are only present conditionally. The core pallets are:
+The Moonbeam Runtime is built using FRAME and consists of pallets from substrate, frontier, cumulus, and `pallets/`.
+
+From substrate:
 
 - _Balances_: Tracks GLMR token balances
-- _Sudo_: Allows a privledged acocunt to make arbitrary runtime changes - will be removed before
+- _Sudo_: Allows a privileged account to make arbitrary runtime changes - will be removed before
   launch
 - _Timestamp_: On-Chain notion of time
-- _EVM_: Encapsulates execution logic for an Ethereum Virtual Machine
-- _Ethereum_: Ethereum-style data encoding and access for the EVM.
-- _Ethereum Chain Id_: A place to store the chain id for each Moonbeam network
 - _Transaction Payment_: Transaction payment (fee) management
 - _Randomness Collective Flip_: A (mock) onchain randomness beacon. Will be replaced by parachain
   randomness by mainnet.
 
-### Parachain
+From frontier:
 
-In addition to the core pallets above, the parachain node also features
+- _EVM_: Encapsulates execution logic for an Ethereum Virtual Machine
+- _Ethereum_: Ethereum-style data encoding and access for the EVM.
+
+From cumulus:
 
 - _ParachainUpgrade_: A helper to perform runtime upgrades on parachains
-- _MessageBroker_: A helper to receive incoming XCPM messages
 - _ParachainInfo_: A place to store parachain-relevant constants like parachain id
-- _TokenDealer_: A helper for accepting incoming cross-chain asset transfers
 
-### Standalone
+The following pallets are stored in `pallets/`. They are designed for Moonbeam's specific requirements:
 
-In addition to the core pallets above, the standalone node also features
-
-- _Aura_: Slot-based Authority Consensus
-- _Grandpa_: GRANDPA Authority consensus (This will be removed once it becomes a parachain)
+- _Ethereum Chain Id_: A place to store the chain id for each Moonbeam network
+- _Author Inherent_: Allows block authors to include their identity in a block via an inherent
+- _Stake_: Minimal staking pallet that implements ordered validator selection by total amount at stake
 
 ## Tests
 
