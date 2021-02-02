@@ -433,6 +433,9 @@ construct_runtime! {
 		Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 		Stake: stake::{Module, Call, Storage, Event<T>, Config<T>},
 		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
+		Scheduler: pallet_scheduler::{Module, Storage, Config, Event<T>, Call},
+		DemocracyCollective: pallet_collective::{Module, Storage, Config<T>, Event<T>, Call, Origin<T>},
+		Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
 	}
 }
 
