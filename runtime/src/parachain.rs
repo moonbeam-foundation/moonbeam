@@ -32,6 +32,8 @@ macro_rules! runtime_parachain {
 			type Event = Event;
 			type OnValidationData = ();
 			type SelfParaId = ParachainInfo;
+			type DownwardMessageHandlers = ();
+			type HrmpMessageHandlers = ();
 		}
 
 		impl parachain_info::Config for Runtime {}

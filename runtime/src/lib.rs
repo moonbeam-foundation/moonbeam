@@ -257,11 +257,11 @@ pub const WEIGHT_PER_GAS: u64 = WEIGHT_PER_SECOND / GAS_PER_SECOND;
 pub struct MoonbeamGasWeightMapping;
 
 impl pallet_evm::GasWeightMapping for MoonbeamGasWeightMapping {
-	fn gas_to_weight(gas: usize) -> Weight {
+	fn gas_to_weight(gas: u64) -> Weight {
 		Weight::try_from((gas as u64).saturating_mul(WEIGHT_PER_GAS)).unwrap_or(Weight::MAX)
 	}
-	fn weight_to_gas(weight: Weight) -> usize {
-		usize::try_from(weight.wrapping_div(WEIGHT_PER_GAS)).unwrap_or(usize::MAX)
+	fn weight_to_gas(weight: Weight) -> u64 {
+		u64::try_from(weight.wrapping_div(WEIGHT_PER_GAS)).unwrap_or(u32::MAX as u64)
 	}
 }
 
@@ -304,6 +304,11 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 
 pub struct EthereumFindAuthor<F>(PhantomData<F>);
 
+parameter_types! {
+	// TODO:
+	pub BlockGasLimit: U256 = U256::from(u32::max_value());
+}
+
 impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
 	#[cfg(not(feature = "standalone"))]
@@ -311,6 +316,7 @@ impl pallet_ethereum::Config for Runtime {
 	#[cfg(feature = "standalone")]
 	type FindAuthor = EthereumFindAuthor<Aura>;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot;
+	type BlockGasLimit = BlockGasLimit;
 }
 
 // 18 decimals
@@ -535,7 +541,7 @@ impl_runtime_apis! {
 				to,
 				data,
 				value,
-				gas_limit.low_u32(),
+				gas_limit.low_u64(),
 				gas_price,
 				nonce,
 				config.as_ref().unwrap_or_else(|| <Runtime as pallet_evm::Config>::config()),
@@ -564,7 +570,7 @@ impl_runtime_apis! {
 				from,
 				data,
 				value,
-				gas_limit.low_u32(),
+				gas_limit.low_u64(),
 				gas_price,
 				nonce,
 				config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
@@ -605,6 +611,13 @@ impl_runtime_apis! {
 		) -> pallet_transaction_payment_rpc_runtime_api::RuntimeDispatchInfo<Balance> {
 			TransactionPayment::query_info(uxt, len)
 		}
+
+		fn query_fee_details(
+            uxt: <Block as BlockT>::Extrinsic,
+            len: u32,
+        ) -> pallet_transaction_payment::FeeDetails<Balance> {
+            TransactionPayment::query_fee_details(uxt, len)
+        }
 	}
 
 	#[cfg(feature = "standalone")]
