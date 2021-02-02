@@ -47,6 +47,7 @@ export async function startMoonbeamNode(
     `--no-telemetry`,
     `--no-prometheus`,
     `--dev`,
+    `--manual-seal`,
     `-l${MOONBEAM_LOG}`,
     `--port=${PORT}`,
     `--rpc-port=${RPC_PORT}`,

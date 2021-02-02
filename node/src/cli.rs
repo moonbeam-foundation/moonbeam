@@ -96,6 +96,10 @@ pub struct RunCmd {
 	#[structopt(long)]
 	pub parachain_id: Option<u32>,
 
+	/// Whether to use manual seal when starting the dev service
+	#[structopt(long)]
+	pub manual_seal: bool,
+
 	/// Public identity for participating in staking and receiving rewards
 	#[structopt(long, parse(try_from_str = parse_h160))]
 	pub author_id: Option<H160>,

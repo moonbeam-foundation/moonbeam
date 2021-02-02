@@ -291,7 +291,7 @@ pub fn run() -> Result<()> {
 							.expect("Gerald is a valid account"),
 					));
 
-					return crate::dev_service::new_full(config, true, author_id);
+					return crate::dev_service::new_full(config, cli.run.manual_seal, author_id);
 				}
 
 				let key = sp_core::Pair::generate().0;
