@@ -4,6 +4,7 @@ import { step } from "mocha-steps";
 
 import { createAndFinalizeBlock, describeWithMoonbeam, customRequest } from "./util";
 import { GENESIS_ACCOUNT_BALANCE } from "./constants";
+import { AnyTuple, IEvent } from "@polkadot/types/types";
 
 describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) => {
   const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
@@ -40,6 +41,47 @@ describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) =>
       "1108925819614629174684664"
     );
     expect(await context.web3.eth.getBalance(TEST_ACCOUNT)).to.equal("512");
+  });
+
+  step("read ethereum.transact extrinsic events", async function () {
+    const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
+    const allRecords = await context.polkadotApi.query.system.events.at(
+      signedBlock.block.header.hash
+    );
+
+    // map between the extrinsics and events
+    signedBlock.block.extrinsics.forEach(({ method: { method, section } }, index) => {
+      // filter the specific events based on the phase and then the
+      // index of our extrinsic in the block
+      const events: IEvent<AnyTuple>[] = allRecords
+        .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
+        .map(({ event }) => event);
+
+      switch (index) {
+        // First 3 events:
+        // timestamp.set:: system.ExtrinsicSuccess
+        // parachainUpgrade.setValidationData:: system.ExtrinsicSuccess
+        // authorInherent.setAuthor:: system.ExtrinsicSuccess
+        case 0:
+        case 1:
+        case 2:
+          expect(
+            events.length === 1 && context.polkadotApi.events.system.ExtrinsicSuccess.is(events[0])
+          ).to.be.true;
+          break;
+        // Fourth event: ethereum.transact:: system.NewAccount, balances.Endowed, ethereum.Executed, system.ExtrinsicSuccess
+        case 3:
+          expect(section === "ethereum" && method === "transact").to.be.true;
+          expect(events.length === 4);
+          expect(context.polkadotApi.events.system.NewAccount.is(events[0])).to.be.true;
+          expect(context.polkadotApi.events.balances.Endowed.is(events[1])).to.be.true;
+          expect(context.polkadotApi.events.ethereum.Executed.is(events[2])).to.be.true;
+          expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[3])).to.be.true;
+          break;
+        default:
+          throw new Error(`Unexpected extrinsic`);
+      }
+    });
   });
 
   step("balance should be the same on polkadot/web3", async function () {
