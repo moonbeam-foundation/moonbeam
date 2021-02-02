@@ -103,7 +103,7 @@ decl_module! {
 			));
 
 			// Notify any other pallets that are listening (eg rewards) about the author
-			T::EventHandler::note_author(author.clone());
+			T::EventHandler::note_author(author);
 		}
 	}
 }
