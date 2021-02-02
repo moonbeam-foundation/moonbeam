@@ -45,6 +45,10 @@
 #![recursion_limit = "256"]
 #![cfg_attr(not(feature = "std"), no_std)]
 
+//TODO enable clippy and solve lints here. This was disabled to avoid merge conflicts with
+// https://github.com/PureStake/moonbeam/pull/189
+#![allow(clippy::all)]
+
 mod set;
 use frame_support::{
 	decl_error, decl_event, decl_module, decl_storage, ensure,
