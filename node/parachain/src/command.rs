@@ -25,7 +25,7 @@ use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::AccountIdConversion;
 use polkadot_service::RococoChainSpec;
 use sc_cli::{
-	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, InitLoggerParams,
+	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams,
 	KeystoreParams, NetworkParams, Result, RuntimeVersion, SharedParams, SubstrateCli,
 };
 use sc_service::{
@@ -219,10 +219,13 @@ pub fn run() -> Result<()> {
 			})
 		}
 		Some(Subcommand::ExportGenesisState(params)) => {
+			/*
+			 * TODO:
 			sc_cli::init_logger(InitLoggerParams {
 				tracing_receiver: sc_tracing::TracingReceiver::Log,
 				..Default::default()
 			})?;
+			*/
 
 			let block: Block = generate_genesis_block(&load_spec(
 				&params.chain.clone().unwrap_or_default(),
@@ -244,10 +247,13 @@ pub fn run() -> Result<()> {
 			Ok(())
 		}
 		Some(Subcommand::ExportGenesisWasm(params)) => {
+			/*
+			 * TODO:
 			sc_cli::init_logger(InitLoggerParams {
 				tracing_receiver: sc_tracing::TracingReceiver::Log,
 				..Default::default()
 			})?;
+			*/
 
 			let raw_wasm_blob =
 				extract_genesis_wasm(&cli.load_spec(&params.chain.clone().unwrap_or_default())?)?;
@@ -300,7 +306,11 @@ pub fn run() -> Result<()> {
 
 				let task_executor = config.task_executor.clone();
 				let polkadot_config =
-					SubstrateCli::create_configuration(&polkadot_cli, &polkadot_cli, task_executor)
+					SubstrateCli::create_configuration(
+						&polkadot_cli,
+						&polkadot_cli,
+						task_executor,
+						config.telemetry_handle.clone())
 						.map_err(|err| format!("Relay chain argument error: {}", err))?;
 
 				info!("Parachain id: {:?}", id);
@@ -311,6 +321,7 @@ pub fn run() -> Result<()> {
 				crate::service::start_node(config, key, author_id, polkadot_config, id, collator)
 					.await
 					.map(|r| r.0)
+					.map_err(Into::into)
 			})
 		}
 	}
@@ -374,7 +385,7 @@ impl CliConfiguration<Self> for RelayChainCli {
 		self.base.base.prometheus_config(default_listen_port)
 	}
 
-	fn init<C: SubstrateCli>(&self) -> Result<()> {
+	fn init<C: SubstrateCli>(&self) -> Result<sc_telemetry::TelemetryWorker> {
 		unreachable!("PolkadotCli is never initialized; qed");
 	}
 

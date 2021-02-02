@@ -221,7 +221,6 @@ where
 		client: client.clone(),
 		transaction_pool: transaction_pool.clone(),
 		task_manager: &mut task_manager,
-		telemetry_connection_sinks: Default::default(),
 		config: parachain_config,
 		keystore: params.keystore_container.sync_keystore(),
 		backend: backend.clone(),
@@ -279,7 +278,7 @@ where
 
 	let announce_block = {
 		let network = network.clone();
-		Arc::new(move |hash, data| network.announce_block(hash, data))
+		Arc::new(move |hash, data| network.announce_block(hash, Some(data)))
 	};
 
 	if validator {
