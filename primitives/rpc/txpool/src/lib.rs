@@ -16,6 +16,10 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+// These clippy lints are disabled because the macro-generated code triggers them.
+#![allow(clippy::unnecessary_mut_passed)]
+#![allow(clippy::too_many_arguments)]
+
 use ethereum::Transaction;
 use sp_runtime::traits::Block as BlockT;
 use sp_std::vec::Vec;
