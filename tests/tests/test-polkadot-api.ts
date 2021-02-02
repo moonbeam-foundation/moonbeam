@@ -42,9 +42,9 @@ describeWithMoonbeam("Moonbeam Polkadot API", `simple-specs.json`, (context) => 
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
     expect(signedBlock.block.header.number.toNumber() >= 0).to.be.true;
 
-    // Expecting 2 extrinsics so far:
-    // timestamp, and the balances transfer
-    expect(signedBlock.block.extrinsics).to.be.of.length(3);
+    // Expecting 4 extrinsics so far:
+    // timestamp, author, the parachain validation data and the balances transfer.
+    expect(signedBlock.block.extrinsics).to.be.of.length(4);
 
     signedBlock.block.extrinsics.forEach((ex, index) => {
       const {
@@ -52,17 +52,19 @@ describeWithMoonbeam("Moonbeam Polkadot API", `simple-specs.json`, (context) => 
         method: { args, method, section },
       } = ex;
       const message = `${section}.${method}(${args.map((a) => a.toString()).join(", ")})`;
-
       switch (index) {
         case 0:
           expect(message).to.eq(`timestamp.set(6000)`);
           break;
         case 1:
+          expect(message.substring(0, 34)).to.eq(`parachainUpgrade.setValidationData`);
+          break;
+        case 2:
           expect(message).to.eq(
             `authorInherent.setAuthor(0x6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b)`
           );
           break;
-        case 2:
+        case 3:
           expect(ex.signer.toString().toLocaleLowerCase()).to.eq(GENESIS_ACCOUNT);
           expect(message).to.eq(
             `balances.transfer(0x1111111111111111111111111111111111111112, 123)`

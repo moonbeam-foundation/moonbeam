@@ -43,15 +43,10 @@ export async function startMoonbeamNode(
 
   const cmd = BINARY_PATH;
   const args = [
-    `--chain=development`,
-    `--validator`, // Required by manual sealing to author the blocks
     `--execution=Native`, // Faster execution using native
     `--no-telemetry`,
     `--no-prometheus`,
-    `--manual-seal`,
-    `--author-id=${GENESIS_ACCOUNT.substring(2)}`, // Required by author inherent
-    `--no-grandpa`,
-    `--force-authoring`,
+    `--dev`,
     `-l${MOONBEAM_LOG}`,
     `--port=${PORT}`,
     `--rpc-port=${RPC_PORT}`,
@@ -72,7 +67,7 @@ export async function startMoonbeamNode(
   });
 
   const binaryLogs = [];
-  await new Promise((resolve) => {
+  await new Promise<void>((resolve) => {
     const timer = setTimeout(() => {
       console.error(`\x1b[31m Failed to start Moonbeam Test Node.\x1b[0m`);
       console.error(`Command: ${cmd} ${args.join(" ")}`);
@@ -86,7 +81,7 @@ export async function startMoonbeamNode(
         console.log(chunk.toString());
       }
       binaryLogs.push(chunk);
-      if (chunk.toString().match(/Manual Seal Ready/)) {
+      if (chunk.toString().match(/Development Service Ready/)) {
         if (!provider || provider == "http") {
           // This is needed as the EVM runtime needs to warmup with a first call
           await web3.eth.getChainId();

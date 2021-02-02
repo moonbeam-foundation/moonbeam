@@ -387,7 +387,9 @@ dependencies = [
  "frame-system",
  "parity-scale-codec",
  "sp-authorship",
+ "sp-core",
  "sp-inherents",
+ "sp-io",
  "sp-runtime",
  "sp-std",
 ]
@@ -1241,6 +1243,18 @@ dependencies = [
  "sp-inherents",
  "sp-runtime",
  "tracing",
+]
+
+[[package]]
+name = "cumulus-test-relay-sproof-builder"
+version = "0.1.0"
+source = "git+https://github.com/paritytech/cumulus#464e54affd89eeddaf14fa6820be56dd83f18093"
+dependencies = [
+ "cumulus-primitives",
+ "parity-scale-codec",
+ "polkadot-primitives",
+ "sp-runtime",
+ "sp-state-machine",
 ]
 
 [[package]]
@@ -3970,17 +3984,20 @@ dependencies = [
  "cumulus-network",
  "cumulus-primitives",
  "cumulus-service",
+ "cumulus-test-relay-sproof-builder",
  "derive_more 0.15.0",
  "exit-future 0.1.4",
  "fc-consensus",
  "fc-rpc",
  "fc-rpc-core",
  "fp-consensus",
+ "fp-rpc",
  "futures 0.3.12",
  "jsonrpc-core 15.1.0",
  "jsonrpc-pubsub 15.1.0",
  "log",
- "moonbeam-rpc",
+ "moonbeam-rpc-primitives-txpool",
+ "moonbeam-rpc-txpool",
  "moonbeam-runtime",
  "nix 0.17.0",
  "pallet-ethereum",
@@ -4012,6 +4029,7 @@ dependencies = [
  "sc-rpc-api",
  "sc-service",
  "sc-tracing",
+ "sc-transaction-graph",
  "sc-transaction-pool",
  "serde",
  "serde_json",
@@ -4033,37 +4051,6 @@ dependencies = [
  "substrate-test-runtime-client",
  "tokio 0.2.24",
  "trie-root 0.15.2",
-]
-
-[[package]]
-name = "moonbeam-rpc"
-version = "0.1.0"
-dependencies = [
- "fc-rpc",
- "fc-rpc-core",
- "fp-rpc",
- "futures 0.3.12",
- "jsonrpc-core 15.1.0",
- "jsonrpc-pubsub 15.1.0",
- "moonbeam-rpc-primitives-txpool",
- "moonbeam-rpc-txpool",
- "moonbeam-runtime",
- "pallet-transaction-payment-rpc",
- "parity-scale-codec",
- "sc-client-api",
- "sc-consensus-manual-seal",
- "sc-network",
- "sc-rpc",
- "sc-rpc-api",
- "sc-transaction-graph",
- "serde",
- "serde_json",
- "sp-api",
- "sp-block-builder",
- "sp-blockchain",
- "sp-runtime",
- "sp-transaction-pool",
- "substrate-frame-rpc-system",
 ]
 
 [[package]]
@@ -4522,7 +4509,6 @@ dependencies = [
  "pallet-session",
  "pallet-timestamp",
  "parity-scale-codec",
- "serde",
  "sp-application-crypto",
  "sp-consensus-aura",
  "sp-inherents",
