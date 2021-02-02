@@ -103,7 +103,8 @@ describeWithMoonbeam("Moonbeam Polkadot API", `simple-specs.json`, (context) => 
             events.length === 1 && context.polkadotApi.events.system.ExtrinsicSuccess.is(events[0])
           ).to.be.true;
           break;
-        // Fourth event: balances.transfer:: system.NewAccount, balances.Endowed, balances.Transfer, system.ExtrinsicSuccess
+        // Fourth event: balances.transfer:: system.NewAccount, balances.Endowed, balances.Transfer,
+        // system.ExtrinsicSuccess
         case 3:
           expect(events.length === 4);
           expect(context.polkadotApi.events.system.NewAccount.is(events[0])).to.be.true;

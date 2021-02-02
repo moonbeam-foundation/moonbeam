@@ -69,7 +69,8 @@ describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) =>
             events.length === 1 && context.polkadotApi.events.system.ExtrinsicSuccess.is(events[0])
           ).to.be.true;
           break;
-        // Fourth event: ethereum.transact:: system.NewAccount, balances.Endowed, ethereum.Executed, system.ExtrinsicSuccess
+        // Fourth event: ethereum.transact:: system.NewAccount, balances.Endowed, ethereum.Executed,
+        // system.ExtrinsicSuccess
         case 3:
           expect(section === "ethereum" && method === "transact").to.be.true;
           expect(events.length === 4);
