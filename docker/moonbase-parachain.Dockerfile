@@ -21,7 +21,7 @@ RUN mv /usr/share/ca* /tmp && \
 USER moonbeam
 
 COPY --chown=moonbeam build /moonbase-parachain
-RUN chmod uog+x /moonbase-parachain/moonbase-parachain
+RUN chmod uog+x /moonbase-parachain/moonbeam
 
 # 30333 for parachain p2p 
 # 30334 for relaychain p2p 
