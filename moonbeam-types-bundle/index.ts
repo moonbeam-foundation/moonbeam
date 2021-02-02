@@ -123,6 +123,7 @@ export const moonbeamDefinitions = {
 
 export const typesBundle = {
   spec: {
+    moonbeam: moonbeamDefinitions,
     "moonbase-alphanet": moonbeamDefinitions,
     moonbeamDefinitions,
     "moonbeam-standalone": moonbeamDefinitions,

@@ -4,14 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test-with-logs": "mocha  --printlogs -r ts-node/register 'tests/**/*.ts'",
-    "test": "mocha -r ts-node/register 'tests/**/*.ts'"
+    "test-with-logs": "TS_NODE_TRANSPILE_ONLY=true mocha  --printlogs -r ts-node/register 'tests/**/test-*.ts'",
+    "test": "TS_NODE_TRANSPILE_ONLY=true mocha -r ts-node/register 'tests/**/test-*.ts'"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@polkadot/api": "^3.6.3",
-    "@polkadot/types": "^3.6.3",
+    "@polkadot/api": "^3.7.1",
+    "@polkadot/types": "^3.7.1",
     "@types/chai": "^4.2.11",
     "@types/mocha": "^8.0.0",
     "chai": "^4.2.0",
