@@ -29,4 +29,4 @@ RUN chmod uog+x /moonbeam/moonbeam
 # 9615 for Prometheus (metrics)
 EXPOSE 30333 30334 9933 9944 9615 
 
-ENTRYPOINT /moonbeam/moonbeam
+ENTRYPOINT ["/moonbeam/moonbeam"]
