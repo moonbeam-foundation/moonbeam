@@ -12,9 +12,9 @@
 # Loading binary/specs variables
 source scripts/_init_var.sh
 
-if [ ! -f "$STANDALONE_BINARY" ]; then
-  echo "Standalone binary $STANDALONE_BINARY is missing"
-  echo "Please run: cargo build --release -p moonbase-standalone"
+if [ ! -f "$MOONBEAM_BINARY" ]; then
+  echo "Moonbeam binary $MOONBEAM_BINARY is missing"
+  echo "Please run: cargo build --release"
   exit 1
 fi
 
@@ -45,9 +45,9 @@ else
   BASE_PATH="$BASE_PREFIX-relay-$STANDALONE_INDEX"
 fi
 
-EXECUTABLE=$STANDALONE_BINARY
+EXECUTABLE=$MOONBEAM_BINARY
 if [ ! -z "$PERF" ]; then
-  EXECUTABLE="$PERF $STANDALONE_BINARY"
+  EXECUTABLE="$PERF $MOONBEAM_BINARY"
 fi
 
 $EXECUTABLE \

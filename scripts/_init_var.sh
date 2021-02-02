@@ -6,17 +6,8 @@ fi
 
 mkdir -p $PARACHAIN_BUILD_FOLDER
 
-
-if [ -z "$STANDALONE_BINARY" ]; then
-  STANDALONE_BINARY="node/standalone/target/release/moonbase-standalone"
-fi
-
-if [ -z "$PARACHAIN_BINARY" ]; then
-  PARACHAIN_BINARY="target/release/moonbase-alphanet"
-fi
-
-if [ -z "$STANDALONE_SPEC_TMP" ]; then
-  STANDALONE_SPEC_TMP="/tmp/moonbase-standalone-specs-tmp.json"
+if [ -z "$MOONBEAM_BINARY" ]; then
+  MOONBEAM_BINARY="target/release/moonbeam"
 fi
 
 if [ -z "$PARACHAIN_SPEC_TEMPLATE" ]; then
