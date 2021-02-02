@@ -101,7 +101,7 @@ pub fn new_partial(
 /// Builds a new service for a full client.
 pub fn new_full(
 	config: Configuration,
-	// manual_seal: bool,
+	manual_seal: bool,
 	author_id: Option<H160>,
 ) -> Result<TaskManager, ServiceError> {
 	let sc_service::PartialComponents {
@@ -127,9 +127,6 @@ pub fn new_full(
 			block_announce_validator_builder: None,
 		})?;
 
-	// Channel for the rpc handler to communicate with the authorship task.
-	let (command_sink, commands_stream) = futures::channel::mpsc::channel(1000);
-
 	if config.offchain_worker.enabled {
 		sc_service::build_offchain_workers(
 			&config,
@@ -146,6 +143,49 @@ pub fn new_full(
 	let is_authority = role.is_authority();
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
+	let mut command_sink = None;
+
+	if role.is_authority() {
+		let env = sc_basic_authorship::ProposerFactory::new(
+			task_manager.spawn_handle(),
+			client.clone(),
+			transaction_pool.clone(),
+			prometheus_registry.as_ref(),
+		);
+
+		if manual_seal {
+			// Channel for the rpc handler to communicate with the authorship task.
+			let (sink, commands_stream) = futures::channel::mpsc::channel(1000);
+			command_sink = Some(sink);
+
+			task_manager.spawn_essential_handle().spawn_blocking(
+				"manual-seal",
+				manual_seal::run_manual_seal(manual_seal::ManualSealParams {
+					block_import,
+					env,
+					client: client.clone(),
+					pool: transaction_pool.pool().clone(),
+					commands_stream,
+					select_chain,
+					consensus_data_provider: None,
+					inherent_data_providers,
+				}),
+			);
+		} else {
+			task_manager.spawn_essential_handle().spawn_blocking(
+				"instant-seal",
+				manual_seal::run_instant_seal(manual_seal::InstantSealParams {
+					block_import,
+					env,
+					client: client.clone(),
+					pool: transaction_pool.pool().clone(),
+					select_chain,
+					consensus_data_provider: None,
+					inherent_data_providers,
+				}),
+			);
+		};
+	}
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
@@ -161,7 +201,7 @@ pub fn new_full(
 				is_authority,
 				network: network.clone(),
 				pending_transactions: pending.clone(),
-				command_sink: Some(command_sink.clone()),
+				command_sink: command_sink.clone(),
 			};
 			crate::rpc::create_full(deps, subscription_task_executor.clone())
 		})
@@ -228,32 +268,6 @@ pub fn new_full(
 					futures::future::ready(())
 				}),
 		);
-	}
-
-	if role.is_authority() {
-		let env = sc_basic_authorship::ProposerFactory::new(
-			task_manager.spawn_handle(),
-			client.clone(),
-			transaction_pool.clone(),
-			prometheus_registry.as_ref(),
-		);
-
-		// Background authorship future
-		let authorship_future = manual_seal::run_manual_seal(manual_seal::ManualSealParams {
-			block_import,
-			env,
-			client,
-			pool: transaction_pool.pool().clone(),
-			commands_stream,
-			select_chain,
-			consensus_data_provider: None,
-			inherent_data_providers,
-		});
-
-		// we spawn the future on a background thread managed by service.
-		task_manager
-			.spawn_essential_handle()
-			.spawn_blocking("manual-seal", authorship_future);
 	}
 
 	log::info!("Development Service Ready");
