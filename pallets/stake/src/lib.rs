@@ -52,6 +52,7 @@ use frame_support::{
 	traits::{Currency, Get, Imbalance, ReservableCurrency},
 };
 use frame_system::{ensure_signed, Config as System};
+use inflation::{Config as Inflation, InflationSchedule};
 use pallet_staking::{Exposure, IndividualExposure};
 use parity_scale_codec::{Decode, Encode, HasCompact};
 use set::OrderedSet;
@@ -417,7 +418,7 @@ type RewardPoint = u32;
 type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as System>::AccountId>>::Balance;
 type Candidate<T> = Validator<<T as System>::AccountId, BalanceOf<T>>;
 
-pub trait Config: System {
+pub trait Config: System + Inflation {
 	/// The overarching event type
 	type Event: From<Event<Self>> + Into<<Self as System>::Event>;
 	/// The currency type
@@ -432,8 +433,6 @@ pub trait Config: System {
 	type MaxNominatorsPerValidator: Get<usize>;
 	/// Maximum validators per nominator
 	type MaxValidatorsPerNominator: Get<usize>;
-	/// Balance issued as rewards per round (constant issuance)
-	type IssuancePerRound: Get<BalanceOf<Self>>;
 	/// Maximum fee for any validator
 	type MaxFee: Get<Perbill>;
 	/// Minimum stake for any registered on-chain account to become a validator
@@ -530,6 +529,11 @@ decl_storage! {
 		AtStake: double_map
 			hasher(blake2_128_concat) RoundIndex,
 			hasher(blake2_128_concat) T::AccountId => Exposure<T::AccountId,BalanceOf<T>>;
+		/// Total staked by validators selected per round
+		Staked: map
+			hasher(blake2_128_concat) RoundIndex => BalanceOf<T>;
+		/// Staking expectations
+		StakeExpectations: InflationSchedule<BalanceOf<T>>;
 		/// Total points awarded in this round
 		Points: map
 			hasher(blake2_128_concat) RoundIndex => RewardPoint;
@@ -564,6 +568,7 @@ decl_storage! {
 			let (v_count, total_staked) = <Module<T>>::best_candidates_become_validators(1u32);
 			// start Round 1 at Block 0
 			<Round>::put(1u32);
+			<Staked<T>>::insert(1u32, total_staked);
 			<Module<T>>::deposit_event(
 				RawEvent::NewRound(T::BlockNumber::zero(), 1u32, v_count, total_staked)
 			);
@@ -850,6 +855,7 @@ decl_module! {
 				let (validator_count, total_staked) = Self::best_candidates_become_validators(next);
 				// start next round
 				<Round>::put(next);
+				<Staked<T>>::insert(next, total_staked);
 				Self::deposit_event(RawEvent::NewRound(n, next, validator_count, total_staked));
 			}
 		}
@@ -972,7 +978,8 @@ impl<T: Config> Module<T> {
 		if next > duration {
 			let round_to_payout = next - duration;
 			let total = <Points>::get(round_to_payout);
-			let issuance = T::IssuancePerRound::get();
+			let total_staked = <Staked<T>>::get(round_to_payout);
+			let issuance = Self::compute_issuance(total_staked);
 			for (val, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
 				let pct_due = Perbill::from_rational_approximation(pts, total);
 				let mut amt_due = pct_due * issuance;
@@ -1080,9 +1087,8 @@ impl<T: Config> Module<T> {
 
 /// Add reward points to block authors:
 /// * 20 points to the block producer for producing a block in the chain
-impl<T> author_inherent::EventHandler<T::AccountId> for Module<T>
-where
-	T: Config + author_inherent::Config,
+impl<T: Config + author_inherent::Config> author_inherent::EventHandler<T::AccountId>
+	for Module<T>
 {
 	fn note_author(author: T::AccountId) {
 		let now = <Round>::get();
@@ -1092,11 +1098,28 @@ where
 	}
 }
 
-impl<T> author_inherent::CanAuthor<T::AccountId> for Module<T>
-where
-	T: Config + author_inherent::Config,
-{
+impl<T: Config + author_inherent::Config> author_inherent::CanAuthor<T::AccountId> for Module<T> {
 	fn can_author(account: &T::AccountId) -> bool {
 		Self::is_validator(account)
 	}
 }
+
+pub trait ComputeInflation<Balance> {
+	/// Set expectations of staked amount eg min, max, ideal count
+	fn set_expectations(expect: InflationSchedule<Balance>);
+	/// Compute target issuance based on amount staked
+	fn compute_issuance(staked: Balance) -> Balance;
+}
+
+impl<T: Config> ComputeInflation<BalanceOf<T>> for Module<T> {
+	// TODO: add runtime method, only accessible by sudo
+	fn set_expectations(expect: InflationSchedule<BalanceOf<T>>) {
+		<StakeExpectations<T>>::put(expect);
+	}
+	fn compute_issuance(staked: BalanceOf<T>) -> BalanceOf<T> {
+		let expectations = <StakeExpectations<T>>::get();
+		todo!()
+	}
+}
+// TODO: snapshot total stake per round of all validators
+// set stake expectations
