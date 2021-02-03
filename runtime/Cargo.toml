@@ -54,9 +54,9 @@ fp-rpc = { default-features = false, git = "https://github.com/purestake/frontie
 moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool", default-features = false }
 
 # Cumulus dependencies
-cumulus-runtime = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = "6438d32" }
-cumulus-parachain-system = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = "6438d32" }
-cumulus-primitives = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = "6438d32" }
+cumulus-runtime = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
+cumulus-parachain-system = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
+cumulus-primitives = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
 
 # TODO Why can't this come directly from cumulus
 parachain-info = { path = "../pallets/parachain-info", default-features = false }
