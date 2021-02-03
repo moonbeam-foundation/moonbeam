@@ -4,7 +4,7 @@
 
 FROM phusion/baseimage:0.11
 LABEL maintainer "alan@purestake.com"
-LABEL description="this is the parachain node running Moonbase"
+LABEL description="Moonbeam network node. Supports Alphanet. Will support Moonriver and Moonbeam mainnet."
 ARG PROFILE=release
 
 RUN mv /usr/share/ca* /tmp && \
