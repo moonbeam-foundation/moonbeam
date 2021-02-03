@@ -1742,6 +1742,7 @@ source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam"
 dependencies = [
  "derive_more 0.99.11",
  "fp-consensus",
+ "fp-rpc",
  "futures 0.3.12",
  "log",
  "parity-scale-codec 2.0.0",
@@ -9895,8 +9896,7 @@ dependencies = [
 [[package]]
 name = "substrate-wasm-builder"
 version = "3.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "79091baab813855ddf65b191de9fe53e656b6b67c1e9bd23fdcbff8788164684"
+source = "git+https://github.com/paritytech/substrate#93b231e79f5b4e551c34234e89fa4a2e5e9c1510"
 dependencies = [
  "ansi_term 0.12.1",
  "atty",
@@ -9911,7 +9911,8 @@ dependencies = [
 [[package]]
 name = "substrate-wasm-builder"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate#93b231e79f5b4e551c34234e89fa4a2e5e9c1510"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "79091baab813855ddf65b191de9fe53e656b6b67c1e9bd23fdcbff8788164684"
 dependencies = [
  "ansi_term 0.12.1",
  "atty",
