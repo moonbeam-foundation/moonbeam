@@ -78,11 +78,16 @@ export const moonbeamDefinitions = {
         ExtrinsicSignature: "EthereumSignature",
         RoundIndex: "u32",
         Candidate: {
-          validator: "AccountId",
+          id: "AccountId",
           fee: "Perbill",
+          bond: "Balance",
           nominators: "Vec<Bond>",
           total: "Balance",
           state: "ValidatorStatus",
+        },
+        Nominator: {
+          nominations: "Vec<Bond>",
+          total: "Balance",
         },
         Bond: {
           owner: "AccountId",
