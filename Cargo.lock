@@ -1092,7 +1092,7 @@ dependencies = [
 [[package]]
 name = "cumulus-collator"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=master#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
+source = "git+https://github.com/paritytech/cumulus#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
 dependencies = [
  "cumulus-network",
  "cumulus-primitives",
@@ -1121,7 +1121,7 @@ dependencies = [
 [[package]]
 name = "cumulus-consensus"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=master#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
+source = "git+https://github.com/paritytech/cumulus#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
 dependencies = [
  "futures 0.3.12",
  "parity-scale-codec 2.0.0",
@@ -1143,7 +1143,7 @@ dependencies = [
 [[package]]
 name = "cumulus-network"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=master#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
+source = "git+https://github.com/paritytech/cumulus#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
 dependencies = [
  "cumulus-primitives",
  "derive_more 0.99.11",
@@ -1170,7 +1170,7 @@ dependencies = [
 [[package]]
 name = "cumulus-parachain-system"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=master#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
+source = "git+https://github.com/paritytech/cumulus#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
 dependencies = [
  "cumulus-primitives",
  "cumulus-runtime",
@@ -1194,7 +1194,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=master#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
+source = "git+https://github.com/paritytech/cumulus#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
 dependencies = [
  "impl-trait-for-tuples 0.1.3",
  "parity-scale-codec 2.0.0",
@@ -1212,7 +1212,7 @@ dependencies = [
 [[package]]
 name = "cumulus-runtime"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=master#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
+source = "git+https://github.com/paritytech/cumulus#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
 dependencies = [
  "cumulus-primitives",
  "frame-executive",
@@ -1233,7 +1233,7 @@ dependencies = [
 [[package]]
 name = "cumulus-service"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=master#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
+source = "git+https://github.com/paritytech/cumulus#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
 dependencies = [
  "cumulus-collator",
  "cumulus-consensus",

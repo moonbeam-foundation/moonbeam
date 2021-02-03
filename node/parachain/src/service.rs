@@ -19,7 +19,7 @@ use cumulus_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
 use fc_consensus::FrontierBlockImport;
-use fc_rpc_core::types::PendingTransactions;
+use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use moonbeam_runtime::{opaque::Block, RuntimeApi};
 use parity_scale_codec::Encode;
 use polkadot_primitives::v0::CollatorPair;
@@ -32,7 +32,7 @@ use sp_inherents::InherentDataProviders;
 use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
 use std::{
-	collections::HashMap,
+	collections::{HashMap, BTreeMap},
 	sync::{Arc, Mutex},
 };
 // Our native executor instance.
@@ -83,6 +83,7 @@ pub fn new_partial(
 		(
 			FrontierBlockImport<Block, Arc<FullClient>, FullClient>,
 			PendingTransactions,
+			Option<FilterPool>,
 		),
 	>,
 	sc_service::Error,
@@ -104,6 +105,8 @@ pub fn new_partial(
 
 	let pending_transactions: PendingTransactions = Some(Arc::new(Mutex::new(HashMap::new())));
 
+	let filter_pool: Option<FilterPool> = Some(Arc::new(Mutex::new(BTreeMap::new())));
+
 	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone(), true);
 
 	let import_queue = cumulus_consensus::import_queue::import_queue(
@@ -123,7 +126,7 @@ pub fn new_partial(
 		transaction_pool,
 		inherent_data_providers,
 		select_chain: (),
-		other: (frontier_block_import, pending_transactions),
+		other: (frontier_block_import, pending_transactions, filter_pool),
 	};
 
 	Ok(params)
@@ -177,7 +180,7 @@ where
 	let transaction_pool = params.transaction_pool.clone();
 	let mut task_manager = params.task_manager;
 	let import_queue = params.import_queue;
-	let (block_import, pending_transactions) = params.other;
+	let (block_import, pending_transactions, filter_pool) = params.other;
 	let (network, network_status_sinks, system_rpc_tx, start_network) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &parachain_config,
@@ -198,6 +201,7 @@ where
 		let pool = transaction_pool.clone();
 		let network = network.clone();
 		let pending = pending_transactions.clone();
+		let filter_pool = filter_pool.clone();
 		Box::new(move |deny_unsafe, _| {
 			let deps = moonbeam_rpc::FullDeps {
 				client: client.clone(),
@@ -207,6 +211,7 @@ where
 				is_authority,
 				network: network.clone(),
 				pending_transactions: pending.clone(),
+				filter_pool: filter_pool.clone(),
 				command_sink: None,
 			};
 
