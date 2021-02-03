@@ -306,7 +306,7 @@ pub struct EthereumFindAuthor<F>(PhantomData<F>);
 
 parameter_types! {
 	// TODO:
-	pub BlockGasLimit: U256 = U256::from(u32::max_value());
+	pub BlockGasLimit: u64 = NORMAL_DISPATCH_RATIO * MAX_BLOCK_WEIGHT / WEIGHT_PER_GAS;
 }
 
 impl pallet_ethereum::Config for Runtime {
