@@ -17,7 +17,6 @@ RUN mv /usr/share/ca* /tmp && \
 	ln -s /moonbase-alphanet/.local/share/moonbase-alphanet /data && \
 	rm -rf /usr/bin /usr/sbin
 
-
 USER moonbeam
 
 COPY --chown=moonbeam build/alphanet /moonbase-alphanet
