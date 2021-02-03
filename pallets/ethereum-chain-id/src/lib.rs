@@ -47,13 +47,10 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {}
-
-	#[pallet::type_value]
-	pub fn DefaultChainId() -> u64 { 43 }
-
+	
 	#[pallet::storage]
 	#[pallet::getter(fn chain_id)]
-	pub type ChainId<T> = StorageValue<_, u64, ValueQuery, DefaultChainId>;
+	pub type ChainId<T> = StorageValue<_, u64, ValueQuery>;
 
 	#[pallet::genesis_config]
 	#[derive(Default)]
