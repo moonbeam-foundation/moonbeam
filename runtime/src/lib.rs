@@ -279,16 +279,16 @@ impl pallet_scheduler::Config for Runtime {
 pub const BLOCKS_PER_DAY: BlockNumber = 24 * 60 * 10;
 
 parameter_types! {
-	pub const LaunchPeriod: BlockNumber = 7 * BLOCKS_PER_DAY;
-	pub const VotingPeriod: BlockNumber = 7 * BLOCKS_PER_DAY;
-	pub const FastTrackVotingPeriod: BlockNumber = 3 * BLOCKS_PER_DAY;
+	pub const LaunchPeriod: BlockNumber = BLOCKS_PER_DAY;
+	pub const VotingPeriod: BlockNumber = 5 * BLOCKS_PER_DAY;
+	pub const FastTrackVotingPeriod: BlockNumber = BLOCKS_PER_DAY;
 	pub const EnactmentPeriod: BlockNumber = BLOCKS_PER_DAY;
 	pub const CooloffPeriod: BlockNumber = 7 * BLOCKS_PER_DAY;
 	pub const MinimumDeposit: Balance = 4 * GLMR;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
-	pub const PreimageByteDeposit: Balance = 2 * GLMR;
-	pub const InstantAllowed: bool = false; // too sketchy to enable ?
+	pub const PreimageByteDeposit: Balance = GLMR / 1_000;
+	pub const InstantAllowed: bool = false;
 }
 
 // todo : ensure better origins
