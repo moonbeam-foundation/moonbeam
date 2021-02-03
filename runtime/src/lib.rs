@@ -261,7 +261,7 @@ pub struct MoonbeamGasWeightMapping;
 
 impl pallet_evm::GasWeightMapping for MoonbeamGasWeightMapping {
 	fn gas_to_weight(gas: u64) -> Weight {
-		Weight::try_from((gas as u64).saturating_mul(WEIGHT_PER_GAS)).unwrap_or(Weight::MAX)
+		gas.saturating_mul(WEIGHT_PER_GAS)
 	}
 	fn weight_to_gas(weight: Weight) -> u64 {
 		u64::try_from(weight.wrapping_div(WEIGHT_PER_GAS)).unwrap_or(u32::MAX as u64)
