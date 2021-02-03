@@ -54,6 +54,12 @@ pub fn development_chain_spec() -> ChainSpec {
 		move || {
 			testnet_genesis(
 				AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
+				// Validator
+				vec![(
+					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
+					None,
+					100_000 * GLMR,
+				)],
 				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
 				Default::default(), // para_id
 				1281,               //ChainId

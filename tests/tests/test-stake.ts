@@ -41,6 +41,6 @@ describeWithMoonbeam("Moonbeam RPC (Stake)", `simple-specs.json`, (context) => {
   });
   it("candidates set in genesis", async function () {
     const candidates = await context.polkadotApi.query.stake.candidates(GENESIS_ACCOUNT);
-    expect((candidates.toHuman() as any).validator.toLowerCase()).equal(GENESIS_ACCOUNT);
+    expect((candidates.toHuman() as any).id.toLowerCase()).equal(GENESIS_ACCOUNT);
   });
 });
