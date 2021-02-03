@@ -48,7 +48,6 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {}
 
-	// Is this how I give the default storage value of 43?
 	#[pallet::type_value]
 	pub fn DefaultChainId() -> u64 { 43 }
 
