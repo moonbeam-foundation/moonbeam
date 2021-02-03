@@ -22,7 +22,7 @@ use sp_runtime::DispatchError;
 
 #[test]
 fn genesis_works() {
-	genesis().execute_with(|| {
+	two_validators_four_nominators().execute_with(|| {
 		assert!(Sys::events().is_empty());
 		// validators
 		assert_eq!(Balances::reserved_balance(&1), 500);
@@ -48,11 +48,7 @@ fn genesis_works() {
 		assert_eq!(Balances::free_balance(&9), 4);
 		assert_eq!(Balances::reserved_balance(&9), 0);
 	});
-}
-
-#[test]
-fn genesis3_works() {
-	genesis3().execute_with(|| {
+	five_validators_five_nominators().execute_with(|| {
 		assert!(Sys::events().is_empty());
 		// validators
 		for x in 1..5 {
@@ -74,7 +70,7 @@ fn genesis3_works() {
 
 #[test]
 fn online_offline_behaves() {
-	genesis().execute_with(|| {
+	two_validators_four_nominators().execute_with(|| {
 		roll_to(4);
 		assert_noop!(
 			Stake::go_offline(Origin::signed(3)),
@@ -129,7 +125,7 @@ fn online_offline_behaves() {
 
 #[test]
 fn join_validator_candidates_works() {
-	genesis().execute_with(|| {
+	two_validators_four_nominators().execute_with(|| {
 		assert_noop!(
 			Stake::join_candidates(Origin::signed(1), Perbill::from_percent(2), 11u128,),
 			Error::<Test>::CandidateExists
@@ -169,7 +165,7 @@ fn join_validator_candidates_works() {
 
 #[test]
 fn validator_exit_executes_after_delay() {
-	genesis().execute_with(|| {
+	two_validators_four_nominators().execute_with(|| {
 		roll_to(4);
 		assert_noop!(
 			Stake::leave_candidates(Origin::signed(3)),
@@ -207,7 +203,7 @@ fn validator_exit_executes_after_delay() {
 
 #[test]
 fn validator_selection_chooses_top_candidates() {
-	genesis2().execute_with(|| {
+	five_validators_no_nominators().execute_with(|| {
 		roll_to(4);
 		roll_to(8);
 		// should choose top MaxValidators (5), in order
@@ -278,7 +274,7 @@ fn validator_selection_chooses_top_candidates() {
 
 #[test]
 fn exit_queue_works() {
-	genesis2().execute_with(|| {
+	five_validators_no_nominators().execute_with(|| {
 		roll_to(4);
 		roll_to(8);
 		// should choose top MaxValidators (5), in order
@@ -338,7 +334,7 @@ fn exit_queue_works() {
 
 #[test]
 fn payout_distribution_to_solo_validators() {
-	genesis2().execute_with(|| {
+	five_validators_no_nominators().execute_with(|| {
 		roll_to(4);
 		roll_to(8);
 		// should choose top MaxValidators (5), in order
@@ -439,7 +435,7 @@ fn payout_distribution_to_solo_validators() {
 
 #[test]
 fn payout_distribution_to_nominators() {
-	genesis3().execute_with(|| {
+	five_validators_five_nominators().execute_with(|| {
 		roll_to(4);
 		roll_to(8);
 		// chooses top MaxValidators (5), in order
@@ -483,7 +479,7 @@ fn payout_distribution_to_nominators() {
 
 #[test]
 fn pays_validator_commission() {
-	genesis4().execute_with(|| {
+	one_validator_two_nominators().execute_with(|| {
 		roll_to(4);
 		roll_to(8);
 		// chooses top MaxValidators (5), in order
@@ -540,7 +536,7 @@ fn pays_validator_commission() {
 
 #[test]
 fn multiple_nominations() {
-	genesis3().execute_with(|| {
+	five_validators_five_nominators().execute_with(|| {
 		roll_to(4);
 		roll_to(8);
 		// chooses top MaxValidators (5), in order
@@ -691,7 +687,7 @@ fn multiple_nominations() {
 
 #[test]
 fn validators_bond_more_less() {
-	genesis3().execute_with(|| {
+	five_validators_five_nominators().execute_with(|| {
 		roll_to(4);
 		assert_noop!(
 			Stake::candidate_bond_more(Origin::signed(6), 50),
@@ -741,7 +737,7 @@ fn validators_bond_more_less() {
 
 #[test]
 fn nominators_bond_more_less() {
-	genesis3().execute_with(|| {
+	five_validators_five_nominators().execute_with(|| {
 		roll_to(4);
 		assert_noop!(
 			Stake::nominator_bond_more(Origin::signed(1), 2, 50),
@@ -792,7 +788,7 @@ fn nominators_bond_more_less() {
 
 #[test]
 fn switch_nomination_works() {
-	genesis3().execute_with(|| {
+	five_validators_five_nominators().execute_with(|| {
 		roll_to(4);
 		roll_to(8);
 		let mut expected = vec![

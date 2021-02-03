@@ -124,12 +124,26 @@ pub type Balances = pallet_balances::Module<Test>;
 pub type Stake = Module<Test>;
 pub type Sys = frame_system::Module<Test>;
 
-pub(crate) fn genesis() -> sp_io::TestExternalities {
+fn genesis(
+	balances: Vec<(AccountId, Balance)>,
+	stakers: Vec<(AccountId, Option<AccountId>, Balance)>,
+) -> sp_io::TestExternalities {
 	let mut storage = frame_system::GenesisConfig::default()
 		.build_storage::<Test>()
 		.unwrap();
-	let genesis = pallet_balances::GenesisConfig::<Test> {
-		balances: vec![
+	let genesis = pallet_balances::GenesisConfig::<Test> { balances };
+	genesis.assimilate_storage(&mut storage).unwrap();
+	GenesisConfig::<Test> { stakers }
+		.assimilate_storage(&mut storage)
+		.unwrap();
+	let mut ext = sp_io::TestExternalities::from(storage);
+	ext.execute_with(|| Sys::set_block_number(1));
+	ext
+}
+
+pub(crate) fn two_validators_four_nominators() -> sp_io::TestExternalities {
+	genesis(
+		vec![
 			(1, 1000),
 			(2, 300),
 			(3, 100),
@@ -140,10 +154,7 @@ pub(crate) fn genesis() -> sp_io::TestExternalities {
 			(8, 9),
 			(9, 4),
 		],
-	};
-	genesis.assimilate_storage(&mut storage).unwrap();
-	GenesisConfig::<Test> {
-		stakers: vec![
+		vec![
 			// validators
 			(1, None, 500),
 			(2, None, 200),
@@ -153,20 +164,12 @@ pub(crate) fn genesis() -> sp_io::TestExternalities {
 			(5, Some(2), 100),
 			(6, Some(2), 100),
 		],
-	}
-	.assimilate_storage(&mut storage)
-	.unwrap();
-	let mut ext = sp_io::TestExternalities::from(storage);
-	ext.execute_with(|| Sys::set_block_number(1));
-	ext
+	)
 }
 
-pub(crate) fn genesis2() -> sp_io::TestExternalities {
-	let mut storage = frame_system::GenesisConfig::default()
-		.build_storage::<Test>()
-		.unwrap();
-	let genesis = pallet_balances::GenesisConfig::<Test> {
-		balances: vec![
+pub(crate) fn five_validators_no_nominators() -> sp_io::TestExternalities {
+	genesis(
+		vec![
 			(1, 1000),
 			(2, 1000),
 			(3, 1000),
@@ -177,10 +180,7 @@ pub(crate) fn genesis2() -> sp_io::TestExternalities {
 			(8, 33),
 			(9, 33),
 		],
-	};
-	genesis.assimilate_storage(&mut storage).unwrap();
-	GenesisConfig::<Test> {
-		stakers: vec![
+		vec![
 			// validators
 			(1, None, 100),
 			(2, None, 90),
@@ -189,20 +189,12 @@ pub(crate) fn genesis2() -> sp_io::TestExternalities {
 			(5, None, 60),
 			(6, None, 50),
 		],
-	}
-	.assimilate_storage(&mut storage)
-	.unwrap();
-	let mut ext = sp_io::TestExternalities::from(storage);
-	ext.execute_with(|| Sys::set_block_number(1));
-	ext
+	)
 }
 
-pub(crate) fn genesis3() -> sp_io::TestExternalities {
-	let mut storage = frame_system::GenesisConfig::default()
-		.build_storage::<Test>()
-		.unwrap();
-	let genesis = pallet_balances::GenesisConfig::<Test> {
-		balances: vec![
+pub(crate) fn five_validators_five_nominators() -> sp_io::TestExternalities {
+	genesis(
+		vec![
 			(1, 100),
 			(2, 100),
 			(3, 100),
@@ -214,10 +206,7 @@ pub(crate) fn genesis3() -> sp_io::TestExternalities {
 			(9, 100),
 			(10, 100),
 		],
-	};
-	genesis.assimilate_storage(&mut storage).unwrap();
-	GenesisConfig::<Test> {
-		stakers: vec![
+		vec![
 			// validators
 			(1, None, 20),
 			(2, None, 20),
@@ -231,36 +220,20 @@ pub(crate) fn genesis3() -> sp_io::TestExternalities {
 			(9, Some(2), 10),
 			(10, Some(1), 10),
 		],
-	}
-	.assimilate_storage(&mut storage)
-	.unwrap();
-	let mut ext = sp_io::TestExternalities::from(storage);
-	ext.execute_with(|| Sys::set_block_number(1));
-	ext
+	)
 }
 
-pub(crate) fn genesis4() -> sp_io::TestExternalities {
-	let mut storage = frame_system::GenesisConfig::default()
-		.build_storage::<Test>()
-		.unwrap();
-	let genesis = pallet_balances::GenesisConfig::<Test> {
-		balances: vec![(1, 100), (2, 100), (3, 100), (4, 100), (5, 100), (6, 100)],
-	};
-	genesis.assimilate_storage(&mut storage).unwrap();
-	GenesisConfig::<Test> {
-		stakers: vec![
+pub(crate) fn one_validator_two_nominators() -> sp_io::TestExternalities {
+	genesis(
+		vec![(1, 100), (2, 100), (3, 100), (4, 100), (5, 100), (6, 100)],
+		vec![
 			// validators
 			(1, None, 20),
 			// nominators
 			(2, Some(1), 10),
 			(3, Some(1), 10),
 		],
-	}
-	.assimilate_storage(&mut storage)
-	.unwrap();
-	let mut ext = sp_io::TestExternalities::from(storage);
-	ext.execute_with(|| Sys::set_block_number(1));
-	ext
+	)
 }
 
 pub(crate) fn roll_to(n: u64) {
