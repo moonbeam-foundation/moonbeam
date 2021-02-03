@@ -6,8 +6,8 @@ It is written in typescript, using Mocha/Chai as Test framework.
 
 ## Test flow
 
-Each group will start a standalone moonbeam node with the
-[test spec](../node/standalone/src/chain_spec.rs) before executing the tests.
+Each group will start a dev service with the
+[development spec](../node/src/chain_spec.rs) before executing the tests.
 
 ## Installation
 
@@ -29,11 +29,11 @@ npm run test-with-logs
 
 ## Verbose mode
 
-You can also add the Frontier Node logs to the output using the `MOONBEAM_LOG` env variable. Ex:
+You can also add the node's logs to the output using the `MOONBEAM_LOG` env variable. Ex:
 
 ```
 MOONBEAM_LOG="warn,rpc=trace" npm run test
 ```
 
-(The frontier node be listening for RPC on port 19933, mostly to avoid conflict with already running
-substrate node)
+The Moonbeam node will be listening for RPC on port 19933, mostly to avoid
+conflicts with already running Substrate nodes.
