@@ -45,6 +45,9 @@ fn load_spec(
 		"alphanet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
 			&include_bytes!("../../specs/MoonbaseAlphaV5.json")[..],
 		)?)),
+		"stagenet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
+			&include_bytes!("../../specs/MoonbaseStageV5.json")[..],
+		)?)),
 		"dev" | "development" => Ok(Box::new(chain_spec::development_chain_spec())),
 		"local" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
 		"" => Err(
@@ -131,6 +134,9 @@ impl SubstrateCli for RelayChainCli {
 		match id {
 			"moonbase_alpha_relay" => Ok(Box::new(RococoChainSpec::from_json_bytes(
 				&include_bytes!("../../specs/MoonbaseAlphaV5-Relay.json")[..],
+			)?)),
+			"moonbase_stage_relay" => Ok(Box::new(RococoChainSpec::from_json_bytes(
+				&include_bytes!("../../specs/MoonbaseStageV5-Relay.json")[..],
 			)?)),
 			// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the
 			// Polkadot service to interpret the id.
@@ -291,7 +297,7 @@ pub fn run() -> Result<()> {
 							.expect("Gerald is a valid account"),
 					));
 
-					return crate::dev_service::new_full(config, author_id);
+					return crate::dev_service::new_full(config, cli.run.sealing, author_id);
 				}
 
 				let key = sp_core::Pair::generate().0;

@@ -17,7 +17,6 @@ RUN mv /usr/share/ca* /tmp && \
 	ln -s /moonbase-parachain/.local/share/moonbase-parachain /data && \
 	rm -rf /usr/bin /usr/sbin
 
-
 USER moonbeam
 
 COPY --chown=moonbeam build /moonbase-parachain

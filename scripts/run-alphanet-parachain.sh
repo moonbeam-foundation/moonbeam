@@ -73,7 +73,7 @@ http-port: $((PARACHAIN_PORT + 10 + 1)), ws-port: $((PARACHAIN_PORT + 10 + 2))"
 
 
 if [ -z "$CHAIN" ]; then
-  CHAIN=$PARACHAIN_SPEC_RAW
+  CHAIN=$ALPHANET_SPEC_RAW
 fi
 
 $MOONBEAM_BINARY \

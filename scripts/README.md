@@ -102,7 +102,7 @@ If you want to use an alternative spec template (like [../moonbase-alphanet-dev-
 you can provide the template like this:
 
 ```bash
-PARACHAIN_SPEC_TEMPLATE=specs/moonbase-alphanet-dev-specs-template.json scripts/generate-parachain-specs.sh
+ALPHANET_SPEC_TEMPLATE=specs/moonbase-alphanet-dev-specs-template.json scripts/generate-parachain-specs.sh
 ```
 
 ## Running Relay nodes
