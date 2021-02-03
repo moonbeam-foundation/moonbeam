@@ -40,7 +40,12 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     expect(block.hash).to.be.a("string").lengthOf(66);
     expect(block.parentHash).to.be.a("string").lengthOf(66);
     expect(block.timestamp).to.be.a("number");
+  });
+
+  // TODO: unskip this when https://github.com/paritytech/frontier/pull/279 is merged
+  it.skip("fetch genesis block by hash", async function () {
     //fetch block again using hash
+    const block = await context.web3.eth.getBlock(0);
     const blockByHash = await context.web3.eth.getBlock(block.hash);
     console.log("blockbyhash", blockByHash);
     expect(blockByHash).to.include({
