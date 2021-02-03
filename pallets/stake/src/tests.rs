@@ -304,6 +304,10 @@ fn exit_queue_works() {
 			last_event(),
 			MetaEvent::stake(RawEvent::ValidatorScheduledExit(4, 4, 6))
 		);
+		assert_noop!(
+			Stake::leave_candidates(Origin::signed(4)),
+			Error::<Test>::AlreadyLeaving
+		);
 		roll_to(21);
 		let mut new_events = vec![
 			RawEvent::ValidatorScheduledExit(2, 6, 4),
@@ -601,6 +605,10 @@ fn multiple_nominations() {
 				error: 3,
 				message: Some("InsufficientBalance")
 			},
+		);
+		assert_noop!(
+			Stake::nominate_new(Origin::signed(10), 2, 10),
+			Error::<Test>::TooManyNominators
 		);
 		roll_to(26);
 		let mut new2 = vec![
