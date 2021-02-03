@@ -18,7 +18,7 @@
 
 use std::{fmt, sync::Arc};
 
-use fc_rpc_core::types::{PendingTransactions, FilterPool};
+use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use jsonrpc_pubsub::manager::SubscriptionManager;
 use moonbeam_runtime::{opaque::Block, AccountId, Balance, Hash, Index};
 use sc_client_api::{
@@ -92,9 +92,8 @@ where
 	P: TransactionPool<Block = Block> + 'static,
 {
 	use fc_rpc::{
-		EthApi, EthApiServer, EthFilterApi, EthFilterApiServer, NetApi, NetApiServer,
-		EthPubSubApi, EthPubSubApiServer, Web3Api, Web3ApiServer,
-		HexEncodedIdProvider,
+		EthApi, EthApiServer, EthFilterApi, EthFilterApiServer, EthPubSubApi, EthPubSubApiServer,
+		HexEncodedIdProvider, NetApi, NetApiServer, Web3Api, Web3ApiServer,
 	};
 	use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
@@ -136,13 +135,11 @@ where
 	)));
 
 	if let Some(filter_pool) = filter_pool {
-		io.extend_with(
-			EthFilterApiServer::to_delegate(EthFilterApi::new(
-				client.clone(),
-				filter_pool.clone(),
-				500 as usize, // max stored filters
-			))
-		);
+		io.extend_with(EthFilterApiServer::to_delegate(EthFilterApi::new(
+			client.clone(),
+			filter_pool.clone(),
+			500 as usize, // max stored filters
+		)));
 	}
 
 	io.extend_with(NetApiServer::to_delegate(NetApi::new(
