@@ -165,18 +165,6 @@ jobs:
           ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
           ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
           echo "RUSTC_WRAPPER=${{ runner.tool_cache }}/cargo-sccache/bin/sccache" >> $GITHUB_ENV
-      # - name: Cache Rust dependencies
-      #   uses: actions/cache@v2
-      #   id: cache
-      #   with:
-      #     path: |
-      #       ~/.cargo/registry
-      #       ~/.cargo/git
-      #       target
-      #       node/standalone/target
-      #     key: ${{ runner.OS }}-build-${{ hashFiles('**/Cargo.lock') }}
-      #     restore-keys: |
-      #       ${{ runner.OS }}-build
       - uses: actions-rs/toolchain@v1
         with:
           target: wasm32-unknown-unknown
@@ -189,10 +177,6 @@ jobs:
           echo "::set-output name=rustc::$(rustc --version)"
       - name: Build Parachain Node
         run: cargo build --release --verbose --all
-      - name: Build Standalone Node
-        run: |
-          cd node/standalone
-          cargo build --release --verbose --all
       # We determine whether there are unmodified Cargo.lock files by:
       # 1. Asking git for a list of all modified files
       # 2. Using grep to reduce the list to only Cargo.lock files
@@ -207,9 +191,9 @@ jobs:
             git diff-index --name-only HEAD | grep Cargo.lock
             false
           fi
-      - name: Run tests
+      - name: Unit tests
         run: cargo test --release --verbose --all
-      - name: Typescript tests (against standalone node)
+      - name: Typescript integration tests (against dev service)
         run: |
           cd moonbeam-types-bundle
           npm install
@@ -219,25 +203,39 @@ jobs:
       - name: Save parachain binary
         run: |
           mkdir -p build/alphanet
-          mkdir -p build/standalone
           cp target/release/moonbase-alphanet build/alphanet/moonbase-alphanet;
-          cp node/standalone/target/release/moonbase-standalone build/standalone/moonbase-standalone;
       - name: Upload moonbase-alphanet node
         uses: actions/upload-artifact@v2
         with:
           name: moonbase-alphanet
           path: build/alphanet
-      - name: Upload moonbase-standalone node
-        uses: actions/upload-artifact@v2
-        with:
-          name: moonbase-standalone
-          path: build/standalone
 
   ####### Prepare and Deploy Docker images #######
 
+  generate-parachain-specs:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: moonbase-alphanet
+          path: build/alphanet
+      - name: Generate specs
+        run: |
+          chmod uog+x build/alphanet/moonbase-alphanet
+          PARACHAIN_BINARY=build/alphanet/moonbase-alphanet scripts/generate-parachain-specs.sh
+      - name: Upload parachain specs
+        uses: actions/upload-artifact@v2
+        with:
+          name: moonbase-alphanet
+          path: build/alphanet
+
   docker-parachain:
     runs-on: self-hosted
-    needs: ["build"]
+    needs: ["build", "generate-parachain-specs"]
     if: github.event_name == 'push'
     steps:
       - name: Checkout
@@ -306,82 +304,11 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
 
-  docker-standalone:
-    runs-on: self-hosted
-    needs: ["build"]
-    if: github.event_name == 'push'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - uses: actions/download-artifact@v2
-        with:
-          name: moonbase-standalone
-          path: build/standalone
-      - name: Prepare
-        id: prep
-        run: |
-          DOCKER_IMAGE=purestake/moonbase
-          VERSION=noop
-          if [ "${{ github.event_name }}" = "schedule" ]; then
-            VERSION=nightly
-          elif [[ $GITHUB_REF == refs/tags/* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/}
-          elif [[ $GITHUB_REF == refs/heads/* ]]; then
-            VERSION=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g')
-            if [ "${{ github.event.repository.default_branch }}" = "$VERSION" ]; then
-              VERSION=edge
-            fi
-          elif [[ $GITHUB_REF == refs/pull/* ]]; then
-            VERSION=pr-${{ github.event.number }}
-          fi
-          TAGS="${DOCKER_IMAGE}:${VERSION}"
-          if [[ $VERSION =~ ^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-            MINOR=${VERSION%.*}
-            MAJOR=${MINOR%.*}
-            TAGS="$TAGS,${DOCKER_IMAGE}:${MINOR},${DOCKER_IMAGE}:${MAJOR},${DOCKER_IMAGE}:latest"
-          elif [ "${{ github.event_name }}" = "push" ]; then
-            TAGS="$TAGS,${DOCKER_IMAGE}:sha-${GITHUB_SHA::8}"
-          fi
-          echo ::set-output name=version::${VERSION}
-          echo ::set-output name=tags::${TAGS}
-          echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-        with:
-          version: latest
-          driver-opts: |
-            image=moby/buildkit:master
-      - name: Login to DockerHub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push standalone node
-        id: docker_build
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./docker/moonbase-standalone.Dockerfile
-          platforms: linux/amd64
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.prep.outputs.tags }}
-          labels: |
-            org.opencontainers.image.title=${{ github.event.repository.name }}
-            org.opencontainers.image.description=${{ github.event.repository.description }}
-            org.opencontainers.image.url=${{ github.event.repository.html_url }}
-            org.opencontainers.image.source=${{ github.event.repository.clone_url }}
-            org.opencontainers.image.version=${{ steps.prep.outputs.version }}
-            org.opencontainers.image.created=${{ steps.prep.outputs.created }}
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
-
   ####### Prepare the release draft #######
 
   publish-draft-release:
-    runs-on: self-hosted
-    needs: ["build"]
+    runs-on: ubuntu-latest
+    needs: ["build", "generate-parachain-specs"]
     if: |
       github.event_name == 'push' &&
       startsWith(github.ref, 'refs/tags/v')
@@ -394,17 +321,17 @@ jobs:
         with:
           fetch-depth: 0
           path: moonbeam
-      - name: Set up Ruby 2.7
-        uses: actions/setup-ruby@v1
-        with:
-          ruby-version: 2.7
-      - name: Generate release text
-        env:
-          RUSTC: ${{ needs.build.outputs.rustc }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gem install changelogerator git toml
-          ruby $GITHUB_WORKSPACE/moonbeam/scripts/github/generate_release_text.rb | tee release_text.md
+      # - name: Set up Ruby 2.7
+      #   uses: actions/setup-ruby@v1
+      #   with:
+      #     ruby-version: 2.7
+      # - name: Generate release text
+      #   env:
+      #     RUSTC: ${{ needs.build.outputs.rustc }}
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     gem install changelogerator git toml
+      #     ruby $GITHUB_WORKSPACE/moonbeam/scripts/github/generate_release_text.rb | tee release_text.md
       - name: Create draft release
         id: create-release
         uses: actions/create-release@v1
@@ -413,11 +340,11 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: Moonbase Alphanet ${{ github.ref }}
-          body_path: ./release_text.md
+          body: "TBD"
           draft: true
 
   publish-runtimes:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: ["publish-draft-release"]
     # We want to store the binaries also when it is not a version release. This is used
     # in case such as providing binaries when creating a new tutorial version.
@@ -461,3 +388,12 @@ jobs:
           asset_path: build/alphanet/${{ matrix.runtime }}
           asset_name: ${{ matrix.runtime }}
           asset_content_type: application/octet-stream
+      - name: Upload ${{ matrix.runtime }} genesis
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
+          asset_path: build/alphanet/${{ matrix.runtime }}-genesis.txt
+          asset_name: ${{ matrix.runtime }}-genesis.txt
+          asset_content_type: text/plain

@@ -20,7 +20,7 @@ use crate::{
 };
 use cumulus_primitives::{genesis::generate_genesis_block, ParaId};
 use log::info;
-use moonbeam_runtime::Block;
+use moonbeam_runtime::{AccountId, Block};
 use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::AccountIdConversion;
 use polkadot_service::RococoChainSpec;
@@ -33,8 +33,9 @@ use sc_service::{
 	PartialComponents,
 };
 use sp_core::hexdisplay::HexDisplay;
+use sp_core::H160;
 use sp_runtime::traits::Block as _;
-use std::{io::Write, net::SocketAddr};
+use std::{io::Write, net::SocketAddr, str::FromStr};
 
 fn load_spec(
 	id: &str,
@@ -42,9 +43,18 @@ fn load_spec(
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	match id {
 		"alphanet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
-			&include_bytes!("../../../specs/MoonbaseAlphaV5.json")[..],
+			&include_bytes!("../../specs/MoonbaseAlphaV5.json")[..],
 		)?)),
-		"dev" | "development" | "" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
+		"stagenet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
+			&include_bytes!("../../specs/MoonbaseStageV5.json")[..],
+		)?)),
+		"dev" | "development" => Ok(Box::new(chain_spec::development_chain_spec())),
+		"local" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
+		"" => Err(
+			"You have not specified what chain to sync. In the future, this will default to \
+				Moonbeam mainnet. Mainnet is not yet live so you must choose a spec."
+				.into(),
+		),
 		path => Ok(Box::new(chain_spec::ChainSpec::from_json_file(
 			path.into(),
 		)?)),
@@ -123,7 +133,10 @@ impl SubstrateCli for RelayChainCli {
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		match id {
 			"moonbase_alpha_relay" => Ok(Box::new(RococoChainSpec::from_json_bytes(
-				&include_bytes!("../../../specs/MoonbaseAlphaV5-Relay.json")[..],
+				&include_bytes!("../../specs/MoonbaseAlphaV5-Relay.json")[..],
+			)?)),
+			"moonbase_stage_relay" => Ok(Box::new(RococoChainSpec::from_json_bytes(
+				&include_bytes!("../../specs/MoonbaseStageV5-Relay.json")[..],
 			)?)),
 			// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the
 			// Polkadot service to interpret the id.
@@ -266,10 +279,27 @@ pub fn run() -> Result<()> {
 		}
 		None => {
 			let runner = cli.create_runner(&*cli.run)?;
-			let account = cli.run.account_id.ok_or(sc_cli::Error::Input(
-				"Account ID required but not set".to_string(),
-			))?;
+			let collator = cli.run.base.validator || cli.collator;
+			let author_id: Option<H160> = cli.run.author_id;
+			if collator {
+				if author_id.is_none() {
+					return Err("Collator nodes must specify an author account id".into());
+				}
+			}
+
 			runner.run_node_until_exit(|config| async move {
+				// If this is a --dev node, start up manual or instant seal.
+				// Otherwise continue with the normal parachain node.
+				if cli.run.base.shared_params.dev {
+					// If no author id was supplied, use the one that is staked at genesis
+					let author_id = author_id.or(Some(
+						AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")
+							.expect("Gerald is a valid account"),
+					));
+
+					return crate::dev_service::new_full(config, cli.run.sealing, author_id);
+				}
+
 				let key = sp_core::Pair::generate().0;
 
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
@@ -297,14 +327,13 @@ pub fn run() -> Result<()> {
 				let polkadot_config =
 					SubstrateCli::create_configuration(&polkadot_cli, &polkadot_cli, task_executor)
 						.map_err(|err| format!("Relay chain argument error: {}", err))?;
-				let collator = cli.run.base.validator || cli.collator;
 
 				info!("Parachain id: {:?}", id);
 				info!("Parachain Account: {}", parachain_account);
 				info!("Parachain genesis state: {}", genesis_state);
 				info!("Is collating: {}", if collator { "yes" } else { "no" });
 
-				crate::service::start_node(config, key, account, polkadot_config, id, collator)
+				crate::service::start_node(config, key, author_id, polkadot_config, id, collator)
 					.await
 					.map(|r| r.0)
 			})

@@ -16,6 +16,7 @@
 
 use sp_core::H160;
 use std::path::PathBuf;
+use std::str::FromStr;
 use structopt::StructOpt;
 
 /// Sub-commands supported by the collator.
@@ -96,9 +97,15 @@ pub struct RunCmd {
 	#[structopt(long)]
 	pub parachain_id: Option<u32>,
 
+	/// When blocks should be sealed in the dev service.
+	///
+	/// Options are "instant", "manual", or timer interval in milliseconds
+	#[structopt(long, default_value = "instant")]
+	pub sealing: Sealing,
+
 	/// Public identity for participating in staking and receiving rewards
 	#[structopt(long, parse(try_from_str = parse_h160))]
-	pub account_id: Option<H160>,
+	pub author_id: Option<H160>,
 }
 
 fn parse_h160(input: &str) -> Result<H160, String> {
@@ -163,5 +170,32 @@ impl RelayChainCli {
 			chain_id,
 			base: polkadot_cli::RunCmd::from_iter(relay_chain_args),
 		}
+	}
+}
+
+/// Block authoring scheme to be used by the dev service.
+#[derive(Debug)]
+pub enum Sealing {
+	/// Author a block immediately upon receiving a transaction into the transaction pool
+	Instant,
+	/// Author a block upon receiving an RPC command
+	Manual,
+	/// Author blocks at a regular interval specified in milliseconds
+	Interval(u64),
+}
+
+impl FromStr for Sealing {
+	type Err = String;
+
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		Ok(match s {
+			"instant" => Self::Instant,
+			"manual" => Self::Manual,
+			s => {
+				let millis =
+					u64::from_str_radix(s, 10).map_err(|_| "couldn't decode sealing param")?;
+				Self::Interval(millis)
+			}
+		})
 	}
 }

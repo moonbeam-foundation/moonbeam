@@ -16,14 +16,9 @@
 
 //! The Moonbeam Runtime.
 //!
-//! This runtime powers both the moonbeam standalone node and the moonbeam parachain
-//! By default it builds the parachain runtime. To enable the standalone runtime, enable
-//! the `standalone` feature.
-//!
 //! Primary features of this runtime include:
 //! * Ethereum compatability
 //! * Moonbeam tokenomics
-//! * Dual parachain / standalone support
 
 #![cfg_attr(not(feature = "std"), no_std)]
 // `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
@@ -32,16 +27,6 @@
 // Make the WASM binary available.
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
-
-#[cfg(not(feature = "standalone"))]
-mod parachain;
-#[cfg(feature = "standalone")]
-mod standalone;
-
-#[cfg(not(feature = "standalone"))]
-use parachain::*;
-#[cfg(feature = "standalone")]
-use standalone::*;
 
 use fp_rpc::TransactionStatus;
 use parity_scale_codec::{Decode, Encode};
@@ -53,7 +38,7 @@ use sp_runtime::{
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult,
 };
-use sp_std::{convert::TryFrom, marker::PhantomData, prelude::*};
+use sp_std::{convert::TryFrom, prelude::*};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
@@ -114,19 +99,21 @@ pub mod opaque {
 	pub use sp_runtime::OpaqueExtrinsic as UncheckedExtrinsic;
 	pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 
-	#[cfg(not(feature = "standalone"))]
 	impl_opaque_keys! {
 		pub struct SessionKeys {}
 	}
-
-	#[cfg(feature = "standalone")]
-	impl_opaque_keys! {
-		pub struct SessionKeys {
-			pub aura: Aura,
-			pub grandpa: Grandpa,
-		}
-	}
 }
+
+/// This runtime version.
+pub const VERSION: RuntimeVersion = RuntimeVersion {
+	spec_name: create_runtime_str!("moonbase-alphanet"),
+	impl_name: create_runtime_str!("moonbase-alphanet"),
+	authoring_version: 3,
+	spec_version: 15,
+	impl_version: 1,
+	apis: RUNTIME_API_VERSIONS,
+	transaction_version: 2,
+};
 
 /// The version infromation used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]
@@ -193,11 +180,6 @@ impl frame_system::Config for Runtime {
 }
 
 parameter_types! {
-	// When running in standalone mode, this controls the block time.
-	// Slot duration is double the minimum period.
-	// https://github.com/paritytech/substrate/blob/e4803bd/frame/aura/src/lib.rs#L197-L199
-	// We maintain a six second block time in standalone to imitate parachain-like performance
-	// This value is stored in a seperate constant because it is used in our mock timestamp provider
 	pub const MinimumPeriod: u64 = MINIMUM_PERIOD;
 }
 
@@ -247,8 +229,8 @@ impl pallet_ethereum_chain_id::Config for Runtime {}
 /// Current approximation of the gas/s consumption considering
 /// EVM execution over compiled WASM (on 4.4Ghz CPU).
 /// Given the 500ms Weight, from which 75% only are used for transactions,
-/// the total EVM execution gas limit is: GAS_PER_SECOND * 0.500 * 0.75 => 3_000_000.
-pub const GAS_PER_SECOND: u64 = 8_000_000;
+/// the total EVM execution gas limit is: GAS_PER_SECOND * 0.500 * 0.75 => 6_000_000.
+pub const GAS_PER_SECOND: u64 = 16_000_000;
 
 /// Approximate ratio of the amount of Weight per Gas.
 /// u64 works for approximations because Weight is a very small unit compared to gas.
@@ -302,16 +284,19 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 	}
 }
 
-pub struct EthereumFindAuthor<F>(PhantomData<F>);
-
 impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
-	#[cfg(not(feature = "standalone"))]
-	type FindAuthor = EthereumFindAuthor<PhantomAura>;
-	#[cfg(feature = "standalone")]
-	type FindAuthor = EthereumFindAuthor<Aura>;
+	type FindAuthor = AuthorInherent;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot;
 }
+
+impl cumulus_parachain_upgrade::Config for Runtime {
+	type Event = Event;
+	type OnValidationData = ();
+	type SelfParaId = ParachainInfo;
+}
+
+impl parachain_info::Config for Runtime {}
 
 // 18 decimals
 pub const GLMR: Balance = 1_000_000_000_000_000_000;
@@ -325,6 +310,8 @@ parameter_types! {
 	pub const MaxValidators: u32 = 8;
 	/// Maximum 10 nominators per validator
 	pub const MaxNominatorsPerValidator: usize = 10;
+	/// Maximum 8 validators per nominator (same as MaxValidators)
+	pub const MaxValidatorsPerNominator: usize = 8;
 	/// Issue 49 new tokens as rewards to validators every 2 minutes (round)
 	pub const IssuancePerRound: u128 = 49 * GLMR;
 	/// The maximum percent a validator can take off the top of its rewards is 50%
@@ -341,22 +328,39 @@ impl stake::Config for Runtime {
 	type BondDuration = BondDuration;
 	type MaxValidators = MaxValidators;
 	type MaxNominatorsPerValidator = MaxNominatorsPerValidator;
+	type MaxValidatorsPerNominator = MaxValidatorsPerNominator;
 	type IssuancePerRound = IssuancePerRound;
 	type MaxFee = MaxFee;
 	type MinValidatorStk = MinValidatorStk;
+	type MinNomination = MinNominatorStk;
 	type MinNominatorStk = MinNominatorStk;
 }
 impl author_inherent::Config for Runtime {
-	type Event = Event;
 	type EventHandler = Stake;
 	type CanAuthor = Stake;
 }
 
-#[cfg(feature = "standalone")]
-runtime_standalone!();
-
-#[cfg(not(feature = "standalone"))]
-runtime_parachain!();
+construct_runtime! {
+	pub enum Runtime where
+		Block = Block,
+		NodeBlock = opaque::Block,
+		UncheckedExtrinsic = UncheckedExtrinsic
+	{
+		System: frame_system::{Module, Call, Storage, Config, Event<T>},
+		Timestamp: pallet_timestamp::{Module, Call, Storage, Inherent},
+		Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
+		Sudo: pallet_sudo::{Module, Call, Storage, Config<T>, Event<T>},
+		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Module, Call, Storage},
+		ParachainUpgrade: cumulus_parachain_upgrade::{Module, Call, Storage, Inherent, Event},
+		TransactionPayment: pallet_transaction_payment::{Module, Storage},
+		ParachainInfo: parachain_info::{Module, Storage, Config},
+		EthereumChainId: pallet_ethereum_chain_id::{Module, Storage, Config},
+		EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
+		Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
+		Stake: stake::{Module, Call, Storage, Event<T>, Config<T>},
+		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
+	}
+}
 
 /// The address format for describing accounts.
 pub type Address = AccountId;
@@ -606,45 +610,6 @@ impl_runtime_apis! {
 			TransactionPayment::query_info(uxt, len)
 		}
 	}
-
-	#[cfg(feature = "standalone")]
-	impl sp_consensus_aura::AuraApi<Block, AuraId> for Runtime {
-		fn slot_duration() -> u64 {
-			Aura::slot_duration()
-		}
-
-		fn authorities() -> Vec<AuraId> {
-			Aura::authorities()
-		}
-	}
-
-	#[cfg(feature = "standalone")]
-	impl fg_primitives::GrandpaApi<Block> for Runtime {
-		fn grandpa_authorities() -> GrandpaAuthorityList {
-			Grandpa::grandpa_authorities()
-		}
-
-		fn submit_report_equivocation_unsigned_extrinsic(
-			_equivocation_proof: fg_primitives::EquivocationProof<
-				<Block as BlockT>::Hash,
-				NumberFor<Block>,
-			>,
-			_key_owner_proof: fg_primitives::OpaqueKeyOwnershipProof,
-		) -> Option<()> {
-			None
-		}
-
-		fn generate_key_ownership_proof(
-			_set_id: fg_primitives::SetId,
-			_authority_id: GrandpaId,
-		) -> Option<fg_primitives::OpaqueKeyOwnershipProof> {
-			// NOTE: this is the only implementation possible since we've
-			// defined our key owner proof type as a bottom type (i.e. a type
-			// with no values).
-			None
-		}
-	}
 }
 
-#[cfg(not(feature = "standalone"))]
 cumulus_runtime::register_validate_block!(Block, Executive);

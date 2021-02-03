@@ -17,26 +17,20 @@ RUN mv /usr/share/ca* /tmp && \
 	ln -s /moonbase-alphanet/.local/share/moonbase-alphanet /data && \
 	rm -rf /usr/bin /usr/sbin
 
-
 USER moonbeam
 
 COPY --chown=moonbeam build/alphanet /moonbase-alphanet
 RUN chmod uog+x /moonbase-alphanet/moonbase-alphanet
 
-# 30333 for p2p traffic
+# 30333 for parachain p2p 
+# 30334 for relaychain p2p 
 # 9933 for RPC call
 # 9944 for Websocket
 # 9615 for Prometheus (metrics)
-EXPOSE 30333 9933 9944 9615
+EXPOSE 30333 30334 9933 9944 9615 
 
 VOLUME ["/data"]
 
 CMD ["/moonbase-alphanet/moonbase-alphanet", \
-	"--port","30333", \
-		"--rpc-port","9933", \
-		"--ws-port","9944", \
-		"--validator", \
-		"--chain", "/moonbase-alphanet/moonbase-alphanet-specs-raw.json", \
-		"--", \
-			"--chain", "/moonbase-alphanet/rococo-alphanet-specs-raw.json" \
+	"--chain", "alphanet"\
 ]
