@@ -234,6 +234,28 @@ where
 		system_rpc_tx,
 	})?;
 
+	// Spawn Frontier EthFilterApi maintenance task.
+	if filter_pool.is_some() {
+		use futures::StreamExt;
+		// Each filter is allowed to stay in the pool for 100 blocks.
+		const FILTER_RETAIN_THRESHOLD: u64 = 100;
+		task_manager.spawn_essential_handle().spawn(
+			"frontier-filter-pool",
+			client.import_notification_stream().for_each(move |notification| {
+				if let Ok(locked) = &mut filter_pool.clone().unwrap().lock() {
+					let imported_number: u64 = notification.header.number as u64;
+					for (k, v) in locked.clone().iter() {
+						let lifespan_limit = v.at_block + FILTER_RETAIN_THRESHOLD;
+						if lifespan_limit <= imported_number {
+							locked.remove(&k);
+						}
+					}
+				}
+				futures::future::ready(())
+			})
+		);
+	}
+
 	// Spawn Frontier pending transactions maintenance task (as essential, otherwise we leak).
 	if pending_transactions.is_some() {
 		use fp_consensus::{ConsensusLog, FRONTIER_ENGINE_ID};
