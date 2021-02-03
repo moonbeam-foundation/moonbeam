@@ -276,13 +276,15 @@ impl pallet_scheduler::Config for Runtime {
 	type WeightInfo = ();
 }
 
+pub const BLOCKS_PER_DAY: BlockNumber = 24 * 60 * 10;
+
 parameter_types! {
-	pub const LaunchPeriod: BlockNumber = 7 * 24 * 60 * 10; // 7 days
-	pub const VotingPeriod: BlockNumber = 7 * 24 * 60 * 10; // 7 days
-	pub const FastTrackVotingPeriod: BlockNumber = 3 * 24 * 60 * 10; // 3 days
+	pub const LaunchPeriod: BlockNumber = 7 * BLOCKS_PER_DAY;
+	pub const VotingPeriod: BlockNumber = 7 * BLOCKS_PER_DAY;
+	pub const FastTrackVotingPeriod: BlockNumber = 3 * BLOCKS_PER_DAY;
+	pub const EnactmentPeriod: BlockNumber = BLOCKS_PER_DAY;
+	pub const CooloffPeriod: BlockNumber = 7 * BLOCKS_PER_DAY;
 	pub const MinimumDeposit: Balance = 4 * GLMR;
-	pub const EnactmentPeriod: BlockNumber = 24 * 60 * 10; // 1 day
-	pub const CooloffPeriod: BlockNumber = 7 * 24 * 60 * 10; // 7 days
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
 	pub const PreimageByteDeposit: Balance = 2 * GLMR;
