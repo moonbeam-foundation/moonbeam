@@ -17,15 +17,21 @@
 //! Service and ServiceFactory implementation. Specialized wrapper over Substrate service.
 //! This one is used specifically for the --dev service.
 
+use crate::cli::Sealing;
+use async_io::Timer;
 use fc_consensus::FrontierBlockImport;
 use fc_rpc_core::types::PendingTransactions;
+use futures::Stream;
+use futures::StreamExt;
 use moonbeam_runtime::{self, opaque::Block, RuntimeApi};
 use sc_client_api::BlockchainEvents;
-use sc_consensus_manual_seal::{self as manual_seal};
+use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
 use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
 use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
 use sp_core::H160;
+use sp_core::H256;
+use std::time::Duration;
 use std::{
 	collections::HashMap,
 	sync::{Arc, Mutex},
@@ -44,7 +50,6 @@ type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
 
 pub fn new_partial(
 	config: &Configuration,
-	// manual_seal: bool, // For now only manual seal. Maybe bring this back to support instant later.
 	author: Option<H160>,
 ) -> Result<
 	sc_service::PartialComponents<
@@ -101,7 +106,7 @@ pub fn new_partial(
 /// Builds a new service for a full client.
 pub fn new_full(
 	config: Configuration,
-	// manual_seal: bool,
+	sealing: Sealing,
 	author_id: Option<H160>,
 ) -> Result<TaskManager, ServiceError> {
 	let sc_service::PartialComponents {
@@ -127,9 +132,6 @@ pub fn new_full(
 			block_announce_validator_builder: None,
 		})?;
 
-	// Channel for the rpc handler to communicate with the authorship task.
-	let (command_sink, commands_stream) = futures::channel::mpsc::channel(1000);
-
 	if config.offchain_worker.enabled {
 		sc_service::build_offchain_workers(
 			&config,
@@ -146,6 +148,64 @@ pub fn new_full(
 	let is_authority = role.is_authority();
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
+	let mut command_sink = None;
+
+	if role.is_authority() {
+		let env = sc_basic_authorship::ProposerFactory::new(
+			task_manager.spawn_handle(),
+			client.clone(),
+			transaction_pool.clone(),
+			prometheus_registry.as_ref(),
+		);
+
+		let commands_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> =
+			match sealing {
+				Sealing::Instant => {
+					Box::new(
+						// This bit cribbed from the implementation of instant seal.
+						transaction_pool
+							.pool()
+							.validated_pool()
+							.import_notification_stream()
+							.map(|_| EngineCommand::SealNewBlock {
+								create_empty: false,
+								finalize: false,
+								parent_hash: None,
+								sender: None,
+							}),
+					)
+				}
+				Sealing::Manual => {
+					let (sink, stream) = futures::channel::mpsc::channel(1000);
+					// Keep a reference to the other end of the channel. It goes to the RPC.
+					command_sink = Some(sink);
+					Box::new(stream)
+				}
+				Sealing::Interval(millis) => Box::new(StreamExt::map(
+					Timer::interval(Duration::from_millis(millis)),
+					|_| EngineCommand::SealNewBlock {
+						create_empty: true,
+						finalize: false,
+						parent_hash: None,
+						sender: None,
+					},
+				)),
+			};
+
+		task_manager.spawn_essential_handle().spawn_blocking(
+			"authorship_task",
+			run_manual_seal(ManualSealParams {
+				block_import,
+				env,
+				client: client.clone(),
+				pool: transaction_pool.pool().clone(),
+				commands_stream,
+				select_chain,
+				consensus_data_provider: None,
+				inherent_data_providers,
+			}),
+		);
+	}
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
@@ -161,7 +221,7 @@ pub fn new_full(
 				is_authority,
 				network: network.clone(),
 				pending_transactions: pending.clone(),
-				command_sink: Some(command_sink.clone()),
+				command_sink: command_sink.clone(),
 			};
 			crate::rpc::create_full(deps, subscription_task_executor.clone())
 		})
@@ -186,7 +246,6 @@ pub fn new_full(
 	// Spawn Frontier pending transactions maintenance task (as essential, otherwise we leak).
 	if pending_transactions.is_some() {
 		use fp_consensus::{ConsensusLog, FRONTIER_ENGINE_ID};
-		use futures::StreamExt;
 		use sp_runtime::generic::OpaqueDigestItemId;
 
 		const TRANSACTION_RETAIN_THRESHOLD: u64 = 5;
@@ -228,32 +287,6 @@ pub fn new_full(
 					futures::future::ready(())
 				}),
 		);
-	}
-
-	if role.is_authority() {
-		let env = sc_basic_authorship::ProposerFactory::new(
-			task_manager.spawn_handle(),
-			client.clone(),
-			transaction_pool.clone(),
-			prometheus_registry.as_ref(),
-		);
-
-		// Background authorship future
-		let authorship_future = manual_seal::run_manual_seal(manual_seal::ManualSealParams {
-			block_import,
-			env,
-			client,
-			pool: transaction_pool.pool().clone(),
-			commands_stream,
-			select_chain,
-			consensus_data_provider: None,
-			inherent_data_providers,
-		});
-
-		// we spawn the future on a background thread managed by service.
-		task_manager
-			.spawn_essential_handle()
-			.spawn_blocking("manual-seal", authorship_future);
 	}
 
 	log::info!("Development Service Ready");
