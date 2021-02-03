@@ -28,7 +28,10 @@
       "wsPort": 36946,
       "port": 36335,
       "balance": "1000",
+      "chain": "local",
       "flags": [
+        "--no-telemetry",
+        "--no-prometheus",
         "--author-id=6be02d1d3665660d22ff9624b7be0551ee1ac91b",
         "--",
         "--execution=wasm"
@@ -41,7 +44,10 @@
       "wsPort": 36947,
       "port": 36336,
       "balance": "1000",
+      "chain": "local",
       "flags": [
+        "--no-telemetry",
+        "--no-prometheus",
         "--author-id=6be02d1d3665660d22ff9624b7be0551ee1ac91b",
         "--",
         "--execution=wasm"

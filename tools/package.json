@@ -27,6 +27,6 @@
   "scripts": {
     "package-moon-key": "node_modules/.bin/tsc moon-key.ts; node_modules/.bin/pkg -t node14 moon-key.js; rm moon-key.js",
     "build-moonbeam-launch": "yarn add PureStake/polkadot-launch#moonbeam-launch",
-    "moonbeam-launch": "yarn run build-moonbeam-launch && node moonbeam-launch.js"
+    "moonbeam-launch": "yarn run build-moonbeam-launch && mkdir specFiles && ts-node moonbeam-launch.ts"
   }
 }

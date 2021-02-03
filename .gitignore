@@ -14,5 +14,4 @@
 
 # Moonbeam-Launch
 *.log
-rococo-local.json
-rococo-local-raw.json
+tools/specFiles
