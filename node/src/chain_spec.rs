@@ -16,9 +16,9 @@
 
 use cumulus_primitives::ParaId;
 use moonbeam_runtime::{
-	AccountId, BalancesConfig, DemocracyCollectiveConfig, DemocracyConfig, EVMConfig,
-	EthereumChainIdConfig, EthereumConfig, GenesisConfig, ParachainInfoConfig, SchedulerConfig,
-	StakeConfig, SudoConfig, SystemConfig, GLMR, WASM_BINARY,
+	AccountId, BalancesConfig, DemocracyConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig,
+	GenesisConfig, ParachainInfoConfig, SchedulerConfig, StakeConfig, SudoConfig, SystemConfig,
+	GLMR, WASM_BINARY,
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
@@ -135,9 +135,5 @@ fn testnet_genesis(
 		}),
 		pallet_democracy: Some(DemocracyConfig {}),
 		pallet_scheduler: Some(SchedulerConfig {}),
-		pallet_collective: Some(DemocracyCollectiveConfig {
-			phantom: Default::default(),
-			members: vec![],
-		}),
 	}
 }

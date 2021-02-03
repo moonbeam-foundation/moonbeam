@@ -49,7 +49,7 @@ pub use frame_support::{
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 	ConsensusEngineId, StorageValue,
 };
-use frame_system::{EnsureRoot, EnsureSigned};
+use frame_system::{EnsureNever, EnsureRoot, EnsureSigned};
 use pallet_ethereum::Call::transact;
 use pallet_evm::{
 	Account as EVMAccount, EnsureAddressNever, EnsureAddressSame, FeeCalculator,
@@ -262,24 +262,6 @@ impl pallet_evm::Config for Runtime {
 }
 
 parameter_types! {
-	pub const CouncilMotionDuration: BlockNumber = 24 * 60 * 10; // 1 day
-	pub const CouncilMaxProposals: u32 = 20;
-	pub const CouncilMaxMembers: u32 = 100;
-}
-
-// TODO : Use an Instance (couldn't get it work with one)
-impl pallet_collective::Config for Runtime {
-	type Origin = Origin;
-	type Proposal = Call;
-	type Event = Event;
-	type MotionDuration = CouncilMotionDuration;
-	type MaxProposals = CouncilMaxProposals;
-	type MaxMembers = CouncilMaxMembers;
-	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	type WeightInfo = ();
-}
-
-parameter_types! {
 	pub MaximumSchedulerWeight: Weight = Perbill::from_percent(80) * BlockWeights::get().max_block;
 }
 
@@ -317,18 +299,18 @@ impl pallet_democracy::Config for Runtime {
 	type VotingPeriod = VotingPeriod;
 	type FastTrackVotingPeriod = FastTrackVotingPeriod;
 	type MinimumDeposit = MinimumDeposit;
-	type ExternalOrigin = pallet_collective::EnsureMember<AccountId>;
-	type ExternalMajorityOrigin = pallet_collective::EnsureMember<AccountId>;
-	type ExternalDefaultOrigin = pallet_collective::EnsureMember<AccountId>;
-	type FastTrackOrigin = pallet_collective::EnsureMember<AccountId>;
+	type ExternalOrigin = EnsureRoot<AccountId>;
+	type ExternalMajorityOrigin = EnsureRoot<AccountId>;
+	type ExternalDefaultOrigin = EnsureRoot<AccountId>;
+	type FastTrackOrigin = EnsureRoot<AccountId>;
 	type CancellationOrigin = EnsureRoot<AccountId>;
 	type BlacklistOrigin = EnsureRoot<AccountId>;
 	type CancelProposalOrigin = EnsureRoot<AccountId>;
-	type VetoOrigin = pallet_collective::EnsureMember<AccountId>; // (root not possible)
+	type VetoOrigin = EnsureNever<AccountId>; // (root not possible)
 	type CooloffPeriod = CooloffPeriod;
 	type PreimageByteDeposit = PreimageByteDeposit;
 	type Slash = ();
-	type InstantOrigin = pallet_collective::EnsureMember<AccountId>;
+	type InstantOrigin = EnsureRoot<AccountId>;
 	type InstantAllowed = InstantAllowed;
 	type Scheduler = Scheduler;
 	type MaxVotes = MaxVotes;
@@ -434,7 +416,6 @@ construct_runtime! {
 		Stake: stake::{Module, Call, Storage, Event<T>, Config<T>},
 		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
 		Scheduler: pallet_scheduler::{Module, Storage, Config, Event<T>, Call},
-		DemocracyCollective: pallet_collective::{Module, Storage, Config<T>, Event<T>, Call, Origin<T>},
 		Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
 	}
 }
