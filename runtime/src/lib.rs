@@ -104,6 +104,9 @@ pub type DigestItem = generic::DigestItem<Hash>;
 /// Minimum time between blocks. Slot duration is double this.
 pub const MINIMUM_PERIOD: u64 = 3000;
 
+/// Maximum weight per block
+pub const MAXIMUM_BLOCK_WEIGHT: Weight = 2 * WEIGHT_PER_SECOND;
+
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
@@ -305,8 +308,7 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 pub struct EthereumFindAuthor<F>(PhantomData<F>);
 
 parameter_types! {
-	// TODO:
-	pub BlockGasLimit: u64 = NORMAL_DISPATCH_RATIO * MAX_BLOCK_WEIGHT / WEIGHT_PER_GAS;
+	pub BlockGasLimit: u64 = NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT / WEIGHT_PER_GAS;
 }
 
 impl pallet_ethereum::Config for Runtime {
