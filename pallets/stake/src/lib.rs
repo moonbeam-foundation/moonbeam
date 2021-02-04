@@ -519,7 +519,7 @@ decl_storage! {
 		/// Current candidates with associated state
 		Candidates: map hasher(blake2_128_concat) T::AccountId => Option<Candidate<T>>;
 		/// Current validator set
-		Validators: Vec<T::AccountId>;
+		Validators get(fn validators): Vec<T::AccountId>;
 		/// Total Locked
 		Total: BalanceOf<T>;
 		/// Pool of candidates, ordered by account id

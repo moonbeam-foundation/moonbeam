@@ -4117,6 +4117,7 @@ dependencies = [
  "log",
  "moonbeam-rpc-primitives-txpool",
  "pallet-aura",
+ "pallet-author-filter",
  "pallet-balances",
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
@@ -4516,6 +4517,18 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "sp-timestamp",
+]
+
+[[package]]
+name = "pallet-author-filter"
+version = "0.1.0"
+dependencies = [
+ "author-inherent",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "serde",
+ "stake",
 ]
 
 [[package]]
