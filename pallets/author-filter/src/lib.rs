@@ -47,6 +47,8 @@ pub mod pallet {
 	/// Configuration trait of this pallet.
 	#[pallet::config]
 	pub trait Config: frame_system::Config + stake::Config {
+		/// The overarching event type
+		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// Deterministic on-chain pseudo-randomness used to do the filtering
 		type RandomnessSource: Randomness<u32>;
 	}
@@ -66,9 +68,14 @@ pub mod pallet {
 			let randomness = T::RandomnessSource::random(&*b"author_filter");
 
 			//TODO actually do some reducing here.
-			let eligible_subset = staked;
+			let eligible_subset = staked.clone();
 
-			CurrentEligible::<T>::put(eligible_subset);
+			CurrentEligible::<T>::put(&eligible_subset);
+
+			//Emit an event for debugging purposes
+			<Pallet<T>>::deposit_event(
+				Event::Filtered(randomness, staked, eligible_subset)
+			);
 
 			0 //TODO actual weight?
 		}
@@ -82,4 +89,13 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn chain_id)]
 	pub type CurrentEligible<T: Config> = StorageValue<_, Vec<T::AccountId>, ValueQuery>;
+
+	#[pallet::event]
+	#[pallet::generate_deposit(fn deposit_event)]
+	pub enum Event<T: Config> {
+		/// The staked authors have been filtered in this block. Here's some debugging info
+		/// randomness, copmlete set, reduced set
+		Filtered(u32, Vec<T::AccountId>, Vec<T::AccountId>),
+	}
+
 }
