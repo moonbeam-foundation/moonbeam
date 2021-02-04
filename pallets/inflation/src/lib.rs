@@ -18,24 +18,44 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{decl_module, decl_storage};
-use frame_system::{Config as System};
+use frame_support::{decl_error, decl_module, decl_storage, ensure};
+use frame_system::Config as System;
 use parity_scale_codec::{Decode, Encode};
 use sp_runtime::{DispatchResult, Perbill, RuntimeDebug};
 
 #[derive(Eq, PartialEq, Clone, Encode, Decode, Default, RuntimeDebug)]
-pub struct InflationSchedule<T> {
-	max: T,
-	min: T,
-	ideal: T,
+pub struct InflationSchedule<T: Ord> {
+	pub max: T,
+	pub min: T,
+	pub ideal: T,
 }
 
-pub trait Config: System {}
+impl<T: Ord> InflationSchedule<T> {
+	pub fn valid(&self) -> bool {
+		self.max > self.ideal && self.ideal > self.min
+	}
+}
+
+pub trait UpdateInflation {
+	fn update_inflation(schedule: InflationSchedule<Perbill>);
+}
+
+pub trait Config: System {
+	/// For updating dependent storage items
+	type Handler: UpdateInflation;
+}
+
+decl_error! {
+	pub enum Error for Module<T: Config> {
+		/// Inflation schedule not formed correctly (max <= ideal || min >= ideal)
+		InvalidSchedule,
+	}
+}
 
 decl_storage! {
 	trait Store for Module<T: Config> as Inflation {
-        /// Annual inflation targets
-		Schedule: InflationSchedule<Perbill>;
+		/// Annual inflation targets
+		pub Schedule get(fn schedule): InflationSchedule<Perbill>;
 	}
 }
 
@@ -45,7 +65,9 @@ decl_module! {
 		#[weight = 0]
 		fn set_schedule(origin, schedule: InflationSchedule<Perbill>) -> DispatchResult {
 			//ensure_root(origin)?;
-			<Schedule>::put(schedule);
+			ensure!(schedule.valid(), Error::<T>::InvalidSchedule);
+			<Schedule>::put(schedule.clone());
+			T::Handler::update_inflation(schedule);
 			Ok(())
 		}
 	}

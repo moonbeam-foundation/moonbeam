@@ -45,14 +45,19 @@
 #![recursion_limit = "256"]
 #![cfg_attr(not(feature = "std"), no_std)]
 
+mod issuance;
+#[cfg(test)]
+pub(crate) mod mock;
 mod set;
+#[cfg(test)]
+mod tests;
 use frame_support::{
 	decl_error, decl_event, decl_module, decl_storage, ensure,
 	storage::IterableStorageDoubleMap,
 	traits::{Currency, Get, Imbalance, ReservableCurrency},
 };
 use frame_system::{ensure_signed, Config as System};
-use inflation::{Config as Inflation, InflationSchedule};
+use inflation::{Config as Inflation, InflationSchedule, UpdateInflation};
 use pallet_staking::{Exposure, IndividualExposure};
 use parity_scale_codec::{Decode, Encode, HasCompact};
 use set::OrderedSet;
@@ -61,10 +66,6 @@ use sp_runtime::{
 	DispatchResult, Perbill, RuntimeDebug,
 };
 use sp_std::{cmp::Ordering, prelude::*};
-#[cfg(test)]
-pub(crate) mod mock;
-#[cfg(test)]
-mod tests;
 
 #[derive(Default, Clone, Encode, Decode, RuntimeDebug)]
 pub struct Bond<AccountId, Balance> {
@@ -423,8 +424,8 @@ pub trait Config: System + Inflation {
 	type Event: From<Event<Self>> + Into<<Self as System>::Event>;
 	/// The currency type
 	type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
-	/// Blocks per round
-	type BlocksPerRound: Get<Self::BlockNumber>;
+	/// Number of blocks per round
+	type BlocksPerRound: Get<u32>;
 	/// Number of rounds that validators remain bonded before exit request is executed
 	type BondDuration: Get<RoundIndex>;
 	/// Maximum validators per round
@@ -534,6 +535,8 @@ decl_storage! {
 			hasher(blake2_128_concat) RoundIndex => BalanceOf<T>;
 		/// Staking expectations
 		StakeExpectations: InflationSchedule<BalanceOf<T>>;
+		/// Issuance per round
+		RoundIssuance: InflationSchedule<BalanceOf<T>>;
 		/// Total points awarded in this round
 		Points: map
 			hasher(blake2_128_concat) RoundIndex => RewardPoint;
@@ -845,7 +848,7 @@ decl_module! {
 			Ok(())
 		}
 		fn on_finalize(n: T::BlockNumber) {
-			if (n % T::BlocksPerRound::get()).is_zero() {
+			if (n % T::BlocksPerRound::get().into()).is_zero() {
 				let next = <Round>::get() + 1;
 				// pay all stakers for T::BondDuration rounds ago
 				Self::pay_stakers(next);
@@ -881,6 +884,22 @@ impl<T: Config> Module<T> {
 			amount: total,
 		});
 		<CandidatePool<T>>::put(candidates);
+	}
+	// calculate total issuance based on total staked by validators selected for the round
+	fn compute_issuance(staked: BalanceOf<T>) -> BalanceOf<T> {
+		let expectation = <StakeExpectations<T>>::get();
+		let issuance = <RoundIssuance<T>>::get();
+		if staked < expectation.min {
+			return issuance.min;
+		} else if staked > expectation.max {
+			return issuance.max;
+		} else {
+			// TODO: split up into 3 branches
+			// 1. min < staked < ideal
+			// 2. ideal < staked < max
+			// 3. staked == ideal
+			return issuance.ideal;
+		}
 	}
 	fn nominator_joins_validator(
 		nominator: T::AccountId,
@@ -1104,22 +1123,9 @@ impl<T: Config + author_inherent::Config> author_inherent::CanAuthor<T::AccountI
 	}
 }
 
-pub trait ComputeInflation<Balance> {
-	/// Set expectations of staked amount eg min, max, ideal count
-	fn set_expectations(expect: InflationSchedule<Balance>);
-	/// Compute target issuance based on amount staked
-	fn compute_issuance(staked: Balance) -> Balance;
-}
-
-impl<T: Config> ComputeInflation<BalanceOf<T>> for Module<T> {
-	// TODO: add runtime method, only accessible by sudo
-	fn set_expectations(expect: InflationSchedule<BalanceOf<T>>) {
-		<StakeExpectations<T>>::put(expect);
-	}
-	fn compute_issuance(staked: BalanceOf<T>) -> BalanceOf<T> {
-		let expectations = <StakeExpectations<T>>::get();
-		todo!()
+impl<T: Config> UpdateInflation for Module<T> {
+	fn update_inflation(inflation: InflationSchedule<Perbill>) {
+		let issuance = issuance::per_round::<T>(inflation);
+		<RoundIssuance<T>>::put(issuance);
 	}
 }
-// TODO: snapshot total stake per round of all validators
-// set stake expectations
