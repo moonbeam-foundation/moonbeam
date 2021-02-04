@@ -39,10 +39,15 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use frame_support::traits::Randomness;
 	use frame_support::traits::Vec;
+	use sp_core::H256;
 
 	/// The Author Filter pallet
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
+
+	// The maximum number of eligible authors at each hight.
+	// TODO make this part of the config trait. Or maybe express it as a percent.
+	const MAX_ELIGIBLE: usize = 3;
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
@@ -50,7 +55,7 @@ pub mod pallet {
 		/// The overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// Deterministic on-chain pseudo-randomness used to do the filtering
-		type RandomnessSource: Randomness<u32>;
+		type RandomnessSource: Randomness<H256>;
 	}
 
 	impl<T: Config> author_inherent::CanAuthor<T::AccountId> for Pallet<T> {
@@ -61,14 +66,29 @@ pub mod pallet {
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		// At the beginning of each block, we grab the randomness and use it to reduce the author set
+		// At the beginning of each block, we calculate the set of eligible authors for this block.
+		// TODO it might make more sense to calculate for the next block at the end of this block.
 		fn on_initialize(_: T::BlockNumber) -> Weight {
-			let staked : Vec<T::AccountId> = stake::Module::<T>::validators();
-
+			//TODO only need to grab randomness in else clause. For now its here to support the debugging event
 			let randomness = T::RandomnessSource::random(&*b"author_filter");
+			let mut staked : Vec<T::AccountId> = stake::Module::<T>::validators();
 
-			//TODO actually do some reducing here.
-			let eligible_subset = staked.clone();
+			// Reduce it to a subset if there are more staked then the max eligible
+			let eligible_subset = if staked.len() <= MAX_ELIGIBLE as usize{
+				staked.clone()
+			} else {
+				let mut eligible = Vec::new();
+				for i in 0..MAX_ELIGIBLE {
+					// Calculate the index by grabbing the corresponding byte out of the randomness
+					// This will only work when MAX_ELIGIBLE < 32 because that's how many bytes
+					// there are. There's a lot hacky about this POC.
+					let index = randomness.as_fixed_bytes()[i] as usize;
+
+					let selected = staked.remove(index % staked.len());
+					eligible.push(selected);
+				}
+				eligible
+			};
 
 			CurrentEligible::<T>::put(&eligible_subset);
 
@@ -95,7 +115,7 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// The staked authors have been filtered in this block. Here's some debugging info
 		/// randomness, copmlete set, reduced set
-		Filtered(u32, Vec<T::AccountId>, Vec<T::AccountId>),
+		Filtered(H256, Vec<T::AccountId>, Vec<T::AccountId>),
 	}
 
 }

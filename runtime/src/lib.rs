@@ -337,7 +337,12 @@ impl stake::Config for Runtime {
 }
 impl author_inherent::Config for Runtime {
 	type EventHandler = Stake;
-	type CanAuthor = Stake;
+	type CanAuthor = AuthorFilter;
+}
+
+impl pallet_author_filter::Config for Runtime {
+	type Event = Event;
+	type RandomnessSource = RandomnessCollectiveFlip;
 }
 
 construct_runtime! {
@@ -359,6 +364,7 @@ construct_runtime! {
 		Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 		Stake: stake::{Module, Call, Storage, Event<T>, Config<T>},
 		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
+		AuthorFilter: pallet_author_filter::{Module, Storage, Event<T>,}
 	}
 }
 
