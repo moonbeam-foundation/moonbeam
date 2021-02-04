@@ -309,9 +309,9 @@ parameter_types! {
 	/// Maximum 8 valid block authors at any given time
 	pub const MaxValidators: u32 = 8;
 	/// Maximum 10 nominators per validator
-	pub const MaxNominatorsPerValidator: usize = 10;
+	pub const MaxNominatorsPerValidator: u32 = 10;
 	/// Maximum 8 validators per nominator (same as MaxValidators)
-	pub const MaxValidatorsPerNominator: usize = 8;
+	pub const MaxValidatorsPerNominator: u32 = 8;
 	/// Issue 49 new tokens as rewards to validators every 2 minutes (round)
 	pub const IssuancePerRound: u128 = 49 * GLMR;
 	/// The maximum percent a validator can take off the top of its rewards is 50%
