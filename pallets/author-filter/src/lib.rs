@@ -40,14 +40,11 @@ pub mod pallet {
 	use frame_support::traits::Vec;
 	use frame_system::pallet_prelude::*;
 	use sp_core::H256;
+	use sp_runtime::Percent;
 
 	/// The Author Filter pallet
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
-
-	// The maximum number of eligible authors at each hight.
-	// TODO make this part of the config trait. Or maybe express it as a percent.
-	const MAX_ELIGIBLE: usize = 3;
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
@@ -77,32 +74,25 @@ pub mod pallet {
 		// security assumption. By leaving this in on_initialize, we can rely on Polkadot's
 		// randomness beacon having a different value when there is a different relay parent.
 		fn on_initialize(_: T::BlockNumber) -> Weight {
-			//TODO only need to grab randomness in else clause.
-			// For now its here to support the debugging event
-			let randomness = T::RandomnessSource::random(&*b"author_filter");
 			let mut staked: Vec<T::AccountId> = stake::Module::<T>::validators();
 
-			// Reduce it to a subset if there are more staked then the max eligible
-			let eligible_subset = if staked.len() <= MAX_ELIGIBLE as usize {
-				staked.clone()
-			} else {
-				let mut eligible = Vec::new();
-				for i in 0..MAX_ELIGIBLE {
-					// Calculate the index by grabbing the corresponding byte out of the randomness
-					// This will only work when MAX_ELIGIBLE < 32 because that's how many bytes
-					// there are. There's a lot hacky about this POC.
-					let index = randomness.as_fixed_bytes()[i] as usize;
+			let num_eligible = EligibleRatio::<T>::get() * staked.len();
+			let mut eligible = Vec::with_capacity(num_eligible);
 
-					let selected = staked.remove(index % staked.len());
-					eligible.push(selected);
-				}
-				eligible
-			};
+			for i in 0..num_eligible {
+				// A context identifier for grabbing the randomness.
+				// Of the form *b"filter4"
+				let subject: [u8; 7] = [b'f', b'i', b'l', b't', b'e', b'r', i as u8];
+				let index = T::RandomnessSource::random(&subject).to_low_u64_be() as usize;
 
-			CurrentEligible::<T>::put(&eligible_subset);
+				// Move the selected author from the original vector into the eligible vector
+				eligible.push(staked.remove(index % staked.len()));
+			}
 
-			//Emit an event for debugging purposes
-			<Pallet<T>>::deposit_event(Event::Filtered(randomness, staked, eligible_subset));
+			CurrentEligible::<T>::put(&eligible);
+
+			// Emit an event for debugging purposes
+			<Pallet<T>>::deposit_event(Event::Filtered(eligible));
 
 			0 //TODO actual weight?
 		}
@@ -112,16 +102,25 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {}
 
-	/// Storage item that holds the set of authors who are eligible to author at this height.
+	/// The set of authors who are eligible to author at this height.
 	#[pallet::storage]
-	#[pallet::getter(fn chain_id)]
+	#[pallet::getter(fn current_eligible)]
 	pub type CurrentEligible<T: Config> = StorageValue<_, Vec<T::AccountId>, ValueQuery>;
+
+	/// The percentage of active staked authors that will be eligible at each height.
+	#[pallet::storage]
+	pub type EligibleRatio<T: Config> = StorageValue<_, Percent, ValueQuery, Half<T>>;
+
+	// Default value for the `EligibleRatio` is one half.
+	#[pallet::type_value]
+	pub fn Half<T: Config>() -> Percent {
+		Percent::from_percent(50)
+	}
 
 	#[pallet::event]
 	#[pallet::generate_deposit(fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// The staked authors have been filtered in this block. Here's some debugging info
-		/// randomness, copmlete set, reduced set
-		Filtered(H256, Vec<T::AccountId>, Vec<T::AccountId>),
+		/// The staked authors have been filtered to these eligible authors in this block
+		Filtered(Vec<T::AccountId>),
 	}
 }
