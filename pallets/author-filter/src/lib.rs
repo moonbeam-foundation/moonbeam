@@ -36,9 +36,9 @@ pub use pallet::*;
 pub mod pallet {
 
 	use frame_support::pallet_prelude::*;
-	use frame_system::pallet_prelude::*;
 	use frame_support::traits::Randomness;
 	use frame_support::traits::Vec;
+	use frame_system::pallet_prelude::*;
 	use sp_core::H256;
 
 	/// The Author Filter pallet
@@ -71,10 +71,10 @@ pub mod pallet {
 		fn on_initialize(_: T::BlockNumber) -> Weight {
 			//TODO only need to grab randomness in else clause. For now its here to support the debugging event
 			let randomness = T::RandomnessSource::random(&*b"author_filter");
-			let mut staked : Vec<T::AccountId> = stake::Module::<T>::validators();
+			let mut staked: Vec<T::AccountId> = stake::Module::<T>::validators();
 
 			// Reduce it to a subset if there are more staked then the max eligible
-			let eligible_subset = if staked.len() <= MAX_ELIGIBLE as usize{
+			let eligible_subset = if staked.len() <= MAX_ELIGIBLE as usize {
 				staked.clone()
 			} else {
 				let mut eligible = Vec::new();
@@ -93,9 +93,7 @@ pub mod pallet {
 			CurrentEligible::<T>::put(&eligible_subset);
 
 			//Emit an event for debugging purposes
-			<Pallet<T>>::deposit_event(
-				Event::Filtered(randomness, staked, eligible_subset)
-			);
+			<Pallet<T>>::deposit_event(Event::Filtered(randomness, staked, eligible_subset));
 
 			0 //TODO actual weight?
 		}
@@ -117,5 +115,4 @@ pub mod pallet {
 		/// randomness, copmlete set, reduced set
 		Filtered(H256, Vec<T::AccountId>, Vec<T::AccountId>),
 	}
-
 }
