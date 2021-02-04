@@ -67,7 +67,15 @@ pub mod pallet {
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		// At the beginning of each block, we calculate the set of eligible authors for this block.
-		// TODO it might make more sense to calculate for the next block at the end of this block.
+		// TODO Design Decision:
+		// If we move this logic to on_finalize to calculate for the next block, we get to know in
+		// advance who the next eligible authors are. That is nice because it is easy to know in
+		// from offchain who will author next. You just need to read storage.
+		// On the other hand, it leads to liveness attacks. If the eligible authors collude to not
+		// author, then the chain is bricked. We can 't even force them out with governance because
+		// governance stops when the chain is stalled. In that way, the `EligibleRatio` _is_ our
+		// security assumption. By leaving this in on_initialize, we can rely on Polkadot's
+		// randomness beacon having a different value when there is a different relay parent.
 		fn on_initialize(_: T::BlockNumber) -> Weight {
 			//TODO only need to grab randomness in else clause.
 			// For now its here to support the debugging event
