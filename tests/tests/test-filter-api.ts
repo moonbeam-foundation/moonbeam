@@ -162,7 +162,8 @@ describeWithFrontier("Frontier RPC (EthFilterApi)", `simple-specs.json`, (contex
     expect(create_filter.result).to.be.eq("0x3");
   });
   
-  step("should return unsupported error for Pending Transaction filter creation", async function () {
+  step("should return unsupported error for Pending Transaction filter creation",
+       async function () {
     let r = await customRequest(context.web3, "eth_newPendingTransactionFilter", []);
     expect(
       r.error
