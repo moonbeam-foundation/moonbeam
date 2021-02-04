@@ -576,7 +576,7 @@ decl_module! {
 		type Error = Error<T>;
 		fn deposit_event() = default;
 
-		/// A new round chooses a new validator set. Runtime config (RC) is 20 so every 2 minutes.
+		/// A new round chooses a new validator set. Runtime config is 20 so every 2 minutes.
 		const BlocksPerRound: T::BlockNumber = T::BlocksPerRound::get();
 		/// Number of rounds that validators remain bonded before exit request is executed
 		const BondDuration: RoundIndex = T::BondDuration::get();
