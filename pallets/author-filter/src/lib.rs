@@ -69,7 +69,8 @@ pub mod pallet {
 		// At the beginning of each block, we calculate the set of eligible authors for this block.
 		// TODO it might make more sense to calculate for the next block at the end of this block.
 		fn on_initialize(_: T::BlockNumber) -> Weight {
-			//TODO only need to grab randomness in else clause. For now its here to support the debugging event
+			//TODO only need to grab randomness in else clause.
+			// For now its here to support the debugging event
 			let randomness = T::RandomnessSource::random(&*b"author_filter");
 			let mut staked: Vec<T::AccountId> = stake::Module::<T>::validators();
 
