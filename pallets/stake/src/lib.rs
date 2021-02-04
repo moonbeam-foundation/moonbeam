@@ -576,6 +576,27 @@ decl_module! {
 		type Error = Error<T>;
 		fn deposit_event() = default;
 
+		/// A new round chooses a new validator set. Runtime config (RC) is 20 so every 2 minutes.
+		const BlocksPerRound: T::BlockNumber = T::BlocksPerRound::get();
+		/// Number of rounds that validators remain bonded before exit request is executed
+		const BondDuration: RoundIndex = T::BondDuration::get();
+		/// Maximum validators per round.
+		const MaxValidators: u32 = T::MaxValidators::get();
+		/// Maximum nominators per validator
+		const MaxNominatorsPerValidator: usize = T::MaxNominatorsPerValidator::get();
+		/// Maximum validators per nominator
+		const MaxValidatorsPerNominator: usize = T::MaxValidatorsPerNominator::get();
+		/// Balance issued as rewards per round (constant issuance)
+		const IssuancePerRound: BalanceOf<T> = T::IssuancePerRound::get();
+		/// Maximum fee for any validator
+		const MaxFee: Perbill = T::MaxFee::get();
+		/// Minimum stake for any registered on-chain account to become a validator
+		const MinValidatorStk: BalanceOf<T> = T::MinNominatorStk::get();
+		/// Minimum stake for any registered on-chain account to nominate
+		const MinNomination: BalanceOf<T> = T::MinNomination::get();
+		/// Minimum stake for any registered on-chain account to become a nominator
+		const MinNominatorStk: BalanceOf<T> = T::MinNominatorStk::get();
+
 		#[weight = 0]
 		fn join_candidates(
 			origin,
