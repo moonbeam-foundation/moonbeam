@@ -41,7 +41,8 @@ pub trait EventHandler<Author> {
 pub trait CanAuthor<AccountId> {
 	fn can_author(account: &AccountId) -> bool;
 }
-/// Default permissions is none, see `stake` pallet for different impl used in runtime
+/// Default implementation where anyone can author, see `stake` and `author-filter` pallets for
+/// additional implementations.
 impl<T> CanAuthor<T> for () {
 	fn can_author(_: &T) -> bool {
 		true
@@ -60,8 +61,6 @@ decl_error! {
 	pub enum Error for Module<T: Config> {
 		/// Author already set in block.
 		AuthorAlreadySet,
-		/// The author in the inherent is not an eligible author.
-		CannotBeAuthor,
 	}
 }
 
@@ -89,7 +88,6 @@ decl_module! {
 		fn set_author(origin, author: T::AccountId) {
 			ensure_none(origin)?;
 			ensure!(<Author<T>>::get().is_none(), Error::<T>::AuthorAlreadySet);
-			ensure!(T::CanAuthor::can_author(&author), Error::<T>::CannotBeAuthor);
 
 			// Update storage
 			Author::<T>::put(&author);
@@ -104,6 +102,13 @@ decl_module! {
 
 			// Notify any other pallets that are listening (eg rewards) about the author
 			T::EventHandler::note_author(author.clone());
+		}
+
+		fn on_finalize() {
+			assert!(
+				T::CanAuthor::can_author(&Author::<T>::get().expect("Author was set in block")),
+				"Author is not eligible in this block"
+			);
 		}
 	}
 }
