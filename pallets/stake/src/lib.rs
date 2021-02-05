@@ -425,7 +425,7 @@ pub trait Config: System {
 	/// The currency type
 	type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 	/// The origin for setting inflation
-	type MonetaryPolicy: EnsureOrigin<Self::Origin>;
+	type SetMonetaryPolicyOrigin: EnsureOrigin<Self::Origin>;
 	/// Number of blocks per round
 	type BlocksPerRound: Get<u32>;
 	/// Number of rounds that validators remain bonded before exit request is executed
