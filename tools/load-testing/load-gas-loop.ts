@@ -27,7 +27,7 @@ init(
   argv["net"] == "stagenet"
     ? "https://rpc.stagenet.moonbeam.gcp.purestake.run"
     : argv["net"] == "localhost"
-    ? "http://127.0.0.1:9933"
+    ? "http://127.0.0.1:30543"
     : argv["net"] == "alan"
     ? "http://127.0.0.1:56053"
     : argv["net"] == "alan-standalone"
@@ -129,7 +129,7 @@ const callContract = async (loopCount: number) => {
 
 const main = async () => {
   await deployContract();
-  let loopCount = 2;
+  let loopCount = 4096;
   while (loopCount > 0) {
     await callContract(loopCount);
     loopCount *= 2;
