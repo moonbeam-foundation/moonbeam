@@ -55,57 +55,62 @@ pub mod pallet {
 		type RandomnessSource: Randomness<H256>;
 	}
 
+	// This code will be called by the author-inherent pallet in its on-finalize block to check
+	// whether the reported author of this block is eligible at this height. We calculate that
+	// result on demand for the currently ending block and do not record it instorage (although
+	// we do emit a debugging event for now.)
 	impl<T: Config> author_inherent::CanAuthor<T::AccountId> for Pallet<T> {
 		fn can_author(account: &T::AccountId) -> bool {
-			CurrentEligible::<T>::get().contains(account)
-		}
-	}
-
-	#[pallet::hooks]
-	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		// At the beginning of each block, we calculate the set of eligible authors for this block.
-		// TODO Design Decision:
-		// If we move this logic to on_finalize to calculate for the next block, we get to know in
-		// advance who the next eligible authors are. That is nice because it is easy to know in
-		// from offchain who will author next. You just need to read storage.
-		// On the other hand, it leads to liveness attacks. If the eligible authors collude to not
-		// author, then the chain is bricked. We can 't even force them out with governance because
-		// governance stops when the chain is stalled. In that way, the `EligibleRatio` _is_ our
-		// security assumption. By leaving this in on_initialize, we can rely on Polkadot's
-		// randomness beacon having a different value when there is a different relay parent.
-		fn on_initialize(_: T::BlockNumber) -> Weight {
 			let mut staked: Vec<T::AccountId> = stake::Module::<T>::validators();
 
 			let num_eligible = EligibleRatio::<T>::get() * staked.len();
 			let mut eligible = Vec::with_capacity(num_eligible);
 
+			//TODO actually grab the relay parent height and mod it into a u8
+			let relay_height: u8 = 7;
+
 			for i in 0..num_eligible {
-				// A context identifier for grabbing the randomness.
-				// Of the form *b"filter4"
-				let subject: [u8; 7] = [b'f', b'i', b'l', b't', b'e', b'r', i as u8];
+				// A context identifier for grabbing the randomness. Consists of three parts
+				// - The constant string *b"filter" - to identify this pallet
+				// - The index `i` when we're selecting the ith eligible author
+				// - The relay parent block number so that the eligible authors at the next height
+				//   change. Avoids liveness attacks from colluding minorities of active authors.
+				// Third one will not be necessary once we dleverage the relay chain's randomness.
+				let subject: [u8; 8] = [b'f', b'i', b'l', b't', b'e', b'r', i as u8, relay_height];
 				let index = T::RandomnessSource::random(&subject).to_low_u64_be() as usize;
 
 				// Move the selected author from the original vector into the eligible vector
+				// TODO we could short-circuit this check by returning early when the claimed
+				// author is selected. For now I'll leave it like this because:
+				// 1. it is easier to understand what our core filtering logic is
+				// 2. we currently show the entire filtered set in the debug event
 				eligible.push(staked.remove(index % staked.len()));
 			}
 
-			CurrentEligible::<T>::put(&eligible);
-
 			// Emit an event for debugging purposes
-			<Pallet<T>>::deposit_event(Event::Filtered(eligible));
+			<Pallet<T>>::deposit_event(Event::Filtered(eligible.clone()));
 
-			0 //TODO actual weight?
+			eligible.contains(account)
 		}
 	}
 
-	// No dispatchible calls
-	#[pallet::call]
-	impl<T: Config> Pallet<T> {}
+	// No hooks
+	#[pallet::hooks]
+	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
 
-	/// The set of authors who are eligible to author at this height.
-	#[pallet::storage]
-	#[pallet::getter(fn current_eligible)]
-	pub type CurrentEligible<T: Config> = StorageValue<_, Vec<T::AccountId>, ValueQuery>;
+	#[pallet::call]
+	impl<T: Config> Pallet<T> {
+
+		/// Update the eligible ratio. Intended to be called by governance.
+		#[pallet::weight(0)]
+		pub fn set_eligible(origin: OriginFor<T>, new: Percent) -> DispatchResultWithPostInfo {
+			ensure_root(origin)?;
+			EligibleRatio::<T>::put(&new);
+			<Pallet<T>>::deposit_event(Event::EligibleUpdated(new));
+
+			Ok(Default::default())
+		}
+	}
 
 	/// The percentage of active staked authors that will be eligible at each height.
 	#[pallet::storage]
@@ -120,7 +125,10 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// The staked authors have been filtered to these eligible authors in this block
+		/// The amount of eligible authors for the filter to select has been changed.
+		EligibleUpdated(Percent),
+		/// The staked authors have been filtered to these eligible authors in this block.
+		/// This is a debugging and development event and should be removed eventually.
 		Filtered(Vec<T::AccountId>),
 	}
 }
