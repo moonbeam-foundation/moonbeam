@@ -1152,7 +1152,7 @@ impl<T: Config> Module<T> {
 
 /// Add reward points to block authors:
 /// * 20 points to the block producer for producing a block in the chain
-impl<T: Config + author_inherent::Config> author_inherent::EventHandler<T::AccountId>
+impl<T: Config> author_inherent::EventHandler<T::AccountId>
 	for Module<T>
 {
 	fn note_author(author: T::AccountId) {
