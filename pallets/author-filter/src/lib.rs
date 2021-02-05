@@ -104,8 +104,8 @@ pub mod pallet {
 			}
 
 			// Emit an event for debugging purposes
-			let our_height = frame_system::Module::<T>::block_number();
-			<Pallet<T>>::deposit_event(Event::Filtered(our_height, relay_height, eligible.clone()));
+			// let our_height = frame_system::Module::<T>::block_number();
+			// <Pallet<T>>::deposit_event(Event::Filtered(our_height, relay_height, eligible.clone()));
 
 			eligible.contains(account)
 		}
