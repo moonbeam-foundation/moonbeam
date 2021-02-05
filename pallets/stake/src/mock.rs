@@ -127,12 +127,12 @@ fn genesis(
 	balances: Vec<(AccountId, Balance)>,
 	stakers: Vec<(AccountId, Option<AccountId>, Balance)>,
 ) -> sp_io::TestExternalities {
-	let stake_expectations: InflationSchedule<Balance> = InflationSchedule {
+	let stake_expectations: Range<Balance> = Range {
 		min: 700,
 		ideal: 700,
 		max: 700,
 	};
-	let round_issuance: InflationSchedule<Balance> = InflationSchedule {
+	let round_issuance: Range<Balance> = Range {
 		min: 10,
 		ideal: 10,
 		max: 10,

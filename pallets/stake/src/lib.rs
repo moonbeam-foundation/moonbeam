@@ -46,7 +46,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 mod inflation;
-pub use inflation::InflationSchedule;
+pub use inflation::Range;
 #[cfg(test)]
 pub(crate) mod mock;
 mod set;
@@ -538,13 +538,13 @@ decl_storage! {
 		AtStake: double_map
 			hasher(blake2_128_concat) RoundIndex,
 			hasher(blake2_128_concat) T::AccountId => Exposure<T::AccountId,BalanceOf<T>>;
-		/// Total staked by validators selected per round
+		/// Snapshot of total staked in this round
 		Staked: map
 			hasher(blake2_128_concat) RoundIndex => BalanceOf<T>;
 		/// Staking expectations
-		StakeExpectations get(fn stake_expectations) config(): InflationSchedule<BalanceOf<T>>;
+		StakeExpectations get(fn stake_expectations) config(): Range<BalanceOf<T>>;
 		/// Issuance per round
-		RoundIssuance get(fn round_issuance) config(): InflationSchedule<BalanceOf<T>>;
+		RoundIssuance get(fn round_issuance) config(): Range<BalanceOf<T>>;
 		/// Total points awarded in this round
 		Points: map
 			hasher(blake2_128_concat) RoundIndex => RewardPoint;
@@ -579,7 +579,8 @@ decl_storage! {
 			let (v_count, total_staked) = <Module<T>>::best_candidates_become_validators(1u32);
 			// start Round 1 at Block 0
 			<Round>::put(1u32);
-			<Staked<T>>::insert(1u32, total_staked);
+			// snapshot total stake
+			<Staked<T>>::insert(1u32, <Total<T>>::get());
 			<Module<T>>::deposit_event(
 				RawEvent::NewRound(T::BlockNumber::zero(), 1u32, v_count, total_staked)
 			);
@@ -595,7 +596,7 @@ decl_module! {
 		#[weight = 0]
 		fn set_staking_expectations(
 			origin,
-			expectations: InflationSchedule<BalanceOf<T>>,
+			expectations: Range<BalanceOf<T>>,
 		) -> DispatchResult {
 			T::MonetaryPolicy::ensure_origin(origin)?;
 			ensure!(expectations.is_valid(), Error::<T>::InvalidSchedule);
@@ -612,7 +613,7 @@ decl_module! {
 		#[weight = 0]
 		fn set_inflation(
 			origin,
-			schedule: InflationSchedule<Perbill>
+			schedule: Range<Perbill>
 		) -> DispatchResult {
 			T::MonetaryPolicy::ensure_origin(origin)?;
 			ensure!(schedule.is_valid(), Error::<T>::InvalidSchedule);
@@ -902,7 +903,8 @@ decl_module! {
 				let (validator_count, total_staked) = Self::best_candidates_become_validators(next);
 				// start next round
 				<Round>::put(next);
-				<Staked<T>>::insert(next, total_staked);
+				// snapshot total stake
+				<Staked<T>>::insert(next, <Total<T>>::get());
 				Self::deposit_event(RawEvent::NewRound(n, next, validator_count, total_staked));
 			}
 		}

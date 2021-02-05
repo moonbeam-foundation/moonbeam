@@ -12,13 +12,13 @@ const BLOCKS_PER_YEAR: u32 = SECONDS_PER_YEAR / SECONDS_PER_BLOCK;
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(Eq, PartialEq, Clone, Encode, Decode, Default, RuntimeDebug)]
-pub struct InflationSchedule<T: Ord> {
+pub struct Range<T: Ord> {
 	pub min: T,
 	pub ideal: T,
 	pub max: T,
 }
 
-impl<T: Ord> InflationSchedule<T> {
+impl<T: Ord> Range<T> {
 	pub fn is_valid(&self) -> bool {
 		self.max >= self.ideal && self.ideal >= self.min
 	}
@@ -27,9 +27,9 @@ impl<T: Ord> InflationSchedule<T> {
 	}
 }
 
-impl<T: Ord + Copy> From<T> for InflationSchedule<T> {
-	fn from(other: T) -> InflationSchedule<T> {
-		InflationSchedule {
+impl<T: Ord + Copy> From<T> for Range<T> {
+	fn from(other: T) -> Range<T> {
+		Range {
 			min: other,
 			ideal: other,
 			max: other,
@@ -42,9 +42,7 @@ fn rounds_per_year<T: Config>() -> u32 {
 }
 
 /// Converts annual inflation schedule to round issuance settings
-pub fn per_round<T: Config>(
-	schedule: InflationSchedule<Perbill>,
-) -> InflationSchedule<BalanceOf<T>> {
+pub fn per_round<T: Config>(schedule: Range<Perbill>) -> Range<BalanceOf<T>> {
 	let rounds_per_year = rounds_per_year::<T>();
 	let total_issuance = T::Currency::total_issuance();
 	let ideal_annual_issuance = schedule.ideal * total_issuance;
@@ -55,7 +53,7 @@ pub fn per_round<T: Config>(
 		ideal_annual_issuance / rounds_per_year.into(),
 		max_annual_issuance / rounds_per_year.into(),
 	);
-	InflationSchedule { min, ideal, max }
+	Range { min, ideal, max }
 }
 
 #[cfg(test)]
@@ -63,12 +61,12 @@ mod tests {
 	use super::*;
 	fn mock_periodic_issuance(
 		// Annual inflation schedule
-		schedule: InflationSchedule<Perbill>,
+		schedule: Range<Perbill>,
 		// Total circulating before minting
 		pre_issuance_circulating: u128,
 		// Total number of periods
 		periods: u128,
-	) -> InflationSchedule<u128> {
+	) -> Range<u128> {
 		let ideal_issuance = schedule.ideal * pre_issuance_circulating;
 		let max_issuance = schedule.max * pre_issuance_circulating;
 		let min_issuance = schedule.min * pre_issuance_circulating;
@@ -77,19 +75,19 @@ mod tests {
 			ideal_issuance / periods,
 			max_issuance / periods,
 		);
-		InflationSchedule { min, ideal, max }
+		Range { min, ideal, max }
 	}
 	#[test]
 	fn simple_issuance_conversion() {
 		// 5% inflation for 10_000_0000 = 500,000 minted over the year
 		// let's assume there are 10 periods in a year
 		// => mint 500_000 over 10 periods => 50_000 minted per period
-		let expected_round_schedule: InflationSchedule<u128> = InflationSchedule {
+		let expected_round_schedule: Range<u128> = Range {
 			min: 50_000,
 			ideal: 50_000,
 			max: 50_000,
 		};
-		let schedule = InflationSchedule {
+		let schedule = Range {
 			min: Perbill::from_percent(5),
 			ideal: Perbill::from_percent(5),
 			max: Perbill::from_percent(5),
@@ -104,12 +102,12 @@ mod tests {
 		// 3-5% inflation for 10_000_0000 = 300_000-500,000 minted over the year
 		// let's assume there are 10 periods in a year
 		// => mint 300_000-500_000 over 10 periods => 30_000-50_000 minted per period
-		let expected_round_schedule: InflationSchedule<u128> = InflationSchedule {
+		let expected_round_schedule: Range<u128> = Range {
 			min: 30_000,
 			ideal: 40_000,
 			max: 50_000,
 		};
-		let schedule = InflationSchedule {
+		let schedule = Range {
 			min: Perbill::from_percent(3),
 			ideal: Perbill::from_percent(4),
 			max: Perbill::from_percent(5),
@@ -121,12 +119,12 @@ mod tests {
 	}
 	#[test]
 	fn current_parameterization() {
-		let expected_round_schedule: InflationSchedule<u128> = InflationSchedule {
+		let expected_round_schedule: Range<u128> = Range {
 			min: 1,
 			ideal: 1,
 			max: 2,
 		};
-		let schedule = InflationSchedule {
+		let schedule = Range {
 			min: Perbill::from_percent(4),
 			ideal: Perbill::from_percent(5),
 			max: Perbill::from_percent(6),
@@ -145,12 +143,12 @@ mod tests {
 		// RoundsPerYear = BLOCKS_PER_YEAR / BLOCKS_PER_ROUND = (31557600 / 6) / X = 10000
 		// solve for X = 525.96 ~= 526 BLOCKS_PER_ROUND => ROUND is 52.596 hours = 2.17 days
 		// 400_000-600_000 minted
-		let expected_round_schedule: InflationSchedule<u128> = InflationSchedule {
+		let expected_round_schedule: Range<u128> = Range {
 			min: 40,
 			ideal: 50,
 			max: 60,
 		};
-		let schedule = InflationSchedule {
+		let schedule = Range {
 			min: Perbill::from_percent(4),
 			ideal: Perbill::from_percent(5),
 			max: Perbill::from_percent(6),

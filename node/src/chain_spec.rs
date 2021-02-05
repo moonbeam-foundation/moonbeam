@@ -22,7 +22,7 @@ use moonbeam_runtime::{
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
-use stake::InflationSchedule;
+use stake::Range;
 use std::collections::BTreeMap;
 use std::str::FromStr;
 
@@ -116,8 +116,8 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 fn testnet_genesis(
 	root_key: AccountId,
 	stakers: Vec<(AccountId, Option<AccountId>, Balance)>,
-	stake_expectations: InflationSchedule<Balance>,
-	round_issuance: InflationSchedule<Balance>,
+	stake_expectations: Range<Balance>,
+	round_issuance: Range<Balance>,
 	endowed_accounts: Vec<AccountId>,
 	para_id: ParaId,
 	chain_id: u64,
