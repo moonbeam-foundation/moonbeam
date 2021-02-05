@@ -12,6 +12,7 @@ serde = { version = "1.0.101", default-features = false, optional = true, featur
 parity-scale-codec = { version = "1.3.0", default-features = false, features = ["derive"] }
 log = "0.4.8"
 hex-literal = "0.3.1"
+sha3 = { version = "0.8", default-features = false }
 
 precompiles = { path = "precompiles/", default-features = false }
 account = { path = "account/", default-features = false }
@@ -83,6 +84,7 @@ standalone = [
 std = [
 	"parity-scale-codec/std",
 	"serde",
+	"sha3/std",
 	"sp-api/std",
 	"sp-std/std",
 	"sp-io/std",

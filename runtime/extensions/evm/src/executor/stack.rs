@@ -22,8 +22,8 @@ pub use evm::{
 	executor::StackExecutor,
 	gasometer::{self as gasometer},
 	Capture, Context, CreateScheme, ExitError, ExitReason, ExitSucceed,
-	ExternalOpcode as EvmExternalOpcode, Handler as HandlerT, Opcode as EvmOpcode, Runtime,
-	Transfer,
+	ExternalOpcode as EvmExternalOpcode, Handler as HandlerT, Opcode as EvmOpcode, Resolve,
+	Runtime, Transfer,
 };
 use moonbeam_rpc_primitives_debug::{StepLog, TraceExecutorResponse};
 use sp_std::{collections::btree_map::BTreeMap, rc::Rc, vec::Vec};
@@ -99,8 +99,6 @@ impl<'backend, 'config, B: BackendT> TraceExecutor for StackExecutor<'backend, '
 					.expect("substate vec always have length greater than one; qed");
 
 				let (opcode_cost, _memory_cost) = gasometer::opcode_cost(
-					// TODO check if getting the address like this is right.
-					// Is the goal is to get the address of the current machine in the callstack?
 					runtime.context().address,
 					opcode,
 					stack,
@@ -132,8 +130,6 @@ impl<'backend, 'config, B: BackendT> TraceExecutor for StackExecutor<'backend, '
 					pc: U256::from(*position),
 					stack: runtime.machine().stack().data().clone(),
 					storage: match self.account(runtime.context().address) {
-						// TODO check if getting the address like this is right.
-						// Is the goal is to get the address of the current machine in the callstack?
 						Some(account) => account.storage.clone(),
 						_ => BTreeMap::new(),
 					},
@@ -144,7 +140,20 @@ impl<'backend, 'config, B: BackendT> TraceExecutor for StackExecutor<'backend, '
 
 			match runtime.step(self) {
 				Ok(_) => continue,
-				Err(_) => break,
+				Err(Capture::Exit(_)) => break,
+				Err(Capture::Trap(_)) => {
+					// This is wrong.
+					//
+					// When we executed step here for an external opcode, a new evm call stack item is created.
+					// The evm will internally call the executor::call() function, thus creating a new runtime
+					// for the callee contract address, and therefore creating a new memory snapshot etc.
+					//
+					// For this to work, instead we need to step into our executor::trace_call() (or create) for the new contract address,
+					// and we need to pass a mutable reference to the step_logs vector, so we can keep adding opcodes to it.
+					//
+					// When all calls in the call stack are resolved then we return TraceExecutorResponse.
+					continue;
+				}
 			}
 		}
 

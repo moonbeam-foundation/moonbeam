@@ -72,6 +72,7 @@ use pallet_evm::{
 	IdentityAddressMapping, Runner,
 };
 use pallet_transaction_payment::CurrencyAdapter;
+use sha3::{Digest, Keccak256};
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
@@ -488,7 +489,23 @@ impl_runtime_apis! {
 				c.estimate = true;
 				let config = Some(c);
 				if let Some(transaction) = transactions.get(transaction_index as usize) {
-					let from = H160::default(); // TODO
+					// let from = H160::default(); // TODO
+
+					let mut sig = [0u8; 65];
+					let mut msg = [0u8; 32];
+					sig[0..32].copy_from_slice(&transaction.signature.r()[..]);
+					sig[32..64].copy_from_slice(&transaction.signature.s()[..]);
+					sig[64] = transaction.signature.standard_v();
+					msg.copy_from_slice(&pallet_ethereum::TransactionMessage::from(transaction.clone()).hash()[..]);
+
+					let from = match sp_io::crypto::secp256k1_ecdsa_recover(&sig, &msg) {
+						Ok(pk) => H160::from(
+							H256::from_slice(Keccak256::digest(&pk).as_slice())
+						),
+						_ => H160::default()
+					};
+
+
 					match transaction.action {
 						TransactionAction::Call(to) => {
 							if let Ok(res) = <Runtime as pallet_evm::Config>::Runner::trace_call(
