@@ -542,9 +542,9 @@ decl_storage! {
 		Staked: map
 			hasher(blake2_128_concat) RoundIndex => BalanceOf<T>;
 		/// Staking expectations
-		StakeExpectations: InflationSchedule<BalanceOf<T>>;
+		StakeExpectations get(fn stake_expectations) config(): InflationSchedule<BalanceOf<T>>;
 		/// Issuance per round
-		RoundIssuance: InflationSchedule<BalanceOf<T>>;
+		RoundIssuance get(fn round_issuance) config(): InflationSchedule<BalanceOf<T>>;
 		/// Total points awarded in this round
 		Points: map
 			hasher(blake2_128_concat) RoundIndex => RewardPoint;
@@ -560,7 +560,7 @@ decl_storage! {
 			for &(ref actor, ref opt_val, balance) in &config.stakers {
 				assert!(
 					T::Currency::free_balance(&actor) >= balance,
-					"Stash does not have enough balance to bond."
+					"Account does not have enough balance to bond."
 				);
 				let _ = if let Some(nominated_val) = opt_val {
 					<Module<T>>::join_nominators(
@@ -681,6 +681,7 @@ decl_module! {
 			ensure!(state.is_active(),Error::<T>::AlreadyOffline);
 			state.go_offline();
 			let mut candidates = <CandidatePool<T>>::get();
+			// TODO: investigate possible bug in this next line
 			if candidates.remove(&Bond::from_owner(validator.clone())) {
 				<CandidatePool<T>>::put(candidates);
 			}
@@ -928,7 +929,7 @@ impl<T: Config> Module<T> {
 		});
 		<CandidatePool<T>>::put(candidates);
 	}
-	// calculate total issuance based on total staked by validators selected for the round
+	// calculate total issuance based on total staked for the given round
 	fn compute_issuance(staked: BalanceOf<T>) -> BalanceOf<T> {
 		let expectation = <StakeExpectations<T>>::get();
 		let issuance = <RoundIssuance<T>>::get();
