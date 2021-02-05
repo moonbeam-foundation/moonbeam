@@ -126,9 +126,17 @@ pub type Sys = frame_system::Module<Test>;
 fn genesis(
 	balances: Vec<(AccountId, Balance)>,
 	stakers: Vec<(AccountId, Option<AccountId>, Balance)>,
-	stake_expectations: InflationSchedule<Balance>,
-	round_issuance: InflationSchedule<Balance>,
 ) -> sp_io::TestExternalities {
+	let stake_expectations: InflationSchedule<Balance> = InflationSchedule {
+		min: 700,
+		ideal: 700,
+		max: 700,
+	};
+	let round_issuance: InflationSchedule<Balance> = InflationSchedule {
+		min: 10,
+		ideal: 10,
+		max: 10,
+	};
 	let mut storage = frame_system::GenesisConfig::default()
 		.build_storage::<Test>()
 		.unwrap();
@@ -169,18 +177,6 @@ pub(crate) fn two_validators_four_nominators() -> sp_io::TestExternalities {
 			(5, Some(2), 100),
 			(6, Some(2), 100),
 		],
-		// staking expectations
-		InflationSchedule {
-			min: 700,
-			ideal: 700,
-			max: 700,
-		},
-		// round issuance
-		InflationSchedule {
-			min: 10,
-			ideal: 10,
-			max: 10,
-		},
 	)
 }
 
@@ -206,18 +202,6 @@ pub(crate) fn five_validators_no_nominators() -> sp_io::TestExternalities {
 			(5, None, 60),
 			(6, None, 50),
 		],
-		// staking expectations
-		InflationSchedule {
-			min: 700,
-			ideal: 700,
-			max: 700,
-		},
-		// round issuance
-		InflationSchedule {
-			min: 10,
-			ideal: 10,
-			max: 10,
-		},
 	)
 }
 
@@ -249,18 +233,6 @@ pub(crate) fn five_validators_five_nominators() -> sp_io::TestExternalities {
 			(9, Some(2), 10),
 			(10, Some(1), 10),
 		],
-		// staking expectations
-		InflationSchedule {
-			min: 700,
-			ideal: 700,
-			max: 700,
-		},
-		// round issuance
-		InflationSchedule {
-			min: 10,
-			ideal: 10,
-			max: 10,
-		},
 	)
 }
 
@@ -274,18 +246,6 @@ pub(crate) fn one_validator_two_nominators() -> sp_io::TestExternalities {
 			(2, Some(1), 10),
 			(3, Some(1), 10),
 		],
-		// staking expectations
-		InflationSchedule {
-			min: 700,
-			ideal: 700,
-			max: 700,
-		},
-		// round issuance
-		InflationSchedule {
-			min: 10,
-			ideal: 10,
-			max: 10,
-		},
 	)
 }
 

@@ -312,8 +312,6 @@ parameter_types! {
 	pub const MaxNominatorsPerValidator: usize = 10;
 	/// Maximum 8 validators per nominator (same as MaxValidators)
 	pub const MaxValidatorsPerNominator: usize = 8;
-	/// Issue 49 new tokens as rewards to validators every 2 minutes (round)
-	pub const IssuancePerRound: u128 = 49 * GLMR;
 	/// The maximum percent a validator can take off the top of its rewards is 50%
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
 	/// Minimum stake required to be reserved to be a validator is 5
@@ -324,12 +322,12 @@ parameter_types! {
 impl stake::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
+	type MonetaryPolicy = frame_system::EnsureRoot<AccountId>;
 	type BlocksPerRound = BlocksPerRound;
 	type BondDuration = BondDuration;
 	type MaxValidators = MaxValidators;
 	type MaxNominatorsPerValidator = MaxNominatorsPerValidator;
 	type MaxValidatorsPerNominator = MaxValidatorsPerNominator;
-	type IssuancePerRound = IssuancePerRound;
 	type MaxFee = MaxFee;
 	type MinValidatorStk = MinValidatorStk;
 	type MinNomination = MinNominatorStk;

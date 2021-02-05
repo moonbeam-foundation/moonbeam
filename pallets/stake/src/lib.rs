@@ -46,7 +46,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 mod inflation;
-use inflation::InflationSchedule;
+pub use inflation::InflationSchedule;
 #[cfg(test)]
 pub(crate) mod mock;
 mod set;
@@ -598,7 +598,7 @@ decl_module! {
 			expectations: InflationSchedule<BalanceOf<T>>,
 		) -> DispatchResult {
 			T::MonetaryPolicy::ensure_origin(origin)?;
-			ensure!(expectations.valid(), Error::<T>::InvalidSchedule);
+			ensure!(expectations.is_valid(), Error::<T>::InvalidSchedule);
 			Self::deposit_event(
 				RawEvent::InflationScheduleSet(
 					expectations.min,
@@ -615,7 +615,7 @@ decl_module! {
 			schedule: InflationSchedule<Perbill>
 		) -> DispatchResult {
 			T::MonetaryPolicy::ensure_origin(origin)?;
-			ensure!(schedule.valid(), Error::<T>::InvalidSchedule);
+			ensure!(schedule.is_valid(), Error::<T>::InvalidSchedule);
 			let round_issuance = inflation::per_round::<T>(schedule);
 			Self::deposit_event(
 				RawEvent::InflationScheduleSet(
