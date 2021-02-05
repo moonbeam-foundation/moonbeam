@@ -363,6 +363,8 @@ construct_runtime! {
 		EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
 		Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 		Stake: stake::{Module, Call, Storage, Event<T>, Config<T>},
+		// The order matters here. Inherents will be included in the order specified here.
+		// Concretely wee need the author inherent to come after the parachain_upgrade inherent.
 		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
 		AuthorFilter: pallet_author_filter::{Module, Storage, Event<T>,}
 	}

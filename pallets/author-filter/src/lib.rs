@@ -57,10 +57,13 @@ pub mod pallet {
 		type RandomnessSource: Randomness<H256>;
 	}
 
-	// This code will be called by the author-inherent pallet in its on-finalize block to check
-	// whether the reported author of this block is eligible at this height. We calculate that
-	// result on demand for the currently ending block and do not record it instorage (although
-	// we do emit a debugging event for now.)
+	// This code will be called by the author-inherent pallet to check whether the reported author
+	// of this block is eligible at this height. We calculate that result on demand and do not
+	// record it instorage (although we do emit a debugging event for now).
+	// This implementation relies on the relay parent's block number from the validation data
+	// inherent. Therefore the validation data inherent **must** be included before this check is
+	// performed. Concretely the validataion data inherent must be included before the author
+	// inherent.
 	impl<T: Config> author_inherent::CanAuthor<T::AccountId> for Pallet<T> {
 		fn can_author(account: &T::AccountId) -> bool {
 			let mut staked: Vec<T::AccountId> = stake::Module::<T>::validators();

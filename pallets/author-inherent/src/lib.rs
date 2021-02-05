@@ -53,7 +53,9 @@ pub trait Config: System {
 	/// Other pallets that want to be informed about block authorship
 	type EventHandler: EventHandler<Self::AccountId>;
 
-	/// Checks if account can be set as block author
+	/// Checks if account can be set as block author.
+	/// If the pallet that implements this trait depends on an inherent, that inherent **must**
+	/// be included before this one.
 	type CanAuthor: CanAuthor<Self::AccountId>;
 }
 
@@ -61,6 +63,8 @@ decl_error! {
 	pub enum Error for Module<T: Config> {
 		/// Author already set in block.
 		AuthorAlreadySet,
+		/// The author in the inherent is not an eligible author.
+		CannotBeAuthor,
 	}
 }
 
@@ -88,6 +92,7 @@ decl_module! {
 		fn set_author(origin, author: T::AccountId) {
 			ensure_none(origin)?;
 			ensure!(<Author<T>>::get().is_none(), Error::<T>::AuthorAlreadySet);
+			ensure!(T::CanAuthor::can_author(&author), Error::<T>::CannotBeAuthor);
 
 			// Update storage
 			Author::<T>::put(&author);
@@ -102,13 +107,6 @@ decl_module! {
 
 			// Notify any other pallets that are listening (eg rewards) about the author
 			T::EventHandler::note_author(author.clone());
-		}
-
-		fn on_finalize() {
-			assert!(
-				T::CanAuthor::can_author(&Author::<T>::get().expect("Author was set in block")),
-				"Author is not eligible in this block"
-			);
 		}
 	}
 }
