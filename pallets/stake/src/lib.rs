@@ -598,7 +598,7 @@ decl_module! {
 			origin,
 			expectations: Range<BalanceOf<T>>,
 		) -> DispatchResult {
-			T::MonetaryPolicy::ensure_origin(origin)?;
+			T::SetMonetaryPolicyOrigin::ensure_origin(origin)?;
 			ensure!(expectations.is_valid(), Error::<T>::InvalidSchedule);
 			Self::deposit_event(
 				RawEvent::InflationScheduleSet(
@@ -615,7 +615,7 @@ decl_module! {
 			origin,
 			schedule: Range<Perbill>
 		) -> DispatchResult {
-			T::MonetaryPolicy::ensure_origin(origin)?;
+			T::SetMonetaryPolicyOrigin::ensure_origin(origin)?;
 			ensure!(schedule.is_valid(), Error::<T>::InvalidSchedule);
 			let round_issuance = inflation::per_round::<T>(schedule);
 			Self::deposit_event(
@@ -1152,9 +1152,7 @@ impl<T: Config> Module<T> {
 
 /// Add reward points to block authors:
 /// * 20 points to the block producer for producing a block in the chain
-impl<T: Config> author_inherent::EventHandler<T::AccountId>
-	for Module<T>
-{
+impl<T: Config> author_inherent::EventHandler<T::AccountId> for Module<T> {
 	fn note_author(author: T::AccountId) {
 		let now = <Round>::get();
 		let score_plus_20 = <AwardedPts<T>>::get(now, &author) + 20;

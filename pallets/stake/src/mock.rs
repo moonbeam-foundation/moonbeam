@@ -108,7 +108,7 @@ parameter_types! {
 impl Config for Test {
 	type Event = MetaEvent;
 	type Currency = Balances;
-	type MonetaryPolicy = frame_system::EnsureRoot<Self::AccountId>;
+	type SetMonetaryPolicyOrigin = frame_system::EnsureRoot<Self::AccountId>;
 	type BlocksPerRound = BlocksPerRound;
 	type BondDuration = BondDuration;
 	type MaxValidators = MaxValidators;

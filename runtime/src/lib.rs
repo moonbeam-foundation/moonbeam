@@ -322,7 +322,7 @@ parameter_types! {
 impl stake::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
-	type MonetaryPolicy = frame_system::EnsureRoot<AccountId>;
+	type SetMonetaryPolicyOrigin = frame_system::EnsureRoot<AccountId>;
 	type BlocksPerRound = BlocksPerRound;
 	type BondDuration = BondDuration;
 	type MaxValidators = MaxValidators;
