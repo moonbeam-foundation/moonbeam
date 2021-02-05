@@ -2762,20 +2762,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "inflation"
-version = "0.1.1"
-dependencies = [
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "instant"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4128,7 +4114,6 @@ dependencies = [
  "frame-system",
  "frame-system-rpc-runtime-api",
  "hex-literal",
- "inflation",
  "log",
  "moonbeam-rpc-primitives-txpool",
  "pallet-aura",
@@ -9466,7 +9451,6 @@ dependencies = [
  "author-inherent",
  "frame-support",
  "frame-system",
- "inflation",
  "pallet-balances",
  "pallet-staking",
  "parity-scale-codec",

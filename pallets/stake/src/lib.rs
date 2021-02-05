@@ -45,7 +45,8 @@
 #![recursion_limit = "256"]
 #![cfg_attr(not(feature = "std"), no_std)]
 
-mod issuance;
+mod inflation;
+use inflation::InflationSchedule;
 #[cfg(test)]
 pub(crate) mod mock;
 mod set;
@@ -54,10 +55,9 @@ mod tests;
 use frame_support::{
 	decl_error, decl_event, decl_module, decl_storage, ensure,
 	storage::IterableStorageDoubleMap,
-	traits::{Currency, Get, Imbalance, ReservableCurrency},
+	traits::{Currency, EnsureOrigin, Get, Imbalance, ReservableCurrency},
 };
 use frame_system::{ensure_signed, Config as System};
-use inflation::{Config as Inflation, InflationSchedule, UpdateInflation};
 use pallet_staking::{Exposure, IndividualExposure};
 use parity_scale_codec::{Decode, Encode, HasCompact};
 use set::OrderedSet;
@@ -419,11 +419,13 @@ type RewardPoint = u32;
 type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as System>::AccountId>>::Balance;
 type Candidate<T> = Validator<<T as System>::AccountId, BalanceOf<T>>;
 
-pub trait Config: System + Inflation {
+pub trait Config: System {
 	/// The overarching event type
 	type Event: From<Event<Self>> + Into<<Self as System>::Event>;
 	/// The currency type
 	type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
+	/// The origin for setting inflation
+	type MonetaryPolicy: EnsureOrigin<Self::Origin>;
 	/// Number of blocks per round
 	type BlocksPerRound: Get<u32>;
 	/// Number of rounds that validators remain bonded before exit request is executed
@@ -481,7 +483,12 @@ decl_event!(
 		ValidatorNominated(AccountId, Balance, AccountId, Balance),
 		/// Nominator, Validator, Amount Unstaked, New Total Amt Staked for Validator
 		NominatorLeftValidator(AccountId, AccountId, Balance, Balance),
+		/// Paid the account (nominator or validator) the balance as liquid rewards
 		Rewarded(AccountId, Balance),
+		/// Inflation schedule set with the provided ideal issuance
+		InflationScheduleSet(Balance, Balance, Balance),
+		/// Staking expectations set
+		StakeExpectationsSet(Balance, Balance, Balance),
 	}
 );
 
@@ -506,6 +513,7 @@ decl_error! {
 		NominationDNE,
 		Underflow,
 		CannotSwitchToSameNomination,
+		InvalidSchedule,
 	}
 }
 
@@ -584,6 +592,41 @@ decl_module! {
 		type Error = Error<T>;
 		fn deposit_event() = default;
 
+		#[weight = 0]
+		fn set_staking_expectations(
+			origin,
+			expectations: InflationSchedule<BalanceOf<T>>,
+		) -> DispatchResult {
+			T::MonetaryPolicy::ensure_origin(origin)?;
+			ensure!(expectations.valid(), Error::<T>::InvalidSchedule);
+			Self::deposit_event(
+				RawEvent::InflationScheduleSet(
+					expectations.min,
+					expectations.ideal,
+					expectations.max
+				)
+			);
+			<StakeExpectations<T>>::put(expectations);
+			Ok(())
+		}
+		#[weight = 0]
+		fn set_inflation(
+			origin,
+			schedule: InflationSchedule<Perbill>
+		) -> DispatchResult {
+			T::MonetaryPolicy::ensure_origin(origin)?;
+			ensure!(schedule.valid(), Error::<T>::InvalidSchedule);
+			let round_issuance = inflation::per_round::<T>(schedule);
+			Self::deposit_event(
+				RawEvent::InflationScheduleSet(
+					round_issuance.min,
+					round_issuance.ideal,
+					round_issuance.max,
+				)
+			);
+			<RoundIssuance<T>>::put(round_issuance);
+			Ok(())
+		}
 		#[weight = 0]
 		fn join_candidates(
 			origin,
@@ -1120,12 +1163,5 @@ impl<T: Config + author_inherent::Config> author_inherent::EventHandler<T::Accou
 impl<T: Config + author_inherent::Config> author_inherent::CanAuthor<T::AccountId> for Module<T> {
 	fn can_author(account: &T::AccountId) -> bool {
 		Self::is_validator(account)
-	}
-}
-
-impl<T: Config> UpdateInflation for Module<T> {
-	fn update_inflation(inflation: InflationSchedule<Perbill>) {
-		let issuance = issuance::per_round::<T>(inflation);
-		<RoundIssuance<T>>::put(issuance);
 	}
 }

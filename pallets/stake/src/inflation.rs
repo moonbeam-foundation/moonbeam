@@ -1,12 +1,25 @@
 //! Helper methods for computing issuance based on inflation
-use crate::{BalanceOf, Config, Inflation};
+use crate::{BalanceOf, Config};
 use frame_support::traits::{Currency, Get};
-use inflation::InflationSchedule;
-use sp_runtime::Perbill;
+use parity_scale_codec::{Decode, Encode};
+use sp_runtime::{Perbill, RuntimeDebug};
 
 const SECONDS_PER_YEAR: u32 = 31557600;
 const SECONDS_PER_BLOCK: u32 = 6;
 const BLOCKS_PER_YEAR: u32 = SECONDS_PER_YEAR / SECONDS_PER_BLOCK;
+
+#[derive(Eq, PartialEq, Clone, Encode, Decode, Default, RuntimeDebug)]
+pub struct InflationSchedule<T: Ord> {
+	pub min: T,
+	pub ideal: T,
+	pub max: T,
+}
+
+impl<T: Ord> InflationSchedule<T> {
+	pub fn valid(&self) -> bool {
+		self.max >= self.ideal && self.ideal >= self.min
+	}
+}
 
 fn rounds_per_year<T: Config>() -> u32 {
 	BLOCKS_PER_YEAR / T::BlocksPerRound::get()
@@ -14,7 +27,7 @@ fn rounds_per_year<T: Config>() -> u32 {
 
 /// Convert annual inflation schedule to round issuance settings
 /// - called whenever the annual inflation schedule is changed to update round issuance
-pub fn per_round<T: Config + Inflation>(
+pub fn per_round<T: Config>(
 	schedule: InflationSchedule<Perbill>,
 ) -> InflationSchedule<BalanceOf<T>> {
 	let rounds_per_year = rounds_per_year::<T>();
@@ -32,9 +45,9 @@ pub fn per_round<T: Config + Inflation>(
 
 #[cfg(test)]
 mod tests {
-    // TODO: write a mock function with similar logic and test the conversion
-    #[test]
-    fn round_issuance_conversion() {
-        assert!(true);
-    }
+	// TODO: write a mock function with similar logic and test the conversion
+	#[test]
+	fn round_issuance_conversion() {
+		assert!(true);
+	}
 }

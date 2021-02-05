@@ -7,7 +7,6 @@ description = "staking pallet for validator selection and rewards"
 
 [dependencies]
 author-inherent = { path = "../author-inherent", default-features = false }
-inflation = { path = "../inflation", default-features = false }
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
@@ -25,7 +24,6 @@ sp-core = { git = "https://github.com/paritytech/substrate", branch = "master", 
 default = ["std"]
 std = [
 	"author-inherent/std",
-	"inflation/std",
 	"frame-support/std",
 	"frame-system/std",
 	"pallet-balances/std",
