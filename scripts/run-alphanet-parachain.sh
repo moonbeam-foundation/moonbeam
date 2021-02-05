@@ -81,7 +81,7 @@ $PARACHAIN_BINARY \
   --port $((PARACHAIN_PORT + 10)) \
   --rpc-port $((PARACHAIN_PORT + 10 + 1)) \
   --ws-port $((PARACHAIN_PORT + 10 + 2)) \
-  --validator \
+  --collator \
   --rpc-cors all \
   --rpc-methods=unsafe \
   --execution wasm \
@@ -89,7 +89,7 @@ $PARACHAIN_BINARY \
   --name parachain_$PARACHAIN_INDEX \
   $PARACHAIN_BASE_PATH \
   '-linfo,evm=debug,ethereum=trace,rpc=trace,cumulus_collator=debug,txpool=debug' \
-  --author-id 6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b \
+  --author-id 0x4c5a56ed5a4ff7b09aa86560afd7d383f4831cce \
   --chain $CHAIN \
   $PARACHAIN_BOOTNODES_ARGS \
   -- \

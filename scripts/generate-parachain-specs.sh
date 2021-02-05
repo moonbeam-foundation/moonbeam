@@ -4,6 +4,7 @@ source scripts/_init_var.sh
 echo "=================== Alphanet ==================="
 $PARACHAIN_BINARY build-spec \
   --disable-default-bootnode \
+  --chain 'local' \
   | grep '\"code\"' \
   | head -n1 > $ALPHANET_SPEC_TMP
 echo $ALPHANET_SPEC_TMP generated	
@@ -41,6 +42,7 @@ grep -v '/p2p/' specs/MoonbaseAlphaV5-Relay.json > \
 echo "\n=================== Stagenet ==================="
 $PARACHAIN_BINARY build-spec \
   --disable-default-bootnode \
+  --chain 'local' \
   | grep '\"code\"' \
   | head -n1 > $STAGENET_SPEC_TMP
 echo $STAGENET_SPEC_TMP generated	
