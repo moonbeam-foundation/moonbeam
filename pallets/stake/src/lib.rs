@@ -429,9 +429,9 @@ pub trait Config: System {
 	/// Maximum validators per round
 	type MaxValidators: Get<u32>;
 	/// Maximum nominators per validator
-	type MaxNominatorsPerValidator: Get<usize>;
+	type MaxNominatorsPerValidator: Get<u32>;
 	/// Maximum validators per nominator
-	type MaxValidatorsPerNominator: Get<usize>;
+	type MaxValidatorsPerNominator: Get<u32>;
 	/// Balance issued as rewards per round (constant issuance)
 	type IssuancePerRound: Get<BalanceOf<Self>>;
 	/// Maximum fee for any validator
@@ -575,6 +575,27 @@ decl_module! {
 	pub struct Module<T: Config> for enum Call where origin: T::Origin {
 		type Error = Error<T>;
 		fn deposit_event() = default;
+
+		/// A new round chooses a new validator set. Runtime config is 20 so every 2 minutes.
+		const BlocksPerRound: T::BlockNumber = T::BlocksPerRound::get();
+		/// Number of rounds that validators remain bonded before exit request is executed
+		const BondDuration: RoundIndex = T::BondDuration::get();
+		/// Maximum validators per round.
+		const MaxValidators: u32 = T::MaxValidators::get();
+		/// Maximum nominators per validator
+		const MaxNominatorsPerValidator: u32 = T::MaxNominatorsPerValidator::get();
+		/// Maximum validators per nominator
+		const MaxValidatorsPerNominator: u32 = T::MaxValidatorsPerNominator::get();
+		/// Balance issued as rewards per round (constant issuance)
+		const IssuancePerRound: BalanceOf<T> = T::IssuancePerRound::get();
+		/// Maximum fee for any validator
+		const MaxFee: Perbill = T::MaxFee::get();
+		/// Minimum stake for any registered on-chain account to become a validator
+		const MinValidatorStk: BalanceOf<T> = T::MinNominatorStk::get();
+		/// Minimum stake for any registered on-chain account to nominate
+		const MinNomination: BalanceOf<T> = T::MinNomination::get();
+		/// Minimum stake for any registered on-chain account to become a nominator
+		const MinNominatorStk: BalanceOf<T> = T::MinNominatorStk::get();
 
 		#[weight = 0]
 		fn join_candidates(
@@ -722,7 +743,7 @@ decl_module! {
 			ensure!(amount >= T::MinNomination::get(), Error::<T>::NominationBelowMin);
 			let mut nominator = <Nominators<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
 			ensure!(
-				nominator.nominations.0.len() < T::MaxValidatorsPerNominator::get(),
+				(nominator.nominations.0.len() as u32) < T::MaxValidatorsPerNominator::get(),
 				Error::<T>::ExceedMaxValidatorsPerNom
 			);
 			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
@@ -735,7 +756,7 @@ decl_module! {
 				amount,
 			};
 			ensure!(
-				state.nominators.0.len() < T::MaxNominatorsPerValidator::get(),
+				(state.nominators.0.len() as u32) < T::MaxNominatorsPerValidator::get(),
 				Error::<T>::TooManyNominators
 			);
 			ensure!(
@@ -891,7 +912,7 @@ impl<T: Config> Module<T> {
 			Error::<T>::NominatorExists
 		);
 		ensure!(
-			state.nominators.0.len() <= T::MaxNominatorsPerValidator::get(),
+			(state.nominators.0.len() as u32) <= T::MaxNominatorsPerValidator::get(),
 			Error::<T>::TooManyNominators
 		);
 		T::Currency::reserve(&nominator, amount)?;

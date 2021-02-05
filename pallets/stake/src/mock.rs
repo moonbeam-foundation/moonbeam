@@ -98,8 +98,8 @@ parameter_types! {
 	pub const BlocksPerRound: u32 = 5;
 	pub const BondDuration: u32 = 2;
 	pub const MaxValidators: u32 = 5;
-	pub const MaxNominatorsPerValidator: usize = 4;
-	pub const MaxValidatorsPerNominator: usize = 4;
+	pub const MaxNominatorsPerValidator: u32 = 4;
+	pub const MaxValidatorsPerNominator: u32 = 4;
 	pub const IssuancePerRound: u128 = 10;
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
 	pub const MinValidatorStk: u128 = 10;
