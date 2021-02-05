@@ -1163,7 +1163,7 @@ impl<T: Config> author_inherent::EventHandler<T::AccountId>
 	}
 }
 
-impl<T: Config + author_inherent::Config> author_inherent::CanAuthor<T::AccountId> for Module<T> {
+impl<T: Config> author_inherent::CanAuthor<T::AccountId> for Module<T> {
 	fn can_author(account: &T::AccountId) -> bool {
 		Self::is_validator(account)
 	}
