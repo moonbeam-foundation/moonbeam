@@ -18,7 +18,7 @@
 
 use crate::mock_timestamp::MockTimestampInherentDataProvider;
 use fc_consensus::FrontierBlockImport;
-use fc_rpc_core::types::PendingTransactions;
+use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use moonbeam_runtime::{self, opaque::Block, RuntimeApi};
 use parity_scale_codec::Encode;
 use sc_client_api::{BlockchainEvents, ExecutorProvider, RemoteBackend};
@@ -31,7 +31,7 @@ use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
 use sp_core::H160;
 use sp_inherents::InherentDataProviders;
 use std::{
-	collections::HashMap,
+	collections::{HashMap, BTreeMap},
 	sync::{Arc, Mutex},
 	time::Duration,
 };
@@ -102,7 +102,7 @@ pub fn new_partial(
 		FullSelectChain,
 		sp_consensus::import_queue::BasicQueue<Block, sp_api::TransactionFor<FullClient, Block>>,
 		sc_transaction_pool::FullPool<Block, FullClient>,
-		(ConsensusResult, PendingTransactions),
+		(ConsensusResult, PendingTransactions, Option<FilterPool>),
 	>,
 	ServiceError,
 > {
@@ -122,6 +122,8 @@ pub fn new_partial(
 	);
 
 	let pending_transactions: PendingTransactions = Some(Arc::new(Mutex::new(HashMap::new())));
+
+	let filter_pool: Option<FilterPool> = Some(Arc::new(Mutex::new(BTreeMap::new())));
 
 	if manual_seal {
 		let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone(), true);
@@ -144,6 +146,7 @@ pub fn new_partial(
 			other: (
 				ConsensusResult::ManualSeal(frontier_block_import),
 				pending_transactions,
+				filter_pool,
 			),
 		});
 	}
@@ -185,6 +188,7 @@ pub fn new_partial(
 		other: (
 			ConsensusResult::Aura(aura_block_import, grandpa_link),
 			pending_transactions,
+			filter_pool,
 		),
 	})
 }
@@ -204,7 +208,7 @@ pub fn new_full(
 		select_chain,
 		transaction_pool,
 		inherent_data_providers,
-		other: (consensus_result, pending_transactions),
+		other: (consensus_result, pending_transactions, filter_pool),
 	} = new_partial(&config, manual_seal, author_id)?;
 
 	let (network, network_status_sinks, system_rpc_tx, network_starter) = match consensus_result {
@@ -250,7 +254,6 @@ pub fn new_full(
 	let name = config.network.node_name.clone();
 	let enable_grandpa = !config.disable_grandpa;
 	let prometheus_registry = config.prometheus_registry().cloned();
-	let telemetry_connection_sinks = sc_service::TelemetryConnectionSinks::default();
 	let is_authority = role.is_authority();
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
@@ -269,19 +272,19 @@ pub fn new_full(
 				is_authority,
 				network: network.clone(),
 				pending_transactions: pending.clone(),
+				filter_pool: filter_pool.clone(),
 				command_sink: Some(command_sink.clone()),
 			};
 			moonbeam_rpc::create_full(deps, subscription_task_executor.clone())
 		})
 	};
 
-	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
+	let (_rpc_handlers, telemetry_connection_notifier) = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		network: network.clone(),
 		client: client.clone(),
 		keystore: keystore_container.sync_keystore(),
 		task_manager: &mut task_manager,
 		transaction_pool: transaction_pool.clone(),
-		telemetry_connection_sinks: telemetry_connection_sinks.clone(),
 		rpc_extensions_builder: rpc_extensions_builder,
 		on_demand: None,
 		remote_blockchain: None,
@@ -427,7 +430,7 @@ pub fn new_full(
 						config: grandpa_config,
 						link: grandpa_link,
 						network,
-						telemetry_on_connect: Some(telemetry_connection_sinks.on_connect_stream()),
+						telemetry_on_connect: telemetry_connection_notifier.map(|x| x.on_connect_stream()),
 						voting_rule: sc_finality_grandpa::VotingRulesBuilder::default().build(),
 						prometheus_registry,
 						shared_voter_state: SharedVoterState::empty(),
@@ -510,13 +513,12 @@ pub fn new_light(config: Configuration) -> Result<TaskManager, ServiceError> {
 		);
 	}
 
-	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
+	let (_rpc_handlers, _telemetry_connection_notifier) = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		remote_blockchain: Some(backend.remote_blockchain()),
 		transaction_pool,
 		task_manager: &mut task_manager,
 		on_demand: Some(on_demand),
 		rpc_extensions_builder: Box::new(sc_service::NoopRpcExtensionBuilder(rpc_extensions)),
-		telemetry_connection_sinks: sc_service::TelemetryConnectionSinks::default(),
 		config,
 		client,
 		keystore: keystore_container.sync_keystore(),
