@@ -63,7 +63,7 @@ pub mod pallet {
 		fn can_author(account: &T::AccountId) -> bool {
 			let mut staked: Vec<T::AccountId> = stake::Module::<T>::validators();
 
-			let num_eligible = EligibleRatio::<T>::get() * staked.len();
+			let num_eligible = EligibleRatio::<T>::get().mul_ceil(staked.len());
 			let mut eligible = Vec::with_capacity(num_eligible);
 
 			//TODO actually grab the relay parent height and mod it into a u8
