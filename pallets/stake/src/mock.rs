@@ -127,15 +127,21 @@ fn genesis(
 	balances: Vec<(AccountId, Balance)>,
 	stakers: Vec<(AccountId, Option<AccountId>, Balance)>,
 ) -> sp_io::TestExternalities {
-	let stake_expectations: Range<Balance> = Range {
+	let expect: Range<Balance> = Range {
 		min: 700,
 		ideal: 700,
 		max: 700,
 	};
-	let round_issuance: Range<Balance> = Range {
+	let round: Range<Balance> = Range {
 		min: 10,
 		ideal: 10,
 		max: 10,
+	};
+	let inflation_config: InflationSchedule<Balance> = InflationSchedule {
+		base: 0,                        // not used in tests
+		annual: Perbill::zero().into(), // not used in tests
+		expect,
+		round,
 	};
 	let mut storage = frame_system::GenesisConfig::default()
 		.build_storage::<Test>()
@@ -144,8 +150,7 @@ fn genesis(
 	genesis.assimilate_storage(&mut storage).unwrap();
 	GenesisConfig::<Test> {
 		stakers,
-		stake_expectations,
-		round_issuance,
+		inflation_config,
 	}
 	.assimilate_storage(&mut storage)
 	.unwrap();

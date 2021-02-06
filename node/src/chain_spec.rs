@@ -116,8 +116,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 fn testnet_genesis(
 	root_key: AccountId,
 	stakers: Vec<(AccountId, Option<AccountId>, Balance)>,
-	stake_expectations: Range<Balance>,
-	round_issuance: Range<Balance>,
+	inflation_config: InflationSchedule<Balance>,
 	endowed_accounts: Vec<AccountId>,
 	para_id: ParaId,
 	chain_id: u64,
@@ -145,6 +144,6 @@ fn testnet_genesis(
 			accounts: BTreeMap::new(),
 		}),
 		pallet_ethereum: Some(EthereumConfig {}),
-		stake: Some(StakeConfig { stakers, stake_expectations, round_issuance }),
+		stake: Some(StakeConfig { stakers, inflation_config }),
 	}
 }

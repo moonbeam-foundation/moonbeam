@@ -46,7 +46,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 mod inflation;
-pub use inflation::Range;
+pub use inflation::{InflationSchedule, Range};
 #[cfg(test)]
 pub(crate) mod mock;
 mod set;
@@ -538,13 +538,11 @@ decl_storage! {
 		AtStake: double_map
 			hasher(blake2_128_concat) RoundIndex,
 			hasher(blake2_128_concat) T::AccountId => Exposure<T::AccountId,BalanceOf<T>>;
-		/// Snapshot of total staked in this round
+		/// Snapshot of total staked in this round; used to determine round issuance
 		Staked: map
 			hasher(blake2_128_concat) RoundIndex => BalanceOf<T>;
-		/// Staking expectations
-		StakeExpectations get(fn stake_expectations) config(): Range<BalanceOf<T>>;
-		/// Issuance per round
-		RoundIssuance get(fn round_issuance) config(): Range<BalanceOf<T>>;
+		/// Inflation parameterization, which contains round issuance and stake expectations
+		InflationConfig get(fn inflation_config) config(): InflationSchedule<BalanceOf<T>>;
 		/// Total points awarded in this round
 		Points: map
 			hasher(blake2_128_concat) RoundIndex => RewardPoint;
@@ -576,10 +574,11 @@ decl_storage! {
 					)
 				};
 			}
+			// Choose top `MaxValidator`s from validator candidates
 			let (v_count, total_staked) = <Module<T>>::best_candidates_become_validators(1u32);
-			// start Round 1 at Block 0
+			// Start Round 1 at Block 0
 			<Round>::put(1u32);
-			// snapshot total stake
+			// Snapshot total stake
 			<Staked<T>>::insert(1u32, <Total<T>>::get());
 			<Module<T>>::deposit_event(
 				RawEvent::NewRound(T::BlockNumber::zero(), 1u32, v_count, total_staked)
@@ -593,6 +592,8 @@ decl_module! {
 		type Error = Error<T>;
 		fn deposit_event() = default;
 
+		/// Set the expectations for total staked. These expectations determine the issuance for
+		/// the round according to logic in `fn compute_issuance`
 		#[weight = 0]
 		fn set_staking_expectations(
 			origin,
@@ -600,16 +601,20 @@ decl_module! {
 		) -> DispatchResult {
 			T::SetMonetaryPolicyOrigin::ensure_origin(origin)?;
 			ensure!(expectations.is_valid(), Error::<T>::InvalidSchedule);
+			let mut config = <InflationConfig<T>>::get();
+			config.set_expectations(expectations);
 			Self::deposit_event(
-				RawEvent::InflationScheduleSet(
-					expectations.min,
-					expectations.ideal,
-					expectations.max
+				RawEvent::StakeExpectationsSet(
+					config.expect.min,
+					config.expect.ideal,
+					config.expect.max
 				)
 			);
-			<StakeExpectations<T>>::put(expectations);
+			<InflationConfig<T>>::put(config);
 			Ok(())
 		}
+		/// (Re)set the annual inflation and update round issuance accordingly
+		/// NOTE: does not update config.base because that would lead to _compounding_ inflation
 		#[weight = 0]
 		fn set_inflation(
 			origin,
@@ -617,17 +622,37 @@ decl_module! {
 		) -> DispatchResult {
 			T::SetMonetaryPolicyOrigin::ensure_origin(origin)?;
 			ensure!(schedule.is_valid(), Error::<T>::InvalidSchedule);
-			let round_issuance = inflation::per_round::<T>(schedule);
+			let mut config = <InflationConfig<T>>::get();
+			config.set_rate::<T>(schedule);
 			Self::deposit_event(
 				RawEvent::InflationScheduleSet(
-					round_issuance.min,
-					round_issuance.ideal,
-					round_issuance.max,
+					config.round.min,
+					config.round.ideal,
+					config.round.max,
 				)
 			);
-			<RoundIssuance<T>>::put(round_issuance);
+			<InflationConfig<T>>::put(config);
 			Ok(())
 		}
+		/// Must be called upon a new year to update the round issuance based on new circulating
+		/// WARNING: if called more than once per year, will lead to _compounding_ inflation
+		#[weight = 0]
+		fn update_inflation_base(origin) -> DispatchResult {
+			T::SetMonetaryPolicyOrigin::ensure_origin(origin)?;
+			let mut config = <InflationConfig<T>>::get();
+			config.set_base::<T>(T::Currency::total_issuance());
+			Self::deposit_event(
+				RawEvent::InflationScheduleSet(
+					config.round.min,
+					config.round.ideal,
+					config.round.max,
+				)
+			);
+			<InflationConfig<T>>::put(config);
+			Ok(())
+		}
+		/// Join the set of validator candidates by bonding at least `MinValidatorStk` and 
+		/// setting commission fee below the `MaxFee`
 		#[weight = 0]
 		fn join_candidates(
 			origin,
@@ -653,6 +678,9 @@ decl_module! {
 			Self::deposit_event(RawEvent::JoinedValidatorCandidates(acc, bond, new_total));
 			Ok(())
 		}
+		/// Request to leave the set of candidates. If successful, the account is immediately
+		/// removed from the candidate pool to prevent selection as a validator, but unbonding is
+		/// executed with a delay of `BondDuration` rounds.
 		#[weight = 0]
 		fn leave_candidates(origin) -> DispatchResult {
 			let validator = ensure_signed(origin)?;
@@ -931,20 +959,19 @@ impl<T: Config> Module<T> {
 		});
 		<CandidatePool<T>>::put(candidates);
 	}
-	// calculate total issuance based on total staked for the given round
+	// Calculate total issuance based on total staked for the given round
 	fn compute_issuance(staked: BalanceOf<T>) -> BalanceOf<T> {
-		let expectation = <StakeExpectations<T>>::get();
-		let issuance = <RoundIssuance<T>>::get();
-		if staked < expectation.min {
-			return issuance.min;
-		} else if staked > expectation.max {
-			return issuance.max;
+		let config = <InflationConfig<T>>::get();
+		if staked < config.expect.min {
+			return config.round.min;
+		} else if staked > config.expect.max {
+			return config.round.max;
 		} else {
 			// TODO: split up into 3 branches
 			// 1. min < staked < ideal
 			// 2. ideal < staked < max
 			// 3. staked == ideal
-			return issuance.ideal;
+			return config.round.ideal;
 		}
 	}
 	fn nominator_joins_validator(
