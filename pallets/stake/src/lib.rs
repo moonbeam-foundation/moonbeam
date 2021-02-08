@@ -651,8 +651,8 @@ decl_module! {
 			);
 			<InflationConfig<T>>::put(config);
 			Ok(())
-	}
-	/// Join the set of validator candidates by bonding at least `MinValidatorStk` and
+		}
+		/// Join the set of validator candidates by bonding at least `MinValidatorStk` and
 		/// setting commission fee below the `MaxFee`
 		#[weight = 0]
 		fn join_candidates(
