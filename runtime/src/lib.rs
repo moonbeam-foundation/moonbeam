@@ -110,7 +110,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase-alphanet"),
 	impl_name: create_runtime_str!("moonbase-alphanet"),
 	authoring_version: 3,
-	spec_version: 18,
+	spec_version: 19,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -399,7 +399,12 @@ impl stake::Config for Runtime {
 }
 impl author_inherent::Config for Runtime {
 	type EventHandler = Stake;
-	type CanAuthor = Stake;
+	type CanAuthor = AuthorFilter;
+}
+
+impl pallet_author_filter::Config for Runtime {
+	type Event = Event;
+	type RandomnessSource = RandomnessCollectiveFlip;
 }
 
 construct_runtime! {
@@ -420,9 +425,12 @@ construct_runtime! {
 		EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
 		Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 		Stake: stake::{Module, Call, Storage, Event<T>, Config<T>},
-		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
 		Scheduler: pallet_scheduler::{Module, Storage, Config, Event<T>, Call},
 		Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
+		// The order matters here. Inherents will be included in the order specified here.
+		// Concretely wee need the author inherent to come after the parachain_upgrade inherent.
+		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
+		AuthorFilter: pallet_author_filter::{Module, Storage, Event<T>,}
 	}
 }
 
