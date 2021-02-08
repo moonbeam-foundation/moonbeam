@@ -159,7 +159,7 @@ fn testnet_genesis(
 			accounts: BTreeMap::new(),
 		}),
 		pallet_ethereum: Some(EthereumConfig {}),
-    pallet_democracy: Some(DemocracyConfig {}),
+		pallet_democracy: Some(DemocracyConfig {}),
 		pallet_scheduler: Some(SchedulerConfig {}),
 		stake: Some(StakeConfig {
 			stakers,
