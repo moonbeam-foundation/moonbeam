@@ -16,9 +16,9 @@
 
 use cumulus_primitives::ParaId;
 use moonbeam_runtime::{
-	AccountId, BalancesConfig, DemocracyConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig,
-	GenesisConfig, ParachainInfoConfig, SchedulerConfig, StakeConfig, SudoConfig, SystemConfig,
-	GLMR, WASM_BINARY,
+	AccountId, Balance, BalancesConfig, DemocracyConfig, EVMConfig, EthereumChainIdConfig,
+	EthereumConfig, GenesisConfig, ParachainInfoConfig, SchedulerConfig, StakeConfig, SudoConfig,
+	SystemConfig, GLMR, WASM_BINARY,
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
@@ -54,6 +54,12 @@ pub fn development_chain_spec() -> ChainSpec {
 		move || {
 			testnet_genesis(
 				AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
+				// Validator
+				vec![(
+					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
+					None,
+					100_000 * GLMR,
+				)],
 				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
 				Default::default(), // para_id
 				1281,               //ChainId
@@ -80,6 +86,12 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		move || {
 			testnet_genesis(
 				AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
+				// Validator
+				vec![(
+					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
+					None,
+					100_000 * GLMR,
+				)],
 				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
 				para_id,
 				1280, //ChainId
@@ -98,6 +110,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 
 fn testnet_genesis(
 	root_key: AccountId,
+	stakers: Vec<(AccountId, Option<AccountId>, Balance)>,
 	endowed_accounts: Vec<AccountId>,
 	para_id: ParaId,
 	chain_id: u64,
@@ -125,15 +138,8 @@ fn testnet_genesis(
 			accounts: BTreeMap::new(),
 		}),
 		pallet_ethereum: Some(EthereumConfig {}),
-
-		stake: Some(StakeConfig {
-			stakers: endowed_accounts
-				.iter()
-				.cloned()
-				.map(|k| (k, None, 100_000 * GLMR))
-				.collect(),
-		}),
 		pallet_democracy: Some(DemocracyConfig {}),
 		pallet_scheduler: Some(SchedulerConfig {}),
+		stake: Some(StakeConfig { stakers }),
 	}
 }

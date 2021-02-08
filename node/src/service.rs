@@ -224,12 +224,13 @@ where
 						// As pending transactions have a finite lifespan anyway
 						// we can ignore MultiplePostRuntimeLogs error checks.
 						let mut frontier_log: Option<_> = None;
-						for log in notification.header.digest.logs {
+						for log in notification.header.digest.logs.iter().rev() {
 							let log = log.try_to::<ConsensusLog>(OpaqueDigestItemId::Consensus(
 								&FRONTIER_ENGINE_ID,
 							));
-							if let Some(log) = log {
-								frontier_log = Some(log);
+							if log.is_some() {
+								frontier_log = log;
+								break;
 							}
 						}
 
