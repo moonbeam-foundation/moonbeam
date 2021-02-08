@@ -62,7 +62,7 @@ pub mod pallet {
 	// record it instorage (although we do emit a debugging event for now).
 	// This implementation relies on the relay parent's block number from the validation data
 	// inherent. Therefore the validation data inherent **must** be included before this check is
-	// performed. Concretely the validataion data inherent must be included before the author
+	// performed. Concretely the validation data inherent must be included before the author
 	// inherent.
 	impl<T: Config> author_inherent::CanAuthor<T::AccountId> for Pallet<T> {
 		fn can_author(account: &T::AccountId) -> bool {
