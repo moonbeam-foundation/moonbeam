@@ -129,7 +129,7 @@ pub fn native_version() -> NativeVersion {
 	}
 }
 
-const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
+const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(65);
 
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 250;
@@ -235,7 +235,7 @@ impl pallet_ethereum_chain_id::Config for Runtime {}
 /// EVM execution over compiled WASM (on 4.4Ghz CPU).
 /// Given the 500ms Weight, from which 75% only are used for transactions,
 /// the total EVM execution gas limit is: GAS_PER_SECOND * 0.500 * 0.75 => 12_500_000.
-pub const GAS_PER_SECOND: u64 = 33_333_333;
+pub const GAS_PER_SECOND: u64 = 39_000_000;
 
 /// Approximate ratio of the amount of Weight per Gas.
 /// u64 works for approximations because Weight is a very small unit compared to gas.
