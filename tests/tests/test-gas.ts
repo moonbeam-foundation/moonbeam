@@ -42,28 +42,6 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
     ).to.equal(91019);
   });
 
-  it.skip("block gas limit over 5M", async function () {
-    expect((await context.web3.eth.getBlock("latest")).gasLimit).to.be.above(5000000);
-  });
-
-  // Testing the gas limit protection, hardcoded to 25M
-  it.skip("gas limit should decrease on next block if gas unused", async function () {
-    this.timeout(15000);
-
-    const gasLimit = (await context.web3.eth.getBlock("latest")).gasLimit;
-    await createAndFinalizeBlock(context.polkadotApi);
-
-    // Gas limit is expected to have decreased as the gasUsed by the block is lower than 2/3 of the
-    // previous gas limit.
-    const newGasLimit = (await context.web3.eth.getBlock("latest")).gasLimit;
-    expect(newGasLimit).to.be.below(gasLimit);
-  });
-
-  // Testing the gas limit protection, hardcoded to 25M
-  it.skip("gas limit should increase on next block if gas fully used", async function () {
-    // TODO: fill a block with many heavy transaction to simulate lot of gas.
-  });
-
   it("eth_estimateGas for contract call", async function () {
     const contract = new context.web3.eth.Contract([TEST_CONTRACT_ABI], FIRST_CONTRACT_ADDRESS, {
       from: GENESIS_ACCOUNT,

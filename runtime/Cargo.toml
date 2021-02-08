@@ -51,6 +51,9 @@ pallet-grandpa = { default-features = false, git = "https://github.com/paritytec
 pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.6-moonbeam" }
 fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.6-moonbeam" }
 
+pallet-democracy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+
 moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool", default-features = false }
 
 # Cumulus dependencies
@@ -71,12 +74,6 @@ default = [
 	"std"
 	# parachain-only dependencies can't be conditionally included here.
 	# Default feature dependencies must not be optional (aparently)
-]
-# Standalone runtime is enabled by a feature
-standalone = [
-	"pallet-aura",
-	"sp-consensus-aura",
-	"pallet-grandpa",
 ]
 std = [
 	"parity-scale-codec/std",
@@ -107,24 +104,13 @@ std = [
 	"frame-system-rpc-runtime-api/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-ethereum-chain-id/std",
+	"pallet-democracy/std",
+	"pallet-scheduler/std",
 	"author-inherent/std",
-
-	# TODO These dependencies are only necessary when building without the standalone feature. I don't
-	# see a way to express that. Everything is correct, like this, but we unnecessarily build these
-	# dependencies when building the standalone runtime which is a big waste of CPU time as one of them
-	# builds all the polkadot runtimes. See https://github.com/paritytech/cumulus/issues/175
 	"parachain-info/std",
 	"cumulus-runtime/std",
 	"cumulus-parachain-system/std",
-	# "cumulus-message-broker/std",
-	# "cumulus-upward-message/std",
 	"cumulus-primitives/std",
-	# "cumulus-token-dealer/std",
-	# TODO These dependencies are only necessary when _both_  the `std` _and_ `standalone` features
-	# are enabled. I don't see a way to express that. Everything is correct, like this, but we
-	# unnecessarily build these dependencies when building the parachain runtime.
-	"pallet-aura/std",
-	"pallet-grandpa/std",
 	"account/std",
 	"stake/std",
 ]

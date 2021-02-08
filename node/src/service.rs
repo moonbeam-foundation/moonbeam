@@ -21,14 +21,12 @@ use cumulus_service::{
 use fc_consensus::FrontierBlockImport;
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use moonbeam_runtime::{opaque::Block, RuntimeApi};
-use parity_scale_codec::Encode;
 use polkadot_primitives::v0::CollatorPair;
 use sc_client_api::BlockchainEvents;
 use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
 use sc_service::{Configuration, PartialComponents, Role, TFullBackend, TFullClient, TaskManager};
 use sp_core::{Pair, H160};
-use sp_inherents::InherentDataProviders;
 use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
 use std::{
@@ -41,26 +39,6 @@ native_executor_instance!(
 	moonbeam_runtime::api::dispatch,
 	moonbeam_runtime::native_version,
 );
-
-/// Build the inherent data providers (timestamp and authorship) for the node.
-pub fn build_inherent_data_providers(
-	author: Option<H160>,
-) -> Result<InherentDataProviders, sc_service::Error> {
-	let providers = InherentDataProviders::new();
-
-	providers
-		.register_provider(sp_timestamp::InherentDataProvider)
-		.map_err(Into::into)
-		.map_err(sp_consensus::error::Error::InherentData)?;
-	if let Some(account) = author {
-		providers
-			.register_provider(author_inherent::InherentDataProvider(account.encode()))
-			.map_err(Into::into)
-			.map_err(sp_consensus::error::Error::InherentData)?;
-	}
-
-	Ok(providers)
-}
 
 type FullClient = TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = TFullBackend<Block>;
@@ -88,7 +66,7 @@ pub fn new_partial(
 	>,
 	sc_service::Error,
 > {
-	let inherent_data_providers = build_inherent_data_providers(author)?;
+	let inherent_data_providers = crate::inherents::build_inherent_data_providers(author, false)?;
 
 	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, RuntimeApi, Executor>(&config)?;
@@ -203,7 +181,7 @@ where
 		let pending = pending_transactions.clone();
 		let filter_pool = filter_pool.clone();
 		Box::new(move |deny_unsafe, _| {
-			let deps = moonbeam_rpc::FullDeps {
+			let deps = crate::rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
 				graph: pool.pool().clone(),
@@ -215,7 +193,7 @@ where
 				command_sink: None,
 			};
 
-			moonbeam_rpc::create_full(deps, subscription_task_executor.clone())
+			crate::rpc::create_full(deps, subscription_task_executor.clone())
 		})
 	};
 
@@ -274,12 +252,13 @@ where
 						// As pending transactions have a finite lifespan anyway
 						// we can ignore MultiplePostRuntimeLogs error checks.
 						let mut frontier_log: Option<_> = None;
-						for log in notification.header.digest.logs {
+						for log in notification.header.digest.logs.iter().rev() {
 							let log = log.try_to::<ConsensusLog>(OpaqueDigestItemId::Consensus(
 								&FRONTIER_ENGINE_ID,
 							));
-							if let Some(log) = log {
-								frontier_log = Some(log);
+							if log.is_some() {
+								frontier_log = log;
+								break;
 							}
 						}
 

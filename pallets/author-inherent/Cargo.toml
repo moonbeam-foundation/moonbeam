@@ -15,6 +15,10 @@ sp-inherents = { git = "https://github.com/paritytech/substrate", branch = "mast
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
 
+[dev-dependencies]
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
+
 [features]
 default = ["std"]
 std = [

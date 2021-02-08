@@ -21,7 +21,9 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::{
-	decl_error, decl_event, decl_module, decl_storage, ensure, weights::DispatchClass,
+	decl_error, decl_module, decl_storage, ensure,
+	traits::FindAuthor,
+	weights::{DispatchClass, Weight},
 };
 use frame_system::{ensure_none, Config as System};
 use parity_scale_codec::{Decode, Encode};
@@ -47,24 +49,11 @@ impl<T> CanAuthor<T> for () {
 }
 
 pub trait Config: System {
-	/// Event type used by the runtime.
-	type Event: From<Event<Self>> + Into<<Self as System>::Event>;
-
 	/// Other pallets that want to be informed about block authorship
 	type EventHandler: EventHandler<Self::AccountId>;
 
 	/// Checks if account can be set as block author
 	type CanAuthor: CanAuthor<Self::AccountId>;
-}
-
-decl_event! {
-	pub enum Event<T> where
-		AccountId = <T as System>::AccountId,
-		BlockNumber = <T as System>::BlockNumber,
-	{
-		/// Author, Block Height
-		AuthorSet(AccountId, BlockNumber),
-	}
 }
 
 decl_error! {
@@ -86,7 +75,11 @@ decl_storage! {
 decl_module! {
 	pub struct Module<T: Config> for enum Call where origin: T::Origin {
 		type Error = Error<T>;
-		fn deposit_event() = default;
+
+		fn on_initialize() -> Weight {
+			<Author<T>>::kill();
+			0
+		}
 
 		/// Inherent to set the author of a block
 		#[weight = (
@@ -97,8 +90,6 @@ decl_module! {
 			ensure_none(origin)?;
 			ensure!(<Author<T>>::get().is_none(), Error::<T>::AuthorAlreadySet);
 			ensure!(T::CanAuthor::can_author(&author), Error::<T>::CannotBeAuthor);
-
-			let current_block = frame_system::Module::<T>::block_number();
 
 			// Update storage
 			Author::<T>::put(&author);
@@ -112,15 +103,19 @@ decl_module! {
 			));
 
 			// Notify any other pallets that are listening (eg rewards) about the author
-			T::EventHandler::note_author(author.clone());
-
-			Self::deposit_event(Event::<T>::AuthorSet(author, current_block));
+			T::EventHandler::note_author(author);
 		}
+	}
+}
 
-		fn on_finalize() {
-			// Do we still need this now that it is required?
-			assert!(<Author<T>>::take().is_some(), "Author inherent must be in the block");
-		}
+impl<T: Config> FindAuthor<T::AccountId> for Module<T> {
+	fn find_author<'a, I>(_digests: I) -> Option<T::AccountId>
+	where
+		I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
+	{
+		// We don't use the digests at all.
+		// This will only return the correct author _after_ the authorship inherent is processed.
+		<Author<T>>::get()
 	}
 }
 
@@ -220,5 +215,106 @@ impl<T: Config> ProvideInherent for Module<T> {
 		}
 
 		Ok(())
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	use frame_support::{
+		assert_noop, assert_ok, impl_outer_origin, parameter_types,
+		traits::{OnFinalize, OnInitialize},
+	};
+	use sp_core::H256;
+	use sp_io::TestExternalities;
+	use sp_runtime::{
+		testing::Header,
+		traits::{BlakeTwo256, IdentityLookup},
+	};
+
+	pub fn new_test_ext() -> TestExternalities {
+		let t = frame_system::GenesisConfig::default()
+			.build_storage::<Test>()
+			.unwrap();
+		TestExternalities::new(t)
+	}
+
+	impl_outer_origin! {
+		pub enum Origin for Test where system = frame_system {}
+	}
+
+	mod author_inherent {
+		pub use super::super::*;
+	}
+
+	impl<T> EventHandler<T> for () {
+		fn note_author(_author: T) {}
+	}
+
+	#[derive(Clone, Eq, PartialEq)]
+	pub struct Test;
+	parameter_types! {
+		pub const BlockHashCount: u64 = 250;
+	}
+	impl System for Test {
+		type BaseCallFilter = ();
+		type BlockWeights = ();
+		type BlockLength = ();
+		type DbWeight = ();
+		type Origin = Origin;
+		type Index = u64;
+		type BlockNumber = u64;
+		type Call = ();
+		type Hash = H256;
+		type Hashing = BlakeTwo256;
+		type AccountId = u64;
+		type Lookup = IdentityLookup<Self::AccountId>;
+		type Header = Header;
+		type Event = ();
+		type BlockHashCount = BlockHashCount;
+		type Version = ();
+		type PalletInfo = ();
+		type AccountData = ();
+		type OnNewAccount = ();
+		type OnKilledAccount = ();
+		type SystemWeightInfo = ();
+		type SS58Prefix = ();
+	}
+	impl Config for Test {
+		type EventHandler = ();
+		type CanAuthor = ();
+	}
+	type AuthorInherent = Module<Test>;
+	type Sys = frame_system::Module<Test>;
+
+	pub fn roll_to(n: u64) {
+		while Sys::block_number() < n {
+			Sys::on_finalize(Sys::block_number());
+			Sys::set_block_number(Sys::block_number() + 1);
+			Sys::on_initialize(Sys::block_number());
+			AuthorInherent::on_initialize(Sys::block_number());
+		}
+	}
+
+	#[test]
+	fn set_author_works() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(AuthorInherent::set_author(Origin::none(), 1));
+			roll_to(1);
+			assert_ok!(AuthorInherent::set_author(Origin::none(), 1));
+			roll_to(2);
+		});
+	}
+
+	#[test]
+	fn double_author_fails() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(AuthorInherent::set_author(Origin::none(), 1));
+			assert_noop!(
+				AuthorInherent::set_author(Origin::none(), 1),
+				Error::<Test>::AuthorAlreadySet
+			);
+		});
 	}
 }

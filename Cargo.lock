@@ -381,7 +381,9 @@ dependencies = [
  "frame-system",
  "parity-scale-codec 2.0.0",
  "sp-authorship",
+ "sp-core",
  "sp-inherents",
+ "sp-io",
  "sp-runtime",
  "sp-std",
 ]
@@ -1255,6 +1257,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "cumulus-test-relay-sproof-builder"
+version = "0.1.0"
+source = "git+https://github.com/paritytech/cumulus#464e54affd89eeddaf14fa6820be56dd83f18093"
+dependencies = [
+ "cumulus-primitives",
+ "parity-scale-codec 1.3.6",
+ "polkadot-primitives",
+ "sp-runtime",
+ "sp-state-machine",
+]
+
+[[package]]
 name = "curve25519-dalek"
 version = "2.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1529,26 +1543,13 @@ dependencies = [
 
 [[package]]
 name = "ethbloom"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22a621dcebea74f2a6f2002d0a885c81ccf6cbdf86760183316a7722b5707ca4"
-dependencies = [
- "crunchy",
- "fixed-hash",
- "impl-codec 0.4.2",
- "impl-rlp",
- "impl-serde",
- "tiny-keccak",
-]
-
-[[package]]
-name = "ethbloom"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "779864b9c7f7ead1f092972c3257496c6a84b46dba2ce131dd8a282cb2cc5972"
 dependencies = [
  "crunchy",
  "fixed-hash",
+ "impl-codec",
  "impl-rlp",
  "impl-serde",
  "tiny-keccak",
@@ -1556,50 +1557,18 @@ dependencies = [
 
 [[package]]
 name = "ethereum"
-version = "0.5.1"
-source = "git+https://github.com/rust-blockchain/ethereum#1327608448511fbb5b0e51f6ec1756fd33b91951"
-dependencies = [
- "ethereum-types 0.10.0",
- "hash-db",
- "hash256-std-hasher",
- "parity-scale-codec 1.3.6",
- "rlp",
- "rlp-derive",
- "serde",
- "sha3 0.9.1",
- "triehash",
-]
-
-[[package]]
-name = "ethereum"
 version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d8603f637f22e3ab9aff8466b37850cd7ea2ae52034b07e41fdc82f1f68dfa2c"
+source = "git+https://github.com/notlesh/ethereum?branch=notlesh-moonbeam-v0.6#ea1b9e405a17f92fc7d27028136915604ccb948a"
 dependencies = [
- "ethereum-types 0.10.0",
+ "ethereum-types",
  "hash-db",
  "hash256-std-hasher",
- "parity-scale-codec 1.3.6",
+ "parity-scale-codec 2.0.0",
  "rlp",
  "rlp-derive",
  "serde",
  "sha3 0.9.1",
  "triehash",
-]
-
-[[package]]
-name = "ethereum-types"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05dc5f0df4915fa6dff7f975a8366ecfaaa8959c74235469495153e7bb1b280e"
-dependencies = [
- "ethbloom 0.10.0",
- "fixed-hash",
- "impl-codec 0.4.2",
- "impl-rlp",
- "impl-serde",
- "primitive-types 0.8.0",
- "uint",
 ]
 
 [[package]]
@@ -1608,11 +1577,12 @@ version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f64b5df66a228d85e4b17e5d6c6aa43b0310898ffe8a85988c4c032357aaabfd"
 dependencies = [
- "ethbloom 0.11.0",
+ "ethbloom",
  "fixed-hash",
+ "impl-codec",
  "impl-rlp",
  "impl-serde",
- "primitive-types 0.9.0",
+ "primitive-types",
  "uint",
 ]
 
@@ -1625,16 +1595,15 @@ checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
 [[package]]
 name = "evm"
 version = "0.23.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b46f945d7548bea2affc1a48168f6d7e832bae914e0d90627a2ea2a7ba63001"
+source = "git+https://github.com/notlesh/evm?branch=notlesh-moonbeam-v0.6#123f5c7778befd201887bc58125f0e479589b56f"
 dependencies = [
- "ethereum 0.6.0",
+ "ethereum",
  "evm-core",
  "evm-gasometer",
  "evm-runtime",
  "log",
- "parity-scale-codec 1.3.6",
- "primitive-types 0.8.0",
+ "parity-scale-codec 2.0.0",
+ "primitive-types",
  "rlp",
  "serde",
  "sha3 0.8.2",
@@ -1643,33 +1612,30 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.23.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cc372feb219651f8ae872e6ec0f84b346053c058bd0e8408b1f44a2a796bfecd"
+source = "git+https://github.com/notlesh/evm?branch=notlesh-moonbeam-v0.6#123f5c7778befd201887bc58125f0e479589b56f"
 dependencies = [
- "parity-scale-codec 1.3.6",
- "primitive-types 0.8.0",
+ "parity-scale-codec 2.0.0",
+ "primitive-types",
  "serde",
 ]
 
 [[package]]
 name = "evm-gasometer"
 version = "0.23.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5737059b7a570b3e28a0126b02e0e36e218cc828b29dddbbae73d0b97fce1e0a"
+source = "git+https://github.com/notlesh/evm?branch=notlesh-moonbeam-v0.6#123f5c7778befd201887bc58125f0e479589b56f"
 dependencies = [
  "evm-core",
  "evm-runtime",
- "primitive-types 0.8.0",
+ "primitive-types",
 ]
 
 [[package]]
 name = "evm-runtime"
 version = "0.23.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "95726118dbc5f76ed1ee300e685950e58e52a1c4db454a7635aba636c7002186"
+source = "git+https://github.com/notlesh/evm?branch=notlesh-moonbeam-v0.6#123f5c7778befd201887bc58125f0e479589b56f"
 dependencies = [
  "evm-core",
- "primitive-types 0.8.0",
+ "primitive-types",
  "sha3 0.8.2",
 ]
 
@@ -1763,8 +1729,8 @@ name = "fc-rpc"
 version = "0.1.0"
 source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam"
 dependencies = [
- "ethereum 0.6.0",
- "ethereum-types 0.11.0",
+ "ethereum",
+ "ethereum-types",
  "fc-consensus",
  "fc-rpc-core",
  "fp-rpc",
@@ -1799,7 +1765,7 @@ name = "fc-rpc-core"
 version = "0.1.0"
 source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam"
 dependencies = [
- "ethereum-types 0.11.0",
+ "ethereum-types",
  "jsonrpc-core 15.1.0",
  "jsonrpc-core-client 14.2.0",
  "jsonrpc-derive 14.2.2",
@@ -1927,8 +1893,8 @@ name = "fp-rpc"
 version = "0.1.0"
 source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam"
 dependencies = [
- "ethereum 0.6.0",
- "ethereum-types 0.11.0",
+ "ethereum",
+ "ethereum-types",
  "fp-evm",
  "parity-scale-codec 2.0.0",
  "sp-api",
@@ -2749,15 +2715,6 @@ dependencies = [
  "libc",
  "log",
  "winapi 0.3.9",
-]
-
-[[package]]
-name = "impl-codec"
-version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1be51a921b067b0eaca2fad532d9400041561aa922221cc65f95a85641c6bf53"
-dependencies = [
- "parity-scale-codec 1.3.6",
 ]
 
 [[package]]
@@ -4048,23 +4005,27 @@ version = "0.1.0"
 dependencies = [
  "ansi_term 0.12.1",
  "assert_cmd",
+ "async-io",
  "author-inherent",
  "cumulus-collator",
  "cumulus-consensus",
  "cumulus-network",
  "cumulus-primitives",
  "cumulus-service",
+ "cumulus-test-relay-sproof-builder",
  "derive_more 0.15.0",
  "exit-future 0.1.4",
  "fc-consensus",
  "fc-rpc",
  "fc-rpc-core",
  "fp-consensus",
+ "fp-rpc",
  "futures 0.3.12",
  "jsonrpc-core 15.1.0",
  "jsonrpc-pubsub 15.1.0",
  "log",
- "moonbeam-rpc",
+ "moonbeam-rpc-primitives-txpool",
+ "moonbeam-rpc-txpool",
  "moonbeam-runtime",
  "nix 0.17.0",
  "pallet-ethereum",
@@ -4097,6 +4058,7 @@ dependencies = [
  "sc-service",
  "sc-telemetry",
  "sc-tracing",
+ "sc-transaction-graph",
  "sc-transaction-pool",
  "serde",
  "serde_json",
@@ -4121,42 +4083,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "moonbeam-rpc"
-version = "0.1.0"
-dependencies = [
- "fc-rpc",
- "fc-rpc-core",
- "fp-rpc",
- "futures 0.3.12",
- "jsonrpc-core 15.1.0",
- "jsonrpc-pubsub 15.1.0",
- "moonbeam-rpc-primitives-txpool",
- "moonbeam-rpc-txpool",
- "moonbeam-runtime",
- "pallet-transaction-payment-rpc",
- "parity-scale-codec 2.0.0",
- "sc-client-api",
- "sc-consensus-manual-seal",
- "sc-network",
- "sc-rpc",
- "sc-rpc-api",
- "sc-transaction-graph",
- "serde",
- "serde_json",
- "sp-api",
- "sp-block-builder",
- "sp-blockchain",
- "sp-runtime",
- "sp-transaction-pool",
- "substrate-frame-rpc-system",
-]
-
-[[package]]
 name = "moonbeam-rpc-core-txpool"
 version = "0.1.0"
 dependencies = [
- "ethereum 0.5.1",
- "ethereum-types 0.11.0",
+ "ethereum",
+ "ethereum-types",
  "fc-rpc-core",
  "jsonrpc-core 15.1.0",
  "jsonrpc-core-client 14.2.0",
@@ -4169,7 +4100,7 @@ dependencies = [
 name = "moonbeam-rpc-primitives-txpool"
 version = "0.1.0"
 dependencies = [
- "ethereum 0.5.1",
+ "ethereum",
  "sp-api",
  "sp-io",
  "sp-runtime",
@@ -4180,8 +4111,8 @@ dependencies = [
 name = "moonbeam-rpc-txpool"
 version = "0.1.0"
 dependencies = [
- "ethereum 0.5.1",
- "ethereum-types 0.11.0",
+ "ethereum",
+ "ethereum-types",
  "frame-system",
  "jsonrpc-core 15.1.0",
  "moonbeam-rpc-core-txpool",
@@ -4215,11 +4146,13 @@ dependencies = [
  "moonbeam-rpc-primitives-txpool",
  "pallet-aura",
  "pallet-balances",
+ "pallet-democracy",
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-evm",
  "pallet-grandpa",
  "pallet-randomness-collective-flip",
+ "pallet-scheduler",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
@@ -4607,7 +4540,6 @@ dependencies = [
  "pallet-session",
  "pallet-timestamp",
  "parity-scale-codec 2.0.0",
- "serde",
  "sp-application-crypto",
  "sp-consensus-aura",
  "sp-inherents",
@@ -4749,8 +4681,8 @@ name = "pallet-ethereum"
 version = "0.1.0"
 source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam"
 dependencies = [
- "ethereum 0.6.0",
- "ethereum-types 0.11.0",
+ "ethereum",
+ "ethereum-types",
  "evm",
  "fp-consensus",
  "fp-evm",
@@ -4795,7 +4727,7 @@ dependencies = [
  "pallet-balances",
  "pallet-timestamp",
  "parity-scale-codec 2.0.0",
- "primitive-types 0.9.0",
+ "primitive-types",
  "rlp",
  "serde",
  "sha3 0.8.2",
@@ -5354,13 +5286,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "664a8c6b8e62d8f9f2f937e391982eb433ab285b4cd9545b342441e04a906e42"
 dependencies = [
  "cfg-if 1.0.0",
- "ethereum-types 0.11.0",
+ "ethereum-types",
  "hashbrown",
  "impl-trait-for-tuples 0.2.0",
  "lru",
  "parity-util-mem-derive",
  "parking_lot 0.11.1",
- "primitive-types 0.9.0",
+ "primitive-types",
  "smallvec 1.6.1",
  "winapi 0.3.9",
 ]
@@ -6675,25 +6607,12 @@ dependencies = [
 
 [[package]]
 name = "primitive-types"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b3824ae2c5e27160113b9e029a10ec9e3f0237bad8029f69c7724393c9fdefd8"
-dependencies = [
- "fixed-hash",
- "impl-codec 0.4.2",
- "impl-rlp",
- "impl-serde",
- "uint",
-]
-
-[[package]]
-name = "primitive-types"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2415937401cb030a2a0a4d922483f945fa068f52a7dbb22ce0fe5f2b6f6adace"
 dependencies = [
  "fixed-hash",
- "impl-codec 0.5.0",
+ "impl-codec",
  "impl-rlp",
  "impl-serde",
  "uint",
@@ -9188,7 +9107,7 @@ dependencies = [
  "parity-scale-codec 2.0.0",
  "parity-util-mem",
  "parking_lot 0.11.1",
- "primitive-types 0.9.0",
+ "primitive-types",
  "rand 0.7.3",
  "regex",
  "schnorrkel",
@@ -9399,7 +9318,7 @@ source = "git+https://github.com/paritytech/substrate#93b231e79f5b4e551c34234e89
 dependencies = [
  "impl-trait-for-tuples 0.2.0",
  "parity-scale-codec 2.0.0",
- "primitive-types 0.9.0",
+ "primitive-types",
  "sp-externalities",
  "sp-runtime-interface-proc-macro",
  "sp-std",
@@ -9896,8 +9815,7 @@ dependencies = [
 [[package]]
 name = "substrate-wasm-builder"
 version = "3.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "79091baab813855ddf65b191de9fe53e656b6b67c1e9bd23fdcbff8788164684"
+source = "git+https://github.com/paritytech/substrate#93b231e79f5b4e551c34234e89fa4a2e5e9c1510"
 dependencies = [
  "ansi_term 0.12.1",
  "atty",
@@ -9912,7 +9830,8 @@ dependencies = [
 [[package]]
 name = "substrate-wasm-builder"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate#93b231e79f5b4e551c34234e89fa4a2e5e9c1510"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "79091baab813855ddf65b191de9fe53e656b6b67c1e9bd23fdcbff8788164684"
 dependencies = [
  "ansi_term 0.12.1",
  "atty",
