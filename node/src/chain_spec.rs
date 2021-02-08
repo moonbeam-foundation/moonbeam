@@ -19,11 +19,11 @@ use moonbeam_runtime::{
 	AccountId, Balance, BalancesConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig,
 	GenesisConfig, ParachainInfoConfig, StakeConfig, SudoConfig, SystemConfig, GLMR, WASM_BINARY,
 };
-use sp_runtime::Perbill;
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
-use stake::{Range, InflationInfo};
+use sp_runtime::Perbill;
+use stake::{InflationInfo, Range};
 use std::collections::BTreeMap;
 use std::str::FromStr;
 
@@ -117,9 +117,9 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 		expect: Range {
 			min: 100_000 * GLMR,
 			ideal: 500_000 * GLMR,
-			max: 1_000_000 * GLMR, 
+			max: 1_000_000 * GLMR,
 		},
-		// 8766 rounds (hours) in a year 
+		// 8766 rounds (hours) in a year
 		round: Range {
 			min: Perbill::from_parts(Perbill::from_percent(4).deconstruct() / 8766),
 			ideal: Perbill::from_parts(Perbill::from_percent(5).deconstruct() / 8766),
@@ -159,6 +159,9 @@ fn testnet_genesis(
 			accounts: BTreeMap::new(),
 		}),
 		pallet_ethereum: Some(EthereumConfig {}),
-		stake: Some(StakeConfig { stakers, inflation_config }),
+		stake: Some(StakeConfig {
+			stakers,
+			inflation_config,
+		}),
 	}
 }
