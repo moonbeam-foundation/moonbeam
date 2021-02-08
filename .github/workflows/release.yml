@@ -124,8 +124,8 @@ jobs:
           target: wasm32-unknown-unknown
           default: true
 
-          # - name: Check with Clippy
-        # run: cargo clippy --workspace --tests -- -D warnings
+      - name: Check with Clippy
+        run: cargo clippy --workspace
 
       - name: Format code with rustfmt
         run: cargo fmt -- --check
