@@ -515,20 +515,21 @@ pub fn new_light(config: Configuration) -> Result<TaskManager, ServiceError> {
 		);
 	}
 
-	let (_rpc_handlers, _telemetry_connection_notifier) = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
-		remote_blockchain: Some(backend.remote_blockchain()),
-		transaction_pool,
-		task_manager: &mut task_manager,
-		on_demand: Some(on_demand),
-		rpc_extensions_builder: Box::new(sc_service::NoopRpcExtensionBuilder(rpc_extensions)),
-		config,
-		client,
-		keystore: keystore_container.sync_keystore(),
-		backend,
-		network,
-		network_status_sinks,
-		system_rpc_tx,
-	})?;
+	let (_rpc_handlers, _telemetry_connection_notifier)
+		= sc_service::spawn_tasks(sc_service::SpawnTasksParams {
+			remote_blockchain: Some(backend.remote_blockchain()),
+			transaction_pool,
+			task_manager: &mut task_manager,
+			on_demand: Some(on_demand),
+			rpc_extensions_builder: Box::new(sc_service::NoopRpcExtensionBuilder(rpc_extensions)),
+			config,
+			client,
+			keystore: keystore_container.sync_keystore(),
+			backend,
+			network,
+			network_status_sinks,
+			system_rpc_tx,
+		})?;
 
 	network_starter.start_network();
 
