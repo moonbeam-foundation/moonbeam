@@ -283,63 +283,75 @@ pub fn run() -> Result<()> {
 				return Err("Collator nodes must specify an author account id".into());
 			}
 
-			runner.run_node_until_exit(|config| async move {
-				// If this is a --dev node, start up manual or instant seal.
-				// Otherwise continue with the normal parachain node.
-				if cli.run.base.shared_params.dev {
-					// If no author id was supplied, use the one that is staked at genesis
-					let author_id = author_id.or_else(|| {
-						Some(
-							AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")
-								.expect("Gerald is a valid account"),
-						)
-					});
+			runner
+				.run_node_until_exit(|config| async move {
+					// If this is a --dev node, start up manual or instant seal.
+					// Otherwise continue with the normal parachain node.
+					if cli.run.base.shared_params.dev {
+						// If no author id was supplied, use the one that is staked at genesis
+						let author_id = author_id.or_else(|| {
+							Some(
+								AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")
+									.expect("Gerald is a valid account"),
+							)
+						});
 
-					return crate::dev_service::new_full(config, cli.run.sealing, author_id);
-				}
+						return crate::dev_service::new_full(config, cli.run.sealing, author_id);
+					}
 
-				let key = sp_core::Pair::generate().0;
+					let key = sp_core::Pair::generate().0;
 
-				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
-				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
-				let para_id = extension.map(|e| e.para_id);
+					let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
+					let relay_chain_id = extension.map(|e| e.relay_chain.clone());
+					let para_id = extension.map(|e| e.para_id);
 
-				let polkadot_cli = RelayChainCli::new(
-					config.base_path.as_ref().map(|x| x.path().join("polkadot")),
-					relay_chain_id,
-					[RelayChainCli::executable_name()]
-						.iter()
-						.chain(cli.relaychain_args.iter()),
-				);
+					let polkadot_cli = RelayChainCli::new(
+						config.base_path.as_ref().map(|x| x.path().join("polkadot")),
+						relay_chain_id,
+						[RelayChainCli::executable_name()]
+							.iter()
+							.chain(cli.relaychain_args.iter()),
+					);
 
-				let id = ParaId::from(cli.run.parachain_id.or(para_id).unwrap_or(1000));
+					let id = ParaId::from(cli.run.parachain_id.or(para_id).unwrap_or(1000));
 
-				let parachain_account =
-					AccountIdConversion::<polkadot_primitives::v0::AccountId>::into_account(&id);
+					let parachain_account =
+						AccountIdConversion::<polkadot_primitives::v0::AccountId>::into_account(
+							&id,
+						);
 
-				let block: Block =
-					generate_genesis_block(&config.chain_spec).map_err(|e| format!("{:?}", e))?;
-				let genesis_state = format!("0x{:?}", HexDisplay::from(&block.header().encode()));
+					let block: Block = generate_genesis_block(&config.chain_spec)
+						.map_err(|e| format!("{:?}", e))?;
+					let genesis_state =
+						format!("0x{:?}", HexDisplay::from(&block.header().encode()));
 
-				let task_executor = config.task_executor.clone();
-				let polkadot_config = SubstrateCli::create_configuration(
-					&polkadot_cli,
-					&polkadot_cli,
-					task_executor,
-					config.telemetry_handle.clone(),
-				)
-				.map_err(|err| format!("Relay chain argument error: {}", err))?;
+					let task_executor = config.task_executor.clone();
+					let polkadot_config = SubstrateCli::create_configuration(
+						&polkadot_cli,
+						&polkadot_cli,
+						task_executor,
+						config.telemetry_handle.clone(),
+					)
+					.map_err(|err| format!("Relay chain argument error: {}", err))?;
 
-				info!("Parachain id: {:?}", id);
-				info!("Parachain Account: {}", parachain_account);
-				info!("Parachain genesis state: {}", genesis_state);
-				info!("Is collating: {}", if collator { "yes" } else { "no" });
+					info!("Parachain id: {:?}", id);
+					info!("Parachain Account: {}", parachain_account);
+					info!("Parachain genesis state: {}", genesis_state);
+					info!("Is collating: {}", if collator { "yes" } else { "no" });
 
-				crate::service::start_node(config, key, author_id, polkadot_config, id, collator)
+					crate::service::start_node(
+						config,
+						key,
+						author_id,
+						polkadot_config,
+						id,
+						collator,
+					)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into)
-			}).map_err(Into::into)
+				})
+				.map_err(Into::into)
 		}
 	}
 }
