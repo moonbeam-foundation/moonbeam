@@ -46,7 +46,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 mod inflation;
-pub use inflation::{InflationSchedule, Range};
+pub use inflation::{InflationInfo, Range};
 #[cfg(test)]
 pub(crate) mod mock;
 mod set;
@@ -485,8 +485,8 @@ decl_event!(
 		NominatorLeftValidator(AccountId, AccountId, Balance, Balance),
 		/// Paid the account (nominator or validator) the balance as liquid rewards
 		Rewarded(AccountId, Balance),
-		/// Inflation schedule set with the provided ideal issuance
-		InflationScheduleSet(Balance, Balance, Balance),
+		/// Round inflation range set with the provided annual inflation range
+		RoundInflationSet(Perbill, Perbill, Perbill),
 		/// Staking expectations set
 		StakeExpectationsSet(Balance, Balance, Balance),
 	}
@@ -542,7 +542,7 @@ decl_storage! {
 		Staked: map
 			hasher(blake2_128_concat) RoundIndex => BalanceOf<T>;
 		/// Inflation parameterization, which contains round issuance and stake expectations
-		InflationConfig get(fn inflation_config) config(): InflationSchedule<BalanceOf<T>>;
+		InflationConfig get(fn inflation_config) config(): InflationInfo<BalanceOf<T>>;
 		/// Total points awarded in this round
 		Points: map
 			hasher(blake2_128_concat) RoundIndex => RewardPoint;
@@ -623,9 +623,9 @@ decl_module! {
 			T::SetMonetaryPolicyOrigin::ensure_origin(origin)?;
 			ensure!(schedule.is_valid(), Error::<T>::InvalidSchedule);
 			let mut config = <InflationConfig<T>>::get();
-			config.set_rate::<T>(schedule);
+			config.set_annual_rate::<T>(schedule);
 			Self::deposit_event(
-				RawEvent::InflationScheduleSet(
+				RawEvent::RoundInflationSet(
 					config.round.min,
 					config.round.ideal,
 					config.round.max,
@@ -634,24 +634,7 @@ decl_module! {
 			<InflationConfig<T>>::put(config);
 			Ok(())
 		}
-		/// Must be called upon a new year to update the round issuance based on new circulating
-		/// WARNING: if called more than once per year, will lead to _compounding_ inflation
-		#[weight = 0]
-		fn update_inflation_base(origin) -> DispatchResult {
-			T::SetMonetaryPolicyOrigin::ensure_origin(origin)?;
-			let mut config = <InflationConfig<T>>::get();
-			config.set_base::<T>(T::Currency::total_issuance());
-			Self::deposit_event(
-				RawEvent::InflationScheduleSet(
-					config.round.min,
-					config.round.ideal,
-					config.round.max,
-				)
-			);
-			<InflationConfig<T>>::put(config);
-			Ok(())
-		}
-		/// Join the set of validator candidates by bonding at least `MinValidatorStk` and 
+		/// Join the set of validator candidates by bonding at least `MinValidatorStk` and
 		/// setting commission fee below the `MaxFee`
 		#[weight = 0]
 		fn join_candidates(
@@ -703,6 +686,7 @@ decl_module! {
 			Self::deposit_event(RawEvent::ValidatorScheduledExit(now,validator,when));
 			Ok(())
 		}
+		/// Temporarily leave the set of validator candidates without unbonding
 		#[weight = 0]
 		fn go_offline(origin) -> DispatchResult {
 			let validator = ensure_signed(origin)?;
@@ -718,6 +702,7 @@ decl_module! {
 			Self::deposit_event(RawEvent::ValidatorWentOffline(<Round>::get(),validator));
 			Ok(())
 		}
+		/// Rejoin the set of validator candidates if previously had called `go_offline`
 		#[weight = 0]
 		fn go_online(origin) -> DispatchResult {
 			let validator = ensure_signed(origin)?;
@@ -735,6 +720,7 @@ decl_module! {
 			Self::deposit_event(RawEvent::ValidatorBackOnline(<Round>::get(),validator));
 			Ok(())
 		}
+		/// Bond more for validator candidates
 		#[weight = 0]
 		fn candidate_bond_more(origin, more: BalanceOf<T>) -> DispatchResult {
 			let validator = ensure_signed(origin)?;
@@ -751,6 +737,7 @@ decl_module! {
 			Self::deposit_event(RawEvent::ValidatorBondedMore(validator, before, after));
 			Ok(())
 		}
+		/// Bond less for validator candidates
 		#[weight = 0]
 		fn candidate_bond_less(origin, less: BalanceOf<T>) -> DispatchResult {
 			let validator = ensure_signed(origin)?;
@@ -767,6 +754,7 @@ decl_module! {
 			Self::deposit_event(RawEvent::ValidatorBondedLess(validator, before, after));
 			Ok(())
 		}
+		/// Join the set of nominators
 		#[weight = 0]
 		fn join_nominators(
 			origin,
@@ -782,6 +770,7 @@ decl_module! {
 			Self::deposit_event(RawEvent::NominatorJoined(acc, amount));
 			Ok(())
 		}
+		/// Leave the set of nominators and, by implication, revoke all ongoing nominations
 		#[weight = 0]
 		fn leave_nominators(origin) -> DispatchResult {
 			let acc = ensure_signed(origin)?;
@@ -793,6 +782,7 @@ decl_module! {
 			Self::deposit_event(RawEvent::NominatorLeft(acc, nominator.total));
 			Ok(())
 		}
+		/// Nominate a new validator candidate if already nominating
 		#[weight = 0]
 		fn nominate_new(
 			origin,
@@ -838,6 +828,8 @@ decl_module! {
 			));
 			Ok(())
 		}
+		/// Swap an old nomination with a new nomination. If the new nomination exists, it
+		/// updates the existing nomination by adding the balance of the old nomination
 		#[weight = 0]
 		fn switch_nomination(origin, old: T::AccountId, new: T::AccountId) -> DispatchResult {
 			let acc = ensure_signed(origin)?;
@@ -865,10 +857,12 @@ decl_module! {
 			Self::deposit_event(RawEvent::NominationSwapped(acc, swapped_amt, old, new));
 			Ok(())
 		}
+		/// Revoke an existing nomination
 		#[weight = 0]
 		fn revoke_nomination(origin, validator: T::AccountId) -> DispatchResult {
 			Self::nominator_revokes_validator(ensure_signed(origin)?, validator)
 		}
+		/// Bond more for nominators with respect to a specific validator candidate
 		#[weight = 0]
 		fn nominator_bond_more(
 			origin,
@@ -893,6 +887,7 @@ decl_module! {
 			Self::deposit_event(RawEvent::NominationIncreased(nominator, candidate, before, after));
 			Ok(())
 		}
+		/// Bond less for nominators with respect to a specific nominator candidate
 		#[weight = 0]
 		fn nominator_bond_less(
 			origin,
@@ -959,19 +954,20 @@ impl<T: Config> Module<T> {
 		});
 		<CandidatePool<T>>::put(candidates);
 	}
-	// Calculate total issuance based on total staked for the given round
+	// Calculate round issuance based on total staked for the given round
 	fn compute_issuance(staked: BalanceOf<T>) -> BalanceOf<T> {
 		let config = <InflationConfig<T>>::get();
+		let round_issuance = inflation::round_issuance_range::<T>(config.round);
 		if staked < config.expect.min {
-			return config.round.min;
+			return round_issuance.min;
 		} else if staked > config.expect.max {
-			return config.round.max;
+			return round_issuance.max;
 		} else {
 			// TODO: split up into 3 branches
 			// 1. min < staked < ideal
 			// 2. ideal < staked < max
 			// 3. staked == ideal
-			return config.round.ideal;
+			return round_issuance.ideal;
 		}
 	}
 	fn nominator_joins_validator(

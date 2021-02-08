@@ -19,10 +19,11 @@ use moonbeam_runtime::{
 	AccountId, Balance, BalancesConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig,
 	GenesisConfig, ParachainInfoConfig, StakeConfig, SudoConfig, SystemConfig, GLMR, WASM_BINARY,
 };
+use sp_runtime::Perbill;
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
-use stake::Range;
+use stake::{Range, InflationInfo};
 use std::collections::BTreeMap;
 use std::str::FromStr;
 
@@ -111,31 +112,26 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 	)
 }
 
-/// TODO: make a separate test network inflation config?
-pub fn moonbeam_inflation_config() -> InflationSchedule<Balance> {
-	// InflationSchedule {
-	// 	base: 10_000_000 * GLMR,
-	// 	annual: Range {
-	// 		min: Perbill::from_percent(4),
-	// 		ideal: Perbill::from_percent(5),
-	// 		max: Perbill::from_percent(5),
-	// 	},
-	// 	expect: Range {
-	// 		min: 100_000 * GLMR,
-	// 		ideal: 500_000 * GLMR,
-	// 		max: 1_000_000 * GLMR, 
-	// 	},
-	// 	round: Range {
-	// 		min: 
-	// 	},
-	// }
-	todo!()
+pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
+	InflationInfo {
+		expect: Range {
+			min: 100_000 * GLMR,
+			ideal: 500_000 * GLMR,
+			max: 1_000_000 * GLMR, 
+		},
+		// 8766 rounds (hours) in a year 
+		round: Range {
+			min: Perbill::from_parts(Perbill::from_percent(4).deconstruct() / 8766),
+			ideal: Perbill::from_parts(Perbill::from_percent(5).deconstruct() / 8766),
+			max: Perbill::from_parts(Perbill::from_percent(5).deconstruct() / 8766),
+		},
+	}
 }
 
 fn testnet_genesis(
 	root_key: AccountId,
 	stakers: Vec<(AccountId, Option<AccountId>, Balance)>,
-	inflation_config: InflationSchedule<Balance>,
+	inflation_config: InflationInfo<Balance>,
 	endowed_accounts: Vec<AccountId>,
 	para_id: ParaId,
 	chain_id: u64,

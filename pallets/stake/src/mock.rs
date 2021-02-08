@@ -132,17 +132,13 @@ fn genesis(
 		ideal: 700,
 		max: 700,
 	};
-	let round: Range<Balance> = Range {
-		min: 10,
-		ideal: 10,
-		max: 10,
+	// very unrealistic test parameterization, would be dumb to have per-round inflation this high
+	let round: Range<Perbill> = Range {
+		min: Perbill::from_percent(5),
+		ideal: Perbill::from_percent(5),
+		max: Perbill::from_percent(5),
 	};
-	let inflation_config: InflationSchedule<Balance> = InflationSchedule {
-		base: 0,                        // not used in tests
-		annual: Perbill::zero().into(), // not used in tests
-		expect,
-		round,
-	};
+	let inflation_config: InflationInfo<Balance> = InflationInfo { expect, round };
 	let mut storage = frame_system::GenesisConfig::default()
 		.build_storage::<Test>()
 		.unwrap();
