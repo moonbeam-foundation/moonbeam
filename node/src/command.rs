@@ -338,7 +338,7 @@ pub fn run() -> Result<()> {
 				crate::service::start_node(config, key, author_id, polkadot_config, id, collator)
 					.await
 					.map(|r| r.0)
-					.map_err(Into::into)
+					.map_err(|err| format!("Failed to start_node: {}", err))
 			})
 		}
 	}
