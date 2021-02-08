@@ -17,7 +17,7 @@
 //! The Moonbeam Runtime.
 //!
 //! Primary features of this runtime include:
-//! * Ethereum compatability
+//! * Ethereum compatibility
 //! * Moonbeam tokenomics
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -109,13 +109,13 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase-alphanet"),
 	impl_name: create_runtime_str!("moonbase-alphanet"),
 	authoring_version: 3,
-	spec_version: 17,
+	spec_version: 18,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
 };
 
-/// The version infromation used to identify this runtime when compiled natively.
+/// The version information used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]
 pub fn native_version() -> NativeVersion {
 	NativeVersion {
