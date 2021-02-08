@@ -302,8 +302,8 @@ impl parachain_info::Config for Runtime {}
 pub const GLMR: Balance = 1_000_000_000_000_000_000;
 
 parameter_types! {
-	/// Moonbeam starts a new round every 2 minutes (20 * block_time)
-	pub const BlocksPerRound: u32 = 20;
+	/// Moonbeam starts a new round every hour (600 * block_time)
+	pub const BlocksPerRound: u32 = 600;
 	/// Reward payments and validator exit requests are delayed by 4 minutes (2 * 20 * block_time)
 	pub const BondDuration: u32 = 2;
 	/// Maximum 8 valid block authors at any given time

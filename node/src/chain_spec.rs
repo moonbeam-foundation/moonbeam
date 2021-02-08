@@ -61,8 +61,7 @@ pub fn development_chain_spec() -> ChainSpec {
 					None,
 					100_000 * GLMR,
 				)],
-				(100_000 * GLMR).into(),
-				(10 * GLMR).into(),
+				moonbeam_inflation_config(),
 				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
 				Default::default(), // para_id
 				1281,               //ChainId
@@ -95,8 +94,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 					None,
 					100_000 * GLMR,
 				)],
-				(100_000 * GLMR).into(),
-				(10 * GLMR).into(),
+				moonbeam_inflation_config(),
 				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
 				para_id,
 				1280, //ChainId
@@ -111,6 +109,27 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 			para_id: para_id.into(),
 		},
 	)
+}
+
+/// TODO: make a separate test network inflation config?
+pub fn moonbeam_inflation_config() -> InflationSchedule<Balance> {
+	// InflationSchedule {
+	// 	base: 10_000_000 * GLMR,
+	// 	annual: Range {
+	// 		min: Perbill::from_percent(4),
+	// 		ideal: Perbill::from_percent(5),
+	// 		max: Perbill::from_percent(5),
+	// 	},
+	// 	expect: Range {
+	// 		min: 100_000 * GLMR,
+	// 		ideal: 500_000 * GLMR,
+	// 		max: 1_000_000 * GLMR, 
+	// 	},
+	// 	round: Range {
+	// 		min: 
+	// 	},
+	// }
+	todo!()
 }
 
 fn testnet_genesis(
