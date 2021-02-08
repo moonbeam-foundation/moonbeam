@@ -51,6 +51,9 @@ pallet-grandpa = { default-features = false, git = "https://github.com/paritytec
 pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 
+pallet-democracy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+
 moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool", default-features = false }
 
 # Cumulus dependencies
@@ -101,6 +104,8 @@ std = [
 	"frame-system-rpc-runtime-api/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-ethereum-chain-id/std",
+	"pallet-democracy/std",
+	"pallet-scheduler/std",
 	"author-inherent/std",
 	"parachain-info/std",
 	"cumulus-runtime/std",
