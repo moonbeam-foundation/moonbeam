@@ -18,7 +18,7 @@ describeWithMoonbeam("Moonbeam RPC (Stake)", `simple-specs.json`, (context) => {
   });
 
   step("issuance minted to the sole validator for authoring blocks", async function () {
-    const issuanceEveryRound = 49n * GLMR;
+    const issuanceEveryRound = 0n * GLMR;
     // payment transfer is delayed by two rounds
     const balanceAfterBlock40 = BigInt(GENESIS_ACCOUNT_BALANCE) + issuanceEveryRound;
     const balanceAfterBlock60 = balanceAfterBlock40 + issuanceEveryRound;
