@@ -4118,7 +4118,6 @@ dependencies = [
  "moonbeam-rpc-primitives-txpool",
  "pallet-aura",
  "pallet-balances",
- "pallet-collective",
  "pallet-democracy",
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
