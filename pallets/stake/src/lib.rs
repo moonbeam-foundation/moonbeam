@@ -591,8 +591,8 @@ decl_module! {
 	pub struct Module<T: Config> for enum Call where origin: T::Origin {
 		type Error = Error<T>;
 		fn deposit_event() = default;
-    
-    /// A new round chooses a new validator set. Runtime config is 20 so every 2 minutes.
+
+	/// A new round chooses a new validator set. Runtime config is 20 so every 2 minutes.
 		const BlocksPerRound: T::BlockNumber = T::BlocksPerRound::get();
 		/// Number of rounds that validators remain bonded before exit request is executed
 		const BondDuration: RoundIndex = T::BondDuration::get();
@@ -612,7 +612,7 @@ decl_module! {
 		const MinNomination: BalanceOf<T> = T::MinNomination::get();
 		/// Minimum stake for any registered on-chain account to become a nominator
 		const MinNominatorStk: BalanceOf<T> = T::MinNominatorStk::get();
-    
+
 		/// Set the expectations for total staked. These expectations determine the issuance for
 		/// the round according to logic in `fn compute_issuance`
 		#[weight = 0]
@@ -653,8 +653,8 @@ decl_module! {
 			);
 			<InflationConfig<T>>::put(config);
 			Ok(())
-    }
-    /// Join the set of validator candidates by bonding at least `MinValidatorStk` and
+	}
+	/// Join the set of validator candidates by bonding at least `MinValidatorStk` and
 		/// setting commission fee below the `MaxFee`
 		#[weight = 0]
 		fn join_candidates(
