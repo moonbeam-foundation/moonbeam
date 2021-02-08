@@ -16,14 +16,14 @@
 
 use cumulus_primitives::ParaId;
 use moonbeam_runtime::{
-	AccountId, Balance, BalancesConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig,
-	GenesisConfig, ParachainInfoConfig, StakeConfig, SudoConfig, SystemConfig, GLMR, WASM_BINARY,
+	AccountId, Balance, BalancesConfig, DemocracyConfig, EVMConfig, EthereumChainIdConfig,
+	EthereumConfig, GenesisConfig, ParachainInfoConfig, SchedulerConfig, StakeConfig, SudoConfig,
+	SystemConfig, GLMR, WASM_BINARY,
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
-use std::str::FromStr;
+use std::{collections::BTreeMap, str::FromStr};
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
@@ -138,6 +138,8 @@ fn testnet_genesis(
 			accounts: BTreeMap::new(),
 		}),
 		pallet_ethereum: Some(EthereumConfig {}),
+		pallet_democracy: Some(DemocracyConfig {}),
+		pallet_scheduler: Some(SchedulerConfig {}),
 		stake: Some(StakeConfig { stakers }),
 	}
 }
