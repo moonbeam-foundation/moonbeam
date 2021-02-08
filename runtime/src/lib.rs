@@ -49,6 +49,7 @@ pub use frame_support::{
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 	ConsensusEngineId, StorageValue,
 };
+use frame_system::{EnsureNever, EnsureRoot, EnsureSigned};
 use pallet_ethereum::Call::transact;
 use pallet_evm::{
 	Account as EVMAccount, EnsureAddressNever, EnsureAddressSame, FeeCalculator,
@@ -240,7 +241,7 @@ pub struct MoonbeamGasWeightMapping;
 
 impl pallet_evm::GasWeightMapping for MoonbeamGasWeightMapping {
 	fn gas_to_weight(gas: usize) -> Weight {
-		Weight::try_from((gas as u64).saturating_mul(WEIGHT_PER_GAS)).unwrap_or(Weight::MAX)
+		(gas as u64).saturating_mul(WEIGHT_PER_GAS)
 	}
 	fn weight_to_gas(weight: Weight) -> usize {
 		usize::try_from(weight.wrapping_div(WEIGHT_PER_GAS)).unwrap_or(usize::MAX)
@@ -258,6 +259,67 @@ impl pallet_evm::Config for Runtime {
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type Precompiles = precompiles::MoonbeamPrecompiles<Self>;
 	type ChainId = EthereumChainId;
+}
+
+parameter_types! {
+	pub MaximumSchedulerWeight: Weight = Perbill::from_percent(80) * BlockWeights::get().max_block;
+}
+
+impl pallet_scheduler::Config for Runtime {
+	type Event = Event;
+	type Origin = Origin;
+	type PalletsOrigin = OriginCaller;
+	type Call = Call;
+	type MaximumWeight = MaximumSchedulerWeight;
+	type ScheduleOrigin = EnsureRoot<AccountId>;
+	type MaxScheduledPerBlock = ();
+	type WeightInfo = ();
+}
+
+pub const BLOCKS_PER_DAY: BlockNumber = 24 * 60 * 10;
+
+parameter_types! {
+	pub const LaunchPeriod: BlockNumber = BLOCKS_PER_DAY;
+	pub const VotingPeriod: BlockNumber = 5 * BLOCKS_PER_DAY;
+	pub const FastTrackVotingPeriod: BlockNumber = BLOCKS_PER_DAY;
+	pub const EnactmentPeriod: BlockNumber = BLOCKS_PER_DAY;
+	pub const CooloffPeriod: BlockNumber = 7 * BLOCKS_PER_DAY;
+	pub const MinimumDeposit: Balance = 4 * GLMR;
+	pub const MaxVotes: u32 = 100;
+	pub const MaxProposals: u32 = 100;
+	pub const PreimageByteDeposit: Balance = GLMR / 1_000;
+	pub const InstantAllowed: bool = false;
+}
+
+// todo : ensure better origins
+impl pallet_democracy::Config for Runtime {
+	type Proposal = Call;
+	type Event = Event;
+	type Currency = Balances;
+	type EnactmentPeriod = EnactmentPeriod;
+	type LaunchPeriod = LaunchPeriod;
+	type VotingPeriod = VotingPeriod;
+	type FastTrackVotingPeriod = FastTrackVotingPeriod;
+	type MinimumDeposit = MinimumDeposit;
+	type ExternalOrigin = EnsureRoot<AccountId>;
+	type ExternalMajorityOrigin = EnsureRoot<AccountId>;
+	type ExternalDefaultOrigin = EnsureRoot<AccountId>;
+	type FastTrackOrigin = EnsureRoot<AccountId>;
+	type CancellationOrigin = EnsureRoot<AccountId>;
+	type BlacklistOrigin = EnsureRoot<AccountId>;
+	type CancelProposalOrigin = EnsureRoot<AccountId>;
+	type VetoOrigin = EnsureNever<AccountId>; // (root not possible)
+	type CooloffPeriod = CooloffPeriod;
+	type PreimageByteDeposit = PreimageByteDeposit;
+	type Slash = ();
+	type InstantOrigin = EnsureRoot<AccountId>;
+	type InstantAllowed = InstantAllowed;
+	type Scheduler = Scheduler;
+	type MaxVotes = MaxVotes;
+	type OperationalPreimageOrigin = EnsureSigned<AccountId>;
+	type PalletsOrigin = OriginCaller;
+	type WeightInfo = ();
+	type MaxProposals = MaxProposals;
 }
 
 pub struct TransactionConverter;
@@ -357,6 +419,8 @@ construct_runtime! {
 		Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 		Stake: stake::{Module, Call, Storage, Event<T>, Config<T>},
 		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
+		Scheduler: pallet_scheduler::{Module, Storage, Config, Event<T>, Call},
+		Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
 	}
 }
 
