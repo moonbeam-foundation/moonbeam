@@ -184,7 +184,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
     expect(poll.result.length).to.be.eq(1);
     expect(poll.result[0]).to.be.eq(block.hash);
 
-    await createAndFinalizeBlock(context.web3);
+    await createAndFinalizeBlock(context.polkadotApi);
 
     block = await context.web3.eth.getBlock(1);
     poll = await customRequest(context.web3, "eth_getFilterChanges", ["0x3"]);
@@ -192,8 +192,8 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
     expect(poll.result.length).to.be.eq(1);
     expect(poll.result[0]).to.be.eq(block.hash);
 
-    await createAndFinalizeBlock(context.web3);
-    await createAndFinalizeBlock(context.web3);
+    await createAndFinalizeBlock(context.polkadotApi);
+    await createAndFinalizeBlock(context.polkadotApi);
 
     block = await context.web3.eth.getBlock(2);
     let block_b = await context.web3.eth.getBlock(3);
@@ -207,7 +207,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
   step("should return responses for Log filter polling.", async function () {
     // Create contract.
     let tx = await sendTransaction(context);
-    await createAndFinalizeBlock(context.web3);
+    await createAndFinalizeBlock(context.polkadotApi);
     let receipt = await context.web3.eth.getTransactionReceipt(tx.transactionHash);
 
     expect(receipt.logs.length).to.be.eq(1);
@@ -235,7 +235,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
   step("should return response for raw Log filter request.", async function () {
     // Create contract.
     let tx = await sendTransaction(context);
-    await createAndFinalizeBlock(context.web3);
+    await createAndFinalizeBlock(context.polkadotApi);
     let receipt = await context.web3.eth.getTransactionReceipt(tx.transactionHash);
 
     expect(receipt.logs.length).to.be.eq(1);
@@ -286,7 +286,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
     let filter_id = create_filter.result;
 
     for (let i = 0; i <= block_lifespan_threshold; i++) {
-      await createAndFinalizeBlock(context.web3);
+      await createAndFinalizeBlock(context.polkadotApi);
     }
 
     let r = await customRequest(context.web3, "eth_getFilterChanges", [filter_id]);
