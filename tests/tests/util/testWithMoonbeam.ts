@@ -2,16 +2,14 @@ import Web3 from "web3";
 import { ApiPromise, WsProvider } from "@polkadot/api";
 import { typesBundle } from "../../../moonbeam-types-bundle";
 
-import { spawn, ChildProcess } from "child_process";
+import { spawn, ChildProcess, ChildProcessWithoutNullStreams } from "child_process";
 import {
   BINARY_PATH,
   DISPLAY_LOG,
-  GENESIS_ACCOUNT,
   MOONBEAM_LOG,
   PORT,
   RPC_PORT,
   SPAWNING_TIME,
-  SPECS_PATH,
   WS_PORT,
 } from "../constants";
 import { ErrorReport } from "./fillBlockWithTx";
@@ -30,12 +28,14 @@ export interface Context {
   polkadotApi: ApiPromise;
 }
 
+let runningNode: ChildProcessWithoutNullStreams;
+
 export async function startMoonbeamNode(
   //TODO Make this parameter optional and just default to development.
   // For now I'm just ignoring the param and hardcoding development below.
   specFilename: string,
   provider?: string
-): Promise<{ context: Context; binary: ChildProcess }> {
+): Promise<{ context: Context; runningNode: ChildProcess }> {
   let web3;
   if (!provider || provider == "http") {
     web3 = new Web3(`http://localhost:${RPC_PORT}`);
@@ -54,8 +54,8 @@ export async function startMoonbeamNode(
     `--ws-port=${WS_PORT}`,
     `--tmp`,
   ];
-  const binary = spawn(cmd, args);
-  binary.on("error", (err) => {
+  runningNode = spawn(cmd, args);
+  runningNode.on("error", (err) => {
     if ((err as any).errno == "ENOENT") {
       console.error(
         `\x1b[31mMissing Moonbeam binary ` +
@@ -90,15 +90,15 @@ export async function startMoonbeamNode(
 
         clearTimeout(timer);
         if (!DISPLAY_LOG) {
-          binary.stderr.off("data", onData);
-          binary.stdout.off("data", onData);
+          runningNode.stderr.off("data", onData);
+          runningNode.stdout.off("data", onData);
         }
         // console.log(`\x1b[31m Starting RPC\x1b[0m`);
         resolve();
       }
     };
-    binary.stderr.on("data", onData);
-    binary.stdout.on("data", onData);
+    runningNode.stderr.on("data", onData);
+    runningNode.stdout.on("data", onData);
   });
 
   const wsProvider = new WsProvider(`ws://localhost:${WS_PORT}`);
@@ -106,13 +106,24 @@ export async function startMoonbeamNode(
     provider: wsProvider,
     typesBundle: typesBundle as any,
   });
+  console.log("API version", polkadotApi.runtimeVersion.specVersion.toString());
 
   if (provider == "ws") {
     web3 = new Web3(`ws://localhost:${WS_PORT}`);
   }
 
-  return { context: { web3, polkadotApi, wsProvider }, binary };
+  return { context: { web3, polkadotApi, wsProvider }, runningNode };
 }
+
+// Kill all processes when exiting.
+process.on("exit", function () {
+  runningNode.kill();
+});
+
+// Handle ctrl+c to trigger `exit`.
+process.on("SIGINT", function () {
+  process.exit(2);
+});
 
 export function describeWithMoonbeam(
   title: string,
@@ -133,7 +144,7 @@ export function describeWithMoonbeam(
       context.web3 = init.context.web3;
       context.wsProvider = init.context.wsProvider;
       context.polkadotApi = init.context.polkadotApi;
-      binary = init.binary;
+      binary = init.runningNode;
     });
 
     after(async function () {
