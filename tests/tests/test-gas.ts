@@ -67,7 +67,7 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
   // Our weight limit is 500ms.
   const BLOCK_TX_LIMIT = GAS_PER_SECOND * 0.5;
 
-  // Current implementation is limiting block transactions to 0.75% of the block gas limit
+  // Current implementation is limiting block transactions to 65% of the block gas limit
   const BLOCK_TX_GAS_LIMIT = BLOCK_TX_LIMIT * 0.65;
   const EXTRINSIC_BASE_COST = 125_000_000 / GAS_PER_WEIGHT; // 125_000_000 Weight per extrinsics
 
