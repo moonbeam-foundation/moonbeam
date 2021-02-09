@@ -106,7 +106,6 @@ export async function startMoonbeamNode(
     provider: wsProvider,
     typesBundle: typesBundle as any,
   });
-  console.log("API version", polkadotApi.runtimeVersion.specVersion.toString());
 
   if (provider == "ws") {
     web3 = new Web3(`ws://localhost:${WS_PORT}`);
