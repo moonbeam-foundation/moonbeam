@@ -55,6 +55,9 @@ pub(crate) mod mock;
 mod set;
 #[cfg(test)]
 mod tests;
+// These were my attempt at using the old typed storage interface.
+// mod old_lib;
+// use old_lib::Validators as OldValidators;
 use frame_support::{
 	decl_error, decl_event, decl_module, decl_storage, ensure,
 	storage::IterableStorageDoubleMap,
@@ -654,11 +657,67 @@ decl_module! {
 			// Do migrations as necessary. Don't use `match` here, we want to run _all_ necessary
 			// migrations. This allows skipping individual versions on live chains.
 			if current_schema == StorageSchema::Undefined {
+				// if_std!{
+				// 	println!("Running migration from Undefined to V1");
+				// }
+
 				// Begin by updating the onchain storage schema.
 				current_schema = StorageSchema::V1;
 				StorageVersion::put(current_schema);
 
-				// This is not currently a real "migration" it just writes new data to storage
+				// I think there is a way to use the old storage declarations to get the stored
+				// values. This isn't working, and I understand why. We didn't impl to "old" config
+				// trait. At minimum we could use raw storage accessors. But for now I'm bailing on
+				// doing a "real" migration.
+				// let old_validators = OldValidators::get();
+
+				// So rather than actually migrate the old data, let's just re-initialize it as
+				// best we can.
+
+				// This is how the staking was initialized in the genesis block previously
+				// Let's just recreate it.
+
+				// "stake": {
+				//   "stakers": [
+				// 	[
+				// 	  "0x4c5a56ed5a4ff7b09aa86560afd7d383f4831cce",
+				// 	  null,
+				// 	  100000000000000000000000
+				// 	],
+				// 	[
+				// 	  "0x623c9e50647a049f92090fe55e22cc0509872fb6",
+				// 	  null,
+				// 	  100000000000000000000000
+				// 	],
+				// 	[
+				// 	  "0xbe373fc7be685e9a4ab00dd665dae5c553489add",
+				// 	  null,
+				// 	  100000000000000000000000
+				// 	],
+				// 	[
+				// 	  "0x05160bacc74e6af4d755f9dd6d409fc99ee918fa",
+				// 	  null,
+				// 	  100000000000000000000000
+				// 	]
+				//   ]
+				// }
+
+				// Start by killing any storage that exists at the same keys since it may be
+				// polluted with old data.
+
+				// Now stake the four validators. Actualy, isn't just two of these who are on
+				// alphanet? From Apps, it look slike the latter two.
+				use sp_core::H160;
+				use std::str::FromStr;
+				use frame_system::RawOrigin;
+				// Dang stuck again. I don't know how to express the account id concretely in the pallet.
+				// The problem is that this entire pallet is written to be generic over the account type.
+				// So how do I actually store something then?
+				<Module<T>>::join_candidates(
+					T::Origin::from(RawOrigin::Signed(H160::from_str("be373fc7be685e9a4ab00dd665dae5c553489add").expect("If you're reading this your expectations were too high. Sorry.").into())),
+					Perbill::zero(),
+					100000000000000000000000.into(),
+				);
 			}
 
 			// Example for the next migration
