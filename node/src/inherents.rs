@@ -26,8 +26,8 @@
 //! extremely quickly in testing scenarios.
 
 use cumulus_primitives::{
-	inherents::{ValidationDataType, VALIDATION_DATA_IDENTIFIER},
-	PersistedValidationData, ValidationData,
+	inherents::{SystemInherentData, SYSTEM_INHERENT_IDENTIFIER},
+	PersistedValidationData,
 };
 use parity_scale_codec::Encode;
 use sp_core::H160;
@@ -121,7 +121,7 @@ struct MockValidationDataInherentDataProvider;
 
 impl ProvideInherentData for MockValidationDataInherentDataProvider {
 	fn inherent_identifier(&self) -> &'static InherentIdentifier {
-		&VALIDATION_DATA_IDENTIFIER
+		&SYSTEM_INHERENT_IDENTIFIER
 	}
 
 	fn provide_inherent_data(
@@ -132,25 +132,24 @@ impl ProvideInherentData for MockValidationDataInherentDataProvider {
 		let (relay_storage_root, proof) =
 			RelayStateSproofBuilder::default().into_state_root_and_proof();
 
-		let data = ValidationDataType {
-			validation_data: ValidationData {
-				persisted: PersistedValidationData {
-					parent_head: Default::default(),
-					block_number: Default::default(),
-					relay_storage_root,
-					hrmp_mqc_heads: Default::default(),
-					dmq_mqc_head: Default::default(),
-					max_pov_size: Default::default(),
-				},
-				transient: Default::default(),
+		let data = SystemInherentData {
+			validation_data: PersistedValidationData {
+				parent_head: Default::default(),
+				block_number: Default::default(),
+				relay_storage_root,
+				hrmp_mqc_heads: Default::default(),
+				dmq_mqc_head: Default::default(),
+				max_pov_size: Default::default(),
 			},
+			downward_messages: Default::default(),
+			horizontal_messages: Default::default(),
 			relay_chain_state: proof,
 		};
 
-		inherent_data.put_data(VALIDATION_DATA_IDENTIFIER, &data)
+		inherent_data.put_data(SYSTEM_INHERENT_IDENTIFIER, &data)
 	}
 
 	fn error_to_string(&self, error: &[u8]) -> Option<String> {
-		InherentError::try_from(&VALIDATION_DATA_IDENTIFIER, error).map(|e| format!("{:?}", e))
+		InherentError::try_from(&SYSTEM_INHERENT_IDENTIFIER, error).map(|e| format!("{:?}", e))
 	}
 }

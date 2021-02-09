@@ -12,7 +12,7 @@ targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
 serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
-parity-scale-codec = { version = "1.3.0", default-features = false, features = ["derive"] }
+parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
 log = "0.4.8"
 hex = { version = "0.4", default-features = false }
 sha3 = { version = "0.8", default-features = false }
@@ -24,7 +24,7 @@ sp-core = { git = "https://github.com/paritytech/substrate", default-features = 
 sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.5-hotfixes" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.6-moonbeam" }
 
 
 [features]

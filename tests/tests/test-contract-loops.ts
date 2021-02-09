@@ -106,7 +106,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
     // // 600 loop
     expect(await callLoopIncrContract(600)).to.eq(600);
     block = await context.web3.eth.getBlock("latest");
-    expect(block.gasUsed).to.eq(1028284); //check that gas costs stay the same
+    expect(block.gasUsed).to.eq(1024084); //check that gas costs stay the same
 
     // 700 loop should revert out of gas
     expect(await callLoopIncrContract(700)).to.eq(0);

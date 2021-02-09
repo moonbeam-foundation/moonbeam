@@ -11,7 +11,6 @@ export type CompleteTransactionConfig =
       chainId?: string;
     };
 
-console.log(GENESIS_ACCOUNT, TEST_ACCOUNT);
 export const basicTransfertx: CompleteTransactionConfig = {
   from: GENESIS_ACCOUNT,
   to: TEST_ACCOUNT,
