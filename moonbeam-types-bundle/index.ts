@@ -65,7 +65,7 @@ export const moonbeamDefinitions = {
       },
     },
     {
-      minmax: [6, undefined],
+      minmax: [6, 19],
       types: {
         AccountId: "EthereumAccountId",
         Address: "AccountId",
@@ -123,8 +123,118 @@ export const moonbeamDefinitions = {
         },
       },
     },
+    {
+      minmax: [19, undefined],
+      types: {
+        AccountId: "EthereumAccountId",
+        Address: "AccountId",
+        Balance: "u128",
+        LookupSource: "AccountId",
+        Account: {
+          nonce: "U256",
+          balance: "u128",
+        },
+        ExtrinsicSignature: "EthereumSignature",
+        RoundIndex: "u32",
+        Candidate: {
+          id: "AccountId",
+          fee: "Perbill",
+          bond: "Balance",
+          nominators: "Vec<Bond>",
+          total: "Balance",
+          state: "ValidatorStatus",
+        },
+        Nominator: {
+          nominations: "Vec<Bond>",
+          total: "Balance",
+        },
+        Bond: {
+          owner: "AccountId",
+          amount: "Balance",
+        },
+        ValidatorStatus: {
+          _enum: ["Active", "Idle", "Leaving(RoundIndex)"],
+        },
+        TxPoolResultContent: {
+          pending: "HashMap<H160, HashMap<U256, PoolTransaction>>",
+          queued: "HashMap<H160, HashMap<U256, PoolTransaction>>",
+        },
+        TxPoolResultInspect: {
+          pending: "HashMap<H160, HashMap<U256, Summary>>",
+          queued: "HashMap<H160, HashMap<U256, Summary>>",
+        },
+        TxPoolResultStatus: {
+          pending: "U256",
+          queued: "U256",
+        },
+        Summary: "Bytes",
+        PoolTransaction: {
+          hash: "H256",
+          nonce: "U256",
+          block_hash: "Option<H256>",
+          block_number: "Option<U256>",
+          from: "H160",
+          to: "Option<H160>",
+          value: "U256",
+          gas_price: "U256",
+          gas: "U256",
+          input: "Bytes",
+        },
+        // Staking inflation
+        Range: "RangeBalance",
+        RangeBalance: {
+          min: "Balance",
+          ideal: "Balance",
+          max: "Balance",
+        },
+        RangePerbill: {
+          min: "Perbill",
+          ideal: "Perbill",
+          max: "Perbill",
+        },
+        InflationInfo: {
+          expect: "RangeBalance",
+          round: "RangePerbill",
+        },
+        OrderedSet: "Vec",
+        Validator:{
+          id: "AccountId",
+          fee: "Perbill",
+           bond: "Balance",
+         nominators: "Vec<Bond>",
+           total: "Balance",
+           state: "ValidatorStatus",
+        }
+        
+      },
+    },
   ],
 } as OverrideBundleDefinition;
+
+// pub struct InflationInfo<Balance> {
+// 	/// Staking expectations
+// 	pub expect: Range<Balance>,
+// 	/// Round inflation range
+// 	pub round: Range<Perbill>,
+// }
+// pub struct Range<T> {
+// 	pub min: T,
+// 	pub ideal: T,
+// 	pub max: T,
+// }
+// pub struct Nominator<AccountId, Balance> {
+// 	pub nominations: OrderedSet<Bond<AccountId, Balance>>,
+// 	pub total: Balance,
+// }
+#[derive(Encode, Decode, RuntimeDebug)]
+pub struct Validator<AccountId, Balance> {
+	pub id: AccountId,
+	pub fee: Perbill,
+	pub bond: Balance,
+	pub nominators: OrderedSet<Bond<AccountId, Balance>>,
+	pub total: Balance,
+	pub state: ValidatorStatus,
+}
 
 export const typesBundle = {
   spec: {
