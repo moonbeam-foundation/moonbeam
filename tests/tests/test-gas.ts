@@ -59,16 +59,16 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
     expect(await contract.methods.multiply(3).estimateGas()).to.equal(21204);
   });
 
-  // Current gas per second is at 16M.
-  const GAS_PER_SECOND = 33_333_333;
+  // Current gas per second
+  const GAS_PER_SECOND = 39_000_000;
   // The real computation is 1_000_000_000_000 / 16_000_000, but we simplify to avoid bigint.
-  const GAS_PER_WEIGHT = 1_000_000 / 16;
+  const GAS_PER_WEIGHT = 1_000_000 / 39;
 
   // Our weight limit is 500ms.
   const BLOCK_TX_LIMIT = GAS_PER_SECOND * 0.5;
 
   // Current implementation is limiting block transactions to 0.75% of the block gas limit
-  const BLOCK_TX_GAS_LIMIT = BLOCK_TX_LIMIT * 0.75;
+  const BLOCK_TX_GAS_LIMIT = BLOCK_TX_LIMIT * 0.65;
   const EXTRINSIC_BASE_COST = 125_000_000 / GAS_PER_WEIGHT; // 125_000_000 Weight per extrinsics
 
   // Maximum extrinsic weight is taken from the max allowed transaction weight per block,
