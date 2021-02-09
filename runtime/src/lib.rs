@@ -44,10 +44,11 @@ use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
 pub use frame_support::{
-	construct_runtime, parameter_types,
+	construct_runtime,
+	pallet_prelude::PhantomData,
+	parameter_types,
 	traits::{FindAuthor, Get, Randomness},
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
-	pallet_prelude::PhantomData,
 	ConsensusEngineId, StorageValue,
 };
 use frame_system::{EnsureNever, EnsureRoot, EnsureSigned};
