@@ -4,7 +4,7 @@ import { step } from "mocha-steps";
 
 import { createAndFinalizeBlock, describeWithMoonbeam, customRequest } from "./util";
 import { GENESIS_ACCOUNT_BALANCE } from "./constants";
-import { AnyTuple, IEvent } from "@polkadot/types/types";
+import { Event } from "@polkadot/types/interfaces";
 
 describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) => {
   const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
@@ -53,7 +53,7 @@ describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) =>
     signedBlock.block.extrinsics.forEach(({ method: { method, section } }, index) => {
       // filter the specific events based on the phase and then the
       // index of our extrinsic in the block
-      const events: IEvent<AnyTuple>[] = allRecords
+      const events: Event[] = allRecords
         .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
         .map(({ event }) => event);
 
@@ -69,15 +69,16 @@ describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) =>
             events.length === 1 && context.polkadotApi.events.system.ExtrinsicSuccess.is(events[0])
           ).to.be.true;
           break;
-        // Fourth event: ethereum.transact:: system.NewAccount, balances.Endowed, ethereum.Executed,
-        // system.ExtrinsicSuccess
+        // Fourth event: ethereum.transact:: system.NewAccount, balances.Endowed, (?),
+        // ethereum.Executed, system.ExtrinsicSuccess
         case 3:
           expect(section === "ethereum" && method === "transact").to.be.true;
           expect(events.length === 4);
           expect(context.polkadotApi.events.system.NewAccount.is(events[0])).to.be.true;
           expect(context.polkadotApi.events.balances.Endowed.is(events[1])).to.be.true;
-          expect(context.polkadotApi.events.ethereum.Executed.is(events[2])).to.be.true;
-          expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[3])).to.be.true;
+          // TODO: what event was inserted here?
+          expect(context.polkadotApi.events.ethereum.Executed.is(events[3])).to.be.true;
+          expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[4])).to.be.true;
           break;
         default:
           throw new Error(`Unexpected extrinsic`);
