@@ -17,6 +17,7 @@ precompiles = { path = "precompiles/", default-features = false }
 account = { path = "account/", default-features = false }
 pallet-ethereum-chain-id = { path = "../pallets/ethereum-chain-id", default-features = false }
 stake = { path = "../pallets/stake", default-features = false }
+pallet-author-filter = { path = "../pallets/author-filter", default-features = false }
 
 # Substrate dependencies
 pallet-aura = { git = "https://github.com/paritytech/substrate.git", default-features = false, branch = "master", optional = true }
@@ -50,6 +51,9 @@ pallet-grandpa = { default-features = false, git = "https://github.com/paritytec
 
 pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
 fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
+
+pallet-democracy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 
 moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool", default-features = false }
 
@@ -101,6 +105,8 @@ std = [
 	"frame-system-rpc-runtime-api/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-ethereum-chain-id/std",
+	"pallet-democracy/std",
+	"pallet-scheduler/std",
 	"author-inherent/std",
 	"parachain-info/std",
 	"cumulus-runtime/std",
@@ -108,6 +114,7 @@ std = [
 	"cumulus-primitives/std",
 	"account/std",
 	"stake/std",
+	"pallet-author-filter/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.

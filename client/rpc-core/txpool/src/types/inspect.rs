@@ -34,7 +34,7 @@ impl Serialize for Summary {
 	{
 		let res = format!(
 			"0x{:x}: {} wei + {} gas x {} wei",
-			self.to.unwrap_or(H160::default()),
+			self.to.unwrap_or_default(),
 			self.value,
 			self.gas,
 			self.gas_price

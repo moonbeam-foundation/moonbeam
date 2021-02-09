@@ -48,6 +48,7 @@ type FullClient = sc_service::TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = sc_service::TFullBackend<Block>;
 type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
 
+#[allow(clippy::type_complexity)]
 pub fn new_partial(
 	config: &Configuration,
 	author: Option<H160>,
@@ -228,7 +229,7 @@ pub fn new_full(
 	};
 
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
-		network: network.clone(),
+		network,
 		client: client.clone(),
 		keystore: keystore_container.sync_keystore(),
 		task_manager: &mut task_manager,
@@ -258,12 +259,13 @@ pub fn new_full(
 						// As pending transactions have a finite lifespan anyway
 						// we can ignore MultiplePostRuntimeLogs error checks.
 						let mut frontier_log: Option<_> = None;
-						for log in notification.header.digest.logs {
+						for log in notification.header.digest.logs.iter().rev() {
 							let log = log.try_to::<ConsensusLog>(OpaqueDigestItemId::Consensus(
 								&FRONTIER_ENGINE_ID,
 							));
-							if let Some(log) = log {
-								frontier_log = Some(log);
+							if log.is_some() {
+								frontier_log = log;
+								break;
 							}
 						}
 

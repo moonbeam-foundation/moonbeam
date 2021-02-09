@@ -17,7 +17,7 @@
 //! The Moonbeam Runtime.
 //!
 //! Primary features of this runtime include:
-//! * Ethereum compatability
+//! * Ethereum compatibility
 //! * Moonbeam tokenomics
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -49,6 +49,7 @@ pub use frame_support::{
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 	ConsensusEngineId, StorageValue,
 };
+use frame_system::{EnsureNever, EnsureRoot, EnsureSigned};
 use pallet_ethereum::Call::transact;
 use pallet_evm::{
 	Account as EVMAccount, EnsureAddressNever, EnsureAddressSame, FeeCalculator,
@@ -109,13 +110,13 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 15,
+	spec_version: 19,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
 };
 
-/// The version infromation used to identify this runtime when compiled natively.
+/// The version information used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]
 pub fn native_version() -> NativeVersion {
 	NativeVersion {
@@ -240,7 +241,7 @@ pub struct MoonbeamGasWeightMapping;
 
 impl pallet_evm::GasWeightMapping for MoonbeamGasWeightMapping {
 	fn gas_to_weight(gas: usize) -> Weight {
-		Weight::try_from((gas as u64).saturating_mul(WEIGHT_PER_GAS)).unwrap_or(Weight::MAX)
+		(gas as u64).saturating_mul(WEIGHT_PER_GAS)
 	}
 	fn weight_to_gas(weight: Weight) -> usize {
 		usize::try_from(weight.wrapping_div(WEIGHT_PER_GAS)).unwrap_or(usize::MAX)
@@ -258,6 +259,67 @@ impl pallet_evm::Config for Runtime {
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type Precompiles = precompiles::MoonbeamPrecompiles<Self>;
 	type ChainId = EthereumChainId;
+}
+
+parameter_types! {
+	pub MaximumSchedulerWeight: Weight = Perbill::from_percent(80) * BlockWeights::get().max_block;
+}
+
+impl pallet_scheduler::Config for Runtime {
+	type Event = Event;
+	type Origin = Origin;
+	type PalletsOrigin = OriginCaller;
+	type Call = Call;
+	type MaximumWeight = MaximumSchedulerWeight;
+	type ScheduleOrigin = EnsureRoot<AccountId>;
+	type MaxScheduledPerBlock = ();
+	type WeightInfo = ();
+}
+
+pub const BLOCKS_PER_DAY: BlockNumber = 24 * 60 * 10;
+
+parameter_types! {
+	pub const LaunchPeriod: BlockNumber = BLOCKS_PER_DAY;
+	pub const VotingPeriod: BlockNumber = 5 * BLOCKS_PER_DAY;
+	pub const FastTrackVotingPeriod: BlockNumber = BLOCKS_PER_DAY;
+	pub const EnactmentPeriod: BlockNumber = BLOCKS_PER_DAY;
+	pub const CooloffPeriod: BlockNumber = 7 * BLOCKS_PER_DAY;
+	pub const MinimumDeposit: Balance = 4 * GLMR;
+	pub const MaxVotes: u32 = 100;
+	pub const MaxProposals: u32 = 100;
+	pub const PreimageByteDeposit: Balance = GLMR / 1_000;
+	pub const InstantAllowed: bool = false;
+}
+
+// todo : ensure better origins
+impl pallet_democracy::Config for Runtime {
+	type Proposal = Call;
+	type Event = Event;
+	type Currency = Balances;
+	type EnactmentPeriod = EnactmentPeriod;
+	type LaunchPeriod = LaunchPeriod;
+	type VotingPeriod = VotingPeriod;
+	type FastTrackVotingPeriod = FastTrackVotingPeriod;
+	type MinimumDeposit = MinimumDeposit;
+	type ExternalOrigin = EnsureRoot<AccountId>;
+	type ExternalMajorityOrigin = EnsureRoot<AccountId>;
+	type ExternalDefaultOrigin = EnsureRoot<AccountId>;
+	type FastTrackOrigin = EnsureRoot<AccountId>;
+	type CancellationOrigin = EnsureRoot<AccountId>;
+	type BlacklistOrigin = EnsureRoot<AccountId>;
+	type CancelProposalOrigin = EnsureRoot<AccountId>;
+	type VetoOrigin = EnsureNever<AccountId>; // (root not possible)
+	type CooloffPeriod = CooloffPeriod;
+	type PreimageByteDeposit = PreimageByteDeposit;
+	type Slash = ();
+	type InstantOrigin = EnsureRoot<AccountId>;
+	type InstantAllowed = InstantAllowed;
+	type Scheduler = Scheduler;
+	type MaxVotes = MaxVotes;
+	type OperationalPreimageOrigin = EnsureSigned<AccountId>;
+	type PalletsOrigin = OriginCaller;
+	type WeightInfo = ();
+	type MaxProposals = MaxProposals;
 }
 
 pub struct TransactionConverter;
@@ -302,16 +364,16 @@ impl parachain_info::Config for Runtime {}
 pub const GLMR: Balance = 1_000_000_000_000_000_000;
 
 parameter_types! {
-	/// Moonbeam starts a new round every 2 minutes (20 * block_time)
-	pub const BlocksPerRound: u32 = 20;
-	/// Reward payments and validator exit requests are delayed by 4 minutes (2 * 20 * block_time)
+	/// Moonbeam starts a new round every hour (600 * block_time)
+	pub const BlocksPerRound: u32 = 600;
+	/// Reward payments and validator exit requests are delayed by 2 hours (2 * 600 * block_time)
 	pub const BondDuration: u32 = 2;
 	/// Maximum 8 valid block authors at any given time
 	pub const MaxValidators: u32 = 8;
 	/// Maximum 10 nominators per validator
-	pub const MaxNominatorsPerValidator: usize = 10;
-	/// Issue 49 new tokens as rewards to validators every 2 minutes (round)
-	pub const IssuancePerRound: u128 = 49 * GLMR;
+	pub const MaxNominatorsPerValidator: u32 = 10;
+	/// Maximum 8 validators per nominator (same as MaxValidators)
+	pub const MaxValidatorsPerNominator: u32 = 8;
 	/// The maximum percent a validator can take off the top of its rewards is 50%
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
 	/// Minimum stake required to be reserved to be a validator is 5
@@ -322,18 +384,25 @@ parameter_types! {
 impl stake::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
+	type SetMonetaryPolicyOrigin = frame_system::EnsureRoot<AccountId>;
 	type BlocksPerRound = BlocksPerRound;
 	type BondDuration = BondDuration;
 	type MaxValidators = MaxValidators;
 	type MaxNominatorsPerValidator = MaxNominatorsPerValidator;
-	type IssuancePerRound = IssuancePerRound;
+	type MaxValidatorsPerNominator = MaxValidatorsPerNominator;
 	type MaxFee = MaxFee;
 	type MinValidatorStk = MinValidatorStk;
+	type MinNomination = MinNominatorStk;
 	type MinNominatorStk = MinNominatorStk;
 }
 impl author_inherent::Config for Runtime {
 	type EventHandler = Stake;
-	type CanAuthor = Stake;
+	type CanAuthor = AuthorFilter;
+}
+
+impl pallet_author_filter::Config for Runtime {
+	type Event = Event;
+	type RandomnessSource = RandomnessCollectiveFlip;
 }
 
 construct_runtime! {
@@ -354,7 +423,12 @@ construct_runtime! {
 		EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
 		Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 		Stake: stake::{Module, Call, Storage, Event<T>, Config<T>},
+		Scheduler: pallet_scheduler::{Module, Storage, Config, Event<T>, Call},
+		Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
+		// The order matters here. Inherents will be included in the order specified here.
+		// Concretely wee need the author inherent to come after the parachain_upgrade inherent.
 		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
+		AuthorFilter: pallet_author_filter::{Module, Storage, Event<T>,}
 	}
 }
 

@@ -281,10 +281,8 @@ pub fn run() -> Result<()> {
 			let runner = cli.create_runner(&*cli.run)?;
 			let collator = cli.run.base.validator || cli.collator;
 			let author_id: Option<H160> = cli.run.author_id;
-			if collator {
-				if author_id.is_none() {
-					return Err("Collator nodes must specify an author account id".into());
-				}
+			if collator && author_id.is_none() {
+				return Err("Collator nodes must specify an author account id".into());
 			}
 
 			runner.run_node_until_exit(|config| async move {
@@ -292,10 +290,12 @@ pub fn run() -> Result<()> {
 				// Otherwise continue with the normal parachain node.
 				if cli.run.base.shared_params.dev {
 					// If no author id was supplied, use the one that is staked at genesis
-					let author_id = author_id.or(Some(
-						AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")
-							.expect("Gerald is a valid account"),
-					));
+					let author_id = author_id.or_else(|| {
+						Some(
+							AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")
+								.expect("Gerald is a valid account"),
+						)
+					});
 
 					return crate::dev_service::new_full(config, cli.run.sealing, author_id);
 				}

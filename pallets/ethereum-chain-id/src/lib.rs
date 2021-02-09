@@ -18,23 +18,50 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{decl_module, decl_storage, traits::Get};
+use frame_support::pallet;
 
-/// Configuration trait of this pallet.
-pub trait Config: frame_system::Config {}
+pub use pallet::*;
 
-impl<T: Config> Get<u64> for Module<T> {
-	fn get() -> u64 {
-		Self::chain_id()
+#[pallet]
+pub mod pallet {
+
+	use frame_support::pallet_prelude::*;
+	use frame_system::pallet_prelude::*;
+
+	/// The Ethereum Chain Id Pallet
+	#[pallet::pallet]
+	pub struct Pallet<T>(PhantomData<T>);
+
+	/// Configuration trait of this pallet.
+	#[pallet::config]
+	pub trait Config: frame_system::Config {}
+
+	impl<T: Config> Get<u64> for Module<T> {
+		fn get() -> u64 {
+			Self::chain_id()
+		}
 	}
-}
 
-decl_storage! {
-	trait Store for Module<T: Config> as MoonbeamChainId {
-		ChainId get(fn chain_id) config(): u64 = 43;
+	#[pallet::hooks]
+	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
+
+	#[pallet::call]
+	impl<T: Config> Pallet<T> {}
+
+	#[pallet::storage]
+	#[pallet::getter(fn chain_id)]
+	pub type ChainId<T> = StorageValue<_, u64, ValueQuery>;
+
+	#[pallet::genesis_config]
+	#[derive(Default)]
+	pub struct GenesisConfig {
+		pub chain_id: u64,
 	}
-}
 
-decl_module! {
-	pub struct Module<T: Config> for enum Call where origin: T::Origin {}
+	#[pallet::genesis_build]
+	impl<T: Config> GenesisBuild<T> for GenesisConfig {
+		fn build(&self) {
+			ChainId::<T>::put(self.chain_id);
+		}
+	}
 }

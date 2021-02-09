@@ -11,3 +11,7 @@
 
 # Generated test specs
 /tests/moonbeam-test-specs/*.json
+
+# Moonbeam-Launch
+*.log
+tools/specFiles
