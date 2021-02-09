@@ -17,6 +17,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use codec::{Decode, Encode};
+use ethereum::Transaction;
 use ethereum_types::{H256, U256};
 use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
@@ -43,7 +44,8 @@ pub struct StepLog {
 sp_api::decl_runtime_apis! {
 	pub trait DebugRuntimeApi {
 		fn trace_transaction(
-			transaction_index: u32
+			extrinsics: Vec<Block::Extrinsic>,
+			transaction: &Transaction
 		) -> Result<TraceExecutorResponse, sp_runtime::DispatchError>;
 	}
 }
