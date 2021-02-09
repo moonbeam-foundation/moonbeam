@@ -40,7 +40,7 @@ grep -v '/p2p/' specs/MoonbaseAlphaV5-Relay.json > \
   $PARACHAIN_BUILD_FOLDER/alphanet-relay-raw-specs-no-bootnodes.json
 
 echo "\n=================== Stagenet ==================="
-$PARACHAIN_BINARY build-spec \
+$MOONBEAM_BINARY build-spec \
   --disable-default-bootnode \
   --chain 'local' \
   | grep '\"code\"' \
@@ -52,19 +52,19 @@ sed -e "/\"<runtime_code>\"/{r $STAGENET_SPEC_TMP" -e 'd;}'  $STAGENET_SPEC_TEMP
   > $STAGENET_SPEC_PLAIN	
 echo $STAGENET_SPEC_PLAIN generated
 
-$PARACHAIN_BINARY build-spec \
+$MOONBEAM_BINARY build-spec \
   --disable-default-bootnode \
   --raw \
   --chain $STAGENET_SPEC_PLAIN \
   > $STAGENET_SPEC_RAW
 echo $STAGENET_SPEC_RAW generated
 
-$PARACHAIN_BINARY export-genesis-wasm \
+$MOONBEAM_BINARY export-genesis-wasm \
   --chain $STAGENET_SPEC_RAW \
   > $PARACHAIN_WASM;
 echo $PARACHAIN_WASM generated
 
-$PARACHAIN_BINARY export-genesis-state \
+$MOONBEAM_BINARY export-genesis-state \
   --parachain-id $PARACHAIN_ID \
   --chain $STAGENET_SPEC_RAW \
   > $PARACHAIN_GENESIS;
