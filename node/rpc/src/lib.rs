@@ -32,7 +32,9 @@ use sc_rpc_api::DenyUnsafe;
 use sc_transaction_graph::{ChainApi, Pool};
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder;
-use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
+use sp_blockchain::{
+	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
+};
 use sp_runtime::traits::BlakeTwo256;
 use sp_transaction_pool::TransactionPool;
 
@@ -49,7 +51,7 @@ pub struct LightDeps<C, F, P> {
 }
 
 /// Full client dependencies.
-pub struct FullDeps<C, P, A: ChainApi> {
+pub struct FullDeps<C, P, A: ChainApi, BE> {
 	/// The client instance to use.
 	pub client: Arc<C>,
 	/// Transaction pool instance.
@@ -64,24 +66,27 @@ pub struct FullDeps<C, P, A: ChainApi> {
 	pub network: Arc<NetworkService<Block, Hash>>,
 	/// Ethereum pending transactions.
 	pub pending_transactions: PendingTransactions,
+	/// Backend
+	pub backend: Arc<BE>,
 	/// Manual seal command sink
 	pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
 }
 
 /// Instantiate all Full RPC extensions.
 pub fn create_full<C, P, BE, A>(
-	deps: FullDeps<C, P, A>,
+	deps: FullDeps<C, P, A, BE>,
 	subscription_task_executor: SubscriptionTaskExecutor,
 ) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
 where
 	BE: Backend<Block> + 'static,
 	BE::State: StateBackend<BlakeTwo256>,
+	BE::Blockchain: BlockchainBackend<Block>,
 	C: ProvideRuntimeApi<Block> + StorageProvider<Block, BE> + AuxStore,
 	C: BlockchainEvents<Block>,
 	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
 	C: Send + Sync + 'static,
 	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>,
-	C::Api: BlockBuilder<Block>,
+	C::Api: BlockBuilder<Block, Error = BlockChainError>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
 	A: ChainApi<Block = Block> + 'static,
 	C::Api: fp_rpc::EthereumRuntimeRPCApi<Block>,
@@ -108,6 +113,7 @@ where
 		is_authority,
 		network,
 		pending_transactions,
+		backend,
 		command_sink,
 	} = deps;
 
@@ -147,7 +153,10 @@ where
 			Arc::new(subscription_task_executor),
 		),
 	)));
-	io.extend_with(DebugServer::to_delegate(Debug::new(client.clone())));
+	io.extend_with(DebugServer::to_delegate(Debug::new(
+		client.clone(),
+		backend,
+	)));
 	io.extend_with(TxPoolServer::to_delegate(TxPool::new(client, pool)));
 
 	match command_sink {

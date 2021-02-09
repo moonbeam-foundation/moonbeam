@@ -207,6 +207,7 @@ where
 				is_authority,
 				network: network.clone(),
 				pending_transactions: pending.clone(),
+				backend: backend.clone(),
 				command_sink: None,
 			};
 

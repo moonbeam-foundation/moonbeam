@@ -260,6 +260,7 @@ pub fn new_full(
 		let pool = transaction_pool.clone();
 		let network = network.clone();
 		let pending = pending_transactions.clone();
+		let backend = backend.clone();
 		Box::new(move |deny_unsafe, _| {
 			let deps = moonbeam_rpc::FullDeps {
 				client: client.clone(),
@@ -269,6 +270,7 @@ pub fn new_full(
 				is_authority,
 				network: network.clone(),
 				pending_transactions: pending.clone(),
+				backend: backend.clone(),
 				command_sink: Some(command_sink.clone()),
 			};
 			moonbeam_rpc::create_full(deps, subscription_task_executor.clone())
