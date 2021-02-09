@@ -33,7 +33,7 @@ use sp_core::H160;
 use sp_core::H256;
 use std::time::Duration;
 use std::{
-	collections::{HashMap, BTreeMap},
+	collections::{BTreeMap, HashMap},
 	sync::{Arc, Mutex},
 };
 
@@ -215,6 +215,7 @@ pub fn new_full(
 		let pool = transaction_pool.clone();
 		let network = network.clone();
 		let pending = pending_transactions.clone();
+		let filter_pool = filter_pool.clone();
 		Box::new(move |deny_unsafe, _| {
 			let deps = crate::rpc::FullDeps {
 				client: client.clone(),
@@ -245,6 +246,29 @@ pub fn new_full(
 		system_rpc_tx,
 		config,
 	})?;
+
+	// Spawn Frontier EthFilterApi maintenance task.
+	if filter_pool.is_some() {
+		// Each filter is allowed to stay in the pool for 100 blocks.
+		const FILTER_RETAIN_THRESHOLD: u64 = 100;
+		task_manager.spawn_essential_handle().spawn(
+			"frontier-filter-pool",
+			client
+				.import_notification_stream()
+				.for_each(move |notification| {
+					if let Ok(locked) = &mut filter_pool.clone().unwrap().lock() {
+						let imported_number: u64 = notification.header.number as u64;
+						for (k, v) in locked.clone().iter() {
+							let lifespan_limit = v.at_block + FILTER_RETAIN_THRESHOLD;
+							if lifespan_limit <= imported_number {
+								locked.remove(&k);
+							}
+						}
+					}
+					futures::future::ready(())
+				}),
+		);
+	}
 
 	// Spawn Frontier pending transactions maintenance task (as essential, otherwise we leak).
 	if pending_transactions.is_some() {
