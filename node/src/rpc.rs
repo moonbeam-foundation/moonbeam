@@ -115,6 +115,7 @@ where
 	io.extend_with(EthApiServer::to_delegate(EthApi::new(
 		client.clone(),
 		pool.clone(),
+		graph,
 		moonbeam_runtime::TransactionConverter,
 		network.clone(),
 		pending_transactions,
