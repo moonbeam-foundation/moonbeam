@@ -17,6 +17,7 @@ precompiles = { path = "precompiles/", default-features = false }
 account = { path = "account/", default-features = false }
 pallet-ethereum-chain-id = { path = "../pallets/ethereum-chain-id", default-features = false }
 stake = { path = "../pallets/stake", default-features = false }
+pallet-author-filter = { path = "../pallets/author-filter", default-features = false }
 
 # Substrate dependencies
 pallet-aura = { git = "https://github.com/paritytech/substrate.git", default-features = false, branch = "master", optional = true }
@@ -113,6 +114,7 @@ std = [
 	"cumulus-primitives/std",
 	"account/std",
 	"stake/std",
+	"pallet-author-filter/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.

@@ -100,7 +100,6 @@ parameter_types! {
 	pub const MaxValidators: u32 = 5;
 	pub const MaxNominatorsPerValidator: u32 = 4;
 	pub const MaxValidatorsPerNominator: u32 = 4;
-	pub const IssuancePerRound: u128 = 10;
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
 	pub const MinValidatorStk: u128 = 10;
 	pub const MinNominatorStk: u128 = 5;
@@ -109,12 +108,12 @@ parameter_types! {
 impl Config for Test {
 	type Event = MetaEvent;
 	type Currency = Balances;
+	type SetMonetaryPolicyOrigin = frame_system::EnsureRoot<Self::AccountId>;
 	type BlocksPerRound = BlocksPerRound;
 	type BondDuration = BondDuration;
 	type MaxValidators = MaxValidators;
 	type MaxNominatorsPerValidator = MaxNominatorsPerValidator;
 	type MaxValidatorsPerNominator = MaxValidatorsPerNominator;
-	type IssuancePerRound = IssuancePerRound;
 	type MaxFee = MaxFee;
 	type MinValidatorStk = MinValidatorStk;
 	type MinNominatorStk = MinNominatorStk;
@@ -128,14 +127,29 @@ fn genesis(
 	balances: Vec<(AccountId, Balance)>,
 	stakers: Vec<(AccountId, Option<AccountId>, Balance)>,
 ) -> sp_io::TestExternalities {
+	let expect: Range<Balance> = Range {
+		min: 700,
+		ideal: 700,
+		max: 700,
+	};
+	// very unrealistic test parameterization, would be dumb to have per-round inflation this high
+	let round: Range<Perbill> = Range {
+		min: Perbill::from_percent(5),
+		ideal: Perbill::from_percent(5),
+		max: Perbill::from_percent(5),
+	};
+	let inflation_config: InflationInfo<Balance> = InflationInfo { expect, round };
 	let mut storage = frame_system::GenesisConfig::default()
 		.build_storage::<Test>()
 		.unwrap();
 	let genesis = pallet_balances::GenesisConfig::<Test> { balances };
 	genesis.assimilate_storage(&mut storage).unwrap();
-	GenesisConfig::<Test> { stakers }
-		.assimilate_storage(&mut storage)
-		.unwrap();
+	GenesisConfig::<Test> {
+		stakers,
+		inflation_config,
+	}
+	.assimilate_storage(&mut storage)
+	.unwrap();
 	let mut ext = sp_io::TestExternalities::from(storage);
 	ext.execute_with(|| Sys::set_block_number(1));
 	ext

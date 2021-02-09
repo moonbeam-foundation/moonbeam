@@ -17,7 +17,7 @@
 //! The Moonbeam Runtime.
 //!
 //! Primary features of this runtime include:
-//! * Ethereum compatability
+//! * Ethereum compatibility
 //! * Moonbeam tokenomics
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -115,13 +115,13 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase-alphanet"),
 	impl_name: create_runtime_str!("moonbase-alphanet"),
 	authoring_version: 3,
-	spec_version: 18,
+	spec_version: 19,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
 };
 
-/// The version infromation used to identify this runtime when compiled natively.
+/// The version information used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]
 pub fn native_version() -> NativeVersion {
 	NativeVersion {
@@ -378,9 +378,9 @@ impl parachain_info::Config for Runtime {}
 pub const GLMR: Balance = 1_000_000_000_000_000_000;
 
 parameter_types! {
-	/// Moonbeam starts a new round every 2 minutes (20 * block_time)
-	pub const BlocksPerRound: u32 = 20;
-	/// Reward payments and validator exit requests are delayed by 4 minutes (2 * 20 * block_time)
+	/// Moonbeam starts a new round every hour (600 * block_time)
+	pub const BlocksPerRound: u32 = 600;
+	/// Reward payments and validator exit requests are delayed by 2 hours (2 * 600 * block_time)
 	pub const BondDuration: u32 = 2;
 	/// Maximum 8 valid block authors at any given time
 	pub const MaxValidators: u32 = 8;
@@ -388,8 +388,6 @@ parameter_types! {
 	pub const MaxNominatorsPerValidator: u32 = 10;
 	/// Maximum 8 validators per nominator (same as MaxValidators)
 	pub const MaxValidatorsPerNominator: u32 = 8;
-	/// Issue 49 new tokens as rewards to validators every 2 minutes (round)
-	pub const IssuancePerRound: u128 = 49 * GLMR;
 	/// The maximum percent a validator can take off the top of its rewards is 50%
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
 	/// Minimum stake required to be reserved to be a validator is 5
@@ -400,12 +398,12 @@ parameter_types! {
 impl stake::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
+	type SetMonetaryPolicyOrigin = frame_system::EnsureRoot<AccountId>;
 	type BlocksPerRound = BlocksPerRound;
 	type BondDuration = BondDuration;
 	type MaxValidators = MaxValidators;
 	type MaxNominatorsPerValidator = MaxNominatorsPerValidator;
 	type MaxValidatorsPerNominator = MaxValidatorsPerNominator;
-	type IssuancePerRound = IssuancePerRound;
 	type MaxFee = MaxFee;
 	type MinValidatorStk = MinValidatorStk;
 	type MinNomination = MinNominatorStk;
@@ -413,7 +411,12 @@ impl stake::Config for Runtime {
 }
 impl author_inherent::Config for Runtime {
 	type EventHandler = Stake;
-	type CanAuthor = Stake;
+	type CanAuthor = AuthorFilter;
+}
+
+impl pallet_author_filter::Config for Runtime {
+	type Event = Event;
+	type RandomnessSource = RandomnessCollectiveFlip;
 }
 
 construct_runtime! {
@@ -434,9 +437,12 @@ construct_runtime! {
 		EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
 		Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 		Stake: stake::{Module, Call, Storage, Event<T>, Config<T>},
-		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
 		Scheduler: pallet_scheduler::{Module, Storage, Config, Event<T>, Call},
 		Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
+		// The order matters here. Inherents will be included in the order specified here.
+		// Concretely wee need the author inherent to come after the parachain_upgrade inherent.
+		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
+		AuthorFilter: pallet_author_filter::{Module, Storage, Event<T>,}
 	}
 }
 

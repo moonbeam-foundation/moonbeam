@@ -23,6 +23,8 @@ use moonbeam_runtime::{
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
+use sp_runtime::Perbill;
+use stake::{InflationInfo, Range};
 use std::{collections::BTreeMap, str::FromStr};
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
@@ -60,6 +62,7 @@ pub fn development_chain_spec() -> ChainSpec {
 					None,
 					100_000 * GLMR,
 				)],
+				moonbeam_inflation_config(),
 				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
 				Default::default(), // para_id
 				1281,               //ChainId
@@ -92,6 +95,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 					None,
 					100_000 * GLMR,
 				)],
+				moonbeam_inflation_config(),
 				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
 				para_id,
 				1280, //ChainId
@@ -108,9 +112,26 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 	)
 }
 
+pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
+	InflationInfo {
+		expect: Range {
+			min: 100_000 * GLMR,
+			ideal: 200_000 * GLMR,
+			max: 500_000 * GLMR,
+		},
+		// 8766 rounds (hours) in a year
+		round: Range {
+			min: Perbill::from_parts(Perbill::from_percent(4).deconstruct() / 8766),
+			ideal: Perbill::from_parts(Perbill::from_percent(5).deconstruct() / 8766),
+			max: Perbill::from_parts(Perbill::from_percent(5).deconstruct() / 8766),
+		},
+	}
+}
+
 fn testnet_genesis(
 	root_key: AccountId,
 	stakers: Vec<(AccountId, Option<AccountId>, Balance)>,
+	inflation_config: InflationInfo<Balance>,
 	endowed_accounts: Vec<AccountId>,
 	para_id: ParaId,
 	chain_id: u64,
@@ -140,6 +161,9 @@ fn testnet_genesis(
 		pallet_ethereum: Some(EthereumConfig {}),
 		pallet_democracy: Some(DemocracyConfig {}),
 		pallet_scheduler: Some(SchedulerConfig {}),
-		stake: Some(StakeConfig { stakers }),
+		stake: Some(StakeConfig {
+			stakers,
+			inflation_config,
+		}),
 	}
 }

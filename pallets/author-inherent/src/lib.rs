@@ -41,7 +41,8 @@ pub trait EventHandler<Author> {
 pub trait CanAuthor<AccountId> {
 	fn can_author(account: &AccountId) -> bool;
 }
-/// Default permissions is none, see `stake` pallet for different impl used in runtime
+/// Default implementation where anyone can author, see `stake` and `author-filter` pallets for
+/// additional implementations.
 impl<T> CanAuthor<T> for () {
 	fn can_author(_: &T) -> bool {
 		true
@@ -52,7 +53,9 @@ pub trait Config: System {
 	/// Other pallets that want to be informed about block authorship
 	type EventHandler: EventHandler<Self::AccountId>;
 
-	/// Checks if account can be set as block author
+	/// Checks if account can be set as block author.
+	/// If the pallet that implements this trait depends on an inherent, that inherent **must**
+	/// be included before this one.
 	type CanAuthor: CanAuthor<Self::AccountId>;
 }
 

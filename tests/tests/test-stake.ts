@@ -17,28 +17,6 @@ describeWithMoonbeam("Moonbeam RPC (Stake)", `simple-specs.json`, (context) => {
     expect((validators[0] as Buffer).toString("hex").toLowerCase()).equal(GENESIS_ACCOUNT);
   });
 
-  step("issuance minted to the sole validator for authoring blocks", async function () {
-    const issuanceEveryRound = 49n * GLMR;
-    // payment transfer is delayed by two rounds
-    const balanceAfterBlock40 = BigInt(GENESIS_ACCOUNT_BALANCE) + issuanceEveryRound;
-    const balanceAfterBlock60 = balanceAfterBlock40 + issuanceEveryRound;
-
-    var block = await context.web3.eth.getBlockNumber();
-    while (block < 40) {
-      await createAndFinalizeBlock(context.polkadotApi);
-      block = await context.web3.eth.getBlockNumber();
-    }
-    expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT)).to.equal(
-      balanceAfterBlock40.toString()
-    );
-    while (block < 60) {
-      await createAndFinalizeBlock(context.polkadotApi);
-      block = await context.web3.eth.getBlockNumber();
-    }
-    expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT)).to.equal(
-      balanceAfterBlock60.toString()
-    );
-  });
   it("candidates set in genesis", async function () {
     const candidates = await context.polkadotApi.query.stake.candidates(GENESIS_ACCOUNT);
     expect((candidates.toHuman() as any).id.toLowerCase()).equal(GENESIS_ACCOUNT);
