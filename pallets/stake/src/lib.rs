@@ -48,11 +48,17 @@
 // https://github.com/PureStake/moonbeam/pull/189
 #![allow(clippy::all)]
 
+mod inflation;
+pub use inflation::{InflationInfo, Range};
+#[cfg(test)]
+pub(crate) mod mock;
 mod set;
+#[cfg(test)]
+mod tests;
 use frame_support::{
 	decl_error, decl_event, decl_module, decl_storage, ensure,
 	storage::IterableStorageDoubleMap,
-	traits::{Currency, Get, Imbalance, ReservableCurrency},
+	traits::{Currency, EnsureOrigin, Get, Imbalance, ReservableCurrency},
 };
 use frame_system::{ensure_signed, Config as System};
 use pallet_staking::{Exposure, IndividualExposure};
@@ -63,10 +69,6 @@ use sp_runtime::{
 	DispatchResult, Perbill, RuntimeDebug,
 };
 use sp_std::{cmp::Ordering, prelude::*};
-#[cfg(test)]
-pub(crate) mod mock;
-#[cfg(test)]
-mod tests;
 
 #[derive(Default, Clone, Encode, Decode, RuntimeDebug)]
 pub struct Bond<AccountId, Balance> {
@@ -425,8 +427,10 @@ pub trait Config: System {
 	type Event: From<Event<Self>> + Into<<Self as System>::Event>;
 	/// The currency type
 	type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
-	/// Blocks per round
-	type BlocksPerRound: Get<Self::BlockNumber>;
+	/// The origin for setting inflation
+	type SetMonetaryPolicyOrigin: EnsureOrigin<Self::Origin>;
+	/// Number of blocks per round
+	type BlocksPerRound: Get<u32>;
 	/// Number of rounds that validators remain bonded before exit request is executed
 	type BondDuration: Get<RoundIndex>;
 	/// Maximum validators per round
@@ -435,8 +439,6 @@ pub trait Config: System {
 	type MaxNominatorsPerValidator: Get<u32>;
 	/// Maximum validators per nominator
 	type MaxValidatorsPerNominator: Get<u32>;
-	/// Balance issued as rewards per round (constant issuance)
-	type IssuancePerRound: Get<BalanceOf<Self>>;
 	/// Maximum fee for any validator
 	type MaxFee: Get<Perbill>;
 	/// Minimum stake for any registered on-chain account to become a validator
@@ -484,7 +486,12 @@ decl_event!(
 		ValidatorNominated(AccountId, Balance, AccountId, Balance),
 		/// Nominator, Validator, Amount Unstaked, New Total Amt Staked for Validator
 		NominatorLeftValidator(AccountId, AccountId, Balance, Balance),
+		/// Paid the account (nominator or validator) the balance as liquid rewards
 		Rewarded(AccountId, Balance),
+		/// Round inflation range set with the provided annual inflation range
+		RoundInflationSet(Perbill, Perbill, Perbill),
+		/// Staking expectations set
+		StakeExpectationsSet(Balance, Balance, Balance),
 	}
 );
 
@@ -509,6 +516,7 @@ decl_error! {
 		NominationDNE,
 		Underflow,
 		CannotSwitchToSameNomination,
+		InvalidSchedule,
 	}
 }
 
@@ -533,6 +541,11 @@ decl_storage! {
 		AtStake: double_map
 			hasher(blake2_128_concat) RoundIndex,
 			hasher(blake2_128_concat) T::AccountId => Exposure<T::AccountId,BalanceOf<T>>;
+		/// Snapshot of total staked in this round; used to determine round issuance
+		Staked: map
+			hasher(blake2_128_concat) RoundIndex => BalanceOf<T>;
+		/// Inflation parameterization, which contains round issuance and stake expectations
+		InflationConfig get(fn inflation_config) config(): InflationInfo<BalanceOf<T>>;
 		/// Total points awarded in this round
 		Points: map
 			hasher(blake2_128_concat) RoundIndex => RewardPoint;
@@ -548,7 +561,7 @@ decl_storage! {
 			for &(ref actor, ref opt_val, balance) in &config.stakers {
 				assert!(
 					T::Currency::free_balance(&actor) >= balance,
-					"Stash does not have enough balance to bond."
+					"Account does not have enough balance to bond."
 				);
 				let _ = if let Some(nominated_val) = opt_val {
 					<Module<T>>::join_nominators(
@@ -564,9 +577,12 @@ decl_storage! {
 					)
 				};
 			}
+			// Choose top `MaxValidator`s from validator candidates
 			let (v_count, total_staked) = <Module<T>>::best_candidates_become_validators(1u32);
-			// start Round 1 at Block 0
+			// Start Round 1 at Block 0
 			<Round>::put(1u32);
+			// Snapshot total stake
+			<Staked<T>>::insert(1u32, <Total<T>>::get());
 			<Module<T>>::deposit_event(
 				RawEvent::NewRound(T::BlockNumber::zero(), 1u32, v_count, total_staked)
 			);
@@ -580,7 +596,7 @@ decl_module! {
 		fn deposit_event() = default;
 
 		/// A new round chooses a new validator set. Runtime config is 20 so every 2 minutes.
-		const BlocksPerRound: T::BlockNumber = T::BlocksPerRound::get();
+		const BlocksPerRound: u32 = T::BlocksPerRound::get();
 		/// Number of rounds that validators remain bonded before exit request is executed
 		const BondDuration: RoundIndex = T::BondDuration::get();
 		/// Maximum validators per round.
@@ -589,17 +605,58 @@ decl_module! {
 		const MaxNominatorsPerValidator: u32 = T::MaxNominatorsPerValidator::get();
 		/// Maximum validators per nominator
 		const MaxValidatorsPerNominator: u32 = T::MaxValidatorsPerNominator::get();
-		/// Balance issued as rewards per round (constant issuance)
-		const IssuancePerRound: BalanceOf<T> = T::IssuancePerRound::get();
 		/// Maximum fee for any validator
 		const MaxFee: Perbill = T::MaxFee::get();
 		/// Minimum stake for any registered on-chain account to become a validator
-		const MinValidatorStk: BalanceOf<T> = T::MinNominatorStk::get();
+		const MinValidatorStk: BalanceOf<T> = T::MinValidatorStk::get();
 		/// Minimum stake for any registered on-chain account to nominate
 		const MinNomination: BalanceOf<T> = T::MinNomination::get();
 		/// Minimum stake for any registered on-chain account to become a nominator
 		const MinNominatorStk: BalanceOf<T> = T::MinNominatorStk::get();
 
+		/// Set the expectations for total staked. These expectations determine the issuance for
+		/// the round according to logic in `fn compute_issuance`
+		#[weight = 0]
+		fn set_staking_expectations(
+			origin,
+			expectations: Range<BalanceOf<T>>,
+		) -> DispatchResult {
+			T::SetMonetaryPolicyOrigin::ensure_origin(origin)?;
+			ensure!(expectations.is_valid(), Error::<T>::InvalidSchedule);
+			let mut config = <InflationConfig<T>>::get();
+			config.set_expectations(expectations);
+			Self::deposit_event(
+				RawEvent::StakeExpectationsSet(
+					config.expect.min,
+					config.expect.ideal,
+					config.expect.max
+				)
+			);
+			<InflationConfig<T>>::put(config);
+			Ok(())
+		}
+		/// (Re)set the annual inflation and update round inflation range in storage
+		#[weight = 0]
+		fn set_inflation(
+			origin,
+			schedule: Range<Perbill>
+		) -> DispatchResult {
+			T::SetMonetaryPolicyOrigin::ensure_origin(origin)?;
+			ensure!(schedule.is_valid(), Error::<T>::InvalidSchedule);
+			let mut config = <InflationConfig<T>>::get();
+			config.set_annual_rate::<T>(schedule);
+			Self::deposit_event(
+				RawEvent::RoundInflationSet(
+					config.round.min,
+					config.round.ideal,
+					config.round.max,
+				)
+			);
+			<InflationConfig<T>>::put(config);
+			Ok(())
+		}
+		/// Join the set of validator candidates by bonding at least `MinValidatorStk` and
+		/// setting commission fee below the `MaxFee`
 		#[weight = 0]
 		fn join_candidates(
 			origin,
@@ -625,6 +682,9 @@ decl_module! {
 			Self::deposit_event(RawEvent::JoinedValidatorCandidates(acc, bond, new_total));
 			Ok(())
 		}
+		/// Request to leave the set of candidates. If successful, the account is immediately
+		/// removed from the candidate pool to prevent selection as a validator, but unbonding is
+		/// executed with a delay of `BondDuration` rounds.
 		#[weight = 0]
 		fn leave_candidates(origin) -> DispatchResult {
 			let validator = ensure_signed(origin)?;
@@ -647,6 +707,7 @@ decl_module! {
 			Self::deposit_event(RawEvent::ValidatorScheduledExit(now,validator,when));
 			Ok(())
 		}
+		/// Temporarily leave the set of validator candidates without unbonding
 		#[weight = 0]
 		fn go_offline(origin) -> DispatchResult {
 			let validator = ensure_signed(origin)?;
@@ -654,6 +715,7 @@ decl_module! {
 			ensure!(state.is_active(),Error::<T>::AlreadyOffline);
 			state.go_offline();
 			let mut candidates = <CandidatePool<T>>::get();
+			// TODO: investigate possible bug in this next line
 			if candidates.remove(&Bond::from_owner(validator.clone())) {
 				<CandidatePool<T>>::put(candidates);
 			}
@@ -661,6 +723,7 @@ decl_module! {
 			Self::deposit_event(RawEvent::ValidatorWentOffline(<Round>::get(),validator));
 			Ok(())
 		}
+		/// Rejoin the set of validator candidates if previously had called `go_offline`
 		#[weight = 0]
 		fn go_online(origin) -> DispatchResult {
 			let validator = ensure_signed(origin)?;
@@ -678,6 +741,7 @@ decl_module! {
 			Self::deposit_event(RawEvent::ValidatorBackOnline(<Round>::get(),validator));
 			Ok(())
 		}
+		/// Bond more for validator candidates
 		#[weight = 0]
 		fn candidate_bond_more(origin, more: BalanceOf<T>) -> DispatchResult {
 			let validator = ensure_signed(origin)?;
@@ -694,6 +758,7 @@ decl_module! {
 			Self::deposit_event(RawEvent::ValidatorBondedMore(validator, before, after));
 			Ok(())
 		}
+		/// Bond less for validator candidates
 		#[weight = 0]
 		fn candidate_bond_less(origin, less: BalanceOf<T>) -> DispatchResult {
 			let validator = ensure_signed(origin)?;
@@ -710,6 +775,7 @@ decl_module! {
 			Self::deposit_event(RawEvent::ValidatorBondedLess(validator, before, after));
 			Ok(())
 		}
+		/// Join the set of nominators
 		#[weight = 0]
 		fn join_nominators(
 			origin,
@@ -725,6 +791,7 @@ decl_module! {
 			Self::deposit_event(RawEvent::NominatorJoined(acc, amount));
 			Ok(())
 		}
+		/// Leave the set of nominators and, by implication, revoke all ongoing nominations
 		#[weight = 0]
 		fn leave_nominators(origin) -> DispatchResult {
 			let acc = ensure_signed(origin)?;
@@ -736,6 +803,7 @@ decl_module! {
 			Self::deposit_event(RawEvent::NominatorLeft(acc, nominator.total));
 			Ok(())
 		}
+		/// Nominate a new validator candidate if already nominating
 		#[weight = 0]
 		fn nominate_new(
 			origin,
@@ -781,6 +849,8 @@ decl_module! {
 			));
 			Ok(())
 		}
+		/// Swap an old nomination with a new nomination. If the new nomination exists, it
+		/// updates the existing nomination by adding the balance of the old nomination
 		#[weight = 0]
 		fn switch_nomination(origin, old: T::AccountId, new: T::AccountId) -> DispatchResult {
 			let acc = ensure_signed(origin)?;
@@ -808,10 +878,12 @@ decl_module! {
 			Self::deposit_event(RawEvent::NominationSwapped(acc, swapped_amt, old, new));
 			Ok(())
 		}
+		/// Revoke an existing nomination
 		#[weight = 0]
 		fn revoke_nomination(origin, validator: T::AccountId) -> DispatchResult {
 			Self::nominator_revokes_validator(ensure_signed(origin)?, validator)
 		}
+		/// Bond more for nominators with respect to a specific validator candidate
 		#[weight = 0]
 		fn nominator_bond_more(
 			origin,
@@ -836,6 +908,7 @@ decl_module! {
 			Self::deposit_event(RawEvent::NominationIncreased(nominator, candidate, before, after));
 			Ok(())
 		}
+		/// Bond less for nominators with respect to a specific nominator candidate
 		#[weight = 0]
 		fn nominator_bond_less(
 			origin,
@@ -864,7 +937,7 @@ decl_module! {
 			Ok(())
 		}
 		fn on_finalize(n: T::BlockNumber) {
-			if (n % T::BlocksPerRound::get()).is_zero() {
+			if (n % T::BlocksPerRound::get().into()).is_zero() {
 				let next = <Round>::get() + 1;
 				// pay all stakers for T::BondDuration rounds ago
 				Self::pay_stakers(next);
@@ -874,6 +947,8 @@ decl_module! {
 				let (validator_count, total_staked) = Self::best_candidates_become_validators(next);
 				// start next round
 				<Round>::put(next);
+				// snapshot total stake
+				<Staked<T>>::insert(next, <Total<T>>::get());
 				Self::deposit_event(RawEvent::NewRound(n, next, validator_count, total_staked));
 			}
 		}
@@ -899,6 +974,22 @@ impl<T: Config> Module<T> {
 			amount: total,
 		});
 		<CandidatePool<T>>::put(candidates);
+	}
+	// Calculate round issuance based on total staked for the given round
+	fn compute_issuance(staked: BalanceOf<T>) -> BalanceOf<T> {
+		let config = <InflationConfig<T>>::get();
+		let round_issuance = inflation::round_issuance_range::<T>(config.round);
+		if staked < config.expect.min {
+			return round_issuance.min;
+		} else if staked > config.expect.max {
+			return round_issuance.max;
+		} else {
+			// TODO: split up into 3 branches
+			// 1. min < staked < ideal
+			// 2. ideal < staked < max
+			// 3. staked == ideal
+			return round_issuance.ideal;
+		}
 	}
 	fn nominator_joins_validator(
 		nominator: T::AccountId,
@@ -996,7 +1087,8 @@ impl<T: Config> Module<T> {
 		if next > duration {
 			let round_to_payout = next - duration;
 			let total = <Points>::get(round_to_payout);
-			let issuance = T::IssuancePerRound::get();
+			let total_staked = <Staked<T>>::get(round_to_payout);
+			let issuance = Self::compute_issuance(total_staked);
 			for (val, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
 				let pct_due = Perbill::from_rational_approximation(pts, total);
 				let mut amt_due = pct_due * issuance;
@@ -1104,10 +1196,7 @@ impl<T: Config> Module<T> {
 
 /// Add reward points to block authors:
 /// * 20 points to the block producer for producing a block in the chain
-impl<T> author_inherent::EventHandler<T::AccountId> for Module<T>
-where
-	T: Config + author_inherent::Config,
-{
+impl<T: Config> author_inherent::EventHandler<T::AccountId> for Module<T> {
 	fn note_author(author: T::AccountId) {
 		let now = <Round>::get();
 		let score_plus_20 = <AwardedPts<T>>::get(now, &author) + 20;
@@ -1116,10 +1205,7 @@ where
 	}
 }
 
-impl<T> author_inherent::CanAuthor<T::AccountId> for Module<T>
-where
-	T: Config + author_inherent::Config,
-{
+impl<T: Config> author_inherent::CanAuthor<T::AccountId> for Module<T> {
 	fn can_author(account: &T::AccountId) -> bool {
 		Self::is_validator(account)
 	}

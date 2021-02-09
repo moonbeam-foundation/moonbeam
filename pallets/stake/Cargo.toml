@@ -1,6 +1,6 @@
 [package]
 name = "stake"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["PureStake"]
 edition = "2018"
 description = "staking pallet for validator selection and rewards"
@@ -29,7 +29,7 @@ std = [
 	"pallet-balances/std",
 	"pallet-staking/std",
 	"parity-scale-codec/std",
-	"serde/std",
+	"serde",
 	"sp-std/std",
 	"sp-runtime/std",
 ]
