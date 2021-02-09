@@ -4541,7 +4541,7 @@ name = "pallet-author-filter"
 version = "0.1.0"
 dependencies = [
  "author-inherent",
- "cumulus-parachain-upgrade",
+ "cumulus-parachain-system",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
