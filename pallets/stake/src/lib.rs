@@ -59,6 +59,7 @@ use frame_support::{
 	decl_error, decl_event, decl_module, decl_storage, ensure,
 	storage::IterableStorageDoubleMap,
 	traits::{Currency, EnsureOrigin, Get, Imbalance, ReservableCurrency},
+	weights::Weight,
 };
 use frame_system::{ensure_signed, Config as System};
 use pallet_staking::{Exposure, IndividualExposure};
@@ -520,6 +521,29 @@ decl_error! {
 	}
 }
 
+// A value placed in storage that represents the current storage schema version of the stake pallet.
+// This value is used by the `on_runtime_upgrade` logic to determine whether we run
+// storage migration logic.
+//
+// Why isn't this done using the `PalletVersion`?
+// https://crates.parity.io/frame_support/traits/struct.PalletVersion.html
+// https://github.com/paritytech/substrate/pull/7208
+// For now just following pallet balances.
+#[derive(Encode, Decode, Clone, Copy, PartialEq, Eq, RuntimeDebug)]
+enum StorageSchema {
+	/// Used for chains launched before storage schema was properly versioned.
+	/// Concretely this is targetting Alphanet which was launched from `adecdec5`
+	Undefined,
+	/// Version 1: Supports inflation and multiple nominations.
+	V1,
+}
+
+impl Default for StorageSchema {
+	fn default() -> Self {
+		StorageSchema::Undefined
+	}
+}
+
 decl_storage! {
 	trait Store for Module<T: Config> as Stake {
 		/// Current round, incremented every `BlocksPerRound` in `fn on_finalize`
@@ -553,6 +577,10 @@ decl_storage! {
 		AwardedPts: double_map
 			hasher(blake2_128_concat) RoundIndex,
 			hasher(blake2_128_concat) T::AccountId => RewardPoint;
+		/// Storage Schema version of the pallet.
+		///
+		/// This is set to V1 for chains started with this version.
+		StorageVersion build(|_: &GenesisConfig<T>| StorageSchema::V1): StorageSchema;
 	}
 	add_extra_genesis {
 		config(stakers):
@@ -613,6 +641,37 @@ decl_module! {
 		const MinNomination: BalanceOf<T> = T::MinNomination::get();
 		/// Minimum stake for any registered on-chain account to become a nominator
 		const MinNominatorStk: BalanceOf<T> = T::MinNominatorStk::get();
+
+		fn on_runtime_upgrade() -> Weight {
+			// Open question. The way I've sketched this it seems safe to leave the code here
+			// long-term. The only downside would be the size of the wasm blob. Substrate does not
+			// appear to have these still in their code. Why? Where did they go? Do you have to
+			// keep up with every commit to use the Substrate pallets? Maybe apopiak knows.
+
+			// Read starting schema from storage
+			let mut current_schema = StorageVersion::get();
+
+			// Do migrations as necessary. Don't use `match` here, we want to run _all_ necessary
+			// migrations. This allows skipping individual versions on live chains.
+			if current_schema == StorageSchema::Undefined {
+				// Begin by updating the onchain storage schema.
+				current_schema = StorageSchema::V1;
+				StorageVersion::put(current_schema);
+
+				// This is not currently a real "migration" it just writes new data to storage
+			}
+
+			// Example for the next migration
+			// if current_schema == StorageSchema::V1 {
+			// 	current_schema = StorageSchema::V2;
+			//  StorageVersion::put(current_schema);
+			//
+			// 	// Migrations here
+			// }
+
+			// TODO make a mutable weight counter at the start, and inc it with each upgrade.
+			0
+		}
 
 		/// Set the expectations for total staked. These expectations determine the issuance for
 		/// the round according to logic in `fn compute_issuance`
