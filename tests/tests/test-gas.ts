@@ -60,9 +60,9 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
   });
 
   // Current gas per second
-  const GAS_PER_SECOND = 39_000_000;
-  // The real computation is 1_000_000_000_000 / 16_000_000, but we simplify to avoid bigint.
-  const GAS_PER_WEIGHT = 1_000_000 / 39;
+  const GAS_PER_SECOND = 40_000_000;
+  // The real computation is 1_000_000_000_000 / 40_000_000, but we simplify to avoid bigint.
+  const GAS_PER_WEIGHT = 1_000_000 / 40;
 
   // Our weight limit is 500ms.
   const BLOCK_TX_LIMIT = GAS_PER_SECOND * 0.5;
