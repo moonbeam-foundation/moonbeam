@@ -16,9 +16,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use pallet_evm::LinearCostPrecompile;
 use pallet_evm_precompile_simple::{ECRecover, Identity, Ripemd160, Sha256};
-use sp_std::prelude::*;
 // use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
