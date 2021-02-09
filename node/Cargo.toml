@@ -1,6 +1,6 @@
 [package]
-name = 'moonbase-alphanet'
-description = 'Moonbase Collator'
+name = 'moonbeam'
+description = 'Moonbeam Collator'
 homepage = 'https://moonbeam.network'
 license = 'GPL-3.0-only'
 version = '0.1.0'
@@ -9,7 +9,7 @@ build = 'build.rs'
 edition = '2018'
 
 [[bin]]
-name = 'moonbase-alphanet'
+name = 'moonbeam'
 path = 'src/main.rs'
 
 [dependencies]
