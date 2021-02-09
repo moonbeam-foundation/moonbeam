@@ -3765,13 +3765,16 @@ dependencies = [
 name = "moonbeam-rpc-debug"
 version = "0.1.0"
 dependencies = [
+ "ethereum",
  "ethereum-types",
  "fc-consensus",
+ "fp-rpc",
  "jsonrpc-core 15.1.0",
  "moonbeam-rpc-core-debug",
  "moonbeam-rpc-primitives-debug",
  "sc-client-api",
  "sp-api",
+ "sp-block-builder",
  "sp-blockchain",
  "sp-core",
  "sp-runtime",
@@ -3781,6 +3784,7 @@ dependencies = [
 name = "moonbeam-rpc-primitives-debug"
 version = "0.1.0"
 dependencies = [
+ "ethereum",
  "ethereum-types",
  "parity-scale-codec",
  "sp-api",

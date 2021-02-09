@@ -66,7 +66,7 @@ pub use frame_support::{
 };
 use moonbeam_extensions_evm::runner::stack::TraceRunner as TraceRunnerT;
 use pallet_ethereum::Call::transact;
-use pallet_ethereum::TransactionAction;
+use pallet_ethereum::{Transaction as EthereumTransaction, TransactionAction};
 use pallet_evm::{
 	Account as EVMAccount, EnsureAddressNever, EnsureAddressSame, FeeCalculator,
 	IdentityAddressMapping, Runner,
@@ -478,67 +478,78 @@ impl_runtime_apis! {
 	}
 	impl moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block> for Runtime {
 		fn trace_transaction(
-			transaction_index: u32
+			extrinsics: Vec<<Block as BlockT>::Extrinsic>,
+			transaction: &EthereumTransaction
 		) -> Result<
 			moonbeam_rpc_primitives_debug::TraceExecutorResponse,
 			sp_runtime::DispatchError
 		> {
-			if let Some(block) = <pallet_ethereum::Module<Runtime>>::current_block() {
-				let transactions = block.transactions;
-				let mut c = <Runtime as pallet_evm::Config>::config().clone();
-				c.estimate = true;
-				let config = Some(c);
-				if let Some(transaction) = transactions.get(transaction_index as usize) {
-					// let from = H160::default(); // TODO
+			// Get the caller;
+			let mut sig = [0u8; 65];
+			let mut msg = [0u8; 32];
+			sig[0..32].copy_from_slice(&transaction.signature.r()[..]);
+			sig[32..64].copy_from_slice(&transaction.signature.s()[..]);
+			sig[64] = transaction.signature.standard_v();
+			msg.copy_from_slice(
+				&pallet_ethereum::TransactionMessage::from(transaction.clone()).hash()[..]
+			);
 
-					let mut sig = [0u8; 65];
-					let mut msg = [0u8; 32];
-					sig[0..32].copy_from_slice(&transaction.signature.r()[..]);
-					sig[32..64].copy_from_slice(&transaction.signature.s()[..]);
-					sig[64] = transaction.signature.standard_v();
-					msg.copy_from_slice(&pallet_ethereum::TransactionMessage::from(transaction.clone()).hash()[..]);
+			let from = match sp_io::crypto::secp256k1_ecdsa_recover(&sig, &msg) {
+				Ok(pk) => H160::from(
+					H256::from_slice(Keccak256::digest(&pk).as_slice())
+				),
+				_ => H160::default()
+			};
 
-					let from = match sp_io::crypto::secp256k1_ecdsa_recover(&sig, &msg) {
-						Ok(pk) => H160::from(
-							H256::from_slice(Keccak256::digest(&pk).as_slice())
-						),
-						_ => H160::default()
-					};
-
-
-					match transaction.action {
-						TransactionAction::Call(to) => {
-							if let Ok(res) = <Runtime as pallet_evm::Config>::Runner::trace_call(
-								from,
-								to,
-								transaction.input.clone(),
-								transaction.value,
-								transaction.gas_limit.low_u32(),
-								config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
-							) {
-								return Ok(res);
-							} else {
-								return Err(sp_runtime::DispatchError::Other("Evm error"));
-							}
-						},
-						TransactionAction::Create => {
-							if let Ok(res) = <Runtime as pallet_evm::Config>::Runner::trace_create(
-								from,
-								transaction.input.clone(),
-								transaction.value,
-								transaction.gas_limit.low_u32(),
-								config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
-							) {
-								return Ok(res);
-							} else {
-								return Err(sp_runtime::DispatchError::Other("Evm error"));
-							}
+			// Apply the a subset of extrinsics: all the substrate-specific or ethereum transactions
+			// that preceded the requested transaction.
+			for ext in extrinsics.into_iter() {
+				let _ = match &ext.function {
+					Call::Ethereum(transact(t)) => {
+						if t == transaction {
+							break;
 						}
+						Executive::apply_extrinsic(ext)
+					},
+					_ => Executive::apply_extrinsic(ext)
+				};
+			}
+
+			let mut c = <Runtime as pallet_evm::Config>::config().clone();
+			c.estimate = true;
+			let config = Some(c);
+
+			// Use the runner extension to interface with our evm's trace executor and return the
+			// TraceExecutorResult.
+			match transaction.action {
+				TransactionAction::Call(to) => {
+					if let Ok(res) = <Runtime as pallet_evm::Config>::Runner::trace_call(
+						from,
+						to,
+						transaction.input.clone(),
+						transaction.value,
+						transaction.gas_limit.low_u32(),
+						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
+					) {
+						return Ok(res);
+					} else {
+						return Err(sp_runtime::DispatchError::Other("Evm error"));
+					}
+				},
+				TransactionAction::Create => {
+					if let Ok(res) = <Runtime as pallet_evm::Config>::Runner::trace_create(
+						from,
+						transaction.input.clone(),
+						transaction.value,
+						transaction.gas_limit.low_u32(),
+						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
+					) {
+						return Ok(res);
+					} else {
+						return Err(sp_runtime::DispatchError::Other("Evm error"));
 					}
 				}
-
 			}
-			Err(sp_runtime::DispatchError::Other("Failed to retrieve block from storage"))
 		}
 	}
 
