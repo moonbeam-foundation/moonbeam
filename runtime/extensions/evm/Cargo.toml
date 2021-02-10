@@ -8,7 +8,8 @@ license = 'GPL-3.0-only'
 repository = 'https://github.com/PureStake/moonbeam/'
 
 [dependencies]
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "tgm-v0.5-hotfixes-debug" }
+fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "tgm-v0.6-moonbeam" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "tgm-v0.6-moonbeam" }
 evm = { git = "https://github.com/purestake/evm", branch = "tgm-getters", default-features = false, features = ["with-codec"] }
 evm-core = { git = "https://github.com/purestake/evm", branch = "tgm-getters", default-features = false, features = ["with-codec"] }
 sp-core = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }
@@ -16,7 +17,7 @@ sp-std = { default-features = false, git = "https://github.com/paritytech/substr
 sp-io = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }
 sp-runtime = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug", default-features = false }
-ethereum-types = { version = "0.10.0", default-features = false }
+ethereum-types = { version = "0.11.0", default-features = false }
 
 [features]
 default = ["std"]
@@ -28,4 +29,5 @@ std = [
 	"sp-std/std",
 	"sp-runtime/std",
 	"ethereum-types/std",
+	"fp-evm/std",
 ]

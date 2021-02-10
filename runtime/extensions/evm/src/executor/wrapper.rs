@@ -3,11 +3,10 @@ use alloc::string::ToString;
 use ethereum_types::{H160, H256, U256};
 pub use evm::{
 	backend::{Apply, Backend as BackendT, Log},
-	executor::StackExecutor,
+	executor::{StackExecutor, StackState as StackStateT},
 	gasometer::{self as gasometer},
 	Capture, Config, Context, CreateScheme, ExitError, ExitFatal, ExitReason, ExitSucceed,
-	ExternalOpcode as EvmExternalOpcode, Handler as HandlerT, Opcode as EvmOpcode, Runtime, Stack,
-	Transfer,
+	Handler as HandlerT, Opcode as EvmOpcode, Runtime, Stack, Transfer,
 };
 use moonbeam_rpc_primitives_debug::StepLog;
 use sp_std::{collections::btree_map::BTreeMap, convert::Infallible, rc::Rc, vec::Vec};
@@ -25,21 +24,20 @@ macro_rules! displayable {
 #[derive(Debug)]
 pub struct Opcode(EvmOpcode);
 
-#[derive(Debug)]
-pub struct ExternalOpcode(EvmExternalOpcode);
-
 displayable!(Opcode);
-displayable!(ExternalOpcode);
 
-pub struct TraceExecutorWrapper<'backend, 'config, B: 'backend> {
-	pub inner: &'backend mut StackExecutor<'backend, 'config, B>,
+pub struct TraceExecutorWrapper<'config, S> {
+	pub inner: &'config mut StackExecutor<'config, S>,
 	is_tracing: bool,
 	pub step_logs: Vec<StepLog>,
 }
 
-impl<'backend, 'config, B: BackendT> TraceExecutorWrapper<'backend, 'config, B> {
-	pub fn new(inner: &'backend mut StackExecutor<'backend, 'config, B>, is_tracing: bool) -> Self {
-		Self {
+impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
+	pub fn new(
+		inner: &'config mut StackExecutor<'config, S>,
+		is_tracing: bool,
+	) -> TraceExecutorWrapper<S> {
+		TraceExecutorWrapper {
 			inner,
 			is_tracing,
 			step_logs: Vec::new(),
@@ -48,17 +46,17 @@ impl<'backend, 'config, B: BackendT> TraceExecutorWrapper<'backend, 'config, B> 
 	fn trace(&mut self, runtime: &mut Runtime) -> ExitReason {
 		loop {
 			if let Some((opcode, stack)) = runtime.machine().inspect() {
-				let substate = self
-					.inner
-					.substates()
-					.last()
-					.expect("substate vec always have length greater than one; qed");
+				// let substate = self
+				// 	.inner
+				// 	.substates()
+				// 	.last()
+				// 	.expect("substate vec always have length greater than one; qed");
 
-				let (opcode_cost, _memory_cost) = match gasometer::opcode_cost(
+				let (opcode_cost, _memory_cost) = match gasometer::dynamic_opcode_cost(
 					runtime.context().address,
 					opcode,
 					stack,
-					substate.is_static(),
+					self.inner.state().metadata().is_static,
 					self.inner.config(),
 					self,
 				) {
@@ -66,9 +64,9 @@ impl<'backend, 'config, B: BackendT> TraceExecutorWrapper<'backend, 'config, B> 
 					Err(e) => break ExitReason::Error(e),
 				};
 
-				let gasometer_instance = substate.gasometer().clone();
-				let gas = gasometer_instance.gas();
-				let gas_cost = match gasometer_instance.inner() {
+				// let gasometer_instance = substate.gasometer().clone();
+				let gas = self.inner.state().metadata().gasometer.gas();
+				let gas_cost = match self.inner.state().metadata().gasometer.inner() {
 					Ok(inner) => match inner.gas_cost(opcode_cost, gas) {
 						Ok(cost) => cost,
 						Err(e) => return ExitReason::Error(e),
@@ -81,20 +79,20 @@ impl<'backend, 'config, B: BackendT> TraceExecutorWrapper<'backend, 'config, B> 
 				};
 
 				self.step_logs.push(StepLog {
-					depth: U256::from(substate.depth().unwrap_or_default()),
+					depth: U256::from(self.inner.state().metadata().depth.unwrap_or_default()),
 					gas: U256::from(self.inner.gas()),
 					gas_cost: U256::from(gas_cost),
 					memory: runtime.machine().memory().data().clone(),
-					op: match opcode {
-						Ok(i) => Opcode(i).to_string().as_bytes().to_vec(),
-						Err(e) => ExternalOpcode(e).to_string().as_bytes().to_vec(),
-					},
+					op: Opcode(opcode).to_string().as_bytes().to_vec(),
 					pc: U256::from(*position),
 					stack: runtime.machine().stack().data().clone(),
-					storage: match self.inner.account(runtime.context().address) {
-						Some(account) => account.storage.clone(),
-						_ => BTreeMap::new(),
-					},
+					// TODO this is now BTreeMap<(H160, H256), H256> in executor/stack/state
+					// we need to build a BtreeMap<H256, H256> for the current H160 address.
+					storage: BTreeMap::new()
+					// storage: match self.inner.account(runtime.context().address) {
+					// 	Some(account) => account.storage.clone(),
+					// 	_ => BTreeMap::new(),
+					// },
 				});
 			} else {
 				match runtime.machine().position() {
@@ -125,7 +123,7 @@ impl<'backend, 'config, B: BackendT> TraceExecutorWrapper<'backend, 'config, B> 
 	) -> Capture<(ExitReason, Vec<u8>), Infallible> {
 		let code = self.inner.code(address);
 		self.inner.enter_substate(gas_limit, false);
-		self.inner.account_mut(address);
+		self.inner.state_mut().touch(address);
 
 		let context = Context {
 			caller,
@@ -186,7 +184,7 @@ impl<'backend, 'config, B: BackendT> TraceExecutorWrapper<'backend, 'config, B> 
 	}
 }
 
-impl<'backend, 'config, B: BackendT> HandlerT for TraceExecutorWrapper<'backend, 'config, B> {
+impl<'config, S: StackStateT<'config>> HandlerT for TraceExecutorWrapper<'config, S> {
 	type CreateInterrupt = Infallible;
 	type CreateFeedback = Infallible;
 	type CallInterrupt = Infallible;
@@ -225,31 +223,31 @@ impl<'backend, 'config, B: BackendT> HandlerT for TraceExecutorWrapper<'backend,
 	}
 
 	fn gas_price(&self) -> U256 {
-		self.inner.backend().gas_price()
+		self.inner.state().gas_price()
 	}
 	fn origin(&self) -> H160 {
-		self.inner.backend().origin()
+		self.inner.state().origin()
 	}
 	fn block_hash(&self, number: U256) -> H256 {
-		self.inner.backend().block_hash(number)
+		self.inner.state().block_hash(number)
 	}
 	fn block_number(&self) -> U256 {
-		self.inner.backend().block_number()
+		self.inner.state().block_number()
 	}
 	fn block_coinbase(&self) -> H160 {
-		self.inner.backend().block_coinbase()
+		self.inner.state().block_coinbase()
 	}
 	fn block_timestamp(&self) -> U256 {
-		self.inner.backend().block_timestamp()
+		self.inner.state().block_timestamp()
 	}
 	fn block_difficulty(&self) -> U256 {
-		self.inner.backend().block_difficulty()
+		self.inner.state().block_difficulty()
 	}
 	fn block_gas_limit(&self) -> U256 {
-		self.inner.backend().block_gas_limit()
+		self.inner.state().block_gas_limit()
 	}
 	fn chain_id(&self) -> U256 {
-		self.inner.backend().chain_id()
+		self.inner.state().chain_id()
 	}
 
 	fn deleted(&self, address: H160) -> bool {
@@ -271,7 +269,7 @@ impl<'backend, 'config, B: BackendT> HandlerT for TraceExecutorWrapper<'backend,
 	fn create(
 		&mut self,
 		caller: H160,
-		scheme: CreateScheme,
+		_scheme: CreateScheme,
 		value: U256,
 		init_code: Vec<u8>,
 		target_gas: Option<u64>,
@@ -283,9 +281,11 @@ impl<'backend, 'config, B: BackendT> HandlerT for TraceExecutorWrapper<'backend,
 				u64::MAX
 			};
 			return self.trace_create(caller, value, init_code, gas_limit);
+		} else {
+			unreachable!("TODO StackExecutorWrapper only available on tracing enabled.");
 		}
-		self.inner
-			.create_inner(caller, scheme, value, init_code, target_gas, true)
+		// self.inner
+		// 	.create_inner(caller, scheme, value, init_code, target_gas, true)
 	}
 
 	fn call(
@@ -294,8 +294,8 @@ impl<'backend, 'config, B: BackendT> HandlerT for TraceExecutorWrapper<'backend,
 		transfer: Option<Transfer>,
 		input: Vec<u8>,
 		target_gas: Option<u64>,
-		is_static: bool,
-		context: Context,
+		_is_static: bool,
+		_context: Context,
 	) -> Capture<(ExitReason, Vec<u8>), Self::CallInterrupt> {
 		if self.is_tracing {
 			let (caller, value) = if let Some(transfer) = transfer {
@@ -309,23 +309,25 @@ impl<'backend, 'config, B: BackendT> HandlerT for TraceExecutorWrapper<'backend,
 				u64::MAX
 			};
 			return self.trace_call(caller, code_address, value, input, gas_limit);
+		} else {
+			unreachable!("TODO StackExecutorWrapper only available on tracing enabled.");
 		}
-		self.inner.call_inner(
-			code_address,
-			transfer,
-			input,
-			target_gas,
-			is_static,
-			true,
-			true,
-			context,
-		)
+		// self.inner.call_inner(
+		// 	code_address,
+		// 	transfer,
+		// 	input,
+		// 	target_gas,
+		// 	is_static,
+		// 	true,
+		// 	true,
+		// 	context,
+		// )
 	}
 
 	fn pre_validate(
 		&mut self,
 		context: &Context,
-		opcode: Result<EvmOpcode, EvmExternalOpcode>,
+		opcode: EvmOpcode,
 		stack: &Stack,
 	) -> Result<(), ExitError> {
 		self.inner.pre_validate(context, opcode, stack)

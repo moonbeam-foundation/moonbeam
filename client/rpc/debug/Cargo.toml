@@ -9,8 +9,8 @@ repository = 'https://github.com/PureStake/moonbeam/'
 
 [dependencies]
 jsonrpc-core = "15.0.0"
-ethereum = { version = "0.6", branch = "master", features = ["with-codec"] }
-ethereum-types = "0.10.0"
+ethereum = { git = "https://github.com/notlesh/ethereum", branch = "notlesh-moonbeam-v0.6", features = ["with-codec"] }
+ethereum-types = "0.11.0"
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sp-api = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "master" }
@@ -20,5 +20,5 @@ sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "master
 
 moonbeam-rpc-core-debug = { path = "../../rpc-core/debug" }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug" }
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "tgm-v0.5-hotfixes-debug" }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "tgm-v0.5-hotfixes-debug" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "tgm-v0.6-moonbeam" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "tgm-v0.6-moonbeam" }

@@ -16,35 +16,39 @@
 
 use crate::executor::wrapper::TraceExecutorWrapper;
 use ethereum_types::{H160, U256};
-use evm::{executor::StackExecutor, Capture, Config as EvmConfig};
+use evm::{
+	executor::{StackExecutor, StackSubstateMetadata},
+	Capture, Config as EvmConfig,
+};
+// use fp_evm::Vicinity;
 use moonbeam_rpc_primitives_debug::TraceExecutorResponse;
 use pallet_evm::{
-	runner::stack::{Backend, Runner},
+	runner::stack::{Runner, SubstrateStackState},
 	Config, ExitError, ExitReason, PrecompileSet, Vicinity,
 };
 use sp_std::{convert::Infallible, vec::Vec};
 
 pub trait TraceRunner<T: Config> {
-	fn execute_call<F>(
+	fn execute_call<'config, F>(
 		source: H160,
-		gas_limit: u32,
-		config: &EvmConfig,
+		gas_limit: u64,
+		config: &'config EvmConfig,
 		f: F,
 	) -> Result<TraceExecutorResponse, ExitError>
 	where
 		F: FnOnce(
-			&mut TraceExecutorWrapper<Backend<T>>,
+			&mut TraceExecutorWrapper<'config, SubstrateStackState<'_, 'config, T>>,
 		) -> Capture<(ExitReason, Vec<u8>), Infallible>;
 
-	fn execute_create<F>(
+	fn execute_create<'config, F>(
 		source: H160,
-		gas_limit: u32,
-		config: &EvmConfig,
+		gas_limit: u64,
+		config: &'config EvmConfig,
 		f: F,
 	) -> Result<TraceExecutorResponse, ExitError>
 	where
 		F: FnOnce(
-			&mut TraceExecutorWrapper<Backend<T>>,
+			&mut TraceExecutorWrapper<'config, SubstrateStackState<'_, 'config, T>>,
 		) -> Capture<(ExitReason, Option<H160>, Vec<u8>), Infallible>;
 
 	fn trace_call(
@@ -52,7 +56,7 @@ pub trait TraceRunner<T: Config> {
 		target: H160,
 		input: Vec<u8>,
 		value: U256,
-		gas_limit: u32,
+		gas_limit: u64,
 		config: &EvmConfig,
 	) -> Result<TraceExecutorResponse, ExitError>;
 
@@ -60,35 +64,31 @@ pub trait TraceRunner<T: Config> {
 		source: H160,
 		init: Vec<u8>,
 		value: U256,
-		gas_limit: u32,
+		gas_limit: u64,
 		config: &EvmConfig,
 	) -> Result<TraceExecutorResponse, ExitError>;
 }
 
 impl<T: Config> TraceRunner<T> for Runner<T> {
-	fn execute_call<F>(
+	fn execute_call<'config, F>(
 		source: H160,
-		gas_limit: u32,
-		config: &EvmConfig,
+		gas_limit: u64,
+		config: &'config EvmConfig,
 		f: F,
 	) -> Result<TraceExecutorResponse, ExitError>
 	where
 		F: FnOnce(
-			&mut TraceExecutorWrapper<Backend<T>>,
+			&mut TraceExecutorWrapper<'config, SubstrateStackState<'_, 'config, T>>,
 		) -> Capture<(ExitReason, Vec<u8>), Infallible>,
 	{
 		let vicinity = Vicinity {
 			gas_price: U256::zero(),
 			origin: source,
 		};
-
-		let backend = Backend::<T>::new(&vicinity);
-		let mut executor = StackExecutor::new_with_precompile(
-			&backend,
-			gas_limit as u64,
-			config,
-			T::Precompiles::execute,
-		);
+		let metadata = StackSubstateMetadata::new(gas_limit, &config);
+		let state = SubstrateStackState::new(&vicinity, metadata);
+		let mut executor =
+			StackExecutor::new_with_precompile(state, config, T::Precompiles::execute);
 
 		let mut wrapper = TraceExecutorWrapper::new(&mut executor, true);
 
@@ -104,15 +104,15 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		})
 	}
 
-	fn execute_create<F>(
+	fn execute_create<'config, F>(
 		source: H160,
-		gas_limit: u32,
-		config: &EvmConfig,
+		gas_limit: u64,
+		config: &'config EvmConfig,
 		f: F,
 	) -> Result<TraceExecutorResponse, ExitError>
 	where
 		F: FnOnce(
-			&mut TraceExecutorWrapper<Backend<T>>,
+			&mut TraceExecutorWrapper<'config, SubstrateStackState<'_, 'config, T>>,
 		) -> Capture<(ExitReason, Option<H160>, Vec<u8>), Infallible>,
 	{
 		let vicinity = Vicinity {
@@ -120,13 +120,10 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 			origin: source,
 		};
 
-		let backend = Backend::<T>::new(&vicinity);
-		let mut executor = StackExecutor::new_with_precompile(
-			&backend,
-			gas_limit as u64,
-			config,
-			T::Precompiles::execute,
-		);
+		let metadata = StackSubstateMetadata::new(gas_limit, &config);
+		let state = SubstrateStackState::new(&vicinity, metadata);
+		let mut executor =
+			StackExecutor::new_with_precompile(state, config, T::Precompiles::execute);
 
 		let mut wrapper = TraceExecutorWrapper::new(&mut executor, true);
 
@@ -147,7 +144,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		target: H160,
 		input: Vec<u8>,
 		value: U256,
-		gas_limit: u32,
+		gas_limit: u64,
 		config: &EvmConfig,
 	) -> Result<TraceExecutorResponse, ExitError> {
 		Self::execute_call(source, gas_limit, config, |executor| {
@@ -159,7 +156,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		source: H160,
 		init: Vec<u8>,
 		value: U256,
-		gas_limit: u32,
+		gas_limit: u64,
 		config: &EvmConfig,
 	) -> Result<TraceExecutorResponse, ExitError> {
 		Self::execute_create(source, gas_limit, config, |executor| {

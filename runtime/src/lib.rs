@@ -44,15 +44,15 @@ use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
 pub use frame_support::{
-	construct_runtime,
-	pallet_prelude::PhantomData, debug,
+	construct_runtime, debug,
+	pallet_prelude::PhantomData,
 	parameter_types,
 	traits::{FindAuthor, Get, Randomness},
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 	ConsensusEngineId, StorageValue,
 };
-use moonbeam_extensions_evm::runner::stack::TraceRunner as TraceRunnerT;
 use frame_system::{EnsureNever, EnsureRoot, EnsureSigned};
+use moonbeam_extensions_evm::runner::stack::TraceRunner as TraceRunnerT;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{Transaction as EthereumTransaction, TransactionAction};
 use pallet_evm::{
@@ -616,7 +616,7 @@ impl_runtime_apis! {
 						to,
 						transaction.input.clone(),
 						transaction.value,
-						transaction.gas_limit.low_u32(),
+						transaction.gas_limit.low_u64(),
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 					) {
 						return Ok(res);
@@ -629,7 +629,7 @@ impl_runtime_apis! {
 						from,
 						transaction.input.clone(),
 						transaction.value,
-						transaction.gas_limit.low_u32(),
+						transaction.gas_limit.low_u64(),
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 					) {
 						return Ok(res);
