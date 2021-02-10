@@ -38,30 +38,32 @@ describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
         // transactions we executed (10).
         // If we trace the 5th transaction, should return 5 and so on.
         //
-        // So we set 5 different targets for each block: the 1st, 3 intermediate, and the last.
+        // So we set 5 different target txs for a single block: the 1st, 3 intermediate, and
+        // the last.
         const total_txs = 10;
         let targets = [1, 2, 5, 8, 10];
         let iteration = 0;
+        let txs = [];
+        let num_txs;
+        // Create 10 transactions in a block.
+        for (num_txs = 1; num_txs <= total_txs; num_txs++) {
+            let callTx = await context.web3.eth.accounts.signTransaction({
+                from: GENESIS_ACCOUNT,
+                to: receipt.contractAddress,
+                gas: "0x100000",
+                value: "0x00",
+                nonce: num_txs,
+                data: contract.methods.sum(1).encodeABI() // increments by one
+            }, GENESIS_ACCOUNT_PRIVATE_KEY);
+
+            send = await customRequest(
+                context.web3, "eth_sendRawTransaction", [callTx.rawTransaction]
+            );
+            txs.push(send.result);
+        }
+        await createAndFinalizeBlock(context.polkadotApi);
+        // Trace 5 target transactions on it. 
         for (let target of targets) {
-            let txs = [];
-            let num_txs;
-            for (num_txs = 1; num_txs <= total_txs; num_txs++) {
-                let callTx = await context.web3.eth.accounts.signTransaction({
-                    from: GENESIS_ACCOUNT,
-                    to: receipt.contractAddress,
-                    gas: "0x100000",
-                    value: "0x00",
-                    nonce: num_txs + (iteration * total_txs),
-                    data: contract.methods.sum(1).encodeABI() // increments by one
-                }, GENESIS_ACCOUNT_PRIVATE_KEY);
-
-                send = await customRequest(
-                    context.web3, "eth_sendRawTransaction", [callTx.rawTransaction]
-                );
-                txs.push(send.result);
-            }
-            await createAndFinalizeBlock(context.polkadotApi);
-
             let index = target - 1;
             let intermediate_tx = await customRequest(
                 context.web3, "debug_traceTransaction", [txs[index]]
@@ -72,10 +74,8 @@ describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
                     intermediate_tx.result.returnValue
                 )
             );
-            let expected = target + (iteration * total_txs);
-            console.log(`Matching target ${expected} against evm result ${evm_result}`);
-            expect(evm_result).to.equal(expected);
-            iteration += 1;
+            console.log(`Matching target ${target} against evm result ${evm_result}`);
+            expect(evm_result).to.equal(target);
         }
     });
 });
