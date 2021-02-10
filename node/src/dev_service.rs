@@ -20,7 +20,7 @@
 use crate::cli::Sealing;
 use async_io::Timer;
 use fc_consensus::FrontierBlockImport;
-use fc_rpc_core::types::PendingTransactions;
+use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use futures::Stream;
 use futures::StreamExt;
 use moonbeam_runtime::{self, opaque::Block, RuntimeApi};
@@ -33,7 +33,7 @@ use sp_core::H160;
 use sp_core::H256;
 use std::time::Duration;
 use std::{
-	collections::HashMap,
+	collections::{BTreeMap, HashMap},
 	sync::{Arc, Mutex},
 };
 
@@ -62,6 +62,7 @@ pub fn new_partial(
 		(
 			FrontierBlockImport<Block, Arc<FullClient>, FullClient>,
 			PendingTransactions,
+			Option<FilterPool>,
 		),
 	>,
 	ServiceError,
@@ -83,6 +84,8 @@ pub fn new_partial(
 
 	let pending_transactions: PendingTransactions = Some(Arc::new(Mutex::new(HashMap::new())));
 
+	let filter_pool: Option<FilterPool> = Some(Arc::new(Mutex::new(BTreeMap::new())));
+
 	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone(), true);
 
 	let import_queue = sc_consensus_manual_seal::import_queue(
@@ -100,7 +103,7 @@ pub fn new_partial(
 		select_chain,
 		transaction_pool,
 		inherent_data_providers,
-		other: (frontier_block_import, pending_transactions),
+		other: (frontier_block_import, pending_transactions, filter_pool),
 	})
 }
 
@@ -119,7 +122,7 @@ pub fn new_full(
 		select_chain,
 		transaction_pool,
 		inherent_data_providers,
-		other: (block_import, pending_transactions),
+		other: (block_import, pending_transactions, filter_pool),
 	} = new_partial(&config, author_id)?;
 
 	let (network, network_status_sinks, system_rpc_tx, network_starter) =
@@ -145,7 +148,6 @@ pub fn new_full(
 
 	let role = config.role.clone();
 	let prometheus_registry = config.prometheus_registry().cloned();
-	let telemetry_connection_sinks = sc_service::TelemetryConnectionSinks::default();
 	let is_authority = role.is_authority();
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
@@ -213,6 +215,7 @@ pub fn new_full(
 		let pool = transaction_pool.clone();
 		let network = network.clone();
 		let pending = pending_transactions.clone();
+		let filter_pool = filter_pool.clone();
 		Box::new(move |deny_unsafe, _| {
 			let deps = crate::rpc::FullDeps {
 				client: client.clone(),
@@ -222,6 +225,7 @@ pub fn new_full(
 				is_authority,
 				network: network.clone(),
 				pending_transactions: pending.clone(),
+				filter_pool: filter_pool.clone(),
 				command_sink: command_sink.clone(),
 			};
 			crate::rpc::create_full(deps, subscription_task_executor.clone())
@@ -234,7 +238,6 @@ pub fn new_full(
 		keystore: keystore_container.sync_keystore(),
 		task_manager: &mut task_manager,
 		transaction_pool: transaction_pool.clone(),
-		telemetry_connection_sinks,
 		rpc_extensions_builder,
 		on_demand: None,
 		remote_blockchain: None,
@@ -243,6 +246,29 @@ pub fn new_full(
 		system_rpc_tx,
 		config,
 	})?;
+
+	// Spawn Frontier EthFilterApi maintenance task.
+	if filter_pool.is_some() {
+		// Each filter is allowed to stay in the pool for 100 blocks.
+		const FILTER_RETAIN_THRESHOLD: u64 = 100;
+		task_manager.spawn_essential_handle().spawn(
+			"frontier-filter-pool",
+			client
+				.import_notification_stream()
+				.for_each(move |notification| {
+					if let Ok(locked) = &mut filter_pool.clone().unwrap().lock() {
+						let imported_number: u64 = notification.header.number as u64;
+						for (k, v) in locked.clone().iter() {
+							let lifespan_limit = v.at_block + FILTER_RETAIN_THRESHOLD;
+							if lifespan_limit <= imported_number {
+								locked.remove(&k);
+							}
+						}
+					}
+					futures::future::ready(())
+				}),
+		);
+	}
 
 	// Spawn Frontier pending transactions maintenance task (as essential, otherwise we leak).
 	if pending_transactions.is_some() {

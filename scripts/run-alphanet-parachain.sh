@@ -18,9 +18,9 @@
 # Loading binary/specs variables
 source scripts/_init_var.sh
 
-if [ ! -f "$PARACHAIN_BINARY" ]; then
-  echo "Parachain binary $PARACHAIN_BINARY is missing"
-  echo "Please run: cargo build --release -p moonbase-alphanet"
+if [ ! -f "$MOONBEAM_BINARY" ]; then
+  echo "Moonbeam binary $MOONBEAM_BINARY is missing"
+  echo "Please run: cargo build --release"
   exit 1
 fi
 
@@ -76,12 +76,12 @@ if [ -z "$CHAIN" ]; then
   CHAIN=$ALPHANET_SPEC_RAW
 fi
 
-$PARACHAIN_BINARY \
+$MOONBEAM_BINARY \
   --node-key ${PARACHAIN_KEYS[$PARACHAIN_INDEX]} \
   --port $((PARACHAIN_PORT + 10)) \
   --rpc-port $((PARACHAIN_PORT + 10 + 1)) \
   --ws-port $((PARACHAIN_PORT + 10 + 2)) \
-  --validator \
+  --collator \
   --rpc-cors all \
   --rpc-methods=unsafe \
   --execution wasm \
@@ -89,7 +89,7 @@ $PARACHAIN_BINARY \
   --name parachain_$PARACHAIN_INDEX \
   $PARACHAIN_BASE_PATH \
   '-linfo,evm=debug,ethereum=trace,rpc=trace,cumulus_collator=debug,txpool=debug' \
-  --author-id 6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b \
+  --author-id 0x4c5a56ed5a4ff7b09aa86560afd7d383f4831cce \
   --chain $CHAIN \
   $PARACHAIN_BOOTNODES_ARGS \
   -- \

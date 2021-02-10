@@ -238,6 +238,7 @@ pub struct Validator<AccountId, Balance> {
 
 export const typesBundle = {
   spec: {
+    moonbeam: moonbeamDefinitions,
     "moonbase-alphanet": moonbeamDefinitions,
     moonbeamDefinitions,
     "moonbeam-standalone": moonbeamDefinitions,

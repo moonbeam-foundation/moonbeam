@@ -44,7 +44,9 @@ use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
 pub use frame_support::{
-	construct_runtime, parameter_types,
+	construct_runtime,
+	pallet_prelude::PhantomData,
+	parameter_types,
 	traits::{FindAuthor, Get, Randomness},
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 	ConsensusEngineId, StorageValue,
@@ -90,6 +92,9 @@ pub type DigestItem = generic::DigestItem<Hash>;
 /// Minimum time between blocks. Slot duration is double this.
 pub const MINIMUM_PERIOD: u64 = 3000;
 
+/// Maximum weight per block
+pub const MAXIMUM_BLOCK_WEIGHT: Weight = 2 * WEIGHT_PER_SECOND;
+
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
@@ -107,8 +112,8 @@ pub mod opaque {
 
 /// This runtime version.
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("moonbase-alphanet"),
-	impl_name: create_runtime_str!("moonbase-alphanet"),
+	spec_name: create_runtime_str!("moonbeam"),
+	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
 	spec_version: 19,
 	impl_version: 1,
@@ -125,7 +130,7 @@ pub fn native_version() -> NativeVersion {
 	}
 }
 
-const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
+const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(65);
 
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 250;
@@ -229,9 +234,9 @@ impl pallet_ethereum_chain_id::Config for Runtime {}
 
 /// Current approximation of the gas/s consumption considering
 /// EVM execution over compiled WASM (on 4.4Ghz CPU).
-/// Given the 500ms Weight, from which 75% only are used for transactions,
-/// the total EVM execution gas limit is: GAS_PER_SECOND * 0.500 * 0.75 => 6_000_000.
-pub const GAS_PER_SECOND: u64 = 16_000_000;
+/// Given the 500ms Weight, from which 65% only are used for transactions,
+/// the total EVM execution gas limit is: GAS_PER_SECOND * 0.500 * 0.65 ~= 12_500_000.
+pub const GAS_PER_SECOND: u64 = 40_000_000;
 
 /// Approximate ratio of the amount of Weight per Gas.
 /// u64 works for approximations because Weight is a very small unit compared to gas.
@@ -240,11 +245,11 @@ pub const WEIGHT_PER_GAS: u64 = WEIGHT_PER_SECOND / GAS_PER_SECOND;
 pub struct MoonbeamGasWeightMapping;
 
 impl pallet_evm::GasWeightMapping for MoonbeamGasWeightMapping {
-	fn gas_to_weight(gas: usize) -> Weight {
-		(gas as u64).saturating_mul(WEIGHT_PER_GAS)
+	fn gas_to_weight(gas: u64) -> Weight {
+		gas.saturating_mul(WEIGHT_PER_GAS)
 	}
-	fn weight_to_gas(weight: Weight) -> usize {
-		usize::try_from(weight.wrapping_div(WEIGHT_PER_GAS)).unwrap_or(usize::MAX)
+	fn weight_to_gas(weight: Weight) -> u64 {
+		u64::try_from(weight.wrapping_div(WEIGHT_PER_GAS)).unwrap_or(u32::MAX as u64)
 	}
 }
 
@@ -346,16 +351,25 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 	}
 }
 
+pub struct EthereumFindAuthor<F>(PhantomData<F>);
+
+parameter_types! {
+	pub BlockGasLimit: u64 = NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT / WEIGHT_PER_GAS;
+}
+
 impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
 	type FindAuthor = AuthorInherent;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot;
+	type BlockGasLimit = BlockGasLimit;
 }
 
-impl cumulus_parachain_upgrade::Config for Runtime {
+impl cumulus_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
 	type SelfParaId = ParachainInfo;
+	type DownwardMessageHandlers = ();
+	type HrmpMessageHandlers = ();
 }
 
 impl parachain_info::Config for Runtime {}
@@ -416,7 +430,7 @@ construct_runtime! {
 		Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
 		Sudo: pallet_sudo::{Module, Call, Storage, Config<T>, Event<T>},
 		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Module, Call, Storage},
-		ParachainUpgrade: cumulus_parachain_upgrade::{Module, Call, Storage, Inherent, Event},
+		ParachainSystem: cumulus_parachain_system::{Module, Call, Storage, Inherent, Event},
 		TransactionPayment: pallet_transaction_payment::{Module, Storage},
 		ParachainInfo: parachain_info::{Module, Storage, Config},
 		EthereumChainId: pallet_ethereum_chain_id::{Module, Storage, Config},
@@ -609,7 +623,7 @@ impl_runtime_apis! {
 				to,
 				data,
 				value,
-				gas_limit.low_u32(),
+				gas_limit.low_u64(),
 				gas_price,
 				nonce,
 				config.as_ref().unwrap_or_else(|| <Runtime as pallet_evm::Config>::config()),
@@ -638,7 +652,7 @@ impl_runtime_apis! {
 				from,
 				data,
 				value,
-				gas_limit.low_u32(),
+				gas_limit.low_u64(),
 				gas_price,
 				nonce,
 				config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
@@ -678,6 +692,13 @@ impl_runtime_apis! {
 			len: u32,
 		) -> pallet_transaction_payment_rpc_runtime_api::RuntimeDispatchInfo<Balance> {
 			TransactionPayment::query_info(uxt, len)
+		}
+
+		fn query_fee_details(
+			uxt: <Block as BlockT>::Extrinsic,
+			len: u32,
+		) -> pallet_transaction_payment::FeeDetails<Balance> {
+			TransactionPayment::query_fee_details(uxt, len)
 		}
 	}
 }
