@@ -42,28 +42,6 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
     ).to.equal(91019);
   });
 
-  it.skip("block gas limit over 5M", async function () {
-    expect((await context.web3.eth.getBlock("latest")).gasLimit).to.be.above(5000000);
-  });
-
-  // Testing the gas limit protection, hardcoded to 25M
-  it.skip("gas limit should decrease on next block if gas unused", async function () {
-    this.timeout(15000);
-
-    const gasLimit = (await context.web3.eth.getBlock("latest")).gasLimit;
-    await createAndFinalizeBlock(context.polkadotApi);
-
-    // Gas limit is expected to have decreased as the gasUsed by the block is lower than 2/3 of the
-    // previous gas limit.
-    const newGasLimit = (await context.web3.eth.getBlock("latest")).gasLimit;
-    expect(newGasLimit).to.be.below(gasLimit);
-  });
-
-  // Testing the gas limit protection, hardcoded to 25M
-  it.skip("gas limit should increase on next block if gas fully used", async function () {
-    // TODO: fill a block with many heavy transaction to simulate lot of gas.
-  });
-
   it("eth_estimateGas for contract call", async function () {
     const contract = new context.web3.eth.Contract([TEST_CONTRACT_ABI], FIRST_CONTRACT_ADDRESS, {
       from: GENESIS_ACCOUNT,
@@ -81,16 +59,16 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
     expect(await contract.methods.multiply(3).estimateGas()).to.equal(21204);
   });
 
-  // Current gas per second is at 16M.
-  const GAS_PER_SECOND = 16_000_000;
-  // The real computation is 1_000_000_000_000 / 16_000_000, but we simplify to avoid bigint.
-  const GAS_PER_WEIGHT = 1_000_000 / 16;
+  // Current gas per second
+  const GAS_PER_SECOND = 40_000_000;
+  // The real computation is 1_000_000_000_000 / 40_000_000, but we simplify to avoid bigint.
+  const GAS_PER_WEIGHT = 1_000_000 / 40;
 
   // Our weight limit is 500ms.
   const BLOCK_TX_LIMIT = GAS_PER_SECOND * 0.5;
 
-  // Current implementation is limiting block transactions to 0.75% of the block gas limit
-  const BLOCK_TX_GAS_LIMIT = BLOCK_TX_LIMIT * 0.75;
+  // Current implementation is limiting block transactions to 65% of the block gas limit
+  const BLOCK_TX_GAS_LIMIT = BLOCK_TX_LIMIT * 0.65;
   const EXTRINSIC_BASE_COST = 125_000_000 / GAS_PER_WEIGHT; // 125_000_000 Weight per extrinsics
 
   // Maximum extrinsic weight is taken from the max allowed transaction weight per block,
@@ -110,9 +88,8 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
       },
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
-    expect(
-      (await customRequest(context.web3, "eth_sendRawTransaction", [goodTx.rawTransaction])).result
-    ).to.be.length(66);
+    let resp = await customRequest(context.web3, "eth_sendRawTransaction", [goodTx.rawTransaction]);
+    expect(resp.result).to.be.length(66);
   });
 
   it("gas limit should be limited by weight", async function () {

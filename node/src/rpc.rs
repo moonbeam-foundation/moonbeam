@@ -18,7 +18,7 @@
 
 use std::{fmt, sync::Arc};
 
-use fc_rpc_core::types::PendingTransactions;
+use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use jsonrpc_pubsub::manager::SubscriptionManager;
 use moonbeam_runtime::{opaque::Block, AccountId, Balance, Hash, Index};
 use sc_client_api::{
@@ -38,18 +38,6 @@ use sp_blockchain::{
 use sp_runtime::traits::BlakeTwo256;
 use sp_transaction_pool::TransactionPool;
 
-/// Light client extra dependencies.
-pub struct LightDeps<C, F, P> {
-	/// The client instance to use.
-	pub client: Arc<C>,
-	/// Transaction pool instance.
-	pub pool: Arc<P>,
-	/// Remote access to the blockchain (async).
-	pub remote_blockchain: Arc<dyn sc_client_api::light::RemoteBlockchain<Block>>,
-	/// Fetcher instance.
-	pub fetcher: Arc<F>,
-}
-
 /// Full client dependencies.
 pub struct FullDeps<C, P, A: ChainApi, BE> {
 	/// The client instance to use.
@@ -68,6 +56,8 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub pending_transactions: PendingTransactions,
 	/// Backend
 	pub backend: Arc<BE>,
+	/// EthFilterApi pool.
+	pub filter_pool: Option<FilterPool>,
 	/// Manual seal command sink
 	pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
 }
@@ -96,8 +86,8 @@ where
 	P: TransactionPool<Block = Block> + 'static,
 {
 	use fc_rpc::{
-		EthApi, EthApiServer, EthPubSubApi, EthPubSubApiServer, HexEncodedIdProvider, NetApi,
-		NetApiServer, Web3Api, Web3ApiServer,
+		EthApi, EthApiServer, EthFilterApi, EthFilterApiServer, EthPubSubApi, EthPubSubApiServer,
+		HexEncodedIdProvider, NetApi, NetApiServer, Web3Api, Web3ApiServer,
 	};
 	use moonbeam_rpc_debug::{Debug, DebugServer};
 	use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
@@ -114,6 +104,7 @@ where
 		network,
 		pending_transactions,
 		backend,
+		filter_pool,
 		command_sink,
 	} = deps;
 
@@ -135,10 +126,19 @@ where
 		graph,
 		moonbeam_runtime::TransactionConverter,
 		network.clone(),
-		pending_transactions.clone(),
+		pending_transactions,
 		signers,
 		is_authority,
 	)));
+
+	if let Some(filter_pool) = filter_pool {
+		io.extend_with(EthFilterApiServer::to_delegate(EthFilterApi::new(
+			client.clone(),
+			filter_pool.clone(),
+			500 as usize, // max stored filters
+		)));
+	}
+
 	io.extend_with(NetApiServer::to_delegate(NetApi::new(
 		client.clone(),
 		network.clone(),
@@ -159,41 +159,13 @@ where
 	)));
 	io.extend_with(TxPoolServer::to_delegate(TxPool::new(client, pool)));
 
-	match command_sink {
-		Some(command_sink) => {
-			io.extend_with(
-				// We provide the rpc handler with the sending end of the channel to allow the rpc
-				// send EngineCommands to the background block authorship task.
-				ManualSealApi::to_delegate(ManualSeal::new(command_sink)),
-			);
-		}
-		_ => {}
-	}
-
-	io
-}
-
-/// Instantiate all Light RPC extensions.
-pub fn create_light<C, P, M, F>(deps: LightDeps<C, F, P>) -> jsonrpc_core::IoHandler<M>
-where
-	C: sp_blockchain::HeaderBackend<Block>,
-	C: Send + Sync + 'static,
-	F: sc_client_api::light::Fetcher<Block> + 'static,
-	P: TransactionPool + 'static,
-	M: jsonrpc_core::Metadata + Default,
-{
-	use substrate_frame_rpc_system::{LightSystem, SystemApi};
-
-	let LightDeps {
-		client,
-		pool,
-		remote_blockchain,
-		fetcher,
-	} = deps;
-	let mut io = jsonrpc_core::IoHandler::default();
-	io.extend_with(SystemApi::<Hash, AccountId, Index>::to_delegate(
-		LightSystem::new(client, remote_blockchain, fetcher, pool),
-	));
+	if let Some(command_sink) = command_sink {
+		io.extend_with(
+			// We provide the rpc handler with the sending end of the channel to allow the rpc
+			// send EngineCommands to the background block authorship task.
+			ManualSealApi::to_delegate(ManualSeal::new(command_sink)),
+		);
+	};
 
 	io
 }

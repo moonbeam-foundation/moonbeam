@@ -6,33 +6,40 @@ fi
 
 mkdir -p $PARACHAIN_BUILD_FOLDER
 
-
-if [ -z "$STANDALONE_BINARY" ]; then
-  STANDALONE_BINARY="node/standalone/target/release/moonbase-standalone"
+if [ -z "$MOONBEAM_BINARY" ]; then
+  MOONBEAM_BINARY="target/release/moonbeam"
 fi
 
-if [ -z "$PARACHAIN_BINARY" ]; then
-  PARACHAIN_BINARY="target/release/moonbase-alphanet"
+if [ -z "$ALPHANET_SPEC_TEMPLATE" ]; then
+  ALPHANET_SPEC_TEMPLATE="specs/moonbase-alphanet-specs-template.json"
 fi
 
-if [ -z "$STANDALONE_SPEC_TMP" ]; then
-  STANDALONE_SPEC_TMP="/tmp/moonbase-standalone-specs-tmp.json"
+if [ -z "$STAGENET_SPEC_TEMPLATE" ]; then
+  STAGENET_SPEC_TEMPLATE="specs/moonbase-stagenet-specs-template.json"
 fi
 
-if [ -z "$PARACHAIN_SPEC_TEMPLATE" ]; then
-  PARACHAIN_SPEC_TEMPLATE="specs/moonbase-alphanet-specs-template.json"
+if [ -z "$ALPHANET_SPEC_PLAIN" ]; then
+  ALPHANET_SPEC_PLAIN="$PARACHAIN_BUILD_FOLDER/moonbase-alphanet-specs-plain.json"
 fi
 
-if [ -z "$PARACHAIN_SPEC_PLAIN" ]; then
-  PARACHAIN_SPEC_PLAIN="$PARACHAIN_BUILD_FOLDER/moonbase-alphanet-specs-plain.json"
+if [ -z "$STAGENET_SPEC_PLAIN" ]; then
+  STAGENET_SPEC_PLAIN="$PARACHAIN_BUILD_FOLDER/moonbase-stagenet-specs-plain.json"
 fi
 
-if [ -z "$PARACHAIN_SPEC_RAW" ]; then
-  PARACHAIN_SPEC_RAW="$PARACHAIN_BUILD_FOLDER/moonbase-alphanet-specs-raw.json"
+if [ -z "$ALPHANET_SPEC_RAW" ]; then
+  ALPHANET_SPEC_RAW="$PARACHAIN_BUILD_FOLDER/moonbase-alphanet-specs-raw.json"
 fi
 
-if [ -z "$PARACHAIN_SPEC_TMP" ]; then
-  PARACHAIN_SPEC_TMP="/tmp/moonbase-alphanet-specs-tmp.json"
+if [ -z "$STAGENET_SPEC_RAW" ]; then
+  STAGENET_SPEC_RAW="$PARACHAIN_BUILD_FOLDER/moonbase-stagenet-specs-raw.json"
+fi
+
+if [ -z "$ALPHANET_SPEC_TMP" ]; then
+  ALPHANET_SPEC_TMP="/tmp/moonbase-alphanet-specs-tmp.json"
+fi
+
+if [ -z "$STAGENET_SPEC_TMP" ]; then
+  STAGENET_SPEC_TMP="/tmp/moonbase-stagenet-specs-tmp.json"
 fi
 
 if [ -z "$PARACHAIN_WASM" ]; then

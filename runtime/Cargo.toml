@@ -9,7 +9,7 @@ edition = '2018'
 
 [dependencies]
 serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
-parity-scale-codec = { version = "1.3.0", default-features = false, features = ["derive"] }
+parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
 log = "0.4.8"
 hex-literal = "0.3.1"
 sha3 = { version = "0.8", default-features = false }
@@ -18,6 +18,7 @@ precompiles = { path = "precompiles/", default-features = false }
 account = { path = "account/", default-features = false }
 pallet-ethereum-chain-id = { path = "../pallets/ethereum-chain-id", default-features = false }
 stake = { path = "../pallets/stake", default-features = false }
+pallet-author-filter = { path = "../pallets/author-filter", default-features = false }
 
 # Substrate dependencies
 pallet-aura = { git = "https://github.com/paritytech/substrate.git", default-features = false, branch = "master", optional = true }
@@ -44,13 +45,16 @@ pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", 
 
 frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "tgm-v0.5-hotfixes-debug" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.6-moonbeam" }
 
 sp-consensus-aura = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master", optional = true }
 pallet-grandpa = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master", optional = true }
 
-pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "tgm-v0.5-hotfixes-debug" }
-fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "tgm-v0.5-hotfixes-debug" }
+pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.6-moonbeam" }
+fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.6-moonbeam" }
+
+pallet-democracy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 
 moonbeam-rpc-primitives-debug = { path = "../primitives/rpc/debug", default-features = false }
 moonbeam-extensions-evm = { path = "extensions/evm", default-features = false }
@@ -58,7 +62,7 @@ moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool", default-fe
 
 # Cumulus dependencies
 cumulus-runtime = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
-cumulus-parachain-upgrade = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
+cumulus-parachain-system = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
 cumulus-primitives = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
 
 # TODO Why can't this come directly from cumulus
@@ -74,12 +78,6 @@ default = [
 	"std"
 	# parachain-only dependencies can't be conditionally included here.
 	# Default feature dependencies must not be optional (aparently)
-]
-# Standalone runtime is enabled by a feature
-standalone = [
-	"pallet-aura",
-	"sp-consensus-aura",
-	"pallet-grandpa",
 ]
 std = [
 	"parity-scale-codec/std",
@@ -111,27 +109,17 @@ std = [
 	"frame-system-rpc-runtime-api/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-ethereum-chain-id/std",
+	"pallet-democracy/std",
+	"pallet-scheduler/std",
 	"author-inherent/std",
 	"moonbeam-extensions-evm/std",
-
-	# TODO These dependencies are only necessary when building without the standalone feature. I don't
-	# see a way to express that. Everything is correct, like this, but we unnecessarily build these
-	# dependencies when building the standalone runtime which is a big waste of CPU time as one of them
-	# builds all the polkadot runtimes. See https://github.com/paritytech/cumulus/issues/175
 	"parachain-info/std",
 	"cumulus-runtime/std",
-	"cumulus-parachain-upgrade/std",
-	# "cumulus-message-broker/std",
-	# "cumulus-upward-message/std",
+	"cumulus-parachain-system/std",
 	"cumulus-primitives/std",
-	# "cumulus-token-dealer/std",
-	# TODO These dependencies are only necessary when _both_  the `std` _and_ `standalone` features
-	# are enabled. I don't see a way to express that. Everything is correct, like this, but we
-	# unnecessarily build these dependencies when building the parachain runtime.
-	"pallet-aura/std",
-	"pallet-grandpa/std",
 	"account/std",
 	"stake/std",
+	"pallet-author-filter/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.

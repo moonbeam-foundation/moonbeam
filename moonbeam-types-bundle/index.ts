@@ -1,8 +1,41 @@
-import type {
+import {
   OverrideBundleDefinition,
   OverrideBundleType,
-} from "@polkadot/api/node_modules/@polkadot/types/types";
+  DefinitionRpc,
+  DefinitionRpcSub,
+} from "@polkadot/types/types";
+
+// Moonbeam specific rpc methods
+export const rpcDefinitions: Record<string, Record<string, DefinitionRpc | DefinitionRpcSub>> = {
+  txpool: {
+    content: {
+      aliasSection: "txpool",
+      description:
+        "The detailed information regarding Ethereum transactions that are currently in the " +
+        "Substrate transaction pool.",
+      params: [],
+      type: "TxPoolResultContent",
+    },
+    inspect: {
+      aliasSection: "txpool",
+      description:
+        "Summarized information of the Ethereum transactions that are currently in the Substrate" +
+        " transaction pool.",
+      params: [],
+      type: "TxPoolResultInspect",
+    },
+    status: {
+      aliasSection: "txpool",
+      description:
+        "The number of Ethereum transaction that are currently in the Substrate transaction pool.",
+      params: [],
+      type: "TxPoolResultStatus",
+    },
+  },
+};
+
 export const moonbeamDefinitions = {
+  rpc: rpcDefinitions,
   types: [
     {
       minmax: [0, 4],
@@ -45,13 +78,49 @@ export const moonbeamDefinitions = {
         ExtrinsicSignature: "EthereumSignature",
         RoundIndex: "u32",
         Candidate: {
-          validator: "AccountId",
+          id: "AccountId",
           fee: "Perbill",
-          nominators: "OrderedSet<Bond<AccountId, Balance>>",
+          bond: "Balance",
+          nominators: "Vec<Bond>",
           total: "Balance",
-          state: "ValidatorStatus<RoundIndex>",
+          state: "ValidatorStatus",
         },
-        OrderedSet: "Vec",
+        Nominator: {
+          nominations: "Vec<Bond>",
+          total: "Balance",
+        },
+        Bond: {
+          owner: "AccountId",
+          amount: "Balance",
+        },
+        ValidatorStatus: {
+          _enum: ["Active", "Idle", "Leaving(RoundIndex)"],
+        },
+        TxPoolResultContent: {
+          pending: "HashMap<H160, HashMap<U256, PoolTransaction>>",
+          queued: "HashMap<H160, HashMap<U256, PoolTransaction>>",
+        },
+        TxPoolResultInspect: {
+          pending: "HashMap<H160, HashMap<U256, Summary>>",
+          queued: "HashMap<H160, HashMap<U256, Summary>>",
+        },
+        TxPoolResultStatus: {
+          pending: "U256",
+          queued: "U256",
+        },
+        Summary: "Bytes",
+        PoolTransaction: {
+          hash: "H256",
+          nonce: "U256",
+          block_hash: "Option<H256>",
+          block_number: "Option<U256>",
+          from: "H160",
+          to: "Option<H160>",
+          value: "U256",
+          gas_price: "U256",
+          gas: "U256",
+          input: "Bytes",
+        },
       },
     },
   ],
@@ -59,6 +128,7 @@ export const moonbeamDefinitions = {
 
 export const typesBundle = {
   spec: {
+    moonbeam: moonbeamDefinitions,
     "moonbase-alphanet": moonbeamDefinitions,
     moonbeamDefinitions,
     "moonbeam-standalone": moonbeamDefinitions,

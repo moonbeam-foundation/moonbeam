@@ -124,8 +124,8 @@ jobs:
           target: wasm32-unknown-unknown
           default: true
 
-          # - name: Check with Clippy
-        # run: cargo clippy --workspace --tests -- -D warnings
+      - name: Check with Clippy
+        run: cargo clippy --workspace
 
       - name: Format code with rustfmt
         run: cargo fmt -- --check
@@ -175,12 +175,8 @@ jobs:
       - id: get-rust-versions
         run: |
           echo "::set-output name=rustc::$(rustc --version)"
-      - name: Build Parachain Node
+      - name: Build Node
         run: cargo build --release --verbose --all
-      - name: Build Standalone Node
-        run: |
-          cd node/standalone
-          cargo build --release --verbose --all
       # We determine whether there are unmodified Cargo.lock files by:
       # 1. Asking git for a list of all modified files
       # 2. Using grep to reduce the list to only Cargo.lock files
@@ -195,9 +191,9 @@ jobs:
             git diff-index --name-only HEAD | grep Cargo.lock
             false
           fi
-      - name: Run tests
+      - name: Unit tests
         run: cargo test --release --verbose --all
-      - name: Typescript tests (against standalone node)
+      - name: Typescript integration tests (against dev service)
         run: |
           cd moonbeam-types-bundle
           npm install
@@ -206,20 +202,13 @@ jobs:
           npm run test;
       - name: Save parachain binary
         run: |
-          mkdir -p build/alphanet
-          mkdir -p build/standalone
-          cp target/release/moonbase-alphanet build/alphanet/moonbase-alphanet;
-          cp node/standalone/target/release/moonbase-standalone build/standalone/moonbase-standalone;
-      - name: Upload moonbase-alphanet node
+          mkdir -p build
+          cp target/release/moonbeam build/moonbeam;
+      - name: Upload binary
         uses: actions/upload-artifact@v2
         with:
-          name: moonbase-alphanet
-          path: build/alphanet
-      - name: Upload moonbase-standalone node
-        uses: actions/upload-artifact@v2
-        with:
-          name: moonbase-standalone
-          path: build/standalone
+          name: moonbeam
+          path: build
 
   ####### Prepare and Deploy Docker images #######
 
@@ -232,17 +221,17 @@ jobs:
         uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
-          name: moonbase-alphanet
-          path: build/alphanet
+          name: moonbeam
+          path: build
       - name: Generate specs
         run: |
-          chmod uog+x build/alphanet/moonbase-alphanet	
-          PARACHAIN_BINARY=build/alphanet/moonbase-alphanet scripts/generate-parachain-specs.sh
+          chmod uog+x build/moonbeam
+          PARACHAIN_BINARY=build/moonbeam scripts/generate-parachain-specs.sh
       - name: Upload parachain specs
         uses: actions/upload-artifact@v2
         with:
-          name: moonbase-alphanet
-          path: build/alphanet
+          name: moonbeam
+          path: build
 
   docker-parachain:
     runs-on: self-hosted
@@ -253,12 +242,12 @@ jobs:
         uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
-          name: moonbase-alphanet
-          path: build/alphanet
+          name: moonbeam
+          path: build
       - name: Prepare
         id: prep
         run: |
-          DOCKER_IMAGE=purestake/moonbase-parachain-testnet
+          DOCKER_IMAGE=purestake/moonbase-parachain
           VERSION=noop
           if [ "${{ github.event_name }}" = "schedule" ]; then
             VERSION=nightly
@@ -301,7 +290,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./docker/moonbase-alphanet.Dockerfile
+          file: ./docker/moonbase-parachain.Dockerfile
           platforms: linux/amd64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.prep.outputs.tags }}
@@ -315,21 +304,21 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
 
-  docker-standalone:
+  docker-moonbeam:
     runs-on: self-hosted
-    needs: ["build"]
+    needs: ["build", "generate-parachain-specs"]
     if: github.event_name == 'push'
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
-          name: moonbase-standalone
-          path: build/standalone
+          name: moonbeam
+          path: build
       - name: Prepare
         id: prep
         run: |
-          DOCKER_IMAGE=purestake/moonbase
+          DOCKER_IMAGE=purestake/moonbeam
           VERSION=noop
           if [ "${{ github.event_name }}" = "schedule" ]; then
             VERSION=nightly
@@ -367,12 +356,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push standalone node
+      - name: Build and push moonbeam
         id: docker_build
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./docker/moonbase-standalone.Dockerfile
+          file: ./docker/moonbeam.Dockerfile
           platforms: linux/amd64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.prep.outputs.tags }}
@@ -421,7 +410,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: Moonbase Alphanet ${{ github.ref }}
+          release_name: Moonbase ${{ github.ref }}
           body: "TBD"
           draft: true
 
@@ -433,16 +422,13 @@ jobs:
     if: |
       github.event_name == 'push' &&
       startsWith(github.ref, 'refs/tags/')
-    strategy:
-      matrix:
-        runtime: ["moonbase-alphanet"]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
-          name: moonbase-alphanet
-          path: build/alphanet
+          name: moonbeam
+          path: build
       - name: Set up Ruby 2.7
         uses: actions/setup-ruby@v1
         with:
@@ -450,32 +436,23 @@ jobs:
       - name: Get runtime version
         id: get-runtime-ver
         run: |
-          runtime_ver="$(ruby -e 'require "./scripts/github/lib.rb"; puts get_runtime("parachain.rs")')"
+          runtime_ver="$(ruby -e 'require "./scripts/github/lib.rb"; puts get_runtime("lib.rs")')"
           echo "::set-output name=runtime_ver::$runtime_ver"
-      - name: Upload ${{ matrix.runtime }} wasm
+      - name: Upload wasm
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
-          asset_path: build/alphanet/${{ matrix.runtime }}-runtime.wasm
-          asset_name: ${{ matrix.runtime }}-runtime-v${{ steps.get-runtime-ver.outputs.runtime_ver }}.wasm
+          asset_path: build/runtime.wasm
+          asset_name: runtime-v${{ steps.get-runtime-ver.outputs.runtime_ver }}.wasm
           asset_content_type: application/wasm
-      - name: Upload ${{ matrix.runtime }} node
+      - name: Upload binary
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
-          asset_path: build/alphanet/${{ matrix.runtime }}
-          asset_name: ${{ matrix.runtime }}
+          asset_path: build/moonbeam
+          asset_name: moonbeam
           asset_content_type: application/octet-stream
-      - name: Upload ${{ matrix.runtime }} genesis
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
-          asset_path: build/alphanet/${{ matrix.runtime }}-genesis.txt
-          asset_name: ${{ matrix.runtime }}-genesis.txt
-          asset_content_type: text/plain

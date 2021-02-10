@@ -1,6 +1,6 @@
 {
-  "name": "Moonbase Alpha",
-  "id": "moonbase_alpha",
+  "name": "Moonbase Stage",
+  "id": "moonbase_stage",
   "chainType": "Local",
   "bootNodes": [],
   "telemetryEndpoints": null,
@@ -8,7 +8,7 @@
   "properties": {
     "tokenDecimals": 18
   },
-  "relay_chain": "moonbase_alpha_relay",
+  "relay_chain": "moonbase_stage_relay",
   "para_id": 1000,
   "consensusEngine": null,
   "genesis": {
@@ -20,45 +20,41 @@
       "palletBalances": {
         "balances": [
           [
-            "0x5a7869f6aEfC93F45b30514023324B8D38e2a11c",
+            "0x7cb3790906f902a02f0d6784058362db929c5f3f",
             2000000000000000000000001
           ],
           [
-            "0x664c6BAc48F4109e1071de90d9FaEBe12820B411",
+            "0x562f9bfd93442cfdc6e22287d0990a1a1a4cdd42",
             2000000000000000000000000
           ],
+          ["0xdcec0efff7456adf14d60d5dc71709b3c8ae78e6", 50000000000000000000],
+          ["0x91b465a1759d088a894200b2d32d1c353b8cca59", 50000000000000000000],
           [
-            "0x30a5e0cbe6729895f4188000b4ec61f8a659d2d6",
-            20000000000000000000000
-          ],
-          ["0xf02d804b19b0665690f6B312691B2eb8F80Cd3b8", 50000000000000000000],
-          ["0x5FdCf221e987966b296714953fb6952AfC24aeFE", 50000000000000000000],
-          [
-            "0x4c5a56ed5a4ff7b09aa86560afd7d383f4831cce",
+            "0xa8cd2522d2c44185c2699da33b37c6c5bed4cc45",
             100000000000000000000000
           ],
           [
-            "0x623c9e50647a049f92090fe55e22cc0509872fb6",
+            "0xc9e02d82d8e0eac24bef0b7cd43dc27a6ac4d33f",
             100000000000000000000000
           ],
           [
-            "0xbe373fc7be685e9a4ab00dd665dae5c553489add",
+            "0xcbeb4a1b8f36436d9983b94636f9e988e73e1c2f",
             100000000000000000000000
           ],
           [
-            "0x05160bacc74e6af4d755f9dd6d409fc99ee918fa",
+            "0x5e583614f17d3ebe3bd72653f28e2c01d247419a",
             100000000000000000000000
           ]
         ]
       },
       "palletSudo": {
-        "key": "0x5a7869f6aEfC93F45b30514023324B8D38e2a11c"
+        "key": "0x7cb3790906f902a02f0d6784058362db929c5f3f"
       },
       "parachainInfo": {
         "parachainId": 1000
       },
       "palletEthereumChainId": {
-        "chainId": 1287
+        "chainId": 1282
       },
       "palletEvm": {
         "accounts": {}
@@ -67,22 +63,22 @@
       "stake": {
         "stakers": [
           [
-            "0x4c5a56ed5a4ff7b09aa86560afd7d383f4831cce",
+            "0xa8cd2522d2c44185c2699da33b37c6c5bed4cc45",
             null,
             100000000000000000000000
           ],
           [
-            "0x623c9e50647a049f92090fe55e22cc0509872fb6",
+            "0xc9e02d82d8e0eac24bef0b7cd43dc27a6ac4d33f",
             null,
             100000000000000000000000
           ],
           [
-            "0xbe373fc7be685e9a4ab00dd665dae5c553489add",
+            "0xcbeb4a1b8f36436d9983b94636f9e988e73e1c2f",
             null,
             100000000000000000000000
           ],
           [
-            "0x05160bacc74e6af4d755f9dd6d409fc99ee918fa",
+            "0x5e583614f17d3ebe3bd72653f28e2c01d247419a",
             null,
             100000000000000000000000
           ]

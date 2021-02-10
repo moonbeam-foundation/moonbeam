@@ -36,8 +36,6 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
   });
 
   it("inifinite loop call should return OutOfGas", async function () {
-    this.timeout(0);
-
     //deploy infinite contract
     const contract = await deployContractManualSeal(
       context.polkadotApi,
@@ -54,8 +52,6 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
   });
 
   it("inifinite loop send with incr should return OutOfGas", async function () {
-    this.timeout(0);
-
     // deploy contract
     const contract = await deployContractManualSeal(
       context.polkadotApi,
@@ -81,7 +77,6 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
 
   it("finite loop with incr: check gas usage, with normal gas limit,\
   should error before 700 loops", async function () {
-    this.timeout(0);
     // For a normal 1048576 gas limit, loop should revert out of gas between 600 and 700 loops
 
     //deploy finite loop contract
@@ -111,7 +106,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
     // // 600 loop
     expect(await callLoopIncrContract(600)).to.eq(600);
     block = await context.web3.eth.getBlock("latest");
-    expect(block.gasUsed).to.eq(1028284); //check that gas costs stay the same
+    expect(block.gasUsed).to.eq(1024084); //check that gas costs stay the same
 
     // 700 loop should revert out of gas
     expect(await callLoopIncrContract(700)).to.eq(0);

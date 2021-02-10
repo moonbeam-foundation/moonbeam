@@ -14,15 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Substrate Node Template CLI library.
+//! Moonbase parachain collator
+
 #![warn(missing_docs)]
+#![warn(unused_extern_crates)]
 
 mod chain_spec;
 #[macro_use]
 mod service;
 mod cli;
 mod command;
-mod mock_timestamp;
+mod dev_service;
+mod inherents;
+mod rpc;
 
 fn main() -> sc_cli::Result<()> {
 	command::run()

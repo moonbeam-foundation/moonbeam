@@ -16,14 +16,9 @@
 
 //! The Moonbeam Runtime.
 //!
-//! This runtime powers both the moonbeam standalone node and the moonbeam parachain
-//! By default it builds the parachain runtime. To enable the standalone runtime, enable
-//! the `standalone` feature.
-//!
 //! Primary features of this runtime include:
-//! * Ethereum compatability
+//! * Ethereum compatibility
 //! * Moonbeam tokenomics
-//! * Dual parachain / standalone support
 
 #![cfg_attr(not(feature = "std"), no_std)]
 // `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
@@ -32,16 +27,6 @@
 // Make the WASM binary available.
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
-
-#[cfg(not(feature = "standalone"))]
-mod parachain;
-#[cfg(feature = "standalone")]
-mod standalone;
-
-#[cfg(not(feature = "standalone"))]
-use parachain::*;
-#[cfg(feature = "standalone")]
-use standalone::*;
 
 use fp_rpc::TransactionStatus;
 use parity_scale_codec::{Decode, Encode};
@@ -53,18 +38,21 @@ use sp_runtime::{
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult,
 };
-use sp_std::{convert::TryFrom, marker::PhantomData, prelude::*};
+use sp_std::{convert::TryFrom, prelude::*};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
 pub use frame_support::{
-	construct_runtime, debug, parameter_types,
+	construct_runtime,
+	pallet_prelude::PhantomData, debug,
+	parameter_types,
 	traits::{FindAuthor, Get, Randomness},
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 	ConsensusEngineId, StorageValue,
 };
 use moonbeam_extensions_evm::runner::stack::TraceRunner as TraceRunnerT;
+use frame_system::{EnsureNever, EnsureRoot, EnsureSigned};
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{Transaction as EthereumTransaction, TransactionAction};
 use pallet_evm::{
@@ -107,6 +95,9 @@ pub type DigestItem = generic::DigestItem<Hash>;
 /// Minimum time between blocks. Slot duration is double this.
 pub const MINIMUM_PERIOD: u64 = 3000;
 
+/// Maximum weight per block
+pub const MAXIMUM_BLOCK_WEIGHT: Weight = 2 * WEIGHT_PER_SECOND;
+
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
@@ -117,21 +108,23 @@ pub mod opaque {
 	pub use sp_runtime::OpaqueExtrinsic as UncheckedExtrinsic;
 	pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 
-	#[cfg(not(feature = "standalone"))]
 	impl_opaque_keys! {
 		pub struct SessionKeys {}
 	}
-
-	#[cfg(feature = "standalone")]
-	impl_opaque_keys! {
-		pub struct SessionKeys {
-			pub aura: Aura,
-			pub grandpa: Grandpa,
-		}
-	}
 }
 
-/// The version infromation used to identify this runtime when compiled natively.
+/// This runtime version.
+pub const VERSION: RuntimeVersion = RuntimeVersion {
+	spec_name: create_runtime_str!("moonbeam"),
+	impl_name: create_runtime_str!("moonbeam"),
+	authoring_version: 3,
+	spec_version: 19,
+	impl_version: 1,
+	apis: RUNTIME_API_VERSIONS,
+	transaction_version: 2,
+};
+
+/// The version information used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]
 pub fn native_version() -> NativeVersion {
 	NativeVersion {
@@ -140,7 +133,7 @@ pub fn native_version() -> NativeVersion {
 	}
 }
 
-const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
+const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(65);
 
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 250;
@@ -196,11 +189,6 @@ impl frame_system::Config for Runtime {
 }
 
 parameter_types! {
-	// When running in standalone mode, this controls the block time.
-	// Slot duration is double the minimum period.
-	// https://github.com/paritytech/substrate/blob/e4803bd/frame/aura/src/lib.rs#L197-L199
-	// We maintain a six second block time in standalone to imitate parachain-like performance
-	// This value is stored in a seperate constant because it is used in our mock timestamp provider
 	pub const MinimumPeriod: u64 = MINIMUM_PERIOD;
 }
 
@@ -249,9 +237,9 @@ impl pallet_ethereum_chain_id::Config for Runtime {}
 
 /// Current approximation of the gas/s consumption considering
 /// EVM execution over compiled WASM (on 4.4Ghz CPU).
-/// Given the 500ms Weight, from which 75% only are used for transactions,
-/// the total EVM execution gas limit is: GAS_PER_SECOND * 0.500 * 0.75 => 6_000_000.
-pub const GAS_PER_SECOND: u64 = 16_000_000;
+/// Given the 500ms Weight, from which 65% only are used for transactions,
+/// the total EVM execution gas limit is: GAS_PER_SECOND * 0.500 * 0.65 ~= 12_500_000.
+pub const GAS_PER_SECOND: u64 = 40_000_000;
 
 /// Approximate ratio of the amount of Weight per Gas.
 /// u64 works for approximations because Weight is a very small unit compared to gas.
@@ -261,10 +249,10 @@ pub struct MoonbeamGasWeightMapping;
 
 impl pallet_evm::GasWeightMapping for MoonbeamGasWeightMapping {
 	fn gas_to_weight(gas: u64) -> Weight {
-		Weight::try_from(gas.saturating_mul(WEIGHT_PER_GAS as u64)).unwrap_or(Weight::MAX)
+		gas.saturating_mul(WEIGHT_PER_GAS)
 	}
 	fn weight_to_gas(weight: Weight) -> u64 {
-		u64::try_from(weight.wrapping_div(WEIGHT_PER_GAS)).unwrap_or(u64::MAX)
+		u64::try_from(weight.wrapping_div(WEIGHT_PER_GAS)).unwrap_or(u32::MAX as u64)
 	}
 }
 
@@ -279,6 +267,67 @@ impl pallet_evm::Config for Runtime {
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type Precompiles = precompiles::MoonbeamPrecompiles<Self>;
 	type ChainId = EthereumChainId;
+}
+
+parameter_types! {
+	pub MaximumSchedulerWeight: Weight = Perbill::from_percent(80) * BlockWeights::get().max_block;
+}
+
+impl pallet_scheduler::Config for Runtime {
+	type Event = Event;
+	type Origin = Origin;
+	type PalletsOrigin = OriginCaller;
+	type Call = Call;
+	type MaximumWeight = MaximumSchedulerWeight;
+	type ScheduleOrigin = EnsureRoot<AccountId>;
+	type MaxScheduledPerBlock = ();
+	type WeightInfo = ();
+}
+
+pub const BLOCKS_PER_DAY: BlockNumber = 24 * 60 * 10;
+
+parameter_types! {
+	pub const LaunchPeriod: BlockNumber = BLOCKS_PER_DAY;
+	pub const VotingPeriod: BlockNumber = 5 * BLOCKS_PER_DAY;
+	pub const FastTrackVotingPeriod: BlockNumber = BLOCKS_PER_DAY;
+	pub const EnactmentPeriod: BlockNumber = BLOCKS_PER_DAY;
+	pub const CooloffPeriod: BlockNumber = 7 * BLOCKS_PER_DAY;
+	pub const MinimumDeposit: Balance = 4 * GLMR;
+	pub const MaxVotes: u32 = 100;
+	pub const MaxProposals: u32 = 100;
+	pub const PreimageByteDeposit: Balance = GLMR / 1_000;
+	pub const InstantAllowed: bool = false;
+}
+
+// todo : ensure better origins
+impl pallet_democracy::Config for Runtime {
+	type Proposal = Call;
+	type Event = Event;
+	type Currency = Balances;
+	type EnactmentPeriod = EnactmentPeriod;
+	type LaunchPeriod = LaunchPeriod;
+	type VotingPeriod = VotingPeriod;
+	type FastTrackVotingPeriod = FastTrackVotingPeriod;
+	type MinimumDeposit = MinimumDeposit;
+	type ExternalOrigin = EnsureRoot<AccountId>;
+	type ExternalMajorityOrigin = EnsureRoot<AccountId>;
+	type ExternalDefaultOrigin = EnsureRoot<AccountId>;
+	type FastTrackOrigin = EnsureRoot<AccountId>;
+	type CancellationOrigin = EnsureRoot<AccountId>;
+	type BlacklistOrigin = EnsureRoot<AccountId>;
+	type CancelProposalOrigin = EnsureRoot<AccountId>;
+	type VetoOrigin = EnsureNever<AccountId>; // (root not possible)
+	type CooloffPeriod = CooloffPeriod;
+	type PreimageByteDeposit = PreimageByteDeposit;
+	type Slash = ();
+	type InstantOrigin = EnsureRoot<AccountId>;
+	type InstantAllowed = InstantAllowed;
+	type Scheduler = Scheduler;
+	type MaxVotes = MaxVotes;
+	type OperationalPreimageOrigin = EnsureSigned<AccountId>;
+	type PalletsOrigin = OriginCaller;
+	type WeightInfo = ();
+	type MaxProposals = MaxProposals;
 }
 
 pub struct TransactionConverter;
@@ -307,29 +356,41 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 
 pub struct EthereumFindAuthor<F>(PhantomData<F>);
 
+parameter_types! {
+	pub BlockGasLimit: u64 = NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT / WEIGHT_PER_GAS;
+}
+
 impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
-	#[cfg(not(feature = "standalone"))]
-	type FindAuthor = EthereumFindAuthor<PhantomAura>;
-	#[cfg(feature = "standalone")]
-	type FindAuthor = EthereumFindAuthor<Aura>;
+	type FindAuthor = AuthorInherent;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot;
+	type BlockGasLimit = BlockGasLimit;
 }
+
+impl cumulus_parachain_system::Config for Runtime {
+	type Event = Event;
+	type OnValidationData = ();
+	type SelfParaId = ParachainInfo;
+	type DownwardMessageHandlers = ();
+	type HrmpMessageHandlers = ();
+}
+
+impl parachain_info::Config for Runtime {}
 
 // 18 decimals
 pub const GLMR: Balance = 1_000_000_000_000_000_000;
 
 parameter_types! {
-	/// Moonbeam starts a new round every 2 minutes (20 * block_time)
-	pub const BlocksPerRound: u32 = 20;
-	/// Reward payments and validator exit requests are delayed by 4 minutes (2 * 20 * block_time)
+	/// Moonbeam starts a new round every hour (600 * block_time)
+	pub const BlocksPerRound: u32 = 600;
+	/// Reward payments and validator exit requests are delayed by 2 hours (2 * 600 * block_time)
 	pub const BondDuration: u32 = 2;
 	/// Maximum 8 valid block authors at any given time
 	pub const MaxValidators: u32 = 8;
 	/// Maximum 10 nominators per validator
-	pub const MaxNominatorsPerValidator: usize = 10;
-	/// Issue 49 new tokens as rewards to validators every 2 minutes (round)
-	pub const IssuancePerRound: u128 = 49 * GLMR;
+	pub const MaxNominatorsPerValidator: u32 = 10;
+	/// Maximum 8 validators per nominator (same as MaxValidators)
+	pub const MaxValidatorsPerNominator: u32 = 8;
 	/// The maximum percent a validator can take off the top of its rewards is 50%
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
 	/// Minimum stake required to be reserved to be a validator is 5
@@ -340,26 +401,53 @@ parameter_types! {
 impl stake::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
+	type SetMonetaryPolicyOrigin = frame_system::EnsureRoot<AccountId>;
 	type BlocksPerRound = BlocksPerRound;
 	type BondDuration = BondDuration;
 	type MaxValidators = MaxValidators;
 	type MaxNominatorsPerValidator = MaxNominatorsPerValidator;
-	type IssuancePerRound = IssuancePerRound;
+	type MaxValidatorsPerNominator = MaxValidatorsPerNominator;
 	type MaxFee = MaxFee;
 	type MinValidatorStk = MinValidatorStk;
+	type MinNomination = MinNominatorStk;
 	type MinNominatorStk = MinNominatorStk;
 }
 impl author_inherent::Config for Runtime {
-	type Event = Event;
 	type EventHandler = Stake;
-	type CanAuthor = Stake;
+	type CanAuthor = AuthorFilter;
 }
 
-#[cfg(feature = "standalone")]
-runtime_standalone!();
+impl pallet_author_filter::Config for Runtime {
+	type Event = Event;
+	type RandomnessSource = RandomnessCollectiveFlip;
+}
 
-#[cfg(not(feature = "standalone"))]
-runtime_parachain!();
+construct_runtime! {
+	pub enum Runtime where
+		Block = Block,
+		NodeBlock = opaque::Block,
+		UncheckedExtrinsic = UncheckedExtrinsic
+	{
+		System: frame_system::{Module, Call, Storage, Config, Event<T>},
+		Timestamp: pallet_timestamp::{Module, Call, Storage, Inherent},
+		Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
+		Sudo: pallet_sudo::{Module, Call, Storage, Config<T>, Event<T>},
+		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Module, Call, Storage},
+		ParachainSystem: cumulus_parachain_system::{Module, Call, Storage, Inherent, Event},
+		TransactionPayment: pallet_transaction_payment::{Module, Storage},
+		ParachainInfo: parachain_info::{Module, Storage, Config},
+		EthereumChainId: pallet_ethereum_chain_id::{Module, Storage, Config},
+		EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
+		Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
+		Stake: stake::{Module, Call, Storage, Event<T>, Config<T>},
+		Scheduler: pallet_scheduler::{Module, Storage, Config, Event<T>, Call},
+		Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
+		// The order matters here. Inherents will be included in the order specified here.
+		// Concretely wee need the author inherent to come after the parachain_upgrade inherent.
+		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
+		AuthorFilter: pallet_author_filter::{Module, Storage, Event<T>,}
+	}
+}
 
 /// The address format for describing accounts.
 pub type Address = AccountId;
@@ -614,7 +702,7 @@ impl_runtime_apis! {
 				to,
 				data,
 				value,
-				gas_limit.low_u32(),
+				gas_limit.low_u64(),
 				gas_price,
 				nonce,
 				config.as_ref().unwrap_or_else(|| <Runtime as pallet_evm::Config>::config()),
@@ -643,7 +731,7 @@ impl_runtime_apis! {
 				from,
 				data,
 				value,
-				gas_limit.low_u32(),
+				gas_limit.low_u64(),
 				gas_price,
 				nonce,
 				config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
@@ -692,45 +780,6 @@ impl_runtime_apis! {
 			TransactionPayment::query_fee_details(uxt, len)
 		}
 	}
-
-	#[cfg(feature = "standalone")]
-	impl sp_consensus_aura::AuraApi<Block, AuraId> for Runtime {
-		fn slot_duration() -> u64 {
-			Aura::slot_duration()
-		}
-
-		fn authorities() -> Vec<AuraId> {
-			Aura::authorities()
-		}
-	}
-
-	#[cfg(feature = "standalone")]
-	impl fg_primitives::GrandpaApi<Block> for Runtime {
-		fn grandpa_authorities() -> GrandpaAuthorityList {
-			Grandpa::grandpa_authorities()
-		}
-
-		fn submit_report_equivocation_unsigned_extrinsic(
-			_equivocation_proof: fg_primitives::EquivocationProof<
-				<Block as BlockT>::Hash,
-				NumberFor<Block>,
-			>,
-			_key_owner_proof: fg_primitives::OpaqueKeyOwnershipProof,
-		) -> Option<()> {
-			None
-		}
-
-		fn generate_key_ownership_proof(
-			_set_id: fg_primitives::SetId,
-			_authority_id: GrandpaId,
-		) -> Option<fg_primitives::OpaqueKeyOwnershipProof> {
-			// NOTE: this is the only implementation possible since we've
-			// defined our key owner proof type as a bottom type (i.e. a type
-			// with no values).
-			None
-		}
-	}
 }
 
-#[cfg(not(feature = "standalone"))]
 cumulus_runtime::register_validate_block!(Block, Executive);

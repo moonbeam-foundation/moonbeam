@@ -16,37 +16,10 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use pallet_evm::LinearCostPrecompile;
 use pallet_evm_precompile_simple::{ECRecover, Identity, Ripemd160, Sha256};
-use sp_std::prelude::*;
 // use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
-
-/// An example of implementing a simple precompile.
-/// prepends "deadbeef" to any data provided
-struct DeadbeefPrecompiled;
-
-impl LinearCostPrecompile for DeadbeefPrecompiled {
-	const BASE: u64 = 15;
-	const WORD: u64 = 3;
-
-	fn execute(
-		input: &[u8],
-		_: u64,
-	) -> core::result::Result<(pallet_evm::ExitSucceed, Vec<u8>), pallet_evm::ExitError> {
-		log::info!("Calling deadbeef precompiled contract");
-
-		let mut result_vec: Vec<u8> = rustc_hex::FromHex::from_hex("deadbeef").map_err(|_| {
-			pallet_evm::ExitError::Other(sp_std::borrow::Cow::Borrowed(
-				"unexpected deadbeef conversion",
-			))
-		})?;
-		result_vec.extend(input.to_vec());
-
-		Ok((pallet_evm::ExitSucceed::Returned, result_vec))
-	}
-}
 
 /// The PrecompileSet installed in the Moonbeam runtime.
 /// We include the nine Istanbul precompiles
