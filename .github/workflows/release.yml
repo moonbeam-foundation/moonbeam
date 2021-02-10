@@ -182,6 +182,7 @@ jobs:
 
   check-clippy:
     name: "Code checks"
+    needs: build
     runs-on: self-hosted
     steps:
       - name: Checkout
