@@ -390,7 +390,7 @@ parameter_types! {
 	pub const MaxValidatorsPerNominator: u32 = 8;
 	/// The maximum percent a validator can take off the top of its rewards is 50%
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
-	/// Minimum stake required to be reserved to be a validator is 5
+	/// Minimum stake required to be reserved to be a validator is 1_000
 	pub const MinValidatorStk: u128 = 1_000 * GLMR;
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5 * GLMR;
