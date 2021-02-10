@@ -33,16 +33,17 @@ describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
         // returns the current value.
         let contract = new context.web3.eth.Contract(CONTRACT.abi, receipt.contractAddress);
 
-        let txs = [];
         // In our case, the total number of transactions == the max value of the incrementer.
         // If we trace the last transaction of the block, should return the total number of
         // transactions we executed (10).
         // If we trace the 5th transaction, should return 5 and so on.
         //
-        // So we set 5 different targets: the 1st, 3 intermediate, and the last.
+        // So we set 5 different targets for each block: the 1st, 3 intermediate, and the last.
         const total_txs = 10;
-        const targets = [1, 2, 5, 8, 10];
+        let targets = [1, 2, 5, 8, 10];
+        let iteration = 0;
         for (let target of targets) {
+            let txs = [];
             let num_txs;
             for (num_txs = 1; num_txs <= total_txs; num_txs++) {
                 let callTx = await context.web3.eth.accounts.signTransaction({
@@ -50,7 +51,7 @@ describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
                     to: receipt.contractAddress,
                     gas: "0x100000",
                     value: "0x00",
-                    nonce: num_txs,
+                    nonce: num_txs + (iteration * total_txs),
                     data: contract.methods.sum(1).encodeABI() // increments by one
                 }, GENESIS_ACCOUNT_PRIVATE_KEY);
 
@@ -71,8 +72,10 @@ describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
                     intermediate_tx.result.returnValue
                 )
             );
-            console.log(`Matching target ${target} against evm result ${evm_result}`);
-            expect(evm_result).to.equal(target);
+            let expected = target + (iteration * total_txs);
+            console.log(`Matching target ${expected} against evm result ${evm_result}`);
+            expect(evm_result).to.equal(expected);
+            iteration += 1;
         }
     });
 });
