@@ -23,14 +23,14 @@ echo $ALPHANET_SPEC_RAW generated
 
 $MOONBEAM_BINARY export-genesis-wasm \
   --chain $ALPHANET_SPEC_RAW \
-  > $PARACHAIN_WASM;
-echo $PARACHAIN_WASM generated
+  > $ALPHANET_WASM;
+echo $ALPHANET_WASM generated
 
 $MOONBEAM_BINARY export-genesis-state \
   --parachain-id $PARACHAIN_ID \
   --chain $ALPHANET_SPEC_RAW \
-  > $PARACHAIN_GENESIS;
-echo $PARACHAIN_GENESIS generated
+  > $ALPHANET_GENESIS;
+echo $ALPHANET_GENESIS generated
 
 cp specs/MoonbaseAlphaV5.json $PARACHAIN_BUILD_FOLDER/alphanet-raw-specs.json
 cp specs/MoonbaseAlphaV5-Relay.json $PARACHAIN_BUILD_FOLDER/alphanet-relay-raw-specs.json
@@ -61,14 +61,14 @@ echo $STAGENET_SPEC_RAW generated
 
 $MOONBEAM_BINARY export-genesis-wasm \
   --chain $STAGENET_SPEC_RAW \
-  > $PARACHAIN_WASM;
-echo $PARACHAIN_WASM generated
+  > $STAGENET_WASM;
+echo $STAGENET_WASM generated
 
 $MOONBEAM_BINARY export-genesis-state \
   --parachain-id $PARACHAIN_ID \
   --chain $STAGENET_SPEC_RAW \
-  > $PARACHAIN_GENESIS;
-echo $PARACHAIN_GENESIS generated
+  > $STAGENET_GENESIS;
+echo $STAGENET_GENESIS generated
 
 cp specs/MoonbaseStageV5.json $PARACHAIN_BUILD_FOLDER/stagenet-raw-specs.json
 cp specs/MoonbaseStageV5-Relay.json $PARACHAIN_BUILD_FOLDER/stagenet-relay-raw-specs.json

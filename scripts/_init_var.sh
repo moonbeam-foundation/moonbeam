@@ -18,12 +18,28 @@ if [ -z "$STAGENET_SPEC_TEMPLATE" ]; then
   STAGENET_SPEC_TEMPLATE="specs/moonbase-stagenet-specs-template.json"
 fi
 
+if [ -z "$ALPHANET_RELAY_SPEC_TEMPLATE" ]; then
+  ALPHANET_RELAY_SPEC_TEMPLATE="specs/moonbase-alphanet-relay-specs-template.json"
+fi
+
+if [ -z "$STAGENET_RELAY_SPEC_TEMPLATE" ]; then
+  STAGENET_RELAY_SPEC_TEMPLATE="specs/moonbase-stagenet-relay-specs-template.json"
+fi
+
 if [ -z "$ALPHANET_SPEC_PLAIN" ]; then
   ALPHANET_SPEC_PLAIN="$PARACHAIN_BUILD_FOLDER/moonbase-alphanet-specs-plain.json"
 fi
 
 if [ -z "$STAGENET_SPEC_PLAIN" ]; then
   STAGENET_SPEC_PLAIN="$PARACHAIN_BUILD_FOLDER/moonbase-stagenet-specs-plain.json"
+fi
+
+if [ -z "$ALPHANET_RELAY_SPEC_PLAIN" ]; then
+  ALPHANET_RELAY_SPEC_PLAIN="$PARACHAIN_BUILD_FOLDER/moonbase-alphanet-relay-specs-plain.json"
+fi
+
+if [ -z "$STAGENET_RELAY_SPEC_PLAIN" ]; then
+  STAGENET_RELAY_SPEC_PLAIN="$PARACHAIN_BUILD_FOLDER/moonbase-stagenet-relay-specs-plain.json"
 fi
 
 if [ -z "$ALPHANET_SPEC_RAW" ]; then
@@ -34,6 +50,14 @@ if [ -z "$STAGENET_SPEC_RAW" ]; then
   STAGENET_SPEC_RAW="$PARACHAIN_BUILD_FOLDER/moonbase-stagenet-specs-raw.json"
 fi
 
+if [ -z "$ALPHANET_RELAY_SPEC_RAW" ]; then
+  ALPHANET_RELAY_SPEC_RAW="$PARACHAIN_BUILD_FOLDER/moonbase-alphanet-relay-specs-raw.json"
+fi
+
+if [ -z "$STAGENET_RELAY_SPEC_RAW" ]; then
+  STAGENET_RELAY_SPEC_RAW="$PARACHAIN_BUILD_FOLDER/moonbase-stagenet-relay-specs-raw.json"
+fi
+
 if [ -z "$ALPHANET_SPEC_TMP" ]; then
   ALPHANET_SPEC_TMP="/tmp/moonbase-alphanet-specs-tmp.json"
 fi
@@ -42,12 +66,28 @@ if [ -z "$STAGENET_SPEC_TMP" ]; then
   STAGENET_SPEC_TMP="/tmp/moonbase-stagenet-specs-tmp.json"
 fi
 
-if [ -z "$PARACHAIN_WASM" ]; then
-  PARACHAIN_WASM="$PARACHAIN_BUILD_FOLDER/moonbase-alphanet-runtime.wasm"
+if [ -z "$ALPHANET_RELAY_SPEC_TMP" ]; then
+  ALPHANET_RELAY_SPEC_TMP="/tmp/moonbase-alphanet-relay-specs-tmp.json"
 fi
 
-if [ -z "$PARACHAIN_GENESIS" ]; then
-  PARACHAIN_GENESIS="$PARACHAIN_BUILD_FOLDER/moonbase-alphanet-genesis.txt"
+if [ -z "$STAGENET_RELAY_SPEC_TMP" ]; then
+  STAGENET_RELAY_SPEC_TMP="/tmp/moonbase-stagenet-relay-specs-tmp.json"
+fi
+
+if [ -z "$ALPHANET_WASM" ]; then
+  ALPHANET_WASM="$PARACHAIN_BUILD_FOLDER/moonbase-alphanet-runtime.wasm"
+fi
+
+if [ -z "$STAGENET_WASM" ]; then
+  STAGENET_WASM="$PARACHAIN_BUILD_FOLDER/moonbase-stagenet-runtime.wasm"
+fi
+
+if [ -z "$ALPHANET_GENESIS" ]; then
+  ALPHANET_GENESIS="$PARACHAIN_BUILD_FOLDER/moonbase-alphanet-genesis.txt"
+fi
+
+if [ -z "$STAGENET_GENESIS" ]; then
+  STAGENET_GENESIS="$PARACHAIN_BUILD_FOLDER/moonbase-stagenet-genesis.txt"
 fi
 
 if [ -z "$PARACHAIN_ID" ]; then

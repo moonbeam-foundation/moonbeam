@@ -12,26 +12,31 @@ if [ -z "$SUDO_SEED" ]; then
     exit 1
 fi
 
-if [ ! -f "$PARACHAIN_WASM" ]; then
-    echo "Missing $PARACHAIN_WASM. Please run scripts/generate-parachain-specs.sh"
+if [ ! -f "$ALPHANET_WASM" ]; then
+    echo "Missing $ALPHANET_WASM. Please run scripts/generate-parachain-specs.sh"
     exit 1
 fi
 
-if [ ! -f "$PARACHAIN_GENESIS" ]; then
-    echo "Missing $PARACHAIN_GENESIS. Please run scripts/generate-parachain-specs.sh"
+if [ ! -f "$ALPHANET_GENESIS" ]; then
+    echo "Missing $ALPHANET_GENESIS. Please run scripts/generate-parachain-specs.sh"
     exit 1
 fi
 
-PARACHAIN_CONFIG="$PARACHAIN_BUILD_FOLDER/moonbase-alphanet-runtime.config.json";
-echo -n "1000 {\"genesis_head\":\"$(cat $PARACHAIN_GENESIS)\",\"validation_code\":\"" \
-    > $PARACHAIN_CONFIG;
-cat $PARACHAIN_WASM  >> $PARACHAIN_CONFIG;
-echo -n "\",\"parachain\":true}" >> $PARACHAIN_CONFIG;
+ALPHANET_CONFIG="$PARACHAIN_BUILD_FOLDER/moonbase-alphanet-runtime.config.json";
+TYPES="$PARACHAIN_BUILD_FOLDER/relay-types.json"
+echo -n "1000 {\"genesis_head\":\"$(cat $ALPHANET_GENESIS)\",\"validation_code\":\"" \
+    > $ALPHANET_CONFIG;
+cat $ALPHANET_WASM  >> $ALPHANET_CONFIG;
+echo -n "\",\"parachain\":true}" >> $ALPHANET_CONFIG;
+
+echo '{"Address": "MultiAddress", "LookupSource": "MultiAddress"}' > $TYPES;
 
 docker run --rm --network=host \
-  -v $(pwd)/$PARACHAIN_CONFIG:/config \
+  -v $(pwd)/$ALPHANET_CONFIG:/config \
+  -v $(pwd)/$TYPES:/types \
   jacogr/polkadot-js-tools:latest api \
     --ws "ws://localhost:$((RELAY_PORT + 2))" \
+    --types /types \
     --sudo \
     --seed "$SUDO_SEED" \
     --params /config \
