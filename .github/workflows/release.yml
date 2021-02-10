@@ -226,7 +226,7 @@ jobs:
       - name: Generate specs
         run: |
           chmod uog+x build/moonbeam
-          PARACHAIN_BINARY=build/moonbeam scripts/generate-parachain-specs.sh
+          MOONBEAM_BINARY=build/moonbeam scripts/generate-parachain-specs.sh
       - name: Upload parachain specs
         uses: actions/upload-artifact@v2
         with:
