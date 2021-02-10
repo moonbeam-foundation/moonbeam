@@ -19,11 +19,11 @@ if [ -z "$STAGENET_SPEC_TEMPLATE" ]; then
 fi
 
 if [ -z "$ALPHANET_RELAY_SPEC_TEMPLATE" ]; then
-  ALPHANET_RELAY_SPEC_TEMPLATE="specs/moonbase-alphanet-relay-specs-template.json"
+  ALPHANET_RELAY_SPEC_TEMPLATE="specs/rococo-alphanet-relay-specs-template.json"
 fi
 
 if [ -z "$STAGENET_RELAY_SPEC_TEMPLATE" ]; then
-  STAGENET_RELAY_SPEC_TEMPLATE="specs/moonbase-stagenet-relay-specs-template.json"
+  STAGENET_RELAY_SPEC_TEMPLATE="specs/rococo-stagenet-relay-specs-template.json"
 fi
 
 if [ -z "$ALPHANET_SPEC_PLAIN" ]; then
@@ -35,11 +35,11 @@ if [ -z "$STAGENET_SPEC_PLAIN" ]; then
 fi
 
 if [ -z "$ALPHANET_RELAY_SPEC_PLAIN" ]; then
-  ALPHANET_RELAY_SPEC_PLAIN="$PARACHAIN_BUILD_FOLDER/moonbase-alphanet-relay-specs-plain.json"
+  ALPHANET_RELAY_SPEC_PLAIN="$PARACHAIN_BUILD_FOLDER/rococo-alphanet-relay-specs-plain.json"
 fi
 
 if [ -z "$STAGENET_RELAY_SPEC_PLAIN" ]; then
-  STAGENET_RELAY_SPEC_PLAIN="$PARACHAIN_BUILD_FOLDER/moonbase-stagenet-relay-specs-plain.json"
+  STAGENET_RELAY_SPEC_PLAIN="$PARACHAIN_BUILD_FOLDER/rococo-stagenet-relay-specs-plain.json"
 fi
 
 if [ -z "$ALPHANET_SPEC_RAW" ]; then
@@ -51,11 +51,11 @@ if [ -z "$STAGENET_SPEC_RAW" ]; then
 fi
 
 if [ -z "$ALPHANET_RELAY_SPEC_RAW" ]; then
-  ALPHANET_RELAY_SPEC_RAW="$PARACHAIN_BUILD_FOLDER/moonbase-alphanet-relay-specs-raw.json"
+  ALPHANET_RELAY_SPEC_RAW="$PARACHAIN_BUILD_FOLDER/rococo-alphanet-relay-specs-raw.json"
 fi
 
 if [ -z "$STAGENET_RELAY_SPEC_RAW" ]; then
-  STAGENET_RELAY_SPEC_RAW="$PARACHAIN_BUILD_FOLDER/moonbase-stagenet-relay-specs-raw.json"
+  STAGENET_RELAY_SPEC_RAW="$PARACHAIN_BUILD_FOLDER/rococo-stagenet-relay-specs-raw.json"
 fi
 
 if [ -z "$ALPHANET_SPEC_TMP" ]; then

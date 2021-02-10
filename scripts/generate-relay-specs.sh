@@ -11,10 +11,10 @@ echo "Using Polkadot revision #${POLKADOT_VERSION}"
 docker run -it -v $(pwd)/build:/build purestake/moonbase-relay-testnet:$POLKADOT_VERSION \
   /usr/local/bin/polkadot \
     build-spec \
-    --chain rococo-local \
-    -lerror \
-    --disable-default-bootnode \
-    --raw \
+      --chain rococo-local \
+      -lerror \
+      --disable-default-bootnode \
+      --raw \
     > $POLKADOT_SPEC_RAW
 echo $POLKADOT_SPEC_RAW generated
 
@@ -23,9 +23,9 @@ echo "=================== Alphanet ==================="
 docker run -it -v $(pwd)/build:/build purestake/moonbase-relay-testnet:$POLKADOT_VERSION \
   /usr/local/bin/polkadot \
     build-spec \
-    --chain rococo-local \
-    -lerror \
-    --disable-default-bootnode \
+      --chain rococo-local \
+      -lerror \
+      --disable-default-bootnode \
     | grep '\"code\"' \
     | head -n1 > $ALPHANET_RELAY_SPEC_TMP \
     > $ALPHANET_RELAY_SPEC_TMP
@@ -38,9 +38,10 @@ echo $ALPHANET_RELAY_SPEC_PLAIN generated
 docker run -it -v $(pwd)/build:/build purestake/moonbase-relay-testnet:$POLKADOT_VERSION \
   /usr/local/bin/polkadot \
     build-spec \
-  --disable-default-bootnode \
-  --raw \
-  --chain /$ALPHANET_RELAY_SPEC_PLAIN \
+      --disable-default-bootnode \
+      -lerror \
+      --raw \
+      --chain /$ALPHANET_RELAY_SPEC_PLAIN \
   > $ALPHANET_RELAY_SPEC_RAW
 echo $ALPHANET_RELAY_SPEC_RAW generated
 
@@ -49,9 +50,9 @@ echo "=================== Stagenet ==================="
 docker run -it -v $(pwd)/build:/build purestake/moonbase-relay-testnet:$POLKADOT_VERSION \
   /usr/local/bin/polkadot \
     build-spec \
-    --chain rococo-local \
-    -lerror \
-    --disable-default-bootnode \
+      --chain rococo-local \
+      -lerror \
+      --disable-default-bootnode \
     | grep '\"code\"' \
     | head -n1 > $STAGENET_RELAY_SPEC_TMP \
     > $STAGENET_RELAY_SPEC_TMP
@@ -64,8 +65,9 @@ echo $STAGENET_RELAY_SPEC_PLAIN generated
 docker run -it -v $(pwd)/build:/build purestake/moonbase-relay-testnet:$POLKADOT_VERSION \
   /usr/local/bin/polkadot \
     build-spec \
-  --disable-default-bootnode \
-  --raw \
-  --chain /$STAGENET_RELAY_SPEC_PLAIN \
+      --disable-default-bootnode \
+      -lerror \
+      --raw \
+      --chain /$STAGENET_RELAY_SPEC_PLAIN \
   > $STAGENET_RELAY_SPEC_RAW
 echo $STAGENET_RELAY_SPEC_RAW generated
