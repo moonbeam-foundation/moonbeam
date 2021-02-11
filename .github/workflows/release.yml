@@ -213,7 +213,7 @@ jobs:
           default: true
 
       - name: Check with Clippy
-        run: cargo clippy --workspace
+        run: cargo clippy --release --workspace
 
       - name: Format code with rustfmt
         run: cargo fmt -- --check
