@@ -833,7 +833,33 @@ fn switch_nomination() {
 
 #[test]
 fn revoke_nomination_or_leave_nominators() {
-	assert!(true);
+	five_validators_five_nominators().execute_with(|| {
+		roll_to(4);
+		assert_noop!(
+			Stake::revoke_nomination(Origin::signed(1), 2),
+			Error::<Test>::NominatorDNE
+		);
+		assert_noop!(
+			Stake::revoke_nomination(Origin::signed(6), 2),
+			Error::<Test>::NominationDNE
+		);
+		// must leave set of nominators if total bonds below MinNominatorStk
+		assert_noop!(
+			Stake::revoke_nomination(Origin::signed(6), 1),
+			Error::<Test>::NomBondBelowMin
+		);
+		assert_noop!(
+			Stake::leave_nominators(Origin::signed(1)),
+			Error::<Test>::NominatorDNE
+		);
+		assert_ok!(Stake::leave_nominators(Origin::signed(6)));
+		assert_noop!(
+			Stake::revoke_nomination(Origin::signed(8), 2),
+			Error::<Test>::NomBondBelowMin
+		);
+		assert_ok!(Stake::nominate_new(Origin::signed(8), 1, 10));
+		assert_ok!(Stake::revoke_nomination(Origin::signed(8), 2));
+	});
 }
 
 #[test]
