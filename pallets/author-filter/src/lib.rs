@@ -48,9 +48,7 @@ pub mod pallet {
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
-	pub trait Config:
-		frame_system::Config + stake::Config
-	{
+	pub trait Config: frame_system::Config + stake::Config {
 		/// The overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// Deterministic on-chain pseudo-randomness used to do the filtering
@@ -74,15 +72,7 @@ pub mod pallet {
 				// Currently this has the weakness that the authors are based only on para-block
 				// height. This will be aleviated in the future by adding entropy from the relay
 				// chain inherent.
-				let subject: [u8; 7] = [
-					b'f',
-					b'i',
-					b'l',
-					b't',
-					b'e',
-					b'r',
-					i as u8,
-				];
+				let subject: [u8; 7] = [b'f', b'i', b'l', b't', b'e', b'r', i as u8];
 				let index = T::RandomnessSource::random(&subject).to_low_u64_be() as usize;
 
 				// Move the selected author from the original vector into the eligible vector
