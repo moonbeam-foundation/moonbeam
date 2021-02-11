@@ -96,6 +96,7 @@ export const moonbeamDefinitions = {
         ValidatorStatus: {
           _enum: ["Active", "Idle", "Leaving(RoundIndex)"],
         },
+        //TODO: ValidatorStatus: Same as below
         TxPoolResultContent: {
           pending: "HashMap<H160, HashMap<U256, PoolTransaction>>",
           queued: "HashMap<H160, HashMap<U256, PoolTransaction>>",
@@ -152,8 +153,11 @@ export const moonbeamDefinitions = {
           owner: "AccountId",
           amount: "Balance",
         },
+        // ValidatorStatus: {
+        //   _enum: ["Active", "Idle", "Leaving(RoundIndex)"],
+        // },
         ValidatorStatus: {
-          _enum: ["Active", "Idle", "Leaving(RoundIndex)"],
+          _enum: { Active: "Active", Idle: "Idle", Leaving: "RoundIndex" },
         },
         TxPoolResultContent: {
           pending: "HashMap<H160, HashMap<U256, PoolTransaction>>",
@@ -197,15 +201,14 @@ export const moonbeamDefinitions = {
           round: "RangePerbill",
         },
         OrderedSet: "Vec",
-        Validator:{
+        Validator: {
           id: "AccountId",
           fee: "Perbill",
-           bond: "Balance",
-         nominators: "Vec<Bond>",
-           total: "Balance",
-           state: "ValidatorStatus",
-        }
-        
+          bond: "Balance",
+          nominators: "Vec<Bond>",
+          total: "Balance",
+          state: "ValidatorStatus",
+        },
       },
     },
   ],
@@ -226,15 +229,15 @@ export const moonbeamDefinitions = {
 // 	pub nominations: OrderedSet<Bond<AccountId, Balance>>,
 // 	pub total: Balance,
 // }
-#[derive(Encode, Decode, RuntimeDebug)]
-pub struct Validator<AccountId, Balance> {
-	pub id: AccountId,
-	pub fee: Perbill,
-	pub bond: Balance,
-	pub nominators: OrderedSet<Bond<AccountId, Balance>>,
-	pub total: Balance,
-	pub state: ValidatorStatus,
-}
+// #[derive(Encode, Decode, RuntimeDebug)]
+// pub struct Validator<AccountId, Balance> {
+// 	pub id: AccountId,
+// 	pub fee: Perbill,
+// 	pub bond: Balance,
+// 	pub nominators: OrderedSet<Bond<AccountId, Balance>>,
+// 	pub total: Balance,
+// 	pub state: ValidatorStatus,
+// }
 
 export const typesBundle = {
   spec: {
