@@ -48,9 +48,7 @@ pub mod pallet {
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
-	pub trait Config:
-		frame_system::Config + stake::Config + cumulus_parachain_system::Config
-	{
+	pub trait Config: frame_system::Config + stake::Config {
 		/// The overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// Deterministic on-chain pseudo-randomness used to do the filtering
@@ -60,10 +58,6 @@ pub mod pallet {
 	// This code will be called by the author-inherent pallet to check whether the reported author
 	// of this block is eligible at this height. We calculate that result on demand and do not
 	// record it instorage (although we do emit a debugging event for now).
-	// This implementation relies on the relay parent's block number from the validation data
-	// inherent. Therefore the validation data inherent **must** be included before this check is
-	// performed. Concretely the validation data inherent must be included before the author
-	// inherent.
 	impl<T: Config> author_inherent::CanAuthor<T::AccountId> for Pallet<T> {
 		fn can_author(account: &T::AccountId) -> bool {
 			let mut staked: Vec<T::AccountId> = stake::Module::<T>::validators();
@@ -71,28 +65,14 @@ pub mod pallet {
 			let num_eligible = EligibleRatio::<T>::get().mul_ceil(staked.len());
 			let mut eligible = Vec::with_capacity(num_eligible);
 
-			// Grab the relay parent height as a temporary source of relay-based entropy
-			let validation_data = cumulus_parachain_system::Module::<T>::validation_data()
-				.expect("validation data was set in parachain system inherent");
-			let relay_height = validation_data.block_number;
-
 			for i in 0..num_eligible {
-				// A context identifier for grabbing the randomness. Consists of three parts
+				// A context identifier for grabbing the randomness. Consists of two parts
 				// - The constant string *b"filter" - to identify this pallet
 				// - The index `i` when we're selecting the ith eligible author
-				// - The relay parent block number so that the eligible authors at the next height
-				//   change. Avoids liveness attacks from colluding minorities of active authors.
-				// Third one will not be necessary once we dleverage the relay chain's randomness.
-				let subject: [u8; 8] = [
-					b'f',
-					b'i',
-					b'l',
-					b't',
-					b'e',
-					b'r',
-					i as u8,
-					relay_height as u8,
-				];
+				// Currently this has the weakness that the authors are based only on para-block
+				// height. This will be aleviated in the future by adding entropy from the relay
+				// chain inherent.
+				let subject: [u8; 7] = [b'f', b'i', b'l', b't', b'e', b'r', i as u8];
 				let index = T::RandomnessSource::random(&subject).to_low_u64_be() as usize;
 
 				// Move the selected author from the original vector into the eligible vector
@@ -105,7 +85,7 @@ pub mod pallet {
 
 			// Emit an event for debugging purposes
 			// let our_height = frame_system::Module::<T>::block_number();
-			// <Pallet<T>>::deposit_event(Event::Filtered(our_height, relay_height, eligible.clone()));
+			// <Pallet<T>>::deposit_event(Event::Filtered(our_height, eligible.clone()));
 
 			eligible.contains(account)
 		}
@@ -145,7 +125,7 @@ pub mod pallet {
 		EligibleUpdated(Percent),
 		/// The staked authors have been filtered to these eligible authors in this block.
 		/// This is a debugging and development event and should be removed eventually.
-		/// Fields are: para block height, relay block height, eligible authors
-		Filtered(T::BlockNumber, u32, Vec<T::AccountId>),
+		/// Fields are: para block height, eligible authors
+		Filtered(T::BlockNumber, Vec<T::AccountId>),
 	}
 }
