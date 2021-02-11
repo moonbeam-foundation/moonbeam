@@ -21,7 +21,7 @@ use mock::*;
 use sp_runtime::DispatchError;
 
 #[test]
-fn genesis_works() {
+fn geneses() {
 	two_validators_four_nominators().execute_with(|| {
 		assert!(Sys::events().is_empty());
 		// validators
@@ -69,7 +69,7 @@ fn genesis_works() {
 }
 
 #[test]
-fn online_offline_behaves() {
+fn online_offline_works() {
 	two_validators_four_nominators().execute_with(|| {
 		roll_to(4);
 		assert_noop!(
@@ -124,7 +124,7 @@ fn online_offline_behaves() {
 }
 
 #[test]
-fn join_validator_candidates_works() {
+fn join_validator_candidates() {
 	two_validators_four_nominators().execute_with(|| {
 		assert_noop!(
 			Stake::join_candidates(Origin::signed(1), Perbill::from_percent(2), 11u128,),
@@ -204,7 +204,6 @@ fn validator_exit_executes_after_delay() {
 #[test]
 fn validator_selection_chooses_top_candidates() {
 	five_validators_no_nominators().execute_with(|| {
-		roll_to(4);
 		roll_to(8);
 		// should choose top MaxValidators (5), in order
 		let expected = vec![
@@ -273,9 +272,8 @@ fn validator_selection_chooses_top_candidates() {
 }
 
 #[test]
-fn exit_queue_works() {
+fn exit_queue() {
 	five_validators_no_nominators().execute_with(|| {
-		roll_to(4);
 		roll_to(8);
 		// should choose top MaxValidators (5), in order
 		let mut expected = vec![
@@ -339,7 +337,6 @@ fn exit_queue_works() {
 #[test]
 fn payout_distribution_to_solo_validators() {
 	five_validators_no_nominators().execute_with(|| {
-		roll_to(4);
 		roll_to(8);
 		// should choose top MaxValidators (5), in order
 		let mut expected = vec![
@@ -354,7 +351,7 @@ fn payout_distribution_to_solo_validators() {
 		// ~ set block author as 1 for all blocks this round
 		set_author(2, 1, 100);
 		roll_to(16);
-		// pay total issuance (=10) to 1
+		// pay total issuance to 1
 		let mut new = vec![
 			RawEvent::ValidatorChosen(3, 1, 100),
 			RawEvent::ValidatorChosen(3, 2, 90),
@@ -438,53 +435,8 @@ fn payout_distribution_to_solo_validators() {
 }
 
 #[test]
-fn payout_distribution_to_nominators() {
-	five_validators_five_nominators().execute_with(|| {
-		roll_to(4);
-		roll_to(8);
-		// chooses top MaxValidators (5), in order
-		let mut expected = vec![
-			RawEvent::ValidatorChosen(2, 1, 50),
-			RawEvent::ValidatorChosen(2, 2, 40),
-			RawEvent::ValidatorChosen(2, 4, 20),
-			RawEvent::ValidatorChosen(2, 3, 20),
-			RawEvent::ValidatorChosen(2, 5, 10),
-			RawEvent::NewRound(5, 2, 5, 140),
-		];
-		assert_eq!(events(), expected);
-		// ~ set block author as 1 for all blocks this round
-		set_author(2, 1, 100);
-		roll_to(16);
-		// distribute total issuance (=10) to validator 1 and its nominators 6, 7, 19
-		// -> NOTE that no fee is taken because validators at genesis set default 2% fee
-		// and 2% of 10 is ~0 by the Perbill arithmetic
-		let mut new = vec![
-			RawEvent::ValidatorChosen(3, 1, 50),
-			RawEvent::ValidatorChosen(3, 2, 40),
-			RawEvent::ValidatorChosen(3, 4, 20),
-			RawEvent::ValidatorChosen(3, 3, 20),
-			RawEvent::ValidatorChosen(3, 5, 10),
-			RawEvent::NewRound(10, 3, 5, 140),
-			RawEvent::Rewarded(1, 20),
-			RawEvent::Rewarded(6, 10),
-			RawEvent::Rewarded(7, 10),
-			RawEvent::Rewarded(10, 10),
-			RawEvent::ValidatorChosen(4, 1, 50),
-			RawEvent::ValidatorChosen(4, 2, 40),
-			RawEvent::ValidatorChosen(4, 4, 20),
-			RawEvent::ValidatorChosen(4, 3, 20),
-			RawEvent::ValidatorChosen(4, 5, 10),
-			RawEvent::NewRound(15, 4, 5, 140),
-		];
-		expected.append(&mut new);
-		assert_eq!(events(), expected);
-	});
-}
-
-#[test]
-fn pays_validator_commission() {
+fn validator_commission() {
 	one_validator_two_nominators().execute_with(|| {
-		roll_to(4);
 		roll_to(8);
 		// chooses top MaxValidators (5), in order
 		let mut expected = vec![
@@ -541,7 +493,6 @@ fn pays_validator_commission() {
 #[test]
 fn multiple_nominations() {
 	five_validators_five_nominators().execute_with(|| {
-		roll_to(4);
 		roll_to(8);
 		// chooses top MaxValidators (5), in order
 		let mut expected = vec![
@@ -694,7 +645,7 @@ fn multiple_nominations() {
 }
 
 #[test]
-fn validators_bond_more_less() {
+fn validators_bond() {
 	five_validators_five_nominators().execute_with(|| {
 		roll_to(4);
 		assert_noop!(
@@ -744,7 +695,7 @@ fn validators_bond_more_less() {
 }
 
 #[test]
-fn nominators_bond_more_less() {
+fn nominators_bond() {
 	five_validators_five_nominators().execute_with(|| {
 		roll_to(4);
 		assert_noop!(
@@ -795,9 +746,8 @@ fn nominators_bond_more_less() {
 }
 
 #[test]
-fn switch_nomination_works() {
+fn switch_nomination() {
 	five_validators_five_nominators().execute_with(|| {
-		roll_to(4);
 		roll_to(8);
 		let mut expected = vec![
 			RawEvent::ValidatorChosen(2, 1, 50),
@@ -877,6 +827,168 @@ fn switch_nomination_works() {
 			RawEvent::NewRound(15, 4, 5, 140),
 		];
 		expected.append(&mut new);
+		assert_eq!(events(), expected);
+	});
+}
+
+#[test]
+fn revoke_nomination_or_leave_nominators() {
+	assert!(true);
+}
+
+#[test]
+fn payouts_follow_nomination_changes() {
+	five_validators_five_nominators().execute_with(|| {
+		roll_to(8);
+		// chooses top MaxValidators (5), in order
+		let mut expected = vec![
+			RawEvent::ValidatorChosen(2, 1, 50),
+			RawEvent::ValidatorChosen(2, 2, 40),
+			RawEvent::ValidatorChosen(2, 4, 20),
+			RawEvent::ValidatorChosen(2, 3, 20),
+			RawEvent::ValidatorChosen(2, 5, 10),
+			RawEvent::NewRound(5, 2, 5, 140),
+		];
+		assert_eq!(events(), expected);
+		// ~ set block author as 1 for all blocks this round
+		set_author(2, 1, 100);
+		roll_to(16);
+		// distribute total issuance to validator 1 and its nominators 6, 7, 19
+		let mut new = vec![
+			RawEvent::ValidatorChosen(3, 1, 50),
+			RawEvent::ValidatorChosen(3, 2, 40),
+			RawEvent::ValidatorChosen(3, 4, 20),
+			RawEvent::ValidatorChosen(3, 3, 20),
+			RawEvent::ValidatorChosen(3, 5, 10),
+			RawEvent::NewRound(10, 3, 5, 140),
+			RawEvent::Rewarded(1, 20),
+			RawEvent::Rewarded(6, 10),
+			RawEvent::Rewarded(7, 10),
+			RawEvent::Rewarded(10, 10),
+			RawEvent::ValidatorChosen(4, 1, 50),
+			RawEvent::ValidatorChosen(4, 2, 40),
+			RawEvent::ValidatorChosen(4, 4, 20),
+			RawEvent::ValidatorChosen(4, 3, 20),
+			RawEvent::ValidatorChosen(4, 5, 10),
+			RawEvent::NewRound(15, 4, 5, 140),
+		];
+		expected.append(&mut new);
+		assert_eq!(events(), expected);
+		// ~ set block author as 1 for all blocks this round
+		set_author(3, 1, 100);
+		set_author(4, 1, 100);
+		// 1. ensure nominators are paid for 2 rounds after they leave
+		assert_noop!(
+			Stake::leave_nominators(Origin::signed(66)),
+			Error::<Test>::NominatorDNE
+		);
+		assert_ok!(Stake::leave_nominators(Origin::signed(6)));
+		roll_to(21);
+		// keep paying 6 (note: inflation is in terms of total issuance so that's why 1 is 21)
+		let mut new2 = vec![
+			RawEvent::NominatorLeftValidator(6, 1, 10, 40),
+			RawEvent::NominatorLeft(6, 10),
+			RawEvent::Rewarded(1, 21),
+			RawEvent::Rewarded(6, 10),
+			RawEvent::Rewarded(7, 10),
+			RawEvent::Rewarded(10, 10),
+			RawEvent::ValidatorChosen(5, 2, 40),
+			RawEvent::ValidatorChosen(5, 1, 40),
+			RawEvent::ValidatorChosen(5, 4, 20),
+			RawEvent::ValidatorChosen(5, 3, 20),
+			RawEvent::ValidatorChosen(5, 5, 10),
+			RawEvent::NewRound(20, 5, 5, 130),
+		];
+		expected.append(&mut new2);
+		assert_eq!(events(), expected);
+		// 6 won't be paid for this round because they left already
+		set_author(5, 1, 100);
+		roll_to(26);
+		// keep paying 6
+		let mut new3 = vec![
+			RawEvent::Rewarded(1, 22),
+			RawEvent::Rewarded(6, 11),
+			RawEvent::Rewarded(7, 11),
+			RawEvent::Rewarded(10, 11),
+			RawEvent::ValidatorChosen(6, 2, 40),
+			RawEvent::ValidatorChosen(6, 1, 40),
+			RawEvent::ValidatorChosen(6, 4, 20),
+			RawEvent::ValidatorChosen(6, 3, 20),
+			RawEvent::ValidatorChosen(6, 5, 10),
+			RawEvent::NewRound(25, 6, 5, 130),
+		];
+		expected.append(&mut new3);
+		assert_eq!(events(), expected);
+		set_author(6, 1, 100);
+		roll_to(31);
+		// no more paying 6
+		let mut new4 = vec![
+			RawEvent::Rewarded(1, 29),
+			RawEvent::Rewarded(7, 14),
+			RawEvent::Rewarded(10, 14),
+			RawEvent::ValidatorChosen(7, 2, 40),
+			RawEvent::ValidatorChosen(7, 1, 40),
+			RawEvent::ValidatorChosen(7, 4, 20),
+			RawEvent::ValidatorChosen(7, 3, 20),
+			RawEvent::ValidatorChosen(7, 5, 10),
+			RawEvent::NewRound(30, 7, 5, 130),
+		];
+		expected.append(&mut new4);
+		assert_eq!(events(), expected);
+		set_author(7, 1, 100);
+		// 2. ensure new nominations do not dilute old ones for last 2 rounds
+		assert_noop!(
+			Stake::nominate_new(Origin::signed(6), 2, 10),
+			Error::<Test>::NominatorDNE
+		);
+		assert_ok!(Stake::nominate_new(Origin::signed(8), 1, 10));
+		roll_to(36);
+		// new nomination is not rewarded yet
+		let mut new5 = vec![
+			RawEvent::ValidatorNominated(8, 10, 1, 50),
+			RawEvent::Rewarded(1, 30),
+			RawEvent::Rewarded(7, 15),
+			RawEvent::Rewarded(10, 15),
+			RawEvent::ValidatorChosen(8, 1, 50),
+			RawEvent::ValidatorChosen(8, 2, 40),
+			RawEvent::ValidatorChosen(8, 4, 20),
+			RawEvent::ValidatorChosen(8, 3, 20),
+			RawEvent::ValidatorChosen(8, 5, 10),
+			RawEvent::NewRound(35, 8, 5, 140),
+		];
+		expected.append(&mut new5);
+		assert_eq!(events(), expected);
+		set_author(8, 1, 100);
+		roll_to(41);
+		// new nomination is still not rewarded yet
+		let mut new6 = vec![
+			RawEvent::Rewarded(1, 32),
+			RawEvent::Rewarded(7, 16),
+			RawEvent::Rewarded(10, 16),
+			RawEvent::ValidatorChosen(9, 1, 50),
+			RawEvent::ValidatorChosen(9, 2, 40),
+			RawEvent::ValidatorChosen(9, 4, 20),
+			RawEvent::ValidatorChosen(9, 3, 20),
+			RawEvent::ValidatorChosen(9, 5, 10),
+			RawEvent::NewRound(40, 9, 5, 140),
+		];
+		expected.append(&mut new6);
+		assert_eq!(events(), expected);
+		roll_to(46);
+		// new nomination is rewarded for first time, 2 rounds after joining (`BondDuration` = 2)
+		let mut new7 = vec![
+			RawEvent::Rewarded(1, 27),
+			RawEvent::Rewarded(7, 13),
+			RawEvent::Rewarded(8, 13),
+			RawEvent::Rewarded(10, 13),
+			RawEvent::ValidatorChosen(10, 1, 50),
+			RawEvent::ValidatorChosen(10, 2, 40),
+			RawEvent::ValidatorChosen(10, 4, 20),
+			RawEvent::ValidatorChosen(10, 3, 20),
+			RawEvent::ValidatorChosen(10, 5, 10),
+			RawEvent::NewRound(45, 10, 5, 140),
+		];
+		expected.append(&mut new7);
 		assert_eq!(events(), expected);
 	});
 }
