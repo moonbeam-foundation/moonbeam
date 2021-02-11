@@ -27,18 +27,16 @@ describeWithMoonbeam("Moonbeam RPC (Gas Estimation)", `simple-specs.json`, (cont
       TEST_GAS_ESTIMATION_CALLEE_ABI,
     );
 
-    /*
-    // call the contract (TODO: not relevant)
-    await callerContract.methods
-      .someAction(calleeContract.options.address, 1)
-      .call();
-    */
+    // Results from executing this contract in remix:
+    //   transaction cost: 66754
+    //   execution cost: 43882
+    const EXPECTED_GAS = 66754;
 
     expect(await callerContract
            .methods
            .someAction(calleeContract.options.address, 1)
            .estimateGas())
-         .to.equal(21204);
+           .to.equal(EXPECTED_GAS);
   });
 
 });
