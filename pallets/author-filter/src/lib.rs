@@ -74,7 +74,7 @@ pub mod pallet {
 				// Currently this has the weakness that the authors are based only on para-block
 				// height. This will be aleviated in the future by adding entropy from the relay
 				// chain inherent.
-				let subject: [u8; 8] = [
+				let subject: [u8; 7] = [
 					b'f',
 					b'i',
 					b'l',
