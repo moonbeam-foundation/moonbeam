@@ -48,10 +48,6 @@ where
 	// returns an error?
 	serializer.serialize_str(&format!(
 		"{}",
-		std::str::from_utf8(opcode)
-			.unwrap_or("")
-			.to_uppercase()
-			.replace("(", "")
-			.replace(")", "")
+		std::str::from_utf8(opcode).unwrap_or("").to_uppercase()
 	))
 }

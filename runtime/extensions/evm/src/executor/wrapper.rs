@@ -1,30 +1,15 @@
 extern crate alloc;
-use alloc::string::ToString;
+use crate::executor::util::opcodes;
 use ethereum_types::{H160, H256, U256};
 pub use evm::{
 	backend::{Apply, Backend as BackendT, Log},
 	executor::{StackExecutor, StackState as StackStateT},
 	gasometer::{self as gasometer},
 	Capture, Config, Context, CreateScheme, ExitError, ExitFatal, ExitReason, ExitSucceed,
-	Handler as HandlerT, Opcode as EvmOpcode, Runtime, Stack, Transfer,
+	Handler as HandlerT, Opcode, Runtime, Stack, Transfer,
 };
 use moonbeam_rpc_primitives_debug::StepLog;
 use sp_std::{collections::btree_map::BTreeMap, convert::Infallible, rc::Rc, vec::Vec};
-
-macro_rules! displayable {
-	($t:ty) => {
-		impl sp_std::fmt::Display for $t {
-			fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
-				write!(f, "{:?}", self.0)
-			}
-		}
-	};
-}
-
-#[derive(Debug)]
-pub struct Opcode(EvmOpcode);
-
-displayable!(Opcode);
 
 pub struct TraceExecutorWrapper<'config, S> {
 	pub inner: &'config mut StackExecutor<'config, S>,
@@ -79,7 +64,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 					gas: U256::from(self.inner.gas()),
 					gas_cost: U256::from(gas_cost),
 					memory: runtime.machine().memory().data().clone(),
-					op: Opcode(opcode).to_string().as_bytes().to_vec(),
+					op: opcodes(opcode),
 					pc: U256::from(*position),
 					stack: runtime.machine().stack().data().clone(),
 					// TODO this is now BTreeMap<(H160, H256), H256> in executor/stack/state
@@ -323,7 +308,7 @@ impl<'config, S: StackStateT<'config>> HandlerT for TraceExecutorWrapper<'config
 	fn pre_validate(
 		&mut self,
 		context: &Context,
-		opcode: EvmOpcode,
+		opcode: Opcode,
 		stack: &Stack,
 	) -> Result<(), ExitError> {
 		self.inner.pre_validate(context, opcode, stack)
