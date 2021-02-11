@@ -36,7 +36,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 	pub fn new(
 		inner: &'config mut StackExecutor<'config, S>,
 		is_tracing: bool,
-	) -> TraceExecutorWrapper<S> {
+	) -> TraceExecutorWrapper<'config, S> {
 		TraceExecutorWrapper {
 			inner,
 			is_tracing,

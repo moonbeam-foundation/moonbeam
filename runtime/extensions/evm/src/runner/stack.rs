@@ -30,9 +30,7 @@ use sp_std::{convert::Infallible, vec::Vec};
 
 pub trait TraceRunner<T: Config> {
 	fn execute_call<'config, F>(
-		source: H160,
-		gas_limit: u64,
-		config: &'config EvmConfig,
+		executor: &'config mut StackExecutor<'config, SubstrateStackState<'_, 'config, T>>,
 		f: F,
 	) -> Result<TraceExecutorResponse, ExitError>
 	where
@@ -41,9 +39,7 @@ pub trait TraceRunner<T: Config> {
 		) -> Capture<(ExitReason, Vec<u8>), Infallible>;
 
 	fn execute_create<'config, F>(
-		source: H160,
-		gas_limit: u64,
-		config: &'config EvmConfig,
+		executor: &'config mut StackExecutor<'config, SubstrateStackState<'_, 'config, T>>,
 		f: F,
 	) -> Result<TraceExecutorResponse, ExitError>
 	where
@@ -71,9 +67,7 @@ pub trait TraceRunner<T: Config> {
 
 impl<T: Config> TraceRunner<T> for Runner<T> {
 	fn execute_call<'config, F>(
-		source: H160,
-		gas_limit: u64,
-		config: &'config EvmConfig,
+		executor: &'config mut StackExecutor<'config, SubstrateStackState<'_, 'config, T>>,
 		f: F,
 	) -> Result<TraceExecutorResponse, ExitError>
 	where
@@ -81,16 +75,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 			&mut TraceExecutorWrapper<'config, SubstrateStackState<'_, 'config, T>>,
 		) -> Capture<(ExitReason, Vec<u8>), Infallible>,
 	{
-		let vicinity = Vicinity {
-			gas_price: U256::zero(),
-			origin: source,
-		};
-		let metadata = StackSubstateMetadata::new(gas_limit, &config);
-		let state = SubstrateStackState::new(&vicinity, metadata);
-		let mut executor =
-			StackExecutor::new_with_precompile(state, config, T::Precompiles::execute);
-
-		let mut wrapper = TraceExecutorWrapper::new(&mut executor, true);
+		let mut wrapper = TraceExecutorWrapper::new(executor, true);
 
 		let execution_result = match f(&mut wrapper) {
 			Capture::Exit((_reason, result)) => result,
@@ -105,9 +90,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 	}
 
 	fn execute_create<'config, F>(
-		source: H160,
-		gas_limit: u64,
-		config: &'config EvmConfig,
+		executor: &'config mut StackExecutor<'config, SubstrateStackState<'_, 'config, T>>,
 		f: F,
 	) -> Result<TraceExecutorResponse, ExitError>
 	where
@@ -115,17 +98,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 			&mut TraceExecutorWrapper<'config, SubstrateStackState<'_, 'config, T>>,
 		) -> Capture<(ExitReason, Option<H160>, Vec<u8>), Infallible>,
 	{
-		let vicinity = Vicinity {
-			gas_price: U256::zero(),
-			origin: source,
-		};
-
-		let metadata = StackSubstateMetadata::new(gas_limit, &config);
-		let state = SubstrateStackState::new(&vicinity, metadata);
-		let mut executor =
-			StackExecutor::new_with_precompile(state, config, T::Precompiles::execute);
-
-		let mut wrapper = TraceExecutorWrapper::new(&mut executor, true);
+		let mut wrapper = TraceExecutorWrapper::new(executor, true);
 
 		let execution_result = match f(&mut wrapper) {
 			Capture::Exit((_reason, _address, result)) => result,
@@ -147,7 +120,15 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		gas_limit: u64,
 		config: &EvmConfig,
 	) -> Result<TraceExecutorResponse, ExitError> {
-		Self::execute_call(source, gas_limit, config, |executor| {
+		let vicinity = Vicinity {
+			gas_price: U256::zero(),
+			origin: source,
+		};
+		let metadata = StackSubstateMetadata::new(gas_limit, &config);
+		let state = SubstrateStackState::new(&vicinity, metadata);
+		let mut executor =
+			StackExecutor::new_with_precompile(state, config, T::Precompiles::execute);
+		Self::execute_call(&mut executor, |executor| {
 			executor.trace_call(source, target, value, input, gas_limit as u64)
 		})
 	}
@@ -159,7 +140,16 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		gas_limit: u64,
 		config: &EvmConfig,
 	) -> Result<TraceExecutorResponse, ExitError> {
-		Self::execute_create(source, gas_limit, config, |executor| {
+		let vicinity = Vicinity {
+			gas_price: U256::zero(),
+			origin: source,
+		};
+
+		let metadata = StackSubstateMetadata::new(gas_limit, &config);
+		let state = SubstrateStackState::new(&vicinity, metadata);
+		let mut executor =
+			StackExecutor::new_with_precompile(state, config, T::Precompiles::execute);
+		Self::execute_create(&mut executor, |executor| {
 			executor.trace_create(source, value, init, gas_limit as u64)
 		})
 	}
