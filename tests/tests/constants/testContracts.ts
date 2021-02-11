@@ -284,3 +284,95 @@ export const ERC20_BYTECODE =
   "65207a65726f206164647265737345524332303a2064656372656173656420616c6c6f77616e63652062656c6f7720" +
   "7a65726fa265627a7a723158208bfd5c482ccbde97b679a417e6f0a1698bb5491e25bb256602f6c4271b11757b6473" +
   "6f6c63430005110032";
+
+// Solidity:
+/*
+pragma solidity ^0.7.0;
+contract Caller {
+    Callee internal callee;
+    uint public store;
+    function someAction(address _addr, uint _number) public {
+        callee = Callee(_addr);
+        store = callee.addtwo(_number);
+    }
+}
+contract Callee {
+    function addtwo(uint _value) external pure returns (uint) {
+        return _value + 2;
+    }
+}
+*/
+
+export const TEST_GAS_ESTIMATION_CALLER_BYTECODE =
+	"608060405234801561001057600080fd5b506101d9806100206000396000f3fe608060405234801561001057600080" +
+  "fd5b50600436106100365760003560e01c8063398f72231461003b578063975057e714610089575b600080fd5b6100" +
+  "876004803603604081101561005157600080fd5b81019080803573ffffffffffffffffffffffffffffffffffffffff" +
+  "169060200190929190803590602001909291905050506100a7565b005b61009161019d565b60405180828152602001" +
+  "91505060405180910390f35b816000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916" +
+  "908373ffffffffffffffffffffffffffffffffffffffff16021790555060008054906101000a900473ffffffffffff" +
+  "ffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663fd63983b8260405182" +
+  "63ffffffff1660e01b81526004018082815260200191505060206040518083038186803b15801561015857600080fd" +
+  "5b505afa15801561016c573d6000803e3d6000fd5b505050506040513d602081101561018257600080fd5b81019080" +
+  "805190602001909291905050506001819055505050565b6001548156fea264697066735822122099b68a7687b55131" +
+  "bc698ac5423faf9a380b960a9ffe7d415fc396c1d5c175db64736f6c63430007040033";
+export const TEST_GAS_ESTIMATION_CALLER_ABI = [
+	{
+		inputs: [
+			{
+				internalType: "address",
+				name: "_addr",
+				type: "address"
+			},
+			{
+				internalType: "uint256",
+				name: "_number",
+				type: "uint256"
+			}
+		],
+		name: "someAction",
+		outputs: [],
+		stateMutability: "nonpayable",
+		type: "function"
+	},
+	{
+		inputs: [],
+		name: "store",
+		outputs: [
+			{
+				internalType: "uint256",
+				name: "",
+				type: "uint256"
+			}
+		],
+		stateMutability: "view",
+		type: "function"
+	}
+] as AbiItem[];
+
+export const TEST_GAS_ESTIMATION_CALLEE_BYTECODE =
+	"6080604052348015600f57600080fd5b5060af8061001e6000396000f3fe6080604052348015600f57600080fd5b50" +
+  "6004361060285760003560e01c8063fd63983b14602d575b600080fd5b605660048036036020811015604157600080" +
+  "fd5b8101908080359060200190929190505050606c565b6040518082815260200191505060405180910390f35b6000" +
+  "60028201905091905056fea2646970667358221220e891d4950ad58e36c666ed83370b1dae0eab6b49f39b5a9acfee" +
+  "a5686d7364cf64736f6c63430007040033";
+export const TEST_GAS_ESTIMATION_CALLEE_ABI = [
+	{
+		inputs: [
+			{
+				internalType: "uint256",
+				name: "_value",
+				type: "uint256"
+			}
+		],
+		name: "addtwo",
+		outputs: [
+			{
+				internalType: "uint256",
+				name: "",
+				type: "uint256"
+			}
+		],
+		stateMutability: "pure",
+		type: "function"
+	}
+] as AbiItem[];
