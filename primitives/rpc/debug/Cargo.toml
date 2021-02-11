@@ -11,7 +11,7 @@ repository = 'https://github.com/PureStake/moonbeam/'
 
 [dependencies]
 codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
-ethereum = { git = "https://github.com/notlesh/ethereum", branch = "notlesh-moonbeam-v0.6", features = ["with-codec"] }
+ethereum = { git = "https://github.com/notlesh/ethereum", default-features = false, branch = "notlesh-moonbeam-v0.6", features = ["with-codec"] }
 ethereum-types = { version = "0.11.0", default-features = false }
 sp-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "master", default-features = false }
 sp-api = { git = "https://github.com/paritytech/substrate.git", branch = "master", default-features = false }
@@ -24,6 +24,7 @@ sp-core = { git = "https://github.com/paritytech/substrate.git", branch = "maste
 [features]
 default = ["std"]
 std = [
+	"codec/std",
 	"sp-api/std",
 	"sp-runtime/std",
 	"sp-io/std",

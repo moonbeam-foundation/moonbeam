@@ -30,4 +30,5 @@ std = [
 	"sp-runtime/std",
 	"ethereum-types/std",
 	"fp-evm/std",
+	"moonbeam-rpc-primitives-debug/std"
 ]

@@ -4010,6 +4010,8 @@ dependencies = [
  "jsonrpc-core 15.1.0",
  "jsonrpc-pubsub 15.1.0",
  "log",
+ "moonbeam-rpc-debug",
+ "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "moonbeam-rpc-txpool",
  "moonbeam-runtime",
@@ -4086,6 +4088,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "moonbeam-rpc-core-debug"
+version = "0.1.0"
+dependencies = [
+ "ethereum-types",
+ "jsonrpc-core 15.1.0",
+ "jsonrpc-core-client 14.2.0",
+ "jsonrpc-derive 14.2.2",
+ "serde",
+ "serde_json",
+ "sp-core",
+]
+
+[[package]]
 name = "moonbeam-rpc-core-txpool"
 version = "0.1.0"
 dependencies = [
@@ -4097,6 +4112,25 @@ dependencies = [
  "jsonrpc-derive 14.2.2",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "moonbeam-rpc-debug"
+version = "0.1.0"
+dependencies = [
+ "ethereum",
+ "ethereum-types",
+ "fc-consensus",
+ "fp-rpc",
+ "jsonrpc-core 15.1.0",
+ "moonbeam-rpc-core-debug",
+ "moonbeam-rpc-primitives-debug",
+ "sc-client-api",
+ "sp-api",
+ "sp-block-builder",
+ "sp-blockchain",
+ "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]

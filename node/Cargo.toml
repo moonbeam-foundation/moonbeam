@@ -32,6 +32,8 @@ jsonrpc-pubsub = "15.0.0"
 moonbeam-runtime = { path = "../runtime" }
 moonbeam-rpc-txpool = { path = "../client/rpc/txpool" }
 moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool" }
+moonbeam-rpc-debug = { path = "../client/rpc/debug" }
+moonbeam-rpc-primitives-debug = { path = "../primitives/rpc/debug" }
 author-inherent = { path = "../pallets/author-inherent"}
 stake = { path = "../pallets/stake"}
 

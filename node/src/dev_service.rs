@@ -216,6 +216,7 @@ pub fn new_full(
 		let network = network.clone();
 		let pending = pending_transactions.clone();
 		let filter_pool = filter_pool.clone();
+		let backend = backend.clone();
 		Box::new(move |deny_unsafe, _| {
 			let deps = crate::rpc::FullDeps {
 				client: client.clone(),
@@ -225,6 +226,7 @@ pub fn new_full(
 				is_authority,
 				network: network.clone(),
 				pending_transactions: pending.clone(),
+				backend: backend.clone(),
 				filter_pool: filter_pool.clone(),
 				command_sink: command_sink.clone(),
 			};
