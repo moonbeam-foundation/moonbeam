@@ -72,7 +72,6 @@ use sp_std::{cmp::Ordering, prelude::*};
 #[derive(Default, Clone, Encode, Decode, RuntimeDebug)]
 pub struct Bond<AccountId, Balance> {
 	pub owner: AccountId,
-	#[codec(compact)]
 	pub amount: Balance,
 }
 
@@ -126,10 +125,8 @@ impl Default for ValidatorStatus {
 /// Snapshot of validator state at the start of the round for which they are selected
 pub struct ValidatorSnapshot<AccountId, Balance> {
 	pub fee: Perbill,
-	#[codec(compact)]
 	pub bond: Balance,
 	pub nominators: Vec<Bond<AccountId, Balance>>,
-	#[codec(compact)]
 	pub total: Balance,
 }
 
@@ -138,10 +135,8 @@ pub struct ValidatorSnapshot<AccountId, Balance> {
 pub struct Validator<AccountId, Balance> {
 	pub id: AccountId,
 	pub fee: Perbill,
-	#[codec(compact)]
 	pub bond: Balance,
 	pub nominators: OrderedSet<Bond<AccountId, Balance>>,
-	#[codec(compact)]
 	pub total: Balance,
 	pub state: ValidatorStatus,
 }
@@ -275,7 +270,6 @@ impl<A: Clone, B: Copy> From<Validator<A, B>> for ValidatorSnapshot<A, B> {
 #[derive(Encode, Decode, RuntimeDebug)]
 pub struct Nominator<AccountId, Balance> {
 	pub nominations: OrderedSet<Bond<AccountId, Balance>>,
-	#[codec(compact)]
 	pub total: Balance,
 }
 
@@ -668,7 +662,7 @@ decl_module! {
 		fn join_candidates(
 			origin,
 			fee: Perbill,
-			#[compact] bond: BalanceOf<T>,
+			bond: BalanceOf<T>,
 		) -> DispatchResult {
 			let acc = ensure_signed(origin)?;
 			ensure!(!Self::is_candidate(&acc),Error::<T>::CandidateExists);
@@ -750,7 +744,7 @@ decl_module! {
 		}
 		/// Bond more for validator candidates
 		#[weight = 0]
-		fn candidate_bond_more(origin, #[compact] more: BalanceOf<T>) -> DispatchResult {
+		fn candidate_bond_more(origin, more: BalanceOf<T>) -> DispatchResult {
 			let validator = ensure_signed(origin)?;
 			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_leaving(),Error::<T>::CannotActivateIfLeaving);
@@ -767,7 +761,7 @@ decl_module! {
 		}
 		/// Bond less for validator candidates
 		#[weight = 0]
-		fn candidate_bond_less(origin, #[compact] less: BalanceOf<T>) -> DispatchResult {
+		fn candidate_bond_less(origin, less: BalanceOf<T>) -> DispatchResult {
 			let validator = ensure_signed(origin)?;
 			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_leaving(),Error::<T>::CannotActivateIfLeaving);
@@ -787,7 +781,7 @@ decl_module! {
 		fn join_nominators(
 			origin,
 			validator: T::AccountId,
-			#[compact] amount: BalanceOf<T>,
+			amount: BalanceOf<T>,
 		) -> DispatchResult {
 			let acc = ensure_signed(origin)?;
 			ensure!(amount >= T::MinNominatorStk::get(), Error::<T>::NomBondBelowMin);
@@ -815,7 +809,7 @@ decl_module! {
 		fn nominate_new(
 			origin,
 			validator: T::AccountId,
-			#[compact] amount: BalanceOf<T>,
+			amount: BalanceOf<T>,
 		) -> DispatchResult {
 			let acc = ensure_signed(origin)?;
 			ensure!(amount >= T::MinNomination::get(), Error::<T>::NominationBelowMin);
@@ -895,7 +889,7 @@ decl_module! {
 		fn nominator_bond_more(
 			origin,
 			candidate: T::AccountId,
-			#[compact] more: BalanceOf<T>
+			more: BalanceOf<T>
 		) -> DispatchResult {
 			let nominator = ensure_signed(origin)?;
 			let mut nominations = <Nominators<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
@@ -920,7 +914,7 @@ decl_module! {
 		fn nominator_bond_less(
 			origin,
 			candidate: T::AccountId,
-			#[compact] less: BalanceOf<T>
+			less: BalanceOf<T>
 		) -> DispatchResult {
 			let nominator = ensure_signed(origin)?;
 			let mut nominations = <Nominators<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
