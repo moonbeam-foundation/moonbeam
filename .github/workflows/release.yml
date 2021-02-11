@@ -184,6 +184,8 @@ jobs:
     name: "Code checks"
     needs: build
     runs-on: self-hosted
+    env:
+      CARGO_SCCACHE_VERSION: 0.2.14-alpha.0-parity
     steps:
       - name: Checkout
         if: github.event_name == 'pull_request_target'
@@ -195,6 +197,11 @@ jobs:
       - name: Checkout
         if: github.event_name != 'pull_request_target'
         uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        with:
+          path: ${{ runner.tool_cache }}/cargo-sccache
+          key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_VERSION }}-v1
 
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
