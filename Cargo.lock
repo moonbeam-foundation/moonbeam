@@ -3986,7 +3986,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "moonbase-alphanet"
+name = "moonbeam"
 version = "0.1.0"
 dependencies = [
  "ansi_term 0.12.1",
@@ -9508,7 +9508,6 @@ dependencies = [
  "frame-support",
  "frame-system",
  "pallet-balances",
- "pallet-staking",
  "parity-scale-codec",
  "serde",
  "sp-core",
