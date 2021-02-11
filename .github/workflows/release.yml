@@ -179,42 +179,8 @@ jobs:
         with:
           name: moonbeam
           path: build
-
-  check-clippy:
-    name: "Code checks"
-    needs: build
-    runs-on: self-hosted
-    env:
-      CARGO_SCCACHE_VERSION: 0.2.14-alpha.0-parity
-    steps:
-      - name: Checkout
-        if: github.event_name == 'pull_request_target'
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          ref: refs/pull/${{ github.event.pull_request.number }}/merge
-
-      - name: Checkout
-        if: github.event_name != 'pull_request_target'
-        uses: actions/checkout@v2
-
-      - uses: actions/cache@v2
-        with:
-          path: ${{ runner.tool_cache }}/cargo-sccache
-          key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_VERSION }}-v1
-
-      - name: Install toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly-2020-10-03
-          components: clippy, rustfmt
-          target: wasm32-unknown-unknown
-          default: true
-
       - name: Check with Clippy
         run: cargo clippy --release --workspace
-
       - name: Format code with rustfmt
         run: cargo fmt -- --check
 
