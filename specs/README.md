@@ -13,7 +13,8 @@ it is convenient to "bake" specs for popular networks into the node.
 
 ## Which specs will come pre-baked?
 
-- Moonbase Alpha V4 - live
+- Moonbase Stage V6 - internal
+- Moonbase Alpha V6 - live
 - MoonRock - Potential future deployment to Rococo
 - MoonRiver - Future Kusama Deployment
 - Moonbeam - Future Polkadot deployment

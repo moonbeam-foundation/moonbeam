@@ -43,10 +43,10 @@ fn load_spec(
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	match id {
 		"alphanet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
-			&include_bytes!("../../specs/MoonbaseAlphaV5.json")[..],
+			&include_bytes!("../../specs/alphanet/parachain-embedded-specs-v6.json")[..],
 		)?)),
 		"stagenet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
-			&include_bytes!("../../specs/MoonbaseStageV5.json")[..],
+			&include_bytes!("../../specs/stagenet/parachain-embedded-specs-v6.json")[..],
 		)?)),
 		"dev" | "development" => Ok(Box::new(chain_spec::development_chain_spec())),
 		"local" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
@@ -133,10 +133,10 @@ impl SubstrateCli for RelayChainCli {
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		match id {
 			"moonbase_alpha_relay" => Ok(Box::new(RococoChainSpec::from_json_bytes(
-				&include_bytes!("../../specs/MoonbaseAlphaV5-Relay.json")[..],
+				&include_bytes!("../../specs/alphanet/rococo-embedded-specs-v6.json")[..],
 			)?)),
 			"moonbase_stage_relay" => Ok(Box::new(RococoChainSpec::from_json_bytes(
-				&include_bytes!("../../specs/MoonbaseStageV5-Relay.json")[..],
+				&include_bytes!("../../specs/stagenet/rococo-embedded-specs-v6.json")[..],
 			)?)),
 			// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the
 			// Polkadot service to interpret the id.

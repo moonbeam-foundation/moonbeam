@@ -49,8 +49,8 @@ RUN mv /usr/share/ca* /tmp && \
 
 USER moonbeam
 
-COPY --chown=moonbeam specs/MoonbaseStageV5-Relay.json /moonbase-alphanet/stagenet-relay-raw-specs.json
-COPY --chown=moonbeam specs/MoonbaseAlphaV5-Relay.json /moonbase-alphanet/alphanet-relay-raw-specs.json
+COPY --chown=moonbeam specs/stagenet/rococo-embedded-specs-v6.json /moonbase-alphanet/stagenet-relay-raw-specs.json
+COPY --chown=moonbeam specs/alphanet/rococo-embedded-specs-v6.json /moonbase-alphanet/alphanet-relay-raw-specs.json
 RUN grep -v '/p2p/' /moonbase-alphanet/stagenet-relay-raw-specs.json > \
     /moonbase-alphanet/stagenet-relay-raw-specs-no-bootnodes.json && \
 	grep -v '/p2p/' /moonbase-alphanet/alphanet-relay-raw-specs.json > \

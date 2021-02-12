@@ -25,7 +25,7 @@ while nc -z -v -w5 ${RELAY_IP} ${STANDALONE_PORT} 2> /dev/null
 do
   echo "Found existing relay on ${STANDALONE_PORT}."
   BOOTNODES_ARGS="$BOOTNODES_ARGS --bootnodes \
-    /ip4/$RELAY_IP/tcp/${STANDALONE_PORT}/p2p/${RELAY_LOCAL_IDS[$STANDALONE_INDEX]}"
+    /ip4/$RELAY_IP/tcp/${STANDALONE_PORT}/p2p/${COMMON_LOCAL_IDS[$STANDALONE_INDEX]}"
   STANDALONE_INDEX=$((STANDALONE_INDEX + 1))
   STANDALONE_PORT=$((STANDALONE_PORT + 100))
 
@@ -51,7 +51,7 @@ if [ ! -z "$PERF" ]; then
 fi
 
 $EXECUTABLE \
-  --node-key ${NODE_KEYS[$STANDALONE_INDEX]} \
+  --node-key ${COMMON_NODE_KEYS[$STANDALONE_INDEX]} \
   --dev \
   --tmp \
   --port $((STANDALONE_PORT)) \
@@ -61,8 +61,7 @@ $EXECUTABLE \
   --author-id 6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b \
   --rpc-cors all \
   --rpc-methods=unsafe \
-  --execution wasm \
-  --wasm-execution compiled \
+  --execution native \
   --name STANDALONE_$STANDALONE_INDEX \
   $STANDALONE_BASE_PATH \
   '-linfo,evm=debug,ethereum=trace,rpc=trace,cumulus_collator=debug,txpool=debug' \
