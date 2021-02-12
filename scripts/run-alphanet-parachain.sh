@@ -29,6 +29,8 @@ fi
 # Will retrieve variable from the given network
 NETWORK=${NETWORK:-"alphanet"}
 PARACHAIN_ID=$(eval echo "\$${NETWORK^^}_PARACHAIN_ID")
+STAKERS=$(eval echo "\$${NETWORK^^}_STAKERS")
+
 if [ -z "$CHAIN" ]; then
   CHAIN=$(eval echo "\$${NETWORK^^}_PARACHAIN_SPEC_RAW")
 fi
@@ -80,13 +82,6 @@ fi
 echo "parachain $PARACHAIN_INDEX ($PARACHAIN_ID) - p2p-port: $((PARACHAIN_PORT + 10)), \
 http-port: $((PARACHAIN_PORT + 10 + 1)), ws-port: $((PARACHAIN_PORT + 10 + 2))"
 
-
-
-ADDRESS=(
-  0x4c5a56ed5a4ff7b09aa86560afd7d383f4831cce
-  0x623c9e50647a049f92090fe55e22cc0509872fb6
-)
-
 $MOONBEAM_BINARY \
   --node-key ${PARACHAIN_NODE_KEYS[$PARACHAIN_INDEX]} \
   --port $((PARACHAIN_PORT + 10)) \
@@ -100,7 +95,7 @@ $MOONBEAM_BINARY \
   --name parachain_$PARACHAIN_INDEX \
   $PARACHAIN_BASE_PATH \
   '-linfo,evm=debug,ethereum=trace,rpc=trace,cumulus_collator=debug,txpool=debug' \
-  --author-id ${ADDRESS[$PARACHAIN_INDEX]} \
+  --author-id ${STAKERS[$PARACHAIN_INDEX]} \
   --chain $CHAIN \
   $PARACHAIN_BOOTNODES_ARGS \
   -- \
