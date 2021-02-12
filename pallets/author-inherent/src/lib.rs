@@ -20,12 +20,12 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use frame_support::debug;
 use frame_support::{
 	decl_error, decl_module, decl_storage, ensure,
 	traits::FindAuthor,
 	weights::{DispatchClass, Weight},
 };
-use frame_support::debug;
 use frame_system::{ensure_none, Config as System};
 use parity_scale_codec::{Decode, Encode};
 #[cfg(feature = "std")]
