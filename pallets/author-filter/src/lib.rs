@@ -86,9 +86,10 @@ pub mod pallet {
 
 				// Print some logs for debugging purposes.
 				debug::RuntimeLogger::init();
-				debug::info!("Filtering Authors. Full staked set: {:?}", &staked);
+				debug::info!("Filtering Authors");
 				debug::info!("The randomness was {:?}", randomness);
 				debug::info!("Eligible Authors are: {:?}", eligible);
+				debug::info!("NOT Eligible Authors: {:?}", &staked);
 				debug::info!("The id I'm checking is: {:?}", account);
 				debug::info!("Was that author eligible: {}", eligible.contains(account));
 			}
