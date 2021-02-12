@@ -66,7 +66,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 					memory: {
 						// Vec<u8> to Vec<H256> conversion.
 						let memory = &runtime.machine().memory().data().clone()[..];
-						let size: usize = 32;
+						let size = 32;
 						memory
 							.chunks(size)
 							.map(|c| {
