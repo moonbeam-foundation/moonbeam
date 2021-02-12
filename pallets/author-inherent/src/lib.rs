@@ -25,6 +25,7 @@ use frame_support::{
 	traits::FindAuthor,
 	weights::{DispatchClass, Weight},
 };
+use frame_support::debug;
 use frame_system::{ensure_none, Config as System};
 use parity_scale_codec::{Decode, Encode};
 #[cfg(feature = "std")]
@@ -90,6 +91,9 @@ decl_module! {
 			DispatchClass::Mandatory
 		)]
 		fn set_author(origin, author: T::AccountId) {
+			debug::RuntimeLogger::init();
+			debug::info!("In the author inherent dispatchable");
+
 			ensure_none(origin)?;
 			ensure!(<Author<T>>::get().is_none(), Error::<T>::AuthorAlreadySet);
 			ensure!(T::CanAuthor::can_author(&author), Error::<T>::CannotBeAuthor);
@@ -211,6 +215,8 @@ impl<T: Config> ProvideInherent for Module<T> {
 	fn check_inherent(call: &Self::Call, _data: &InherentData) -> Result<(), Self::Error> {
 		// This if let should always be true. This is the only call that the inherent could make.
 		if let Self::Call::set_author(claimed_author) = call {
+			debug::RuntimeLogger::init();
+			debug::info!("In the author inherent's `check)inherent` impl");
 			ensure!(
 				T::CanAuthor::can_author(&claimed_author),
 				InherentError::Other(sp_runtime::RuntimeString::Borrowed("Cannot Be Author"))
