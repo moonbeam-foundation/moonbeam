@@ -216,7 +216,7 @@ impl<T: Config> ProvideInherent for Module<T> {
 		// This if let should always be true. This is the only call that the inherent could make.
 		if let Self::Call::set_author(claimed_author) = call {
 			debug::RuntimeLogger::init();
-			debug::info!("In the author inherent's `check)inherent` impl");
+			debug::info!("In the author inherent's `check_inherent` impl");
 			ensure!(
 				T::CanAuthor::can_author(&claimed_author),
 				InherentError::Other(sp_runtime::RuntimeString::Borrowed("Cannot Be Author"))
