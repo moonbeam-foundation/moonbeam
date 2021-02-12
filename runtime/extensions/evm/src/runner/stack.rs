@@ -17,8 +17,8 @@
 use crate::executor::wrapper::TraceExecutorWrapper;
 use ethereum_types::{H160, U256};
 use evm::{
-	executor::{StackExecutor, StackSubstateMetadata},
-	Capture, Config as EvmConfig,
+	executor::{StackExecutor, StackState as StackStateT, StackSubstateMetadata},
+	Capture, Config as EvmConfig, Transfer,
 };
 // use fp_evm::Vicinity;
 use moonbeam_rpc_primitives_debug::TraceExecutorResponse;
@@ -83,7 +83,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		};
 
 		Ok(TraceExecutorResponse {
-			gas: U256::from(wrapper.inner.used_gas()),
+			gas: U256::from(wrapper.inner.state().metadata().gasometer().gas()),
 			return_value: execution_result,
 			step_logs: wrapper.step_logs,
 		})
@@ -106,7 +106,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		};
 
 		Ok(TraceExecutorResponse {
-			gas: U256::from(wrapper.inner.used_gas()),
+			gas: U256::from(wrapper.inner.state().metadata().gasometer().gas()),
 			return_value: execution_result,
 			step_logs: wrapper.step_logs,
 		})
@@ -129,7 +129,18 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		let mut executor =
 			StackExecutor::new_with_precompile(state, config, T::Precompiles::execute);
 		Self::execute_call(&mut executor, |executor| {
-			executor.trace_call(source, target, value, input, gas_limit as u64)
+			executor.trace_call(
+				source,
+				target,
+				Some(Transfer {
+					source,
+					target,
+					value,
+				}),
+				value,
+				input,
+				gas_limit as u64,
+			)
 		})
 	}
 

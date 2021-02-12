@@ -3,7 +3,7 @@ use crate::executor::util::opcodes;
 use ethereum_types::{H160, H256, U256};
 pub use evm::{
 	backend::{Apply, Backend as BackendT, Log},
-	executor::{StackExecutor, StackState as StackStateT},
+	executor::{StackExecutor, StackExitKind, StackState as StackStateT},
 	gasometer::{self as gasometer},
 	Capture, Config, Context, CreateScheme, ExitError, ExitFatal, ExitReason, ExitSucceed,
 	Handler as HandlerT, Opcode, Runtime, Stack, Transfer,
@@ -69,11 +69,6 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 					stack: runtime.machine().stack().data().clone(),
 					storage: BTreeMap::new(), // TODO support this
 				});
-			} else {
-				match runtime.machine().position() {
-					Err(reason) => break reason.clone(),
-					_ => unreachable!("Inpsect resulting in None should return error."),
-				}
 			}
 
 			match runtime.step(self) {
@@ -92,19 +87,47 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 		&mut self,
 		caller: H160,
 		address: H160,
+		transfer: Option<Transfer>,
 		value: U256,
 		data: Vec<u8>,
 		gas_limit: u64,
 	) -> Capture<(ExitReason, Vec<u8>), Infallible> {
-		let code = self.inner.code(address);
-		self.inner.enter_substate(gas_limit, false);
-		self.inner.state_mut().touch(address);
+		macro_rules! try_or_fail {
+			( $e:expr ) => {
+				match $e {
+					Ok(v) => v,
+					Err(e) => return Capture::Exit((e.into(), Vec::new())),
+					}
+			};
+		}
+
+		try_or_fail!(self
+			.inner
+			.state_mut()
+			.metadata_mut()
+			.gasometer_mut()
+			.record_cost(gas_limit));
 
 		let context = Context {
 			caller,
 			address,
 			apparent_value: value,
 		};
+
+		let code = self.inner.code(address);
+		self.inner.enter_substate(gas_limit, false);
+		self.inner.state_mut().touch(address);
+
+		if let Some(transfer) = transfer {
+			match self.inner.state_mut().transfer(transfer) {
+				Ok(()) => (),
+				Err(e) => {
+					let _ = self.inner.exit_substate(StackExitKind::Reverted);
+					return Capture::Exit((ExitReason::Error(e), Vec::new()));
+				}
+			}
+		}
+
 		let mut runtime = Runtime::new(Rc::new(code), Rc::new(data), context, self.inner.config());
 
 		match self.trace(&mut runtime) {
@@ -126,6 +149,21 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 		code: Vec<u8>,
 		gas_limit: u64,
 	) -> Capture<(ExitReason, Option<H160>, Vec<u8>), Infallible> {
+		macro_rules! try_or_fail {
+			( $e:expr ) => {
+				match $e {
+					Ok(v) => v,
+					Err(e) => return Capture::Exit((e.into(), None, Vec::new())),
+					}
+			};
+		}
+
+		try_or_fail!(self
+			.inner
+			.state_mut()
+			.metadata_mut()
+			.gasometer_mut()
+			.record_cost(gas_limit));
 		let scheme = CreateScheme::Legacy { caller };
 		let address = self.inner.create_address(scheme);
 		self.inner.enter_substate(gas_limit, false);
@@ -273,7 +311,7 @@ impl<'config, S: StackStateT<'config>> HandlerT for TraceExecutorWrapper<'config
 		_context: Context,
 	) -> Capture<(ExitReason, Vec<u8>), Self::CallInterrupt> {
 		if self.is_tracing {
-			let (caller, value) = if let Some(transfer) = transfer {
+			let (caller, value) = if let Some(transfer) = transfer.clone() {
 				(transfer.source, transfer.value)
 			} else {
 				(code_address, U256::zero())
@@ -283,7 +321,14 @@ impl<'config, S: StackStateT<'config>> HandlerT for TraceExecutorWrapper<'config
 			} else {
 				u64::MAX
 			};
-			return self.trace_call(caller, code_address, value, input, gas_limit);
+			return self.trace_call(
+				caller,
+				code_address,
+				transfer.clone(),
+				value,
+				input,
+				gas_limit,
+			);
 		} else {
 			unreachable!("TODO StackExecutorWrapper only available on tracing enabled.");
 		}
