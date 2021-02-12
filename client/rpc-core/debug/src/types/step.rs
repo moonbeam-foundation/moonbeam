@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use ethereum_types::{H256, U256};
-use serde::{Serialize, Serializer};
+use serde::{ser::SerializeSeq, Serialize, Serializer};
 use std::collections::BTreeMap;
 
 #[derive(Eq, PartialEq, Debug, Serialize)]
@@ -32,12 +32,25 @@ pub struct StepLog {
 	//error: TODO
 	pub gas: U256,
 	pub gas_cost: U256,
+	#[serde(serialize_with = "seq_h256_serialize")]
 	pub memory: Vec<H256>,
 	#[serde(serialize_with = "opcode_serialize")]
 	pub op: Vec<u8>,
 	pub pc: U256,
+	#[serde(serialize_with = "seq_h256_serialize")]
 	pub stack: Vec<H256>,
 	pub storage: BTreeMap<H256, H256>,
+}
+
+fn seq_h256_serialize<S>(data: &Vec<H256>, serializer: S) -> Result<S::Ok, S::Error>
+where
+	S: Serializer,
+{
+	let mut seq = serializer.serialize_seq(Some(data.len()))?;
+	for h in data {
+		seq.serialize_element(&format!("{:x}", h))?;
+	}
+	seq.end()
 }
 
 fn opcode_serialize<S>(opcode: &Vec<u8>, serializer: S) -> Result<S::Ok, S::Error>
