@@ -3,8 +3,8 @@
   "id": "moonbase_stage",
   "chainType": "Local",
   "bootNodes": [
-    "/dns4/rpcnode1.blue.testnet.moonbeam.network/tcp/30334/p2p/12D3KooWJD9yhtvBoaNviqt6yj9R1AXDqxMvbUaU3fkv73bThKNh",
-    "/dns4/rpcnode2.blue.testnet.moonbeam.network/tcp/30334/p2p/12D3KooWPS1EzUXqLx4EdkqPJZ8jciCWmciSTou8DrPGAnPps1Lm"
+    "/dns4/bootnode1.stagenet.moonbeam.gcp.purestake.run/tcp/30334/p2p/12D3KooWH8ocqod6UqhiecikyoYuNWyjcewYjQG9FyhYbo1e4sKV",
+    "/dns4/bootnode2.stagenet.moonbeam.gcp.purestake.run/tcp/30334/p2p/12D3KooWFmfo5EnBM1Y5w1ynLx4tvaBSLnbBz3cNfN36nU1mF6rA"
   ],
   "telemetryEndpoints": null,
   "protocolId": null,

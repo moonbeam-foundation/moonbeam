@@ -3,8 +3,8 @@
   "id": "moonbase_alpha",
   "chainType": "Local",
   "bootNodes": [
-    "/dns4/rpcnode1.blue.testnet.moonbeam.network/tcp/30334/p2p/12D3KooWJD9yhtvBoaNviqt6yj9R1AXDqxMvbUaU3fkv73bThKNh",
-    "/dns4/rpcnode2.blue.testnet.moonbeam.network/tcp/30334/p2p/12D3KooWPS1EzUXqLx4EdkqPJZ8jciCWmciSTou8DrPGAnPps1Lm"
+    "/dns4/bootnode1.testnet.moonbeam.network/tcp/30334/p2p/12D3KooWJD9yhtvBoaNviqt6yj9R1AXDqxMvbUaU3fkv73bThKNh",
+    "/dns4/bootnode2.testnet.moonbeam.network/tcp/30334/p2p/12D3KooWPS1EzUXqLx4EdkqPJZ8jciCWmciSTou8DrPGAnPps1Lm"
   ],
   "telemetryEndpoints": null,
   "protocolId": null,
