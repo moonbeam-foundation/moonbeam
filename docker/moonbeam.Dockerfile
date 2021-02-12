@@ -16,6 +16,7 @@ RUN useradd -m -u 1000 -U -s /bin/sh -d /moonbeam moonbeam && \
 USER moonbeam
 
 COPY --chown=moonbeam build/moonbeam /moonbeam/moonbeam
+RUN chmod uog+x /moonbeam/moonbeam
 
 # 30333 for parachain p2p 
 # 30334 for relaychain p2p 
