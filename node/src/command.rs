@@ -136,7 +136,7 @@ impl SubstrateCli for RelayChainCli {
 				&include_bytes!("../../specs/alphanet/rococo-embedded-specs-v6.json")[..],
 			)?)),
 			"moonbase_stage_relay" => Ok(Box::new(RococoChainSpec::from_json_bytes(
-				&include_bytes!("../../specs/stagenet/parachain-embedded-specs-v6.json")[..],
+				&include_bytes!("../../specs/stagenet/rococo-embedded-specs-v6.json")[..],
 			)?)),
 			// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the
 			// Polkadot service to interpret the id.
