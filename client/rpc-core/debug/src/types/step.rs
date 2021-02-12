@@ -32,7 +32,7 @@ pub struct StepLog {
 	//error: TODO
 	pub gas: U256,
 	pub gas_cost: U256,
-	pub memory: Vec<u8>,
+	pub memory: Vec<H256>,
 	#[serde(serialize_with = "opcode_serialize")]
 	pub op: Vec<u8>,
 	pub pc: U256,

@@ -9,7 +9,7 @@ pub use evm::{
 	Handler as HandlerT, Opcode, Runtime, Stack, Transfer,
 };
 use moonbeam_rpc_primitives_debug::StepLog;
-use sp_std::{collections::btree_map::BTreeMap, convert::Infallible, rc::Rc, vec::Vec};
+use sp_std::{collections::btree_map::BTreeMap, convert::Infallible, rc::Rc, vec, vec::Vec};
 
 pub struct TraceExecutorWrapper<'config, S> {
 	pub inner: &'config mut StackExecutor<'config, S>,
@@ -63,7 +63,27 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 					depth: U256::from(self.inner.state().metadata().depth().unwrap_or_default()),
 					gas: U256::from(self.inner.gas()),
 					gas_cost: U256::from(gas_cost),
-					memory: runtime.machine().memory().data().clone(),
+					memory: {
+						// Vec<u8> to Vec<H256> conversion.
+						let memory = &runtime.machine().memory().data().clone()[..];
+						let size: usize = 32;
+						memory
+							.chunks(size)
+							.map(|c| {
+								let mut msg = [0u8; 32];
+								let chunk = c.len();
+								if chunk < size {
+									let left = size - chunk;
+									let remainder = vec![0; left];
+									msg[0..left].copy_from_slice(&remainder[..]);
+									msg[left..size].copy_from_slice(c);
+								} else {
+									msg[0..size].copy_from_slice(c)
+								}
+								H256::from_slice(&msg[..])
+							})
+							.collect()
+					},
 					op: opcodes(opcode),
 					pc: U256::from(*position),
 					stack: runtime.machine().stack().data().clone(),

@@ -34,7 +34,7 @@ pub struct StepLog {
 	//error: TODO
 	pub gas: U256,
 	pub gas_cost: U256,
-	pub memory: Vec<u8>,
+	pub memory: Vec<H256>,
 	pub op: Vec<u8>,
 	pub pc: U256,
 	pub stack: Vec<H256>,
