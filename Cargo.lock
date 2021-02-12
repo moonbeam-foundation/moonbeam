@@ -1580,7 +1580,7 @@ checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
 [[package]]
 name = "evm"
 version = "0.23.0"
-source = "git+https://github.com/purestake/evm?branch=tgm-getters#eb4f307e6493d3c08b11d147cd1019075cdadfe5"
+source = "git+https://github.com/purestake/evm?branch=tgm-getters#dfab21ab88c03cedd5e52522f3aa6a5a15bf2697"
 dependencies = [
  "ethereum",
  "evm-core",
@@ -1597,7 +1597,7 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.23.0"
-source = "git+https://github.com/purestake/evm?branch=tgm-getters#eb4f307e6493d3c08b11d147cd1019075cdadfe5"
+source = "git+https://github.com/purestake/evm?branch=tgm-getters#dfab21ab88c03cedd5e52522f3aa6a5a15bf2697"
 dependencies = [
  "parity-scale-codec",
  "primitive-types",
@@ -1607,7 +1607,7 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.23.0"
-source = "git+https://github.com/purestake/evm?branch=tgm-getters#eb4f307e6493d3c08b11d147cd1019075cdadfe5"
+source = "git+https://github.com/purestake/evm?branch=tgm-getters#dfab21ab88c03cedd5e52522f3aa6a5a15bf2697"
 dependencies = [
  "evm-core",
  "evm-runtime",
@@ -1617,7 +1617,7 @@ dependencies = [
 [[package]]
 name = "evm-runtime"
 version = "0.23.0"
-source = "git+https://github.com/purestake/evm?branch=tgm-getters#eb4f307e6493d3c08b11d147cd1019075cdadfe5"
+source = "git+https://github.com/purestake/evm?branch=tgm-getters#dfab21ab88c03cedd5e52522f3aa6a5a15bf2697"
 dependencies = [
  "evm-core",
  "primitive-types",

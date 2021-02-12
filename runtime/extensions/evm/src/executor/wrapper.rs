@@ -31,8 +31,8 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 	fn trace(&mut self, runtime: &mut Runtime) -> ExitReason {
 		loop {
 			if let Some((opcode, stack)) = runtime.machine().inspect() {
-				let gas = self.inner.state().metadata().gasometer.gas();
-				let gas_cost = match self.inner.state().metadata().gasometer.inner() {
+				let gas = self.inner.state().metadata().gasometer().gas();
+				let gas_cost = match self.inner.state().metadata().gasometer().inner() {
 					Ok(inner) => match gasometer::static_opcode_cost(opcode) {
 						Some(cost) => cost,
 						_ => {
@@ -40,7 +40,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 								runtime.context().address,
 								opcode,
 								stack,
-								self.inner.state().metadata().is_static,
+								self.inner.state().metadata().is_static(),
 								self.inner.config(),
 								self,
 							) {
@@ -60,20 +60,14 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 				};
 
 				self.step_logs.push(StepLog {
-					depth: U256::from(self.inner.state().metadata().depth.unwrap_or_default()),
+					depth: U256::from(self.inner.state().metadata().depth().unwrap_or_default()),
 					gas: U256::from(self.inner.gas()),
 					gas_cost: U256::from(gas_cost),
 					memory: runtime.machine().memory().data().clone(),
 					op: opcodes(opcode),
 					pc: U256::from(*position),
 					stack: runtime.machine().stack().data().clone(),
-					// TODO this is now BTreeMap<(H160, H256), H256> in executor/stack/state
-					// we need to build a BtreeMap<H256, H256> for the current H160 address.
-					storage: BTreeMap::new()
-					// storage: match self.inner.account(runtime.context().address) {
-					// 	Some(account) => account.storage.clone(),
-					// 	_ => BTreeMap::new(),
-					// },
+					storage: BTreeMap::new(), // TODO support this
 				});
 			} else {
 				match runtime.machine().position() {
