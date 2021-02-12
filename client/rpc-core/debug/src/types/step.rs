@@ -28,14 +28,18 @@ pub struct TraceExecutorResponse {
 #[derive(Eq, PartialEq, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StepLog {
+	#[serde(serialize_with = "u256_serialize")]
 	pub depth: U256,
 	//error: TODO
+	#[serde(serialize_with = "u256_serialize")]
 	pub gas: U256,
+	#[serde(serialize_with = "u256_serialize")]
 	pub gas_cost: U256,
 	#[serde(serialize_with = "seq_h256_serialize")]
 	pub memory: Vec<H256>,
 	#[serde(serialize_with = "opcode_serialize")]
 	pub op: Vec<u8>,
+	#[serde(serialize_with = "u256_serialize")]
 	pub pc: U256,
 	#[serde(serialize_with = "seq_h256_serialize")]
 	pub stack: Vec<H256>,
@@ -63,4 +67,13 @@ where
 		"{}",
 		std::str::from_utf8(opcode).unwrap_or("").to_uppercase()
 	))
+}
+
+fn u256_serialize<S>(data: &U256, serializer: S) -> Result<S::Ok, S::Error>
+where
+	S: Serializer,
+{
+	// TODO: how to propagate Err here (i.e. `from_utf8` fails), so the rpc requests also
+	// returns an error?
+	serializer.serialize_u64(data.low_u64())
 }
