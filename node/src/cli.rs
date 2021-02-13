@@ -144,6 +144,10 @@ pub struct Cli {
 	/// Relaychain arguments
 	#[structopt(raw = true)]
 	pub relaychain_args: Vec<String>,
+
+	/// Enable EVM tracing module on a non-authority node.
+	#[structopt(long, conflicts_with = "collator", conflicts_with = "validator")]
+	pub debug: bool,
 }
 
 #[derive(Debug)]

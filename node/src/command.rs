@@ -296,7 +296,12 @@ pub fn run() -> Result<()> {
 							)
 						});
 
-						return crate::dev_service::new_full(config, cli.run.sealing, author_id);
+						return crate::dev_service::new_full(
+							config,
+							cli.run.sealing,
+							author_id,
+							cli.debug,
+						);
 					}
 
 					let key = sp_core::Pair::generate().0;
@@ -346,6 +351,7 @@ pub fn run() -> Result<()> {
 						polkadot_config,
 						id,
 						collator,
+						cli.debug,
 					)
 					.await
 					.map(|r| r.0)

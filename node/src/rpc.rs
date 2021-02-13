@@ -58,6 +58,8 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub backend: Arc<BE>,
 	/// EthFilterApi pool.
 	pub filter_pool: Option<FilterPool>,
+	/// Is `debug` module enabled?
+	pub evm_debug: bool,
 	/// Manual seal command sink
 	pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
 }
@@ -105,6 +107,7 @@ where
 		pending_transactions,
 		backend,
 		filter_pool,
+		evm_debug,
 		command_sink,
 	} = deps;
 
@@ -153,10 +156,12 @@ where
 			Arc::new(subscription_task_executor),
 		),
 	)));
-	io.extend_with(DebugServer::to_delegate(Debug::new(
-		client.clone(),
-		backend,
-	)));
+	if evm_debug {
+		io.extend_with(DebugServer::to_delegate(Debug::new(
+			client.clone(),
+			backend,
+		)));
+	}
 	io.extend_with(TxPoolServer::to_delegate(TxPool::new(client, pool)));
 
 	if let Some(command_sink) = command_sink {

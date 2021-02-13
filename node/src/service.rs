@@ -120,6 +120,7 @@ async fn start_node_impl<RB>(
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	validator: bool,
+	evm_debug: bool,
 	_rpc_ext_builder: RB,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient>)>
 where
@@ -192,6 +193,7 @@ where
 				pending_transactions: pending.clone(),
 				backend: backend.clone(),
 				filter_pool: filter_pool.clone(),
+				evm_debug,
 				command_sink: None,
 			};
 
@@ -344,6 +346,7 @@ pub async fn start_node(
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	validator: bool,
+	evm_debug: bool,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient>)> {
 	start_node_impl(
 		parachain_config,
@@ -352,6 +355,7 @@ pub async fn start_node(
 		polkadot_config,
 		id,
 		validator,
+		evm_debug,
 		|_| Default::default(),
 	)
 	.await

@@ -112,6 +112,7 @@ pub fn new_full(
 	config: Configuration,
 	sealing: Sealing,
 	author_id: Option<H160>,
+	evm_debug: bool,
 ) -> Result<TaskManager, ServiceError> {
 	let sc_service::PartialComponents {
 		client,
@@ -228,6 +229,7 @@ pub fn new_full(
 				pending_transactions: pending.clone(),
 				backend: backend.clone(),
 				filter_pool: filter_pool.clone(),
+				evm_debug,
 				command_sink: command_sink.clone(),
 			};
 			crate::rpc::create_full(deps, subscription_task_executor.clone())
