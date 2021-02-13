@@ -139,7 +139,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 				}),
 				value,
 				input,
-				gas_limit as u64,
+				Some(gas_limit as u64),
 			)
 		})
 	}
@@ -161,7 +161,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		let mut executor =
 			StackExecutor::new_with_precompile(state, config, T::Precompiles::execute);
 		Self::execute_create(&mut executor, |executor| {
-			executor.trace_create(source, value, init, gas_limit as u64)
+			executor.trace_create(source, value, init, Some(gas_limit as u64))
 		})
 	}
 }

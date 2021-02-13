@@ -9,8 +9,9 @@ pub use evm::{
 	Handler as HandlerT, Opcode, Runtime, Stack, Transfer,
 };
 use moonbeam_rpc_primitives_debug::StepLog;
-use sp_std::{collections::btree_map::BTreeMap, convert::Infallible, rc::Rc, vec, vec::Vec};
-
+use sp_std::{
+	cmp::min, collections::btree_map::BTreeMap, convert::Infallible, rc::Rc, vec, vec::Vec,
+};
 pub struct TraceExecutorWrapper<'config, S> {
 	pub inner: &'config mut StackExecutor<'config, S>,
 	is_tracing: bool,
@@ -110,7 +111,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 		transfer: Option<Transfer>,
 		value: U256,
 		data: Vec<u8>,
-		gas_limit: u64,
+		target_gas: Option<u64>,
 	) -> Capture<(ExitReason, Vec<u8>), Infallible> {
 		macro_rules! try_or_fail {
 			( $e:expr ) => {
@@ -120,6 +121,10 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 					}
 			};
 		}
+
+		let after_gas = self.inner.state().metadata().gasometer().gas();
+		let target_gas = target_gas.unwrap_or(after_gas);
+		let gas_limit = min(target_gas, after_gas);
 
 		try_or_fail!(self
 			.inner
@@ -167,7 +172,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 		caller: H160,
 		value: U256,
 		code: Vec<u8>,
-		gas_limit: u64,
+		target_gas: Option<u64>,
 	) -> Capture<(ExitReason, Option<H160>, Vec<u8>), Infallible> {
 		macro_rules! try_or_fail {
 			( $e:expr ) => {
@@ -177,6 +182,10 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 					}
 			};
 		}
+
+		let after_gas = self.inner.state().metadata().gasometer().gas();
+		let target_gas = target_gas.unwrap_or(after_gas);
+		let gas_limit = min(target_gas, after_gas);
 
 		try_or_fail!(self
 			.inner
@@ -308,17 +317,10 @@ impl<'config, S: StackStateT<'config>> HandlerT for TraceExecutorWrapper<'config
 		target_gas: Option<u64>,
 	) -> Capture<(ExitReason, Option<H160>, Vec<u8>), Self::CreateInterrupt> {
 		if self.is_tracing {
-			let gas_limit = if let Some(gas) = target_gas {
-				gas
-			} else {
-				u64::MAX
-			};
-			return self.trace_create(caller, value, init_code, gas_limit);
+			return self.trace_create(caller, value, init_code, target_gas);
 		} else {
 			unreachable!("TODO StackExecutorWrapper only available on tracing enabled.");
 		}
-		// self.inner
-		// 	.create_inner(caller, scheme, value, init_code, target_gas, true)
 	}
 
 	fn call(
@@ -336,32 +338,17 @@ impl<'config, S: StackStateT<'config>> HandlerT for TraceExecutorWrapper<'config
 			} else {
 				(code_address, U256::zero())
 			};
-			let gas_limit = if let Some(gas) = target_gas {
-				gas
-			} else {
-				u64::MAX
-			};
 			return self.trace_call(
 				caller,
 				code_address,
 				transfer.clone(),
 				value,
 				input,
-				gas_limit,
+				target_gas,
 			);
 		} else {
 			unreachable!("TODO StackExecutorWrapper only available on tracing enabled.");
 		}
-		// self.inner.call_inner(
-		// 	code_address,
-		// 	transfer,
-		// 	input,
-		// 	target_gas,
-		// 	is_static,
-		// 	true,
-		// 	true,
-		// 	context,
-		// )
 	}
 
 	fn pre_validate(
