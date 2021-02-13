@@ -53,10 +53,18 @@ pub trait Config: System {
 	/// Other pallets that want to be informed about block authorship
 	type EventHandler: EventHandler<Self::AccountId>;
 
-	/// Checks if account can be set as block author.
+	/// A preliminatry means of checking the validity of this author. This check is run before
+	/// block execution begins when data from previous inherent is unavailable. This is meant to
+	/// quickly invalidate blocks from obviously-invalid authors, although it need no rule out all
+	/// invlaid authors. The final check will be made when executing the inherent.
+	type PreliminaryCanAuthor: CanAuthor<Self::AccountId>;
+
+	/// The final word on whether the reported author can author at this height.
+	/// This will be used when executing the inherent. This check is often stricter than the
+	/// Preliminary check, because it can use more data.
 	/// If the pallet that implements this trait depends on an inherent, that inherent **must**
 	/// be included before this one.
-	type CanAuthor: CanAuthor<Self::AccountId>;
+	type FinalCanAuthor: CanAuthor<Self::AccountId>;
 }
 
 decl_error! {
@@ -92,7 +100,7 @@ decl_module! {
 		fn set_author(origin, author: T::AccountId) {
 			ensure_none(origin)?;
 			ensure!(<Author<T>>::get().is_none(), Error::<T>::AuthorAlreadySet);
-			ensure!(T::CanAuthor::can_author(&author), Error::<T>::CannotBeAuthor);
+			ensure!(T::FinalCanAuthor::can_author(&author), Error::<T>::CannotBeAuthor);
 
 			// Update storage
 			Author::<T>::put(&author);
@@ -107,6 +115,10 @@ decl_module! {
 
 			// Notify any other pallets that are listening (eg rewards) about the author
 			T::EventHandler::note_author(author);
+		}
+
+		fn on_finalize(_n: T::BlockNumber) {
+			assert!(Author::<T>::get().is_some(), "No valid author set in block");
 		}
 	}
 }
@@ -209,10 +221,10 @@ impl<T: Config> ProvideInherent for Module<T> {
 	}
 
 	fn check_inherent(call: &Self::Call, _data: &InherentData) -> Result<(), Self::Error> {
-		// This if let should always be true. This is the only call that the inherent could make.
+		// We only care to check the inherent provided by this pallet.
 		if let Self::Call::set_author(claimed_author) = call {
 			ensure!(
-				T::CanAuthor::can_author(&claimed_author),
+				T::PreliminaryCanAuthor::can_author(&claimed_author),
 				InherentError::Other(sp_runtime::RuntimeString::Borrowed("Cannot Be Author"))
 			);
 		}
