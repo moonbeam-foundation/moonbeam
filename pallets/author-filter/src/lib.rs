@@ -61,7 +61,8 @@ pub mod pallet {
 	// of this block is eligible at this height. We calculate that result on demand and do not
 	// record it instorage (although we do emit a debugging event for now).
 	// This implementation relies on the relay parent's block number from the validation data
-	// inherent. Therefore the validation data inherent **must** be included before this check is
+	// inherent. Therefore this implementation must not be used as a preliminary check (only final)
+	// Further, the validation data inherent **must** be included before this check is
 	// performed. Concretely the validation data inherent must be included before the author
 	// inherent.
 	impl<T: Config> author_inherent::CanAuthor<T::AccountId> for Pallet<T> {
