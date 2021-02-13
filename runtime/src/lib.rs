@@ -443,6 +443,8 @@ construct_runtime! {
 		Stake: stake::{Module, Call, Storage, Event<T>, Config<T>},
 		Scheduler: pallet_scheduler::{Module, Storage, Config, Event<T>, Call},
 		Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
+		// The order matters here. Inherents will be included in the order specified here.
+		// Concretely wee need the author inherent to come after the parachain_upgrade inherent.
 		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
 		AuthorFilter: pallet_author_filter::{Module, Storage, Event<T>,}
 	}
