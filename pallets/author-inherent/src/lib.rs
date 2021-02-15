@@ -59,9 +59,9 @@ pub trait Config: System {
 	/// Other pallets that want to be informed about block authorship
 	type EventHandler: EventHandler<Self::AccountId>;
 
-	/// A preliminatry means of checking the validity of this author. This check is run before
+	/// A preliminary means of checking the validity of this author. This check is run before
 	/// block execution begins when data from previous inherent is unavailable. This is meant to
-	/// quickly invalidate blocks from obviously-invalid authors, although it need no rule out all
+	/// quickly invalidate blocks from obviously-invalid authors, although it need not rule out all
 	/// invlaid authors. The final check will be made when executing the inherent.
 	type PreliminaryCanAuthor: CanAuthor<Self::AccountId>;
 

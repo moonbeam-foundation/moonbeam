@@ -83,7 +83,7 @@ pub mod pallet {
 				// - The index `i` when we're selecting the ith eligible author
 				// - The relay parent block number so that the eligible authors at the next height
 				//   change. Avoids liveness attacks from colluding minorities of active authors.
-				// Third one will not be necessary once we dleverage the relay chain's randomness.
+				// Third one will not be necessary once we leverage the relay chain's randomness.
 				let subject: [u8; 8] = [
 					b'f',
 					b'i',
