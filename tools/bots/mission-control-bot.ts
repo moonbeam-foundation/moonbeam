@@ -224,8 +224,8 @@ const botActionFaucetSend = async (msg: Message, authorId: string, messageConten
         await web3Api.eth.accounts.signTransaction(
           {
             value: `${params.TOKEN_COUNT * 10n ** TOKEN_DECIMAL}`,
-            gasPrice: "0x01",
-            gas: "0x21000",
+            gasPrice: "0",
+            gas: "21000",
             to: `0x${address}`,
           },
           params.ACCOUNT_KEY
