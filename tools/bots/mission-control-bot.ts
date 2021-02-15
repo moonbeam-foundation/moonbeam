@@ -5,32 +5,6 @@ import https from "https";
 const TOKEN_DECIMAL = 18n;
 const EMBED_COLOR_CORRECT = 0x642f95;
 const EMBED_COLOR_ERROR = 0xc0392b;
-const SLACK_MSG_CONTENTS = `
-{
-  "blocks": [
-    {
-      "type": "section",
-      "text": {
-        "type": "mrkdwn",
-        "text": "The account linked to the bot is running low on funds."
-      }
-    },
-    {
-      "type": "section",
-      "fields": [
-        {
-          "type": "mrkdwn",
-          "text": "*Account ID:*\n{{ account-fix-me }}"
-        },
-        {
-          "type": "mrkdwn",
-          "text": "*Current balance:*\n{{ balance-fix-me }} DEV"
-        }
-      ]
-    }
-  ]
-}
-`;
 
 const params = {
   // Discord app information
@@ -74,21 +48,51 @@ const lastBalanceCheck = {
 /**
  * Send notification to Slack using a webhook URL and the
  * message payload read from SLACK_MSG_CONTENT_FILEPATH.
- * @param {BigInt} account_balance Balance of the account in DEV
+ * @param {bigint} account_balance Balance of the account in DEV
  */
-const sendSlackNotification = async (account_balance: BigInt) => {
+const sendSlackNotification = async (account_balance: bigint) => {
   // Message to send to Slack (JSON payload)
-  const data = SLACK_MSG_CONTENTS.replace("{{ account-fix-me }}", params.ACCOUNT_ID).replace(
-    "{{ balance-fix-me }}",
-    account_balance.toString()
-  );
+  const title = "Fund bot operational account";
+  const message = "The account linked to the bot is running low on funds.";
+  const remainingAlerts = account_balance / BigInt(params.TOKEN_COUNT);
+
+  const payload = {
+    attachments: [
+      {
+        color: "warning",
+        fallback: `${title}. ${message}\n` +
+          `  * Balance: ${account_balance.toString()} DEV\n` +
+          `  * Alerts until failure: ${remainingAlerts.toString()}\n` +
+          `  * Fund the following account: ${params.ACCOUNT_ID}`,
+        title: title,
+        text: message,
+        fields: [
+          {
+            title: "Balance",
+            value: `${account_balance.toString()} DEV`,
+            short: true
+          },
+          {
+            title: "Alerts until failure",
+            value: `${remainingAlerts.toString()}`,
+            short: true
+          },
+          {
+            title: "Please, fund the following account",
+            value: params.ACCOUNT_ID,
+            short: false
+          }
+        ]
+      }
+    ]
+  };
 
   // Options for the HTTP request (data is written later)
   const options = {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Content-Length": data.length,
+      "Content-Length": JSON.stringify(payload).length,
     },
   };
 
@@ -113,7 +117,7 @@ const sendSlackNotification = async (account_balance: BigInt) => {
         reject(err);
       });
 
-    request.write(data);
+    request.write(JSON.stringify(payload));
     request.end();
   });
 
