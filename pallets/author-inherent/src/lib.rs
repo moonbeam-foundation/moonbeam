@@ -37,10 +37,16 @@ use sp_std::vec::Vec;
 pub trait EventHandler<Author> {
 	fn note_author(author: Author);
 }
+
+impl<T> EventHandler<T> for () {
+	fn note_author(_author: T) {}
+}
+
 /// Permissions for what block author can be set in this pallet
 pub trait CanAuthor<AccountId> {
 	fn can_author(account: &AccountId) -> bool;
 }
+
 /// Default implementation where anyone can author, see `stake` and `author-filter` pallets for
 /// additional implementations.
 impl<T> CanAuthor<T> for () {
@@ -261,10 +267,6 @@ mod tests {
 
 	mod author_inherent {
 		pub use super::super::*;
-	}
-
-	impl<T> EventHandler<T> for () {
-		fn note_author(_author: T) {}
 	}
 
 	#[derive(Clone, Eq, PartialEq)]
