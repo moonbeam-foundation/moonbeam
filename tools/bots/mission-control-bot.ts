@@ -214,22 +214,31 @@ const botActionFaucetSend = async (msg: Message, authorId: string, messageConten
   // check address and send alert msg and return if bad formatted
   if (!checkH160AddressIsCorrect(address, msg)) return;
 
-  // update user last fund retrieval
+  // update user's last fund retrieval
+  const previousRequestTime = receivers[authorId];
   receivers[authorId] = Date.now();
 
-  await web3Api.eth.sendSignedTransaction(
-    (
-      await web3Api.eth.accounts.signTransaction(
-        {
-          value: `${params.TOKEN_COUNT * 10n ** TOKEN_DECIMAL}`,
-          gasPrice: "0x01",
-          gas: "0x21000",
-          to: `0x${address}`,
-        },
-        params.ACCOUNT_KEY
-      )
-    ).rawTransaction
-  );
+  try {
+    await web3Api.eth.sendSignedTransaction(
+      (
+        await web3Api.eth.accounts.signTransaction(
+          {
+            value: `${params.TOKEN_COUNT * 10n ** TOKEN_DECIMAL}`,
+            gasPrice: "0x01",
+            gas: "0x21000",
+            to: `0x${address}`,
+          },
+          params.ACCOUNT_KEY
+        )
+      ).rawTransaction
+    );
+  } catch (error) {
+    // rollback the update of user's last fund retrieval
+    receivers[authorId] = previousRequestTime;
+
+    throw error;
+  }
+
   const accountBalance = BigInt(await web3Api.eth.getBalance(`0x${address}`));
 
   // Check balance every 10min (minimum interval, dependent on when the function is called)
