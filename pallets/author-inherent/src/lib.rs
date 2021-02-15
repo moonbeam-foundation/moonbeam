@@ -300,7 +300,8 @@ mod tests {
 	}
 	impl Config for Test {
 		type EventHandler = ();
-		type CanAuthor = ();
+		type PreliminaryCanAuthor = ();
+		type FinalCanAuthor = ();
 	}
 	type AuthorInherent = Module<Test>;
 	type Sys = frame_system::Module<Test>;
