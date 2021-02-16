@@ -26,8 +26,25 @@ const SECONDS_PER_YEAR: u32 = 31557600;
 const SECONDS_PER_BLOCK: u32 = 6;
 const BLOCKS_PER_YEAR: u32 = SECONDS_PER_YEAR / SECONDS_PER_BLOCK;
 
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+#[derive(Clone, Copy, Encode, Decode, Default)]
+pub struct RoundDuration {
+	pub old: Option<u32>,
+	pub new: u32,
+}
+
+impl RoundDuration {
+	pub fn set(&mut self, new: u32) {
+		self.old = Some(self.new);
+		self.new = new;
+	}
+	pub fn reset(&mut self) {
+		self.old = None;
+	}
+}
+
 fn rounds_per_year<T: Config>() -> u32 {
-	BLOCKS_PER_YEAR / <Module<T>>::blocks_per_round()
+	BLOCKS_PER_YEAR / <Module<T>>::blocks_per_round().new
 }
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]

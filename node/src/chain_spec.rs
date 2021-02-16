@@ -24,7 +24,7 @@ use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
 use sp_runtime::Perbill;
-use stake::{InflationInfo, Range};
+use stake::{InflationInfo, Range, RoundDuration};
 use std::{collections::BTreeMap, str::FromStr};
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
@@ -164,7 +164,10 @@ fn testnet_genesis(
 		stake: Some(StakeConfig {
 			stakers,
 			inflation_config,
-			blocks_per_round: 20u32,
+			blocks_per_round: RoundDuration {
+				old: None,
+				new: 20u32,
+			},
 		}),
 	}
 }

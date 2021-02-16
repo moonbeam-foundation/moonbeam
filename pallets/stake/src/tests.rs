@@ -910,11 +910,11 @@ fn payouts_follow_nomination_changes() {
 		);
 		assert_ok!(Stake::leave_nominators(Origin::signed(6)));
 		roll_to(21);
-		// keep paying 6 (note: inflation is in terms of total issuance so that's why 1 is 21)
+		// keep paying 6
 		let mut new2 = vec![
 			RawEvent::NominatorLeftValidator(6, 1, 10, 40),
 			RawEvent::NominatorLeft(6, 10),
-			RawEvent::Rewarded(1, 21),
+			RawEvent::Rewarded(1, 20),
 			RawEvent::Rewarded(6, 10),
 			RawEvent::Rewarded(7, 10),
 			RawEvent::Rewarded(10, 10),
@@ -932,10 +932,10 @@ fn payouts_follow_nomination_changes() {
 		roll_to(26);
 		// keep paying 6
 		let mut new3 = vec![
-			RawEvent::Rewarded(1, 22),
-			RawEvent::Rewarded(6, 11),
-			RawEvent::Rewarded(7, 11),
-			RawEvent::Rewarded(10, 11),
+			RawEvent::Rewarded(1, 21),
+			RawEvent::Rewarded(6, 10),
+			RawEvent::Rewarded(7, 10),
+			RawEvent::Rewarded(10, 10),
 			RawEvent::ValidatorChosen(6, 2, 40),
 			RawEvent::ValidatorChosen(6, 1, 40),
 			RawEvent::ValidatorChosen(6, 4, 20),
@@ -949,7 +949,7 @@ fn payouts_follow_nomination_changes() {
 		roll_to(31);
 		// no more paying 6
 		let mut new4 = vec![
-			RawEvent::Rewarded(1, 29),
+			RawEvent::Rewarded(1, 27),
 			RawEvent::Rewarded(7, 14),
 			RawEvent::Rewarded(10, 14),
 			RawEvent::ValidatorChosen(7, 2, 40),
@@ -972,9 +972,9 @@ fn payouts_follow_nomination_changes() {
 		// new nomination is not rewarded yet
 		let mut new5 = vec![
 			RawEvent::ValidatorNominated(8, 10, 1, 50),
-			RawEvent::Rewarded(1, 30),
-			RawEvent::Rewarded(7, 15),
-			RawEvent::Rewarded(10, 15),
+			RawEvent::Rewarded(1, 29),
+			RawEvent::Rewarded(7, 14),
+			RawEvent::Rewarded(10, 14),
 			RawEvent::ValidatorChosen(8, 1, 50),
 			RawEvent::ValidatorChosen(8, 2, 40),
 			RawEvent::ValidatorChosen(8, 4, 20),
@@ -988,9 +988,9 @@ fn payouts_follow_nomination_changes() {
 		roll_to(41);
 		// new nomination is still not rewarded yet
 		let mut new6 = vec![
-			RawEvent::Rewarded(1, 32),
-			RawEvent::Rewarded(7, 16),
-			RawEvent::Rewarded(10, 16),
+			RawEvent::Rewarded(1, 30),
+			RawEvent::Rewarded(7, 15),
+			RawEvent::Rewarded(10, 15),
 			RawEvent::ValidatorChosen(9, 1, 50),
 			RawEvent::ValidatorChosen(9, 2, 40),
 			RawEvent::ValidatorChosen(9, 4, 20),
@@ -1003,7 +1003,7 @@ fn payouts_follow_nomination_changes() {
 		roll_to(46);
 		// new nomination is rewarded for first time, 2 rounds after joining (`BondDuration` = 2)
 		let mut new7 = vec![
-			RawEvent::Rewarded(1, 27),
+			RawEvent::Rewarded(1, 25),
 			RawEvent::Rewarded(7, 13),
 			RawEvent::Rewarded(8, 13),
 			RawEvent::Rewarded(10, 13),

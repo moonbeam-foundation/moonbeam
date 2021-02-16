@@ -49,7 +49,7 @@
 #![allow(clippy::all)]
 
 mod inflation;
-pub use inflation::{InflationInfo, Range};
+pub use inflation::{InflationInfo, Range, RoundDuration};
 #[cfg(test)]
 pub(crate) mod mock;
 mod set;
@@ -527,7 +527,7 @@ decl_error! {
 decl_storage! {
 	trait Store for Module<T: Config> as Stake {
 		/// Number of blocks per round
-		BlocksPerRound get(fn blocks_per_round) config(): u32;
+		BlocksPerRound get(fn blocks_per_round) config(): RoundDuration;
 		/// Current round, incremented every `BlocksPerRound` in `fn on_finalize`
 		Round: RoundIndex;
 		/// Current nominators with their validator
@@ -547,8 +547,8 @@ decl_storage! {
 		AtStake: double_map
 			hasher(blake2_128_concat) RoundIndex,
 			hasher(blake2_128_concat) T::AccountId => ValidatorSnapshot<T::AccountId, BalanceOf<T>>;
-		/// Snapshot of total staked in this round; used to determine round issuance
-		Staked: map
+		/// Round issuance, computed at the start of the round based on total staked
+		Issuance: map
 			hasher(blake2_128_concat) RoundIndex => BalanceOf<T>;
 		/// Inflation parameterization, which contains round issuance and stake expectations
 		InflationConfig get(fn inflation_config) config(): InflationInfo<BalanceOf<T>>;
@@ -588,7 +588,7 @@ decl_storage! {
 			// Start Round 1 at Block 0
 			<Round>::put(1u32);
 			// Snapshot total stake
-			<Staked<T>>::insert(1u32, <Total<T>>::get());
+			<Issuance<T>>::insert(1u32, <Module<T>>::compute_issuance(<Total<T>>::get()));
 			<Module<T>>::deposit_event(
 				RawEvent::NewRound(T::BlockNumber::zero(), 1u32, v_count, total_staked)
 			);
@@ -601,7 +601,7 @@ decl_module! {
 		type Error = Error<T>;
 		fn deposit_event() = default;
 
-		/// A new round chooses a new validator set. Runtime config is 20 so every 2 minutes.
+		/// A new round chooses a new validator set.
 		const MinBlocksPerRound: u32 = T::MinBlocksPerRound::get();
 		/// Number of rounds that validators remain bonded before exit request is executed
 		const BondDuration: RoundIndex = T::BondDuration::get();
@@ -630,7 +630,9 @@ decl_module! {
 				blocks_per_round >= T::MinBlocksPerRound::get(),
 				Error::<T>::BlocksPerRoundBelowMin
 			);
-			<BlocksPerRound>::put(blocks_per_round);
+			let mut current = <BlocksPerRound>::get();
+			current.set(blocks_per_round);
+			<BlocksPerRound>::put(current);
 			Self::deposit_event(RawEvent::BlocksPerRoundSet(blocks_per_round));
 			Ok(())
 		}
@@ -957,7 +959,18 @@ decl_module! {
 			Ok(())
 		}
 		fn on_finalize(n: T::BlockNumber) {
-			if (n % <BlocksPerRound>::get().into()).is_zero() {
+			let mut duration = <BlocksPerRound>::get();
+			let interval = if let Some(old) = duration.old {
+				old
+			} else {
+				duration.new
+			};
+			if (n % interval.into()).is_zero() {
+				// handle round changes
+				if duration.old.is_some() {
+					duration.reset();
+					<BlocksPerRound>::put(duration);
+				}
 				let next = <Round>::get() + 1;
 				// pay all stakers for T::BondDuration rounds ago
 				Self::pay_stakers(next);
@@ -967,8 +980,8 @@ decl_module! {
 				let (validator_count, total_staked) = Self::best_candidates_become_validators(next);
 				// start next round
 				<Round>::put(next);
-				// snapshot total stake
-				<Staked<T>>::insert(next, <Total<T>>::get());
+				// set issuance for the round based on total staked
+				<Issuance<T>>::insert(next, Self::compute_issuance(<Total<T>>::get()));
 				Self::deposit_event(RawEvent::NewRound(n, next, validator_count, total_staked));
 			}
 		}
@@ -1107,8 +1120,7 @@ impl<T: Config> Module<T> {
 		if next > duration {
 			let round_to_payout = next - duration;
 			let total = <Points>::get(round_to_payout);
-			let total_staked = <Staked<T>>::get(round_to_payout);
-			let issuance = Self::compute_issuance(total_staked);
+			let issuance = <Issuance<T>>::get(round_to_payout);
 			for (val, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
 				let pct_due = Perbill::from_rational_approximation(pts, total);
 				let mut amt_due = pct_due * issuance;

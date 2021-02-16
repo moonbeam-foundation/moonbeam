@@ -147,7 +147,7 @@ fn genesis(
 	GenesisConfig::<Test> {
 		stakers,
 		inflation_config,
-		blocks_per_round: 5,
+		blocks_per_round: RoundDuration { old: None, new: 5 },
 	}
 	.assimilate_storage(&mut storage)
 	.unwrap();
