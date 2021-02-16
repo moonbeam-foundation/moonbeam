@@ -106,6 +106,10 @@ pub struct RunCmd {
 	/// Public identity for participating in staking and receiving rewards
 	#[structopt(long, parse(try_from_str = parse_h160))]
 	pub author_id: Option<H160>,
+
+	/// Enable EVM tracing module on a non-authority node.
+	#[structopt(long, conflicts_with = "collator", conflicts_with = "validator")]
+	pub debug: bool,
 }
 
 fn parse_h160(input: &str) -> Result<H160, String> {
@@ -144,10 +148,6 @@ pub struct Cli {
 	/// Relaychain arguments
 	#[structopt(raw = true)]
 	pub relaychain_args: Vec<String>,
-
-	/// Enable EVM tracing module on a non-authority node.
-	#[structopt(long, conflicts_with = "collator", conflicts_with = "validator")]
-	pub debug: bool,
 }
 
 #[derive(Debug)]
