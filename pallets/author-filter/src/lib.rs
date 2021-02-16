@@ -35,6 +35,7 @@ pub use pallet::*;
 #[pallet]
 pub mod pallet {
 
+	use frame_support::debug;
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::Randomness;
 	use frame_support::traits::Vec;
@@ -94,7 +95,8 @@ pub mod pallet {
 					i as u8,
 					relay_height as u8,
 				];
-				let index = T::RandomnessSource::random(&subject).to_low_u64_be() as usize;
+				let randomness = T::RandomnessSource::random(&subject);
+				let index = randomness.to_low_u64_be() as usize;
 
 				// Move the selected author from the original vector into the eligible vector
 				// TODO we could short-circuit this check by returning early when the claimed
@@ -102,6 +104,15 @@ pub mod pallet {
 				// 1. it is easier to understand what our core filtering logic is
 				// 2. we currently show the entire filtered set in the debug event
 				eligible.push(staked.remove(index % staked.len()));
+
+				// Print some logs for debugging purposes.
+				debug::RuntimeLogger::init();
+				debug::info!("Filtering Authors");
+				debug::info!("The randomness was {:?}", randomness);
+				debug::info!("NOT Eligible Authors: {:?}", &staked);
+				debug::info!("Eligible Authors are: {:?}", eligible);
+				debug::info!("The id I'm checking is: {:?}", account);
+				debug::info!("Was that author eligible: {}", eligible.contains(account));
 			}
 
 			// Emit an event for debugging purposes
