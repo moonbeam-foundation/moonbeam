@@ -30,8 +30,48 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 		}
 	}
 	fn trace(&mut self, runtime: &mut Runtime) -> ExitReason {
+		// TODO : If subcalls on a same contract access more storage, does it cache it here too ?
+		// (not done yet)
+		let mut storage_cache: BTreeMap<H256, H256> = BTreeMap::new();
+		let address = runtime.context().address;
+
 		loop {
+			let mut refresh_cache_after_step = false;
 			if let Some((opcode, stack)) = runtime.machine().inspect() {
+				// update storage cache
+				// TODO : Other opcodes modifying storage ?
+				match opcode {
+					// sload
+					Opcode(0x54) => {
+						if let Ok(key) = stack.peek(0) {
+							let value = self.storage(address, key);
+							let _ = storage_cache.insert(key, value);
+						}
+					}
+					// sstore
+					Opcode(0x55) => {
+						if let Ok(key) = stack.peek(0) {
+							if let Ok(value) = stack.peek(1) {
+								let _ = storage_cache.insert(key, value);
+							}
+						}
+					}
+					_ => {}
+				}
+
+				// Any call might modify the storage values outside if this instance of the loop,
+				// rendering the cache obsolete. In this case we'll refresh the cache after the next
+				// step.
+				refresh_cache_after_step = matches!(
+					opcode,
+					Opcode(240) | // create
+					Opcode(241) | // call
+					Opcode(242) | // call code
+					Opcode(244) | // delegate call
+					Opcode(245) | // create 2
+					Opcode(250)
+				);
+
 				let gas = self.inner.state().metadata().gasometer().gas();
 				let gas_cost = match self.inner.state().metadata().gasometer().inner() {
 					Ok(inner) => match gasometer::static_opcode_cost(opcode) {
@@ -88,17 +128,24 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 					op: opcodes(opcode),
 					pc: U256::from(*position),
 					stack: runtime.machine().stack().data().clone(),
-					storage: BTreeMap::new(), // TODO support this
+					storage: storage_cache.clone(),
 				});
 			}
 
 			match runtime.step(self) {
-				Ok(_) => continue,
+				Ok(_) => {}
 				Err(Capture::Exit(s)) => {
 					break s;
 				}
 				Err(Capture::Trap(_)) => {
 					break ExitReason::Fatal(ExitFatal::UnhandledInterrupt);
+				}
+			}
+
+			// Refresh cache if needed.
+			if refresh_cache_after_step {
+				for (key, value) in storage_cache.iter_mut() {
+					*value = self.storage(address, *key);
 				}
 			}
 		}
@@ -317,7 +364,7 @@ impl<'config, S: StackStateT<'config>> HandlerT for TraceExecutorWrapper<'config
 		target_gas: Option<u64>,
 	) -> Capture<(ExitReason, Option<H160>, Vec<u8>), Self::CreateInterrupt> {
 		if self.is_tracing {
-			return self.trace_create(caller, value, init_code, target_gas);
+			self.trace_create(caller, value, init_code, target_gas)
 		} else {
 			unreachable!("TODO StackExecutorWrapper only available on tracing enabled.");
 		}
@@ -338,14 +385,8 @@ impl<'config, S: StackStateT<'config>> HandlerT for TraceExecutorWrapper<'config
 			} else {
 				(code_address, U256::zero())
 			};
-			return self.trace_call(
-				caller,
-				code_address,
-				transfer.clone(),
-				value,
-				input,
-				target_gas,
-			);
+
+			self.trace_call(caller, code_address, transfer, value, input, target_gas)
 		} else {
 			unreachable!("TODO StackExecutorWrapper only available on tracing enabled.");
 		}
