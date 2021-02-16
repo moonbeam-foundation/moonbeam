@@ -35,10 +35,7 @@ pub struct RoundDuration {
 
 impl RoundDuration {
 	pub fn new(new: u32) -> Self {
-		Self {
-			old: None,
-			new,
-		}
+		Self { old: None, new }
 	}
 	pub fn set(&mut self, new: u32) {
 		self.old = Some(self.new);
