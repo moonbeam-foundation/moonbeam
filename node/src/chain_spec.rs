@@ -164,10 +164,7 @@ fn testnet_genesis(
 		stake: Some(StakeConfig {
 			stakers,
 			inflation_config,
-			blocks_per_round: RoundDuration {
-				old: None,
-				new: 20u32,
-			},
+			blocks_per_round: RoundDuration::new(20u32),
 		}),
 	}
 }

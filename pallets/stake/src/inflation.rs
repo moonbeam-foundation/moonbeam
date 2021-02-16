@@ -31,15 +31,24 @@ const BLOCKS_PER_YEAR: u32 = SECONDS_PER_YEAR / SECONDS_PER_BLOCK;
 pub struct RoundDuration {
 	pub old: Option<u32>,
 	pub new: u32,
+	pub changed: bool,
 }
 
 impl RoundDuration {
+	pub fn new(new: u32) -> Self {
+		Self {
+			old: None,
+			new,
+			changed: false,
+		}
+	}
 	pub fn set(&mut self, new: u32) {
 		self.old = Some(self.new);
 		self.new = new;
 	}
 	pub fn reset(&mut self) {
 		self.old = None;
+		self.changed = true;
 	}
 }
 

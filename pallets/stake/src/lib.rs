@@ -966,11 +966,18 @@ decl_module! {
 				duration.new
 			};
 			if (n % interval.into()).is_zero() {
-				// handle round changes
+				// skip 1st round transition after interval change to prevent really short rounds
+				if duration.changed {
+					duration.changed = false;
+					<BlocksPerRound>::put(duration);
+					return;
+				}
+				// if interval just changed, finish old round before setting changed to true
 				if duration.old.is_some() {
 					duration.reset();
 					<BlocksPerRound>::put(duration);
 				}
+				// update round number
 				let next = <Round>::get() + 1;
 				// pay all stakers for T::BondDuration rounds ago
 				Self::pay_stakers(next);
