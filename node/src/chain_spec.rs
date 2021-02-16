@@ -83,7 +83,10 @@ pub fn development_chain_spec() -> ChainSpec {
 /// a custom chain.
 pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 	ChainSpec::from_genesis(
-		"Moonbase Parachain Local Testnet",
+		// TODO Apps depends on this string to determine whether the chain is an ethereum compat
+		// or not. We should decide the proper strings, and update Apps accordingly.
+		// Or maybe Apps can be smart enough to say if the string contains "moonbeam" at all...
+		"Moonbase Development Testnet",
 		"local_testnet",
 		ChainType::Local,
 		move || {
