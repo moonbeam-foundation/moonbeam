@@ -164,6 +164,7 @@ fn testnet_genesis(
 		stake: Some(StakeConfig {
 			stakers,
 			inflation_config,
+			blocks_per_round: 20u32,
 		}),
 	}
 }

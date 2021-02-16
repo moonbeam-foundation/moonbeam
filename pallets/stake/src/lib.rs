@@ -430,8 +430,8 @@ pub trait Config: System {
 	type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 	/// The origin for setting inflation
 	type SetMonetaryPolicyOrigin: EnsureOrigin<Self::Origin>;
-	/// Number of blocks per round
-	type BlocksPerRound: Get<u32>;
+	/// Minimum number of blocks per round
+	type MinBlocksPerRound: Get<u32>;
 	/// Number of rounds that validators remain bonded before exit request is executed
 	type BondDuration: Get<RoundIndex>;
 	/// Maximum validators per round
@@ -493,6 +493,8 @@ decl_event!(
 		RoundInflationSet(Perbill, Perbill, Perbill),
 		/// Staking expectations set
 		StakeExpectationsSet(Balance, Balance, Balance),
+		/// Blocks per round set
+		BlocksPerRoundSet(u32),
 	}
 );
 
@@ -518,11 +520,14 @@ decl_error! {
 		Underflow,
 		CannotSwitchToSameNomination,
 		InvalidSchedule,
+		BlocksPerRoundBelowMin,
 	}
 }
 
 decl_storage! {
 	trait Store for Module<T: Config> as Stake {
+		/// Number of blocks per round
+		BlocksPerRound get(fn blocks_per_round) config(): u32;
 		/// Current round, incremented every `BlocksPerRound` in `fn on_finalize`
 		Round: RoundIndex;
 		/// Current nominators with their validator
@@ -597,7 +602,7 @@ decl_module! {
 		fn deposit_event() = default;
 
 		/// A new round chooses a new validator set. Runtime config is 20 so every 2 minutes.
-		const BlocksPerRound: u32 = T::BlocksPerRound::get();
+		const MinBlocksPerRound: u32 = T::MinBlocksPerRound::get();
 		/// Number of rounds that validators remain bonded before exit request is executed
 		const BondDuration: RoundIndex = T::BondDuration::get();
 		/// Maximum validators per round.
@@ -615,6 +620,20 @@ decl_module! {
 		/// Minimum stake for any registered on-chain account to become a nominator
 		const MinNominatorStk: BalanceOf<T> = T::MinNominatorStk::get();
 
+		#[weight = 0]
+		fn set_blocks_per_round(
+			origin,
+			blocks_per_round: u32,
+		) -> DispatchResult {
+			frame_system::ensure_root(origin)?;
+			ensure!(
+				blocks_per_round >= T::MinBlocksPerRound::get(),
+				Error::<T>::BlocksPerRoundBelowMin
+			);
+			<BlocksPerRound>::put(blocks_per_round);
+			Self::deposit_event(RawEvent::BlocksPerRoundSet(blocks_per_round));
+			Ok(())
+		}
 		/// Set the expectations for total staked. These expectations determine the issuance for
 		/// the round according to logic in `fn compute_issuance`
 		#[weight = 0]
@@ -938,7 +957,7 @@ decl_module! {
 			Ok(())
 		}
 		fn on_finalize(n: T::BlockNumber) {
-			if (n % T::BlocksPerRound::get().into()).is_zero() {
+			if (n % <BlocksPerRound>::get().into()).is_zero() {
 				let next = <Round>::get() + 1;
 				// pay all stakers for T::BondDuration rounds ago
 				Self::pay_stakers(next);

@@ -95,7 +95,7 @@ impl pallet_balances::Config for Test {
 	type WeightInfo = ();
 }
 parameter_types! {
-	pub const BlocksPerRound: u32 = 5;
+	pub const MinBlocksPerRound: u32 = 5;
 	pub const BondDuration: u32 = 2;
 	pub const MaxValidators: u32 = 5;
 	pub const MaxNominatorsPerValidator: u32 = 4;
@@ -109,7 +109,7 @@ impl Config for Test {
 	type Event = MetaEvent;
 	type Currency = Balances;
 	type SetMonetaryPolicyOrigin = frame_system::EnsureRoot<Self::AccountId>;
-	type BlocksPerRound = BlocksPerRound;
+	type MinBlocksPerRound = MinBlocksPerRound;
 	type BondDuration = BondDuration;
 	type MaxValidators = MaxValidators;
 	type MaxNominatorsPerValidator = MaxNominatorsPerValidator;

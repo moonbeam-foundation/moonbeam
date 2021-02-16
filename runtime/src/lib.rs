@@ -379,8 +379,8 @@ impl parachain_info::Config for Runtime {}
 pub const GLMR: Balance = 1_000_000_000_000_000_000;
 
 parameter_types! {
-	/// Moonbeam starts a new round every hour (600 * block_time)
-	pub const BlocksPerRound: u32 = 600;
+	/// The minimum round duration is ~1 minute
+	pub const MinBlocksPerRound: u32 = 10;
 	/// Reward payments and validator exit requests are delayed by 2 hours (2 * 600 * block_time)
 	pub const BondDuration: u32 = 2;
 	/// Maximum 8 valid block authors at any given time
@@ -400,7 +400,7 @@ impl stake::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
 	type SetMonetaryPolicyOrigin = frame_system::EnsureRoot<AccountId>;
-	type BlocksPerRound = BlocksPerRound;
+	type MinBlocksPerRound = MinBlocksPerRound;
 	type BondDuration = BondDuration;
 	type MaxValidators = MaxValidators;
 	type MaxNominatorsPerValidator = MaxNominatorsPerValidator;
