@@ -107,7 +107,6 @@ pub mod pallet {
 				eligible.push(staked.remove(index % staked.len()));
 
 				// Print some logs for debugging purposes.
-
 				debug::trace!(target:"author-filter", "Filtering Authors");
 				debug::trace!(
 					target:"author-filter",
