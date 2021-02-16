@@ -18,11 +18,13 @@ use ethereum_types::H256;
 use jsonrpc_core::Result;
 use jsonrpc_derive::rpc;
 
-pub mod types;
-
 pub use crate::types::{StepLog, TraceExecutorResponse};
 
 pub use rpc_impl_Debug::gen_server::Debug as DebugServer;
+
+pub mod types {
+	pub use moonbeam_rpc_primitives_debug::{StepLog, TraceExecutorResponse};
+}
 
 #[rpc(server)]
 pub trait Debug {
