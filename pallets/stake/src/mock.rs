@@ -95,7 +95,7 @@ impl pallet_balances::Config for Test {
 	type WeightInfo = ();
 }
 parameter_types! {
-	pub const MinBlocksPerRound: u32 = 5;
+	pub const MinBlocksPerRound: u32 = 3;
 	pub const BondDuration: u32 = 2;
 	pub const MaxValidators: u32 = 5;
 	pub const MaxNominatorsPerValidator: u32 = 4;
@@ -147,6 +147,7 @@ fn genesis(
 	GenesisConfig::<Test> {
 		stakers,
 		inflation_config,
+		blocks_per_round: 5,
 	}
 	.assimilate_storage(&mut storage)
 	.unwrap();
