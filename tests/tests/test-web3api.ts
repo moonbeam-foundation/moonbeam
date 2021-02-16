@@ -21,7 +21,7 @@ describeWithMoonbeam("Moonbeam RPC (Web3Api)", `simple-specs.json`, (context) =>
   it("should report peer count in hex", async function () {
     // this tests that the "net_peerCount" response comes back in hex and not decimal.
     // this seems a bit inconsistent amongst Ethereum APIs, but hex seems to be most common.
-    
+
     // related: frontier commits 677548c and 78fb3bc
 
     const result = await customRequest(context.web3, "net_peerCount", []);
