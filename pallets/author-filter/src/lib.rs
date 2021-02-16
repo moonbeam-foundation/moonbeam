@@ -96,7 +96,8 @@ pub mod pallet {
 					relay_height as u8,
 				];
 				let randomness = T::RandomnessSource::random(&subject);
-				let index = randomness.to_low_u64_be() as usize;
+				// Cast to u32 first so we get the same result on wasm and 64-bit platforms.
+				let index = (randomness.to_low_u64_be() as u32) as usize;
 
 				// Move the selected author from the original vector into the eligible vector
 				// TODO we could short-circuit this check by returning early when the claimed
