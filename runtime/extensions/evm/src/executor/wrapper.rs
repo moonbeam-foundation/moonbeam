@@ -36,40 +36,32 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 		let address = runtime.context().address;
 
 		loop {
-			let mut refresh_cache_after_step = false;
+			let mut storage_complete_scan = false;
+			let mut storage_key_scan: Option<H256> = None;
+
 			if let Some((opcode, stack)) = runtime.machine().inspect() {
-				// update storage cache
-				// TODO : Other opcodes modifying storage ?
-				match opcode {
-					// sload
-					Opcode(0x54) => {
-						if let Ok(key) = stack.peek(0) {
-							let value = self.storage(address, key);
-							let _ = storage_cache.insert(key, value);
-						}
+				// Will opcode modify storage
+				if matches!(
+					opcode,
+					Opcode(0x54) | // sload
+					Opcode(0x55) // sstore
+				) {
+					if let Ok(key) = stack.peek(0) {
+						storage_key_scan = Some(key);
 					}
-					// sstore
-					Opcode(0x55) => {
-						if let Ok(key) = stack.peek(0) {
-							if let Ok(value) = stack.peek(1) {
-								let _ = storage_cache.insert(key, value);
-							}
-						}
-					}
-					_ => {}
 				}
 
 				// Any call might modify the storage values outside if this instance of the loop,
 				// rendering the cache obsolete. In this case we'll refresh the cache after the next
 				// step.
-				refresh_cache_after_step = matches!(
+				storage_complete_scan = matches!(
 					opcode,
 					Opcode(240) | // create
 					Opcode(241) | // call
 					Opcode(242) | // call code
 					Opcode(244) | // delegate call
 					Opcode(245) | // create 2
-					Opcode(250)
+					Opcode(250) // static call
 				);
 
 				let gas = self.inner.state().metadata().gasometer().gas();
@@ -142,8 +134,12 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 				}
 			}
 
-			// Refresh cache if needed.
-			if refresh_cache_after_step {
+			// Update cache if needed.
+			if let Some(key) = storage_key_scan {
+				let _ = storage_cache.insert(key, self.storage(address, key));
+			}
+
+			if storage_complete_scan {
 				for (key, value) in storage_cache.iter_mut() {
 					*value = self.storage(address, *key);
 				}
