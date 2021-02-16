@@ -105,16 +105,14 @@ decl_module! {
 			DispatchClass::Mandatory
 		)]
 		fn set_author(origin, author: T::AccountId) {
-			debug::RuntimeLogger::init();
-			debug::info!("In the author inherent dispatchable");
+						debug::trace!(target:"author-inherent", "In the author inherent dispatchable");
 
 			ensure_none(origin)?;
 			ensure!(<Author<T>>::get().is_none(), Error::<T>::AuthorAlreadySet);
 			ensure!(T::FinalCanAuthor::can_author(&author), Error::<T>::CannotBeAuthor);
 
 			// Update storage
-			debug::RuntimeLogger::init();
-			debug::info!("Passed ensures. About to write claimed author to storage.");
+						debug::trace!(target:"author-inherent", "Passed ensures. About to write claimed author to storage.");
 			Author::<T>::put(&author);
 
 			// Add a digest item so Apps can detect the block author
@@ -130,10 +128,9 @@ decl_module! {
 		}
 
 		fn on_finalize(_n: T::BlockNumber) {
-			debug::RuntimeLogger::init();
-			debug::info!("In author inherent's on finalize. About to assert author was set");
+						debug::trace!(target:"author-inherent", "In author inherent's on finalize. About to assert author was set");
 			assert!(Author::<T>::get().is_some(), "No valid author set in block");
-			debug::info!("In author inherent's on finalize. Finished asserting author was set (apparently it was)");
+			debug::trace!(target:"author-inherent", "In author inherent's on finalize. Finished asserting author was set (apparently it was)");
 		}
 	}
 }
@@ -238,8 +235,10 @@ impl<T: Config> ProvideInherent for Module<T> {
 	fn check_inherent(call: &Self::Call, _data: &InherentData) -> Result<(), Self::Error> {
 		// We only care to check the inherent provided by this pallet.
 		if let Self::Call::set_author(claimed_author) = call {
-			debug::RuntimeLogger::init();
-			debug::info!("In the author inherent's `check_inherent` impl");
+			debug::trace!(
+				target:"author-inherent",
+				"In the author inherent's `check_inherent` impl"
+			);
 			ensure!(
 				T::PreliminaryCanAuthor::can_author(&claimed_author),
 				InherentError::Other(sp_runtime::RuntimeString::Borrowed("Cannot Be Author"))

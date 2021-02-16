@@ -107,13 +107,33 @@ pub mod pallet {
 				eligible.push(staked.remove(index % staked.len()));
 
 				// Print some logs for debugging purposes.
-				debug::RuntimeLogger::init();
-				debug::info!("Filtering Authors");
-				debug::info!("The randomness was {:?}", randomness);
-				debug::info!("NOT Eligible Authors: {:?}", &staked);
-				debug::info!("Eligible Authors are: {:?}", eligible);
-				debug::info!("The id I'm checking is: {:?}", account);
-				debug::info!("Was that author eligible: {}", eligible.contains(account));
+
+				debug::trace!(target:"author-filter", "Filtering Authors");
+				debug::trace!(
+					target:"author-filter",
+					"The randomness was {:?}",
+					randomness
+				);
+				debug::trace!(
+					target:"author-filter",
+					"NOT Eligible Authors: {:?}",
+					&staked
+				);
+				debug::trace!(
+					target:"author-filter",
+					"Eligible Authors are: {:?}",
+					eligible
+				);
+				debug::trace!(
+					target:"author-filter",
+					"The id I'm checking is: {:?}",
+					account
+				);
+				debug::trace!(
+					target:"author-filter",
+					"Was that author eligible: {}",
+					eligible.contains(account)
+				);
 			}
 
 			// Emit an event for debugging purposes
