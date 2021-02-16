@@ -966,16 +966,11 @@ decl_module! {
 				duration.new
 			};
 			if (n % interval.into()).is_zero() {
-				// skip 1st round transition after interval change to prevent really short rounds
-				if duration.changed {
-					duration.changed = false;
-					<BlocksPerRound>::put(duration);
-					return;
-				}
-				// if interval just changed, finish old round before setting changed to true
+				// if interval just changed, skip round transition until now % new duration == 0
 				if duration.old.is_some() {
 					duration.reset();
 					<BlocksPerRound>::put(duration);
+					return;
 				}
 				// update round number
 				let next = <Round>::get() + 1;
