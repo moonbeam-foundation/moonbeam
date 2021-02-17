@@ -3,7 +3,9 @@
   "id": "moonbase_alpha",
   "chainType": "Local",
   "bootNodes": [],
-  "telemetryEndpoints": null,
+  "telemetryEndpoints": [
+    ["/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F", 0]
+  ],
   "protocolId": null,
   "properties": {
     "tokenDecimals": 18

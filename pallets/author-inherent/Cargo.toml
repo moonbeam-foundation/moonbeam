@@ -1,6 +1,6 @@
 [package]
 name = "author-inherent"
-version = "0.1.0"
+version = "0.6.0"
 description = "Inject the block author via an inherent, and persist it via a Consensus digest"
 authors = ["PureStake"]
 edition = "2018"

@@ -375,7 +375,7 @@ dependencies = [
 
 [[package]]
 name = "author-inherent"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -3987,7 +3987,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "ansi_term 0.12.1",
  "assert_cmd",
@@ -4071,7 +4071,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-rpc-core-txpool"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4085,7 +4085,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-rpc-primitives-txpool"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "ethereum",
  "sp-api",
@@ -4096,7 +4096,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-rpc-txpool"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4116,7 +4116,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-runtime"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "account",
  "author-inherent",
@@ -4538,7 +4538,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-author-filter"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "author-inherent",
  "cumulus-parachain-system",
@@ -4707,7 +4707,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-ethereum-chain-id"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5165,7 +5165,7 @@ dependencies = [
 
 [[package]]
 name = "parachain-info"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "cumulus-primitives",
  "frame-support",
@@ -6544,7 +6544,7 @@ checksum = "ac74c624d6b2d21f425f752262f42188365d7b8ff1aff74c82e45136510a4857"
 
 [[package]]
 name = "precompiles"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "log",
  "pallet-evm",
