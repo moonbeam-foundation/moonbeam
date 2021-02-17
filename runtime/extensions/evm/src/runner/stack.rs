@@ -21,7 +21,7 @@ use evm::{
 	Capture, Config as EvmConfig, Transfer,
 };
 // use fp_evm::Vicinity;
-use moonbeam_rpc_primitives_debug::TraceExecutorResponse;
+use moonbeam_rpc_primitives_debug::{TraceExecutorResponse, TraceType};
 use pallet_evm::{
 	runner::stack::{Runner, SubstrateStackState},
 	Config, ExitError, ExitReason, PrecompileSet, Vicinity,
@@ -31,6 +31,7 @@ use sp_std::{convert::Infallible, vec::Vec};
 pub trait TraceRunner<T: Config> {
 	fn execute_call<'config, F>(
 		executor: &'config mut StackExecutor<'config, SubstrateStackState<'_, 'config, T>>,
+		trace_type: TraceType,
 		f: F,
 	) -> Result<TraceExecutorResponse, ExitError>
 	where
@@ -40,6 +41,7 @@ pub trait TraceRunner<T: Config> {
 
 	fn execute_create<'config, F>(
 		executor: &'config mut StackExecutor<'config, SubstrateStackState<'_, 'config, T>>,
+		trace_type: TraceType,
 		f: F,
 	) -> Result<TraceExecutorResponse, ExitError>
 	where
@@ -54,6 +56,7 @@ pub trait TraceRunner<T: Config> {
 		value: U256,
 		gas_limit: u64,
 		config: &EvmConfig,
+		trace_type: TraceType,
 	) -> Result<TraceExecutorResponse, ExitError>;
 
 	fn trace_create(
@@ -62,12 +65,14 @@ pub trait TraceRunner<T: Config> {
 		value: U256,
 		gas_limit: u64,
 		config: &EvmConfig,
+		trace_type: TraceType,
 	) -> Result<TraceExecutorResponse, ExitError>;
 }
 
 impl<T: Config> TraceRunner<T> for Runner<T> {
 	fn execute_call<'config, F>(
 		executor: &'config mut StackExecutor<'config, SubstrateStackState<'_, 'config, T>>,
+		trace_type: TraceType,
 		f: F,
 	) -> Result<TraceExecutorResponse, ExitError>
 	where
@@ -75,14 +80,14 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 			&mut TraceExecutorWrapper<'config, SubstrateStackState<'_, 'config, T>>,
 		) -> Capture<(ExitReason, Vec<u8>), Infallible>,
 	{
-		let mut wrapper = TraceExecutorWrapper::new(executor, true);
+		let mut wrapper = TraceExecutorWrapper::new(executor, true, trace_type);
 
 		let execution_result = match f(&mut wrapper) {
 			Capture::Exit((_reason, result)) => result,
 			_ => unreachable!("Never reached?"),
 		};
 
-		Ok(TraceExecutorResponse {
+		Ok(TraceExecutorResponse::Raw {
 			gas: U256::from(wrapper.inner.state().metadata().gasometer().gas()),
 			return_value: execution_result,
 			step_logs: wrapper.step_logs,
@@ -91,6 +96,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 
 	fn execute_create<'config, F>(
 		executor: &'config mut StackExecutor<'config, SubstrateStackState<'_, 'config, T>>,
+		trace_type: TraceType,
 		f: F,
 	) -> Result<TraceExecutorResponse, ExitError>
 	where
@@ -98,14 +104,14 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 			&mut TraceExecutorWrapper<'config, SubstrateStackState<'_, 'config, T>>,
 		) -> Capture<(ExitReason, Option<H160>, Vec<u8>), Infallible>,
 	{
-		let mut wrapper = TraceExecutorWrapper::new(executor, true);
+		let mut wrapper = TraceExecutorWrapper::new(executor, true, trace_type);
 
 		let execution_result = match f(&mut wrapper) {
 			Capture::Exit((_reason, _address, result)) => result,
 			_ => unreachable!("Never reached?"),
 		};
 
-		Ok(TraceExecutorResponse {
+		Ok(TraceExecutorResponse::Raw {
 			gas: U256::from(wrapper.inner.state().metadata().gasometer().gas()),
 			return_value: execution_result,
 			step_logs: wrapper.step_logs,
@@ -119,6 +125,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		value: U256,
 		gas_limit: u64,
 		config: &EvmConfig,
+		trace_type: TraceType,
 	) -> Result<TraceExecutorResponse, ExitError> {
 		let vicinity = Vicinity {
 			gas_price: U256::zero(),
@@ -128,7 +135,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		let state = SubstrateStackState::new(&vicinity, metadata);
 		let mut executor =
 			StackExecutor::new_with_precompile(state, config, T::Precompiles::execute);
-		Self::execute_call(&mut executor, |executor| {
+		Self::execute_call(&mut executor, trace_type, |executor| {
 			executor.trace_call(
 				source,
 				target,
@@ -150,6 +157,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		value: U256,
 		gas_limit: u64,
 		config: &EvmConfig,
+		trace_type: TraceType,
 	) -> Result<TraceExecutorResponse, ExitError> {
 		let vicinity = Vicinity {
 			gas_price: U256::zero(),
@@ -160,7 +168,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		let state = SubstrateStackState::new(&vicinity, metadata);
 		let mut executor =
 			StackExecutor::new_with_precompile(state, config, T::Precompiles::execute);
-		Self::execute_create(&mut executor, |executor| {
+		Self::execute_create(&mut executor, trace_type, |executor| {
 			executor.trace_create(source, value, init, Some(gas_limit as u64))
 		})
 	}

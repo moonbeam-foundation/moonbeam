@@ -8,28 +8,64 @@ pub use evm::{
 	Capture, Config, Context, CreateScheme, ExitError, ExitFatal, ExitReason, ExitSucceed,
 	Handler as HandlerT, Opcode, Runtime, Stack, Transfer,
 };
-use moonbeam_rpc_primitives_debug::StepLog;
+use moonbeam_rpc_primitives_debug::{
+	blockscout::{CallType, Entry as BlockscoutEntry},
+	StepLog, TraceType,
+};
 use sp_std::{
 	cmp::min, collections::btree_map::BTreeMap, convert::Infallible, rc::Rc, vec, vec::Vec,
 };
+
 pub struct TraceExecutorWrapper<'config, S> {
+	// Common parts.
 	pub inner: &'config mut StackExecutor<'config, S>,
 	is_tracing: bool,
+	trace_type: TraceType,
+
+	// Raw state.
 	pub step_logs: Vec<StepLog>,
+
+	// Blockscout state.
+	pub entries: BTreeMap<usize, BlockscoutEntry>,
+	entries_next_index: usize,
+	call_type: Option<CallType>,
+}
+
+enum ContextType {
+	Call,
+	Create,
 }
 
 impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 	pub fn new(
 		inner: &'config mut StackExecutor<'config, S>,
 		is_tracing: bool,
+		trace_type: TraceType,
 	) -> TraceExecutorWrapper<'config, S> {
 		TraceExecutorWrapper {
 			inner,
 			is_tracing,
-			step_logs: Vec::new(),
+			trace_type,
+			step_logs: vec![],
+			entries: BTreeMap::new(),
+			entries_next_index: 0,
+			call_type: None,
 		}
 	}
-	fn trace(&mut self, runtime: &mut Runtime) -> ExitReason {
+
+	fn trace(
+		&mut self,
+		runtime: &mut Runtime,
+		context_type: ContextType,
+		code: Vec<u8>,
+	) -> ExitReason {
+		match self.trace_type {
+			TraceType::Raw => self.trace_raw(runtime),
+			TraceType::Blockscout => self.trace_blockscout(runtime, context_type, code),
+		}
+	}
+
+	fn trace_raw(&mut self, runtime: &mut Runtime) -> ExitReason {
 		// TODO : If subcalls on a same contract access more storage, does it cache it here too ?
 		// (not done yet)
 		let mut storage_cache: BTreeMap<H256, H256> = BTreeMap::new();
@@ -38,6 +74,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 		loop {
 			let mut storage_complete_scan = false;
 			let mut storage_key_scan: Option<H256> = None;
+			let mut steplog = None;
 
 			if let Some((opcode, stack)) = runtime.machine().inspect() {
 				// Will opcode modify storage
@@ -92,7 +129,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 					Err(reason) => break reason.clone(),
 				};
 
-				self.step_logs.push(StepLog {
+				steplog = Some(StepLog {
 					depth: U256::from(self.inner.state().metadata().depth().unwrap_or_default()),
 					gas: U256::from(self.inner.gas()),
 					gas_cost: U256::from(gas_cost),
@@ -120,7 +157,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 					op: opcodes(opcode),
 					pc: U256::from(*position),
 					stack: runtime.machine().stack().data().clone(),
-					storage: storage_cache.clone(),
+					storage: BTreeMap::new(),
 				});
 			}
 
@@ -144,7 +181,75 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 					*value = self.storage(address, *key);
 				}
 			}
+
+			// Push log into vec here instead here (for SLOAD/STORE "early" update).
+			if let Some(mut steplog) = steplog {
+				steplog.storage = storage_cache.clone();
+				self.step_logs.push(steplog);
+			}
 		}
+	}
+
+	fn trace_blockscout(
+		&mut self,
+		runtime: &mut Runtime,
+		context_type: ContextType,
+		code: Vec<u8>,
+	) -> ExitReason {
+		// let mut entries: Vec<BlockscoutEntry> = vec![];
+
+		let entries_index = self.entries_next_index;
+		self.entries_next_index += 1;
+
+		let from = runtime.context().caller;
+		let to = runtime.context().address;
+		let call_type = self.call_type;
+		let gas_at_start = self.inner.gas();
+
+		let exit_reason = loop {
+			if let Some((opcode, stack)) = runtime.machine().inspect() {
+				// 1. Check an error
+				// 2. Check opcode CREATE, SELFDESTRUCT, CALLs, REVERT
+				// 3. decrease in depth
+
+				self.call_type = match opcode {
+					Opcode(241) => Some(CallType::Call),
+					Opcode(242) => Some(CallType::CallCode),
+					Opcode(244) => Some(CallType::DelegateCall),
+					Opcode(250) => Some(CallType::StaticCall),
+					_ => None,
+				}
+			}
+
+			match runtime.step(self) {
+				Ok(_) => {}
+				Err(Capture::Exit(s)) => {
+					break s;
+				}
+				Err(Capture::Trap(_)) => {
+					break ExitReason::Fatal(ExitFatal::UnhandledInterrupt);
+				}
+			}
+		};
+
+		let gas_at_end = self.inner.gas();
+		let gas_used = gas_at_start - gas_at_end;
+
+		// insert into map with `entries_index`
+		match context_type {
+			ContextType::Call => {
+				// register a call
+			}
+			ContextType::Create => {
+				// register a create
+
+				// code => init field
+
+				// How to handle reverting create ?
+			}
+		}
+
+		exit_reason
 	}
 
 	pub fn trace_call(
@@ -196,9 +301,14 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 			}
 		}
 
-		let mut runtime = Runtime::new(Rc::new(code), Rc::new(data), context, self.inner.config());
+		let mut runtime = Runtime::new(
+			Rc::new(code),
+			Rc::new(data.clone()),
+			context,
+			self.inner.config(),
+		);
 
-		match self.trace(&mut runtime) {
+		match self.trace(&mut runtime, ContextType::Call, data) {
 			ExitReason::Succeed(s) => {
 				Capture::Exit((ExitReason::Succeed(s), runtime.machine().return_value()))
 			}
@@ -246,13 +356,13 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 			apparent_value: value,
 		};
 		let mut runtime = Runtime::new(
-			Rc::new(code),
+			Rc::new(code.clone()),
 			Rc::new(Vec::new()),
 			context,
 			self.inner.config(),
 		);
 
-		match self.trace(&mut runtime) {
+		match self.trace(&mut runtime, ContextType::Create, code) {
 			ExitReason::Succeed(s) => Capture::Exit((
 				ExitReason::Succeed(s),
 				Some(address),

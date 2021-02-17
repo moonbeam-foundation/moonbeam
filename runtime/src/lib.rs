@@ -567,7 +567,8 @@ impl_runtime_apis! {
 	impl moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block> for Runtime {
 		fn trace_transaction(
 			extrinsics: Vec<<Block as BlockT>::Extrinsic>,
-			transaction: &EthereumTransaction
+			transaction: &EthereumTransaction,
+			trace_type: moonbeam_rpc_primitives_debug::TraceType,
 		) -> Result<
 			moonbeam_rpc_primitives_debug::TraceExecutorResponse,
 			sp_runtime::DispatchError
@@ -618,6 +619,7 @@ impl_runtime_apis! {
 						transaction.value,
 						transaction.gas_limit.low_u64(),
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
+						trace_type,
 					) {
 						return Ok(res);
 					} else {
@@ -631,6 +633,7 @@ impl_runtime_apis! {
 						transaction.value,
 						transaction.gas_limit.low_u64(),
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
+						trace_type,
 					) {
 						return Ok(res);
 					} else {

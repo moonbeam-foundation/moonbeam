@@ -20,7 +20,7 @@ use ethereum_types::H256;
 use fp_rpc::EthereumRuntimeRPCApi;
 use jsonrpc_core::Result as RpcResult;
 use jsonrpc_core::{Error as RpcError, ErrorCode};
-use moonbeam_rpc_primitives_debug::DebugRuntimeApi;
+use moonbeam_rpc_primitives_debug::{DebugRuntimeApi, TraceType};
 use sc_client_api::backend::{AuxStore, Backend, StateBackend};
 use sp_api::{BlockId, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
@@ -142,7 +142,7 @@ where
 			.map_err(|err| internal_err(format!("{:?}", err)))?
 		{
 			Some((hash, index)) => (hash, index as usize),
-			None => return Err(internal_err(format!("Transaction hash not found"))),
+			None => return Err(internal_err("Transaction hash not found".to_string())),
 		};
 
 		let reference_id = match self
@@ -150,7 +150,7 @@ where
 			.map_err(|err| internal_err(format!("{:?}", err)))?
 		{
 			Some(hash) => hash,
-			_ => return Err(internal_err(format!("Block hash not found"))),
+			_ => return Err(internal_err("Block hash not found".to_string())),
 		};
 
 		// Get ApiRef
@@ -175,31 +175,14 @@ where
 			let transactions = block.transactions;
 			if let Some(transaction) = transactions.get(index) {
 				let res = api
-					.trace_transaction(&parent_block_id, ext, transaction)
+					.trace_transaction(&parent_block_id, ext, transaction, TraceType::Raw)
 					.map_err(|err| internal_err(format!("Runtime trace call failed: {:?}", err)))?
 					.unwrap();
 
-				return Ok(TraceExecutorResponse {
-					gas: res.gas,
-					return_value: res.return_value,
-					step_logs: res
-						.step_logs
-						.iter()
-						.map(|s| StepLog {
-							depth: s.depth,
-							gas: s.gas,
-							gas_cost: s.gas_cost,
-							memory: s.memory.clone(),
-							op: s.op.clone(),
-							pc: s.pc,
-							stack: s.stack.clone(),
-							storage: s.storage.clone(),
-						})
-						.collect(),
-				});
+				return Ok(res);
 			}
 		}
 
-		return Err(internal_err(format!("Runtime block call failed")));
+		Err(internal_err("Runtime block call failed".to_string()))
 	}
 }

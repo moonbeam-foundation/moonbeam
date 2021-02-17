@@ -18,22 +18,31 @@
 
 use codec::{Decode, Encode};
 use ethereum::Transaction;
-use ethereum_types::{H256, U256};
+use ethereum_types::{H160, H256, U256};
 use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
 #[cfg(feature = "std")]
 use serde::{ser::SerializeSeq, Serialize, Serializer};
 
-#[derive(Eq, PartialEq, Debug, Encode, Decode)]
+#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(Serialize))]
 #[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
-pub struct TraceExecutorResponse {
-	pub gas: U256,
-	pub return_value: Vec<u8>,
-	pub step_logs: Vec<StepLog>,
+// pub struct TraceExecutorResponse {
+// 	pub gas: U256,
+// 	pub return_value: Vec<u8>,
+// 	pub step_logs: Vec<StepLog>,
+pub enum TraceExecutorResponse {
+	Raw {
+		gas: U256,
+		return_value: Vec<u8>,
+		step_logs: Vec<StepLog>,
+	},
+	Blockscout {
+		entries: Vec<blockscout::Entry>,
+	},
 }
 
-#[derive(Eq, PartialEq, Debug, Encode, Decode)]
+#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(Serialize))]
 #[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 pub struct StepLog {
@@ -41,7 +50,6 @@ pub struct StepLog {
 	pub depth: U256,
 
 	//error: TODO
-
 	#[cfg_attr(feature = "std", serde(serialize_with = "u256_serialize"))]
 	pub gas: U256,
 
@@ -59,8 +67,78 @@ pub struct StepLog {
 
 	#[cfg_attr(feature = "std", serde(serialize_with = "seq_h256_serialize"))]
 	pub stack: Vec<H256>,
-	
+
 	pub storage: BTreeMap<H256, H256>,
+}
+
+pub mod blockscout {
+	use super::*;
+
+	#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
+	#[cfg_attr(feature = "std", derive(Serialize))]
+	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
+	pub enum Res {
+		Output(Vec<u8>),
+		Error(Vec<u8>),
+	}
+
+	#[derive(Clone, Copy, Eq, PartialEq, Debug, Encode, Decode)]
+	#[cfg_attr(feature = "std", derive(Serialize))]
+	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
+	pub enum CallType {
+		Call,
+		CallCode,
+		DelegateCall,
+		StaticCall,
+	}
+
+	#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
+	#[cfg_attr(feature = "std", derive(Serialize))]
+	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
+	pub enum Entry {
+		Call {
+			/// Type of call.
+			call_type: CallType,
+			from: H160,
+			to: H160,
+			input: Vec<u8>,
+			/// "output" or "error" field
+			// TODO : serde flatten
+			res: Res,
+			/// Indices of parent calls.
+			trace_address: Vec<u32>,
+			/// Sends funds to the (payable) function
+			value: U256,
+			/// Remaining gas in the runtime.
+			gas: U256,
+			/// Gas used by this context.
+			gas_used: U256,
+		},
+		Create {
+			from: H160,
+			init: Vec<u8>,
+			created_contract_address_hash: H160,
+			created_contract_code: Vec<u8>,
+			/// Indices of parent calls.
+			trace_address: Vec<u32>,
+			/// Sends funds to the (payable) function
+			value: U256,
+			/// Remaining gas in the runtime.
+			gas: U256,
+			/// Gas used by this context.
+			gas_used: U256,
+		},
+		// Revert,
+		SelfDestruct,
+	}
+}
+
+#[derive(Clone, Copy, Eq, PartialEq, Debug, Encode, Decode)]
+pub enum TraceType {
+	/// Classic geth with no javascript based tracing.
+	Raw,
+	/// Output Blockscout expects.
+	Blockscout,
 }
 
 #[cfg(feature = "std")]
@@ -98,12 +176,12 @@ where
 	serializer.serialize_u64(data.low_u64())
 }
 
-
 sp_api::decl_runtime_apis! {
 	pub trait DebugRuntimeApi {
 		fn trace_transaction(
 			extrinsics: Vec<Block::Extrinsic>,
-			transaction: &Transaction
+			transaction: &Transaction,
+			trace_type: TraceType,
 		) -> Result<TraceExecutorResponse, sp_runtime::DispatchError>;
 	}
 }
