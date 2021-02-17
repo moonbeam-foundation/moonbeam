@@ -94,9 +94,8 @@ export const moonbeamDefinitions = {
           amount: "Balance",
         },
         ValidatorStatus: {
-          _enum: { Active: "Active", Idle: "Idle", Leaving: "RoundIndex" },
+          _enum: ["Active", "Idle", { Leaving: "RoundIndex" }],
         },
-        //TODO: ValidatorStatus: Same as below
         TxPoolResultContent: {
           pending: "HashMap<H160, HashMap<U256, PoolTransaction>>",
           queued: "HashMap<H160, HashMap<U256, PoolTransaction>>",
@@ -154,7 +153,7 @@ export const moonbeamDefinitions = {
           amount: "Balance",
         },
         ValidatorStatus: {
-          _enum: { Active: "Active", Idle: "Idle", Leaving: "RoundIndex" },
+          _enum: ["Active", "Idle", { Leaving: "RoundIndex" }],
         },
         TxPoolResultContent: {
           pending: "HashMap<H160, HashMap<U256, PoolTransaction>>",
@@ -205,6 +204,12 @@ export const moonbeamDefinitions = {
           nominators: "Vec<Bond>",
           total: "Balance",
           state: "ValidatorStatus",
+        },
+        ValidatorSnapshot: {
+          fee: "Perbill",
+          bond: "Balance",
+          nominators: "Vec<Bond>",
+          total: "Balance",
         },
       },
     },
