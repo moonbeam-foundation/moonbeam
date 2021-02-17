@@ -94,7 +94,7 @@ export const moonbeamDefinitions = {
           amount: "Balance",
         },
         ValidatorStatus: {
-          _enum: ["Active", "Idle", "Leaving(RoundIndex)"],
+          _enum: { Active: "Active", Idle: "Idle", Leaving: "RoundIndex" },
         },
         //TODO: ValidatorStatus: Same as below
         TxPoolResultContent: {
@@ -153,9 +153,6 @@ export const moonbeamDefinitions = {
           owner: "AccountId",
           amount: "Balance",
         },
-        // ValidatorStatus: {
-        //   _enum: ["Active", "Idle", "Leaving(RoundIndex)"],
-        // },
         ValidatorStatus: {
           _enum: { Active: "Active", Idle: "Idle", Leaving: "RoundIndex" },
         },
@@ -213,31 +210,6 @@ export const moonbeamDefinitions = {
     },
   ],
 } as OverrideBundleDefinition;
-
-// pub struct InflationInfo<Balance> {
-// 	/// Staking expectations
-// 	pub expect: Range<Balance>,
-// 	/// Round inflation range
-// 	pub round: Range<Perbill>,
-// }
-// pub struct Range<T> {
-// 	pub min: T,
-// 	pub ideal: T,
-// 	pub max: T,
-// }
-// pub struct Nominator<AccountId, Balance> {
-// 	pub nominations: OrderedSet<Bond<AccountId, Balance>>,
-// 	pub total: Balance,
-// }
-// #[derive(Encode, Decode, RuntimeDebug)]
-// pub struct Validator<AccountId, Balance> {
-// 	pub id: AccountId,
-// 	pub fee: Perbill,
-// 	pub bond: Balance,
-// 	pub nominators: OrderedSet<Bond<AccountId, Balance>>,
-// 	pub total: Balance,
-// 	pub state: ValidatorStatus,
-// }
 
 export const typesBundle = {
   spec: {
