@@ -7,10 +7,7 @@
     "/dns4/bootnode2.testnet.moonbeam.network/tcp/30334/p2p/12D3KooWPS1EzUXqLx4EdkqPJZ8jciCWmciSTou8DrPGAnPps1Lm"
   ],
   "telemetryEndpoints": [
-    [
-      "/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F",
-      0
-    ]
+    ["/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F", 0]
   ],
   "protocolId": null,
   "properties": {
