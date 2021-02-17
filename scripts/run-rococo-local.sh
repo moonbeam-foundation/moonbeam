@@ -12,7 +12,7 @@
 # 53 for http
 # 54 for ws
 #
-# Ex: USER_PORT=20000 scripts/run-alphanet-relay.sh
+# Ex: USER_PORT=20000 scripts/run-rococo-local.sh
 # will open port 20042, 20043, 20044
 
 # Loading binary/specs variables
@@ -26,7 +26,7 @@ while nc -z -v -w5 ${RELAY_IP} ${RELAY_PORT} 2> /dev/null
 do
     echo "Found existing relay on ${RELAY_PORT}."
     BOOTNODES_ARGS="$BOOTNODES_ARGS --bootnodes \
-      /ip4/$RELAY_IP/tcp/${RELAY_PORT}/p2p/${RELAY_LOCAL_IDS[$RELAY_INDEX]}"
+      /ip4/$RELAY_IP/tcp/${RELAY_PORT}/p2p/${COMMON_LOCAL_IDS[$RELAY_INDEX]}"
     RELAY_INDEX=$((RELAY_INDEX + 1))
     RELAY_PORT=$((RELAY_PORT + 100))
 
@@ -57,7 +57,7 @@ docker run \
     /usr/local/bin/polkadot \
       --chain rococo-local \
       --${WELL_KNOWN_USERS[$RELAY_INDEX]} \
-      --node-key ${NODE_KEYS[$RELAY_INDEX]} \
+      --node-key ${COMMON_NODE_KEYS[$RELAY_INDEX]} \
       --base-path /tmp \
       --validator \
       --force-authoring \
@@ -70,4 +70,4 @@ docker run \
       --rpc-port $((RELAY_PORT + 1)) \
       --ws-port $((RELAY_PORT + 2)) \
       $BOOTNODES_ARGS \
-      '-linfo,evm=debug,ethereum=trace,rpc=trace,txpool=debug,polkadot_parachain=debug'
+      '-linfo,evm=debug,ethereum=trace,rpc=trace,txpool=debug,validation-worker=debug'

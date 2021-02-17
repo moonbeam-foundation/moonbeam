@@ -6,73 +6,74 @@ $MOONBEAM_BINARY build-spec \
   --disable-default-bootnode \
   --chain 'local' \
   | grep '\"code\"' \
-  | head -n1 > $ALPHANET_SPEC_TMP
-echo $ALPHANET_SPEC_TMP generated	
+  | head -n1 > $ALPHANET_PARACHAIN_SPEC_TMP
+echo $ALPHANET_PARACHAIN_SPEC_TMP generated	
 
-echo "Using $ALPHANET_SPEC_TEMPLATE..."	
-sed -e "/\"<runtime_code>\"/{r $ALPHANET_SPEC_TMP" -e 'd;}'  $ALPHANET_SPEC_TEMPLATE \
-  > $ALPHANET_SPEC_PLAIN	
-echo $ALPHANET_SPEC_PLAIN generated
+echo "Using $ALPHANET_PARACHAIN_SPEC_TEMPLATE..."	
+sed -e "/\"<runtime_code>\"/{r $ALPHANET_PARACHAIN_SPEC_TMP" -e 'd;}'  $ALPHANET_PARACHAIN_SPEC_TEMPLATE \
+  > $ALPHANET_PARACHAIN_SPEC_PLAIN	
+echo $ALPHANET_PARACHAIN_SPEC_PLAIN generated
 
 $MOONBEAM_BINARY build-spec \
   --disable-default-bootnode \
   --raw \
-  --chain $ALPHANET_SPEC_PLAIN \
-  > $ALPHANET_SPEC_RAW
-echo $ALPHANET_SPEC_RAW generated
+  --chain $ALPHANET_PARACHAIN_SPEC_PLAIN \
+  > $ALPHANET_PARACHAIN_SPEC_RAW
+echo $ALPHANET_PARACHAIN_SPEC_RAW generated
 
 $MOONBEAM_BINARY export-genesis-wasm \
-  --chain $ALPHANET_SPEC_RAW \
-  > $PARACHAIN_WASM;
-echo $PARACHAIN_WASM generated
+  --chain $ALPHANET_PARACHAIN_SPEC_RAW \
+  > $ALPHANET_WASM;
+echo $ALPHANET_WASM generated
 
 $MOONBEAM_BINARY export-genesis-state \
   --parachain-id $PARACHAIN_ID \
-  --chain $ALPHANET_SPEC_RAW \
-  > $PARACHAIN_GENESIS;
-echo $PARACHAIN_GENESIS generated
+  --chain $ALPHANET_PARACHAIN_SPEC_RAW \
+  > $ALPHANET_GENESIS;
+echo $ALPHANET_GENESIS generated
 
-cp specs/MoonbaseAlphaV5.json $PARACHAIN_BUILD_FOLDER/alphanet-raw-specs.json
-cp specs/MoonbaseAlphaV5-Relay.json $PARACHAIN_BUILD_FOLDER/alphanet-relay-raw-specs.json
-grep -v '/p2p/' specs/MoonbaseAlphaV5.json > \
-  $PARACHAIN_BUILD_FOLDER/alphanet-raw-specs-no-bootnodes.json
-grep -v '/p2p/' specs/MoonbaseAlphaV5-Relay.json > \
-  $PARACHAIN_BUILD_FOLDER/alphanet-relay-raw-specs-no-bootnodes.json
+cp $ALPHANET_PARACHAIN_EMBEDDED_SPEC $ALPHANET_BUILD_FOLDER/parachain-embedded-specs.json
+cp $ALPHANET_ROCOCO_EMBEDDED_SPEC $ALPHANET_BUILD_FOLDER/rococo-embedded-specs.json
+grep -v '/p2p/' $ALPHANET_PARACHAIN_EMBEDDED_SPEC > \
+  $ALPHANET_BUILD_FOLDER/parachain-embedded-no-bootnodes-specs.json
+grep -v '/p2p/' $ALPHANET_ROCOCO_EMBEDDED_SPEC > \
+  $ALPHANET_BUILD_FOLDER/rococo-embedded-no-bootnodes-specs.json
 
-echo "\n=================== Stagenet ==================="
+
+echo "=================== Stagenet ==================="
 $MOONBEAM_BINARY build-spec \
   --disable-default-bootnode \
   --chain 'local' \
   | grep '\"code\"' \
-  | head -n1 > $STAGENET_SPEC_TMP
-echo $STAGENET_SPEC_TMP generated	
+  | head -n1 > $STAGENET_PARACHAIN_SPEC_TMP
+echo $STAGENET_PARACHAIN_SPEC_TMP generated	
 
-echo "Using $STAGENET_SPEC_TEMPLATE..."	
-sed -e "/\"<runtime_code>\"/{r $STAGENET_SPEC_TMP" -e 'd;}'  $STAGENET_SPEC_TEMPLATE \
-  > $STAGENET_SPEC_PLAIN	
-echo $STAGENET_SPEC_PLAIN generated
+echo "Using $STAGENET_PARACHAIN_SPEC_TEMPLATE..."	
+sed -e "/\"<runtime_code>\"/{r $STAGENET_PARACHAIN_SPEC_TMP" -e 'd;}'  $STAGENET_PARACHAIN_SPEC_TEMPLATE \
+  > $STAGENET_PARACHAIN_SPEC_PLAIN	
+echo $STAGENET_PARACHAIN_SPEC_PLAIN generated
 
 $MOONBEAM_BINARY build-spec \
   --disable-default-bootnode \
   --raw \
-  --chain $STAGENET_SPEC_PLAIN \
-  > $STAGENET_SPEC_RAW
-echo $STAGENET_SPEC_RAW generated
+  --chain $STAGENET_PARACHAIN_SPEC_PLAIN \
+  > $STAGENET_PARACHAIN_SPEC_RAW
+echo $STAGENET_PARACHAIN_SPEC_RAW generated
 
 $MOONBEAM_BINARY export-genesis-wasm \
-  --chain $STAGENET_SPEC_RAW \
-  > $PARACHAIN_WASM;
-echo $PARACHAIN_WASM generated
+  --chain $STAGENET_PARACHAIN_SPEC_RAW \
+  > $STAGENET_WASM;
+echo $STAGENET_WASM generated
 
 $MOONBEAM_BINARY export-genesis-state \
   --parachain-id $PARACHAIN_ID \
-  --chain $STAGENET_SPEC_RAW \
-  > $PARACHAIN_GENESIS;
-echo $PARACHAIN_GENESIS generated
+  --chain $STAGENET_PARACHAIN_SPEC_RAW \
+  > $STAGENET_GENESIS;
+echo $STAGENET_GENESIS generated
 
-cp specs/MoonbaseStageV5.json $PARACHAIN_BUILD_FOLDER/stagenet-raw-specs.json
-cp specs/MoonbaseStageV5-Relay.json $PARACHAIN_BUILD_FOLDER/stagenet-relay-raw-specs.json
-grep -v '/p2p/' specs/MoonbaseStageV5.json > \
-  $PARACHAIN_BUILD_FOLDER/stagenet-raw-specs-no-bootnodes.json
-grep -v '/p2p/' specs/MoonbaseStageV5-Relay.json > \
-  $PARACHAIN_BUILD_FOLDER/stagenet-relay-raw-specs-no-bootnodes.json
+cp $STAGENET_PARACHAIN_EMBEDDED_SPEC $STAGENET_BUILD_FOLDER/parachain-embedded-specs.json
+cp $STAGENET_ROCOCO_EMBEDDED_SPEC $STAGENET_BUILD_FOLDER/rococo-embedded-specs.json
+grep -v '/p2p/' $STAGENET_PARACHAIN_EMBEDDED_SPEC > \
+  $STAGENET_BUILD_FOLDER/parachain-embedded-no-bootnodes-specs.json
+grep -v '/p2p/' $STAGENET_ROCOCO_EMBEDDED_SPEC > \
+  $STAGENET_BUILD_FOLDER/rococo-embedded-no-bootnodes-specs.json

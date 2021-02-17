@@ -38,7 +38,7 @@ describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) =>
     await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
     await createAndFinalizeBlock(context.polkadotApi);
     expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT)).to.equal(
-      "1108925819614629174684664"
+      (GENESIS_ACCOUNT_BALANCE - 0x200n - 21000n).toString()
     );
     expect(await context.web3.eth.getBalance(TEST_ACCOUNT)).to.equal("512");
   });
