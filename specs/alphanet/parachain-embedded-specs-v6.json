@@ -6,7 +6,12 @@
     "/dns4/bootnode1.testnet.moonbeam.network/tcp/30334/p2p/12D3KooWJD9yhtvBoaNviqt6yj9R1AXDqxMvbUaU3fkv73bThKNh",
     "/dns4/bootnode2.testnet.moonbeam.network/tcp/30334/p2p/12D3KooWPS1EzUXqLx4EdkqPJZ8jciCWmciSTou8DrPGAnPps1Lm"
   ],
-  "telemetryEndpoints": null,
+  "telemetryEndpoints": [
+    [
+      "/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F",
+      0
+    ]
+  ],
   "protocolId": null,
   "properties": {
     "tokenDecimals": 18

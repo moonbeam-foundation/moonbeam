@@ -6,7 +6,12 @@
     "/dns4/bootnode1.stagenet.moonbeam.gcp.purestake.run/tcp/30334/p2p/12D3KooWH8ocqod6UqhiecikyoYuNWyjcewYjQG9FyhYbo1e4sKV",
     "/dns4/bootnode2.stagenet.moonbeam.gcp.purestake.run/tcp/30334/p2p/12D3KooWFmfo5EnBM1Y5w1ynLx4tvaBSLnbBz3cNfN36nU1mF6rA"
   ],
-  "telemetryEndpoints": null,
+  "telemetryEndpoints": [
+    [
+      "/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F",
+      0
+    ]
+  ],
   "protocolId": null,
   "properties": {
     "tokenDecimals": 18
