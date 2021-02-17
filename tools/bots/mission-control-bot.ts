@@ -236,6 +236,18 @@ const botActionFaucetSend = async (msg: Message, authorId: string, messageConten
     // rollback the update of user's last fund retrieval
     receivers[authorId] = previousRequestTime;
 
+    // alert in channel
+    const errorEmbed = new MessageEmbed()
+      .setColor(EMBED_COLOR_ERROR)
+      .setTitle("Could not submit the transaction")
+      .setFooter(
+        "The transaction of funds could not be submitted. " +
+        "Please, try requesting funds again."
+      );
+
+    // send message
+    msg.channel.send(errorEmbed);
+
     throw error;
   }
 
