@@ -1,6 +1,6 @@
 [package]
 name = "moonbeam-rpc-core-txpool"
-version = '0.1.0'
+version = '0.6.0'
 authors = ['PureStake']
 edition = '2018'
 homepage = 'https://moonbeam.network'
