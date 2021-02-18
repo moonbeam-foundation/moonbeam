@@ -9,7 +9,7 @@ pub use evm::{
 	Handler as HandlerT, Opcode, Runtime, Stack, Transfer,
 };
 use moonbeam_rpc_primitives_debug::{
-	blockscout::{CallResult, CallType, Entry, EntryInner},
+	blockscout::{CallResult, CallType, CreateResult, Entry, EntryInner},
 	StepLog, TraceType,
 };
 use sp_std::{
@@ -137,7 +137,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 					gas_cost: U256::from(gas_cost),
 					memory: {
 						// Vec<u8> to Vec<H256> conversion.
-						let memory = &runtime.machine().memory().data().clone()[..];
+						let memory = &runtime.machine().memory().data()[..];
 						let size = 32;
 						memory
 							.chunks(size)
@@ -163,15 +163,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 				});
 			}
 
-			match runtime.step(self) {
-				Ok(_) => {}
-				Err(Capture::Exit(s)) => {
-					break s;
-				}
-				Err(Capture::Trap(_)) => {
-					break ExitReason::Fatal(ExitFatal::UnhandledInterrupt);
-				}
-			}
+			let step_result = runtime.step(self);
 
 			// Update cache if needed.
 			if let Some(key) = storage_key_scan {
@@ -188,6 +180,17 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 			if let Some(mut steplog) = steplog {
 				steplog.storage = storage_cache.clone();
 				self.step_logs.push(steplog);
+			}
+
+			// Do we continue ?
+			match step_result {
+				Ok(_) => {}
+				Err(Capture::Exit(s)) => {
+					break s;
+				}
+				Err(Capture::Trap(_)) => {
+					break ExitReason::Fatal(ExitFatal::UnhandledInterrupt);
+				}
 			}
 		}
 	}
@@ -211,6 +214,8 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 		let value = runtime.context().apparent_value;
 
 		let gas_at_start = self.inner.gas();
+		let mut return_stack_offset = None;
+		let mut return_stack_len = None;
 
 		// Execute the call/create.
 		let exit_reason = loop {
@@ -221,6 +226,13 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 					Opcode(244) => Some(CallType::DelegateCall),
 					Opcode(250) => Some(CallType::StaticCall),
 					_ => None,
+				};
+
+				if opcode == Opcode(0xf3) {
+					let stack = runtime.machine().stack().data();
+
+					return_stack_offset = stack.get(stack.len() - 1).cloned();
+					return_stack_len = stack.get(stack.len() - 2).cloned();
 				}
 			}
 
@@ -253,9 +265,8 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 							CallResult::Output(runtime.machine().return_value())
 						}
 						ExitReason::Succeed(_) => CallResult::Output(vec![]),
-						ExitReason::Error(please_use_me) => {
-							CallResult::Error(b"insert error message here".to_vec())
-						}
+						ExitReason::Error(error) => CallResult::Error(Self::error_message(error)),
+
 						ExitReason::Revert(_) => CallResult::Error(b"execution reverted".to_vec()),
 						ExitReason::Fatal(_) => CallResult::Error(vec![]),
 					};
@@ -268,7 +279,6 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 						gas_used: U256::from(gas_used),
 						inner: EntryInner::Call {
 							call_type: call_type.expect("should always have a call type"),
-
 							to,
 							input: data,
 							res,
@@ -276,20 +286,46 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 					}
 				}
 				ContextType::Create => {
-					let contract_code = self.code(to);
+					// let offset = runtine.machine().stack().data();
+					let contract_code = if let (Some(offset), Some(len)) =
+						(return_stack_offset, return_stack_len)
+					{
+						let offset = offset.to_low_u64_be() as usize;
+						let len = len.to_low_u64_be() as usize;
 
-					// TODO : Handle reverting create
+						let memory = runtime.machine().memory().data();
+
+						if memory.len() >= offset + len {
+							memory[offset..offset + len].to_vec()
+						} else {
+							vec![] // TODO : Should not be possible
+						}
+					} else {
+						vec![] // TODO : Should not be possible
+					};
+
+					let res = match &exit_reason {
+						ExitReason::Succeed(_) => CreateResult::Success {
+							created_contract_address_hash: to,
+							created_contract_code: contract_code,
+						},
+						ExitReason::Error(error) => CreateResult::Error {
+							error: Self::error_message(error),
+						},
+
+						ExitReason::Revert(_) => CreateResult::Error {
+							error: b"execution reverted".to_vec(),
+						},
+						ExitReason::Fatal(_) => CreateResult::Error { error: vec![] },
+					};
+
 					Entry {
 						value,
 						trace_address,
 						gas: U256::from(gas_at_end),
 						gas_used: U256::from(gas_used),
 						from,
-						inner: EntryInner::Create {
-							init: data,
-							created_contract_address_hash: to,
-							created_contract_code: contract_code,
-						},
+						inner: EntryInner::Create { init: data, res },
 					}
 				}
 			},
@@ -310,6 +346,26 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 		}
 
 		exit_reason
+	}
+
+	fn error_message(error: &ExitError) -> Vec<u8> {
+		match error {
+			ExitError::StackUnderflow => "stack underflow",
+			ExitError::StackOverflow => "stack overflow",
+			ExitError::InvalidJump => "invalid jump",
+			ExitError::InvalidRange => "invalid range",
+			ExitError::DesignatedInvalid => "designated invalid",
+			ExitError::CallTooDeep => "call too deep",
+			ExitError::CreateCollision => "create collision",
+			ExitError::CreateContractLimit => "create contract limit",
+			ExitError::OutOfOffset => "out of offset",
+			ExitError::OutOfGas => "out of gas",
+			ExitError::OutOfFund => "out of funds",
+			ExitError::Other(err) => err,
+			_ => "unexpected error",
+		}
+		.as_bytes()
+		.to_vec()
 	}
 
 	pub fn trace_call(
@@ -368,6 +424,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 			self.inner.config(),
 		);
 
+		self.call_type = Some(CallType::Call);
 		match self.trace(&mut runtime, ContextType::Call, data) {
 			ExitReason::Succeed(s) => {
 				Capture::Exit((ExitReason::Succeed(s), runtime.machine().return_value()))

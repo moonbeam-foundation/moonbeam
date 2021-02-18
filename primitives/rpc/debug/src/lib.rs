@@ -22,24 +22,22 @@ use ethereum_types::{H160, H256, U256};
 use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
 #[cfg(feature = "std")]
-use serde::{ser::SerializeSeq, Serialize, Serializer};
+use serde::{ser::SerializeSeq, Deserialize, Serialize, Serializer};
+
+// TODO : Fix missing '0x' values.
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(Serialize))]
-#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
-// pub struct TraceExecutorResponse {
-// 	pub gas: U256,
-// 	pub return_value: Vec<u8>,
-// 	pub step_logs: Vec<StepLog>,
+#[cfg_attr(feature = "std", serde(rename_all = "camelCase", untagged))]
 pub enum TraceExecutorResponse {
+	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 	Raw {
 		gas: U256,
+		#[cfg_attr(feature = "std", serde(with = "hex"))]
 		return_value: Vec<u8>,
 		step_logs: Vec<StepLog>,
 	},
-	Blockscout {
-		entries: Vec<blockscout::Entry>,
-	},
+	Blockscout(Vec<blockscout::Entry>),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
@@ -78,8 +76,8 @@ pub mod blockscout {
 	#[cfg_attr(feature = "std", derive(Serialize))]
 	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 	pub enum CallResult {
-		Output(Vec<u8>), // field "output"
-		Error(Vec<u8>),  // field "error"
+		Output(#[cfg_attr(feature = "std", serde(with = "hex"))] Vec<u8>),
+		Error(#[cfg_attr(feature = "std", serde(serialize_with = "string_serialize"))] Vec<u8>), // field "error"
 	}
 
 	#[derive(Clone, Copy, Eq, PartialEq, Debug, Encode, Decode)]
@@ -94,21 +92,42 @@ pub mod blockscout {
 
 	#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 	#[cfg_attr(feature = "std", derive(Serialize))]
-	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
+	#[cfg_attr(feature = "std", serde(rename_all = "camelCase", untagged))]
+	pub enum CreateResult {
+		Error {
+			#[cfg_attr(feature = "std", serde(serialize_with = "string_serialize"))]
+			error: Vec<u8>,
+		},
+		Success {
+			created_contract_address_hash: H160,
+
+			#[cfg_attr(feature = "std", serde(with = "hex"))]
+			created_contract_code: Vec<u8>,
+		},
+	}
+
+	#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
+	#[cfg_attr(feature = "std", derive(Serialize))]
+	#[cfg_attr(feature = "std", serde(rename_all = "camelCase", tag = "type"))]
 	pub enum EntryInner {
+		#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 		Call {
 			/// Type of call.
 			call_type: CallType,
 			to: H160,
+			#[cfg_attr(feature = "std", serde(with = "hex"))]
 			input: Vec<u8>,
 			/// "output" or "error" field
-			// TODO : serde flatten
+			#[cfg_attr(feature = "std", serde(flatten))]
 			res: CallResult,
 		},
+
+		#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 		Create {
+			#[cfg_attr(feature = "std", serde(with = "hex"))]
 			init: Vec<u8>,
-			created_contract_address_hash: H160,
-			created_contract_code: Vec<u8>,
+			#[cfg_attr(feature = "std", serde(flatten))]
+			res: CreateResult,
 		},
 		// Revert,
 		SelfDestruct,
@@ -127,6 +146,7 @@ pub mod blockscout {
 		pub gas: U256,
 		/// Gas used by this context.
 		pub gas_used: U256,
+		#[cfg_attr(feature = "std", serde(flatten))]
 		pub inner: EntryInner,
 	}
 }
@@ -162,6 +182,16 @@ where
 		"{}",
 		std::str::from_utf8(opcode).unwrap_or("").to_uppercase()
 	))
+}
+
+#[cfg(feature = "std")]
+fn string_serialize<S>(value: &Vec<u8>, serializer: S) -> Result<S::Ok, S::Error>
+where
+	S: Serializer,
+{
+	// TODO: how to propagate Err here (i.e. `from_utf8` fails), so the rpc requests also
+	// returns an error?
+	serializer.serialize_str(&format!("{}", std::str::from_utf8(value).unwrap_or("")))
 }
 
 #[cfg(feature = "std")]

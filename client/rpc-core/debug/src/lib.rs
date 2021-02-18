@@ -17,6 +17,7 @@
 use ethereum_types::H256;
 use jsonrpc_core::Result;
 use jsonrpc_derive::rpc;
+use serde::Deserialize;
 
 pub use crate::types::{StepLog, TraceExecutorResponse};
 
@@ -26,8 +27,19 @@ pub mod types {
 	pub use moonbeam_rpc_primitives_debug::{StepLog, TraceExecutorResponse};
 }
 
+#[derive(Clone, Eq, PartialEq, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TraceParams {
+	/// Javascript tracer (we just check if it's Blockscout tracer string)
+	pub tracer: Option<String>,
+}
+
 #[rpc(server)]
 pub trait Debug {
 	#[rpc(name = "debug_traceTransaction")]
-	fn trace_transaction(&self, transaction_hash: H256) -> Result<TraceExecutorResponse>;
+	fn trace_transaction(
+		&self,
+		transaction_hash: H256,
+		params: Option<TraceParams>,
+	) -> Result<TraceExecutorResponse>;
 }

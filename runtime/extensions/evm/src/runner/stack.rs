@@ -93,13 +93,13 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 				return_value: execution_result,
 				step_logs: wrapper.step_logs,
 			}),
-			TraceType::Blockscout => Ok(TraceExecutorResponse::Blockscout {
-				entries: wrapper
+			TraceType::Blockscout => Ok(TraceExecutorResponse::Blockscout(
+				wrapper
 					.entries
 					.into_iter()
 					.map(|(_, value)| value)
 					.collect(),
-			}),
+			)),
 		}
 	}
 
@@ -126,13 +126,13 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 				return_value: execution_result,
 				step_logs: wrapper.step_logs,
 			}),
-			TraceType::Blockscout => Ok(TraceExecutorResponse::Blockscout {
-				entries: wrapper
+			TraceType::Blockscout => Ok(TraceExecutorResponse::Blockscout(
+				wrapper
 					.entries
 					.into_iter()
 					.map(|(_, value)| value)
 					.collect(),
-			}),
+			)),
 		}
 	}
 

@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-pub use moonbeam_rpc_core_debug::{Debug as DebugT, DebugServer, StepLog, TraceExecutorResponse};
+pub use moonbeam_rpc_core_debug::{
+	Debug as DebugT, DebugServer, StepLog, TraceExecutorResponse, TraceParams,
+};
 
-use ethereum_types::H256;
+use ethereum_types::{H128, H256};
 use fp_rpc::EthereumRuntimeRPCApi;
 use jsonrpc_core::Result as RpcResult;
 use jsonrpc_core::{Error as RpcError, ErrorCode};
@@ -28,7 +30,7 @@ use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
 };
 use sp_runtime::traits::{BlakeTwo256, Block as BlockT};
-use std::{marker::PhantomData, sync::Arc};
+use std::{marker::PhantomData, str::FromStr, sync::Arc};
 
 pub fn internal_err<T: ToString>(message: T) -> RpcError {
 	RpcError {
@@ -136,7 +138,11 @@ where
 	C::Api: DebugRuntimeApi<B>,
 	C::Api: EthereumRuntimeRPCApi<B>,
 {
-	fn trace_transaction(&self, transaction_hash: H256) -> RpcResult<TraceExecutorResponse> {
+	fn trace_transaction(
+		&self,
+		transaction_hash: H256,
+		params: Option<TraceParams>,
+	) -> RpcResult<TraceExecutorResponse> {
 		let (hash, index) = match self
 			.load_transactions(transaction_hash)
 			.map_err(|err| internal_err(format!("{:?}", err)))?
@@ -170,12 +176,33 @@ where
 			.current_block(&reference_id)
 			.map_err(|err| internal_err(format!("Runtime block call failed: {:?}", err)))?;
 
+		// Set trace type
+		let trace_type = match params {
+			Some(TraceParams {
+				tracer: Some(tracer),
+			}) => {
+				let hash: H128 = sp_io::hashing::twox_128(&tracer.as_bytes()).into();
+				// blockscout script hash : 0xe554011b51b7ae5726e02870a500d9da
+				let blockscout_hash = H128::from_str("0xefc44389e04a809b6a7d9c720debc9ad").unwrap();
+
+				if hash == blockscout_hash {
+					TraceType::Blockscout
+				} else {
+					return Err(internal_err(format!(
+						"javascript based tracing is not available (hash :{:?})",
+						hash
+					)));
+				}
+			}
+			_ => TraceType::Raw,
+		};
+
 		// Get the actual ethereum transaction.
 		if let Some(block) = reference_block {
 			let transactions = block.transactions;
 			if let Some(transaction) = transactions.get(index) {
 				let res = api
-					.trace_transaction(&parent_block_id, ext, transaction, TraceType::Raw)
+					.trace_transaction(&parent_block_id, ext, transaction, trace_type)
 					.map_err(|err| internal_err(format!("Runtime trace call failed: {:?}", err)))?
 					.unwrap();
 
