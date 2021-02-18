@@ -4,6 +4,8 @@ import { step } from "mocha-steps";
 import { describeWithMoonbeam } from "./util";
 import { GLMR } from "./constants";
 
+import BigNumber from "bignumber.js";
+
 describeWithMoonbeam("Moonbeam RPC (Stake)", `simple-specs.json`, (context) => {
   const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
   const GENESIS_STAKED = 1_000n * GLMR;
@@ -37,7 +39,10 @@ describeWithMoonbeam("Moonbeam RPC (Stake)", `simple-specs.json`, (context) => {
     expect(inflationInfo.toHuman()["expect"]["ideal"]).to.eq("200.0000 kUnit");
     expect(inflationInfo.toHuman()["expect"]["max"]).to.eq("500.0000 kUnit");
     expect(inflationInfo.toHuman()["round"]["min"]).to.eq("0.00%");
+    expect(Number(inflationInfo["round"]["min"])).to.eq(4563); // 4% / 8766 * 10^9
     expect(inflationInfo.toHuman()["round"]["ideal"]).to.eq("0.00%");
+    expect(Number(inflationInfo["round"]["ideal"])).to.eq(5703); // 5% / 8766 * 10^9
     expect(inflationInfo.toHuman()["round"]["max"]).to.eq("0.00%");
+    expect(Number(inflationInfo["round"]["max"])).to.eq(5703); // 5% / 8766 * 10^9
   });
 });
