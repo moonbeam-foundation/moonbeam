@@ -87,11 +87,20 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 			_ => unreachable!("Never reached?"),
 		};
 
-		Ok(TraceExecutorResponse::Raw {
-			gas: U256::from(wrapper.inner.state().metadata().gasometer().gas()),
-			return_value: execution_result,
-			step_logs: wrapper.step_logs,
-		})
+		match trace_type {
+			TraceType::Raw => Ok(TraceExecutorResponse::Raw {
+				gas: U256::from(wrapper.inner.state().metadata().gasometer().gas()),
+				return_value: execution_result,
+				step_logs: wrapper.step_logs,
+			}),
+			TraceType::Blockscout => Ok(TraceExecutorResponse::Blockscout {
+				entries: wrapper
+					.entries
+					.into_iter()
+					.map(|(_, value)| value)
+					.collect(),
+			}),
+		}
 	}
 
 	fn execute_create<'config, F>(
@@ -111,11 +120,20 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 			_ => unreachable!("Never reached?"),
 		};
 
-		Ok(TraceExecutorResponse::Raw {
-			gas: U256::from(wrapper.inner.state().metadata().gasometer().gas()),
-			return_value: execution_result,
-			step_logs: wrapper.step_logs,
-		})
+		match trace_type {
+			TraceType::Raw => Ok(TraceExecutorResponse::Raw {
+				gas: U256::from(wrapper.inner.state().metadata().gasometer().gas()),
+				return_value: execution_result,
+				step_logs: wrapper.step_logs,
+			}),
+			TraceType::Blockscout => Ok(TraceExecutorResponse::Blockscout {
+				entries: wrapper
+					.entries
+					.into_iter()
+					.map(|(_, value)| value)
+					.collect(),
+			}),
+		}
 	}
 
 	fn trace_call(

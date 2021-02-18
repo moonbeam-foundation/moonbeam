@@ -95,41 +95,39 @@ pub mod blockscout {
 	#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 	#[cfg_attr(feature = "std", derive(Serialize))]
 	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
-	pub enum Entry {
+	pub enum EntryInner {
 		Call {
 			/// Type of call.
 			call_type: CallType,
-			from: H160,
 			to: H160,
 			input: Vec<u8>,
 			/// "output" or "error" field
 			// TODO : serde flatten
 			res: CallResult,
-			/// Indices of parent calls.
-			trace_address: Vec<u32>,
-			/// Sends funds to the (payable) function
-			value: U256,
-			/// Remaining gas in the runtime.
-			gas: U256,
-			/// Gas used by this context.
-			gas_used: U256,
 		},
 		Create {
-			from: H160,
 			init: Vec<u8>,
 			created_contract_address_hash: H160,
 			created_contract_code: Vec<u8>,
-			/// Indices of parent calls.
-			trace_address: Vec<u32>,
-			/// Sends funds to the (payable) function
-			value: U256,
-			/// Remaining gas in the runtime.
-			gas: U256,
-			/// Gas used by this context.
-			gas_used: U256,
 		},
 		// Revert,
 		SelfDestruct,
+	}
+
+	#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
+	#[cfg_attr(feature = "std", derive(Serialize))]
+	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
+	pub struct Entry {
+		pub from: H160,
+		/// Indices of parent calls.
+		pub trace_address: Vec<u32>,
+		/// Sends funds to the (payable) function
+		pub value: U256,
+		/// Remaining gas in the runtime.
+		pub gas: U256,
+		/// Gas used by this context.
+		pub gas_used: U256,
+		pub inner: EntryInner,
 	}
 }
 

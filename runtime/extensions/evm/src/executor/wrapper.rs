@@ -9,7 +9,7 @@ pub use evm::{
 	Handler as HandlerT, Opcode, Runtime, Stack, Transfer,
 };
 use moonbeam_rpc_primitives_debug::{
-	blockscout::{CallResult, CallType, Entry as BlockscoutEntry},
+	blockscout::{CallResult, CallType, Entry, EntryInner},
 	StepLog, TraceType,
 };
 use sp_std::{
@@ -26,7 +26,7 @@ pub struct TraceExecutorWrapper<'config, S> {
 	pub step_logs: Vec<StepLog>,
 
 	// Blockscout state.
-	pub entries: BTreeMap<u32, BlockscoutEntry>,
+	pub entries: BTreeMap<u32, Entry>,
 	entries_next_index: u32,
 	call_type: Option<CallType>,
 	parent_index: Option<u32>,
@@ -260,35 +260,54 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 						ExitReason::Fatal(_) => CallResult::Error(vec![]),
 					};
 
-					BlockscoutEntry::Call {
-						call_type: call_type.expect("should always have a call type"),
+					Entry {
 						from,
-						to,
-						input: data,
-						res,
 						trace_address,
 						value,
 						gas: U256::from(gas_at_end),
 						gas_used: U256::from(gas_used),
+						inner: EntryInner::Call {
+							call_type: call_type.expect("should always have a call type"),
+
+							to,
+							input: data,
+							res,
+						},
 					}
 				}
 				ContextType::Create => {
 					let contract_code = self.code(to);
 
 					// TODO : Handle reverting create
-					BlockscoutEntry::Create {
-						from,
-						init: data,
-						created_contract_address_hash: to,
-						created_contract_code: contract_code,
+					Entry {
 						value,
 						trace_address,
 						gas: U256::from(gas_at_end),
 						gas_used: U256::from(gas_used),
+						from,
+						inner: EntryInner::Create {
+							init: data,
+							created_contract_address_hash: to,
+							created_contract_code: contract_code,
+						},
 					}
 				}
 			},
 		);
+
+		// If root context, add parent hierarchy
+		if entries_index == 0 {
+			for i in 1..self.entries_next_index {
+				let mut entry = self.entries.remove(&i).unwrap();
+				let parent_index = entry.trace_address[0];
+
+				let parent_entry = self.entries.get(&parent_index).unwrap();
+				entry.trace_address = parent_entry.trace_address.clone();
+				entry.trace_address.push(parent_index);
+
+				self.entries.insert(i, entry);
+			}
+		}
 
 		exit_reason
 	}
