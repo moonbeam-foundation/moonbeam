@@ -77,9 +77,9 @@ pub mod blockscout {
 	#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 	#[cfg_attr(feature = "std", derive(Serialize))]
 	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
-	pub enum Res {
-		Output(Vec<u8>),
-		Error(Vec<u8>),
+	pub enum CallResult {
+		Output(Vec<u8>), // field "output"
+		Error(Vec<u8>),  // field "error"
 	}
 
 	#[derive(Clone, Copy, Eq, PartialEq, Debug, Encode, Decode)]
@@ -104,7 +104,7 @@ pub mod blockscout {
 			input: Vec<u8>,
 			/// "output" or "error" field
 			// TODO : serde flatten
-			res: Res,
+			res: CallResult,
 			/// Indices of parent calls.
 			trace_address: Vec<u32>,
 			/// Sends funds to the (payable) function

@@ -9,7 +9,7 @@ pub use evm::{
 	Handler as HandlerT, Opcode, Runtime, Stack, Transfer,
 };
 use moonbeam_rpc_primitives_debug::{
-	blockscout::{CallType, Entry as BlockscoutEntry},
+	blockscout::{CallResult, CallType, Entry as BlockscoutEntry},
 	StepLog, TraceType,
 };
 use sp_std::{
@@ -26,9 +26,10 @@ pub struct TraceExecutorWrapper<'config, S> {
 	pub step_logs: Vec<StepLog>,
 
 	// Blockscout state.
-	pub entries: BTreeMap<usize, BlockscoutEntry>,
-	entries_next_index: usize,
+	pub entries: BTreeMap<u32, BlockscoutEntry>,
+	entries_next_index: u32,
 	call_type: Option<CallType>,
+	parent_index: Option<u32>,
 }
 
 enum ContextType {
@@ -50,6 +51,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 			entries: BTreeMap::new(),
 			entries_next_index: 0,
 			call_type: None,
+			parent_index: None,
 		}
 	}
 
@@ -194,24 +196,25 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 		&mut self,
 		runtime: &mut Runtime,
 		context_type: ContextType,
-		code: Vec<u8>,
+		data: Vec<u8>,
 	) -> ExitReason {
-		// let mut entries: Vec<BlockscoutEntry> = vec![];
+		// Starting new entry.
+		let parent_index = self.parent_index;
 
 		let entries_index = self.entries_next_index;
 		self.entries_next_index += 1;
 
+		// Fetch all data we currently can for the entry.
+		let call_type = self.call_type;
 		let from = runtime.context().caller;
 		let to = runtime.context().address;
-		let call_type = self.call_type;
+		let value = runtime.context().apparent_value;
+
 		let gas_at_start = self.inner.gas();
 
+		// Execute the call/create.
 		let exit_reason = loop {
-			if let Some((opcode, stack)) = runtime.machine().inspect() {
-				// 1. Check an error
-				// 2. Check opcode CREATE, SELFDESTRUCT, CALLs, REVERT
-				// 3. decrease in depth
-
+			if let Some((opcode, _stack)) = runtime.machine().inspect() {
 				self.call_type = match opcode {
 					Opcode(241) => Some(CallType::Call),
 					Opcode(242) => Some(CallType::CallCode),
@@ -220,6 +223,9 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 					_ => None,
 				}
 			}
+
+			// Set parent index for possible subcall to get this context index.
+			self.parent_index = Some(entries_index);
 
 			match runtime.step(self) {
 				Ok(_) => {}
@@ -232,22 +238,57 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 			}
 		};
 
+		// Compute used gas.
 		let gas_at_end = self.inner.gas();
 		let gas_used = gas_at_start - gas_at_end;
 
-		// insert into map with `entries_index`
-		match context_type {
-			ContextType::Call => {
-				// register a call
-			}
-			ContextType::Create => {
-				// register a create
+		// Insert entry.
+		let trace_address = parent_index.map_or(vec![], |index| vec![index]);
+		self.entries.insert(
+			entries_index,
+			match context_type {
+				ContextType::Call => {
+					let res = match &exit_reason {
+						ExitReason::Succeed(ExitSucceed::Returned) => {
+							CallResult::Output(runtime.machine().return_value())
+						}
+						ExitReason::Succeed(_) => CallResult::Output(vec![]),
+						ExitReason::Error(please_use_me) => {
+							CallResult::Error(b"insert error message here".to_vec())
+						}
+						ExitReason::Revert(_) => CallResult::Error(b"execution reverted".to_vec()),
+						ExitReason::Fatal(_) => CallResult::Error(vec![]),
+					};
 
-				// code => init field
+					BlockscoutEntry::Call {
+						call_type: call_type.expect("should always have a call type"),
+						from,
+						to,
+						input: data,
+						res,
+						trace_address,
+						value,
+						gas: U256::from(gas_at_end),
+						gas_used: U256::from(gas_used),
+					}
+				}
+				ContextType::Create => {
+					let contract_code = self.code(to);
 
-				// How to handle reverting create ?
-			}
-		}
+					// TODO : Handle reverting create
+					BlockscoutEntry::Create {
+						from,
+						init: data,
+						created_contract_address_hash: to,
+						created_contract_code: contract_code,
+						value,
+						trace_address,
+						gas: U256::from(gas_at_end),
+						gas_used: U256::from(gas_used),
+					}
+				}
+			},
+		);
 
 		exit_reason
 	}
