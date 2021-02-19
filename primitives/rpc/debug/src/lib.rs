@@ -77,7 +77,8 @@ pub mod blockscout {
 	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 	pub enum CallResult {
 		Output(#[cfg_attr(feature = "std", serde(with = "hex"))] Vec<u8>),
-		Error(#[cfg_attr(feature = "std", serde(serialize_with = "string_serialize"))] Vec<u8>), // field "error"
+		// field "error"
+		Error(#[cfg_attr(feature = "std", serde(serialize_with = "string_serialize"))] Vec<u8>),
 	}
 
 	#[derive(Clone, Copy, Eq, PartialEq, Debug, Encode, Decode)]
