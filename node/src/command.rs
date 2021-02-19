@@ -176,7 +176,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					import_queue,
 					..
-				} = crate::service::new_partial(&config, None)?;
+				} = crate::service::new_partial(&config, None, false)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -187,7 +187,7 @@ pub fn run() -> Result<()> {
 					client,
 					task_manager,
 					..
-				} = crate::service::new_partial(&config, None)?;
+				} = crate::service::new_partial(&config, None, false)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
 		}
@@ -198,7 +198,7 @@ pub fn run() -> Result<()> {
 					client,
 					task_manager,
 					..
-				} = crate::service::new_partial(&config, None)?;
+				} = crate::service::new_partial(&config, None, false)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
 		}
@@ -210,7 +210,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					import_queue,
 					..
-				} = crate::service::new_partial(&config, None)?;
+				} = crate::service::new_partial(&config, None, false)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -226,7 +226,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					backend,
 					..
-				} = crate::service::new_partial(&config, None)?;
+				} = crate::service::new_partial(&config, None, false)?;
 				Ok((cmd.run(client, backend), task_manager))
 			})
 		}
@@ -296,7 +296,7 @@ pub fn run() -> Result<()> {
 							)
 						});
 
-						return crate::dev_service::new_full(config, cli.run.sealing, author_id);
+						return crate::service::new_dev(config, cli.run.sealing, author_id);
 					}
 
 					let key = sp_core::Pair::generate().0;

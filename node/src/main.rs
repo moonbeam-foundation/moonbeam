@@ -24,7 +24,6 @@ mod chain_spec;
 mod service;
 mod cli;
 mod command;
-mod dev_service;
 mod inherents;
 mod rpc;
 
