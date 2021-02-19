@@ -1081,7 +1081,7 @@ version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus#28d1d00747e1e60a3e26f0112b4580c805fa1557"
 dependencies = [
  "cumulus-network",
- "cumulus-primitives",
+ "cumulus-primitives-core",
  "cumulus-runtime",
  "futures 0.3.12",
  "log",
@@ -1131,7 +1131,7 @@ name = "cumulus-network"
 version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus#28d1d00747e1e60a3e26f0112b4580c805fa1557"
 dependencies = [
- "cumulus-primitives",
+ "cumulus-primitives-core",
  "derive_more 0.99.11",
  "futures 0.3.12",
  "futures-timer 3.0.2",
@@ -1158,7 +1158,7 @@ name = "cumulus-pallet-parachain-system"
 version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus#28d1d00747e1e60a3e26f0112b4580c805fa1557"
 dependencies = [
- "cumulus-primitives",
+ "cumulus-primitives-core",
  "cumulus-runtime",
  "frame-support",
  "frame-system",
@@ -1178,7 +1178,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "cumulus-primitives"
+name = "cumulus-primitives-core"
 version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus#28d1d00747e1e60a3e26f0112b4580c805fa1557"
 dependencies = [
@@ -1200,7 +1200,7 @@ name = "cumulus-runtime"
 version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus#28d1d00747e1e60a3e26f0112b4580c805fa1557"
 dependencies = [
- "cumulus-primitives",
+ "cumulus-primitives-core",
  "frame-executive",
  "hash-db",
  "memory-db",
@@ -1223,7 +1223,7 @@ source = "git+https://github.com/paritytech/cumulus#28d1d00747e1e60a3e26f0112b45
 dependencies = [
  "cumulus-collator",
  "cumulus-consensus",
- "cumulus-primitives",
+ "cumulus-primitives-core",
  "futures 0.3.12",
  "polkadot-overseer",
  "polkadot-primitives",
@@ -1245,7 +1245,7 @@ name = "cumulus-test-relay-sproof-builder"
 version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus#28d1d00747e1e60a3e26f0112b4580c805fa1557"
 dependencies = [
- "cumulus-primitives",
+ "cumulus-primitives-core",
  "parity-scale-codec",
  "polkadot-primitives",
  "sp-runtime",
@@ -4014,7 +4014,7 @@ dependencies = [
  "cumulus-collator",
  "cumulus-consensus",
  "cumulus-network",
- "cumulus-primitives",
+ "cumulus-primitives-core",
  "cumulus-service",
  "cumulus-test-relay-sproof-builder",
  "derive_more 0.15.0",
@@ -4139,7 +4139,7 @@ dependencies = [
  "account",
  "author-inherent",
  "cumulus-pallet-parachain-system",
- "cumulus-primitives",
+ "cumulus-primitives-core",
  "cumulus-runtime",
  "fp-rpc",
  "frame-executive",
@@ -5185,7 +5185,7 @@ dependencies = [
 name = "parachain-info"
 version = "0.6.0"
 dependencies = [
- "cumulus-primitives",
+ "cumulus-primitives-core",
  "frame-support",
  "frame-system",
  "parity-scale-codec",

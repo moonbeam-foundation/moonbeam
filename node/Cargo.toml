@@ -81,7 +81,7 @@ fp-rpc = { git = "https://github.com/purestake/frontier", branch = "v0.7-moonbea
 cumulus-consensus = { git = "https://github.com/paritytech/cumulus", branch = "master" }
 cumulus-collator = { git = "https://github.com/paritytech/cumulus", branch = "master" }
 cumulus-network = { git = "https://github.com/paritytech/cumulus", branch = "master" }
-cumulus-primitives = { git = "https://github.com/paritytech/cumulus", branch = "master" }
+cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus", branch = "master" }
 cumulus-service = { git = "https://github.com/paritytech/cumulus", branch = "master" }
 cumulus-test-relay-sproof-builder = { git = "https://github.com/paritytech/cumulus", branch = "master" }
 
