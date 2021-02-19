@@ -58,7 +58,6 @@ pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-fe
 moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool", default-features = false }
 
 # Cumulus dependencies
-cumulus-runtime = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
 cumulus-pallet-parachain-system = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
 cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
 
@@ -67,7 +66,7 @@ parachain-info = { path = "../pallets/parachain-info", default-features = false 
 author-inherent = { path = "../pallets/author-inherent", default-features = false }
 
 [build-dependencies]
-substrate-wasm-builder = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git", branch = "master" }
+substrate-wasm-builder = { version = "4.0.0", git = "https://github.com/paritytech/substrate.git", branch = "master" }
 
 [features]
 # By default, we build the parachain runtime
@@ -109,7 +108,6 @@ std = [
 	"pallet-scheduler/std",
 	"author-inherent/std",
 	"parachain-info/std",
-	"cumulus-runtime/std",
 	"cumulus-pallet-parachain-system/std",
 	"cumulus-primitives-core/std",
 	"account/std",
