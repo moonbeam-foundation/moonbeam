@@ -18,7 +18,7 @@ use crate::executor::wrapper::TraceExecutorWrapper;
 use ethereum_types::{H160, U256};
 use evm::{
 	executor::{StackExecutor, StackState as StackStateT, StackSubstateMetadata},
-	Capture, Config as EvmConfig, CreateScheme, Transfer,
+	Capture, Config as EvmConfig, Context, CreateScheme, Transfer,
 };
 // use fp_evm::Vicinity;
 use moonbeam_rpc_primitives_debug::{TraceExecutorResponse, TraceType};
@@ -153,18 +153,24 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		let state = SubstrateStackState::new(&vicinity, metadata);
 		let mut executor =
 			StackExecutor::new_with_precompile(state, config, T::Precompiles::execute);
+		let context = Context {
+			caller: source,
+			address: target,
+			apparent_value: value,
+		};
+
 		Self::execute_call(&mut executor, trace_type, |executor| {
 			executor.trace_call(
-				source,
 				target,
 				Some(Transfer {
 					source,
 					target,
 					value,
 				}),
-				value,
 				input,
 				Some(gas_limit as u64),
+				false,
+				context,
 			)
 		})
 	}

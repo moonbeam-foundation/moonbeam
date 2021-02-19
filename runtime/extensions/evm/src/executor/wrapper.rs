@@ -373,12 +373,12 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 
 	pub fn trace_call(
 		&mut self,
-		caller: H160,
 		address: H160,
 		transfer: Option<Transfer>,
-		value: U256,
 		data: Vec<u8>,
 		target_gas: Option<u64>,
+		is_static: bool,
+		context: Context,
 	) -> Capture<(ExitReason, Vec<u8>), Infallible> {
 		macro_rules! try_or_fail {
 			( $e:expr ) => {
@@ -400,15 +400,9 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 			.gasometer_mut()
 			.record_cost(gas_limit));
 
-		let context = Context {
-			caller,
-			address,
-			apparent_value: value,
-		};
-
 		let code = self.inner.code(address);
-		self.inner.enter_substate(gas_limit, false);
-		self.inner.state_mut().touch(address);
+		self.inner.enter_substate(gas_limit, is_static);
+		self.inner.state_mut().touch(context.address);
 
 		if let Some(transfer) = transfer {
 			match self.inner.state_mut().transfer(transfer) {
@@ -602,17 +596,18 @@ impl<'config, S: StackStateT<'config>> HandlerT for TraceExecutorWrapper<'config
 		transfer: Option<Transfer>,
 		input: Vec<u8>,
 		target_gas: Option<u64>,
-		_is_static: bool,
-		_context: Context,
+		is_static: bool,
+		context: Context,
 	) -> Capture<(ExitReason, Vec<u8>), Self::CallInterrupt> {
 		if self.is_tracing {
-			let (caller, value) = if let Some(transfer) = transfer.clone() {
-				(transfer.source, transfer.value)
-			} else {
-				(code_address, U256::zero())
-			};
-
-			self.trace_call(caller, code_address, transfer, value, input, target_gas)
+			self.trace_call(
+				code_address,
+				transfer,
+				input,
+				target_gas,
+				is_static,
+				context,
+			)
 		} else {
 			unreachable!("TODO StackExecutorWrapper only available on tracing enabled.");
 		}
