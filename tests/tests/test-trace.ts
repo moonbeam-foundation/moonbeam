@@ -149,4 +149,69 @@ describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
         expect(logs[0].depth).to.be.equal(1);
         expect(logs[1].depth).to.be.equal(2);
     });
+
+    step("[Blockscout] should trace nested contract calls", async function () {
+        // Create Callee contract.
+        const calleeTx = await context.web3.eth.accounts.signTransaction(
+            {
+                from: GENESIS_ACCOUNT,
+                data: CALLEE.bytecode,
+                value: "0x00",
+                gasPrice: "0x01",
+                gas: "0x100000",
+            },
+            GENESIS_ACCOUNT_PRIVATE_KEY
+        );
+        let send = await customRequest(
+            context.web3, "eth_sendRawTransaction", [calleeTx.rawTransaction]
+        );
+        await createAndFinalizeBlock(context.polkadotApi);
+        let receipt = await context.web3.eth.getTransactionReceipt(send.result);
+        const callee_addr = receipt.contractAddress;
+        const callee = new context.web3.eth.Contract(CALLEE.abi, callee_addr);
+        // Create Caller contract.
+        const callerTx = await context.web3.eth.accounts.signTransaction(
+            {
+                from: GENESIS_ACCOUNT,
+                data: CALLER.bytecode,
+                value: "0x00",
+                gasPrice: "0x01",
+                gas: "0x100000",
+            },
+            GENESIS_ACCOUNT_PRIVATE_KEY
+        );
+        send = await customRequest(
+            context.web3, "eth_sendRawTransaction", [callerTx.rawTransaction]
+        );
+        await createAndFinalizeBlock(context.polkadotApi);
+        receipt = await context.web3.eth.getTransactionReceipt(send.result);
+        const caller_addr = receipt.contractAddress;
+        const caller = new context.web3.eth.Contract(CALLER.abi, caller_addr);
+        // Nested call
+        let callTx = await context.web3.eth.accounts.signTransaction({
+            from: GENESIS_ACCOUNT,
+            to: caller_addr,
+            gas: "0x100000",
+            value: "0x00",
+            data: caller.methods.someAction(callee_addr, 6).encodeABI() // calls callee
+        }, GENESIS_ACCOUNT_PRIVATE_KEY);
+        send = await customRequest(
+            context.web3, "eth_sendRawTransaction", [callTx.rawTransaction]
+        );
+        await createAndFinalizeBlock(context.polkadotApi);
+        let traceTx = await customRequest(
+            context.web3, "debug_traceTransaction", [send.result, { "tracer": "blockscout" }]
+        );
+        let entries = traceTx.result;
+        expect(entries.length).to.be.equal(2);
+        let resCaller = entries[0];
+        let resCallee = entries[1];
+        expect(resCaller.callType).to.be.equal("call");
+        expect(resCallee.type).to.be.equal("call");
+        expect(resCallee.from).to.be.equal(resCaller.to);
+        expect(resCaller.traceAddress).to.be.empty;
+        expect(resCallee.traceAddress.length).to.be.eq(1);
+        expect(resCallee.traceAddress[0]).to.be.eq(0);
+
+    });
 });
