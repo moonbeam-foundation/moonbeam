@@ -132,7 +132,10 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 				};
 
 				steplog = Some(StepLog {
-					depth: U256::from(self.inner.state().metadata().depth().unwrap_or_default()),
+					// EVM's returned depth is depth output format - 1.
+					depth: U256::from(
+						self.inner.state().metadata().depth().unwrap_or_default() + 1,
+					),
 					gas: U256::from(self.inner.gas()),
 					gas_cost: U256::from(gas_cost),
 					memory: {
