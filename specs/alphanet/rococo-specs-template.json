@@ -2,7 +2,10 @@
   "name": "Moonbase Relay Testnet",
   "id": "rococo_moonbase_relay_testnet",
   "chainType": "Live",
-  "bootNodes": [],
+  "bootNodes": [
+    "/dns4/rpcnode2.blue.testnet.moonbeam.network/tcp/30333/p2p/12D3KooWPS1EzUXqLx4EdkqPJZ8jciCWmciSTou8DrPGAnPps1Lm",
+    "/dns4/rpcnode1.blue.testnet.moonbeam.network/tcp/30333/p2p/12D3KooWJD9yhtvBoaNviqt6yj9R1AXDqxMvbUaU3fkv73bThKNh"
+  ],
   "telemetryEndpoints": null,
   "protocolId": "dot",
   "properties": null,
@@ -35,6 +38,18 @@
             ],
             [
               "16S1pBxHVpbHZE5DacwucvzXo3T6vDi9nsrTdwFvo3Vmm2xL",
+              100000000000000000000
+            ],
+            [
+              "14N1X74n14WjhPYZGo1saMUoo3soj8AfY4E42EKwAUEC6ik6",
+              100000000000000000000
+            ],
+            [
+              "1TKxFPxdHNG1UycCSxzkGL76ubpfsGwTFottXTuAD2FmsSB",
+              100000000000000000000
+            ],
+            [
+              "16k6ZhNMzava4uue18RJEtL2uYSyEGmjTHswrN6Lf62gYzVp",
               100000000000000000000
             ]
           ]

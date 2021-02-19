@@ -100,36 +100,6 @@ jobs:
       - name: Check with Prettier
         run: npx prettier --check --ignore-path .gitignore  '**/*.(yml|js|ts|json)'
 
-  check-clippy:
-    name: "Code checks"
-    runs-on: self-hosted
-    steps:
-      - name: Checkout
-        if: github.event_name == 'pull_request_target'
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          ref: refs/pull/${{ github.event.pull_request.number }}/merge
-
-      - name: Checkout
-        if: github.event_name != 'pull_request_target'
-        uses: actions/checkout@v2
-
-      - name: Install toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly-2020-10-03
-          components: clippy, rustfmt
-          target: wasm32-unknown-unknown
-          default: true
-
-      - name: Check with Clippy
-        run: cargo clippy --workspace
-
-      - name: Format code with rustfmt
-        run: cargo fmt -- --check
-
   ####### Building and Testing binaries #######
 
   build:
@@ -209,6 +179,10 @@ jobs:
         with:
           name: moonbeam
           path: build
+      - name: Check with Clippy
+        run: cargo clippy --release --workspace
+      - name: Format code with rustfmt
+        run: cargo fmt -- --check
 
   ####### Prepare and Deploy Docker images #######
 
@@ -226,7 +200,7 @@ jobs:
       - name: Generate specs
         run: |
           chmod uog+x build/moonbeam
-          PARACHAIN_BINARY=build/moonbeam scripts/generate-parachain-specs.sh
+          MOONBEAM_BINARY=build/moonbeam scripts/generate-parachain-specs.sh
       - name: Upload parachain specs
         uses: actions/upload-artifact@v2
         with:
@@ -444,7 +418,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
-          asset_path: build/runtime.wasm
+          asset_path: build/alphanet/parachain-runtime.wasm
           asset_name: runtime-v${{ steps.get-runtime-ver.outputs.runtime_ver }}.wasm
           asset_content_type: application/wasm
       - name: Upload binary

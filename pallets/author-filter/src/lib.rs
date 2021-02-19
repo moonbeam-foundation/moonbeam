@@ -35,6 +35,7 @@ pub use pallet::*;
 #[pallet]
 pub mod pallet {
 
+	use frame_support::debug;
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::Randomness;
 	use frame_support::traits::Vec;
@@ -61,7 +62,8 @@ pub mod pallet {
 	// of this block is eligible at this height. We calculate that result on demand and do not
 	// record it instorage (although we do emit a debugging event for now).
 	// This implementation relies on the relay parent's block number from the validation data
-	// inherent. Therefore the validation data inherent **must** be included before this check is
+	// inherent. Therefore this implementation must not be used as a preliminary check (only final)
+	// Further, the validation data inherent **must** be included before this check is
 	// performed. Concretely the validation data inherent must be included before the author
 	// inherent.
 	impl<T: Config> author_inherent::CanAuthor<T::AccountId> for Pallet<T> {
@@ -82,7 +84,7 @@ pub mod pallet {
 				// - The index `i` when we're selecting the ith eligible author
 				// - The relay parent block number so that the eligible authors at the next height
 				//   change. Avoids liveness attacks from colluding minorities of active authors.
-				// Third one will not be necessary once we dleverage the relay chain's randomness.
+				// Third one will not be necessary once we leverage the relay chain's randomness.
 				let subject: [u8; 8] = [
 					b'f',
 					b'i',
@@ -93,7 +95,9 @@ pub mod pallet {
 					i as u8,
 					relay_height as u8,
 				];
-				let index = T::RandomnessSource::random(&subject).to_low_u64_be() as usize;
+				let randomness = T::RandomnessSource::random(&subject);
+				// Cast to u32 first so we get the same result on wasm and 64-bit platforms.
+				let index = (randomness.to_low_u64_be() as u32) as usize;
 
 				// Move the selected author from the original vector into the eligible vector
 				// TODO we could short-circuit this check by returning early when the claimed
@@ -101,6 +105,34 @@ pub mod pallet {
 				// 1. it is easier to understand what our core filtering logic is
 				// 2. we currently show the entire filtered set in the debug event
 				eligible.push(staked.remove(index % staked.len()));
+
+				// Print some logs for debugging purposes.
+				debug::trace!(target:"author-filter", "Filtering Authors");
+				debug::trace!(
+					target:"author-filter",
+					"The randomness was {:?}",
+					randomness
+				);
+				debug::trace!(
+					target:"author-filter",
+					"NOT Eligible Authors: {:?}",
+					&staked
+				);
+				debug::trace!(
+					target:"author-filter",
+					"Eligible Authors are: {:?}",
+					eligible
+				);
+				debug::trace!(
+					target:"author-filter",
+					"The id I'm checking is: {:?}",
+					account
+				);
+				debug::trace!(
+					target:"author-filter",
+					"Was that author eligible: {}",
+					eligible.contains(account)
+				);
 			}
 
 			// Emit an event for debugging purposes

@@ -61,8 +61,7 @@ use frame_support::{
 	traits::{Currency, EnsureOrigin, Get, Imbalance, ReservableCurrency},
 };
 use frame_system::{ensure_signed, Config as System};
-use pallet_staking::{Exposure, IndividualExposure};
-use parity_scale_codec::{Decode, Encode, HasCompact};
+use parity_scale_codec::{Decode, Encode};
 use set::OrderedSet;
 use sp_runtime::{
 	traits::{AtLeast32BitUnsigned, Zero},
@@ -105,15 +104,6 @@ impl<AccountId: Ord, Balance> PartialEq for Bond<AccountId, Balance> {
 	}
 }
 
-impl<A, B: HasCompact> Into<IndividualExposure<A, B>> for Bond<A, B> {
-	fn into(self) -> IndividualExposure<A, B> {
-		IndividualExposure {
-			who: self.owner,
-			value: self.amount,
-		}
-	}
-}
-
 #[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
 /// The activity status of the validator
 pub enum ValidatorStatus {
@@ -131,7 +121,17 @@ impl Default for ValidatorStatus {
 	}
 }
 
+#[derive(Default, Encode, Decode, RuntimeDebug)]
+/// Snapshot of validator state at the start of the round for which they are selected
+pub struct ValidatorSnapshot<AccountId, Balance> {
+	pub fee: Perbill,
+	pub bond: Balance,
+	pub nominators: Vec<Bond<AccountId, Balance>>,
+	pub total: Balance,
+}
+
 #[derive(Encode, Decode, RuntimeDebug)]
+/// Global validator state with commission fee, bonded stake, and nominations
 pub struct Validator<AccountId, Balance> {
 	pub id: AccountId,
 	pub fee: Perbill,
@@ -256,12 +256,13 @@ impl<
 	}
 }
 
-impl<A: PartialEq, B: HasCompact + Zero> Into<Exposure<A, B>> for Validator<A, B> {
-	fn into(self) -> Exposure<A, B> {
-		Exposure {
-			total: self.total,
-			own: self.bond,
-			others: self.nominators.0.into_iter().map(|x| x.into()).collect(),
+impl<A: Clone, B: Copy> From<Validator<A, B>> for ValidatorSnapshot<A, B> {
+	fn from(other: Validator<A, B>) -> ValidatorSnapshot<A, B> {
+		ValidatorSnapshot {
+			fee: other.fee,
+			bond: other.bond,
+			nominators: other.nominators.0,
+			total: other.total,
 		}
 	}
 }
@@ -540,7 +541,7 @@ decl_storage! {
 		/// Exposure at stake per round, per validator
 		AtStake: double_map
 			hasher(blake2_128_concat) RoundIndex,
-			hasher(blake2_128_concat) T::AccountId => Exposure<T::AccountId,BalanceOf<T>>;
+			hasher(blake2_128_concat) T::AccountId => ValidatorSnapshot<T::AccountId, BalanceOf<T>>;
 		/// Snapshot of total staked in this round; used to determine round issuance
 		Staked: map
 			hasher(blake2_128_concat) RoundIndex => BalanceOf<T>;
@@ -1095,28 +1096,28 @@ impl<T: Config> Module<T> {
 				if amt_due <= T::Currency::minimum_balance() {
 					continue;
 				}
-				if let Some(state) = <Candidates<T>>::get(&val) {
-					if state.nominators.0.is_empty() {
-						// solo validator with no nominators
-						mint(amt_due, val.clone());
+				// Take the snapshot of block author and nominations
+				let state = <AtStake<T>>::take(round_to_payout, &val);
+				if state.nominators.is_empty() {
+					// solo validator with no nominators
+					mint(amt_due, val.clone());
+				} else {
+					// pay validator first; commission + due_portion
+					let val_pct = Perbill::from_rational_approximation(state.bond, state.total);
+					let commission = state.fee * amt_due;
+					let val_due = if commission > T::Currency::minimum_balance() {
+						amt_due -= commission;
+						(val_pct * amt_due) + commission
 					} else {
-						// pay validator first; commission + due_portion
-						let val_pct = Perbill::from_rational_approximation(state.bond, state.total);
-						let commission = state.fee * amt_due;
-						let val_due = if commission > T::Currency::minimum_balance() {
-							amt_due -= commission;
-							(val_pct * amt_due) + commission
-						} else {
-							// commission is negligible so not applied
-							val_pct * amt_due
-						};
-						mint(val_due, val.clone());
-						// pay nominators due portion
-						for Bond { owner, amount } in state.nominators.0 {
-							let percent = Perbill::from_rational_approximation(amount, state.total);
-							let due = percent * amt_due;
-							mint(due, owner);
-						}
+						// commission is negligible so not applied
+						val_pct * amt_due
+					};
+					mint(val_due, val.clone());
+					// pay nominators due portion
+					for Bond { owner, amount } in state.nominators {
+						let percent = Perbill::from_rational_approximation(amount, state.total);
+						let due = percent * amt_due;
+						mint(due, owner);
 					}
 				}
 			}
@@ -1176,12 +1177,12 @@ impl<T: Config> Module<T> {
 			.take(max_validators)
 			.map(|x| x.owner)
 			.collect::<Vec<T::AccountId>>();
-		// snapshot exposure for round
+		// snapshot exposure for round for weighting reward distribution
 		for account in validators.iter() {
 			let state = <Candidates<T>>::get(&account)
-				.expect("all members of CandidateQ must be viable candidates by construction; qed");
+				.expect("all members of CandidateQ must be candidates");
 			let amount = state.total;
-			let exposure: Exposure<T::AccountId, BalanceOf<T>> = state.into();
+			let exposure: ValidatorSnapshot<T::AccountId, BalanceOf<T>> = state.into();
 			<AtStake<T>>::insert(next, account, exposure);
 			all_validators += 1u32;
 			total += amount;

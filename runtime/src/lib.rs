@@ -96,7 +96,7 @@ pub type DigestItem = generic::DigestItem<Hash>;
 pub const MINIMUM_PERIOD: u64 = 3000;
 
 /// Maximum weight per block
-pub const MAXIMUM_BLOCK_WEIGHT: Weight = 2 * WEIGHT_PER_SECOND;
+pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
@@ -118,7 +118,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 19,
+	spec_version: 22,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -133,7 +133,7 @@ pub fn native_version() -> NativeVersion {
 	}
 }
 
-const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(65);
+const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 250;
@@ -237,8 +237,8 @@ impl pallet_ethereum_chain_id::Config for Runtime {}
 
 /// Current approximation of the gas/s consumption considering
 /// EVM execution over compiled WASM (on 4.4Ghz CPU).
-/// Given the 500ms Weight, from which 65% only are used for transactions,
-/// the total EVM execution gas limit is: GAS_PER_SECOND * 0.500 * 0.65 ~= 12_500_000.
+/// Given the 500ms Weight, from which 75% only are used for transactions,
+/// the total EVM execution gas limit is: GAS_PER_SECOND * 0.500 * 0.75 ~= 15_000_000.
 pub const GAS_PER_SECOND: u64 = 40_000_000;
 
 /// Approximate ratio of the amount of Weight per Gas.
@@ -357,7 +357,8 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 pub struct EthereumFindAuthor<F>(PhantomData<F>);
 
 parameter_types! {
-	pub BlockGasLimit: u64 = NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT / WEIGHT_PER_GAS;
+	pub BlockGasLimit: U256
+		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT / WEIGHT_PER_GAS);
 }
 
 impl pallet_ethereum::Config for Runtime {
@@ -393,8 +394,8 @@ parameter_types! {
 	pub const MaxValidatorsPerNominator: u32 = 8;
 	/// The maximum percent a validator can take off the top of its rewards is 50%
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
-	/// Minimum stake required to be reserved to be a validator is 5
-	pub const MinValidatorStk: u128 = 100_000 * GLMR;
+	/// Minimum stake required to be reserved to be a validator is 1_000
+	pub const MinValidatorStk: u128 = 1_000 * GLMR;
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5 * GLMR;
 }
@@ -414,7 +415,11 @@ impl stake::Config for Runtime {
 }
 impl author_inherent::Config for Runtime {
 	type EventHandler = Stake;
-	type CanAuthor = AuthorFilter;
+	// We cannot run the full filtered author checking logic in the preliminary check because it
+	// depends on entropy from the relay chain. Instead we just make sure that the author is staked
+	// in the preliminary check. The final check including the filtering happens during execution.
+	type PreliminaryCanAuthor = Stake;
+	type FinalCanAuthor = AuthorFilter;
 }
 
 impl pallet_author_filter::Config for Runtime {
@@ -443,9 +448,9 @@ construct_runtime! {
 		Scheduler: pallet_scheduler::{Module, Storage, Config, Event<T>, Call},
 		Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
 		// The order matters here. Inherents will be included in the order specified here.
-		// Concretely wee need the author inherent to come after the parachain_upgrade inherent.
+		// Concretely we need the author inherent to come after the parachain_upgrade inherent.
 		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
-		AuthorFilter: pallet_author_filter::{Module, Storage, Event<T>,}
+		AuthorFilter: pallet_author_filter::{Module, Call, Storage, Event<T>,}
 	}
 }
 
@@ -763,6 +768,10 @@ impl_runtime_apis! {
 				Ethereum::current_receipts(),
 				Ethereum::current_transaction_statuses()
 			)
+		}
+
+		fn current_block_gas_limit() -> U256 {
+			<Runtime as pallet_ethereum::Config>::BlockGasLimit::get()
 		}
 	}
 

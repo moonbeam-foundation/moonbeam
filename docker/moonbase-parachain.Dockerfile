@@ -1,10 +1,10 @@
-# Node for Moonbase Alphanet.
+# Node for Moonbase Parachains.
 #
 # Requires to run from repository root and to copy the binary in the build folder (part of the release workflow)
 
 FROM phusion/baseimage:0.11
 LABEL maintainer "alan@purestake.com"
-LABEL description="Moonbeam network node. Supports Alphanet. Will support Moonriver and Moonbeam mainnet."
+LABEL description="Moonbeam network node. Supports Alphanet/Stagenet. Will support Moonriver and Moonbeam mainnet."
 ARG PROFILE=release
 
 RUN mv /usr/share/ca* /tmp && \

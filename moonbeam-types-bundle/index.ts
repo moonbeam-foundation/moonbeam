@@ -65,7 +65,7 @@ export const moonbeamDefinitions = {
       },
     },
     {
-      minmax: [6, undefined],
+      minmax: [6, 19],
       types: {
         AccountId: "EthereumAccountId",
         Address: "AccountId",
@@ -94,7 +94,7 @@ export const moonbeamDefinitions = {
           amount: "Balance",
         },
         ValidatorStatus: {
-          _enum: ["Active", "Idle", "Leaving(RoundIndex)"],
+          _enum: ["Active", "Idle", { Leaving: "RoundIndex" }],
         },
         TxPoolResultContent: {
           pending: "HashMap<H160, HashMap<U256, PoolTransaction>>",
@@ -120,6 +120,96 @@ export const moonbeamDefinitions = {
           gas_price: "U256",
           gas: "U256",
           input: "Bytes",
+        },
+      },
+    },
+    {
+      minmax: [19, undefined],
+      types: {
+        AccountId: "EthereumAccountId",
+        Address: "AccountId",
+        Balance: "u128",
+        LookupSource: "AccountId",
+        Account: {
+          nonce: "U256",
+          balance: "u128",
+        },
+        ExtrinsicSignature: "EthereumSignature",
+        RoundIndex: "u32",
+        Candidate: {
+          id: "AccountId",
+          fee: "Perbill",
+          bond: "Balance",
+          nominators: "Vec<Bond>",
+          total: "Balance",
+          state: "ValidatorStatus",
+        },
+        Nominator: {
+          nominations: "Vec<Bond>",
+          total: "Balance",
+        },
+        Bond: {
+          owner: "AccountId",
+          amount: "Balance",
+        },
+        ValidatorStatus: {
+          _enum: ["Active", "Idle", { Leaving: "RoundIndex" }],
+        },
+        TxPoolResultContent: {
+          pending: "HashMap<H160, HashMap<U256, PoolTransaction>>",
+          queued: "HashMap<H160, HashMap<U256, PoolTransaction>>",
+        },
+        TxPoolResultInspect: {
+          pending: "HashMap<H160, HashMap<U256, Summary>>",
+          queued: "HashMap<H160, HashMap<U256, Summary>>",
+        },
+        TxPoolResultStatus: {
+          pending: "U256",
+          queued: "U256",
+        },
+        Summary: "Bytes",
+        PoolTransaction: {
+          hash: "H256",
+          nonce: "U256",
+          block_hash: "Option<H256>",
+          block_number: "Option<U256>",
+          from: "H160",
+          to: "Option<H160>",
+          value: "U256",
+          gas_price: "U256",
+          gas: "U256",
+          input: "Bytes",
+        },
+        // Staking inflation
+        Range: "RangeBalance",
+        RangeBalance: {
+          min: "Balance",
+          ideal: "Balance",
+          max: "Balance",
+        },
+        RangePerbill: {
+          min: "Perbill",
+          ideal: "Perbill",
+          max: "Perbill",
+        },
+        InflationInfo: {
+          expect: "RangeBalance",
+          round: "RangePerbill",
+        },
+        OrderedSet: "Vec",
+        Validator: {
+          id: "AccountId",
+          fee: "Perbill",
+          bond: "Balance",
+          nominators: "Vec<Bond>",
+          total: "Balance",
+          state: "ValidatorStatus",
+        },
+        ValidatorSnapshot: {
+          fee: "Perbill",
+          bond: "Balance",
+          nominators: "Vec<Bond>",
+          total: "Balance",
         },
       },
     },

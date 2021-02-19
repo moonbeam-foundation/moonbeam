@@ -22,6 +22,7 @@ use moonbeam_runtime::{
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
+use sc_telemetry::TelemetryEndpoints;
 use serde::{Deserialize, Serialize};
 use sp_runtime::Perbill;
 use stake::{InflationInfo, Range};
@@ -60,7 +61,7 @@ pub fn development_chain_spec() -> ChainSpec {
 				vec![(
 					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
 					None,
-					100_000 * GLMR,
+					1_000 * GLMR,
 				)],
 				moonbeam_inflation_config(),
 				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
@@ -69,7 +70,10 @@ pub fn development_chain_spec() -> ChainSpec {
 			)
 		},
 		vec![],
-		None,
+		Some(
+			TelemetryEndpoints::new(vec![("wss://telemetry.polkadot.io/submit/".to_string(), 0)])
+				.expect("Polkadot Staging telemetry url is valid; qed"),
+		),
 		None,
 		Some(serde_json::from_str("{\"tokenDecimals\": 18}").expect("Provided valid json map")),
 		Extensions {
@@ -83,7 +87,10 @@ pub fn development_chain_spec() -> ChainSpec {
 /// a custom chain.
 pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 	ChainSpec::from_genesis(
-		"Moonbase Parachain Local Testnet",
+		// TODO Apps depends on this string to determine whether the chain is an ethereum compat
+		// or not. We should decide the proper strings, and update Apps accordingly.
+		// Or maybe Apps can be smart enough to say if the string contains "moonbeam" at all...
+		"Moonbase Development Testnet",
 		"local_testnet",
 		ChainType::Local,
 		move || {
@@ -93,7 +100,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 				vec![(
 					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
 					None,
-					100_000 * GLMR,
+					1_000 * GLMR,
 				)],
 				moonbeam_inflation_config(),
 				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
