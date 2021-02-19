@@ -443,6 +443,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 	pub fn trace_create(
 		&mut self,
 		caller: H160,
+		scheme: CreateScheme,
 		value: U256,
 		code: Vec<u8>,
 		target_gas: Option<u64>,
@@ -466,7 +467,6 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 			.metadata_mut()
 			.gasometer_mut()
 			.record_cost(gas_limit));
-		let scheme = CreateScheme::Legacy { caller };
 		let address = self.inner.create_address(scheme);
 		self.inner.enter_substate(gas_limit, false);
 
@@ -584,13 +584,13 @@ impl<'config, S: StackStateT<'config>> HandlerT for TraceExecutorWrapper<'config
 	fn create(
 		&mut self,
 		caller: H160,
-		_scheme: CreateScheme,
+		scheme: CreateScheme,
 		value: U256,
 		init_code: Vec<u8>,
 		target_gas: Option<u64>,
 	) -> Capture<(ExitReason, Option<H160>, Vec<u8>), Self::CreateInterrupt> {
 		if self.is_tracing {
-			self.trace_create(caller, value, init_code, target_gas)
+			self.trace_create(caller, scheme, value, init_code, target_gas)
 		} else {
 			unreachable!("TODO StackExecutorWrapper only available on tracing enabled.");
 		}
