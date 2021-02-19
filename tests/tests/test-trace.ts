@@ -13,6 +13,56 @@ const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
 const GENESIS_ACCOUNT_PRIVATE_KEY =
     "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
 
+async function nested(context) {
+    // Create Callee contract.
+    const calleeTx = await context.web3.eth.accounts.signTransaction(
+        {
+            from: GENESIS_ACCOUNT,
+            data: CALLEE.bytecode,
+            value: "0x00",
+            gasPrice: "0x01",
+            gas: "0x100000",
+        },
+        GENESIS_ACCOUNT_PRIVATE_KEY
+    );
+    let send = await customRequest(
+        context.web3, "eth_sendRawTransaction", [calleeTx.rawTransaction]
+    );
+    await createAndFinalizeBlock(context.polkadotApi);
+    let receipt = await context.web3.eth.getTransactionReceipt(send.result);
+    const callee_addr = receipt.contractAddress;
+    const callee = new context.web3.eth.Contract(CALLEE.abi, callee_addr);
+    // Create Caller contract.
+    const callerTx = await context.web3.eth.accounts.signTransaction(
+        {
+            from: GENESIS_ACCOUNT,
+            data: CALLER.bytecode,
+            value: "0x00",
+            gasPrice: "0x01",
+            gas: "0x100000",
+        },
+        GENESIS_ACCOUNT_PRIVATE_KEY
+    );
+    send = await customRequest(
+        context.web3, "eth_sendRawTransaction", [callerTx.rawTransaction]
+    );
+    await createAndFinalizeBlock(context.polkadotApi);
+    receipt = await context.web3.eth.getTransactionReceipt(send.result);
+    const caller_addr = receipt.contractAddress;
+    const caller = new context.web3.eth.Contract(CALLER.abi, caller_addr);
+    // Nested call
+    let callTx = await context.web3.eth.accounts.signTransaction({
+        from: GENESIS_ACCOUNT,
+        to: caller_addr,
+        gas: "0x100000",
+        value: "0x00",
+        data: caller.methods.someAction(callee_addr, 6).encodeABI() // calls callee
+    }, GENESIS_ACCOUNT_PRIVATE_KEY);
+    return await customRequest(
+        context.web3, "eth_sendRawTransaction", [callTx.rawTransaction]
+    );
+}
+
 describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
     step("[Raw] should replay over an intermediate state", async function () {
 
@@ -85,53 +135,7 @@ describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
     });
 
     step("[Raw] should trace nested contract calls", async function () {
-        // Create Callee contract.
-        const calleeTx = await context.web3.eth.accounts.signTransaction(
-            {
-                from: GENESIS_ACCOUNT,
-                data: CALLEE.bytecode,
-                value: "0x00",
-                gasPrice: "0x01",
-                gas: "0x100000",
-            },
-            GENESIS_ACCOUNT_PRIVATE_KEY
-        );
-        let send = await customRequest(
-            context.web3, "eth_sendRawTransaction", [calleeTx.rawTransaction]
-        );
-        await createAndFinalizeBlock(context.polkadotApi);
-        let receipt = await context.web3.eth.getTransactionReceipt(send.result);
-        const callee_addr = receipt.contractAddress;
-        const callee = new context.web3.eth.Contract(CALLEE.abi, callee_addr);
-        // Create Caller contract.
-        const callerTx = await context.web3.eth.accounts.signTransaction(
-            {
-                from: GENESIS_ACCOUNT,
-                data: CALLER.bytecode,
-                value: "0x00",
-                gasPrice: "0x01",
-                gas: "0x100000",
-            },
-            GENESIS_ACCOUNT_PRIVATE_KEY
-        );
-        send = await customRequest(
-            context.web3, "eth_sendRawTransaction", [callerTx.rawTransaction]
-        );
-        await createAndFinalizeBlock(context.polkadotApi);
-        receipt = await context.web3.eth.getTransactionReceipt(send.result);
-        const caller_addr = receipt.contractAddress;
-        const caller = new context.web3.eth.Contract(CALLER.abi, caller_addr);
-        // Nested call
-        let callTx = await context.web3.eth.accounts.signTransaction({
-            from: GENESIS_ACCOUNT,
-            to: caller_addr,
-            gas: "0x100000",
-            value: "0x00",
-            data: caller.methods.someAction(callee_addr, 6).encodeABI() // calls callee
-        }, GENESIS_ACCOUNT_PRIVATE_KEY);
-        send = await customRequest(
-            context.web3, "eth_sendRawTransaction", [callTx.rawTransaction]
-        );
+        const send = await nested(context);
         await createAndFinalizeBlock(context.polkadotApi);
         let traceTx = await customRequest(
             context.web3, "debug_traceTransaction", [send.result]
@@ -151,53 +155,7 @@ describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
     });
 
     step("[Blockscout] should trace nested contract calls", async function () {
-        // Create Callee contract.
-        const calleeTx = await context.web3.eth.accounts.signTransaction(
-            {
-                from: GENESIS_ACCOUNT,
-                data: CALLEE.bytecode,
-                value: "0x00",
-                gasPrice: "0x01",
-                gas: "0x100000",
-            },
-            GENESIS_ACCOUNT_PRIVATE_KEY
-        );
-        let send = await customRequest(
-            context.web3, "eth_sendRawTransaction", [calleeTx.rawTransaction]
-        );
-        await createAndFinalizeBlock(context.polkadotApi);
-        let receipt = await context.web3.eth.getTransactionReceipt(send.result);
-        const callee_addr = receipt.contractAddress;
-        const callee = new context.web3.eth.Contract(CALLEE.abi, callee_addr);
-        // Create Caller contract.
-        const callerTx = await context.web3.eth.accounts.signTransaction(
-            {
-                from: GENESIS_ACCOUNT,
-                data: CALLER.bytecode,
-                value: "0x00",
-                gasPrice: "0x01",
-                gas: "0x100000",
-            },
-            GENESIS_ACCOUNT_PRIVATE_KEY
-        );
-        send = await customRequest(
-            context.web3, "eth_sendRawTransaction", [callerTx.rawTransaction]
-        );
-        await createAndFinalizeBlock(context.polkadotApi);
-        receipt = await context.web3.eth.getTransactionReceipt(send.result);
-        const caller_addr = receipt.contractAddress;
-        const caller = new context.web3.eth.Contract(CALLER.abi, caller_addr);
-        // Nested call
-        let callTx = await context.web3.eth.accounts.signTransaction({
-            from: GENESIS_ACCOUNT,
-            to: caller_addr,
-            gas: "0x100000",
-            value: "0x00",
-            data: caller.methods.someAction(callee_addr, 6).encodeABI() // calls callee
-        }, GENESIS_ACCOUNT_PRIVATE_KEY);
-        send = await customRequest(
-            context.web3, "eth_sendRawTransaction", [callTx.rawTransaction]
-        );
+        const send = await nested(context);
         await createAndFinalizeBlock(context.polkadotApi);
         let traceTx = await customRequest(
             context.web3, "debug_traceTransaction", [send.result, { "tracer": "blockscout" }]
