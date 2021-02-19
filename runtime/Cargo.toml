@@ -59,7 +59,7 @@ moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool", default-fe
 
 # Cumulus dependencies
 cumulus-runtime = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
-cumulus-parachain-system = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
+cumulus-pallet-parachain-system = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
 cumulus-primitives = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
 
 # TODO Why can't this come directly from cumulus
@@ -110,7 +110,7 @@ std = [
 	"author-inherent/std",
 	"parachain-info/std",
 	"cumulus-runtime/std",
-	"cumulus-parachain-system/std",
+	"cumulus-pallet-parachain-system/std",
 	"cumulus-primitives/std",
 	"account/std",
 	"stake/std",
