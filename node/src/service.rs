@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use cumulus_network::build_block_announce_validator;
-use cumulus_service::{
+use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
 use fc_consensus::FrontierBlockImport;
@@ -136,7 +136,7 @@ where
 	let parachain_config = prepare_node_config(parachain_config);
 
 	let polkadot_full_node =
-		cumulus_service::build_polkadot_full_node(polkadot_config, collator_key.public()).map_err(
+		cumulus_client_service::build_polkadot_full_node(polkadot_config, collator_key.public()).map_err(
 			|e| match e {
 				polkadot_service::Error::Sub(x) => x,
 				s => format!("{}", s).into(),
