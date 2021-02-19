@@ -8,8 +8,7 @@ license = 'GPL-3.0-only'
 repository = 'https://github.com/PureStake/moonbeam/'
 
 [dependencies]
-# ethereum = { git = "https://github.com/rust-blockchain/ethereum", branch = "master", features = ["with-codec"], default-features = false }
-ethereum = { git = "https://github.com/notlesh/ethereum", branch = "notlesh-moonbeam-v0.6", features = ["with-codec"], default-features = false }
+ethereum = { version = "0.7", default-features = false, features = ["with-codec"] }
 sp-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "master", default-features = false }
 sp-api = { git = "https://github.com/paritytech/substrate.git", branch = "master", default-features = false }
 sp-io = { git = "https://github.com/paritytech/substrate.git", branch = "master", default-features = false }

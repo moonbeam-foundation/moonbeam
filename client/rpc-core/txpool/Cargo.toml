@@ -8,8 +8,7 @@ license = 'GPL-3.0-only'
 repository = 'https://github.com/PureStake/moonbeam/'
 
 [dependencies]
-# ethereum = { git = "https://github.com/rust-blockchain/ethereum", branch = "master", features = ["with-codec"] }
-ethereum = { git = "https://github.com/notlesh/ethereum", branch = "notlesh-moonbeam-v0.6", features = ["with-codec"] }
+ethereum = { version = "0.7", default-features = false, features = ["with-codec"] }
 ethereum-types = "0.11.0"
 jsonrpc-core = "15.0.0"
 jsonrpc-core-client = "14.0.3"
