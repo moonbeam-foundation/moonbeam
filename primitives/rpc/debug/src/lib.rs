@@ -22,7 +22,7 @@ use ethereum_types::{H160, H256, U256};
 use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
 #[cfg(feature = "std")]
-use serde::{ser::SerializeSeq, Deserialize, Serialize, Serializer};
+use serde::{ser::SerializeSeq, Serialize, Serializer};
 
 // TODO : Fix missing '0x' values.
 
@@ -76,7 +76,7 @@ pub mod blockscout {
 	#[cfg_attr(feature = "std", derive(Serialize))]
 	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 	pub enum CallResult {
-		Output(#[cfg_attr(feature = "std", serde(with = "hex"))] Vec<u8>),
+		Output(#[cfg_attr(feature = "std", serde(serialize_with = "bytes_0x_serialize"))] Vec<u8>),
 		// field "error"
 		Error(#[cfg_attr(feature = "std", serde(serialize_with = "string_serialize"))] Vec<u8>),
 	}
@@ -102,7 +102,7 @@ pub mod blockscout {
 		Success {
 			created_contract_address_hash: H160,
 
-			#[cfg_attr(feature = "std", serde(with = "hex"))]
+			#[cfg_attr(feature = "std", serde(serialize_with = "bytes_0x_serialize"))]
 			created_contract_code: Vec<u8>,
 		},
 	}
@@ -116,7 +116,7 @@ pub mod blockscout {
 			/// Type of call.
 			call_type: CallType,
 			to: H160,
-			#[cfg_attr(feature = "std", serde(with = "hex"))]
+			#[cfg_attr(feature = "std", serde(serialize_with = "bytes_0x_serialize"))]
 			input: Vec<u8>,
 			/// "output" or "error" field
 			#[cfg_attr(feature = "std", serde(flatten))]
@@ -125,7 +125,7 @@ pub mod blockscout {
 
 		#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 		Create {
-			#[cfg_attr(feature = "std", serde(with = "hex"))]
+			#[cfg_attr(feature = "std", serde(serialize_with = "bytes_0x_serialize"))]
 			init: Vec<u8>,
 			#[cfg_attr(feature = "std", serde(flatten))]
 			res: CreateResult,
@@ -161,7 +161,7 @@ pub enum TraceType {
 }
 
 #[cfg(feature = "std")]
-fn seq_h256_serialize<S>(data: &Vec<H256>, serializer: S) -> Result<S::Ok, S::Error>
+fn seq_h256_serialize<S>(data: &[H256], serializer: S) -> Result<S::Ok, S::Error>
 where
 	S: Serializer,
 {
@@ -173,20 +173,25 @@ where
 }
 
 #[cfg(feature = "std")]
-fn opcode_serialize<S>(opcode: &Vec<u8>, serializer: S) -> Result<S::Ok, S::Error>
+fn bytes_0x_serialize<S>(bytes: &[u8], serializer: S) -> Result<S::Ok, S::Error>
+where
+	S: Serializer,
+{
+	serializer.serialize_str(&format!("0x{}", hex::encode(bytes)))
+}
+
+#[cfg(feature = "std")]
+fn opcode_serialize<S>(opcode: &[u8], serializer: S) -> Result<S::Ok, S::Error>
 where
 	S: Serializer,
 {
 	// TODO: how to propagate Err here (i.e. `from_utf8` fails), so the rpc requests also
 	// returns an error?
-	serializer.serialize_str(&format!(
-		"{}",
-		std::str::from_utf8(opcode).unwrap_or("").to_uppercase()
-	))
+	serializer.serialize_str(&std::str::from_utf8(opcode).unwrap_or("").to_uppercase())
 }
 
 #[cfg(feature = "std")]
-fn string_serialize<S>(value: &Vec<u8>, serializer: S) -> Result<S::Ok, S::Error>
+fn string_serialize<S>(value: &[u8], serializer: S) -> Result<S::Ok, S::Error>
 where
 	S: Serializer,
 {
