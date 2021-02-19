@@ -50,7 +50,7 @@ pub mod pallet {
 	/// Configuration trait of this pallet.
 	#[pallet::config]
 	pub trait Config:
-		frame_system::Config + stake::Config + cumulus_parachain_system::Config
+		frame_system::Config + stake::Config + cumulus_pallet_parachain_system::Config
 	{
 		/// The overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
@@ -74,9 +74,9 @@ pub mod pallet {
 			let mut eligible = Vec::with_capacity(num_eligible);
 
 			// Grab the relay parent height as a temporary source of relay-based entropy
-			let validation_data = cumulus_parachain_system::Module::<T>::validation_data()
+			let validation_data = cumulus_pallet_parachain_system::Module::<T>::validation_data()
 				.expect("validation data was set in parachain system inherent");
-			let relay_height = validation_data.block_number;
+			let relay_height = validation_data.relay_parent_number;
 
 			for i in 0..num_eligible {
 				// A context identifier for grabbing the randomness. Consists of three parts
