@@ -378,6 +378,8 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 		data: Vec<u8>,
 		target_gas: Option<u64>,
 		is_static: bool,
+		take_l64: bool,
+		take_stipend: bool,
 		context: Context,
 	) -> Capture<(ExitReason, Vec<u8>), Infallible> {
 		macro_rules! try_or_fail {
@@ -389,9 +391,30 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 			};
 		}
 
-		let after_gas = self.inner.state().metadata().gasometer().gas();
+		// let after_gas = self.inner.state().metadata().gasometer().gas();
+		fn l64(gas: u64) -> u64 {
+			gas - gas / 64
+		}
+
+		let after_gas = if take_l64 && self.inner.config().call_l64_after_gas {
+			if self.inner.config().estimate {
+				let initial_after_gas = self.inner.state().metadata().gasometer().gas();
+				let diff = initial_after_gas - l64(initial_after_gas);
+				try_or_fail!(self
+					.inner
+					.state_mut()
+					.metadata_mut()
+					.gasometer_mut()
+					.record_cost(diff));
+				self.inner.state().metadata().gasometer().gas()
+			} else {
+				l64(self.inner.state().metadata().gasometer().gas())
+			}
+		} else {
+			self.inner.state().metadata().gasometer().gas()
+		};
 		let target_gas = target_gas.unwrap_or(after_gas);
-		let gas_limit = min(target_gas, after_gas);
+		let mut gas_limit = min(target_gas, after_gas);
 
 		try_or_fail!(self
 			.inner
@@ -400,9 +423,22 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 			.gasometer_mut()
 			.record_cost(gas_limit));
 
+		if let Some(transfer) = transfer.as_ref() {
+			if take_stipend && transfer.value != U256::zero() {
+				gas_limit = gas_limit.saturating_add(self.inner.config().call_stipend);
+			}
+		}
+
 		let code = self.inner.code(address);
 		self.inner.enter_substate(gas_limit, is_static);
 		self.inner.state_mut().touch(context.address);
+
+		if let Some(depth) = self.inner.state().metadata().depth() {
+			if depth > self.inner.config().call_stack_limit {
+				let _ = self.inner.exit_substate(StackExitKind::Reverted);
+				return Capture::Exit((ExitError::CallTooDeep.into(), Vec::new()));
+			}
+		}
 
 		if let Some(transfer) = transfer {
 			match self.inner.state_mut().transfer(transfer) {
@@ -424,13 +460,22 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 		self.call_type = Some(CallType::Call);
 		match self.trace(&mut runtime, ContextType::Call, data) {
 			ExitReason::Succeed(s) => {
+				let _ = self.inner.exit_substate(StackExitKind::Succeeded);
 				Capture::Exit((ExitReason::Succeed(s), runtime.machine().return_value()))
 			}
-			ExitReason::Error(e) => Capture::Exit((ExitReason::Error(e), Vec::new())),
+			ExitReason::Error(e) => {
+				let _ = self.inner.exit_substate(StackExitKind::Failed);
+				Capture::Exit((ExitReason::Error(e), Vec::new()))
+			}
 			ExitReason::Revert(e) => {
+				let _ = self.inner.exit_substate(StackExitKind::Reverted);
 				Capture::Exit((ExitReason::Revert(e), runtime.machine().return_value()))
 			}
-			ExitReason::Fatal(e) => Capture::Exit((ExitReason::Fatal(e), Vec::new())),
+			ExitReason::Fatal(e) => {
+				self.inner.state_mut().metadata_mut().gasometer_mut().fail();
+				let _ = self.inner.exit_substate(StackExitKind::Failed);
+				Capture::Exit((ExitReason::Fatal(e), Vec::new()))
+			}
 		}
 	}
 
@@ -451,6 +496,12 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 			};
 		}
 
+		if let Some(depth) = self.inner.state().metadata().depth() {
+			if depth > self.inner.config().call_stack_limit {
+				return Capture::Exit((ExitError::CallTooDeep.into(), None, Vec::new()));
+			}
+		}
+
 		let after_gas = self.inner.state().metadata().gasometer().gas();
 		let target_gas = target_gas.unwrap_or(after_gas);
 		let gas_limit = min(target_gas, after_gas);
@@ -462,13 +513,29 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 			.gasometer_mut()
 			.record_cost(gas_limit));
 		let address = self.inner.create_address(scheme);
+		self.inner.state_mut().inc_nonce(caller);
 		self.inner.enter_substate(gas_limit, false);
 
 		let context = Context {
-			caller,
 			address,
+			caller,
 			apparent_value: value,
 		};
+
+		let transfer = Transfer {
+			source: caller,
+			target: address,
+			value,
+		};
+
+		match self.inner.state_mut().transfer(transfer) {
+			Ok(()) => (),
+			Err(e) => {
+				let _ = self.inner.exit_substate(StackExitKind::Reverted);
+				return Capture::Exit((ExitReason::Error(e), None, Vec::new()));
+			}
+		}
+
 		let mut runtime = Runtime::new(
 			Rc::new(code.clone()),
 			Rc::new(Vec::new()),
@@ -477,11 +544,40 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 		);
 
 		match self.trace(&mut runtime, ContextType::Create, code) {
-			ExitReason::Succeed(s) => Capture::Exit((
-				ExitReason::Succeed(s),
-				Some(address),
-				runtime.machine().return_value(),
-			)),
+			ExitReason::Succeed(s) => {
+				let out = runtime.machine().return_value();
+
+				if let Some(limit) = self.inner.config().create_contract_limit {
+					if out.len() > limit {
+						self.inner.state_mut().metadata_mut().gasometer_mut().fail();
+						let _ = self.inner.exit_substate(StackExitKind::Failed);
+						return Capture::Exit((
+							ExitError::CreateContractLimit.into(),
+							None,
+							Vec::new(),
+						));
+					}
+				}
+
+				match self
+					.inner
+					.state_mut()
+					.metadata_mut()
+					.gasometer_mut()
+					.record_deposit(out.len())
+				{
+					Ok(()) => {
+						let e = self.inner.exit_substate(StackExitKind::Succeeded);
+						self.inner.state_mut().set_code(address, out);
+						try_or_fail!(e);
+						Capture::Exit((ExitReason::Succeed(s), Some(address), Vec::new()))
+					}
+					Err(e) => {
+						let _ = self.inner.exit_substate(StackExitKind::Failed);
+						Capture::Exit((ExitReason::Error(e), None, Vec::new()))
+					}
+				}
+			}
 			ExitReason::Error(e) => Capture::Exit((ExitReason::Error(e), None, Vec::new())),
 			ExitReason::Revert(e) => Capture::Exit((
 				ExitReason::Revert(e),
@@ -606,6 +702,8 @@ impl<'config, S: StackStateT<'config>> HandlerT for TraceExecutorWrapper<'config
 				input,
 				target_gas,
 				is_static,
+				true,
+				true,
 				context,
 			)
 		} else {

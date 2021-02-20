@@ -122,7 +122,7 @@ describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
 
       let evm_result = context.web3.utils.hexToNumber("0x" + intermediate_tx.result.returnValue);
 
-      console.log(`Matching target ${target} against evm result ${evm_result}`);
+      // console.log(`Matching target ${target} against evm result ${evm_result}`);
       expect(evm_result).to.equal(target);
     }
   });
@@ -136,13 +136,13 @@ describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
       if (logs.length == 1) {
         logs.push(log);
       }
-      if (log.op == "CALL") {
+      if (log.op == "RETURN") {
         logs.push(log);
       }
     }
     expect(logs.length).to.be.equal(2);
-    expect(logs[0].depth).to.be.equal(1);
-    expect(logs[1].depth).to.be.equal(2);
+    expect(logs[0].depth).to.be.equal(2);
+    expect(logs[1].depth).to.be.equal(1);
   });
 
   step("[Blockscout] should trace nested contract calls", async function () {
