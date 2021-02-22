@@ -300,7 +300,7 @@ pub fn run() -> Result<()> {
 					if cli.run.dev_service || relay_chain_id == Some("dev-service".to_string()) {
 						// --dev implies --collator
 						let collator = collator || cli.run.shared_params.dev;
-						
+
 						// If no author id was supplied, use the one that is staked at genesis
 						// in the default development spec.
 						let author_id = author_id.or_else(|| {
