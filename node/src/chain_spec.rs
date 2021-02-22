@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use cumulus_primitives::ParaId;
+use cumulus_primitives_core::ParaId;
 use moonbeam_runtime::{
 	AccountId, Balance, BalancesConfig, DemocracyConfig, EVMConfig, EthereumChainIdConfig,
 	EthereumConfig, GenesisConfig, ParachainInfoConfig, SchedulerConfig, StakeConfig, SudoConfig,

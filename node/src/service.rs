@@ -13,8 +13,7 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-
-use cumulus_network::build_block_announce_validator;
+use cumulus_client_network::build_block_announce_validator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
@@ -87,7 +86,7 @@ pub fn new_partial(
 
 	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone(), true);
 
-	let import_queue = cumulus_consensus::import_queue::import_queue(
+	let import_queue = cumulus_client_consensus_relay_chain::import_queue(
 		client.clone(),
 		frontier_block_import.clone(),
 		inherent_data_providers.clone(),

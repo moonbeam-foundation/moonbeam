@@ -25,7 +25,7 @@
 //! for example, running the --dev service without a relay chain backbone, or authoring block
 //! extremely quickly in testing scenarios.
 
-use cumulus_primitives::{
+use cumulus_primitives_core::{
 	inherents::{SystemInherentData, SYSTEM_INHERENT_IDENTIFIER},
 	PersistedValidationData,
 };
