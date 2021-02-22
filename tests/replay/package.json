@@ -1,0 +1,15 @@
+{
+  "name": "eth-replay",
+  "version": "1.0.0",
+  "description": "",
+  "main": "replay.js",
+  "scripts": {
+    "replay": "tsc && node replay.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "typescript": "^3.9.6",
+    "web3": "^1.3.3"
+  }
+}
