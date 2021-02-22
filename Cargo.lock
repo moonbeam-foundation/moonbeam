@@ -1809,6 +1809,7 @@ dependencies = [
  "sc-network",
  "sc-rpc",
  "sc-service",
+ "sc-transaction-graph",
  "sha3 0.8.2",
  "sp-api",
  "sp-blockchain",
