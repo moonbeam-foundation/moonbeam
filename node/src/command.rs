@@ -298,7 +298,6 @@ pub fn run() -> Result<()> {
 					// 2. by specifying "dev-service" in the chain spec's "relay-chain" field.
 					// NOTE: the --dev flag triggers the dev service by way of number 2
 					if cli.run.dev_service || relay_chain_id == Some("dev-service".to_string()) {
-
 						// If no author id was supplied, use the one that is staked at genesis
 						// in the default development spec.
 						let author_id = author_id.or_else(|| {

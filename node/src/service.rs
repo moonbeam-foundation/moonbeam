@@ -14,32 +14,32 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use crate::{cli::Sealing, inherents::build_inherent_data_providers};
 use async_io::Timer;
 use cumulus_network::build_block_announce_validator;
 use cumulus_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
 use fc_consensus::FrontierBlockImport;
-use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use futures::{Stream, StreamExt};
 use moonbeam_runtime::{opaque::Block, RuntimeApi};
 use polkadot_primitives::v0::CollatorPair;
 use sc_client_api::BlockchainEvents;
+use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
 use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
-use sc_service::{error::Error as ServiceError,Configuration, PartialComponents, Role, TFullBackend, TFullClient, TaskManager};
+use sc_service::{
+	error::Error as ServiceError, Configuration, PartialComponents, Role, TFullBackend,
+	TFullClient, TaskManager,
+};
 use sp_core::{Pair, H160, H256};
 use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
 use std::{
-	time::Duration,
 	collections::{BTreeMap, HashMap},
 	sync::{Arc, Mutex},
-};
-use crate::{
-	cli::Sealing,
-	inherents::build_inherent_data_providers,
+	time::Duration,
 };
 
 // Our native executor instance.
