@@ -56,7 +56,7 @@ async function processBlock(web3: Web3, n: number): Promise<number> {
                     params,
                 },
                 (error: Error | null, result?: JsonRpcResponse) => {
-                    // We are only interested in errors.
+                    // We are only interested in errors. Error in HTTP request.
                     if (error) {
                         let e = JSON.parse(fs.readFileSync(ERROR_FILE));
                         let current = e.errors;
@@ -75,7 +75,19 @@ async function processBlock(web3: Web3, n: number): Promise<number> {
                 }
             );
         });
-        await req;
+        let response = await req;
+        // We are only interested in errors. Error on processing the request.
+        if (response.hasOwnProperty("error")) {
+            let e = JSON.parse(fs.readFileSync(ERROR_FILE));
+            let current = e.errors;
+            current.push({
+                block_number: n,
+                txn: txn,
+                error: response.error
+            });
+            // Update error file.
+            fs.writeFileSync(ERROR_FILE, JSON.stringify(current));
+        }
     }
     // Return the number of transactions processed in this block.
     return block.transactions.length;
