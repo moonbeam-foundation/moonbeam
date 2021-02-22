@@ -131,7 +131,7 @@ async fn start_node_impl<RB>(
 	author_id: Option<H160>,
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
-	validator: bool,
+	collator: bool,
 	_rpc_ext_builder: RB,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient>)>
 where
@@ -182,7 +182,6 @@ where
 			block_announce_validator_builder: Some(Box::new(|_| block_announce_validator)),
 		})?;
 
-	let is_authority = parachain_config.role.is_authority();
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 
@@ -198,7 +197,7 @@ where
 				pool: pool.clone(),
 				graph: pool.pool().clone(),
 				deny_unsafe,
-				is_authority,
+				is_authority: collator,
 				network: network.clone(),
 				pending_transactions: pending.clone(),
 				filter_pool: filter_pool.clone(),
@@ -301,7 +300,7 @@ where
 		Arc::new(move |hash, data| network.announce_block(hash, Some(data)))
 	};
 
-	if validator {
+	if collator {
 		let proposer_factory = sc_basic_authorship::ProposerFactory::new(
 			task_manager.spawn_handle(),
 			client.clone(),
@@ -353,7 +352,7 @@ pub async fn start_node(
 	author_id: Option<H160>,
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
-	validator: bool,
+	collator: bool,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient>)> {
 	start_node_impl(
 		parachain_config,
@@ -361,7 +360,7 @@ pub async fn start_node(
 		author_id,
 		polkadot_config,
 		id,
-		validator,
+		collator,
 		|_| Default::default(),
 	)
 	.await
@@ -373,6 +372,7 @@ pub fn new_dev(
 	config: Configuration,
 	sealing: Sealing,
 	author_id: Option<H160>,
+	collator: bool,
 ) -> Result<TaskManager, ServiceError> {
 	let sc_service::PartialComponents {
 		client,
@@ -407,14 +407,12 @@ pub fn new_dev(
 		);
 	}
 
-	let role = config.role.clone();
 	let prometheus_registry = config.prometheus_registry().cloned();
-	let is_authority = role.is_authority();
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 	let mut command_sink = None;
 
-	if role.is_authority() {
+	if collator {
 		let env = sc_basic_authorship::ProposerFactory::new(
 			task_manager.spawn_handle(),
 			client.clone(),
@@ -487,7 +485,7 @@ pub fn new_dev(
 				pool: pool.clone(),
 				graph: pool.pool().clone(),
 				deny_unsafe,
-				is_authority,
+				is_authority: collator,
 				network: network.clone(),
 				pending_transactions: pending.clone(),
 				filter_pool: filter_pool.clone(),
