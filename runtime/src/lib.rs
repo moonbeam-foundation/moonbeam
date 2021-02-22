@@ -35,7 +35,7 @@ use sp_core::{OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify},
-	transaction_validity::{TransactionSource, TransactionValidity},
+	transaction_validity::{InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError},
 	ApplyExtrinsicResult,
 };
 use sp_std::{convert::TryFrom, prelude::*};
@@ -539,7 +539,21 @@ impl_runtime_apis! {
 			source: TransactionSource,
 			tx: <Block as BlockT>::Extrinsic,
 		) -> TransactionValidity {
-			Executive::validate_transaction(source, tx)
+			// This runtime API has been hacked to censor transactions of a particular type.
+			// Concretely, it censors all `System::remark` transactions.
+			// A more real-world example would be to censor transactions in which nominators
+			// withdraw stake backing your collator, or add nominations to other collators.
+			// But for now, I'm starting with a simpler example.
+			match tx.function {
+				// Nested pattern matching. First match the system pallet,
+				// the match the remark dispatchable from that pallet
+				Call::System(frame_system::Call::remark(_)) => Err(
+					// I've chosen code 77 to mean intentionally censored.
+					TransactionValidityError::Invalid(InvalidTransaction::Custom(77))
+				),
+				_ => Executive::validate_transaction(source, tx),
+			}
+
 		}
 	}
 
