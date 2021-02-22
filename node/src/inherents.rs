@@ -31,11 +31,9 @@ use cumulus_primitives::{
 use parity_scale_codec::Encode;
 use sp_core::H160;
 use sp_inherents::{InherentData, InherentDataProviders, InherentIdentifier, ProvideInherentData};
-use sp_timestamp::{InherentError, INHERENT_IDENTIFIER as TIMESTAMP_IDENTIFIER};
-use std::cell::RefCell;
+use sp_timestamp::InherentError;
 
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
-use moonbeam_runtime::MINIMUM_PERIOD;
 
 /// Build the inherent data providers for the node.
 ///
