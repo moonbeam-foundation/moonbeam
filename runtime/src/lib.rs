@@ -112,7 +112,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 21,
+	spec_version: 22,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -409,7 +409,11 @@ impl stake::Config for Runtime {
 }
 impl author_inherent::Config for Runtime {
 	type EventHandler = Stake;
-	type CanAuthor = AuthorFilter;
+	// We cannot run the full filtered author checking logic in the preliminary check because it
+	// depends on entropy from the relay chain. Instead we just make sure that the author is staked
+	// in the preliminary check. The final check including the filtering happens during execution.
+	type PreliminaryCanAuthor = Stake;
+	type FinalCanAuthor = AuthorFilter;
 }
 
 impl pallet_author_filter::Config for Runtime {
@@ -437,8 +441,10 @@ construct_runtime! {
 		Stake: stake::{Module, Call, Storage, Event<T>, Config<T>},
 		Scheduler: pallet_scheduler::{Module, Storage, Config, Event<T>, Call},
 		Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
+		// The order matters here. Inherents will be included in the order specified here.
+		// Concretely we need the author inherent to come after the parachain_upgrade inherent.
 		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
-		AuthorFilter: pallet_author_filter::{Module, Storage, Event<T>,}
+		AuthorFilter: pallet_author_filter::{Module, Call, Storage, Event<T>,}
 	}
 }
 
