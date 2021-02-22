@@ -25,8 +25,8 @@
 //! for example, running the --dev service without a relay chain backbone, or authoring block
 //! extremely quickly in testing scenarios.
 
+use cumulus_primitives_parachain_inherent::{ParachainInherentData, INHERENT_IDENTIFIER};
 use cumulus_primitives_core::{
-	inherents::{SystemInherentData, SYSTEM_INHERENT_IDENTIFIER},
 	PersistedValidationData,
 };
 use parity_scale_codec::Encode;
@@ -121,7 +121,7 @@ struct MockValidationDataInherentDataProvider;
 
 impl ProvideInherentData for MockValidationDataInherentDataProvider {
 	fn inherent_identifier(&self) -> &'static InherentIdentifier {
-		&SYSTEM_INHERENT_IDENTIFIER
+		&INHERENT_IDENTIFIER
 	}
 
 	fn provide_inherent_data(
@@ -132,7 +132,7 @@ impl ProvideInherentData for MockValidationDataInherentDataProvider {
 		let (relay_storage_root, proof) =
 			RelayStateSproofBuilder::default().into_state_root_and_proof();
 
-		let data = SystemInherentData {
+		let data = ParachainInherentData {
 			validation_data: PersistedValidationData {
 				parent_head: Default::default(),
 				block_number: Default::default(),
@@ -146,10 +146,10 @@ impl ProvideInherentData for MockValidationDataInherentDataProvider {
 			relay_chain_state: proof,
 		};
 
-		inherent_data.put_data(SYSTEM_INHERENT_IDENTIFIER, &data)
+		inherent_data.put_data(INHERENT_IDENTIFIER, &data)
 	}
 
 	fn error_to_string(&self, error: &[u8]) -> Option<String> {
-		InherentError::try_from(&SYSTEM_INHERENT_IDENTIFIER, error).map(|e| format!("{:?}", e))
+		InherentError::try_from(&INHERENT_IDENTIFIER, error).map(|e| format!("{:?}", e))
 	}
 }
