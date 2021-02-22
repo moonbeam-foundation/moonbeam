@@ -213,9 +213,9 @@ export const moonbeamDefinitions = {
         },
         SystemInherentData: {
           validation_data: "PersistedValidationData",
-  		    relay_chain_state: "StorageProof",
-	        downward_messages: "Vec<InboundDownwardMessage>",
-		      horizontal_messages: "BTreeMap<ParaId, Vec<InboundHrmpMessage>>",
+          relay_chain_state: "StorageProof",
+          downward_messages: "Vec<InboundDownwardMessage>",
+          horizontal_messages: "BTreeMap<ParaId, Vec<InboundHrmpMessage>>",
         },
       },
     },
