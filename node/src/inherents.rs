@@ -135,10 +135,8 @@ impl ProvideInherentData for MockValidationDataInherentDataProvider {
 		let data = ParachainInherentData {
 			validation_data: PersistedValidationData {
 				parent_head: Default::default(),
-				block_number: Default::default(),
-				relay_storage_root,
-				hrmp_mqc_heads: Default::default(),
-				dmq_mqc_head: Default::default(),
+				relay_parent_storage_root: relay_storage_root,
+				relay_parent_number: Default::default(),
 				max_pov_size: Default::default(),
 			},
 			downward_messages: Default::default(),
