@@ -38,6 +38,7 @@ native_executor_instance!(
 	moonbeam_runtime::api::dispatch,
 	moonbeam_runtime::native_version,
 );
+use sc_telemetry::TelemetrySpan;
 
 type FullClient = TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = TFullBackend<Block>;
@@ -75,6 +76,7 @@ pub fn new_partial(
 
 	let transaction_pool = sc_transaction_pool::BasicPool::new_full(
 		config.transaction_pool.clone(),
+		config.role.is_authority().into(),
 		config.prometheus_registry(),
 		task_manager.spawn_handle(),
 		client.clone(),
@@ -196,6 +198,9 @@ where
 		})
 	};
 
+	let telemetry_span = TelemetrySpan::new();
+	let _telemetry_span_entered = telemetry_span.enter();
+
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		on_demand: None,
 		remote_blockchain: None,
@@ -209,6 +214,7 @@ where
 		network: network.clone(),
 		network_status_sinks,
 		system_rpc_tx,
+		telemetry_span: Some(telemetry_span.clone()),
 	})?;
 
 	// Spawn Frontier EthFilterApi maintenance task.

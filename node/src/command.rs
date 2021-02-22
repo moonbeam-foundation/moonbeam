@@ -18,7 +18,8 @@ use crate::{
 	chain_spec,
 	cli::{Cli, RelayChainCli, Subcommand},
 };
-use cumulus_primitives_core::{genesis::generate_genesis_block, ParaId};
+use cumulus_client_service::{genesis::generate_genesis_block};
+use cumulus_primitives_core::{ParaId};
 use log::info;
 use moonbeam_runtime::{AccountId, Block};
 use parity_scale_codec::Encode;

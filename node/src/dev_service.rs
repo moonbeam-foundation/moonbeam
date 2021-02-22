@@ -36,6 +36,7 @@ use std::{
 	collections::{BTreeMap, HashMap},
 	sync::{Arc, Mutex},
 };
+use sc_telemetry::TelemetrySpan;
 
 // Our native executor instance.
 native_executor_instance!(
@@ -77,6 +78,7 @@ pub fn new_partial(
 
 	let transaction_pool = sc_transaction_pool::BasicPool::new_full(
 		config.transaction_pool.clone(),
+		config.role.is_authority().into(),
 		config.prometheus_registry(),
 		task_manager.spawn_handle(),
 		client.clone(),
@@ -232,6 +234,9 @@ pub fn new_full(
 		})
 	};
 
+	let telemetry_span = TelemetrySpan::new();
+	let _telemetry_span_entered = telemetry_span.enter();
+
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		network,
 		client: client.clone(),
@@ -245,6 +250,7 @@ pub fn new_full(
 		network_status_sinks,
 		system_rpc_tx,
 		config,
+		telemetry_span: Some(telemetry_span.clone()),
 	})?;
 
 	// Spawn Frontier EthFilterApi maintenance task.

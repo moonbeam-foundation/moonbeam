@@ -76,7 +76,6 @@ where
 	A: ChainApi<Block = Block> + 'static,
 	C::Api: fp_rpc::EthereumRuntimeRPCApi<Block>,
 	C::Api: moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>,
-	<C::Api as sp_api::ApiErrorExt>::Error: fmt::Debug,
 	P: TransactionPool<Block = Block> + 'static,
 {
 	use fc_rpc::{
