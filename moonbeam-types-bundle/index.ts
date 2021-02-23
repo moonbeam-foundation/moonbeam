@@ -211,6 +211,12 @@ export const moonbeamDefinitions = {
           nominators: "Vec<Bond>",
           total: "Balance",
         },
+        SystemInherentData: {
+          validation_data: "PersistedValidationData",
+          relay_chain_state: "StorageProof",
+          downward_messages: "Vec<InboundDownwardMessage>",
+          horizontal_messages: "BTreeMap<ParaId, Vec<InboundHrmpMessage>>",
+        },
       },
     },
   ],
