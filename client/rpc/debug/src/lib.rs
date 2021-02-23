@@ -182,9 +182,7 @@ where
 				tracer: Some(tracer),
 			}) => {
 				let hash: H128 = sp_io::hashing::twox_128(&tracer.as_bytes()).into();
-				// blockscout script hash : 0xe554011b51b7ae5726e02870a500d9da
-				let blockscout_hash = H128::from_str("0xefc44389e04a809b6a7d9c720debc9ad").unwrap();
-
+				let blockscout_hash = H128::from_str("0x94d9f08796f91eb13a2e82a6066882f7").unwrap();
 				if hash == blockscout_hash {
 					TraceType::Blockscout
 				} else {
