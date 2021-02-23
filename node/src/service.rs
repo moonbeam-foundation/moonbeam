@@ -162,7 +162,7 @@ where
 	let transaction_pool = params.transaction_pool.clone();
 	let mut task_manager = params.task_manager;
 	let import_queue = params.import_queue;
-	let (block_import, pending_transactions, filter_pool) = params.other;
+	let (_block_import, pending_transactions, filter_pool) = params.other;
 	let (network, network_status_sinks, system_rpc_tx, start_network) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &parachain_config,
@@ -305,8 +305,6 @@ where
 			prometheus_registry.as_ref(),
 		);
 		let spawner = task_manager.spawn_handle();
-
-		let polkadot_backend = polkadot_full_node.backend.clone();
 
 		let parachain_consensus = build_relay_chain_consensus(BuildRelayChainConsensusParams {
 			para_id: id,

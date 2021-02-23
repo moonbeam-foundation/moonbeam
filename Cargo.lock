@@ -1651,7 +1651,7 @@ dependencies = [
 [[package]]
 name = "ethereum"
 version = "0.7.1"
-source = "git+https://github.com/rust-blockchain/ethereum?branch=master#f11532e1054bd5c9d5a12b4d41ae07ccc3e0730d"
+source = "git+https://github.com/rust-blockchain/ethereum#f11532e1054bd5c9d5a12b4d41ae07ccc3e0730d"
 dependencies = [
  "ethereum-types",
  "funty",
