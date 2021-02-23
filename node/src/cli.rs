@@ -97,6 +97,10 @@ pub struct RunCmd {
 	#[structopt(long)]
 	pub parachain_id: Option<u32>,
 
+	/// Enable the development service to run without a backing relay chain
+	#[structopt(long)]
+	pub dev_service: bool,
+
 	/// When blocks should be sealed in the dev service.
 	///
 	/// Options are "instant", "manual", or timer interval in milliseconds

@@ -25,10 +25,8 @@
 //! for example, running the --dev service without a relay chain backbone, or authoring block
 //! extremely quickly in testing scenarios.
 
+use cumulus_primitives_core::PersistedValidationData;
 use cumulus_primitives_parachain_inherent::{ParachainInherentData, INHERENT_IDENTIFIER};
-use cumulus_primitives_core::{
-	PersistedValidationData,
-};
 use parity_scale_codec::Encode;
 use sp_core::H160;
 use sp_inherents::{InherentData, InherentDataProviders, InherentIdentifier, ProvideInherentData};
