@@ -225,7 +225,6 @@ where
 
 	// Spawn Frontier EthFilterApi maintenance task.
 	if filter_pool.is_some() {
-		// use futures::StreamExt;
 		// Each filter is allowed to stay in the pool for 100 blocks.
 		const FILTER_RETAIN_THRESHOLD: u64 = 100;
 		task_manager.spawn_essential_handle().spawn(
@@ -250,7 +249,6 @@ where
 	// Spawn Frontier pending transactions maintenance task (as essential, otherwise we leak).
 	if pending_transactions.is_some() {
 		use fp_consensus::{ConsensusLog, FRONTIER_ENGINE_ID};
-		// use futures::StreamExt;
 		use sp_runtime::generic::OpaqueDigestItemId;
 
 		const TRANSACTION_RETAIN_THRESHOLD: u64 = 5;
