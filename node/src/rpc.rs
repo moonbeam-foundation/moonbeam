@@ -16,7 +16,7 @@
 
 //! A collection of node-specific RPC methods.
 
-use std::{sync::Arc};
+use std::sync::Arc;
 
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use jsonrpc_pubsub::manager::SubscriptionManager;

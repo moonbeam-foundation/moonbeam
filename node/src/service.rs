@@ -140,8 +140,8 @@ async fn start_node_impl<RB>(
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient>)>
 where
 	RB: Fn(
-			Arc<TFullClient<Block, RuntimeApi, Executor>>,
-		) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
+		Arc<TFullClient<Block, RuntimeApi, Executor>>,
+	) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
 		+ Send
 		+ 'static,
 {
@@ -152,12 +152,11 @@ where
 	let parachain_config = prepare_node_config(parachain_config);
 
 	let polkadot_full_node =
-		cumulus_client_service::build_polkadot_full_node(polkadot_config, collator_key.public()).map_err(
-			|e| match e {
+		cumulus_client_service::build_polkadot_full_node(polkadot_config, collator_key.public())
+			.map_err(|e| match e {
 				polkadot_service::Error::Sub(x) => x,
 				s => format!("{}", s).into(),
-			},
-		)?;
+			})?;
 
 	let params = new_partial(&parachain_config, author_id, false)?;
 
