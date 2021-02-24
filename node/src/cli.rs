@@ -108,7 +108,12 @@ pub struct RunCmd {
 	pub author_id: Option<H160>,
 
 	/// Enable EVM tracing module on a non-authority node.
-	#[structopt(long, conflicts_with = "collator", conflicts_with = "validator")]
+	#[structopt(
+		long,
+		conflicts_with = "collator",
+		conflicts_with = "validator",
+		require_delimiter = true
+	)]
 	pub ethapi: Vec<EthApi>,
 }
 
