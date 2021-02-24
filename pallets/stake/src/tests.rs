@@ -18,12 +18,13 @@
 use crate::*;
 use frame_support::{assert_noop, assert_ok};
 use mock::*;
+use mock::Event;
 use sp_runtime::DispatchError;
 
 #[test]
 fn geneses() {
 	two_validators_four_nominators().execute_with(|| {
-		assert!(Sys::events().is_empty());
+		assert!(System::events().is_empty());
 		// validators
 		assert_eq!(Balances::reserved_balance(&1), 500);
 		assert_eq!(Balances::free_balance(&1), 500);
@@ -49,7 +50,7 @@ fn geneses() {
 		assert_eq!(Balances::reserved_balance(&9), 0);
 	});
 	five_validators_five_nominators().execute_with(|| {
-		assert!(Sys::events().is_empty());
+		assert!(System::events().is_empty());
 		// validators
 		for x in 1..5 {
 			assert!(Stake::is_candidate(&x));
@@ -88,7 +89,7 @@ fn online_offline_works() {
 		assert_ok!(Stake::go_offline(Origin::signed(2)));
 		assert_eq!(
 			last_event(),
-			MetaEvent::stake(RawEvent::ValidatorWentOffline(3, 2))
+			Event::stake(RawEvent::ValidatorWentOffline(3, 2))
 		);
 		roll_to(21);
 		let mut expected = vec![
@@ -112,7 +113,7 @@ fn online_offline_works() {
 		assert_ok!(Stake::go_online(Origin::signed(2)));
 		assert_eq!(
 			last_event(),
-			MetaEvent::stake(RawEvent::ValidatorBackOnline(5, 2))
+			Event::stake(RawEvent::ValidatorBackOnline(5, 2))
 		);
 		expected.push(RawEvent::ValidatorBackOnline(5, 2));
 		roll_to(26);
@@ -141,7 +142,7 @@ fn join_validator_candidates() {
 		assert_noop!(
 			Stake::join_candidates(Origin::signed(8), Perbill::from_percent(2), 10u128,),
 			DispatchError::Module {
-				index: 0,
+				index: 1,
 				error: 3,
 				message: Some("InsufficientBalance")
 			}
@@ -150,7 +151,7 @@ fn join_validator_candidates() {
 			Stake::join_candidates(Origin::signed(7), Perbill::from_percent(51), 10u128,),
 			Error::<Test>::FeeOverMax
 		);
-		assert!(Sys::events().is_empty());
+		assert!(System::events().is_empty());
 		assert_ok!(Stake::join_candidates(
 			Origin::signed(7),
 			Perbill::from_percent(3),
@@ -158,7 +159,7 @@ fn join_validator_candidates() {
 		));
 		assert_eq!(
 			last_event(),
-			MetaEvent::stake(RawEvent::JoinedValidatorCandidates(7, 10u128, 1110u128))
+			Event::stake(RawEvent::JoinedValidatorCandidates(7, 10u128, 1110u128))
 		);
 	});
 }
@@ -175,7 +176,7 @@ fn validator_exit_executes_after_delay() {
 		assert_ok!(Stake::leave_candidates(Origin::signed(2)));
 		assert_eq!(
 			last_event(),
-			MetaEvent::stake(RawEvent::ValidatorScheduledExit(3, 2, 5))
+			Event::stake(RawEvent::ValidatorScheduledExit(3, 2, 5))
 		);
 		let info = <Stake as Store>::Candidates::get(&2).unwrap();
 		assert_eq!(info.state, ValidatorStatus::Leaving(5));
@@ -218,7 +219,7 @@ fn validator_selection_chooses_top_candidates() {
 		assert_ok!(Stake::leave_candidates(Origin::signed(6)));
 		assert_eq!(
 			last_event(),
-			MetaEvent::stake(RawEvent::ValidatorScheduledExit(2, 6, 4))
+			Event::stake(RawEvent::ValidatorScheduledExit(2, 6, 4))
 		);
 		roll_to(21);
 		assert_ok!(Stake::join_candidates(
@@ -228,7 +229,7 @@ fn validator_selection_chooses_top_candidates() {
 		));
 		assert_eq!(
 			last_event(),
-			MetaEvent::stake(RawEvent::JoinedValidatorCandidates(6, 69u128, 469u128))
+			Event::stake(RawEvent::JoinedValidatorCandidates(6, 69u128, 469u128))
 		);
 		roll_to(27);
 		// should choose top MaxValidators (5), in order
@@ -288,19 +289,19 @@ fn exit_queue() {
 		assert_ok!(Stake::leave_candidates(Origin::signed(6)));
 		assert_eq!(
 			last_event(),
-			MetaEvent::stake(RawEvent::ValidatorScheduledExit(2, 6, 4))
+			Event::stake(RawEvent::ValidatorScheduledExit(2, 6, 4))
 		);
 		roll_to(11);
 		assert_ok!(Stake::leave_candidates(Origin::signed(5)));
 		assert_eq!(
 			last_event(),
-			MetaEvent::stake(RawEvent::ValidatorScheduledExit(3, 5, 5))
+			Event::stake(RawEvent::ValidatorScheduledExit(3, 5, 5))
 		);
 		roll_to(16);
 		assert_ok!(Stake::leave_candidates(Origin::signed(4)));
 		assert_eq!(
 			last_event(),
-			MetaEvent::stake(RawEvent::ValidatorScheduledExit(4, 4, 6))
+			Event::stake(RawEvent::ValidatorScheduledExit(4, 4, 6))
 		);
 		assert_noop!(
 			Stake::leave_candidates(Origin::signed(4)),
@@ -451,7 +452,7 @@ fn validator_commission() {
 		));
 		assert_eq!(
 			last_event(),
-			MetaEvent::stake(RawEvent::JoinedValidatorCandidates(4, 20u128, 60u128))
+			Event::stake(RawEvent::JoinedValidatorCandidates(4, 20u128, 60u128))
 		);
 		roll_to(9);
 		assert_ok!(Stake::join_nominators(Origin::signed(5), 4, 10));
@@ -552,7 +553,7 @@ fn multiple_nominations() {
 		assert_noop!(
 			Stake::nominate_new(Origin::signed(7), 3, 11),
 			DispatchError::Module {
-				index: 0,
+				index: 1,
 				error: 3,
 				message: Some("InsufficientBalance")
 			},
@@ -582,7 +583,7 @@ fn multiple_nominations() {
 		assert_ok!(Stake::leave_candidates(Origin::signed(2)));
 		assert_eq!(
 			last_event(),
-			MetaEvent::stake(RawEvent::ValidatorScheduledExit(6, 2, 8))
+			Event::stake(RawEvent::ValidatorScheduledExit(6, 2, 8))
 		);
 		roll_to(31);
 		let mut new3 = vec![
@@ -656,7 +657,7 @@ fn validators_bond() {
 		assert_noop!(
 			Stake::candidate_bond_more(Origin::signed(1), 40),
 			DispatchError::Module {
-				index: 0,
+				index: 1,
 				error: 3,
 				message: Some("InsufficientBalance")
 			}
@@ -730,7 +731,7 @@ fn nominators_bond() {
 		assert_noop!(
 			Stake::nominator_bond_more(Origin::signed(6), 1, 81),
 			DispatchError::Module {
-				index: 0,
+				index: 1,
 				error: 3,
 				message: Some("InsufficientBalance")
 			}
@@ -777,19 +778,19 @@ fn switch_nomination() {
 		assert_ok!(Stake::switch_nomination(Origin::signed(6), 1, 2));
 		assert_eq!(
 			last_event(),
-			MetaEvent::stake(RawEvent::NominationSwapped(6, 10, 1, 2))
+			Event::stake(RawEvent::NominationSwapped(6, 10, 1, 2))
 		);
 		assert_ok!(Stake::switch_nomination(Origin::signed(7), 1, 2));
 		assert_ok!(Stake::switch_nomination(Origin::signed(8), 2, 1));
 		assert_eq!(
 			last_event(),
-			MetaEvent::stake(RawEvent::NominationSwapped(8, 10, 2, 1))
+			Event::stake(RawEvent::NominationSwapped(8, 10, 2, 1))
 		);
 		assert_ok!(Stake::switch_nomination(Origin::signed(9), 2, 1));
 		assert_ok!(Stake::switch_nomination(Origin::signed(10), 1, 2));
 		assert_eq!(
 			last_event(),
-			MetaEvent::stake(RawEvent::NominationSwapped(10, 10, 1, 2))
+			Event::stake(RawEvent::NominationSwapped(10, 10, 1, 2))
 		);
 		// verify nothing changed with roles or balances since genesis
 		for x in 1..5 {

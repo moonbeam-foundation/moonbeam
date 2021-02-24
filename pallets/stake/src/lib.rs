@@ -60,7 +60,7 @@ use frame_support::{
 	storage::IterableStorageDoubleMap,
 	traits::{Currency, EnsureOrigin, Get, Imbalance, ReservableCurrency},
 };
-use frame_system::{ensure_signed, Config as System};
+use frame_system::{ensure_signed};
 use parity_scale_codec::{Decode, Encode};
 use set::OrderedSet;
 use sp_runtime::{
@@ -420,12 +420,12 @@ impl<
 
 type RoundIndex = u32;
 type RewardPoint = u32;
-type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as System>::AccountId>>::Balance;
-type Candidate<T> = Validator<<T as System>::AccountId, BalanceOf<T>>;
+type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+type Candidate<T> = Validator<<T as frame_system::Config>::AccountId, BalanceOf<T>>;
 
-pub trait Config: System {
+pub trait Config: frame_system::Config {
 	/// The overarching event type
-	type Event: From<Event<Self>> + Into<<Self as System>::Event>;
+	type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
 	/// The currency type
 	type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 	/// The origin for setting inflation
@@ -453,9 +453,9 @@ pub trait Config: System {
 decl_event!(
 	pub enum Event<T>
 	where
-		AccountId = <T as System>::AccountId,
+		AccountId = <T as frame_system::Config>::AccountId,
 		Balance = BalanceOf<T>,
-		BlockNumber = <T as System>::BlockNumber,
+		BlockNumber = <T as frame_system::Config>::BlockNumber,
 	{
 		/// Starting Block, Round, Number of Validators, Total Balance
 		NewRound(BlockNumber, RoundIndex, u32, Balance),
