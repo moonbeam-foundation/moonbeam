@@ -506,6 +506,8 @@ pub fn new_dev(
 		})
 	};
 
+	let telemetry_span = TelemetrySpan::new();
+
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		network,
 		client: client.clone(),
@@ -519,6 +521,7 @@ pub fn new_dev(
 		network_status_sinks,
 		system_rpc_tx,
 		config,
+		telemetry_span: Some(telemetry_span.clone()),
 	})?;
 
 	// Spawn Frontier EthFilterApi maintenance task.
