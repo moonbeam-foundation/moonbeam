@@ -366,6 +366,7 @@ mod tests {
 				Error::<Test>::AuthorAlreadySet
 			);
 		});
+	}
 	parameter_types! {
 		pub const MinimumPeriod: u64 = 5;
 	}
