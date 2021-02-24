@@ -47,7 +47,8 @@ export async function startMoonbeamNode(
     `--no-telemetry`,
     `--no-prometheus`,
     `--dev`,
-    `--debug`,
+    `--ethapi=txpool`,
+    `--ethapi=debug`,
     `--sealing=manual`,
     `-l${MOONBEAM_LOG}`,
     `--port=${PORT}`,
@@ -60,7 +61,7 @@ export async function startMoonbeamNode(
     if ((err as any).errno == "ENOENT") {
       console.error(
         `\x1b[31mMissing Moonbeam binary ` +
-          `(${BINARY_PATH}).\nPlease compile the Moonbeam project\x1b[0m`
+        `(${BINARY_PATH}).\nPlease compile the Moonbeam project\x1b[0m`
       );
     } else {
       console.error(err);

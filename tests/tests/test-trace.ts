@@ -7,6 +7,7 @@ import { createAndFinalizeBlock, describeWithMoonbeam, customRequest } from "./u
 const INCREMENTER = require("./constants/Incrementer.json");
 const CALLEE = require("./constants/Callee.json");
 const CALLER = require("./constants/Caller.json");
+const BS_TRACER = require("./constants/blockscout_tracer.min.json");
 
 const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
 const GENESIS_ACCOUNT_PRIVATE_KEY =
@@ -150,7 +151,7 @@ describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
     await createAndFinalizeBlock(context.polkadotApi);
     let traceTx = await customRequest(context.web3, "debug_traceTransaction", [
       send.result,
-      { tracer: "blockscout" },
+      { tracer: BS_TRACER.body },
     ]);
     let entries = traceTx.result;
     expect(entries.length).to.be.equal(2);
