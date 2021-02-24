@@ -139,7 +139,8 @@ fn genesis(
 		.build_storage::<Test>()
 		.unwrap();
 	pallet_balances::GenesisConfig::<Test> { balances }
-		.assimilate_storage(&mut storage).unwrap();
+		.assimilate_storage(&mut storage)
+		.unwrap();
 	stake::GenesisConfig::<Test> {
 		stakers,
 		inflation_config,

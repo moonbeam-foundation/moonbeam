@@ -60,7 +60,7 @@ use frame_support::{
 	storage::IterableStorageDoubleMap,
 	traits::{Currency, EnsureOrigin, Get, Imbalance, ReservableCurrency},
 };
-use frame_system::{ensure_signed};
+use frame_system::ensure_signed;
 use parity_scale_codec::{Decode, Encode};
 use set::OrderedSet;
 use sp_runtime::{
@@ -420,7 +420,8 @@ impl<
 
 type RoundIndex = u32;
 type RewardPoint = u32;
-type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+type BalanceOf<T> =
+	<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 type Candidate<T> = Validator<<T as frame_system::Config>::AccountId, BalanceOf<T>>;
 
 pub trait Config: frame_system::Config {

@@ -17,8 +17,8 @@
 //! Unit testing
 use crate::*;
 use frame_support::{assert_noop, assert_ok};
-use mock::*;
 use mock::Event;
+use mock::*;
 use sp_runtime::DispatchError;
 
 #[test]
