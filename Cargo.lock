@@ -393,6 +393,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "parity-scale-codec",
+ "serde",
  "sp-authorship",
  "sp-core",
  "sp-inherents",

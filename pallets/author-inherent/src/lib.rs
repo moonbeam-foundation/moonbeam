@@ -261,9 +261,10 @@ impl<T: Config> ProvideInherent for Module<T> {
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use crate as author_inherent;
 
 	use frame_support::{
-		assert_noop, assert_ok, impl_outer_origin, parameter_types,
+		assert_noop, assert_ok, parameter_types,
 		traits::{OnFinalize, OnInitialize},
 	};
 	use sp_core::H256;
@@ -280,20 +281,25 @@ mod tests {
 		TestExternalities::new(t)
 	}
 
-	impl_outer_origin! {
-		pub enum Origin for Test where system = frame_system {}
-	}
+	type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
+	type Block = frame_system::mocking::MockBlock<Test>;
 
-	mod author_inherent {
-		pub use super::super::*;
-	}
+	// Configure a mock runtime to test the pallet.
+	frame_support::construct_runtime!(
+		pub enum Test where
+			Block = Block,
+			NodeBlock = Block,
+			UncheckedExtrinsic = UncheckedExtrinsic,
+		{
+			System: frame_system::{Module, Call, Config, Storage, Event<T>},
+			AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
+		}
+	);
 
-	#[derive(Clone, Eq, PartialEq)]
-	pub struct Test;
 	parameter_types! {
 		pub const BlockHashCount: u64 = 250;
 	}
-	impl System for Test {
+	impl frame_system::Config for Test {
 		type BaseCallFilter = ();
 		type BlockWeights = ();
 		type BlockLength = ();
@@ -301,7 +307,7 @@ mod tests {
 		type Origin = Origin;
 		type Index = u64;
 		type BlockNumber = u64;
-		type Call = ();
+		type Call = Call;
 		type Hash = H256;
 		type Hashing = BlakeTwo256;
 		type AccountId = u64;
@@ -310,7 +316,7 @@ mod tests {
 		type Event = ();
 		type BlockHashCount = BlockHashCount;
 		type Version = ();
-		type PalletInfo = ();
+		type PalletInfo = PalletInfo;
 		type AccountData = ();
 		type OnNewAccount = ();
 		type OnKilledAccount = ();
@@ -322,15 +328,13 @@ mod tests {
 		type PreliminaryCanAuthor = ();
 		type FinalCanAuthor = ();
 	}
-	type AuthorInherent = Module<Test>;
-	type Sys = frame_system::Module<Test>;
 
 	pub fn roll_to(n: u64) {
-		while Sys::block_number() < n {
-			Sys::on_finalize(Sys::block_number());
-			Sys::set_block_number(Sys::block_number() + 1);
-			Sys::on_initialize(Sys::block_number());
-			AuthorInherent::on_initialize(Sys::block_number());
+		while System::block_number() < n {
+			System::on_finalize(System::block_number());
+			System::set_block_number(System::block_number() + 1);
+			System::on_initialize(System::block_number());
+			AuthorInherent::on_initialize(System::block_number());
 		}
 	}
 

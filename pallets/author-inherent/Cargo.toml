@@ -18,6 +18,7 @@ sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "master
 [dev-dependencies]
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
+serde = { version = "1.0.101", features = ["derive"] }
 
 [features]
 default = ["std"]
