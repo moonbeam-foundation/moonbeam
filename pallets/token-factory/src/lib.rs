@@ -25,8 +25,10 @@ pub use pallet::*;
 #[pallet]
 pub mod pallet {
 	use ethereum_types::BigEndianHash;
+	use fp_evm::ExecutionInfo;
 	use frame_support::{pallet_prelude::*, traits::Currency};
 	use frame_system::pallet_prelude::*;
+	use pallet_evm::Runner;
 	use parity_scale_codec::FullCodec;
 	use rustc_hex::FromHex;
 	use sp_core::{H160, H256, U256};
@@ -47,7 +49,7 @@ pub mod pallet {
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_ethereum::Config + pallet_sudo::Config {
+	pub trait Config: frame_system::Config + pallet_evm::Config + pallet_sudo::Config {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// Balances type
@@ -65,7 +67,7 @@ pub mod pallet {
 		/// TokenID does not exist so cannot interact with it
 		IdNotClaimed,
 		/// Require sudo for registering and removing tokens from set
-		RequireSudo, // can we use sudo's error type instead of redeclaring it?
+		RequireSudo,
 	}
 
 	#[pallet::event]
@@ -105,10 +107,9 @@ pub mod pallet {
 			ensure!(!Self::exists(id), Error::<T>::IdClaimed);
 			let contract = FromHex::from_hex(CONTRACT_BYTECODE)
 				.expect("Static smart contract is formatted incorrectly (should be hex)");
-			// TODO: Is there a way to convert from AccountId to H160 w/o trivial associated type??
 			let from = T::AccountToH160::convert(caller);
 			// deploy contract with default sudo as MINTER_ROLE and BURNER_ROLE (without minting)
-			let address = if let (_, Some(addr), _) = <pallet_ethereum::Module<T>>::execute(
+			let address = if let ExecutionInfo { value: addr, .. } = T::Runner::create(
 				// from: H160
 				from,
 				// input: Vec<u8>
@@ -116,15 +117,13 @@ pub mod pallet {
 				// value: U256
 				U256::zero(),
 				// gas limit: U256
-				U256::from(0x100000),
+				U256::from(0x100000).low_u64(),
 				// gas price: U256
 				Some(U256::from(1)),
 				// nonce: Option<H256>
 				Some(U256::zero()),
-				// action: TransactionAction
-				pallet_ethereum::TransactionAction::Create,
-				// config: Option<EvmConfig>
-				None,
+				// config: EvmConfig
+				T::config(),
 			)? {
 				T::AccountId::decode(&mut &addr[..]).expect("AccountId: H160")
 			} else {
@@ -184,7 +183,6 @@ pub mod pallet {
 		}
 		fn mint(id: T::TokenId, who: T::AccountId, amount: BalanceOf<T>) {
 			if let Some(address) = <ContractAddress<T>>::get(id) {
-				// TODO: mint by forming valid ethereum execute call using ABI
 				let mut input = hex_literal::hex!("9cff1ade").to_vec();
 				// append address
 				input.extend_from_slice(
@@ -195,26 +193,23 @@ pub mod pallet {
 					H256::from_uint(&U256::from(amount.saturated_into::<u128>())).as_bytes(),
 				);
 				// TODO: check if this means execution succeeded...I don't think it does lol
-				if let Ok(_) = <pallet_ethereum::Module<T>>::execute(
-					// from: H160
+				if let Ok(_) = T::Runner::call(
+					// source: H160
 					Self::sudo_caller(),
+					// target
+					T::AccountToH160::convert(address),
 					// input: Vec<u8>
 					input,
 					// value: U256
 					U256::zero(),
 					// gas limit: U256
-					U256::from(0x100000),
+					U256::from(0x100000).low_u64(),
 					// gas price: U256
 					Some(U256::from(1)),
 					// nonce: Option<H256>
 					Some(U256::zero()),
-					// action: TransactionAction
-					pallet_ethereum::TransactionAction::Call(
-						// target
-						T::AccountToH160::convert(address),
-					),
-					// config: Option<EvmConfig>
-					None,
+					// config: EvmConfig
+					T::config(),
 				) {
 					Self::deposit_event(Event::Minted(id, who, amount));
 				}
@@ -222,7 +217,6 @@ pub mod pallet {
 		}
 		fn burn(id: T::TokenId, who: T::AccountId, amount: BalanceOf<T>) {
 			if let Some(address) = <ContractAddress<T>>::get(id) {
-				// TODO: burn by forming valid ethereum execute call using ABI
 				let mut input = hex_literal::hex!("4f10869a").to_vec();
 				// append address
 				input.extend_from_slice(
@@ -232,26 +226,23 @@ pub mod pallet {
 				input.extend_from_slice(
 					H256::from_uint(&U256::from(amount.saturated_into::<u128>())).as_bytes(),
 				);
-				if let Ok(_) = <pallet_ethereum::Module<T>>::execute(
-					// from: H160
+				if let Ok(_) = T::Runner::call(
+					// source: H160
 					Self::sudo_caller(),
+					// target
+					T::AccountToH160::convert(address),
 					// input: Vec<u8>
 					input,
 					// value: U256
 					U256::zero(),
 					// gas limit: U256
-					U256::from(0x100000),
+					U256::from(0x100000).low_u64(),
 					// gas price: U256
 					Some(U256::from(1)),
 					// nonce: Option<H256>
 					Some(U256::zero()),
-					// action: TransactionAction
-					pallet_ethereum::TransactionAction::Call(
-						// target
-						T::AccountToH160::convert(address),
-					),
-					// config: Option<EvmConfig>
-					None,
+					// config: EvmConfig
+					T::config(),
 				) {
 					Self::deposit_event(Event::Burned(id, who, amount));
 				}
@@ -262,29 +253,25 @@ pub mod pallet {
 			if let Some(address) = <ContractAddress<T>>::get(id) {
 				// first 4 bytes of hex output of Sha3("totalSupply()")
 				let input = hex_literal::hex!("1f1881f8").to_vec();
-				if let Ok((_, _, fp_evm::CallOrCreateInfo::Call(result))) =
-					<pallet_ethereum::Module<T>>::execute(
-						// from: H160
-						Self::sudo_caller(),
-						// input: Vec<u8>
-						input,
-						// value: U256
-						U256::zero(),
-						// gas limit: U256
-						U256::from(0x100000),
-						// gas price: U256
-						Some(U256::from(1)),
-						// nonce: Option<H256>
-						Some(U256::zero()),
-						// action: TransactionAction
-						pallet_ethereum::TransactionAction::Call(
-							// target
-							T::AccountToH160::convert(address),
-						),
-						// config: Option<EvmConfig>
-						None,
-					) {
-					let value = U256::from(result.value.as_slice()).saturated_into::<u128>();
+				if let Ok(ExecutionInfo { value: result, .. }) = T::Runner::call(
+					// source: H160
+					Self::sudo_caller(),
+					// target
+					T::AccountToH160::convert(address),
+					// input: Vec<u8>
+					input,
+					// value: U256
+					U256::zero(),
+					// gas limit: U256
+					U256::from(0x100000).low_u64(),
+					// gas price: U256
+					Some(U256::from(1)),
+					// nonce: Option<H256>
+					Some(U256::zero()),
+					// config: EvmConfig
+					T::config(),
+				) {
+					let value = U256::from(result.as_slice()).saturated_into::<u128>();
 					return value.saturated_into::<BalanceOf<T>>();
 				}
 			}
@@ -297,29 +284,25 @@ pub mod pallet {
 				let mut input = hex_literal::hex!("1d7976f3").to_vec();
 				// append address
 				input.extend_from_slice(H256::from(T::AccountToH160::convert(who)).as_bytes());
-				if let Ok((_, _, fp_evm::CallOrCreateInfo::Call(result))) =
-					<pallet_ethereum::Module<T>>::execute(
-						// from: H160
-						Self::sudo_caller(),
-						// input: Vec<u8>
-						input,
-						// value: U256
-						U256::zero(),
-						// gas limit: U256
-						U256::from(0x100000),
-						// gas price: U256
-						Some(U256::from(1)),
-						// nonce: Option<H256>
-						Some(U256::zero()),
-						// action: TransactionAction
-						pallet_ethereum::TransactionAction::Call(
-							// target
-							T::AccountToH160::convert(address),
-						),
-						// config: Option<EvmConfig>
-						None,
-					) {
-					let value = U256::from(result.value.as_slice()).saturated_into::<u128>();
+				if let Ok(ExecutionInfo { value: result, .. }) = T::Runner::call(
+					// source: H160
+					Self::sudo_caller(),
+					// target
+					T::AccountToH160::convert(address),
+					// input: Vec<u8>
+					input,
+					// value: U256
+					U256::zero(),
+					// gas limit: U256
+					U256::from(0x100000).low_u64(),
+					// gas price: U256
+					Some(U256::from(1)),
+					// nonce: Option<H256>
+					Some(U256::zero()),
+					// config: EvmConfig
+					T::config(),
+				) {
+					let value = U256::from(result.as_slice()).saturated_into::<u128>();
 					return value.saturated_into::<BalanceOf<T>>();
 				}
 			}
