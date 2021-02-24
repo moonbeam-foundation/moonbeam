@@ -1494,18 +1494,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "erc-factory"
-version = "0.1.0"
-dependencies = [
- "frame-support",
- "frame-system",
- "pallet-evm 2.0.0 (git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae)",
- "parity-scale-codec",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "errno"
 version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1704,8 +1692,8 @@ version = "0.1.0"
 source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam#677548ce782afd28174548dc4badbedf064e8bae"
 dependencies = [
  "derive_more 0.99.11",
- "fp-consensus",
- "fp-rpc",
+ "fp-consensus 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
+ "fp-rpc 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
  "futures 0.3.12",
  "log",
  "parity-scale-codec",
@@ -1730,7 +1718,7 @@ dependencies = [
  "ethereum-types",
  "fc-consensus",
  "fc-rpc-core",
- "fp-rpc",
+ "fp-rpc 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
  "futures 0.3.12",
  "jsonrpc-core 15.1.0",
  "jsonrpc-core-client 14.2.0",
@@ -1738,7 +1726,7 @@ dependencies = [
  "jsonrpc-pubsub 15.1.0",
  "libsecp256k1",
  "log",
- "pallet-ethereum",
+ "pallet-ethereum 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
  "pallet-evm 2.0.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
  "parity-scale-codec",
  "rand 0.7.3",
@@ -1865,6 +1853,17 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "0.1.0"
+source = "git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae#677548ce782afd28174548dc4badbedf064e8bae"
+dependencies = [
+ "parity-scale-codec",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "fp-consensus"
+version = "0.1.0"
 source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam#677548ce782afd28174548dc4badbedf064e8bae"
 dependencies = [
  "parity-scale-codec",
@@ -1896,6 +1895,22 @@ dependencies = [
  "parity-scale-codec",
  "serde",
  "sp-core",
+ "sp-std",
+]
+
+[[package]]
+name = "fp-rpc"
+version = "0.1.0"
+source = "git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae#677548ce782afd28174548dc4badbedf064e8bae"
+dependencies = [
+ "ethereum",
+ "ethereum-types",
+ "fp-evm 0.8.0 (git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae)",
+ "parity-scale-codec",
+ "sp-api",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
  "sp-std",
 ]
 
@@ -4029,8 +4044,8 @@ dependencies = [
  "fc-consensus",
  "fc-rpc",
  "fc-rpc-core",
- "fp-consensus",
- "fp-rpc",
+ "fp-consensus 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
+ "fp-rpc 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
  "futures 0.3.12",
  "jsonrpc-core 15.1.0",
  "jsonrpc-pubsub 15.1.0",
@@ -4039,7 +4054,7 @@ dependencies = [
  "moonbeam-rpc-txpool",
  "moonbeam-runtime",
  "nix 0.17.0",
- "pallet-ethereum",
+ "pallet-ethereum 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
  "pallet-evm 2.0.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
  "pallet-sudo",
  "pallet-transaction-payment-rpc",
@@ -4148,8 +4163,7 @@ dependencies = [
  "cumulus-parachain-system",
  "cumulus-primitives",
  "cumulus-runtime",
- "erc-factory",
- "fp-rpc",
+ "fp-rpc 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
  "frame-executive",
  "frame-support",
  "frame-system",
@@ -4161,7 +4175,7 @@ dependencies = [
  "pallet-author-filter",
  "pallet-balances",
  "pallet-democracy",
- "pallet-ethereum",
+ "pallet-ethereum 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
  "pallet-ethereum-chain-id",
  "pallet-evm 2.0.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
  "pallet-grandpa",
@@ -4189,6 +4203,7 @@ dependencies = [
  "sp-version",
  "stake",
  "substrate-wasm-builder 3.0.0 (git+https://github.com/paritytech/substrate)",
+ "token-factory",
  "x-transfer",
 ]
 
@@ -4708,14 +4723,41 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "0.1.0"
+source = "git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae#677548ce782afd28174548dc4badbedf064e8bae"
+dependencies = [
+ "ethereum",
+ "ethereum-types",
+ "evm",
+ "fp-consensus 0.1.0 (git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae)",
+ "fp-evm 0.8.0 (git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae)",
+ "fp-rpc 0.1.0 (git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae)",
+ "frame-support",
+ "frame-system",
+ "libsecp256k1",
+ "pallet-balances",
+ "pallet-evm 2.0.0 (git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae)",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "rlp",
+ "rustc-hex",
+ "serde",
+ "sha3 0.8.2",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-ethereum"
+version = "0.1.0"
 source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam#677548ce782afd28174548dc4badbedf064e8bae"
 dependencies = [
  "ethereum",
  "ethereum-types",
  "evm",
- "fp-consensus",
+ "fp-consensus 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
  "fp-evm 0.8.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
- "fp-rpc",
+ "fp-rpc 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
  "frame-support",
  "frame-system",
  "libsecp256k1",
@@ -10075,6 +10117,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
+name = "token-factory"
+version = "0.1.0"
+dependencies = [
+ "ethereum-types",
+ "fp-evm 0.8.0 (git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae)",
+ "frame-support",
+ "frame-system",
+ "hex",
+ "hex-literal",
+ "pallet-ethereum 0.1.0 (git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae)",
+ "pallet-evm 2.0.0 (git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae)",
+ "pallet-sudo",
+ "parity-scale-codec",
+ "rustc-hex",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
+ "tiny-keccak",
+]
+
+[[package]]
 name = "tokio"
 version = "0.1.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11222,12 +11285,12 @@ checksum = "85e60b0d1b5f99db2556934e21937020776a5d31520bf169e851ac44e6420214"
 name = "x-transfer"
 version = "0.1.0"
 dependencies = [
- "erc-factory",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
  "sp-runtime",
  "sp-std",
+ "token-factory",
 ]
 
 [[package]]

@@ -1,0 +1,38 @@
+[package]
+authors = ["PureStake"]
+edition = "2018"
+name = "token-factory"
+version = "0.1.0"
+
+[dependencies]
+ethereum-types = { version = "0.11.0", default-features = false }
+fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, rev = "677548ce782afd28174548dc4badbedf064e8bae" }
+frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+hex-literal = { version = "0.3.1" }
+hex = "0.4"
+pallet-ethereum = { git = "https://github.com/purestake/frontier", default-features = false, rev = "677548ce782afd28174548dc4badbedf064e8bae" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, rev = "677548ce782afd28174548dc4badbedf064e8bae" }
+pallet-sudo = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
+rustc-hex = { version = "2.1.0", default-features = false }
+sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+tiny-keccak = { version = "2.0.1", features = ["sha3"] }
+
+[features]
+default = ["std"]
+std = [
+    "ethereum-types/std",
+    "parity-scale-codec/std",
+    "frame-support/std",
+    "frame-system/std",
+    "pallet-ethereum/std",
+    "pallet-evm/std",
+    "pallet-sudo/std",
+    "rustc-hex/std",
+    "sp-runtime/std",
+    "sp-std/std",
+    "sp-core/std",
+]

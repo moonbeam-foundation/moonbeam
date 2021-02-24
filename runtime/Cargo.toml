@@ -18,7 +18,7 @@ account = { path = "account/", default-features = false }
 pallet-ethereum-chain-id = { path = "../pallets/ethereum-chain-id", default-features = false }
 stake = { path = "../pallets/stake", default-features = false }
 pallet-author-filter = { path = "../pallets/author-filter", default-features = false }
-erc-factory = { path = "../pallets/erc-factory", default-features = false }
+token-factory = { path = "../pallets/token-factory", default-features = false }
 x-transfer = { path = "../pallets/x-transfer", default-features = false }
 
 # Substrate dependencies
@@ -117,7 +117,7 @@ std = [
 	"account/std",
 	"stake/std",
 	"pallet-author-filter/std",
-	"erc-factory/std",
+	"token-factory/std",
 	"x-transfer/std",
 ]
 

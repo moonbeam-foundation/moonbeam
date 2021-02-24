@@ -12,7 +12,7 @@ frame-system = { git = "https://github.com/paritytech/substrate", default-featur
 sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 
-erc-factory = { path = "../erc-factory", default-features = false }
+token-factory = { path = "../token-factory", default-features = false }
 
 [features]
 default = ["std"]
@@ -22,5 +22,5 @@ std = [
     "frame-system/std",
     "sp-runtime/std",
     "sp-std/std",
-    "erc-factory/std",
+    "token-factory/std",
 ]
