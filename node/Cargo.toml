@@ -113,3 +113,8 @@ polkadot-test-service = { git = "https://github.com/paritytech/polkadot", branch
 pallet-sudo = { git = "https://github.com/paritytech/substrate", branch = "master" }
 substrate-test-client = { git = "https://github.com/paritytech/substrate", branch = "master" }
 substrate-test-runtime-client = { git = "https://github.com/paritytech/substrate", branch = "master" }
+
+[features]
+runtime-benchmarks = [
+	"moonbeam-runtime/runtime-benchmarks",
+]
