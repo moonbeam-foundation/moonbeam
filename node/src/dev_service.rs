@@ -17,7 +17,7 @@
 //! Service and ServiceFactory implementation. Specialized wrapper over Substrate service.
 //! This one is used specifically for the --dev service.
 
-use crate::cli::Sealing;
+use crate::cli::{EthApi as EthApiCmd, Sealing};
 use async_io::Timer;
 use fc_consensus::FrontierBlockImport;
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
@@ -112,7 +112,7 @@ pub fn new_full(
 	config: Configuration,
 	sealing: Sealing,
 	author_id: Option<H160>,
-	evm_debug: bool,
+	ethapi_cmd: Vec<EthApiCmd>,
 ) -> Result<TaskManager, ServiceError> {
 	let sc_service::PartialComponents {
 		client,
@@ -218,6 +218,7 @@ pub fn new_full(
 		let pending = pending_transactions.clone();
 		let filter_pool = filter_pool.clone();
 		let backend = backend.clone();
+		let ethapi_cmd = ethapi_cmd.clone();
 		Box::new(move |deny_unsafe, _| {
 			let deps = crate::rpc::FullDeps {
 				client: client.clone(),
@@ -229,7 +230,7 @@ pub fn new_full(
 				pending_transactions: pending.clone(),
 				backend: backend.clone(),
 				filter_pool: filter_pool.clone(),
-				evm_debug,
+				ethapi_cmd: ethapi_cmd.clone(),
 				command_sink: command_sink.clone(),
 			};
 			crate::rpc::create_full(deps, subscription_task_executor.clone())

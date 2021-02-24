@@ -18,6 +18,7 @@
 
 use std::{fmt, sync::Arc};
 
+use crate::cli::EthApi as EthApiCmd;
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use jsonrpc_pubsub::manager::SubscriptionManager;
 use moonbeam_runtime::{opaque::Block, AccountId, Balance, Hash, Index};
@@ -58,8 +59,8 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub backend: Arc<BE>,
 	/// EthFilterApi pool.
 	pub filter_pool: Option<FilterPool>,
-	/// Is `debug` module enabled?
-	pub evm_debug: bool,
+	/// The list of optional RPC extensions.
+	pub ethapi_cmd: Vec<EthApiCmd>,
 	/// Manual seal command sink
 	pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
 }
@@ -107,7 +108,7 @@ where
 		pending_transactions,
 		backend,
 		filter_pool,
-		evm_debug,
+		ethapi_cmd,
 		command_sink,
 	} = deps;
 
@@ -156,13 +157,15 @@ where
 			Arc::new(subscription_task_executor),
 		),
 	)));
-	if evm_debug {
+	if ethapi_cmd.contains(&EthApiCmd::Debug) {
 		io.extend_with(DebugServer::to_delegate(Debug::new(
 			client.clone(),
 			backend,
 		)));
 	}
-	io.extend_with(TxPoolServer::to_delegate(TxPool::new(client, pool)));
+	if ethapi_cmd.contains(&EthApiCmd::Txpool) {
+		io.extend_with(TxPoolServer::to_delegate(TxPool::new(client, pool)));
+	}
 
 	if let Some(command_sink) = command_sink {
 		io.extend_with(

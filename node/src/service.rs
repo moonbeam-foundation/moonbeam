@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use crate::cli::EthApi as EthApiCmd;
 use cumulus_network::build_block_announce_validator;
 use cumulus_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
@@ -120,7 +121,7 @@ async fn start_node_impl<RB>(
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	validator: bool,
-	evm_debug: bool,
+	ethapi_cmd: Vec<EthApiCmd>,
 	_rpc_ext_builder: RB,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient>)>
 where
@@ -182,6 +183,7 @@ where
 		let pending = pending_transactions.clone();
 		let filter_pool = filter_pool.clone();
 		let backend = backend.clone();
+		let ethapi_cmd = ethapi_cmd.clone();
 		Box::new(move |deny_unsafe, _| {
 			let deps = crate::rpc::FullDeps {
 				client: client.clone(),
@@ -193,7 +195,7 @@ where
 				pending_transactions: pending.clone(),
 				backend: backend.clone(),
 				filter_pool: filter_pool.clone(),
-				evm_debug,
+				ethapi_cmd: ethapi_cmd.clone(),
 				command_sink: None,
 			};
 
@@ -346,7 +348,7 @@ pub async fn start_node(
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	validator: bool,
-	evm_debug: bool,
+	ethapi_cmd: Vec<EthApiCmd>,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient>)> {
 	start_node_impl(
 		parachain_config,
@@ -355,7 +357,7 @@ pub async fn start_node(
 		polkadot_config,
 		id,
 		validator,
-		evm_debug,
+		ethapi_cmd,
 		|_| Default::default(),
 	)
 	.await
