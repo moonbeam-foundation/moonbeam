@@ -28,13 +28,13 @@ pub mod pallet {
 	use fp_evm::ExecutionInfo;
 	use frame_support::{pallet_prelude::*, traits::Currency};
 	use frame_system::pallet_prelude::*;
-	use pallet_evm::Runner;
-	use parity_scale_codec::FullCodec;
+	use pallet_evm::{AddressMapping, ExitReason, Runner};
+	use parity_scale_codec::{Decode, Encode, FullCodec};
 	use rustc_hex::FromHex;
 	use sp_core::{H160, H256, U256};
 	use sp_runtime::{
 		traits::{AtLeast32BitUnsigned, Convert, Zero},
-		SaturatedConversion,
+		DispatchError, SaturatedConversion,
 	};
 	use sp_std::fmt::Debug;
 
@@ -56,7 +56,7 @@ pub mod pallet {
 		type Currency: Currency<Self::AccountId>;
 		/// ERC token identifier
 		type TokenId: Clone + Copy + AtLeast32BitUnsigned + FullCodec + Debug;
-		/// Convert from AccountId to H160, should be identity map for Moonbeam
+		/// Convert from AccountId to H160, is identity map for Moonbeam
 		type AccountToH160: Convert<Self::AccountId, H160>;
 	}
 
@@ -70,17 +70,28 @@ pub mod pallet {
 		RequireSudo,
 	}
 
+	#[derive(PartialEq, Clone, Copy, Encode, Decode, sp_runtime::RuntimeDebug)]
+	pub enum EvmCall {
+		Register,
+		Mint,
+		Burn,
+		TotalIssuance,
+		BalanceOf,
+	}
+
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// Token register success [token_id, contract_address, to_address, minted_amount]
-		Registered(T::TokenId, T::AccountId),
+		Registered(T::TokenId, H160),
 		/// Mint token success. [token_id, who, amount]
 		Minted(T::TokenId, T::AccountId, BalanceOf<T>),
 		/// Burn token success. [token_id, who, amount]
 		Burned(T::TokenId, T::AccountId, BalanceOf<T>),
 		/// Destroy all tokens success. [token_id, amount]
 		DestroyedAll(T::TokenId, BalanceOf<T>),
+		/// Call failed with exit reason [call, reason]
+		EvmCallFailed(EvmCall, ExitReason),
 	}
 
 	#[pallet::hooks]
@@ -93,7 +104,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn token_info)]
 	pub type ContractAddress<T: Config> =
-		StorageMap<_, Twox64Concat, T::TokenId, T::AccountId, OptionQuery>;
+		StorageMap<_, Twox64Concat, T::TokenId, H160, OptionQuery>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -108,8 +119,8 @@ pub mod pallet {
 			let contract = FromHex::from_hex(CONTRACT_BYTECODE)
 				.expect("Static smart contract is formatted incorrectly (should be hex)");
 			let from = T::AccountToH160::convert(caller);
-			// deploy contract with default sudo as MINTER_ROLE and BURNER_ROLE (without minting)
-			let address = if let ExecutionInfo { value: addr, .. } = T::Runner::create(
+			// deploy contract with sudo as MINTER_ROLE and BURNER_ROLE (without minting)
+			match T::Runner::create(
 				// from: H160
 				from,
 				// input: Vec<u8>
@@ -125,20 +136,27 @@ pub mod pallet {
 				// config: EvmConfig
 				T::config(),
 			)? {
-				T::AccountId::decode(&mut &addr[..]).expect("AccountId: H160")
-			} else {
-				// Rust forces us to cover when no address is returned and execute
-				// call succeeds, but this never happens in practice with TransactionAction::Create
-				panic!("Unreachable branch; execute never succeeds without deployed address");
-			};
-			// update runtime storage
-			<ContractAddress<T>>::insert(id, address.clone());
-			<Tokens<T>>::mutate(|list| {
-				if let Err(loc) = list.binary_search(&id) {
-					list.insert(loc, id);
+				ExecutionInfo {
+					exit_reason: ExitReason::Succeed(_),
+					value: address,
+					..
+				} => {
+					// update runtime storage
+					<ContractAddress<T>>::insert(id, address.clone());
+					<Tokens<T>>::mutate(|list| {
+						if let Err(loc) = list.binary_search(&id) {
+							list.insert(loc, id);
+						}
+					});
+					Self::deposit_event(Event::Registered(id, address));
 				}
-			});
-			Self::deposit_event(Event::Registered(id, address));
+				ExecutionInfo {
+					exit_reason: reason,
+					..
+				} => {
+					Self::deposit_event(Event::EvmCallFailed(EvmCall::Register, reason));
+				}
+			}
 			Ok(().into())
 		}
 
@@ -170,143 +188,193 @@ pub mod pallet {
 	pub trait TokenFactory<Id, Account, Balance> {
 		fn exists(id: Id) -> bool;
 		// setters
-		fn mint(id: Id, who: Account, amount: Balance);
-		fn burn(id: Id, who: Account, amount: Balance);
+		fn mint(id: Id, who: Account, amount: Balance) -> DispatchResultWithPostInfo;
+		fn burn(id: Id, who: Account, amount: Balance) -> DispatchResultWithPostInfo;
 		// getters
-		fn total_issuance(id: Id) -> Balance;
-		fn balance_of(id: Id, who: Account) -> Balance;
+		fn total_issuance(id: Id) -> Result<Balance, DispatchError>;
+		fn balance_of(id: Id, who: Account) -> Result<Balance, DispatchError>;
 	}
 
-	impl<T: Config> TokenFactory<T::TokenId, T::AccountId, BalanceOf<T>> for Pallet<T> {
+	impl<T: Config> TokenFactory<T::TokenId, H160, BalanceOf<T>> for Pallet<T> {
 		fn exists(id: T::TokenId) -> bool {
 			<ContractAddress<T>>::get(id).is_some()
 		}
-		fn mint(id: T::TokenId, who: T::AccountId, amount: BalanceOf<T>) {
-			if let Some(address) = <ContractAddress<T>>::get(id) {
-				let mut input = hex_literal::hex!("9cff1ade").to_vec();
-				// append address
-				input.extend_from_slice(
-					H256::from(T::AccountToH160::convert(who.clone())).as_bytes(),
-				);
-				// append amount
-				input.extend_from_slice(
-					H256::from_uint(&U256::from(amount.saturated_into::<u128>())).as_bytes(),
-				);
-				// TODO: check if this means execution succeeded...I don't think it does lol
-				if let Ok(_) = T::Runner::call(
-					// source: H160
-					Self::sudo_caller(),
-					// target
-					T::AccountToH160::convert(address),
-					// input: Vec<u8>
-					input,
-					// value: U256
-					U256::zero(),
-					// gas limit: U256
-					U256::from(0x100000).low_u64(),
-					// gas price: U256
-					Some(U256::from(1)),
-					// nonce: Option<H256>
-					Some(U256::zero()),
-					// config: EvmConfig
-					T::config(),
-				) {
-					Self::deposit_event(Event::Minted(id, who, amount));
+		fn mint(id: T::TokenId, who: H160, amount: BalanceOf<T>) -> DispatchResultWithPostInfo {
+			let address = <ContractAddress<T>>::get(id).ok_or(Error::<T>::IdNotClaimed)?;
+			let mut input = hex_literal::hex!("9cff1ade").to_vec();
+			// append address
+			input.extend_from_slice(H256::from(who.clone()).as_bytes());
+			// append amount
+			input.extend_from_slice(
+				H256::from_uint(&U256::from(amount.saturated_into::<u128>())).as_bytes(),
+			);
+			// call evm
+			match T::Runner::call(
+				// source: H160
+				Self::sudo_caller(),
+				// target
+				address,
+				// input: Vec<u8>
+				input,
+				// value: U256
+				U256::zero(),
+				// gas limit: U256
+				U256::from(0x100000).low_u64(),
+				// gas price: U256
+				Some(U256::from(1)),
+				// nonce: Option<H256>
+				Some(U256::zero()),
+				// config: EvmConfig
+				T::config(),
+			)? {
+				ExecutionInfo {
+					exit_reason: ExitReason::Succeed(_),
+					..
+				} => {
+					Self::deposit_event(Event::Minted(
+						id,
+						T::AddressMapping::into_account_id(who),
+						amount,
+					));
+				}
+				ExecutionInfo {
+					exit_reason: reason,
+					..
+				} => {
+					Self::deposit_event(Event::EvmCallFailed(EvmCall::Mint, reason));
 				}
 			}
+			Ok(().into())
 		}
-		fn burn(id: T::TokenId, who: T::AccountId, amount: BalanceOf<T>) {
-			if let Some(address) = <ContractAddress<T>>::get(id) {
-				let mut input = hex_literal::hex!("4f10869a").to_vec();
-				// append address
-				input.extend_from_slice(
-					H256::from(T::AccountToH160::convert(who.clone())).as_bytes(),
-				);
-				// append amount
-				input.extend_from_slice(
-					H256::from_uint(&U256::from(amount.saturated_into::<u128>())).as_bytes(),
-				);
-				if let Ok(_) = T::Runner::call(
-					// source: H160
-					Self::sudo_caller(),
-					// target
-					T::AccountToH160::convert(address),
-					// input: Vec<u8>
-					input,
-					// value: U256
-					U256::zero(),
-					// gas limit: U256
-					U256::from(0x100000).low_u64(),
-					// gas price: U256
-					Some(U256::from(1)),
-					// nonce: Option<H256>
-					Some(U256::zero()),
-					// config: EvmConfig
-					T::config(),
-				) {
-					Self::deposit_event(Event::Burned(id, who, amount));
+		fn burn(id: T::TokenId, who: H160, amount: BalanceOf<T>) -> DispatchResultWithPostInfo {
+			let address = <ContractAddress<T>>::get(id).ok_or(Error::<T>::IdNotClaimed)?;
+			let mut input = hex_literal::hex!("4f10869a").to_vec();
+			// append address
+			input.extend_from_slice(H256::from(who.clone()).as_bytes());
+			// append amount
+			input.extend_from_slice(
+				H256::from_uint(&U256::from(amount.saturated_into::<u128>())).as_bytes(),
+			);
+			match T::Runner::call(
+				// source: H160
+				Self::sudo_caller(),
+				// target
+				address,
+				// input: Vec<u8>
+				input,
+				// value: U256
+				U256::zero(),
+				// gas limit: U256
+				U256::from(0x100000).low_u64(),
+				// gas price: U256
+				Some(U256::from(1)),
+				// nonce: Option<H256>
+				Some(U256::zero()),
+				// config: EvmConfig
+				T::config(),
+			)? {
+				ExecutionInfo {
+					exit_reason: ExitReason::Succeed(_),
+					..
+				} => {
+					Self::deposit_event(Event::Burned(
+						id,
+						T::AddressMapping::into_account_id(who),
+						amount,
+					));
+				}
+				ExecutionInfo {
+					exit_reason: reason,
+					..
+				} => {
+					Self::deposit_event(Event::EvmCallFailed(EvmCall::Burn, reason));
 				}
 			}
+			Ok(().into())
 		}
 		/// Gets total issuance for the given token if it exists in local evm instance
-		fn total_issuance(id: T::TokenId) -> BalanceOf<T> {
-			if let Some(address) = <ContractAddress<T>>::get(id) {
-				// first 4 bytes of hex output of Sha3("totalSupply()")
-				let input = hex_literal::hex!("1f1881f8").to_vec();
-				if let Ok(ExecutionInfo { value: result, .. }) = T::Runner::call(
-					// source: H160
-					Self::sudo_caller(),
-					// target
-					T::AccountToH160::convert(address),
-					// input: Vec<u8>
-					input,
-					// value: U256
-					U256::zero(),
-					// gas limit: U256
-					U256::from(0x100000).low_u64(),
-					// gas price: U256
-					Some(U256::from(1)),
-					// nonce: Option<H256>
-					Some(U256::zero()),
-					// config: EvmConfig
-					T::config(),
-				) {
+		fn total_issuance(id: T::TokenId) -> Result<BalanceOf<T>, DispatchError> {
+			let address = <ContractAddress<T>>::get(id).ok_or(Error::<T>::IdNotClaimed)?;
+			// first 4 bytes of hex output of Sha3("totalSupply()")
+			let input = hex_literal::hex!("1f1881f8").to_vec();
+			match T::Runner::call(
+				// source: H160
+				Self::sudo_caller(),
+				// target
+				address,
+				// input: Vec<u8>
+				input,
+				// value: U256
+				U256::zero(),
+				// gas limit: U256
+				U256::from(0x100000).low_u64(),
+				// gas price: U256
+				Some(U256::from(1)),
+				// nonce: Option<H256>
+				Some(U256::zero()),
+				// config: EvmConfig
+				T::config(),
+			) {
+				Ok(ExecutionInfo {
+					exit_reason: ExitReason::Succeed(_),
+					value: result,
+					..
+				}) => {
 					let value = U256::from(result.as_slice()).saturated_into::<u128>();
-					return value.saturated_into::<BalanceOf<T>>();
+					Ok(value.saturated_into::<BalanceOf<T>>())
 				}
+				Ok(ExecutionInfo {
+					exit_reason: reason,
+					..
+				}) => {
+					Self::deposit_event(Event::EvmCallFailed(EvmCall::TotalIssuance, reason));
+					Ok(BalanceOf::<T>::zero())
+				}
+				Err(e) => Err(e.into()),
 			}
-			BalanceOf::<T>::zero()
 		}
 		/// Gets token balance for the account
-		fn balance_of(id: T::TokenId, who: T::AccountId) -> BalanceOf<T> {
-			if let Some(address) = <ContractAddress<T>>::get(id) {
-				// first 4 bytes of hex output of Sha3("balanceOf(address)")
-				let mut input = hex_literal::hex!("1d7976f3").to_vec();
-				// append address
-				input.extend_from_slice(H256::from(T::AccountToH160::convert(who)).as_bytes());
-				if let Ok(ExecutionInfo { value: result, .. }) = T::Runner::call(
-					// source: H160
-					Self::sudo_caller(),
-					// target
-					T::AccountToH160::convert(address),
-					// input: Vec<u8>
-					input,
-					// value: U256
-					U256::zero(),
-					// gas limit: U256
-					U256::from(0x100000).low_u64(),
-					// gas price: U256
-					Some(U256::from(1)),
-					// nonce: Option<H256>
-					Some(U256::zero()),
-					// config: EvmConfig
-					T::config(),
-				) {
+		fn balance_of(id: T::TokenId, who: H160) -> Result<BalanceOf<T>, DispatchError> {
+			let address = <ContractAddress<T>>::get(id).ok_or(Error::<T>::IdNotClaimed)?;
+			// first 4 bytes of hex output of Sha3("balanceOf(address)")
+			let mut input = hex_literal::hex!("1d7976f3").to_vec();
+			// append address
+			input.extend_from_slice(H256::from(who).as_bytes());
+			match T::Runner::call(
+				// source: H160
+				Self::sudo_caller(),
+				// target
+				address,
+				// input: Vec<u8>
+				input,
+				// value: U256
+				U256::zero(),
+				// gas limit: U256
+				U256::from(0x100000).low_u64(),
+				// gas price: U256
+				Some(U256::from(1)),
+				// nonce: Option<H256>
+				Some(U256::zero()),
+				// config: EvmConfig
+				T::config(),
+			) {
+				Ok(ExecutionInfo {
+					exit_reason: ExitReason::Succeed(_),
+					value: result,
+					..
+				}) => {
 					let value = U256::from(result.as_slice()).saturated_into::<u128>();
-					return value.saturated_into::<BalanceOf<T>>();
+					return Ok(value.saturated_into::<BalanceOf<T>>());
 				}
+				Ok(ExecutionInfo {
+					exit_reason: reason,
+					..
+				}) => {
+					Self::deposit_event(Event::EvmCallFailed(EvmCall::BalanceOf, reason));
+					Ok(BalanceOf::<T>::zero())
+				}
+				Err(e) => Err(e.into()),
 			}
-			BalanceOf::<T>::zero()
 		}
 	}
 }
