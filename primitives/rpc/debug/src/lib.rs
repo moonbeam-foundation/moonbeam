@@ -100,9 +100,12 @@ pub mod blockscout {
 			error: Vec<u8>,
 		},
 		Success {
+			#[cfg_attr(feature = "std", serde(rename = "camelCase"))]
 			created_contract_address_hash: H160,
-
-			#[cfg_attr(feature = "std", serde(serialize_with = "bytes_0x_serialize"))]
+			#[cfg_attr(
+				feature = "std",
+				serde(serialize_with = "bytes_0x_serialize", rename = "camelCase")
+			)]
 			created_contract_code: Vec<u8>,
 		},
 	}
