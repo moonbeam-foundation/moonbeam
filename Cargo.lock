@@ -1800,7 +1800,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.7-moonbeam#506d64b044aa1737e7097ed1bd4f780d5c09c199"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-benchmarking-v0.7#38d2642632b8053222546ea5bd2731fdb52a9853"
 dependencies = [
  "derive_more 0.99.11",
  "fp-consensus",
@@ -1823,7 +1823,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.7-moonbeam#506d64b044aa1737e7097ed1bd4f780d5c09c199"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-benchmarking-v0.7#38d2642632b8053222546ea5bd2731fdb52a9853"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -1860,7 +1860,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.7-moonbeam#506d64b044aa1737e7097ed1bd4f780d5c09c199"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-benchmarking-v0.7#38d2642632b8053222546ea5bd2731fdb52a9853"
 dependencies = [
  "ethereum-types",
  "jsonrpc-core 15.1.0",
@@ -1964,7 +1964,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.7-moonbeam#506d64b044aa1737e7097ed1bd4f780d5c09c199"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-benchmarking-v0.7#38d2642632b8053222546ea5bd2731fdb52a9853"
 dependencies = [
  "parity-scale-codec",
  "sp-core",
@@ -1975,7 +1975,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "0.8.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.7-moonbeam#506d64b044aa1737e7097ed1bd4f780d5c09c199"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-benchmarking-v0.7#38d2642632b8053222546ea5bd2731fdb52a9853"
 dependencies = [
  "evm",
  "impl-trait-for-tuples 0.1.3",
@@ -1988,7 +1988,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.7-moonbeam#506d64b044aa1737e7097ed1bd4f780d5c09c199"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-benchmarking-v0.7#38d2642632b8053222546ea5bd2731fdb52a9853"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2147,7 +2147,7 @@ dependencies = [
 
 [[package]]
 name = "frame-system-benchmarking"
-version = "2.0.1"
+version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate#ca63242fc848b9bff739c246e07310dd15ec25eb"
 dependencies = [
  "frame-benchmarking",
@@ -3837,11 +3837,20 @@ dependencies = [
 
 [[package]]
 name = "lru"
-version = "0.6.3"
+version = "0.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3aae342b73d57ad0b8b364bd12584819f2c1fe9114285dfcf8b0722607671635"
+checksum = "1f374d42cdfc1d7dbf3d3dec28afab2eb97ffbf43a3234d795b5986dbf4b90ba"
 dependencies = [
  "hashbrown",
+]
+
+[[package]]
+name = "mach"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b823e83b2affd8f40a9ee8c29dbc56404c1e34cd2710921f2801e2cf29527afa"
+dependencies = [
+ "libc",
 ]
 
 [[package]]
@@ -4738,8 +4747,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-elections-phragmen"
-version = "2.0.1"
-source = "git+https://github.com/paritytech/substrate#ca63242fc848b9bff739c246e07310dd15ec25eb"
+version = "3.0.0"
+source = "git+https://github.com/paritytech/substrate?branch=master#c736c606c072c1b710f86ecf5685662472c42700"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -4753,7 +4762,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.7-moonbeam#506d64b044aa1737e7097ed1bd4f780d5c09c199"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-benchmarking-v0.7#38d2642632b8053222546ea5bd2731fdb52a9853"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4791,7 +4800,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.7-moonbeam#506d64b044aa1737e7097ed1bd4f780d5c09c199"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-benchmarking-v0.7#38d2642632b8053222546ea5bd2731fdb52a9853"
 dependencies = [
  "evm",
  "evm-gasometer",
@@ -4816,7 +4825,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.7-moonbeam#506d64b044aa1737e7097ed1bd4f780d5c09c199"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-benchmarking-v0.7#38d2642632b8053222546ea5bd2731fdb52a9853"
 dependencies = [
  "evm",
  "fp-evm",
@@ -4830,7 +4839,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.7-moonbeam#506d64b044aa1737e7097ed1bd4f780d5c09c199"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-benchmarking-v0.7#38d2642632b8053222546ea5bd2731fdb52a9853"
 dependencies = [
  "evm",
  "fp-evm",
@@ -4842,7 +4851,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=v0.7-moonbeam#506d64b044aa1737e7097ed1bd4f780d5c09c199"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-benchmarking-v0.7#38d2642632b8053222546ea5bd2731fdb52a9853"
 dependencies = [
  "evm",
  "fp-evm",
@@ -10528,6 +10537,17 @@ name = "try-lock"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "59547bce71d9c38b83d9c0e92b6066c4253371f15005def0c30d9657f50c7642"
+
+[[package]]
+name = "twox-hash"
+version = "1.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04f8ab788026715fa63b31960869617cba39117e520eb415b0139543e325ab59"
+dependencies = [
+ "cfg-if 0.1.10",
+ "rand 0.3.23",
+ "static_assertions",
+]
 
 [[package]]
 name = "typenum"
