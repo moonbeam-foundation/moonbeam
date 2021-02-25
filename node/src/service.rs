@@ -173,7 +173,7 @@ where
 	let transaction_pool = params.transaction_pool.clone();
 	let mut task_manager = params.task_manager;
 	let import_queue = params.import_queue;
-	let (_block_import, pending_transactions, filter_pool) = params.other;
+	let (block_import, pending_transactions, filter_pool) = params.other;
 	let (network, network_status_sinks, system_rpc_tx, start_network) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &parachain_config,
@@ -318,7 +318,7 @@ where
 			para_id: id,
 			proposer_factory,
 			inherent_data_providers: params.inherent_data_providers,
-			block_import: client.clone(),
+			block_import,
 			relay_chain_client: polkadot_full_node.client.clone(),
 			relay_chain_backend: polkadot_full_node.backend.clone(),
 		});
