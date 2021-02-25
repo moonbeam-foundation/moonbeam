@@ -1,0 +1,53 @@
+name: Publish Rust Docs
+
+on:
+    #TODO we really only want to publish on pushes to master.
+    # But for now I'm testing the ci
+    pull_request:
+        branches:
+            - master
+
+jobs:
+    deploy-docs:
+      name: Deploy docs
+      runs-on: ubuntu-latest
+
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v1
+        # This is how Frontier got the toolchain installed
+        # - name: Rust Setup
+        #   run: |
+        #     scripts/init.sh
+        #     cargo --version
+        #     rustc --version
+        #     cargo +$WASM_BUILD_TOOLCHAIN --version
+        #     rustc +$WASM_BUILD_TOOLCHAIN --version
+        #   env:
+        #     WASM_BUILD_TOOLCHAIN: nightly-2020-08-29
+        - uses: actions-rs/toolchain@v1
+          with:
+            target: wasm32-unknown-unknown
+            # Toolchain is autodetected from `rust-toolchain` file
+            # https://github.com/actions-rs/toolchain#the-toolchain-file
+            #toolchain: ${{ env.WASM_BUILD_TOOLCHAIN }}
+            default: true
+
+        - name: Build rustdocs
+          uses: actions-rs/cargo@v1
+          with:
+            command: doc
+            args: --all --no-deps=
+
+        #TODO Do we need to make an index.html?
+        - name: Make index.html
+          run: echo "indexfile" > ./target/docs/index.html
+
+        - name: Deploy documentation
+          uses: peaceiris/actions-gh-pages@v3
+          with:
+            # TODO we'll need at add this key in github
+            deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+            publish_branch: gh-pages
+            publish_dir: ./target/doc
+            keep_files: true
