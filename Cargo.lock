@@ -10142,6 +10142,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "parity-scale-codec",
+ "sp-core",
  "sp-runtime",
  "sp-std",
  "token-factory",

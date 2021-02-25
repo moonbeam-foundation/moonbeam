@@ -11,6 +11,7 @@ frame-support = { git = "https://github.com/paritytech/substrate", default-featu
 frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 
 token-factory = { path = "../token-factory", default-features = false }
 xcm = { git = "https://github.com/paritytech/polkadot", rev = "71a528e822af63b96bdb03efac9b4927fb11a25e", default-features = false }
@@ -26,6 +27,7 @@ std = [
     "frame-system/std",
     "sp-runtime/std",
     "sp-std/std",
+    "sp-core/std",
     "token-factory/std",
     "cumulus-primitives/std",
 ]

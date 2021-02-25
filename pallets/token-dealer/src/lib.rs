@@ -18,12 +18,34 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+mod support;
+
 use frame_support::pallet;
 
 pub use pallet::*;
 
+type TokenId = Vec<u8>;
+
+#[derive(sp_runtime::RuntimeDebug)]
+pub enum CurrencyId {
+	/// The local instance of `balances` pallet
+	Native,
+	/// Token registered in `token-factory` pallet
+	Token(TokenId),
+}
+
+impl From<CurrencyId> for Vec<u8> {
+	fn from(other: CurrencyId) -> Vec<u8> {
+		match other {
+			CurrencyId::Native => b"GLMR".to_vec(),
+			CurrencyId::Token(t) => t,
+		}
+	}
+}
+
 #[pallet]
 pub mod pallet {
+	use super::{CurrencyId, TokenId};
 	use cumulus_primitives::ParaId;
 	use frame_support::{
 		pallet_prelude::*,
@@ -35,22 +57,6 @@ pub mod pallet {
 	use xcm::v0::{Error as XcmError, ExecuteXcm, Junction::*, MultiAsset, NetworkId, Order, Xcm};
 	use xcm_executor::traits::LocationConversion;
 
-	type TokenId = Vec<u8>;
-	pub enum CurrencyId {
-		/// The local instance of `balances` pallet
-		Native,
-		/// Token registered in `token-factory` pallet
-		Token(TokenId),
-	}
-
-	impl From<CurrencyId> for Vec<u8> {
-		fn from(other: CurrencyId) -> Vec<u8> {
-			match other {
-				CurrencyId::Native => b"GLMR".to_vec(),
-				CurrencyId::Token(t) => t,
-			}
-		}
-	}
 	type BalanceOf<T> = <<T as Config>::NativeCurrency as Currency<
 		<T as frame_system::Config>::AccountId,
 	>>::Balance;
@@ -70,8 +76,6 @@ pub mod pallet {
 		type ParaId: Get<ParaId>;
 		/// Abstraction over EVM to register, mint, and burn ERC20 tokens
 		type TokenFactory: TokenFactory<TokenId, Self::AccountId, BalanceOf<Self>>;
-		/// Convert to relay chain account type
-		type ToRelayAccount: Convert<Self::AccountId, [u8; 32]>;
 		/// XCM Executor
 		type Executor: ExecuteXcm;
 	}
@@ -85,10 +89,11 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		/// Sends message to deposit amount of currency on parachain with `id`
 		/// - calling code must reserve amount locally before calling
-		/// and burn locally upon finalization on recipient parachain
-		fn deposit_to_parachain(
+		/// and burn locally upon finalization on recipient substrate parachain
+		/// - the recipient parachain must use AccountId32 (see `to_account` type)
+		fn deposit_to_substrate_parachain(
 			to_chain: ParaId,
-			to_account: T::AccountId,
+			to_account: [u8; 32],
 			network: NetworkId,
 			currency: CurrencyId,
 			amount: u128,
@@ -111,7 +116,7 @@ pub mod pallet {
 						assets: vec![MultiAsset::All],
 						dest: AccountId32 {
 							network,
-							id: T::ToRelayAccount::convert(to_account),
+							id: to_account,
 						}
 						.into(),
 					}],
