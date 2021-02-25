@@ -1081,7 +1081,7 @@ version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
 dependencies = [
  "cumulus-network",
- "cumulus-primitives",
+ "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus)",
  "cumulus-runtime",
  "futures 0.3.12",
  "log",
@@ -1131,7 +1131,7 @@ name = "cumulus-network"
 version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
 dependencies = [
- "cumulus-primitives",
+ "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus)",
  "derive_more 0.99.11",
  "futures 0.3.12",
  "futures-timer 3.0.2",
@@ -1158,7 +1158,7 @@ name = "cumulus-parachain-system"
 version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
 dependencies = [
- "cumulus-primitives",
+ "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus)",
  "cumulus-runtime",
  "frame-support",
  "frame-system",
@@ -1175,6 +1175,24 @@ dependencies = [
  "sp-std",
  "sp-trie",
  "sp-version",
+]
+
+[[package]]
+name = "cumulus-primitives"
+version = "0.1.0"
+source = "git+https://github.com/paritytech/cumulus?rev=6438d328b8ac09f43d19df65a2cf8e31a524d78f#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
+dependencies = [
+ "impl-trait-for-tuples 0.1.3",
+ "parity-scale-codec",
+ "polkadot-core-primitives",
+ "polkadot-parachain",
+ "polkadot-primitives",
+ "sc-chain-spec",
+ "sp-core",
+ "sp-inherents",
+ "sp-runtime",
+ "sp-std",
+ "sp-trie",
 ]
 
 [[package]]
@@ -1200,7 +1218,7 @@ name = "cumulus-runtime"
 version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
 dependencies = [
- "cumulus-primitives",
+ "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus)",
  "frame-executive",
  "hash-db",
  "memory-db",
@@ -1223,7 +1241,7 @@ source = "git+https://github.com/paritytech/cumulus#6438d328b8ac09f43d19df65a2cf
 dependencies = [
  "cumulus-collator",
  "cumulus-consensus",
- "cumulus-primitives",
+ "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus)",
  "futures 0.3.12",
  "polkadot-overseer",
  "polkadot-primitives",
@@ -1245,7 +1263,7 @@ name = "cumulus-test-relay-sproof-builder"
 version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
 dependencies = [
- "cumulus-primitives",
+ "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus)",
  "parity-scale-codec",
  "polkadot-primitives",
  "sp-runtime",
@@ -4036,7 +4054,7 @@ dependencies = [
  "cumulus-collator",
  "cumulus-consensus",
  "cumulus-network",
- "cumulus-primitives",
+ "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus)",
  "cumulus-service",
  "cumulus-test-relay-sproof-builder",
  "derive_more 0.15.0",
@@ -4161,7 +4179,7 @@ dependencies = [
  "account",
  "author-inherent",
  "cumulus-parachain-system",
- "cumulus-primitives",
+ "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus)",
  "cumulus-runtime",
  "fp-rpc 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
  "frame-executive",
@@ -4203,8 +4221,8 @@ dependencies = [
  "sp-version",
  "stake",
  "substrate-wasm-builder 3.0.0 (git+https://github.com/paritytech/substrate)",
+ "token-dealer",
  "token-factory",
- "x-transfer",
 ]
 
 [[package]]
@@ -5260,7 +5278,7 @@ dependencies = [
 name = "parachain-info"
 version = "0.6.0"
 dependencies = [
- "cumulus-primitives",
+ "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus)",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -6338,7 +6356,7 @@ dependencies = [
  "sp-staking",
  "sp-std",
  "static_assertions",
- "xcm",
+ "xcm 0.8.22 (git+https://github.com/paritytech/polkadot)",
 ]
 
 [[package]]
@@ -6374,8 +6392,8 @@ dependencies = [
  "sp-session",
  "sp-staking",
  "sp-std",
- "xcm",
- "xcm-executor",
+ "xcm 0.8.22 (git+https://github.com/paritytech/polkadot)",
+ "xcm-executor 0.8.22 (git+https://github.com/paritytech/polkadot)",
 ]
 
 [[package]]
@@ -7403,9 +7421,9 @@ dependencies = [
  "sp-transaction-pool",
  "sp-version",
  "substrate-wasm-builder 3.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "xcm",
+ "xcm 0.8.22 (git+https://github.com/paritytech/polkadot)",
  "xcm-builder",
- "xcm-executor",
+ "xcm-executor 0.8.22 (git+https://github.com/paritytech/polkadot)",
 ]
 
 [[package]]
@@ -10117,6 +10135,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
+name = "token-dealer"
+version = "0.1.0"
+dependencies = [
+ "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus?rev=6438d328b8ac09f43d19df65a2cf8e31a524d78f)",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "sp-runtime",
+ "sp-std",
+ "token-factory",
+ "xcm 0.8.22 (git+https://github.com/paritytech/polkadot?rev=71a528e822af63b96bdb03efac9b4927fb11a25e)",
+ "xcm-executor 0.8.22 (git+https://github.com/paritytech/polkadot?rev=71a528e822af63b96bdb03efac9b4927fb11a25e)",
+]
+
+[[package]]
 name = "token-factory"
 version = "0.1.0"
 dependencies = [
@@ -11282,18 +11315,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "85e60b0d1b5f99db2556934e21937020776a5d31520bf169e851ac44e6420214"
 
 [[package]]
-name = "x-transfer"
-version = "0.1.0"
-dependencies = [
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "sp-runtime",
- "sp-std",
- "token-factory",
-]
-
-[[package]]
 name = "x25519-dalek"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11302,6 +11323,14 @@ dependencies = [
  "curve25519-dalek 3.0.2",
  "rand_core 0.5.1",
  "zeroize",
+]
+
+[[package]]
+name = "xcm"
+version = "0.8.22"
+source = "git+https://github.com/paritytech/polkadot?rev=71a528e822af63b96bdb03efac9b4927fb11a25e#71a528e822af63b96bdb03efac9b4927fb11a25e"
+dependencies = [
+ "parity-scale-codec",
 ]
 
 [[package]]
@@ -11324,8 +11353,24 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "xcm",
- "xcm-executor",
+ "xcm 0.8.22 (git+https://github.com/paritytech/polkadot)",
+ "xcm-executor 0.8.22 (git+https://github.com/paritytech/polkadot)",
+]
+
+[[package]]
+name = "xcm-executor"
+version = "0.8.22"
+source = "git+https://github.com/paritytech/polkadot?rev=71a528e822af63b96bdb03efac9b4927fb11a25e#71a528e822af63b96bdb03efac9b4927fb11a25e"
+dependencies = [
+ "frame-support",
+ "impl-trait-for-tuples 0.2.0",
+ "parity-scale-codec",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "xcm 0.8.22 (git+https://github.com/paritytech/polkadot?rev=71a528e822af63b96bdb03efac9b4927fb11a25e)",
 ]
 
 [[package]]
@@ -11341,7 +11386,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "xcm",
+ "xcm 0.8.22 (git+https://github.com/paritytech/polkadot)",
 ]
 
 [[package]]

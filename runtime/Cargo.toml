@@ -19,7 +19,7 @@ pallet-ethereum-chain-id = { path = "../pallets/ethereum-chain-id", default-feat
 stake = { path = "../pallets/stake", default-features = false }
 pallet-author-filter = { path = "../pallets/author-filter", default-features = false }
 token-factory = { path = "../pallets/token-factory", default-features = false }
-x-transfer = { path = "../pallets/x-transfer", default-features = false }
+token-dealer = { path = "../pallets/token-dealer", default-features = false }
 
 # Substrate dependencies
 pallet-aura = { git = "https://github.com/paritytech/substrate.git", default-features = false, branch = "master", optional = true }
@@ -118,7 +118,7 @@ std = [
 	"stake/std",
 	"pallet-author-filter/std",
 	"token-factory/std",
-	"x-transfer/std",
+	"token-dealer/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.

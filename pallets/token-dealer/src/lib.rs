@@ -14,157 +14,108 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! Cross-chain token transfers
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{
-	decl_event, decl_module, dispatch::DispatchResult,
-	traits::{Currency, ExistenceRequirement, WithdrawReason},
-};
-use frame_system::ensure_signed;
+use frame_support::pallet;
 
-use codec::{Decode, Encode};
-use cumulus_primitives::{
-	relay_chain::DownwardMessage,
-	xcmp::{XCMPMessageHandler, XCMPMessageSender},
-	DownwardMessageHandler, ParaId, UpwardMessageOrigin, UpwardMessageSender,
-};
-use cumulus_upward_message::BalancesMessage;
-use polkadot_parachain::primitives::AccountIdConversion;
+pub use pallet::*;
 
-#[derive(Encode, Decode)]
-pub enum XCMPMessage<XAccountId, XBalance> {
-	/// Transfer tokens to the given account from the Parachain account.
-	TransferToken(XAccountId, XBalance),
-}
+#[pallet]
+pub mod pallet {
+	use cumulus_primitives::ParaId;
+	use frame_support::{
+		pallet_prelude::*,
+		traits::{Currency, Get},
+	};
+	use frame_system::pallet_prelude::*;
+	use sp_runtime::traits::Convert;
+	use token_factory::TokenFactory;
+	use xcm::v0::{Error as XcmError, ExecuteXcm, Junction::*, MultiAsset, NetworkId, Order, Xcm};
+	use xcm_executor::traits::LocationConversion;
 
-type BalanceOf<T> =
-	<<T as Trait>::Currency as Currency<<T as frame_system::Trait>::AccountId>>::Balance;
-
-type RelayAccountId = sp_runtime::AccountId32;
-
-/// Configuration trait of this pallet.
-pub trait Trait: frame_system::Trait {
-	/// Event type used by the runtime.
-	type Event: From<Event<Self>> + Into<<Self as frame_system::Trait>::Event>;
-
-	/// The sender of upward messages.
-	type UpwardMessageSender: UpwardMessageSender<Self::UpwardMessage>;
-
-	/// The upward message type used by the Parachain runtime.
-	type UpwardMessage: codec::Codec + BalancesMessage<RelayAccountId, BalanceOf<Self>>;
-
-	/// Currency of the runtime.
-	type Currency: Currency<Self::AccountId>;
-
-	/// The sender of XCMP messages.
-	type XCMPMessageSender: XCMPMessageSender<XCMPMessage<Self::AccountId, BalanceOf<Self>>>;
-}
-
-decl_event! {
-	pub enum Event<T> where
-		AccountId = <T as frame_system::Trait>::AccountId,
-		Balance = BalanceOf<T>
-	{
-		/// Transferred tokens to the account on the relay chain.
-		TransferredTokensToRelayChain(RelayAccountId, Balance),
-		/// Transferred tokens to the account on request from the relay chain.
-		TransferredTokensFromRelayChain(AccountId, Balance),
-		/// Transferred tokens to the account from the given parachain account.
-		TransferredTokensViaXCMP(ParaId, AccountId, Balance, DispatchResult),
+	type TokenId = Vec<u8>;
+	pub enum CurrencyId {
+		/// The local instance of `balances` pallet
+		Native,
+		/// Token registered in `token-factory` pallet
+		Token(TokenId),
 	}
-}
 
-decl_module! {
-	pub struct Module<T: Trait> for enum Call where origin: T::Origin, system = frame_system {
-		/// Transfer `amount` of tokens on the relay chain from the Parachain account to
-		/// the given `dest` account.
-		#[weight = 10]
-		fn transfer_tokens_to_relay_chain(origin, dest: RelayAccountId, amount: BalanceOf<T>) {
-			let who = ensure_signed(origin)?;
-
-			let _ = T::Currency::withdraw(
-				&who,
-				amount,
-				WithdrawReason::Transfer.into(),
-				ExistenceRequirement::AllowDeath,
-			)?;
-
-			let msg = <T as Trait>::UpwardMessage::transfer(dest.clone(), amount.clone());
-			<T as Trait>::UpwardMessageSender::send_upward_message(&msg, UpwardMessageOrigin::Signed)
-				.expect("Should not fail; qed");
-
-			Self::deposit_event(Event::<T>::TransferredTokensToRelayChain(dest, amount));
-		}
-
-		/// Transfer `amount` of tokens to another parachain.
-		#[weight = 10]
-		fn transfer_tokens_to_parachain_chain(
-			origin,
-			para_id: u32,
-			dest: T::AccountId,
-			amount: BalanceOf<T>,
-		) {
-			//TODO we don't make sure that the parachain has some tokens on the other parachain.
-			let who = ensure_signed(origin)?;
-
-			let _ = T::Currency::withdraw(
-				&who,
-				amount,
-				WithdrawReason::Transfer.into(),
-				ExistenceRequirement::AllowDeath,
-			)?;
-
-			T::XCMPMessageSender::send_xcmp_message(
-				para_id.into(),
-				&XCMPMessage::TransferToken(dest, amount),
-			).expect("Should not fail; qed");
-		}
-
-		fn deposit_event() = default;
-	}
-}
-
-/// This is a hack to convert from one generic type to another where we are sure that both are the
-/// same type/use the same encoding.
-fn convert_hack<O: Decode>(input: &impl Encode) -> O {
-	input.using_encoded(|e| Decode::decode(&mut &e[..]).expect("Must be compatible; qed"))
-}
-
-impl<T: Trait> DownwardMessageHandler for Module<T> {
-	fn handle_downward_message(msg: &DownwardMessage) {
-		match msg {
-			DownwardMessage::TransferInto(dest, amount, _) => {
-				let dest = convert_hack(&dest);
-				let amount: BalanceOf<T> = convert_hack(amount);
-
-				let _ = T::Currency::deposit_creating(&dest, amount.clone());
-
-				Self::deposit_event(Event::<T>::TransferredTokensFromRelayChain(dest, amount));
+	impl From<CurrencyId> for Vec<u8> {
+		fn from(other: CurrencyId) -> Vec<u8> {
+			match other {
+				CurrencyId::Native => b"GLMR".to_vec(),
+				CurrencyId::Token(t) => t,
 			}
-			_ => {}
 		}
 	}
-}
+	type BalanceOf<T> = <<T as Config>::NativeCurrency as Currency<
+		<T as frame_system::Config>::AccountId,
+	>>::Balance;
 
-impl<T: Trait> XCMPMessageHandler<XCMPMessage<T::AccountId, BalanceOf<T>>> for Module<T> {
-	fn handle_xcmp_message(src: ParaId, msg: &XCMPMessage<T::AccountId, BalanceOf<T>>) {
-		match msg {
-			XCMPMessage::TransferToken(dest, amount) => {
-				let para_account = src.clone().into_account();
+	/// Pallet for executing cross-chain transfers
+	#[pallet::pallet]
+	pub struct Pallet<T>(PhantomData<T>);
 
-				let res = T::Currency::transfer(
-					&para_account,
-					dest,
-					amount.clone(),
-					ExistenceRequirement::AllowDeath,
-				);
+	/// Configuration trait of this pallet.
+	#[pallet::config]
+	pub trait Config: frame_system::Config {
+		/// Native balances type
+		type NativeCurrency: Currency<Self::AccountId>;
+		/// Relay chain identifier
+		type RelayId: Get<NetworkId>;
+		/// Moonbeam's parachain identifier
+		type ParaId: Get<ParaId>;
+		/// Abstraction over EVM to register, mint, and burn ERC20 tokens
+		type TokenFactory: TokenFactory<TokenId, Self::AccountId, BalanceOf<Self>>;
+		/// Convert to relay chain account type
+		type ToRelayAccount: Convert<Self::AccountId, [u8; 32]>;
+		/// XCM Executor
+		type Executor: ExecuteXcm;
+	}
 
-				Self::deposit_event(Event::<T>::TransferredTokensViaXCMP(
-					src,
-					dest.clone(),
-					amount.clone(),
-					res,
-				));
+	#[pallet::hooks]
+	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
+
+	#[pallet::call]
+	impl<T: Config> Pallet<T> {}
+
+	impl<T: Config> Pallet<T> {
+		/// Sends message to deposit amount of currency on parachain with `id`
+		/// - calling code must reserve amount locally before calling
+		/// and burn locally upon finalization on recipient parachain
+		fn deposit_to_parachain(
+			to_chain: ParaId,
+			to_account: T::AccountId,
+			network: NetworkId,
+			currency: CurrencyId,
+			amount: u128,
+		) -> Xcm {
+			Xcm::WithdrawAsset {
+				assets: vec![MultiAsset::ConcreteFungible {
+					id: GeneralKey(currency.into()).into(),
+					amount,
+				}],
+				effects: vec![Order::DepositReserveAsset {
+					assets: vec![MultiAsset::All],
+					dest: (
+						Parent,
+						Parachain {
+							id: to_chain.into(),
+						},
+					)
+						.into(),
+					effects: vec![Order::DepositAsset {
+						assets: vec![MultiAsset::All],
+						dest: AccountId32 {
+							network,
+							id: T::ToRelayAccount::convert(to_account),
+						}
+						.into(),
+					}],
+				}],
 			}
 		}
 	}
