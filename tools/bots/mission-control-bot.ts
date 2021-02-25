@@ -200,7 +200,7 @@ const botActionFaucetSend = async (msg: Message, authorId: string, messageConten
         "Remaining time",
         `You still need to wait ${nextAvailableToken(receivers[authorId])} to receive more tokens`
       )
-      .setFooter("Funds transactions are limited to once per hour");
+      .setFooter(`Funds transactions are limited to once every ${params.FAUCET_SEND_INTERVAL} hour(s)`);
 
     msg.channel.send(errorEmbed);
     return;
@@ -271,7 +271,7 @@ const botActionFaucetSend = async (msg: Message, authorId: string, messageConten
     .addField("To account", `0x${address}`, true)
     .addField("Amount sent", `${params.TOKEN_COUNT} DEV`, true)
     .addField("Current account balance", `${accountBalance / 10n ** TOKEN_DECIMAL} DEV`)
-    .setFooter("Funds transactions are limited to once per hour");
+    .setFooter(`Funds transactions are limited to once every ${params.FAUCET_SEND_INTERVAL} hour(s)`);
 
   msg.channel.send(fundsTransactionEmbed);
 };
