@@ -5005,7 +5005,7 @@ dependencies = [
 [[package]]
 name = "pallet-offences-benchmarking"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=master#1c34ccf6c88188b173286bf28c279409eff0eebb"
+source = "git+https://github.com/paritytech/substrate#1c34ccf6c88188b173286bf28c279409eff0eebb"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5106,7 +5106,7 @@ dependencies = [
 [[package]]
 name = "pallet-session-benchmarking"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=master#1c34ccf6c88188b173286bf28c279409eff0eebb"
+source = "git+https://github.com/paritytech/substrate#1c34ccf6c88188b173286bf28c279409eff0eebb"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -9305,7 +9305,7 @@ dependencies = [
 [[package]]
 name = "sp-election-providers"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=master#1c34ccf6c88188b173286bf28c279409eff0eebb"
+source = "git+https://github.com/paritytech/substrate#1c34ccf6c88188b173286bf28c279409eff0eebb"
 dependencies = [
  "parity-scale-codec",
  "sp-arithmetic",
