@@ -70,6 +70,14 @@ pub struct ExportGenesisStateCommand {
 	/// The name of the chain for that the genesis state should be exported.
 	#[structopt(long)]
 	pub chain: Option<String>,
+
+	/// Number of accounts to be funded in the genesis in dev mode (default 10)
+	#[structopt(long, default_value = "10")]
+	pub accounts: u32,
+
+	/// Mnemonic from which we can derive funded accounts in the genesis
+	#[structopt(long)]
+	pub mnemonic: Option<String>,
 }
 
 /// Command for exporting the genesis wasm file.
@@ -86,6 +94,14 @@ pub struct ExportGenesisWasmCommand {
 	/// The name of the chain for that the genesis wasm file should be exported.
 	#[structopt(long)]
 	pub chain: Option<String>,
+
+	/// Number of accounts to be funded in the genesis in dev mode (default 10)
+	#[structopt(long, default_value = "10")]
+	pub accounts: u32,
+
+	/// Mnemonic from which we can derive funded accounts in the genesis
+	#[structopt(long)]
+	pub mnemonic: Option<String>,
 }
 
 #[derive(Debug, StructOpt)]
@@ -110,6 +126,14 @@ pub struct RunCmd {
 	/// Public identity for participating in staking and receiving rewards
 	#[structopt(long, parse(try_from_str = parse_h160))]
 	pub author_id: Option<H160>,
+
+	/// Number of accounts to be funded in the genesis in dev mode (default 10)
+	#[structopt(long, default_value = "10")]
+	pub accounts: u32,
+
+	/// Mnemonic from which we can derive funded accounts in the genesis
+	#[structopt(long)]
+	pub mnemonic: Option<String>,
 }
 
 fn parse_h160(input: &str) -> Result<H160, String> {
