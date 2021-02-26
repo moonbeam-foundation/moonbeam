@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> fe53acc37c218c5c08d220d72c86e38ae0eccddc
 use sp_runtime::traits::{CheckedConversion, Convert};
 use sp_std::{
 	collections::btree_set::BTreeSet,
@@ -207,4 +211,8 @@ where
 		}
 		None
 	}
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> fe53acc37c218c5c08d220d72c86e38ae0eccddc

@@ -14,9 +14,9 @@ sp-std = { git = "https://github.com/paritytech/substrate", default-features = f
 sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 
 token-factory = { path = "../token-factory", default-features = false }
-xcm = { git = "https://github.com/paritytech/polkadot", rev = "71a528e822af63b96bdb03efac9b4927fb11a25e", default-features = false }
-xcm-executor = { git = "https://github.com/paritytech/polkadot", rev = "71a528e822af63b96bdb03efac9b4927fb11a25e", default-features = false }
-cumulus-primitives = { git = "https://github.com/paritytech/cumulus",  default-features = false, rev = "6438d328b8ac09f43d19df65a2cf8e31a524d78f" }
+xcm = { git = "https://github.com/paritytech/polkadot", branch = "master", default-features = false }
+xcm-executor = { git = "https://github.com/paritytech/polkadot", branch = "master", default-features = false }
+cumulus-primitives = { git = "https://github.com/paritytech/cumulus", branch = "master", default-features = false }
 
 [features]
 default = ["std"]
