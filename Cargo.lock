@@ -17,7 +17,7 @@ dependencies = [
  "blake2-rfc",
  "hex",
  "log",
- "pallet-evm 2.0.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
+ "pallet-evm",
  "parity-scale-codec",
  "serde",
  "sha3 0.8.2",
@@ -1081,7 +1081,7 @@ version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
 dependencies = [
  "cumulus-network",
- "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus)",
+ "cumulus-primitives",
  "cumulus-runtime",
  "futures 0.3.12",
  "log",
@@ -1131,7 +1131,7 @@ name = "cumulus-network"
 version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
 dependencies = [
- "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus)",
+ "cumulus-primitives",
  "derive_more 0.99.11",
  "futures 0.3.12",
  "futures-timer 3.0.2",
@@ -1158,7 +1158,7 @@ name = "cumulus-parachain-system"
 version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
 dependencies = [
- "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus)",
+ "cumulus-primitives",
  "cumulus-runtime",
  "frame-support",
  "frame-system",
@@ -1175,24 +1175,6 @@ dependencies = [
  "sp-std",
  "sp-trie",
  "sp-version",
-]
-
-[[package]]
-name = "cumulus-primitives"
-version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?rev=6438d328b8ac09f43d19df65a2cf8e31a524d78f#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
-dependencies = [
- "impl-trait-for-tuples 0.1.3",
- "parity-scale-codec",
- "polkadot-core-primitives",
- "polkadot-parachain",
- "polkadot-primitives",
- "sc-chain-spec",
- "sp-core",
- "sp-inherents",
- "sp-runtime",
- "sp-std",
- "sp-trie",
 ]
 
 [[package]]
@@ -1218,7 +1200,7 @@ name = "cumulus-runtime"
 version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
 dependencies = [
- "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus)",
+ "cumulus-primitives",
  "frame-executive",
  "hash-db",
  "memory-db",
@@ -1241,7 +1223,7 @@ source = "git+https://github.com/paritytech/cumulus#6438d328b8ac09f43d19df65a2cf
 dependencies = [
  "cumulus-collator",
  "cumulus-consensus",
- "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus)",
+ "cumulus-primitives",
  "futures 0.3.12",
  "polkadot-overseer",
  "polkadot-primitives",
@@ -1263,7 +1245,7 @@ name = "cumulus-test-relay-sproof-builder"
 version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
 dependencies = [
- "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus)",
+ "cumulus-primitives",
  "parity-scale-codec",
  "polkadot-primitives",
  "sp-runtime",
@@ -1710,8 +1692,8 @@ version = "0.1.0"
 source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam#677548ce782afd28174548dc4badbedf064e8bae"
 dependencies = [
  "derive_more 0.99.11",
- "fp-consensus 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
- "fp-rpc 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
+ "fp-consensus",
+ "fp-rpc",
  "futures 0.3.12",
  "log",
  "parity-scale-codec",
@@ -1736,7 +1718,7 @@ dependencies = [
  "ethereum-types",
  "fc-consensus",
  "fc-rpc-core",
- "fp-rpc 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
+ "fp-rpc",
  "futures 0.3.12",
  "jsonrpc-core 15.1.0",
  "jsonrpc-core-client 14.2.0",
@@ -1744,8 +1726,8 @@ dependencies = [
  "jsonrpc-pubsub 15.1.0",
  "libsecp256k1",
  "log",
- "pallet-ethereum 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
- "pallet-evm 2.0.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
+ "pallet-ethereum",
+ "pallet-evm",
  "parity-scale-codec",
  "rand 0.7.3",
  "rlp",
@@ -1871,35 +1853,11 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae#677548ce782afd28174548dc4badbedf064e8bae"
-dependencies = [
- "parity-scale-codec",
- "sp-core",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "fp-consensus"
-version = "0.1.0"
 source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam#677548ce782afd28174548dc4badbedf064e8bae"
 dependencies = [
  "parity-scale-codec",
  "sp-core",
  "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "fp-evm"
-version = "0.8.0"
-source = "git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae#677548ce782afd28174548dc4badbedf064e8bae"
-dependencies = [
- "evm",
- "impl-trait-for-tuples 0.1.3",
- "parity-scale-codec",
- "serde",
- "sp-core",
  "sp-std",
 ]
 
@@ -1919,27 +1877,11 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae#677548ce782afd28174548dc4badbedf064e8bae"
-dependencies = [
- "ethereum",
- "ethereum-types",
- "fp-evm 0.8.0 (git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae)",
- "parity-scale-codec",
- "sp-api",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "fp-rpc"
-version = "0.1.0"
 source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam#677548ce782afd28174548dc4badbedf064e8bae"
 dependencies = [
  "ethereum",
  "ethereum-types",
- "fp-evm 0.8.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
+ "fp-evm",
  "parity-scale-codec",
  "sp-api",
  "sp-core",
@@ -4054,7 +3996,7 @@ dependencies = [
  "cumulus-collator",
  "cumulus-consensus",
  "cumulus-network",
- "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus)",
+ "cumulus-primitives",
  "cumulus-service",
  "cumulus-test-relay-sproof-builder",
  "derive_more 0.15.0",
@@ -4062,8 +4004,8 @@ dependencies = [
  "fc-consensus",
  "fc-rpc",
  "fc-rpc-core",
- "fp-consensus 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
- "fp-rpc 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
+ "fp-consensus",
+ "fp-rpc",
  "futures 0.3.12",
  "jsonrpc-core 15.1.0",
  "jsonrpc-pubsub 15.1.0",
@@ -4072,8 +4014,8 @@ dependencies = [
  "moonbeam-rpc-txpool",
  "moonbeam-runtime",
  "nix 0.17.0",
- "pallet-ethereum 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
- "pallet-evm 2.0.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
+ "pallet-ethereum",
+ "pallet-evm",
  "pallet-sudo",
  "pallet-transaction-payment-rpc",
  "parity-scale-codec",
@@ -4179,9 +4121,9 @@ dependencies = [
  "account",
  "author-inherent",
  "cumulus-parachain-system",
- "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus)",
+ "cumulus-primitives",
  "cumulus-runtime",
- "fp-rpc 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
+ "fp-rpc",
  "frame-executive",
  "frame-support",
  "frame-system",
@@ -4193,9 +4135,9 @@ dependencies = [
  "pallet-author-filter",
  "pallet-balances",
  "pallet-democracy",
- "pallet-ethereum 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
+ "pallet-ethereum",
  "pallet-ethereum-chain-id",
- "pallet-evm 2.0.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
+ "pallet-evm",
  "pallet-grandpa",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
@@ -4741,46 +4683,19 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae#677548ce782afd28174548dc4badbedf064e8bae"
-dependencies = [
- "ethereum",
- "ethereum-types",
- "evm",
- "fp-consensus 0.1.0 (git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae)",
- "fp-evm 0.8.0 (git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae)",
- "fp-rpc 0.1.0 (git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae)",
- "frame-support",
- "frame-system",
- "libsecp256k1",
- "pallet-balances",
- "pallet-evm 2.0.0 (git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae)",
- "pallet-timestamp",
- "parity-scale-codec",
- "rlp",
- "rustc-hex",
- "serde",
- "sha3 0.8.2",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-ethereum"
-version = "0.1.0"
 source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam#677548ce782afd28174548dc4badbedf064e8bae"
 dependencies = [
  "ethereum",
  "ethereum-types",
  "evm",
- "fp-consensus 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
- "fp-evm 0.8.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
- "fp-rpc 0.1.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
+ "fp-consensus",
+ "fp-evm",
+ "fp-rpc",
  "frame-support",
  "frame-system",
  "libsecp256k1",
  "pallet-balances",
- "pallet-evm 2.0.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
+ "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
  "rlp",
@@ -4805,36 +4720,12 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "2.0.0"
-source = "git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae#677548ce782afd28174548dc4badbedf064e8bae"
-dependencies = [
- "evm",
- "evm-gasometer",
- "evm-runtime",
- "fp-evm 0.8.0 (git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae)",
- "frame-support",
- "frame-system",
- "pallet-balances",
- "pallet-timestamp",
- "parity-scale-codec",
- "primitive-types",
- "rlp",
- "serde",
- "sha3 0.8.2",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-evm"
-version = "2.0.0"
 source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam#677548ce782afd28174548dc4badbedf064e8bae"
 dependencies = [
  "evm",
  "evm-gasometer",
  "evm-runtime",
- "fp-evm 0.8.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "pallet-balances",
@@ -4856,9 +4747,9 @@ version = "2.0.0"
 source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam#677548ce782afd28174548dc4badbedf064e8bae"
 dependencies = [
  "evm",
- "fp-evm 0.8.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
+ "fp-evm",
  "frame-support",
- "pallet-evm 2.0.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
+ "pallet-evm",
  "parity-scale-codec",
  "sp-core",
  "sp-io",
@@ -4870,7 +4761,7 @@ version = "2.0.0"
 source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam#677548ce782afd28174548dc4badbedf064e8bae"
 dependencies = [
  "evm",
- "fp-evm 0.8.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
+ "fp-evm",
  "num",
  "sp-core",
  "sp-io",
@@ -4882,7 +4773,7 @@ version = "2.0.0"
 source = "git+https://github.com/purestake/frontier?branch=v0.6-moonbeam#677548ce782afd28174548dc4badbedf064e8bae"
 dependencies = [
  "evm",
- "fp-evm 0.8.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
+ "fp-evm",
  "ripemd160",
  "sp-core",
  "sp-io",
@@ -5278,7 +5169,7 @@ dependencies = [
 name = "parachain-info"
 version = "0.6.0"
 dependencies = [
- "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus)",
+ "cumulus-primitives",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -6356,7 +6247,7 @@ dependencies = [
  "sp-staking",
  "sp-std",
  "static_assertions",
- "xcm 0.8.22 (git+https://github.com/paritytech/polkadot)",
+ "xcm",
 ]
 
 [[package]]
@@ -6392,8 +6283,8 @@ dependencies = [
  "sp-session",
  "sp-staking",
  "sp-std",
- "xcm 0.8.22 (git+https://github.com/paritytech/polkadot)",
- "xcm-executor 0.8.22 (git+https://github.com/paritytech/polkadot)",
+ "xcm",
+ "xcm-executor",
 ]
 
 [[package]]
@@ -6658,7 +6549,7 @@ name = "precompiles"
 version = "0.6.0"
 dependencies = [
  "log",
- "pallet-evm 2.0.0 (git+https://github.com/purestake/frontier?branch=v0.6-moonbeam)",
+ "pallet-evm",
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-simple",
@@ -7421,9 +7312,9 @@ dependencies = [
  "sp-transaction-pool",
  "sp-version",
  "substrate-wasm-builder 3.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "xcm 0.8.22 (git+https://github.com/paritytech/polkadot)",
+ "xcm",
  "xcm-builder",
- "xcm-executor 0.8.22 (git+https://github.com/paritytech/polkadot)",
+ "xcm-executor",
 ]
 
 [[package]]
@@ -10138,7 +10029,7 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 name = "token-dealer"
 version = "0.1.0"
 dependencies = [
- "cumulus-primitives 0.1.0 (git+https://github.com/paritytech/cumulus?rev=6438d328b8ac09f43d19df65a2cf8e31a524d78f)",
+ "cumulus-primitives",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -10146,8 +10037,8 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "token-factory",
- "xcm 0.8.22 (git+https://github.com/paritytech/polkadot?rev=71a528e822af63b96bdb03efac9b4927fb11a25e)",
- "xcm-executor 0.8.22 (git+https://github.com/paritytech/polkadot?rev=71a528e822af63b96bdb03efac9b4927fb11a25e)",
+ "xcm",
+ "xcm-executor",
 ]
 
 [[package]]
@@ -10155,20 +10046,18 @@ name = "token-factory"
 version = "0.1.0"
 dependencies = [
  "ethereum-types",
- "fp-evm 0.8.0 (git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae)",
+ "fp-evm",
  "frame-support",
  "frame-system",
- "hex",
  "hex-literal",
- "pallet-ethereum 0.1.0 (git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae)",
- "pallet-evm 2.0.0 (git+https://github.com/purestake/frontier?rev=677548ce782afd28174548dc4badbedf064e8bae)",
+ "pallet-ethereum",
+ "pallet-evm",
  "pallet-sudo",
  "parity-scale-codec",
  "rustc-hex",
  "sp-core",
  "sp-runtime",
  "sp-std",
- "tiny-keccak",
 ]
 
 [[package]]
@@ -11329,14 +11218,6 @@ dependencies = [
 [[package]]
 name = "xcm"
 version = "0.8.22"
-source = "git+https://github.com/paritytech/polkadot?rev=71a528e822af63b96bdb03efac9b4927fb11a25e#71a528e822af63b96bdb03efac9b4927fb11a25e"
-dependencies = [
- "parity-scale-codec",
-]
-
-[[package]]
-name = "xcm"
-version = "0.8.22"
 source = "git+https://github.com/paritytech/polkadot#71a528e822af63b96bdb03efac9b4927fb11a25e"
 dependencies = [
  "parity-scale-codec",
@@ -11354,24 +11235,8 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "xcm 0.8.22 (git+https://github.com/paritytech/polkadot)",
- "xcm-executor 0.8.22 (git+https://github.com/paritytech/polkadot)",
-]
-
-[[package]]
-name = "xcm-executor"
-version = "0.8.22"
-source = "git+https://github.com/paritytech/polkadot?rev=71a528e822af63b96bdb03efac9b4927fb11a25e#71a528e822af63b96bdb03efac9b4927fb11a25e"
-dependencies = [
- "frame-support",
- "impl-trait-for-tuples 0.2.0",
- "parity-scale-codec",
- "sp-arithmetic",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "xcm 0.8.22 (git+https://github.com/paritytech/polkadot?rev=71a528e822af63b96bdb03efac9b4927fb11a25e)",
+ "xcm",
+ "xcm-executor",
 ]
 
 [[package]]
@@ -11387,7 +11252,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "xcm 0.8.22 (git+https://github.com/paritytech/polkadot)",
+ "xcm",
 ]
 
 [[package]]

@@ -6,20 +6,18 @@ version = "0.1.0"
 
 [dependencies]
 ethereum-types = { version = "0.11.0", default-features = false }
-fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, rev = "677548ce782afd28174548dc4badbedf064e8bae" }
+fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.6-moonbeam" }
 frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 hex-literal = { version = "0.3.1" }
-hex = "0.4"
-pallet-ethereum = { git = "https://github.com/purestake/frontier", default-features = false, rev = "677548ce782afd28174548dc4badbedf064e8bae" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, rev = "677548ce782afd28174548dc4badbedf064e8bae" }
+pallet-ethereum = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.6-moonbeam" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.6-moonbeam" }
 pallet-sudo = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
 rustc-hex = { version = "2.1.0", default-features = false }
 sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
-tiny-keccak = { version = "2.0.1", features = ["sha3"] }
 
 [features]
 default = ["std"]
