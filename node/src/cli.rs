@@ -18,8 +18,6 @@ use sp_core::H160;
 use std::path::PathBuf;
 use std::str::FromStr;
 use structopt::StructOpt;
-
-/// Sub-commands supported by the collator.
 #[derive(Debug, StructOpt)]
 pub enum Subcommand {
 	/// Export the genesis state of the parachain.
@@ -31,7 +29,7 @@ pub enum Subcommand {
 	ExportGenesisWasm(ExportGenesisWasmCommand),
 
 	/// Build a chain specification.
-	BuildSpec(sc_cli::BuildSpecCmd),
+	BuildSpec(BuildSpecCommand),
 
 	/// Validate blocks.
 	CheckBlock(sc_cli::CheckBlockCmd),
@@ -50,6 +48,20 @@ pub enum Subcommand {
 
 	/// Revert the chain to a previous state.
 	Revert(sc_cli::RevertCmd),
+}
+
+#[derive(Debug, StructOpt)]
+pub struct BuildSpecCommand {
+	#[structopt(flatten)]
+	pub base: sc_cli::BuildSpecCmd,
+
+	/// Number of accounts to be funded in the genesis
+	#[structopt(long)]
+	pub accounts: Option<u32>,
+
+	/// Mnemonic from which we can derive funded accounts in the genesis
+	#[structopt(long)]
+	pub mnemonic: Option<String>,
 }
 
 /// Command for exporting the genesis state of the parachain
