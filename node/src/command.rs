@@ -40,6 +40,8 @@ use std::{io::Write, net::SocketAddr, str::FromStr};
 fn load_spec(
 	id: &str,
 	para_id: ParaId,
+	mnemonic: &Option<String>,
+	accounts: u32,
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	match id {
 		"alphanet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
@@ -48,7 +50,10 @@ fn load_spec(
 		"stagenet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
 			&include_bytes!("../../specs/stagenet/parachain-embedded-specs-v6.json")[..],
 		)?)),
-		"dev" | "development" => Ok(Box::new(chain_spec::development_chain_spec())),
+		"dev" | "development" => Ok(Box::new(chain_spec::development_chain_spec(
+			mnemonic.clone(),
+			accounts,
+		))),
 		"local" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
 		"" => Err(
 			"You have not specified what chain to sync. In the future, this will default to \
@@ -93,7 +98,12 @@ impl SubstrateCli for Cli {
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-		load_spec(id, self.run.parachain_id.unwrap_or(1000).into())
+		load_spec(
+			id,
+			self.run.parachain_id.unwrap_or(1000).into(),
+			&self.run.mnemonic,
+			self.run.accounts,
+		)
 	}
 
 	fn native_runtime_version(_: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
@@ -238,6 +248,8 @@ pub fn run() -> Result<()> {
 			let block: Block = generate_genesis_block(&load_spec(
 				&params.chain.clone().unwrap_or_default(),
 				params.parachain_id.into(),
+				&params.mnemonic,
+				params.accounts.into(),
 			)?)?;
 			let raw_header = block.header().encode();
 			let output_buf = if params.raw {
