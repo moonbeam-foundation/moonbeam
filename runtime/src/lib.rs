@@ -34,7 +34,7 @@ use sp_api::impl_runtime_apis;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify},
+	traits::{BlakeTwo256, Block as BlockT, Convert, IdentifyAccount, IdentityLookup, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult,
 };
@@ -424,6 +424,23 @@ impl pallet_author_filter::Config for Runtime {
 	type RandomnessSource = RandomnessCollectiveFlip;
 }
 
+type TokenId = u64;
+pub struct AccountToH160;
+impl Convert<<<Signature as Verify>::Signer as IdentifyAccount>::AccountId, H160>
+	for AccountToH160
+{
+	fn convert(from: <<Signature as Verify>::Signer as IdentifyAccount>::AccountId) -> H160 {
+		from
+	}
+}
+
+impl token_factory::Config for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type TokenId = TokenId;
+	type AccountToH160 = AccountToH160;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -444,6 +461,7 @@ construct_runtime! {
 		Stake: stake::{Module, Call, Storage, Event<T>, Config<T>},
 		Scheduler: pallet_scheduler::{Module, Storage, Config, Event<T>, Call},
 		Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
+		TokenFactory: token_factory::{Module, Call, Storage, Event<T>},
 		// The order matters here. Inherents will be included in the order specified here.
 		// Concretely we need the author inherent to come after the parachain_upgrade inherent.
 		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
