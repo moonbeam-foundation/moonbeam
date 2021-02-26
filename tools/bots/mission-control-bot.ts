@@ -60,7 +60,8 @@ const sendSlackNotification = async (account_balance: bigint) => {
     attachments: [
       {
         color: "warning",
-        fallback: `${title}. ${message}\n` +
+        fallback:
+          `${title}. ${message}\n` +
           `  * Balance: ${account_balance.toString()} DEV\n` +
           `  * Alerts until failure: ${remainingAlerts.toString()}\n` +
           `  * Fund the following account: ${params.ACCOUNT_ID}`,
@@ -70,21 +71,21 @@ const sendSlackNotification = async (account_balance: bigint) => {
           {
             title: "Balance",
             value: `${account_balance.toString()} DEV`,
-            short: true
+            short: true,
           },
           {
             title: "Alerts until failure",
             value: `${remainingAlerts.toString()}`,
-            short: true
+            short: true,
           },
           {
             title: "Please, fund the following account",
             value: params.ACCOUNT_ID,
-            short: false
-          }
-        ]
-      }
-    ]
+            short: false,
+          },
+        ],
+      },
+    ],
   };
 
   // Options for the HTTP request (data is written later)
@@ -200,7 +201,9 @@ const botActionFaucetSend = async (msg: Message, authorId: string, messageConten
         "Remaining time",
         `You still need to wait ${nextAvailableToken(receivers[authorId])} to receive more tokens`
       )
-      .setFooter(`Funds transactions are limited to once every ${params.FAUCET_SEND_INTERVAL} hour(s)`);
+      .setFooter(
+        `Funds transactions are limited to once every ${params.FAUCET_SEND_INTERVAL} hour(s)`
+      );
 
     msg.channel.send(errorEmbed);
     return;
@@ -241,8 +244,7 @@ const botActionFaucetSend = async (msg: Message, authorId: string, messageConten
       .setColor(EMBED_COLOR_ERROR)
       .setTitle("Could not submit the transaction")
       .setFooter(
-        "The transaction of funds could not be submitted. " +
-        "Please, try requesting funds again."
+        "The transaction of funds could not be submitted. " + "Please, try requesting funds again."
       );
 
     // send message
@@ -271,7 +273,9 @@ const botActionFaucetSend = async (msg: Message, authorId: string, messageConten
     .addField("To account", `0x${address}`, true)
     .addField("Amount sent", `${params.TOKEN_COUNT} DEV`, true)
     .addField("Current account balance", `${accountBalance / 10n ** TOKEN_DECIMAL} DEV`)
-    .setFooter(`Funds transactions are limited to once every ${params.FAUCET_SEND_INTERVAL} hour(s)`);
+    .setFooter(
+      `Funds transactions are limited to once every ${params.FAUCET_SEND_INTERVAL} hour(s)`
+    );
 
   msg.channel.send(fundsTransactionEmbed);
 };
