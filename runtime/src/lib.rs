@@ -34,7 +34,7 @@ use sp_api::impl_runtime_apis;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify},
+	traits::{BlakeTwo256, Block as BlockT, Convert, IdentifyAccount, IdentityLookup, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult,
 };
@@ -365,7 +365,7 @@ impl pallet_ethereum::Config for Runtime {
 	type BlockGasLimit = BlockGasLimit;
 }
 
-impl cumulus_parachain_system::Config for Runtime {
+impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
 	type SelfParaId = ParachainInfo;
@@ -424,6 +424,55 @@ impl pallet_author_filter::Config for Runtime {
 	type RandomnessSource = RandomnessCollectiveFlip;
 }
 
+type TokenId = u64;
+pub struct AccountToH160;
+impl Convert<<<Signature as Verify>::Signer as IdentifyAccount>::AccountId, H160>
+	for AccountToH160
+{
+	fn convert(from: <<Signature as Verify>::Signer as IdentifyAccount>::AccountId) -> H160 {
+		from
+	}
+}
+
+impl token_factory::Config for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type TokenId = TokenId;
+	type AccountToH160 = AccountToH160;
+}
+
+pub struct ToRelayChainBalance;
+impl Convert<Balance, RelayChainBalance> for AccountToH160 {
+	fn convert(from: Balance) -> RelayChainBalance {
+		// from 18 0s to 12 0s
+		from / 1_000_000
+	}
+}
+
+use xcm_executor::{Config, XcmExecutor};
+
+impl cumulus_pallet_xcm_handler::Config for Runtime {
+	type Event = Event;
+	type XcmExecutor = XcmExecutor<XcmConfig>;
+	type UpwardMessageSender = ParachainSystem;
+	type HrmpMessageSender = ParachainSystem;
+}
+
+// parameter_types! {
+// 	pub const PolkadotNetworkId: NetworkId = NetworkId::Polkadot;
+// }
+
+// impl token_dealer::Config for Runtime {
+// 	type Event = Event;
+// 	type Balance = Balance;
+// 	type RelayChainBalance = RelayChainBalance;
+// 	type ToMultiLocation = ();
+// 	type RelayChainNetworkId = PolkadotNetworkId;
+// 	type ParaId = ParachainInfo;
+// 	type TokenFactory = TokenFactory;
+// 	type Executor = ();
+// }
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -444,6 +493,9 @@ construct_runtime! {
 		Stake: stake::{Module, Call, Storage, Event<T>, Config<T>},
 		Scheduler: pallet_scheduler::{Module, Storage, Config, Event<T>, Call},
 		Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
+		TokenFactory: token_factory::{Module, Call, Storage, Event<T>},
+		//TokenDealer: token_dealer::{Module, Call, Storage, Event<T>},
+		XcmHandler: cumulus_pallet_xcm_handler::{Module, Call, Event<T>, Origin},
 		// The order matters here. Inherents will be included in the order specified here.
 		// Concretely we need the author inherent to come after the parachain_upgrade inherent.
 		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
@@ -712,4 +764,4 @@ impl_runtime_apis! {
 	}
 }
 
-cumulus_runtime::register_validate_block!(Block, Executive);
+cumulus_pallet_parachain_system::register_validate_block!(Block, Executive);

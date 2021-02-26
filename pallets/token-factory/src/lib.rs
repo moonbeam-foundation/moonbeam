@@ -26,7 +26,7 @@ pub use pallet::*;
 pub mod pallet {
 	use ethereum_types::BigEndianHash;
 	use fp_evm::ExecutionInfo;
-	use frame_support::{pallet_prelude::*, traits::Currency};
+	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
 	use pallet_evm::{AddressMapping, ExitReason, Runner};
 	use parity_scale_codec::{Decode, Encode, FullCodec};
@@ -36,12 +36,10 @@ pub mod pallet {
 		traits::{AtLeast32BitUnsigned, Convert, Zero},
 		DispatchError, SaturatedConversion,
 	};
-	use sp_std::fmt::Debug;
+	use sp_std::{fmt::Debug, vec::Vec};
 
 	/// ERC20PresetMinterBurner contract bytecode
 	const CONTRACT_BYTECODE: &str = include_str!("../contract/bytecode.txt");
-	type BalanceOf<T> =
-		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
 	/// The ERC token factory pallet
 	#[pallet::pallet]
@@ -53,8 +51,14 @@ pub mod pallet {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// Balances type
-		type Currency: Currency<Self::AccountId>;
-		/// ERC token identifier
+		type Balance: Parameter
+			+ Member
+			+ AtLeast32BitUnsigned
+			+ Default
+			+ Copy
+			+ MaybeSerializeDeserialize
+			+ Into<u128>;
+		/// Token identifier
 		type TokenId: Clone + Copy + AtLeast32BitUnsigned + FullCodec + Debug;
 		/// Convert from AccountId to H160, is identity map for Moonbeam
 		type AccountToH160: Convert<Self::AccountId, H160>;
@@ -85,11 +89,11 @@ pub mod pallet {
 		/// Token register success [token_id, contract_address, to_address, minted_amount]
 		Registered(T::TokenId, H160),
 		/// Mint token success. [token_id, who, amount]
-		Minted(T::TokenId, T::AccountId, BalanceOf<T>),
+		Minted(T::TokenId, T::AccountId, T::Balance),
 		/// Burn token success. [token_id, who, amount]
-		Burned(T::TokenId, T::AccountId, BalanceOf<T>),
+		Burned(T::TokenId, T::AccountId, T::Balance),
 		/// Destroy all tokens success. [token_id, amount]
-		DestroyedAll(T::TokenId, BalanceOf<T>),
+		DestroyedAll(T::TokenId, T::Balance),
 		/// Call failed with exit reason [call, reason]
 		EvmCallFailed(EvmCall, ExitReason),
 	}
@@ -173,7 +177,7 @@ pub mod pallet {
 				}
 			});
 			// TODO: get this
-			let amount_destroyed = BalanceOf::<T>::zero();
+			let amount_destroyed = T::Balance::zero();
 			Self::deposit_event(Event::DestroyedAll(id, amount_destroyed));
 			Ok(().into())
 		}
@@ -195,11 +199,11 @@ pub mod pallet {
 		fn balance_of(id: Id, who: Account) -> Result<Balance, DispatchError>;
 	}
 
-	impl<T: Config> TokenFactory<T::TokenId, H160, BalanceOf<T>> for Pallet<T> {
+	impl<T: Config> TokenFactory<T::TokenId, H160, T::Balance> for Pallet<T> {
 		fn exists(id: T::TokenId) -> bool {
 			<ContractAddress<T>>::get(id).is_some()
 		}
-		fn mint(id: T::TokenId, who: H160, amount: BalanceOf<T>) -> DispatchResultWithPostInfo {
+		fn mint(id: T::TokenId, who: H160, amount: T::Balance) -> DispatchResultWithPostInfo {
 			let address = <ContractAddress<T>>::get(id).ok_or(Error::<T>::IdNotClaimed)?;
 			let mut input = hex_literal::hex!("9cff1ade").to_vec();
 			// append address
@@ -246,7 +250,7 @@ pub mod pallet {
 			}
 			Ok(().into())
 		}
-		fn burn(id: T::TokenId, who: H160, amount: BalanceOf<T>) -> DispatchResultWithPostInfo {
+		fn burn(id: T::TokenId, who: H160, amount: T::Balance) -> DispatchResultWithPostInfo {
 			let address = <ContractAddress<T>>::get(id).ok_or(Error::<T>::IdNotClaimed)?;
 			let mut input = hex_literal::hex!("4f10869a").to_vec();
 			// append address
@@ -293,7 +297,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Gets total issuance for the given token if it exists in local evm instance
-		fn total_issuance(id: T::TokenId) -> Result<BalanceOf<T>, DispatchError> {
+		fn total_issuance(id: T::TokenId) -> Result<T::Balance, DispatchError> {
 			let address = <ContractAddress<T>>::get(id).ok_or(Error::<T>::IdNotClaimed)?;
 			// first 4 bytes of hex output of Sha3("totalSupply()")
 			let input = hex_literal::hex!("1f1881f8").to_vec();
@@ -321,20 +325,20 @@ pub mod pallet {
 					..
 				}) => {
 					let value = U256::from(result.as_slice()).saturated_into::<u128>();
-					Ok(value.saturated_into::<BalanceOf<T>>())
+					Ok(value.saturated_into::<T::Balance>())
 				}
 				Ok(ExecutionInfo {
 					exit_reason: reason,
 					..
 				}) => {
 					Self::deposit_event(Event::EvmCallFailed(EvmCall::TotalIssuance, reason));
-					Ok(BalanceOf::<T>::zero())
+					Ok(T::Balance::zero())
 				}
 				Err(e) => Err(e.into()),
 			}
 		}
 		/// Gets token balance for the account
-		fn balance_of(id: T::TokenId, who: H160) -> Result<BalanceOf<T>, DispatchError> {
+		fn balance_of(id: T::TokenId, who: H160) -> Result<T::Balance, DispatchError> {
 			let address = <ContractAddress<T>>::get(id).ok_or(Error::<T>::IdNotClaimed)?;
 			// first 4 bytes of hex output of Sha3("balanceOf(address)")
 			let mut input = hex_literal::hex!("1d7976f3").to_vec();
@@ -364,14 +368,14 @@ pub mod pallet {
 					..
 				}) => {
 					let value = U256::from(result.as_slice()).saturated_into::<u128>();
-					return Ok(value.saturated_into::<BalanceOf<T>>());
+					return Ok(value.saturated_into::<T::Balance>());
 				}
 				Ok(ExecutionInfo {
 					exit_reason: reason,
 					..
 				}) => {
 					Self::deposit_event(Event::EvmCallFailed(EvmCall::BalanceOf, reason));
-					Ok(BalanceOf::<T>::zero())
+					Ok(T::Balance::zero())
 				}
 				Err(e) => Err(e.into()),
 			}

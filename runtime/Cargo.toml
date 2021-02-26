@@ -60,9 +60,12 @@ pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-fe
 moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool", default-features = false }
 
 # Cumulus dependencies
-cumulus-runtime = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
-cumulus-parachain-system = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
-cumulus-primitives = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
+cumulus-pallet-parachain-system = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
+cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
+
+# XCM depedencies
+cumulus-pallet-xcm-handler = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
+xcm-executor = { git = "https://github.com/paritytech/polkadot", branch = "master", default-features = false }
 
 # TODO Why can't this come directly from cumulus
 parachain-info = { path = "../pallets/parachain-info", default-features = false }
@@ -111,14 +114,15 @@ std = [
 	"pallet-scheduler/std",
 	"author-inherent/std",
 	"parachain-info/std",
-	"cumulus-runtime/std",
-	"cumulus-parachain-system/std",
-	"cumulus-primitives/std",
+	"cumulus-pallet-parachain-system/std",
+	"cumulus-primitives-core/std",
 	"account/std",
 	"stake/std",
 	"pallet-author-filter/std",
 	"token-factory/std",
 	"token-dealer/std",
+	"xcm-executor/std",
+	"cumulus-pallet-xcm-handler/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
