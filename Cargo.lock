@@ -4165,7 +4165,6 @@ dependencies = [
  "substrate-wasm-builder 3.0.0 (git+https://github.com/paritytech/substrate)",
  "token-dealer",
  "token-factory",
- "xcm-executor 0.8.22 (git+https://github.com/paritytech/polkadot)",
 ]
 
 [[package]]
