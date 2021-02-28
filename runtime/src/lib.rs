@@ -64,7 +64,7 @@ use token_dealer::support::*;
 use xcm::v0::{Junction, MultiLocation, NetworkId};
 use xcm_builder::{
 	LocationInverter, ParentIsDefault, RelayChainAsNative, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountId32AsNative, SovereignSignedViaLocation,
+	SiblingParachainConvertsVia, SovereignSignedViaLocation,
 };
 use xcm_executor::{
 	traits::{LocationConversion, NativeAsset},
@@ -484,6 +484,27 @@ impl<Network: Get<NetworkId>, AccountId: From<[u8; 20]> + Into<[u8; 20]>>
 		.into())
 	}
 }
+use frame_support::traits::OriginTrait;
+use xcm::v0::OriginKind;
+use xcm_executor::traits::ConvertOrigin;
+// TODO: add to xcm-builder/origin_conversion and PR polkadot
+pub struct SignedAccountId20AsNative<Network, Origin>(PhantomData<(Network, Origin)>);
+impl<Network: Get<NetworkId>, Origin: OriginTrait> ConvertOrigin<Origin>
+	for SignedAccountId20AsNative<Network, Origin>
+where
+	Origin::AccountId: From<[u8; 20]>,
+{
+	fn convert_origin(origin: MultiLocation, kind: OriginKind) -> Result<Origin, MultiLocation> {
+		match (kind, origin) {
+			(OriginKind::Native, MultiLocation::X1(Junction::AccountKey20 { key, network }))
+				if matches!(network, NetworkId::Any) || network == Network::get() =>
+			{
+				Ok(Origin::signed(key.into()))
+			}
+			(_, origin) => Err(origin),
+		}
+	}
+}
 
 pub type LocationConverter = (
 	ParentIsDefault<AccountId>,
@@ -514,7 +535,7 @@ pub type LocalOriginConverter = (
 	SovereignSignedViaLocation<LocationConverter, Origin>,
 	RelayChainAsNative<RelayChainOrigin, Origin>,
 	SiblingParachainAsNative<xcm_handler::Origin, Origin>,
-	SignedAccountId32AsNative<MoonbeamNetwork, Origin>,
+	SignedAccountId20AsNative<MoonbeamNetwork, Origin>,
 );
 
 pub struct XcmConfig;
