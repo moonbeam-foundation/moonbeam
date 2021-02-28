@@ -59,7 +59,7 @@ pub mod pallet {
 			+ MaybeSerializeDeserialize
 			+ Into<u128>;
 		/// Token identifier
-		type TokenId: Clone + Copy + AtLeast32BitUnsigned + FullCodec + Debug;
+		type TokenId: Clone + Copy + FullCodec + Debug + PartialEq + Ord;
 		/// Convert from AccountId to H160, is identity map for Moonbeam
 		type AccountToH160: Convert<Self::AccountId, H160>;
 	}
@@ -119,7 +119,7 @@ pub mod pallet {
 				caller == <pallet_sudo::Module<T>>::key(),
 				Error::<T>::RequireSudo
 			);
-			ensure!(!Self::exists(id), Error::<T>::IdClaimed);
+			ensure!(!Self::exists(&id), Error::<T>::IdClaimed);
 			let contract = FromHex::from_hex(CONTRACT_BYTECODE)
 				.expect("Static smart contract is formatted incorrectly (should be hex)");
 			let from = T::AccountToH160::convert(caller);
@@ -146,10 +146,10 @@ pub mod pallet {
 					..
 				} => {
 					// update runtime storage
-					<ContractAddress<T>>::insert(id, address.clone());
+					<ContractAddress<T>>::insert(&id, address.clone());
 					<Tokens<T>>::mutate(|list| {
 						if let Err(loc) = list.binary_search(&id) {
-							list.insert(loc, id);
+							list.insert(loc, id.clone());
 						}
 					});
 					Self::deposit_event(Event::Registered(id, address));
@@ -167,10 +167,10 @@ pub mod pallet {
 		#[pallet::weight(0)]
 		pub fn destroy_all(origin: OriginFor<T>, id: T::TokenId) -> DispatchResultWithPostInfo {
 			frame_system::ensure_root(origin)?;
-			let _address = <ContractAddress<T>>::get(id).ok_or(Error::<T>::IdNotClaimed)?;
+			let _address = <ContractAddress<T>>::get(&id).ok_or(Error::<T>::IdNotClaimed)?;
 			// TODO: ethereum transaction to remove/kill contract
 			// clear storage and free id
-			<ContractAddress<T>>::remove(id);
+			<ContractAddress<T>>::remove(&id);
 			<Tokens<T>>::mutate(|list| {
 				if let Ok(loc) = list.binary_search(&id) {
 					list.remove(loc);
@@ -189,8 +189,9 @@ pub mod pallet {
 		}
 	}
 
-	pub trait TokenFactory<Id, Account, Balance> {
-		fn exists(id: Id) -> bool;
+	/// Isolates behavior for minting/burning tokens from registration
+	pub trait TokenMinter<Id, Account, Balance> {
+		fn exists(id: &Id) -> bool;
 		// setters
 		fn mint(id: Id, who: Account, amount: Balance) -> DispatchResultWithPostInfo;
 		fn burn(id: Id, who: Account, amount: Balance) -> DispatchResultWithPostInfo;
@@ -199,12 +200,12 @@ pub mod pallet {
 		fn balance_of(id: Id, who: Account) -> Result<Balance, DispatchError>;
 	}
 
-	impl<T: Config> TokenFactory<T::TokenId, H160, T::Balance> for Pallet<T> {
-		fn exists(id: T::TokenId) -> bool {
+	impl<T: Config> TokenMinter<T::TokenId, H160, T::Balance> for Pallet<T> {
+		fn exists(id: &T::TokenId) -> bool {
 			<ContractAddress<T>>::get(id).is_some()
 		}
 		fn mint(id: T::TokenId, who: H160, amount: T::Balance) -> DispatchResultWithPostInfo {
-			let address = <ContractAddress<T>>::get(id).ok_or(Error::<T>::IdNotClaimed)?;
+			let address = <ContractAddress<T>>::get(&id).ok_or(Error::<T>::IdNotClaimed)?;
 			let mut input = hex_literal::hex!("9cff1ade").to_vec();
 			// append address
 			input.extend_from_slice(H256::from(who.clone()).as_bytes());
@@ -251,7 +252,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		fn burn(id: T::TokenId, who: H160, amount: T::Balance) -> DispatchResultWithPostInfo {
-			let address = <ContractAddress<T>>::get(id).ok_or(Error::<T>::IdNotClaimed)?;
+			let address = <ContractAddress<T>>::get(&id).ok_or(Error::<T>::IdNotClaimed)?;
 			let mut input = hex_literal::hex!("4f10869a").to_vec();
 			// append address
 			input.extend_from_slice(H256::from(who.clone()).as_bytes());

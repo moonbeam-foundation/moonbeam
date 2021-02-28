@@ -14,7 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use sp_runtime::traits::{CheckedConversion, Convert};
+//! XCM objects and relationships
+use frame_support::{
+	debug,
+	traits::{Currency, ExistenceRequirement, Get, WithdrawReasons},
+};
+use parity_scale_codec::{Decode, Encode};
+use sp_runtime::{
+	traits::{CheckedConversion, Convert},
+	RuntimeDebug,
+};
 use sp_std::{
 	collections::btree_set::BTreeSet,
 	convert::{TryFrom, TryInto},
@@ -22,31 +31,52 @@ use sp_std::{
 	prelude::*,
 	result,
 };
-use xcm::v0::{Error, Junction, MultiAsset, MultiLocation, Result};
+use xcm::v0::{Error, Junction, MultiAsset, MultiLocation, Result as XcmResult};
 use xcm_executor::traits::{
 	FilterAssetLocation, LocationConversion, MatchesFungible, NativeAsset, TransactAsset,
 };
 
-use frame_support::{
-	debug,
-	traits::{Currency, ExistenceRequirement, Get, WithdrawReasons},
-};
+#[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, RuntimeDebug, PartialOrd, Ord)]
+#[non_exhaustive]
+pub enum TokenSymbol {
+	DOT = 0,
+	KSM = 1,
+	ACA = 2,
+	AUSD = 3,
+}
 
-type TokenId = Vec<u8>;
+impl TryFrom<u8> for TokenSymbol {
+	type Error = ();
+
+	fn try_from(v: u8) -> Result<Self, Self::Error> {
+		match v {
+			0 => Ok(TokenSymbol::DOT),
+			1 => Ok(TokenSymbol::KSM),
+			2 => Ok(TokenSymbol::ACA),
+			3 => Ok(TokenSymbol::AUSD),
+			_ => Err(()),
+		}
+	}
+}
 
 #[derive(sp_runtime::RuntimeDebug)]
 pub enum CurrencyId {
-	/// The local instance of `balances` pallet
+	/// The local instance of `balances` pallet, default GLMR
 	Native,
 	/// Token registered in `token-factory` pallet
-	Token(TokenId),
+	Token(TokenSymbol),
 }
 
-impl From<CurrencyId> for Vec<u8> {
-	fn from(other: CurrencyId) -> Vec<u8> {
-		match other {
-			CurrencyId::Native => b"GLMR".to_vec(),
-			CurrencyId::Token(t) => t,
+impl TryFrom<Vec<u8>> for CurrencyId {
+	type Error = ();
+	fn try_from(v: Vec<u8>) -> Result<CurrencyId, ()> {
+		match v.as_slice() {
+			b"GLMR" => Ok(CurrencyId::Native),
+			b"DOT" => Ok(CurrencyId::Token(TokenSymbol::DOT)),
+			b"KSM" => Ok(CurrencyId::Token(TokenSymbol::KSM)),
+			b"ACA" => Ok(CurrencyId::Token(TokenSymbol::ACA)),
+			b"AUSD" => Ok(CurrencyId::Token(TokenSymbol::AUSD)),
+			_ => Err(()),
 		}
 	}
 }
@@ -55,7 +85,7 @@ pub trait CurrencyIdConversion<CurrencyId> {
 	fn from_asset(asset: &MultiAsset) -> Option<CurrencyId>;
 }
 
-pub struct CurrencyAdapter<
+pub struct MultiCurrencyAdapter<
 	NativeCurrency,
 	TokenFactory,
 	Matcher,
@@ -77,13 +107,13 @@ pub struct CurrencyAdapter<
 
 impl<
 		NativeCurrency: Currency<AccountId>,
-		TokenFactory: token_factory::TokenFactory<Vec<u8>, AccountId, NativeCurrency::Balance>,
+		TokenFactory: token_factory::TokenMinter<TokenSymbol, AccountId, NativeCurrency::Balance>,
 		Matcher: MatchesFungible<NativeCurrency::Balance>,
 		AccountIdConverter: LocationConversion<AccountId>,
 		AccountId: sp_std::fmt::Debug,
 		CurrencyIdConverter: CurrencyIdConversion<CurrencyId>,
 	> TransactAsset
-	for CurrencyAdapter<
+	for MultiCurrencyAdapter<
 		NativeCurrency,
 		TokenFactory,
 		Matcher,
@@ -93,7 +123,7 @@ impl<
 		CurrencyId,
 	>
 {
-	fn deposit_asset(asset: &MultiAsset, location: &MultiLocation) -> Result {
+	fn deposit_asset(asset: &MultiAsset, location: &MultiLocation) -> XcmResult {
 		debug::info!("------------------------------------------------");
 		debug::info!(
 			">>> trying deposit. asset: {:?}, location: {:?}",

@@ -18,7 +18,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-mod support;
+pub mod support;
 
 use frame_support::pallet;
 
@@ -31,7 +31,6 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
 	use sp_std::prelude::*;
-	use token_factory::TokenFactory;
 	use xcm::v0::{
 		Error as XcmError, ExecuteXcm, Junction, MultiAsset, MultiLocation, NetworkId, Order, Xcm,
 	};
@@ -90,8 +89,6 @@ pub mod pallet {
 		type RelayChainNetworkId: Get<NetworkId>;
 		/// Moonbeam parachain identifier
 		type ParaId: Get<ParaId>;
-		/// Abstraction over EVM to register, mint, and burn ERC20 tokens
-		type TokenFactory: TokenFactory<Vec<u8>, Self::AccountId, Self::Balance>;
 		/// XCM Executor
 		type Executor: ExecuteXcm;
 	}

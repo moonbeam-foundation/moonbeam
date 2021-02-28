@@ -63,6 +63,11 @@ moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool", default-fe
 cumulus-runtime = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
 cumulus-parachain-system = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
 cumulus-primitives = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
+xcm-builder = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "master" }
+xcm-handler = { git = "https://github.com/paritytech/cumulus", default-features = false, branch = "master" }
+xcm-executor = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "master" }
+xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "master" }
+polkadot-parachain = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "master" }
 
 # TODO Why can't this come directly from cumulus
 parachain-info = { path = "../pallets/parachain-info", default-features = false }
@@ -119,6 +124,11 @@ std = [
 	"pallet-author-filter/std",
 	"token-factory/std",
 	"token-dealer/std",
+	"xcm-builder/std",
+	"xcm-handler/std",
+	"xcm-executor/std",
+	"xcm/std",
+	"polkadot-parachain/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.

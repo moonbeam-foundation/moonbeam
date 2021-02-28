@@ -43,6 +43,7 @@ use sp_std::{convert::TryFrom, prelude::*};
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
+use cumulus_primitives::relay_chain::Balance as RelayChainBalance;
 pub use frame_support::{
 	construct_runtime,
 	pallet_prelude::PhantomData,
@@ -58,6 +59,17 @@ use pallet_evm::{
 	IdentityAddressMapping, Runner,
 };
 use pallet_transaction_payment::CurrencyAdapter;
+use polkadot_parachain::primitives::Sibling;
+use token_dealer::support::*;
+use xcm::v0::{Junction, MultiLocation, NetworkId};
+use xcm_builder::{
+	LocationInverter, ParentIsDefault, RelayChainAsNative, SiblingParachainAsNative,
+	SiblingParachainConvertsVia, SignedAccountId32AsNative, SovereignSignedViaLocation,
+};
+use xcm_executor::{
+	traits::{LocationConversion, NativeAsset},
+	Config, XcmExecutor,
+};
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
@@ -424,7 +436,6 @@ impl pallet_author_filter::Config for Runtime {
 	type RandomnessSource = RandomnessCollectiveFlip;
 }
 
-type TokenId = u64;
 pub struct AccountToH160;
 impl Convert<<<Signature as Verify>::Signer as IdentifyAccount>::AccountId, H160>
 	for AccountToH160
@@ -437,8 +448,91 @@ impl Convert<<<Signature as Verify>::Signer as IdentifyAccount>::AccountId, H160
 impl token_factory::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
-	type TokenId = TokenId;
+	type TokenId = token_dealer::support::TokenSymbol;
 	type AccountToH160 = AccountToH160;
+}
+
+parameter_types! {
+	pub const PolkadotNetworkId: NetworkId = NetworkId::Polkadot;
+	pub MoonbeamNetwork: NetworkId = NetworkId::Named("moon".into());
+	pub RelayChainOrigin: Origin = xcm_handler::Origin::Relay.into();
+	pub Ancestry: MultiLocation = MultiLocation::X1(Junction::Parachain {
+		id: ParachainInfo::get().into(),
+	});
+	pub const RelayChainCurrencyId: CurrencyId = CurrencyId::Token(TokenSymbol::DOT);
+}
+
+// TODO: add this to xcm-executor/location_conversion.rs and PR polkadot
+pub struct AccountId20Aliases<Network, AccountId>(PhantomData<(Network, AccountId)>);
+impl<Network: Get<NetworkId>, AccountId: From<[u8; 20]> + Into<[u8; 20]>>
+	LocationConversion<AccountId> for AccountId20Aliases<Network, AccountId>
+{
+	fn from_location(location: &MultiLocation) -> Option<AccountId> {
+		if let MultiLocation::X1(Junction::AccountKey20 { key, network }) = location {
+			if matches!(network, NetworkId::Any) || network == &Network::get() {
+				return Some((*key).into());
+			}
+		}
+		None
+	}
+
+	fn try_into_location(who: AccountId) -> Result<MultiLocation, AccountId> {
+		Ok(Junction::AccountKey20 {
+			key: who.into(),
+			network: Network::get(),
+		}
+		.into())
+	}
+}
+
+pub type LocationConverter = (
+	ParentIsDefault<AccountId>,
+	SiblingParachainConvertsVia<Sibling, AccountId>,
+	AccountId20Aliases<MoonbeamNetwork, AccountId>,
+);
+
+pub struct RelayToNative;
+impl Convert<RelayChainBalance, Balance> for RelayToNative {
+	fn convert(val: u128) -> Balance {
+		// native is 18
+		// relay is 12
+		val * 1_000_000
+	}
+}
+
+pub type LocalAssetTransactor = MultiCurrencyAdapter<
+	Balances,
+	TokenFactory,
+	IsConcreteWithGeneralKey<CurrencyId, RelayToNative>,
+	LocationConverter,
+	AccountId,
+	CurrencyIdConverter<CurrencyId, RelayChainCurrencyId>,
+	CurrencyId,
+>;
+
+pub type LocalOriginConverter = (
+	SovereignSignedViaLocation<LocationConverter, Origin>,
+	RelayChainAsNative<RelayChainOrigin, Origin>,
+	SiblingParachainAsNative<xcm_handler::Origin, Origin>,
+	SignedAccountId32AsNative<MoonbeamNetwork, Origin>,
+);
+
+pub struct XcmConfig;
+impl Config for XcmConfig {
+	type Call = Call;
+	type XcmSender = XcmHandler;
+	type AssetTransactor = LocalAssetTransactor;
+	type OriginConverter = ();
+	type IsReserve = NativeAsset;
+	type IsTeleporter = ();
+	type LocationInverter = LocationInverter<Ancestry>;
+}
+
+impl xcm_handler::Config for Runtime {
+	type Event = Event;
+	type XcmExecutor = XcmExecutor<XcmConfig>;
+	type UpwardMessageSender = ParachainSystem;
+	type HrmpMessageSender = ParachainSystem;
 }
 
 construct_runtime! {
@@ -462,6 +556,7 @@ construct_runtime! {
 		Scheduler: pallet_scheduler::{Module, Storage, Config, Event<T>, Call},
 		Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
 		TokenFactory: token_factory::{Module, Call, Storage, Event<T>},
+		XcmHandler: xcm_handler::{Module, Call, Event<T>, Origin},
 		// The order matters here. Inherents will be included in the order specified here.
 		// Concretely we need the author inherent to come after the parachain_upgrade inherent.
 		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},

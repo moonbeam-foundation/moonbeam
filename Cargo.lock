@@ -4147,6 +4147,7 @@ dependencies = [
  "pallet-transaction-payment-rpc-runtime-api",
  "parachain-info",
  "parity-scale-codec",
+ "polkadot-parachain",
  "precompiles",
  "serde",
  "sp-api",
@@ -4165,6 +4166,10 @@ dependencies = [
  "substrate-wasm-builder 3.0.0 (git+https://github.com/paritytech/substrate)",
  "token-dealer",
  "token-factory",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
+ "xcm-handler",
 ]
 
 [[package]]
@@ -11251,6 +11256,19 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
+ "sp-std",
+ "xcm",
+]
+
+[[package]]
+name = "xcm-handler"
+version = "0.1.0"
+source = "git+https://github.com/paritytech/cumulus#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
+dependencies = [
+ "cumulus-primitives",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
  "sp-std",
  "xcm",
 ]
