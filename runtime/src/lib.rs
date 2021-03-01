@@ -452,6 +452,16 @@ impl token_factory::Config for Runtime {
 	type AccountToH160 = AccountToH160;
 }
 
+impl token_dealer::Config for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type ToRelayChainBalance = NativeToRelay;
+	type ToMultiLocation = AccountId20Aliases<MoonbeamNetwork, AccountId>;
+	type RelayChainNetworkId = PolkadotNetworkId;
+	type ParaId = ParachainInfo;
+	type Executor = XcmExecutor<XcmConfig>;
+}
+
 parameter_types! {
 	pub const PolkadotNetworkId: NetworkId = NetworkId::Polkadot;
 	pub MoonbeamNetwork: NetworkId = NetworkId::Named("moon".into());
@@ -520,6 +530,14 @@ impl Convert<RelayChainBalance, Balance> for RelayToNative {
 		val * 1_000_000
 	}
 }
+pub struct NativeToRelay;
+impl Convert<Balance, RelayChainBalance> for NativeToRelay {
+	fn convert(val: u128) -> RelayChainBalance {
+		// native is 18
+		// relay is 12
+		val / 1_000_000
+	}
+}
 
 pub type LocalAssetTransactor = MultiCurrencyAdapter<
 	Balances,
@@ -543,7 +561,7 @@ impl Config for XcmConfig {
 	type Call = Call;
 	type XcmSender = XcmHandler;
 	type AssetTransactor = LocalAssetTransactor;
-	type OriginConverter = ();
+	type OriginConverter = LocalOriginConverter;
 	type IsReserve = NativeAsset;
 	type IsTeleporter = ();
 	type LocationInverter = LocationInverter<Ancestry>;
@@ -577,6 +595,7 @@ construct_runtime! {
 		Scheduler: pallet_scheduler::{Module, Storage, Config, Event<T>, Call},
 		Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
 		TokenFactory: token_factory::{Module, Call, Storage, Event<T>},
+		TokenDealer: token_dealer::{Module, Call, Storage, Event<T>},
 		XcmHandler: xcm_handler::{Module, Call, Event<T>, Origin},
 		// The order matters here. Inherents will be included in the order specified here.
 		// Concretely we need the author inherent to come after the parachain_upgrade inherent.
