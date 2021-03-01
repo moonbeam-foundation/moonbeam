@@ -1,15 +1,15 @@
 [package]
-name = 'moonbase-alphanet'
-description = 'Moonbase Collator'
+name = 'moonbeam'
+description = 'Moonbeam Collator'
 homepage = 'https://moonbeam.network'
 license = 'GPL-3.0-only'
-version = '0.1.0'
+version = '0.6.1'
 authors = ["PureStake"]
 build = 'build.rs'
 edition = '2018'
 
 [[bin]]
-name = 'moonbase-alphanet'
+name = 'moonbeam'
 path = 'src/main.rs'
 
 [dependencies]
@@ -20,7 +20,7 @@ futures = { version = "0.3.1", features = ["compat"] }
 log = '0.4.8'
 parking_lot = '0.9.0'
 trie-root = '0.15.2'
-parity-scale-codec = '1.0.0'
+parity-scale-codec = '2.0.0'
 structopt = "0.3"
 ansi_term = "0.12.1"
 serde = { version = "1.0.101", features = ["derive"] }
@@ -33,6 +33,7 @@ moonbeam-runtime = { path = "../runtime" }
 moonbeam-rpc-txpool = { path = "../client/rpc/txpool" }
 moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool" }
 author-inherent = { path = "../pallets/author-inherent"}
+stake = { path = "../pallets/stake"}
 
 # Substrate dependencies
 sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
@@ -47,6 +48,7 @@ sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "mas
 sc-client-db = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sc-executor = { git = "https://github.com/paritytech/substrate", branch = "master", features = ["wasmtime"] }
 sc-service = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sc-telemetry = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sc-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sc-network = { git = "https://github.com/paritytech/substrate", branch = "master" }
@@ -66,15 +68,14 @@ pallet-transaction-payment-rpc = { git = "https://github.com/paritytech/substrat
 sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sc-consensus-manual-seal = { git = "https://github.com/paritytech/substrate", branch = "master" }
 
-# Frontier Dependencies
-evm = { package = "pallet-evm", git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
-ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
+evm = { package = "pallet-evm", git = "https://github.com/purestake/frontier", branch = "v0.6-moonbeam" }
+ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "v0.6-moonbeam" }
 
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
-fp-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
-fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "v0.5-hotfixes" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.6-moonbeam" }
+fp-consensus = { git = "https://github.com/purestake/frontier", branch = "v0.6-moonbeam" }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "v0.6-moonbeam" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "v0.6-moonbeam" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "v0.6-moonbeam" }
 
 # Cumulus dependencies
 cumulus-consensus = { git = "https://github.com/paritytech/cumulus", branch = "master" }

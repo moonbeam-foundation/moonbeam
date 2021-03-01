@@ -1,0 +1,84 @@
+{
+  "name": "Moonbase Stage",
+  "id": "moonbase_stage",
+  "chainType": "Local",
+  "bootNodes": [],
+  "telemetryEndpoints": [
+    ["/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F", 0]
+  ],
+  "protocolId": null,
+  "properties": {
+    "tokenDecimals": 18
+  },
+  "relay_chain": "moonbase_stage_relay",
+  "para_id": 1000,
+  "consensusEngine": null,
+  "genesis": {
+    "runtime": {
+      "frameSystem": {
+        "changesTrieConfig": null,
+        "code": "<runtime_code>"
+      },
+      "palletBalances": {
+        "balances": [
+          [
+            "0x7cb3790906f902a02f0d6784058362db929c5f3f",
+            4997900000000000000000000
+          ],
+          [
+            "0x562f9bfd93442cfdc6e22287d0990a1a1a4cdd42",
+            5000000000000000000000000
+          ],
+          ["0xdcec0efff7456adf14d60d5dc71709b3c8ae78e6", 50000000000000000000],
+          ["0x91b465a1759d088a894200b2d32d1c353b8cca59", 50000000000000000000],
+          [
+            "0x5e583614f17d3ebe3bd72653f28e2c01d247419a",
+            1000000000000000000000
+          ],
+          ["0xcbeb4a1b8f36436d9983b94636f9e988e73e1c2f", 1000000000000000000000]
+        ]
+      },
+      "palletSudo": {
+        "key": "0x7cb3790906f902a02f0d6784058362db929c5f3f"
+      },
+      "parachainInfo": {
+        "parachainId": 1000
+      },
+      "palletEthereumChainId": {
+        "chainId": 1282
+      },
+      "palletEvm": {
+        "accounts": {}
+      },
+      "palletEthereum": {},
+      "stake": {
+        "inflationConfig": {
+          "expect": {
+            "min": 100000000000000000000000,
+            "ideal": 200000000000000000000000,
+            "max": 500000000000000000000000
+          },
+          "round": {
+            "min": 4563,
+            "ideal": 5703,
+            "max": 5703
+          }
+        },
+        "stakers": [
+          [
+            "0x5e583614f17d3ebe3bd72653f28e2c01d247419a",
+            null,
+            1000000000000000000000
+          ],
+          [
+            "0xcbeb4a1b8f36436d9983b94636f9e988e73e1c2f",
+            null,
+            1000000000000000000000
+          ]
+        ]
+      },
+      "palletScheduler": {},
+      "palletDemocracy": {}
+    }
+  }
+}

@@ -18,7 +18,7 @@
 
 use std::{fmt, sync::Arc};
 
-use fc_rpc_core::types::PendingTransactions;
+use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use jsonrpc_pubsub::manager::SubscriptionManager;
 use moonbeam_runtime::{opaque::Block, AccountId, Balance, Hash, Index};
 use sc_client_api::{
@@ -52,6 +52,8 @@ pub struct FullDeps<C, P, A: ChainApi> {
 	pub network: Arc<NetworkService<Block, Hash>>,
 	/// Ethereum pending transactions.
 	pub pending_transactions: PendingTransactions,
+	/// EthFilterApi pool.
+	pub filter_pool: Option<FilterPool>,
 	/// Manual seal command sink
 	pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
 }
@@ -78,8 +80,8 @@ where
 	P: TransactionPool<Block = Block> + 'static,
 {
 	use fc_rpc::{
-		EthApi, EthApiServer, EthPubSubApi, EthPubSubApiServer, HexEncodedIdProvider, NetApi,
-		NetApiServer, Web3Api, Web3ApiServer,
+		EthApi, EthApiServer, EthFilterApi, EthFilterApiServer, EthPubSubApi, EthPubSubApiServer,
+		HexEncodedIdProvider, NetApi, NetApiServer, Web3Api, Web3ApiServer,
 	};
 	use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
@@ -94,6 +96,7 @@ where
 		is_authority,
 		network,
 		pending_transactions,
+		filter_pool,
 		command_sink,
 	} = deps;
 
@@ -115,10 +118,19 @@ where
 		graph,
 		moonbeam_runtime::TransactionConverter,
 		network.clone(),
-		pending_transactions.clone(),
+		pending_transactions,
 		signers,
 		is_authority,
 	)));
+
+	if let Some(filter_pool) = filter_pool {
+		io.extend_with(EthFilterApiServer::to_delegate(EthFilterApi::new(
+			client.clone(),
+			filter_pool.clone(),
+			500 as usize, // max stored filters
+		)));
+	}
+
 	io.extend_with(NetApiServer::to_delegate(NetApi::new(
 		client.clone(),
 		network.clone(),
@@ -127,7 +139,7 @@ where
 	io.extend_with(EthPubSubApiServer::to_delegate(EthPubSubApi::new(
 		pool.clone(),
 		client.clone(),
-		network.clone(),
+		network,
 		SubscriptionManager::<HexEncodedIdProvider>::with_id_provider(
 			HexEncodedIdProvider::default(),
 			Arc::new(subscription_task_executor),
@@ -135,16 +147,13 @@ where
 	)));
 	io.extend_with(TxPoolServer::to_delegate(TxPool::new(client, pool)));
 
-	match command_sink {
-		Some(command_sink) => {
-			io.extend_with(
-				// We provide the rpc handler with the sending end of the channel to allow the rpc
-				// send EngineCommands to the background block authorship task.
-				ManualSealApi::to_delegate(ManualSeal::new(command_sink)),
-			);
-		}
-		_ => {}
-	}
+	if let Some(command_sink) = command_sink {
+		io.extend_with(
+			// We provide the rpc handler with the sending end of the channel to allow the rpc
+			// send EngineCommands to the background block authorship task.
+			ManualSealApi::to_delegate(ManualSeal::new(command_sink)),
+		);
+	};
 
 	io
 }

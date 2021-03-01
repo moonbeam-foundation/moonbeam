@@ -15,13 +15,24 @@
 # Ex: USER_PORT=20000 scripts/run-alphanet-parachain.sh
 # will open port 21052, 21053, 21054
 
+# The parachain will run on rococo-local relay
+
 # Loading binary/specs variables
 source scripts/_init_var.sh
 
-if [ ! -f "$PARACHAIN_BINARY" ]; then
-  echo "Parachain binary $PARACHAIN_BINARY is missing"
-  echo "Please run: cargo build --release -p moonbase-alphanet"
+if [ ! -f "$MOONBEAM_BINARY" ]; then
+  echo "Moonbeam binary $MOONBEAM_BINARY is missing"
+  echo "Please run: cargo build --release"
   exit 1
+fi
+
+# Will retrieve variable from the given network
+NETWORK=${NETWORK:-"alphanet"}
+PARACHAIN_ID=$(eval echo "\$${NETWORK^^}_PARACHAIN_ID")
+STAKERS=$(eval echo "\$${NETWORK^^}_STAKERS")
+
+if [ -z "$CHAIN" ]; then
+  CHAIN=$(eval echo "\$${NETWORK^^}_PARACHAIN_SPEC_RAW")
 fi
 
 # We retrieve the list of relay node for
@@ -33,7 +44,7 @@ while nc -z -v -w5 ${RELAY_IP} ${RELAY_PORT} 2> /dev/null
 do
   echo "Found existing relay on ${RELAY_PORT}."
   RELAY_BOOTNODES_ARGS="$RELAY_BOOTNODES_ARGS \
-    --bootnodes /ip4/$RELAY_IP/tcp/${RELAY_PORT}/p2p/${RELAY_LOCAL_IDS[$RELAY_INDEX]}"
+    --bootnodes /ip4/$RELAY_IP/tcp/${RELAY_PORT}/p2p/${COMMON_LOCAL_IDS[$RELAY_INDEX]}"
   RELAY_INDEX=$((RELAY_INDEX + 1))
   RELAY_PORT=$((RELAY_PORT + 100))
 
@@ -71,17 +82,12 @@ fi
 echo "parachain $PARACHAIN_INDEX ($PARACHAIN_ID) - p2p-port: $((PARACHAIN_PORT + 10)), \
 http-port: $((PARACHAIN_PORT + 10 + 1)), ws-port: $((PARACHAIN_PORT + 10 + 2))"
 
-
-if [ -z "$CHAIN" ]; then
-  CHAIN=$PARACHAIN_SPEC_RAW
-fi
-
-$PARACHAIN_BINARY \
-  --node-key ${PARACHAIN_KEYS[$PARACHAIN_INDEX]} \
+$MOONBEAM_BINARY \
+  --node-key ${PARACHAIN_NODE_KEYS[$PARACHAIN_INDEX]} \
   --port $((PARACHAIN_PORT + 10)) \
   --rpc-port $((PARACHAIN_PORT + 10 + 1)) \
   --ws-port $((PARACHAIN_PORT + 10 + 2)) \
-  --validator \
+  --collator \
   --rpc-cors all \
   --rpc-methods=unsafe \
   --execution wasm \
@@ -89,13 +95,13 @@ $PARACHAIN_BINARY \
   --name parachain_$PARACHAIN_INDEX \
   $PARACHAIN_BASE_PATH \
   '-linfo,evm=debug,ethereum=trace,rpc=trace,cumulus_collator=debug,txpool=debug' \
-  --author-id 6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b \
+  --author-id ${STAKERS[$PARACHAIN_INDEX]} \
   --chain $CHAIN \
   $PARACHAIN_BOOTNODES_ARGS \
   -- \
-    --node-key ${PARACHAIN_KEYS[$PARACHAIN_INDEX]} \
+    --node-key ${PARACHAIN_NODE_KEYS[$PARACHAIN_INDEX]} \
     $PARACHAIN_BASE_PATH \
     --port $((PARACHAIN_PORT)) \
     --rpc-port $((PARACHAIN_PORT + 1)) \
     --ws-port $((PARACHAIN_PORT + 2)) \
-    --chain $POLKADOT_SPEC_RAW;
+    --chain $ROCOCO_LOCAL_RAW_SPEC;

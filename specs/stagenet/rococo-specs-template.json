@@ -1,0 +1,129 @@
+{
+  "name": "Moonbase Relay Stagenet",
+  "id": "rococo_moonbase_relay_stagenet",
+  "chainType": "Live",
+  "bootNodes": [
+    "/dns4/bootnode1.stagenet.moonbeam.gcp.purestake.run/tcp/30333/p2p/12D3KooWH8ocqod6UqhiecikyoYuNWyjcewYjQG9FyhYbo1e4sKV",
+    "/dns4/bootnode2.stagenet.moonbeam.gcp.purestake.run/tcp/30333/p2p/12D3KooWFmfo5EnBM1Y5w1ynLx4tvaBSLnbBz3cNfN36nU1mF6rA"
+  ],
+  "telemetryEndpoints": null,
+  "protocolId": "dot",
+  "properties": null,
+  "forkBlocks": null,
+  "badBlocks": null,
+  "consensusEngine": null,
+  "lightSyncState": null,
+  "genesis": {
+    "runtime": {
+      "runtime_genesis_config": {
+        "frameSystem": {
+          "changesTrieConfig": null,
+          "code": "<runtime_code>"
+        },
+        "palletBabe": {
+          "authorities": []
+        },
+        "palletIndices": {
+          "indices": []
+        },
+        "palletBalances": {
+          "balances": [
+            [
+              "15cYfYawEbmY15SPj1eGmQdmp5x3qXE42YMDDsQ3xL1PTfJ8",
+              1000000000000000000
+            ],
+            [
+              "15oickhybx6tDqDArGH7p8vx1FxkMAMjhqLSHB7KDQC8Xmcm",
+              1000000000000000000
+            ],
+            [
+              "15GVxRkyRW7ieaMzdqtr8ngk4dZGvBs3PU97naxMMZVGdY5u",
+              1000000000000000
+            ]
+          ]
+        },
+        "palletSession": {
+          "keys": [
+            [
+              "15cYfYawEbmY15SPj1eGmQdmp5x3qXE42YMDDsQ3xL1PTfJ8",
+              "15cYfYawEbmY15SPj1eGmQdmp5x3qXE42YMDDsQ3xL1PTfJ8",
+              {
+                "grandpa": "153CZXo9ycn3mM8Cteav3YHuxt7WWb869Bnsem72thQTjzJu",
+                "babe": "15cYfYawEbmY15SPj1eGmQdmp5x3qXE42YMDDsQ3xL1PTfJ8",
+                "im_online": "15cYfYawEbmY15SPj1eGmQdmp5x3qXE42YMDDsQ3xL1PTfJ8",
+                "para_validator": "15cYfYawEbmY15SPj1eGmQdmp5x3qXE42YMDDsQ3xL1PTfJ8",
+                "para_assignment": "15cYfYawEbmY15SPj1eGmQdmp5x3qXE42YMDDsQ3xL1PTfJ8",
+                "authority_discovery": "15cYfYawEbmY15SPj1eGmQdmp5x3qXE42YMDDsQ3xL1PTfJ8"
+              }
+            ],
+            [
+              "15oickhybx6tDqDArGH7p8vx1FxkMAMjhqLSHB7KDQC8Xmcm",
+              "15oickhybx6tDqDArGH7p8vx1FxkMAMjhqLSHB7KDQC8Xmcm",
+              {
+                "grandpa": "13tEaZoa31aoVJRbzhpcKGjcW9BVqQ4tPWovBSjA83okosMa",
+                "babe": "15oickhybx6tDqDArGH7p8vx1FxkMAMjhqLSHB7KDQC8Xmcm",
+                "im_online": "15oickhybx6tDqDArGH7p8vx1FxkMAMjhqLSHB7KDQC8Xmcm",
+                "para_validator": "15oickhybx6tDqDArGH7p8vx1FxkMAMjhqLSHB7KDQC8Xmcm",
+                "para_assignment": "15oickhybx6tDqDArGH7p8vx1FxkMAMjhqLSHB7KDQC8Xmcm",
+                "authority_discovery": "15oickhybx6tDqDArGH7p8vx1FxkMAMjhqLSHB7KDQC8Xmcm"
+              }
+            ]
+          ]
+        },
+        "palletGrandpa": {
+          "authorities": []
+        },
+        "palletImOnline": {
+          "keys": []
+        },
+        "palletAuthorityDiscovery": {
+          "keys": []
+        },
+        "parachainsConfiguration": {
+          "config": {
+            "validation_upgrade_frequency": 6,
+            "validation_upgrade_delay": 3,
+            "acceptance_period": 1200,
+            "max_code_size": 5242880,
+            "max_head_data_size": 32768,
+            "max_pov_size": 52428800,
+            "parathread_cores": 0,
+            "parathread_retries": 0,
+            "group_rotation_frequency": 20,
+            "chain_availability_period": 4,
+            "thread_availability_period": 4,
+            "scheduling_lookahead": 0,
+            "max_validators_per_core": null,
+            "dispute_period": 0,
+            "no_show_slots": 10,
+            "n_delay_tranches": 0,
+            "zeroth_delay_tranche_width": 0,
+            "needed_approvals": 0,
+            "relay_vrf_modulo_samples": 0,
+            "max_upward_queue_count": 8,
+            "max_upward_queue_size": 8192,
+            "max_downward_message_size": 1024,
+            "preferred_dispatchable_upward_messages_step_weight": 4000000000,
+            "max_upward_message_size": 1024,
+            "max_upward_message_num_per_candidate": 5,
+            "hrmp_open_request_ttl": 5,
+            "hrmp_sender_deposit": 0,
+            "hrmp_recipient_deposit": 0,
+            "hrmp_channel_max_capacity": 8,
+            "hrmp_channel_max_total_size": 8192,
+            "hrmp_max_parachain_inbound_channels": 4,
+            "hrmp_max_parathread_inbound_channels": 4,
+            "hrmp_channel_max_message_size": 1024,
+            "hrmp_max_parachain_outbound_channels": 4,
+            "hrmp_max_parathread_outbound_channels": 4,
+            "hrmp_max_message_num_per_candidate": 5
+          }
+        },
+        "palletSudo": {
+          "key": "15GVxRkyRW7ieaMzdqtr8ngk4dZGvBs3PU97naxMMZVGdY5u"
+        }
+      },
+      "session_length_in_blocks": 10
+    }
+  }
+}

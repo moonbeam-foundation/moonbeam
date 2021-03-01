@@ -2,10 +2,10 @@
 authors = ["Parity Technologies <admin@parity.io>"]
 edition = "2018"
 name = "cumulus-token-dealer"
-version = "0.1.0"
+version = "0.6.0"
 
 [dependencies]
-codec = { package = "parity-scale-codec", version = "1.3.0", default-features = false, features = ["derive"] }
+codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false, features = ["derive"] }
 
 sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }

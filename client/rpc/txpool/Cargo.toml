@@ -1,6 +1,6 @@
 [package]
 name = "moonbeam-rpc-txpool"
-version = '0.1.0'
+version = '0.6.0'
 authors = ['PureStake']
 edition = '2018'
 homepage = 'https://moonbeam.network'
@@ -10,8 +10,9 @@ repository = 'https://github.com/PureStake/moonbeam/'
 [dependencies]
 sha3 = "0.8"
 jsonrpc-core = "15.0.0"
-ethereum-types = "0.10.0"
-ethereum = { git = "https://github.com/rust-blockchain/ethereum", branch = "master", features = ["with-codec"] }
+ethereum-types = "0.11.0"
+# ethereum = { git = "https://github.com/rust-blockchain/ethereum", branch = "master", features = ["with-codec"] }
+ethereum = { git = "https://github.com/notlesh/ethereum", branch = "notlesh-moonbeam-v0.6", features = ["with-codec"] }
 moonbeam-rpc-core-txpool = { path = "../../rpc-core/txpool" }
 sp-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
 sp-api = { git = "https://github.com/paritytech/substrate.git", branch = "master" }

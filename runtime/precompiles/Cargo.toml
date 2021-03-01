@@ -1,7 +1,7 @@
 [package]
 name = "precompiles"
-version = "0.1.0"
-authors = ["Samer Afach <info@afach.de>"]
+version = "0.6.0"
+authors = ["PureStake"]
 edition = "2018"
 
 [dependencies]
@@ -10,11 +10,11 @@ rustc-hex = { version = "2.0.1", default-features = false }
 
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.5-hotfixes" }
-# pallet-evm-precompile-bn128 = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.5-hotfixes" }
-pallet-evm-precompile-dispatch = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.5-hotfixes" }
-pallet-evm-precompile-modexp = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.5-hotfixes" }
-pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.5-hotfixes" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.6-moonbeam" }
+# pallet-evm-precompile-bn128 = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.6-moonbeam" }
+pallet-evm-precompile-dispatch = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.6-moonbeam" }
+pallet-evm-precompile-modexp = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.6-moonbeam" }
+pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.6-moonbeam" }
 
 [features]
 default = [ "std" ]

@@ -25,8 +25,8 @@ use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::AccountIdConversion;
 use polkadot_service::RococoChainSpec;
 use sc_cli::{
-	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, InitLoggerParams,
-	KeystoreParams, NetworkParams, Result, RuntimeVersion, SharedParams, SubstrateCli,
+	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
+	NetworkParams, Result, RuntimeVersion, SharedParams, SubstrateCli,
 };
 use sc_service::{
 	config::{BasePath, PrometheusConfig},
@@ -43,7 +43,10 @@ fn load_spec(
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	match id {
 		"alphanet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
-			&include_bytes!("../../specs/MoonbaseAlphaV5.json")[..],
+			&include_bytes!("../../specs/alphanet/parachain-embedded-specs-v6.json")[..],
+		)?)),
+		"stagenet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
+			&include_bytes!("../../specs/stagenet/parachain-embedded-specs-v6.json")[..],
 		)?)),
 		"dev" | "development" => Ok(Box::new(chain_spec::development_chain_spec())),
 		"local" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
@@ -130,7 +133,10 @@ impl SubstrateCli for RelayChainCli {
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		match id {
 			"moonbase_alpha_relay" => Ok(Box::new(RococoChainSpec::from_json_bytes(
-				&include_bytes!("../../specs/MoonbaseAlphaV5-Relay.json")[..],
+				&include_bytes!("../../specs/alphanet/rococo-embedded-specs-v6.json")[..],
+			)?)),
+			"moonbase_stage_relay" => Ok(Box::new(RococoChainSpec::from_json_bytes(
+				&include_bytes!("../../specs/stagenet/rococo-embedded-specs-v6.json")[..],
 			)?)),
 			// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the
 			// Polkadot service to interpret the id.
@@ -170,7 +176,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					import_queue,
 					..
-				} = crate::service::new_partial(&config, None)?;
+				} = crate::service::new_partial(&config, None, false)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -181,7 +187,7 @@ pub fn run() -> Result<()> {
 					client,
 					task_manager,
 					..
-				} = crate::service::new_partial(&config, None)?;
+				} = crate::service::new_partial(&config, None, false)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
 		}
@@ -192,7 +198,7 @@ pub fn run() -> Result<()> {
 					client,
 					task_manager,
 					..
-				} = crate::service::new_partial(&config, None)?;
+				} = crate::service::new_partial(&config, None, false)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
 		}
@@ -204,7 +210,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					import_queue,
 					..
-				} = crate::service::new_partial(&config, None)?;
+				} = crate::service::new_partial(&config, None, false)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -220,15 +226,14 @@ pub fn run() -> Result<()> {
 					task_manager,
 					backend,
 					..
-				} = crate::service::new_partial(&config, None)?;
+				} = crate::service::new_partial(&config, None, false)?;
 				Ok((cmd.run(client, backend), task_manager))
 			})
 		}
 		Some(Subcommand::ExportGenesisState(params)) => {
-			sc_cli::init_logger(InitLoggerParams {
-				tracing_receiver: sc_tracing::TracingReceiver::Log,
-				..Default::default()
-			})?;
+			let mut builder = sc_cli::LoggerBuilder::new("");
+			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
+			let _ = builder.init();
 
 			let block: Block = generate_genesis_block(&load_spec(
 				&params.chain.clone().unwrap_or_default(),
@@ -250,10 +255,9 @@ pub fn run() -> Result<()> {
 			Ok(())
 		}
 		Some(Subcommand::ExportGenesisWasm(params)) => {
-			sc_cli::init_logger(InitLoggerParams {
-				tracing_receiver: sc_tracing::TracingReceiver::Log,
-				..Default::default()
-			})?;
+			let mut builder = sc_cli::LoggerBuilder::new("");
+			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
+			let _ = builder.init();
 
 			let raw_wasm_blob =
 				extract_genesis_wasm(&cli.load_spec(&params.chain.clone().unwrap_or_default())?)?;
@@ -275,62 +279,92 @@ pub fn run() -> Result<()> {
 			let runner = cli.create_runner(&*cli.run)?;
 			let collator = cli.run.base.validator || cli.collator;
 			let author_id: Option<H160> = cli.run.author_id;
-			if collator {
-				if author_id.is_none() {
-					return Err("Collator nodes must specify an author account id".into());
-				}
+			if collator && author_id.is_none() {
+				return Err("Collator nodes must specify an author account id".into());
 			}
 
-			runner.run_node_until_exit(|config| async move {
-				// If this is a --dev node, start up manual or instant seal.
-				// Otherwise continue with the normal parachain node.
-				if cli.run.base.shared_params.dev {
-					// If no author id was supplied, use the one that is staked at genesis
-					let author_id = author_id.or(Some(
-						AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")
-							.expect("Gerald is a valid account"),
-					));
+			runner
+				.run_node_until_exit(|config| async move {
+					let key = sp_core::Pair::generate().0;
 
-					return crate::dev_service::new_full(config, cli.run.sealing, author_id);
-				}
+					let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
+					let relay_chain_id = extension.map(|e| e.relay_chain.clone());
+					let para_id = extension.map(|e| e.para_id);
 
-				let key = sp_core::Pair::generate().0;
+					// If dev service was requested, start up manual or instant seal.
+					// Otherwise continue with the normal parachain node.
+					// Dev service can be requested in two ways.
+					// 1. by providing the --dev-service flag to the CLI
+					// 2. by specifying "dev-service" in the chain spec's "relay-chain" field.
+					// NOTE: the --dev flag triggers the dev service by way of number 2
+					if cli.run.dev_service || relay_chain_id == Some("dev-service".to_string()) {
+						// --dev implies --collator
+						let collator = collator || cli.run.shared_params.dev;
 
-				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
-				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
-				let para_id = extension.map(|e| e.para_id);
+						// If no author id was supplied, use the one that is staked at genesis
+						// in the default development spec.
+						let author_id = author_id.or_else(|| {
+							Some(
+								AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")
+									.expect("Gerald is a valid account"),
+							)
+						});
 
-				let polkadot_cli = RelayChainCli::new(
-					config.base_path.as_ref().map(|x| x.path().join("polkadot")),
-					relay_chain_id,
-					[RelayChainCli::executable_name()]
-						.iter()
-						.chain(cli.relaychain_args.iter()),
-				);
+						return crate::service::new_dev(
+							config,
+							cli.run.sealing,
+							author_id,
+							collator,
+						);
+					}
 
-				let id = ParaId::from(cli.run.parachain_id.or(para_id).unwrap_or(1000));
+					let polkadot_cli = RelayChainCli::new(
+						config.base_path.as_ref().map(|x| x.path().join("polkadot")),
+						relay_chain_id,
+						[RelayChainCli::executable_name()]
+							.iter()
+							.chain(cli.relaychain_args.iter()),
+					);
 
-				let parachain_account =
-					AccountIdConversion::<polkadot_primitives::v0::AccountId>::into_account(&id);
+					let id = ParaId::from(cli.run.parachain_id.or(para_id).unwrap_or(1000));
 
-				let block: Block =
-					generate_genesis_block(&config.chain_spec).map_err(|e| format!("{:?}", e))?;
-				let genesis_state = format!("0x{:?}", HexDisplay::from(&block.header().encode()));
+					let parachain_account =
+						AccountIdConversion::<polkadot_primitives::v0::AccountId>::into_account(
+							&id,
+						);
 
-				let task_executor = config.task_executor.clone();
-				let polkadot_config =
-					SubstrateCli::create_configuration(&polkadot_cli, &polkadot_cli, task_executor)
-						.map_err(|err| format!("Relay chain argument error: {}", err))?;
+					let block: Block = generate_genesis_block(&config.chain_spec)
+						.map_err(|e| format!("{:?}", e))?;
+					let genesis_state =
+						format!("0x{:?}", HexDisplay::from(&block.header().encode()));
 
-				info!("Parachain id: {:?}", id);
-				info!("Parachain Account: {}", parachain_account);
-				info!("Parachain genesis state: {}", genesis_state);
-				info!("Is collating: {}", if collator { "yes" } else { "no" });
+					let task_executor = config.task_executor.clone();
+					let polkadot_config = SubstrateCli::create_configuration(
+						&polkadot_cli,
+						&polkadot_cli,
+						task_executor,
+						config.telemetry_handle.clone(),
+					)
+					.map_err(|err| format!("Relay chain argument error: {}", err))?;
 
-				crate::service::start_node(config, key, author_id, polkadot_config, id, collator)
+					info!("Parachain id: {:?}", id);
+					info!("Parachain Account: {}", parachain_account);
+					info!("Parachain genesis state: {}", genesis_state);
+					info!("Is collating: {}", if collator { "yes" } else { "no" });
+
+					crate::service::start_node(
+						config,
+						key,
+						author_id,
+						polkadot_config,
+						id,
+						collator,
+					)
 					.await
 					.map(|r| r.0)
-			})
+					.map_err(Into::into)
+				})
+				.map_err(Into::into)
 		}
 	}
 }
@@ -393,7 +427,7 @@ impl CliConfiguration<Self> for RelayChainCli {
 		self.base.base.prometheus_config(default_listen_port)
 	}
 
-	fn init<C: SubstrateCli>(&self) -> Result<()> {
+	fn init<C: SubstrateCli>(&self) -> Result<sc_telemetry::TelemetryWorker> {
 		unreachable!("PolkadotCli is never initialized; qed");
 	}
 

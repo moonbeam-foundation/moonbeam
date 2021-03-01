@@ -6,7 +6,7 @@ export const SPECS_PATH = `./moonbeam-test-specs`;
 export const DISPLAY_LOG = process.env.MOONBEAM_LOG || false;
 export const MOONBEAM_LOG = process.env.MOONBEAM_LOG || "info";
 
-export const BINARY_PATH = process.env.BINARY_PATH || `../target/release/moonbase-alphanet`;
+export const BINARY_PATH = process.env.BINARY_PATH || `../target/release/moonbeam`;
 export const SPAWNING_TIME = 30000;
 
 // Test variables
@@ -16,5 +16,5 @@ export const GENESIS_ACCOUNT_PRIVATE_KEY =
 export const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
 export const GLMR = 1_000_000_000_000_000_000n;
 export const DEFAULT_GENESIS_BALANCE = 2n ** 80n;
-export const DEFAULT_GENESIS_STAKING = 100_000n * GLMR;
+export const DEFAULT_GENESIS_STAKING = 1_000n * GLMR;
 export const GENESIS_ACCOUNT_BALANCE = DEFAULT_GENESIS_BALANCE - DEFAULT_GENESIS_STAKING;

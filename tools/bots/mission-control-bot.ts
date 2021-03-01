@@ -5,32 +5,6 @@ import https from "https";
 const TOKEN_DECIMAL = 18n;
 const EMBED_COLOR_CORRECT = 0x642f95;
 const EMBED_COLOR_ERROR = 0xc0392b;
-const SLACK_MSG_CONTENTS = `
-{
-  "blocks": [
-    {
-      "type": "section",
-      "text": {
-        "type": "mrkdwn",
-        "text": "The account linked to the bot is running low on funds."
-      }
-    },
-    {
-      "type": "section",
-      "fields": [
-        {
-          "type": "mrkdwn",
-          "text": "*Account ID:*\n{{ account-fix-me }}"
-        },
-        {
-          "type": "mrkdwn",
-          "text": "*Current balance:*\n{{ balance-fix-me }} DEV"
-        }
-      ]
-    }
-  ]
-}
-`;
 
 const params = {
   // Discord app information
@@ -74,21 +48,52 @@ const lastBalanceCheck = {
 /**
  * Send notification to Slack using a webhook URL and the
  * message payload read from SLACK_MSG_CONTENT_FILEPATH.
- * @param {BigInt} account_balance Balance of the account in DEV
+ * @param {bigint} account_balance Balance of the account in DEV
  */
-const sendSlackNotification = async (account_balance: BigInt) => {
+const sendSlackNotification = async (account_balance: bigint) => {
   // Message to send to Slack (JSON payload)
-  const data = SLACK_MSG_CONTENTS.replace("{{ account-fix-me }}", params.ACCOUNT_ID).replace(
-    "{{ balance-fix-me }}",
-    account_balance.toString()
-  );
+  const title = "Fund bot operational account";
+  const message = "The account linked to the bot is running low on funds.";
+  const remainingAlerts = account_balance / BigInt(params.TOKEN_COUNT);
+
+  const payload = {
+    attachments: [
+      {
+        color: "warning",
+        fallback:
+          `${title}. ${message}\n` +
+          `  * Balance: ${account_balance.toString()} DEV\n` +
+          `  * Alerts until failure: ${remainingAlerts.toString()}\n` +
+          `  * Fund the following account: ${params.ACCOUNT_ID}`,
+        title: title,
+        text: message,
+        fields: [
+          {
+            title: "Balance",
+            value: `${account_balance.toString()} DEV`,
+            short: true,
+          },
+          {
+            title: "Alerts until failure",
+            value: `${remainingAlerts.toString()}`,
+            short: true,
+          },
+          {
+            title: "Please, fund the following account",
+            value: params.ACCOUNT_ID,
+            short: false,
+          },
+        ],
+      },
+    ],
+  };
 
   // Options for the HTTP request (data is written later)
   const options = {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Content-Length": data.length,
+      "Content-Length": JSON.stringify(payload).length,
     },
   };
 
@@ -113,7 +118,7 @@ const sendSlackNotification = async (account_balance: BigInt) => {
         reject(err);
       });
 
-    request.write(data);
+    request.write(JSON.stringify(payload));
     request.end();
   });
 
@@ -196,7 +201,9 @@ const botActionFaucetSend = async (msg: Message, authorId: string, messageConten
         "Remaining time",
         `You still need to wait ${nextAvailableToken(receivers[authorId])} to receive more tokens`
       )
-      .setFooter("Funds transactions are limited to once per hour");
+      .setFooter(
+        `Funds transactions are limited to once every ${params.FAUCET_SEND_INTERVAL} hour(s)`
+      );
 
     msg.channel.send(errorEmbed);
     return;
@@ -210,22 +217,42 @@ const botActionFaucetSend = async (msg: Message, authorId: string, messageConten
   // check address and send alert msg and return if bad formatted
   if (!checkH160AddressIsCorrect(address, msg)) return;
 
-  // update user last fund retrieval
+  // update user's last fund retrieval
+  const previousRequestTime = receivers[authorId];
   receivers[authorId] = Date.now();
 
-  await web3Api.eth.sendSignedTransaction(
-    (
-      await web3Api.eth.accounts.signTransaction(
-        {
-          value: `${params.TOKEN_COUNT * 10n ** TOKEN_DECIMAL}`,
-          gasPrice: "0x01",
-          gas: "0x21000",
-          to: `0x${address}`,
-        },
-        params.ACCOUNT_KEY
-      )
-    ).rawTransaction
-  );
+  try {
+    await web3Api.eth.sendSignedTransaction(
+      (
+        await web3Api.eth.accounts.signTransaction(
+          {
+            value: `${params.TOKEN_COUNT * 10n ** TOKEN_DECIMAL}`,
+            gasPrice: "0",
+            gas: "21000",
+            to: `0x${address}`,
+          },
+          params.ACCOUNT_KEY
+        )
+      ).rawTransaction
+    );
+  } catch (error) {
+    // rollback the update of user's last fund retrieval
+    receivers[authorId] = previousRequestTime;
+
+    // alert in channel
+    const errorEmbed = new MessageEmbed()
+      .setColor(EMBED_COLOR_ERROR)
+      .setTitle("Could not submit the transaction")
+      .setFooter(
+        "The transaction of funds could not be submitted. " + "Please, try requesting funds again."
+      );
+
+    // send message
+    msg.channel.send(errorEmbed);
+
+    throw error;
+  }
+
   const accountBalance = BigInt(await web3Api.eth.getBalance(`0x${address}`));
 
   // Check balance every 10min (minimum interval, dependent on when the function is called)
@@ -246,7 +273,9 @@ const botActionFaucetSend = async (msg: Message, authorId: string, messageConten
     .addField("To account", `0x${address}`, true)
     .addField("Amount sent", `${params.TOKEN_COUNT} DEV`, true)
     .addField("Current account balance", `${accountBalance / 10n ** TOKEN_DECIMAL} DEV`)
-    .setFooter("Funds transactions are limited to once per hour");
+    .setFooter(
+      `Funds transactions are limited to once every ${params.FAUCET_SEND_INTERVAL} hour(s)`
+    );
 
   msg.channel.send(fundsTransactionEmbed);
 };

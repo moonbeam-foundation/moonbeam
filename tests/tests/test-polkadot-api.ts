@@ -55,10 +55,10 @@ describeWithMoonbeam("Moonbeam Polkadot API", `simple-specs.json`, (context) => 
       const message = `${section}.${method}(${args.map((a) => a.toString()).join(", ")})`;
       switch (index) {
         case 0:
-          expect(message).to.eq(`timestamp.set(6000)`);
+          expect(message.substring(0, 13)).to.eq(`timestamp.set`);
           break;
         case 1:
-          expect(message.substring(0, 34)).to.eq(`parachainUpgrade.setValidationData`);
+          expect(message.substring(0, 33)).to.eq(`parachainSystem.setValidationData`);
           break;
         case 2:
           expect(message).to.eq(

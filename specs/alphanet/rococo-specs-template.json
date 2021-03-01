@@ -1,0 +1,153 @@
+{
+  "name": "Moonbase Relay Testnet",
+  "id": "rococo_moonbase_relay_testnet",
+  "chainType": "Live",
+  "bootNodes": [
+    "/dns4/rpcnode2.blue.testnet.moonbeam.network/tcp/30333/p2p/12D3KooWPS1EzUXqLx4EdkqPJZ8jciCWmciSTou8DrPGAnPps1Lm",
+    "/dns4/rpcnode1.blue.testnet.moonbeam.network/tcp/30333/p2p/12D3KooWJD9yhtvBoaNviqt6yj9R1AXDqxMvbUaU3fkv73bThKNh"
+  ],
+  "telemetryEndpoints": null,
+  "protocolId": "dot",
+  "properties": null,
+  "forkBlocks": null,
+  "badBlocks": null,
+  "consensusEngine": null,
+  "lightSyncState": null,
+  "genesis": {
+    "runtime": {
+      "runtime_genesis_config": {
+        "frameSystem": {
+          "changesTrieConfig": null,
+          "code": "<runtime_code>"
+        },
+        "palletBabe": {
+          "authorities": []
+        },
+        "palletIndices": {
+          "indices": []
+        },
+        "palletBalances": {
+          "balances": [
+            [
+              "1uV7ZJDW37CHeiWFppogK5JsV59tUrbuf1PcaDW5cTE1DHG",
+              100000000000000000001
+            ],
+            [
+              "14dmc8KjuXgKrmrBneJdpTZQhjStJoWnVipAhf2vcwcMWRBM",
+              100000000000000000000
+            ],
+            [
+              "16S1pBxHVpbHZE5DacwucvzXo3T6vDi9nsrTdwFvo3Vmm2xL",
+              100000000000000000000
+            ],
+            [
+              "14N1X74n14WjhPYZGo1saMUoo3soj8AfY4E42EKwAUEC6ik6",
+              100000000000000000000
+            ],
+            [
+              "1TKxFPxdHNG1UycCSxzkGL76ubpfsGwTFottXTuAD2FmsSB",
+              100000000000000000000
+            ],
+            [
+              "16k6ZhNMzava4uue18RJEtL2uYSyEGmjTHswrN6Lf62gYzVp",
+              100000000000000000000
+            ]
+          ]
+        },
+        "palletSession": {
+          "keys": [
+            [
+              "14N1X74n14WjhPYZGo1saMUoo3soj8AfY4E42EKwAUEC6ik6",
+              "14N1X74n14WjhPYZGo1saMUoo3soj8AfY4E42EKwAUEC6ik6",
+              {
+                "grandpa": "14b2Xgz61LPX5ReyyiTyWYgoEkyqWUmsu3P2ahQ22SxYyNVX",
+                "babe": "14N1X74n14WjhPYZGo1saMUoo3soj8AfY4E42EKwAUEC6ik6",
+                "im_online": "14N1X74n14WjhPYZGo1saMUoo3soj8AfY4E42EKwAUEC6ik6",
+                "para_validator": "14N1X74n14WjhPYZGo1saMUoo3soj8AfY4E42EKwAUEC6ik6",
+                "para_assignment": "14N1X74n14WjhPYZGo1saMUoo3soj8AfY4E42EKwAUEC6ik6",
+                "authority_discovery": "14N1X74n14WjhPYZGo1saMUoo3soj8AfY4E42EKwAUEC6ik6"
+              }
+            ],
+            [
+              "1TKxFPxdHNG1UycCSxzkGL76ubpfsGwTFottXTuAD2FmsSB",
+              "1TKxFPxdHNG1UycCSxzkGL76ubpfsGwTFottXTuAD2FmsSB",
+              {
+                "grandpa": "1pmUWgjPhikpF8QPjMyqeqXfoDvTNrnCQtBti3B6D7J4bGq",
+                "babe": "1TKxFPxdHNG1UycCSxzkGL76ubpfsGwTFottXTuAD2FmsSB",
+                "im_online": "1TKxFPxdHNG1UycCSxzkGL76ubpfsGwTFottXTuAD2FmsSB",
+                "para_validator": "1TKxFPxdHNG1UycCSxzkGL76ubpfsGwTFottXTuAD2FmsSB",
+                "para_assignment": "1TKxFPxdHNG1UycCSxzkGL76ubpfsGwTFottXTuAD2FmsSB",
+                "authority_discovery": "1TKxFPxdHNG1UycCSxzkGL76ubpfsGwTFottXTuAD2FmsSB"
+              }
+            ],
+            [
+              "16k6ZhNMzava4uue18RJEtL2uYSyEGmjTHswrN6Lf62gYzVp",
+              "16k6ZhNMzava4uue18RJEtL2uYSyEGmjTHswrN6Lf62gYzVp",
+              {
+                "grandpa": "14gdHqoQiVSQ5kESf5N9RwjPyeG2uso1p6gCGtuk2Krvz1y8",
+                "babe": "16k6ZhNMzava4uue18RJEtL2uYSyEGmjTHswrN6Lf62gYzVp",
+                "im_online": "16k6ZhNMzava4uue18RJEtL2uYSyEGmjTHswrN6Lf62gYzVp",
+                "para_validator": "16k6ZhNMzava4uue18RJEtL2uYSyEGmjTHswrN6Lf62gYzVp",
+                "para_assignment": "16k6ZhNMzava4uue18RJEtL2uYSyEGmjTHswrN6Lf62gYzVp",
+                "authority_discovery": "16k6ZhNMzava4uue18RJEtL2uYSyEGmjTHswrN6Lf62gYzVp"
+              }
+            ]
+          ]
+        },
+        "palletGrandpa": {
+          "authorities": []
+        },
+        "palletImOnline": {
+          "keys": []
+        },
+        "palletAuthorityDiscovery": {
+          "keys": []
+        },
+        "parachainsConfiguration": {
+          "config": {
+            "validation_upgrade_frequency": 6,
+            "validation_upgrade_delay": 3,
+            "acceptance_period": 1200,
+            "max_code_size": 5242880,
+            "max_head_data_size": 32768,
+            "max_pov_size": 52428800,
+            "parathread_cores": 0,
+            "parathread_retries": 0,
+            "group_rotation_frequency": 20,
+            "chain_availability_period": 4,
+            "thread_availability_period": 4,
+            "scheduling_lookahead": 0,
+            "max_validators_per_core": null,
+            "dispute_period": 0,
+            "no_show_slots": 10,
+            "n_delay_tranches": 0,
+            "zeroth_delay_tranche_width": 0,
+            "needed_approvals": 0,
+            "relay_vrf_modulo_samples": 0,
+            "max_upward_queue_count": 8,
+            "max_upward_queue_size": 8192,
+            "max_downward_message_size": 1024,
+            "preferred_dispatchable_upward_messages_step_weight": 4000000000,
+            "max_upward_message_size": 1024,
+            "max_upward_message_num_per_candidate": 5,
+            "hrmp_open_request_ttl": 5,
+            "hrmp_sender_deposit": 0,
+            "hrmp_recipient_deposit": 0,
+            "hrmp_channel_max_capacity": 8,
+            "hrmp_channel_max_total_size": 8192,
+            "hrmp_max_parachain_inbound_channels": 4,
+            "hrmp_max_parathread_inbound_channels": 4,
+            "hrmp_channel_max_message_size": 1024,
+            "hrmp_max_parachain_outbound_channels": 4,
+            "hrmp_max_parathread_outbound_channels": 4,
+            "hrmp_max_message_num_per_candidate": 5
+          }
+        },
+        "palletSudo": {
+          "key": "16S1pBxHVpbHZE5DacwucvzXo3T6vDi9nsrTdwFvo3Vmm2xL"
+        }
+      },
+      "session_length_in_blocks": 10
+    }
+  }
+}

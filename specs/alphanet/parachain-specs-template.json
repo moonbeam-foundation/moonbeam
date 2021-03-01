@@ -3,7 +3,9 @@
   "id": "moonbase_alpha",
   "chainType": "Local",
   "bootNodes": [],
-  "telemetryEndpoints": null,
+  "telemetryEndpoints": [
+    ["/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F", 0]
+  ],
   "protocolId": null,
   "properties": {
     "tokenDecimals": 18
@@ -21,11 +23,11 @@
         "balances": [
           [
             "0x5a7869f6aEfC93F45b30514023324B8D38e2a11c",
-            2000000000000000000000001
+            4977900000000000000000000
           ],
           [
             "0x664c6BAc48F4109e1071de90d9FaEBe12820B411",
-            2000000000000000000000000
+            5000000000000000000000000
           ],
           [
             "0x30a5e0cbe6729895f4188000b4ec61f8a659d2d6",
@@ -35,20 +37,9 @@
           ["0x5FdCf221e987966b296714953fb6952AfC24aeFE", 50000000000000000000],
           [
             "0x4c5a56ed5a4ff7b09aa86560afd7d383f4831cce",
-            100000000000000000000000
+            1000000000000000000000
           ],
-          [
-            "0x623c9e50647a049f92090fe55e22cc0509872fb6",
-            100000000000000000000000
-          ],
-          [
-            "0xbe373fc7be685e9a4ab00dd665dae5c553489add",
-            100000000000000000000000
-          ],
-          [
-            "0x05160bacc74e6af4d755f9dd6d409fc99ee918fa",
-            100000000000000000000000
-          ]
+          ["0x623c9e50647a049f92090fe55e22cc0509872fb6", 1000000000000000000000]
         ]
       },
       "palletSudo": {
@@ -65,29 +56,33 @@
       },
       "palletEthereum": {},
       "stake": {
+        "inflationConfig": {
+          "expect": {
+            "min": 100000000000000000000000,
+            "ideal": 200000000000000000000000,
+            "max": 500000000000000000000000
+          },
+          "round": {
+            "min": 4563,
+            "ideal": 5703,
+            "max": 5703
+          }
+        },
         "stakers": [
           [
             "0x4c5a56ed5a4ff7b09aa86560afd7d383f4831cce",
             null,
-            100000000000000000000000
+            1000000000000000000000
           ],
           [
             "0x623c9e50647a049f92090fe55e22cc0509872fb6",
             null,
-            100000000000000000000000
-          ],
-          [
-            "0xbe373fc7be685e9a4ab00dd665dae5c553489add",
-            null,
-            100000000000000000000000
-          ],
-          [
-            "0x05160bacc74e6af4d755f9dd6d409fc99ee918fa",
-            null,
-            100000000000000000000000
+            1000000000000000000000
           ]
         ]
-      }
+      },
+      "palletScheduler": {},
+      "palletDemocracy": {}
     }
   }
 }

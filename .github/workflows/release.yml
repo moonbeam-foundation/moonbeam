@@ -97,38 +97,12 @@ jobs:
       - name: Checkout
         if: github.event_name != 'pull_request_target'
         uses: actions/checkout@v2
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
       - name: Check with Prettier
         run: npx prettier --check --ignore-path .gitignore  '**/*.(yml|js|ts|json)'
-
-  check-clippy:
-    name: "Code checks"
-    runs-on: self-hosted
-    steps:
-      - name: Checkout
-        if: github.event_name == 'pull_request_target'
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          ref: refs/pull/${{ github.event.pull_request.number }}/merge
-
-      - name: Checkout
-        if: github.event_name != 'pull_request_target'
-        uses: actions/checkout@v2
-
-      - name: Install toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly-2020-10-03
-          components: clippy, rustfmt
-          target: wasm32-unknown-unknown
-          default: true
-
-          # - name: Check with Clippy
-        # run: cargo clippy --workspace --tests -- -D warnings
-
-      - name: Format code with rustfmt
-        run: cargo fmt -- --check
 
   ####### Building and Testing binaries #######
 
@@ -153,6 +127,13 @@ jobs:
         with:
           path: ${{ runner.tool_cache }}/cargo-sccache
           key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_VERSION }}-v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          target: wasm32-unknown-unknown
+          # Toolchain is autodetected from `rust-toolchain` file
+          # https://github.com/actions-rs/toolchain#the-toolchain-file
+          #toolchain: ${{ env.WASM_BUILD_TOOLCHAIN }}
+          default: true
       - name: Install sccache
         run: |
           if [ ! -f ${{ runner.tool_cache }}/cargo-sccache/bin/sccache ]; then
@@ -165,17 +146,10 @@ jobs:
           ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
           ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
           echo "RUSTC_WRAPPER=${{ runner.tool_cache }}/cargo-sccache/bin/sccache" >> $GITHUB_ENV
-      - uses: actions-rs/toolchain@v1
-        with:
-          target: wasm32-unknown-unknown
-          # Toolchain is autodetected from `rust-toolchain` file
-          # https://github.com/actions-rs/toolchain#the-toolchain-file
-          #toolchain: ${{ env.WASM_BUILD_TOOLCHAIN }}
-          default: true
       - id: get-rust-versions
         run: |
           echo "::set-output name=rustc::$(rustc --version)"
-      - name: Build Parachain Node
+      - name: Build Node
         run: cargo build --release --verbose --all
       # We determine whether there are unmodified Cargo.lock files by:
       # 1. Asking git for a list of all modified files
@@ -193,6 +167,10 @@ jobs:
           fi
       - name: Unit tests
         run: cargo test --release --verbose --all
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
       - name: Typescript integration tests (against dev service)
         run: |
           cd moonbeam-types-bundle
@@ -202,13 +180,17 @@ jobs:
           npm run test;
       - name: Save parachain binary
         run: |
-          mkdir -p build/alphanet
-          cp target/release/moonbase-alphanet build/alphanet/moonbase-alphanet;
-      - name: Upload moonbase-alphanet node
+          mkdir -p build
+          cp target/release/moonbeam build/moonbeam;
+      - name: Upload binary
         uses: actions/upload-artifact@v2
         with:
-          name: moonbase-alphanet
-          path: build/alphanet
+          name: moonbeam
+          path: build
+      - name: Check with Clippy
+        run: cargo clippy --release --workspace
+      - name: Format code with rustfmt
+        run: cargo fmt -- --check
 
   ####### Prepare and Deploy Docker images #######
 
@@ -221,17 +203,17 @@ jobs:
         uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
-          name: moonbase-alphanet
-          path: build/alphanet
+          name: moonbeam
+          path: build
       - name: Generate specs
         run: |
-          chmod uog+x build/alphanet/moonbase-alphanet
-          PARACHAIN_BINARY=build/alphanet/moonbase-alphanet scripts/generate-parachain-specs.sh
+          chmod uog+x build/moonbeam
+          MOONBEAM_BINARY=build/moonbeam scripts/generate-parachain-specs.sh
       - name: Upload parachain specs
         uses: actions/upload-artifact@v2
         with:
-          name: moonbase-alphanet
-          path: build/alphanet
+          name: moonbeam
+          path: build
 
   docker-parachain:
     runs-on: self-hosted
@@ -242,12 +224,12 @@ jobs:
         uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
-          name: moonbase-alphanet
-          path: build/alphanet
+          name: moonbeam
+          path: build
       - name: Prepare
         id: prep
         run: |
-          DOCKER_IMAGE=purestake/moonbase-parachain-testnet
+          DOCKER_IMAGE=purestake/moonbase-parachain
           VERSION=noop
           if [ "${{ github.event_name }}" = "schedule" ]; then
             VERSION=nightly
@@ -290,7 +272,78 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./docker/moonbase-alphanet.Dockerfile
+          file: ./docker/moonbase-parachain.Dockerfile
+          platforms: linux/amd64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.prep.outputs.tags }}
+          labels: |
+            org.opencontainers.image.title=${{ github.event.repository.name }}
+            org.opencontainers.image.description=${{ github.event.repository.description }}
+            org.opencontainers.image.url=${{ github.event.repository.html_url }}
+            org.opencontainers.image.source=${{ github.event.repository.clone_url }}
+            org.opencontainers.image.version=${{ steps.prep.outputs.version }}
+            org.opencontainers.image.created=${{ steps.prep.outputs.created }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
+
+  docker-moonbeam:
+    runs-on: self-hosted
+    needs: ["build", "generate-parachain-specs"]
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: moonbeam
+          path: build
+      - name: Prepare
+        id: prep
+        run: |
+          DOCKER_IMAGE=purestake/moonbeam
+          VERSION=noop
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            VERSION=nightly
+          elif [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          elif [[ $GITHUB_REF == refs/heads/* ]]; then
+            VERSION=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g')
+            if [ "${{ github.event.repository.default_branch }}" = "$VERSION" ]; then
+              VERSION=edge
+            fi
+          elif [[ $GITHUB_REF == refs/pull/* ]]; then
+            VERSION=pr-${{ github.event.number }}
+          fi
+          TAGS="${DOCKER_IMAGE}:${VERSION}"
+          if [[ $VERSION =~ ^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+            MINOR=${VERSION%.*}
+            MAJOR=${MINOR%.*}
+            TAGS="$TAGS,${DOCKER_IMAGE}:${MINOR},${DOCKER_IMAGE}:${MAJOR},${DOCKER_IMAGE}:latest"
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            TAGS="$TAGS,${DOCKER_IMAGE}:sha-${GITHUB_SHA::8}"
+          fi
+          echo ::set-output name=version::${VERSION}
+          echo ::set-output name=tags::${TAGS}
+          echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          version: latest
+          driver-opts: |
+            image=moby/buildkit:master
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push moonbeam
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./docker/moonbeam.Dockerfile
           platforms: linux/amd64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.prep.outputs.tags }}
@@ -339,7 +392,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: Moonbase Alphanet ${{ github.ref }}
+          release_name: Moonbase ${{ github.ref }}
           body: "TBD"
           draft: true
 
@@ -351,16 +404,13 @@ jobs:
     if: |
       github.event_name == 'push' &&
       startsWith(github.ref, 'refs/tags/')
-    strategy:
-      matrix:
-        runtime: ["moonbase-alphanet"]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
-          name: moonbase-alphanet
-          path: build/alphanet
+          name: moonbeam
+          path: build
       - name: Set up Ruby 2.7
         uses: actions/setup-ruby@v1
         with:
@@ -368,32 +418,23 @@ jobs:
       - name: Get runtime version
         id: get-runtime-ver
         run: |
-          runtime_ver="$(ruby -e 'require "./scripts/github/lib.rb"; puts get_runtime("parachain.rs")')"
+          runtime_ver="$(ruby -e 'require "./scripts/github/lib.rb"; puts get_runtime("lib.rs")')"
           echo "::set-output name=runtime_ver::$runtime_ver"
-      - name: Upload ${{ matrix.runtime }} wasm
+      - name: Upload wasm
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
-          asset_path: build/alphanet/${{ matrix.runtime }}-runtime.wasm
-          asset_name: ${{ matrix.runtime }}-runtime-v${{ steps.get-runtime-ver.outputs.runtime_ver }}.wasm
+          asset_path: build/alphanet/parachain-runtime.wasm
+          asset_name: runtime-v${{ steps.get-runtime-ver.outputs.runtime_ver }}.wasm
           asset_content_type: application/wasm
-      - name: Upload ${{ matrix.runtime }} node
+      - name: Upload binary
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
-          asset_path: build/alphanet/${{ matrix.runtime }}
-          asset_name: ${{ matrix.runtime }}
+          asset_path: build/moonbeam
+          asset_name: moonbeam
           asset_content_type: application/octet-stream
-      - name: Upload ${{ matrix.runtime }} genesis
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
-          asset_path: build/alphanet/${{ matrix.runtime }}-genesis.txt
-          asset_name: ${{ matrix.runtime }}-genesis.txt
-          asset_content_type: text/plain

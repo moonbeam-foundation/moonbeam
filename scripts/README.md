@@ -64,12 +64,13 @@ The standalone nodes are made to be executed without explicitly supplied specs.
 They also don't require any runtime wasm file or genesis state.
 
 ```bash
-scripts/run-moonbase-standalone.sh
+scripts/run-moonbase-dev.sh
 ```
 
-# Alphanet nodes
+# Alphanet local nodes
 
-The alphanet nodes require having relay nodes (at least 2) and parachain nodes (at least 1).
+The alphanet nodes will run on a rococo-local relay, preventing them from connecting to the real alphanet.
+It requires having relay nodes (at least 2) and parachain nodes (at least 1).
 Those require sharing many files (specs, runtime wasm, genesis state).
 
 The following steps will guide you through the generation of those files.
@@ -81,8 +82,7 @@ scripts/generate-relay-specs.sh
 ```
 
 The script downloads `purestake/moonbase-relay-testnet:$POLKADOT_VERSION` docker image and execute the build-spec.
-It also relies on the `/specs/rococo-alphanet-specs-template.json` for the specs template.
-The files generated are (by default) stored in `build/rococo-alphanet-specs-[plain,raw].json`
+It also relies on the `rococo-local` for the specs.
 
 ## Generating the parachain specs
 
@@ -90,20 +90,11 @@ The files generated are (by default) stored in `build/rococo-alphanet-specs-[pla
 scripts/generate-parachain-specs.sh
 ```
 
-The script executes (by default) `target/release/moonbase-alphanet` `build-spec`
-It also relies on the `/specs/moonbase-alphanet-specs-template.json` for the specs template.
-The files generated are (by default) stored in `build/moonbase-alphanet-specs-[plain,raw].json`
+The script executes (by default) `target/release/moonbeam` `build-spec`
+It also relies on the [../specs/alphanet/parachain-specs-template.json] for the specs template.
+The files generated are (by default) stored in `build/alphanet/parachain-specs-[plain,raw].json`
 
-It also generates the `build/parachain.wasm` and `build/parachain.genesis`
-
-### Alternate parachain specs
-
-If you want to use an alternative spec template (like [../moonbase-alphanet-dev-specs-template.json](moonbase-alphanet-dev-specs-template.json which contains gerald funds)),
-you can provide the template like this:
-
-```bash
-PARACHAIN_SPEC_TEMPLATE=specs/moonbase-alphanet-dev-specs-template.json scripts/generate-parachain-specs.sh
-```
+It also generates the `build/alphanet/runtime.wasm` and `build/alphanet/genesis.txt`
 
 ## Running Relay nodes
 
