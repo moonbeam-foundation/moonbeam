@@ -381,8 +381,8 @@ impl cumulus_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
 	type SelfParaId = ParachainInfo;
-	type DownwardMessageHandlers = ();
-	type HrmpMessageHandlers = ();
+	type DownwardMessageHandlers = XcmHandler;
+	type HrmpMessageHandlers = XcmHandler;
 }
 
 impl parachain_info::Config for Runtime {}

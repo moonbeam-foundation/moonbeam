@@ -17,6 +17,7 @@ precompiles = { path = "precompiles/", default-features = false }
 account = { path = "account/", default-features = false }
 pallet-ethereum-chain-id = { path = "../pallets/ethereum-chain-id", default-features = false }
 stake = { path = "../pallets/stake", default-features = false }
+author-inherent = { path = "../pallets/author-inherent", default-features = false }
 pallet-author-filter = { path = "../pallets/author-filter", default-features = false }
 token-factory = { path = "../pallets/token-factory", default-features = false }
 token-dealer = { path = "../pallets/token-dealer", default-features = false }
@@ -68,10 +69,7 @@ xcm-handler = { git = "https://github.com/paritytech/cumulus", default-features 
 xcm-executor = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "master" }
 xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "master" }
 polkadot-parachain = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "master" }
-
-# TODO Why can't this come directly from cumulus
-parachain-info = { path = "../pallets/parachain-info", default-features = false }
-author-inherent = { path = "../pallets/author-inherent", default-features = false }
+parachain-info = { git = "https://github.com/paritytech/cumulus", default-features = false, branch = "master" }
 
 [build-dependencies]
 substrate-wasm-builder = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git", branch = "master" }

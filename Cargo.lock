@@ -5172,7 +5172,8 @@ dependencies = [
 
 [[package]]
 name = "parachain-info"
-version = "0.6.0"
+version = "0.1.0"
+source = "git+https://github.com/paritytech/cumulus#6438d328b8ac09f43d19df65a2cf8e31a524d78f"
 dependencies = [
  "cumulus-primitives",
  "frame-support",
