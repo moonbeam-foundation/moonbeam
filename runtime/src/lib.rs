@@ -448,7 +448,7 @@ impl Convert<<<Signature as Verify>::Signer as IdentifyAccount>::AccountId, H160
 impl token_factory::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
-	type TokenId = token_dealer::support::TokenSymbol;
+	type TokenId = token_dealer::support::Ticker;
 	type AccountToH160 = AccountToH160;
 }
 
@@ -469,7 +469,7 @@ parameter_types! {
 	pub Ancestry: MultiLocation = MultiLocation::X1(Junction::Parachain {
 		id: ParachainInfo::get().into(),
 	});
-	pub const RelayChainCurrencyId: CurrencyId = CurrencyId::Token(TokenSymbol::DOT);
+	pub const RelayChainCurrencyId: CurrencyId = CurrencyId::Token(Ticker::DOT);
 }
 
 // TODO: add this to xcm-executor/location_conversion.rs and PR polkadot

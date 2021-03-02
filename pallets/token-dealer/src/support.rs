@@ -38,22 +38,23 @@ use xcm_executor::traits::{
 
 #[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, RuntimeDebug, PartialOrd, Ord)]
 #[non_exhaustive]
-pub enum TokenSymbol {
+/// The name and unique ID for each token registered in `token-factory`
+pub enum Ticker {
 	DOT = 0,
 	KSM = 1,
 	ACA = 2,
 	AUSD = 3,
 }
 
-impl TryFrom<u8> for TokenSymbol {
+impl TryFrom<u8> for Ticker {
 	type Error = ();
 
 	fn try_from(v: u8) -> Result<Self, Self::Error> {
 		match v {
-			0 => Ok(TokenSymbol::DOT),
-			1 => Ok(TokenSymbol::KSM),
-			2 => Ok(TokenSymbol::ACA),
-			3 => Ok(TokenSymbol::AUSD),
+			0 => Ok(Ticker::DOT),
+			1 => Ok(Ticker::KSM),
+			2 => Ok(Ticker::ACA),
+			3 => Ok(Ticker::AUSD),
 			_ => Err(()),
 		}
 	}
@@ -64,7 +65,7 @@ pub enum CurrencyId {
 	/// The local instance of `balances` pallet, default GLMR
 	Native,
 	/// Token registered in `token-factory` pallet
-	Token(TokenSymbol),
+	Token(Ticker),
 }
 
 impl TryFrom<Vec<u8>> for CurrencyId {
@@ -72,10 +73,10 @@ impl TryFrom<Vec<u8>> for CurrencyId {
 	fn try_from(v: Vec<u8>) -> Result<CurrencyId, ()> {
 		match v.as_slice() {
 			b"GLMR" => Ok(CurrencyId::Native),
-			b"DOT" => Ok(CurrencyId::Token(TokenSymbol::DOT)),
-			b"KSM" => Ok(CurrencyId::Token(TokenSymbol::KSM)),
-			b"ACA" => Ok(CurrencyId::Token(TokenSymbol::ACA)),
-			b"AUSD" => Ok(CurrencyId::Token(TokenSymbol::AUSD)),
+			b"DOT" => Ok(CurrencyId::Token(Ticker::DOT)),
+			b"KSM" => Ok(CurrencyId::Token(Ticker::KSM)),
+			b"ACA" => Ok(CurrencyId::Token(Ticker::ACA)),
+			b"AUSD" => Ok(CurrencyId::Token(Ticker::AUSD)),
 			_ => Err(()),
 		}
 	}
@@ -107,7 +108,7 @@ pub struct MultiCurrencyAdapter<
 
 impl<
 		NativeCurrency: Currency<AccountId>,
-		TokenFactory: token_factory::TokenMinter<TokenSymbol, AccountId, NativeCurrency::Balance>,
+		TokenFactory: token_factory::TokenMinter<Ticker, AccountId, NativeCurrency::Balance>,
 		Matcher: MatchesFungible<NativeCurrency::Balance>,
 		AccountIdConverter: LocationConversion<AccountId>,
 		AccountId: sp_std::fmt::Debug,

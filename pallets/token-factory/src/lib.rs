@@ -22,6 +22,11 @@ use frame_support::pallet;
 
 pub use pallet::*;
 
+#[cfg(test)]
+mod mock;
+#[cfg(test)]
+mod tests;
+
 #[pallet]
 pub mod pallet {
 	use ethereum_types::BigEndianHash;
@@ -70,8 +75,6 @@ pub mod pallet {
 		IdClaimed,
 		/// TokenID does not exist so cannot interact with it
 		IdNotClaimed,
-		/// Require sudo for registering and removing tokens from set
-		RequireSudo,
 	}
 
 	#[derive(PartialEq, Clone, Copy, Encode, Decode, sp_runtime::RuntimeDebug)]
@@ -86,7 +89,7 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// Token register success [token_id, contract_address, to_address, minted_amount]
+		/// Token register success [token_id, contract_address]
 		Registered(T::TokenId, H160),
 		/// Mint token success. [token_id, who, amount]
 		Minted(T::TokenId, T::AccountId, T::Balance),
@@ -114,19 +117,14 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		#[pallet::weight(0)]
 		pub fn register_token(origin: OriginFor<T>, id: T::TokenId) -> DispatchResultWithPostInfo {
-			let caller = ensure_signed(origin)?;
-			ensure!(
-				caller == <pallet_sudo::Module<T>>::key(),
-				Error::<T>::RequireSudo
-			);
+			frame_system::ensure_root(origin)?;
 			ensure!(!Self::exists(&id), Error::<T>::IdClaimed);
 			let contract = FromHex::from_hex(CONTRACT_BYTECODE)
 				.expect("Static smart contract is formatted incorrectly (should be hex)");
-			let from = T::AccountToH160::convert(caller);
 			// deploy contract with sudo as MINTER_ROLE and BURNER_ROLE (without minting)
 			match T::Runner::create(
 				// from: H160
-				from,
+				Self::sudo_caller(),
 				// input: Vec<u8>
 				contract,
 				// value: U256
