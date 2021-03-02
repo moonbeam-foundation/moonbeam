@@ -18,6 +18,8 @@ use sp_core::H160;
 use std::path::PathBuf;
 use std::str::FromStr;
 use structopt::StructOpt;
+
+/// Sub-commands supported by the collator.
 #[derive(Debug, StructOpt)]
 pub enum Subcommand {
 	/// Export the genesis state of the parachain.
@@ -56,11 +58,13 @@ pub struct BuildSpecCommand {
 	pub base: sc_cli::BuildSpecCmd,
 
 	/// Number of accounts to be funded in the genesis
-	#[structopt(long)]
+	/// Warning: This flag implies a development spec and overrides any explicitly supplied spec
+	#[structopt(long, conflicts_with = "chain")]
 	pub accounts: Option<u32>,
 
 	/// Mnemonic from which we can derive funded accounts in the genesis
-	#[structopt(long)]
+	/// Warning: This flag implies a development spec and overrides any explicitly supplied spec
+	#[structopt(long, conflicts_with = "chain")]
 	pub mnemonic: Option<String>,
 }
 
