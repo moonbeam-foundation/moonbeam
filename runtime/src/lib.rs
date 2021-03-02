@@ -734,7 +734,7 @@ impl_runtime_apis! {
 
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 			add_benchmark!(params, batches, author_inherent, AuthorInherentBench::<Runtime>);
-			// add_benchmark!(params, batches, pallet_evm, EvmBench::<Runtime>);
+			add_benchmark!(params, batches, pallet_evm, EvmBench::<Runtime>);
 			// add_benchmark!(params, batches, pallet_ethereum, EthereumBench::<Runtime>);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
