@@ -4115,6 +4115,7 @@ dependencies = [
  "fc-rpc-core",
  "fp-consensus",
  "fp-rpc",
+ "frame-benchmarking",
  "frame-benchmarking-cli",
  "futures 0.3.12",
  "jsonrpc-core 15.1.0",

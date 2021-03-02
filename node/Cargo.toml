@@ -68,6 +68,7 @@ pallet-transaction-payment-rpc = { git = "https://github.com/paritytech/substrat
 sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sc-consensus-manual-seal = { git = "https://github.com/paritytech/substrate", branch = "master" }
 frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", branch = "master" }
+frame-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master", optional = true }
 
 evm = { package = "pallet-evm", git = "https://github.com/purestake/frontier", branch = "notlesh-benchmarking-v0.7" }
 ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "notlesh-benchmarking-v0.7" }
@@ -116,6 +117,7 @@ substrate-test-runtime-client = { git = "https://github.com/paritytech/substrate
 
 [features]
 runtime-benchmarks = [
+	"frame-benchmarking",
 	"moonbeam-runtime/runtime-benchmarks",
 	"polkadot-service/runtime-benchmarks",
 ]
