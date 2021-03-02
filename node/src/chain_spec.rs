@@ -256,3 +256,36 @@ fn testnet_genesis(
 		}),
 	}
 }
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	#[test]
+	fn test_derived_pairs_1() {
+		let mnemonic = "bottom drive obey lake curtain smoke basket hold race lonely fit walk".to_string();
+		let accounts = 10;
+		let pairs = derive_bip44_pairs_from_mnemonic::<ecdsa::Public>(&mnemonic, accounts);
+		let first_account = get_account_id_from_pair::<ecdsa::Public>(pairs.first().unwrap().clone()).unwrap();
+		let last_account = get_account_id_from_pair::<ecdsa::Public>(pairs.last().unwrap().clone()).unwrap();
+
+		let expected_first_account = AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap();
+		let expected_last_account = AccountId::from_str("2898FE7a42Be376C8BC7AF536A940F7Fd5aDd423").unwrap();
+		assert_eq!(first_account, expected_first_account);
+		assert_eq!(last_account, expected_last_account);
+		assert_eq!(pairs.len(), 10);
+	}
+	#[test]
+	fn test_derived_pairs_2() {
+		let mnemonic = "slab nerve salon plastic filter inherit valve ozone crash thumb quality whale".to_string();
+		let accounts = 20;
+		let pairs = derive_bip44_pairs_from_mnemonic::<ecdsa::Public>(&mnemonic, accounts);
+		let first_account = get_account_id_from_pair::<ecdsa::Public>(pairs.first().unwrap().clone()).unwrap();
+		let last_account = get_account_id_from_pair::<ecdsa::Public>(pairs.last().unwrap().clone()).unwrap();
+
+		let expected_first_account = AccountId::from_str("1e56ca71b596f2b784a27a2fdffef053dbdeff83").unwrap();
+		let expected_last_account = AccountId::from_str("4148202BF0c0Ad7697Cff87EbB83340C80c947f8").unwrap();
+		assert_eq!(first_account, expected_first_account);
+		assert_eq!(last_account, expected_last_account);
+		assert_eq!(pairs.len(), 20);
+	}
+}
