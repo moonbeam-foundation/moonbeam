@@ -16,11 +16,7 @@
 
 //! Token Factory Mock Runtime
 use crate as token_factory;
-use frame_support::{
-	assert_noop, assert_ok, impl_outer_event, impl_outer_origin, parameter_types,
-	traits::{OnFinalize, OnInitialize},
-};
-use frame_system::limits;
+use frame_support::parameter_types;
 use sp_core::{H160, H256};
 use sp_io::TestExternalities;
 use sp_runtime::{
@@ -148,14 +144,6 @@ impl token_factory::Config for Test {
 	type Balance = Balance;
 	type TokenId = u8;
 	type AccountToH160 = AccountToH160;
-}
-
-pub(crate) fn roll_to(n: u64) {
-	while System::block_number() < n {
-		System::on_finalize(System::block_number());
-		System::set_block_number(System::block_number() + 1);
-		System::on_initialize(System::block_number());
-	}
 }
 
 pub(crate) fn last_event() -> Event {

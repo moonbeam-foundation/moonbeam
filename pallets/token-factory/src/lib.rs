@@ -218,7 +218,7 @@ pub mod pallet {
 			let mut contract = <Contracts<T>>::get(&id).ok_or(Error::<T>::IdNotClaimed)?;
 			// TODO: how likely is overflow here?
 			contract.nonce += U256::from(1);
-			let mut input = hex_literal::hex!("9cff1ade").to_vec();
+			let mut input = hex_literal::hex!("40c10f19").to_vec();
 			// append address
 			input.extend_from_slice(H256::from(who.clone()).as_bytes());
 			// append amount
@@ -269,7 +269,7 @@ pub mod pallet {
 		fn burn(id: T::TokenId, who: H160, amount: T::Balance) -> DispatchResultWithPostInfo {
 			let mut contract = <Contracts<T>>::get(&id).ok_or(Error::<T>::IdNotClaimed)?;
 			contract.nonce += U256::from(1);
-			let mut input = hex_literal::hex!("4f10869a").to_vec();
+			let mut input = hex_literal::hex!("9dc29fac").to_vec();
 			// append address
 			input.extend_from_slice(H256::from(who.clone()).as_bytes());
 			// append amount
@@ -320,7 +320,6 @@ pub mod pallet {
 			let mut contract = <Contracts<T>>::get(id).ok_or(Error::<T>::IdNotClaimed)?;
 			contract.nonce += U256::from(1);
 			// first 4 bytes of hex output of Sha3("totalSupply()")
-			// 1f1881f8
 			let input = hex_literal::hex!("18160ddd").to_vec();
 			match T::Runner::call(
 				// source: H160
@@ -365,7 +364,7 @@ pub mod pallet {
 			let mut contract = <Contracts<T>>::get(id).ok_or(Error::<T>::IdNotClaimed)?;
 			contract.nonce += U256::from(1);
 			// first 4 bytes of hex output of Sha3("balanceOf(address)")
-			let mut input = hex_literal::hex!("1d7976f3").to_vec();
+			let mut input = hex_literal::hex!("70a08231").to_vec();
 			// append address
 			input.extend_from_slice(H256::from(who).as_bytes());
 			match T::Runner::call(
