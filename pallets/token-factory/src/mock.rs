@@ -162,9 +162,14 @@ pub(crate) fn last_event() -> Event {
 	System::events().pop().expect("Event expected").event
 }
 
-pub(crate) fn root() -> H160 {
+pub(crate) fn root_address() -> H160 {
 	use sp_std::str::FromStr;
 	H160::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()
+}
+
+pub(crate) fn deploy_address() -> H160 {
+	use sp_std::str::FromStr;
+	H160::from_str("c2bf5f29a4384b1ab0c063e1c666f02121b6084a").unwrap()
 }
 
 pub(crate) fn genesis(balances: Vec<(AccountId, Balance)>) -> TestExternalities {
@@ -173,7 +178,9 @@ pub(crate) fn genesis(balances: Vec<(AccountId, Balance)>) -> TestExternalities 
 		.unwrap();
 	let genesis = pallet_balances::GenesisConfig::<Test> { balances };
 	genesis.assimilate_storage(&mut storage).unwrap();
-	let genesis = pallet_sudo::GenesisConfig::<Test> { key: root() };
+	let genesis = pallet_sudo::GenesisConfig::<Test> {
+		key: root_address(),
+	};
 	genesis.assimilate_storage(&mut storage).unwrap();
 	let mut ext = sp_io::TestExternalities::from(storage);
 	ext.execute_with(|| System::set_block_number(1));
