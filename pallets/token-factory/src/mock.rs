@@ -155,9 +155,35 @@ pub(crate) fn root_address() -> H160 {
 	H160::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()
 }
 
-pub(crate) fn deploy_address() -> H160 {
+pub(crate) fn alice() -> H160 {
 	use sp_std::str::FromStr;
-	H160::from_str("c2bf5f29a4384b1ab0c063e1c666f02121b6084a").unwrap()
+	H160::from_str("1000000000000000000000000000000000000001").unwrap()
+}
+
+pub(crate) fn bob() -> H160 {
+	use sp_std::str::FromStr;
+	H160::from_str("1000000000000000000000000000000000000002").unwrap()
+}
+
+pub(crate) fn charlie() -> H160 {
+	use sp_std::str::FromStr;
+	H160::from_str("1000000000000000000000000000000000000003").unwrap()
+}
+
+pub(crate) fn deploy_addresses() -> Vec<H160> {
+	use sp_std::str::FromStr;
+	vec![
+		H160::from_str("c2bf5f29a4384b1ab0c063e1c666f02121b6084a").unwrap(),
+		H160::from_str("5c4242beb94de30b922f57241f1d02f36e906915").unwrap(),
+		H160::from_str("42e2ee7ba8975c473157634ac2af4098190fc741").unwrap(),
+		H160::from_str("f8cef78e923919054037a1d03662bbd884ff4edf").unwrap(),
+		H160::from_str("e573bca813c741229ffb2488f7856c6caa841041").unwrap(),
+		H160::from_str("bb0cc0fb3e0c06725c67167501f850b4900d6db5").unwrap(),
+		H160::from_str("fe5d3c52f7ee9aa32a69b96bfbb088ba0bcd8efc").unwrap(),
+		H160::from_str("92496871560a01551e1b4fd04540d7a519d5c19e").unwrap(),
+		H160::from_str("63a1519ee99d1121780fffa1726ed2ecc6d1611b").unwrap(),
+		H160::from_str("dc552396caec809752fed0c5e23fd3983766e758").unwrap(),
+	]
 }
 
 pub(crate) fn genesis(balances: Vec<(AccountId, Balance)>) -> TestExternalities {

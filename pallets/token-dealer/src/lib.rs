@@ -27,7 +27,7 @@ pub use pallet::*;
 #[pallet]
 pub mod pallet {
 	use cumulus_primitives::{relay_chain::Balance as RelayChainBalance, ParaId};
-	use frame_support::{pallet_prelude::*, traits::Get};
+	use frame_support::{pallet_prelude::*, transactional, traits::Get};
 	use frame_system::pallet_prelude::*;
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
 	use sp_std::prelude::*;
@@ -134,7 +134,8 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Transfer relay chain tokens to relay chain.
-		#[pallet::weight(10)] // TODO add transactional
+		#[pallet::weight(10)]
+		#[transactional]
 		pub fn transfer_to_relay_chain(
 			origin: OriginFor<T>,
 			dest: SubstrateAccountId,
@@ -176,6 +177,7 @@ pub mod pallet {
 		}
 		/// Transfer tokens to parachain.
 		#[pallet::weight(10)]
+		#[transactional]
 		pub fn transfer_to_parachain(
 			origin: OriginFor<T>,
 			x_currency_id: XCurrencyId,

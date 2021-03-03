@@ -86,12 +86,6 @@ pub mod pallet {
 		BalanceOf,
 	}
 
-	#[derive(PartialEq, Clone, Copy, Encode, Decode, sp_runtime::RuntimeDebug)]
-	pub struct ContractInfo {
-		pub address: H160,
-		pub nonce: U256,
-	}
-
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
@@ -111,13 +105,37 @@ pub mod pallet {
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
 
 	#[pallet::storage]
+	#[pallet::getter(fn nonce)]
+	pub type Nonce<T: Config> = StorageValue<_, U256, ValueQuery>;
+
+	#[pallet::storage]
 	#[pallet::getter(fn tokens)]
 	pub type Tokens<T: Config> = StorageValue<_, Vec<T::TokenId>, ValueQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn contracts)]
-	pub type Contracts<T: Config> =
-		StorageMap<_, Twox64Concat, T::TokenId, ContractInfo, OptionQuery>;
+	#[pallet::getter(fn contract_address)]
+	pub type ContractAddress<T: Config> =
+		StorageMap<_, Twox64Concat, T::TokenId, H160, OptionQuery>;
+
+	#[pallet::genesis_config]
+	pub struct GenesisConfig {
+		pub nonce: U256,
+	}
+
+	impl Default for GenesisConfig {
+		fn default() -> Self {
+			Self {
+				nonce: U256::zero(),
+			}
+		}
+	}
+
+	#[pallet::genesis_build]
+	impl<T: Config> GenesisBuild<T> for GenesisConfig {
+		fn build(&self) {
+			<Nonce<T>>::put(self.nonce);
+		}
+	}
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -127,6 +145,7 @@ pub mod pallet {
 			ensure!(!Self::exists(&id), Error::<T>::IdClaimed);
 			let contract = FromHex::from_hex(CONTRACT_BYTECODE)
 				.expect("Static smart contract is formatted incorrectly (should be hex)");
+			let mut nonce = <Nonce<T>>::get();
 			// deploy contract with sudo as MINTER_ROLE and BURNER_ROLE (without minting)
 			match T::Runner::create(
 				// from: H160
@@ -140,7 +159,7 @@ pub mod pallet {
 				// gas price: U256
 				Some(U256::from(1)),
 				// nonce: Option<U256>
-				Some(U256::zero()),
+				Some(nonce),
 				// config: EvmConfig
 				T::config(),
 			)? {
@@ -150,13 +169,9 @@ pub mod pallet {
 					..
 				} => {
 					// update runtime storage
-					<Contracts<T>>::insert(
-						&id,
-						ContractInfo {
-							address: address.clone(),
-							nonce: U256::zero(),
-						},
-					);
+					nonce += U256::from(1);
+					<Nonce<T>>::put(nonce);
+					<ContractAddress<T>>::insert(&id, address.clone());
 					<Tokens<T>>::mutate(|list| {
 						if let Err(loc) = list.binary_search(&id) {
 							list.insert(loc, id.clone());
@@ -177,12 +192,12 @@ pub mod pallet {
 		#[pallet::weight(0)]
 		pub fn destroy_all(origin: OriginFor<T>, id: T::TokenId) -> DispatchResultWithPostInfo {
 			frame_system::ensure_root(origin)?;
-			let _ = <Contracts<T>>::get(&id).ok_or(Error::<T>::IdNotClaimed)?;
+			let _ = <ContractAddress<T>>::get(&id).ok_or(Error::<T>::IdNotClaimed)?;
 			// TODO: ethereum transaction to remove/kill contract
 			// TODO: get this via evm call, a balanceOf call before clearing the contract
 			let amount_destroyed = T::Balance::zero();
 			// clear storage and free id
-			<Contracts<T>>::remove(&id);
+			<ContractAddress<T>>::remove(&id);
 			<Tokens<T>>::mutate(|list| {
 				if let Ok(loc) = list.binary_search(&id) {
 					list.remove(loc);
@@ -212,12 +227,11 @@ pub mod pallet {
 
 	impl<T: Config> TokenMinter<T::TokenId, H160, T::Balance> for Pallet<T> {
 		fn exists(id: &T::TokenId) -> bool {
-			<Contracts<T>>::get(id).is_some()
+			<ContractAddress<T>>::get(id).is_some()
 		}
 		fn mint(id: T::TokenId, who: H160, amount: T::Balance) -> DispatchResultWithPostInfo {
-			let mut contract = <Contracts<T>>::get(&id).ok_or(Error::<T>::IdNotClaimed)?;
-			// TODO: how likely is overflow here?
-			contract.nonce += U256::from(1);
+			let address = <ContractAddress<T>>::get(&id).ok_or(Error::<T>::IdNotClaimed)?;
+			let mut nonce = <Nonce<T>>::get();
 			let mut input = hex_literal::hex!("40c10f19").to_vec();
 			// append address
 			input.extend_from_slice(H256::from(who.clone()).as_bytes());
@@ -230,7 +244,7 @@ pub mod pallet {
 				// source: H160
 				Self::sudo_caller(),
 				// target
-				contract.address,
+				address,
 				// input: Vec<u8>
 				input,
 				// value: U256
@@ -240,7 +254,7 @@ pub mod pallet {
 				// gas price: U256
 				Some(U256::from(1)),
 				// nonce: Option<U256>
-				Some(contract.nonce),
+				Some(nonce),
 				// config: EvmConfig
 				T::config(),
 			)? {
@@ -249,7 +263,8 @@ pub mod pallet {
 					..
 				} => {
 					// increment nonce
-					<Contracts<T>>::insert(&id, contract);
+					nonce += U256::from(1);
+					<Nonce<T>>::put(nonce);
 					Self::deposit_event(Event::Minted(
 						id,
 						T::AddressMapping::into_account_id(who),
@@ -267,8 +282,8 @@ pub mod pallet {
 			Ok(().into())
 		}
 		fn burn(id: T::TokenId, who: H160, amount: T::Balance) -> DispatchResultWithPostInfo {
-			let mut contract = <Contracts<T>>::get(&id).ok_or(Error::<T>::IdNotClaimed)?;
-			contract.nonce += U256::from(1);
+			let address = <ContractAddress<T>>::get(&id).ok_or(Error::<T>::IdNotClaimed)?;
+			let mut nonce = <Nonce<T>>::get();
 			let mut input = hex_literal::hex!("9dc29fac").to_vec();
 			// append address
 			input.extend_from_slice(H256::from(who.clone()).as_bytes());
@@ -280,7 +295,7 @@ pub mod pallet {
 				// source: H160
 				Self::sudo_caller(),
 				// target
-				contract.address,
+				address,
 				// input: Vec<u8>
 				input,
 				// value: U256
@@ -290,7 +305,7 @@ pub mod pallet {
 				// gas price: U256
 				Some(U256::from(1)),
 				// nonce: Option<H256>
-				Some(contract.nonce),
+				Some(nonce),
 				// config: EvmConfig
 				T::config(),
 			)? {
@@ -299,7 +314,8 @@ pub mod pallet {
 					..
 				} => {
 					// increment nonce
-					<Contracts<T>>::insert(&id, contract);
+					nonce += U256::from(1);
+					<Nonce<T>>::put(nonce);
 					Self::deposit_event(Event::Burned(
 						id,
 						T::AddressMapping::into_account_id(who),
@@ -317,15 +333,15 @@ pub mod pallet {
 		}
 		/// Gets total issuance for the given token if it exists in local evm instance
 		fn total_issuance(id: T::TokenId) -> Result<T::Balance, DispatchError> {
-			let mut contract = <Contracts<T>>::get(id).ok_or(Error::<T>::IdNotClaimed)?;
-			contract.nonce += U256::from(1);
+			let address = <ContractAddress<T>>::get(id).ok_or(Error::<T>::IdNotClaimed)?;
+			let mut nonce = <Nonce<T>>::get();
 			// first 4 bytes of hex output of Sha3("totalSupply()")
 			let input = hex_literal::hex!("18160ddd").to_vec();
 			match T::Runner::call(
 				// source: H160
 				Self::sudo_caller(),
 				// target
-				contract.address,
+				address,
 				// input: Vec<u8>
 				input,
 				// value: U256
@@ -335,7 +351,7 @@ pub mod pallet {
 				// gas price: U256
 				Some(U256::from(1)),
 				// nonce: Option<H256>
-				Some(contract.nonce),
+				Some(nonce),
 				// config: EvmConfig
 				T::config(),
 			) {
@@ -345,7 +361,8 @@ pub mod pallet {
 					..
 				}) => {
 					// increment nonce
-					<Contracts<T>>::insert(&id, contract);
+					nonce += U256::from(1);
+					<Nonce<T>>::put(nonce);
 					let value = U256::from(result.as_slice()).saturated_into::<u128>();
 					Ok(value.saturated_into::<T::Balance>())
 				}
@@ -361,8 +378,8 @@ pub mod pallet {
 		}
 		/// Gets token balance for the account
 		fn balance_of(id: T::TokenId, who: H160) -> Result<T::Balance, DispatchError> {
-			let mut contract = <Contracts<T>>::get(id).ok_or(Error::<T>::IdNotClaimed)?;
-			contract.nonce += U256::from(1);
+			let address = <ContractAddress<T>>::get(id).ok_or(Error::<T>::IdNotClaimed)?;
+			let mut nonce = <Nonce<T>>::get();
 			// first 4 bytes of hex output of Sha3("balanceOf(address)")
 			let mut input = hex_literal::hex!("70a08231").to_vec();
 			// append address
@@ -371,7 +388,7 @@ pub mod pallet {
 				// source: H160
 				Self::sudo_caller(),
 				// target
-				contract.address,
+				address,
 				// input: Vec<u8>
 				input,
 				// value: U256
@@ -381,7 +398,7 @@ pub mod pallet {
 				// gas price: U256
 				Some(U256::from(1)),
 				// nonce: Option<H256>
-				Some(contract.nonce),
+				Some(nonce),
 				// config: EvmConfig
 				T::config(),
 			) {
@@ -391,7 +408,8 @@ pub mod pallet {
 					..
 				}) => {
 					// increment nonce
-					<Contracts<T>>::insert(&id, contract);
+					nonce += U256::from(1);
+					<Nonce<T>>::put(nonce);
 					let value = U256::from(result.as_slice()).saturated_into::<u128>();
 					return Ok(value.saturated_into::<T::Balance>());
 				}

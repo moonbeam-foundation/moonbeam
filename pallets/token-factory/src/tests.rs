@@ -16,8 +16,8 @@
 
 //! Token Factory Unit Tests
 use crate::mock::{
-	deploy_address, genesis, last_event, root_address, Event as TestEvent, Origin, Test,
-	TokenFactory,
+	alice, bob, charlie, deploy_addresses, genesis, last_event, root_address, Event as TestEvent,
+	Origin, Test, TokenFactory,
 };
 use crate::{pallet::TokenMinter, Error, Event};
 use frame_support::{assert_noop, assert_ok};
@@ -25,17 +25,19 @@ use frame_support::{assert_noop, assert_ok};
 #[test]
 fn registration() {
 	genesis(vec![(root_address(), 5000000000000)]).execute_with(|| {
-		assert!(!TokenFactory::exists(&1u8));
-		assert_ok!(TokenFactory::register_token(Origin::root(), 1u8));
-		assert_eq!(
-			last_event(),
-			TestEvent::token_factory(Event::Registered(1u8, deploy_address()))
-		);
-		assert!(TokenFactory::exists(&1u8));
-		assert_eq!(
-			TokenFactory::contracts(1u8).unwrap().address,
-			deploy_address()
-		);
+		let tokens_to_register = 10u8;
+		let addresses = deploy_addresses();
+		for i in 0..tokens_to_register {
+			let address = addresses[i as usize];
+			assert!(!TokenFactory::exists(&i));
+			assert_ok!(TokenFactory::register_token(Origin::root(), i));
+			assert_eq!(
+				last_event(),
+				TestEvent::token_factory(Event::Registered(i, address))
+			);
+			assert!(TokenFactory::exists(&i));
+			assert_eq!(TokenFactory::contract_address(i).unwrap(), address);
+		}
 	});
 }
 
@@ -43,16 +45,29 @@ fn registration() {
 fn minting() {
 	genesis(vec![(root_address(), 5000000000000)]).execute_with(|| {
 		assert_ok!(TokenFactory::register_token(Origin::root(), 1u8));
-		assert_ok!(TokenFactory::mint(1u8, root_address(), 10000));
+		assert_noop!(
+			TokenFactory::mint(0u8, alice(), 10000),
+			Error::<Test>::IdNotClaimed
+		);
+		assert_ok!(TokenFactory::mint(1u8, alice(), 10000));
 		assert_eq!(
 			last_event(),
-			TestEvent::token_factory(Event::Minted(1, root_address(), 10000))
+			TestEvent::token_factory(Event::Minted(1, alice(), 10000))
 		);
-		assert_eq!(TokenFactory::total_issuance(1u8).unwrap(), 10000);
+		assert_ok!(TokenFactory::mint(1u8, bob(), 10000));
 		assert_eq!(
-			TokenFactory::balance_of(1u8, root_address()).unwrap(),
-			10000
+			last_event(),
+			TestEvent::token_factory(Event::Minted(1, bob(), 10000))
 		);
+		assert_ok!(TokenFactory::mint(1u8, charlie(), 10000));
+		assert_eq!(
+			last_event(),
+			TestEvent::token_factory(Event::Minted(1, charlie(), 10000))
+		);
+		assert_eq!(TokenFactory::total_issuance(1u8).unwrap(), 30000);
+		assert_eq!(TokenFactory::balance_of(1u8, alice()).unwrap(), 10000);
+		assert_eq!(TokenFactory::balance_of(1u8, bob()).unwrap(), 10000);
+		assert_eq!(TokenFactory::balance_of(1u8, charlie()).unwrap(), 10000);
 	});
 }
 
@@ -60,14 +75,32 @@ fn minting() {
 fn burning() {
 	genesis(vec![(root_address(), 5000000000000)]).execute_with(|| {
 		assert_ok!(TokenFactory::register_token(Origin::root(), 1u8));
-		assert_ok!(TokenFactory::mint(1u8, root_address(), 10000));
-		assert_ok!(TokenFactory::burn(1u8, root_address(), 5000));
+		assert_noop!(
+			TokenFactory::burn(0u8, alice(), 10000),
+			Error::<Test>::IdNotClaimed
+		);
+		assert_ok!(TokenFactory::mint(1u8, alice(), 10000));
+		assert_ok!(TokenFactory::mint(1u8, bob(), 10000));
+		assert_ok!(TokenFactory::mint(1u8, charlie(), 10000));
+		assert_ok!(TokenFactory::burn(1u8, alice(), 5000));
 		assert_eq!(
 			last_event(),
-			TestEvent::token_factory(Event::Burned(1, root_address(), 5000))
+			TestEvent::token_factory(Event::Burned(1, alice(), 5000))
 		);
-		assert_eq!(TokenFactory::total_issuance(1u8).unwrap(), 5000);
-		assert_eq!(TokenFactory::balance_of(1u8, root_address()).unwrap(), 5000);
+		assert_ok!(TokenFactory::burn(1u8, bob(), 5000));
+		assert_eq!(
+			last_event(),
+			TestEvent::token_factory(Event::Burned(1, bob(), 5000))
+		);
+		assert_ok!(TokenFactory::burn(1u8, charlie(), 10000));
+		assert_eq!(
+			last_event(),
+			TestEvent::token_factory(Event::Burned(1, charlie(), 10000))
+		);
+		assert_eq!(TokenFactory::total_issuance(1u8).unwrap(), 10000);
+		assert_eq!(TokenFactory::balance_of(1u8, alice()).unwrap(), 5000);
+		assert_eq!(TokenFactory::balance_of(1u8, bob()).unwrap(), 5000);
+		assert_eq!(TokenFactory::balance_of(1u8, charlie()).unwrap(), 0);
 	});
 }
 
@@ -79,7 +112,7 @@ fn get_total_supply() {
 		// implies that the error event was not emitted in total issuance call
 		assert_eq!(
 			last_event(),
-			TestEvent::token_factory(Event::Registered(1u8, deploy_address()))
+			TestEvent::token_factory(Event::Registered(1u8, deploy_addresses()[0]))
 		);
 		assert_eq!(TokenFactory::total_issuance(1u8).unwrap(), 0u64);
 		assert_noop!(
@@ -97,7 +130,7 @@ fn get_balance_of() {
 		// implies that the error event was not emitted in total issuance call
 		assert_eq!(
 			last_event(),
-			TestEvent::token_factory(Event::Registered(1u8, deploy_address()))
+			TestEvent::token_factory(Event::Registered(1u8, deploy_addresses()[0]))
 		);
 		assert_eq!(TokenFactory::balance_of(1u8, root_address()).unwrap(), 0u64);
 		assert_noop!(
