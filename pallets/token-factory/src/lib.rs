@@ -122,6 +122,7 @@ pub mod pallet {
 		pub nonce: U256,
 	}
 
+	#[cfg(feature = "std")]
 	impl Default for GenesisConfig {
 		fn default() -> Self {
 			Self {

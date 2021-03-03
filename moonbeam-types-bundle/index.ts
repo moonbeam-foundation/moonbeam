@@ -211,6 +211,20 @@ export const moonbeamDefinitions = {
           nominators: "Vec<Bond>",
           total: "Balance",
         },
+        TokenId: {
+          _enum: ["DOT", "KSM", "ACA", "AUSD"],
+        },
+        EvmCall: {
+          _enum: ["Register", "Mint", "Burn", "TotalIssuance", "BalanceOf"],
+        },
+        SubstrateAccountId: "[u8; 32]",
+        ChainId: {
+          _enum: ["RelayChain", { Para: "u32" }],
+        },
+        XCurrencyId: {
+          chain_id: "ChainId",
+          currency_id: "Vec<u8>",
+        },
       },
     },
   ],
