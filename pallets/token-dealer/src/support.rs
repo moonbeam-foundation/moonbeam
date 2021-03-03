@@ -25,16 +25,13 @@ use sp_runtime::{
 	RuntimeDebug,
 };
 use sp_std::{
-	collections::btree_set::BTreeSet,
 	convert::{TryFrom, TryInto},
 	marker::PhantomData,
 	prelude::*,
 	result,
 };
 use xcm::v0::{Error, Junction, MultiAsset, MultiLocation, Result as XcmResult};
-use xcm_executor::traits::{
-	FilterAssetLocation, LocationConversion, MatchesFungible, NativeAsset, TransactAsset,
-};
+use xcm_executor::traits::{LocationConversion, MatchesFungible, TransactAsset};
 
 #[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, RuntimeDebug, PartialOrd, Ord)]
 #[non_exhaustive]
@@ -61,6 +58,7 @@ impl TryFrom<u8> for Ticker {
 }
 
 #[derive(sp_runtime::RuntimeDebug)]
+/// The supported currency types
 pub enum CurrencyId {
 	/// The local instance of `balances` pallet, default GLMR
 	Native,
@@ -86,6 +84,7 @@ pub trait CurrencyIdConversion<CurrencyId> {
 	fn from_asset(asset: &MultiAsset) -> Option<CurrencyId>;
 }
 
+/// The handler for processing cross-chain messages
 pub struct MultiCurrencyAdapter<
 	NativeCurrency,
 	TokenFactory,
@@ -186,6 +185,7 @@ impl<
 	}
 }
 
+/// Matcher associated type for MultiCurrencyAdapter to convert assets into local types
 pub struct IsConcreteWithGeneralKey<CurrencyId, FromRelayChainBalance>(
 	PhantomData<(CurrencyId, FromRelayChainBalance)>,
 );
@@ -213,26 +213,7 @@ where
 	}
 }
 
-pub struct NativePalletAssetOr<Pairs>(PhantomData<Pairs>);
-impl<Pairs: Get<BTreeSet<(Vec<u8>, MultiLocation)>>> FilterAssetLocation
-	for NativePalletAssetOr<Pairs>
-{
-	fn filter_asset_location(asset: &MultiAsset, origin: &MultiLocation) -> bool {
-		if NativeAsset::filter_asset_location(asset, origin) {
-			return true;
-		}
-
-		// native token
-		if let MultiAsset::ConcreteFungible { ref id, .. } = asset {
-			if let Some(Junction::GeneralKey(key)) = id.last() {
-				return Pairs::get().contains(&(key.clone(), origin.clone()));
-			}
-		}
-
-		false
-	}
-}
-
+/// Converter from MultiAsset to local Currency type
 pub struct CurrencyIdConverter<CurrencyId, RelayChainCurrencyId>(
 	PhantomData<CurrencyId>,
 	PhantomData<RelayChainCurrencyId>,
