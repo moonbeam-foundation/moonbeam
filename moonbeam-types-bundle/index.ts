@@ -225,6 +225,12 @@ export const moonbeamDefinitions = {
           chain_id: "ChainId",
           currency_id: "Vec<u8>",
         },
+        SystemInherentData: {
+          validation_data: "PersistedValidationData",
+          relay_chain_state: "StorageProof",
+          downward_messages: "Vec<InboundDownwardMessage>",
+          horizontal_messages: "BTreeMap<ParaId, Vec<InboundHrmpMessage>>",
+        },
       },
     },
   ],

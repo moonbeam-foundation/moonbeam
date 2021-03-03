@@ -176,7 +176,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					import_queue,
 					..
-				} = crate::service::new_partial(&config, None)?;
+				} = crate::service::new_partial(&config, None, false)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -187,7 +187,7 @@ pub fn run() -> Result<()> {
 					client,
 					task_manager,
 					..
-				} = crate::service::new_partial(&config, None)?;
+				} = crate::service::new_partial(&config, None, false)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
 		}
@@ -198,7 +198,7 @@ pub fn run() -> Result<()> {
 					client,
 					task_manager,
 					..
-				} = crate::service::new_partial(&config, None)?;
+				} = crate::service::new_partial(&config, None, false)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
 		}
@@ -210,7 +210,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					import_queue,
 					..
-				} = crate::service::new_partial(&config, None)?;
+				} = crate::service::new_partial(&config, None, false)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -226,7 +226,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					backend,
 					..
-				} = crate::service::new_partial(&config, None)?;
+				} = crate::service::new_partial(&config, None, false)?;
 				Ok((cmd.run(client, backend), task_manager))
 			})
 		}
@@ -285,10 +285,24 @@ pub fn run() -> Result<()> {
 
 			runner
 				.run_node_until_exit(|config| async move {
-					// If this is a --dev node, start up manual or instant seal.
+					let key = sp_core::Pair::generate().0;
+
+					let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
+					let relay_chain_id = extension.map(|e| e.relay_chain.clone());
+					let para_id = extension.map(|e| e.para_id);
+
+					// If dev service was requested, start up manual or instant seal.
 					// Otherwise continue with the normal parachain node.
-					if cli.run.base.shared_params.dev {
+					// Dev service can be requested in two ways.
+					// 1. by providing the --dev-service flag to the CLI
+					// 2. by specifying "dev-service" in the chain spec's "relay-chain" field.
+					// NOTE: the --dev flag triggers the dev service by way of number 2
+					if cli.run.dev_service || relay_chain_id == Some("dev-service".to_string()) {
+						// --dev implies --collator
+						let collator = collator || cli.run.shared_params.dev;
+
 						// If no author id was supplied, use the one that is staked at genesis
+						// in the default development spec.
 						let author_id = author_id.or_else(|| {
 							Some(
 								AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")
@@ -296,14 +310,13 @@ pub fn run() -> Result<()> {
 							)
 						});
 
-						return crate::dev_service::new_full(config, cli.run.sealing, author_id);
+						return crate::service::new_dev(
+							config,
+							cli.run.sealing,
+							author_id,
+							collator,
+						);
 					}
-
-					let key = sp_core::Pair::generate().0;
-
-					let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
-					let relay_chain_id = extension.map(|e| e.relay_chain.clone());
-					let para_id = extension.map(|e| e.para_id);
 
 					let polkadot_cli = RelayChainCli::new(
 						config.base_path.as_ref().map(|x| x.path().join("polkadot")),

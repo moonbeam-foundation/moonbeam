@@ -77,7 +77,7 @@ pub fn development_chain_spec() -> ChainSpec {
 		None,
 		Some(serde_json::from_str("{\"tokenDecimals\": 18}").expect("Provided valid json map")),
 		Extensions {
-			relay_chain: Default::default(),
+			relay_chain: "dev-service".into(),
 			para_id: Default::default(),
 		},
 	)
