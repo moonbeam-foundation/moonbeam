@@ -101,9 +101,6 @@ pub type Hash = sp_core::H256;
 /// Digest item type.
 pub type DigestItem = generic::DigestItem<Hash>;
 
-/// Minimum time between blocks. Slot duration is double this.
-pub const MINIMUM_PERIOD: u64 = 3000;
-
 /// Maximum weight per block
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
 
@@ -198,7 +195,7 @@ impl frame_system::Config for Runtime {
 }
 
 parameter_types! {
-	pub const MinimumPeriod: u64 = MINIMUM_PERIOD;
+	pub const MinimumPeriod: u64 = 1;
 }
 
 impl pallet_timestamp::Config for Runtime {
