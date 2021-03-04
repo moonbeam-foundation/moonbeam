@@ -14,7 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Cross-chain token transfers
+//! This pallet exposes an interface for cross-chain token transfers from our parachain to 
+//! destination chains with 32 byte public keys.
+//! There are two dispatchables:
+//! 1. `transfer_to_relay_chain` transfers relay chain tokens to an account on the relay chain
+//! from our parachain
+//! 2. `transfer_to_parachain` transfers tokens to an account on a parachain
+//! Both transfers are sent from accounts on our chain (H160 account id).
+//!
+//! For transfers from other chains to our chain, their runtime must send us cross chain messages.
+//! 1. For transfers from the relay chain, they queue DownwardMessages. These are processed by the
+//! `DownwardMessageHandlers` associated type for our `cumulus_parachain_system` runtime impl.
+//! 2. For transfers from other parachains, they send us HrmpMessages. These are processed by the
+//! `HrmpMessageHandlers` associated type for our `cumulus_parachain_system` runtime impl.
+//! Both `DownwardMessageHandlers` and `HrmpMessageHandlers` are set to `XcmHandler` in our runtime,
+//! so they use the `MultiCurrency` impl of `TransactAsset` in `./support.rs` to process the 
+//! given message. The `Executor` associated type for this pallet uses the same logic to process
+//! the cross-chain messages from our chain.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 

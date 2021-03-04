@@ -1,42 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/release-v4.0/contracts/access/AccessControlEnumerable.sol";
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/release-v4.0/contracts/utils/Context.sol";
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/release-v4.0/contracts/token/ERC20/ERC20.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/release-v4.0/contracts/access/Ownable.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/release-v4.0/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 
 /**
  * @dev {ERC20} token, including:
  *
- *  - a minter role that allows for token minting (creation)
- *  - a burner role that allows for token burning (deletion)
- *
- * This contract uses {AccessControl} to lock permissioned functions using the
- * different roles - head to its documentation for details.
- *
- * The account that deploys the contract will be granted the minter and burner
- * roles, as well as the default admin role, which will let it grant both minter
- * and burner roles to other accounts.
+ * The account that deploys the contract can mint and burn.
  */
-contract ERC20PresetMinterBurner is
-    Context,
-    AccessControlEnumerable,
-    ERC20Burnable
-{
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
-
+contract ERC20MinterBurner is Ownable, ERC20Burnable {
     /**
-     * @dev Grants `DEFAULT_ADMIN_ROLE`, `MINTER_ROLE` and `BURNER_ROLE` to the
-     * account that deploys the contract.
+     * @dev
      *
      * See {ERC20-constructor}.
      */
-    constructor(string memory name, string memory symbol) ERC20(name, symbol) {
-        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        _setupRole(MINTER_ROLE, _msgSender());
-        _setupRole(BURNER_ROLE, _msgSender());
-    }
+    constructor(string memory name, string memory symbol) ERC20(name, symbol) {}
 
     /**
      * @dev Creates `amount` new tokens for `to`.
@@ -45,13 +23,9 @@ contract ERC20PresetMinterBurner is
      *
      * Requirements:
      *
-     * - the caller must have the `MINTER_ROLE`.
+     * - the caller must be the account that deployed the contract
      */
-    function mint(address to, uint256 amount) public virtual {
-        require(
-            hasRole(MINTER_ROLE, _msgSender()),
-            "ERC20PresetMinterBurner: must have minter role to mint"
-        );
+    function mint(address to, uint256 amount) public virtual onlyOwner {
         _mint(to, amount);
     }
 
@@ -62,13 +36,9 @@ contract ERC20PresetMinterBurner is
      *
      * Requirements:
      *
-     * - the caller must have the `BURNER_ROLE`.
+     * - the caller must be the account that deployed the contract
      */
-    function burn(address from, uint256 amount) public virtual {
-        require(
-            hasRole(BURNER_ROLE, _msgSender()),
-            "ERC20PresetMinterBurner: must have burner role to burn"
-        );
+    function burn(address from, uint256 amount) public virtual onlyOwner {
         _burn(from, amount);
     }
 }
