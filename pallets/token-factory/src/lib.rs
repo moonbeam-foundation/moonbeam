@@ -31,20 +31,70 @@ mod tests;
 pub mod pallet {
 	use ethereum_types::BigEndianHash;
 	use fp_evm::ExecutionInfo;
-	use frame_support::pallet_prelude::*;
+	use frame_support::{pallet_prelude::*, traits::OriginTrait};
 	use frame_system::pallet_prelude::*;
 	use pallet_evm::{AddressMapping, ExitReason, Runner};
 	use parity_scale_codec::{Decode, Encode, FullCodec};
 	use rustc_hex::FromHex;
+	#[cfg(feature = "std")]
+	use serde::{Deserialize, Serialize};
 	use sp_core::{H160, H256, U256};
 	use sp_runtime::{
-		traits::{AtLeast32BitUnsigned, Convert, Zero},
-		DispatchError, SaturatedConversion,
+		traits::{AtLeast32BitUnsigned, Convert, MaybeSerializeDeserialize, Zero},
+		DispatchError, RuntimeDebug, SaturatedConversion,
 	};
-	use sp_std::{fmt::Debug, vec::Vec};
+	use sp_std::{convert::TryFrom, fmt::Debug, vec::Vec};
 
 	/// ERC20PresetMinterBurner contract bytecode
 	const CONTRACT_BYTECODE: &str = include_str!("../contract/bytecode.txt");
+
+	#[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, RuntimeDebug, PartialOrd, Ord)]
+	#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+	#[non_exhaustive]
+	/// The name and unique ID for each token registered in `token-factory`
+	pub enum Ticker {
+		DOT = 0,
+		KSM = 1,
+		ACA = 2,
+		AUSD = 3,
+	}
+
+	impl TryFrom<u8> for Ticker {
+		type Error = ();
+
+		fn try_from(v: u8) -> Result<Self, Self::Error> {
+			match v {
+				0 => Ok(Ticker::DOT),
+				1 => Ok(Ticker::KSM),
+				2 => Ok(Ticker::ACA),
+				3 => Ok(Ticker::AUSD),
+				_ => Err(()),
+			}
+		}
+	}
+
+	#[derive(sp_runtime::RuntimeDebug)]
+	/// The supported currency types
+	pub enum CurrencyId {
+		/// The local instance of `balances` pallet, default GLMR
+		Native,
+		/// Token registered in `token-factory` pallet
+		Token(Ticker),
+	}
+
+	impl TryFrom<Vec<u8>> for CurrencyId {
+		type Error = ();
+		fn try_from(v: Vec<u8>) -> Result<CurrencyId, ()> {
+			match v.as_slice() {
+				b"GLMR" => Ok(CurrencyId::Native),
+				b"DOT" => Ok(CurrencyId::Token(Ticker::DOT)),
+				b"KSM" => Ok(CurrencyId::Token(Ticker::KSM)),
+				b"ACA" => Ok(CurrencyId::Token(Ticker::ACA)),
+				b"AUSD" => Ok(CurrencyId::Token(Ticker::AUSD)),
+				_ => Err(()),
+			}
+		}
+	}
 
 	/// The ERC token factory pallet
 	#[pallet::pallet]
@@ -64,7 +114,7 @@ pub mod pallet {
 			+ MaybeSerializeDeserialize
 			+ Into<u128>;
 		/// Token identifier
-		type TokenId: Clone + Copy + FullCodec + Debug + PartialEq + Ord;
+		type TokenId: Clone + Copy + FullCodec + Debug + PartialEq + Ord + MaybeSerializeDeserialize;
 		/// Convert from AccountId to H160, is identity map for Moonbeam
 		type AccountToH160: Convert<Self::AccountId, H160>;
 	}
@@ -118,23 +168,31 @@ pub mod pallet {
 		StorageMap<_, Twox64Concat, T::TokenId, H160, OptionQuery>;
 
 	#[pallet::genesis_config]
-	pub struct GenesisConfig {
+	pub struct GenesisConfig<T: Config> {
 		pub nonce: U256,
+		pub tokens: Vec<T::TokenId>,
 	}
 
 	#[cfg(feature = "std")]
-	impl Default for GenesisConfig {
+	impl<T: Config> Default for GenesisConfig<T> {
 		fn default() -> Self {
 			Self {
 				nonce: U256::zero(),
+				tokens: vec![],
 			}
 		}
 	}
 
 	#[pallet::genesis_build]
-	impl<T: Config> GenesisBuild<T> for GenesisConfig {
+	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
 			<Nonce<T>>::put(self.nonce);
+			let mut tokens = self.tokens.clone();
+			tokens.sort();
+			tokens.dedup();
+			for token in tokens {
+				let _ = <Pallet<T>>::register_token(T::Origin::root(), token);
+			}
 		}
 	}
 

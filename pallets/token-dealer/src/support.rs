@@ -19,66 +19,16 @@ use frame_support::{
 	debug,
 	traits::{Currency, ExistenceRequirement, Get, WithdrawReasons},
 };
-use parity_scale_codec::{Decode, Encode};
-use sp_runtime::{
-	traits::{CheckedConversion, Convert},
-	RuntimeDebug,
-};
+use sp_runtime::traits::{CheckedConversion, Convert};
 use sp_std::{
 	convert::{TryFrom, TryInto},
 	marker::PhantomData,
 	prelude::*,
 	result,
 };
+use token_factory::{CurrencyId, Ticker};
 use xcm::v0::{Error, Junction, MultiAsset, MultiLocation, Result as XcmResult};
 use xcm_executor::traits::{LocationConversion, MatchesFungible, TransactAsset};
-
-#[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, RuntimeDebug, PartialOrd, Ord)]
-#[non_exhaustive]
-/// The name and unique ID for each token registered in `token-factory`
-pub enum Ticker {
-	DOT = 0,
-	KSM = 1,
-	ACA = 2,
-	AUSD = 3,
-}
-
-impl TryFrom<u8> for Ticker {
-	type Error = ();
-
-	fn try_from(v: u8) -> Result<Self, Self::Error> {
-		match v {
-			0 => Ok(Ticker::DOT),
-			1 => Ok(Ticker::KSM),
-			2 => Ok(Ticker::ACA),
-			3 => Ok(Ticker::AUSD),
-			_ => Err(()),
-		}
-	}
-}
-
-#[derive(sp_runtime::RuntimeDebug)]
-/// The supported currency types
-pub enum CurrencyId {
-	/// The local instance of `balances` pallet, default GLMR
-	Native,
-	/// Token registered in `token-factory` pallet
-	Token(Ticker),
-}
-
-impl TryFrom<Vec<u8>> for CurrencyId {
-	type Error = ();
-	fn try_from(v: Vec<u8>) -> Result<CurrencyId, ()> {
-		match v.as_slice() {
-			b"GLMR" => Ok(CurrencyId::Native),
-			b"DOT" => Ok(CurrencyId::Token(Ticker::DOT)),
-			b"KSM" => Ok(CurrencyId::Token(Ticker::KSM)),
-			b"ACA" => Ok(CurrencyId::Token(Ticker::ACA)),
-			b"AUSD" => Ok(CurrencyId::Token(Ticker::AUSD)),
-			_ => Err(()),
-		}
-	}
-}
 
 pub trait CurrencyIdConversion<CurrencyId> {
 	fn from_asset(asset: &MultiAsset) -> Option<CurrencyId>;

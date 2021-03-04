@@ -61,6 +61,7 @@ use pallet_evm::{
 use pallet_transaction_payment::CurrencyAdapter;
 use polkadot_parachain::primitives::Sibling;
 use token_dealer::support::*;
+use token_factory::{CurrencyId, Ticker};
 use xcm::v0::{Junction, MultiLocation, NetworkId};
 use xcm_builder::{
 	LocationInverter, ParentIsDefault, RelayChainAsNative, SiblingParachainAsNative,
@@ -445,7 +446,7 @@ impl Convert<<<Signature as Verify>::Signer as IdentifyAccount>::AccountId, H160
 impl token_factory::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
-	type TokenId = token_dealer::support::Ticker;
+	type TokenId = token_factory::Ticker;
 	type AccountToH160 = AccountToH160;
 }
 
