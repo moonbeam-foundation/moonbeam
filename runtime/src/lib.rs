@@ -446,7 +446,7 @@ impl Convert<<<Signature as Verify>::Signer as IdentifyAccount>::AccountId, H160
 impl token_factory::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
-	type TokenId = token_factory::Ticker;
+	type TokenId = Ticker;
 	type AccountToH160 = AccountToH160;
 }
 
