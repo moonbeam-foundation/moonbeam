@@ -20,7 +20,7 @@ use crate::mock::{
 	Origin, Test, TokenFactory,
 };
 use crate::{pallet::TokenMinter, Error, Event};
-use frame_support::{assert_noop, assert_ok};
+use frame_support::{assert_err, assert_noop, assert_ok};
 
 #[test]
 fn registration() {
@@ -79,8 +79,21 @@ fn burning() {
 			TokenFactory::burn(0u8, alice(), 10000),
 			Error::<Test>::IdNotClaimed
 		);
+		// not a noop because we still iterate the nonce when we get balance_of before burning
+		assert_err!(
+			TokenFactory::burn(1u8, alice(), 5000),
+			Error::<Test>::NotEnoughBalanceToBurn
+		);
 		assert_ok!(TokenFactory::mint(1u8, alice(), 10000));
+		assert_err!(
+			TokenFactory::burn(1u8, bob(), 5000),
+			Error::<Test>::NotEnoughBalanceToBurn
+		);
 		assert_ok!(TokenFactory::mint(1u8, bob(), 10000));
+		assert_err!(
+			TokenFactory::burn(1u8, charlie(), 5000),
+			Error::<Test>::NotEnoughBalanceToBurn
+		);
 		assert_ok!(TokenFactory::mint(1u8, charlie(), 10000));
 		assert_ok!(TokenFactory::burn(1u8, alice(), 5000));
 		assert_eq!(

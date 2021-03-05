@@ -125,6 +125,8 @@ pub mod pallet {
 		IdClaimed,
 		/// TokenID does not exist so cannot interact with it
 		IdNotClaimed,
+		/// Not enough balance to burn
+		NotEnoughBalanceToBurn,
 	}
 
 	#[derive(PartialEq, Clone, Copy, Encode, Decode, sp_runtime::RuntimeDebug)]
@@ -227,10 +229,9 @@ pub mod pallet {
 					value: address,
 					..
 				} => {
-					// update runtime storage
-					nonce += U256::from(1);
-					<Nonce<T>>::put(nonce);
+					// insert contract
 					<ContractAddress<T>>::insert(&id, address.clone());
+					// add to tokens
 					<Tokens<T>>::mutate(|list| {
 						if let Err(loc) = list.binary_search(&id) {
 							list.insert(loc, id.clone());
@@ -245,6 +246,9 @@ pub mod pallet {
 					Self::deposit_event(Event::EvmCallFailed(EvmCall::Register, reason));
 				}
 			}
+			// increment nonce
+			nonce += U256::from(1);
+			<Nonce<T>>::put(nonce);
 			Ok(().into())
 		}
 
@@ -321,9 +325,6 @@ pub mod pallet {
 					exit_reason: ExitReason::Succeed(_),
 					..
 				} => {
-					// increment nonce
-					nonce += U256::from(1);
-					<Nonce<T>>::put(nonce);
 					Self::deposit_event(Event::Minted(
 						id,
 						T::AddressMapping::into_account_id(who),
@@ -334,14 +335,19 @@ pub mod pallet {
 					exit_reason: reason,
 					..
 				} => {
-					// TODO: no need to increment nonce for this path right?
 					Self::deposit_event(Event::EvmCallFailed(EvmCall::Mint, reason));
 				}
 			}
+			// increment nonce
+			nonce += U256::from(1);
+			<Nonce<T>>::put(nonce);
 			Ok(().into())
 		}
 		fn burn(id: T::TokenId, who: H160, amount: T::Balance) -> DispatchResultWithPostInfo {
 			let address = <ContractAddress<T>>::get(&id).ok_or(Error::<T>::IdNotClaimed)?;
+			// check that `who` has at least `amount` of `id` token
+			let balance = Self::balance_of(id, who)?;
+			ensure!(balance >= amount, Error::<T>::NotEnoughBalanceToBurn);
 			let mut nonce = <Nonce<T>>::get();
 			let mut input = hex_literal::hex!("9dc29fac").to_vec();
 			// append address
@@ -372,9 +378,6 @@ pub mod pallet {
 					exit_reason: ExitReason::Succeed(_),
 					..
 				} => {
-					// increment nonce
-					nonce += U256::from(1);
-					<Nonce<T>>::put(nonce);
 					Self::deposit_event(Event::Burned(
 						id,
 						T::AddressMapping::into_account_id(who),
@@ -388,6 +391,9 @@ pub mod pallet {
 					Self::deposit_event(Event::EvmCallFailed(EvmCall::Burn, reason));
 				}
 			}
+			// increment nonce
+			nonce += U256::from(1);
+			<Nonce<T>>::put(nonce);
 			Ok(().into())
 		}
 		/// Gets total issuance for the given token if it exists in local evm instance
@@ -429,6 +435,9 @@ pub mod pallet {
 					exit_reason: reason,
 					..
 				}) => {
+					// increment nonce
+					nonce += U256::from(1);
+					<Nonce<T>>::put(nonce);
 					Self::deposit_event(Event::EvmCallFailed(EvmCall::TotalIssuance, reason));
 					Ok(T::Balance::zero())
 				}
@@ -476,6 +485,9 @@ pub mod pallet {
 					exit_reason: reason,
 					..
 				}) => {
+					// increment nonce
+					nonce += U256::from(1);
+					<Nonce<T>>::put(nonce);
 					Self::deposit_event(Event::EvmCallFailed(EvmCall::BalanceOf, reason));
 					Ok(T::Balance::zero())
 				}
