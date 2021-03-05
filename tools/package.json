@@ -2,8 +2,8 @@
   "name": "frontier-contract-web3",
   "version": "0.0.0",
   "dependencies": {
-    "@polkadot/api": "^2.9.1",
-    "@polkadot/util-crypto": "^4.2.1",
+    "@polkadot/api": "^3.11.1",
+    "@polkadot/util-crypto": "^5.9.2",
     "bip39": "^3.0.3",
     "eth-block-tracker": "^4.4.3",
     "ethereumjs-wallet": "^1.0.0",
