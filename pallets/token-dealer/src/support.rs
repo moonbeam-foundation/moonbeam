@@ -60,7 +60,7 @@ impl<
 		TokenFactory: token_factory::TokenMinter<Ticker, AccountId, NativeCurrency::Balance>,
 		Matcher: MatchesFungible<NativeCurrency::Balance>,
 		AccountIdConverter: LocationConversion<AccountId>,
-		AccountId: sp_std::fmt::Debug,
+		AccountId: sp_std::fmt::Debug + Clone,
 		CurrencyIdConverter: CurrencyIdConversion<CurrencyId>,
 	> TransactAsset
 	for MultiCurrencyAdapter<
@@ -89,7 +89,17 @@ impl<
 		// match on currency variant
 		if let CurrencyId::Token(token_id) = currency {
 			// mint erc20 token to `who`
-			TokenFactory::mint(token_id, who, amount).map_err(|_| ())?;
+			TokenFactory::mint(token_id, who.clone(), amount).map_err(|error| {
+				debug::info!(
+					"Token factory `mint` failed
+					\n token_id: {:?}\n who: {:?}\n amount: {:?}\n error: {:?}",
+					token_id,
+					who,
+					amount,
+					error
+				);
+				()
+			})?;
 		} else {
 			// native currency transfer via `frame/pallet_balances` is only other variant
 			NativeCurrency::deposit_creating(&who, amount);
@@ -118,7 +128,17 @@ impl<
 		// match on currency variant
 		if let CurrencyId::Token(token_id) = currency {
 			// burn erc20 token from `who`
-			TokenFactory::burn(token_id, who, amount).map_err(|_| ())?;
+			TokenFactory::burn(token_id, who.clone(), amount).map_err(|error| {
+				debug::info!(
+					"Token factory `burn` failed
+					\n token_id: {:?}\n who: {:?}\n amount: {:?}\n error: {:?}",
+					token_id,
+					who,
+					amount,
+					error
+				);
+				()
+			})?;
 		} else {
 			// native currency transfer via `frame/pallet_balances` is only other variant
 			NativeCurrency::withdraw(
@@ -127,7 +147,15 @@ impl<
 				WithdrawReasons::TRANSFER,
 				ExistenceRequirement::AllowDeath,
 			)
-			.map_err(|_| ())?;
+			.map_err(|error| {
+				debug::info!(
+					"Native currency `withdraw` failed\n who: {:?}\n amount: {:?}\n error: {:?}",
+					who,
+					amount,
+					error
+				);
+				()
+			})?;
 		}
 		debug::info!(">>> successful withdraw.");
 		debug::info!("------------------------------------------------");
