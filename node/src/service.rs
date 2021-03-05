@@ -97,10 +97,9 @@ pub fn new_partial(
 
 	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone(), true);
 
-	// We use the cumulus import queue here regardless of whether we're running a real parachain or
-	// the dev service. Typically manual seal would use the manual seal import queue. In reality,
-	// both are pretty minimal. The cumulus one checks the inherents, so we use it.
-	// https://github.com/paritytech/substrate/issues/8164
+	// We build the cumulus import queue here regardless of whether we're running a parachain or
+	// the dev service. Either one will be fine when only partial components are necessary.
+	// When running the dev service, an alternate import queue will be built below.
 	let import_queue = cumulus_consensus::import_queue::import_queue(
 		client.clone(),
 		frontier_block_import.clone(),
@@ -376,7 +375,7 @@ pub fn new_dev(
 		client,
 		backend,
 		mut task_manager,
-		import_queue,
+		import_queue: _,
 		keystore_container,
 		select_chain: _,
 		transaction_pool,
@@ -384,13 +383,23 @@ pub fn new_dev(
 		other: (block_import, pending_transactions, filter_pool),
 	} = new_partial(&config, author_id, true)?;
 
+	// When running the dev service we build a manual seal import queue so that we can properly
+	// follow the longest chain rule. However, there is another bug in this import queue where
+	// it doesn't properly check inherents:
+	// https://github.com/paritytech/substrate/issues/8164
+	let dev_import_queue = sc_consensus_manual_seal::import_queue(
+		Box::new(block_import.clone()),
+		&task_manager.spawn_handle(),
+		config.prometheus_registry(),
+	);
+
 	let (network, network_status_sinks, system_rpc_tx, network_starter) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &config,
 			client: client.clone(),
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
-			import_queue,
+			import_queue: dev_import_queue,
 			on_demand: None,
 			block_announce_validator_builder: None,
 		})?;
