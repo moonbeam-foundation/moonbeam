@@ -347,14 +347,18 @@ pub mod pallet {
 			let address = <ContractAddress<T>>::get(&id).ok_or(Error::<T>::IdNotClaimed)?;
 			// check that `who` has at least `amount` of `id` token
 			let balance = Self::balance_of(id, who)?;
-			ensure!(balance >= amount, Error::<T>::NotEnoughBalanceToBurn);
+			let amount_to_burn = if amount > balance { balance } else { amount };
+			ensure!(
+				amount_to_burn > T::Balance::zero(),
+				Error::<T>::NotEnoughBalanceToBurn
+			);
 			let mut nonce = <Nonce<T>>::get();
 			let mut input = hex_literal::hex!("9dc29fac").to_vec();
 			// append address
 			input.extend_from_slice(H256::from(who.clone()).as_bytes());
 			// append amount
 			input.extend_from_slice(
-				H256::from_uint(&U256::from(amount.saturated_into::<u128>())).as_bytes(),
+				H256::from_uint(&U256::from(amount_to_burn.saturated_into::<u128>())).as_bytes(),
 			);
 			match T::Runner::call(
 				// source: H160
@@ -381,7 +385,7 @@ pub mod pallet {
 					Self::deposit_event(Event::Burned(
 						id,
 						T::AddressMapping::into_account_id(who),
-						amount,
+						amount_to_burn,
 					));
 				}
 				ExecutionInfo {
