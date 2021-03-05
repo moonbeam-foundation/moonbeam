@@ -42,6 +42,24 @@ fn registration() {
 }
 
 #[test]
+fn de_registration() {
+	genesis(vec![(root_address(), 5000000000000)]).execute_with(|| {
+		assert_noop!(
+			TokenFactory::destroy_all(Origin::root(), 1u8),
+			Error::<Test>::IdNotClaimed
+		);
+		assert_ok!(TokenFactory::register_token(Origin::root(), 1u8));
+		assert_ok!(TokenFactory::destroy_all(Origin::root(), 1u8));
+		assert_eq!(
+			last_event(),
+			TestEvent::token_factory(Event::DestroyedAll(1u8, 0u64))
+		);
+		assert!(!TokenFactory::exists(&1u8));
+		assert!(TokenFactory::contract_address(1u8).is_none());
+	});
+}
+
+#[test]
 fn minting() {
 	genesis(vec![(root_address(), 5000000000000)]).execute_with(|| {
 		assert_ok!(TokenFactory::register_token(Origin::root(), 1u8));

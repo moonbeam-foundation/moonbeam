@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! This pallet exposes an interface for cross-chain token transfers from our parachain to
-//! destination chains with 32 byte public keys.
+//! destination chains with 32 byte account IDs.
 //! There are two dispatchables:
 //! 1. `transfer_to_relay_chain` transfers relay chain tokens to an account on the relay chain
 //! from our parachain

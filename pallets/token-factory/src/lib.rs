@@ -255,11 +255,9 @@ pub mod pallet {
 		#[pallet::weight(0)]
 		pub fn destroy_all(origin: OriginFor<T>, id: T::TokenId) -> DispatchResultWithPostInfo {
 			frame_system::ensure_root(origin)?;
-			let _ = <ContractAddress<T>>::get(&id).ok_or(Error::<T>::IdNotClaimed)?;
-			// TODO: ethereum transaction to remove/kill contract
-			// TODO: get this via evm call, a balanceOf call before clearing the contract
-			let amount_destroyed = T::Balance::zero();
-			// clear storage and free id
+			let amount_destroyed = Self::total_issuance(id)?;
+			// clear storage and free id, tokens associated with the contract are no longer
+			// recognized by the cross-chain transfer system
 			<ContractAddress<T>>::remove(&id);
 			<Tokens<T>>::mutate(|list| {
 				if let Ok(loc) = list.binary_search(&id) {
