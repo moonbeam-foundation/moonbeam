@@ -1,6 +1,7 @@
 import { Client, MessageEmbed, Message } from "discord.js";
 import Web3 from "web3";
 import https from "https";
+import { SignedTransaction } from "web3-core/types/index";
 
 const TOKEN_DECIMAL = 18n;
 const EMBED_COLOR_CORRECT = 0x642f95;
@@ -47,6 +48,7 @@ const lastBalanceCheck = {
   timestamp: 0,
   balance: BigInt(0),
 };
+const pendingQueue: string[] = [];
 
 /**
  * Send notification to Slack using a webhook URL and the
@@ -205,6 +207,23 @@ const canReceiveTokensAgain = (authorId: string, interval: number) => {
 };
 
 /**
+ * Waits for the request to be on top of the pending queue
+ * @param authorId The user ID requesting the funds on Discord
+ * @param address Address that the user requested funds to
+ * @returns
+ */
+const waitForQueue = async (authorId: string, address: string) => {
+  if (pendingQueue.length === 0) return;
+
+  while (true) {
+    if (pendingQueue[0] == `${authorId}:0x${address}`) break;
+
+    // wait for next block
+    await new Promise((r) => setTimeout(r, 6200));
+  }
+};
+
+/**
  * Action for the bot for the pattern "!faucet send <h160_addr>", that
  * sends funds to the indicated account.
  * @param {Message} msg Received discord message object
@@ -250,6 +269,13 @@ const botActionFaucetSend = async (
   receivers[authorId] = Date.now();
 
   try {
+    // push to TODO queue
+    pendingQueue.push(`${authorId}:0x${address}`);
+
+    // wait for our item to be first in the list
+    await waitForQueue(authorId, address);
+
+    // send tx to the chain
     await web3Api.eth.sendSignedTransaction(
       (
         await web3Api.eth.accounts.signTransaction(
@@ -263,9 +289,15 @@ const botActionFaucetSend = async (
         )
       ).rawTransaction
     );
+
+    // once our tx is processed, remove it from queue
+    pendingQueue.shift();
   } catch (error) {
     // rollback the update of user's last fund retrieval
     receivers[authorId] = previousRequestTime;
+
+    // remove failed tx from queue
+    pendingQueue.shift();
 
     // alert in channel
     const errorEmbed = new MessageEmbed()
