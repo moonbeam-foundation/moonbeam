@@ -17,15 +17,15 @@
 use cumulus_primitives::ParaId;
 use moonbeam_runtime::{
 	AccountId, Balance, BalancesConfig, DemocracyConfig, EVMConfig, EthereumChainIdConfig,
-	EthereumConfig, GenesisConfig, ParachainInfoConfig, SchedulerConfig, StakeConfig, SudoConfig,
-	SystemConfig, GLMR, WASM_BINARY,
+	EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig, Range, SchedulerConfig,
+	StakeConfig, SudoConfig, SystemConfig, Ticker, TokenFactoryConfig, GLMR, WASM_BINARY,
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use sc_telemetry::TelemetryEndpoints;
 use serde::{Deserialize, Serialize};
+use sp_core::U256;
 use sp_runtime::Perbill;
-use stake::{InflationInfo, Range};
 use std::{collections::BTreeMap, str::FromStr};
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
@@ -119,7 +119,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 	)
 }
 
-pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
+fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 	InflationInfo {
 		expect: Range {
 			min: 100_000 * GLMR,
@@ -171,6 +171,10 @@ fn testnet_genesis(
 		stake: Some(StakeConfig {
 			stakers,
 			inflation_config,
+		}),
+		token_factory: Some(TokenFactoryConfig {
+			nonce: U256::zero(),
+			tokens: vec![Ticker::DOT, Ticker::KSM, Ticker::ACA, Ticker::AUSD],
 		}),
 	}
 }

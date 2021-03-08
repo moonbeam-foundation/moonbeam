@@ -4059,7 +4059,6 @@ dependencies = [
  "sp-timestamp",
  "sp-transaction-pool",
  "sp-trie",
- "stake",
  "structopt",
  "substrate-build-script-utils",
  "substrate-frame-rpc-system",
