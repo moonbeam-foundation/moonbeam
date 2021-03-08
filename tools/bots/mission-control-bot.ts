@@ -10,7 +10,10 @@ const params = {
   // Discord app information
   DISCORD_TOKEN: process.env.DISCORD_TOKEN,
   DISCORD_CHANNEL: process.env.DISCORD_CHANNEL,
+
+  // Items for monitoring
   TESTS_DISCORD_CHANNEL: process.env.TESTS_DISCORD_CHANNEL,
+  NOT_LIMITED_USERS: process.env.NOT_LIMITED_USERS,
 
   // Slack app information
   SLACK_WEBHOOK: process.env.SLACK_WEBHOOK,
@@ -186,14 +189,36 @@ const checkH160AddressIsCorrect = (address: string, msg: Message) => {
 };
 
 /**
+ * Check if the user sending the message can request tokens again.
+ * @param authorId ID of the author of the incoming message
+ * @param interval Number of hours to wait until be able to request tokens again
+ * @returns {bool}
+ */
+const canReceiveTokensAgain = (authorId: string, interval: number) => {
+  // if user is in not limited, he/she can use the faucet anytime (for monitoring tests)
+  if (JSON.parse(params.NOT_LIMITED_USERS).includes(authorId)) {
+    return true;
+  }
+
+  // if usual user, check when was the last time he/she used it
+  return receivers[authorId] <= Date.now() - interval * 3600 * 1000;
+};
+
+/**
  * Action for the bot for the pattern "!faucet send <h160_addr>", that
  * sends funds to the indicated account.
  * @param {Message} msg Received discord message object
  * @param {string} authorId Author ID of the message
  * @param {string} messageContent Content of the message
+ * @param {number} interval Number of hours to wait until be able to request tokens again
  */
-const botActionFaucetSend = async (msg: Message, authorId: string, messageContent: string) => {
-  if (receivers[authorId] > Date.now() - params.FAUCET_SEND_INTERVAL * 3600 * 1000) {
+const botActionFaucetSend = async (
+  msg: Message,
+  authorId: string,
+  messageContent: string,
+  interval: number
+) => {
+  if (!canReceiveTokensAgain(authorId, interval)) {
     const errorEmbed = new MessageEmbed()
       .setColor(EMBED_COLOR_ERROR)
       .setTitle(`You already received tokens!`)
@@ -320,7 +345,7 @@ const onReceiveMessage = async (msg: Message) => {
   }
 
   if (messageContent.startsWith("!faucet send")) {
-    await botActionFaucetSend(msg, authorId, messageContent);
+    await botActionFaucetSend(msg, authorId, messageContent, params.FAUCET_SEND_INTERVAL);
   } else if (messageContent.startsWith("!balance")) {
     await botActionBalance(msg, messageContent);
   }
