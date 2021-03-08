@@ -218,6 +218,9 @@ const botActionFaucetSend = async (
   messageContent: string,
   interval: number
 ) => {
+  // set default value of lastReceived at 0
+  if (!receivers[authorId]) receivers[authorId] = 0;
+
   if (!canReceiveTokensAgain(authorId, interval)) {
     const errorEmbed = new MessageEmbed()
       .setColor(EMBED_COLOR_ERROR)
