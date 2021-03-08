@@ -10,8 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@polkadot/api": "^3.11.1",
-    "@polkadot/types": "^3.11.1",
+    "@polkadot/api": "^4.0.2",
+    "@polkadot/types": "^4.0.2",
     "@types/chai": "^4.2.11",
     "@types/mocha": "^8.0.0",
     "chai": "^4.2.0",
