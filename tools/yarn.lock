@@ -3879,9 +3879,9 @@ pkg@^4.4.9:
     resolve "^1.15.1"
     stream-meter "^1.0.4"
 
-polkadot-launch@PureStake/polkadot-launch#moonbeam-launch-v2:
+polkadot-launch@PureStake/polkadot-launch#moonbeam-launch:
   version "1.0.12"
-  resolved "https://codeload.github.com/PureStake/polkadot-launch/tar.gz/e371ac9124277410e14089d08b88d176615af7df"
+  resolved "https://codeload.github.com/PureStake/polkadot-launch/tar.gz/a28e1d6938d4ac7c7b7f0172319cc2999882a745"
   dependencies:
     "@polkadot/api" "^3.11.1"
     "@polkadot/util" "^5.9.2"
