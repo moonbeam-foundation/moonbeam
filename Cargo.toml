@@ -2,6 +2,7 @@
 members = [
     'runtime',
     'node',
+    'bin/utils/multisig',
 ]
 
 [profile.release]

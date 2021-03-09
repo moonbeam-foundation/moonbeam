@@ -1,0 +1,23 @@
+[package]
+name = 'multisig'
+description = 'Moonbeam Multisig'
+homepage = 'https://moonbeam.network'
+license = 'GPL-3.0-only'
+version = '0.1.0'
+authors = ["PureStake"]
+edition = '2018'
+
+[[bin]]
+path = 'src/main.rs'
+name = 'multisig'
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sc-cli = { git = "https://github.com/paritytech/substrate", branch = "master", features = ["wasmtime"] }
+structopt = "0.3.14"
+failure = "0.1.8"
+hex = "0.4.3"
