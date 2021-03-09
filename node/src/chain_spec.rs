@@ -18,13 +18,12 @@ use cumulus_primitives::ParaId;
 use moonbeam_runtime::{
 	AccountId, Balance, BalancesConfig, DemocracyConfig, EVMConfig, EthereumChainIdConfig,
 	EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig, Range, SchedulerConfig,
-	StakeConfig, SudoConfig, SystemConfig, Ticker, TokenFactoryConfig, GLMR, WASM_BINARY,
+	StakeConfig, SudoConfig, SystemConfig, GLMR, WASM_BINARY,
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use sc_telemetry::TelemetryEndpoints;
 use serde::{Deserialize, Serialize};
-use sp_core::U256;
 use sp_runtime::Perbill;
 use std::{collections::BTreeMap, str::FromStr};
 
@@ -171,10 +170,6 @@ fn testnet_genesis(
 		stake: Some(StakeConfig {
 			stakers,
 			inflation_config,
-		}),
-		token_factory: Some(TokenFactoryConfig {
-			nonce: U256::zero(),
-			tokens: vec![Ticker::DOT, Ticker::KSM, Ticker::ACA, Ticker::AUSD],
 		}),
 	}
 }

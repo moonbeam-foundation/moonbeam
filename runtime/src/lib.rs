@@ -61,9 +61,7 @@ use pallet_evm::{
 use pallet_transaction_payment::CurrencyAdapter;
 use polkadot_parachain::primitives::Sibling;
 pub use stake::{InflationInfo, Range};
-use token_dealer::support::*;
-use token_factory::CurrencyId;
-pub use token_factory::Ticker;
+use token_factory::{CurrencyId, Ticker};
 use xcm::v0::{Junction, MultiLocation, NetworkId};
 use xcm_builder::{
 	LocationInverter, ParentIsDefault, RelayChainAsNative, SiblingParachainAsNative,
@@ -73,6 +71,7 @@ use xcm_executor::{
 	traits::{LocationConversion, NativeAsset},
 	Config, XcmExecutor,
 };
+use xtransfer::support::*;
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
@@ -452,7 +451,7 @@ impl token_factory::Config for Runtime {
 	type AccountToH160 = AccountToH160;
 }
 
-impl token_dealer::Config for Runtime {
+impl xtransfer::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type ToRelayChainBalance = NativeToRelay;
@@ -594,8 +593,8 @@ construct_runtime! {
 		Stake: stake::{Module, Call, Storage, Event<T>, Config<T>},
 		Scheduler: pallet_scheduler::{Module, Storage, Config, Event<T>, Call},
 		Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
-		TokenFactory: token_factory::{Module, Call, Storage, Config<T>, Event<T>},
-		TokenDealer: token_dealer::{Module, Call, Storage, Event<T>},
+		TokenFactory: token_factory::{Module, Call, Storage, Event<T>},
+		Xtransfer: xtransfer::{Module, Call, Storage, Event<T>},
 		XcmHandler: xcm_handler::{Module, Call, Event<T>, Origin},
 		// The order matters here. Inherents will be included in the order specified here.
 		// Concretely we need the author inherent to come after the parachain_upgrade inherent.

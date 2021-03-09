@@ -20,7 +20,7 @@ stake = { path = "../pallets/stake", default-features = false }
 author-inherent = { path = "../pallets/author-inherent", default-features = false }
 pallet-author-filter = { path = "../pallets/author-filter", default-features = false }
 token-factory = { path = "../pallets/token-factory", default-features = false }
-token-dealer = { path = "../pallets/token-dealer", default-features = false }
+xtransfer = { path = "../pallets/xtransfer", default-features = false }
 
 # Substrate dependencies
 pallet-aura = { git = "https://github.com/paritytech/substrate.git", default-features = false, branch = "master", optional = true }
@@ -121,7 +121,7 @@ std = [
 	"stake/std",
 	"pallet-author-filter/std",
 	"token-factory/std",
-	"token-dealer/std",
+	"xtransfer/std",
 	"xcm-builder/std",
 	"xcm-handler/std",
 	"xcm-executor/std",

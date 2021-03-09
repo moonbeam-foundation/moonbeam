@@ -4163,12 +4163,12 @@ dependencies = [
  "sp-version",
  "stake",
  "substrate-wasm-builder 3.0.0 (git+https://github.com/paritytech/substrate)",
- "token-dealer",
  "token-factory",
  "xcm",
  "xcm-builder",
  "xcm-executor",
  "xcm-handler",
+ "xtransfer",
 ]
 
 [[package]]
@@ -10031,22 +10031,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
-name = "token-dealer"
-version = "0.1.0"
-dependencies = [
- "cumulus-primitives",
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "sp-core",
- "sp-runtime",
- "sp-std",
- "token-factory",
- "xcm",
- "xcm-executor",
-]
-
-[[package]]
 name = "token-factory"
 version = "0.1.0"
 dependencies = [
@@ -11275,6 +11259,22 @@ dependencies = [
  "parity-scale-codec",
  "sp-std",
  "xcm",
+]
+
+[[package]]
+name = "xtransfer"
+version = "0.1.0"
+dependencies = [
+ "cumulus-primitives",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
+ "token-factory",
+ "xcm",
+ "xcm-executor",
 ]
 
 [[package]]

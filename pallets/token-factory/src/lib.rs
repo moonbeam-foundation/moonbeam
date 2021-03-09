@@ -31,7 +31,7 @@ mod tests;
 pub mod pallet {
 	use ethereum_types::BigEndianHash;
 	use fp_evm::ExecutionInfo;
-	use frame_support::{pallet_prelude::*, traits::OriginTrait};
+	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
 	use pallet_evm::{AddressMapping, ExitReason, Runner};
 	use parity_scale_codec::{Decode, Encode, FullCodec};
@@ -170,31 +170,23 @@ pub mod pallet {
 		StorageMap<_, Twox64Concat, T::TokenId, H160, OptionQuery>;
 
 	#[pallet::genesis_config]
-	pub struct GenesisConfig<T: Config> {
+	pub struct GenesisConfig {
 		pub nonce: U256,
-		pub tokens: Vec<T::TokenId>,
 	}
 
 	#[cfg(feature = "std")]
-	impl<T: Config> Default for GenesisConfig<T> {
+	impl Default for GenesisConfig {
 		fn default() -> Self {
 			Self {
 				nonce: U256::zero(),
-				tokens: vec![],
 			}
 		}
 	}
 
 	#[pallet::genesis_build]
-	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
+	impl<T: Config> GenesisBuild<T> for GenesisConfig {
 		fn build(&self) {
 			<Nonce<T>>::put(self.nonce);
-			let mut tokens = self.tokens.clone();
-			tokens.sort();
-			tokens.dedup();
-			for token in tokens {
-				let _ = <Pallet<T>>::register_token(T::Origin::root(), token);
-			}
 		}
 	}
 
