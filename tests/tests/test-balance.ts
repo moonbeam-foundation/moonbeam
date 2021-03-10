@@ -19,7 +19,6 @@ describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) =>
   });
   step("genesis balance is setup correctly (polkadotJs)", async function () {
     const account = await context.polkadotApi.query.system.account(GENESIS_ACCOUNT);
-    console.log("balance",GENESIS_ACCOUNT_BALANCE.toString())
     expect(account.data.free.toString()).to.equal(GENESIS_ACCOUNT_BALANCE.toString());
   });
 
@@ -102,7 +101,6 @@ describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) =>
     );
     await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
     await createAndFinalizeBlock(context.polkadotApi);
-    console.log(await context.web3.eth.getBalance(GENESIS_ACCOUNT))
     expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT)).to.equal(
       (await context.polkadotApi.query.system.account(GENESIS_ACCOUNT)).data.free.toString()
     );

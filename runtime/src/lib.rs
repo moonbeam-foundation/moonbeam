@@ -278,7 +278,7 @@ impl pallet_scheduler::Config for Runtime {
 	type WeightInfo = ();
 }
 
-pub const BLOCKS_PER_DAY: BlockNumber = 10;
+pub const BLOCKS_PER_DAY: BlockNumber =  24 * 60 * 10;
 
 parameter_types! {
 	pub const LaunchPeriod: BlockNumber = BLOCKS_PER_DAY;
