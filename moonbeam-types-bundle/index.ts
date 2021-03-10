@@ -196,7 +196,7 @@ export const moonbeamDefinitions = {
           expect: "RangeBalance",
           round: "RangePerbill",
         },
-        OrderedSet: "Vec",
+        OrderedSet: "Vec<Bond>",
         Validator: {
           id: "AccountId",
           fee: "Perbill",
