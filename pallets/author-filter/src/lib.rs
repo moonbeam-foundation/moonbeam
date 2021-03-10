@@ -35,7 +35,7 @@ pub use pallet::*;
 #[pallet]
 pub mod pallet {
 
-	use frame_support::debug;
+	use frame_support::log;
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::Randomness;
 	use frame_support::traits::Vec;
@@ -107,28 +107,28 @@ pub mod pallet {
 				eligible.push(staked.remove(index % staked.len()));
 
 				// Print some logs for debugging purposes.
-				debug::trace!(target:"author-filter", "Filtering Authors");
-				debug::trace!(
+				log::trace!(target:"author-filter", "Filtering Authors");
+				log::trace!(
 					target:"author-filter",
 					"The randomness was {:?}",
 					randomness
 				);
-				debug::trace!(
+				log::trace!(
 					target:"author-filter",
 					"NOT Eligible Authors: {:?}",
 					&staked
 				);
-				debug::trace!(
+				log::trace!(
 					target:"author-filter",
 					"Eligible Authors are: {:?}",
 					eligible
 				);
-				debug::trace!(
+				log::trace!(
 					target:"author-filter",
 					"The id I'm checking is: {:?}",
 					account
 				);
-				debug::trace!(
+				log::trace!(
 					target:"author-filter",
 					"Was that author eligible: {}",
 					eligible.contains(account)

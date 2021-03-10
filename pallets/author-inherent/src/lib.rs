@@ -20,9 +20,8 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::debug;
 use frame_support::{
-	decl_error, decl_module, decl_storage, ensure,
+	log, decl_error, decl_module, decl_storage, ensure,
 	traits::FindAuthor,
 	weights::{DispatchClass, Weight},
 };
@@ -105,14 +104,14 @@ decl_module! {
 			DispatchClass::Mandatory
 		)]
 		fn set_author(origin, author: T::AccountId) {
-			debug::trace!(target:"author-inherent", "In the author inherent dispatchable");
+			log::trace!(target:"author-inherent", "In the author inherent dispatchable");
 
 			ensure_none(origin)?;
 			ensure!(<Author<T>>::get().is_none(), Error::<T>::AuthorAlreadySet);
 			ensure!(T::FinalCanAuthor::can_author(&author), Error::<T>::CannotBeAuthor);
 
 			// Update storage
-			debug::trace!(
+			log::trace!(
 				target:"author-inherent",
 				"Passed ensures. About to write claimed author to storage."
 			);
@@ -131,12 +130,12 @@ decl_module! {
 		}
 
 		fn on_finalize(_n: T::BlockNumber) {
-			debug::trace!(
+			log::trace!(
 				target:"author-inherent",
 				"In author inherent's on finalize. About to assert author was set"
 			);
 			assert!(Author::<T>::get().is_some(), "No valid author set in block");
-			debug::trace!(
+			log::trace!(
 				target:"author-inherent",
 				"Finished asserting author was set (apparently it was)"
 			);
@@ -244,7 +243,7 @@ impl<T: Config> ProvideInherent for Module<T> {
 	fn check_inherent(call: &Self::Call, _data: &InherentData) -> Result<(), Self::Error> {
 		// We only care to check the inherent provided by this pallet.
 		if let Self::Call::set_author(claimed_author) = call {
-			debug::trace!(
+			log::trace!(
 				target:"author-inherent",
 				"In the author inherent's `check_inherent` impl"
 			);
