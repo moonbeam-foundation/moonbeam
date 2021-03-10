@@ -278,6 +278,37 @@ impl pallet_scheduler::Config for Runtime {
 	type WeightInfo = ();
 }
 
+parameter_types! {
+	pub const CouncilMotionDuration: BlockNumber = 100;
+	pub const CouncilMaxProposals: u32 = 100;
+	pub const CouncilMaxMembers: u32 = 100;
+	pub const TechComitteeMotionDuration: BlockNumber = 100;
+	pub const TechComitteeMaxProposals: u32 = 100;
+	pub const TechComitteeMaxMembers: u32 = 100;
+}
+
+impl pallet_collective::Config<pallet_collective::Instance1> for Runtime {
+	type Origin = Origin;
+	type Event = Event;
+	type Proposal = Call;
+	type MotionDuration = CouncilMotionDuration;
+	type MaxProposals = CouncilMaxProposals;
+	type MaxMembers = CouncilMaxMembers;
+	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
+	type WeightInfo = (); // TODO : Better Weight Info ?
+}
+
+impl pallet_collective::Config<pallet_collective::Instance2> for Runtime {
+	type Origin = Origin;
+	type Event = Event;
+	type Proposal = Call;
+	type MotionDuration = TechComitteeMotionDuration;
+	type MaxProposals = TechComitteeMaxProposals;
+	type MaxMembers = TechComitteeMaxMembers;
+	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
+	type WeightInfo = (); // TODO : Better Weight Info ?
+}
+
 pub const BLOCKS_PER_DAY: BlockNumber = 24 * 60 * 10;
 
 parameter_types! {
@@ -291,7 +322,16 @@ parameter_types! {
 	pub const MaxProposals: u32 = 100;
 	pub const PreimageByteDeposit: Balance = GLMR / 1_000;
 	pub const InstantAllowed: bool = false;
+
+	pub const Ensure100: u32 = 100;
 }
+
+type EnsureUnanimousCouncil = pallet_collective::EnsureProportionAtLeast<
+	Ensure100,
+	Ensure100,
+	AccountId,
+	pallet_collective::Instance1,
+>;
 
 // todo : ensure better origins
 impl pallet_democracy::Config for Runtime {
@@ -444,7 +484,9 @@ construct_runtime! {
 		// The order matters here. Inherents will be included in the order specified here.
 		// Concretely we need the author inherent to come after the parachain_upgrade inherent.
 		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
-		AuthorFilter: pallet_author_filter::{Module, Call, Storage, Event<T>,}
+		AuthorFilter: pallet_author_filter::{Module, Call, Storage, Event<T>},
+		CouncilCollective: pallet_collective::<Instance1>::{Module, Call, Event<T>, Origin<T>, Config<T>},
+		TechComitteeCollective: pallet_collective::<Instance2>::{Module, Call, Event<T>, Origin<T>, Config<T>},
 	}
 }
 
