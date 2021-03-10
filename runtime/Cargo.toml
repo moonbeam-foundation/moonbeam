@@ -10,7 +10,7 @@ edition = '2018'
 [dependencies]
 serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
-log = "0.4.8"
+log = "0.4.14"
 hex-literal = "0.3.1"
 
 precompiles = { path = "precompiles/", default-features = false }
