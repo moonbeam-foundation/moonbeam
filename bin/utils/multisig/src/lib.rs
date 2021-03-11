@@ -14,23 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-
-use sp_core::{crypto::SecretStringError, Pair, ecdsa, sr25519, ed25519};
-use sp_runtime::{MultiSignature, MultiSigner};
-use structopt::StructOpt;
-use std::str::FromStr;
 use failure::Fail;
-use sp_core::crypto::AccountId32;
-use parity_scale_codec::{Encode};
-use std::convert::TryInto;
-
-
+use parity_scale_codec::Encode;
+use sp_core::{crypto::{SecretStringError, AccountId32}, ecdsa, ed25519, sr25519, Pair};
+use sp_runtime::{MultiSignature, MultiSigner};
+use std::{convert::TryInto, str::FromStr};
+use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 #[structopt(
-name = "multisig",
-author = "Moonbeam Team <admin@parity.io>",
-about = "Utility for generating Multisignatures",
+	name = "multisig",
+	author = "Moonbeam Team <admin@parity.io>",
+	about = "Utility for generating Multisignatures"
 )]
 pub enum MultiSig {
 	#[structopt(name = "generate-signature")]
@@ -60,7 +55,6 @@ pub struct GenerateSigner {
 	#[structopt(short, long)]
 	pub private_key: String,
 
-
 	#[structopt(long)]
 	pub algorithm: String,
 }
@@ -83,14 +77,14 @@ pub enum Error {
 	#[fail(display = "Wrong algorithm provided")]
 	InvalidAlgo,
 	#[fail(display = "Invalid secret provided")]
-	InvalidSec {e: SecretStringError},
+	InvalidSec { e: SecretStringError },
 }
 
 #[derive(Debug, StructOpt)]
 pub enum SignatureAlgorithm {
 	Ecdsa,
 	Sr25519,
-	Ed25519
+	Ed25519,
 }
 
 impl FromStr for SignatureAlgorithm {
@@ -106,30 +100,31 @@ impl FromStr for SignatureAlgorithm {
 	}
 }
 
-fn encode_data(index: u32, who: String, old_balance: u128, value: u128) -> String  {
+fn encode_data(index: u32, who: String, old_balance: u128, value: u128) -> String {
 	let account_as_u8 = hex::decode(who).unwrap();
-	let account: [u8; 32] = account_as_u8.as_slice().try_into().expect("account with incorrect length");
+	let account: [u8; 32] = account_as_u8
+		.as_slice()
+		.try_into()
+		.expect("account with incorrect length");
 	let acc: AccountId32 = account.into();
 	let payload = (index, acc, old_balance, value);
-	return hex::encode(payload.encode())
+	return hex::encode(payload.encode());
 }
 
-fn generic_sign<TPair: Pair>(
-	private_key: String,
-	data: String,
-) -> Result<MultiSignature, Error>
-	where MultiSignature: From<<TPair as sp_core::Pair>::Signature>
+fn generic_sign<TPair: Pair>(private_key: String, data: String) -> Result<MultiSignature, Error>
+where
+	MultiSignature: From<<TPair as sp_core::Pair>::Signature>,
 {
-
-	let (pair, _) = TPair::from_phrase(&private_key, None).map_err(|e| Error::InvalidSec{e})?;
-	Ok(MultiSignature::from(pair.sign(&hex::decode(data.clone()).unwrap_or(data.as_bytes().to_vec()))))
+	let (pair, _) = TPair::from_phrase(&private_key, None).map_err(|e| Error::InvalidSec { e })?;
+	Ok(MultiSignature::from(pair.sign(
+		&hex::decode(data.clone()).unwrap_or(data.as_bytes().to_vec()),
+	)))
 }
 
 pub fn generate_account(
 	private_key: String,
 	algorithm: SignatureAlgorithm,
-) -> Result<MultiSigner, Error>
-{
+) -> Result<MultiSigner, Error> {
 	match algorithm {
 		SignatureAlgorithm::Ecdsa => generic_generate_account::<ecdsa::Pair>(private_key),
 		SignatureAlgorithm::Sr25519 => generic_generate_account::<sr25519::Pair>(private_key),
@@ -137,12 +132,11 @@ pub fn generate_account(
 	}
 }
 
-fn generic_generate_account<TPair: Pair>(
-	private_key: String,
-) -> Result<MultiSigner, Error>
-	where MultiSigner: From<<TPair as sp_core::Pair>::Public>
+fn generic_generate_account<TPair: Pair>(private_key: String) -> Result<MultiSigner, Error>
+where
+	MultiSigner: From<<TPair as sp_core::Pair>::Public>,
 {
-	let (pair, _) = TPair::from_phrase(&private_key, None).map_err(|e| Error::InvalidSec{e})?;
+	let (pair, _) = TPair::from_phrase(&private_key, None).map_err(|e| Error::InvalidSec { e })?;
 	Ok(MultiSigner::from(pair.public()))
 }
 
@@ -150,8 +144,7 @@ pub fn sign(
 	private_key: String,
 	data: String,
 	algorithm: SignatureAlgorithm,
-) -> Result<MultiSignature, Error>
-{
+) -> Result<MultiSignature, Error> {
 	match algorithm {
 		SignatureAlgorithm::Ecdsa => generic_sign::<ecdsa::Pair>(private_key, data),
 		SignatureAlgorithm::Sr25519 => generic_sign::<sr25519::Pair>(private_key, data),
@@ -166,32 +159,42 @@ pub fn run() -> Result<(), Error> {
 			let signature = sign(params.private_key, params.data, params.algorithm.parse()?);
 			println!("{:?}", signature);
 			Ok(())
-		},
+		}
 		MultiSig::GenerateSigner(params) => {
-			let signer = generate_account(params.private_key,params.algorithm.parse()?);
+			let signer = generate_account(params.private_key, params.algorithm.parse()?);
 			println!("{:?}", signer);
 			Ok(())
-		},
+		}
 		MultiSig::EncodeData(params) => {
-			let encoded = encode_data(params.index, params.account, params.old_balance, params.value);
+			let encoded = encode_data(
+				params.index,
+				params.account,
+				params.old_balance,
+				params.value,
+			);
 			println!("{:?}", encoded);
 			Ok(())
-		},
+		}
 	}
 }
 
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use sp_runtime::traits::Verify;
 	use sp_runtime::traits::IdentifyAccount;
+	use sp_runtime::traits::Verify;
 
 	#[test]
 	fn test_generic_sign_ecdsa() {
 		let mnemonic =
 			"bottom drive obey lake curtain smoke basket hold race lonely fit walk".to_string();
 		let data = "this is what I want to sigb";
-		let signature = sign(mnemonic.clone(),data.to_string(), SignatureAlgorithm::Ecdsa).unwrap();
+		let signature = sign(
+			mnemonic.clone(),
+			data.to_string(),
+			SignatureAlgorithm::Ecdsa,
+		)
+		.unwrap();
 
 		let (pair, _) = ecdsa::Pair::from_phrase(&mnemonic, None).unwrap();
 		let multi_signer = MultiSigner::from(pair.public());
@@ -203,7 +206,12 @@ mod tests {
 		let mnemonic =
 			"bottom drive obey lake curtain smoke basket hold race lonely fit walk".to_string();
 		let data = "this is what I want to sigb";
-		let signature = sign(mnemonic.clone(),data.to_string(), SignatureAlgorithm::Sr25519).unwrap();
+		let signature = sign(
+			mnemonic.clone(),
+			data.to_string(),
+			SignatureAlgorithm::Sr25519,
+		)
+		.unwrap();
 
 		let (pair, _) = sr25519::Pair::from_phrase(&mnemonic, None).unwrap();
 		let multi_signer = MultiSigner::from(pair.public());
@@ -215,7 +223,12 @@ mod tests {
 		let mnemonic =
 			"bottom drive obey lake curtain smoke basket hold race lonely fit walk".to_string();
 		let data = "this is what I want to sigb";
-		let signature = sign(mnemonic.clone(),data.to_string(), SignatureAlgorithm::Ed25519).unwrap();
+		let signature = sign(
+			mnemonic.clone(),
+			data.to_string(),
+			SignatureAlgorithm::Ed25519,
+		)
+		.unwrap();
 
 		let (pair, _) = ed25519::Pair::from_phrase(&mnemonic, None).unwrap();
 		let multi_signer = MultiSigner::from(pair.public());
@@ -227,7 +240,12 @@ mod tests {
 		let mnemonic =
 			"bottom drive obey lake curtain smoke basket hold race lonely fit walk".to_string();
 		let data = "48656c6c6f20776f726c6421";
-		let signature = sign(mnemonic.clone(),data.to_string(), SignatureAlgorithm::Sr25519).unwrap();
+		let signature = sign(
+			mnemonic.clone(),
+			data.to_string(),
+			SignatureAlgorithm::Sr25519,
+		)
+		.unwrap();
 
 		let (pair, _) = sr25519::Pair::from_phrase(&mnemonic, None).unwrap();
 		let multi_signer = MultiSigner::from(pair.public());
@@ -239,7 +257,13 @@ mod tests {
 		let index = 0;
 		let balance = 0;
 		let value = 20000000000000;
-		let encoded = encode_data(index,"8494863378510d13ce5ccd94500401345251d76ee11c83f8e599d0f57e7d9b1c".to_string(), balance, value);
-		assert_eq!("000000008494863378510d13ce5ccd94500401345251d76ee11c83f8e599d0f57e7d9b1c000000000000000000000000000000000040e59c301200000000000000000000", encoded)
+		let encoded = encode_data(
+			index,
+			"8494863378510d13ce5ccd94500401345251d76ee11c83f8e599d0f57e7d9b1c".to_string(),
+			balance,
+			value,
+		);
+		assert_eq!("000000008494863378510d13ce5ccd94500401345251d76ee11c83f8e599d0f57e7d9b1c0000000\
+		00000000000000000000000000040e59c301200000000000000000000", encoded)
 	}
 }

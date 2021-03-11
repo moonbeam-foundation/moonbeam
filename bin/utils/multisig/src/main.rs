@@ -16,6 +16,6 @@
 
 //! Multisig utility, based on node_runtime.
 
-fn main() -> Result<(),  multisig::Error> {
-    multisig::run()
+fn main() -> Result<(), multisig::Error> {
+	multisig::run()
 }
