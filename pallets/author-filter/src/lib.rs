@@ -55,7 +55,7 @@ pub mod pallet {
 		/// The overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// Deterministic on-chain pseudo-randomness used to do the filtering
-		type RandomnessSource: Randomness<H256>;
+		type RandomnessSource: Randomness<H256, u32>;
 	}
 
 	// This code will be called by the author-inherent pallet to check whether the reported author
@@ -95,7 +95,7 @@ pub mod pallet {
 					i as u8,
 					relay_height as u8,
 				];
-				let randomness = T::RandomnessSource::random(&subject);
+				let randomness = T::RandomnessSource::random(&subject).0;
 				// Cast to u32 first so we get the same result on wasm and 64-bit platforms.
 				let index = (randomness.to_low_u64_be() as u32) as usize;
 
