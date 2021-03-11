@@ -14,6 +14,7 @@ frame-support = { git = "https://github.com/paritytech/substrate", default-featu
 frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 
 [features]
 default = ["std"]
@@ -25,4 +26,5 @@ std = [
     "sp-runtime/std",
     "serde",
     "log/std",
+    "sp-std/std"
 ]

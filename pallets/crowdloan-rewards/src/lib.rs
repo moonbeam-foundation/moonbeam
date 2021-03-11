@@ -69,7 +69,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::pallet;
-
 pub use pallet::*;
 
 #[pallet]
@@ -80,6 +79,9 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use frame_support::traits::Currency;
 	use log::warn;
+	use sp_runtime::SaturatedConversion;
+	use std::convert::TryInto;
+
 
 	/// The Author Filter pallet
 	#[pallet::pallet]
@@ -144,18 +146,19 @@ pub mod pallet {
 
 		/// Collect whatever portion of your reward are currently vested.
 		#[pallet::weight(0)]
-		pub fn show_me_the_money(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+		pub fn show_me_the_money(origin: OriginFor<T>) -> DispatchResultWithPostInfo
+		{
 			let payee = ensure_signed(origin)?;
 
 			// Calculate the veted amount on demand.
-			let mut info = AccountsPayable::<T>::get(payee).ok_or(Error::<T>::NoAssociatedClaim)?;
+			let mut info = AccountsPayable::<T>::get(&payee).ok_or(Error::<T>::NoAssociatedClaim)?;
 			let now = frame_system::Module::<T>::block_number();
-
 			//TODO This part doesn't compile because of a million stupid errors about converting
 			// between u32, Balance, and BlockNumber. I think that is solvable, just annoying.
-			let payable_per_block = info.total_reward / T::VestingPeriod::get(); //TODO safe math;
+			let payable_per_block = info.total_reward/ T::VestingPeriod::get().saturated_into::<u128>().try_into().ok().ok_or(Error::<T>::WrongConversionU128ToBalance)?; //TODO safe math;
 			let payable_period = T::VestingPeriod::get() - info.last_paid;
-			let payable_amount = payable_period * payable_per_block;
+			let pay_period_as_balance: BalanceOf<T> = payable_period.saturated_into::<u128>().try_into().ok().ok_or(Error::<T>::WrongConversionU128ToBalance)?;
+			let payable_amount = pay_period_as_balance * payable_per_block;
 
 			// Update the stored info
 			info.last_paid = now;
@@ -180,6 +183,7 @@ pub mod pallet {
 		/// they did not contribute to the crowdloan, or they have not yet associated a native id
 		/// with their contribution
 		NoAssociatedClaim,
+		WrongConversionU128ToBalance,
 	}
 
 	#[pallet::storage]
@@ -230,7 +234,7 @@ pub mod pallet {
 			self.associated.iter().for_each(|(native_account, contrib)| {
 				let reward_info = RewardInfo{
 					total_reward: BalanceOf::<T>::from(*contrib) * BalanceOf::<T>::from(self.reward_ratio), //TODO safe math?
-					last_paid: 0.into(),
+					last_paid: 0u32.into(),
 				};
 				AccountsPayable::<T>::insert(native_account, reward_info);
 			});
@@ -240,7 +244,7 @@ pub mod pallet {
 				//TODO: 📠🍝
 				let reward_info = RewardInfo{
 					total_reward: BalanceOf::<T>::from(*contrib) * BalanceOf::<T>::from(self.reward_ratio), //TODO safe math?
-					last_paid: 0.into(),
+					last_paid: 0u32.into(),
 				};
 				UnassociatedContributions::<T>::insert(relay_account, reward_info);
 			});
