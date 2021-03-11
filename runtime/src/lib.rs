@@ -443,6 +443,14 @@ impl Convert<<<Signature as Verify>::Signer as IdentifyAccount>::AccountId, H160
 		from
 	}
 }
+pub struct AccountKey20Convert;
+impl Convert<<<Signature as Verify>::Signer as IdentifyAccount>::AccountId, [u8; 20]>
+	for AccountKey20Convert
+{
+	fn convert(from: <<Signature as Verify>::Signer as IdentifyAccount>::AccountId) -> [u8; 20] {
+		from.into()
+	}
+}
 
 impl token_factory::Config for Runtime {
 	type Event = Event;
@@ -455,6 +463,7 @@ impl xtransfer::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type ToRelayChainBalance = NativeToRelay;
+	type AccountKey20Convert = AccountKey20Convert;
 	type ToMultiLocation = AccountId20Aliases<MoonbeamNetwork, AccountId>;
 	type RelayChainNetworkId = PolkadotNetworkId;
 	type ParaId = ParachainInfo;
@@ -471,7 +480,8 @@ parameter_types! {
 	pub const RelayChainCurrencyId: CurrencyId = CurrencyId::Token(Ticker::DOT);
 }
 
-// TODO: add this to xcm-executor/location_conversion.rs and PR polkadot
+// TODO: replace with `AccountKey20Aliases` once Cumulus version includes this commit
+// https://github.com/paritytech/polkadot/pull/2576
 pub struct AccountId20Aliases<Network, AccountId>(PhantomData<(Network, AccountId)>);
 impl<Network: Get<NetworkId>, AccountId: From<[u8; 20]> + Into<[u8; 20]>>
 	LocationConversion<AccountId> for AccountId20Aliases<Network, AccountId>
@@ -496,7 +506,8 @@ impl<Network: Get<NetworkId>, AccountId: From<[u8; 20]> + Into<[u8; 20]>>
 use frame_support::traits::OriginTrait;
 use xcm::v0::OriginKind;
 use xcm_executor::traits::ConvertOrigin;
-// TODO: add to xcm-builder/origin_conversion and PR polkadot
+// TODO: replace with `SignedAccountKey20AsNative` once Cumulus version includes this commit
+// https://github.com/paritytech/polkadot/pull/2576
 pub struct SignedAccountId20AsNative<Network, Origin>(PhantomData<(Network, Origin)>);
 impl<Network: Get<NetworkId>, Origin: OriginTrait> ConvertOrigin<Origin>
 	for SignedAccountId20AsNative<Network, Origin>
