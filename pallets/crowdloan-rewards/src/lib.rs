@@ -97,6 +97,9 @@ pub mod pallet {
 		// be using MultiSigner? Or maybe MultiAccount? I copied these from frame_system
 		/// The AccountId type contributors used on the relay chain.
 		type RelayChainAccountId: Parameter + Member + MaybeSerializeDeserialize + Default;
+
+		/// The total vesting period.
+		type VestingPeriod: Get<Self::BlockNumber>;
 	}
 
 	type BalanceOf<T> = <<T as Config>::RewardCurrency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
@@ -107,7 +110,6 @@ pub mod pallet {
 	#[derive(Default, Clone, Encode, Decode, RuntimeDebug)]
 	pub struct RewardInfo<T: Config> {
 		pub total_reward: BalanceOf<T>,
-		pub payed_so_far: BalanceOf<T>,//TODO Do we actually need to store this? For now I will because it will probably help debugging
 		pub last_paid: T::BlockNumber,
 	}
 
@@ -145,18 +147,39 @@ pub mod pallet {
 		pub fn show_me_the_money(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let payee = ensure_signed(origin)?;
 
-			//TODO check that the payee has rewards coming to them
+			// Calculate the veted amount on demand.
+			let mut info = AccountsPayable::<T>::get(payee).ok_or(Error::<T>::NoAssociatedClaim)?;
+			let now = frame_system::Module::<T>::block_number();
 
-			//TODO calculate the newly-vested amount
+			//TODO This part doesn't compile because of a million stupid errors about converting
+			// between u32, Balance, and BlockNumber. I think that is solvable, just annoying.
+			let payable_per_block = info.total_reward / T::VestingPeriod::get(); //TODO safe math;
+			let payable_period = T::VestingPeriod::get() - info.last_paid;
+			let payable_amount = payable_period * payable_per_block;
 
-			//TODO update this pallets storage
+			// Update the stored info
+			info.last_paid = now;
+			AccountsPayable::<T>::insert(&payee, &info);
 
-			//TODO make the payment
+			// Make the payment
+			// TODO where are these reward funds coming from? Currently I'm just minting them right here.
+			// 1. We could have an associated type to absorb the imbalance.
+			// 2. We could have this pallet control a pot of funds, and initialize it at genesis.
+			T::RewardCurrency::deposit_creating(&payee, payable_amount);
 
-			//TODO Emit event
+			// Emit event
+			Self::deposit_event(Event::RewardsPaid(payee, payable_amount));
 
 			Ok(Default::default())
 		}
+	}
+
+	#[pallet::error]
+	pub enum Error<T> {
+		/// User trying to claim an award did not have an claim associated with it. This may mean
+		/// they did not contribute to the crowdloan, or they have not yet associated a native id
+		/// with their contribution
+		NoAssociatedClaim,
 	}
 
 	#[pallet::storage]
@@ -207,7 +230,6 @@ pub mod pallet {
 			self.associated.iter().for_each(|(native_account, contrib)| {
 				let reward_info = RewardInfo{
 					total_reward: BalanceOf::<T>::from(*contrib) * BalanceOf::<T>::from(self.reward_ratio), //TODO safe math?
-					payed_so_far: 0.into(),
 					last_paid: 0.into(),
 				};
 				AccountsPayable::<T>::insert(native_account, reward_info);
@@ -218,7 +240,6 @@ pub mod pallet {
 				//TODO: 📠🍝
 				let reward_info = RewardInfo{
 					total_reward: BalanceOf::<T>::from(*contrib) * BalanceOf::<T>::from(self.reward_ratio), //TODO safe math?
-					payed_so_far: 0.into(),
 					last_paid: 0.into(),
 				};
 				UnassociatedContributions::<T>::insert(relay_account, reward_info);
