@@ -75,13 +75,10 @@ pub use pallet::*;
 #[pallet]
 pub mod pallet {
 
-	use frame_support::debug;
 	use frame_support::pallet_prelude::*;
-	use frame_support::traits::Randomness;
 	use frame_support::traits::Vec;
 	use frame_system::pallet_prelude::*;
 	use frame_support::traits::Currency;
-	use parity_scale_codec::{Encode, Decode};
 
 	/// The Author Filter pallet
 	#[pallet::pallet]
@@ -96,9 +93,9 @@ pub mod pallet {
 		type RewardCurrency: Currency<Self::AccountId>;
 
 		// TODO What trait bounds do I need here? I think concretely we would
-		// be using MultiSigner? Or maybe MultiAccount?
+		// be using MultiSigner? Or maybe MultiAccount? I copied these from frame_system
 		/// The AccountId type contributors used on the relay chain.
-		type RelayChainAccountId: Encode + Decode;
+		type RelayChainAccountId: Parameter + Member + MaybeSerializeDeserialize + Default;
 	}
 
 	type BalanceOf<T> = <<T as Config>::RewardCurrency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
@@ -174,7 +171,7 @@ pub mod pallet {
 		/// Contributions that have a native account id associated already.
 		pub associated: Vec<(T::AccountId, u32)>,
 		/// Contributions that will need a native account id to be associated through an extrinsic.
-		pub unassociated: Vec<(/*T::RelayChainAccountId,*/ u32)>,
+		pub unassociated: Vec<(T::RelayChainAccountId, u32)>,
 	}
 
 	#[cfg(feature = "std")]
