@@ -82,7 +82,7 @@ pub mod pallet {
 	pub struct Pallet<T>(PhantomData<T>);
 
 	/// The shape of AccountId for (most) substrate chains (not Moonbeam, which is H160 so 20 bytes)
-	type SubstrateAccountId = [u8; 32];
+	type AccountId32 = [u8; 32];
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
@@ -99,6 +99,8 @@ pub mod pallet {
 			+ Into<u128>;
 		/// Convert local balance into relay chain balance type
 		type ToRelayChainBalance: Convert<Self::Balance, RelayChainBalance>;
+		/// Convert system::AccountId to key shape for Junction::AccountKey20 [u8; 20]
+		type AccountKey20Convert: Convert<Self::AccountId, [u8; 20]>;
 		/// Convert account to MultiLocation
 		type ToMultiLocation: LocationConversion<Self::AccountId>;
 		/// Relay chain identifier
@@ -113,25 +115,45 @@ pub mod pallet {
 	#[pallet::generate_deposit(fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// Transferred to relay chain. \[src, dest, amount\]
-		TransferredToRelayChain(T::AccountId, SubstrateAccountId, T::Balance),
+		TransferredToRelayChain(T::AccountId, AccountId32, T::Balance),
 		/// Transfer to relay chain failed. \[src, dest, amount, error\]
-		TransferToRelayChainFailed(T::AccountId, SubstrateAccountId, T::Balance, XcmError),
+		TransferToRelayChainFailed(T::AccountId, AccountId32, T::Balance, XcmError),
 		/// Transferred to parachain. \[x_currency_id, src, para_id, dest, dest_network, amount\]
-		TransferredToParachain(
+		TransferredToAccountId32Parachain(
 			XCurrencyId,
 			T::AccountId,
 			ParaId,
-			SubstrateAccountId,
+			AccountId32,
 			NetworkId,
 			T::Balance,
 		),
 		/// Transfer to parachain failed. \[x_currency_id, src, para_id, dest,
 		/// dest_network, amount, error\]
-		TransferToParachainFailed(
+		TransferToAccountId32ParachainFailed(
 			XCurrencyId,
 			T::AccountId,
 			ParaId,
-			SubstrateAccountId,
+			AccountId32,
+			NetworkId,
+			T::Balance,
+			XcmError,
+		),
+		/// Transferred to parachain. \[x_currency_id, src, para_id, dest, dest_network, amount\]
+		TransferredToAccountKey20Parachain(
+			XCurrencyId,
+			T::AccountId,
+			ParaId,
+			T::AccountId,
+			NetworkId,
+			T::Balance,
+		),
+		/// Transfer to parachain failed. \[x_currency_id, src, para_id, dest,
+		/// dest_network, amount, error\]
+		TransferToAccountKey20ParachainFailed(
+			XCurrencyId,
+			T::AccountId,
+			ParaId,
+			T::AccountId,
 			NetworkId,
 			T::Balance,
 			XcmError,
@@ -154,7 +176,7 @@ pub mod pallet {
 		#[transactional]
 		pub fn transfer_to_relay_chain(
 			origin: OriginFor<T>,
-			dest: SubstrateAccountId,
+			dest: AccountId32,
 			amount: T::Balance,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
@@ -191,14 +213,14 @@ pub mod pallet {
 
 			Ok(().into())
 		}
-		/// Transfer tokens to parachain.
+		/// Transfer tokens to parachain that uses [u8; 32] for system::AccountId
 		#[pallet::weight(10)]
 		#[transactional]
-		pub fn transfer_to_parachain(
+		pub fn transfer_to_account_id_32_parachain(
 			origin: OriginFor<T>,
 			x_currency_id: XCurrencyId,
 			para_id: ParaId,
-			dest: SubstrateAccountId,
+			dest: AccountId32,
 			dest_network: NetworkId,
 			amount: T::Balance,
 		) -> DispatchResultWithPostInfo {
@@ -208,20 +230,18 @@ pub mod pallet {
 				return Ok(().into());
 			}
 
+			let destination = Self::account_id_32_destination(dest_network.clone(), &dest);
+
 			let xcm = match x_currency_id.chain_id {
-				ChainId::RelayChain => Self::transfer_relay_chain_tokens_to_parachain(
-					para_id,
-					&dest,
-					dest_network.clone(),
-					amount,
-				),
+				ChainId::RelayChain => {
+					Self::transfer_relay_chain_tokens_to_parachain(para_id, destination, amount)
+				}
 				ChainId::ParaChain(reserve_chain) => {
 					if T::ParaId::get() == reserve_chain {
 						Self::transfer_owned_tokens_to_parachain(
 							x_currency_id.clone(),
 							para_id,
-							&dest,
-							dest_network.clone(),
+							destination,
 							amount,
 						)
 					} else {
@@ -229,8 +249,7 @@ pub mod pallet {
 							reserve_chain,
 							x_currency_id.clone(),
 							para_id,
-							&dest,
-							dest_network.clone(),
+							destination,
 							amount,
 						)
 					}
@@ -241,7 +260,7 @@ pub mod pallet {
 				.map_err(|_| Error::<T>::BadLocation)?;
 			// TODO: revert state on xcm execution failure.
 			match T::Executor::execute_xcm(xcm_origin, xcm) {
-				Ok(_) => Self::deposit_event(Event::<T>::TransferredToParachain(
+				Ok(_) => Self::deposit_event(Event::<T>::TransferredToAccountId32Parachain(
 					x_currency_id,
 					who,
 					para_id,
@@ -249,7 +268,75 @@ pub mod pallet {
 					dest_network,
 					amount,
 				)),
-				Err(err) => Self::deposit_event(Event::<T>::TransferToParachainFailed(
+				Err(err) => Self::deposit_event(Event::<T>::TransferToAccountId32ParachainFailed(
+					x_currency_id,
+					who,
+					para_id,
+					dest,
+					dest_network,
+					amount,
+					err,
+				)),
+			}
+
+			Ok(().into())
+		}
+		/// Transfer tokens to parachain that uses [u8; 20] for system::AccountId
+		#[pallet::weight(10)]
+		#[transactional]
+		pub fn transfer_to_account_key_20_parachain(
+			origin: OriginFor<T>,
+			x_currency_id: XCurrencyId,
+			para_id: ParaId,
+			dest: T::AccountId,
+			dest_network: NetworkId,
+			amount: T::Balance,
+		) -> DispatchResultWithPostInfo {
+			let who = ensure_signed(origin)?;
+
+			if para_id == T::ParaId::get() {
+				return Ok(().into());
+			}
+
+			let destination = Self::account_id_20_destination(dest_network.clone(), dest.clone());
+
+			let xcm = match x_currency_id.chain_id {
+				ChainId::RelayChain => {
+					Self::transfer_relay_chain_tokens_to_parachain(para_id, destination, amount)
+				}
+				ChainId::ParaChain(reserve_chain) => {
+					if T::ParaId::get() == reserve_chain {
+						Self::transfer_owned_tokens_to_parachain(
+							x_currency_id.clone(),
+							para_id,
+							destination,
+							amount,
+						)
+					} else {
+						Self::transfer_non_owned_tokens_to_parachain(
+							reserve_chain,
+							x_currency_id.clone(),
+							para_id,
+							destination,
+							amount,
+						)
+					}
+				}
+			};
+
+			let xcm_origin = T::ToMultiLocation::try_into_location(who.clone())
+				.map_err(|_| Error::<T>::BadLocation)?;
+			// TODO: revert state on xcm execution failure.
+			match T::Executor::execute_xcm(xcm_origin, xcm) {
+				Ok(_) => Self::deposit_event(Event::<T>::TransferredToAccountKey20Parachain(
+					x_currency_id,
+					who,
+					para_id,
+					dest,
+					dest_network,
+					amount,
+				)),
+				Err(err) => Self::deposit_event(Event::<T>::TransferToAccountKey20ParachainFailed(
 					x_currency_id,
 					who,
 					para_id,
@@ -265,12 +352,24 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
+		/// Form multilocation when recipient chain uses AccountId32 as system::AccountId type
+		fn account_id_32_destination(network: NetworkId, id: &AccountId32) -> MultiLocation {
+			MultiLocation::X1(Junction::AccountId32 {
+				network,
+				id: id.clone(),
+			})
+		}
+		/// Form multilocation when recipient chain uses AccountKey20 as system::AccountId type
+		fn account_id_20_destination(network: NetworkId, key: T::AccountId) -> MultiLocation {
+			MultiLocation::X1(Junction::AccountKey20 {
+				network,
+				key: T::AccountKey20Convert::convert(key).clone(),
+			})
+		}
 		/// Returns upward message to transfer tokens from relay chain to parachain
-		/// with default substrate account type (32 byte public keys)
 		fn transfer_relay_chain_tokens_to_parachain(
 			para_id: ParaId,
-			dest: &SubstrateAccountId,
-			dest_network: NetworkId,
+			destination: MultiLocation,
 			amount: T::Balance,
 		) -> Xcm {
 			Xcm::WithdrawAsset {
@@ -287,10 +386,7 @@ pub mod pallet {
 						dest: MultiLocation::X1(Junction::Parachain { id: para_id.into() }),
 						effects: vec![Order::DepositAsset {
 							assets: vec![MultiAsset::All],
-							dest: MultiLocation::X1(Junction::AccountId32 {
-								network: dest_network,
-								id: dest.clone(),
-							}),
+							dest: destination,
 						}],
 					}],
 				}],
@@ -303,8 +399,7 @@ pub mod pallet {
 		fn transfer_owned_tokens_to_parachain(
 			x_currency_id: XCurrencyId,
 			para_id: ParaId,
-			dest: &SubstrateAccountId,
-			dest_network: NetworkId,
+			destination: MultiLocation,
 			amount: T::Balance,
 		) -> Xcm {
 			Xcm::WithdrawAsset {
@@ -320,31 +415,23 @@ pub mod pallet {
 					),
 					effects: vec![Order::DepositAsset {
 						assets: vec![MultiAsset::All],
-						dest: MultiLocation::X1(Junction::AccountId32 {
-							network: dest_network,
-							id: dest.clone(),
-						}),
+						dest: destination,
 					}],
 				}],
 			}
 		}
-
 		/// Transfer parachain tokens not "owned" by self chain to another
 		/// parachain.
 		fn transfer_non_owned_tokens_to_parachain(
 			reserve_chain: ParaId,
 			x_currency_id: XCurrencyId,
 			para_id: ParaId,
-			dest: &SubstrateAccountId,
-			dest_network: NetworkId,
+			destination: MultiLocation,
 			amount: T::Balance,
 		) -> Xcm {
 			let deposit_to_dest = Order::DepositAsset {
 				assets: vec![MultiAsset::All],
-				dest: MultiLocation::X1(Junction::AccountId32 {
-					network: dest_network,
-					id: dest.clone(),
-				}),
+				dest: destination,
 			};
 			// If transfer to reserve chain, deposit to `dest` on reserve chain,
 			// else deposit reserve asset.

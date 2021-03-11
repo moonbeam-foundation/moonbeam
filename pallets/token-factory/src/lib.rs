@@ -73,7 +73,7 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(sp_runtime::RuntimeDebug)]
+	#[derive(sp_runtime::RuntimeDebug, PartialEq, Eq)]
 	/// The supported currency types
 	pub enum CurrencyId {
 		/// The local instance of `balances` pallet, default GLMR
@@ -94,6 +94,20 @@ pub mod pallet {
 				_ => Err(()),
 			}
 		}
+	}
+
+	#[test]
+	fn currency_as_vec() {
+		let expect: CurrencyId = CurrencyId::try_from([71, 76, 77, 82].to_vec()).unwrap();
+		assert_eq!(expect, CurrencyId::Native);
+		let expect: CurrencyId = CurrencyId::try_from([68, 79, 84].to_vec()).unwrap();
+		assert_eq!(expect, CurrencyId::Token(Ticker::DOT));
+		let expect: CurrencyId = CurrencyId::try_from([75, 83, 77].to_vec()).unwrap();
+		assert_eq!(expect, CurrencyId::Token(Ticker::KSM));
+		let expect: CurrencyId = CurrencyId::try_from([65, 67, 65].to_vec()).unwrap();
+		assert_eq!(expect, CurrencyId::Token(Ticker::ACA));
+		let expect: CurrencyId = CurrencyId::try_from([65, 85, 83, 68].to_vec()).unwrap();
+		assert_eq!(expect, CurrencyId::Token(Ticker::AUSD));
 	}
 
 	/// The ERC token factory pallet
