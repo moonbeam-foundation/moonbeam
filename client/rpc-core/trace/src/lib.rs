@@ -17,14 +17,16 @@
 use jsonrpc_core::futures::Future;
 
 use ethereum_types::H160;
-use jsonrpc_core::futures::future::FutureResult;
-use jsonrpc_core::Error as RpcError;
+use futures::{compat::Compat, future::BoxFuture};
 use jsonrpc_derive::rpc;
 use serde::{Deserialize, Serialize};
 #[rpc(server)]
 pub trait Trace {
 	#[rpc(name = "trace_filter")]
-	fn filter(&self, filter: FilterRequest) -> FutureResult<FilterResponse, RpcError>;
+	fn filter(
+		&self,
+		filter: FilterRequest,
+	) -> Compat<BoxFuture<'static, jsonrpc_core::Result<FilterResponse>>>;
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Deserialize)]

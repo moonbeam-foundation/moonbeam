@@ -4111,6 +4111,7 @@ version = "0.6.0"
 dependencies = [
  "ethereum",
  "ethereum-types",
+ "futures 0.3.12",
  "jsonrpc-core 15.1.0",
  "jsonrpc-core-client 14.2.0",
  "jsonrpc-derive 14.2.2",

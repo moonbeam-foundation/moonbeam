@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use futures::sink::SinkExt;
+use futures::{
+	compat::Compat,
+	future::{BoxFuture, FutureExt, TryFutureExt},
+	sink::SinkExt,
+};
 use std::{future::Future, marker::PhantomData, pin::Pin, sync::Arc};
 use tokio::sync::oneshot;
 
-use jsonrpc_core::futures::future::FutureResult;
-use jsonrpc_core::{BoxFuture, Error as RpcError, ErrorCode, Result};
+use jsonrpc_core::{Error as RpcError, ErrorCode, Result};
 use sc_client_api::backend::{AuxStore, Backend, StateBackend};
 use sp_api::{BlockId, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
@@ -40,10 +43,13 @@ pub struct Trace {
 }
 
 impl TraceT for Trace {
-	fn filter(&self, filter: FilterRequest) -> FutureResult<FilterResponse, RpcError> {
+	fn filter(
+		&self,
+		filter: FilterRequest,
+	) -> Compat<BoxFuture<'static, jsonrpc_core::Result<FilterResponse>>> {
 		let mut requester = self.requester.clone();
 
-		futures::compat::Compat::new(async move {
+		async move {
 			let (tx, rx) = oneshot::channel();
 
 			requester.send((filter, tx)).await.map_err(|err| {
@@ -59,8 +65,9 @@ impl TraceT for Trace {
 					err
 				))
 			})?
-		})
-		.into()
+		}
+		.boxed()
+		.compat()
 	}
 }
 
