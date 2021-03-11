@@ -44,13 +44,13 @@ pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", 
 
 frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.7-moonbeam" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-substrate-a8c2bc66" }
 
 sp-consensus-aura = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master", optional = true }
 pallet-grandpa = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master", optional = true }
 
-pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.7-moonbeam" }
-fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.7-moonbeam" }
+pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "notlesh-substrate-a8c2bc66" }
+fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "notlesh-substrate-a8c2bc66" }
 
 pallet-democracy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
