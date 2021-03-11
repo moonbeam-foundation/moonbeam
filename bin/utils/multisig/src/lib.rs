@@ -20,6 +20,11 @@ use sp_runtime::{MultiSignature, MultiSigner};
 use structopt::StructOpt;
 use std::str::FromStr;
 use failure::Fail;
+use sp_core::crypto::AccountId32;
+use parity_scale_codec::{Encode};
+use std::convert::TryInto;
+
+
 
 #[derive(Debug, StructOpt)]
 #[structopt(
@@ -32,6 +37,8 @@ pub enum MultiSig {
 	GenerateSignature(GenerateSignature),
 	#[structopt(name = "generate-signer")]
 	GenerateSigner(GenerateSigner),
+	#[structopt(name = "encode-data")]
+	EncodeData(EncodeData),
 }
 
 /// Command for generating a multisignature.
@@ -56,6 +63,19 @@ pub struct GenerateSigner {
 
 	#[structopt(long)]
 	pub algorithm: String,
+}
+
+/// Command for encoding a signature input for crowdloan.
+#[derive(Debug, StructOpt)]
+pub struct EncodeData {
+	#[structopt(short, long)]
+	pub index: u32,
+	#[structopt(short, long)]
+	pub account: String,
+	#[structopt(short, long)]
+	pub old_balance: u128,
+	#[structopt(short, long)]
+	pub value: u128,
 }
 
 #[derive(Debug, Fail)]
@@ -84,6 +104,14 @@ impl FromStr for SignatureAlgorithm {
 			_ => Err(Error::InvalidAlgo),
 		}
 	}
+}
+
+fn encode_data(index: u32, who: String, old_balance: u128, value: u128) -> String  {
+	let account_as_u8 = hex::decode(who).unwrap();
+	let account: [u8; 32] = account_as_u8.as_slice().try_into().expect("account with incorrect length");
+	let acc: AccountId32 = account.into();
+	let payload = (index, acc, old_balance, value);
+	return hex::encode(payload.encode())
 }
 
 fn generic_sign<TPair: Pair>(
@@ -144,6 +172,11 @@ pub fn run() -> Result<(), Error> {
 			println!("{:?}", signer);
 			Ok(())
 		},
+		MultiSig::EncodeData(params) => {
+			let encoded = encode_data(params.index, params.account, params.old_balance, params.value);
+			println!("{:?}", encoded);
+			Ok(())
+		},
 	}
 }
 
@@ -200,5 +233,13 @@ mod tests {
 		let multi_signer = MultiSigner::from(pair.public());
 		let data_as_str = "Hello world!";
 		assert!(signature.verify(data_as_str.as_bytes(), &multi_signer.into_account()));
+	}
+	#[test]
+	fn test_encode() {
+		let index = 0;
+		let balance = 0;
+		let value = 20000000000000;
+		let encoded = encode_data(index,"8494863378510d13ce5ccd94500401345251d76ee11c83f8e599d0f57e7d9b1c".to_string(), balance, value);
+		assert_eq!("000000008494863378510d13ce5ccd94500401345251d76ee11c83f8e599d0f57e7d9b1c000000000000000000000000000000000040e59c301200000000000000000000", encoded)
 	}
 }
