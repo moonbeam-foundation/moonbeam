@@ -177,7 +177,6 @@ pub mod pallet {
 		pub unassociated: Vec<(/*T::RelayChainAccountId,*/ u32)>,
 	}
 
-	//TODO can I derive default?
 	#[cfg(feature = "std")]
 	impl<T: Config> Default for GenesisConfig<T> {
 		fn default() -> Self {
