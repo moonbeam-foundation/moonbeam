@@ -1,4 +1,5 @@
 import { ApiPromise, Keyring, WsProvider } from "@polkadot/api";
+import { start } from "polkadot-launch";
 import { typesBundle } from "../moonbeam-types-bundle";
 import {
   GERALD,
@@ -15,8 +16,15 @@ function assert(condition: boolean, msg: string) {
   if (!condition) throw new Error(msg);
 }
 
+async function wait(duration: number) {
+  console.log(`Waiting ${duration / 1000} seconds`);
+  return new Promise((res) => {
+    setTimeout(res, duration);
+  });
+}
+
 async function test() {
-  //await start("config_moonbeam.json");
+  await start("config_moonbeam.json");
   console.log("done");
   const WS_PORT = 36946;
   const wsProviderUrl = `ws://localhost:${WS_PORT}`;
@@ -29,8 +37,6 @@ async function test() {
 
   // Balance
   const account = await polkadotApi.query.system.account(ETHAN);
-  console.log(account.data.free.toString());
-  console.log(DEFAULT_GENESIS_BALANCE.toString());
   assert(
     account.data.free.toString() === DEFAULT_GENESIS_BALANCE.toString(),
     "wrong balance for Ethan"
@@ -60,14 +66,19 @@ async function test() {
   // Join Candidates
   const keyring = new Keyring({ type: "ethereum" });
   const testAccount = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
-  await polkadotApi.tx.stake.joinCandidates(0, 1000000).signAndSend(testAccount);
+  await polkadotApi.tx.stake.joinCandidates(0, "100000000000000000000000").signAndSend(testAccount);
+  await wait(10000);
   const candidatesAfter = await polkadotApi.query.stake.candidatePool();
   console.log("candidatesAfter", candidatesAfter.toHuman());
+  const ethan = await polkadotApi.query.system.account(ETHAN);
+  console.log(ethan.data.free.toString());
+  console.log(DEFAULT_GENESIS_BALANCE.toString());
 
   // Join Nominators
   const keyringAlith = new Keyring({ type: "ethereum" });
   const alith = await keyringAlith.addFromUri(ALITH_PRIVKEY, null, "ethereum");
   await polkadotApi.tx.stake.joinNominators(GERALD, 10).signAndSend(alith);
+  await wait(10000);
   const nominatorsAfter = await polkadotApi.query.stake.nominators(GERALD);
   console.log("nominatorsAfter", nominatorsAfter.toHuman());
 
