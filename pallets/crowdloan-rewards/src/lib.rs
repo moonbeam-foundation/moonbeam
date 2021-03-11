@@ -106,20 +106,21 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		/// Associate a native identity with a relay chain identity that made a contribution to the
-		/// Crowdloan. Rewards will be paid the the native identity.
+		/// Associate a native rewards_destination identity with a crowdloan contribution.
+		///
+		/// This is an unsigned call because the caller may not have any fnds to pay fees with.
+		/// This is inspired by Polkadot's claims pallet:
+		/// https://github.com/paritytech/polkadot/blob/master/runtime/common/src/claims.rs
+		///
+		/// This function and the entire concept of unassociated contributions may be obviated if
+		/// They will accept a memo filed in the Polkadot crowdloan pallet.
 		#[pallet::weight(0)]
-		pub fn associate_native_identity(origin: OriginFor<T>, proof: Vec<u8>) -> DispatchResultWithPostInfo {
-			ensure_signed(origin)?;
+		pub fn associate_native_identity(origin: OriginFor<T>, reward_account: T::AccountId, proof: Vec<u8>) -> DispatchResultWithPostInfo {
+			ensure_none(origin)?;
 
 			//TODO check the proof:
-			// 1. Is signed by an actual contributor
-			// 2. Signes a valid native identity
-			// 3. The signed identity is the caller
-			//TODO I don't think #3 is actually necessary, and it might complicate things.
-			// What if the recipient doesn't have any native funds to pay the tx fee yet.
-			// Maybe we should let anyone submit, or have them be unsigned like the dot allocations
-			// https://github.com/paritytech/polkadot/blob/master/runtime/common/src/claims.rs
+			// 1. Is signed by an actual unassociated contributor
+			// 2. Signs a valid native identity
 
 			//TODO update storage
 
@@ -149,7 +150,7 @@ pub mod pallet {
 
 	/// The ratio of (reward tokens to be paid) / (relay chain funds contributed)
 	/// This is dead stupid simple using a u32. So the reward amount has to be an integer
-	/// multiple of the contribution amount. A better fixed-ration solution would be
+	/// multiple of the contribution amount. A better fixed-ratio solution would be
 	/// https://crates.parity.io/sp_arithmetic/fixed_point/struct.FixedU128.html
 	/// We could also do something fancy and non-linear if the need arises.
 	#[pallet::storage]
