@@ -79,6 +79,7 @@ pub mod pallet {
 	use frame_support::traits::Vec;
 	use frame_system::pallet_prelude::*;
 	use frame_support::traits::Currency;
+	use log::warn;
 
 	/// The Author Filter pallet
 	#[pallet::pallet]
@@ -99,6 +100,16 @@ pub mod pallet {
 	}
 
 	type BalanceOf<T> = <<T as Config>::RewardCurrency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+
+	/// Stores info about the rewards owed as well as how much has been vested so far.
+	/// For a primer on this kind of design, see the recipe on compounding interest
+	/// https://substrate.dev/recipes/fixed-point.html#continuously-compounding
+	#[derive(Default, Clone, Encode, Decode, RuntimeDebug)]
+	pub struct RewardInfo<T: Config> {
+		pub total_reward: BalanceOf<T>,
+		pub payed_so_far: BalanceOf<T>,//TODO Do we actually need to store this? For now I will because it will probably help debugging
+		pub last_paid: T::BlockNumber,
+	}
 
 	// No hooks
 	#[pallet::hooks]
@@ -148,31 +159,28 @@ pub mod pallet {
 		}
 	}
 
-	/// The ratio of (reward tokens to be paid) / (relay chain funds contributed)
-	/// This is dead stupid simple using a u32. So the reward amount has to be an integer
-	/// multiple of the contribution amount. A better fixed-ratio solution would be
-	/// https://crates.parity.io/sp_arithmetic/fixed_point/struct.FixedU128.html
-	/// We could also do something fancy and non-linear if the need arises.
 	#[pallet::storage]
-	pub type EligibleRatio<T> = StorageValue<_, u32, ValueQuery, OneToOneRewards<T>>;
+	pub type AccountsPayable<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, RewardInfo<T>>;
 
-	#[pallet::type_value]
-	pub fn OneToOneRewards<T: Config>() -> u32 {
-		1
-	}
+	#[pallet::storage]
+	pub type UnassociatedContributions<T: Config> = StorageMap<_, Blake2_128Concat, T::RelayChainAccountId, RewardInfo<T>>;
 
 	// Design decision:
-	// Genesis config contributions are specified relay-chain currency
-	// Conversion to reward currency happens onchain:
-	// 1. When building genesis block for pre-associated contributors
-	// 2. When associating an account for others
-	// This pallets storages are all in thems of rewards
+	// Genesis config contributions are specified in relay-chain currency
+	// Conversion to reward currency happens when constructing genesis
+	// This pallets storages are all in terms of reward currency
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
 		/// Contributions that have a native account id associated already.
 		pub associated: Vec<(T::AccountId, u32)>,
 		/// Contributions that will need a native account id to be associated through an extrinsic.
 		pub unassociated: Vec<(T::RelayChainAccountId, u32)>,
+		/// The ratio of (reward tokens to be paid) / (relay chain funds contributed)
+		/// This is dead stupid simple using a u32. So the reward amount has to be an integer
+		/// multiple of the contribution amount. A better fixed-ratio solution would be
+		/// https://crates.parity.io/sp_arithmetic/fixed_point/struct.FixedU128.html
+		/// We could also do something fancy and non-linear if the need arises.
+		pub reward_ratio: u32,
 	}
 
 	#[cfg(feature = "std")]
@@ -181,6 +189,7 @@ pub mod pallet {
 			Self {
 				associated: Vec::new(),
 				unassociated: Vec::new(),
+				reward_ratio: 1,
 			}
 		}
 	}
@@ -189,8 +198,31 @@ pub mod pallet {
 	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
 
-			//TODO warn if no contributions (associated or not) are specified
-			//TODO calculate reward amounts and copy into storage
+			// Warn if no contributions (associated or not) are specified
+			if self.associated.is_empty() && self.unassociated.is_empty() {
+				warn!("Rewards: No contributions configured. Pallet will not be useable.")
+			}
+
+			// Initialize storage for associated contributions
+			self.associated.iter().for_each(|(native_account, contrib)| {
+				let reward_info = RewardInfo{
+					total_reward: BalanceOf::<T>::from(*contrib) * BalanceOf::<T>::from(self.reward_ratio), //TODO safe math?
+					payed_so_far: 0.into(),
+					last_paid: 0.into(),
+				};
+				AccountsPayable::<T>::insert(native_account, reward_info);
+			});
+
+			// Initialize storage for UN-associated contributions
+			self.unassociated.iter().for_each(|(relay_account, contrib)| {
+				//TODO: 📠🍝
+				let reward_info = RewardInfo{
+					total_reward: BalanceOf::<T>::from(*contrib) * BalanceOf::<T>::from(self.reward_ratio), //TODO safe math?
+					payed_so_far: 0.into(),
+					last_paid: 0.into(),
+				};
+				UnassociatedContributions::<T>::insert(relay_account, reward_info);
+			});
 		}
 	}
 
