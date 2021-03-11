@@ -2,6 +2,7 @@
 members = [
     'runtime',
     'node',
+    'pallets/crowdloan-rewards',
 ]
 
 [profile.release]
