@@ -33,7 +33,7 @@
 //!
 //! ## Payout Mechanism
 //!
-//! The currentpayout mechanism requires contributors to claim their payouts. Because they are
+//! The current payout mechanism requires contributors to claim their payouts. Because they are
 //! paying the transaction fees for this themselves, they can do it as often as every block, or
 //! wait and claim the entire thing once it is fully vested. We could consider auto payouts if we
 //! want.
@@ -49,7 +49,7 @@
 //!
 //! * **Unassociated at Genesis**
 //!
-//! When the crowdloan takes place on-relay-chain, contributors will not have a way to specify an
+//! When the crowdloan takes place on-relay-chain, contributors will not have a way to specify a native account
 //! into which they will receive rewards on the parachain. TODO that would be easy to add to the
 //! relay chain actually. In this case the genesis config contains information about the
 //! relay chain style contributor address, and the contribution amount. In this case the
@@ -80,8 +80,8 @@ pub mod pallet {
 	use frame_support::traits::Randomness;
 	use frame_support::traits::Vec;
 	use frame_system::pallet_prelude::*;
-	use sp_core::H256;
-	use sp_runtime::Percent;
+	use frame_support::traits::Currency;
+	use parity_scale_codec::{Encode, Decode};
 
 	/// The Author Filter pallet
 	#[pallet::pallet]
@@ -93,16 +93,17 @@ pub mod pallet {
 		/// The overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The currency in which the rewards will be paid (probably the parachain native currency)
-		type RewardCurrency: Currency<T::AccountId>;
-		/// The AccountId type contributors used on the relay chain.
-		type RelayChainAccountId; // What trait bounds do I need here? I think concretely we would
+		type RewardCurrency: Currency<Self::AccountId>;
+
+		// TODO What trait bounds do I need here? I think concretely we would
 		// be using MultiSigner? Or maybe MultiAccount?
+		/// The AccountId type contributors used on the relay chain.
+		type RelayChainAccountId: Encode + Decode;
 	}
 
-	type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+	type BalanceOf<T> = <<T as Config>::RewardCurrency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
 	// No hooks
-	//TODO maybe automated payments
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
 
@@ -162,10 +163,6 @@ pub mod pallet {
 		1
 	}
 
-	//TODO genesis config:
-	//1. Assocaited contributions
-	//2. Uassociated contributions
-
 	// Design decision:
 	// Genesis config contributions are specified relay-chain currency
 	// Conversion to reward currency happens onchain:
@@ -174,8 +171,10 @@ pub mod pallet {
 	// This pallets storages are all in thems of rewards
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
-		pub associated_contributions: Vec<(T::AccountId, u32)>,
-		pub unassociated_contributions: Vec<(T::RelayChainAccountId, u32)>,
+		/// Contributions that have a native account id associated already.
+		pub associated: Vec<(T::AccountId, u32)>,
+		/// Contributions that will need a native account id to be associated through an extrinsic.
+		pub unassociated: Vec<(/*T::RelayChainAccountId,*/ u32)>,
 	}
 
 	//TODO can I derive default?
@@ -183,10 +182,8 @@ pub mod pallet {
 	impl<T: Config> Default for GenesisConfig<T> {
 		fn default() -> Self {
 			Self {
-				//TODO It would nice to somehow put alice and bob here, but that requires knowledge
-				// of the concrete AccountId type. Maybe I could take it in the config trait and
-				// let the runtime author supply it, but for now, I'm gonna do it in chain_spec.rs
-				stored_accounts: Vec::new(),
+				associated: Vec::new(),
+				unassociated: Vec::new(),
 			}
 		}
 	}
@@ -195,10 +192,8 @@ pub mod pallet {
 	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
 
-			if self.stored_accounts.is_empty() {
-				warn!(target: "account-set", "No accounts stored at genesis. If this is used for authorship, your chain will have no valid authors.");
-			}
-			StoredAccounts::<T>::put(&self.stored_accounts);
+			//TODO warn if no contributions (associated or not) are specified
+			//TODO calculate reward amounts and copy into storage
 		}
 	}
 

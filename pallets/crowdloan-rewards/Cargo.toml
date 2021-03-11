@@ -7,6 +7,7 @@ description = "Reward citizens who participated in a crowdloan to acquire a para
 
 [dependencies]
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
+serde = { version = "1.0.101", optional = true, features = ["derive"] }
 
 frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
@@ -21,4 +22,5 @@ std = [
     "frame-system/std",
     "sp-core/std",
     "sp-runtime/std",
+    "serde",
 ]
