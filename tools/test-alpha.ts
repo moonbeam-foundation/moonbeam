@@ -16,11 +16,9 @@ export default async function test(ACC: string) {
     typesBundle: typesBundle as any,
   });
   const account = await polkadotApi.query.system.account(ACC);
-  // console.log(Object.keys(account.data));
   // console.log("BALANCE API", account.data.feeFrozen.toString());
   // console.log("BALANCE API", account.data.miscFrozen.toString());
   // console.log("BALANCE API", account.data.reserved.toString());
   console.log("BALANCE API", account.data.free.toString());
-  // console.log("BALANCE API", account.data.registry.toString());
 }
 test(FAITH);
