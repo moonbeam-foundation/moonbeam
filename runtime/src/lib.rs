@@ -264,6 +264,7 @@ impl pallet_evm::Config for Runtime {
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type Precompiles = precompiles::MoonbeamPrecompiles<Self>;
 	type ChainId = EthereumChainId;
+	type OnChargeTransaction = ();
 }
 
 parameter_types! {
