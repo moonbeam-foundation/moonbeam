@@ -2,6 +2,7 @@ import { ApiPromise, Keyring, WsProvider } from "@polkadot/api";
 import { start } from "polkadot-launch";
 import { typesBundle } from "../moonbeam-types-bundle";
 import {
+  ALITH,
   GERALD,
   FAITH,
   STAKING_AMOUNT,
@@ -89,7 +90,7 @@ async function test() {
   console.log("candidatesAfter", candidatesAfter.toHuman());
   assert(
     (candidatesAfter.toHuman() as { owner: string; amount: string }[]).length === 3,
-    "new ccandidate should have been added"
+    "new candidate should have been added"
   );
   const ethan = await polkadotApi.query.system.account(ETHAN);
   console.log(ethan.data.free.toString());
@@ -115,7 +116,7 @@ async function test() {
       }
     });
   await wait(50000);
-  const nominatorsAfter = await polkadotApi.query.stake.nominators(GERALD);
+  const nominatorsAfter = await polkadotApi.query.stake.nominators(ALITH);
   console.log("nominatorsAfter", nominatorsAfter.toHuman());
 
   console.log("SUCCESS");
