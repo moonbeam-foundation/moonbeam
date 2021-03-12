@@ -33,6 +33,8 @@ jobs:
           #toolchain: ${{ env.WASM_BUILD_TOOLCHAIN }}
           default: true
 
+      #TODO caching?
+
       - name: Build rustdocs
         uses: actions-rs/cargo@v1
         with:
