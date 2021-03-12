@@ -100,6 +100,7 @@ The Moonbeam Runtime is built using FRAME and consists of pallets from substrate
 
 From substrate:
 
+- _Utility_: Allows users to use derivative accounts, and batch calls
 - _Balances_: Tracks GLMR token balances
 - _Sudo_: Allows a privileged account to make arbitrary runtime changes - will be removed before
   launch
