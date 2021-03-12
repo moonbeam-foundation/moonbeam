@@ -37,7 +37,7 @@ jobs:
           uses: actions-rs/cargo@v1
           with:
             command: doc
-            args: --all --no-deps=
+            args: --all --no-deps
 
         #TODO Do we need to make an index.html?
         - name: Make index.html
