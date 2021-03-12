@@ -17,22 +17,22 @@
 //! Test utilities
 use crate::*;
 use frame_support::{
-	impl_outer_event, impl_outer_origin, parameter_types,
+	impl_outer_origin, parameter_types,
 	traits::{OnFinalize, OnInitialize},
 	weights::Weight,
 };
 use frame_support::traits::GenesisBuild;
 use sp_core::H256;
-use sp_core::{sr25519, ed25519};
+use sp_core::ed25519;
 use sp_io;
 use sp_core::Pair;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
-	AccountId32,
 };
 use sp_std::convert::TryInto;
+use sp_std::convert::From;
 
 pub type AccountId = u64;
 pub type Balance = u128;
@@ -97,16 +97,18 @@ impl pallet_balances::Config for Test {
 impl Config for Test {
 	type Event = ();
 	type RewardCurrency = Balances;
-	type RelayChainAccountId = AccountId32;
+	type RelayChainAccountId = [u8; 32];
 	type VestingPeriod = ();
 }
 pub type Balances = pallet_balances::Module<Test>;
 pub type Crowdloan = Module<Test>;
 pub type Sys = frame_system::Module<Test>;
 
+
+
 fn genesis(
-	assigned: Vec<(AccountId32, AccountId, u32)>,
-	unassigned: Vec<(AccountId32, u32)>,
+	assigned: Vec<( [u8; 32], AccountId, u32)>,
+	unassigned: Vec<( [u8; 32], u32)>,
 ) -> sp_io::TestExternalities {
 
 	let mut storage = frame_system::GenesisConfig::default()
@@ -150,7 +152,7 @@ pub(crate) fn two_assigned_three_unassigned() -> sp_io::TestExternalities {
 	)
 }
 
-/*pub(crate) fn roll_to(n: u64) {
+pub(crate) fn roll_to(n: u64) {
 	while Sys::block_number() < n {
 		Crowdloan::on_finalize(Sys::block_number());
 		Balances::on_finalize(Sys::block_number());
@@ -160,4 +162,4 @@ pub(crate) fn two_assigned_three_unassigned() -> sp_io::TestExternalities {
 		Balances::on_initialize(Sys::block_number());
 		Crowdloan::on_initialize(Sys::block_number());
 	}
-}*/
+}
