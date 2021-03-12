@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -89,7 +89,7 @@ impl SubstrateCli for Cli {
 	}
 
 	fn copyright_start_year() -> i32 {
-		2017
+		2019
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
@@ -127,7 +127,7 @@ impl SubstrateCli for RelayChainCli {
 	}
 
 	fn copyright_start_year() -> i32 {
-		2017
+		2019
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
