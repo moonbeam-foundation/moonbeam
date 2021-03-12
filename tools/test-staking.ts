@@ -3,6 +3,7 @@ import { start } from "polkadot-launch";
 import { typesBundle } from "../moonbeam-types-bundle";
 import { ALITH } from "./test-constants";
 import {
+  ALITH,
   GERALD,
   FAITH,
   STAKING_AMOUNT,
@@ -90,7 +91,7 @@ async function test() {
   console.log("candidatesAfter", candidatesAfter.toHuman());
   assert(
     (candidatesAfter.toHuman() as { owner: string; amount: string }[]).length === 3,
-    "new ccandidate should have been added"
+    "new candidate should have been added"
   );
   const ethan = await polkadotApi.query.system.account(ETHAN);
   console.log(ethan.data.free.toString());
@@ -115,6 +116,7 @@ async function test() {
         unsub2();
       }
     });
+<<<<<<< HEAD
   await wait(60000);
   const nominatorsAfter = await polkadotApi.query.stake.nominators(ALITH);
   assert(
@@ -122,6 +124,10 @@ async function test() {
       .nominations.owner === GERALD,
     "nomination didnt go through"
   );
+=======
+  await wait(50000);
+  const nominatorsAfter = await polkadotApi.query.stake.nominators(ALITH);
+>>>>>>> bc55905fbf2bdeefab185445368083b8c86cb31f
   console.log("nominatorsAfter", nominatorsAfter.toHuman());
 
   console.log("SUCCESS");
