@@ -45,7 +45,7 @@
 //! * **Assocaited at Genesis**
 //!
 //! The simplest way is that the native identity and contribution amount are configured at genesis.
-//! This makes sense in a scenario where the crowdloan took place entirely offchain.
+//! This makes sense in a scenario wherethe crowdloan took place entirely offchain.
 //!
 //! * **Unassociated at Genesis**
 //!
@@ -74,14 +74,16 @@ pub use pallet::*;
 #[pallet]
 pub mod pallet {
 
+	use frame_support::dispatch::fmt::Debug;
 	use frame_support::pallet_prelude::*;
+	use frame_support::traits::Currency;
 	use frame_support::traits::Vec;
 	use frame_system::pallet_prelude::*;
-	use frame_support::traits::Currency;
 	use log::warn;
-	use sp_runtime::SaturatedConversion;
+	use sp_core::crypto::AccountId32;
+	use sp_runtime::traits::Verify;
+	use sp_runtime::{MultiSignature, SaturatedConversion};
 	use std::convert::TryInto;
-
 
 	/// The Author Filter pallet
 	#[pallet::pallet]
@@ -98,14 +100,21 @@ pub mod pallet {
 		// TODO What trait bounds do I need here? I think concretely we would
 		// be using MultiSigner? Or maybe MultiAccount? I copied these from frame_system
 		/// The AccountId type contributors used on the relay chain.
-		type RelayChainAccountId: Parameter + Member + MaybeSerializeDeserialize + Default;
+		type RelayChainAccountId: Parameter
+			+ Member
+			+ MaybeSerializeDeserialize
+			+ Ord
+			+ Default
+			+ Debug
+			+ Into<AccountId32>;
 
 		/// The total vesting period.
 		type VestingPeriod: Get<Self::BlockNumber>;
 	}
 
-	type BalanceOf<T> = <<T as Config>::RewardCurrency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
-
+	type BalanceOf<T> = <<T as Config>::RewardCurrency as Currency<
+		<T as frame_system::Config>::AccountId,
+	>>::Balance;
 	/// Stores info about the rewards owed as well as how much has been vested so far.
 	/// For a primer on this kind of design, see the recipe on compounding interest
 	/// https://substrate.dev/recipes/fixed-point.html#continuously-compounding
@@ -123,41 +132,83 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		/// Associate a native rewards_destination identity with a crowdloan contribution.
 		///
-		/// This is an unsigned call because the caller may not have any fnds to pay fees with.
+		/// This is an unsigned call because the caller may not have any funds to pay fees with.
 		/// This is inspired by Polkadot's claims pallet:
 		/// https://github.com/paritytech/polkadot/blob/master/runtime/common/src/claims.rs
 		///
 		/// This function and the entire concept of unassociated contributions may be obviated if
 		/// They will accept a memo filed in the Polkadot crowdloan pallet.
 		#[pallet::weight(0)]
-		pub fn associate_native_identity(origin: OriginFor<T>, reward_account: T::AccountId, proof: Vec<u8>) -> DispatchResultWithPostInfo {
+		pub fn associate_native_identity(
+			origin: OriginFor<T>,
+			reward_account: T::AccountId,
+			relay_account: T::RelayChainAccountId,
+			proof: MultiSignature,
+		) -> DispatchResultWithPostInfo {
 			ensure_none(origin)?;
-
 			//TODO check the proof:
 			// 1. Is signed by an actual unassociated contributor
 			// 2. Signs a valid native identity
+			// Check the proof. The Proof consists of a Signature of the rewarded account with the
+			// claimer key
+			let payload = reward_account.encode();
+			ensure!(
+				proof.verify(payload.as_slice(), &relay_account.clone().into()),
+				Error::<T>::InvalidClaimSignature
+			);
 
-			//TODO update storage
+			// We ensure the mapping does not exist yet to avoid multi-claiming
+			ensure!(
+				AccountsMapping::<T>::get(&relay_account).is_none(),
+				Error::<T>::AlreadyAssociated
+			);
 
-			//TODO Emit event
+			// Upon error this should check the relay chain state in this case
+			let reward_info = UnassociatedContributions::<T>::get(&relay_account)
+				.ok_or(Error::<T>::NoAssociatedClaim)?;
+
+			// Insert on payable
+			AccountsPayable::<T>::insert(&reward_account, &reward_info);
+
+			// Remove from unassociated
+			<UnassociatedContributions<T>>::remove(&relay_account);
+
+			// Insert in mapping
+			AccountsMapping::<T>::insert(&relay_account, &reward_account);
+
+			// Emit Event
+			Self::deposit_event(Event::NativeIdentityAssociated(
+				relay_account,
+				reward_account,
+				reward_info.total_reward,
+			));
 
 			Ok(Default::default())
 		}
 
 		/// Collect whatever portion of your reward are currently vested.
 		#[pallet::weight(0)]
-		pub fn show_me_the_money(origin: OriginFor<T>) -> DispatchResultWithPostInfo
-		{
+		pub fn show_me_the_money(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let payee = ensure_signed(origin)?;
 
 			// Calculate the veted amount on demand.
-			let mut info = AccountsPayable::<T>::get(&payee).ok_or(Error::<T>::NoAssociatedClaim)?;
+			let mut info =
+				AccountsPayable::<T>::get(&payee).ok_or(Error::<T>::NoAssociatedClaim)?;
 			let now = frame_system::Module::<T>::block_number();
 			//TODO This part doesn't compile because of a million stupid errors about converting
 			// between u32, Balance, and BlockNumber. I think that is solvable, just annoying.
-			let payable_per_block = info.total_reward/ T::VestingPeriod::get().saturated_into::<u128>().try_into().ok().ok_or(Error::<T>::WrongConversionU128ToBalance)?; //TODO safe math;
+			let payable_per_block = info.total_reward
+				/ T::VestingPeriod::get()
+					.saturated_into::<u128>()
+					.try_into()
+					.ok()
+					.ok_or(Error::<T>::WrongConversionU128ToBalance)?; //TODO safe math;
 			let payable_period = T::VestingPeriod::get() - info.last_paid;
-			let pay_period_as_balance: BalanceOf<T> = payable_period.saturated_into::<u128>().try_into().ok().ok_or(Error::<T>::WrongConversionU128ToBalance)?;
+			let pay_period_as_balance: BalanceOf<T> = payable_period
+				.saturated_into::<u128>()
+				.try_into()
+				.ok()
+				.ok_or(Error::<T>::WrongConversionU128ToBalance)?;
 			let payable_amount = pay_period_as_balance * payable_per_block;
 
 			// Update the stored info
@@ -182,15 +233,21 @@ pub mod pallet {
 		/// User trying to claim an award did not have an claim associated with it. This may mean
 		/// they did not contribute to the crowdloan, or they have not yet associated a native id
 		/// with their contribution
+		AlreadyAssociated,
+		InvalidClaimSignature,
 		NoAssociatedClaim,
 		WrongConversionU128ToBalance,
 	}
 
 	#[pallet::storage]
-	pub type AccountsPayable<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, RewardInfo<T>>;
-
+	pub type AccountsPayable<T: Config> =
+		StorageMap<_, Blake2_128Concat, T::AccountId, RewardInfo<T>>;
 	#[pallet::storage]
-	pub type UnassociatedContributions<T: Config> = StorageMap<_, Blake2_128Concat, T::RelayChainAccountId, RewardInfo<T>>;
+	pub type AccountsMapping<T: Config> =
+		StorageMap<_, Blake2_128Concat, T::RelayChainAccountId, T::AccountId>;
+	#[pallet::storage]
+	pub type UnassociatedContributions<T: Config> =
+		StorageMap<_, Blake2_128Concat, T::RelayChainAccountId, RewardInfo<T>>;
 
 	// Design decision:
 	// Genesis config contributions are specified in relay-chain currency
@@ -199,7 +256,7 @@ pub mod pallet {
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
 		/// Contributions that have a native account id associated already.
-		pub associated: Vec<(T::AccountId, u32)>,
+		pub associated: Vec<(T::RelayChainAccountId, T::AccountId, u32)>,
 		/// Contributions that will need a native account id to be associated through an extrinsic.
 		pub unassociated: Vec<(T::RelayChainAccountId, u32)>,
 		/// The ratio of (reward tokens to be paid) / (relay chain funds contributed)
@@ -224,30 +281,36 @@ pub mod pallet {
 	#[pallet::genesis_build]
 	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
-
 			// Warn if no contributions (associated or not) are specified
 			if self.associated.is_empty() && self.unassociated.is_empty() {
 				warn!("Rewards: No contributions configured. Pallet will not be useable.")
 			}
 
 			// Initialize storage for associated contributions
-			self.associated.iter().for_each(|(native_account, contrib)| {
-				let reward_info = RewardInfo{
-					total_reward: BalanceOf::<T>::from(*contrib) * BalanceOf::<T>::from(self.reward_ratio), //TODO safe math?
-					last_paid: 0u32.into(),
-				};
-				AccountsPayable::<T>::insert(native_account, reward_info);
-			});
+			self.associated
+				.iter()
+				.for_each(|(relay_account, native_account, contrib)| {
+					let reward_info = RewardInfo {
+						total_reward: BalanceOf::<T>::from(*contrib)
+							* BalanceOf::<T>::from(self.reward_ratio), //TODO safe math?
+						last_paid: 0u32.into(),
+					};
+					AccountsPayable::<T>::insert(native_account, reward_info);
+					AccountsMapping::<T>::insert(relay_account, native_account);
+				});
 
 			// Initialize storage for UN-associated contributions
-			self.unassociated.iter().for_each(|(relay_account, contrib)| {
-				//TODO: 📠🍝
-				let reward_info = RewardInfo{
-					total_reward: BalanceOf::<T>::from(*contrib) * BalanceOf::<T>::from(self.reward_ratio), //TODO safe math?
-					last_paid: 0u32.into(),
-				};
-				UnassociatedContributions::<T>::insert(relay_account, reward_info);
-			});
+			self.unassociated
+				.iter()
+				.for_each(|(relay_account, contrib)| {
+					//TODO: 📠🍝
+					let reward_info = RewardInfo {
+						total_reward: BalanceOf::<T>::from(*contrib)
+							* BalanceOf::<T>::from(self.reward_ratio), //TODO safe math?
+						last_paid: 0u32.into(),
+					};
+					UnassociatedContributions::<T>::insert(relay_account, reward_info);
+				});
 		}
 	}
 
@@ -255,8 +318,8 @@ pub mod pallet {
 	#[pallet::generate_deposit(fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// Someone has proven they made a contribution and associated a native identity with it.
-		/// Data is the native account and the total amount of _rewards_ that will be paid
-		NativeIdentityAssociated(T::AccountId, BalanceOf<T>),
+		/// Data is the relay account,  native account and the total amount of _rewards_ that will be paid
+		NativeIdentityAssociated(T::RelayChainAccountId, T::AccountId, BalanceOf<T>),
 		/// A contributor has claimed some rewards.
 		/// Data is the account getting paid and the amount of rewards paid.
 		RewardsPaid(T::AccountId, BalanceOf<T>),
