@@ -70,6 +70,10 @@
 
 use frame_support::pallet;
 pub use pallet::*;
+#[cfg(test)]
+pub(crate) mod mock;
+#[cfg(test)]
+mod tests;
 
 #[pallet]
 pub mod pallet {
@@ -127,6 +131,7 @@ pub mod pallet {
 	// No hooks
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
+
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -240,12 +245,15 @@ pub mod pallet {
 	}
 
 	#[pallet::storage]
+	#[pallet::getter(fn accounts_payable)]
 	pub type AccountsPayable<T: Config> =
 		StorageMap<_, Blake2_128Concat, T::AccountId, RewardInfo<T>>;
 	#[pallet::storage]
+	#[pallet::getter(fn accounts_mapping)]
 	pub type AccountsMapping<T: Config> =
 		StorageMap<_, Blake2_128Concat, T::RelayChainAccountId, T::AccountId>;
 	#[pallet::storage]
+	#[pallet::getter(fn unassociated_contributions)]
 	pub type UnassociatedContributions<T: Config> =
 		StorageMap<_, Blake2_128Concat, T::RelayChainAccountId, RewardInfo<T>>;
 
