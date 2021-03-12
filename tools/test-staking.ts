@@ -1,6 +1,7 @@
 import { ApiPromise, Keyring, WsProvider } from "@polkadot/api";
 import { start } from "polkadot-launch";
 import { typesBundle } from "../moonbeam-types-bundle";
+import { ALITH } from "./test-constants";
 import {
   GERALD,
   FAITH,
@@ -114,8 +115,13 @@ async function test() {
         unsub2();
       }
     });
-  await wait(50000);
-  const nominatorsAfter = await polkadotApi.query.stake.nominators(GERALD);
+  await wait(60000);
+  const nominatorsAfter = await polkadotApi.query.stake.nominators(ALITH);
+  assert(
+    (nominatorsAfter.toHuman() as { nominations: { owner: string; amount: string } }[])[0]
+      .nominations.owner === GERALD,
+    "nomination didnt go through"
+  );
   console.log("nominatorsAfter", nominatorsAfter.toHuman());
 
   console.log("SUCCESS");
