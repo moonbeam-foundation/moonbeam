@@ -11275,6 +11275,7 @@ dependencies = [
  "token-factory",
  "xcm",
  "xcm-executor",
+ "xcm-handler",
 ]
 
 [[package]]

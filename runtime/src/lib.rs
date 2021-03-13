@@ -376,16 +376,6 @@ impl pallet_ethereum::Config for Runtime {
 	type BlockGasLimit = BlockGasLimit;
 }
 
-impl cumulus_parachain_system::Config for Runtime {
-	type Event = Event;
-	type OnValidationData = ();
-	type SelfParaId = ParachainInfo;
-	type DownwardMessageHandlers = XcmHandler;
-	type HrmpMessageHandlers = XcmHandler;
-}
-
-impl parachain_info::Config for Runtime {}
-
 // 18 decimals
 pub const GLMR: Balance = 1_000_000_000_000_000_000;
 
@@ -583,6 +573,16 @@ impl xcm_handler::Config for Runtime {
 	type UpwardMessageSender = ParachainSystem;
 	type HrmpMessageSender = ParachainSystem;
 }
+
+impl cumulus_parachain_system::Config for Runtime {
+	type Event = Event;
+	type OnValidationData = ();
+	type SelfParaId = ParachainInfo;
+	type DownwardMessageHandlers = XcmHandler;
+	type HrmpMessageHandlers = XcmHandler;
+}
+
+impl parachain_info::Config for Runtime {}
 
 construct_runtime! {
 	pub enum Runtime where

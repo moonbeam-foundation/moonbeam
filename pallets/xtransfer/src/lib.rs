@@ -48,7 +48,8 @@ pub mod pallet {
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
 	use sp_std::prelude::*;
 	use xcm::v0::{
-		Error as XcmError, ExecuteXcm, Junction, MultiAsset, MultiLocation, NetworkId, Order, Xcm,
+		Error as XcmError, ExecuteXcm, Junction, MultiAsset, MultiLocation, NetworkId, Order,
+		OriginKind, SendXcm, Xcm,
 	};
 	use xcm_executor::traits::LocationConversion;
 
@@ -86,7 +87,7 @@ pub mod pallet {
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
+	pub trait Config: frame_system::Config + xcm_handler::Config {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// Balances type
@@ -118,6 +119,14 @@ pub mod pallet {
 		TransferredToRelayChain(T::AccountId, AccountId32, T::Balance),
 		/// Transfer to relay chain failed. \[src, dest, amount, error\]
 		TransferToRelayChainFailed(T::AccountId, AccountId32, T::Balance, XcmError),
+		/// Sent channel open request to parachain
+		SentChannelRequest(ParaId),
+		/// Accepted channel open request from parachain
+		AcceptedChannelRequest(ParaId),
+		/// Closed channel with parachain as recipient and self as sender
+		ClosedSenderChannel(ParaId),
+		/// Closed channel with parachain as sender and self as recipient
+		ClosedRecipientChannel(ParaId),
 		/// Transferred to parachain. \[x_currency_id, src, para_id, dest, dest_network, amount\]
 		TransferredToAccountId32Parachain(
 			XCurrencyId,
@@ -164,13 +173,164 @@ pub mod pallet {
 	pub enum Error<T> {
 		/// Bad location.
 		BadLocation,
+		/// Cannot send message from parachain to self
+		CannotSendToSelf,
+		/// Call to SendXcm to initiate open channel failed
+		FailedToSendChannelOpenRequest,
+		/// Maximum one channel per relation ~ (sender,receiver) and direction matters
+		MaxOneChannelPerRelation,
+		/// Requires existing open channel with self as sender
+		NoSenderChannelOpen,
+		/// Requires existing open channel with self as recipient
+		NoRecipientChannelOpen,
 	}
+
+	#[pallet::storage]
+	#[pallet::getter(fn sender_channels)]
+	/// Stores all parachains with which this parachain has opened a channel as the sender
+	/// -> may be redundant, but it propagates errors earlier than in processing by runtime relay
+	pub type SenderChannels<T: Config> = StorageValue<_, Vec<ParaId>, ValueQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn recipient_channels)]
+	/// Stores all parachains with which this parachain has accepted a channel as the recipient
+	pub type RecipientChannels<T: Config> = StorageValue<_, Vec<ParaId>, ValueQuery>;
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		#[pallet::weight(10)]
+		/// Request to open HRMP channel with another parachain
+		/// - default `proposed_max_capacity` is 8 and `proposed_max_message_size` is 1024
+		pub fn open_para_channel(
+			origin: OriginFor<T>,
+			recipient: ParaId,
+			// temporary until proper Xcm message variant is added with handler logic
+			call: Vec<u8>,
+		) -> DispatchResultWithPostInfo {
+			frame_system::ensure_root(origin)?;
+			let sender = T::ParaId::get();
+			ensure!(sender != recipient, Error::<T>::CannotSendToSelf);
+			let mut channels = <SenderChannels<T>>::get();
+			ensure!(
+				channels.binary_search(&recipient).is_err(),
+				Error::<T>::MaxOneChannelPerRelation
+			);
+			// call `hrmp_init_open_channel` on relay chain
+			let message = Xcm::Transact {
+				origin_type: OriginKind::Native,
+				call,
+			};
+			// send message to relay chain
+			<xcm_handler::Module<T>>::send_xcm(MultiLocation::Null, message)
+				.map_err(|_| Error::<T>::FailedToSendChannelOpenRequest)?;
+			// TODO: change s.t. no storage changes until channel is accepted
+			if let Err(loc) = channels.binary_search(&recipient) {
+				channels.insert(loc, recipient);
+			}
+			// update sender channels storage item
+			<SenderChannels<T>>::put(channels);
+			// emit event
+			Self::deposit_event(Event::SentChannelRequest(recipient));
+			Ok(().into())
+		}
+		#[pallet::weight(10)]
+		/// Accept a request to open HRMP channel
+		pub fn accept_para_channel(
+			origin: OriginFor<T>,
+			sender: ParaId,
+			// temporary until proper Xcm message variant is added with handler logic
+			call: Vec<u8>,
+		) -> DispatchResultWithPostInfo {
+			frame_system::ensure_root(origin)?;
+			ensure!(sender != T::ParaId::get(), Error::<T>::CannotSendToSelf);
+			let mut channels = <RecipientChannels<T>>::get();
+			ensure!(
+				channels.binary_search(&sender).is_err(),
+				Error::<T>::MaxOneChannelPerRelation
+			);
+			// call `hrmp_accept_open_channel` on relay chain
+			let message = Xcm::Transact {
+				origin_type: OriginKind::Native,
+				call,
+			};
+			// send message to relay chain
+			<xcm_handler::Module<T>>::send_xcm(MultiLocation::Null, message)
+				.map_err(|_| Error::<T>::FailedToSendChannelOpenRequest)?;
+			// ensured by check further above
+			if let Err(loc) = channels.binary_search(&sender) {
+				channels.insert(loc, sender);
+			}
+			// update sender channels storage item
+			<RecipientChannels<T>>::put(channels);
+			// emit event
+			Self::deposit_event(Event::AcceptedChannelRequest(sender));
+			Ok(().into())
+		}
+		#[pallet::weight(10)]
+		/// Close an open HRMP channel with self as sender
+		pub fn close_sender_channel(
+			origin: OriginFor<T>,
+			recipient: ParaId,
+			// temporary until hrmp variants added to Xcm
+			call: Vec<u8>,
+		) -> DispatchResultWithPostInfo {
+			frame_system::ensure_root(origin)?;
+			ensure!(recipient != T::ParaId::get(), Error::<T>::CannotSendToSelf);
+			let mut channels = <SenderChannels<T>>::get();
+			ensure!(
+				channels.binary_search(&recipient).is_ok(),
+				Error::<T>::NoSenderChannelOpen
+			);
+			// call `hrmp_close_channel` on relay chain
+			let message = Xcm::Transact {
+				origin_type: OriginKind::Native,
+				call,
+			};
+			// send message to relay chain
+			<xcm_handler::Module<T>>::send_xcm(MultiLocation::Null, message)
+				.map_err(|_| Error::<T>::FailedToSendChannelOpenRequest)?;
+			// update storage
+			if let Ok(loc) = channels.binary_search(&recipient) {
+				channels.remove(loc);
+			}
+			<SenderChannels<T>>::put(channels);
+			Self::deposit_event(Event::ClosedSenderChannel(recipient));
+			Ok(().into())
+		}
+		#[pallet::weight(10)]
+		/// Close an open HRMP channel with self as recipient
+		pub fn close_recipient_channel(
+			origin: OriginFor<T>,
+			sender: ParaId,
+			// temporary until hrmp variants added to Xcm
+			call: Vec<u8>,
+		) -> DispatchResultWithPostInfo {
+			frame_system::ensure_root(origin)?;
+			ensure!(sender != T::ParaId::get(), Error::<T>::CannotSendToSelf);
+			let mut channels = <RecipientChannels<T>>::get();
+			ensure!(
+				channels.binary_search(&sender).is_ok(),
+				Error::<T>::NoRecipientChannelOpen
+			);
+			// call is to `hrmp_close_channel` on relay chain
+			let message = Xcm::Transact {
+				origin_type: OriginKind::Native,
+				call,
+			};
+			// send message to accept the channel request
+			<xcm_handler::Module<T>>::send_xcm(MultiLocation::Null, message)
+				.map_err(|_| Error::<T>::FailedToSendChannelOpenRequest)?;
+			// update storage
+			if let Ok(loc) = channels.binary_search(&sender) {
+				channels.remove(loc);
+			}
+			<RecipientChannels<T>>::put(channels);
+			Self::deposit_event(Event::ClosedRecipientChannel(sender));
+			Ok(().into())
+		}
 		/// Transfer relay chain tokens to relay chain.
 		#[pallet::weight(10)]
 		#[transactional]
@@ -214,6 +374,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Transfer tokens to parachain that uses [u8; 32] for system::AccountId
+		/// - channel must be open with self as sender
 		#[pallet::weight(10)]
 		#[transactional]
 		pub fn transfer_to_account_id_32_parachain(
@@ -225,10 +386,11 @@ pub mod pallet {
 			amount: T::Balance,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
-
-			if para_id == T::ParaId::get() {
-				return Ok(().into());
-			}
+			ensure!(para_id != T::ParaId::get(), Error::<T>::CannotSendToSelf);
+			ensure!(
+				<SenderChannels<T>>::get().binary_search(&para_id).is_ok(),
+				Error::<T>::NoSenderChannelOpen
+			);
 
 			let destination = Self::account_id_32_destination(dest_network.clone(), &dest);
 
@@ -282,6 +444,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Transfer tokens to parachain that uses [u8; 20] for system::AccountId
+		/// - channel must be open with self as sender
 		#[pallet::weight(10)]
 		#[transactional]
 		pub fn transfer_to_account_key_20_parachain(
@@ -293,10 +456,11 @@ pub mod pallet {
 			amount: T::Balance,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
-
-			if para_id == T::ParaId::get() {
-				return Ok(().into());
-			}
+			ensure!(para_id != T::ParaId::get(), Error::<T>::CannotSendToSelf);
+			ensure!(
+				<SenderChannels<T>>::get().binary_search(&para_id).is_ok(),
+				Error::<T>::NoSenderChannelOpen
+			);
 
 			let destination = Self::account_id_20_destination(dest_network.clone(), dest.clone());
 

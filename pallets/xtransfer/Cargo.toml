@@ -17,6 +17,7 @@ sp-core = { git = "https://github.com/paritytech/substrate", default-features = 
 token-factory = { path = "../token-factory", default-features = false }
 xcm = { git = "https://github.com/paritytech/polkadot", branch = "master", default-features = false }
 xcm-executor = { git = "https://github.com/paritytech/polkadot", branch = "master", default-features = false }
+xcm-handler = { git = "https://github.com/paritytech/cumulus", branch = "master", default-features = false }
 cumulus-primitives = { git = "https://github.com/paritytech/cumulus", branch = "master", default-features = false }
 
 [features]
@@ -29,5 +30,7 @@ std = [
     "sp-std/std",
     "sp-core/std",
     "token-factory/std",
+    "xcm-executor/std",
+    "xcm-handler/std",
     "cumulus-primitives/std",
 ]
