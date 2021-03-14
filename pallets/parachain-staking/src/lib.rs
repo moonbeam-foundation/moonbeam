@@ -367,7 +367,6 @@ pub mod pallet {
 		AlreadyNominatedValidator,
 		NominationDNE,
 		Underflow,
-		CannotSwitchToSameNomination,
 		InvalidSchedule,
 	}
 
@@ -394,14 +393,10 @@ pub mod pallet {
 		NominationIncreased(T::AccountId, T::AccountId, BalanceOf<T>, BalanceOf<T>),
 		// Nominator, Validator, Old Nomination, New Nomination
 		NominationDecreased(T::AccountId, T::AccountId, BalanceOf<T>, BalanceOf<T>),
-		// Nominator, Swapped Amount, Old Nominator, New Nominator
-		NominationSwapped(T::AccountId, BalanceOf<T>, T::AccountId, T::AccountId),
-		/// Nominator, Amount Staked
-		NominatorJoined(T::AccountId, BalanceOf<T>),
 		/// Nominator, Amount Unstaked
 		NominatorLeft(T::AccountId, BalanceOf<T>),
-		/// Nominator, Amount Locked, Validator, New Total Amt Locked
-		ValidatorNominated(T::AccountId, BalanceOf<T>, T::AccountId, BalanceOf<T>),
+		/// Nominator, Amount Locked, Validator, New Total Amt backing Validator
+		Nomination(T::AccountId, BalanceOf<T>, T::AccountId, BalanceOf<T>),
 		/// Nominator, Validator, Amount Unstaked, New Total Amt Staked for Validator
 		NominatorLeftValidator(T::AccountId, T::AccountId, BalanceOf<T>, BalanceOf<T>),
 		/// Paid the account (nominator or validator) the balance as liquid rewards
@@ -531,7 +526,7 @@ pub mod pallet {
 					"Account does not have enough balance to bond."
 				);
 				let _ = if let Some(nominated_val) = opt_val {
-					<Pallet<T>>::join_nominators(
+					<Pallet<T>>::nominate(
 						T::Origin::from(Some(actor.clone()).into()),
 						nominated_val.clone(),
 						balance,
@@ -738,21 +733,86 @@ pub mod pallet {
 		}
 		/// Join the set of nominators
 		#[pallet::weight(0)]
-		pub fn join_nominators(
+		pub fn nominate(
 			origin: OriginFor<T>,
 			validator: T::AccountId,
 			amount: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
-			ensure!(
-				amount >= T::MinNominatorStk::get(),
-				Error::<T>::NomBondBelowMin
-			);
-			ensure!(!Self::is_nominator(&acc), Error::<T>::NominatorExists);
-			ensure!(!Self::is_candidate(&acc), Error::<T>::CandidateExists);
-			Self::nominator_joins_validator(acc.clone(), amount, validator.clone())?;
-			<Nominators<T>>::insert(&acc, Nominator::new(validator, amount));
-			Self::deposit_event(Event::NominatorJoined(acc, amount));
+			if let Some(mut nominator) = <Nominators<T>>::get(&acc) {
+				// nomination after first
+				ensure!(
+					amount >= T::MinNomination::get(),
+					Error::<T>::NominationBelowMin
+				);
+				ensure!(
+					(nominator.nominations.0.len() as u32) < T::MaxValidatorsPerNominator::get(),
+					Error::<T>::ExceedMaxValidatorsPerNom
+				);
+				let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
+				ensure!(
+					nominator.add_nomination(Bond {
+						owner: validator.clone(),
+						amount
+					}),
+					Error::<T>::AlreadyNominatedValidator
+				);
+				let nomination = Bond {
+					owner: acc.clone(),
+					amount,
+				};
+				ensure!(
+					(state.nominators.0.len() as u32) < T::MaxNominatorsPerValidator::get(),
+					Error::<T>::TooManyNominators
+				);
+				ensure!(
+					state.nominators.insert(nomination),
+					Error::<T>::NominatorExists
+				);
+				T::Currency::reserve(&acc, amount)?;
+				let new_total = state.total + amount;
+				if state.is_active() {
+					Self::update_active(validator.clone(), new_total);
+				}
+				let new_total_locked = <Total<T>>::get() + amount;
+				<Total<T>>::put(new_total_locked);
+				state.total = new_total;
+				<Candidates<T>>::insert(&validator, state);
+				<Nominators<T>>::insert(&acc, nominator);
+				Self::deposit_event(Event::Nomination(acc, amount, validator, new_total));
+			} else {
+				// first nomination
+				ensure!(
+					amount >= T::MinNominatorStk::get(),
+					Error::<T>::NomBondBelowMin
+				);
+				// cannot be a collator candidate and nominator with same AccountId
+				ensure!(!Self::is_candidate(&acc), Error::<T>::CandidateExists);
+				let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
+				let nomination = Bond {
+					owner: acc.clone(),
+					amount,
+				};
+				ensure!(
+					state.nominators.insert(nomination),
+					Error::<T>::NominatorExists
+				);
+				ensure!(
+					(state.nominators.0.len() as u32) <= T::MaxNominatorsPerValidator::get(),
+					Error::<T>::TooManyNominators
+				);
+				T::Currency::reserve(&acc, amount)?;
+				let new_total = state.total + amount;
+				if state.is_active() {
+					Self::update_active(validator.clone(), new_total);
+				}
+				let new_total_locked = <Total<T>>::get() + amount;
+				<Total<T>>::put(new_total_locked);
+				state.total = new_total;
+				<Candidates<T>>::insert(&validator, state);
+				<Nominators<T>>::insert(&acc, Nominator::new(validator.clone(), amount));
+				Self::deposit_event(Event::Nomination(acc, amount, validator, new_total));
+			}
 			Ok(().into())
 		}
 		/// Leave the set of nominators and, by implication, revoke all ongoing nominations
@@ -765,56 +825,6 @@ pub mod pallet {
 			}
 			<Nominators<T>>::remove(&acc);
 			Self::deposit_event(Event::NominatorLeft(acc, nominator.total));
-			Ok(().into())
-		}
-		/// Nominate a new validator candidate if already nominating
-		#[pallet::weight(0)]
-		pub fn nominate_new(
-			origin: OriginFor<T>,
-			validator: T::AccountId,
-			amount: BalanceOf<T>,
-		) -> DispatchResultWithPostInfo {
-			let acc = ensure_signed(origin)?;
-			ensure!(
-				amount >= T::MinNomination::get(),
-				Error::<T>::NominationBelowMin
-			);
-			let mut nominator = <Nominators<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
-			ensure!(
-				(nominator.nominations.0.len() as u32) < T::MaxValidatorsPerNominator::get(),
-				Error::<T>::ExceedMaxValidatorsPerNom
-			);
-			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
-			ensure!(
-				nominator.add_nomination(Bond {
-					owner: validator.clone(),
-					amount
-				}),
-				Error::<T>::AlreadyNominatedValidator
-			);
-			let nomination = Bond {
-				owner: acc.clone(),
-				amount,
-			};
-			ensure!(
-				(state.nominators.0.len() as u32) < T::MaxNominatorsPerValidator::get(),
-				Error::<T>::TooManyNominators
-			);
-			ensure!(
-				state.nominators.insert(nomination),
-				Error::<T>::NominatorExists
-			);
-			T::Currency::reserve(&acc, amount)?;
-			let new_total = state.total + amount;
-			if state.is_active() {
-				Self::update_active(validator.clone(), new_total);
-			}
-			let new_total_locked = <Total<T>>::get() + amount;
-			<Total<T>>::put(new_total_locked);
-			state.total = new_total;
-			<Candidates<T>>::insert(&validator, state);
-			<Nominators<T>>::insert(&acc, nominator);
-			Self::deposit_event(Event::ValidatorNominated(acc, amount, validator, new_total));
 			Ok(().into())
 		}
 		/// Revoke an existing nomination
@@ -927,38 +937,6 @@ pub mod pallet {
 				// 3. staked == ideal
 				return round_issuance.ideal;
 			}
-		}
-		fn nominator_joins_validator(
-			nominator: T::AccountId,
-			amount: BalanceOf<T>,
-			validator: T::AccountId,
-		) -> DispatchResultWithPostInfo {
-			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
-			let nomination = Bond {
-				owner: nominator.clone(),
-				amount,
-			};
-			ensure!(
-				state.nominators.insert(nomination),
-				Error::<T>::NominatorExists
-			);
-			ensure!(
-				(state.nominators.0.len() as u32) <= T::MaxNominatorsPerValidator::get(),
-				Error::<T>::TooManyNominators
-			);
-			T::Currency::reserve(&nominator, amount)?;
-			let new_total = state.total + amount;
-			if state.is_active() {
-				Self::update_active(validator.clone(), new_total);
-			}
-			let new_total_locked = <Total<T>>::get() + amount;
-			<Total<T>>::put(new_total_locked);
-			state.total = new_total;
-			<Candidates<T>>::insert(&validator, state);
-			Self::deposit_event(Event::ValidatorNominated(
-				nominator, amount, validator, new_total,
-			));
-			Ok(().into())
 		}
 		fn nominator_revokes_validator(
 			acc: T::AccountId,

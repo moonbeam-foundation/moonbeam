@@ -454,15 +454,13 @@ fn validator_commission() {
 			MetaEvent::stake(Event::JoinedValidatorCandidates(4, 20u128, 60u128))
 		);
 		roll_to(9);
-		assert_ok!(Stake::join_nominators(Origin::signed(5), 4, 10));
-		assert_ok!(Stake::join_nominators(Origin::signed(6), 4, 10));
+		assert_ok!(Stake::nominate(Origin::signed(5), 4, 10));
+		assert_ok!(Stake::nominate(Origin::signed(6), 4, 10));
 		roll_to(11);
 		let mut new = vec![
 			Event::JoinedValidatorCandidates(4, 20, 60),
-			Event::ValidatorNominated(5, 10, 4, 30),
-			Event::NominatorJoined(5, 10),
-			Event::ValidatorNominated(6, 10, 4, 40),
-			Event::NominatorJoined(6, 10),
+			Event::Nomination(5, 10, 4, 30),
+			Event::Nomination(6, 10, 4, 40),
 			Event::ValidatorChosen(3, 4, 40),
 			Event::ValidatorChosen(3, 1, 40),
 			Event::NewRound(10, 3, 2, 80),
@@ -505,33 +503,25 @@ fn multiple_nominations() {
 		];
 		assert_eq!(events(), expected);
 		assert_noop!(
-			Stake::nominate_new(Origin::signed(5), 2, 10),
-			Error::<Test>::NominatorDNE,
-		);
-		assert_noop!(
-			Stake::nominate_new(Origin::signed(11), 1, 10),
-			Error::<Test>::NominatorDNE,
-		);
-		assert_noop!(
-			Stake::nominate_new(Origin::signed(6), 1, 10),
+			Stake::nominate(Origin::signed(6), 1, 10),
 			Error::<Test>::AlreadyNominatedValidator,
 		);
 		assert_noop!(
-			Stake::nominate_new(Origin::signed(6), 2, 2),
+			Stake::nominate(Origin::signed(6), 2, 2),
 			Error::<Test>::NominationBelowMin,
 		);
-		assert_ok!(Stake::nominate_new(Origin::signed(6), 2, 10));
-		assert_ok!(Stake::nominate_new(Origin::signed(6), 3, 10));
-		assert_ok!(Stake::nominate_new(Origin::signed(6), 4, 10));
+		assert_ok!(Stake::nominate(Origin::signed(6), 2, 10));
+		assert_ok!(Stake::nominate(Origin::signed(6), 3, 10));
+		assert_ok!(Stake::nominate(Origin::signed(6), 4, 10));
 		assert_noop!(
-			Stake::nominate_new(Origin::signed(6), 5, 10),
+			Stake::nominate(Origin::signed(6), 5, 10),
 			Error::<Test>::ExceedMaxValidatorsPerNom,
 		);
 		roll_to(16);
 		let mut new = vec![
-			Event::ValidatorNominated(6, 10, 2, 50),
-			Event::ValidatorNominated(6, 10, 3, 30),
-			Event::ValidatorNominated(6, 10, 4, 30),
+			Event::Nomination(6, 10, 2, 50),
+			Event::Nomination(6, 10, 3, 30),
+			Event::Nomination(6, 10, 4, 30),
 			Event::ValidatorChosen(3, 2, 50),
 			Event::ValidatorChosen(3, 1, 50),
 			Event::ValidatorChosen(3, 4, 30),
@@ -548,9 +538,9 @@ fn multiple_nominations() {
 		expected.append(&mut new);
 		assert_eq!(events(), expected);
 		roll_to(21);
-		assert_ok!(Stake::nominate_new(Origin::signed(7), 2, 80));
+		assert_ok!(Stake::nominate(Origin::signed(7), 2, 80));
 		assert_noop!(
-			Stake::nominate_new(Origin::signed(7), 3, 11),
+			Stake::nominate(Origin::signed(7), 3, 11),
 			DispatchError::Module {
 				index: 0,
 				error: 3,
@@ -558,7 +548,7 @@ fn multiple_nominations() {
 			},
 		);
 		assert_noop!(
-			Stake::nominate_new(Origin::signed(10), 2, 10),
+			Stake::nominate(Origin::signed(10), 2, 10),
 			Error::<Test>::TooManyNominators
 		);
 		roll_to(26);
@@ -569,7 +559,7 @@ fn multiple_nominations() {
 			Event::ValidatorChosen(5, 3, 30),
 			Event::ValidatorChosen(5, 5, 10),
 			Event::NewRound(20, 5, 5, 170),
-			Event::ValidatorNominated(7, 80, 2, 130),
+			Event::Nomination(7, 80, 2, 130),
 			Event::ValidatorChosen(6, 2, 130),
 			Event::ValidatorChosen(6, 1, 50),
 			Event::ValidatorChosen(6, 4, 30),
@@ -743,7 +733,7 @@ fn revoke_nomination_or_leave_nominators() {
 			Stake::revoke_nomination(Origin::signed(8), 2),
 			Error::<Test>::NomBondBelowMin
 		);
-		assert_ok!(Stake::nominate_new(Origin::signed(8), 1, 10));
+		assert_ok!(Stake::nominate(Origin::signed(8), 1, 10));
 		assert_ok!(Stake::revoke_nomination(Origin::signed(8), 2));
 	});
 }
@@ -848,16 +838,11 @@ fn payouts_follow_nomination_changes() {
 		expected.append(&mut new4);
 		assert_eq!(events(), expected);
 		set_author(7, 1, 100);
-		// 2. ensure new nominations do not dilute old ones for last 2 rounds
-		assert_noop!(
-			Stake::nominate_new(Origin::signed(6), 2, 10),
-			Error::<Test>::NominatorDNE
-		);
-		assert_ok!(Stake::nominate_new(Origin::signed(8), 1, 10));
+		assert_ok!(Stake::nominate(Origin::signed(8), 1, 10));
 		roll_to(36);
 		// new nomination is not rewarded yet
 		let mut new5 = vec![
-			Event::ValidatorNominated(8, 10, 1, 50),
+			Event::Nomination(8, 10, 1, 50),
 			Event::Rewarded(1, 30),
 			Event::Rewarded(7, 15),
 			Event::Rewarded(10, 15),
