@@ -13,18 +13,18 @@ describeWithMoonbeam("Moonbeam RPC (Stake)", `simple-specs.json`, (context) => {
   });
 
   step("validator set in genesis", async function () {
-    const validators = await context.polkadotApi.query.stake.validators();
+    const validators = await context.polkadotApi.query.parachainStaking.validators();
     expect((validators[0] as Buffer).toString("hex").toLowerCase()).equal(GENESIS_ACCOUNT);
   });
 
   it("candidates set in genesis", async function () {
-    const candidates = await context.polkadotApi.query.stake.candidates(GENESIS_ACCOUNT);
+    const candidates = await context.polkadotApi.query.parachainStaking.candidates(GENESIS_ACCOUNT);
     expect(candidates.toHuman()["id"].toLowerCase()).equal(GENESIS_ACCOUNT);
     expect(candidates.toHuman()["state"]).equal("Active");
   });
 
   it("inflation set in genesis", async function () {
-    const inflationInfo = await context.polkadotApi.query.stake.inflationConfig();
+    const inflationInfo = await context.polkadotApi.query.parachainStaking.inflationConfig();
     // {
     //   expect: {
     //     min: '100.0000 kUnit',

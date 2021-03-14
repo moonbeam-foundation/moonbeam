@@ -281,6 +281,6 @@ pub(crate) fn events() -> Vec<Event<Test>> {
 
 // Same storage changes as EventHandler::note_author impl
 pub(crate) fn set_author(round: u32, acc: u64, pts: u32) {
-	<Stake as Store>::Points::mutate(round, |p| *p += pts);
-	<Stake as Store>::AwardedPts::mutate(round, acc, |p| *p += pts);
+	<Points<Test>>::mutate(round, |p| *p += pts);
+	<AwardedPts<Test>>::mutate(round, acc, |p| *p += pts);
 }

@@ -14,7 +14,33 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! TODO: add stake docs
+//! # Parachain Staking
+//! Minimal staking pallet that implements ordered validator selection by total amount at stake
+//!
+//! ### Rules
+//! There is a new round every `BlocksPerRound` blocks.
+//!
+//! At the start of every round,
+//! * `IssuancePerRound` is distributed to validators for `BondDuration` rounds ago
+//! in proportion to the points they received in that round (for authoring blocks)
+//! * queued validator exits are executed
+//! * a new set of validators is chosen from the candidates
+//!
+//! To join the set of candidates, an account must call `join_candidates` with
+//! stake >= `MinValidatorStk` and fee <= `MaxFee`. The fee is taken off the top
+//! of any rewards for the validator before the remaining rewards are distributed
+//! in proportion to stake to all nominators (including the validator, who always
+//! self-nominates).
+//!
+//! To leave the set of candidates, the validator calls `leave_candidates`. If the call succeeds,
+//! the validator is removed from the pool of candidates so they cannot be selected for future
+//! validator sets, but they are not unstaked until `BondDuration` rounds later. The exit request is
+//! stored in the `ExitQueue` and processed `BondDuration` rounds later to unstake the validator
+//! and all of its nominators.
+//!
+//! To join the set of nominators, an account must call `join_nominators` with
+//! stake >= `MinNominatorStk`. There are also runtime methods for nominating additional validators
+//! and revoking nominations.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -646,7 +672,7 @@ pub mod pallet {
 		/// Set the expectations for total staked. These expectations determine the issuance for
 		/// the round according to logic in `fn compute_issuance`
 		#[pallet::weight(0)]
-		fn set_staking_expectations(
+		pub fn set_staking_expectations(
 			origin: OriginFor<T>,
 			expectations: Range<BalanceOf<T>>,
 		) -> DispatchResultWithPostInfo {
@@ -663,7 +689,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		#[pallet::weight(0)]
-		fn set_inflation(
+		pub fn set_inflation(
 			origin: OriginFor<T>,
 			schedule: Range<Perbill>,
 		) -> DispatchResultWithPostInfo {
@@ -680,7 +706,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		#[pallet::weight(0)]
-		fn join_candidates(
+		pub fn join_candidates(
 			origin: OriginFor<T>,
 			fee: Perbill,
 			bond: BalanceOf<T>,
@@ -714,7 +740,7 @@ pub mod pallet {
 		/// removed from the candidate pool to prevent selection as a validator, but unbonding is
 		/// executed with a delay of `BondDuration` rounds.
 		#[pallet::weight(0)]
-		fn leave_candidates(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+		pub fn leave_candidates(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let validator = ensure_signed(origin)?;
 			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_leaving(), Error::<T>::AlreadyLeaving);
@@ -740,7 +766,7 @@ pub mod pallet {
 		}
 		/// Temporarily leave the set of validator candidates without unbonding
 		#[pallet::weight(0)]
-		fn go_offline(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+		pub fn go_offline(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let validator = ensure_signed(origin)?;
 			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(state.is_active(), Error::<T>::AlreadyOffline);
@@ -756,7 +782,7 @@ pub mod pallet {
 		}
 		/// Rejoin the set of validator candidates if previously had called `go_offline`
 		#[pallet::weight(0)]
-		fn go_online(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+		pub fn go_online(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let validator = ensure_signed(origin)?;
 			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_active(), Error::<T>::AlreadyActive);
@@ -777,7 +803,7 @@ pub mod pallet {
 		}
 		/// Bond more for validator candidates
 		#[pallet::weight(0)]
-		fn candidate_bond_more(
+		pub fn candidate_bond_more(
 			origin: OriginFor<T>,
 			more: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
@@ -797,7 +823,7 @@ pub mod pallet {
 		}
 		/// Bond less for validator candidates
 		#[pallet::weight(0)]
-		fn candidate_bond_less(
+		pub fn candidate_bond_less(
 			origin: OriginFor<T>,
 			less: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
@@ -820,7 +846,7 @@ pub mod pallet {
 		}
 		/// Join the set of nominators
 		#[pallet::weight(0)]
-		fn join_nominators(
+		pub fn join_nominators(
 			origin: OriginFor<T>,
 			validator: T::AccountId,
 			amount: BalanceOf<T>,
@@ -839,7 +865,7 @@ pub mod pallet {
 		}
 		/// Leave the set of nominators and, by implication, revoke all ongoing nominations
 		#[pallet::weight(0)]
-		fn leave_nominators(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+		pub fn leave_nominators(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
 			let nominator = <Nominators<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
 			for bond in nominator.nominations.0 {
@@ -851,7 +877,7 @@ pub mod pallet {
 		}
 		/// Nominate a new validator candidate if already nominating
 		#[pallet::weight(0)]
-		fn nominate_new(
+		pub fn nominate_new(
 			origin: OriginFor<T>,
 			validator: T::AccountId,
 			amount: BalanceOf<T>,
@@ -901,7 +927,7 @@ pub mod pallet {
 		}
 		/// Revoke an existing nomination
 		#[pallet::weight(0)]
-		fn revoke_nomination(
+		pub fn revoke_nomination(
 			origin: OriginFor<T>,
 			validator: T::AccountId,
 		) -> DispatchResultWithPostInfo {
@@ -909,7 +935,7 @@ pub mod pallet {
 		}
 		/// Bond more for nominators with respect to a specific validator candidate
 		#[pallet::weight(0)]
-		fn nominator_bond_more(
+		pub fn nominator_bond_more(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
 			more: BalanceOf<T>,
@@ -937,7 +963,7 @@ pub mod pallet {
 		}
 		/// Bond less for nominators with respect to a specific nominator candidate
 		#[pallet::weight(0)]
-		fn nominator_bond_less(
+		pub fn nominator_bond_less(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
 			less: BalanceOf<T>,

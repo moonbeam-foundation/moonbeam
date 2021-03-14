@@ -18,7 +18,7 @@
 use crate::mock::*;
 use crate::*;
 use frame_support::{assert_noop, assert_ok};
-use sp_runtime::{DispatchError, Perbill};
+use sp_runtime::{traits::Zero, DispatchError, Perbill};
 
 #[test]
 fn geneses() {
@@ -177,7 +177,7 @@ fn validator_exit_executes_after_delay() {
 			last_event(),
 			MetaEvent::stake(Event::ValidatorScheduledExit(3, 2, 5))
 		);
-		let info = <Stake as Store>::Candidates::get(&2).unwrap();
+		let info = Stake::candidates(&2).unwrap();
 		assert_eq!(info.state, ValidatorStatus::Leaving(5));
 		roll_to(21);
 		// we must exclude leaving validators from rewards while
@@ -410,8 +410,8 @@ fn payout_distribution_to_solo_validators() {
 			Event::NewRound(30, 7, 5, 400),
 			Event::Rewarded(5, 67),
 			Event::Rewarded(3, 67),
-			Event::Rewarded(1, 67),
 			Event::Rewarded(4, 67),
+			Event::Rewarded(1, 67),
 			Event::Rewarded(2, 67),
 			Event::ValidatorChosen(8, 1, 100),
 			Event::ValidatorChosen(8, 2, 90),
@@ -423,14 +423,14 @@ fn payout_distribution_to_solo_validators() {
 		expected.append(&mut new2);
 		assert_eq!(events(), expected);
 		// check that distributing rewards clears awarded pts
-		assert!(<Stake as Store>::AwardedPts::get(1, 1).is_zero());
-		assert!(<Stake as Store>::AwardedPts::get(4, 1).is_zero());
-		assert!(<Stake as Store>::AwardedPts::get(4, 2).is_zero());
-		assert!(<Stake as Store>::AwardedPts::get(6, 1).is_zero());
-		assert!(<Stake as Store>::AwardedPts::get(6, 2).is_zero());
-		assert!(<Stake as Store>::AwardedPts::get(6, 3).is_zero());
-		assert!(<Stake as Store>::AwardedPts::get(6, 4).is_zero());
-		assert!(<Stake as Store>::AwardedPts::get(6, 5).is_zero());
+		assert!(Stake::awarded_pts(1, 1).is_zero());
+		assert!(Stake::awarded_pts(4, 1).is_zero());
+		assert!(Stake::awarded_pts(4, 2).is_zero());
+		assert!(Stake::awarded_pts(6, 1).is_zero());
+		assert!(Stake::awarded_pts(6, 2).is_zero());
+		assert!(Stake::awarded_pts(6, 3).is_zero());
+		assert!(Stake::awarded_pts(6, 4).is_zero());
+		assert!(Stake::awarded_pts(6, 5).is_zero());
 	});
 }
 
@@ -596,47 +596,19 @@ fn multiple_nominations() {
 		expected.append(&mut new3);
 		assert_eq!(events(), expected);
 		// verify that nominations are removed after validator leaves, not before
-		assert_eq!(<Stake as Store>::Nominators::get(7).unwrap().total, 90);
-		assert_eq!(
-			<Stake as Store>::Nominators::get(7)
-				.unwrap()
-				.nominations
-				.0
-				.len(),
-			2usize
-		);
-		assert_eq!(<Stake as Store>::Nominators::get(6).unwrap().total, 40);
-		assert_eq!(
-			<Stake as Store>::Nominators::get(6)
-				.unwrap()
-				.nominations
-				.0
-				.len(),
-			4usize
-		);
+		assert_eq!(Stake::nominators(7).unwrap().total, 90);
+		assert_eq!(Stake::nominators(7).unwrap().nominations.0.len(), 2usize);
+		assert_eq!(Stake::nominators(6).unwrap().total, 40);
+		assert_eq!(Stake::nominators(6).unwrap().nominations.0.len(), 4usize);
 		assert_eq!(Balances::reserved_balance(&6), 40);
 		assert_eq!(Balances::reserved_balance(&7), 90);
 		assert_eq!(Balances::free_balance(&6), 60);
 		assert_eq!(Balances::free_balance(&7), 10);
 		roll_to(40);
-		assert_eq!(<Stake as Store>::Nominators::get(7).unwrap().total, 10);
-		assert_eq!(<Stake as Store>::Nominators::get(6).unwrap().total, 30);
-		assert_eq!(
-			<Stake as Store>::Nominators::get(7)
-				.unwrap()
-				.nominations
-				.0
-				.len(),
-			1usize
-		);
-		assert_eq!(
-			<Stake as Store>::Nominators::get(6)
-				.unwrap()
-				.nominations
-				.0
-				.len(),
-			3usize
-		);
+		assert_eq!(Stake::nominators(7).unwrap().total, 10);
+		assert_eq!(Stake::nominators(6).unwrap().total, 30);
+		assert_eq!(Stake::nominators(7).unwrap().nominations.0.len(), 1usize);
+		assert_eq!(Stake::nominators(6).unwrap().nominations.0.len(), 3usize);
 		assert_eq!(Balances::reserved_balance(&6), 30);
 		assert_eq!(Balances::reserved_balance(&7), 10);
 		assert_eq!(Balances::free_balance(&6), 70);
