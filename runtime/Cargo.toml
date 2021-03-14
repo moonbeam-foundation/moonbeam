@@ -17,6 +17,7 @@ precompiles = { path = "precompiles/", default-features = false }
 account = { path = "account/", default-features = false }
 pallet-ethereum-chain-id = { path = "../pallets/ethereum-chain-id", default-features = false }
 stake = { path = "../pallets/stake", default-features = false }
+parachain-staking = { path = "../pallets/parachain-staking", default-features = false }
 pallet-author-filter = { path = "../pallets/author-filter", default-features = false }
 
 # Substrate dependencies
@@ -112,6 +113,7 @@ std = [
 	"cumulus-primitives/std",
 	"account/std",
 	"stake/std",
+	"parachain-staking/std",
 	"pallet-author-filter/std",
 ]
 

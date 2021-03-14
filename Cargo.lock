@@ -4164,6 +4164,7 @@ dependencies = [
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-utility",
  "parachain-info",
+ "parachain-staking",
  "parity-scale-codec",
  "precompiles",
  "serde",
@@ -5180,6 +5181,22 @@ dependencies = [
  "frame-system",
  "parity-scale-codec",
  "serde",
+]
+
+[[package]]
+name = "parachain-staking"
+version = "1.0.0"
+dependencies = [
+ "author-inherent",
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
+ "parity-scale-codec",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
