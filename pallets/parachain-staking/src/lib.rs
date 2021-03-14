@@ -181,56 +181,6 @@ pub mod pallet {
 				None
 			}
 		}
-		// infallible so nominator must exist before calling
-		pub fn rm_nominator(&mut self, nominator: A) -> B {
-			let mut total = self.total;
-			let nominators = self
-				.nominators
-				.0
-				.iter()
-				.filter_map(|x| {
-					if x.owner == nominator {
-						total -= x.amount;
-						None
-					} else {
-						Some(x.clone())
-					}
-				})
-				.collect();
-			self.nominators = OrderedSet::from(nominators);
-			self.total = total;
-			total
-		}
-		// infallible so nominator dne before calling
-		pub fn add_nominator(&mut self, owner: A, amount: B) -> B {
-			self.nominators.insert(Bond { owner, amount });
-			self.total += amount;
-			self.total
-		}
-		// only call with an amount larger than existing amount
-		pub fn update_nominator(&mut self, nominator: A, amount: B) -> B {
-			let mut difference: B = 0u32.into();
-			let nominators = self
-				.nominators
-				.0
-				.iter()
-				.map(|x| {
-					if x.owner == nominator {
-						// new amount must be greater or will underflow
-						difference = amount - x.amount;
-						Bond {
-							owner: x.owner.clone(),
-							amount,
-						}
-					} else {
-						x.clone()
-					}
-				})
-				.collect();
-			self.nominators = OrderedSet::from(nominators);
-			self.total += difference;
-			self.total
-		}
 		pub fn inc_nominator(&mut self, nominator: A, more: B) {
 			for x in &mut self.nominators.0 {
 				if x.owner == nominator {
@@ -325,64 +275,6 @@ pub mod pallet {
 				self.nominations = OrderedSet::from(nominations);
 				self.total -= balance;
 				Some(self.total)
-			} else {
-				None
-			}
-		}
-		// Returns Some(new balances) if old was nominated and None if it wasn't nominated
-		pub fn swap_nomination(
-			&mut self,
-			old: AccountId,
-			new: AccountId,
-		) -> Option<(Balance, Balance)> {
-			let mut amt: Option<Balance> = None;
-			let nominations = self
-				.nominations
-				.0
-				.iter()
-				.filter_map(|x| {
-					if x.owner == old {
-						amt = Some(x.amount);
-						None
-					} else {
-						Some(x.clone())
-					}
-				})
-				.collect();
-			if let Some(swapped_amt) = amt {
-				let mut old_new_amt: Option<Balance> = None;
-				let nominations2 = self
-					.nominations
-					.0
-					.iter()
-					.filter_map(|x| {
-						if x.owner == new {
-							old_new_amt = Some(x.amount);
-							None
-						} else {
-							Some(x.clone())
-						}
-					})
-					.collect();
-				let new_amount = if let Some(old_amt) = old_new_amt {
-					// update existing nomination
-					self.nominations = OrderedSet::from(nominations2);
-					let new_amt = old_amt + swapped_amt;
-					self.nominations.insert(Bond {
-						owner: new,
-						amount: new_amt,
-					});
-					new_amt
-				} else {
-					// insert completely new nomination
-					self.nominations = OrderedSet::from(nominations);
-					self.nominations.insert(Bond {
-						owner: new,
-						amount: swapped_amt,
-					});
-					swapped_amt
-				};
-				Some((swapped_amt, new_amount))
 			} else {
 				None
 			}
@@ -1103,8 +995,8 @@ pub mod pallet {
 					}
 				})
 				.collect();
-			let nominators = OrderedSet::from(noms);
 			let nominator_stake = exists.ok_or(Error::<T>::NominatorDNE)?;
+			let nominators = OrderedSet::from(noms);
 			T::Currency::unreserve(&nominator, nominator_stake);
 			state.nominators = nominators;
 			state.total -= nominator_stake;
