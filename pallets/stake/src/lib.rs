@@ -950,7 +950,7 @@ decl_module! {
 				<Round>::put(next);
 				// snapshot total stake
 				<Staked<T>>::insert(next, <Total<T>>::get());
-				Self::deposit_event(RawEvent::NewRound(n, next, validator_count, total_staked));
+				Self::deposit_event(Event::NewRound(n, next, validator_count, total_staked));
 			}
 		}
 	}

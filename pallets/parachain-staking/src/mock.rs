@@ -18,7 +18,7 @@
 use crate::*;
 use frame_support::{
 	impl_outer_event, impl_outer_origin, parameter_types,
-	traits::{OnFinalize, OnInitialize},
+	traits::{GenesisBuild, OnFinalize, OnInitialize},
 	weights::Weight,
 };
 use sp_core::H256;
@@ -58,7 +58,7 @@ parameter_types! {
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
 	pub const SS58Prefix: u8 = 42;
 }
-impl System for Test {
+impl frame_system::Config for Test {
 	type BaseCallFilter = ();
 	type DbWeight = ();
 	type Origin = Origin;
@@ -105,10 +105,9 @@ parameter_types! {
 	pub const MinNominatorStk: u128 = 5;
 	pub const MinNomination: u128 = 3;
 }
-impl Config for Test {
+impl crate::pallet::Config for Test {
 	type Event = MetaEvent;
 	type Currency = Balances;
-	type SetMonetaryPolicyOrigin = frame_system::EnsureRoot<Self::AccountId>;
 	type BlocksPerRound = BlocksPerRound;
 	type BondDuration = BondDuration;
 	type MaxValidators = MaxValidators;
@@ -266,7 +265,7 @@ pub(crate) fn last_event() -> MetaEvent {
 	Sys::events().pop().expect("Event expected").event
 }
 
-pub(crate) fn events() -> Vec<RawEvent<u64, u128, u64>> {
+pub(crate) fn events() -> Vec<Event<Test>> {
 	Sys::events()
 		.into_iter()
 		.map(|r| r.event)
