@@ -421,6 +421,24 @@ impl pallet_author_filter::Config for Runtime {
 	type RandomnessSource = RandomnessCollectiveFlip;
 }
 
+
+pub const VESTING_BLOCKS: BlockNumber = 1000;
+
+pub struct VestingPeriod(pub BlockNumber);
+
+impl Get<BlockNumber> for VestingPeriod {
+	fn get() -> BlockNumber {
+		return VESTING_BLOCKS;
+	}
+}
+
+impl pallet_crowdloan_rewards::Config for Runtime {
+	type Event = Event;
+	type RelayChainAccountId = sp_runtime::AccountId32;
+	type RewardCurrency = Balances;
+	type VestingPeriod = VestingPeriod;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -444,7 +462,8 @@ construct_runtime! {
 		// The order matters here. Inherents will be included in the order specified here.
 		// Concretely we need the author inherent to come after the parachain_upgrade inherent.
 		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
-		AuthorFilter: pallet_author_filter::{Module, Call, Storage, Event<T>,}
+		AuthorFilter: pallet_author_filter::{Module, Call, Storage, Event<T>,},
+		Crowdloan: pallet_crowdloan_rewards::{Module, Storage, Config<T>, Event<T>, Call}
 	}
 }
 

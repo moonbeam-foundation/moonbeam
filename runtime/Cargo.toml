@@ -18,6 +18,7 @@ account = { path = "account/", default-features = false }
 pallet-ethereum-chain-id = { path = "../pallets/ethereum-chain-id", default-features = false }
 stake = { path = "../pallets/stake", default-features = false }
 pallet-author-filter = { path = "../pallets/author-filter", default-features = false }
+pallet-crowdloan-rewards = { path = "../pallets/crowdloan-rewards", default-features = false }
 
 # Substrate dependencies
 pallet-aura = { git = "https://github.com/paritytech/substrate.git", default-features = false, branch = "master", optional = true }

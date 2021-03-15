@@ -81,14 +81,13 @@ pub mod pallet {
 	use frame_support::dispatch::fmt::Debug;
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::Currency;
-	use frame_support::traits::Vec;
 	use frame_system::pallet_prelude::*;
 	use log::warn;
 	use sp_core::crypto::AccountId32;
 	use sp_runtime::traits::Saturating;
 	use sp_runtime::traits::Verify;
 	use sp_runtime::{MultiSignature, SaturatedConversion};
-	use std::convert::TryInto;
+	use sp_std::convert::TryInto;
 
 	/// The Author Filter pallet
 	#[pallet::pallet]
