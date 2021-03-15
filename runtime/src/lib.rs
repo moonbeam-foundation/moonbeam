@@ -256,8 +256,17 @@ impl pallet_evm::GasWeightMapping for MoonbeamGasWeightMapping {
 	}
 }
 
+/// A FeeCalculator for Moonbeam that sets the minimum gas price to one.
+pub struct MinGasPriceOne;
+
+impl FeeCalculator for MinGasPriceOne {
+	fn min_gas_price() -> U256 {
+		U256::one()
+	}
+}
+
 impl pallet_evm::Config for Runtime {
-	type FeeCalculator = ();
+	type FeeCalculator = MinGasPriceOne;
 	type GasWeightMapping = MoonbeamGasWeightMapping;
 	type CallOrigin = EnsureAddressSame;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
