@@ -113,6 +113,7 @@ std = [
 	"account/std",
 	"stake/std",
 	"pallet-author-filter/std",
+	"pallet-grandpa/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
