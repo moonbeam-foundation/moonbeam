@@ -1830,7 +1830,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-substrate-a8c2bc66#892a3ceede66dd90bf8b08976b79a27603745317"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-substrate-8b3e5bc#892a3ceede66dd90bf8b08976b79a27603745317"
 dependencies = [
  "derive_more 0.99.11",
  "fc-db",
@@ -1854,7 +1854,7 @@ dependencies = [
 [[package]]
 name = "fc-db"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-substrate-a8c2bc66#892a3ceede66dd90bf8b08976b79a27603745317"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-substrate-8b3e5bc#892a3ceede66dd90bf8b08976b79a27603745317"
 dependencies = [
  "kvdb",
  "kvdb-rocksdb",
@@ -1868,7 +1868,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-substrate-a8c2bc66#892a3ceede66dd90bf8b08976b79a27603745317"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-substrate-8b3e5bc#892a3ceede66dd90bf8b08976b79a27603745317"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -1905,7 +1905,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-substrate-a8c2bc66#892a3ceede66dd90bf8b08976b79a27603745317"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-substrate-8b3e5bc#892a3ceede66dd90bf8b08976b79a27603745317"
 dependencies = [
  "ethereum-types",
  "jsonrpc-core 15.1.0",
@@ -2009,7 +2009,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-substrate-a8c2bc66#892a3ceede66dd90bf8b08976b79a27603745317"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-substrate-8b3e5bc#892a3ceede66dd90bf8b08976b79a27603745317"
 dependencies = [
  "ethereum",
  "parity-scale-codec",
@@ -2023,7 +2023,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "0.8.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-substrate-a8c2bc66#892a3ceede66dd90bf8b08976b79a27603745317"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-substrate-8b3e5bc#892a3ceede66dd90bf8b08976b79a27603745317"
 dependencies = [
  "evm",
  "impl-trait-for-tuples 0.1.3",
@@ -2036,7 +2036,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-substrate-a8c2bc66#892a3ceede66dd90bf8b08976b79a27603745317"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-substrate-8b3e5bc#892a3ceede66dd90bf8b08976b79a27603745317"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4900,7 +4900,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-substrate-a8c2bc66#892a3ceede66dd90bf8b08976b79a27603745317"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-substrate-8b3e5bc#892a3ceede66dd90bf8b08976b79a27603745317"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4937,7 +4937,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-substrate-a8c2bc66#892a3ceede66dd90bf8b08976b79a27603745317"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-substrate-8b3e5bc#892a3ceede66dd90bf8b08976b79a27603745317"
 dependencies = [
  "evm",
  "evm-gasometer",
@@ -4961,7 +4961,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-substrate-a8c2bc66#892a3ceede66dd90bf8b08976b79a27603745317"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-substrate-8b3e5bc#892a3ceede66dd90bf8b08976b79a27603745317"
 dependencies = [
  "evm",
  "fp-evm",
@@ -4975,7 +4975,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-substrate-a8c2bc66#892a3ceede66dd90bf8b08976b79a27603745317"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-substrate-8b3e5bc#892a3ceede66dd90bf8b08976b79a27603745317"
 dependencies = [
  "evm",
  "fp-evm",
@@ -4987,7 +4987,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-substrate-a8c2bc66#892a3ceede66dd90bf8b08976b79a27603745317"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-substrate-8b3e5bc#892a3ceede66dd90bf8b08976b79a27603745317"
 dependencies = [
  "evm",
  "fp-evm",
@@ -5852,6 +5852,7 @@ dependencies = [
  "polkadot-node-subsystem-util",
  "polkadot-primitives",
  "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
@@ -5866,6 +5867,7 @@ dependencies = [
  "polkadot-node-subsystem-util",
  "polkadot-primitives",
  "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
@@ -5888,6 +5890,7 @@ dependencies = [
  "sp-keystore",
  "thiserror",
  "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
@@ -5907,6 +5910,7 @@ dependencies = [
  "streamunordered",
  "thiserror",
  "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
@@ -5926,6 +5930,7 @@ dependencies = [
  "structopt",
  "substrate-build-script-utils",
  "thiserror",
+ "tracing-futures",
  "try-runtime-cli",
 ]
 
@@ -5942,6 +5947,7 @@ dependencies = [
  "polkadot-primitives",
  "thiserror",
  "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
@@ -5981,6 +5987,7 @@ dependencies = [
  "polkadot-primitives",
  "rand 0.8.3",
  "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
@@ -5998,6 +6005,7 @@ dependencies = [
  "sc-network",
  "strum",
  "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
@@ -6014,6 +6022,7 @@ dependencies = [
  "sp-core",
  "thiserror",
  "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
@@ -6043,6 +6052,7 @@ dependencies = [
  "sp-consensus-slots",
  "sp-runtime",
  "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
@@ -6064,6 +6074,7 @@ dependencies = [
  "sc-service",
  "thiserror",
  "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
@@ -6082,6 +6093,7 @@ dependencies = [
  "sp-keystore",
  "thiserror",
  "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
@@ -6096,6 +6108,7 @@ dependencies = [
  "sp-keystore",
  "thiserror",
  "tracing",
+ "tracing-futures",
  "wasm-timer",
 ]
 
@@ -6112,6 +6125,7 @@ dependencies = [
  "sp-keystore",
  "thiserror",
  "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
@@ -6128,6 +6142,7 @@ dependencies = [
  "polkadot-primitives",
  "sp-core",
  "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
@@ -6141,6 +6156,7 @@ dependencies = [
  "polkadot-primitives",
  "sp-blockchain",
  "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
@@ -6181,6 +6197,7 @@ dependencies = [
  "polkadot-primitives",
  "thiserror",
  "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
@@ -6198,6 +6215,7 @@ dependencies = [
  "sp-consensus-babe",
  "sp-core",
  "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
@@ -6279,6 +6297,7 @@ dependencies = [
  "substrate-prometheus-endpoint",
  "thiserror",
  "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
@@ -6305,6 +6324,7 @@ dependencies = [
  "substrate-prometheus-endpoint",
  "thiserror",
  "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
@@ -6322,6 +6342,7 @@ dependencies = [
  "polkadot-primitives",
  "sc-client-api",
  "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
@@ -6363,6 +6384,7 @@ dependencies = [
  "polkadot-primitives",
  "thiserror",
  "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
@@ -6654,6 +6676,7 @@ dependencies = [
  "substrate-prometheus-endpoint",
  "thiserror",
  "tracing",
+ "tracing-futures",
  "westend-runtime",
 ]
 
@@ -6672,6 +6695,7 @@ dependencies = [
  "polkadot-primitives",
  "sp-staking",
  "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
@@ -6789,6 +6813,7 @@ dependencies = [
  "substrate-test-client",
  "tempfile",
  "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
