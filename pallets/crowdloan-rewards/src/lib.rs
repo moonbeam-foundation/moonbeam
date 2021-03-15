@@ -125,13 +125,13 @@ pub mod pallet {
 	#[derive(Default, Clone, Encode, Decode, RuntimeDebug)]
 	pub struct RewardInfo<T: Config> {
 		pub total_reward: BalanceOf<T>,
+		pub claimed_reward: BalanceOf<T>,
 		pub last_paid: T::BlockNumber,
 	}
 
 	// No hooks
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
-
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -199,6 +199,10 @@ pub mod pallet {
 			// Calculate the veted amount on demand.
 			let mut info =
 				AccountsPayable::<T>::get(&payee).ok_or(Error::<T>::NoAssociatedClaim)?;
+			ensure!(
+				info.claimed_reward < info.total_reward,
+				Error::<T>::RewardsAlreadyClaimed
+			);
 			let now = frame_system::Module::<T>::block_number();
 			//TODO This part doesn't compile because of a million stupid errors about converting
 			// between u32, Balance, and BlockNumber. I think that is solvable, just annoying.
@@ -208,16 +212,27 @@ pub mod pallet {
 					.try_into()
 					.ok()
 					.ok_or(Error::<T>::WrongConversionU128ToBalance)?; //TODO safe math;
-			let payable_period = T::VestingPeriod::get() - info.last_paid;
+			let current_period = now / T::VestingPeriod::get();
+			let payable_period = current_period - info.last_paid;
+
 			let pay_period_as_balance: BalanceOf<T> = payable_period
 				.saturated_into::<u128>()
 				.try_into()
 				.ok()
 				.ok_or(Error::<T>::WrongConversionU128ToBalance)?;
-			let payable_amount = pay_period_as_balance * payable_per_block;
+
+			// If the period is bigger than whats missing to pay, then return whats missing to pay
+			let payable_amount = if pay_period_as_balance * payable_per_block
+				< info.total_reward - info.claimed_reward
+			{
+				pay_period_as_balance * payable_per_block
+			} else {
+				info.total_reward - info.claimed_reward
+			};
 
 			// Update the stored info
-			info.last_paid = now;
+			info.last_paid = current_period;
+			info.claimed_reward += payable_amount;
 			AccountsPayable::<T>::insert(&payee, &info);
 
 			// Make the payment
@@ -242,6 +257,7 @@ pub mod pallet {
 		InvalidClaimSignature,
 		NoAssociatedClaim,
 		WrongConversionU128ToBalance,
+		RewardsAlreadyClaimed,
 	}
 
 	#[pallet::storage]
@@ -301,6 +317,7 @@ pub mod pallet {
 					let reward_info = RewardInfo {
 						total_reward: BalanceOf::<T>::from(*contrib)
 							* BalanceOf::<T>::from(self.reward_ratio), //TODO safe math?
+						claimed_reward: 0u32.into(),
 						last_paid: 0u32.into(),
 					};
 					AccountsPayable::<T>::insert(native_account, reward_info);
@@ -315,6 +332,7 @@ pub mod pallet {
 					let reward_info = RewardInfo {
 						total_reward: BalanceOf::<T>::from(*contrib)
 							* BalanceOf::<T>::from(self.reward_ratio), //TODO safe math?
+						claimed_reward: 0u32.into(),
 						last_paid: 0u32.into(),
 					};
 					UnassociatedContributions::<T>::insert(relay_account, reward_info);

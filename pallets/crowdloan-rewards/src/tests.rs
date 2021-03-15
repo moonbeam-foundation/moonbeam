@@ -16,11 +16,11 @@
 
 //! Unit testing
 use crate::*;
+use frame_support::{assert_noop, assert_ok};
 use mock::*;
-use sp_runtime::MultiSignature;
-use frame_support::{assert_ok, assert_noop};
-use sp_core::Pair;
 use parity_scale_codec::Encode;
+use sp_core::Pair;
+use sp_runtime::MultiSignature;
 #[test]
 fn geneses() {
 	let pairs = get_ed25519_pairs(3);
@@ -32,7 +32,6 @@ fn geneses() {
 		assert!(Crowdloan::accounts_payable(&3).is_none());
 		assert!(Crowdloan::accounts_payable(&4).is_none());
 		assert!(Crowdloan::accounts_payable(&5).is_none());
-
 
 		// accounts_mapping
 		assert!(Crowdloan::accounts_mapping(&[1u8; 32]).is_some());
@@ -59,27 +58,28 @@ fn proving_assignation_works() {
 		roll_to(4);
 		// Signature is wrong, prove fails
 		assert_noop!(
-			Crowdloan::associate_native_identity(Origin::none(),
-			4,
-			pairs[0].public().into(),
-			signature.clone()
+			Crowdloan::associate_native_identity(
+				Origin::none(),
+				4,
+				pairs[0].public().into(),
+				signature.clone()
 			),
 			Error::<Test>::InvalidClaimSignature
 		);
 		// Signature is right, prove passes
-		assert_ok!(
-			Crowdloan::associate_native_identity(Origin::none(),
+		assert_ok!(Crowdloan::associate_native_identity(
+			Origin::none(),
 			3,
 			pairs[0].public().into(),
 			signature.clone()
-			)
-		);
+		));
 		// Signature is right, but address already claimed
 		assert_noop!(
-			Crowdloan::associate_native_identity(Origin::none(),
-			3,
-			pairs[0].public().into(),
-			signature
+			Crowdloan::associate_native_identity(
+				Origin::none(),
+				3,
+				pairs[0].public().into(),
+				signature
 			),
 			Error::<Test>::AlreadyAssociated
 		);
@@ -87,5 +87,57 @@ fn proving_assignation_works() {
 		assert!(Crowdloan::accounts_payable(&3).is_some());
 		assert!(Crowdloan::unassociated_contributions(pairs[0].public().as_array_ref()).is_none());
 		assert!(Crowdloan::accounts_mapping(pairs[0].public().as_array_ref()).is_some());
+	});
+}
+
+#[test]
+fn paying_works() {
+	two_assigned_three_unassigned().execute_with(|| {
+		// 1 is payable
+		assert!(Crowdloan::accounts_payable(&1).is_some());
+		roll_to(4);
+		assert_ok!(Crowdloan::show_me_the_money(Origin::signed(1)));
+		assert_eq!(Crowdloan::accounts_payable(&1).unwrap().last_paid, 0u64);
+		assert_noop!(
+			Crowdloan::show_me_the_money(Origin::signed(3)),
+			Error::<Test>::NoAssociatedClaim
+		);
+		roll_to(12);
+		// Signature is wrong, prove fails
+		assert_ok!(Crowdloan::show_me_the_money(Origin::signed(1)));
+		assert_eq!(Crowdloan::accounts_payable(&1).unwrap().last_paid, 1u64);
+		assert_eq!(Crowdloan::accounts_payable(&1).unwrap().claimed_reward, 62);
+		roll_to(30);
+		assert_ok!(Crowdloan::show_me_the_money(Origin::signed(1)));
+		assert_eq!(Crowdloan::accounts_payable(&1).unwrap().last_paid, 3u64);
+		assert_eq!(Crowdloan::accounts_payable(&1).unwrap().claimed_reward, 186);
+		roll_to(230);
+		assert_ok!(Crowdloan::show_me_the_money(Origin::signed(1)));
+		assert_eq!(Crowdloan::accounts_payable(&1).unwrap().last_paid, 28u64);
+		assert_eq!(Crowdloan::accounts_payable(&1).unwrap().claimed_reward, 500);
+		roll_to(330);
+		assert_noop!(
+			Crowdloan::show_me_the_money(Origin::signed(1)),
+			Error::<Test>::RewardsAlreadyClaimed
+		);
+	});
+}
+
+#[test]
+fn paying_late_joiner_works() {
+	let pairs = get_ed25519_pairs(3);
+	let signature: MultiSignature = pairs[0].sign(&3u64.encode()).into();
+	two_assigned_three_unassigned().execute_with(|| {
+		//
+		roll_to(12);
+		assert_ok!(Crowdloan::associate_native_identity(
+			Origin::none(),
+			3,
+			pairs[0].public().into(),
+			signature.clone()
+		));
+		assert_ok!(Crowdloan::show_me_the_money(Origin::signed(3)));
+		assert_eq!(Crowdloan::accounts_payable(&3).unwrap().last_paid, 1u64);
+		assert_eq!(Crowdloan::accounts_payable(&3).unwrap().claimed_reward, 62);
 	});
 }

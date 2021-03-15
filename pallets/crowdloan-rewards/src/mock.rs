@@ -16,27 +16,35 @@
 
 //! Test utilities
 use crate::*;
+use frame_support::traits::GenesisBuild;
+use frame_support::traits::Get;
 use frame_support::{
 	impl_outer_origin, parameter_types,
 	traits::{OnFinalize, OnInitialize},
 	weights::Weight,
 };
-use frame_support::traits::GenesisBuild;
-use sp_core::H256;
 use sp_core::ed25519;
-use sp_io;
 use sp_core::Pair;
+use sp_core::H256;
+use sp_io;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
 };
-use sp_std::convert::TryInto;
 use sp_std::convert::From;
+use sp_std::convert::TryInto;
 
 pub type AccountId = u64;
 pub type Balance = u128;
 pub type BlockNumber = u64;
+pub struct TestVestingPeriod(pub BlockNumber);
+
+impl Get<u64> for TestVestingPeriod {
+	fn get() -> u64 {
+		return 8u64;
+	}
+}
 
 impl_outer_origin! {
 	pub enum Origin for Test where system = frame_system {}
@@ -45,7 +53,6 @@ impl_outer_origin! {
 mod crowdloan_rewards {
 	pub use super::super::*;
 }
-
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct Test;
@@ -98,19 +105,16 @@ impl Config for Test {
 	type Event = ();
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = [u8; 32];
-	type VestingPeriod = ();
+	type VestingPeriod = TestVestingPeriod;
 }
 pub type Balances = pallet_balances::Module<Test>;
 pub type Crowdloan = Module<Test>;
 pub type Sys = frame_system::Module<Test>;
 
-
-
 fn genesis(
-	assigned: Vec<( [u8; 32], AccountId, u32)>,
-	unassigned: Vec<( [u8; 32], u32)>,
+	assigned: Vec<([u8; 32], AccountId, u32)>,
+	unassigned: Vec<([u8; 32], u32)>,
 ) -> sp_io::TestExternalities {
-
 	let mut storage = frame_system::GenesisConfig::default()
 		.build_storage::<Test>()
 		.unwrap();
@@ -118,8 +122,10 @@ fn genesis(
 	GenesisConfig::<Test> {
 		associated: assigned,
 		unassociated: unassigned,
-		reward_ratio: 1
-	}.assimilate_storage(&mut storage).unwrap();
+		reward_ratio: 1,
+	}
+	.assimilate_storage(&mut storage)
+	.unwrap();
 
 	let mut ext = sp_io::TestExternalities::from(storage);
 	ext.execute_with(|| Sys::set_block_number(1));
@@ -127,10 +133,16 @@ fn genesis(
 }
 
 pub(crate) fn get_ed25519_pairs(num: u32) -> Vec<ed25519::Pair> {
-	let seed :u128 = 12345678901234567890123456789012;
+	let seed: u128 = 12345678901234567890123456789012;
 	let mut pairs = Vec::new();
 	for i in 0..num {
-		pairs.push(ed25519::Pair::from_seed((seed.clone()+i as u128).to_string().as_bytes().try_into().unwrap()))
+		pairs.push(ed25519::Pair::from_seed(
+			(seed.clone() + i as u128)
+				.to_string()
+				.as_bytes()
+				.try_into()
+				.unwrap(),
+		))
 	}
 	pairs
 }
