@@ -24,7 +24,13 @@ jobs:
           #toolchain: ${{ env.WASM_BUILD_TOOLCHAIN }}
           default: true
 
-      #TODO caching?
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-doc-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Build rustdocs
         uses: actions-rs/cargo@v1
