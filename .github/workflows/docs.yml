@@ -1,0 +1,49 @@
+name: Publish Rust Docs
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy-docs:
+    name: Deploy docs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v1
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          target: wasm32-unknown-unknown
+          # Toolchain is autodetected from `rust-toolchain` file
+          # https://github.com/actions-rs/toolchain#the-toolchain-file
+          #toolchain: ${{ env.WASM_BUILD_TOOLCHAIN }}
+          default: true
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-doc-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build rustdocs
+        uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: --all --no-deps
+
+      # Make an index.html file so we start at the moonbeam_runtime page
+      # Copied from https://github.com/substrate-developer-hub/rustdocs/blob/master/index.html
+      - name: Make index.html
+        run: echo "<meta http-equiv=refresh content=0;url=moonbeam_runtime/index.html>" > ./target/doc/index.html
+
+      - name: Deploy documentation
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./target/doc
