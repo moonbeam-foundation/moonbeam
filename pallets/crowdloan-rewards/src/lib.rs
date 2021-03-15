@@ -265,7 +265,8 @@ pub mod pallet {
 		StorageMap<_, Blake2_128Concat, T::AccountId, RewardInfo<T>>;
 	#[pallet::storage]
 	#[pallet::getter(fn claimed_relay_chain_ids)]
-	pub type ClaimedRelayChainIds<T: Config> = StorageMap<_, Blake2_128Concat, T::RelayChainAccountId, ()>;
+	pub type ClaimedRelayChainIds<T: Config> =
+		StorageMap<_, Blake2_128Concat, T::RelayChainAccountId, ()>;
 	#[pallet::storage]
 	#[pallet::getter(fn unassociated_contributions)]
 	pub type UnassociatedContributions<T: Config> =

@@ -87,6 +87,13 @@ fn proving_assignation_works() {
 		assert!(Crowdloan::accounts_payable(&3).is_some());
 		assert!(Crowdloan::unassociated_contributions(pairs[0].public().as_array_ref()).is_none());
 		assert!(Crowdloan::claimed_relay_chain_ids(pairs[0].public().as_array_ref()).is_some());
+
+		let expected = vec![Event::NativeIdentityAssociated(
+			pairs[0].public().into(),
+			3,
+			500,
+		)];
+		assert_eq!(events(), expected);
 	});
 }
 
@@ -123,6 +130,15 @@ fn paying_works() {
 			Crowdloan::show_me_the_money(Origin::signed(1)),
 			Error::<Test>::RewardsAlreadyClaimed
 		);
+
+		let expected = vec![
+			Event::RewardsPaid(1, 248),
+			Event::RewardsPaid(1, 62),
+			Event::RewardsPaid(1, 62),
+			Event::RewardsPaid(1, 62),
+			Event::RewardsPaid(1, 66),
+		];
+		assert_eq!(events(), expected);
 	});
 }
 
@@ -142,5 +158,10 @@ fn paying_late_joiner_works() {
 		assert_ok!(Crowdloan::show_me_the_money(Origin::signed(3)));
 		assert_eq!(Crowdloan::accounts_payable(&3).unwrap().last_paid, 12u64);
 		assert_eq!(Crowdloan::accounts_payable(&3).unwrap().claimed_reward, 500);
+		let expected = vec![
+			Event::NativeIdentityAssociated(pairs[0].public().into(), 3, 500),
+			Event::RewardsPaid(3, 500),
+		];
+		assert_eq!(events(), expected);
 	});
 }

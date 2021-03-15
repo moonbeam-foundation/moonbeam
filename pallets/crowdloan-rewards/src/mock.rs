@@ -19,7 +19,7 @@ use crate::*;
 use frame_support::traits::GenesisBuild;
 use frame_support::traits::Get;
 use frame_support::{
-	impl_outer_origin, parameter_types,
+	impl_outer_event, impl_outer_origin, parameter_types,
 	traits::{OnFinalize, OnInitialize},
 	weights::Weight,
 };
@@ -54,6 +54,14 @@ mod crowdloan_rewards {
 	pub use super::super::*;
 }
 
+impl_outer_event! {
+	pub enum MetaEvent for Test {
+		frame_system<T>,
+		pallet_balances<T>,
+		crowdloan_rewards<T>,
+	}
+}
+
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct Test;
 parameter_types! {
@@ -76,7 +84,7 @@ impl frame_system::Config for Test {
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = Header;
-	type Event = ();
+	type Event = MetaEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = ();
@@ -95,14 +103,14 @@ parameter_types! {
 impl pallet_balances::Config for Test {
 	type MaxLocks = ();
 	type Balance = Balance;
-	type Event = ();
+	type Event = MetaEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = frame_system::Module<Test>;
 	type WeightInfo = ();
 }
 impl Config for Test {
-	type Event = ();
+	type Event = MetaEvent;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = [u8; 32];
 	type VestingPeriod = TestVestingPeriod;
@@ -162,6 +170,20 @@ pub(crate) fn two_assigned_three_unassigned() -> sp_io::TestExternalities {
 			(pairs[2].public().into(), 500),
 		],
 	)
+}
+
+pub(crate) fn events() -> Vec<Event<Test>> {
+	Sys::events()
+		.into_iter()
+		.map(|r| r.event)
+		.filter_map(|e| {
+			if let MetaEvent::crowdloan_rewards(inner) = e {
+				Some(inner)
+			} else {
+				None
+			}
+		})
+		.collect::<Vec<_>>()
 }
 
 pub(crate) fn roll_to(n: u64) {
