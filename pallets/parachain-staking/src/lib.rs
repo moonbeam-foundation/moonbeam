@@ -15,13 +15,16 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! # Parachain Staking
-//! Minimal staking pallet that implements collator selection by total backed stake
+//! Minimal staking pallet that implements collator selection by total backed stake.
+//! The main difference between this pallet and `frame/pallet-staking` is that this pallet
+//! uses direct delegation. Nominators choose exactly who they nominate and with what stake.
+//! This is different from `frame/pallet-staking` where you approval vote and then run Phragmen.
 //!
 //! ### Rules
 //! There is a new round every `BlocksPerRound` blocks.
 //!
 //! At the start of every round,
-//! * `IssuancePerRound` is distributed to collators for `BondDuration` rounds ago
+//! * issuance is distributed to collators for `BondDuration` rounds ago
 //! in proportion to the points they received in that round (for authoring blocks)
 //! * queued collator exits are executed
 //! * a new set of collators is chosen from the candidates
