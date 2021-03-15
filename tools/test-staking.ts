@@ -1,7 +1,6 @@
 import { ApiPromise, Keyring, WsProvider } from "@polkadot/api";
 import { start } from "polkadot-launch";
 import { typesBundle } from "../moonbeam-types-bundle";
-import { ALITH } from "./test-constants";
 import {
   ALITH,
   GERALD,
@@ -29,7 +28,7 @@ async function wait(duration: number) {
 }
 
 async function test() {
-  await start("config_moonbeam.json");
+  await start("config_moonbeam_staking.json");
   console.log("done");
   const WS_PORT = 36946;
   const wsProviderUrl = `ws://localhost:${WS_PORT}`;
@@ -38,6 +37,17 @@ async function test() {
   const polkadotApi = await ApiPromise.create({
     provider: wsProvider,
     typesBundle: typesBundle as any,
+  });
+
+  // subscribe to all new headers (with extended info)
+  let lastBlock = Date.now();
+  polkadotApi.derive.chain.subscribeNewHeads((header) => {
+    console.log(
+      `New Block: #${header.number}: ${header.author}, time since last block: ${
+        (Date.now() - lastBlock) / 1000
+      } sec`
+    );
+    lastBlock = Date.now();
   });
 
   // Balance
@@ -78,7 +88,7 @@ async function test() {
       if (status.isFinalized) {
         console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
 
-        // Loop through Vec<EventRecord> to display all events
+        // Loopcod through Vec<EventRecord> to display all events
         events.forEach(({ phase, event: { data, method, section } }) => {
           console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
         });
@@ -116,20 +126,47 @@ async function test() {
         unsub2();
       }
     });
-<<<<<<< HEAD
   await wait(60000);
   const nominatorsAfter = await polkadotApi.query.stake.nominators(ALITH);
   assert(
-    (nominatorsAfter.toHuman() as { nominations: { owner: string; amount: string } }[])[0]
-      .nominations.owner === GERALD,
+    (nominatorsAfter.toHuman() as {
+      nominations: { owner: string; amount: string }[];
+    }).nominations[0].owner.toLowerCase() === GERALD,
     "nomination didnt go through"
   );
-=======
-  await wait(50000);
-  const nominatorsAfter = await polkadotApi.query.stake.nominators(ALITH);
->>>>>>> bc55905fbf2bdeefab185445368083b8c86cb31f
   console.log("nominatorsAfter", nominatorsAfter.toHuman());
+
+  // Revoke Nomination
+  const unsub3 = await polkadotApi.tx.stake
+    .revokeNomination(GERALD)
+    .signAndSend(alith, ({ events = [], status }) => {
+      console.log(`Current status is ${status.type}`);
+
+      if (status.isFinalized) {
+        console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
+
+        // Loop through Vec<EventRecord> to display all events
+        events.forEach(({ phase, event: { data, method, section } }) => {
+          console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
+        });
+
+        unsub3();
+      }
+    });
+  await wait(60000);
+  const nominatorsAfterRevocation = await polkadotApi.query.stake.nominators(ALITH);
+  console.log("nominatorsAfterRevocation", nominatorsAfterRevocation.toHuman());
 
   console.log("SUCCESS");
 }
 test();
+
+// check author for blocks
+// query author-inherent.author in storage in
+// https://polkadot.js.org/docs/api/start/api.query.other at every block
+
+// {candidate/nominator}_bond_more/less for validators/nominators
+// revoke_nomination
+// leave_candidates
+
+// wait to test adding more than one nomination for a nominator
