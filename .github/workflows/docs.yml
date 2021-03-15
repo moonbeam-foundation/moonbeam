@@ -45,10 +45,10 @@ jobs:
 
       #TODO Do we need to make an index.html?
       # See if this works when I explicitly create the file first.
-      - name: Make index.html
-        run: |
-          touch ./target/docs/index.html
-          echo "indexfile" > ./target/docs/index.html
+      # - name: Make index.html
+      #   run: |
+      #     touch ./target/docs/index.html
+      #     echo "indexfile" > ./target/docs/index.html
 
       - name: Deploy documentation
         uses: peaceiris/actions-gh-pages@v3
