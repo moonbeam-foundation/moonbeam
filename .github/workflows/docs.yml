@@ -16,6 +16,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v1
       # This is how Frontier got the toolchain installed
+      # TODO This can probably be removed in favor of action-rs/toolchain below
+      # But I'm keeping it for now just in case I need to go back to it.
       # - name: Rust Setup
       #   run: |
       #     scripts/init.sh
