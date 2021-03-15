@@ -7,18 +7,20 @@ import { GLMR } from "./constants";
 describeWithMoonbeam("Moonbeam RPC (Stake)", `simple-specs.json`, (context) => {
   const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
   const GENESIS_STAKED = 1_000n * GLMR;
-  step("validator bond reserved in genesis", async function () {
+  step("collator bond reserved in genesis", async function () {
     const account = await context.polkadotApi.query.system.account(GENESIS_ACCOUNT);
     expect(account.data.reserved.toString()).to.equal(GENESIS_STAKED.toString());
   });
 
-  step("validator set in genesis", async function () {
-    const validators = await context.polkadotApi.query.parachainStaking.validators();
-    expect((validators[0] as Buffer).toString("hex").toLowerCase()).equal(GENESIS_ACCOUNT);
+  step("collator set in genesis", async function () {
+    const collators = await context.polkadotApi.query.parachainStaking.selectedCandidates();
+    expect((collators[0] as Buffer).toString("hex").toLowerCase()).equal(GENESIS_ACCOUNT);
   });
 
   it("candidates set in genesis", async function () {
-    const candidates = await context.polkadotApi.query.parachainStaking.candidates(GENESIS_ACCOUNT);
+    const candidates = await context.polkadotApi.query.parachainStaking.collatorState(
+      GENESIS_ACCOUNT
+    );
     expect(candidates.toHuman()["id"].toLowerCase()).equal(GENESIS_ACCOUNT);
     expect(candidates.toHuman()["state"]).equal("Active");
   });
