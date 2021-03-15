@@ -33,12 +33,12 @@ fn geneses() {
 		assert!(Crowdloan::accounts_payable(&4).is_none());
 		assert!(Crowdloan::accounts_payable(&5).is_none());
 
-		// accounts_mapping
-		assert!(Crowdloan::accounts_mapping(&[1u8; 32]).is_some());
-		assert!(Crowdloan::accounts_mapping(&[2u8; 32]).is_some());
-		assert!(Crowdloan::accounts_mapping(pairs[0].public().as_array_ref()).is_none());
-		assert!(Crowdloan::accounts_mapping(pairs[1].public().as_array_ref()).is_none());
-		assert!(Crowdloan::accounts_mapping(pairs[2].public().as_array_ref()).is_none());
+		// claimed address existence
+		assert!(Crowdloan::claimed_relay_chain_ids(&[1u8; 32]).is_some());
+		assert!(Crowdloan::claimed_relay_chain_ids(&[2u8; 32]).is_some());
+		assert!(Crowdloan::claimed_relay_chain_ids(pairs[0].public().as_array_ref()).is_none());
+		assert!(Crowdloan::claimed_relay_chain_ids(pairs[1].public().as_array_ref()).is_none());
+		assert!(Crowdloan::claimed_relay_chain_ids(pairs[2].public().as_array_ref()).is_none());
 
 		// unassociated_contributions
 		assert!(Crowdloan::unassociated_contributions(&[1u8; 32]).is_none());
@@ -86,7 +86,7 @@ fn proving_assignation_works() {
 		// now three is payable
 		assert!(Crowdloan::accounts_payable(&3).is_some());
 		assert!(Crowdloan::unassociated_contributions(pairs[0].public().as_array_ref()).is_none());
-		assert!(Crowdloan::accounts_mapping(pairs[0].public().as_array_ref()).is_some());
+		assert!(Crowdloan::claimed_relay_chain_ids(pairs[0].public().as_array_ref()).is_some());
 	});
 }
 
@@ -97,23 +97,26 @@ fn paying_works() {
 		assert!(Crowdloan::accounts_payable(&1).is_some());
 		roll_to(4);
 		assert_ok!(Crowdloan::show_me_the_money(Origin::signed(1)));
-		assert_eq!(Crowdloan::accounts_payable(&1).unwrap().last_paid, 0u64);
+		assert_eq!(Crowdloan::accounts_payable(&1).unwrap().last_paid, 4u64);
+		assert_eq!(Crowdloan::accounts_payable(&1).unwrap().claimed_reward, 248);
 		assert_noop!(
 			Crowdloan::show_me_the_money(Origin::signed(3)),
 			Error::<Test>::NoAssociatedClaim
 		);
-		roll_to(12);
-		// Signature is wrong, prove fails
+		roll_to(5);
 		assert_ok!(Crowdloan::show_me_the_money(Origin::signed(1)));
-		assert_eq!(Crowdloan::accounts_payable(&1).unwrap().last_paid, 1u64);
-		assert_eq!(Crowdloan::accounts_payable(&1).unwrap().claimed_reward, 62);
-		roll_to(30);
+		assert_eq!(Crowdloan::accounts_payable(&1).unwrap().last_paid, 5u64);
+		assert_eq!(Crowdloan::accounts_payable(&1).unwrap().claimed_reward, 310);
+		roll_to(6);
 		assert_ok!(Crowdloan::show_me_the_money(Origin::signed(1)));
-		assert_eq!(Crowdloan::accounts_payable(&1).unwrap().last_paid, 3u64);
-		assert_eq!(Crowdloan::accounts_payable(&1).unwrap().claimed_reward, 186);
+		assert_eq!(Crowdloan::accounts_payable(&1).unwrap().last_paid, 6u64);
+		assert_eq!(Crowdloan::accounts_payable(&1).unwrap().claimed_reward, 372);
+		roll_to(7);
+		assert_ok!(Crowdloan::show_me_the_money(Origin::signed(1)));
+		assert_eq!(Crowdloan::accounts_payable(&1).unwrap().last_paid, 7u64);
+		assert_eq!(Crowdloan::accounts_payable(&1).unwrap().claimed_reward, 434);
 		roll_to(230);
 		assert_ok!(Crowdloan::show_me_the_money(Origin::signed(1)));
-		assert_eq!(Crowdloan::accounts_payable(&1).unwrap().last_paid, 28u64);
 		assert_eq!(Crowdloan::accounts_payable(&1).unwrap().claimed_reward, 500);
 		roll_to(330);
 		assert_noop!(
@@ -137,7 +140,7 @@ fn paying_late_joiner_works() {
 			signature.clone()
 		));
 		assert_ok!(Crowdloan::show_me_the_money(Origin::signed(3)));
-		assert_eq!(Crowdloan::accounts_payable(&3).unwrap().last_paid, 1u64);
-		assert_eq!(Crowdloan::accounts_payable(&3).unwrap().claimed_reward, 62);
+		assert_eq!(Crowdloan::accounts_payable(&3).unwrap().last_paid, 12u64);
+		assert_eq!(Crowdloan::accounts_payable(&3).unwrap().claimed_reward, 500);
 	});
 }

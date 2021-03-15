@@ -164,7 +164,7 @@ pub mod pallet {
 
 			// We ensure the mapping does not exist yet to avoid multi-claiming
 			ensure!(
-				AccountsMapping::<T>::get(&relay_account).is_none(),
+				ClaimedRelayChainIds::<T>::get(&relay_account).is_none(),
 				Error::<T>::AlreadyAssociated
 			);
 
@@ -179,7 +179,7 @@ pub mod pallet {
 			<UnassociatedContributions<T>>::remove(&relay_account);
 
 			// Insert in mapping
-			AccountsMapping::<T>::insert(&relay_account, &reward_account);
+			ClaimedRelayChainIds::<T>::insert(&relay_account, ());
 
 			// Emit Event
 			Self::deposit_event(Event::NativeIdentityAssociated(
@@ -212,8 +212,7 @@ pub mod pallet {
 					.try_into()
 					.ok()
 					.ok_or(Error::<T>::WrongConversionU128ToBalance)?; //TODO safe math;
-			let current_period = now / T::VestingPeriod::get();
-			let payable_period = current_period - info.last_paid;
+			let payable_period = now - info.last_paid;
 
 			let pay_period_as_balance: BalanceOf<T> = payable_period
 				.saturated_into::<u128>()
@@ -231,7 +230,7 @@ pub mod pallet {
 			};
 
 			// Update the stored info
-			info.last_paid = current_period;
+			info.last_paid = now;
 			info.claimed_reward += payable_amount;
 			AccountsPayable::<T>::insert(&payee, &info);
 
@@ -265,9 +264,8 @@ pub mod pallet {
 	pub type AccountsPayable<T: Config> =
 		StorageMap<_, Blake2_128Concat, T::AccountId, RewardInfo<T>>;
 	#[pallet::storage]
-	#[pallet::getter(fn accounts_mapping)]
-	pub type AccountsMapping<T: Config> =
-		StorageMap<_, Blake2_128Concat, T::RelayChainAccountId, T::AccountId>;
+	#[pallet::getter(fn claimed_relay_chain_ids)]
+	pub type ClaimedRelayChainIds<T: Config> = StorageMap<_, Blake2_128Concat, T::RelayChainAccountId, ()>;
 	#[pallet::storage]
 	#[pallet::getter(fn unassociated_contributions)]
 	pub type UnassociatedContributions<T: Config> =
@@ -321,7 +319,7 @@ pub mod pallet {
 						last_paid: 0u32.into(),
 					};
 					AccountsPayable::<T>::insert(native_account, reward_info);
-					AccountsMapping::<T>::insert(relay_account, native_account);
+					ClaimedRelayChainIds::<T>::insert(relay_account, ());
 				});
 
 			// Initialize storage for UN-associated contributions
