@@ -27,7 +27,7 @@
 //! * a new set of collators is chosen from the candidates
 //!
 //! To join the set of candidates, an account must call `join_candidates` with
-//! stake >= `MinCollatorStk` and fee <= `MaxFee`. The fee is taken off the top
+//! stake >= `MinCollatorCandidateStk` and fee <= `MaxFee`. The fee is taken off the top
 //! of any rewards for the collator before the remaining rewards are distributed
 //! in proportion to stake to all nominators (including the collator, who always
 //! self-nominates).
@@ -338,8 +338,10 @@ pub mod pallet {
 		type MaxCollatorsPerNominator: Get<u32>;
 		/// Maximum fee for any collator
 		type MaxFee: Get<Perbill>;
-		/// Minimum stake for any registered on-chain account to become a collator
+		/// Minimum stake required for any account to be in `SelectedCandidates` for the round
 		type MinCollatorStk: Get<BalanceOf<Self>>;
+		/// Minimum stake required for any account to be a collator candidate
+		type MinCollatorCandidateStk: Get<BalanceOf<Self>>;
 		/// Minimum stake for any registered on-chain account to nominate
 		type MinNomination: Get<BalanceOf<Self>>;
 		/// Minimum stake for any registered on-chain account to become a nominator
@@ -607,7 +609,7 @@ pub mod pallet {
 			ensure!(!Self::is_nominator(&acc), Error::<T>::NominatorExists);
 			ensure!(fee <= T::MaxFee::get(), Error::<T>::FeeOverMax);
 			ensure!(
-				bond >= T::MinCollatorStk::get(),
+				bond >= T::MinCollatorCandidateStk::get(),
 				Error::<T>::ValBondBelowMin
 			);
 			let mut candidates = <CandidatePool<T>>::get();
@@ -724,7 +726,7 @@ pub mod pallet {
 			let before = state.bond;
 			let after = state.bond_less(less).ok_or(Error::<T>::Underflow)?;
 			ensure!(
-				after >= T::MinCollatorStk::get(),
+				after >= T::MinCollatorCandidateStk::get(),
 				Error::<T>::ValBondBelowMin
 			);
 			T::Currency::unreserve(&collator, less);
@@ -1103,6 +1105,7 @@ pub mod pallet {
 				.into_iter()
 				.rev()
 				.take(top_n)
+				.filter(|x| x.amount >= T::MinCollatorStk::get())
 				.map(|x| x.owner)
 				.collect::<Vec<T::AccountId>>();
 			// snapshot exposure for round for weighting reward distribution

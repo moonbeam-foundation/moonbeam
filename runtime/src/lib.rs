@@ -390,8 +390,6 @@ parameter_types! {
 	pub const TotalSelectedCandidates: u32 = 8;
 	/// Maximum 10 nominators per validator
 	pub const MaxNominatorsPerCollator: u32 = 10;
-	/// Maximum 8 validators per nominator (same as MaxValidators)
-	pub const MaxCollatorsPerNominator: u32 = 8;
 	/// The maximum percent a validator can take off the top of its rewards is 50%
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
 	/// Minimum stake required to be reserved to be a validator is 1_000
@@ -406,9 +404,10 @@ impl parachain_staking::Config for Runtime {
 	type BondDuration = BondDuration;
 	type TotalSelectedCandidates = TotalSelectedCandidates;
 	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
-	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
+	type MaxCollatorsPerNominator = TotalSelectedCandidates;
 	type MaxFee = MaxFee;
 	type MinCollatorStk = MinCollatorStk;
+	type MinCollatorCandidateStk = MinCollatorStk;
 	type MinNomination = MinNominatorStk;
 	type MinNominatorStk = MinNominatorStk;
 }
