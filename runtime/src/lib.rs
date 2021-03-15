@@ -245,6 +245,7 @@ pub const GAS_PER_SECOND: u64 = 40_000_000;
 /// u64 works for approximations because Weight is a very small unit compared to gas.
 pub const WEIGHT_PER_GAS: u64 = WEIGHT_PER_SECOND / GAS_PER_SECOND;
 
+/// A linear GasWeightMapping for Moonbeam using experimentally determined values.
 pub struct MoonbeamGasWeightMapping;
 
 impl pallet_evm::GasWeightMapping for MoonbeamGasWeightMapping {
