@@ -387,15 +387,15 @@ parameter_types! {
 	/// Reward payments and validator exit requests are delayed by 2 hours (2 * 600 * block_time)
 	pub const BondDuration: u32 = 2;
 	/// Maximum 8 valid block authors at any given time
-	pub const MaxValidators: u32 = 8;
+	pub const TotalSelectedCandidates: u32 = 8;
 	/// Maximum 10 nominators per validator
-	pub const MaxNominatorsPerValidator: u32 = 10;
+	pub const MaxNominatorsPerCollator: u32 = 10;
 	/// Maximum 8 validators per nominator (same as MaxValidators)
-	pub const MaxValidatorsPerNominator: u32 = 8;
+	pub const MaxCollatorsPerNominator: u32 = 8;
 	/// The maximum percent a validator can take off the top of its rewards is 50%
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
 	/// Minimum stake required to be reserved to be a validator is 1_000
-	pub const MinValidatorStk: u128 = 1_000 * GLMR;
+	pub const MinCollatorStk: u128 = 1_000 * GLMR;
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5 * GLMR;
 }
@@ -404,11 +404,11 @@ impl parachain_staking::Config for Runtime {
 	type Currency = Balances;
 	type BlocksPerRound = BlocksPerRound;
 	type BondDuration = BondDuration;
-	type MaxValidators = MaxValidators;
-	type MaxNominatorsPerValidator = MaxNominatorsPerValidator;
-	type MaxValidatorsPerNominator = MaxValidatorsPerNominator;
+	type TotalSelectedCandidates = TotalSelectedCandidates;
+	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
+	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
 	type MaxFee = MaxFee;
-	type MinValidatorStk = MinValidatorStk;
+	type MinCollatorStk = MinCollatorStk;
 	type MinNomination = MinNominatorStk;
 	type MinNominatorStk = MinNominatorStk;
 }

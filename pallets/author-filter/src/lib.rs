@@ -68,7 +68,7 @@ pub mod pallet {
 	// inherent.
 	impl<T: Config> author_inherent::CanAuthor<T::AccountId> for Pallet<T> {
 		fn can_author(account: &T::AccountId) -> bool {
-			let mut staked: Vec<T::AccountId> = parachain_staking::Module::<T>::validators();
+			let mut staked = <parachain_staking::Module<T>>::selected_candidates();
 
 			let num_eligible = EligibleRatio::<T>::get().mul_ceil(staked.len());
 			let mut eligible = Vec::with_capacity(num_eligible);

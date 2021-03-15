@@ -15,31 +15,31 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! # Parachain Staking
-//! Minimal staking pallet that implements ordered validator selection by total amount at stake
+//! Minimal staking pallet that implements collator selection by total backed stake
 //!
 //! ### Rules
 //! There is a new round every `BlocksPerRound` blocks.
 //!
 //! At the start of every round,
-//! * `IssuancePerRound` is distributed to validators for `BondDuration` rounds ago
+//! * `IssuancePerRound` is distributed to collators for `BondDuration` rounds ago
 //! in proportion to the points they received in that round (for authoring blocks)
-//! * queued validator exits are executed
-//! * a new set of validators is chosen from the candidates
+//! * queued collator exits are executed
+//! * a new set of collators is chosen from the candidates
 //!
 //! To join the set of candidates, an account must call `join_candidates` with
-//! stake >= `MinValidatorStk` and fee <= `MaxFee`. The fee is taken off the top
-//! of any rewards for the validator before the remaining rewards are distributed
-//! in proportion to stake to all nominators (including the validator, who always
+//! stake >= `MinCollatorStk` and fee <= `MaxFee`. The fee is taken off the top
+//! of any rewards for the collator before the remaining rewards are distributed
+//! in proportion to stake to all nominators (including the collator, who always
 //! self-nominates).
 //!
-//! To leave the set of candidates, the validator calls `leave_candidates`. If the call succeeds,
-//! the validator is removed from the pool of candidates so they cannot be selected for future
-//! validator sets, but they are not unstaked until `BondDuration` rounds later. The exit request is
-//! stored in the `ExitQueue` and processed `BondDuration` rounds later to unstake the validator
+//! To leave the set of candidates, the collator calls `leave_candidates`. If the call succeeds,
+//! the collator is removed from the pool of candidates so they cannot be selected for future
+//! collator sets, but they are not unstaked until `BondDuration` rounds later. The exit request is
+//! stored in the `ExitQueue` and processed `BondDuration` rounds later to unstake the collator
 //! and all of its nominators.
 //!
 //! To join the set of nominators, an account must call `join_nominators` with
-//! stake >= `MinNominatorStk`. There are also runtime methods for nominating additional validators
+//! stake >= `MinNominatorStk`. There are also runtime methods for nominating additional collators
 //! and revoking nominations.
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -65,7 +65,7 @@ pub mod pallet {
 	use parity_scale_codec::{Decode, Encode};
 	use sp_runtime::{
 		traits::{AtLeast32BitUnsigned, Zero},
-		DispatchResult, Perbill, RuntimeDebug,
+		Perbill, RuntimeDebug,
 	};
 	use sp_std::{cmp::Ordering, prelude::*};
 
@@ -109,8 +109,8 @@ pub mod pallet {
 	}
 
 	#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
-	/// The activity status of the validator
-	pub enum ValidatorStatus {
+	/// The activity status of the collator
+	pub enum CollatorStatus {
 		/// Committed to be online and producing valid blocks (not equivocating)
 		Active,
 		/// Temporarily inactive and excused for inactivity
@@ -119,15 +119,15 @@ pub mod pallet {
 		Leaving(RoundIndex),
 	}
 
-	impl Default for ValidatorStatus {
-		fn default() -> ValidatorStatus {
-			ValidatorStatus::Active
+	impl Default for CollatorStatus {
+		fn default() -> CollatorStatus {
+			CollatorStatus::Active
 		}
 	}
 
 	#[derive(Default, Encode, Decode, RuntimeDebug)]
-	/// Snapshot of validator state at the start of the round for which they are selected
-	pub struct ValidatorSnapshot<AccountId, Balance> {
+	/// Snapshot of collator state at the start of the round for which they are selected
+	pub struct CollatorSnapshot<AccountId, Balance> {
 		pub fee: Perbill,
 		pub bond: Balance,
 		pub nominators: Vec<Bond<AccountId, Balance>>,
@@ -135,43 +135,43 @@ pub mod pallet {
 	}
 
 	#[derive(Encode, Decode, RuntimeDebug)]
-	/// Global validator state with commission fee, bonded stake, and nominations
-	pub struct Validator<AccountId, Balance> {
+	/// Global collator state with commission fee, bonded stake, and nominations
+	pub struct Collator<AccountId, Balance> {
 		pub id: AccountId,
 		pub fee: Perbill,
 		pub bond: Balance,
 		pub nominators: OrderedSet<Bond<AccountId, Balance>>,
 		pub total: Balance,
-		pub state: ValidatorStatus,
+		pub state: CollatorStatus,
 	}
 
 	impl<
 			A: Ord + Clone,
 			B: AtLeast32BitUnsigned + Ord + Copy + sp_std::ops::AddAssign + sp_std::ops::SubAssign,
-		> Validator<A, B>
+		> Collator<A, B>
 	{
 		pub fn new(id: A, fee: Perbill, bond: B) -> Self {
 			let total = bond;
-			Validator {
+			Collator {
 				id,
 				fee,
 				bond,
 				nominators: OrderedSet::new(),
 				total,
-				state: ValidatorStatus::default(), // default active
+				state: CollatorStatus::default(), // default active
 			}
 		}
 		pub fn is_active(&self) -> bool {
-			self.state == ValidatorStatus::Active
+			self.state == CollatorStatus::Active
 		}
 		pub fn is_leaving(&self) -> bool {
-			matches!(self.state, ValidatorStatus::Leaving(_))
+			matches!(self.state, CollatorStatus::Leaving(_))
 		}
 		pub fn bond_more(&mut self, more: B) {
 			self.bond += more;
 			self.total += more;
 		}
-		// Returns None if underflow or less == self.bond (in which case validator should leave instead)
+		// Returns None if underflow or less == self.bond (in which case collator should leave)
 		pub fn bond_less(&mut self, less: B) -> Option<B> {
 			if self.bond > less {
 				self.bond -= less;
@@ -200,19 +200,19 @@ pub mod pallet {
 			}
 		}
 		pub fn go_offline(&mut self) {
-			self.state = ValidatorStatus::Idle;
+			self.state = CollatorStatus::Idle;
 		}
 		pub fn go_online(&mut self) {
-			self.state = ValidatorStatus::Active;
+			self.state = CollatorStatus::Active;
 		}
 		pub fn leave_candidates(&mut self, round: RoundIndex) {
-			self.state = ValidatorStatus::Leaving(round);
+			self.state = CollatorStatus::Leaving(round);
 		}
 	}
 
-	impl<A: Clone, B: Copy> From<Validator<A, B>> for ValidatorSnapshot<A, B> {
-		fn from(other: Validator<A, B>) -> ValidatorSnapshot<A, B> {
-			ValidatorSnapshot {
+	impl<A: Clone, B: Copy> From<Collator<A, B>> for CollatorSnapshot<A, B> {
+		fn from(other: Collator<A, B>) -> CollatorSnapshot<A, B> {
+			CollatorSnapshot {
 				fee: other.fee,
 				bond: other.bond,
 				nominators: other.nominators.0,
@@ -236,13 +236,13 @@ pub mod pallet {
 				+ PartialOrd,
 		> Nominator<AccountId, Balance>
 	{
-		pub fn new(validator: AccountId, nomination: Balance) -> Self {
+		pub fn new(collator: AccountId, amount: Balance) -> Self {
 			Nominator {
 				nominations: OrderedSet::from(vec![Bond {
-					owner: validator,
-					amount: nomination,
+					owner: collator,
+					amount,
 				}]),
-				total: nomination,
+				total: amount,
 			}
 		}
 		pub fn add_nomination(&mut self, bond: Bond<AccountId, Balance>) -> bool {
@@ -256,14 +256,14 @@ pub mod pallet {
 		}
 		// Returns Some(remaining balance), must be more than MinNominatorStk
 		// Returns None if nomination not found
-		pub fn rm_nomination(&mut self, validator: AccountId) -> Option<Balance> {
+		pub fn rm_nomination(&mut self, collator: AccountId) -> Option<Balance> {
 			let mut amt: Option<Balance> = None;
 			let nominations = self
 				.nominations
 				.0
 				.iter()
 				.filter_map(|x| {
-					if x.owner == validator {
+					if x.owner == collator {
 						amt = Some(x.amount);
 						None
 					} else {
@@ -280,9 +280,9 @@ pub mod pallet {
 			}
 		}
 		// Returns None if nomination not found
-		pub fn inc_nomination(&mut self, validator: AccountId, more: Balance) -> Option<Balance> {
+		pub fn inc_nomination(&mut self, collator: AccountId, more: Balance) -> Option<Balance> {
 			for x in &mut self.nominations.0 {
-				if x.owner == validator {
+				if x.owner == collator {
 					x.amount += more;
 					self.total += more;
 					return Some(x.amount);
@@ -295,17 +295,17 @@ pub mod pallet {
 		// Some(None) if underflow
 		pub fn dec_nomination(
 			&mut self,
-			validator: AccountId,
+			collator: AccountId,
 			less: Balance,
 		) -> Option<Option<Balance>> {
 			for x in &mut self.nominations.0 {
-				if x.owner == validator {
+				if x.owner == collator {
 					if x.amount > less {
 						x.amount -= less;
 						self.total -= less;
 						return Some(Some(x.amount));
 					} else {
-						// underflow error; should rm entire nomination if x.amount == validator
+						// underflow error; should rm entire nomination if x.amount == collator
 						return Some(None);
 					}
 				}
@@ -318,7 +318,6 @@ pub mod pallet {
 	type RewardPoint = u32;
 	pub type BalanceOf<T> =
 		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
-	type Candidate<T> = Validator<<T as frame_system::Config>::T::AccountId, BalanceOf<T>>;
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
@@ -329,18 +328,18 @@ pub mod pallet {
 		type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 		/// Number of blocks per round
 		type BlocksPerRound: Get<u32>;
-		/// Number of rounds that validators remain bonded before exit request is executed
+		/// Number of rounds that collators remain bonded before exit request is executed
 		type BondDuration: Get<RoundIndex>;
-		/// Maximum validators per round
-		type MaxValidators: Get<u32>;
-		/// Maximum nominators per validator
-		type MaxNominatorsPerValidator: Get<u32>;
-		/// Maximum validators per nominator
-		type MaxValidatorsPerNominator: Get<u32>;
-		/// Maximum fee for any validator
+		/// Total number of selected candidates every round
+		type TotalSelectedCandidates: Get<u32>;
+		/// Maximum nominators per collator
+		type MaxNominatorsPerCollator: Get<u32>;
+		/// Maximum collators per nominator
+		type MaxCollatorsPerNominator: Get<u32>;
+		/// Maximum fee for any collator
 		type MaxFee: Get<Perbill>;
-		/// Minimum stake for any registered on-chain account to become a validator
-		type MinValidatorStk: Get<BalanceOf<Self>>;
+		/// Minimum stake for any registered on-chain account to become a collator
+		type MinCollatorStk: Get<BalanceOf<Self>>;
 		/// Minimum stake for any registered on-chain account to nominate
 		type MinNomination: Get<BalanceOf<Self>>;
 		/// Minimum stake for any registered on-chain account to become a nominator
@@ -363,8 +362,8 @@ pub mod pallet {
 		AlreadyLeaving,
 		TooManyNominators,
 		CannotActivateIfLeaving,
-		ExceedMaxValidatorsPerNom,
-		AlreadyNominatedValidator,
+		ExceedMaxCollatorsPerNom,
+		AlreadyNominatedCollator,
 		NominationDNE,
 		Underflow,
 		InvalidSchedule,
@@ -373,33 +372,33 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// Starting Block, Round, Number of Validators, Total Balance
+		/// Starting Block, Round, Number of Collators Selected, Total Balance
 		NewRound(T::BlockNumber, RoundIndex, u32, BalanceOf<T>),
 		/// Account, Amount Locked, New Total Amt Locked
-		JoinedValidatorCandidates(T::AccountId, BalanceOf<T>, BalanceOf<T>),
-		/// Round, Validator Account, Total Exposed Amount (includes all nominations)
-		ValidatorChosen(RoundIndex, T::AccountId, BalanceOf<T>),
-		/// Validator Account, Old Bond, New Bond
-		ValidatorBondedMore(T::AccountId, BalanceOf<T>, BalanceOf<T>),
-		/// Validator Account, Old Bond, New Bond
-		ValidatorBondedLess(T::AccountId, BalanceOf<T>, BalanceOf<T>),
-		ValidatorWentOffline(RoundIndex, T::AccountId),
-		ValidatorBackOnline(RoundIndex, T::AccountId),
-		/// Round, Validator Account, Scheduled Exit
-		ValidatorScheduledExit(RoundIndex, T::AccountId, RoundIndex),
+		JoinedCollatorCandidates(T::AccountId, BalanceOf<T>, BalanceOf<T>),
+		/// Round, Collator Account, Total Exposed Amount (includes all nominations)
+		CollatorChosen(RoundIndex, T::AccountId, BalanceOf<T>),
+		/// Collator Account, Old Bond, New Bond
+		CollatorBondedMore(T::AccountId, BalanceOf<T>, BalanceOf<T>),
+		/// Collator Account, Old Bond, New Bond
+		CollatorBondedLess(T::AccountId, BalanceOf<T>, BalanceOf<T>),
+		CollatorWentOffline(RoundIndex, T::AccountId),
+		CollatorBackOnline(RoundIndex, T::AccountId),
+		/// Round, Collator Account, Scheduled Exit
+		CollatorScheduledExit(RoundIndex, T::AccountId, RoundIndex),
 		/// Account, Amount Unlocked, New Total Amt Locked
-		ValidatorLeft(T::AccountId, BalanceOf<T>, BalanceOf<T>),
-		// Nominator, Validator, Old Nomination, New Nomination
+		CollatorLeft(T::AccountId, BalanceOf<T>, BalanceOf<T>),
+		// Nominator, Collator, Old Nomination, New Nomination
 		NominationIncreased(T::AccountId, T::AccountId, BalanceOf<T>, BalanceOf<T>),
-		// Nominator, Validator, Old Nomination, New Nomination
+		// Nominator, Collator, Old Nomination, New Nomination
 		NominationDecreased(T::AccountId, T::AccountId, BalanceOf<T>, BalanceOf<T>),
 		/// Nominator, Amount Unstaked
 		NominatorLeft(T::AccountId, BalanceOf<T>),
-		/// Nominator, Amount Locked, Validator, New Total Amt backing Validator
+		/// Nominator, Amount Locked, Collator, New Total Amt backing Collator
 		Nomination(T::AccountId, BalanceOf<T>, T::AccountId, BalanceOf<T>),
-		/// Nominator, Validator, Amount Unstaked, New Total Amt Staked for Validator
-		NominatorLeftValidator(T::AccountId, T::AccountId, BalanceOf<T>, BalanceOf<T>),
-		/// Paid the account (nominator or validator) the balance as liquid rewards
+		/// Nominator, Collator, Amount Unstaked, New Total Amt Staked for Collator
+		NominatorLeftCollator(T::AccountId, T::AccountId, BalanceOf<T>, BalanceOf<T>),
+		/// Paid the account (nominator or collator) the balance as liquid rewards
 		Rewarded(T::AccountId, BalanceOf<T>),
 		/// Round inflation range set with the provided annual inflation range
 		RoundInflationSet(Perbill, Perbill, Perbill),
@@ -414,15 +413,15 @@ pub mod pallet {
 				let next = <Round<T>>::get() + 1;
 				// pay all stakers for T::BondDuration rounds ago
 				Self::pay_stakers(next);
-				// execute all delayed validator exits
-				Self::execute_delayed_validator_exits(next);
-				// insert exposure for next validator set
-				let (validator_count, total_staked) = Self::best_candidates_become_validators(next);
+				// execute all delayed collator exits
+				Self::execute_delayed_collator_exits(next);
+				// select top collator candidates for next round
+				let (collator_count, total_staked) = Self::select_top_candidates(next);
 				// start next round
 				<Round<T>>::put(next);
 				// snapshot total stake
 				<Staked<T>>::insert(next, <Total<T>>::get());
-				Self::deposit_event(Event::NewRound(n, next, validator_count, total_staked));
+				Self::deposit_event(Event::NewRound(n, next, collator_count, total_staked));
 			}
 		}
 	}
@@ -432,8 +431,8 @@ pub mod pallet {
 	type Round<T: Config> = StorageValue<_, RoundIndex, ValueQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn nominators)]
-	type Nominators<T: Config> = StorageMap<
+	#[pallet::getter(fn nominator_state)]
+	type NominatorState<T: Config> = StorageMap<
 		_,
 		Twox64Concat,
 		T::AccountId,
@@ -442,13 +441,18 @@ pub mod pallet {
 	>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn candidates)]
-	type Candidates<T: Config> =
-		StorageMap<_, Twox64Concat, T::AccountId, Candidate<T>, OptionQuery>;
+	#[pallet::getter(fn collator_state)]
+	type CollatorState<T: Config> = StorageMap<
+		_,
+		Twox64Concat,
+		T::AccountId,
+		Collator<T::AccountId, BalanceOf<T>>,
+		OptionQuery,
+	>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn validators)]
-	type Validators<T: Config> = StorageValue<_, Vec<T::AccountId>, ValueQuery>;
+	#[pallet::getter(fn selected_candidates)]
+	type SelectedCandidates<T: Config> = StorageValue<_, Vec<T::AccountId>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn total)]
@@ -472,7 +476,7 @@ pub mod pallet {
 		RoundIndex,
 		Twox64Concat,
 		T::AccountId,
-		ValidatorSnapshot<T::AccountId, BalanceOf<T>>,
+		CollatorSnapshot<T::AccountId, BalanceOf<T>>,
 		ValueQuery,
 	>;
 
@@ -534,13 +538,13 @@ pub mod pallet {
 				} else {
 					<Pallet<T>>::join_candidates(
 						T::Origin::from(Some(actor.clone()).into()),
-						Perbill::zero(), // default fee for validators registered at genesis is 0%
+						Perbill::zero(), // default fee for collators registered at genesis is 0%
 						balance,
 					)
 				};
 			}
-			// Choose top `MaxValidator`s from validator candidates
-			let (v_count, total_staked) = <Pallet<T>>::best_candidates_become_validators(1u32);
+			// Choose top `TotalSelectedCandidates`s from collator candidates
+			let (v_count, total_staked) = <Pallet<T>>::select_top_candidates(1u32);
 			// Start Round 1 at Block 0
 			<Round<T>>::put(1u32);
 			// Snapshot total stake
@@ -603,7 +607,7 @@ pub mod pallet {
 			ensure!(!Self::is_nominator(&acc), Error::<T>::NominatorExists);
 			ensure!(fee <= T::MaxFee::get(), Error::<T>::FeeOverMax);
 			ensure!(
-				bond >= T::MinValidatorStk::get(),
+				bond >= T::MinCollatorStk::get(),
 				Error::<T>::ValBondBelowMin
 			);
 			let mut candidates = <CandidatePool<T>>::get();
@@ -615,154 +619,156 @@ pub mod pallet {
 				Error::<T>::CandidateExists
 			);
 			T::Currency::reserve(&acc, bond)?;
-			let candidate: Candidate<T> = Validator::new(acc.clone(), fee, bond);
+			let candidate = Collator::new(acc.clone(), fee, bond);
 			let new_total = <Total<T>>::get() + bond;
 			<Total<T>>::put(new_total);
-			<Candidates<T>>::insert(&acc, candidate);
+			<CollatorState<T>>::insert(&acc, candidate);
 			<CandidatePool<T>>::put(candidates);
-			Self::deposit_event(Event::JoinedValidatorCandidates(acc, bond, new_total));
+			Self::deposit_event(Event::JoinedCollatorCandidates(acc, bond, new_total));
 			Ok(().into())
 		}
 		/// Request to leave the set of candidates. If successful, the account is immediately
-		/// removed from the candidate pool to prevent selection as a validator, but unbonding is
+		/// removed from the candidate pool to prevent selection as a collator, but unbonding is
 		/// executed with a delay of `BondDuration` rounds.
 		#[pallet::weight(0)]
 		pub fn leave_candidates(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
-			let validator = ensure_signed(origin)?;
-			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
+			let collator = ensure_signed(origin)?;
+			let mut state = <CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_leaving(), Error::<T>::AlreadyLeaving);
 			let mut exits = <ExitQueue<T>>::get();
 			let now = <Round<T>>::get();
 			let when = now + T::BondDuration::get();
 			ensure!(
 				exits.insert(Bond {
-					owner: validator.clone(),
+					owner: collator.clone(),
 					amount: when
 				}),
 				Error::<T>::AlreadyLeaving
 			);
 			state.leave_candidates(when);
 			let mut candidates = <CandidatePool<T>>::get();
-			if candidates.remove(&Bond::from_owner(validator.clone())) {
+			if candidates.remove(&Bond::from_owner(collator.clone())) {
 				<CandidatePool<T>>::put(candidates);
 			}
 			<ExitQueue<T>>::put(exits);
-			<Candidates<T>>::insert(&validator, state);
-			Self::deposit_event(Event::ValidatorScheduledExit(now, validator, when));
+			<CollatorState<T>>::insert(&collator, state);
+			Self::deposit_event(Event::CollatorScheduledExit(now, collator, when));
 			Ok(().into())
 		}
-		/// Temporarily leave the set of validator candidates without unbonding
+		/// Temporarily leave the set of collator candidates without unbonding
 		#[pallet::weight(0)]
 		pub fn go_offline(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
-			let validator = ensure_signed(origin)?;
-			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
+			let collator = ensure_signed(origin)?;
+			let mut state = <CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(state.is_active(), Error::<T>::AlreadyOffline);
 			state.go_offline();
 			let mut candidates = <CandidatePool<T>>::get();
 			// TODO: investigate possible bug in this next line
-			if candidates.remove(&Bond::from_owner(validator.clone())) {
+			if candidates.remove(&Bond::from_owner(collator.clone())) {
 				<CandidatePool<T>>::put(candidates);
 			}
-			<Candidates<T>>::insert(&validator, state);
-			Self::deposit_event(Event::ValidatorWentOffline(<Round<T>>::get(), validator));
+			<CollatorState<T>>::insert(&collator, state);
+			Self::deposit_event(Event::CollatorWentOffline(<Round<T>>::get(), collator));
 			Ok(().into())
 		}
-		/// Rejoin the set of validator candidates if previously had called `go_offline`
+		/// Rejoin the set of collator candidates if previously had called `go_offline`
 		#[pallet::weight(0)]
 		pub fn go_online(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
-			let validator = ensure_signed(origin)?;
-			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
+			let collator = ensure_signed(origin)?;
+			let mut state = <CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_active(), Error::<T>::AlreadyActive);
 			ensure!(!state.is_leaving(), Error::<T>::CannotActivateIfLeaving);
 			state.go_online();
 			let mut candidates = <CandidatePool<T>>::get();
 			ensure!(
 				candidates.insert(Bond {
-					owner: validator.clone(),
+					owner: collator.clone(),
 					amount: state.total
 				}),
 				Error::<T>::AlreadyActive
 			);
 			<CandidatePool<T>>::put(candidates);
-			<Candidates<T>>::insert(&validator, state);
-			Self::deposit_event(Event::ValidatorBackOnline(<Round<T>>::get(), validator));
+			<CollatorState<T>>::insert(&collator, state);
+			Self::deposit_event(Event::CollatorBackOnline(<Round<T>>::get(), collator));
 			Ok(().into())
 		}
-		/// Bond more for validator candidates
+		/// Bond more for collator candidates
 		#[pallet::weight(0)]
 		pub fn candidate_bond_more(
 			origin: OriginFor<T>,
 			more: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
-			let validator = ensure_signed(origin)?;
-			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
+			let collator = ensure_signed(origin)?;
+			let mut state = <CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_leaving(), Error::<T>::CannotActivateIfLeaving);
-			T::Currency::reserve(&validator, more)?;
+			T::Currency::reserve(&collator, more)?;
 			let before = state.bond;
 			state.bond_more(more);
 			let after = state.bond;
 			if state.is_active() {
-				Self::update_active(validator.clone(), state.total);
+				Self::update_active(collator.clone(), state.total);
 			}
-			<Candidates<T>>::insert(&validator, state);
-			Self::deposit_event(Event::ValidatorBondedMore(validator, before, after));
+			<CollatorState<T>>::insert(&collator, state);
+			Self::deposit_event(Event::CollatorBondedMore(collator, before, after));
 			Ok(().into())
 		}
-		/// Bond less for validator candidates
+		/// Bond less for collator candidates
 		#[pallet::weight(0)]
 		pub fn candidate_bond_less(
 			origin: OriginFor<T>,
 			less: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
-			let validator = ensure_signed(origin)?;
-			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
+			let collator = ensure_signed(origin)?;
+			let mut state = <CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_leaving(), Error::<T>::CannotActivateIfLeaving);
 			let before = state.bond;
 			let after = state.bond_less(less).ok_or(Error::<T>::Underflow)?;
 			ensure!(
-				after >= T::MinValidatorStk::get(),
+				after >= T::MinCollatorStk::get(),
 				Error::<T>::ValBondBelowMin
 			);
-			T::Currency::unreserve(&validator, less);
+			T::Currency::unreserve(&collator, less);
 			if state.is_active() {
-				Self::update_active(validator.clone(), state.total);
+				Self::update_active(collator.clone(), state.total);
 			}
-			<Candidates<T>>::insert(&validator, state);
-			Self::deposit_event(Event::ValidatorBondedLess(validator, before, after));
+			<CollatorState<T>>::insert(&collator, state);
+			Self::deposit_event(Event::CollatorBondedLess(collator, before, after));
 			Ok(().into())
 		}
-		/// Join the set of nominators
+		/// If caller is not a nominator, then join the set of nominators
+		/// If caller is a nominator, then makes nomination to change their nomination state
 		#[pallet::weight(0)]
 		pub fn nominate(
 			origin: OriginFor<T>,
-			validator: T::AccountId,
+			collator: T::AccountId,
 			amount: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
-			if let Some(mut nominator) = <Nominators<T>>::get(&acc) {
+			if let Some(mut nominator) = <NominatorState<T>>::get(&acc) {
 				// nomination after first
 				ensure!(
 					amount >= T::MinNomination::get(),
 					Error::<T>::NominationBelowMin
 				);
 				ensure!(
-					(nominator.nominations.0.len() as u32) < T::MaxValidatorsPerNominator::get(),
-					Error::<T>::ExceedMaxValidatorsPerNom
+					(nominator.nominations.0.len() as u32) < T::MaxCollatorsPerNominator::get(),
+					Error::<T>::ExceedMaxCollatorsPerNom
 				);
-				let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
+				let mut state =
+					<CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 				ensure!(
 					nominator.add_nomination(Bond {
-						owner: validator.clone(),
+						owner: collator.clone(),
 						amount
 					}),
-					Error::<T>::AlreadyNominatedValidator
+					Error::<T>::AlreadyNominatedCollator
 				);
 				let nomination = Bond {
 					owner: acc.clone(),
 					amount,
 				};
 				ensure!(
-					(state.nominators.0.len() as u32) < T::MaxNominatorsPerValidator::get(),
+					(state.nominators.0.len() as u32) < T::MaxNominatorsPerCollator::get(),
 					Error::<T>::TooManyNominators
 				);
 				ensure!(
@@ -772,14 +778,14 @@ pub mod pallet {
 				T::Currency::reserve(&acc, amount)?;
 				let new_total = state.total + amount;
 				if state.is_active() {
-					Self::update_active(validator.clone(), new_total);
+					Self::update_active(collator.clone(), new_total);
 				}
 				let new_total_locked = <Total<T>>::get() + amount;
 				<Total<T>>::put(new_total_locked);
 				state.total = new_total;
-				<Candidates<T>>::insert(&validator, state);
-				<Nominators<T>>::insert(&acc, nominator);
-				Self::deposit_event(Event::Nomination(acc, amount, validator, new_total));
+				<CollatorState<T>>::insert(&collator, state);
+				<NominatorState<T>>::insert(&acc, nominator);
+				Self::deposit_event(Event::Nomination(acc, amount, collator, new_total));
 			} else {
 				// first nomination
 				ensure!(
@@ -788,7 +794,8 @@ pub mod pallet {
 				);
 				// cannot be a collator candidate and nominator with same AccountId
 				ensure!(!Self::is_candidate(&acc), Error::<T>::CandidateExists);
-				let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
+				let mut state =
+					<CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 				let nomination = Bond {
 					owner: acc.clone(),
 					amount,
@@ -798,20 +805,20 @@ pub mod pallet {
 					Error::<T>::NominatorExists
 				);
 				ensure!(
-					(state.nominators.0.len() as u32) <= T::MaxNominatorsPerValidator::get(),
+					(state.nominators.0.len() as u32) <= T::MaxNominatorsPerCollator::get(),
 					Error::<T>::TooManyNominators
 				);
 				T::Currency::reserve(&acc, amount)?;
 				let new_total = state.total + amount;
 				if state.is_active() {
-					Self::update_active(validator.clone(), new_total);
+					Self::update_active(collator.clone(), new_total);
 				}
 				let new_total_locked = <Total<T>>::get() + amount;
 				<Total<T>>::put(new_total_locked);
 				state.total = new_total;
-				<Candidates<T>>::insert(&validator, state);
-				<Nominators<T>>::insert(&acc, Nominator::new(validator.clone(), amount));
-				Self::deposit_event(Event::Nomination(acc, amount, validator, new_total));
+				<CollatorState<T>>::insert(&collator, state);
+				<NominatorState<T>>::insert(&acc, Nominator::new(collator.clone(), amount));
+				Self::deposit_event(Event::Nomination(acc, amount, collator, new_total));
 			}
 			Ok(().into())
 		}
@@ -819,11 +826,11 @@ pub mod pallet {
 		#[pallet::weight(0)]
 		pub fn leave_nominators(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
-			let nominator = <Nominators<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
+			let nominator = <NominatorState<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
 			for bond in nominator.nominations.0 {
-				Self::nominator_leaves_validator(acc.clone(), bond.owner.clone())?;
+				Self::nominator_leaves_collator(acc.clone(), bond.owner.clone())?;
 			}
-			<Nominators<T>>::remove(&acc);
+			<NominatorState<T>>::remove(&acc);
 			Self::deposit_event(Event::NominatorLeft(acc, nominator.total));
 			Ok(().into())
 		}
@@ -831,11 +838,11 @@ pub mod pallet {
 		#[pallet::weight(0)]
 		pub fn revoke_nomination(
 			origin: OriginFor<T>,
-			validator: T::AccountId,
+			collator: T::AccountId,
 		) -> DispatchResultWithPostInfo {
-			Self::nominator_revokes_validator(ensure_signed(origin)?, validator)
+			Self::nominator_revokes_collator(ensure_signed(origin)?, collator)
 		}
-		/// Bond more for nominators with respect to a specific validator candidate
+		/// Bond more for nominators with respect to a specific collator candidate
 		#[pallet::weight(0)]
 		pub fn nominator_bond_more(
 			origin: OriginFor<T>,
@@ -844,20 +851,21 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let nominator = ensure_signed(origin)?;
 			let mut nominations =
-				<Nominators<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
-			let mut validator = <Candidates<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
+				<NominatorState<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
+			let mut collator =
+				<CollatorState<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
 			let _ = nominations
 				.inc_nomination(candidate.clone(), more)
 				.ok_or(Error::<T>::NominationDNE)?;
 			T::Currency::reserve(&nominator, more)?;
-			let before = validator.total;
-			validator.inc_nominator(nominator.clone(), more);
-			let after = validator.total;
-			if validator.is_active() {
-				Self::update_active(candidate.clone(), validator.total);
+			let before = collator.total;
+			collator.inc_nominator(nominator.clone(), more);
+			let after = collator.total;
+			if collator.is_active() {
+				Self::update_active(candidate.clone(), collator.total);
 			}
-			<Candidates<T>>::insert(&candidate, validator);
-			<Nominators<T>>::insert(&nominator, nominations);
+			<CollatorState<T>>::insert(&candidate, collator);
+			<NominatorState<T>>::insert(&nominator, nominations);
 			Self::deposit_event(Event::NominationIncreased(
 				nominator, candidate, before, after,
 			));
@@ -872,8 +880,9 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let nominator = ensure_signed(origin)?;
 			let mut nominations =
-				<Nominators<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
-			let mut validator = <Candidates<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
+				<NominatorState<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
+			let mut collator =
+				<CollatorState<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
 			let remaining = nominations
 				.dec_nomination(candidate.clone(), less)
 				.ok_or(Error::<T>::NominationDNE)?
@@ -887,14 +896,14 @@ pub mod pallet {
 				Error::<T>::NomBondBelowMin
 			);
 			T::Currency::unreserve(&nominator, less);
-			let before = validator.total;
-			validator.dec_nominator(nominator.clone(), less);
-			let after = validator.total;
-			if validator.is_active() {
-				Self::update_active(candidate.clone(), validator.total);
+			let before = collator.total;
+			collator.dec_nominator(nominator.clone(), less);
+			let after = collator.total;
+			if collator.is_active() {
+				Self::update_active(candidate.clone(), collator.total);
 			}
-			<Candidates<T>>::insert(&candidate, validator);
-			<Nominators<T>>::insert(&nominator, nominations);
+			<CollatorState<T>>::insert(&candidate, collator);
+			<NominatorState<T>>::insert(&nominator, nominations);
 			Self::deposit_event(Event::NominationDecreased(
 				nominator, candidate, before, after,
 			));
@@ -904,13 +913,13 @@ pub mod pallet {
 
 	impl<T: Config> Pallet<T> {
 		pub fn is_nominator(acc: &T::AccountId) -> bool {
-			<Nominators<T>>::get(acc).is_some()
+			<NominatorState<T>>::get(acc).is_some()
 		}
 		pub fn is_candidate(acc: &T::AccountId) -> bool {
-			<Candidates<T>>::get(acc).is_some()
+			<CollatorState<T>>::get(acc).is_some()
 		}
-		pub fn is_validator(acc: &T::AccountId) -> bool {
-			<Validators<T>>::get().binary_search(acc).is_ok()
+		pub fn is_selected_candidate(acc: &T::AccountId) -> bool {
+			<SelectedCandidates<T>>::get().binary_search(acc).is_ok()
 		}
 		// ensure candidate is active before calling
 		fn update_active(candidate: T::AccountId, total: BalanceOf<T>) {
@@ -938,27 +947,27 @@ pub mod pallet {
 				return round_issuance.ideal;
 			}
 		}
-		fn nominator_revokes_validator(
+		fn nominator_revokes_collator(
 			acc: T::AccountId,
-			validator: T::AccountId,
+			collator: T::AccountId,
 		) -> DispatchResultWithPostInfo {
-			let mut nominator = <Nominators<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
+			let mut nominator = <NominatorState<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
 			let remaining = nominator
-				.rm_nomination(validator.clone())
+				.rm_nomination(collator.clone())
 				.ok_or(Error::<T>::NominationDNE)?;
 			ensure!(
 				remaining >= T::MinNominatorStk::get(),
 				Error::<T>::NomBondBelowMin
 			);
-			Self::nominator_leaves_validator(acc.clone(), validator)?;
-			<Nominators<T>>::insert(&acc, nominator);
+			Self::nominator_leaves_collator(acc.clone(), collator)?;
+			<NominatorState<T>>::insert(&acc, nominator);
 			Ok(().into())
 		}
-		fn nominator_leaves_validator(
+		fn nominator_leaves_collator(
 			nominator: T::AccountId,
-			validator: T::AccountId,
+			collator: T::AccountId,
 		) -> DispatchResultWithPostInfo {
-			let mut state = <Candidates<T>>::get(&validator).ok_or(Error::<T>::CandidateDNE)?;
+			let mut state = <CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			let mut exists: Option<BalanceOf<T>> = None;
 			let noms = state
 				.nominators
@@ -979,15 +988,15 @@ pub mod pallet {
 			state.nominators = nominators;
 			state.total -= nominator_stake;
 			if state.is_active() {
-				Self::update_active(validator.clone(), state.total);
+				Self::update_active(collator.clone(), state.total);
 			}
 			let new_total_locked = <Total<T>>::get() - nominator_stake;
 			<Total<T>>::put(new_total_locked);
 			let new_total = state.total;
-			<Candidates<T>>::insert(&validator, state);
-			Self::deposit_event(Event::NominatorLeftValidator(
+			<CollatorState<T>>::insert(&collator, state);
+			Self::deposit_event(Event::NominatorLeftCollator(
 				nominator,
-				validator,
+				collator,
 				nominator_stake,
 				new_total,
 			));
@@ -1016,10 +1025,10 @@ pub mod pallet {
 					// Take the snapshot of block author and nominations
 					let state = <AtStake<T>>::take(round_to_payout, &val);
 					if state.nominators.is_empty() {
-						// solo validator with no nominators
+						// solo collator with no nominators
 						mint(amt_due, val.clone());
 					} else {
-						// pay validator first; commission + due_portion
+						// pay collator first; commission + due_portion
 						let val_pct = Perbill::from_rational_approximation(state.bond, state.total);
 						let commission = state.fee * amt_due;
 						let val_due = if commission > T::Currency::minimum_balance() {
@@ -1040,7 +1049,7 @@ pub mod pallet {
 				}
 			}
 		}
-		fn execute_delayed_validator_exits(next: RoundIndex) {
+		fn execute_delayed_collator_exits(next: RoundIndex) {
 			let remain_exits = <ExitQueue<T>>::get()
 				.0
 				.into_iter()
@@ -1048,29 +1057,29 @@ pub mod pallet {
 					if x.amount > next {
 						Some(x)
 					} else {
-						if let Some(state) = <Candidates<T>>::get(&x.owner) {
+						if let Some(state) = <CollatorState<T>>::get(&x.owner) {
 							for bond in state.nominators.0 {
 								// return stake to nominator
 								T::Currency::unreserve(&bond.owner, bond.amount);
 								// remove nomination from nominator state
-								if let Some(mut nominator) = <Nominators<T>>::get(&bond.owner) {
+								if let Some(mut nominator) = <NominatorState<T>>::get(&bond.owner) {
 									if let Some(remaining) =
 										nominator.rm_nomination(x.owner.clone())
 									{
 										if remaining.is_zero() {
-											<Nominators<T>>::remove(&bond.owner);
+											<NominatorState<T>>::remove(&bond.owner);
 										} else {
-											<Nominators<T>>::insert(&bond.owner, nominator);
+											<NominatorState<T>>::insert(&bond.owner, nominator);
 										}
 									}
 								}
 							}
-							// return stake to validator
+							// return stake to collator
 							T::Currency::unreserve(&state.id, state.bond);
 							let new_total = <Total<T>>::get() - state.total;
 							<Total<T>>::put(new_total);
-							<Candidates<T>>::remove(&x.owner);
-							Self::deposit_event(Event::ValidatorLeft(
+							<CollatorState<T>>::remove(&x.owner);
+							Self::deposit_event(Event::CollatorLeft(
 								x.owner,
 								state.total,
 								new_total,
@@ -1083,34 +1092,34 @@ pub mod pallet {
 			<ExitQueue<T>>::put(OrderedSet::from(remain_exits));
 		}
 		/// Best as in most cumulatively supported in terms of stake
-		fn best_candidates_become_validators(next: RoundIndex) -> (u32, BalanceOf<T>) {
-			let (mut all_validators, mut total) = (0u32, BalanceOf::<T>::zero());
+		fn select_top_candidates(next: RoundIndex) -> (u32, BalanceOf<T>) {
+			let (mut all_collators, mut total) = (0u32, BalanceOf::<T>::zero());
 			let mut candidates = <CandidatePool<T>>::get().0;
 			// order candidates by stake (least to greatest so requires `rev()`)
 			candidates.sort_unstable_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
-			let max_validators = T::MaxValidators::get() as usize;
-			// choose the top MaxValidators qualified candidates, ordered by stake
-			let mut validators = candidates
+			let top_n = T::TotalSelectedCandidates::get() as usize;
+			// choose the top TotalSelectedCandidates qualified candidates, ordered by stake
+			let mut collators = candidates
 				.into_iter()
 				.rev()
-				.take(max_validators)
+				.take(top_n)
 				.map(|x| x.owner)
 				.collect::<Vec<T::AccountId>>();
 			// snapshot exposure for round for weighting reward distribution
-			for account in validators.iter() {
-				let state = <Candidates<T>>::get(&account)
+			for account in collators.iter() {
+				let state = <CollatorState<T>>::get(&account)
 					.expect("all members of CandidateQ must be candidates");
 				let amount = state.total;
-				let exposure: ValidatorSnapshot<T::AccountId, BalanceOf<T>> = state.into();
+				let exposure: CollatorSnapshot<T::AccountId, BalanceOf<T>> = state.into();
 				<AtStake<T>>::insert(next, account, exposure);
-				all_validators += 1u32;
+				all_collators += 1u32;
 				total += amount;
-				Self::deposit_event(Event::ValidatorChosen(next, account.clone(), amount));
+				Self::deposit_event(Event::CollatorChosen(next, account.clone(), amount));
 			}
-			validators.sort();
-			// insert canonical validator set
-			<Validators<T>>::put(validators);
-			(all_validators, total)
+			collators.sort();
+			// insert canonical collator set
+			<SelectedCandidates<T>>::put(collators);
+			(all_collators, total)
 		}
 	}
 	/// Add reward points to block authors:
@@ -1126,7 +1135,7 @@ pub mod pallet {
 
 	impl<T: Config> author_inherent::CanAuthor<T::AccountId> for Pallet<T> {
 		fn can_author(account: &T::AccountId) -> bool {
-			Self::is_validator(account)
+			Self::is_selected_candidate(account)
 		}
 	}
 }
