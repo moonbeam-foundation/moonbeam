@@ -165,3 +165,55 @@ fn paying_late_joiner_works() {
 		assert_eq!(events(), expected);
 	});
 }
+
+#[test]
+fn update_address_works() {
+	two_assigned_three_unassigned().execute_with(|| {
+		roll_to(4);
+		assert_ok!(Crowdloan::show_me_the_money(Origin::signed(1)));
+		assert_noop!(
+			Crowdloan::show_me_the_money(Origin::signed(8)),
+			Error::<Test>::NoAssociatedClaim
+		);
+		assert_ok!(Crowdloan::update_reward_address(Origin::signed(1), 8));
+		assert_eq!(Crowdloan::accounts_payable(&8).unwrap().last_paid, 4u64);
+		assert_eq!(Crowdloan::accounts_payable(&8).unwrap().claimed_reward, 248);
+		roll_to(6);
+		assert_ok!(Crowdloan::show_me_the_money(Origin::signed(8)));
+		assert_eq!(Crowdloan::accounts_payable(&8).unwrap().last_paid, 6u64);
+		assert_eq!(Crowdloan::accounts_payable(&8).unwrap().claimed_reward, 372);
+		let expected = vec![
+			Event::RewardsPaid(1, 248),
+			Event::RewardAddressUpdated(1, 8),
+			Event::RewardsPaid(8, 124),
+		];
+		assert_eq!(events(), expected);
+	});
+}
+
+#[test]
+fn update_address_with_existing_address_works() {
+	two_assigned_three_unassigned().execute_with(|| {
+		roll_to(4);
+		assert_ok!(Crowdloan::show_me_the_money(Origin::signed(1)));
+		assert_ok!(Crowdloan::show_me_the_money(Origin::signed(2)));
+		assert_ok!(Crowdloan::update_reward_address(Origin::signed(1), 2));
+		assert_eq!(Crowdloan::accounts_payable(&2).unwrap().last_paid, 4u64);
+		assert_eq!(Crowdloan::accounts_payable(&2).unwrap().claimed_reward, 496);
+		assert_noop!(
+			Crowdloan::show_me_the_money(Origin::signed(1)),
+			Error::<Test>::NoAssociatedClaim
+		);
+		roll_to(6);
+		assert_ok!(Crowdloan::show_me_the_money(Origin::signed(2)));
+		assert_eq!(Crowdloan::accounts_payable(&2).unwrap().last_paid, 6u64);
+		assert_eq!(Crowdloan::accounts_payable(&2).unwrap().claimed_reward, 746);
+		let expected = vec![
+			Event::RewardsPaid(1, 248),
+			Event::RewardsPaid(2, 248),
+			Event::RewardAddressUpdated(1, 2),
+			Event::RewardsPaid(2, 250),
+		];
+		assert_eq!(events(), expected);
+	});
+}

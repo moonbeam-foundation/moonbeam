@@ -245,6 +245,38 @@ pub mod pallet {
 
 			Ok(Default::default())
 		}
+		/// Collect whatever portion of your reward are currently vested.
+		#[pallet::weight(0)]
+		pub fn update_reward_address(
+			origin: OriginFor<T>,
+			new_reward_account: T::AccountId,
+		) -> DispatchResultWithPostInfo {
+			let signer = ensure_signed(origin)?;
+
+			// Calculate the veted amount on demand.
+			let mut info =
+				AccountsPayable::<T>::get(&signer).ok_or(Error::<T>::NoAssociatedClaim)?;
+
+			if let Some(info_existing_account) = AccountsPayable::<T>::get(&new_reward_account) {
+				info.total_reward = info
+					.total_reward
+					.saturating_add(info_existing_account.total_reward);
+				info.claimed_reward = info
+					.claimed_reward
+					.saturating_add(info_existing_account.claimed_reward);
+			}
+
+			// Remove previous rewarded account
+			AccountsPayable::<T>::remove(&signer);
+
+			// Update new rewarded acount
+			AccountsPayable::<T>::insert(&new_reward_account, &info);
+
+			// Emit event
+			Self::deposit_event(Event::RewardAddressUpdated(signer, new_reward_account));
+
+			Ok(Default::default())
+		}
 	}
 
 	#[pallet::error]
@@ -354,5 +386,7 @@ pub mod pallet {
 		/// A contributor has claimed some rewards.
 		/// Data is the account getting paid and the amount of rewards paid.
 		RewardsPaid(T::AccountId, BalanceOf<T>),
+		/// A contributor has updated the reward address.
+		RewardAddressUpdated(T::AccountId, T::AccountId),
 	}
 }
