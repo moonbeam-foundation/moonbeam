@@ -42,10 +42,10 @@
 //!
 //! The pallet can learn about the crowdloan contributions in several ways.
 //!
-//! * **Assocaited at Genesis**
+//! * **Associated at Genesis**
 //!
 //! The simplest way is that the native identity and contribution amount are configured at genesis.
-//! This makes sense in a scenario wherethe crowdloan took place entirely offchain.
+//! This makes sense in a scenario where the crowdloan took place entirely offchain.
 //!
 //! * **Unassociated at Genesis**
 //!
@@ -54,17 +54,17 @@
 //! relay chain actually. In this case the genesis config contains information about the
 //! relay chain style contributor address, and the contribution amount. In this case the
 //! contributor is responsible for making a transaction that associates a native ID. The tx
-//! includes a signature by the relay chain idetity over the native identity.
+//! includes a signature by the relay chain identity over the native identity.
 //!
 //! * **ReadingRelayState**
 //!
 //! The most elegant, but most complex solution would be for the para to read the contributions
 //! directly from the relay state. Blocked by https://github.com/paritytech/cumulus/issues/320 so
-//! I won't persue it further right now. I can't decide whether that would really add security /
+//! I won't pursue it further right now. I can't decide whether that would really add security /
 //! trustlessness, or is just a sexy blockchain thing to do. Contributors can always audit the
 //! genesis block and make sure their contribution is in it, so in that sense reading relay state
 //! isn't necessary. But if a single contribution is left out, the rest of the contributors might
-//! not care enough to delay network launch. The little guy might get sensored.
+//! not care enough to delay network launch. The little guy might get censored.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -85,6 +85,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use log::warn;
 	use sp_core::crypto::AccountId32;
+	use sp_runtime::traits::Saturating;
 	use sp_runtime::traits::Verify;
 	use sp_runtime::{MultiSignature, SaturatedConversion};
 	use std::convert::TryInto;
@@ -151,7 +152,7 @@ pub mod pallet {
 			proof: MultiSignature,
 		) -> DispatchResultWithPostInfo {
 			ensure_none(origin)?;
-			//TODO check the proof:
+			// Check the proof:
 			// 1. Is signed by an actual unassociated contributor
 			// 2. Signs a valid native identity
 			// Check the proof. The Proof consists of a Signature of the rewarded account with the
@@ -162,7 +163,7 @@ pub mod pallet {
 				Error::<T>::InvalidClaimSignature
 			);
 
-			// We ensure the mapping does not exist yet to avoid multi-claiming
+			// We ensure the relay chain id wast not yet associated to avoid multi-claiming
 			ensure!(
 				ClaimedRelayChainIds::<T>::get(&relay_account).is_none(),
 				Error::<T>::AlreadyAssociated
@@ -204,15 +205,14 @@ pub mod pallet {
 				Error::<T>::RewardsAlreadyClaimed
 			);
 			let now = frame_system::Module::<T>::block_number();
-			//TODO This part doesn't compile because of a million stupid errors about converting
-			// between u32, Balance, and BlockNumber. I think that is solvable, just annoying.
+
 			let payable_per_block = info.total_reward
 				/ T::VestingPeriod::get()
 					.saturated_into::<u128>()
 					.try_into()
 					.ok()
 					.ok_or(Error::<T>::WrongConversionU128ToBalance)?; //TODO safe math;
-			let payable_period = now - info.last_paid;
+			let payable_period = now.saturating_sub(info.last_paid);
 
 			let pay_period_as_balance: BalanceOf<T> = payable_period
 				.saturated_into::<u128>()
@@ -221,17 +221,17 @@ pub mod pallet {
 				.ok_or(Error::<T>::WrongConversionU128ToBalance)?;
 
 			// If the period is bigger than whats missing to pay, then return whats missing to pay
-			let payable_amount = if pay_period_as_balance * payable_per_block
-				< info.total_reward - info.claimed_reward
+			let payable_amount = if pay_period_as_balance.saturating_mul(payable_per_block)
+				< info.total_reward.saturating_sub(info.claimed_reward)
 			{
-				pay_period_as_balance * payable_per_block
+				pay_period_as_balance.saturating_mul(payable_per_block)
 			} else {
-				info.total_reward - info.claimed_reward
+				info.total_reward.saturating_sub(info.claimed_reward)
 			};
 
 			// Update the stored info
 			info.last_paid = now;
-			info.claimed_reward += payable_amount;
+			info.claimed_reward = info.claimed_reward.saturating_add(payable_amount);
 			AccountsPayable::<T>::insert(&payee, &info);
 
 			// Make the payment
@@ -249,14 +249,21 @@ pub mod pallet {
 
 	#[pallet::error]
 	pub enum Error<T> {
+		/// User trying to associate a native identity with a relay chain identity for posterior
+		/// reward claiming provided an already associated relay chain identity
+		AlreadyAssociated,
+		/// User trying to associate a native identity with a relay chain identity for posterior
+		/// reward claiming provided a wrong signature
+		InvalidClaimSignature,
 		/// User trying to claim an award did not have an claim associated with it. This may mean
 		/// they did not contribute to the crowdloan, or they have not yet associated a native id
 		/// with their contribution
-		AlreadyAssociated,
-		InvalidClaimSignature,
 		NoAssociatedClaim,
-		WrongConversionU128ToBalance,
+		/// User trying to claim rewards has already claimed all rewards associated with its
+		/// identity and contribution
 		RewardsAlreadyClaimed,
+		/// Invalid conversion while calculating payable amount
+		WrongConversionU128ToBalance,
 	}
 
 	#[pallet::storage]
@@ -315,7 +322,7 @@ pub mod pallet {
 				.for_each(|(relay_account, native_account, contrib)| {
 					let reward_info = RewardInfo {
 						total_reward: BalanceOf::<T>::from(*contrib)
-							* BalanceOf::<T>::from(self.reward_ratio), //TODO safe math?
+							.saturating_mul(BalanceOf::<T>::from(self.reward_ratio)),
 						claimed_reward: 0u32.into(),
 						last_paid: 0u32.into(),
 					};
@@ -327,10 +334,9 @@ pub mod pallet {
 			self.unassociated
 				.iter()
 				.for_each(|(relay_account, contrib)| {
-					//TODO: 📠🍝
 					let reward_info = RewardInfo {
 						total_reward: BalanceOf::<T>::from(*contrib)
-							* BalanceOf::<T>::from(self.reward_ratio), //TODO safe math?
+							.saturating_mul(BalanceOf::<T>::from(self.reward_ratio)),
 						claimed_reward: 0u32.into(),
 						last_paid: 0u32.into(),
 					};
