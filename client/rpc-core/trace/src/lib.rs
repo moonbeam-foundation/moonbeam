@@ -16,9 +16,10 @@
 
 use jsonrpc_core::futures::Future;
 
-use ethereum_types::H160;
+use ethereum_types::{H160, H256};
 use futures::{compat::Compat, future::BoxFuture};
 use jsonrpc_derive::rpc;
+pub use moonbeam_rpc_primitives_trace::TransactionTrace;
 use serde::{Deserialize, Serialize};
 #[rpc(server)]
 pub trait Trace {
@@ -26,7 +27,7 @@ pub trait Trace {
 	fn filter(
 		&self,
 		filter: FilterRequest,
-	) -> Compat<BoxFuture<'static, jsonrpc_core::Result<FilterResponse>>>;
+	) -> Compat<BoxFuture<'static, jsonrpc_core::Result<Vec<TransactionTrace>>>>;
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Deserialize)]
@@ -49,10 +50,4 @@ pub struct FilterRequest {
 
 	/// (optional) Integer number of traces to display in a batch.
 	pub count: u32,
-}
-
-#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct FilterResponse {
-	// TODO
 }

@@ -16,11 +16,19 @@
 
 use futures::{
 	compat::Compat,
-	future::{BoxFuture, FutureExt, TryFutureExt},
-	sink::SinkExt,
+	future::{BoxFuture, TryFutureExt},
+	select,
+	stream::FuturesUnordered,
+	FutureExt, SinkExt, StreamExt,
 };
-use std::{future::Future, marker::PhantomData, pin::Pin, sync::Arc};
-use tokio::sync::oneshot;
+use std::{
+	collections::BTreeMap,
+	future::Future,
+	marker::PhantomData,
+	sync::Arc,
+	time::{Duration, Instant},
+};
+use tokio::{sync::oneshot, time::sleep};
 
 use jsonrpc_core::{Error as RpcError, ErrorCode, Result};
 use sc_client_api::backend::{AuxStore, Backend, StateBackend};
@@ -35,7 +43,7 @@ use sp_utils::mpsc::TracingUnboundedSender;
 use ethereum_types::{H128, H256};
 use fp_rpc::EthereumRuntimeRPCApi;
 
-use moonbeam_rpc_core_trace::{FilterRequest, FilterResponse, Trace as TraceT};
+use moonbeam_rpc_core_trace::{FilterRequest, Trace as TraceT, TransactionTrace};
 use moonbeam_rpc_primitives_debug::{DebugRuntimeApi, TraceType};
 
 pub struct Trace {
@@ -46,7 +54,7 @@ impl TraceT for Trace {
 	fn filter(
 		&self,
 		filter: FilterRequest,
-	) -> Compat<BoxFuture<'static, jsonrpc_core::Result<FilterResponse>>> {
+	) -> Compat<BoxFuture<'static, jsonrpc_core::Result<Vec<TransactionTrace>>>> {
 		let mut requester = self.requester.clone();
 
 		async move {
@@ -79,8 +87,10 @@ fn internal_err<T: ToString>(message: T) -> RpcError {
 	}
 }
 
-pub type TraceFilterCacheRequester =
-	TracingUnboundedSender<(FilterRequest, oneshot::Sender<Result<FilterResponse>>)>;
+pub type TraceFilterCacheRequester = TracingUnboundedSender<(
+	FilterRequest,
+	oneshot::Sender<Result<Vec<TransactionTrace>>>,
+)>;
 
 pub struct TraceFilterCache<B, C, BE>(PhantomData<(B, C, BE)>);
 
@@ -101,16 +111,85 @@ where
 		client: Arc<C>,
 		backend: Arc<BE>,
 	) -> (impl Future<Output = ()>, TraceFilterCacheRequester) {
-		let (tx, rx) = sp_utils::mpsc::tracing_unbounded("trace-filter-cache-requester");
+		let (tx, mut rx): (TraceFilterCacheRequester, _) =
+			sp_utils::mpsc::tracing_unbounded("trace-filter-cache-requester");
 
 		let fut = async move {
-			todo!()
+			let mut expiration_futures = FuturesUnordered::new();
+			let mut cached_blocks = BTreeMap::<u32, CacheBlock>::new();
+
+			loop {
+				select! {
+					req = rx.next() => {
+						if let Some((req, response_tx)) = req {
+							let blocks: Vec<u32> = (
+								req.from_block.unwrap_or(0)
+								..= req.to_block.expect("end block range")
+							).collect();
+
+							for block in &blocks {
+								if !cached_blocks.contains_key(&block) {
+									todo!("Call Runtime API");
+								}
+
+								todo!("Build filtered trace vec");
+							}
+
+							expiration_futures.push(async move {
+								sleep(Duration::from_secs(60)).await;
+								blocks
+							});
+
+							todo!("send response");
+						} else {
+							// All Senders are dropped, stopping the service.
+							break;
+						}
+					},
+					blocks_to_check = expiration_futures.next() => {
+						if let Some(blocks_to_check) = blocks_to_check {
+							let now = Instant::now();
+
+							let mut blocks_to_remove = vec![];
+
+							for block in blocks_to_check {
+								if let Some(cache) = cached_blocks.get(&block) {
+									if cache.expiration <= now {
+										blocks_to_remove.push(block);
+									}
+								}
+							}
+						} else {
+							todo!("what to do when this end ?")
+						}
+					},
+				}
+			}
 
 			// TODO :
-			// 1. Handle requests and add traces to the cache with expiration dates
-			// 2. Remove expired cache
+			// 1. Handle requests and add traces to the cache :
+			//    Cache is a BTreeMap : Block height => Vec of TransactionTrace + expiration time
+			//    No filtering is done in the cache, it stores all traces.
+			//    Existing block in cache get the expiration time bumped.
+			//
+			//    Filtering is done on top :
+			//    1. Apply the filter and return a list of indices to keep
+			//    2. Use the indices to build the filtered vec of traces (with correct pointers)
+			//
+			// 2. Remove expired cache :
+			//    Iterate over each block in the BTreeMap, and remove the entry if expired.
+			//    Question : Is the expiration time and delay between checks configurable ?
+			//    Other idea : Spawn a timer future when updating the cache, providing the height
+			//        of the block. When woken up, check only this block expiration time.
+			//        Will create a future for each request, but is more reactive to cleanup.
+			//        Which is better ?
 		};
 
 		(fut, tx)
 	}
+}
+
+struct CacheBlock {
+	expiration: Instant,
+	traces: Vec<TransactionTrace>,
 }

@@ -56,9 +56,10 @@ fp-rpc = { default-features = false, git = "https://github.com/purestake/frontie
 pallet-democracy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 
-moonbeam-rpc-primitives-debug = { path = "../primitives/rpc/debug", default-features = false }
 moonbeam-extensions-evm = { path = "extensions/evm", default-features = false }
+moonbeam-rpc-primitives-debug = { path = "../primitives/rpc/debug", default-features = false }
 moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool", default-features = false }
+moonbeam-rpc-primitives-trace = { path = "../primitives/rpc/trace", default-features = false }
 
 # Cumulus dependencies
 cumulus-runtime = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
