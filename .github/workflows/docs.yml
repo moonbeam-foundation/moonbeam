@@ -1,9 +1,7 @@
 name: Publish Rust Docs
 
 on:
-  #TODO we really only want to publish on pushes to master.
-  # But for now I'm testing the ci
-  pull_request:
+  push:
     branches:
       - master
 
