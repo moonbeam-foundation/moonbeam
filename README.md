@@ -9,73 +9,62 @@ _Discover the Moonbeam project at [moonbeam.network](https://moonbeam.network)._
 _Learn to [use the Moonbeam network](https://docs.moonbeam.network/) with our technical docs._
 _Reference our [crate-level docs (rustdocs)](https://purestake.github.io) to contribute._
 
-## Install (linux)
+## Run a node with Docker
 
-### Get the code
-
-Get the tutorial specific tag of the PureStake/Moonbeam repo:
+Docker images are published for every tagged release. Learn more with `moonbeam --help`.
 
 ```bash
-git clone -b tutorial-v3 https://github.com/PureStake/moonbeam
-cd moonbeam
+# Join the public testnet
+docker run --network="host" purestake/moonbeam:v0.6.1 --chain alphanet
 ```
 
-### Setting up enviroment
+### Local development node
 
-Install Substrate pre-requisites (including Rust):
+Developers who are building dApps to run on moonbeam, may want a lightweight node to work with
+locally. You can quickly spin up a single node with no relay chain backing it using the development
+service.
 
 ```bash
-curl https://getsubstrate.io -sSf | bash -s -- --fast
+# Run a dev service node.
+docker run --network="host" purestake/moonbeam:v0.6.1 --dev
 ```
 
-Run the initialization script, which checks the correct rust nightly version and adds the
-`wasm32-unknown-unknown` target to that specific version:
-
-```bash
-./scripts/init.sh
-```
 
 ## Build the Moonbeam Node
 
-Build the corresponding binary file:
+To build Moonbeam, you will need a proper Substrate development environment. If you've never worked
+with Substrate before, check out https://substrate.dev/docs/en/knowledgebase/getting-started/
 
 ```bash
+# Fetch the code
+git clone https://github.com/PureStake/moonbeam
+cd moonbeam
+
+# Build the node (The first build will be long (~30min))
 cargo build --release
 ```
 
-The first build takes a long time, as it compiles all the necessary libraries.
+## Run tests
 
-> If a _cargo not found_ error appears in the terminal, manually add Rust to your system path (or
-> restart your system):
->
-> ```bash
-> source $HOME/.cargo/env
-> ```
-
-## Run a Development Node
-
-Moonbeam is designed to be a parachain on the Polkadot network. For testing your
-contracts locally, spinning up a full relay-para network is a lot of overhead.
-
-A simpler solution is to run the `--dev` node, a simple node that is not backed
-by any relay chain, but still runs the Moonbeam runtime logic.
+Moonbeam has Rust unit tests as well as typescript integration tests.
 
 ```bash
-./target/release/moonbase-standalone --dev
+# Run the Rust unit tests
+cargo test
 ```
-
-### Docker image
-
-An alternative to building locally is to use docker to run a pre-build binary.
-The only requirement is to have Docker installed.
 
 ```bash
-# Pull the docker image
-docker pull purestake/moonbase-parachain-testnet:latest
+# Installation to  dependencies for integration tests
+co moonbeam-types-bundle
+npm i
 
-# Start a dev node
-docker run --rm --network host purestake/moonbase /moonbase/moonbase-standalone --dev
+cd ../tests
+npm i
+
+# Run integration tests
+npm test
 ```
+
 
 ## Chain IDs
 
@@ -137,6 +126,9 @@ cargo test --verbose
 This github repository is also linked to Gitlab CI
 
 ## Contribute
+
+Moonbeam is open source under the terms of the GPL3. We welcome contributions. You can explore our
+crate-level documentation at https://purestake.github.io/moonbeam
 
 ### Code style
 
