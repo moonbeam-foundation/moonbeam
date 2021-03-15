@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["main",""]],"mod":[["chain_spec",""],["cli",""],["command",""],["inherents","This module is responsible for building the inherent data providers that a Moonbeam node needs."],["rpc","A collection of node-specific RPC methods."],["service",""]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Call",""]],"struct":[["GenesisConfig",""],["Pallet","The Ethereum Chain Id Pallet"],["_GeneratedPrefixForStorageChainId",""]],"trait":[["Config","Configuration trait of this pallet."]],"type":[["ChainId",""],["Module","Type alias to `Pallet`, to be used by `construct_runtime`."]]});

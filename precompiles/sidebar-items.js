@@ -1,0 +1,1 @@
+initSidebarItems({"type":[["MoonbeamPrecompiles","The PrecompileSet installed in the Moonbeam runtime. We include the nine Istanbul precompiles (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69) as well as a special precompile for dispatching Substrate extrinsics"]]});

@@ -1,0 +1,59 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `construct_runtime` macro in crate `moonbeam_runtime`."><meta name="keywords" content="rust, rustlang, rust-lang, construct_runtime"><title>moonbeam_runtime::construct_runtime - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc macro"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../moonbeam_runtime/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><div class="sidebar-elems"><p class='location'><a href='index.html'>moonbeam_runtime</a></p><script>window.sidebarCurrent = {name: 'construct_runtime', ty: 'macro', relpath: ''};</script><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span></span><span class='in-band'>Macro <a href='index.html'>moonbeam_runtime</a>::<wbr><a class="macro" href=''>construct_runtime</a></span></h1><pre class='rust macro'>construct_runtime!() { /* proc-macro */ }</pre><div class='docblock'><p>Construct a runtime, with the given name and the given modules.</p>
+<p>The parameters here are specific types for <code>Block</code>, <code>NodeBlock</code>, and <code>UncheckedExtrinsic</code>
+and the modules that are used by the runtime.
+<code>Block</code> is the block type that is used in the runtime and <code>NodeBlock</code> is the block type
+that is used in the node. For instance they can differ in the extrinsics type.</p>
+<h1 id="example" class="section-header"><a href="#example">Example:</a></h1>
+<pre><code class="language-nocompile">construct_runtime!(
+    pub enum Runtime where
+        Block = Block,
+        NodeBlock = runtime::Block,
+        UncheckedExtrinsic = UncheckedExtrinsic
+    {
+        System: system::{Module, Call, Event&lt;T&gt;, Config&lt;T&gt;} = 0,
+        Test: test::{Module, Call} = 1,
+        Test2: test_with_long_module::{Module, Event&lt;T&gt;},
+
+        // Module with instances
+        Test3_Instance1: test3::&lt;Instance1&gt;::{Module, Call, Storage, Event&lt;T, I&gt;, Config&lt;T, I&gt;, Origin&lt;T, I&gt;},
+        Test3_DefaultInstance: test3::{Module, Call, Storage, Event&lt;T&gt;, Config&lt;T&gt;, Origin&lt;T&gt;} = 4,
+    }
+)
+</code></pre>
+<p>The identifier <code>System</code> is the name of the pallet and the lower case identifier <code>system</code> is the
+name of the Rust module/crate for this Substrate module. The identifiers between the braces are
+the module parts provided by the pallet. It is important to list these parts here to export
+them correctly in the metadata or to make the pallet usable in the runtime.</p>
+<p>We provide support for the following module parts in a pallet:</p>
+<ul>
+<li><code>Module</code></li>
+<li><code>Call</code></li>
+<li><code>Storage</code></li>
+<li><code>Event</code> or <code>Event&lt;T&gt;</code> (if the event is generic)</li>
+<li><code>Origin</code> or <code>Origin&lt;T&gt;</code> (if the origin is generic)</li>
+<li><code>Config</code> or <code>Config&lt;T&gt;</code> (if the config is generic)</li>
+<li><code>Inherent</code> - If the module provides/can check inherents.</li>
+<li><code>ValidateUnsigned</code> - If the module validates unsigned extrinsics.</li>
+</ul>
+<p><code>= $n</code> is an optional part allowing to define at which index the module variants in
+<code>OriginCaller</code>, <code>Call</code> and <code>Event</code> are encoded, and to define the ModuleToIndex value.</p>
+<p>if <code>= $n</code> is not given, then index is resolved same as fieldless enum in Rust
+(i.e. incrementedly from previous index):</p>
+<pre><code class="language-nocompile">module1 .. = 2,
+module2 .., // Here module2 is given index 3
+module3 .. = 0,
+module4 .., // Here module4 is given index 1
+</code></pre>
+<h1 id="note" class="section-header"><a href="#note">Note</a></h1>
+<p>The population of the genesis storage depends on the order of modules. So, if one of your
+modules depends on another module, the module that is depended upon needs to come before
+the module depending on it.</p>
+<h1 id="type-definitions" class="section-header"><a href="#type-definitions">Type definitions</a></h1>
+<ul>
+<li>The macro generates a type alias for each pallet to their <code>Module</code> (or <code>Pallet</code>).
+E.g. <code>type System = frame_system::Module&lt;Runtime&gt;</code></li>
+</ul>
+</div></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "moonbeam_runtime";</script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>
