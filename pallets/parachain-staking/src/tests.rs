@@ -22,9 +22,9 @@ use sp_runtime::{traits::Zero, DispatchError, Perbill};
 
 #[test]
 fn geneses() {
-	two_validators_four_nominators().execute_with(|| {
+	two_collators_four_nominators().execute_with(|| {
 		assert!(Sys::events().is_empty());
-		// validators
+		// collators
 		assert_eq!(Balances::reserved_balance(&1), 500);
 		assert_eq!(Balances::free_balance(&1), 500);
 		assert!(Stake::is_candidate(&1));
@@ -48,9 +48,9 @@ fn geneses() {
 		assert_eq!(Balances::free_balance(&9), 4);
 		assert_eq!(Balances::reserved_balance(&9), 0);
 	});
-	five_validators_five_nominators().execute_with(|| {
+	five_collators_five_nominators().execute_with(|| {
 		assert!(Sys::events().is_empty());
-		// validators
+		// collators
 		for x in 1..5 {
 			assert!(Stake::is_candidate(&x));
 			assert_eq!(Balances::free_balance(&x), 80);
@@ -70,7 +70,7 @@ fn geneses() {
 
 #[test]
 fn online_offline_works() {
-	two_validators_four_nominators().execute_with(|| {
+	two_collators_four_nominators().execute_with(|| {
 		roll_to(4);
 		assert_noop!(
 			Stake::go_offline(Origin::signed(3)),
@@ -124,8 +124,8 @@ fn online_offline_works() {
 }
 
 #[test]
-fn join_validator_candidates() {
-	two_validators_four_nominators().execute_with(|| {
+fn join_collator_candidates() {
+	two_collators_four_nominators().execute_with(|| {
 		assert_noop!(
 			Stake::join_candidates(Origin::signed(1), Perbill::from_percent(2), 11u128,),
 			Error::<Test>::CandidateExists
@@ -164,8 +164,8 @@ fn join_validator_candidates() {
 }
 
 #[test]
-fn validator_exit_executes_after_delay() {
-	two_validators_four_nominators().execute_with(|| {
+fn collator_exit_executes_after_delay() {
+	two_collators_four_nominators().execute_with(|| {
 		roll_to(4);
 		assert_noop!(
 			Stake::leave_candidates(Origin::signed(3)),
@@ -180,7 +180,7 @@ fn validator_exit_executes_after_delay() {
 		let info = Stake::collator_state(&2).unwrap();
 		assert_eq!(info.state, CollatorStatus::Leaving(5));
 		roll_to(21);
-		// we must exclude leaving validators from rewards while
+		// we must exclude leaving collators from rewards while
 		// holding them retroactively accountable for previous faults
 		// (within the last T::SlashingWindow blocks)
 		let expected = vec![
@@ -202,10 +202,10 @@ fn validator_exit_executes_after_delay() {
 }
 
 #[test]
-fn validator_selection_chooses_top_candidates() {
-	five_validators_no_nominators().execute_with(|| {
+fn collator_selection_chooses_top_candidates() {
+	five_collators_no_nominators().execute_with(|| {
 		roll_to(8);
-		// should choose top MaxValidators (5), in order
+		// should choose top TotalSelectedCandidates (5), in order
 		let expected = vec![
 			Event::CollatorChosen(2, 1, 100),
 			Event::CollatorChosen(2, 2, 90),
@@ -231,7 +231,7 @@ fn validator_selection_chooses_top_candidates() {
 			MetaEvent::stake(Event::JoinedCollatorCandidates(6, 69u128, 469u128))
 		);
 		roll_to(27);
-		// should choose top MaxValidators (5), in order
+		// should choose top TotalSelectedCandidates (5), in order
 		let expected = vec![
 			Event::CollatorChosen(2, 1, 100),
 			Event::CollatorChosen(2, 2, 90),
@@ -273,9 +273,9 @@ fn validator_selection_chooses_top_candidates() {
 
 #[test]
 fn exit_queue() {
-	five_validators_no_nominators().execute_with(|| {
+	five_collators_no_nominators().execute_with(|| {
 		roll_to(8);
-		// should choose top MaxValidators (5), in order
+		// should choose top TotalSelectedCandidates (5), in order
 		let mut expected = vec![
 			Event::CollatorChosen(2, 1, 100),
 			Event::CollatorChosen(2, 2, 90),
@@ -335,10 +335,10 @@ fn exit_queue() {
 }
 
 #[test]
-fn payout_distribution_to_solo_validators() {
-	five_validators_no_nominators().execute_with(|| {
+fn payout_distribution_to_solo_collators() {
+	five_collators_no_nominators().execute_with(|| {
 		roll_to(8);
-		// should choose top MaxValidators (5), in order
+		// should choose top TotalCandidatesSelected (5), in order
 		let mut expected = vec![
 			Event::CollatorChosen(2, 1, 100),
 			Event::CollatorChosen(2, 2, 90),
@@ -393,14 +393,14 @@ fn payout_distribution_to_solo_validators() {
 		];
 		expected.append(&mut new1);
 		assert_eq!(events(), expected);
-		// ~ each validator produces 1 block this round
+		// ~ each collator produces 1 block this round
 		set_author(6, 1, 20);
 		set_author(6, 2, 20);
 		set_author(6, 3, 20);
 		set_author(6, 4, 20);
 		set_author(6, 5, 20);
 		roll_to(36);
-		// pay 20% issuance for all validators
+		// pay 20% issuance for all collators
 		let mut new2 = vec![
 			Event::CollatorChosen(7, 1, 100),
 			Event::CollatorChosen(7, 2, 90),
@@ -435,10 +435,10 @@ fn payout_distribution_to_solo_validators() {
 }
 
 #[test]
-fn validator_commission() {
-	one_validator_two_nominators().execute_with(|| {
+fn collator_commission() {
+	one_collator_two_nominators().execute_with(|| {
 		roll_to(8);
-		// chooses top MaxValidators (5), in order
+		// chooses top TotalSelectedCandidates (5), in order
 		let mut expected = vec![
 			Event::CollatorChosen(2, 1, 40),
 			Event::NewRound(5, 2, 1, 40),
@@ -490,9 +490,9 @@ fn validator_commission() {
 
 #[test]
 fn multiple_nominations() {
-	five_validators_five_nominators().execute_with(|| {
+	five_collators_five_nominators().execute_with(|| {
 		roll_to(8);
-		// chooses top MaxValidators (5), in order
+		// chooses top TotalSelectedCandidates (5), in order
 		let mut expected = vec![
 			Event::CollatorChosen(2, 1, 50),
 			Event::CollatorChosen(2, 2, 40),
@@ -585,7 +585,7 @@ fn multiple_nominations() {
 		];
 		expected.append(&mut new3);
 		assert_eq!(events(), expected);
-		// verify that nominations are removed after validator leaves, not before
+		// verify that nominations are removed after collator leaves, not before
 		assert_eq!(Stake::nominator_state(7).unwrap().total, 90);
 		assert_eq!(
 			Stake::nominator_state(7).unwrap().nominations.0.len(),
@@ -619,8 +619,8 @@ fn multiple_nominations() {
 }
 
 #[test]
-fn validators_bond() {
-	five_validators_five_nominators().execute_with(|| {
+fn collators_bond() {
+	five_collators_five_nominators().execute_with(|| {
 		roll_to(4);
 		assert_noop!(
 			Stake::candidate_bond_more(Origin::signed(6), 50),
@@ -670,7 +670,7 @@ fn validators_bond() {
 
 #[test]
 fn nominators_bond() {
-	five_validators_five_nominators().execute_with(|| {
+	five_collators_five_nominators().execute_with(|| {
 		roll_to(4);
 		assert_noop!(
 			Stake::nominator_bond_more(Origin::signed(1), 2, 50),
@@ -721,7 +721,7 @@ fn nominators_bond() {
 
 #[test]
 fn revoke_nomination_or_leave_nominators() {
-	five_validators_five_nominators().execute_with(|| {
+	five_collators_five_nominators().execute_with(|| {
 		roll_to(4);
 		assert_noop!(
 			Stake::revoke_nomination(Origin::signed(1), 2),
@@ -752,9 +752,9 @@ fn revoke_nomination_or_leave_nominators() {
 
 #[test]
 fn payouts_follow_nomination_changes() {
-	five_validators_five_nominators().execute_with(|| {
+	five_collators_five_nominators().execute_with(|| {
 		roll_to(8);
-		// chooses top MaxValidators (5), in order
+		// chooses top TotalSelectedCandidates (5), in order
 		let mut expected = vec![
 			Event::CollatorChosen(2, 1, 50),
 			Event::CollatorChosen(2, 2, 40),
@@ -767,7 +767,7 @@ fn payouts_follow_nomination_changes() {
 		// ~ set block author as 1 for all blocks this round
 		set_author(2, 1, 100);
 		roll_to(16);
-		// distribute total issuance to validator 1 and its nominators 6, 7, 19
+		// distribute total issuance to collator 1 and its nominators 6, 7, 19
 		let mut new = vec![
 			Event::CollatorChosen(3, 1, 50),
 			Event::CollatorChosen(3, 2, 40),

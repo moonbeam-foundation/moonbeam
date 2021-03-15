@@ -155,7 +155,7 @@ fn genesis(
 	ext
 }
 
-pub(crate) fn two_validators_four_nominators() -> sp_io::TestExternalities {
+pub(crate) fn two_collators_four_nominators() -> sp_io::TestExternalities {
 	genesis(
 		vec![
 			(1, 1000),
@@ -169,7 +169,7 @@ pub(crate) fn two_validators_four_nominators() -> sp_io::TestExternalities {
 			(9, 4),
 		],
 		vec![
-			// validators
+			// collators
 			(1, None, 500),
 			(2, None, 200),
 			// nominators
@@ -181,7 +181,7 @@ pub(crate) fn two_validators_four_nominators() -> sp_io::TestExternalities {
 	)
 }
 
-pub(crate) fn five_validators_no_nominators() -> sp_io::TestExternalities {
+pub(crate) fn five_collators_no_nominators() -> sp_io::TestExternalities {
 	genesis(
 		vec![
 			(1, 1000),
@@ -195,7 +195,7 @@ pub(crate) fn five_validators_no_nominators() -> sp_io::TestExternalities {
 			(9, 33),
 		],
 		vec![
-			// validators
+			// collators
 			(1, None, 100),
 			(2, None, 90),
 			(3, None, 80),
@@ -206,7 +206,7 @@ pub(crate) fn five_validators_no_nominators() -> sp_io::TestExternalities {
 	)
 }
 
-pub(crate) fn five_validators_five_nominators() -> sp_io::TestExternalities {
+pub(crate) fn five_collators_five_nominators() -> sp_io::TestExternalities {
 	genesis(
 		vec![
 			(1, 100),
@@ -221,7 +221,7 @@ pub(crate) fn five_validators_five_nominators() -> sp_io::TestExternalities {
 			(10, 100),
 		],
 		vec![
-			// validators
+			// collators
 			(1, None, 20),
 			(2, None, 20),
 			(3, None, 20),
@@ -237,11 +237,11 @@ pub(crate) fn five_validators_five_nominators() -> sp_io::TestExternalities {
 	)
 }
 
-pub(crate) fn one_validator_two_nominators() -> sp_io::TestExternalities {
+pub(crate) fn one_collator_two_nominators() -> sp_io::TestExternalities {
 	genesis(
 		vec![(1, 100), (2, 100), (3, 100), (4, 100), (5, 100), (6, 100)],
 		vec![
-			// validators
+			// collators
 			(1, None, 20),
 			// nominators
 			(2, Some(1), 10),

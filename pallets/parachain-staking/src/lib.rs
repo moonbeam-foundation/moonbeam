@@ -430,10 +430,12 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn round)]
+	/// The current round index
 	type Round<T: Config> = StorageValue<_, RoundIndex, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn nominator_state)]
+	/// Get nominator state associated with an account if account is nominating else None
 	type NominatorState<T: Config> = StorageMap<
 		_,
 		Twox64Concat,
@@ -444,6 +446,7 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn collator_state)]
+	/// Get collator state associated with an account if account is collating else None
 	type CollatorState<T: Config> = StorageMap<
 		_,
 		Twox64Concat,
@@ -454,24 +457,29 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn selected_candidates)]
+	/// The collator candidates selected for the current round
 	type SelectedCandidates<T: Config> = StorageValue<_, Vec<T::AccountId>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn total)]
+	/// Total capital locked by this staking pallet
 	type Total<T: Config> = StorageValue<_, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn candidate_pool)]
+	/// The pool of collator candidates, each with their total backing stake
 	type CandidatePool<T: Config> =
 		StorageValue<_, OrderedSet<Bond<T::AccountId, BalanceOf<T>>>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn exit_queue)]
+	/// A queue of collators awaiting exit `BondDuration` delay after request
 	type ExitQueue<T: Config> =
 		StorageValue<_, OrderedSet<Bond<T::AccountId, RoundIndex>>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn at_stake)]
+	/// Snapshot of collator nomination stake at the start of the round
 	pub type AtStake<T: Config> = StorageDoubleMap<
 		_,
 		Twox64Concat,
@@ -484,18 +492,22 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn staked)]
+	/// Total backing stake for selected candidates in the round
 	pub type Staked<T: Config> = StorageMap<_, Twox64Concat, RoundIndex, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn inflation_config)]
+	/// Inflation configuration
 	pub type InflationConfig<T: Config> = StorageValue<_, InflationInfo<BalanceOf<T>>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn points)]
+	/// Total points awarded to collators for block production in the round
 	pub type Points<T: Config> = StorageMap<_, Twox64Concat, RoundIndex, RewardPoint, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn awarded_pts)]
+	/// Points for each collator per round
 	pub type AwardedPts<T: Config> = StorageDoubleMap<
 		_,
 		Twox64Concat,
