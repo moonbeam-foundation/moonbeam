@@ -100,6 +100,7 @@ The Moonbeam Runtime is built using FRAME and consists of pallets from substrate
 
 From substrate:
 
+- _Utility_: Allows users to use derivative accounts, and batch calls
 - _Balances_: Tracks GLMR token balances
 - _Sudo_: Allows a privileged account to make arbitrary runtime changes - will be removed before
   launch
@@ -122,7 +123,7 @@ The following pallets are stored in `pallets/`. They are designed for Moonbeam's
 
 - _Ethereum Chain Id_: A place to store the chain id for each Moonbeam network
 - _Author Inherent_: Allows block authors to include their identity in a block via an inherent
-- _Stake_: Minimal staking pallet that implements ordered validator selection by total amount at stake
+- _Parachain Staking_: Minimal staking pallet that selects collators by total amount at stake
 
 ## Tests
 

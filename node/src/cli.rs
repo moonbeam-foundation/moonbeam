@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -31,7 +31,7 @@ pub enum Subcommand {
 	ExportGenesisWasm(ExportGenesisWasmCommand),
 
 	/// Build a chain specification.
-	BuildSpec(sc_cli::BuildSpecCmd),
+	BuildSpec(BuildSpecCommand),
 
 	/// Validate blocks.
 	CheckBlock(sc_cli::CheckBlockCmd),
@@ -50,6 +50,22 @@ pub enum Subcommand {
 
 	/// Revert the chain to a previous state.
 	Revert(sc_cli::RevertCmd),
+}
+
+#[derive(Debug, StructOpt)]
+pub struct BuildSpecCommand {
+	#[structopt(flatten)]
+	pub base: sc_cli::BuildSpecCmd,
+
+	/// Number of accounts to be funded in the genesis
+	/// Warning: This flag implies a development spec and overrides any explicitly supplied spec
+	#[structopt(long, conflicts_with = "chain")]
+	pub accounts: Option<u32>,
+
+	/// Mnemonic from which we can derive funded accounts in the genesis
+	/// Warning: This flag implies a development spec and overrides any explicitly supplied spec
+	#[structopt(long, conflicts_with = "chain")]
+	pub mnemonic: Option<String>,
 }
 
 /// Command for exporting the genesis state of the parachain

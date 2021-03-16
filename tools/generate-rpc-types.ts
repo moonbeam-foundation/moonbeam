@@ -1,6 +1,3 @@
-// Copyright 2017-2020 @polkadot/apps-config authors & contributors
-// SPDX-License-Identifier: Apache-2.0
-
 //import { DefinitionRpc, DefinitionRpcParam } from "@polkadot/types/types";
 export declare type DefinitionTypeType = string;
 export declare type DefinitionTypeEnum =

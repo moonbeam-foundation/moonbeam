@@ -1,9 +1,9 @@
 {
-  "name": "frontier-contract-web3",
-  "version": "0.0.0",
+  "name": "moonbeam-tools",
+  "version": "0.0.1",
   "dependencies": {
-    "@polkadot/api": "^2.9.1",
-    "@polkadot/util-crypto": "^4.2.1",
+    "@polkadot/api": "^4.0.3",
+    "@polkadot/util-crypto": "^6.0.5",
     "bip39": "^3.0.3",
     "eth-block-tracker": "^4.4.3",
     "ethereumjs-wallet": "^1.0.0",
@@ -13,7 +13,6 @@
     "polkadot-launch": "PureStake/polkadot-launch#moonbeam-launch",
     "rlp": "^2.2.6",
     "solc": "^0.8.0",
-    "substrate-evm-contracts": "file:truffle",
     "truffle-privatekey-provider": "^1.5.0",
     "ts-node": "^8.10.1",
     "typescript": "^3.9.5",
@@ -27,6 +26,7 @@
   "scripts": {
     "package-moon-key": "node_modules/.bin/tsc moon-key.ts; node_modules/.bin/pkg -t node14 moon-key.js; rm moon-key.js",
     "build-moonbeam-launch": "yarn add PureStake/polkadot-launch#moonbeam-launch",
-    "moonbeam-launch": "yarn run build-moonbeam-launch && mkdir -p specFiles && ts-node moonbeam-launch.ts"
+    "moonbeam-launch": "yarn run build-moonbeam-launch && mkdir -p specFiles && ts-node moonbeam-launch.ts",
+    "moonbeam-test": "yarn run build-moonbeam-launch && mkdir -p specFiles && ts-node moonbeam-test.ts"
   }
 }
