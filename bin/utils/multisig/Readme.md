@@ -10,6 +10,8 @@ From the Moonbeam root, run
 ## Example
 From the Moonbeam root
 
+The account field can come in hex or ss58 format
+
 ### Generate signature
 `./target/release/multisig /target/release/multisig generate-signature --data "this is what I want to sigb" --private-key "bottom drive obey lake curtain smoke basket hold race lonely fit walk" --algorithm "ed25519"`
 
@@ -17,9 +19,11 @@ From the Moonbeam root
 `./target/release/multisig /target/release/multisig generate-signer --private-key "bottom drive obey lake curtain smoke basket hold race lonely fit walk" --algorithm "ed25519"`
 
 ### Encode
-`../target/release/multisig encode-data --account 297a8594822ee492d01cb4eeb8dc21fe89f0af8a0a8bfb982f3d665bcb518703  --index 0 --old-balance 0 --value 20000000000000`
+`./target/release/multisig encode-data --account 297a8594822ee492d01cb4eeb8dc21fe89f0af8a0a8bfb982f3d665bcb518703  --index 0 --old-balance 0 --value 20000000000000`
 
-## Interaction with the crowdloan module (verifier)
+### Encode and sign
+`./target/release/multisig encode-and-sign --account d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d  --index 3000 --old-balance 0 --value 20000000000000 --private-key "bottom drive obey lake curtain smoke basket hold race lonely fit walk" --algorithm "ed25519"`
+## Interaction with the crowdloan module (verifier)S
 First, generate a signer:
 
 `./target/release/multisig /target/release/multisig generate-signer --private-key "bottom drive obey lake curtain smoke basket hold race lonely fit walk" --algorithm "ed25519"`

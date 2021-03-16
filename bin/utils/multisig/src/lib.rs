@@ -16,9 +16,12 @@
 
 use failure::Fail;
 use parity_scale_codec::Encode;
-use sp_core::{crypto::{SecretStringError, AccountId32}, ecdsa, ed25519, sr25519, Pair};
+use sp_core::{
+	crypto::{AccountId32, SecretStringError},
+	ecdsa, ed25519, sr25519, Pair,
+};
 use sp_runtime::{MultiSignature, MultiSigner};
-use std::{convert::TryInto, str::FromStr};
+use std::str::FromStr;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
@@ -34,6 +37,8 @@ pub enum MultiSig {
 	GenerateSigner(GenerateSigner),
 	#[structopt(name = "encode-data")]
 	EncodeData(EncodeData),
+	#[structopt(name = "encode-and-sign")]
+	EncodeAndSign(EncodeAndSign),
 }
 
 /// Command for generating a multisignature.
@@ -72,12 +77,31 @@ pub struct EncodeData {
 	pub value: u128,
 }
 
+/// Command for encoding and signing signature input for crowdloan.
+#[derive(Debug, StructOpt)]
+pub struct EncodeAndSign {
+	#[structopt(short, long)]
+	pub index: u32,
+	#[structopt(short, long)]
+	pub account: String,
+	#[structopt(short, long)]
+	pub old_balance: u128,
+	#[structopt(short, long)]
+	pub value: u128,
+	#[structopt(long)]
+	pub algorithm: String,
+	#[structopt(short, long)]
+	pub private_key: String,
+}
+
 #[derive(Debug, Fail)]
 pub enum Error {
 	#[fail(display = "Wrong algorithm provided")]
 	InvalidAlgo,
 	#[fail(display = "Invalid secret provided")]
 	InvalidSec { e: SecretStringError },
+	#[fail(display = "Invalid address encoding")]
+	InvalidEncodig,
 }
 
 #[derive(Debug, StructOpt)]
@@ -100,15 +124,11 @@ impl FromStr for SignatureAlgorithm {
 	}
 }
 
-fn encode_data(index: u32, who: String, old_balance: u128, value: u128) -> String {
-	let account_as_u8 = hex::decode(who).unwrap();
-	let account: [u8; 32] = account_as_u8
-		.as_slice()
-		.try_into()
-		.expect("account with incorrect length");
-	let acc: AccountId32 = account.into();
-	let payload = (index, acc, old_balance, value);
-	return hex::encode(payload.encode());
+fn encode_data(index: u32, who: String, old_balance: u128, value: u128) -> Result<String, Error> {
+	let account: AccountId32 =
+		AccountId32::from_str(&who.to_string()).map_err(|_| Error::InvalidEncodig)?;
+	let payload = (index, account, old_balance, value);
+	return Ok(hex::encode(payload.encode()));
 }
 
 fn generic_sign<TPair: Pair>(private_key: String, data: String) -> Result<MultiSignature, Error>
@@ -173,6 +193,17 @@ pub fn run() -> Result<(), Error> {
 				params.value,
 			);
 			println!("{:?}", encoded);
+			Ok(())
+		}
+		MultiSig::EncodeAndSign(params) => {
+			let encoded = encode_data(
+				params.index,
+				params.account,
+				params.old_balance,
+				params.value,
+			)?;
+			let signature = sign(params.private_key, encoded, params.algorithm.parse()?);
+			println!("{:?}", signature);
 			Ok(())
 		}
 	}
@@ -259,11 +290,31 @@ mod tests {
 		let value = 20000000000000;
 		let encoded = encode_data(
 			index,
-			"8494863378510d13ce5ccd94500401345251d76ee11c83f8e599d0f57e7d9b1c".to_string(),
+			"10b22ebe89b321370bee8d39d5c5d411daf1e8fc91c9d1534044590f1f966ebc".to_string(),
 			balance,
 			value,
 		);
-		assert_eq!("000000008494863378510d13ce5ccd94500401345251d76ee11c83f8e599d0f57e7d9b1c0000000\
-		00000000000000000000000000040e59c301200000000000000000000", encoded)
+		assert_eq!(
+			"0000000010b22ebe89b321370bee8d39d5c5d411daf1e8fc91c9d1534044590f1f966ebc0000000\
+		00000000000000000000000000040e59c301200000000000000000000",
+			encoded.unwrap()
+		)
+	}
+	#[test]
+	fn test_encode_ss58() {
+		let index = 0;
+		let balance = 0;
+		let value = 20000000000000;
+		let encoded = encode_data(
+			index,
+			"5CSbZ7wG456oty4WoiX6a1J88VUbrCXLhrKVJ9q95BsYH4TZ".to_string(),
+			balance,
+			value,
+		);
+		assert_eq!(
+			"0000000010b22ebe89b321370bee8d39d5c5d411daf1e8fc91c9d1534044590f1f966ebc0000000\
+		00000000000000000000000000040e59c301200000000000000000000",
+			encoded.unwrap()
+		)
 	}
 }
