@@ -16,12 +16,8 @@ hex-literal = "0.3.1"
 precompiles = { path = "precompiles/", default-features = false }
 account = { path = "account/", default-features = false }
 pallet-ethereum-chain-id = { path = "../pallets/ethereum-chain-id", default-features = false }
-<<<<<<< HEAD
-stake = { path = "../pallets/stake", default-features = false }
 author-inherent = { path = "../pallets/author-inherent", default-features = false }
-=======
 parachain-staking = { path = "../pallets/parachain-staking", default-features = false }
->>>>>>> master
 pallet-author-filter = { path = "../pallets/author-filter", default-features = false }
 token-factory = { path = "../pallets/token-factory", default-features = false }
 xtransfer = { path = "../pallets/xtransfer", default-features = false }

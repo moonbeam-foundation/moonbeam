@@ -28,25 +28,8 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-use fp_rpc::TransactionStatus;
-<<<<<<< HEAD
-use parity_scale_codec::{Decode, Encode};
-use sp_api::impl_runtime_apis;
-use sp_core::{OpaqueMetadata, H160, H256, U256};
-use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, Convert, IdentifyAccount, IdentityLookup, Verify},
-	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult,
-};
-use sp_std::{convert::TryFrom, prelude::*};
-#[cfg(feature = "std")]
-use sp_version::NativeVersion;
-use sp_version::RuntimeVersion;
-
 use cumulus_primitives::relay_chain::Balance as RelayChainBalance;
-=======
->>>>>>> master
+use fp_rpc::TransactionStatus;
 pub use frame_support::{
 	construct_runtime,
 	pallet_prelude::PhantomData,
@@ -62,9 +45,21 @@ use pallet_evm::{
 	IdentityAddressMapping, Runner,
 };
 use pallet_transaction_payment::CurrencyAdapter;
-<<<<<<< HEAD
+pub use parachain_staking::{InflationInfo, Range};
+use parity_scale_codec::{Decode, Encode};
 use polkadot_parachain::primitives::Sibling;
-pub use stake::{InflationInfo, Range};
+use sp_api::impl_runtime_apis;
+use sp_core::{OpaqueMetadata, H160, H256, U256};
+use sp_runtime::{
+	create_runtime_str, generic, impl_opaque_keys,
+	traits::{BlakeTwo256, Block as BlockT, Convert, IdentifyAccount, IdentityLookup, Verify},
+	transaction_validity::{TransactionSource, TransactionValidity},
+	ApplyExtrinsicResult,
+};
+use sp_std::{convert::TryFrom, prelude::*};
+#[cfg(feature = "std")]
+use sp_version::NativeVersion;
+use sp_version::RuntimeVersion;
 use token_factory::{CurrencyId, Ticker};
 use xcm::v0::{Junction, MultiLocation, NetworkId};
 use xcm_builder::{
@@ -76,22 +71,6 @@ use xcm_executor::{
 	Config, XcmExecutor,
 };
 use xtransfer::support::*;
-=======
-pub use parachain_staking::{InflationInfo, Range};
-use parity_scale_codec::{Decode, Encode};
-use sp_api::impl_runtime_apis;
-use sp_core::{OpaqueMetadata, H160, H256, U256};
-use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify},
-	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult,
-};
-use sp_std::{convert::TryFrom, prelude::*};
-#[cfg(feature = "std")]
-use sp_version::NativeVersion;
-use sp_version::RuntimeVersion;
->>>>>>> master
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;

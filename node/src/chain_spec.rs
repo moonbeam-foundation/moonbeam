@@ -18,21 +18,13 @@ use cumulus_primitives::ParaId;
 use log::debug;
 use moonbeam_runtime::{
 	AccountId, Balance, BalancesConfig, DemocracyConfig, EVMConfig, EthereumChainIdConfig,
-<<<<<<< HEAD
-	EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig, Range, SchedulerConfig,
-	StakeConfig, SudoConfig, SystemConfig, GLMR, WASM_BINARY,
-=======
 	EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig, ParachainStakingConfig,
 	Range, SchedulerConfig, SudoConfig, SystemConfig, GLMR, WASM_BINARY,
->>>>>>> master
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use sc_telemetry::TelemetryEndpoints;
 use serde::{Deserialize, Serialize};
-<<<<<<< HEAD
-use sp_runtime::Perbill;
-=======
 use sha3::{Digest, Keccak256};
 
 use sp_core::{ecdsa, Pair, Public, H160, H256};
@@ -41,7 +33,6 @@ use sp_runtime::{
 	Perbill,
 };
 use std::convert::TryInto;
->>>>>>> master
 use std::{collections::BTreeMap, str::FromStr};
 use tiny_hderive::bip32::ExtendedPrivKey;
 
