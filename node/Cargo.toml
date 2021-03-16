@@ -36,7 +36,6 @@ moonbeam-runtime = { path = "../runtime" }
 moonbeam-rpc-txpool = { path = "../client/rpc/txpool" }
 moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool" }
 author-inherent = { path = "../pallets/author-inherent"}
-stake = { path = "../pallets/stake"}
 
 # Substrate dependencies
 sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }

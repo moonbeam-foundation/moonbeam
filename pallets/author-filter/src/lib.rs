@@ -50,7 +50,7 @@ pub mod pallet {
 	/// Configuration trait of this pallet.
 	#[pallet::config]
 	pub trait Config:
-		frame_system::Config + stake::Config + cumulus_parachain_system::Config
+		frame_system::Config + parachain_staking::Config + cumulus_parachain_system::Config
 	{
 		/// The overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
@@ -68,7 +68,7 @@ pub mod pallet {
 	// inherent.
 	impl<T: Config> author_inherent::CanAuthor<T::AccountId> for Pallet<T> {
 		fn can_author(account: &T::AccountId) -> bool {
-			let mut staked: Vec<T::AccountId> = stake::Module::<T>::validators();
+			let mut staked = <parachain_staking::Module<T>>::selected_candidates();
 
 			let num_eligible = EligibleRatio::<T>::get().mul_ceil(staked.len());
 			let mut eligible = Vec::with_capacity(num_eligible);

@@ -24,8 +24,8 @@ use cumulus_primitives::ParaId;
 use log::debug;
 use moonbeam_runtime::{
 	AccountId, Balance, BalancesConfig, DemocracyConfig, EVMConfig, EthereumChainIdConfig,
-	EthereumConfig, GenesisConfig, ParachainInfoConfig, SchedulerConfig, StakeConfig, SudoConfig,
-	SystemConfig, GLMR, WASM_BINARY,
+	EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig, ParachainStakingConfig,
+	Range, SchedulerConfig, SudoConfig, SystemConfig, GLMR, WASM_BINARY,
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
@@ -38,7 +38,6 @@ use sp_runtime::{
 	traits::{BlakeTwo256, Hash},
 	Perbill,
 };
-use stake::{InflationInfo, Range};
 use std::convert::TryInto;
 use std::{collections::BTreeMap, str::FromStr};
 use tiny_hderive::bip32::ExtendedPrivKey;
@@ -256,7 +255,7 @@ fn testnet_genesis(
 		pallet_ethereum: Some(EthereumConfig {}),
 		pallet_democracy: Some(DemocracyConfig {}),
 		pallet_scheduler: Some(SchedulerConfig {}),
-		stake: Some(StakeConfig {
+		parachain_staking: Some(ParachainStakingConfig {
 			stakers,
 			inflation_config,
 		}),
