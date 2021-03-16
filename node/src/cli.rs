@@ -17,7 +17,7 @@
 //! Moonbeam CLI Library. Built with structopt
 //!
 //! This module defines the Moonbeam node's Command Line Interface (CLI)
-//! It is built using structopt and inherit's behavior from Substrate's sc_cli crate.
+//! It is built using structopt and inherits behavior from Substrate's sc_cli crate.
 
 use sp_core::H160;
 use std::path::PathBuf;
