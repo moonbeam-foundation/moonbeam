@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["pallet",""]],"struct":[["InflationInfo",""],["Range",""]]});

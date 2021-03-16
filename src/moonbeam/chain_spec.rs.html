@@ -302,7 +302,6 @@
 <span id="299">299</span>
 <span id="300">300</span>
 <span id="301">301</span>
-<span id="302">302</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -324,8 +323,8 @@
 <span class="kw">use</span> <span class="ident">log</span>::<span class="ident">debug</span>;
 <span class="kw">use</span> <span class="ident">moonbeam_runtime</span>::{
 	<span class="ident">AccountId</span>, <span class="ident">Balance</span>, <span class="ident">BalancesConfig</span>, <span class="ident">DemocracyConfig</span>, <span class="ident">EVMConfig</span>, <span class="ident">EthereumChainIdConfig</span>,
-	<span class="ident">EthereumConfig</span>, <span class="ident">GenesisConfig</span>, <span class="ident">ParachainInfoConfig</span>, <span class="ident">SchedulerConfig</span>, <span class="ident">StakeConfig</span>, <span class="ident">SudoConfig</span>,
-	<span class="ident">SystemConfig</span>, <span class="ident">GLMR</span>, <span class="ident">WASM_BINARY</span>,
+	<span class="ident">EthereumConfig</span>, <span class="ident">GenesisConfig</span>, <span class="ident">InflationInfo</span>, <span class="ident">ParachainInfoConfig</span>, <span class="ident">ParachainStakingConfig</span>,
+	<span class="ident">Range</span>, <span class="ident">SchedulerConfig</span>, <span class="ident">SudoConfig</span>, <span class="ident">SystemConfig</span>, <span class="ident">GLMR</span>, <span class="ident">WASM_BINARY</span>,
 };
 <span class="kw">use</span> <span class="ident">sc_chain_spec</span>::{<span class="ident">ChainSpecExtension</span>, <span class="ident">ChainSpecGroup</span>};
 <span class="kw">use</span> <span class="ident">sc_service</span>::<span class="ident">ChainType</span>;
@@ -338,7 +337,6 @@
 	<span class="ident">traits</span>::{<span class="ident">BlakeTwo256</span>, <span class="ident">Hash</span>},
 	<span class="ident">Perbill</span>,
 };
-<span class="kw">use</span> <span class="ident">stake</span>::{<span class="ident">InflationInfo</span>, <span class="ident">Range</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">TryInto</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">BTreeMap</span>, <span class="ident">str</span>::<span class="ident">FromStr</span>};
 <span class="kw">use</span> <span class="ident">tiny_hderive</span>::<span class="ident">bip32</span>::<span class="ident">ExtendedPrivKey</span>;
@@ -556,7 +554,7 @@
 		<span class="ident">pallet_ethereum</span>: <span class="prelude-val">Some</span>(<span class="ident">EthereumConfig</span> {}),
 		<span class="ident">pallet_democracy</span>: <span class="prelude-val">Some</span>(<span class="ident">DemocracyConfig</span> {}),
 		<span class="ident">pallet_scheduler</span>: <span class="prelude-val">Some</span>(<span class="ident">SchedulerConfig</span> {}),
-		<span class="ident">stake</span>: <span class="prelude-val">Some</span>(<span class="ident">StakeConfig</span> {
+		<span class="ident">parachain_staking</span>: <span class="prelude-val">Some</span>(<span class="ident">ParachainStakingConfig</span> {
 			<span class="ident">stakers</span>,
 			<span class="ident">inflation_config</span>,
 		}),

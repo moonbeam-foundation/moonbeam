@@ -718,8 +718,6 @@
 <span id="715">715</span>
 <span id="716">716</span>
 <span id="717">717</span>
-<span id="718">718</span>
-<span id="719">719</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -752,20 +750,6 @@
 <span class="macro">include</span><span class="macro">!</span>(<span class="macro">concat</span><span class="macro">!</span>(<span class="macro">env</span><span class="macro">!</span>(<span class="string">&quot;OUT_DIR&quot;</span>), <span class="string">&quot;/wasm_binary.rs&quot;</span>));
 
 <span class="kw">use</span> <span class="ident">fp_rpc</span>::<span class="ident">TransactionStatus</span>;
-<span class="kw">use</span> <span class="ident">parity_scale_codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
-<span class="kw">use</span> <span class="ident">sp_api</span>::<span class="ident">impl_runtime_apis</span>;
-<span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">OpaqueMetadata</span>, <span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>};
-<span class="kw">use</span> <span class="ident">sp_runtime</span>::{
-	<span class="ident">create_runtime_str</span>, <span class="ident">generic</span>, <span class="ident">impl_opaque_keys</span>,
-	<span class="ident">traits</span>::{<span class="ident">BlakeTwo256</span>, <span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>, <span class="ident">IdentifyAccount</span>, <span class="ident">IdentityLookup</span>, <span class="ident">Verify</span>},
-	<span class="ident">transaction_validity</span>::{<span class="ident">TransactionSource</span>, <span class="ident">TransactionValidity</span>},
-	<span class="ident">ApplyExtrinsicResult</span>,
-};
-<span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">convert</span>::<span class="ident">TryFrom</span>, <span class="ident">prelude</span>::<span class="kw-2">*</span>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">sp_version</span>::<span class="ident">NativeVersion</span>;
-<span class="kw">use</span> <span class="ident">sp_version</span>::<span class="ident">RuntimeVersion</span>;
-
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">frame_support</span>::{
 	<span class="ident">construct_runtime</span>,
 	<span class="ident">pallet_prelude</span>::<span class="ident">PhantomData</span>,
@@ -781,6 +765,20 @@
 	<span class="ident">IdentityAddressMapping</span>, <span class="ident">Runner</span>,
 };
 <span class="kw">use</span> <span class="ident">pallet_transaction_payment</span>::<span class="ident">CurrencyAdapter</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">parachain_staking</span>::{<span class="ident">InflationInfo</span>, <span class="ident">Range</span>};
+<span class="kw">use</span> <span class="ident">parity_scale_codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
+<span class="kw">use</span> <span class="ident">sp_api</span>::<span class="ident">impl_runtime_apis</span>;
+<span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">OpaqueMetadata</span>, <span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>};
+<span class="kw">use</span> <span class="ident">sp_runtime</span>::{
+	<span class="ident">create_runtime_str</span>, <span class="ident">generic</span>, <span class="ident">impl_opaque_keys</span>,
+	<span class="ident">traits</span>::{<span class="ident">BlakeTwo256</span>, <span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>, <span class="ident">IdentifyAccount</span>, <span class="ident">IdentityLookup</span>, <span class="ident">Verify</span>},
+	<span class="ident">transaction_validity</span>::{<span class="ident">TransactionSource</span>, <span class="ident">TransactionValidity</span>},
+	<span class="ident">ApplyExtrinsicResult</span>,
+};
+<span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">convert</span>::<span class="ident">TryFrom</span>, <span class="ident">prelude</span>::<span class="kw-2">*</span>};
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">sp_version</span>::<span class="ident">NativeVersion</span>;
+<span class="kw">use</span> <span class="ident">sp_version</span>::<span class="ident">RuntimeVersion</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">sp_runtime</span>::<span class="ident">BuildStorage</span>;
@@ -835,7 +833,7 @@
 	<span class="ident">spec_name</span>: <span class="macro">create_runtime_str</span><span class="macro">!</span>(<span class="string">&quot;moonbeam&quot;</span>),
 	<span class="ident">impl_name</span>: <span class="macro">create_runtime_str</span><span class="macro">!</span>(<span class="string">&quot;moonbeam&quot;</span>),
 	<span class="ident">authoring_version</span>: <span class="number">3</span>,
-	<span class="ident">spec_version</span>: <span class="number">24</span>,
+	<span class="ident">spec_version</span>: <span class="number">25</span>,
 	<span class="ident">impl_version</span>: <span class="number">1</span>,
 	<span class="ident">apis</span>: <span class="ident">RUNTIME_API_VERSIONS</span>,
 	<span class="ident">transaction_version</span>: <span class="number">2</span>,
@@ -1110,38 +1108,36 @@
 	<span class="doccomment">/// Reward payments and validator exit requests are delayed by 2 hours (2 * 600 * block_time)</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BondDuration</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
 	<span class="doccomment">/// Maximum 8 valid block authors at any given time</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxValidators</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">8</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TotalSelectedCandidates</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">8</span>;
 	<span class="doccomment">/// Maximum 10 nominators per validator</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxNominatorsPerValidator</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">10</span>;
-	<span class="doccomment">/// Maximum 8 validators per nominator (same as MaxValidators)</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxValidatorsPerNominator</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">8</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxNominatorsPerCollator</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">10</span>;
 	<span class="doccomment">/// The maximum percent a validator can take off the top of its rewards is 50%</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxFee</span>: <span class="ident">Perbill</span> <span class="op">=</span> <span class="ident">Perbill</span>::<span class="ident">from_percent</span>(<span class="number">50</span>);
 	<span class="doccomment">/// Minimum stake required to be reserved to be a validator is 1_000</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinValidatorStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">1_000</span> <span class="op">*</span> <span class="ident">GLMR</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinCollatorStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">1_000</span> <span class="op">*</span> <span class="ident">GLMR</span>;
 	<span class="doccomment">/// Minimum stake required to be reserved to be a nominator is 5</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinNominatorStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">5</span> <span class="op">*</span> <span class="ident">GLMR</span>;
 }
-<span class="kw">impl</span> <span class="ident">stake</span>::<span class="ident">Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
+<span class="kw">impl</span> <span class="ident">parachain_staking</span>::<span class="ident">Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
-	<span class="kw">type</span> <span class="ident">SetMonetaryPolicyOrigin</span> <span class="op">=</span> <span class="ident">frame_system</span>::<span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">BlocksPerRound</span> <span class="op">=</span> <span class="ident">BlocksPerRound</span>;
 	<span class="kw">type</span> <span class="ident">BondDuration</span> <span class="op">=</span> <span class="ident">BondDuration</span>;
-	<span class="kw">type</span> <span class="ident">MaxValidators</span> <span class="op">=</span> <span class="ident">MaxValidators</span>;
-	<span class="kw">type</span> <span class="ident">MaxNominatorsPerValidator</span> <span class="op">=</span> <span class="ident">MaxNominatorsPerValidator</span>;
-	<span class="kw">type</span> <span class="ident">MaxValidatorsPerNominator</span> <span class="op">=</span> <span class="ident">MaxValidatorsPerNominator</span>;
+	<span class="kw">type</span> <span class="ident">TotalSelectedCandidates</span> <span class="op">=</span> <span class="ident">TotalSelectedCandidates</span>;
+	<span class="kw">type</span> <span class="ident">MaxNominatorsPerCollator</span> <span class="op">=</span> <span class="ident">MaxNominatorsPerCollator</span>;
+	<span class="kw">type</span> <span class="ident">MaxCollatorsPerNominator</span> <span class="op">=</span> <span class="ident">TotalSelectedCandidates</span>;
 	<span class="kw">type</span> <span class="ident">MaxFee</span> <span class="op">=</span> <span class="ident">MaxFee</span>;
-	<span class="kw">type</span> <span class="ident">MinValidatorStk</span> <span class="op">=</span> <span class="ident">MinValidatorStk</span>;
+	<span class="kw">type</span> <span class="ident">MinCollatorStk</span> <span class="op">=</span> <span class="ident">MinCollatorStk</span>;
+	<span class="kw">type</span> <span class="ident">MinCollatorCandidateStk</span> <span class="op">=</span> <span class="ident">MinCollatorStk</span>;
 	<span class="kw">type</span> <span class="ident">MinNomination</span> <span class="op">=</span> <span class="ident">MinNominatorStk</span>;
 	<span class="kw">type</span> <span class="ident">MinNominatorStk</span> <span class="op">=</span> <span class="ident">MinNominatorStk</span>;
 }
 <span class="kw">impl</span> <span class="ident">author_inherent</span>::<span class="ident">Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-	<span class="kw">type</span> <span class="ident">EventHandler</span> <span class="op">=</span> <span class="ident">Stake</span>;
+	<span class="kw">type</span> <span class="ident">EventHandler</span> <span class="op">=</span> <span class="ident">ParachainStaking</span>;
 	<span class="comment">// We cannot run the full filtered author checking logic in the preliminary check because it</span>
 	<span class="comment">// depends on entropy from the relay chain. Instead we just make sure that the author is staked</span>
 	<span class="comment">// in the preliminary check. The final check including the filtering happens during execution.</span>
-	<span class="kw">type</span> <span class="ident">PreliminaryCanAuthor</span> <span class="op">=</span> <span class="ident">Stake</span>;
+	<span class="kw">type</span> <span class="ident">PreliminaryCanAuthor</span> <span class="op">=</span> <span class="ident">ParachainStaking</span>;
 	<span class="kw">type</span> <span class="ident">FinalCanAuthor</span> <span class="op">=</span> <span class="ident">AuthorFilter</span>;
 }
 
@@ -1168,7 +1164,7 @@
 		<span class="ident">EthereumChainId</span>: <span class="ident">pallet_ethereum_chain_id</span>::{<span class="ident">Module</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>},
 		<span class="ident">EVM</span>: <span class="ident">pallet_evm</span>::{<span class="ident">Module</span>, <span class="ident">Config</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
 		<span class="ident">Ethereum</span>: <span class="ident">pallet_ethereum</span>::{<span class="ident">Module</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span>, <span class="ident">Config</span>, <span class="ident">ValidateUnsigned</span>},
-		<span class="ident">Stake</span>: <span class="ident">stake</span>::{<span class="ident">Module</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
+		<span class="ident">ParachainStaking</span>: <span class="ident">parachain_staking</span>::{<span class="ident">Module</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
 		<span class="ident">Scheduler</span>: <span class="ident">pallet_scheduler</span>::{<span class="ident">Module</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Call</span>},
 		<span class="ident">Democracy</span>: <span class="ident">pallet_democracy</span>::{<span class="ident">Module</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Call</span>},
 		<span class="comment">// The order matters here. Inherents will be included in the order specified here.</span>
