@@ -22,7 +22,7 @@ use sp_std::vec::Vec;
 
 #[cfg(feature = "std")]
 // TODO : Maybe move these functions into its own crate ?
-use moonbeam_rpc_primitives_debug::{h256_serialize, string_serialize};
+use moonbeam_rpc_primitives_debug::{bytes_0x_serialize, h256_serialize, string_serialize};
 #[cfg(feature = "std")]
 use serde::Serialize;
 
@@ -30,7 +30,8 @@ use serde::Serialize;
 #[cfg_attr(feature = "std", derive(Serialize))]
 #[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 pub struct TransactionTrace {
-	pub action: (), // TODO
+	#[cfg_attr(feature = "std", serde(flatten))]
+	pub action: TransactionTraceAction,
 	#[cfg_attr(feature = "std", serde(serialize_with = "h256_serialize"))]
 	pub block_hash: H256,
 	pub block_number: u32,
@@ -45,6 +46,30 @@ pub struct TransactionTrace {
 		serde(rename = "type", serialize_with = "string_serialize")
 	)]
 	pub type_: Vec<u8>,
+}
+
+#[derive(Clone, Eq, PartialEq, Encode, Decode)]
+#[cfg_attr(feature = "std", derive(Serialize))]
+#[cfg_attr(feature = "std", serde(rename_all = "camelCase", tag = "callType"))]
+pub enum TransactionTraceAction {
+	Call {
+		from: H160,
+		gas: U256,
+		#[cfg_attr(feature = "std", serde(serialize_with = "bytes_0x_serialize"))]
+		input: Vec<u8>,
+		to: H160,
+		value: U256,
+	},
+	// TODO : Other types
+}
+
+#[derive(Clone, Eq, PartialEq, Encode, Decode)]
+#[cfg_attr(feature = "std", derive(Serialize))]
+#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
+pub struct TransactionTraceResult {
+	pub gas_used: U256,
+	#[cfg_attr(feature = "std", serde(serialize_with = "bytes_0x_serialize"))]
+	pub output: Vec<u8>,
 }
 
 sp_api::decl_runtime_apis! {

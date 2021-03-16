@@ -649,6 +649,100 @@ impl_runtime_apis! {
 		}
 	}
 
+	impl moonbeam_rpc_primitives_trace::TraceRuntimeApi<Block> for Runtime {
+		fn trace_block(
+			extrinsics: Vec<<Block as BlockT>::Extrinsic>,
+		) -> Result<Vec<moonbeam_rpc_primitives_trace::TransactionTrace>, sp_runtime::DispatchError> {
+			use moonbeam_rpc_primitives_debug::{TraceExecutorResponse, TraceType, blockscout::EntryInner};
+			use moonbeam_rpc_primitives_trace::{TransactionTrace, TransactionTraceAction, TransactionTraceResult};
+
+			let mut config = <Runtime as pallet_evm::Config>::config().clone();
+			config.estimate = true;
+
+			// Apply all extrinsics. Ethereum extrinsics are traced.
+			for ext in extrinsics.into_iter() {
+				match &ext.function {
+					Call::Ethereum(transact(transaction)) => {
+						// Get the caller;
+						let mut sig = [0u8; 65];
+						let mut msg = [0u8; 32];
+						sig[0..32].copy_from_slice(&transaction.signature.r()[..]);
+						sig[32..64].copy_from_slice(&transaction.signature.s()[..]);
+						sig[64] = transaction.signature.standard_v();
+						msg.copy_from_slice(
+							&pallet_ethereum::TransactionMessage::from(transaction.clone()).hash()[..]
+						);
+
+						let from = match sp_io::crypto::secp256k1_ecdsa_recover(&sig, &msg) {
+							Ok(pk) => H160::from(
+								H256::from_slice(Keccak256::digest(&pk).as_slice())
+							),
+							_ => H160::default()
+						};
+
+						// Use the runner extension to interface with our evm's trace executor and return the
+						// TraceExecutorResult.
+						let tx_traces = match transaction.action {
+							TransactionAction::Call(to) => {
+								<Runtime as pallet_evm::Config>::Runner::trace_call(
+									from,
+									to,
+									transaction.input.clone(),
+									transaction.value,
+									transaction.gas_limit.low_u64(),
+									&config,
+									TraceType::Blockscout,
+								).map_err(|_| sp_runtime::DispatchError::Other("Evm error"))?
+
+							},
+							TransactionAction::Create => {
+								<Runtime as pallet_evm::Config>::Runner::trace_create(
+									from,
+									transaction.input.clone(),
+									transaction.value,
+									transaction.gas_limit.low_u64(),
+									&config,
+									TraceType::Blockscout,
+								).map_err(|_| sp_runtime::DispatchError::Other("Evm error"))?
+							}
+						};
+
+						let tx_traces = match tx_traces {
+							TraceExecutorResponse::Blockscout(t) => t,
+							_ => return Err(sp_runtime::DispatchError::Other("Runtime API error")),
+						};
+
+						let tx_traces: Vec<_> = tx_traces.into_iter().map(|t|
+							match t.inner {
+								EntryInner::Call {input, to, ..} => TransactionTrace {
+									action: TransactionTraceAction::Call {
+										from,
+										gas: t.gas,
+										input,
+										to,
+										value: t.value,
+									},
+									block_hash: H256::default(), // block hash will be inserted by RPC api
+									block_number: 0, // same
+									result: todo!(),
+									subtraces: todo!(),
+									trace_address: todo!(),
+									transaction_hash: todo!(),
+									transaction_position: todo!(),
+									type_: todo!(),
+								},
+								_ => todo!(),
+							}
+						).collect();
+					},
+					_ => {let _ = Executive::apply_extrinsic(ext); }
+				};
+			}
+
+			todo!()
+		}
+	}
+
 	impl moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block> for Runtime {
 		fn extrinsic_filter(
 			xts: Vec<<Block as BlockT>::Extrinsic>
