@@ -52,10 +52,10 @@ async function test() {
 
   // Balance
   const account = await polkadotApi.query.system.account(ETHAN);
-  // assert(
-  //   account.data.free.toString() === DEFAULT_GENESIS_BALANCE.toString(),
-  //   "wrong balance for Ethan, dif: "+(Number(DEFAULT_GENESIS_BALANCE)-Number(account.data.free))
-  // );
+  assert(
+    account.data.free.toString() === DEFAULT_GENESIS_BALANCE.toString(),
+    "wrong balance for Ethan, dif: " + (Number(DEFAULT_GENESIS_BALANCE) - Number(account.data.free))
+  );
 
   // Nominators
   const nominators = await polkadotApi.query.stake.nominators(GERALD);
@@ -79,10 +79,10 @@ async function test() {
 
   // Join Candidates
   const keyring = new Keyring({ type: "ethereum" });
-  const testAccount = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
+  const ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
   const unsub = await polkadotApi.tx.stake
     .joinCandidates(0, MIN_GLMR_STAKING)
-    .signAndSend(testAccount, ({ events = [], status }) => {
+    .signAndSend(ethan, ({ events = [], status }) => {
       console.log(`Current status is ${status.type}`);
 
       if (status.isFinalized) {
@@ -97,15 +97,73 @@ async function test() {
       }
     });
   await wait(50000);
-  const candidatesAfter = await polkadotApi.query.stake.candidatePool();
+  let candidatesAfter = await polkadotApi.query.stake.candidatePool();
   console.log("candidatesAfter", candidatesAfter.toHuman());
   assert(
     (candidatesAfter.toHuman() as { owner: string; amount: string }[]).length === 3,
     "new candidate should have been added"
   );
-  const ethan = await polkadotApi.query.system.account(ETHAN);
-  console.log(ethan.data.free.toString());
-  console.log(DEFAULT_GENESIS_BALANCE.toString());
+  assert(
+    (candidatesAfter.toHuman() as { owner: string; amount: string }[])[2].owner === ETHAN,
+    "new candidate ethan should have been added"
+  );
+  assert(
+    (candidatesAfter.toHuman() as { owner: string; amount: string }[])[2].amount === "1.0000 kUnit",
+    "new candidate ethan should have been added (wrong amount)"
+  );
+  const ethanBalance = await polkadotApi.query.system.account(ETHAN);
+  console.log(ethanBalance.data.free.toString());
+  console.log(GENESIS_ACCOUNT_BALANCE.toString());
+
+  // Candidate bond more
+  const unsub4 = await polkadotApi.tx.stake
+    .candidateBondMore(MIN_GLMR_STAKING)
+    .signAndSend(ethan, ({ events = [], status }) => {
+      console.log(`Current status is ${status.type}`);
+
+      if (status.isFinalized) {
+        console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
+
+        // Loopcod through Vec<EventRecord> to display all events
+        events.forEach(({ phase, event: { data, method, section } }) => {
+          console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
+        });
+
+        unsub4();
+      }
+    });
+  await wait(50000);
+  candidatesAfter = await polkadotApi.query.stake.candidatePool();
+  console.log("candidatesAfter bonding more", candidatesAfter.toHuman());
+  assert(
+    (candidatesAfter.toHuman() as { owner: string; amount: string }[])[2].amount === "2.0000 kUnit",
+    "bond should have increased"
+  );
+
+  // Candidate bond less
+  const unsub5 = await polkadotApi.tx.stake
+    .candidateBondLess(MIN_GLMR_STAKING)
+    .signAndSend(ethan, ({ events = [], status }) => {
+      console.log(`Current status is ${status.type}`);
+
+      if (status.isFinalized) {
+        console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
+
+        // Loopcod through Vec<EventRecord> to display all events
+        events.forEach(({ phase, event: { data, method, section } }) => {
+          console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
+        });
+
+        unsub5();
+      }
+    });
+  await wait(50000);
+  candidatesAfter = await polkadotApi.query.stake.candidatePool();
+  console.log("candidatesAfter bonding less", candidatesAfter.toHuman());
+  assert(
+    (candidatesAfter.toHuman() as { owner: string; amount: string }[])[2].amount === "1.0000 kUnit",
+    "bond should have decreased"
+  );
 
   // Join Nominators
   const keyringAlith = new Keyring({ type: "ethereum" });
@@ -155,7 +213,7 @@ async function test() {
     });
   await wait(60000);
   const nominatorsAfterRevocation = await polkadotApi.query.stake.nominators(ALITH);
-  console.log("nominatorsAfterRevocation", nominatorsAfterRevocation.toHuman());
+  console.log("nominatorsAfterRevocation", nominatorsAfterRevocation.toHuman()); // TODO this should be empty
 
   console.log("SUCCESS");
 }
@@ -167,6 +225,10 @@ test();
 
 // {candidate/nominator}_bond_more/less for validators/nominators
 // revoke_nomination
-// leave_candidates
+// leave_candidates // todo: implement this AFTER we figure out why ethan doesnt produce blocks
 
 // wait to test adding more than one nomination for a nominator
+
+// what is min amount? 100k is not enough, unlike amount specified in https://meta5.world/stake-docs/runtime.html
+// TODO: ethan (added candidate) doesnt produce blocks
+// TODO: nominator revokation doesnt work
