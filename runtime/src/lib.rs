@@ -647,14 +647,11 @@ impl_runtime_apis! {
 				}
 			}
 		}
-	}
 
-	impl moonbeam_rpc_primitives_trace::TraceRuntimeApi<Block> for Runtime {
 		fn trace_block(
 			extrinsics: Vec<<Block as BlockT>::Extrinsic>,
-		) -> Result<Vec<moonbeam_rpc_primitives_trace::TransactionTrace>, sp_runtime::DispatchError> {
-			use moonbeam_rpc_primitives_debug::{single};
-			use moonbeam_rpc_primitives_trace::{TransactionTrace as BlockTransactionTrace, TransactionTraceAction, TransactionTraceResult};
+		) -> Result<Vec<moonbeam_rpc_primitives_debug::block::TransactionTrace>, sp_runtime::DispatchError> {
+			use moonbeam_rpc_primitives_debug::{single, block};
 
 			let mut config = <Runtime as pallet_evm::Config>::config().clone();
 			config.estimate = true;
@@ -714,8 +711,8 @@ impl_runtime_apis! {
 
 						let tx_traces: Vec<_> = tx_traces.into_iter().map(|t|
 							match t.inner {
-								single::CallInner::Call {input, to, ..} => BlockTransactionTrace {
-									action: TransactionTraceAction::Call {
+								single::CallInner::Call {input, to, ..} => block::TransactionTrace {
+									action: block::TransactionTraceAction::Call {
 										from,
 										gas: t.gas,
 										input,

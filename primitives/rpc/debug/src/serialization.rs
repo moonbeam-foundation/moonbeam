@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-/// Provide serialization functions for various types and formats.
+//! Provide serialization functions for various types and formats.
 
 use ethereum_types::{H160, H256, U256};
 use serde::{ser::SerializeSeq, Serialize, Serializer};

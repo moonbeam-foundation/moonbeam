@@ -4115,7 +4115,7 @@ dependencies = [
  "jsonrpc-core 15.1.0",
  "jsonrpc-core-client 14.2.0",
  "jsonrpc-derive 14.2.2",
- "moonbeam-rpc-primitives-trace",
+ "moonbeam-rpc-primitives-debug",
  "serde",
  "serde_json",
 ]
@@ -4161,24 +4161,6 @@ dependencies = [
  "ethereum",
  "ethereum-types",
  "hex",
- "parity-scale-codec",
- "serde",
- "serde_json",
- "sp-api",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "moonbeam-rpc-primitives-trace"
-version = "0.1.0"
-dependencies = [
- "ethereum",
- "ethereum-types",
- "hex",
- "moonbeam-rpc-primitives-debug",
  "parity-scale-codec",
  "serde",
  "serde_json",
@@ -4265,7 +4247,6 @@ dependencies = [
  "log",
  "moonbeam-extensions-evm",
  "moonbeam-rpc-primitives-debug",
- "moonbeam-rpc-primitives-trace",
  "moonbeam-rpc-primitives-txpool",
  "pallet-aura",
  "pallet-author-filter",

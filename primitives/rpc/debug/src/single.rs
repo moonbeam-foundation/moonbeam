@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! Types for the tracing of a single Ethereum transaction.
+//! Structure from "raw" debug_trace and a "call list" matching
+//! Blockscout formatter. This "call list" is also used to build
+//! the whole block tracing output.
+
 #[cfg(feature = "std")]
 use crate::serialization::*;
-/// Types for the tracing of a single Ethereum transaction.
-/// Structure from "raw" debug_trace and a "call list" matching
-/// Blockscout formatter. This "call list" is also used to build
-/// the whole block tracing output.
-
 #[cfg(feature = "std")]
 use serde::{ser::SerializeSeq, Serialize, Serializer};
 

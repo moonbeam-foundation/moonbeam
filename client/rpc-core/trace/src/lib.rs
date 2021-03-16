@@ -19,7 +19,7 @@ use jsonrpc_core::futures::Future;
 use ethereum_types::{H160, H256};
 use futures::{compat::Compat, future::BoxFuture};
 use jsonrpc_derive::rpc;
-pub use moonbeam_rpc_primitives_trace::TransactionTrace;
+pub use moonbeam_rpc_primitives_debug::block::TransactionTrace;
 use serde::{Deserialize, Serialize};
 #[rpc(server)]
 pub trait Trace {

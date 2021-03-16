@@ -14,17 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-#![cfg_attr(not(feature = "std"), no_std)]
+//! Types for the tracing of a all Ethereum transactions of a block.
+
+#[cfg(feature = "std")]
+use crate::serialization::*;
+#[cfg(feature = "std")]
+use serde::{ser::SerializeSeq, Serialize, Serializer};
 
 use codec::{Decode, Encode};
 use ethereum_types::{H160, H256, U256};
-use sp_std::vec::Vec;
-
-#[cfg(feature = "std")]
-// TODO : Maybe move these functions into its own crate ?
-use moonbeam_rpc_primitives_debug::serialization::*;
-#[cfg(feature = "std")]
-use serde::Serialize;
+use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
 #[derive(Clone, Eq, PartialEq, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(Serialize))]
@@ -70,12 +69,4 @@ pub struct TransactionTraceResult {
 	pub gas_used: U256,
 	#[cfg_attr(feature = "std", serde(serialize_with = "bytes_0x_serialize"))]
 	pub output: Vec<u8>,
-}
-
-sp_api::decl_runtime_apis! {
-	pub trait TraceRuntimeApi {
-		fn trace_block(
-			extrinsics: Vec<Block::Extrinsic>,
-		) -> Result<Vec<TransactionTrace>, sp_runtime::DispatchError>;
-	}
 }
