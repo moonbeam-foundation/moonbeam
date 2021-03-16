@@ -19,13 +19,12 @@ use jsonrpc_core::Result;
 use jsonrpc_derive::rpc;
 use serde::Deserialize;
 
-pub use crate::types::{StepLog, TraceExecutorResponse};
-
 pub use rpc_impl_Debug::gen_server::Debug as DebugServer;
-
 pub mod types {
-	pub use moonbeam_rpc_primitives_debug::{StepLog, TraceExecutorResponse};
+	pub use moonbeam_rpc_primitives_debug::single;
 }
+
+use crate::types::single;
 
 #[derive(Clone, Eq, PartialEq, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -41,5 +40,5 @@ pub trait Debug {
 		&self,
 		transaction_hash: H256,
 		params: Option<TraceParams>,
-	) -> Result<TraceExecutorResponse>;
+	) -> Result<single::TransactionTrace>;
 }

@@ -44,7 +44,7 @@ use ethereum_types::{H128, H256};
 use fp_rpc::EthereumRuntimeRPCApi;
 
 use moonbeam_rpc_core_trace::{FilterRequest, Trace as TraceT, TransactionTrace};
-use moonbeam_rpc_primitives_debug::{DebugRuntimeApi, TraceType};
+use moonbeam_rpc_primitives_debug::{single, DebugRuntimeApi};
 
 pub struct Trace {
 	pub requester: TraceFilterCacheRequester,

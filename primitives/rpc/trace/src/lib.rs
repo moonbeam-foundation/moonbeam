@@ -22,7 +22,7 @@ use sp_std::vec::Vec;
 
 #[cfg(feature = "std")]
 // TODO : Maybe move these functions into its own crate ?
-use moonbeam_rpc_primitives_debug::{bytes_0x_serialize, h256_serialize, string_serialize};
+use moonbeam_rpc_primitives_debug::serialization::*;
 #[cfg(feature = "std")]
 use serde::Serialize;
 

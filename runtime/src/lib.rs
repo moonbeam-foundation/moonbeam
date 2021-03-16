@@ -573,9 +573,9 @@ impl_runtime_apis! {
 		fn trace_transaction(
 			extrinsics: Vec<<Block as BlockT>::Extrinsic>,
 			transaction: &EthereumTransaction,
-			trace_type: moonbeam_rpc_primitives_debug::TraceType,
+			trace_type: moonbeam_rpc_primitives_debug::single::TraceType,
 		) -> Result<
-			moonbeam_rpc_primitives_debug::TraceExecutorResponse,
+			moonbeam_rpc_primitives_debug::single::TransactionTrace,
 			sp_runtime::DispatchError
 		> {
 			// Get the caller;
@@ -653,8 +653,8 @@ impl_runtime_apis! {
 		fn trace_block(
 			extrinsics: Vec<<Block as BlockT>::Extrinsic>,
 		) -> Result<Vec<moonbeam_rpc_primitives_trace::TransactionTrace>, sp_runtime::DispatchError> {
-			use moonbeam_rpc_primitives_debug::{TraceExecutorResponse, TraceType, blockscout::EntryInner};
-			use moonbeam_rpc_primitives_trace::{TransactionTrace, TransactionTraceAction, TransactionTraceResult};
+			use moonbeam_rpc_primitives_debug::{single};
+			use moonbeam_rpc_primitives_trace::{TransactionTrace as BlockTransactionTrace, TransactionTraceAction, TransactionTraceResult};
 
 			let mut config = <Runtime as pallet_evm::Config>::config().clone();
 			config.estimate = true;
@@ -691,7 +691,7 @@ impl_runtime_apis! {
 									transaction.value,
 									transaction.gas_limit.low_u64(),
 									&config,
-									TraceType::Blockscout,
+									single::TraceType::CallList,
 								).map_err(|_| sp_runtime::DispatchError::Other("Evm error"))?
 
 							},
@@ -702,19 +702,19 @@ impl_runtime_apis! {
 									transaction.value,
 									transaction.gas_limit.low_u64(),
 									&config,
-									TraceType::Blockscout,
+									single::TraceType::CallList,
 								).map_err(|_| sp_runtime::DispatchError::Other("Evm error"))?
 							}
 						};
 
 						let tx_traces = match tx_traces {
-							TraceExecutorResponse::Blockscout(t) => t,
+							single::TransactionTrace::CallList(t) => t,
 							_ => return Err(sp_runtime::DispatchError::Other("Runtime API error")),
 						};
 
 						let tx_traces: Vec<_> = tx_traces.into_iter().map(|t|
 							match t.inner {
-								EntryInner::Call {input, to, ..} => TransactionTrace {
+								single::CallInner::Call {input, to, ..} => BlockTransactionTrace {
 									action: TransactionTraceAction::Call {
 										from,
 										gas: t.gas,
