@@ -4196,6 +4196,8 @@ dependencies = [
  "moonbeam-rpc-core-trace",
  "moonbeam-rpc-primitives-debug",
  "sc-client-api",
+ "sc-network",
+ "sc-transaction-graph",
  "serde",
  "sha3 0.8.2",
  "sp-api",

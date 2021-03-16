@@ -31,17 +31,23 @@ use std::{
 use tokio::{sync::oneshot, time::sleep};
 
 use jsonrpc_core::{Error as RpcError, ErrorCode, Result};
-use sc_client_api::backend::{AuxStore, Backend, StateBackend};
+use sc_client_api::{
+	backend::{AuxStore, Backend, StateBackend},
+	StorageProvider,
+};
+use sc_network::{ExHashT, NetworkService};
+use sc_transaction_graph::{ChainApi, Pool};
 use sp_api::{BlockId, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
 };
 use sp_runtime::traits::{BlakeTwo256, Block as BlockT};
+use sp_transaction_pool::{InPoolTransaction, TransactionPool};
 use sp_utils::mpsc::TracingUnboundedSender;
 
 use ethereum_types::{H128, H256};
-use fp_rpc::EthereumRuntimeRPCApi;
+use fp_rpc::{ConvertTransaction, EthereumRuntimeRPCApi};
 
 use moonbeam_rpc_core_trace::{FilterRequest, Trace as TraceT, TransactionTrace};
 use moonbeam_rpc_primitives_debug::{single, DebugRuntimeApi};
@@ -92,9 +98,9 @@ pub type TraceFilterCacheRequester = TracingUnboundedSender<(
 	oneshot::Sender<Result<Vec<TransactionTrace>>>,
 )>;
 
-pub struct TraceFilterCache<B, C, BE>(PhantomData<(B, C, BE)>);
+pub struct TraceFilterCache<B, C, P, CT, BE, H, A>(PhantomData<(B, C, P, CT, BE, H, A)>);
 
-impl<B, C, BE> TraceFilterCache<B, C, BE>
+impl<B, C, P, CT, BE, H: ExHashT, A> TraceFilterCache<B, C, P, CT, BE, H, A>
 where
 	BE: Backend<B> + 'static,
 	BE::State: StateBackend<BlakeTwo256>,
@@ -106,6 +112,17 @@ where
 	C::Api: BlockBuilder<B, Error = BlockChainError>,
 	C::Api: DebugRuntimeApi<B>,
 	C::Api: EthereumRuntimeRPCApi<B>,
+
+	C: ProvideRuntimeApi<B> + StorageProvider<B, BE> + AuxStore,
+	C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError> + 'static,
+	C::Api: EthereumRuntimeRPCApi<B>,
+	BE: Backend<B> + 'static,
+	BE::State: StateBackend<BlakeTwo256>,
+	B: BlockT<Hash = H256> + Send + Sync + 'static,
+	C: Send + Sync + 'static,
+	P: TransactionPool<Block = B> + Send + Sync + 'static,
+	A: ChainApi<Block = B> + 'static,
+	CT: ConvertTransaction<<B as BlockT>::Extrinsic> + Send + Sync + 'static,
 {
 	pub fn task(
 		client: Arc<C>,
@@ -129,6 +146,7 @@ where
 
 							for block in &blocks {
 								if !cached_blocks.contains_key(&block) {
+									todo!("Fetch eth block data for this height");
 									todo!("Call Runtime API");
 								}
 
@@ -183,6 +201,11 @@ where
 			//        of the block. When woken up, check only this block expiration time.
 			//        Will create a future for each request, but is more reactive to cleanup.
 			//        Which is better ?
+
+			// How to get Ethereum block hash and transactions :
+			// EthApi::block_by_number -> Rich<Block>
+			// Block.transactions (Full).hash
+			// Debug RPC impl shows how to get the substrate equivalents for mapping.
 		};
 
 		(fut, tx)

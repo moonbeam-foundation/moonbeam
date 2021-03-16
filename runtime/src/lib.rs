@@ -709,21 +709,23 @@ impl_runtime_apis! {
 							_ => return Err(sp_runtime::DispatchError::Other("Runtime API error")),
 						};
 
-						let tx_traces: Vec<_> = tx_traces.into_iter().map(|t|
-							match t.inner {
-								single::CallInner::Call {input, to, ..} => block::TransactionTrace {
+						let tx_traces: Vec<_> = tx_traces.into_iter().map(|trace|
+							match trace.inner {
+								single::CallInner::Call {input, to, res, ..} => block::TransactionTrace {
 									action: block::TransactionTraceAction::Call {
 										from,
-										gas: t.gas,
+										gas: trace.gas,
 										input,
 										to,
-										value: t.value,
+										value: trace.value,
 									},
 									block_hash: H256::default(), // block hash will be inserted by RPC api
 									block_number: 0, // same
 									result: todo!(),
-									subtraces: todo!(),
-									trace_address: todo!(),
+									// TODO : we need to compute this value by counting its children.
+									// Is this the expected behavior for Blockscout too ?!
+									subtraces: 0,
+									trace_address: trace.trace_address,
 									transaction_hash: todo!(),
 									transaction_position: todo!(),
 									type_: todo!(),

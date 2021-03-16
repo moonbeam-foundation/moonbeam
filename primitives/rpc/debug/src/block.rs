@@ -67,6 +67,6 @@ pub enum TransactionTraceAction {
 #[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 pub struct TransactionTraceResult {
 	pub gas_used: U256,
-	#[cfg_attr(feature = "std", serde(serialize_with = "bytes_0x_serialize"))]
-	pub output: Vec<u8>,
+	#[cfg_attr(feature = "std", serde(flatten))]
+	res: crate::CallResult,
 }
