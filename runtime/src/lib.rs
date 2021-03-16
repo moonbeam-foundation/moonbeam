@@ -29,20 +29,6 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use fp_rpc::TransactionStatus;
-use parity_scale_codec::{Decode, Encode};
-use sp_api::impl_runtime_apis;
-use sp_core::{OpaqueMetadata, H160, H256, U256};
-use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify},
-	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult,
-};
-use sp_std::{convert::TryFrom, prelude::*};
-#[cfg(feature = "std")]
-use sp_version::NativeVersion;
-use sp_version::RuntimeVersion;
-
 pub use frame_support::{
 	construct_runtime,
 	pallet_prelude::PhantomData,
@@ -58,6 +44,20 @@ use pallet_evm::{
 	IdentityAddressMapping, Runner,
 };
 use pallet_transaction_payment::CurrencyAdapter;
+pub use parachain_staking::{InflationInfo, Range};
+use parity_scale_codec::{Decode, Encode};
+use sp_api::impl_runtime_apis;
+use sp_core::{OpaqueMetadata, H160, H256, U256};
+use sp_runtime::{
+	create_runtime_str, generic, impl_opaque_keys,
+	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify},
+	transaction_validity::{TransactionSource, TransactionValidity},
+	ApplyExtrinsicResult,
+};
+use sp_std::{convert::TryFrom, prelude::*};
+#[cfg(feature = "std")]
+use sp_version::NativeVersion;
+use sp_version::RuntimeVersion;
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
@@ -112,7 +112,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 24,
+	spec_version: 25,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -387,38 +387,36 @@ parameter_types! {
 	/// Reward payments and validator exit requests are delayed by 2 hours (2 * 600 * block_time)
 	pub const BondDuration: u32 = 2;
 	/// Maximum 8 valid block authors at any given time
-	pub const MaxValidators: u32 = 8;
+	pub const TotalSelectedCandidates: u32 = 8;
 	/// Maximum 10 nominators per validator
-	pub const MaxNominatorsPerValidator: u32 = 10;
-	/// Maximum 8 validators per nominator (same as MaxValidators)
-	pub const MaxValidatorsPerNominator: u32 = 8;
+	pub const MaxNominatorsPerCollator: u32 = 10;
 	/// The maximum percent a validator can take off the top of its rewards is 50%
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
 	/// Minimum stake required to be reserved to be a validator is 1_000
-	pub const MinValidatorStk: u128 = 1_000 * GLMR;
+	pub const MinCollatorStk: u128 = 1_000 * GLMR;
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5 * GLMR;
 }
-impl stake::Config for Runtime {
+impl parachain_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
-	type SetMonetaryPolicyOrigin = frame_system::EnsureRoot<AccountId>;
 	type BlocksPerRound = BlocksPerRound;
 	type BondDuration = BondDuration;
-	type MaxValidators = MaxValidators;
-	type MaxNominatorsPerValidator = MaxNominatorsPerValidator;
-	type MaxValidatorsPerNominator = MaxValidatorsPerNominator;
+	type TotalSelectedCandidates = TotalSelectedCandidates;
+	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
+	type MaxCollatorsPerNominator = TotalSelectedCandidates;
 	type MaxFee = MaxFee;
-	type MinValidatorStk = MinValidatorStk;
+	type MinCollatorStk = MinCollatorStk;
+	type MinCollatorCandidateStk = MinCollatorStk;
 	type MinNomination = MinNominatorStk;
 	type MinNominatorStk = MinNominatorStk;
 }
 impl author_inherent::Config for Runtime {
-	type EventHandler = Stake;
+	type EventHandler = ParachainStaking;
 	// We cannot run the full filtered author checking logic in the preliminary check because it
 	// depends on entropy from the relay chain. Instead we just make sure that the author is staked
 	// in the preliminary check. The final check including the filtering happens during execution.
-	type PreliminaryCanAuthor = Stake;
+	type PreliminaryCanAuthor = ParachainStaking;
 	type FinalCanAuthor = AuthorFilter;
 }
 
@@ -445,7 +443,7 @@ construct_runtime! {
 		EthereumChainId: pallet_ethereum_chain_id::{Module, Storage, Config},
 		EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
 		Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
-		Stake: stake::{Module, Call, Storage, Event<T>, Config<T>},
+		ParachainStaking: parachain_staking::{Module, Call, Storage, Event<T>, Config<T>},
 		Scheduler: pallet_scheduler::{Module, Storage, Config, Event<T>, Call},
 		Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
 		// The order matters here. Inherents will be included in the order specified here.

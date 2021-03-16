@@ -4076,7 +4076,6 @@ dependencies = [
  "sp-timestamp",
  "sp-transaction-pool",
  "sp-trie",
- "stake",
  "structopt",
  "substrate-build-script-utils",
  "substrate-frame-rpc-system",
@@ -4164,6 +4163,7 @@ dependencies = [
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-utility",
  "parachain-info",
+ "parachain-staking",
  "parity-scale-codec",
  "precompiles",
  "serde",
@@ -4178,7 +4178,6 @@ dependencies = [
  "sp-std",
  "sp-transaction-pool",
  "sp-version",
- "stake",
  "substrate-wasm-builder 3.0.0 (git+https://github.com/paritytech/substrate)",
 ]
 
@@ -4552,10 +4551,10 @@ dependencies = [
  "cumulus-parachain-system",
  "frame-support",
  "frame-system",
+ "parachain-staking",
  "parity-scale-codec",
  "sp-core",
  "sp-runtime",
- "stake",
 ]
 
 [[package]]
@@ -5180,6 +5179,22 @@ dependencies = [
  "frame-system",
  "parity-scale-codec",
  "serde",
+]
+
+[[package]]
+name = "parachain-staking"
+version = "1.0.0"
+dependencies = [
+ "author-inherent",
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
+ "parity-scale-codec",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -9507,22 +9522,6 @@ name = "stable_deref_trait"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
-
-[[package]]
-name = "stake"
-version = "0.1.2"
-dependencies = [
- "author-inherent",
- "frame-support",
- "frame-system",
- "pallet-balances",
- "parity-scale-codec",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
 
 [[package]]
 name = "static_assertions"
