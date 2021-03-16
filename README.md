@@ -55,7 +55,7 @@ cargo test
 
 ```bash
 # Installation to  dependencies for integration tests
-co moonbeam-types-bundle
+cd moonbeam-types-bundle
 npm i
 
 cd ../tests
