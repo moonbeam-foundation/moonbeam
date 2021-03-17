@@ -15,8 +15,12 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Unit testing
-use crate::mock::*;
-use crate::*;
+use crate::mock::{
+	events, five_collators_five_nominators, five_collators_no_nominators, last_event,
+	one_collator_two_nominators, roll_to, set_author, two_collators_four_nominators, Balances,
+	MetaEvent, Origin, Stake, Sys, Test,
+};
+use crate::{CollatorStatus, Error, Event};
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, Perbill};
 
@@ -899,5 +903,41 @@ fn payouts_follow_nomination_changes() {
 		];
 		expected.append(&mut new7);
 		assert_eq!(events(), expected);
+	});
+}
+
+#[test]
+fn round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round() {
+	one_collator_two_nominators().execute_with(|| {
+		// Default round every 5 blocks, but MinBlocksPerRound is 3 and we set it to min 3 blocks
+		roll_to(8);
+		// chooses top TotalSelectedCandidates (5), in order
+		let init = vec![
+			Event::CollatorChosen(2, 1, 40),
+			Event::NewRound(5, 2, 1, 40),
+		];
+		assert_eq!(events(), init);
+		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
+		assert_eq!(
+			last_event(),
+			MetaEvent::stake(Event::SetBlocksPerRound(2, 5, 5, 3))
+		);
+		roll_to(9);
+		assert_eq!(last_event(), MetaEvent::stake(Event::NewRound(8, 3, 1, 40)));
+	});
+	one_collator_two_nominators().execute_with(|| {
+		roll_to(9);
+		let init = vec![
+			Event::CollatorChosen(2, 1, 40),
+			Event::NewRound(5, 2, 1, 40),
+		];
+		assert_eq!(events(), init);
+		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
+		assert_eq!(
+			last_event(),
+			MetaEvent::stake(Event::SetBlocksPerRound(2, 5, 5, 3))
+		);
+		roll_to(10);
+		assert_eq!(last_event(), MetaEvent::stake(Event::NewRound(9, 3, 1, 40)));
 	});
 }
