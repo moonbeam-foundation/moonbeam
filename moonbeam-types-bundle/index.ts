@@ -218,7 +218,7 @@ export const moonbeamDefinitions = {
         EvmCall: {
           _enum: ["Register", "Mint", "Burn", "TotalIssuance", "BalanceOf"],
         },
-        SubstrateAccountId: "[u8; 32]",
+        AccountId32: "[u8; 32]",
         ChainId: {
           _enum: ["RelayChain", { Para: "u32" }],
         },

@@ -175,8 +175,8 @@ pub mod pallet {
 		BadLocation,
 		/// Cannot send message from parachain to self
 		CannotSendToSelf,
-		/// Call to SendXcm to initiate open channel failed
-		FailedToSendChannelOpenRequest,
+		/// Call to SendXcm failed
+		FailedToSendXcm,
 		/// Maximum one channel per relation ~ (sender,receiver) and direction matters
 		MaxOneChannelPerRelation,
 		/// Requires existing open channel with self as sender
@@ -225,7 +225,7 @@ pub mod pallet {
 			};
 			// send message to relay chain
 			<xcm_handler::Module<T>>::send_xcm(MultiLocation::Null, message)
-				.map_err(|_| Error::<T>::FailedToSendChannelOpenRequest)?;
+				.map_err(|_| Error::<T>::FailedToSendXcm)?;
 			// TODO: change s.t. no storage changes until channel is accepted
 			if let Err(loc) = channels.binary_search(&recipient) {
 				channels.insert(loc, recipient);
@@ -258,7 +258,7 @@ pub mod pallet {
 			};
 			// send message to relay chain
 			<xcm_handler::Module<T>>::send_xcm(MultiLocation::Null, message)
-				.map_err(|_| Error::<T>::FailedToSendChannelOpenRequest)?;
+				.map_err(|_| Error::<T>::FailedToSendXcm)?;
 			// ensured by check further above
 			if let Err(loc) = channels.binary_search(&sender) {
 				channels.insert(loc, sender);
@@ -291,7 +291,7 @@ pub mod pallet {
 			};
 			// send message to relay chain
 			<xcm_handler::Module<T>>::send_xcm(MultiLocation::Null, message)
-				.map_err(|_| Error::<T>::FailedToSendChannelOpenRequest)?;
+				.map_err(|_| Error::<T>::FailedToSendXcm)?;
 			// update storage
 			if let Ok(loc) = channels.binary_search(&recipient) {
 				channels.remove(loc);
@@ -322,7 +322,7 @@ pub mod pallet {
 			};
 			// send message to accept the channel request
 			<xcm_handler::Module<T>>::send_xcm(MultiLocation::Null, message)
-				.map_err(|_| Error::<T>::FailedToSendChannelOpenRequest)?;
+				.map_err(|_| Error::<T>::FailedToSendXcm)?;
 			// update storage
 			if let Ok(loc) = channels.binary_search(&sender) {
 				channels.remove(loc);
