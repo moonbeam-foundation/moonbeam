@@ -8,10 +8,8 @@ import {
   STAKING_AMOUNT,
   ETHAN_PRIVKEY,
   ETHAN,
-  GENESIS_ACCOUNT_BALANCE,
   DEFAULT_GENESIS_BALANCE,
   ALITH_PRIVKEY,
-  GLMR,
   MIN_GLMR_NOMINATOR,
   MIN_GLMR_STAKING,
 } from "./test-constants";
@@ -29,7 +27,6 @@ async function wait(duration: number) {
 
 async function test() {
   await start("config_moonbeam_staking.json");
-  console.log("done");
   const WS_PORT = 36946;
   const wsProviderUrl = `ws://localhost:${WS_PORT}`;
 
@@ -68,7 +65,6 @@ async function test() {
 
   // Candidates
   const candidates = await polkadotApi.query.stake.candidatePool();
-  console.log("candidates", candidates.toHuman());
   assert(candidates.toHuman()[0].owner.toLowerCase() === GERALD, "Gerald is not a candidates");
   assert(
     candidates.toHuman()[1].owner.toLowerCase() === FAITH.toLowerCase(),
@@ -98,7 +94,6 @@ async function test() {
     });
   await wait(50000);
   let candidatesAfter = await polkadotApi.query.stake.candidatePool();
-  console.log("candidatesAfter", candidatesAfter.toHuman());
   assert(
     (candidatesAfter.toHuman() as { owner: string; amount: string }[]).length === 3,
     "new candidate should have been added"
@@ -111,9 +106,6 @@ async function test() {
     (candidatesAfter.toHuman() as { owner: string; amount: string }[])[2].amount === "1.0000 kUnit",
     "new candidate ethan should have been added (wrong amount)"
   );
-  const ethanBalance = await polkadotApi.query.system.account(ETHAN);
-  console.log(ethanBalance.data.free.toString());
-  console.log(GENESIS_ACCOUNT_BALANCE.toString());
 
   // Candidate bond more
   const unsub4 = await polkadotApi.tx.stake
@@ -134,7 +126,6 @@ async function test() {
     });
   await wait(50000);
   candidatesAfter = await polkadotApi.query.stake.candidatePool();
-  console.log("candidatesAfter bonding more", candidatesAfter.toHuman());
   assert(
     (candidatesAfter.toHuman() as { owner: string; amount: string }[])[2].amount === "2.0000 kUnit",
     "bond should have increased"
@@ -159,7 +150,6 @@ async function test() {
     });
   await wait(50000);
   candidatesAfter = await polkadotApi.query.stake.candidatePool();
-  console.log("candidatesAfter bonding less", candidatesAfter.toHuman());
   assert(
     (candidatesAfter.toHuman() as { owner: string; amount: string }[])[2].amount === "1.0000 kUnit",
     "bond should have decreased"
@@ -192,7 +182,6 @@ async function test() {
     }).nominations[0].owner.toLowerCase() === GERALD,
     "nomination didnt go through"
   );
-  console.log("nominatorsAfter", nominatorsAfter.toHuman());
 
   // Revoke Nomination
   const unsub3 = await polkadotApi.tx.stake
@@ -213,22 +202,11 @@ async function test() {
     });
   await wait(60000);
   const nominatorsAfterRevocation = await polkadotApi.query.stake.nominators(ALITH);
-  console.log("nominatorsAfterRevocation", nominatorsAfterRevocation.toHuman()); // TODO this should be empty
+  assert(nominatorsAfterRevocation.toHuman() === null, "there should be no nominator");
 
   console.log("SUCCESS");
 }
 test();
 
-// check author for blocks
-// query author-inherent.author in storage in
-// https://polkadot.js.org/docs/api/start/api.query.other at every block
-
-// {candidate/nominator}_bond_more/less for validators/nominators
-// revoke_nomination
-// leave_candidates // todo: implement this AFTER we figure out why ethan doesnt produce blocks
-
-// wait to test adding more than one nomination for a nominator
-
-// what is min amount? 100k is not enough, unlike amount specified in https://meta5.world/stake-docs/runtime.html
-// TODO: ethan (added candidate) doesnt produce blocks
-// TODO: nominator revokation doesnt work
+// TODO: leave_candidates
+// TODO: ethan (added candidate) doesnt produce blocks => need to move blockPerRound to storage
