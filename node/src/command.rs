@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! This module constructs and executes the appropriate service components for the given subcommand
+
 use crate::{
 	chain_spec,
 	cli::{Cli, RelayChainCli, Subcommand},

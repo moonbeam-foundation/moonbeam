@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! This module assembles the Moonbeam service components, executes them, and manages communication
+//! between them. This is the backbone of the client-side node implementation.
+//!
+//! This module can assemble:
+//! PartialComponents: For maintence tasks without a complete node (eg import/export blocks, purge)
+//! Full Service: A complete parachain node including the pool, rpc, network, embedded relay chain
+//! Dev Service: A leaner service without the relay chain backing.
+
 use crate::{cli::Sealing, inherents::build_inherent_data_providers};
 use async_io::Timer;
 use cumulus_network::build_block_announce_validator;

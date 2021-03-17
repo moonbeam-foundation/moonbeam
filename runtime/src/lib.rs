@@ -29,13 +29,12 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use fp_rpc::TransactionStatus;
-pub use frame_support::{
+use frame_support::{
 	construct_runtime,
 	pallet_prelude::PhantomData,
 	parameter_types,
-	traits::{FindAuthor, Get, Randomness},
+	traits::{Get, Randomness},
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
-	ConsensusEngineId, StorageValue,
 };
 use frame_system::{EnsureNever, EnsureRoot, EnsureSigned};
 use pallet_ethereum::Call::transact;
@@ -52,7 +51,7 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult,
+	ApplyExtrinsicResult, Perbill,
 };
 use sp_std::{convert::TryFrom, prelude::*};
 #[cfg(feature = "std")]
@@ -61,7 +60,6 @@ use sp_version::RuntimeVersion;
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
-pub use sp_runtime::{Perbill, Permill};
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -284,7 +282,7 @@ impl pallet_scheduler::Config for Runtime {
 	type WeightInfo = ();
 }
 
-pub const BLOCKS_PER_DAY: BlockNumber = 24 * 60 * 10;
+const BLOCKS_PER_DAY: BlockNumber = 24 * 60 * 10;
 
 parameter_types! {
 	pub const LaunchPeriod: BlockNumber = BLOCKS_PER_DAY;
@@ -378,7 +376,7 @@ impl cumulus_parachain_system::Config for Runtime {
 
 impl parachain_info::Config for Runtime {}
 
-// 18 decimals
+/// GLMR, the native token, uses 18 decimals of precision.
 pub const GLMR: Balance = 1_000_000_000_000_000_000;
 
 parameter_types! {
