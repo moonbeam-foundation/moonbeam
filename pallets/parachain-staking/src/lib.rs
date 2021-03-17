@@ -422,7 +422,7 @@ pub mod pallet {
 		NominationDNE,
 		Underflow,
 		InvalidSchedule,
-		CannotSetTotalSelectedBelowMin,
+		CannotSetBelowMin,
 	}
 
 	#[pallet::event]
@@ -462,6 +462,8 @@ pub mod pallet {
 		SetStakeExpectations(BalanceOf<T>, BalanceOf<T>, BalanceOf<T>),
 		/// Set total selected candidates to this value [old, new]
 		SetTotalSelected(u32, u32),
+		/// Set blocks per round [current_round, last_first_block, old, new]
+		SetBlocksPerRound(RoundIndex, T::BlockNumber, u32, u32),
 	}
 
 	#[pallet::hooks]
@@ -687,11 +689,28 @@ pub mod pallet {
 			frame_system::ensure_root(origin)?;
 			ensure!(
 				new >= T::MinSelectedCandidates::get(),
-				Error::<T>::CannotSetTotalSelectedBelowMin
+				Error::<T>::CannotSetBelowMin
 			);
 			let old = <TotalSelected<T>>::get();
 			<TotalSelected<T>>::put(new);
 			Self::deposit_event(Event::SetTotalSelected(old, new));
+			Ok(().into())
+		}
+		#[pallet::weight(0)]
+		/// Set blocks per round
+		/// - if called with `new` less than length of current round, will transition immediately
+		/// in the next block
+		pub fn set_blocks_per_round(origin: OriginFor<T>, new: u32) -> DispatchResultWithPostInfo {
+			frame_system::ensure_root(origin)?;
+			ensure!(
+				new >= T::MinBlocksPerRound::get(),
+				Error::<T>::CannotSetBelowMin
+			);
+			let mut round = <Round<T>>::get();
+			let (now, last_first, old) = (round.current, round.last_first, round.length);
+			round.length = new;
+			<Round<T>>::put(round);
+			Self::deposit_event(Event::SetBlocksPerRound(now, last_first, old, new));
 			Ok(().into())
 		}
 		/// Join the set of collator candidates
