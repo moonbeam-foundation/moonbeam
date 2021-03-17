@@ -385,7 +385,7 @@ parameter_types! {
 	/// Reward payments and validator exit requests are delayed by 2 hours (2 * 600 * block_time)
 	pub const BondDuration: u32 = 2;
 	/// Maximum 8 valid block authors at any given time
-	pub const TotalSelectedCandidates: u32 = 8;
+	pub const MinSelectedCandidates: u32 = 8;
 	/// Maximum 10 nominators per validator
 	pub const MaxNominatorsPerCollator: u32 = 10;
 	/// The maximum percent a validator can take off the top of its rewards is 50%
@@ -400,9 +400,9 @@ impl parachain_staking::Config for Runtime {
 	type Currency = Balances;
 	type BlocksPerRound = BlocksPerRound;
 	type BondDuration = BondDuration;
-	type TotalSelectedCandidates = TotalSelectedCandidates;
+	type MinSelectedCandidates = MinSelectedCandidates;
 	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
-	type MaxCollatorsPerNominator = TotalSelectedCandidates;
+	type MaxCollatorsPerNominator = MinSelectedCandidates;
 	type MaxFee = MaxFee;
 	type MinCollatorStk = MinCollatorStk;
 	type MinCollatorCandidateStk = MinCollatorStk;

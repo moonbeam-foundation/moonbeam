@@ -97,7 +97,7 @@ impl pallet_balances::Config for Test {
 parameter_types! {
 	pub const BlocksPerRound: u32 = 5;
 	pub const BondDuration: u32 = 2;
-	pub const TotalSelectedCandidates: u32 = 5;
+	pub const MinSelectedCandidates: u32 = 5;
 	pub const MaxNominatorsPerCollator: u32 = 4;
 	pub const MaxCollatorsPerNominator: u32 = 4;
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
@@ -110,7 +110,7 @@ impl crate::pallet::Config for Test {
 	type Currency = Balances;
 	type BlocksPerRound = BlocksPerRound;
 	type BondDuration = BondDuration;
-	type TotalSelectedCandidates = TotalSelectedCandidates;
+	type MinSelectedCandidates = MinSelectedCandidates;
 	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
 	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
 	type MaxFee = MaxFee;

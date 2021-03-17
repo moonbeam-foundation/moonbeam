@@ -333,8 +333,8 @@ pub mod pallet {
 		type BlocksPerRound: Get<u32>;
 		/// Number of rounds that collators remain bonded before exit request is executed
 		type BondDuration: Get<RoundIndex>;
-		/// Total number of selected candidates every round
-		type TotalSelectedCandidates: Get<u32>;
+		/// Minimum number of selected candidates every round
+		type MinSelectedCandidates: Get<u32>;
 		/// Maximum nominators per collator
 		type MaxNominatorsPerCollator: Get<u32>;
 		/// Maximum collators per nominator
@@ -372,6 +372,7 @@ pub mod pallet {
 		NominationDNE,
 		Underflow,
 		InvalidSchedule,
+		CannotSetTotalSelectedBelowMin,
 	}
 
 	#[pallet::event]
@@ -406,9 +407,11 @@ pub mod pallet {
 		/// Paid the account (nominator or collator) the balance as liquid rewards
 		Rewarded(T::AccountId, BalanceOf<T>),
 		/// Round inflation range set with the provided annual inflation range
-		RoundInflationSet(Perbill, Perbill, Perbill),
+		SetRoundInflation(Perbill, Perbill, Perbill),
 		/// Staking expectations set
-		StakeExpectationsSet(BalanceOf<T>, BalanceOf<T>, BalanceOf<T>),
+		SetStakeExpectations(BalanceOf<T>, BalanceOf<T>, BalanceOf<T>),
+		/// Set total selected candidates to this value [old, new]
+		SetTotalSelected(u32, u32),
 	}
 
 	#[pallet::hooks]
@@ -430,6 +433,11 @@ pub mod pallet {
 			}
 		}
 	}
+
+	#[pallet::storage]
+	#[pallet::getter(fn total_selected)]
+	/// The total candidates selected every round
+	type TotalSelected<T: Config> = StorageValue<_, u32, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn round)]
@@ -560,7 +568,9 @@ pub mod pallet {
 					)
 				};
 			}
-			// Choose top `TotalSelectedCandidates`s from collator candidates
+			// Set total selected candidates to minimum config
+			<TotalSelected<T>>::put(T::MinSelectedCandidates::get());
+			// Choose top TotalSelected collator candidates
 			let (v_count, total_staked) = <Pallet<T>>::select_top_candidates(1u32);
 			// Start Round 1 at Block 0
 			<Round<T>>::put(1u32);
@@ -588,7 +598,7 @@ pub mod pallet {
 			ensure!(expectations.is_valid(), Error::<T>::InvalidSchedule);
 			let mut config = <InflationConfig<T>>::get();
 			config.set_expectations(expectations);
-			Self::deposit_event(Event::StakeExpectationsSet(
+			Self::deposit_event(Event::SetStakeExpectations(
 				config.expect.min,
 				config.expect.ideal,
 				config.expect.max,
@@ -596,6 +606,7 @@ pub mod pallet {
 			<InflationConfig<T>>::put(config);
 			Ok(().into())
 		}
+		/// Set the annual inflation rate to derive per-round inflation
 		#[pallet::weight(0)]
 		pub fn set_inflation(
 			origin: OriginFor<T>,
@@ -605,7 +616,7 @@ pub mod pallet {
 			ensure!(schedule.is_valid(), Error::<T>::InvalidSchedule);
 			let mut config = <InflationConfig<T>>::get();
 			config.set_annual_rate::<T>(schedule);
-			Self::deposit_event(Event::RoundInflationSet(
+			Self::deposit_event(Event::SetRoundInflation(
 				config.round.min,
 				config.round.ideal,
 				config.round.max,
@@ -613,6 +624,20 @@ pub mod pallet {
 			<InflationConfig<T>>::put(config);
 			Ok(().into())
 		}
+		#[pallet::weight(0)]
+		/// Set the total number of collator candidates selected per round
+		pub fn set_total_selected(origin: OriginFor<T>, new: u32) -> DispatchResultWithPostInfo {
+			frame_system::ensure_signed(origin)?;
+			ensure!(
+				new >= T::MinSelectedCandidates::get(),
+				Error::<T>::CannotSetTotalSelectedBelowMin
+			);
+			let old = <TotalSelected<T>>::get();
+			<TotalSelected<T>>::put(new);
+			Self::deposit_event(Event::SetTotalSelected(old, new));
+			Ok(().into())
+		}
+		/// Join the set of collator candidates
 		#[pallet::weight(0)]
 		pub fn join_candidates(
 			origin: OriginFor<T>,
@@ -1114,8 +1139,8 @@ pub mod pallet {
 			let mut candidates = <CandidatePool<T>>::get().0;
 			// order candidates by stake (least to greatest so requires `rev()`)
 			candidates.sort_unstable_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
-			let top_n = T::TotalSelectedCandidates::get() as usize;
-			// choose the top TotalSelectedCandidates qualified candidates, ordered by stake
+			let top_n = <TotalSelected<T>>::get() as usize;
+			// choose the top TotalSelected qualified candidates, ordered by stake
 			let mut collators = candidates
 				.into_iter()
 				.rev()
