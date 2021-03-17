@@ -196,7 +196,7 @@ async function test() {
 
   // Revoke Nomination
   const unsub3 = await polkadotApi.tx.stake
-    .revokeNomination(GERALD)
+    .leaveNominators()
     .signAndSend(alith, ({ events = [], status }) => {
       console.log(`Current status is ${status.type}`);
 
