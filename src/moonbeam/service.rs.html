@@ -595,6 +595,14 @@
 <span id="592">592</span>
 <span id="593">593</span>
 <span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -611,6 +619,14 @@
 
 <span class="comment">// You should have received a copy of the GNU General Public License</span>
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="doccomment">//! This module assembles the Moonbeam service components, executes them, and manages communication</span>
+<span class="doccomment">//! between them. This is the backbone of the client-side node implementation.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! This module can assemble:</span>
+<span class="doccomment">//! PartialComponents: For maintence tasks without a complete node (eg import/export blocks, purge)</span>
+<span class="doccomment">//! Full Service: A complete parachain node including the pool, rpc, network, embedded relay chain</span>
+<span class="doccomment">//! Dev Service: A leaner service without the relay chain backing.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">cli</span>::<span class="ident">Sealing</span>, <span class="ident">inherents</span>::<span class="ident">build_inherent_data_providers</span>};
 <span class="kw">use</span> <span class="ident">async_io</span>::<span class="ident">Timer</span>;
