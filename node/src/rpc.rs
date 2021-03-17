@@ -17,10 +17,13 @@
 //! A collection of node-specific RPC methods.
 
 use std::sync::Arc;
+use std::collections::BTreeMap;
 
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use jsonrpc_pubsub::manager::SubscriptionManager;
 use moonbeam_runtime::{opaque::Block, AccountId, Balance, Hash, Index};
+use ethereum::EthereumStorageSchema;
+use fc_rpc::{StorageOverride, SchemaV1Override};
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
 	client::BlockchainEvents,
@@ -114,6 +117,12 @@ where
 	// TODO: are we supporting signing?
 	let signers = Vec::new();
 
+	let mut overrides = BTreeMap::new();
+	overrides.insert(
+		EthereumStorageSchema::V1,
+		Box::new(SchemaV1Override::new(client.clone())) as Box<dyn StorageOverride<_> + Send + Sync>
+	);
+
 	io.extend_with(EthApiServer::to_delegate(EthApi::new(
 		client.clone(),
 		pool.clone(),
@@ -122,6 +131,7 @@ where
 		network.clone(),
 		pending_transactions,
 		signers,
+		overrides,
 		frontier_backend,
 		is_authority,
 	)));
