@@ -20,7 +20,9 @@ use cumulus_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
 use fc_consensus::FrontierBlockImport;
+use fc_rpc::EthApi;
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
+use moonbeam_rpc_trace::TraceFilterCache;
 use moonbeam_runtime::{opaque::Block, RuntimeApi};
 use polkadot_primitives::v0::CollatorPair;
 use sc_client_api::BlockchainEvents;
@@ -176,6 +178,27 @@ where
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 
+	let (trace_filter_task, trace_filter_requester) = if ethapi_cmd.contains(&EthApiCmd::Debug) {
+		// WARNING : We create a second one in "rpc.rs" for the Trace RPC Api.
+		// Is this okay to have it 2 times ? What happens if they have different parameters (signers ?) ?
+		let eth_api = EthApi::new(
+			client.clone(),
+			transaction_pool.clone(),
+			transaction_pool.pool().clone(),
+			moonbeam_runtime::TransactionConverter,
+			network.clone(),
+			pending_transactions.clone(),
+			vec![],
+			is_authority,
+		);
+
+		let (trace_filter_task, trace_filter_requester) =
+			TraceFilterCache::task(Arc::clone(&client), Arc::clone(&backend), eth_api);
+		(Some(trace_filter_task), Some(trace_filter_requester))
+	} else {
+		(None, None)
+	};
+
 	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
@@ -197,6 +220,7 @@ where
 				filter_pool: filter_pool.clone(),
 				ethapi_cmd: ethapi_cmd.clone(),
 				command_sink: None,
+				trace_filter_requester: trace_filter_requester.clone(),
 			};
 
 			crate::rpc::create_full(deps, subscription_task_executor.clone())
@@ -217,6 +241,13 @@ where
 		network_status_sinks,
 		system_rpc_tx,
 	})?;
+
+	// Spawn trace_filter cache task if enabled.
+	if let Some(trace_filter_task) = trace_filter_task {
+		task_manager
+			.spawn_essential_handle()
+			.spawn("trace-filter-cache", trace_filter_task);
+	}
 
 	// Spawn Frontier EthFilterApi maintenance task.
 	if filter_pool.is_some() {

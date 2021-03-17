@@ -33,3 +33,4 @@ futures = { version = "0.3", features = ["compat"] }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug" }
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "tgm-v0.6-moonbeam" }
 fp-rpc = { git = "https://github.com/purestake/frontier", branch = "tgm-v0.6-moonbeam" }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "tgm-v0.6-moonbeam" }

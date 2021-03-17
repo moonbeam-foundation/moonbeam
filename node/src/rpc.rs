@@ -21,6 +21,7 @@ use std::{fmt, sync::Arc};
 use crate::cli::EthApi as EthApiCmd;
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use jsonrpc_pubsub::manager::SubscriptionManager;
+use moonbeam_rpc_trace::TraceFilterCacheRequester;
 use moonbeam_runtime::{opaque::Block, AccountId, Balance, Hash, Index};
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
@@ -63,6 +64,8 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub ethapi_cmd: Vec<EthApiCmd>,
 	/// Manual seal command sink
 	pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
+	/// Trace filter cache server requester.
+	pub trace_filter_requester: Option<TraceFilterCacheRequester>,
 }
 
 /// Instantiate all Full RPC extensions.
@@ -110,6 +113,7 @@ where
 		filter_pool,
 		ethapi_cmd,
 		command_sink,
+		trace_filter_requester,
 	} = deps;
 
 	io.extend_with(SystemApi::to_delegate(FullSystem::new(
@@ -124,6 +128,8 @@ where
 	// TODO: are we supporting signing?
 	let signers = Vec::new();
 
+	// WARNING : We create a second one in "service.rs" for the Trace RPC Api.
+	// Is this okay to have it 2 times ? What happens if they have different parameters (signers ?) ?
 	io.extend_with(EthApiServer::to_delegate(EthApi::new(
 		client.clone(),
 		pool.clone(),

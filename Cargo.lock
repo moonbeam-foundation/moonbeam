@@ -4189,6 +4189,7 @@ dependencies = [
  "ethereum",
  "ethereum-types",
  "fc-consensus",
+ "fc-rpc-core",
  "fp-rpc",
  "frame-system",
  "futures 0.3.12",

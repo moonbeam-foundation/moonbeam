@@ -232,6 +232,7 @@ pub fn new_full(
 				filter_pool: filter_pool.clone(),
 				ethapi_cmd: ethapi_cmd.clone(),
 				command_sink: command_sink.clone(),
+				trace_filter_requester: todo!(),
 			};
 			crate::rpc::create_full(deps, subscription_task_executor.clone())
 		})

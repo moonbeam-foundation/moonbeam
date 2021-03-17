@@ -47,6 +47,7 @@ use sp_transaction_pool::{InPoolTransaction, TransactionPool};
 use sp_utils::mpsc::TracingUnboundedSender;
 
 use ethereum_types::{H128, H256};
+use fc_rpc_core::{types::BlockNumber, EthApi};
 use fp_rpc::{ConvertTransaction, EthereumRuntimeRPCApi};
 
 use moonbeam_rpc_core_trace::{FilterRequest, Trace as TraceT, TransactionTrace};
@@ -98,9 +99,9 @@ pub type TraceFilterCacheRequester = TracingUnboundedSender<(
 	oneshot::Sender<Result<Vec<TransactionTrace>>>,
 )>;
 
-pub struct TraceFilterCache<B, C, P, CT, BE, H, A>(PhantomData<(B, C, P, CT, BE, H, A)>);
+pub struct TraceFilterCache<B, C, BE, A>(PhantomData<(B, C, BE, A)>);
 
-impl<B, C, P, CT, BE, H: ExHashT, A> TraceFilterCache<B, C, P, CT, BE, H, A>
+impl<B, C, BE, A> TraceFilterCache<B, C, BE, A>
 where
 	BE: Backend<B> + 'static,
 	BE::State: StateBackend<BlakeTwo256>,
@@ -108,25 +109,18 @@ where
 	C: ProvideRuntimeApi<B> + AuxStore,
 	C: HeaderMetadata<B, Error = BlockChainError> + HeaderBackend<B>,
 	C: Send + Sync + 'static,
+	C: StorageProvider<B, BE>,
+	C: HeaderMetadata<B, Error = BlockChainError> + 'static,
 	B: BlockT<Hash = H256> + Send + Sync + 'static,
 	C::Api: BlockBuilder<B, Error = BlockChainError>,
 	C::Api: DebugRuntimeApi<B>,
 	C::Api: EthereumRuntimeRPCApi<B>,
-
-	C: ProvideRuntimeApi<B> + StorageProvider<B, BE> + AuxStore,
-	C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError> + 'static,
-	C::Api: EthereumRuntimeRPCApi<B>,
-	BE: Backend<B> + 'static,
-	BE::State: StateBackend<BlakeTwo256>,
-	B: BlockT<Hash = H256> + Send + Sync + 'static,
-	C: Send + Sync + 'static,
-	P: TransactionPool<Block = B> + Send + Sync + 'static,
-	A: ChainApi<Block = B> + 'static,
-	CT: ConvertTransaction<<B as BlockT>::Extrinsic> + Send + Sync + 'static,
+	A: EthApi,
 {
 	pub fn task(
 		client: Arc<C>,
 		backend: Arc<BE>,
+		eth_api: A,
 	) -> (impl Future<Output = ()>, TraceFilterCacheRequester) {
 		let (tx, mut rx): (TraceFilterCacheRequester, _) =
 			sp_utils::mpsc::tracing_unbounded("trace-filter-cache-requester");
@@ -144,8 +138,12 @@ where
 								..= req.to_block.expect("end block range")
 							).collect();
 
-							for block in &blocks {
+							for block in blocks.iter() {
 								if !cached_blocks.contains_key(&block) {
+									// Tmp compile check : we're able to call EthApi RPC function.
+									let block_info = eth_api.block_by_number(BlockNumber::Num((*block).into()), true);
+
+
 									todo!("Fetch eth block data for this height");
 									todo!("Call Runtime API");
 								}
