@@ -34,8 +34,9 @@ use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
 use sc_service::{
 	error::Error as ServiceError, Configuration, PartialComponents, Role, TFullBackend,
-	TFullClient, TaskManager,
+	TFullClient, TaskManager, BasePath,
 };
+use sc_cli::SubstrateCli;
 use sp_core::{Pair, H160, H256};
 use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
@@ -55,6 +56,23 @@ use sc_telemetry::{Telemetry, TelemetryWorker, TelemetryWorkerHandle};
 
 type FullClient = TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = TFullBackend<Block>;
+
+pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backend<Block>>, String> {
+	let config_dir = config.base_path.as_ref()
+		.map(|base_path| base_path.config_dir(config.chain_spec.id()))
+		.unwrap_or_else(|| {
+			BasePath::from_project("", "", &crate::cli::Cli::executable_name())
+				.config_dir(config.chain_spec.id())
+		});
+	let database_dir = config_dir.join("frontier").join("db");
+
+	Ok(Arc::new(fc_db::Backend::<Block>::new(&fc_db::DatabaseSettings {
+		source: fc_db::DatabaseSettingsSrc::RocksDb {
+			path: database_dir,
+			cache_size: 0,
+		}
+	})?))
+}
 
 /// Starts a `ServiceBuilder` for a full service.
 ///
@@ -78,6 +96,7 @@ pub fn new_partial(
 			Option<FilterPool>,
 			Option<Telemetry>,
 			Option<TelemetryWorkerHandle>,
+			Arc<fc_db::Backend<Block>>,
 		),
 	>,
 	ServiceError,
@@ -125,10 +144,12 @@ pub fn new_partial(
 
 	let filter_pool: Option<FilterPool> = Some(Arc::new(Mutex::new(BTreeMap::new())));
 
+	let frontier_backend = open_frontier_backend(config)?;
+
 	let frontier_block_import = FrontierBlockImport::new(
 		client.clone(),
 		client.clone(),
-		// TODO: need frontier_back_end (see frontier 918c11baae2daeba218b2e8e8d35a2236407cb3e)
+		frontier_backend.clone(),
 	);
 
 	// We use the cumulus import queue here regardless of whether we're running a real parachain or
@@ -157,7 +178,8 @@ pub fn new_partial(
 			pending_transactions,
 			filter_pool,
 			telemetry,
-			telemetry_worker_handle
+			telemetry_worker_handle,
+			frontier_backend,
 		),
 	})
 }
@@ -203,7 +225,9 @@ where
 		pending_transactions,
 		filter_pool,
 		mut telemetry,
-		telemetry_worker_handle) = params.other;
+		telemetry_worker_handle,
+		frontier_backend,
+	) = params.other;
 
 	let polkadot_full_node =
 		cumulus_client_service::build_polkadot_full_node(
@@ -260,6 +284,7 @@ where
 				pending_transactions: pending.clone(),
 				filter_pool: filter_pool.clone(),
 				command_sink: None,
+				backend: frontier_backend.clone(),
 			};
 
 			crate::rpc::create_full(deps, subscription_task_executor.clone())
@@ -402,7 +427,14 @@ pub fn new_dev(
 		select_chain: _,
 		transaction_pool,
 		inherent_data_providers,
-		other: (block_import, pending_transactions, filter_pool, telemetry, telemetry_worker_handle),
+		other: (
+			block_import,
+			pending_transactions,
+			filter_pool,
+			telemetry,
+			telemetry_worker_handle,
+			frontier_backend,
+		),
 	} = new_partial(&config, author_id, true)?;
 
 	let (network, network_status_sinks, system_rpc_tx, network_starter) =
@@ -509,6 +541,7 @@ pub fn new_dev(
 				pending_transactions: pending.clone(),
 				filter_pool: filter_pool.clone(),
 				command_sink: command_sink.clone(),
+				backend: frontier_backend.clone(),
 			};
 			crate::rpc::create_full(deps, subscription_task_executor.clone())
 		})

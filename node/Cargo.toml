@@ -76,6 +76,7 @@ fp-consensus = { git = "https://github.com/purestake/frontier", branch = "notles
 fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "notlesh-substrate-8b3e5bc" }
 fc-rpc = { git = "https://github.com/purestake/frontier", branch = "notlesh-substrate-8b3e5bc" }
 fp-rpc = { git = "https://github.com/purestake/frontier", branch = "notlesh-substrate-8b3e5bc" }
+fc-db = { git = "https://github.com/purestake/frontier", branch = "notlesh-substrate-8b3e5bc" }
 
 # Cumulus dependencies
 cumulus-client-consensus-common = { git = "https://github.com/paritytech/cumulus", branch = "master" }

@@ -54,6 +54,8 @@ pub struct FullDeps<C, P, A: ChainApi> {
 	pub pending_transactions: PendingTransactions,
 	/// EthFilterApi pool.
 	pub filter_pool: Option<FilterPool>,
+	/// Backend.
+	pub backend: Arc<fc_db::Backend<Block>>,
 	/// Manual seal command sink
 	pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
 }
@@ -97,6 +99,7 @@ where
 		pending_transactions,
 		filter_pool,
 		command_sink,
+		backend: frontier_backend,
 	} = deps;
 
 	io.extend_with(SystemApi::to_delegate(FullSystem::new(
@@ -119,6 +122,7 @@ where
 		network.clone(),
 		pending_transactions,
 		signers,
+		frontier_backend,
 		is_authority,
 	)));
 
