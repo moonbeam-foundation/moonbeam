@@ -51,7 +51,7 @@ native_executor_instance!(
 	moonbeam_runtime::api::dispatch,
 	moonbeam_runtime::native_version,
 );
-use sc_telemetry::{Telemetry, TelemetryWorker};
+use sc_telemetry::{Telemetry, TelemetryWorker, TelemetryWorkerHandle};
 
 type FullClient = TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = TFullBackend<Block>;
@@ -77,6 +77,7 @@ pub fn new_partial(
 			PendingTransactions,
 			Option<FilterPool>,
 			Option<Telemetry>,
+			Option<TelemetryWorkerHandle>,
 		),
 	>,
 	ServiceError,
@@ -100,6 +101,10 @@ pub fn new_partial(
 
 	let client = Arc::new(client);
 
+	let telemetry_worker_handle = telemetry
+		.as_ref()
+		.map(|(worker, _)| worker.handle());
+
 	let telemetry = telemetry
 		.map(|(worker, telemetry)| {
 			task_manager.spawn_handle().spawn("telemetry", worker.run());
@@ -120,7 +125,11 @@ pub fn new_partial(
 
 	let filter_pool: Option<FilterPool> = Some(Arc::new(Mutex::new(BTreeMap::new())));
 
-	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone(), true);
+	let frontier_block_import = FrontierBlockImport::new(
+		client.clone(),
+		client.clone(),
+		// TODO: need frontier_back_end (see frontier 918c11baae2daeba218b2e8e8d35a2236407cb3e)
+	);
 
 	// We use the cumulus import queue here regardless of whether we're running a real parachain or
 	// the dev service. Typically manual seal would use the manual seal import queue. In reality,
@@ -143,7 +152,13 @@ pub fn new_partial(
 		transaction_pool,
 		inherent_data_providers,
 		select_chain: (),
-		other: (frontier_block_import, pending_transactions, filter_pool, telemetry,),
+		other: (
+			frontier_block_import,
+			pending_transactions,
+			filter_pool,
+			telemetry,
+			telemetry_worker_handle
+		),
 	})
 }
 
@@ -170,7 +185,8 @@ where
 		return Err("Light client not supported!".into());
 	}
 
-	let telemetry = config.telemetry_endpoints.clone()
+	// TODO: do we also need telemetry block for polkadot_config?
+	let telemetry = parachain_config.telemetry_endpoints.clone()
 		.filter(|x| !x.is_empty())
 		.map(|endpoints| -> Result<_, sc_telemetry::Error> {
 			let worker = TelemetryWorker::new(16)?;
@@ -181,17 +197,24 @@ where
 
 	let parachain_config = prepare_node_config(parachain_config);
 
+	let params = new_partial(&parachain_config, author_id, false)?;
+	let (
+		block_import,
+		pending_transactions,
+		filter_pool,
+		mut telemetry,
+		telemetry_worker_handle) = params.other;
+
 	let polkadot_full_node =
 		cumulus_client_service::build_polkadot_full_node(
 			polkadot_config,
 			collator_key.public(),
-			telemetry.worker)
-			.map_err(|e| match e {
-				polkadot_service::Error::Sub(x) => x,
-				s => format!("{}", s).into(),
-			})?;
-
-	let params = new_partial(&parachain_config, author_id, false)?;
+			telemetry_worker_handle,
+		)
+		.map_err(|e| match e {
+			polkadot_service::Error::Sub(x) => x,
+			s => format!("{}", s).into(),
+		})?;
 
 	let client = params.client.clone();
 	let backend = params.backend.clone();
@@ -206,7 +229,6 @@ where
 	let transaction_pool = params.transaction_pool.clone();
 	let mut task_manager = params.task_manager;
 	let import_queue = params.import_queue;
-	let (block_import, pending_transactions, filter_pool) = params.other;
 	let (network, network_status_sinks, system_rpc_tx, start_network) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &parachain_config,
@@ -257,7 +279,7 @@ where
 		network: network.clone(),
 		network_status_sinks,
 		system_rpc_tx,
-		telemetry: params.other.telemetry.as_mut(),
+		telemetry: telemetry.as_mut(),
 	})?;
 
 	// Spawn Frontier EthFilterApi maintenance task.
@@ -289,15 +311,16 @@ where
 
 	let announce_block = {
 		let network = network.clone();
-		Arc::new(move |hash, data| network.announce_block(hash, Some(data)))
+		Arc::new(move |hash, data| network.announce_block(hash, data))
 	};
 
 	if collator {
-		let proposer_factory = sc_basic_authorship::ProposerFactory::new(
+		let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
 			task_manager.spawn_handle(),
 			client.clone(),
 			transaction_pool,
 			prometheus_registry.as_ref(),
+			telemetry.as_ref().map(|x| x.handle()),
 		);
 		let spawner = task_manager.spawn_handle();
 
@@ -379,7 +402,7 @@ pub fn new_dev(
 		select_chain: _,
 		transaction_pool,
 		inherent_data_providers,
-		other: (block_import, pending_transactions, filter_pool),
+		other: (block_import, pending_transactions, filter_pool, telemetry, telemetry_worker_handle),
 	} = new_partial(&config, author_id, true)?;
 
 	let (network, network_status_sinks, system_rpc_tx, network_starter) =
@@ -396,7 +419,6 @@ pub fn new_dev(
 	if config.offchain_worker.enabled {
 		sc_service::build_offchain_workers(
 			&config,
-			backend.clone(),
 			task_manager.spawn_handle(),
 			client.clone(),
 			network.clone(),
@@ -414,6 +436,7 @@ pub fn new_dev(
 			client.clone(),
 			transaction_pool.clone(),
 			prometheus_registry.as_ref(),
+			telemetry.as_ref().map(|x| x.handle()),
 		);
 
 		let commands_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> =
