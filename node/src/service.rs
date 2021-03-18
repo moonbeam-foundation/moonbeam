@@ -28,7 +28,6 @@ use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use futures::{Stream, StreamExt};
 use moonbeam_runtime::{opaque::Block, RuntimeApi};
 use polkadot_primitives::v0::CollatorPair;
-use sc_client_api::BlockchainEvents;
 use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
 use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
@@ -206,16 +205,6 @@ where
 	if matches!(parachain_config.role, Role::Light) {
 		return Err("Light client not supported!".into());
 	}
-
-	// TODO: do we also need telemetry block for polkadot_config?
-	let telemetry = parachain_config.telemetry_endpoints.clone()
-		.filter(|x| !x.is_empty())
-		.map(|endpoints| -> Result<_, sc_telemetry::Error> {
-			let worker = TelemetryWorker::new(16)?;
-			let telemetry = worker.handle().new_telemetry(endpoints);
-			Ok((worker, telemetry))
-		})
-		.transpose()?;
 
 	let parachain_config = prepare_node_config(parachain_config);
 
@@ -432,7 +421,7 @@ pub fn new_dev(
 			pending_transactions,
 			filter_pool,
 			telemetry,
-			telemetry_worker_handle,
+			_telemetry_worker_handle,
 			frontier_backend,
 		),
 	} = new_partial(&config, author_id, true)?;
