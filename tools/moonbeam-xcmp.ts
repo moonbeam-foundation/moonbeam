@@ -4,11 +4,8 @@ import { typesBundle } from "../moonbeam-types-bundle";
 
 // constants
 const GERALD = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
-const FAITH = "0xC0F0f4ab324C46e55D02D0033343B4Be8A55532d";
-const ETHAN_PRIVKEY = "0x7dce9bc8babb68fec1409be38c8e1a52650206a7ed90ff956ae8a6d15eeaaef4";
-const ETHAN = "0xFf64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB";
-const ALITH_PRIVKEY = "0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133";
-const ALITH = "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac";
+const GERALD_PRIVKEY = "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
+const ALICE = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY";
 const STAKING_AMOUNT = "1.0000 kUnit";
 const GLMR = 1_000_000_000_000_000_000n;
 const MIN_GLMR_STAKING = 1000n * GLMR;
@@ -56,13 +53,37 @@ async function test() {
     "wrong balance for Gerald, dif: " +
       (Number(GENESIS_ACCOUNT_BALANCE) - Number(gerald201.data.free))
   );
-  const ALICE = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY";
   const relayAlice = await relayApi.query.system.account(ALICE);
   assert(
     "1000000000000000000" === relayAlice.data.free.toString(),
     "wrong balance for relayAlice, expected: 1000000000000000000, returned: " +
       Number(relayAlice.data.free)
   );
+  // construct Transact code to request open channel from 200 -> 201
+  const rawOpenCode = relayApi.tx.hrmp.hrmpInitOpenChannel(201, 8, 1024);
+  console.log(rawOpenCode.toHex());
+  const openCode = "0x1600c90000000800000000040000";
+  // Send message from 200 to relay to request open channel from 200 -> 201
+  const keyring = new Keyring({ type: "ethereum" });
+  const gerald = await keyring.addFromUri(GERALD_PRIVKEY, null, "ethereum");
+  const unsub = await moonbeam200.tx.xtransfer
+    .openChannel(201, rawOpenCode.toHex())
+    .signAndSend(gerald, ({ events = [], status }) => {
+      console.log(`Current status is ${status.type}`);
+
+      if (status.isFinalized) {
+        console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
+
+        // Loopcod through Vec<EventRecord> to display all events
+        events.forEach(({ phase, event: { data, method, section } }) => {
+          console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
+        });
+
+        unsub();
+      }
+    });
+  // Send message from 201 to relay to accept channel request from 200 -> 201
+  // Transfer Moonbeam from 200 to 201
   console.log("all tests passed");
 }
 test();

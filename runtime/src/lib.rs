@@ -460,7 +460,8 @@ impl xtransfer::Config for Runtime {
 	type ToMultiLocation = AccountId20Aliases<MoonbeamNetwork, AccountId>;
 	type RelayChainNetworkId = PolkadotNetworkId;
 	type ParaId = ParachainInfo;
-	type Executor = XcmExecutor<XcmConfig>;
+	type XcmExecutor = XcmExecutor<XcmConfig>;
+	type XcmSender = XcmHandler;
 }
 
 parameter_types! {
@@ -581,7 +582,7 @@ impl cumulus_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
 	type SelfParaId = ParachainInfo;
-	type DownwardMessageHandlers = XcmHandler;
+	type DownwardMessageHandlers = (Xtransfer, XcmHandler);
 	type HrmpMessageHandlers = XcmHandler;
 }
 

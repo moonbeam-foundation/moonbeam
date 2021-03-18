@@ -14,14 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! This pallet exposes an interface for cross-chain token transfers from our parachain to
-//! destination chains with 32 byte account IDs.
-//! There are two dispatchables:
+//! Xtransfer handles cross-chain transfers.
+//!
+//! ## Dispatchables
 //! 1. `transfer_to_relay_chain` transfers relay chain tokens to an account on the relay chain
 //! from our parachain
 //! 2. `transfer_to_parachain` transfers tokens to an account on a parachain
 //! Both transfers are sent from accounts on our chain (H160 account id).
 //!
+//! ## Transfers From Other Chains to Self
 //! For transfers from other chains to our chain, their runtime must send us cross chain messages.
 //! 1. For transfers from the relay chain, they queue DownwardMessages. These are processed by the
 //! `DownwardMessageHandlers` associated type for our `cumulus_parachain_system` runtime impl.
@@ -42,7 +43,10 @@ pub use pallet::*;
 
 #[pallet]
 pub mod pallet {
-	use cumulus_primitives::{relay_chain::Balance as RelayChainBalance, ParaId};
+	use cumulus_primitives::{
+		relay_chain::Balance as RelayChainBalance, DownwardMessageHandler, InboundDownwardMessage,
+		ParaId,
+	};
 	use frame_support::{pallet_prelude::*, traits::Get, transactional};
 	use frame_system::pallet_prelude::*;
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
@@ -87,7 +91,7 @@ pub mod pallet {
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
-	pub trait Config: frame_system::Config + xcm_handler::Config {
+	pub trait Config: frame_system::Config {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// Balances type
@@ -108,8 +112,10 @@ pub mod pallet {
 		type RelayChainNetworkId: Get<NetworkId>;
 		/// Moonbeam parachain identifier
 		type ParaId: Get<ParaId>;
-		/// XCM Executor
-		type Executor: ExecuteXcm;
+		/// XCM Executor for executing XCM effects locally
+		type XcmExecutor: ExecuteXcm;
+		/// XCM Sender for sending outgoing messages
+		type XcmSender: SendXcm;
 	}
 
 	#[pallet::event]
@@ -204,7 +210,7 @@ pub mod pallet {
 		#[pallet::weight(10)]
 		/// Request to open HRMP channel with another parachain
 		/// - default `proposed_max_capacity` is 8 and `proposed_max_message_size` is 1024
-		pub fn open_para_channel(
+		pub fn open_channel(
 			origin: OriginFor<T>,
 			recipient: ParaId,
 			// temporary until proper Xcm message variant is added with handler logic
@@ -213,7 +219,7 @@ pub mod pallet {
 			frame_system::ensure_root(origin)?;
 			let sender = T::ParaId::get();
 			ensure!(sender != recipient, Error::<T>::CannotSendToSelf);
-			let mut channels = <SenderChannels<T>>::get();
+			let channels = <SenderChannels<T>>::get();
 			ensure!(
 				channels.binary_search(&recipient).is_err(),
 				Error::<T>::MaxOneChannelPerRelation
@@ -224,21 +230,15 @@ pub mod pallet {
 				call,
 			};
 			// send message to relay chain
-			<xcm_handler::Module<T>>::send_xcm(MultiLocation::Null, message)
+			T::XcmSender::send_xcm(MultiLocation::Null, message)
 				.map_err(|_| Error::<T>::FailedToSendXcm)?;
-			// TODO: change s.t. no storage changes until channel is accepted
-			if let Err(loc) = channels.binary_search(&recipient) {
-				channels.insert(loc, recipient);
-			}
-			// update sender channels storage item
-			<SenderChannels<T>>::put(channels);
 			// emit event
 			Self::deposit_event(Event::SentChannelRequest(recipient));
 			Ok(().into())
 		}
 		#[pallet::weight(10)]
 		/// Accept a request to open HRMP channel
-		pub fn accept_para_channel(
+		pub fn accept_channel(
 			origin: OriginFor<T>,
 			sender: ParaId,
 			// temporary until proper Xcm message variant is added with handler logic
@@ -257,7 +257,7 @@ pub mod pallet {
 				call,
 			};
 			// send message to relay chain
-			<xcm_handler::Module<T>>::send_xcm(MultiLocation::Null, message)
+			T::XcmSender::send_xcm(MultiLocation::Null, message)
 				.map_err(|_| Error::<T>::FailedToSendXcm)?;
 			// ensured by check further above
 			if let Err(loc) = channels.binary_search(&sender) {
@@ -290,7 +290,7 @@ pub mod pallet {
 				call,
 			};
 			// send message to relay chain
-			<xcm_handler::Module<T>>::send_xcm(MultiLocation::Null, message)
+			T::XcmSender::send_xcm(MultiLocation::Null, message)
 				.map_err(|_| Error::<T>::FailedToSendXcm)?;
 			// update storage
 			if let Ok(loc) = channels.binary_search(&recipient) {
@@ -321,7 +321,7 @@ pub mod pallet {
 				call,
 			};
 			// send message to accept the channel request
-			<xcm_handler::Module<T>>::send_xcm(MultiLocation::Null, message)
+			T::XcmSender::send_xcm(MultiLocation::Null, message)
 				.map_err(|_| Error::<T>::FailedToSendXcm)?;
 			// update storage
 			if let Ok(loc) = channels.binary_search(&sender) {
@@ -362,7 +362,7 @@ pub mod pallet {
 			let xcm_origin = T::ToMultiLocation::try_into_location(who.clone())
 				.map_err(|_| Error::<T>::BadLocation)?;
 			// TODO: revert state on xcm execution failure.
-			match T::Executor::execute_xcm(xcm_origin, xcm) {
+			match T::XcmExecutor::execute_xcm(xcm_origin, xcm) {
 				Ok(_) => {
 					Self::deposit_event(Event::<T>::TransferredToRelayChain(who, dest, amount))
 				}
@@ -421,7 +421,7 @@ pub mod pallet {
 			let xcm_origin = T::ToMultiLocation::try_into_location(who.clone())
 				.map_err(|_| Error::<T>::BadLocation)?;
 			// TODO: revert state on xcm execution failure.
-			match T::Executor::execute_xcm(xcm_origin, xcm) {
+			match T::XcmExecutor::execute_xcm(xcm_origin, xcm) {
 				Ok(_) => Self::deposit_event(Event::<T>::TransferredToAccountId32Parachain(
 					x_currency_id,
 					who,
@@ -491,7 +491,7 @@ pub mod pallet {
 			let xcm_origin = T::ToMultiLocation::try_into_location(who.clone())
 				.map_err(|_| Error::<T>::BadLocation)?;
 			// TODO: revert state on xcm execution failure.
-			match T::Executor::execute_xcm(xcm_origin, xcm) {
+			match T::XcmExecutor::execute_xcm(xcm_origin, xcm) {
 				Ok(_) => Self::deposit_event(Event::<T>::TransferredToAccountKey20Parachain(
 					x_currency_id,
 					who,
@@ -513,6 +513,26 @@ pub mod pallet {
 
 			Ok(().into())
 		}
+	}
+
+	/// TODO: Use this to update RecipientChannels and SenderChannels if either are closed
+	/// or if SenderRequests are accepted
+	impl<T: Config> DownwardMessageHandler for Module<T> {
+		fn handle_downward_message(_msg: InboundDownwardMessage) {
+			todo!()
+			// let hash = msg.using_encoded(T::Hashing::hash);
+			// log::debug!("Processing Downward XCM: {:?}", &hash);
+			// let event = match VersionedXcm::decode(&mut &msg.msg[..]).map(Xcm::try_from) {
+			// 	Ok(Ok(xcm)) => match T::XcmExecutor::execute_xcm(Junction::Parent.into(), xcm) {
+			// 		Ok(..) => RawEvent::Success(hash),
+			// 		Err(e) => RawEvent::Fail(hash, e),
+			// 	},
+			// 	Ok(Err(..)) => RawEvent::BadVersion(hash),
+			// 	Err(..) => RawEvent::BadFormat(hash),
+			// };
+			// Self::deposit_event(event);
+		} // we'll also want to create a ChannelRequests storage item locally that is updated based
+  // on DownwardMessages passed from the relay chain
 	}
 
 	impl<T: Config> Pallet<T> {
