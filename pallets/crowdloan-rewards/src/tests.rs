@@ -59,7 +59,7 @@ fn proving_assignation_works() {
 		// Signature is wrong, prove fails
 		assert_noop!(
 			Crowdloan::associate_native_identity(
-				Origin::none(),
+				Origin::signed(4),
 				4,
 				pairs[0].public().into(),
 				signature.clone()
@@ -68,7 +68,7 @@ fn proving_assignation_works() {
 		);
 		// Signature is right, prove passes
 		assert_ok!(Crowdloan::associate_native_identity(
-			Origin::none(),
+			Origin::signed(4),
 			3,
 			pairs[0].public().into(),
 			signature.clone()
@@ -76,7 +76,7 @@ fn proving_assignation_works() {
 		// Signature is right, but address already claimed
 		assert_noop!(
 			Crowdloan::associate_native_identity(
-				Origin::none(),
+				Origin::signed(4),
 				3,
 				pairs[0].public().into(),
 				signature
@@ -150,7 +150,7 @@ fn paying_late_joiner_works() {
 		//
 		roll_to(12);
 		assert_ok!(Crowdloan::associate_native_identity(
-			Origin::none(),
+			Origin::signed(4),
 			3,
 			pairs[0].public().into(),
 			signature.clone()

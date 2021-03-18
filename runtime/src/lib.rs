@@ -421,7 +421,6 @@ impl pallet_author_filter::Config for Runtime {
 	type RandomnessSource = RandomnessCollectiveFlip;
 }
 
-
 pub const VESTING_BLOCKS: BlockNumber = 1000;
 
 pub struct VestingPeriod(pub BlockNumber);

@@ -29,6 +29,6 @@ std = [
     "serde",
     "log/std",
     "sp-std/std",
-    "sp-io/std"
-
+    "sp-io/std",
+    "pallet-balances/std"
 ]

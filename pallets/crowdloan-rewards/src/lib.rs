@@ -150,7 +150,7 @@ pub mod pallet {
 			relay_account: T::RelayChainAccountId,
 			proof: MultiSignature,
 		) -> DispatchResultWithPostInfo {
-			ensure_none(origin)?;
+			ensure_signed(origin)?;
 			// Check the proof:
 			// 1. Is signed by an actual unassociated contributor
 			// 2. Signs a valid native identity
@@ -317,9 +317,9 @@ pub mod pallet {
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
 		/// Contributions that have a native account id associated already.
-		pub associated: Vec<(T::RelayChainAccountId, T::AccountId, u32)>,
+		pub associated: Vec<(T::RelayChainAccountId, T::AccountId, BalanceOf<T>)>,
 		/// Contributions that will need a native account id to be associated through an extrinsic.
-		pub unassociated: Vec<(T::RelayChainAccountId, u32)>,
+		pub unassociated: Vec<(T::RelayChainAccountId, BalanceOf<T>)>,
 		/// The ratio of (reward tokens to be paid) / (relay chain funds contributed)
 		/// This is dead stupid simple using a u32. So the reward amount has to be an integer
 		/// multiple of the contribution amount. A better fixed-ratio solution would be
@@ -332,8 +332,8 @@ pub mod pallet {
 	impl<T: Config> Default for GenesisConfig<T> {
 		fn default() -> Self {
 			Self {
-				associated: Vec::new(),
-				unassociated: Vec::new(),
+				associated: vec![],
+				unassociated: vec![],
 				reward_ratio: 1,
 			}
 		}

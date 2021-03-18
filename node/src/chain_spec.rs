@@ -16,15 +16,15 @@
 
 use cumulus_primitives::ParaId;
 use moonbeam_runtime::{
-	AccountId, Balance, BalancesConfig, DemocracyConfig, EVMConfig, EthereumChainIdConfig,
-	EthereumConfig, GenesisConfig, ParachainInfoConfig, SchedulerConfig, StakeConfig, SudoConfig,
-	SystemConfig, GLMR, WASM_BINARY,
+	AccountId, Balance, BalancesConfig, CrowdloanConfig, DemocracyConfig, EVMConfig,
+	EthereumChainIdConfig, EthereumConfig, GenesisConfig, ParachainInfoConfig, SchedulerConfig,
+	StakeConfig, SudoConfig, SystemConfig, GLMR, WASM_BINARY,
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use sc_telemetry::TelemetryEndpoints;
 use serde::{Deserialize, Serialize};
-use sp_runtime::Perbill;
+use sp_runtime::{AccountId32, Perbill};
 use stake::{InflationInfo, Range};
 use std::{collections::BTreeMap, str::FromStr};
 
@@ -65,6 +65,8 @@ pub fn development_chain_spec() -> ChainSpec {
 				)],
 				moonbeam_inflation_config(),
 				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
+				vec![],
+				vec![],
 				Default::default(), // para_id
 				1281,               //ChainId
 			)
@@ -104,6 +106,8 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 				)],
 				moonbeam_inflation_config(),
 				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
+				vec![],
+				vec![],
 				para_id,
 				1280, //ChainId
 			)
@@ -140,6 +144,8 @@ fn testnet_genesis(
 	stakers: Vec<(AccountId, Option<AccountId>, Balance)>,
 	inflation_config: InflationInfo<Balance>,
 	endowed_accounts: Vec<AccountId>,
+	assigned_contributors: Vec<(AccountId32, AccountId, Balance)>,
+	unassigned_contributors: Vec<(AccountId32, Balance)>,
 	para_id: ParaId,
 	chain_id: u64,
 ) -> GenesisConfig {
@@ -171,6 +177,11 @@ fn testnet_genesis(
 		stake: Some(StakeConfig {
 			stakers,
 			inflation_config,
+		}),
+		pallet_crowdloan_rewards: Some(CrowdloanConfig {
+			associated: assigned_contributors,
+			unassociated: unassigned_contributors,
+			reward_ratio: 1,
 		}),
 	}
 }
