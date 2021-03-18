@@ -21,6 +21,7 @@ use futures::{
 	stream::FuturesUnordered,
 	FutureExt, SinkExt, StreamExt,
 };
+use moonbeam_rpc_debug::Debug;
 use std::{
 	collections::BTreeMap,
 	future::Future,
@@ -97,10 +98,8 @@ fn internal_err<T: ToString>(message: T) -> RpcError {
 	}
 }
 
-pub type TraceFilterCacheRequester = TracingUnboundedSender<(
-	FilterRequest,
-	oneshot::Sender<Result<Vec<TransactionTrace>>>,
-)>;
+pub type Responder = oneshot::Sender<Result<Vec<TransactionTrace>>>;
+pub type TraceFilterCacheRequester = TracingUnboundedSender<(FilterRequest, Responder)>;
 
 pub struct TraceFilterCache<B, C, BE, A>(PhantomData<(B, C, BE, A)>);
 
@@ -168,12 +167,10 @@ where
 
 							for block_height in block_heights.iter() {
 								if !cached_blocks.contains_key(block_height) {
-									let traces = Self::cache_block(&eth_api, *block_height);
+									let traces = Self::cache_block(&client, &backend, &eth_api, *block_height);
 									let traces = match traces {
 										Ok(traces) => traces,
 										Err(err) => {
-											// Error when creating one block cache, we return an
-											// error.
 											let _ = response_tx.send(Err(err));
 											continue 'service;
 										}
@@ -223,21 +220,26 @@ where
 		(fut, tx)
 	}
 
-	fn cache_block(eth_api: &A, block_height: u32) -> Result<Vec<TransactionTrace>> {
+	fn cache_block(
+		client: &C,
+		backend: &BE,
+		eth_api: &A,
+		block_height: u32,
+	) -> Result<Vec<TransactionTrace>> {
 		// Fetch block data from RPC EthApi. false = only get transactions hashes, which is enough.
-		let block = eth_api.block_by_number(BlockNumber::Num(block_height as u64), false)?;
-		let block = block.ok_or_else(|| {
+		let eth_block = eth_api.block_by_number(BlockNumber::Num(block_height as u64), false)?;
+		let eth_block = eth_block.ok_or_else(|| {
 			internal_err(format!("Could not find block with height {}", block_height))
 		})?;
 
-		let block_hash = block.inner.hash.ok_or_else(|| {
+		let eth_block_hash = eth_block.inner.hash.ok_or_else(|| {
 			internal_err(format!(
 				"Could not get the hash of block with height {}",
 				block_height
 			))
 		})?;
 
-		let transactions_hash = match &block.inner.transactions {
+		let transactions_hash = match &eth_block.inner.transactions {
 			BlockTransactions::Hashes(h) => h,
 			_ => {
 				return Err(internal_err(
@@ -246,7 +248,35 @@ where
 			}
 		};
 
-		todo!("Call Runtime API");
+		let substrate_block_id = match Debug::<B, C, BE>::load_hash(client, eth_block_hash)
+			.map_err(|err| internal_err(format!("{:?}", err)))?
+		{
+			Some(hash) => hash,
+			_ => return Err(internal_err("Block hash not found".to_string())),
+		};
+
+		// This handle allow to keep changes between txs in an internal buffer.
+		let api = client.runtime_api();
+		let substrate_block_header = client.header(substrate_block_id).unwrap().unwrap();
+		// The re-execute the block we start from the parent block final state.
+		let substrate_parent_block_id = BlockId::<B>::Hash(*substrate_block_header.parent_hash());
+		let extrinsics = backend
+			.blockchain()
+			.body(substrate_block_id)
+			.unwrap()
+			.unwrap();
+
+		// Trace the block.
+		let traces = api
+			.trace_block(&substrate_parent_block_id, extrinsics)
+			.map_err(|e| {
+				internal_err(format!(
+					"Runtime error when replaying block {} : {:?}",
+					block_height, e
+				))
+			})?;
+
+		todo!("Interpret result");
 	}
 }
 

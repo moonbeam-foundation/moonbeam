@@ -4195,6 +4195,7 @@ dependencies = [
  "futures 0.3.12",
  "jsonrpc-core 15.1.0",
  "moonbeam-rpc-core-trace",
+ "moonbeam-rpc-debug",
  "moonbeam-rpc-primitives-debug",
  "sc-client-api",
  "sc-network",

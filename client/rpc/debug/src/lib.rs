@@ -68,8 +68,8 @@ where
 	C::Api: EthereumRuntimeRPCApi<B>,
 {
 	// Asumes there is only one mapped canonical block in the AuxStore, otherwise something is wrong
-	fn load_hash(&self, hash: H256) -> RpcResult<Option<BlockId<B>>> {
-		let hashes = match fc_consensus::load_block_hash::<B, _>(self.client.as_ref(), hash)
+	pub fn load_hash(client: &C, hash: H256) -> RpcResult<Option<BlockId<B>>> {
+		let hashes = match fc_consensus::load_block_hash::<B, _>(client, hash)
 			.map_err(|err| internal_err(format!("fetch aux store failed: {:?}", err)))?
 		{
 			Some(hashes) => hashes,
@@ -77,7 +77,13 @@ where
 		};
 		let out: Vec<H256> = hashes
 			.into_iter()
-			.filter_map(|h| if self.is_canon(h) { Some(h) } else { None })
+			.filter_map(|h| {
+				if Self::is_canon(client, h) {
+					Some(h)
+				} else {
+					None
+				}
+			})
 			.collect();
 
 		if out.len() == 1 {
@@ -86,24 +92,23 @@ where
 		Ok(None)
 	}
 
-	fn is_canon(&self, target_hash: H256) -> bool {
-		if let Ok(Some(number)) = self.client.number(target_hash) {
-			if let Ok(Some(header)) = self.client.header(BlockId::Number(number)) {
+	pub fn is_canon(client: &C, target_hash: H256) -> bool {
+		if let Ok(Some(number)) = client.number(target_hash) {
+			if let Ok(Some(header)) = client.header(BlockId::Number(number)) {
 				return header.hash() == target_hash;
 			}
 		}
 		false
 	}
 
-	fn load_transactions(&self, transaction_hash: H256) -> RpcResult<Option<(H256, u32)>> {
+	pub fn load_transactions(client: &C, transaction_hash: H256) -> RpcResult<Option<(H256, u32)>> {
 		let mut transactions: Vec<(H256, u32)> = Vec::new();
-		match fc_consensus::load_transaction_metadata(self.client.as_ref(), transaction_hash)
+		match fc_consensus::load_transaction_metadata(client, transaction_hash)
 			.map_err(|err| internal_err(format!("fetch aux store failed: {:?}", err)))?
 		{
 			Some(metadata) => {
 				for (block_hash, index) in metadata {
-					match self
-						.load_hash(block_hash)
+					match Self::load_hash(client, block_hash)
 						.map_err(|err| internal_err(format!("{:?}", err)))?
 					{
 						Some(_) => {
@@ -141,23 +146,21 @@ where
 		transaction_hash: H256,
 		params: Option<TraceParams>,
 	) -> RpcResult<single::TransactionTrace> {
-		let (hash, index) = match self
-			.load_transactions(transaction_hash)
+		let (hash, index) = match Self::load_transactions(&self.client, transaction_hash)
 			.map_err(|err| internal_err(format!("{:?}", err)))?
 		{
 			Some((hash, index)) => (hash, index as usize),
 			None => return Err(internal_err("Transaction hash not found".to_string())),
 		};
 
-		let reference_id = match self
-			.load_hash(hash)
+		let reference_id = match Self::load_hash(&self.client, hash)
 			.map_err(|err| internal_err(format!("{:?}", err)))?
 		{
 			Some(hash) => hash,
 			_ => return Err(internal_err("Block hash not found".to_string())),
 		};
 
-		// Get ApiRef
+		// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
 		let api = self.client.runtime_api();
 		// Get Blockchain backend
 		let blockchain = self.backend.blockchain();
