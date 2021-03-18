@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -13,6 +13,14 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+
+//! This module assembles the Moonbeam service components, executes them, and manages communication
+//! between them. This is the backbone of the client-side node implementation.
+//!
+//! This module can assemble:
+//! PartialComponents: For maintence tasks without a complete node (eg import/export blocks, purge)
+//! Full Service: A complete parachain node including the pool, rpc, network, embedded relay chain
+//! Dev Service: A leaner service without the relay chain backing.
 
 use crate::{cli::Sealing, inherents::build_inherent_data_providers};
 use async_io::Timer;
