@@ -323,7 +323,7 @@ pub mod pallet {
 		/// Current round index
 		pub current: RoundIndex,
 		/// The first block of the current round
-		pub last_first: BlockNumber,
+		pub first: BlockNumber,
 		/// The length of the current round in number of blocks
 		pub length: u32,
 	}
@@ -335,21 +335,21 @@ pub mod pallet {
 				+ PartialOrd,
 		> RoundInfo<B>
 	{
-		pub fn new(current: RoundIndex, last_first: B, length: u32) -> RoundInfo<B> {
+		pub fn new(current: RoundIndex, first: B, length: u32) -> RoundInfo<B> {
 			RoundInfo {
 				current,
-				last_first,
+				first,
 				length,
 			}
 		}
-		pub fn next_round(&mut self, now: B) -> bool {
-			if now - self.last_first >= self.length.into() {
-				self.current += 1u32;
-				self.last_first = now;
-				true
-			} else {
-				false
-			}
+		/// Check if the round should be updated
+		pub fn should_update(&self, now: B) -> bool {
+			now - self.first >= self.length.into()
+		}
+		/// New round
+		pub fn update(&mut self, now: B) {
+			self.current += 1u32;
+			self.first = now;
 		}
 	}
 	impl<
@@ -457,20 +457,22 @@ pub mod pallet {
 		/// Paid the account (nominator or collator) the balance as liquid rewards
 		Rewarded(T::AccountId, BalanceOf<T>),
 		/// Round inflation range set with the provided annual inflation range
-		SetRoundInflation(Perbill, Perbill, Perbill),
+		RoundInflationSet(Perbill, Perbill, Perbill),
 		/// Staking expectations set
 		SetStakeExpectations(BalanceOf<T>, BalanceOf<T>, BalanceOf<T>),
 		/// Set total selected candidates to this value [old, new]
-		SetTotalSelected(u32, u32),
-		/// Set blocks per round [current_round, last_first_block, old, new]
-		SetBlocksPerRound(RoundIndex, T::BlockNumber, u32, u32),
+		TotalSelectedSet(u32, u32),
+		/// Set blocks per round [current_round, first_block, old, new]
+		BlocksPerRoundSet(RoundIndex, T::BlockNumber, u32, u32),
 	}
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_finalize(n: T::BlockNumber) {
 			let mut round = <Round<T>>::get();
-			if round.next_round(n) {
+			if round.should_update(n) {
+				// mutate round
+				round.update(n);
 				// pay all stakers for T::BondDuration rounds ago
 				Self::pay_stakers(round.current);
 				// execute all delayed collator exits
@@ -482,7 +484,7 @@ pub mod pallet {
 				// snapshot total stake
 				<Staked<T>>::insert(round.current, <Total<T>>::get());
 				Self::deposit_event(Event::NewRound(
-					round.last_first,
+					round.first,
 					round.current,
 					collator_count,
 					total_staked,
@@ -675,7 +677,7 @@ pub mod pallet {
 			ensure!(schedule.is_valid(), Error::<T>::InvalidSchedule);
 			let mut config = <InflationConfig<T>>::get();
 			config.set_annual_rate::<T>(schedule);
-			Self::deposit_event(Event::SetRoundInflation(
+			Self::deposit_event(Event::RoundInflationSet(
 				config.round.min,
 				config.round.ideal,
 				config.round.max,
@@ -685,6 +687,7 @@ pub mod pallet {
 		}
 		#[pallet::weight(0)]
 		/// Set the total number of collator candidates selected per round
+		/// - changes are not applied until the start of the next round
 		pub fn set_total_selected(origin: OriginFor<T>, new: u32) -> DispatchResultWithPostInfo {
 			frame_system::ensure_root(origin)?;
 			ensure!(
@@ -693,7 +696,7 @@ pub mod pallet {
 			);
 			let old = <TotalSelected<T>>::get();
 			<TotalSelected<T>>::put(new);
-			Self::deposit_event(Event::SetTotalSelected(old, new));
+			Self::deposit_event(Event::TotalSelectedSet(old, new));
 			Ok(().into())
 		}
 		#[pallet::weight(0)]
@@ -707,10 +710,10 @@ pub mod pallet {
 				Error::<T>::CannotSetBelowMin
 			);
 			let mut round = <Round<T>>::get();
-			let (now, last_first, old) = (round.current, round.last_first, round.length);
+			let (now, first, old) = (round.current, round.first, round.length);
 			round.length = new;
 			<Round<T>>::put(round);
-			Self::deposit_event(Event::SetBlocksPerRound(now, last_first, old, new));
+			Self::deposit_event(Event::BlocksPerRoundSet(now, first, old, new));
 			Ok(().into())
 		}
 		/// Join the set of collator candidates
