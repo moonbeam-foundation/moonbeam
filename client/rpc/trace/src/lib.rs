@@ -47,7 +47,10 @@ use sp_transaction_pool::{InPoolTransaction, TransactionPool};
 use sp_utils::mpsc::TracingUnboundedSender;
 
 use ethereum_types::{H128, H256};
-use fc_rpc_core::{types::BlockNumber, EthApi};
+use fc_rpc_core::{
+	types::{BlockNumber, BlockTransactions},
+	EthApi,
+};
 use fp_rpc::{ConvertTransaction, EthereumRuntimeRPCApi};
 
 use moonbeam_rpc_core_trace::{FilterRequest, Trace as TraceT, TransactionTrace};
@@ -117,11 +120,36 @@ where
 	C::Api: EthereumRuntimeRPCApi<B>,
 	A: EthApi,
 {
+	// TODO :
+	// 1. Handle requests and add traces to the cache :
+	//    Cache is a BTreeMap : Block height => Vec of TransactionTrace + expiration time
+	//    No filtering is done in the cache, it stores all traces.
+	//    Existing block in cache get the expiration time bumped.
+	//
+	//    Filtering is done on top :
+	//    1. Apply the filter and return a list of indices to keep
+	//    2. Use the indices to build the filtered vec of traces (with correct pointers)
+	//
+	// 2. Remove expired cache :
+	//    Iterate over each block in the BTreeMap, and remove the entry if expired.
+	//    Question : Is the expiration time and delay between checks configurable ?
+	//    Other idea : Spawn a timer future when updating the cache, providing the height
+	//        of the block. When woken up, check only this block expiration time.
+	//        Will create a future for each request, but is more reactive to cleanup.
+	//        Which is better ?
+
+	// How to get Ethereum block hash and transactions :
+	// EthApi::block_by_number -> Rich<Block>
+	// Block.transactions (Full).hash
+	// Debug RPC impl shows how to get the substrate equivalents for mapping.
+
 	pub fn task(
 		client: Arc<C>,
 		backend: Arc<BE>,
 		eth_api: A,
 	) -> (impl Future<Output = ()>, TraceFilterCacheRequester) {
+		const EXPIRATION_DELAY: Duration = Duration::from_secs(600);
+
 		let (tx, mut rx): (TraceFilterCacheRequester, _) =
 			sp_utils::mpsc::tracing_unbounded("trace-filter-cache-requester");
 
@@ -129,23 +157,32 @@ where
 			let mut expiration_futures = FuturesUnordered::new();
 			let mut cached_blocks = BTreeMap::<u32, CacheBlock>::new();
 
-			loop {
+			'service: loop {
 				select! {
 					req = rx.next() => {
 						if let Some((req, response_tx)) = req {
-							let blocks: Vec<u32> = (
+							let block_heights: Vec<u32> = (
 								req.from_block.unwrap_or(0)
 								..= req.to_block.expect("end block range")
 							).collect();
 
-							for block in blocks.iter() {
-								if !cached_blocks.contains_key(&block) {
-									// Tmp compile check : we're able to call EthApi RPC function.
-									let block_info = eth_api.block_by_number(BlockNumber::Num((*block).into()), true);
+							for block_height in block_heights.iter() {
+								if !cached_blocks.contains_key(block_height) {
+									let traces = Self::cache_block(&eth_api, *block_height);
+									let traces = match traces {
+										Ok(traces) => traces,
+										Err(err) => {
+											// Error when creating one block cache, we return an
+											// error.
+											let _ = response_tx.send(Err(err));
+											continue 'service;
+										}
+									};
 
-
-									todo!("Fetch eth block data for this height");
-									todo!("Call Runtime API");
+									cached_blocks.insert(*block_height, CacheBlock {
+										traces,
+										expiration: Instant::now() + EXPIRATION_DELAY,
+									});
 								}
 
 								todo!("Build filtered trace vec");
@@ -153,7 +190,7 @@ where
 
 							expiration_futures.push(async move {
 								sleep(Duration::from_secs(60)).await;
-								blocks
+								block_heights
 							});
 
 							todo!("send response");
@@ -181,32 +218,35 @@ where
 					},
 				}
 			}
-
-			// TODO :
-			// 1. Handle requests and add traces to the cache :
-			//    Cache is a BTreeMap : Block height => Vec of TransactionTrace + expiration time
-			//    No filtering is done in the cache, it stores all traces.
-			//    Existing block in cache get the expiration time bumped.
-			//
-			//    Filtering is done on top :
-			//    1. Apply the filter and return a list of indices to keep
-			//    2. Use the indices to build the filtered vec of traces (with correct pointers)
-			//
-			// 2. Remove expired cache :
-			//    Iterate over each block in the BTreeMap, and remove the entry if expired.
-			//    Question : Is the expiration time and delay between checks configurable ?
-			//    Other idea : Spawn a timer future when updating the cache, providing the height
-			//        of the block. When woken up, check only this block expiration time.
-			//        Will create a future for each request, but is more reactive to cleanup.
-			//        Which is better ?
-
-			// How to get Ethereum block hash and transactions :
-			// EthApi::block_by_number -> Rich<Block>
-			// Block.transactions (Full).hash
-			// Debug RPC impl shows how to get the substrate equivalents for mapping.
 		};
 
 		(fut, tx)
+	}
+
+	fn cache_block(eth_api: &A, block_height: u32) -> Result<Vec<TransactionTrace>> {
+		// Fetch block data from RPC EthApi. false = only get transactions hashes, which is enough.
+		let block = eth_api.block_by_number(BlockNumber::Num(block_height as u64), false)?;
+		let block = block.ok_or_else(|| {
+			internal_err(format!("Could not find block with height {}", block_height))
+		})?;
+
+		let block_hash = block.inner.hash.ok_or_else(|| {
+			internal_err(format!(
+				"Could not get the hash of block with height {}",
+				block_height
+			))
+		})?;
+
+		let transactions_hash = match &block.inner.transactions {
+			BlockTransactions::Hashes(h) => h,
+			_ => {
+				return Err(internal_err(
+					"EthApi::block_by_number should have returned transaction hashes",
+				))
+			}
+		};
+
+		todo!("Call Runtime API");
 	}
 }
 
