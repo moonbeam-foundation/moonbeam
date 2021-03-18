@@ -55,16 +55,16 @@ async function test() {
   );
 
   // Nominators
-  const nominators = await polkadotApi.query.stake.nominators(GERALD);
+  const nominators = await polkadotApi.query.parachainStaking.nominatorState(GERALD);
   assert(nominators.toHuman() === null, "there should be no nominator");
 
   // Validators
-  const validators = await polkadotApi.query.stake.validators();
+  const validators = await polkadotApi.query.parachainStaking.selectedCandidates();
   assert(validators.toHuman()[0].toLowerCase() === GERALD, "Gerald is not a validator");
   assert(validators.toHuman()[1].toLowerCase() === FAITH.toLowerCase(), "Faith is not a validator");
 
   // Candidates
-  const candidates = await polkadotApi.query.stake.candidatePool();
+  const candidates = await polkadotApi.query.parachainStaking.candidatePool();
   assert(candidates.toHuman()[0].owner.toLowerCase() === GERALD, "Gerald is not a candidates");
   assert(
     candidates.toHuman()[1].owner.toLowerCase() === FAITH.toLowerCase(),
@@ -76,7 +76,7 @@ async function test() {
   // Join Candidates
   const keyring = new Keyring({ type: "ethereum" });
   const ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
-  const unsub = await polkadotApi.tx.stake
+  const unsub = await polkadotApi.tx.parachainStaking
     .joinCandidates(0, MIN_GLMR_STAKING)
     .signAndSend(ethan, ({ events = [], status }) => {
       console.log(`Current status is ${status.type}`);
@@ -93,7 +93,7 @@ async function test() {
       }
     });
   await wait(50000);
-  let candidatesAfter = await polkadotApi.query.stake.candidatePool();
+  let candidatesAfter = await polkadotApi.query.parachainStaking.candidatePool();
   assert(
     (candidatesAfter.toHuman() as { owner: string; amount: string }[]).length === 3,
     "new candidate should have been added"
@@ -108,7 +108,7 @@ async function test() {
   );
 
   // Candidate bond more
-  const unsub4 = await polkadotApi.tx.stake
+  const unsub4 = await polkadotApi.tx.parachainStaking
     .candidateBondMore(MIN_GLMR_STAKING)
     .signAndSend(ethan, ({ events = [], status }) => {
       console.log(`Current status is ${status.type}`);
@@ -125,14 +125,14 @@ async function test() {
       }
     });
   await wait(50000);
-  candidatesAfter = await polkadotApi.query.stake.candidatePool();
+  candidatesAfter = await polkadotApi.query.parachainStaking.candidatePool();
   assert(
     (candidatesAfter.toHuman() as { owner: string; amount: string }[])[2].amount === "2.0000 kUnit",
     "bond should have increased"
   );
 
   // Candidate bond less
-  const unsub5 = await polkadotApi.tx.stake
+  const unsub5 = await polkadotApi.tx.parachainStaking
     .candidateBondLess(MIN_GLMR_STAKING)
     .signAndSend(ethan, ({ events = [], status }) => {
       console.log(`Current status is ${status.type}`);
@@ -149,7 +149,7 @@ async function test() {
       }
     });
   await wait(50000);
-  candidatesAfter = await polkadotApi.query.stake.candidatePool();
+  candidatesAfter = await polkadotApi.query.parachainStaking.candidatePool();
   assert(
     (candidatesAfter.toHuman() as { owner: string; amount: string }[])[2].amount === "1.0000 kUnit",
     "bond should have decreased"
@@ -158,8 +158,8 @@ async function test() {
   // Join Nominators
   const keyringAlith = new Keyring({ type: "ethereum" });
   const alith = await keyringAlith.addFromUri(ALITH_PRIVKEY, null, "ethereum");
-  const unsub2 = await polkadotApi.tx.stake
-    .joinNominators(GERALD, MIN_GLMR_NOMINATOR)
+  const unsub2 = await polkadotApi.tx.parachainStaking
+    .nominate(GERALD, MIN_GLMR_NOMINATOR)
     .signAndSend(alith, ({ events = [], status }) => {
       console.log(`Current status is ${status.type}`);
 
@@ -175,7 +175,7 @@ async function test() {
       }
     });
   await wait(60000);
-  const nominatorsAfter = await polkadotApi.query.stake.nominators(ALITH);
+  const nominatorsAfter = await polkadotApi.query.parachainStaking.nominatorState(ALITH);
   assert(
     (nominatorsAfter.toHuman() as {
       nominations: { owner: string; amount: string }[];
@@ -184,7 +184,7 @@ async function test() {
   );
 
   // Revoke Nomination
-  const unsub3 = await polkadotApi.tx.stake
+  const unsub3 = await polkadotApi.tx.parachainStaking
     .leaveNominators()
     .signAndSend(alith, ({ events = [], status }) => {
       console.log(`Current status is ${status.type}`);
@@ -201,7 +201,7 @@ async function test() {
       }
     });
   await wait(60000);
-  const nominatorsAfterRevocation = await polkadotApi.query.stake.nominators(ALITH);
+  const nominatorsAfterRevocation = await polkadotApi.query.parachainStaking.nominatorState(ALITH);
   assert(nominatorsAfterRevocation.toHuman() === null, "there should be no nominator");
 
   console.log("SUCCESS");
