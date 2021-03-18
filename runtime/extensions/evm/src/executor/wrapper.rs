@@ -45,7 +45,7 @@ pub struct TraceExecutorWrapper<'config, S> {
 	pub entries: BTreeMap<u32, Entry>,
 	entries_next_index: u32,
 	call_type: Option<CallType>,
-	parent_index: Option<u32>,
+	trace_address: Vec<u32>,
 }
 
 enum ContextType {
@@ -67,7 +67,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 			entries: BTreeMap::new(),
 			entries_next_index: 0,
 			call_type: None,
-			parent_index: None,
+			trace_address: vec![],
 		}
 	}
 
@@ -221,7 +221,13 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 		data: Vec<u8>,
 	) -> ExitReason {
 		// Starting new entry.
-		let parent_index = self.parent_index;
+		//
+		// traceAddress field matches this explanation :
+		// https://openethereum.github.io/JSONRPC-trace-module#traceaddress-field
+		//
+		// We update "trace_address" for a potential subcall.
+		// Will be popped at the end of this context.
+		self.trace_address.push(0);
 
 		let entries_index = self.entries_next_index;
 		self.entries_next_index += 1;
@@ -247,16 +253,20 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 					_ => None,
 				};
 
+				let subcall = self.call_type.is_some();
+
 				if opcode == Opcode(0xf3) {
 					let stack = runtime.machine().stack().data();
 
 					return_stack_offset = stack.get(stack.len() - 1).cloned();
 					return_stack_len = stack.get(stack.len() - 2).cloned();
 				}
-			}
 
-			// Set parent index for possible subcall to get this context index.
-			self.parent_index = Some(entries_index);
+				if subcall {
+					// We increase the last value of "trace_address" for a potential next subcall.
+					*self.trace_address.last_mut().unwrap() += 1;
+				}
+			}
 
 			match runtime.step(self) {
 				Ok(_) => {}
@@ -274,7 +284,10 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 		let gas_used = gas_at_start - gas_at_end;
 
 		// Insert entry.
-		let trace_address = parent_index.map_or(vec![], |index| vec![index]);
+
+		// We pop the children item, giving back this context trace_address.
+		self.trace_address.pop();
+
 		self.entries.insert(
 			entries_index,
 			match context_type {
@@ -292,7 +305,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 
 					Entry {
 						from,
-						trace_address,
+						trace_address: self.trace_address.clone(),
 						value,
 						gas: U256::from(gas_at_end),
 						gas_used: U256::from(gas_used),
@@ -340,7 +353,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 
 					Entry {
 						value,
-						trace_address,
+						trace_address: self.trace_address.clone(),
 						gas: U256::from(gas_at_end),
 						gas_used: U256::from(gas_used),
 						from,
