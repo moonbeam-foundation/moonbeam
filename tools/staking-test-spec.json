@@ -53,7 +53,7 @@
         "accounts": {}
       },
       "palletEthereum": {},
-      "stake": {
+      "parachainStaking": {
         "inflationConfig": {
           "expect": {
             "min": 100000000000000000000000,
