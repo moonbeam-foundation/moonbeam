@@ -50,6 +50,19 @@ impl Extensions {
 
 /// Generate a chain spec for use with the development service.
 pub fn development_chain_spec() -> ChainSpec {
+	let mut assigned_contributor: [u8; 32] = [0; 32];
+	let mut unassigned_contributor: [u8; 32] = [0; 32];
+	// ED25519 bottom drive obey lake curtain smoke basket hold race lonely fit walk
+	assigned_contributor.copy_from_slice(
+		&hex::decode("345071da55e5dccefaaa440339415ef9f2663338a38f7da0df21be5ab4e055ef").unwrap()
+			[0..32],
+	);
+	// ED25519 neither runway sad become violin beach door protect glue pepper measure coffee
+	unassigned_contributor.copy_from_slice(
+		&hex::decode("d87c65792b279a4bd7bcb97d55011222c7ef2a2a8b0e651dea55e468187f594a").unwrap()
+			[0..32],
+	);
+
 	ChainSpec::from_genesis(
 		"Moonbase Development Testnet",
 		"development",
@@ -65,8 +78,12 @@ pub fn development_chain_spec() -> ChainSpec {
 				)],
 				moonbeam_inflation_config(),
 				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
-				vec![],
-				vec![],
+				vec![(
+					assigned_contributor.into(),
+					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
+					1_000 * GLMR,
+				)],
+				vec![(unassigned_contributor.into(), 1_000 * GLMR)],
 				Default::default(), // para_id
 				1281,               //ChainId
 			)
