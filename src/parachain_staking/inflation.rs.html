@@ -186,6 +186,7 @@
 <span id="183">183</span>
 <span id="184">184</span>
 <span id="185">185</span>
+<span id="186">186</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -204,8 +205,8 @@
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="doccomment">//! Helper methods for computing issuance based on inflation</span>
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">pallet</span>::{<span class="ident">BalanceOf</span>, <span class="ident">Config</span>};
-<span class="kw">use</span> <span class="ident">frame_support</span>::<span class="ident">traits</span>::{<span class="ident">Currency</span>, <span class="ident">Get</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">pallet</span>::{<span class="ident">BalanceOf</span>, <span class="ident">Config</span>, <span class="ident">Pallet</span>};
+<span class="kw">use</span> <span class="ident">frame_support</span>::<span class="ident">traits</span>::<span class="ident">Currency</span>;
 <span class="kw">use</span> <span class="ident">parity_scale_codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
@@ -216,7 +217,8 @@
 <span class="kw">const</span> <span class="ident">BLOCKS_PER_YEAR</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">SECONDS_PER_YEAR</span> <span class="op">/</span> <span class="ident">SECONDS_PER_BLOCK</span>;
 
 <span class="kw">fn</span> <span class="ident">rounds_per_year</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
-	<span class="ident">BLOCKS_PER_YEAR</span> <span class="op">/</span> <span class="ident">T</span>::<span class="ident">BlocksPerRound</span>::<span class="ident">get</span>()
+	<span class="kw">let</span> <span class="ident">blocks_per_round</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">round</span>().<span class="ident">length</span>;
+	<span class="ident">BLOCKS_PER_YEAR</span> <span class="op">/</span> <span class="ident">blocks_per_round</span>
 }
 
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>

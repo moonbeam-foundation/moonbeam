@@ -716,6 +716,9 @@
 <span id="713">713</span>
 <span id="714">714</span>
 <span id="715">715</span>
+<span id="716">716</span>
+<span id="717">717</span>
+<span id="718">718</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -829,7 +832,7 @@
 	<span class="ident">spec_name</span>: <span class="macro">create_runtime_str</span><span class="macro">!</span>(<span class="string">&quot;moonbeam&quot;</span>),
 	<span class="ident">impl_name</span>: <span class="macro">create_runtime_str</span><span class="macro">!</span>(<span class="string">&quot;moonbeam&quot;</span>),
 	<span class="ident">authoring_version</span>: <span class="number">3</span>,
-	<span class="ident">spec_version</span>: <span class="number">25</span>,
+	<span class="ident">spec_version</span>: <span class="number">26</span>,
 	<span class="ident">impl_version</span>: <span class="number">1</span>,
 	<span class="ident">apis</span>: <span class="ident">RUNTIME_API_VERSIONS</span>,
 	<span class="ident">transaction_version</span>: <span class="number">2</span>,
@@ -1099,12 +1102,14 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">GLMR</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1_000_000_000_000_000_000</span>;
 
 <span class="macro">parameter_types</span><span class="macro">!</span> {
-	<span class="doccomment">/// Moonbeam starts a new round every hour (600 * block_time)</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BlocksPerRound</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">600</span>;
+	<span class="doccomment">/// Minimum round length is 2 minutes (20 * 6 second block times)</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinBlocksPerRound</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">20</span>;
+	<span class="doccomment">/// Default BlocksPerRound is every hour (600 * 6 second block times)</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DefaultBlocksPerRound</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">600</span>;
 	<span class="doccomment">/// Reward payments and validator exit requests are delayed by 2 hours (2 * 600 * block_time)</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BondDuration</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
 	<span class="doccomment">/// Maximum 8 valid block authors at any given time</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TotalSelectedCandidates</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">8</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinSelectedCandidates</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">8</span>;
 	<span class="doccomment">/// Maximum 10 nominators per validator</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxNominatorsPerCollator</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">10</span>;
 	<span class="doccomment">/// The maximum percent a validator can take off the top of its rewards is 50%</span>
@@ -1117,11 +1122,12 @@
 <span class="kw">impl</span> <span class="ident">parachain_staking</span>::<span class="ident">Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
-	<span class="kw">type</span> <span class="ident">BlocksPerRound</span> <span class="op">=</span> <span class="ident">BlocksPerRound</span>;
+	<span class="kw">type</span> <span class="ident">MinBlocksPerRound</span> <span class="op">=</span> <span class="ident">MinBlocksPerRound</span>;
+	<span class="kw">type</span> <span class="ident">DefaultBlocksPerRound</span> <span class="op">=</span> <span class="ident">DefaultBlocksPerRound</span>;
 	<span class="kw">type</span> <span class="ident">BondDuration</span> <span class="op">=</span> <span class="ident">BondDuration</span>;
-	<span class="kw">type</span> <span class="ident">TotalSelectedCandidates</span> <span class="op">=</span> <span class="ident">TotalSelectedCandidates</span>;
+	<span class="kw">type</span> <span class="ident">MinSelectedCandidates</span> <span class="op">=</span> <span class="ident">MinSelectedCandidates</span>;
 	<span class="kw">type</span> <span class="ident">MaxNominatorsPerCollator</span> <span class="op">=</span> <span class="ident">MaxNominatorsPerCollator</span>;
-	<span class="kw">type</span> <span class="ident">MaxCollatorsPerNominator</span> <span class="op">=</span> <span class="ident">TotalSelectedCandidates</span>;
+	<span class="kw">type</span> <span class="ident">MaxCollatorsPerNominator</span> <span class="op">=</span> <span class="ident">MinSelectedCandidates</span>;
 	<span class="kw">type</span> <span class="ident">MaxFee</span> <span class="op">=</span> <span class="ident">MaxFee</span>;
 	<span class="kw">type</span> <span class="ident">MinCollatorStk</span> <span class="op">=</span> <span class="ident">MinCollatorStk</span>;
 	<span class="kw">type</span> <span class="ident">MinCollatorCandidateStk</span> <span class="op">=</span> <span class="ident">MinCollatorStk</span>;
