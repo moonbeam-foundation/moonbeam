@@ -19,13 +19,13 @@
 #[cfg(feature = "std")]
 use crate::serialization::*;
 #[cfg(feature = "std")]
-use serde::{ser::SerializeSeq, Serialize, Serializer};
+use serde::Serialize;
 
 use codec::{Decode, Encode};
 use ethereum_types::{H160, H256, U256};
-use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
+use sp_std::vec::Vec;
 
-#[derive(Clone, Eq, PartialEq, Encode, Decode)]
+#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(Serialize))]
 #[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 pub struct TransactionTrace {
@@ -42,7 +42,7 @@ pub struct TransactionTrace {
 	pub transaction_position: u32,
 }
 
-#[derive(Clone, Eq, PartialEq, Encode, Decode)]
+#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(Serialize))]
 #[cfg_attr(
 	feature = "std",
@@ -61,7 +61,7 @@ pub enum TransactionTraceAction {
 	// TODO : Create and SelfDestruct
 }
 
-#[derive(Clone, Eq, PartialEq, Encode, Decode)]
+#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(Serialize))]
 #[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 pub struct TransactionTraceResult {

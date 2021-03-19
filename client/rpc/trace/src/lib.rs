@@ -56,6 +56,7 @@ use fp_rpc::{ConvertTransaction, EthereumRuntimeRPCApi};
 
 use moonbeam_rpc_core_trace::{FilterRequest, Trace as TraceT, TransactionTrace};
 use moonbeam_rpc_primitives_debug::{block, single, DebugRuntimeApi};
+use tracing::{instrument, Instrument};
 
 pub struct Trace {
 	pub requester: TraceFilterCacheRequester,
@@ -156,10 +157,17 @@ where
 			let mut expiration_futures = FuturesUnordered::new();
 			let mut cached_blocks = BTreeMap::<u32, CacheBlock>::new();
 
+			tracing::trace!("Begining Trace Filter Cache Task ...");
+
 			'service: loop {
 				select! {
 					req = rx.next() => {
 						if let Some((req, response_tx)) = req {
+							let span = tracing::debug_span!("received request", request = ?req);
+							let _guard = span.enter();
+
+							tracing::trace!("Begining handling request");
+
 							let range = req.from_block.unwrap_or(0)
 								..= req.to_block.expect("end block range");
 
@@ -169,10 +177,14 @@ where
 							for block_height in block_heights.iter() {
 								let cached = cached_blocks.contains_key(block_height);
 								if !cached {
+									tracing::trace!(block_height, "Cache miss, replaying block ...");
+
 									let traces = Self::cache_block(&client, &backend, &eth_api, *block_height);
 									let traces = match traces {
 										Ok(traces) => traces,
 										Err(err) => {
+											tracing::error!(block_height, ?err, "Failed to replay block, sending error response ...");
+
 											let _ = response_tx.send(Err(err));
 											continue 'service;
 										}
@@ -182,6 +194,8 @@ where
 										traces,
 										expiration: Instant::now() + EXPIRATION_DELAY,
 									});
+								} else {
+									tracing::trace!(block_height, "Cache hit, no need to replay block !");
 								}
 							}
 
@@ -200,6 +214,9 @@ where
 								.cloned()
 								.collect();
 
+
+							tracing::trace!(?traces, "Work done, sending response ...");
+
 							// Send response.
 							let _ = response_tx.send(Ok(traces));
 
@@ -215,6 +232,8 @@ where
 					},
 					blocks_to_check = expiration_futures.next() => {
 						if let Some(blocks_to_check) = blocks_to_check {
+							tracing::trace!(?blocks_to_check, "Waking up for potential cache cleaning ...");
+
 							let now = Instant::now();
 
 							let mut blocks_to_remove = vec![];
@@ -222,6 +241,8 @@ where
 							for block in blocks_to_check {
 								if let Some(cache) = cached_blocks.get(&block) {
 									if cache.expiration <= now {
+										tracing::trace!(block, "Removing expired block");
+
 										blocks_to_remove.push(block);
 									}
 								}
@@ -232,7 +253,8 @@ where
 					},
 				}
 			}
-		};
+		}
+		.instrument(tracing::debug_span!("trace_filter_cache"));
 
 		(fut, tx)
 	}
