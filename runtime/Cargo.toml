@@ -58,8 +58,8 @@ pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-fe
 moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool", default-features = false }
 
 # Cumulus dependencies
-cumulus-pallet-parachain-system = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
-cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
+cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus",  default-features = false, branch = "moonbeam-v0.7" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus",  default-features = false, branch = "moonbeam-v0.7" }
 
 # TODO Why can't this come directly from cumulus
 parachain-info = { path = "../pallets/parachain-info", default-features = false }

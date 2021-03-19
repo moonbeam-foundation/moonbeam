@@ -13,7 +13,7 @@ sp-core = { git = "https://github.com/paritytech/substrate", default-features = 
 sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 author-inherent = { path = "../author-inherent", default-features = false }
 stake = { path = "../stake", default-features = false }
-cumulus-pallet-parachain-system = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
+cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus",  default-features = false, branch = "moonbeam-v0.7" }
 
 [features]
 default = ["std"]

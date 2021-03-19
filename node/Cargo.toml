@@ -79,14 +79,14 @@ fp-rpc = { git = "https://github.com/purestake/frontier", branch = "notlesh-subs
 fc-db = { git = "https://github.com/purestake/frontier", branch = "notlesh-substrate-8b3e5bc" }
 
 # Cumulus dependencies
-cumulus-client-consensus-common = { git = "https://github.com/paritytech/cumulus", branch = "master" }
-cumulus-client-collator = { git = "https://github.com/paritytech/cumulus", branch = "master" }
-cumulus-client-network = { git = "https://github.com/paritytech/cumulus", branch = "master" }
-cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus", branch = "master" }
-cumulus-client-service = { git = "https://github.com/paritytech/cumulus", branch = "master" }
-cumulus-client-consensus-relay-chain = { git = "https://github.com/paritytech/cumulus", branch = "master" }
-cumulus-test-relay-sproof-builder = { git = "https://github.com/paritytech/cumulus", branch = "master" }
-cumulus-primitives-parachain-inherent = { git = "https://github.com/paritytech/cumulus", branch = "master" }
+cumulus-client-consensus-common = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-v0.7" }
+cumulus-client-collator = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-v0.7" }
+cumulus-client-network = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-v0.7" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-v0.7" }
+cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-v0.7" }
+cumulus-client-consensus-relay-chain = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-v0.7" }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-v0.7" }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-v0.7" }
 
 # Polkadot dependencies
 polkadot-primitives = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-v0.7" }
