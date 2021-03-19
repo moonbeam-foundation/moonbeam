@@ -459,7 +459,7 @@ pub mod pallet {
 		/// Round inflation range set with the provided annual inflation range
 		RoundInflationSet(Perbill, Perbill, Perbill),
 		/// Staking expectations set
-		SetStakeExpectations(BalanceOf<T>, BalanceOf<T>, BalanceOf<T>),
+		StakeExpectationsSet(BalanceOf<T>, BalanceOf<T>, BalanceOf<T>),
 		/// Set total selected candidates to this value [old, new]
 		TotalSelectedSet(u32, u32),
 		/// Set blocks per round [current_round, first_block, old, new]
@@ -659,7 +659,7 @@ pub mod pallet {
 			ensure!(expectations.is_valid(), Error::<T>::InvalidSchedule);
 			let mut config = <InflationConfig<T>>::get();
 			config.set_expectations(expectations);
-			Self::deposit_event(Event::SetStakeExpectations(
+			Self::deposit_event(Event::StakeExpectationsSet(
 				config.expect.min,
 				config.expect.ideal,
 				config.expect.max,
