@@ -10076,7 +10076,6 @@ dependencies = [
  "frame-system",
  "hex-literal",
  "pallet-balances",
- "pallet-ethereum",
  "pallet-evm",
  "pallet-sudo",
  "pallet-timestamp",

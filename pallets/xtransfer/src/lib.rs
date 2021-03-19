@@ -285,7 +285,7 @@ pub mod pallet {
 			if let Err(loc) = channels.binary_search(&sender) {
 				channels.insert(loc, sender);
 			}
-			// update sender channels storage item
+			// update recipient channels storage item
 			<RecipientChannels<T>>::put(channels);
 			// emit event
 			Self::deposit_event(Event::AcceptedChannelRequest(sender));

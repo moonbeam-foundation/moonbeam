@@ -10,11 +10,10 @@ fp-evm = { git = "https://github.com/purestake/frontier", default-features = fal
 frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 hex-literal = { version = "0.3.1" }
-pallet-balances = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
-pallet-timestamp = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
-pallet-ethereum = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.6-moonbeam" }
 pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.6-moonbeam" }
 pallet-sudo = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+pallet-balances = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+pallet-timestamp = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
 rustc-hex = { version = "2.1.0", default-features = false }
 serde = { version = "1.0.101", optional = true }
@@ -31,7 +30,6 @@ std = [
     "frame-support/std",
     "frame-system/std",
     "pallet-balances/std",
-    "pallet-ethereum/std",
     "pallet-evm/std",
     "pallet-sudo/std",
     "pallet-timestamp/std",
