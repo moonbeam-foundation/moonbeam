@@ -657,6 +657,7 @@ impl_runtime_apis! {
 			config.estimate = true;
 
 			let mut traces = vec![];
+			let mut eth_tx_index = 0;
 
 			// Apply all extrinsics. Ethereum extrinsics are traced.
 			for ext in extrinsics.into_iter() {
@@ -731,14 +732,16 @@ impl_runtime_apis! {
 									},
 									subtraces: trace.subtraces,
 									trace_address: trace.trace_address,
-									transaction_hash: H256::default(),
-									transaction_position: 0,
+									transaction_hash: H256::default(), // Can't be known here, must be inserted upstream.
+									transaction_position: eth_tx_index,
 								},
 								_ => todo!(),
 							}
 						).collect();
 
 						traces.append(&mut tx_traces);
+
+						eth_tx_index += 1;
 					},
 					_ => {let _ = Executive::apply_extrinsic(ext); }
 				};

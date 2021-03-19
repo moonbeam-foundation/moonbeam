@@ -55,7 +55,7 @@ use fc_rpc_core::{
 use fp_rpc::{ConvertTransaction, EthereumRuntimeRPCApi};
 
 use moonbeam_rpc_core_trace::{FilterRequest, Trace as TraceT, TransactionTrace};
-use moonbeam_rpc_primitives_debug::{single, DebugRuntimeApi};
+use moonbeam_rpc_primitives_debug::{block, single, DebugRuntimeApi};
 
 pub struct Trace {
 	pub requester: TraceFilterCacheRequester,
@@ -160,13 +160,15 @@ where
 				select! {
 					req = rx.next() => {
 						if let Some((req, response_tx)) = req {
-							let block_heights: Vec<u32> = (
-								req.from_block.unwrap_or(0)
-								..= req.to_block.expect("end block range")
-							).collect();
+							let range = req.from_block.unwrap_or(0)
+								..= req.to_block.expect("end block range");
 
+							let block_heights: Vec<u32> = range.clone().collect();
+
+							// Fill cache if needed.
 							for block_height in block_heights.iter() {
-								if !cached_blocks.contains_key(block_height) {
+								let cached = cached_blocks.contains_key(block_height);
+								if !cached {
 									let traces = Self::cache_block(&client, &backend, &eth_api, *block_height);
 									let traces = match traces {
 										Ok(traces) => traces,
@@ -181,16 +183,31 @@ where
 										expiration: Instant::now() + EXPIRATION_DELAY,
 									});
 								}
-
-								todo!("Build filtered trace vec");
 							}
 
+							// Build filtered result.
+							let traces: Vec<_> = cached_blocks.range(range)
+								.map(|(_, v)| &v.traces)
+								.flatten()
+								.filter(|trace| match trace.action {
+									block::TransactionTraceAction::Call {from, to, ..} => {
+										(req.from_address.is_empty() || req.from_address.contains(&from))
+										&& (req.to_address.is_empty() || req.to_address.contains(&to))
+									}
+								})
+								.skip(req.after as usize)
+								.take(req.count as usize)
+								.cloned()
+								.collect();
+
+							// Send response.
+							let _ = response_tx.send(Ok(traces));
+
+							// Add expiration wake up.
 							expiration_futures.push(async move {
 								sleep(Duration::from_secs(60)).await;
 								block_heights
 							});
-
-							todo!("send response");
 						} else {
 							// All Senders are dropped, stopping the service.
 							break;
@@ -267,16 +284,31 @@ where
 			.unwrap();
 
 		// Trace the block.
-		let traces = api
+		let mut traces: Vec<_> = api
 			.trace_block(&substrate_parent_block_id, extrinsics)
 			.map_err(|e| {
 				internal_err(format!(
-					"Runtime error when replaying block {} : {:?}",
+					"Blockchaain error when replaying block {} : {:?}",
+					block_height, e
+				))
+			})?
+			.map_err(|e| {
+				internal_err(format!(
+					"Internal runtime error when replaying block {} : {:?}",
 					block_height, e
 				))
 			})?;
 
-		todo!("Interpret result");
+		// Fill missing data.
+		for trace in traces.iter_mut() {
+			trace.block_hash = eth_block_hash;
+			trace.block_number = block_height;
+			trace.transaction_hash = *transactions_hash
+				.get(trace.transaction_position as usize)
+				.expect("amount of eth transactions should match");
+		}
+
+		Ok(traces)
 	}
 }
 
