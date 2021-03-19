@@ -89,11 +89,11 @@ cumulus-test-relay-sproof-builder = { git = "https://github.com/paritytech/cumul
 cumulus-primitives-parachain-inherent = { git = "https://github.com/paritytech/cumulus", branch = "master" }
 
 # Polkadot dependencies
-polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "master" }
-polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "master" }
-polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "master" }
-polkadot-test-service = { git = "https://github.com/paritytech/polkadot", branch = "master" }
-polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "master" }
+polkadot-primitives = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-v0.7" }
+polkadot-service = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-v0.7" }
+polkadot-cli = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-v0.7" }
+polkadot-test-service = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-v0.7" }
+polkadot-parachain = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-v0.7" }
 
 [build-dependencies]
 substrate-build-script-utils = { git = "https://github.com/paritytech/substrate", branch = "master" }
@@ -105,9 +105,9 @@ rand = "0.7.3"
 tokio = { version = "0.2.13", features = ["macros"] }
 
 # Polkadot dev-dependencies
-polkadot-runtime-common = { git = "https://github.com/paritytech/polkadot", branch = "master" }
-polkadot-test-runtime = { git = "https://github.com/paritytech/polkadot", branch = "master" }
-polkadot-test-service = { git = "https://github.com/paritytech/polkadot", branch = "master" }
+polkadot-runtime-common = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-v0.7" }
+polkadot-test-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-v0.7" }
+polkadot-test-service = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-v0.7" }
 
 # Substrate dev-dependencies
 pallet-sudo = { git = "https://github.com/paritytech/substrate", branch = "master" }

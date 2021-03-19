@@ -16,7 +16,7 @@ cumulus-upward-message = { git = "https://github.com/paritytech/cumulus",  defau
 cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
 
 # Polkadot dependencies
-polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "master", default-features = false }
+polkadot-parachain = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-v0.7", default-features = false }
 
 [features]
 default = ["std"]
