@@ -50,10 +50,13 @@ pub mod pallet {
 	use frame_support::{pallet_prelude::*, traits::Get, transactional};
 	use frame_system::pallet_prelude::*;
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
-	use sp_std::prelude::*;
-	use xcm::v0::{
-		Error as XcmError, ExecuteXcm, Junction, MultiAsset, MultiLocation, NetworkId, Order,
-		OriginKind, SendXcm, Xcm,
+	use sp_std::{convert::TryFrom, prelude::*};
+	use xcm::{
+		v0::{
+			Error as XcmError, ExecuteXcm, Junction, MultiAsset, MultiLocation, NetworkId, Order,
+			OriginKind, SendXcm, Xcm,
+		},
+		VersionedXcm,
 	};
 	use xcm_executor::traits::LocationConversion;
 
@@ -86,7 +89,7 @@ pub mod pallet {
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
 
-	/// The shape of AccountId for (most) substrate chains (not Moonbeam, which is H160 so 20 bytes)
+	/// The shape of AccountId for (most) substrate chains (not Moonbeam, which is H160 => 20 bytes)
 	type AccountId32 = [u8; 32];
 
 	/// Configuration trait of this pallet.
@@ -121,18 +124,34 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// Transferred to relay chain. \[src, dest, amount\]
-		TransferredToRelayChain(T::AccountId, AccountId32, T::Balance),
-		/// Transfer to relay chain failed. \[src, dest, amount, error\]
-		TransferToRelayChainFailed(T::AccountId, AccountId32, T::Balance, XcmError),
-		/// Sent channel open request to parachain
-		SentChannelRequest(ParaId),
+		/// Sent channel open request to parachain \[recipient_para_id\]
+		SenderChannelRequested(ParaId),
+		/// Sender channel request accepted by parachain \[recipient_para_id\]
+		SenderChannelAccepted(ParaId),
+		/// Error with received sender channel accepted because one already exists locally
+		SenderChannelAlreadyExists(ParaId),
+		/// Error with recipient channel requested because request already exists locally
+		RecipientChannelAlreadyExists(ParaId),
+		/// Error closing sender channel because channel DNE
+		CloseSenderChannelDNE(ParaId),
+		/// Error closing recipient channel because channel DNE
+		CloseRecipientChannelDNE(ParaId),
+		/// Received new channel request with self as recipient
+		ReceivedRecipientChannelRequest(ParaId),
 		/// Accepted channel open request from parachain
 		AcceptedChannelRequest(ParaId),
+		/// Requested to close the channel with self as sender \[recipient_para_id\]
+		RequestedCloseSenderChannel(ParaId),
+		/// Requested to close the channel with self as recipient \[sender_para_id\]
+		RequestedCloseRecipientChannel(ParaId),
 		/// Closed channel with parachain as recipient and self as sender
 		ClosedSenderChannel(ParaId),
 		/// Closed channel with parachain as sender and self as recipient
 		ClosedRecipientChannel(ParaId),
+		/// Transferred to relay chain. \[src, dest, amount\]
+		TransferredToRelayChain(T::AccountId, AccountId32, T::Balance),
+		/// Transfer to relay chain failed. \[src, dest, amount, error\]
+		TransferToRelayChainFailed(T::AccountId, AccountId32, T::Balance, XcmError),
 		/// Transferred to parachain. \[x_currency_id, src, para_id, dest, dest_network, amount\]
 		TransferredToAccountId32Parachain(
 			XCurrencyId,
@@ -192,14 +211,18 @@ pub mod pallet {
 	}
 
 	#[pallet::storage]
+	#[pallet::getter(fn recipient_channel_requests)]
+	/// Open channel requests on the relay chain to self from these parachains
+	pub type RecipientChannelRequests<T: Config> = StorageValue<_, Vec<ParaId>, ValueQuery>;
+
+	#[pallet::storage]
 	#[pallet::getter(fn sender_channels)]
-	/// Stores all parachains with which this parachain has opened a channel as the sender
-	/// -> may be redundant, but it propagates errors earlier than in processing by runtime relay
+	/// Stores all para IDs with which this parachain has opened a channel with self as sender
 	pub type SenderChannels<T: Config> = StorageValue<_, Vec<ParaId>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn recipient_channels)]
-	/// Stores all parachains with which this parachain has accepted a channel as the recipient
+	/// Stores all para IDs with which this parachain has accepted a channel with self as recipient
 	pub type RecipientChannels<T: Config> = StorageValue<_, Vec<ParaId>, ValueQuery>;
 
 	#[pallet::hooks]
@@ -209,7 +232,6 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		#[pallet::weight(10)]
 		/// Request to open HRMP channel with another parachain
-		/// - default `proposed_max_capacity` is 8 and `proposed_max_message_size` is 1024
 		pub fn open_channel(
 			origin: OriginFor<T>,
 			recipient: ParaId,
@@ -233,7 +255,7 @@ pub mod pallet {
 			T::XcmSender::send_xcm(MultiLocation::Null, message)
 				.map_err(|_| Error::<T>::FailedToSendXcm)?;
 			// emit event
-			Self::deposit_event(Event::SentChannelRequest(recipient));
+			Self::deposit_event(Event::SenderChannelRequested(recipient));
 			Ok(().into())
 		}
 		#[pallet::weight(10)]
@@ -279,7 +301,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			frame_system::ensure_root(origin)?;
 			ensure!(recipient != T::ParaId::get(), Error::<T>::CannotSendToSelf);
-			let mut channels = <SenderChannels<T>>::get();
+			let channels = <SenderChannels<T>>::get();
 			ensure!(
 				channels.binary_search(&recipient).is_ok(),
 				Error::<T>::NoSenderChannelOpen
@@ -292,12 +314,7 @@ pub mod pallet {
 			// send message to relay chain
 			T::XcmSender::send_xcm(MultiLocation::Null, message)
 				.map_err(|_| Error::<T>::FailedToSendXcm)?;
-			// update storage
-			if let Ok(loc) = channels.binary_search(&recipient) {
-				channels.remove(loc);
-			}
-			<SenderChannels<T>>::put(channels);
-			Self::deposit_event(Event::ClosedSenderChannel(recipient));
+			Self::deposit_event(Event::RequestedCloseSenderChannel(recipient));
 			Ok(().into())
 		}
 		#[pallet::weight(10)]
@@ -310,7 +327,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			frame_system::ensure_root(origin)?;
 			ensure!(sender != T::ParaId::get(), Error::<T>::CannotSendToSelf);
-			let mut channels = <RecipientChannels<T>>::get();
+			let channels = <RecipientChannels<T>>::get();
 			ensure!(
 				channels.binary_search(&sender).is_ok(),
 				Error::<T>::NoRecipientChannelOpen
@@ -323,12 +340,7 @@ pub mod pallet {
 			// send message to accept the channel request
 			T::XcmSender::send_xcm(MultiLocation::Null, message)
 				.map_err(|_| Error::<T>::FailedToSendXcm)?;
-			// update storage
-			if let Ok(loc) = channels.binary_search(&sender) {
-				channels.remove(loc);
-			}
-			<RecipientChannels<T>>::put(channels);
-			Self::deposit_event(Event::ClosedRecipientChannel(sender));
+			Self::deposit_event(Event::RequestedCloseRecipientChannel(sender));
 			Ok(().into())
 		}
 		/// Transfer relay chain tokens to relay chain.
@@ -515,24 +527,75 @@ pub mod pallet {
 		}
 	}
 
-	/// TODO: Use this to update RecipientChannels and SenderChannels if either are closed
-	/// or if SenderRequests are accepted
 	impl<T: Config> DownwardMessageHandler for Module<T> {
-		fn handle_downward_message(_msg: InboundDownwardMessage) {
-			todo!()
-			// let hash = msg.using_encoded(T::Hashing::hash);
-			// log::debug!("Processing Downward XCM: {:?}", &hash);
-			// let event = match VersionedXcm::decode(&mut &msg.msg[..]).map(Xcm::try_from) {
-			// 	Ok(Ok(xcm)) => match T::XcmExecutor::execute_xcm(Junction::Parent.into(), xcm) {
-			// 		Ok(..) => RawEvent::Success(hash),
-			// 		Err(e) => RawEvent::Fail(hash, e),
-			// 	},
-			// 	Ok(Err(..)) => RawEvent::BadVersion(hash),
-			// 	Err(..) => RawEvent::BadFormat(hash),
-			// };
-			// Self::deposit_event(event);
-		} // we'll also want to create a ChannelRequests storage item locally that is updated based
-  // on DownwardMessages passed from the relay chain
+		fn handle_downward_message(msg: InboundDownwardMessage) {
+			match VersionedXcm::decode(&mut &msg.msg[..]).map(Xcm::try_from) {
+				Ok(Ok(xcm)) => {
+					match xcm {
+						Xcm::HrmpNewChannelOpenRequest { sender, .. } => {
+							let mut channels = <RecipientChannelRequests<T>>::get();
+							let sender: ParaId = sender.into();
+							// if request from id already exists, not added to requests
+							if let Err(loc) = channels.binary_search(&sender) {
+								channels.insert(loc, sender);
+								<RecipientChannelRequests<T>>::put(channels);
+								Self::deposit_event(Event::ReceivedRecipientChannelRequest(sender));
+							} else {
+								// event error
+								Self::deposit_event(Event::RecipientChannelAlreadyExists(sender));
+							}
+						}
+						Xcm::HrmpChannelAccepted { recipient } => {
+							let mut channels = <SenderChannels<T>>::get();
+							let recipient: ParaId = recipient.into();
+							// if channel with id already exists, not added to channels
+							if let Err(loc) = channels.binary_search(&recipient) {
+								channels.insert(loc, recipient);
+								<SenderChannels<T>>::put(channels);
+								Self::deposit_event(Event::SenderChannelAccepted(recipient));
+							} else {
+								// event error
+								Self::deposit_event(Event::SenderChannelAlreadyExists(recipient));
+							}
+						}
+						Xcm::HrmpChannelClosing {
+							sender, recipient, ..
+						} => {
+							let self_id = T::ParaId::get();
+							let sender: ParaId = sender.into();
+							let recipient: ParaId = recipient.into();
+							if sender == self_id {
+								let mut channels = <SenderChannels<T>>::get();
+								// update storage
+								if let Ok(loc) = channels.binary_search(&recipient) {
+									channels.remove(loc);
+									<SenderChannels<T>>::put(channels);
+									Self::deposit_event(Event::ClosedSenderChannel(recipient));
+								} else {
+									// event error
+									Self::deposit_event(Event::CloseSenderChannelDNE(recipient));
+								}
+							}
+							if recipient == self_id {
+								let mut channels = <RecipientChannels<T>>::get();
+								// update storage
+								if let Ok(loc) = channels.binary_search(&sender) {
+									channels.remove(loc);
+									<RecipientChannels<T>>::put(channels);
+									Self::deposit_event(Event::ClosedRecipientChannel(sender));
+								} else {
+									// event error
+									Self::deposit_event(Event::CloseRecipientChannelDNE(recipient));
+								}
+							}
+						}
+						_ => (),
+					}
+				}
+				Ok(Err(..)) => (),
+				Err(..) => (),
+			}
+		}
 	}
 
 	impl<T: Config> Pallet<T> {

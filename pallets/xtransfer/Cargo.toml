@@ -3,7 +3,7 @@ authors = ["PureStake"]
 edition = "2018"
 name = "xtransfer"
 version = "0.1.0"
-description = "interface for sending cross-chain transfers to relay chain or other parachains"
+description = "interface for handling cross-chain transfers to relay chain or other parachains"
 
 [dependencies]
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
