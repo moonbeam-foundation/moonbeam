@@ -20,9 +20,11 @@
 use crate::cli::{EthApi as EthApiCmd, Sealing};
 use async_io::Timer;
 use fc_consensus::FrontierBlockImport;
+use fc_rpc::EthApi;
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use futures::Stream;
 use futures::StreamExt;
+use moonbeam_rpc_trace::TraceFilterCache;
 use moonbeam_runtime::{self, opaque::Block, RuntimeApi};
 use sc_client_api::BlockchainEvents;
 use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
@@ -211,6 +213,27 @@ pub fn new_full(
 		);
 	}
 
+	let (trace_filter_task, trace_filter_requester) = if ethapi_cmd.contains(&EthApiCmd::Debug) {
+		// WARNING : We create a second one in "rpc.rs" for the Trace RPC Api.
+		// Is this okay to have it 2 times ? What happens if they have different parameters (signers ?) ?
+		let eth_api = EthApi::new(
+			client.clone(),
+			transaction_pool.clone(),
+			transaction_pool.pool().clone(),
+			moonbeam_runtime::TransactionConverter,
+			network.clone(),
+			pending_transactions.clone(),
+			vec![],
+			is_authority,
+		);
+
+		let (trace_filter_task, trace_filter_requester) =
+			TraceFilterCache::task(Arc::clone(&client), Arc::clone(&backend), eth_api);
+		(Some(trace_filter_task), Some(trace_filter_requester))
+	} else {
+		(None, None)
+	};
+
 	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
@@ -232,7 +255,7 @@ pub fn new_full(
 				filter_pool: filter_pool.clone(),
 				ethapi_cmd: ethapi_cmd.clone(),
 				command_sink: command_sink.clone(),
-				trace_filter_requester: todo!(),
+				trace_filter_requester: trace_filter_requester.clone(),
 			};
 			crate::rpc::create_full(deps, subscription_task_executor.clone())
 		})
@@ -252,6 +275,13 @@ pub fn new_full(
 		system_rpc_tx,
 		config,
 	})?;
+
+	// Spawn trace_filter cache task if enabled.
+	if let Some(trace_filter_task) = trace_filter_task {
+		task_manager
+			.spawn_essential_handle()
+			.spawn("trace-filter-cache", trace_filter_task);
+	}
 
 	// Spawn Frontier EthFilterApi maintenance task.
 	if filter_pool.is_some() {
