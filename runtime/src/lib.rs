@@ -656,6 +656,8 @@ impl_runtime_apis! {
 			let mut config = <Runtime as pallet_evm::Config>::config().clone();
 			config.estimate = true;
 
+			let mut traces = vec![];
+
 			// Apply all extrinsics. Ethereum extrinsics are traced.
 			for ext in extrinsics.into_iter() {
 				match &ext.function {
@@ -709,36 +711,40 @@ impl_runtime_apis! {
 							_ => return Err(sp_runtime::DispatchError::Other("Runtime API error")),
 						};
 
-						let tx_traces: Vec<_> = tx_traces.into_iter().map(|trace|
+						// Convert traces from "single" format to "block" format.
+						let mut tx_traces: Vec<_> = tx_traces.into_iter().map(|trace|
 							match trace.inner {
-								single::CallInner::Call {input, to, res, ..} => block::TransactionTrace {
+								single::CallInner::Call {input, to, res, call_type} => block::TransactionTrace {
 									action: block::TransactionTraceAction::Call {
+										call_type,
 										from,
 										gas: trace.gas,
 										input,
 										to,
 										value: trace.value,
 									},
-									block_hash: H256::default(), // block hash will be inserted by RPC api
-									block_number: 0, // same
-									result: todo!(),
-									// TODO : we need to compute this value by counting its children.
-									// Is this the expected behavior for Blockscout too ?!
-									subtraces: 0,
+									block_hash: H256::default(), // Can't be known here, must be inserted upstream.
+									block_number: 0, // Can't be known here, must be inserted upstream.
+									result: block::TransactionTraceResult {
+										gas_used: trace.gas_used,
+										res
+									},
+									subtraces: trace.subtraces,
 									trace_address: trace.trace_address,
-									transaction_hash: todo!(),
-									transaction_position: todo!(),
-									type_: todo!(),
+									transaction_hash: H256::default(),
+									transaction_position: 0,
 								},
 								_ => todo!(),
 							}
 						).collect();
+
+						traces.append(&mut tx_traces);
 					},
 					_ => {let _ = Executive::apply_extrinsic(ext); }
 				};
 			}
 
-			todo!()
+			Ok(traces)
 		}
 	}
 

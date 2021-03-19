@@ -34,24 +34,23 @@ pub struct TransactionTrace {
 	#[cfg_attr(feature = "std", serde(serialize_with = "h256_serialize"))]
 	pub block_hash: H256,
 	pub block_number: u32,
-	pub result: (), // TODO
+	pub result: TransactionTraceResult,
 	pub subtraces: u32,
 	pub trace_address: Vec<u32>,
 	#[cfg_attr(feature = "std", serde(serialize_with = "h256_serialize"))]
 	pub transaction_hash: H256,
 	pub transaction_position: u32,
-	#[cfg_attr(
-		feature = "std",
-		serde(rename = "type", serialize_with = "string_serialize")
-	)]
-	pub type_: Vec<u8>,
 }
 
 #[derive(Clone, Eq, PartialEq, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(Serialize))]
-#[cfg_attr(feature = "std", serde(rename_all = "camelCase", tag = "callType"))]
+#[cfg_attr(
+	feature = "std",
+	serde(rename_all = "camelCase", tag = "type", content = "action")
+)]
 pub enum TransactionTraceAction {
 	Call {
+		call_type: super::CallType,
 		from: H160,
 		gas: U256,
 		#[cfg_attr(feature = "std", serde(serialize_with = "bytes_0x_serialize"))]
@@ -59,7 +58,7 @@ pub enum TransactionTraceAction {
 		to: H160,
 		value: U256,
 	},
-	// TODO : Other types
+	// TODO : Create and SelfDestruct
 }
 
 #[derive(Clone, Eq, PartialEq, Encode, Decode)]
@@ -68,5 +67,5 @@ pub enum TransactionTraceAction {
 pub struct TransactionTraceResult {
 	pub gas_used: U256,
 	#[cfg_attr(feature = "std", serde(flatten))]
-	res: crate::CallResult,
+	pub res: crate::CallResult,
 }

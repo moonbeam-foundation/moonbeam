@@ -288,7 +288,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 		// Insert entry.
 
 		// We pop the children item, giving back this context trace_address.
-		self.trace_address.pop();
+		let subtraces = self.trace_address.pop().unwrap();
 
 		self.entries.insert(
 			entries_index,
@@ -308,6 +308,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 					Call {
 						from,
 						trace_address: self.trace_address.clone(),
+						subtraces,
 						value,
 						gas: U256::from(gas_at_end),
 						gas_used: U256::from(gas_used),
@@ -356,6 +357,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 					Call {
 						value,
 						trace_address: self.trace_address.clone(),
+						subtraces,
 						gas: U256::from(gas_at_end),
 						gas_used: U256::from(gas_used),
 						from,

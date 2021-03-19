@@ -117,6 +117,11 @@ pub struct Call {
 	pub from: H160,
 	/// Indices of parent calls.
 	pub trace_address: Vec<u32>,
+	/// Number of children calls.
+	/// Not needed for Blockscout, but needed for `crate::block`
+	/// types that are build from this type.
+	#[cfg_attr(feature = "std", serde(skip))]
+	pub subtraces: u32,
 	/// Sends funds to the (payable) function
 	pub value: U256,
 	/// Remaining gas in the runtime.
