@@ -1083,19 +1083,20 @@ pub mod pallet {
 			let remaining = nominator
 				.rm_nomination(collator.clone())
 				.ok_or(Error::<T>::NominationDNE)?;
+			// edge case; if no nominations remaining, leave set of nominators
 			if nominator.nominations.0.len().is_zero() {
 				// leave the set of nominators because no nominations left
 				Self::nominator_leaves_collator(acc.clone(), collator)?;
 				<NominatorState<T>>::remove(&acc);
 				Self::deposit_event(Event::NominatorLeft(acc, old_total));
-			} else {
-				ensure!(
-					remaining >= T::MinNominatorStk::get(),
-					Error::<T>::NomBondBelowMin
-				);
-				Self::nominator_leaves_collator(acc.clone(), collator)?;
-				<NominatorState<T>>::insert(&acc, nominator);
+				return Ok(().into());
 			}
+			ensure!(
+				remaining >= T::MinNominatorStk::get(),
+				Error::<T>::NomBondBelowMin
+			);
+			Self::nominator_leaves_collator(acc.clone(), collator)?;
+			<NominatorState<T>>::insert(&acc, nominator);
 			Ok(().into())
 		}
 		fn nominator_leaves_collator(
