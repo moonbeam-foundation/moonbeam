@@ -95,9 +95,10 @@ impl pallet_balances::Config for Test {
 	type WeightInfo = ();
 }
 parameter_types! {
-	pub const BlocksPerRound: u32 = 5;
+	pub const MinBlocksPerRound: u32 = 3;
+	pub const DefaultBlocksPerRound: u32 = 5;
 	pub const BondDuration: u32 = 2;
-	pub const TotalSelectedCandidates: u32 = 5;
+	pub const MinSelectedCandidates: u32 = 5;
 	pub const MaxNominatorsPerCollator: u32 = 4;
 	pub const MaxCollatorsPerNominator: u32 = 4;
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
@@ -108,9 +109,10 @@ parameter_types! {
 impl crate::pallet::Config for Test {
 	type Event = MetaEvent;
 	type Currency = Balances;
-	type BlocksPerRound = BlocksPerRound;
+	type MinBlocksPerRound = MinBlocksPerRound;
+	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type BondDuration = BondDuration;
-	type TotalSelectedCandidates = TotalSelectedCandidates;
+	type MinSelectedCandidates = MinSelectedCandidates;
 	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
 	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
 	type MaxFee = MaxFee;
