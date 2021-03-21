@@ -384,15 +384,15 @@ parameter_types! {
 	pub const MinBlocksPerRound: u32 = 20;
 	/// Default BlocksPerRound is every hour (600 * 6 second block times)
 	pub const DefaultBlocksPerRound: u32 = 600;
-	/// Reward payments and validator exit requests are delayed by 2 hours (2 * 600 * block_time)
+	/// Reward payments and collator exit requests are delayed by 2 hours (2 * 600 * block_time)
 	pub const BondDuration: u32 = 2;
-	/// Maximum 8 valid block authors at any given time
+	/// Minimum 8 collators selected per round, default at genesis and minimum forever after
 	pub const MinSelectedCandidates: u32 = 8;
-	/// Maximum 10 nominators per validator
+	/// Maximum 10 nominators per collator
 	pub const MaxNominatorsPerCollator: u32 = 10;
-	/// The maximum percent a validator can take off the top of its rewards is 50%
+	/// The maximum percent a collator can take off the top of its rewards is 50%
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
-	/// Minimum stake required to be reserved to be a validator is 1_000
+	/// Minimum stake required to be reserved to be a collator is 1_000
 	pub const MinCollatorStk: u128 = 1_000 * GLMR;
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5 * GLMR;
