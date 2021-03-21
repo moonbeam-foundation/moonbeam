@@ -68,15 +68,15 @@ pallet-transaction-payment-rpc = { git = "https://github.com/paritytech/substrat
 sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sc-consensus-manual-seal = { git = "https://github.com/paritytech/substrate", branch = "master" }
 
-evm = { package = "pallet-evm", git = "https://github.com/purestake/frontier", branch = "notlesh-substrate-8b3e5bc" }
-ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "notlesh-substrate-8b3e5bc" }
+evm = { package = "pallet-evm", git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
+ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
 
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "notlesh-substrate-8b3e5bc" }
-fp-consensus = { git = "https://github.com/purestake/frontier", branch = "notlesh-substrate-8b3e5bc" }
-fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "notlesh-substrate-8b3e5bc" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "notlesh-substrate-8b3e5bc" }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "notlesh-substrate-8b3e5bc" }
-fc-db = { git = "https://github.com/purestake/frontier", branch = "notlesh-substrate-8b3e5bc" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
+fp-consensus = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
+fc-db = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
 
 # Cumulus dependencies
 cumulus-client-consensus-common = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-v0.7" }
