@@ -21,7 +21,11 @@
           "code": "<runtime_code>"
         },
         "palletBabe": {
-          "authorities": []
+          "authorities": [],
+          "epochConfig": {
+            "c": [1, 4],
+            "allowed_slots": "PrimaryAndSecondaryVRFSlots"
+          }
         },
         "palletIndices": {
           "indices": []
@@ -94,11 +98,12 @@
             "thread_availability_period": 4,
             "scheduling_lookahead": 0,
             "max_validators_per_core": null,
-            "dispute_period": 0,
-            "no_show_slots": 10,
-            "n_delay_tranches": 0,
+            "max_validators": null,
+            "dispute_period": 6,
+            "no_show_slots": 2,
+            "n_delay_tranches": 25,
             "zeroth_delay_tranche_width": 0,
-            "needed_approvals": 0,
+            "needed_approvals": 2,
             "relay_vrf_modulo_samples": 0,
             "max_upward_queue_count": 8,
             "max_upward_queue_size": 8192,
