@@ -6,8 +6,11 @@ if [ -z "$POLKADOT_COMMIT" ]; then
     head -1 | sed 's/.*#//' |  cut -c1-8`
 fi
 
-echo "Using Polkadot revision #${POLKADOT_COMMIT}"
+POLKADOT_REPO=${POLKADOT_REPO:-"https://github.com/paritytech/polkadot"}
+
+echo "Using Polkadot from $POLKADOT_REPO revision #${POLKADOT_COMMIT}"
 
 docker build . -f docker/polkadot-relay.Dockerfile \
   --build-arg POLKADOT_COMMIT="$POLKADOT_COMMIT" \
+  --build-arg POLKADOT_REPO="$POLKADOT_REPO" \
   -t purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT
