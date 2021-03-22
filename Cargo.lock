@@ -2460,9 +2460,9 @@ dependencies = [
 
 [[package]]
 name = "hex"
-version = "0.4.2"
+version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "644f9158b2f133fd50f5fb3242878846d9eb792e445c893805ff0e3824006e35"
+checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
 name = "hex-literal"
@@ -4007,6 +4007,7 @@ dependencies = [
  "fp-consensus",
  "fp-rpc",
  "futures 0.3.12",
+ "hex",
  "jsonrpc-core 15.1.0",
  "jsonrpc-pubsub 15.1.0",
  "log",
@@ -4134,6 +4135,7 @@ dependencies = [
  "pallet-aura",
  "pallet-author-filter",
  "pallet-balances",
+ "pallet-crowdloan-rewards",
  "pallet-democracy",
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
@@ -4656,10 +4658,13 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
+ "pallet-balances",
  "parity-scale-codec",
  "serde",
  "sp-core",
+ "sp-io",
  "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]

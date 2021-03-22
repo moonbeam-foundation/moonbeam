@@ -421,14 +421,8 @@ impl pallet_author_filter::Config for Runtime {
 	type RandomnessSource = RandomnessCollectiveFlip;
 }
 
-pub const VESTING_BLOCKS: BlockNumber = 1000;
-
-pub struct VestingPeriod(pub BlockNumber);
-
-impl Get<BlockNumber> for VestingPeriod {
-	fn get() -> BlockNumber {
-		return VESTING_BLOCKS;
-	}
+parameter_types! {
+	pub const VestingPeriod: BlockNumber = 1000;
 }
 
 impl pallet_crowdloan_rewards::Config for Runtime {
