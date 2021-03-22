@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -15,8 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Helper methods for computing issuance based on inflation
-use crate::{BalanceOf, Config};
-use frame_support::traits::{Currency, Get};
+use crate::pallet::{BalanceOf, Config, Pallet};
+use frame_support::traits::Currency;
 use parity_scale_codec::{Decode, Encode};
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
@@ -27,7 +27,8 @@ const SECONDS_PER_BLOCK: u32 = 6;
 const BLOCKS_PER_YEAR: u32 = SECONDS_PER_YEAR / SECONDS_PER_BLOCK;
 
 fn rounds_per_year<T: Config>() -> u32 {
-	BLOCKS_PER_YEAR / T::BlocksPerRound::get()
+	let blocks_per_round = <Pallet<T>>::round().length;
+	BLOCKS_PER_YEAR / blocks_per_round
 }
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]

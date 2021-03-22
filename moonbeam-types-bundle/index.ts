@@ -127,6 +127,7 @@ export const moonbeamDefinitions = {
       minmax: [19, undefined],
       types: {
         AccountId: "EthereumAccountId",
+        AccountInfo: "AccountInfoWithProviders",
         Address: "AccountId",
         Balance: "u128",
         LookupSource: "AccountId",
@@ -142,7 +143,7 @@ export const moonbeamDefinitions = {
           bond: "Balance",
           nominators: "Vec<Bond>",
           total: "Balance",
-          state: "ValidatorStatus",
+          state: "CollatorStatus",
         },
         Nominator: {
           nominations: "Vec<Bond>",
@@ -152,7 +153,7 @@ export const moonbeamDefinitions = {
           owner: "AccountId",
           amount: "Balance",
         },
-        ValidatorStatus: {
+        CollatorStatus: {
           _enum: ["Active", "Idle", { Leaving: "RoundIndex" }],
         },
         TxPoolResultContent: {
@@ -197,15 +198,15 @@ export const moonbeamDefinitions = {
           round: "RangePerbill",
         },
         OrderedSet: "Vec<Bond>",
-        Validator: {
+        Collator: {
           id: "AccountId",
           fee: "Perbill",
           bond: "Balance",
           nominators: "Vec<Bond>",
           total: "Balance",
-          state: "ValidatorStatus",
+          state: "CollatorStatus",
         },
-        ValidatorSnapshot: {
+        CollatorSnapshot: {
           fee: "Perbill",
           bond: "Balance",
           nominators: "Vec<Bond>",

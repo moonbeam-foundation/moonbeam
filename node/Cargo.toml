@@ -28,13 +28,15 @@ serde_json = "1.0"
 jsonrpc-core = "15.0.0"
 jsonrpc-pubsub = "15.0.0"
 hex = "0.4.3"
+sha3 = { version = "0.8", default-features = false }
+tiny-hderive = { version = "0.3.0", default-features = false }
+tiny-bip39 = {version = "0.6", default-features = false}
 
 # Moonbeam dependencies
 moonbeam-runtime = { path = "../runtime" }
 moonbeam-rpc-txpool = { path = "../client/rpc/txpool" }
 moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool" }
 author-inherent = { path = "../pallets/author-inherent"}
-stake = { path = "../pallets/stake"}
 
 # Substrate dependencies
 sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
