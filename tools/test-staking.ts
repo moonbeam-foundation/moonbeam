@@ -185,7 +185,7 @@ async function test() {
 
   // Revoke Nomination
   const unsub3 = await polkadotApi.tx.parachainStaking
-    .leaveNominators()
+    .revokeNomination(GERALD) //TODO: when converting to test add .leaveNominators() that should produce the same behavior
     .signAndSend(alith, ({ events = [], status }) => {
       console.log(`Current status is ${status.type}`);
 
