@@ -31,7 +31,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 use fp_rpc::TransactionStatus;
 use parity_scale_codec::{Decode, Encode};
 use sp_api::impl_runtime_apis;
-use sp_core::{OpaqueMetadata, H160, H256, U256};
+use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify},
@@ -51,7 +51,7 @@ pub use frame_support::{
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 	ConsensusEngineId, StorageValue,
 };
-use frame_system::{EnsureNever, EnsureRoot, EnsureSigned};
+use frame_system::{EnsureOneOf, EnsureRoot};
 use pallet_ethereum::Call::transact;
 use pallet_evm::{
 	Account as EVMAccount, EnsureAddressNever, EnsureAddressSame, FeeCalculator,
@@ -287,7 +287,10 @@ parameter_types! {
 	pub const TechComitteeMaxMembers: u32 = 100;
 }
 
-impl pallet_collective::Config<pallet_collective::Instance1> for Runtime {
+type CouncilInstance = pallet_collective::Instance1;
+type TechCommitteeInstance = pallet_collective::Instance2;
+
+impl pallet_collective::Config<CouncilInstance> for Runtime {
 	type Origin = Origin;
 	type Event = Event;
 	type Proposal = Call;
@@ -298,7 +301,7 @@ impl pallet_collective::Config<pallet_collective::Instance1> for Runtime {
 	type WeightInfo = (); // TODO : Better Weight Info ?
 }
 
-impl pallet_collective::Config<pallet_collective::Instance2> for Runtime {
+impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 	type Origin = Origin;
 	type Event = Event;
 	type Proposal = Call;
@@ -322,16 +325,7 @@ parameter_types! {
 	pub const MaxProposals: u32 = 100;
 	pub const PreimageByteDeposit: Balance = GLMR / 1_000;
 	pub const InstantAllowed: bool = false;
-
-	pub const Ensure100: u32 = 100;
 }
-
-type EnsureUnanimousCouncil = pallet_collective::EnsureProportionAtLeast<
-	Ensure100,
-	Ensure100,
-	AccountId,
-	pallet_collective::Instance1,
->;
 
 // todo : ensure better origins
 impl pallet_democracy::Config for Runtime {
@@ -343,22 +337,35 @@ impl pallet_democracy::Config for Runtime {
 	type VotingPeriod = VotingPeriod;
 	type FastTrackVotingPeriod = FastTrackVotingPeriod;
 	type MinimumDeposit = MinimumDeposit;
-	type ExternalOrigin = EnsureRoot<AccountId>;
-	type ExternalMajorityOrigin = EnsureRoot<AccountId>;
-	type ExternalDefaultOrigin = EnsureRoot<AccountId>;
-	type FastTrackOrigin = EnsureRoot<AccountId>;
-	type CancellationOrigin = EnsureRoot<AccountId>;
+	type ExternalOrigin =
+		pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, CouncilInstance>;
+	type ExternalMajorityOrigin =
+		pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, CouncilInstance>;
+	type ExternalDefaultOrigin =
+		pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, CouncilInstance>;
+	type FastTrackOrigin =
+		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
+	type InstantOrigin =
+		pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, TechCommitteeInstance>;
+	type CancellationOrigin = EnsureOneOf<
+		AccountId,
+		EnsureRoot<AccountId>,
+		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, CouncilInstance>,
+	>;
+	type CancelProposalOrigin = EnsureOneOf<
+		AccountId,
+		EnsureRoot<AccountId>,
+		pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, TechCommitteeInstance>,
+	>;
 	type BlacklistOrigin = EnsureRoot<AccountId>;
-	type CancelProposalOrigin = EnsureRoot<AccountId>;
-	type VetoOrigin = EnsureNever<AccountId>; // (root not possible)
+	type VetoOrigin = pallet_collective::EnsureMember<AccountId, TechCommitteeInstance>;
 	type CooloffPeriod = CooloffPeriod;
 	type PreimageByteDeposit = PreimageByteDeposit;
 	type Slash = ();
-	type InstantOrigin = EnsureRoot<AccountId>;
 	type InstantAllowed = InstantAllowed;
 	type Scheduler = Scheduler;
 	type MaxVotes = MaxVotes;
-	type OperationalPreimageOrigin = EnsureSigned<AccountId>;
+	type OperationalPreimageOrigin = pallet_collective::EnsureMember<AccountId, CouncilInstance>;
 	type PalletsOrigin = OriginCaller;
 	type WeightInfo = ();
 	type MaxProposals = MaxProposals;
