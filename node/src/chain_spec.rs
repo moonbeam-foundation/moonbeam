@@ -81,9 +81,9 @@ pub fn development_chain_spec() -> ChainSpec {
 				vec![(
 					assigned_contributor.into(),
 					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
-					1_000 * GLMR,
+					1_000u32,
 				)],
-				vec![(unassigned_contributor.into(), 1_000 * GLMR)],
+				vec![(unassigned_contributor.into(), 1_000u32)],
 				Default::default(), // para_id
 				1281,               //ChainId
 			)
@@ -161,8 +161,8 @@ fn testnet_genesis(
 	stakers: Vec<(AccountId, Option<AccountId>, Balance)>,
 	inflation_config: InflationInfo<Balance>,
 	endowed_accounts: Vec<AccountId>,
-	assigned_contributors: Vec<(AccountId32, AccountId, Balance)>,
-	unassigned_contributors: Vec<(AccountId32, Balance)>,
+	assigned_contributors: Vec<(AccountId32, AccountId, u32)>,
+	unassigned_contributors: Vec<(AccountId32, u32)>,
 	para_id: ParaId,
 	chain_id: u64,
 ) -> GenesisConfig {

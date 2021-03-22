@@ -88,7 +88,6 @@ pub mod pallet {
 	use sp_runtime::traits::Verify;
 	use sp_runtime::{MultiSignature, SaturatedConversion};
 	use sp_std::convert::TryInto;
-
 	/// The Author Filter pallet
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
@@ -317,9 +316,9 @@ pub mod pallet {
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
 		/// Contributions that have a native account id associated already.
-		pub associated: Vec<(T::RelayChainAccountId, T::AccountId, BalanceOf<T>)>,
+		pub associated: Vec<(T::RelayChainAccountId, T::AccountId, u32)>,
 		/// Contributions that will need a native account id to be associated through an extrinsic.
-		pub unassociated: Vec<(T::RelayChainAccountId, BalanceOf<T>)>,
+		pub unassociated: Vec<(T::RelayChainAccountId, u32)>,
 		/// The ratio of (reward tokens to be paid) / (relay chain funds contributed)
 		/// This is dead stupid simple using a u32. So the reward amount has to be an integer
 		/// multiple of the contribution amount. A better fixed-ratio solution would be
@@ -332,8 +331,8 @@ pub mod pallet {
 	impl<T: Config> Default for GenesisConfig<T> {
 		fn default() -> Self {
 			Self {
-				associated: vec![],
-				unassociated: vec![],
+				associated: Vec::new(),
+				unassociated: Vec::new(),
 				reward_ratio: 1,
 			}
 		}
