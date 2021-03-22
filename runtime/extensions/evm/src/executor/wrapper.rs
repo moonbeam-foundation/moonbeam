@@ -246,6 +246,8 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 
 		// Execute the call/create.
 		let exit_reason = loop {
+			let mut subcall = false;
+
 			if let Some((opcode, _stack)) = runtime.machine().inspect() {
 				self.call_type = match opcode {
 					Opcode(241) => Some(CallType::Call),
@@ -255,18 +257,13 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 					_ => None,
 				};
 
-				let subcall = self.call_type.is_some();
+				subcall = self.call_type.is_some();
 
 				if opcode == Opcode(0xf3) {
 					let stack = runtime.machine().stack().data();
 
 					return_stack_offset = stack.get(stack.len() - 1).cloned();
 					return_stack_len = stack.get(stack.len() - 2).cloned();
-				}
-
-				if subcall {
-					// We increase the last value of "trace_address" for a potential next subcall.
-					*self.trace_address.last_mut().unwrap() += 1;
 				}
 			}
 
@@ -278,6 +275,11 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 				Err(Capture::Trap(_)) => {
 					break ExitReason::Fatal(ExitFatal::UnhandledInterrupt);
 				}
+			}
+
+			if subcall {
+				// We increase the last value of "trace_address" for a potential next subcall.
+				*self.trace_address.last_mut().unwrap() += 1;
 			}
 		};
 
@@ -366,20 +368,6 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 				}
 			},
 		);
-
-		// If root context, add parent hierarchy
-		if entries_index == 0 {
-			for i in 1..self.entries_next_index {
-				let mut entry = self.entries.remove(&i).unwrap();
-				let parent_index = entry.trace_address[0];
-
-				let parent_entry = self.entries.get(&parent_index).unwrap();
-				entry.trace_address = parent_entry.trace_address.clone();
-				entry.trace_address.push(parent_index);
-
-				self.entries.insert(i, entry);
-			}
-		}
 
 		exit_reason
 	}
