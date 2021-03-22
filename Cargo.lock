@@ -4654,6 +4654,7 @@ dependencies = [
 [[package]]
 name = "pallet-crowdloan-rewards"
 version = "0.6.0"
+source = "git+https://github.com/purestake/crowdloan-rewards?branch=main#311095d62a614ffa79438335088974bba158fe9d"
 dependencies = [
  "frame-support",
  "frame-system",
