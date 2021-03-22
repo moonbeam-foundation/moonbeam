@@ -120,8 +120,8 @@ pub type Crowdloan = Module<Test>;
 pub type Sys = frame_system::Module<Test>;
 
 fn genesis(
-	assigned: Vec<([u8; 32], AccountId, u128)>,
-	unassigned: Vec<([u8; 32], u128)>,
+	assigned: Vec<([u8; 32], AccountId, u32)>,
+	unassigned: Vec<([u8; 32], u32)>,
 ) -> sp_io::TestExternalities {
 	let mut storage = frame_system::GenesisConfig::default()
 		.build_storage::<Test>()
