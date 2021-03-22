@@ -213,7 +213,7 @@ pub fn new_full(
 		);
 	}
 
-	let (trace_filter_task, trace_filter_requester) = if ethapi_cmd.contains(&EthApiCmd::Debug) {
+	let (trace_filter_task, trace_filter_requester) = if ethapi_cmd.contains(&EthApiCmd::Trace) {
 		// WARNING : We create a second one in "rpc.rs" for the Trace RPC Api.
 		// Is this okay to have it 2 times ? What happens if they have different parameters (signers ?) ?
 		let eth_api = EthApi::new(

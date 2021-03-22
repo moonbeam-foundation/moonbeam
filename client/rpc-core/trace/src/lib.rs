@@ -20,7 +20,11 @@ use ethereum_types::{H160, H256};
 use futures::{compat::Compat, future::BoxFuture};
 use jsonrpc_derive::rpc;
 pub use moonbeam_rpc_primitives_debug::block::TransactionTrace;
-use serde::{Deserialize, Serialize};
+use serde::{de::Error, Deserialize, Deserializer};
+use serde_hex::{CompactCapPfx, SerHex};
+
+pub use rpc_impl_Trace::gen_server::Trace as TraceServer;
+
 #[rpc(server)]
 pub trait Trace {
 	#[rpc(name = "trace_filter")]
@@ -34,20 +38,35 @@ pub trait Trace {
 #[serde(rename_all = "camelCase")]
 pub struct FilterRequest {
 	/// (optional?) From this block.
-	pub from_block: Option<u32>,
+	pub from_block: Option<RequestBlockId>,
 
 	/// (optional?) To this block.
-	pub to_block: Option<u32>,
+	pub to_block: Option<RequestBlockId>,
 
 	/// (optional) Sent from these addresses.
-	pub from_address: Vec<H160>,
+	pub from_address: Option<Vec<H160>>,
 
 	/// (optional) Sent to these addresses.
-	pub to_address: Vec<H160>,
+	pub to_address: Option<Vec<H160>>,
 
 	/// (optional) The offset trace number
-	pub after: u32,
+	pub after: Option<u32>,
 
 	/// (optional) Integer number of traces to display in a batch.
-	pub count: u32,
+	pub count: Option<u32>,
+}
+
+#[derive(Clone, Eq, PartialEq, Debug, Deserialize)]
+#[serde(rename_all = "camelCase", untagged)]
+pub enum RequestBlockId {
+	Number(u32),
+	Tag(RequestBlockTag),
+}
+
+#[derive(Clone, Eq, PartialEq, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum RequestBlockTag {
+	Earliest,
+	Latest,
+	Pending,
 }

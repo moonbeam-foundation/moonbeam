@@ -29,7 +29,7 @@ use std::{
 	sync::Arc,
 	time::{Duration, Instant},
 };
-use tokio::{sync::oneshot, time::sleep};
+use tokio::{sync::oneshot, time::delay_for};
 
 use jsonrpc_core::{Error as RpcError, ErrorCode, Result};
 use sc_client_api::{
@@ -54,12 +54,20 @@ use fc_rpc_core::{
 };
 use fp_rpc::{ConvertTransaction, EthereumRuntimeRPCApi};
 
-use moonbeam_rpc_core_trace::{FilterRequest, Trace as TraceT, TransactionTrace};
+pub use moonbeam_rpc_core_trace::{
+	FilterRequest, RequestBlockId, Trace as TraceT, TraceServer, TransactionTrace,
+};
 use moonbeam_rpc_primitives_debug::{block, single, DebugRuntimeApi};
 use tracing::{instrument, Instrument};
 
 pub struct Trace {
 	pub requester: TraceFilterCacheRequester,
+}
+
+impl Trace {
+	pub fn new(requester: TraceFilterCacheRequester) -> Self {
+		Self { requester }
+	}
 }
 
 impl TraceT for Trace {
@@ -157,7 +165,7 @@ where
 			let mut expiration_futures = FuturesUnordered::new();
 			let mut cached_blocks = BTreeMap::<u32, CacheBlock>::new();
 
-			tracing::trace!("Begining Trace Filter Cache Task ...");
+			tracing::info!("Begining Trace Filter Cache Task ...");
 
 			'service: loop {
 				select! {
@@ -168,8 +176,22 @@ where
 
 							tracing::trace!("Begining handling request");
 
-							let range = req.from_block.unwrap_or(0)
-								..= req.to_block.expect("end block range");
+							let from_block = match req.from_block {
+								None => 1,
+								Some(RequestBlockId::Number(n)) => n,
+								_ => todo!("support latest/earliest/pending"),
+							};
+
+							let to_block = match req.from_block {
+								None => todo!("support latest"),
+								Some(RequestBlockId::Number(n)) => n,
+								_ => todo!("support latest/earliest/pending"),
+							};
+
+							let from_address = req.from_address.unwrap_or(vec![]);
+							let to_address = req.to_address.unwrap_or(vec![]);
+
+							let range = from_block ..= to_block;
 
 							let block_heights: Vec<u32> = range.clone().collect();
 
@@ -200,20 +222,25 @@ where
 							}
 
 							// Build filtered result.
-							let traces: Vec<_> = cached_blocks.range(range)
+							let traces = cached_blocks.range(range)
 								.map(|(_, v)| &v.traces)
 								.flatten()
 								.filter(|trace| match trace.action {
 									block::TransactionTraceAction::Call {from, to, ..} => {
-										(req.from_address.is_empty() || req.from_address.contains(&from))
-										&& (req.to_address.is_empty() || req.to_address.contains(&to))
+										(from_address.is_empty() || from_address.contains(&from))
+										&& (to_address.is_empty() || to_address.contains(&to))
 									}
 								})
-								.skip(req.after as usize)
-								.take(req.count as usize)
-								.cloned()
-								.collect();
+								.skip(req.after.unwrap_or(0) as usize);
 
+							let traces: Vec<_> = if let Some(take) = req.count {
+								traces.take(take as usize)
+								.cloned()
+								.collect()
+							} else {
+								traces.cloned()
+								.collect()
+							};
 
 							tracing::trace!(?traces, "Work done, sending response ...");
 
@@ -222,7 +249,7 @@ where
 
 							// Add expiration wake up.
 							expiration_futures.push(async move {
-								sleep(Duration::from_secs(60)).await;
+								delay_for(Duration::from_secs(60)).await;
 								block_heights
 							});
 						} else {
@@ -247,8 +274,6 @@ where
 									}
 								}
 							}
-						} else {
-							todo!("what to do when this end ?")
 						}
 					},
 				}
@@ -265,6 +290,10 @@ where
 		eth_api: &A,
 		block_height: u32,
 	) -> Result<Vec<TransactionTrace>> {
+		if block_height == 0 {
+			return Err(internal_err("Tracing genesis block is not allowed"));
+		}
+
 		// Fetch block data from RPC EthApi. false = only get transactions hashes, which is enough.
 		let eth_block = eth_api.block_by_number(BlockNumber::Num(block_height as u64), false)?;
 		let eth_block = eth_block.ok_or_else(|| {
@@ -277,6 +306,8 @@ where
 				block_height
 			))
 		})?;
+
+		tracing::trace!("block hash : {}", eth_block_hash);
 
 		let transactions_hash = match &eth_block.inner.transactions {
 			BlockTransactions::Hashes(h) => h,
@@ -310,7 +341,7 @@ where
 			.trace_block(&substrate_parent_block_id, extrinsics)
 			.map_err(|e| {
 				internal_err(format!(
-					"Blockchaain error when replaying block {} : {:?}",
+					"Blockchain error when replaying block {} : {:?}",
 					block_height, e
 				))
 			})?
