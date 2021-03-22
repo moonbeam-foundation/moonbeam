@@ -49,6 +49,7 @@ pub struct TransactionTrace {
 	serde(rename_all = "camelCase", tag = "type", content = "action")
 )]
 pub enum TransactionTraceAction {
+	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 	Call {
 		call_type: super::CallType,
 		from: H160,
