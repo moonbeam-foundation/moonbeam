@@ -127,13 +127,11 @@ jobs:
         with:
           path: ${{ runner.tool_cache }}/cargo-sccache
           key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_VERSION }}-v1
-      - uses: actions-rs/toolchain@v1
-        with:
-          target: wasm32-unknown-unknown
-          # Toolchain is autodetected from `rust-toolchain` file
-          # https://github.com/actions-rs/toolchain#the-toolchain-file
-          #toolchain: ${{ env.WASM_BUILD_TOOLCHAIN }}
-          default: true
+
+      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
+      - name: Setup Rust toolchain
+        run: rustup show
+        
       - name: Install sccache
         run: |
           if [ ! -f ${{ runner.tool_cache }}/cargo-sccache/bin/sccache ]; then
