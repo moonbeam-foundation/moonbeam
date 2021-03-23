@@ -77,6 +77,7 @@ fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "notlesh
 fc-rpc = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
 fp-rpc = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
 fc-db = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
+fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
 
 # Cumulus dependencies
 cumulus-client-consensus-common = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-v0.7" }

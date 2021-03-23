@@ -23,6 +23,7 @@ use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
 use fc_consensus::FrontierBlockImport;
+use fc_mapping_sync::MappingSyncWorker;
 use fc_rpc::EthTask;
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use futures::{Stream, StreamExt};
@@ -279,6 +280,17 @@ where
 			crate::rpc::create_full(deps, subscription_task_executor.clone())
 		})
 	};
+
+	task_manager.spawn_essential_handle().spawn(
+		"frontier-mapping-sync-worker",
+		MappingSyncWorker::new(
+			client.import_notification_stream(),
+			Duration::new(6, 0),
+			client.clone(),
+			backend.clone(),
+			frontier_backend.clone(),
+		).for_each(|()| futures::future::ready(()))
+	);
 
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		on_demand: None,
