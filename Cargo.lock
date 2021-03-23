@@ -4736,7 +4736,6 @@ dependencies = [
  "sp-consensus-aura",
  "sp-runtime",
  "sp-std",
- "sp-timestamp",
 ]
 
 [[package]]
@@ -4806,7 +4805,6 @@ dependencies = [
  "sp-session",
  "sp-staking",
  "sp-std",
- "sp-timestamp",
 ]
 
 [[package]]
@@ -9731,7 +9729,6 @@ name = "sp-timestamp"
 version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate#97ecd629aff816c15cfff7e73d34dc8c9c5c6a9b"
 dependencies = [
- "impl-trait-for-tuples 0.2.1",
  "parity-scale-codec",
  "sp-api",
  "sp-inherents",
