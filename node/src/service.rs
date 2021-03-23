@@ -37,6 +37,7 @@ use sc_service::{
 	TFullClient, TaskManager, BasePath,
 };
 use sc_cli::SubstrateCli;
+use sc_client_api::BlockchainEvents;
 use sp_core::{Pair, H160, H256};
 use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
@@ -263,6 +264,8 @@ where
 		let network = network.clone();
 		let pending = pending_transactions.clone();
 		let filter_pool = filter_pool.clone();
+		let frontier_backend = frontier_backend.clone();
+
 		Box::new(move |deny_unsafe, _| {
 			let deps = crate::rpc::FullDeps {
 				client: client.clone(),
