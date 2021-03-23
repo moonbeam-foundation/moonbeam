@@ -1816,7 +1816,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#383eb231d3ee17e536c649030b6209fad9fe3775"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#52c691fd6ba7c40ed45ebfccf8017e58a87feb03"
 dependencies = [
  "derive_more",
  "fc-db",
@@ -1840,7 +1840,7 @@ dependencies = [
 [[package]]
 name = "fc-db"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#383eb231d3ee17e536c649030b6209fad9fe3775"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#52c691fd6ba7c40ed45ebfccf8017e58a87feb03"
 dependencies = [
  "kvdb",
  "kvdb-rocksdb",
@@ -1854,7 +1854,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#383eb231d3ee17e536c649030b6209fad9fe3775"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#52c691fd6ba7c40ed45ebfccf8017e58a87feb03"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -1895,7 +1895,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#383eb231d3ee17e536c649030b6209fad9fe3775"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#52c691fd6ba7c40ed45ebfccf8017e58a87feb03"
 dependencies = [
  "ethereum-types",
  "jsonrpc-core 15.1.0",
@@ -1999,7 +1999,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#383eb231d3ee17e536c649030b6209fad9fe3775"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#52c691fd6ba7c40ed45ebfccf8017e58a87feb03"
 dependencies = [
  "ethereum",
  "parity-scale-codec",
@@ -2013,7 +2013,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "0.8.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#383eb231d3ee17e536c649030b6209fad9fe3775"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#52c691fd6ba7c40ed45ebfccf8017e58a87feb03"
 dependencies = [
  "evm",
  "impl-trait-for-tuples 0.1.3",
@@ -2026,7 +2026,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#383eb231d3ee17e536c649030b6209fad9fe3775"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#52c691fd6ba7c40ed45ebfccf8017e58a87feb03"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2042,7 +2042,7 @@ dependencies = [
 [[package]]
 name = "fp-storage"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#383eb231d3ee17e536c649030b6209fad9fe3775"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#52c691fd6ba7c40ed45ebfccf8017e58a87feb03"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4904,7 +4904,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#383eb231d3ee17e536c649030b6209fad9fe3775"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#52c691fd6ba7c40ed45ebfccf8017e58a87feb03"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4942,7 +4942,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#383eb231d3ee17e536c649030b6209fad9fe3775"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#52c691fd6ba7c40ed45ebfccf8017e58a87feb03"
 dependencies = [
  "evm",
  "evm-gasometer",
@@ -4966,7 +4966,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#383eb231d3ee17e536c649030b6209fad9fe3775"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#52c691fd6ba7c40ed45ebfccf8017e58a87feb03"
 dependencies = [
  "evm",
  "fp-evm",
@@ -4980,7 +4980,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#383eb231d3ee17e536c649030b6209fad9fe3775"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#52c691fd6ba7c40ed45ebfccf8017e58a87feb03"
 dependencies = [
  "evm",
  "fp-evm",
@@ -4992,7 +4992,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#383eb231d3ee17e536c649030b6209fad9fe3775"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#52c691fd6ba7c40ed45ebfccf8017e58a87feb03"
 dependencies = [
  "evm",
  "fp-evm",
