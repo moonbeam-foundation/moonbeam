@@ -33,7 +33,10 @@ docker run --network="host" purestake/moonbeam:v0.6.1 --dev
 ## Build the Moonbeam Node
 
 To build Moonbeam, you will need a proper Substrate development environment. If you've never worked
-with Substrate before, check out https://substrate.dev/docs/en/knowledgebase/getting-started/
+with a Substrate-based blockchain before, you should probably try the [Setting Up a Moonbeam Node]
+(https://docs.moonbeam.network/getting-started/local-node/setting-up-a-node/) docs first. If you
+need a refresher setting up your Substrate environment, see [Substrate's Getting Started Guide]
+(https://substrate.dev/docs/en/knowledgebase/getting-started/).
 
 ```bash
 # Fetch the code
