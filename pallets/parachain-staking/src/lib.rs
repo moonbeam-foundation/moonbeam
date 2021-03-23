@@ -317,6 +317,54 @@ pub mod pallet {
 		}
 	}
 
+	#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
+	/// The current round index and transition information
+	pub struct RoundInfo<BlockNumber> {
+		/// Current round index
+		pub current: RoundIndex,
+		/// The first block of the current round
+		pub first: BlockNumber,
+		/// The length of the current round in number of blocks
+		pub length: u32,
+	}
+	impl<
+			B: Copy
+				+ sp_std::ops::Add<Output = B>
+				+ sp_std::ops::Sub<Output = B>
+				+ From<u32>
+				+ PartialOrd,
+		> RoundInfo<B>
+	{
+		pub fn new(current: RoundIndex, first: B, length: u32) -> RoundInfo<B> {
+			RoundInfo {
+				current,
+				first,
+				length,
+			}
+		}
+		/// Check if the round should be updated
+		pub fn should_update(&self, now: B) -> bool {
+			now - self.first >= self.length.into()
+		}
+		/// New round
+		pub fn update(&mut self, now: B) {
+			self.current += 1u32;
+			self.first = now;
+		}
+	}
+	impl<
+			B: Copy
+				+ sp_std::ops::Add<Output = B>
+				+ sp_std::ops::Sub<Output = B>
+				+ From<u32>
+				+ PartialOrd,
+		> Default for RoundInfo<B>
+	{
+		fn default() -> RoundInfo<B> {
+			RoundInfo::new(1u32, 1u32.into(), 20u32.into())
+		}
+	}
+
 	type RoundIndex = u32;
 	type RewardPoint = u32;
 	pub type BalanceOf<T> =
@@ -329,12 +377,14 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The currency type
 		type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
-		/// Number of blocks per round
-		type BlocksPerRound: Get<u32>;
+		/// Minimum number of blocks per round
+		type MinBlocksPerRound: Get<u32>;
+		/// Default number of blocks per round at genesis
+		type DefaultBlocksPerRound: Get<u32>;
 		/// Number of rounds that collators remain bonded before exit request is executed
 		type BondDuration: Get<RoundIndex>;
-		/// Total number of selected candidates every round
-		type TotalSelectedCandidates: Get<u32>;
+		/// Minimum number of selected candidates every round
+		type MinSelectedCandidates: Get<u32>;
 		/// Maximum nominators per collator
 		type MaxNominatorsPerCollator: Get<u32>;
 		/// Maximum collators per nominator
@@ -372,6 +422,7 @@ pub mod pallet {
 		NominationDNE,
 		Underflow,
 		InvalidSchedule,
+		CannotSetBelowMin,
 	}
 
 	#[pallet::event]
@@ -409,32 +460,48 @@ pub mod pallet {
 		RoundInflationSet(Perbill, Perbill, Perbill),
 		/// Staking expectations set
 		StakeExpectationsSet(BalanceOf<T>, BalanceOf<T>, BalanceOf<T>),
+		/// Set total selected candidates to this value [old, new]
+		TotalSelectedSet(u32, u32),
+		/// Set blocks per round [current_round, first_block, old, new]
+		BlocksPerRoundSet(RoundIndex, T::BlockNumber, u32, u32),
 	}
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_finalize(n: T::BlockNumber) {
-			if (n % T::BlocksPerRound::get().into()).is_zero() {
-				let next = <Round<T>>::get() + 1;
+			let mut round = <Round<T>>::get();
+			if round.should_update(n) {
+				// mutate round
+				round.update(n);
 				// pay all stakers for T::BondDuration rounds ago
-				Self::pay_stakers(next);
+				Self::pay_stakers(round.current);
 				// execute all delayed collator exits
-				Self::execute_delayed_collator_exits(next);
+				Self::execute_delayed_collator_exits(round.current);
 				// select top collator candidates for next round
-				let (collator_count, total_staked) = Self::select_top_candidates(next);
+				let (collator_count, total_staked) = Self::select_top_candidates(round.current);
 				// start next round
-				<Round<T>>::put(next);
+				<Round<T>>::put(round);
 				// snapshot total stake
-				<Staked<T>>::insert(next, <Total<T>>::get());
-				Self::deposit_event(Event::NewRound(n, next, collator_count, total_staked));
+				<Staked<T>>::insert(round.current, <Total<T>>::get());
+				Self::deposit_event(Event::NewRound(
+					round.first,
+					round.current,
+					collator_count,
+					total_staked,
+				));
 			}
 		}
 	}
 
 	#[pallet::storage]
+	#[pallet::getter(fn total_selected)]
+	/// The total candidates selected every round
+	type TotalSelected<T: Config> = StorageValue<_, u32, ValueQuery>;
+
+	#[pallet::storage]
 	#[pallet::getter(fn round)]
-	/// The current round index
-	type Round<T: Config> = StorageValue<_, RoundIndex, ValueQuery>;
+	/// Current round index and next round scheduled transition
+	type Round<T: Config> = StorageValue<_, RoundInfo<T::BlockNumber>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn nominator_state)]
@@ -560,10 +627,14 @@ pub mod pallet {
 					)
 				};
 			}
-			// Choose top `TotalSelectedCandidates`s from collator candidates
+			// Set total selected candidates to minimum config
+			<TotalSelected<T>>::put(T::MinSelectedCandidates::get());
+			// Choose top TotalSelected collator candidates
 			let (v_count, total_staked) = <Pallet<T>>::select_top_candidates(1u32);
 			// Start Round 1 at Block 0
-			<Round<T>>::put(1u32);
+			let round: RoundInfo<T::BlockNumber> =
+				RoundInfo::new(1u32, 0u32.into(), T::DefaultBlocksPerRound::get());
+			<Round<T>>::put(round);
 			// Snapshot total stake
 			<Staked<T>>::insert(1u32, <Total<T>>::get());
 			<Pallet<T>>::deposit_event(Event::NewRound(
@@ -596,6 +667,7 @@ pub mod pallet {
 			<InflationConfig<T>>::put(config);
 			Ok(().into())
 		}
+		/// Set the annual inflation rate to derive per-round inflation
 		#[pallet::weight(0)]
 		pub fn set_inflation(
 			origin: OriginFor<T>,
@@ -613,6 +685,38 @@ pub mod pallet {
 			<InflationConfig<T>>::put(config);
 			Ok(().into())
 		}
+		#[pallet::weight(0)]
+		/// Set the total number of collator candidates selected per round
+		/// - changes are not applied until the start of the next round
+		pub fn set_total_selected(origin: OriginFor<T>, new: u32) -> DispatchResultWithPostInfo {
+			frame_system::ensure_root(origin)?;
+			ensure!(
+				new >= T::MinSelectedCandidates::get(),
+				Error::<T>::CannotSetBelowMin
+			);
+			let old = <TotalSelected<T>>::get();
+			<TotalSelected<T>>::put(new);
+			Self::deposit_event(Event::TotalSelectedSet(old, new));
+			Ok(().into())
+		}
+		#[pallet::weight(0)]
+		/// Set blocks per round
+		/// - if called with `new` less than length of current round, will transition immediately
+		/// in the next block
+		pub fn set_blocks_per_round(origin: OriginFor<T>, new: u32) -> DispatchResultWithPostInfo {
+			frame_system::ensure_root(origin)?;
+			ensure!(
+				new >= T::MinBlocksPerRound::get(),
+				Error::<T>::CannotSetBelowMin
+			);
+			let mut round = <Round<T>>::get();
+			let (now, first, old) = (round.current, round.first, round.length);
+			round.length = new;
+			<Round<T>>::put(round);
+			Self::deposit_event(Event::BlocksPerRoundSet(now, first, old, new));
+			Ok(().into())
+		}
+		/// Join the set of collator candidates
 		#[pallet::weight(0)]
 		pub fn join_candidates(
 			origin: OriginFor<T>,
@@ -653,7 +757,7 @@ pub mod pallet {
 			let mut state = <CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_leaving(), Error::<T>::AlreadyLeaving);
 			let mut exits = <ExitQueue<T>>::get();
-			let now = <Round<T>>::get();
+			let now = <Round<T>>::get().current;
 			let when = now + T::BondDuration::get();
 			ensure!(
 				exits.insert(Bond {
@@ -685,7 +789,10 @@ pub mod pallet {
 				<CandidatePool<T>>::put(candidates);
 			}
 			<CollatorState<T>>::insert(&collator, state);
-			Self::deposit_event(Event::CollatorWentOffline(<Round<T>>::get(), collator));
+			Self::deposit_event(Event::CollatorWentOffline(
+				<Round<T>>::get().current,
+				collator,
+			));
 			Ok(().into())
 		}
 		/// Rejoin the set of collator candidates if previously had called `go_offline`
@@ -706,7 +813,10 @@ pub mod pallet {
 			);
 			<CandidatePool<T>>::put(candidates);
 			<CollatorState<T>>::insert(&collator, state);
-			Self::deposit_event(Event::CollatorBackOnline(<Round<T>>::get(), collator));
+			Self::deposit_event(Event::CollatorBackOnline(
+				<Round<T>>::get().current,
+				collator,
+			));
 			Ok(().into())
 		}
 		/// Bond more for collator candidates
@@ -1114,8 +1224,8 @@ pub mod pallet {
 			let mut candidates = <CandidatePool<T>>::get().0;
 			// order candidates by stake (least to greatest so requires `rev()`)
 			candidates.sort_unstable_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
-			let top_n = T::TotalSelectedCandidates::get() as usize;
-			// choose the top TotalSelectedCandidates qualified candidates, ordered by stake
+			let top_n = <TotalSelected<T>>::get() as usize;
+			// choose the top TotalSelected qualified candidates, ordered by stake
 			let mut collators = candidates
 				.into_iter()
 				.rev()
@@ -1144,7 +1254,7 @@ pub mod pallet {
 	/// * 20 points to the block producer for producing a block in the chain
 	impl<T: Config> author_inherent::EventHandler<T::AccountId> for Pallet<T> {
 		fn note_author(author: T::AccountId) {
-			let now = <Round<T>>::get();
+			let now = <Round<T>>::get().current;
 			let score_plus_20 = <AwardedPts<T>>::get(now, &author) + 20;
 			<AwardedPts<T>>::insert(now, author, score_plus_20);
 			<Points<T>>::mutate(now, |x| *x += 20);

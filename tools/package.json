@@ -29,6 +29,7 @@
     "build-moonbeam-launch": "yarn add PureStake/polkadot-launch#moonbeam-launch",
     "moonbeam-launch": "yarn run build-moonbeam-launch && mkdir -p specFiles && ts-node moonbeam-launch.ts",
     "moonbeam-test": "yarn run build-moonbeam-launch && mkdir -p specFiles && ts-node moonbeam-test.ts",
-    "moonbeam-xcmp": "yarn run build-moonbeam-launch && mkdir -p specFiles && ts-node moonbeam-xcmp.ts"
+    "moonbeam-xcmp": "yarn run build-moonbeam-launch && mkdir -p specFiles && ts-node moonbeam-xcmp.ts",
+    "test-staking": "yarn run build-moonbeam-launch && mkdir -p specFiles && ts-node test-staking.ts"
   }
 }

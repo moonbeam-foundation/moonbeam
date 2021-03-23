@@ -30,13 +30,12 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use cumulus_primitives::relay_chain::Balance as RelayChainBalance;
 use fp_rpc::TransactionStatus;
-pub use frame_support::{
+use frame_support::{
 	construct_runtime,
 	pallet_prelude::PhantomData,
 	parameter_types,
-	traits::{FindAuthor, Get, Randomness},
+	traits::{Get, Randomness},
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
-	ConsensusEngineId, StorageValue,
 };
 use frame_system::{EnsureNever, EnsureRoot, EnsureSigned};
 use pallet_ethereum::Call::transact;
@@ -54,7 +53,7 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, Convert, IdentifyAccount, IdentityLookup, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult,
+	ApplyExtrinsicResult, Perbill,
 };
 use sp_std::{convert::TryFrom, prelude::*};
 #[cfg(feature = "std")]
@@ -74,7 +73,6 @@ use xtransfer::support::*;
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
-pub use sp_runtime::{Perbill, Permill};
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -125,7 +123,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 25,
+	spec_version: 26,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -297,7 +295,7 @@ impl pallet_scheduler::Config for Runtime {
 	type WeightInfo = ();
 }
 
-pub const BLOCKS_PER_DAY: BlockNumber = 24 * 60 * 10;
+const BLOCKS_PER_DAY: BlockNumber = 24 * 60 * 10;
 
 parameter_types! {
 	pub const LaunchPeriod: BlockNumber = BLOCKS_PER_DAY;
@@ -381,16 +379,29 @@ impl pallet_ethereum::Config for Runtime {
 	type BlockGasLimit = BlockGasLimit;
 }
 
-// 18 decimals
+
+impl cumulus_parachain_system::Config for Runtime {
+	type Event = Event;
+	type OnValidationData = ();
+	type SelfParaId = ParachainInfo;
+	type DownwardMessageHandlers = ();
+	type HrmpMessageHandlers = ();
+}
+
+impl parachain_info::Config for Runtime {}
+
+/// GLMR, the native token, uses 18 decimals of precision.
 pub const GLMR: Balance = 1_000_000_000_000_000_000;
 
 parameter_types! {
-	/// Moonbeam starts a new round every hour (600 * block_time)
-	pub const BlocksPerRound: u32 = 600;
+	/// Minimum round length is 2 minutes (20 * 6 second block times)
+	pub const MinBlocksPerRound: u32 = 20;
+	/// Default BlocksPerRound is every hour (600 * 6 second block times)
+	pub const DefaultBlocksPerRound: u32 = 600;
 	/// Reward payments and validator exit requests are delayed by 2 hours (2 * 600 * block_time)
 	pub const BondDuration: u32 = 2;
 	/// Maximum 8 valid block authors at any given time
-	pub const TotalSelectedCandidates: u32 = 8;
+	pub const MinSelectedCandidates: u32 = 8;
 	/// Maximum 10 nominators per validator
 	pub const MaxNominatorsPerCollator: u32 = 10;
 	/// The maximum percent a validator can take off the top of its rewards is 50%
@@ -403,11 +414,12 @@ parameter_types! {
 impl parachain_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
-	type BlocksPerRound = BlocksPerRound;
+	type MinBlocksPerRound = MinBlocksPerRound;
+	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type BondDuration = BondDuration;
-	type TotalSelectedCandidates = TotalSelectedCandidates;
+	type MinSelectedCandidates = MinSelectedCandidates;
 	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
-	type MaxCollatorsPerNominator = TotalSelectedCandidates;
+	type MaxCollatorsPerNominator = MinSelectedCandidates;
 	type MaxFee = MaxFee;
 	type MinCollatorStk = MinCollatorStk;
 	type MinCollatorCandidateStk = MinCollatorStk;
