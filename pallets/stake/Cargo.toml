@@ -7,17 +7,17 @@ description = "staking pallet for validator selection and rewards"
 
 [dependencies]
 author-inherent = { path = "../author-inherent", default-features = false }
-frame-support = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
-frame-system = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
-pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-v0.7", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-v0.7", default-features = false }
+pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-v0.7", default-features = false }
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
 serde = { version = "1.0.101", optional = true }
-sp-std = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-v0.7", default-features = false }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-v0.7", default-features = false }
 
 [dev-dependencies]
-sp-io = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-v0.7", default-features = false }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-v0.7", default-features = false }
 
 [features]
 default = ["std"]

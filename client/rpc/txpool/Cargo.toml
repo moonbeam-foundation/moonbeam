@@ -13,13 +13,13 @@ jsonrpc-core = "15.0.0"
 ethereum-types = "0.11.0"
 ethereum = { version = "0.7.1", default-features = false, features = ["with-codec"] }
 moonbeam-rpc-core-txpool = { path = "../../rpc-core/txpool" }
-sp-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-sp-api = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-sp-io = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-sp-std = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-sp-blockchain = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-sp-transaction-pool = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-frame-system = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
+sp-runtime = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-v0.7" }
+sp-api = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-v0.7" }
+sp-io = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-v0.7" }
+sp-std = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-v0.7" }
+sp-blockchain = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-v0.7" }
+sp-transaction-pool = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-v0.7" }
+frame-system = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-v0.7" }
 serde = { version = "1.0", features = ["derive"] }
 
 moonbeam-rpc-primitives-txpool = { path = "../../../primitives/rpc/txpool" }

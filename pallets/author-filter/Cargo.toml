@@ -7,10 +7,10 @@ version = '0.6.0'
 [dependencies]
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
 
-frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
-frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
-sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
-sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+frame-support = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
+frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
+sp-core = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
+sp-runtime = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
 author-inherent = { path = "../author-inherent", default-features = false }
 stake = { path = "../stake", default-features = false }
 cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus",  default-features = false, branch = "moonbeam-v0.7" }
