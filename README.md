@@ -27,13 +27,6 @@ Install Substrate pre-requisites (including Rust):
 curl https://getsubstrate.io -sSf | bash -s -- --fast
 ```
 
-Run the initialization script, which checks the correct rust nightly version and adds the
-`wasm32-unknown-unknown` target to that specific version:
-
-```bash
-./scripts/init.sh
-```
-
 ## Build the Moonbeam Node
 
 Build the corresponding binary file:
