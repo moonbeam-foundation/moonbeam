@@ -379,17 +379,6 @@ impl pallet_ethereum::Config for Runtime {
 	type BlockGasLimit = BlockGasLimit;
 }
 
-
-impl cumulus_parachain_system::Config for Runtime {
-	type Event = Event;
-	type OnValidationData = ();
-	type SelfParaId = ParachainInfo;
-	type DownwardMessageHandlers = ();
-	type HrmpMessageHandlers = ();
-}
-
-impl parachain_info::Config for Runtime {}
-
 /// GLMR, the native token, uses 18 decimals of precision.
 pub const GLMR: Balance = 1_000_000_000_000_000_000;
 
