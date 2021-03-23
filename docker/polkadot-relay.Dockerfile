@@ -26,7 +26,6 @@ RUN sed -i '/sc_executor::WasmExecutionMethod::Interpreted/c\\t\tsc_executor::Wa
 # Download rust dependencies and build the rust binary
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
 	export PATH=$PATH:$HOME/.cargo/bin && \
-	scripts/init.sh && \
 	cargo build --$PROFILE --features=real-overseer
 
 # ===== SECOND STAGE ======
