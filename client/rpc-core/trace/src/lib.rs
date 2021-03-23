@@ -59,7 +59,7 @@ pub struct FilterRequest {
 #[derive(Clone, Eq, PartialEq, Debug, Deserialize)]
 #[serde(rename_all = "camelCase", untagged)]
 pub enum RequestBlockId {
-	Number(u32),
+	Number(#[serde(with = "SerHex::<CompactCapPfx>")] u32),
 	Tag(RequestBlockTag),
 }
 

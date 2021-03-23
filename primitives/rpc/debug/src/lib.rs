@@ -77,10 +77,17 @@ pub enum CreateResult {
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(Serialize))]
-#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "std", serde(rename_all = "lowercase"))]
 pub enum CallType {
 	Call,
 	CallCode,
 	DelegateCall,
 	StaticCall,
+}
+
+#[derive(Clone, Copy, Eq, PartialEq, Debug, Encode, Decode)]
+#[cfg_attr(feature = "std", derive(Serialize))]
+#[cfg_attr(feature = "std", serde(rename_all = "lowercase"))]
+pub enum CreateType {
+	Create,
 }

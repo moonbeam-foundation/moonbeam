@@ -188,8 +188,8 @@ where
 								_ => todo!("support latest/earliest/pending"),
 							};
 
-							let from_address = req.from_address.unwrap_or(vec![]);
-							let to_address = req.to_address.unwrap_or(vec![]);
+							let from_address = req.from_address.unwrap_or_default();
+							let to_address = req.to_address.unwrap_or_default();
 
 							let range = from_block ..= to_block;
 
@@ -229,7 +229,11 @@ where
 									block::TransactionTraceAction::Call {from, to, ..} => {
 										(from_address.is_empty() || from_address.contains(&from))
 										&& (to_address.is_empty() || to_address.contains(&to))
-									}
+									},
+									block::TransactionTraceAction::Create {from, ..} =>
+										(from_address.is_empty() || from_address.contains(&from)),
+									block::TransactionTraceAction::Suicide {address, ..} =>
+										(from_address.is_empty() || from_address.contains(&address)),
 								})
 								.skip(req.after.unwrap_or(0) as usize);
 

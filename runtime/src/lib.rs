@@ -651,7 +651,7 @@ impl_runtime_apis! {
 		fn trace_block(
 			extrinsics: Vec<<Block as BlockT>::Extrinsic>,
 		) -> Result<Vec<moonbeam_rpc_primitives_debug::block::TransactionTrace>, sp_runtime::DispatchError> {
-			use moonbeam_rpc_primitives_debug::{single, block};
+			use moonbeam_rpc_primitives_debug::{single, block, CallResult, CreateResult, CreateType};
 
 			let mut config = <Runtime as pallet_evm::Config>::config().clone();
 			config.estimate = true;
@@ -726,16 +726,67 @@ impl_runtime_apis! {
 									},
 									block_hash: H256::default(), // Can't be known here, must be inserted upstream.
 									block_number: 0, // Can't be known here, must be inserted upstream.
-									result: block::TransactionTraceResult {
-										gas_used: trace.gas_used,
-										res
+									output: match res {
+										CallResult::Output(res) => {
+											block::TransactionTraceOutput::Result(
+												block::TransactionTraceResult::Call {
+													gas_used: trace.gas_used,
+													res
+												})
+										},
+										CallResult::Error(error) =>
+											block::TransactionTraceOutput::Error(error),
 									},
 									subtraces: trace.subtraces,
 									trace_address: trace.trace_address,
 									transaction_hash: H256::default(), // Can't be known here, must be inserted upstream.
 									transaction_position: eth_tx_index,
 								},
-								_ => todo!(),
+								single::CallInner::Create { init, res } => block::TransactionTrace {
+									action: block::TransactionTraceAction::Create {
+										create_method: CreateType::Create, // TODO : we don't support create2 ?
+										from,
+										gas: trace.gas,
+										input: init,
+										value: trace.value,
+									},
+									block_hash: H256::default(), // Can't be known here, must be inserted upstream.
+									block_number: 0, // Can't be known here, must be inserted upstream.
+									output: match res {
+										CreateResult::Success {created_contract_address_hash, created_contract_code} => {
+											block::TransactionTraceOutput::Result(
+												block::TransactionTraceResult::Create {
+													gas_used: trace.gas_used,
+													code: created_contract_code,
+													address: created_contract_address_hash,
+												}
+											)
+										},
+										CreateResult::Error { error } => block::TransactionTraceOutput::Error(error),
+									},
+									subtraces: trace.subtraces,
+									trace_address: trace.trace_address,
+									transaction_hash: H256::default(), // Can't be known here, must be inserted upstream.
+									transaction_position: eth_tx_index,
+
+								},
+								single::CallInner::SelfDestruct { balance, refund_address } => block::TransactionTrace {
+									action: block::TransactionTraceAction::Suicide {
+										address: from,
+										balance,
+										refund_address,
+									},
+									block_hash: H256::default(), // Can't be known here, must be inserted upstream.
+									block_number: 0, // Can't be known here, must be inserted upstream.
+									output: block::TransactionTraceOutput::Result(
+												block::TransactionTraceResult::Suicide
+											),
+									subtraces: trace.subtraces,
+									trace_address: trace.trace_address,
+									transaction_hash: H256::default(), // Can't be known here, must be inserted upstream.
+									transaction_position: eth_tx_index,
+
+								},
 							}
 						).collect();
 

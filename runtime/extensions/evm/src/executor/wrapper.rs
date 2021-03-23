@@ -243,6 +243,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 		let gas_at_start = self.inner.gas();
 		let mut return_stack_offset = None;
 		let mut return_stack_len = None;
+		let mut suicide_info = None;
 
 		// Execute the call/create.
 		let exit_reason = loop {
@@ -259,11 +260,22 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 
 				subcall = self.call_type.is_some();
 
+				// RETURN
 				if opcode == Opcode(0xf3) {
 					let stack = runtime.machine().stack().data();
 
 					return_stack_offset = stack.get(stack.len() - 1).cloned();
 					return_stack_len = stack.get(stack.len() - 2).cloned();
+				}
+
+				// SELFDESTRUCT
+				if opcode == Opcode(0xff) {
+					let stack = runtime.machine().stack().data();
+
+					suicide_info = stack
+						.get(stack.len() - 1)
+						.cloned()
+						.map(|v| (H160::from(v), self.balance(runtime.context().address)));
 				}
 			}
 
@@ -287,7 +299,29 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 		let gas_at_end = self.inner.gas();
 		let gas_used = gas_at_start - gas_at_end;
 
-		// Insert entry.
+		// If `exit_reason` is `Suicided`, we need to add the suicide subcall to the traces.
+		if exit_reason == ExitReason::Succeed(ExitSucceed::Suicided) {
+			let entries_index = self.entries_next_index;
+			self.entries_next_index += 1;
+
+			let (refund_address, balance) = suicide_info.unwrap();
+
+			self.entries.insert(
+				entries_index,
+				Call {
+					from: to, // this contract is self destructing
+					trace_address: self.trace_address.clone(),
+					subtraces: 0,
+					value,
+					gas: U256::from(gas_at_end),
+					gas_used: U256::from(gas_used),
+					inner: CallInner::SelfDestruct {
+						refund_address,
+						balance,
+					},
+				},
+			);
+		}
 
 		// We pop the children item, giving back this context trace_address.
 		let subtraces = self.trace_address.pop().unwrap();

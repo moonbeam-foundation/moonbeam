@@ -107,7 +107,12 @@ pub enum CallInner {
 		res: crate::CreateResult,
 	},
 	// Revert,
-	SelfDestruct,
+	SelfDestruct {
+		#[cfg_attr(feature = "std", serde(skip))]
+		balance: U256,
+		#[cfg_attr(feature = "std", serde(skip))]
+		refund_address: H160,
+	},
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
