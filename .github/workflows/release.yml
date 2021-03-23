@@ -134,8 +134,8 @@ jobs:
       - name: Install Rustup
         run: |
           wget https://github.com/rust-lang/rustup/archive/refs/tags/1.23.1.tar.gz
-          ls
           tar xzf 1.23.1.tar.gz
+          cd rustup-1.23.1
           ls
           chmod +x rustup-1.23.1
           ./rustup-1.23.1 show
