@@ -204,6 +204,8 @@ pub mod pallet {
 		FailedToSendXcm,
 		/// Maximum one channel per relation ~ (sender,receiver) and direction matters
 		MaxOneChannelPerRelation,
+		/// Cannot accept a recipient channel request not in local storage
+		RecipientRequestDNE,
 		/// Requires existing open channel with self as sender
 		NoSenderChannelOpen,
 		/// Requires existing open channel with self as recipient
@@ -212,7 +214,7 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn recipient_channel_requests)]
-	/// Open channel requests on the relay chain to self from these parachains
+	/// Open channel requests on the relay chain to self (recipient) from these parachains (sender)
 	pub type RecipientChannelRequests<T: Config> = StorageValue<_, Vec<ParaId>, ValueQuery>;
 
 	#[pallet::storage]
@@ -241,6 +243,7 @@ pub mod pallet {
 			frame_system::ensure_root(origin)?;
 			let sender = T::ParaId::get();
 			ensure!(sender != recipient, Error::<T>::CannotSendToSelf);
+			// TODO: could check if sender has already made the request; SenderChannelRequests vec
 			let channels = <SenderChannels<T>>::get();
 			ensure!(
 				channels.binary_search(&recipient).is_err(),
@@ -252,8 +255,11 @@ pub mod pallet {
 				call,
 			};
 			// send message to relay chain
-			T::XcmSender::send_xcm(MultiLocation::Null, message)
-				.map_err(|_| Error::<T>::FailedToSendXcm)?;
+			T::XcmSender::send_xcm(
+				MultiLocation::X1(Junction::Parachain { id: sender.into() }),
+				message,
+			)
+			.map_err(|_| Error::<T>::FailedToSendXcm)?;
 			// emit event
 			Self::deposit_event(Event::SenderChannelRequested(recipient));
 			Ok(().into())
@@ -267,7 +273,14 @@ pub mod pallet {
 			call: Vec<u8>,
 		) -> DispatchResultWithPostInfo {
 			frame_system::ensure_root(origin)?;
-			ensure!(sender != T::ParaId::get(), Error::<T>::CannotSendToSelf);
+			let self_id = T::ParaId::get();
+			ensure!(sender != self_id, Error::<T>::CannotSendToSelf);
+			// first check if the request even exists (all requests are stored locally)
+			let mut requests = <RecipientChannelRequests<T>>::get();
+			let loc = requests
+				.binary_search(&sender)
+				.map_err(|_| Error::<T>::RecipientRequestDNE)?;
+			requests.remove(loc);
 			let mut channels = <RecipientChannels<T>>::get();
 			ensure!(
 				channels.binary_search(&sender).is_err(),
@@ -279,12 +292,17 @@ pub mod pallet {
 				call,
 			};
 			// send message to relay chain
-			T::XcmSender::send_xcm(MultiLocation::Null, message)
-				.map_err(|_| Error::<T>::FailedToSendXcm)?;
+			T::XcmSender::send_xcm(
+				MultiLocation::X1(Junction::Parachain { id: self_id.into() }),
+				message,
+			)
+			.map_err(|_| Error::<T>::FailedToSendXcm)?;
 			// ensured by check further above
 			if let Err(loc) = channels.binary_search(&sender) {
 				channels.insert(loc, sender);
 			}
+			// update recipient channel requests
+			<RecipientChannelRequests<T>>::put(requests);
 			// update recipient channels storage item
 			<RecipientChannels<T>>::put(channels);
 			// emit event
@@ -300,7 +318,8 @@ pub mod pallet {
 			call: Vec<u8>,
 		) -> DispatchResultWithPostInfo {
 			frame_system::ensure_root(origin)?;
-			ensure!(recipient != T::ParaId::get(), Error::<T>::CannotSendToSelf);
+			let self_id = T::ParaId::get();
+			ensure!(recipient != self_id, Error::<T>::CannotSendToSelf);
 			let channels = <SenderChannels<T>>::get();
 			ensure!(
 				channels.binary_search(&recipient).is_ok(),
@@ -312,8 +331,11 @@ pub mod pallet {
 				call,
 			};
 			// send message to relay chain
-			T::XcmSender::send_xcm(MultiLocation::Null, message)
-				.map_err(|_| Error::<T>::FailedToSendXcm)?;
+			T::XcmSender::send_xcm(
+				MultiLocation::X1(Junction::Parachain { id: self_id.into() }),
+				message,
+			)
+			.map_err(|_| Error::<T>::FailedToSendXcm)?;
 			Self::deposit_event(Event::RequestedCloseSenderChannel(recipient));
 			Ok(().into())
 		}
@@ -326,7 +348,8 @@ pub mod pallet {
 			call: Vec<u8>,
 		) -> DispatchResultWithPostInfo {
 			frame_system::ensure_root(origin)?;
-			ensure!(sender != T::ParaId::get(), Error::<T>::CannotSendToSelf);
+			let self_id = T::ParaId::get();
+			ensure!(sender != self_id, Error::<T>::CannotSendToSelf);
 			let channels = <RecipientChannels<T>>::get();
 			ensure!(
 				channels.binary_search(&sender).is_ok(),
@@ -338,8 +361,11 @@ pub mod pallet {
 				call,
 			};
 			// send message to accept the channel request
-			T::XcmSender::send_xcm(MultiLocation::Null, message)
-				.map_err(|_| Error::<T>::FailedToSendXcm)?;
+			T::XcmSender::send_xcm(
+				MultiLocation::X1(Junction::Parachain { id: self_id.into() }),
+				message,
+			)
+			.map_err(|_| Error::<T>::FailedToSendXcm)?;
 			Self::deposit_event(Event::RequestedCloseRecipientChannel(sender));
 			Ok(().into())
 		}

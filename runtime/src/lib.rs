@@ -68,7 +68,7 @@ use xcm_builder::{
 };
 use xcm_executor::{
 	traits::{LocationConversion, NativeAsset},
-	Config, XcmExecutor,
+	XcmExecutor,
 };
 use xtransfer::support::*;
 
@@ -561,7 +561,7 @@ pub type LocalOriginConverter = (
 );
 
 pub struct XcmConfig;
-impl Config for XcmConfig {
+impl xcm_executor::Config for XcmConfig {
 	type Call = Call;
 	type XcmSender = XcmHandler;
 	type AssetTransactor = LocalAssetTransactor;

@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "dependencies": {
     "@polkadot/api": "^4.0.3",
+    "@polkadot/keyring": "^6.0.5",
     "@polkadot/util-crypto": "^6.0.5",
     "bip39": "^3.0.3",
     "eth-block-tracker": "^4.4.3",
