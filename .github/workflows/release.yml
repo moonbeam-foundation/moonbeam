@@ -135,7 +135,8 @@ jobs:
         run: |
           wget https://github.com/rust-lang/rustup/archive/refs/tags/1.23.1.tar.gz
           ls
-          tar xzf ./rustup-1.23.1.tar.gz
+          tar xzf 1.23.1.tar.gz
+          ls
           chmod +x rustup-1.23.1
           ./rustup-1.23.1 show
 
