@@ -31,13 +31,13 @@ use sp_std::vec::Vec;
 pub struct TransactionTrace {
 	#[cfg_attr(feature = "std", serde(flatten))]
 	pub action: TransactionTraceAction,
-	#[cfg_attr(feature = "std", serde(serialize_with = "h256_serialize"))]
+	#[cfg_attr(feature = "std", serde(serialize_with = "h256_0x_serialize"))]
 	pub block_hash: H256,
 	pub block_number: u32,
 	pub result: TransactionTraceResult,
 	pub subtraces: u32,
 	pub trace_address: Vec<u32>,
-	#[cfg_attr(feature = "std", serde(serialize_with = "h256_serialize"))]
+	#[cfg_attr(feature = "std", serde(serialize_with = "h256_0x_serialize"))]
 	pub transaction_hash: H256,
 	pub transaction_position: u32,
 }

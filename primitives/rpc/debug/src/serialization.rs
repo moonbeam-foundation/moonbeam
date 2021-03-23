@@ -72,3 +72,12 @@ where
 	// returns an error?
 	serializer.serialize_str(&format!("{:x}", data))
 }
+
+pub fn h256_0x_serialize<S>(data: &H256, serializer: S) -> Result<S::Ok, S::Error>
+where
+	S: Serializer,
+{
+	// TODO: how to propagate Err here (i.e. `from_utf8` fails), so the rpc requests also
+	// returns an error?
+	serializer.serialize_str(&format!("0x{:x}", data))
+}
