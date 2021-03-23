@@ -128,8 +128,15 @@ jobs:
           path: ${{ runner.tool_cache }}/cargo-sccache
           key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_VERSION }}-v1
 
+      # The actions-rs/install doesn't support the coplete toml rust-toolchain format
+      # So we install it manually
+      # Link to issue
       - name: Install Rustup
-        run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+        run: |
+          wget https://github.com/rust-lang/rustup/archive/refs/tags/1.23.1.tar.gz
+          tar xzf rustup-1.23.1.tar.gz
+          chmod +x rustup-1.23.1
+          ./rustup-1.23.1 show
 
       - name: Install sccache
         run: |
