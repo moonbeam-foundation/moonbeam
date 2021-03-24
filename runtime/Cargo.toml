@@ -16,11 +16,10 @@ hex-literal = "0.3.1"
 precompiles = { path = "precompiles/", default-features = false }
 account = { path = "account/", default-features = false }
 pallet-ethereum-chain-id = { path = "../pallets/ethereum-chain-id", default-features = false }
-stake = { path = "../pallets/stake", default-features = false }
+parachain-staking = { path = "../pallets/parachain-staking", default-features = false }
 pallet-author-filter = { path = "../pallets/author-filter", default-features = false }
 
 # Substrate dependencies
-pallet-aura = { git = "https://github.com/paritytech/substrate.git", default-features = false, branch = "master", optional = true }
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 sp-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
@@ -44,10 +43,8 @@ pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", 
 
 frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+pallet-utility = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "v0.6-moonbeam" }
-
-sp-consensus-aura = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master", optional = true }
-pallet-grandpa = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master", optional = true }
 
 pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.6-moonbeam" }
 fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "v0.6-moonbeam" }
@@ -99,6 +96,7 @@ std = [
 	"pallet-timestamp/std",
 	"pallet-sudo/std",
 	"pallet-transaction-payment/std",
+	"pallet-utility/std",
 	"pallet-ethereum/std",
 	"pallet-evm/std",
 	"moonbeam-rpc-primitives-txpool/std",
@@ -115,7 +113,7 @@ std = [
 	"cumulus-parachain-system/std",
 	"cumulus-primitives/std",
 	"account/std",
-	"stake/std",
+	"parachain-staking/std",
 	"pallet-author-filter/std",
 ]
 
