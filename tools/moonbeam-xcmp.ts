@@ -93,22 +93,6 @@ async function test() {
         unsub();
       }
     });
-  // const registerChannel = await relayApi.tx.parasSudoWrapper
-  //   .sudoEstablishHrmpChannel(sender, recipient, 8, 1024)
-  //   .signAndSend(alice, {}, ({ events = [], status }) => {
-  //     console.log(`Current status is ${status.type}`);
-
-  //     if (status.isFinalized) {
-  //       console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
-
-  //       // Loopcod through Vec<EventRecord> to display all events
-  //       events.forEach(({ phase, event: { data, method, section } }) => {
-  //         console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
-  //       });
-
-  //       registerChannel();
-  //     }
-  //   });
   // construct Transact code to request open channel from 200 -> 201
   const rawOpenCode = relayApi.tx.hrmp.hrmpInitOpenChannel(201, 8, 1024);
   console.log(rawOpenCode.toHex());
