@@ -20,6 +20,7 @@ author-inherent = { path = "../pallets/author-inherent", default-features = fals
 parachain-staking = { path = "../pallets/parachain-staking", default-features = false }
 pallet-author-filter = { path = "../pallets/author-filter", default-features = false }
 token-factory = { path = "../pallets/token-factory", default-features = false }
+channels = { path = "../pallets/channels", default-features = false }
 xtransfer = { path = "../pallets/xtransfer", default-features = false }
 
 # Substrate dependencies
@@ -125,6 +126,7 @@ std = [
 	"xcm-executor/std",
 	"xcm/std",
 	"polkadot-parachain/std",
+	"channels/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.

@@ -453,6 +453,12 @@ impl token_factory::Config for Runtime {
 	type AccountToH160 = AccountToH160;
 }
 
+impl channels::Config for Runtime {
+	type Event = Event;
+	type ParaId = ParachainInfo;
+	type XcmSender = XcmHandler;
+}
+
 impl xtransfer::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
@@ -460,9 +466,7 @@ impl xtransfer::Config for Runtime {
 	type AccountKey20Convert = AccountKey20Convert;
 	type ToMultiLocation = AccountId20Aliases<MoonbeamNetwork, AccountId>;
 	type RelayChainNetworkId = PolkadotNetworkId;
-	type ParaId = ParachainInfo;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
-	type XcmSender = XcmHandler;
 }
 
 parameter_types! {
@@ -583,7 +587,7 @@ impl cumulus_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
 	type SelfParaId = ParachainInfo;
-	type DownwardMessageHandlers = (Xtransfer, XcmHandler);
+	type DownwardMessageHandlers = (Channels, XcmHandler);
 	type HrmpMessageHandlers = XcmHandler;
 }
 
@@ -611,6 +615,7 @@ construct_runtime! {
 		Scheduler: pallet_scheduler::{Module, Storage, Config, Event<T>, Call},
 		Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
 		TokenFactory: token_factory::{Module, Call, Storage, Event<T>},
+		Channels: channels::{Module, Call, Storage, Event<T>},
 		Xtransfer: xtransfer::{Module, Call, Storage, Event<T>},
 		XcmHandler: xcm_handler::{Module, Call, Event<T>, Origin},
 		// The order matters here. Inherents will be included in the order specified here.

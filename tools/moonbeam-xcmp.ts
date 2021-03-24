@@ -2,6 +2,8 @@ import { ApiPromise, Keyring, WsProvider } from "@polkadot/api";
 import { start } from "polkadot-launch";
 import { typesBundle } from "../moonbeam-types-bundle";
 import { createTestPairs } from "@polkadot/keyring/testingPairs";
+import type { ParaId } from "@polkadot/types/interfaces";
+import { u32 } from "@polkadot/types";
 
 // constants
 const GERALD = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
@@ -62,8 +64,11 @@ async function test() {
   );
   // Open channel using relay sudo as caller
   // const keyring = createTestPairs({ type: "ed25519" }, false);
+  // // how do I set these equal to ParaId if ParaId extends u32
+  // const sender: u32 = 200;
+  // const recipient: u32 = 201;
   // const registerChannel = await relayApi.tx.parasSudoWrapper
-  //   .sudoEstablishHrmpChannel(200, 201, 8, 1024)
+  //   .sudoEstablishHrmpChannel(sender, recipient, 8, 1024)
   //   .signAndSend(keyring.alice, ({ events = [], status }) => {
   //     console.log(`Current status is ${status.type}`);
 
@@ -81,27 +86,29 @@ async function test() {
   // construct Transact code to request open channel from 200 -> 201
   const rawOpenCode = relayApi.tx.hrmp.hrmpInitOpenChannel(201, 8, 1024);
   console.log(rawOpenCode.toHex());
-  //remove prefix 31c04 or whatever it is
-  const openCode = "0x1600c90000000800000000040000";
-  // Send message from 200 to relay to request open channel from 200 -> 201
-  const keyring = new Keyring({ type: "ethereum" });
-  const gerald = await keyring.addFromUri(GERALD_PRIVKEY, null, "ethereum");
-  const unsub = await moonbeam200.tx.xtransfer
-    .openChannel(201, openCode)
-    .signAndSend(gerald, ({ events = [], status }) => {
-      console.log(`Current status is ${status.type}`);
+  // const rawParaCallTest = moonbeam200.tx.parachainStaking.leaveNominators();
+  // console.log(rawParaCallTest.toHex());
+  // remove prefix 31c04
+  // const openCode = "0x1600c90000000800000000040000";
+  // // Send message from 200 to relay to request open channel from 200 -> 201
+  // const keyring = new Keyring({ type: "ethereum" });
+  // const gerald = await keyring.addFromUri(GERALD_PRIVKEY, null, "ethereum");
+  // const unsub = await moonbeam200.tx.xtransfer
+  //   .openChannel(201, openCode)
+  //   .signAndSend(gerald, ({ events = [], status }) => {
+  //     console.log(`Current status is ${status.type}`);
 
-      if (status.isFinalized) {
-        console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
+  //     if (status.isFinalized) {
+  //       console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
 
-        // Loopcod through Vec<EventRecord> to display all events
-        events.forEach(({ phase, event: { data, method, section } }) => {
-          console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
-        });
+  //       // Loopcod through Vec<EventRecord> to display all events
+  //       events.forEach(({ phase, event: { data, method, section } }) => {
+  //         console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
+  //       });
 
-        unsub();
-      }
-    });
+  //       unsub();
+  //     }
+  //   });
   // Send message from 201 to relay to accept channel request from 200 -> 201
   // Transfer Moonbeam from 200 to 201
   console.log("all tests passed");

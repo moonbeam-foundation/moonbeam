@@ -729,6 +729,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "channels"
+version = "0.1.0"
+dependencies = [
+ "cumulus-primitives",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+]
+
+[[package]]
 name = "chrono"
 version = "0.4.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4138,6 +4151,7 @@ version = "0.6.0"
 dependencies = [
  "account",
  "author-inherent",
+ "channels",
  "cumulus-parachain-system",
  "cumulus-primitives",
  "cumulus-runtime",
@@ -11300,6 +11314,7 @@ dependencies = [
 name = "xtransfer"
 version = "0.1.0"
 dependencies = [
+ "channels",
  "cumulus-primitives",
  "frame-support",
  "frame-system",
