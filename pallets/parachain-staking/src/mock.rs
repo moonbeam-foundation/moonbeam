@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -18,7 +18,7 @@
 use crate::*;
 use frame_support::{
 	impl_outer_event, impl_outer_origin, parameter_types,
-	traits::{OnFinalize, OnInitialize},
+	traits::{GenesisBuild, OnFinalize, OnInitialize},
 	weights::Weight,
 };
 use sp_core::H256;
@@ -58,7 +58,7 @@ parameter_types! {
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
 	pub const SS58Prefix: u8 = 42;
 }
-impl System for Test {
+impl frame_system::Config for Test {
 	type BaseCallFilter = ();
 	type DbWeight = ();
 	type Origin = Origin;
@@ -95,27 +95,29 @@ impl pallet_balances::Config for Test {
 	type WeightInfo = ();
 }
 parameter_types! {
-	pub const BlocksPerRound: u32 = 5;
+	pub const MinBlocksPerRound: u32 = 3;
+	pub const DefaultBlocksPerRound: u32 = 5;
 	pub const BondDuration: u32 = 2;
-	pub const MaxValidators: u32 = 5;
-	pub const MaxNominatorsPerValidator: u32 = 4;
-	pub const MaxValidatorsPerNominator: u32 = 4;
+	pub const MinSelectedCandidates: u32 = 5;
+	pub const MaxNominatorsPerCollator: u32 = 4;
+	pub const MaxCollatorsPerNominator: u32 = 4;
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
-	pub const MinValidatorStk: u128 = 10;
+	pub const MinCollatorStk: u128 = 10;
 	pub const MinNominatorStk: u128 = 5;
 	pub const MinNomination: u128 = 3;
 }
-impl Config for Test {
+impl crate::pallet::Config for Test {
 	type Event = MetaEvent;
 	type Currency = Balances;
-	type SetMonetaryPolicyOrigin = frame_system::EnsureRoot<Self::AccountId>;
-	type BlocksPerRound = BlocksPerRound;
+	type MinBlocksPerRound = MinBlocksPerRound;
+	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type BondDuration = BondDuration;
-	type MaxValidators = MaxValidators;
-	type MaxNominatorsPerValidator = MaxNominatorsPerValidator;
-	type MaxValidatorsPerNominator = MaxValidatorsPerNominator;
+	type MinSelectedCandidates = MinSelectedCandidates;
+	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
+	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
 	type MaxFee = MaxFee;
-	type MinValidatorStk = MinValidatorStk;
+	type MinCollatorStk = MinCollatorStk;
+	type MinCollatorCandidateStk = MinCollatorStk;
 	type MinNominatorStk = MinNominatorStk;
 	type MinNomination = MinNomination;
 }
@@ -155,7 +157,7 @@ fn genesis(
 	ext
 }
 
-pub(crate) fn two_validators_four_nominators() -> sp_io::TestExternalities {
+pub(crate) fn two_collators_four_nominators() -> sp_io::TestExternalities {
 	genesis(
 		vec![
 			(1, 1000),
@@ -169,7 +171,7 @@ pub(crate) fn two_validators_four_nominators() -> sp_io::TestExternalities {
 			(9, 4),
 		],
 		vec![
-			// validators
+			// collators
 			(1, None, 500),
 			(2, None, 200),
 			// nominators
@@ -181,7 +183,7 @@ pub(crate) fn two_validators_four_nominators() -> sp_io::TestExternalities {
 	)
 }
 
-pub(crate) fn five_validators_no_nominators() -> sp_io::TestExternalities {
+pub(crate) fn five_collators_no_nominators() -> sp_io::TestExternalities {
 	genesis(
 		vec![
 			(1, 1000),
@@ -195,7 +197,7 @@ pub(crate) fn five_validators_no_nominators() -> sp_io::TestExternalities {
 			(9, 33),
 		],
 		vec![
-			// validators
+			// collators
 			(1, None, 100),
 			(2, None, 90),
 			(3, None, 80),
@@ -206,7 +208,7 @@ pub(crate) fn five_validators_no_nominators() -> sp_io::TestExternalities {
 	)
 }
 
-pub(crate) fn five_validators_five_nominators() -> sp_io::TestExternalities {
+pub(crate) fn five_collators_five_nominators() -> sp_io::TestExternalities {
 	genesis(
 		vec![
 			(1, 100),
@@ -221,7 +223,7 @@ pub(crate) fn five_validators_five_nominators() -> sp_io::TestExternalities {
 			(10, 100),
 		],
 		vec![
-			// validators
+			// collators
 			(1, None, 20),
 			(2, None, 20),
 			(3, None, 20),
@@ -237,11 +239,11 @@ pub(crate) fn five_validators_five_nominators() -> sp_io::TestExternalities {
 	)
 }
 
-pub(crate) fn one_validator_two_nominators() -> sp_io::TestExternalities {
+pub(crate) fn one_collator_two_nominators() -> sp_io::TestExternalities {
 	genesis(
 		vec![(1, 100), (2, 100), (3, 100), (4, 100), (5, 100), (6, 100)],
 		vec![
-			// validators
+			// collators
 			(1, None, 20),
 			// nominators
 			(2, Some(1), 10),
@@ -266,7 +268,7 @@ pub(crate) fn last_event() -> MetaEvent {
 	Sys::events().pop().expect("Event expected").event
 }
 
-pub(crate) fn events() -> Vec<RawEvent<u64, u128, u64>> {
+pub(crate) fn events() -> Vec<Event<Test>> {
 	Sys::events()
 		.into_iter()
 		.map(|r| r.event)
@@ -282,6 +284,6 @@ pub(crate) fn events() -> Vec<RawEvent<u64, u128, u64>> {
 
 // Same storage changes as EventHandler::note_author impl
 pub(crate) fn set_author(round: u32, acc: u64, pts: u32) {
-	<Stake as Store>::Points::mutate(round, |p| *p += pts);
-	<Stake as Store>::AwardedPts::mutate(round, acc, |p| *p += pts);
+	<Points<Test>>::mutate(round, |p| *p += pts);
+	<AwardedPts<Test>>::mutate(round, acc, |p| *p += pts);
 }

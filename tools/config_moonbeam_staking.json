@@ -17,6 +17,11 @@
         "name": "charlie",
         "wsPort": 36956,
         "port": 36556
+      },
+      {
+        "name": "dave",
+        "wsPort": 36957,
+        "port": 36557
       }
     ]
   },
@@ -48,7 +53,23 @@
       "flags": [
         "--no-telemetry",
         "--no-prometheus",
-        "--author-id=6be02d1d3665660d22ff9624b7be0551ee1ac91b",
+        "--author-id=C0F0f4ab324C46e55D02D0033343B4Be8A55532d",
+        "--",
+        "--execution=wasm"
+      ]
+    },
+    {
+      "bin": "../target/release/moonbeam",
+      "id": "1000",
+      "rpcPort": 36848,
+      "wsPort": 36948,
+      "port": 36337,
+      "balance": "1000",
+      "chain": "staking-test-spec.json",
+      "flags": [
+        "--no-telemetry",
+        "--no-prometheus",
+        "--author-id=Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB",
         "--",
         "--execution=wasm"
       ]
