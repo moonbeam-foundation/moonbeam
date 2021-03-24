@@ -82,20 +82,15 @@ async function test() {
   // how do I set these equal to ParaId if ParaId extends u32
   const sender: number = 200;
   const recipient: number = 201;
-  const registerChannel = await relayApi.tx.parasSudoWrapper
-    .sudoEstablishHrmpChannel(sender, recipient, 8, 1024)
-    .signAndSend(alice, {}, ({ events = [], status }) => {
-      console.log(`Current status is ${status.type}`);
-
-      if (status.isFinalized) {
-        console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
-
-        // Loopcod through Vec<EventRecord> to display all events
-        events.forEach(({ phase, event: { data, method, section } }) => {
-          console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
-        });
-
-        registerChannel();
+  const unsub = await relayApi.tx.sudo
+    .sudo(relayApi.tx.parasSudoWrapper.sudoEstablishHrmpChannel(sender, recipient, 8, 1024))
+    .signAndSend(alice, {}, (result) => {
+      console.log(`Current status is ${result.status}`);
+      if (result.status.isInBlock) {
+        console.log(`Transaction included at blockHash ${result.status.asInBlock}`);
+      } else if (result.status.isFinalized) {
+        console.log(`Transaction finalized at blockHash ${result.status.asFinalized}`);
+        unsub();
       }
     });
   // construct Transact code to request open channel from 200 -> 201
