@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -19,28 +19,24 @@
 //! A service builder can call the `build_inherent_data_providers` function to get the providers
 //! the node needs based on the parameters it passed in.
 //!
-//! This module also includes MOCK inherent data providers for both the timestamp and validataion
-//! data inherents. These mock providers provide stub data that does not represent anything "real"
+//! This module also includes a MOCK inherent data provider for the validataion
+//! data inherent. This mock provider provides stub data that does not represent anything "real"
 //! about the external world, but can pass the runtime's checks. This is useful in testing
-//! for example, running the --dev service without a relay chain backbone, or authoring block
-//! extremely quickly in testing scenarios.
+//! for example, running the --dev service without a relay chain backbone.
 
 use cumulus_primitives_core::PersistedValidationData;
 use cumulus_primitives_parachain_inherent::{ParachainInherentData, INHERENT_IDENTIFIER};
 use parity_scale_codec::Encode;
 use sp_core::H160;
 use sp_inherents::{InherentData, InherentDataProviders, InherentIdentifier, ProvideInherentData};
-use sp_timestamp::{InherentError, INHERENT_IDENTIFIER as TIMESTAMP_IDENTIFIER};
-use std::cell::RefCell;
+use sp_timestamp::InherentError;
 
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
-use moonbeam_runtime::MINIMUM_PERIOD;
 
 /// Build the inherent data providers for the node.
 ///
 /// Not all nodes will need all inherent data providers:
 /// - The author provider is only necessary for block producing nodes
-/// - The timestamp provider can be mocked.
 /// - The validation data provider can be mocked.
 pub fn build_inherent_data_providers(
 	author: Option<H160>,
@@ -48,6 +44,13 @@ pub fn build_inherent_data_providers(
 ) -> Result<InherentDataProviders, sc_service::Error> {
 	let providers = InherentDataProviders::new();
 
+	// Timestamp provider. Needed in all nodes.
+	providers
+		.register_provider(sp_timestamp::InherentDataProvider)
+		.map_err(Into::into)
+		.map_err(sp_consensus::error::Error::InherentData)?;
+
+	// Author ID Provider for authoring node only.
 	if let Some(account) = author {
 		providers
 			.register_provider(author_inherent::InherentDataProvider(account.encode()))
@@ -55,60 +58,19 @@ pub fn build_inherent_data_providers(
 			.map_err(sp_consensus::error::Error::InherentData)?;
 	}
 
+	// Parachain inherent provider, only for dev-service nodes.
 	if mock {
-		providers
-			.register_provider(MockTimestampInherentDataProvider {
-				duration: MINIMUM_PERIOD * 2,
-			})
-			.map_err(Into::into)
-			.map_err(sp_consensus::error::Error::InherentData)?;
-
 		providers
 			.register_provider(MockValidationDataInherentDataProvider)
 			.map_err(Into::into)
 			.map_err(sp_consensus::error::Error::InherentData)?;
-	} else {
-		providers
-			.register_provider(sp_timestamp::InherentDataProvider)
-			.map_err(Into::into)
-			.map_err(sp_consensus::error::Error::InherentData)?;
-
-		// When we are not mocking the validation data ,we do not register a real validation data
-		// provider here. The validation data inherent is inserted manually by the cumulus colaltor
-		// https://github.com/paritytech/cumulus/blob/c3e3f443/collator/src/lib.rs#L274-L321
 	}
+
+	// When we are not mocking the validation data, we do not register a real validation data
+	// provider here. The validation data inherent is inserted manually by the cumulus colaltor
+	// https://github.com/paritytech/cumulus/blob/c3e3f443/collator/src/lib.rs#L274-L321
 
 	Ok(providers)
-}
-
-/// Mocked timestamp inherent data provider.
-/// Provides a fake duration starting at 0 in millisecond for timestamp inherent.
-/// Each call will increment timestamp by slot_duration making the runtime think time has passed.
-/// This code was inspired by https://github.com/paritytech/frontier/pull/170
-struct MockTimestampInherentDataProvider {
-	duration: u64,
-}
-
-thread_local!(static TIMESTAMP: RefCell<u64> = RefCell::new(0));
-
-impl ProvideInherentData for MockTimestampInherentDataProvider {
-	fn inherent_identifier(&self) -> &'static InherentIdentifier {
-		&TIMESTAMP_IDENTIFIER
-	}
-
-	fn provide_inherent_data(
-		&self,
-		inherent_data: &mut InherentData,
-	) -> Result<(), sp_inherents::Error> {
-		TIMESTAMP.with(|x| {
-			*x.borrow_mut() += self.duration;
-			inherent_data.put_data(TIMESTAMP_IDENTIFIER, &*x.borrow())
-		})
-	}
-
-	fn error_to_string(&self, error: &[u8]) -> Option<String> {
-		InherentError::try_from(&TIMESTAMP_IDENTIFIER, error).map(|e| format!("{:?}", e))
-	}
 }
 
 /// Inherent data provider that supplies mocked validation data.

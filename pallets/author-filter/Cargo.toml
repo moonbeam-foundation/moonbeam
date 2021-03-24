@@ -12,7 +12,7 @@ frame-system = { git = "https://github.com/paritytech/substrate", default-featur
 sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 author-inherent = { path = "../author-inherent", default-features = false }
-stake = { path = "../stake", default-features = false }
+parachain-staking = { path = "../parachain-staking", default-features = false }
 cumulus-pallet-parachain-system = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "rococo-v1" }
 
 [features]
@@ -22,7 +22,7 @@ std = [
     "frame-support/std",
     "frame-system/std",
     "author-inherent/std",
-    "stake/std",
+    "parachain-staking/std",
     "sp-core/std",
     "sp-runtime/std",
     "cumulus-pallet-parachain-system/std",

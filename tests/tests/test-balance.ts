@@ -3,15 +3,15 @@ import { Keyring } from "@polkadot/keyring";
 import { step } from "mocha-steps";
 
 import { createAndFinalizeBlock, describeWithMoonbeam, customRequest } from "./util";
-import { GENESIS_ACCOUNT_BALANCE } from "./constants";
+import {
+  GENESIS_ACCOUNT,
+  GENESIS_ACCOUNT_BALANCE,
+  GENESIS_ACCOUNT_PRIVATE_KEY,
+  TEST_ACCOUNT,
+} from "./constants";
 import { Event } from "@polkadot/types/interfaces";
 
 describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) => {
-  const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
-  const GENESIS_ACCOUNT_PRIVATE_KEY =
-    "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
-  const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
-
   step("genesis balance is setup correctly (web3)", async function () {
     expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT)).to.equal(
       GENESIS_ACCOUNT_BALANCE.toString()
@@ -107,11 +107,12 @@ describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) =>
   });
 
   const TEST_ACCOUNT_2 = "0x1111111111111111111111111111111111111112";
+
   step("transfer from polkadotjs should appear in ethereum", async function () {
     this.timeout(15000);
 
     const keyring = new Keyring({ type: "ethereum" });
-    const testAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+    const testAccount = await keyring.createFromUri(GENESIS_ACCOUNT_PRIVATE_KEY);
     await context.polkadotApi.tx.balances.transfer(TEST_ACCOUNT_2, 123).signAndSend(testAccount);
 
     await createAndFinalizeBlock(context.polkadotApi);

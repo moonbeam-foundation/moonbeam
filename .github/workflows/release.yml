@@ -97,6 +97,10 @@ jobs:
       - name: Checkout
         if: github.event_name != 'pull_request_target'
         uses: actions/checkout@v2
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
       - name: Check with Prettier
         run: npx prettier --check --ignore-path .gitignore  '**/*.(yml|js|ts|json)'
 
@@ -123,6 +127,13 @@ jobs:
         with:
           path: ${{ runner.tool_cache }}/cargo-sccache
           key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_VERSION }}-v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          target: wasm32-unknown-unknown
+          # Toolchain is autodetected from `rust-toolchain` file
+          # https://github.com/actions-rs/toolchain#the-toolchain-file
+          #toolchain: ${{ env.WASM_BUILD_TOOLCHAIN }}
+          default: true
       - name: Install sccache
         run: |
           if [ ! -f ${{ runner.tool_cache }}/cargo-sccache/bin/sccache ]; then
@@ -135,13 +146,6 @@ jobs:
           ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
           ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
           echo "RUSTC_WRAPPER=${{ runner.tool_cache }}/cargo-sccache/bin/sccache" >> $GITHUB_ENV
-      - uses: actions-rs/toolchain@v1
-        with:
-          target: wasm32-unknown-unknown
-          # Toolchain is autodetected from `rust-toolchain` file
-          # https://github.com/actions-rs/toolchain#the-toolchain-file
-          #toolchain: ${{ env.WASM_BUILD_TOOLCHAIN }}
-          default: true
       - id: get-rust-versions
         run: |
           echo "::set-output name=rustc::$(rustc --version)"
@@ -163,6 +167,10 @@ jobs:
           fi
       - name: Unit tests
         run: cargo test --release --verbose --all
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
       - name: Typescript integration tests (against dev service)
         run: |
           cd moonbeam-types-bundle

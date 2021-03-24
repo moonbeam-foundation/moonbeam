@@ -16,11 +16,10 @@ hex-literal = "0.3.1"
 precompiles = { path = "precompiles/", default-features = false }
 account = { path = "account/", default-features = false }
 pallet-ethereum-chain-id = { path = "../pallets/ethereum-chain-id", default-features = false }
-stake = { path = "../pallets/stake", default-features = false }
+parachain-staking = { path = "../pallets/parachain-staking", default-features = false }
 pallet-author-filter = { path = "../pallets/author-filter", default-features = false }
 
 # Substrate dependencies
-pallet-aura = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1", optional = true }
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 sp-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
@@ -45,9 +44,7 @@ pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", 
 frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-moonbeam-v0.7" }
-
-sp-consensus-aura = { default-features = false, git = "https://github.com/paritytech/substrate", branch = "rococo-v1", optional = true }
-pallet-grandpa = { default-features = false, git = "https://github.com/paritytech/substrate", branch = "rococo-v1", optional = true }
+pallet-utility = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
 
 pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
 fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
@@ -97,6 +94,7 @@ std = [
 	"pallet-timestamp/std",
 	"pallet-sudo/std",
 	"pallet-transaction-payment/std",
+	"pallet-utility/std",
 	"pallet-ethereum/std",
 	"pallet-evm/std",
 	"moonbeam-rpc-primitives-txpool/std",
@@ -111,9 +109,8 @@ std = [
 	"cumulus-pallet-parachain-system/std",
 	"cumulus-primitives-core/std",
 	"account/std",
-	"stake/std",
+	"parachain-staking/std",
 	"pallet-author-filter/std",
-	"pallet-grandpa/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.

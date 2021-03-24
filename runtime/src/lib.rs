@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -29,27 +29,12 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use fp_rpc::TransactionStatus;
-use parity_scale_codec::{Decode, Encode};
-use sp_api::impl_runtime_apis;
-use sp_core::{OpaqueMetadata, H160, H256, U256};
-use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify},
-	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult,
-};
-use sp_std::{convert::TryFrom, prelude::*};
-#[cfg(feature = "std")]
-use sp_version::NativeVersion;
-use sp_version::RuntimeVersion;
-
-pub use frame_support::{
+use frame_support::{
 	construct_runtime,
 	pallet_prelude::PhantomData,
 	parameter_types,
-	traits::{FindAuthor, Get, Randomness},
+	traits::{Get, Randomness},
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
-	ConsensusEngineId, StorageValue,
 };
 use frame_system::{EnsureNever, EnsureRoot, EnsureSigned};
 use pallet_ethereum::Call::transact;
@@ -58,10 +43,23 @@ use pallet_evm::{
 	IdentityAddressMapping, Runner,
 };
 use pallet_transaction_payment::CurrencyAdapter;
+pub use parachain_staking::{InflationInfo, Range};
+use parity_scale_codec::{Decode, Encode};
+use sp_api::impl_runtime_apis;
+use sp_core::{OpaqueMetadata, H160, H256, U256};
+use sp_runtime::{
+	create_runtime_str, generic, impl_opaque_keys,
+	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify},
+	transaction_validity::{TransactionSource, TransactionValidity},
+	ApplyExtrinsicResult, Perbill,
+};
+use sp_std::{convert::TryFrom, prelude::*};
+#[cfg(feature = "std")]
+use sp_version::NativeVersion;
+use sp_version::RuntimeVersion;
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
-pub use sp_runtime::{Perbill, Permill};
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -89,9 +87,6 @@ pub type Hash = sp_core::H256;
 /// Digest item type.
 pub type DigestItem = generic::DigestItem<Hash>;
 
-/// Minimum time between blocks. Slot duration is double this.
-pub const MINIMUM_PERIOD: u64 = 3000;
-
 /// Maximum weight per block
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
 
@@ -115,7 +110,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 22,
+	spec_version: 26,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -185,8 +180,14 @@ impl frame_system::Config for Runtime {
 	type SS58Prefix = SS58Prefix;
 }
 
+impl pallet_utility::Config for Runtime {
+	type Event = Event;
+	type Call = Call;
+	type WeightInfo = ();
+}
+
 parameter_types! {
-	pub const MinimumPeriod: u64 = MINIMUM_PERIOD;
+	pub const MinimumPeriod: u64 = 1;
 }
 
 impl pallet_timestamp::Config for Runtime {
@@ -282,7 +283,7 @@ impl pallet_scheduler::Config for Runtime {
 	type WeightInfo = ();
 }
 
-pub const BLOCKS_PER_DAY: BlockNumber = 24 * 60 * 10;
+const BLOCKS_PER_DAY: BlockNumber = 24 * 60 * 10;
 
 parameter_types! {
 	pub const LaunchPeriod: BlockNumber = BLOCKS_PER_DAY;
@@ -376,47 +377,48 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 
 impl parachain_info::Config for Runtime {}
 
-// 18 decimals
+/// GLMR, the native token, uses 18 decimals of precision.
 pub const GLMR: Balance = 1_000_000_000_000_000_000;
 
 parameter_types! {
-	/// Moonbeam starts a new round every hour (600 * block_time)
-	pub const BlocksPerRound: u32 = 600;
+	/// Minimum round length is 2 minutes (20 * 6 second block times)
+	pub const MinBlocksPerRound: u32 = 20;
+	/// Default BlocksPerRound is every hour (600 * 6 second block times)
+	pub const DefaultBlocksPerRound: u32 = 600;
 	/// Reward payments and validator exit requests are delayed by 2 hours (2 * 600 * block_time)
 	pub const BondDuration: u32 = 2;
 	/// Maximum 8 valid block authors at any given time
-	pub const MaxValidators: u32 = 8;
+	pub const MinSelectedCandidates: u32 = 8;
 	/// Maximum 10 nominators per validator
-	pub const MaxNominatorsPerValidator: u32 = 10;
-	/// Maximum 8 validators per nominator (same as MaxValidators)
-	pub const MaxValidatorsPerNominator: u32 = 8;
+	pub const MaxNominatorsPerCollator: u32 = 10;
 	/// The maximum percent a validator can take off the top of its rewards is 50%
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
 	/// Minimum stake required to be reserved to be a validator is 1_000
-	pub const MinValidatorStk: u128 = 1_000 * GLMR;
+	pub const MinCollatorStk: u128 = 1_000 * GLMR;
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5 * GLMR;
 }
-impl stake::Config for Runtime {
+impl parachain_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
-	type SetMonetaryPolicyOrigin = frame_system::EnsureRoot<AccountId>;
-	type BlocksPerRound = BlocksPerRound;
+	type MinBlocksPerRound = MinBlocksPerRound;
+	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type BondDuration = BondDuration;
-	type MaxValidators = MaxValidators;
-	type MaxNominatorsPerValidator = MaxNominatorsPerValidator;
-	type MaxValidatorsPerNominator = MaxValidatorsPerNominator;
+	type MinSelectedCandidates = MinSelectedCandidates;
+	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
+	type MaxCollatorsPerNominator = MinSelectedCandidates;
 	type MaxFee = MaxFee;
-	type MinValidatorStk = MinValidatorStk;
+	type MinCollatorStk = MinCollatorStk;
+	type MinCollatorCandidateStk = MinCollatorStk;
 	type MinNomination = MinNominatorStk;
 	type MinNominatorStk = MinNominatorStk;
 }
 impl author_inherent::Config for Runtime {
-	type EventHandler = Stake;
+	type EventHandler = ParachainStaking;
 	// We cannot run the full filtered author checking logic in the preliminary check because it
 	// depends on entropy from the relay chain. Instead we just make sure that the author is staked
 	// in the preliminary check. The final check including the filtering happens during execution.
-	type PreliminaryCanAuthor = Stake;
+	type PreliminaryCanAuthor = ParachainStaking;
 	type FinalCanAuthor = AuthorFilter;
 }
 
@@ -432,6 +434,7 @@ construct_runtime! {
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
 		System: frame_system::{Pallet, Call, Storage, Config, Event<T>},
+		Utility: pallet_utility::{Pallet, Call, Event},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Sudo: pallet_sudo::{Pallet, Call, Storage, Config<T>, Event<T>},
@@ -442,7 +445,7 @@ construct_runtime! {
 		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config},
 		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>},
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config, ValidateUnsigned},
-		Stake: stake::{Pallet, Call, Storage, Event<T>, Config<T>},
+		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>},
 		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call},
 		Democracy: pallet_democracy::{Pallet, Storage, Config, Event<T>, Call},
 		// The order matters here. Inherents will be included in the order specified here.

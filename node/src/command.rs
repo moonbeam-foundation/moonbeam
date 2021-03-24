@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -13,6 +13,8 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+
+//! This module constructs and executes the appropriate service components for the given subcommand
 
 use crate::{
 	chain_spec,
@@ -49,7 +51,7 @@ fn load_spec(
 		"stagenet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
 			&include_bytes!("../../specs/stagenet/parachain-embedded-specs-v6.json")[..],
 		)?)),
-		"dev" | "development" => Ok(Box::new(chain_spec::development_chain_spec())),
+		"dev" | "development" => Ok(Box::new(chain_spec::development_chain_spec(None, None))),
 		"local" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
 		"" => Err(
 			"You have not specified what chain to sync. In the future, this will default to \
@@ -86,11 +88,11 @@ impl SubstrateCli for Cli {
 	}
 
 	fn support_url() -> String {
-		"support.anonymous.an".into()
+		"https://github.com/PureStake/moonbeam/issues/new".into()
 	}
 
 	fn copyright_start_year() -> i32 {
-		2017
+		2019
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
@@ -124,11 +126,11 @@ impl SubstrateCli for RelayChainCli {
 	}
 
 	fn support_url() -> String {
-		"support.anonymous.an".into()
+		"https://github.com/PureStake/moonbeam/issues/new".into()
 	}
 
 	fn copyright_start_year() -> i32 {
-		2017
+		2019
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
@@ -165,9 +167,21 @@ fn extract_genesis_wasm(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Result<V
 pub fn run() -> Result<()> {
 	let cli = Cli::from_args();
 	match &cli.subcommand {
-		Some(Subcommand::BuildSpec(cmd)) => {
-			let runner = cli.create_runner(cmd)?;
-			runner.sync_run(|config| cmd.run(config.chain_spec, config.network))
+		Some(Subcommand::BuildSpec(params)) => {
+			let runner = cli.create_runner(&params.base)?;
+			runner.sync_run(|config| {
+				if params.mnemonic.is_some() || params.accounts.is_some() {
+					params.base.run(
+						Box::new(chain_spec::development_chain_spec(
+							params.mnemonic.clone(),
+							params.accounts,
+						)),
+						config.network,
+					)
+				} else {
+					params.base.run(config.chain_spec, config.network)
+				}
+			})
 		}
 		Some(Subcommand::CheckBlock(cmd)) => {
 			let runner = cli.create_runner(cmd)?;

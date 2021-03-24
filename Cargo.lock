@@ -232,7 +232,7 @@ dependencies = [
  "concurrent-queue",
  "fastrand",
  "futures-lite",
- "once_cell",
+ "once_cell 1.7.2",
  "vec-arena",
 ]
 
@@ -249,7 +249,7 @@ dependencies = [
  "blocking",
  "futures-lite",
  "num_cpus",
- "once_cell",
+ "once_cell 1.7.2",
 ]
 
 [[package]]
@@ -264,7 +264,7 @@ dependencies = [
  "libc",
  "log",
  "nb-connect",
- "once_cell",
+ "once_cell 1.7.2",
  "parking",
  "polling",
  "vec-arena",
@@ -301,7 +301,7 @@ dependencies = [
  "cfg-if 1.0.0",
  "event-listener",
  "futures-lite",
- "once_cell",
+ "once_cell 1.7.2",
  "signal-hook",
  "winapi 0.3.9",
 ]
@@ -327,7 +327,7 @@ dependencies = [
  "log",
  "memchr",
  "num_cpus",
- "once_cell",
+ "once_cell 1.7.2",
  "pin-project-lite 0.2.6",
  "pin-utils",
  "slab",
@@ -636,7 +636,7 @@ dependencies = [
  "atomic-waker",
  "fastrand",
  "futures-lite",
- "once_cell",
+ "once_cell 1.7.2",
 ]
 
 [[package]]
@@ -1664,7 +1664,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ab01c2450bed354679e78bedbff1484e02910ef1be96755086a36cadd1247efa"
 dependencies = [
  "log",
- "once_cell",
+ "once_cell 1.7.2",
  "serde",
  "serde_json",
 ]
@@ -2187,7 +2187,7 @@ dependencies = [
  "frame-support-procedural",
  "impl-trait-for-tuples 0.2.1",
  "log",
- "once_cell",
+ "once_cell 1.7.2",
  "parity-scale-codec",
  "paste 1.0.5",
  "serde",
@@ -2673,6 +2673,16 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
+version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3bae29b6653b3412c2e71e9d486db9f9df5d701941d86683005efb9f2d28e3da"
+dependencies = [
+ "byteorder",
+ "scopeguard 0.3.3",
+]
+
+[[package]]
+name = "hashbrown"
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d7afe4a420e3fe79967a00898cc1f4db7c8a49a9333a29f8a4bd76a253d5cd04"
@@ -3005,7 +3015,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "824845a0bf897a9042383849b02c1bc219c2383772efcd5c6f9766fa4b81aef3"
 dependencies = [
  "autocfg 1.0.1",
- "hashbrown",
+ "hashbrown 0.9.1",
  "serde",
 ]
 
@@ -4041,7 +4051,7 @@ version = "0.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f374d42cdfc1d7dbf3d3dec28afab2eb97ffbf43a3234d795b5986dbf4b90ba"
 dependencies = [
- "hashbrown",
+ "hashbrown 0.9.1",
 ]
 
 [[package]]
@@ -4129,7 +4139,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "814bbecfc0451fc314eeea34f05bbcd5b98a7ad7af37faee088b86a1e633f1d4"
 dependencies = [
  "hash-db",
- "hashbrown",
+ "hashbrown 0.9.1",
  "parity-util-mem",
 ]
 
@@ -4147,6 +4157,12 @@ name = "memory_units"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "71d96e3f3c0b6325d8ccd83c33b28acb183edcb6c67938ba104ec546854b0882"
+
+[[package]]
+name = "memzero"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "93c0d11ac30a033511ae414355d80f70d9f29a44a49140face477117a1ee90db"
 
 [[package]]
 name = "merlin"
@@ -4352,6 +4368,7 @@ dependencies = [
  "sc-transaction-pool",
  "serde",
  "serde_json",
+ "sha3 0.8.2",
  "sp-api",
  "sp-block-builder",
  "sp-blockchain",
@@ -4363,12 +4380,13 @@ dependencies = [
  "sp-timestamp",
  "sp-transaction-pool",
  "sp-trie",
- "stake",
  "structopt",
  "substrate-build-script-utils",
  "substrate-frame-rpc-system",
  "substrate-test-client",
  "substrate-test-runtime-client",
+ "tiny-bip39 0.6.2",
+ "tiny-hderive",
  "tokio 0.2.25",
  "trie-root 0.15.2",
 ]
@@ -4434,27 +4452,26 @@ dependencies = [
  "hex-literal",
  "log",
  "moonbeam-rpc-primitives-txpool",
- "pallet-aura",
  "pallet-author-filter",
  "pallet-balances",
  "pallet-democracy",
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-evm",
- "pallet-grandpa",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
+ "pallet-utility",
  "parachain-info",
+ "parachain-staking",
  "parity-scale-codec",
  "precompiles",
  "serde",
  "sp-api",
  "sp-block-builder",
- "sp-consensus-aura",
  "sp-core",
  "sp-inherents",
  "sp-io",
@@ -4464,7 +4481,6 @@ dependencies = [
  "sp-std",
  "sp-transaction-pool",
  "sp-version",
- "stake",
  "substrate-wasm-builder 4.0.0",
 ]
 
@@ -4769,6 +4785,15 @@ checksum = "a9a7ab5d64814df0fe4a4b5ead45ed6c5f181ee3ff04ba344313a6c80446c5d4"
 
 [[package]]
 name = "once_cell"
+version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "532c29a261168a45ce28948f9537ddd7a5dd272cc513b3017b1e82a88f962c37"
+dependencies = [
+ "parking_lot 0.7.1",
+]
+
+[[package]]
+name = "once_cell"
 version = "1.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af8b08b04175473088b46763e51ee54da5f9a164bc162f615b91bc179dbf15a3"
@@ -4819,22 +4844,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-aura"
-version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=rococo-v1#1404f2af4cbe90d35b4c8a1405a9452feb789adc"
-dependencies = [
- "frame-support",
- "frame-system",
- "pallet-session",
- "pallet-timestamp",
- "parity-scale-codec",
- "sp-application-crypto",
- "sp-consensus-aura",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "pallet-author-filter"
 version = "0.6.0"
 dependencies = [
@@ -4842,10 +4851,10 @@ dependencies = [
  "cumulus-pallet-parachain-system",
  "frame-support",
  "frame-system",
+ "parachain-staking",
  "parity-scale-codec",
  "sp-core",
  "sp-runtime",
- "stake",
 ]
 
 [[package]]
@@ -5502,6 +5511,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "parachain-staking"
+version = "1.0.0"
+dependencies = [
+ "author-inherent",
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
+ "parity-scale-codec",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "parity-db"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5594,7 +5619,7 @@ checksum = "664a8c6b8e62d8f9f2f937e391982eb433ab285b4cd9545b342441e04a906e42"
 dependencies = [
  "cfg-if 1.0.0",
  "ethereum-types",
- "hashbrown",
+ "hashbrown 0.9.1",
  "impl-trait-for-tuples 0.2.1",
  "lru",
  "parity-util-mem-derive",
@@ -7630,7 +7655,7 @@ checksum = "3053cf52e236a3ed746dfc745aa9cacf1b791d846bdaf412f60a8d7d6e17c8fc"
 dependencies = [
  "cc",
  "libc",
- "once_cell",
+ "once_cell 1.7.2",
  "spin",
  "untrusted",
  "web-sys",
@@ -7997,7 +8022,7 @@ dependencies = [
  "sp-version",
  "structopt",
  "thiserror",
- "tiny-bip39",
+ "tiny-bip39 0.8.0",
  "tokio 0.2.25",
 ]
 
@@ -8777,7 +8802,7 @@ dependencies = [
  "erased-serde",
  "lazy_static",
  "log",
- "once_cell",
+ "once_cell 1.7.2",
  "parking_lot 0.11.1",
  "regex",
  "rustc-hash",
@@ -9503,7 +9528,7 @@ dependencies = [
  "sp-storage",
  "substrate-bip39",
  "thiserror",
- "tiny-bip39",
+ "tiny-bip39 0.8.0",
  "tiny-keccak",
  "twox-hash",
  "wasmi",
@@ -9909,22 +9934,6 @@ name = "stable_deref_trait"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
-
-[[package]]
-name = "stake"
-version = "0.1.2"
-dependencies = [
- "author-inherent",
- "frame-support",
- "frame-system",
- "pallet-balances",
- "parity-scale-codec",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
 
 [[package]]
 name = "static_assertions"
@@ -10338,7 +10347,7 @@ version = "1.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8018d24e04c95ac8790716a5987d0fec4f8b27249ffa0f7d33f1369bdfb88cbd"
 dependencies = [
- "once_cell",
+ "once_cell 1.7.2",
 ]
 
 [[package]]
@@ -10376,13 +10385,28 @@ dependencies = [
 
 [[package]]
 name = "tiny-bip39"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c1c5676413eaeb1ea35300a0224416f57abc3bd251657e0fafc12c47ff98c060"
+dependencies = [
+ "failure",
+ "hashbrown 0.1.8",
+ "hmac 0.7.1",
+ "once_cell 0.1.8",
+ "pbkdf2 0.3.0",
+ "rand 0.6.5",
+ "sha2 0.8.2",
+]
+
+[[package]]
+name = "tiny-bip39"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d9e44c4759bae7f1032e286a7ef990bd9ed23fe831b7eeba0beb97484c2e59b8"
 dependencies = [
  "anyhow",
  "hmac 0.8.1",
- "once_cell",
+ "once_cell 1.7.2",
  "pbkdf2 0.4.0",
  "rand 0.7.3",
  "rustc-hash",
@@ -10390,6 +10414,19 @@ dependencies = [
  "thiserror",
  "unicode-normalization",
  "zeroize",
+]
+
+[[package]]
+name = "tiny-hderive"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "01b874a4992538d4b2f4fbbac11b9419d685f4b39bdc3fed95b04e07bfd76040"
+dependencies = [
+ "base58",
+ "hmac 0.7.1",
+ "libsecp256k1",
+ "memzero",
+ "sha2 0.8.2",
 ]
 
 [[package]]
@@ -10805,7 +10842,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec051edf7f0fc9499a2cb0947652cab2148b9d7f61cee7605e312e9f970dacaf"
 dependencies = [
  "hash-db",
- "hashbrown",
+ "hashbrown 0.9.1",
  "log",
  "rustc-hex",
  "smallvec 1.6.1",
