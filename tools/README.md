@@ -1,5 +1,7 @@
 # Tools
 
+_NB: this folder is yarn onlu_
+
 ## Moonbeam-Launch
 
 Moonbeam-launch is a fork of https://github.com/paritytech/polkadot-launch that allows to run
@@ -27,9 +29,25 @@ git checkout <commit sha>
 cargo build --release --features=real-overseer
 ```
 
-### Launch script
+### Launch Script
 
-And then run `yarn run moonbeam-launch`
+And then run `yarn run moonbeam-launch` to start a network with `config_moonbeam.json`
+
+If you want to run a simple test sending transactions to different addresses, run `yarn run moonbeam-test`
+
+### Launch Custom Scripts
+
+Before you run a custom script, run `yarn run build-moonbeam-launch` to install the correct dependency
+
+If you want to run the staking test, run `ts-node test-staking.ts`
+
+If you want to write your own custom test, use the start function from `polkadot-launch` :
+
+`import { start } from "polkadot-launch";`
+
+And then you can call it with the desired spec this way:
+
+`await start("config_moonbeam_staking.json");`
 
 ### Change Config
 
