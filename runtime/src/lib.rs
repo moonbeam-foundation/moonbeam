@@ -110,7 +110,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 26,
+	spec_version: 27,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -510,8 +510,10 @@ construct_runtime! {
 		// Concretely we need the author inherent to come after the parachain_upgrade inherent.
 		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
 		AuthorFilter: pallet_author_filter::{Module, Call, Storage, Event<T>},
-		CouncilCollective: pallet_collective::<Instance1>::{Module, Call, Event<T>, Origin<T>, Config<T>},
-		TechComitteeCollective: pallet_collective::<Instance2>::{Module, Call, Event<T>, Origin<T>, Config<T>},
+		CouncilCollective:
+			pallet_collective::<Instance1>::{Module, Call, Event<T>, Origin<T>, Config<T>},
+		TechComitteeCollective:
+			pallet_collective::<Instance2>::{Module, Call, Event<T>, Origin<T>, Config<T>},
 	}
 }
 
