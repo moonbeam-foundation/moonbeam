@@ -3,7 +3,7 @@ name = 'moonbeam'
 description = 'Moonbeam Collator'
 homepage = 'https://moonbeam.network'
 license = 'GPL-3.0-only'
-version = '0.6.0'
+version = '0.6.1'
 authors = ["PureStake"]
 build = 'build.rs'
 edition = '2018'
@@ -27,6 +27,9 @@ serde = { version = "1.0.101", features = ["derive"] }
 serde_json = "1.0"
 jsonrpc-core = "15.0.0"
 jsonrpc-pubsub = "15.0.0"
+sha3 = { version = "0.8", default-features = false }
+tiny-hderive = { version = "0.3.0", default-features = false }
+tiny-bip39 = {version = "0.6", default-features = false}
 
 # Moonbeam dependencies
 moonbeam-runtime = { path = "../runtime" }
@@ -35,7 +38,6 @@ moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool" }
 moonbeam-rpc-debug = { path = "../client/rpc/debug" }
 moonbeam-rpc-primitives-debug = { path = "../primitives/rpc/debug" }
 author-inherent = { path = "../pallets/author-inherent"}
-stake = { path = "../pallets/stake"}
 
 # Substrate dependencies
 sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
