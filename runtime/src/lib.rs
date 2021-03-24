@@ -45,9 +45,9 @@ use pallet_evm::{
 	IdentityAddressMapping, Runner,
 };
 use pallet_transaction_payment::CurrencyAdapter;
-use sha3::{Digest, Keccak256};
 pub use parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode};
+use sha3::{Digest, Keccak256};
 use sp_api::impl_runtime_apis;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
