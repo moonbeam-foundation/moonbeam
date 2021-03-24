@@ -8,8 +8,8 @@ version = "0.6.0"
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
 serde = { version = "1.0.101", optional = true, features = ["derive"] }
 
-frame-support = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
-frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
+frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 
 [features]
 default = ["std"]

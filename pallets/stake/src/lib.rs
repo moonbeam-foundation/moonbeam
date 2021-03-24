@@ -1092,7 +1092,7 @@ impl<T: Config> Module<T> {
 			let total_staked = <Staked<T>>::get(round_to_payout);
 			let issuance = Self::compute_issuance(total_staked);
 			for (val, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
-				let pct_due = Perbill::from_rational_approximation(pts, total);
+				let pct_due = Perbill::from_rational(pts, total);
 				let mut amt_due = pct_due * issuance;
 				if amt_due <= T::Currency::minimum_balance() {
 					continue;
@@ -1104,7 +1104,7 @@ impl<T: Config> Module<T> {
 					mint(amt_due, val.clone());
 				} else {
 					// pay validator first; commission + due_portion
-					let val_pct = Perbill::from_rational_approximation(state.bond, state.total);
+					let val_pct = Perbill::from_rational(state.bond, state.total);
 					let commission = state.fee * amt_due;
 					let val_due = if commission > T::Currency::minimum_balance() {
 						amt_due -= commission;
@@ -1116,7 +1116,7 @@ impl<T: Config> Module<T> {
 					mint(val_due, val.clone());
 					// pay nominators due portion
 					for Bond { owner, amount } in state.nominators {
-						let percent = Perbill::from_rational_approximation(amount, state.total);
+						let percent = Perbill::from_rational(amount, state.total);
 						let due = percent * amt_due;
 						mint(due, owner);
 					}

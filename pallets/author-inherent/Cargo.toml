@@ -7,17 +7,17 @@ edition = "2018"
 license = 'GPL-3.0-only'
 
 [dependencies]
-frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-v0.7", default-features = false }
-frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-v0.7", default-features = false }
+frame-support = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
+frame-system = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
-sp-authorship = { git = "https://github.com/purestake/substrate", branch = "moonbeam-v0.7", default-features = false }
-sp-inherents = { git = "https://github.com/purestake/substrate", branch = "moonbeam-v0.7", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-v0.7", default-features = false }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-v0.7", default-features = false }
+sp-authorship = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
+sp-inherents = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
+sp-std = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
 
 [dev-dependencies]
-sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-v0.7", default-features = false }
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-v0.7", default-features = false }
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
 serde = { version = "1.0.101", features = ["derive"] }
 
 [features]

@@ -120,7 +120,7 @@ decl_module! {
 			// Add a digest item so Apps can detect the block author
 			// For now we use the Consensus digest item.
 			// Maybe this will change later.
-			frame_system::Module::<T>::deposit_log(DigestItem::<T::Hash>::Consensus(
+			frame_system::Pallet::<T>::deposit_log(DigestItem::<T::Hash>::Consensus(
 				ENGINE_ID,
 				author.encode(),
 			));

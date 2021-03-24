@@ -20,53 +20,53 @@ stake = { path = "../pallets/stake", default-features = false }
 pallet-author-filter = { path = "../pallets/author-filter", default-features = false }
 
 # Substrate dependencies
-pallet-aura = { git = "https://github.com/purestake/substrate.git", default-features = false, branch = "moonbeam-v0.7", optional = true }
-sp-std = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
-sp-api = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
-sp-io = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
-sp-version = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
-sp-runtime = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
-sp-core = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
-sp-session = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
-sp-offchain = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
-sp-block-builder = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
-sp-transaction-pool = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
-sp-inherents = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
+pallet-aura = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1", optional = true }
+sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+sp-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+sp-version = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+sp-session = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+sp-offchain = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+sp-block-builder = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+sp-transaction-pool = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+sp-inherents = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 
-frame-support = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
-frame-executive = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
-frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
-pallet-balances = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
-pallet-randomness-collective-flip = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
-pallet-timestamp = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
-pallet-sudo = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
-pallet-transaction-payment = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
+frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+frame-executive = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+pallet-balances = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+pallet-randomness-collective-flip = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+pallet-timestamp = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+pallet-sudo = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 
-frame-system-rpc-runtime-api = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
-pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
+frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-moonbeam-v0.7" }
 
-sp-consensus-aura = { default-features = false, git = "https://github.com/purestake/substrate.git", branch = "moonbeam-v0.7", optional = true }
-pallet-grandpa = { default-features = false, git = "https://github.com/purestake/substrate.git", branch = "moonbeam-v0.7", optional = true }
+sp-consensus-aura = { default-features = false, git = "https://github.com/paritytech/substrate", branch = "rococo-v1", optional = true }
+pallet-grandpa = { default-features = false, git = "https://github.com/paritytech/substrate", branch = "rococo-v1", optional = true }
 
 pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
 fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
 
-pallet-democracy = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
-pallet-scheduler = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
+pallet-democracy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 
 moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool", default-features = false }
 
 # Cumulus dependencies
-cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus",  default-features = false, branch = "moonbeam-v0.7" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus",  default-features = false, branch = "moonbeam-v0.7" }
+cumulus-pallet-parachain-system = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "rococo-v1" }
+cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "rococo-v1" }
 
 # TODO Why can't this come directly from cumulus
 parachain-info = { path = "../pallets/parachain-info", default-features = false }
 author-inherent = { path = "../pallets/author-inherent", default-features = false }
 
 [build-dependencies]
-substrate-wasm-builder = { version = "4.0.0", git = "https://github.com/purestake/substrate.git", branch = "moonbeam-v0.7" }
+substrate-wasm-builder = { version = "4.0.0", git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
 
 [features]
 # By default, we build the parachain runtime

@@ -7,16 +7,16 @@ version = "0.6.0"
 [dependencies]
 codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false, features = ["derive"] }
 
-sp-runtime = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
-frame-support = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
-frame-system = { git = "https://github.com/purestake/substrate", default-features = false, branch = "moonbeam-v0.7" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 
 # Cumulus dependencies
-cumulus-upward-message = { git = "https://github.com/purestake/cumulus",  default-features = false, branch = "moonbeam-v0.7" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus",  default-features = false, branch = "moonbeam-v0.7" }
+cumulus-upward-message = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "rococo-v1" }
+cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "rococo-v1" }
 
 # Polkadot dependencies
-polkadot-parachain = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-v0.7", default-features = false }
+polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1", default-features = false }
 
 [features]
 default = ["std"]
