@@ -21,12 +21,25 @@ function assert(condition: boolean, msg: string) {
   if (!condition) throw new Error(msg);
 }
 
-async function chain_api(PORT: number): Promise<ApiPromise> {
+async function parachain_api(PORT: number): Promise<ApiPromise> {
   const url = `ws://localhost:${PORT}`;
   const provider = new WsProvider(url);
   const api = await ApiPromise.create({
     provider,
     typesBundle: typesBundle as any,
+  });
+  return api;
+}
+
+async function relaychain_api(PORT: number): Promise<ApiPromise> {
+  const url = `ws://localhost:${PORT}`;
+  const provider = new WsProvider(url);
+  const api = await ApiPromise.create({
+    provider,
+    types: {
+      Address: "MultiAddress",
+      LookupSource: "MultiAddress",
+    },
   });
   return api;
 }
@@ -38,11 +51,11 @@ async function test() {
   const WS_PORT201 = 36947;
   const WS_RELAY_PORT = 36944;
   // first Moonbeam Parachain with ID 200
-  const moonbeam200 = await chain_api(WS_PORT200);
+  const moonbeam200 = await parachain_api(WS_PORT200);
   // second Moonbeam Parachain with ID 201
-  const moonbeam201 = await chain_api(WS_PORT201);
+  const moonbeam201 = await parachain_api(WS_PORT201);
   // relay chain
-  const relayApi = await chain_api(WS_RELAY_PORT);
+  const relayApi = await relaychain_api(WS_RELAY_PORT);
   // sanity checks that genesis state for all chains meet expectations
   const gerald200 = await moonbeam200.query.system.account(GERALD);
   assert(
@@ -64,25 +77,27 @@ async function test() {
   );
   // Open channel using relay sudo as caller
   // const keyring = createTestPairs({ type: "ed25519" }, false);
-  // // how do I set these equal to ParaId if ParaId extends u32
-  // const sender: u32 = 200;
-  // const recipient: u32 = 201;
-  // const registerChannel = await relayApi.tx.parasSudoWrapper
-  //   .sudoEstablishHrmpChannel(sender, recipient, 8, 1024)
-  //   .signAndSend(keyring.alice, ({ events = [], status }) => {
-  //     console.log(`Current status is ${status.type}`);
+  const keyring = new Keyring({ type: "sr25519" });
+  const alice = keyring.addFromUri("//Alice");
+  // how do I set these equal to ParaId if ParaId extends u32
+  const sender: number = 200;
+  const recipient: number = 201;
+  const registerChannel = await relayApi.tx.parasSudoWrapper
+    .sudoEstablishHrmpChannel(sender, recipient, 8, 1024)
+    .signAndSend(alice, {}, ({ events = [], status }) => {
+      console.log(`Current status is ${status.type}`);
 
-  //     if (status.isFinalized) {
-  //       console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
+      if (status.isFinalized) {
+        console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
 
-  //       // Loopcod through Vec<EventRecord> to display all events
-  //       events.forEach(({ phase, event: { data, method, section } }) => {
-  //         console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
-  //       });
+        // Loopcod through Vec<EventRecord> to display all events
+        events.forEach(({ phase, event: { data, method, section } }) => {
+          console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
+        });
 
-  //       registerChannel();
-  //     }
-  //   });
+        registerChannel();
+      }
+    });
   // construct Transact code to request open channel from 200 -> 201
   const rawOpenCode = relayApi.tx.hrmp.hrmpInitOpenChannel(201, 8, 1024);
   console.log(rawOpenCode.toHex());
