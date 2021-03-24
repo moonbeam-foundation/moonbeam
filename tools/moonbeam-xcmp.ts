@@ -76,13 +76,15 @@ async function test() {
       Number(relayAlice.data.free)
   );
   // Open channel using relay sudo as caller
-  const keyring = createTestPairs({ type: "ed25519" }, false);
+  // const keyring = createTestPairs({ type: "ed25519" }, false);
+  const keyring = new Keyring({ type: "sr25519" });
+  const alice = keyring.addFromUri("//Alice");
   // how do I set these equal to ParaId if ParaId extends u32
   const sender: number = 200;
   const recipient: number = 201;
   const registerChannel = await relayApi.tx.parasSudoWrapper
     .sudoEstablishHrmpChannel(sender, recipient, 8, 1024)
-    .signAndSend(keyring.alice, {}, ({ events = [], status }) => {
+    .signAndSend(alice, {}, ({ events = [], status }) => {
       console.log(`Current status is ${status.type}`);
 
       if (status.isFinalized) {
