@@ -145,7 +145,7 @@ fn join_collator_candidates() {
 		assert_noop!(
 			Stake::join_candidates(Origin::signed(8), Perbill::from_percent(2), 10u128,),
 			DispatchError::Module {
-				index: 0,
+				index: 1,
 				error: 3,
 				message: Some("InsufficientBalance")
 			}
@@ -546,7 +546,7 @@ fn multiple_nominations() {
 		assert_noop!(
 			Stake::nominate(Origin::signed(7), 3, 11),
 			DispatchError::Module {
-				index: 0,
+				index: 1,
 				error: 3,
 				message: Some("InsufficientBalance")
 			},
@@ -634,7 +634,7 @@ fn collators_bond() {
 		assert_noop!(
 			Stake::candidate_bond_more(Origin::signed(1), 40),
 			DispatchError::Module {
-				index: 0,
+				index: 1,
 				error: 3,
 				message: Some("InsufficientBalance")
 			}
@@ -708,7 +708,7 @@ fn nominators_bond() {
 		assert_noop!(
 			Stake::nominator_bond_more(Origin::signed(6), 1, 81),
 			DispatchError::Module {
-				index: 0,
+				index: 1,
 				error: 3,
 				message: Some("InsufficientBalance")
 			}
