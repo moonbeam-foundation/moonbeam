@@ -140,8 +140,6 @@ pub fn new_partial(
 			telemetry
 		});
 
-	let registry = config.prometheus_registry();
-
 	let transaction_pool = sc_transaction_pool::BasicPool::new_full(
 		config.transaction_pool.clone(),
 		config.role.is_authority().into(),
@@ -170,7 +168,7 @@ pub fn new_partial(
 		frontier_block_import.clone(),
 		inherent_data_providers.clone(),
 		&task_manager.spawn_essential_handle(),
-		registry,
+		config.prometheus_registry(),
 	)?;
 
 	Ok(PartialComponents {
@@ -571,18 +569,7 @@ pub fn new_dev(
 		})
 	};
 
-	task_manager.spawn_essential_handle().spawn(
-		"frontier-mapping-sync-worker",
-		MappingSyncWorker::new(
-			client.import_notification_stream(),
-			Duration::new(6, 0),
-			client.clone(),
-			backend.clone(),
-			frontier_backend.clone(),
-		).for_each(|()| futures::future::ready(()))
-	);
-
-	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
+	let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		network,
 		client: client.clone(),
 		keystore: keystore_container.sync_keystore(),
@@ -591,12 +578,23 @@ pub fn new_dev(
 		rpc_extensions_builder,
 		on_demand: None,
 		remote_blockchain: None,
-		backend,
+		backend: backend.clone(),
 		network_status_sinks,
 		system_rpc_tx,
 		config,
 		telemetry: None,
 	})?;
+
+	task_manager.spawn_essential_handle().spawn(
+		"frontier-mapping-sync-worker",
+		MappingSyncWorker::new(
+			client.import_notification_stream(),
+			Duration::new(6, 0),
+			client.clone(),
+			backend,
+			frontier_backend.clone(),
+		).for_each(|()| futures::future::ready(()))
+	);
 
 	// Spawn Frontier EthFilterApi maintenance task.
 	if let Some(filter_pool) = filter_pool {
