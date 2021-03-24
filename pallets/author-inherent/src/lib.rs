@@ -290,8 +290,8 @@ mod tests {
 			NodeBlock = Block,
 			UncheckedExtrinsic = UncheckedExtrinsic,
 		{
-			System: frame_system::{Module, Call, Config, Storage, Event<T>},
-			AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
+			System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
+			AuthorInherent: author_inherent::{Pallet, Call, Storage, Inherent},
 		}
 	);
 
