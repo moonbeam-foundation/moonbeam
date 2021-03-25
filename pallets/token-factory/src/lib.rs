@@ -96,6 +96,18 @@ pub mod pallet {
 		}
 	}
 
+	impl From<CurrencyId> for Vec<u8> {
+		fn from(c: CurrencyId) -> Vec<u8> {
+			match c {
+				CurrencyId::Native => b"GLMR".to_vec(),
+				CurrencyId::Token(Ticker::DOT) => b"DOT".to_vec(),
+				CurrencyId::Token(Ticker::KSM) => b"KSM".to_vec(),
+				CurrencyId::Token(Ticker::ACA) => b"ACA".to_vec(),
+				CurrencyId::Token(Ticker::AUSD) => b"AUSD".to_vec(),
+			}
+		}
+	}
+
 	#[test]
 	fn currency_as_vec() {
 		let expect: CurrencyId = CurrencyId::try_from([71, 76, 77, 82].to_vec()).unwrap();

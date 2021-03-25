@@ -30,7 +30,8 @@ pub mod pallet {
 	use frame_support::{pallet_prelude::*, traits::Get, transactional};
 	use frame_system::pallet_prelude::*;
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
-	use sp_std::prelude::*;
+	use sp_std::{convert::Into, prelude::*};
+	use token_factory::CurrencyId;
 	use xcm::v0::{
 		Error as XcmError, ExecuteXcm, Junction, MultiAsset, MultiLocation, NetworkId, Order, Xcm,
 	};
@@ -221,10 +222,10 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 			ensure!(para_id != T::ParaId::get(), Error::<T>::CannotSendToSelf);
-			ensure!(
-				<channels::Pallet<T>>::sender_channels().contains(&para_id),
-				Error::<T>::NoSenderChannelOpen
-			);
+			// ensure!(
+			// 	<channels::Pallet<T>>::sender_channels().contains(&para_id),
+			// 	Error::<T>::NoSenderChannelOpen
+			// );
 
 			let destination = Self::account_id_32_destination(dest_network.clone(), &dest);
 
@@ -277,6 +278,56 @@ pub mod pallet {
 
 			Ok(().into())
 		}
+		/// Transfer native tokens to other parachain that uses [u8; 20]
+		/// - assumes channel already exists with self (but not checked for now)
+		#[pallet::weight(10)]
+		#[transactional]
+		pub fn transfer_native(
+			origin: OriginFor<T>,
+			para_id: ParaId,
+			dest: T::AccountId,
+			amount: T::Balance,
+		) -> DispatchResultWithPostInfo {
+			let who = ensure_signed(origin)?;
+			let self_id = T::ParaId::get();
+			// TODO: ensure channel exists
+			ensure!(para_id != self_id, Error::<T>::CannotSendToSelf);
+			let x_currency_id = XCurrencyId {
+				chain_id: ChainId::ParaChain(self_id),
+				currency_id: CurrencyId::Native.into(),
+			};
+			let dest_network = T::RelayChainNetworkId::get();
+			let destination = Self::account_key_20_destination(dest_network.clone(), dest.clone());
+			let xcm = Self::transfer_owned_tokens_to_parachain(
+				x_currency_id.clone(),
+				para_id,
+				destination,
+				amount,
+			);
+			let xcm_origin = T::ToMultiLocation::try_into_location(who.clone())
+				.map_err(|_| Error::<T>::BadLocation)?;
+			// TODO: revert state on xcm execution failure.
+			match T::XcmExecutor::execute_xcm(xcm_origin, xcm) {
+				Ok(_) => Self::deposit_event(Event::<T>::TransferredToAccountKey20Parachain(
+					x_currency_id,
+					who,
+					para_id,
+					dest,
+					dest_network,
+					amount,
+				)),
+				Err(err) => Self::deposit_event(Event::<T>::TransferToAccountKey20ParachainFailed(
+					x_currency_id,
+					who,
+					para_id,
+					dest,
+					dest_network,
+					amount,
+					err,
+				)),
+			}
+			Ok(().into())
+		}
 		/// Transfer tokens to parachain that uses [u8; 20] for system::AccountId
 		/// - channel must be open with self as sender
 		#[pallet::weight(10)]
@@ -291,12 +342,12 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 			ensure!(para_id != T::ParaId::get(), Error::<T>::CannotSendToSelf);
-			ensure!(
-				<channels::Pallet<T>>::sender_channels().contains(&para_id),
-				Error::<T>::NoSenderChannelOpen
-			);
+			// ensure!(
+			// 	<channels::Pallet<T>>::sender_channels().contains(&para_id),
+			// 	Error::<T>::NoSenderChannelOpen
+			// );
 
-			let destination = Self::account_id_20_destination(dest_network.clone(), dest.clone());
+			let destination = Self::account_key_20_destination(dest_network.clone(), dest.clone());
 
 			let xcm = match x_currency_id.chain_id {
 				ChainId::RelayChain => {
@@ -358,7 +409,7 @@ pub mod pallet {
 			})
 		}
 		/// Form multilocation when recipient chain uses AccountKey20 as system::AccountId type
-		fn account_id_20_destination(network: NetworkId, key: T::AccountId) -> MultiLocation {
+		fn account_key_20_destination(network: NetworkId, key: T::AccountId) -> MultiLocation {
 			MultiLocation::X1(Junction::AccountKey20 {
 				network,
 				key: T::AccountKey20Convert::convert(key).clone(),

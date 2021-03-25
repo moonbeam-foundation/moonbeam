@@ -82,8 +82,6 @@ pub mod pallet {
 
 	#[pallet::error]
 	pub enum Error<T> {
-		/// Bad location.
-		BadLocation,
 		/// Cannot send message from parachain to self
 		CannotSendToSelf,
 		/// Call to SendXcm failed
