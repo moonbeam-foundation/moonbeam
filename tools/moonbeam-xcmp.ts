@@ -115,23 +115,25 @@ async function test() {
   // @ts-ignore
   const expectedChannel = await relayApi.query.hrmp.hrmpChannels(channelID);
   // const expectedChannel = await relayApi.query.hrmp.hrmpChannels(sender, recipient);
-  console.log("expectedchannel", expectedChannel);
+  console.log("expectedchannel", expectedChannel, expectedChannel.createdAtHash);
 
   assert(expectedChannel !== undefined, "Channel does not exist but we expected it to exist");
   // (2) TODO: check that channel deposits are reserved from sender and recipient
   // HOW LONG TO WAIT UNTIL QUEUED DOWNWARD MESSAGES ARE RECEIVED BY PARARCHAIN
-  await wait(50);
+  // await wait(50);
   // (3) TODO: check that the downward message Xcm::HrmpNewChannelOpenRequest
   // { sender, max_msg_size, max_capacity }
   //  was sent to the recipient parachain
-  const recipientChannels = moonbeam201.query.channels.recipientChannels();
+  const recipientChannels = await moonbeam201.query.channels.recipientChannels();
+  console.log("recipientChannels", recipientChannels);
   assert(
     recipientChannels[0] === sender,
     "Recipient channel with sender ID not yet opened on recipient chain"
   );
   // (4) TODO: check that the downward message Xcm::HrmpChannelAccepted { recipient }
   // was sent to the sender parachain
-  const senderChannels = moonbeam200.query.channels.senderChannels();
+  const senderChannels = await moonbeam200.query.channels.senderChannels();
+  console.log("senderChannels", senderChannels);
   assert(
     senderChannels[0] === recipient,
     "Sender channel with recipient ID not yet opened on sender chain"
