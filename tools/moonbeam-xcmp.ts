@@ -96,7 +96,8 @@ async function test() {
         unsub();
       }
     });
-  // (1) TODO: check that the channel is actually open by querying relay chain storage for `hrmp` pallet
+  // (1) TODO: check that the channel is actually open by querying relay chain storage for
+  // `hrmp` pallet
   // const channelID = HrmpChannelId { sender, recipient };
   // const expectedChannel = await relayApi.query.hrmp.hrmpChannels(channelID);
   // assert(
@@ -106,7 +107,8 @@ async function test() {
   // (2) TODO: check that channel deposits are reserved from sender and recipient
   // HOW LONG TO WAIT UNTIL QUEUED DOWNWARD MESSAGES ARE RECEIVED BY PARARCHAIN
   await wait(50000);
-  // (3) TODO: check that the downward message Xcm::HrmpNewChannelOpenRequest { sender, max_msg_size, max_capacity }
+  // (3) TODO: check that the downward message Xcm::HrmpNewChannelOpenRequest
+  // { sender, max_msg_size, max_capacity }
   //  was sent to the recipient parachain
   // const recipientChannels = moonbeam201.query.channels.recipientChannels();
   // assert(
@@ -117,7 +119,8 @@ async function test() {
   //   recipientChannels[0] === sender,
   //   "Recipient channel with sender ID not yet opened on recipient chain"
   // );
-  // (4) TODO: check that the downward message Xcm::HrmpChannelAccepted { recipient } was sent to the sender parachain
+  // (4) TODO: check that the downward message Xcm::HrmpChannelAccepted { recipient }
+  // was sent to the sender parachain
   // const senderChannels = moonbeam200.query.channels.senderChannels();
   // assert(
   //   senderChannels[0] === recipient,
