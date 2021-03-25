@@ -9,9 +9,8 @@ _Moonbeam-launch_ (https://github.com/PureStake/polkadot-launch/tree/moonbeam-la
 _Polkadot-launch_ (https://github.com/paritytech/polkadot-launch) allows to start a local network of polkadot relaychain and parachain nodes with the desired configuration.
 
 For this setup, you want to have moonbeam and polkadot cloned in the same repo:
-<repo>
-<moonbeam>
-<polkadot>
+<repo>/<moonbeam>
+<repo>/<polkadot>
 
 ### Build Parachain
 
