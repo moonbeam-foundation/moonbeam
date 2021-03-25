@@ -186,12 +186,19 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::CheckBlock(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|config| {
+				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
+				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
+
 				let PartialComponents {
 					client,
 					task_manager,
 					import_queue,
 					..
-				} = crate::service::new_partial(&config, None, false)?;
+				} = if cli.run.dev_service || relay_chain_id == Some("dev-service".to_string()) {
+					crate::service::dev_partial(&config, None, false)?
+				} else {
+					crate::service::parachain_partial(&config, None, false)?
+				};
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -202,7 +209,7 @@ pub fn run() -> Result<()> {
 					client,
 					task_manager,
 					..
-				} = crate::service::new_partial(&config, None, false)?;
+				} = crate::service::parachain_partial(&config, None, false)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
 		}
@@ -213,19 +220,26 @@ pub fn run() -> Result<()> {
 					client,
 					task_manager,
 					..
-				} = crate::service::new_partial(&config, None, false)?;
+				} = crate::service::parachain_partial(&config, None, false)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
 		}
 		Some(Subcommand::ImportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|config| {
+				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
+				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
+
 				let PartialComponents {
 					client,
 					task_manager,
 					import_queue,
 					..
-				} = crate::service::new_partial(&config, None, false)?;
+				} = if cli.run.dev_service || relay_chain_id == Some("dev-service".to_string()) {
+				  crate::service::dev_partial(&config, None, false)?
+				} else {
+				  crate::service::parachain_partial(&config, None, false)?
+				};
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -241,7 +255,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					backend,
 					..
-				} = crate::service::new_partial(&config, None, false)?;
+				} = crate::service::parachain_partial(&config, None, false)?;
 				Ok((cmd.run(client, backend), task_manager))
 			})
 		}
