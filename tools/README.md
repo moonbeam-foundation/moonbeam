@@ -1,6 +1,6 @@
 # Tools
 
-_NB: this folder is yarn onlu_
+_NB: this folder is yarn only_
 
 ## Moonbeam-Launch
 
