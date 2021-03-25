@@ -182,7 +182,7 @@ where
 								_ => todo!("support latest/earliest/pending"),
 							};
 
-							let to_block = match req.from_block {
+							let to_block = match req.to_block {
 								None => todo!("support latest"),
 								Some(RequestBlockId::Number(n)) => n,
 								_ => todo!("support latest/earliest/pending"),
