@@ -4,10 +4,14 @@ _NB: this folder is yarn only_
 
 ## Moonbeam-Launch
 
-Moonbeam-launch is a fork of https://github.com/paritytech/polkadot-launch that allows to run
-a test script on multiple nodes.
+_Moonbeam-launch_ (https://github.com/PureStake/polkadot-launch/tree/moonbeam-launch) is a fork of polkadot-launch adapted for Moonbeam's needs for testing. Eventually, polkadot-launch should catch up and remove the need for a custom implementation.
 
-To use it, follow instructions to build polkadot in the same repo : (from https://github.com/PureStake/polkadot-launch/tree/moonbeam-launch)
+_Polkadot-launch_ (https://github.com/paritytech/polkadot-launch) allows to start a local network of polkadot relaychain and parachain nodes with the desired configuration.
+
+For this setup, you want to have moonbeam and polkadot cloned in the same repo:
+<repo>
+<moonbeam>
+<polkadot>
 
 ### Build Parachain
 
@@ -15,7 +19,7 @@ In the moonbeam repo, checkout to the desired commit of moonbeam and then run:
 
 ```
 cargo build --release
-./target/release/moonbase-alphanet --version
+./target/release/moonbeam --version
 ```
 
 ### Build Relaychain
