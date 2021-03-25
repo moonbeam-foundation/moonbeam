@@ -218,6 +218,11 @@ export const moonbeamDefinitions = {
           downward_messages: "Vec<InboundDownwardMessage>",
           horizontal_messages: "BTreeMap<ParaId, Vec<InboundHrmpMessage>>",
         },
+        RoundInfo: {
+          current: "RoundIndex",
+          first: "BlockNumber",
+          length: "u32",
+        },
       },
     },
   ],
