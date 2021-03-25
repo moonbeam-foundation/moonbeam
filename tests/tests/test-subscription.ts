@@ -125,7 +125,7 @@ describeWithMoonbeam(
           data: TEST_CONTRACT_BYTECODE,
           value: "0x00",
           gasPrice: "0x01",
-          gas: "0x4F930",
+          gas: "0xF0000",
         },
         GENESIS_ACCOUNT_PRIVATE_KEY
       );
