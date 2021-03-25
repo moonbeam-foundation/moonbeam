@@ -14,6 +14,11 @@ const DEFAULT_GENESIS_BALANCE = 2n ** 80n;
 const DEFAULT_GENESIS_STAKING = 1_000n * GLMR;
 const GENESIS_ACCOUNT_BALANCE = DEFAULT_GENESIS_BALANCE - DEFAULT_GENESIS_STAKING;
 
+interface HrmpChannelId {
+  sender: number;
+  recipient: number;
+}
+
 function assert(condition: boolean, msg: string) {
   if (!condition) throw new Error(msg);
 }
@@ -79,53 +84,58 @@ async function test() {
     "wrong balance for relayAlice, expected: 1000000000000000000, returned: " +
       Number(relayAlice.data.free)
   );
-  console.log("Sanity Checks Passed for Relay Chain and Both Parachains");
+  console.log("++ Sanity Checks Passed for Relay Chain and Both Parachains");
   // Open channel using relay sudo as caller
   const keyring = new Keyring({ type: "sr25519" });
   const alice = keyring.addFromUri("//Alice");
   const sender: number = 200;
   const recipient: number = 201;
-  const unsub = await relayApi.tx.sudo
-    .sudo(relayApi.tx.parasSudoWrapper.sudoEstablishHrmpChannel(sender, recipient, 8, 1024))
-    .signAndSend(alice, {}, (result) => {
-      console.log(`Current status is ${result.status}`);
-      if (result.status.isInBlock) {
-        console.log(`Transaction included at blockHash ${result.status.asInBlock}`);
-      } else if (result.status.isFinalized) {
-        console.log(`Transaction finalized at blockHash ${result.status.asFinalized}`);
-        unsub();
-      }
-    });
+  await new Promise<void>(async (resolve) => {
+    const unsub = await relayApi.tx.sudo
+      .sudo(relayApi.tx.parasSudoWrapper.sudoEstablishHrmpChannel(sender, recipient, 8, 1024))
+      .signAndSend(alice, {}, ({ events = [], status }) => {
+        console.log(`Current status is ${status}`);
+        if (status.isInBlock) {
+          console.log(`Transaction included at blockHash ${status.asInBlock}`);
+        } else if (status.isFinalized) {
+          console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
+          // Loop through Vec<EventRecord> to display all events
+          events.forEach(({ phase, event: { data, method, section } }) => {
+            console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
+          });
+          unsub();
+          resolve();
+        }
+      });
+  });
+  console.log("api call resolved");
   // (1) TODO: check that the channel is actually open by querying relay chain storage for
   // `hrmp` pallet
-  // const channelID = HrmpChannelId { sender, recipient };
-  // const expectedChannel = await relayApi.query.hrmp.hrmpChannels(channelID);
-  // assert(
-  //   expectedChannel.isSome(),
-  //   "Channel does not exist but we expected it to exist"
-  // );
+  const channelID: HrmpChannelId = { sender, recipient };
+  // @ts-ignore
+  const expectedChannel = await relayApi.query.hrmp.hrmpChannels(channelID);
+  // const expectedChannel = await relayApi.query.hrmp.hrmpChannels(sender, recipient);
+  console.log("expectedchannel", expectedChannel);
+
+  assert(expectedChannel !== undefined, "Channel does not exist but we expected it to exist");
   // (2) TODO: check that channel deposits are reserved from sender and recipient
   // HOW LONG TO WAIT UNTIL QUEUED DOWNWARD MESSAGES ARE RECEIVED BY PARARCHAIN
-  await wait(50000);
+  await wait(50);
   // (3) TODO: check that the downward message Xcm::HrmpNewChannelOpenRequest
   // { sender, max_msg_size, max_capacity }
   //  was sent to the recipient parachain
-  // const recipientChannels = moonbeam201.query.channels.recipientChannels();
-  // assert(
-  //   senderChannels[0] === recipient,
-  //   "Sender channel with recipient ID not yet opened on sender chain"
-  // );
-  // assert(
-  //   recipientChannels[0] === sender,
-  //   "Recipient channel with sender ID not yet opened on recipient chain"
-  // );
+  const recipientChannels = moonbeam201.query.channels.recipientChannels();
+  assert(
+    recipientChannels[0] === sender,
+    "Recipient channel with sender ID not yet opened on recipient chain"
+  );
   // (4) TODO: check that the downward message Xcm::HrmpChannelAccepted { recipient }
   // was sent to the sender parachain
-  // const senderChannels = moonbeam200.query.channels.senderChannels();
-  // assert(
-  //   senderChannels[0] === recipient,
-  //   "Sender channel with recipient ID not yet opened on sender chain"
-  // );
+  const senderChannels = moonbeam200.query.channels.senderChannels();
+  assert(
+    senderChannels[0] === recipient,
+    "Sender channel with recipient ID not yet opened on sender chain"
+  );
   // (5) Transfer from Sender to Recipient Parachain
   // transfer_native_to_account_key_20_parachain
   const senderKeyring = new Keyring({ type: "ethereum" });
