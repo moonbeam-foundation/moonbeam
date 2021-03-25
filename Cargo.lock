@@ -146,15 +146,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "array-init"
-version = "0.0.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "23589ecb866b460d3a0f1278834750268c607e8e28a1b982c907219f3178cd72"
-dependencies = [
- "nodrop",
-]
-
-[[package]]
 name = "arrayref"
 version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4126,7 +4117,6 @@ dependencies = [
  "jsonrpc-derive 14.2.2",
  "moonbeam-rpc-primitives-debug",
  "serde",
- "serde-hex",
  "serde_json",
 ]
 
@@ -4202,7 +4192,6 @@ dependencies = [
  "fc-rpc-core",
  "fp-rpc",
  "futures 0.3.12",
- "hex",
  "jsonrpc-core 15.1.0",
  "moonbeam-rpc-core-trace",
  "moonbeam-rpc-debug",
@@ -8731,17 +8720,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "92d5161132722baa40d802cc70b15262b98258453e85e5d1d365c757c73869ae"
 dependencies = [
  "serde_derive",
-]
-
-[[package]]
-name = "serde-hex"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca37e3e4d1b39afd7ff11ee4e947efae85adfddf4841787bfa47c470e96dc26d"
-dependencies = [
- "array-init",
- "serde",
- "smallvec 0.6.14",
 ]
 
 [[package]]

@@ -40,4 +40,3 @@ fc-consensus = { git = "https://github.com/purestake/frontier", branch = "tgm-v0
 fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "tgm-v0.6-moonbeam" }
 moonbeam-rpc-debug = { path = "../debug" }
 moonbeam-rpc-core-trace = { path = "../../rpc-core/trace" }
-hex = "0.4.3"
