@@ -28,7 +28,7 @@ describeWithMoonbeam("Moonbeam RPC (Web3Api)", `simple-specs.json`, (context) =>
 
     // TODO: this is really just testing that the result comes back as a string, not that it's
     //       expressed in hex (as opposed to decimal)
-    expect(result.result).to.be.equal("0");
+    expect(result.result).to.be.equal("0x0");
     expect(typeof result.result).to.be.equal("string");
   });
 });
