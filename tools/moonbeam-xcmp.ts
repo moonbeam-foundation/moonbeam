@@ -1,10 +1,6 @@
 import { ApiPromise, Keyring, WsProvider } from "@polkadot/api";
 import { start } from "polkadot-launch";
 import { typesBundle } from "../moonbeam-types-bundle";
-import { createTestPairs } from "@polkadot/keyring/testingPairs";
-import type { ParaId } from "@polkadot/types/interfaces";
-import { u32 } from "@polkadot/types";
-import { gerald } from "./init-web3";
 
 // constants
 const GERALD = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
@@ -129,24 +125,24 @@ async function test() {
   // );
   // (5) Transfer from Sender to Recipient Parachain
   // transfer_native_to_account_key_20_parachain
-  // const senderKeyring = new Keyring({ type: "ethereum" });
-  // const gerald = await senderKeyring.addFromUri(GERALD_PRIVKEY, null, "ethereum");
-  // const unsub2 = await moonbeam200.tx.xtransfer
-  //   .transferNative(recipient, GERALD, 100000)
-  //   .signAndSend(gerald, ({ events = [], status }) => {
-  //     console.log(`Current status is ${status.type}`);
+  const senderKeyring = new Keyring({ type: "ethereum" });
+  const gerald = await senderKeyring.addFromUri(GERALD_PRIVKEY, null, "ethereum");
+  const unsub2 = await moonbeam200.tx.xtransfer
+    .transferNative(recipient, GERALD, 100000)
+    .signAndSend(gerald, ({ events = [], status }) => {
+      console.log(`Current status is ${status.type}`);
 
-  //     if (status.isFinalized) {
-  //       console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
+      if (status.isFinalized) {
+        console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
 
-  //       // Loopcod through Vec<EventRecord> to display all events
-  //       events.forEach(({ phase, event: { data, method, section } }) => {
-  //         console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
-  //       });
+        // Loopcod through Vec<EventRecord> to display all events
+        events.forEach(({ phase, event: { data, method, section } }) => {
+          console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
+        });
 
-  //       unsub2();
-  //     }
-  //   });
+        unsub2();
+      }
+    });
   // check to see if message is received on the recipient chain
   // check to see if account balance changes on sender chain
   // check to see if account balance changes on recipient chain
