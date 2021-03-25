@@ -236,9 +236,9 @@ pub fn run() -> Result<()> {
 					import_queue,
 					..
 				} = if cli.run.dev_service || relay_chain_id == Some("dev-service".to_string()) {
-				  crate::service::dev_partial(&config, None, false)?
+					crate::service::dev_partial(&config, None, false)?
 				} else {
-				  crate::service::parachain_partial(&config, None, false)?
+					crate::service::parachain_partial(&config, None, false)?
 				};
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
