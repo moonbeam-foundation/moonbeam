@@ -38,15 +38,15 @@ use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use futures::{Stream, StreamExt};
 use moonbeam_runtime::{opaque::Block, RuntimeApi};
 use polkadot_primitives::v0::CollatorPair;
+use sc_cli::SubstrateCli;
+use sc_client_api::BlockchainEvents;
 use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
 use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
 use sc_service::{
-	error::Error as ServiceError, Configuration, PartialComponents, Role, TFullBackend,
-	TFullClient, TaskManager, BasePath,
+	error::Error as ServiceError, BasePath, Configuration, PartialComponents, Role, TFullBackend,
+	TFullClient, TaskManager,
 };
-use sc_cli::SubstrateCli;
-use sc_client_api::BlockchainEvents;
 use sp_core::{Pair, H160, H256};
 use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
@@ -68,7 +68,9 @@ type FullClient = TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = TFullBackend<Block>;
 
 pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backend<Block>>, String> {
-	let config_dir = config.base_path.as_ref()
+	let config_dir = config
+		.base_path
+		.as_ref()
 		.map(|base_path| base_path.config_dir(config.chain_spec.id()))
 		.unwrap_or_else(|| {
 			BasePath::from_project("", "", &crate::cli::Cli::executable_name())
@@ -76,12 +78,14 @@ pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backen
 		});
 	let database_dir = config_dir.join("frontier").join("db");
 
-	Ok(Arc::new(fc_db::Backend::<Block>::new(&fc_db::DatabaseSettings {
-		source: fc_db::DatabaseSettingsSrc::RocksDb {
-			path: database_dir,
-			cache_size: 0,
-		}
-	})?))
+	Ok(Arc::new(fc_db::Backend::<Block>::new(
+		&fc_db::DatabaseSettings {
+			source: fc_db::DatabaseSettingsSrc::RocksDb {
+				path: database_dir,
+				cache_size: 0,
+			},
+		},
+	)?))
 }
 
 /// Builds the PartialComponents for a parachain service
@@ -113,7 +117,9 @@ pub fn parachain_partial(
 > {
 	let inherent_data_providers = build_inherent_data_providers(author, mock_inherents)?;
 
-	let telemetry = config.telemetry_endpoints.clone()
+	let telemetry = config
+		.telemetry_endpoints
+		.clone()
 		.filter(|x| !x.is_empty())
 		.map(|endpoints| -> Result<_, sc_telemetry::Error> {
 			let worker = TelemetryWorker::new(16)?;
@@ -130,15 +136,12 @@ pub fn parachain_partial(
 
 	let client = Arc::new(client);
 
-	let telemetry_worker_handle = telemetry
-		.as_ref()
-		.map(|(worker, _)| worker.handle());
+	let telemetry_worker_handle = telemetry.as_ref().map(|(worker, _)| worker.handle());
 
-	let telemetry = telemetry
-		.map(|(worker, telemetry)| {
-			task_manager.spawn_handle().spawn("telemetry", worker.run());
-			telemetry
-		});
+	let telemetry = telemetry.map(|(worker, telemetry)| {
+		task_manager.spawn_handle().spawn("telemetry", worker.run());
+		telemetry
+	});
 
 	let transaction_pool = sc_transaction_pool::BasicPool::new_full(
 		config.transaction_pool.clone(),
@@ -154,11 +157,8 @@ pub fn parachain_partial(
 
 	let frontier_backend = open_frontier_backend(config)?;
 
-	let frontier_block_import = FrontierBlockImport::new(
-		client.clone(),
-		client.clone(),
-		frontier_backend.clone(),
-	);
+	let frontier_block_import =
+		FrontierBlockImport::new(client.clone(), client.clone(), frontier_backend.clone());
 
 	let import_queue = cumulus_client_consensus_relay_chain::import_queue(
 		client.clone(),
@@ -223,16 +223,15 @@ where
 		frontier_backend,
 	) = params.other;
 
-	let polkadot_full_node =
-		cumulus_client_service::build_polkadot_full_node(
-			polkadot_config,
-			collator_key.public(),
-			telemetry_worker_handle,
-		)
-		.map_err(|e| match e {
-			polkadot_service::Error::Sub(x) => x,
-			s => format!("{}", s).into(),
-		})?;
+	let polkadot_full_node = cumulus_client_service::build_polkadot_full_node(
+		polkadot_config,
+		collator_key.public(),
+		telemetry_worker_handle,
+	)
+	.map_err(|e| match e {
+		polkadot_service::Error::Sub(x) => x,
+		s => format!("{}", s).into(),
+	})?;
 
 	let client = params.client.clone();
 	let backend = params.backend.clone();
@@ -295,7 +294,8 @@ where
 			client.clone(),
 			backend.clone(),
 			frontier_backend.clone(),
-		).for_each(|()| futures::future::ready(()))
+		)
+		.for_each(|()| futures::future::ready(())),
 	);
 
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
@@ -320,11 +320,7 @@ where
 		const FILTER_RETAIN_THRESHOLD: u64 = 100;
 		task_manager.spawn_essential_handle().spawn(
 			"frontier-filter-pool",
-			EthTask::filter_pool_task(
-				Arc::clone(&client),
-				filter_pool,
-				FILTER_RETAIN_THRESHOLD,
-			)
+			EthTask::filter_pool_task(Arc::clone(&client), filter_pool, FILTER_RETAIN_THRESHOLD),
 		);
 	}
 
@@ -337,7 +333,7 @@ where
 				Arc::clone(&client),
 				pending_transactions,
 				TRANSACTION_RETAIN_THRESHOLD,
-			)
+			),
 		);
 	}
 
@@ -446,7 +442,9 @@ pub fn dev_partial(
 > {
 	let inherent_data_providers = build_inherent_data_providers(author, mock_inherents)?;
 
-	let telemetry = config.telemetry_endpoints.clone()
+	let telemetry = config
+		.telemetry_endpoints
+		.clone()
 		.filter(|x| !x.is_empty())
 		.map(|endpoints| -> Result<_, sc_telemetry::Error> {
 			let worker = TelemetryWorker::new(16)?;
@@ -463,15 +461,12 @@ pub fn dev_partial(
 
 	let client = Arc::new(client);
 
-	let telemetry_worker_handle = telemetry
-		.as_ref()
-		.map(|(worker, _)| worker.handle());
+	let telemetry_worker_handle = telemetry.as_ref().map(|(worker, _)| worker.handle());
 
-	let telemetry = telemetry
-		.map(|(worker, telemetry)| {
-			task_manager.spawn_handle().spawn("telemetry", worker.run());
-			telemetry
-		});
+	let telemetry = telemetry.map(|(worker, telemetry)| {
+		task_manager.spawn_handle().spawn("telemetry", worker.run());
+		telemetry
+	});
 
 	let transaction_pool = sc_transaction_pool::BasicPool::new_full(
 		config.transaction_pool.clone(),
@@ -487,11 +482,8 @@ pub fn dev_partial(
 
 	let frontier_backend = open_frontier_backend(config)?;
 
-	let frontier_block_import = FrontierBlockImport::new(
-		client.clone(),
-		client.clone(),
-		frontier_backend.clone(),
-	);
+	let frontier_block_import =
+		FrontierBlockImport::new(client.clone(), client.clone(), frontier_backend.clone());
 
 	// There is another bug in this import queue where it doesn't properly check inherents:
 	// https://github.com/paritytech/substrate/issues/8164
@@ -538,14 +530,15 @@ pub fn new_dev(
 		select_chain: _,
 		transaction_pool,
 		inherent_data_providers,
-		other: (
-			block_import,
-			pending_transactions,
-			filter_pool,
-			telemetry,
-			_telemetry_worker_handle,
-			frontier_backend,
-		),
+		other:
+			(
+				block_import,
+				pending_transactions,
+				filter_pool,
+				telemetry,
+				_telemetry_worker_handle,
+				frontier_backend,
+			),
 	} = dev_partial(&config, author_id, true)?;
 
 	let (network, network_status_sinks, system_rpc_tx, network_starter) =
@@ -684,7 +677,8 @@ pub fn new_dev(
 			client.clone(),
 			backend,
 			frontier_backend.clone(),
-		).for_each(|()| futures::future::ready(()))
+		)
+		.for_each(|()| futures::future::ready(())),
 	);
 
 	// Spawn Frontier EthFilterApi maintenance task.
@@ -693,11 +687,7 @@ pub fn new_dev(
 		const FILTER_RETAIN_THRESHOLD: u64 = 100;
 		task_manager.spawn_essential_handle().spawn(
 			"frontier-filter-pool",
-			EthTask::filter_pool_task(
-				Arc::clone(&client),
-				filter_pool,
-				FILTER_RETAIN_THRESHOLD,
-			)
+			EthTask::filter_pool_task(Arc::clone(&client), filter_pool, FILTER_RETAIN_THRESHOLD),
 		);
 	}
 
@@ -710,7 +700,7 @@ pub fn new_dev(
 				Arc::clone(&client),
 				pending_transactions,
 				TRANSACTION_RETAIN_THRESHOLD,
-			)
+			),
 		);
 	}
 

@@ -21,7 +21,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::{
-	log, decl_error, decl_module, decl_storage, ensure,
+	decl_error, decl_module, decl_storage, ensure, log,
 	traits::FindAuthor,
 	weights::{DispatchClass, Weight},
 };
