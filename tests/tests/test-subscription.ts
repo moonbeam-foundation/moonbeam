@@ -226,29 +226,6 @@ describeWithMoonbeam(
       });
     });
 
-    step("should not receive log when contract fails", async function () {
-      const subscription = web3Subscribe("logs", {});
-
-      await new Promise((resolve) => {
-        subscription.once("connected", resolve);
-      });
-
-      await sendTransaction(context, {
-        gas: "0xD99BF", // lower than what is needed by 1
-      });
-
-      const data = await new Promise((resolve) => {
-        createAndFinalizeBlock(context.polkadotApi);
-        let result = null;
-        subscription.once("data", (d) => (result = d));
-        setTimeout(() => resolve(result), 1000);
-        // wait for 1 second to make sure the notification has time to arrive.
-        // (it is not supposed to)
-      });
-      subscription.unsubscribe();
-      expect(data).to.be.null;
-    });
-
     step("should subscribe to logs by address", async function () {
       const subscription = web3Subscribe("logs", {
         address: "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
@@ -516,6 +493,29 @@ describeWithMoonbeam(
       subscription.unsubscribe();
 
       expect(data).to.not.be.null;
+    });
+
+    step("should not receive log when contract fails", async function () {
+      const subscription = web3Subscribe("logs", {});
+
+      await new Promise((resolve) => {
+        subscription.once("connected", resolve);
+      });
+
+      await sendTransaction(context, {
+        gas: "0xD99BF", // lower than what is needed by 1
+      });
+
+      const data = await new Promise((resolve) => {
+        createAndFinalizeBlock(context.polkadotApi);
+        let result = null;
+        subscription.once("data", (d) => (result = d));
+        setTimeout(() => resolve(result), 1000);
+        // wait for 1 second to make sure the notification has time to arrive.
+        // (it is not supposed to)
+      });
+      subscription.unsubscribe();
+      expect(data).to.be.null;
     });
   },
   "ws"
