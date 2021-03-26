@@ -14,8 +14,8 @@ contract TraceFilter {
     }
 
     function subcalls(address target0, address target1) public {
-        TraceFilter(target0).subsubcalls(target1);
-        TraceFilter(target0).subsubcalls(target1);
+        try TraceFilter(target0).subsubcalls(target1) { } catch { }
+        try TraceFilter(target0).subsubcalls(target1) { } catch { }
     }
 
     function subsubcalls(address target1) public {
