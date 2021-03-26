@@ -511,8 +511,8 @@ describeWithMoonbeam(
         let result = null;
         subscription.once("data", (d) => (result = d));
         setTimeout(() => resolve(result), 1000);
-        // wait for 1 second to make sure the notification has time to arrive.
-        // (it is not supposed to)
+        // wait for 1 second to make sure a notification would have time to arrive.
+        // (This one is not supposed to arrive because the transaction ran out of gas.)
       });
       subscription.unsubscribe();
       expect(data).to.be.null;
