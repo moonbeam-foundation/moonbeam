@@ -55,7 +55,7 @@ pub mod pallet {
 		/// The overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// Deterministic on-chain pseudo-randomness used to do the filtering
-		type RandomnessSource: Randomness<H256, u32>;
+		type RandomnessSource: Randomness<H256, Self::BlockNumber>;
 	}
 
 	// This code will be called by the author-inherent pallet to check whether the reported author
