@@ -130,7 +130,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
         data: TEST_CONTRACT_BYTECODE,
         value: "0x00",
         gasPrice: "0x01",
-        gas: "0x"+EXPECTED_TRANSACTION_GAS_COST.toString(16),
+        gas: "0x" + EXPECTED_TRANSACTION_GAS_COST.toString(16),
       },
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
