@@ -91,7 +91,7 @@ $MOONBEAM_BINARY \
   --collator \
   --rpc-cors all \
   --rpc-methods=unsafe \
-  --execution native \
+  --execution wasm \
   --wasm-execution compiled \
   --name parachain_$PARACHAIN_INDEX \
   $PARACHAIN_BASE_PATH \
