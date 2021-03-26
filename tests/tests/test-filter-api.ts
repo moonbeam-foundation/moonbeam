@@ -126,7 +126,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
         data: TEST_CONTRACT_BYTECODE,
         value: "0x00",
         gasPrice: "0x01",
-        gas: "0xF0000",
+        gas: "0xD99C0",
       },
       GENESIS_ACCOUNT_PRIVATE_KEY
     );

@@ -118,14 +118,15 @@ describeWithMoonbeam(
       "647265737345524332303a20617070726f76652066726f6d20746865207a65726f206164647265737345524332" +
       "303a2064656372656173656420616c6c6f77616e63652062656c6f77207a65726fa265627a7a72315820c7a5ff" +
       "abf642bda14700b2de42f8c57b36621af020441df825de45fd2b3e1c5c64736f6c63430005100032";
-    async function sendTransaction(context) {
+    async function sendTransaction(context, extraData = {}) {
       const tx = await context.web3.eth.accounts.signTransaction(
         {
           from: GENESIS_ACCOUNT,
           data: TEST_CONTRACT_BYTECODE,
           value: "0x00",
           gasPrice: "0x01",
-          gas: "0xF0000",
+          gas: "0xD99C0",
+          ...extraData,
         },
         GENESIS_ACCOUNT_PRIVATE_KEY
       );
@@ -223,6 +224,29 @@ describeWithMoonbeam(
         transactionIndex: 0,
         transactionLogIndex: "0x0",
       });
+    });
+
+    step("should not receive log when contract fails", async function () {
+      const subscription = web3Subscribe("logs", {});
+
+      await new Promise((resolve) => {
+        subscription.once("connected", resolve);
+      });
+
+      await sendTransaction(context, {
+        gas: "0xD99BF", // lower than what is needed by 1
+      });
+
+      const data = await new Promise((resolve) => {
+        createAndFinalizeBlock(context.polkadotApi);
+        let result = null;
+        subscription.once("data", (d) => (result = d));
+        setTimeout(() => resolve(result), 1000);
+        // wait for 1 second to make sure the notification has time to arrive.
+        // (it is not supposed to)
+      });
+      subscription.unsubscribe();
+      expect(data).to.be.null;
     });
 
     step("should subscribe to logs by address", async function () {
