@@ -1,6 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `runtime/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../moonbeam_runtime/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../moonbeam_runtime/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -719,6 +719,7 @@
 <span id="716">716</span>
 <span id="717">717</span>
 <span id="718">718</span>
+<span id="719">719</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -832,7 +833,7 @@
 	<span class="ident">spec_name</span>: <span class="macro">create_runtime_str</span><span class="macro">!</span>(<span class="string">&quot;moonbeam&quot;</span>),
 	<span class="ident">impl_name</span>: <span class="macro">create_runtime_str</span><span class="macro">!</span>(<span class="string">&quot;moonbeam&quot;</span>),
 	<span class="ident">authoring_version</span>: <span class="number">3</span>,
-	<span class="ident">spec_version</span>: <span class="number">26</span>,
+	<span class="ident">spec_version</span>: <span class="number">27</span>,
 	<span class="ident">impl_version</span>: <span class="number">1</span>,
 	<span class="ident">apis</span>: <span class="ident">RUNTIME_API_VERSIONS</span>,
 	<span class="ident">transaction_version</span>: <span class="number">2</span>,
@@ -987,6 +988,7 @@
 	<span class="kw">type</span> <span class="ident">Runner</span> <span class="op">=</span> <span class="ident">pallet_evm</span>::<span class="ident">runner</span>::<span class="ident">stack</span>::<span class="ident">Runner</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">Precompiles</span> <span class="op">=</span> <span class="ident">precompiles</span>::<span class="ident">MoonbeamPrecompiles</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">ChainId</span> <span class="op">=</span> <span class="ident">EthereumChainId</span>;
+	<span class="kw">type</span> <span class="ident">OnChargeTransaction</span> <span class="op">=</span> ();
 }
 
 <span class="macro">parameter_types</span><span class="macro">!</span> {
@@ -1088,7 +1090,7 @@
 	<span class="kw">type</span> <span class="ident">BlockGasLimit</span> <span class="op">=</span> <span class="ident">BlockGasLimit</span>;
 }
 
-<span class="kw">impl</span> <span class="ident">cumulus_parachain_system</span>::<span class="ident">Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
+<span class="kw">impl</span> <span class="ident">cumulus_pallet_parachain_system</span>::<span class="ident">Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">OnValidationData</span> <span class="op">=</span> ();
 	<span class="kw">type</span> <span class="ident">SelfParaId</span> <span class="op">=</span> <span class="ident">ParachainInfo</span>;
@@ -1154,25 +1156,25 @@
 		<span class="ident">NodeBlock</span> <span class="op">=</span> <span class="ident">opaque</span>::<span class="ident">Block</span>,
 		<span class="ident">UncheckedExtrinsic</span> <span class="op">=</span> <span class="ident">UncheckedExtrinsic</span>
 	{
-		<span class="ident">System</span>: <span class="ident">frame_system</span>::{<span class="ident">Module</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
-		<span class="ident">Utility</span>: <span class="ident">pallet_utility</span>::{<span class="ident">Module</span>, <span class="ident">Call</span>, <span class="ident">Event</span>},
-		<span class="ident">Timestamp</span>: <span class="ident">pallet_timestamp</span>::{<span class="ident">Module</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Inherent</span>},
-		<span class="ident">Balances</span>: <span class="ident">pallet_balances</span>::{<span class="ident">Module</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
-		<span class="ident">Sudo</span>: <span class="ident">pallet_sudo</span>::{<span class="ident">Module</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
-		<span class="ident">RandomnessCollectiveFlip</span>: <span class="ident">pallet_randomness_collective_flip</span>::{<span class="ident">Module</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>},
-		<span class="ident">ParachainSystem</span>: <span class="ident">cumulus_parachain_system</span>::{<span class="ident">Module</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Inherent</span>, <span class="ident">Event</span>},
-		<span class="ident">TransactionPayment</span>: <span class="ident">pallet_transaction_payment</span>::{<span class="ident">Module</span>, <span class="ident">Storage</span>},
-		<span class="ident">ParachainInfo</span>: <span class="ident">parachain_info</span>::{<span class="ident">Module</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>},
-		<span class="ident">EthereumChainId</span>: <span class="ident">pallet_ethereum_chain_id</span>::{<span class="ident">Module</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>},
-		<span class="ident">EVM</span>: <span class="ident">pallet_evm</span>::{<span class="ident">Module</span>, <span class="ident">Config</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
-		<span class="ident">Ethereum</span>: <span class="ident">pallet_ethereum</span>::{<span class="ident">Module</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span>, <span class="ident">Config</span>, <span class="ident">ValidateUnsigned</span>},
-		<span class="ident">ParachainStaking</span>: <span class="ident">parachain_staking</span>::{<span class="ident">Module</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
-		<span class="ident">Scheduler</span>: <span class="ident">pallet_scheduler</span>::{<span class="ident">Module</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Call</span>},
-		<span class="ident">Democracy</span>: <span class="ident">pallet_democracy</span>::{<span class="ident">Module</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Call</span>},
+		<span class="ident">System</span>: <span class="ident">frame_system</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
+		<span class="ident">Utility</span>: <span class="ident">pallet_utility</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Event</span>},
+		<span class="ident">Timestamp</span>: <span class="ident">pallet_timestamp</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Inherent</span>},
+		<span class="ident">Balances</span>: <span class="ident">pallet_balances</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
+		<span class="ident">Sudo</span>: <span class="ident">pallet_sudo</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
+		<span class="ident">RandomnessCollectiveFlip</span>: <span class="ident">pallet_randomness_collective_flip</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>},
+		<span class="ident">ParachainSystem</span>: <span class="ident">cumulus_pallet_parachain_system</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Inherent</span>, <span class="ident">Event</span>},
+		<span class="ident">TransactionPayment</span>: <span class="ident">pallet_transaction_payment</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>},
+		<span class="ident">ParachainInfo</span>: <span class="ident">parachain_info</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>},
+		<span class="ident">EthereumChainId</span>: <span class="ident">pallet_ethereum_chain_id</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>},
+		<span class="ident">EVM</span>: <span class="ident">pallet_evm</span>::{<span class="ident">Pallet</span>, <span class="ident">Config</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
+		<span class="ident">Ethereum</span>: <span class="ident">pallet_ethereum</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span>, <span class="ident">Config</span>, <span class="ident">ValidateUnsigned</span>},
+		<span class="ident">ParachainStaking</span>: <span class="ident">parachain_staking</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
+		<span class="ident">Scheduler</span>: <span class="ident">pallet_scheduler</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Call</span>},
+		<span class="ident">Democracy</span>: <span class="ident">pallet_democracy</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Call</span>},
 		<span class="comment">// The order matters here. Inherents will be included in the order specified here.</span>
 		<span class="comment">// Concretely we need the author inherent to come after the parachain_upgrade inherent.</span>
-		<span class="ident">AuthorInherent</span>: <span class="ident">author_inherent</span>::{<span class="ident">Module</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Inherent</span>},
-		<span class="ident">AuthorFilter</span>: <span class="ident">pallet_author_filter</span>::{<span class="ident">Module</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,}
+		<span class="ident">AuthorInherent</span>: <span class="ident">author_inherent</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Inherent</span>},
+		<span class="ident">AuthorFilter</span>: <span class="ident">pallet_author_filter</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,}
 	}
 }
 
@@ -1200,13 +1202,13 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">UncheckedExtrinsic</span> <span class="op">=</span> <span class="ident">generic</span>::<span class="ident">UncheckedExtrinsic</span><span class="op">&lt;</span><span class="ident">Address</span>, <span class="ident">Call</span>, <span class="ident">Signature</span>, <span class="ident">SignedExtra</span><span class="op">&gt;</span>;
 <span class="doccomment">/// Extrinsic type that has already been checked.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CheckedExtrinsic</span> <span class="op">=</span> <span class="ident">generic</span>::<span class="ident">CheckedExtrinsic</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Call</span>, <span class="ident">SignedExtra</span><span class="op">&gt;</span>;
-<span class="doccomment">/// Executive: handles dispatch to the various modules.</span>
+<span class="doccomment">/// Executive: handles dispatch to the various pallets.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Executive</span> <span class="op">=</span> <span class="ident">frame_executive</span>::<span class="ident">Executive</span><span class="op">&lt;</span>
 	<span class="ident">Runtime</span>,
 	<span class="ident">Block</span>,
 	<span class="ident">frame_system</span>::<span class="ident">ChainContext</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
 	<span class="ident">Runtime</span>,
-	<span class="ident">AllModules</span>,
+	<span class="ident">AllPallets</span>,
 <span class="op">&gt;</span>;
 
 <span class="macro">impl_runtime_apis</span><span class="macro">!</span> {
@@ -1255,7 +1257,7 @@
 		}
 
 		<span class="kw">fn</span> <span class="ident">random_seed</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span>::<span class="ident">Hash</span> {
-			<span class="ident">RandomnessCollectiveFlip</span>::<span class="ident">random_seed</span>()
+			<span class="ident">RandomnessCollectiveFlip</span>::<span class="ident">random_seed</span>().<span class="number">0</span>
 		}
 	}
 
@@ -1321,7 +1323,7 @@
 		}
 
 		<span class="kw">fn</span> <span class="ident">author</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">H160</span> {
-			<span class="op">&lt;</span><span class="ident">pallet_ethereum</span>::<span class="ident">Module</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">find_author</span>()
+			<span class="ident">Ethereum</span>::<span class="ident">find_author</span>()
 		}
 
 		<span class="kw">fn</span> <span class="ident">storage_at</span>(<span class="ident">address</span>: <span class="ident">H160</span>, <span class="ident">index</span>: <span class="ident">U256</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">H256</span> {
@@ -1437,6 +1439,6 @@
 	}
 }
 
-<span class="ident">cumulus_runtime</span>::<span class="macro">register_validate_block</span><span class="macro">!</span>(<span class="ident">Block</span>, <span class="ident">Executive</span>);
+<span class="ident">cumulus_pallet_parachain_system</span>::<span class="macro">register_validate_block</span><span class="macro">!</span>(<span class="ident">Runtime</span>, <span class="ident">Executive</span>);
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "moonbeam_runtime";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

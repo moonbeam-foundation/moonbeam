@@ -1,6 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `node/src/rpc.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rpc.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/src/rpc.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rpc.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../moonbeam/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../moonbeam/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -160,6 +160,20 @@
 <span id="157">157</span>
 <span id="158">158</span>
 <span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -179,8 +193,11 @@
 
 <span class="doccomment">//! A collection of node-specific RPC methods.</span>
 
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">sync</span>::<span class="ident">Arc</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">BTreeMap</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
 
+<span class="kw">use</span> <span class="ident">ethereum</span>::<span class="ident">EthereumStorageSchema</span>;
+<span class="kw">use</span> <span class="ident">fc_rpc</span>::{<span class="ident">SchemaV1Override</span>, <span class="ident">StorageOverride</span>};
 <span class="kw">use</span> <span class="ident">fc_rpc_core</span>::<span class="ident">types</span>::{<span class="ident">FilterPool</span>, <span class="ident">PendingTransactions</span>};
 <span class="kw">use</span> <span class="ident">jsonrpc_pubsub</span>::<span class="ident">manager</span>::<span class="ident">SubscriptionManager</span>;
 <span class="kw">use</span> <span class="ident">moonbeam_runtime</span>::{<span class="ident">opaque</span>::<span class="ident">Block</span>, <span class="ident">AccountId</span>, <span class="ident">Balance</span>, <span class="ident">Hash</span>, <span class="ident">Index</span>};
@@ -217,6 +234,8 @@
 	<span class="kw">pub</span> <span class="ident">pending_transactions</span>: <span class="ident">PendingTransactions</span>,
 	<span class="doccomment">/// EthFilterApi pool.</span>
 	<span class="kw">pub</span> <span class="ident">filter_pool</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FilterPool</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Backend.</span>
+	<span class="kw">pub</span> <span class="ident">backend</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">fc_db</span>::<span class="ident">Backend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	<span class="doccomment">/// Manual seal command sink</span>
 	<span class="kw">pub</span> <span class="ident">command_sink</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">futures</span>::<span class="ident">channel</span>::<span class="ident">mpsc</span>::<span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">EngineCommand</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
@@ -239,7 +258,6 @@
 	<span class="ident">A</span>: <span class="ident">ChainApi</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="op">=</span> <span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 	<span class="ident">C</span>::<span class="ident">Api</span>: <span class="ident">fp_rpc</span>::<span class="ident">EthereumRuntimeRPCApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
 	<span class="ident">C</span>::<span class="ident">Api</span>: <span class="ident">moonbeam_rpc_primitives_txpool</span>::<span class="ident">TxPoolRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
-	<span class="op">&lt;</span><span class="ident">C</span>::<span class="ident">Api</span> <span class="kw">as</span> <span class="ident">sp_api</span>::<span class="ident">ApiErrorExt</span><span class="op">&gt;</span>::<span class="ident">Error</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span>,
 	<span class="ident">P</span>: <span class="ident">TransactionPool</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="op">=</span> <span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
 	<span class="kw">use</span> <span class="ident">fc_rpc</span>::{
@@ -261,6 +279,7 @@
 		<span class="ident">pending_transactions</span>,
 		<span class="ident">filter_pool</span>,
 		<span class="ident">command_sink</span>,
+		<span class="ident">backend</span>: <span class="ident">frontier_backend</span>,
 	} <span class="op">=</span> <span class="ident">deps</span>;
 
 	<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">SystemApi</span>::<span class="ident">to_delegate</span>(<span class="ident">FullSystem</span>::<span class="ident">new</span>(
@@ -275,6 +294,13 @@
 	<span class="comment">// TODO: are we supporting signing?</span>
 	<span class="kw">let</span> <span class="ident">signers</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
 
+	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">overrides</span> <span class="op">=</span> <span class="ident">BTreeMap</span>::<span class="ident">new</span>();
+	<span class="ident">overrides</span>.<span class="ident">insert</span>(
+		<span class="ident">EthereumStorageSchema</span>::<span class="ident">V1</span>,
+		<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">SchemaV1Override</span>::<span class="ident">new</span>(<span class="ident">client</span>.<span class="ident">clone</span>()))
+			<span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StorageOverride</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>,
+	);
+
 	<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">EthApiServer</span>::<span class="ident">to_delegate</span>(<span class="ident">EthApi</span>::<span class="ident">new</span>(
 		<span class="ident">client</span>.<span class="ident">clone</span>(),
 		<span class="ident">pool</span>.<span class="ident">clone</span>(),
@@ -283,6 +309,8 @@
 		<span class="ident">network</span>.<span class="ident">clone</span>(),
 		<span class="ident">pending_transactions</span>,
 		<span class="ident">signers</span>,
+		<span class="ident">overrides</span>,
+		<span class="ident">frontier_backend</span>,
 		<span class="ident">is_authority</span>,
 	)));
 
