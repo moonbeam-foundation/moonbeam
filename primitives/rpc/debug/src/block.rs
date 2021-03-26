@@ -87,7 +87,7 @@ pub enum TransactionTraceOutput {
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(Serialize))]
-#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "std", serde(rename_all = "camelCase", untagged))]
 pub enum TransactionTraceResult {
 	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 	Call {

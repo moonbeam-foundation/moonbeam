@@ -47,7 +47,7 @@ export async function startMoonbeamNode(
     `--no-telemetry`,
     `--no-prometheus`,
     `--dev`,
-    `--ethapi=txpool,debug`,
+    `--ethapi=txpool,debug,trace`,
     `--sealing=manual`,
     `-l${MOONBEAM_LOG}`,
     `--port=${PORT}`,

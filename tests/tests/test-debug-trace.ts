@@ -60,7 +60,7 @@ async function nested(context) {
   return await customRequest(context.web3, "eth_sendRawTransaction", [callTx.rawTransaction]);
 }
 
-describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
+describeWithMoonbeam("Moonbeam RPC (debug_traceTransaction)", `simple-specs.json`, (context) => {
   step("[Raw] should replay over an intermediate state", async function () {
     const createTx = await context.web3.eth.accounts.signTransaction(
       {
