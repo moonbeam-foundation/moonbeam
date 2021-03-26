@@ -363,6 +363,13 @@ where
 			trace.transaction_hash = *transactions_hash
 				.get(trace.transaction_position as usize)
 				.expect("amount of eth transactions should match");
+			
+			// Reformat error messages.
+			if let block::TransactionTraceOutput::Error(ref mut error) = trace.output {
+				if error.as_slice() == b"execution reverted" {
+					*error = b"Reverted".to_vec();
+				}
+			}
 		}
 
 		Ok(traces)
