@@ -9,6 +9,10 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
   const GENESIS_ACCOUNT_PRIVATE_KEY =
     "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
 
+  // This reflects the measured gas cost of the transaction at this current point in time.
+  // It has been known to fluctuate from release to release, so it may need adjustment.
+  const EXPECTED_TRANSACTION_GAS_COST = "0xD99C0";
+
   const TEST_CONTRACT_BYTECODE =
     "0x608060405234801561001057600080fd5b50610041337fffffffffffffffffffffffffffffffffff" +
     "ffffffffffffffffffffffffffffff61004660201b60201c565b610291565b600073ffffffffffff" +
@@ -126,7 +130,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
         data: TEST_CONTRACT_BYTECODE,
         value: "0x00",
         gasPrice: "0x01",
-        gas: "0xD99C0",
+        gas: EXPECTED_TRANSACTION_GAS_COST,
       },
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
