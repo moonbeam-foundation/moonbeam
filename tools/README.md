@@ -9,8 +9,9 @@ _Moonbeam-launch_ (https://github.com/PureStake/polkadot-launch/tree/moonbeam-la
 _Polkadot-launch_ (https://github.com/paritytech/polkadot-launch) allows to start a local network of polkadot relaychain and parachain nodes with the desired configuration.
 
 For this setup, you want to have moonbeam and polkadot cloned in the same repo:
-<repo>/<moonbeam>
-<repo>/<polkadot>
+- repo
+    - moonbeam
+    - polkadot
 
 ### Build Parachain
 
@@ -34,9 +35,17 @@ cargo build --release --features=real-overseer
 
 ### Launch Script
 
-And then run `yarn run moonbeam-launch` to start a network with `config_moonbeam.json`
+Run `yarn run build-moonbeam-launch` to install the correct dependency
+    - Installs PureStake moonbeam-launch branch
 
-If you want to run a simple test sending transactions to different addresses, run `yarn run moonbeam-test`
+Run `yarn run moonbeam-launch` to start a network with `config_moonbeam.json`
+    - Installs PureStake moonbeam-launch branch
+    - Starts a local network with `config_moonbeam.json`
+
+Run `yarn run moonbeam-test`, if you want to run a simple test sending transactions to different addresses:
+    - Installs PureStake moonbeam-launch branch
+    - Starts a local network with `config_moonbeam.json`
+    - Runs a simple test sending transactions and tetsing propagation
 
 ### Launch Custom Scripts
 
