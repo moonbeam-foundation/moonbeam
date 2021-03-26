@@ -9,6 +9,11 @@ const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
 const GENESIS_ACCOUNT_PRIVATE_KEY =
 	"0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
 
+
+const address0 = "0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a";
+const address1 = "0x42e2ee7ba8975c473157634ac2af4098190fc741";
+const address2 = "0xf8cef78e923919054037a1d03662bbd884ff4edf";
+
 describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (context) => {
 	step("Replay succeeding CREATE", async function () {
 		// Deploy contract
@@ -34,8 +39,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
 		]);
 
 		await createAndFinalizeBlock(context.polkadotApi);
-		let receipt = await context.web3.eth.getTransactionReceipt(send.result);
-
+		
 		// Perform RPC call.
 		let response = await customRequest(context.web3, "trace_filter", [
 			{
@@ -89,7 +93,6 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
 		]);
 
 		await createAndFinalizeBlock(context.polkadotApi);
-		let receipt = await context.web3.eth.getTransactionReceipt(send.result);
 
 		// Perform RPC call.
 		let response = await customRequest(context.web3, "trace_filter", [
@@ -116,5 +119,53 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
 		expect(response.result[0].transactionHash).to.equal("0x27f08f8b6fae0c982506a5beca1a20b2c23e8bde9289d8219c477636306d0fe9");
 		expect(response.result[0].transactionPosition).to.equal(0);
 		expect(response.result[0].type).to.equal("create");
+	})
+
+	step("Multiple transactions in the same block", async function () {
+		const contract = new context.web3.eth.Contract(CONTRACT.abi);
+
+		// Deploy 2 more contracts
+		for (var i = 0; i < 2; i++) {
+			const contract_deploy = contract.deploy({
+				data: CONTRACT.bytecode,
+				arguments: [false] // don't revert
+			});
+
+			const tx = await context.web3.eth.accounts.signTransaction(
+				{
+					nonce: 2+i,
+					from: GENESIS_ACCOUNT,
+					data: contract_deploy.encodeABI(),
+					value: "0x00",
+					gasPrice: "0x01",
+					gas: "0x100000",
+				},
+				GENESIS_ACCOUNT_PRIVATE_KEY
+			);
+
+			let send = await customRequest(context.web3, "eth_sendRawTransaction", [
+				tx.rawTransaction,
+			]);			
+		}
+
+		await createAndFinalizeBlock(context.polkadotApi);
+
+		// Perform RPC call.
+		let response = await customRequest(context.web3, "trace_filter", [
+			{
+				fromBlock: "0x02",
+				toBlock: "0x03",
+			}
+		]);
+
+		expect(response.result.length).to.equal(3);
+		expect(response.result[0].blockNumber).to.equal(2);
+		expect(response.result[0].transactionPosition).to.equal(0);
+		expect(response.result[1].blockNumber).to.equal(3);
+		expect(response.result[1].transactionPosition).to.equal(0);
+		expect(response.result[2].blockNumber).to.equal(3);
+		expect(response.result[2].transactionPosition).to.equal(1);
+		
+		// console.log(JSON.stringify(response));
 	})
 })
