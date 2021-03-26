@@ -507,7 +507,7 @@ describeWithMoonbeam(
       });
 
       await sendTransaction(context, {
-        gas: "0x" + (EXPECTED_TRANSACTION_GAS_COST - 1).toString(16), // lower than what is needed by 1
+        gas: "0x" + (EXPECTED_TRANSACTION_GAS_COST - 1).toString(16), // lower than expected by 1
       });
 
       const data = await new Promise((resolve) => {
