@@ -69,7 +69,7 @@ use xcm_executor::{
 	traits::{LocationConversion, NativeAsset},
 	XcmExecutor,
 };
-use xtransfer::support::*;
+use xtransfer::{currency_adapter::*, support::*};
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
@@ -453,7 +453,7 @@ impl token_factory::Config for Runtime {
 	type AccountToH160 = AccountToH160;
 }
 
-impl channels::Config for Runtime {
+impl hrmp_channels::Config for Runtime {
 	type Event = Event;
 	type ParaId = ParachainInfo;
 	type XcmSender = XcmHandler;
@@ -587,7 +587,7 @@ impl cumulus_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
 	type SelfParaId = ParachainInfo;
-	type DownwardMessageHandlers = (Channels, XcmHandler);
+	type DownwardMessageHandlers = (HrmpChannels, XcmHandler);
 	type HrmpMessageHandlers = XcmHandler;
 }
 
@@ -615,7 +615,7 @@ construct_runtime! {
 		Scheduler: pallet_scheduler::{Module, Storage, Config, Event<T>, Call},
 		Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
 		TokenFactory: token_factory::{Module, Call, Storage, Event<T>},
-		Channels: channels::{Module, Call, Storage, Event<T>},
+		HrmpChannels: hrmp_channels::{Module, Call, Storage, Event<T>},
 		Xtransfer: xtransfer::{Module, Call, Storage, Event<T>},
 		XcmHandler: xcm_handler::{Module, Call, Event<T>, Origin},
 		// The order matters here. Inherents will be included in the order specified here.

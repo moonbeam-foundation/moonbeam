@@ -18,6 +18,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+pub mod currency_adapter;
 pub mod support;
 
 use frame_support::pallet;
@@ -71,7 +72,7 @@ pub mod pallet {
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
-	pub trait Config: frame_system::Config + channels::Config {
+	pub trait Config: frame_system::Config + hrmp_channels::Config {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// Balances type
@@ -223,7 +224,7 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 			ensure!(para_id != T::ParaId::get(), Error::<T>::CannotSendToSelf);
 			// ensure!(
-			// 	<channels::Pallet<T>>::sender_channels().contains(&para_id),
+			// 	<hrmp_channels::Pallet<T>>::sender_channels().contains(&para_id),
 			// 	Error::<T>::NoSenderChannelOpen
 			// );
 
@@ -343,7 +344,7 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 			ensure!(para_id != T::ParaId::get(), Error::<T>::CannotSendToSelf);
 			// ensure!(
-			// 	<channels::Pallet<T>>::sender_channels().contains(&para_id),
+			// 	<hrmp_channels::Pallet<T>>::sender_channels().contains(&para_id),
 			// 	Error::<T>::NoSenderChannelOpen
 			// );
 

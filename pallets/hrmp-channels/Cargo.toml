@@ -1,9 +1,9 @@
 [package]
 authors = ["PureStake"]
 edition = "2018"
-name = "channels"
+name = "hrmp-channels"
 version = "0.1.0"
-description = "manage channels between other parachains"
+description = "manage HRMP channels between other parachains"
 
 [dependencies]
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }

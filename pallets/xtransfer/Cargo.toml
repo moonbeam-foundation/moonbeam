@@ -14,7 +14,7 @@ sp-runtime = { git = "https://github.com/paritytech/substrate", default-features
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
 
-channels = { path = "../channels", default-features = false }
+hrmp-channels = { path = "../hrmp-channels", default-features = false }
 token-factory = { path = "../token-factory", default-features = false }
 xcm = { git = "https://github.com/paritytech/polkadot", branch = "master", default-features = false }
 xcm-executor = { git = "https://github.com/paritytech/polkadot", branch = "master", default-features = false }
@@ -29,7 +29,7 @@ std = [
     "sp-runtime/std",
     "sp-std/std",
     "sp-core/std",
-    "channels/std",
+    "hrmp-channels/std",
     "token-factory/std",
     "xcm-executor/std",
     "cumulus-primitives/std",
