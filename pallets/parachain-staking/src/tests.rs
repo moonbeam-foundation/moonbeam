@@ -18,7 +18,7 @@
 use crate::mock::{
 	events, five_collators_five_nominators, five_collators_no_nominators, last_event,
 	one_collator_two_nominators, roll_to, set_author, two_collators_four_nominators, Balances,
-	MetaEvent, Origin, Stake, Sys, Test,
+	Event as MetaEvent, Origin, Stake, System, Test,
 };
 use crate::{CollatorStatus, Error, Event};
 use frame_support::{assert_noop, assert_ok};
@@ -27,7 +27,7 @@ use sp_runtime::{traits::Zero, DispatchError, Perbill};
 #[test]
 fn geneses() {
 	two_collators_four_nominators().execute_with(|| {
-		assert!(Sys::events().is_empty());
+		assert!(System::events().is_empty());
 		// collators
 		assert_eq!(Balances::reserved_balance(&1), 500);
 		assert_eq!(Balances::free_balance(&1), 500);
@@ -53,7 +53,7 @@ fn geneses() {
 		assert_eq!(Balances::reserved_balance(&9), 0);
 	});
 	five_collators_five_nominators().execute_with(|| {
-		assert!(Sys::events().is_empty());
+		assert!(System::events().is_empty());
 		// collators
 		for x in 1..5 {
 			assert!(Stake::is_candidate(&x));
@@ -145,7 +145,7 @@ fn join_collator_candidates() {
 		assert_noop!(
 			Stake::join_candidates(Origin::signed(8), Perbill::from_percent(2), 10u128,),
 			DispatchError::Module {
-				index: 0,
+				index: 1,
 				error: 3,
 				message: Some("InsufficientBalance")
 			}
@@ -154,7 +154,7 @@ fn join_collator_candidates() {
 			Stake::join_candidates(Origin::signed(7), Perbill::from_percent(51), 10u128,),
 			Error::<Test>::FeeOverMax
 		);
-		assert!(Sys::events().is_empty());
+		assert!(System::events().is_empty());
 		assert_ok!(Stake::join_candidates(
 			Origin::signed(7),
 			Perbill::from_percent(3),
@@ -546,7 +546,7 @@ fn multiple_nominations() {
 		assert_noop!(
 			Stake::nominate(Origin::signed(7), 3, 11),
 			DispatchError::Module {
-				index: 0,
+				index: 1,
 				error: 3,
 				message: Some("InsufficientBalance")
 			},
@@ -634,7 +634,7 @@ fn collators_bond() {
 		assert_noop!(
 			Stake::candidate_bond_more(Origin::signed(1), 40),
 			DispatchError::Module {
-				index: 0,
+				index: 1,
 				error: 3,
 				message: Some("InsufficientBalance")
 			}
@@ -708,7 +708,7 @@ fn nominators_bond() {
 		assert_noop!(
 			Stake::nominator_bond_more(Origin::signed(6), 1, 81),
 			DispatchError::Module {
-				index: 0,
+				index: 1,
 				error: 3,
 				message: Some("InsufficientBalance")
 			}
@@ -735,21 +735,25 @@ fn revoke_nomination_or_leave_nominators() {
 			Stake::revoke_nomination(Origin::signed(6), 2),
 			Error::<Test>::NominationDNE
 		);
-		// must leave set of nominators if total bonds below MinNominatorStk
-		assert_noop!(
-			Stake::revoke_nomination(Origin::signed(6), 1),
-			Error::<Test>::NomBondBelowMin
-		);
 		assert_noop!(
 			Stake::leave_nominators(Origin::signed(1)),
 			Error::<Test>::NominatorDNE
 		);
-		assert_ok!(Stake::leave_nominators(Origin::signed(6)));
+		assert_ok!(Stake::nominate(Origin::signed(6), 2, 3));
+		assert_ok!(Stake::nominate(Origin::signed(6), 3, 3));
+		assert_ok!(Stake::revoke_nomination(Origin::signed(6), 1));
+		// cannot revoke nomination because would leave remaining total below MinNominatorStk
 		assert_noop!(
-			Stake::revoke_nomination(Origin::signed(8), 2),
+			Stake::revoke_nomination(Origin::signed(6), 2),
 			Error::<Test>::NomBondBelowMin
 		);
-		assert_ok!(Stake::nominate(Origin::signed(8), 1, 10));
+		assert_noop!(
+			Stake::revoke_nomination(Origin::signed(6), 3),
+			Error::<Test>::NomBondBelowMin
+		);
+		// can revoke both remaining by calling leave nominators
+		assert_ok!(Stake::leave_nominators(Origin::signed(6)));
+		// this leads to 8 leaving set of nominators
 		assert_ok!(Stake::revoke_nomination(Origin::signed(8), 2));
 	});
 }

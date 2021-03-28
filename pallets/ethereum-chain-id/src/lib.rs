@@ -36,7 +36,7 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config {}
 
-	impl<T: Config> Get<u64> for Module<T> {
+	impl<T: Config> Get<u64> for Pallet<T> {
 		fn get() -> u64 {
 			Self::chain_id()
 		}

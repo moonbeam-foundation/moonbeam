@@ -265,6 +265,7 @@ impl pallet_evm::Config for Runtime {
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type Precompiles = precompiles::MoonbeamPrecompiles<Self>;
 	type ChainId = EthereumChainId;
+	type OnChargeTransaction = ();
 }
 
 parameter_types! {
@@ -366,7 +367,7 @@ impl pallet_ethereum::Config for Runtime {
 	type BlockGasLimit = BlockGasLimit;
 }
 
-impl cumulus_parachain_system::Config for Runtime {
+impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
 	type SelfParaId = ParachainInfo;
@@ -384,17 +385,17 @@ parameter_types! {
 	pub const MinBlocksPerRound: u32 = 20;
 	/// Default BlocksPerRound is every hour (600 * 6 second block times)
 	pub const DefaultBlocksPerRound: u32 = 600;
-	/// Reward payments and validator exit requests are delayed by 2 hours (2 * 600 * block_time)
+	/// Reward payments and collator exit requests are delayed by 2 hours (2 * 600 * block_time)
 	pub const BondDuration: u32 = 2;
-	/// Maximum 8 valid block authors at any given time
+	/// Minimum 8 collators selected per round, default at genesis and minimum forever after
 	pub const MinSelectedCandidates: u32 = 8;
-	/// Maximum 10 nominators per validator
+	/// Maximum 10 nominators per collator
 	pub const MaxNominatorsPerCollator: u32 = 10;
 	/// Maximum 25 collators per nominator
 	pub const MaxCollatorsPerNominator: u32 = 25;
 	/// The maximum percent a validator can take off the top of its rewards is 50%
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
-	/// Minimum stake required to be reserved to be a validator is 1_000
+	/// Minimum stake required to be reserved to be a collator is 1_000
 	pub const MinCollatorStk: u128 = 1_000 * GLMR;
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5 * GLMR;
@@ -434,25 +435,25 @@ construct_runtime! {
 		NodeBlock = opaque::Block,
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
-		System: frame_system::{Module, Call, Storage, Config, Event<T>},
-		Utility: pallet_utility::{Module, Call, Event},
-		Timestamp: pallet_timestamp::{Module, Call, Storage, Inherent},
-		Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
-		Sudo: pallet_sudo::{Module, Call, Storage, Config<T>, Event<T>},
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Module, Call, Storage},
-		ParachainSystem: cumulus_parachain_system::{Module, Call, Storage, Inherent, Event},
-		TransactionPayment: pallet_transaction_payment::{Module, Storage},
-		ParachainInfo: parachain_info::{Module, Storage, Config},
-		EthereumChainId: pallet_ethereum_chain_id::{Module, Storage, Config},
-		EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
-		Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
-		ParachainStaking: parachain_staking::{Module, Call, Storage, Event<T>, Config<T>},
-		Scheduler: pallet_scheduler::{Module, Storage, Config, Event<T>, Call},
-		Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
+		System: frame_system::{Pallet, Call, Storage, Config, Event<T>},
+		Utility: pallet_utility::{Pallet, Call, Event},
+		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
+		Sudo: pallet_sudo::{Pallet, Call, Storage, Config<T>, Event<T>},
+		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Call, Storage},
+		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event},
+		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
+		ParachainInfo: parachain_info::{Pallet, Storage, Config},
+		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config},
+		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>},
+		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config, ValidateUnsigned},
+		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>},
+		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call},
+		Democracy: pallet_democracy::{Pallet, Storage, Config, Event<T>, Call},
 		// The order matters here. Inherents will be included in the order specified here.
 		// Concretely we need the author inherent to come after the parachain_upgrade inherent.
-		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
-		AuthorFilter: pallet_author_filter::{Module, Call, Storage, Event<T>,}
+		AuthorInherent: author_inherent::{Pallet, Call, Storage, Inherent},
+		AuthorFilter: pallet_author_filter::{Pallet, Call, Storage, Event<T>,}
 	}
 }
 
@@ -480,13 +481,13 @@ pub type SignedExtra = (
 pub type UncheckedExtrinsic = generic::UncheckedExtrinsic<Address, Call, Signature, SignedExtra>;
 /// Extrinsic type that has already been checked.
 pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, Call, SignedExtra>;
-/// Executive: handles dispatch to the various modules.
+/// Executive: handles dispatch to the various pallets.
 pub type Executive = frame_executive::Executive<
 	Runtime,
 	Block,
 	frame_system::ChainContext<Runtime>,
 	Runtime,
-	AllModules,
+	AllPallets,
 >;
 
 impl_runtime_apis! {
@@ -535,7 +536,7 @@ impl_runtime_apis! {
 		}
 
 		fn random_seed() -> <Block as BlockT>::Hash {
-			RandomnessCollectiveFlip::random_seed()
+			RandomnessCollectiveFlip::random_seed().0
 		}
 	}
 
@@ -601,7 +602,7 @@ impl_runtime_apis! {
 		}
 
 		fn author() -> H160 {
-			<pallet_ethereum::Module<Runtime>>::find_author()
+			Ethereum::find_author()
 		}
 
 		fn storage_at(address: H160, index: U256) -> H256 {
@@ -717,4 +718,4 @@ impl_runtime_apis! {
 	}
 }
 
-cumulus_runtime::register_validate_block!(Block, Executive);
+cumulus_pallet_parachain_system::register_validate_block!(Runtime, Executive);

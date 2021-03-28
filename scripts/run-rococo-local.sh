@@ -41,7 +41,7 @@ echo "relay ${RELAY_INDEX} - p2p-port: $((RELAY_PORT)), \
 http-port: $((RELAY_PORT + 1)) , ws-port: $((RELAY_PORT + 2))"
 
 if [ -z "$POLKADOT_VERSION" ]; then
-  POLKADOT_VERSION="sha-`egrep -o 'paritytech/polkadot.*#([^\"]*)' Cargo.lock | \
+  POLKADOT_VERSION="sha-`egrep -o '/polkadot.*#([^\"]*)' Cargo.lock | \
     head -1 | sed 's/.*#//' |  cut -c1-8`"
 fi
 
