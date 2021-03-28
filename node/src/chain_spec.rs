@@ -13,13 +13,19 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+
+//! Moonbeam Chain Specifications and utilities for building them.
+//!
+//! Learn more about Substrate chain specifications at
+//! https://substrate.dev/docs/en/knowledgebase/integrate/chain-spec
+
 use bip39::{Language, Mnemonic, Seed};
-use cumulus_primitives::ParaId;
+use cumulus_primitives_core::ParaId;
 use log::debug;
 use moonbeam_runtime::{
 	AccountId, Balance, BalancesConfig, DemocracyConfig, EVMConfig, EthereumChainIdConfig,
-	EthereumConfig, GenesisConfig, ParachainInfoConfig, SchedulerConfig, StakeConfig, SudoConfig,
-	SystemConfig, GLMR, WASM_BINARY,
+	EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig, ParachainStakingConfig,
+	Range, SchedulerConfig, SudoConfig, SystemConfig, GLMR, WASM_BINARY,
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
@@ -32,7 +38,6 @@ use sp_runtime::{
 	traits::{BlakeTwo256, Hash},
 	Perbill,
 };
-use stake::{InflationInfo, Range};
 use std::convert::TryInto;
 use std::{collections::BTreeMap, str::FromStr};
 use tiny_hderive::bip32::ExtendedPrivKey;
@@ -226,34 +231,34 @@ fn testnet_genesis(
 	chain_id: u64,
 ) -> GenesisConfig {
 	GenesisConfig {
-		frame_system: Some(SystemConfig {
+		frame_system: SystemConfig {
 			code: WASM_BINARY
 				.expect("WASM binary was not build, please build it!")
 				.to_vec(),
 			changes_trie_config: Default::default(),
-		}),
-		pallet_balances: Some(BalancesConfig {
+		},
+		pallet_balances: BalancesConfig {
 			balances: endowed_accounts
 				.iter()
 				.cloned()
 				.map(|k| (k, 1 << 80))
 				.collect(),
-		}),
-		pallet_sudo: Some(SudoConfig { key: root_key }),
-		parachain_info: Some(ParachainInfoConfig {
+		},
+		pallet_sudo: SudoConfig { key: root_key },
+		parachain_info: ParachainInfoConfig {
 			parachain_id: para_id,
-		}),
-		pallet_ethereum_chain_id: Some(EthereumChainIdConfig { chain_id }),
-		pallet_evm: Some(EVMConfig {
+		},
+		pallet_ethereum_chain_id: EthereumChainIdConfig { chain_id },
+		pallet_evm: EVMConfig {
 			accounts: BTreeMap::new(),
-		}),
-		pallet_ethereum: Some(EthereumConfig {}),
-		pallet_democracy: Some(DemocracyConfig {}),
-		pallet_scheduler: Some(SchedulerConfig {}),
-		stake: Some(StakeConfig {
+		},
+		pallet_ethereum: EthereumConfig {},
+		pallet_democracy: DemocracyConfig {},
+		pallet_scheduler: SchedulerConfig {},
+		parachain_staking: ParachainStakingConfig {
 			stakers,
 			inflation_config,
-		}),
+		},
 	}
 }
 

@@ -14,6 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! Moonbeam CLI Library. Built with structopt
+//!
+//! This module defines the Moonbeam node's Command Line Interface (CLI)
+//! It is built using structopt and inherits behavior from Substrate's sc_cli crate.
+
 use sp_core::H160;
 use std::path::PathBuf;
 use std::str::FromStr;
