@@ -393,7 +393,7 @@ parameter_types! {
 	pub const MaxNominatorsPerCollator: u32 = 10;
 	/// Maximum 25 collators per nominator
 	pub const MaxCollatorsPerNominator: u32 = 25;
-	/// The maximum percent a validator can take off the top of its rewards is 50%
+	/// The maximum percent a collator can take off the top of its rewards is 50%
 	pub const MaxFee: Perbill = Perbill::from_percent(50);
 	/// Minimum stake required to be reserved to be a collator is 1_000
 	pub const MinCollatorStk: u128 = 1_000 * GLMR;
