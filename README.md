@@ -4,7 +4,6 @@
 
 An Ethereum compatible ~~[Parachain](https://polkadot.network/technology/)~~ built with [Substrate](https://substrate.dev)
 
-
 _Discover the Moonbeam project at [moonbeam.network](https://moonbeam.network)._
 _Learn to [use the Moonbeam network](https://docs.moonbeam.network/) with our technical docs._
 _Reference our [crate-level docs (rustdocs)](https://purestake.github.io) to contribute._
@@ -81,7 +80,6 @@ the canonical mnemonic: "bottom drive obey lake curtain smoke basket hold race l
 - Address:0x7BF369283338E12C90514468aa3868A551AB2929
 - PrivKey:0x96b8a38e12e1a31dee1eab2fffdf9d9990045f5b37e44d8cc27766ef294acf18
 
-
 ## Build the Moonbeam Node
 
 To build Moonbeam, you will need a proper Substrate development environment. If you've never worked
@@ -122,7 +120,6 @@ npm i
 # Run integration tests
 npm test
 ```
-
 
 ## Chain IDs
 
