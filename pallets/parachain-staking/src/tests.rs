@@ -735,21 +735,25 @@ fn revoke_nomination_or_leave_nominators() {
 			Stake::revoke_nomination(Origin::signed(6), 2),
 			Error::<Test>::NominationDNE
 		);
-		// must leave set of nominators if total bonds below MinNominatorStk
-		assert_noop!(
-			Stake::revoke_nomination(Origin::signed(6), 1),
-			Error::<Test>::NomBondBelowMin
-		);
 		assert_noop!(
 			Stake::leave_nominators(Origin::signed(1)),
 			Error::<Test>::NominatorDNE
 		);
-		assert_ok!(Stake::leave_nominators(Origin::signed(6)));
+		assert_ok!(Stake::nominate(Origin::signed(6), 2, 3));
+		assert_ok!(Stake::nominate(Origin::signed(6), 3, 3));
+		assert_ok!(Stake::revoke_nomination(Origin::signed(6), 1));
+		// cannot revoke nomination because would leave remaining total below MinNominatorStk
 		assert_noop!(
-			Stake::revoke_nomination(Origin::signed(8), 2),
+			Stake::revoke_nomination(Origin::signed(6), 2),
 			Error::<Test>::NomBondBelowMin
 		);
-		assert_ok!(Stake::nominate(Origin::signed(8), 1, 10));
+		assert_noop!(
+			Stake::revoke_nomination(Origin::signed(6), 3),
+			Error::<Test>::NomBondBelowMin
+		);
+		// can revoke both remaining by calling leave nominators
+		assert_ok!(Stake::leave_nominators(Origin::signed(6)));
+		// this leads to 8 leaving set of nominators
 		assert_ok!(Stake::revoke_nomination(Origin::signed(8), 2));
 	});
 }
