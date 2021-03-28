@@ -59,7 +59,7 @@ cumulus-pallet-parachain-system = { git = "https://github.com/paritytech/cumulus
 cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "rococo-v1" }
 
 # TODO Why can't this come directly from cumulus
-parachain-info = { path = "../pallets/parachain-info", default-features = false }
+parachain-info = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "rococo-v1" }
 author-inherent = { path = "../pallets/author-inherent", default-features = false }
 
 [build-dependencies]
