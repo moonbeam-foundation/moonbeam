@@ -27,7 +27,7 @@ pub use pallet::*;
 
 #[pallet]
 pub mod pallet {
-	use cumulus_primitives::{relay_chain::Balance as RelayChainBalance, ParaId};
+	use cumulus_primitives_core::{relay_chain::Balance as RelayChainBalance, ParaId};
 	use frame_support::{pallet_prelude::*, traits::Get, transactional};
 	use frame_system::pallet_prelude::*;
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};

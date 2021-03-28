@@ -27,7 +27,7 @@ pub use pallet::*;
 #[pallet]
 pub mod pallet {
 	use crate::set::OrderedSet;
-	use cumulus_primitives::{DownwardMessageHandler, InboundDownwardMessage, ParaId};
+	use cumulus_primitives_core::{DownwardMessageHandler, InboundDownwardMessage, ParaId};
 	use frame_support::{pallet_prelude::*, traits::Get};
 	use frame_system::pallet_prelude::*;
 	use sp_std::{convert::TryFrom, prelude::*};
@@ -248,7 +248,7 @@ pub mod pallet {
 		}
 	}
 
-	impl<T: Config> DownwardMessageHandler for Module<T> {
+	impl<T: Config> DownwardMessageHandler for Pallet<T> {
 		fn handle_downward_message(msg: InboundDownwardMessage) {
 			match VersionedXcm::decode(&mut &msg.msg[..]).map(Xcm::try_from) {
 				Ok(Ok(xcm)) => {

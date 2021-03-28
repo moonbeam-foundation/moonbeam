@@ -123,7 +123,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 26,
+	spec_version: 27,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -278,6 +278,7 @@ impl pallet_evm::Config for Runtime {
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type Precompiles = precompiles::MoonbeamPrecompiles<Self>;
 	type ChainId = EthereumChainId;
+	type OnChargeTransaction = ();
 }
 
 parameter_types! {
@@ -379,6 +380,16 @@ impl pallet_ethereum::Config for Runtime {
 	type BlockGasLimit = BlockGasLimit;
 }
 
+impl cumulus_pallet_parachain_system::Config for Runtime {
+	type Event = Event;
+	type OnValidationData = ();
+	type SelfParaId = ParachainInfo;
+	type DownwardMessageHandlers = ();
+	type HrmpMessageHandlers = ();
+}
+
+impl parachain_info::Config for Runtime {}
+
 /// GLMR, the native token, uses 18 decimals of precision.
 pub const GLMR: Balance = 1_000_000_000_000_000_000;
 
@@ -472,7 +483,7 @@ impl xtransfer::Config for Runtime {
 parameter_types! {
 	pub const PolkadotNetworkId: NetworkId = NetworkId::Polkadot;
 	pub MoonbeamNetwork: NetworkId = NetworkId::Named("moon".into());
-	pub RelayChainOrigin: Origin = xcm_handler::Origin::Relay.into();
+	pub RelayChainOrigin: Origin = cumulus_pallet_xcm_handler::Origin::Relay.into();
 	pub Ancestry: MultiLocation = MultiLocation::X1(Junction::Parachain {
 		id: ParachainInfo::get().into(),
 	});
@@ -561,7 +572,7 @@ pub type LocalAssetTransactor = MultiCurrencyAdapter<
 pub type LocalOriginConverter = (
 	SovereignSignedViaLocation<LocationConverter, Origin>,
 	RelayChainAsNative<RelayChainOrigin, Origin>,
-	SiblingParachainAsNative<xcm_handler::Origin, Origin>,
+	SiblingParachainAsNative<cumulus_pallet_xcm_handler::Origin, Origin>,
 	SignedAccountId20AsNative<MoonbeamNetwork, Origin>,
 );
 
@@ -576,7 +587,7 @@ impl xcm_executor::Config for XcmConfig {
 	type LocationInverter = LocationInverter<Ancestry>;
 }
 
-impl xcm_handler::Config for Runtime {
+impl cumulus_pallet_xcm_handler::Config for Runtime {
 	type Event = Event;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type UpwardMessageSender = ParachainSystem;
@@ -591,37 +602,35 @@ impl cumulus_parachain_system::Config for Runtime {
 	type HrmpMessageHandlers = XcmHandler;
 }
 
-impl parachain_info::Config for Runtime {}
-
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
 		NodeBlock = opaque::Block,
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
-		System: frame_system::{Module, Call, Storage, Config, Event<T>},
-		Utility: pallet_utility::{Module, Call, Event},
-		Timestamp: pallet_timestamp::{Module, Call, Storage, Inherent},
-		Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
-		Sudo: pallet_sudo::{Module, Call, Storage, Config<T>, Event<T>},
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Module, Call, Storage},
-		ParachainSystem: cumulus_parachain_system::{Module, Call, Storage, Inherent, Event},
-		TransactionPayment: pallet_transaction_payment::{Module, Storage},
-		ParachainInfo: parachain_info::{Module, Storage, Config},
-		EthereumChainId: pallet_ethereum_chain_id::{Module, Storage, Config},
-		EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
-		Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
-		ParachainStaking: parachain_staking::{Module, Call, Storage, Event<T>, Config<T>},
-		Scheduler: pallet_scheduler::{Module, Storage, Config, Event<T>, Call},
-		Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
+		System: frame_system::{Pallet, Call, Storage, Config, Event<T>},
+		Utility: pallet_utility::{Pallet, Call, Event},
+		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
+		Sudo: pallet_sudo::{Pallet, Call, Storage, Config<T>, Event<T>},
+		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Call, Storage},
+		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event},
+		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
+		ParachainInfo: parachain_info::{Pallet, Storage, Config},
+		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config},
+		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>},
+		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config, ValidateUnsigned},
+		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>},
+		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call},
+		Democracy: pallet_democracy::{Pallet, Storage, Config, Event<T>, Call},
 		TokenFactory: token_factory::{Module, Call, Storage, Event<T>},
 		HrmpChannels: hrmp_channels::{Module, Call, Storage, Event<T>},
 		Xtransfer: xtransfer::{Module, Call, Storage, Event<T>},
-		XcmHandler: xcm_handler::{Module, Call, Event<T>, Origin},
+		XcmHandler: cumulus_pallet_xcm_handler::{Module, Call, Event<T>, Origin},
 		// The order matters here. Inherents will be included in the order specified here.
 		// Concretely we need the author inherent to come after the parachain_upgrade inherent.
-		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
-		AuthorFilter: pallet_author_filter::{Module, Call, Storage, Event<T>,}
+		AuthorInherent: author_inherent::{Pallet, Call, Storage, Inherent},
+		AuthorFilter: pallet_author_filter::{Pallet, Call, Storage, Event<T>,}
 	}
 }
 
@@ -649,13 +658,13 @@ pub type SignedExtra = (
 pub type UncheckedExtrinsic = generic::UncheckedExtrinsic<Address, Call, Signature, SignedExtra>;
 /// Extrinsic type that has already been checked.
 pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, Call, SignedExtra>;
-/// Executive: handles dispatch to the various modules.
+/// Executive: handles dispatch to the various pallets.
 pub type Executive = frame_executive::Executive<
 	Runtime,
 	Block,
 	frame_system::ChainContext<Runtime>,
 	Runtime,
-	AllModules,
+	AllPallets,
 >;
 
 impl_runtime_apis! {
@@ -704,7 +713,7 @@ impl_runtime_apis! {
 		}
 
 		fn random_seed() -> <Block as BlockT>::Hash {
-			RandomnessCollectiveFlip::random_seed()
+			RandomnessCollectiveFlip::random_seed().0
 		}
 	}
 
@@ -770,7 +779,7 @@ impl_runtime_apis! {
 		}
 
 		fn author() -> H160 {
-			<pallet_ethereum::Module<Runtime>>::find_author()
+			Ethereum::find_author()
 		}
 
 		fn storage_at(address: H160, index: U256) -> H256 {
@@ -886,4 +895,4 @@ impl_runtime_apis! {
 	}
 }
 
-cumulus_runtime::register_validate_block!(Block, Executive);
+cumulus_pallet_parachain_system::register_validate_block!(Runtime, Executive);
