@@ -1108,15 +1108,15 @@
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinBlocksPerRound</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">20</span>;
 	<span class="doccomment">/// Default BlocksPerRound is every hour (600 * 6 second block times)</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DefaultBlocksPerRound</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">600</span>;
-	<span class="doccomment">/// Reward payments and validator exit requests are delayed by 2 hours (2 * 600 * block_time)</span>
+	<span class="doccomment">/// Reward payments and collator exit requests are delayed by 2 hours (2 * 600 * block_time)</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BondDuration</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
-	<span class="doccomment">/// Maximum 8 valid block authors at any given time</span>
+	<span class="doccomment">/// Minimum 8 collators selected per round, default at genesis and minimum forever after</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinSelectedCandidates</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">8</span>;
-	<span class="doccomment">/// Maximum 10 nominators per validator</span>
+	<span class="doccomment">/// Maximum 10 nominators per collator</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxNominatorsPerCollator</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">10</span>;
-	<span class="doccomment">/// The maximum percent a validator can take off the top of its rewards is 50%</span>
+	<span class="doccomment">/// The maximum percent a collator can take off the top of its rewards is 50%</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxFee</span>: <span class="ident">Perbill</span> <span class="op">=</span> <span class="ident">Perbill</span>::<span class="ident">from_percent</span>(<span class="number">50</span>);
-	<span class="doccomment">/// Minimum stake required to be reserved to be a validator is 1_000</span>
+	<span class="doccomment">/// Minimum stake required to be reserved to be a collator is 1_000</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinCollatorStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">1_000</span> <span class="op">*</span> <span class="ident">GLMR</span>;
 	<span class="doccomment">/// Minimum stake required to be reserved to be a nominator is 5</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinNominatorStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">5</span> <span class="op">*</span> <span class="ident">GLMR</span>;
