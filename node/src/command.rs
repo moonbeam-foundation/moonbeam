@@ -189,7 +189,8 @@ pub fn run() -> Result<()> {
 				// maybe these three lines could be a helper function is_dev(config) -> bool
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
 				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
-				let dev_service = cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
+				let dev_service =
+					cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
 
 				let PartialComponents {
 					client,
@@ -227,7 +228,8 @@ pub fn run() -> Result<()> {
 			runner.async_run(|config| {
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
 				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
-				let dev_service = cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
+				let dev_service =
+					cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
 
 				let PartialComponents {
 					client,
@@ -313,7 +315,8 @@ pub fn run() -> Result<()> {
 
 					let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
 					let relay_chain_id = extension.map(|e| e.relay_chain.clone());
-					let dev_service = cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
+					let dev_service =
+						cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
 					let para_id = extension.map(|e| e.para_id);
 
 					// If dev service was requested, start up manual or instant seal.
