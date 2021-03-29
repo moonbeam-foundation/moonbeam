@@ -217,6 +217,7 @@ where
 										expiration: Instant::now() + EXPIRATION_DELAY,
 									});
 								} else {
+									cached_blocks.get_mut(block_height).unwrap().expiration = Instant::now() + EXPIRATION_DELAY;
 									tracing::trace!(block_height, "Cache hit, no need to replay block !");
 								}
 							}
@@ -367,7 +368,7 @@ where
 			trace.transaction_hash = *transactions_hash
 				.get(trace.transaction_position as usize)
 				.expect("amount of eth transactions should match");
-			
+
 			// Reformat error messages.
 			if let block::TransactionTraceOutput::Error(ref mut error) = trace.output {
 				if error.as_slice() == b"execution reverted" {
