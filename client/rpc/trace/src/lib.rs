@@ -22,7 +22,7 @@ use futures::{
 	FutureExt, SinkExt, StreamExt,
 };
 use std::{
-	collections::{BTreeMap, btree_map::Entry},
+	collections::{btree_map::Entry, BTreeMap},
 	future::Future,
 	marker::PhantomData,
 	sync::Arc,
@@ -35,7 +35,7 @@ use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend},
 	StorageProvider,
 };
-use sp_api::{BlockId, HeaderT, ProvideRuntimeApi, ApiRef};
+use sp_api::{ApiRef, BlockId, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
@@ -43,14 +43,14 @@ use sp_blockchain::{
 use sp_runtime::traits::{BlakeTwo256, Block as BlockT};
 use sp_utils::mpsc::TracingUnboundedSender;
 
-use ethereum_types::{H256};
-use fp_rpc::{EthereumRuntimeRPCApi};
+use ethereum_types::H256;
+use fp_rpc::EthereumRuntimeRPCApi;
 
 pub use moonbeam_rpc_core_trace::{
 	FilterRequest, RequestBlockId, Trace as TraceT, TraceServer, TransactionTrace,
 };
 use moonbeam_rpc_primitives_debug::{block, DebugRuntimeApi};
-use tracing::{Instrument};
+use tracing::Instrument;
 
 pub struct Trace {
 	pub requester: TraceFilterCacheRequester,
@@ -151,7 +151,7 @@ where
 		let fut = async move {
 			let mut expiration_futures = FuturesUnordered::new();
 			// Substrate block hash => Block cache
-			let mut cached_blocks = BTreeMap::<H256, CacheBlock>::new(); 
+			let mut cached_blocks = BTreeMap::<H256, CacheBlock>::new();
 
 			tracing::info!("Begining Trace Filter Cache Task ...");
 
@@ -164,7 +164,6 @@ where
 
 							tracing::trace!("Begining handling request");
 
-							
 							let mut touched_blocks = vec![];
 							let res = Self::handle_request(&client, &backend, &mut cached_blocks, req, &mut touched_blocks);
 
@@ -216,7 +215,7 @@ where
 	fn handle_request(
 		client: &C,
 		backend: &BE,
-		cached_blocks: &mut BTreeMap::<H256, CacheBlock>,
+		cached_blocks: &mut BTreeMap<H256, CacheBlock>,
 		req: FilterRequest,
 		touched_blocks: &mut Vec<H256>,
 	) -> Result<Vec<TransactionTrace>> {
@@ -235,9 +234,8 @@ where
 		if from_block == 0 {
 			return Err(internal_err("Tracing genesis block is not possible"));
 		}
- 				
-		let block_heights = from_block ..= to_block;
-		
+
+		let block_heights = from_block..=to_block;
 
 		let from_address = req.from_address.unwrap_or_default();
 		let to_address = req.to_address.unwrap_or_default();
@@ -246,9 +244,17 @@ where
 		for block_height in block_heights {
 			let api = client.runtime_api();
 			let block_id = BlockId::<B>::Number(block_height);
-			let block_header = client.header(block_id)
-				.map_err(|e| internal_err(format!("Error when fetching block {} header : {:?}", block_height, e)))?
-				.ok_or_else(|| internal_err(format!("Block with height {} don't exist", block_height)))?;
+			let block_header = client
+				.header(block_id)
+				.map_err(|e| {
+					internal_err(format!(
+						"Error when fetching block {} header : {:?}",
+						block_height, e
+					))
+				})?
+				.ok_or_else(|| {
+					internal_err(format!("Block with height {} don't exist", block_height))
+				})?;
 
 			let block_hash = block_header.hash();
 
@@ -260,7 +266,7 @@ where
 					cache_block.expiration = Instant::now() + EXPIRATION_DELAY;
 
 					cache_block
-				},
+				}
 				Entry::Vacant(entry) => {
 					tracing::trace!(block_height, %block_hash, "Cache miss, replaying block ...");
 
@@ -276,31 +282,33 @@ where
 			touched_blocks.push(block_hash);
 
 			// Filter addresses.
-			let mut block_traces: Vec<_> = cache_block.traces.iter()
+			let mut block_traces: Vec<_> = cache_block
+				.traces
+				.iter()
 				.filter(|trace| match trace.action {
-					block::TransactionTraceAction::Call {from, to, ..} => {
+					block::TransactionTraceAction::Call { from, to, .. } => {
 						(from_address.is_empty() || from_address.contains(&from))
-						&& (to_address.is_empty() || to_address.contains(&to))
-					},
-					block::TransactionTraceAction::Create {from, ..} => {
+							&& (to_address.is_empty() || to_address.contains(&to))
+					}
+					block::TransactionTraceAction::Create { from, .. } => {
 						(from_address.is_empty() || from_address.contains(&from))
-						&& to_address.is_empty()
-					},
-					block::TransactionTraceAction::Suicide {address, ..} => {
+							&& to_address.is_empty()
+					}
+					block::TransactionTraceAction::Suicide { address, .. } => {
 						(from_address.is_empty() || from_address.contains(&address))
-						&& to_address.is_empty()
-					},
-				}).cloned()
+							&& to_address.is_empty()
+					}
+				})
+				.cloned()
 				.collect();
 
 			traces.append(&mut block_traces);
-		};
+		}
 
 		// Paginations.
 		let traces = traces.into_iter().skip(req.after.unwrap_or(0) as usize);
 		let traces: Vec<_> = if let Some(take) = req.count {
-			traces.take(take as usize)
-			.collect()
+			traces.take(take as usize).collect()
 		} else {
 			traces.collect()
 		};
@@ -318,12 +326,23 @@ where
 		let substrate_block_id = BlockId::Hash(substrate_hash);
 		let substrate_parent_id = BlockId::<B>::Hash(*block_header.parent_hash());
 
-		let (eth_block, _, eth_transactions) = api.current_all(&BlockId::Hash(substrate_hash))
-			.map_err(|e| internal_err(format!("Failed to get Ethereum block data for Substrate block {} : {:?}", substrate_hash, e)))?;
+		let (eth_block, _, eth_transactions) = api
+			.current_all(&BlockId::Hash(substrate_hash))
+			.map_err(|e| {
+				internal_err(format!(
+					"Failed to get Ethereum block data for Substrate block {} : {:?}",
+					substrate_hash, e
+				))
+			})?;
 
 		let (eth_block, eth_transactions) = match (eth_block, eth_transactions) {
-			(Some(a), Some(b)) => (a,b),
-			_ => return Err(internal_err(format!("Failed to get Ethereum block data for Substrate block {}", substrate_hash))),
+			(Some(a), Some(b)) => (a, b),
+			_ => {
+				return Err(internal_err(format!(
+					"Failed to get Ethereum block data for Substrate block {}",
+					substrate_hash
+				)))
+			}
 		};
 
 		let eth_block_hash = eth_block.header.hash();
