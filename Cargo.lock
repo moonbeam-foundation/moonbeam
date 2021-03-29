@@ -5501,7 +5501,8 @@ dependencies = [
 
 [[package]]
 name = "parachain-info"
-version = "0.6.0"
+version = "0.1.0"
+source = "git+https://github.com/paritytech/cumulus?branch=rococo-v1#10887b728c563329845192915069a094b3f06139"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
