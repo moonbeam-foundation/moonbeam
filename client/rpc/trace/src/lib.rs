@@ -128,29 +128,26 @@ where
 	C::Api: EthereumRuntimeRPCApi<B>,
 	A: EthApi,
 {
-	// TODO :
-	// 1. Handle requests and add traces to the cache :
-	//    Cache is a BTreeMap : Block height => Vec of TransactionTrace + expiration time
-	//    No filtering is done in the cache, it stores all traces.
-	//    Existing block in cache get the expiration time bumped.
-	//
-	//    Filtering is done on top :
-	//    1. Apply the filter and return a list of indices to keep
-	//    2. Use the indices to build the filtered vec of traces (with correct pointers)
-	//
-	// 2. Remove expired cache :
-	//    Iterate over each block in the BTreeMap, and remove the entry if expired.
-	//    Question : Is the expiration time and delay between checks configurable ?
-	//    Other idea : Spawn a timer future when updating the cache, providing the height
-	//        of the block. When woken up, check only this block expiration time.
-	//        Will create a future for each request, but is more reactive to cleanup.
-	//        Which is better ?
-
-	// How to get Ethereum block hash and transactions :
-	// EthApi::block_by_number -> Rich<Block>
-	// Block.transactions (Full).hash
-	// Debug RPC impl shows how to get the substrate equivalents for mapping.
-
+	/// Create a task responsible to perform tracing on Ethereum blocks and keep these traces in
+	/// a cache. This function returns a future containing the task main loop (which must be queued
+	/// with tokio to work) and a channel to communicate with the task.
+	///
+	/// The cache strategy is used mainly to provide pagination, which would otherwise
+	/// require to replay many times the same transactions.
+	///
+	/// The channel accepts a tuple containing a request and a oneshot sender to send back the
+	/// response. The request defines a range of blocks to trace, which will be checked against
+	/// the cache. If the cache doesn't contains this block, the Runtime API trace_block is
+	/// performed, which will return an array of all traces (call/subcalls/create/suicide) without
+	/// any filtering. After the cache contains all the requested blocks, an iterator is created
+	/// over the range of blocks and filtered to only contains the to/from addresses (if any),
+	/// followed by pagination. Using an iterator avoid cloning of the entire cache entries : only
+	/// the filtered list of trace is cloned. This filtered list is then sent through the oneshot
+	/// channel.
+	///
+	/// When a block cache entry is used, its expiration date is set to NOW + EXPIRATION_DELAY.
+	/// A list of timer futures are responsible to wake up the task and check cache entry expiracy
+	/// to free memory.
 	pub fn task(
 		client: Arc<C>,
 		backend: Arc<BE>,
