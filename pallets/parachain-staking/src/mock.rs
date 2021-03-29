@@ -100,7 +100,7 @@ parameter_types! {
 	pub const MinSelectedCandidates: u32 = 5;
 	pub const MaxNominatorsPerCollator: u32 = 4;
 	pub const MaxCollatorsPerNominator: u32 = 4;
-	pub const MaxFee: Perbill = Perbill::from_percent(50);
+	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
 	pub const MinCollatorStk: u128 = 10;
 	pub const MinNominatorStk: u128 = 5;
 	pub const MinNomination: u128 = 3;
@@ -114,7 +114,7 @@ impl Config for Test {
 	type MinSelectedCandidates = MinSelectedCandidates;
 	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
 	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
-	type MaxFee = MaxFee;
+	type DefaultCollatorCommission = DefaultCollatorCommission;
 	type MinCollatorStk = MinCollatorStk;
 	type MinCollatorCandidateStk = MinCollatorStk;
 	type MinNominatorStk = MinNominatorStk;

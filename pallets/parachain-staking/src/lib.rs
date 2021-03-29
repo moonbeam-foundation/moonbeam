@@ -131,7 +131,6 @@ pub mod pallet {
 	#[derive(Default, Encode, Decode, RuntimeDebug)]
 	/// Snapshot of collator state at the start of the round for which they are selected
 	pub struct CollatorSnapshot<AccountId, Balance> {
-		pub fee: Perbill,
 		pub bond: Balance,
 		pub nominators: Vec<Bond<AccountId, Balance>>,
 		pub total: Balance,
@@ -141,7 +140,6 @@ pub mod pallet {
 	/// Global collator state with commission fee, bonded stake, and nominations
 	pub struct Collator<AccountId, Balance> {
 		pub id: AccountId,
-		pub fee: Perbill,
 		pub bond: Balance,
 		pub nominators: OrderedSet<Bond<AccountId, Balance>>,
 		pub total: Balance,
@@ -153,11 +151,10 @@ pub mod pallet {
 			B: AtLeast32BitUnsigned + Ord + Copy + sp_std::ops::AddAssign + sp_std::ops::SubAssign,
 		> Collator<A, B>
 	{
-		pub fn new(id: A, fee: Perbill, bond: B) -> Self {
+		pub fn new(id: A, bond: B) -> Self {
 			let total = bond;
 			Collator {
 				id,
-				fee,
 				bond,
 				nominators: OrderedSet::new(),
 				total,
@@ -216,7 +213,6 @@ pub mod pallet {
 	impl<A: Clone, B: Copy> From<Collator<A, B>> for CollatorSnapshot<A, B> {
 		fn from(other: Collator<A, B>) -> CollatorSnapshot<A, B> {
 			CollatorSnapshot {
-				fee: other.fee,
 				bond: other.bond,
 				nominators: other.nominators.0,
 				total: other.total,
@@ -389,8 +385,8 @@ pub mod pallet {
 		type MaxNominatorsPerCollator: Get<u32>;
 		/// Maximum collators per nominator
 		type MaxCollatorsPerNominator: Get<u32>;
-		/// Maximum fee for any collator
-		type MaxFee: Get<Perbill>;
+		/// Commission due to collators, set at genesis
+		type DefaultCollatorCommission: Get<Perbill>;
 		/// Minimum stake required for any account to be in `SelectedCandidates` for the round
 		type MinCollatorStk: Get<BalanceOf<Self>>;
 		/// Minimum stake required for any account to be a collator candidate
@@ -408,7 +404,6 @@ pub mod pallet {
 		CandidateDNE,
 		NominatorExists,
 		CandidateExists,
-		FeeOverMax,
 		ValBondBelowMin,
 		NomBondBelowMin,
 		NominationBelowMin,
@@ -462,6 +457,8 @@ pub mod pallet {
 		StakeExpectationsSet(BalanceOf<T>, BalanceOf<T>, BalanceOf<T>),
 		/// Set total selected candidates to this value [old, new]
 		TotalSelectedSet(u32, u32),
+		/// Set collator commission to this value [old, new]
+		CollatorCommissionSet(Perbill, Perbill),
 		/// Set blocks per round [current_round, first_block, old, new]
 		BlocksPerRoundSet(RoundIndex, T::BlockNumber, u32, u32),
 	}
@@ -492,6 +489,11 @@ pub mod pallet {
 			}
 		}
 	}
+
+	#[pallet::storage]
+	#[pallet::getter(fn collator_commission)]
+	/// Commission percent taken off of rewards for all collators
+	type CollatorCommission<T: Config> = StorageValue<_, Perbill, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn total_selected)]
@@ -622,11 +624,12 @@ pub mod pallet {
 				} else {
 					<Pallet<T>>::join_candidates(
 						T::Origin::from(Some(actor.clone()).into()),
-						Perbill::zero(), // default fee for collators registered at genesis is 0%
 						balance,
 					)
 				};
 			}
+			// Set collator commission to default config
+			<CollatorCommission<T>>::put(T::DefaultCollatorCommission::get());
 			// Set total selected candidates to minimum config
 			<TotalSelected<T>>::put(T::MinSelectedCandidates::get());
 			// Choose top TotalSelected collator candidates
@@ -700,6 +703,18 @@ pub mod pallet {
 			Ok(().into())
 		}
 		#[pallet::weight(0)]
+		/// Set the commission for all collators
+		pub fn set_collator_commission(
+			origin: OriginFor<T>,
+			pct: Perbill,
+		) -> DispatchResultWithPostInfo {
+			frame_system::ensure_root(origin)?;
+			let old = <CollatorCommission<T>>::get();
+			<CollatorCommission<T>>::put(pct);
+			Self::deposit_event(Event::CollatorCommissionSet(old, pct));
+			Ok(().into())
+		}
+		#[pallet::weight(0)]
 		/// Set blocks per round
 		/// - if called with `new` less than length of current round, will transition immediately
 		/// in the next block
@@ -720,13 +735,11 @@ pub mod pallet {
 		#[pallet::weight(0)]
 		pub fn join_candidates(
 			origin: OriginFor<T>,
-			fee: Perbill,
 			bond: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
 			ensure!(!Self::is_candidate(&acc), Error::<T>::CandidateExists);
 			ensure!(!Self::is_nominator(&acc), Error::<T>::NominatorExists);
-			ensure!(fee <= T::MaxFee::get(), Error::<T>::FeeOverMax);
 			ensure!(
 				bond >= T::MinCollatorCandidateStk::get(),
 				Error::<T>::ValBondBelowMin
@@ -740,7 +753,7 @@ pub mod pallet {
 				Error::<T>::CandidateExists
 			);
 			T::Currency::reserve(&acc, bond)?;
-			let candidate = Collator::new(acc.clone(), fee, bond);
+			let candidate = Collator::new(acc.clone(), bond);
 			let new_total = <Total<T>>::get() + bond;
 			<Total<T>>::put(new_total);
 			<CollatorState<T>>::insert(&acc, candidate);
@@ -1147,6 +1160,7 @@ pub mod pallet {
 				}
 			};
 			let duration = T::BondDuration::get();
+			let collator_fee = <CollatorCommission<T>>::get();
 			if next > duration {
 				let round_to_payout = next - duration;
 				let total = <Points<T>>::get(round_to_payout);
@@ -1166,7 +1180,7 @@ pub mod pallet {
 					} else {
 						// pay collator first; commission + due_portion
 						let val_pct = Perbill::from_rational(state.bond, state.total);
-						let commission = state.fee * amt_due;
+						let commission = collator_fee * amt_due;
 						let val_due = if commission > T::Currency::minimum_balance() {
 							amt_due -= commission;
 							(val_pct * amt_due) + commission

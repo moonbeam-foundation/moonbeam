@@ -29,7 +29,6 @@ use moonbeam_runtime::{
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
-use sc_telemetry::TelemetryEndpoints;
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
 
@@ -157,10 +156,7 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 			)
 		},
 		vec![],
-		Some(
-			TelemetryEndpoints::new(vec![("wss://telemetry.polkadot.io/submit/".to_string(), 0)])
-				.expect("Polkadot Staging telemetry url is valid; qed"),
-		),
+		None,
 		None,
 		Some(serde_json::from_str("{\"tokenDecimals\": 18}").expect("Provided valid json map")),
 		Extensions {
