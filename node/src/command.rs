@@ -186,19 +186,17 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::CheckBlock(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|config| {
+				// maybe these three lines could be a helper function is_dev(config) -> bool
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
 				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
+				let dev_service = cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
 
 				let PartialComponents {
 					client,
 					task_manager,
 					import_queue,
 					..
-				} = if cli.run.dev_service || relay_chain_id == Some("dev-service".to_string()) {
-					crate::service::dev_partial(&config, None, false)?
-				} else {
-					crate::service::parachain_partial(&config, None, false)?
-				};
+				} = crate::service::new_partial(&config, None, dev_service)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -209,7 +207,7 @@ pub fn run() -> Result<()> {
 					client,
 					task_manager,
 					..
-				} = crate::service::parachain_partial(&config, None, false)?;
+				} = crate::service::new_partial(&config, None, false)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
 		}
@@ -220,7 +218,7 @@ pub fn run() -> Result<()> {
 					client,
 					task_manager,
 					..
-				} = crate::service::parachain_partial(&config, None, false)?;
+				} = crate::service::new_partial(&config, None, false)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
 		}
@@ -229,17 +227,14 @@ pub fn run() -> Result<()> {
 			runner.async_run(|config| {
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
 				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
+				let dev_service = cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
 
 				let PartialComponents {
 					client,
 					task_manager,
 					import_queue,
 					..
-				} = if cli.run.dev_service || relay_chain_id == Some("dev-service".to_string()) {
-					crate::service::dev_partial(&config, None, false)?
-				} else {
-					crate::service::parachain_partial(&config, None, false)?
-				};
+				} = crate::service::new_partial(&config, None, dev_service)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -255,7 +250,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					backend,
 					..
-				} = crate::service::parachain_partial(&config, None, false)?;
+				} = crate::service::new_partial(&config, None, false)?;
 				Ok((cmd.run(client, backend), task_manager))
 			})
 		}
@@ -318,6 +313,7 @@ pub fn run() -> Result<()> {
 
 					let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
 					let relay_chain_id = extension.map(|e| e.relay_chain.clone());
+					let dev_service = cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
 					let para_id = extension.map(|e| e.para_id);
 
 					// If dev service was requested, start up manual or instant seal.
@@ -326,7 +322,7 @@ pub fn run() -> Result<()> {
 					// 1. by providing the --dev-service flag to the CLI
 					// 2. by specifying "dev-service" in the chain spec's "relay-chain" field.
 					// NOTE: the --dev flag triggers the dev service by way of number 2
-					if cli.run.dev_service || relay_chain_id == Some("dev-service".to_string()) {
+					if dev_service {
 						// --dev implies --collator
 						let collator = collator || cli.run.shared_params.dev;
 
