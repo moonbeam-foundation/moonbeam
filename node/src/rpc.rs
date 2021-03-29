@@ -16,8 +16,11 @@
 
 //! A collection of node-specific RPC methods.
 
-use std::{fmt, sync::Arc};
+use std::collections::BTreeMap;
+use std::sync::Arc;
 
+use ethereum::EthereumStorageSchema;
+use fc_rpc::{SchemaV1Override, StorageOverride};
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use jsonrpc_pubsub::manager::SubscriptionManager;
 use moonbeam_runtime::{opaque::Block, AccountId, Balance, Hash, Index};
@@ -54,6 +57,8 @@ pub struct FullDeps<C, P, A: ChainApi> {
 	pub pending_transactions: PendingTransactions,
 	/// EthFilterApi pool.
 	pub filter_pool: Option<FilterPool>,
+	/// Backend.
+	pub backend: Arc<fc_db::Backend<Block>>,
 	/// Manual seal command sink
 	pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
 }
@@ -76,7 +81,6 @@ where
 	A: ChainApi<Block = Block> + 'static,
 	C::Api: fp_rpc::EthereumRuntimeRPCApi<Block>,
 	C::Api: moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>,
-	<C::Api as sp_api::ApiErrorExt>::Error: fmt::Debug,
 	P: TransactionPool<Block = Block> + 'static,
 {
 	use fc_rpc::{
@@ -98,6 +102,7 @@ where
 		pending_transactions,
 		filter_pool,
 		command_sink,
+		backend: frontier_backend,
 	} = deps;
 
 	io.extend_with(SystemApi::to_delegate(FullSystem::new(
@@ -112,6 +117,13 @@ where
 	// TODO: are we supporting signing?
 	let signers = Vec::new();
 
+	let mut overrides = BTreeMap::new();
+	overrides.insert(
+		EthereumStorageSchema::V1,
+		Box::new(SchemaV1Override::new(client.clone()))
+			as Box<dyn StorageOverride<_> + Send + Sync>,
+	);
+
 	io.extend_with(EthApiServer::to_delegate(EthApi::new(
 		client.clone(),
 		pool.clone(),
@@ -120,6 +132,8 @@ where
 		network.clone(),
 		pending_transactions,
 		signers,
+		overrides,
+		frontier_backend,
 		is_authority,
 	)));
 

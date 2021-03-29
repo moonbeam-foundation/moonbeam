@@ -11,16 +11,15 @@ repository = 'https://github.com/PureStake/moonbeam/'
 sha3 = "0.8"
 jsonrpc-core = "15.0.0"
 ethereum-types = "0.11.0"
-# ethereum = { git = "https://github.com/rust-blockchain/ethereum", branch = "master", features = ["with-codec"] }
-ethereum = { git = "https://github.com/notlesh/ethereum", branch = "notlesh-moonbeam-v0.6", features = ["with-codec"] }
+ethereum = { version = "0.7.1", default-features = false, features = ["with-codec"] }
 moonbeam-rpc-core-txpool = { path = "../../rpc-core/txpool" }
-sp-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-sp-api = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-sp-io = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-sp-std = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-sp-blockchain = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-sp-transaction-pool = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-frame-system = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-api = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-std = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+frame-system = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
 serde = { version = "1.0", features = ["derive"] }
 
 moonbeam-rpc-primitives-txpool = { path = "../../../primitives/rpc/txpool" }

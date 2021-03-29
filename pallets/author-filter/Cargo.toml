@@ -7,13 +7,13 @@ version = '0.6.0'
 [dependencies]
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
 
-frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
-frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
-sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
-sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "master" }
+frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 author-inherent = { path = "../author-inherent", default-features = false }
 parachain-staking = { path = "../parachain-staking", default-features = false }
-cumulus-parachain-system = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "master" }
+cumulus-pallet-parachain-system = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "rococo-v1" }
 
 [features]
 default = ["std"]
@@ -25,5 +25,5 @@ std = [
     "parachain-staking/std",
     "sp-core/std",
     "sp-runtime/std",
-    "cumulus-parachain-system/std",
+    "cumulus-pallet-parachain-system/std",
 ]
