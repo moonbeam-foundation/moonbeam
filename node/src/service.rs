@@ -20,7 +20,6 @@ use cumulus_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
 use fc_consensus::FrontierBlockImport;
-use fc_rpc::EthApi;
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use moonbeam_rpc_trace::TraceFilterCache;
 use moonbeam_runtime::{opaque::Block, RuntimeApi};
@@ -179,21 +178,8 @@ where
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 
 	let (trace_filter_task, trace_filter_requester) = if ethapi_cmd.contains(&EthApiCmd::Trace) {
-		// WARNING : We create a second one in "rpc.rs" for the Trace RPC Api.
-		// Is this okay to have it 2 times ? What happens if they have different parameters (signers ?) ?
-		let eth_api = EthApi::new(
-			client.clone(),
-			transaction_pool.clone(),
-			transaction_pool.pool().clone(),
-			moonbeam_runtime::TransactionConverter,
-			network.clone(),
-			pending_transactions.clone(),
-			vec![],
-			is_authority,
-		);
-
 		let (trace_filter_task, trace_filter_requester) =
-			TraceFilterCache::task(Arc::clone(&client), Arc::clone(&backend), eth_api);
+			TraceFilterCache::task(Arc::clone(&client), Arc::clone(&backend));
 		(Some(trace_filter_task), Some(trace_filter_requester))
 	} else {
 		(None, None)

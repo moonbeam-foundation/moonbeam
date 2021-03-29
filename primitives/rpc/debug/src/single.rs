@@ -22,7 +22,7 @@
 #[cfg(feature = "std")]
 use crate::serialization::*;
 #[cfg(feature = "std")]
-use serde::{ser::SerializeSeq, Serialize, Serializer};
+use serde::Serialize;
 
 use codec::{Decode, Encode};
 use ethereum_types::{H160, H256, U256};

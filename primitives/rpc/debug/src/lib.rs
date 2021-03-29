@@ -18,7 +18,7 @@
 
 use codec::{Decode, Encode};
 use ethereum::Transaction;
-use ethereum_types::{H160, H256, U256};
+use ethereum_types::H160;
 use sp_std::vec::Vec;
 
 #[cfg(feature = "std")]
