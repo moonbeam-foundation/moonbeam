@@ -230,10 +230,14 @@ where
 										(from_address.is_empty() || from_address.contains(&from))
 										&& (to_address.is_empty() || to_address.contains(&to))
 									},
-									block::TransactionTraceAction::Create {from, ..} =>
-										(from_address.is_empty() || from_address.contains(&from)),
-									block::TransactionTraceAction::Suicide {address, ..} =>
-										(from_address.is_empty() || from_address.contains(&address)),
+									block::TransactionTraceAction::Create {from, ..} => {
+										(from_address.is_empty() || from_address.contains(&from))
+										&& to_address.is_empty()
+									},
+									block::TransactionTraceAction::Suicide {address, ..} => {
+										(from_address.is_empty() || from_address.contains(&address))
+										&& to_address.is_empty()
+									},
 								})
 								.skip(req.after.unwrap_or(0) as usize);
 

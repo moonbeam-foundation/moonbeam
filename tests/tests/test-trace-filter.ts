@@ -56,7 +56,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
 		expect(response.result[0].action.gas).to.equal("0x4ffead");
 		expect(response.result[0].action.input).to.equal("0x608060405234801561001057600080fd5b506040516103783803806103788339818101604052602081101561003357600080fd5b8101908080519060200190929190505050801561004f57600080fd5b506103198061005f6000396000f3fe608060405234801561001057600080fd5b506004361061004c5760003560e01c80635eaf9bc114610051578063a885f4e31461005b578063cb30e6961461009f578063f34f1610146100a9575b600080fd5b61005961010d565b005b61009d6004803603602081101561007157600080fd5b81019080803573ffffffffffffffffffffffffffffffffffffffff16906020019092919050505061010f565b005b6100a76101d2565b005b61010b600480360360408110156100bf57600080fd5b81019080803573ffffffffffffffffffffffffffffffffffffffff169060200190929190803573ffffffffffffffffffffffffffffffffffffffff1690602001909291905050506101d7565b005b565b8073ffffffffffffffffffffffffffffffffffffffff16635eaf9bc16040518163ffffffff1660e01b8152600401600060405180830381600087803b15801561015757600080fd5b505af115801561016b573d6000803e3d6000fd5b505050508073ffffffffffffffffffffffffffffffffffffffff1663cb30e6966040518163ffffffff1660e01b8152600401600060405180830381600087803b1580156101b757600080fd5b505af11580156101cb573d6000803e3d6000fd5b5050505050565b600080fd5b8173ffffffffffffffffffffffffffffffffffffffff1663a885f4e3826040518263ffffffff1660e01b8152600401808273ffffffffffffffffffffffffffffffffffffffff168152602001915050600060405180830381600087803b15801561024057600080fd5b505af1925050508015610251575060015b61025a5761025b565b5b8173ffffffffffffffffffffffffffffffffffffffff1663a885f4e3826040518263ffffffff1660e01b8152600401808273ffffffffffffffffffffffffffffffffffffffff168152602001915050600060405180830381600087803b1580156102c457600080fd5b505af19250505080156102d5575060015b6102de576102df565b5b505056fea2646970667358221220ee197ab2a083888733b5308bb086dad0368108fe41328cd7752f955e7e67232464736f6c634300070600330000000000000000000000000000000000000000000000000000000000000000");
 		expect(response.result[0].action.value).to.equal("0x0");
-		expect(response.result[0].blockHash).to.equal("0xdd9d02101561bf442989f06cafdb1b8c4db61b7edf8984340422aa22758a5050");
+		expect(response.result[0].blockHash).to.be.a("string");
 		expect(response.result[0].blockNumber).to.equal(1);
 		expect(response.result[0].result.address).to.equal("0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a");
 		expect(response.result[0].result.code).to.equal("0x608060405234801561001057600080fd5b506004361061004c5760003560e01c80635eaf9bc114610051578063a885f4e31461005b578063cb30e6961461009f578063f34f1610146100a9575b600080fd5b61005961010d565b005b61009d6004803603602081101561007157600080fd5b81019080803573ffffffffffffffffffffffffffffffffffffffff16906020019092919050505061010f565b005b6100a76101d2565b005b61010b600480360360408110156100bf57600080fd5b81019080803573ffffffffffffffffffffffffffffffffffffffff169060200190929190803573ffffffffffffffffffffffffffffffffffffffff1690602001909291905050506101d7565b005b565b8073ffffffffffffffffffffffffffffffffffffffff16635eaf9bc16040518163ffffffff1660e01b8152600401600060405180830381600087803b15801561015757600080fd5b505af115801561016b573d6000803e3d6000fd5b505050508073ffffffffffffffffffffffffffffffffffffffff1663cb30e6966040518163ffffffff1660e01b8152600401600060405180830381600087803b1580156101b757600080fd5b505af11580156101cb573d6000803e3d6000fd5b5050505050565b600080fd5b8173ffffffffffffffffffffffffffffffffffffffff1663a885f4e3826040518263ffffffff1660e01b8152600401808273ffffffffffffffffffffffffffffffffffffffff168152602001915050600060405180830381600087803b15801561024057600080fd5b505af1925050508015610251575060015b61025a5761025b565b5b8173ffffffffffffffffffffffffffffffffffffffff1663a885f4e3826040518263ffffffff1660e01b8152600401808273ffffffffffffffffffffffffffffffffffffffff168152602001915050600060405180830381600087803b1580156102c457600080fd5b505af19250505080156102d5575060015b6102de576102df565b5b505056fea2646970667358221220ee197ab2a083888733b5308bb086dad0368108fe41328cd7752f955e7e67232464736f6c63430007060033");
@@ -110,7 +110,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
 		expect(response.result[0].action.gas).to.equal("0x4fff44");
 		expect(response.result[0].action.input).to.equal("0x608060405234801561001057600080fd5b506040516103783803806103788339818101604052602081101561003357600080fd5b8101908080519060200190929190505050801561004f57600080fd5b506103198061005f6000396000f3fe608060405234801561001057600080fd5b506004361061004c5760003560e01c80635eaf9bc114610051578063a885f4e31461005b578063cb30e6961461009f578063f34f1610146100a9575b600080fd5b61005961010d565b005b61009d6004803603602081101561007157600080fd5b81019080803573ffffffffffffffffffffffffffffffffffffffff16906020019092919050505061010f565b005b6100a76101d2565b005b61010b600480360360408110156100bf57600080fd5b81019080803573ffffffffffffffffffffffffffffffffffffffff169060200190929190803573ffffffffffffffffffffffffffffffffffffffff1690602001909291905050506101d7565b005b565b8073ffffffffffffffffffffffffffffffffffffffff16635eaf9bc16040518163ffffffff1660e01b8152600401600060405180830381600087803b15801561015757600080fd5b505af115801561016b573d6000803e3d6000fd5b505050508073ffffffffffffffffffffffffffffffffffffffff1663cb30e6966040518163ffffffff1660e01b8152600401600060405180830381600087803b1580156101b757600080fd5b505af11580156101cb573d6000803e3d6000fd5b5050505050565b600080fd5b8173ffffffffffffffffffffffffffffffffffffffff1663a885f4e3826040518263ffffffff1660e01b8152600401808273ffffffffffffffffffffffffffffffffffffffff168152602001915050600060405180830381600087803b15801561024057600080fd5b505af1925050508015610251575060015b61025a5761025b565b5b8173ffffffffffffffffffffffffffffffffffffffff1663a885f4e3826040518263ffffffff1660e01b8152600401808273ffffffffffffffffffffffffffffffffffffffff168152602001915050600060405180830381600087803b1580156102c457600080fd5b505af19250505080156102d5575060015b6102de576102df565b5b505056fea2646970667358221220ee197ab2a083888733b5308bb086dad0368108fe41328cd7752f955e7e67232464736f6c634300070600330000000000000000000000000000000000000000000000000000000000000001");
 		expect(response.result[0].action.value).to.equal("0x0");
-		expect(response.result[0].blockHash).to.equal("0x609024beeb421348533180334dbc3bb74549ce1f2de55921230f8df0bf1c869f");
+		expect(response.result[0].blockHash).to.be.a("string");
 		expect(response.result[0].blockNumber).to.equal(2);
 		expect(response.result[0].result).to.equal(undefined);
 		expect(response.result[0].error).to.equal("Reverted");
@@ -216,5 +216,59 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
 		expect(response.result[5].traceAddress).to.deep.equal([1,0]);
 		expect(response.result[6].subtraces).to.equal(0);
 		expect(response.result[6].traceAddress).to.deep.equal([1,1]);
+	})
+
+	step("Request range of blocks", async function () {
+		let response = await customRequest(context.web3, "trace_filter", [
+			{
+				fromBlock: "0x03",
+				toBlock: "0x04",
+			}
+		]);
+
+		// console.log(JSON.stringify(response));
+		expect(response.result.length).to.equal(9);
+		expect(response.result[0].blockNumber).to.equal(3);
+		expect(response.result[0].transactionPosition).to.equal(0);
+		expect(response.result[1].blockNumber).to.equal(3);
+		expect(response.result[1].transactionPosition).to.equal(1);
+		expect(response.result[2].blockNumber).to.equal(4);
+		expect(response.result[2].transactionPosition).to.equal(0);
+		expect(response.result[3].blockNumber).to.equal(4);
+		expect(response.result[3].transactionPosition).to.equal(0);
+		expect(response.result[4].blockNumber).to.equal(4);
+		expect(response.result[4].transactionPosition).to.equal(0);
+		expect(response.result[5].blockNumber).to.equal(4);
+		expect(response.result[5].transactionPosition).to.equal(0);
+		expect(response.result[6].blockNumber).to.equal(4);
+		expect(response.result[6].transactionPosition).to.equal(0);
+		expect(response.result[7].blockNumber).to.equal(4);
+		expect(response.result[7].transactionPosition).to.equal(0);
+		expect(response.result[8].blockNumber).to.equal(4);
+		expect(response.result[8].transactionPosition).to.equal(0);
+	})
+
+	step("Filter fromAddress", async function () {
+		let response = await customRequest(context.web3, "trace_filter", [
+			{
+				fromBlock: "0x03",
+				toBlock: "0x04",
+				fromAddress: [GENESIS_ACCOUNT]
+			}
+		]);
+
+		expect(response.result.length).to.equal(3);
+	})
+
+	step("Filter toAddress", async function () {
+		let response = await customRequest(context.web3, "trace_filter", [
+			{
+				fromBlock: "0x03",
+				toBlock: "0x04",
+				toAddress: [address2]
+			}
+		]);
+
+		expect(response.result.length).to.equal(4);
 	})
 })

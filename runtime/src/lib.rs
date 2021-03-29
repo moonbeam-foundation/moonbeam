@@ -718,7 +718,7 @@ impl_runtime_apis! {
 								single::CallInner::Call {input, to, res, call_type} => block::TransactionTrace {
 									action: block::TransactionTraceAction::Call {
 										call_type,
-										from,
+										from: trace.from,
 										gas: trace.gas,
 										input,
 										to,
@@ -745,7 +745,7 @@ impl_runtime_apis! {
 								single::CallInner::Create { init, res } => block::TransactionTrace {
 									action: block::TransactionTraceAction::Create {
 										create_method: CreateType::Create, // TODO : we don't support create2 ?
-										from,
+										from: trace.from,
 										gas: trace.gas,
 										input: init,
 										value: trace.value,
