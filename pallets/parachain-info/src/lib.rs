@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -20,7 +20,7 @@
 
 use frame_support::{decl_module, decl_storage, traits::Get};
 
-use cumulus_primitives::ParaId;
+use cumulus_primitives_core::ParaId;
 
 /// Configuration trait of this pallet.
 pub trait Config: frame_system::Config {}

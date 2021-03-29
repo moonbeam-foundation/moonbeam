@@ -21,6 +21,10 @@ describeWithMoonbeam(
     const GENESIS_ACCOUNT_PRIVATE_KEY =
       "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
 
+    // This reflects the measured gas cost of the transaction at this current point in time.
+    // It has been known to fluctuate from release to release, so it may need adjustment.
+    const EXPECTED_TRANSACTION_GAS_COST = 891328;
+
     const TEST_CONTRACT_BYTECODE =
       "0x608060405234801561001057600080fd5b50610041337fffffffffffffffffffffffffffffffffffffffffff" +
       "ffffffffffffffffffffff61004660201b60201c565b610291565b600073ffffffffffffffffffffffffffffff" +
@@ -118,14 +122,15 @@ describeWithMoonbeam(
       "647265737345524332303a20617070726f76652066726f6d20746865207a65726f206164647265737345524332" +
       "303a2064656372656173656420616c6c6f77616e63652062656c6f77207a65726fa265627a7a72315820c7a5ff" +
       "abf642bda14700b2de42f8c57b36621af020441df825de45fd2b3e1c5c64736f6c63430005100032";
-    async function sendTransaction(context) {
+    async function sendTransaction(context, extraData = {}) {
       const tx = await context.web3.eth.accounts.signTransaction(
         {
           from: GENESIS_ACCOUNT,
           data: TEST_CONTRACT_BYTECODE,
           value: "0x00",
           gasPrice: "0x01",
-          gas: "0x4F930",
+          gas: "0x" + EXPECTED_TRANSACTION_GAS_COST.toString(16),
+          ...extraData,
         },
         GENESIS_ACCOUNT_PRIVATE_KEY
       );
@@ -492,6 +497,29 @@ describeWithMoonbeam(
       subscription.unsubscribe();
 
       expect(data).to.not.be.null;
+    });
+
+    step("should not receive log when contract fails", async function () {
+      const subscription = web3Subscribe("logs", {});
+
+      await new Promise((resolve) => {
+        subscription.once("connected", resolve);
+      });
+
+      await sendTransaction(context, {
+        gas: "0x" + (EXPECTED_TRANSACTION_GAS_COST - 1).toString(16), // lower than expected by 1
+      });
+
+      const data = await new Promise((resolve) => {
+        createAndFinalizeBlock(context.polkadotApi);
+        let result = null;
+        subscription.once("data", (d) => (result = d));
+        setTimeout(() => resolve(result), 1000);
+        // wait for 1 second to make sure a notification would have time to arrive.
+        // (This one is not supposed to arrive because the transaction ran out of gas.)
+      });
+      subscription.unsubscribe();
+      expect(data).to.be.null;
     });
   },
   "ws"

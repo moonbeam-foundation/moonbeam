@@ -1,33 +1,33 @@
 [package]
-name = "author-inherent"
-version = "0.6.0"
-description = "Inject the block author via an inherent, and persist it via a Consensus digest"
+name = "parachain-staking"
+version = "1.0.0"
 authors = ["PureStake"]
 edition = "2018"
-license = 'GPL-3.0-only'
+description = "parachain staking pallet for collator selection and reward distribution"
 
 [dependencies]
+author-inherent = { path = "../author-inherent", default-features = false }
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
+pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
-sp-authorship = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
-sp-inherents = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
+serde = { version = "1.0.101", optional = true }
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
 
 [dev-dependencies]
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
-serde = { version = "1.0.101", features = ["derive"] }
 
 [features]
 default = ["std"]
 std = [
+	"author-inherent/std",
 	"frame-support/std",
 	"frame-system/std",
+	"pallet-balances/std",
 	"parity-scale-codec/std",
-	"sp-authorship/std",
-	"sp-inherents/std",
-	"sp-runtime/std",
+	"serde",
 	"sp-std/std",
+	"sp-runtime/std",
 ]

@@ -34,3 +34,8 @@ And then run `yarn run moonbeam-launch`
 ### Change Config
 
 Change the path in the config_moonbeam.json file to use polkadot in a different location.
+
+### Generate Test Specs
+
+To update the specs, run :
+`./target/release/moonbeam build-spec --chain local >test.json`

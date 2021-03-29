@@ -1,2 +1,2 @@
-import main from "polkadot-launch";
-main();
+import { start } from "polkadot-launch";
+start("config_moonbeam.json");
