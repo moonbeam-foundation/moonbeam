@@ -35,7 +35,7 @@ pub use pallet::*;
 #[pallet]
 pub mod pallet {
 
-	use frame_support::debug;
+	use frame_support::log;
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::Randomness;
 	use frame_support::traits::Vec;
@@ -50,12 +50,12 @@ pub mod pallet {
 	/// Configuration trait of this pallet.
 	#[pallet::config]
 	pub trait Config:
-		frame_system::Config + parachain_staking::Config + cumulus_parachain_system::Config
+		frame_system::Config + parachain_staking::Config + cumulus_pallet_parachain_system::Config
 	{
 		/// The overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// Deterministic on-chain pseudo-randomness used to do the filtering
-		type RandomnessSource: Randomness<H256>;
+		type RandomnessSource: Randomness<H256, Self::BlockNumber>;
 	}
 
 	// This code will be called by the author-inherent pallet to check whether the reported author
@@ -68,15 +68,15 @@ pub mod pallet {
 	// inherent.
 	impl<T: Config> author_inherent::CanAuthor<T::AccountId> for Pallet<T> {
 		fn can_author(account: &T::AccountId) -> bool {
-			let mut staked = <parachain_staking::Module<T>>::selected_candidates();
+			let mut staked = <parachain_staking::Pallet<T>>::selected_candidates();
 
 			let num_eligible = EligibleRatio::<T>::get().mul_ceil(staked.len());
 			let mut eligible = Vec::with_capacity(num_eligible);
 
 			// Grab the relay parent height as a temporary source of relay-based entropy
-			let validation_data = cumulus_parachain_system::Module::<T>::validation_data()
+			let validation_data = cumulus_pallet_parachain_system::Module::<T>::validation_data()
 				.expect("validation data was set in parachain system inherent");
-			let relay_height = validation_data.block_number;
+			let relay_height = validation_data.relay_parent_number;
 
 			for i in 0..num_eligible {
 				// A context identifier for grabbing the randomness. Consists of three parts
@@ -95,7 +95,7 @@ pub mod pallet {
 					i as u8,
 					relay_height as u8,
 				];
-				let randomness = T::RandomnessSource::random(&subject);
+				let randomness = T::RandomnessSource::random(&subject).0;
 				// Cast to u32 first so we get the same result on wasm and 64-bit platforms.
 				let index = (randomness.to_low_u64_be() as u32) as usize;
 
@@ -107,28 +107,28 @@ pub mod pallet {
 				eligible.push(staked.remove(index % staked.len()));
 
 				// Print some logs for debugging purposes.
-				debug::trace!(target:"author-filter", "Filtering Authors");
-				debug::trace!(
+				log::trace!(target:"author-filter", "Filtering Authors");
+				log::trace!(
 					target:"author-filter",
 					"The randomness was {:?}",
 					randomness
 				);
-				debug::trace!(
+				log::trace!(
 					target:"author-filter",
 					"NOT Eligible Authors: {:?}",
 					&staked
 				);
-				debug::trace!(
+				log::trace!(
 					target:"author-filter",
 					"Eligible Authors are: {:?}",
 					eligible
 				);
-				debug::trace!(
+				log::trace!(
 					target:"author-filter",
 					"The id I'm checking is: {:?}",
 					account
 				);
-				debug::trace!(
+				log::trace!(
 					target:"author-filter",
 					"Was that author eligible: {}",
 					eligible.contains(account)
