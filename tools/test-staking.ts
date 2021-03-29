@@ -53,18 +53,15 @@ async function test() {
     account.data.free.toString() === DEFAULT_GENESIS_BALANCE.toString(),
     "wrong balance for Ethan, dif: " + (Number(DEFAULT_GENESIS_BALANCE) - Number(account.data.free))
   );
-  console.log("*** Balance test successful ***");
 
   // Nominators
   const nominators = await polkadotApi.query.parachainStaking.nominatorState(GERALD);
   assert(nominators.toHuman() === null, "there should be no nominator");
-  console.log("*** Nominators test successful ***");
 
   // Validators
   const validators = await polkadotApi.query.parachainStaking.selectedCandidates();
   assert(validators.toHuman()[0].toLowerCase() === GERALD, "Gerald is not a validator");
   assert(validators.toHuman()[1].toLowerCase() === FAITH.toLowerCase(), "Faith is not a validator");
-  console.log("*** Validators test successful ***");
 
   // Candidates
   const candidates = await polkadotApi.query.parachainStaking.candidatePool();
@@ -75,7 +72,6 @@ async function test() {
   );
   assert(candidates.toHuman()[0].amount === STAKING_AMOUNT, "Gerald has wrong staking amount");
   assert(candidates.toHuman()[1].amount === STAKING_AMOUNT, "Faith has wrong staking amount");
-  console.log("*** Candidates test successful ***");
 
   // Join Candidates
   const keyring = new Keyring({ type: "ethereum" });
@@ -110,7 +106,6 @@ async function test() {
     (candidatesAfter.toHuman() as { owner: string; amount: string }[])[2].amount === "1.0000 kUnit",
     "new candidate ethan should have been added (wrong amount)"
   );
-  console.log("*** Join Candidates test successful ***");
 
   // Candidate bond more
   const unsub4 = await polkadotApi.tx.parachainStaking
@@ -135,7 +130,6 @@ async function test() {
     (candidatesAfter.toHuman() as { owner: string; amount: string }[])[2].amount === "2.0000 kUnit",
     "bond should have increased"
   );
-  console.log("*** Candidate bond more test successful ***");
 
   // Candidate bond less
   const unsub5 = await polkadotApi.tx.parachainStaking
@@ -160,7 +154,6 @@ async function test() {
     (candidatesAfter.toHuman() as { owner: string; amount: string }[])[2].amount === "1.0000 kUnit",
     "bond should have decreased"
   );
-  console.log("*** Candidate bond less test successful ***");
 
   // Join Nominators
   const keyringAlith = new Keyring({ type: "ethereum" });
@@ -189,7 +182,6 @@ async function test() {
     }).nominations[0].owner.toLowerCase() === GERALD,
     "nomination didnt go through"
   );
-  console.log("*** Join Nominators test successful ***");
 
   // Revoke Nomination
   const unsub3 = await polkadotApi.tx.parachainStaking
@@ -211,7 +203,6 @@ async function test() {
   await wait(60000);
   const nominatorsAfterRevocation = await polkadotApi.query.parachainStaking.nominatorState(ALITH);
   assert(nominatorsAfterRevocation.toHuman() === null, "there should be no nominator");
-  console.log("*** Revoke Nomination test successful ***");
 
   console.log("SUCCESS");
 }
