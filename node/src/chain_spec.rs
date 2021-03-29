@@ -157,10 +157,7 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 			)
 		},
 		vec![],
-		Some(
-			TelemetryEndpoints::new(vec![("wss://telemetry.polkadot.io/submit/".to_string(), 0)])
-				.expect("Polkadot Staging telemetry url is valid; qed"),
-		),
+		None,
 		None,
 		Some(serde_json::from_str("{\"tokenDecimals\": 18}").expect("Provided valid json map")),
 		Extensions {
