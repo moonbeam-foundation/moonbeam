@@ -1118,8 +1118,8 @@
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxNominatorsPerCollator</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">10</span>;
 	<span class="doccomment">/// Maximum 25 collators per nominator</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxCollatorsPerNominator</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">25</span>;
-	<span class="doccomment">/// The maximum percent a collator can take off the top of its rewards is 50%</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxFee</span>: <span class="ident">Perbill</span> <span class="op">=</span> <span class="ident">Perbill</span>::<span class="ident">from_percent</span>(<span class="number">50</span>);
+	<span class="doccomment">/// The fixed percent a collator takes off the top of due rewards is 20%</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DefaultCollatorCommission</span>: <span class="ident">Perbill</span> <span class="op">=</span> <span class="ident">Perbill</span>::<span class="ident">from_percent</span>(<span class="number">20</span>);
 	<span class="doccomment">/// Minimum stake required to be reserved to be a collator is 1_000</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinCollatorStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">1_000</span> <span class="op">*</span> <span class="ident">GLMR</span>;
 	<span class="doccomment">/// Minimum stake required to be reserved to be a nominator is 5</span>
@@ -1134,7 +1134,7 @@
 	<span class="kw">type</span> <span class="ident">MinSelectedCandidates</span> <span class="op">=</span> <span class="ident">MinSelectedCandidates</span>;
 	<span class="kw">type</span> <span class="ident">MaxNominatorsPerCollator</span> <span class="op">=</span> <span class="ident">MaxNominatorsPerCollator</span>;
 	<span class="kw">type</span> <span class="ident">MaxCollatorsPerNominator</span> <span class="op">=</span> <span class="ident">MaxCollatorsPerNominator</span>;
-	<span class="kw">type</span> <span class="ident">MaxFee</span> <span class="op">=</span> <span class="ident">MaxFee</span>;
+	<span class="kw">type</span> <span class="ident">DefaultCollatorCommission</span> <span class="op">=</span> <span class="ident">DefaultCollatorCommission</span>;
 	<span class="kw">type</span> <span class="ident">MinCollatorStk</span> <span class="op">=</span> <span class="ident">MinCollatorStk</span>;
 	<span class="kw">type</span> <span class="ident">MinCollatorCandidateStk</span> <span class="op">=</span> <span class="ident">MinCollatorStk</span>;
 	<span class="kw">type</span> <span class="ident">MinNomination</span> <span class="op">=</span> <span class="ident">MinNominatorStk</span>;
