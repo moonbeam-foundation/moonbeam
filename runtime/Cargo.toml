@@ -17,6 +17,7 @@ precompiles = { path = "precompiles/", default-features = false }
 account = { path = "account/", default-features = false }
 pallet-ethereum-chain-id = { path = "../pallets/ethereum-chain-id", default-features = false }
 parachain-staking = { path = "../pallets/parachain-staking", default-features = false }
+author-inherent = { path = "../pallets/author-inherent", default-features = false }
 pallet-author-filter = { path = "../pallets/author-filter", default-features = false }
 
 # Substrate dependencies
@@ -57,10 +58,7 @@ moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool", default-fe
 # Cumulus dependencies
 cumulus-pallet-parachain-system = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "rococo-v1" }
 cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "rococo-v1" }
-
-# TODO Why can't this come directly from cumulus
 parachain-info = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "rococo-v1" }
-author-inherent = { path = "../pallets/author-inherent", default-features = false }
 
 [build-dependencies]
 substrate-wasm-builder = { version = "4.0.0", git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
