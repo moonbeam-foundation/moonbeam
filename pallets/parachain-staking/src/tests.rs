@@ -22,7 +22,7 @@ use crate::mock::{
 };
 use crate::{CollatorStatus, Error, Event};
 use frame_support::{assert_noop, assert_ok};
-use sp_runtime::{traits::Zero, DispatchError, Perbill};
+use sp_runtime::{traits::Zero, DispatchError};
 
 #[test]
 fn geneses() {
@@ -131,35 +131,27 @@ fn online_offline_works() {
 fn join_collator_candidates() {
 	two_collators_four_nominators().execute_with(|| {
 		assert_noop!(
-			Stake::join_candidates(Origin::signed(1), Perbill::from_percent(2), 11u128,),
+			Stake::join_candidates(Origin::signed(1), 11u128,),
 			Error::<Test>::CandidateExists
 		);
 		assert_noop!(
-			Stake::join_candidates(Origin::signed(3), Perbill::from_percent(2), 11u128,),
+			Stake::join_candidates(Origin::signed(3), 11u128,),
 			Error::<Test>::NominatorExists
 		);
 		assert_noop!(
-			Stake::join_candidates(Origin::signed(7), Perbill::from_percent(2), 9u128,),
+			Stake::join_candidates(Origin::signed(7), 9u128,),
 			Error::<Test>::ValBondBelowMin
 		);
 		assert_noop!(
-			Stake::join_candidates(Origin::signed(8), Perbill::from_percent(2), 10u128,),
+			Stake::join_candidates(Origin::signed(8), 10u128,),
 			DispatchError::Module {
 				index: 1,
 				error: 3,
 				message: Some("InsufficientBalance")
 			}
 		);
-		assert_noop!(
-			Stake::join_candidates(Origin::signed(7), Perbill::from_percent(51), 10u128,),
-			Error::<Test>::FeeOverMax
-		);
 		assert!(System::events().is_empty());
-		assert_ok!(Stake::join_candidates(
-			Origin::signed(7),
-			Perbill::from_percent(3),
-			10u128,
-		));
+		assert_ok!(Stake::join_candidates(Origin::signed(7), 10u128,));
 		assert_eq!(
 			last_event(),
 			MetaEvent::stake(Event::JoinedCollatorCandidates(7, 10u128, 1110u128))
@@ -225,11 +217,7 @@ fn collator_selection_chooses_top_candidates() {
 			MetaEvent::stake(Event::CollatorScheduledExit(2, 6, 4))
 		);
 		roll_to(21);
-		assert_ok!(Stake::join_candidates(
-			Origin::signed(6),
-			Perbill::from_percent(2),
-			69u128
-		));
+		assert_ok!(Stake::join_candidates(Origin::signed(6), 69u128));
 		assert_eq!(
 			last_event(),
 			MetaEvent::stake(Event::JoinedCollatorCandidates(6, 69u128, 469u128))
@@ -448,11 +436,7 @@ fn collator_commission() {
 			Event::NewRound(5, 2, 1, 40),
 		];
 		assert_eq!(events(), expected);
-		assert_ok!(Stake::join_candidates(
-			Origin::signed(4),
-			Perbill::from_percent(20),
-			20u128
-		));
+		assert_ok!(Stake::join_candidates(Origin::signed(4), 20u128));
 		assert_eq!(
 			last_event(),
 			MetaEvent::stake(Event::JoinedCollatorCandidates(4, 20u128, 60u128))
@@ -783,10 +767,10 @@ fn payouts_follow_nomination_changes() {
 			Event::CollatorChosen(3, 3, 20),
 			Event::CollatorChosen(3, 5, 10),
 			Event::NewRound(10, 3, 5, 140),
-			Event::Rewarded(1, 20),
-			Event::Rewarded(6, 10),
-			Event::Rewarded(7, 10),
-			Event::Rewarded(10, 10),
+			Event::Rewarded(1, 26),
+			Event::Rewarded(6, 8),
+			Event::Rewarded(7, 8),
+			Event::Rewarded(10, 8),
 			Event::CollatorChosen(4, 1, 50),
 			Event::CollatorChosen(4, 2, 40),
 			Event::CollatorChosen(4, 4, 20),
@@ -810,10 +794,10 @@ fn payouts_follow_nomination_changes() {
 		let mut new2 = vec![
 			Event::NominatorLeftCollator(6, 1, 10, 40),
 			Event::NominatorLeft(6, 10),
-			Event::Rewarded(1, 21),
-			Event::Rewarded(6, 10),
-			Event::Rewarded(7, 10),
-			Event::Rewarded(10, 10),
+			Event::Rewarded(1, 27),
+			Event::Rewarded(6, 8),
+			Event::Rewarded(7, 8),
+			Event::Rewarded(10, 8),
 			Event::CollatorChosen(5, 2, 40),
 			Event::CollatorChosen(5, 1, 40),
 			Event::CollatorChosen(5, 4, 20),
@@ -828,10 +812,10 @@ fn payouts_follow_nomination_changes() {
 		roll_to(26);
 		// keep paying 6
 		let mut new3 = vec![
-			Event::Rewarded(1, 22),
-			Event::Rewarded(6, 11),
-			Event::Rewarded(7, 11),
-			Event::Rewarded(10, 11),
+			Event::Rewarded(1, 29),
+			Event::Rewarded(6, 9),
+			Event::Rewarded(7, 9),
+			Event::Rewarded(10, 9),
 			Event::CollatorChosen(6, 2, 40),
 			Event::CollatorChosen(6, 1, 40),
 			Event::CollatorChosen(6, 4, 20),
@@ -845,9 +829,9 @@ fn payouts_follow_nomination_changes() {
 		roll_to(31);
 		// no more paying 6
 		let mut new4 = vec![
-			Event::Rewarded(1, 29),
-			Event::Rewarded(7, 14),
-			Event::Rewarded(10, 14),
+			Event::Rewarded(1, 35),
+			Event::Rewarded(7, 11),
+			Event::Rewarded(10, 11),
 			Event::CollatorChosen(7, 2, 40),
 			Event::CollatorChosen(7, 1, 40),
 			Event::CollatorChosen(7, 4, 20),
@@ -863,9 +847,9 @@ fn payouts_follow_nomination_changes() {
 		// new nomination is not rewarded yet
 		let mut new5 = vec![
 			Event::Nomination(8, 10, 1, 50),
-			Event::Rewarded(1, 30),
-			Event::Rewarded(7, 15),
-			Event::Rewarded(10, 15),
+			Event::Rewarded(1, 36),
+			Event::Rewarded(7, 12),
+			Event::Rewarded(10, 12),
 			Event::CollatorChosen(8, 1, 50),
 			Event::CollatorChosen(8, 2, 40),
 			Event::CollatorChosen(8, 4, 20),
@@ -879,9 +863,9 @@ fn payouts_follow_nomination_changes() {
 		roll_to(41);
 		// new nomination is still not rewarded yet
 		let mut new6 = vec![
-			Event::Rewarded(1, 32),
-			Event::Rewarded(7, 16),
-			Event::Rewarded(10, 16),
+			Event::Rewarded(1, 38),
+			Event::Rewarded(7, 13),
+			Event::Rewarded(10, 13),
 			Event::CollatorChosen(9, 1, 50),
 			Event::CollatorChosen(9, 2, 40),
 			Event::CollatorChosen(9, 4, 20),
@@ -894,10 +878,10 @@ fn payouts_follow_nomination_changes() {
 		roll_to(46);
 		// new nomination is rewarded for first time, 2 rounds after joining (`BondDuration` = 2)
 		let mut new7 = vec![
-			Event::Rewarded(1, 27),
-			Event::Rewarded(7, 13),
-			Event::Rewarded(8, 13),
-			Event::Rewarded(10, 13),
+			Event::Rewarded(1, 35),
+			Event::Rewarded(7, 11),
+			Event::Rewarded(8, 11),
+			Event::Rewarded(10, 11),
 			Event::CollatorChosen(10, 1, 50),
 			Event::CollatorChosen(10, 2, 40),
 			Event::CollatorChosen(10, 4, 20),
