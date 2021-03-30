@@ -48,8 +48,6 @@ use sc_service::{
 	TFullClient, TaskManager,
 };
 use sp_core::{Pair, H160, H256};
-use sp_runtime::traits::BlakeTwo256;
-use sp_trie::PrefixedMemoryDB;
 use std::{
 	collections::{BTreeMap, HashMap},
 	sync::{Arc, Mutex},
@@ -105,8 +103,7 @@ pub fn new_partial(
 		FullClient,
 		FullBackend,
 		MaybeSelectChain,
-		//TODO Can we copy DefaultQueue fro mnode template?
-		sp_consensus::import_queue::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
+		sp_consensus::DefaultImportQueue<Block, FullClient>,
 		sc_transaction_pool::FullPool<Block, FullClient>,
 		(
 			FrontierBlockImport<Block, Arc<FullClient>, FullClient>,
