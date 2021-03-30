@@ -66,8 +66,8 @@ type FullClient = TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = TFullBackend<Block>;
 type MaybeSelectChain = Option<sc_consensus::LongestChain<FullBackend, Block>>;
 
-//TODO This is copied from frontier. Seems like it should live in Frontier in a more re-useable
-// palce. Maybe the database directory can be passed in.
+// TODO This is copied from frontier. It should be imported instead after
+// https://github.com/paritytech/frontier/issues/333 is solved
 pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backend<Block>>, String> {
 	let config_dir = config
 		.base_path
@@ -441,6 +441,7 @@ pub fn new_dev(
 	sealing: Sealing,
 	author_id: Option<H160>,
 	// TODO I guess we should use substrate-cli's validator flag for this.
+	// Resolve after https://github.com/paritytech/cumulus/pull/380 is reviewed.
 	collator: bool,
 ) -> Result<TaskManager, ServiceError> {
 	let sc_service::PartialComponents {
