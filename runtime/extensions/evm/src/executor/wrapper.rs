@@ -132,7 +132,13 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 							self.inner.config(),
 							self,
 						) {
-							Ok((opcode_cost, _)) => match self.inner.state().metadata().gasometer().gas_cost(opcode_cost, gas) {
+							Ok((opcode_cost, _)) => match self
+								.inner
+								.state()
+								.metadata()
+								.gasometer()
+								.gas_cost(opcode_cost, gas)
+							{
 								Ok(cost) => cost,
 								Err(e) => return ExitReason::Error(e),
 							},
@@ -140,30 +146,6 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 						}
 					}
 				};
-
-
-				// let gas_cost = match self.inner.state().metadata().gasometer().inner() {
-				// 	Ok(inner) => match gasometer::static_opcode_cost(opcode) {
-				// 		Some(cost) => cost,
-				// 		_ => {
-				// 			match gasometer::dynamic_opcode_cost(
-				// 				runtime.context().address,
-				// 				opcode,
-				// 				stack,
-				// 				self.inner.state().metadata().is_static(),
-				// 				self.inner.config(),
-				// 				self,
-				// 			) {
-				// 				Ok((opcode_cost, _)) => match inner.gas_cost(opcode_cost, gas) {
-				// 					Ok(cost) => cost,
-				// 					Err(e) => return ExitReason::Error(e),
-				// 				},
-				// 				Err(e) => break ExitReason::Error(e),
-				// 			}
-				// 		}
-				// 	},
-				// 	Err(e) => return ExitReason::Error(e),
-				// };
 				let position = match runtime.machine().position() {
 					Ok(p) => p,
 					Err(reason) => break reason.clone(),
@@ -426,7 +408,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 				match $e {
 					Ok(v) => v,
 					Err(e) => return Capture::Exit((e.into(), Vec::new())),
-					}
+				}
 			};
 		}
 
@@ -531,7 +513,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 				match $e {
 					Ok(v) => v,
 					Err(e) => return Capture::Exit((e.into(), None, Vec::new())),
-					}
+				}
 			};
 		}
 

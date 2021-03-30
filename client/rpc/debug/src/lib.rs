@@ -71,21 +71,18 @@ where
 {
 	// Asumes there is only one mapped canonical block in the AuxStore, otherwise something is wrong
 	fn load_hash(&self, hash: H256) -> RpcResult<Option<BlockId<B>>> {
-		let hashes = self.frontier_backend.mapping().block_hashes(&hash)
+		let hashes = self
+			.frontier_backend
+			.mapping()
+			.block_hashes(&hash)
 			.map_err(|err| internal_err(format!("fetch aux store failed: {:?}", err)))?;
-		let out: Vec<H256> = hashes.into_iter()
-			.filter_map(|h| {
-				if self.is_canon(h) {
-					Some(h)
-				} else {
-					None
-				}
-			}).collect();
+		let out: Vec<H256> = hashes
+			.into_iter()
+			.filter_map(|h| if self.is_canon(h) { Some(h) } else { None })
+			.collect();
 
 		if out.len() == 1 {
-			return Ok(Some(
-				BlockId::Hash(out[0])
-			));
+			return Ok(Some(BlockId::Hash(out[0])));
 		}
 		Ok(None)
 	}
@@ -100,7 +97,10 @@ where
 	}
 
 	fn load_transactions(&self, transaction_hash: H256) -> RpcResult<Option<(H256, u32)>> {
-		let transaction_metadata = self.frontier_backend.mapping().transaction_metadata(&transaction_hash)
+		let transaction_metadata = self
+			.frontier_backend
+			.mapping()
+			.transaction_metadata(&transaction_hash)
 			.map_err(|err| internal_err(format!("fetch aux store failed: {:?}", err)))?;
 
 		if transaction_metadata.len() == 1 {
