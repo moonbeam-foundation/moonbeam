@@ -165,7 +165,13 @@ where
 							tracing::trace!("Begining handling request");
 
 							let mut touched_blocks = vec![];
-							let res = Self::handle_request(&client, &backend, &mut cached_blocks, req, &mut touched_blocks);
+							let res = Self::handle_request(
+								&client,
+								&backend,
+								&mut cached_blocks,
+								req,
+								&mut touched_blocks
+							);
 
 							expiration_futures.push(async move {
 								delay_for(Duration::from_secs(60)).await;
@@ -217,7 +223,7 @@ where
 			Some(RequestBlockId::Number(n)) => Ok(n),
 			None | Some(RequestBlockId::Tag(RequestBlockTag::Latest)) => {
 				Ok(client.info().best_number)
-			},
+			}
 			Some(RequestBlockId::Tag(RequestBlockTag::Earliest)) => Ok(0),
 			Some(RequestBlockId::Tag(RequestBlockTag::Pending)) => {
 				Err(internal_err("'pending' is not supported"))
