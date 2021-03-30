@@ -4112,7 +4112,7 @@ pkg@^4.4.9:
 
 polkadot-launch@PureStake/polkadot-launch#moonbeam-launch:
   version "1.0.12"
-  resolved "https://codeload.github.com/PureStake/polkadot-launch/tar.gz/e0ab521ca814a1a2ec7af4914ea5b8087bb85c1c"
+  resolved "https://codeload.github.com/PureStake/polkadot-launch/tar.gz/077ecbe74d0ebc30d337ce98429e1306d87ac04c"
   dependencies:
     "@polkadot/api" "^3.11.1"
     "@polkadot/util" "^5.9.2"

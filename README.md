@@ -1,66 +1,43 @@
-# ![moonbeam](media/moonbeam-cover.jpg)
+# ![Moonbeam](media/moonbeam-cover.jpg)
 
 ![Tests](https://github.com/PureStake/moonbeam/workflows/Release/badge.svg)
 
-Run an Ethereum compatible ~~parachain~~ (and blockchain for now, until parachains are more stable)
-based on Substrate.
+An Ethereum compatible ~~[Parachain](https://polkadot.network/technology/)~~ built with [Substrate](https://substrate.dev)
 
-_See [moonbeam.network](https://moonbeam.network) for the moonbeam blockchain description._  
-_See [www.substrate.io](https://www.substrate.io/) for substrate information._
+_Discover the Moonbeam project at [moonbeam.network](https://moonbeam.network)._
+_Learn to [use the Moonbeam network](https://docs.moonbeam.network/) with our technical docs._
+_Reference our [crate-level docs (rustdocs)](https://purestake.github.io) to contribute._
 
-## Install (linux)
+## Run an alphanet node with Docker
 
-### Get the code
-
-Get the tutorial specific tag of the PureStake/Moonbeam repo:
+Docker images are published for every tagged release. Learn more with `moonbeam --help`.
 
 ```bash
-git clone -b tutorial-v3 https://github.com/PureStake/moonbeam
-cd moonbeam
+# Join the public testnet
+docker run --network="host" purestake/moonbeam:v0.6.1 --chain alphanet
 ```
 
-### Setting up enviroment
+## Run a local development node with Docker
 
-Install Substrate pre-requisites (including Rust):
+Developers who are building dApps to run on moonbeam, may want a lightweight node to work with
+locally. You can quickly spin up a single node with no relay chain backing it using the development
+service.
 
 ```bash
-curl https://getsubstrate.io -sSf | bash -s -- --fast
+# Run a dev service node.
+docker run --network="host" purestake/moonbeam:v0.6.1 --dev
 ```
 
-Run the initialization script, which checks the correct rust nightly version and adds the
-`wasm32-unknown-unknown` target to that specific version:
+### Sealing options
+
+The command above will start the node in instant seal mode. It creates a block when a transaction arrives, similar to Ganache's auto-mine. You can also choose to author blocks at a regular interval, or control authoring manually through the RPC.
 
 ```bash
-./scripts/init.sh
-```
+# Author a block every 6 seconds.
+docker run --network="host" purestake/moonbeam:v0.6.1 --dev --sealing 3000
 
-## Build the Moonbeam Node
-
-Build the corresponding binary file:
-
-```bash
-cargo build --release
-```
-
-The first build takes a long time, as it compiles all the necessary libraries.
-
-> If a _cargo not found_ error appears in the terminal, manually add Rust to your system path (or
-> restart your system):
->
-> ```bash
-> source $HOME/.cargo/env
-> ```
-
-## Run a Development Node
-
-Moonbeam is designed to be a parachain on the Polkadot network. For testing your
-contracts locally, spinning up a full relay-para network is a lot of overhead.
-
-A simpler solution is to run the `--dev` node, a simple node that is not backed
-by any relay chain, but still runs the Moonbeam runtime logic.
-
-```bash
-./target/release/moonbase-standalone --dev
+# Manually control the block authorship and finality
+docker run --network="host" purestake/moonbeam:v0.6.1 --dev --sealing manual
 ```
 
 ### Dev Addresses
@@ -103,17 +80,45 @@ the canonical mnemonic: "bottom drive obey lake curtain smoke basket hold race l
 - Address:0x7BF369283338E12C90514468aa3868A551AB2929
 - PrivKey:0x96b8a38e12e1a31dee1eab2fffdf9d9990045f5b37e44d8cc27766ef294acf18
 
-### Docker image
+## Build the Moonbeam Node
 
-An alternative to building locally is to use docker to run a pre-build binary.
-The only requirement is to have Docker installed.
+To build Moonbeam, you will need a proper Substrate development environment. If you've never worked
+with a Substrate-based blockchain before, you should probably try the [Setting Up a Moonbeam Node]
+(https://docs.moonbeam.network/getting-started/local-node/setting-up-a-node/) docs first. If you
+need a refresher setting up your Substrate environment, see [Substrate's Getting Started Guide]
+(https://substrate.dev/docs/en/knowledgebase/getting-started/).
 
 ```bash
-# Pull the docker image
-docker pull purestake/moonbase-parachain-testnet:latest
+# Fetch the code
+git clone https://github.com/PureStake/moonbeam
+cd moonbeam
 
-# Start a dev node
-docker run --rm --network host purestake/moonbase /moonbase/moonbase-standalone --dev
+# Optional: Ensure you have the exact nightly toolchain used by Moonbeam's CI
+./scripts/init.sh
+
+# Build the node (The first build will be long (~30min))
+cargo build --release
+```
+
+## Run tests
+
+Moonbeam has Rust unit tests as well as typescript integration tests.
+
+```bash
+# Run the Rust unit tests
+cargo test
+```
+
+```bash
+# Install dependencies for integration tests
+cd moonbeam-types-bundle
+npm i
+
+cd ../tests
+npm i
+
+# Run integration tests
+npm test
 ```
 
 ## Chain IDs
@@ -176,6 +181,9 @@ cargo test --verbose
 This github repository is also linked to Gitlab CI
 
 ## Contribute
+
+Moonbeam is open source under the terms of the GPL3. We welcome contributions. You can explore our
+crate-level documentation at https://purestake.github.io/moonbeam
 
 ### Code style
 

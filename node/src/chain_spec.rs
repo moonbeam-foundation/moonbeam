@@ -20,7 +20,7 @@
 //! https://substrate.dev/docs/en/knowledgebase/integrate/chain-spec
 
 use bip39::{Language, Mnemonic, Seed};
-use cumulus_primitives::ParaId;
+use cumulus_primitives_core::ParaId;
 use log::debug;
 use moonbeam_runtime::{
 	AccountId, Balance, BalancesConfig, DemocracyConfig, EVMConfig, EthereumChainIdConfig,
@@ -29,7 +29,6 @@ use moonbeam_runtime::{
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
-use sc_telemetry::TelemetryEndpoints;
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
 
@@ -157,10 +156,7 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 			)
 		},
 		vec![],
-		Some(
-			TelemetryEndpoints::new(vec![("wss://telemetry.polkadot.io/submit/".to_string(), 0)])
-				.expect("Polkadot Staging telemetry url is valid; qed"),
-		),
+		None,
 		None,
 		Some(serde_json::from_str("{\"tokenDecimals\": 18}").expect("Provided valid json map")),
 		Extensions {
@@ -231,34 +227,34 @@ fn testnet_genesis(
 	chain_id: u64,
 ) -> GenesisConfig {
 	GenesisConfig {
-		frame_system: Some(SystemConfig {
+		frame_system: SystemConfig {
 			code: WASM_BINARY
 				.expect("WASM binary was not build, please build it!")
 				.to_vec(),
 			changes_trie_config: Default::default(),
-		}),
-		pallet_balances: Some(BalancesConfig {
+		},
+		pallet_balances: BalancesConfig {
 			balances: endowed_accounts
 				.iter()
 				.cloned()
 				.map(|k| (k, 1 << 80))
 				.collect(),
-		}),
-		pallet_sudo: Some(SudoConfig { key: root_key }),
-		parachain_info: Some(ParachainInfoConfig {
+		},
+		pallet_sudo: SudoConfig { key: root_key },
+		parachain_info: ParachainInfoConfig {
 			parachain_id: para_id,
-		}),
-		pallet_ethereum_chain_id: Some(EthereumChainIdConfig { chain_id }),
-		pallet_evm: Some(EVMConfig {
+		},
+		pallet_ethereum_chain_id: EthereumChainIdConfig { chain_id },
+		pallet_evm: EVMConfig {
 			accounts: BTreeMap::new(),
-		}),
-		pallet_ethereum: Some(EthereumConfig {}),
-		pallet_democracy: Some(DemocracyConfig {}),
-		pallet_scheduler: Some(SchedulerConfig {}),
-		parachain_staking: Some(ParachainStakingConfig {
+		},
+		pallet_ethereum: EthereumConfig {},
+		pallet_democracy: DemocracyConfig {},
+		pallet_scheduler: SchedulerConfig {},
+		parachain_staking: ParachainStakingConfig {
 			stakers,
 			inflation_config,
-		}),
+		},
 	}
 }
 

@@ -20,7 +20,8 @@ use crate::{
 	chain_spec,
 	cli::{Cli, RelayChainCli, Subcommand},
 };
-use cumulus_primitives::{genesis::generate_genesis_block, ParaId};
+use cumulus_client_service::genesis::generate_genesis_block;
+use cumulus_primitives_core::ParaId;
 use log::info;
 use moonbeam_runtime::{AccountId, Block};
 use parity_scale_codec::Encode;
@@ -185,12 +186,19 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::CheckBlock(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|config| {
+				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
+				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
+
 				let PartialComponents {
 					client,
 					task_manager,
 					import_queue,
 					..
-				} = crate::service::new_partial(&config, None, false)?;
+				} = if cli.run.dev_service || relay_chain_id == Some("dev-service".to_string()) {
+					crate::service::dev_partial(&config, None, false)?
+				} else {
+					crate::service::parachain_partial(&config, None, false)?
+				};
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -201,7 +209,7 @@ pub fn run() -> Result<()> {
 					client,
 					task_manager,
 					..
-				} = crate::service::new_partial(&config, None, false)?;
+				} = crate::service::parachain_partial(&config, None, false)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
 		}
@@ -212,19 +220,26 @@ pub fn run() -> Result<()> {
 					client,
 					task_manager,
 					..
-				} = crate::service::new_partial(&config, None, false)?;
+				} = crate::service::parachain_partial(&config, None, false)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
 		}
 		Some(Subcommand::ImportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|config| {
+				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
+				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
+
 				let PartialComponents {
 					client,
 					task_manager,
 					import_queue,
 					..
-				} = crate::service::new_partial(&config, None, false)?;
+				} = if cli.run.dev_service || relay_chain_id == Some("dev-service".to_string()) {
+					crate::service::dev_partial(&config, None, false)?
+				} else {
+					crate::service::parachain_partial(&config, None, false)?
+				};
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -240,7 +255,7 @@ pub fn run() -> Result<()> {
 					task_manager,
 					backend,
 					..
-				} = crate::service::new_partial(&config, None, false)?;
+				} = crate::service::parachain_partial(&config, None, false)?;
 				Ok((cmd.run(client, backend), task_manager))
 			})
 		}
@@ -358,7 +373,6 @@ pub fn run() -> Result<()> {
 						&polkadot_cli,
 						&polkadot_cli,
 						task_executor,
-						config.telemetry_handle.clone(),
 					)
 					.map_err(|err| format!("Relay chain argument error: {}", err))?;
 
@@ -443,7 +457,7 @@ impl CliConfiguration<Self> for RelayChainCli {
 		self.base.base.prometheus_config(default_listen_port)
 	}
 
-	fn init<C: SubstrateCli>(&self) -> Result<sc_telemetry::TelemetryWorker> {
+	fn init<C: SubstrateCli>(&self) -> Result<()> {
 		unreachable!("PolkadotCli is never initialized; qed");
 	}
 
