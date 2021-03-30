@@ -47,7 +47,7 @@ use ethereum_types::H256;
 use fp_rpc::EthereumRuntimeRPCApi;
 
 pub use moonbeam_rpc_core_trace::{
-	FilterRequest, RequestBlockId, Trace as TraceT, TraceServer, TransactionTrace,
+	FilterRequest, RequestBlockId, RequestBlockTag, Trace as TraceT, TraceServer, TransactionTrace,
 };
 use moonbeam_rpc_primitives_debug::{block, DebugRuntimeApi};
 use tracing::Instrument;
@@ -212,6 +212,19 @@ where
 		(fut, tx)
 	}
 
+	fn block_id(client: &C, id: Option<RequestBlockId>) -> Result<u32> {
+		match id {
+			Some(RequestBlockId::Number(n)) => Ok(n),
+			None | Some(RequestBlockId::Tag(RequestBlockTag::Latest)) => {
+				Ok(client.info().best_number)
+			},
+			Some(RequestBlockId::Tag(RequestBlockTag::Earliest)) => Ok(0),
+			Some(RequestBlockId::Tag(RequestBlockTag::Pending)) => {
+				Err(internal_err("'pending' is not supported"))
+			}
+		}
+	}
+
 	fn handle_request(
 		client: &C,
 		backend: &BE,
@@ -219,21 +232,19 @@ where
 		req: FilterRequest,
 		touched_blocks: &mut Vec<H256>,
 	) -> Result<Vec<TransactionTrace>> {
-		let from_block = match req.from_block {
-			None => 1,
-			Some(RequestBlockId::Number(n)) => n,
-			_ => todo!("support latest/earliest/pending"),
-		};
+		let from_block = Self::block_id(client, req.from_block)?;
+		let to_block = Self::block_id(client, req.to_block)?;
 
-		let to_block = match req.to_block {
-			None => todo!("support latest"),
-			Some(RequestBlockId::Number(n)) => n,
-			_ => todo!("support latest/earliest/pending"),
-		};
-
-		if from_block == 0 {
-			return Err(internal_err("Tracing genesis block is not possible"));
+		if to_block < from_block {
+			return Err(internal_err(format!(
+				"fromBlock ({}) must be greater or equal than ({})",
+				from_block, to_block
+			)));
 		}
+
+		// if from_block == 0 {
+		// 	return Err(internal_err("Tracing genesis block is not possible"));
+		// }
 
 		let block_heights = from_block..=to_block;
 
@@ -242,6 +253,10 @@ where
 
 		let mut traces = vec![];
 		for block_height in block_heights {
+			if block_height == 0 {
+				continue; // no traces for genesis block.
+			}
+
 			let api = client.runtime_api();
 			let block_id = BlockId::<B>::Number(block_height);
 			let block_header = client
