@@ -1,0 +1,33 @@
+[package]
+name = "parachain-staking"
+version = "1.0.0"
+authors = ["PureStake"]
+edition = "2018"
+description = "parachain staking pallet for collator selection and reward distribution"
+
+[dependencies]
+author-inherent = { path = "../author-inherent", default-features = false }
+frame-support = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
+frame-system = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
+pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
+parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
+serde = { version = "1.0.101", optional = true }
+sp-std = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
+
+[dev-dependencies]
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
+
+[features]
+default = ["std"]
+std = [
+	"author-inherent/std",
+	"frame-support/std",
+	"frame-system/std",
+	"pallet-balances/std",
+	"parity-scale-codec/std",
+	"serde",
+	"sp-std/std",
+	"sp-runtime/std",
+]

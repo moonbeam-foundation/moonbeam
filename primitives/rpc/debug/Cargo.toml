@@ -11,13 +11,13 @@ repository = 'https://github.com/PureStake/moonbeam/'
 
 [dependencies]
 codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
-ethereum = { git = "https://github.com/notlesh/ethereum", default-features = false, branch = "notlesh-moonbeam-v0.6", features = ["with-codec"] }
+ethereum = { version = "0.7.1", default-features = false, features = ["with-codec"] }
 ethereum-types = { version = "0.11.0", default-features = false }
-sp-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "master", default-features = false }
-sp-api = { git = "https://github.com/paritytech/substrate.git", branch = "master", default-features = false }
-sp-io = { git = "https://github.com/paritytech/substrate.git", branch = "master", default-features = false }
-sp-std = { git = "https://github.com/paritytech/substrate.git", branch = "master", default-features = false }
-sp-core = { git = "https://github.com/paritytech/substrate.git", branch = "master", default-features = false }
+sp-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1", default-features = false }
+sp-api = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1", default-features = false }
+sp-io = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1", default-features = false }
+sp-std = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1", default-features = false }
+sp-core = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1", default-features = false }
 serde = { version = "1.0", features = ["derive"], optional = true }
 serde_json = { version = "1.0", optional = true }
 hex = { version = "0.4", features = ["serde"], optional = true}

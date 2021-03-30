@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -16,9 +16,12 @@
 
 //! A collection of node-specific RPC methods.
 
-use std::{fmt, sync::Arc};
+use std::collections::BTreeMap;
+use std::sync::Arc;
 
 use crate::cli::EthApi as EthApiCmd;
+use ethereum::EthereumStorageSchema;
+use fc_rpc::{SchemaV1Override, StorageOverride};
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use jsonrpc_pubsub::manager::SubscriptionManager;
 use moonbeam_rpc_trace::TraceFilterCacheRequester;
@@ -56,12 +59,14 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub network: Arc<NetworkService<Block, Hash>>,
 	/// Ethereum pending transactions.
 	pub pending_transactions: PendingTransactions,
-	/// Backend
-	pub backend: Arc<BE>,
 	/// EthFilterApi pool.
 	pub filter_pool: Option<FilterPool>,
 	/// The list of optional RPC extensions.
 	pub ethapi_cmd: Vec<EthApiCmd>,
+	/// Frontier Backend.
+	pub frontier_backend: Arc<fc_db::Backend<Block>>,
+	/// Backend.
+	pub backend: Arc<BE>,
 	/// Manual seal command sink
 	pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
 	/// Trace filter cache server requester.
@@ -82,13 +87,12 @@ where
 	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
 	C: Send + Sync + 'static,
 	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>,
-	C::Api: BlockBuilder<Block, Error = BlockChainError>,
+	C::Api: BlockBuilder<Block>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
 	A: ChainApi<Block = Block> + 'static,
 	C::Api: fp_rpc::EthereumRuntimeRPCApi<Block>,
 	C::Api: moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>,
 	C::Api: moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>,
-	<C::Api as sp_api::ApiErrorExt>::Error: fmt::Debug,
 	P: TransactionPool<Block = Block> + 'static,
 {
 	use fc_rpc::{
@@ -110,11 +114,12 @@ where
 		is_authority,
 		network,
 		pending_transactions,
-		backend,
 		filter_pool,
 		ethapi_cmd,
 		command_sink,
 		trace_filter_requester,
+		frontier_backend,
+		backend,
 	} = deps;
 
 	io.extend_with(SystemApi::to_delegate(FullSystem::new(
@@ -129,8 +134,13 @@ where
 	// TODO: are we supporting signing?
 	let signers = Vec::new();
 
-	// WARNING : We create a second one in "service.rs" for the Trace RPC Api.
-	// Is this okay to have it 2 times ? What happens if they have different parameters (signers ?) ?
+	let mut overrides = BTreeMap::new();
+	overrides.insert(
+		EthereumStorageSchema::V1,
+		Box::new(SchemaV1Override::new(client.clone()))
+			as Box<dyn StorageOverride<_> + Send + Sync>,
+	);
+
 	io.extend_with(EthApiServer::to_delegate(EthApi::new(
 		client.clone(),
 		pool.clone(),
@@ -139,6 +149,8 @@ where
 		network.clone(),
 		pending_transactions,
 		signers,
+		overrides,
+		frontier_backend.clone(),
 		is_authority,
 	)));
 
@@ -168,6 +180,7 @@ where
 		io.extend_with(DebugServer::to_delegate(Debug::new(
 			client.clone(),
 			backend,
+			frontier_backend,
 		)));
 	}
 	if ethapi_cmd.contains(&EthApiCmd::Txpool) {
