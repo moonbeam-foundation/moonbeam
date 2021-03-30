@@ -17,9 +17,7 @@
 //! XCM objects and relationships
 
 use frame_support::traits::Get;
-use sp_runtime::{
-	traits::{CheckedConversion, Convert},
-};
+use sp_runtime::traits::{CheckedConversion, Convert};
 use sp_std::{
 	convert::{TryFrom, TryInto},
 	marker::PhantomData,
