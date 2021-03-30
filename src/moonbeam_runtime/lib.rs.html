@@ -722,6 +722,78 @@
 <span id="719">719</span>
 <span id="720">720</span>
 <span id="721">721</span>
+<span id="722">722</span>
+<span id="723">723</span>
+<span id="724">724</span>
+<span id="725">725</span>
+<span id="726">726</span>
+<span id="727">727</span>
+<span id="728">728</span>
+<span id="729">729</span>
+<span id="730">730</span>
+<span id="731">731</span>
+<span id="732">732</span>
+<span id="733">733</span>
+<span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -761,7 +833,7 @@
 	<span class="ident">traits</span>::{<span class="ident">Get</span>, <span class="ident">Randomness</span>},
 	<span class="ident">weights</span>::{<span class="ident">constants</span>::<span class="ident">WEIGHT_PER_SECOND</span>, <span class="ident">IdentityFee</span>, <span class="ident">Weight</span>},
 };
-<span class="kw">use</span> <span class="ident">frame_system</span>::{<span class="ident">EnsureNever</span>, <span class="ident">EnsureRoot</span>, <span class="ident">EnsureSigned</span>};
+<span class="kw">use</span> <span class="ident">frame_system</span>::{<span class="ident">EnsureOneOf</span>, <span class="ident">EnsureRoot</span>};
 <span class="kw">use</span> <span class="ident">pallet_ethereum</span>::<span class="ident">Call</span>::<span class="ident">transact</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{
 	<span class="ident">Account</span> <span class="kw">as</span> <span class="ident">EVMAccount</span>, <span class="ident">EnsureAddressNever</span>, <span class="ident">EnsureAddressSame</span>, <span class="ident">FeeCalculator</span>,
@@ -771,7 +843,7 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">parachain_staking</span>::{<span class="ident">InflationInfo</span>, <span class="ident">Range</span>};
 <span class="kw">use</span> <span class="ident">parity_scale_codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
 <span class="kw">use</span> <span class="ident">sp_api</span>::<span class="ident">impl_runtime_apis</span>;
-<span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">OpaqueMetadata</span>, <span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>};
+<span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">u32_trait</span>::<span class="kw-2">*</span>, <span class="ident">OpaqueMetadata</span>, <span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>};
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::{
 	<span class="ident">create_runtime_str</span>, <span class="ident">generic</span>, <span class="ident">impl_opaque_keys</span>,
 	<span class="ident">traits</span>::{<span class="ident">BlakeTwo256</span>, <span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>, <span class="ident">IdentifyAccount</span>, <span class="ident">IdentityLookup</span>, <span class="ident">Verify</span>},
@@ -835,7 +907,7 @@
 	<span class="ident">spec_name</span>: <span class="macro">create_runtime_str</span><span class="macro">!</span>(<span class="string">&quot;moonbeam&quot;</span>),
 	<span class="ident">impl_name</span>: <span class="macro">create_runtime_str</span><span class="macro">!</span>(<span class="string">&quot;moonbeam&quot;</span>),
 	<span class="ident">authoring_version</span>: <span class="number">3</span>,
-	<span class="ident">spec_version</span>: <span class="number">28</span>,
+	<span class="ident">spec_version</span>: <span class="number">29</span>,
 	<span class="ident">impl_version</span>: <span class="number">1</span>,
 	<span class="ident">apis</span>: <span class="ident">RUNTIME_API_VERSIONS</span>,
 	<span class="ident">transaction_version</span>: <span class="number">2</span>,
@@ -1008,6 +1080,49 @@
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> ();
 }
 
+<span class="macro">parameter_types</span><span class="macro">!</span> {
+	<span class="doccomment">/// The maximum amount of time (in blocks) for council members to vote on motions.</span>
+	<span class="doccomment">/// Motions may end in fewer blocks if enough votes are cast to determine the result.</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CouncilMotionDuration</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">100</span>;
+	<span class="doccomment">/// The maximum number of Proposlas that can be open in the council at once.</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CouncilMaxProposals</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
+	<span class="doccomment">/// The maximum number of council members.</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CouncilMaxMembers</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
+
+	<span class="doccomment">/// The maximum amount of time (in blocks) for technical committee members to vote on motions.</span>
+	<span class="doccomment">/// Motions may end in fewer blocks if enough votes are cast to determine the result.</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TechComitteeMotionDuration</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">100</span>;
+	<span class="doccomment">/// The maximum number of Proposlas that can be open in the technical committee at once.</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TechComitteeMaxProposals</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
+	<span class="doccomment">/// The maximum number of technical committee members.</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TechComitteeMaxMembers</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
+}
+
+<span class="kw">type</span> <span class="ident">CouncilInstance</span> <span class="op">=</span> <span class="ident">pallet_collective</span>::<span class="ident">Instance1</span>;
+<span class="kw">type</span> <span class="ident">TechCommitteeInstance</span> <span class="op">=</span> <span class="ident">pallet_collective</span>::<span class="ident">Instance2</span>;
+
+<span class="kw">impl</span> <span class="ident">pallet_collective</span>::<span class="ident">Config</span><span class="op">&lt;</span><span class="ident">CouncilInstance</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
+	<span class="kw">type</span> <span class="ident">Origin</span> <span class="op">=</span> <span class="ident">Origin</span>;
+	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
+	<span class="kw">type</span> <span class="ident">Proposal</span> <span class="op">=</span> <span class="ident">Call</span>;
+	<span class="kw">type</span> <span class="ident">MotionDuration</span> <span class="op">=</span> <span class="ident">CouncilMotionDuration</span>;
+	<span class="kw">type</span> <span class="ident">MaxProposals</span> <span class="op">=</span> <span class="ident">CouncilMaxProposals</span>;
+	<span class="kw">type</span> <span class="ident">MaxMembers</span> <span class="op">=</span> <span class="ident">CouncilMaxMembers</span>;
+	<span class="kw">type</span> <span class="ident">DefaultVote</span> <span class="op">=</span> <span class="ident">pallet_collective</span>::<span class="ident">MoreThanMajorityThenPrimeDefaultVote</span>;
+	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> (); <span class="comment">// TODO : Better Weight Info ?</span>
+}
+
+<span class="kw">impl</span> <span class="ident">pallet_collective</span>::<span class="ident">Config</span><span class="op">&lt;</span><span class="ident">TechCommitteeInstance</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
+	<span class="kw">type</span> <span class="ident">Origin</span> <span class="op">=</span> <span class="ident">Origin</span>;
+	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
+	<span class="kw">type</span> <span class="ident">Proposal</span> <span class="op">=</span> <span class="ident">Call</span>;
+	<span class="kw">type</span> <span class="ident">MotionDuration</span> <span class="op">=</span> <span class="ident">TechComitteeMotionDuration</span>;
+	<span class="kw">type</span> <span class="ident">MaxProposals</span> <span class="op">=</span> <span class="ident">TechComitteeMaxProposals</span>;
+	<span class="kw">type</span> <span class="ident">MaxMembers</span> <span class="op">=</span> <span class="ident">TechComitteeMaxMembers</span>;
+	<span class="kw">type</span> <span class="ident">DefaultVote</span> <span class="op">=</span> <span class="ident">pallet_collective</span>::<span class="ident">MoreThanMajorityThenPrimeDefaultVote</span>;
+	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> (); <span class="comment">// TODO : Better Weight Info ?</span>
+}
+
 <span class="kw">const</span> <span class="ident">BLOCKS_PER_DAY</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">24</span> <span class="op">*</span> <span class="number">60</span> <span class="op">*</span> <span class="number">10</span>;
 
 <span class="macro">parameter_types</span><span class="macro">!</span> {
@@ -1033,22 +1148,47 @@
 	<span class="kw">type</span> <span class="ident">VotingPeriod</span> <span class="op">=</span> <span class="ident">VotingPeriod</span>;
 	<span class="kw">type</span> <span class="ident">FastTrackVotingPeriod</span> <span class="op">=</span> <span class="ident">FastTrackVotingPeriod</span>;
 	<span class="kw">type</span> <span class="ident">MinimumDeposit</span> <span class="op">=</span> <span class="ident">MinimumDeposit</span>;
-	<span class="kw">type</span> <span class="ident">ExternalOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">ExternalMajorityOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">ExternalDefaultOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">FastTrackOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">CancellationOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// A straight majority of the council can decide what their next motion is.</span>
+	<span class="kw">type</span> <span class="ident">ExternalOrigin</span> <span class="op">=</span>
+		<span class="ident">pallet_collective</span>::<span class="ident">EnsureProportionAtLeast</span><span class="op">&lt;</span><span class="ident">_1</span>, <span class="ident">_2</span>, <span class="ident">AccountId</span>, <span class="ident">CouncilInstance</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// A majority can have the next scheduled referendum be a straight majority-carries vote.</span>
+	<span class="kw">type</span> <span class="ident">ExternalMajorityOrigin</span> <span class="op">=</span>
+		<span class="ident">pallet_collective</span>::<span class="ident">EnsureProportionAtLeast</span><span class="op">&lt;</span><span class="ident">_1</span>, <span class="ident">_2</span>, <span class="ident">AccountId</span>, <span class="ident">CouncilInstance</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// A unanimous council can have the next scheduled referendum be a straight default-carries</span>
+	<span class="doccomment">/// (NTB) vote.</span>
+	<span class="kw">type</span> <span class="ident">ExternalDefaultOrigin</span> <span class="op">=</span>
+		<span class="ident">pallet_collective</span>::<span class="ident">EnsureProportionAtLeast</span><span class="op">&lt;</span><span class="ident">_1</span>, <span class="ident">_1</span>, <span class="ident">AccountId</span>, <span class="ident">CouncilInstance</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// Two thirds of the technical committee can have an ExternalMajority/ExternalDefault vote</span>
+	<span class="doccomment">/// be tabled immediately and with a shorter voting/enactment period.</span>
+	<span class="kw">type</span> <span class="ident">FastTrackOrigin</span> <span class="op">=</span>
+		<span class="ident">pallet_collective</span>::<span class="ident">EnsureProportionAtLeast</span><span class="op">&lt;</span><span class="ident">_2</span>, <span class="ident">_3</span>, <span class="ident">AccountId</span>, <span class="ident">TechCommitteeInstance</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// Instant is currently not allowed.</span>
+	<span class="kw">type</span> <span class="ident">InstantOrigin</span> <span class="op">=</span>
+		<span class="ident">pallet_collective</span>::<span class="ident">EnsureProportionAtLeast</span><span class="op">&lt;</span><span class="ident">_1</span>, <span class="ident">_1</span>, <span class="ident">AccountId</span>, <span class="ident">TechCommitteeInstance</span><span class="op">&gt;</span>;
+	<span class="comment">// To cancel a proposal which has been passed, 2/3 of the council must agree to it.</span>
+	<span class="kw">type</span> <span class="ident">CancellationOrigin</span> <span class="op">=</span> <span class="ident">EnsureOneOf</span><span class="op">&lt;</span>
+		<span class="ident">AccountId</span>,
+		<span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
+		<span class="ident">pallet_collective</span>::<span class="ident">EnsureProportionAtLeast</span><span class="op">&lt;</span><span class="ident">_2</span>, <span class="ident">_3</span>, <span class="ident">AccountId</span>, <span class="ident">CouncilInstance</span><span class="op">&gt;</span>,
+	<span class="op">&gt;</span>;
+	<span class="comment">// To cancel a proposal before it has been passed, the technical committee must be unanimous or</span>
+	<span class="comment">// Root must agree.</span>
+	<span class="kw">type</span> <span class="ident">CancelProposalOrigin</span> <span class="op">=</span> <span class="ident">EnsureOneOf</span><span class="op">&lt;</span>
+		<span class="ident">AccountId</span>,
+		<span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
+		<span class="ident">pallet_collective</span>::<span class="ident">EnsureProportionAtLeast</span><span class="op">&lt;</span><span class="ident">_1</span>, <span class="ident">_1</span>, <span class="ident">AccountId</span>, <span class="ident">TechCommitteeInstance</span><span class="op">&gt;</span>,
+	<span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">BlacklistOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">CancelProposalOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">VetoOrigin</span> <span class="op">=</span> <span class="ident">EnsureNever</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>; <span class="comment">// (root not possible)</span>
+	<span class="comment">// Any single technical committee member may veto a coming council proposal, however they can</span>
+	<span class="comment">// only do it once and it lasts only for the cooloff period.</span>
+	<span class="kw">type</span> <span class="ident">VetoOrigin</span> <span class="op">=</span> <span class="ident">pallet_collective</span>::<span class="ident">EnsureMember</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">TechCommitteeInstance</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">CooloffPeriod</span> <span class="op">=</span> <span class="ident">CooloffPeriod</span>;
 	<span class="kw">type</span> <span class="ident">PreimageByteDeposit</span> <span class="op">=</span> <span class="ident">PreimageByteDeposit</span>;
 	<span class="kw">type</span> <span class="ident">Slash</span> <span class="op">=</span> ();
-	<span class="kw">type</span> <span class="ident">InstantOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">InstantAllowed</span> <span class="op">=</span> <span class="ident">InstantAllowed</span>;
 	<span class="kw">type</span> <span class="ident">Scheduler</span> <span class="op">=</span> <span class="ident">Scheduler</span>;
 	<span class="kw">type</span> <span class="ident">MaxVotes</span> <span class="op">=</span> <span class="ident">MaxVotes</span>;
-	<span class="kw">type</span> <span class="ident">OperationalPreimageOrigin</span> <span class="op">=</span> <span class="ident">EnsureSigned</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">OperationalPreimageOrigin</span> <span class="op">=</span> <span class="ident">pallet_collective</span>::<span class="ident">EnsureMember</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">CouncilInstance</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">PalletsOrigin</span> <span class="op">=</span> <span class="ident">OriginCaller</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> ();
 	<span class="kw">type</span> <span class="ident">MaxProposals</span> <span class="op">=</span> <span class="ident">MaxProposals</span>;
@@ -1175,6 +1315,10 @@
 		<span class="ident">ParachainStaking</span>: <span class="ident">parachain_staking</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
 		<span class="ident">Scheduler</span>: <span class="ident">pallet_scheduler</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Call</span>},
 		<span class="ident">Democracy</span>: <span class="ident">pallet_democracy</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Call</span>},
+		<span class="ident">CouncilCollective</span>:
+			<span class="ident">pallet_collective</span>::<span class="op">&lt;</span><span class="ident">Instance1</span><span class="op">&gt;</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Origin</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
+		<span class="ident">TechComitteeCollective</span>:
+			<span class="ident">pallet_collective</span>::<span class="op">&lt;</span><span class="ident">Instance2</span><span class="op">&gt;</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Origin</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
 		<span class="comment">// The order matters here. Inherents will be included in the order specified here.</span>
 		<span class="comment">// Concretely we need the author inherent to come after the parachain_upgrade inherent.</span>
 		<span class="ident">AuthorInherent</span>: <span class="ident">author_inherent</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Inherent</span>},
