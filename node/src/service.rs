@@ -534,6 +534,12 @@ pub fn new_dev(
 				)),
 			};
 
+		let longest_chain = maybe_select_chain.expect(
+			"`new_partial` builds a `LongestChainRule` when building dev service.\
+				We specified the dev service when calling `new_partial`.\
+				Therefore, a `LongestChainRule` is present. qed.",
+		);
+
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
 			run_manual_seal(ManualSealParams {
@@ -542,7 +548,7 @@ pub fn new_dev(
 				client: client.clone(),
 				pool: transaction_pool.pool().clone(),
 				commands_stream,
-				select_chain: maybe_select_chain.expect("constructed when in dev service"),
+				select_chain,
 				consensus_data_provider: None,
 				inherent_data_providers,
 			}),
