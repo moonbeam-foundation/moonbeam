@@ -759,7 +759,7 @@ impl_runtime_apis! {
 										input: init,
 										value: trace.value,
 									},
-									 // Can't be known here, must be inserted upstream.
+									// Can't be known here, must be inserted upstream.
 									block_hash: H256::default(),
 									// Can't be known here, must be inserted upstream.
 									block_number: 0,
