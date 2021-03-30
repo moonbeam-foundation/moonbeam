@@ -11802,6 +11802,7 @@ dependencies = [
 name = "xtransfer"
 version = "0.1.0"
 dependencies = [
+ "cumulus-pallet-xcm-handler",
  "cumulus-primitives-core",
  "frame-support",
  "frame-system",

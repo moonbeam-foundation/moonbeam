@@ -526,6 +526,24 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 
 impl parachain_info::Config for Runtime {}
 
+pub struct AccountKey20Convert;
+impl Convert<<<Signature as Verify>::Signer as IdentifyAccount>::AccountId, [u8; 20]>
+	for AccountKey20Convert
+{
+	fn convert(from: <<Signature as Verify>::Signer as IdentifyAccount>::AccountId) -> [u8; 20] {
+		from.into()
+	}
+}
+
+impl xtransfer::Config for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type ToRelayChainBalance = NativeToRelay;
+	type AccountKey20Convert = AccountKey20Convert;
+	type RelayChainNetworkId = PolkadotNetworkId;
+	type SelfParaId = ParachainInfo;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -549,6 +567,7 @@ construct_runtime! {
 		Democracy: pallet_democracy::{Pallet, Storage, Config, Event<T>, Call},
 		TokenFactory: token_factory::{Pallet, Call, Storage, Event<T>},
 		XcmHandler: cumulus_pallet_xcm_handler::{Pallet, Call, Event<T>, Origin},
+		Xtransfer: xtransfer::{Pallet, Call, Storage, Event<T>},
 		// The order matters here. Inherents will be included in the order specified here.
 		// Concretely we need the author inherent to come after the parachain_upgrade inherent.
 		AuthorInherent: author_inherent::{Pallet, Call, Storage, Inherent},

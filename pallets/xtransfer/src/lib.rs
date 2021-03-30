@@ -33,10 +33,7 @@ pub mod pallet {
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
 	use sp_std::{convert::Into, prelude::*};
 	use token_factory::CurrencyId;
-	use xcm::v0::{
-		Error as XcmError, ExecuteXcm, Junction, MultiAsset, MultiLocation, NetworkId, Order, Xcm,
-	};
-	use xcm_executor::traits::LocationConversion;
+	use xcm::v0::{Junction, MultiAsset, MultiLocation, NetworkId, Order, Xcm};
 
 	#[derive(Encode, Decode, Eq, PartialEq, Clone, Copy, RuntimeDebug)]
 	/// Identity of chain.
@@ -72,7 +69,7 @@ pub mod pallet {
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
+	pub trait Config: frame_system::Config + cumulus_pallet_xcm_handler::Config {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// Balances type
@@ -83,18 +80,14 @@ pub mod pallet {
 			+ Copy
 			+ MaybeSerializeDeserialize
 			+ Into<u128>;
-		/// Moonbeam parachain identifier
-		type ParaId: Get<ParaId>;
 		/// Convert local balance into relay chain balance type
 		type ToRelayChainBalance: Convert<Self::Balance, RelayChainBalance>;
-		/// Convert system::AccountId to key shape for Junction::AccountKey20 [u8; 20]
+		/// Convert system::AccountId to shape of inner field for Junction::AccountKey20 [u8; 20]
 		type AccountKey20Convert: Convert<Self::AccountId, [u8; 20]>;
-		/// Convert account to MultiLocation
-		type ToMultiLocation: LocationConversion<Self::AccountId>;
 		/// Relay chain identifier
 		type RelayChainNetworkId: Get<NetworkId>;
-		/// XCM Executor for executing XCM effects locally
-		type XcmExecutor: ExecuteXcm;
+		/// This parachain's identifier
+		type SelfParaId: Get<ParaId>;
 	}
 
 	#[pallet::event]
@@ -102,8 +95,6 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// Transferred to relay chain. \[src, dest, amount\]
 		TransferredToRelayChain(T::AccountId, AccountId32, T::Balance),
-		/// Transfer to relay chain failed. \[src, dest, amount, error\]
-		TransferToRelayChainFailed(T::AccountId, AccountId32, T::Balance, XcmError),
 		/// Transferred to parachain. \[x_currency_id, src, para_id, dest, dest_network, amount\]
 		TransferredToAccountId32Parachain(
 			XCurrencyId,
@@ -112,17 +103,6 @@ pub mod pallet {
 			AccountId32,
 			NetworkId,
 			T::Balance,
-		),
-		/// Transfer to parachain failed. \[x_currency_id, src, para_id, dest,
-		/// dest_network, amount, error\]
-		TransferToAccountId32ParachainFailed(
-			XCurrencyId,
-			T::AccountId,
-			ParaId,
-			AccountId32,
-			NetworkId,
-			T::Balance,
-			XcmError,
 		),
 		/// Transferred to parachain. \[x_currency_id, src, para_id, dest, dest_network, amount\]
 		TransferredToAccountKey20Parachain(
@@ -133,23 +113,10 @@ pub mod pallet {
 			NetworkId,
 			T::Balance,
 		),
-		/// Transfer to parachain failed. \[x_currency_id, src, para_id, dest,
-		/// dest_network, amount, error\]
-		TransferToAccountKey20ParachainFailed(
-			XCurrencyId,
-			T::AccountId,
-			ParaId,
-			T::AccountId,
-			NetworkId,
-			T::Balance,
-			XcmError,
-		),
 	}
 
 	#[pallet::error]
 	pub enum Error<T> {
-		/// Bad location.
-		BadLocation,
 		/// Cannot send message from parachain to self
 		CannotSendToSelf,
 		/// Call to SendXcm failed
@@ -162,6 +129,7 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Transfer relay chain tokens to relay chain.
+		/// TODO: check that relay chain token type is registered locally beforehand
 		#[pallet::weight(10)]
 		#[transactional]
 		pub fn transfer_to_relay_chain(
@@ -188,26 +156,16 @@ pub mod pallet {
 					}],
 				}],
 			};
-
-			let xcm_origin = T::ToMultiLocation::try_into_location(who.clone())
-				.map_err(|_| Error::<T>::BadLocation)?;
 			// TODO: revert state on xcm execution failure.
-			match T::XcmExecutor::execute_xcm(xcm_origin, xcm) {
-				Ok(_) => {
-					Self::deposit_event(Event::<T>::TransferredToRelayChain(who, dest, amount))
-				}
-				Err(err) => Self::deposit_event(Event::<T>::TransferToRelayChainFailed(
-					who, dest, amount, err,
-				)),
-			}
-
+			<cumulus_pallet_xcm_handler::Pallet<T>>::execute_xcm(who.clone(), xcm)?;
+			Self::deposit_event(Event::TransferredToRelayChain(who, dest, amount));
 			Ok(().into())
 		}
 		/// Transfer tokens to parachain that uses [u8; 32] for system::AccountId
-		/// - channel must be open with self as sender
+		/// TODO: check if channel exists before making any changes
 		#[pallet::weight(10)]
 		#[transactional]
-		pub fn transfer_to_account_id_32_parachain(
+		pub fn transfer_to_account32_parachain(
 			origin: OriginFor<T>,
 			x_currency_id: XCurrencyId,
 			para_id: ParaId,
@@ -216,11 +174,10 @@ pub mod pallet {
 			amount: T::Balance,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
-			ensure!(para_id != T::ParaId::get(), Error::<T>::CannotSendToSelf);
-			// ensure!(
-			// 	<hrmp_channels::Pallet<T>>::sender_channels().contains(&para_id),
-			// 	Error::<T>::NoSenderChannelOpen
-			// );
+			ensure!(
+				para_id != T::SelfParaId::get(),
+				Error::<T>::CannotSendToSelf
+			);
 
 			let destination = Self::account_id_32_destination(dest_network.clone(), &dest);
 
@@ -229,7 +186,7 @@ pub mod pallet {
 					Self::transfer_relay_chain_tokens_to_parachain(para_id, destination, amount)
 				}
 				ChainId::ParaChain(reserve_chain) => {
-					if T::ParaId::get() == reserve_chain {
+					if T::SelfParaId::get() == reserve_chain {
 						Self::transfer_owned_tokens_to_parachain(
 							x_currency_id.clone(),
 							para_id,
@@ -247,44 +204,30 @@ pub mod pallet {
 					}
 				}
 			};
-
-			let xcm_origin = T::ToMultiLocation::try_into_location(who.clone())
-				.map_err(|_| Error::<T>::BadLocation)?;
 			// TODO: revert state on xcm execution failure.
-			match T::XcmExecutor::execute_xcm(xcm_origin, xcm) {
-				Ok(_) => Self::deposit_event(Event::<T>::TransferredToAccountId32Parachain(
-					x_currency_id,
-					who,
-					para_id,
-					dest,
-					dest_network,
-					amount,
-				)),
-				Err(err) => Self::deposit_event(Event::<T>::TransferToAccountId32ParachainFailed(
-					x_currency_id,
-					who,
-					para_id,
-					dest,
-					dest_network,
-					amount,
-					err,
-				)),
-			}
-
+			<cumulus_pallet_xcm_handler::Pallet<T>>::execute_xcm(who.clone(), xcm)?;
+			Self::deposit_event(Event::TransferredToAccountId32Parachain(
+				x_currency_id,
+				who,
+				para_id,
+				dest,
+				dest_network,
+				amount,
+			));
 			Ok(().into())
 		}
 		/// Transfer native tokens to other parachain that uses [u8; 20]
-		/// - assumes channel already exists with self (but not checked for now)
+		/// TODO: check if channel exists before making any changes
 		#[pallet::weight(10)]
 		#[transactional]
-		pub fn transfer_native(
+		pub fn transfer_native_to_account20_parachain(
 			origin: OriginFor<T>,
 			para_id: ParaId,
 			dest: T::AccountId,
 			amount: T::Balance,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
-			let self_id = T::ParaId::get();
+			let self_id = T::SelfParaId::get();
 			// TODO: ensure channel exists
 			ensure!(para_id != self_id, Error::<T>::CannotSendToSelf);
 			let x_currency_id = XCurrencyId {
@@ -299,35 +242,23 @@ pub mod pallet {
 				destination,
 				amount,
 			);
-			let xcm_origin = T::ToMultiLocation::try_into_location(who.clone())
-				.map_err(|_| Error::<T>::BadLocation)?;
 			// TODO: revert state on xcm execution failure.
-			match T::XcmExecutor::execute_xcm(xcm_origin, xcm) {
-				Ok(_) => Self::deposit_event(Event::<T>::TransferredToAccountKey20Parachain(
-					x_currency_id,
-					who,
-					para_id,
-					dest,
-					dest_network,
-					amount,
-				)),
-				Err(err) => Self::deposit_event(Event::<T>::TransferToAccountKey20ParachainFailed(
-					x_currency_id,
-					who,
-					para_id,
-					dest,
-					dest_network,
-					amount,
-					err,
-				)),
-			}
+			<cumulus_pallet_xcm_handler::Pallet<T>>::execute_xcm(who.clone(), xcm)?;
+			Self::deposit_event(Event::TransferredToAccountKey20Parachain(
+				x_currency_id,
+				who,
+				para_id,
+				dest,
+				dest_network,
+				amount,
+			));
 			Ok(().into())
 		}
 		/// Transfer tokens to parachain that uses [u8; 20] for system::AccountId
-		/// - channel must be open with self as sender
+		/// TODO: check if channel exists before making any changes
 		#[pallet::weight(10)]
 		#[transactional]
-		pub fn transfer_to_account_key_20_parachain(
+		pub fn transfer_to_account20_parachain(
 			origin: OriginFor<T>,
 			x_currency_id: XCurrencyId,
 			para_id: ParaId,
@@ -336,11 +267,10 @@ pub mod pallet {
 			amount: T::Balance,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
-			ensure!(para_id != T::ParaId::get(), Error::<T>::CannotSendToSelf);
-			// ensure!(
-			// 	<hrmp_channels::Pallet<T>>::sender_channels().contains(&para_id),
-			// 	Error::<T>::NoSenderChannelOpen
-			// );
+			ensure!(
+				para_id != T::SelfParaId::get(),
+				Error::<T>::CannotSendToSelf
+			);
 
 			let destination = Self::account_key_20_destination(dest_network.clone(), dest.clone());
 
@@ -349,7 +279,7 @@ pub mod pallet {
 					Self::transfer_relay_chain_tokens_to_parachain(para_id, destination, amount)
 				}
 				ChainId::ParaChain(reserve_chain) => {
-					if T::ParaId::get() == reserve_chain {
+					if T::SelfParaId::get() == reserve_chain {
 						Self::transfer_owned_tokens_to_parachain(
 							x_currency_id.clone(),
 							para_id,
@@ -367,30 +297,16 @@ pub mod pallet {
 					}
 				}
 			};
-
-			let xcm_origin = T::ToMultiLocation::try_into_location(who.clone())
-				.map_err(|_| Error::<T>::BadLocation)?;
 			// TODO: revert state on xcm execution failure.
-			match T::XcmExecutor::execute_xcm(xcm_origin, xcm) {
-				Ok(_) => Self::deposit_event(Event::<T>::TransferredToAccountKey20Parachain(
-					x_currency_id,
-					who,
-					para_id,
-					dest,
-					dest_network,
-					amount,
-				)),
-				Err(err) => Self::deposit_event(Event::<T>::TransferToAccountKey20ParachainFailed(
-					x_currency_id,
-					who,
-					para_id,
-					dest,
-					dest_network,
-					amount,
-					err,
-				)),
-			}
-
+			<cumulus_pallet_xcm_handler::Pallet<T>>::execute_xcm(who.clone(), xcm)?;
+			Self::deposit_event(Event::TransferredToAccountKey20Parachain(
+				x_currency_id,
+				who,
+				para_id,
+				dest,
+				dest_network,
+				amount,
+			));
 			Ok(().into())
 		}
 	}
