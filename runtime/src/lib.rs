@@ -730,8 +730,10 @@ impl_runtime_apis! {
 										to,
 										value: trace.value,
 									},
-									block_hash: H256::default(), // Can't be known here, must be inserted upstream.
-									block_number: 0, // Can't be known here, must be inserted upstream.
+									// Can't be known here, must be inserted upstream.
+									block_hash: H256::default(),
+									// Can't be known here, must be inserted upstream.
+									block_number: 0,
 									output: match res {
 										CallResult::Output(res) => {
 											block::TransactionTraceOutput::Result(
@@ -745,21 +747,27 @@ impl_runtime_apis! {
 									},
 									subtraces: trace.subtraces,
 									trace_address: trace.trace_address,
-									transaction_hash: H256::default(), // Can't be known here, must be inserted upstream.
+									// Can't be known here, must be inserted upstream.
+									transaction_hash: H256::default(),
 									transaction_position: eth_tx_index,
 								},
 								single::CallInner::Create { init, res } => block::TransactionTrace {
 									action: block::TransactionTraceAction::Create {
-										create_method: CreateType::Create, // TODO : we don't support create2 ?
+										create_method: CreateType::Create,
 										from: trace.from,
 										gas: trace.gas,
 										input: init,
 										value: trace.value,
 									},
-									block_hash: H256::default(), // Can't be known here, must be inserted upstream.
-									block_number: 0, // Can't be known here, must be inserted upstream.
+									 // Can't be known here, must be inserted upstream.
+									block_hash: H256::default(),
+									// Can't be known here, must be inserted upstream.
+									block_number: 0,
 									output: match res {
-										CreateResult::Success {created_contract_address_hash, created_contract_code} => {
+										CreateResult::Success {
+											created_contract_address_hash,
+											created_contract_code
+										} => {
 											block::TransactionTraceOutput::Result(
 												block::TransactionTraceResult::Create {
 													gas_used: trace.gas_used,
@@ -768,28 +776,37 @@ impl_runtime_apis! {
 												}
 											)
 										},
-										CreateResult::Error { error } => block::TransactionTraceOutput::Error(error),
+										CreateResult::Error {
+											error
+										} => block::TransactionTraceOutput::Error(error),
 									},
 									subtraces: trace.subtraces,
 									trace_address: trace.trace_address,
-									transaction_hash: H256::default(), // Can't be known here, must be inserted upstream.
+									// Can't be known here, must be inserted upstream.
+									transaction_hash: H256::default(),
 									transaction_position: eth_tx_index,
 
 								},
-								single::CallInner::SelfDestruct { balance, refund_address } => block::TransactionTrace {
+								single::CallInner::SelfDestruct {
+									balance,
+									refund_address
+								} => block::TransactionTrace {
 									action: block::TransactionTraceAction::Suicide {
 										address: from,
 										balance,
 										refund_address,
 									},
-									block_hash: H256::default(), // Can't be known here, must be inserted upstream.
-									block_number: 0, // Can't be known here, must be inserted upstream.
+									// Can't be known here, must be inserted upstream.
+									block_hash: H256::default(),
+									// Can't be known here, must be inserted upstream.
+									block_number: 0,
 									output: block::TransactionTraceOutput::Result(
 												block::TransactionTraceResult::Suicide
 											),
 									subtraces: trace.subtraces,
 									trace_address: trace.trace_address,
-									transaction_hash: H256::default(), // Can't be known here, must be inserted upstream.
+									// Can't be known here, must be inserted upstream.
+									transaction_hash: H256::default(),
 									transaction_position: eth_tx_index,
 
 								},
