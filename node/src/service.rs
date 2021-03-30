@@ -36,8 +36,8 @@ use fc_consensus::FrontierBlockImport;
 use fc_mapping_sync::MappingSyncWorker;
 use fc_rpc::EthTask;
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
-use moonbeam_rpc_trace::TraceFilterCache;
 use futures::{Stream, StreamExt};
+use moonbeam_rpc_trace::TraceFilterCache;
 use moonbeam_runtime::{opaque::Block, RuntimeApi};
 use polkadot_primitives::v0::CollatorPair;
 use sc_cli::SubstrateCli;
@@ -654,9 +654,6 @@ pub fn new_dev(
 		);
 	}
 
-	let subscription_task_executor =
-		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
-
 	let (trace_filter_task, trace_filter_requester) = if ethapi_cmd.contains(&EthApiCmd::Trace) {
 		let (trace_filter_task, trace_filter_requester) =
 			TraceFilterCache::task(Arc::clone(&client), Arc::clone(&backend));
@@ -722,6 +719,13 @@ pub fn new_dev(
 		)
 		.for_each(|()| futures::future::ready(())),
 	);
+
+	// Spawn trace_filter cache task if enabled.
+	if let Some(trace_filter_task) = trace_filter_task {
+		task_manager
+			.spawn_essential_handle()
+			.spawn("trace-filter-cache", trace_filter_task);
+	}
 
 	// Spawn Frontier EthFilterApi maintenance task.
 	if let Some(filter_pool) = filter_pool {

@@ -76,13 +76,7 @@ where
 			.map_err(|err| internal_err(format!("fetch aux store failed: {:?}", err)))?;
 		let out: Vec<H256> = hashes
 			.into_iter()
-			.filter_map(|h| {
-				if Self::is_canon(client, h) {
-					Some(h)
-				} else {
-					None
-				}
-			})
+			.filter_map(|h| if self.is_canon(h) { Some(h) } else { None })
 			.collect();
 
 		if out.len() == 1 {
@@ -91,9 +85,9 @@ where
 		Ok(None)
 	}
 
-	pub fn is_canon(client: &C, target_hash: H256) -> bool {
-		if let Ok(Some(number)) = client.number(target_hash) {
-			if let Ok(Some(header)) = client.header(BlockId::Number(number)) {
+	pub fn is_canon(&self, target_hash: H256) -> bool {
+		if let Ok(Some(number)) = self.client.number(target_hash) {
+			if let Ok(Some(header)) = self.client.header(BlockId::Number(number)) {
 				return header.hash() == target_hash;
 			}
 		}
@@ -147,14 +141,16 @@ where
 		transaction_hash: H256,
 		params: Option<TraceParams>,
 	) -> RpcResult<single::TransactionTrace> {
-		let (hash, index) = match Self::load_transactions(&self.client, transaction_hash)
+		let (hash, index) = match self
+			.load_transactions(transaction_hash)
 			.map_err(|err| internal_err(format!("{:?}", err)))?
 		{
 			Some((hash, index)) => (hash, index as usize),
 			None => return Err(internal_err("Transaction hash not found".to_string())),
 		};
 
-		let reference_id = match Self::load_hash(&self.client, hash)
+		let reference_id = match self
+			.load_hash(hash)
 			.map_err(|err| internal_err(format!("{:?}", err)))?
 		{
 			Some(hash) => hash,

@@ -117,7 +117,7 @@ where
 	C: HeaderMetadata<B, Error = BlockChainError> + 'static,
 	B: BlockT<Hash = H256> + Send + Sync + 'static,
 	B::Header: HeaderT<Number = u32>,
-	C::Api: BlockBuilder<B, Error = BlockChainError>,
+	C::Api: BlockBuilder<B>,
 	C::Api: DebugRuntimeApi<B>,
 	C::Api: EthereumRuntimeRPCApi<B>,
 {

@@ -20,22 +20,22 @@ futures = { version = "0.3", features = ["compat"] }
 tracing = "0.1"
 
 # Primitives
-sp-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-sp-utils = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-sp-api = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-sp-io = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-sp-std = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-sp-blockchain = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-sp-transaction-pool = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "master" }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "tgm-v0.6-moonbeam" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-utils = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-api = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-std = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug" }
 
 # Client and RPC
 jsonrpc-core = "15.0.0"
-sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "master" }
-sc-network = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-sc-transaction-graph = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "tgm-v0.6-moonbeam" }
-fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "tgm-v0.6-moonbeam" }
+sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sc-network = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sc-transaction-graph = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
 moonbeam-rpc-core-trace = { path = "../../rpc-core/trace" }
