@@ -131,14 +131,14 @@ jobs:
       # The actions-rs/install doesn't support the coplete toml rust-toolchain format
       # So we install it manually
       # Link to issue
-      - name: Install Rustup
-        run: |
-          wget https://github.com/rust-lang/rustup/archive/refs/tags/1.23.1.tar.gz
-          tar xzf 1.23.1.tar.gz
-          cd rustup-1.23.1
-          ls
-          chmod +x rustup-1.23.1
-          ./rustup-1.23.1 show
+      # - name: Install Rustup
+      #   run: |
+      #     wget https://github.com/rust-lang/rustup/archive/refs/tags/1.23.1.tar.gz
+      #     tar xzf 1.23.1.tar.gz
+      #     cd rustup-1.23.1
+      #     ls
+      #     chmod +x rustup-1.23.1
+      #     ./rustup-1.23.1 show
 
       - name: Install sccache
         run: |
