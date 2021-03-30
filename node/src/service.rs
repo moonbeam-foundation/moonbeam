@@ -534,7 +534,7 @@ pub fn new_dev(
 				)),
 			};
 
-		let longest_chain = maybe_select_chain.expect(
+		let select_chain = maybe_select_chain.expect(
 			"`new_partial` builds a `LongestChainRule` when building dev service.\
 				We specified the dev service when calling `new_partial`.\
 				Therefore, a `LongestChainRule` is present. qed.",
