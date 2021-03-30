@@ -8,10 +8,10 @@ license = 'GPL-3.0-only'
 repository = 'https://github.com/PureStake/moonbeam/'
 
 [dependencies]
-fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "tgm-v0.6-moonbeam" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "tgm-v0.6-moonbeam" }
-evm = { git = "https://github.com/purestake/evm", branch = "tgm-getters", default-features = false, features = ["with-codec"] }
-evm-core = { git = "https://github.com/purestake/evm", branch = "tgm-getters", default-features = false, features = ["with-codec"] }
+fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-moonbeam-v0.7" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-moonbeam-v0.7" }
+evm = { git = "https://github.com/rust-blockchain/evm", branch = "master", default-features = false, features = ["with-codec"] }
+evm-core = { git = "https://github.com/rust-blockchain/evm", branch = "master", default-features = false, features = ["with-codec"] }
 sp-core = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }
 sp-std = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }
 sp-io = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }
