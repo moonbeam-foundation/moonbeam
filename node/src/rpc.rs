@@ -62,8 +62,10 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub filter_pool: Option<FilterPool>,
 	/// The list of optional RPC extensions.
 	pub ethapi_cmd: Vec<EthApiCmd>,
+	/// Frontier Backend.
+	pub frontier_backend: Arc<fc_db::Backend<Block>>,
 	/// Backend.
-	pub backend: Arc<fc_db::Backend<Block>>,
+	pub backend: Arc<BE>,
 	/// Manual seal command sink
 	pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
 }
@@ -82,7 +84,7 @@ where
 	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
 	C: Send + Sync + 'static,
 	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>,
-	C::Api: BlockBuilder<Block, Error = BlockChainError>,
+	C::Api: BlockBuilder<Block>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
 	A: ChainApi<Block = Block> + 'static,
 	C::Api: fp_rpc::EthereumRuntimeRPCApi<Block>,
@@ -111,7 +113,8 @@ where
 		filter_pool,
 		ethapi_cmd,
 		command_sink,
-		backend: frontier_backend,
+		frontier_backend,
+		backend,
 	} = deps;
 
 	io.extend_with(SystemApi::to_delegate(FullSystem::new(
@@ -142,7 +145,7 @@ where
 		pending_transactions,
 		signers,
 		overrides,
-		frontier_backend,
+		frontier_backend.clone(),
 		is_authority,
 	)));
 
@@ -172,6 +175,7 @@ where
 		io.extend_with(DebugServer::to_delegate(Debug::new(
 			client.clone(),
 			backend,
+			frontier_backend,
 		)));
 	}
 	if ethapi_cmd.contains(&EthApiCmd::Txpool) {

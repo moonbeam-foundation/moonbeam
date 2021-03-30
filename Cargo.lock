@@ -1727,12 +1727,30 @@ checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
 [[package]]
 name = "evm"
 version = "0.25.0"
-source = "git+https://github.com/purestake/evm?branch=master#317b82b5660150a37f84da6d7d570b52ad8f23a4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1b4bd1fb06a4962a243c8be285d8a9b2493ffa79acb32633ad07a0bc523b1acd"
 dependencies = [
  "ethereum",
- "evm-core",
- "evm-gasometer",
- "evm-runtime",
+ "evm-core 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "evm-gasometer 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "evm-runtime 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "log",
+ "parity-scale-codec",
+ "primitive-types",
+ "rlp",
+ "serde",
+ "sha3 0.8.2",
+]
+
+[[package]]
+name = "evm"
+version = "0.25.0"
+source = "git+https://github.com/rust-blockchain/evm?branch=master#317b82b5660150a37f84da6d7d570b52ad8f23a4"
+dependencies = [
+ "ethereum",
+ "evm-core 0.25.0 (git+https://github.com/rust-blockchain/evm?branch=master)",
+ "evm-gasometer 0.25.0 (git+https://github.com/rust-blockchain/evm?branch=master)",
+ "evm-runtime 0.25.0 (git+https://github.com/rust-blockchain/evm?branch=master)",
  "log",
  "parity-scale-codec",
  "primitive-types",
@@ -1744,7 +1762,19 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.25.0"
-source = "git+https://github.com/purestake/evm?branch=master#317b82b5660150a37f84da6d7d570b52ad8f23a4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6b4eea3882c798813a6f92e8855ec1fc3f5ababd8b274cb81d4bedee701b478e"
+dependencies = [
+ "funty",
+ "parity-scale-codec",
+ "primitive-types",
+ "serde",
+]
+
+[[package]]
+name = "evm-core"
+version = "0.25.0"
+source = "git+https://github.com/rust-blockchain/evm?branch=master#317b82b5660150a37f84da6d7d570b52ad8f23a4"
 dependencies = [
  "funty",
  "parity-scale-codec",
@@ -1755,19 +1785,41 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.25.0"
-source = "git+https://github.com/purestake/evm?branch=master#317b82b5660150a37f84da6d7d570b52ad8f23a4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0a8f04dcc8b0296652eabfa443a08ebed6071a1178e0f42a7f7b63a612bddf0b"
 dependencies = [
- "evm-core",
- "evm-runtime",
+ "evm-core 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "evm-runtime 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "primitive-types",
+]
+
+[[package]]
+name = "evm-gasometer"
+version = "0.25.0"
+source = "git+https://github.com/rust-blockchain/evm?branch=master#317b82b5660150a37f84da6d7d570b52ad8f23a4"
+dependencies = [
+ "evm-core 0.25.0 (git+https://github.com/rust-blockchain/evm?branch=master)",
+ "evm-runtime 0.25.0 (git+https://github.com/rust-blockchain/evm?branch=master)",
  "primitive-types",
 ]
 
 [[package]]
 name = "evm-runtime"
 version = "0.25.0"
-source = "git+https://github.com/purestake/evm?branch=master#317b82b5660150a37f84da6d7d570b52ad8f23a4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "54c302f29ca8bba82a382aa52d427869964179e4f24eae57bde70958ce9b7607"
 dependencies = [
- "evm-core",
+ "evm-core 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "primitive-types",
+ "sha3 0.8.2",
+]
+
+[[package]]
+name = "evm-runtime"
+version = "0.25.0"
+source = "git+https://github.com/rust-blockchain/evm?branch=master#317b82b5660150a37f84da6d7d570b52ad8f23a4"
+dependencies = [
+ "evm-core 0.25.0 (git+https://github.com/rust-blockchain/evm?branch=master)",
  "primitive-types",
  "sha3 0.8.2",
 ]
@@ -2054,7 +2106,7 @@ name = "fp-evm"
 version = "0.8.0"
 source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#c6d3c7acc7aa33d69f3adba0752104cfbbc04482"
 dependencies = [
- "evm",
+ "evm 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "impl-trait-for-tuples 0.1.3",
  "parity-scale-codec",
  "serde",
@@ -4402,8 +4454,8 @@ name = "moonbeam-extensions-evm"
 version = "0.1.0"
 dependencies = [
  "ethereum-types",
- "evm",
- "evm-core",
+ "evm 0.25.0 (git+https://github.com/rust-blockchain/evm?branch=master)",
+ "evm-core 0.25.0 (git+https://github.com/rust-blockchain/evm?branch=master)",
  "fp-evm",
  "moonbeam-rpc-primitives-debug",
  "pallet-evm",
@@ -4448,6 +4500,7 @@ dependencies = [
  "ethereum",
  "ethereum-types",
  "fc-consensus",
+ "fc-db",
  "fp-rpc",
  "jsonrpc-core 15.1.0",
  "moonbeam-rpc-core-debug",
@@ -5089,7 +5142,7 @@ source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7
 dependencies = [
  "ethereum",
  "ethereum-types",
- "evm",
+ "evm 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "fp-consensus",
  "fp-evm",
  "fp-rpc",
@@ -5125,9 +5178,9 @@ name = "pallet-evm"
 version = "3.0.0"
 source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#c6d3c7acc7aa33d69f3adba0752104cfbbc04482"
 dependencies = [
- "evm",
- "evm-gasometer",
- "evm-runtime",
+ "evm 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "evm-gasometer 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "evm-runtime 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "fp-evm",
  "frame-support",
  "frame-system",
@@ -5149,7 +5202,7 @@ name = "pallet-evm-precompile-bn128"
 version = "3.0.0"
 source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#4f958255b40cf05b155bf0256ee2f033a6b3a383"
 dependencies = [
- "evm",
+ "evm 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "fp-evm",
  "sp-core",
  "sp-io",
@@ -5161,7 +5214,7 @@ name = "pallet-evm-precompile-dispatch"
 version = "3.0.0"
 source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#c6d3c7acc7aa33d69f3adba0752104cfbbc04482"
 dependencies = [
- "evm",
+ "evm 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "fp-evm",
  "frame-support",
  "pallet-evm",
@@ -5175,7 +5228,7 @@ name = "pallet-evm-precompile-modexp"
 version = "3.0.0"
 source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#c6d3c7acc7aa33d69f3adba0752104cfbbc04482"
 dependencies = [
- "evm",
+ "evm 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "fp-evm",
  "num",
  "sp-core",
@@ -5187,7 +5240,7 @@ name = "pallet-evm-precompile-sha3fips"
 version = "3.0.0"
 source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#4f958255b40cf05b155bf0256ee2f033a6b3a383"
 dependencies = [
- "evm",
+ "evm 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "fp-evm",
  "sp-core",
  "sp-io",
@@ -5199,7 +5252,7 @@ name = "pallet-evm-precompile-simple"
 version = "3.0.0"
 source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#c6d3c7acc7aa33d69f3adba0752104cfbbc04482"
 dependencies = [
- "evm",
+ "evm 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "fp-evm",
  "ripemd160",
  "sp-core",

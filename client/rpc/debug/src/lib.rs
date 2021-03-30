@@ -43,15 +43,15 @@ pub fn internal_err<T: ToString>(message: T) -> RpcError {
 pub struct Debug<B: BlockT, C, BE> {
 	client: Arc<C>,
 	backend: Arc<BE>,
-	_marker: PhantomData<B>,
+	frontier_backend: Arc<fc_db::Backend<B>>,
 }
 
 impl<B: BlockT, C, BE> Debug<B, C, BE> {
-	pub fn new(client: Arc<C>, backend: Arc<BE>) -> Self {
+	pub fn new(client: Arc<C>, backend: Arc<BE>, frontier_backend: Arc<fc_db::Backend<B>>) -> Self {
 		Self {
 			client,
 			backend,
-			_marker: PhantomData,
+			frontier_backend,
 		}
 	}
 }
@@ -65,25 +65,27 @@ where
 	C: HeaderMetadata<B, Error = BlockChainError> + HeaderBackend<B>,
 	C: Send + Sync + 'static,
 	B: BlockT<Hash = H256> + Send + Sync + 'static,
-	C::Api: BlockBuilder<B, Error = BlockChainError>,
+	C::Api: BlockBuilder<B>,
 	C::Api: DebugRuntimeApi<B>,
 	C::Api: EthereumRuntimeRPCApi<B>,
 {
 	// Asumes there is only one mapped canonical block in the AuxStore, otherwise something is wrong
 	fn load_hash(&self, hash: H256) -> RpcResult<Option<BlockId<B>>> {
-		let hashes = match fc_consensus::load_block_hash::<B, _>(self.client.as_ref(), hash)
-			.map_err(|err| internal_err(format!("fetch aux store failed: {:?}", err)))?
-		{
-			Some(hashes) => hashes,
-			None => return Ok(None),
-		};
-		let out: Vec<H256> = hashes
-			.into_iter()
-			.filter_map(|h| if self.is_canon(h) { Some(h) } else { None })
-			.collect();
+		let hashes = self.frontier_backend.mapping().block_hashes(&hash)
+			.map_err(|err| internal_err(format!("fetch aux store failed: {:?}", err)))?;
+		let out: Vec<H256> = hashes.into_iter()
+			.filter_map(|h| {
+				if self.is_canon(h) {
+					Some(h)
+				} else {
+					None
+				}
+			}).collect();
 
 		if out.len() == 1 {
-			return Ok(Some(BlockId::Hash(out[0])));
+			return Ok(Some(
+				BlockId::Hash(out[0])
+			));
 		}
 		Ok(None)
 	}
@@ -98,30 +100,28 @@ where
 	}
 
 	fn load_transactions(&self, transaction_hash: H256) -> RpcResult<Option<(H256, u32)>> {
-		let mut transactions: Vec<(H256, u32)> = Vec::new();
-		match fc_consensus::load_transaction_metadata(self.client.as_ref(), transaction_hash)
-			.map_err(|err| internal_err(format!("fetch aux store failed: {:?}", err)))?
-		{
-			Some(metadata) => {
-				for (block_hash, index) in metadata {
-					match self
-						.load_hash(block_hash)
-						.map_err(|err| internal_err(format!("{:?}", err)))?
-					{
-						Some(_) => {
-							transactions.push((block_hash, index));
-						}
-						_ => {}
-					};
-				}
-			}
-			None => return Ok(None),
-		};
+		let transaction_metadata = self.frontier_backend.mapping().transaction_metadata(&transaction_hash)
+			.map_err(|err| internal_err(format!("fetch aux store failed: {:?}", err)))?;
 
-		if transactions.len() == 1 {
-			return Ok(Some(transactions[0]));
+		if transaction_metadata.len() == 1 {
+			Ok(Some((
+				transaction_metadata[0].ethereum_block_hash,
+				transaction_metadata[0].ethereum_index,
+			)))
+		} else if transaction_metadata.len() > 1 {
+			transaction_metadata
+				.iter()
+				.find(|meta| self.is_canon(meta.block_hash))
+				.map_or(
+					Ok(Some((
+						transaction_metadata[0].ethereum_block_hash,
+						transaction_metadata[0].ethereum_index,
+					))),
+					|meta| Ok(Some((meta.ethereum_block_hash, meta.ethereum_index))),
+				)
+		} else {
+			Ok(None)
 		}
-		Ok(None)
 	}
 }
 
@@ -134,7 +134,7 @@ where
 	C: HeaderMetadata<B, Error = BlockChainError> + HeaderBackend<B>,
 	C: Send + Sync + 'static,
 	B: BlockT<Hash = H256> + Send + Sync + 'static,
-	C::Api: BlockBuilder<B, Error = BlockChainError>,
+	C::Api: BlockBuilder<B>,
 	C::Api: DebugRuntimeApi<B>,
 	C::Api: EthereumRuntimeRPCApi<B>,
 {

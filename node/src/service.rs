@@ -269,6 +269,7 @@ where
 		let pending = pending_transactions.clone();
 		let filter_pool = filter_pool.clone();
 		let frontier_backend = frontier_backend.clone();
+		let backend = backend.clone();
 		let ethapi_cmd = ethapi_cmd.clone();
 
 		Box::new(move |deny_unsafe, _| {
@@ -283,7 +284,8 @@ where
 				filter_pool: filter_pool.clone(),
 				ethapi_cmd: ethapi_cmd.clone(),
 				command_sink: None,
-				backend: frontier_backend.clone(),
+				frontier_backend: frontier_backend.clone(),
+				backend: backend.clone(),
 			};
 
 			crate::rpc::create_full(deps, subscription_task_executor.clone())
@@ -657,7 +659,8 @@ pub fn new_dev(
 				filter_pool: filter_pool.clone(),
 				ethapi_cmd: ethapi_cmd.clone(),
 				command_sink: command_sink.clone(),
-				backend: frontier_backend.clone(),
+				frontier_backend: frontier_backend.clone(),
+				backend: backend.clone(),
 			};
 			crate::rpc::create_full(deps, subscription_task_executor.clone())
 		})
