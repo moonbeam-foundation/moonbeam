@@ -1,0 +1,43 @@
+[package]
+authors = ["PureStake"]
+edition = "2018"
+name = "token-factory"
+version = "0.1.0"
+description = "sudo control ERC20 issuance in the EVM"
+
+[dependencies]
+ethereum-types = { version = "0.11.0", default-features = false }
+fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-moonbeam-v0.7" }
+frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+hex-literal = { version = "0.3.1" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-moonbeam-v0.7" }
+pallet-sudo = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+pallet-balances = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+pallet-timestamp = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
+rustc-hex = { version = "2.1.0", default-features = false }
+serde = { version = "1.0.101", optional = true }
+sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+
+[features]
+default = ["std"]
+std = [
+    "ethereum-types/std",
+    "parity-scale-codec/std",
+    "frame-support/std",
+    "frame-system/std",
+    "pallet-balances/std",
+    "pallet-evm/std",
+    "pallet-sudo/std",
+    "pallet-timestamp/std",
+    "rustc-hex/std",
+    "serde",
+    "sp-runtime/std",
+    "sp-std/std",
+    "sp-core/std",
+    "sp-io/std",
+]

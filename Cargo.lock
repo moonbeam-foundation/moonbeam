@@ -1329,6 +1329,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "cumulus-pallet-xcm-handler"
+version = "0.1.0"
+source = "git+https://github.com/paritytech/cumulus?branch=rococo-v1#9d89ed653217203810822483ae86fd8867f59620"
+dependencies = [
+ "cumulus-primitives-core",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "sp-std",
+ "xcm",
+ "xcm-executor",
+]
+
+[[package]]
 name = "cumulus-primitives-core"
 version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus?branch=rococo-v1#9d89ed653217203810822483ae86fd8867f59620"
@@ -4447,6 +4462,7 @@ dependencies = [
  "account",
  "author-inherent",
  "cumulus-pallet-parachain-system",
+ "cumulus-pallet-xcm-handler",
  "cumulus-primitives-core",
  "fp-rpc",
  "frame-executive",
@@ -4472,6 +4488,7 @@ dependencies = [
  "parachain-info",
  "parachain-staking",
  "parity-scale-codec",
+ "polkadot-parachain",
  "precompiles",
  "serde",
  "sp-api",
@@ -4486,6 +4503,11 @@ dependencies = [
  "sp-transaction-pool",
  "sp-version",
  "substrate-wasm-builder 4.0.0",
+ "token-factory",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
+ "xtransfer",
 ]
 
 [[package]]
@@ -10493,6 +10515,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
+name = "token-factory"
+version = "0.1.0"
+dependencies = [
+ "ethereum-types",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "hex-literal",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-sudo",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "rustc-hex",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "tokio"
 version = "0.1.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11752,6 +11796,22 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "xcm",
+]
+
+[[package]]
+name = "xtransfer"
+version = "0.1.0"
+dependencies = [
+ "cumulus-primitives-core",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
+ "token-factory",
+ "xcm",
+ "xcm-executor",
 ]
 
 [[package]]

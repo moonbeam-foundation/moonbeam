@@ -19,6 +19,8 @@ pallet-ethereum-chain-id = { path = "../pallets/ethereum-chain-id", default-feat
 parachain-staking = { path = "../pallets/parachain-staking", default-features = false }
 author-inherent = { path = "../pallets/author-inherent", default-features = false }
 pallet-author-filter = { path = "../pallets/author-filter", default-features = false }
+token-factory = { path = "../pallets/token-factory", default-features = false }
+xtransfer = { path = "../pallets/xtransfer", default-features = false }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
@@ -58,6 +60,11 @@ moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool", default-fe
 # Cumulus dependencies
 cumulus-pallet-parachain-system = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "rococo-v1" }
 cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "rococo-v1" }
+xcm-builder = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "rococo-v1" }
+cumulus-pallet-xcm-handler = { git = "https://github.com/paritytech/cumulus", default-features = false, branch = "rococo-v1" }
+xcm-executor = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "rococo-v1" }
+xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "rococo-v1" }
+polkadot-parachain = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "rococo-v1" }
 parachain-info = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "rococo-v1" }
 
 [build-dependencies]
@@ -109,6 +116,13 @@ std = [
 	"account/std",
 	"parachain-staking/std",
 	"pallet-author-filter/std",
+	"xtransfer/std",
+	"token-factory/std",
+	"xcm-builder/std",
+	"cumulus-pallet-xcm-handler/std",
+	"xcm-executor/std",
+	"xcm/std",
+	"polkadot-parachain/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
