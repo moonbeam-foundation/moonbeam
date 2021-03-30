@@ -128,8 +128,8 @@ jobs:
           path: ${{ runner.tool_cache }}/cargo-sccache
           key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_VERSION }}-v1
 
-      # The actions-rs/install doesn't support the coplete toml rust-toolchain format
-      # So we install it manually
+      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
+      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
       - name: Install Cargo
         run: rustup show
 
