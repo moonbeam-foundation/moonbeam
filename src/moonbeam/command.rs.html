@@ -519,7 +519,6 @@
 <span id="516">516</span>
 <span id="517">517</span>
 <span id="518">518</span>
-<span id="519">519</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -709,19 +708,18 @@
 		<span class="prelude-val">Some</span>(<span class="ident">Subcommand</span>::<span class="ident">CheckBlock</span>(<span class="ident">cmd</span>)) <span class="op">=</span><span class="op">&gt;</span> {
 			<span class="kw">let</span> <span class="ident">runner</span> <span class="op">=</span> <span class="ident">cli</span>.<span class="ident">create_runner</span>(<span class="ident">cmd</span>)<span class="question-mark">?</span>;
 			<span class="ident">runner</span>.<span class="ident">async_run</span>(<span class="op">|</span><span class="ident">config</span><span class="op">|</span> {
+				<span class="comment">// maybe these three lines could be a helper function is_dev(config) -&gt; bool</span>
 				<span class="kw">let</span> <span class="ident">extension</span> <span class="op">=</span> <span class="ident">chain_spec</span>::<span class="ident">Extensions</span>::<span class="ident">try_get</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span>.<span class="ident">chain_spec</span>);
 				<span class="kw">let</span> <span class="ident">relay_chain_id</span> <span class="op">=</span> <span class="ident">extension</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">relay_chain</span>.<span class="ident">clone</span>());
+				<span class="kw">let</span> <span class="ident">dev_service</span> <span class="op">=</span>
+					<span class="ident">cli</span>.<span class="ident">run</span>.<span class="ident">dev_service</span> <span class="op">|</span><span class="op">|</span> <span class="ident">relay_chain_id</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&quot;dev-service&quot;</span>.<span class="ident">to_string</span>());
 
 				<span class="kw">let</span> <span class="ident">PartialComponents</span> {
 					<span class="ident">client</span>,
 					<span class="ident">task_manager</span>,
 					<span class="ident">import_queue</span>,
 					..
-				} <span class="op">=</span> <span class="kw">if</span> <span class="ident">cli</span>.<span class="ident">run</span>.<span class="ident">dev_service</span> <span class="op">|</span><span class="op">|</span> <span class="ident">relay_chain_id</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&quot;dev-service&quot;</span>.<span class="ident">to_string</span>()) {
-					<span class="kw">crate</span>::<span class="ident">service</span>::<span class="ident">dev_partial</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>
-				} <span class="kw">else</span> {
-					<span class="kw">crate</span>::<span class="ident">service</span>::<span class="ident">parachain_partial</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>
-				};
+				} <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">service</span>::<span class="ident">new_partial</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="prelude-val">None</span>, <span class="ident">dev_service</span>)<span class="question-mark">?</span>;
 				<span class="prelude-val">Ok</span>((<span class="ident">cmd</span>.<span class="ident">run</span>(<span class="ident">client</span>, <span class="ident">import_queue</span>), <span class="ident">task_manager</span>))
 			})
 		}
@@ -732,7 +730,7 @@
 					<span class="ident">client</span>,
 					<span class="ident">task_manager</span>,
 					..
-				} <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">service</span>::<span class="ident">parachain_partial</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+				} <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">service</span>::<span class="ident">new_partial</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 				<span class="prelude-val">Ok</span>((<span class="ident">cmd</span>.<span class="ident">run</span>(<span class="ident">client</span>, <span class="ident">config</span>.<span class="ident">database</span>), <span class="ident">task_manager</span>))
 			})
 		}
@@ -743,7 +741,7 @@
 					<span class="ident">client</span>,
 					<span class="ident">task_manager</span>,
 					..
-				} <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">service</span>::<span class="ident">parachain_partial</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+				} <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">service</span>::<span class="ident">new_partial</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 				<span class="prelude-val">Ok</span>((<span class="ident">cmd</span>.<span class="ident">run</span>(<span class="ident">client</span>, <span class="ident">config</span>.<span class="ident">chain_spec</span>), <span class="ident">task_manager</span>))
 			})
 		}
@@ -752,17 +750,15 @@
 			<span class="ident">runner</span>.<span class="ident">async_run</span>(<span class="op">|</span><span class="ident">config</span><span class="op">|</span> {
 				<span class="kw">let</span> <span class="ident">extension</span> <span class="op">=</span> <span class="ident">chain_spec</span>::<span class="ident">Extensions</span>::<span class="ident">try_get</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span>.<span class="ident">chain_spec</span>);
 				<span class="kw">let</span> <span class="ident">relay_chain_id</span> <span class="op">=</span> <span class="ident">extension</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">relay_chain</span>.<span class="ident">clone</span>());
+				<span class="kw">let</span> <span class="ident">dev_service</span> <span class="op">=</span>
+					<span class="ident">cli</span>.<span class="ident">run</span>.<span class="ident">dev_service</span> <span class="op">|</span><span class="op">|</span> <span class="ident">relay_chain_id</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&quot;dev-service&quot;</span>.<span class="ident">to_string</span>());
 
 				<span class="kw">let</span> <span class="ident">PartialComponents</span> {
 					<span class="ident">client</span>,
 					<span class="ident">task_manager</span>,
 					<span class="ident">import_queue</span>,
 					..
-				} <span class="op">=</span> <span class="kw">if</span> <span class="ident">cli</span>.<span class="ident">run</span>.<span class="ident">dev_service</span> <span class="op">|</span><span class="op">|</span> <span class="ident">relay_chain_id</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&quot;dev-service&quot;</span>.<span class="ident">to_string</span>()) {
-					<span class="kw">crate</span>::<span class="ident">service</span>::<span class="ident">dev_partial</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>
-				} <span class="kw">else</span> {
-					<span class="kw">crate</span>::<span class="ident">service</span>::<span class="ident">parachain_partial</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>
-				};
+				} <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">service</span>::<span class="ident">new_partial</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="prelude-val">None</span>, <span class="ident">dev_service</span>)<span class="question-mark">?</span>;
 				<span class="prelude-val">Ok</span>((<span class="ident">cmd</span>.<span class="ident">run</span>(<span class="ident">client</span>, <span class="ident">import_queue</span>), <span class="ident">task_manager</span>))
 			})
 		}
@@ -778,7 +774,7 @@
 					<span class="ident">task_manager</span>,
 					<span class="ident">backend</span>,
 					..
-				} <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">service</span>::<span class="ident">parachain_partial</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+				} <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">service</span>::<span class="ident">new_partial</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 				<span class="prelude-val">Ok</span>((<span class="ident">cmd</span>.<span class="ident">run</span>(<span class="ident">client</span>, <span class="ident">backend</span>), <span class="ident">task_manager</span>))
 			})
 		}
@@ -841,6 +837,8 @@
 
 					<span class="kw">let</span> <span class="ident">extension</span> <span class="op">=</span> <span class="ident">chain_spec</span>::<span class="ident">Extensions</span>::<span class="ident">try_get</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span>.<span class="ident">chain_spec</span>);
 					<span class="kw">let</span> <span class="ident">relay_chain_id</span> <span class="op">=</span> <span class="ident">extension</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">relay_chain</span>.<span class="ident">clone</span>());
+					<span class="kw">let</span> <span class="ident">dev_service</span> <span class="op">=</span>
+						<span class="ident">cli</span>.<span class="ident">run</span>.<span class="ident">dev_service</span> <span class="op">|</span><span class="op">|</span> <span class="ident">relay_chain_id</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&quot;dev-service&quot;</span>.<span class="ident">to_string</span>());
 					<span class="kw">let</span> <span class="ident">para_id</span> <span class="op">=</span> <span class="ident">extension</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">para_id</span>);
 
 					<span class="comment">// If dev service was requested, start up manual or instant seal.</span>
@@ -849,7 +847,7 @@
 					<span class="comment">// 1. by providing the --dev-service flag to the CLI</span>
 					<span class="comment">// 2. by specifying &quot;dev-service&quot; in the chain spec&#39;s &quot;relay-chain&quot; field.</span>
 					<span class="comment">// NOTE: the --dev flag triggers the dev service by way of number 2</span>
-					<span class="kw">if</span> <span class="ident">cli</span>.<span class="ident">run</span>.<span class="ident">dev_service</span> <span class="op">|</span><span class="op">|</span> <span class="ident">relay_chain_id</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&quot;dev-service&quot;</span>.<span class="ident">to_string</span>()) {
+					<span class="kw">if</span> <span class="ident">dev_service</span> {
 						<span class="comment">// --dev implies --collator</span>
 						<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">collator</span> <span class="op">|</span><span class="op">|</span> <span class="ident">cli</span>.<span class="ident">run</span>.<span class="ident">shared_params</span>.<span class="ident">dev</span>;
 
