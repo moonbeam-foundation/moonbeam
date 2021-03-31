@@ -30,7 +30,7 @@ use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
 };
 use sp_runtime::traits::{BlakeTwo256, Block as BlockT};
-use std::{marker::PhantomData, str::FromStr, sync::Arc};
+use std::{str::FromStr, sync::Arc};
 
 pub fn internal_err<T: ToString>(message: T) -> RpcError {
 	RpcError {
