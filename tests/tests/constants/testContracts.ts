@@ -284,3 +284,51 @@ export const ERC20_BYTECODE =
   "65207a65726f206164647265737345524332303a2064656372656173656420616c6c6f77616e63652062656c6f7720" +
   "7a65726fa265627a7a723158208bfd5c482ccbde97b679a417e6f0a1698bb5491e25bb256602f6c4271b11757b6473" +
   "6f6c63430005110032";
+
+export const MANUAL_STORAGE_ABI = [
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "key",
+        type: "bytes32",
+      },
+    ],
+    name: "getStorage",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "value",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "key",
+        type: "bytes32",
+      },
+      {
+        internalType: "bytes32",
+        name: "value",
+        type: "bytes32",
+      },
+    ],
+    name: "setStorage",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+] as AbiItem[];
+
+export const MANUAL_STORAGE_BYTECODE =
+  "608060405234801561001057600080fd5b5060f38061001f6000396000f3fe6080604052348015600f57600080fd5b" +
+  "506004361060325760003560e01c80634ba664e71460375780639b0b0fda146076575b600080fd5b60606004803603" +
+  "6020811015604b57600080fd5b810190808035906020019092919050505060ab565b60405180828152602001915050" +
+  "60405180910390f35b60a960048036036040811015608a57600080fd5b810190808035906020019092919080359060" +
+  "20019092919050505060b6565b005b600081549050919050565b808255505056fea2646970667358221220af370879" +
+  "012aa583e39dd622d86d257dd8c5ba5e0b9ae4ac0d9d01ac72e9b7c564736f6c634300060c0033";
