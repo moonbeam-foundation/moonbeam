@@ -519,6 +519,8 @@
 <span id="516">516</span>
 <span id="517">517</span>
 <span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -865,6 +867,7 @@
 							<span class="ident">cli</span>.<span class="ident">run</span>.<span class="ident">sealing</span>,
 							<span class="ident">author_id</span>,
 							<span class="ident">collator</span>,
+							<span class="ident">cli</span>.<span class="ident">run</span>.<span class="ident">ethapi</span>,
 						);
 					}
 
@@ -908,6 +911,7 @@
 						<span class="ident">polkadot_config</span>,
 						<span class="ident">id</span>,
 						<span class="ident">collator</span>,
+						<span class="ident">cli</span>.<span class="ident">run</span>.<span class="ident">ethapi</span>,
 					)
 					.<span class="kw">await</span>
 					.<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="number">0</span>)

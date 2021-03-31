@@ -174,6 +174,27 @@
 <span id="171">171</span>
 <span id="172">172</span>
 <span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -196,6 +217,7 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">BTreeMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
 
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">cli</span>::<span class="ident">EthApi</span> <span class="kw">as</span> <span class="ident">EthApiCmd</span>;
 <span class="kw">use</span> <span class="ident">ethereum</span>::<span class="ident">EthereumStorageSchema</span>;
 <span class="kw">use</span> <span class="ident">fc_rpc</span>::{<span class="ident">SchemaV1Override</span>, <span class="ident">StorageOverride</span>};
 <span class="kw">use</span> <span class="ident">fc_rpc_core</span>::<span class="ident">types</span>::{<span class="ident">FilterPool</span>, <span class="ident">PendingTransactions</span>};
@@ -212,12 +234,14 @@
 <span class="kw">use</span> <span class="ident">sc_transaction_graph</span>::{<span class="ident">ChainApi</span>, <span class="ident">Pool</span>};
 <span class="kw">use</span> <span class="ident">sp_api</span>::<span class="ident">ProvideRuntimeApi</span>;
 <span class="kw">use</span> <span class="ident">sp_block_builder</span>::<span class="ident">BlockBuilder</span>;
-<span class="kw">use</span> <span class="ident">sp_blockchain</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">BlockChainError</span>, <span class="ident">HeaderBackend</span>, <span class="ident">HeaderMetadata</span>};
+<span class="kw">use</span> <span class="ident">sp_blockchain</span>::{
+	<span class="ident">Backend</span> <span class="kw">as</span> <span class="ident">BlockchainBackend</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">BlockChainError</span>, <span class="ident">HeaderBackend</span>, <span class="ident">HeaderMetadata</span>,
+};
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::<span class="ident">traits</span>::<span class="ident">BlakeTwo256</span>;
 <span class="kw">use</span> <span class="ident">sp_transaction_pool</span>::<span class="ident">TransactionPool</span>;
 
 <span class="doccomment">/// Full client dependencies.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FullDeps</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span>, <span class="ident">A</span>: <span class="ident">ChainApi</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FullDeps</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span>, <span class="ident">A</span>: <span class="ident">ChainApi</span>, <span class="ident">BE</span><span class="op">&gt;</span> {
 	<span class="doccomment">/// The client instance to use.</span>
 	<span class="kw">pub</span> <span class="ident">client</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>,
 	<span class="doccomment">/// Transaction pool instance.</span>
@@ -234,20 +258,25 @@
 	<span class="kw">pub</span> <span class="ident">pending_transactions</span>: <span class="ident">PendingTransactions</span>,
 	<span class="doccomment">/// EthFilterApi pool.</span>
 	<span class="kw">pub</span> <span class="ident">filter_pool</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FilterPool</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// The list of optional RPC extensions.</span>
+	<span class="kw">pub</span> <span class="ident">ethapi_cmd</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EthApiCmd</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Frontier Backend.</span>
+	<span class="kw">pub</span> <span class="ident">frontier_backend</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">fc_db</span>::<span class="ident">Backend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	<span class="doccomment">/// Backend.</span>
-	<span class="kw">pub</span> <span class="ident">backend</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">fc_db</span>::<span class="ident">Backend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+	<span class="kw">pub</span> <span class="ident">backend</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">BE</span><span class="op">&gt;</span>,
 	<span class="doccomment">/// Manual seal command sink</span>
 	<span class="kw">pub</span> <span class="ident">command_sink</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">futures</span>::<span class="ident">channel</span>::<span class="ident">mpsc</span>::<span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">EngineCommand</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// Instantiate all Full RPC extensions.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_full</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span>, <span class="ident">BE</span>, <span class="ident">A</span><span class="op">&gt;</span>(
-	<span class="ident">deps</span>: <span class="ident">FullDeps</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span>, <span class="ident">A</span><span class="op">&gt;</span>,
+	<span class="ident">deps</span>: <span class="ident">FullDeps</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span>, <span class="ident">A</span>, <span class="ident">BE</span><span class="op">&gt;</span>,
 	<span class="ident">subscription_task_executor</span>: <span class="ident">SubscriptionTaskExecutor</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">jsonrpc_core</span>::<span class="ident">IoHandler</span><span class="op">&lt;</span><span class="ident">sc_rpc</span>::<span class="ident">Metadata</span><span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="ident">BE</span>: <span class="ident">Backend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 	<span class="ident">BE</span>::<span class="ident">State</span>: <span class="ident">StateBackend</span><span class="op">&lt;</span><span class="ident">BlakeTwo256</span><span class="op">&gt;</span>,
+	<span class="ident">BE</span>::<span class="ident">Blockchain</span>: <span class="ident">BlockchainBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
 	<span class="ident">C</span>: <span class="ident">ProvideRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">StorageProvider</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">BE</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">AuxStore</span>,
 	<span class="ident">C</span>: <span class="ident">BlockchainEvents</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
 	<span class="ident">C</span>: <span class="ident">HeaderBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">HeaderMetadata</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">BlockChainError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
@@ -257,6 +286,7 @@
 	<span class="ident">C</span>::<span class="ident">Api</span>: <span class="ident">pallet_transaction_payment_rpc</span>::<span class="ident">TransactionPaymentRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">Balance</span><span class="op">&gt;</span>,
 	<span class="ident">A</span>: <span class="ident">ChainApi</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="op">=</span> <span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 	<span class="ident">C</span>::<span class="ident">Api</span>: <span class="ident">fp_rpc</span>::<span class="ident">EthereumRuntimeRPCApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
+	<span class="ident">C</span>::<span class="ident">Api</span>: <span class="ident">moonbeam_rpc_primitives_debug</span>::<span class="ident">DebugRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
 	<span class="ident">C</span>::<span class="ident">Api</span>: <span class="ident">moonbeam_rpc_primitives_txpool</span>::<span class="ident">TxPoolRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
 	<span class="ident">P</span>: <span class="ident">TransactionPool</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="op">=</span> <span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
@@ -264,6 +294,7 @@
 		<span class="ident">EthApi</span>, <span class="ident">EthApiServer</span>, <span class="ident">EthFilterApi</span>, <span class="ident">EthFilterApiServer</span>, <span class="ident">EthPubSubApi</span>, <span class="ident">EthPubSubApiServer</span>,
 		<span class="ident">HexEncodedIdProvider</span>, <span class="ident">NetApi</span>, <span class="ident">NetApiServer</span>, <span class="ident">Web3Api</span>, <span class="ident">Web3ApiServer</span>,
 	};
+	<span class="kw">use</span> <span class="ident">moonbeam_rpc_debug</span>::{<span class="ident">Debug</span>, <span class="ident">DebugServer</span>};
 	<span class="kw">use</span> <span class="ident">moonbeam_rpc_txpool</span>::{<span class="ident">TxPool</span>, <span class="ident">TxPoolServer</span>};
 	<span class="kw">use</span> <span class="ident">pallet_transaction_payment_rpc</span>::{<span class="ident">TransactionPayment</span>, <span class="ident">TransactionPaymentApi</span>};
 	<span class="kw">use</span> <span class="ident">substrate_frame_rpc_system</span>::{<span class="ident">FullSystem</span>, <span class="ident">SystemApi</span>};
@@ -278,8 +309,10 @@
 		<span class="ident">network</span>,
 		<span class="ident">pending_transactions</span>,
 		<span class="ident">filter_pool</span>,
+		<span class="ident">ethapi_cmd</span>,
 		<span class="ident">command_sink</span>,
-		<span class="ident">backend</span>: <span class="ident">frontier_backend</span>,
+		<span class="ident">frontier_backend</span>,
+		<span class="ident">backend</span>,
 	} <span class="op">=</span> <span class="ident">deps</span>;
 
 	<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">SystemApi</span>::<span class="ident">to_delegate</span>(<span class="ident">FullSystem</span>::<span class="ident">new</span>(
@@ -310,7 +343,7 @@
 		<span class="ident">pending_transactions</span>,
 		<span class="ident">signers</span>,
 		<span class="ident">overrides</span>,
-		<span class="ident">frontier_backend</span>,
+		<span class="ident">frontier_backend</span>.<span class="ident">clone</span>(),
 		<span class="ident">is_authority</span>,
 	)));
 
@@ -336,7 +369,16 @@
 			<span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">subscription_task_executor</span>),
 		),
 	)));
-	<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">TxPoolServer</span>::<span class="ident">to_delegate</span>(<span class="ident">TxPool</span>::<span class="ident">new</span>(<span class="ident">client</span>, <span class="ident">pool</span>)));
+	<span class="kw">if</span> <span class="ident">ethapi_cmd</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">EthApiCmd</span>::<span class="ident">Debug</span>) {
+		<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">DebugServer</span>::<span class="ident">to_delegate</span>(<span class="ident">Debug</span>::<span class="ident">new</span>(
+			<span class="ident">client</span>.<span class="ident">clone</span>(),
+			<span class="ident">backend</span>,
+			<span class="ident">frontier_backend</span>,
+		)));
+	}
+	<span class="kw">if</span> <span class="ident">ethapi_cmd</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">EthApiCmd</span>::<span class="ident">Txpool</span>) {
+		<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">TxPoolServer</span>::<span class="ident">to_delegate</span>(<span class="ident">TxPool</span>::<span class="ident">new</span>(<span class="ident">client</span>, <span class="ident">pool</span>)));
+	}
 
 	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">command_sink</span>) <span class="op">=</span> <span class="ident">command_sink</span> {
 		<span class="ident">io</span>.<span class="ident">extend_with</span>(

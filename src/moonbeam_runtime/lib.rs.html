@@ -794,6 +794,88 @@
 <span id="791">791</span>
 <span id="792">792</span>
 <span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -827,14 +909,16 @@
 
 <span class="kw">use</span> <span class="ident">fp_rpc</span>::<span class="ident">TransactionStatus</span>;
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
-	<span class="ident">construct_runtime</span>,
+	<span class="ident">construct_runtime</span>, <span class="ident">debug</span>,
 	<span class="ident">pallet_prelude</span>::<span class="ident">PhantomData</span>,
 	<span class="ident">parameter_types</span>,
 	<span class="ident">traits</span>::{<span class="ident">Get</span>, <span class="ident">Randomness</span>},
 	<span class="ident">weights</span>::{<span class="ident">constants</span>::<span class="ident">WEIGHT_PER_SECOND</span>, <span class="ident">IdentityFee</span>, <span class="ident">Weight</span>},
 };
 <span class="kw">use</span> <span class="ident">frame_system</span>::{<span class="ident">EnsureOneOf</span>, <span class="ident">EnsureRoot</span>};
+<span class="kw">use</span> <span class="ident">moonbeam_extensions_evm</span>::<span class="ident">runner</span>::<span class="ident">stack</span>::<span class="ident">TraceRunner</span> <span class="kw">as</span> <span class="ident">TraceRunnerT</span>;
 <span class="kw">use</span> <span class="ident">pallet_ethereum</span>::<span class="ident">Call</span>::<span class="ident">transact</span>;
+<span class="kw">use</span> <span class="ident">pallet_ethereum</span>::{<span class="ident">Transaction</span> <span class="kw">as</span> <span class="ident">EthereumTransaction</span>, <span class="ident">TransactionAction</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{
 	<span class="ident">Account</span> <span class="kw">as</span> <span class="ident">EVMAccount</span>, <span class="ident">EnsureAddressNever</span>, <span class="ident">EnsureAddressSame</span>, <span class="ident">FeeCalculator</span>,
 	<span class="ident">IdentityAddressMapping</span>, <span class="ident">Runner</span>,
@@ -842,6 +926,7 @@
 <span class="kw">use</span> <span class="ident">pallet_transaction_payment</span>::<span class="ident">CurrencyAdapter</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">parachain_staking</span>::{<span class="ident">InflationInfo</span>, <span class="ident">Range</span>};
 <span class="kw">use</span> <span class="ident">parity_scale_codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
+<span class="kw">use</span> <span class="ident">sha3</span>::{<span class="ident">Digest</span>, <span class="ident">Keccak256</span>};
 <span class="kw">use</span> <span class="ident">sp_api</span>::<span class="ident">impl_runtime_apis</span>;
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">u32_trait</span>::<span class="kw-2">*</span>, <span class="ident">OpaqueMetadata</span>, <span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>};
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::{
@@ -1439,6 +1524,85 @@
 	<span class="kw">impl</span> <span class="ident">frame_system_rpc_runtime_api</span>::<span class="ident">AccountNonceApi</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">AccountId</span>, <span class="ident">Index</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 		<span class="kw">fn</span> <span class="ident">account_nonce</span>(<span class="ident">account</span>: <span class="ident">AccountId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Index</span> {
 			<span class="ident">System</span>::<span class="ident">account_nonce</span>(<span class="ident">account</span>)
+		}
+	}
+	<span class="kw">impl</span> <span class="ident">moonbeam_rpc_primitives_debug</span>::<span class="ident">DebugRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
+		<span class="kw">fn</span> <span class="ident">trace_transaction</span>(
+			<span class="ident">extrinsics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span>::<span class="ident">Extrinsic</span><span class="op">&gt;</span>,
+			<span class="ident">transaction</span>: <span class="kw-2">&amp;</span><span class="ident">EthereumTransaction</span>,
+			<span class="ident">trace_type</span>: <span class="ident">moonbeam_rpc_primitives_debug</span>::<span class="ident">TraceType</span>,
+		) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
+			<span class="ident">moonbeam_rpc_primitives_debug</span>::<span class="ident">TraceExecutorResponse</span>,
+			<span class="ident">sp_runtime</span>::<span class="ident">DispatchError</span>
+		<span class="op">&gt;</span> {
+			<span class="comment">// Get the caller;</span>
+			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sig</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">65</span>];
+			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">32</span>];
+			<span class="ident">sig</span>[<span class="number">0</span>..<span class="number">32</span>].<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">transaction</span>.<span class="ident">signature</span>.<span class="ident">r</span>()[..]);
+			<span class="ident">sig</span>[<span class="number">32</span>..<span class="number">64</span>].<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">transaction</span>.<span class="ident">signature</span>.<span class="ident">s</span>()[..]);
+			<span class="ident">sig</span>[<span class="number">64</span>] <span class="op">=</span> <span class="ident">transaction</span>.<span class="ident">signature</span>.<span class="ident">standard_v</span>();
+			<span class="ident">msg</span>.<span class="ident">copy_from_slice</span>(
+				<span class="kw-2">&amp;</span><span class="ident">pallet_ethereum</span>::<span class="ident">TransactionMessage</span>::<span class="ident">from</span>(<span class="ident">transaction</span>.<span class="ident">clone</span>()).<span class="ident">hash</span>()[..]
+			);
+
+			<span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">sp_io</span>::<span class="ident">crypto</span>::<span class="ident">secp256k1_ecdsa_recover</span>(<span class="kw-2">&amp;</span><span class="ident">sig</span>, <span class="kw-2">&amp;</span><span class="ident">msg</span>) {
+				<span class="prelude-val">Ok</span>(<span class="ident">pk</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">H160</span>::<span class="ident">from</span>(
+					<span class="ident">H256</span>::<span class="ident">from_slice</span>(<span class="ident">Keccak256</span>::<span class="ident">digest</span>(<span class="kw-2">&amp;</span><span class="ident">pk</span>).<span class="ident">as_slice</span>())
+				),
+				<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">H160</span>::<span class="ident">default</span>()
+			};
+
+			<span class="comment">// Apply the a subset of extrinsics: all the substrate-specific or ethereum transactions</span>
+			<span class="comment">// that preceded the requested transaction.</span>
+			<span class="kw">for</span> <span class="ident">ext</span> <span class="kw">in</span> <span class="ident">extrinsics</span>.<span class="ident">into_iter</span>() {
+				<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">ext</span>.<span class="ident">function</span> {
+					<span class="ident">Call</span>::<span class="ident">Ethereum</span>(<span class="ident">transact</span>(<span class="ident">t</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+						<span class="kw">if</span> <span class="ident">t</span> <span class="op">=</span><span class="op">=</span> <span class="ident">transaction</span> {
+							<span class="kw">break</span>;
+						}
+						<span class="ident">Executive</span>::<span class="ident">apply_extrinsic</span>(<span class="ident">ext</span>)
+					},
+					<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Executive</span>::<span class="ident">apply_extrinsic</span>(<span class="ident">ext</span>)
+				};
+			}
+
+			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm</span>::<span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">config</span>().<span class="ident">clone</span>();
+			<span class="ident">c</span>.<span class="ident">estimate</span> <span class="op">=</span> <span class="bool-val">true</span>;
+			<span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>);
+
+			<span class="comment">// Use the runner extension to interface with our evm&#39;s trace executor and return the</span>
+			<span class="comment">// TraceExecutorResult.</span>
+			<span class="kw">match</span> <span class="ident">transaction</span>.<span class="ident">action</span> {
+				<span class="ident">TransactionAction</span>::<span class="ident">Call</span>(<span class="ident">to</span>) <span class="op">=</span><span class="op">&gt;</span> {
+					<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">res</span>) <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm</span>::<span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">Runner</span>::<span class="ident">trace_call</span>(
+						<span class="ident">from</span>,
+						<span class="ident">to</span>,
+						<span class="ident">transaction</span>.<span class="ident">input</span>.<span class="ident">clone</span>(),
+						<span class="ident">transaction</span>.<span class="ident">value</span>,
+						<span class="ident">transaction</span>.<span class="ident">gas_limit</span>.<span class="ident">low_u64</span>(),
+						<span class="ident">config</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap_or</span>(<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm</span>::<span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">config</span>()),
+						<span class="ident">trace_type</span>,
+					) {
+						<span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">res</span>);
+					} <span class="kw">else</span> {
+						<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">sp_runtime</span>::<span class="ident">DispatchError</span>::<span class="ident">Other</span>(<span class="string">&quot;Evm error&quot;</span>));
+					}
+				},
+				<span class="ident">TransactionAction</span>::<span class="ident">Create</span> <span class="op">=</span><span class="op">&gt;</span> {
+					<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">res</span>) <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm</span>::<span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">Runner</span>::<span class="ident">trace_create</span>(
+						<span class="ident">from</span>,
+						<span class="ident">transaction</span>.<span class="ident">input</span>.<span class="ident">clone</span>(),
+						<span class="ident">transaction</span>.<span class="ident">value</span>,
+						<span class="ident">transaction</span>.<span class="ident">gas_limit</span>.<span class="ident">low_u64</span>(),
+						<span class="ident">config</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap_or</span>(<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm</span>::<span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">config</span>()),
+						<span class="ident">trace_type</span>,
+					) {
+						<span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">res</span>);
+					} <span class="kw">else</span> {
+						<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">sp_runtime</span>::<span class="ident">DispatchError</span>::<span class="ident">Other</span>(<span class="string">&quot;Evm error&quot;</span>));
+					}
+				}
+			}
 		}
 	}
 
