@@ -20,7 +20,6 @@ use evm::{
 	executor::{StackExecutor, StackState as StackStateT, StackSubstateMetadata},
 	Capture, Config as EvmConfig, Context, CreateScheme, Transfer,
 };
-// use fp_evm::Vicinity;
 use moonbeam_rpc_primitives_debug::{TraceExecutorResponse, TraceType};
 use pallet_evm::{
 	runner::stack::{Runner, SubstrateStackState},
