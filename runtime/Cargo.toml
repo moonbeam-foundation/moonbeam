@@ -53,6 +53,7 @@ fp-rpc = { default-features = false, git = "https://github.com/purestake/frontie
 
 pallet-democracy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+pallet-collective = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 
 moonbeam-rpc-primitives-debug = { path = "../primitives/rpc/debug", default-features = false }
 moonbeam-extensions-evm = { path = "extensions/evm", default-features = false }
@@ -107,6 +108,7 @@ std = [
 	"pallet-ethereum-chain-id/std",
 	"pallet-democracy/std",
 	"pallet-scheduler/std",
+	"pallet-collective/std",
 	"author-inherent/std",
 	"moonbeam-extensions-evm/std",
 	"parachain-info/std",

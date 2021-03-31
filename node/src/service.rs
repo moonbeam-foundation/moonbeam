@@ -49,8 +49,6 @@ use sc_service::{
 	TFullClient, TaskManager,
 };
 use sp_core::{Pair, H160, H256};
-use sp_runtime::traits::BlakeTwo256;
-use sp_trie::PrefixedMemoryDB;
 use std::{
 	collections::{BTreeMap, HashMap},
 	sync::{Arc, Mutex},
@@ -67,7 +65,10 @@ use sc_telemetry::{Telemetry, TelemetryWorker, TelemetryWorkerHandle};
 
 type FullClient = TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = TFullBackend<Block>;
+type MaybeSelectChain = Option<sc_consensus::LongestChain<FullBackend, Block>>;
 
+// TODO This is copied from frontier. It should be imported instead after
+// https://github.com/paritytech/frontier/issues/333 is solved
 pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backend<Block>>, String> {
 	let config_dir = config
 		.base_path
@@ -89,21 +90,21 @@ pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backen
 	)?))
 }
 
-/// Builds the PartialComponents for a parachain service
+/// Builds the PartialComponents for a parachain or development service
 ///
 /// Use this function if you don't actually need the full service, but just the partial in order to
 /// be able to perform chain operations.
 #[allow(clippy::type_complexity)]
-pub fn parachain_partial(
+pub fn new_partial(
 	config: &Configuration,
 	author: Option<H160>,
-	mock_inherents: bool,
+	dev_service: bool,
 ) -> Result<
 	PartialComponents<
 		FullClient,
 		FullBackend,
-		(),
-		sp_consensus::import_queue::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
+		MaybeSelectChain,
+		sp_consensus::DefaultImportQueue<Block, FullClient>,
 		sc_transaction_pool::FullPool<Block, FullClient>,
 		(
 			FrontierBlockImport<Block, Arc<FullClient>, FullClient>,
@@ -116,7 +117,7 @@ pub fn parachain_partial(
 	>,
 	ServiceError,
 > {
-	let inherent_data_providers = build_inherent_data_providers(author, mock_inherents)?;
+	let inherent_data_providers = build_inherent_data_providers(author, dev_service)?;
 
 	let telemetry = config
 		.telemetry_endpoints
@@ -144,6 +145,12 @@ pub fn parachain_partial(
 		telemetry
 	});
 
+	let maybe_select_chain = if dev_service {
+		Some(sc_consensus::LongestChain::new(backend.clone()))
+	} else {
+		None
+	};
+
 	let transaction_pool = sc_transaction_pool::BasicPool::new_full(
 		config.transaction_pool.clone(),
 		config.role.is_authority().into(),
@@ -161,13 +168,27 @@ pub fn parachain_partial(
 	let frontier_block_import =
 		FrontierBlockImport::new(client.clone(), client.clone(), frontier_backend.clone());
 
-	let import_queue = cumulus_client_consensus_relay_chain::import_queue(
-		client.clone(),
-		frontier_block_import.clone(),
-		inherent_data_providers.clone(),
-		&task_manager.spawn_essential_handle(),
-		config.prometheus_registry(),
-	)?;
+	// Depending whether we are
+	let import_queue = if dev_service {
+		// There is a bug in this import queue where it doesn't properly check inherents:
+		// https://github.com/paritytech/substrate/issues/8164
+		sc_consensus_manual_seal::import_queue(
+			Box::new(frontier_block_import.clone()),
+			&task_manager.spawn_essential_handle(),
+			config.prometheus_registry(),
+		)
+	} else {
+		// It would be nice if we could just use this one in either case, but
+		// it doesn't properly follow the longest chain rule.
+		// https://github.com/PureStake/moonbeam/pull/266
+		cumulus_client_consensus_relay_chain::import_queue(
+			client.clone(),
+			frontier_block_import.clone(),
+			inherent_data_providers.clone(),
+			&task_manager.spawn_essential_handle(),
+			config.prometheus_registry(),
+		)?
+	};
 
 	Ok(PartialComponents {
 		backend,
@@ -177,7 +198,7 @@ pub fn parachain_partial(
 		task_manager,
 		transaction_pool,
 		inherent_data_providers,
-		select_chain: (),
+		select_chain: maybe_select_chain,
 		other: (
 			frontier_block_import,
 			pending_transactions,
@@ -215,7 +236,7 @@ where
 
 	let parachain_config = prepare_node_config(parachain_config);
 
-	let params = parachain_partial(&parachain_config, author_id, false)?;
+	let params = new_partial(&parachain_config, author_id, false)?;
 	let (
 		block_import,
 		pending_transactions,
@@ -421,112 +442,14 @@ pub async fn start_node(
 	.await
 }
 
-/// Builds the PartialComponents for a development service
-///
-/// Use this function if you don't actually need the full service, but just the partial in order to
-/// be able to perform chain operations.
-#[allow(clippy::type_complexity)]
-pub fn dev_partial(
-	config: &Configuration,
-	author: Option<H160>,
-	mock_inherents: bool,
-) -> Result<
-	PartialComponents<
-		FullClient,
-		FullBackend,
-		(),
-		sp_consensus::import_queue::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
-		sc_transaction_pool::FullPool<Block, FullClient>,
-		(
-			FrontierBlockImport<Block, Arc<FullClient>, FullClient>,
-			PendingTransactions,
-			Option<FilterPool>,
-			Option<Telemetry>,
-			Option<TelemetryWorkerHandle>,
-			Arc<fc_db::Backend<Block>>,
-		),
-	>,
-	ServiceError,
-> {
-	let inherent_data_providers = build_inherent_data_providers(author, mock_inherents)?;
-
-	let telemetry = config
-		.telemetry_endpoints
-		.clone()
-		.filter(|x| !x.is_empty())
-		.map(|endpoints| -> Result<_, sc_telemetry::Error> {
-			let worker = TelemetryWorker::new(16)?;
-			let telemetry = worker.handle().new_telemetry(endpoints);
-			Ok((worker, telemetry))
-		})
-		.transpose()?;
-
-	let (client, backend, keystore_container, task_manager) =
-		sc_service::new_full_parts::<Block, RuntimeApi, Executor>(
-			&config,
-			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
-		)?;
-
-	let client = Arc::new(client);
-
-	let telemetry_worker_handle = telemetry.as_ref().map(|(worker, _)| worker.handle());
-
-	let telemetry = telemetry.map(|(worker, telemetry)| {
-		task_manager.spawn_handle().spawn("telemetry", worker.run());
-		telemetry
-	});
-
-	let transaction_pool = sc_transaction_pool::BasicPool::new_full(
-		config.transaction_pool.clone(),
-		config.role.is_authority().into(),
-		config.prometheus_registry(),
-		task_manager.spawn_handle(),
-		client.clone(),
-	);
-
-	let pending_transactions: PendingTransactions = Some(Arc::new(Mutex::new(HashMap::new())));
-
-	let filter_pool: Option<FilterPool> = Some(Arc::new(Mutex::new(BTreeMap::new())));
-
-	let frontier_backend = open_frontier_backend(config)?;
-
-	let frontier_block_import =
-		FrontierBlockImport::new(client.clone(), client.clone(), frontier_backend.clone());
-
-	// There is another bug in this import queue where it doesn't properly check inherents:
-	// https://github.com/paritytech/substrate/issues/8164
-	let import_queue = sc_consensus_manual_seal::import_queue(
-		Box::new(frontier_block_import.clone()),
-		&task_manager.spawn_essential_handle(),
-		config.prometheus_registry(),
-	);
-
-	Ok(PartialComponents {
-		backend,
-		client,
-		import_queue,
-		keystore_container,
-		task_manager,
-		transaction_pool,
-		inherent_data_providers,
-		select_chain: (),
-		other: (
-			frontier_block_import,
-			pending_transactions,
-			filter_pool,
-			telemetry,
-			telemetry_worker_handle,
-			frontier_backend,
-		),
-	})
-}
-
 /// Builds a new development service. This service uses manual seal, and mocks
 /// the parachain inherent.
 pub fn new_dev(
 	config: Configuration,
 	sealing: Sealing,
 	author_id: Option<H160>,
+	// TODO I guess we should use substrate-cli's validator flag for this.
+	// Resolve after https://github.com/paritytech/cumulus/pull/380 is reviewed.
 	collator: bool,
 	ethapi_cmd: Vec<EthApiCmd>,
 ) -> Result<TaskManager, ServiceError> {
@@ -536,7 +459,7 @@ pub fn new_dev(
 		mut task_manager,
 		import_queue,
 		keystore_container,
-		select_chain: _,
+		select_chain: maybe_select_chain,
 		transaction_pool,
 		inherent_data_providers,
 		other:
@@ -548,7 +471,7 @@ pub fn new_dev(
 				_telemetry_worker_handle,
 				frontier_backend,
 			),
-	} = dev_partial(&config, author_id, true)?;
+	} = new_partial(&config, author_id, true)?;
 
 	let (network, network_status_sinks, system_rpc_tx, network_starter) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
@@ -618,9 +541,11 @@ pub fn new_dev(
 				)),
 			};
 
-		// Typically the longest chain rule is constructed in `new_partial`, but the full service,
-		// does not use one. So instead we construct our longest chain rule here.
-		let select_chain = sc_consensus::LongestChain::new(backend.clone());
+		let select_chain = maybe_select_chain.expect(
+			"`new_partial` builds a `LongestChainRule` when building dev service.\
+				We specified the dev service when calling `new_partial`.\
+				Therefore, a `LongestChainRule` is present. qed.",
+		);
 
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
