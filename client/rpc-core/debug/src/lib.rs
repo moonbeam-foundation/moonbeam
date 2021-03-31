@@ -29,7 +29,7 @@ pub mod types {
 
 // TODO: Add support for additional params.
 // - `disableStorage`, `disableMemory`, `disableStack`.
-// - `timeout` should be ignored unless we find out a way for actually evaluating the tracer input.  
+// - `timeout` should be ignored unless we find out a way for actually evaluating the tracer input.
 #[derive(Clone, Eq, PartialEq, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TraceParams {
