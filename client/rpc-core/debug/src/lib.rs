@@ -27,11 +27,18 @@ pub mod types {
 	pub use moonbeam_rpc_primitives_debug::{StepLog, TraceExecutorResponse};
 }
 
+// TODO: Add support for additional params.
+// - `disableStorage`, `disableMemory`, `disableStack`.
+// - `timeout` should be ignored unless we find out a way for actually evaluating the tracer input.  
 #[derive(Clone, Eq, PartialEq, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TraceParams {
 	/// Javascript tracer (we just check if it's Blockscout tracer string)
+	pub disable_storage: Option<bool>,
+	pub disable_memory: Option<bool>,
+	pub disable_stack: Option<bool>,
 	pub tracer: Option<String>,
+	pub timeout: Option<String>,
 }
 
 #[rpc(server)]

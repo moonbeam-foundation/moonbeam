@@ -180,6 +180,7 @@ where
 		let trace_type = match params {
 			Some(TraceParams {
 				tracer: Some(tracer),
+				..
 			}) => {
 				let hash: H128 = sp_io::hashing::twox_128(&tracer.as_bytes()).into();
 				let blockscout_hash = H128::from_str("0x94d9f08796f91eb13a2e82a6066882f7").unwrap();
