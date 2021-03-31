@@ -4458,6 +4458,7 @@ dependencies = [
  "moonbeam-rpc-primitives-txpool",
  "pallet-author-filter",
  "pallet-balances",
+ "pallet-collective",
  "pallet-democracy",
  "pallet-ethereum",
  "pallet-ethereum-chain-id",

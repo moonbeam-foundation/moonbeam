@@ -23,9 +23,10 @@ use bip39::{Language, Mnemonic, Seed};
 use cumulus_primitives_core::ParaId;
 use log::debug;
 use moonbeam_runtime::{
-	AccountId, Balance, BalancesConfig, DemocracyConfig, EVMConfig, EthereumChainIdConfig,
-	EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig, ParachainStakingConfig,
-	Range, SchedulerConfig, SudoConfig, SystemConfig, GLMR, WASM_BINARY,
+	AccountId, Balance, BalancesConfig, CouncilCollectiveConfig, DemocracyConfig, EVMConfig,
+	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig,
+	ParachainStakingConfig, Range, SchedulerConfig, SudoConfig, SystemConfig,
+	TechComitteeCollectiveConfig, GLMR, WASM_BINARY,
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
@@ -254,6 +255,14 @@ fn testnet_genesis(
 		parachain_staking: ParachainStakingConfig {
 			stakers,
 			inflation_config,
+		},
+		pallet_collective_Instance1: CouncilCollectiveConfig {
+			phantom: Default::default(),
+			members: vec![], // TODO : Set members
+		},
+		pallet_collective_Instance2: TechComitteeCollectiveConfig {
+			phantom: Default::default(),
+			members: vec![], // TODO : Set members
 		},
 	}
 }

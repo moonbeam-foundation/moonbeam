@@ -93,9 +93,6 @@ need a refresher setting up your Substrate environment, see [Substrate's Getting
 git clone https://github.com/PureStake/moonbeam
 cd moonbeam
 
-# Optional: Ensure you have the exact nightly toolchain used by Moonbeam's CI
-./scripts/init.sh
-
 # Build the node (The first build will be long (~30min))
 cargo build --release
 ```
