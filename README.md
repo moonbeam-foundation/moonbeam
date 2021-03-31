@@ -94,7 +94,7 @@ cargo build --release
 
 ## Run tests
 
-Moonbeam has Rust unit tests as well as typescript integration tests.
+Moonbeam has Rust unit tests as well as typescript integration tests. These tests are run in CI, and can also be run locally.
 
 ```bash
 # Run the Rust unit tests
@@ -161,16 +161,6 @@ The following pallets are stored in `pallets/`. They are designed for Moonbeam's
 - _Ethereum Chain Id_: A place to store the chain id for each Moonbeam network
 - _Author Inherent_: Allows block authors to include their identity in a block via an inherent
 - _Parachain Staking_: Minimal staking pallet that selects collators by total amount at stake
-
-## Tests
-
-Tests are run with the following command:
-
-```bash
-cargo test --verbose
-```
-
-This github repository is also linked to Gitlab CI
 
 ## Contribute
 
