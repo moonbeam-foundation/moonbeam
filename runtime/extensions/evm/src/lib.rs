@@ -15,22 +15,21 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Substrate EVM tracing.
-//! 
+//!
 //! The purpose of this extension is enable tracing the EVM opcode execution and will be used by
 //! both Dapp developers - to get a granular view on their transactions - and indexers to access
 //! the EVM callstack (internal transactions).
 //!
 //! The extension composed of two modules:
-//! 
+//!
 //! - Runner - interfaces the runtime Api with the EVM Executor wrapper.
 //! - Executor Wrapper - an evm::Handler implementor that wraps an evm::StackExecutor.
-//! 
+//!
 //! The wrapper replaces the original recursive opcode execution done by the evm's
 //! `create_inner` and `call_inner` methods, with one that allows capturing the intermediate machine
 //! state between opcode executions (stepping), resulting in either a granular per opcode response:
-//! 
+//!
 //! ```
-//! ...
 //! {
 //!     "pc": 229,
 //!     "op": "SWAP1",
@@ -43,9 +42,7 @@
 //!     "memory": [
 //!       "0000000000000000000000000000000000000000000000000000000000000000",
 //!     ],
-//!     "storage": {
-//!         ...
-//!     }
+//!     "storage": {}
 //!   },
 //!   {
 //!     "pc": 230,
@@ -59,15 +56,12 @@
 //!     "memory": [
 //!       "0000000000000000000000000000000000000000000000000000000000000000",
 //!     ],
-//!     "storage": {
-//!         ...
-//!     }
+//!     "storage": {}
 //!   }
-//! ...
 //! ```
-//! 
+//!
 //! or an overview of the internal transactions in a context type.
-//! 
+//!
 //! ```
 //! [
 //!  {
@@ -98,8 +92,6 @@
 //!  }
 //! ]
 //! ```
-//! 
-//! 
 
 #![cfg_attr(not(feature = "std"), no_std)]
 pub mod executor;

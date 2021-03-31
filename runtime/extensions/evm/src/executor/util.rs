@@ -175,7 +175,7 @@ pub fn opcodes(opcode: Opcode) -> Vec<u8> {
 		Opcode(253) => "Revert",
 		Opcode(254) => "Invalid",
 		Opcode(255) => "SelfDestruct",
-		_ => unreachable!("Unreachable Opcode identifier.")
+		_ => unreachable!("Unreachable Opcode identifier."),
 	};
 	out.to_string().as_bytes().to_vec()
 }
