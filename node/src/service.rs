@@ -48,7 +48,7 @@ use sc_service::{
 	error::Error as ServiceError, BasePath, Configuration, PartialComponents, Role, TFullBackend,
 	TFullClient, TaskManager,
 };
-use sp_core::{Pair, H160, H256};
+use sp_core::{H160, H256};
 use std::{
 	collections::{BTreeMap, HashMap},
 	sync::{Arc, Mutex},
@@ -248,7 +248,7 @@ where
 
 	let polkadot_full_node = cumulus_client_service::build_polkadot_full_node(
 		polkadot_config,
-		collator_key.public(),
+		collator_key.clone(),
 		telemetry_worker_handle,
 	)
 	.map_err(|e| match e {
