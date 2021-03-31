@@ -28,7 +28,9 @@ use pallet_evm::{
 };
 use sp_std::{convert::Infallible, vec::Vec};
 
+/// EVM Tracing for pallet_evm::stack::Runner.
 pub trait TraceRunner<T: Config> {
+	/// Handle an Executor wrapper `call`. Used by `trace_call`.
 	fn execute_call<'config, F>(
 		executor: &'config mut StackExecutor<'config, SubstrateStackState<'_, 'config, T>>,
 		trace_type: TraceType,
@@ -39,6 +41,7 @@ pub trait TraceRunner<T: Config> {
 			&mut TraceExecutorWrapper<'config, SubstrateStackState<'_, 'config, T>>,
 		) -> Capture<(ExitReason, Vec<u8>), Infallible>;
 
+	/// Handle an Executor wrapper `create`. Used by `trace_create`.
 	fn execute_create<'config, F>(
 		executor: &'config mut StackExecutor<'config, SubstrateStackState<'_, 'config, T>>,
 		trace_type: TraceType,
@@ -49,6 +52,7 @@ pub trait TraceRunner<T: Config> {
 			&mut TraceExecutorWrapper<'config, SubstrateStackState<'_, 'config, T>>,
 		) -> Capture<(ExitReason, Option<H160>, Vec<u8>), Infallible>;
 
+	/// Context creation for `call`. Typically called by the Runtime Api.
 	fn trace_call(
 		source: H160,
 		target: H160,
@@ -59,6 +63,7 @@ pub trait TraceRunner<T: Config> {
 		trace_type: TraceType,
 	) -> Result<TraceExecutorResponse, ExitError>;
 
+	/// Context creation for create. Typically called by the Runtime Api.
 	fn trace_create(
 		source: H160,
 		init: Vec<u8>,
