@@ -656,7 +656,11 @@ impl_runtime_apis! {
 
 		fn trace_block(
 			extrinsics: Vec<<Block as BlockT>::Extrinsic>,
-		) -> Result<Vec<moonbeam_rpc_primitives_debug::block::TransactionTrace>, sp_runtime::DispatchError> {
+		) -> Result<
+			Vec<
+				moonbeam_rpc_primitives_debug::block::TransactionTrace>,
+				sp_runtime::DispatchError
+			> {
 			use moonbeam_rpc_primitives_debug::{single, block, CallResult, CreateResult, CreateType};
 
 			let mut config = <Runtime as pallet_evm::Config>::config().clone();
@@ -676,7 +680,8 @@ impl_runtime_apis! {
 						sig[32..64].copy_from_slice(&transaction.signature.s()[..]);
 						sig[64] = transaction.signature.standard_v();
 						msg.copy_from_slice(
-							&pallet_ethereum::TransactionMessage::from(transaction.clone()).hash()[..]
+							&pallet_ethereum::TransactionMessage::from(transaction.clone())
+								.hash()[..]
 						);
 
 						let from = match sp_io::crypto::secp256k1_ecdsa_recover(&sig, &msg) {
@@ -686,8 +691,8 @@ impl_runtime_apis! {
 							_ => H160::default()
 						};
 
-						// Use the runner extension to interface with our evm's trace executor and return the
-						// TraceExecutorResult.
+						// Use the runner extension to interface with our evm's trace executor and 
+						// return the TraceExecutorResult.
 						let tx_traces = match transaction.action {
 							TransactionAction::Call(to) => {
 								<Runtime as pallet_evm::Config>::Runner::trace_call(
@@ -721,7 +726,9 @@ impl_runtime_apis! {
 						// Convert traces from "single" format to "block" format.
 						let mut tx_traces: Vec<_> = tx_traces.into_iter().map(|trace|
 							match trace.inner {
-								single::CallInner::Call {input, to, res, call_type} => block::TransactionTrace {
+								single::CallInner::Call {
+									input, to, res, call_type
+								} => block::TransactionTrace {
 									action: block::TransactionTraceAction::Call {
 										call_type,
 										from: trace.from,
