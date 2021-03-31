@@ -131,6 +131,15 @@ pub struct RunCmd {
 	/// Public identity for participating in staking and receiving rewards
 	#[structopt(long, parse(try_from_str = parse_h160))]
 	pub author_id: Option<H160>,
+
+	/// Enable EVM tracing module on a non-authority node.
+	#[structopt(
+		long,
+		conflicts_with = "collator",
+		conflicts_with = "validator",
+		require_delimiter = true
+	)]
+	pub ethapi: Vec<EthApi>,
 }
 
 fn parse_h160(input: &str) -> Result<H160, String> {
@@ -220,6 +229,29 @@ impl FromStr for Sealing {
 				let millis =
 					u64::from_str_radix(s, 10).map_err(|_| "couldn't decode sealing param")?;
 				Self::Interval(millis)
+			}
+		})
+	}
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum EthApi {
+	Txpool,
+	Debug,
+}
+
+impl FromStr for EthApi {
+	type Err = String;
+
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		Ok(match s {
+			"txpool" => Self::Txpool,
+			"debug" => Self::Debug,
+			_ => {
+				return Err(format!(
+					"`{}` is not recognized as a supported Ethereum Api",
+					s
+				))
 			}
 		})
 	}

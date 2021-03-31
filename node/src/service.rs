@@ -22,6 +22,7 @@
 //! Full Service: A complete parachain node including the pool, rpc, network, embedded relay chain
 //! Dev Service: A leaner service without the relay chain backing.
 
+use crate::cli::EthApi as EthApiCmd;
 use crate::{cli::Sealing, inherents::build_inherent_data_providers};
 use async_io::Timer;
 use cumulus_client_consensus_relay_chain::{
@@ -47,9 +48,7 @@ use sc_service::{
 	error::Error as ServiceError, BasePath, Configuration, PartialComponents, Role, TFullBackend,
 	TFullClient, TaskManager,
 };
-use sp_core::{Pair, H160, H256};
-use sp_runtime::traits::BlakeTwo256;
-use sp_trie::PrefixedMemoryDB;
+use sp_core::{H160, H256};
 use std::{
 	collections::{BTreeMap, HashMap},
 	sync::{Arc, Mutex},
@@ -221,6 +220,7 @@ async fn start_node_impl<RB>(
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	collator: bool,
+	ethapi_cmd: Vec<EthApiCmd>,
 	_rpc_ext_builder: RB,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient>)>
 where
@@ -290,6 +290,8 @@ where
 		let pending = pending_transactions.clone();
 		let filter_pool = filter_pool.clone();
 		let frontier_backend = frontier_backend.clone();
+		let backend = backend.clone();
+		let ethapi_cmd = ethapi_cmd.clone();
 
 		Box::new(move |deny_unsafe, _| {
 			let deps = crate::rpc::FullDeps {
@@ -301,8 +303,10 @@ where
 				network: network.clone(),
 				pending_transactions: pending.clone(),
 				filter_pool: filter_pool.clone(),
+				ethapi_cmd: ethapi_cmd.clone(),
 				command_sink: None,
-				backend: frontier_backend.clone(),
+				frontier_backend: frontier_backend.clone(),
+				backend: backend.clone(),
 			};
 
 			crate::rpc::create_full(deps, subscription_task_executor.clone())
@@ -423,6 +427,7 @@ pub async fn start_node(
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	collator: bool,
+	ethapi_cmd: Vec<EthApiCmd>,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient>)> {
 	start_node_impl(
 		parachain_config,
@@ -431,6 +436,7 @@ pub async fn start_node(
 		polkadot_config,
 		id,
 		collator,
+		ethapi_cmd,
 		|_| Default::default(),
 	)
 	.await
@@ -445,6 +451,7 @@ pub fn new_dev(
 	// TODO I guess we should use substrate-cli's validator flag for this.
 	// Resolve after https://github.com/paritytech/cumulus/pull/380 is reviewed.
 	collator: bool,
+	ethapi_cmd: Vec<EthApiCmd>,
 ) -> Result<TaskManager, ServiceError> {
 	let sc_service::PartialComponents {
 		client,
@@ -558,9 +565,11 @@ pub fn new_dev(
 	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
+		let backend = backend.clone();
 		let network = network.clone();
 		let pending = pending_transactions.clone();
 		let filter_pool = filter_pool.clone();
+		let ethapi_cmd = ethapi_cmd.clone();
 		let frontier_backend = frontier_backend.clone();
 
 		Box::new(move |deny_unsafe, _| {
@@ -573,8 +582,10 @@ pub fn new_dev(
 				network: network.clone(),
 				pending_transactions: pending.clone(),
 				filter_pool: filter_pool.clone(),
+				ethapi_cmd: ethapi_cmd.clone(),
 				command_sink: command_sink.clone(),
-				backend: frontier_backend.clone(),
+				frontier_backend: frontier_backend.clone(),
+				backend: backend.clone(),
 			};
 			crate::rpc::create_full(deps, subscription_task_executor.clone())
 		})

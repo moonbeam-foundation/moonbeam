@@ -12,6 +12,7 @@ serde = { version = "1.0.101", default-features = false, optional = true, featur
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
 log = "0.4"
 hex-literal = "0.3.1"
+sha3 = { version = "0.9", default-features = false }
 
 precompiles = { path = "precompiles/", default-features = false }
 account = { path = "account/", default-features = false }
@@ -56,6 +57,8 @@ pallet-democracy = { git = "https://github.com/paritytech/substrate", default-fe
 pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-collective = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 
+moonbeam-rpc-primitives-debug = { path = "../primitives/rpc/debug", default-features = false }
+moonbeam-extensions-evm = { path = "extensions/evm", default-features = false }
 moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool", default-features = false }
 
 # Cumulus dependencies
@@ -81,6 +84,7 @@ default = [
 std = [
 	"parity-scale-codec/std",
 	"serde",
+	"sha3/std",
 	"sp-api/std",
 	"sp-std/std",
 	"sp-io/std",
@@ -103,6 +107,7 @@ std = [
 	"pallet-utility/std",
 	"pallet-ethereum/std",
 	"pallet-evm/std",
+	"moonbeam-rpc-primitives-debug/std",
 	"moonbeam-rpc-primitives-txpool/std",
 	"fp-rpc/std",
 	"frame-system-rpc-runtime-api/std",
@@ -112,6 +117,7 @@ std = [
 	"pallet-scheduler/std",
 	"pallet-collective/std",
 	"author-inherent/std",
+	"moonbeam-extensions-evm/std",
 	"parachain-info/std",
 	"cumulus-pallet-parachain-system/std",
 	"cumulus-primitives-core/std",

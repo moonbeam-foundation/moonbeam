@@ -1,0 +1,40 @@
+[package]
+name = "moonbeam-rpc-primitives-debug"
+version = '0.1.0'
+authors = ['PureStake']
+edition = '2018'
+homepage = 'https://moonbeam.network'
+license = 'GPL-3.0-only'
+repository = 'https://github.com/PureStake/moonbeam/'
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
+ethereum = { version = "0.7.1", default-features = false, features = ["with-codec"] }
+ethereum-types = { version = "0.11.0", default-features = false }
+sp-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1", default-features = false }
+sp-api = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1", default-features = false }
+sp-io = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1", default-features = false }
+sp-std = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1", default-features = false }
+sp-core = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1", default-features = false }
+serde = { version = "1.0", features = ["derive"], optional = true }
+serde_json = { version = "1.0", optional = true }
+hex = { version = "0.4", features = ["serde"], optional = true}
+#moonbeam-rpc-core-debug = { path = "../../../client/rpc-core/debug" }
+
+[features]
+default = ["std"]
+std = [
+	"codec/std",
+	"sp-api/std",
+	"sp-runtime/std",
+	"sp-io/std",
+	"sp-std/std",
+	"sp-core/std",
+	"ethereum/std",
+	"ethereum-types/std",
+	"serde",
+	"serde_json",
+	"hex"
+]

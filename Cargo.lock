@@ -1739,9 +1739,8 @@ checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
 
 [[package]]
 name = "evm"
-version = "0.25.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b4bd1fb06a4962a243c8be285d8a9b2493ffa79acb32633ad07a0bc523b1acd"
+version = "0.26.0"
+source = "git+https://github.com/rust-blockchain/evm?branch=master#2a8a3e967ec265fdc7120ff6b57ceab021ca69f6"
 dependencies = [
  "ethereum",
  "evm-core",
@@ -1757,9 +1756,8 @@ dependencies = [
 
 [[package]]
 name = "evm-core"
-version = "0.25.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b4eea3882c798813a6f92e8855ec1fc3f5ababd8b274cb81d4bedee701b478e"
+version = "0.26.0"
+source = "git+https://github.com/rust-blockchain/evm?branch=master#2a8a3e967ec265fdc7120ff6b57ceab021ca69f6"
 dependencies = [
  "funty",
  "parity-scale-codec",
@@ -1769,9 +1767,8 @@ dependencies = [
 
 [[package]]
 name = "evm-gasometer"
-version = "0.25.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0a8f04dcc8b0296652eabfa443a08ebed6071a1178e0f42a7f7b63a612bddf0b"
+version = "0.26.0"
+source = "git+https://github.com/rust-blockchain/evm?branch=master#2a8a3e967ec265fdc7120ff6b57ceab021ca69f6"
 dependencies = [
  "evm-core",
  "evm-runtime",
@@ -1780,9 +1777,8 @@ dependencies = [
 
 [[package]]
 name = "evm-runtime"
-version = "0.25.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "54c302f29ca8bba82a382aa52d427869964179e4f24eae57bde70958ce9b7607"
+version = "0.26.0"
+source = "git+https://github.com/rust-blockchain/evm?branch=master#2a8a3e967ec265fdc7120ff6b57ceab021ca69f6"
 dependencies = [
  "evm-core",
  "primitive-types",
@@ -1854,7 +1850,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#453c0c25ba16b667fd173f04151a167b493ec11d"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#83d49683d6ac0b0672fb2647a484bca57b2000f0"
 dependencies = [
  "derive_more",
  "fc-db",
@@ -1878,7 +1874,7 @@ dependencies = [
 [[package]]
 name = "fc-db"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#453c0c25ba16b667fd173f04151a167b493ec11d"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#83d49683d6ac0b0672fb2647a484bca57b2000f0"
 dependencies = [
  "kvdb",
  "kvdb-rocksdb",
@@ -1892,7 +1888,7 @@ dependencies = [
 [[package]]
 name = "fc-mapping-sync"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#453c0c25ba16b667fd173f04151a167b493ec11d"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#83d49683d6ac0b0672fb2647a484bca57b2000f0"
 dependencies = [
  "fc-consensus",
  "fc-db",
@@ -1910,7 +1906,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#453c0c25ba16b667fd173f04151a167b493ec11d"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#83d49683d6ac0b0672fb2647a484bca57b2000f0"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -1951,7 +1947,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#453c0c25ba16b667fd173f04151a167b493ec11d"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#83d49683d6ac0b0672fb2647a484bca57b2000f0"
 dependencies = [
  "ethereum-types",
  "jsonrpc-core 15.1.0",
@@ -2055,7 +2051,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#453c0c25ba16b667fd173f04151a167b493ec11d"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#83d49683d6ac0b0672fb2647a484bca57b2000f0"
 dependencies = [
  "ethereum",
  "parity-scale-codec",
@@ -2069,7 +2065,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "0.8.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#453c0c25ba16b667fd173f04151a167b493ec11d"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#83d49683d6ac0b0672fb2647a484bca57b2000f0"
 dependencies = [
  "evm",
  "impl-trait-for-tuples 0.1.3",
@@ -2082,7 +2078,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#453c0c25ba16b667fd173f04151a167b493ec11d"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#83d49683d6ac0b0672fb2647a484bca57b2000f0"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2098,7 +2094,7 @@ dependencies = [
 [[package]]
 name = "fp-storage"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#453c0c25ba16b667fd173f04151a167b493ec11d"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#83d49683d6ac0b0672fb2647a484bca57b2000f0"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2728,6 +2724,9 @@ name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "hex-literal"
@@ -4349,6 +4348,8 @@ dependencies = [
  "jsonrpc-core 15.1.0",
  "jsonrpc-pubsub 15.1.0",
  "log",
+ "moonbeam-rpc-debug",
+ "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "moonbeam-rpc-txpool",
  "moonbeam-runtime",
@@ -4411,6 +4412,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "moonbeam-extensions-evm"
+version = "0.1.0"
+dependencies = [
+ "ethereum-types",
+ "evm",
+ "evm-core",
+ "fp-evm",
+ "moonbeam-rpc-primitives-debug",
+ "pallet-evm",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "moonbeam-rpc-core-debug"
+version = "0.1.0"
+dependencies = [
+ "ethereum-types",
+ "jsonrpc-core 15.1.0",
+ "jsonrpc-core-client 14.2.0",
+ "jsonrpc-derive 14.2.2",
+ "moonbeam-rpc-primitives-debug",
+ "serde",
+ "serde_json",
+ "sp-core",
+]
+
+[[package]]
 name = "moonbeam-rpc-core-txpool"
 version = "0.6.0"
 dependencies = [
@@ -4422,6 +4453,44 @@ dependencies = [
  "jsonrpc-derive 14.2.2",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "moonbeam-rpc-debug"
+version = "0.1.0"
+dependencies = [
+ "ethereum",
+ "ethereum-types",
+ "fc-consensus",
+ "fc-db",
+ "fp-rpc",
+ "jsonrpc-core 15.1.0",
+ "moonbeam-rpc-core-debug",
+ "moonbeam-rpc-primitives-debug",
+ "sc-client-api",
+ "sp-api",
+ "sp-block-builder",
+ "sp-blockchain",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+]
+
+[[package]]
+name = "moonbeam-rpc-primitives-debug"
+version = "0.1.0"
+dependencies = [
+ "ethereum",
+ "ethereum-types",
+ "hex",
+ "parity-scale-codec",
+ "serde",
+ "serde_json",
+ "sp-api",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -4471,6 +4540,8 @@ dependencies = [
  "frame-system-rpc-runtime-api",
  "hex-literal",
  "log",
+ "moonbeam-extensions-evm",
+ "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "pallet-author-filter",
  "pallet-balances",
@@ -4492,6 +4563,7 @@ dependencies = [
  "polkadot-parachain",
  "precompiles",
  "serde",
+ "sha3 0.9.1",
  "sp-api",
  "sp-block-builder",
  "sp-core",
@@ -5030,7 +5102,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#453c0c25ba16b667fd173f04151a167b493ec11d"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#83d49683d6ac0b0672fb2647a484bca57b2000f0"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -5068,7 +5140,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#453c0c25ba16b667fd173f04151a167b493ec11d"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#83d49683d6ac0b0672fb2647a484bca57b2000f0"
 dependencies = [
  "evm",
  "evm-gasometer",
@@ -5092,7 +5164,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-bn128"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#453c0c25ba16b667fd173f04151a167b493ec11d"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#83d49683d6ac0b0672fb2647a484bca57b2000f0"
 dependencies = [
  "evm",
  "fp-evm",
@@ -5104,7 +5176,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#453c0c25ba16b667fd173f04151a167b493ec11d"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#83d49683d6ac0b0672fb2647a484bca57b2000f0"
 dependencies = [
  "evm",
  "fp-evm",
@@ -5118,7 +5190,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#453c0c25ba16b667fd173f04151a167b493ec11d"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#83d49683d6ac0b0672fb2647a484bca57b2000f0"
 dependencies = [
  "evm",
  "fp-evm",
@@ -5130,7 +5202,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#453c0c25ba16b667fd173f04151a167b493ec11d"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#83d49683d6ac0b0672fb2647a484bca57b2000f0"
 dependencies = [
  "evm",
  "fp-evm",
@@ -5142,7 +5214,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#453c0c25ba16b667fd173f04151a167b493ec11d"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#83d49683d6ac0b0672fb2647a484bca57b2000f0"
 dependencies = [
  "evm",
  "fp-evm",
