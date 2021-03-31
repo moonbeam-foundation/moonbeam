@@ -14,13 +14,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v1
 
-      - uses: actions-rs/toolchain@v1
-        with:
-          target: wasm32-unknown-unknown
-          # Toolchain is autodetected from `rust-toolchain` file
-          # https://github.com/actions-rs/toolchain#the-toolchain-file
-          #toolchain: ${{ env.WASM_BUILD_TOOLCHAIN }}
-          default: true
+      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
+      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
+      - name: Setup Rust toolchain
+        run: rustup show
 
       - uses: actions/cache@v2
         with:
