@@ -687,7 +687,7 @@
 	<span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">ServiceError</span>, <span class="ident">BasePath</span>, <span class="ident">Configuration</span>, <span class="ident">PartialComponents</span>, <span class="ident">Role</span>, <span class="ident">TFullBackend</span>,
 	<span class="ident">TFullClient</span>, <span class="ident">TaskManager</span>,
 };
-<span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">Pair</span>, <span class="ident">H160</span>, <span class="ident">H256</span>};
+<span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">H256</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{
 	<span class="ident">collections</span>::{<span class="ident">BTreeMap</span>, <span class="ident">HashMap</span>},
 	<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>},
@@ -886,7 +886,7 @@
 
 	<span class="kw">let</span> <span class="ident">polkadot_full_node</span> <span class="op">=</span> <span class="ident">cumulus_client_service</span>::<span class="ident">build_polkadot_full_node</span>(
 		<span class="ident">polkadot_config</span>,
-		<span class="ident">collator_key</span>.<span class="ident">public</span>(),
+		<span class="ident">collator_key</span>.<span class="ident">clone</span>(),
 		<span class="ident">telemetry_worker_handle</span>,
 	)
 	.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">e</span> {
