@@ -343,6 +343,7 @@ pub fn run() -> Result<()> {
 							cli.run.sealing,
 							author_id,
 							collator,
+							cli.run.ethapi,
 						);
 					}
 
@@ -386,6 +387,7 @@ pub fn run() -> Result<()> {
 						polkadot_config,
 						id,
 						collator,
+						cli.run.ethapi,
 					)
 					.await
 					.map(|r| r.0)

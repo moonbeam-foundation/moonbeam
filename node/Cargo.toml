@@ -35,6 +35,8 @@ tiny-bip39 = {version = "0.6", default-features = false}
 moonbeam-runtime = { path = "../runtime" }
 moonbeam-rpc-txpool = { path = "../client/rpc/txpool" }
 moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool" }
+moonbeam-rpc-debug = { path = "../client/rpc/debug" }
+moonbeam-rpc-primitives-debug = { path = "../primitives/rpc/debug" }
 author-inherent = { path = "../pallets/author-inherent"}
 
 # Substrate dependencies

@@ -2709,6 +2709,9 @@ name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "hex-literal"
@@ -4330,6 +4333,8 @@ dependencies = [
  "jsonrpc-core 15.1.0",
  "jsonrpc-pubsub 15.1.0",
  "log",
+ "moonbeam-rpc-debug",
+ "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "moonbeam-rpc-txpool",
  "moonbeam-runtime",
@@ -4392,6 +4397,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "moonbeam-extensions-evm"
+version = "0.1.0"
+dependencies = [
+ "ethereum-types",
+ "evm",
+ "evm-core",
+ "fp-evm",
+ "moonbeam-rpc-primitives-debug",
+ "pallet-evm",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "moonbeam-rpc-core-debug"
+version = "0.1.0"
+dependencies = [
+ "ethereum-types",
+ "jsonrpc-core 15.1.0",
+ "jsonrpc-core-client 14.2.0",
+ "jsonrpc-derive 14.2.2",
+ "moonbeam-rpc-primitives-debug",
+ "serde",
+ "serde_json",
+ "sp-core",
+]
+
+[[package]]
 name = "moonbeam-rpc-core-txpool"
 version = "0.6.0"
 dependencies = [
@@ -4403,6 +4438,44 @@ dependencies = [
  "jsonrpc-derive 14.2.2",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "moonbeam-rpc-debug"
+version = "0.1.0"
+dependencies = [
+ "ethereum",
+ "ethereum-types",
+ "fc-consensus",
+ "fc-db",
+ "fp-rpc",
+ "jsonrpc-core 15.1.0",
+ "moonbeam-rpc-core-debug",
+ "moonbeam-rpc-primitives-debug",
+ "sc-client-api",
+ "sp-api",
+ "sp-block-builder",
+ "sp-blockchain",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+]
+
+[[package]]
+name = "moonbeam-rpc-primitives-debug"
+version = "0.1.0"
+dependencies = [
+ "ethereum",
+ "ethereum-types",
+ "hex",
+ "parity-scale-codec",
+ "serde",
+ "serde_json",
+ "sp-api",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -4451,6 +4524,8 @@ dependencies = [
  "frame-system-rpc-runtime-api",
  "hex-literal",
  "log",
+ "moonbeam-extensions-evm",
+ "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "pallet-author-filter",
  "pallet-balances",
@@ -4471,6 +4546,7 @@ dependencies = [
  "parity-scale-codec",
  "precompiles",
  "serde",
+ "sha3 0.9.1",
  "sp-api",
  "sp-block-builder",
  "sp-core",
