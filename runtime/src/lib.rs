@@ -29,7 +29,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use fp_rpc::TransactionStatus;
-pub use frame_support::{
+use frame_support::{
 	construct_runtime, debug,
 	pallet_prelude::PhantomData,
 	parameter_types,
