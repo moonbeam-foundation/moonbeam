@@ -4546,7 +4546,7 @@ dependencies = [
  "parity-scale-codec",
  "precompiles",
  "serde",
- "sha3 0.8.2",
+ "sha3 0.9.1",
  "sp-api",
  "sp-block-builder",
  "sp-core",

@@ -12,7 +12,7 @@ serde = { version = "1.0.101", default-features = false, optional = true, featur
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
 log = "0.4"
 hex-literal = "0.3.1"
-sha3 = { version = "0.8", default-features = false }
+sha3 = { version = "0.9", default-features = false }
 
 precompiles = { path = "precompiles/", default-features = false }
 account = { path = "account/", default-features = false }
