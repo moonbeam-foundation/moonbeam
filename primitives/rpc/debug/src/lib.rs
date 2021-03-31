@@ -24,8 +24,6 @@ use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 #[cfg(feature = "std")]
 use serde::{ser::SerializeSeq, Serialize, Serializer};
 
-// TODO : Fix missing '0x' values.
-
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(Serialize))]
 #[cfg_attr(feature = "std", serde(rename_all = "camelCase", untagged))]
@@ -47,7 +45,6 @@ pub struct StepLog {
 	#[cfg_attr(feature = "std", serde(serialize_with = "u256_serialize"))]
 	pub depth: U256,
 
-	//error: TODO
 	#[cfg_attr(feature = "std", serde(serialize_with = "u256_serialize"))]
 	pub gas: U256,
 
