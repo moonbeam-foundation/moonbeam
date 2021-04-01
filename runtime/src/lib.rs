@@ -36,7 +36,7 @@ use frame_support::{
 	traits::{Get, Randomness},
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 };
-use frame_system::{EnsureRoot, EnsureOneOf};
+use frame_system::{EnsureOneOf, EnsureRoot};
 use moonbeam_extensions_evm::runner::stack::TraceRunner as TraceRunnerT;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{Transaction as EthereumTransaction, TransactionAction};
@@ -763,7 +763,7 @@ impl_runtime_apis! {
 							_ => H160::default()
 						};
 
-						// Use the runner extension to interface with our evm's trace executor and 
+						// Use the runner extension to interface with our evm's trace executor and
 						// return the TraceExecutorResult.
 						let tx_traces = match transaction.action {
 							TransactionAction::Call(to) => {
