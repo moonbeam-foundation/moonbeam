@@ -1685,6 +1685,22 @@ dependencies = [
 
 [[package]]
 name = "ethereum"
+version = "0.6.0"
+source = "git+https://github.com/notlesh/ethereum?branch=notlesh-moonbeam-v0.6#ea1b9e405a17f92fc7d27028136915604ccb948a"
+dependencies = [
+ "ethereum-types",
+ "hash-db",
+ "hash256-std-hasher",
+ "parity-scale-codec",
+ "rlp",
+ "rlp-derive",
+ "serde",
+ "sha3 0.9.1",
+ "triehash",
+]
+
+[[package]]
+name = "ethereum"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "567ce064a8232c16e2b2c2173a936b91fbe35c2f2c5278871f5a1a31688b42e9"
@@ -1727,7 +1743,7 @@ name = "evm"
 version = "0.26.0"
 source = "git+https://github.com/rust-blockchain/evm?branch=master#2a8a3e967ec265fdc7120ff6b57ceab021ca69f6"
 dependencies = [
- "ethereum",
+ "ethereum 0.7.1",
  "evm-core",
  "evm-gasometer",
  "evm-runtime",
@@ -1893,7 +1909,7 @@ name = "fc-rpc"
 version = "0.1.0"
 source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#83d49683d6ac0b0672fb2647a484bca57b2000f0"
 dependencies = [
- "ethereum",
+ "ethereum 0.7.1",
  "ethereum-types",
  "fc-consensus",
  "fc-db",
@@ -2038,7 +2054,7 @@ name = "fp-consensus"
 version = "0.1.0"
 source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#83d49683d6ac0b0672fb2647a484bca57b2000f0"
 dependencies = [
- "ethereum",
+ "ethereum 0.7.1",
  "parity-scale-codec",
  "rlp",
  "sha3 0.8.2",
@@ -2065,7 +2081,7 @@ name = "fp-rpc"
 version = "0.1.0"
 source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#83d49683d6ac0b0672fb2647a484bca57b2000f0"
 dependencies = [
- "ethereum",
+ "ethereum 0.7.1",
  "ethereum-types",
  "fp-evm",
  "parity-scale-codec",
@@ -2081,7 +2097,7 @@ name = "fp-storage"
 version = "0.1.0"
 source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#83d49683d6ac0b0672fb2647a484bca57b2000f0"
 dependencies = [
- "ethereum",
+ "ethereum 0.7.1",
  "ethereum-types",
  "fp-evm",
  "parity-scale-codec",
@@ -4336,6 +4352,7 @@ dependencies = [
  "moonbeam-rpc-debug",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
+ "moonbeam-rpc-trace",
  "moonbeam-rpc-txpool",
  "moonbeam-runtime",
  "nix 0.17.0",
@@ -4427,10 +4444,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "moonbeam-rpc-core-trace"
+version = "0.6.0"
+dependencies = [
+ "ethereum-types",
+ "futures 0.3.13",
+ "jsonrpc-core 15.1.0",
+ "jsonrpc-core-client 14.2.0",
+ "jsonrpc-derive 14.2.2",
+ "moonbeam-rpc-primitives-debug",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "moonbeam-rpc-core-txpool"
 version = "0.6.0"
 dependencies = [
- "ethereum",
+ "ethereum 0.7.1",
  "ethereum-types",
  "fc-rpc-core",
  "jsonrpc-core 15.1.0",
@@ -4444,7 +4475,7 @@ dependencies = [
 name = "moonbeam-rpc-debug"
 version = "0.1.0"
 dependencies = [
- "ethereum",
+ "ethereum 0.7.1",
  "ethereum-types",
  "fc-consensus",
  "fc-db",
@@ -4465,7 +4496,7 @@ dependencies = [
 name = "moonbeam-rpc-primitives-debug"
 version = "0.1.0"
 dependencies = [
- "ethereum",
+ "ethereum 0.7.1",
  "ethereum-types",
  "hex",
  "parity-scale-codec",
@@ -4482,7 +4513,7 @@ dependencies = [
 name = "moonbeam-rpc-primitives-txpool"
 version = "0.6.0"
 dependencies = [
- "ethereum",
+ "ethereum 0.7.1",
  "sp-api",
  "sp-io",
  "sp-runtime",
@@ -4490,10 +4521,40 @@ dependencies = [
 ]
 
 [[package]]
+name = "moonbeam-rpc-trace"
+version = "0.6.0"
+dependencies = [
+ "ethereum 0.6.0",
+ "ethereum-types",
+ "fc-consensus",
+ "fc-rpc-core",
+ "fp-rpc",
+ "futures 0.3.13",
+ "jsonrpc-core 15.1.0",
+ "moonbeam-rpc-core-trace",
+ "moonbeam-rpc-primitives-debug",
+ "sc-client-api",
+ "sc-network",
+ "sc-transaction-graph",
+ "serde",
+ "sha3 0.8.2",
+ "sp-api",
+ "sp-block-builder",
+ "sp-blockchain",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "sp-transaction-pool",
+ "sp-utils",
+ "tokio 0.2.25",
+ "tracing",
+]
+
+[[package]]
 name = "moonbeam-rpc-txpool"
 version = "0.6.0"
 dependencies = [
- "ethereum",
+ "ethereum 0.7.1",
  "ethereum-types",
  "frame-system",
  "jsonrpc-core 15.1.0",
@@ -5082,7 +5143,7 @@ name = "pallet-ethereum"
 version = "0.1.0"
 source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#83d49683d6ac0b0672fb2647a484bca57b2000f0"
 dependencies = [
- "ethereum",
+ "ethereum 0.7.1",
  "ethereum-types",
  "evm",
  "fp-consensus",

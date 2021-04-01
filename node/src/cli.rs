@@ -238,6 +238,7 @@ impl FromStr for Sealing {
 pub enum EthApi {
 	Txpool,
 	Debug,
+	Trace,
 }
 
 impl FromStr for EthApi {
@@ -247,6 +248,7 @@ impl FromStr for EthApi {
 		Ok(match s {
 			"txpool" => Self::Txpool,
 			"debug" => Self::Debug,
+			"trace" => Self::Trace,
 			_ => {
 				return Err(format!(
 					"`{}` is not recognized as a supported Ethereum Api",

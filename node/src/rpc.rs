@@ -24,6 +24,7 @@ use ethereum::EthereumStorageSchema;
 use fc_rpc::{SchemaV1Override, StorageOverride};
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use jsonrpc_pubsub::manager::SubscriptionManager;
+use moonbeam_rpc_trace::TraceFilterCacheRequester;
 use moonbeam_runtime::{opaque::Block, AccountId, Balance, Hash, Index};
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
@@ -68,6 +69,8 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub backend: Arc<BE>,
 	/// Manual seal command sink
 	pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
+	/// Trace filter cache server requester.
+	pub trace_filter_requester: Option<TraceFilterCacheRequester>,
 }
 
 /// Instantiate all Full RPC extensions.
@@ -97,6 +100,7 @@ where
 		HexEncodedIdProvider, NetApi, NetApiServer, Web3Api, Web3ApiServer,
 	};
 	use moonbeam_rpc_debug::{Debug, DebugServer};
+	use moonbeam_rpc_trace::{Trace, TraceServer};
 	use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
 	use substrate_frame_rpc_system::{FullSystem, SystemApi};
@@ -113,6 +117,7 @@ where
 		filter_pool,
 		ethapi_cmd,
 		command_sink,
+		trace_filter_requester,
 		frontier_backend,
 		backend,
 	} = deps;
@@ -189,6 +194,10 @@ where
 			ManualSealApi::to_delegate(ManualSeal::new(command_sink)),
 		);
 	};
+
+	if let Some(trace_filter_requester) = trace_filter_requester {
+		io.extend_with(TraceServer::to_delegate(Trace::new(trace_filter_requester)));
+	}
 
 	io
 }

@@ -14,15 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-pub use moonbeam_rpc_core_debug::{
-	Debug as DebugT, DebugServer, StepLog, TraceExecutorResponse, TraceParams,
-};
+pub use moonbeam_rpc_core_debug::{Debug as DebugT, DebugServer, TraceParams};
 
 use ethereum_types::{H128, H256};
 use fp_rpc::EthereumRuntimeRPCApi;
 use jsonrpc_core::Result as RpcResult;
 use jsonrpc_core::{Error as RpcError, ErrorCode};
-use moonbeam_rpc_primitives_debug::{DebugRuntimeApi, TraceType};
+use moonbeam_rpc_primitives_debug::{single, DebugRuntimeApi};
 use sc_client_api::backend::{AuxStore, Backend, StateBackend};
 use sp_api::{BlockId, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
@@ -30,7 +28,7 @@ use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
 };
 use sp_runtime::traits::{BlakeTwo256, Block as BlockT};
-use std::{str::FromStr, sync::Arc};
+use std::{marker::PhantomData, str::FromStr, sync::Arc};
 
 pub fn internal_err<T: ToString>(message: T) -> RpcError {
 	RpcError {
@@ -142,7 +140,7 @@ where
 		&self,
 		transaction_hash: H256,
 		params: Option<TraceParams>,
-	) -> RpcResult<TraceExecutorResponse> {
+	) -> RpcResult<single::TransactionTrace> {
 		let (hash, index) = match self
 			.load_transactions(transaction_hash)
 			.map_err(|err| internal_err(format!("{:?}", err)))?
@@ -159,7 +157,7 @@ where
 			_ => return Err(internal_err("Block hash not found".to_string())),
 		};
 
-		// Get ApiRef
+		// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
 		let api = self.client.runtime_api();
 		// Get Blockchain backend
 		let blockchain = self.backend.blockchain();
@@ -185,7 +183,7 @@ where
 				let hash: H128 = sp_io::hashing::twox_128(&tracer.as_bytes()).into();
 				let blockscout_hash = H128::from_str("0x94d9f08796f91eb13a2e82a6066882f7").unwrap();
 				if hash == blockscout_hash {
-					TraceType::Blockscout
+					single::TraceType::CallList
 				} else {
 					return Err(internal_err(format!(
 						"javascript based tracing is not available (hash :{:?})",
@@ -193,7 +191,7 @@ where
 					)));
 				}
 			}
-			_ => TraceType::Raw,
+			_ => single::TraceType::Raw,
 		};
 
 		// Get the actual ethereum transaction.

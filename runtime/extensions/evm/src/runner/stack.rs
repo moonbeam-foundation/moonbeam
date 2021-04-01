@@ -14,27 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use sp_std::{convert::Infallible, vec::Vec};
+
 use crate::executor::wrapper::TraceExecutorWrapper;
+use moonbeam_rpc_primitives_debug::single::{TraceType, TransactionTrace};
+
 use ethereum_types::{H160, U256};
 use evm::{
 	executor::{StackExecutor, StackState as StackStateT, StackSubstateMetadata},
 	Capture, Config as EvmConfig, Context, CreateScheme, Transfer,
 };
-use moonbeam_rpc_primitives_debug::{TraceExecutorResponse, TraceType};
 use pallet_evm::{
 	runner::stack::{Runner, SubstrateStackState},
 	Config, ExitError, ExitReason, PrecompileSet, Vicinity,
 };
-use sp_std::{convert::Infallible, vec::Vec};
 
-/// EVM Tracing for pallet_evm::stack::Runner.
 pub trait TraceRunner<T: Config> {
-	/// Handle an Executor wrapper `call`. Used by `trace_call`.
 	fn execute_call<'config, F>(
 		executor: &'config mut StackExecutor<'config, SubstrateStackState<'_, 'config, T>>,
 		trace_type: TraceType,
 		f: F,
-	) -> Result<TraceExecutorResponse, ExitError>
+	) -> Result<TransactionTrace, ExitError>
 	where
 		F: FnOnce(
 			&mut TraceExecutorWrapper<'config, SubstrateStackState<'_, 'config, T>>,
@@ -45,7 +45,7 @@ pub trait TraceRunner<T: Config> {
 		executor: &'config mut StackExecutor<'config, SubstrateStackState<'_, 'config, T>>,
 		trace_type: TraceType,
 		f: F,
-	) -> Result<TraceExecutorResponse, ExitError>
+	) -> Result<TransactionTrace, ExitError>
 	where
 		F: FnOnce(
 			&mut TraceExecutorWrapper<'config, SubstrateStackState<'_, 'config, T>>,
@@ -60,9 +60,8 @@ pub trait TraceRunner<T: Config> {
 		gas_limit: u64,
 		config: &EvmConfig,
 		trace_type: TraceType,
-	) -> Result<TraceExecutorResponse, ExitError>;
+	) -> Result<TransactionTrace, ExitError>;
 
-	/// Context creation for create. Typically called by the Runtime Api.
 	fn trace_create(
 		source: H160,
 		init: Vec<u8>,
@@ -70,7 +69,7 @@ pub trait TraceRunner<T: Config> {
 		gas_limit: u64,
 		config: &EvmConfig,
 		trace_type: TraceType,
-	) -> Result<TraceExecutorResponse, ExitError>;
+	) -> Result<TransactionTrace, ExitError>;
 }
 
 impl<T: Config> TraceRunner<T> for Runner<T> {
@@ -78,7 +77,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		executor: &'config mut StackExecutor<'config, SubstrateStackState<'_, 'config, T>>,
 		trace_type: TraceType,
 		f: F,
-	) -> Result<TraceExecutorResponse, ExitError>
+	) -> Result<TransactionTrace, ExitError>
 	where
 		F: FnOnce(
 			&mut TraceExecutorWrapper<'config, SubstrateStackState<'_, 'config, T>>,
@@ -92,12 +91,12 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		};
 
 		match trace_type {
-			TraceType::Raw => Ok(TraceExecutorResponse::Raw {
+			TraceType::Raw => Ok(TransactionTrace::Raw {
 				gas: U256::from(wrapper.inner.state().metadata().gasometer().gas()),
 				return_value: execution_result,
 				step_logs: wrapper.step_logs,
 			}),
-			TraceType::Blockscout => Ok(TraceExecutorResponse::Blockscout(
+			TraceType::CallList => Ok(TransactionTrace::CallList(
 				wrapper
 					.entries
 					.into_iter()
@@ -111,7 +110,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		executor: &'config mut StackExecutor<'config, SubstrateStackState<'_, 'config, T>>,
 		trace_type: TraceType,
 		f: F,
-	) -> Result<TraceExecutorResponse, ExitError>
+	) -> Result<TransactionTrace, ExitError>
 	where
 		F: FnOnce(
 			&mut TraceExecutorWrapper<'config, SubstrateStackState<'_, 'config, T>>,
@@ -125,12 +124,12 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		};
 
 		match trace_type {
-			TraceType::Raw => Ok(TraceExecutorResponse::Raw {
+			TraceType::Raw => Ok(TransactionTrace::Raw {
 				gas: U256::from(wrapper.inner.state().metadata().gasometer().gas()),
 				return_value: execution_result,
 				step_logs: wrapper.step_logs,
 			}),
-			TraceType::Blockscout => Ok(TraceExecutorResponse::Blockscout(
+			TraceType::CallList => Ok(TransactionTrace::CallList(
 				wrapper
 					.entries
 					.into_iter()
@@ -148,7 +147,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		gas_limit: u64,
 		config: &EvmConfig,
 		trace_type: TraceType,
-	) -> Result<TraceExecutorResponse, ExitError> {
+	) -> Result<TransactionTrace, ExitError> {
 		let vicinity = Vicinity {
 			gas_price: U256::zero(),
 			origin: source,
@@ -188,7 +187,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		gas_limit: u64,
 		config: &EvmConfig,
 		trace_type: TraceType,
-	) -> Result<TraceExecutorResponse, ExitError> {
+	) -> Result<TransactionTrace, ExitError> {
 		let vicinity = Vicinity {
 			gas_price: U256::zero(),
 			origin: source,

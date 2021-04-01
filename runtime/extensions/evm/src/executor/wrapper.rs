@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-extern crate alloc;
 use crate::executor::util::opcodes;
+use moonbeam_rpc_primitives_debug::{
+	single::{Call, CallInner, RawStepLog, TraceType},
+	CallResult, CallType, CreateResult,
+};
+
 use ethereum_types::{H160, H256, U256};
 pub use evm::{
 	backend::{Apply, Backend as BackendT, Log},
@@ -23,10 +27,6 @@ pub use evm::{
 	gasometer::{self as gasometer},
 	Capture, Config, Context, CreateScheme, ExitError, ExitFatal, ExitReason, ExitSucceed,
 	Handler as HandlerT, Opcode, Runtime, Stack, Transfer,
-};
-use moonbeam_rpc_primitives_debug::{
-	blockscout::{CallResult, CallType, CreateResult, Entry, EntryInner},
-	StepLog, TraceType,
 };
 use sp_std::{
 	cmp::min, collections::btree_map::BTreeMap, convert::Infallible, rc::Rc, vec, vec::Vec,
@@ -39,10 +39,10 @@ pub struct TraceExecutorWrapper<'config, S> {
 	trace_type: TraceType,
 
 	// Raw state.
-	pub step_logs: Vec<StepLog>,
+	pub step_logs: Vec<RawStepLog>,
 
 	// Blockscout state.
-	pub entries: BTreeMap<u32, Entry>,
+	pub entries: BTreeMap<u32, Call>,
 	entries_next_index: u32,
 	call_type: Option<CallType>,
 	trace_address: Vec<u32>,
@@ -79,7 +79,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 	) -> ExitReason {
 		match self.trace_type {
 			TraceType::Raw => self.trace_raw(runtime),
-			TraceType::Blockscout => self.trace_blockscout(runtime, context_type, code),
+			TraceType::CallList => self.trace_call_list(runtime, context_type, code),
 		}
 	}
 
@@ -151,7 +151,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 					Err(reason) => break reason.clone(),
 				};
 
-				steplog = Some(StepLog {
+				steplog = Some(RawStepLog {
 					// EVM's returned depth is depth output format - 1.
 					depth: U256::from(
 						self.inner.state().metadata().depth().unwrap_or_default() + 1,
@@ -218,7 +218,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 		}
 	}
 
-	fn trace_blockscout(
+	fn trace_call_list(
 		&mut self,
 		runtime: &mut Runtime,
 		context_type: ContextType,
@@ -245,6 +245,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 		let gas_at_start = self.inner.gas();
 		let mut return_stack_offset = None;
 		let mut return_stack_len = None;
+		let mut suicide_info = None;
 
 		// Execute the call/create.
 		let exit_reason = loop {
@@ -261,11 +262,22 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 
 				subcall = self.call_type.is_some();
 
+				// RETURN
 				if opcode == Opcode(0xf3) {
 					let stack = runtime.machine().stack().data();
 
 					return_stack_offset = stack.get(stack.len() - 1).cloned();
 					return_stack_len = stack.get(stack.len() - 2).cloned();
+				}
+
+				// SELFDESTRUCT
+				if opcode == Opcode(0xff) {
+					let stack = runtime.machine().stack().data();
+
+					suicide_info = stack
+						.get(stack.len() - 1)
+						.cloned()
+						.map(|v| (H160::from(v), self.balance(runtime.context().address)));
 				}
 			}
 
@@ -289,10 +301,32 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 		let gas_at_end = self.inner.gas();
 		let gas_used = gas_at_start - gas_at_end;
 
-		// Insert entry.
+		// If `exit_reason` is `Suicided`, we need to add the suicide subcall to the traces.
+		if exit_reason == ExitReason::Succeed(ExitSucceed::Suicided) {
+			let entries_index = self.entries_next_index;
+			self.entries_next_index += 1;
+
+			let (refund_address, balance) = suicide_info.unwrap();
+
+			self.entries.insert(
+				entries_index,
+				Call {
+					from: to, // this contract is self destructing
+					trace_address: self.trace_address.clone(),
+					subtraces: 0,
+					value,
+					gas: U256::from(gas_at_end),
+					gas_used: U256::from(gas_used),
+					inner: CallInner::SelfDestruct {
+						refund_address,
+						balance,
+					},
+				},
+			);
+		}
 
 		// We pop the children item, giving back this context trace_address.
-		self.trace_address.pop();
+		let subtraces = self.trace_address.pop().unwrap();
 
 		self.entries.insert(
 			entries_index,
@@ -309,13 +343,14 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 						ExitReason::Fatal(_) => CallResult::Error(vec![]),
 					};
 
-					Entry {
+					Call {
 						from,
 						trace_address: self.trace_address.clone(),
+						subtraces,
 						value,
 						gas: U256::from(gas_at_end),
 						gas_used: U256::from(gas_used),
-						inner: EntryInner::Call {
+						inner: CallInner::Call {
 							call_type: call_type.expect("should always have a call type"),
 							to,
 							input: data,
@@ -357,13 +392,14 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 						ExitReason::Fatal(_) => CreateResult::Error { error: vec![] },
 					};
 
-					Entry {
+					Call {
 						value,
 						trace_address: self.trace_address.clone(),
+						subtraces,
 						gas: U256::from(gas_at_end),
 						gas_used: U256::from(gas_used),
 						from,
-						inner: EntryInner::Create { init: data, res },
+						inner: CallInner::Create { init: data, res },
 					}
 				}
 			},
