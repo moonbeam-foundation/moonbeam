@@ -248,10 +248,6 @@ where
 			)));
 		}
 
-		// if from_block == 0 {
-		// 	return Err(internal_err("Tracing genesis block is not possible"));
-		// }
-
 		let block_heights = from_block..=to_block;
 
 		let from_address = req.from_address.unwrap_or_default();
