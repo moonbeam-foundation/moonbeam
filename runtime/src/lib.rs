@@ -257,6 +257,11 @@ impl pallet_evm::GasWeightMapping for MoonbeamGasWeightMapping {
 	}
 }
 
+parameter_types! {
+	pub BlockGasLimit: U256
+		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT / WEIGHT_PER_GAS);
+}
+
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = MoonbeamGasWeightMapping;
@@ -426,11 +431,6 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 }
 
 pub struct EthereumFindAuthor<F>(PhantomData<F>);
-
-parameter_types! {
-	pub BlockGasLimit: U256
-		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT / WEIGHT_PER_GAS);
-}
 
 impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
