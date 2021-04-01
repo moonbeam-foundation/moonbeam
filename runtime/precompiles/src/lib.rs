@@ -19,7 +19,6 @@
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
-use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, Identity, Ripemd160, Sha256};
 
 /// The PrecompileSet installed in the Moonbeam runtime.
@@ -38,6 +37,5 @@ pub type MoonbeamPrecompiles<Runtime> = (
 	Bn128Add,
 	Bn128Mul,
 	Bn128Pairing,
-	Sha3FIPS256,
 	Dispatch<Runtime>,
 );
