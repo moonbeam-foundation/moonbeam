@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["TraceExecutorResponse",""]],"mod":[["types",""]],"struct":[["StepLog",""],["TraceParams",""]],"trait":[["Debug",""],["DebugServer",""]]});
+initSidebarItems({"mod":[["types",""]],"struct":[["TraceParams",""]],"trait":[["Debug",""],["DebugServer",""]]});

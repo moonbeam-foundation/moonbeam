@@ -213,8 +213,6 @@
 <span id="210">210</span>
 <span id="211">211</span>
 <span id="212">212</span>
-<span id="213">213</span>
-<span id="214">214</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2020 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -232,15 +230,13 @@
 <span class="comment">// You should have received a copy of the GNU General Public License</span>
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">moonbeam_rpc_core_debug</span>::{
-	<span class="ident">Debug</span> <span class="kw">as</span> <span class="ident">DebugT</span>, <span class="ident">DebugServer</span>, <span class="ident">StepLog</span>, <span class="ident">TraceExecutorResponse</span>, <span class="ident">TraceParams</span>,
-};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">moonbeam_rpc_core_debug</span>::{<span class="ident">Debug</span> <span class="kw">as</span> <span class="ident">DebugT</span>, <span class="ident">DebugServer</span>, <span class="ident">TraceParams</span>};
 
 <span class="kw">use</span> <span class="ident">ethereum_types</span>::{<span class="ident">H128</span>, <span class="ident">H256</span>};
 <span class="kw">use</span> <span class="ident">fp_rpc</span>::<span class="ident">EthereumRuntimeRPCApi</span>;
 <span class="kw">use</span> <span class="ident">jsonrpc_core</span>::<span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">RpcResult</span>;
 <span class="kw">use</span> <span class="ident">jsonrpc_core</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">RpcError</span>, <span class="ident">ErrorCode</span>};
-<span class="kw">use</span> <span class="ident">moonbeam_rpc_primitives_debug</span>::{<span class="ident">DebugRuntimeApi</span>, <span class="ident">TraceType</span>};
+<span class="kw">use</span> <span class="ident">moonbeam_rpc_primitives_debug</span>::{<span class="ident">single</span>, <span class="ident">DebugRuntimeApi</span>};
 <span class="kw">use</span> <span class="ident">sc_client_api</span>::<span class="ident">backend</span>::{<span class="ident">AuxStore</span>, <span class="ident">Backend</span>, <span class="ident">StateBackend</span>};
 <span class="kw">use</span> <span class="ident">sp_api</span>::{<span class="ident">BlockId</span>, <span class="ident">HeaderT</span>, <span class="ident">ProvideRuntimeApi</span>};
 <span class="kw">use</span> <span class="ident">sp_block_builder</span>::<span class="ident">BlockBuilder</span>;
@@ -248,7 +244,7 @@
 	<span class="ident">Backend</span> <span class="kw">as</span> <span class="ident">BlockchainBackend</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">BlockChainError</span>, <span class="ident">HeaderBackend</span>, <span class="ident">HeaderMetadata</span>,
 };
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::<span class="ident">traits</span>::{<span class="ident">BlakeTwo256</span>, <span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">str</span>::<span class="ident">FromStr</span>, <span class="ident">sync</span>::<span class="ident">Arc</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">marker</span>::<span class="ident">PhantomData</span>, <span class="ident">str</span>::<span class="ident">FromStr</span>, <span class="ident">sync</span>::<span class="ident">Arc</span>};
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">internal_err</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ToString</span><span class="op">&gt;</span>(<span class="ident">message</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RpcError</span> {
 	<span class="ident">RpcError</span> {
@@ -360,7 +356,7 @@
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		<span class="ident">transaction_hash</span>: <span class="ident">H256</span>,
 		<span class="ident">params</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TraceParams</span><span class="op">&gt;</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RpcResult</span><span class="op">&lt;</span><span class="ident">TraceExecutorResponse</span><span class="op">&gt;</span> {
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RpcResult</span><span class="op">&lt;</span><span class="ident">single</span>::<span class="ident">TransactionTrace</span><span class="op">&gt;</span> {
 		<span class="kw">let</span> (<span class="ident">hash</span>, <span class="ident">index</span>) <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>
 			.<span class="ident">load_transactions</span>(<span class="ident">transaction_hash</span>)
 			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">err</span>)))<span class="question-mark">?</span>
@@ -377,7 +373,7 @@
 			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="string">&quot;Block hash not found&quot;</span>.<span class="ident">to_string</span>())),
 		};
 
-		<span class="comment">// Get ApiRef</span>
+		<span class="comment">// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.</span>
 		<span class="kw">let</span> <span class="ident">api</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">client</span>.<span class="ident">runtime_api</span>();
 		<span class="comment">// Get Blockchain backend</span>
 		<span class="kw">let</span> <span class="ident">blockchain</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">backend</span>.<span class="ident">blockchain</span>();
@@ -403,7 +399,7 @@
 				<span class="kw">let</span> <span class="ident">hash</span>: <span class="ident">H128</span> <span class="op">=</span> <span class="ident">sp_io</span>::<span class="ident">hashing</span>::<span class="ident">twox_128</span>(<span class="kw-2">&amp;</span><span class="ident">tracer</span>.<span class="ident">as_bytes</span>()).<span class="ident">into</span>();
 				<span class="kw">let</span> <span class="ident">blockscout_hash</span> <span class="op">=</span> <span class="ident">H128</span>::<span class="ident">from_str</span>(<span class="string">&quot;0x94d9f08796f91eb13a2e82a6066882f7&quot;</span>).<span class="ident">unwrap</span>();
 				<span class="kw">if</span> <span class="ident">hash</span> <span class="op">=</span><span class="op">=</span> <span class="ident">blockscout_hash</span> {
-					<span class="ident">TraceType</span>::<span class="ident">Blockscout</span>
+					<span class="ident">single</span>::<span class="ident">TraceType</span>::<span class="ident">CallList</span>
 				} <span class="kw">else</span> {
 					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="macro">format</span><span class="macro">!</span>(
 						<span class="string">&quot;javascript based tracing is not available (hash :{:?})&quot;</span>,
@@ -411,7 +407,7 @@
 					)));
 				}
 			}
-			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TraceType</span>::<span class="ident">Raw</span>,
+			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">single</span>::<span class="ident">TraceType</span>::<span class="ident">Raw</span>,
 		};
 
 		<span class="comment">// Get the actual ethereum transaction.</span>

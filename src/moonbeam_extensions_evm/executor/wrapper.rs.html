@@ -744,6 +744,42 @@
 <span id="741">741</span>
 <span id="742">742</span>
 <span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2020 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -761,8 +797,12 @@
 <span class="comment">// You should have received a copy of the GNU General Public License</span>
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">executor</span>::<span class="ident">util</span>::<span class="ident">opcodes</span>;
+<span class="kw">use</span> <span class="ident">moonbeam_rpc_primitives_debug</span>::{
+	<span class="ident">single</span>::{<span class="ident">Call</span>, <span class="ident">CallInner</span>, <span class="ident">RawStepLog</span>, <span class="ident">TraceType</span>},
+	<span class="ident">CallResult</span>, <span class="ident">CallType</span>, <span class="ident">CreateResult</span>,
+};
+
 <span class="kw">use</span> <span class="ident">ethereum_types</span>::{<span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">evm</span>::{
 	<span class="ident">backend</span>::{<span class="ident">Apply</span>, <span class="ident">Backend</span> <span class="kw">as</span> <span class="ident">BackendT</span>, <span class="ident">Log</span>},
@@ -770,10 +810,6 @@
 	<span class="ident">gasometer</span>::{<span class="self">self</span> <span class="kw">as</span> <span class="ident">gasometer</span>},
 	<span class="ident">Capture</span>, <span class="ident">Config</span>, <span class="ident">Context</span>, <span class="ident">CreateScheme</span>, <span class="ident">ExitError</span>, <span class="ident">ExitFatal</span>, <span class="ident">ExitReason</span>, <span class="ident">ExitSucceed</span>,
 	<span class="ident">Handler</span> <span class="kw">as</span> <span class="ident">HandlerT</span>, <span class="ident">Opcode</span>, <span class="ident">Runtime</span>, <span class="ident">Stack</span>, <span class="ident">Transfer</span>,
-};
-<span class="kw">use</span> <span class="ident">moonbeam_rpc_primitives_debug</span>::{
-	<span class="ident">blockscout</span>::{<span class="ident">CallResult</span>, <span class="ident">CallType</span>, <span class="ident">CreateResult</span>, <span class="ident">Entry</span>, <span class="ident">EntryInner</span>},
-	<span class="ident">StepLog</span>, <span class="ident">TraceType</span>,
 };
 <span class="kw">use</span> <span class="ident">sp_std</span>::{
 	<span class="ident">cmp</span>::<span class="ident">min</span>, <span class="ident">collections</span>::<span class="ident">btree_map</span>::<span class="ident">BTreeMap</span>, <span class="ident">convert</span>::<span class="ident">Infallible</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>, <span class="ident">vec</span>, <span class="ident">vec</span>::<span class="ident">Vec</span>,
@@ -786,10 +822,10 @@
 	<span class="ident">trace_type</span>: <span class="ident">TraceType</span>,
 
 	<span class="comment">// Raw state.</span>
-	<span class="kw">pub</span> <span class="ident">step_logs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">StepLog</span><span class="op">&gt;</span>,
+	<span class="kw">pub</span> <span class="ident">step_logs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">RawStepLog</span><span class="op">&gt;</span>,
 
 	<span class="comment">// Blockscout state.</span>
-	<span class="kw">pub</span> <span class="ident">entries</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">Entry</span><span class="op">&gt;</span>,
+	<span class="kw">pub</span> <span class="ident">entries</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">Call</span><span class="op">&gt;</span>,
 	<span class="ident">entries_next_index</span>: <span class="ident">u32</span>,
 	<span class="ident">call_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CallType</span><span class="op">&gt;</span>,
 	<span class="ident">trace_address</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
@@ -826,7 +862,7 @@
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ExitReason</span> {
 		<span class="kw">match</span> <span class="self">self</span>.<span class="ident">trace_type</span> {
 			<span class="ident">TraceType</span>::<span class="ident">Raw</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">trace_raw</span>(<span class="ident">runtime</span>),
-			<span class="ident">TraceType</span>::<span class="ident">Blockscout</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">trace_blockscout</span>(<span class="ident">runtime</span>, <span class="ident">context_type</span>, <span class="ident">code</span>),
+			<span class="ident">TraceType</span>::<span class="ident">CallList</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">trace_call_list</span>(<span class="ident">runtime</span>, <span class="ident">context_type</span>, <span class="ident">code</span>),
 		}
 	}
 
@@ -898,7 +934,7 @@
 					<span class="prelude-val">Err</span>(<span class="ident">reason</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span> <span class="ident">reason</span>.<span class="ident">clone</span>(),
 				};
 
-				<span class="ident">steplog</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">StepLog</span> {
+				<span class="ident">steplog</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">RawStepLog</span> {
 					<span class="comment">// EVM&#39;s returned depth is depth output format - 1.</span>
 					<span class="ident">depth</span>: <span class="ident">U256</span>::<span class="ident">from</span>(
 						<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">state</span>().<span class="ident">metadata</span>().<span class="ident">depth</span>().<span class="ident">unwrap_or_default</span>() <span class="op">+</span> <span class="number">1</span>,
@@ -965,7 +1001,7 @@
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">trace_blockscout</span>(
+	<span class="kw">fn</span> <span class="ident">trace_call_list</span>(
 		<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
 		<span class="ident">runtime</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Runtime</span>,
 		<span class="ident">context_type</span>: <span class="ident">ContextType</span>,
@@ -992,6 +1028,7 @@
 		<span class="kw">let</span> <span class="ident">gas_at_start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">gas</span>();
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">return_stack_offset</span> <span class="op">=</span> <span class="prelude-val">None</span>;
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">return_stack_len</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">suicide_info</span> <span class="op">=</span> <span class="prelude-val">None</span>;
 
 		<span class="comment">// Execute the call/create.</span>
 		<span class="kw">let</span> <span class="ident">exit_reason</span> <span class="op">=</span> <span class="kw">loop</span> {
@@ -1008,11 +1045,22 @@
 
 				<span class="ident">subcall</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">call_type</span>.<span class="ident">is_some</span>();
 
+				<span class="comment">// RETURN</span>
 				<span class="kw">if</span> <span class="ident">opcode</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Opcode</span>(<span class="number">0xf3</span>) {
 					<span class="kw">let</span> <span class="ident">stack</span> <span class="op">=</span> <span class="ident">runtime</span>.<span class="ident">machine</span>().<span class="ident">stack</span>().<span class="ident">data</span>();
 
 					<span class="ident">return_stack_offset</span> <span class="op">=</span> <span class="ident">stack</span>.<span class="ident">get</span>(<span class="ident">stack</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>).<span class="ident">cloned</span>();
 					<span class="ident">return_stack_len</span> <span class="op">=</span> <span class="ident">stack</span>.<span class="ident">get</span>(<span class="ident">stack</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">2</span>).<span class="ident">cloned</span>();
+				}
+
+				<span class="comment">// SELFDESTRUCT</span>
+				<span class="kw">if</span> <span class="ident">opcode</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Opcode</span>(<span class="number">0xff</span>) {
+					<span class="kw">let</span> <span class="ident">stack</span> <span class="op">=</span> <span class="ident">runtime</span>.<span class="ident">machine</span>().<span class="ident">stack</span>().<span class="ident">data</span>();
+
+					<span class="ident">suicide_info</span> <span class="op">=</span> <span class="ident">stack</span>
+						.<span class="ident">get</span>(<span class="ident">stack</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>)
+						.<span class="ident">cloned</span>()
+						.<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> (<span class="ident">H160</span>::<span class="ident">from</span>(<span class="ident">v</span>), <span class="self">self</span>.<span class="ident">balance</span>(<span class="ident">runtime</span>.<span class="ident">context</span>().<span class="ident">address</span>)));
 				}
 			}
 
@@ -1036,10 +1084,32 @@
 		<span class="kw">let</span> <span class="ident">gas_at_end</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">gas</span>();
 		<span class="kw">let</span> <span class="ident">gas_used</span> <span class="op">=</span> <span class="ident">gas_at_start</span> <span class="op">-</span> <span class="ident">gas_at_end</span>;
 
-		<span class="comment">// Insert entry.</span>
+		<span class="comment">// If `exit_reason` is `Suicided`, we need to add the suicide subcall to the traces.</span>
+		<span class="kw">if</span> <span class="ident">exit_reason</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ExitReason</span>::<span class="ident">Succeed</span>(<span class="ident">ExitSucceed</span>::<span class="ident">Suicided</span>) {
+			<span class="kw">let</span> <span class="ident">entries_index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">entries_next_index</span>;
+			<span class="self">self</span>.<span class="ident">entries_next_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+
+			<span class="kw">let</span> (<span class="ident">refund_address</span>, <span class="ident">balance</span>) <span class="op">=</span> <span class="ident">suicide_info</span>.<span class="ident">unwrap</span>();
+
+			<span class="self">self</span>.<span class="ident">entries</span>.<span class="ident">insert</span>(
+				<span class="ident">entries_index</span>,
+				<span class="ident">Call</span> {
+					<span class="ident">from</span>: <span class="ident">to</span>, <span class="comment">// this contract is self destructing</span>
+					<span class="ident">trace_address</span>: <span class="self">self</span>.<span class="ident">trace_address</span>.<span class="ident">clone</span>(),
+					<span class="ident">subtraces</span>: <span class="number">0</span>,
+					<span class="ident">value</span>,
+					<span class="ident">gas</span>: <span class="ident">U256</span>::<span class="ident">from</span>(<span class="ident">gas_at_end</span>),
+					<span class="ident">gas_used</span>: <span class="ident">U256</span>::<span class="ident">from</span>(<span class="ident">gas_used</span>),
+					<span class="ident">inner</span>: <span class="ident">CallInner</span>::<span class="ident">SelfDestruct</span> {
+						<span class="ident">refund_address</span>,
+						<span class="ident">balance</span>,
+					},
+				},
+			);
+		}
 
 		<span class="comment">// We pop the children item, giving back this context trace_address.</span>
-		<span class="self">self</span>.<span class="ident">trace_address</span>.<span class="ident">pop</span>();
+		<span class="kw">let</span> <span class="ident">subtraces</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">trace_address</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
 
 		<span class="self">self</span>.<span class="ident">entries</span>.<span class="ident">insert</span>(
 			<span class="ident">entries_index</span>,
@@ -1056,13 +1126,14 @@
 						<span class="ident">ExitReason</span>::<span class="ident">Fatal</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">CallResult</span>::<span class="ident">Error</span>(<span class="macro">vec</span><span class="macro">!</span>[]),
 					};
 
-					<span class="ident">Entry</span> {
+					<span class="ident">Call</span> {
 						<span class="ident">from</span>,
 						<span class="ident">trace_address</span>: <span class="self">self</span>.<span class="ident">trace_address</span>.<span class="ident">clone</span>(),
+						<span class="ident">subtraces</span>,
 						<span class="ident">value</span>,
 						<span class="ident">gas</span>: <span class="ident">U256</span>::<span class="ident">from</span>(<span class="ident">gas_at_end</span>),
 						<span class="ident">gas_used</span>: <span class="ident">U256</span>::<span class="ident">from</span>(<span class="ident">gas_used</span>),
-						<span class="ident">inner</span>: <span class="ident">EntryInner</span>::<span class="ident">Call</span> {
+						<span class="ident">inner</span>: <span class="ident">CallInner</span>::<span class="ident">Call</span> {
 							<span class="ident">call_type</span>: <span class="ident">call_type</span>.<span class="ident">expect</span>(<span class="string">&quot;should always have a call type&quot;</span>),
 							<span class="ident">to</span>,
 							<span class="ident">input</span>: <span class="ident">data</span>,
@@ -1104,13 +1175,14 @@
 						<span class="ident">ExitReason</span>::<span class="ident">Fatal</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">CreateResult</span>::<span class="ident">Error</span> { <span class="ident">error</span>: <span class="macro">vec</span><span class="macro">!</span>[] },
 					};
 
-					<span class="ident">Entry</span> {
+					<span class="ident">Call</span> {
 						<span class="ident">value</span>,
 						<span class="ident">trace_address</span>: <span class="self">self</span>.<span class="ident">trace_address</span>.<span class="ident">clone</span>(),
+						<span class="ident">subtraces</span>,
 						<span class="ident">gas</span>: <span class="ident">U256</span>::<span class="ident">from</span>(<span class="ident">gas_at_end</span>),
 						<span class="ident">gas_used</span>: <span class="ident">U256</span>::<span class="ident">from</span>(<span class="ident">gas_used</span>),
 						<span class="ident">from</span>,
-						<span class="ident">inner</span>: <span class="ident">EntryInner</span>::<span class="ident">Create</span> { <span class="ident">init</span>: <span class="ident">data</span>, <span class="ident">res</span> },
+						<span class="ident">inner</span>: <span class="ident">CallInner</span>::<span class="ident">Create</span> { <span class="ident">init</span>: <span class="ident">data</span>, <span class="ident">res</span> },
 					}
 				}
 			},

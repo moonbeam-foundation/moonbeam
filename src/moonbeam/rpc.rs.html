@@ -195,6 +195,15 @@
 <span id="192">192</span>
 <span id="193">193</span>
 <span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -222,6 +231,7 @@
 <span class="kw">use</span> <span class="ident">fc_rpc</span>::{<span class="ident">SchemaV1Override</span>, <span class="ident">StorageOverride</span>};
 <span class="kw">use</span> <span class="ident">fc_rpc_core</span>::<span class="ident">types</span>::{<span class="ident">FilterPool</span>, <span class="ident">PendingTransactions</span>};
 <span class="kw">use</span> <span class="ident">jsonrpc_pubsub</span>::<span class="ident">manager</span>::<span class="ident">SubscriptionManager</span>;
+<span class="kw">use</span> <span class="ident">moonbeam_rpc_trace</span>::<span class="ident">TraceFilterCacheRequester</span>;
 <span class="kw">use</span> <span class="ident">moonbeam_runtime</span>::{<span class="ident">opaque</span>::<span class="ident">Block</span>, <span class="ident">AccountId</span>, <span class="ident">Balance</span>, <span class="ident">Hash</span>, <span class="ident">Index</span>};
 <span class="kw">use</span> <span class="ident">sc_client_api</span>::{
 	<span class="ident">backend</span>::{<span class="ident">AuxStore</span>, <span class="ident">Backend</span>, <span class="ident">StateBackend</span>, <span class="ident">StorageProvider</span>},
@@ -266,6 +276,8 @@
 	<span class="kw">pub</span> <span class="ident">backend</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">BE</span><span class="op">&gt;</span>,
 	<span class="doccomment">/// Manual seal command sink</span>
 	<span class="kw">pub</span> <span class="ident">command_sink</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">futures</span>::<span class="ident">channel</span>::<span class="ident">mpsc</span>::<span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">EngineCommand</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Trace filter cache server requester.</span>
+	<span class="kw">pub</span> <span class="ident">trace_filter_requester</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TraceFilterCacheRequester</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// Instantiate all Full RPC extensions.</span>
@@ -295,6 +307,7 @@
 		<span class="ident">HexEncodedIdProvider</span>, <span class="ident">NetApi</span>, <span class="ident">NetApiServer</span>, <span class="ident">Web3Api</span>, <span class="ident">Web3ApiServer</span>,
 	};
 	<span class="kw">use</span> <span class="ident">moonbeam_rpc_debug</span>::{<span class="ident">Debug</span>, <span class="ident">DebugServer</span>};
+	<span class="kw">use</span> <span class="ident">moonbeam_rpc_trace</span>::{<span class="ident">Trace</span>, <span class="ident">TraceServer</span>};
 	<span class="kw">use</span> <span class="ident">moonbeam_rpc_txpool</span>::{<span class="ident">TxPool</span>, <span class="ident">TxPoolServer</span>};
 	<span class="kw">use</span> <span class="ident">pallet_transaction_payment_rpc</span>::{<span class="ident">TransactionPayment</span>, <span class="ident">TransactionPaymentApi</span>};
 	<span class="kw">use</span> <span class="ident">substrate_frame_rpc_system</span>::{<span class="ident">FullSystem</span>, <span class="ident">SystemApi</span>};
@@ -311,6 +324,7 @@
 		<span class="ident">filter_pool</span>,
 		<span class="ident">ethapi_cmd</span>,
 		<span class="ident">command_sink</span>,
+		<span class="ident">trace_filter_requester</span>,
 		<span class="ident">frontier_backend</span>,
 		<span class="ident">backend</span>,
 	} <span class="op">=</span> <span class="ident">deps</span>;
@@ -387,6 +401,10 @@
 			<span class="ident">ManualSealApi</span>::<span class="ident">to_delegate</span>(<span class="ident">ManualSeal</span>::<span class="ident">new</span>(<span class="ident">command_sink</span>)),
 		);
 	};
+
+	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">trace_filter_requester</span>) <span class="op">=</span> <span class="ident">trace_filter_requester</span> {
+		<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">TraceServer</span>::<span class="ident">to_delegate</span>(<span class="ident">Trace</span>::<span class="ident">new</span>(<span class="ident">trace_filter_requester</span>)));
+	}
 
 	<span class="ident">io</span>
 }
