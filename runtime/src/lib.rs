@@ -113,7 +113,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 29,
+	spec_version: 30,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -255,6 +255,11 @@ impl pallet_evm::GasWeightMapping for MoonbeamGasWeightMapping {
 	fn weight_to_gas(weight: Weight) -> u64 {
 		u64::try_from(weight.wrapping_div(WEIGHT_PER_GAS)).unwrap_or(u32::MAX as u64)
 	}
+}
+
+parameter_types! {
+	pub BlockGasLimit: U256
+		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT / WEIGHT_PER_GAS);
 }
 
 impl pallet_evm::Config for Runtime {
@@ -426,11 +431,6 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 }
 
 pub struct EthereumFindAuthor<F>(PhantomData<F>);
-
-parameter_types! {
-	pub BlockGasLimit: U256
-		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT / WEIGHT_PER_GAS);
-}
 
 impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
@@ -1026,7 +1026,7 @@ impl_runtime_apis! {
 		}
 
 		fn current_block_gas_limit() -> U256 {
-			BlockGasLimit::get()
+			<Runtime as pallet_evm::Config>::BlockGasLimit::get()
 		}
 	}
 
