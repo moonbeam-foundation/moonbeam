@@ -48,7 +48,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
     await contract.methods
       .infinite()
       .call({ gas: "0x100000" })
-      .catch((err) => expect(err.message).to.equal(`Returned error: evm error: OutOfGas`));
+      .catch((err) => expect(err.message).to.equal(`Returned error: out of gas or fund`));
   });
 
   it("inifinite loop send with incr should return OutOfGas", async function () {

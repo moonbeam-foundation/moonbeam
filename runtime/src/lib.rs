@@ -269,6 +269,7 @@ impl pallet_evm::Config for Runtime {
 	type Precompiles = precompiles::MoonbeamPrecompiles<Self>;
 	type ChainId = EthereumChainId;
 	type OnChargeTransaction = ();
+	type BlockGasLimit = BlockGasLimit;
 }
 
 parameter_types! {
@@ -435,7 +436,6 @@ impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
 	type FindAuthor = AuthorInherent;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot;
-	type BlockGasLimit = BlockGasLimit;
 }
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
@@ -1026,7 +1026,7 @@ impl_runtime_apis! {
 		}
 
 		fn current_block_gas_limit() -> U256 {
-			<Runtime as pallet_ethereum::Config>::BlockGasLimit::get()
+			BlockGasLimit::get()
 		}
 	}
 
