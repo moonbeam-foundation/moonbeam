@@ -52,7 +52,7 @@ where
 {
 	// TODO: how to propagate Err here (i.e. `from_utf8` fails), so the rpc requests also
 	// returns an error?
-	serializer.serialize_str(&format!("{}", std::str::from_utf8(value).unwrap_or("")))
+	serializer.serialize_str(&std::str::from_utf8(value).unwrap_or("").to_string())
 }
 
 pub fn u256_serialize<S>(data: &U256, serializer: S) -> Result<S::Ok, S::Error>

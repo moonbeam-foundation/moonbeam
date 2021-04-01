@@ -85,7 +85,7 @@ where
 		Ok(None)
 	}
 
-	pub fn is_canon(&self, target_hash: H256) -> bool {
+	fn is_canon(&self, target_hash: H256) -> bool {
 		if let Ok(Some(number)) = self.client.number(target_hash) {
 			if let Ok(Some(header)) = self.client.header(BlockId::Number(number)) {
 				return header.hash() == target_hash;
@@ -177,7 +177,7 @@ where
 		// Set trace type
 		let trace_type = match params {
 			Some(TraceParams {
-				tracer: Some(tracer),
+				tracer: Some(tracer), ..
 			}) => {
 				let hash: H128 = sp_io::hashing::twox_128(&tracer.as_bytes()).into();
 				let blockscout_hash = H128::from_str("0x94d9f08796f91eb13a2e82a6066882f7").unwrap();

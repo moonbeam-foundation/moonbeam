@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-// extern crate alloc;
-
 use crate::executor::util::opcodes;
 use moonbeam_rpc_primitives_debug::{
 	single::{Call, CallInner, RawStepLog, TraceType},

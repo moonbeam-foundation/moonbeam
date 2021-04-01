@@ -30,7 +30,11 @@ use crate::types::single;
 #[serde(rename_all = "camelCase")]
 pub struct TraceParams {
 	/// Javascript tracer (we just check if it's Blockscout tracer string)
+	pub disable_storage: Option<bool>,
+	pub disable_memory: Option<bool>,
+	pub disable_stack: Option<bool>,
 	pub tracer: Option<String>,
+	pub timeout: Option<String>,
 }
 
 #[rpc(server)]

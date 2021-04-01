@@ -82,7 +82,15 @@
         ]
       },
       "palletScheduler": {},
-      "palletDemocracy": {}
+      "palletDemocracy": {},
+      "palletCollectiveInstance1": {
+        "phantom": null,
+        "members": []
+      },
+      "palletCollectiveInstance2": {
+        "phantom": null,
+        "members": []
+      }
     }
   }
 }

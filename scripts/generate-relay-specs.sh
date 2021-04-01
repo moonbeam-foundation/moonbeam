@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 source scripts/_init_var.sh
 
 if [ -z "$POLKADOT_VERSION" ]; then
