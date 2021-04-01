@@ -29,5 +29,4 @@ std = [
 	"pallet-evm-precompile-dispatch/std",
 	"pallet-evm-precompile-modexp/std",
 	"pallet-evm-precompile-simple/std",
-	"pallet-evm-precompile-sha3fips/std",
 ]
