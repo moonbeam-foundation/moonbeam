@@ -14,7 +14,7 @@ const address1 = "0x42e2ee7ba8975c473157634ac2af4098190fc741";
 const address2 = "0xf8cef78e923919054037a1d03662bbd884ff4edf";
 
 describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (context) => {
-  step("Replay succeeding CREATE", async function () {
+  step("should replay CREATE", async function () {
     // Deploy contract
     const contract = new context.web3.eth.Contract(CONTRACT.abi);
     const contract_deploy = contract.deploy({
@@ -70,7 +70,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     expect(response.result[0].type).to.equal("create");
   });
 
-  step("Replay reverting CREATE", async function () {
+  step("should replay reverting CREATE", async function () {
     // Deploy contract
     const contract = new context.web3.eth.Contract(CONTRACT.abi);
     const contract_deploy = contract.deploy({
@@ -122,53 +122,56 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     expect(response.result[0].type).to.equal("create");
   });
 
-  step("Multiple transactions in the same block + trace over multiple blocks", async function () {
-    const contract = new context.web3.eth.Contract(CONTRACT.abi);
+  step(
+    "should replay multiple transactions in the same block + trace over multiple blocks",
+    async function () {
+      const contract = new context.web3.eth.Contract(CONTRACT.abi);
 
-    // Deploy 2 more contracts
-    for (var i = 0; i < 2; i++) {
-      const contract_deploy = contract.deploy({
-        data: CONTRACT.bytecode,
-        arguments: [false], // don't revert
-      });
+      // Deploy 2 more contracts
+      for (var i = 0; i < 2; i++) {
+        const contract_deploy = contract.deploy({
+          data: CONTRACT.bytecode,
+          arguments: [false], // don't revert
+        });
 
-      const tx = await context.web3.eth.accounts.signTransaction(
+        const tx = await context.web3.eth.accounts.signTransaction(
+          {
+            nonce: 2 + i,
+            from: GENESIS_ACCOUNT,
+            data: contract_deploy.encodeABI(),
+            value: "0x00",
+            gasPrice: "0x01",
+            gas: "0x100000",
+          },
+          GENESIS_ACCOUNT_PRIVATE_KEY
+        );
+
+        let send = await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
+      }
+
+      await createAndFinalizeBlock(context.polkadotApi);
+
+      // Perform RPC call.
+      let response = await customRequest(context.web3, "trace_filter", [
         {
-          nonce: 2 + i,
-          from: GENESIS_ACCOUNT,
-          data: contract_deploy.encodeABI(),
-          value: "0x00",
-          gasPrice: "0x01",
-          gas: "0x100000",
+          fromBlock: "0x02",
+          toBlock: "0x03",
         },
-        GENESIS_ACCOUNT_PRIVATE_KEY
-      );
+      ]);
 
-      let send = await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
+      expect(response.result.length).to.equal(3);
+      expect(response.result[0].blockNumber).to.equal(2);
+      expect(response.result[0].transactionPosition).to.equal(0);
+      expect(response.result[1].blockNumber).to.equal(3);
+      expect(response.result[1].transactionPosition).to.equal(0);
+      expect(response.result[2].blockNumber).to.equal(3);
+      expect(response.result[2].transactionPosition).to.equal(1);
+
+      // console.log(JSON.stringify(response));
     }
+  );
 
-    await createAndFinalizeBlock(context.polkadotApi);
-
-    // Perform RPC call.
-    let response = await customRequest(context.web3, "trace_filter", [
-      {
-        fromBlock: "0x02",
-        toBlock: "0x03",
-      },
-    ]);
-
-    expect(response.result.length).to.equal(3);
-    expect(response.result[0].blockNumber).to.equal(2);
-    expect(response.result[0].transactionPosition).to.equal(0);
-    expect(response.result[1].blockNumber).to.equal(3);
-    expect(response.result[1].transactionPosition).to.equal(0);
-    expect(response.result[2].blockNumber).to.equal(3);
-    expect(response.result[2].transactionPosition).to.equal(1);
-
-    // console.log(JSON.stringify(response));
-  });
-
-  step("Call with subcalls, some reverting", async function () {
+  step("should replay a call with subcalls, some reverting", async function () {
     const contract = new context.web3.eth.Contract(CONTRACT.abi);
 
     const contract_call = contract.methods.subcalls(address1, address2);
@@ -215,7 +218,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     expect(response.result[6].traceAddress).to.deep.equal([1, 1]);
   });
 
-  step("Request range of blocks", async function () {
+  step("should hanndle request over range of blocks", async function () {
     let response = await customRequest(context.web3, "trace_filter", [
       {
         fromBlock: "0x03",
@@ -245,7 +248,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     expect(response.result[8].transactionPosition).to.equal(0);
   });
 
-  step("Filter fromAddress", async function () {
+  step("should filter fromAddress", async function () {
     let response = await customRequest(context.web3, "trace_filter", [
       {
         fromBlock: "0x03",
@@ -257,7 +260,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     expect(response.result.length).to.equal(3);
   });
 
-  step("Filter toAddress", async function () {
+  step("should filter toAddress", async function () {
     let response = await customRequest(context.web3, "trace_filter", [
       {
         fromBlock: "0x03",
@@ -267,5 +270,22 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     ]);
 
     expect(response.result.length).to.equal(4);
+  });
+
+  step("should handle pagination", async function () {
+    let response = await customRequest(context.web3, "trace_filter", [
+      {
+        fromBlock: "0x03",
+        toBlock: "0x04",
+        count: 2,
+        after: 1,
+      },
+    ]);
+
+    expect(response.result.length).to.equal(2);
+    expect(response.result[0].blockNumber).to.equal(3);
+    expect(response.result[0].transactionPosition).to.equal(1);
+    expect(response.result[1].blockNumber).to.equal(4);
+    expect(response.result[1].transactionPosition).to.equal(0);
   });
 });
