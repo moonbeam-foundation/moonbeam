@@ -191,12 +191,10 @@ where
 					)));
 				}
 			}
-			Some(params) => {
-				single::TraceType::Raw {
-					disable_storage: Some(params.disable_storage.unwrap_or(false)),
-					disable_memory: Some(params.disable_memory.unwrap_or(false)),
-					disable_stack: Some(params.disable_stack.unwrap_or(false)),
-				}
+			Some(params) => single::TraceType::Raw {
+				disable_storage: Some(params.disable_storage.unwrap_or(false)),
+				disable_memory: Some(params.disable_memory.unwrap_or(false)),
+				disable_stack: Some(params.disable_stack.unwrap_or(false)),
 			},
 			_ => single::TraceType::Raw {
 				disable_storage: None,
