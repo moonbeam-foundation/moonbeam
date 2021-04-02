@@ -31,16 +31,13 @@ use std::{
 use tokio::{sync::oneshot, time::delay_for};
 
 use jsonrpc_core::Result;
-use sc_client_api::{
-	backend::{AuxStore, Backend, StateBackend},
-	StorageProvider,
-};
+use sc_client_api::backend::Backend;
 use sp_api::{ApiRef, BlockId, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
 };
-use sp_runtime::traits::{BlakeTwo256, Block as BlockT};
+use sp_runtime::traits::Block as BlockT;
 use sp_utils::mpsc::TracingUnboundedSender;
 
 use ethereum_types::H256;
@@ -101,13 +98,9 @@ pub struct TraceFilterCache<B, C, BE>(PhantomData<(B, C, BE)>);
 impl<B, C, BE> TraceFilterCache<B, C, BE>
 where
 	BE: Backend<B> + 'static,
-	BE::State: StateBackend<BlakeTwo256>,
-	BE::Blockchain: BlockchainBackend<B>,
-	C: ProvideRuntimeApi<B> + AuxStore,
+	C: ProvideRuntimeApi<B>,
 	C: HeaderMetadata<B, Error = BlockChainError> + HeaderBackend<B>,
 	C: Send + Sync + 'static,
-	C: StorageProvider<B, BE>,
-	C: HeaderMetadata<B, Error = BlockChainError> + 'static,
 	B: BlockT<Hash = H256> + Send + Sync + 'static,
 	B::Header: HeaderT<Number = u32>,
 	C::Api: BlockBuilder<B>,

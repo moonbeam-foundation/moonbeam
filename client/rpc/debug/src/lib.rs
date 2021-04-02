@@ -21,13 +21,13 @@ use fc_rpc::{frontier_backend_client, internal_err};
 use fp_rpc::EthereumRuntimeRPCApi;
 use jsonrpc_core::Result as RpcResult;
 use moonbeam_rpc_primitives_debug::{single, DebugRuntimeApi};
-use sc_client_api::backend::{AuxStore, Backend, StateBackend};
+use sc_client_api::backend::Backend;
 use sp_api::{BlockId, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
 };
-use sp_runtime::traits::{BlakeTwo256, Block as BlockT};
+use sp_runtime::traits::Block as BlockT;
 use std::{str::FromStr, sync::Arc};
 
 pub struct Debug<B: BlockT, C, BE> {
@@ -49,9 +49,7 @@ impl<B: BlockT, C, BE> Debug<B, C, BE> {
 impl<B, C, BE> DebugT for Debug<B, C, BE>
 where
 	BE: Backend<B> + 'static,
-	BE::State: StateBackend<BlakeTwo256>,
-	BE::Blockchain: BlockchainBackend<B>,
-	C: ProvideRuntimeApi<B> + AuxStore,
+	C: ProvideRuntimeApi<B>,
 	C: HeaderMetadata<B, Error = BlockChainError> + HeaderBackend<B>,
 	C: Send + Sync + 'static,
 	B: BlockT<Hash = H256> + Send + Sync + 'static,
