@@ -27,6 +27,7 @@ use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_simple::{ECRecover, Identity, Ripemd160, Sha256};
+use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use sp_core::H160;
 use sp_std::{marker::PhantomData, vec::Vec};
 
@@ -60,6 +61,8 @@ where
 			a if a == hash(7) => Some(Bn128Mul::execute(input, target_gas, context)),
 			a if a == hash(8) => Some(Bn128Pairing::execute(input, target_gas, context)),
 			// Moonbeam precompiles :
+			// We start from the back to avoid collision with Ethereum precompiles
+			a if a == hash(254) => Some(Sha3FIPS256::execute(input, target_gas, context)),
 			a if a == hash(255) => Some(Dispatch::<R>::execute(input, target_gas, context)),
 			_ => None,
 		}
