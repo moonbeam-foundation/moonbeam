@@ -91,7 +91,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		};
 
 		match trace_type {
-			TraceType::Raw => Ok(TransactionTrace::Raw {
+			TraceType::Raw { .. } => Ok(TransactionTrace::Raw {
 				gas: U256::from(wrapper.inner.state().metadata().gasometer().gas()),
 				return_value: execution_result,
 				step_logs: wrapper.step_logs,
@@ -124,7 +124,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		};
 
 		match trace_type {
-			TraceType::Raw => Ok(TransactionTrace::Raw {
+			TraceType::Raw { .. } => Ok(TransactionTrace::Raw {
 				gas: U256::from(wrapper.inner.state().metadata().gasometer().gas()),
 				return_value: execution_result,
 				step_logs: wrapper.step_logs,
