@@ -17,7 +17,10 @@
 //! Provide serialization functions for various types and formats.
 
 use ethereum_types::{H256, U256};
-use serde::{ser::{SerializeSeq, Error}, Serializer};
+use serde::{
+	ser::{Error, SerializeSeq},
+	Serializer,
+};
 
 pub fn seq_h256_serialize<S>(data: &[H256], serializer: S) -> Result<S::Ok, S::Error>
 where
