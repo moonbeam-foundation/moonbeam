@@ -16,16 +16,19 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use evm::{ExitSucceed, ExitError, Context};
-use pallet_evm::{Precompile, PrecompileSet, Config};
+use codec::Decode;
+use evm::{Context, ExitError, ExitSucceed};
+use frame_support::{
+	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	weights::{DispatchClass, Pays},
+};
+use pallet_evm::{Config, Precompile, PrecompileSet};
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_simple::{ECRecover, Identity, Ripemd160, Sha256};
 use sp_core::H160;
-use frame_support::{dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo}, weights::{Pays, DispatchClass}};
-use codec::Decode;
-use sp_std::{vec::Vec, marker::PhantomData};
+use sp_std::{marker::PhantomData, vec::Vec};
 
 /// The PrecompileSet installed in the Moonbeam runtime.
 /// We include the nine Istanbul precompiles
@@ -35,19 +38,20 @@ use sp_std::{vec::Vec, marker::PhantomData};
 /// TODO I had trouble getting the BN precompiles to compile.
 /// Also, Why are the BN precompiles in geth called bn256*, but in Frontier they are called Bn128*
 #[derive(Debug, Clone, Copy)]
-pub struct MoonbeamPrecompiles<R> (PhantomData<R>);
+pub struct MoonbeamPrecompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for MoonbeamPrecompiles<R>
 where
-	R: Config,	
+	R: Config,
 	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
-    <R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>{
+	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
+{
 	fn execute(
-        address: H160, 
-        input: &[u8], 
-        target_gas: Option<u64>, 
-        context: &Context
-    ) -> Option<Result<(ExitSucceed, Vec<u8>, u64), ExitError>> {
+		address: H160,
+		input: &[u8],
+		target_gas: Option<u64>,
+		context: &Context,
+	) -> Option<Result<(ExitSucceed, Vec<u8>, u64), ExitError>> {
 		match address {
 			// Ethereum precompiles :
 			a if a == hash(1) => Some(ECRecover::execute(input, target_gas, context)),
@@ -64,7 +68,6 @@ where
 		}
 	}
 }
-
 
 fn hash(a: u64) -> H160 {
 	H160::from_low_u64_be(a)
