@@ -146,6 +146,25 @@ describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
     expect(logs[1].depth).to.be.equal(1);
   });
 
+  step("[Raw] should use optional disable parameters", async function () {
+    const send = await nested(context);
+    await createAndFinalizeBlock(context.polkadotApi);
+    let traceTx = await customRequest(context.web3, "debug_traceTransaction", [
+      send.result, { disableMemory: true, disableStack: true, disableStorage: true }
+    ]);
+    let logs = [];
+    for (let log of traceTx.result.stepLogs) {
+      if (
+        log.hasOwnProperty("storage") ||
+        log.hasOwnProperty("memory") ||
+        log.hasOwnProperty("stack")
+      ) {
+        logs.push(log);
+      }
+    }
+    expect(logs.length).to.be.equal(0);
+  });
+
   step("[Blockscout] should trace nested contract calls", async function () {
     const send = await nested(context);
     await createAndFinalizeBlock(context.polkadotApi);
