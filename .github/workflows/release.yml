@@ -173,10 +173,7 @@ jobs:
       - name: Typescript integration tests (against dev service)
         run: |
           cd moonbeam-types-bundle
-          npm install
-          cd ../tests
-          npm install
-          npm run test;
+          npm install;
       - name: Save parachain binary
         run: |
           mkdir -p build
