@@ -54,7 +54,7 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, Perbill,
+	AccountId32, ApplyExtrinsicResult, Perbill,
 };
 use sp_std::{convert::TryFrom, prelude::*};
 #[cfg(feature = "std")]
@@ -92,6 +92,12 @@ pub type DigestItem = generic::DigestItem<Hash>;
 
 /// Maximum weight per block
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
+
+pub const MILLISECS_PER_BLOCK: u64 = 6000;
+pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
+pub const HOURS: BlockNumber = MINUTES * 60;
+pub const DAYS: BlockNumber = HOURS * 24;
+pub const MONTHS: BlockNumber = DAYS * 30;
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
@@ -500,6 +506,22 @@ impl pallet_author_filter::Config for Runtime {
 	type RandomnessSource = RandomnessCollectiveFlip;
 }
 
+parameter_types! {
+	// Thinking a
+	pub const LeasePeriod: BlockNumber = 6 * MONTHS;
+	pub const VestingPeriod: BlockNumber = 1 * MONTHS;
+	pub const DefaultNextInitialization: BlockNumber = 0;
+}
+
+impl pallet_crowdloan_rewards::Config for Runtime {
+	type Event = Event;
+	type LeasePeriod = LeasePeriod;
+	type DefaultNextInitialization = DefaultNextInitialization;
+	type RewardCurrency = Balances;
+	type RelayChainAccountId = AccountId32;
+	type VestingPeriod = VestingPeriod;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -528,7 +550,8 @@ construct_runtime! {
 		// The order matters here. Inherents will be included in the order specified here.
 		// Concretely we need the author inherent to come after the parachain_upgrade inherent.
 		AuthorInherent: author_inherent::{Pallet, Call, Storage, Inherent},
-		AuthorFilter: pallet_author_filter::{Pallet, Call, Storage, Event<T>,}
+		AuthorFilter: pallet_author_filter::{Pallet, Call, Storage, Event<T>},
+		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Storage, Event<T>}
 	}
 }
 
