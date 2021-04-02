@@ -181,6 +181,7 @@ impl frame_system::Config for Runtime {
 	type SystemWeightInfo = ();
 	/// This is used as an identifier of the chain. 42 is the generic substrate prefix.
 	type SS58Prefix = SS58Prefix;
+	type OnSetCode = ();
 }
 
 impl pallet_utility::Config for Runtime {
