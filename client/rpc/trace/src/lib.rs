@@ -30,7 +30,7 @@ use std::{
 };
 use tokio::{sync::oneshot, time::delay_for};
 
-use jsonrpc_core::{Error as RpcError, ErrorCode, Result};
+use jsonrpc_core::Result;
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend},
 	StorageProvider,
@@ -44,6 +44,7 @@ use sp_runtime::traits::{BlakeTwo256, Block as BlockT};
 use sp_utils::mpsc::TracingUnboundedSender;
 
 use ethereum_types::H256;
+use fc_rpc::internal_err;
 use fp_rpc::EthereumRuntimeRPCApi;
 
 pub use moonbeam_rpc_core_trace::{
@@ -88,14 +89,6 @@ impl TraceT for Trace {
 		}
 		.boxed()
 		.compat()
-	}
-}
-
-fn internal_err<T: ToString>(message: T) -> RpcError {
-	RpcError {
-		code: ErrorCode::InternalError,
-		message: message.to_string(),
-		data: None,
 	}
 }
 
