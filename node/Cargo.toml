@@ -1,6 +1,6 @@
 [package]
-name = 'moonbeam'
-description = 'Moonbeam Collator'
+name = 'sunrock'
+description = 'Sunrock Collator'
 homepage = 'https://moonbeam.network'
 license = 'GPL-3.0-only'
 version = '0.7.0'
@@ -9,7 +9,7 @@ build = 'build.rs'
 edition = '2018'
 
 [[bin]]
-name = 'moonbeam'
+name = 'sunrock'
 path = 'src/main.rs'
 
 [dependencies]

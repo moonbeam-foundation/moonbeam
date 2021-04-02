@@ -110,8 +110,8 @@ pub mod opaque {
 
 /// This runtime version.
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("moonbeam"),
-	impl_name: create_runtime_str!("moonbeam"),
+	spec_name: create_runtime_str!("sunrock"),
+	impl_name: create_runtime_str!("sunrock"),
 	authoring_version: 3,
 	spec_version: 30,
 	impl_version: 1,
