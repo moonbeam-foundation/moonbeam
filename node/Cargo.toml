@@ -9,7 +9,7 @@ build = 'build.rs'
 edition = '2018'
 
 [[bin]]
-name = 'sunrock'
+name = 'moonbeam'
 path = 'src/main.rs'
 
 [dependencies]
