@@ -150,7 +150,8 @@ describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
     const send = await nested(context);
     await createAndFinalizeBlock(context.polkadotApi);
     let traceTx = await customRequest(context.web3, "debug_traceTransaction", [
-      send.result, { disableMemory: true, disableStack: true, disableStorage: true }
+      send.result,
+      { disableMemory: true, disableStack: true, disableStorage: true },
     ]);
     let logs = [];
     for (let log of traceTx.result.stepLogs) {
