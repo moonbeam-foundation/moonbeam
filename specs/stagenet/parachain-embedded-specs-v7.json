@@ -7,10 +7,7 @@
     "/dns4/bootnode2.stagenet.moonbeam.gcp.purestake.run/tcp/30334/p2p/12D3KooWBv6eibjYx9PiRdSzd35KMLEq8Dg9mbNoSKjJ9oeEr7pq"
   ],
   "telemetryEndpoints": [
-    [
-      "/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F",
-      0
-    ]
+    ["/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F", 0]
   ],
   "protocolId": null,
   "properties": {
