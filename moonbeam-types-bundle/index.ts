@@ -216,6 +216,7 @@ export const moonbeamDefinitions = {
           downward_messages: "Vec<InboundDownwardMessage>",
           horizontal_messages: "BTreeMap<ParaId, Vec<InboundHrmpMessage>>",
         },
+        RelayChainAccountId: "H256",
       },
     },
   ],
