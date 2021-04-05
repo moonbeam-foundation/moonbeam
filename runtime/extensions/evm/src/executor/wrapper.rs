@@ -90,9 +90,9 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 	fn trace_raw(
 		&mut self,
 		runtime: &mut Runtime,
-		disable_storage: Option<bool>,
-		disable_memory: Option<bool>,
-		disable_stack: Option<bool>,
+		disable_storage: bool,
+		disable_memory: bool,
+		disable_stack: bool,
 	) -> ExitReason {
 		// TODO : If subcalls on a same contract access more storage, does it cache it here too ?
 		// (not done yet)
@@ -168,7 +168,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 					),
 					gas: U256::from(self.inner.gas()),
 					gas_cost: U256::from(gas_cost),
-					memory: if let Some(true) = disable_memory {
+					memory: if disable_memory {
 						None
 					} else {
 						// Vec<u8> to Vec<H256> conversion.
@@ -195,12 +195,12 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 					},
 					op: opcodes(opcode),
 					pc: U256::from(*position),
-					stack: if let Some(true) = disable_stack {
+					stack: if disable_stack {
 						None
 					} else {
 						Some(runtime.machine().stack().data().clone())
 					},
-					storage: if let Some(true) = disable_storage {
+					storage: if disable_storage {
 						None
 					} else {
 						Some(BTreeMap::new())
@@ -223,7 +223,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 
 			// Push log into vec here instead here (for SLOAD/STORE "early" update).
 			if let Some(mut steplog) = steplog {
-				steplog.storage = if let Some(true) = disable_storage {
+				steplog.storage = if disable_storage {
 					None
 				} else {
 					Some(storage_cache.clone())

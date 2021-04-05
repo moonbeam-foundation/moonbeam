@@ -32,9 +32,9 @@ use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 pub enum TraceType {
 	/// Classic geth with no javascript based tracing.
 	Raw {
-		disable_storage: Option<bool>,
-		disable_memory: Option<bool>,
-		disable_stack: Option<bool>,
+		disable_storage: bool,
+		disable_memory: bool,
+		disable_stack: bool,
 	},
 	/// List of calls and subcalls (output Blockscout expects).
 	CallList,
