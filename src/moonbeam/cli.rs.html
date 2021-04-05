@@ -261,6 +261,12 @@
 <span id="258">258</span>
 <span id="259">259</span>
 <span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -283,6 +289,7 @@
 <span class="doccomment">//! This module defines the Moonbeam node&#39;s Command Line Interface (CLI)</span>
 <span class="doccomment">//! It is built using structopt and inherits behavior from Substrate&#39;s sc_cli crate.</span>
 
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">chain_spec</span>;
 <span class="kw">use</span> <span class="ident">sp_core</span>::<span class="ident">H160</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">FromStr</span>;
@@ -315,7 +322,7 @@
 	<span class="ident">ImportBlocks</span>(<span class="ident">sc_cli</span>::<span class="ident">ImportBlocksCmd</span>),
 
 	<span class="doccomment">/// Remove the whole chain.</span>
-	<span class="ident">PurgeChain</span>(<span class="ident">sc_cli</span>::<span class="ident">PurgeChainCmd</span>),
+	<span class="ident">PurgeChain</span>(<span class="ident">cumulus_client_cli</span>::<span class="ident">PurgeChainCmd</span>),
 
 	<span class="doccomment">/// Revert the chain to a previous state.</span>
 	<span class="ident">Revert</span>(<span class="ident">sc_cli</span>::<span class="ident">RevertCmd</span>),
@@ -457,12 +464,17 @@
 }
 
 <span class="kw">impl</span> <span class="ident">RelayChainCli</span> {
-	<span class="doccomment">/// Create a new instance of `Self`.</span>
+	<span class="doccomment">/// Parse the relay chain CLI parameters using the para chain `Configuration`.</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-		<span class="ident">base_path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
-		<span class="ident">chain_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+		<span class="ident">para_config</span>: <span class="kw-2">&amp;</span><span class="ident">sc_service</span>::<span class="ident">Configuration</span>,
 		<span class="ident">relay_chain_args</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">String</span><span class="op">&gt;</span>,
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+		<span class="kw">let</span> <span class="ident">extension</span> <span class="op">=</span> <span class="ident">chain_spec</span>::<span class="ident">Extensions</span>::<span class="ident">try_get</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">para_config</span>.<span class="ident">chain_spec</span>);
+		<span class="kw">let</span> <span class="ident">chain_id</span> <span class="op">=</span> <span class="ident">extension</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">relay_chain</span>.<span class="ident">clone</span>());
+		<span class="kw">let</span> <span class="ident">base_path</span> <span class="op">=</span> <span class="ident">para_config</span>
+			.<span class="ident">base_path</span>
+			.<span class="ident">as_ref</span>()
+			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;polkadot&quot;</span>));
 		<span class="self">Self</span> {
 			<span class="ident">base_path</span>,
 			<span class="ident">chain_id</span>,

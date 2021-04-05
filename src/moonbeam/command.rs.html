@@ -521,6 +521,22 @@
 <span id="518">518</span>
 <span id="519">519</span>
 <span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -766,7 +782,24 @@
 		}
 		<span class="prelude-val">Some</span>(<span class="ident">Subcommand</span>::<span class="ident">PurgeChain</span>(<span class="ident">cmd</span>)) <span class="op">=</span><span class="op">&gt;</span> {
 			<span class="kw">let</span> <span class="ident">runner</span> <span class="op">=</span> <span class="ident">cli</span>.<span class="ident">create_runner</span>(<span class="ident">cmd</span>)<span class="question-mark">?</span>;
-			<span class="ident">runner</span>.<span class="ident">sync_run</span>(<span class="op">|</span><span class="ident">config</span><span class="op">|</span> <span class="ident">cmd</span>.<span class="ident">run</span>(<span class="ident">config</span>.<span class="ident">database</span>))
+
+			<span class="ident">runner</span>.<span class="ident">sync_run</span>(<span class="op">|</span><span class="ident">config</span><span class="op">|</span> {
+				<span class="kw">let</span> <span class="ident">polkadot_cli</span> <span class="op">=</span> <span class="ident">RelayChainCli</span>::<span class="ident">new</span>(
+					<span class="kw-2">&amp;</span><span class="ident">config</span>,
+					[<span class="ident">RelayChainCli</span>::<span class="ident">executable_name</span>().<span class="ident">to_string</span>()]
+						.<span class="ident">iter</span>()
+						.<span class="ident">chain</span>(<span class="ident">cli</span>.<span class="ident">relaychain_args</span>.<span class="ident">iter</span>()),
+				);
+
+				<span class="kw">let</span> <span class="ident">polkadot_config</span> <span class="op">=</span> <span class="ident">SubstrateCli</span>::<span class="ident">create_configuration</span>(
+					<span class="kw-2">&amp;</span><span class="ident">polkadot_cli</span>,
+					<span class="kw-2">&amp;</span><span class="ident">polkadot_cli</span>,
+					<span class="ident">config</span>.<span class="ident">task_executor</span>.<span class="ident">clone</span>(),
+				)
+				.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Relay chain argument error: {}&quot;</span>, <span class="ident">err</span>))<span class="question-mark">?</span>;
+
+				<span class="ident">cmd</span>.<span class="ident">run</span>(<span class="ident">config</span>, <span class="ident">polkadot_config</span>)
+			})
 		}
 		<span class="prelude-val">Some</span>(<span class="ident">Subcommand</span>::<span class="ident">Revert</span>(<span class="ident">cmd</span>)) <span class="op">=</span><span class="op">&gt;</span> {
 			<span class="kw">let</span> <span class="ident">runner</span> <span class="op">=</span> <span class="ident">cli</span>.<span class="ident">create_runner</span>(<span class="ident">cmd</span>)<span class="question-mark">?</span>;
@@ -872,9 +905,8 @@
 					}
 
 					<span class="kw">let</span> <span class="ident">polkadot_cli</span> <span class="op">=</span> <span class="ident">RelayChainCli</span>::<span class="ident">new</span>(
-						<span class="ident">config</span>.<span class="ident">base_path</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;polkadot&quot;</span>)),
-						<span class="ident">relay_chain_id</span>,
-						[<span class="ident">RelayChainCli</span>::<span class="ident">executable_name</span>()]
+						<span class="kw-2">&amp;</span><span class="ident">config</span>,
+						[<span class="ident">RelayChainCli</span>::<span class="ident">executable_name</span>().<span class="ident">to_string</span>()]
 							.<span class="ident">iter</span>()
 							.<span class="ident">chain</span>(<span class="ident">cli</span>.<span class="ident">relaychain_args</span>.<span class="ident">iter</span>()),
 					);
