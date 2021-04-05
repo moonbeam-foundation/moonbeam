@@ -3,8 +3,8 @@
   "id": "rococo_moonbase_relay_testnet",
   "chainType": "Live",
   "bootNodes": [
-    "/dns4/bootnode1.testnet.moonbeam.network/tcp/30333/p2p/12D3KooWJD9yhtvBoaNviqt6yj9R1AXDqxMvbUaU3fkv73bThKNh",
-    "/dns4/bootnode2.testnet.moonbeam.network/tcp/30333/p2p/12D3KooWPS1EzUXqLx4EdkqPJZ8jciCWmciSTou8DrPGAnPps1Lm"
+    "/dns4/bootnode1.testnet.moonbeam.network/tcp/30333/p2p/12D3KooWQKF812W3B26VxxH8mQpRgF1y9c7rfKLGsVoGU6vtconY",
+    "/dns4/bootnode2.testnet.moonbeam.network/tcp/30333/p2p/12D3KooWRkEDGHLxExrVDKywiZQUPTJBoR43VthgSYyA9Re5vPT9"
   ],
   "telemetryEndpoints": null,
   "protocolId": "dot",
