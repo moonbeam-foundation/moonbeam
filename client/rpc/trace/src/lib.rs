@@ -30,20 +30,18 @@ use std::{
 };
 use tokio::{sync::oneshot, time::delay_for};
 
-use jsonrpc_core::{Error as RpcError, ErrorCode, Result};
-use sc_client_api::{
-	backend::{AuxStore, Backend, StateBackend},
-	StorageProvider,
-};
+use jsonrpc_core::Result;
+use sc_client_api::backend::Backend;
 use sp_api::{ApiRef, BlockId, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
 };
-use sp_runtime::traits::{BlakeTwo256, Block as BlockT};
+use sp_runtime::traits::Block as BlockT;
 use sp_utils::mpsc::TracingUnboundedSender;
 
 use ethereum_types::H256;
+use fc_rpc::internal_err;
 use fp_rpc::EthereumRuntimeRPCApi;
 
 pub use moonbeam_rpc_core_trace::{
@@ -91,14 +89,6 @@ impl TraceT for Trace {
 	}
 }
 
-fn internal_err<T: ToString>(message: T) -> RpcError {
-	RpcError {
-		code: ErrorCode::InternalError,
-		message: message.to_string(),
-		data: None,
-	}
-}
-
 pub type Responder = oneshot::Sender<Result<Vec<TransactionTrace>>>;
 pub type TraceFilterCacheRequester = TracingUnboundedSender<(FilterRequest, Responder)>;
 const EXPIRATION_DELAY: Duration = Duration::from_secs(600);
@@ -108,13 +98,9 @@ pub struct TraceFilterCache<B, C, BE>(PhantomData<(B, C, BE)>);
 impl<B, C, BE> TraceFilterCache<B, C, BE>
 where
 	BE: Backend<B> + 'static,
-	BE::State: StateBackend<BlakeTwo256>,
-	BE::Blockchain: BlockchainBackend<B>,
-	C: ProvideRuntimeApi<B> + AuxStore,
+	C: ProvideRuntimeApi<B>,
 	C: HeaderMetadata<B, Error = BlockChainError> + HeaderBackend<B>,
 	C: Send + Sync + 'static,
-	C: StorageProvider<B, BE>,
-	C: HeaderMetadata<B, Error = BlockChainError> + 'static,
 	B: BlockT<Hash = H256> + Send + Sync + 'static,
 	B::Header: HeaderT<Number = u32>,
 	C::Api: BlockBuilder<B>,
