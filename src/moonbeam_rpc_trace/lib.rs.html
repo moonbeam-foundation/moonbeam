@@ -400,20 +400,6 @@
 <span id="397">397</span>
 <span id="398">398</span>
 <span id="399">399</span>
-<span id="400">400</span>
-<span id="401">401</span>
-<span id="402">402</span>
-<span id="403">403</span>
-<span id="404">404</span>
-<span id="405">405</span>
-<span id="406">406</span>
-<span id="407">407</span>
-<span id="408">408</span>
-<span id="409">409</span>
-<span id="410">410</span>
-<span id="411">411</span>
-<span id="412">412</span>
-<span id="413">413</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2020 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -447,20 +433,18 @@
 };
 <span class="kw">use</span> <span class="ident">tokio</span>::{<span class="ident">sync</span>::<span class="ident">oneshot</span>, <span class="ident">time</span>::<span class="ident">delay_for</span>};
 
-<span class="kw">use</span> <span class="ident">jsonrpc_core</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">RpcError</span>, <span class="ident">ErrorCode</span>, <span class="prelude-ty">Result</span>};
-<span class="kw">use</span> <span class="ident">sc_client_api</span>::{
-	<span class="ident">backend</span>::{<span class="ident">AuxStore</span>, <span class="ident">Backend</span>, <span class="ident">StateBackend</span>},
-	<span class="ident">StorageProvider</span>,
-};
+<span class="kw">use</span> <span class="ident">jsonrpc_core</span>::<span class="prelude-ty">Result</span>;
+<span class="kw">use</span> <span class="ident">sc_client_api</span>::<span class="ident">backend</span>::<span class="ident">Backend</span>;
 <span class="kw">use</span> <span class="ident">sp_api</span>::{<span class="ident">ApiRef</span>, <span class="ident">BlockId</span>, <span class="ident">HeaderT</span>, <span class="ident">ProvideRuntimeApi</span>};
 <span class="kw">use</span> <span class="ident">sp_block_builder</span>::<span class="ident">BlockBuilder</span>;
 <span class="kw">use</span> <span class="ident">sp_blockchain</span>::{
 	<span class="ident">Backend</span> <span class="kw">as</span> <span class="ident">BlockchainBackend</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">BlockChainError</span>, <span class="ident">HeaderBackend</span>, <span class="ident">HeaderMetadata</span>,
 };
-<span class="kw">use</span> <span class="ident">sp_runtime</span>::<span class="ident">traits</span>::{<span class="ident">BlakeTwo256</span>, <span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>};
+<span class="kw">use</span> <span class="ident">sp_runtime</span>::<span class="ident">traits</span>::<span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>;
 <span class="kw">use</span> <span class="ident">sp_utils</span>::<span class="ident">mpsc</span>::<span class="ident">TracingUnboundedSender</span>;
 
 <span class="kw">use</span> <span class="ident">ethereum_types</span>::<span class="ident">H256</span>;
+<span class="kw">use</span> <span class="ident">fc_rpc</span>::<span class="ident">internal_err</span>;
 <span class="kw">use</span> <span class="ident">fp_rpc</span>::<span class="ident">EthereumRuntimeRPCApi</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">moonbeam_rpc_core_trace</span>::{
@@ -508,14 +492,6 @@
 	}
 }
 
-<span class="kw">fn</span> <span class="ident">internal_err</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ToString</span><span class="op">&gt;</span>(<span class="ident">message</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RpcError</span> {
-	<span class="ident">RpcError</span> {
-		<span class="ident">code</span>: <span class="ident">ErrorCode</span>::<span class="ident">InternalError</span>,
-		<span class="ident">message</span>: <span class="ident">message</span>.<span class="ident">to_string</span>(),
-		<span class="ident">data</span>: <span class="prelude-val">None</span>,
-	}
-}
-
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Responder</span> <span class="op">=</span> <span class="ident">oneshot</span>::<span class="ident">Sender</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TransactionTrace</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">TraceFilterCacheRequester</span> <span class="op">=</span> <span class="ident">TracingUnboundedSender</span><span class="op">&lt;</span>(<span class="ident">FilterRequest</span>, <span class="ident">Responder</span>)<span class="op">&gt;</span>;
 <span class="kw">const</span> <span class="ident">EXPIRATION_DELAY</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration</span>::<span class="ident">from_secs</span>(<span class="number">600</span>);
@@ -525,13 +501,9 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">BE</span><span class="op">&gt;</span> <span class="ident">TraceFilterCache</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">BE</span><span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="ident">BE</span>: <span class="ident">Backend</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-	<span class="ident">BE</span>::<span class="ident">State</span>: <span class="ident">StateBackend</span><span class="op">&lt;</span><span class="ident">BlakeTwo256</span><span class="op">&gt;</span>,
-	<span class="ident">BE</span>::<span class="ident">Blockchain</span>: <span class="ident">BlockchainBackend</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
-	<span class="ident">C</span>: <span class="ident">ProvideRuntimeApi</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">AuxStore</span>,
+	<span class="ident">C</span>: <span class="ident">ProvideRuntimeApi</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
 	<span class="ident">C</span>: <span class="ident">HeaderMetadata</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">BlockChainError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">HeaderBackend</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
 	<span class="ident">C</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-	<span class="ident">C</span>: <span class="ident">StorageProvider</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">BE</span><span class="op">&gt;</span>,
-	<span class="ident">C</span>: <span class="ident">HeaderMetadata</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">BlockChainError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 	<span class="ident">B</span>: <span class="ident">BlockT</span><span class="op">&lt;</span><span class="ident">Hash</span> <span class="op">=</span> <span class="ident">H256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 	<span class="ident">B</span>::<span class="ident">Header</span>: <span class="ident">HeaderT</span><span class="op">&lt;</span><span class="ident">Number</span> <span class="op">=</span> <span class="ident">u32</span><span class="op">&gt;</span>,
 	<span class="ident">C</span>::<span class="ident">Api</span>: <span class="ident">BlockBuilder</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,

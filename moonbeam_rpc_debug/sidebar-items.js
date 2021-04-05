@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["internal_err",""]],"struct":[["Debug",""],["TraceParams",""]],"trait":[["DebugServer",""],["DebugT",""]]});
+initSidebarItems({"struct":[["Debug",""],["TraceParams",""]],"trait":[["DebugServer",""],["DebugT",""]]});
