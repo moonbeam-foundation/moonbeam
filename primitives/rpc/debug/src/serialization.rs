@@ -17,7 +17,10 @@
 //! Provide serialization functions for various types and formats.
 
 use ethereum_types::{H256, U256};
-use serde::{ser::SerializeSeq, Serializer};
+use serde::{
+	ser::{Error, SerializeSeq},
+	Serializer,
+};
 
 pub fn seq_h256_serialize<S>(data: &[H256], serializer: S) -> Result<S::Ok, S::Error>
 where
@@ -41,26 +44,26 @@ pub fn opcode_serialize<S>(opcode: &[u8], serializer: S) -> Result<S::Ok, S::Err
 where
 	S: Serializer,
 {
-	// TODO: how to propagate Err here (i.e. `from_utf8` fails), so the rpc requests also
-	// returns an error?
-	serializer.serialize_str(&std::str::from_utf8(opcode).unwrap_or("").to_uppercase())
+	let d = std::str::from_utf8(opcode)
+		.map_err(|_| S::Error::custom("Opcode serialize error."))?
+		.to_uppercase();
+	serializer.serialize_str(&d)
 }
 
 pub fn string_serialize<S>(value: &[u8], serializer: S) -> Result<S::Ok, S::Error>
 where
 	S: Serializer,
 {
-	// TODO: how to propagate Err here (i.e. `from_utf8` fails), so the rpc requests also
-	// returns an error?
-	serializer.serialize_str(&std::str::from_utf8(value).unwrap_or("").to_string())
+	let d = std::str::from_utf8(value)
+		.map_err(|_| S::Error::custom("String serialize error."))?
+		.to_string();
+	serializer.serialize_str(&d)
 }
 
 pub fn u256_serialize<S>(data: &U256, serializer: S) -> Result<S::Ok, S::Error>
 where
 	S: Serializer,
 {
-	// TODO: how to propagate Err here (i.e. `from_utf8` fails), so the rpc requests also
-	// returns an error?
 	serializer.serialize_u64(data.low_u64())
 }
 
@@ -68,8 +71,6 @@ pub fn h256_serialize<S>(data: &H256, serializer: S) -> Result<S::Ok, S::Error>
 where
 	S: Serializer,
 {
-	// TODO: how to propagate Err here (i.e. `from_utf8` fails), so the rpc requests also
-	// returns an error?
 	serializer.serialize_str(&format!("{:x}", data))
 }
 
@@ -77,7 +78,5 @@ pub fn h256_0x_serialize<S>(data: &H256, serializer: S) -> Result<S::Ok, S::Erro
 where
 	S: Serializer,
 {
-	// TODO: how to propagate Err here (i.e. `from_utf8` fails), so the rpc requests also
-	// returns an error?
 	serializer.serialize_str(&format!("0x{:x}", data))
 }
