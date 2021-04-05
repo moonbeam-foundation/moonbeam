@@ -10,7 +10,7 @@
   "properties": {
     "tokenDecimals": 18
   },
-  "relay_chain": "moonbase_stage_relay",
+  "relay_chain": "rococo_moonbase_relay_stagenet",
   "para_id": 1000,
   "consensusEngine": null,
   "genesis": {
@@ -81,11 +81,23 @@
       "palletDemocracy": {},
       "palletCollectiveInstance1": {
         "phantom": null,
-        "members": []
+        "members": [
+          "0x7dE18882C6d576287349C70A02b8A2feB46F413A",
+          "0x9886A0F62C0EdF9802E53c65A9b23066d9E60312"
+        ]
       },
       "palletCollectiveInstance2": {
         "phantom": null,
-        "members": []
+        "members": [
+          "0xb019741Ba429C324D0E26AC0CaB55596Af077a8b",
+          "0xd8f052577Ad4FFCFDaA16aAD4CD6B82fC2a1902c",
+          "0x478B08CAc2dC37b411af659915F460f0Bba53977",
+          "0x3B9ff25Ca400DCf2536165473bA54456afeB4593",
+          "0x4168304a846F53E7975fD42AFe20c9f5d8153E0b",
+          "0x18296D9C403749a659Dd0DF7Cd804443766386b7",
+          "0x5D05cFa295b9830908d971C29F48857Af79e729b",
+          "0xd9465f9bdF362802F2954a15698E3aF0515961f7"
+        ]
       }
     }
   }
