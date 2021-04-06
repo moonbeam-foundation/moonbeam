@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["precompiles"] = [{"text":"impl&lt;R&gt; PrecompileSet for MoonbeamPrecompiles&lt;R&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;R: Config,<br>&nbsp;&nbsp;&nbsp;&nbsp;R::Call: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo + Decode,<br>&nbsp;&nbsp;&nbsp;&nbsp;&lt;R::Call as Dispatchable&gt;::Origin: From&lt;Option&lt;R::AccountId&gt;&gt;,&nbsp;</span>","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
