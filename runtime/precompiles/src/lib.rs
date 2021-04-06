@@ -34,9 +34,6 @@ use sp_std::{marker::PhantomData, vec::Vec};
 /// We include the nine Istanbul precompiles
 /// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
 /// as well as a special precompile for dispatching Substrate extrinsics
-///
-/// TODO I had trouble getting the BN precompiles to compile.
-/// Also, Why are the BN precompiles in geth called bn256*, but in Frontier they are called Bn128*
 #[derive(Debug, Clone, Copy)]
 pub struct MoonbeamPrecompiles<R>(PhantomData<R>);
 
