@@ -77,7 +77,7 @@ async function test() {
   const keyring = new Keyring({ type: "ethereum" });
   const ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
   const unsub = await polkadotApi.tx.parachainStaking
-    .joinCandidates(0, MIN_GLMR_STAKING)
+    .joinCandidates(MIN_GLMR_STAKING)
     .signAndSend(ethan, ({ events = [], status }) => {
       console.log(`Current status is ${status.type}`);
 
@@ -92,7 +92,7 @@ async function test() {
         unsub();
       }
     });
-  await wait(50000);
+  await wait(80000);
   let candidatesAfter = await polkadotApi.query.parachainStaking.candidatePool();
   assert(
     (candidatesAfter.toHuman() as { owner: string; amount: string }[]).length === 3,
