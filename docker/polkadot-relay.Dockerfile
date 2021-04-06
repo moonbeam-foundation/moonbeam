@@ -6,6 +6,7 @@ LABEL description="This is the build stage for Polkadot. Here we create the bina
 
 ARG PROFILE=release
 ARG POLKADOT_COMMIT=master
+ARG POLKADOT_REPO=https://github.com/paritytech/polkadot
 RUN echo "Using polkadot ${POLKADOT_COMMIT}"
 WORKDIR /
 
@@ -16,7 +17,7 @@ RUN apt-get update && \
 
 # Grab the Polkadot Code
 # TODO how to grab the correct commit from the lock file?
-RUN git clone https://github.com/paritytech/polkadot
+RUN git clone ${POLKADOT_REPO}
 WORKDIR /polkadot
 RUN git checkout ${POLKADOT_COMMIT}
 
@@ -26,7 +27,6 @@ RUN sed -i '/sc_executor::WasmExecutionMethod::Interpreted/c\\t\tsc_executor::Wa
 # Download rust dependencies and build the rust binary
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
 	export PATH=$PATH:$HOME/.cargo/bin && \
-	scripts/init.sh && \
 	cargo build --$PROFILE --features=real-overseer
 
 # ===== SECOND STAGE ======

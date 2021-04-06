@@ -15,9 +15,10 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Test utilities
-use crate::*;
+use super::*;
+use crate as stake;
 use frame_support::{
-	impl_outer_event, impl_outer_origin, parameter_types,
+	construct_runtime, parameter_types,
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 	weights::Weight,
 };
@@ -33,24 +34,22 @@ pub type AccountId = u64;
 pub type Balance = u128;
 pub type BlockNumber = u64;
 
-impl_outer_origin! {
-	pub enum Origin for Test where system = frame_system {}
-}
+type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
+type Block = frame_system::mocking::MockBlock<Test>;
 
-mod stake {
-	pub use super::super::*;
-}
-
-impl_outer_event! {
-	pub enum MetaEvent for Test {
-		frame_system<T>,
-		pallet_balances<T>,
-		stake<T>,
+// Configure a mock runtime to test the pallet.
+construct_runtime!(
+	pub enum Test where
+		Block = Block,
+		NodeBlock = Block,
+		UncheckedExtrinsic = UncheckedExtrinsic,
+	{
+		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
+		Stake: stake::{Pallet, Call, Storage, Config<T>, Event<T>},
 	}
-}
+);
 
-#[derive(Clone, Eq, PartialEq, Debug)]
-pub struct Test;
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const MaximumBlockWeight: Weight = 1024;
@@ -64,16 +63,16 @@ impl frame_system::Config for Test {
 	type Origin = Origin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
-	type Call = ();
+	type Call = Call;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = Header;
-	type Event = MetaEvent;
+	type Event = Event;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
-	type PalletInfo = ();
+	type PalletInfo = PalletInfo;
 	type AccountData = pallet_balances::AccountData<Balance>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
@@ -88,10 +87,10 @@ parameter_types! {
 impl pallet_balances::Config for Test {
 	type MaxLocks = ();
 	type Balance = Balance;
-	type Event = MetaEvent;
+	type Event = Event;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
-	type AccountStore = frame_system::Module<Test>;
+	type AccountStore = System;
 	type WeightInfo = ();
 }
 parameter_types! {
@@ -101,13 +100,13 @@ parameter_types! {
 	pub const MinSelectedCandidates: u32 = 5;
 	pub const MaxNominatorsPerCollator: u32 = 4;
 	pub const MaxCollatorsPerNominator: u32 = 4;
-	pub const MaxFee: Perbill = Perbill::from_percent(50);
+	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
 	pub const MinCollatorStk: u128 = 10;
 	pub const MinNominatorStk: u128 = 5;
 	pub const MinNomination: u128 = 3;
 }
-impl crate::pallet::Config for Test {
-	type Event = MetaEvent;
+impl Config for Test {
+	type Event = Event;
 	type Currency = Balances;
 	type MinBlocksPerRound = MinBlocksPerRound;
 	type DefaultBlocksPerRound = DefaultBlocksPerRound;
@@ -115,15 +114,12 @@ impl crate::pallet::Config for Test {
 	type MinSelectedCandidates = MinSelectedCandidates;
 	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
 	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
-	type MaxFee = MaxFee;
+	type DefaultCollatorCommission = DefaultCollatorCommission;
 	type MinCollatorStk = MinCollatorStk;
 	type MinCollatorCandidateStk = MinCollatorStk;
 	type MinNominatorStk = MinNominatorStk;
 	type MinNomination = MinNomination;
 }
-pub type Balances = pallet_balances::Module<Test>;
-pub type Stake = Module<Test>;
-pub type Sys = frame_system::Module<Test>;
 
 fn genesis(
 	balances: Vec<(AccountId, Balance)>,
@@ -144,16 +140,17 @@ fn genesis(
 	let mut storage = frame_system::GenesisConfig::default()
 		.build_storage::<Test>()
 		.unwrap();
-	let genesis = pallet_balances::GenesisConfig::<Test> { balances };
-	genesis.assimilate_storage(&mut storage).unwrap();
-	GenesisConfig::<Test> {
+	pallet_balances::GenesisConfig::<Test> { balances }
+		.assimilate_storage(&mut storage)
+		.unwrap();
+	stake::GenesisConfig::<Test> {
 		stakers,
 		inflation_config,
 	}
 	.assimilate_storage(&mut storage)
 	.unwrap();
 	let mut ext = sp_io::TestExternalities::from(storage);
-	ext.execute_with(|| Sys::set_block_number(1));
+	ext.execute_with(|| System::set_block_number(1));
 	ext
 }
 
@@ -253,27 +250,27 @@ pub(crate) fn one_collator_two_nominators() -> sp_io::TestExternalities {
 }
 
 pub(crate) fn roll_to(n: u64) {
-	while Sys::block_number() < n {
-		Stake::on_finalize(Sys::block_number());
-		Balances::on_finalize(Sys::block_number());
-		Sys::on_finalize(Sys::block_number());
-		Sys::set_block_number(Sys::block_number() + 1);
-		Sys::on_initialize(Sys::block_number());
-		Balances::on_initialize(Sys::block_number());
-		Stake::on_initialize(Sys::block_number());
+	while System::block_number() < n {
+		Stake::on_finalize(System::block_number());
+		Balances::on_finalize(System::block_number());
+		System::on_finalize(System::block_number());
+		System::set_block_number(System::block_number() + 1);
+		System::on_initialize(System::block_number());
+		Balances::on_initialize(System::block_number());
+		Stake::on_initialize(System::block_number());
 	}
 }
 
-pub(crate) fn last_event() -> MetaEvent {
-	Sys::events().pop().expect("Event expected").event
+pub(crate) fn last_event() -> Event {
+	System::events().pop().expect("Event expected").event
 }
 
-pub(crate) fn events() -> Vec<Event<Test>> {
-	Sys::events()
+pub(crate) fn events() -> Vec<pallet::Event<Test>> {
+	System::events()
 		.into_iter()
 		.map(|r| r.event)
 		.filter_map(|e| {
-			if let MetaEvent::stake(inner) = e {
+			if let Event::stake(inner) = e {
 				Some(inner)
 			} else {
 				None

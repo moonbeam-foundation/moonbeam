@@ -20,7 +20,8 @@ use crate::{
 	chain_spec,
 	cli::{Cli, RelayChainCli, Subcommand},
 };
-use cumulus_primitives::{genesis::generate_genesis_block, ParaId};
+use cumulus_client_service::genesis::generate_genesis_block;
+use cumulus_primitives_core::ParaId;
 use log::info;
 use moonbeam_runtime::{AccountId, Block};
 use parity_scale_codec::Encode;
@@ -45,10 +46,10 @@ fn load_spec(
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	match id {
 		"alphanet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
-			&include_bytes!("../../specs/alphanet/parachain-embedded-specs-v6.json")[..],
+			&include_bytes!("../../specs/alphanet/parachain-embedded-specs-v7.json")[..],
 		)?)),
 		"stagenet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
-			&include_bytes!("../../specs/stagenet/parachain-embedded-specs-v6.json")[..],
+			&include_bytes!("../../specs/stagenet/parachain-embedded-specs-v7.json")[..],
 		)?)),
 		"dev" | "development" => Ok(Box::new(chain_spec::development_chain_spec(None, None))),
 		"local" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
@@ -135,10 +136,10 @@ impl SubstrateCli for RelayChainCli {
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		match id {
 			"moonbase_alpha_relay" => Ok(Box::new(RococoChainSpec::from_json_bytes(
-				&include_bytes!("../../specs/alphanet/rococo-embedded-specs-v6.json")[..],
+				&include_bytes!("../../specs/alphanet/rococo-embedded-specs-v7.json")[..],
 			)?)),
 			"moonbase_stage_relay" => Ok(Box::new(RococoChainSpec::from_json_bytes(
-				&include_bytes!("../../specs/stagenet/rococo-embedded-specs-v6.json")[..],
+				&include_bytes!("../../specs/stagenet/rococo-embedded-specs-v7.json")[..],
 			)?)),
 			// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the
 			// Polkadot service to interpret the id.
@@ -185,12 +186,18 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::CheckBlock(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|config| {
+				// maybe these three lines could be a helper function is_dev(config) -> bool
+				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
+				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
+				let dev_service =
+					cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
+
 				let PartialComponents {
 					client,
 					task_manager,
 					import_queue,
 					..
-				} = crate::service::new_partial(&config, None, false)?;
+				} = crate::service::new_partial(&config, None, dev_service)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -219,18 +226,40 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::ImportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|config| {
+				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
+				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
+				let dev_service =
+					cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
+
 				let PartialComponents {
 					client,
 					task_manager,
 					import_queue,
 					..
-				} = crate::service::new_partial(&config, None, false)?;
+				} = crate::service::new_partial(&config, None, dev_service)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
 		Some(Subcommand::PurgeChain(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.sync_run(|config| cmd.run(config.database))
+
+			runner.sync_run(|config| {
+				let polkadot_cli = RelayChainCli::new(
+					&config,
+					[RelayChainCli::executable_name().to_string()]
+						.iter()
+						.chain(cli.relaychain_args.iter()),
+				);
+
+				let polkadot_config = SubstrateCli::create_configuration(
+					&polkadot_cli,
+					&polkadot_cli,
+					config.task_executor.clone(),
+				)
+				.map_err(|err| format!("Relay chain argument error: {}", err))?;
+
+				cmd.run(config, polkadot_config)
+			})
 		}
 		Some(Subcommand::Revert(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
@@ -303,6 +332,8 @@ pub fn run() -> Result<()> {
 
 					let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
 					let relay_chain_id = extension.map(|e| e.relay_chain.clone());
+					let dev_service =
+						cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
 					let para_id = extension.map(|e| e.para_id);
 
 					// If dev service was requested, start up manual or instant seal.
@@ -311,7 +342,7 @@ pub fn run() -> Result<()> {
 					// 1. by providing the --dev-service flag to the CLI
 					// 2. by specifying "dev-service" in the chain spec's "relay-chain" field.
 					// NOTE: the --dev flag triggers the dev service by way of number 2
-					if cli.run.dev_service || relay_chain_id == Some("dev-service".to_string()) {
+					if dev_service {
 						// --dev implies --collator
 						let collator = collator || cli.run.shared_params.dev;
 
@@ -329,13 +360,13 @@ pub fn run() -> Result<()> {
 							cli.run.sealing,
 							author_id,
 							collator,
+							cli.run.ethapi,
 						);
 					}
 
 					let polkadot_cli = RelayChainCli::new(
-						config.base_path.as_ref().map(|x| x.path().join("polkadot")),
-						relay_chain_id,
-						[RelayChainCli::executable_name()]
+						&config,
+						[RelayChainCli::executable_name().to_string()]
 							.iter()
 							.chain(cli.relaychain_args.iter()),
 					);
@@ -357,7 +388,6 @@ pub fn run() -> Result<()> {
 						&polkadot_cli,
 						&polkadot_cli,
 						task_executor,
-						config.telemetry_handle.clone(),
 					)
 					.map_err(|err| format!("Relay chain argument error: {}", err))?;
 
@@ -373,6 +403,7 @@ pub fn run() -> Result<()> {
 						polkadot_config,
 						id,
 						collator,
+						cli.run.ethapi,
 					)
 					.await
 					.map(|r| r.0)
@@ -441,7 +472,7 @@ impl CliConfiguration<Self> for RelayChainCli {
 		self.base.base.prometheus_config(default_listen_port)
 	}
 
-	fn init<C: SubstrateCli>(&self) -> Result<sc_telemetry::TelemetryWorker> {
+	fn init<C: SubstrateCli>(&self) -> Result<()> {
 		unreachable!("PolkadotCli is never initialized; qed");
 	}
 

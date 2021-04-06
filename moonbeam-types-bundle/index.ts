@@ -200,14 +200,12 @@ export const moonbeamDefinitions = {
         OrderedSet: "Vec<Bond>",
         Collator: {
           id: "AccountId",
-          fee: "Perbill",
           bond: "Balance",
           nominators: "Vec<Bond>",
           total: "Balance",
           state: "CollatorStatus",
         },
         CollatorSnapshot: {
-          fee: "Perbill",
           bond: "Balance",
           nominators: "Vec<Bond>",
           total: "Balance",

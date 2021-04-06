@@ -16,10 +16,10 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use pallet_evm_precompile_simple::{ECRecover, Identity, Ripemd160, Sha256};
-// use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
+use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
+use pallet_evm_precompile_simple::{ECRecover, Identity, Ripemd160, Sha256};
 
 /// The PrecompileSet installed in the Moonbeam runtime.
 /// We include the nine Istanbul precompiles
@@ -34,8 +34,8 @@ pub type MoonbeamPrecompiles<Runtime> = (
 	Ripemd160,
 	Identity,
 	Modexp,
-	// Bn128Add,
-	// Bn128Mul,
-	// Bn128Pairing,
+	Bn128Add,
+	Bn128Mul,
+	Bn128Pairing,
 	Dispatch<Runtime>,
 );
