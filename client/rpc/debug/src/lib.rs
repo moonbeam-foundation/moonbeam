@@ -118,7 +118,16 @@ where
 					)));
 				}
 			}
-			_ => single::TraceType::Raw,
+			Some(params) => single::TraceType::Raw {
+				disable_storage: params.disable_storage.unwrap_or(false),
+				disable_memory: params.disable_memory.unwrap_or(false),
+				disable_stack: params.disable_stack.unwrap_or(false),
+			},
+			_ => single::TraceType::Raw {
+				disable_storage: false,
+				disable_memory: false,
+				disable_stack: false,
+			},
 		};
 
 		// Get the actual ethereum transaction.
