@@ -32,7 +32,32 @@ export const rpcDefinitions: Record<string, Record<string, DefinitionRpc | Defin
       type: "TxPoolResultStatus",
     },
   },
+  trace: {
+    filter: {
+      aliasSection: "trace",
+      description: "Trace Filter",
+      params: [{ name: "filter", type: "FilterRequest" }],
+      type: "Result<Vec<TransactionTrace>>",
+    },
+  },
+  debug: {
+    traceTransaction: {
+      aliasSection: "debug",
+      description: "Debug trace tx",
+      params: [{ name: "transaction_hash", type: "H256" }],
+      type: "Result<Vec<TransactionTrace>>",
+    },
+  },
 };
+// fn filter(
+//   &self,
+//   filter: FilterRequest,
+// ) -> Compat<BoxFuture<'static, jsonrpc_core::Result<Vec<TransactionTrace>>>>;
+// fn trace_transaction(
+// 	&self,
+// 	transaction_hash: H256,
+// 	params: Option<TraceParams>,
+// ) -> Result<single::TransactionTrace>;
 
 export const moonbeamDefinitions = {
   rpc: rpcDefinitions,
