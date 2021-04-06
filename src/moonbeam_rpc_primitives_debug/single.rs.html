@@ -139,6 +139,23 @@
 <span id="136">136</span>
 <span id="137">137</span>
 <span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2020 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -173,7 +190,11 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TraceType</span> {
 	<span class="doccomment">/// Classic geth with no javascript based tracing.</span>
-	<span class="ident">Raw</span>,
+	<span class="ident">Raw</span> {
+		<span class="ident">disable_storage</span>: <span class="ident">bool</span>,
+		<span class="ident">disable_memory</span>: <span class="ident">bool</span>,
+		<span class="ident">disable_stack</span>: <span class="ident">bool</span>,
+	},
 	<span class="doccomment">/// List of calls and subcalls (output Blockscout expects).</span>
 	<span class="ident">CallList</span>,
 }
@@ -210,8 +231,14 @@
 	<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">serde</span>(<span class="ident">serialize_with</span> <span class="op">=</span> <span class="string">&quot;u256_serialize&quot;</span>))]</span>
 	<span class="kw">pub</span> <span class="ident">gas_cost</span>: <span class="ident">U256</span>,
 
-	<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">serde</span>(<span class="ident">serialize_with</span> <span class="op">=</span> <span class="string">&quot;seq_h256_serialize&quot;</span>))]</span>
-	<span class="kw">pub</span> <span class="ident">memory</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>,
+	<span class="attribute">#[<span class="ident">cfg_attr</span>(
+		<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>,
+		<span class="ident">serde</span>(
+			<span class="ident">serialize_with</span> <span class="op">=</span> <span class="string">&quot;seq_h256_serialize&quot;</span>,
+			<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Option::is_none&quot;</span>
+		)
+	)]</span>
+	<span class="kw">pub</span> <span class="ident">memory</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
 	<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">serde</span>(<span class="ident">serialize_with</span> <span class="op">=</span> <span class="string">&quot;opcode_serialize&quot;</span>))]</span>
 	<span class="kw">pub</span> <span class="ident">op</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
@@ -219,10 +246,17 @@
 	<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">serde</span>(<span class="ident">serialize_with</span> <span class="op">=</span> <span class="string">&quot;u256_serialize&quot;</span>))]</span>
 	<span class="kw">pub</span> <span class="ident">pc</span>: <span class="ident">U256</span>,
 
-	<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">serde</span>(<span class="ident">serialize_with</span> <span class="op">=</span> <span class="string">&quot;seq_h256_serialize&quot;</span>))]</span>
-	<span class="kw">pub</span> <span class="ident">stack</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>,
+	<span class="attribute">#[<span class="ident">cfg_attr</span>(
+		<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>,
+		<span class="ident">serde</span>(
+			<span class="ident">serialize_with</span> <span class="op">=</span> <span class="string">&quot;seq_h256_serialize&quot;</span>,
+			<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Option::is_none&quot;</span>
+		)
+	)]</span>
+	<span class="kw">pub</span> <span class="ident">stack</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
-	<span class="kw">pub</span> <span class="ident">storage</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">H256</span>, <span class="ident">H256</span><span class="op">&gt;</span>,
+	<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Option::is_none&quot;</span>))]</span>
+	<span class="kw">pub</span> <span class="ident">storage</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">H256</span>, <span class="ident">H256</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
