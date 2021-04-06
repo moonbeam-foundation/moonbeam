@@ -28,7 +28,7 @@
       "wsPort": 36946,
       "port": 36335,
       "balance": "1000",
-      "chain": "staking-test-spec.json",
+      "chain": "regular-specs.json",
       "flags": [
         "--no-telemetry",
         "--no-prometheus",
@@ -44,7 +44,7 @@
       "wsPort": 36947,
       "port": 36336,
       "balance": "1000",
-      "chain": "staking-test-spec.json",
+      "chain": "regular-specs.json",
       "flags": [
         "--no-telemetry",
         "--no-prometheus",
