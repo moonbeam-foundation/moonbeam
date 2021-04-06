@@ -832,10 +832,10 @@ impl_runtime_apis! {
 								},
 								single::CallInner::Create { init, res } => block::TransactionTrace {
 									action: block::TransactionTraceAction::Create {
-										create_method: CreateType::Create,
+										creation_method: CreateType::Create,
 										from: trace.from,
 										gas: trace.gas,
-										input: init,
+										init,
 										value: trace.value,
 									},
 									// Can't be known here, must be inserted upstream.
