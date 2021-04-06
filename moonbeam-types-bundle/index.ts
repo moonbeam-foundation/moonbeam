@@ -49,15 +49,6 @@ export const rpcDefinitions: Record<string, Record<string, DefinitionRpc | Defin
     },
   },
 };
-// fn filter(
-//   &self,
-//   filter: FilterRequest,
-// ) -> Compat<BoxFuture<'static, jsonrpc_core::Result<Vec<TransactionTrace>>>>;
-// fn trace_transaction(
-// 	&self,
-// 	transaction_hash: H256,
-// 	params: Option<TraceParams>,
-// ) -> Result<single::TransactionTrace>;
 
 export const moonbeamDefinitions = {
   rpc: rpcDefinitions,
