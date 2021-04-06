@@ -93,7 +93,7 @@ pub enum TransactionTraceResult {
 	Call {
 		gas_used: U256,
 		#[cfg_attr(feature = "std", serde(serialize_with = "bytes_0x_serialize"))]
-		res: Vec<u8>,
+		output: Vec<u8>,
 	},
 	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 	Create {

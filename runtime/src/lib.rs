@@ -814,11 +814,11 @@ impl_runtime_apis! {
 									// Can't be known here, must be inserted upstream.
 									block_number: 0,
 									output: match res {
-										CallResult::Output(res) => {
+										CallResult::Output(output) => {
 											block::TransactionTraceOutput::Result(
 												block::TransactionTraceResult::Call {
 													gas_used: trace.gas_used,
-													res
+													output
 												})
 										},
 										CallResult::Error(error) =>
