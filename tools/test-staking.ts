@@ -92,7 +92,7 @@ async function test() {
         unsub();
       }
     });
-  await wait(50000);
+  await wait(80000);
   let candidatesAfter = await polkadotApi.query.parachainStaking.candidatePool();
   assert(
     (candidatesAfter.toHuman() as { owner: string; amount: string }[]).length === 3,
