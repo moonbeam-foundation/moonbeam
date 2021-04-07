@@ -12,19 +12,19 @@ Each group will start a dev service with the
 ## Installation
 
 ```
-npm install
+yarn
 ```
 
 ## Run the tests
 
 ```
-npm run test
+yarn run test
 ```
 
 and to print more information:
 
 ```
-npm run test-with-logs
+yarn run test-with-logs
 ```
 
 ## Verbose mode
@@ -32,7 +32,7 @@ npm run test-with-logs
 You can also add the node's logs to the output using the `MOONBEAM_LOG` env variable. Ex:
 
 ```
-MOONBEAM_LOG="warn,rpc=trace" npm run test
+MOONBEAM_LOG="warn,rpc=trace" yarn run test
 ```
 
 The Moonbeam node will be listening for RPC on port 19933, mostly to avoid
