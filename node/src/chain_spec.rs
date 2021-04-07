@@ -203,6 +203,54 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 	)
 }
 
+/// Generate a default spec with accounts initialized for collating and nominating. This is only
+/// used for integration testing (TODO: hide behind feature flag for that reason)
+pub fn staking_spec(para_id: ParaId) -> ChainSpec {
+	ChainSpec::from_genesis(
+		// TODO Apps depends on this string to determine whether the chain is an ethereum compat
+		// or not. We should decide the proper strings, and update Apps accordingly.
+		// Or maybe Apps can be smart enough to say if the string contains "moonbeam" at all...
+		"Moonbase Development Testnet",
+		"staking",
+		ChainType::Local,
+		move || {
+			testnet_genesis(
+				AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
+				// Collators
+				vec![
+					(
+						AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
+						None,
+						1_000 * GLMR,
+					),
+					(
+						AccountId::from_str("C0F0f4ab324C46e55D02D0033343B4Be8A55532d").unwrap(),
+						None,
+						1_000 * GLMR,
+					),
+				],
+				moonbeam_inflation_config(),
+				vec![
+					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
+					AccountId::from_str("C0F0f4ab324C46e55D02D0033343B4Be8A55532d").unwrap(),
+					AccountId::from_str("Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB").unwrap(),
+					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
+				],
+				para_id,
+				1280, //ChainId
+			)
+		},
+		vec![],
+		None,
+		None,
+		Some(serde_json::from_str("{\"tokenDecimals\": 18}").expect("Provided valid json map")),
+		Extensions {
+			relay_chain: "local_testnet".into(),
+			para_id: para_id.into(),
+		},
+	)
+}
+
 pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 	InflationInfo {
 		expect: Range {
