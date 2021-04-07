@@ -91,7 +91,6 @@ impl TraceT for Trace {
 
 pub type Responder = oneshot::Sender<Result<Vec<TransactionTrace>>>;
 pub type TraceFilterCacheRequester = TracingUnboundedSender<(FilterRequest, Responder)>;
-const EXPIRATION_DELAY: Duration = Duration::from_secs(600);
 
 pub struct TraceFilterCache<B, C, BE>(PhantomData<(B, C, BE)>);
 
@@ -130,7 +129,11 @@ where
 	pub fn task(
 		client: Arc<C>,
 		backend: Arc<BE>,
+		max_count: u32,
+		cache_duration: u32,
 	) -> (impl Future<Output = ()>, TraceFilterCacheRequester) {
+		let cache_duration = Duration::from_secs(cache_duration as u64);
+
 		let (tx, mut rx): (TraceFilterCacheRequester, _) =
 			sp_utils::mpsc::tracing_unbounded("trace-filter-cache-requester");
 
@@ -155,12 +158,14 @@ where
 								&client,
 								&backend,
 								&mut cached_blocks,
+								&mut touched_blocks,
 								req,
-								&mut touched_blocks
+								max_count,
+								cache_duration,
 							);
 
 							expiration_futures.push(async move {
-								delay_for(Duration::from_secs(60)).await;
+								delay_for(cache_duration).await;
 								touched_blocks
 							});
 
@@ -221,8 +226,10 @@ where
 		client: &C,
 		backend: &BE,
 		cached_blocks: &mut BTreeMap<H256, CacheBlock>,
-		req: FilterRequest,
 		touched_blocks: &mut Vec<H256>,
+		req: FilterRequest,
+		max_count: u32,
+		cache_duration: Duration,
 	) -> Result<Vec<TransactionTrace>> {
 		let from_block = Self::block_id(client, req.from_block)?;
 		let to_block = Self::block_id(client, req.to_block)?;
@@ -266,7 +273,7 @@ where
 					tracing::trace!(block_height, %block_hash, "Cache hit, no need to replay block !");
 
 					let cache_block = entry.into_mut();
-					cache_block.expiration = Instant::now() + EXPIRATION_DELAY;
+					cache_block.expiration = Instant::now() + cache_duration;
 
 					cache_block
 				}
@@ -277,7 +284,7 @@ where
 
 					entry.insert(CacheBlock {
 						traces,
-						expiration: Instant::now() + EXPIRATION_DELAY,
+						expiration: Instant::now() + cache_duration,
 					})
 				}
 			};

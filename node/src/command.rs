@@ -355,13 +355,7 @@ pub fn run() -> Result<()> {
 							)
 						});
 
-						return crate::service::new_dev(
-							config,
-							cli.run.sealing,
-							author_id,
-							collator,
-							cli.run.ethapi,
-						);
+						return crate::service::new_dev(config, author_id, collator, cli.run);
 					}
 
 					let polkadot_cli = RelayChainCli::new(
@@ -403,7 +397,7 @@ pub fn run() -> Result<()> {
 						polkadot_config,
 						id,
 						collator,
-						cli.run.ethapi,
+						cli.run,
 					)
 					.await
 					.map(|r| r.0)
