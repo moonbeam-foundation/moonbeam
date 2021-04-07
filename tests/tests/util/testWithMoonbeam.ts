@@ -1,6 +1,9 @@
 import Web3 from "web3";
 import { ApiPromise, WsProvider } from "@polkadot/api";
 import { typesBundle } from "../../../moonbeam-types-bundle";
+import { start, LaunchConfig, ParachainConfig } from "polkadot-launch";
+import { resolve } from "path";
+import fs from "fs";
 
 import { spawn, ChildProcess, ChildProcessWithoutNullStreams } from "child_process";
 import {
@@ -26,6 +29,14 @@ export interface Context {
   // WsProvider for the PolkadotJs API
   wsProvider: WsProvider;
   polkadotApi: ApiPromise;
+}
+
+export interface NetworkContext {
+  web3s: Web3[];
+
+  // WsProvider for the PolkadotJs API
+  wsProviders: WsProvider[];
+  polkadotApis: ApiPromise[];
 }
 
 let runningNode: ChildProcessWithoutNullStreams;
@@ -152,6 +163,70 @@ export function describeWithMoonbeam(
       context.wsProvider.disconnect();
       binary.kill();
       binary = null;
+    });
+
+    cb(context);
+  });
+}
+
+export function describeWithMoonbeamNetwork(
+  title: string,
+  launchConfig: string,
+  cb: (context: NetworkContext) => void,
+  provider?: string
+) {
+  describe(title, () => {
+    let context: NetworkContext = { web3s: null, wsProviders: null, polkadotApis: null };
+    // let binary: ChildProcess;
+
+    // Making sure the Moonbeam node has started
+    before("Starting Moonbeam Test Node", async function () {
+      this.timeout(3000000);
+      const init = await start(launchConfig); //startMoonbeamNode(specFilename, provider);
+
+      let config_path = resolve(process.cwd(), launchConfig);
+      // let config_dir = dirname(config_path);
+      if (!fs.existsSync(config_path)) {
+        console.error("Config file does not exist: ", config_path);
+        process.exit();
+      }
+      let config: LaunchConfig = require(config_path);
+      // let clientList: Web3[];
+      context.web3s = config.parachains.map((parachain: ParachainConfig) => {
+        console.log("connecting new web3 instance to wsport:" + parachain.wsPort);
+        return new Web3(`ws://127.0.0.1:${parachain.wsPort}`);
+      });
+      context.wsProviders = config.parachains.map((parachain: ParachainConfig) => {
+        // console.log("connecting new web3 instance to wsport:" + parachain.wsPort);
+        // return new Web3(`ws://127.0.0.1:${parachain.wsPort}`);
+        return new WsProvider(`ws://localhost:${parachain.wsPort}`);
+      });
+      context.polkadotApis = await Promise.all(
+        config.parachains.map((parachain: ParachainConfig) => {
+          // console.log("connecting new web3 instance to wsport:" + parachain.wsPort);
+          // return new Web3(`ws://127.0.0.1:${parachain.wsPort}`);
+          return ApiPromise.create({
+            provider: new WsProvider(`ws://localhost:${parachain.wsPort}`),
+            typesBundle: typesBundle as any,
+          });
+        })
+      );
+
+      // Context is given prior to this assignement, so doing
+      // context = init.context will fail because it replace the variable;
+      // context.web3 = init.context.web3;
+      // context.wsProvider = init.context.wsProvider;
+      // context.polkadotApi = init.context.polkadotApi;
+      // binary = init.runningNode;
+    });
+
+    after(async function () {
+      // console.log(`\x1b[31m Killing RPC\x1b[0m`);
+      context.wsProviders.forEach((wsProvider) => {
+        wsProvider.disconnect();
+      });
+      // binary.kill();
+      // binary = null;
     });
 
     cb(context);
