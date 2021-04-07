@@ -234,18 +234,23 @@ where
 		let from_block = Self::block_id(client, req.from_block)?;
 		let to_block = Self::block_id(client, req.to_block)?;
 
-		if to_block < from_block {
+		let count = req.count.unwrap_or(max_count);
+
+		if count > max_count {
 			return Err(internal_err(format!(
-				"fromBlock ({}) must be greater or equal than ({})",
-				from_block, to_block
+				"count ({}) can't be greater than maximum ({})",
+				count, max_count
 			)));
 		}
+
+		let count = count as usize;
 
 		let block_heights = from_block..=to_block;
 
 		let from_address = req.from_address.unwrap_or_default();
 		let to_address = req.to_address.unwrap_or_default();
 
+		let mut traces_amount: i64 = -(req.after.unwrap_or(0) as i64);
 		let mut traces = vec![];
 		for block_height in block_heights {
 			if block_height == 0 {
@@ -312,16 +317,34 @@ where
 				.cloned()
 				.collect();
 
-			traces.append(&mut block_traces);
-		}
+			// Don't insert anything if we're still before "after"
+			traces_amount += block_traces.len() as i64;
+			if traces_amount > 0 {
+				let traces_amount = traces_amount as usize;
+				// If the current Vec of traces is across the "after" marker,
+				// we skip some elements of it.
+				if traces_amount < block_traces.len() {
+					let skip = block_traces.len() - traces_amount;
+					block_traces = block_traces.into_iter().skip(skip).collect();
+				}
 
-		// Paginations.
-		let traces = traces.into_iter().skip(req.after.unwrap_or(0) as usize);
-		let traces: Vec<_> = if let Some(take) = req.count {
-			traces.take(take as usize).collect()
-		} else {
-			traces.collect()
-		};
+				traces.append(&mut block_traces);
+
+				// If we go over "count" (the limit), we trim and exit the loop,
+				// unless we used the default maximum, in which case we return an error.
+				if traces_amount >= count {
+					if req.count.is_none() {
+						return Err(internal_err(format!(
+							"the amount of traces goes over the maximum ({}), please use 'after' and 'count' in your request",
+							max_count
+						)));
+					}
+
+					traces = traces.into_iter().take(count).collect();
+					break;
+				}
+			}
+		}
 
 		Ok(traces)
 	}

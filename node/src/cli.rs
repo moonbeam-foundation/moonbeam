@@ -148,7 +148,8 @@ pub struct RunCmd {
 	#[structopt(long, default_value = "500")]
 	pub ethapi_trace_max_count: u32,
 
-	/// Duration (in seconds) after which the cache of `trace_filter` for a given block will be discarded.
+	/// Duration (in seconds) after which the cache of `trace_filter` for a given block will be
+	/// discarded.
 	#[structopt(long, default_value = "300")]
 	pub ethapi_trace_cache_duration: u32,
 }
