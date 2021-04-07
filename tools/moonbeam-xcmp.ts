@@ -84,6 +84,13 @@ async function test() {
     "wrong balance for relayAlice, expected: 1000000000000000000, returned: " +
       Number(relayAlice.data.free)
   );
+  // ensure both parachains are registered on the relay chain
+  const dummyDead = await relayApi.query.paras.paraLifecycles(199);
+  assert(dummyDead === undefined, "Expected no parachain registered found Some");
+  const senderAlive = await relayApi.query.paras.paraLifecycles(200);
+  assert(senderAlive !== undefined, "Expected some parachain registered found None");
+  const recipientAlive = await relayApi.query.paras.paraLifecycles(201);
+  assert(recipientAlive !== undefined, "Expected some parachain registered found None");
   console.log("++ Sanity Checks Passed for Relay Chain and Both Parachains");
   // Open channel using relay sudo as caller
   const keyring = new Keyring({ type: "sr25519" });
