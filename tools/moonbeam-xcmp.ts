@@ -86,11 +86,11 @@ async function test() {
   );
   // ensure both parachains are registered on the relay chain
   const dummyDead = await relayApi.query.paras.paraLifecycles(199);
-  assert(dummyDead === undefined, "Expected no parachain registered found Some");
+  assert(dummyDead.toHuman() === null, "Expected no parachain registered found Some");
   const senderAlive = await relayApi.query.paras.paraLifecycles(200);
-  assert(senderAlive !== undefined, "Expected some parachain registered found None");
+  assert(senderAlive !== null, "Expected some parachain registered found None");
   const recipientAlive = await relayApi.query.paras.paraLifecycles(201);
-  assert(recipientAlive !== undefined, "Expected some parachain registered found None");
+  assert(recipientAlive !== null, "Expected some parachain registered found None");
   console.log("++ Sanity Checks Passed for Relay Chain and Both Parachains");
   // Open channel using relay sudo as caller
   const keyring = new Keyring({ type: "sr25519" });
@@ -120,9 +120,7 @@ async function test() {
   const channelID: HrmpChannelId = { sender, recipient };
   // @ts-ignore
   const expectedChannel = await relayApi.query.hrmp.hrmpChannels(channelID);
-  // const expectedChannel = await relayApi.query.hrmp.hrmpChannels(sender, recipient);
-  console.log("expectedchannel", expectedChannel, expectedChannel.toHuman());
-  assert(expectedChannel !== undefined, "Channel does not exist but we expected it to exist");
+  assert(expectedChannel.toHuman() !== null, "Channel does not exist but we expected it to exist");
   // (2) TODO: check that channel deposits are reserved from sender and recipient
   // HOW LONG TO WAIT UNTIL QUEUED DOWNWARD MESSAGES ARE RECEIVED BY PARARCHAIN
   // await wait(50);
