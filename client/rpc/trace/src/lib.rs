@@ -335,7 +335,8 @@ where
 				if traces_amount >= count {
 					if req.count.is_none() {
 						return Err(internal_err(format!(
-							"the amount of traces goes over the maximum ({}), please use 'after' and 'count' in your request",
+							"the amount of traces goes over the maximum ({}), please use 'after' \
+							and 'count' in your request",
 							max_count
 						)));
 					}
