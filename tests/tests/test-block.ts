@@ -1,8 +1,20 @@
 import { expect } from "chai";
 import { step } from "mocha-steps";
-import { contractCreation, GENESIS_ACCOUNT } from "./constants";
+import {
+  compileSolidity,
+  contractCreation,
+  contractSourceBlockGasLimit,
+  GENESIS_ACCOUNT,
+  GENESIS_ACCOUNT_PRIVATE_KEY,
+} from "./constants";
 
-import { createAndFinalizeBlock, describeWithMoonbeam, fillBlockWithTx } from "./util";
+import {
+  createAndFinalizeBlock,
+  customRequest,
+  deployContractManualSeal,
+  describeWithMoonbeam,
+  fillBlockWithTx,
+} from "./util";
 
 describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
   let previousBlock;
@@ -197,5 +209,18 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     this.timeout(120000);
     let { txPassed } = await fillBlockWithTx(context, 8193, contractCreation);
     expect(txPassed).to.eq(0);
+  });
+
+  it("should be able to access block gas lmit within a contract", async function () {
+    this.timeout(15000);
+    const contractCompiled = compileSolidity(contractSourceBlockGasLimit, "CheckBlockGasLimit");
+    const contract = await deployContractManualSeal(
+      context.polkadotApi,
+      context.web3,
+      contractCompiled.bytecode,
+      contractCompiled.contract.abi
+    );
+    console.log("gas", await contract.methods.gas().call());
+    expect((await contract.methods.gas().call()) !== "0").to.eq(true);
   });
 });

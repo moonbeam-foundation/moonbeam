@@ -1,4 +1,33 @@
 import { AbiItem } from "web3-utils";
+import solc from "solc";
+
+export function compileSolidity(contractContent: string, contractName: string = "Test") {
+  let result = JSON.parse(
+    solc.compile(
+      JSON.stringify({
+        language: "Solidity",
+        sources: {
+          "main.sol": {
+            content: contractContent,
+          },
+        },
+        settings: {
+          outputSelection: {
+            "*": {
+              "*": ["*"],
+            },
+          },
+        },
+      })
+    )
+  );
+
+  const contract = result.contracts["main.sol"][contractName];
+  return {
+    bytecode: "0x" + contract.evm.bytecode.object,
+    contract,
+  };
+}
 
 // Solidity: contract test {function multiply(uint a) public pure returns(uint d) {return a * 7;}}
 export const TEST_CONTRACT_BYTECODE =
@@ -200,6 +229,26 @@ export const FINITE_LOOP_CONTRACT_ABI = [
     type: "function",
   },
 ] as AbiItem[];
+
+// Gas limit test contract
+
+export const contractSourceBlockGasLimit = `
+pragma solidity >=0.8.0;
+
+// Docs I'm following to get these properties
+// https://docs.soliditylang.org/en/v0.8.2/units-and-global-variables.html
+
+contract CheckBlockGasLimit {
+    // This one is broken (evaluates to 0)
+    uint public gas;
+    // This one works
+    uint public chainid;
+    
+    constructor() {
+      gas = block.gaslimit;
+      chainid = block.chainid;
+   }
+}`;
 
 export const ERC20_BYTECODE =
   "0x608060405234801561001057600080fd5b50610024336202616061002960201b60201c565b610274565b600073ff" +
