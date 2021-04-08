@@ -30,6 +30,26 @@ fi
 
 sha256sum $GENESIS $WASM
 
+# Registering using regular register is taking longer.
+# Keep the code for reference.
+
+# CONFIG="$TMP_FOLDER/moonbase-alphanet-runtime.config.json";
+# echo -n "$PARACHAIN_ID $(cat $GENESIS) $(cat $WASM)" > $CONFIG;
+
+# TYPES="$TMP_FOLDER/relay-types.json"
+# echo '{"Address": "MultiAddress", "LookupSource": "MultiAddress"}' > $TYPES;
+
+# docker run --rm --network=host \
+#   -v $(pwd)/$CONFIG:/config \
+#   -v $(pwd)/$TYPES:/types \
+#   jacogr/polkadot-js-tools:latest api \
+#     --ws "ws://localhost:$((RELAY_PORT + 2))" \
+#     --types /types \
+#     --params /config \
+#     --seed "$ROCOCO_SUDO_SEED" \
+#     tx.registrar.register 
+
+
 CONFIG="$TMP_FOLDER/moonbase-alphanet-runtime.config.json";
 echo -n "$PARACHAIN_ID {\"genesis_head\":\"$(cat $GENESIS)\",\"validation_code\":\"" \
     > $CONFIG;
@@ -49,3 +69,18 @@ docker run --rm --network=host \
     --seed "$ROCOCO_SUDO_SEED" \
     --params /config \
     tx.parasSudoWrapper.sudoScheduleParaInitialize
+
+paras_registrar::register
+echo 'Registration done'
+
+docker run --rm --network=host \
+  -v $(pwd)/$CONFIG:/config \
+  -v $(pwd)/$TYPES:/types \
+  jacogr/polkadot-js-tools:latest api \
+    --ws "ws://localhost:$((RELAY_PORT + 2))" \
+    --types /types \
+    --sudo \
+    --seed "$ROCOCO_SUDO_SEED" \
+    tx.slots.forceLease $PARACHAIN_ID $ROCOCO_SUDO_ADDR 0 0 10000
+
+echo 'Force lease (10000 slots) done'
