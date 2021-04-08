@@ -239,15 +239,15 @@ pragma solidity >=0.8.0;
 // https://docs.soliditylang.org/en/v0.8.2/units-and-global-variables.html
 
 contract CheckBlockGasLimit {
-    // This one is broken (evaluates to 0)
-    uint public gas;
-    // This one works
-    uint public chainid;
+  // This one is broken (evaluates to 0)
+  uint public gas;
+  // This one works
+  uint public chainid;
     
-    constructor() {
-      gas = block.gaslimit;
-      chainid = block.chainid;
-   }
+  constructor() {
+    gas = block.gaslimit;
+    chainid = block.chainid;
+  }
 }`;
 
 export const ERC20_BYTECODE =
