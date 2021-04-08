@@ -176,6 +176,7 @@ jobs:
           npm install
           cd ../tests
           npm install
+          npm run build-moonbeam-launch
           npm run test;
       - name: Save parachain binary
         run: |
