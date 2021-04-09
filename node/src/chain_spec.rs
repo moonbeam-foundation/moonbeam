@@ -213,6 +213,7 @@ pub fn staking_spec(para_id: ParaId) -> ChainSpec {
 		ChainType::Local,
 		move || {
 			testnet_genesis(
+				// Root
 				AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
 				// Collators
 				vec![
@@ -227,7 +228,9 @@ pub fn staking_spec(para_id: ParaId) -> ChainSpec {
 						1_000 * GLMR,
 					),
 				],
+				// Inflation config
 				moonbeam_inflation_config(),
+				// Endowed accounts (each minted 1 << 80 balance)
 				vec![
 					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
 					AccountId::from_str("C0F0f4ab324C46e55D02D0033343B4Be8A55532d").unwrap(),
@@ -235,6 +238,7 @@ pub fn staking_spec(para_id: ParaId) -> ChainSpec {
 					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
 				],
 				para_id,
+				// Chain ID
 				1280,
 			)
 		},
