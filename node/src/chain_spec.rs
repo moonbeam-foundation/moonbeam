@@ -205,6 +205,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 
 /// Generate a default spec with accounts initialized for collating and nominating. This is only
 /// used for integration testing (TODO: hide behind feature flag for that reason)
+#[cfg(feature = "test-staking")]
 pub fn staking_spec(para_id: ParaId) -> ChainSpec {
 	ChainSpec::from_genesis(
 		// TODO Apps depends on this string to determine whether the chain is an ethereum compat

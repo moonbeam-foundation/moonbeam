@@ -53,6 +53,7 @@ fn load_spec(
 		)?)),
 		"dev" | "development" => Ok(Box::new(chain_spec::development_chain_spec(None, None))),
 		"local" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
+		#[cfg(feature = "test-staking")]
 		"staking" => Ok(Box::new(chain_spec::staking_spec(para_id))),
 		"" => Err(
 			"You have not specified what chain to sync. In the future, this will default to \
