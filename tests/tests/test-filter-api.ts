@@ -278,7 +278,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
     // Should return error if does not exist.
     let r = await customRequest(context.web3, "eth_uninstallFilter", [filter_id]);
     expect(r.error).to.include({
-      message: "Filter id 6 does not exist.",
+      message: "Filter id " + parseInt(filter_id, 16).toString() + " does not exist.",
     });
   });
 
@@ -295,7 +295,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
 
     let r = await customRequest(context.web3, "eth_getFilterChanges", [filter_id]);
     expect(r.error).to.include({
-      message: "Filter id 6 does not exist.",
+      message: "Filter id " + parseInt(filter_id, 16).toString() + " does not exist.",
     });
   });
 

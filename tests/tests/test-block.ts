@@ -4,7 +4,7 @@ import { contractCreation, GENESIS_ACCOUNT } from "./constants";
 
 import { createAndFinalizeBlock, describeWithMoonbeam, fillBlockWithTx } from "./util";
 
-describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
+describeWithMoonbeam("Moonbeam RPC (Genesis Block)", `simple-specs.json`, (context) => {
   let previousBlock;
   // Those tests are dependant of each other in the given order.
   // The reason is to avoid having to restart the node each time
@@ -42,17 +42,15 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     expect(block.timestamp).to.be.a("number");
   });
 
-  // TODO: unskip this when https://github.com/paritytech/frontier/pull/279 is merged
-  it.skip("fetch genesis block by hash", async function () {
+  step("fetch genesis block by hash", async function () {
     //fetch block again using hash
     const block = await context.web3.eth.getBlock(0);
     const blockByHash = await context.web3.eth.getBlock(block.hash);
-    console.log("blockbyhash", blockByHash);
     expect(blockByHash).to.include({
       author: "0x0000000000000000000000000000000000000000",
       difficulty: "0",
       extraData: "0x",
-      gasLimit: 4294967295,
+      gasLimit: 15000000,
       gasUsed: 0,
       logsBloom: `0x${"0".repeat(512)}`,
       number: 0,
@@ -62,13 +60,16 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
       transactionsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
     });
   });
+});
 
-  let firstBlockCreated = false;
+describeWithMoonbeam("Moonbeam RPC (Post Genesis Block)", `simple-specs.json`, (context) => {
+  before(async () => {
+    await createAndFinalizeBlock(context.polkadotApi);
+  })
+
   step("should be at block 1 after block production", async function () {
     this.timeout(15000);
-    await createAndFinalizeBlock(context.polkadotApi);
     expect(await context.web3.eth.getBlockNumber()).to.equal(1);
-    firstBlockCreated = true;
   });
 
   step("should have valid timestamp after block production", async function () {
@@ -81,7 +82,6 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
   });
 
   step("retrieve block information", async function () {
-    expect(firstBlockCreated).to.be.true;
 
     const block = await context.web3.eth.getBlock("latest");
     expect(block).to.include({
@@ -102,7 +102,7 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
       transactionsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
       //uncles: []
     });
-    previousBlock = block;
+    //   previousBlock = block;
 
     expect(block.transactions).to.be.a("array").empty;
     expect(block.uncles).to.be.a("array").empty;
@@ -125,11 +125,17 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     const block = await context.web3.eth.getBlock(1);
     expect(block).not.null;
   });
+})
 
+describeWithMoonbeam("Moonbeam RPC (Post Block 1)", `simple-specs.json`, (context) => {
+  before(async () => {
+    await createAndFinalizeBlock(context.polkadotApi);
+    await createAndFinalizeBlock(context.polkadotApi);
+  })
   step("should include previous block hash as parent (block 2)", async function () {
     this.timeout(15000);
-    await createAndFinalizeBlock(context.polkadotApi);
     const block = await context.web3.eth.getBlock("latest");
+    let previousBlock = await context.web3.eth.getBlock(1);
     expect(block.hash).to.not.equal(previousBlock.hash);
     expect(block.parentHash).to.equal(previousBlock.hash);
   });
