@@ -203,14 +203,11 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 	)
 }
 
-/// Generate a default spec with accounts initialized for collating and nominating. This is only
-/// used for integration testing (TODO: hide behind feature flag for that reason)
+/// Generate testing chain_spec for staking integration tests with accounts initialized for
+/// collating and nominating.
 #[cfg(feature = "test-staking")]
 pub fn staking_spec(para_id: ParaId) -> ChainSpec {
 	ChainSpec::from_genesis(
-		// TODO Apps depends on this string to determine whether the chain is an ethereum compat
-		// or not. We should decide the proper strings, and update Apps accordingly.
-		// Or maybe Apps can be smart enough to say if the string contains "moonbeam" at all...
 		"Moonbase Development Testnet",
 		"staking",
 		ChainType::Local,
@@ -238,7 +235,7 @@ pub fn staking_spec(para_id: ParaId) -> ChainSpec {
 					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
 				],
 				para_id,
-				1280, //ChainId
+				1280,
 			)
 		},
 		vec![],
