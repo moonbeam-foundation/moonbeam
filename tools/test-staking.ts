@@ -76,23 +76,34 @@ async function test() {
   // Join Candidates
   const keyring = new Keyring({ type: "ethereum" });
   const ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
-  const unsub = await polkadotApi.tx.parachainStaking
-    .joinCandidates(MIN_GLMR_STAKING)
-    .signAndSend(ethan, ({ events = [], status }) => {
-      console.log(`Current status is ${status.type}`);
+  await new Promise<void>(async (res) => {
+    const unsub = await polkadotApi.tx.parachainStaking
+      .joinCandidates(MIN_GLMR_STAKING)
+      .signAndSend(ethan, ({ events = [], status }) => {
+        console.log(`Current status is ${status.type}`);
+        if (status.isInBlock) {
+          console.log(`Transaction included in Block at blockHash ${status.asInBlock}`);
 
-      if (status.isFinalized) {
-        console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
+          // Loopcod through Vec<EventRecord> to display all events
+          events.forEach(({ phase, event: { data, method, section } }) => {
+            console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
+          });
 
-        // Loopcod through Vec<EventRecord> to display all events
-        events.forEach(({ phase, event: { data, method, section } }) => {
-          console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
-        });
+          unsub();
+          res();
+        } else if (status.isFinalized) {
+          console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
 
-        unsub();
-      }
-    });
-  await wait(80000);
+          // Loopcod through Vec<EventRecord> to display all events
+          events.forEach(({ phase, event: { data, method, section } }) => {
+            console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
+          });
+
+          unsub();
+          res();
+        }
+      });
+  });
   let candidatesAfter = await polkadotApi.query.parachainStaking.candidatePool();
   assert(
     (candidatesAfter.toHuman() as { owner: string; amount: string }[]).length === 3,
@@ -108,23 +119,34 @@ async function test() {
   );
 
   // Candidate bond more
-  const unsub4 = await polkadotApi.tx.parachainStaking
-    .candidateBondMore(MIN_GLMR_STAKING)
-    .signAndSend(ethan, ({ events = [], status }) => {
-      console.log(`Current status is ${status.type}`);
+  await new Promise<void>(async (res) => {
+    const unsub = await polkadotApi.tx.parachainStaking
+      .candidateBondMore(MIN_GLMR_STAKING)
+      .signAndSend(ethan, ({ events = [], status }) => {
+        console.log(`Current status is ${status.type}`);
+        if (status.isInBlock) {
+          console.log(`Transaction included in Block at blockHash ${status.asInBlock}`);
 
-      if (status.isFinalized) {
-        console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
+          // Loopcod through Vec<EventRecord> to display all events
+          events.forEach(({ phase, event: { data, method, section } }) => {
+            console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
+          });
 
-        // Loopcod through Vec<EventRecord> to display all events
-        events.forEach(({ phase, event: { data, method, section } }) => {
-          console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
-        });
+          unsub();
+          res();
+        } else if (status.isFinalized) {
+          console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
 
-        unsub4();
-      }
-    });
-  await wait(50000);
+          // Loopcod through Vec<EventRecord> to display all events
+          events.forEach(({ phase, event: { data, method, section } }) => {
+            console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
+          });
+
+          unsub();
+          res();
+        }
+      });
+  });
   candidatesAfter = await polkadotApi.query.parachainStaking.candidatePool();
   assert(
     (candidatesAfter.toHuman() as { owner: string; amount: string }[])[2].amount === "2.0000 kUnit",
@@ -132,23 +154,34 @@ async function test() {
   );
 
   // Candidate bond less
-  const unsub5 = await polkadotApi.tx.parachainStaking
-    .candidateBondLess(MIN_GLMR_STAKING)
-    .signAndSend(ethan, ({ events = [], status }) => {
-      console.log(`Current status is ${status.type}`);
+  await new Promise<void>(async (res) => {
+    const unsub = await polkadotApi.tx.parachainStaking
+      .candidateBondLess(MIN_GLMR_STAKING)
+      .signAndSend(ethan, ({ events = [], status }) => {
+        console.log(`Current status is ${status.type}`);
+        if (status.isInBlock) {
+          console.log(`Transaction included in Block at blockHash ${status.asInBlock}`);
 
-      if (status.isFinalized) {
-        console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
+          // Loopcod through Vec<EventRecord> to display all events
+          events.forEach(({ phase, event: { data, method, section } }) => {
+            console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
+          });
 
-        // Loopcod through Vec<EventRecord> to display all events
-        events.forEach(({ phase, event: { data, method, section } }) => {
-          console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
-        });
+          unsub();
+          res();
+        } else if (status.isFinalized) {
+          console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
 
-        unsub5();
-      }
-    });
-  await wait(50000);
+          // Loopcod through Vec<EventRecord> to display all events
+          events.forEach(({ phase, event: { data, method, section } }) => {
+            console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
+          });
+
+          unsub();
+          res();
+        }
+      });
+  });
   candidatesAfter = await polkadotApi.query.parachainStaking.candidatePool();
   assert(
     (candidatesAfter.toHuman() as { owner: string; amount: string }[])[2].amount === "1.0000 kUnit",
@@ -158,23 +191,34 @@ async function test() {
   // Join Nominators
   const keyringAlith = new Keyring({ type: "ethereum" });
   const alith = await keyringAlith.addFromUri(ALITH_PRIVKEY, null, "ethereum");
-  const unsub2 = await polkadotApi.tx.parachainStaking
-    .nominate(GERALD, MIN_GLMR_NOMINATOR)
-    .signAndSend(alith, ({ events = [], status }) => {
-      console.log(`Current status is ${status.type}`);
+  await new Promise<void>(async (res) => {
+    const unsub = await polkadotApi.tx.parachainStaking
+      .nominate(GERALD, MIN_GLMR_NOMINATOR)
+      .signAndSend(alith, ({ events = [], status }) => {
+        console.log(`Current status is ${status.type}`);
+        if (status.isInBlock) {
+          console.log(`Transaction included in Block at blockHash ${status.asInBlock}`);
 
-      if (status.isFinalized) {
-        console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
+          // Loopcod through Vec<EventRecord> to display all events
+          events.forEach(({ phase, event: { data, method, section } }) => {
+            console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
+          });
 
-        // Loop through Vec<EventRecord> to display all events
-        events.forEach(({ phase, event: { data, method, section } }) => {
-          console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
-        });
+          unsub();
+          res();
+        } else if (status.isFinalized) {
+          console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
 
-        unsub2();
-      }
-    });
-  await wait(60000);
+          // Loop through Vec<EventRecord> to display all events
+          events.forEach(({ phase, event: { data, method, section } }) => {
+            console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
+          });
+
+          unsub();
+          res();
+        }
+      });
+  });
   const nominatorsAfter = await polkadotApi.query.parachainStaking.nominatorState(ALITH);
   assert(
     (nominatorsAfter.toHuman() as {
@@ -184,24 +228,35 @@ async function test() {
   );
 
   // Revoke Nomination
-  const unsub3 = await polkadotApi.tx.parachainStaking
-    .revokeNomination(GERALD) //TODO: when converting to test add .leaveNominators()
-    // that should produce the same behavior
-    .signAndSend(alith, ({ events = [], status }) => {
-      console.log(`Current status is ${status.type}`);
+  await new Promise<void>(async (res) => {
+    const unsub = await polkadotApi.tx.parachainStaking
+      .revokeNomination(GERALD) //TODO: when converting to test add .leaveNominators()
+      // that should produce the same behavior
+      .signAndSend(alith, ({ events = [], status }) => {
+        console.log(`Current status is ${status.type}`);
+        if (status.isInBlock) {
+          console.log(`Transaction included in Block at blockHash ${status.asInBlock}`);
 
-      if (status.isFinalized) {
-        console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
+          // Loopcod through Vec<EventRecord> to display all events
+          events.forEach(({ phase, event: { data, method, section } }) => {
+            console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
+          });
 
-        // Loop through Vec<EventRecord> to display all events
-        events.forEach(({ phase, event: { data, method, section } }) => {
-          console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
-        });
+          unsub();
+          res();
+        } else if (status.isFinalized) {
+          console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
 
-        unsub3();
-      }
-    });
-  await wait(60000);
+          // Loop through Vec<EventRecord> to display all events
+          events.forEach(({ phase, event: { data, method, section } }) => {
+            console.log(`\t' ${phase}: ${section}.${method}:: ${data}`);
+          });
+
+          unsub();
+          res();
+        }
+      });
+  });
   const nominatorsAfterRevocation = await polkadotApi.query.parachainStaking.nominatorState(ALITH);
   assert(nominatorsAfterRevocation.toHuman() === null, "there should be no nominator");
 
