@@ -680,3 +680,19 @@ pub fn new_dev(
 	network_starter.start_network();
 	Ok(task_manager)
 }
+
+/*
+pub fn new_dev(
+	config: Configuration,
+	sealing: Sealing,
+	author_id: Option<H160>,
+	// TODO I guess we should use substrate-cli's validator flag for this.
+	// Resolve after https://github.com/paritytech/cumulus/pull/380 is reviewed.
+	collator: bool,
+	ethapi_cmd: Vec<EthApiCmd>,
+) -> Result<TaskManager, ServiceError> {
+*/
+
+#[test]
+#[ignore]
+fn test_foo() {}

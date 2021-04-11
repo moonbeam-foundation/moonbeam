@@ -13,13 +13,18 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-
+use futures::{
+	compat::Compat,
+	future::{BoxFuture, TryFutureExt},
+	FutureExt,
+};
+use jsonrpc_core::Result as RpcResult;
 pub use moonbeam_rpc_core_debug::{Debug as DebugT, DebugServer, TraceParams};
+use tokio::runtime::Runtime;
 
 use ethereum_types::{H128, H256};
 use fc_rpc::{frontier_backend_client, internal_err};
 use fp_rpc::EthereumRuntimeRPCApi;
-use jsonrpc_core::Result as RpcResult;
 use moonbeam_rpc_primitives_debug::{single, DebugRuntimeApi};
 use sc_client_api::backend::Backend;
 use sp_api::{BlockId, HeaderT, ProvideRuntimeApi};
@@ -61,88 +66,104 @@ where
 		&self,
 		transaction_hash: H256,
 		params: Option<TraceParams>,
-	) -> RpcResult<single::TransactionTrace> {
-		let (hash, index) = match frontier_backend_client::load_transactions::<B, C>(
-			self.client.as_ref(),
-			self.frontier_backend.as_ref(),
-			transaction_hash,
-		)
-		.map_err(|err| internal_err(format!("{:?}", err)))?
-		{
-			Some((hash, index)) => (hash, index as usize),
-			None => return Err(internal_err("Transaction hash not found".to_string())),
-		};
+	) -> Compat<BoxFuture<'static, RpcResult<single::TransactionTrace>>> {
+		let client = self.client.clone();
+		let backend = self.backend.clone();
+		let frontier_backend = self.frontier_backend.clone();
+		async move {
+			let (hash, index) = match frontier_backend_client::load_transactions::<B, C>(
+				client.as_ref(),
+				frontier_backend.as_ref(),
+				transaction_hash,
+			) {
+				Ok(Some((hash, index))) => (hash, index as usize),
+				Ok(None) => return Err(internal_err("Transaction hash not found".to_string())),
+				Err(e) => return Err(e),
+			};
 
-		let reference_id = match frontier_backend_client::load_hash::<B, C>(
-			self.client.as_ref(),
-			self.frontier_backend.as_ref(),
-			hash,
-		)
-		.map_err(|err| internal_err(format!("{:?}", err)))?
-		{
-			Some(hash) => hash,
-			_ => return Err(internal_err("Block hash not found".to_string())),
-		};
+			let reference_id = match frontier_backend_client::load_hash::<B, C>(
+				client.as_ref(),
+				frontier_backend.as_ref(),
+				hash,
+			) {
+				Ok(Some(hash)) => hash,
+				Ok(_) => return Err(internal_err("Block hash not found".to_string())),
+				Err(e) => return Err(e),
+			};
+			// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
+			let api = client.runtime_api();
+			// Get Blockchain backend
+			let blockchain = backend.blockchain();
+			// Get the header I want to work with.
+			let header = client.header(reference_id).unwrap().unwrap();
+			// Get parent blockid.
+			let parent_block_id = BlockId::Hash(*header.parent_hash());
 
-		// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
-		let api = self.client.runtime_api();
-		// Get Blockchain backend
-		let blockchain = self.backend.blockchain();
-		// Get the header I want to work with.
-		let header = self.client.header(reference_id).unwrap().unwrap();
-		// Get parent blockid.
-		let parent_block_id = BlockId::Hash(*header.parent_hash());
+			// Get the extrinsics.
+			let ext = blockchain.body(reference_id).unwrap().unwrap();
 
-		// Get the extrinsics.
-		let ext = blockchain.body(reference_id).unwrap().unwrap();
+			// Get the block that contains the requested transaction.
+			let reference_block = match api.current_block(&reference_id) {
+				Ok(block) => block,
+				Err(e) => return Err(internal_err(format!("Runtime block call failed: {:?}", e))),
+			};
 
-		// Get the block that contains the requested transaction.
-		let reference_block = api
-			.current_block(&reference_id)
-			.map_err(|err| internal_err(format!("Runtime block call failed: {:?}", err)))?;
+			// Set trace type
+			let trace_type = match params {
+				Some(TraceParams {
+					tracer: Some(tracer),
+					..
+				}) => {
+					let hash: H128 = sp_io::hashing::twox_128(&tracer.as_bytes()).into();
+					let blockscout_hash =
+						H128::from_str("0x94d9f08796f91eb13a2e82a6066882f7").unwrap();
+					if hash == blockscout_hash {
+						single::TraceType::CallList
+					} else {
+						return Err(internal_err(format!(
+							"javascript based tracing is not available (hash :{:?})",
+							hash
+						)));
+					}
+				}
+				Some(params) => single::TraceType::Raw {
+					disable_storage: params.disable_storage.unwrap_or(false),
+					disable_memory: params.disable_memory.unwrap_or(false),
+					disable_stack: params.disable_stack.unwrap_or(false),
+				},
+				_ => single::TraceType::Raw {
+					disable_storage: false,
+					disable_memory: false,
+					disable_stack: false,
+				},
+			};
 
-		// Set trace type
-		let trace_type = match params {
-			Some(TraceParams {
-				tracer: Some(tracer),
-				..
-			}) => {
-				let hash: H128 = sp_io::hashing::twox_128(&tracer.as_bytes()).into();
-				let blockscout_hash = H128::from_str("0x94d9f08796f91eb13a2e82a6066882f7").unwrap();
-				if hash == blockscout_hash {
-					single::TraceType::CallList
-				} else {
-					return Err(internal_err(format!(
-						"javascript based tracing is not available (hash :{:?})",
-						hash
-					)));
+			// Get the actual ethereum transaction.
+			if let Some(block) = reference_block {
+				let transactions = block.transactions;
+				if let Some(transaction) = transactions.get(index) {
+					let client = client.clone();
+					let transaction = transaction.clone();
+					let rt = Runtime::new().unwrap();
+					let handle = rt.handle();
+					return handle
+						.spawn_blocking(move || {
+							return client.clone().runtime_api().trace_transaction(
+								&parent_block_id,
+								ext,
+								&transaction,
+								trace_type,
+							);
+						})
+						.await
+						.map_err(|e| internal_err(format!("Thread panic: {:?}", e)))?
+						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
+						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)));
 				}
 			}
-			Some(params) => single::TraceType::Raw {
-				disable_storage: params.disable_storage.unwrap_or(false),
-				disable_memory: params.disable_memory.unwrap_or(false),
-				disable_stack: params.disable_stack.unwrap_or(false),
-			},
-			_ => single::TraceType::Raw {
-				disable_storage: false,
-				disable_memory: false,
-				disable_stack: false,
-			},
-		};
-
-		// Get the actual ethereum transaction.
-		if let Some(block) = reference_block {
-			let transactions = block.transactions;
-			if let Some(transaction) = transactions.get(index) {
-				let res = api
-					.trace_transaction(&parent_block_id, ext, transaction, trace_type)
-					.map_err(|err| internal_err(format!("Runtime trace call failed: {:?}", err)))?
-					.unwrap();
-
-				return Ok(res);
-			}
+			return Err(internal_err("Runtime block call failed".to_string()));
 		}
-
-		Err(internal_err("Runtime block call failed".to_string()))
+		.boxed()
+		.compat()
 	}
 }
