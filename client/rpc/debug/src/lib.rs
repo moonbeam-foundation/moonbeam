@@ -21,7 +21,7 @@ use futures::{
 use jsonrpc_core::Result as RpcResult;
 pub use moonbeam_rpc_core_debug::{Debug as DebugT, DebugServer, TraceParams};
 
-use tokio::{sync::oneshot, runtime::Handle as RuntimeHandle};
+use tokio::{runtime::Handle as RuntimeHandle, sync::oneshot};
 
 use ethereum_types::{H128, H256};
 use fc_rpc::{frontier_backend_client, internal_err};
@@ -35,7 +35,7 @@ use sp_blockchain::{
 };
 use sp_runtime::traits::Block as BlockT;
 use sp_utils::mpsc::TracingUnboundedSender;
-use std::{str::FromStr, sync::Arc, marker::PhantomData, future::Future};
+use std::{future::Future, marker::PhantomData, str::FromStr, sync::Arc};
 
 pub type Responder = oneshot::Sender<RpcResult<single::TransactionTrace>>;
 pub type DebugRequester = TracingUnboundedSender<((H256, Option<TraceParams>), Responder)>;
@@ -61,18 +61,18 @@ impl DebugT for Debug {
 		async move {
 			let (tx, rx) = oneshot::channel();
 
-			requester.send(((transaction_hash, params), tx)).await.map_err(|err| {
-				internal_err(format!(
-					"failed to send request to debug service : {:?}",
-					err
-				))
-			})?;
+			requester
+				.send(((transaction_hash, params), tx))
+				.await
+				.map_err(|err| {
+					internal_err(format!(
+						"failed to send request to debug service : {:?}",
+						err
+					))
+				})?;
 
 			rx.await.map_err(|err| {
-				internal_err(format!(
-					"debug service dropped the channel : {:?}",
-					err
-				))
+				internal_err(format!("debug service dropped the channel : {:?}", err))
 			})?
 		}
 		.boxed()
@@ -96,9 +96,8 @@ where
 	pub fn task(
 		client: Arc<C>,
 		backend: Arc<BE>,
-		frontier_backend: Arc<fc_db::Backend<B>>
+		frontier_backend: Arc<fc_db::Backend<B>>,
 	) -> (impl Future<Output = ()>, DebugRequester) {
-
 		let (tx, mut rx): (DebugRequester, _) =
 			sp_utils::mpsc::tracing_unbounded("debug-requester");
 
@@ -108,7 +107,7 @@ where
 					let client = client.clone();
 					let backend = backend.clone();
 					let frontier_backend = frontier_backend.clone();
-					// Spawn the long running task in anotyher thread. 
+					// Spawn the long running task in anotyher thread.
 					let res = RuntimeHandle::current()
 						.spawn_blocking(move || {
 							return Self::handle_request(
@@ -116,9 +115,10 @@ where
 								backend.clone(),
 								frontier_backend.clone(),
 								transaction_hash,
-								params
+								params,
 							);
-						}).await;
+						})
+						.await;
 					// Send response.
 					if let Ok(res) = res {
 						let _ = response_tx.send(res);
@@ -180,8 +180,7 @@ where
 				..
 			}) => {
 				let hash: H128 = sp_io::hashing::twox_128(&tracer.as_bytes()).into();
-				let blockscout_hash =
-					H128::from_str("0x94d9f08796f91eb13a2e82a6066882f7").unwrap();
+				let blockscout_hash = H128::from_str("0x94d9f08796f91eb13a2e82a6066882f7").unwrap();
 				if hash == blockscout_hash {
 					single::TraceType::CallList
 				} else {
@@ -207,14 +206,11 @@ where
 		if let Some(block) = reference_block {
 			let transactions = block.transactions;
 			if let Some(transaction) = transactions.get(index) {
-				return client.runtime_api().trace_transaction(
-					&parent_block_id,
-					ext,
-					&transaction,
-					trace_type,
-				)
-				.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
-				.map_err(|e| internal_err(format!("DispatchError: {:?}", e)));
+				return client
+					.runtime_api()
+					.trace_transaction(&parent_block_id, ext, &transaction, trace_type)
+					.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
+					.map_err(|e| internal_err(format!("DispatchError: {:?}", e)));
 			}
 		}
 		return Err(internal_err("Runtime block call failed".to_string()));

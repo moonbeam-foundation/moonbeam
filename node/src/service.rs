@@ -37,8 +37,8 @@ use fc_mapping_sync::MappingSyncWorker;
 use fc_rpc::EthTask;
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use futures::{Stream, StreamExt};
-use moonbeam_rpc_trace::TraceFilterCache;
 use moonbeam_rpc_debug::DebugHandler;
+use moonbeam_rpc_trace::TraceFilterCache;
 use moonbeam_runtime::{opaque::Block, RuntimeApi};
 use polkadot_primitives::v0::CollatorPair;
 use sc_cli::SubstrateCli;
@@ -294,8 +294,11 @@ where
 	};
 
 	let (debug_task, debug_requester) = if ethapi_cmd.contains(&EthApiCmd::Debug) {
-		let (debug_task, debug_requester) =
-			DebugHandler::task(Arc::clone(&client), Arc::clone(&backend), Arc::clone(&frontier_backend));
+		let (debug_task, debug_requester) = DebugHandler::task(
+			Arc::clone(&client),
+			Arc::clone(&backend),
+			Arc::clone(&frontier_backend),
+		);
 		(Some(debug_task), Some(debug_requester))
 	} else {
 		(None, None)
@@ -605,8 +608,11 @@ pub fn new_dev(
 	};
 
 	let (debug_task, debug_requester) = if ethapi_cmd.contains(&EthApiCmd::Debug) {
-		let (debug_task, debug_requester) =
-			DebugHandler::task(Arc::clone(&client), Arc::clone(&backend), Arc::clone(&frontier_backend));
+		let (debug_task, debug_requester) = DebugHandler::task(
+			Arc::clone(&client),
+			Arc::clone(&backend),
+			Arc::clone(&frontier_backend),
+		);
 		(Some(debug_task), Some(debug_requester))
 	} else {
 		(None, None)
