@@ -16,11 +16,12 @@
 use futures::{
 	compat::Compat,
 	future::{BoxFuture, TryFutureExt},
-	FutureExt,
+	FutureExt, SinkExt, StreamExt,
 };
 use jsonrpc_core::Result as RpcResult;
 pub use moonbeam_rpc_core_debug::{Debug as DebugT, DebugServer, TraceParams};
-use tokio::runtime::Runtime;
+
+use tokio::{sync::oneshot, runtime::Handle as RuntimeHandle};
 
 use ethereum_types::{H128, H256};
 use fc_rpc::{frontier_backend_client, internal_err};
@@ -33,25 +34,55 @@ use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
 };
 use sp_runtime::traits::Block as BlockT;
-use std::{str::FromStr, sync::Arc};
+use sp_utils::mpsc::TracingUnboundedSender;
+use std::{str::FromStr, sync::Arc, marker::PhantomData, future::Future};
 
-pub struct Debug<B: BlockT, C, BE> {
-	client: Arc<C>,
-	backend: Arc<BE>,
-	frontier_backend: Arc<fc_db::Backend<B>>,
+pub type Responder = oneshot::Sender<RpcResult<single::TransactionTrace>>;
+pub type DebugRequester = TracingUnboundedSender<((H256, Option<TraceParams>), Responder)>;
+
+pub struct Debug {
+	pub requester: DebugRequester,
 }
 
-impl<B: BlockT, C, BE> Debug<B, C, BE> {
-	pub fn new(client: Arc<C>, backend: Arc<BE>, frontier_backend: Arc<fc_db::Backend<B>>) -> Self {
-		Self {
-			client,
-			backend,
-			frontier_backend,
-		}
+impl Debug {
+	pub fn new(requester: DebugRequester) -> Self {
+		Self { requester }
 	}
 }
 
-impl<B, C, BE> DebugT for Debug<B, C, BE>
+impl DebugT for Debug {
+	fn trace_transaction(
+		&self,
+		transaction_hash: H256,
+		params: Option<TraceParams>,
+	) -> Compat<BoxFuture<'static, RpcResult<single::TransactionTrace>>> {
+		let mut requester = self.requester.clone();
+
+		async move {
+			let (tx, rx) = oneshot::channel();
+
+			requester.send(((transaction_hash, params), tx)).await.map_err(|err| {
+				internal_err(format!(
+					"failed to send request to debug service : {:?}",
+					err
+				))
+			})?;
+
+			rx.await.map_err(|err| {
+				internal_err(format!(
+					"debug service dropped the channel : {:?}",
+					err
+				))
+			})?
+		}
+		.boxed()
+		.compat()
+	}
+}
+
+pub struct DebugHandler<B: BlockT, C, BE>(PhantomData<(B, C, BE)>);
+
+impl<B, C, BE> DebugHandler<B, C, BE>
 where
 	BE: Backend<B> + 'static,
 	C: ProvideRuntimeApi<B>,
@@ -62,108 +93,130 @@ where
 	C::Api: DebugRuntimeApi<B>,
 	C::Api: EthereumRuntimeRPCApi<B>,
 {
-	fn trace_transaction(
-		&self,
-		transaction_hash: H256,
-		params: Option<TraceParams>,
-	) -> Compat<BoxFuture<'static, RpcResult<single::TransactionTrace>>> {
-		let client = self.client.clone();
-		let backend = self.backend.clone();
-		let frontier_backend = self.frontier_backend.clone();
-		async move {
-			let (hash, index) = match frontier_backend_client::load_transactions::<B, C>(
-				client.as_ref(),
-				frontier_backend.as_ref(),
-				transaction_hash,
-			) {
-				Ok(Some((hash, index))) => (hash, index as usize),
-				Ok(None) => return Err(internal_err("Transaction hash not found".to_string())),
-				Err(e) => return Err(e),
-			};
+	pub fn task(
+		client: Arc<C>,
+		backend: Arc<BE>,
+		frontier_backend: Arc<fc_db::Backend<B>>
+	) -> (impl Future<Output = ()>, DebugRequester) {
 
-			let reference_id = match frontier_backend_client::load_hash::<B, C>(
-				client.as_ref(),
-				frontier_backend.as_ref(),
-				hash,
-			) {
-				Ok(Some(hash)) => hash,
-				Ok(_) => return Err(internal_err("Block hash not found".to_string())),
-				Err(e) => return Err(e),
-			};
-			// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
-			let api = client.runtime_api();
-			// Get Blockchain backend
-			let blockchain = backend.blockchain();
-			// Get the header I want to work with.
-			let header = client.header(reference_id).unwrap().unwrap();
-			// Get parent blockid.
-			let parent_block_id = BlockId::Hash(*header.parent_hash());
+		let (tx, mut rx): (DebugRequester, _) =
+			sp_utils::mpsc::tracing_unbounded("debug-requester");
 
-			// Get the extrinsics.
-			let ext = blockchain.body(reference_id).unwrap().unwrap();
-
-			// Get the block that contains the requested transaction.
-			let reference_block = match api.current_block(&reference_id) {
-				Ok(block) => block,
-				Err(e) => return Err(internal_err(format!("Runtime block call failed: {:?}", e))),
-			};
-
-			// Set trace type
-			let trace_type = match params {
-				Some(TraceParams {
-					tracer: Some(tracer),
-					..
-				}) => {
-					let hash: H128 = sp_io::hashing::twox_128(&tracer.as_bytes()).into();
-					let blockscout_hash =
-						H128::from_str("0x94d9f08796f91eb13a2e82a6066882f7").unwrap();
-					if hash == blockscout_hash {
-						single::TraceType::CallList
-					} else {
-						return Err(internal_err(format!(
-							"javascript based tracing is not available (hash :{:?})",
-							hash
-						)));
+		let fut = async move {
+			loop {
+				if let Some(((transaction_hash, params), response_tx)) = rx.next().await {
+					let client = client.clone();
+					let backend = backend.clone();
+					let frontier_backend = frontier_backend.clone();
+					// Spawn the long running task in anotyher thread. 
+					let res = RuntimeHandle::current()
+						.spawn_blocking(move || {
+							return Self::handle_request(
+								client.clone(),
+								backend.clone(),
+								frontier_backend.clone(),
+								transaction_hash,
+								params
+							);
+						}).await;
+					// Send response.
+					if let Ok(res) = res {
+						let _ = response_tx.send(res);
 					}
 				}
-				Some(params) => single::TraceType::Raw {
-					disable_storage: params.disable_storage.unwrap_or(false),
-					disable_memory: params.disable_memory.unwrap_or(false),
-					disable_stack: params.disable_stack.unwrap_or(false),
-				},
-				_ => single::TraceType::Raw {
-					disable_storage: false,
-					disable_memory: false,
-					disable_stack: false,
-				},
-			};
+			}
+		};
+		(fut, tx)
+	}
 
-			// Get the actual ethereum transaction.
-			if let Some(block) = reference_block {
-				let transactions = block.transactions;
-				if let Some(transaction) = transactions.get(index) {
-					let client = client.clone();
-					let transaction = transaction.clone();
-					let rt = Runtime::new().unwrap();
-					let handle = rt.handle();
-					return handle
-						.spawn_blocking(move || {
-							return client.clone().runtime_api().trace_transaction(
-								&parent_block_id,
-								ext,
-								&transaction,
-								trace_type,
-							);
-						})
-						.await
-						.map_err(|e| internal_err(format!("Thread panic: {:?}", e)))?
-						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
-						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)));
+	fn handle_request(
+		client: Arc<C>,
+		backend: Arc<BE>,
+		frontier_backend: Arc<fc_db::Backend<B>>,
+		transaction_hash: H256,
+		params: Option<TraceParams>,
+	) -> RpcResult<single::TransactionTrace> {
+		let (hash, index) = match frontier_backend_client::load_transactions::<B, C>(
+			client.as_ref(),
+			frontier_backend.as_ref(),
+			transaction_hash,
+		) {
+			Ok(Some((hash, index))) => (hash, index as usize),
+			Ok(None) => return Err(internal_err("Transaction hash not found".to_string())),
+			Err(e) => return Err(e),
+		};
+
+		let reference_id = match frontier_backend_client::load_hash::<B, C>(
+			client.as_ref(),
+			frontier_backend.as_ref(),
+			hash,
+		) {
+			Ok(Some(hash)) => hash,
+			Ok(_) => return Err(internal_err("Block hash not found".to_string())),
+			Err(e) => return Err(e),
+		};
+		// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
+		let api = client.runtime_api();
+		// Get Blockchain backend
+		let blockchain = backend.blockchain();
+		// Get the header I want to work with.
+		let header = client.header(reference_id).unwrap().unwrap();
+		// Get parent blockid.
+		let parent_block_id = BlockId::Hash(*header.parent_hash());
+
+		// Get the extrinsics.
+		let ext = blockchain.body(reference_id).unwrap().unwrap();
+
+		// Get the block that contains the requested transaction.
+		let reference_block = match api.current_block(&reference_id) {
+			Ok(block) => block,
+			Err(e) => return Err(internal_err(format!("Runtime block call failed: {:?}", e))),
+		};
+
+		// Set trace type
+		let trace_type = match params {
+			Some(TraceParams {
+				tracer: Some(tracer),
+				..
+			}) => {
+				let hash: H128 = sp_io::hashing::twox_128(&tracer.as_bytes()).into();
+				let blockscout_hash =
+					H128::from_str("0x94d9f08796f91eb13a2e82a6066882f7").unwrap();
+				if hash == blockscout_hash {
+					single::TraceType::CallList
+				} else {
+					return Err(internal_err(format!(
+						"javascript based tracing is not available (hash :{:?})",
+						hash
+					)));
 				}
 			}
-			return Err(internal_err("Runtime block call failed".to_string()));
+			Some(params) => single::TraceType::Raw {
+				disable_storage: params.disable_storage.unwrap_or(false),
+				disable_memory: params.disable_memory.unwrap_or(false),
+				disable_stack: params.disable_stack.unwrap_or(false),
+			},
+			_ => single::TraceType::Raw {
+				disable_storage: false,
+				disable_memory: false,
+				disable_stack: false,
+			},
+		};
+
+		// Get the actual ethereum transaction.
+		if let Some(block) = reference_block {
+			let transactions = block.transactions;
+			if let Some(transaction) = transactions.get(index) {
+				return client.runtime_api().trace_transaction(
+					&parent_block_id,
+					ext,
+					&transaction,
+					trace_type,
+				)
+				.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
+				.map_err(|e| internal_err(format!("DispatchError: {:?}", e)));
+			}
 		}
-		.boxed()
-		.compat()
+		return Err(internal_err("Runtime block call failed".to_string()));
 	}
 }

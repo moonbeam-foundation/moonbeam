@@ -38,6 +38,7 @@ use fc_rpc::EthTask;
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use futures::{Stream, StreamExt};
 use moonbeam_rpc_trace::TraceFilterCache;
+use moonbeam_rpc_debug::DebugHandler;
 use moonbeam_runtime::{opaque::Block, RuntimeApi};
 use polkadot_primitives::v0::CollatorPair;
 use sc_cli::SubstrateCli;
@@ -292,6 +293,14 @@ where
 		(None, None)
 	};
 
+	let (debug_task, debug_requester) = if ethapi_cmd.contains(&EthApiCmd::Debug) {
+		let (debug_task, debug_requester) =
+			DebugHandler::task(Arc::clone(&client), Arc::clone(&backend), Arc::clone(&frontier_backend));
+		(Some(debug_task), Some(debug_requester))
+	} else {
+		(None, None)
+	};
+
 	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
@@ -315,6 +324,7 @@ where
 				ethapi_cmd: ethapi_cmd.clone(),
 				command_sink: None,
 				trace_filter_requester: trace_filter_requester.clone(),
+				debug_requester: debug_requester.clone(),
 				frontier_backend: frontier_backend.clone(),
 				backend: backend.clone(),
 			};
@@ -356,6 +366,13 @@ where
 		task_manager
 			.spawn_essential_handle()
 			.spawn("trace-filter-cache", trace_filter_task);
+	}
+
+	// Spawn debug task if enabled.
+	if let Some(debug_task) = debug_task {
+		task_manager
+			.spawn_essential_handle()
+			.spawn("ethapi-debug", debug_task);
 	}
 
 	// Spawn Frontier EthFilterApi maintenance task.
@@ -587,6 +604,14 @@ pub fn new_dev(
 		(None, None)
 	};
 
+	let (debug_task, debug_requester) = if ethapi_cmd.contains(&EthApiCmd::Debug) {
+		let (debug_task, debug_requester) =
+			DebugHandler::task(Arc::clone(&client), Arc::clone(&backend), Arc::clone(&frontier_backend));
+		(Some(debug_task), Some(debug_requester))
+	} else {
+		(None, None)
+	};
+
 	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
@@ -612,6 +637,7 @@ pub fn new_dev(
 				frontier_backend: frontier_backend.clone(),
 				backend: backend.clone(),
 				trace_filter_requester: trace_filter_requester.clone(),
+				debug_requester: debug_requester.clone(),
 			};
 			crate::rpc::create_full(deps, subscription_task_executor.clone())
 		})
@@ -650,6 +676,13 @@ pub fn new_dev(
 		task_manager
 			.spawn_essential_handle()
 			.spawn("trace-filter-cache", trace_filter_task);
+	}
+
+	// Spawn debug task if enabled.
+	if let Some(debug_task) = debug_task {
+		task_manager
+			.spawn_essential_handle()
+			.spawn("ethapi-debug", debug_task);
 	}
 
 	// Spawn Frontier EthFilterApi maintenance task.
