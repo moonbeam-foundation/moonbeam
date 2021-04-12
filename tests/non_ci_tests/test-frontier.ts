@@ -1,20 +1,23 @@
 import { expect } from "chai";
 
-import { customRequest } from "./util";
-import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY, TEST_ACCOUNT } from "./constants";
-import { createAndFinalizeBlockWithFrontier, describeWithFrontier } from "./util/testWithFrontier";
+import { customRequest } from "../tests/util";
+import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY, TEST_ACCOUNT } from "../tests/constants";
+import {
+  createAndFinalizeBlockWithFrontier,
+  describeWithFrontier,
+} from "../tests/util/testWithFrontier";
 
 const FRONTIER_GENESIS_ACCOUNT_BALANCE = "340282366920938463463374607431768211455";
 
 // This is an example of a Frontier test. It requires to have a clone of frontier in the same repo
 // The binary needs to be built with `cargo build --no-default-features --features=manual-seal`
 describeWithFrontier("Frontier RPC (Balance)", `frontier-specs.json`, (context) => {
-  it.skip("genesis balance is setup correctly (web3)", async function () {
+  it("genesis balance is setup correctly (web3)", async function () {
     expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT)).to.equal(
       FRONTIER_GENESIS_ACCOUNT_BALANCE
     );
   });
-  it.skip("balance to be updated after transfer", async function () {
+  it("balance to be updated after transfer", async function () {
     this.timeout(15000);
 
     const tx = await context.web3.eth.accounts.signTransaction(
