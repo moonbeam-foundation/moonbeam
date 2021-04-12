@@ -537,6 +537,8 @@
 <span id="534">534</span>
 <span id="535">535</span>
 <span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -593,6 +595,8 @@
 		)<span class="question-mark">?</span>)),
 		<span class="string">&quot;dev&quot;</span> <span class="op">|</span> <span class="string">&quot;development&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">chain_spec</span>::<span class="ident">development_chain_spec</span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>))),
 		<span class="string">&quot;local&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">chain_spec</span>::<span class="ident">get_chain_spec</span>(<span class="ident">para_id</span>))),
+		<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;test-spec&quot;</span>)]</span>
+		<span class="string">&quot;staking&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="kw">crate</span>::<span class="ident">test_spec</span>::<span class="ident">staking_spec</span>(<span class="ident">para_id</span>))),
 		<span class="string">&quot;&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(
 			<span class="string">&quot;You have not specified what chain to sync. In the future, this will default to \
 				Moonbeam mainnet. Mainnet is not yet live so you must choose a spec.&quot;</span>
