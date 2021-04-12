@@ -265,7 +265,7 @@ parameter_types! {
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = MoonbeamGasWeightMapping;
-	type CallOrigin = EnsureAddressSame;
+	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = IdentityAddressMapping;
 	type Currency = Balances;
