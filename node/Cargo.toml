@@ -13,7 +13,7 @@ name = 'moonbeam'
 path = 'src/main.rs'
 
 [features]
-test-staking = []
+test-spec = []
 
 [dependencies]
 async-io = "1.3"
