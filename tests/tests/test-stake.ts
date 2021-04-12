@@ -1,15 +1,17 @@
 import { expect } from "chai";
 import { step } from "mocha-steps";
 
-import { describeWithMoonbeam } from "./util";
-import { GLMR } from "./constants";
+import { createAndFinalizeBlock, describeWithMoonbeam } from "./util";
+import { DEFAULT_GENESIS_STAKING, GENESIS_ACCOUNT } from "./constants";
 
 describeWithMoonbeam("Moonbeam RPC (Stake)", `simple-specs.json`, (context) => {
-  const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
-  const GENESIS_STAKED = 1_000n * GLMR;
+  before(async () => {
+    // For some reason balances are not well queried otherwise
+    await createAndFinalizeBlock(context.polkadotApi);
+  });
   step("collator bond reserved in genesis", async function () {
     const account = await context.polkadotApi.query.system.account(GENESIS_ACCOUNT);
-    expect(account.data.reserved.toString()).to.equal(GENESIS_STAKED.toString());
+    expect(account.data.reserved.toString()).to.equal(DEFAULT_GENESIS_STAKING.toString());
   });
 
   step("collator set in genesis", async function () {
