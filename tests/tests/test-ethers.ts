@@ -2,18 +2,30 @@ import { createAndFinalizeBlock, describeWithMoonbeam } from "./util";
 import { HttpProvider } from "web3-core";
 import { expect } from "chai";
 import { ethers } from "ethers";
-import { TEST_CONTRACT_ABI_ETHERS, TEST_CONTRACT_BYTECODE } from "./constants";
+import {
+  TEST_CONTRACT_ABI_ETHERS,
+  TEST_CONTRACT_BYTECODE,
+  GENESIS_ACCOUNT_PRIVATE_KEY,
+} from "./constants";
 
 describeWithMoonbeam("Moonbeam RPC (Ethers.js)", `simple-specs.json`, (context) => {
-  const GENESIS_ACCOUNT_PRIVATE_KEY =
-    "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
-
-  it("get network id", async function () {
-    expect((await context.ethers.getNetwork()).chainId).to.equal(1281);
+  let provider;
+  before(() => {
+    // Providers
+    let prov = context.web3.currentProvider as HttpProvider;
+    provider = new ethers.providers.JsonRpcProvider(prov.host);
   });
 
+  it("get network ids", async function () {
+    expect((await provider.getNetwork()).chainId).to.equal(1281);
+    const providerTestnet = new ethers.providers.JsonRpcProvider(
+      "https://rpc.testnet.moonbeam.network"
+    );
+    expect((await providerTestnet.getNetwork()).chainId).to.equal(1287);
+  });
   it("deploy contract and interact with it", async function () {
-    let signer = new ethers.Wallet(GENESIS_ACCOUNT_PRIVATE_KEY, context.ethers);
+    this.timeout(15000);
+    let signer = new ethers.Wallet(GENESIS_ACCOUNT_PRIVATE_KEY, provider);
 
     // deploy contract
     const factory = new ethers.ContractFactory(
