@@ -20,7 +20,10 @@ use frame_support::traits::Currency;
 use parity_scale_codec::{Decode, Encode};
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
+use sp_runtime::PerThing;
 use sp_runtime::{Perbill, RuntimeDebug};
+use substrate_fixed::transcendental::pow as floatpow;
+use substrate_fixed::types::{I32F32, I64F64};
 
 const SECONDS_PER_YEAR: u32 = 31557600;
 const SECONDS_PER_BLOCK: u32 = 6;
@@ -54,15 +57,48 @@ impl<T: Ord + Copy> From<T> for Range<T> {
 		}
 	}
 }
+/// Convert an annual inflation to a round inflation
+/// This is done by round = 1 - (1+annual)^(1/rounds_per_year)
+/// We need to use substrate-fixed to allow us to floatpow
+fn perbill_annual_to_perbill_round(annual: Range<Perbill>, rounds_per_year: u32) -> Range<Perbill> {
+	let min = I32F32::from_num(annual.min.deconstruct()) / I32F32::from_num(Perbill::ACCURACY);
+	let ideal = I32F32::from_num(annual.ideal.deconstruct()) / I32F32::from_num(Perbill::ACCURACY);
+	let max = I32F32::from_num(annual.max.deconstruct()) / I32F32::from_num(Perbill::ACCURACY);
 
+	let exponent = I32F32::from_num(1) / I32F32::from_num(rounds_per_year);
+
+	// This cant overflow since rounds_per_year is a u32, Perbill as well is composed of u32
+	// and powering to 1/u32 should always give us a smaller number. Worst case this is 0, so
+	// no need to handle the error
+	let result_min: I64F64 = floatpow(I32F32::from_num(1) + min, exponent)
+		.expect("Min inflation overflowed when calculating round inflation");
+	let result_ideal: I64F64 = floatpow(I32F32::from_num(1) + ideal, exponent)
+		.expect("Ideal inflation overflowed when calculating round inflation");
+	let result_max: I64F64 = floatpow(I32F32::from_num(1) + max, exponent)
+		.expect("Max inflation overflowed when calculating round inflation");
+
+	Range {
+		min: Perbill::from_parts(
+			((result_min - I64F64::from_num(1)) * I64F64::from_num(Perbill::ACCURACY))
+				.ceil()
+				.to_num::<u32>(),
+		),
+		ideal: Perbill::from_parts(
+			((result_ideal - I64F64::from_num(1)) * I64F64::from_num(Perbill::ACCURACY))
+				.ceil()
+				.to_num::<u32>(),
+		),
+		max: Perbill::from_parts(
+			((result_max - I64F64::from_num(1)) * I64F64::from_num(Perbill::ACCURACY))
+				.ceil()
+				.to_num::<u32>(),
+		),
+	}
+}
 /// Convert annual inflation rate range to round inflation range
 pub fn annual_to_round<T: Config>(annual: Range<Perbill>) -> Range<Perbill> {
 	let periods = rounds_per_year::<T>();
-	Range {
-		min: Perbill::from_parts(annual.min.deconstruct() / periods),
-		ideal: Perbill::from_parts(annual.ideal.deconstruct() / periods),
-		max: Perbill::from_parts(annual.max.deconstruct() / periods),
-	}
+	perbill_annual_to_perbill_round(annual, periods)
 }
 
 /// Compute round issuance range from round inflation range and current total issuance
@@ -108,11 +144,7 @@ impl<Balance> InflationInfo<Balance> {
 mod tests {
 	use super::*;
 	fn mock_annual_to_round(annual: Range<Perbill>, rounds_per_year: u32) -> Range<Perbill> {
-		Range {
-			min: Perbill::from_parts(annual.min.deconstruct() / rounds_per_year),
-			ideal: Perbill::from_parts(annual.ideal.deconstruct() / rounds_per_year),
-			max: Perbill::from_parts(annual.max.deconstruct() / rounds_per_year),
-		}
+		perbill_annual_to_perbill_round(annual, rounds_per_year)
 	}
 	fn mock_round_issuance_range(
 		// Total circulating before minting
@@ -132,9 +164,9 @@ mod tests {
 		// let's assume there are 10 periods in a year
 		// => mint 500_000 over 10 periods => 50_000 minted per period
 		let expected_round_issuance_range: Range<u128> = Range {
-			min: 50_000,
-			ideal: 50_000,
-			max: 50_000,
+			min: 48_909,
+			ideal: 48_909,
+			max: 48_909,
 		};
 		let schedule = Range {
 			min: Perbill::from_percent(5),
@@ -152,9 +184,9 @@ mod tests {
 		// let's assume there are 10 periods in a year
 		// => mint 300_000-500_000 over 10 periods => 30_000-50_000 minted per period
 		let expected_round_issuance_range: Range<u128> = Range {
-			min: 30_000,
-			ideal: 40_000,
-			max: 50_000,
+			min: 29_603,
+			ideal: 39298,
+			max: 48_909,
 		};
 		let schedule = Range {
 			min: Perbill::from_percent(3),
@@ -169,9 +201,9 @@ mod tests {
 	#[test]
 	fn expected_parameterization() {
 		let expected_round_schedule: Range<u128> = Range {
-			min: 46,
-			ideal: 57,
-			max: 57,
+			min: 45,
+			ideal: 56,
+			max: 56,
 		};
 		let schedule = Range {
 			min: Perbill::from_percent(4),
