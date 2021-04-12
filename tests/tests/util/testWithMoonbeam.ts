@@ -3,12 +3,7 @@ import { ApiPromise, WsProvider } from "@polkadot/api";
 import { typesBundle } from "../../../moonbeam-types-bundle";
 
 import { spawn, ChildProcess, ChildProcessWithoutNullStreams } from "child_process";
-import {
-  BINARY_PATH,
-  DISPLAY_LOG,
-  MOONBEAM_LOG,
-  SPAWNING_TIME,
-} from "../constants";
+import { BINARY_PATH, DISPLAY_LOG, MOONBEAM_LOG, SPAWNING_TIME } from "../constants";
 import { ErrorReport } from "./fillBlockWithTx";
 import { findAvailablePorts } from "./findAvailablePorts";
 
