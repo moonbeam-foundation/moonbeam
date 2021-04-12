@@ -29,7 +29,14 @@ export async function startMoonbeamNode(
   specFilename: string,
   provider?: string
 ): Promise<{ context: Context; runningNode: ChildProcess }> {
-  const ports = await findAvailablePorts();
+  let ports = null;
+  try {
+    ports = await findAvailablePorts();
+
+    console.log("got ports: ", ports);
+  } catch (err) {
+    console.log("error from findAvailablePorts(): ", err);
+  }
 
   let web3;
   if (!provider || provider == "http") {
