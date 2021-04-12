@@ -219,7 +219,7 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 	}
 }
 
-fn testnet_genesis(
+pub fn testnet_genesis(
 	root_key: AccountId,
 	stakers: Vec<(AccountId, Option<AccountId>, Balance)>,
 	inflation_config: InflationInfo<Balance>,
