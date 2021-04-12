@@ -40,9 +40,7 @@ export async function startFrontierNode(
 
   binary.on("error", (err) => {
     if ((err as any).errno == "ENOENT") {
-      console.error(
-        `\x1b[31mMissing Frontier binary (${BINARY_PATH}).\nPlease compile the Frontier project:\ncargo build\x1b[0m`
-      );
+      console.error(`\x1b[31mMissing Frontier binary (${BINARY_PATH})`);
     } else {
       console.error(err);
     }
