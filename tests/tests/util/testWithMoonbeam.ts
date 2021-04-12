@@ -7,12 +7,10 @@ import {
   BINARY_PATH,
   DISPLAY_LOG,
   MOONBEAM_LOG,
-  PORT,
-  RPC_PORT,
   SPAWNING_TIME,
-  WS_PORT,
 } from "../constants";
 import { ErrorReport } from "./fillBlockWithTx";
+import { findAvailablePorts } from "./findAvailablePorts";
 
 export function log(...msg: (string | number | ErrorReport)[]) {
   if (process.argv && process.argv[2] && process.argv[2] === "--printlogs") {
@@ -36,9 +34,11 @@ export async function startMoonbeamNode(
   specFilename: string,
   provider?: string
 ): Promise<{ context: Context; runningNode: ChildProcess }> {
+  const ports = await findAvailablePorts();
+
   let web3;
   if (!provider || provider == "http") {
-    web3 = new Web3(`http://localhost:${RPC_PORT}`);
+    web3 = new Web3(`http://localhost:${ports.rpcPort}`);
   }
 
   const cmd = BINARY_PATH;
@@ -50,9 +50,9 @@ export async function startMoonbeamNode(
     `--ethapi=txpool,debug,trace`,
     `--sealing=manual`,
     `-l${MOONBEAM_LOG}`,
-    `--port=${PORT}`,
-    `--rpc-port=${RPC_PORT}`,
-    `--ws-port=${WS_PORT}`,
+    `--port=${ports.p2pPort}`,
+    `--rpc-port=${ports.rpcPort}`,
+    `--ws-port=${ports.wsPort}`,
     `--tmp`,
   ];
   runningNode = spawn(cmd, args);
@@ -102,14 +102,14 @@ export async function startMoonbeamNode(
     runningNode.stdout.on("data", onData);
   });
 
-  const wsProvider = new WsProvider(`ws://localhost:${WS_PORT}`);
+  const wsProvider = new WsProvider(`ws://localhost:${ports.wsPort}`);
   const polkadotApi = await ApiPromise.create({
     provider: wsProvider,
     typesBundle: typesBundle as any,
   });
 
   if (provider == "ws") {
-    web3 = new Web3(`ws://localhost:${WS_PORT}`);
+    web3 = new Web3(`ws://localhost:${ports.wsPort}`);
   }
 
   return { context: { web3, polkadotApi, wsProvider }, runningNode };
