@@ -41,7 +41,7 @@ use moonbeam_extensions_evm::runner::stack::TraceRunner as TraceRunnerT;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{Transaction as EthereumTransaction, TransactionAction};
 use pallet_evm::{
-	Account as EVMAccount, EnsureAddressNever, EnsureAddressSame, FeeCalculator,
+	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator,
 	IdentityAddressMapping, Runner,
 };
 use pallet_transaction_payment::CurrencyAdapter;
