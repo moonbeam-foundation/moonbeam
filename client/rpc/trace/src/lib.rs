@@ -22,7 +22,7 @@ use futures::{
 	FutureExt, SinkExt, StreamExt,
 };
 use std::{
-	collections::{btree_map::Entry, BTreeMap},
+	collections::{btree_map::Entry, BTreeMap, VecDeque},
 	future::Future,
 	marker::PhantomData,
 	sync::Arc,
@@ -48,7 +48,268 @@ pub use moonbeam_rpc_core_trace::{
 	FilterRequest, RequestBlockId, RequestBlockTag, Trace as TraceT, TraceServer, TransactionTrace,
 };
 use moonbeam_rpc_primitives_debug::{block, DebugRuntimeApi};
-use tracing::Instrument;
+use tracing::{instrument, Instrument};
+
+pub struct Trace2<B, C> {
+	_phantom: PhantomData<B>,
+	client: Arc<C>,
+	requester: CacheRequester,
+}
+
+impl<B, C> Trace2<B, C>
+where
+	B: BlockT<Hash = H256> + Send + Sync + 'static,
+	C: HeaderMetadata<B, Error = BlockChainError> + HeaderBackend<B>,
+	C: Send + Sync + 'static,
+{
+	pub fn new(client: Arc<C>, requester: CacheRequester) -> Self {
+		Self {
+			client,
+			requester,
+			_phantom: PhantomData::default(),
+		}
+	}
+
+	async fn filter(
+		client: Arc<C>,
+		requester: CacheRequester,
+		filter: FilterRequest,
+	) -> Result<Vec<TransactionTrace>> {
+		todo!()
+	}
+}
+
+impl<B, C> TraceT for Trace2<B, C>
+where
+	B: BlockT<Hash = H256> + Send + Sync + 'static,
+	C: HeaderMetadata<B, Error = BlockChainError> + HeaderBackend<B>,
+	C: Send + Sync + 'static,
+{
+	fn filter(
+		&self,
+		filter: FilterRequest,
+	) -> Compat<BoxFuture<'static, jsonrpc_core::Result<Vec<TransactionTrace>>>> {
+		Self::filter(self.client.clone(), self.requester.clone(), filter)
+			.boxed()
+			.compat()
+	}
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct CacheBatchId(u64);
+
+/// Enumeration of all kinds of requests the cache task can accept.
+enum CacheRequest {
+	/// Request to start caching the provided range of blocks.
+	/// The task will add to blocks to its pool and immediately return the batch ID.
+	StartBatch {
+		/// Returns the ID of the batch for cancellation.
+		sender: oneshot::Sender<CacheBatchId>,
+		/// List of block hash to trace.
+		blocks: Vec<H256>,
+	},
+	/// Fetch the traces for given block hash.
+	/// The task will answer only when it has processed this block.
+	GetTraces {
+		/// Returns the array of traces or an error.
+		sender: oneshot::Sender<Result<Vec<TransactionTrace>>>,
+		/// Hash of the block.
+		block: H256,
+	},
+	/// Notify the cache that it can stop the batch with that ID. Any block contained only in
+	/// this batch and still in the waiting pool will be discarded.
+	StopBatch { batch_id: CacheBatchId },
+}
+
+/// Allows to interact with the cache task.
+#[derive(Clone)]
+pub struct CacheRequester(TracingUnboundedSender<CacheRequest>);
+
+impl CacheRequester {
+	/// Request to start caching the provided range of blocks.
+	/// The task will add to blocks to its pool and immediately return the batch ID.
+	#[instrument(skip(self))]
+	pub async fn start_batch(&self, blocks: Vec<H256>) -> Result<CacheBatchId> {
+		let (response_tx, response_rx) = oneshot::channel();
+		let mut sender = self.0.clone();
+
+		sender
+			.send(CacheRequest::StartBatch {
+				sender: response_tx,
+				blocks,
+			})
+			.await
+			.map_err(|e| {
+				internal_err(format!(
+					"Failed to send request to the trace cache task. Error : {:?}",
+					e
+				))
+			})?;
+
+		response_rx.await.map_err(|e| {
+			internal_err(format!(
+				"Trace cache task closed the response channel. Error : {:?}",
+				e
+			))
+		})
+	}
+
+	/// Fetch the traces for given block hash.
+	/// The task will answer only when it has processed this block.
+	/// The block should be part of a batch first. If no batch has requested the block it will not
+	/// be processed.
+	#[instrument(skip(self))]
+	pub async fn get_traces(&self, block: H256) -> Result<Vec<TransactionTrace>> {
+		let (response_tx, response_rx) = oneshot::channel();
+		let mut sender = self.0.clone();
+
+		sender
+			.send(CacheRequest::GetTraces {
+				sender: response_tx,
+				block,
+			})
+			.await
+			.map_err(|e| {
+				internal_err(format!(
+					"Failed to send request to the trace cache task. Error : {:?}",
+					e
+				))
+			})?;
+
+		response_rx
+			.await
+			.map_err(|e| {
+				internal_err(format!(
+					"Trace cache task closed the response channel. Error : {:?}",
+					e
+				))
+			})?
+			.map_err(|e| internal_err(format!("Failed to replay block. Error : {:?}", e)))
+	}
+
+	/// Notify the cache that it can stop the batch with that ID. Any block contained only in
+	/// this batch and still in the waiting pool will be discarded.
+	#[instrument(skip(self))]
+	pub async fn stop_batch(&self, batch_id: CacheBatchId) {
+		let mut sender = self.0.clone();
+
+		// Here we don't care if the request has been accepted or refused, the caller can't
+		// do anything with it.
+		let _ = sender
+			.send(CacheRequest::StopBatch { batch_id })
+			.await
+			.map_err(|e| {
+				internal_err(format!(
+					"Failed to send request to the trace cache task. Error : {:?}",
+					e
+				))
+			});
+	}
+}
+
+struct CacheBlock2 {
+	batch_count: u32,
+	state: CacheBlockState,
+}
+
+enum CacheBlockState {
+	/// Block is in the queue and waiting.
+	Waiting {
+		waiting_requests: oneshot::Sender<Result<Vec<TransactionTrace>>>,
+	},
+	/// Block is out of the queue and being replayed.
+	Replaying {
+		waiting_requests: oneshot::Sender<Result<Vec<TransactionTrace>>>,
+	},
+	Success {
+		traces: Option<Vec<TransactionTrace>>,
+	},
+	Error {
+		error: jsonrpc_core::Error,
+	},
+}
+
+/// Type wrapper for the cache task, generic over the Client, Block and Backend types.
+pub struct CacheTask<B, C, BE>(PhantomData<(B, C, BE)>);
+
+impl<B, C, BE> TraceFilterCache<B, C, BE>
+where
+	BE: Backend<B> + 'static,
+	C: ProvideRuntimeApi<B>,
+	C: HeaderMetadata<B, Error = BlockChainError> + HeaderBackend<B>,
+	C: Send + Sync + 'static,
+	B: BlockT<Hash = H256> + Send + Sync + 'static,
+	B::Header: HeaderT<Number = u32>,
+	C::Api: BlockBuilder<B>,
+	C::Api: DebugRuntimeApi<B>,
+	C::Api: EthereumRuntimeRPCApi<B>,
+{
+	/// Create a new cache task.
+	///
+	/// Returns a Future that needs to be added to a tokio executor, and an handle allowing to
+	/// send requests to the task.
+	pub fn create(
+		client: Arc<C>,
+		backend: Arc<BE>,
+		cache_duration: Duration,
+		threads_count: u32,
+	) -> (impl Future<Output = ()>, CacheRequester) {
+		let (tx, mut rx) = sp_utils::mpsc::tracing_unbounded("trace-filter-cache");
+
+		let task = async move {
+			let mut batch_expirations = FuturesUnordered::new();
+			let mut cached_blocks = BTreeMap::<H256, CacheBlock2>::new();
+			let mut batches = BTreeMap::<u64, Vec<H256>>::new();
+			let mut next_batch_id = 0u64;
+
+			loop {
+				select! {
+					request = rx.next() => {
+						match request {
+							None => break,
+							Some(CacheRequest::StartBatch {sender, blocks}) => {
+								batches.insert(next_batch_id, blocks.clone());
+
+								todo!("trace blocks in blocking threads");
+
+								next_batch_id = next_batch_id.overflowing_add(1).0;
+							},
+							Some(CacheRequest::GetTraces {sender, block}) => {
+								if let Some(block_cache) = cached_blocks.get(&block) {
+									todo!()
+								} else {
+									todo!()
+								}
+							},
+							Some(CacheRequest::StopBatch {batch_id}) => {
+								batch_expirations.push(async move {
+									delay_for(cache_duration).await;
+									batch_id
+								});
+
+								if let Some(blocks) = batches.get(&batch_id.0) {
+									for block in blocks {
+										if let Some(block_cache) = cached_blocks.get(block) {
+											
+										}
+									} 
+
+									todo!("unqueue block traces that only are in this batch");
+								}
+
+							},
+						}
+					}
+				}
+			}
+		}
+		.instrument(tracing::debug_span!("trace_filter_cache"));
+
+		(task, CacheRequester(tx))
+	}
+}
+
+// OLD IMPLEMENTATION FOR REFERENCE :
 
 pub struct Trace {
 	pub requester: TraceFilterCacheRequester,
