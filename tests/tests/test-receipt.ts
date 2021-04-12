@@ -11,7 +11,7 @@ const GENESIS_ACCOUNT_PRIVATE_KEY =
   "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
 
 describeWithMoonbeam("Moonbeam RPC (Receipt)", `simple-specs.json`, (context) => {
-  step("Receipt and events logs should contain valid values", async function () {
+  it("Receipt and events logs should contain valid values", async function () {
     const createTx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
