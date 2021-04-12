@@ -6,7 +6,11 @@ import { Keyring } from "@polkadot/keyring";
 import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY, TEST_ACCOUNT } from "./constants";
 
 describeWithMoonbeam("Moonbeam RPC (Nonce)", `simple-specs.json`, (context) => {
-  step("get nonce", async function () {
+  before(async () => {
+    // For some reason fees are not well estimated otherwise
+    await createAndFinalizeBlock(context.polkadotApi);
+  });
+  it("get nonce", async function () {
     this.timeout(10_000);
     const tx = await context.web3.eth.accounts.signTransaction(
       {
