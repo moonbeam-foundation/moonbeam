@@ -107,6 +107,10 @@ export async function startMoonbeamNode(
   // This is needed as the EVM runtime needs to warmup with a first call
   await web3.eth.getChainId();
 
+  // This is needed as it takes a bit more time than when the log is printed to have all the modules
+  // initialized in the node. (getBalance would fail otherwise)
+  await polkadotApi.rpc.chain.getBlock();
+
   return { context: { ethers: ethersApi, web3, polkadotApi, wsProvider }, runningNode };
 }
 
