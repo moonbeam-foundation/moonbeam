@@ -45,8 +45,6 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
       },
     ]);
 
-    // console.log(JSON.stringify(response));
-
     expect(response.result.length).to.equal(1);
     expect(response.result[0].action.createMethod).to.equal("create");
     expect(response.result[0].action.from).to.equal("0x6be02d1d3665660d22ff9624b7be0551ee1ac91b");
@@ -100,8 +98,6 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
         toBlock: "0x02",
       },
     ]);
-
-    // console.log(JSON.stringify(response));
 
     expect(response.result.length).to.equal(1);
     expect(response.result[0].action.createMethod).to.equal("create");
@@ -164,8 +160,6 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     expect(response.result[1].transactionPosition).to.equal(0);
     expect(response.result[2].blockNumber).to.equal(3);
     expect(response.result[2].transactionPosition).to.equal(1);
-
-    // console.log(JSON.stringify(response));
   });
 
   step("Call with subcalls, some reverting", async function () {
@@ -197,7 +191,6 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
       },
     ]);
 
-    // console.log(JSON.stringify(response));
     expect(response.result.length).to.equal(7);
     expect(response.result[0].subtraces).to.equal(2);
     expect(response.result[0].traceAddress).to.deep.equal([]);
@@ -223,7 +216,6 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
       },
     ]);
 
-    // console.log(JSON.stringify(response));
     expect(response.result.length).to.equal(9);
     expect(response.result[0].blockNumber).to.equal(3);
     expect(response.result[0].transactionPosition).to.equal(0);

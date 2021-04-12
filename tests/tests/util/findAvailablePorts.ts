@@ -1,28 +1,24 @@
 import tcpPortUsed from "tcp-port-used";
 
 export async function findAvailablePorts() {
-  const startingPort = 20000;
-  const endingPort = 29999;
-
-  let port = startingPort;
-  let availablePorts = [];
-  while (availablePorts.length < 3 && port < endingPort) {
-    const inUse = await tcpPortUsed.check(port, "127.0.0.1");
-    try {
-      if (!inUse) {
-        availablePorts.push(port);
+  const availablePorts = await Promise.all(
+    [null, null, null].map(async (_, index) => {
+      let selectedPort = 0;
+      let port = 1024 + index * 20000 + (process.pid % 20000);
+      let endingPort = 65535;
+      while (!selectedPort && port < endingPort) {
+        const inUse = await tcpPortUsed.check(port, "127.0.0.1");
+        if (!inUse) {
+          selectedPort = port;
+        }
+        port++;
       }
-
-      port++;
-    } catch (err) {
-      console.log(`Error checking port ${port}: `, err);
-      port++;
-    }
-  }
-
-  if (availablePorts.length < 3) {
-    throw `Could not find 3 ports available within range [${startingPort}, ${endingPort}]`;
-  }
+      if (!selectedPort) {
+        throw new Error(`No available port`);
+      }
+      return selectedPort;
+    })
+  );
 
   return {
     p2pPort: availablePorts[0],

@@ -29,12 +29,7 @@ export async function startMoonbeamNode(
   specFilename: string,
   provider?: string
 ): Promise<{ context: Context; runningNode: ChildProcess }> {
-  const ports = await findAvailablePorts();
-
-  let web3;
-  if (!provider || provider == "http") {
-    web3 = new Web3(`http://localhost:${ports.rpcPort}`);
-  }
+  const { p2pPort, rpcPort, wsPort } = await findAvailablePorts();
 
   const cmd = BINARY_PATH;
   const args = [
@@ -45,9 +40,9 @@ export async function startMoonbeamNode(
     `--ethapi=txpool,debug,trace`,
     `--sealing=manual`,
     `-l${MOONBEAM_LOG}`,
-    `--port=${ports.p2pPort}`,
-    `--rpc-port=${ports.rpcPort}`,
-    `--ws-port=${ports.wsPort}`,
+    `--port=${p2pPort}`,
+    `--rpc-port=${rpcPort}`,
+    `--ws-port=${wsPort}`,
     `--tmp`,
   ];
   runningNode = spawn(cmd, args);
@@ -79,17 +74,11 @@ export async function startMoonbeamNode(
       }
       binaryLogs.push(chunk);
       if (chunk.toString().match(/Development Service Ready/)) {
-        if (!provider || provider == "http") {
-          // This is needed as the EVM runtime needs to warmup with a first call
-          await web3.eth.getChainId();
-        }
-
         clearTimeout(timer);
         if (!DISPLAY_LOG) {
           runningNode.stderr.off("data", onData);
           runningNode.stdout.off("data", onData);
         }
-        // console.log(`\x1b[31m Starting RPC\x1b[0m`);
         resolve();
       }
     };
@@ -97,26 +86,29 @@ export async function startMoonbeamNode(
     runningNode.stdout.on("data", onData);
   });
 
-  const wsProvider = new WsProvider(`ws://localhost:${ports.wsPort}`);
+  const wsProvider = new WsProvider(`ws://localhost:${wsPort}`);
   const polkadotApi = await ApiPromise.create({
     provider: wsProvider,
     typesBundle: typesBundle as any,
   });
 
-  if (provider == "ws") {
-    web3 = new Web3(`ws://localhost:${ports.wsPort}`);
-  }
+  let web3 =
+    provider == "ws"
+      ? new Web3(`ws://localhost:${wsPort}`)
+      : new Web3(`http://localhost:${rpcPort}`);
+
+  // This is needed as the EVM runtime needs to warmup with a first call
+  await web3.eth.getChainId();
 
   return { context: { web3, polkadotApi, wsProvider }, runningNode };
 }
 
-// Kill all processes when exiting.
-process.on("exit", function () {
-  runningNode ? runningNode.kill() : null;
+process.once("exit", function () {
+  runningNode && runningNode.kill();
 });
 
 // Handle ctrl+c to trigger `exit`.
-process.on("SIGINT", function () {
+process.once("SIGINT", function () {
   process.exit(2);
 });
 

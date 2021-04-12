@@ -47,7 +47,6 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     //fetch block again using hash
     const block = await context.web3.eth.getBlock(0);
     const blockByHash = await context.web3.eth.getBlock(block.hash);
-    console.log("blockbyhash", blockByHash);
     expect(blockByHash).to.include({
       author: "0x0000000000000000000000000000000000000000",
       difficulty: "0",
