@@ -6,12 +6,13 @@ import { createAndFinalizeBlock } from "./polkadotApiRequests";
 import { Context } from "./testWithMoonbeam";
 import solc from "solc";
 import Web3 from "web3";
+import fs from "fs";
 
 import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../constants";
 import { customRequest } from ".";
 import { contractSources } from "../constants/contractSources";
 
-export function compileSolidity(contractContent: string, contractName: string = "Test") {
+export function compileSolidity(contractContent: string, contractName: string = "Test"): Compiled {
   let result = JSON.parse(
     solc.compile(
       JSON.stringify({
@@ -34,9 +35,45 @@ export function compileSolidity(contractContent: string, contractName: string = 
 
   const contract = result.contracts["main.sol"][contractName];
   return {
-    bytecode: "0x" + contract.evm.bytecode.object,
+    byteCode: "0x" + contract.evm.bytecode.object,
     contract,
   };
+}
+export interface Compiled {
+  byteCode: string;
+  contract: any;
+}
+
+export async function getCompiled(name: string): Promise<Compiled> {
+  if (!contractSources[name]) throw new Error("Contract name doesn't exist in test suite");
+  let finalCompiled: Compiled = await new Promise<Compiled>((res) => {
+    fs.readFile(`./tests/constants/compiledContracts/${name}.json`, async (err, data) => {
+      if (err) {
+        const contractCompiled = compileSolidity(contractSources[name], name);
+        let compiled = JSON.stringify(contractCompiled);
+        await new Promise<void>((res2) => {
+          fs.writeFile(
+            `./tests/constants/compiledContracts/${name}.json`,
+            compiled,
+            {
+              flag: "w",
+            },
+            (err) => {
+              if (err) {
+                console.log("error whilst writing,e", err);
+              }
+              console.log("New compiled contract file has been saved!");
+              res2();
+            }
+          );
+        });
+        res(contractCompiled);
+      } else {
+        res(JSON.parse(data.toString()));
+      }
+    });
+  });
+  return finalCompiled;
 }
 
 export async function deployContractByName(
@@ -44,12 +81,11 @@ export async function deployContractByName(
   web3: Web3,
   name: string
 ): Promise<Contract> {
-  if (!contractSources[name]) throw new Error("Contract name doesn't exist in test suite");
-  const contractCompiled = compileSolidity(contractSources[name], name);
+  const contractCompiled = await getCompiled(name);
   return deployContractManualSeal(
     api,
     web3,
-    contractCompiled.bytecode,
+    contractCompiled.byteCode,
     contractCompiled.contract.abi
   );
 }

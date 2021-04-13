@@ -2,18 +2,8 @@ import { expect } from "chai";
 
 import { TransactionReceipt } from "web3-core";
 
-import { callContractFunctionMS, deployContractManualSeal, describeWithMoonbeam } from "./util";
+import { callContractFunctionMS, describeWithMoonbeam } from "./util";
 import { deployContractByName } from "./util/contracts";
-// import {
-//   FINITE_LOOP_CONTRACT_ABI,
-//   FINITE_LOOP_CONTRACT_BYTECODE,
-//   INFINITE_CONTRACT_ABI,
-//   INFINITE_CONTRACT_ABI_VAR,
-//   INFINITE_CONTRACT_BYTECODE,
-//   INFINITE_CONTRACT_BYTECODE_VAR,
-//   TEST_CONTRACT_BYTECODE_INCR,
-//   TEST_CONTRACT_INCR_ABI,
-// } from "./constants";
 
 describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (context) => {
   it("should increment contract state - to check normal contract behavior", async function () {
@@ -75,7 +65,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
 
   it("finite loop with incr: check gas usage, with normal gas limit,\
   should error before 700 loops", async function () {
-    // For a normal 1048576 gas limit, loop should revert out of gas between 600 and 700 loops
+    // For a normal 1048576 gas limit, loop should revert out of gas between 500 and 600 loops
 
     //deploy finite loop contract
     const contract = await deployContractByName(

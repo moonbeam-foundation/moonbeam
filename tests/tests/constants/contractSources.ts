@@ -1,6 +1,4 @@
-import { AbiItem } from "web3-utils";
-
-export const contractSources = {
+export const contractSources: { [key: string]: string } = {
   // Solidity: contract test {function multiply(uint a) public pure returns(uint d) {return a * 7;}}
   TEST_CONTRACT: `
         pragma solidity >=0.8.0;
