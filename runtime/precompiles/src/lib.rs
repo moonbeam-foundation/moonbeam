@@ -42,7 +42,7 @@ impl Precompile for Sacrifice {
 	fn execute(
 		input: &[u8],
 		target_gas: Option<u64>,
-		context: &Context,
+		_context: &Context,
 	) -> core::result::Result<(ExitSucceed, Vec<u8>, u64), ExitError> {
 		const INPUT_SIZE_BYTES: usize = 16;
 
@@ -74,7 +74,7 @@ impl Precompile for Sacrifice {
 
 		if msec_cost > 0 {
 			// TODO: log statement here
-			let mut deadline = offchain::timestamp();
+			let deadline = offchain::timestamp();
 			deadline.add(Duration::from_millis(msec_cost));
 			offchain::sleep_until(deadline);
 		}
@@ -123,4 +123,119 @@ where
 
 fn hash(a: u64) -> H160 {
 	H160::from_low_u64_be(a)
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use std::time::{Duration, Instant};
+	// use sp_io::TestExternalities; XXX
+	extern crate hex;
+
+	/*
+	 * XXX
+	pub fn new_test_ext() -> TestExternalities {
+		let t = frame_system::GenesisConfig::default()
+			.build_storage::<Test>()
+			.unwrap();
+		TestExternalities::new(t)
+	}
+	*/
+
+	#[test]
+	fn test_invalid_input_length() -> std::result::Result<(), ExitError> {
+		let cost: u64 = 1;
+
+		// TODO: this is very not-DRY, it would be nice to have a default / test impl in Frontier
+		let context: Context = Context {
+			address: Default::default(),
+			caller: Default::default(),
+			apparent_value: From::from(0),
+		};
+
+		// should fail with input of 15 byte length
+		let input: [u8; 15] = [0; 15];
+		assert_eq!(
+			Sacrifice::execute(&input, Some(cost), &context),
+			Err(ExitError::Other("input length for Sacrifice must be exactly 16 bytes".into())),
+		);
+
+		// should fail with input of 17 byte length
+		let input: [u8; 17] = [0; 17];
+		assert_eq!(
+			Sacrifice::execute(&input, Some(cost), &context),
+			Err(ExitError::Other("input length for Sacrifice must be exactly 16 bytes".into())),
+		);
+
+		Ok(())
+	}
+
+	#[test]
+	fn test_gas_consumption() -> std::result::Result<(), ExitError> {
+		let mut input: [u8; 16] = [0; 16];
+		input[..8].copy_from_slice(&123456_u64.to_be_bytes());
+
+		let context: Context = Context {
+			address: Default::default(),
+			caller: Default::default(),
+			apparent_value: From::from(0),
+		};
+
+		assert_eq!(
+			Sacrifice::execute(&input, None, &context),
+			Ok((ExitSucceed::Returned, [0u8; 0].to_vec(), 123456)),
+		);
+
+		Ok(())
+	}
+
+	#[test]
+	fn test_oog() -> std::result::Result<(), ExitError> {
+		let mut input: [u8; 16] = [0; 16];
+		input[..8].copy_from_slice(&100_u64.to_be_bytes());
+
+		let context: Context = Context {
+			address: Default::default(),
+			caller: Default::default(),
+			apparent_value: From::from(0),
+		};
+
+		assert_eq!(
+			Sacrifice::execute(&input, Some(99), &context),
+			Err(ExitError::OutOfGas),
+		);
+
+		Ok(())
+	}
+
+	/*
+	 * TODO: the sleep() function inside the precompile must be run within an externalities
+	 *       environment
+	#[test]
+	fn test_sleep() -> std::result::Result<(), ExitError> {
+
+		new_test_ext().execute_with(|| {
+			let mut input: [u8; 16] = [0; 16];
+			input[8..].copy_from_slice(&10_u64.to_be_bytes()); // should be 10ms
+
+			let context: Context = Context {
+				address: Default::default(),
+				caller: Default::default(),
+				apparent_value: From::from(0),
+			};
+
+			let start = Instant::now();
+
+			assert_eq!(
+				Sacrifice::execute(&input, Some(99), &context),
+				Ok((ExitSucceed::Returned, [0u8; 0].to_vec(), 0)),
+			);
+
+			assert!(start.elapsed().as_millis() > 10);
+			assert!(start.elapsed().as_millis() < 20); // give plenty of room, but put some bound on it
+
+			Ok(())
+		});
+	}
+	*/
 }
