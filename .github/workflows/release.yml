@@ -149,7 +149,7 @@ jobs:
         run: |
           echo "::set-output name=rustc::$(rustc --version)"
       - name: Build Node
-        run: sed -i 's/0/3/' Cargo.toml && cargo build --release --verbose --all
+        run: cargo build --release --verbose --all
       # We determine whether there are unmodified Cargo.lock files by:
       # 1. Asking git for a list of all modified files
       # 2. Using grep to reduce the list to only Cargo.lock files
