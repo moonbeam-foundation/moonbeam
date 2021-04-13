@@ -14,7 +14,8 @@
         "../build"
       ],
       "extensions": "rs",
-      "quiet": false
+      "quiet": true,
+      "inherit": true
     },
     "test": {
       "patterns": [
@@ -29,7 +30,6 @@
   "scripts": {
     "test-with-logs": "mocha  --printlogs -r ts-node/register 'tests/**/*.ts'",
     "test": "mocha --parallel -r ts-node/register 'tests/**/*.ts'",
-    "watch:test": "mocha --watch --watch-files ../target/release/moonbeam --parallel -r ts-node/register 'tests/**/*.ts'",
     "watch": "npm-watch",
     "build": "cargo build --release",
     "non-ci-test": "mocha -r ts-node/register 'non_ci_tests/**/*.ts'"
