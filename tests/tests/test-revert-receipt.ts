@@ -25,9 +25,17 @@ describeWithMoonbeam("Frontier RPC (Constructor Revert)", `simple-specs.json`, (
     "80fdfea2646970667358221220c70bc8b03cdfdf57b5f6c4131b836f9c2c4df01b8202f530555333f2a00e4b8364" +
     "736f6c63430006060033";
 
+  let expected_contract_address;
+  beforeEach(async function () {
+    let tx_count = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
+    if (tx_count == 0) {
+      expected_contract_address = "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a";
+    } else {
+      expected_contract_address = "0x5c4242beB94dE30b922f57241f1D02f36e906915";
+    }
+  });
   it("should provide a tx receipt after successful deployment", async function () {
     this.timeout(15000);
-    const GOOD_TX_HASH = "0x410f72144e2c0e8b48091f5675422b7a8013335cfdb5e83825c5f27cd991ac8c";
 
     const tx = await context.web3.eth.accounts.signTransaction(
       {
@@ -40,25 +48,29 @@ describeWithMoonbeam("Frontier RPC (Constructor Revert)", `simple-specs.json`, (
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
 
+    const good_tx_hash = context.web3.utils.keccak256(tx.rawTransaction);
+
     expect(
       await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction])
     ).to.deep.equal({
       id: 1,
       jsonrpc: "2.0",
-      result: GOOD_TX_HASH,
+      result: tx.transactionHash,
     });
 
     // Verify the receipt exists after the block is created
     await createAndFinalizeBlock(context.polkadotApi);
-    const receipt = await context.web3.eth.getTransactionReceipt(GOOD_TX_HASH);
+    let current_height = await context.web3.eth.getBlockNumber();
+
+    const receipt = await context.web3.eth.getTransactionReceipt(good_tx_hash);
     expect(receipt).to.include({
-      blockNumber: 1,
-      contractAddress: "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
+      blockNumber: current_height,
+      contractAddress: expected_contract_address,
       cumulativeGasUsed: 67231,
       from: "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b",
       gasUsed: 67231,
       to: null,
-      transactionHash: GOOD_TX_HASH,
+      transactionHash: good_tx_hash,
       transactionIndex: 0,
       status: true,
     });
@@ -66,8 +78,6 @@ describeWithMoonbeam("Frontier RPC (Constructor Revert)", `simple-specs.json`, (
 
   it("should provide a tx receipt after failed deployment", async function () {
     this.timeout(15000);
-    // Transaction hash depends on which nonce we're using. This hash is for nonce 2.
-    const FAIL_TX_HASH = "0xe5ba0bd6229c3315cefa16312b6f3674a5f928aed1b7f397596b724fb259c5ba";
 
     const tx = await context.web3.eth.accounts.signTransaction(
       {
@@ -80,24 +90,28 @@ describeWithMoonbeam("Frontier RPC (Constructor Revert)", `simple-specs.json`, (
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
 
+    const fail_tx_hash = context.web3.utils.keccak256(tx.rawTransaction);
+
     expect(
       await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction])
     ).to.deep.equal({
       id: 1,
       jsonrpc: "2.0",
-      result: FAIL_TX_HASH,
+      result: tx.transactionHash,
     });
 
     await createAndFinalizeBlock(context.polkadotApi);
-    const receipt = await context.web3.eth.getTransactionReceipt(FAIL_TX_HASH);
+    let current_height = await context.web3.eth.getBlockNumber();
+
+    const receipt = await context.web3.eth.getTransactionReceipt(fail_tx_hash);
     expect(receipt).to.include({
-      blockNumber: 2,
-      contractAddress: "0x5c4242beB94dE30b922f57241f1D02f36e906915",
+      blockNumber: current_height,
+      contractAddress: expected_contract_address,
       cumulativeGasUsed: 54600,
       from: "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b",
       gasUsed: 54600,
       to: null,
-      transactionHash: FAIL_TX_HASH,
+      transactionHash: fail_tx_hash,
       transactionIndex: 0,
       status: false,
     });
