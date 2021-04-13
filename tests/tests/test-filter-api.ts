@@ -1,6 +1,5 @@
 import { expect } from "chai";
 import { step } from "mocha-steps";
-import { create } from "ts-node";
 
 import { createAndFinalizeBlock, describeWithMoonbeam, customRequest } from "./util";
 

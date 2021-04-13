@@ -1,7 +1,8 @@
 import { expect } from "chai";
-import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY, TEST_CONTRACT_BYTECODE } from "./constants";
+import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
 
 import { createAndFinalizeBlock, customRequest, describeWithMoonbeam } from "./util";
+import { getCompiled } from "./util/contracts";
 
 describeWithMoonbeam("Frontier RPC (Pending Pool)", `simple-specs.json`, (context) => {
   // Solidity: contract test { function multiply(uint a) public pure returns(uint d)
@@ -12,7 +13,7 @@ describeWithMoonbeam("Frontier RPC (Pending Pool)", `simple-specs.json`, (contex
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
-        data: TEST_CONTRACT_BYTECODE,
+        data: (await getCompiled("TEST_CONTRACT")).byteCode,
         value: "0x00",
         gasPrice: "0x01",
         gas: "0x100000",

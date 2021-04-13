@@ -3,10 +3,11 @@ import {
   FIRST_CONTRACT_ADDRESS,
   GENESIS_ACCOUNT,
   GENESIS_ACCOUNT_PRIVATE_KEY,
-  TEST_CONTRACT_BYTECODE,
+  //TEST_CONTRACT_BYTECODE,
 } from "./constants";
 
 import { createAndFinalizeBlock, customRequest, describeWithMoonbeam } from "./util";
+import { getCompiled } from "./util/contracts";
 
 describeWithMoonbeam("Moonbeam RPC (Contract)", `simple-specs.json`, (context) => {
   // Those test are ordered. In general this should be avoided, but due to the time it takes
@@ -17,7 +18,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract)", `simple-specs.json`, (context) =
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
-        data: TEST_CONTRACT_BYTECODE,
+        data: (await getCompiled("TEST_CONTRACT")).byteCode,
         value: "0x00",
         gasPrice: "0x01",
         gas: "0x100000",
@@ -30,7 +31,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract)", `simple-specs.json`, (context) =
     ).to.deep.equal({
       id: 1,
       jsonrpc: "2.0",
-      result: "0xe87ed993e4d186748404a52a2d13612eef8356331f30fa6b3fb9bc2c16be2e9c",
+      result: "0x70a1cae10c9e0c4f5824ec9ce4c75a9679d58bd26d2fde958b226d75ee0c37d0",
     });
 
     // Verify the contract is not yet stored
@@ -50,11 +51,17 @@ describeWithMoonbeam("Moonbeam RPC (Contract)", `simple-specs.json`, (context) =
       id: 1,
       jsonrpc: "2.0",
       result:
-        "0x6080604052348015600f57600080fd5b506004361060285760003560e01c8063c6888fa114602d575b60" +
-        "0080fd5b605660048036036020811015604157600080fd5b8101908080359060200190929190505050606c" +
-        "565b6040518082815260200191505060405180910390f35b600060078202905091905056fea265627a7a72" +
-        "315820f06085b229f27f9ad48b2ff3dd9714350c1698a37853a30136fa6c5a7762af7364736f6c63430005" +
-        "110032",
+        "0x608060405234801561001057600080fd5b506004361061002b5760003560e01c8063c6888fa11461003057" +
+        "5b600080fd5b61004a6004803603810190610045919061008b565b610060565b60405161005791906100c356" +
+        "5b60405180910390f35b600060078261006f91906100de565b9050919050565b600081359050610085816101" +
+        "71565b92915050565b60006020828403121561009d57600080fd5b60006100ab84828501610076565b915050" +
+        "92915050565b6100bd81610138565b82525050565b60006020820190506100d860008301846100b4565b9291" +
+        "5050565b60006100e982610138565b91506100f483610138565b9250817fffffffffffffffffffffffffffff" +
+        "ffffffffffffffffffffffffffffffffffff048311821515161561012d5761012c610142565b5b8282029050" +
+        "92915050565b6000819050919050565b7f4e487b710000000000000000000000000000000000000000000000" +
+        "0000000000600052601160045260246000fd5b61017a81610138565b811461018557600080fd5b5056fea264" +
+        "6970667358221220a423910697c81c1ace928b799ba136adba7f66301855592bd2f156e072bde1a964736f6c" +
+        "63430008030033",
     });
   });
 });
