@@ -1,6 +1,3 @@
-export const PORT = 19931;
-export const RPC_PORT = 19932;
-export const WS_PORT = 19933;
 export const SPECS_PATH = `./moonbeam-test-specs`;
 
 export const DISPLAY_LOG = process.env.MOONBEAM_LOG || false;
