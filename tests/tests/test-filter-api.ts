@@ -138,6 +138,13 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
     await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
     return tx;
   }
+  let currentId;
+  beforeEach(async () => {
+    let create_filter = await customRequest(context.web3, "eth_newBlockFilter", []);
+    let filter_id = create_filter.result;
+    await customRequest(context.web3, "eth_uninstallFilter", [filter_id]);
+    currentId = filter_id - 1;
+  });
 
   step("should create a Log filter and return the ID", async function () {
     let create_filter = await customRequest(context.web3, "eth_newFilter", [
@@ -151,7 +158,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
         topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
       },
     ]);
-    expect(create_filter.result).to.be.eq("0x1");
+    expect(create_filter.result).to.be.eq(context.web3.utils.numberToHex(currentId + 1));
   });
 
   step("should increment filter ID", async function () {
@@ -163,12 +170,12 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
         topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
       },
     ]);
-    expect(create_filter.result).to.be.eq("0x2");
+    expect(create_filter.result).to.be.eq(context.web3.utils.numberToHex(currentId + 1));
   });
 
   step("should create a Block filter and return the ID", async function () {
     let create_filter = await customRequest(context.web3, "eth_newBlockFilter", []);
-    expect(create_filter.result).to.be.eq("0x3");
+    expect(create_filter.result).to.be.eq(context.web3.utils.numberToHex(currentId + 1));
   });
 
   step(
@@ -183,15 +190,18 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
 
   step("should return responses for Block filter polling.", async function () {
     let block = await context.web3.eth.getBlock(0);
-    let poll = await customRequest(context.web3, "eth_getFilterChanges", ["0x3"]);
-
+    let poll = await customRequest(context.web3, "eth_getFilterChanges", [
+      context.web3.utils.numberToHex(currentId),
+    ]);
     expect(poll.result.length).to.be.eq(1);
     expect(poll.result[0]).to.be.eq(block.hash);
 
     await createAndFinalizeBlock(context.polkadotApi);
 
     block = await context.web3.eth.getBlock(1);
-    poll = await customRequest(context.web3, "eth_getFilterChanges", ["0x3"]);
+    poll = await customRequest(context.web3, "eth_getFilterChanges", [
+      context.web3.utils.numberToHex(currentId),
+    ]);
 
     expect(poll.result.length).to.be.eq(1);
     expect(poll.result[0]).to.be.eq(block.hash);
@@ -201,7 +211,9 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
 
     block = await context.web3.eth.getBlock(2);
     let block_b = await context.web3.eth.getBlock(3);
-    poll = await customRequest(context.web3, "eth_getFilterChanges", ["0x3"]);
+    poll = await customRequest(context.web3, "eth_getFilterChanges", [
+      context.web3.utils.numberToHex(currentId),
+    ]);
 
     expect(poll.result.length).to.be.eq(2);
     expect(poll.result[0]).to.be.eq(block.hash);
@@ -254,7 +266,6 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
       },
     ]);
     let poll = await customRequest(context.web3, "eth_getFilterLogs", [create_filter.result]);
-
     expect(poll.result.length).to.be.eq(1);
     expect(poll.result[0].address.toLowerCase()).to.be.eq(receipt.contractAddress.toLowerCase());
     expect(poll.result[0].topics).to.be.deep.eq(receipt.logs[0].topics);
@@ -270,7 +281,6 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
   step("should uninstall created filters.", async function () {
     let create_filter = await customRequest(context.web3, "eth_newBlockFilter", []);
     let filter_id = create_filter.result;
-
     // Should return true when removed from the filter pool.
     let uninstall = await customRequest(context.web3, "eth_uninstallFilter", [filter_id]);
     expect(uninstall.result).to.be.eq(true);
