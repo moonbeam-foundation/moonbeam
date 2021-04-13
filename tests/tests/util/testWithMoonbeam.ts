@@ -11,6 +11,7 @@ import {
   RPC_PORT,
   SPAWNING_TIME,
   WS_PORT,
+  DEBUG_MODE,
 } from "../constants";
 import { ErrorReport } from "./fillBlockWithTx";
 
@@ -55,52 +56,55 @@ export async function startMoonbeamNode(
     `--ws-port=${WS_PORT}`,
     `--tmp`,
   ];
-  runningNode = spawn(cmd, args);
-  runningNode.on("error", (err) => {
-    if ((err as any).errno == "ENOENT") {
-      console.error(
-        `\x1b[31mMissing Moonbeam binary ` +
-          `(${BINARY_PATH}).\nPlease compile the Moonbeam project\x1b[0m`
-      );
-    } else {
-      console.error(err);
-    }
-    process.exit(1);
-  });
 
-  const binaryLogs = [];
-  await new Promise<void>((resolve) => {
-    const timer = setTimeout(() => {
-      console.error(`\x1b[31m Failed to start Moonbeam Test Node.\x1b[0m`);
-      console.error(`Command: ${cmd} ${args.join(" ")}`);
-      console.error(`Logs:`);
-      console.error(binaryLogs.map((chunk) => chunk.toString()).join("\n"));
+  if (!DEBUG_MODE) {
+    runningNode = spawn(cmd, args);
+    runningNode.on("error", (err) => {
+      if ((err as any).errno == "ENOENT") {
+        console.error(
+          `\x1b[31mMissing Moonbeam binary ` +
+            `(${BINARY_PATH}).\nPlease compile the Moonbeam project\x1b[0m`
+        );
+      } else {
+        console.error(err);
+      }
       process.exit(1);
-    }, SPAWNING_TIME - 2000);
+    });
 
-    const onData = async (chunk) => {
-      if (DISPLAY_LOG) {
-        console.log(chunk.toString());
-      }
-      binaryLogs.push(chunk);
-      if (chunk.toString().match(/Development Service Ready/)) {
-        if (!provider || provider == "http") {
-          // This is needed as the EVM runtime needs to warmup with a first call
-          await web3.eth.getChainId();
-        }
+    const binaryLogs = [];
+    await new Promise<void>((resolve) => {
+      const timer = setTimeout(() => {
+        console.error(`\x1b[31m Failed to start Moonbeam Test Node.\x1b[0m`);
+        console.error(`Command: ${cmd} ${args.join(" ")}`);
+        console.error(`Logs:`);
+        console.error(binaryLogs.map((chunk) => chunk.toString()).join("\n"));
+        process.exit(1);
+      }, SPAWNING_TIME - 2000);
 
-        clearTimeout(timer);
-        if (!DISPLAY_LOG) {
-          runningNode.stderr.off("data", onData);
-          runningNode.stdout.off("data", onData);
+      const onData = async (chunk) => {
+        if (DISPLAY_LOG) {
+          console.log(chunk.toString());
         }
-        // console.log(`\x1b[31m Starting RPC\x1b[0m`);
-        resolve();
-      }
-    };
-    runningNode.stderr.on("data", onData);
-    runningNode.stdout.on("data", onData);
-  });
+        binaryLogs.push(chunk);
+        if (chunk.toString().match(/Development Service Ready/)) {
+          if (!provider || provider == "http") {
+            // This is needed as the EVM runtime needs to warmup with a first call
+            await web3.eth.getChainId();
+          }
+
+          clearTimeout(timer);
+          if (!DISPLAY_LOG) {
+            runningNode.stderr.off("data", onData);
+            runningNode.stdout.off("data", onData);
+          }
+          // console.log(`\x1b[31m Starting RPC\x1b[0m`);
+          resolve();
+        }
+      };
+      runningNode.stderr.on("data", onData);
+      runningNode.stdout.on("data", onData);
+    });
+  }
 
   const wsProvider = new WsProvider(`ws://localhost:${WS_PORT}`);
   const polkadotApi = await ApiPromise.create({
@@ -117,7 +121,9 @@ export async function startMoonbeamNode(
 
 // Kill all processes when exiting.
 process.on("exit", function () {
-  runningNode.kill();
+  if (!DEBUG_MODE) {
+    runningNode.kill();
+  }
 });
 
 // Handle ctrl+c to trigger `exit`.
@@ -150,7 +156,9 @@ export function describeWithMoonbeam(
     after(async function () {
       // console.log(`\x1b[31m Killing RPC\x1b[0m`);
       context.wsProvider.disconnect();
-      binary.kill();
+      if (!DEBUG_MODE) {
+        binary.kill();
+      }
       binary = null;
     });
 
