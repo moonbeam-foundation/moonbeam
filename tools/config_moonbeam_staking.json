@@ -1,7 +1,7 @@
 {
   "relaychain": {
     "bin": "../../polkadot/target/release/polkadot",
-    "chain": "rococo-local",
+    "chain": "fast-relay-spec.json",
     "nodes": [
       {
         "name": "alice",
