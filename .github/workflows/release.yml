@@ -148,6 +148,8 @@ jobs:
       - id: get-rust-versions
         run: |
           echo "::set-output name=rustc::$(rustc --version)"
+      - name: See if moonbeam tests build
+        run: cargo test -p moonbeam
       - name: Build Node
         run: RUSTFLAGS="-C opt-level=3" cargo build --release --verbose --all
       # We determine whether there are unmodified Cargo.lock files by:
