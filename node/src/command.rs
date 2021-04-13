@@ -246,6 +246,18 @@ pub fn run() -> Result<()> {
 			let runner = cli.create_runner(cmd)?;
 
 			runner.sync_run(|config| {
+				// Although the cumulus_client_cli::PurgeCommand will extract the relay chain id,
+				// we need to extract it here to determine whether we are running the dev service.
+				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
+				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
+				let dev_service =
+					cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
+
+				if dev_service {
+					// base refers to the encapsulated "regular" sc_cli::PurgeChain command
+					return cmd.base.run(config.database);
+				}
+
 				let polkadot_cli = RelayChainCli::new(
 					&config,
 					[RelayChainCli::executable_name().to_string()]
