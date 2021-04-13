@@ -9,7 +9,6 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
   // The reason is to avoid having to restart the node each time
   // Running them individually will result in failure
   describe("Genesis Block", async () => {
-    
     it("should be at block 0 at genesis", async function () {
       expect(await context.web3.eth.getBlockNumber()).to.equal(0);
     });
@@ -86,7 +85,6 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     });
 
     it("retrieve block information", async function () {
-
       const block = await context.web3.eth.getBlock("latest");
       expect(block).to.include({
         author: "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b",
@@ -132,7 +130,6 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
   });
 
   describe("Post Genesis Block 2 Finalization", async () => {
-    
     before(async () => {
       await createAndFinalizeBlock(
         context.polkadotApi,
