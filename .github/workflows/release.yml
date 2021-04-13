@@ -110,6 +110,7 @@ jobs:
     runs-on: self-hosted
     env:
       CARGO_SCCACHE_VERSION: 0.2.14-alpha.0-parity
+      RUSTFLAGS: "-C opt-level=3"
     outputs:
       RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
     steps:
@@ -149,8 +150,6 @@ jobs:
         run: |
           echo "::set-output name=rustc::$(rustc --version)"
       - name: Build Node
-        env:
-          RUSTFLAGS: "-C opt-level=3"
         run: cargo build --release --verbose --all
       # We determine whether there are unmodified Cargo.lock files by:
       # 1. Asking git for a list of all modified files
