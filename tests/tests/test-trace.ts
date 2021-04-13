@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import { Keyring } from "@polkadot/keyring";
 import { step } from "mocha-steps";
 
 import { createAndFinalizeBlock, describeWithMoonbeam, customRequest } from "./util";
@@ -29,7 +28,7 @@ async function nested(context) {
   await createAndFinalizeBlock(context.polkadotApi);
   let receipt = await context.web3.eth.getTransactionReceipt(send.result);
   const callee_addr = receipt.contractAddress;
-  const callee = new context.web3.eth.Contract(CALLEE.abi, callee_addr);
+  // const callee = new context.web3.eth.Contract(CALLEE.abi, callee_addr);
   // Create Caller contract.
   const callerTx = await context.web3.eth.accounts.signTransaction(
     {

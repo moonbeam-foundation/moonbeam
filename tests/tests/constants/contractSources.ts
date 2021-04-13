@@ -1,40 +1,55 @@
 import { AbiItem } from "web3-utils";
 
 export const contractSources = {
+  // Solidity: contract test {function multiply(uint a) public pure returns(uint d) {return a * 7;}}
+  TEST_CONTRACT: `
+        pragma solidity >=0.8.0;
+    
+    contract TEST_CONTRACT {function multiply(uint a) public pure returns(uint d) {return a * 7;}}`,
   // simple incremental count contract to test contract with state changes
   TEST_CONTRACT_INCR: `
-    pragma solidity >=0.8.0;
-    
-    contract Test3 {
-        uint public count;
-    
-        constructor() public {
-            count = 0;
-        }
-    
-        function incr() public {
-            count=count+1;
-        }
-    }`,
+      pragma solidity >=0.8.0;
+      
+      contract TEST_CONTRACT_INCR {
+          uint public count;
+      
+          constructor() public {
+              count = 0;
+          }
+      
+          function incr() public {
+              count=count+1;
+          }
+      }`,
   // infinite loop call
   INFINITE_CONTRACT: `
     pragma solidity >=0.8.0;
     
-    contract test {
-        function infinite(uint a) public pure returns(uint d) {while (true) {}}
+    contract INFINITE_CONTRACT {
+        function infinite() public pure returns(uint d) {while (true) {}}
     }`,
   // infinite loop call with variable alocation
   INFINITE_CONTRACT_VAR: `
-    pragma solidity >=0.8.0;
-    
-    contract test {
-        function infinite(uint a) public pure returns(uint d) {while (true) {data=data+1;}}
-    }`,
+  pragma solidity >=0.8.0;
+  
+  contract INFINITE_CONTRACT_VAR {
+      uint public count;
+  
+      constructor() public {
+          count = 0;
+      }
+  
+      function infinite() public {
+          while (true) {
+              count=count+1;
+          }
+      }
+  }`,
   // definite loop call with variable alocation
   FINITE_LOOP_CONTRACT: `
     pragma solidity >=0.8.0;
     
-    contract Test4 {
+    contract FINITE_LOOP_CONTRACT {
         uint public count;
     
         constructor() public {

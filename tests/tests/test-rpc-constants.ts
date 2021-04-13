@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { createAndFinalizeBlock, customRequest, describeWithMoonbeam } from "./util";
+import { describeWithMoonbeam } from "./util";
 
 // All test for the RPC
 

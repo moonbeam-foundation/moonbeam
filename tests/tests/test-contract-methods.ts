@@ -6,24 +6,26 @@ import {
   GENESIS_ACCOUNT,
   GENESIS_ACCOUNT_PRIVATE_KEY,
   TEST_CONTRACT_ABI,
-  TEST_CONTRACT_BYTECODE,
+  // TEST_CONTRACT_BYTECODE,
 } from "./constants";
+import { deployContractByName } from "./util/contracts";
 
 describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (context) => {
   before("create the contract", async function () {
     this.timeout(15000);
-    const tx = await context.web3.eth.accounts.signTransaction(
-      {
-        from: GENESIS_ACCOUNT,
-        data: TEST_CONTRACT_BYTECODE,
-        value: "0x00",
-        gasPrice: "0x01",
-        gas: "0x100000",
-      },
-      GENESIS_ACCOUNT_PRIVATE_KEY
-    );
-    await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
-    await createAndFinalizeBlock(context.polkadotApi);
+    // const tx = await context.web3.eth.accounts.signTransaction(
+    //   {
+    //     from: GENESIS_ACCOUNT,
+    //     data: TEST_CONTRACT_BYTECODE,
+    //     value: "0x00",
+    //     gasPrice: "0x01",
+    //     gas: "0x100000",
+    //   },
+    //   GENESIS_ACCOUNT_PRIVATE_KEY
+    // );
+    // await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
+    // await createAndFinalizeBlock(context.polkadotApi);
+    await deployContractByName(context.polkadotApi, context.web3, "TEST_CONTRACT");
   });
 
   it("get transaction by hash", async () => {
