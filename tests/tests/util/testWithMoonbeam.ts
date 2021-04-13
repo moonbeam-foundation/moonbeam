@@ -1,19 +1,13 @@
 import Web3 from "web3";
 import { ApiPromise, WsProvider } from "@polkadot/api";
 import { typesBundle } from "../../../moonbeam-types-bundle";
+import { HttpProvider } from "web3-core";
+import { ethers } from "ethers";
 
 import { spawn, ChildProcess, ChildProcessWithoutNullStreams } from "child_process";
-import {
-  BINARY_PATH,
-  DISPLAY_LOG,
-  MOONBEAM_LOG,
-  PORT,
-  RPC_PORT,
-  SPAWNING_TIME,
-  WS_PORT,
-  DEBUG_MODE,
-} from "../constants";
+import { BINARY_PATH, DISPLAY_LOG, MOONBEAM_LOG, SPAWNING_TIME, DEBUG_MODE } from "../constants";
 import { ErrorReport } from "./fillBlockWithTx";
+import { findAvailablePorts } from "./findAvailablePorts";
 
 export function log(...msg: (string | number | ErrorReport)[]) {
   if (process.argv && process.argv[2] && process.argv[2] === "--printlogs") {
@@ -23,6 +17,7 @@ export function log(...msg: (string | number | ErrorReport)[]) {
 
 export interface Context {
   web3: Web3;
+  ethers: ethers.providers.JsonRpcProvider;
 
   // WsProvider for the PolkadotJs API
   wsProvider: WsProvider;
@@ -37,10 +32,7 @@ export async function startMoonbeamNode(
   specFilename: string,
   provider?: string
 ): Promise<{ context: Context; runningNode: ChildProcess }> {
-  let web3;
-  if (!provider || provider == "http") {
-    web3 = new Web3(`http://localhost:${RPC_PORT}`);
-  }
+  const { p2pPort, rpcPort, wsPort } = await findAvailablePorts();
 
   const cmd = BINARY_PATH;
   const args = [
@@ -51,9 +43,9 @@ export async function startMoonbeamNode(
     `--ethapi=txpool,debug,trace`,
     `--sealing=manual`,
     `-l${MOONBEAM_LOG}`,
-    `--port=${PORT}`,
-    `--rpc-port=${RPC_PORT}`,
-    `--ws-port=${WS_PORT}`,
+    `--port=${p2pPort}`,
+    `--rpc-port=${rpcPort}`,
+    `--ws-port=${wsPort}`,
     `--tmp`,
   ];
 
@@ -87,17 +79,11 @@ export async function startMoonbeamNode(
         }
         binaryLogs.push(chunk);
         if (chunk.toString().match(/Development Service Ready/)) {
-          if (!provider || provider == "http") {
-            // This is needed as the EVM runtime needs to warmup with a first call
-            await web3.eth.getChainId();
-          }
-
           clearTimeout(timer);
           if (!DISPLAY_LOG) {
             runningNode.stderr.off("data", onData);
             runningNode.stdout.off("data", onData);
           }
-          // console.log(`\x1b[31m Starting RPC\x1b[0m`);
           resolve();
         }
       };
@@ -106,28 +92,37 @@ export async function startMoonbeamNode(
     });
   }
 
-  const wsProvider = new WsProvider(`ws://localhost:${WS_PORT}`);
+  const wsProvider = new WsProvider(`ws://localhost:${wsPort}`);
   const polkadotApi = await ApiPromise.create({
     provider: wsProvider,
     typesBundle: typesBundle as any,
   });
 
-  if (provider == "ws") {
-    web3 = new Web3(`ws://localhost:${WS_PORT}`);
-  }
+  let web3 =
+    provider == "ws"
+      ? new Web3(`ws://localhost:${wsPort}`)
+      : new Web3(`http://localhost:${rpcPort}`);
 
-  return { context: { web3, polkadotApi, wsProvider }, runningNode };
+  const ethersApi = new ethers.providers.JsonRpcProvider(
+    (web3.currentProvider as HttpProvider).host
+  );
+
+  // This is needed as the EVM runtime needs to warmup with a first call
+  await web3.eth.getChainId();
+
+  // This is needed as it takes a bit more time than when the log is printed to have all the modules
+  // initialized in the node. (getBalance would fail otherwise)
+  await polkadotApi.rpc.chain.getBlock();
+
+  return { context: { ethers: ethersApi, web3, polkadotApi, wsProvider }, runningNode };
 }
 
-// Kill all processes when exiting.
-process.on("exit", function () {
-  if (!DEBUG_MODE) {
-    runningNode.kill();
-  }
+process.once("exit", function () {
+  runningNode && runningNode.kill();
 });
 
 // Handle ctrl+c to trigger `exit`.
-process.on("SIGINT", function () {
+process.once("SIGINT", function () {
   process.exit(2);
 });
 
@@ -138,7 +133,7 @@ export function describeWithMoonbeam(
   provider?: string
 ) {
   describe(title, () => {
-    let context: Context = { web3: null, wsProvider: null, polkadotApi: null };
+    let context: Context = { ethers: null, web3: null, wsProvider: null, polkadotApi: null };
     let binary: ChildProcess;
 
     // Making sure the Moonbeam node has started
@@ -148,6 +143,7 @@ export function describeWithMoonbeam(
       // Context is given prior to this assignement, so doing
       // context = init.context will fail because it replace the variable;
       context.web3 = init.context.web3;
+      context.ethers = init.context.ethers;
       context.wsProvider = init.context.wsProvider;
       context.polkadotApi = init.context.polkadotApi;
       binary = init.runningNode;
