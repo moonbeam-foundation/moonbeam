@@ -63,7 +63,6 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
 
   let firstBlockCreated = false;
   step("should be at block 1 after block production", async function () {
-    this.timeout(15000);
     await createAndFinalizeBlock(context.polkadotApi);
     expect(await context.web3.eth.getBlockNumber()).to.equal(1);
     firstBlockCreated = true;
@@ -125,7 +124,6 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
   });
 
   step("should include previous block hash as parent (block 2)", async function () {
-    this.timeout(15000);
     await createAndFinalizeBlock(context.polkadotApi);
     const block = await context.web3.eth.getBlock("latest");
     expect(block.hash).to.not.equal(previousBlock.hash);
@@ -141,7 +139,6 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
   // the maximum number of tx/ blocks is not constant but is always around 1500
 
   it("should be able to fill a block with a 1 tx", async function () {
-    this.timeout(15000);
     let { txPassedFirstBlock } = await fillBlockWithTx(context, 1);
     expect(txPassedFirstBlock).to.eq(1);
   });
