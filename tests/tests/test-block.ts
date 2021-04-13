@@ -42,8 +42,7 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     expect(block.timestamp).to.be.a("number");
   });
 
-  // TODO: unskip this when https://github.com/paritytech/frontier/pull/279 is merged
-  it.skip("fetch genesis block by hash", async function () {
+  step("fetch genesis block by hash", async function () {
     //fetch block again using hash
     const block = await context.web3.eth.getBlock(0);
     const blockByHash = await context.web3.eth.getBlock(block.hash);
@@ -51,7 +50,7 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
       author: "0x0000000000000000000000000000000000000000",
       difficulty: "0",
       extraData: "0x",
-      gasLimit: 4294967295,
+      gasLimit: 15000000,
       gasUsed: 0,
       logsBloom: `0x${"0".repeat(512)}`,
       number: 0,
