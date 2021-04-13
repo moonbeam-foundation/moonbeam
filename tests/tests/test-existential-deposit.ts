@@ -1,11 +1,10 @@
 import { expect } from "chai";
-import { step } from "mocha-steps";
 import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY, TEST_ACCOUNT } from "./constants";
 
 import { createAndFinalizeBlock, describeWithMoonbeam, customRequest } from "./util";
 
 describeWithMoonbeam("Moonbeam RPC (Existential Deposit)", `simple-specs.json`, (context) => {
-  step("Account is not reaped on zero balance", async function () {
+  it("Account is not reaped on zero balance", async function () {
     const balance = await context.web3.eth.getBalance(GENESIS_ACCOUNT);
     const tx = await context.web3.eth.accounts.signTransaction(
       {

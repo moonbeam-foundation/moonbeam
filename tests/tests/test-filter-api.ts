@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import { step } from "mocha-steps";
 import { create } from "ts-node";
 
 import { createAndFinalizeBlock, describeWithMoonbeam, customRequest } from "./util";
@@ -146,7 +145,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
     currentId = filter_id - 1;
   });
 
-  step("should create a Log filter and return the ID", async function () {
+  it("should create a Log filter and return the ID", async function () {
     let create_filter = await customRequest(context.web3, "eth_newFilter", [
       {
         fromBlock: "0x0",
@@ -161,7 +160,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
     expect(create_filter.result).to.be.eq(context.web3.utils.numberToHex(currentId + 1));
   });
 
-  step("should increment filter ID", async function () {
+  it("should increment filter ID", async function () {
     let create_filter = await customRequest(context.web3, "eth_newFilter", [
       {
         fromBlock: "0x1",
@@ -173,12 +172,12 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
     expect(create_filter.result).to.be.eq(context.web3.utils.numberToHex(currentId + 1));
   });
 
-  step("should create a Block filter and return the ID", async function () {
+  it("should create a Block filter and return the ID", async function () {
     let create_filter = await customRequest(context.web3, "eth_newBlockFilter", []);
     expect(create_filter.result).to.be.eq(context.web3.utils.numberToHex(currentId + 1));
   });
 
-  step(
+  it(
     "should return unsupported error for Pending Transaction filter creation",
     async function () {
       let r = await customRequest(context.web3, "eth_newPendingTransactionFilter", []);
@@ -188,7 +187,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
     }
   );
 
-  step("should return responses for Block filter polling.", async function () {
+  it("should return responses for Block filter polling.", async function () {
     let block = await context.web3.eth.getBlock(0);
     let poll = await customRequest(context.web3, "eth_getFilterChanges", [
       context.web3.utils.numberToHex(currentId),
@@ -220,7 +219,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
     expect(poll.result[1]).to.be.eq(block_b.hash);
   });
 
-  step("should return responses for Log filter polling.", async function () {
+  it("should return responses for Log filter polling.", async function () {
     // Create contract.
     let tx = await sendTransaction(context);
     await createAndFinalizeBlock(context.polkadotApi);
@@ -248,7 +247,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
     expect(poll.result.length).to.be.eq(0);
   });
 
-  step("should return response for raw Log filter request.", async function () {
+  it("should return response for raw Log filter request.", async function () {
     // Create contract.
     let tx = await sendTransaction(context);
     await createAndFinalizeBlock(context.polkadotApi);
@@ -278,7 +277,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
     expect(poll.result[0].topics).to.be.deep.eq(receipt.logs[0].topics);
   });
 
-  step("should uninstall created filters.", async function () {
+  it("should uninstall created filters.", async function () {
     let create_filter = await customRequest(context.web3, "eth_newBlockFilter", []);
     let filter_id = create_filter.result;
     // Should return true when removed from the filter pool.
@@ -292,7 +291,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
     });
   });
 
-  step("should drain the filter pool.", async function () {
+  it("should drain the filter pool.", async function () {
     this.timeout(15000);
     const block_lifespan_threshold = 100;
 
@@ -309,7 +308,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
     });
   });
 
-  step("should have a filter pool max size of 500.", async function () {
+  it("should have a filter pool max size of 500.", async function () {
     const max_filter_pool = 500;
 
     for (let i = 0; i < max_filter_pool; i++) {

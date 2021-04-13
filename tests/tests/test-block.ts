@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import { step } from "mocha-steps";
 import { contractCreation, GENESIS_ACCOUNT } from "./constants";
 
 import { createAndFinalizeBlock, describeWithMoonbeam, fillBlockWithTx } from "./util";
@@ -10,11 +9,12 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
   // The reason is to avoid having to restart the node each time
   // Running them individually will result in failure
   describe("Genesis Block", async () => {
-    step("should be at block 0 at genesis", async function () {
+    
+    it("should be at block 0 at genesis", async function () {
       expect(await context.web3.eth.getBlockNumber()).to.equal(0);
     });
 
-    step("should return genesis block", async function () {
+    it("should return genesis block", async function () {
       expect(await context.web3.eth.getBlockNumber()).to.equal(0);
       const block = await context.web3.eth.getBlock(0);
       expect(block).to.include({
@@ -42,7 +42,7 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
       expect(block.timestamp).to.be.a("number");
     });
 
-    step("fetch genesis block by hash", async function () {
+    it("fetch genesis block by hash", async function () {
       //fetch block again using hash
       const block = await context.web3.eth.getBlock(0);
       const blockByHash = await context.web3.eth.getBlock(block.hash);
@@ -71,12 +71,12 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
       let block1 = await context.web3.eth.getBlock(1);
     });
 
-    step("should be at block 1 after block production", async function () {
+    it("should be at block 1 after block production", async function () {
       this.timeout(15000);
       expect(await context.web3.eth.getBlockNumber()).to.equal(1);
     });
 
-    step("should have valid timestamp after block production", async function () {
+    it("should have valid timestamp after block production", async function () {
       // Originally ,this test required the timestamp be in the last finve minutes.
       // This requirement doesn't make sense when we forge timestamps in manual seal.
       const block = await context.web3.eth.getBlock("latest");
@@ -85,7 +85,8 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
       expect(block.timestamp).to.be.below(next5Minutes);
     });
 
-    step("retrieve block information", async function () {
+    it("retrieve block information", async function () {
+
       const block = await context.web3.eth.getBlock("latest");
       expect(block).to.include({
         author: "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b",
@@ -118,19 +119,20 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
       expect(block.timestamp).to.be.a("number");
     });
 
-    step("get block by hash", async function () {
+    it("get block by hash", async function () {
       const latest_block = await context.web3.eth.getBlock("latest");
       const block = await context.web3.eth.getBlock(latest_block.hash);
       expect(block.hash).to.be.eq(latest_block.hash);
     });
 
-    step("get block by number", async function () {
+    it("get block by number", async function () {
       const block = await context.web3.eth.getBlock(1);
       expect(block).not.null;
     });
   });
 
   describe("Post Genesis Block 2 Finalization", async () => {
+    
     before(async () => {
       await createAndFinalizeBlock(
         context.polkadotApi,
@@ -141,7 +143,8 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
         await context.polkadotApi.rpc.chain.getBlockHash(1)
       );
     });
-    step("should include previous block hash as parent (block 2)", async function () {
+
+    it("should include previous block hash as parent (block 2)", async function () {
       this.timeout(15000);
       const block = await context.web3.eth.getBlock("latest");
       let previousBlock = await context.web3.eth.getBlock(1);
@@ -151,7 +154,7 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
 
     // tx/block tests
 
-    step("genesis balance enough to make all the transfers", async function () {
+    it("genesis balance enough to make all the transfers", async function () {
       expect(Number(await context.web3.eth.getBalance(GENESIS_ACCOUNT))).to.gte(512 * 100000);
     });
 

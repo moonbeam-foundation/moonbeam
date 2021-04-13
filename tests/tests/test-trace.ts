@@ -1,6 +1,4 @@
 import { expect } from "chai";
-import { Keyring } from "@polkadot/keyring";
-import { step } from "mocha-steps";
 
 import { createAndFinalizeBlock, describeWithMoonbeam, customRequest } from "./util";
 
@@ -61,7 +59,7 @@ async function nested(context) {
 }
 
 describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
-  step("[Raw] should replay over an intermediate state", async function () {
+  it("[Raw] should replay over an intermediate state", async function () {
     const createTx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
@@ -128,7 +126,7 @@ describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
     }
   });
 
-  step("[Raw] should trace nested contract calls", async function () {
+  it("[Raw] should trace nested contract calls", async function () {
     const send = await nested(context);
     await createAndFinalizeBlock(context.polkadotApi);
     let traceTx = await customRequest(context.web3, "debug_traceTransaction", [send.result]);
@@ -146,7 +144,7 @@ describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
     expect(logs[1].depth).to.be.equal(1);
   });
 
-  step("[Raw] should use optional disable parameters", async function () {
+  it("[Raw] should use optional disable parameters", async function () {
     const send = await nested(context);
     await createAndFinalizeBlock(context.polkadotApi);
     let traceTx = await customRequest(context.web3, "debug_traceTransaction", [
@@ -166,7 +164,7 @@ describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
     expect(logs.length).to.be.equal(0);
   });
 
-  step("[Blockscout] should trace nested contract calls", async function () {
+  it("[Blockscout] should trace nested contract calls", async function () {
     const send = await nested(context);
     await createAndFinalizeBlock(context.polkadotApi);
     let traceTx = await customRequest(context.web3, "debug_traceTransaction", [

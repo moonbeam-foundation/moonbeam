@@ -1,6 +1,5 @@
 import { expect } from "chai";
 import { Keyring } from "@polkadot/keyring";
-import { step } from "mocha-steps";
 
 import { createAndFinalizeBlock, describeWithMoonbeam, customRequest } from "./util";
 import {
@@ -12,17 +11,17 @@ import {
 import { Event } from "@polkadot/types/interfaces";
 
 describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) => {
-  step("genesis balance is setup correctly (web3)", async function () {
+  it("genesis balance is setup correctly (web3)", async function () {
     expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT)).to.equal(
       GENESIS_ACCOUNT_BALANCE.toString()
     );
   });
-  step("genesis balance is setup correctly (polkadotJs)", async function () {
+  it("genesis balance is setup correctly (polkadotJs)", async function () {
     const account = await context.polkadotApi.query.system.account(GENESIS_ACCOUNT);
     expect(account.data.free.toString()).to.equal(GENESIS_ACCOUNT_BALANCE.toString());
   });
 
-  step("balance to be updated after transfer", async function () {
+  it("balance to be updated after transfer", async function () {
     this.timeout(15000);
 
     const tx = await context.web3.eth.accounts.signTransaction(
@@ -43,7 +42,7 @@ describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) =>
     expect(await context.web3.eth.getBalance(TEST_ACCOUNT)).to.equal("512");
   });
 
-  step("read ethereum.transact extrinsic events", async function () {
+  it("read ethereum.transact extrinsic events", async function () {
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
     const allRecords = await context.polkadotApi.query.system.events.at(
       signedBlock.block.header.hash
@@ -86,7 +85,7 @@ describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) =>
     });
   });
 
-  step("balance should be the same on polkadot/web3", async function () {
+  it("balance should be the same on polkadot/web3", async function () {
     this.timeout(15000);
 
     const tx = await context.web3.eth.accounts.signTransaction(
@@ -108,7 +107,7 @@ describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) =>
 
   const TEST_ACCOUNT_2 = "0x1111111111111111111111111111111111111112";
 
-  step("transfer from polkadotjs should appear in ethereum", async function () {
+  it("transfer from polkadotjs should appear in ethereum", async function () {
     this.timeout(15000);
 
     const keyring = new Keyring({ type: "ethereum" });
