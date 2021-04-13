@@ -32,7 +32,7 @@ export async function startMoonbeamNode(
   specFilename: string,
   provider?: string
 ): Promise<{ context: Context; runningNode: ChildProcess }> {
-  const { p2pPort, rpcPort, wsPort } = await findAvailablePorts();
+  var { p2pPort, rpcPort, wsPort } = await findAvailablePorts();
 
   const cmd = BINARY_PATH;
   const args = [
@@ -90,6 +90,9 @@ export async function startMoonbeamNode(
       runningNode.stderr.on("data", onData);
       runningNode.stdout.on("data", onData);
     });
+  } else {
+    wsPort = 19933;
+    rpcPort = 19932;
   }
 
   const wsProvider = new WsProvider(`ws://localhost:${wsPort}`);
