@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import { step } from "mocha-steps";
 
 import { describeWithMoonbeam } from "./util";
 

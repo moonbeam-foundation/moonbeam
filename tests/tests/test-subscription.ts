@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import { step } from "mocha-steps";
 import { Subscription as Web3Subscription } from "web3-core-subscriptions";
 import { BlockHeader } from "web3-eth";
 import { Log } from "web3-core";
@@ -146,13 +145,13 @@ describeWithMoonbeam(
       return (context.web3.eth as any).subscribe(...arguments);
     }
 
-    step("should connect", async function () {
+    it("should connect", async function () {
       await createAndFinalizeBlock(context.polkadotApi);
       // @ts-ignore
       expect(context.web3.currentProvider.connected).to.equal(true);
     });
 
-    step("should subscribe", async function () {
+    it("should subscribe", async function () {
       const subscription = web3Subscribe("newBlockHeaders");
       const subscriptionId = await new Promise((resolve) =>
         subscription.once("connected", resolve)
@@ -162,7 +161,7 @@ describeWithMoonbeam(
       expect(subscriptionId).to.have.lengthOf(34);
     });
 
-    step("should get newHeads stream", async function () {
+    it("should get newHeads stream", async function () {
       const subscription = web3Subscribe("newBlockHeaders");
       const data = await new Promise<BlockHeader>((resolve) => {
         createAndFinalizeBlock(context.polkadotApi);
@@ -186,7 +185,7 @@ describeWithMoonbeam(
       ]);
     });
 
-    step("should get newPendingTransactions stream", async function () {
+    it("should get newPendingTransactions stream", async function () {
       const subscription = web3Subscribe("pendingTransactions");
       await new Promise((resolve) => subscription.once("connected", resolve));
 
@@ -202,7 +201,7 @@ describeWithMoonbeam(
       expect(tx["transactionHash"]).to.be.eq(data);
     });
 
-    step("should subscribe to all logs", async function () {
+    it("should subscribe to all logs", async function () {
       const subscription = web3Subscribe("logs", {});
 
       await new Promise((resolve) => {
@@ -230,7 +229,7 @@ describeWithMoonbeam(
       });
     });
 
-    step("should subscribe to logs by address", async function () {
+    it("should subscribe to logs by address", async function () {
       const subscription = web3Subscribe("logs", {
         address: "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
       });
@@ -249,7 +248,7 @@ describeWithMoonbeam(
       expect(data).to.not.be.null;
     });
 
-    step("should subscribe to logs by multiple addresses", async function () {
+    it("should subscribe to logs by multiple addresses", async function () {
       const subscription = web3Subscribe("logs", {
         address: [
           "0xF8cef78E923919054037a1D03662bBD884fF4edf",
@@ -274,7 +273,7 @@ describeWithMoonbeam(
       expect(data).to.not.be.null;
     });
 
-    step("should subscribe to logs by topic", async function () {
+    it("should subscribe to logs by topic", async function () {
       const subscription = web3Subscribe("logs", {
         topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
       });
@@ -294,7 +293,7 @@ describeWithMoonbeam(
       expect(data).to.not.be.null;
     });
 
-    step("should get past events #1: by topic", async function () {
+    it("should get past events #1: by topic", async function () {
       const subscription = web3Subscribe("logs", {
         fromBlock: "0x0",
         topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
@@ -312,7 +311,7 @@ describeWithMoonbeam(
       expect(data).to.not.be.empty;
     });
 
-    step("should get past events #2: by address", async function () {
+    it("should get past events #2: by address", async function () {
       const subscription = web3Subscribe("logs", {
         fromBlock: "0x0",
         address: "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
@@ -330,7 +329,7 @@ describeWithMoonbeam(
       expect(data).to.not.be.empty;
     });
 
-    step("should get past events #3: by address + topic", async function () {
+    it("should get past events #3: by address + topic", async function () {
       const subscription = web3Subscribe("logs", {
         fromBlock: "0x0",
         topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
@@ -349,7 +348,7 @@ describeWithMoonbeam(
       expect(data).to.not.be.empty;
     });
 
-    step("should get past events #3: multiple addresses", async function () {
+    it("should get past events #3: multiple addresses", async function () {
       const subscription = web3Subscribe("logs", {
         fromBlock: "0x0",
         topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
@@ -374,7 +373,7 @@ describeWithMoonbeam(
       expect(data).to.not.be.empty;
     });
 
-    step("should support topic wildcards", async function () {
+    it("should support topic wildcards", async function () {
       const subscription = web3Subscribe("logs", {
         topics: [null, "0x0000000000000000000000000000000000000000000000000000000000000000"],
       });
@@ -394,7 +393,7 @@ describeWithMoonbeam(
       expect(data).to.not.be.null;
     });
 
-    step("should support single values wrapped around a sequence", async function () {
+    it("should support single values wrapped around a sequence", async function () {
       const subscription = web3Subscribe("logs", {
         topics: [
           ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
@@ -417,7 +416,7 @@ describeWithMoonbeam(
       expect(data).to.not.be.null;
     });
 
-    step("should support topic conditional parameters", async function () {
+    it("should support topic conditional parameters", async function () {
       const subscription = web3Subscribe("logs", {
         topics: [
           "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
@@ -442,7 +441,7 @@ describeWithMoonbeam(
       expect(data).to.not.be.null;
     });
 
-    step("should support multiple topic conditional parameters", async function () {
+    it("should support multiple topic conditional parameters", async function () {
       const subscription = web3Subscribe("logs", {
         topics: [
           "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
@@ -472,7 +471,7 @@ describeWithMoonbeam(
       expect(data).to.not.be.null;
     });
 
-    step("should combine topic wildcards and conditional parameters", async function () {
+    it("should combine topic wildcards and conditional parameters", async function () {
       const subscription = web3Subscribe("logs", {
         topics: [
           null,
@@ -499,7 +498,7 @@ describeWithMoonbeam(
       expect(data).to.not.be.null;
     });
 
-    step("should not receive log when contract fails", async function () {
+    it("should not receive log when contract fails", async function () {
       const subscription = web3Subscribe("logs", {});
 
       await new Promise((resolve) => {
