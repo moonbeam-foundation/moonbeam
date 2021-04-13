@@ -24,7 +24,8 @@
       ],
       "extensions": "ts,html,scss",
       "quiet": true,
-      "inherit": true
+      "inherit": true,
+      "runOnChangeOnly": true
     }
   },
   "scripts": {
