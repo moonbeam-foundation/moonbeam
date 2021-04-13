@@ -1,37 +1,34 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [        
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug Moonbeam Node",
-            "cargo": {
-                "args": [
-                   "build",
-                   "--bin=moonbeam",
-               ],
-               "filter": {
-                    "name": "moonbeam",
-                    "kind": "bin"
-                }
-            },
-            "args": [
-                "--execution=Native",
-                "--no-telemetry",
-                "--no-prometheus",
-                "--dev",
-                "--ethapi=txpool,debug,trace",
-                "--sealing=manual",
-                "-linfo",
-                "--port=19931",
-                "--rpc-port=19932",
-                "--ws-port=19933",
-                "--tmp",
-            ],
-            "cwd": "${workspaceFolder}",
-        },
-    ]
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug Moonbeam Node",
+      "cargo": {
+        "args": ["build", "--bin=moonbeam"],
+        "filter": {
+          "name": "moonbeam",
+          "kind": "bin"
+        }
+      },
+      "args": [
+        "--execution=Native",
+        "--no-telemetry",
+        "--no-prometheus",
+        "--dev",
+        "--ethapi=txpool,debug,trace",
+        "--sealing=manual",
+        "-linfo",
+        "--port=19931",
+        "--rpc-port=19932",
+        "--ws-port=19933",
+        "--tmp"
+      ],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
 }
