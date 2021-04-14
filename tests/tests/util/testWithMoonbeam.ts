@@ -32,7 +32,7 @@ export async function startMoonbeamNode(
   specFilename: string,
   provider?: string
 ): Promise<{ context: Context; runningNode: ChildProcess }> {
-  var { p2pPort, rpcPort, wsPort } = await findAvailablePorts();
+  let { p2pPort, rpcPort, wsPort } = await findAvailablePorts();
 
   const cmd = BINARY_PATH;
   const args = [
