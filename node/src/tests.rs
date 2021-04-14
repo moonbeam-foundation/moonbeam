@@ -38,7 +38,7 @@ pub fn wait_for(child: &mut Child, secs: usize) -> Option<ExitStatus> {
 			None => thread::sleep(Duration::from_secs(1)),
 		}
 	}
-	eprintln!("Took to long to exit. Killing...");
+	eprintln!("Took too long to exit. Killing...");
 	let _ = child.kill();
 	child.wait().unwrap();
 
@@ -47,7 +47,7 @@ pub fn wait_for(child: &mut Child, secs: usize) -> Option<ExitStatus> {
 
 #[test]
 #[cfg(unix)]
-fn purge_chain_works() {
+fn purge_chain_purges_relay_and_para() {
 	fn run_node_and_stop() -> tempfile::TempDir {
 		use nix::{
 			sys::signal::{kill, Signal::SIGINT},
@@ -56,15 +56,21 @@ fn purge_chain_works() {
 
 		let base_path = tempfile::tempdir().unwrap();
 
-		let mut cmd = Command::new(cargo_bin("rococo-collator"))
-			.args(&["-d"])
+		let mut cmd = Command::new(cargo_bin("moonbeam"))
+			.arg("-d")
 			.arg(base_path.path())
-			.args(&["--"])
+			.arg("--chain")
+			.arg("local")
+			.arg("--")
+			// I don't understand why manually specifying the relay chain here makes this work.
+			// It is detected from the spec just fine when actually running the command
+			.arg("--chain")
+			.arg("rococo-local")
 			.spawn()
 			.unwrap();
 
 		// Let it produce some blocks.
-		thread::sleep(Duration::from_secs(30));
+		thread::sleep(Duration::from_secs(10));
 		assert!(
 			cmd.try_wait().unwrap().is_none(),
 			"the process should still be running"
@@ -72,24 +78,25 @@ fn purge_chain_works() {
 
 		// Stop the process
 		kill(Pid::from_raw(cmd.id().try_into().unwrap()), SIGINT).unwrap();
-		assert!(common::wait_for(&mut cmd, 30)
+		assert!(wait_for(&mut cmd, 10)
 			.map(|x| x.success())
 			.unwrap_or_default());
 
 		base_path
 	}
 
-	// Check that both databases are deleted
 	{
 		let base_path = run_node_and_stop();
 
+		// Make sure both databases were created
 		assert!(base_path.path().join("chains/local_testnet/db").exists());
 		assert!(base_path
 			.path()
-			.join("polkadot/chains/westend_dev/db")
+			.join("polkadot/chains/rococo_local_testnet/db")
 			.exists());
 
-		let status = Command::new(cargo_bin("rococo-collator"))
+		// Run the purge chain command without futrher args which should delete both databases
+		let status = Command::new(cargo_bin("moonbeam"))
 			.args(&["purge-chain", "-d"])
 			.arg(base_path.path())
 			.arg("-y")
@@ -97,16 +104,20 @@ fn purge_chain_works() {
 			.unwrap();
 		assert!(status.success());
 
-		// Make sure that the `parachain_local_testnet` chain folder exists, but the `db` is deleted.
+		// Make sure the parachain data directory exists
 		assert!(base_path.path().join("chains/local_testnet").exists());
+		// Make sure its database is deleted
 		assert!(!base_path.path().join("chains/local_testnet/db").exists());
+
+		// Make sure the relay data directory exists
 		assert!(base_path
 			.path()
-			.join("polkadot/chains/westend_dev")
+			.join("polkadot/chains/rococo_local_testnet")
 			.exists());
+		// Make sure its chain is purged
 		assert!(!base_path
 			.path()
-			.join("polkadot/chains/westend_dev/db")
+			.join("polkadot/chains/rococo_local_testnet/db")
 			.exists());
 	}
 }

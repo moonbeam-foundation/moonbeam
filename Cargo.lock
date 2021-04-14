@@ -4423,6 +4423,7 @@ dependencies = [
  "substrate-frame-rpc-system",
  "substrate-test-client",
  "substrate-test-runtime-client",
+ "tempfile",
  "tiny-bip39 0.6.2",
  "tiny-hderive",
  "tokio 0.2.25",

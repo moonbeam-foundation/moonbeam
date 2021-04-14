@@ -28,6 +28,8 @@ mod cli;
 mod command;
 mod inherents;
 mod rpc;
+#[cfg(test)]
+mod tests;
 
 fn main() -> sc_cli::Result<()> {
 	command::run()

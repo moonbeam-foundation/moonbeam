@@ -32,7 +32,7 @@ jsonrpc-core = "15.0.0"
 jsonrpc-pubsub = "15.0.0"
 sha3 = { version = "0.8", default-features = false }
 tiny-hderive = { version = "0.3.0", default-features = false }
-tiny-bip39 = {version = "0.6", default-features = false}
+tiny-bip39 = { version = "0.6", default-features = false }
 
 # Moonbeam dependencies
 moonbeam-runtime = { path = "../runtime" }
@@ -41,7 +41,7 @@ moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool" }
 moonbeam-rpc-debug = { path = "../client/rpc/debug" }
 moonbeam-rpc-primitives-debug = { path = "../primitives/rpc/debug" }
 moonbeam-rpc-trace = { path = "../client/rpc/trace" }
-author-inherent = { path = "../pallets/author-inherent"}
+author-inherent = { path = "../pallets/author-inherent" }
 
 # Substrate dependencies
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
@@ -112,6 +112,7 @@ substrate-build-script-utils = { git = "https://github.com/paritytech/substrate"
 assert_cmd = "0.12"
 nix = "0.17"
 rand = "0.7.3"
+tempfile = "3.2.0"
 tokio = { version = "0.2.13", features = ["macros"] }
 
 # Polkadot dev-dependencies

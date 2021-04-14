@@ -55,11 +55,11 @@ fn load_spec(
 		"local" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
 		#[cfg(feature = "test-spec")]
 		"staking" => Ok(Box::new(crate::test_spec::staking_spec(para_id))),
-		"" => Err(
-			"You have not specified what chain to sync. In the future, this will default to \
-				Moonbeam mainnet. Mainnet is not yet live so you must choose a spec."
-				.into(),
-		),
+		// "" => Err(
+		// 	"You have not specified what chain to sync. In the future, this will default to \
+		// 		Moonbeam mainnet. Mainnet is not yet live so you must choose a spec."
+		// 		.into(),
+		// ),
 		path => Ok(Box::new(chain_spec::ChainSpec::from_json_file(
 			path.into(),
 		)?)),
