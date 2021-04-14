@@ -296,6 +296,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
   });
 
   step("should have a filter pool max size of 500.", async function () {
+    this.timeout(20000)
     const max_filter_pool = 500;
 
     for (let i = 0; i < max_filter_pool; i++) {
