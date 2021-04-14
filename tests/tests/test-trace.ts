@@ -58,6 +58,7 @@ async function nested(context) {
 
 describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
   step("[Raw] should replay over an intermediate state", async function () {
+    this.timeout(20000);
     const createTx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
