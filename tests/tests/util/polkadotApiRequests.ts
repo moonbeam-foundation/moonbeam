@@ -7,16 +7,18 @@ export async function createAndFinalizeBlock(
   api: ApiPromise,
   parentHash?: BlockHash,
   finalize: boolean = true
-): Promise<number> {
+): Promise<[number, BlockHash]> {
   const startTime: number = Date.now();
+  let block_hash = undefined;
   try {
     if (parentHash == undefined) {
-      await api.rpc.engine.createBlock(true, finalize);
+      block_hash = (await api.rpc.engine.createBlock(true, finalize)).toJSON()["hash"];
     } else {
-      await api.rpc.engine.createBlock(true, finalize, parentHash);
+      block_hash = (await api.rpc.engine.createBlock(true, finalize, parentHash)).toJSON()["hash"];
     }
   } catch (e) {
     console.log("ERROR DURING BLOCK FINALIZATION", e);
   }
-  return Date.now() - startTime;
+
+  return [Date.now() - startTime, block_hash];
 }
