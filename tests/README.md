@@ -43,5 +43,5 @@ You can also add the node's logs to the output using the `MOONBEAM_LOG` env vari
 MOONBEAM_LOG="warn,rpc=trace" npm run test
 ```
 
-The Moonbeam node will be listening for RPC on port 19933, mostly to avoid
-conflicts with already running Substrate nodes.
+The test script will find available ports above 20000 in order to ensure that it doesn't conflict
+with any other running services.
