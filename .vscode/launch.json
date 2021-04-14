@@ -20,15 +20,39 @@
         "--ethapi=txpool,debug,trace",
         "--sealing=manual",
         "-linfo",
-        "--port=19931",
-        "--rpc-port=19932",
-        "--ws-port=19933",
+        "--port=${dbgconfig:port_p2p}",
+        "--rpc-port=${dbgconfig:port_rpc}",
+        "--ws-port=${dbgconfig:port_ws}",
         "--tmp"
       ],
       "cwd": "${workspaceFolder}",
       "sourceLanguages": ["rust"],
       "sourceMap": {
-        "/rustc/*": "${env:HOME}/.rustup/toolchains/nightly-2021-01-13-x86_64-unknown-linux-gnu/lib/rustlib/src/rust"
+        "/rustc/*": "${dbgconfig:rustc_path}"
+      }
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Launch Moonbeam Node (Linux)",
+      "program": "${workspaceFolder}/target/debug/moonbeam",
+      "args": [
+        "--execution=Native",
+        "--no-telemetry",
+        "--no-prometheus",
+        "--dev",
+        "--ethapi=txpool,debug,trace",
+        "--sealing=manual",
+        "-linfo",
+        "--port=${dbgconfig:port_p2p}",
+        "--rpc-port=${dbgconfig:port_rpc}",
+        "--ws-port=${dbgconfig:port_ws}",
+        "--tmp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "sourceLanguages": ["rust"],
+      "sourceMap": {
+        "/rustc/*": "${dbgconfig:rustc_path}"
       }
     }
   ]
