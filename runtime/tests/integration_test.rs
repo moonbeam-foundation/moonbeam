@@ -22,20 +22,18 @@ use frame_support::{
 	assert_noop, assert_ok,
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
-use moonbeam_runtime::{AccountId, Balance, Event, InflationInfo, Range, Runtime, GLMR};
-use sp_runtime::Perbill;
-
-type System = frame_system::Pallet<Runtime>;
-type Staking = parachain_staking::Pallet<Runtime>;
-type AuthorInherent = author_inherent::Pallet<Runtime>;
-type ParachainSystem = cumulus_pallet_parachain_system::Pallet<Runtime>;
+use moonbeam_runtime::{
+	AccountId, Balance, Balances, Event, InflationInfo, ParachainStaking, Range, Runtime, System,
+	EVM, GLMR,
+};
+use sp_runtime::{DispatchError, Perbill};
 
 fn run_to_block(n: u32) {
 	while System::block_number() < n {
-		AuthorInherent::on_finalize(System::block_number());
-		Staking::on_finalize(System::block_number());
+		//AuthorInherent::on_finalize(System::block_number());
+		ParachainStaking::on_finalize(System::block_number());
 		System::set_block_number(System::block_number() + 1);
-		AuthorInherent::on_initialize(System::block_number());
+		//AuthorInherent::on_initialize(System::block_number());
 	}
 }
 
@@ -117,8 +115,8 @@ fn origin_none() -> <Runtime as frame_system::Config>::Origin {
 	<Runtime as frame_system::Config>::Origin::none()
 }
 
-/// Genesis config with 2 collators and 1 nominator registered at genesis
-fn two_collators_one_nominator() -> sp_io::TestExternalities {
+#[test]
+fn join_collator_candidates() {
 	ExtBuilder::default()
 		.balances(vec![
 			(AccountId::from(ALICE), 2_000 * GLMR),
@@ -139,53 +137,79 @@ fn two_collators_one_nominator() -> sp_io::TestExternalities {
 			(AccountId::from(CARL), Some(AccountId::from(BOB)), 50 * GLMR),
 		])
 		.build()
-}
-
-#[test]
-fn join_collator_candidates() {
-	two_collators_one_nominator().execute_with(|| {
-		assert_noop!(
-			Staking::join_candidates(origin_of(AccountId::from(ALICE)), 1_000 * GLMR,),
-			parachain_staking::Error::<Runtime>::CandidateExists
-		);
-		assert_noop!(
-			Staking::join_candidates(origin_of(AccountId::from(CARL)), 1_000 * GLMR),
-			parachain_staking::Error::<Runtime>::NominatorExists
-		);
-		assert!(System::events().is_empty());
-		assert_ok!(Staking::join_candidates(
-			origin_of(AccountId::from(DAVE)),
-			1_000 * GLMR,
-		));
-		assert_eq!(
-			last_event(),
-			Event::parachain_staking(parachain_staking::Event::JoinedCollatorCandidates(
-				AccountId::from(DAVE),
+		.execute_with(|| {
+			assert_noop!(
+				ParachainStaking::join_candidates(origin_of(AccountId::from(ALICE)), 1_000 * GLMR,),
+				parachain_staking::Error::<Runtime>::CandidateExists
+			);
+			assert_noop!(
+				ParachainStaking::join_candidates(origin_of(AccountId::from(CARL)), 1_000 * GLMR),
+				parachain_staking::Error::<Runtime>::NominatorExists
+			);
+			assert!(System::events().is_empty());
+			assert_ok!(ParachainStaking::join_candidates(
+				origin_of(AccountId::from(DAVE)),
 				1_000 * GLMR,
-				3_100 * GLMR
-			))
-		);
-	});
+			));
+			assert_eq!(
+				last_event(),
+				Event::parachain_staking(parachain_staking::Event::JoinedCollatorCandidates(
+					AccountId::from(DAVE),
+					1_000 * GLMR,
+					3_100 * GLMR
+				))
+			);
+		});
 }
 
 #[test]
-fn pay_block_authors() {
-	two_collators_one_nominator().execute_with(|| {
-		// run_to_block(1);
-		todo!();
-		// assert_ok!(ParachainSystem::set_validation_data(origin_none(), ));
-		// // non-collators are invalid authors
-		// assert_noop!(
-		// 	AuthorInherent::set_author(origin_none(), AccountId::from(CARL)),
-		// 	author_inherent::Error::<Runtime>::CannotBeAuthor
-		// );
-		// assert_noop!(
-		// 	AuthorInherent::set_author(origin_none(), AccountId::from(DAVE)),
-		// 	author_inherent::Error::<Runtime>::CannotBeAuthor
-		// );
-		// collators can author blocks
-		// assert_ok!(
-
-		// );
-	});
+fn evm_balance_transfer() {
+	ExtBuilder::default()
+		.balances(vec![(AccountId::from(ALICE), 2_000 * GLMR)])
+		.build()
+		.execute_with(|| {
+			// Carl has no balance => fails to stake
+			assert_noop!(
+				ParachainStaking::join_candidates(origin_of(AccountId::from(CARL)), 1_000 * GLMR,),
+				DispatchError::Module {
+					index: 3,
+					error: 3,
+					message: Some("InsufficientBalance")
+				}
+			);
+			// Alice stakes to become a collator candidate
+			assert_ok!(ParachainStaking::join_candidates(
+				origin_of(AccountId::from(ALICE)),
+				1_000 * GLMR,
+			));
+			// Alice transfer from free balance 1000 GLMR to Bob
+			assert_ok!(Balances::transfer(
+				origin_of(AccountId::from(ALICE)),
+				AccountId::from(BOB),
+				1_000 * GLMR,
+			));
+			// Bob transfers free balance 1000 GLMR to Carl via EVM
+			// assert_ok!();
+		});
 }
+
+// #[test]
+// fn pay_block_authors() {
+// 	two_collators_one_nominator().execute_with(|| {
+// 		// run_to_block(1);
+// 		// assert_ok!(ParachainSystem::set_validation_data(origin_none(), ));
+// 		// // non-collators are invalid authors
+// 		// assert_noop!(
+// 		// 	AuthorInherent::set_author(origin_none(), AccountId::from(CARL)),
+// 		// 	author_inherent::Error::<Runtime>::CannotBeAuthor
+// 		// );
+// 		// assert_noop!(
+// 		// 	AuthorInherent::set_author(origin_none(), AccountId::from(DAVE)),
+// 		// 	author_inherent::Error::<Runtime>::CannotBeAuthor
+// 		// );
+// 		// collators can author blocks
+// 		// assert_ok!(
+
+// 		// );
+// 	});
+// }
