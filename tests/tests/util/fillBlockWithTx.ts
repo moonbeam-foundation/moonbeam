@@ -150,7 +150,11 @@ export async function fillBlockWithTx(
 
   log("Error Report : ", errorReport);
 
-  log("created block in ", (await createAndFinalizeBlock(context.polkadotApi)) / 1000, " seconds");
+  log(
+    "created block in ",
+    (await createAndFinalizeBlock(context.polkadotApi))[0] / 1000,
+    " seconds"
+  );
 
   let numberOfBlocks = 0;
   let block = await context.web3.eth.getBlock("latest");
