@@ -30,10 +30,8 @@ use sp_runtime::{DispatchError, Perbill};
 
 fn run_to_block(n: u32) {
 	while System::block_number() < n {
-		//AuthorInherent::on_finalize(System::block_number());
 		ParachainStaking::on_finalize(System::block_number());
 		System::set_block_number(System::block_number() + 1);
-		//AuthorInherent::on_initialize(System::block_number());
 	}
 }
 
@@ -163,7 +161,7 @@ fn join_collator_candidates() {
 }
 
 #[test]
-fn evm_balance_transfer() {
+fn transfer_to_stake() {
 	ExtBuilder::default()
 		.balances(vec![(AccountId::from(ALICE), 2_000 * GLMR)])
 		.build()
@@ -188,28 +186,16 @@ fn evm_balance_transfer() {
 				AccountId::from(BOB),
 				1_000 * GLMR,
 			));
-			// Bob transfers free balance 1000 GLMR to Carl via EVM
-			// assert_ok!();
+			// Bob transfers free balance 1000 GLMR to Carl (TODO: via EVM)
+			assert_ok!(Balances::transfer(
+				origin_of(AccountId::from(BOB)),
+				AccountId::from(CARL),
+				1_000 * GLMR,
+			));
+			// Carl can stake now
+			assert_ok!(ParachainStaking::join_candidates(
+				origin_of(AccountId::from(CARL)),
+				1_000 * GLMR,
+			),);
 		});
 }
-
-// #[test]
-// fn pay_block_authors() {
-// 	two_collators_one_nominator().execute_with(|| {
-// 		// run_to_block(1);
-// 		// assert_ok!(ParachainSystem::set_validation_data(origin_none(), ));
-// 		// // non-collators are invalid authors
-// 		// assert_noop!(
-// 		// 	AuthorInherent::set_author(origin_none(), AccountId::from(CARL)),
-// 		// 	author_inherent::Error::<Runtime>::CannotBeAuthor
-// 		// );
-// 		// assert_noop!(
-// 		// 	AuthorInherent::set_author(origin_none(), AccountId::from(DAVE)),
-// 		// 	author_inherent::Error::<Runtime>::CannotBeAuthor
-// 		// );
-// 		// collators can author blocks
-// 		// assert_ok!(
-
-// 		// );
-// 	});
-// }
