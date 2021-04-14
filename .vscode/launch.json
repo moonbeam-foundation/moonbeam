@@ -7,7 +7,7 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Debug Moonbeam Node",
+      "name": "Build & Launch Moonbeam Node (Linux)",
       "cargo": {
         "args": ["build", "--bin=moonbeam"],
         "filter": {
@@ -28,7 +28,11 @@
         "--ws-port=19933",
         "--tmp"
       ],
-      "cwd": "${workspaceFolder}"
+      "cwd": "${workspaceFolder}",
+      "sourceLanguages": ["rust"],
+      "sourceMap": {
+        "/rustc/*": "${env:HOME}/.rustup/toolchains/nightly-2021-01-13-x86_64-unknown-linux-gnu/lib/rustlib/src/rust"
+      }
     }
   ]
 }
