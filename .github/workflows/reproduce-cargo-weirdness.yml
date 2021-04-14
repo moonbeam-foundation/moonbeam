@@ -3,7 +3,6 @@ name: Reproduce weird cargo test behavior
 on: ["push"]
 
 jobs:
-
   reproduce-carg-weirdness:
     runs-on: ubuntu-latest
     steps:
@@ -14,19 +13,19 @@ jobs:
       # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
       - name: Setup Rust toolchain
         run: rustup show
-      
+
       # This compiles
       - name: cargo test --bin moonbeam
         run: cargo test --bin moonbeam
 
       # This compiles
       - name: cargo test --lib moonbeam
-        run cargo test --lib moonbeam
-      
+        run: cargo test --lib moonbeam
+
       # This compiles (does this actually run the tests from the moonbeam binary?)
       - name: cargo test
-        run cargo test
-        
+        run: cargo test
+
       # This doesn't compile. I don't understand why.
       - name: cargo test -p moonbeam
         run: cargo test -p moonbeam
