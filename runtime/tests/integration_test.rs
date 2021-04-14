@@ -18,22 +18,19 @@
 
 #![cfg(test)]
 
-use frame_support::{
-	assert_noop, assert_ok,
-	traits::{GenesisBuild, OnFinalize, OnInitialize},
-};
+use frame_support::{assert_noop, assert_ok, traits::GenesisBuild};
 use moonbeam_runtime::{
 	AccountId, Balance, Balances, Event, InflationInfo, ParachainStaking, Range, Runtime, System,
-	EVM, GLMR,
+	GLMR,
 };
 use sp_runtime::{DispatchError, Perbill};
 
-fn run_to_block(n: u32) {
-	while System::block_number() < n {
-		ParachainStaking::on_finalize(System::block_number());
-		System::set_block_number(System::block_number() + 1);
-	}
-}
+// fn run_to_block(n: u32) {
+// 	while System::block_number() < n {
+// 		ParachainStaking::on_finalize(System::block_number());
+// 		System::set_block_number(System::block_number() + 1);
+// 	}
+// }
 
 fn last_event() -> Event {
 	System::events().pop().expect("Event expected").event
@@ -102,15 +99,11 @@ impl ExtBuilder {
 
 const ALICE: [u8; 20] = [4u8; 20];
 const BOB: [u8; 20] = [5u8; 20];
-const CARL: [u8; 20] = [6u8; 20];
+const CHARLIE: [u8; 20] = [6u8; 20];
 const DAVE: [u8; 20] = [7u8; 20];
 
 fn origin_of(account_id: AccountId) -> <Runtime as frame_system::Config>::Origin {
 	<Runtime as frame_system::Config>::Origin::signed(account_id)
-}
-
-fn origin_none() -> <Runtime as frame_system::Config>::Origin {
-	<Runtime as frame_system::Config>::Origin::none()
 }
 
 #[test]
@@ -119,7 +112,7 @@ fn join_collator_candidates() {
 		.balances(vec![
 			(AccountId::from(ALICE), 2_000 * GLMR),
 			(AccountId::from(BOB), 2_000 * GLMR),
-			(AccountId::from(CARL), 1_100 * GLMR),
+			(AccountId::from(CHARLIE), 1_100 * GLMR),
 			(AccountId::from(DAVE), 1_000 * GLMR),
 		])
 		.staking(vec![
@@ -128,11 +121,15 @@ fn join_collator_candidates() {
 			(AccountId::from(BOB), None, 1_000 * GLMR),
 			// nominators
 			(
-				AccountId::from(CARL),
+				AccountId::from(CHARLIE),
 				Some(AccountId::from(ALICE)),
 				50 * GLMR,
 			),
-			(AccountId::from(CARL), Some(AccountId::from(BOB)), 50 * GLMR),
+			(
+				AccountId::from(CHARLIE),
+				Some(AccountId::from(BOB)),
+				50 * GLMR,
+			),
 		])
 		.build()
 		.execute_with(|| {
@@ -141,7 +138,10 @@ fn join_collator_candidates() {
 				parachain_staking::Error::<Runtime>::CandidateExists
 			);
 			assert_noop!(
-				ParachainStaking::join_candidates(origin_of(AccountId::from(CARL)), 1_000 * GLMR),
+				ParachainStaking::join_candidates(
+					origin_of(AccountId::from(CHARLIE)),
+					1_000 * GLMR
+				),
 				parachain_staking::Error::<Runtime>::NominatorExists
 			);
 			assert!(System::events().is_empty());
@@ -166,9 +166,12 @@ fn transfer_to_stake() {
 		.balances(vec![(AccountId::from(ALICE), 2_000 * GLMR)])
 		.build()
 		.execute_with(|| {
-			// Carl has no balance => fails to stake
+			// CHARLIE has no balance => fails to stake
 			assert_noop!(
-				ParachainStaking::join_candidates(origin_of(AccountId::from(CARL)), 1_000 * GLMR,),
+				ParachainStaking::join_candidates(
+					origin_of(AccountId::from(CHARLIE)),
+					1_000 * GLMR,
+				),
 				DispatchError::Module {
 					index: 3,
 					error: 3,
@@ -186,15 +189,15 @@ fn transfer_to_stake() {
 				AccountId::from(BOB),
 				1_000 * GLMR,
 			));
-			// Bob transfers free balance 1000 GLMR to Carl (TODO: via EVM)
+			// Bob transfers free balance 1000 GLMR to CHARLIE (TODO: via EVM)
 			assert_ok!(Balances::transfer(
 				origin_of(AccountId::from(BOB)),
-				AccountId::from(CARL),
+				AccountId::from(CHARLIE),
 				1_000 * GLMR,
 			));
-			// Carl can stake now
+			// CHARLIE can stake now
 			assert_ok!(ParachainStaking::join_candidates(
-				origin_of(AccountId::from(CARL)),
+				origin_of(AccountId::from(CHARLIE)),
 				1_000 * GLMR,
 			),);
 		});
