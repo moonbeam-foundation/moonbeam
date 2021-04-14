@@ -1,10 +1,5 @@
 import { expect } from "chai";
-import {
-  FIRST_CONTRACT_ADDRESS,
-  GENESIS_ACCOUNT,
-  GENESIS_ACCOUNT_PRIVATE_KEY,
-  //TEST_CONTRACT_BYTECODE,
-} from "./constants";
+import { FIRST_CONTRACT_ADDRESS, GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
 
 import { createAndFinalizeBlock, customRequest, describeWithMoonbeam } from "./util";
 import { getCompiled } from "./util/contracts";

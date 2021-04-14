@@ -166,7 +166,7 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     // 6_000_000 / 92_019 = ~64.50
 
     // The test will send 65 contract tx and verify the first block contains only 64.
-    let { txPassedFirstBlock } = await fillBlockWithTx(context, 65, contractCreation);
+    let { txPassedFirstBlock } = await fillBlockWithTx(context, 65, await contractCreation());
     expect(txPassedFirstBlock).to.eq(64);
   });
 
@@ -189,13 +189,13 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
   it.skip("should be able to send 8192 tx to the pool and have them all published\
   within the following blocks - bigger tx", async function () {
     this.timeout(120000);
-    let { txPassed } = await fillBlockWithTx(context, 8192, contractCreation);
+    let { txPassed } = await fillBlockWithTx(context, 8192, await contractCreation());
     expect(txPassed).to.eq(8192);
   });
 
   it.skip("but shouldn't work for 8193 - bigger tx", async function () {
     this.timeout(120000);
-    let { txPassed } = await fillBlockWithTx(context, 8193, contractCreation);
+    let { txPassed } = await fillBlockWithTx(context, 8193, await contractCreation());
     expect(txPassed).to.eq(0);
   });
 });

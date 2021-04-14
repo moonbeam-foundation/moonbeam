@@ -5,9 +5,6 @@ import { createAndFinalizeBlock, customRequest, describeWithMoonbeam } from "./u
 import { getCompiled } from "./util/contracts";
 
 describeWithMoonbeam("Frontier RPC (Pending Pool)", `simple-specs.json`, (context) => {
-  // Solidity: contract test { function multiply(uint a) public pure returns(uint d)
-  // {return a * 7;}}
-
   it("should return a pending transaction", async function () {
     this.timeout(15000);
     const tx = await context.web3.eth.accounts.signTransaction(
@@ -35,9 +32,9 @@ describeWithMoonbeam("Frontier RPC (Pending Pool)", `simple-specs.json`, (contex
       publicKey:
         "0x624f720eae676a04111631c9ca338c11d0f5a80ee42210c6be72983ceb620fbf645a96f951529f" +
         "a2d70750432d11b7caba5270c4d677255be90b3871c8c58069",
-      r: "0xe6f6ef2c1072b0e4a6b91f6b8ca408478814611124a54f3bb5c02c039e9541f1",
-      s: "0x5c3a49963649c8812de3aa8b84adf77c14e74eea6191a7827e1273158007bac8",
-      v: "0xa26",
+      r: "0x4fbb4e67c0e374d2bbec668f38a6f8bc16583209c2e3154291f53b9e071ab4e4",
+      s: "0x3455ef321dd9641dcf52261e9255019ecf816341f6936bf1397aea45b37e4945",
+      v: "0xa25",
     });
 
     await createAndFinalizeBlock(context.polkadotApi);
@@ -51,9 +48,9 @@ describeWithMoonbeam("Frontier RPC (Pending Pool)", `simple-specs.json`, (contex
       publicKey:
         "0x624f720eae676a04111631c9ca338c11d0f5a80ee42210c6be72983ceb620fbf645a96f951529f" +
         "a2d70750432d11b7caba5270c4d677255be90b3871c8c58069",
-      r: "0xe6f6ef2c1072b0e4a6b91f6b8ca408478814611124a54f3bb5c02c039e9541f1",
-      s: "0x5c3a49963649c8812de3aa8b84adf77c14e74eea6191a7827e1273158007bac8",
-      v: "0xa26",
+      r: "0x4fbb4e67c0e374d2bbec668f38a6f8bc16583209c2e3154291f53b9e071ab4e4",
+      s: "0x3455ef321dd9641dcf52261e9255019ecf816341f6936bf1397aea45b37e4945",
+      v: "0xa25",
     });
   });
 });

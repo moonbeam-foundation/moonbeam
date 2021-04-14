@@ -1,13 +1,7 @@
 import { expect } from "chai";
 
 import { describeWithMoonbeam } from "./util";
-import {
-  FIRST_CONTRACT_ADDRESS,
-  GENESIS_ACCOUNT,
-  // GENESIS_ACCOUNT_PRIVATE_KEY,
-  //TEST_CONTRACT_ABI,
-  // TEST_CONTRACT_BYTECODE,
-} from "./constants";
+import { FIRST_CONTRACT_ADDRESS, GENESIS_ACCOUNT } from "./constants";
 import { deployContractByName, getCompiled } from "./util/contracts";
 
 describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (context) => {

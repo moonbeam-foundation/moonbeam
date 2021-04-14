@@ -2,7 +2,6 @@ import { createAndFinalizeBlock, describeWithMoonbeam } from "./util";
 import { HttpProvider } from "web3-core";
 import { expect } from "chai";
 import { ethers } from "ethers";
-import { TEST_CONTRACT_ABI_ETHERS } from "./constants";
 import { getCompiled } from "./util/contracts";
 
 describeWithMoonbeam("Moonbeam RPC (Ethers.js)", `simple-specs.json`, (context) => {
@@ -28,7 +27,7 @@ describeWithMoonbeam("Moonbeam RPC (Ethers.js)", `simple-specs.json`, (context) 
 
     // deploy contract
     const factory = new ethers.ContractFactory(
-      [TEST_CONTRACT_ABI_ETHERS] as ethers.ContractInterface,
+      (await getCompiled("TEST_CONTRACT")).contract.abi as ethers.ContractInterface,
       (await getCompiled("TEST_CONTRACT")).byteCode,
       signer
     );
@@ -50,7 +49,7 @@ describeWithMoonbeam("Moonbeam RPC (Ethers.js)", `simple-specs.json`, (context) 
     // Instantiate contract from address
     const contractFromAddress = new ethers.Contract(
       contract.address,
-      [TEST_CONTRACT_ABI_ETHERS] as ethers.ContractInterface,
+      (await getCompiled("TEST_CONTRACT")).contract.abi as ethers.ContractInterface,
       signer
     );
     expect((await contractFromAddress.multiply(3)).toString()).to.equal("21");
