@@ -4,38 +4,8 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Build & Launch Moonbeam Node (Linux)",
-      "cargo": {
-        "args": ["build", "--bin=moonbeam"],
-        "filter": {
-          "name": "moonbeam",
-          "kind": "bin"
-        }
-      },
-      "args": [
-        "--execution=Native",
-        "--no-telemetry",
-        "--no-prometheus",
-        "--dev",
-        "--ethapi=txpool,debug,trace",
-        "--sealing=manual",
-        "-linfo",
-        "--port=${dbgconfig:port_p2p}",
-        "--rpc-port=${dbgconfig:port_rpc}",
-        "--ws-port=${dbgconfig:port_ws}",
-        "--tmp"
-      ],
-      "cwd": "${workspaceFolder}",
-      "sourceLanguages": ["rust"],
-      "sourceMap": {
-        "/rustc/*": "${dbgconfig:rustc_path}"
-      }
-    },
-    {
-      "type": "lldb",
-      "request": "launch",
       "name": "Launch Moonbeam Node (Linux)",
-      "program": "${workspaceFolder}/target/debug/moonbeam",
+      "program": "${workspaceFolder}/target/release/moonbeam",
       "args": [
         "--execution=Native",
         "--no-telemetry",

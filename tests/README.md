@@ -41,19 +41,15 @@ with any other running services.
 # Debugging a Moonbeam node
 
 The repository contains a pre-configured debugger configuration for VSCode with the **CodeLLDB**
-(`vadimcn.vscode-lldb`) extension. In the Debug tab of VSCode the dropdown at the top list 2
-configurations :
+(`vadimcn.vscode-lldb`) extension.
 
-- **Build & Launch Moonbeam Node (Linux)** : cargo build the node with debug profile and launch it.
-- **Launch Moonbeam Node (Linux)** : directly launch the node without calling cargo build. Usefull
-  if the node is already build with the other profile, or if you compiled it manually.
+Before debugging, you need to build the node with debug symbols enabled by running
+`./scripts/debugger-build.sh`. Then go in the **Debug** tab in the left bar of VSCode and make sure
+**Launch Moonbeam Node (Linux)** is selected in the top dropdown.
 
-> Jérémy : I had issues with CodeLLDB not being able to call cargo, which was resolved without
-> explanation. If the first profile doesn't work for you, call manually `cargo build` then use the
-> second profile.
-
-When launching the debug session it will take some time before the node starts, but the terminal
-containing the node output will appear when it is really starting.
+To launch the debug session click on the green "play" arrow next to the dropdown. It will take some
+time before the node starts, but the terminal containing the node output will appear when it is
+really starting.
 
 You can explore the code and place a breakpoint on a line by left clicking on the left of the line
 number. The execution will pause the next time this line is reached. The debug toolbar contains the
