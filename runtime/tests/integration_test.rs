@@ -21,7 +21,7 @@
 use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable, traits::GenesisBuild};
 use moonbeam_runtime::{
 	AccountId, Balance, Balances, Call, Event, InflationInfo, ParachainStaking, Range, Runtime,
-	System, EVM, GLMR,
+	System, GLMR,
 };
 use sp_runtime::{DispatchError, Perbill};
 
@@ -108,10 +108,6 @@ fn origin_of(account_id: AccountId) -> <Runtime as frame_system::Config>::Origin
 	<Runtime as frame_system::Config>::Origin::signed(account_id)
 }
 
-fn root() -> <Runtime as frame_system::Config>::Origin {
-	<Runtime as frame_system::Config>::Origin::root()
-}
-
 #[test]
 fn join_collator_candidates() {
 	ExtBuilder::default()
@@ -167,12 +163,12 @@ fn join_collator_candidates() {
 }
 
 #[test]
-fn transfer_to_stake() {
+fn transfer_through_evm_to_stake() {
 	ExtBuilder::default()
 		.balances(vec![(AccountId::from(ALICE), 3_000 * GLMR)])
 		.build()
 		.execute_with(|| {
-			// CHARLIE has no balance => fails to stake
+			// Charlie has no balance => fails to stake
 			assert_noop!(
 				ParachainStaking::join_candidates(
 					origin_of(AccountId::from(CHARLIE)),
@@ -196,12 +192,10 @@ fn transfer_to_stake() {
 				2_000 * GLMR,
 			));
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 2_000 * GLMR,);
-			// Bob transfers 1000 GLMR to Charlie via EVM
 			use sp_core::U256;
-			use std::convert::TryInto;
-			let gas_limit = 1000u64;
-			let gas_price: U256 = 0.into();
-
+			let gas_limit = 100000u64;
+			let gas_price: U256 = 1000.into();
+			// Bob transfers 1000 GLMR to Charlie via EVM
 			assert_ok!(Call::EVM(EVMCall::call(
 				AccountId::from(BOB),
 				AccountId::from(CHARLIE),
@@ -212,26 +206,14 @@ fn transfer_to_stake() {
 				None
 			))
 			.dispatch(origin_of(AccountId::from(BOB))));
-			// Bob should have transferred 1000 * GLMR to Charlie
-			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), 1_000 * GLMR,);
-			// Check that transfer was logged correctly in balances
-			// assert_eq!(
-			// 	last_event(),
-			// 	Event::parachain_staking(parachain_staking::Event::JoinedCollatorCandidates(
-			// 		AccountId::from(DAVE),
-			// 		1_000 * GLMR,
-			// 		3_100 * GLMR
-			// 	))
-			// );
-			// Check that Charlie received the transfer
-			// assert_eq!(
-			// 	Balances::free_balance(AccountId::from(CHARLIE)),
-			// 	1010 * GLMR,
-			// );
+			assert_eq!(
+				Balances::free_balance(AccountId::from(CHARLIE)),
+				1_000 * GLMR,
+			);
 			// Charlie can stake now
-			// assert_ok!(ParachainStaking::join_candidates(
-			// 	origin_of(AccountId::from(CHARLIE)),
-			// 	1_000 * GLMR,
-			// ),);
+			assert_ok!(ParachainStaking::join_candidates(
+				origin_of(AccountId::from(CHARLIE)),
+				1_000 * GLMR,
+			),);
 		});
 }
