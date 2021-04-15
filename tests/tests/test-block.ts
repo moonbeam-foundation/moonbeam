@@ -130,44 +130,39 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     expect(block.parentHash).to.equal(previousBlock.hash);
   });
 
-  // tx/block tests
-
   step("genesis balance enough to make all the transfers", async function () {
     expect(Number(await context.web3.eth.getBalance(GENESIS_ACCOUNT))).to.gte(512 * 100000);
   });
 
-  // the maximum number of tx/ blocks is not constant but is always around 1500
+  it.skip("should be able to fill a block with a 1 tx", async function () {
+    this.timeout(15000);
 
-  it("should be able to fill a block with a 1 tx", async function () {
     let { txPassedFirstBlock } = await fillBlockWithTx(context, 1);
     expect(txPassedFirstBlock).to.eq(1);
   });
 
-  it.skip("should be able to fill a block with 260 tx", async function () {
+  it("should be able to fill a block with 576 tx", async function () {
     this.timeout(15000);
-    // We have 6_000_000 Gas available for transactions per block.
-    // Each transaction needs 2_000 (extrinsic cost) + 21_000 (eth cost)
-    // 6_000_000 / 23_000 = ~260.86
-    // The test will send 261 tx and verify the first block contains only 260.
-    let { txPassed, txPassedFirstBlock } = await fillBlockWithTx(context, 261);
-    expect(txPassedFirstBlock).to.eq(260);
-    expect(txPassed).to.eq(261); // including all blocks
+    // We have 15_000_000 Gas available for transactions per block.
+    // Each transaction needs 26_000 gas: 5_000 (extrinsic cost) + 21_000 (eth cost).
+    // 5_000 is the equivalent gas of ExtrinsicBaseWeight (125_000_000 / 25_000)
+    // We expect a capacity of 576.92 transactions in a block (15_000_000 / 26_000).
+    let { txPassed, txPassedFirstBlock } = await fillBlockWithTx(context, 577);
+    expect(txPassedFirstBlock).to.eq(576);
+    expect(txPassed).to.eq(577); // including all blocks
   });
 
-  it.skip("should be able to fill a block with 64 contract creations tx", async function () {
+  it("should be able to fill a block with 156 contract creations tx", async function () {
     this.timeout(15000);
-    // We have 6_000_000 Gas available for transactions per block.
-    // Each transaction needs 2_000 (extrinsic cost) + 91019 (contract cost)
-    // 6_000_000 / 92_019 = ~64.50
-
-    // The test will send 65 contract tx and verify the first block contains only 64.
-    let { txPassedFirstBlock } = await fillBlockWithTx(context, 65, contractCreation);
-    expect(txPassedFirstBlock).to.eq(64);
+    // We have 15_000_000 Gas available for transactions per block.
+    // Each transaction needs 5_000 (extrinsic cost) + 91_019 (contract cost)
+    // 15_000_000 / 96_019 = 156.22
+    let { txPassedFirstBlock } = await fillBlockWithTx(context, 157, contractCreation);
+    expect(txPassedFirstBlock).to.eq(156);
   });
 
   // 8192 is the number of tx that can be sent to the Pool
   // before it throws an error and drops all tx
-
   it.skip("should be able to send 8192 tx to the pool and have them all published\
   within the following blocks", async function () {
     this.timeout(120000);
