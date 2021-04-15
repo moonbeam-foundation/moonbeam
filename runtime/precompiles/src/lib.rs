@@ -35,8 +35,8 @@ use sp_core::U256;
 use sp_io::offchain;
 use sp_std::convert::TryFrom;
 use sp_std::convert::TryInto;
+use sp_std::fmt::Debug;
 use sp_std::{marker::PhantomData, vec::Vec};
-use std::fmt::Debug;
 
 /// A precompile intended to burn gas and/or time without actually doing any work.
 /// Meant for testing.
