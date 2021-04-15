@@ -103,9 +103,7 @@ impl Precompile for Sacrifice {
 /// toward one fixed address chosen by the deployer.
 /// Such a contract could be deployed by a collator candidate, and the deploy address distributed to
 /// supporters who want to donate toward a perpetual nomination fund.
-pub struct NominateWrapper<Runtime> {
-	_phantom_data: PhantomData<(Runtime)>,
-}
+pub struct NominateWrapper<Runtime>(PhantomData<Runtime>);
 
 // type BalanceOf<Runtime> =
 // 	<<Runtime as parachain_staking::Config>::Currency as Currency<Runtime::AccountId>>::Balance;
@@ -116,11 +114,9 @@ where
 	Runtime::AccountId: From<H160>,
 	<<Runtime as parachain_staking::Config>::Currency as Currency<Runtime::AccountId>>::Balance:
 		TryFrom<U256> + Debug,
-	<Runtime as frame_system::Config>::Call:
-		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin:
-		From<Option<Runtime::AccountId>>,
-	<Runtime as frame_system::Config>::Call: From<parachain_staking::Call<Runtime>>,
+	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
+	Runtime::Call: From<parachain_staking::Call<Runtime>>,
 {
 	fn execute(
 		input: &[u8], //Reminder this is big-endian
@@ -151,6 +147,8 @@ where
 			.copy_from_slice(&input[COLLATOR_SIZE_BYTES..COLLATOR_SIZE_BYTES + AMOUNT_SIZE_BYTES]);
 
 		// Convert to right data types
+		//TODO I guess we should use the account mapping if possible. Otherwise this won't work for
+		// chains tht have a more standard substrate account type.
 		let collator = H160::from_slice(&collator_buf);
 
 		// TODO handle the error for too-big numbers
@@ -168,7 +166,7 @@ where
 		// Construct a call
 		let inner_call = parachain_staking::Call::<Runtime>::nominate(collator.into(), amount);
 
-		let outer_call: <Runtime as frame_system::Config>::Call = inner_call.into();
+		let outer_call: Runtime::Call = inner_call.into();
 
 		let info = outer_call.get_dispatch_info();
 
