@@ -9,22 +9,16 @@ import {
 } from "./constants";
 
 describeWithMoonbeam("Moonbeam RPC (Ethers.js)", `simple-specs.json`, (context) => {
-  let provider;
-  before(() => {
-    // Providers
-    let prov = context.web3.currentProvider as HttpProvider;
-    provider = new ethers.providers.JsonRpcProvider(prov.host);
-  });
-
   it("get network ids", async function () {
-    expect((await provider.getNetwork()).chainId).to.equal(1281);
+    expect((await context.ethers.getNetwork()).chainId).to.equal(1281);
     const providerTestnet = new ethers.providers.JsonRpcProvider(
       "https://rpc.testnet.moonbeam.network"
     );
     expect((await providerTestnet.getNetwork()).chainId).to.equal(1287);
   });
+
   it("deploy contract and interact with it", async function () {
-    let signer = new ethers.Wallet(GENESIS_ACCOUNT_PRIVATE_KEY, provider);
+    let signer = new ethers.Wallet(GENESIS_ACCOUNT_PRIVATE_KEY, context.ethers);
 
     // deploy contract
     const factory = new ethers.ContractFactory(
