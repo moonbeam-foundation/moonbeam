@@ -5,7 +5,7 @@ import { HttpProvider } from "web3-core";
 import { ethers } from "ethers";
 
 import { spawn, ChildProcess, ChildProcessWithoutNullStreams } from "child_process";
-import { BINARY_PATH, DISPLAY_LOG, MOONBEAM_LOG, SPAWNING_TIME } from "../constants";
+import { BINARY_PATH, DISPLAY_LOG, MOONBEAM_LOG, SPAWNING_TIME, DEBUG_MODE } from "../constants";
 import { ErrorReport } from "./fillBlockWithTx";
 import { findAvailablePorts } from "./findAvailablePorts";
 
@@ -32,7 +32,7 @@ export async function startMoonbeamNode(
   specFilename: string,
   provider?: string
 ): Promise<{ context: Context; runningNode: ChildProcess }> {
-  const { p2pPort, rpcPort, wsPort } = await findAvailablePorts();
+  let { p2pPort, rpcPort, wsPort } = await findAvailablePorts();
 
   const cmd = BINARY_PATH;
   const args = [
@@ -48,46 +48,52 @@ export async function startMoonbeamNode(
     `--ws-port=${wsPort}`,
     `--tmp`,
   ];
-  runningNode = spawn(cmd, args);
-  runningNode.on("error", (err) => {
-    if ((err as any).errno == "ENOENT") {
-      console.error(
-        `\x1b[31mMissing Moonbeam binary ` +
-          `(${BINARY_PATH}).\nPlease compile the Moonbeam project\x1b[0m`
-      );
-    } else {
-      console.error(err);
-    }
-    process.exit(1);
-  });
 
-  const binaryLogs = [];
-  await new Promise<void>((resolve) => {
-    const timer = setTimeout(() => {
-      console.error(`\x1b[31m Failed to start Moonbeam Test Node.\x1b[0m`);
-      console.error(`Command: ${cmd} ${args.join(" ")}`);
-      console.error(`Logs:`);
-      console.error(binaryLogs.map((chunk) => chunk.toString()).join("\n"));
+  if (!DEBUG_MODE) {
+    runningNode = spawn(cmd, args);
+    runningNode.on("error", (err) => {
+      if ((err as any).errno == "ENOENT") {
+        console.error(
+          `\x1b[31mMissing Moonbeam binary ` +
+            `(${BINARY_PATH}).\nPlease compile the Moonbeam project\x1b[0m`
+        );
+      } else {
+        console.error(err);
+      }
       process.exit(1);
-    }, SPAWNING_TIME - 2000);
+    });
 
-    const onData = async (chunk) => {
-      if (DISPLAY_LOG) {
-        console.log(chunk.toString());
-      }
-      binaryLogs.push(chunk);
-      if (chunk.toString().match(/Development Service Ready/)) {
-        clearTimeout(timer);
-        if (!DISPLAY_LOG) {
-          runningNode.stderr.off("data", onData);
-          runningNode.stdout.off("data", onData);
+    const binaryLogs = [];
+    await new Promise<void>((resolve) => {
+      const timer = setTimeout(() => {
+        console.error(`\x1b[31m Failed to start Moonbeam Test Node.\x1b[0m`);
+        console.error(`Command: ${cmd} ${args.join(" ")}`);
+        console.error(`Logs:`);
+        console.error(binaryLogs.map((chunk) => chunk.toString()).join("\n"));
+        process.exit(1);
+      }, SPAWNING_TIME - 2000);
+
+      const onData = async (chunk) => {
+        if (DISPLAY_LOG) {
+          console.log(chunk.toString());
         }
-        resolve();
-      }
-    };
-    runningNode.stderr.on("data", onData);
-    runningNode.stdout.on("data", onData);
-  });
+        binaryLogs.push(chunk);
+        if (chunk.toString().match(/Development Service Ready/)) {
+          clearTimeout(timer);
+          if (!DISPLAY_LOG) {
+            runningNode.stderr.off("data", onData);
+            runningNode.stdout.off("data", onData);
+          }
+          resolve();
+        }
+      };
+      runningNode.stderr.on("data", onData);
+      runningNode.stdout.on("data", onData);
+    });
+  } else {
+    wsPort = 19933;
+    rpcPort = 19932;
+  }
 
   const wsProvider = new WsProvider(`ws://localhost:${wsPort}`);
   const polkadotApi = await ApiPromise.create({
@@ -149,7 +155,9 @@ export function describeWithMoonbeam(
     after(async function () {
       // console.log(`\x1b[31m Killing RPC\x1b[0m`);
       context.wsProvider.disconnect();
-      binary.kill();
+      if (!DEBUG_MODE) {
+        binary.kill();
+      }
       binary = null;
     });
 
