@@ -133,7 +133,6 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
     await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
     return tx;
   }
-  let currentId;
   const block_lifespan_threshold = 100;
   const max_filter_pool = 500;
   beforeEach(async function () {
@@ -147,7 +146,6 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
     for (let i = 0; i <= filter_id; i++) {
       await customRequest(context.web3, "eth_uninstallFilter", [i]);
     }
-    currentId = 0;
   });
 
   it("should create a Log filter and return the ID", async function () {
@@ -162,7 +160,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
         topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
       },
     ]);
-    expect(create_filter.result).to.be.eq(context.web3.utils.numberToHex(currentId + 1));
+    expect(create_filter.result).to.be.eq(context.web3.utils.numberToHex(1));
   });
 
   it("should increment filter ID", async function () {
@@ -174,12 +172,12 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
         topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
       },
     ]);
-    expect(create_filter.result).to.be.eq(context.web3.utils.numberToHex(currentId + 1));
+    expect(create_filter.result).to.be.eq(context.web3.utils.numberToHex(1));
   });
 
   it("should create a Block filter and return the ID", async function () {
     let create_filter = await customRequest(context.web3, "eth_newBlockFilter", []);
-    expect(create_filter.result).to.be.eq(context.web3.utils.numberToHex(currentId + 1));
+    expect(create_filter.result).to.be.eq(context.web3.utils.numberToHex(1));
   });
 
   it("should return unsupported error for Pending Transaction filter creation", async function () {
