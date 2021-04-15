@@ -37,41 +37,46 @@ export function compileSolidity(contractContent: string, contractName: string = 
   return {
     byteCode: "0x" + contract.evm.bytecode.object,
     contract,
+    sourceCode: contractContent,
   };
 }
 export interface Compiled {
   byteCode: string;
   contract: any;
+  sourceCode: string;
 }
 
 export async function getCompiled(name: string): Promise<Compiled> {
   if (!contractSources[name]) throw new Error("Contract name doesn't exist in test suite");
   let finalCompiled: Compiled = await new Promise<Compiled>((res) => {
-    fs.readFile(`./tests/constants/compiledContracts/${name}.json`, async (err, data) => {
-      if (err) {
-        const contractCompiled = compileSolidity(contractSources[name], name);
-        let compiled = JSON.stringify(contractCompiled);
-        await new Promise<void>((res2) => {
-          fs.writeFile(
-            `./tests/constants/compiledContracts/${name}.json`,
-            compiled,
-            {
-              flag: "w",
-            },
-            (err) => {
-              if (err) {
-                console.log("error whilst writing,e", err);
+    fs.readFile(
+      `./tests/constants/compiledContracts/${name.toLowerCase()}.json`,
+      async (err, data) => {
+        if (err) {
+          const contractCompiled = compileSolidity(contractSources[name], name);
+          let compiled = JSON.stringify(contractCompiled);
+          await new Promise<void>((res2) => {
+            fs.writeFile(
+              `./tests/constants/compiledContracts/${name.toLowerCase()}.json`,
+              compiled,
+              {
+                flag: "w",
+              },
+              (err) => {
+                if (err) {
+                  console.log("error whilst writing,e", err);
+                }
+                console.log("New compiled contract file has been saved!");
+                res2();
               }
-              console.log("New compiled contract file has been saved!");
-              res2();
-            }
-          );
-        });
-        res(contractCompiled);
-      } else {
-        res(JSON.parse(data.toString()));
+            );
+          });
+          res(contractCompiled);
+        } else {
+          res(JSON.parse(data.toString()));
+        }
       }
-    });
+    );
   });
   return finalCompiled;
 }

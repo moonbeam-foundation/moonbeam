@@ -9,7 +9,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
   // It has been known to fluctuate from release to release, so it may need adjustment.
   const EXPECTED_TRANSACTION_GAS_COST = 891328;
 
-  const TEST_CONTRACT_BYTECODE =
+  const Test_Contract_BYTECODE =
     "0x608060405234801561001057600080fd5b50610041337fffffffffffffffffffffffffffffffffff" +
     "ffffffffffffffffffffffffffffff61004660201b60201c565b610291565b600073ffffffffffff" +
     "ffffffffffffffffffffffffffff168273ffffffffffffffffffffffffffffffffffffffff161415" +
@@ -123,7 +123,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
-        data: TEST_CONTRACT_BYTECODE,
+        data: Test_Contract_BYTECODE,
         value: "0x00",
         gasPrice: "0x01",
         gas: "0x" + EXPECTED_TRANSACTION_GAS_COST.toString(16),

@@ -7,26 +7,26 @@ import { getCompiled } from "./util/contracts";
 describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, async (context) => {
   // Those test are ordered. In general this should be avoided, but due to the time it takes
   // to spin up a Moonbeam node, it saves a lot of time.
-  let TEST_CONTRACT_BYTECODE: string;
-  let TEST_CONTRACT_ABI;
+  let Test_Contract_BYTECODE: string;
+  let Test_Contract_ABI;
 
   before("get constants", async function () {
     this.timeout(15000);
-    TEST_CONTRACT_BYTECODE = (await getCompiled("TEST_CONTRACT")).byteCode;
-    TEST_CONTRACT_ABI = (await getCompiled("TEST_CONTRACT")).contract.abi;
+    Test_Contract_BYTECODE = (await getCompiled("Test_Contract")).byteCode;
+    Test_Contract_ABI = (await getCompiled("Test_Contract")).contract.abi;
   });
 
   it("eth_estimateGas for contract creation", async function () {
     expect(
       await context.web3.eth.estimateGas({
         from: GENESIS_ACCOUNT,
-        data: TEST_CONTRACT_BYTECODE,
+        data: Test_Contract_BYTECODE,
       })
     ).to.equal(149143);
   });
 
   it("eth_estimateGas for contract call", async function () {
-    const contract = new context.web3.eth.Contract(TEST_CONTRACT_ABI, FIRST_CONTRACT_ADDRESS, {
+    const contract = new context.web3.eth.Contract(Test_Contract_ABI, FIRST_CONTRACT_ADDRESS, {
       from: GENESIS_ACCOUNT,
       gasPrice: "0x01",
     });
@@ -35,7 +35,7 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, async (context) 
   });
 
   it("eth_estimateGas without gas_limit should pass", async function () {
-    const contract = new context.web3.eth.Contract(TEST_CONTRACT_ABI, FIRST_CONTRACT_ADDRESS, {
+    const contract = new context.web3.eth.Contract(Test_Contract_ABI, FIRST_CONTRACT_ADDRESS, {
       from: GENESIS_ACCOUNT,
     });
 
@@ -63,7 +63,7 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, async (context) 
     const goodTx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
-        data: TEST_CONTRACT_BYTECODE,
+        data: Test_Contract_BYTECODE,
         value: "0x00",
         gasPrice: "0x01",
         gas: EXTRINSIC_GAS_LIMIT, // Todo: fix (remove eth base cost)
@@ -80,7 +80,7 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, async (context) 
     const badTx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
-        data: TEST_CONTRACT_BYTECODE,
+        data: Test_Contract_BYTECODE,
         value: "0x00",
         gasPrice: "0x01",
         gas: EXTRINSIC_GAS_LIMIT + 1,

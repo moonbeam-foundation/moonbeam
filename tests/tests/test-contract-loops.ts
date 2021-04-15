@@ -11,7 +11,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
     const contract = await deployContractByName(
       context.polkadotApi,
       context.web3,
-      "TEST_CONTRACT_INCR"
+      "Test_Contract_Incr"
     );
 
     // check variable initializaion
@@ -30,7 +30,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
     const contract = await deployContractByName(
       context.polkadotApi,
       context.web3,
-      "INFINITE_CONTRACT"
+      "Infinite_Contract"
     );
 
     // call infinite loop
@@ -45,7 +45,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
     const contract = await deployContractByName(
       context.polkadotApi,
       context.web3,
-      "INFINITE_CONTRACT_VAR"
+      "Infinite_Contract_Var"
     );
 
     //make infinite loop function call
@@ -71,7 +71,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
     const contract = await deployContractByName(
       context.polkadotApi,
       context.web3,
-      "FINITE_LOOP_CONTRACT"
+      "Finite_Loop_Contract"
     );
 
     //make finite loop function call

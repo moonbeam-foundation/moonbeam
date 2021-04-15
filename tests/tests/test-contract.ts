@@ -13,7 +13,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract)", `simple-specs.json`, (context) =
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
-        data: (await getCompiled("TEST_CONTRACT")).byteCode,
+        data: (await getCompiled("Test_Contract")).byteCode,
         value: "0x00",
         gasPrice: "0x01",
         gas: "0x100000",

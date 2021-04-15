@@ -1,14 +1,14 @@
 export const contractSources: { [key: string]: string } = {
   // Solidity: contract test {function multiply(uint a) public pure returns(uint d) {return a * 7;}}
-  TEST_CONTRACT: `
+  Test_Contract: `
         pragma solidity >=0.8.0;
     
-    contract TEST_CONTRACT {function multiply(uint a) public pure returns(uint d) {return a * 7;}}`,
+    contract Test_Contract {function multiply(uint a) public pure returns(uint d) {return a * 7;}}`,
   // simple incremental count contract to test contract with state changes
-  TEST_CONTRACT_INCR: `
+  Test_Contract_Incr: `
       pragma solidity >=0.8.0;
       
-      contract TEST_CONTRACT_INCR {
+      contract Test_Contract_INCR {
           uint public count;
       
           constructor() public {
@@ -20,17 +20,17 @@ export const contractSources: { [key: string]: string } = {
           }
       }`,
   // infinite loop call
-  INFINITE_CONTRACT: `
+  Infinite_Contract: `
     pragma solidity >=0.8.0;
     
-    contract INFINITE_CONTRACT {
+    contract Infinite_Contract {
         function infinite() public pure returns(uint d) {while (true) {}}
     }`,
   // infinite loop call with variable alocation
-  INFINITE_CONTRACT_VAR: `
+  Infinite_Contract_Var: `
   pragma solidity >=0.8.0;
   
-  contract INFINITE_CONTRACT_VAR {
+  contract Infinite_Contract_Var {
       uint public count;
   
       constructor() public {
@@ -44,10 +44,10 @@ export const contractSources: { [key: string]: string } = {
       }
   }`,
   // definite loop call with variable alocation
-  FINITE_LOOP_CONTRACT: `
+  Finite_Loop_Contract: `
     pragma solidity >=0.8.0;
     
-    contract FINITE_LOOP_CONTRACT {
+    contract Finite_Loop_Contract {
         uint public count;
     
         constructor() public {

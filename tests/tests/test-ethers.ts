@@ -17,8 +17,8 @@ describeWithMoonbeam("Moonbeam RPC (Ethers.js)", `simple-specs.json`, (context) 
 
     // deploy contract
     const factory = new ethers.ContractFactory(
-      (await getCompiled("TEST_CONTRACT")).contract.abi as ethers.ContractInterface,
-      (await getCompiled("TEST_CONTRACT")).byteCode,
+      (await getCompiled("Test_Contract")).contract.abi as ethers.ContractInterface,
+      (await getCompiled("Test_Contract")).byteCode,
       signer
     );
     let contract = await new Promise<ethers.Contract>(async (resolve) => {
@@ -39,7 +39,7 @@ describeWithMoonbeam("Moonbeam RPC (Ethers.js)", `simple-specs.json`, (context) 
     // Instantiate contract from address
     const contractFromAddress = new ethers.Contract(
       contract.address,
-      (await getCompiled("TEST_CONTRACT")).contract.abi as ethers.ContractInterface,
+      (await getCompiled("Test_Contract")).contract.abi as ethers.ContractInterface,
       signer
     );
     expect((await contractFromAddress.multiply(3)).toString()).to.equal("21");
