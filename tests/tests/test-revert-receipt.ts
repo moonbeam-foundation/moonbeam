@@ -25,13 +25,13 @@ describeWithMoonbeam("Frontier RPC (Constructor Revert)", `simple-specs.json`, (
     "80fdfea2646970667358221220c70bc8b03cdfdf57b5f6c4131b836f9c2c4df01b8202f530555333f2a00e4b8364" +
     "736f6c63430006060033";
 
-  let expected_contract_address;
+  let expectedContractAddress;
   beforeEach(async function () {
-    let tx_count = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
-    if (tx_count == 0) {
-      expected_contract_address = "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a";
+    let txCount = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
+    if (txCount == 0) {
+      expectedContractAddress = "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a";
     } else {
-      expected_contract_address = "0x5c4242beB94dE30b922f57241f1D02f36e906915";
+      expectedContractAddress = "0x5c4242beB94dE30b922f57241f1D02f36e906915";
     }
   });
   it("should provide a tx receipt after successful deployment", async function () {
@@ -48,7 +48,7 @@ describeWithMoonbeam("Frontier RPC (Constructor Revert)", `simple-specs.json`, (
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
 
-    const good_tx_hash = context.web3.utils.keccak256(tx.rawTransaction);
+    const goodTxHash = context.web3.utils.keccak256(tx.rawTransaction);
 
     expect(
       await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction])
@@ -60,17 +60,17 @@ describeWithMoonbeam("Frontier RPC (Constructor Revert)", `simple-specs.json`, (
 
     // Verify the receipt exists after the block is created
     await createAndFinalizeBlock(context.polkadotApi);
-    let current_height = await context.web3.eth.getBlockNumber();
+    let currentHeight = await context.web3.eth.getBlockNumber();
 
-    const receipt = await context.web3.eth.getTransactionReceipt(good_tx_hash);
+    const receipt = await context.web3.eth.getTransactionReceipt(goodTxHash);
     expect(receipt).to.include({
-      blockNumber: current_height,
-      contractAddress: expected_contract_address,
+      blockNumber: currentHeight,
+      contractAddress: expectedContractAddress,
       cumulativeGasUsed: 67231,
       from: "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b",
       gasUsed: 67231,
       to: null,
-      transactionHash: good_tx_hash,
+      transactionHash: goodTxHash,
       transactionIndex: 0,
       status: true,
     });
@@ -90,7 +90,7 @@ describeWithMoonbeam("Frontier RPC (Constructor Revert)", `simple-specs.json`, (
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
 
-    const fail_tx_hash = context.web3.utils.keccak256(tx.rawTransaction);
+    const failTxHash = context.web3.utils.keccak256(tx.rawTransaction);
 
     expect(
       await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction])
@@ -103,15 +103,15 @@ describeWithMoonbeam("Frontier RPC (Constructor Revert)", `simple-specs.json`, (
     await createAndFinalizeBlock(context.polkadotApi);
     let current_height = await context.web3.eth.getBlockNumber();
 
-    const receipt = await context.web3.eth.getTransactionReceipt(fail_tx_hash);
+    const receipt = await context.web3.eth.getTransactionReceipt(failTxHash);
     expect(receipt).to.include({
       blockNumber: current_height,
-      contractAddress: expected_contract_address,
+      contractAddress: expectedContractAddress,
       cumulativeGasUsed: 54600,
       from: "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b",
       gasUsed: 54600,
       to: null,
-      transactionHash: fail_tx_hash,
+      transactionHash: failTxHash,
       transactionIndex: 0,
       status: false,
     });

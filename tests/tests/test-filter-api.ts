@@ -133,23 +133,23 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
     await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
     return tx;
   }
-  const block_lifespan_threshold = 100;
-  const max_filter_pool = 500;
+  const blockLifespanThreshold = 100;
+  const maxFilterPool = 500;
   beforeEach(async function () {
-    let create_filter = await customRequest(context.web3, "eth_newBlockFilter", []);
-    let filter_id = create_filter.result;
+    let createFilter = await customRequest(context.web3, "eth_newBlockFilter", []);
+    let filterId = createFilter.result;
     // If filter is NAN filter pool is full
-    if (isNaN(filter_id)) {
-      filter_id = 500;
+    if (isNaN(filterId)) {
+      filterId = 500;
     }
     // Lets have a clean environment by uninstalling all tests
-    for (let i = 0; i <= filter_id; i++) {
+    for (let i = 0; i <= filterId; i++) {
       await customRequest(context.web3, "eth_uninstallFilter", [i]);
     }
   });
 
   it("should create a Log filter and return the ID", async function () {
-    let create_filter = await customRequest(context.web3, "eth_newFilter", [
+    let createFilter = await customRequest(context.web3, "eth_newFilter", [
       {
         fromBlock: "0x0",
         toBlock: "latest",
@@ -160,11 +160,11 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
         topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
       },
     ]);
-    expect(create_filter.result).to.be.eq(context.web3.utils.numberToHex(1));
+    expect(createFilter.result).to.be.eq(context.web3.utils.numberToHex(1));
   });
 
   it("should increment filter ID", async function () {
-    let create_filter = await customRequest(context.web3, "eth_newFilter", [
+    let createFilter = await customRequest(context.web3, "eth_newFilter", [
       {
         fromBlock: "0x1",
         toBlock: "0x2",
@@ -172,12 +172,12 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
         topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
       },
     ]);
-    expect(create_filter.result).to.be.eq(context.web3.utils.numberToHex(1));
+    expect(createFilter.result).to.be.eq(context.web3.utils.numberToHex(1));
   });
 
   it("should create a Block filter and return the ID", async function () {
-    let create_filter = await customRequest(context.web3, "eth_newBlockFilter", []);
-    expect(create_filter.result).to.be.eq(context.web3.utils.numberToHex(1));
+    let createFilter = await customRequest(context.web3, "eth_newBlockFilter", []);
+    expect(createFilter.result).to.be.eq(context.web3.utils.numberToHex(1));
   });
 
   it("should return unsupported error for Pending Transaction filter creation", async function () {
@@ -188,10 +188,10 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
   });
 
   it("should return responses for Block filter polling.", async function () {
-    let create_filter = await customRequest(context.web3, "eth_newBlockFilter", []);
+    let createFilter = await customRequest(context.web3, "eth_newBlockFilter", []);
     let block = await context.web3.eth.getBlock("latest");
     let poll = await customRequest(context.web3, "eth_getFilterChanges", [
-      context.web3.utils.numberToHex(create_filter.result),
+      context.web3.utils.numberToHex(createFilter.result),
     ]);
     expect(poll.result.length).to.be.eq(1);
     expect(poll.result[0]).to.be.eq(block.hash);
@@ -200,7 +200,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
 
     block = await context.web3.eth.getBlock("latest");
     poll = await customRequest(context.web3, "eth_getFilterChanges", [
-      context.web3.utils.numberToHex(create_filter.result),
+      context.web3.utils.numberToHex(createFilter.result),
     ]);
 
     expect(poll.result.length).to.be.eq(1);
@@ -209,16 +209,16 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
     await createAndFinalizeBlock(context.polkadotApi);
     await createAndFinalizeBlock(context.polkadotApi);
 
-    let current_height = await context.web3.eth.getBlockNumber();
-    block = await context.web3.eth.getBlock(current_height - 1);
-    let block_b = await context.web3.eth.getBlock(current_height);
+    let currentHeight = await context.web3.eth.getBlockNumber();
+    block = await context.web3.eth.getBlock(currentHeight - 1);
+    let blockB = await context.web3.eth.getBlock(currentHeight);
     poll = await customRequest(context.web3, "eth_getFilterChanges", [
-      context.web3.utils.numberToHex(create_filter.result),
+      context.web3.utils.numberToHex(createFilter.result),
     ]);
 
     expect(poll.result.length).to.be.eq(2);
     expect(poll.result[0]).to.be.eq(block.hash);
-    expect(poll.result[1]).to.be.eq(block_b.hash);
+    expect(poll.result[1]).to.be.eq(blockB.hash);
   });
 
   it("should return responses for Log filter polling.", async function () {
@@ -230,7 +230,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
     expect(receipt.logs.length).to.be.eq(1);
 
     // Create a filter for the created contract.
-    let create_filter = await customRequest(context.web3, "eth_newFilter", [
+    let createFilter = await customRequest(context.web3, "eth_newFilter", [
       {
         fromBlock: "0x0",
         toBlock: "latest",
@@ -238,14 +238,14 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
         topics: receipt.logs[0].topics,
       },
     ]);
-    let poll = await customRequest(context.web3, "eth_getFilterChanges", [create_filter.result]);
+    let poll = await customRequest(context.web3, "eth_getFilterChanges", [createFilter.result]);
 
     expect(poll.result.length).to.be.eq(1);
     expect(poll.result[0].address.toLowerCase()).to.be.eq(receipt.contractAddress.toLowerCase());
     expect(poll.result[0].topics).to.be.deep.eq(receipt.logs[0].topics);
 
     // A subsequent request must be empty.
-    poll = await customRequest(context.web3, "eth_getFilterChanges", [create_filter.result]);
+    poll = await customRequest(context.web3, "eth_getFilterChanges", [createFilter.result]);
     expect(poll.result.length).to.be.eq(0);
   });
 
@@ -258,7 +258,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
     expect(receipt.logs.length).to.be.eq(1);
 
     // Create a filter for the created contract.
-    let create_filter = await customRequest(context.web3, "eth_newFilter", [
+    let createFilter = await customRequest(context.web3, "eth_newFilter", [
       {
         fromBlock: "0x0",
         toBlock: "latest",
@@ -266,13 +266,13 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
         topics: receipt.logs[0].topics,
       },
     ]);
-    let poll = await customRequest(context.web3, "eth_getFilterLogs", [create_filter.result]);
+    let poll = await customRequest(context.web3, "eth_getFilterLogs", [createFilter.result]);
     expect(poll.result.length).to.be.eq(1);
     expect(poll.result[0].address.toLowerCase()).to.be.eq(receipt.contractAddress.toLowerCase());
     expect(poll.result[0].topics).to.be.deep.eq(receipt.logs[0].topics);
 
     // A subsequent request must return the same response.
-    poll = await customRequest(context.web3, "eth_getFilterLogs", [create_filter.result]);
+    poll = await customRequest(context.web3, "eth_getFilterLogs", [createFilter.result]);
 
     expect(poll.result.length).to.be.eq(1);
     expect(poll.result[0].address.toLowerCase()).to.be.eq(receipt.contractAddress.toLowerCase());
@@ -280,37 +280,37 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
   });
 
   it("should uninstall created filters.", async function () {
-    let create_filter = await customRequest(context.web3, "eth_newBlockFilter", []);
-    let filter_id = create_filter.result;
+    let createFilter = await customRequest(context.web3, "eth_newBlockFilter", []);
+    let filterId = createFilter.result;
     // Should return true when removed from the filter pool.
-    let uninstall = await customRequest(context.web3, "eth_uninstallFilter", [filter_id]);
+    let uninstall = await customRequest(context.web3, "eth_uninstallFilter", [filterId]);
     expect(uninstall.result).to.be.eq(true);
 
     // Should return error if does not exist.
-    let r = await customRequest(context.web3, "eth_uninstallFilter", [filter_id]);
+    let r = await customRequest(context.web3, "eth_uninstallFilter", [filterId]);
     expect(r.error).to.include({
-      message: "Filter id " + parseInt(filter_id, 16) + " does not exist.",
+      message: "Filter id " + parseInt(filterId, 16) + " does not exist.",
     });
   });
 
   it("should drain the filter pool.", async function () {
     this.timeout(15000);
 
-    let create_filter = await customRequest(context.web3, "eth_newBlockFilter", []);
-    let filter_id = create_filter.result;
+    let createFilter = await customRequest(context.web3, "eth_newBlockFilter", []);
+    let filterId = createFilter.result;
 
-    for (let i = 0; i <= block_lifespan_threshold; i++) {
+    for (let i = 0; i <= blockLifespanThreshold; i++) {
       await createAndFinalizeBlock(context.polkadotApi);
     }
 
-    let r = await customRequest(context.web3, "eth_getFilterChanges", [filter_id]);
+    let r = await customRequest(context.web3, "eth_getFilterChanges", [filterId]);
     expect(r.error).to.include({
-      message: "Filter id " + parseInt(filter_id, 16) + " does not exist.",
+      message: "Filter id " + parseInt(filterId, 16) + " does not exist.",
     });
   });
 
   it("should have a filter pool max size of 500.", async function () {
-    for (let i = 0; i < max_filter_pool; i++) {
+    for (let i = 0; i < maxFilterPool; i++) {
       await customRequest(context.web3, "eth_newBlockFilter", []);
     }
 

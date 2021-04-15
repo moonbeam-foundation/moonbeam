@@ -37,8 +37,6 @@ describeWithMoonbeam("Moonbeam RPC (Nonce)", `simple-specs.json`, (context) => {
   });
 
   it("nonce should not be reset to 0 when emptying dust accounts", async function () {
-    this.timeout(15000);
-
     const testAccountPrivateKey1 = context.web3.utils.randomHex(32);
     const testAccountPrivateKey2 = context.web3.utils.randomHex(32);
     const keyring = new Keyring({ type: "ethereum" });

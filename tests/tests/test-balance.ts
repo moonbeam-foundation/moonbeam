@@ -46,9 +46,9 @@ describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) =>
     expect(account.data.free.toString()).to.equal(GENESIS_ACCOUNT_BALANCE.toString());
   });
   it("balance to be updated after transfer", async function () {
-    let genesis_balance = BigInt(await context.web3.eth.getBalance(GENESIS_ACCOUNT, 0));
+    const genesisBalance = BigInt(await context.web3.eth.getBalance(GENESIS_ACCOUNT, 0));
     expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT, 1)).to.equal(
-      (genesis_balance - 0x200n - 21000n).toString()
+      (genesisBalance - 0x200n - 21000n).toString()
     );
     expect(await context.web3.eth.getBalance(TEST_ACCOUNT, 1)).to.equal("512");
   });
