@@ -44,7 +44,7 @@ describeWithMoonbeam("Frontier RPC (Pending Pool)", `simple-specs.json`, (contex
     const processedTransaction = (
       await customRequest(context.web3, "eth_getTransactionByHash", [txHash])
     ).result;
-    expect(pendingTransaction).to.include({
+    expect(processedTransaction).to.include({
       blockNumber: "0x1",
       hash: txHash,
       publicKey:
