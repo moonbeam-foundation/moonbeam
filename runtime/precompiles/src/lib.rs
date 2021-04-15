@@ -105,15 +105,15 @@ impl Precompile for Sacrifice {
 /// supporters who want to donate toward a perpetual nomination fund.
 pub struct NominateWrapper<Runtime>(PhantomData<Runtime>);
 
-// type BalanceOf<Runtime> =
-// 	<<Runtime as parachain_staking::Config>::Currency as Currency<Runtime::AccountId>>::Balance;
+type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as Currency<
+	<Runtime as frame_system::Config>::AccountId,
+>>::Balance;
 
 impl<Runtime> Precompile for NominateWrapper<Runtime>
 where
 	Runtime: parachain_staking::Config + pallet_evm::Config,
 	Runtime::AccountId: From<H160>,
-	<<Runtime as parachain_staking::Config>::Currency as Currency<Runtime::AccountId>>::Balance:
-		TryFrom<U256> + Debug,
+	BalanceOf<Runtime>: TryFrom<U256> + Debug,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<parachain_staking::Call<Runtime>>,
@@ -125,10 +125,6 @@ where
 	) -> Result<(ExitSucceed, Vec<u8>, u64), ExitError> {
 		// Basic sanity checking for length
 		// https://solidity-by-example.org/primitives/
-
-		// Params are:
-		// Collator target (size 20 bytes, address)
-		// Nomination Amoutn: (size 32 bytes, U256 (for now))
 		const COLLATOR_SIZE_BYTES: usize = 20;
 		const AMOUNT_SIZE_BYTES: usize = 32;
 		if input.len() != COLLATOR_SIZE_BYTES + AMOUNT_SIZE_BYTES {
@@ -151,10 +147,7 @@ where
 		// chains tht have a more standard substrate account type.
 		let collator = H160::from_slice(&collator_buf);
 
-		// TODO handle the error for too-big numbers
-		let amount: <<Runtime as parachain_staking::Config>::Currency as Currency<
-			Runtime::AccountId,
-		>>::Balance = sp_core::U256::from_big_endian(&amount_buf)
+		let amount: BalanceOf<Runtime> = sp_core::U256::from_big_endian(&amount_buf)
 			.try_into()
 			.map_err(|_| {
 				ExitError::Other("amount is too large for Runtime's balance type".into())
@@ -165,9 +158,7 @@ where
 
 		// Construct a call
 		let inner_call = parachain_staking::Call::<Runtime>::nominate(collator.into(), amount);
-
 		let outer_call: Runtime::Call = inner_call.into();
-
 		let info = outer_call.get_dispatch_info();
 
 		// Make sure enough gas
