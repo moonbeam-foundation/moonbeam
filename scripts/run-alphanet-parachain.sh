@@ -29,7 +29,7 @@ fi
 # Will retrieve variable from the given network
 NETWORK=${NETWORK:-"alphanet"}
 PARACHAIN_ID=$(eval echo "\$${NETWORK^^}_PARACHAIN_ID")
-STAKERS=$(eval echo "\$${NETWORK^^}_STAKERS")
+STAKERS=($(eval echo "\${${NETWORK^^}_STAKERS[@]}"))
 
 if [ -z "$CHAIN" ]; then
   CHAIN=$(eval echo "\$${NETWORK^^}_PARACHAIN_SPEC_RAW")
@@ -82,6 +82,7 @@ fi
 echo "parachain $PARACHAIN_INDEX ($PARACHAIN_ID) - p2p-port: $((PARACHAIN_PORT + 10)), \
 http-port: $((PARACHAIN_PORT + 10 + 1)), ws-port: $((PARACHAIN_PORT + 10 + 2))"
 
+sha256sum $CHAIN
 $MOONBEAM_BINARY \
   --node-key ${PARACHAIN_NODE_KEYS[$PARACHAIN_INDEX]} \
   --port $((PARACHAIN_PORT + 10)) \
@@ -104,4 +105,5 @@ $MOONBEAM_BINARY \
     --port $((PARACHAIN_PORT)) \
     --rpc-port $((PARACHAIN_PORT + 1)) \
     --ws-port $((PARACHAIN_PORT + 2)) \
-    --chain $ROCOCO_LOCAL_RAW_SPEC;
+    --chain $ROCOCO_LOCAL_RAW_SPEC \
+  $RELAY_BOOTNODES_ARGS;

@@ -32,6 +32,22 @@ export const rpcDefinitions: Record<string, Record<string, DefinitionRpc | Defin
       type: "TxPoolResultStatus",
     },
   },
+  trace: {
+    filter: {
+      aliasSection: "trace",
+      description: "Trace Filter",
+      params: [{ name: "filter", type: "FilterRequest" }],
+      type: "Result<Vec<TransactionTrace>>",
+    },
+  },
+  debug: {
+    traceTransaction: {
+      aliasSection: "debug",
+      description: "Debug trace tx",
+      params: [{ name: "transaction_hash", type: "H256" }],
+      type: "Result<Vec<TransactionTrace>>",
+    },
+  },
 };
 
 export const moonbeamDefinitions = {
@@ -127,6 +143,7 @@ export const moonbeamDefinitions = {
       minmax: [19, undefined],
       types: {
         AccountId: "EthereumAccountId",
+        AccountInfo: "AccountInfoWithProviders",
         Address: "AccountId",
         Balance: "u128",
         LookupSource: "AccountId",
@@ -142,7 +159,7 @@ export const moonbeamDefinitions = {
           bond: "Balance",
           nominators: "Vec<Bond>",
           total: "Balance",
-          state: "ValidatorStatus",
+          state: "CollatorStatus",
         },
         Nominator: {
           nominations: "Vec<Bond>",
@@ -152,7 +169,7 @@ export const moonbeamDefinitions = {
           owner: "AccountId",
           amount: "Balance",
         },
-        ValidatorStatus: {
+        CollatorStatus: {
           _enum: ["Active", "Idle", { Leaving: "RoundIndex" }],
         },
         TxPoolResultContent: {
@@ -196,17 +213,15 @@ export const moonbeamDefinitions = {
           expect: "RangeBalance",
           round: "RangePerbill",
         },
-        OrderedSet: "Vec",
-        Validator: {
+        OrderedSet: "Vec<Bond>",
+        Collator: {
           id: "AccountId",
-          fee: "Perbill",
           bond: "Balance",
           nominators: "Vec<Bond>",
           total: "Balance",
-          state: "ValidatorStatus",
+          state: "CollatorStatus",
         },
-        ValidatorSnapshot: {
-          fee: "Perbill",
+        CollatorSnapshot: {
           bond: "Balance",
           nominators: "Vec<Bond>",
           total: "Balance",
@@ -216,6 +231,11 @@ export const moonbeamDefinitions = {
           relay_chain_state: "StorageProof",
           downward_messages: "Vec<InboundDownwardMessage>",
           horizontal_messages: "BTreeMap<ParaId, Vec<InboundHrmpMessage>>",
+        },
+        RoundInfo: {
+          current: "RoundIndex",
+          first: "BlockNumber",
+          length: "u32",
         },
       },
     },

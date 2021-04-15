@@ -18,6 +18,16 @@ export const TEST_CONTRACT_ABI = {
   type: "function",
 } as AbiItem;
 
+export const TEST_CONTRACT_ABI_ETHERS = {
+  constant: true,
+  inputs: [{ internalType: "uint256", name: "a", type: "uint256" }],
+  name: "multiply",
+  outputs: [{ internalType: "uint256", name: "d", type: "uint256" }],
+  payable: false,
+  stateMutability: "pure",
+  type: "function",
+};
+
 export const FIRST_CONTRACT_ADDRESS = "0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a";
 
 // simple incremental count contract to test contract with state changes

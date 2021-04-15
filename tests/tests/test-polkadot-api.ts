@@ -4,12 +4,9 @@ import { step } from "mocha-steps";
 
 import { createAndFinalizeBlock, describeWithMoonbeam } from "./util";
 import { AnyTuple, IEvent } from "@polkadot/types/types";
+import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
 
 describeWithMoonbeam("Moonbeam Polkadot API", `simple-specs.json`, (context) => {
-  const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
-  const GENESIS_ACCOUNT_PRIVATE_KEY =
-    "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
-
   step("api can retrieve last header", async function () {
     const lastHeader = await context.polkadotApi.rpc.chain.getHeader();
     expect(Number(lastHeader.number) >= 0).to.be.true;

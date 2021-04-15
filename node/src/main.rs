@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -20,6 +20,8 @@
 #![warn(unused_extern_crates)]
 
 mod chain_spec;
+#[cfg(feature = "test-spec")]
+mod test_spec;
 #[macro_use]
 mod service;
 mod cli;

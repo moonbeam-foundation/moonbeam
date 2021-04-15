@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -14,6 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! Moonbeam CLI Library. Built with structopt
+//!
+//! This module defines the Moonbeam node's Command Line Interface (CLI)
+//! It is built using structopt and inherits behavior from Substrate's sc_cli crate.
+
+use crate::chain_spec;
 use sp_core::H160;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -31,7 +37,7 @@ pub enum Subcommand {
 	ExportGenesisWasm(ExportGenesisWasmCommand),
 
 	/// Build a chain specification.
-	BuildSpec(sc_cli::BuildSpecCmd),
+	BuildSpec(BuildSpecCommand),
 
 	/// Validate blocks.
 	CheckBlock(sc_cli::CheckBlockCmd),
@@ -46,10 +52,26 @@ pub enum Subcommand {
 	ImportBlocks(sc_cli::ImportBlocksCmd),
 
 	/// Remove the whole chain.
-	PurgeChain(sc_cli::PurgeChainCmd),
+	PurgeChain(cumulus_client_cli::PurgeChainCmd),
 
 	/// Revert the chain to a previous state.
 	Revert(sc_cli::RevertCmd),
+}
+
+#[derive(Debug, StructOpt)]
+pub struct BuildSpecCommand {
+	#[structopt(flatten)]
+	pub base: sc_cli::BuildSpecCmd,
+
+	/// Number of accounts to be funded in the genesis
+	/// Warning: This flag implies a development spec and overrides any explicitly supplied spec
+	#[structopt(long, conflicts_with = "chain")]
+	pub accounts: Option<u32>,
+
+	/// Mnemonic from which we can derive funded accounts in the genesis
+	/// Warning: This flag implies a development spec and overrides any explicitly supplied spec
+	#[structopt(long, conflicts_with = "chain")]
+	pub mnemonic: Option<String>,
 }
 
 /// Command for exporting the genesis state of the parachain
@@ -110,6 +132,15 @@ pub struct RunCmd {
 	/// Public identity for participating in staking and receiving rewards
 	#[structopt(long, parse(try_from_str = parse_h160))]
 	pub author_id: Option<H160>,
+
+	/// Enable EVM tracing module on a non-authority node.
+	#[structopt(
+		long,
+		conflicts_with = "collator",
+		conflicts_with = "validator",
+		require_delimiter = true
+	)]
+	pub ethapi: Vec<EthApi>,
 }
 
 fn parse_h160(input: &str) -> Result<H160, String> {
@@ -163,12 +194,17 @@ pub struct RelayChainCli {
 }
 
 impl RelayChainCli {
-	/// Create a new instance of `Self`.
+	/// Parse the relay chain CLI parameters using the para chain `Configuration`.
 	pub fn new<'a>(
-		base_path: Option<PathBuf>,
-		chain_id: Option<String>,
+		para_config: &sc_service::Configuration,
 		relay_chain_args: impl Iterator<Item = &'a String>,
 	) -> Self {
+		let extension = chain_spec::Extensions::try_get(&*para_config.chain_spec);
+		let chain_id = extension.map(|e| e.relay_chain.clone());
+		let base_path = para_config
+			.base_path
+			.as_ref()
+			.map(|x| x.path().join("polkadot"));
 		Self {
 			base_path,
 			chain_id,
@@ -199,6 +235,31 @@ impl FromStr for Sealing {
 				let millis =
 					u64::from_str_radix(s, 10).map_err(|_| "couldn't decode sealing param")?;
 				Self::Interval(millis)
+			}
+		})
+	}
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum EthApi {
+	Txpool,
+	Debug,
+	Trace,
+}
+
+impl FromStr for EthApi {
+	type Err = String;
+
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		Ok(match s {
+			"txpool" => Self::Txpool,
+			"debug" => Self::Debug,
+			"trace" => Self::Trace,
+			_ => {
+				return Err(format!(
+					"`{}` is not recognized as a supported Ethereum Api",
+					s
+				))
 			}
 		})
 	}

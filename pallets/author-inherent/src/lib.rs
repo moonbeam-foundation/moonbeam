@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -20,9 +20,8 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::debug;
 use frame_support::{
-	decl_error, decl_module, decl_storage, ensure,
+	decl_error, decl_module, decl_storage, ensure, log,
 	traits::FindAuthor,
 	weights::{DispatchClass, Weight},
 };
@@ -105,14 +104,14 @@ decl_module! {
 			DispatchClass::Mandatory
 		)]
 		fn set_author(origin, author: T::AccountId) {
-			debug::trace!(target:"author-inherent", "In the author inherent dispatchable");
+			log::trace!(target:"author-inherent", "In the author inherent dispatchable");
 
 			ensure_none(origin)?;
 			ensure!(<Author<T>>::get().is_none(), Error::<T>::AuthorAlreadySet);
 			ensure!(T::FinalCanAuthor::can_author(&author), Error::<T>::CannotBeAuthor);
 
 			// Update storage
-			debug::trace!(
+			log::trace!(
 				target:"author-inherent",
 				"Passed ensures. About to write claimed author to storage."
 			);
@@ -121,7 +120,7 @@ decl_module! {
 			// Add a digest item so Apps can detect the block author
 			// For now we use the Consensus digest item.
 			// Maybe this will change later.
-			frame_system::Module::<T>::deposit_log(DigestItem::<T::Hash>::Consensus(
+			frame_system::Pallet::<T>::deposit_log(DigestItem::<T::Hash>::Consensus(
 				ENGINE_ID,
 				author.encode(),
 			));
@@ -131,12 +130,12 @@ decl_module! {
 		}
 
 		fn on_finalize(_n: T::BlockNumber) {
-			debug::trace!(
+			log::trace!(
 				target:"author-inherent",
 				"In author inherent's on finalize. About to assert author was set"
 			);
 			assert!(Author::<T>::get().is_some(), "No valid author set in block");
-			debug::trace!(
+			log::trace!(
 				target:"author-inherent",
 				"Finished asserting author was set (apparently it was)"
 			);
@@ -244,7 +243,7 @@ impl<T: Config> ProvideInherent for Module<T> {
 	fn check_inherent(call: &Self::Call, _data: &InherentData) -> Result<(), Self::Error> {
 		// We only care to check the inherent provided by this pallet.
 		if let Self::Call::set_author(claimed_author) = call {
-			debug::trace!(
+			log::trace!(
 				target:"author-inherent",
 				"In the author inherent's `check_inherent` impl"
 			);
@@ -261,9 +260,10 @@ impl<T: Config> ProvideInherent for Module<T> {
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use crate as author_inherent;
 
 	use frame_support::{
-		assert_noop, assert_ok, impl_outer_origin, parameter_types,
+		assert_noop, assert_ok, parameter_types,
 		traits::{OnFinalize, OnInitialize},
 	};
 	use sp_core::H256;
@@ -280,20 +280,25 @@ mod tests {
 		TestExternalities::new(t)
 	}
 
-	impl_outer_origin! {
-		pub enum Origin for Test where system = frame_system {}
-	}
+	type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
+	type Block = frame_system::mocking::MockBlock<Test>;
 
-	mod author_inherent {
-		pub use super::super::*;
-	}
+	// Configure a mock runtime to test the pallet.
+	frame_support::construct_runtime!(
+		pub enum Test where
+			Block = Block,
+			NodeBlock = Block,
+			UncheckedExtrinsic = UncheckedExtrinsic,
+		{
+			System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
+			AuthorInherent: author_inherent::{Pallet, Call, Storage, Inherent},
+		}
+	);
 
-	#[derive(Clone, Eq, PartialEq)]
-	pub struct Test;
 	parameter_types! {
 		pub const BlockHashCount: u64 = 250;
 	}
-	impl System for Test {
+	impl frame_system::Config for Test {
 		type BaseCallFilter = ();
 		type BlockWeights = ();
 		type BlockLength = ();
@@ -301,7 +306,7 @@ mod tests {
 		type Origin = Origin;
 		type Index = u64;
 		type BlockNumber = u64;
-		type Call = ();
+		type Call = Call;
 		type Hash = H256;
 		type Hashing = BlakeTwo256;
 		type AccountId = u64;
@@ -310,7 +315,7 @@ mod tests {
 		type Event = ();
 		type BlockHashCount = BlockHashCount;
 		type Version = ();
-		type PalletInfo = ();
+		type PalletInfo = PalletInfo;
 		type AccountData = ();
 		type OnNewAccount = ();
 		type OnKilledAccount = ();
@@ -322,15 +327,13 @@ mod tests {
 		type PreliminaryCanAuthor = ();
 		type FinalCanAuthor = ();
 	}
-	type AuthorInherent = Module<Test>;
-	type Sys = frame_system::Module<Test>;
 
 	pub fn roll_to(n: u64) {
-		while Sys::block_number() < n {
-			Sys::on_finalize(Sys::block_number());
-			Sys::set_block_number(Sys::block_number() + 1);
-			Sys::on_initialize(Sys::block_number());
-			AuthorInherent::on_initialize(Sys::block_number());
+		while System::block_number() < n {
+			System::on_finalize(System::block_number());
+			System::set_block_number(System::block_number() + 1);
+			System::on_initialize(System::block_number());
+			AuthorInherent::on_initialize(System::block_number());
 		}
 	}
 
