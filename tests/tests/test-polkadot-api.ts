@@ -6,6 +6,20 @@ import { AnyTuple, IEvent } from "@polkadot/types/types";
 import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
 
 describeWithMoonbeam("Moonbeam Polkadot API", `simple-specs.json`, (context) => {
+  before(async function () {
+    this.timeout(15000);
+    const keyring = new Keyring({ type: "ethereum" });
+    const testAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+    try {
+      let hash = await context.polkadotApi.tx.balances
+        .transfer(TEST_ACCOUNT_2, 123)
+        .signAndSend(testAccount);
+    } catch (e) {
+      expect(false, "error during polkadot api transfer" + e);
+    }
+    // TODO: do some testing with the hash
+    await createAndFinalizeBlock(context.polkadotApi);
+  });
   it("api can retrieve last header", async function () {
     const lastHeader = await context.polkadotApi.rpc.chain.getHeader();
     expect(Number(lastHeader.number) >= 0).to.be.true;
@@ -19,19 +33,6 @@ describeWithMoonbeam("Moonbeam Polkadot API", `simple-specs.json`, (context) => 
   const TEST_ACCOUNT_2 = "0x1111111111111111111111111111111111111112";
 
   it("transfer from polkadotjs should appear in ethereum", async function () {
-    this.timeout(30000);
-
-    const keyring = new Keyring({ type: "ethereum" });
-    const testAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
-    try {
-      let hash = await context.polkadotApi.tx.balances
-        .transfer(TEST_ACCOUNT_2, 123)
-        .signAndSend(testAccount);
-    } catch (e) {
-      expect(false, "error during polkadot api transfer" + e);
-    }
-    // TODO: do some testing with the hash
-    await createAndFinalizeBlock(context.polkadotApi);
     expect(await context.web3.eth.getBalance(TEST_ACCOUNT_2)).to.equal("123");
   });
 
