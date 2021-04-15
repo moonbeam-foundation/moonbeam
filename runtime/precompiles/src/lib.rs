@@ -22,7 +22,6 @@ use codec::Decode;
 use evm::{Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::Currency;
-use num::BigUint;
 use pallet_evm::AddressMapping;
 use pallet_evm::GasWeightMapping;
 use pallet_evm::{Config, Precompile, PrecompileSet};

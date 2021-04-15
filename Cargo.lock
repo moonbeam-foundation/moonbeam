@@ -7123,7 +7123,6 @@ dependencies = [
  "frame-system",
  "hex",
  "log",
- "num",
  "pallet-evm",
  "pallet-evm-precompile-bn128",
  "pallet-evm-precompile-dispatch",

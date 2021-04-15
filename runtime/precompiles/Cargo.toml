@@ -11,8 +11,6 @@ log = "0.4"
 rand = { version = "0.5.6", default-features = false }
 rustc-hex = { version = "2.0.1", default-features = false }
 
-num = { version = "0.3", features = ["alloc"], default-features = false }
-
 codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
 evm = { version = "0.26.0", default-features = false, features = ["with-codec"] }
@@ -45,5 +43,4 @@ std = [
 	"pallet-evm-precompile-simple/std",
 	"parachain-staking/std",
 	"frame-system/std",
-	"num/std",
 ]
