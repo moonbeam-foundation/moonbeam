@@ -10,7 +10,7 @@ describeWithMoonbeam("Frontier RPC (Pending Pool)", `simple-specs.json`, (contex
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
-        data: (await getCompiled("Test_Contract")).byteCode,
+        data: (await getCompiled("TestContract")).byteCode,
         value: "0x00",
         gasPrice: "0x01",
         gas: "0x100000",
@@ -32,9 +32,9 @@ describeWithMoonbeam("Frontier RPC (Pending Pool)", `simple-specs.json`, (contex
       publicKey:
         "0x624f720eae676a04111631c9ca338c11d0f5a80ee42210c6be72983ceb620fbf645a96f951529f" +
         "a2d70750432d11b7caba5270c4d677255be90b3871c8c58069",
-      r: "0x4fbb4e67c0e374d2bbec668f38a6f8bc16583209c2e3154291f53b9e071ab4e4",
-      s: "0x3455ef321dd9641dcf52261e9255019ecf816341f6936bf1397aea45b37e4945",
-      v: "0xa25",
+      r: "0xeab0158195d611eb22d4f5a5788409a153b86a4c09661d469a6453b1272704ff",
+      s: "0x17f220c16a8c11b07d3f1284abf483e330217807632fa93fecf92b48e817875a",
+      v: "0xa26",
     });
 
     await createAndFinalizeBlock(context.polkadotApi);
@@ -48,9 +48,9 @@ describeWithMoonbeam("Frontier RPC (Pending Pool)", `simple-specs.json`, (contex
       publicKey:
         "0x624f720eae676a04111631c9ca338c11d0f5a80ee42210c6be72983ceb620fbf645a96f951529f" +
         "a2d70750432d11b7caba5270c4d677255be90b3871c8c58069",
-      r: "0x4fbb4e67c0e374d2bbec668f38a6f8bc16583209c2e3154291f53b9e071ab4e4",
-      s: "0x3455ef321dd9641dcf52261e9255019ecf816341f6936bf1397aea45b37e4945",
-      v: "0xa25",
+      r: "0xeab0158195d611eb22d4f5a5788409a153b86a4c09661d469a6453b1272704ff",
+      s: "0x17f220c16a8c11b07d3f1284abf483e330217807632fa93fecf92b48e817875a",
+      v: "0xa26",
     });
   });
 });

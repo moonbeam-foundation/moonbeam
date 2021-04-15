@@ -23,7 +23,7 @@ export const basicTransfertx: CompleteTransactionConfig = {
 export async function contractCreation(): Promise<CompleteTransactionConfig> {
   return {
     from: GENESIS_ACCOUNT,
-    data: (await getCompiled("Test_Contract")).byteCode,
+    data: (await getCompiled("TestContract")).byteCode,
     value: "0x00",
     gasPrice: "0x01",
     gas: 91019,

@@ -8,8 +8,8 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
   let Test_Contract_ABI;
   before("create the contract", async function () {
     this.timeout(15000);
-    Test_Contract_ABI = (await getCompiled("Test_Contract")).contract.abi;
-    await deployContractByName(context.polkadotApi, context.web3, "Test_Contract");
+    Test_Contract_ABI = (await getCompiled("TestContract")).contract.abi;
+    await deployContractByName(context.polkadotApi, context.web3, "TestContract");
   });
 
   it("get transaction by hash", async () => {

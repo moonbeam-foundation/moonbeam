@@ -6,4 +6,3 @@ members = [
 
 [profile.release]
 panic = 'unwind'
-opt-level = 0
