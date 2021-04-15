@@ -212,7 +212,8 @@ fn transfer_to_stake() {
 				None
 			))
 			.dispatch(origin_of(AccountId::from(BOB))));
-			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 2_000 * GLMR,);
+			// Bob should have transferred 1000 * GLMR to Charlie
+			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), 1_000 * GLMR,);
 			// Check that transfer was logged correctly in balances
 			// assert_eq!(
 			// 	last_event(),
