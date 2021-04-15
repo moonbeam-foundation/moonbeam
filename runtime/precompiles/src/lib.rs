@@ -121,6 +121,7 @@ where
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin:
 		From<Option<Runtime::AccountId>>,
+	<Runtime as frame_system::Config>::Call: From<parachain_staking::Call<Runtime>>,
 {
 	fn execute(
 		input: &[u8], //Reminder this is big-endian
@@ -153,28 +154,24 @@ where
 		// Convert to right data types
 		let collator = H160::from_slice(&collator_buf);
 
-		// TODO make the currency type generic
+		// TODO handle the error for too-big numbers
 		let amount: <<Runtime as parachain_staking::Config>::Currency as Currency<
 			Runtime::AccountId,
-		>>::Balance = match sp_core::U256::from_big_endian(&amount_buf).try_into() {
-			Ok(x) => x,
-			_ => 0.into(),
-		};
-		// let temp = BigUint::from_bytes_be(&amount_buf);
-		// let amount: <<Runtime as parachain_staking::Config>::Currency as Currency<
-		// 	<Runtime as frame_system::pallet::Config>::AccountId,
-		// >>::Balance = temp.
+		>>::Balance = sp_core::U256::from_big_endian(&amount_buf)
+			.try_into()
+			.map_err(|_| {
+				ExitError::Other("amount is too large for Runtime's balance type".into())
+			})?;
 
 		println!("Collator account is {:?}", collator);
-		// println!("Amount is {:?}", amount);
+		println!("Amount is {:?}", amount);
 
 		// Construct a call
-		let call = <Runtime as frame_system::Config>::Call::ParachainStaking(parachain_staking::Call::<Runtime>::nominate(
-			collator.into(),
-			amount,
-		));
+		let inner_call = parachain_staking::Call::<Runtime>::nominate(collator.into(), amount);
 
-		let info = call.get_dispatch_info();
+		let outer_call: <Runtime as frame_system::Config>::Call = inner_call.into();
+
+		let info = outer_call.get_dispatch_info();
 
 		// Make sure enough gas
 		if let Some(gas_limit) = target_gas {
@@ -187,7 +184,7 @@ where
 		// Dispatch that call
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 
-		match call.dispatch(Some(origin).into()) {
+		match outer_call.dispatch(Some(origin).into()) {
 			Ok(post_info) => {
 				let gas_used = Runtime::GasWeightMapping::weight_to_gas(
 					post_info.actual_weight.unwrap_or(info.weight),
