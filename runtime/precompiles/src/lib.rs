@@ -127,31 +127,25 @@ where
 		// https://solidity-by-example.org/primitives/
 		const COLLATOR_SIZE_BYTES: usize = 20;
 		const AMOUNT_SIZE_BYTES: usize = 32;
+		const TOTAL_SIZE_BYTES: usize = COLLATOR_SIZE_BYTES + AMOUNT_SIZE_BYTES;
+
 		if input.len() != COLLATOR_SIZE_BYTES + AMOUNT_SIZE_BYTES {
 			return Err(ExitError::Other(
 				"input length for Sacrifice must be exactly 16 bytes".into(),
 			));
 		}
 
-		// Parse input into Rust types
-		let mut collator_buf: [u8; COLLATOR_SIZE_BYTES] = [0; COLLATOR_SIZE_BYTES];
-		let mut amount_buf: [u8; AMOUNT_SIZE_BYTES] = [0; AMOUNT_SIZE_BYTES];
-
-		// TODO is this copy necessary? Probably.
-		collator_buf.copy_from_slice(&input[0..COLLATOR_SIZE_BYTES]);
-		amount_buf
-			.copy_from_slice(&input[COLLATOR_SIZE_BYTES..COLLATOR_SIZE_BYTES + AMOUNT_SIZE_BYTES]);
-
 		// Convert to right data types
 		//TODO I guess we should use the account mapping if possible. Otherwise this won't work for
 		// chains tht have a more standard substrate account type.
-		let collator = H160::from_slice(&collator_buf);
+		let collator = H160::from_slice(&input[0..COLLATOR_SIZE_BYTES]);
 
-		let amount: BalanceOf<Runtime> = sp_core::U256::from_big_endian(&amount_buf)
-			.try_into()
-			.map_err(|_| {
-				ExitError::Other("amount is too large for Runtime's balance type".into())
-			})?;
+		let amount: BalanceOf<Runtime> =
+			sp_core::U256::from_big_endian(&input[COLLATOR_SIZE_BYTES..TOTAL_SIZE_BYTES])
+				.try_into()
+				.map_err(|_| {
+					ExitError::Other("amount is too large for Runtime's balance type".into())
+				})?;
 
 		println!("Collator account is {:?}", collator);
 		println!("Amount is {:?}", amount);
