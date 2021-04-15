@@ -30,7 +30,7 @@ describeWithMoonbeam("Frontier RPC (Constructor Revert)", `simple-specs.json`, (
 
   before(async function () {
     console.log(await context.web3.eth.getBalance("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"));
-    // We send some money to make TEST_ACCOUNT so that it can also deploy a contract at the nonce is deterministic
+    // We send some money to TEST_ACCOUNT in order to have deterministic nonces
     const testAccount1 = context.web3.eth.accounts.privateKeyToAccount(TEST_ACCOUNT_PRIVATE_KEY);
     const tx = await context.web3.eth.accounts.signTransaction(
       {
