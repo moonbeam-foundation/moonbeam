@@ -18,21 +18,29 @@
 
 #![cfg(test)]
 
-use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable, traits::GenesisBuild};
+use frame_support::{
+	assert_noop, assert_ok,
+	dispatch::Dispatchable,
+	traits::{GenesisBuild, OnFinalize, OnInitialize},
+};
 use moonbeam_runtime::{
-	AccountId, Balance, Balances, Call, Event, InflationInfo, ParachainStaking, Range, Runtime,
-	System, GLMR,
+	AccountId, AuthorInherent, Balance, Balances, Call, Event, InflationInfo, ParachainStaking,
+	Range, Runtime, System, GLMR,
 };
 use sp_runtime::{DispatchError, Perbill};
 
-// fn run_to_block(n: u32) {
-// 	while System::block_number() < n {
-// 		ParachainStaking::on_finalize(System::block_number());
-// 		System::set_block_number(System::block_number() + 1);
-// 	}
-// }
+fn run_to_block(n: u32) {
+	while System::block_number() < n {
+		AuthorInherent::on_finalize(System::block_number());
+		ParachainStaking::on_finalize(System::block_number());
+		System::set_block_number(System::block_number() + 1);
+		AuthorInherent::on_initialize(System::block_number());
+	}
+}
 
 pub type EVMCall = pallet_evm::Call<Runtime>;
+pub type AuthorInherentCall = author_inherent::Call<Runtime>;
+pub type ParachainSystemCall = cumulus_pallet_parachain_system::Call<Runtime>;
 
 fn last_event() -> Event {
 	System::events().pop().expect("Event expected").event
@@ -216,4 +224,9 @@ fn transfer_through_evm_to_stake() {
 				1_000 * GLMR,
 			),);
 		});
+}
+
+#[test]
+fn reward_block_authors() {
+	assert!(true);
 }

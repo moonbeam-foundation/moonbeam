@@ -103,7 +103,7 @@ decl_module! {
 			0,
 			DispatchClass::Mandatory
 		)]
-		pub fn set_author(origin, author: T::AccountId) {
+		fn set_author(origin, author: T::AccountId) {
 			log::trace!(target:"author-inherent", "In the author inherent dispatchable");
 
 			ensure_none(origin)?;
