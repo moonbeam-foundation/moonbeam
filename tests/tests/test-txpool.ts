@@ -82,9 +82,8 @@ describeWithMoonbeam("Moonbeam RPC (TxPool RPC module)", `simple-specs.json`, (c
 
       contractAddress = receipt.contractAddress;
     });
-    it("should get pending pool information on Call", async function () {
-      this.timeout(15000);
 
+    it("should get pending pool information on Call", async function () {
       const transferFnCode = `a9059cbb000000000000000000000000`;
       const tokensToTransfer = `00000000000000000000000000000000000000000000000000000000000000dd`;
       const inputCode = `0x${transferFnCode}${GENESIS_ACCOUNT.substring(2)}${tokensToTransfer}`;

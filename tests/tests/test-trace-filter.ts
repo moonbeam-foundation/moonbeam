@@ -12,8 +12,6 @@ const address2 = "0xf8cef78e923919054037a1d03662bbd884ff4edf";
 
 describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (context) => {
   before(async function () {
-    this.timeout(15000);
-
     // Deploy contract
     const contract = new context.web3.eth.Contract(CONTRACT.abi);
     let contract_deploy = contract.deploy({

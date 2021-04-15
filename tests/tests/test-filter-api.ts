@@ -137,7 +137,6 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
   const block_lifespan_threshold = 100;
   const max_filter_pool = 500;
   beforeEach(async function () {
-    this.timeout(15000);
     let create_filter = await customRequest(context.web3, "eth_newBlockFilter", []);
     let filter_id = create_filter.result;
     // If filter is NAN filter pool is full

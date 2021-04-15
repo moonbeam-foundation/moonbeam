@@ -24,7 +24,6 @@ describeWithMoonbeam("Moonbeam RPC (Ethers.js)", `simple-specs.json`, (context) 
     expect((await providerTestnet.getNetwork()).chainId).to.equal(1287);
   });
   it("deploy contract and interact with it", async function () {
-    this.timeout(15000);
     let signer = new ethers.Wallet(GENESIS_ACCOUNT_PRIVATE_KEY, provider);
 
     // deploy contract

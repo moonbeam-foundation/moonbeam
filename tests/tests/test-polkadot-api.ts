@@ -7,7 +7,6 @@ import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
 
 describeWithMoonbeam("Moonbeam Polkadot API", `simple-specs.json`, (context) => {
   before(async function () {
-    this.timeout(15000);
     const keyring = new Keyring({ type: "ethereum" });
     const testAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     try {

@@ -200,7 +200,6 @@ describeWithMoonbeam(
     });
 
     it("should subscribe to all logs", async function () {
-      this.timeout(15000);
       const subscription = web3Subscribe("logs", {});
 
       await new Promise((resolve) => {
@@ -443,7 +442,6 @@ describeWithMoonbeam(
       return (context.web3.eth as any).subscribe(...arguments);
     }
     before(async function () {
-      this.timeout(15000);
       let first_subscription = web3Subscribe("pendingTransactions");
       await sendTransaction(context);
       await new Promise((resolve) => {

@@ -30,7 +30,6 @@ describeWithMoonbeam("Moonbeam RPC (Balance)", `simple-specs.json`, (context) =>
   describe("Check post web3 transfer balances", async () => {
     let genesis_balance;
     before(async function () {
-      this.timeout(15000);
       genesis_balance = BigInt(await context.web3.eth.getBalance(GENESIS_ACCOUNT));
       const tx = await context.web3.eth.accounts.signTransaction(
         {

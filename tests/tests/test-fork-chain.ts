@@ -34,7 +34,6 @@ describeWithMoonbeam("Frontier RPC (fork)", `simple-specs.json`, (context) => {
     );
   });
   it("Should create another best chain, finalize it and do sanity checks", async function () {
-    this.timeout(150000);
     // Lets grab the ethereum block hashes so far
     let eth_hash_1 = (await context.web3.eth.getBlock(1)).hash;
     let eth_hash_2 = (await context.web3.eth.getBlock(2)).hash;
