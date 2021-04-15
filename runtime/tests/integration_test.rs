@@ -199,8 +199,9 @@ fn transfer_to_stake() {
 			// Bob transfers 1000 GLMR to Charlie via EVM
 			use sp_core::U256;
 			use std::convert::TryInto;
-			let gas_limit = 1u64;
-			let gas_price: U256 = (5 * GLMR).into();
+			let gas_limit = 1000u64;
+			let gas_price: U256 = 0.into();
+
 			assert_ok!(Call::EVM(EVMCall::call(
 				AccountId::from(BOB),
 				AccountId::from(CHARLIE),
