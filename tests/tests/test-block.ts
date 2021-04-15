@@ -134,7 +134,7 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     expect(Number(await context.web3.eth.getBalance(GENESIS_ACCOUNT))).to.gte(512 * 100000);
   });
 
-  it.skip("should be able to fill a block with a 1 tx", async function () {
+  it("should be able to fill a block with a 1 tx", async function () {
     this.timeout(15000);
 
     let { txPassedFirstBlock } = await fillBlockWithTx(context, 1);
