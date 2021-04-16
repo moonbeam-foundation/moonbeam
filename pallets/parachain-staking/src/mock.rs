@@ -154,7 +154,7 @@ fn genesis(
 	ext
 }
 
-pub(crate) fn two_collators_four_nominators() -> sp_io::TestExternalities {
+pub fn two_collators_four_nominators() -> sp_io::TestExternalities {
 	genesis(
 		vec![
 			(1, 1000),

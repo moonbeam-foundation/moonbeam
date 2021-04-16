@@ -48,8 +48,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 mod inflation;
-#[cfg(test)]
-mod mock;
+// #[cfg(test)]
+pub mod mock;
 mod set;
 #[cfg(test)]
 mod tests;
@@ -508,7 +508,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn nominator_state)]
 	/// Get nominator state associated with an account if account is nominating else None
-	type NominatorState<T: Config> = StorageMap<
+	pub type NominatorState<T: Config> = StorageMap<
 		_,
 		Twox64Concat,
 		T::AccountId,

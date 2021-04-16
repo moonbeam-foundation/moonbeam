@@ -15,7 +15,7 @@ serde = { version = "1.0.101", optional = true }
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
 
-[dev-dependencies]
+# [dev-dependencies]
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
 
@@ -30,4 +30,6 @@ std = [
 	"serde",
 	"sp-std/std",
 	"sp-runtime/std",
+	"sp-core/std",
+	"sp-io/std",
 ]
