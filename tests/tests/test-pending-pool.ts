@@ -14,9 +14,9 @@ describeWithMoonbeam("Frontier RPC (Pending Pool)", `simple-specs.json`, (contex
     information before they are included in a block.
 
     We want to test that:
-      - We can write to this collection in parallel.
-      - We can read from this collection in parallel.
-      - We can get the final transaction data once it leaves the pending collection.
+      - We resolve multiple promises in parallel that will write in this collection on the rpc-side
+      - We resolve multiple promises in parallel that will read from this collection on the rpc-side
+      - We can get the final transaction data once it leaves the pending collection
   */
   it("should handle pending transactions", async function () {
     const NBR_TXNS = 10;
