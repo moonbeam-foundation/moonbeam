@@ -7,52 +7,103 @@ describeWithMoonbeam("Frontier RPC (Pending Pool)", `simple-specs.json`, (contex
   // Solidity: contract test { function multiply(uint a) public pure returns(uint d)
   // {return a * 7;}}
 
-  it("should return a pending transaction", async function () {
-    this.timeout(15000);
-    const tx = await context.web3.eth.accounts.signTransaction(
-      {
-        from: GENESIS_ACCOUNT,
-        data: TEST_CONTRACT_BYTECODE,
-        value: "0x00",
-        gasPrice: "0x01",
-        gas: "0x100000",
-      },
-      GENESIS_ACCOUNT_PRIVATE_KEY
-    );
+  /*
+    At rpc-level, there is no interface for retrieving emulated pending transactions - emulated
+    transactions that exist in the Substrate's pending transaction pool. Instead they are added to a
+    shared collection (Mutex) with get/set locking to serve requests that ask for this transactions
+    information before they are included in a block.
 
-    const tx_hash = (
-      await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction])
-    ).result;
+    We want to test that:
+      - We can write to this collection in parallel.
+      - We can read from this collection in parallel.
+      - We can get the final transaction data once it leaves the pending collection.
+  */
+  it("should handle pending transactions", async function () {
+    const NBR_TXNS = 10;
+    let promises = [];
+    let tx_hashes = [];
+    let responses;
 
-    const pending_transaction = (
-      await customRequest(context.web3, "eth_getTransactionByHash", [tx_hash])
-    ).result;
-    // pending transactions do not know yet to which block they belong to
-    expect(pending_transaction).to.include({
-      blockNumber: null,
-      hash: tx_hash,
-      publicKey:
-        "0x624f720eae676a04111631c9ca338c11d0f5a80ee42210c6be72983ceb620fbf645a96f951529f" +
-        "a2d70750432d11b7caba5270c4d677255be90b3871c8c58069",
-      r: "0xe6f6ef2c1072b0e4a6b91f6b8ca408478814611124a54f3bb5c02c039e9541f1",
-      s: "0x5c3a49963649c8812de3aa8b84adf77c14e74eea6191a7827e1273158007bac8",
-      v: "0xa26",
+    let i;
+    let nonce = 0;
+    for (i = 0; i < NBR_TXNS; i++) {
+      let txn = await context.web3.eth.accounts.signTransaction(
+        {
+          from: GENESIS_ACCOUNT,
+          data: TEST_CONTRACT_BYTECODE,
+          value: "0x00",
+          gasPrice: "0x01",
+          gas: "0x100000",
+          nonce: nonce,
+        },
+        GENESIS_ACCOUNT_PRIVATE_KEY
+      );
+      promises.push(customRequest(context.web3, "eth_sendRawTransaction", [txn.rawTransaction]));
+      nonce += 1;
+    }
+
+    await Promise.all(promises).then((responses) => {
+      promises = [];
+      for (let r of responses) {
+        tx_hashes.push(r.result);
+        promises.push(customRequest(context.web3, "eth_getTransactionByHash", [r.result]));
+      }
+    });
+    // Expect a unique set of transaction hashes.
+    expect(tx_hashes.length).to.be.eq(new Set(tx_hashes).size);
+
+    await Promise.all(promises).then((responses) => {
+      // Expect a response for each transaction hash.
+      expect(responses.length).to.be.eq(tx_hashes.length);
+      // Expect each transaction hash to have a response.
+      expect([...new Set(tx_hashes)].sort()).deep.eq(
+        responses
+          .map(function (a) {
+            return a.result.hash;
+          })
+          .sort()
+      );
+      for (i = 0; i < tx_hashes.length; i++) {
+        let tx_data = responses[i].result;
+        // Expect the transaction to not be aware of it's block.
+        expect(tx_data.blockNumber).to.be.null;
+        // Expect the transaction to not be aware of it's index.
+        expect(tx_data.transactionIndex).to.be.null;
+      }
     });
 
     await createAndFinalizeBlock(context.polkadotApi);
 
-    const processed_transaction = (
-      await customRequest(context.web3, "eth_getTransactionByHash", [tx_hash])
-    ).result;
-    expect(processed_transaction).to.include({
-      blockNumber: "0x1",
-      hash: tx_hash,
-      publicKey:
-        "0x624f720eae676a04111631c9ca338c11d0f5a80ee42210c6be72983ceb620fbf645a96f951529f" +
-        "a2d70750432d11b7caba5270c4d677255be90b3871c8c58069",
-      r: "0xe6f6ef2c1072b0e4a6b91f6b8ca408478814611124a54f3bb5c02c039e9541f1",
-      s: "0x5c3a49963649c8812de3aa8b84adf77c14e74eea6191a7827e1273158007bac8",
-      v: "0xa26",
+    await Promise.all(promises).then((responses) => {
+      promises = [];
+      for (let tx_hash of tx_hashes) {
+        promises.push(customRequest(context.web3, "eth_getTransactionByHash", [tx_hash]));
+      }
+    });
+
+    await Promise.all(promises).then((responses) => {
+      for (let r of responses) {
+        // Expect the transaction to be aware of it's block.
+        expect(r.result.blockNumber).to.not.be.null;
+        // Expect the transaction to be aware of it's index.
+        expect(r.result.transactionIndex).to.not.be.null;
+      }
+      // Expect each transaction to have a unique index.
+      expect(
+        [
+          ...new Set(
+            responses.map(function (a) {
+              return a.result.transactionIndex;
+            })
+          ),
+        ].sort()
+      ).deep.eq(
+        responses
+          .map(function (a) {
+            return a.result.transactionIndex;
+          })
+          .sort()
+      );
     });
   });
 });
