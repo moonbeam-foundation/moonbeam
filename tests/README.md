@@ -43,9 +43,10 @@ with any other running services.
 The repository contains a pre-configured debugger configuration for VSCode with the **CodeLLDB**
 (`vadimcn.vscode-lldb`) extension.
 
-Before debugging, you need to build the node with debug symbols enabled by running
-`./scripts/debugger-build.sh`. Then go in the **Debug** tab in the left bar of VSCode and make sure
-**Launch Moonbeam Node (Linux)** is selected in the top dropdown.
+Before debugging, you need to build the node with debug symbols with command
+`RUSTFLAGS=-g cargo build --release` (available as a VSCode task). Then go in the **Debug** tab in
+the left bar of VSCode and make sure **Launch Moonbeam Node (Linux)** is selected in the top
+dropdown. **Build & Launch Moonbeam Node (Linux)** will trigger the build before launching the node.
 
 To launch the debug session click on the green "play" arrow next to the dropdown. It will take some
 time before the node starts, but the terminal containing the node output will appear when it is
@@ -78,4 +79,4 @@ of the implementation).
 
 By setting the environement variable `DEBUG_MODE=true`, the Typescript tests will not spawn its
 own node and instead will connect to an external node running on ports 19931/19932/19933, which
-are the ports used by the debug node.
+are the ports used by the debug node. This is also available as a VSCode task.
