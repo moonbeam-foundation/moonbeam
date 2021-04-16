@@ -5,10 +5,10 @@ import { FIRST_CONTRACT_ADDRESS, GENESIS_ACCOUNT } from "./constants";
 import { deployContractByName, getCompiled } from "./util/contracts";
 
 describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (context) => {
-  let Test_Contract_ABI;
+  let TestContractABI;
   before("create the contract", async function () {
     this.timeout(15000);
-    Test_Contract_ABI = (await getCompiled("TestContract")).contract.abi;
+    TestContractABI = (await getCompiled("TestContract")).contract.abi;
     await deployContractByName(context.polkadotApi, context.web3, "TestContract");
   });
 
@@ -16,13 +16,13 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
     const latestBlock = await context.web3.eth.getBlock("latest");
     expect(latestBlock.transactions.length).to.equal(1);
 
-    const tx_hash = latestBlock.transactions[0];
-    const tx = await context.web3.eth.getTransaction(tx_hash);
-    expect(tx.hash).to.equal(tx_hash);
+    const txHash = latestBlock.transactions[0];
+    const tx = await context.web3.eth.getTransaction(txHash);
+    expect(tx.hash).to.equal(txHash);
   });
 
   it("should return contract method result", async function () {
-    const contract = new context.web3.eth.Contract(Test_Contract_ABI, FIRST_CONTRACT_ADDRESS, {
+    const contract = new context.web3.eth.Contract(TestContractABI, FIRST_CONTRACT_ADDRESS, {
       from: GENESIS_ACCOUNT,
       gasPrice: "0x01",
     });
@@ -32,7 +32,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
   // Requires error handling
   it("should fail for missing parameters", async function () {
     const contract = new context.web3.eth.Contract(
-      [{ ...Test_Contract_ABI[0], inputs: [] }],
+      [{ ...TestContractABI[0], inputs: [] }],
       FIRST_CONTRACT_ADDRESS,
       {
         from: GENESIS_ACCOUNT,
@@ -54,7 +54,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
     const contract = new context.web3.eth.Contract(
       [
         {
-          ...Test_Contract_ABI[0],
+          ...TestContractABI[0],
           inputs: [
             { internalType: "uint256", name: "a", type: "uint256" },
             { internalType: "uint256", name: "b", type: "uint256" },
@@ -82,7 +82,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
     const contract = new context.web3.eth.Contract(
       [
         {
-          ...Test_Contract_ABI[0],
+          ...TestContractABI[0],
           inputs: [
             {
               internalType: "address",

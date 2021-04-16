@@ -113,9 +113,9 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
   });
 
   step("get block by hash", async function () {
-    const latest_block = await context.web3.eth.getBlock("latest");
-    const block = await context.web3.eth.getBlock(latest_block.hash);
-    expect(block.hash).to.be.eq(latest_block.hash);
+    const latestBlock = await context.web3.eth.getBlock("latest");
+    const block = await context.web3.eth.getBlock(latestBlock.hash);
+    expect(block.hash).to.be.eq(latestBlock.hash);
   });
 
   step("get block by number", async function () {

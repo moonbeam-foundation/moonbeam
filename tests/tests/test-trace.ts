@@ -24,7 +24,7 @@ async function nested(context) {
   let send = await customRequest(context.web3, "eth_sendRawTransaction", [calleeTx.rawTransaction]);
   await createAndFinalizeBlock(context.polkadotApi);
   let receipt = await context.web3.eth.getTransactionReceipt(send.result);
-  const callee_addr = receipt.contractAddress;
+  const calleeAddr = receipt.contractAddress;
   // const callee = new context.web3.eth.Contract(CALLEE.abi, callee_addr);
   // Create Caller contract.
   const callerTx = await context.web3.eth.accounts.signTransaction(
@@ -40,16 +40,16 @@ async function nested(context) {
   send = await customRequest(context.web3, "eth_sendRawTransaction", [callerTx.rawTransaction]);
   await createAndFinalizeBlock(context.polkadotApi);
   receipt = await context.web3.eth.getTransactionReceipt(send.result);
-  const caller_addr = receipt.contractAddress;
-  const caller = new context.web3.eth.Contract(CALLER.abi, caller_addr);
+  const callerAddr = receipt.contractAddress;
+  const caller = new context.web3.eth.Contract(CALLER.abi, callerAddr);
   // Nested call
   let callTx = await context.web3.eth.accounts.signTransaction(
     {
       from: GENESIS_ACCOUNT,
-      to: caller_addr,
+      to: callerAddr,
       gas: "0x100000",
       value: "0x00",
-      data: caller.methods.someAction(callee_addr, 6).encodeABI(), // calls callee
+      data: caller.methods.someAction(calleeAddr, 6).encodeABI(), // calls callee
     },
     GENESIS_ACCOUNT_PRIVATE_KEY
   );
@@ -89,16 +89,16 @@ describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
     let targets = [1, 2, 5, 8, 10];
     let iteration = 0;
     let txs = [];
-    let num_txs;
+    let numTxs;
     // Create 10 transactions in a block.
-    for (num_txs = 1; num_txs <= total_txs; num_txs++) {
+    for (numTxs = 1; numTxs <= total_txs; numTxs++) {
       let callTx = await context.web3.eth.accounts.signTransaction(
         {
           from: GENESIS_ACCOUNT,
           to: receipt.contractAddress,
           gas: "0x100000",
           value: "0x00",
-          nonce: num_txs,
+          nonce: numTxs,
           data: contract.methods.sum(1).encodeABI(), // increments by one
         },
         GENESIS_ACCOUNT_PRIVATE_KEY
@@ -112,7 +112,7 @@ describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
     for (let target of targets) {
       let index = target - 1;
 
-      let receipt = await context.web3.eth.getTransactionReceipt(txs[index]);
+      await context.web3.eth.getTransactionReceipt(txs[index]);
 
       let intermediate_tx = await customRequest(context.web3, "debug_traceTransaction", [
         txs[index],

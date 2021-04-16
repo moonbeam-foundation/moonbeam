@@ -14,7 +14,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
   step("Replay succeeding CREATE", async function () {
     // Deploy contract
     const contract = new context.web3.eth.Contract(CONTRACT.abi);
-    const contract_deploy = contract.deploy({
+    const contractDeploy = contract.deploy({
       data: CONTRACT.bytecode,
       arguments: [false], // don't revert
     });
@@ -22,7 +22,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
-        data: contract_deploy.encodeABI(),
+        data: contractDeploy.encodeABI(),
         value: "0x00",
         gasPrice: "0x01",
         gas: "0x500000",
@@ -68,7 +68,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
   step("Replay reverting CREATE", async function () {
     // Deploy contract
     const contract = new context.web3.eth.Contract(CONTRACT.abi);
-    const contract_deploy = contract.deploy({
+    const contractDeploy = contract.deploy({
       data: CONTRACT.bytecode,
       arguments: [true], // revert
     });
@@ -76,7 +76,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
-        data: contract_deploy.encodeABI(),
+        data: contractDeploy.encodeABI(),
         value: "0x00",
         gasPrice: "0x01",
         gas: "0x500000",
@@ -120,7 +120,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
 
     // Deploy 2 more contracts
     for (var i = 0; i < 2; i++) {
-      const contract_deploy = contract.deploy({
+      const contractDeploy = contract.deploy({
         data: CONTRACT.bytecode,
         arguments: [false], // don't revert
       });
@@ -129,7 +129,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
         {
           nonce: 2 + i,
           from: GENESIS_ACCOUNT,
-          data: contract_deploy.encodeABI(),
+          data: contractDeploy.encodeABI(),
           value: "0x00",
           gasPrice: "0x01",
           gas: "0x100000",
@@ -162,13 +162,13 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
   step("Call with subcalls, some reverting", async function () {
     const contract = new context.web3.eth.Contract(CONTRACT.abi);
 
-    const contract_call = contract.methods.subcalls(address1, address2);
+    const contractCall = contract.methods.subcalls(address1, address2);
 
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         to: address0,
         from: GENESIS_ACCOUNT,
-        data: contract_call.encodeABI(),
+        data: contractCall.encodeABI(),
         value: "0x00",
         gasPrice: "0x01",
         gas: "0x500000",
