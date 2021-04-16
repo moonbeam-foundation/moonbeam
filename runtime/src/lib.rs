@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -29,39 +29,40 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use fp_rpc::TransactionStatus;
+use frame_support::{
+	construct_runtime,
+	pallet_prelude::PhantomData,
+	parameter_types,
+	traits::{Get, Randomness},
+	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
+};
+use frame_system::{EnsureOneOf, EnsureRoot};
+use moonbeam_extensions_evm::runner::stack::TraceRunner as TraceRunnerT;
+use pallet_ethereum::Call::transact;
+use pallet_ethereum::{Transaction as EthereumTransaction, TransactionAction};
+use pallet_evm::{
+	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator,
+	IdentityAddressMapping, Runner,
+};
+use pallet_transaction_payment::CurrencyAdapter;
+pub use parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode};
+use sha3::{Digest, Keccak256};
 use sp_api::impl_runtime_apis;
-use sp_core::{OpaqueMetadata, H160, H256, U256};
+use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult,
+	ApplyExtrinsicResult, Perbill,
 };
 use sp_std::{convert::TryFrom, prelude::*};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
-pub use frame_support::{
-	construct_runtime,
-	pallet_prelude::PhantomData,
-	parameter_types,
-	traits::{FindAuthor, Get, Randomness},
-	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
-	ConsensusEngineId, StorageValue,
-};
-use frame_system::{EnsureNever, EnsureRoot, EnsureSigned};
-use pallet_ethereum::Call::transact;
-use pallet_evm::{
-	Account as EVMAccount, EnsureAddressNever, EnsureAddressSame, FeeCalculator,
-	IdentityAddressMapping, Runner,
-};
-use pallet_transaction_payment::CurrencyAdapter;
-
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
-pub use sp_runtime::{Perbill, Permill};
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -112,7 +113,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 23,
+	spec_version: 32,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -180,6 +181,12 @@ impl frame_system::Config for Runtime {
 	type SystemWeightInfo = ();
 	/// This is used as an identifier of the chain. 42 is the generic substrate prefix.
 	type SS58Prefix = SS58Prefix;
+}
+
+impl pallet_utility::Config for Runtime {
+	type Event = Event;
+	type Call = Call;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -250,10 +257,15 @@ impl pallet_evm::GasWeightMapping for MoonbeamGasWeightMapping {
 	}
 }
 
+parameter_types! {
+	pub BlockGasLimit: U256
+		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT / WEIGHT_PER_GAS);
+}
+
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = MoonbeamGasWeightMapping;
-	type CallOrigin = EnsureAddressSame;
+	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = IdentityAddressMapping;
 	type Currency = Balances;
@@ -261,6 +273,8 @@ impl pallet_evm::Config for Runtime {
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type Precompiles = precompiles::MoonbeamPrecompiles<Self>;
 	type ChainId = EthereumChainId;
+	type OnChargeTransaction = ();
+	type BlockGasLimit = BlockGasLimit;
 }
 
 parameter_types! {
@@ -278,7 +292,50 @@ impl pallet_scheduler::Config for Runtime {
 	type WeightInfo = ();
 }
 
-pub const BLOCKS_PER_DAY: BlockNumber = 24 * 60 * 10;
+parameter_types! {
+	/// The maximum amount of time (in blocks) for council members to vote on motions.
+	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
+	pub const CouncilMotionDuration: BlockNumber = 100;
+	/// The maximum number of Proposlas that can be open in the council at once.
+	pub const CouncilMaxProposals: u32 = 100;
+	/// The maximum number of council members.
+	pub const CouncilMaxMembers: u32 = 100;
+
+	/// The maximum amount of time (in blocks) for technical committee members to vote on motions.
+	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
+	pub const TechComitteeMotionDuration: BlockNumber = 100;
+	/// The maximum number of Proposlas that can be open in the technical committee at once.
+	pub const TechComitteeMaxProposals: u32 = 100;
+	/// The maximum number of technical committee members.
+	pub const TechComitteeMaxMembers: u32 = 100;
+}
+
+type CouncilInstance = pallet_collective::Instance1;
+type TechCommitteeInstance = pallet_collective::Instance2;
+
+impl pallet_collective::Config<CouncilInstance> for Runtime {
+	type Origin = Origin;
+	type Event = Event;
+	type Proposal = Call;
+	type MotionDuration = CouncilMotionDuration;
+	type MaxProposals = CouncilMaxProposals;
+	type MaxMembers = CouncilMaxMembers;
+	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
+	type WeightInfo = (); // TODO : Better Weight Info ?
+}
+
+impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
+	type Origin = Origin;
+	type Event = Event;
+	type Proposal = Call;
+	type MotionDuration = TechComitteeMotionDuration;
+	type MaxProposals = TechComitteeMaxProposals;
+	type MaxMembers = TechComitteeMaxMembers;
+	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
+	type WeightInfo = (); // TODO : Better Weight Info ?
+}
+
+const BLOCKS_PER_DAY: BlockNumber = 24 * 60 * 10;
 
 parameter_types! {
 	pub const LaunchPeriod: BlockNumber = BLOCKS_PER_DAY;
@@ -303,22 +360,47 @@ impl pallet_democracy::Config for Runtime {
 	type VotingPeriod = VotingPeriod;
 	type FastTrackVotingPeriod = FastTrackVotingPeriod;
 	type MinimumDeposit = MinimumDeposit;
-	type ExternalOrigin = EnsureRoot<AccountId>;
-	type ExternalMajorityOrigin = EnsureRoot<AccountId>;
-	type ExternalDefaultOrigin = EnsureRoot<AccountId>;
-	type FastTrackOrigin = EnsureRoot<AccountId>;
-	type CancellationOrigin = EnsureRoot<AccountId>;
+	/// A straight majority of the council can decide what their next motion is.
+	type ExternalOrigin =
+		pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, CouncilInstance>;
+	/// A majority can have the next scheduled referendum be a straight majority-carries vote.
+	type ExternalMajorityOrigin =
+		pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, CouncilInstance>;
+	/// A unanimous council can have the next scheduled referendum be a straight default-carries
+	/// (NTB) vote.
+	type ExternalDefaultOrigin =
+		pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, CouncilInstance>;
+	/// Two thirds of the technical committee can have an ExternalMajority/ExternalDefault vote
+	/// be tabled immediately and with a shorter voting/enactment period.
+	type FastTrackOrigin =
+		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
+	/// Instant is currently not allowed.
+	type InstantOrigin =
+		pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, TechCommitteeInstance>;
+	// To cancel a proposal which has been passed, 2/3 of the council must agree to it.
+	type CancellationOrigin = EnsureOneOf<
+		AccountId,
+		EnsureRoot<AccountId>,
+		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, CouncilInstance>,
+	>;
+	// To cancel a proposal before it has been passed, the technical committee must be unanimous or
+	// Root must agree.
+	type CancelProposalOrigin = EnsureOneOf<
+		AccountId,
+		EnsureRoot<AccountId>,
+		pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, TechCommitteeInstance>,
+	>;
 	type BlacklistOrigin = EnsureRoot<AccountId>;
-	type CancelProposalOrigin = EnsureRoot<AccountId>;
-	type VetoOrigin = EnsureNever<AccountId>; // (root not possible)
+	// Any single technical committee member may veto a coming council proposal, however they can
+	// only do it once and it lasts only for the cooloff period.
+	type VetoOrigin = pallet_collective::EnsureMember<AccountId, TechCommitteeInstance>;
 	type CooloffPeriod = CooloffPeriod;
 	type PreimageByteDeposit = PreimageByteDeposit;
 	type Slash = ();
-	type InstantOrigin = EnsureRoot<AccountId>;
 	type InstantAllowed = InstantAllowed;
 	type Scheduler = Scheduler;
 	type MaxVotes = MaxVotes;
-	type OperationalPreimageOrigin = EnsureSigned<AccountId>;
+	type OperationalPreimageOrigin = pallet_collective::EnsureMember<AccountId, CouncilInstance>;
 	type PalletsOrigin = OriginCaller;
 	type WeightInfo = ();
 	type MaxProposals = MaxProposals;
@@ -350,19 +432,13 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 
 pub struct EthereumFindAuthor<F>(PhantomData<F>);
 
-parameter_types! {
-	pub BlockGasLimit: U256
-		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT / WEIGHT_PER_GAS);
-}
-
 impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
 	type FindAuthor = AuthorInherent;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot;
-	type BlockGasLimit = BlockGasLimit;
 }
 
-impl cumulus_parachain_system::Config for Runtime {
+impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
 	type SelfParaId = ParachainInfo;
@@ -372,47 +448,50 @@ impl cumulus_parachain_system::Config for Runtime {
 
 impl parachain_info::Config for Runtime {}
 
-// 18 decimals
+/// GLMR, the native token, uses 18 decimals of precision.
 pub const GLMR: Balance = 1_000_000_000_000_000_000;
 
 parameter_types! {
-	/// Moonbeam starts a new round every hour (600 * block_time)
-	pub const BlocksPerRound: u32 = 600;
-	/// Reward payments and validator exit requests are delayed by 2 hours (2 * 600 * block_time)
+	/// Minimum round length is 2 minutes (20 * 6 second block times)
+	pub const MinBlocksPerRound: u32 = 20;
+	/// Default BlocksPerRound is every hour (600 * 6 second block times)
+	pub const DefaultBlocksPerRound: u32 = 600;
+	/// Reward payments and collator exit requests are delayed by 2 hours (2 * 600 * block_time)
 	pub const BondDuration: u32 = 2;
-	/// Maximum 8 valid block authors at any given time
-	pub const MaxValidators: u32 = 8;
-	/// Maximum 10 nominators per validator
-	pub const MaxNominatorsPerValidator: u32 = 10;
-	/// Maximum 8 validators per nominator (same as MaxValidators)
-	pub const MaxValidatorsPerNominator: u32 = 8;
-	/// The maximum percent a validator can take off the top of its rewards is 50%
-	pub const MaxFee: Perbill = Perbill::from_percent(50);
-	/// Minimum stake required to be reserved to be a validator is 1_000
-	pub const MinValidatorStk: u128 = 1_000 * GLMR;
+	/// Minimum 8 collators selected per round, default at genesis and minimum forever after
+	pub const MinSelectedCandidates: u32 = 8;
+	/// Maximum 10 nominators per collator
+	pub const MaxNominatorsPerCollator: u32 = 10;
+	/// Maximum 25 collators per nominator
+	pub const MaxCollatorsPerNominator: u32 = 25;
+	/// The fixed percent a collator takes off the top of due rewards is 20%
+	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
+	/// Minimum stake required to be reserved to be a collator is 1_000
+	pub const MinCollatorStk: u128 = 1_000 * GLMR;
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5 * GLMR;
 }
-impl stake::Config for Runtime {
+impl parachain_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
-	type SetMonetaryPolicyOrigin = frame_system::EnsureRoot<AccountId>;
-	type BlocksPerRound = BlocksPerRound;
+	type MinBlocksPerRound = MinBlocksPerRound;
+	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type BondDuration = BondDuration;
-	type MaxValidators = MaxValidators;
-	type MaxNominatorsPerValidator = MaxNominatorsPerValidator;
-	type MaxValidatorsPerNominator = MaxValidatorsPerNominator;
-	type MaxFee = MaxFee;
-	type MinValidatorStk = MinValidatorStk;
+	type MinSelectedCandidates = MinSelectedCandidates;
+	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
+	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
+	type DefaultCollatorCommission = DefaultCollatorCommission;
+	type MinCollatorStk = MinCollatorStk;
+	type MinCollatorCandidateStk = MinCollatorStk;
 	type MinNomination = MinNominatorStk;
 	type MinNominatorStk = MinNominatorStk;
 }
 impl author_inherent::Config for Runtime {
-	type EventHandler = Stake;
+	type EventHandler = ParachainStaking;
 	// We cannot run the full filtered author checking logic in the preliminary check because it
 	// depends on entropy from the relay chain. Instead we just make sure that the author is staked
 	// in the preliminary check. The final check including the filtering happens during execution.
-	type PreliminaryCanAuthor = Stake;
+	type PreliminaryCanAuthor = ParachainStaking;
 	type FinalCanAuthor = AuthorFilter;
 }
 
@@ -427,24 +506,29 @@ construct_runtime! {
 		NodeBlock = opaque::Block,
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
-		System: frame_system::{Module, Call, Storage, Config, Event<T>},
-		Timestamp: pallet_timestamp::{Module, Call, Storage, Inherent},
-		Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
-		Sudo: pallet_sudo::{Module, Call, Storage, Config<T>, Event<T>},
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Module, Call, Storage},
-		ParachainSystem: cumulus_parachain_system::{Module, Call, Storage, Inherent, Event},
-		TransactionPayment: pallet_transaction_payment::{Module, Storage},
-		ParachainInfo: parachain_info::{Module, Storage, Config},
-		EthereumChainId: pallet_ethereum_chain_id::{Module, Storage, Config},
-		EVM: pallet_evm::{Module, Config, Call, Storage, Event<T>},
-		Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
-		Stake: stake::{Module, Call, Storage, Event<T>, Config<T>},
-		Scheduler: pallet_scheduler::{Module, Storage, Config, Event<T>, Call},
-		Democracy: pallet_democracy::{Module, Storage, Config, Event<T>, Call},
+		System: frame_system::{Pallet, Call, Storage, Config, Event<T>},
+		Utility: pallet_utility::{Pallet, Call, Event},
+		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
+		Sudo: pallet_sudo::{Pallet, Call, Storage, Config<T>, Event<T>},
+		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Call, Storage},
+		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event},
+		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
+		ParachainInfo: parachain_info::{Pallet, Storage, Config},
+		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config},
+		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>},
+		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config, ValidateUnsigned},
+		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>},
+		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call},
+		Democracy: pallet_democracy::{Pallet, Storage, Config, Event<T>, Call},
+		CouncilCollective:
+			pallet_collective::<Instance1>::{Pallet, Call, Event<T>, Origin<T>, Config<T>},
+		TechComitteeCollective:
+			pallet_collective::<Instance2>::{Pallet, Call, Event<T>, Origin<T>, Config<T>},
 		// The order matters here. Inherents will be included in the order specified here.
 		// Concretely we need the author inherent to come after the parachain_upgrade inherent.
-		AuthorInherent: author_inherent::{Module, Call, Storage, Inherent},
-		AuthorFilter: pallet_author_filter::{Module, Call, Storage, Event<T>,}
+		AuthorInherent: author_inherent::{Pallet, Call, Storage, Inherent},
+		AuthorFilter: pallet_author_filter::{Pallet, Call, Storage, Event<T>,}
 	}
 }
 
@@ -472,13 +556,13 @@ pub type SignedExtra = (
 pub type UncheckedExtrinsic = generic::UncheckedExtrinsic<Address, Call, Signature, SignedExtra>;
 /// Extrinsic type that has already been checked.
 pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, Call, SignedExtra>;
-/// Executive: handles dispatch to the various modules.
+/// Executive: handles dispatch to the various pallets.
 pub type Executive = frame_executive::Executive<
 	Runtime,
 	Block,
 	frame_system::ChainContext<Runtime>,
 	Runtime,
-	AllModules,
+	AllPallets,
 >;
 
 impl_runtime_apis! {
@@ -527,7 +611,7 @@ impl_runtime_apis! {
 		}
 
 		fn random_seed() -> <Block as BlockT>::Hash {
-			RandomnessCollectiveFlip::random_seed()
+			RandomnessCollectiveFlip::random_seed().0
 		}
 	}
 
@@ -563,6 +647,262 @@ impl_runtime_apis! {
 			System::account_nonce(account)
 		}
 	}
+	impl moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block> for Runtime {
+		fn trace_transaction(
+			extrinsics: Vec<<Block as BlockT>::Extrinsic>,
+			transaction: &EthereumTransaction,
+			trace_type: moonbeam_rpc_primitives_debug::single::TraceType,
+		) -> Result<
+			moonbeam_rpc_primitives_debug::single::TransactionTrace,
+			sp_runtime::DispatchError
+		> {
+			// Get the caller;
+			let mut sig = [0u8; 65];
+			let mut msg = [0u8; 32];
+			sig[0..32].copy_from_slice(&transaction.signature.r()[..]);
+			sig[32..64].copy_from_slice(&transaction.signature.s()[..]);
+			sig[64] = transaction.signature.standard_v();
+			msg.copy_from_slice(
+				&pallet_ethereum::TransactionMessage::from(transaction.clone()).hash()[..]
+			);
+
+			let from = match sp_io::crypto::secp256k1_ecdsa_recover(&sig, &msg) {
+				Ok(pk) => H160::from(
+					H256::from_slice(Keccak256::digest(&pk).as_slice())
+				),
+				_ => H160::default()
+			};
+
+			// Apply the a subset of extrinsics: all the substrate-specific or ethereum transactions
+			// that preceded the requested transaction.
+			for ext in extrinsics.into_iter() {
+				let _ = match &ext.function {
+					Call::Ethereum(transact(t)) => {
+						if t == transaction {
+							break;
+						}
+						Executive::apply_extrinsic(ext)
+					},
+					_ => Executive::apply_extrinsic(ext)
+				};
+			}
+
+			let mut c = <Runtime as pallet_evm::Config>::config().clone();
+			c.estimate = true;
+			let config = Some(c);
+
+			// Use the runner extension to interface with our evm's trace executor and return the
+			// TraceExecutorResult.
+			match transaction.action {
+				TransactionAction::Call(to) => {
+					if let Ok(res) = <Runtime as pallet_evm::Config>::Runner::trace_call(
+						from,
+						to,
+						transaction.input.clone(),
+						transaction.value,
+						transaction.gas_limit.low_u64(),
+						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
+						trace_type,
+					) {
+						return Ok(res);
+					} else {
+						return Err(sp_runtime::DispatchError::Other("Evm error"));
+					}
+				},
+				TransactionAction::Create => {
+					if let Ok(res) = <Runtime as pallet_evm::Config>::Runner::trace_create(
+						from,
+						transaction.input.clone(),
+						transaction.value,
+						transaction.gas_limit.low_u64(),
+						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
+						trace_type,
+					) {
+						return Ok(res);
+					} else {
+						return Err(sp_runtime::DispatchError::Other("Evm error"));
+					}
+				}
+			}
+		}
+
+		fn trace_block(
+			extrinsics: Vec<<Block as BlockT>::Extrinsic>,
+		) -> Result<
+			Vec<
+				moonbeam_rpc_primitives_debug::block::TransactionTrace>,
+				sp_runtime::DispatchError
+			> {
+			use moonbeam_rpc_primitives_debug::{single, block, CallResult, CreateResult, CreateType};
+
+			let mut config = <Runtime as pallet_evm::Config>::config().clone();
+			config.estimate = true;
+
+			let mut traces = vec![];
+			let mut eth_tx_index = 0;
+
+			// Apply all extrinsics. Ethereum extrinsics are traced.
+			for ext in extrinsics.into_iter() {
+				match &ext.function {
+					Call::Ethereum(transact(transaction)) => {
+						// Get the caller;
+						let mut sig = [0u8; 65];
+						let mut msg = [0u8; 32];
+						sig[0..32].copy_from_slice(&transaction.signature.r()[..]);
+						sig[32..64].copy_from_slice(&transaction.signature.s()[..]);
+						sig[64] = transaction.signature.standard_v();
+						msg.copy_from_slice(
+							&pallet_ethereum::TransactionMessage::from(transaction.clone())
+								.hash()[..]
+						);
+
+						let from = match sp_io::crypto::secp256k1_ecdsa_recover(&sig, &msg) {
+							Ok(pk) => H160::from(
+								H256::from_slice(Keccak256::digest(&pk).as_slice())
+							),
+							_ => H160::default()
+						};
+
+						// Use the runner extension to interface with our evm's trace executor and
+						// return the TraceExecutorResult.
+						let tx_traces = match transaction.action {
+							TransactionAction::Call(to) => {
+								<Runtime as pallet_evm::Config>::Runner::trace_call(
+									from,
+									to,
+									transaction.input.clone(),
+									transaction.value,
+									transaction.gas_limit.low_u64(),
+									&config,
+									single::TraceType::CallList,
+								).map_err(|_| sp_runtime::DispatchError::Other("Evm error"))?
+
+							},
+							TransactionAction::Create => {
+								<Runtime as pallet_evm::Config>::Runner::trace_create(
+									from,
+									transaction.input.clone(),
+									transaction.value,
+									transaction.gas_limit.low_u64(),
+									&config,
+									single::TraceType::CallList,
+								).map_err(|_| sp_runtime::DispatchError::Other("Evm error"))?
+							}
+						};
+
+						let tx_traces = match tx_traces {
+							single::TransactionTrace::CallList(t) => t,
+							_ => return Err(sp_runtime::DispatchError::Other("Runtime API error")),
+						};
+
+						// Convert traces from "single" format to "block" format.
+						let mut tx_traces: Vec<_> = tx_traces.into_iter().map(|trace|
+							match trace.inner {
+								single::CallInner::Call {
+									input, to, res, call_type
+								} => block::TransactionTrace {
+									action: block::TransactionTraceAction::Call {
+										call_type,
+										from: trace.from,
+										gas: trace.gas,
+										input,
+										to,
+										value: trace.value,
+									},
+									// Can't be known here, must be inserted upstream.
+									block_hash: H256::default(),
+									// Can't be known here, must be inserted upstream.
+									block_number: 0,
+									output: match res {
+										CallResult::Output(res) => {
+											block::TransactionTraceOutput::Result(
+												block::TransactionTraceResult::Call {
+													gas_used: trace.gas_used,
+													res
+												})
+										},
+										CallResult::Error(error) =>
+											block::TransactionTraceOutput::Error(error),
+									},
+									subtraces: trace.subtraces,
+									trace_address: trace.trace_address,
+									// Can't be known here, must be inserted upstream.
+									transaction_hash: H256::default(),
+									transaction_position: eth_tx_index,
+								},
+								single::CallInner::Create { init, res } => block::TransactionTrace {
+									action: block::TransactionTraceAction::Create {
+										create_method: CreateType::Create,
+										from: trace.from,
+										gas: trace.gas,
+										input: init,
+										value: trace.value,
+									},
+									// Can't be known here, must be inserted upstream.
+									block_hash: H256::default(),
+									// Can't be known here, must be inserted upstream.
+									block_number: 0,
+									output: match res {
+										CreateResult::Success {
+											created_contract_address_hash,
+											created_contract_code
+										} => {
+											block::TransactionTraceOutput::Result(
+												block::TransactionTraceResult::Create {
+													gas_used: trace.gas_used,
+													code: created_contract_code,
+													address: created_contract_address_hash,
+												}
+											)
+										},
+										CreateResult::Error {
+											error
+										} => block::TransactionTraceOutput::Error(error),
+									},
+									subtraces: trace.subtraces,
+									trace_address: trace.trace_address,
+									// Can't be known here, must be inserted upstream.
+									transaction_hash: H256::default(),
+									transaction_position: eth_tx_index,
+
+								},
+								single::CallInner::SelfDestruct {
+									balance,
+									refund_address
+								} => block::TransactionTrace {
+									action: block::TransactionTraceAction::Suicide {
+										address: from,
+										balance,
+										refund_address,
+									},
+									// Can't be known here, must be inserted upstream.
+									block_hash: H256::default(),
+									// Can't be known here, must be inserted upstream.
+									block_number: 0,
+									output: block::TransactionTraceOutput::Result(
+												block::TransactionTraceResult::Suicide
+											),
+									subtraces: trace.subtraces,
+									trace_address: trace.trace_address,
+									// Can't be known here, must be inserted upstream.
+									transaction_hash: H256::default(),
+									transaction_position: eth_tx_index,
+
+								},
+							}
+						).collect();
+
+						traces.append(&mut tx_traces);
+
+						eth_tx_index += 1;
+					},
+					_ => {let _ = Executive::apply_extrinsic(ext); }
+				};
+			}
+
+			Ok(traces)
+		}
+	}
 
 	impl moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block> for Runtime {
 		fn extrinsic_filter(
@@ -593,7 +933,7 @@ impl_runtime_apis! {
 		}
 
 		fn author() -> H160 {
-			<pallet_ethereum::Module<Runtime>>::find_author()
+			Ethereum::find_author()
 		}
 
 		fn storage_at(address: H160, index: U256) -> H256 {
@@ -686,7 +1026,7 @@ impl_runtime_apis! {
 		}
 
 		fn current_block_gas_limit() -> U256 {
-			<Runtime as pallet_ethereum::Config>::BlockGasLimit::get()
+			<Runtime as pallet_evm::Config>::BlockGasLimit::get()
 		}
 	}
 
@@ -709,4 +1049,4 @@ impl_runtime_apis! {
 	}
 }
 
-cumulus_runtime::register_validate_block!(Block, Executive);
+cumulus_pallet_parachain_system::register_validate_block!(Runtime, Executive);

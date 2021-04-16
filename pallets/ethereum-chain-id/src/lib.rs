@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -36,7 +36,7 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config {}
 
-	impl<T: Config> Get<u64> for Module<T> {
+	impl<T: Config> Get<u64> for Pallet<T> {
 		fn get() -> u64 {
 			Self::chain_id()
 		}

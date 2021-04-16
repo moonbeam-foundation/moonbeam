@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -24,10 +24,8 @@
 //! about the external world, but can pass the runtime's checks. This is useful in testing
 //! for example, running the --dev service without a relay chain backbone.
 
-use cumulus_primitives::{
-	inherents::{SystemInherentData, SYSTEM_INHERENT_IDENTIFIER},
-	PersistedValidationData,
-};
+use cumulus_primitives_core::PersistedValidationData;
+use cumulus_primitives_parachain_inherent::{ParachainInherentData, INHERENT_IDENTIFIER};
 use parity_scale_codec::Encode;
 use sp_core::H160;
 use sp_inherents::{InherentData, InherentDataProviders, InherentIdentifier, ProvideInherentData};
@@ -83,7 +81,7 @@ struct MockValidationDataInherentDataProvider;
 
 impl ProvideInherentData for MockValidationDataInherentDataProvider {
 	fn inherent_identifier(&self) -> &'static InherentIdentifier {
-		&SYSTEM_INHERENT_IDENTIFIER
+		&INHERENT_IDENTIFIER
 	}
 
 	fn provide_inherent_data(
@@ -94,13 +92,11 @@ impl ProvideInherentData for MockValidationDataInherentDataProvider {
 		let (relay_storage_root, proof) =
 			RelayStateSproofBuilder::default().into_state_root_and_proof();
 
-		let data = SystemInherentData {
+		let data = ParachainInherentData {
 			validation_data: PersistedValidationData {
 				parent_head: Default::default(),
-				block_number: Default::default(),
-				relay_storage_root,
-				hrmp_mqc_heads: Default::default(),
-				dmq_mqc_head: Default::default(),
+				relay_parent_storage_root: relay_storage_root,
+				relay_parent_number: Default::default(),
 				max_pov_size: Default::default(),
 			},
 			downward_messages: Default::default(),
@@ -108,10 +104,10 @@ impl ProvideInherentData for MockValidationDataInherentDataProvider {
 			relay_chain_state: proof,
 		};
 
-		inherent_data.put_data(SYSTEM_INHERENT_IDENTIFIER, &data)
+		inherent_data.put_data(INHERENT_IDENTIFIER, &data)
 	}
 
 	fn error_to_string(&self, error: &[u8]) -> Option<String> {
-		InherentError::try_from(&SYSTEM_INHERENT_IDENTIFIER, error).map(|e| format!("{:?}", e))
+		InherentError::try_from(&INHERENT_IDENTIFIER, error).map(|e| format!("{:?}", e))
 	}
 }

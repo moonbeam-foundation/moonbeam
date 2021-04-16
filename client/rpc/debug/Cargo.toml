@@ -1,0 +1,27 @@
+[package]
+name = "moonbeam-rpc-debug"
+version = '0.1.0'
+authors = ['PureStake']
+edition = '2018'
+homepage = 'https://moonbeam.network'
+license = 'GPL-3.0-only'
+repository = 'https://github.com/PureStake/moonbeam/'
+
+[dependencies]
+jsonrpc-core = "15.0.0"
+ethereum = { version = "0.7.1", default-features = false, features = ["with-codec"] }
+ethereum-types = "0.11.0"
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-api = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+
+moonbeam-rpc-core-debug = { path = "../../rpc-core/debug" }
+moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
+fc-db = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }

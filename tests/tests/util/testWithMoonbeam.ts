@@ -47,6 +47,7 @@ export async function startMoonbeamNode(
     `--no-telemetry`,
     `--no-prometheus`,
     `--dev`,
+    `--ethapi=txpool,debug,trace`,
     `--sealing=manual`,
     `-l${MOONBEAM_LOG}`,
     `--port=${PORT}`,
@@ -116,7 +117,7 @@ export async function startMoonbeamNode(
 
 // Kill all processes when exiting.
 process.on("exit", function () {
-  runningNode.kill();
+  runningNode ? runningNode.kill() : null;
 });
 
 // Handle ctrl+c to trigger `exit`.

@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -45,6 +45,8 @@ pub struct Transaction {
 	pub gas: U256,
 	/// Data
 	pub input: Bytes,
+	/// Transaction Index
+	pub transaction_index: Option<U256>,
 }
 
 fn block_hash_serialize<S>(hash: &Option<H256>, serializer: S) -> Result<S::Ok, S::Error>
@@ -77,6 +79,7 @@ impl GetT for Transaction {
 			gas_price: txn.gas_price,
 			gas: txn.gas_limit,
 			input: Bytes(txn.input.clone()),
+			transaction_index: None,
 		}
 	}
 }
