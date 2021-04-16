@@ -181,8 +181,8 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
   });
 
   it("should return unsupported error for Pending Transaction filter creation", async function () {
-    let r = await customRequest(context.web3, "eth_newPendingTransactionFilter", []);
-    expect(r.error).to.include({
+    let createFilter = await customRequest(context.web3, "eth_newPendingTransactionFilter", []);
+    expect(createFilter.error).to.include({
       message: "Method not available.",
     });
   });
@@ -224,6 +224,9 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
   it("should return responses for Log filter polling.", async function () {
     // Create contract.
     let tx = await sendTransaction(context);
+    console.log("HEREEE");
+    console.log(tx);
+    console.log("HEREEE");
     await createAndFinalizeBlock(context.polkadotApi);
     let receipt = await context.web3.eth.getTransactionReceipt(tx.transactionHash);
 
