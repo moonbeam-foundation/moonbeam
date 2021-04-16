@@ -1,7 +1,11 @@
 import { expect } from "chai";
 import { Keyring } from "@polkadot/keyring";
 
-import { createAndFinalizeBlock, customRequest, describeWithMoonbeam } from "./util";
+import {
+  createAndFinalizeBlock,
+  customRequest,
+  describeWithMoonbeam,
+} from "./util";
 import {
   FIRST_CONTRACT_ADDRESS,
   GENESIS_ACCOUNT,
@@ -80,13 +84,16 @@ describeWithMoonbeam("Moonbeam RPC (Direct EVM Call)", `simple-specs.json`, (con
           GENESIS_ACCOUNT,
           FIRST_CONTRACT_ADDRESS,
           methodCallBytes,
+          // "0",
+          // "50000",
+          // "1000000000",
           "0x00",
           "0x100000",
           "0x01",
           nonce
         )
       )
-      .signAndSend(testAccount, { nonce: nonce, era: 0 }, (result) => {
+      .signAndSend(testAccount, { nonce: nonce }, (result) => {
         console.log(`Current registration status is ${result.status}`);
         if (result.status.isInBlock) {
           console.log(`Transaction included at blockHash ${result.status.asInBlock}`);
@@ -102,12 +109,18 @@ describeWithMoonbeam("Moonbeam RPC (Direct EVM Call)", `simple-specs.json`, (con
 
     //console.log("tx call hash", hash);
     await createAndFinalizeBlock(context.polkadotApi);
-    await new Promise((res) => setTimeout(res, 10000));
+    await createAndFinalizeBlock(context.polkadotApi);
+    //await new Promise((res) => setTimeout(res, 10000));
+
+    // call incr functionz
+    // let bytesCode: string = await contract.methods.incr().encodeABI();
+    // await callContractFunctionMS(context, contract.options.address, bytesCode);
+
     let res = await context.polkadotApi.query.evm.accountStorages(
       FIRST_CONTRACT_ADDRESS,
       "0x0000000000000000000000000000000000000000000000000000000000000000"
     );
-    console.log("res", res, Number(res));
+    console.log("res", Number(res));
     console.log("res from web3", await contract.methods.count().call());
     expect(Number(res)).to.eq(1);
     // console.log("hash", hash.toHex());
