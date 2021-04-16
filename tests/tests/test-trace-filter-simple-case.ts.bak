@@ -1,0 +1,173 @@
+import { expect } from "chai";
+
+import { createAndFinalizeBlock, describeWithMoonbeam, customRequest } from "./util";
+
+import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY, TEST_ACCOUNT } from "./constants";
+
+const CONTRACT = require("./constants/TraceFilter.json");
+
+describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (context) => {
+  describe("Basic tracing tests", async () => {
+    // let new_hash;
+    // beforeEach(async function () {
+    //   new_hash = await context.polkadotApi.rpc.chain.getBlockHash(0);
+
+    //   this.timeout(150000000);
+    //   let current_height = await context.web3.eth.getBlockNumber();
+    //   // We need to create as many blocks as the current longest chain plus 1 to allow for previously inserted tx to enter
+    //   if (current_height != 0) {
+    //     for (var i = 0; i < current_height; i++) {
+    //       new_hash = (await createAndFinalizeBlock(context.polkadotApi, new_hash, false))[1];
+    //     }
+    //   }
+    // });
+    // it("Suceed transaction", async function () {
+    //   this.timeout(150000000);
+    //   const tx = await context.web3.eth.accounts.signTransaction(
+    //     {
+    //       from: GENESIS_ACCOUNT,
+    //       to: TEST_ACCOUNT,
+    //       value: "0x200", // Must be higher than ExistentialDeposit (currently 0)
+    //       gasPrice: "0x01",
+    //       gas: "0x100000",
+    //     },
+    //     GENESIS_ACCOUNT_PRIVATE_KEY
+    //   );
+    //   let send = await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
+    //   let current_height = await context.web3.eth.getBlockNumber();
+    //   await createAndFinalizeBlock(context.polkadotApi, new_hash, false);
+
+    //   // Perform RPC call.
+    //   let response = await customRequest(context.web3, "trace_filter", [
+    //     {
+    //       fromBlock: context.web3.utils.numberToHex(current_height + 1),
+    //       toBlock: context.web3.utils.numberToHex(current_height + 1),
+    //     },
+    //   ]);
+
+    //   expect(response.result.length).to.equal(1);
+    // });
+
+    // it("Replay reverting CREATE", async function () {
+    //   this.timeout(150000000);
+    //   const tx = await context.web3.eth.accounts.signTransaction(
+    //     {
+    //       from: GENESIS_ACCOUNT,
+    //       to: TEST_ACCOUNT,
+    //       value: "0x200", // Must be higher than ExistentialDeposit (currently 0)
+    //       gasPrice: "0x01",
+    //       gas: "0x100000",
+    //     },
+    //     GENESIS_ACCOUNT_PRIVATE_KEY
+    //   );
+
+    //   let send = await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
+
+    //   let current_height = await context.web3.eth.getBlockNumber();
+
+    //   await createAndFinalizeBlock(context.polkadotApi, new_hash, false);
+
+    //   // Perform RPC call.
+    //   let response = await customRequest(context.web3, "trace_filter", [
+    //     {
+    //       fromBlock: context.web3.utils.numberToHex(current_height + 1),
+    //       toBlock: context.web3.utils.numberToHex(current_height + 1),
+    //     },
+    //   ]);
+
+    //   expect(response.result.length).to.equal(1);
+    // });
+
+    it("Suceed transaction", async function () {
+      this.timeout(150000000);
+
+      let genesis_hash = await context.polkadotApi.rpc.chain.getBlockHash(0);
+      // const tx = await context.web3.eth.accounts.signTransaction(
+      //   {
+      //     from: GENESIS_ACCOUNT,
+      //     to: TEST_ACCOUNT,
+      //     value: "0x200", // Must be higher than ExistentialDeposit (currently 0)
+      //     gasPrice: "0x01",
+      //     gas: "0x100000",
+      //   },
+      //   GENESIS_ACCOUNT_PRIVATE_KEY
+      // );
+      // let send = await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
+      let current_height = await context.web3.eth.getBlockNumber();
+      // Block 1a
+      console.log("block 1a");
+
+      let tx = await context.web3.eth.accounts.signTransaction(
+        {
+          from: GENESIS_ACCOUNT,
+          to: TEST_ACCOUNT,
+          value: "0x200", // Must be higher than ExistentialDeposit (currently 0)
+          gasPrice: "0x01",
+          gas: "0x100000",
+          nonce: 0,
+        },
+        GENESIS_ACCOUNT_PRIVATE_KEY
+      );
+      let send = await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
+
+      let block1a_hash = (
+        await createAndFinalizeBlock(context.polkadotApi, false, genesis_hash)
+      )[1];
+      console.log(block1a_hash);
+
+      console.log("block 2a");
+      let block2a = (await createAndFinalizeBlock(context.polkadotApi, false, block1a_hash))[1];
+
+      // Block 1b
+      console.log("block 1b");
+      let fork_hash = (await createAndFinalizeBlock(context.polkadotApi, false, genesis_hash))[1];
+      console.log(fork_hash);
+
+      // Block 2b
+      console.log("block 2b");
+
+      let block2b = (await createAndFinalizeBlock(context.polkadotApi, false, fork_hash))[1];
+
+      console.log("block 3b");
+
+      tx = await context.web3.eth.accounts.signTransaction(
+        {
+          from: GENESIS_ACCOUNT,
+          to: TEST_ACCOUNT,
+          value: "0x400", // Must be higher than ExistentialDeposit (currently 0)
+          gasPrice: "0x01",
+          gas: "0x100000",
+          nonce: 1,
+        },
+        GENESIS_ACCOUNT_PRIVATE_KEY
+      );
+      send = await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
+
+      let block3b = (await createAndFinalizeBlock(context.polkadotApi, false, block2b))[1];
+
+      console.log("block 4b");
+
+      let block4b = (await createAndFinalizeBlock(context.polkadotApi, false, block3b))[1];
+
+      // Perform RPC call.
+      let response = await customRequest(context.web3, "trace_filter", [
+        {
+          fromBlock: context.web3.utils.numberToHex(4),
+          toBlock: context.web3.utils.numberToHex(4),
+        },
+      ]);
+
+      // await createAndFinalizeBlock(context.polkadotApi, false, genesis_hash);
+
+      // // Perform RPC call.
+      // let response = await customRequest(context.web3, "trace_filter", [
+      //   {
+      //     fromBlock: context.web3.utils.numberToHex(current_height + 1),
+      //     toBlock: context.web3.utils.numberToHex(current_height + 1),
+      //   },
+      // ]);
+
+      // expect(response.result.length).to.equal(1);
+    });
+  });
+});

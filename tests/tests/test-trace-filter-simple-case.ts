@@ -2,7 +2,7 @@ import { expect } from "chai";
 
 import { createAndFinalizeBlock, describeWithMoonbeam, customRequest } from "./util";
 
-import {GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY, TEST_ACCOUNT} from "./constants";
+import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY, TEST_ACCOUNT } from "./constants";
 
 const CONTRACT = require("./constants/TraceFilter.json");
 
@@ -17,33 +17,25 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
       // We need to create as many blocks as the current longest chain plus 1 to allow for previously inserted tx to enter
       if (current_height != 0) {
         for (var i = 0; i < current_height; i++) {
-          new_hash = (await createAndFinalizeBlock(
-              context.polkadotApi,
-              new_hash,
-              false
-          ))[1];
+          new_hash = (await createAndFinalizeBlock(context.polkadotApi, new_hash, false))[1];
         }
       }
     });
     it("Suceed transaction", async function () {
       this.timeout(150000);
       const tx = await context.web3.eth.accounts.signTransaction(
-          {
-            from: GENESIS_ACCOUNT,
-            to: TEST_ACCOUNT,
-            value: "0x200", // Must be higher than ExistentialDeposit (currently 0)
-            gasPrice: "0x01",
-            gas: "0x100000",
-          },
-          GENESIS_ACCOUNT_PRIVATE_KEY
+        {
+          from: GENESIS_ACCOUNT,
+          to: TEST_ACCOUNT,
+          value: "0x200", // Must be higher than ExistentialDeposit (currently 0)
+          gasPrice: "0x01",
+          gas: "0x100000",
+        },
+        GENESIS_ACCOUNT_PRIVATE_KEY
       );
       let send = await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
       let current_height = await context.web3.eth.getBlockNumber();
-      await createAndFinalizeBlock(
-          context.polkadotApi,
-          new_hash,
-          false
-      );
+      await createAndFinalizeBlock(context.polkadotApi, new_hash, false);
 
       // Perform RPC call.
       let response = await customRequest(context.web3, "trace_filter", [
@@ -57,28 +49,24 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     });
 
     it("Replay reverting CREATE", async function () {
-      this.timeout(150000)
+      this.timeout(150000);
       const tx = await context.web3.eth.accounts.signTransaction(
-          {
-            from: GENESIS_ACCOUNT,
-            to: TEST_ACCOUNT,
-            value: "0x200", // Must be higher than ExistentialDeposit (currently 0)
-            gasPrice: "0x01",
-            gas: "0x100000",
-          },
-          GENESIS_ACCOUNT_PRIVATE_KEY
+        {
+          from: GENESIS_ACCOUNT,
+          to: TEST_ACCOUNT,
+          value: "0x200", // Must be higher than ExistentialDeposit (currently 0)
+          gasPrice: "0x01",
+          gas: "0x100000",
+        },
+        GENESIS_ACCOUNT_PRIVATE_KEY
       );
 
       let send = await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
 
       let current_height = await context.web3.eth.getBlockNumber();
 
-
-      await createAndFinalizeBlock(
-          context.polkadotApi,
-          new_hash,
-          false
-      );
+      console.log(current_height + 1);
+      await createAndFinalizeBlock(context.polkadotApi, new_hash, false);
 
       // Perform RPC call.
       let response = await customRequest(context.web3, "trace_filter", [
