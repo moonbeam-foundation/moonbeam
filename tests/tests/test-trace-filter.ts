@@ -51,7 +51,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
     await createAndFinalizeBlock(context.polkadotApi);
     // Deploy 2 more contracts
-    for (var i = 0; i < 2; i++) {
+    for (let i = 0; i < 2; i++) {
       const contractDeploy = contract.deploy({
         data: CONTRACT.bytecode,
         arguments: [false], // don't revert

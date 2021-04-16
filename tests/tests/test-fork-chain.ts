@@ -43,7 +43,7 @@ describeWithMoonbeam("Frontier RPC (fork)", `simple-specs.json`, (context) => {
     // We start parenting to the genesis
     let parentHash = await context.polkadotApi.rpc.chain.getBlockHash(0);
 
-    for (var i = 0; i <= currentHeight; i++) {
+    for (let i = 0; i <= currentHeight; i++) {
       parentHash = (await createAndFinalizeBlock(context.polkadotApi, parentHash, false))[1];
     }
 
