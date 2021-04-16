@@ -1,8 +1,8 @@
 //import { contractSources } from "./tests/constants/contractSources";
 //import { getCompiled } from "./tests/util/contracts";
 
-const { contractSources } = require("./tests/constants/contractSources");
-const { getCompiled } = require("./tests/util/contracts");
+import { contractSources } from "../tests/constants/contractSources";
+import { getCompiled } from "../tests/util/contracts";
 
 // can be async or not
 // export async function mochaGlobalSetup() {
@@ -25,5 +25,4 @@ exports.mochaGlobalSetup = async function () {
     await getCompiled(keys[i]);
   }
   console.log("done");
-  process.exit();
 };
