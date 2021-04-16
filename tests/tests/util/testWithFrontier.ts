@@ -1,8 +1,9 @@
 import Web3 from "web3";
 
 import { spawn, ChildProcess } from "child_process";
-import { DISPLAY_LOG, PORT, RPC_PORT, SPAWNING_TIME, WS_PORT } from "../constants";
+import { DISPLAY_LOG, SPAWNING_TIME } from "../constants";
 import { customRequest } from "./web3Requests";
+import { findAvailablePorts } from "./findAvailablePorts";
 
 const SPECS_PATH = `./moonbeam-test-specs`;
 
@@ -15,9 +16,11 @@ export async function startFrontierNode(
   specFilename: string,
   provider?: string
 ): Promise<{ web3: Web3; binary: ChildProcess }> {
+  const ports = await findAvailablePorts();
+
   var web3;
   if (!provider || provider == "http") {
-    web3 = new Web3(`http://localhost:${RPC_PORT}`);
+    web3 = new Web3(`http://localhost:${ports.rpcPort}`);
   }
 
   const cmd = BINARY_PATH;
@@ -31,9 +34,9 @@ export async function startFrontierNode(
     `--no-grandpa`,
     `--force-authoring`,
     `-l${FRONTIER_LOG}`,
-    `--port=${PORT}`,
-    `--rpc-port=${RPC_PORT}`,
-    `--ws-port=${WS_PORT}`,
+    `--port=${ports.p2pPort}`,
+    `--rpc-port=${ports.rpcPort}`,
+    `--ws-port=${ports.wsPort}`,
     `--tmp`,
   ];
   const binary = spawn(cmd, args);
@@ -82,7 +85,7 @@ export async function startFrontierNode(
   });
 
   if (provider == "ws") {
-    web3 = new Web3(`ws://localhost:${WS_PORT}`);
+    web3 = new Web3(`ws://localhost:${ports.wsPort}`);
   }
 
   return { web3, binary };
