@@ -50,7 +50,7 @@ dropdown. **Build & Launch Moonbeam Node (Linux)** will trigger the build before
 
 To launch the debug session click on the green "play" arrow next to the dropdown. It will take some
 time before the node starts, but the terminal containing the node output will appear when it is
-really starting.
+really starting. The node is listening on ports 19931 (p2p), 19932 (rpc) and 19933 (ws).
 
 You can explore the code and place a breakpoint on a line by left clicking on the left of the line
 number. The execution will pause the next time this line is reached. The debug toolbar contains the
@@ -79,4 +79,8 @@ of the implementation).
 
 By setting the environement variable `DEBUG_MODE=true`, the Typescript tests will not spawn its
 own node and instead will connect to an external node running on ports 19931/19932/19933, which
-are the ports used by the debug node. This is also available as a VSCode task.
+are the ports used by the debug node.
+
+A VSCode test allow to quickly run the `test-single` test in debug mode. To run another test,
+change the command in the `package.json`. Note that you should restart the node after running
+one test file.
