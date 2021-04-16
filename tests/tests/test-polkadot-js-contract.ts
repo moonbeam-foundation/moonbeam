@@ -1,11 +1,7 @@
 import { expect } from "chai";
 import { Keyring } from "@polkadot/keyring";
 
-import {
-  createAndFinalizeBlock,
-  customRequest,
-  describeWithMoonbeam,
-} from "./util";
+import { createAndFinalizeBlock, customRequest, describeWithMoonbeam } from "./util";
 import {
   FIRST_CONTRACT_ADDRESS,
   GENESIS_ACCOUNT,
@@ -13,6 +9,7 @@ import {
   TEST_CONTRACT_INCR_ABI,
   TEST_CONTRACT_BYTECODE_INCR,
 } from "./constants";
+import { AnyTuple, IEvent } from "@polkadot/types/types";
 
 describeWithMoonbeam("Moonbeam RPC (Direct EVM Call)", `simple-specs.json`, (context) => {
   before("create the contract", async function () {
@@ -109,8 +106,32 @@ describeWithMoonbeam("Moonbeam RPC (Direct EVM Call)", `simple-specs.json`, (con
 
     //console.log("tx call hash", hash);
     await createAndFinalizeBlock(context.polkadotApi);
-    await createAndFinalizeBlock(context.polkadotApi);
-    //await new Promise((res) => setTimeout(res, 10000));
+    await new Promise((res) => setTimeout(res, 10000));
+
+    const latestBlock = await context.web3.eth.getBlock("latest");
+    console.log("latestBlock.transactions", latestBlock.transactions);
+    // expect(latestBlock.transactions.length).to.equal(1);
+
+    // no blockHash is specified, so we retrieve the latest
+    const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
+    const allRecords = await context.polkadotApi.query.system.events.at(
+      signedBlock.block.header.hash
+    );
+
+    // map between the extrinsics and events
+    signedBlock.block.extrinsics.forEach(({ method: { method, section } }, index) => {
+      // filter the specific events based on the phase and then the
+      // index of our extrinsic in the block
+      const events = allRecords
+        .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
+        .map(({ event }) => `${event.section}.${event.method}`);
+
+      console.log(`${section}.${method}:: ${events.join(", ") || "no events"}`);
+    });
+
+    // const tx_hash = latestBlock.transactions[0];
+    // const tx = await context.web3.eth.getTransaction(tx_hash);
+    // console.log("tx after", tx);
 
     // call incr functionz
     // let bytesCode: string = await contract.methods.incr().encodeABI();
