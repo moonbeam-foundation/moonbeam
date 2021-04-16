@@ -9,6 +9,18 @@ import { BINARY_PATH, DISPLAY_LOG, MOONBEAM_LOG, SPAWNING_TIME } from "../consta
 import { ErrorReport } from "./fillBlockWithTx";
 import { findAvailablePorts } from "./findAvailablePorts";
 
+import { contractSources } from "../constants/contractSources";
+import { getCompiled } from "./contracts";
+export async function mochaGlobalSetup() {
+  // First compile all contracts
+  console.log("Making sure all contracts are compiled...");
+  await Promise.all(
+    Object.keys(contractSources).map(async (contractName) => {
+      return getCompiled(contractName);
+    })
+  );
+}
+
 export function log(...msg: (string | number | ErrorReport)[]) {
   if (process.argv && process.argv[2] && process.argv[2] === "--printlogs") {
     console.log(...msg);

@@ -1,42 +1,28 @@
 import { expect } from "chai";
 
-import { createAndFinalizeBlock, customRequest, describeWithMoonbeam } from "./util";
-import {
-  FIRST_CONTRACT_ADDRESS,
-  GENESIS_ACCOUNT,
-  GENESIS_ACCOUNT_PRIVATE_KEY,
-  TEST_CONTRACT_ABI,
-  TEST_CONTRACT_BYTECODE,
-} from "./constants";
+import { describeWithMoonbeam } from "./util";
+import { FIRST_CONTRACT_ADDRESS, GENESIS_ACCOUNT } from "./constants";
+import { deployContractByName, getCompiled } from "./util/contracts";
 
 describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (context) => {
+  let TestContractABI;
   before("create the contract", async function () {
     this.timeout(15000);
-    const tx = await context.web3.eth.accounts.signTransaction(
-      {
-        from: GENESIS_ACCOUNT,
-        data: TEST_CONTRACT_BYTECODE,
-        value: "0x00",
-        gasPrice: "0x01",
-        gas: "0x100000",
-      },
-      GENESIS_ACCOUNT_PRIVATE_KEY
-    );
-    await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
-    await createAndFinalizeBlock(context.polkadotApi);
+    TestContractABI = (await getCompiled("TestContract")).contract.abi;
+    await deployContractByName(context.polkadotApi, context.web3, "TestContract");
   });
 
   it("get transaction by hash", async () => {
     const latestBlock = await context.web3.eth.getBlock("latest");
     expect(latestBlock.transactions.length).to.equal(1);
 
-    const tx_hash = latestBlock.transactions[0];
-    const tx = await context.web3.eth.getTransaction(tx_hash);
-    expect(tx.hash).to.equal(tx_hash);
+    const txHash = latestBlock.transactions[0];
+    const tx = await context.web3.eth.getTransaction(txHash);
+    expect(tx.hash).to.equal(txHash);
   });
 
   it("should return contract method result", async function () {
-    const contract = new context.web3.eth.Contract([TEST_CONTRACT_ABI], FIRST_CONTRACT_ADDRESS, {
+    const contract = new context.web3.eth.Contract(TestContractABI, FIRST_CONTRACT_ADDRESS, {
       from: GENESIS_ACCOUNT,
       gasPrice: "0x01",
     });
@@ -46,7 +32,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
   // Requires error handling
   it("should fail for missing parameters", async function () {
     const contract = new context.web3.eth.Contract(
-      [{ ...TEST_CONTRACT_ABI, inputs: [] }],
+      [{ ...TestContractABI[0], inputs: [] }],
       FIRST_CONTRACT_ADDRESS,
       {
         from: GENESIS_ACCOUNT,
@@ -68,7 +54,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
     const contract = new context.web3.eth.Contract(
       [
         {
-          ...TEST_CONTRACT_ABI,
+          ...TestContractABI[0],
           inputs: [
             { internalType: "uint256", name: "a", type: "uint256" },
             { internalType: "uint256", name: "b", type: "uint256" },
@@ -96,7 +82,7 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
     const contract = new context.web3.eth.Contract(
       [
         {
-          ...TEST_CONTRACT_ABI,
+          ...TestContractABI[0],
           inputs: [
             {
               internalType: "address",

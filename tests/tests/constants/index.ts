@@ -1,4 +1,4 @@
-export * from "./testContracts";
+export * from "./contractConstants";
 export * from "./constants";
 export * from "./transactionConfigs";
 

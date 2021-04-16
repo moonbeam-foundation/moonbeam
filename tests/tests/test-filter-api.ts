@@ -1,19 +1,15 @@
 import { expect } from "chai";
 import { step } from "mocha-steps";
-import { create } from "ts-node";
+import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
 
 import { createAndFinalizeBlock, describeWithMoonbeam, customRequest } from "./util";
 
 describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (context) => {
-  const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
-  const GENESIS_ACCOUNT_PRIVATE_KEY =
-    "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
-
   // This reflects the measured gas cost of the transaction at this current point in time.
   // It has been known to fluctuate from release to release, so it may need adjustment.
   const EXPECTED_TRANSACTION_GAS_COST = 891328;
 
-  const TEST_CONTRACT_BYTECODE =
+  const TestContractByteCode =
     "0x608060405234801561001057600080fd5b50610041337fffffffffffffffffffffffffffffffffff" +
     "ffffffffffffffffffffffffffffff61004660201b60201c565b610291565b600073ffffffffffff" +
     "ffffffffffffffffffffffffffff168273ffffffffffffffffffffffffffffffffffffffff161415" +
@@ -127,7 +123,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
-        data: TEST_CONTRACT_BYTECODE,
+        data: TestContractByteCode,
         value: "0x00",
         gasPrice: "0x01",
         gas: "0x" + EXPECTED_TRANSACTION_GAS_COST.toString(16),
@@ -300,6 +296,7 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
   });
 
   step("should have a filter pool max size of 500.", async function () {
+    this.timeout(20000);
     const max_filter_pool = 500;
 
     for (let i = 0; i < max_filter_pool; i++) {

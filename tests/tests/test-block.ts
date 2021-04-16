@@ -113,9 +113,9 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
   });
 
   step("get block by hash", async function () {
-    const latest_block = await context.web3.eth.getBlock("latest");
-    const block = await context.web3.eth.getBlock(latest_block.hash);
-    expect(block.hash).to.be.eq(latest_block.hash);
+    const latestBlock = await context.web3.eth.getBlock("latest");
+    const block = await context.web3.eth.getBlock(latestBlock.hash);
+    expect(block.hash).to.be.eq(latestBlock.hash);
   });
 
   step("get block by number", async function () {
@@ -142,7 +142,7 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
   });
 
   it("should be able to fill a block with 576 tx", async function () {
-    this.timeout(15000);
+    this.timeout(20000);
     // We have 15_000_000 Gas available for transactions per block.
     // Each transaction needs 26_000 gas: 5_000 (extrinsic cost) + 21_000 (eth cost).
     // 5_000 is the equivalent gas of ExtrinsicBaseWeight (125_000_000 / 25_000)
@@ -157,7 +157,7 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     // We have 15_000_000 Gas available for transactions per block.
     // Each transaction needs 5_000 (extrinsic cost) + 91_019 (contract cost)
     // 15_000_000 / 96_019 = 156.22
-    let { txPassedFirstBlock } = await fillBlockWithTx(context, 157, contractCreation);
+    let { txPassedFirstBlock } = await fillBlockWithTx(context, 157, await contractCreation());
     expect(txPassedFirstBlock).to.eq(156);
   });
 
@@ -179,13 +179,13 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
   it.skip("should be able to send 8192 tx to the pool and have them all published\
   within the following blocks - bigger tx", async function () {
     this.timeout(120000);
-    let { txPassed } = await fillBlockWithTx(context, 8192, contractCreation);
+    let { txPassed } = await fillBlockWithTx(context, 8192, await contractCreation());
     expect(txPassed).to.eq(8192);
   });
 
   it.skip("but shouldn't work for 8193 - bigger tx", async function () {
     this.timeout(120000);
-    let { txPassed } = await fillBlockWithTx(context, 8193, contractCreation);
+    let { txPassed } = await fillBlockWithTx(context, 8193, await contractCreation());
     expect(txPassed).to.eq(0);
   });
 });
