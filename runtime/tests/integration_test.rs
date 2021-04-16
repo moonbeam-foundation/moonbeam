@@ -18,6 +18,7 @@
 
 #![cfg(test)]
 
+use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
@@ -114,6 +115,10 @@ const DAVE: [u8; 20] = [7u8; 20];
 
 fn origin_of(account_id: AccountId) -> <Runtime as frame_system::Config>::Origin {
 	<Runtime as frame_system::Config>::Origin::signed(account_id)
+}
+
+fn inherent_origin() -> <Runtime as frame_system::Config>::Origin {
+	<Runtime as frame_system::Config>::Origin::none()
 }
 
 #[test]
@@ -228,5 +233,69 @@ fn transfer_through_evm_to_stake() {
 
 #[test]
 fn reward_block_authors() {
-	assert!(true);
+	ExtBuilder::default()
+		.balances(vec![
+			(AccountId::from(ALICE), 2_000 * GLMR),
+			(AccountId::from(BOB), 1_000 * GLMR),
+		])
+		.staking(vec![
+			// collator
+			(AccountId::from(ALICE), None, 1_000 * GLMR),
+			// nominators
+			(
+				AccountId::from(BOB),
+				Some(AccountId::from(ALICE)),
+				500 * GLMR,
+			),
+		])
+		.build()
+		.execute_with(|| {
+			// set parachain inherent data
+			use cumulus_primitives_core::PersistedValidationData;
+			use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
+			let sproof_builder = RelayStateSproofBuilder::default();
+			let (relay_parent_storage_root, relay_chain_state) =
+				sproof_builder.into_state_root_and_proof();
+			let vfp = PersistedValidationData {
+				relay_parent_number: 1u32,
+				relay_parent_storage_root,
+				..Default::default()
+			};
+			let parachain_inherent_data = ParachainInherentData {
+				validation_data: vfp,
+				relay_chain_state: relay_chain_state,
+				downward_messages: Default::default(),
+				horizontal_messages: Default::default(),
+			};
+			assert_ok!(
+				Call::ParachainSystem(ParachainSystemCall::set_validation_data(
+					parachain_inherent_data
+				))
+				.dispatch(inherent_origin())
+			);
+			fn set_alice_as_author() {
+				assert_ok!(
+					Call::AuthorInherent(AuthorInherentCall::set_author(AccountId::from(ALICE)))
+						.dispatch(inherent_origin())
+				);
+			}
+			for x in 2..1201 {
+				set_alice_as_author();
+				run_to_block(x);
+			}
+			// no rewards doled out yet
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * GLMR,);
+			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * GLMR,);
+			set_alice_as_author();
+			run_to_block(1201);
+			// rewards minted and distributed
+			assert_eq!(
+				Balances::free_balance(AccountId::from(ALICE)),
+				1000010038599992699200,
+			);
+			assert_eq!(
+				Balances::free_balance(AccountId::from(BOB)),
+				500003650399996349600,
+			);
+		});
 }
