@@ -12,6 +12,7 @@ use parachain_staking::mock::{
     Test,
 };
 use sp_io::TestExternalities;
+use frame_support::dispatch::DispatchResultWithPostInfo;
 // use sp_runtime::{traits::Zero, DispatchError};
 
 /// A state machine that the user will poke at when running the cli. Maybe there is a better
@@ -31,16 +32,10 @@ impl StateMachine {
     }
 
     /// Make a new nomination
-    pub fn nominate(&mut self, nominator: AccountId, collator: AccountId, amount: Balance) -> bool {
+    pub fn nominate(&mut self, nominator: AccountId, collator: AccountId, amount: Balance) -> DispatchResultWithPostInfo {
         self.ext.execute_with(|| {
             // TODO should I actually make an outer call and dispatch it here?
-            match Stake::nominate(Origin::signed(nominator), collator, amount) {
-                Ok(_) => true,
-                Err(_e) => {
-                    println!("It failed");
-                    false
-                }
-            }
+            Stake::nominate(Origin::signed(nominator), collator, amount)
         })
     }
 
@@ -66,8 +61,13 @@ fn main() {
     println!("Nominators are: {:?}", machine.get_nominators());
 
     // Nominate new
-    let success = machine.nominate(7, 1, 100);
-    println!("Did the nominate call succeed? {:?}", success);
+    machine.nominate(7, 1, 100).expect("nomination failed");
+
+    // Print current nominators
+    println!("Nominators are: {:?}", machine.get_nominators());
+
+    // Nominate new fails because the nominator doesn't have enough funds
+    machine.nominate(10, 1, 100).expect("nomination failed");
 
     // Print current nominators
     println!("Nominators are: {:?}", machine.get_nominators());
