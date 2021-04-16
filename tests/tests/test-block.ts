@@ -67,7 +67,6 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
         await context.polkadotApi.rpc.chain.getBlockHash(0),
         false
       );
-      let block1 = await context.web3.eth.getBlock(1);
     });
 
     it("should be at block 1 after block production", async function () {

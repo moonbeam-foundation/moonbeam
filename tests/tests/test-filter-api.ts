@@ -181,8 +181,8 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
   });
 
   it("should return unsupported error for Pending Transaction filter creation", async function () {
-    let createFilter = await customRequest(context.web3, "eth_newPendingTransactionFilter", []);
-    expect(createFilter.error).to.include({
+    let result = await customRequest(context.web3, "eth_newPendingTransactionFilter", []);
+    expect(result.error).to.include({
       message: "Method not available.",
     });
   });
@@ -224,9 +224,6 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
   it("should return responses for Log filter polling.", async function () {
     // Create contract.
     let tx = await sendTransaction(context);
-    console.log("HEREEE");
-    console.log(tx);
-    console.log("HEREEE");
     await createAndFinalizeBlock(context.polkadotApi);
     let receipt = await context.web3.eth.getTransactionReceipt(tx.transactionHash);
 
@@ -290,8 +287,8 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
     expect(uninstall.result).to.be.eq(true);
 
     // Should return error if does not exist.
-    let r = await customRequest(context.web3, "eth_uninstallFilter", [filterId]);
-    expect(r.error).to.include({
+    let result = await customRequest(context.web3, "eth_uninstallFilter", [filterId]);
+    expect(result.error).to.include({
       message: "Filter id " + parseInt(filterId, 16) + " does not exist.",
     });
   });
@@ -306,8 +303,8 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
       await createAndFinalizeBlock(context.polkadotApi);
     }
 
-    let r = await customRequest(context.web3, "eth_getFilterChanges", [filterId]);
-    expect(r.error).to.include({
+    let result = await customRequest(context.web3, "eth_getFilterChanges", [filterId]);
+    expect(result.error).to.include({
       message: "Filter id " + parseInt(filterId, 16) + " does not exist.",
     });
   });
@@ -317,8 +314,8 @@ describeWithMoonbeam("Moonbeam RPC (EthFilterApi)", `simple-specs.json`, (contex
       await customRequest(context.web3, "eth_newBlockFilter", []);
     }
 
-    let r = await customRequest(context.web3, "eth_newBlockFilter", []);
-    expect(r.error).to.include({
+    let result = await customRequest(context.web3, "eth_newBlockFilter", []);
+    expect(result.error).to.include({
       message: "Filter pool is full (limit 500).",
     });
   });
