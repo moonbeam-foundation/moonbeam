@@ -10,7 +10,6 @@ describeWithMoonbeam("Moonbeam RPC (Nonce)", `simple-specs.json`, (context) => {
     await createAndFinalizeBlock(context.polkadotApi);
   });
   it("get nonce", async function () {
-    this.timeout(10_000);
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,

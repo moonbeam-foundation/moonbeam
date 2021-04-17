@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
 import { createAndFinalizeBlock, customRequest, describeWithMoonbeam } from "./util";
-import { ERC20_BYTECODE } from "./constants/testContracts";
+import { ERC20_BYTECODE } from "./constants/contractConstants";
 import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
 
 async function insert_to_mempool(context) {

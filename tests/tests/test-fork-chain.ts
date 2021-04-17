@@ -7,7 +7,6 @@ import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY, TEST_ACCOUNT } from "./co
 describeWithMoonbeam("Frontier RPC (fork)", `simple-specs.json`, (context) => {
   let insertedTx;
   before(async function () {
-    this.timeout(15000);
     // Creation of the best chain so far, with blocks 0-1-2 and a transfer in block 2
     await createAndFinalizeBlock(
       context.polkadotApi,

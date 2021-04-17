@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
 
 import { createAndFinalizeBlock, describeWithMoonbeam, customRequest } from "./util";
 
@@ -6,10 +7,6 @@ const INCREMENTER = require("./constants/Incrementer.json");
 const CALLEE = require("./constants/Callee.json");
 const CALLER = require("./constants/Caller.json");
 const BS_TRACER = require("./constants/blockscout_tracer.min.json");
-
-const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
-const GENESIS_ACCOUNT_PRIVATE_KEY =
-  "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
 
 async function nested(context) {
   // Create Callee contract.
@@ -27,7 +24,6 @@ async function nested(context) {
   await createAndFinalizeBlock(context.polkadotApi);
   let receipt = await context.web3.eth.getTransactionReceipt(send.result);
   const calleeAddr = receipt.contractAddress;
-  const callee = new context.web3.eth.Contract(CALLEE.abi, calleeAddr);
   // Create Caller contract.
   const callerTx = await context.web3.eth.accounts.signTransaction(
     {
@@ -88,11 +84,9 @@ describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
     // the last.
     const totalTxs = 10;
     let targets = [1, 2, 5, 8, 10];
-    let iteration = 0;
     let txs = [];
-    let numTxs;
     // Create 10 transactions in a block.
-    for (numTxs = 1; numTxs <= totalTxs; numTxs++) {
+    for (let numTxs = 1; numTxs <= totalTxs; numTxs++) {
       let callTx = await context.web3.eth.accounts.signTransaction(
         {
           from: GENESIS_ACCOUNT,
@@ -113,7 +107,7 @@ describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
     for (let target of targets) {
       let index = target - 1;
 
-      let receipt = await context.web3.eth.getTransactionReceipt(txs[index]);
+      await context.web3.eth.getTransactionReceipt(txs[index]);
 
       let intermediateTx = await customRequest(context.web3, "debug_traceTransaction", [
         txs[index],

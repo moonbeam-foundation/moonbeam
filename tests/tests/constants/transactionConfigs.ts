@@ -1,9 +1,9 @@
 // +++ TransactionConfig +++
 
 import { GENESIS_ACCOUNT, TEST_ACCOUNT } from "./constants";
-import { TEST_CONTRACT_BYTECODE } from "./testContracts";
 
 import { TransactionConfig } from "web3-core";
+import { getCompiled } from "../util/contracts";
 
 export type CompleteTransactionConfig =
   | TransactionConfig
@@ -20,11 +20,13 @@ export const basicTransfertx: CompleteTransactionConfig = {
   chainId: "0x501", // Prevents web3 from requesting the chainId
 };
 
-export const contractCreation: CompleteTransactionConfig = {
-  from: GENESIS_ACCOUNT,
-  data: TEST_CONTRACT_BYTECODE,
-  value: "0x00",
-  gasPrice: "0x01",
-  gas: 91019,
-  chainId: "0x501", // Prevents web3 from requesting the chainId
-};
+export async function contractCreation(): Promise<CompleteTransactionConfig> {
+  return {
+    from: GENESIS_ACCOUNT,
+    data: (await getCompiled("TestContract")).byteCode,
+    value: "0x00",
+    gasPrice: "0x01",
+    gas: 91019,
+    chainId: "0x501", // Prevents web3 from requesting the chainId
+  };
+}

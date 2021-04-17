@@ -238,7 +238,7 @@ describeWithMoonbeam("Moonbeam (Precompiles)", `simple-specs.json`, (context) =>
     "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
 
   it("ripemd160 should be valid", async function () {
-    const tx_call = await customRequest(context.web3, "eth_call", [
+    const txCall = await customRequest(context.web3, "eth_call", [
       {
         from: GENESIS_ACCOUNT,
         value: "0x0",
@@ -249,13 +249,12 @@ describeWithMoonbeam("Moonbeam (Precompiles)", `simple-specs.json`, (context) =>
       },
     ]);
 
-    expect(tx_call.result).equals(
+    expect(txCall.result).equals(
       "0x0000000000000000000000007f772647d88750add82d8e1a7a3e5c0902a346a3"
     );
   });
 
   it("ripemd160 is valid inside a contract", async function () {
-    this.timeout(15000);
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
@@ -277,7 +276,6 @@ describeWithMoonbeam("Moonbeam (Precompiles)", `simple-specs.json`, (context) =>
   it("ModExp is valid inside a contract", async function () {
     // See also the ModExp unit tests at
     // github.com/paritytech/frontier/blob/378221a4/frame/evm/precompile/modexp/src/lib.rs#L101
-    this.timeout(15000);
     const { rawTransaction, transactionHash } = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
@@ -297,7 +295,6 @@ describeWithMoonbeam("Moonbeam (Precompiles)", `simple-specs.json`, (context) =>
   });
 
   it("bn128add is valid inside a contract", async function () {
-    this.timeout(15000);
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
@@ -318,7 +315,6 @@ describeWithMoonbeam("Moonbeam (Precompiles)", `simple-specs.json`, (context) =>
   });
 
   it("bn128mul is valid inside a contract", async function () {
-    this.timeout(15000);
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
@@ -339,7 +335,6 @@ describeWithMoonbeam("Moonbeam (Precompiles)", `simple-specs.json`, (context) =>
   });
 
   it("bn128Pairing is valid inside a contract", async function () {
-    this.timeout(15000);
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,

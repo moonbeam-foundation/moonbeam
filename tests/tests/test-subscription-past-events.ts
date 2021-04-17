@@ -45,45 +45,16 @@ describeWithMoonbeam(
     function web3Subscribe(type: "newBlockHeaders" | "pendingTransactions" | "logs", params?: any) {
       return (context.web3.eth as any).subscribe(...arguments);
     }
+
     before(async function () {
-      let first_subscription = web3Subscribe("pendingTransactions");
-      await sendTransaction(context);
-      await new Promise((resolve) => {
-        createAndFinalizeBlock(context.polkadotApi);
-        first_subscription.once("data", resolve);
-      });
-      first_subscription.unsubscribe();
-      let second_subscription = web3Subscribe("logs", {});
-      await sendTransaction(context);
-      await new Promise((resolve) => {
-        createAndFinalizeBlock(context.polkadotApi);
-        second_subscription.once("data", resolve);
-      });
-      second_subscription.unsubscribe();
-      let third_subscription = web3Subscribe("logs", {
-        address: [
-          "0xF8cef78E923919054037a1D03662bBD884fF4edf",
-          "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
-          "0x5c4242beB94dE30b922f57241f1D02f36e906915",
-          "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
-        ],
-      });
-      await sendTransaction(context);
-      await new Promise((resolve) => {
-        createAndFinalizeBlock(context.polkadotApi);
-        third_subscription.once("data", resolve);
-      });
-      third_subscription.unsubscribe();
-      let forth_subscription = web3Subscribe("logs", {
-        topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
-      });
-      await sendTransaction(context);
-      await new Promise((resolve) => {
-        createAndFinalizeBlock(context.polkadotApi);
-        forth_subscription.once("data", resolve);
-      });
-      forth_subscription.unsubscribe();
+      // Sending 4 transactions. Those will be tested
+      await sendTransaction(context, { nonce: 0 });
+      await sendTransaction(context, { nonce: 1 });
+      await sendTransaction(context, { nonce: 2 });
+      await sendTransaction(context, { nonce: 3 });
+      await createAndFinalizeBlock(context.polkadotApi);
     });
+
     it("should get past events #1: by topic", async function () {
       const subscription = web3Subscribe("logs", {
         fromBlock: "0x0",

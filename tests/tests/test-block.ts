@@ -70,7 +70,6 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     });
 
     it("should be at block 1 after block production", async function () {
-      this.timeout(15000);
       expect(await context.web3.eth.getBlockNumber()).to.equal(1);
     });
 
@@ -141,7 +140,6 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     });
 
     it("should include previous block hash as parent (block 2)", async function () {
-      this.timeout(15000);
       const block = await context.web3.eth.getBlock("latest");
       let previousBlock = await context.web3.eth.getBlock(1);
       expect(block.hash).to.not.equal(previousBlock.hash);
@@ -157,13 +155,11 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     // the maximum number of tx/ blocks is not constant but is always around 1500
 
     it("should be able to fill a block with a 1 tx", async function () {
-      this.timeout(15000);
       let { txPassedFirstBlock } = await fillBlockWithTx(context, 1);
       expect(txPassedFirstBlock).to.eq(1);
     });
 
     it.skip("should be able to fill a block with 260 tx", async function () {
-      this.timeout(15000);
       // We have 6_000_000 Gas available for transactions per block.
       // Each transaction needs 2_000 (extrinsic cost) + 21_000 (eth cost)
       // 6_000_000 / 23_000 = ~260.86
@@ -174,13 +170,12 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
     });
 
     it.skip("should be able to fill a block with 64 contract creations tx", async function () {
-      this.timeout(15000);
       // We have 6_000_000 Gas available for transactions per block.
       // Each transaction needs 2_000 (extrinsic cost) + 91019 (contract cost)
       // 6_000_000 / 92_019 = ~64.50
 
       // The test will send 65 contract tx and verify the first block contains only 64.
-      let { txPassedFirstBlock } = await fillBlockWithTx(context, 65, contractCreation);
+      let { txPassedFirstBlock } = await fillBlockWithTx(context, 65, await contractCreation());
       expect(txPassedFirstBlock).to.eq(64);
     });
 
@@ -189,27 +184,23 @@ describeWithMoonbeam("Moonbeam RPC (Block)", `simple-specs.json`, (context) => {
 
     it.skip("should be able to send 8192 tx to the pool and have them all published\
     within the following blocks", async function () {
-      this.timeout(120000);
       let { txPassed } = await fillBlockWithTx(context, 8192);
       expect(txPassed).to.eq(8192);
     });
 
     it.skip("but shouldn't work for 8193", async function () {
-      this.timeout(120000);
       let { txPassed } = await fillBlockWithTx(context, 8193);
       expect(txPassed).to.eq(0);
     });
 
     it.skip("should be able to send 8192 tx to the pool and have them all published\
     within the following blocks - bigger tx", async function () {
-      this.timeout(120000);
-      let { txPassed } = await fillBlockWithTx(context, 8192, contractCreation);
+      let { txPassed } = await fillBlockWithTx(context, 8192, await contractCreation());
       expect(txPassed).to.eq(8192);
     });
 
     it.skip("but shouldn't work for 8193 - bigger tx", async function () {
-      this.timeout(120000);
-      let { txPassed } = await fillBlockWithTx(context, 8193, contractCreation);
+      let { txPassed } = await fillBlockWithTx(context, 8193, await contractCreation());
       expect(txPassed).to.eq(0);
     });
   });

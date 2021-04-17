@@ -18,8 +18,6 @@ describeWithFrontier("Frontier RPC (Balance)", `frontier-specs.json`, (context) 
     );
   });
   it("balance to be updated after transfer", async function () {
-    this.timeout(15000);
-
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,

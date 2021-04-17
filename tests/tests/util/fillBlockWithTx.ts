@@ -99,8 +99,6 @@ export async function fillBlockWithTx(
 ): Promise<FillBlockReport> {
   let nonce: number = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
 
-  const numberArray = new Array(numberOfTx).fill(1);
-
   let errorReport: ErrorReport = {
     signing: {},
     customreq: {},

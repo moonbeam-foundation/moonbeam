@@ -46,8 +46,6 @@ describeWithMoonbeam("Frontier RPC (Constructor Revert)", `simple-specs.json`, (
   });
 
   it("should provide a tx receipt after successful deployment", async function () {
-    this.timeout(15000);
-
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
@@ -88,8 +86,6 @@ describeWithMoonbeam("Frontier RPC (Constructor Revert)", `simple-specs.json`, (
   });
 
   it("should provide a tx receipt after failed deployment", async function () {
-    this.timeout(15000);
-
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
