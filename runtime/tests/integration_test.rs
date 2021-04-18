@@ -104,11 +104,11 @@ impl ExtBuilder {
 					ideal: 200_000 * GLMR,
 					max: 500_000 * GLMR,
 				},
-				// 8766 rounds (hours) in a year
+				// unrealistically high parameterization, only for testing
 				round: Range {
-					min: Perbill::from_parts(Perbill::from_percent(4).deconstruct() / 8766),
-					ideal: Perbill::from_parts(Perbill::from_percent(5).deconstruct() / 8766),
-					max: Perbill::from_parts(Perbill::from_percent(5).deconstruct() / 8766),
+					min: Perbill::from_percent(5),
+					ideal: Perbill::from_percent(5),
+					max: Perbill::from_percent(5),
 				},
 			},
 		}
@@ -293,11 +293,11 @@ fn reward_block_authors() {
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				1000010038599992699200,
+				1109999999920000000000,
 			);
 			assert_eq!(
 				Balances::free_balance(AccountId::from(BOB)),
-				500003650399996349600,
+				539999999960000000000,
 			);
 		});
 }
