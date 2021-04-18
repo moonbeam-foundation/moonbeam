@@ -4,42 +4,12 @@ import { AbiItem } from "web3-utils";
 import { Contract } from "web3-eth-contract";
 import { createAndFinalizeBlock } from "./polkadotApiRequests";
 import { Context } from "./testWithMoonbeam";
-import solc from "solc";
 import Web3 from "web3";
-import fs from "fs";
 
 import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../constants";
 import { customRequest } from ".";
-import { contractSources } from "../constants/contractSources";
+import { contractSources } from "../../contracts/sources";
 
-export function compileSolidity(contractContent: string, contractName: string = "Test"): Compiled {
-  let result = JSON.parse(
-    solc.compile(
-      JSON.stringify({
-        language: "Solidity",
-        sources: {
-          "main.sol": {
-            content: contractContent,
-          },
-        },
-        settings: {
-          outputSelection: {
-            "*": {
-              "*": ["*"],
-            },
-          },
-        },
-      })
-    )
-  );
-
-  const contract = result.contracts["main.sol"][contractName];
-  return {
-    byteCode: "0x" + contract.evm.bytecode.object,
-    contract,
-    sourceCode: contractContent,
-  };
-}
 export interface Compiled {
   byteCode: string;
   contract: any;
@@ -66,7 +36,7 @@ export async function getCompiled(name: string): Promise<Compiled> {
       setImmediate(() => {
         try {
           console.log(`Loading ${name}.json`);
-          contracts[name] = require(`../constants/compiledContracts/${name}.json`);
+          contracts[name] = require(`../../contracts/compiled/${name}.json`);
         } catch (e) {
           throw new Error(
             `Contract name ${name} is not compiled. (should be done in mochaGlobalSetup)`
@@ -82,40 +52,6 @@ export async function getCompiled(name: string): Promise<Compiled> {
     }
   });
   return promise;
-}
-
-// Shouldn't be run concurrently with the same 'name'
-export async function compile(name: string): Promise<Compiled> {
-  if (!contractSources[name])
-    throw new Error(`Contract name (${name}) doesn't exist in test suite`);
-  let finalCompiled: Compiled = await new Promise<Compiled>((res) => {
-    fs.readFile(`./tests/constants/compiledContracts/${name}.json`, async (err, data) => {
-      if (err) {
-        const contractCompiled = compileSolidity(contractSources[name], name);
-        let compiled = JSON.stringify(contractCompiled);
-        await new Promise<void>((res2) => {
-          fs.writeFile(
-            `./tests/constants/compiledContracts/${name}.json`,
-            compiled,
-            {
-              flag: "w",
-            },
-            (err) => {
-              if (err) {
-                console.log("error whilst writing,e", err);
-              }
-              console.log("New compiled contract file has been saved!");
-              res2();
-            }
-          );
-        });
-        res(contractCompiled);
-      } else {
-        res(JSON.parse(data.toString()));
-      }
-    });
-  });
-  return finalCompiled;
 }
 
 export async function deployContractByName(
