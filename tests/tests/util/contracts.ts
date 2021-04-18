@@ -8,7 +8,7 @@ import Web3 from "web3";
 
 import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../constants";
 import { customRequest } from ".";
-import { contractSources } from "../contracts/sources";
+import { contractSources } from "../../contracts/sources";
 
 export interface Compiled {
   byteCode: string;
