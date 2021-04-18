@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import { step } from "mocha-steps";
 import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
 
 import { createAndFinalizeBlock, describeWithMoonbeam, customRequest } from "./util";
@@ -7,7 +6,7 @@ import { createAndFinalizeBlock, describeWithMoonbeam, customRequest } from "./u
 const INCREMENTER = require("./constants/IncrementerWithEvent.json");
 
 describeWithMoonbeam("Moonbeam RPC (Receipt)", `simple-specs.json`, (context) => {
-  step("Receipt and events logs should contain valid values", async function () {
+  it("Receipt and events logs should contain valid values", async function () {
     const createTx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,

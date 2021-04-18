@@ -255,7 +255,6 @@ describeWithMoonbeam("Moonbeam (Precompiles)", `simple-specs.json`, (context) =>
   });
 
   it("ripemd160 is valid inside a contract", async function () {
-    this.timeout(15000);
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
@@ -277,7 +276,6 @@ describeWithMoonbeam("Moonbeam (Precompiles)", `simple-specs.json`, (context) =>
   it("ModExp is valid inside a contract", async function () {
     // See also the ModExp unit tests at
     // github.com/paritytech/frontier/blob/378221a4/frame/evm/precompile/modexp/src/lib.rs#L101
-    this.timeout(15000);
     const { rawTransaction, transactionHash } = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
@@ -297,7 +295,6 @@ describeWithMoonbeam("Moonbeam (Precompiles)", `simple-specs.json`, (context) =>
   });
 
   it("bn128add is valid inside a contract", async function () {
-    this.timeout(15000);
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
@@ -310,7 +307,7 @@ describeWithMoonbeam("Moonbeam (Precompiles)", `simple-specs.json`, (context) =>
     );
     await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
     await createAndFinalizeBlock(context.polkadotApi);
-    var receipt = await context.web3.eth.getTransactionReceipt(tx.transactionHash);
+    const receipt = await context.web3.eth.getTransactionReceipt(tx.transactionHash);
     expect(await context.web3.eth.getCode(receipt.contractAddress)).equals(
       "0x6080604052600080fdfea264697066735822122075fa7407f63bde9752715fbe31095ab6ad9273e2" +
         "d758ca548cdb9d581cc4fcd264736f6c63430007060033"
@@ -318,7 +315,6 @@ describeWithMoonbeam("Moonbeam (Precompiles)", `simple-specs.json`, (context) =>
   });
 
   it("bn128mul is valid inside a contract", async function () {
-    this.timeout(15000);
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
@@ -331,7 +327,7 @@ describeWithMoonbeam("Moonbeam (Precompiles)", `simple-specs.json`, (context) =>
     );
     await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
     await createAndFinalizeBlock(context.polkadotApi);
-    var receipt = await context.web3.eth.getTransactionReceipt(tx.transactionHash);
+    const receipt = await context.web3.eth.getTransactionReceipt(tx.transactionHash);
     expect(await context.web3.eth.getCode(receipt.contractAddress)).equals(
       "0x6080604052600080fdfea264697066735822122075cd0f518b5eecae53e271cd43201f7af10ba181" +
         "ece35fe769e037d2ce152f9864736f6c63430007060033"
@@ -339,7 +335,6 @@ describeWithMoonbeam("Moonbeam (Precompiles)", `simple-specs.json`, (context) =>
   });
 
   it("bn128Pairing is valid inside a contract", async function () {
-    this.timeout(15000);
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
@@ -352,7 +347,7 @@ describeWithMoonbeam("Moonbeam (Precompiles)", `simple-specs.json`, (context) =>
     );
     await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
     await createAndFinalizeBlock(context.polkadotApi);
-    var receipt = await context.web3.eth.getTransactionReceipt(tx.transactionHash);
+    const receipt = await context.web3.eth.getTransactionReceipt(tx.transactionHash);
     expect(await context.web3.eth.getCode(receipt.contractAddress)).equals(
       "0x6080604052600080fdfea26469706673582212202c2287769364a973256a3d99b3689d357bf3f403e9" +
         "81a27be30121349505bb5c64736f6c63430007060033"

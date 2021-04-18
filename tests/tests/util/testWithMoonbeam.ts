@@ -141,7 +141,10 @@ export function describeWithMoonbeam(
   cb: (context: Context) => void,
   provider?: string
 ) {
-  describe(title, () => {
+  describe(title, function () {
+    // Set timeout to 5000 for all tests.
+    this.timeout(5000);
+
     let context: Context = { ethers: null, web3: null, wsProvider: null, polkadotApi: null };
     let binary: ChildProcess;
 

@@ -11,7 +11,6 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, async (context) 
   let TestContractABI;
 
   before("get constants", async function () {
-    this.timeout(15000);
     TestContractByteCode = (await getCompiled("TestContract")).byteCode;
     TestContractABI = (await getCompiled("TestContract")).contract.abi;
   });

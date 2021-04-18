@@ -1,27 +1,12 @@
 import { expect } from "chai";
 import { Keyring } from "@polkadot/keyring";
-import { step } from "mocha-steps";
 
 import { createAndFinalizeBlock, describeWithMoonbeam } from "./util";
 import { AnyTuple, IEvent } from "@polkadot/types/types";
 import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
 
 describeWithMoonbeam("Moonbeam Polkadot API", `simple-specs.json`, (context) => {
-  step("api can retrieve last header", async function () {
-    const lastHeader = await context.polkadotApi.rpc.chain.getHeader();
-    expect(Number(lastHeader.number) >= 0).to.be.true;
-  });
-
-  step("api can retrieve last block", async function () {
-    const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
-    expect(signedBlock.block.header.number.toNumber() >= 0).to.be.true;
-  });
-
-  const TEST_ACCOUNT_2 = "0x1111111111111111111111111111111111111112";
-
-  step("transfer from polkadotjs should appear in ethereum", async function () {
-    this.timeout(30000);
-
+  before(async function () {
     const keyring = new Keyring({ type: "ethereum" });
     const testAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     try {
@@ -33,10 +18,24 @@ describeWithMoonbeam("Moonbeam Polkadot API", `simple-specs.json`, (context) => 
     }
     // TODO: do some testing with the hash
     await createAndFinalizeBlock(context.polkadotApi);
+  });
+  it("api can retrieve last header", async function () {
+    const lastHeader = await context.polkadotApi.rpc.chain.getHeader();
+    expect(Number(lastHeader.number) >= 0).to.be.true;
+  });
+
+  it("api can retrieve last block", async function () {
+    const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
+    expect(signedBlock.block.header.number.toNumber() >= 0).to.be.true;
+  });
+
+  const TEST_ACCOUNT_2 = "0x1111111111111111111111111111111111111112";
+
+  it("transfer from polkadotjs should appear in ethereum", async function () {
     expect(await context.web3.eth.getBalance(TEST_ACCOUNT_2)).to.equal("123");
   });
 
-  step("read extrinsic information", async function () {
+  it("read extrinsic information", async function () {
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
     expect(signedBlock.block.header.number.toNumber() >= 0).to.be.true;
 
@@ -74,7 +73,7 @@ describeWithMoonbeam("Moonbeam Polkadot API", `simple-specs.json`, (context) => 
     });
   });
 
-  step("read extrinsic events", async function () {
+  it("read extrinsic events", async function () {
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
     const allRecords = await context.polkadotApi.query.system.events.at(
       signedBlock.block.header.hash

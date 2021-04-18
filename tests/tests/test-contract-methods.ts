@@ -7,7 +7,6 @@ import { deployContractByName, getCompiled } from "./util/contracts";
 describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (context) => {
   let TestContractABI;
   before("create the contract", async function () {
-    this.timeout(15000);
     TestContractABI = (await getCompiled("TestContract")).contract.abi;
     await deployContractByName(context.polkadotApi, context.web3, "TestContract");
   });

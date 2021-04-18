@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import { step } from "mocha-steps";
 import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
 
 import { createAndFinalizeBlock, describeWithMoonbeam, customRequest } from "./util";
@@ -11,7 +10,7 @@ const address1 = "0x42e2ee7ba8975c473157634ac2af4098190fc741";
 const address2 = "0xf8cef78e923919054037a1d03662bbd884ff4edf";
 
 describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (context) => {
-  step("Replay succeeding CREATE", async function () {
+  before(async function () {
     // Deploy contract
     const contract = new context.web3.eth.Contract(CONTRACT.abi);
     const contractDeploy = contract.deploy({
@@ -19,7 +18,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
       arguments: [false], // don't revert
     });
 
-    const tx = await context.web3.eth.accounts.signTransaction(
+    let tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
         data: contractDeploy.encodeABI(),
@@ -30,10 +29,68 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
 
-    let send = await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
-
+    await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
     await createAndFinalizeBlock(context.polkadotApi);
 
+    const secondContractDeploy = contract.deploy({
+      data: CONTRACT.bytecode,
+      arguments: [true], // revert
+    });
+
+    tx = await context.web3.eth.accounts.signTransaction(
+      {
+        from: GENESIS_ACCOUNT,
+        data: secondContractDeploy.encodeABI(),
+        value: "0x00",
+        gasPrice: "0x01",
+        gas: "0x500000",
+      },
+      GENESIS_ACCOUNT_PRIVATE_KEY
+    );
+    await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
+    await createAndFinalizeBlock(context.polkadotApi);
+    // Deploy 2 more contracts
+    for (let i = 0; i < 2; i++) {
+      const secondContractDeploy = contract.deploy({
+        data: CONTRACT.bytecode,
+        arguments: [false], // don't revert
+      });
+
+      const tx = await context.web3.eth.accounts.signTransaction(
+        {
+          nonce: 2 + i,
+          from: GENESIS_ACCOUNT,
+          data: secondContractDeploy.encodeABI(),
+          value: "0x00",
+          gasPrice: "0x01",
+          gas: "0x100000",
+        },
+        GENESIS_ACCOUNT_PRIVATE_KEY
+      );
+
+      await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
+    }
+    await createAndFinalizeBlock(context.polkadotApi);
+
+    const contractCall = contract.methods.subcalls(address1, address2);
+
+    tx = await context.web3.eth.accounts.signTransaction(
+      {
+        to: address0,
+        from: GENESIS_ACCOUNT,
+        data: contractCall.encodeABI(),
+        value: "0x00",
+        gasPrice: "0x01",
+        gas: "0x500000",
+      },
+      GENESIS_ACCOUNT_PRIVATE_KEY
+    );
+
+    await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
+
+    await createAndFinalizeBlock(context.polkadotApi);
+  });
+  it("Replay succeeding CREATE", async function () {
     // Perform RPC call.
     let response = await customRequest(context.web3, "trace_filter", [
       {
@@ -65,29 +122,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     expect(response.result[0].type).to.equal("create");
   });
 
-  step("Replay reverting CREATE", async function () {
-    // Deploy contract
-    const contract = new context.web3.eth.Contract(CONTRACT.abi);
-    const contractDeploy = contract.deploy({
-      data: CONTRACT.bytecode,
-      arguments: [true], // revert
-    });
-
-    const tx = await context.web3.eth.accounts.signTransaction(
-      {
-        from: GENESIS_ACCOUNT,
-        data: contractDeploy.encodeABI(),
-        value: "0x00",
-        gasPrice: "0x01",
-        gas: "0x500000",
-      },
-      GENESIS_ACCOUNT_PRIVATE_KEY
-    );
-
-    let send = await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
-
-    await createAndFinalizeBlock(context.polkadotApi);
-
+  it("Replay reverting CREATE", async function () {
     // Perform RPC call.
     let response = await customRequest(context.web3, "trace_filter", [
       {
@@ -115,33 +150,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     expect(response.result[0].type).to.equal("create");
   });
 
-  step("Multiple transactions in the same block + trace over multiple blocks", async function () {
-    const contract = new context.web3.eth.Contract(CONTRACT.abi);
-
-    // Deploy 2 more contracts
-    for (var i = 0; i < 2; i++) {
-      const contractDeploy = contract.deploy({
-        data: CONTRACT.bytecode,
-        arguments: [false], // don't revert
-      });
-
-      const tx = await context.web3.eth.accounts.signTransaction(
-        {
-          nonce: 2 + i,
-          from: GENESIS_ACCOUNT,
-          data: contractDeploy.encodeABI(),
-          value: "0x00",
-          gasPrice: "0x01",
-          gas: "0x100000",
-        },
-        GENESIS_ACCOUNT_PRIVATE_KEY
-      );
-
-      let send = await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
-    }
-
-    await createAndFinalizeBlock(context.polkadotApi);
-
+  it("Multiple transactions in the same block + trace over multiple blocks", async function () {
     // Perform RPC call.
     let response = await customRequest(context.web3, "trace_filter", [
       {
@@ -159,27 +168,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     expect(response.result[2].transactionPosition).to.equal(1);
   });
 
-  step("Call with subcalls, some reverting", async function () {
-    const contract = new context.web3.eth.Contract(CONTRACT.abi);
-
-    const contractCall = contract.methods.subcalls(address1, address2);
-
-    const tx = await context.web3.eth.accounts.signTransaction(
-      {
-        to: address0,
-        from: GENESIS_ACCOUNT,
-        data: contractCall.encodeABI(),
-        value: "0x00",
-        gasPrice: "0x01",
-        gas: "0x500000",
-      },
-      GENESIS_ACCOUNT_PRIVATE_KEY
-    );
-
-    let send = await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
-
-    await createAndFinalizeBlock(context.polkadotApi);
-
+  it("Call with subcalls, some reverting", async function () {
     // Perform RPC call.
     let response = await customRequest(context.web3, "trace_filter", [
       {
@@ -205,7 +194,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     expect(response.result[6].traceAddress).to.deep.equal([1, 1]);
   });
 
-  step("Request range of blocks", async function () {
+  it("Request range of blocks", async function () {
     let response = await customRequest(context.web3, "trace_filter", [
       {
         fromBlock: "0x03",
@@ -234,7 +223,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     expect(response.result[8].transactionPosition).to.equal(0);
   });
 
-  step("Filter fromAddress", async function () {
+  it("Filter fromAddress", async function () {
     let response = await customRequest(context.web3, "trace_filter", [
       {
         fromBlock: "0x03",
@@ -246,7 +235,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     expect(response.result.length).to.equal(3);
   });
 
-  step("Filter toAddress", async function () {
+  it("Filter toAddress", async function () {
     let response = await customRequest(context.web3, "trace_filter", [
       {
         fromBlock: "0x03",

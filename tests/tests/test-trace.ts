@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import { step } from "mocha-steps";
 import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
 
 import { createAndFinalizeBlock, describeWithMoonbeam, customRequest } from "./util";
@@ -25,7 +24,6 @@ async function nested(context) {
   await createAndFinalizeBlock(context.polkadotApi);
   let receipt = await context.web3.eth.getTransactionReceipt(send.result);
   const calleeAddr = receipt.contractAddress;
-  // const callee = new context.web3.eth.Contract(CALLEE.abi, callee_addr);
   // Create Caller contract.
   const callerTx = await context.web3.eth.accounts.signTransaction(
     {
@@ -57,8 +55,7 @@ async function nested(context) {
 }
 
 describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
-  step("[Raw] should replay over an intermediate state", async function () {
-    this.timeout(20000);
+  it("[Raw] should replay over an intermediate state", async function () {
     const createTx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
@@ -85,13 +82,11 @@ describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
     //
     // So we set 5 different target txs for a single block: the 1st, 3 intermediate, and
     // the last.
-    const total_txs = 10;
+    const totalTxs = 10;
     let targets = [1, 2, 5, 8, 10];
-    let iteration = 0;
     let txs = [];
-    let numTxs;
     // Create 10 transactions in a block.
-    for (numTxs = 1; numTxs <= total_txs; numTxs++) {
+    for (let numTxs = 1; numTxs <= totalTxs; numTxs++) {
       let callTx = await context.web3.eth.accounts.signTransaction(
         {
           from: GENESIS_ACCOUNT,
@@ -114,18 +109,18 @@ describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
 
       await context.web3.eth.getTransactionReceipt(txs[index]);
 
-      let intermediate_tx = await customRequest(context.web3, "debug_traceTransaction", [
+      let intermediateTx = await customRequest(context.web3, "debug_traceTransaction", [
         txs[index],
       ]);
 
-      let evm_result = context.web3.utils.hexToNumber("0x" + intermediate_tx.result.returnValue);
+      let evmResult = context.web3.utils.hexToNumber("0x" + intermediateTx.result.returnValue);
 
       // console.log(`Matching target ${target} against evm result ${evm_result}`);
-      expect(evm_result).to.equal(target);
+      expect(evmResult).to.equal(target);
     }
   });
 
-  step("[Raw] should trace nested contract calls", async function () {
+  it("[Raw] should trace nested contract calls", async function () {
     const send = await nested(context);
     await createAndFinalizeBlock(context.polkadotApi);
     let traceTx = await customRequest(context.web3, "debug_traceTransaction", [send.result]);
@@ -143,7 +138,7 @@ describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
     expect(logs[1].depth).to.be.equal(1);
   });
 
-  step("[Raw] should use optional disable parameters", async function () {
+  it("[Raw] should use optional disable parameters", async function () {
     const send = await nested(context);
     await createAndFinalizeBlock(context.polkadotApi);
     let traceTx = await customRequest(context.web3, "debug_traceTransaction", [
@@ -163,7 +158,7 @@ describeWithMoonbeam("Moonbeam RPC (Trace)", `simple-specs.json`, (context) => {
     expect(logs.length).to.be.equal(0);
   });
 
-  step("[Blockscout] should trace nested contract calls", async function () {
+  it("[Blockscout] should trace nested contract calls", async function () {
     const send = await nested(context);
     await createAndFinalizeBlock(context.polkadotApi);
     let traceTx = await customRequest(context.web3, "debug_traceTransaction", [

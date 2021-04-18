@@ -6,7 +6,6 @@ import { getCompiled } from "./util/contracts";
 
 describeWithMoonbeam("Frontier RPC (Pending Pool)", `simple-specs.json`, (context) => {
   it("should return a pending transaction", async function () {
-    this.timeout(15000);
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,

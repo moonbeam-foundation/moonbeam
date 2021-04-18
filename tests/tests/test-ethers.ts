@@ -1,15 +1,16 @@
 import { createAndFinalizeBlock, describeWithMoonbeam } from "./util";
-import { HttpProvider } from "web3-core";
 import { expect } from "chai";
 import { ethers } from "ethers";
+import { GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
 import { getCompiled } from "./util/contracts";
 
 describeWithMoonbeam("Moonbeam RPC (Ethers.js)", `simple-specs.json`, (context) => {
-  const GENESIS_ACCOUNT_PRIVATE_KEY =
-    "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
-
-  it("get network id", async function () {
+  it("get network ids", async function () {
     expect((await context.ethers.getNetwork()).chainId).to.equal(1281);
+    const providerTestnet = new ethers.providers.JsonRpcProvider(
+      "https://rpc.testnet.moonbeam.network"
+    );
+    expect((await providerTestnet.getNetwork()).chainId).to.equal(1287);
   });
 
   it("deploy contract and interact with it", async function () {

@@ -57,9 +57,9 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
         block.transactions[0]
       );
       expect(receipt.status).to.eq(false);
-    } catch (e) {
-      console.log("error caught", e);
-      throw new Error(e);
+    } catch (err) {
+      console.log("error caught", err);
+      throw new Error(err);
     }
   });
 
@@ -81,8 +81,8 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
       try {
         await callContractFunctionMS(context, contract.options.address, bytesCode);
         return Number(await contract.methods.count().call()) - startIncr;
-      } catch (e) {
-        console.log("error caught", e);
+      } catch (err) {
+        console.log("error caught", err);
       }
     }
     // 1 loop to make sure it works

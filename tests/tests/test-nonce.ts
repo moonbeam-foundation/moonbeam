@@ -1,13 +1,15 @@
 import { expect } from "chai";
-import { step } from "mocha-steps";
 
 import { createAndFinalizeBlock, describeWithMoonbeam, customRequest } from "./util";
 import { Keyring } from "@polkadot/keyring";
 import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY, TEST_ACCOUNT } from "./constants";
 
 describeWithMoonbeam("Moonbeam RPC (Nonce)", `simple-specs.json`, (context) => {
-  step("get nonce", async function () {
-    this.timeout(10_000);
+  before(async () => {
+    // For some reason fees are not well estimated otherwise
+    await createAndFinalizeBlock(context.polkadotApi);
+  });
+  it("get nonce", async function () {
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
@@ -34,8 +36,6 @@ describeWithMoonbeam("Moonbeam RPC (Nonce)", `simple-specs.json`, (context) => {
   });
 
   it("nonce should not be reset to 0 when emptying dust accounts", async function () {
-    this.timeout(15000);
-
     const testAccountPrivateKey1 = context.web3.utils.randomHex(32);
     const testAccountPrivateKey2 = context.web3.utils.randomHex(32);
     const keyring = new Keyring({ type: "ethereum" });

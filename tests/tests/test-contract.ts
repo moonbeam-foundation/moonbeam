@@ -9,7 +9,6 @@ describeWithMoonbeam("Moonbeam RPC (Contract)", `simple-specs.json`, (context) =
   // to spin up a Moonbeam node, it saves a lot of time.
 
   it("contract creation should return transaction hash", async function () {
-    this.timeout(15000);
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,

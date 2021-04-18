@@ -46,7 +46,46 @@ export interface Compiled {
   sourceCode: string;
 }
 
+const contracts: { [name: string]: Compiled } = {};
+const contractObs: { [name: string]: ((Compiled) => void)[] } = {};
 export async function getCompiled(name: string): Promise<Compiled> {
+  if (!contractSources[name]) {
+    throw new Error(`Contract name (${name}) doesn't exist in test suite`);
+  }
+  if (contracts[name]) {
+    return contracts[name];
+  }
+  const promise = new Promise<Compiled>((resolve) => {
+    const shouldLoad = !contractObs[name];
+    if (!contractObs[name]) {
+      contractObs[name] = [];
+    }
+    contractObs[name].push(resolve);
+    if (shouldLoad) {
+      // Will load the contract async and callback all the promise waiting for this contract.
+      setImmediate(() => {
+        try {
+          console.log(`Loading ${name}.json`);
+          contracts[name] = require(`../constants/compiledContracts/${name}.json`);
+        } catch (e) {
+          throw new Error(
+            `Contract name ${name} is not compiled. (should be done in mochaGlobalSetup)`
+          );
+        }
+
+        // Call back all the pending promises and clear the list.
+        contractObs[name].forEach((resolvePending) => {
+          resolvePending(contracts[name]);
+        });
+        delete contractObs[name];
+      });
+    }
+  });
+  return promise;
+}
+
+// Shouldn't be run concurrently with the same 'name'
+export async function compile(name: string): Promise<Compiled> {
   if (!contractSources[name])
     throw new Error(`Contract name (${name}) doesn't exist in test suite`);
   let finalCompiled: Compiled = await new Promise<Compiled>((res) => {
