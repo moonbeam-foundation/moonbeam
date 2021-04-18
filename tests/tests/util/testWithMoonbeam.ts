@@ -9,7 +9,7 @@ import { BINARY_PATH, DISPLAY_LOG, MOONBEAM_LOG, SPAWNING_TIME } from "../consta
 import { ErrorReport } from "./fillBlockWithTx";
 import { findAvailablePorts } from "./findAvailablePorts";
 
-import { contractSources } from "../constants/contractSources";
+import { contractSources } from "../contracts/sources";
 import { getCompiled } from "./contracts";
 export async function mochaGlobalSetup() {
   // First compile all contracts
