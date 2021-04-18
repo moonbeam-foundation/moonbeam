@@ -30,7 +30,7 @@
   },
   "scripts": {
     "test-with-logs": "mocha --printlogs -r ts-node/register 'tests/**/test-*.ts'",
-    "build-contracts": "TS_NODE_TRANSPILE_ONLY=true ts-node ./pre-build-contracts.ts",
+    "pre-build-contracts": "TS_NODE_TRANSPILE_ONLY=true ts-node ./pre-build-contracts.ts && npx prettier -w ./contracts/compiled/*.json",
     "test": "TS_NODE_TRANSPILE_ONLY=true mocha --parallel -r ts-node/register 'tests/**/test-*.ts'",
     "watch": "npm-watch",
     "build": "cargo build --release",

@@ -36,18 +36,14 @@ function compileSolidity(contractContent: string, contractName: string = "Test")
 async function compile(name: string): Promise<Compiled> {
   if (!contractSources[name])
     throw new Error(`Contract name (${name}) doesn't exist in test suite`);
-  try {
-    return JSON.parse(await (await fs.readFile(`./contracts/compiled/${name}.json`)).toString());
-  } catch (e) {
-    const contractCompiled = compileSolidity(contractSources[name], name);
-    let compiled = JSON.stringify(contractCompiled);
-    await fs.mkdir(`contracts/compiled`, { recursive: true });
-    await fs.writeFile(`./contracts/compiled/${name}.json`, compiled, {
-      flag: "w",
-    });
-    console.log("New compiled contract file has been saved!");
-    return contractCompiled;
-  }
+  const contractCompiled = compileSolidity(contractSources[name], name);
+  let compiled = JSON.stringify(contractCompiled);
+  await fs.mkdir(`contracts/compiled`, { recursive: true });
+  await fs.writeFile(`./contracts/compiled/${name}.json`, compiled, {
+    flag: "w",
+  });
+  console.log("New compiled contract file has been saved!");
+  return contractCompiled;
 }
 
 const main = async () => {
