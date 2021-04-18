@@ -39,36 +39,42 @@ fn run_to_block(n: u32) {
 	}
 }
 
-pub type EVMCall = pallet_evm::Call<Runtime>;
-pub type AuthorInherentCall = author_inherent::Call<Runtime>;
-pub type ParachainSystemCall = cumulus_pallet_parachain_system::Call<Runtime>;
-
 fn last_event() -> Event {
 	System::events().pop().expect("Event expected").event
 }
 
 struct ExtBuilder {
-	endowed_accounts: Vec<(AccountId, Balance)>,
-	stakers: Vec<(AccountId, Option<AccountId>, Balance)>,
+	// balances
+	balances: Vec<(AccountId, Balance)>,
+	// [collator, amount]
+	collators: Vec<(AccountId, Balance)>,
+	// [nominator, collator, nomination_amount]
+	nominators: Vec<(AccountId, AccountId, Balance)>,
 }
 
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
-			endowed_accounts: vec![],
-			stakers: vec![],
+			balances: vec![],
+			nominators: vec![],
+			collators: vec![],
 		}
 	}
 }
 
 impl ExtBuilder {
-	fn balances(mut self, endowed_accounts: Vec<(AccountId, Balance)>) -> Self {
-		self.endowed_accounts = endowed_accounts;
+	fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
+		self.balances = balances;
 		self
 	}
 
-	fn staking(mut self, stakers: Vec<(AccountId, Option<AccountId>, Balance)>) -> Self {
-		self.stakers = stakers;
+	fn with_collators(mut self, collators: Vec<(AccountId, Balance)>) -> Self {
+		self.collators = collators;
+		self
+	}
+
+	fn with_nominators(mut self, nominators: Vec<(AccountId, AccountId, Balance)>) -> Self {
+		self.nominators = nominators;
 		self
 	}
 
@@ -78,13 +84,20 @@ impl ExtBuilder {
 			.unwrap();
 
 		pallet_balances::GenesisConfig::<Runtime> {
-			balances: self.endowed_accounts,
+			balances: self.balances,
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();
 
+		let mut stakers: Vec<(AccountId, Option<AccountId>, Balance)> = Vec::new();
+		for collator in self.collators {
+			stakers.push((collator.0, None, collator.1));
+		}
+		for nominator in self.nominators {
+			stakers.push((nominator.0, Some(nominator.1), nominator.2));
+		}
 		parachain_staking::GenesisConfig::<Runtime> {
-			stakers: self.stakers,
+			stakers,
 			inflation_config: InflationInfo {
 				expect: Range {
 					min: 100_000 * GLMR,
@@ -124,27 +137,19 @@ fn inherent_origin() -> <Runtime as frame_system::Config>::Origin {
 #[test]
 fn join_collator_candidates() {
 	ExtBuilder::default()
-		.balances(vec![
+		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * GLMR),
 			(AccountId::from(BOB), 2_000 * GLMR),
 			(AccountId::from(CHARLIE), 1_100 * GLMR),
 			(AccountId::from(DAVE), 1_000 * GLMR),
 		])
-		.staking(vec![
-			// collators
-			(AccountId::from(ALICE), None, 1_000 * GLMR),
-			(AccountId::from(BOB), None, 1_000 * GLMR),
-			// nominators
-			(
-				AccountId::from(CHARLIE),
-				Some(AccountId::from(ALICE)),
-				50 * GLMR,
-			),
-			(
-				AccountId::from(CHARLIE),
-				Some(AccountId::from(BOB)),
-				50 * GLMR,
-			),
+		.with_collators(vec![
+			(AccountId::from(ALICE), 1_000 * GLMR),
+			(AccountId::from(BOB), 1_000 * GLMR),
+		])
+		.with_nominators(vec![
+			(AccountId::from(CHARLIE), AccountId::from(ALICE), 50 * GLMR),
+			(AccountId::from(CHARLIE), AccountId::from(BOB), 50 * GLMR),
 		])
 		.build()
 		.execute_with(|| {
@@ -178,7 +183,7 @@ fn join_collator_candidates() {
 #[test]
 fn transfer_through_evm_to_stake() {
 	ExtBuilder::default()
-		.balances(vec![(AccountId::from(ALICE), 3_000 * GLMR)])
+		.with_balances(vec![(AccountId::from(ALICE), 3_000 * GLMR)])
 		.build()
 		.execute_with(|| {
 			// Charlie has no balance => fails to stake
@@ -209,7 +214,7 @@ fn transfer_through_evm_to_stake() {
 			let gas_limit = 100000u64;
 			let gas_price: U256 = 1000.into();
 			// Bob transfers 1000 GLMR to Charlie via EVM
-			assert_ok!(Call::EVM(EVMCall::call(
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(BOB),
 				AccountId::from(CHARLIE),
 				Vec::new(),
@@ -234,28 +239,23 @@ fn transfer_through_evm_to_stake() {
 #[test]
 fn reward_block_authors() {
 	ExtBuilder::default()
-		.balances(vec![
+		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * GLMR),
 			(AccountId::from(BOB), 1_000 * GLMR),
 		])
-		.staking(vec![
-			// collator
-			(AccountId::from(ALICE), None, 1_000 * GLMR),
-			// nominators
-			(
-				AccountId::from(BOB),
-				Some(AccountId::from(ALICE)),
-				500 * GLMR,
-			),
-		])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_nominators(vec![(
+			AccountId::from(BOB),
+			AccountId::from(ALICE),
+			500 * GLMR,
+		)])
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
 			use cumulus_primitives_core::PersistedValidationData;
 			use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
-			let sproof_builder = RelayStateSproofBuilder::default();
 			let (relay_parent_storage_root, relay_chain_state) =
-				sproof_builder.into_state_root_and_proof();
+				RelayStateSproofBuilder::default().into_state_root_and_proof();
 			let vfp = PersistedValidationData {
 				relay_parent_number: 1u32,
 				relay_parent_storage_root,
@@ -267,16 +267,18 @@ fn reward_block_authors() {
 				downward_messages: Default::default(),
 				horizontal_messages: Default::default(),
 			};
-			assert_ok!(
-				Call::ParachainSystem(ParachainSystemCall::set_validation_data(
+			assert_ok!(Call::ParachainSystem(
+				cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data(
 					parachain_inherent_data
-				))
-				.dispatch(inherent_origin())
-			);
+				)
+			)
+			.dispatch(inherent_origin()));
 			fn set_alice_as_author() {
 				assert_ok!(
-					Call::AuthorInherent(AuthorInherentCall::set_author(AccountId::from(ALICE)))
-						.dispatch(inherent_origin())
+					Call::AuthorInherent(author_inherent::Call::<Runtime>::set_author(
+						AccountId::from(ALICE)
+					))
+					.dispatch(inherent_origin())
 				);
 			}
 			for x in 2..1201 {
