@@ -14,7 +14,7 @@ import { Transaction } from "web3-core";
       - We resolve multiple promises in parallel that will read from this collection on the rpc-side
       - We can get the final transaction data once it leaves the pending collection
   */
-describeDevMoonbeam("Pending Pool - Multiple pending transactions", (context) => {
+describeDevMoonbeam("EthPool - Multiple pending transactions", (context) => {
   let txHashs: string[];
 
   before("Setup: Sending 10 transactions", async function () {
@@ -58,7 +58,7 @@ describeDevMoonbeam("Pending Pool - Multiple pending transactions", (context) =>
   });
 });
 
-describeDevMoonbeam("TxPool - Multiple produced transactions", (context) => {
+describeDevMoonbeam("EthPool - Multiple produced transactions", (context) => {
   let txHashs: string[];
 
   before("Setup: Sending 10 transactions", async function () {

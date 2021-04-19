@@ -6,7 +6,7 @@ import { createContract, createContractExecution } from "../util/transactions";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { customWeb3Request } from "../util/providers";
 
-describeDevMoonbeam("TxPool - Pending transaction", (context) => {
+describeDevMoonbeam("TxPool - Pending Ethereum transaction", (context) => {
   let txHash;
   before("Setup: Create transaction", async () => {
     const { rawTx } = await createContract(context.web3, "TestContract", {
@@ -52,7 +52,7 @@ describeDevMoonbeam("TxPool - Pending transaction", (context) => {
   });
 });
 
-describeDevMoonbeam("TxPool - Contract Call", (context) => {
+describeDevMoonbeam("TxPool - Ethereum Contract Call", (context) => {
   let testContract: Contract;
 
   before("Setup: Create contract block and add call transaction", async () => {

@@ -1,12 +1,10 @@
 import { expect } from "chai";
-import { Contract } from "web3-eth-contract";
 
-import { GENESIS_ACCOUNT } from "../util/constants";
-import { createContract, createContractExecution, createTransfer } from "../util/transactions";
+import { createContract, createTransfer } from "../util/transactions";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { customWeb3Request } from "../util/providers";
 
-describeDevMoonbeam("TxPool - Future Ethereum transaction", (context) => {
+describeDevMoonbeam("EthPool - Future Ethereum transaction", (context) => {
   let txHash;
   before("Setup: Create a block with transaction", async () => {
     const { rawTx } = await createContract(context.web3, "TestContract", {
@@ -29,7 +27,7 @@ describeDevMoonbeam("TxPool - Future Ethereum transaction", (context) => {
   });
 });
 
-describeDevMoonbeam("TxPool - Future Ethereum transaction", (context) => {
+describeDevMoonbeam("EthPool - Future Ethereum transaction", (context) => {
   let txHash;
   before("Setup: Create a block with transaction", async () => {
     const { rawTx } = await createContract(context.web3, "TestContract", {
