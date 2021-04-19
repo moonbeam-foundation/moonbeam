@@ -79,6 +79,7 @@ export function describeDevMoonbeam(title: string, cb: (context: DevTestContext)
           context.polkadotWsProviders = [];
         }
         context.polkadotWsProviders.push(provider);
+        await apiPromise.isReady;
         return apiPromise;
       };
 
@@ -103,7 +104,7 @@ export function describeDevMoonbeam(title: string, cb: (context: DevTestContext)
     after(async function () {
       // console.log(`\x1b[31m Killing RPC\x1b[0m`);
       if (context.polkadotWsProviders) {
-        context.polkadotWsProviders.forEach((p) => p.disconnect());
+        await Promise.all(context.polkadotWsProviders.map((p) => p.disconnect()));
       }
       context.moonbeamProcess.kill();
       context.moonbeamProcess = null;
