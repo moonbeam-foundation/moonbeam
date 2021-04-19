@@ -1,7 +1,7 @@
 import solc from "solc";
 import fs from "fs/promises";
 import { contractSources } from "./contracts/sources";
-import { Compiled } from "./tests/util/contracts";
+import { Compiled } from "../tests/util/contracts";
 
 function compileSolidity(contractContent: string, contractName: string = "Test"): Compiled {
   let result = JSON.parse(
@@ -47,7 +47,10 @@ async function compile(name: string): Promise<Compiled> {
 }
 
 const main = async () => {
-  await Promise.all(Object.keys(contractSources).map(compile));
+  for (let name of Object.keys(contractSources)) {
+    console.log(`Compiling ${name}`);
+    await compile(name);
+  }
 
   // Forcing exit to avoid solc maintaining the process
   process.exit(0);

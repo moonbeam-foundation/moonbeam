@@ -1,46 +1,47 @@
 import { expect } from "chai";
+import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { createContract } from "../util/transactions";
+import { Contract } from "web3-eth-contract";
 
-import { describeWithMoonbeam } from "./util";
-import { FIRST_CONTRACT_ADDRESS, GENESIS_ACCOUNT } from "./constants";
-import { deployContractByName, getCompiled } from "./util/contracts";
+describeDevMoonbeam("Contract creation", (context) => {
+  let testContract: Contract;
+  let testContractTx: string;
 
-describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (context) => {
-  let TestContractABI;
-  before("create the contract", async function () {
-    TestContractABI = (await getCompiled("TestContract")).contract.abi;
-    await deployContractByName(context.polkadotApi, context.web3, "TestContract");
+  before("Setup: Create the contract", async function () {
+    const { contract, rawTx } = await createContract(context.web3, "TestContract");
+    const { txResults } = await context.createBlock({ transactions: [rawTx] });
+    testContract = contract;
+    testContractTx = txResults[0].result;
   });
 
-  it("get transaction by hash", async () => {
-    const latestBlock = await context.web3.eth.getBlock("latest");
-    expect(latestBlock.transactions.length).to.equal(1);
-
-    const txHash = latestBlock.transactions[0];
-    const tx = await context.web3.eth.getTransaction(txHash);
-    expect(tx.hash).to.equal(txHash);
+  it("should appear in the block transaction list", async () => {
+    const block = await context.web3.eth.getBlock(1);
+    const txHash = block.transactions[0];
+    expect(txHash).to.equal(testContractTx);
   });
 
-  it("should return contract method result", async function () {
-    const contract = new context.web3.eth.Contract(TestContractABI, FIRST_CONTRACT_ADDRESS, {
-      from: GENESIS_ACCOUNT,
-      gasPrice: "0x01",
-    });
-
-    expect(await contract.methods.multiply(3).call()).to.equal("21");
+  it("should be in the transaction list", async () => {
+    const tx = await context.web3.eth.getTransaction(testContractTx);
+    expect(tx.hash).to.equal(testContractTx);
   });
-  // Requires error handling
-  it("should fail for missing parameters", async function () {
+
+  it("should provide callable methods", async function () {
+    expect(await testContract.methods.multiply(3).call()).to.equal("21");
+  });
+
+  it("should fail for call method with missing parameters", async function () {
+    // Create a fake contract based on origin deployed contract.
+    // It make the multiply method supposed to have 0 arguments
     const contract = new context.web3.eth.Contract(
-      [{ ...TestContractABI[0], inputs: [] }],
-      FIRST_CONTRACT_ADDRESS,
-      {
-        from: GENESIS_ACCOUNT,
-        gasPrice: "0x01",
-      }
+      [{ ...testContract.options.jsonInterface[0], inputs: [] }],
+      testContract.options.address
     );
     await contract.methods
       .multiply()
       .call()
+      .then(() => {
+        return Promise.reject({ message: "Execution succeeded but should have failed" });
+      })
       .catch((err) =>
         expect(err.message).to.equal(
           `Returned error: VM Exception while processing transaction: revert`
@@ -50,25 +51,27 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
 
   // Requires error handling
   it("should fail for too many parameters", async function () {
+    // Create a fake contract based on origin deployed contract.
+    // It make the multiply method supposed to have 2 arguments
     const contract = new context.web3.eth.Contract(
       [
         {
-          ...TestContractABI[0],
+          ...testContract.options.jsonInterface[0],
           inputs: [
             { internalType: "uint256", name: "a", type: "uint256" },
             { internalType: "uint256", name: "b", type: "uint256" },
           ],
         },
       ],
-      FIRST_CONTRACT_ADDRESS,
-      {
-        from: GENESIS_ACCOUNT,
-        gasPrice: "0x01",
-      }
+      testContract.options.address
     );
+
     await contract.methods
       .multiply(3, 4)
       .call()
+      .then(() => {
+        return Promise.reject({ message: "Execution succeeded but should have failed" });
+      })
       .catch((err) =>
         expect(err.message).to.equal(
           `Returned error: VM Exception while processing transaction: revert`
@@ -76,12 +79,13 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
       );
   });
 
-  // Requires error handling
   it("should fail for invalid parameters", async function () {
+    // Create a fake contract based on origin deployed contract.
+    // It make the multiply method supposed to have a address type argument
     const contract = new context.web3.eth.Contract(
       [
         {
-          ...TestContractABI[0],
+          ...testContract.options.jsonInterface[0],
           inputs: [
             {
               internalType: "address",
@@ -91,12 +95,14 @@ describeWithMoonbeam("Moonbeam RPC (Contract Methods)", `simple-specs.json`, (co
           ],
         },
       ],
-      FIRST_CONTRACT_ADDRESS,
-      { from: GENESIS_ACCOUNT, gasPrice: "0x01" }
+      testContract.options.address
     );
     await contract.methods
       .multiply("0x0123456789012345678901234567890123456789")
       .call()
+      .then(() => {
+        return Promise.reject({ message: "Execution succeeded but should have failed" });
+      })
       .catch((err) =>
         expect(err.message).to.equal(
           `Returned error: VM Exception while processing transaction: revert`

@@ -31,9 +31,10 @@ npm run test-with-logs
 
 ### Add a new contract
 
-If you want to add a contract to our test contracts, add the source code
-in `constants/contractSources` under the right name and the test script will take care of generating
-byteCode and ABI and save it in `constants/compiledContracts`.
+- Add contract source code to `contracts/sources.ts`
+- Run `npm run pre-build-contracts`=> This will generate the necessary abi and byte code
+- Create your contract with
+  `const { contract, rawTx } = await createContract(context.web3, "TestContract");`
 
 ## Verbose mode
 

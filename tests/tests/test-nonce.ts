@@ -1,71 +1,75 @@
 import { expect } from "chai";
 
-import { createAndFinalizeBlock, describeWithMoonbeam, customRequest } from "./util";
-import { Keyring } from "@polkadot/keyring";
-import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY, TEST_ACCOUNT } from "./constants";
+import { GENESIS_ACCOUNT } from "../util/constants";
+import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { createTransfer } from "../util/transactions";
+import { customWeb3Request } from "../util/providers";
 
-describeWithMoonbeam("Moonbeam RPC (Nonce)", `simple-specs.json`, (context) => {
-  before(async () => {
-    // For some reason fees are not well estimated otherwise
-    await createAndFinalizeBlock(context.polkadotApi);
+describeDevMoonbeam("Nonce - Initial", (context) => {
+  it("should be at 0 before using it", async function () {
+    expect(
+      await context.web3.eth.getTransactionCount("0x1111111111111111111111111111111111111111")
+    ).to.eq(0);
   });
-  it("get nonce", async function () {
-    const tx = await context.web3.eth.accounts.signTransaction(
-      {
-        from: GENESIS_ACCOUNT,
-        to: TEST_ACCOUNT,
-        value: "0x200",
-        gasPrice: "0x01",
-        gas: "0x100000",
-      },
-      GENESIS_ACCOUNT_PRIVATE_KEY
-    );
 
-    expect(await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT, "earliest")).to.eq(0);
+  it("should be at 0 for genesis account", async function () {
+    expect(await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT)).to.eq(0);
+  });
 
-    await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
+  it("should stay at 0 before block is created", async function () {
+    await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+      await createTransfer(context.web3, GENESIS_ACCOUNT, 512),
+    ]);
+    expect(await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT)).to.eq(0);
+  });
+});
 
+describeDevMoonbeam("Nonce - Previous block", (context) => {
+  before("Setup: Create block with transfer", async () => {
+    await context.createBlock({
+      transactions: [
+        await createTransfer(context.web3, "0x1111111111111111111111111111111111111111", 512),
+      ],
+    });
+  });
+  it("should be at 0 after transferring", async function () {
+    expect(await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT, 0)).to.eq(0);
+  });
+});
+
+describeDevMoonbeam("Nonce - Pending transaction", (context) => {
+  before("Setup: Create block with transfer", async () => {
+    await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+      await createTransfer(context.web3, "0x1111111111111111111111111111111111111111", 512),
+    ]);
+  });
+  it("should not increase transaction count", async function () {
+    expect(await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT)).to.eq(0);
+  });
+  it("should not increase transaction count in latest block", async function () {
     expect(await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT, "latest")).to.eq(0);
+  });
+  it("should increase transaction count in pending block", async function () {
     expect(await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT, "pending")).to.eq(1);
+  });
+});
 
-    await createAndFinalizeBlock(context.polkadotApi);
-
-    expect(await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT, "latest")).to.eq(1);
-    expect(await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT, "pending")).to.eq(1);
-    expect(await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT, "earliest")).to.eq(0);
+describeDevMoonbeam("Nonce - Transferring", (context) => {
+  it("Setup: Sending token", async function () {
+    await context.createBlock({
+      transactions: [
+        await createTransfer(context.web3, "0x1111111111111111111111111111111111111111", 512),
+      ],
+    });
   });
 
-  it("nonce should not be reset to 0 when emptying dust accounts", async function () {
-    const testAccountPrivateKey1 = context.web3.utils.randomHex(32);
-    const testAccountPrivateKey2 = context.web3.utils.randomHex(32);
-    const keyring = new Keyring({ type: "ethereum" });
-    const testAccount1 = await keyring.addFromUri(testAccountPrivateKey1, null, "ethereum");
-    const testAccount2 = await keyring.addFromUri(testAccountPrivateKey2, null, "ethereum");
-    const genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+  it("should increase the sender nonce", async function () {
+    expect(await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT)).to.eq(1);
+  });
 
-    const info = await context.polkadotApi.tx.balances
-      .transfer(testAccount1.address, 1)
-      .paymentInfo(genesisAccount);
-
-    // We should estimate the fee to ensure we are transferring enough funds
-    const fee = info.partialFee.toNumber();
-
-    await context.polkadotApi.tx.balances
-      .transfer(testAccount1.address, fee + 1)
-      .signAndSend(genesisAccount);
-    await createAndFinalizeBlock(context.polkadotApi);
-
-    await context.polkadotApi.tx.balances
-      .transfer(testAccount2.address, 1)
-      .signAndSend(testAccount1);
-
-    await createAndFinalizeBlock(context.polkadotApi);
-
-    const { nonce, data: balance } = await context.polkadotApi.query.system.account(
-      testAccount1.address
-    );
-
-    expect(nonce.toNumber()).to.equal(1);
-    expect(balance.free.toNumber()).to.equal(0);
+  it("should not increase the receiver nonce", async function () {
+    expect(
+      await context.web3.eth.getTransactionCount("0x1111111111111111111111111111111111111111")
+    ).to.eq(0);
   });
 });
