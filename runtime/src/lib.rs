@@ -41,7 +41,7 @@ use moonbeam_extensions_evm::runner::stack::TraceRunner as TraceRunnerT;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{Transaction as EthereumTransaction, TransactionAction};
 use pallet_evm::{
-	Account as EVMAccount, EnsureAddressNever, EnsureAddressSame, FeeCalculator,
+	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator,
 	IdentityAddressMapping, Runner,
 };
 use pallet_transaction_payment::CurrencyAdapter;
@@ -113,7 +113,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 30,
+	spec_version: 32,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -265,7 +265,7 @@ parameter_types! {
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = MoonbeamGasWeightMapping;
-	type CallOrigin = EnsureAddressSame;
+	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = IdentityAddressMapping;
 	type Currency = Balances;
