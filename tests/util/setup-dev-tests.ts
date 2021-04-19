@@ -13,6 +13,7 @@ import {
 import { ChildProcess } from "child_process";
 import { createAndFinalizeBlock } from "./block";
 import { SPAWNING_TIME } from "./constants";
+import { HttpProvider } from "web3-core";
 
 export interface BlockCreation {
   parentHash?: BlockHash;
@@ -45,6 +46,7 @@ export interface DevTestContext {
 
 interface InternalDevTestContext extends DevTestContext {
   polkadotWsProviders: WsProvider[];
+  web3Providers: HttpProvider[];
 
   // Internal member to keep track of web3 singleton
   _polkadotApi: EnhancedWeb3;
@@ -67,10 +69,17 @@ export function describeDevMoonbeam(title: string, cb: (context: DevTestContext)
       // context = init.context will fail because it replace the variable;
 
       context.polkadotWsProviders = [];
+      context.web3Providers = [];
       context.moonbeamProcess = init.runningNode;
 
-      context.createWeb3 = async (protocol: "ws" | "http" = "http") =>
-        protocol == "ws" ? provideWeb3Api(init.wsPort, "ws") : provideWeb3Api(init.rpcPort, "http");
+      context.createWeb3 = async (protocol: "ws" | "http" = "http") => {
+        const provider =
+          protocol == "ws"
+            ? await provideWeb3Api(init.wsPort, "ws")
+            : await provideWeb3Api(init.rpcPort, "http");
+        context.web3Providers.push((provider as any)._provider);
+        return provider;
+      };
       context.createEthers = async () => provideEthersApi(init.rpcPort);
       context.createPolkadotApi = async () => {
         const { provider, apiPromise } = await providePolkadotApi(init.wsPort);
@@ -83,9 +92,9 @@ export function describeDevMoonbeam(title: string, cb: (context: DevTestContext)
         return apiPromise;
       };
 
+      context.polkadotApi = await context.createPolkadotApi();
       context.web3 = await context.createWeb3();
       context.ethers = await context.createEthers();
-      context.polkadotApi = await context.createPolkadotApi();
 
       context.createBlock = async <T>(options: BlockCreation = {}) => {
         let { parentHash, finalize, transactions = [] } = options;
@@ -103,11 +112,13 @@ export function describeDevMoonbeam(title: string, cb: (context: DevTestContext)
 
     after(async function () {
       // console.log(`\x1b[31m Killing RPC\x1b[0m`);
-      if (context.polkadotWsProviders) {
-        await Promise.all(context.polkadotWsProviders.map((p) => p.disconnect()));
-      }
-      context.moonbeamProcess.kill();
-      context.moonbeamProcess = null;
+      await Promise.all(context.web3Providers.map((p) => p.disconnect()));
+      await Promise.all(context.polkadotWsProviders.map((p) => p.disconnect()));
+      await new Promise((resolve) => {
+        context.moonbeamProcess.once("exit", resolve);
+        context.moonbeamProcess.kill();
+        context.moonbeamProcess = null;
+      });
     });
 
     cb(context);

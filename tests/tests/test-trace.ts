@@ -110,7 +110,7 @@ describeDevMoonbeam("Trace", (context) => {
         logs.push(log);
       }
     }
-    expect(logs.length).to.be.equal(2);
+    expect(logs).to.be.lengthOf(2);
     expect(logs[0].depth).to.be.equal(2);
     expect(logs[1].depth).to.be.equal(1);
   });
@@ -143,7 +143,7 @@ describeDevMoonbeam("Trace", (context) => {
       { tracer: BS_TRACER.body },
     ]);
     let entries = traceTx.result;
-    expect(entries.length).to.be.equal(2);
+    expect(entries).to.be.lengthOf(2);
     let resCaller = entries[0];
     let resCallee = entries[1];
     expect(resCaller.callType).to.be.equal("call");

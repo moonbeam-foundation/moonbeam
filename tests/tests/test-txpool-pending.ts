@@ -6,12 +6,13 @@ import { createContract, createContractExecution } from "../util/transactions";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { customWeb3Request } from "../util/providers";
 
-describeDevMoonbeam("TxPool - Pending transaction", (context) => {
+describeDevMoonbeam("TxPool - Pending Ethereum transaction", (context) => {
+  let txHash;
   before("Setup: Create transaction", async () => {
     const { rawTx } = await createContract(context.web3, "TestContract", {
       gas: 1048576,
     });
-    await customWeb3Request(context.web3, "eth_sendRawTransaction", [rawTx]);
+    txHash = (await customWeb3Request(context.web3, "eth_sendRawTransaction", [rawTx])).result;
   });
 
   it("should appear in the txpool inspection", async function () {
@@ -21,6 +22,17 @@ describeDevMoonbeam("TxPool - Pending transaction", (context) => {
     expect(data).to.be.equal(
       "0x0000000000000000000000000000000000000000: 0 wei + 1048576 gas x 1 wei"
     );
+  });
+
+  it("should be marked as pending", async function () {
+    const pendingTransaction = (
+      await customWeb3Request(context.web3, "eth_getTransactionByHash", [txHash])
+    ).result;
+    // pending transactions do not know yet to which block they belong to
+    expect(pendingTransaction).to.include({
+      blockNumber: null,
+      hash: txHash,
+    });
   });
 
   it("should appear in the txpool content", async function () {
@@ -40,7 +52,7 @@ describeDevMoonbeam("TxPool - Pending transaction", (context) => {
   });
 });
 
-describeDevMoonbeam("TxPool - Contract Call", (context) => {
+describeDevMoonbeam("TxPool - Ethereum Contract Call", (context) => {
   let testContract: Contract;
 
   before("Setup: Create contract block and add call transaction", async () => {
