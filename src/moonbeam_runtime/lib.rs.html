@@ -1870,11 +1870,11 @@
 									<span class="comment">// Can&#39;t be known here, must be inserted upstream.</span>
 									<span class="ident">block_number</span>: <span class="number">0</span>,
 									<span class="ident">output</span>: <span class="kw">match</span> <span class="ident">res</span> {
-										<span class="ident">CallResult</span>::<span class="ident">Output</span>(<span class="ident">res</span>) <span class="op">=</span><span class="op">&gt;</span> {
+										<span class="ident">CallResult</span>::<span class="ident">Output</span>(<span class="ident">output</span>) <span class="op">=</span><span class="op">&gt;</span> {
 											<span class="ident">block</span>::<span class="ident">TransactionTraceOutput</span>::<span class="prelude-ty">Result</span>(
 												<span class="ident">block</span>::<span class="ident">TransactionTraceResult</span>::<span class="ident">Call</span> {
 													<span class="ident">gas_used</span>: <span class="ident">trace</span>.<span class="ident">gas_used</span>,
-													<span class="ident">res</span>
+													<span class="ident">output</span>
 												})
 										},
 										<span class="ident">CallResult</span>::<span class="ident">Error</span>(<span class="ident">error</span>) <span class="op">=</span><span class="op">&gt;</span>
@@ -1888,10 +1888,10 @@
 								},
 								<span class="ident">single</span>::<span class="ident">CallInner</span>::<span class="ident">Create</span> { <span class="ident">init</span>, <span class="ident">res</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">block</span>::<span class="ident">TransactionTrace</span> {
 									<span class="ident">action</span>: <span class="ident">block</span>::<span class="ident">TransactionTraceAction</span>::<span class="ident">Create</span> {
-										<span class="ident">create_method</span>: <span class="ident">CreateType</span>::<span class="ident">Create</span>,
+										<span class="ident">creation_method</span>: <span class="ident">CreateType</span>::<span class="ident">Create</span>,
 										<span class="ident">from</span>: <span class="ident">trace</span>.<span class="ident">from</span>,
 										<span class="ident">gas</span>: <span class="ident">trace</span>.<span class="ident">gas</span>,
-										<span class="ident">input</span>: <span class="ident">init</span>,
+										<span class="ident">init</span>,
 										<span class="ident">value</span>: <span class="ident">trace</span>.<span class="ident">value</span>,
 									},
 									<span class="comment">// Can&#39;t be known here, must be inserted upstream.</span>
