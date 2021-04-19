@@ -1177,6 +1177,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "cumulus-client-cli"
+version = "0.1.0"
+source = "git+https://github.com/paritytech/cumulus?branch=rococo-v1#9d89ed653217203810822483ae86fd8867f59620"
+dependencies = [
+ "sc-cli",
+ "sc-service",
+ "structopt",
+]
+
+[[package]]
 name = "cumulus-client-collator"
 version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus?branch=rococo-v1#9d89ed653217203810822483ae86fd8867f59620"
@@ -4333,6 +4343,7 @@ dependencies = [
  "assert_cmd",
  "async-io",
  "author-inherent",
+ "cumulus-client-cli",
  "cumulus-client-collator",
  "cumulus-client-consensus-common",
  "cumulus-client-consensus-relay-chain",
@@ -4484,6 +4495,7 @@ dependencies = [
  "ethereum-types",
  "fc-consensus",
  "fc-db",
+ "fc-rpc",
  "fp-rpc",
  "jsonrpc-core 15.1.0",
  "moonbeam-rpc-core-debug",
@@ -4532,6 +4544,7 @@ dependencies = [
  "ethereum 0.6.0",
  "ethereum-types",
  "fc-consensus",
+ "fc-rpc",
  "fc-rpc-core",
  "fp-rpc",
  "futures 0.3.13",
@@ -4561,6 +4574,7 @@ version = "0.6.0"
 dependencies = [
  "ethereum 0.7.1",
  "ethereum-types",
+ "fc-rpc",
  "frame-system",
  "jsonrpc-core 15.1.0",
  "moonbeam-rpc-core-txpool",
@@ -5241,18 +5255,6 @@ dependencies = [
  "num",
  "sp-core",
  "sp-io",
-]
-
-[[package]]
-name = "pallet-evm-precompile-sha3fips"
-version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
-dependencies = [
- "evm",
- "fp-evm",
- "sp-core",
- "sp-io",
- "tiny-keccak",
 ]
 
 [[package]]
@@ -7116,13 +7118,15 @@ checksum = "ac74c624d6b2d21f425f752262f42188365d7b8ff1aff74c82e45136510a4857"
 name = "precompiles"
 version = "0.6.0"
 dependencies = [
+ "evm",
+ "frame-support",
  "log",
  "pallet-evm",
  "pallet-evm-precompile-bn128",
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-modexp",
- "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
+ "parity-scale-codec",
  "rand 0.5.6",
  "rustc-hex",
  "sp-core",

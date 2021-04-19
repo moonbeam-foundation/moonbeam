@@ -117,7 +117,7 @@ export async function startMoonbeamNode(
 
 // Kill all processes when exiting.
 process.on("exit", function () {
-  runningNode.kill();
+  runningNode ? runningNode.kill() : null;
 });
 
 // Handle ctrl+c to trigger `exit`.
