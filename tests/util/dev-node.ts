@@ -68,16 +68,21 @@ export async function startMoonbeamDevNode(): Promise<{
     `--tmp`,
   ];
 
-  let runningNode: ChildProcess = null;
-  process.once("exit", function () {
+  const onProcessExit = function () {
     runningNode && runningNode.kill();
-  });
-  process.once("SIGINT", function () {
+  };
+  const onProcessInterrupt = function () {
     process.exit(2);
-  });
+  };
+
+  let runningNode: ChildProcess = null;
+  process.once("exit", onProcessExit);
+  process.once("SIGINT", onProcessInterrupt);
   runningNode = spawn(cmd, args);
 
   runningNode.once("exit", () => {
+    process.removeListener("exit", onProcessExit);
+    process.removeListener("SIGINT", onProcessInterrupt);
     nodeStarted = false;
   });
 
