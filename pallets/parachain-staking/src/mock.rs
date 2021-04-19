@@ -122,12 +122,14 @@ impl Config for Test {
 }
 
 pub(crate) struct ExtBuilder {
-	// balances
+	// endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
 	// [collator, amount]
 	collators: Vec<(AccountId, Balance)>,
 	// [nominator, collator, nomination_amount]
 	nominators: Vec<(AccountId, AccountId, Balance)>,
+	// inflation config
+	inflation: InflationInfo<Balance>,
 }
 
 impl Default for ExtBuilder {
@@ -136,6 +138,19 @@ impl Default for ExtBuilder {
 			balances: vec![],
 			nominators: vec![],
 			collators: vec![],
+			inflation: InflationInfo {
+				expect: Range {
+					min: 700,
+					ideal: 700,
+					max: 700,
+				},
+				// unrealistically high parameterization, only for testing
+				round: Range {
+					min: Perbill::from_percent(5),
+					ideal: Perbill::from_percent(5),
+					max: Perbill::from_percent(5),
+				},
+			},
 		}
 	}
 }
@@ -159,16 +174,22 @@ impl ExtBuilder {
 		self
 	}
 
+	#[allow(dead_code)]
+	pub(crate) fn with_inflation(mut self, inflation: InflationInfo<Balance>) -> Self {
+		self.inflation = inflation;
+		self
+	}
+
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::default()
 			.build_storage::<Test>()
-			.expect("Frame system builds valid default genesis config);
+			.expect("Frame system builds valid default genesis config");
 
 		pallet_balances::GenesisConfig::<Test> {
 			balances: self.balances,
 		}
 		.assimilate_storage(&mut t)
-		.expect("Pallet balances storage can be assimilated);
+		.expect("Pallet balances storage can be assimilated");
 
 		let mut stakers: Vec<(AccountId, Option<AccountId>, Balance)> = Vec::new();
 		for collator in self.collators {
@@ -179,22 +200,10 @@ impl ExtBuilder {
 		}
 		stake::GenesisConfig::<Test> {
 			stakers,
-			inflation_config: InflationInfo {
-				expect: Range {
-					min: 700,
-					ideal: 700,
-					max: 700,
-				},
-				// unrealistically high parameterization, only for testing
-				round: Range {
-					min: Perbill::from_percent(5),
-					ideal: Perbill::from_percent(5),
-					max: Perbill::from_percent(5),
-				},
-			},
+			inflation_config: self.inflation,
 		}
 		.assimilate_storage(&mut t)
-		.expect("Parachain Staking's storage can be assimilated);
+		.expect("Parachain Staking's storage can be assimilated");
 
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
