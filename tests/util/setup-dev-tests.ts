@@ -12,7 +12,7 @@ import {
 } from "./providers";
 import { ChildProcess } from "child_process";
 import { createAndFinalizeBlock } from "./block";
-import { SPAWNING_TIME } from "./constants";
+import { SPAWNING_TIME, DEBUG_MODE } from "./constants";
 import { HttpProvider } from "web3-core";
 
 export interface BlockCreation {
@@ -40,8 +40,6 @@ export interface DevTestContext {
   web3: EnhancedWeb3;
   ethers: ethers.providers.JsonRpcProvider;
   polkadotApi: ApiPromise;
-
-  moonbeamProcess: ChildProcess;
 }
 
 interface InternalDevTestContext extends DevTestContext {
@@ -61,16 +59,28 @@ export function describeDevMoonbeam(title: string, cb: (context: DevTestContext)
     // and to be filled once the node information is retrieved
     let context: InternalDevTestContext = {} as InternalDevTestContext;
 
+    // The currently running node for this describe
+    let moonbeamProcess: ChildProcess;
+
     // Making sure the Moonbeam node has started
     before("Starting Moonbeam Test Node", async function () {
       this.timeout(SPAWNING_TIME);
-      const init = await startMoonbeamDevNode();
+      const init = !DEBUG_MODE
+        ? await startMoonbeamDevNode()
+        : {
+            runningNode: null,
+            p2pPort: 19931,
+            wsPort: 19933,
+            rpcPort: 19932,
+          };
+      moonbeamProcess = init.runningNode;
+
       // Context is given prior to this assignement, so doing
       // context = init.context will fail because it replace the variable;
 
       context.polkadotWsProviders = [];
       context.web3Providers = [];
-      context.moonbeamProcess = init.runningNode;
+      moonbeamProcess = init.runningNode;
 
       context.createWeb3 = async (protocol: "ws" | "http" = "http") => {
         const provider =
@@ -114,11 +124,14 @@ export function describeDevMoonbeam(title: string, cb: (context: DevTestContext)
       // console.log(`\x1b[31m Killing RPC\x1b[0m`);
       await Promise.all(context.web3Providers.map((p) => p.disconnect()));
       await Promise.all(context.polkadotWsProviders.map((p) => p.disconnect()));
-      await new Promise((resolve) => {
-        context.moonbeamProcess.once("exit", resolve);
-        context.moonbeamProcess.kill();
-        context.moonbeamProcess = null;
-      });
+
+      if (moonbeamProcess) {
+        await new Promise((resolve) => {
+          moonbeamProcess.once("exit", resolve);
+          moonbeamProcess.kill();
+          moonbeamProcess = null;
+        });
+      }
     });
 
     cb(context);
