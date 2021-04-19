@@ -1,25 +1,20 @@
 import { expect } from "chai";
 
-import { createAndFinalizeBlock, describeWithMoonbeam } from "./util";
-import { DEFAULT_GENESIS_STAKING, GENESIS_ACCOUNT } from "./constants";
+import { DEFAULT_GENESIS_STAKING, GENESIS_ACCOUNT } from "../util/constants";
+import { describeDevMoonbeam } from "../util/setup-dev-tests";
 
-describeWithMoonbeam("Moonbeam RPC (Stake)", `simple-specs.json`, (context) => {
-  before(async () => {
-    // For some reason balances are not well queried otherwise
-    await createAndFinalizeBlock(context.polkadotApi);
-  });
-
-  it("collator bond reserved in genesis", async function () {
+describeDevMoonbeam("Staking - Genesis", (context) => {
+  it("should match collator reserved bond reserved", async function () {
     const account = await context.polkadotApi.query.system.account(GENESIS_ACCOUNT);
     expect(account.data.reserved.toString()).to.equal(DEFAULT_GENESIS_STAKING.toString());
   });
 
-  it("collator set in genesis", async function () {
+  it("should include collator from the specs", async function () {
     const collators = await context.polkadotApi.query.parachainStaking.selectedCandidates();
     expect((collators[0] as Buffer).toString("hex").toLowerCase()).equal(GENESIS_ACCOUNT);
   });
 
-  it("candidates set in genesis", async function () {
+  it("should have collator state as defined in the specs", async function () {
     const candidates = await context.polkadotApi.query.parachainStaking.collatorState(
       GENESIS_ACCOUNT
     );
@@ -27,7 +22,7 @@ describeWithMoonbeam("Moonbeam RPC (Stake)", `simple-specs.json`, (context) => {
     expect(candidates.toHuman()["state"]).equal("Active");
   });
 
-  it("inflation set in genesis", async function () {
+  it("should have inflation matching specs", async function () {
     const inflationInfo = await context.polkadotApi.query.parachainStaking.inflationConfig();
     // {
     //   expect: {

@@ -1,139 +1,109 @@
 import { expect } from "chai";
-import { Subscription as Web3Subscription } from "web3-core-subscriptions";
-import { BlockHeader } from "web3-eth";
-import { Log } from "web3-core";
-import {
-  GENESIS_ACCOUNT,
-  GENESIS_ACCOUNT_PRIVATE_KEY,
-  TEST_SUBSCRIPTION_CONTRACT_BYTECODE,
-} from "./constants";
+import { createContract } from "../util/transactions";
+import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { web3Subscribe } from "../util/providers";
 
-import { createAndFinalizeBlock, customRequest, describeWithMoonbeam } from "./util";
+describeDevMoonbeam("Subscription - Past Events", (context) => {
+  let web3Ws;
 
-// Extra type because web3 is not well typed
-interface Subscription<T> extends Web3Subscription<T> {
-  once: (type: "data" | "connected", handler: (data: T) => void) => Subscription<T>;
-}
+  before("Setup: Create 4 blocks with transfer", async () => {
+    web3Ws = await context.createWeb3("ws");
 
-// This reflects the measured gas cost of the transaction at this current point in time.
-// It has been known to fluctuate from release to release, so it may need adjustment.
-const EXPECTED_TRANSACTION_GAS_COST = 891328;
-
-async function sendTransaction(context, extraData = {}) {
-  const tx = await context.web3.eth.accounts.signTransaction(
-    {
-      from: GENESIS_ACCOUNT,
-      data: TEST_SUBSCRIPTION_CONTRACT_BYTECODE,
-      value: "0x00",
-      gasPrice: "0x01",
-      gas: "0x" + EXPECTED_TRANSACTION_GAS_COST.toString(16),
-      ...extraData,
-    },
-    GENESIS_ACCOUNT_PRIVATE_KEY
-  );
-  await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
-  return tx;
-}
-
-describeWithMoonbeam(
-  "Frontier RPC past events (Subscription)",
-  `simple-specs.json`,
-  (context) => {
-    // Little helper to hack web3 that are not complete.
-    function web3Subscribe(type: "pendingTransactions"): Subscription<string>;
-    function web3Subscribe(type: "logs", params: {}): Subscription<Log>;
-    function web3Subscribe(type: "newBlockHeaders" | "pendingTransactions" | "logs", params?: any) {
-      return (context.web3.eth as any).subscribe(...arguments);
-    }
-
-    before(async function () {
-      // Sending 4 transactions. Those will be tested
-      await sendTransaction(context, { nonce: 0 });
-      await sendTransaction(context, { nonce: 1 });
-      await sendTransaction(context, { nonce: 2 });
-      await sendTransaction(context, { nonce: 3 });
-      await createAndFinalizeBlock(context.polkadotApi);
+    const { rawTx: rawTx1 } = await createContract(context.web3, "SingleEventContract", {
+      nonce: 0,
+    });
+    const { rawTx: rawTx2 } = await createContract(context.web3, "SingleEventContract", {
+      nonce: 1,
+    });
+    const { rawTx: rawTx3 } = await createContract(context.web3, "SingleEventContract", {
+      nonce: 2,
+    });
+    const { rawTx: rawTx4 } = await createContract(context.web3, "SingleEventContract", {
+      nonce: 3,
     });
 
-    it("should get past events #1: by topic", async function () {
-      const subscription = web3Subscribe("logs", {
-        fromBlock: "0x0",
-        topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
-      });
+    await context.createBlock({
+      transactions: [rawTx1, rawTx2, rawTx3, rawTx4],
+    });
+  });
 
-      const data = await new Promise((resolve) => {
-        const data = [];
-        subscription.on("data", function (d: any) {
-          data.push(d);
-          if (data.length == 4) resolve(data);
-        });
-      });
-      subscription.unsubscribe();
-
-      expect(data).to.not.be.empty;
+  it("should be retrieved by topic", async function () {
+    const subscription = web3Subscribe(web3Ws, "logs", {
+      fromBlock: "0x0",
+      topics: ["0x0040d54d5e5b097202376b55bcbaaedd2ee468ce4496f1d30030c4e5308bf94d"],
     });
 
-    it("should get past events #2: by address", async function () {
-      const subscription = web3Subscribe("logs", {
-        fromBlock: "0x0",
-        address: "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
+    const data = await new Promise((resolve) => {
+      const data = [];
+      subscription.on("data", function (d: any) {
+        data.push(d);
+        if (data.length == 4) resolve(data);
       });
+    });
+    subscription.unsubscribe();
 
-      const data = await new Promise((resolve) => {
-        const data = [];
-        subscription.on("data", function (d: any) {
-          data.push(d);
-          if (data.length == 1) resolve(data);
-        });
-      });
-      subscription.unsubscribe();
+    expect(data).to.not.be.empty;
+  });
 
-      expect(data).to.not.be.empty;
+  it("should be retrieved by address", async function () {
+    const subscription = web3Subscribe(web3Ws, "logs", {
+      fromBlock: "0x0",
+      address: "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
     });
 
-    it("should get past events #3: by address + topic", async function () {
-      const subscription = web3Subscribe("logs", {
-        fromBlock: "0x0",
-        topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
-        address: "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
+    const data = await new Promise((resolve) => {
+      const data = [];
+      subscription.on("data", function (d: any) {
+        data.push(d);
+        if (data.length == 1) resolve(data);
       });
+    });
+    subscription.unsubscribe();
 
-      const data = await new Promise((resolve) => {
-        const data = [];
-        subscription.on("data", function (d: any) {
-          data.push(d);
-          if (data.length == 1) resolve(data);
-        });
-      });
-      subscription.unsubscribe();
+    expect(data).to.not.be.empty;
+  });
 
-      expect(data).to.not.be.empty;
+  it("should be retrieved by address + topic", async function () {
+    const subscription = web3Subscribe(web3Ws, "logs", {
+      fromBlock: "0x0",
+      topics: ["0x0040d54d5e5b097202376b55bcbaaedd2ee468ce4496f1d30030c4e5308bf94d"],
+      address: "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
     });
 
-    it("should get past events #3: multiple addresses", async function () {
-      const subscription = web3Subscribe("logs", {
-        fromBlock: "0x0",
-        topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
-        address: [
-          "0xe573BCA813c741229ffB2488F7856C6cAa841041",
-          "0xF8cef78E923919054037a1D03662bBD884fF4edf",
-          "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
-          "0x5c4242beB94dE30b922f57241f1D02f36e906915",
-          "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
-        ],
+    const data = await new Promise((resolve) => {
+      const data = [];
+      subscription.on("data", function (d: any) {
+        data.push(d);
+        if (data.length == 1) resolve(data);
       });
-
-      const data = await new Promise((resolve) => {
-        const data = [];
-        subscription.on("data", function (d: any) {
-          data.push(d);
-          if (data.length == 4) resolve(data);
-        });
-      });
-      subscription.unsubscribe();
-
-      expect(data).to.not.be.empty;
     });
-  },
-  "ws"
-);
+    subscription.unsubscribe();
+
+    expect(data).to.not.be.empty;
+  });
+
+  it("should be retrieved by multiple addresses", async function () {
+    const subscription = web3Subscribe(web3Ws, "logs", {
+      fromBlock: "0x0",
+      topics: ["0x0040d54d5e5b097202376b55bcbaaedd2ee468ce4496f1d30030c4e5308bf94d"],
+      address: [
+        "0xe573BCA813c741229ffB2488F7856C6cAa841041",
+        "0xF8cef78E923919054037a1D03662bBD884fF4edf",
+        "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
+        "0x5c4242beB94dE30b922f57241f1D02f36e906915",
+        "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
+      ],
+    });
+
+    const data = await new Promise((resolve) => {
+      const data = [];
+      subscription.on("data", function (d: any) {
+        data.push(d);
+        if (data.length == 4) resolve(data);
+      });
+    });
+    subscription.unsubscribe();
+
+    expect(data).to.not.be.empty;
+  });
+});

@@ -1,0 +1,86 @@
+import { expect } from "chai";
+import { Contract } from "web3-eth-contract";
+
+import { GENESIS_ACCOUNT } from "../util/constants";
+import { createContract, createContractExecution } from "../util/transactions";
+import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { customWeb3Request } from "../util/providers";
+
+describeDevMoonbeam("TxPool - Pending transaction", (context) => {
+  before("Setup: Create transaction", async () => {
+    const { rawTx } = await createContract(context.web3, "TestContract", {
+      gas: 1048576,
+    });
+    await customWeb3Request(context.web3, "eth_sendRawTransaction", [rawTx]);
+  });
+
+  it("should appear in the txpool inspection", async function () {
+    let inspect = await customWeb3Request(context.web3, "txpool_inspect", []);
+    let data = inspect.result.pending[GENESIS_ACCOUNT][context.web3.utils.toHex(0)];
+    expect(data).to.not.be.undefined;
+    expect(data).to.be.equal(
+      "0x0000000000000000000000000000000000000000: 0 wei + 1048576 gas x 1 wei"
+    );
+  });
+
+  it("should appear in the txpool content", async function () {
+    let content = await customWeb3Request(context.web3, "txpool_content", []);
+
+    const data = content.result.pending[GENESIS_ACCOUNT][context.web3.utils.toHex(0)];
+    expect(data).to.include({
+      blockHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+      blockNumber: null,
+      from: GENESIS_ACCOUNT.toString(),
+      gas: "0x100000",
+      gasPrice: "0x1",
+      nonce: context.web3.utils.toHex(0),
+      to: "0x0000000000000000000000000000000000000000",
+      value: "0x0",
+    });
+  });
+});
+
+describeDevMoonbeam("TxPool - Contract Call", (context) => {
+  let testContract: Contract;
+
+  before("Setup: Create contract block and add call transaction", async () => {
+    const { contract, rawTx } = await createContract(context.web3, "TestContract", {
+      gas: 1048576,
+    });
+    testContract = contract;
+    await context.createBlock({ transactions: [rawTx] });
+
+    await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+      await createContractExecution(context.web3, {
+        contract,
+        contractCall: contract.methods.multiply(5),
+      }),
+    ]);
+  });
+
+  it("should appear in the txpool inspection", async function () {
+    const contractAddress = testContract.options.address;
+    const inspect = await customWeb3Request(context.web3, "txpool_inspect", []);
+    const data = inspect.result.pending[GENESIS_ACCOUNT][context.web3.utils.toHex(1)];
+
+    expect(data).to.not.be.undefined;
+    expect(data).to.be.equal(
+      contractAddress.toString().toLowerCase() + ": 0 wei + 12000000 gas x 1 wei"
+    );
+  });
+
+  it("should appear in the txpool content", async function () {
+    const content = await customWeb3Request(context.web3, "txpool_content", []);
+    const data = content.result.pending[GENESIS_ACCOUNT][context.web3.utils.toHex(1)];
+    expect(data).to.include({
+      blockHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+      blockNumber: null,
+      from: GENESIS_ACCOUNT.toString(),
+      gas: "0xb71b00",
+      gasPrice: "0x1",
+      nonce: context.web3.utils.toHex(1),
+      to: testContract.options.address.toString().toLowerCase(),
+      value: "0x0",
+    });
+  });
+});

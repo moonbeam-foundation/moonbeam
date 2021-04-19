@@ -1,28 +1,18 @@
 import { expect } from "chai";
-import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
+import { customWeb3Request } from "../util/providers";
+import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { createContract } from "../util/transactions";
 
-import { createAndFinalizeBlock, customRequest, describeWithMoonbeam } from "./util";
-import { getCompiled } from "./util/contracts";
+describeDevMoonbeam("Pending Pool - Adding", (context) => {
+  let txHash;
+  before("Setup: Sending a transaction", async function () {
+    const { rawTx } = await createContract(context.web3, "TestContract");
+    txHash = (await customWeb3Request(context.web3, "eth_sendRawTransaction", [rawTx])).result;
+  });
 
-describeWithMoonbeam("Frontier RPC (Pending Pool)", `simple-specs.json`, (context) => {
-  it("should return a pending transaction", async function () {
-    const tx = await context.web3.eth.accounts.signTransaction(
-      {
-        from: GENESIS_ACCOUNT,
-        data: (await getCompiled("TestContract")).byteCode,
-        value: "0x00",
-        gasPrice: "0x01",
-        gas: "0x100000",
-      },
-      GENESIS_ACCOUNT_PRIVATE_KEY
-    );
-
-    const txHash = (
-      await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction])
-    ).result;
-
+  it("should return pending transaction by hash", async function () {
     const pendingTransaction = (
-      await customRequest(context.web3, "eth_getTransactionByHash", [txHash])
+      await customWeb3Request(context.web3, "eth_getTransactionByHash", [txHash])
     ).result;
     // pending transactions do not know yet to which block they belong to
     expect(pendingTransaction).to.include({
@@ -31,15 +21,24 @@ describeWithMoonbeam("Frontier RPC (Pending Pool)", `simple-specs.json`, (contex
       publicKey:
         "0x624f720eae676a04111631c9ca338c11d0f5a80ee42210c6be72983ceb620fbf645a96f951529f" +
         "a2d70750432d11b7caba5270c4d677255be90b3871c8c58069",
-      r: "0xeab0158195d611eb22d4f5a5788409a153b86a4c09661d469a6453b1272704ff",
-      s: "0x17f220c16a8c11b07d3f1284abf483e330217807632fa93fecf92b48e817875a",
-      v: "0xa26",
+      r: "0x64142adbcc090fb188be10d5ce008791f4fb8850b1d364360bd9f8ec2e2f06b8",
+      s: "0x141d31f93724fdc78da17fbc47bca20770e558afda2fb75d9de4e4f111c8aeeb",
+      v: "0xa25",
     });
+  });
+});
 
-    await createAndFinalizeBlock(context.polkadotApi);
+describeDevMoonbeam("Pending Pool - Creating block", (context) => {
+  let txHash;
+  before("Setup: Sending a transaction in a block", async function () {
+    const { rawTx } = await createContract(context.web3, "TestContract");
+    txHash = (await customWeb3Request(context.web3, "eth_sendRawTransaction", [rawTx])).result;
+    await context.createBlock();
+  });
 
+  it("should provide pending transactions with block", async function () {
     const processedTransaction = (
-      await customRequest(context.web3, "eth_getTransactionByHash", [txHash])
+      await customWeb3Request(context.web3, "eth_getTransactionByHash", [txHash])
     ).result;
     expect(processedTransaction).to.include({
       blockNumber: "0x1",
@@ -47,9 +46,9 @@ describeWithMoonbeam("Frontier RPC (Pending Pool)", `simple-specs.json`, (contex
       publicKey:
         "0x624f720eae676a04111631c9ca338c11d0f5a80ee42210c6be72983ceb620fbf645a96f951529f" +
         "a2d70750432d11b7caba5270c4d677255be90b3871c8c58069",
-      r: "0xeab0158195d611eb22d4f5a5788409a153b86a4c09661d469a6453b1272704ff",
-      s: "0x17f220c16a8c11b07d3f1284abf483e330217807632fa93fecf92b48e817875a",
-      v: "0xa26",
+      r: "0x64142adbcc090fb188be10d5ce008791f4fb8850b1d364360bd9f8ec2e2f06b8",
+      s: "0x141d31f93724fdc78da17fbc47bca20770e558afda2fb75d9de4e4f111c8aeeb",
+      v: "0xa25",
     });
   });
 });

@@ -1,98 +1,44 @@
 import { expect } from "chai";
-import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
+import { customWeb3Request } from "../util/providers";
+import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { createContract, createContractExecution } from "../util/transactions";
+import { GENESIS_ACCOUNT } from "../util/constants";
 
-import { createAndFinalizeBlock, describeWithMoonbeam, customRequest } from "./util";
+const GENESIS_CONTRACT_ADDRESSES = [
+  "0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a",
+  "0x42e2ee7ba8975c473157634ac2af4098190fc741",
+  "0xf8cef78e923919054037a1d03662bbd884ff4edf",
+];
 
-const CONTRACT = require("./constants/TraceFilter.json");
+describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
+  before("Setup: Create 4 blocks with TraceFilter contracts", async function () {
+    const { contract, rawTx } = await createContract(context.web3, "TraceFilter", {}, [false]);
+    await context.createBlock({ transactions: [rawTx] });
 
-const address0 = "0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a";
-const address1 = "0x42e2ee7ba8975c473157634ac2af4098190fc741";
-const address2 = "0xf8cef78e923919054037a1d03662bbd884ff4edf";
+    const { rawTx: rawTx2 } = await createContract(context.web3, "TraceFilter", {}, [true]);
+    await context.createBlock({ transactions: [rawTx2] });
 
-describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (context) => {
-  before(async function () {
-    // Deploy contract
-    const contract = new context.web3.eth.Contract(CONTRACT.abi);
-    const contractDeploy = contract.deploy({
-      data: CONTRACT.bytecode,
-      arguments: [false], // don't revert
+    const { rawTx: rawTx3 } = await createContract(context.web3, "TraceFilter", {}, [false]);
+    const { rawTx: rawTx4 } = await createContract(context.web3, "TraceFilter", { nonce: 3 }, [
+      false,
+    ]);
+    await context.createBlock({ transactions: [rawTx3, rawTx4] });
+
+    await context.createBlock({
+      transactions: [
+        await createContractExecution(context.web3, {
+          contract,
+          contractCall: contract.methods.subcalls(
+            GENESIS_CONTRACT_ADDRESSES[1],
+            GENESIS_CONTRACT_ADDRESSES[2]
+          ),
+        }),
+      ],
     });
-
-    let tx = await context.web3.eth.accounts.signTransaction(
-      {
-        from: GENESIS_ACCOUNT,
-        data: contractDeploy.encodeABI(),
-        value: "0x00",
-        gasPrice: "0x01",
-        gas: "0x500000",
-      },
-      GENESIS_ACCOUNT_PRIVATE_KEY
-    );
-
-    await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
-    await createAndFinalizeBlock(context.polkadotApi);
-
-    const secondContractDeploy = contract.deploy({
-      data: CONTRACT.bytecode,
-      arguments: [true], // revert
-    });
-
-    tx = await context.web3.eth.accounts.signTransaction(
-      {
-        from: GENESIS_ACCOUNT,
-        data: secondContractDeploy.encodeABI(),
-        value: "0x00",
-        gasPrice: "0x01",
-        gas: "0x500000",
-      },
-      GENESIS_ACCOUNT_PRIVATE_KEY
-    );
-    await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
-    await createAndFinalizeBlock(context.polkadotApi);
-    // Deploy 2 more contracts
-    for (let i = 0; i < 2; i++) {
-      const secondContractDeploy = contract.deploy({
-        data: CONTRACT.bytecode,
-        arguments: [false], // don't revert
-      });
-
-      const tx = await context.web3.eth.accounts.signTransaction(
-        {
-          nonce: 2 + i,
-          from: GENESIS_ACCOUNT,
-          data: secondContractDeploy.encodeABI(),
-          value: "0x00",
-          gasPrice: "0x01",
-          gas: "0x100000",
-        },
-        GENESIS_ACCOUNT_PRIVATE_KEY
-      );
-
-      await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
-    }
-    await createAndFinalizeBlock(context.polkadotApi);
-
-    const contractCall = contract.methods.subcalls(address1, address2);
-
-    tx = await context.web3.eth.accounts.signTransaction(
-      {
-        to: address0,
-        from: GENESIS_ACCOUNT,
-        data: contractCall.encodeABI(),
-        value: "0x00",
-        gasPrice: "0x01",
-        gas: "0x500000",
-      },
-      GENESIS_ACCOUNT_PRIVATE_KEY
-    );
-
-    await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
-
-    await createAndFinalizeBlock(context.polkadotApi);
   });
-  it("Replay succeeding CREATE", async function () {
-    // Perform RPC call.
-    let response = await customRequest(context.web3, "trace_filter", [
+
+  it("should be able to replay deployed contract", async function () {
+    let response = await customWeb3Request(context.web3, "trace_filter", [
       {
         fromBlock: "0x01",
         toBlock: "0x01",
@@ -100,31 +46,29 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     ]);
 
     expect(response.result.length).to.equal(1);
-    expect(response.result[0].action.createMethod).to.equal("create");
-    expect(response.result[0].action.from).to.equal("0x6be02d1d3665660d22ff9624b7be0551ee1ac91b");
-    expect(response.result[0].action.gas).to.equal("0x4ffead");
-    expect(response.result[0].action.input).to.be.a("string");
-    expect(response.result[0].action.value).to.equal("0x0");
-    expect(response.result[0].blockHash).to.be.a("string");
-    expect(response.result[0].blockNumber).to.equal(1);
-    expect(response.result[0].result.address).to.equal(
-      "0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a"
-    );
-    expect(response.result[0].result.code).to.be.a("string");
-    expect(response.result[0].result.gasUsed).to.equal("0x153");
-    expect(response.result[0].error).to.equal(undefined);
-    expect(response.result[0].subtraces).to.equal(0);
-    expect(response.result[0].traceAddress.length).to.equal(0);
-    expect(response.result[0].transactionHash).to.equal(
-      "0x282fdd0b08fd385bbc233cffd5679ee703fc6b4c5b54d6096ae47fa92372790e"
-    );
-    expect(response.result[0].transactionPosition).to.equal(0);
-    expect(response.result[0].type).to.equal("create");
+    expect(response.result[0].action).to.include({
+      createMethod: "create",
+      from: "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b",
+      gas: "0xb718d7",
+      value: "0x0",
+    });
+    expect(response.result[0].result).to.include({
+      address: "0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a",
+      gasUsed: "0x229",
+    });
+
+    expect(response.result[0]).to.include({
+      blockNumber: 1,
+      subtraces: 0,
+      transactionHash: "0x5301ed3a9a1be6001cf261f4197169fd6bc24804270be3c7de19fffdb63ad198",
+      transactionPosition: 0,
+      type: "create",
+    });
   });
 
-  it("Replay reverting CREATE", async function () {
+  it("should be able to replay reverted contract", async function () {
     // Perform RPC call.
-    let response = await customRequest(context.web3, "trace_filter", [
+    let response = await customWeb3Request(context.web3, "trace_filter", [
       {
         fromBlock: "0x02",
         toBlock: "0x02",
@@ -134,7 +78,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     expect(response.result.length).to.equal(1);
     expect(response.result[0].action.createMethod).to.equal("create");
     expect(response.result[0].action.from).to.equal("0x6be02d1d3665660d22ff9624b7be0551ee1ac91b");
-    expect(response.result[0].action.gas).to.equal("0x4fff44");
+    expect(response.result[0].action.gas).to.equal("0xb7198c");
     expect(response.result[0].action.input).to.be.a("string");
     expect(response.result[0].action.value).to.equal("0x0");
     expect(response.result[0].blockHash).to.be.a("string");
@@ -144,7 +88,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     expect(response.result[0].subtraces).to.equal(0);
     expect(response.result[0].traceAddress.length).to.equal(0);
     expect(response.result[0].transactionHash).to.equal(
-      "0x214cf6578d15751c7d5e68ad7167f2b7bcbb0023be155cd55cd1fb059e238c89"
+      "0x0ddcb527475b0d5e6a45ba6d9bb367c18a7142b5919247f5dd521c744fcd22a3"
     );
     expect(response.result[0].transactionPosition).to.equal(0);
     expect(response.result[0].type).to.equal("create");
@@ -152,7 +96,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
 
   it("Multiple transactions in the same block + trace over multiple blocks", async function () {
     // Perform RPC call.
-    let response = await customRequest(context.web3, "trace_filter", [
+    let response = await customWeb3Request(context.web3, "trace_filter", [
       {
         fromBlock: "0x02",
         toBlock: "0x03",
@@ -170,7 +114,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
 
   it("Call with subcalls, some reverting", async function () {
     // Perform RPC call.
-    let response = await customRequest(context.web3, "trace_filter", [
+    let response = await customWeb3Request(context.web3, "trace_filter", [
       {
         fromBlock: "0x04",
         toBlock: "0x04",
@@ -195,7 +139,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
   });
 
   it("Request range of blocks", async function () {
-    let response = await customRequest(context.web3, "trace_filter", [
+    let response = await customWeb3Request(context.web3, "trace_filter", [
       {
         fromBlock: "0x03",
         toBlock: "0x04",
@@ -224,7 +168,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
   });
 
   it("Filter fromAddress", async function () {
-    let response = await customRequest(context.web3, "trace_filter", [
+    let response = await customWeb3Request(context.web3, "trace_filter", [
       {
         fromBlock: "0x03",
         toBlock: "0x04",
@@ -236,11 +180,11 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
   });
 
   it("Filter toAddress", async function () {
-    let response = await customRequest(context.web3, "trace_filter", [
+    let response = await customWeb3Request(context.web3, "trace_filter", [
       {
         fromBlock: "0x03",
         toBlock: "0x04",
-        toAddress: [address2],
+        toAddress: [GENESIS_CONTRACT_ADDRESSES[2]],
       },
     ]);
 
