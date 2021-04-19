@@ -29,7 +29,7 @@ use std::{
 	time::{Duration, Instant},
 };
 use tokio::{
-	sync::{oneshot, watch, Semaphore},
+	sync::{mpsc, oneshot, watch, Semaphore},
 	time::delay_for,
 };
 
@@ -112,7 +112,7 @@ where
 				count, self.max_count
 			)));
 		}
-		
+
 		let mut block_hashes = vec![];
 
 		for block_height in block_heights {
@@ -121,7 +121,8 @@ where
 			}
 
 			let block_id = BlockId::<B>::Number(block_height);
-			let block_header = self.client
+			let block_header = self
+				.client
 				.header(block_id)
 				.map_err(|e| {
 					internal_err(format!(
@@ -141,14 +142,19 @@ where
 		let batch_id = self.requester.start_batch(block_hashes.clone()).await?;
 		let res = self.fetch_traces(req, &block_hashes, count as usize).await;
 		self.requester.stop_batch(batch_id).await;
-		
+
 		res
 	}
 
-	async fn fetch_traces(&self, req: FilterRequest, block_hashes: &[H256], count: usize) -> Result<Vec<TransactionTrace>> {
+	async fn fetch_traces(
+		&self,
+		req: FilterRequest,
+		block_hashes: &[H256],
+		count: usize,
+	) -> Result<Vec<TransactionTrace>> {
 		let from_address = req.from_address.unwrap_or_default();
 		let to_address = req.to_address.unwrap_or_default();
-		
+
 		let mut traces_amount: i64 = -(req.after.unwrap_or(0) as i64);
 		let mut traces = vec![];
 
@@ -204,7 +210,7 @@ where
 				}
 			}
 		}
-		
+
 		Ok(traces)
 	}
 }
@@ -337,7 +343,7 @@ impl CacheRequester {
 }
 
 struct CacheBlock2 {
-	batch_count: u32,
+	active_batch_count: usize,
 	state: CacheBlockState,
 }
 
@@ -345,26 +351,29 @@ enum CacheBlockState {
 	/// Block has been added to the pool blocks to be replayed.
 	/// It may be currently waiting to be replayed or being replayed.
 	Pooled {
-		/// Numbers of batches containing this block.
-		/// If batches are cancels and this reaches 0, this enum will be dropped with unqueue_sender
-		/// sending a signal to the task responsible for this block to not trace the block if it
-		/// has not started yet.
-		active_batch_count: usize,
+		started: bool,
 		waiting_requests: Vec<oneshot::Sender<Result<Vec<TransactionTrace>>>>,
-		unqueue_sender: watch::Sender<()>,
+		unqueue_sender: oneshot::Sender<()>,
 	},
-	Success {
-		traces: Option<Vec<TransactionTrace>>,
+	Cached {
+		traces: Result<Vec<TransactionTrace>>,
 	},
-	Error {
-		error: jsonrpc_core::Error,
+}
+
+enum BlockingTaskMessage {
+	Started {
+		block_hash: H256,
+	},
+	Finished {
+		block_hash: H256,
+		result: Result<Vec<TransactionTrace>>,
 	},
 }
 
 /// Type wrapper for the cache task, generic over the Client, Block and Backend types.
 pub struct CacheTask<B, C, BE>(PhantomData<(B, C, BE)>);
 
-impl<B, C, BE> TraceFilterCache<B, C, BE>
+impl<B, C, BE> CacheTask<B, C, BE>
 where
 	BE: Backend<B> + 'static,
 	C: ProvideRuntimeApi<B>,
@@ -386,7 +395,8 @@ where
 		cache_duration: Duration,
 		blocking_permits: Arc<Semaphore>,
 	) -> (impl Future<Output = ()>, CacheRequester) {
-		let (tx, mut rx) = sp_utils::mpsc::tracing_unbounded("trace-filter-cache");
+		let (requester_tx, mut requester_rx) =
+			sp_utils::mpsc::tracing_unbounded("trace-filter-cache");
 
 		let task = async move {
 			let mut batch_expirations = FuturesUnordered::new();
@@ -394,33 +404,65 @@ where
 			let mut batches = BTreeMap::<u64, Vec<H256>>::new();
 			let mut next_batch_id = 0u64;
 
+			let (blocking_tx, blocking_rx) =
+				mpsc::channel(blocking_permits.available_permits() * 2);
+			let mut blocking_rx = blocking_rx.fuse();
+
 			loop {
 				select! {
-					request = rx.next() => {
+					request = requester_rx.next() => {
 						match request {
 							None => break,
 							Some(CacheRequest::StartBatch {sender, blocks}) => {
 								batches.insert(next_batch_id, blocks.clone());
 
 								for block in blocks {
-									let blocking_permits = Arc::clone(&blocking_permits);
-									let (unqueue_sender, mut unqueue_receiver) = watch::channel(());
-									let _ = unqueue_receiver.recv(); // read once to make future calls await
-									tokio::spawn(async move {
-										let permit = select!(
-											_ = unqueue_receiver.recv().fuse() => return,
-											permit = blocking_permits.acquire().fuse() => permit,
-										);
+									if let Some(block_cache) = cached_blocks.get_mut(&block) {
+										block_cache.active_batch_count += 1;
+									} else {
+										let blocking_permits = Arc::clone(&blocking_permits);
+										let (unqueue_sender, mut unqueue_receiver) = oneshot::channel();
+										let client = Arc::clone(&client);
+										let backend = Arc::clone(&backend);
+										let mut blocking_tx = blocking_tx.clone();
 
-										let res = tokio::task::spawn_blocking(move || {
-											todo!()
-										}).await;
+										// Spawn all block caching asynchronously.
+										// It will wait to obtain a permit, then spawn a blocking task.
+										// When the blocking task returns its result, it is send
+										// thought a channel to the main task loop.
+										tokio::spawn(async move {
+											let _permit = select!(
+												_ = unqueue_receiver.fuse() => return,
+												permit = blocking_permits.acquire().fuse() => permit,
+											);
 
-										todo!();
-									});
+											let _ = blocking_tx.send(BlockingTaskMessage::Started {
+												block_hash: block,
+											}).await;
+
+											let result = async {
+												tokio::task::spawn_blocking(move || {
+													Self::cache_block(client, backend, block)
+												}).await
+													.map_err(|e| internal_err(format!("Tracing Substrate block {} panicked : {:?}", block, e)))?
+											}.await;
+
+											let _ = blocking_tx.send(BlockingTaskMessage::Finished {
+												block_hash: block,
+												result,
+											}).await;
+										});
+
+										cached_blocks.insert(block, CacheBlock2 {
+											active_batch_count: 1,
+											state: CacheBlockState::Pooled {
+												started: false,
+												waiting_requests: vec![],
+												unqueue_sender,
+											}
+										});
+									}
 								}
-
-								todo!("trace blocks in blocking threads");
 
 								next_batch_id = next_batch_id.overflowing_add(1).0;
 							},
@@ -439,14 +481,51 @@ where
 
 								if let Some(blocks) = batches.get(&batch_id.0) {
 									for block in blocks {
-										if let Some(block_cache) = cached_blocks.get(block) {
+										let mut remove = false;
 
+										// We remove early the block cache if this batch is the last
+										// pooling this block.
+										if let Some(block_cache) = cached_blocks.get_mut(block) {
+											if block_cache.active_batch_count == 1 && matches!(block_cache.state, CacheBlockState::Pooled {started: false ,..}) {
+												remove = true;
+											}
+										}
+
+										if remove {
+											// Remove block from the cache. Drops the value,
+											// closing all the channels contained in it.
+											let _ = cached_blocks.remove(&block);
 										}
 									}
-
-									todo!("unqueue block traces that only are in this batch");
 								}
 
+							},
+						}
+					},
+					message = blocking_rx.next() => {
+						match message {
+							None => (),
+							Some(BlockingTaskMessage::Started { block_hash }) => {
+								if let Some(block_cache) = cached_blocks.get_mut(&block_hash) {
+									if let CacheBlockState::Pooled {ref mut started, ..} = block_cache.state {
+										*started = true;
+									}
+								}
+							},
+							Some(BlockingTaskMessage::Finished { block_hash, result }) => {
+								if let Some(block_cache) = cached_blocks.get_mut(&block_hash) {
+									if let CacheBlockState::Pooled {ref mut waiting_requests, ..} = block_cache.state {
+										// Send result in waiting channels
+										while let Some(channel) = waiting_requests.pop() {
+											let _ = channel.send(result.clone());
+										}
+
+										// Update cache entry
+										block_cache.state = CacheBlockState::Cached {
+											traces: result,
+										};
+									}
+								}
 							},
 						}
 					}
@@ -455,7 +534,93 @@ where
 		}
 		.instrument(tracing::debug_span!("trace_filter_cache"));
 
-		(task, CacheRequester(tx))
+		(task, CacheRequester(requester_tx))
+	}
+
+	fn cache_block(
+		client: Arc<C>,
+		backend: Arc<BE>,
+		substrate_hash: H256,
+	) -> Result<Vec<TransactionTrace>> {
+		let substrate_block_id = BlockId::Hash(substrate_hash);
+
+		let api = client.runtime_api();
+		let block_header = client
+			.header(substrate_block_id)
+			.map_err(|e| {
+				internal_err(format!(
+					"Error when fetching substrate block {} header : {:?}",
+					substrate_hash, e
+				))
+			})?
+			.ok_or_else(|| {
+				internal_err(format!("Subtrate block {} don't exist", substrate_block_id))
+			})?;
+
+		let height = *block_header.number();
+		let substrate_parent_id = BlockId::<B>::Hash(*block_header.parent_hash());
+
+		let (eth_block, _, eth_transactions) = api
+			.current_all(&BlockId::Hash(substrate_hash))
+			.map_err(|e| {
+				internal_err(format!(
+					"Failed to get Ethereum block data for Substrate block {} : {:?}",
+					substrate_hash, e
+				))
+			})?;
+
+		let (eth_block, eth_transactions) = match (eth_block, eth_transactions) {
+			(Some(a), Some(b)) => (a, b),
+			_ => {
+				return Err(internal_err(format!(
+					"Failed to get Ethereum block data for Substrate block {}",
+					substrate_hash
+				)))
+			}
+		};
+
+		let eth_block_hash = eth_block.header.hash();
+
+		let extrinsics = backend
+			.blockchain()
+			.body(substrate_block_id)
+			.unwrap()
+			.unwrap();
+
+		// Trace the block.
+		let mut traces: Vec<_> = api
+			.trace_block(&substrate_parent_id, extrinsics)
+			.map_err(|e| {
+				internal_err(format!(
+					"Blockchain error when replaying block {} : {:?}",
+					height, e
+				))
+			})?
+			.map_err(|e| {
+				internal_err(format!(
+					"Internal runtime error when replaying block {} : {:?}",
+					height, e
+				))
+			})?;
+
+		// Fill missing data.
+		for trace in traces.iter_mut() {
+			trace.block_hash = eth_block_hash;
+			trace.block_number = height;
+			trace.transaction_hash = eth_transactions
+				.get(trace.transaction_position as usize)
+				.expect("amount of eth transactions should match")
+				.transaction_hash;
+
+			// Reformat error messages.
+			if let block::TransactionTraceOutput::Error(ref mut error) = trace.output {
+				if error.as_slice() == b"execution reverted" {
+					*error = b"Reverted".to_vec();
+				}
+			}
+		}
+
+		Ok(traces)
 	}
 }
 
