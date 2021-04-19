@@ -277,7 +277,7 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
         count: 500,
       },
     ]);
-    expect(response.hasOwnProperty('error')).to.eq(false);
+    expect(response.hasOwnProperty("error")).to.eq(false);
     response = await customRequest(context.web3, "trace_filter", [
       {
         fromBlock: "0x01",
@@ -285,10 +285,10 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
         count: 501,
       },
     ]);
-    expect(response.hasOwnProperty('error')).to.eq(true);
+    expect(response.hasOwnProperty("error")).to.eq(true);
     expect(response.error).to.deep.eq({
       code: -32603,
-      message: "count (501) can't be greater than maximum (500)"
+      message: "count (501) can't be greater than maximum (500)",
     });
   });
 });
