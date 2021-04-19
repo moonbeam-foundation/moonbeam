@@ -242,4 +242,36 @@ export const contractSources: { [key: string]: string } = {
             TraceFilter(target1).call_revert();
         }
     }`,
+  Callee: `
+    pragma solidity >=0.8.0;
+    contract Callee {
+        uint public store;
+        function addtwo(uint _value) external returns (uint result) {
+            uint x = 7;
+            store = _value;
+            return _value + x;
+        }
+    }`,
+  Caller: `
+    pragma solidity >=0.8.0;
+    interface Callee {
+        function addtwo(uint _value) external returns (uint result);
+    }    
+    contract Caller {
+        Callee internal callee;
+        uint public store;
+        function someAction(address _addr, uint _number) public {
+            callee = Callee(_addr);
+            store = callee.addtwo(_number);
+        }
+    }`,
+  Incrementer: `
+    pragma solidity >=0.8.0;
+    contract Incrementer {
+        uint256 number;
+        function sum(uint256 num) public returns (uint256){
+            number += num;
+            return number;
+        }
+    }`,
 };
