@@ -21,7 +21,10 @@ use futures::{
 use jsonrpc_core::Result as RpcResult;
 pub use moonbeam_rpc_core_debug::{Debug as DebugT, DebugServer, TraceParams};
 
-use tokio::{self, sync::{oneshot, Semaphore}};
+use tokio::{
+	self,
+	sync::{oneshot, Semaphore},
+};
 
 use ethereum_types::{H128, H256};
 use fc_rpc::{frontier_backend_client, internal_err};
@@ -97,7 +100,7 @@ where
 		client: Arc<C>,
 		backend: Arc<BE>,
 		frontier_backend: Arc<fc_db::Backend<B>>,
-		permit_pool: Arc<Semaphore>
+		permit_pool: Arc<Semaphore>,
 	) -> (impl Future<Output = ()>, DebugRequester) {
 		let (tx, mut rx): (DebugRequester, _) =
 			sp_utils::mpsc::tracing_unbounded("debug-requester");

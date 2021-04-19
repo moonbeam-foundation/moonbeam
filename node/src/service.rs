@@ -23,9 +23,11 @@
 //! Dev Service: A leaner service without the relay chain backing.
 
 use crate::cli::EthApi as EthApiCmd;
-use crate::{cli::{RunCmd, Sealing}, inherents::build_inherent_data_providers};
+use crate::{
+	cli::{RunCmd, Sealing},
+	inherents::build_inherent_data_providers,
+};
 use async_io::Timer;
-use tokio::sync::Semaphore;
 use cumulus_client_consensus_relay_chain::{
 	build_relay_chain_consensus, BuildRelayChainConsensusParams,
 };
@@ -57,6 +59,7 @@ use std::{
 	sync::{Arc, Mutex},
 	time::Duration,
 };
+use tokio::sync::Semaphore;
 
 // Our native executor instance.
 native_executor_instance!(
@@ -601,7 +604,7 @@ pub fn new_dev(
 			}),
 		);
 	}
-	
+
 	let permit_pool = Arc::new(Semaphore::new(cmd.ethapi_max_permits as usize));
 
 	let (trace_filter_task, trace_filter_requester) = if cmd.ethapi.contains(&EthApiCmd::Trace) {
