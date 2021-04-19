@@ -11,16 +11,16 @@ import { createAndFinalizeBlock } from "../util/block";
 describeDevMoonbeam("Direct EVM Call", (context) => {
   let testContract: Contract;
   let testContractTx: string;
-  const FIRST_CONTRACT_ADDRESS = "0x0";
+  const FIRST_CONTRACT_ADDRESS = "0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a";
 
   before("create the contract", async function () {
-    const { contract, rawTx } = await createContract(context.web3, "TestContract");
+    const { contract, rawTx } = await createContract(context.web3, "TestContractIncr");
     const { txResults } = await context.createBlock({ transactions: [rawTx] });
     testContract = contract;
     testContractTx = txResults[0].result;
   });
 
-  it.only("get transaction by hash", async () => {
+  it("get transaction by hash", async () => {
     const latestBlock = await context.web3.eth.getBlock("latest");
     expect(latestBlock.transactions.length).to.equal(1);
 
@@ -33,7 +33,7 @@ describeDevMoonbeam("Direct EVM Call", (context) => {
     expect(tx.hash).to.equal(tx_hash);
   });
 
-  it.only("get count", async () => {
+  it("get count", async () => {
     let res = await context.polkadotApi.query.evm.accountStorages(
       FIRST_CONTRACT_ADDRESS,
       "0x0000000000000000000000000000000000000000000000000000000000000000"
@@ -42,7 +42,7 @@ describeDevMoonbeam("Direct EVM Call", (context) => {
     expect(Number(res)).to.eq(0);
   });
 
-  it.only("should return contract method result", async function () {
+  it("should return contract method result", async function () {
     this.timeout(20000);
     const keyring = new Keyring({ type: "ethereum" });
     const testAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
@@ -120,11 +120,14 @@ describeDevMoonbeam("Direct EVM Call", (context) => {
         }
       });
 
-    console.log("EXPCETED", await context.web3.eth.getBalance(TEST_ACCOUNT));
-
     //console.log("tx call hash", hash);
     await createAndFinalizeBlock(context.polkadotApi);
     await new Promise((res) => setTimeout(res, 10000));
+
+    // THIS SHOULD HAVE BEEN INCREMENTED
+    const account = await context.polkadotApi.query.system.account(TEST_ACCOUNT);
+    console.log("EXPECTED", account.data.free.toString());
+    expect(account.data.free.toString()).to.equal(DEFAULT_GENESIS_STAKING.toString());
 
     const latestBlock = await context.web3.eth.getBlock("latest");
     console.log("latestBlock.transactions", latestBlock.transactions);
@@ -155,13 +158,15 @@ describeDevMoonbeam("Direct EVM Call", (context) => {
     // let bytesCode: string = await contract.methods.incr().encodeABI();
     // await callContractFunctionMS(context, contract.options.address, bytesCode);
 
-    let res = await context.polkadotApi.query.evm.accountStorages(
-      FIRST_CONTRACT_ADDRESS,
-      "0x0000000000000000000000000000000000000000000000000000000000000000"
-    );
-    console.log("res", Number(res));
-    console.log("res from web3", await testContract.methods.count().call());
-    expect(Number(res)).to.eq(1);
+    // COMMENTED
+    // let res = await context.polkadotApi.query.evm.accountStorages(
+    //   FIRST_CONTRACT_ADDRESS,
+    //   "0x0000000000000000000000000000000000000000000000000000000000000000"
+    // );
+    // console.log("res", Number(res));
+    // console.log("res from web3", await testContract.methods.count().call());
+    // expect(Number(res)).to.eq(1);
+
     // console.log("hash", hash.toHex());
     // const latestBlock = await context.web3.eth.getBlock("latest");
     // console.log(latestBlock);
