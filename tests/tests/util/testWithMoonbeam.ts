@@ -9,6 +9,18 @@ import { BINARY_PATH, DISPLAY_LOG, MOONBEAM_LOG, SPAWNING_TIME, DEBUG_MODE } fro
 import { ErrorReport } from "./fillBlockWithTx";
 import { findAvailablePorts } from "./findAvailablePorts";
 
+import { contractSources } from "../../contracts/sources";
+import { getCompiled } from "./contracts";
+export async function mochaGlobalSetup() {
+  // First compile all contracts
+  console.log("Making sure all contracts are compiled...");
+  await Promise.all(
+    Object.keys(contractSources).map(async (contractName) => {
+      return getCompiled(contractName);
+    })
+  );
+}
+
 export function log(...msg: (string | number | ErrorReport)[]) {
   if (process.argv && process.argv[2] && process.argv[2] === "--printlogs") {
     console.log(...msg);
@@ -135,7 +147,10 @@ export function describeWithMoonbeam(
   cb: (context: Context) => void,
   provider?: string
 ) {
-  describe(title, () => {
+  describe(title, function () {
+    // Set timeout to 5000 for all tests.
+    this.timeout(5000);
+
     let context: Context = { ethers: null, web3: null, wsProvider: null, polkadotApi: null };
     let binary: ChildProcess;
 

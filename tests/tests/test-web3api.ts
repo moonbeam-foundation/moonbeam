@@ -14,8 +14,8 @@ describeWithMoonbeam("Moonbeam RPC (Web3Api)", `simple-specs.json`, (context) =>
   it("should remote sha3", async function () {
     const data = context.web3.utils.stringToHex("hello");
     const hash = await customRequest(context.web3, "web3_sha3", [data]);
-    const local_hash = context.web3.utils.sha3("hello");
-    expect(hash.result).to.be.equal(local_hash);
+    const localhash = context.web3.utils.sha3("hello");
+    expect(hash.result).to.be.equal(localhash);
   });
 
   it("should report peer count in hex", async function () {

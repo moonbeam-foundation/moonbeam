@@ -1,34 +1,31 @@
 import { expect } from "chai";
 
-import { describeWithMoonbeam, customRequest, createAndFinalizeBlock } from "./util";
-import { AbiItem } from "web3-utils";
-import {
-  FIRST_CONTRACT_ADDRESS,
-  GENESIS_ACCOUNT,
-  GENESIS_ACCOUNT_PRIVATE_KEY,
-  // Solidity:
-  // contract test {
-  //   function multiply(uint a) public pure returns(uint d) {return a * 7;}
-  // }
-  TEST_CONTRACT_BYTECODE,
-  TEST_CONTRACT_ABI,
-} from "./constants";
+import { describeWithMoonbeam, customRequest } from "./util";
+import { FIRST_CONTRACT_ADDRESS, GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
+import { getCompiled } from "./util/contracts";
 
-describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
+describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, async (context) => {
   // Those test are ordered. In general this should be avoided, but due to the time it takes
   // to spin up a Moonbeam node, it saves a lot of time.
+  let TestContractByteCode: string;
+  let TestContractABI;
+
+  before("get constants", async function () {
+    TestContractByteCode = (await getCompiled("TestContract")).byteCode;
+    TestContractABI = (await getCompiled("TestContract")).contract.abi;
+  });
 
   it("eth_estimateGas for contract creation", async function () {
     expect(
       await context.web3.eth.estimateGas({
         from: GENESIS_ACCOUNT,
-        data: TEST_CONTRACT_BYTECODE,
+        data: TestContractByteCode,
       })
-    ).to.equal(91019);
+    ).to.equal(149143);
   });
 
   it("eth_estimateGas for contract call", async function () {
-    const contract = new context.web3.eth.Contract([TEST_CONTRACT_ABI], FIRST_CONTRACT_ADDRESS, {
+    const contract = new context.web3.eth.Contract(TestContractABI, FIRST_CONTRACT_ADDRESS, {
       from: GENESIS_ACCOUNT,
       gasPrice: "0x01",
     });
@@ -37,7 +34,7 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
   });
 
   it("eth_estimateGas without gas_limit should pass", async function () {
-    const contract = new context.web3.eth.Contract([TEST_CONTRACT_ABI], FIRST_CONTRACT_ADDRESS, {
+    const contract = new context.web3.eth.Contract(TestContractABI, FIRST_CONTRACT_ADDRESS, {
       from: GENESIS_ACCOUNT,
     });
 
@@ -65,7 +62,7 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
     const goodTx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
-        data: TEST_CONTRACT_BYTECODE,
+        data: TestContractByteCode,
         value: "0x00",
         gasPrice: "0x01",
         gas: EXTRINSIC_GAS_LIMIT, // Todo: fix (remove eth base cost)
@@ -82,7 +79,7 @@ describeWithMoonbeam("Moonbeam RPC (Gas)", `simple-specs.json`, (context) => {
     const badTx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
-        data: TEST_CONTRACT_BYTECODE,
+        data: TestContractByteCode,
         value: "0x00",
         gasPrice: "0x01",
         gas: EXTRINSIC_GAS_LIMIT + 1,

@@ -2,26 +2,16 @@ import { expect } from "chai";
 
 import { TransactionReceipt } from "web3-core";
 
-import { callContractFunctionMS, deployContractManualSeal, describeWithMoonbeam } from "./util";
-import {
-  FINITE_LOOP_CONTRACT_ABI,
-  FINITE_LOOP_CONTRACT_BYTECODE,
-  INFINITE_CONTRACT_ABI,
-  INFINITE_CONTRACT_ABI_VAR,
-  INFINITE_CONTRACT_BYTECODE,
-  INFINITE_CONTRACT_BYTECODE_VAR,
-  TEST_CONTRACT_BYTECODE_INCR,
-  TEST_CONTRACT_INCR_ABI,
-} from "./constants";
+import { callContractFunctionMS, describeWithMoonbeam } from "./util";
+import { deployContractByName } from "./util/contracts";
 
 describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (context) => {
   it("should increment contract state - to check normal contract behavior", async function () {
     // // instantiate contract
-    const contract = await deployContractManualSeal(
+    const contract = await deployContractByName(
       context.polkadotApi,
       context.web3,
-      TEST_CONTRACT_BYTECODE_INCR,
-      TEST_CONTRACT_INCR_ABI
+      "TestContractIncr"
     );
 
     // check variable initializaion
@@ -37,11 +27,10 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
 
   it("inifinite loop call should return OutOfGas", async function () {
     //deploy infinite contract
-    const contract = await deployContractManualSeal(
+    const contract = await deployContractByName(
       context.polkadotApi,
       context.web3,
-      INFINITE_CONTRACT_BYTECODE,
-      [INFINITE_CONTRACT_ABI]
+      "InfiniteContract"
     );
 
     // call infinite loop
@@ -53,11 +42,10 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
 
   it("inifinite loop send with incr should return OutOfGas", async function () {
     // deploy contract
-    const contract = await deployContractManualSeal(
+    const contract = await deployContractByName(
       context.polkadotApi,
       context.web3,
-      INFINITE_CONTRACT_BYTECODE_VAR,
-      INFINITE_CONTRACT_ABI_VAR
+      "InfiniteContractVar"
     );
 
     //make infinite loop function call
@@ -69,22 +57,21 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
         block.transactions[0]
       );
       expect(receipt.status).to.eq(false);
-    } catch (e) {
-      console.log("error caught", e);
-      throw new Error(e);
+    } catch (err) {
+      console.log("error caught", err);
+      throw new Error(err);
     }
   });
 
   it("finite loop with incr: check gas usage, with normal gas limit,\
   should error before 700 loops", async function () {
-    // For a normal 1048576 gas limit, loop should revert out of gas between 600 and 700 loops
+    // For a normal 1048576 gas limit, loop should revert out of gas between 500 and 600 loops
 
     //deploy finite loop contract
-    const contract = await deployContractManualSeal(
+    const contract = await deployContractByName(
       context.polkadotApi,
       context.web3,
-      FINITE_LOOP_CONTRACT_BYTECODE,
-      FINITE_LOOP_CONTRACT_ABI
+      "FiniteLoopContract"
     );
 
     //make finite loop function call
@@ -94,22 +81,22 @@ describeWithMoonbeam("Moonbeam RPC (Contract Loops)", `simple-specs.json`, (cont
       try {
         await callContractFunctionMS(context, contract.options.address, bytesCode);
         return Number(await contract.methods.count().call()) - startIncr;
-      } catch (e) {
-        console.log("error caught", e);
+      } catch (err) {
+        console.log("error caught", err);
       }
     }
     // 1 loop to make sure it works
     expect(await callLoopIncrContract(1)).to.eq(1);
     let block = await context.web3.eth.getBlock("latest");
-    expect(block.gasUsed).to.eq(42343); //check that gas costs stay the same
+    expect(block.gasUsed).to.eq(42889); //check that gas costs stay the same
 
-    // // 600 loop
-    expect(await callLoopIncrContract(600)).to.eq(600);
+    // // 500 loop
+    expect(await callLoopIncrContract(500)).to.eq(500);
     block = await context.web3.eth.getBlock("latest");
-    expect(block.gasUsed).to.eq(1024084); //check that gas costs stay the same
+    expect(block.gasUsed).to.eq(1045154); //check that gas costs stay the same
 
-    // 700 loop should revert out of gas
-    expect(await callLoopIncrContract(700)).to.eq(0);
+    // 600 loop should revert out of gas
+    expect(await callLoopIncrContract(600)).to.eq(0);
     block = await context.web3.eth.getBlock("latest");
     expect(block.gasUsed).to.eq(1048576); //check that gas is the gas limit
     const receipt: TransactionReceipt = await context.web3.eth.getTransactionReceipt(
