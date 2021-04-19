@@ -38,6 +38,20 @@ describeDevMoonbeam("Pending Pool - Multiple pending transactions", (context) =>
     expect(txs).to.be.lengthOf(10);
     for (let i; i < 10; i++) {
       expect(txs[i].hash).to.be.equal(txHashs[i]);
+    }
+  });
+
+  it("should all be marked as pending", async function () {
+    const txs = (
+      await Promise.all(
+        txHashs.map((txHash) => {
+          return customWeb3Request(context.web3, "eth_getTransactionByHash", [txHash]);
+        })
+      )
+    ).map((response) => response.result as Transaction);
+
+    expect(txs).to.be.lengthOf(10);
+    for (let i; i < 10; i++) {
       expect(txs[i].blockNumber).to.be.null;
       expect(txs[i].transactionIndex).to.be.null;
     }
@@ -70,8 +84,21 @@ describeDevMoonbeam("TxPool - Multiple produced transactions", (context) => {
     expect(txs).to.be.lengthOf(10);
     for (let i; i < 10; i++) {
       expect(txs[i].hash).to.be.equal(txHashs[i]);
+    }
+  });
+
+  it("should all have assigned block number", async function () {
+    const txs = (
+      await Promise.all(
+        txHashs.map((txHash) => {
+          return customWeb3Request(context.web3, "eth_getTransactionByHash", [txHash]);
+        })
+      )
+    ).map((response) => response.result as Transaction);
+
+    expect(txs).to.be.lengthOf(10);
+    for (let i; i < 10; i++) {
       expect(txs[i].blockNumber).to.not.be.null;
-      expect(txs[i].transactionIndex).to.not.be.null;
     }
   });
 
