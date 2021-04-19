@@ -3,7 +3,6 @@ import { TransactionReceipt } from "web3-core";
 import { AbiItem } from "web3-utils";
 import { Contract } from "web3-eth-contract";
 import Web3 from "web3";
-import fs from "fs";
 
 import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
 import { contractSources } from "../contracts/sources";
