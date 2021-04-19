@@ -168,7 +168,7 @@ impl ExtBuilder {
 			balances: self.balances,
 		}
 		.assimilate_storage(&mut t)
-		.unwrap();
+		.expect("Pallet balances storage can be assimilated);
 
 		let mut stakers: Vec<(AccountId, Option<AccountId>, Balance)> = Vec::new();
 		for collator in self.collators {
