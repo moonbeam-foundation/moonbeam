@@ -141,6 +141,9 @@ pub struct RunCmd {
 		require_delimiter = true
 	)]
 	pub ethapi: Vec<EthApi>,
+	/// Number of concurrent tracing tasks. Meant to be shared by both "debug" and "trace" modules.
+	#[structopt(long, default_value = "10")]
+	pub ethapi_max_permits: u32,
 }
 
 fn parse_h160(input: &str) -> Result<H160, String> {

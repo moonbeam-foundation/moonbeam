@@ -21,7 +21,7 @@ use futures::{
 use jsonrpc_core::Result as RpcResult;
 pub use moonbeam_rpc_core_debug::{Debug as DebugT, DebugServer, TraceParams};
 
-use tokio::{self, sync::oneshot};
+use tokio::{self, sync::{oneshot, Semaphore}};
 
 use ethereum_types::{H128, H256};
 use fc_rpc::{frontier_backend_client, internal_err};
@@ -97,6 +97,7 @@ where
 		client: Arc<C>,
 		backend: Arc<BE>,
 		frontier_backend: Arc<fc_db::Backend<B>>,
+		permit_pool: Arc<Semaphore>
 	) -> (impl Future<Output = ()>, DebugRequester) {
 		let (tx, mut rx): (DebugRequester, _) =
 			sp_utils::mpsc::tracing_unbounded("debug-requester");
@@ -107,6 +108,7 @@ where
 					let client = client.clone();
 					let backend = backend.clone();
 					let frontier_backend = frontier_backend.clone();
+					let permit_pool = permit_pool.clone();
 					// Spawn the long running task in another thread.
 					let res = tokio::task::spawn_blocking(move || {
 						return Self::handle_request(
@@ -119,6 +121,7 @@ where
 					});
 
 					tokio::task::spawn(async move {
+						let _permit = permit_pool.acquire();
 						// Send response.
 						if let Ok(res) = res.await {
 							let _ = response_tx.send(res);

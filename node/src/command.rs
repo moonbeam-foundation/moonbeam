@@ -357,10 +357,9 @@ pub fn run() -> Result<()> {
 
 						return crate::service::new_dev(
 							config,
-							cli.run.sealing,
 							author_id,
 							collator,
-							cli.run.ethapi,
+							cli.run,
 						);
 					}
 
@@ -403,7 +402,7 @@ pub fn run() -> Result<()> {
 						polkadot_config,
 						id,
 						collator,
-						cli.run.ethapi,
+						cli.run,
 					)
 					.await
 					.map(|r| r.0)
