@@ -2401,6 +2401,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "frame-system-benchmarking"
+version = "3.0.0"
+source = "git+https://github.com/paritytech/substrate?branch=rococo-v1#68cfc326fa0e3d96d0d92509e4db1a104b9da9bb"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "frame-system-rpc-runtime-api"
 version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate?branch=rococo-v1#68cfc326fa0e3d96d0d92509e4db1a104b9da9bb"
@@ -4548,6 +4562,8 @@ dependencies = [
  "fc-rpc-core",
  "fp-consensus",
  "fp-rpc",
+ "frame-benchmarking",
+ "frame-benchmarking-cli",
  "futures 0.3.13",
  "jsonrpc-core 15.1.0",
  "jsonrpc-pubsub 15.1.0",
@@ -4559,10 +4575,13 @@ dependencies = [
  "moonbeam-rpc-txpool",
  "moonbeam-runtime",
  "nix",
+ "pallet-collective",
  "pallet-ethereum",
  "pallet-evm",
+ "pallet-society",
  "pallet-sudo",
  "pallet-transaction-payment-rpc",
+ "pallet-xcm",
  "parity-scale-codec",
  "parking_lot 0.9.0",
  "polkadot-cli",
@@ -4614,6 +4633,7 @@ dependencies = [
  "tiny-hderive",
  "tokio 0.2.25",
  "trie-root 0.15.2",
+ "xcm-builder",
 ]
 
 [[package]]
@@ -4785,9 +4805,11 @@ dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
  "fp-rpc",
+ "frame-benchmarking",
  "frame-executive",
  "frame-support",
  "frame-system",
+ "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "hex-literal",
  "log",
@@ -5282,6 +5304,7 @@ name = "pallet-collective"
 version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate?branch=rococo-v1#68cfc326fa0e3d96d0d92509e4db1a104b9da9bb"
 dependencies = [
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",
@@ -11470,7 +11493,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04f8ab788026715fa63b31960869617cba39117e520eb415b0139543e325ab59"
 dependencies = [
  "cfg-if 0.1.10",
- "rand 0.3.23",
+ "rand 0.5.6",
  "static_assertions",
 ]
 

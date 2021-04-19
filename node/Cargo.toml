@@ -103,8 +103,12 @@ polkadot-test-service = { git = "https://github.com/paritytech/polkadot", branch
 polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1" }
 
 # benchmarking dependencies
-frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", optional = true }
-frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", optional = true }
+frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+pallet-xcm = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1", optional = true }
+xcm-builder = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1", optional = true }
+pallet-collective = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", optional = true }
+pallet-society = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", optional = true }
 
 [build-dependencies]
 substrate-build-script-utils = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
@@ -133,6 +137,8 @@ test-spec = []
 
 runtime-benchmarks = [
 	"moonbeam-runtime/runtime-benchmarks",
-	"frame-benchmarking",
-	"frame-benchmarking-cli",
+	"pallet-xcm/runtime-benchmarks",
+	"xcm-builder/runtime-benchmarks",
+	"pallet-collective/runtime-benchmarks",
+	"pallet-society/runtime-benchmarks",
 ]
