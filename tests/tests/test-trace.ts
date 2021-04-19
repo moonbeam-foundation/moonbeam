@@ -2,46 +2,32 @@ import { expect } from "chai";
 import { customWeb3Request } from "../util/providers";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../util/constants";
+import { createContract } from "../util/transactions";
 
-const INCREMENTER = require("../contracts/abis/Incrementer.json");
-const CALLEE = require("../contracts/abis/Callee.json");
-const CALLER = require("../contracts/abis/Caller.json");
 const BS_TRACER = require("../contracts/abis/blockscout_tracer.min.json");
 
 async function nested(context) {
-  // Create Callee contract.
-  const calleeTx = await context.web3.eth.accounts.signTransaction(
-    {
-      from: GENESIS_ACCOUNT,
-      data: CALLEE.bytecode,
-      value: "0x00",
-      gasPrice: "0x01",
-      gas: "0x100000",
-    },
-    GENESIS_ACCOUNT_PRIVATE_KEY
+  let nonce = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
+  const { contract: callee, rawTx: rawTx1 } = await createContract(
+    context.web3,
+    "Callee",
+    { nonce: nonce++ },
+    []
   );
-  let send = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
-    calleeTx.rawTransaction,
-  ]);
-  await context.createBlock();
-  let receipt = await context.web3.eth.getTransactionReceipt(send.result);
-  const calleeAddr = receipt.contractAddress;
-  // Create Caller contract.
-  const callerTx = await context.web3.eth.accounts.signTransaction(
-    {
-      from: GENESIS_ACCOUNT,
-      data: CALLER.bytecode,
-      value: "0x00",
-      gasPrice: "0x01",
-      gas: "0x100000",
-    },
-    GENESIS_ACCOUNT_PRIVATE_KEY
+
+  const { contract: caller, rawTx: rawTx2 } = await createContract(
+    context.web3,
+    "Caller",
+    { nonce: nonce++ },
+    []
   );
-  send = await customWeb3Request(context.web3, "eth_sendRawTransaction", [callerTx.rawTransaction]);
-  await context.createBlock();
-  receipt = await context.web3.eth.getTransactionReceipt(send.result);
-  const callerAddr = receipt.contractAddress;
-  const caller = new context.web3.eth.Contract(CALLER.abi, callerAddr);
+  await context.createBlock({
+    transactions: [rawTx1, rawTx2],
+  });
+
+  const calleeAddr = callee.options.address;
+  const callerAddr = caller.options.address;
+
   // Nested call
   let callTx = await context.web3.eth.accounts.signTransaction(
     {
@@ -58,23 +44,11 @@ async function nested(context) {
 
 describeDevMoonbeam("Trace", (context) => {
   it("should replay over an intermediate state", async function () {
-    const createTx = await context.web3.eth.accounts.signTransaction(
-      {
-        from: GENESIS_ACCOUNT,
-        data: INCREMENTER.bytecode,
-        value: "0x00",
-        gasPrice: "0x01",
-        gas: "0x100000",
-      },
-      GENESIS_ACCOUNT_PRIVATE_KEY
-    );
+    const { contract, rawTx } = await createContract(context.web3, "Incrementer", {}, [false]);
     const { txResults } = await context.createBlock({
-      transactions: [createTx.rawTransaction],
+      transactions: [rawTx],
     });
     let receipt = await context.web3.eth.getTransactionReceipt(txResults[0].result);
-    // This contract's `sum` method receives a number as an argument, increments the storage and
-    // returns the current value.
-    let contract = new context.web3.eth.Contract(INCREMENTER.abi, receipt.contractAddress);
 
     // In our case, the total number of transactions == the max value of the incrementer.
     // If we trace the last transaction of the block, should return the total number of
