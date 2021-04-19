@@ -15,10 +15,10 @@ import { Transaction } from "web3-core";
       - We can get the final transaction data once it leaves the pending collection
   */
 describeDevMoonbeam("EthPool - Multiple pending transactions", (context) => {
-  let txHashs: string[];
+  let txHashes: string[];
 
   before("Setup: Sending 10 transactions", async function () {
-    txHashs = await Promise.all(
+    txHashes = await Promise.all(
       new Array(10).map(async (_, i) => {
         const { rawTx } = await createContract(context.web3, "TestContract", { nonce: i });
         return (await customWeb3Request(context.web3, "eth_sendRawTransaction", [rawTx])).result;
@@ -29,7 +29,7 @@ describeDevMoonbeam("EthPool - Multiple pending transactions", (context) => {
   it("should all be available by hash", async function () {
     const txs = (
       await Promise.all(
-        txHashs.map((txHash) => {
+        txHashes.map((txHash) => {
           return customWeb3Request(context.web3, "eth_getTransactionByHash", [txHash]);
         })
       )
@@ -37,14 +37,14 @@ describeDevMoonbeam("EthPool - Multiple pending transactions", (context) => {
 
     expect(txs).to.be.lengthOf(10);
     for (let i; i < 10; i++) {
-      expect(txs[i].hash).to.be.equal(txHashs[i]);
+      expect(txs[i].hash).to.be.equal(txHashes[i]);
     }
   });
 
   it("should all be marked as pending", async function () {
     const txs = (
       await Promise.all(
-        txHashs.map((txHash) => {
+        txHashes.map((txHash) => {
           return customWeb3Request(context.web3, "eth_getTransactionByHash", [txHash]);
         })
       )
@@ -59,10 +59,10 @@ describeDevMoonbeam("EthPool - Multiple pending transactions", (context) => {
 });
 
 describeDevMoonbeam("EthPool - Multiple produced transactions", (context) => {
-  let txHashs: string[];
+  let txHashes: string[];
 
   before("Setup: Sending 10 transactions", async function () {
-    txHashs = await Promise.all(
+    txHashes = await Promise.all(
       new Array(10).map(async (_, i) => {
         const { rawTx } = await createContract(context.web3, "TestContract", { nonce: i });
         return (await customWeb3Request(context.web3, "eth_sendRawTransaction", [rawTx])).result;
@@ -75,7 +75,7 @@ describeDevMoonbeam("EthPool - Multiple produced transactions", (context) => {
   it("should all be available by hash", async function () {
     const txs = (
       await Promise.all(
-        txHashs.map((txHash) => {
+        txHashes.map((txHash) => {
           return customWeb3Request(context.web3, "eth_getTransactionByHash", [txHash]);
         })
       )
@@ -83,14 +83,14 @@ describeDevMoonbeam("EthPool - Multiple produced transactions", (context) => {
 
     expect(txs).to.be.lengthOf(10);
     for (let i; i < 10; i++) {
-      expect(txs[i].hash).to.be.equal(txHashs[i]);
+      expect(txs[i].hash).to.be.equal(txHashes[i]);
     }
   });
 
   it("should all have assigned block number", async function () {
     const txs = (
       await Promise.all(
-        txHashs.map((txHash) => {
+        txHashes.map((txHash) => {
           return customWeb3Request(context.web3, "eth_getTransactionByHash", [txHash]);
         })
       )
@@ -105,7 +105,7 @@ describeDevMoonbeam("EthPool - Multiple produced transactions", (context) => {
   it("should all have a valid transactionIndex", async function () {
     const txs = (
       await Promise.all(
-        txHashs.map((txHash) => {
+        txHashes.map((txHash) => {
           return customWeb3Request(context.web3, "eth_getTransactionByHash", [txHash]);
         })
       )
@@ -113,7 +113,7 @@ describeDevMoonbeam("EthPool - Multiple produced transactions", (context) => {
 
     expect(txs).to.be.lengthOf(10);
     for (let i; i < 10; i++) {
-      expect(txs[i].hash).to.be.equal(txHashs[i]);
+      expect(txs[i].hash).to.be.equal(txHashes[i]);
       expect(txs[i].transactionIndex).to.equal(i);
     }
   });
