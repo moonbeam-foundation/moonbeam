@@ -6,10 +6,6 @@ import { createTransfer } from "../util/transactions";
 import { customWeb3Request } from "../util/providers";
 
 describeDevMoonbeam("Nonce - Initial", (context) => {
-  // before("Setup: Create block with transfer", async () => {
-  //   // For some reason fees are not well estimated otherwise
-  //   await createAndFinalizeBlock(context.polkadotApi);
-  // });
   it("should be at 0 before using it", async function () {
     expect(
       await context.web3.eth.getTransactionCount("0x1111111111111111111111111111111111111111")
