@@ -4,7 +4,7 @@ import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../util/constants";
 import { createContract } from "../util/transactions";
 
-const BS_TRACER = require("../contracts/abis/blockscout_tracer.min.json");
+const BS_TRACER = require("../util/tracer/blockscout_tracer.min.json");
 
 async function nested(context) {
   let nonce = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
