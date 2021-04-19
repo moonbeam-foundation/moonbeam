@@ -32,3 +32,14 @@ describeDevMoonbeam("Block Gas - Limit", (context) => {
     );
   });
 });
+
+describeDevMoonbeam("Block Gas - Limit", (context) => {
+  // TODO: Joshy to fix block gas access in smart contract
+  it.skip("should be accessible within a contract", async function () {
+    const { contract, rawTx } = await createContract(context.web3, "CheckBlockGasLimit");
+    await context.createBlock({ transactions: [rawTx] });
+
+    //console.log("gaslimit", await contract.methods.gaslimit().call());
+    expect((await contract.methods.gaslimit().call()) !== "0").to.eq(true);
+  });
+});
