@@ -48,10 +48,10 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     // console.log(JSON.stringify(response));
 
     expect(response.result.length).to.equal(1);
-    expect(response.result[0].action.createMethod).to.equal("create");
+    expect(response.result[0].action.creationMethod).to.equal("create");
     expect(response.result[0].action.from).to.equal("0x6be02d1d3665660d22ff9624b7be0551ee1ac91b");
     expect(response.result[0].action.gas).to.equal("0x4ffead");
-    expect(response.result[0].action.input).to.be.a("string");
+    expect(response.result[0].action.init).to.be.a("string");
     expect(response.result[0].action.value).to.equal("0x0");
     expect(response.result[0].blockHash).to.be.a("string");
     expect(response.result[0].blockNumber).to.equal(1);
@@ -104,10 +104,10 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     // console.log(JSON.stringify(response));
 
     expect(response.result.length).to.equal(1);
-    expect(response.result[0].action.createMethod).to.equal("create");
+    expect(response.result[0].action.creationMethod).to.equal("create");
     expect(response.result[0].action.from).to.equal("0x6be02d1d3665660d22ff9624b7be0551ee1ac91b");
     expect(response.result[0].action.gas).to.equal("0x4fff44");
-    expect(response.result[0].action.input).to.be.a("string");
+    expect(response.result[0].action.init).to.be.a("string");
     expect(response.result[0].action.value).to.equal("0x0");
     expect(response.result[0].blockHash).to.be.a("string");
     expect(response.result[0].blockNumber).to.equal(2);
