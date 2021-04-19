@@ -291,8 +291,8 @@ where
 		let (trace_filter_task, trace_filter_requester) = TraceFilterCache::task(
 			Arc::clone(&client),
 			Arc::clone(&backend),
-			cmd.ethapi_trace_cache_duration,
 			cmd.ethapi_trace_max_count,
+			cmd.ethapi_trace_cache_duration,
 		);
 		(Some(trace_filter_task), Some(trace_filter_requester))
 	} else {
@@ -589,8 +589,8 @@ pub fn new_dev(
 		let (trace_filter_task, trace_filter_requester) = TraceFilterCache::task(
 			Arc::clone(&client),
 			Arc::clone(&backend),
-			cmd.ethapi_trace_cache_duration,
 			cmd.ethapi_trace_max_count,
+			cmd.ethapi_trace_cache_duration,
 		);
 		(Some(trace_filter_task), Some(trace_filter_requester))
 	} else {
