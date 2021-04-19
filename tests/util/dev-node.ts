@@ -52,7 +52,6 @@ export async function startMoonbeamDevNode(): Promise<{
   nodeStarted = true;
   const { p2pPort, rpcPort, wsPort } = await findAvailablePorts();
 
-  // console.log("Using ports", { p2pPort, rpcPort, wsPort });
   const cmd = BINARY_PATH;
   const args = [
     `--execution=Native`, // Faster execution using native
