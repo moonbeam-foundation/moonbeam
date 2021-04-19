@@ -28,7 +28,10 @@ use std::{
 	sync::Arc,
 	time::{Duration, Instant},
 };
-use tokio::{sync::oneshot, time::delay_for};
+use tokio::{
+	sync::{oneshot, watch, Semaphore},
+	time::delay_for,
+};
 
 use jsonrpc_core::Result;
 use sc_client_api::backend::Backend;
@@ -54,34 +57,162 @@ pub struct Trace2<B, C> {
 	_phantom: PhantomData<B>,
 	client: Arc<C>,
 	requester: CacheRequester,
+	max_count: u32,
+}
+
+impl<B, C> Clone for Trace2<B, C> {
+	fn clone(&self) -> Self {
+		Self {
+			_phantom: PhantomData::default(),
+			client: Arc::clone(&self.client),
+			requester: self.requester.clone(),
+			max_count: self.max_count,
+		}
+	}
 }
 
 impl<B, C> Trace2<B, C>
 where
 	B: BlockT<Hash = H256> + Send + Sync + 'static,
+	B::Header: HeaderT<Number = u32>,
 	C: HeaderMetadata<B, Error = BlockChainError> + HeaderBackend<B>,
 	C: Send + Sync + 'static,
 {
-	pub fn new(client: Arc<C>, requester: CacheRequester) -> Self {
+	pub fn new(client: Arc<C>, requester: CacheRequester, max_count: u32) -> Self {
 		Self {
 			client,
 			requester,
+			max_count,
 			_phantom: PhantomData::default(),
 		}
 	}
 
-	async fn filter(
-		client: Arc<C>,
-		requester: CacheRequester,
-		filter: FilterRequest,
-	) -> Result<Vec<TransactionTrace>> {
-		todo!()
+	fn block_id(&self, id: Option<RequestBlockId>) -> Result<u32> {
+		match id {
+			Some(RequestBlockId::Number(n)) => Ok(n),
+			None | Some(RequestBlockId::Tag(RequestBlockTag::Latest)) => {
+				Ok(self.client.info().best_number)
+			}
+			Some(RequestBlockId::Tag(RequestBlockTag::Earliest)) => Ok(0),
+			Some(RequestBlockId::Tag(RequestBlockTag::Pending)) => {
+				Err(internal_err("'pending' is not supported"))
+			}
+		}
+	}
+
+	async fn filter(self, req: FilterRequest) -> Result<Vec<TransactionTrace>> {
+		let from_block = self.block_id(req.from_block)?;
+		let to_block = self.block_id(req.to_block)?;
+		let block_heights = from_block..=to_block;
+
+		let count = req.count.unwrap_or(self.max_count);
+		if count > self.max_count {
+			return Err(internal_err(format!(
+				"count ({}) can't be greater than maximum ({})",
+				count, self.max_count
+			)));
+		}
+		
+		let mut block_hashes = vec![];
+
+		for block_height in block_heights {
+			if block_height == 0 {
+				continue; // no traces for genesis block.
+			}
+
+			let block_id = BlockId::<B>::Number(block_height);
+			let block_header = self.client
+				.header(block_id)
+				.map_err(|e| {
+					internal_err(format!(
+						"Error when fetching block {} header : {:?}",
+						block_height, e
+					))
+				})?
+				.ok_or_else(|| {
+					internal_err(format!("Block with height {} don't exist", block_height))
+				})?;
+
+			let block_hash = block_header.hash();
+
+			block_hashes.push(block_hash);
+		}
+
+		let batch_id = self.requester.start_batch(block_hashes.clone()).await?;
+		let res = self.fetch_traces(req, &block_hashes, count as usize).await;
+		self.requester.stop_batch(batch_id).await;
+		
+		res
+	}
+
+	async fn fetch_traces(&self, req: FilterRequest, block_hashes: &[H256], count: usize) -> Result<Vec<TransactionTrace>> {
+		let from_address = req.from_address.unwrap_or_default();
+		let to_address = req.to_address.unwrap_or_default();
+		
+		let mut traces_amount: i64 = -(req.after.unwrap_or(0) as i64);
+		let mut traces = vec![];
+
+		for &block_hash in block_hashes {
+			let block_traces = self.requester.get_traces(block_hash).await?;
+
+			// Filter addresses.
+			let mut block_traces: Vec<_> = block_traces
+				.iter()
+				.filter(|trace| match trace.action {
+					block::TransactionTraceAction::Call { from, to, .. } => {
+						(from_address.is_empty() || from_address.contains(&from))
+							&& (to_address.is_empty() || to_address.contains(&to))
+					}
+					block::TransactionTraceAction::Create { from, .. } => {
+						(from_address.is_empty() || from_address.contains(&from))
+							&& to_address.is_empty()
+					}
+					block::TransactionTraceAction::Suicide { address, .. } => {
+						(from_address.is_empty() || from_address.contains(&address))
+							&& to_address.is_empty()
+					}
+				})
+				.cloned()
+				.collect();
+
+			// Don't insert anything if we're still before "after"
+			traces_amount += block_traces.len() as i64;
+			if traces_amount > 0 {
+				let traces_amount = traces_amount as usize;
+				// If the current Vec of traces is across the "after" marker,
+				// we skip some elements of it.
+				if traces_amount < block_traces.len() {
+					let skip = block_traces.len() - traces_amount;
+					block_traces = block_traces.into_iter().skip(skip).collect();
+				}
+
+				traces.append(&mut block_traces);
+
+				// If we go over "count" (the limit), we trim and exit the loop,
+				// unless we used the default maximum, in which case we return an error.
+				if traces_amount >= count {
+					if req.count.is_none() {
+						return Err(internal_err(format!(
+							"the amount of traces goes over the maximum ({}), please use 'after' \
+							and 'count' in your request",
+							self.max_count
+						)));
+					}
+
+					traces = traces.into_iter().take(count).collect();
+					break;
+				}
+			}
+		}
+		
+		Ok(traces)
 	}
 }
 
 impl<B, C> TraceT for Trace2<B, C>
 where
 	B: BlockT<Hash = H256> + Send + Sync + 'static,
+	B::Header: HeaderT<Number = u32>,
 	C: HeaderMetadata<B, Error = BlockChainError> + HeaderBackend<B>,
 	C: Send + Sync + 'static,
 {
@@ -89,9 +220,7 @@ where
 		&self,
 		filter: FilterRequest,
 	) -> Compat<BoxFuture<'static, jsonrpc_core::Result<Vec<TransactionTrace>>>> {
-		Self::filter(self.client.clone(), self.requester.clone(), filter)
-			.boxed()
-			.compat()
+		self.clone().filter(filter).boxed().compat()
 	}
 }
 
@@ -213,13 +342,16 @@ struct CacheBlock2 {
 }
 
 enum CacheBlockState {
-	/// Block is in the queue and waiting.
-	Waiting {
-		waiting_requests: oneshot::Sender<Result<Vec<TransactionTrace>>>,
-	},
-	/// Block is out of the queue and being replayed.
-	Replaying {
-		waiting_requests: oneshot::Sender<Result<Vec<TransactionTrace>>>,
+	/// Block has been added to the pool blocks to be replayed.
+	/// It may be currently waiting to be replayed or being replayed.
+	Pooled {
+		/// Numbers of batches containing this block.
+		/// If batches are cancels and this reaches 0, this enum will be dropped with unqueue_sender
+		/// sending a signal to the task responsible for this block to not trace the block if it
+		/// has not started yet.
+		active_batch_count: usize,
+		waiting_requests: Vec<oneshot::Sender<Result<Vec<TransactionTrace>>>>,
+		unqueue_sender: watch::Sender<()>,
 	},
 	Success {
 		traces: Option<Vec<TransactionTrace>>,
@@ -252,7 +384,7 @@ where
 		client: Arc<C>,
 		backend: Arc<BE>,
 		cache_duration: Duration,
-		threads_count: u32,
+		blocking_permits: Arc<Semaphore>,
 	) -> (impl Future<Output = ()>, CacheRequester) {
 		let (tx, mut rx) = sp_utils::mpsc::tracing_unbounded("trace-filter-cache");
 
@@ -269,6 +401,24 @@ where
 							None => break,
 							Some(CacheRequest::StartBatch {sender, blocks}) => {
 								batches.insert(next_batch_id, blocks.clone());
+
+								for block in blocks {
+									let blocking_permits = Arc::clone(&blocking_permits);
+									let (unqueue_sender, mut unqueue_receiver) = watch::channel(());
+									let _ = unqueue_receiver.recv(); // read once to make future calls await
+									tokio::spawn(async move {
+										let permit = select!(
+											_ = unqueue_receiver.recv().fuse() => return,
+											permit = blocking_permits.acquire().fuse() => permit,
+										);
+
+										let res = tokio::task::spawn_blocking(move || {
+											todo!()
+										}).await;
+
+										todo!();
+									});
+								}
 
 								todo!("trace blocks in blocking threads");
 
@@ -290,9 +440,9 @@ where
 								if let Some(blocks) = batches.get(&batch_id.0) {
 									for block in blocks {
 										if let Some(block_cache) = cached_blocks.get(block) {
-											
+
 										}
-									} 
+									}
 
 									todo!("unqueue block traces that only are in this batch");
 								}
