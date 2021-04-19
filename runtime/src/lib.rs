@@ -1064,11 +1064,7 @@ impl_runtime_apis! {
 
 			use author_inherent::Module as AuthorInherentBench;
 
-			use pallet_evm::Module as EvmBench;
-			use pallet_ethereum::Module as EthereumBench;
-
-			let whitelist: Vec<TrackedStorageKey> = vec![
-			];
+			let whitelist: Vec<TrackedStorageKey> = vec![];
 
 			let mut batches = Vec::<BenchmarkBatch>::new();
 			let params = (&config, &whitelist);

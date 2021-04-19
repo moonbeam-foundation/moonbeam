@@ -5952,6 +5952,7 @@ name = "parachain-staking"
 version = "1.0.0"
 dependencies = [
  "author-inherent",
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "pallet-balances",
