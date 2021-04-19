@@ -39,8 +39,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@polkadot/api": "^4.4.1",
-    "@polkadot/types": "^4.4.1",
+    "@polkadot/api": "^4.6.2",
+    "@polkadot/types": "^4.6.2",
     "@types/chai": "^4.2.11",
     "@types/mocha": "^8.2.2",
     "chai": "^4.3.4",
