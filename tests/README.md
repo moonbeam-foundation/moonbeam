@@ -27,6 +27,14 @@ and to print more information:
 npm run test-with-logs
 ```
 
+## Write Tests
+
+### Add a new contract
+
+If you want to add a contract to our test contracts, add the source code
+in `constants/contractSources` under the right name and the test script will take care of generating
+byteCode and ABI and save it in `constants/compiledContracts`.
+
 ## Verbose mode
 
 You can also add the node's logs to the output using the `MOONBEAM_LOG` env variable. Ex:

@@ -1,13 +1,11 @@
 import { expect } from "chai";
-import { step } from "mocha-steps";
+import { describeDevMoonbeam } from "../util/setup-dev-tests";
 
-import { describeWithMoonbeam } from "./util";
-
-describeWithMoonbeam("Moonbeam RPC (Version)", `simple-specs.json`, (context) => {
-  step("eth_chainId should match", async function () {
+describeDevMoonbeam("Version RPC", (context) => {
+  it("should return 1281 for eth_chainId", async function () {
     expect(await context.web3.eth.getChainId()).to.equal(1281);
   });
-  step("net_version should match", async function () {
+  it("should return 1281 for net_version", async function () {
     expect(await context.web3.eth.net.getId()).to.equal(1281);
   });
 });

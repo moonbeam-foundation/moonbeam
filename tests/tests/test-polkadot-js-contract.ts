@@ -1,31 +1,23 @@
 import { expect } from "chai";
 import { Keyring } from "@polkadot/keyring";
 
-import { createAndFinalizeBlock, customRequest, describeWithMoonbeam } from "./util";
-import {
-  FIRST_CONTRACT_ADDRESS,
-  GENESIS_ACCOUNT,
-  GENESIS_ACCOUNT_PRIVATE_KEY,
-  TEST_CONTRACT_INCR_ABI,
-  TEST_CONTRACT_BYTECODE_INCR,
-} from "./constants";
-import { AnyTuple, IEvent } from "@polkadot/types/types";
+import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../util/constants";
+import { DEFAULT_GENESIS_STAKING, TEST_ACCOUNT } from "../util/constants";
+import { createContract } from "../util/transactions";
+import { Contract } from "web3-eth-contract";
+import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { createAndFinalizeBlock } from "../util/block";
 
-describeWithMoonbeam("Moonbeam RPC (Direct EVM Call)", `simple-specs.json`, (context) => {
+describeDevMoonbeam("Direct EVM Call", (context) => {
+  let testContract: Contract;
+  let testContractTx: string;
+  const FIRST_CONTRACT_ADDRESS = "0x0";
+
   before("create the contract", async function () {
-    this.timeout(15000);
-    const tx = await context.web3.eth.accounts.signTransaction(
-      {
-        from: GENESIS_ACCOUNT,
-        data: TEST_CONTRACT_BYTECODE_INCR,
-        value: "0x00",
-        gasPrice: "0x01",
-        gas: "0x100000",
-      },
-      GENESIS_ACCOUNT_PRIVATE_KEY
-    );
-    await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
-    await createAndFinalizeBlock(context.polkadotApi);
+    const { contract, rawTx } = await createContract(context.web3, "TestContract");
+    const { txResults } = await context.createBlock({ transactions: [rawTx] });
+    testContract = contract;
+    testContractTx = txResults[0].result;
   });
 
   it.only("get transaction by hash", async () => {
@@ -54,11 +46,11 @@ describeWithMoonbeam("Moonbeam RPC (Direct EVM Call)", `simple-specs.json`, (con
     this.timeout(20000);
     const keyring = new Keyring({ type: "ethereum" });
     const testAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
-    const contract = new context.web3.eth.Contract(TEST_CONTRACT_INCR_ABI, FIRST_CONTRACT_ADDRESS, {
-      from: GENESIS_ACCOUNT,
-      gasPrice: "0x01",
-    });
-    let methodCallBytes: string = contract.methods.incr().encodeABI();
+    // const contract = new context.web3.eth.Contract(TEST_CONTRACT_INCR_ABI, FIRST_CONTRACT_ADDRESS, {
+    //   from: GENESIS_ACCOUNT,
+    //   gasPrice: "0x01",
+    // });
+    let methodCallBytes: string = testContract.methods.incr().encodeABI();
     console.log("methodCallBytes", methodCallBytes);
     let nonce = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT, "latest");
     console.log("nonce", nonce);
@@ -75,16 +67,41 @@ describeWithMoonbeam("Moonbeam RPC (Direct EVM Call)", `simple-specs.json`, (con
     //   )
     //   .signAndSend(testAccount);
     //await new Promise<void>(async (res) => {
+    //});
+
+    // let unsub = await context.polkadotApi.tx.sudo
+    //   .sudo(
+    //     context.polkadotApi.tx.evm.call(
+    //       GENESIS_ACCOUNT,
+    //       FIRST_CONTRACT_ADDRESS,
+    //       methodCallBytes,
+    //       "0x00",
+    //       "0x100000",
+    //       "0x01",
+    //       nonce
+    //     )
+    //   )
+    //   .signAndSend(testAccount, { nonce: nonce }, (result) => {
+    //     console.log(`Current registration status is ${result.status}`);
+    //     if (result.status.isInBlock) {
+    //       console.log(`Transaction included at blockHash ${result.status.asInBlock}`);
+    //       unsub();
+    //       //res();
+    //     } else if (result.status.isFinalized) {
+    //       console.log(`Transaction finalized at blockHash ${result.status.asFinalized}`);
+    //       unsub();
+    //       // res();
+    //     }
+    //   });
+    expect(await context.web3.eth.getBalance(TEST_ACCOUNT)).to.equal("0");
+
     let unsub = await context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.evm.call(
           GENESIS_ACCOUNT,
-          FIRST_CONTRACT_ADDRESS,
-          methodCallBytes,
-          // "0",
-          // "50000",
-          // "1000000000",
-          "0x00",
+          TEST_ACCOUNT,
+          "",
+          DEFAULT_GENESIS_STAKING,
           "0x100000",
           "0x01",
           nonce
@@ -102,7 +119,8 @@ describeWithMoonbeam("Moonbeam RPC (Direct EVM Call)", `simple-specs.json`, (con
           // res();
         }
       });
-    //});
+
+    console.log("EXPCETED", await context.web3.eth.getBalance(TEST_ACCOUNT));
 
     //console.log("tx call hash", hash);
     await createAndFinalizeBlock(context.polkadotApi);
@@ -142,7 +160,7 @@ describeWithMoonbeam("Moonbeam RPC (Direct EVM Call)", `simple-specs.json`, (con
       "0x0000000000000000000000000000000000000000000000000000000000000000"
     );
     console.log("res", Number(res));
-    console.log("res from web3", await contract.methods.count().call());
+    console.log("res from web3", await testContract.methods.count().call());
     expect(Number(res)).to.eq(1);
     // console.log("hash", hash.toHex());
     // const latestBlock = await context.web3.eth.getBlock("latest");
