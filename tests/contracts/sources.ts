@@ -274,4 +274,15 @@ export const contractSources: { [key: string]: string } = {
             return number;
         }
     }`,
+  CheckBlockGasLimit: `
+    pragma solidity >=0.8.0;
+    contract CheckBlockGasLimit {
+        uint public gaslimit;
+        uint public chainid;
+        
+        constructor() {
+            gaslimit = block.gaslimit;
+            chainid = block.chainid;
+        }
+    }`,
 };
