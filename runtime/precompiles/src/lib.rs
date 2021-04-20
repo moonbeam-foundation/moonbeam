@@ -23,7 +23,7 @@ use std::u64;
 use codec::Decode;
 use evm::{Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use pallet_evm::{Config, Precompile, PrecompileSet};
+use pallet_evm::{Precompile, PrecompileSet};
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
@@ -108,10 +108,9 @@ pub struct MoonbeamPrecompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for MoonbeamPrecompiles<R>
 where
-	R: Config,
 	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
 	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
-	// Next three are copied from staking.rs. I guess they need to be duplicated here...
+	// Next four are copied from staking.rs. I guess they need to be duplicated here...
 	R: parachain_staking::Config + pallet_evm::Config,
 	R::AccountId: From<H160>,
 	BalanceOf<R>: TryFrom<sp_core::U256> + Debug,
