@@ -69,14 +69,11 @@ export const provideWeb3Api = async (port: number, protocol: "ws" | "http" = "ht
 };
 
 export const providePolkadotApi = async (port: number) => {
-  const provider = new WsProvider(`ws://localhost:${port}`);
-  return {
-    provider,
-    apiPromise: await ApiPromise.create({
-      provider: provider,
-      typesBundle: typesBundle as any,
-    }),
-  };
+  return await ApiPromise.create({
+    initWasm: false,
+    provider: new WsProvider(`ws://localhost:${port}`),
+    typesBundle: typesBundle as any,
+  });
 };
 
 export const provideEthersApi = async (port: number) => {

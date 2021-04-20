@@ -94,7 +94,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     expect(response.result[0].type).to.equal("create");
   });
 
-  it("Multiple transactions in the same block + trace over multiple blocks", async function () {
+  it("should be able to trace through multiple blocks", async function () {
     // Perform RPC call.
     let response = await customWeb3Request(context.web3, "trace_filter", [
       {
@@ -112,7 +112,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     expect(response.result[2].transactionPosition).to.equal(1);
   });
 
-  it("Call with subcalls, some reverting", async function () {
+  it("should be able to trace sub-call with reverts", async function () {
     // Perform RPC call.
     let response = await customWeb3Request(context.web3, "trace_filter", [
       {
@@ -138,7 +138,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     expect(response.result[6].traceAddress).to.deep.equal([1, 1]);
   });
 
-  it("Request range of blocks", async function () {
+  it("should support tracing range of blocks", async function () {
     let response = await customWeb3Request(context.web3, "trace_filter", [
       {
         fromBlock: "0x03",
@@ -167,7 +167,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     expect(response.result[8].transactionPosition).to.equal(0);
   });
 
-  it("Filter fromAddress", async function () {
+  it("should support filtering trace per fromAddress", async function () {
     let response = await customWeb3Request(context.web3, "trace_filter", [
       {
         fromBlock: "0x03",
@@ -179,7 +179,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     expect(response.result.length).to.equal(3);
   });
 
-  it("Filter toAddress", async function () {
+  it("should support filtering trace per toAddress", async function () {
     let response = await customWeb3Request(context.web3, "trace_filter", [
       {
         fromBlock: "0x03",
@@ -189,5 +189,22 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     ]);
 
     expect(response.result.length).to.equal(4);
+  });
+
+  it("should handle pagination", async function () {
+    let response = await customWeb3Request(context.web3, "trace_filter", [
+      {
+        fromBlock: "0x03",
+        toBlock: "0x04",
+        count: 2,
+        after: 1,
+      },
+    ]);
+
+    expect(response.result.length).to.equal(2);
+    expect(response.result[0].blockNumber).to.equal(3);
+    expect(response.result[0].transactionPosition).to.equal(1);
+    expect(response.result[1].blockNumber).to.equal(4);
+    expect(response.result[1].transactionPosition).to.equal(0);
   });
 });
