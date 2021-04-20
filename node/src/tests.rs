@@ -95,10 +95,12 @@ fn purge_chain_purges_relay_and_para() {
 			.join("polkadot/chains/rococo_local_testnet/db")
 			.exists());
 
-		// Run the purge chain command without futrher args which should delete both databases
+		// Run the purge chain command without further args which should delete both databases
 		let status = Command::new(cargo_bin("moonbeam"))
 			.args(&["purge-chain", "-d"])
 			.arg(base_path.path())
+			.arg("--chain")
+			.arg("local")
 			.arg("-y")
 			.status()
 			.unwrap();
