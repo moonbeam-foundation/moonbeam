@@ -115,6 +115,7 @@ where
 	R: parachain_staking::Config + pallet_evm::Config,
 	R::AccountId: From<H160>,
 	BalanceOf<R>: TryFrom<sp_core::U256> + Debug,
+	R::Call: From<parachain_staking::Call<R>>,
 {
 	fn execute(
 		address: H160,
@@ -134,10 +135,7 @@ where
 			a if a == hash(8) => Some(Bn128Pairing::execute(input, target_gas, context)),
 			// Moonbeam precompiles :
 			a if a == hash(255) => Some(Dispatch::<R>::execute(input, target_gas, context)),
-			// I've added the explicit `as Precompile` to tell the compiler exactly what method I'm trying to call
-			// Otherwise it tells me about LinearCostPrecompile. But still, for some reason it thinks
-			// I haven't implemented Precompile. WTF?
-			a if a == hash(256) => Some(<ParachainStakingWrapper<R> as Precompile>::execute(
+			a if a == hash(256) => Some(ParachainStakingWrapper::<R>::execute(
 				input, target_gas, context,
 			)),
 			// Moonbeam testing-only precompile(s):
