@@ -48,10 +48,10 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     // console.log(JSON.stringify(response));
 
     expect(response.result.length).to.equal(1);
-    expect(response.result[0].action.createMethod).to.equal("create");
+    expect(response.result[0].action.creationMethod).to.equal("create");
     expect(response.result[0].action.from).to.equal("0x6be02d1d3665660d22ff9624b7be0551ee1ac91b");
     expect(response.result[0].action.gas).to.equal("0x4ffead");
-    expect(response.result[0].action.input).to.be.a("string");
+    expect(response.result[0].action.init).to.be.a("string");
     expect(response.result[0].action.value).to.equal("0x0");
     expect(response.result[0].blockHash).to.be.a("string");
     expect(response.result[0].blockNumber).to.equal(1);
@@ -104,10 +104,10 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     // console.log(JSON.stringify(response));
 
     expect(response.result.length).to.equal(1);
-    expect(response.result[0].action.createMethod).to.equal("create");
+    expect(response.result[0].action.creationMethod).to.equal("create");
     expect(response.result[0].action.from).to.equal("0x6be02d1d3665660d22ff9624b7be0551ee1ac91b");
     expect(response.result[0].action.gas).to.equal("0x4fff44");
-    expect(response.result[0].action.input).to.be.a("string");
+    expect(response.result[0].action.init).to.be.a("string");
     expect(response.result[0].action.value).to.equal("0x0");
     expect(response.result[0].blockHash).to.be.a("string");
     expect(response.result[0].blockNumber).to.equal(2);
@@ -267,5 +267,28 @@ describeWithMoonbeam("Moonbeam RPC (trace_filter)", `simple-specs.json`, (contex
     ]);
 
     expect(response.result.length).to.equal(4);
+  });
+
+  step("Should accept a max. 500 count request", async function () {
+    let response = await customRequest(context.web3, "trace_filter", [
+      {
+        fromBlock: "0x01",
+        toBlock: "0x04",
+        count: 500,
+      },
+    ]);
+    expect(response.hasOwnProperty("error")).to.eq(false);
+    response = await customRequest(context.web3, "trace_filter", [
+      {
+        fromBlock: "0x01",
+        toBlock: "0x04",
+        count: 501,
+      },
+    ]);
+    expect(response.hasOwnProperty("error")).to.eq(true);
+    expect(response.error).to.deep.eq({
+      code: -32603,
+      message: "count (501) can't be greater than maximum (500)",
+    });
   });
 });

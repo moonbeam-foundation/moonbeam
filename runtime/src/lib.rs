@@ -814,11 +814,11 @@ impl_runtime_apis! {
 									// Can't be known here, must be inserted upstream.
 									block_number: 0,
 									output: match res {
-										CallResult::Output(res) => {
+										CallResult::Output(output) => {
 											block::TransactionTraceOutput::Result(
 												block::TransactionTraceResult::Call {
 													gas_used: trace.gas_used,
-													res
+													output
 												})
 										},
 										CallResult::Error(error) =>
@@ -832,10 +832,10 @@ impl_runtime_apis! {
 								},
 								single::CallInner::Create { init, res } => block::TransactionTrace {
 									action: block::TransactionTraceAction::Create {
-										create_method: CreateType::Create,
+										creation_method: CreateType::Create,
 										from: trace.from,
 										gas: trace.gas,
-										input: init,
+										init,
 										value: trace.value,
 									},
 									// Can't be known here, must be inserted upstream.
