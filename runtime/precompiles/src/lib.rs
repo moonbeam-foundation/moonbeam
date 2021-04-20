@@ -18,7 +18,7 @@
 
 mod staking;
 
-use std::u64;
+// use std::u64;
 
 use codec::Decode;
 use evm::{Context, ExitError, ExitSucceed};
@@ -122,6 +122,7 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Option<Result<(ExitSucceed, Vec<u8>, u64), ExitError>> {
+		log::info!("In MoonbeamPrecompiles. About to call address {:?}", address);
 		match address {
 			// Ethereum precompiles :
 			a if a == hash(1) => Some(ECRecover::execute(input, target_gas, context)),

@@ -1,6 +1,7 @@
 use evm::{Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::Currency;
+use log::info;
 use pallet_evm::AddressMapping;
 use pallet_evm::GasWeightMapping;
 use pallet_evm::Precompile;
@@ -47,10 +48,13 @@ where
 		const TOTAL_SIZE_BYTES: usize = COLLATOR_SIZE_BYTES + AMOUNT_SIZE_BYTES;
 
 		if input.len() != TOTAL_SIZE_BYTES {
+			log::info!("Aborting because input length was invalid. Got {} bytes", input.len());
 			return Err(ExitError::Other(
 				"input length for Sacrifice must be exactly 16 bytes".into(),
 			));
 		}
+
+		log::info!("Made it past length check");
 
 		// Convert to right data types
 		//TODO This precompile will not work in runtimes that use a differet AccountId type
@@ -67,8 +71,8 @@ where
 					ExitError::Other("amount is too large for Runtime's balance type".into())
 				})?;
 
-		println!("Collator account is {:?}", collator);
-		println!("Amount is {:?}", amount);
+		log::info!("Collator account is {:?}", collator);
+		log::info!("Amount is {:?}", amount);
 
 		// Construct a call
 		let inner_call = parachain_staking::Call::<Runtime>::nominate(collator.into(), amount);
