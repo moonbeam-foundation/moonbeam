@@ -43,11 +43,8 @@ export interface DevTestContext {
 }
 
 interface InternalDevTestContext extends DevTestContext {
-  polkadotWsProviders: WsProvider[];
-  web3Providers: HttpProvider[];
-
-  // Internal member to keep track of web3 singleton
-  _polkadotApi: EnhancedWeb3;
+  _polkadotApis: ApiPromise[];
+  _web3Providers: HttpProvider[];
 }
 
 export function describeDevMoonbeam(title: string, cb: (context: DevTestContext) => void) {
@@ -78,8 +75,8 @@ export function describeDevMoonbeam(title: string, cb: (context: DevTestContext)
       // Context is given prior to this assignement, so doing
       // context = init.context will fail because it replace the variable;
 
-      context.polkadotWsProviders = [];
-      context.web3Providers = [];
+      context._polkadotApis = [];
+      context._web3Providers = [];
       moonbeamProcess = init.runningNode;
 
       context.createWeb3 = async (protocol: "ws" | "http" = "http") => {
@@ -87,18 +84,21 @@ export function describeDevMoonbeam(title: string, cb: (context: DevTestContext)
           protocol == "ws"
             ? await provideWeb3Api(init.wsPort, "ws")
             : await provideWeb3Api(init.rpcPort, "http");
-        context.web3Providers.push((provider as any)._provider);
+        context._web3Providers.push((provider as any)._provider);
         return provider;
       };
       context.createEthers = async () => provideEthersApi(init.rpcPort);
       context.createPolkadotApi = async () => {
-        const { provider, apiPromise } = await providePolkadotApi(init.wsPort);
-        // We keep track of the polkadotWsProvider to close them at the end of the test
-        if (!context.polkadotWsProviders) {
-          context.polkadotWsProviders = [];
-        }
-        context.polkadotWsProviders.push(provider);
+        const apiPromise = await providePolkadotApi(init.wsPort);
+        // We keep track of the polkadotApis to close them at the end of the test
+        context._polkadotApis.push(apiPromise);
         await apiPromise.isReady;
+        // Necessary hack to allow polkadotApi to finish its internal metadata loading
+        // apiPromise.isReady unfortunately doesn't wait for those properly
+        await new Promise((resolve) => {
+          setTimeout(resolve, 100);
+        });
+
         return apiPromise;
       };
 
@@ -121,9 +121,8 @@ export function describeDevMoonbeam(title: string, cb: (context: DevTestContext)
     });
 
     after(async function () {
-      // console.log(`\x1b[31m Killing RPC\x1b[0m`);
-      await Promise.all(context.web3Providers.map((p) => p.disconnect()));
-      await Promise.all(context.polkadotWsProviders.map((p) => p.disconnect()));
+      await Promise.all(context._web3Providers.map((p) => p.disconnect()));
+      await Promise.all(context._polkadotApis.map((p) => p.disconnect()));
 
       if (moonbeamProcess) {
         await new Promise((resolve) => {
