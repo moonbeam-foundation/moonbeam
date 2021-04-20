@@ -44,24 +44,20 @@ impl Precompile for Sacrifice {
 		target_gas: Option<u64>,
 		_context: &Context,
 	) -> core::result::Result<(ExitSucceed, Vec<u8>, u64), ExitError> {
-		const INPUT_SIZE_BYTES: usize = 16;
+		const INPUT_SIZE_BYTES: usize = 8;
 
-		// input should be exactly 16 bytes (two 8-byte unsigned ints in big endian)
+		// input should be exactly 8 bytes (one 64-bit unsigned int)
 		if input.len() != INPUT_SIZE_BYTES {
 			return Err(ExitError::Other(
-				"input length for Sacrifice must be exactly 16 bytes".into()));
+				"input length for Sacrifice must be exactly 8 bytes".into()));
 		}
 
 		// create 8-byte buffers and populate them from calldata...
 		let mut gas_cost_buf: [u8; 8] = [0; 8];
-		let mut msec_cost_buf: [u8; 8] = [0; 8];
-
 		gas_cost_buf.copy_from_slice(&input[0..8]);
-		msec_cost_buf.copy_from_slice(&input[8..16]);
 
 		// then read them into a u64 as big-endian...
 		let gas_cost = u64::from_be_bytes(gas_cost_buf);
-		let msec_cost = u64::from_be_bytes(msec_cost_buf);
 
 		// ensure we can afford our sacrifice...
 		if let Some(gas_left) = target_gas {
@@ -71,13 +67,6 @@ impl Precompile for Sacrifice {
 		}
 		
 		// TODO: impose gas-per-second constraint?
-
-		if msec_cost > 0 {
-			// TODO: log statement here
-			let deadline = offchain::timestamp();
-			deadline.add(Duration::from_millis(msec_cost));
-			offchain::sleep_until(deadline);
-		}
 
 		Ok((ExitSucceed::Returned, [0u8; 0].to_vec(), gas_cost))
 	}
@@ -153,18 +142,18 @@ mod tests {
 			apparent_value: From::from(0),
 		};
 
-		// should fail with input of 15 byte length
-		let input: [u8; 15] = [0; 15];
+		// should fail with input of 7 byte length
+		let input: [u8; 7] = [0; 7];
 		assert_eq!(
 			Sacrifice::execute(&input, Some(cost), &context),
-			Err(ExitError::Other("input length for Sacrifice must be exactly 16 bytes".into())),
+			Err(ExitError::Other("input length for Sacrifice must be exactly 8 bytes".into())),
 		);
 
-		// should fail with input of 17 byte length
-		let input: [u8; 17] = [0; 17];
+		// should fail with input of 9 byte length
+		let input: [u8; 9] = [0; 9];
 		assert_eq!(
 			Sacrifice::execute(&input, Some(cost), &context),
-			Err(ExitError::Other("input length for Sacrifice must be exactly 16 bytes".into())),
+			Err(ExitError::Other("input length for Sacrifice must be exactly 8 bytes".into())),
 		);
 
 		Ok(())
@@ -172,7 +161,7 @@ mod tests {
 
 	#[test]
 	fn test_gas_consumption() -> std::result::Result<(), ExitError> {
-		let mut input: [u8; 16] = [0; 16];
+		let mut input: [u8; 8] = [0; 8];
 		input[..8].copy_from_slice(&123456_u64.to_be_bytes());
 
 		let context: Context = Context {
@@ -191,7 +180,7 @@ mod tests {
 
 	#[test]
 	fn test_oog() -> std::result::Result<(), ExitError> {
-		let mut input: [u8; 16] = [0; 16];
+		let mut input: [u8; 8] = [0; 8];
 		input[..8].copy_from_slice(&100_u64.to_be_bytes());
 
 		let context: Context = Context {
@@ -207,35 +196,4 @@ mod tests {
 
 		Ok(())
 	}
-
-	/*
-	 * TODO: the sleep() function inside the precompile must be run within an externalities
-	 *       environment
-	#[test]
-	fn test_sleep() -> std::result::Result<(), ExitError> {
-
-		new_test_ext().execute_with(|| {
-			let mut input: [u8; 16] = [0; 16];
-			input[8..].copy_from_slice(&10_u64.to_be_bytes()); // should be 10ms
-
-			let context: Context = Context {
-				address: Default::default(),
-				caller: Default::default(),
-				apparent_value: From::from(0),
-			};
-
-			let start = Instant::now();
-
-			assert_eq!(
-				Sacrifice::execute(&input, Some(99), &context),
-				Ok((ExitSucceed::Returned, [0u8; 0].to_vec(), 0)),
-			);
-
-			assert!(start.elapsed().as_millis() > 10);
-			assert!(start.elapsed().as_millis() < 20); // give plenty of room, but put some bound on it
-
-			Ok(())
-		});
-	}
-	*/
 }
