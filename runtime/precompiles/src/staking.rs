@@ -46,7 +46,7 @@ where
 		const AMOUNT_SIZE_BYTES: usize = 32;
 		const TOTAL_SIZE_BYTES: usize = COLLATOR_SIZE_BYTES + AMOUNT_SIZE_BYTES;
 
-		if input.len() != COLLATOR_SIZE_BYTES + AMOUNT_SIZE_BYTES {
+		if input.len() != TOTAL_SIZE_BYTES {
 			return Err(ExitError::Other(
 				"input length for Sacrifice must be exactly 16 bytes".into(),
 			));
