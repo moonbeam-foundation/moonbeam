@@ -4597,6 +4597,8 @@ dependencies = [
  "author-inherent",
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
+ "cumulus-primitives-parachain-inherent",
+ "cumulus-test-relay-sproof-builder",
  "fp-rpc",
  "frame-executive",
  "frame-support",
