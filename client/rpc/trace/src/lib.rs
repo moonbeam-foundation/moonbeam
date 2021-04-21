@@ -414,14 +414,21 @@ where
 						match request {
 							None => break,
 							Some(CacheRequest::StartBatch {sender, blocks}) => {
+								tracing::trace!("Starting batch {}", next_batch_id);
 								batches.insert(next_batch_id, blocks.clone());
 
 								for block in blocks {
+									// The block is already in the cache, awesome !
 									if let Some(block_cache) = cached_blocks.get_mut(&block) {
 										block_cache.active_batch_count += 1;
-									} else {
+										tracing::trace!("Cache hit for block {}, now used by {} batches.", block, block_cache.active_batch_count);
+									}
+									// Otherwise we need to queue this block for tracing.
+									else {
+										tracing::trace!("Cache miss for block {}, pooling it for tracing.", block);
+
 										let blocking_permits = Arc::clone(&blocking_permits);
-										let (unqueue_sender, mut unqueue_receiver) = oneshot::channel();
+										let (unqueue_sender, unqueue_receiver) = oneshot::channel();
 										let client = Arc::clone(&client);
 										let backend = Arc::clone(&backend);
 										let mut blocking_tx = blocking_tx.clone();
@@ -431,15 +438,24 @@ where
 										// When the blocking task returns its result, it is send
 										// thought a channel to the main task loop.
 										tokio::spawn(async move {
+											tracing::trace!("Waiting for blocking permit or task cancellation");
 											let _permit = select!(
-												_ = unqueue_receiver.fuse() => return,
+												_ = unqueue_receiver.fuse() => {
+												tracing::trace!("Tracing of the block has been cancelled.");
+													return;
+												},
 												permit = blocking_permits.acquire().fuse() => permit,
 											);
 
+											// Warn the main task that block tracing as started, and
+											// this block cache entry should not be removed.
 											let _ = blocking_tx.send(BlockingTaskMessage::Started {
 												block_hash: block,
 											}).await;
 
+											tracing::trace!("Start block tracing in a blocking task.");
+
+											// Perform block tracing in a tokio blocking task.
 											let result = async {
 												tokio::task::spawn_blocking(move || {
 													Self::cache_block(client, backend, block)
@@ -447,11 +463,14 @@ where
 													.map_err(|e| internal_err(format!("Tracing Substrate block {} panicked : {:?}", block, e)))?
 											}.await;
 
+											tracing::trace!("Block tracing finished, sending result to main task.");
+
+											// Send response to main task.
 											let _ = blocking_tx.send(BlockingTaskMessage::Finished {
 												block_hash: block,
 												result,
 											}).await;
-										});
+										}.instrument(tracing::span!("Block tracing", block = %block)));
 
 										cached_blocks.insert(block, CacheBlock2 {
 											active_batch_count: 1,
@@ -464,16 +483,31 @@ where
 									}
 								}
 
+								let _ = sender.send(CacheBatchId(next_batch_id));
+
 								next_batch_id = next_batch_id.overflowing_add(1).0;
 							},
 							Some(CacheRequest::GetTraces {sender, block}) => {
-								if let Some(block_cache) = cached_blocks.get(&block) {
+								if let Some(block_cache) = cached_blocks.get_mut(&block) {
+									match block_cache.state {
+										CacheBlockState::Pooled { waiting_requests, ..} => {
+											tracing::warn!("A request asked a pooled block ({}), adding it to the list of waiting requests.", block);
+											waiting_requests.push(sender)},
+										CacheBlockState::Cached { traces, .. } => {
+											tracing::warn!("A request asked a cache block ({}), sending the traces directly.", block);
+											let _ = sender.send(traces.clone());
+										}
+									}
+
 									todo!()
 								} else {
-									todo!()
+									tracing::warn!("An RPC request asked to get a block ({}) which was not batched.", block);
+									let _ = sender.send(Err(internal_err(format!("RPC request asked a block ({}) that was not batched", block))));
 								}
 							},
 							Some(CacheRequest::StopBatch {batch_id}) => {
+								tracing::trace!("Stopping batch {}", batch_id.0);
+
 								batch_expirations.push(async move {
 									delay_for(cache_duration).await;
 									batch_id
@@ -492,6 +526,7 @@ where
 										}
 
 										if remove {
+											tracing::trace!("Pooled block {} is no longer requested.", block);
 											// Remove block from the cache. Drops the value,
 											// closing all the channels contained in it.
 											let _ = cached_blocks.remove(&block);
@@ -513,6 +548,12 @@ where
 								}
 							},
 							Some(BlockingTaskMessage::Finished { block_hash, result }) => {
+								// In some cases it might be possible to receive traces of a block
+								// that has no entry in the cache because it was removed of the pool
+								// and received a permit concurrently. We just ignore it.
+								//
+								// TODO : Should we add it back ? Should it have an active_batch_count
+								// of 1 then ?
 								if let Some(block_cache) = cached_blocks.get_mut(&block_hash) {
 									if let CacheBlockState::Pooled {ref mut waiting_requests, ..} = block_cache.state {
 										// Send result in waiting channels
@@ -527,6 +568,16 @@ where
 									}
 								}
 							},
+						}
+					},
+					batch_id = batch_expirations.next() => {
+						match batch_id {
+							None => (),
+							Some(batch_id) => {
+								todo!("decrease batch count in all blocks used by this batch");
+								todo!("remove blocks that are no longer used");
+								todo!("remove batch info");
+							}
 						}
 					}
 				}
