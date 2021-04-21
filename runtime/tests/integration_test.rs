@@ -370,11 +370,13 @@ fn nominate_via_precompile() {
 			let gas_price: U256 = 1000.into();
 			let nomination_amount: U256 = (1000 * GLMR).into();
 
-			let mut call_data = Vec::<u8>::from([0u8; 52]);
+			let mut call_data = Vec::<u8>::from([0u8; 56]);
 
+			//TODO Put in the actual selector. For now we just need any four bytes.
+			call_data[0..4].copy_from_slice(&[0, 0, 0, 0]);
 			//TODO consider endianness here. Alice is symmetric.
-			call_data[0..20].copy_from_slice(&ALICE);
-			nomination_amount.to_big_endian(&mut call_data[20..52]);
+			call_data[4..24].copy_from_slice(&ALICE);
+			nomination_amount.to_big_endian(&mut call_data[24..56]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(BOB),
