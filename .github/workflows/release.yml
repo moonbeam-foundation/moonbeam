@@ -102,7 +102,7 @@ jobs:
         with:
           node-version: 14.x
       - name: Check with Prettier
-        run: npx prettier --check --ignore-path .gitignore  '**/*.(yml|js|ts|json)'
+        run: npx prettier --check --ignore-path .gitignore '**/*.(yml|js|ts|json)'
 
   ####### Building and Testing binaries #######
 
@@ -176,7 +176,7 @@ jobs:
           npm install
           cd ../tests
           npm install
-          npm run test;
+          npm run test -- -j $(($(nproc) / 2));
       - name: Save parachain binary
         run: |
           mkdir -p build
