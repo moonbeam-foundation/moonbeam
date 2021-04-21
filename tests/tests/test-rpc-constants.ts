@@ -1,9 +1,7 @@
 import { expect } from "chai";
-import { createAndFinalizeBlock, customRequest, describeWithMoonbeam } from "./util";
+import { describeDevMoonbeam } from "../util/setup-dev-tests";
 
-// All test for the RPC
-
-describeWithMoonbeam("Moonbeam RPC (Constant)", `simple-specs.json`, (context) => {
+describeDevMoonbeam("RPC Constants", (context) => {
   it("should have 0 hashrate", async function () {
     expect(await context.web3.eth.getHashrate()).to.equal(0);
   });

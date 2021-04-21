@@ -141,6 +141,17 @@ pub struct RunCmd {
 		require_delimiter = true
 	)]
 	pub ethapi: Vec<EthApi>,
+
+	/// Maximum number of trace entries a single request of `trace_filter` is allowed to return.
+	/// A request asking for more or an unbounded one going over this limit will both return an
+	/// error.
+	#[structopt(long, default_value = "500")]
+	pub ethapi_trace_max_count: u32,
+
+	/// Duration (in seconds) after which the cache of `trace_filter` for a given block will be
+	/// discarded.
+	#[structopt(long, default_value = "300")]
+	pub ethapi_trace_cache_duration: u32,
 }
 
 fn parse_h160(input: &str) -> Result<H160, String> {
