@@ -138,17 +138,6 @@ const BOB: [u8; 20] = [5u8; 20];
 const CHARLIE: [u8; 20] = [6u8; 20];
 const DAVE: [u8; 20] = [7u8; 20];
 
-//TODO import this from somewhere?
-/// The fixed address of the staking precompile.
-/// In `struct MoonbeaPrecompiles` the address is given in decimal as 256
-/// Notice that the encoding here is Big Endian. (I think; It's the one that confuses me.)
-/// I'm _pretty_ sure this is the right one because calling it gives the event `Executed` rather
-/// than `ExecutedFailed`. Although I'm still not totally sure because my nomination amount was low
-/// enough that I shouldn't have actually successfully nominated. Maybe that's not enough to make
-/// the evm call fail??
-const STAKING_PRECOMPILE_ADDRESS: [u8; 20] =
-	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0];
-
 fn origin_of(account_id: AccountId) -> <Runtime as frame_system::Config>::Origin {
 	<Runtime as frame_system::Config>::Origin::signed(account_id)
 }
@@ -380,6 +369,8 @@ fn nominate_via_precompile() {
 				1_000 * GLMR,
 			));
 
+			let staking_precompile_address = H160::from_low_u64_be(256);
+
 			// Bob uses the staking precompile to nominate Alice through the EVM
 			use sp_core::U256;
 
@@ -395,7 +386,7 @@ fn nominate_via_precompile() {
 
 			let call_result = Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(BOB),
-				H160::from(STAKING_PRECOMPILE_ADDRESS),
+				staking_precompile_address,
 				call_data,
 				U256::zero(), // No value sent in EVM
 				gas_limit,
