@@ -141,4 +141,5 @@ runtime-benchmarks = [
 	"frame-system-benchmarking",
 	"frame-system/runtime-benchmarks",
 	"pallet-collective/runtime-benchmarks",
+	"parachain-staking/runtime-benchmarks",
 ]
