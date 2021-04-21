@@ -58,41 +58,23 @@ impl<T: Ord + Copy> From<T> for Range<T> {
 	}
 }
 /// Convert an annual inflation to a round inflation
-/// This is done by round = 1 - (1+annual)^(1/rounds_per_year)
-/// We need to use substrate-fixed to allow us to floatpow
+/// round = 1 - (1+annual)^(1/rounds_per_year)
 fn perbill_annual_to_perbill_round(annual: Range<Perbill>, rounds_per_year: u32) -> Range<Perbill> {
-	let min = I32F32::from_num(annual.min.deconstruct()) / I32F32::from_num(Perbill::ACCURACY);
-	let ideal = I32F32::from_num(annual.ideal.deconstruct()) / I32F32::from_num(Perbill::ACCURACY);
-	let max = I32F32::from_num(annual.max.deconstruct()) / I32F32::from_num(Perbill::ACCURACY);
-
 	let exponent = I32F32::from_num(1) / I32F32::from_num(rounds_per_year);
-
-	// This cant overflow since rounds_per_year is a u32, Perbill as well is composed of u32
-	// and powering to 1/u32 should always give us a smaller number. Worst case this is 0, so
-	// no need to handle the error
-	let result_min: I64F64 = floatpow(I32F32::from_num(1) + min, exponent)
-		.expect("Min inflation overflowed when calculating round inflation");
-	let result_ideal: I64F64 = floatpow(I32F32::from_num(1) + ideal, exponent)
-		.expect("Ideal inflation overflowed when calculating round inflation");
-	let result_max: I64F64 = floatpow(I32F32::from_num(1) + max, exponent)
-		.expect("Max inflation overflowed when calculating round inflation");
-
+	let annual_to_round = |annual: u32| -> Perbill {
+		let x = I32F32::from_num(annual) / I32F32::from_num(Perbill::ACCURACY);
+		let y: I64F64 = floatpow(I32F32::from_num(1) + x, exponent)
+			.expect("Cannot overflow since rounds_per_year is u32 so worst case 0; QED");
+		Perbill::from_parts(
+			((y - I64F64::from_num(1)) * I64F64::from_num(Perbill::ACCURACY))
+				.ceil()
+				.to_num::<u32>(),
+		)
+	};
 	Range {
-		min: Perbill::from_parts(
-			((result_min - I64F64::from_num(1)) * I64F64::from_num(Perbill::ACCURACY))
-				.ceil()
-				.to_num::<u32>(),
-		),
-		ideal: Perbill::from_parts(
-			((result_ideal - I64F64::from_num(1)) * I64F64::from_num(Perbill::ACCURACY))
-				.ceil()
-				.to_num::<u32>(),
-		),
-		max: Perbill::from_parts(
-			((result_max - I64F64::from_num(1)) * I64F64::from_num(Perbill::ACCURACY))
-				.ceil()
-				.to_num::<u32>(),
-		),
+		min: annual_to_round(annual.min.deconstruct()),
+		ideal: annual_to_round(annual.ideal.deconstruct()),
+		max: annual_to_round(annual.max.deconstruct()),
 	}
 }
 /// Convert annual inflation rate range to round inflation range
