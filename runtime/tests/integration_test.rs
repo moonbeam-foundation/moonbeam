@@ -255,7 +255,7 @@ fn transfer_through_evm_to_stake() {
 				gas_price,
 				None
 			))
-			.dispatch(origin_of(AccountId::from(BOB))));
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
 			assert_eq!(
 				Balances::free_balance(AccountId::from(CHARLIE)),
 				1_000 * GLMR,
