@@ -32,6 +32,13 @@ use sp_std::{
 	cmp::min, collections::btree_map::BTreeMap, convert::Infallible, rc::Rc, vec, vec::Vec,
 };
 
+pub type PrecompileExecutable = fn(
+	H160,
+	&[u8],
+	Option<u64>,
+	&Context,
+) -> Option<Result<(ExitSucceed, Vec<u8>, u64), ExitError>>;
+
 pub struct TraceExecutorWrapper<'config, S> {
 	// Common parts.
 	pub inner: &'config mut StackExecutor<'config, S>,
@@ -46,6 +53,7 @@ pub struct TraceExecutorWrapper<'config, S> {
 	entries_next_index: u32,
 	call_type: Option<CallType>,
 	trace_address: Vec<u32>,
+	precompile: Option<PrecompileExecutable>,
 }
 
 enum ContextType {
@@ -58,6 +66,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 		inner: &'config mut StackExecutor<'config, S>,
 		is_tracing: bool,
 		trace_type: TraceType,
+		precompile: Option<PrecompileExecutable>,
 	) -> TraceExecutorWrapper<'config, S> {
 		TraceExecutorWrapper {
 			inner,
@@ -68,6 +77,7 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 			entries_next_index: 0,
 			call_type: None,
 			trace_address: vec![],
+			precompile,
 		}
 	}
 
@@ -530,6 +540,26 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 					let _ = self.inner.exit_substate(StackExitKind::Reverted);
 					return Capture::Exit((ExitReason::Error(e), Vec::new()));
 				}
+			}
+		}
+		if let Some(precompile) = self.precompile {
+			if let Some(ret) = (precompile)(address, &data, Some(gas_limit), &context) {
+				return match ret {
+					Ok((s, out, cost)) => {
+						let _ = self
+							.inner
+							.state_mut()
+							.metadata_mut()
+							.gasometer_mut()
+							.record_cost(cost);
+						let _ = self.inner.exit_substate(StackExitKind::Succeeded);
+						Capture::Exit((ExitReason::Succeed(s), out))
+					}
+					Err(e) => {
+						let _ = self.inner.exit_substate(StackExitKind::Failed);
+						Capture::Exit((ExitReason::Error(e), Vec::new()))
+					}
+				};
 			}
 		}
 

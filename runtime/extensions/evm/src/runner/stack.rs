@@ -16,7 +16,7 @@
 
 use sp_std::{convert::Infallible, vec::Vec};
 
-use crate::executor::wrapper::TraceExecutorWrapper;
+use crate::executor::wrapper::{PrecompileExecutable, TraceExecutorWrapper};
 use moonbeam_rpc_primitives_debug::single::{TraceType, TransactionTrace};
 
 use ethereum_types::{H160, U256};
@@ -33,6 +33,7 @@ pub trait TraceRunner<T: Config> {
 	fn execute_call<'config, F>(
 		executor: &'config mut StackExecutor<'config, SubstrateStackState<'_, 'config, T>>,
 		trace_type: TraceType,
+		precompile: PrecompileExecutable,
 		f: F,
 	) -> Result<TransactionTrace, ExitError>
 	where
@@ -76,6 +77,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 	fn execute_call<'config, F>(
 		executor: &'config mut StackExecutor<'config, SubstrateStackState<'_, 'config, T>>,
 		trace_type: TraceType,
+		precompile: PrecompileExecutable,
 		f: F,
 	) -> Result<TransactionTrace, ExitError>
 	where
@@ -83,7 +85,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 			&mut TraceExecutorWrapper<'config, SubstrateStackState<'_, 'config, T>>,
 		) -> Capture<(ExitReason, Vec<u8>), Infallible>,
 	{
-		let mut wrapper = TraceExecutorWrapper::new(executor, true, trace_type);
+		let mut wrapper = TraceExecutorWrapper::new(executor, true, trace_type, Some(precompile));
 
 		let execution_result = match f(&mut wrapper) {
 			Capture::Exit((_reason, result)) => result,
@@ -116,7 +118,7 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 			&mut TraceExecutorWrapper<'config, SubstrateStackState<'_, 'config, T>>,
 		) -> Capture<(ExitReason, Option<H160>, Vec<u8>), Infallible>,
 	{
-		let mut wrapper = TraceExecutorWrapper::new(executor, true, trace_type);
+		let mut wrapper = TraceExecutorWrapper::new(executor, true, trace_type, None);
 
 		let execution_result = match f(&mut wrapper) {
 			Capture::Exit((_reason, _address, result)) => result,
@@ -162,22 +164,27 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 			apparent_value: value,
 		};
 
-		Self::execute_call(&mut executor, trace_type, |executor| {
-			executor.trace_call(
-				target,
-				Some(Transfer {
-					source,
+		Self::execute_call(
+			&mut executor,
+			trace_type,
+			T::Precompiles::execute,
+			|executor| {
+				executor.trace_call(
 					target,
-					value,
-				}),
-				input,
-				Some(gas_limit as u64),
-				false,
-				false,
-				false,
-				context,
-			)
-		})
+					Some(Transfer {
+						source,
+						target,
+						value,
+					}),
+					input,
+					Some(gas_limit as u64),
+					false,
+					false,
+					false,
+					context,
+				)
+			},
+		)
 	}
 
 	fn trace_create(
