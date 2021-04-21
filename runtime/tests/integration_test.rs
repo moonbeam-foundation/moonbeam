@@ -409,8 +409,10 @@ fn nominate_via_precompile() {
 			// Call result is always going to be okay even if the nomination fails.
 			println!("!!!!!!!!!!!!!!!!!!!!!!! Call Result:");
 			println!("{:?}", call_result);
-			println!("!!!!!!!!!!!!!!!!!!!!!!! Last Event");
-			println!("{:?}", last_event());
+			println!("!!!!!!!!!!!!!!!!!!!!!!! Events:");
+			for e in System::events() {
+				println!("{:?}", e.event);
+			}
 
 			// Assert that the call succeeded.
 			// I'm doing this seperately so I can print the call result first.
