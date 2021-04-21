@@ -29,6 +29,7 @@ use moonbeam_runtime::{
 	Range, Runtime, System, GLMR,
 };
 use parachain_staking::Bond;
+use sp_core::H160;
 use sp_runtime::{DispatchError, Perbill};
 
 fn run_to_block(n: u32) {
@@ -131,10 +132,22 @@ impl ExtBuilder {
 	}
 }
 
+//TODO I love having these easy-to-reference Accounts. What if we make an enum and use it as account ID?
 const ALICE: [u8; 20] = [4u8; 20];
 const BOB: [u8; 20] = [5u8; 20];
 const CHARLIE: [u8; 20] = [6u8; 20];
 const DAVE: [u8; 20] = [7u8; 20];
+
+//TODO import this from somewhere?
+/// The fixed address of the staking precompile.
+/// In `struct MoonbeaPrecompiles` the address is given in decimal as 256
+/// Notice that the encoding here is Big Endian. (I think; It's the one that confuses me.)
+/// I'm _pretty_ sure this is the right one because calling it gives the event `Executed` rather
+/// than `ExecutedFailed`. Although I'm still not totally sure because my nomination amount was low
+/// enough that I shouldn't have actually successfully nominated. Maybe that's not enough to make
+/// the evm call fail??
+const STAKING_PRECOMPILE_ADDRESS: [u8; 20] =
+	[0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 fn origin_of(account_id: AccountId) -> <Runtime as frame_system::Config>::Origin {
 	<Runtime as frame_system::Config>::Origin::signed(account_id)
@@ -348,5 +361,79 @@ fn reward_block_authors() {
 				Balances::free_balance(AccountId::from(BOB)),
 				539999999960000000000,
 			);
+		});
+}
+
+#[test]
+fn nominate_via_precompile() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 3_000 * GLMR),
+			(AccountId::from(BOB), 3_000 * GLMR),
+		])
+		.build()
+		.execute_with(|| {
+			// Alice stakes to become a collator candidate
+			assert_ok!(ParachainStaking::join_candidates(
+				origin_of(AccountId::from(ALICE)),
+				1_000 * GLMR,
+			));
+
+			// Bob uses the stking precompile to nominate Alice through the EVM
+			use sp_core::U256;
+			let gas_limit = 100000u64;
+			let gas_price: U256 = 1000.into(); //TODO Why so high? (copied from Amar above)
+			let nomination_amount: U256 = (1000 * GLMR).into();
+			let mut call_data = Vec::<u8>::new();
+			call_data.append(&mut Vec::from(ALICE));
+			// TODO Fucking endianness. How can I get an actual value for nomination amount?
+			// For now I'll nominate with zero just to make it compile and run the test.
+			// call_data.append(nomination_amount.to_big_endian());
+			call_data.append(&mut Vec::from([0u8; 32]));
+
+			let call_result = Call::EVM(pallet_evm::Call::<Runtime>::call(
+				AccountId::from(BOB),
+				H160::from(STAKING_PRECOMPILE_ADDRESS),
+				call_data,
+				U256::zero(), // No value sent in EVM
+				gas_limit,
+				gas_price,
+				None, // Use the next nonce
+			))
+			.dispatch(<Runtime as frame_system::Config>::Origin::root());
+			// Enable the following dispatch to see that the test fails when not dispatched from root.
+			// I added this because I was surprised that my test passed the first time.
+			// .dispatch(origin_of(AccountId::from(BOB)));
+
+			// Call result is always going to be okay even if the nomination fails.
+			println!("!!!!!!!!!!!!!!!!!!!!!!! Call Result:");
+			println!("{:?}", call_result);
+			println!("!!!!!!!!!!!!!!!!!!!!!!! Last Event");
+			println!("{:?}", last_event());
+
+			// Assert that the call succeeded.
+			// I'm doing this seperately so I can print the call result first.
+			assert_ok!(call_result);
+
+			// TODO Assert that Bob is not nominating Alice
+			// let candidates = ParachainStaking::candidate_pool();
+			// assert_eq!(
+			// 	candidates.0[0],
+			// 	Bond {
+			// 		owner: AccountId::from(ALICE),
+			// 		amount: 2_000 * GLMR
+			// 	}
+			// );
+			// assert_eq!(
+			// 	candidates.0[1],
+			// 	Bond {
+			// 		owner: AccountId::from(CHARLIE),
+			// 		amount: 1_000 * GLMR
+			// 	}
+			// );
+
+			// Make the test fail so that the println's don't get swallowed.
+			// Too bad --no-capture doesn't actually work.
+			assert!(false);
 		});
 }

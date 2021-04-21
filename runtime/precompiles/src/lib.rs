@@ -125,6 +125,16 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Option<Result<(ExitSucceed, Vec<u8>, u64), ExitError>> {
+		// error: cannot find macro `println` in this scope
+		// --> runtime/precompiles/src/lib.rs:128:3
+		// 	|
+		// 128 |         println!("Running the precompile");
+		// 	|         ^^^^^^^
+		// 	|
+		// 	= note: consider importing this macro:
+		// 			crate::offchain::ecdsa::de::net::io::sys::ext::net::raw_fd::sys_common::backtrace::backtrace_rs::symbolize::gimli::mystd::println
+		// println!("In MoonbeamPrecompiles.");
+
 		log::info!(
 			"In MoonbeamPrecompiles. About to call address {:?}",
 			address
