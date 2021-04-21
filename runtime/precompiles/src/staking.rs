@@ -42,14 +42,22 @@ where
 	) -> Result<(ExitSucceed, Vec<u8>, u64), ExitError> {
 		// Basic sanity checking for length
 		// https://solidity-by-example.org/primitives/
+
+		const SELECTOR_SIZE_BYTES: usize = 4;
+
+		if input.len() < 4 {
+			return Err(ExitError::Other("input length less than 4 bytes".into()));
+		}
 		const COLLATOR_SIZE_BYTES: usize = 20;
 		const AMOUNT_SIZE_BYTES: usize = 32;
-		const TOTAL_SIZE_BYTES: usize = COLLATOR_SIZE_BYTES + AMOUNT_SIZE_BYTES;
+		const TOTAL_SIZE_BYTES: usize =
+			SELECTOR_SIZE_BYTES + COLLATOR_SIZE_BYTES + AMOUNT_SIZE_BYTES;
 
 		if input.len() != TOTAL_SIZE_BYTES {
 			log::info!(
-				"Aborting because input length was invalid. Got {} bytes",
-				input.len()
+				"Aborting because input length was invalid. Got {} bytes, expected {}",
+				input.len(),
+				TOTAL_SIZE_BYTES,
 			);
 			return Err(ExitError::Other(
 				"input length for Sacrifice must be exactly 16 bytes".into(),
@@ -58,26 +66,12 @@ where
 
 		log::info!("Made it past length check");
 
-		// Convert to right data types
-		//TODO This precompile will not work in runtimes that use a differet AccountId type
-		// The trouble is how to specify the nomination target from the evm when you don't know
-		// its size. I guess the general solution is to accept a size parameter, decode to AccountId
-		// But that would make the solidity experience a lot less nice. Maybe its best to keep the
-		// AccountId: From<H160> requirement.
-		let collator = H160::from_slice(&input[0..COLLATOR_SIZE_BYTES]);
+		// Parse the function selector
+		// match input[0..SELECTOR_SIZE_BYTES] {
+		// 	i if i == hex::decode("82f2c8df") => {}
+		// }
 
-		let amount: BalanceOf<Runtime> =
-			sp_core::U256::from_big_endian(&input[COLLATOR_SIZE_BYTES..TOTAL_SIZE_BYTES])
-				.try_into()
-				.map_err(|_| {
-					ExitError::Other("amount is too large for Runtime's balance type".into())
-				})?;
-
-		log::info!("Collator account is {:?}", collator);
-		log::info!("Amount is {:?}", amount);
-
-		// Construct a call
-		let inner_call = parachain_staking::Call::<Runtime>::nominate(collator.into(), amount);
+		let inner_call = Self::nominate(&input[SELECTOR_SIZE_BYTES..])?;
 		let outer_call: Runtime::Call = inner_call.into();
 		let info = outer_call.get_dispatch_info();
 
@@ -103,5 +97,60 @@ where
 				"Parachain staking nomination failed".into(),
 			)),
 		}
+	}
+}
+
+impl<Runtime> ParachainStakingWrapper<Runtime>
+where
+	Runtime: parachain_staking::Config + pallet_evm::Config,
+	Runtime::AccountId: From<H160>,
+	BalanceOf<Runtime>: TryFrom<U256> + Debug,
+	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
+	Runtime::Call: From<parachain_staking::Call<Runtime>>,
+{
+	fn nominate(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
+		const COLLATOR_SIZE_BYTES: usize = 20;
+		const AMOUNT_SIZE_BYTES: usize = 32;
+		const TOTAL_SIZE_BYTES: usize = COLLATOR_SIZE_BYTES + AMOUNT_SIZE_BYTES;
+
+		log::info!("Made it to helper");
+
+		if input.len() != TOTAL_SIZE_BYTES {
+			log::info!(
+				"Aborting because input length was invalid. Got {} bytes, expected {}",
+				input.len(),
+				TOTAL_SIZE_BYTES,
+			);
+			return Err(ExitError::Other(
+				"input length for Sacrifice must be exactly 16 bytes".into(),
+			));
+		}
+
+		log::info!("Made it past helper length check");
+
+		// Convert to right data types
+		//TODO This precompile will not work in runtimes that use a differet AccountId type
+		// The trouble is how to specify the nomination target from the evm when you don't know
+		// its size. I guess the general solution is to accept a size parameter, decode to AccountId
+		// But that would make the solidity experience a lot less nice. Maybe its best to keep the
+		// AccountId: From<H160> requirement.
+		let collator = H160::from_slice(&input[0..COLLATOR_SIZE_BYTES]);
+
+		let amount: BalanceOf<Runtime> =
+			sp_core::U256::from_big_endian(&input[COLLATOR_SIZE_BYTES..TOTAL_SIZE_BYTES])
+				.try_into()
+				.map_err(|_| {
+					ExitError::Other("amount is too large for Runtime's balance type".into())
+				})?;
+
+		log::info!("Collator account is {:?}", collator);
+		log::info!("Amount is {:?}", amount);
+
+		// Construct a call
+		Ok(parachain_staking::Call::<Runtime>::nominate(
+			collator.into(),
+			amount,
+		))
 	}
 }
