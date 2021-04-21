@@ -387,6 +387,7 @@ fn nominate_via_precompile() {
 			let mut call_data = Vec::<u8>::new();
 			call_data.append(&mut Vec::from(ALICE));
 			// TODO Fucking endianness. How can I get an actual value for nomination amount?
+			// OH! Maybe I need to make a new empty slice and apss it into `to_big_endian`?
 			// For now I'll nominate with zero just to make it compile and run the test.
 			// call_data.append(nomination_amount.to_big_endian());
 			call_data.append(&mut Vec::from([0u8; 32]));
