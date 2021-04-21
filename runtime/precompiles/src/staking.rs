@@ -1,7 +1,6 @@
 use evm::{Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::Currency;
-use log::info;
 use pallet_evm::AddressMapping;
 use pallet_evm::GasWeightMapping;
 use pallet_evm::Precompile;
@@ -48,7 +47,10 @@ where
 		const TOTAL_SIZE_BYTES: usize = COLLATOR_SIZE_BYTES + AMOUNT_SIZE_BYTES;
 
 		if input.len() != TOTAL_SIZE_BYTES {
-			log::info!("Aborting because input length was invalid. Got {} bytes", input.len());
+			log::info!(
+				"Aborting because input length was invalid. Got {} bytes",
+				input.len()
+			);
 			return Err(ExitError::Other(
 				"input length for Sacrifice must be exactly 16 bytes".into(),
 			));
