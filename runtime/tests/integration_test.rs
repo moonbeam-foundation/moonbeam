@@ -387,12 +387,6 @@ fn nominate_via_precompile() {
 			))
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
 
-			// Call result is always going to be okay even if the nomination fails.
-			println!("!!!!!!!!!!!!!!!!!!!!!!! Events:");
-			for e in System::events() {
-				println!("{:?}", e.event);
-			}
-
 			// Assert that Bob is now nominating Alice
 			assert!(ParachainStaking::is_nominator(&AccountId::from(BOB)));
 
