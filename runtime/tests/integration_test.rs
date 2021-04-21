@@ -29,7 +29,7 @@ use moonbeam_runtime::{
 	Range, Runtime, System, GLMR,
 };
 use parachain_staking::Bond;
-use sp_core::H160;
+use sp_core::{H160, U256};
 use sp_runtime::{DispatchError, Perbill};
 
 fn run_to_block(n: u32) {
@@ -360,20 +360,12 @@ fn nominate_via_precompile() {
 			(AccountId::from(ALICE), 3_000 * GLMR),
 			(AccountId::from(BOB), 3_000 * GLMR),
 		])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
 		.build()
 		.execute_with(|| {
-			//TODO this should actually go in the builder because it isn't what this test is about.
-			// Alice stakes to become a collator candidate
-			assert_ok!(ParachainStaking::join_candidates(
-				origin_of(AccountId::from(ALICE)),
-				1_000 * GLMR,
-			));
-
 			let staking_precompile_address = H160::from_low_u64_be(256);
 
 			// Bob uses the staking precompile to nominate Alice through the EVM
-			use sp_core::U256;
-
 			let gas_limit = 100000u64;
 			let gas_price: U256 = 1000.into(); // This one worked for the call in the test above
 			let nomination_amount: U256 = (1000 * GLMR).into();
