@@ -367,7 +367,7 @@ fn nominate_via_precompile() {
 
 			// Bob uses the staking precompile to nominate Alice through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into(); // This one worked for the call in the test above
+			let gas_price: U256 = 1000.into();
 			let nomination_amount: U256 = (1000 * GLMR).into();
 
 			let mut call_data = Vec::<u8>::from([0u8; 52]);
@@ -386,13 +386,8 @@ fn nominate_via_precompile() {
 				None, // Use the next nonce
 			))
 			.dispatch(<Runtime as frame_system::Config>::Origin::root());
-			// Enable the following dispatch to see that the test fails when not dispatched from root.
-			// I added this because I was surprised that my test passed the first time.
-			// .dispatch(origin_of(AccountId::from(BOB)));
 
 			// Call result is always going to be okay even if the nomination fails.
-			println!("!!!!!!!!!!!!!!!!!!!!!!! Call Result:");
-			println!("{:?}", call_result);
 			println!("!!!!!!!!!!!!!!!!!!!!!!! Events:");
 			for e in System::events() {
 				println!("{:?}", e.event);
