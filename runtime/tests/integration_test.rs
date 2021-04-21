@@ -376,7 +376,7 @@ fn nominate_via_precompile() {
 			call_data[0..20].copy_from_slice(&ALICE);
 			nomination_amount.to_big_endian(&mut call_data[20..52]);
 
-			let call_result = Call::EVM(pallet_evm::Call::<Runtime>::call(
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(BOB),
 				staking_precompile_address,
 				call_data,
@@ -385,7 +385,7 @@ fn nominate_via_precompile() {
 				gas_price,
 				None, // Use the next nonce
 			))
-			.dispatch(<Runtime as frame_system::Config>::Origin::root());
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
 
 			// Call result is always going to be okay even if the nomination fails.
 			println!("!!!!!!!!!!!!!!!!!!!!!!! Events:");
@@ -393,29 +393,32 @@ fn nominate_via_precompile() {
 				println!("{:?}", e.event);
 			}
 
-			// Assert that the call succeeded.
-			// I'm doing this seperately so I can print the call result first.
-			assert_ok!(call_result);
+			// Assert that Bob is now nominating Alice
+			assert!(ParachainStaking::is_nominator(&AccountId::from(BOB)));
 
-			// TODO Assert that Bob is not nominating Alice
-			// let candidates = ParachainStaking::candidate_pool();
-			// assert_eq!(
-			// 	candidates.0[0],
-			// 	Bond {
-			// 		owner: AccountId::from(ALICE),
-			// 		amount: 2_000 * GLMR
-			// 	}
-			// );
-			// assert_eq!(
-			// 	candidates.0[1],
-			// 	Bond {
-			// 		owner: AccountId::from(CHARLIE),
-			// 		amount: 1_000 * GLMR
-			// 	}
-			// );
+			// Check for the right events.
+			let expected_events = vec![
+				Event::pallet_balances(pallet_balances::Event::Reserved(
+					AccountId::from(BOB),
+					1000 * GLMR,
+				)),
+				Event::parachain_staking(parachain_staking::Event::Nomination(
+					AccountId::from(BOB),
+					1000 * GLMR,
+					AccountId::from(ALICE),
+					2000 * GLMR,
+				)),
+				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+					staking_precompile_address,
+				)),
+			];
 
-			// Make the test fail so that the println's don't get swallowed.
-			// Too bad --no-capture doesn't actually work.
-			assert!(false);
+			assert_eq!(
+				System::events()
+					.into_iter()
+					.map(|e| e.event)
+					.collect::<Vec<_>>(),
+				expected_events
+			);
 		});
 }
