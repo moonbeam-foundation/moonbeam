@@ -99,6 +99,9 @@ impl Precompile for Sacrifice {
 	}
 }
 
+//TODO Maybe we don't need to / shouldn't be generic over the runtime.
+// Pros: Would simplify trait bounds and speed up compile time (maybe not noticeably).
+// Cons: Would proclude using this precompile set in mocked Runtimes.
 /// The PrecompileSet installed in the Moonbeam runtime.
 /// We include the nine Istanbul precompiles
 /// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
@@ -122,7 +125,10 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Option<Result<(ExitSucceed, Vec<u8>, u64), ExitError>> {
-		log::info!("In MoonbeamPrecompiles. About to call address {:?}", address);
+		log::info!(
+			"In MoonbeamPrecompiles. About to call address {:?}",
+			address
+		);
 		match address {
 			// Ethereum precompiles :
 			a if a == hash(1) => Some(ECRecover::execute(input, target_gas, context)),
