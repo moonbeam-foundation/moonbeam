@@ -54,10 +54,8 @@ mod tests {
 	fn test_benchmarks() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(test_benchmark_set_inflation::<Test>());
-
 		});
 	}
 }
 
 impl_benchmark_test_suite!(Pallet, crate::tests::new_test_ext(), crate::tests::Test);
-

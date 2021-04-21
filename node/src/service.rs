@@ -227,8 +227,8 @@ async fn start_node_impl<RB>(
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient>)>
 where
 	RB: Fn(
-			Arc<TFullClient<Block, RuntimeApi, Executor>>,
-		) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
+		Arc<TFullClient<Block, RuntimeApi, Executor>>,
+	) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
 		+ Send
 		+ 'static,
 {
