@@ -19,7 +19,6 @@
 //! Benchmarking
 use super::*;
 use crate::Pallet as ParachainStaking;
-use crate::mock::{Origin};
 use frame_support::assert_ok;
 use frame_system::RawOrigin;
 use frame_benchmarking::{benchmarks};
@@ -27,15 +26,13 @@ use sp_runtime::Perbill;
 
 benchmarks! {
 	set_inflation {
-
-		let caller = Origin::root();
 		let inflation_range: Range<Perbill> = Range {
 			min: Perbill::from_perthousand(1),
 			ideal: Perbill::from_perthousand(2),
 			max: Perbill::from_perthousand(3),
 		};
 
-	}: _(caller, inflation_range)
+	}: _(RawOrigin::Root, inflation_range)
 	verify {
 	}
 }
