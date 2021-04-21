@@ -4,33 +4,9 @@ import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createContract, createContractExecution } from "../util/transactions";
 
 describeDevMoonbeam("Trace filter - Concurrency", (context) => {
-  let txHashByLoop: { [loop: string]: string } = {
-    "1": null,
-    "100": null,
-    "1000": null,
-    "6000": null,
-  };
-
-  before("Setup: Create 4 blocks with 1 contract loop execution each", async function () {
+  before("Setup: Create 50 blocks with 1 contract loop execution each", async function () {
     const { contract, rawTx } = await createContract(context.web3, "FiniteLoopContract");
     await context.createBlock({ transactions: [rawTx] });
-
-    // For each loop, create a block with the contract execution.
-    // 1 block is create for each so it is easier to select the execution using trace_filter
-    // by specifying the fromBlock and toBlock
-    // for (let loop of Object.keys(txHashByLoop)) {
-    //   console.log("Preparing ", loop);
-    //   const { txResults } = await context.createBlock({
-    //     transactions: [
-    //       await createContractExecution(context.web3, {
-    //         contract,
-    //         contractCall: contract.methods.incr(loop),
-    //       }),
-    //     ],
-    //   });
-    //   txHashByLoop[loop] = txResults[0].result;
-    //   console.log(await context.web3.eth.getTransactionReceipt(txHashByLoop[loop]));
-    // }
 
     for (let i = 0; i < 50; i++) {
       await context.createBlock({
