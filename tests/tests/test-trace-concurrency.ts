@@ -39,7 +39,7 @@ describeDevMoonbeam("Trace filter - Concurrency", (context) => {
     // We start the slow query (around 1000ms), without waiting for it
     const initialQueryPromise = queryRange(40, 1);
     const startTime = Date.now();
-    await queryRange(1, 1);
+    await queryRange(1, 2);
     const endTime = Date.now();
 
     // Less than 500ms is large enough (it should take at max 50ms)
