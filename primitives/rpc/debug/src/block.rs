@@ -62,11 +62,11 @@ pub enum TransactionTraceAction {
 	},
 	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 	Create {
-		create_method: super::CreateType,
+		creation_method: super::CreateType,
 		from: H160,
 		gas: U256,
 		#[cfg_attr(feature = "std", serde(serialize_with = "bytes_0x_serialize"))]
-		input: Vec<u8>,
+		init: Vec<u8>,
 		value: U256,
 	},
 	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
@@ -93,7 +93,7 @@ pub enum TransactionTraceResult {
 	Call {
 		gas_used: U256,
 		#[cfg_attr(feature = "std", serde(serialize_with = "bytes_0x_serialize"))]
-		res: Vec<u8>,
+		output: Vec<u8>,
 	},
 	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 	Create {
