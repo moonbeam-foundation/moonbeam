@@ -56,6 +56,9 @@ mod set;
 #[cfg(test)]
 mod tests;
 
+pub mod weights;
+use weights::WeightInfo;
+
 use frame_support::pallet;
 pub use inflation::{InflationInfo, Range};
 
@@ -398,6 +401,8 @@ pub mod pallet {
 		type MinNomination: Get<BalanceOf<Self>>;
 		/// Minimum stake for any registered on-chain account to become a nominator
 		type MinNominatorStk: Get<BalanceOf<Self>>;
+		/// Weight information for extrinsics in this pallet.
+		type WeightInfo: WeightInfo;
 	}
 
 	#[pallet::error]
@@ -674,7 +679,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Set the annual inflation rate to derive per-round inflation
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::set_inflation())]
 		pub fn set_inflation(
 			origin: OriginFor<T>,
 			schedule: Range<Perbill>,
