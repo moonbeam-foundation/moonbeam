@@ -1062,13 +1062,14 @@ impl_runtime_apis! {
 			use frame_system_benchmarking::Pallet as SystemBench;
 			impl frame_system_benchmarking::Config for Runtime {}
 
-			use author_inherent::Module as AuthorInherentBench;
+			use parachain_staking::Pallet as ParachainStakingBench;
 
 			let whitelist: Vec<TrackedStorageKey> = vec![];
 
 			let mut batches = Vec::<BenchmarkBatch>::new();
 			let params = (&config, &whitelist);
 
+			add_benchmark!(params, batches, parachain_staking, ParachainStakingBench);
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }

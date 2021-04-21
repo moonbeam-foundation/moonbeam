@@ -19,7 +19,7 @@
 //! Benchmarking
 use super::*;
 use crate::Pallet as ParachainStaking;
-use frame_benchmarking::benchmarks;
+use frame_benchmarking::{benchmarks, impl_benchmark_test_suite};
 use frame_support::assert_ok;
 use frame_system::RawOrigin;
 use sp_runtime::Perbill;
@@ -54,6 +54,10 @@ mod tests {
 	fn test_benchmarks() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(test_benchmark_set_inflation::<Test>());
+
 		});
 	}
 }
+
+impl_benchmark_test_suite!(Pallet, crate::tests::new_test_ext(), crate::tests::Test);
+

@@ -47,7 +47,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(test)]
+#[cfg(any(test, feature="runtime-benchmarks"))]
 mod benchmarks;
 mod inflation;
 #[cfg(test)]
