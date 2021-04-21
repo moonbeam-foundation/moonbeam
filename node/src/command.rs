@@ -327,9 +327,10 @@ pub fn run() -> Result<()> {
 				runner.sync_run(|config| cmd.run::<Block, crate::service::Executor>(config))
 			} else {
 				Err("Benchmarking wasn't enabled when building the node. \
-				You can enable it with `--features runtime-benchmarks`.".into())
+				You can enable it with `--features runtime-benchmarks`."
+					.into())
 			}
-		},
+		}
 		None => {
 			let runner = cli.create_runner(&*cli.run)?;
 			let collator = cli.run.base.validator || cli.collator;

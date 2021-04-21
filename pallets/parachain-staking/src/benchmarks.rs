@@ -19,9 +19,9 @@
 //! Benchmarking
 use super::*;
 use crate::Pallet as ParachainStaking;
+use frame_benchmarking::benchmarks;
 use frame_support::assert_ok;
 use frame_system::RawOrigin;
-use frame_benchmarking::{benchmarks};
 use sp_runtime::Perbill;
 
 benchmarks! {
@@ -44,7 +44,9 @@ mod tests {
 	use sp_io::TestExternalities;
 
 	pub fn new_test_ext() -> TestExternalities {
-		let t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
+		let t = frame_system::GenesisConfig::default()
+			.build_storage::<Test>()
+			.unwrap();
 		TestExternalities::new(t)
 	}
 

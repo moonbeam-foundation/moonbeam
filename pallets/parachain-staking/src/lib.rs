@@ -47,14 +47,14 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(test)]
+mod benchmarks;
 mod inflation;
 #[cfg(test)]
 mod mock;
 mod set;
 #[cfg(test)]
 mod tests;
-#[cfg(test)]
-mod benchmarks;
 
 use frame_support::pallet;
 pub use inflation::{InflationInfo, Range};
