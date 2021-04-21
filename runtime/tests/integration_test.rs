@@ -147,7 +147,7 @@ const DAVE: [u8; 20] = [7u8; 20];
 /// enough that I shouldn't have actually successfully nominated. Maybe that's not enough to make
 /// the evm call fail??
 const STAKING_PRECOMPILE_ADDRESS: [u8; 20] =
-	[0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0];
 
 fn origin_of(account_id: AccountId) -> <Runtime as frame_system::Config>::Origin {
 	<Runtime as frame_system::Config>::Origin::signed(account_id)
@@ -373,24 +373,25 @@ fn nominate_via_precompile() {
 		])
 		.build()
 		.execute_with(|| {
+			//TODO this should actually go in the builder because it isn't what this test is about.
 			// Alice stakes to become a collator candidate
 			assert_ok!(ParachainStaking::join_candidates(
 				origin_of(AccountId::from(ALICE)),
 				1_000 * GLMR,
 			));
 
-			// Bob uses the stking precompile to nominate Alice through the EVM
+			// Bob uses the staking precompile to nominate Alice through the EVM
 			use sp_core::U256;
+
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into(); //TODO Why so high? (copied from Amar above)
+			let gas_price: U256 = 1000.into(); // This one worked for the call in the test above
 			let nomination_amount: U256 = (1000 * GLMR).into();
-			let mut call_data = Vec::<u8>::new();
-			call_data.append(&mut Vec::from(ALICE));
-			// TODO Fucking endianness. How can I get an actual value for nomination amount?
-			// OH! Maybe I need to make a new empty slice and apss it into `to_big_endian`?
-			// For now I'll nominate with zero just to make it compile and run the test.
-			// call_data.append(nomination_amount.to_big_endian());
-			call_data.append(&mut Vec::from([0u8; 32]));
+
+			let mut call_data = Vec::<u8>::from([0u8; 52]);
+
+			//TODO consider endianness here. Alice is symmetric.
+			call_data[0..20].copy_from_slice(&ALICE);
+			nomination_amount.to_big_endian(&mut call_data[20..52]);
 
 			let call_result = Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(BOB),
