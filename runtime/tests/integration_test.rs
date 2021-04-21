@@ -28,6 +28,7 @@ use moonbeam_runtime::{
 	AccountId, AuthorInherent, Balance, Balances, Call, Event, InflationInfo, ParachainStaking,
 	Range, Runtime, System, GLMR,
 };
+use parachain_staking::Bond;
 use sp_runtime::{DispatchError, Perbill};
 
 fn run_to_block(n: u32) {
@@ -44,12 +45,14 @@ fn last_event() -> Event {
 }
 
 struct ExtBuilder {
-	// balances
+	// endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
 	// [collator, amount]
 	collators: Vec<(AccountId, Balance)>,
 	// [nominator, collator, nomination_amount]
 	nominators: Vec<(AccountId, AccountId, Balance)>,
+	// per-round inflation config
+	inflation: InflationInfo<Balance>,
 }
 
 impl Default for ExtBuilder {
@@ -58,6 +61,19 @@ impl Default for ExtBuilder {
 			balances: vec![],
 			nominators: vec![],
 			collators: vec![],
+			inflation: InflationInfo {
+				expect: Range {
+					min: 100_000 * GLMR,
+					ideal: 200_000 * GLMR,
+					max: 500_000 * GLMR,
+				},
+				// unrealistically high parameterization, only for testing
+				round: Range {
+					min: Perbill::from_percent(5),
+					ideal: Perbill::from_percent(5),
+					max: Perbill::from_percent(5),
+				},
+			},
 		}
 	}
 }
@@ -75,6 +91,12 @@ impl ExtBuilder {
 
 	fn with_nominators(mut self, nominators: Vec<(AccountId, AccountId, Balance)>) -> Self {
 		self.nominators = nominators;
+		self
+	}
+
+	#[allow(dead_code)]
+	fn with_inflation(mut self, inflation: InflationInfo<Balance>) -> Self {
+		self.inflation = inflation;
 		self
 	}
 
@@ -98,19 +120,7 @@ impl ExtBuilder {
 		}
 		parachain_staking::GenesisConfig::<Runtime> {
 			stakers,
-			inflation_config: InflationInfo {
-				expect: Range {
-					min: 100_000 * GLMR,
-					ideal: 200_000 * GLMR,
-					max: 500_000 * GLMR,
-				},
-				// unrealistically high parameterization, only for testing
-				round: Range {
-					min: Perbill::from_percent(5),
-					ideal: Perbill::from_percent(5),
-					max: Perbill::from_percent(5),
-				},
-			},
+			inflation_config: self.inflation,
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();
@@ -177,6 +187,28 @@ fn join_collator_candidates() {
 					3_100 * GLMR
 				))
 			);
+			let candidates = ParachainStaking::candidate_pool();
+			assert_eq!(
+				candidates.0[0],
+				Bond {
+					owner: AccountId::from(ALICE),
+					amount: 1_050 * GLMR
+				}
+			);
+			assert_eq!(
+				candidates.0[1],
+				Bond {
+					owner: AccountId::from(BOB),
+					amount: 1_050 * GLMR
+				}
+			);
+			assert_eq!(
+				candidates.0[2],
+				Bond {
+					owner: AccountId::from(DAVE),
+					amount: 1_000 * GLMR
+				}
+			);
 		});
 }
 
@@ -233,6 +265,21 @@ fn transfer_through_evm_to_stake() {
 				origin_of(AccountId::from(CHARLIE)),
 				1_000 * GLMR,
 			),);
+			let candidates = ParachainStaking::candidate_pool();
+			assert_eq!(
+				candidates.0[0],
+				Bond {
+					owner: AccountId::from(ALICE),
+					amount: 2_000 * GLMR
+				}
+			);
+			assert_eq!(
+				candidates.0[1],
+				Bond {
+					owner: AccountId::from(CHARLIE),
+					amount: 1_000 * GLMR
+				}
+			);
 		});
 }
 
@@ -267,28 +314,30 @@ fn reward_block_authors() {
 				downward_messages: Default::default(),
 				horizontal_messages: Default::default(),
 			};
+			// Mock the inherent that sets validation data in ParachainSystem, which
+			// contains the `relay_chain_block_number`, which is used in `author-filter` as a
+			// source of randomness to filter valid authors at each block.
 			assert_ok!(Call::ParachainSystem(
 				cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data(
 					parachain_inherent_data
 				)
 			)
 			.dispatch(inherent_origin()));
-			fn set_alice_as_author() {
+			// Mock the inherent that sets author in `author-inherent`
+			fn set_author(a: AccountId) {
 				assert_ok!(
-					Call::AuthorInherent(author_inherent::Call::<Runtime>::set_author(
-						AccountId::from(ALICE)
-					))
-					.dispatch(inherent_origin())
+					Call::AuthorInherent(author_inherent::Call::<Runtime>::set_author(a))
+						.dispatch(inherent_origin())
 				);
 			}
 			for x in 2..1201 {
-				set_alice_as_author();
+				set_author(AccountId::from(ALICE));
 				run_to_block(x);
 			}
 			// no rewards doled out yet
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * GLMR,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * GLMR,);
-			set_alice_as_author();
+			set_author(AccountId::from(ALICE));
 			run_to_block(1201);
 			// rewards minted and distributed
 			assert_eq!(
