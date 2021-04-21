@@ -91,7 +91,6 @@ impl TraceT for Trace {
 
 pub type Responder = oneshot::Sender<Result<Vec<TransactionTrace>>>;
 pub type TraceFilterCacheRequester = TracingUnboundedSender<(FilterRequest, Responder)>;
-const EXPIRATION_DELAY: Duration = Duration::from_secs(600);
 
 pub struct TraceFilterCache<B, C, BE>(PhantomData<(B, C, BE)>);
 
@@ -130,7 +129,11 @@ where
 	pub fn task(
 		client: Arc<C>,
 		backend: Arc<BE>,
+		max_count: u32,
+		cache_duration: u32,
 	) -> (impl Future<Output = ()>, TraceFilterCacheRequester) {
+		let cache_duration = Duration::from_secs(cache_duration as u64);
+
 		let (tx, mut rx): (TraceFilterCacheRequester, _) =
 			sp_utils::mpsc::tracing_unbounded("trace-filter-cache-requester");
 
@@ -155,12 +158,14 @@ where
 								&client,
 								&backend,
 								&mut cached_blocks,
+								&mut touched_blocks,
 								req,
-								&mut touched_blocks
+								max_count,
+								cache_duration,
 							);
 
 							expiration_futures.push(async move {
-								delay_for(Duration::from_secs(60)).await;
+								delay_for(cache_duration).await;
 								touched_blocks
 							});
 
@@ -221,24 +226,31 @@ where
 		client: &C,
 		backend: &BE,
 		cached_blocks: &mut BTreeMap<H256, CacheBlock>,
-		req: FilterRequest,
 		touched_blocks: &mut Vec<H256>,
+		req: FilterRequest,
+		max_count: u32,
+		cache_duration: Duration,
 	) -> Result<Vec<TransactionTrace>> {
 		let from_block = Self::block_id(client, req.from_block)?;
 		let to_block = Self::block_id(client, req.to_block)?;
 
-		if to_block < from_block {
+		let count = req.count.unwrap_or(max_count);
+
+		if count > max_count {
 			return Err(internal_err(format!(
-				"fromBlock ({}) must be greater or equal than ({})",
-				from_block, to_block
+				"count ({}) can't be greater than maximum ({})",
+				count, max_count
 			)));
 		}
+
+		let count = count as usize;
 
 		let block_heights = from_block..=to_block;
 
 		let from_address = req.from_address.unwrap_or_default();
 		let to_address = req.to_address.unwrap_or_default();
 
+		let mut traces_amount: i64 = -(req.after.unwrap_or(0) as i64);
 		let mut traces = vec![];
 		for block_height in block_heights {
 			if block_height == 0 {
@@ -266,7 +278,7 @@ where
 					tracing::trace!(block_height, %block_hash, "Cache hit, no need to replay block !");
 
 					let cache_block = entry.into_mut();
-					cache_block.expiration = Instant::now() + EXPIRATION_DELAY;
+					cache_block.expiration = Instant::now() + cache_duration;
 
 					cache_block
 				}
@@ -277,7 +289,7 @@ where
 
 					entry.insert(CacheBlock {
 						traces,
-						expiration: Instant::now() + EXPIRATION_DELAY,
+						expiration: Instant::now() + cache_duration,
 					})
 				}
 			};
@@ -305,16 +317,35 @@ where
 				.cloned()
 				.collect();
 
-			traces.append(&mut block_traces);
-		}
+			// Don't insert anything if we're still before "after"
+			traces_amount += block_traces.len() as i64;
+			if traces_amount > 0 {
+				let traces_amount = traces_amount as usize;
+				// If the current Vec of traces is across the "after" marker,
+				// we skip some elements of it.
+				if traces_amount < block_traces.len() {
+					let skip = block_traces.len() - traces_amount;
+					block_traces = block_traces.into_iter().skip(skip).collect();
+				}
 
-		// Paginations.
-		let traces = traces.into_iter().skip(req.after.unwrap_or(0) as usize);
-		let traces: Vec<_> = if let Some(take) = req.count {
-			traces.take(take as usize).collect()
-		} else {
-			traces.collect()
-		};
+				traces.append(&mut block_traces);
+
+				// If we go over "count" (the limit), we trim and exit the loop,
+				// unless we used the default maximum, in which case we return an error.
+				if traces_amount >= count {
+					if req.count.is_none() {
+						return Err(internal_err(format!(
+							"the amount of traces goes over the maximum ({}), please use 'after' \
+							and 'count' in your request",
+							max_count
+						)));
+					}
+
+					traces = traces.into_iter().take(count).collect();
+					break;
+				}
+			}
+		}
 
 		Ok(traces)
 	}
