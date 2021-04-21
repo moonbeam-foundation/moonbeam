@@ -38,7 +38,7 @@ describeDevMoonbeam("Trace filter - Gas Loop", (context) => {
     }
   });
 
-  it("should return 20161 gasUsed for 0 loop", async function () {
+  it("should return 21630 gasUsed for 0 loop", async function () {
     const { rawTx } = await createContract(context.web3, "FiniteLoopContract");
     await context.createBlock({ transactions: [rawTx] });
 
