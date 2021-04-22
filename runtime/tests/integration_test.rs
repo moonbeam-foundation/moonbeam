@@ -423,21 +423,13 @@ fn join_candidates_via_precompile() {
 #[test]
 fn leave_candidates_via_precompile() {
 	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 1_000 * GLMR),
-			(AccountId::from(BOB), 2_000 * GLMR),
-		])
-		.with_collators(vec![
-			(AccountId::from(ALICE), 1_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
-		])
+		.with_balances(vec![(AccountId::from(ALICE), 2_000 * GLMR)])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
 		.build()
 		.execute_with(|| {
-			// Bob is initialized as a candidate
-			assert!(ParachainStaking::is_candidate(&AccountId::from(BOB)));
 			let staking_precompile_address = H160::from_low_u64_be(256);
 
-			// Bob uses the staking precompile to leave_candidates
+			// Alice uses the staking precompile to leave_candidates
 			let gas_limit = 100000u64;
 			let gas_price: U256 = 1000.into();
 
@@ -446,7 +438,7 @@ fn leave_candidates_via_precompile() {
 			call_data[0..4].copy_from_slice(&hex_literal::hex!("b7694219"));
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
-				AccountId::from(BOB),
+				AccountId::from(ALICE),
 				staking_precompile_address,
 				call_data,
 				U256::zero(), // No value sent in EVM
@@ -460,7 +452,7 @@ fn leave_candidates_via_precompile() {
 			let expected_events = vec![
 				Event::parachain_staking(parachain_staking::Event::CollatorScheduledExit(
 					1,
-					AccountId::from(BOB),
+					AccountId::from(ALICE),
 					3,
 				)),
 				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
