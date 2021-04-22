@@ -24,7 +24,7 @@ use ethereum::EthereumStorageSchema;
 use fc_rpc::{SchemaV1Override, StorageOverride};
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use jsonrpc_pubsub::manager::SubscriptionManager;
-use moonbeam_rpc_trace::TraceFilterCacheRequester;
+use moonbeam_rpc_trace::CacheRequester as TraceFilterCacheRequester;
 use moonbeam_runtime::{opaque::Block, AccountId, Balance, Hash, Index};
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
@@ -71,6 +71,8 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
 	/// Trace filter cache server requester.
 	pub trace_filter_requester: Option<TraceFilterCacheRequester>,
+	/// Trace filter max count.
+	pub trace_filter_max_count: u32,
 }
 
 /// Instantiate all Full RPC extensions.
@@ -117,9 +119,10 @@ where
 		filter_pool,
 		ethapi_cmd,
 		command_sink,
-		trace_filter_requester,
 		frontier_backend,
 		backend,
+		trace_filter_requester,
+		trace_filter_max_count,
 	} = deps;
 
 	io.extend_with(SystemApi::to_delegate(FullSystem::new(
@@ -184,7 +187,10 @@ where
 		)));
 	}
 	if ethapi_cmd.contains(&EthApiCmd::Txpool) {
-		io.extend_with(TxPoolServer::to_delegate(TxPool::new(client, pool)));
+		io.extend_with(TxPoolServer::to_delegate(TxPool::new(
+			Arc::clone(&client),
+			pool,
+		)));
 	}
 
 	if let Some(command_sink) = command_sink {
@@ -196,7 +202,11 @@ where
 	};
 
 	if let Some(trace_filter_requester) = trace_filter_requester {
-		io.extend_with(TraceServer::to_delegate(Trace::new(trace_filter_requester)));
+		io.extend_with(TraceServer::to_delegate(Trace::new(
+			client,
+			trace_filter_requester,
+			trace_filter_max_count,
+		)));
 	}
 
 	io

@@ -30,6 +30,7 @@ jsonrpc-pubsub = "15.0.0"
 sha3 = { version = "0.8", default-features = false }
 tiny-hderive = { version = "0.3.0", default-features = false }
 tiny-bip39 = {version = "0.6", default-features = false}
+tokio = { version = "0.2.13", features = ["macros"] }
 
 # Moonbeam dependencies
 moonbeam-runtime = { path = "../runtime" }
@@ -109,7 +110,6 @@ substrate-build-script-utils = { git = "https://github.com/paritytech/substrate"
 assert_cmd = "0.12"
 nix = "0.17"
 rand = "0.7.3"
-tokio = { version = "0.2.13", features = ["macros"] }
 
 # Polkadot dev-dependencies
 polkadot-runtime-common = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1" }

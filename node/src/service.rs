@@ -40,7 +40,6 @@ use fc_mapping_sync::MappingSyncWorker;
 use fc_rpc::EthTask;
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use futures::{Stream, StreamExt};
-use moonbeam_rpc_trace::TraceFilterCache;
 use moonbeam_runtime::{opaque::Block, RuntimeApi};
 use polkadot_primitives::v0::CollatorPair;
 use sc_cli::SubstrateCli;
@@ -288,11 +287,13 @@ where
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 
 	let (trace_filter_task, trace_filter_requester) = if cmd.ethapi.contains(&EthApiCmd::Trace) {
-		let (trace_filter_task, trace_filter_requester) = TraceFilterCache::task(
+		// TODO : Use semaphore shared with debug.
+		let permits = Arc::new(tokio::sync::Semaphore::new(4));
+		let (trace_filter_task, trace_filter_requester) = moonbeam_rpc_trace::CacheTask::create(
 			Arc::clone(&client),
 			Arc::clone(&backend),
-			cmd.ethapi_trace_cache_duration,
-			cmd.ethapi_trace_max_count,
+			Duration::from_secs(cmd.ethapi_trace_cache_duration),
+			permits,
 		);
 		(Some(trace_filter_task), Some(trace_filter_requester))
 	} else {
@@ -321,9 +322,10 @@ where
 				filter_pool: filter_pool.clone(),
 				ethapi_cmd: ethapi_cmd.clone(),
 				command_sink: None,
-				trace_filter_requester: trace_filter_requester.clone(),
 				frontier_backend: frontier_backend.clone(),
 				backend: backend.clone(),
+				trace_filter_requester: trace_filter_requester.clone(),
+				trace_filter_max_count: cmd.ethapi_trace_max_count,
 			};
 
 			crate::rpc::create_full(deps, subscription_task_executor.clone())
@@ -586,11 +588,13 @@ pub fn new_dev(
 	}
 
 	let (trace_filter_task, trace_filter_requester) = if cmd.ethapi.contains(&EthApiCmd::Trace) {
-		let (trace_filter_task, trace_filter_requester) = TraceFilterCache::task(
+		// TODO : Use semaphore shared with debug.
+		let permits = Arc::new(tokio::sync::Semaphore::new(4));
+		let (trace_filter_task, trace_filter_requester) = moonbeam_rpc_trace::CacheTask::create(
 			Arc::clone(&client),
 			Arc::clone(&backend),
-			cmd.ethapi_trace_cache_duration,
-			cmd.ethapi_trace_max_count,
+			Duration::from_secs(cmd.ethapi_trace_cache_duration),
+			permits,
 		);
 		(Some(trace_filter_task), Some(trace_filter_requester))
 	} else {
@@ -622,6 +626,7 @@ pub fn new_dev(
 				frontier_backend: frontier_backend.clone(),
 				backend: backend.clone(),
 				trace_filter_requester: trace_filter_requester.clone(),
+				trace_filter_max_count: cmd.ethapi_trace_max_count,
 			};
 			crate::rpc::create_full(deps, subscription_task_executor.clone())
 		})
