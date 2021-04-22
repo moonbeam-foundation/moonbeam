@@ -132,7 +132,8 @@ where
 		// 	|         ^^^^^^^
 		// 	|
 		// 	= note: consider importing this macro:
-		// 			crate::offchain::ecdsa::de::net::io::sys::ext::net::raw_fd::sys_common::backtrace::backtrace_rs::symbolize::gimli::mystd::println
+		// 	crate::offchain::ecdsa::de::net::io::sys::ext::net::raw_fd::sys_common::backtrace::
+		// backtrace_rs::symbolize::gimli::mystd::println
 		// println!("In MoonbeamPrecompiles.");
 
 		log::info!(
@@ -169,18 +170,7 @@ fn hash(a: u64) -> H160 {
 mod tests {
 	use super::*;
 	use std::time::{Duration, Instant};
-	// use sp_io::TestExternalities; XXX
 	extern crate hex;
-
-	/*
-	 * XXX
-	pub fn new_test_ext() -> TestExternalities {
-		let t = frame_system::GenesisConfig::default()
-			.build_storage::<Test>()
-			.unwrap();
-		TestExternalities::new(t)
-	}
-	*/
 
 	#[test]
 	fn test_invalid_input_length() -> std::result::Result<(), ExitError> {
@@ -251,35 +241,4 @@ mod tests {
 
 		Ok(())
 	}
-
-	/*
-	 * TODO: the sleep() function inside the precompile must be run within an externalities
-	 *       environment
-	#[test]
-	fn test_sleep() -> std::result::Result<(), ExitError> {
-
-		new_test_ext().execute_with(|| {
-			let mut input: [u8; 16] = [0; 16];
-			input[8..].copy_from_slice(&10_u64.to_be_bytes()); // should be 10ms
-
-			let context: Context = Context {
-				address: Default::default(),
-				caller: Default::default(),
-				apparent_value: From::from(0),
-			};
-
-			let start = Instant::now();
-
-			assert_eq!(
-				Sacrifice::execute(&input, Some(99), &context),
-				Ok((ExitSucceed::Returned, [0u8; 0].to_vec(), 0)),
-			);
-
-			assert!(start.elapsed().as_millis() > 10);
-			assert!(start.elapsed().as_millis() < 20); // give plenty of room, but put some bound on it
-
-			Ok(())
-		});
-	}
-	*/
 }
