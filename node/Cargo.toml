@@ -107,7 +107,6 @@ frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch =
 frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
 pallet-xcm = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1", optional = true }
 xcm-builder = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1", optional = true }
-pallet-collective = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", optional = true }
 pallet-society = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", optional = true }
 
 [build-dependencies]
@@ -139,6 +138,5 @@ runtime-benchmarks = [
 	"moonbeam-runtime/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
-	"pallet-collective/runtime-benchmarks",
 	"pallet-society/runtime-benchmarks",
 ]
