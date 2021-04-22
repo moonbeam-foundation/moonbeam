@@ -46,14 +46,17 @@ contract NominationDao {
         // Check that the deployer is calling
         require(msg.sender == deployer);
 
-        // Update storage.
-        target = new_target;
-
         // If we already have an active nomination, switch it.
         if (isNominating) {
-            // TODO revoke old nomination via precompile
-            // TODO submit new nomination via precompile
+            // Revoke the old nomination
+            precompile.revoke_nomination(target);
+
+            // Make a new nomination
+            precompile.nominate(new_target, address(this).balance);
         }
+
+        // Update storage.
+        target = new_target;
     }
 
     /// Contribute some funds to the nomination contract
@@ -63,11 +66,14 @@ contract NominationDao {
         bool min_nomination_met = address(this).balance > MinNominatorStk;
 
         if (isNominating) {
-            //TODO call nominate_more precompile
+            // Nominate more toward the same existing target
+            precompile.nominator_bond_more(target, msg.value);
         } else if (min_nomination_met) {
-            //TODO call nominate precompile
+            // Make our nomination
+            precompile.nominate(target, address(this).balance);
 
             // Note that we have an active nomination
+            // TODO I guess we should confirm that the precompile call was usccessful first.
             isNominating = true;
         }
     }
