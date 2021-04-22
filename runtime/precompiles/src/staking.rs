@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! Precompile to call parachain-staking runtime methods via the EVM
 use evm::{Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::Currency;
@@ -32,8 +33,6 @@ type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as C
 >>::Balance;
 
 /// A precompile to wrap the functionality from parachain_staking.
-///
-/// Currently it only supports nominate. More to come later.
 ///
 /// EXAMPLE USECASE:
 /// A simple example usecase is a contract that allows donors to donate, and stakes all the funds
@@ -69,19 +68,19 @@ where
 
 		// Parse the function selector
 		let inner_call = match input[0..SELECTOR_SIZE_BYTES] {
-			[0x82, 0xf2, 0xc8, 0xdf] => Self::nominate(&input[SELECTOR_SIZE_BYTES..])?,
 			[0xad, 0x76, 0xed, 0x5a] => Self::join_candidates(&input[SELECTOR_SIZE_BYTES..])?,
-			[0xb7, 0x69, 0x42, 0x19] => Self::leave_candidates()?,
 			[0x76, 0x7e, 0x04, 0x50] => Self::go_offline()?,
 			[0xd2, 0xf7, 0x3c, 0xeb] => Self::go_online()?,
 			[0x28, 0x9b, 0x6b, 0xa7] => Self::candidate_bond_less(&input[SELECTOR_SIZE_BYTES..])?,
 			[0xc5, 0x7b, 0xd3, 0xa8] => Self::candidate_bond_more(&input[SELECTOR_SIZE_BYTES..])?,
+			[0xb7, 0x69, 0x42, 0x19] => Self::leave_candidates()?,
+			[0x82, 0xf2, 0xc8, 0xdf] => Self::nominate(&input[SELECTOR_SIZE_BYTES..])?,
 			[0xf6, 0xa5, 0x25, 0x69] => Self::nominator_bond_less(&input[SELECTOR_SIZE_BYTES..])?,
 			[0x97, 0x1d, 0x44, 0xc8] => Self::nominator_bond_more(&input[SELECTOR_SIZE_BYTES..])?,
 			[0xe8, 0xd6, 0x8a, 0x37] => Self::leave_nominators()?,
 			_ => {
 				return Err(ExitError::Other(
-					"No staking wrapper methd at selector given selector".into(),
+					"No staking wrapper method at selector given selector".into(),
 				));
 			}
 		};
@@ -108,13 +107,13 @@ where
 				Ok((ExitSucceed::Stopped, Default::default(), gas_used))
 			}
 			Err(_) => Err(ExitError::Other(
-				"Parachain staking nomination failed".into(),
+				"Parachain staking call via EVM failed".into(),
 			)),
 		}
 	}
 }
 
-fn form_nominate_call_data<Runtime>(input: &[u8]) -> Result<(H160, BalanceOf<Runtime>), ExitError>
+fn form_nominator_args<Runtime>(input: &[u8]) -> Result<(H160, BalanceOf<Runtime>), ExitError>
 where
 	Runtime: parachain_staking::Config,
 	BalanceOf<Runtime>: TryFrom<U256>,
@@ -130,7 +129,7 @@ where
 			TOTAL_SIZE_BYTES,
 		);
 		return Err(ExitError::Other(
-			"Incorrect input length for nominator bond more".into(),
+			"Incorrect input length for nominator call arguments".into(),
 		));
 	}
 
@@ -145,7 +144,7 @@ where
 	Ok((collator, amount))
 }
 
-fn form_collate_call_data<Runtime>(input: &[u8]) -> Result<BalanceOf<Runtime>, ExitError>
+fn form_collator_args<Runtime>(input: &[u8]) -> Result<BalanceOf<Runtime>, ExitError>
 where
 	Runtime: parachain_staking::Config,
 	BalanceOf<Runtime>: TryFrom<U256>,
@@ -159,7 +158,7 @@ where
 			AMOUNT_SIZE_BYTES,
 		);
 		return Err(ExitError::Other(
-			"Incorrect input length for join_candidates".into(),
+			"Incorrect input length for collator call arguments".into(),
 		));
 	}
 
@@ -179,7 +178,7 @@ where
 	Runtime::Call: From<parachain_staking::Call<Runtime>>,
 {
 	fn join_candidates(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		let amount = form_collate_call_data::<Runtime>(input)?;
+		let amount = form_collator_args::<Runtime>(input)?;
 
 		log::info!("Collator stake amount is {:?}", amount);
 
@@ -187,7 +186,7 @@ where
 	}
 
 	fn candidate_bond_more(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		let amount = form_collate_call_data::<Runtime>(input)?;
+		let amount = form_collator_args::<Runtime>(input)?;
 
 		log::info!("Collator bond increment is {:?}", amount);
 
@@ -197,7 +196,7 @@ where
 	}
 
 	fn candidate_bond_less(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		let amount = form_collate_call_data::<Runtime>(input)?;
+		let amount = form_collator_args::<Runtime>(input)?;
 
 		log::info!("Collator bond decrement is {:?}", amount);
 
@@ -219,7 +218,7 @@ where
 	}
 
 	fn nominate(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		let (collator, amount) = form_nominate_call_data::<Runtime>(input)?;
+		let (collator, amount) = form_nominator_args::<Runtime>(input)?;
 
 		log::info!("Collator account is {:?}", collator);
 		log::info!("Nomination amount is {:?}", amount);
@@ -231,7 +230,7 @@ where
 	}
 
 	fn nominator_bond_more(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		let (collator, amount) = form_nominate_call_data::<Runtime>(input)?;
+		let (collator, amount) = form_nominator_args::<Runtime>(input)?;
 
 		log::info!("Collator account is {:?}", collator);
 		log::info!("Nomination increment is {:?}", amount);
@@ -243,12 +242,11 @@ where
 	}
 
 	fn nominator_bond_less(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		let (collator, amount) = form_nominate_call_data::<Runtime>(input)?;
+		let (collator, amount) = form_nominator_args::<Runtime>(input)?;
 
 		log::info!("Collator account is {:?}", collator);
 		log::info!("Nomination decrement is {:?}", amount);
 
-		// Construct a call
 		Ok(parachain_staking::Call::<Runtime>::nominator_bond_less(
 			collator.into(),
 			amount,
