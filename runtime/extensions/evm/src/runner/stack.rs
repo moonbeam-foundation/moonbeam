@@ -22,7 +22,7 @@ use moonbeam_rpc_primitives_debug::single::{TraceType, TransactionTrace};
 use ethereum_types::{H160, U256};
 use evm::{
 	executor::{StackExecutor, StackState as StackStateT, StackSubstateMetadata},
-	Capture, Config as EvmConfig, Context, CreateScheme, gasometer, Transfer,
+	gasometer, Capture, Config as EvmConfig, Context, CreateScheme, Transfer,
 };
 use pallet_evm::{
 	runner::stack::{Runner, SubstrateStackState},
