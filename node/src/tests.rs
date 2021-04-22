@@ -172,21 +172,7 @@ fn export_genesis_state() {
 	};
 
 	let base_path = tempfile::tempdir().unwrap();
-
-	/*let mut cmd = Command::new(cargo_bin("moonbeam"))
-	.arg("-d")
-	.arg(base_path.path())
-	.arg("--chain")
-	.arg("local")
-	.arg("--dev-service")
-	.arg("--sealing")
-	.arg("1000")
-	.arg("--collator")
-	.arg("--author-id")
-	.arg("0x6be02d1d3665660d22ff9624b7be0551ee1ac91b")
-	.arg("--")
-	.spawn()
-	.unwrap();*/
+	
 	let mut cmd = Command::new(cargo_bin("moonbeam"))
 		.arg("-d")
 		.arg(base_path.path())
