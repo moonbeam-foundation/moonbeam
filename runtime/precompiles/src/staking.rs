@@ -54,6 +54,7 @@ where
 		// Parse the function selector
 		let inner_call = match input[0..SELECTOR_SIZE_BYTES] {
 			[0x82, 0xf2, 0xc8, 0xdf] => Self::nominate(&input[SELECTOR_SIZE_BYTES..])?,
+			[0xad, 0x76, 0xed, 0x5a] => Self::join_candidates(&input[SELECTOR_SIZE_BYTES..])?,
 			_ => {
 				return Err(ExitError::Other(
 					"No staking wrapper methd at selector given selector".into(),
@@ -103,8 +104,6 @@ where
 		const AMOUNT_SIZE_BYTES: usize = 32;
 		const TOTAL_SIZE_BYTES: usize = COLLATOR_SIZE_BYTES + AMOUNT_SIZE_BYTES;
 
-		log::info!("Made it to helper");
-
 		if input.len() != TOTAL_SIZE_BYTES {
 			log::info!(
 				"Aborting because input length was invalid. Got {} bytes, expected {}",
@@ -112,7 +111,7 @@ where
 				TOTAL_SIZE_BYTES,
 			);
 			return Err(ExitError::Other(
-				"input length for Sacrifice must be exactly 16 bytes".into(),
+				"Incorrect input length for nominate".into(),
 			));
 		}
 
@@ -127,14 +126,14 @@ where
 		let collator = H160::from_slice(&input[0..COLLATOR_SIZE_BYTES]);
 
 		let amount: BalanceOf<Runtime> =
-			sp_core::U256::from_big_endian(&input[COLLATOR_SIZE_BYTES..TOTAL_SIZE_BYTES])
+			U256::from_big_endian(&input[COLLATOR_SIZE_BYTES..TOTAL_SIZE_BYTES])
 				.try_into()
 				.map_err(|_| {
 					ExitError::Other("amount is too large for Runtime's balance type".into())
 				})?;
 
 		log::info!("Collator account is {:?}", collator);
-		log::info!("Amount is {:?}", amount);
+		log::info!("Nomination amount is {:?}", amount);
 
 		// Construct a call
 		Ok(parachain_staking::Call::<Runtime>::nominate(
@@ -144,6 +143,28 @@ where
 	}
 
 	fn join_candidates(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		todo!()
+		const AMOUNT_SIZE_BYTES: usize = 32;
+
+		if input.len() != AMOUNT_SIZE_BYTES {
+			log::info!(
+				"Aborting because input length was invalid. Got {} bytes, expected {}",
+				input.len(),
+				AMOUNT_SIZE_BYTES,
+			);
+			return Err(ExitError::Other(
+				"Incorrect input length for join_candidates".into(),
+			));
+		}
+
+		let amount: BalanceOf<Runtime> = U256::from_big_endian(&input[0..AMOUNT_SIZE_BYTES])
+			.try_into()
+			.map_err(|_| {
+				ExitError::Other("amount is too large for Runtime's balance type".into())
+			})?;
+
+		log::info!("Collator stake amount is {:?}", amount);
+
+		// Construct a call
+		Ok(parachain_staking::Call::<Runtime>::join_candidates(amount))
 	}
 }

@@ -417,3 +417,65 @@ fn nominate_via_precompile() {
 			);
 		});
 }
+
+#[test]
+fn join_candidates_via_precompile() {
+	ExtBuilder::default()
+		.with_balances(vec![(AccountId::from(ALICE), 3_000 * GLMR)])
+		.build()
+		.execute_with(|| {
+			let staking_precompile_address = H160::from_low_u64_be(256);
+
+			// Alice uses the staking precompile to join as a candidate through the EVM
+			let gas_limit = 100000u64;
+			let gas_price: U256 = 1000.into();
+			let amount: U256 = (1000 * GLMR).into();
+
+			// Construct the call data (selector, amount)
+			let mut call_data = Vec::<u8>::from([0u8; 36]);
+			println!("a");
+			call_data[0..4].copy_from_slice(&hex_literal::hex!("ad76ed5a"));
+			println!("b");
+			amount.to_big_endian(&mut call_data[4..36]);
+
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
+				AccountId::from(ALICE),
+				staking_precompile_address,
+				call_data,
+				U256::zero(), // No value sent in EVM
+				gas_limit,
+				gas_price,
+				None, // Use the next nonce
+			))
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+
+			println!("Made it past dispatching");
+
+			// Assert that Alice is now a candidate
+			assert!(ParachainStaking::is_candidate(&AccountId::from(ALICE)));
+
+			// Check for the right events.
+			let expected_events = vec![
+				Event::pallet_balances(pallet_balances::Event::Reserved(
+					AccountId::from(ALICE),
+					1000 * GLMR,
+				)),
+				Event::parachain_staking(parachain_staking::Event::JoinedCollatorCandidates(
+					AccountId::from(ALICE),
+					1000 * GLMR,
+					1000 * GLMR,
+				)),
+				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+					staking_precompile_address,
+				)),
+			];
+
+			assert_eq!(
+				System::events()
+					.into_iter()
+					.map(|e| e.event)
+					.collect::<Vec<_>>(),
+				expected_events
+			);
+		});
+}
