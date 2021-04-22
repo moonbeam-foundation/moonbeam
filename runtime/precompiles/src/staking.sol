@@ -53,15 +53,15 @@ contract ParachainStaking {
 // https://ethereum.stackexchange.com/a/73405/9963
 // Eventually we will probably want a better way of generating these and copying them to Rust
 // {
-// 	"289b6ba7": "candidate_bond_less(uint256)",
-// 	"c57bd3a8": "candidate_bond_more(uint256)",
-// 	"767e0450": "go_offline()",
-// 	"d2f73ceb": "go_online()",
 // 	"ad76ed5a": "join_candidates(uint256)",
 // 	"b7694219": "leave_candidates()",
-// 	"e8d68a37": "leave_nominators()",
+// 	"767e0450": "go_offline()",
+// 	"d2f73ceb": "go_online()",
+// 	"289b6ba7": "candidate_bond_less(uint256)",
+// 	"c57bd3a8": "candidate_bond_more(uint256)",
 // 	"82f2c8df": "nominate(address,uint256)",
+// 	"e8d68a37": "leave_nominators()",
+// 	"4b65c34b": "revoke_nomination(address)"
 // 	"f6a52569": "nominator_bond_less(address,uint256)",
 // 	"971d44c8": "nominator_bond_more(address,uint256)",
-// 	"4b65c34b": "revoke_nomination(address)"
 // }

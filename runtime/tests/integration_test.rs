@@ -359,70 +359,6 @@ fn reward_block_authors() {
 }
 
 #[test]
-fn nominate_via_precompile() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 3_000 * GLMR),
-			(AccountId::from(BOB), 3_000 * GLMR),
-		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
-		.build()
-		.execute_with(|| {
-			let staking_precompile_address = H160::from_low_u64_be(256);
-
-			// Bob uses the staking precompile to nominate Alice through the EVM
-			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
-			let nomination_amount: U256 = (1000 * GLMR).into();
-
-			// Construct the call data (selector, collator, nomination amount)
-			let mut call_data = Vec::<u8>::from([0u8; 56]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("82f2c8df"));
-			call_data[4..24].copy_from_slice(&ALICE);
-			nomination_amount.to_big_endian(&mut call_data[24..56]);
-
-			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
-				AccountId::from(BOB),
-				staking_precompile_address,
-				call_data,
-				U256::zero(), // No value sent in EVM
-				gas_limit,
-				gas_price,
-				None, // Use the next nonce
-			))
-			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
-
-			// Assert that Bob is now nominating Alice
-			assert!(ParachainStaking::is_nominator(&AccountId::from(BOB)));
-
-			// Check for the right events.
-			let expected_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Reserved(
-					AccountId::from(BOB),
-					1000 * GLMR,
-				)),
-				Event::parachain_staking(parachain_staking::Event::Nomination(
-					AccountId::from(BOB),
-					1000 * GLMR,
-					AccountId::from(ALICE),
-					2000 * GLMR,
-				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
-					staking_precompile_address,
-				)),
-			];
-
-			assert_eq!(
-				System::events()
-					.into_iter()
-					.map(|e| e.event)
-					.collect::<Vec<_>>(),
-				expected_events
-			);
-		});
-}
-
-#[test]
 fn join_candidates_via_precompile() {
 	ExtBuilder::default()
 		.with_balances(vec![(AccountId::from(ALICE), 3_000 * GLMR)])
@@ -659,6 +595,227 @@ fn candidate_bond_more_less_via_precompile() {
 				)),
 			];
 			expected_events.append(&mut new_events);
+
+			assert_eq!(
+				System::events()
+					.into_iter()
+					.map(|e| e.event)
+					.collect::<Vec<_>>(),
+				expected_events
+			);
+		});
+}
+
+#[test]
+fn nominate_via_precompile() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 3_000 * GLMR),
+			(AccountId::from(BOB), 3_000 * GLMR),
+		])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.build()
+		.execute_with(|| {
+			let staking_precompile_address = H160::from_low_u64_be(256);
+
+			// Bob uses the staking precompile to nominate Alice through the EVM
+			let gas_limit = 100000u64;
+			let gas_price: U256 = 1000.into();
+			let nomination_amount: U256 = (1000 * GLMR).into();
+
+			// Construct the call data (selector, collator, nomination amount)
+			let mut call_data = Vec::<u8>::from([0u8; 56]);
+			call_data[0..4].copy_from_slice(&hex_literal::hex!("82f2c8df"));
+			call_data[4..24].copy_from_slice(&ALICE);
+			nomination_amount.to_big_endian(&mut call_data[24..56]);
+
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
+				AccountId::from(BOB),
+				staking_precompile_address,
+				call_data,
+				U256::zero(), // No value sent in EVM
+				gas_limit,
+				gas_price,
+				None, // Use the next nonce
+			))
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+
+			// Assert that Bob is now nominating Alice
+			assert!(ParachainStaking::is_nominator(&AccountId::from(BOB)));
+
+			// Check for the right events.
+			let expected_events = vec![
+				Event::pallet_balances(pallet_balances::Event::Reserved(
+					AccountId::from(BOB),
+					1000 * GLMR,
+				)),
+				Event::parachain_staking(parachain_staking::Event::Nomination(
+					AccountId::from(BOB),
+					1000 * GLMR,
+					AccountId::from(ALICE),
+					2000 * GLMR,
+				)),
+				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+					staking_precompile_address,
+				)),
+			];
+
+			assert_eq!(
+				System::events()
+					.into_iter()
+					.map(|e| e.event)
+					.collect::<Vec<_>>(),
+				expected_events
+			);
+		});
+}
+
+#[test]
+fn leave_nominators_via_precompile() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 1_000 * GLMR),
+			(AccountId::from(BOB), 1_000 * GLMR),
+			(AccountId::from(CHARLIE), 1_500 * GLMR),
+		])
+		.with_collators(vec![
+			(AccountId::from(ALICE), 1_000 * GLMR),
+			(AccountId::from(BOB), 1_000 * GLMR),
+		])
+		.with_nominators(vec![
+			(AccountId::from(CHARLIE), AccountId::from(ALICE), 500 * GLMR),
+			(AccountId::from(CHARLIE), AccountId::from(BOB), 500 * GLMR),
+		])
+		.build()
+		.execute_with(|| {
+			// Charlie is initialized as a nominator
+			assert!(ParachainStaking::is_nominator(&AccountId::from(CHARLIE)));
+			let staking_precompile_address = H160::from_low_u64_be(256);
+
+			// Charlie uses staking precompile to leave nominator set
+			let gas_limit = 100000u64;
+			let gas_price: U256 = 1000.into();
+
+			// Construct leave_nominators call
+			let mut call_data = Vec::<u8>::from([0u8; 4]);
+			call_data[0..4].copy_from_slice(&hex_literal::hex!("e8d68a37"));
+
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
+				AccountId::from(CHARLIE),
+				staking_precompile_address,
+				call_data,
+				U256::zero(), // No value sent in EVM
+				gas_limit,
+				gas_price,
+				None, // Use the next nonce
+			))
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+
+			// Charlie is no longer a nominator
+			assert!(!ParachainStaking::is_nominator(&AccountId::from(CHARLIE)));
+
+			// Check for the right events.
+			let expected_events = vec![
+				Event::pallet_balances(pallet_balances::Event::Unreserved(
+					AccountId::from(CHARLIE),
+					500 * GLMR,
+				)),
+				Event::parachain_staking(parachain_staking::Event::NominatorLeftCollator(
+					AccountId::from(CHARLIE),
+					AccountId::from(ALICE),
+					500 * GLMR,
+					1_000 * GLMR,
+				)),
+				Event::pallet_balances(pallet_balances::Event::Unreserved(
+					AccountId::from(CHARLIE),
+					500 * GLMR,
+				)),
+				Event::parachain_staking(parachain_staking::Event::NominatorLeftCollator(
+					AccountId::from(CHARLIE),
+					AccountId::from(BOB),
+					500 * GLMR,
+					1_000 * GLMR,
+				)),
+				Event::parachain_staking(parachain_staking::Event::NominatorLeft(
+					AccountId::from(CHARLIE),
+					1_000 * GLMR,
+				)),
+				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+					staking_precompile_address,
+				)),
+			];
+
+			assert_eq!(
+				System::events()
+					.into_iter()
+					.map(|e| e.event)
+					.collect::<Vec<_>>(),
+				expected_events
+			);
+		});
+}
+
+#[test]
+fn revoke_nomination_via_precompile() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 1_000 * GLMR),
+			(AccountId::from(BOB), 1_000 * GLMR),
+			(AccountId::from(CHARLIE), 1_500 * GLMR),
+		])
+		.with_collators(vec![
+			(AccountId::from(ALICE), 1_000 * GLMR),
+			(AccountId::from(BOB), 1_000 * GLMR),
+		])
+		.with_nominators(vec![
+			(AccountId::from(CHARLIE), AccountId::from(ALICE), 500 * GLMR),
+			(AccountId::from(CHARLIE), AccountId::from(BOB), 500 * GLMR),
+		])
+		.build()
+		.execute_with(|| {
+			// Charlie is initialized as a nominator
+			assert!(ParachainStaking::is_nominator(&AccountId::from(CHARLIE)));
+			let staking_precompile_address = H160::from_low_u64_be(256);
+
+			// Charlie uses staking precompile to revoke nomination
+			let gas_limit = 100000u64;
+			let gas_price: U256 = 1000.into();
+
+			// Construct revoke_nomination call
+			let mut call_data = Vec::<u8>::from([0u8; 24]);
+			call_data[0..4].copy_from_slice(&hex_literal::hex!("4b65c34b"));
+			call_data[4..24].copy_from_slice(&ALICE);
+
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
+				AccountId::from(CHARLIE),
+				staking_precompile_address,
+				call_data,
+				U256::zero(), // No value sent in EVM
+				gas_limit,
+				gas_price,
+				None, // Use the next nonce
+			))
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+
+			// Charlie is still a nominator because only nomination to Alice was revoked
+			assert!(ParachainStaking::is_nominator(&AccountId::from(CHARLIE)));
+
+			// Check for the right events.
+			let expected_events = vec![
+				Event::pallet_balances(pallet_balances::Event::Unreserved(
+					AccountId::from(CHARLIE),
+					500 * GLMR,
+				)),
+				Event::parachain_staking(parachain_staking::Event::NominatorLeftCollator(
+					AccountId::from(CHARLIE),
+					AccountId::from(ALICE),
+					500 * GLMR,
+					1_000 * GLMR,
+				)),
+				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+					staking_precompile_address,
+				)),
+			];
 
 			assert_eq!(
 				System::events()

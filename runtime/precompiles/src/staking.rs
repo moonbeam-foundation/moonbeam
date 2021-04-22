@@ -69,15 +69,17 @@ where
 		// Parse the function selector
 		let inner_call = match input[0..SELECTOR_SIZE_BYTES] {
 			[0xad, 0x76, 0xed, 0x5a] => Self::join_candidates(&input[SELECTOR_SIZE_BYTES..])?,
+			[0xb7, 0x69, 0x42, 0x19] => Self::leave_candidates()?,
 			[0x76, 0x7e, 0x04, 0x50] => Self::go_offline()?,
 			[0xd2, 0xf7, 0x3c, 0xeb] => Self::go_online()?,
 			[0x28, 0x9b, 0x6b, 0xa7] => Self::candidate_bond_less(&input[SELECTOR_SIZE_BYTES..])?,
 			[0xc5, 0x7b, 0xd3, 0xa8] => Self::candidate_bond_more(&input[SELECTOR_SIZE_BYTES..])?,
-			[0xb7, 0x69, 0x42, 0x19] => Self::leave_candidates()?,
 			[0x82, 0xf2, 0xc8, 0xdf] => Self::nominate(&input[SELECTOR_SIZE_BYTES..])?,
+			[0xe8, 0xd6, 0x8a, 0x37] => Self::leave_nominators()?,
+			//4b65c34b
+			[0x4b, 0x65, 0xc3, 0x4b] => Self::revoke_nomination(&input[SELECTOR_SIZE_BYTES..])?,
 			[0xf6, 0xa5, 0x25, 0x69] => Self::nominator_bond_less(&input[SELECTOR_SIZE_BYTES..])?,
 			[0x97, 0x1d, 0x44, 0xc8] => Self::nominator_bond_more(&input[SELECTOR_SIZE_BYTES..])?,
-			[0xe8, 0xd6, 0x8a, 0x37] => Self::leave_nominators()?,
 			_ => {
 				return Err(ExitError::Other(
 					"No staking wrapper method at selector given selector".into(),
@@ -185,6 +187,18 @@ where
 		Ok(parachain_staking::Call::<Runtime>::join_candidates(amount))
 	}
 
+	fn leave_candidates() -> Result<parachain_staking::Call<Runtime>, ExitError> {
+		Ok(parachain_staking::Call::<Runtime>::leave_candidates())
+	}
+
+	fn go_offline() -> Result<parachain_staking::Call<Runtime>, ExitError> {
+		Ok(parachain_staking::Call::<Runtime>::go_offline())
+	}
+
+	fn go_online() -> Result<parachain_staking::Call<Runtime>, ExitError> {
+		Ok(parachain_staking::Call::<Runtime>::go_online())
+	}
+
 	fn candidate_bond_more(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
 		let amount = form_collator_args::<Runtime>(input)?;
 
@@ -205,18 +219,6 @@ where
 		))
 	}
 
-	fn leave_candidates() -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		Ok(parachain_staking::Call::<Runtime>::leave_candidates())
-	}
-
-	fn go_offline() -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		Ok(parachain_staking::Call::<Runtime>::go_offline())
-	}
-
-	fn go_online() -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		Ok(parachain_staking::Call::<Runtime>::go_online())
-	}
-
 	fn nominate(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
 		let (collator, amount) = form_nominator_args::<Runtime>(input)?;
 
@@ -226,6 +228,33 @@ where
 		Ok(parachain_staking::Call::<Runtime>::nominate(
 			collator.into(),
 			amount,
+		))
+	}
+
+	fn leave_nominators() -> Result<parachain_staking::Call<Runtime>, ExitError> {
+		Ok(parachain_staking::Call::<Runtime>::leave_nominators())
+	}
+
+	fn revoke_nomination(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
+		const COLLATOR_SIZE_BYTES: usize = 20;
+
+		if input.len() != COLLATOR_SIZE_BYTES {
+			log::info!(
+				"Aborting because input length was invalid. Got {} bytes, expected {}",
+				input.len(),
+				COLLATOR_SIZE_BYTES,
+			);
+			return Err(ExitError::Other(
+				"Incorrect input length for revoke nomination call argument".into(),
+			));
+		}
+
+		let collator = H160::from_slice(&input[0..COLLATOR_SIZE_BYTES]);
+
+		log::info!("Collator account is {:?}", collator);
+
+		Ok(parachain_staking::Call::<Runtime>::revoke_nomination(
+			collator.into(),
 		))
 	}
 
@@ -251,9 +280,5 @@ where
 			collator.into(),
 			amount,
 		))
-	}
-
-	fn leave_nominators() -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		Ok(parachain_staking::Call::<Runtime>::leave_nominators())
 	}
 }
