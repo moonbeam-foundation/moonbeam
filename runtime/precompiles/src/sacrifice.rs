@@ -64,8 +64,6 @@ impl Precompile for Sacrifice {
 			}
 		}
 		
-		// TODO: impose gas-per-second constraint?
-
 		Ok((ExitSucceed::Returned, [0u8; 0].to_vec(), gas_cost))
 	}
 }
@@ -116,18 +114,7 @@ fn hash(a: u64) -> H160 {
 mod tests {
 	use super::*;
 	use std::time::{Duration, Instant};
-	// use sp_io::TestExternalities; XXX
 	extern crate hex;
-
-	/*
-	 * XXX
-	pub fn new_test_ext() -> TestExternalities {
-		let t = frame_system::GenesisConfig::default()
-			.build_storage::<Test>()
-			.unwrap();
-		TestExternalities::new(t)
-	}
-	*/
 
 	#[test]
 	fn test_invalid_input_length() -> std::result::Result<(), ExitError> {
