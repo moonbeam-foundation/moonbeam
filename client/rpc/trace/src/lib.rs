@@ -470,7 +470,7 @@ where
 												block_hash: block,
 												result,
 											}).await;
-										}.instrument(tracing::span!("Block tracing", block = %block)));
+										}.instrument(tracing::trace_span!("Block tracing", block = %block)));
 
 										cached_blocks.insert(block, CacheBlock2 {
 											active_batch_count: 1,
@@ -489,17 +489,15 @@ where
 							},
 							Some(CacheRequest::GetTraces {sender, block}) => {
 								if let Some(block_cache) = cached_blocks.get_mut(&block) {
-									match block_cache.state {
-										CacheBlockState::Pooled { waiting_requests, ..} => {
+									match &mut block_cache.state {
+										CacheBlockState::Pooled { ref mut waiting_requests, ..} => {
 											tracing::warn!("A request asked a pooled block ({}), adding it to the list of waiting requests.", block);
 											waiting_requests.push(sender)},
-										CacheBlockState::Cached { traces, .. } => {
+										CacheBlockState::Cached { ref traces, .. } => {
 											tracing::warn!("A request asked a cache block ({}), sending the traces directly.", block);
 											let _ = sender.send(traces.clone());
 										}
 									}
-
-									todo!()
 								} else {
 									tracing::warn!("An RPC request asked to get a block ({}) which was not batched.", block);
 									let _ = sender.send(Err(internal_err(format!("RPC request asked a block ({}) that was not batched", block))));
@@ -574,9 +572,24 @@ where
 						match batch_id {
 							None => (),
 							Some(batch_id) => {
-								todo!("decrease batch count in all blocks used by this batch");
-								todo!("remove blocks that are no longer used");
-								todo!("remove batch info");
+								if let Some(batch) = batches.remove(&batch_id.0) {
+									for block in batch {
+										// For each block of the batch, we remove it if it was the
+										// last batch containing it.
+										let mut remove = false;
+										if let Some(block_cache) = cached_blocks.get_mut(&block) {
+											block_cache.active_batch_count -= 1;
+
+											if block_cache.active_batch_count == 0 {
+												remove = true;
+											}
+										}
+
+										if remove {
+											let _ = cached_blocks.remove(&block);
+										}
+									}
+								}
 							}
 						}
 					}
