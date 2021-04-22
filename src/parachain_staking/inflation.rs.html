@@ -187,6 +187,20 @@
 <span id="184">184</span>
 <span id="185">185</span>
 <span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -210,7 +224,10 @@
 <span class="kw">use</span> <span class="ident">parity_scale_codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
+<span class="kw">use</span> <span class="ident">sp_runtime</span>::<span class="ident">PerThing</span>;
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::{<span class="ident">Perbill</span>, <span class="ident">RuntimeDebug</span>};
+<span class="kw">use</span> <span class="ident">substrate_fixed</span>::<span class="ident">transcendental</span>::<span class="ident">pow</span> <span class="kw">as</span> <span class="ident">floatpow</span>;
+<span class="kw">use</span> <span class="ident">substrate_fixed</span>::<span class="ident">types</span>::{<span class="ident">I32F32</span>, <span class="ident">I64F64</span>};
 
 <span class="kw">const</span> <span class="ident">SECONDS_PER_YEAR</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">31557600</span>;
 <span class="kw">const</span> <span class="ident">SECONDS_PER_BLOCK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">6</span>;
@@ -244,15 +261,30 @@
 		}
 	}
 }
-
+<span class="doccomment">/// Convert an annual inflation to a round inflation</span>
+<span class="doccomment">/// round = 1 - (1+annual)^(1/rounds_per_year)</span>
+<span class="kw">fn</span> <span class="ident">perbill_annual_to_perbill_round</span>(<span class="ident">annual</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span>, <span class="ident">rounds_per_year</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span> {
+	<span class="kw">let</span> <span class="ident">exponent</span> <span class="op">=</span> <span class="ident">I32F32</span>::<span class="ident">from_num</span>(<span class="number">1</span>) <span class="op">/</span> <span class="ident">I32F32</span>::<span class="ident">from_num</span>(<span class="ident">rounds_per_year</span>);
+	<span class="kw">let</span> <span class="ident">annual_to_round</span> <span class="op">=</span> <span class="op">|</span><span class="ident">annual</span>: <span class="ident">Perbill</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Perbill</span> {
+		<span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">I32F32</span>::<span class="ident">from_num</span>(<span class="ident">annual</span>.<span class="ident">deconstruct</span>()) <span class="op">/</span> <span class="ident">I32F32</span>::<span class="ident">from_num</span>(<span class="ident">Perbill</span>::<span class="ident">ACCURACY</span>);
+		<span class="kw">let</span> <span class="ident">y</span>: <span class="ident">I64F64</span> <span class="op">=</span> <span class="ident">floatpow</span>(<span class="ident">I32F32</span>::<span class="ident">from_num</span>(<span class="number">1</span>) <span class="op">+</span> <span class="ident">x</span>, <span class="ident">exponent</span>)
+			.<span class="ident">expect</span>(<span class="string">&quot;Cannot overflow since rounds_per_year is u32 so worst case 0; QED&quot;</span>);
+		<span class="ident">Perbill</span>::<span class="ident">from_parts</span>(
+			((<span class="ident">y</span> <span class="op">-</span> <span class="ident">I64F64</span>::<span class="ident">from_num</span>(<span class="number">1</span>)) <span class="op">*</span> <span class="ident">I64F64</span>::<span class="ident">from_num</span>(<span class="ident">Perbill</span>::<span class="ident">ACCURACY</span>))
+				.<span class="ident">ceil</span>()
+				.<span class="ident">to_num</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(),
+		)
+	};
+	<span class="ident">Range</span> {
+		<span class="ident">min</span>: <span class="ident">annual_to_round</span>(<span class="ident">annual</span>.<span class="ident">min</span>),
+		<span class="ident">ideal</span>: <span class="ident">annual_to_round</span>(<span class="ident">annual</span>.<span class="ident">ideal</span>),
+		<span class="ident">max</span>: <span class="ident">annual_to_round</span>(<span class="ident">annual</span>.<span class="ident">max</span>),
+	}
+}
 <span class="doccomment">/// Convert annual inflation rate range to round inflation range</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">annual_to_round</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="ident">annual</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span> {
 	<span class="kw">let</span> <span class="ident">periods</span> <span class="op">=</span> <span class="ident">rounds_per_year</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
-	<span class="ident">Range</span> {
-		<span class="ident">min</span>: <span class="ident">Perbill</span>::<span class="ident">from_parts</span>(<span class="ident">annual</span>.<span class="ident">min</span>.<span class="ident">deconstruct</span>() <span class="op">/</span> <span class="ident">periods</span>),
-		<span class="ident">ideal</span>: <span class="ident">Perbill</span>::<span class="ident">from_parts</span>(<span class="ident">annual</span>.<span class="ident">ideal</span>.<span class="ident">deconstruct</span>() <span class="op">/</span> <span class="ident">periods</span>),
-		<span class="ident">max</span>: <span class="ident">Perbill</span>::<span class="ident">from_parts</span>(<span class="ident">annual</span>.<span class="ident">max</span>.<span class="ident">deconstruct</span>() <span class="op">/</span> <span class="ident">periods</span>),
-	}
+	<span class="ident">perbill_annual_to_perbill_round</span>(<span class="ident">annual</span>, <span class="ident">periods</span>)
 }
 
 <span class="doccomment">/// Compute round issuance range from round inflation range and current total issuance</span>
@@ -298,11 +330,7 @@
 <span class="kw">mod</span> <span class="ident">tests</span> {
 	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 	<span class="kw">fn</span> <span class="ident">mock_annual_to_round</span>(<span class="ident">annual</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span>, <span class="ident">rounds_per_year</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span> {
-		<span class="ident">Range</span> {
-			<span class="ident">min</span>: <span class="ident">Perbill</span>::<span class="ident">from_parts</span>(<span class="ident">annual</span>.<span class="ident">min</span>.<span class="ident">deconstruct</span>() <span class="op">/</span> <span class="ident">rounds_per_year</span>),
-			<span class="ident">ideal</span>: <span class="ident">Perbill</span>::<span class="ident">from_parts</span>(<span class="ident">annual</span>.<span class="ident">ideal</span>.<span class="ident">deconstruct</span>() <span class="op">/</span> <span class="ident">rounds_per_year</span>),
-			<span class="ident">max</span>: <span class="ident">Perbill</span>::<span class="ident">from_parts</span>(<span class="ident">annual</span>.<span class="ident">max</span>.<span class="ident">deconstruct</span>() <span class="op">/</span> <span class="ident">rounds_per_year</span>),
-		}
+		<span class="ident">perbill_annual_to_perbill_round</span>(<span class="ident">annual</span>, <span class="ident">rounds_per_year</span>)
 	}
 	<span class="kw">fn</span> <span class="ident">mock_round_issuance_range</span>(
 		<span class="comment">// Total circulating before minting</span>
@@ -322,9 +350,9 @@
 		<span class="comment">// let&#39;s assume there are 10 periods in a year</span>
 		<span class="comment">// =&gt; mint 500_000 over 10 periods =&gt; 50_000 minted per period</span>
 		<span class="kw">let</span> <span class="ident">expected_round_issuance_range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Range</span> {
-			<span class="ident">min</span>: <span class="number">50_000</span>,
-			<span class="ident">ideal</span>: <span class="number">50_000</span>,
-			<span class="ident">max</span>: <span class="number">50_000</span>,
+			<span class="ident">min</span>: <span class="number">48_909</span>,
+			<span class="ident">ideal</span>: <span class="number">48_909</span>,
+			<span class="ident">max</span>: <span class="number">48_909</span>,
 		};
 		<span class="kw">let</span> <span class="ident">schedule</span> <span class="op">=</span> <span class="ident">Range</span> {
 			<span class="ident">min</span>: <span class="ident">Perbill</span>::<span class="ident">from_percent</span>(<span class="number">5</span>),
@@ -342,9 +370,9 @@
 		<span class="comment">// let&#39;s assume there are 10 periods in a year</span>
 		<span class="comment">// =&gt; mint 300_000-500_000 over 10 periods =&gt; 30_000-50_000 minted per period</span>
 		<span class="kw">let</span> <span class="ident">expected_round_issuance_range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Range</span> {
-			<span class="ident">min</span>: <span class="number">30_000</span>,
-			<span class="ident">ideal</span>: <span class="number">40_000</span>,
-			<span class="ident">max</span>: <span class="number">50_000</span>,
+			<span class="ident">min</span>: <span class="number">29_603</span>,
+			<span class="ident">ideal</span>: <span class="number">39298</span>,
+			<span class="ident">max</span>: <span class="number">48_909</span>,
 		};
 		<span class="kw">let</span> <span class="ident">schedule</span> <span class="op">=</span> <span class="ident">Range</span> {
 			<span class="ident">min</span>: <span class="ident">Perbill</span>::<span class="ident">from_percent</span>(<span class="number">3</span>),
@@ -359,9 +387,9 @@
 	<span class="attribute">#[<span class="ident">test</span>]</span>
 	<span class="kw">fn</span> <span class="ident">expected_parameterization</span>() {
 		<span class="kw">let</span> <span class="ident">expected_round_schedule</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Range</span> {
-			<span class="ident">min</span>: <span class="number">46</span>,
-			<span class="ident">ideal</span>: <span class="number">57</span>,
-			<span class="ident">max</span>: <span class="number">57</span>,
+			<span class="ident">min</span>: <span class="number">45</span>,
+			<span class="ident">ideal</span>: <span class="number">56</span>,
+			<span class="ident">max</span>: <span class="number">56</span>,
 		};
 		<span class="kw">let</span> <span class="ident">schedule</span> <span class="op">=</span> <span class="ident">Range</span> {
 			<span class="ident">min</span>: <span class="ident">Perbill</span>::<span class="ident">from_percent</span>(<span class="number">4</span>),
