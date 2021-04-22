@@ -48,30 +48,19 @@ where
 		if input.len() < 4 {
 			return Err(ExitError::Other("input length less than 4 bytes".into()));
 		}
-		const COLLATOR_SIZE_BYTES: usize = 20;
-		const AMOUNT_SIZE_BYTES: usize = 32;
-		const TOTAL_SIZE_BYTES: usize =
-			SELECTOR_SIZE_BYTES + COLLATOR_SIZE_BYTES + AMOUNT_SIZE_BYTES;
 
-		if input.len() != TOTAL_SIZE_BYTES {
-			log::info!(
-				"Aborting because input length was invalid. Got {} bytes, expected {}",
-				input.len(),
-				TOTAL_SIZE_BYTES,
-			);
-			return Err(ExitError::Other(
-				"input length for Sacrifice must be exactly 16 bytes".into(),
-			));
-		}
-
-		log::info!("Made it past length check");
+		log::info!("Made it past preliminary length check");
 
 		// Parse the function selector
-		// match input[0..SELECTOR_SIZE_BYTES] {
-		// 	i if i == hex::decode("82f2c8df") => {}
-		// }
+		let inner_call = match input[0..SELECTOR_SIZE_BYTES] {
+			[0x82, 0xf2, 0xc8, 0xdf] => Self::nominate(&input[SELECTOR_SIZE_BYTES..])?,
+			_ => {
+				return Err(ExitError::Other(
+					"No staking wrapper methd at selector given selector".into(),
+				));
+			}
+		};
 
-		let inner_call = Self::nominate(&input[SELECTOR_SIZE_BYTES..])?;
 		let outer_call: Runtime::Call = inner_call.into();
 		let info = outer_call.get_dispatch_info();
 
@@ -152,5 +141,9 @@ where
 			collator.into(),
 			amount,
 		))
+	}
+
+	fn join_candidates(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
+		todo!()
 	}
 }

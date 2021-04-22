@@ -132,8 +132,9 @@ impl ExtBuilder {
 	}
 }
 
-//TODO I love having these easy-to-reference Accounts. What if we make an enum and use it as account ID?
 const ALICE: [u8; 20] = [4u8; 20];
+// You can use this to test endianness.
+// const ALICE: [u8; 20] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
 const BOB: [u8; 20] = [5u8; 20];
 const CHARLIE: [u8; 20] = [6u8; 20];
 const DAVE: [u8; 20] = [7u8; 20];
@@ -370,11 +371,9 @@ fn nominate_via_precompile() {
 			let gas_price: U256 = 1000.into();
 			let nomination_amount: U256 = (1000 * GLMR).into();
 
+			// Construct the call data (selector, collator, nomination amount)
 			let mut call_data = Vec::<u8>::from([0u8; 56]);
-
-			//TODO Put in the actual selector. For now we just need any four bytes.
-			call_data[0..4].copy_from_slice(&[0, 0, 0, 0]);
-			//TODO consider endianness here. Alice is symmetric.
+			call_data[0..4].copy_from_slice(&hex_literal::hex!("82f2c8df"));
 			call_data[4..24].copy_from_slice(&ALICE);
 			nomination_amount.to_big_endian(&mut call_data[24..56]);
 
