@@ -22,7 +22,7 @@ use moonbeam_rpc_primitives_debug::single::{TraceType, TransactionTrace};
 use ethereum_types::{H160, U256};
 use evm::{
 	executor::{StackExecutor, StackState as StackStateT, StackSubstateMetadata},
-	Capture, Config as EvmConfig, Context, CreateScheme, Transfer,
+	Capture, Config as EvmConfig, Context, CreateScheme, gasometer, Transfer,
 };
 use pallet_evm::{
 	runner::stack::{Runner, SubstrateStackState},
@@ -158,6 +158,14 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		let state = SubstrateStackState::new(&vicinity, metadata);
 		let mut executor =
 			StackExecutor::new_with_precompile(state, config, T::Precompiles::execute);
+
+		let transaction_cost = gasometer::create_transaction_cost(&input);
+		let _ = executor
+			.state_mut()
+			.metadata_mut()
+			.gasometer_mut()
+			.record_transaction(transaction_cost)?;
+
 		let context = Context {
 			caller: source,
 			address: target,
@@ -204,6 +212,13 @@ impl<T: Config> TraceRunner<T> for Runner<T> {
 		let state = SubstrateStackState::new(&vicinity, metadata);
 		let mut executor =
 			StackExecutor::new_with_precompile(state, config, T::Precompiles::execute);
+		let transaction_cost = gasometer::create_transaction_cost(&init);
+		let _ = executor
+			.state_mut()
+			.metadata_mut()
+			.gasometer_mut()
+			.record_transaction(transaction_cost)?;
+
 		let scheme = CreateScheme::Legacy { caller: source };
 		Self::execute_create(&mut executor, trace_type, |executor| {
 			executor.trace_create(source, scheme, value, init, Some(gas_limit as u64))
