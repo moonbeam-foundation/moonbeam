@@ -53,6 +53,8 @@ contract ParachainStaking {
 // https://ethereum.stackexchange.com/a/73405/9963
 // Eventually we will probably want a better way of generating these and copying them to Rust
 // {
+// 	"8e5080e7": "is_nominator(address)"
+//
 // 	"ad76ed5a": "join_candidates(uint256)",
 // 	"b7694219": "leave_candidates()",
 // 	"767e0450": "go_offline()",
