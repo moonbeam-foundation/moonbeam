@@ -62,10 +62,6 @@ fn purge_chain_purges_relay_and_para() {
 			.arg("--chain")
 			.arg("local")
 			.arg("--")
-			// I don't understand why manually specifying the relay chain here makes this work.
-			// It is detected from the spec just fine when actually running the command
-			.arg("--chain")
-			.arg("rococo-local")
 			.spawn()
 			.unwrap();
 
