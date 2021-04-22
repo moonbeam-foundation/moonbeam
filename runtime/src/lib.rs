@@ -488,6 +488,7 @@ impl parachain_staking::Config for Runtime {
 	type MinCollatorCandidateStk = MinCollatorStk;
 	type MinNomination = MinNominatorStk;
 	type MinNominatorStk = MinNominatorStk;
+	type WeightInfo = parachain_staking::weights::SubstrateWeight<Runtime>;
 }
 impl author_inherent::Config for Runtime {
 	type EventHandler = ParachainStaking;
