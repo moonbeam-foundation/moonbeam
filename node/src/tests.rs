@@ -66,7 +66,7 @@ fn purge_chain_purges_relay_and_para() {
 			.unwrap();
 
 		// Let it produce some blocks.
-		thread::sleep(Duration::from_secs(10));
+		thread::sleep(Duration::from_secs(20));
 		assert!(
 			cmd.try_wait().unwrap().is_none(),
 			"the process should still be running"
@@ -74,7 +74,7 @@ fn purge_chain_purges_relay_and_para() {
 
 		// Stop the process
 		kill(Pid::from_raw(cmd.id().try_into().unwrap()), SIGINT).unwrap();
-		assert!(wait_for(&mut cmd, 10)
+		assert!(wait_for(&mut cmd, 30)
 			.map(|x| x.success())
 			.unwrap_or_default());
 
