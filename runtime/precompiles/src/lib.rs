@@ -26,51 +26,9 @@ use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_simple::{ECRecover, Identity, Ripemd160, Sha256};
 use sp_core::H160;
 use sp_std::{marker::PhantomData, vec::Vec};
-use sp_io::offchain;
-use sp_core::offchain::Duration;
 
-/// A precompile intended to burn gas and/or time without actually doing any work.
-/// Meant for testing.
-///
-/// Expects call data to include two u64 values:
-/// 1) The gas to sacrifice (charge)
-/// 2) The time in msec to sleep
-/// TODO: use feature flags / somehow prevent this from deployment onto live networks (or not?)
-struct Sacrifice;
-
-impl Precompile for Sacrifice {
-	fn execute(
-		input: &[u8],
-		target_gas: Option<u64>,
-		_context: &Context,
-	) -> core::result::Result<(ExitSucceed, Vec<u8>, u64), ExitError> {
-		const INPUT_SIZE_BYTES: usize = 8;
-
-		// input should be exactly 8 bytes (one 64-bit unsigned int)
-		if input.len() != INPUT_SIZE_BYTES {
-			return Err(ExitError::Other(
-				"input length for Sacrifice must be exactly 8 bytes".into()));
-		}
-
-		// create 8-byte buffers and populate them from calldata...
-		let mut gas_cost_buf: [u8; 8] = [0; 8];
-		gas_cost_buf.copy_from_slice(&input[0..8]);
-
-		// then read them into a u64 as big-endian...
-		let gas_cost = u64::from_be_bytes(gas_cost_buf);
-
-		// ensure we can afford our sacrifice...
-		if let Some(gas_left) = target_gas {
-			if gas_left < gas_cost {
-				return Err(ExitError::OutOfGas);
-			}
-		}
-		
-		// TODO: impose gas-per-second constraint?
-
-		Ok((ExitSucceed::Returned, [0u8; 0].to_vec(), gas_cost))
-	}
-}
+pub mod sacrifice;
+use sacrifice::Sacrifice;
 
 /// The PrecompileSet installed in the Moonbeam runtime.
 /// We include the nine Istanbul precompiles
@@ -112,88 +70,4 @@ where
 
 fn hash(a: u64) -> H160 {
 	H160::from_low_u64_be(a)
-}
-
-#[cfg(test)]
-mod tests {
-	use super::*;
-	use std::time::{Duration, Instant};
-	// use sp_io::TestExternalities; XXX
-	extern crate hex;
-
-	/*
-	 * XXX
-	pub fn new_test_ext() -> TestExternalities {
-		let t = frame_system::GenesisConfig::default()
-			.build_storage::<Test>()
-			.unwrap();
-		TestExternalities::new(t)
-	}
-	*/
-
-	#[test]
-	fn test_invalid_input_length() -> std::result::Result<(), ExitError> {
-		let cost: u64 = 1;
-
-		// TODO: this is very not-DRY, it would be nice to have a default / test impl in Frontier
-		let context: Context = Context {
-			address: Default::default(),
-			caller: Default::default(),
-			apparent_value: From::from(0),
-		};
-
-		// should fail with input of 7 byte length
-		let input: [u8; 7] = [0; 7];
-		assert_eq!(
-			Sacrifice::execute(&input, Some(cost), &context),
-			Err(ExitError::Other("input length for Sacrifice must be exactly 8 bytes".into())),
-		);
-
-		// should fail with input of 9 byte length
-		let input: [u8; 9] = [0; 9];
-		assert_eq!(
-			Sacrifice::execute(&input, Some(cost), &context),
-			Err(ExitError::Other("input length for Sacrifice must be exactly 8 bytes".into())),
-		);
-
-		Ok(())
-	}
-
-	#[test]
-	fn test_gas_consumption() -> std::result::Result<(), ExitError> {
-		let mut input: [u8; 8] = [0; 8];
-		input[..8].copy_from_slice(&123456_u64.to_be_bytes());
-
-		let context: Context = Context {
-			address: Default::default(),
-			caller: Default::default(),
-			apparent_value: From::from(0),
-		};
-
-		assert_eq!(
-			Sacrifice::execute(&input, None, &context),
-			Ok((ExitSucceed::Returned, [0u8; 0].to_vec(), 123456)),
-		);
-
-		Ok(())
-	}
-
-	#[test]
-	fn test_oog() -> std::result::Result<(), ExitError> {
-		let mut input: [u8; 8] = [0; 8];
-		input[..8].copy_from_slice(&100_u64.to_be_bytes());
-
-		let context: Context = Context {
-			address: Default::default(),
-			caller: Default::default(),
-			apparent_value: From::from(0),
-		};
-
-		assert_eq!(
-			Sacrifice::execute(&input, Some(99), &context),
-			Err(ExitError::OutOfGas),
-		);
-
-		Ok(())
-	}
 }
