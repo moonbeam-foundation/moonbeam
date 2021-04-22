@@ -44,9 +44,10 @@ impl Precompile for Sacrifice {
 	) -> core::result::Result<(ExitSucceed, Vec<u8>, u64), ExitError> {
 		const INPUT_SIZE_BYTES: usize = 8;
 
+		log::warn!("Input: {:?}", input);
+
 		// input should be exactly 8 bytes (one 64-bit unsigned int)
 		if input.len() != INPUT_SIZE_BYTES {
-			log::warn!("Input: {:?}", input);
 			return Err(ExitError::Other(
 				"input length for Sacrifice must be exactly 8 bytes".into()));
 		}
@@ -57,6 +58,8 @@ impl Precompile for Sacrifice {
 
 		// then read them into a u64 as big-endian...
 		let gas_cost = u64::from_be_bytes(gas_cost_buf);
+
+		log::warn!("gas_cost from be: {}", gas_cost);
 
 		// ensure we can afford our sacrifice...
 		if let Some(gas_left) = target_gas {
