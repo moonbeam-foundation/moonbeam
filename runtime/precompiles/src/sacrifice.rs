@@ -46,6 +46,7 @@ impl Precompile for Sacrifice {
 
 		// input should be exactly 8 bytes (one 64-bit unsigned int)
 		if input.len() != INPUT_SIZE_BYTES {
+			log::warn!("Input: {:?}", input);
 			return Err(ExitError::Other(
 				"input length for Sacrifice must be exactly 8 bytes".into()));
 		}

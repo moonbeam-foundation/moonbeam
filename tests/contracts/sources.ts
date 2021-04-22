@@ -285,4 +285,21 @@ export const contractSources: { [key: string]: string } = {
             chainid = block.chainid;
         }
     }`,
+  SacrificeWrapper: `
+  pragma solidity >=0.8.0;
+  contract SacrificeWrapper {
+    function sacrifice(uint64 amount) public {
+      bool success;
+      uint64[1] memory input = [
+        amount
+      ];
+
+      uint256[1] memory result;
+
+      assembly {
+        success := call(sub(gas(), 2000), 0x01FF, 0, input, 8, result, 0)
+      }
+      require(success, "Sacrifice call failed");
+    }
+  }`,
 };
