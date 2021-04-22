@@ -147,6 +147,41 @@ fn inherent_origin() -> <Runtime as frame_system::Config>::Origin {
 	<Runtime as frame_system::Config>::Origin::none()
 }
 
+/// Mock the inherent that sets author in `author-inherent`
+fn set_author(a: AccountId) {
+	assert_ok!(
+		Call::AuthorInherent(author_inherent::Call::<Runtime>::set_author(a))
+			.dispatch(inherent_origin())
+	);
+}
+
+/// Mock the inherent that sets validation data in ParachainSystem, which
+/// contains the `relay_chain_block_number`, which is used in `author-filter` as a
+/// source of randomness to filter valid authors at each block.
+fn set_parachain_inherent_data() {
+	use cumulus_primitives_core::PersistedValidationData;
+	use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
+	let (relay_parent_storage_root, relay_chain_state) =
+		RelayStateSproofBuilder::default().into_state_root_and_proof();
+	let vfp = PersistedValidationData {
+		relay_parent_number: 1u32,
+		relay_parent_storage_root,
+		..Default::default()
+	};
+	let parachain_inherent_data = ParachainInherentData {
+		validation_data: vfp,
+		relay_chain_state: relay_chain_state,
+		downward_messages: Default::default(),
+		horizontal_messages: Default::default(),
+	};
+	assert_ok!(Call::ParachainSystem(
+		cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data(
+			parachain_inherent_data
+		)
+	)
+	.dispatch(inherent_origin()));
+}
+
 #[test]
 fn join_collator_candidates() {
 	ExtBuilder::default()
@@ -245,7 +280,6 @@ fn transfer_through_evm_to_stake() {
 				2_000 * GLMR,
 			));
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 2_000 * GLMR,);
-			use sp_core::U256;
 			let gas_limit = 100000u64;
 			let gas_price: U256 = 1000.into();
 			// Bob transfers 1000 GLMR to Charlie via EVM
@@ -302,37 +336,7 @@ fn reward_block_authors() {
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
-			use cumulus_primitives_core::PersistedValidationData;
-			use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
-			let (relay_parent_storage_root, relay_chain_state) =
-				RelayStateSproofBuilder::default().into_state_root_and_proof();
-			let vfp = PersistedValidationData {
-				relay_parent_number: 1u32,
-				relay_parent_storage_root,
-				..Default::default()
-			};
-			let parachain_inherent_data = ParachainInherentData {
-				validation_data: vfp,
-				relay_chain_state: relay_chain_state,
-				downward_messages: Default::default(),
-				horizontal_messages: Default::default(),
-			};
-			// Mock the inherent that sets validation data in ParachainSystem, which
-			// contains the `relay_chain_block_number`, which is used in `author-filter` as a
-			// source of randomness to filter valid authors at each block.
-			assert_ok!(Call::ParachainSystem(
-				cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data(
-					parachain_inherent_data
-				)
-			)
-			.dispatch(inherent_origin()));
-			// Mock the inherent that sets author in `author-inherent`
-			fn set_author(a: AccountId) {
-				assert_ok!(
-					Call::AuthorInherent(author_inherent::Call::<Runtime>::set_author(a))
-						.dispatch(inherent_origin())
-				);
-			}
+			set_parachain_inherent_data();
 			for x in 2..1201 {
 				set_author(AccountId::from(ALICE));
 				run_to_block(x);
@@ -479,3 +483,370 @@ fn join_candidates_via_precompile() {
 			);
 		});
 }
+
+#[test]
+fn go_online_offline_via_precompile() {
+	ExtBuilder::default()
+		.with_balances(vec![(AccountId::from(ALICE), 2_000 * GLMR)])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.build()
+		.execute_with(|| {
+			// Alice is initialized as a candidate
+			assert!(ParachainStaking::is_candidate(&AccountId::from(ALICE)));
+			let staking_precompile_address = H160::from_low_u64_be(256);
+
+			// Alice uses the staking precompile to go offline
+			let gas_limit = 100000u64;
+			let gas_price: U256 = 1000.into();
+
+			// Construct the go_offline call data
+			let mut go_offline_call_data = Vec::<u8>::from([0u8; 4]);
+			go_offline_call_data[0..4].copy_from_slice(&hex_literal::hex!("767e0450"));
+
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
+				AccountId::from(ALICE),
+				staking_precompile_address,
+				go_offline_call_data,
+				U256::zero(), // No value sent in EVM
+				gas_limit,
+				gas_price,
+				None, // Use the next nonce
+			))
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+
+			// Check for the right events.
+			let mut expected_events = vec![
+				Event::parachain_staking(parachain_staking::Event::CollatorWentOffline(
+					1,
+					AccountId::from(ALICE),
+				)),
+				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+					staking_precompile_address,
+				)),
+			];
+
+			assert_eq!(
+				System::events()
+					.into_iter()
+					.map(|e| e.event)
+					.collect::<Vec<_>>(),
+				expected_events
+			);
+
+			// Construct the go_online call data
+			let mut go_online_call_data = Vec::<u8>::from([0u8; 4]);
+			go_online_call_data[0..4].copy_from_slice(&hex_literal::hex!("d2f73ceb"));
+
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
+				AccountId::from(ALICE),
+				staking_precompile_address,
+				go_online_call_data,
+				U256::zero(), // No value sent in EVM
+				gas_limit,
+				gas_price,
+				None, // Use the next nonce
+			))
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+
+			// Check for the right events.
+			let mut new_events = vec![
+				Event::parachain_staking(parachain_staking::Event::CollatorBackOnline(
+					1,
+					AccountId::from(ALICE),
+				)),
+				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+					staking_precompile_address,
+				)),
+			];
+			expected_events.append(&mut new_events);
+
+			assert_eq!(
+				System::events()
+					.into_iter()
+					.map(|e| e.event)
+					.collect::<Vec<_>>(),
+				expected_events
+			);
+		});
+}
+
+#[test]
+fn candidate_bond_more_less_via_precompile() {
+	ExtBuilder::default()
+		.with_balances(vec![(AccountId::from(ALICE), 3_000 * GLMR)])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.build()
+		.execute_with(|| {
+			// Alice is initialized as a candidate
+			assert!(ParachainStaking::is_candidate(&AccountId::from(ALICE)));
+			let staking_precompile_address = H160::from_low_u64_be(256);
+
+			// Alice uses the staking precompile to bond more
+			let gas_limit = 100000u64;
+			let gas_price: U256 = 1000.into();
+
+			// Construct the candidate_bond_more call
+			let mut bond_more_call_data = Vec::<u8>::from([0u8; 36]);
+			bond_more_call_data[0..4].copy_from_slice(&hex_literal::hex!("c57bd3a8"));
+			let bond_more_amount: U256 = (1000 * GLMR).into();
+			bond_more_amount.to_big_endian(&mut bond_more_call_data[4..36]);
+
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
+				AccountId::from(ALICE),
+				staking_precompile_address,
+				bond_more_call_data,
+				U256::zero(), // No value sent in EVM
+				gas_limit,
+				gas_price,
+				None, // Use the next nonce
+			))
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+
+			// Check for the right events.
+			let mut expected_events = vec![
+				Event::pallet_balances(pallet_balances::Event::Reserved(
+					AccountId::from(ALICE),
+					1_000 * GLMR,
+				)),
+				Event::parachain_staking(parachain_staking::Event::CollatorBondedMore(
+					AccountId::from(ALICE),
+					1_000 * GLMR,
+					2_000 * GLMR,
+				)),
+				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+					staking_precompile_address,
+				)),
+			];
+
+			assert_eq!(
+				System::events()
+					.into_iter()
+					.map(|e| e.event)
+					.collect::<Vec<_>>(),
+				expected_events
+			);
+
+			// Construct the go_online call data
+			let mut bond_less_call_data = Vec::<u8>::from([0u8; 36]);
+			bond_less_call_data[0..4].copy_from_slice(&hex_literal::hex!("289b6ba7"));
+			let bond_less_amount: U256 = (500 * GLMR).into();
+			bond_less_amount.to_big_endian(&mut bond_less_call_data[4..36]);
+
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
+				AccountId::from(ALICE),
+				staking_precompile_address,
+				bond_less_call_data,
+				U256::zero(), // No value sent in EVM
+				gas_limit,
+				gas_price,
+				None, // Use the next nonce
+			))
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+
+			// Check for the right events.
+			let mut new_events = vec![
+				Event::pallet_balances(pallet_balances::Event::Unreserved(
+					AccountId::from(ALICE),
+					500 * GLMR,
+				)),
+				Event::parachain_staking(parachain_staking::Event::CollatorBondedLess(
+					AccountId::from(ALICE),
+					2_000 * GLMR,
+					1_500 * GLMR,
+				)),
+				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+					staking_precompile_address,
+				)),
+			];
+			expected_events.append(&mut new_events);
+
+			assert_eq!(
+				System::events()
+					.into_iter()
+					.map(|e| e.event)
+					.collect::<Vec<_>>(),
+				expected_events
+			);
+		});
+}
+
+#[test]
+fn nominator_bond_more_less_via_precompile() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 1_000 * GLMR),
+			(AccountId::from(BOB), 1_500 * GLMR),
+		])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_nominators(vec![(
+			AccountId::from(BOB),
+			AccountId::from(ALICE),
+			500 * GLMR,
+		)])
+		.build()
+		.execute_with(|| {
+			// Bob is initialized as a nominator
+			assert!(ParachainStaking::is_nominator(&AccountId::from(BOB)));
+			let staking_precompile_address = H160::from_low_u64_be(256);
+
+			// Alice uses the staking precompile to bond more
+			let gas_limit = 100000u64;
+			let gas_price: U256 = 1000.into();
+
+			// Construct the nominator_bond_more call
+			let mut bond_more_call_data = Vec::<u8>::from([0u8; 56]);
+			bond_more_call_data[0..4].copy_from_slice(&hex_literal::hex!("971d44c8"));
+			bond_more_call_data[4..24].copy_from_slice(&ALICE);
+			let bond_more_amount: U256 = (500 * GLMR).into();
+			bond_more_amount.to_big_endian(&mut bond_more_call_data[24..56]);
+
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
+				AccountId::from(BOB),
+				staking_precompile_address,
+				bond_more_call_data,
+				U256::zero(), // No value sent in EVM
+				gas_limit,
+				gas_price,
+				None, // Use the next nonce
+			))
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+
+			// Check for the right events.
+			let mut expected_events = vec![
+				Event::pallet_balances(pallet_balances::Event::Reserved(
+					AccountId::from(BOB),
+					500 * GLMR,
+				)),
+				Event::parachain_staking(parachain_staking::Event::NominationIncreased(
+					AccountId::from(BOB),
+					AccountId::from(ALICE),
+					1_500 * GLMR,
+					2_000 * GLMR,
+				)),
+				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+					staking_precompile_address,
+				)),
+			];
+
+			assert_eq!(
+				System::events()
+					.into_iter()
+					.map(|e| e.event)
+					.collect::<Vec<_>>(),
+				expected_events
+			);
+
+			// Construct the go_online call data
+			let mut bond_less_call_data = Vec::<u8>::from([0u8; 56]);
+			bond_less_call_data[0..4].copy_from_slice(&hex_literal::hex!("f6a52569"));
+			bond_less_call_data[4..24].copy_from_slice(&ALICE);
+			let bond_less_amount: U256 = (500 * GLMR).into();
+			bond_less_amount.to_big_endian(&mut bond_less_call_data[24..56]);
+
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
+				AccountId::from(BOB),
+				staking_precompile_address,
+				bond_less_call_data,
+				U256::zero(), // No value sent in EVM
+				gas_limit,
+				gas_price,
+				None, // Use the next nonce
+			))
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+
+			// Check for the right events.
+			let mut new_events = vec![
+				Event::pallet_balances(pallet_balances::Event::Unreserved(
+					AccountId::from(BOB),
+					500 * GLMR,
+				)),
+				Event::parachain_staking(parachain_staking::Event::NominationDecreased(
+					AccountId::from(BOB),
+					AccountId::from(ALICE),
+					2_000 * GLMR,
+					1_500 * GLMR,
+				)),
+				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+					staking_precompile_address,
+				)),
+			];
+			expected_events.append(&mut new_events);
+
+			assert_eq!(
+				System::events()
+					.into_iter()
+					.map(|e| e.event)
+					.collect::<Vec<_>>(),
+				expected_events
+			);
+		});
+}
+
+// #[test]
+// fn leave_candidates_via_precompile() {
+// 	ExtBuilder::default()
+// 		.with_balances(vec![(AccountId::from(ALICE), 2_000 * GLMR), (AccountId::from(BOB), 1_000 * GLMR)])
+// 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR), (AccountId::from(BOB), 1_000 * GLMR)])
+// 		.build()
+// 		.execute_with(|| {
+// 			assert!(ParachainStaking::is_candidate(&AccountId::from(ALICE)));
+// 			let staking_precompile_address = H160::from_low_u64_be(256);
+
+// 			// Alice uses the staking precompile to leave as a candidate through the EVM
+// 			let gas_limit = 100000u64;
+// 			let gas_price: U256 = 1000.into();
+
+// 			// Construct the call data (selector, amount)
+// 			let mut call_data = Vec::<u8>::from([0u8; 4]);
+// 			call_data[0..4].copy_from_slice(&hex_literal::hex!("b7694219"));
+
+// 			run_to_block(1);
+
+// 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
+// 				AccountId::from(ALICE),
+// 				staking_precompile_address,
+// 				call_data,
+// 				U256::zero(), // No value sent in EVM
+// 				gas_limit,
+// 				gas_price,
+// 				None, // Use the next nonce
+// 			))
+// 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+
+// 			println!("Made it past dispatching");
+// 			set_parachain_inherent_data();
+// 			for x in 2..1201 {
+// 				set_author(AccountId::from(BOB));
+// 				run_to_block(x);
+// 			}
+
+// 			// exits are delayed by two rounds
+
+// 			// Assert that Alice is no longer a candidate
+// 			//assert!(!ParachainStaking::is_candidate(&AccountId::from(ALICE)));
+
+// 			// Check for the right events.
+// 			let expected_events = vec![
+// 				Event::pallet_balances(pallet_balances::Event::Reserved(
+// 					AccountId::from(ALICE),
+// 					1000 * GLMR,
+// 				)),
+// 				Event::parachain_staking(parachain_staking::Event::JoinedCollatorCandidates(
+// 					AccountId::from(ALICE),
+// 					1000 * GLMR,
+// 					1000 * GLMR,
+// 				)),
+// 				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+// 					staking_precompile_address,
+// 				)),
+// 			];
+
+// 			assert_eq!(
+// 				System::events()
+// 					.into_iter()
+// 					.map(|e| e.event)
+// 					.collect::<Vec<_>>(),
+// 				expected_events
+// 			);
+// 		});
+// }
