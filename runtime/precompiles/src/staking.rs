@@ -55,6 +55,8 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Result<(ExitSucceed, Vec<u8>, u64), ExitError> {
+		log::info!("In parachain staking wrapper");
+
 		// Basic sanity checking for length
 		// https://solidity-by-example.org/primitives/
 
@@ -65,6 +67,7 @@ where
 		}
 
 		log::info!("Made it past preliminary length check");
+		log::info!("context.caller is {:?}", context.caller);
 
 		// Parse the function selector
 		let inner_call = match input[0..SELECTOR_SIZE_BYTES] {
@@ -80,6 +83,7 @@ where
 			[0xf6, 0xa5, 0x25, 0x69] => Self::nominator_bond_less(&input[SELECTOR_SIZE_BYTES..])?,
 			[0x97, 0x1d, 0x44, 0xc8] => Self::nominator_bond_more(&input[SELECTOR_SIZE_BYTES..])?,
 			_ => {
+				log::info!("Failed to match function selector in staking wrapper precompile");
 				return Err(ExitError::Other(
 					"No staking wrapper method at selector given selector".into(),
 				));
@@ -108,9 +112,12 @@ where
 				//TODO Should this be returned?
 				Ok((ExitSucceed::Stopped, Default::default(), gas_used))
 			}
-			Err(_) => Err(ExitError::Other(
-				"Parachain staking call via EVM failed".into(),
-			)),
+			Err(_) => {
+				log::info!("Parachain staking call via evm failed");
+				Err(ExitError::Other(
+					"Parachain staking call via EVM failed".into(),
+				))
+			}
 		}
 	}
 }

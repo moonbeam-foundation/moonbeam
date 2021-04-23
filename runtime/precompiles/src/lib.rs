@@ -140,6 +140,8 @@ where
 			"In MoonbeamPrecompiles. About to call address {:?}",
 			address
 		);
+		log::info!("context.caller is {:?}", context.caller);
+
 		match address {
 			// Ethereum precompiles :
 			a if a == hash(1) => Some(ECRecover::execute(input, target_gas, context)),
