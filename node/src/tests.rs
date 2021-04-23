@@ -134,6 +134,8 @@ fn builds_specs_based_on_mnemonic() {
 		.arg("3")
 		.output()
 		.unwrap();
+
+	// Gather output as json
 	let chain_spec: serde_json::Value = serde_json::from_slice(output.stdout.as_slice()).unwrap();
 	let expected = json!([
 		[
@@ -209,6 +211,7 @@ fn export_current_state() {
 			.unwrap();
 
 		// Let it produce some blocks.
+		// This fails if is not a minimum of 20
 		thread::sleep(Duration::from_secs(20));
 		assert!(
 			cmd.try_wait().unwrap().is_none(),
@@ -226,6 +229,7 @@ fn export_current_state() {
 	{
 		let base_path = run_node_and_stop();
 
+		// Test whether we can export one of the generated blocks.
 		let output = Command::new(cargo_bin("moonbeam"))
 			.args(&["export-blocks", "-d"])
 			.arg(base_path.path())
