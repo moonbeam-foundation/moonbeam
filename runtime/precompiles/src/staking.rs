@@ -105,6 +105,7 @@ where
 				let gas_used = Runtime::GasWeightMapping::weight_to_gas(
 					post_info.actual_weight.unwrap_or(info.weight),
 				);
+				//TODO Should this be returned?
 				Ok((ExitSucceed::Stopped, Default::default(), gas_used))
 			}
 			Err(_) => Err(ExitError::Other(
