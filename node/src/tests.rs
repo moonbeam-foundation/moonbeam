@@ -74,7 +74,7 @@ fn purge_chain_purges_relay_and_para() {
 
 		// Stop the process
 		kill(Pid::from_raw(cmd.id().try_into().unwrap()), SIGINT).unwrap();
-		assert!(wait_for(&mut cmd, 10)
+		assert!(wait_for(&mut cmd, 30)
 			.map(|x| x.success())
 			.unwrap_or_default());
 
@@ -217,7 +217,7 @@ fn export_current_state() {
 
 		// Stop the process
 		kill(Pid::from_raw(cmd.id().try_into().unwrap()), SIGINT).unwrap();
-		assert!(wait_for(&mut cmd, 10)
+		assert!(wait_for(&mut cmd, 30)
 			.map(|x| x.success())
 			.unwrap_or_default());
 
