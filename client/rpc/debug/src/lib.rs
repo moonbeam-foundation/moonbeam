@@ -112,24 +112,24 @@ where
 					let backend = backend.clone();
 					let frontier_backend = frontier_backend.clone();
 					let permit_pool = permit_pool.clone();
-					let _permit = permit_pool.acquire();
-					let res = async {
-						tokio::task::spawn_blocking(move || {
-							Self::handle_request(
-								client.clone(),
-								backend.clone(),
-								frontier_backend.clone(),
-								transaction_hash,
-								params,
-							)
-						})
-						.await
-						.map_err(|e| {
-							internal_err(format!("Internal error on spawned task : {:?}", e))
-						})?
-					}
-					.await;
-					let _ = response_tx.send(res);
+					tokio::task::spawn(async move {
+						let _ = response_tx.send(async {
+							let _permit = permit_pool.acquire();
+							tokio::task::spawn_blocking(move || {
+								Self::handle_request(
+									client.clone(),
+									backend.clone(),
+									frontier_backend.clone(),
+									transaction_hash,
+									params,
+								)
+							})
+							.await
+							.map_err(|e| {
+								internal_err(format!("Internal error on spawned task : {:?}", e))
+							})?
+						}.await);
+					});
 				}
 			}
 		};
