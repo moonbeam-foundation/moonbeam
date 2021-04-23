@@ -1,80 +1,73 @@
 // SPDX-License-Identifier: GPL-3.0-only
-
 // This is a PoC to use the staking precompile wrapper as a Solidity developer.
-
 pragma solidity >=0.8.0;
-
-import "./ParachainStakingWrapper.sol";
+import "./StakingInterface.sol";
 
 contract NominationDao {
-    // TODO Our precompile should have an accessor for this.
+    // TODO Our interface should have an accessor for this.
     uint256 constant MinNominatorStk = 5 ether;
 
     /// The collator that this DAO is currently nominating
     address public target;
 
-    /// The account that deployed this DAO. Currently this deployer chooses the nomination target
-    /// Once the basic PoC stuff is done we can add cooler actual DAO logic. But for now we want it simple
-    address public deployer;
-
     /// The ParachainStaking wrapper at the known pre-compile address. This will be used to make all calls
     /// to the underlying staking solution
-    ParachainStaking public precompile;
+    ParachainStaking public staking;
 
     /// Whether this DAO currently has a nomination active
     /// TODO Our precompile should have an accessor for this that wraps the pallet's in_nominator.
-    bool public isNominating;
+    bool public isNominating = false;
 
-    //TODO Do we need this constructor at all, or can we initialize this stuff directly.
-    constructor() {
-        // Initialize the deployer and the
-        target = msg.sender;
-        deployer = msg.sender;
+    /// Solely for debugging purposes
+    event Trace(uint256);
 
-        // Instantiate the parachain staking wrapper at the known precompile address (decimal 256)
-        precompile = ParachainStaking(
-            0x0000000000000000000000000000000000000100
-        );
-
-        // We won't nominate until
-        isNominating = false;
+    /// Initialize a new NominationDao dedicated to nominating the given collator target.
+    constructor(address _target, address _staking) {
+        target = _target;
+        staking = ParachainStaking(_staking);
     }
 
-    /// Change the current nomination target.
-    /// Maybe this won't be necessary for the demo, but it's here for now.
-    function change_target(address new_target) public {
-        // Check that the deployer is calling
-        require(msg.sender == deployer);
+    /// Update the on-chain nomination to reflect any recently-contributed nominations.
+    function update_nomination() public {
+        emit Trace(1);
+        emit Trace(MinNominatorStk);
+        emit Trace(address(this).balance);
 
-        // If we already have an active nomination, switch it.
+        //TODO call precompile accessor to check if you're nominating.
         if (isNominating) {
-            // Revoke the old nomination
-            precompile.revoke_nomination(target);
-
-            // Make a new nomination
-            precompile.nominate(new_target, address(this).balance);
-        }
-
-        // Update storage.
-        target = new_target;
-    }
-
-    /// Contribute some funds to the nomination contract
-    /// TODO isn't there a "fallback" function for when people just send eth?
-    /// Maybe we should use that instead of this `contribute`
-    function contribute() public payable {
-        bool min_nomination_met = address(this).balance > MinNominatorStk;
-
-        if (isNominating) {
+            emit Trace(2);
+            //TODO figure out how much more to bond.
+            // Maybe we need more accessors, or to keep track of how much we have bonded so far.
             // Nominate more toward the same existing target
-            precompile.nominator_bond_more(target, msg.value);
-        } else if (min_nomination_met) {
+            // staking.nominator_bond_more(target, msg.value);
+            // TODO it seems like this balance comparison isn't working correctly.
+        } else if (address(this).balance > MinNominatorStk) {
+            emit Trace(3);
             // Make our nomination
-            precompile.nominate(target, address(this).balance);
-
+            staking.nominate(target, address(this).balance);
+            emit Trace(4);
             // Note that we have an active nomination
-            // TODO I guess we should confirm that the precompile call was usccessful first.
+            // TODO I guess we should confirm that the precompile call was successful first.
             isNominating = true;
+        } else {
+            emit Trace(1024);
         }
     }
+
+    /// Calls directly into the interface.
+    /// Assumes the contract has atleast 10 ether so that the nomination will be successful.
+    function unsafe_attempt_to_nominate() public {
+        staking.nominate(target, 10 ether);
+    }
+
+    // So the notion of fallback funtion got split
+    // https://blog.soliditylang.org/2020/03/26/fallback-receive-split/
+    // Maybe I don't need any fallback function at all. Can I just receive ether?
+    // function receive() {
+    //   // It would be nice to call update_nomination here s it happens automatically.
+    //   // but there was some note about limited gas being available. We wouldn't want
+    //   // running out of gas to be the thing that prevented us from accepting a donation.
+    //   // If we still get the funds even when we run out of gas, then I don't see any harm
+    //   // in triggering the update here.
+    // }
 }
