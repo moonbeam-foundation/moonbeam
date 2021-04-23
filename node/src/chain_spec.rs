@@ -21,6 +21,7 @@
 
 use bip39::{Language, Mnemonic, Seed};
 use cumulus_primitives_core::ParaId;
+use evm::GenesisAccount;
 use log::debug;
 use moonbeam_runtime::{
 	AccountId, Balance, BalancesConfig, CouncilCollectiveConfig, DemocracyConfig, EVMConfig,
@@ -247,7 +248,26 @@ pub fn testnet_genesis(
 		},
 		pallet_ethereum_chain_id: EthereumChainIdConfig { chain_id },
 		pallet_evm: EVMConfig {
-			accounts: BTreeMap::new(),
+			// We need _some_ code inserted at the precompile address so that
+			// the evm will actually call the address.
+			// TODO Cleanly fetch the addresses from
+			// the runtime/moonbeam precompiles and systematically fill them with code
+			// that will revert if it is called by accident (it shouldn't be because
+			// it is shadowed by the precompile).
+			// This one is for the parachain staking precompile wrappers
+			accounts: {
+				let mut accts = BTreeMap::new();
+				accts.insert(
+					H160::from_low_u64_be(256),
+					GenesisAccount {
+						nonce: Default::default(),
+						balance: Default::default(),
+						storage: Default::default(),
+						code: vec![42],
+					},
+				);
+				accts
+			},
 		},
 		pallet_ethereum: EthereumConfig {},
 		pallet_democracy: DemocracyConfig {},
