@@ -58,16 +58,20 @@ contract NominationDao {
     /// Assumes the contract has atleast 10 ether so that the nomination will be successful.
     function unsafe_attempt_to_nominate() public {
         staking.nominate(target, 10 ether);
+
+        //TODO maybe it is this solidity notation that isn't working.
+        // How can we call the precompile directly from assembly?
+        // Or using that .call stuff I've seen online https://ethereum.stackexchange.com/q/2826/9963
     }
 
     // So the notion of fallback funtion got split
     // https://blog.soliditylang.org/2020/03/26/fallback-receive-split/
     // Maybe I don't need any fallback function at all. Can I just receive ether?
-    // function receive() {
-    //   // It would be nice to call update_nomination here s it happens automatically.
-    //   // but there was some note about limited gas being available. We wouldn't want
-    //   // running out of gas to be the thing that prevented us from accepting a donation.
-    //   // If we still get the funds even when we run out of gas, then I don't see any harm
-    //   // in triggering the update here.
-    // }
+    receive() external payable {
+        // It would be nice to call update_nomination here s it happens automatically.
+        // but there was some note about limited gas being available. We wouldn't want
+        // running out of gas to be the thing that prevented us from accepting a donation.
+        // If we still get the funds even when we run out of gas, then I don't see any harm
+        // in triggering the update here.
+    }
 }
