@@ -6,7 +6,7 @@ mod common;
 #[cfg(unix)]
 fn builds_specs_based_on_mnemonic() {
 	use serde_json::json;
-	use std::process::Command; 
+	use std::process::Command;
 	let output = Command::new(cargo_bin("moonbeam"))
 		.arg("build-spec")
 		.arg("--dev")

@@ -19,12 +19,18 @@ fn purge_chain_purges_relay_and_para() {
 			.arg(base_path.path())
 			.arg("--chain")
 			.arg("local")
+			.arg("--dev-service")
+			.arg("--sealing")
+			.arg("100")
+			.arg("--collator")
+			.arg("--author-id")
+			.arg("0x6be02d1d3665660d22ff9624b7be0551ee1ac91b")
 			.arg("--")
 			.spawn()
 			.unwrap();
 
 		// Let it produce some blocks.
-		thread::sleep(Duration::from_secs(20));
+		thread::sleep(Duration::from_secs(5));
 		assert!(
 			cmd.try_wait().unwrap().is_none(),
 			"the process should still be running"
@@ -32,7 +38,7 @@ fn purge_chain_purges_relay_and_para() {
 
 		// Stop the process
 		kill(Pid::from_raw(cmd.id().try_into().unwrap()), SIGINT).unwrap();
-		assert!(common::wait_for(&mut cmd, 30)
+		assert!(common::wait_for(&mut cmd, 5)
 			.map(|x| x.success())
 			.unwrap_or_default());
 
