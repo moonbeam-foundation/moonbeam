@@ -166,47 +166,19 @@ fn builds_specs_based_on_mnemonic() {
 #[test]
 #[cfg(unix)]
 fn export_genesis_state() {
-	use nix::{
-		sys::signal::{kill, Signal::SIGINT},
-		unistd::Pid,
-	};
-
-	let base_path = tempfile::tempdir().unwrap();
-	
-	let mut cmd = Command::new(cargo_bin("moonbeam"))
-		.arg("-d")
-		.arg(base_path.path())
-		.arg("--chain")
-		.arg("local")
-		.arg("--")
-		.spawn()
-		.unwrap();
-
-	// Let it produce some blocks (roughly 20).
-	thread::sleep(Duration::from_secs(20));
-
 	let output = Command::new(cargo_bin("moonbeam"))
 		.arg("export-genesis-state")
 		.arg("--chain")
 		.arg("local")
 		.output()
 		.unwrap();
-	assert!(
-		cmd.try_wait().unwrap().is_none(),
-		"the process should still be running"
-	);
-
-	// Stop the process
-	kill(Pid::from_raw(cmd.id().try_into().unwrap()), SIGINT).unwrap();
-	assert!(wait_for(&mut cmd, 30)
-		.map(|x| x.success())
-		.unwrap_or_default());
 
 	let expected = "307830303030303030303030303030303030303030303030303030303030303030303030\
-	3030303030303030303030303030303030303030303030303030303030303030356163653533343663626566363936\
-	6231366264333431303662366363363138323137343765333035386232653933363364383336616635616234343466\
-	6235303331373061326537353937623762376533643834633035333931643133396136326231353765373837383664\
+	3030303030303030303030303030303030303030303030303030303030303030303865323533313462316534313533\
+	3539353039623063666566363664343063316437663030666237393637623461386330663231336135626634633130\
+	3033303331373061326537353937623762376533643834633035333931643133396136326231353765373837383664\
 	386330383266323964636634633131313331343030";
+
 	assert_eq!(expected, hex::encode(output.stdout.as_slice()))
 }
 
