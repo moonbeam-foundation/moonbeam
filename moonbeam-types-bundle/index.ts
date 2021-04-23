@@ -211,6 +211,7 @@ export const moonbeamDefinitions = {
         },
         InflationInfo: {
           expect: "RangeBalance",
+          annual: "RangePerbill",
           round: "RangePerbill",
         },
         OrderedSet: "Vec<Bond>",
