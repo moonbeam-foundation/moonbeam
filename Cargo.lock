@@ -2284,6 +2284,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "frame-system-benchmarking"
+version = "3.0.0"
+source = "git+https://github.com/paritytech/substrate?branch=rococo-v1#68cfc326fa0e3d96d0d92509e4db1a104b9da9bb"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "frame-system-rpc-runtime-api"
 version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate?branch=rococo-v1#401c24e8a62cdf058882b0e92815faef966d9fa1"
@@ -4363,6 +4377,8 @@ dependencies = [
  "fc-rpc-core",
  "fp-consensus",
  "fp-rpc",
+ "frame-benchmarking",
+ "frame-benchmarking-cli",
  "futures 0.3.13",
  "jsonrpc-core 15.1.0",
  "jsonrpc-pubsub 15.1.0",
@@ -4376,8 +4392,10 @@ dependencies = [
  "nix 0.17.0",
  "pallet-ethereum",
  "pallet-evm",
+ "pallet-society",
  "pallet-sudo",
  "pallet-transaction-payment-rpc",
+ "pallet-xcm",
  "parity-scale-codec",
  "parking_lot 0.9.0",
  "polkadot-cli",
@@ -4429,6 +4447,7 @@ dependencies = [
  "tiny-hderive",
  "tokio 0.2.25",
  "trie-root 0.15.2",
+ "xcm-builder",
 ]
 
 [[package]]
@@ -4607,9 +4626,11 @@ dependencies = [
  "cumulus-test-relay-sproof-builder",
  "evm",
  "fp-rpc",
+ "frame-benchmarking",
  "frame-executive",
  "frame-support",
  "frame-system",
+ "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "hex-literal",
  "log",
@@ -5106,6 +5127,7 @@ name = "pallet-collective"
 version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate?branch=rococo-v1#401c24e8a62cdf058882b0e92815faef966d9fa1"
 dependencies = [
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",
@@ -5700,6 +5722,7 @@ name = "parachain-staking"
 version = "1.0.0"
 dependencies = [
  "author-inherent",
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "pallet-balances",
