@@ -679,7 +679,7 @@ pub mod pallet {
 			frame_system::ensure_root(origin)?;
 			ensure!(schedule.is_valid(), Error::<T>::InvalidSchedule);
 			let mut config = <InflationConfig<T>>::get();
-			config.set_annual_rate::<T>(schedule);
+			config.set_round_from_annual::<T>(schedule);
 			Self::deposit_event(Event::RoundInflationSet(
 				config.round.min,
 				config.round.ideal,
@@ -718,6 +718,7 @@ pub mod pallet {
 		/// Set blocks per round
 		/// - if called with `new` less than length of current round, will transition immediately
 		/// in the next block
+		/// - also updates per-round inflation config
 		pub fn set_blocks_per_round(origin: OriginFor<T>, new: u32) -> DispatchResultWithPostInfo {
 			frame_system::ensure_root(origin)?;
 			ensure!(
@@ -727,6 +728,10 @@ pub mod pallet {
 			let mut round = <Round<T>>::get();
 			let (now, first, old) = (round.current, round.first, round.length);
 			round.length = new;
+			// update per-round inflation given new rounds per year
+			let mut inflation_config = <InflationConfig<T>>::get();
+			inflation_config.reset_round(new);
+			<InflationConfig<T>>::put(inflation_config);
 			<Round<T>>::put(round);
 			Self::deposit_event(Event::BlocksPerRoundSet(now, first, old, new));
 			Ok(().into())
