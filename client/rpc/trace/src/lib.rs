@@ -14,6 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! `trace_filter` RPC handler and its associated service task.
+//! The RPC handler rely on `CacheTask` which provides a future that must be run inside a tokio
+//! executor.
+//!
+//! The implementation is composed of multiple tasks :
+//! - Many calls the the RPC handler `Trace::filter`, communicating with the main task.
+//! - A main `CacheTask` managing the cache and the communication between tasks.
+//! - For each traced block an async task responsible to wait for a permit, spawn a blocking
+//!   task and waiting for the result, then send it to the main `CacheTask`.
+
 use futures::{
 	compat::Compat,
 	future::{BoxFuture, TryFutureExt},
@@ -21,17 +31,12 @@ use futures::{
 	stream::FuturesUnordered,
 	FutureExt, SinkExt, StreamExt,
 };
-use std::{
-	collections::{btree_map::Entry, BTreeMap, VecDeque},
-	future::Future,
-	marker::PhantomData,
-	sync::Arc,
-	time::{Duration, Instant},
-};
+use std::{collections::BTreeMap, future::Future, marker::PhantomData, sync::Arc, time::Duration};
 use tokio::{
-	sync::{mpsc, oneshot, watch, Semaphore},
+	sync::{mpsc, oneshot, Semaphore},
 	time::delay_for,
 };
+use tracing::{instrument, Instrument};
 
 use jsonrpc_core::Result;
 use sc_client_api::backend::Backend;
@@ -51,8 +56,8 @@ pub use moonbeam_rpc_core_trace::{
 	FilterRequest, RequestBlockId, RequestBlockTag, Trace as TraceT, TraceServer, TransactionTrace,
 };
 use moonbeam_rpc_primitives_debug::{block, DebugRuntimeApi};
-use tracing::{instrument, Instrument};
 
+/// RPC handler. Will communicate with a `CacheTask` through a `CacheRequester`.
 pub struct Trace<B, C> {
 	_phantom: PhantomData<B>,
 	client: Arc<C>,
@@ -78,6 +83,7 @@ where
 	C: HeaderMetadata<B, Error = BlockChainError> + HeaderBackend<B>,
 	C: Send + Sync + 'static,
 {
+	/// Create a new RPC handler.
 	pub fn new(client: Arc<C>, requester: CacheRequester, max_count: u32) -> Self {
 		Self {
 			client,
@@ -87,6 +93,7 @@ where
 		}
 	}
 
+	/// Convert an optional block ID (number or tag) to a block height.
 	fn block_id(&self, id: Option<RequestBlockId>) -> Result<u32> {
 		match id {
 			Some(RequestBlockId::Number(n)) => Ok(n),
@@ -100,6 +107,7 @@ where
 		}
 	}
 
+	/// `trace_filter` endpoint (wrapped in the trait implementation with futures compatibilty)
 	async fn filter(self, req: FilterRequest) -> Result<Vec<TransactionTrace>> {
 		let from_block = self.block_id(req.from_block)?;
 		let to_block = self.block_id(req.to_block)?;
@@ -113,8 +121,8 @@ where
 			)));
 		}
 
+		// Build a list of all the Substrate block hashes that need to be traced.
 		let mut block_hashes = vec![];
-
 		for block_height in block_heights {
 			if block_height == 0 {
 				continue; // no traces for genesis block.
@@ -139,8 +147,14 @@ where
 			block_hashes.push(block_hash);
 		}
 
+		// Start a batch with these blocks.
 		let batch_id = self.requester.start_batch(block_hashes.clone()).await?;
+		// Fetch all the traces. It is done in another function to simplify error handling and allow
+		// to call the following `stop_batch` regardless of the result. This is important for the
+		// cache cleanup to work properly.
 		let res = self.fetch_traces(req, &block_hashes, count as usize).await;
+		// Stop the batch, allowing the cache task to remove useless non-started block traces and
+		// start the expiration delay.
 		self.requester.stop_batch(batch_id).await;
 
 		res
@@ -159,6 +173,9 @@ where
 		let mut traces = vec![];
 
 		for &block_hash in block_hashes {
+			// Request the traces of this block to the cache service.
+			// This will resolve quickly if the block is already cached, or wait until the block
+			// has finished tracing.
 			let block_traces = self.requester.get_traces(block_hash).await?;
 
 			// Filter addresses.
@@ -226,17 +243,19 @@ where
 		&self,
 		filter: FilterRequest,
 	) -> Compat<BoxFuture<'static, jsonrpc_core::Result<Vec<TransactionTrace>>>> {
+		// Wraps the async function into futures compatibility layer.
 		self.clone().filter(filter).boxed().compat()
 	}
 }
 
+/// An opaque batch ID.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct CacheBatchId(u64);
 
-/// Enumeration of all kinds of requests the cache task can accept.
+/// Requests the cache task can accept.
 enum CacheRequest {
 	/// Request to start caching the provided range of blocks.
-	/// The task will add to blocks to its pool and immediately return the batch ID.
+	/// The task will add to blocks to its pool and immediately return a new batch ID.
 	StartBatch {
 		/// Returns the ID of the batch for cancellation.
 		sender: oneshot::Sender<CacheBatchId>,
@@ -252,7 +271,7 @@ enum CacheRequest {
 		block: H256,
 	},
 	/// Notify the cache that it can stop the batch with that ID. Any block contained only in
-	/// this batch and still in the waiting pool will be discarded.
+	/// this batch and still not started will be discarded.
 	StopBatch { batch_id: CacheBatchId },
 }
 
@@ -291,8 +310,8 @@ impl CacheRequester {
 
 	/// Fetch the traces for given block hash.
 	/// The task will answer only when it has processed this block.
-	/// The block should be part of a batch first. If no batch has requested the block it will not
-	/// be processed.
+	/// The block should be part of a batch first. If no batch has requested the block it will
+	/// return an error.
 	#[instrument(skip(self))]
 	pub async fn get_traces(&self, block: H256) -> Result<Vec<TransactionTrace>> {
 		let (response_tx, response_rx) = oneshot::channel();
@@ -342,29 +361,50 @@ impl CacheRequester {
 	}
 }
 
+/// Data stored for each block in the cache.
+/// `active_batch_count` represents the number of batches using this
+/// block. It will increase immediatly when a batch is created, but will be
+/// decrease only after the batch ends and its expiration delay passes.
+/// It allows to keep the data in the cache for following requests that would use
+/// this block, which is important to handle pagination efficiently.
 struct CacheBlock {
 	active_batch_count: usize,
 	state: CacheBlockState,
 }
 
+/// State of a cached block. It can either be polled to be traced or cached.
 enum CacheBlockState {
 	/// Block has been added to the pool blocks to be replayed.
 	/// It may be currently waiting to be replayed or being replayed.
 	Pooled {
 		started: bool,
+		/// Multiple requests might query the same block while it is pooled to be
+		/// traced. They response channel is stored here, and the result will be
+		/// sent in all of them when the tracing is finished.
 		waiting_requests: Vec<oneshot::Sender<Result<Vec<TransactionTrace>>>>,
+		/// Channel used to unqueue a tracing that has not yet started.
+		/// A tracing will be unqueued if it has not yet been started and the last batch
+		/// needing this block is ended (ignoring the expiration delay).
+		/// It is not used directly, but dropping will wake up the receiver.
 		#[allow(dead_code)]
-		unqueue_sender: oneshot::Sender<()>, // dropping it sends a message
+		unqueue_sender: oneshot::Sender<()>,
 	},
+	/// Tracing has completed and the result is available. No Runtime API call
+	/// will be needed until this block cache is removed.
 	Cached {
 		traces: Result<Vec<TransactionTrace>>,
 	},
 }
 
+/// Tracing a block is done in a separate tokio blocking task to avoid clogging the async threads.
+/// For this reason a channel using this type is used by the blocking task to communicate with the
+/// main cache task.
 enum BlockingTaskMessage {
-	Started {
-		block_hash: H256,
-	},
+	/// Notify the tracing for this block has started as the blocking task got a permit from
+	/// the semaphore. This is used to prevent the deletion of a cache entry for a block that has
+	/// started being traced.
+	Started { block_hash: H256 },
+	/// The tracing is finished and the result is send to the main task.
 	Finished {
 		block_hash: H256,
 		result: Result<Vec<TransactionTrace>>,
@@ -404,15 +444,22 @@ where
 		cache_duration: Duration,
 		blocking_permits: Arc<Semaphore>,
 	) -> (impl Future<Output = ()>, CacheRequester) {
+		// Communication with the outside world :
 		let (requester_tx, mut requester_rx) =
 			sp_utils::mpsc::tracing_unbounded("trace-filter-cache");
 
+		// Task running in the service.
 		let task = async move {
+			// The following variables are polled by the select! macro, and thus cannot be
+			// part of Self without introducing borrowing issues.
 			let mut batch_expirations = FuturesUnordered::new();
 			let (blocking_tx, blocking_rx) =
 				mpsc::channel(blocking_permits.available_permits() * 2);
 			let mut blocking_rx = blocking_rx.fuse();
 
+			// Contains the inner state of the cache task, excluding the pooled futures/channels.
+			// Having this object allow to refactor each event into its own function, simplifying
+			// the main loop.
 			let mut inner = Self {
 				client,
 				backend,
@@ -423,6 +470,8 @@ where
 				_phantom: Default::default(),
 			};
 
+			// Main event loop. This loop must not contain any direct .await, as we want to
+			// react to events as fast as possible.
 			loop {
 				select! {
 					request = requester_rx.next() => {
@@ -467,6 +516,8 @@ where
 		(task, CacheRequester(requester_tx))
 	}
 
+	/// Handle the creation of a batch.
+	/// Will start the tracing process for blocks that are not already in the cache.
 	#[instrument(skip(self, blocking_tx, sender, blocks))]
 	fn request_start_batch(
 		&mut self,
@@ -548,6 +599,7 @@ where
 					.instrument(tracing::trace_span!("Block tracing", block = %block)),
 				);
 
+				// Insert the block in the cache.
 				self.cached_blocks.insert(
 					block,
 					CacheBlock {
@@ -562,11 +614,20 @@ where
 			}
 		}
 
+		// Respond with the batch ID.
 		let _ = sender.send(CacheBatchId(self.next_batch_id));
 
+		// Increase batch ID for next request.
 		self.next_batch_id = self.next_batch_id.overflowing_add(1).0;
 	}
 
+	/// Handle a request to get the traces of the provided block.
+	/// - If the result is stored in the cache, it sends it immediatly.
+	/// - If the block is currently being pooled, it is added in this block cache waiting list,
+	///   and all requests concerning this block will be satisfied when the tracing for this block
+	///   is finished.
+	/// - If this block is missing from the cache, it means no batch asked for it. All requested
+	///   blocks should be contained in a batch beforehand, and thus an error is returned.
 	#[instrument(skip(self))]
 	fn request_get_traces(
 		&mut self,
@@ -583,7 +644,7 @@ where
 						"A request asked a pooled block ({}), adding it to the list of waiting requests.",
 						block
 					);
-					waiting_requests.push(sender)
+					waiting_requests.push(sender);
 				}
 				CacheBlockState::Cached { ref traces, .. } => {
 					tracing::warn!(
@@ -605,6 +666,12 @@ where
 		}
 	}
 
+	/// Handle a request to stop a batch.
+	/// For all blocks that needed to be traced, are only in this batch and not yet started, their
+	/// tracing is cancelled to save CPU-time and avoid attacks requesting large amount of blocks.
+	/// This batch data is not yet removed however. Instead a expiration delay timer is started
+	/// after which the data will indeed be cleared. (the code for that is in the main loop code
+	/// as it involved an unnamable type :C)
 	#[instrument(skip(self))]
 	fn request_stop_batch(&mut self, batch_id: CacheBatchId) {
 		tracing::trace!("Stopping batch {}", batch_id.0);
@@ -634,6 +701,8 @@ where
 		}
 	}
 
+	/// A tracing blocking task notifies it got a permit and is starting the tracing.
+	/// This started status is stored to avoid removing this block entry.
 	#[instrument(skip(self))]
 	fn blocking_started(&mut self, block_hash: H256) {
 		if let Some(block_cache) = self.cached_blocks.get_mut(&block_hash) {
@@ -646,6 +715,7 @@ where
 		}
 	}
 
+	/// A tracing blocking task notifies it has finished the tracing and provide the result.
 	#[instrument(skip(self, result))]
 	fn blocking_finished(&mut self, block_hash: H256, result: Result<Vec<TransactionTrace>>) {
 		// In some cases it might be possible to receive traces of a block
@@ -676,6 +746,8 @@ where
 		}
 	}
 
+	/// A batch expiration delay timer has completed. It performs the cache cleaning for blocks
+	/// not longer used by other batches.
 	#[instrument(skip(self))]
 	fn expired_batch(&mut self, batch_id: CacheBatchId) {
 		if let Some(batch) = self.batches.remove(&batch_id.0) {
@@ -698,6 +770,8 @@ where
 		}
 	}
 
+	/// (In blocking task) Use the Runtime API to trace the block.
+	#[instrument(skip(client, backend))]
 	fn cache_block(
 		client: Arc<C>,
 		backend: Arc<BE>,
@@ -705,6 +779,7 @@ where
 	) -> Result<Vec<TransactionTrace>> {
 		let substrate_block_id = BlockId::Hash(substrate_hash);
 
+		// Get Subtrate block data.
 		let api = client.runtime_api();
 		let block_header = client
 			.header(substrate_block_id)
@@ -721,6 +796,7 @@ where
 		let height = *block_header.number();
 		let substrate_parent_id = BlockId::<B>::Hash(*block_header.parent_hash());
 
+		// Get Ethereum block data.
 		let (eth_block, _, eth_transactions) = api
 			.current_all(&BlockId::Hash(substrate_hash))
 			.map_err(|e| {
@@ -742,6 +818,7 @@ where
 
 		let eth_block_hash = eth_block.header.hash();
 
+		// Get extrinsics (containing Ethereum ones)
 		let extrinsics = backend
 			.blockchain()
 			.body(substrate_block_id)
