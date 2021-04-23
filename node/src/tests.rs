@@ -209,7 +209,7 @@ fn export_current_state() {
 			.unwrap();
 
 		// Let it produce some blocks.
-		thread::sleep(Duration::from_secs(10));
+		thread::sleep(Duration::from_secs(20));
 		assert!(
 			cmd.try_wait().unwrap().is_none(),
 			"the process should still be running"
