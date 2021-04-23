@@ -152,12 +152,18 @@ where
 			a if a == hash(8) => Some(Bn128Pairing::execute(input, target_gas, context)),
 			// Moonbeam precompiles :
 			a if a == hash(255) => Some(Dispatch::<R>::execute(input, target_gas, context)),
-			a if a == hash(256) => Some(ParachainStakingWrapper::<R>::execute(
-				input, target_gas, context,
-			)),
+			a if a == hash(256) => {
+				log::info!("matched address 256(decimal) calling into staking wrapper");
+				Some(ParachainStakingWrapper::<R>::execute(
+					input, target_gas, context,
+				))
+			}
 			// Moonbeam testing-only precompile(s):
 			a if a == hash(511) => Some(Sacrifice::execute(input, target_gas, context)),
-			_ => None,
+			_ => {
+				log::info!("No Precompiale at this address");
+				None
+			}
 		}
 	}
 }
