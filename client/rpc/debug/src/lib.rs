@@ -124,12 +124,11 @@ where
 							)
 						})
 						.await
-						.map_err(|e|
-							internal_err(format!(
-								"Internal error on spawned task : {:?}",e
-							)
-						))?
-					}.await;
+						.map_err(|e| {
+							internal_err(format!("Internal error on spawned task : {:?}", e))
+						})?
+					}
+					.await;
 					let _ = response_tx.send(res);
 				}
 			}
