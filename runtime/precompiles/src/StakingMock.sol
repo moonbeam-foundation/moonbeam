@@ -6,6 +6,8 @@ import "./StakingInterface.sol";
 /// This is ueful to test contracts such as the nomination DAO when you're unsure if the
 /// precompile implementation is causing problems.
 contract StakingMock is ParachainStaking {
+    event JoinCandidatesCalled(uint256);
+
     function is_nominator(address) external view override returns (bool) {
         return true;
     }
@@ -13,7 +15,9 @@ contract StakingMock is ParachainStaking {
     // Now the dispatchables
 
     /// Join the set of collator candidates
-    function join_candidates(uint256 amount) external override {}
+    function join_candidates(uint256 amount) external override {
+        emit JoinCandidatesCalled(amount);
+    }
 
     /// Request to leave the set of candidates. If successful, the account is immediately
     /// removed from the candidate pool to prevent selection as a collator, but unbonding is
