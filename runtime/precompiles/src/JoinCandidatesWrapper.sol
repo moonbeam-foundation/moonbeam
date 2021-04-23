@@ -19,8 +19,8 @@ contract JoinCandidatesWrapper {
     receive() external payable {}
 
     function join() public {
-        emit Trace(1 << 250);
+        emit Trace(1 << 248); // Shift them to the left-most byte so I can see them in Apps
         staking.join_candidates(1234 ether);
-        emit Trace(2 << 250);
+        emit Trace(2 << 248);
     }
 }

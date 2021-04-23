@@ -6,17 +6,20 @@ import { createContract, createContractExecution, createTransfer } from "../util
 
 describeDevMoonbeam("Precompiles - JoinCandidatesWrapper", (context) => {
   it("should be accessible from a smart contract", async function () {
+    //TODO we need to somehow get some code at the address 256.
+
     const { rawTx, contract, contractAddress } = await createContract(
       context.web3,
       "JoinCandidatesWrapper",
       {},
-      ["0x0000000000000000000000000000000000000100"]
+      ["0x0000000000000000000000000000000000000100"] // parameter for constructor. Where is the interface located
     );
     const res = await context.createBlock({ transactions: [rawTx] });
     // console.log("RES", res);
     // console.log("contractAddress", contractAddress);
 
     // Transfer 10k GLMR to the contract
+    // could go in the block above. Harmless as it is
     await context.createBlock({
       transactions: [await createTransfer(context.web3, contractAddress, 10_000n * GLMR)],
     });
@@ -31,9 +34,11 @@ describeDevMoonbeam("Precompiles - JoinCandidatesWrapper", (context) => {
       ],
     });
 
-    const collators = await context.polkadotApi.query.parachainStaking.selectedCandidates();
+    // Check the candidate pool because the contract just enetered. It might not (probably won't) be
+    // in the active set yet.
+    const collators = await context.polkadotApi.query.parachainStaking.candidatePool();
     console.log("COLLATORS", collators.toHuman());
-    //expect((collators[1] as Buffer).toString("hex").toLowerCase()).equal(contractAddress);
+    expect((collators[1] as Buffer).toString("hex").toLowerCase()).equal(contractAddress);
 
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
     const allRecords = await context.polkadotApi.query.system.events.at(

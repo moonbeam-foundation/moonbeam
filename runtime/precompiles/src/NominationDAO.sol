@@ -58,10 +58,6 @@ contract NominationDao {
     /// Assumes the contract has atleast 10 ether so that the nomination will be successful.
     function unsafe_attempt_to_nominate() public {
         staking.nominate(target, 10 ether);
-
-        //TODO maybe it is this solidity notation that isn't working.
-        // How can we call the precompile directly from assembly?
-        // Or using that .call stuff I've seen online https://ethereum.stackexchange.com/q/2826/9963
     }
 
     // So the notion of fallback funtion got split

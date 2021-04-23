@@ -100,9 +100,12 @@ where
 				return Err(ExitError::OutOfGas);
 			}
 		}
+		log::info!("Made it past gas check");
 
 		// Dispatch that call
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+
+		log::info!("Gonna call with origin {:?}", origin);
 
 		match outer_call.dispatch(Some(origin).into()) {
 			Ok(post_info) => {
@@ -112,8 +115,8 @@ where
 				//TODO Should this be returned?
 				Ok((ExitSucceed::Stopped, Default::default(), gas_used))
 			}
-			Err(_) => {
-				log::info!("Parachain staking call via evm failed");
+			Err(e) => {
+				log::info!("Parachain staking call via evm failed {:?}", e);
 				Err(ExitError::Other(
 					"Parachain staking call via EVM failed".into(),
 				))
