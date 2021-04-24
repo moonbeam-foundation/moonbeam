@@ -73,8 +73,7 @@ where
 			None => return Err(internal_err("Transaction hash not found".to_string())),
 		};
 
-		let reference_id = match frontier_backend_client::load_hash::<B, C>(
-			self.client.as_ref(),
+		let reference_id = match frontier_backend_client::load_hash::<B>(
 			self.frontier_backend.as_ref(),
 			hash,
 		)
