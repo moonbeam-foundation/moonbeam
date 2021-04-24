@@ -122,8 +122,7 @@ impl<Balance> InflationInfo<Balance> {
 	/// Reset round inflation rate based on changes to round length
 	pub fn reset_round(&mut self, new_length: u32) {
 		let periods = BLOCKS_PER_YEAR / new_length;
-		let round = perbill_annual_to_perbill_round(self.annual, periods);
-		self.round = round;
+		self.round = perbill_annual_to_perbill_round(self.annual, periods);
 	}
 	/// Set staking expectations
 	pub fn set_expectations(&mut self, expect: Range<Balance>) {

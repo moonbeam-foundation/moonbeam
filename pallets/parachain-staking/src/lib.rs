@@ -451,16 +451,24 @@ pub mod pallet {
 		NominatorLeftCollator(T::AccountId, T::AccountId, BalanceOf<T>, BalanceOf<T>),
 		/// Paid the account (nominator or collator) the balance as liquid rewards
 		Rewarded(T::AccountId, BalanceOf<T>),
-		/// Round inflation range set with the provided annual inflation range
-		RoundInflationSet(Perbill, Perbill, Perbill),
+		/// Annual inflation input (first 3) was used to derive new per-round inflation (last 3)
+		InflationSet(Perbill, Perbill, Perbill, Perbill, Perbill, Perbill),
 		/// Staking expectations set
 		StakeExpectationsSet(BalanceOf<T>, BalanceOf<T>, BalanceOf<T>),
 		/// Set total selected candidates to this value [old, new]
 		TotalSelectedSet(u32, u32),
 		/// Set collator commission to this value [old, new]
 		CollatorCommissionSet(Perbill, Perbill),
-		/// Set blocks per round [current_round, first_block, old, new]
-		BlocksPerRoundSet(RoundIndex, T::BlockNumber, u32, u32),
+		/// Set blocks per round [current_round, first_block, old, new, new_per_round_inflation]
+		BlocksPerRoundSet(
+			RoundIndex,
+			T::BlockNumber,
+			u32,
+			u32,
+			Perbill,
+			Perbill,
+			Perbill,
+		),
 	}
 
 	#[pallet::hooks]
@@ -679,8 +687,12 @@ pub mod pallet {
 			frame_system::ensure_root(origin)?;
 			ensure!(schedule.is_valid(), Error::<T>::InvalidSchedule);
 			let mut config = <InflationConfig<T>>::get();
+			config.annual = schedule;
 			config.set_round_from_annual::<T>(schedule);
-			Self::deposit_event(Event::RoundInflationSet(
+			Self::deposit_event(Event::InflationSet(
+				config.annual.min,
+				config.annual.ideal,
+				config.annual.max,
 				config.round.min,
 				config.round.ideal,
 				config.round.max,
@@ -731,9 +743,17 @@ pub mod pallet {
 			// update per-round inflation given new rounds per year
 			let mut inflation_config = <InflationConfig<T>>::get();
 			inflation_config.reset_round(new);
-			<InflationConfig<T>>::put(inflation_config);
 			<Round<T>>::put(round);
-			Self::deposit_event(Event::BlocksPerRoundSet(now, first, old, new));
+			Self::deposit_event(Event::BlocksPerRoundSet(
+				now,
+				first,
+				old,
+				new,
+				inflation_config.round.min,
+				inflation_config.round.ideal,
+				inflation_config.round.max,
+			));
+			<InflationConfig<T>>::put(inflation_config);
 			Ok(().into())
 		}
 		/// Join the set of collator candidates
