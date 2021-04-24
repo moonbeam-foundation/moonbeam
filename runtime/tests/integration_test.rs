@@ -133,8 +133,6 @@ impl ExtBuilder {
 }
 
 const ALICE: [u8; 20] = [4u8; 20];
-// You can use this to test endianness.
-// const ALICE: [u8; 20] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
 const BOB: [u8; 20] = [5u8; 20];
 const CHARLIE: [u8; 20] = [6u8; 20];
 const DAVE: [u8; 20] = [7u8; 20];
@@ -335,7 +333,6 @@ fn reward_block_authors() {
 		)])
 		.build()
 		.execute_with(|| {
-			// set parachain inherent data
 			set_parachain_inherent_data();
 			for x in 2..1201 {
 				set_author(AccountId::from(ALICE));
