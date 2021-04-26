@@ -695,12 +695,14 @@ impl_runtime_apis! {
 			// TraceExecutorResult.
 			match transaction.action {
 				TransactionAction::Call(to) => {
-					if let Ok(res) = <Runtime as pallet_evm::Config>::Runner::trace_call(
+					if let Ok(res) = <Runtime as pallet_evm::Config>::Runner::trace(
 						from,
-						to,
+						Some(to),
 						transaction.input.clone(),
 						transaction.value,
 						transaction.gas_limit.low_u64(),
+						transaction.gas_price,
+						transaction.nonce,
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 						trace_type,
 					) {
@@ -710,11 +712,14 @@ impl_runtime_apis! {
 					}
 				},
 				TransactionAction::Create => {
-					if let Ok(res) = <Runtime as pallet_evm::Config>::Runner::trace_create(
+					if let Ok(res) = <Runtime as pallet_evm::Config>::Runner::trace(
 						from,
+						None,
 						transaction.input.clone(),
 						transaction.value,
 						transaction.gas_limit.low_u64(),
+						transaction.gas_price,
+						transaction.nonce,
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 						trace_type,
 					) {
@@ -767,23 +772,28 @@ impl_runtime_apis! {
 						// return the TraceExecutorResult.
 						let tx_traces = match transaction.action {
 							TransactionAction::Call(to) => {
-								<Runtime as pallet_evm::Config>::Runner::trace_call(
+								<Runtime as pallet_evm::Config>::Runner::trace(
 									from,
-									to,
+									Some(to),
 									transaction.input.clone(),
 									transaction.value,
 									transaction.gas_limit.low_u64(),
+									transaction.gas_price,
+									transaction.nonce,
 									&config,
 									single::TraceType::CallList,
 								).map_err(|_| sp_runtime::DispatchError::Other("Evm error"))?
 
 							},
 							TransactionAction::Create => {
-								<Runtime as pallet_evm::Config>::Runner::trace_create(
+								<Runtime as pallet_evm::Config>::Runner::trace(
 									from,
+									None,
 									transaction.input.clone(),
 									transaction.value,
 									transaction.gas_limit.low_u64(),
+									transaction.gas_price,
+									transaction.nonce,
 									&config,
 									single::TraceType::CallList,
 								).map_err(|_| sp_runtime::DispatchError::Other("Evm error"))?

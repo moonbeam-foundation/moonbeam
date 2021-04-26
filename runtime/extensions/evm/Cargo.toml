@@ -15,6 +15,7 @@ evm-core = { version = "0.26.0", default-features = false, features = ["with-cod
 sp-core = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1" }
 sp-std = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1" }
 sp-io = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1" }
+frame-support = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1" }
 sp-runtime = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1" }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug", default-features = false }
 ethereum-types = { version = "0.11.0", default-features = false }

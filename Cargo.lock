@@ -4437,6 +4437,7 @@ dependencies = [
  "evm",
  "evm-core",
  "fp-evm",
+ "frame-support",
  "moonbeam-rpc-primitives-debug",
  "pallet-evm",
  "sp-core",
