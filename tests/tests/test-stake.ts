@@ -30,11 +30,19 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
     //     ideal: '200.0000 kUnit',
     //     max: '500.0000 kUnit'
     //   },
+    //  annual: {
+    //     min: '4.00%',
+    //     ideal: '5.00%',
+    //     max: '5.00%',
+    // },
     //   round: { min: '0.00%', ideal: '0.00%', max: '0.00%' }
     // }
     expect(inflationInfo.toHuman()["expect"]["min"]).to.eq("100.0000 kUnit");
     expect(inflationInfo.toHuman()["expect"]["ideal"]).to.eq("200.0000 kUnit");
     expect(inflationInfo.toHuman()["expect"]["max"]).to.eq("500.0000 kUnit");
+    expect(inflationInfo.toHuman()["annual"]["min"]).to.eq("4.00%");
+    expect(inflationInfo.toHuman()["annual"]["ideal"]).to.eq("5.00%");
+    expect(inflationInfo.toHuman()["annual"]["max"]).to.eq("5.00%");
     expect(inflationInfo.toHuman()["round"]["min"]).to.eq("0.00%");
     expect(Number(inflationInfo["round"]["min"])).to.eq(4563); // 4% / 8766 * 10^9
     expect(inflationInfo.toHuman()["round"]["ideal"]).to.eq("0.00%");
