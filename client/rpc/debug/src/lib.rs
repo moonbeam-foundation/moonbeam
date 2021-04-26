@@ -114,7 +114,7 @@ where
 					let permit_pool = permit_pool.clone();
 					tokio::task::spawn(async move {
 						let _ = response_tx.send(async {
-							let _permit = permit_pool.acquire();
+							let _permit = permit_pool.acquire().await;
 							tokio::task::spawn_blocking(move || {
 								Self::handle_request(
 									client.clone(),
