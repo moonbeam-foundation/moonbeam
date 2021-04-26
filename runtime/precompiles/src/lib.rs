@@ -94,7 +94,7 @@ impl Precompile for Sacrifice {
 
 		// TODO Should this actually be stopped?
 		// https://ethervm.io/#F3
-		// REvisit: does solidity void contract issue stop or return
+		// Revisit: does solidity void contract issue stop or return
 		Ok((ExitSucceed::Returned, [0u8; 0].to_vec(), gas_cost))
 	}
 }
@@ -108,6 +108,20 @@ impl Precompile for Sacrifice {
 /// as well as a special precompile for dispatching Substrate extrinsics
 #[derive(Debug, Clone, Copy)]
 pub struct MoonbeamPrecompiles<R>(PhantomData<R>);
+
+// The idea here is that we won't have to list the addresses in this file and the chain spec.
+// Unfortunately we still have to type it twice in this file.
+impl<R: frame_system::Config> MoonbeamPrecompiles<R>
+where 
+R::AccountId: From<H160>
+ {
+	/// Return all addresses that contain precompiles. This can be used to populate dummy code
+	/// under the precompile, and potentially in the future to prevent using accounts that have
+	/// precompiles at their addresses explicitly using something like SignedExtra.
+	fn used_addresses() -> impl Iterator<Item = R::AccountId> {
+		sp_std::vec![1,2,3,4,5,6,7,8,255,256,511].into_iter().map(|x| hash(x).into())
+	}
+ }
 
 impl<R> PrecompileSet for MoonbeamPrecompiles<R>
 where
