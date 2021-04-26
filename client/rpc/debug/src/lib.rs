@@ -54,7 +54,7 @@ impl Debug {
 }
 
 impl DebugT for Debug {
-	/// Handler for `debug_traceTransaction` request. Communicates with the service-defined task 
+	/// Handler for `debug_traceTransaction` request. Communicates with the service-defined task
 	/// using channels.
 	fn trace_transaction(
 		&self,
@@ -99,7 +99,7 @@ where
 	C::Api: DebugRuntimeApi<B>,
 	C::Api: EthereumRuntimeRPCApi<B>,
 {
-	/// Task spawned at service level that listens for messages on the rpc channel and spawns 
+	/// Task spawned at service level that listens for messages on the rpc channel and spawns
 	/// blocking tasks using a permit pool.
 	pub fn task(
 		client: Arc<C>,
@@ -119,30 +119,36 @@ where
 					let permit_pool = permit_pool.clone();
 					// Note on spawned tasks https://tokio.rs/tokio/tutorial/spawning#tasks.
 					//
-					// Substrate uses the default value for `core_threads` (number of cores of the 
+					// Substrate uses the default value for `core_threads` (number of cores of the
 					// machine running the node) and `max_threads` (512 total).
 					//
-					// Task below is spawned in the substrate's built tokio::Runtime, so they share 
-					// the same thread pool as the rest of the service-spawned tasks. Additionally, 
+					// Task below is spawned in the substrate's built tokio::Runtime, so they share
+					// the same thread pool as the rest of the service-spawned tasks. Additionally,
 					// blocking tasks use a more restrictive permit pool shared by trace modules.
 					// https://docs.rs/tokio/0.2.23/tokio/sync/struct.Semaphore.html
 					tokio::task::spawn(async move {
-						let _ = response_tx.send(async {
-							let _permit = permit_pool.acquire().await;
-							tokio::task::spawn_blocking(move || {
-								Self::handle_request(
-									client.clone(),
-									backend.clone(),
-									frontier_backend.clone(),
-									transaction_hash,
-									params,
-								)
-							})
-							.await
-							.map_err(|e| {
-								internal_err(format!("Internal error on spawned task : {:?}", e))
-							})?
-						}.await);
+						let _ = response_tx.send(
+							async {
+								let _permit = permit_pool.acquire().await;
+								tokio::task::spawn_blocking(move || {
+									Self::handle_request(
+										client.clone(),
+										backend.clone(),
+										frontier_backend.clone(),
+										transaction_hash,
+										params,
+									)
+								})
+								.await
+								.map_err(|e| {
+									internal_err(format!(
+										"Internal error on spawned task : {:?}",
+										e
+									))
+								})?
+							}
+							.await,
+						);
 					});
 				}
 			}
@@ -150,10 +156,10 @@ where
 		(fut, tx)
 	}
 	/// Replays a transaction in the Runtime at a given block height.
-	/// 
-	/// In order to succesfully reproduce the result of the original transaction we need a correct 
+	///
+	/// In order to succesfully reproduce the result of the original transaction we need a correct
 	/// state to replay over.
-	/// 
+	///
 	/// Substrate allows to apply extrinsics in the Runtime and thus creating an overlayed state.
 	/// This overlayed changes will live in-memory for the lifetime of the ApiRef.
 	fn handle_request(
