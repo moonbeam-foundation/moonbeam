@@ -69,6 +69,33 @@ where
 		log::info!("Made it past preliminary length check");
 		log::info!("context.caller is {:?}", context.caller);
 
+		// Write first accessor this hacky way. Make it nicer later.
+		if input[0..SELECTOR_SIZE_BYTES] == [0x8e, 0x50, 0x80, 0xe7] {
+			// This selector means we are in the is_nominator precompile.
+
+			// TODO generalize Amar's parsing functions below
+			// parse the address
+			let nominator = H160::from_slice(&input[4..24]);
+
+			// fetch data from pallet
+			let is_nominator =
+				parachain_staking::Pallet::<Runtime>::is_nominator(&nominator.into());
+
+			// Solidity's bool type is 256 bits as shown by these examples https://docs.soliditylang.org/en/v0.8.0/abi-spec.html
+			// But I admit the comparison to `uint8` is a little confusing.
+			let mut result_bytes = [0u8; 32];
+			if is_nominator {
+				result_bytes[31] = 1;
+			}
+
+			//TODO figure out how much gas it costs to check whether you're a nominator.
+			// That function will not naturally be benchmarked because it is not dispatchable
+			// I guess the heavy part will be one storage read.
+			let gas_consumed = 0;
+
+			return Ok((ExitSucceed::Returned, result_bytes.to_vec(), gas_consumed));
+		}
+
 		// Parse the function selector
 		let inner_call = match input[0..SELECTOR_SIZE_BYTES] {
 			[0xad, 0x76, 0xed, 0x5a] => Self::join_candidates(&input[SELECTOR_SIZE_BYTES..])?,
