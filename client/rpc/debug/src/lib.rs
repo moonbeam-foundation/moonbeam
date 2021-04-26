@@ -54,6 +54,8 @@ impl Debug {
 }
 
 impl DebugT for Debug {
+	/// Handler for `debug_traceTransaction` request. Communicates with the service-defined task 
+	/// using channels.
 	fn trace_transaction(
 		&self,
 		transaction_hash: H256,
@@ -63,7 +65,7 @@ impl DebugT for Debug {
 
 		async move {
 			let (tx, rx) = oneshot::channel();
-
+			// Send a message from the rpc handler to the service level task.
 			requester
 				.send(((transaction_hash, params), tx))
 				.await
@@ -74,6 +76,7 @@ impl DebugT for Debug {
 					))
 				})?;
 
+			// Receive a message from the service level task and send the rpc response.
 			rx.await.map_err(|err| {
 				internal_err(format!("debug service dropped the channel : {:?}", err))
 			})?
@@ -96,6 +99,8 @@ where
 	C::Api: DebugRuntimeApi<B>,
 	C::Api: EthereumRuntimeRPCApi<B>,
 {
+	/// Task spawned at service level that listens for messages on the rpc channel and spawns 
+	/// blocking tasks using a permit pool.
 	pub fn task(
 		client: Arc<C>,
 		backend: Arc<BE>,
@@ -112,6 +117,15 @@ where
 					let backend = backend.clone();
 					let frontier_backend = frontier_backend.clone();
 					let permit_pool = permit_pool.clone();
+					// Note on spawned tasks https://tokio.rs/tokio/tutorial/spawning#tasks.
+					//
+					// Substrate uses the default value for `core_threads` (number of cores of the 
+					// machine running the node) and `max_threads` (512 total).
+					//
+					// Task below is spawned in the substrate's built tokio::Runtime, so they share 
+					// the same thread pool as the rest of the service-spawned tasks. Additionally, 
+					// blocking tasks use a more restrictive permit pool shared by trace modules.
+					// https://docs.rs/tokio/0.2.23/tokio/sync/struct.Semaphore.html
 					tokio::task::spawn(async move {
 						let _ = response_tx.send(async {
 							let _permit = permit_pool.acquire().await;
@@ -135,7 +149,13 @@ where
 		};
 		(fut, tx)
 	}
-
+	/// Replays a transaction in the Runtime at a given block height.
+	/// 
+	/// In order to succesfully reproduce the result of the original transaction we need a correct 
+	/// state to replay over.
+	/// 
+	/// Substrate allows to apply extrinsics in the Runtime and thus creating an overlayed state.
+	/// This overlayed changes will live in-memory for the lifetime of the ApiRef.
 	fn handle_request(
 		client: Arc<C>,
 		backend: Arc<BE>,
