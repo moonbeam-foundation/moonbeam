@@ -432,8 +432,18 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			assert_ok!(CrowdloanRewards::show_me_the_money(origin_of(
 				AccountId::from(DAVE)
 			)));
-			assert_eq!(CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE)).unwrap().claimed_reward, 2);
-			assert_eq!(CrowdloanRewards::accounts_payable(&AccountId::from(DAVE)).unwrap().claimed_reward, 2);
+			assert_eq!(
+				CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE))
+					.unwrap()
+					.claimed_reward,
+				2
+			);
+			assert_eq!(
+				CrowdloanRewards::accounts_payable(&AccountId::from(DAVE))
+					.unwrap()
+					.claimed_reward,
+				2
+			);
 
 			assert_noop!(
 				CrowdloanRewards::show_me_the_money(origin_of(AccountId::from(ALICE))),
