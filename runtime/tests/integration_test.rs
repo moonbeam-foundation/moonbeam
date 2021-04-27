@@ -25,8 +25,8 @@ use frame_support::{
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
 use moonbeam_runtime::{
-	AccountId, AuthorInherent, Balance, Balances, Call, Event, InflationInfo, ParachainStaking,
-	Range, Runtime, System, GLMR,
+	AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Event, InflationInfo,
+	ParachainStaking, Range, Runtime, System, GLMR,
 };
 use parachain_staking::Bond;
 use sp_runtime::{DispatchError, Perbill};
@@ -148,6 +148,10 @@ fn origin_of(account_id: AccountId) -> <Runtime as frame_system::Config>::Origin
 
 fn inherent_origin() -> <Runtime as frame_system::Config>::Origin {
 	<Runtime as frame_system::Config>::Origin::none()
+}
+
+fn root_origin() -> <Runtime as frame_system::Config>::Origin {
+	<Runtime as frame_system::Config>::Origin::root()
 }
 
 #[test]
@@ -353,6 +357,106 @@ fn reward_block_authors() {
 			assert_eq!(
 				Balances::free_balance(AccountId::from(BOB)),
 				539999999960000000000,
+			);
+		});
+}
+
+#[test]
+fn initialize_crowdloan_addresses_with_batch_and_pay() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * GLMR),
+			(AccountId::from(BOB), 1_000 * GLMR),
+		])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.build()
+		.execute_with(|| {
+			// set parachain inherent data
+			use cumulus_primitives_core::PersistedValidationData;
+			use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
+			let (relay_parent_storage_root, relay_chain_state) =
+				RelayStateSproofBuilder::default().into_state_root_and_proof();
+			let vfp = PersistedValidationData {
+				relay_parent_number: 1u32,
+				relay_parent_storage_root,
+				..Default::default()
+			};
+			let parachain_inherent_data = ParachainInherentData {
+				validation_data: vfp,
+				relay_chain_state: relay_chain_state,
+				downward_messages: Default::default(),
+				horizontal_messages: Default::default(),
+			};
+			// Mock the inherent that sets validation data in ParachainSystem, which
+			// contains the `relay_chain_block_number`, which is used in `author-filter` as a
+			// source of randomness to filter valid authors at each block.
+			assert_ok!(Call::ParachainSystem(
+				cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data(
+					parachain_inherent_data
+				)
+			)
+			.dispatch(inherent_origin()));
+			// Mock the inherent that sets author in `author-inherent`
+			fn set_author(a: AccountId) {
+				assert_ok!(
+					Call::AuthorInherent(author_inherent::Call::<Runtime>::set_author(a))
+						.dispatch(inherent_origin())
+				);
+			}
+
+			set_author(AccountId::from(ALICE));
+			for x in 1..3 {
+				run_to_block(x);
+			}
+			// Batch calls always succeed. We just need to check the inner event
+			assert_ok!(Call::Utility(pallet_utility::Call::<Runtime>::batch(vec![
+				Call::CrowdloanRewards(
+					pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
+						vec![([4u8; 32].into(), Some(AccountId::from(CHARLIE)), 500)],
+						1,
+						0,
+						2
+					)
+				),
+				Call::CrowdloanRewards(
+					pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
+						vec![([5u8; 32].into(), Some(AccountId::from(DAVE)), 500)],
+						1,
+						1,
+						2
+					)
+				)
+			]))
+			.dispatch(root_origin()));
+			let expected = Event::pallet_utility(pallet_utility::Event::BatchCompleted);
+			assert_eq!(last_event(), expected);
+			// This one should fail, as we already filled our data
+			assert_ok!(Call::Utility(pallet_utility::Call::<Runtime>::batch(vec![
+				Call::CrowdloanRewards(
+					pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
+						vec![([4u8; 32].into(), Some(AccountId::from(ALICE)), 500)],
+						1,
+						0,
+						1
+					)
+				)
+			]))
+			.dispatch(root_origin()));
+			let expected_fail = Event::pallet_utility(pallet_utility::Event::BatchInterrupted(
+				0,
+				DispatchError::Module {
+					index: 19,
+					error: 1,
+					message: None,
+				},
+			));
+			assert_eq!(last_event(), expected_fail);
+			assert_ok!(CrowdloanRewards::show_me_the_money(origin_of(
+				AccountId::from(CHARLIE)
+			)));
+			assert_noop!(
+				CrowdloanRewards::show_me_the_money(origin_of(AccountId::from(ALICE))),
+				pallet_crowdloan_rewards::Error::<Runtime>::NoAssociatedClaim
 			);
 		});
 }
