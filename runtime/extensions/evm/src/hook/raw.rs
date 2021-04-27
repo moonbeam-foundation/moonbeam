@@ -269,7 +269,7 @@ impl State {
         };
 
         // Convert memory format.
-        let memory = memory.map(|m| convert_memory(m));
+        let memory = memory.map(convert_memory);
 
         // Add log to result array.
         self.step_logs.push(RawStepLog {
