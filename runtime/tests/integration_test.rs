@@ -988,8 +988,8 @@ fn nominator_bond_more_less_via_precompile() {
 }
 
 #[test]
-fn is_nominator_accessor() {
-	use evm::{Context, ExitError, ExitSucceed};
+fn is_nominator_accessor_true() {
+	use evm::{Context, ExitSucceed};
 	use pallet_evm::PrecompileSet;
 
 	ExtBuilder::default()
@@ -1016,15 +1016,78 @@ fn is_nominator_accessor() {
 
 			println!("B");
 			// Construct the input data
-			let mut input_data = Vec::<u8>::from([0u8; 24]);
+			let mut input_data = Vec::<u8>::from([0u8; 36]);
 			input_data[0..4].copy_from_slice(&hex_literal::hex!("8e5080e7"));
-			input_data[4..24].copy_from_slice(&BOB);
+			// Leave 12 bytes empty. Not totally sure why. This is reverse engineered from remix experimentation
+			// Maybe that is encoding something, or maybe it is just to pad to 32 bytes?
+			input_data[16..36].copy_from_slice(&BOB);
 
 			println!("C");
 
 			// Expected result is an EVM boolean true which is 256 bits long.
 			let mut expected_bytes = Vec::from([0u8; 32]);
 			expected_bytes[31] = 1;
+			let expected_result = Some(Ok((ExitSucceed::Returned, expected_bytes, 0)));
+
+			println!("D");
+
+			// Assert precompile also reports Alice as a nominator
+			assert_eq!(
+				MoonbeamPrecompiles::<Runtime>::execute(
+					staking_precompile_address,
+					&input_data,
+					None, //target_gas is not neecssary right now becuase I consume none
+					&Context {
+						// This context copied from Sacrifice tests. As commented there, it's not great.
+						address: Default::default(),
+						caller: Default::default(),
+						apparent_value: From::from(0),
+					}
+				),
+				expected_result
+			);
+		})
+}
+
+#[test]
+fn is_nominator_accessor_false() {
+	use evm::{Context, ExitSucceed};
+	use pallet_evm::PrecompileSet;
+
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 1_000 * GLMR),
+			(AccountId::from(BOB), 1_500 * GLMR),
+		])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_nominators(vec![(
+			AccountId::from(BOB),
+			AccountId::from(ALICE),
+			500 * GLMR,
+		)])
+		.build()
+		.execute_with(|| {
+			println!("Starting test execution");
+
+			// Confirm Charlie is not initialized as a nominator directly
+			assert!(!ParachainStaking::is_nominator(&AccountId::from(CHARLIE)));
+
+			println!("A");
+
+			let staking_precompile_address = H160::from_low_u64_be(256);
+
+			println!("B");
+			// Construct the input data
+			let mut input_data = Vec::<u8>::from([0u8; 36]);
+			input_data[0..4].copy_from_slice(&hex_literal::hex!("8e5080e7"));
+			// Leave 12 bytes empty. Not totally sure why. This is reverse engineered from remix experimentation
+			// Maybe that is encoding something, or maybe it is just to pad to 32 bytes?
+			input_data[16..36].copy_from_slice(&CHARLIE);
+
+			println!("C");
+
+			// Expected result is an EVM boolean false which is 256 bits long.
+			let mut expected_bytes = Vec::from([0u8; 32]);
 			let expected_result = Some(Ok((ExitSucceed::Returned, expected_bytes, 0)));
 
 			println!("D");

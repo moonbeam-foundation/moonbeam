@@ -4601,6 +4601,7 @@ dependencies = [
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
  "cumulus-test-relay-sproof-builder",
+ "evm",
  "fp-rpc",
  "frame-executive",
  "frame-support",

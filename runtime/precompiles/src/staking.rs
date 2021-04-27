@@ -72,14 +72,21 @@ where
 		// Write first accessor this hacky way. Make it nicer later.
 		if input[0..SELECTOR_SIZE_BYTES] == [0x8e, 0x50, 0x80, 0xe7] {
 			// This selector means we are in the is_nominator precompile.
+			log::info!("Matched accessor selector");
+
+			// parse the address
 
 			// TODO generalize Amar's parsing functions below
-			// parse the address
-			let nominator = H160::from_slice(&input[4..24]);
+			// For some reason there are 12 blank bytes. Not sure why.
+			let nominator = H160::from_slice(&input[16..36]);
+
+			log::info!("Checking whether {:?} is a nominator", nominator);
 
 			// fetch data from pallet
 			let is_nominator =
 				parachain_staking::Pallet::<Runtime>::is_nominator(&nominator.into());
+
+			log::info!("Result from pallet is {:?}", is_nominator);
 
 			// Solidity's bool type is 256 bits as shown by these examples https://docs.soliditylang.org/en/v0.8.0/abi-spec.html
 			// But I admit the comparison to `uint8` is a little confusing.
@@ -87,6 +94,8 @@ where
 			if is_nominator {
 				result_bytes[31] = 1;
 			}
+
+			log::info!("Result bytes are {:?}", result_bytes);
 
 			//TODO figure out how much gas it costs to check whether you're a nominator.
 			// That function will not naturally be benchmarked because it is not dispatchable
