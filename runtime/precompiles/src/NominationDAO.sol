@@ -14,10 +14,6 @@ contract NominationDao {
     /// to the underlying staking solution
     ParachainStaking public staking;
 
-    //TODO remove this
-    /// Solely for debugging purposes
-    event Trace(uint256);
-
     /// Initialize a new NominationDao dedicated to nominating the given collator target.
     constructor(address _target) {
         target = _target;
@@ -27,25 +23,16 @@ contract NominationDao {
 
     /// Update the on-chain nomination to reflect any recently-contributed nominations.
     function update_nomination() public {
-        emit Trace(1 << 248);
-        emit Trace(MinNominatorStk);
-        emit Trace(address(this).balance);
-
         // If we are already nominating, we need to remove the old nomination first
         if (staking.is_nominator(address(this))) {
-            emit Trace(2 << 248);
             staking.revoke_nomination(target);
         }
 
         // If we have enough funds to nominate, we should start a nomination
-        // TODO it seems like this balance comparison isn't working correctly.
         if (address(this).balance > MinNominatorStk) {
-            emit Trace(3 << 248);
-            // Make our nomination
             staking.nominate(target, address(this).balance);
-            emit Trace(4 << 248);
         } else {
-            emit Trace(64 << 248);
+            revert("NominationBelowMin");
         }
     }
 
@@ -59,11 +46,7 @@ contract NominationDao {
     // https://blog.soliditylang.org/2020/03/26/fallback-receive-split/
     receive() external payable {
         // It would be nice to call update_nomination here so it happens automatically.
-        // but there was some note about limited gas being available. We wouldn't want
-        // running out of gas to be the thing that prevented us from accepting a donation.
-        // If we still get the funds even when we run out of gas, then I don't see any harm
-        // in triggering the update here.
-        // Maybe something liek this is all it takes. But do we even for sure have these funds yet?
-        // staking.nominator_bond_more(target, msg.value);
+        // but there is very little gas available when just sending a normal transfer.
+        // So instead we rely on manually calling update_nomination
     }
 }
