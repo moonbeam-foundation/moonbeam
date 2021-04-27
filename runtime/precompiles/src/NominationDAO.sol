@@ -14,43 +14,38 @@ contract NominationDao {
     /// to the underlying staking solution
     ParachainStaking public staking;
 
-    /// Whether this DAO currently has a nomination active
-    /// TODO Our precompile should have an accessor for this that wraps the pallet's in_nominator.
-    bool public isNominating = false;
-
+    //TODO remove this
     /// Solely for debugging purposes
     event Trace(uint256);
 
     /// Initialize a new NominationDao dedicated to nominating the given collator target.
-    constructor(address _target, address _staking) {
+    constructor(address _target) {
         target = _target;
-        staking = ParachainStaking(_staking);
+        // This is the well-known address of Moonbeam's parachain staking precompile
+        staking = ParachainStaking(0x0000000000000000000000000000000000000100);
     }
 
     /// Update the on-chain nomination to reflect any recently-contributed nominations.
     function update_nomination() public {
-        emit Trace(1);
+        emit Trace(1 << 248);
         emit Trace(MinNominatorStk);
         emit Trace(address(this).balance);
 
-        //TODO call precompile accessor to check if you're nominating.
-        if (isNominating) {
-            emit Trace(2);
-            //TODO figure out how much more to bond.
-            // Maybe we need more accessors, or to keep track of how much we have bonded so far.
-            // Nominate more toward the same existing target
-            // staking.nominator_bond_more(target, msg.value);
-            // TODO it seems like this balance comparison isn't working correctly.
-        } else if (address(this).balance > MinNominatorStk) {
-            emit Trace(3);
+        // If we are already nominating, we need to remove the old nomination first
+        if (staking.is_nominator(address(this))) {
+            emit Trace(2 << 248);
+            staking.revoke_nomination(target);
+        }
+
+        // If we have enough funds to nominate, we should start a nomination
+        // TODO it seems like this balance comparison isn't working correctly.
+        if (address(this).balance > MinNominatorStk) {
+            emit Trace(3 << 248);
             // Make our nomination
             staking.nominate(target, address(this).balance);
-            emit Trace(4);
-            // Note that we have an active nomination
-            // TODO I guess we should confirm that the precompile call was successful first.
-            isNominating = true;
+            emit Trace(4 << 248);
         } else {
-            emit Trace(1024);
+            emit Trace(64 << 248);
         }
     }
 
@@ -60,14 +55,15 @@ contract NominationDao {
         staking.nominate(target, 10 ether);
     }
 
-    // So the notion of fallback funtion got split
+    // We need a public receive function to accept ether donations as direct transfers
     // https://blog.soliditylang.org/2020/03/26/fallback-receive-split/
-    // Maybe I don't need any fallback function at all. Can I just receive ether?
     receive() external payable {
-        // It would be nice to call update_nomination here s it happens automatically.
+        // It would be nice to call update_nomination here so it happens automatically.
         // but there was some note about limited gas being available. We wouldn't want
         // running out of gas to be the thing that prevented us from accepting a donation.
         // If we still get the funds even when we run out of gas, then I don't see any harm
         // in triggering the update here.
+        // Maybe something liek this is all it takes. But do we even for sure have these funds yet?
+        // staking.nominator_bond_more(target, msg.value);
     }
 }
