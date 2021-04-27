@@ -112,16 +112,18 @@ pub struct MoonbeamPrecompiles<R>(PhantomData<R>);
 // The idea here is that we won't have to list the addresses in this file and the chain spec.
 // Unfortunately we still have to type it twice in this file.
 impl<R: frame_system::Config> MoonbeamPrecompiles<R>
-where 
-R::AccountId: From<H160>
- {
+where
+	R::AccountId: From<H160>,
+{
 	/// Return all addresses that contain precompiles. This can be used to populate dummy code
 	/// under the precompile, and potentially in the future to prevent using accounts that have
 	/// precompiles at their addresses explicitly using something like SignedExtra.
 	fn used_addresses() -> impl Iterator<Item = R::AccountId> {
-		sp_std::vec![1,2,3,4,5,6,7,8,255,256,511].into_iter().map(|x| hash(x).into())
+		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 255, 256, 511]
+			.into_iter()
+			.map(|x| hash(x).into())
 	}
- }
+}
 
 impl<R> PrecompileSet for MoonbeamPrecompiles<R>
 where
@@ -139,23 +141,6 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Option<Result<(ExitSucceed, Vec<u8>, u64), ExitError>> {
-		// error: cannot find macro `println` in this scope
-		// --> runtime/precompiles/src/lib.rs:128:3
-		// 	|
-		// 128 |         println!("Running the precompile");
-		// 	|         ^^^^^^^
-		// 	|
-		// 	= note: consider importing this macro:
-		// 	crate::offchain::ecdsa::de::net::io::sys::ext::net::raw_fd::sys_common::backtrace::
-		// backtrace_rs::symbolize::gimli::mystd::println
-		// println!("In MoonbeamPrecompiles.");
-
-		log::info!(
-			"In MoonbeamPrecompiles. About to call address {:?}",
-			address
-		);
-		log::info!("context.caller is {:?}", context.caller);
-
 		match address {
 			// Ethereum precompiles :
 			a if a == hash(1) => Some(ECRecover::execute(input, target_gas, context)),
@@ -168,18 +153,12 @@ where
 			a if a == hash(8) => Some(Bn128Pairing::execute(input, target_gas, context)),
 			// Moonbeam precompiles :
 			a if a == hash(255) => Some(Dispatch::<R>::execute(input, target_gas, context)),
-			a if a == hash(256) => {
-				log::info!("matched address 256(decimal) calling into staking wrapper");
-				Some(ParachainStakingWrapper::<R>::execute(
-					input, target_gas, context,
-				))
-			}
+			a if a == hash(256) => Some(ParachainStakingWrapper::<R>::execute(
+				input, target_gas, context,
+			)),
 			// Moonbeam testing-only precompile(s):
 			a if a == hash(511) => Some(Sacrifice::execute(input, target_gas, context)),
-			_ => {
-				log::info!("No Precompiale at this address");
-				None
-			}
+			_ => None,
 		}
 	}
 }
