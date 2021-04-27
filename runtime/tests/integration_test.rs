@@ -1087,7 +1087,7 @@ fn is_nominator_accessor_false() {
 			println!("C");
 
 			// Expected result is an EVM boolean false which is 256 bits long.
-			let mut expected_bytes = Vec::from([0u8; 32]);
+			let expected_bytes = Vec::from([0u8; 32]);
 			let expected_result = Some(Ok((ExitSucceed::Returned, expected_bytes, 0)));
 
 			println!("D");
