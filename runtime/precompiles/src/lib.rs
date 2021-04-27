@@ -38,6 +38,11 @@ use sp_std::{marker::PhantomData, vec::Vec};
 #[derive(Debug, Clone, Copy)]
 pub struct MoonbeamPrecompiles<R>(PhantomData<R>);
 
+/// The following distribution has been decided for the precompiles
+/// 0-1023: Ethereum Mainnet Precompiles
+/// 1024-2047 Precompiles that are not in Ethereum Mainnet but are neither Moonbeam specific
+/// 2048-4095 Moonbeam specific prerecompiles
+
 impl<R> PrecompileSet for MoonbeamPrecompiles<R>
 where
 	R: Config,
@@ -62,8 +67,8 @@ where
 			a if a == hash(8) => Some(Bn128Pairing::execute(input, target_gas, context)),
 			// Moonbeam precompiles :
 			// We start from the back to avoid collision with Ethereum precompiles
-			a if a == hash(254) => Some(Sha3FIPS256::execute(input, target_gas, context)),
-			a if a == hash(255) => Some(Dispatch::<R>::execute(input, target_gas, context)),
+			a if a == hash(1024) => Some(Dispatch::<R>::execute(input, target_gas, context)),
+			a if a == hash(1025) => Some(Sha3FIPS256::execute(input, target_gas, context)),
 			_ => None,
 		}
 	}

@@ -367,7 +367,7 @@ describeWithMoonbeam("Moonbeam (Precompiles)", `simple-specs.json`, (context) =>
         value: "0x0",
         gas: "0x10000",
         gasPrice: "0x01",
-        to: "0x00000000000000000000000000000000000000FE",
+        to: "0x0000000000000000000000000000010000000001",
         data:
           "0x0448250ebe88d77e0a12bcf530fe6a2cf1ac176945638d309b840d631940c93b78c2bd6d16f227a8877e" +
           "3f1604cd75b9c5a8ab0cac95174a8a0a0f8ea9e4c10bca",
