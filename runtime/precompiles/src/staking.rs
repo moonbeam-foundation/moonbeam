@@ -282,20 +282,8 @@ where
 	}
 
 	fn revoke_nomination(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		const COLLATOR_SIZE_BYTES: usize = 20;
-
-		if input.len() != COLLATOR_SIZE_BYTES {
-			log::info!(
-				"Aborting because input length was invalid. Got {} bytes, expected {}",
-				input.len(),
-				COLLATOR_SIZE_BYTES,
-			);
-			return Err(ExitError::Other(
-				"Incorrect input length for revoke nomination call argument".into(),
-			));
-		}
-
-		let collator = H160::from_slice(&input[0..COLLATOR_SIZE_BYTES]);
+		log::info!("In revoke nomination dispatchable wrapper");
+		let collator = parse_account(&input[..32])?;
 
 		log::info!("Collator account is {:?}", collator);
 
