@@ -131,53 +131,50 @@ where
 	}
 }
 
-fn form_nominator_args<Balance>(input: &[u8]) -> Result<(H160, Balance), ExitError>
-where
-	Balance: TryFrom<U256>,
-{
-	const COLLATOR_SIZE_BYTES: usize = 20;
-	const AMOUNT_SIZE_BYTES: usize = 32;
-	const TOTAL_SIZE_BYTES: usize = COLLATOR_SIZE_BYTES + AMOUNT_SIZE_BYTES;
+/// Parses an H160 account address from a 256 bit (32 byte) buffer. Only the last 20 bytes are used.
+fn parse_account(input: &[u8]) -> Result<H160, ExitError> {
+	const PADDING_SIZE_BYTES: usize = 12;
+	const ACCOUNT_SIZE_BYTES: usize = 20;
+	const TOTAL_SIZE_BYTES: usize = PADDING_SIZE_BYTES + ACCOUNT_SIZE_BYTES;
 
 	if input.len() != TOTAL_SIZE_BYTES {
 		log::info!(
-			"Aborting because input length was invalid. Got {} bytes, expected {}",
+			"Unable to parse address. Got {} bytes, expected {}",
 			input.len(),
 			TOTAL_SIZE_BYTES,
 		);
 		return Err(ExitError::Other(
-			"Incorrect input length for nominator call arguments".into(),
+			"Incorrect input length for account parsing".into(),
 		));
 	}
 
-	let collator = H160::from_slice(&input[0..COLLATOR_SIZE_BYTES]);
-
-	let amount: Balance = U256::from_big_endian(&input[COLLATOR_SIZE_BYTES..TOTAL_SIZE_BYTES])
-		.try_into()
-		.map_err(|_| ExitError::Other("amount is too large for Runtime's balance type".into()))?;
-	Ok((collator, amount))
+	Ok(H160::from_slice(
+		&input[PADDING_SIZE_BYTES..TOTAL_SIZE_BYTES],
+	))
 }
 
-fn form_collator_args<Balance>(input: &[u8]) -> Result<Balance, ExitError>
+/// Parses an amount of ether from a 256 bit (32 byte) slice. The balance type is generic.
+fn parse_amount<Balance>(input: &[u8]) -> Result<Balance, ExitError>
 where
 	Balance: TryFrom<U256>,
 {
+	// In solidity all values are encoded to this width
 	const AMOUNT_SIZE_BYTES: usize = 32;
 
 	if input.len() != AMOUNT_SIZE_BYTES {
 		log::info!(
-			"Aborting because input length was invalid. Got {} bytes, expected {}",
+			"Unable to parse amount. Got {} bytes, expected {}",
 			input.len(),
 			AMOUNT_SIZE_BYTES,
 		);
 		return Err(ExitError::Other(
-			"Incorrect input length for collator call arguments".into(),
+			"Incorrect input length for amount parsing".into(),
 		));
 	}
 
 	let amount: Balance = U256::from_big_endian(&input[0..AMOUNT_SIZE_BYTES])
 		.try_into()
-		.map_err(|_| ExitError::Other("amount is too large for Runtime's balance type".into()))?;
+		.map_err(|_| ExitError::Other("Amount is too large for provided balance type".into()))?;
 	Ok(amount)
 }
 
@@ -226,7 +223,7 @@ where
 	// The dispatchable wrappers are next. They return a dispatchable ready for dispatch.
 
 	fn join_candidates(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		let amount = form_collator_args::<BalanceOf<Runtime>>(input)?;
+		let amount = parse_amount::<BalanceOf<Runtime>>(input)?;
 
 		log::info!("Collator stake amount is {:?}", amount);
 
@@ -246,7 +243,7 @@ where
 	}
 
 	fn candidate_bond_more(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		let amount = form_collator_args::<BalanceOf<Runtime>>(input)?;
+		let amount = parse_amount::<BalanceOf<Runtime>>(input)?;
 
 		log::info!("Collator bond increment is {:?}", amount);
 
@@ -256,7 +253,7 @@ where
 	}
 
 	fn candidate_bond_less(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		let amount = form_collator_args::<BalanceOf<Runtime>>(input)?;
+		let amount = parse_amount::<BalanceOf<Runtime>>(input)?;
 
 		log::info!("Collator bond decrement is {:?}", amount);
 
@@ -268,7 +265,8 @@ where
 	fn nominate(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
 		log::info!("In nominate dispatchable wrapper");
 		log::info!("input is {:?}", input);
-		let (collator, amount) = form_nominator_args::<BalanceOf<Runtime>>(input)?;
+		let collator = parse_account(&input[..32])?;
+		let amount = parse_amount::<BalanceOf<Runtime>>(&input[32..])?;
 
 		log::info!("Collator account is {:?}", collator);
 		log::info!("Nomination amount is {:?}", amount);
@@ -307,7 +305,8 @@ where
 	}
 
 	fn nominator_bond_more(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		let (collator, amount) = form_nominator_args::<BalanceOf<Runtime>>(input)?;
+		let collator = parse_account(&input[..32])?;
+		let amount = parse_amount::<BalanceOf<Runtime>>(&input[32..])?;
 
 		log::info!("Collator account is {:?}", collator);
 		log::info!("Nomination increment is {:?}", amount);
@@ -319,7 +318,8 @@ where
 	}
 
 	fn nominator_bond_less(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		let (collator, amount) = form_nominator_args::<BalanceOf<Runtime>>(input)?;
+		let collator = parse_account(&input[..32])?;
+		let amount = parse_amount::<BalanceOf<Runtime>>(&input[32..])?;
 
 		log::info!("Collator account is {:?}", collator);
 		log::info!("Nomination decrement is {:?}", amount);

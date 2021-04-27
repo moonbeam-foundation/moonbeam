@@ -371,9 +371,7 @@ fn join_candidates_via_precompile() {
 
 			// Construct the call data (selector, amount)
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
-			println!("a");
 			call_data[0..4].copy_from_slice(&hex_literal::hex!("ad76ed5a"));
-			println!("b");
 			amount.to_big_endian(&mut call_data[4..36]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
@@ -672,10 +670,10 @@ fn nominate_via_precompile() {
 			let nomination_amount: U256 = (1000 * GLMR).into();
 
 			// Construct the call data (selector, collator, nomination amount)
-			let mut call_data = Vec::<u8>::from([0u8; 56]);
+			let mut call_data = Vec::<u8>::from([0u8; 68]);
 			call_data[0..4].copy_from_slice(&hex_literal::hex!("82f2c8df"));
-			call_data[4..24].copy_from_slice(&ALICE);
-			nomination_amount.to_big_endian(&mut call_data[24..56]);
+			call_data[16..36].copy_from_slice(&ALICE);
+			nomination_amount.to_big_endian(&mut call_data[36..68]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(BOB),
@@ -899,11 +897,11 @@ fn nominator_bond_more_less_via_precompile() {
 			let gas_price: U256 = 1000.into();
 
 			// Construct the nominator_bond_more call
-			let mut bond_more_call_data = Vec::<u8>::from([0u8; 56]);
+			let mut bond_more_call_data = Vec::<u8>::from([0u8; 68]);
 			bond_more_call_data[0..4].copy_from_slice(&hex_literal::hex!("971d44c8"));
-			bond_more_call_data[4..24].copy_from_slice(&ALICE);
+			bond_more_call_data[16..36].copy_from_slice(&ALICE);
 			let bond_more_amount: U256 = (500 * GLMR).into();
-			bond_more_amount.to_big_endian(&mut bond_more_call_data[24..56]);
+			bond_more_amount.to_big_endian(&mut bond_more_call_data[36..68]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(BOB),
@@ -942,11 +940,11 @@ fn nominator_bond_more_less_via_precompile() {
 			);
 
 			// Construct the go_online call data
-			let mut bond_less_call_data = Vec::<u8>::from([0u8; 56]);
+			let mut bond_less_call_data = Vec::<u8>::from([0u8; 68]);
 			bond_less_call_data[0..4].copy_from_slice(&hex_literal::hex!("f6a52569"));
-			bond_less_call_data[4..24].copy_from_slice(&ALICE);
+			bond_less_call_data[16..36].copy_from_slice(&ALICE);
 			let bond_less_amount: U256 = (500 * GLMR).into();
-			bond_less_amount.to_big_endian(&mut bond_less_call_data[24..56]);
+			bond_less_amount.to_big_endian(&mut bond_less_call_data[36..68]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(BOB),
@@ -1010,26 +1008,17 @@ fn is_nominator_accessor_true() {
 			// Confirm Bob is initialized as a nominator directly
 			assert!(ParachainStaking::is_nominator(&AccountId::from(BOB)));
 
-			println!("A");
-
 			let staking_precompile_address = H160::from_low_u64_be(256);
 
-			println!("B");
 			// Construct the input data
 			let mut input_data = Vec::<u8>::from([0u8; 36]);
 			input_data[0..4].copy_from_slice(&hex_literal::hex!("8e5080e7"));
-			// Leave 12 bytes empty. Not totally sure why. This is reverse engineered from remix experimentation
-			// Maybe that is encoding something, or maybe it is just to pad to 32 bytes?
 			input_data[16..36].copy_from_slice(&BOB);
-
-			println!("C");
 
 			// Expected result is an EVM boolean true which is 256 bits long.
 			let mut expected_bytes = Vec::from([0u8; 32]);
 			expected_bytes[31] = 1;
 			let expected_result = Some(Ok((ExitSucceed::Returned, expected_bytes, 0)));
-
-			println!("D");
 
 			// Assert precompile also reports Alice as a nominator
 			assert_eq!(
@@ -1072,25 +1061,16 @@ fn is_nominator_accessor_false() {
 			// Confirm Charlie is not initialized as a nominator directly
 			assert!(!ParachainStaking::is_nominator(&AccountId::from(CHARLIE)));
 
-			println!("A");
-
 			let staking_precompile_address = H160::from_low_u64_be(256);
 
-			println!("B");
 			// Construct the input data
 			let mut input_data = Vec::<u8>::from([0u8; 36]);
 			input_data[0..4].copy_from_slice(&hex_literal::hex!("8e5080e7"));
-			// Leave 12 bytes empty. Not totally sure why. This is reverse engineered from remix experimentation
-			// Maybe that is encoding something, or maybe it is just to pad to 32 bytes?
 			input_data[16..36].copy_from_slice(&CHARLIE);
-
-			println!("C");
 
 			// Expected result is an EVM boolean false which is 256 bits long.
 			let expected_bytes = Vec::from([0u8; 32]);
 			let expected_result = Some(Ok((ExitSucceed::Returned, expected_bytes, 0)));
-
-			println!("D");
 
 			// Assert precompile also reports Alice as a nominator
 			assert_eq!(
@@ -1129,6 +1109,8 @@ fn is_nominator_accessor_false() {
 // 			// 0000000000000000000000006be02d1d3665660d22ff9624b7be0551ee1ac91b
 
 // 			let mut constructor_data = Vec::<u8>::from([0u8; 32]);
+//          // The 12 bytes is most likely because accounts are padded to 12 bytes. The constructor also has a 4-byte selector
+//          // like all the others. Cnsider that when this test is revisited.
 // 			// Leave the first twelve bytes as 0 to call the constructor (apparently; this is reverse engineered from remix)
 // 			constructor_data[0..12].copy_from_slice(&hex_literal::hex!("000000000000000000000000"));
 // 			constructor_data[12..32].copy_from_slice(&ALICE);
