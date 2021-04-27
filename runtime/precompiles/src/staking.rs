@@ -101,8 +101,8 @@ where
 
 		// Make sure enough gas
 		if let Some(gas_limit) = target_gas {
-			let valid_weight = info.weight <= Runtime::GasWeightMapping::gas_to_weight(gas_limit);
-			if !valid_weight {
+			let required_gas = Runtime::GasWeightMapping::weight_to_gas(info.weight);
+			if required_gas > gas_limit {
 				return Err(ExitError::OutOfGas);
 			}
 		}
