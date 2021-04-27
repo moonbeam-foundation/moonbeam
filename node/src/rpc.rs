@@ -144,7 +144,7 @@ where
 	io.extend_with(EthApiServer::to_delegate(EthApi::new(
 		client.clone(),
 		pool.clone(),
-		graph,
+		graph.clone(),
 		moonbeam_runtime::TransactionConverter,
 		network.clone(),
 		pending_transactions,
@@ -168,7 +168,7 @@ where
 	)));
 	io.extend_with(Web3ApiServer::to_delegate(Web3Api::new(client.clone())));
 	io.extend_with(EthPubSubApiServer::to_delegate(EthPubSubApi::new(
-		pool.clone(),
+		pool,
 		client.clone(),
 		network,
 		SubscriptionManager::<HexEncodedIdProvider>::with_id_provider(
@@ -184,7 +184,7 @@ where
 		)));
 	}
 	if ethapi_cmd.contains(&EthApiCmd::Txpool) {
-		io.extend_with(TxPoolServer::to_delegate(TxPool::new(client, pool)));
+		io.extend_with(TxPoolServer::to_delegate(TxPool::new(client, graph)));
 	}
 
 	if let Some(command_sink) = command_sink {
