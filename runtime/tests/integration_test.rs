@@ -387,7 +387,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			assert_ok!(Call::Utility(pallet_utility::Call::<Runtime>::batch(vec![
 				Call::CrowdloanRewards(
 					pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
-						vec![([4u8; 32].into(), Some(AccountId::from(CHARLIE)), 500)],
+						vec![([4u8; 32].into(), Some(AccountId::from(CHARLIE)), 432000)],
 						1,
 						0,
 						2
@@ -395,7 +395,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				),
 				Call::CrowdloanRewards(
 					pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
-						vec![([5u8; 32].into(), Some(AccountId::from(DAVE)), 500)],
+						vec![([5u8; 32].into(), Some(AccountId::from(DAVE)), 432000)],
 						1,
 						1,
 						2
@@ -409,7 +409,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			assert_ok!(Call::Utility(pallet_utility::Call::<Runtime>::batch(vec![
 				Call::CrowdloanRewards(
 					pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
-						vec![([4u8; 32].into(), Some(AccountId::from(ALICE)), 500)],
+						vec![([4u8; 32].into(), Some(AccountId::from(ALICE)), 432000)],
 						1,
 						0,
 						1
@@ -429,6 +429,12 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			assert_ok!(CrowdloanRewards::show_me_the_money(origin_of(
 				AccountId::from(CHARLIE)
 			)));
+			assert_ok!(CrowdloanRewards::show_me_the_money(origin_of(
+				AccountId::from(DAVE)
+			)));
+			assert_eq!(CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE)).unwrap().claimed_reward, 2);
+			assert_eq!(CrowdloanRewards::accounts_payable(&AccountId::from(DAVE)).unwrap().claimed_reward, 2);
+
 			assert_noop!(
 				CrowdloanRewards::show_me_the_money(origin_of(AccountId::from(ALICE))),
 				pallet_crowdloan_rewards::Error::<Runtime>::NoAssociatedClaim
