@@ -23,6 +23,7 @@ use pallet_evm::{Config, Precompile, PrecompileSet};
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
+use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, Identity, Ripemd160, Sha256};
 use sp_core::H160;
 use sp_std::{marker::PhantomData, vec::Vec};
@@ -33,6 +34,11 @@ use sp_std::{marker::PhantomData, vec::Vec};
 /// as well as a special precompile for dispatching Substrate extrinsics
 #[derive(Debug, Clone, Copy)]
 pub struct MoonbeamPrecompiles<R>(PhantomData<R>);
+
+/// The following distribution has been decided for the precompiles
+/// 0-1023: Ethereum Mainnet Precompiles
+/// 1024-2047 Precompiles that are not in Ethereum Mainnet but are neither Moonbeam specific
+/// 2048-4095 Moonbeam specific prerecompiles
 
 impl<R> PrecompileSet for MoonbeamPrecompiles<R>
 where
@@ -56,8 +62,9 @@ where
 			a if a == hash(6) => Some(Bn128Add::execute(input, target_gas, context)),
 			a if a == hash(7) => Some(Bn128Mul::execute(input, target_gas, context)),
 			a if a == hash(8) => Some(Bn128Pairing::execute(input, target_gas, context)),
-			// Moonbeam precompiles :
-			a if a == hash(255) => Some(Dispatch::<R>::execute(input, target_gas, context)),
+			// Non-Moonbeam specific nor Ethereum precompiles :
+			a if a == hash(1024) => Some(Dispatch::<R>::execute(input, target_gas, context)),
+			a if a == hash(1025) => Some(Sha3FIPS256::execute(input, target_gas, context)),
 			_ => None,
 		}
 	}

@@ -21,6 +21,7 @@ pallet-evm-precompile-bn128 = { git = "https://github.com/purestake/frontier", d
 pallet-evm-precompile-dispatch = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-moonbeam-v0.7" }
 pallet-evm-precompile-modexp = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-moonbeam-v0.7" }
 pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-moonbeam-v0.7" }
+pallet-evm-precompile-sha3fips = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-moonbeam-v0.7" }
 
 [features]
 default = [ "std" ]
@@ -35,4 +36,5 @@ std = [
 	"pallet-evm-precompile-dispatch/std",
 	"pallet-evm-precompile-modexp/std",
 	"pallet-evm-precompile-simple/std",
+	"pallet-evm-precompile-sha3fips/std",
 ]
