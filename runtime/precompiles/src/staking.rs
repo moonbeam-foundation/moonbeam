@@ -71,38 +71,9 @@ where
 
 		// Write first accessor this hacky way. Make it nicer later.
 		if input[0..SELECTOR_SIZE_BYTES] == [0x8e, 0x50, 0x80, 0xe7] {
-			// This selector means we are in the is_nominator precompile.
-			log::info!("Matched accessor selector");
+			log::info!("Matched is_nominator accessor selector");
 
-			// parse the address
-
-			// TODO generalize Amar's parsing functions below
-			// For some reason there are 12 blank bytes. Not sure why.
-			let nominator = H160::from_slice(&input[16..36]);
-
-			log::info!("Checking whether {:?} is a nominator", nominator);
-
-			// fetch data from pallet
-			let is_nominator =
-				parachain_staking::Pallet::<Runtime>::is_nominator(&nominator.into());
-
-			log::info!("Result from pallet is {:?}", is_nominator);
-
-			// Solidity's bool type is 256 bits as shown by these examples https://docs.soliditylang.org/en/v0.8.0/abi-spec.html
-			// But I admit the comparison to `uint8` is a little confusing.
-			let mut result_bytes = [0u8; 32];
-			if is_nominator {
-				result_bytes[31] = 1;
-			}
-
-			log::info!("Result bytes are {:?}", result_bytes);
-
-			//TODO figure out how much gas it costs to check whether you're a nominator.
-			// That function will not naturally be benchmarked because it is not dispatchable
-			// I guess the heavy part will be one storage read.
-			let gas_consumed = 0;
-
-			return Ok((ExitSucceed::Returned, result_bytes.to_vec(), gas_consumed));
+			return Self::is_nominator(&input[SELECTOR_SIZE_BYTES..]);
 		}
 
 		// Parse the function selector
@@ -220,6 +191,41 @@ where
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<parachain_staking::Call<Runtime>>,
 {
+	// The accessors are first. They directly return their result
+
+	fn is_nominator(input: &[u8]) -> Result<(ExitSucceed, Vec<u8>, u64), ExitError> {
+		// parse the address
+
+		// TODO generalize Amar's parsing functions
+		// For some reason there are 12 blank bytes. Not sure why.
+		let nominator = H160::from_slice(&input[12..32]);
+
+		log::info!("Checking whether {:?} is a nominator", nominator);
+
+		// fetch data from pallet
+		let is_nominator = parachain_staking::Pallet::<Runtime>::is_nominator(&nominator.into());
+
+		log::info!("Result from pallet is {:?}", is_nominator);
+
+		// Solidity's bool type is 256 bits as shown by these examples
+		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html
+		let mut result_bytes = [0u8; 32];
+		if is_nominator {
+			result_bytes[31] = 1;
+		}
+
+		log::info!("Result bytes are {:?}", result_bytes);
+
+		//TODO figure out how much gas it costs to check whether you're a nominator.
+		// That function will not naturally be benchmarked because it is not dispatchable
+		// I guess the heavy part will be one storage read.
+		let gas_consumed = 0;
+
+		return Ok((ExitSucceed::Returned, result_bytes.to_vec(), gas_consumed));
+	}
+
+	// The dispatchable wrappers are next. They return a dispatchable ready for dispatch.
+
 	fn join_candidates(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
 		let amount = form_collator_args::<BalanceOf<Runtime>>(input)?;
 
