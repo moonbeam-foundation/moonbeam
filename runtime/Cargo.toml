@@ -45,11 +45,11 @@ pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", 
 
 frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-moonbeam-v0.7" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "jeremy-runner-evm-hook" }
 pallet-utility = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 
-pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
-fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
+pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "jeremy-runner-evm-hook" }
+fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "jeremy-runner-evm-hook" }
 
 pallet-democracy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
