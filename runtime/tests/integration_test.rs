@@ -18,10 +18,13 @@
 
 #![cfg(test)]
 
+use cumulus_primitives_core::PersistedValidationData;
 use cumulus_primitives_parachain_inherent::ParachainInherentData;
+use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
+	pallet_prelude::DispatchResultWithPostInfo,
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
 use moonbeam_runtime::{
@@ -42,6 +45,37 @@ fn run_to_block(n: u32) {
 
 fn last_event() -> Event {
 	System::events().pop().expect("Event expected").event
+}
+
+// Mock the inherent that sets author in `author-inherent`
+fn set_author(a: AccountId) -> DispatchResultWithPostInfo {
+	Call::AuthorInherent(author_inherent::Call::<Runtime>::set_author(a))
+		.dispatch(inherent_origin())
+}
+
+// Mock the inherent that sets validation data in ParachainSystem, which
+// contains the `relay_chain_block_number`, which is used in `author-filter` as a
+// source of randomness to filter valid authors at each block.
+fn set_validation_data() -> DispatchResultWithPostInfo {
+	let (relay_parent_storage_root, relay_chain_state) =
+		RelayStateSproofBuilder::default().into_state_root_and_proof();
+	let vfp = PersistedValidationData {
+		relay_parent_number: 1u32,
+		relay_parent_storage_root,
+		..Default::default()
+	};
+	let parachain_inherent_data = ParachainInherentData {
+		validation_data: vfp,
+		relay_chain_state: relay_chain_state,
+		downward_messages: Default::default(),
+		horizontal_messages: Default::default(),
+	};
+	Call::ParachainSystem(
+		cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data(
+			parachain_inherent_data,
+		),
+	)
+	.dispatch(inherent_origin())
 }
 
 struct ExtBuilder {
@@ -309,45 +343,16 @@ fn reward_block_authors() {
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
-			use cumulus_primitives_core::PersistedValidationData;
-			use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
-			let (relay_parent_storage_root, relay_chain_state) =
-				RelayStateSproofBuilder::default().into_state_root_and_proof();
-			let vfp = PersistedValidationData {
-				relay_parent_number: 1u32,
-				relay_parent_storage_root,
-				..Default::default()
-			};
-			let parachain_inherent_data = ParachainInherentData {
-				validation_data: vfp,
-				relay_chain_state: relay_chain_state,
-				downward_messages: Default::default(),
-				horizontal_messages: Default::default(),
-			};
-			// Mock the inherent that sets validation data in ParachainSystem, which
-			// contains the `relay_chain_block_number`, which is used in `author-filter` as a
-			// source of randomness to filter valid authors at each block.
-			assert_ok!(Call::ParachainSystem(
-				cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data(
-					parachain_inherent_data
-				)
-			)
-			.dispatch(inherent_origin()));
-			// Mock the inherent that sets author in `author-inherent`
-			fn set_author(a: AccountId) {
-				assert_ok!(
-					Call::AuthorInherent(author_inherent::Call::<Runtime>::set_author(a))
-						.dispatch(inherent_origin())
-				);
-			}
+			assert_ok!(set_validation_data());
+
 			for x in 2..1201 {
-				set_author(AccountId::from(ALICE));
+				set_author(AccountId::from(ALICE)).unwrap();
 				run_to_block(x);
 			}
 			// no rewards doled out yet
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * GLMR,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * GLMR,);
-			set_author(AccountId::from(ALICE));
+			set_author(AccountId::from(ALICE)).unwrap();
 			run_to_block(1201);
 			// rewards minted and distributed
 			assert_eq!(
@@ -372,39 +377,9 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
-			use cumulus_primitives_core::PersistedValidationData;
-			use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
-			let (relay_parent_storage_root, relay_chain_state) =
-				RelayStateSproofBuilder::default().into_state_root_and_proof();
-			let vfp = PersistedValidationData {
-				relay_parent_number: 1u32,
-				relay_parent_storage_root,
-				..Default::default()
-			};
-			let parachain_inherent_data = ParachainInherentData {
-				validation_data: vfp,
-				relay_chain_state: relay_chain_state,
-				downward_messages: Default::default(),
-				horizontal_messages: Default::default(),
-			};
-			// Mock the inherent that sets validation data in ParachainSystem, which
-			// contains the `relay_chain_block_number`, which is used in `author-filter` as a
-			// source of randomness to filter valid authors at each block.
-			assert_ok!(Call::ParachainSystem(
-				cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data(
-					parachain_inherent_data
-				)
-			)
-			.dispatch(inherent_origin()));
-			// Mock the inherent that sets author in `author-inherent`
-			fn set_author(a: AccountId) {
-				assert_ok!(
-					Call::AuthorInherent(author_inherent::Call::<Runtime>::set_author(a))
-						.dispatch(inherent_origin())
-				);
-			}
+			assert_ok!(set_validation_data());
 
-			set_author(AccountId::from(ALICE));
+			assert_ok!(set_author(AccountId::from(ALICE)));
 			for x in 1..3 {
 				run_to_block(x);
 			}
