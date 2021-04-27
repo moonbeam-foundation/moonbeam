@@ -10,10 +10,10 @@ describeDevMoonbeam("Precompiles - sacrifice", (context) => {
       {
         from: GENESIS_ACCOUNT,
         value: "0x0",
-        gas: "0x10000",
+        gas: "0x1000000",
         gasPrice: "0x01",
         to: "0x00000000000000000000000000000000000001FF",
-        data: `0x0000000000005BA0`, // 23456
+        data: `0x0000000000000000000000000000000000000000000000000000000000005BA0`, // 23456
       },
     ]);
 
@@ -49,8 +49,7 @@ describeDevMoonbeam("Precompiles - sacrifice", (context) => {
       },
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
-
-    console.log("encoded => ", contract.methods.sacrifice(amount).encodeABI());
+    // console.log(`encoded(${amount}) => `, contract.methods.sacrifice(amount).encodeABI());
 
     // send txn...
     const txnResult = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
@@ -71,16 +70,33 @@ describeDevMoonbeam("Precompiles - sacrifice", (context) => {
   };
 
   it("should be accessible from a smart contract", async function () {
-    const result = await transact(23457);
-    expect(result.receipt.gasUsed).to.be.greaterThan(23457);
+    const result = await transact(1032862);
+    expect(result.receipt.gasUsed).to.be.greaterThan(1032862);
   });
 
   it("should have consistent overhead", async function () {
-    let zeroCostResult = await transact(0);
-    let thousandCostResult = await transact(1000);
+    // this test attempts to assert that the overall txn cost of invoking our precompile wrapper
+    // should be equal to (some_constant + gas_burnt_by_sacrifice).
 
-    // console.log("zero => ", zeroCostResult);
-    // console.log("thou => ", thousandCostResult);
-    expect(zeroCostResult.receipt.gasUsed).to.equal(thousandCostResult.receipt.gasUsed - 1000);
+    // obtain cost of burning 0 gas in precompile - this establishes base cast
+    const zeroCostResult = await transact(0);
+    const zeroCost = zeroCostResult.receipt.gasUsed;
+
+    const oneCostResult = await transact(1);
+    const oneCost = oneCostResult.receipt.gasUsed;
+
+    const thousandCostResult = await transact(1000);
+    const thousandCost = thousandCostResult.receipt.gasUsed;
+
+
+    console.log("zero => ", zeroCostResult);
+    console.log("one => ", oneCostResult);
+    console.log("thou => ", thousandCostResult);
+
+    // the cost of burning one gas should be only +1 compared to burning 0 gas
+    expect(oneCost).to.equal(zeroCost + 1);
+
+    // the cost of burning 1000 gas should be +1000 compared to burning 0 gas
+    expect(thousandCost).to.equal(zeroCost + 1000);
   });
 });
