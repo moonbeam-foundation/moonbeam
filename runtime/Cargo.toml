@@ -66,6 +66,10 @@ cumulus-pallet-parachain-system = { git = "https://github.com/paritytech/cumulus
 cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "rococo-v1" }
 parachain-info = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "rococo-v1" }
 
+[dev-dependencies]
+cumulus-test-relay-sproof-builder = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "rococo-v1" }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/paritytech/cumulus",  default-features = false, branch = "rococo-v1" }
+
 [build-dependencies]
 substrate-wasm-builder = { version = "4.0.0", git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
 

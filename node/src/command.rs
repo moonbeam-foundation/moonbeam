@@ -46,13 +46,15 @@ fn load_spec(
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	match id {
 		"alphanet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
-			&include_bytes!("../../specs/alphanet/parachain-embedded-specs-v6.json")[..],
+			&include_bytes!("../../specs/alphanet/parachain-embedded-specs-v7.json")[..],
 		)?)),
 		"stagenet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
-			&include_bytes!("../../specs/stagenet/parachain-embedded-specs-v6.json")[..],
+			&include_bytes!("../../specs/stagenet/parachain-embedded-specs-v7.json")[..],
 		)?)),
 		"dev" | "development" => Ok(Box::new(chain_spec::development_chain_spec(None, None))),
 		"local" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
+		#[cfg(feature = "test-spec")]
+		"staking" => Ok(Box::new(crate::test_spec::staking_spec(para_id))),
 		"" => Err(
 			"You have not specified what chain to sync. In the future, this will default to \
 				Moonbeam mainnet. Mainnet is not yet live so you must choose a spec."
@@ -136,10 +138,10 @@ impl SubstrateCli for RelayChainCli {
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		match id {
 			"moonbase_alpha_relay" => Ok(Box::new(RococoChainSpec::from_json_bytes(
-				&include_bytes!("../../specs/alphanet/rococo-embedded-specs-v6.json")[..],
+				&include_bytes!("../../specs/alphanet/rococo-embedded-specs-v7.json")[..],
 			)?)),
 			"moonbase_stage_relay" => Ok(Box::new(RococoChainSpec::from_json_bytes(
-				&include_bytes!("../../specs/stagenet/rococo-embedded-specs-v6.json")[..],
+				&include_bytes!("../../specs/stagenet/rococo-embedded-specs-v7.json")[..],
 			)?)),
 			// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the
 			// Polkadot service to interpret the id.
@@ -242,7 +244,36 @@ pub fn run() -> Result<()> {
 		}
 		Some(Subcommand::PurgeChain(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.sync_run(|config| cmd.run(config.database))
+
+			runner.sync_run(|config| {
+				// Although the cumulus_client_cli::PurgeCommand will extract the relay chain id,
+				// we need to extract it here to determine whether we are running the dev service.
+				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
+				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
+				let dev_service =
+					cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
+
+				if dev_service {
+					// base refers to the encapsulated "regular" sc_cli::PurgeChain command
+					return cmd.base.run(config.database);
+				}
+
+				let polkadot_cli = RelayChainCli::new(
+					&config,
+					[RelayChainCli::executable_name().to_string()]
+						.iter()
+						.chain(cli.relaychain_args.iter()),
+				);
+
+				let polkadot_config = SubstrateCli::create_configuration(
+					&polkadot_cli,
+					&polkadot_cli,
+					config.task_executor.clone(),
+				)
+				.map_err(|err| format!("Relay chain argument error: {}", err))?;
+
+				cmd.run(config, polkadot_config)
+			})
 		}
 		Some(Subcommand::Revert(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
@@ -338,19 +369,12 @@ pub fn run() -> Result<()> {
 							)
 						});
 
-						return crate::service::new_dev(
-							config,
-							cli.run.sealing,
-							author_id,
-							collator,
-							cli.run.ethapi,
-						);
+						return crate::service::new_dev(config, author_id, collator, cli.run);
 					}
 
 					let polkadot_cli = RelayChainCli::new(
-						config.base_path.as_ref().map(|x| x.path().join("polkadot")),
-						relay_chain_id,
-						[RelayChainCli::executable_name()]
+						&config,
+						[RelayChainCli::executable_name().to_string()]
 							.iter()
 							.chain(cli.relaychain_args.iter()),
 					);
@@ -387,7 +411,7 @@ pub fn run() -> Result<()> {
 						polkadot_config,
 						id,
 						collator,
-						cli.run.ethapi,
+						cli.run,
 					)
 					.await
 					.map(|r| r.0)

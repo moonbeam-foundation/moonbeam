@@ -32,6 +32,22 @@ export const rpcDefinitions: Record<string, Record<string, DefinitionRpc | Defin
       type: "TxPoolResultStatus",
     },
   },
+  trace: {
+    filter: {
+      aliasSection: "trace",
+      description: "Trace Filter",
+      params: [{ name: "filter", type: "FilterRequest" }],
+      type: "Result<Vec<TransactionTrace>>",
+    },
+  },
+  debug: {
+    traceTransaction: {
+      aliasSection: "debug",
+      description: "Debug trace tx",
+      params: [{ name: "transaction_hash", type: "H256" }],
+      type: "Result<Vec<TransactionTrace>>",
+    },
+  },
 };
 
 export const moonbeamDefinitions = {
@@ -195,6 +211,7 @@ export const moonbeamDefinitions = {
         },
         InflationInfo: {
           expect: "RangeBalance",
+          annual: "RangePerbill",
           round: "RangePerbill",
         },
         OrderedSet: "Vec<Bond>",
@@ -217,6 +234,11 @@ export const moonbeamDefinitions = {
           horizontal_messages: "BTreeMap<ParaId, Vec<InboundHrmpMessage>>",
         },
         RelayChainAccountId: "H256",
+        RoundInfo: {
+          current: "RoundIndex",
+          first: "BlockNumber",
+          length: "u32",
+        },
       },
     },
   ],

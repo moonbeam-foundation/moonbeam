@@ -12,6 +12,9 @@ edition = '2018'
 name = 'moonbeam'
 path = 'src/main.rs'
 
+[features]
+test-spec = []
+
 [dependencies]
 async-io = "1.3"
 derive_more = '0.99'
@@ -85,6 +88,7 @@ fc-db = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonb
 fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
 
 # Cumulus dependencies
+cumulus-client-cli = { git = "https://github.com/paritytech/cumulus", branch = "rococo-v1" }
 cumulus-client-consensus-common = { git = "https://github.com/paritytech/cumulus", branch = "rococo-v1" }
 cumulus-client-collator = { git = "https://github.com/paritytech/cumulus", branch = "rococo-v1" }
 cumulus-client-network = { git = "https://github.com/paritytech/cumulus", branch = "rococo-v1" }

@@ -78,12 +78,22 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 		code: Vec<u8>,
 	) -> ExitReason {
 		match self.trace_type {
-			TraceType::Raw => self.trace_raw(runtime),
+			TraceType::Raw {
+				disable_storage,
+				disable_memory,
+				disable_stack,
+			} => self.trace_raw(runtime, disable_storage, disable_memory, disable_stack),
 			TraceType::CallList => self.trace_call_list(runtime, context_type, code),
 		}
 	}
 
-	fn trace_raw(&mut self, runtime: &mut Runtime) -> ExitReason {
+	fn trace_raw(
+		&mut self,
+		runtime: &mut Runtime,
+		disable_storage: bool,
+		disable_memory: bool,
+		disable_stack: bool,
+	) -> ExitReason {
 		// TODO : If subcalls on a same contract access more storage, does it cache it here too ?
 		// (not done yet)
 		let mut storage_cache: BTreeMap<H256, H256> = BTreeMap::new();
@@ -158,31 +168,43 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 					),
 					gas: U256::from(self.inner.gas()),
 					gas_cost: U256::from(gas_cost),
-					memory: {
+					memory: if disable_memory {
+						None
+					} else {
 						// Vec<u8> to Vec<H256> conversion.
 						let memory = &runtime.machine().memory().data()[..];
 						let size = 32;
-						memory
-							.chunks(size)
-							.map(|c| {
-								let mut msg = [0u8; 32];
-								let chunk = c.len();
-								if chunk < size {
-									let left = size - chunk;
-									let remainder = vec![0; left];
-									msg[0..left].copy_from_slice(&remainder[..]);
-									msg[left..size].copy_from_slice(c);
-								} else {
-									msg[0..size].copy_from_slice(c)
-								}
-								H256::from_slice(&msg[..])
-							})
-							.collect()
+						Some(
+							memory
+								.chunks(size)
+								.map(|c| {
+									let mut msg = [0u8; 32];
+									let chunk = c.len();
+									if chunk < size {
+										let left = size - chunk;
+										let remainder = vec![0; left];
+										msg[0..left].copy_from_slice(&remainder[..]);
+										msg[left..size].copy_from_slice(c);
+									} else {
+										msg[0..size].copy_from_slice(c)
+									}
+									H256::from_slice(&msg[..])
+								})
+								.collect(),
+						)
 					},
 					op: opcodes(opcode),
 					pc: U256::from(*position),
-					stack: runtime.machine().stack().data().clone(),
-					storage: BTreeMap::new(),
+					stack: if disable_stack {
+						None
+					} else {
+						Some(runtime.machine().stack().data().clone())
+					},
+					storage: if disable_storage {
+						None
+					} else {
+						Some(BTreeMap::new())
+					},
 				});
 			}
 
@@ -201,7 +223,11 @@ impl<'config, S: StackStateT<'config>> TraceExecutorWrapper<'config, S> {
 
 			// Push log into vec here instead here (for SLOAD/STORE "early" update).
 			if let Some(mut steplog) = steplog {
-				steplog.storage = storage_cache.clone();
+				steplog.storage = if disable_storage {
+					None
+				} else {
+					Some(storage_cache.clone())
+				};
 				self.step_logs.push(steplog);
 			}
 
