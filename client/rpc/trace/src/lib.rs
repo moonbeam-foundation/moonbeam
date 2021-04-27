@@ -132,12 +132,6 @@ where
 		max_count: u32,
 		cache_duration: u32,
 	) -> (impl Future<Output = ()>, TraceFilterCacheRequester) {
-		// TODO : REMOVE THIS
-		// This is executed here only to test if the hook is indeed working.
-		// This is not how tracing will be done with the hook.
-		use moonbeam_extensions_evm::DummyHook;
-		pallet_evm::runner::stack::Runner::<moonbeam_runtime::Runtime, DummyHook>::set_hook(Some(DummyHook));
-
 		let cache_duration = Duration::from_secs(cache_duration as u64);
 
 		let (tx, mut rx): (TraceFilterCacheRequester, _) =

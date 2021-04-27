@@ -72,7 +72,7 @@ pub trait TraceRunner<T: Config> {
 	) -> Result<TransactionTrace, ExitError>;
 }
 
-impl<T: Config> TraceRunner<T> for Runner<T, crate::DummyHook> {
+impl<T: Config> TraceRunner<T> for Runner<T, crate::hook::TracingHook> {
 	fn execute_call<'config, F>(
 		executor: &'config mut StackExecutor<'config, SubstrateStackState<'_, 'config, T>>,
 		trace_type: TraceType,
