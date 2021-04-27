@@ -4441,6 +4441,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+ "tracing",
 ]
 
 [[package]]
@@ -4547,8 +4548,11 @@ dependencies = [
  "fp-rpc",
  "futures 0.3.13",
  "jsonrpc-core 15.1.0",
+ "moonbeam-extensions-evm",
  "moonbeam-rpc-core-trace",
  "moonbeam-rpc-primitives-debug",
+ "moonbeam-runtime",
+ "pallet-evm",
  "sc-client-api",
  "sc-network",
  "sc-transaction-graph",

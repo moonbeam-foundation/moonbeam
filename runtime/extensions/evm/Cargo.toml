@@ -18,6 +18,7 @@ sp-io = { default-features = false, git = "https://github.com/paritytech/substra
 sp-runtime = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1" }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug", default-features = false }
 ethereum-types = { version = "0.11.0", default-features = false }
+tracing = { version = "0.1", optional = true}
 
 [features]
 default = ["std"]
@@ -30,5 +31,6 @@ std = [
 	"sp-runtime/std",
 	"ethereum-types/std",
 	"fp-evm/std",
-	"moonbeam-rpc-primitives-debug/std"
+	"moonbeam-rpc-primitives-debug/std",
+	"tracing"
 ]

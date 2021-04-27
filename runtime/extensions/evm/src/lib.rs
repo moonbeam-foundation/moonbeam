@@ -80,3 +80,55 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 pub mod executor;
 pub mod runner;
+
+use evm::{ExitReason, Runtime, executor::{Hook, StackExecutor, StackState}};
+
+pub struct DummyHook;
+
+impl Hook for DummyHook {
+    /// Called before the execution of a context.
+    fn before_loop<'config, S: StackState<'config>, H: Hook>(
+        &mut self,
+        executor: &StackExecutor<'config, S, H>,
+        runtime: &Runtime,
+    ) {
+        sp_std::if_std! {
+            tracing::trace!("before loop. PC : {:?}", runtime.machine().position());
+        }
+    }
+
+	/// Called before each step.
+    fn before_step<'config, S: StackState<'config>, H: Hook>(
+        &mut self,
+        executor: &StackExecutor<'config, S, H>,
+        runtime: &Runtime,
+    ) {
+        sp_std::if_std! {
+            tracing::trace!("before step. PC : {:?}", runtime.machine().position());
+        }
+    }
+
+	/// Called after each step. Will not be called if runtime exited
+    /// from the loop.
+    fn after_step<'config, S: StackState<'config>, H: Hook>(
+        &mut self,
+        executor: &StackExecutor<'config, S, H>,
+        runtime: &Runtime,
+    ) {
+        sp_std::if_std! {
+            tracing::trace!("after step. PC : {:?}", runtime.machine().position());
+        }
+    }
+
+	/// Called after the execution of a context.
+    fn after_loop<'config, S: StackState<'config>, H: Hook>(
+        &mut self,
+        executor: &StackExecutor<'config, S, H>,
+        runtime: &Runtime,
+        reason: &ExitReason,
+    ) {
+        sp_std::if_std! {
+            tracing::trace!("after loop. PC : {:?}", runtime.machine().position());
+        }
+    }
+}
