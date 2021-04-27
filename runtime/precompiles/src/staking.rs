@@ -266,6 +266,8 @@ where
 	}
 
 	fn nominate(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
+		log::info!("In nominate dispatchable wrapper");
+		log::info!("input is {:?}", input);
 		let (collator, amount) = form_nominator_args::<BalanceOf<Runtime>>(input)?;
 
 		log::info!("Collator account is {:?}", collator);
