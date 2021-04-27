@@ -161,10 +161,9 @@ where
 	}
 }
 
-fn form_nominator_args<Runtime>(input: &[u8]) -> Result<(H160, BalanceOf<Runtime>), ExitError>
+fn form_nominator_args<Balance>(input: &[u8]) -> Result<(H160, Balance), ExitError>
 where
-	Runtime: parachain_staking::Config,
-	BalanceOf<Runtime>: TryFrom<U256>,
+	Balance: TryFrom<U256>,
 {
 	const COLLATOR_SIZE_BYTES: usize = 20;
 	const AMOUNT_SIZE_BYTES: usize = 32;
@@ -183,19 +182,15 @@ where
 
 	let collator = H160::from_slice(&input[0..COLLATOR_SIZE_BYTES]);
 
-	let amount: BalanceOf<Runtime> =
-		U256::from_big_endian(&input[COLLATOR_SIZE_BYTES..TOTAL_SIZE_BYTES])
-			.try_into()
-			.map_err(|_| {
-				ExitError::Other("amount is too large for Runtime's balance type".into())
-			})?;
+	let amount: Balance = U256::from_big_endian(&input[COLLATOR_SIZE_BYTES..TOTAL_SIZE_BYTES])
+		.try_into()
+		.map_err(|_| ExitError::Other("amount is too large for Runtime's balance type".into()))?;
 	Ok((collator, amount))
 }
 
-fn form_collator_args<Runtime>(input: &[u8]) -> Result<BalanceOf<Runtime>, ExitError>
+fn form_collator_args<Balance>(input: &[u8]) -> Result<Balance, ExitError>
 where
-	Runtime: parachain_staking::Config,
-	BalanceOf<Runtime>: TryFrom<U256>,
+	Balance: TryFrom<U256>,
 {
 	const AMOUNT_SIZE_BYTES: usize = 32;
 
@@ -210,7 +205,7 @@ where
 		));
 	}
 
-	let amount: BalanceOf<Runtime> = U256::from_big_endian(&input[0..AMOUNT_SIZE_BYTES])
+	let amount: Balance = U256::from_big_endian(&input[0..AMOUNT_SIZE_BYTES])
 		.try_into()
 		.map_err(|_| ExitError::Other("amount is too large for Runtime's balance type".into()))?;
 	Ok(amount)
@@ -226,7 +221,7 @@ where
 	Runtime::Call: From<parachain_staking::Call<Runtime>>,
 {
 	fn join_candidates(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		let amount = form_collator_args::<Runtime>(input)?;
+		let amount = form_collator_args::<BalanceOf<Runtime>>(input)?;
 
 		log::info!("Collator stake amount is {:?}", amount);
 
@@ -246,7 +241,7 @@ where
 	}
 
 	fn candidate_bond_more(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		let amount = form_collator_args::<Runtime>(input)?;
+		let amount = form_collator_args::<BalanceOf<Runtime>>(input)?;
 
 		log::info!("Collator bond increment is {:?}", amount);
 
@@ -256,7 +251,7 @@ where
 	}
 
 	fn candidate_bond_less(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		let amount = form_collator_args::<Runtime>(input)?;
+		let amount = form_collator_args::<BalanceOf<Runtime>>(input)?;
 
 		log::info!("Collator bond decrement is {:?}", amount);
 
@@ -266,7 +261,7 @@ where
 	}
 
 	fn nominate(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		let (collator, amount) = form_nominator_args::<Runtime>(input)?;
+		let (collator, amount) = form_nominator_args::<BalanceOf<Runtime>>(input)?;
 
 		log::info!("Collator account is {:?}", collator);
 		log::info!("Nomination amount is {:?}", amount);
@@ -305,7 +300,7 @@ where
 	}
 
 	fn nominator_bond_more(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		let (collator, amount) = form_nominator_args::<Runtime>(input)?;
+		let (collator, amount) = form_nominator_args::<BalanceOf<Runtime>>(input)?;
 
 		log::info!("Collator account is {:?}", collator);
 		log::info!("Nomination increment is {:?}", amount);
@@ -317,7 +312,7 @@ where
 	}
 
 	fn nominator_bond_less(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		let (collator, amount) = form_nominator_args::<Runtime>(input)?;
+		let (collator, amount) = form_nominator_args::<BalanceOf<Runtime>>(input)?;
 
 		log::info!("Collator account is {:?}", collator);
 		log::info!("Nomination decrement is {:?}", amount);
