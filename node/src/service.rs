@@ -23,7 +23,10 @@
 //! Dev Service: A leaner service without the relay chain backing.
 
 use crate::cli::EthApi as EthApiCmd;
-use crate::{cli::Sealing, inherents::build_inherent_data_providers};
+use crate::{
+	cli::{RunCmd, Sealing},
+	inherents::build_inherent_data_providers,
+};
 use async_io::Timer;
 use cumulus_client_consensus_relay_chain::{
 	build_relay_chain_consensus, BuildRelayChainConsensusParams,
@@ -221,7 +224,7 @@ async fn start_node_impl<RB>(
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	collator: bool,
-	ethapi_cmd: Vec<EthApiCmd>,
+	cmd: RunCmd,
 	_rpc_ext_builder: RB,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient>)>
 where
@@ -284,9 +287,13 @@ where
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 
-	let (trace_filter_task, trace_filter_requester) = if ethapi_cmd.contains(&EthApiCmd::Trace) {
-		let (trace_filter_task, trace_filter_requester) =
-			TraceFilterCache::task(Arc::clone(&client), Arc::clone(&backend));
+	let (trace_filter_task, trace_filter_requester) = if cmd.ethapi.contains(&EthApiCmd::Trace) {
+		let (trace_filter_task, trace_filter_requester) = TraceFilterCache::task(
+			Arc::clone(&client),
+			Arc::clone(&backend),
+			cmd.ethapi_trace_max_count,
+			cmd.ethapi_trace_cache_duration,
+		);
 		(Some(trace_filter_task), Some(trace_filter_requester))
 	} else {
 		(None, None)
@@ -300,7 +307,7 @@ where
 		let filter_pool = filter_pool.clone();
 		let frontier_backend = frontier_backend.clone();
 		let backend = backend.clone();
-		let ethapi_cmd = ethapi_cmd.clone();
+		let ethapi_cmd = cmd.ethapi.clone();
 
 		Box::new(move |deny_unsafe, _| {
 			let deps = crate::rpc::FullDeps {
@@ -444,7 +451,7 @@ pub async fn start_node(
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	collator: bool,
-	ethapi_cmd: Vec<EthApiCmd>,
+	cmd: RunCmd,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient>)> {
 	start_node_impl(
 		parachain_config,
@@ -453,7 +460,7 @@ pub async fn start_node(
 		polkadot_config,
 		id,
 		collator,
-		ethapi_cmd,
+		cmd,
 		|_| Default::default(),
 	)
 	.await
@@ -463,12 +470,11 @@ pub async fn start_node(
 /// the parachain inherent.
 pub fn new_dev(
 	config: Configuration,
-	sealing: Sealing,
 	author_id: Option<H160>,
 	// TODO I guess we should use substrate-cli's validator flag for this.
 	// Resolve after https://github.com/paritytech/cumulus/pull/380 is reviewed.
 	collator: bool,
-	ethapi_cmd: Vec<EthApiCmd>,
+	cmd: RunCmd,
 ) -> Result<TaskManager, ServiceError> {
 	let sc_service::PartialComponents {
 		client,
@@ -525,7 +531,7 @@ pub fn new_dev(
 		);
 
 		let commands_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> =
-			match sealing {
+			match cmd.sealing {
 				Sealing::Instant => {
 					Box::new(
 						// This bit cribbed from the implementation of instant seal.
@@ -579,9 +585,13 @@ pub fn new_dev(
 		);
 	}
 
-	let (trace_filter_task, trace_filter_requester) = if ethapi_cmd.contains(&EthApiCmd::Trace) {
-		let (trace_filter_task, trace_filter_requester) =
-			TraceFilterCache::task(Arc::clone(&client), Arc::clone(&backend));
+	let (trace_filter_task, trace_filter_requester) = if cmd.ethapi.contains(&EthApiCmd::Trace) {
+		let (trace_filter_task, trace_filter_requester) = TraceFilterCache::task(
+			Arc::clone(&client),
+			Arc::clone(&backend),
+			cmd.ethapi_trace_max_count,
+			cmd.ethapi_trace_cache_duration,
+		);
 		(Some(trace_filter_task), Some(trace_filter_requester))
 	} else {
 		(None, None)
@@ -594,7 +604,7 @@ pub fn new_dev(
 		let network = network.clone();
 		let pending = pending_transactions.clone();
 		let filter_pool = filter_pool.clone();
-		let ethapi_cmd = ethapi_cmd.clone();
+		let ethapi_cmd = cmd.ethapi.clone();
 		let frontier_backend = frontier_backend.clone();
 
 		Box::new(move |deny_unsafe, _| {

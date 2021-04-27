@@ -4599,6 +4599,8 @@ dependencies = [
  "author-inherent",
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
+ "cumulus-primitives-parachain-inherent",
+ "cumulus-test-relay-sproof-builder",
  "fp-rpc",
  "frame-executive",
  "frame-support",
@@ -5702,6 +5704,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+ "substrate-fixed",
 ]
 
 [[package]]
@@ -10273,6 +10276,15 @@ version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate?branch=rococo-v1#401c24e8a62cdf058882b0e92815faef966d9fa1"
 dependencies = [
  "platforms",
+]
+
+[[package]]
+name = "substrate-fixed"
+version = "0.5.6"
+source = "git+https://github.com/encointer/substrate-fixed#b33d186888c60f38adafcfc0ec3a21aab263aef1"
+dependencies = [
+ "parity-scale-codec",
+ "typenum",
 ]
 
 [[package]]

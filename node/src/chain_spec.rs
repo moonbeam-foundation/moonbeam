@@ -210,6 +210,11 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 			ideal: 200_000 * GLMR,
 			max: 500_000 * GLMR,
 		},
+		annual: Range {
+			min: Perbill::from_percent(4),
+			ideal: Perbill::from_percent(5),
+			max: Perbill::from_percent(5),
+		},
 		// 8766 rounds (hours) in a year
 		round: Range {
 			min: Perbill::from_parts(Perbill::from_percent(4).deconstruct() / 8766),
@@ -219,7 +224,7 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 	}
 }
 
-fn testnet_genesis(
+pub fn testnet_genesis(
 	root_key: AccountId,
 	stakers: Vec<(AccountId, Option<AccountId>, Balance)>,
 	inflation_config: InflationInfo<Balance>,
