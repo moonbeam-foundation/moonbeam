@@ -76,7 +76,7 @@ where
 				return Self::is_nominator(&input[SELECTOR_SIZE_BYTES..]);
 			}
 
-			// If not an accessor, check for dispatchables. These return calls ready for dispatch below.
+			// If not an accessor, check for dispatchables. These calls ready for dispatch below.
 			[0xad, 0x76, 0xed, 0x5a] => Self::join_candidates(&input[SELECTOR_SIZE_BYTES..])?,
 			[0xb7, 0x69, 0x42, 0x19] => Self::leave_candidates()?,
 			[0x76, 0x7e, 0x04, 0x50] => Self::go_offline()?,

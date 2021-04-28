@@ -37,7 +37,7 @@ export const contractSources: { [key: string]: string } = {
     contract InfiniteContract {
         function infinite() public pure returns(uint d) {while (true) {}}
     }`,
-  // infinite loop call with variable alocation
+  // infinite loop call with variable allocation
   InfiniteContractVar: `
     pragma solidity >=0.8.0;
     
@@ -54,7 +54,7 @@ export const contractSources: { [key: string]: string } = {
             }
         }
     }`,
-  // definite loop call with variable alocation
+  // definite loop call with variable allocation
   FiniteLoopContract: `
     pragma solidity >=0.8.0;
     
@@ -292,7 +292,6 @@ export const contractSources: { [key: string]: string } = {
         // First some simple accessors
     
         /// Check whether the specified address is currently a staking nominator
-        /// TODO Not implemented in Rust yet
         function is_nominator(address) external view returns (bool);
     
         // Now the dispatchables
@@ -336,8 +335,8 @@ export const contractSources: { [key: string]: string } = {
 
     /// An even more dead simple example to call the precompile
     contract JoinCandidatesWrapper {
-        /// The ParachainStaking wrapper at the known pre-compile address. This will be used to make all calls
-        /// to the underlying staking solution
+        /// The ParachainStaking wrapper at the known pre-compile address. This will be used to make 
+        /// all calls to the underlying staking solution
         ParachainStaking public staking;
 
         /// Solely for debugging purposes

@@ -17,9 +17,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 mod staking;
-
-// use std::u64;
-
 use codec::Decode;
 use evm::{Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
@@ -70,9 +67,8 @@ impl<R> PrecompileSet for MoonbeamPrecompiles<R>
 where
 	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
 	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
-	// Next four are copied from staking.rs. I guess they need to be duplicated here...
 	R: parachain_staking::Config + pallet_evm::Config,
-	R::AccountId: From<H160>, //TODO Can't we specify R<AccountId = H160> instead of this bound?
+	R::AccountId: From<H160>,
 	BalanceOf<R>: TryFrom<sp_core::U256> + Debug,
 	R::Call: From<parachain_staking::Call<R>>,
 {

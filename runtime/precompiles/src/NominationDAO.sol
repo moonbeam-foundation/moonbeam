@@ -10,8 +10,8 @@ contract NominationDao {
     /// The collator that this DAO is currently nominating
     address public target;
 
-    /// The ParachainStaking wrapper at the known pre-compile address. This will be used to make all calls
-    /// to the underlying staking solution
+    /// The ParachainStaking wrapper at the known pre-compile address. This will be used to make
+    /// all calls to the underlying staking solution
     ParachainStaking public staking;
 
     /// Initialize a new NominationDao dedicated to nominating the given collator target.
