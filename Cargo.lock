@@ -4452,6 +4452,7 @@ name = "moonbeam-rpc-core-debug"
 version = "0.1.0"
 dependencies = [
  "ethereum-types",
+ "futures 0.3.13",
  "jsonrpc-core 15.1.0",
  "jsonrpc-core-client 14.2.0",
  "jsonrpc-derive 14.2.2",
@@ -4499,6 +4500,7 @@ dependencies = [
  "fc-db",
  "fc-rpc",
  "fp-rpc",
+ "futures 0.3.13",
  "jsonrpc-core 15.1.0",
  "moonbeam-rpc-core-debug",
  "moonbeam-rpc-primitives-debug",
@@ -4509,6 +4511,8 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
+ "sp-utils",
+ "tokio 0.2.25",
 ]
 
 [[package]]
