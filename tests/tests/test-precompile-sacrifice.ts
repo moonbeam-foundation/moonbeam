@@ -78,7 +78,7 @@ describeDevMoonbeam("Precompiles - sacrifice", (context) => {
     // this test attempts to assert that the overall txn cost of invoking our precompile wrapper
     // should be equal to (some_constant + gas_burnt_by_sacrifice).
 
-    // obtain cost of burning 0 gas in precompile - this establishes base cast
+    // obtain cost of burning 0 gas in precompile - this establishes base cost
     const zeroCostResult = await transact(0);
     const zeroCost = zeroCostResult.receipt.gasUsed;
 
