@@ -78,8 +78,8 @@ describeDevMoonbeam("Precompiles - sacrifice", (context) => {
   };
 
   it("should be accessible from a smart contract", async function () {
-    const result = await transact(1032862);
-    expect(result.receipt.gasUsed).to.be.greaterThan(1032862);
+    const result = await transact(132862);
+    expect(result.receipt.gasUsed).to.be.greaterThan(132862);
   });
 
   it("should have consistent overhead", async function () {
