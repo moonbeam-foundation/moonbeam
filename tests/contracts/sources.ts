@@ -335,8 +335,8 @@ export const contractSources: { [key: string]: string } = {
 
     /// An even more dead simple example to call the precompile
     contract JoinCandidatesWrapper {
-        /// The ParachainStaking wrapper at the known pre-compile address. This will be used to make 
-        /// all calls to the underlying staking solution
+        /// The ParachainStaking wrapper at the known pre-compile address. This will be used to 
+        /// make all calls to the underlying staking solution
         ParachainStaking public staking;
 
         /// Solely for debugging purposes

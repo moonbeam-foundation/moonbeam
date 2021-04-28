@@ -231,8 +231,9 @@ pub fn testnet_genesis(
 	// This is supposed the be the simplest bytecode to revert without returning any data.
 	// We will pre-deploy it under all of our precompiles to ensure they can be called from
 	// within contracts. TODO We should have a test to ensure this is the right bytecode.
-	let revert_bytecode = vec![0x60, 0x00, 0x60, 0x00, 0xFD]; // (PUSH1 0x00 PUSH1 0x00 REVERT)
-														  // TODO consider whether this should be imported from moonbeam precompiles
+	// (PUSH1 0x00 PUSH1 0x00 REVERT)
+	let revert_bytecode = vec![0x60, 0x00, 0x60, 0x00, 0xFD];
+	// TODO consider whether this should be imported from moonbeam precompiles
 	let precompile_addresses = vec![1, 2, 3, 4, 5, 6, 7, 8, 255, 256, 511]
 		.into_iter()
 		.map(H160::from_low_u64_be);
