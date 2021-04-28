@@ -28,12 +28,10 @@ use sp_core::{H160, U256};
 use sp_std::{marker::PhantomData, vec::Vec};
 use sp_std::convert::TryInto;
 
-/// A precompile intended to burn gas and/or time without actually doing any work.
+/// A precompile intended to burn gas without actually doing any work.
 /// Meant for testing.
 ///
-/// Expects call data to include two u64 values:
-/// 1) The gas to sacrifice (charge)
-/// 2) The time in msec to sleep
+/// Expects call data to include a single u256 representing the amount of gas to burn.
 /// TODO: use feature flags / somehow prevent this from deployment onto live networks (or not?)
 pub struct Sacrifice;
 
