@@ -53,7 +53,6 @@ describeDevMoonbeam("Precompiles - sacrifice", (context) => {
       },
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
-    // console.log(`encoded(${amount}) => `, contract.methods.sacrifice(amount).encodeABI());
 
     // send txn...
     const txnResult = await customWeb3Request(context.web3, "eth_sendRawTransaction", [

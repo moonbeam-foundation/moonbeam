@@ -43,8 +43,6 @@ impl Precompile for Sacrifice {
 	) -> core::result::Result<(ExitSucceed, Vec<u8>, u64), ExitError> {
 		const INPUT_SIZE_BYTES: usize = 32;
 
-		log::warn!("Input: {:?}", input);
-
 		// input should be exactly 32 bytes (one u256)
 		if input.len() != INPUT_SIZE_BYTES {
 			return Err(ExitError::Other(
@@ -63,7 +61,7 @@ impl Precompile for Sacrifice {
 				return Err(ExitError::OutOfGas);
 			}
 		}
-		
+
 		Ok((ExitSucceed::Returned, Default::default(), gas_cost))
 	}
 }
