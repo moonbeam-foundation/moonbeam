@@ -28,9 +28,7 @@ use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_simple::{ECRecover, Identity, Ripemd160, Sha256};
-use sp_core::offchain::Duration;
 use sp_core::H160;
-use sp_io::offchain;
 use sp_std::convert::TryFrom;
 use sp_std::fmt::Debug;
 use sp_std::{marker::PhantomData, vec::Vec};
@@ -40,64 +38,6 @@ use frame_support::traits::Currency;
 type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as Currency<
 	<Runtime as frame_system::Config>::AccountId,
 >>::Balance;
-
-/// A precompile intended to burn gas and/or time without actually doing any work.
-/// Meant for testing.
-///
-/// Expects call data to include two u64 values:
-/// 1) The gas to sacrifice (charge)
-/// 2) The time in msec to sleep
-/// TODO: use feature flags / somehow prevent this from deployment onto live networks (or not?)
-struct Sacrifice;
-
-impl Precompile for Sacrifice {
-	fn execute(
-		input: &[u8],
-		target_gas: Option<u64>,
-		_context: &Context,
-	) -> core::result::Result<(ExitSucceed, Vec<u8>, u64), ExitError> {
-		const INPUT_SIZE_BYTES: usize = 16;
-
-		// input should be exactly 16 bytes (two 8-byte unsigned ints in big endian)
-		if input.len() != INPUT_SIZE_BYTES {
-			return Err(ExitError::Other(
-				"input length for Sacrifice must be exactly 16 bytes".into(),
-			));
-		}
-
-		// create 8-byte buffers and populate them from calldata...
-		let mut gas_cost_buf: [u8; 8] = [0; 8];
-		let mut msec_cost_buf: [u8; 8] = [0; 8];
-
-		gas_cost_buf.copy_from_slice(&input[0..8]);
-		msec_cost_buf.copy_from_slice(&input[8..16]);
-
-		// then read them into a u64 as big-endian...
-		let gas_cost = u64::from_be_bytes(gas_cost_buf);
-		let msec_cost = u64::from_be_bytes(msec_cost_buf);
-
-		// ensure we can afford our sacrifice...
-		if let Some(gas_left) = target_gas {
-			if gas_left < gas_cost {
-				return Err(ExitError::OutOfGas);
-			}
-		}
-
-		// TODO: impose gas-per-second constraint?
-
-		if msec_cost > 0 {
-			// TODO: log statement here
-			let deadline = offchain::timestamp();
-			deadline.add(Duration::from_millis(msec_cost));
-			offchain::sleep_until(deadline);
-		}
-
-		// TODO Should this actually be stopped?
-		// https://ethervm.io/#F3
-		// Revisit: does solidity void contract issue stop or return
-		Ok((ExitSucceed::Returned, [0u8; 0].to_vec(), gas_cost))
-	}
-}
 
 //TODO Maybe we don't need to / shouldn't be generic over the runtime.
 // Pros: Would simplify trait bounds and speed up compile time (maybe not noticeably).
@@ -118,6 +58,7 @@ where
 	/// Return all addresses that contain precompiles. This can be used to populate dummy code
 	/// under the precompile, and potentially in the future to prevent using accounts that have
 	/// precompiles at their addresses explicitly using something like SignedExtra.
+	#[allow(dead_code)]
 	fn used_addresses() -> impl Iterator<Item = R::AccountId> {
 		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 255, 256, 511]
 			.into_iter()
@@ -156,8 +97,6 @@ where
 			a if a == hash(256) => Some(ParachainStakingWrapper::<R>::execute(
 				input, target_gas, context,
 			)),
-			// Moonbeam testing-only precompile(s):
-			a if a == hash(511) => Some(Sacrifice::execute(input, target_gas, context)),
 			_ => None,
 		}
 	}
@@ -165,81 +104,4 @@ where
 
 fn hash(a: u64) -> H160 {
 	H160::from_low_u64_be(a)
-}
-
-#[cfg(test)]
-mod tests {
-	use super::*;
-	use std::time::{Duration, Instant};
-	extern crate hex;
-
-	#[test]
-	fn test_invalid_input_length() -> std::result::Result<(), ExitError> {
-		let cost: u64 = 1;
-
-		// TODO: this is very not-DRY, it would be nice to have a default / test impl in Frontier
-		let context: Context = Context {
-			address: Default::default(),
-			caller: Default::default(),
-			apparent_value: From::from(0),
-		};
-
-		// should fail with input of 15 byte length
-		let input: [u8; 15] = [0; 15];
-		assert_eq!(
-			Sacrifice::execute(&input, Some(cost), &context),
-			Err(ExitError::Other(
-				"input length for Sacrifice must be exactly 16 bytes".into()
-			)),
-		);
-
-		// should fail with input of 17 byte length
-		let input: [u8; 17] = [0; 17];
-		assert_eq!(
-			Sacrifice::execute(&input, Some(cost), &context),
-			Err(ExitError::Other(
-				"input length for Sacrifice must be exactly 16 bytes".into()
-			)),
-		);
-
-		Ok(())
-	}
-
-	#[test]
-	fn test_gas_consumption() -> std::result::Result<(), ExitError> {
-		let mut input: [u8; 16] = [0; 16];
-		input[..8].copy_from_slice(&123456_u64.to_be_bytes());
-
-		let context: Context = Context {
-			address: Default::default(),
-			caller: Default::default(),
-			apparent_value: From::from(0),
-		};
-
-		assert_eq!(
-			Sacrifice::execute(&input, None, &context),
-			Ok((ExitSucceed::Returned, [0u8; 0].to_vec(), 123456)),
-		);
-
-		Ok(())
-	}
-
-	#[test]
-	fn test_oog() -> std::result::Result<(), ExitError> {
-		let mut input: [u8; 16] = [0; 16];
-		input[..8].copy_from_slice(&100_u64.to_be_bytes());
-
-		let context: Context = Context {
-			address: Default::default(),
-			caller: Default::default(),
-			apparent_value: From::from(0),
-		};
-
-		assert_eq!(
-			Sacrifice::execute(&input, Some(99), &context),
-			Err(ExitError::OutOfGas),
-		);
-
-		Ok(())
-	}
 }

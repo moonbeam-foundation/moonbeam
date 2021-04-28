@@ -828,9 +828,9 @@ fn revoke_nomination_via_precompile() {
 			let gas_price: U256 = 1000.into();
 
 			// Construct revoke_nomination call
-			let mut call_data = Vec::<u8>::from([0u8; 24]);
+			let mut call_data = Vec::<u8>::from([0u8; 36]);
 			call_data[0..4].copy_from_slice(&hex_literal::hex!("4b65c34b"));
-			call_data[4..24].copy_from_slice(&ALICE);
+			call_data[16..36].copy_from_slice(&ALICE);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(CHARLIE),
