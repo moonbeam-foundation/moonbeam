@@ -145,7 +145,7 @@ pub struct RunCmd {
 	/// Number of concurrent tracing tasks. Meant to be shared by both "debug" and "trace" modules.
 	#[structopt(long, default_value = "10")]
 	pub ethapi_max_permits: u32,
-	
+
 	/// Maximum number of trace entries a single request of `trace_filter` is allowed to return.
 	/// A request asking for more or an unbounded one going over this limit will both return an
 	/// error.
