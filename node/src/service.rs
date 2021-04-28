@@ -292,8 +292,12 @@ where
 	let permit_pool = Arc::new(Semaphore::new(cmd.ethapi_max_permits as usize));
 
 	let (trace_filter_task, trace_filter_requester) = if cmd.ethapi.contains(&EthApiCmd::Trace) {
-		let (trace_filter_task, trace_filter_requester) =
-			TraceFilterCache::task(Arc::clone(&client), Arc::clone(&backend));
+		let (trace_filter_task, trace_filter_requester) = TraceFilterCache::task(
+			Arc::clone(&client),
+			Arc::clone(&backend),
+			cmd.ethapi_trace_max_count,
+			cmd.ethapi_trace_cache_duration,
+		);
 		(Some(trace_filter_task), Some(trace_filter_requester))
 	} else {
 		(None, None)
@@ -608,8 +612,12 @@ pub fn new_dev(
 	let permit_pool = Arc::new(Semaphore::new(cmd.ethapi_max_permits as usize));
 
 	let (trace_filter_task, trace_filter_requester) = if cmd.ethapi.contains(&EthApiCmd::Trace) {
-		let (trace_filter_task, trace_filter_requester) =
-			TraceFilterCache::task(Arc::clone(&client), Arc::clone(&backend));
+		let (trace_filter_task, trace_filter_requester) = TraceFilterCache::task(
+			Arc::clone(&client),
+			Arc::clone(&backend),
+			cmd.ethapi_trace_max_count,
+			cmd.ethapi_trace_cache_duration,
+		);
 		(Some(trace_filter_task), Some(trace_filter_requester))
 	} else {
 		(None, None)

@@ -12,6 +12,9 @@ edition = '2018'
 name = 'moonbeam'
 path = 'src/main.rs'
 
+[features]
+test-spec = []
+
 [dependencies]
 tokio = { version = "0.2.21", features = ["sync"] }
 async-io = "1.3"
