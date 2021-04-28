@@ -278,6 +278,10 @@
 <span id="275">275</span>
 <span id="276">276</span>
 <span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -422,6 +426,10 @@
 		<span class="ident">require_delimiter</span> <span class="op">=</span> <span class="bool-val">true</span>
 	)]</span>
 	<span class="kw">pub</span> <span class="ident">ethapi</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EthApi</span><span class="op">&gt;</span>,
+
+	<span class="doccomment">/// Number of concurrent tracing tasks. Meant to be shared by both &quot;debug&quot; and &quot;trace&quot; modules.</span>
+	<span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;10&quot;</span>)]</span>
+	<span class="kw">pub</span> <span class="ident">ethapi_max_permits</span>: <span class="ident">u32</span>,
 
 	<span class="doccomment">/// Maximum number of trace entries a single request of `trace_filter` is allowed to return.</span>
 	<span class="doccomment">/// A request asking for more or an unbounded one going over this limit will both return an</span>

@@ -65,9 +65,9 @@
 
 <span class="comment">// You should have received a copy of the GNU General Public License</span>
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
-
 <span class="kw">use</span> <span class="ident">ethereum_types</span>::<span class="ident">H256</span>;
-<span class="kw">use</span> <span class="ident">jsonrpc_core</span>::<span class="prelude-ty">Result</span>;
+<span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">compat</span>::<span class="ident">Compat</span>, <span class="ident">future</span>::<span class="ident">BoxFuture</span>};
+<span class="kw">use</span> <span class="ident">jsonrpc_core</span>::<span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">RpcResult</span>;
 <span class="kw">use</span> <span class="ident">jsonrpc_derive</span>::<span class="ident">rpc</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">Deserialize</span>;
 
@@ -96,7 +96,7 @@
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		<span class="ident">transaction_hash</span>: <span class="ident">H256</span>,
 		<span class="ident">params</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TraceParams</span><span class="op">&gt;</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">single</span>::<span class="ident">TransactionTrace</span><span class="op">&gt;</span>;
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Compat</span><span class="op">&lt;</span><span class="ident">BoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">RpcResult</span><span class="op">&lt;</span><span class="ident">single</span>::<span class="ident">TransactionTrace</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "moonbeam_rpc_core_debug";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
