@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../util/constants";
 import { customWeb3Request } from "../util/providers";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
-import { createContract } from "../util/transactions";
+import { createContract, calculateTxnDataCost } from "../util/transactions";
 
 describeDevMoonbeam("Precompiles - sacrifice", (context) => {
   it("should be valid", async function () {
@@ -38,14 +38,18 @@ describeDevMoonbeam("Precompiles - sacrifice", (context) => {
 
   // helper to send a txn to call sacrifice with a specified amount of gas.
   async function transact(amount: Number) {
+
+    const txnData = contract.methods.sacrifice(amount).encodeABI();
+
     // create and sign txn...
     const tx = await context.web3.eth.accounts.signTransaction(
       {
         from: GENESIS_ACCOUNT,
         to: contract.options.address,
+        gasPrice: "0x01",
         gas: "0x100000",
         nonce: nonce++,
-        data: contract.methods.sacrifice(amount).encodeABI(),
+        data: txnData,
       },
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
@@ -62,9 +66,13 @@ describeDevMoonbeam("Precompiles - sacrifice", (context) => {
     // and get receipt
     const receipt = await context.web3.eth.getTransactionReceipt(txnResult.result);
 
+    // also calculate what the transaction data should cost
+    const txnDataCost = calculateTxnDataCost(tx.rawTransaction);
+
     return {
       txnResult,
       receipt,
+      txnDataCost,
     };
 
   };
@@ -77,26 +85,24 @@ describeDevMoonbeam("Precompiles - sacrifice", (context) => {
   it("should have consistent overhead", async function () {
     // this test attempts to assert that the overall txn cost of invoking our precompile wrapper
     // should be equal to (some_constant + gas_burnt_by_sacrifice).
+    //
+    // however, we have to take the transaction data cost into account. see calculateTxnDataCost()
+    // for details.
 
     // obtain cost of burning 0 gas in precompile - this establishes base cost
     const zeroCostResult = await transact(0);
-    const zeroCost = zeroCostResult.receipt.gasUsed;
+    const zeroCost = zeroCostResult.receipt.gasUsed - zeroCostResult.txnDataCost;
 
     const oneCostResult = await transact(1);
-    const oneCost = oneCostResult.receipt.gasUsed;
+    const oneCost = oneCostResult.receipt.gasUsed - oneCostResult.txnDataCost;
 
     const thousandCostResult = await transact(1000);
-    const thousandCost = thousandCostResult.receipt.gasUsed;
+    const thousandCost = thousandCostResult.receipt.gasUsed - thousandCostResult.txnDataCost;
 
-
-    console.log("zero => ", zeroCostResult);
-    console.log("one => ", oneCostResult);
-    console.log("thou => ", thousandCostResult);
-
-    // the cost of burning one gas should be only +1 compared to burning 0 gas
+    // the cost of burning one gas should be only +1 compared to burning 0 gas (ignoring data fees)
     expect(oneCost).to.equal(zeroCost + 1);
 
-    // the cost of burning 1000 gas should be +1000 compared to burning 0 gas
+    // the cost of burning 1000 gas should be +1000 compared to burning 0 gas (ignoring data fees)
     expect(thousandCost).to.equal(zeroCost + 1000);
   });
 });

@@ -120,3 +120,24 @@ export async function createContractExecution(
 
   return tx;
 }
+
+// Calculates the gas that would be charged for the given calldata. Data should be a hex string.
+//
+// Ethereum calculates a gas fee for calldata by charging 4 for any 0 and 16 for any non-zero
+// (64 before EIP-2028, introduced in Istanbul).
+export function calculateTxnDataCost(data: String, eip2028: Bool = true) {
+  const buf = Buffer.from(data, 'hex');
+
+  let zeroes = 0;
+  let nonZeroes = 0;
+
+  for (const byte of buf) {
+    if (item == 0) {
+      zeroes++;
+    } else {
+      nonZeroes++;
+    }
+  }
+
+  return (zeroes * 4) + (nonZeroes * (eip2028 ? 16 : 64));
+}
