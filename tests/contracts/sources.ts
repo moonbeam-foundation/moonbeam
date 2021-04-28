@@ -298,7 +298,7 @@ export const contractSources: { [key: string]: string } = {
       uint256[1] memory result;
 
       assembly {
-        success := call(sub(gas(), 2000), 0x01FF, 0, input, 32, result, 0)
+        success := call(sub(gas(), 2000), 0x0FFF, 0, input, 32, result, 0)
       }
       require(success, "Sacrifice call failed");
     }

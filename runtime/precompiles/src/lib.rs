@@ -66,12 +66,12 @@ where
 			a if a == hash(7) => Some(Bn128Mul::execute(input, target_gas, context)),
 			a if a == hash(8) => Some(Bn128Pairing::execute(input, target_gas, context)),
 
-			// Moonbeam testing-only precompile(s):
-			a if a == hash(511) => Some(Sacrifice::execute(input, target_gas, context)),
-
 			// Non-Moonbeam specific nor Ethereum precompiles :
 			a if a == hash(1024) => Some(Dispatch::<R>::execute(input, target_gas, context)),
 			a if a == hash(1025) => Some(Sha3FIPS256::execute(input, target_gas, context)),
+
+			// Moonbeam testing-only precompile(s):
+			a if a == hash(4095) => Some(Sacrifice::execute(input, target_gas, context)),
 
 			_ => None,
 		}
