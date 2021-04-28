@@ -45,10 +45,10 @@ impl Precompile for Sacrifice {
 
 		log::warn!("Input: {:?}", input);
 
-		// input should be exactly 8 bytes (one 64-bit unsigned int)
+		// input should be exactly 32 bytes (one u256)
 		if input.len() != INPUT_SIZE_BYTES {
 			return Err(ExitError::Other(
-				"input length for Sacrifice must be exactly 8 bytes".into()));
+				"input length for Sacrifice must be exactly 32 bytes".into()));
 		}
 
 		let gas_cost: u64 = U256::from_big_endian(&input[..])
@@ -89,14 +89,14 @@ mod tests {
 		let input: [u8; 31] = [0; 31];
 		assert_eq!(
 			Sacrifice::execute(&input, Some(cost), &context),
-			Err(ExitError::Other("input length for Sacrifice must be exactly 8 bytes".into())),
+			Err(ExitError::Other("input length for Sacrifice must be exactly 32 bytes".into())),
 		);
 
 		// should fail with input of 33 byte length
 		let input: [u8; 33] = [0; 33];
 		assert_eq!(
 			Sacrifice::execute(&input, Some(cost), &context),
-			Err(ExitError::Other("input length for Sacrifice must be exactly 8 bytes".into())),
+			Err(ExitError::Other("input length for Sacrifice must be exactly 32 bytes".into())),
 		);
 
 		Ok(())
@@ -104,8 +104,8 @@ mod tests {
 
 	#[test]
 	fn test_gas_consumption() -> std::result::Result<(), ExitError> {
-		let mut input: [u8; 8] = [0; 8];
-		input[..8].copy_from_slice(&123456_u64.to_be_bytes());
+		let mut input: [u8; 32] = [0; 32];
+		input[24..32].copy_from_slice(&123456_u64.to_be_bytes());
 
 		let context: Context = Context {
 			address: Default::default(),
@@ -115,7 +115,7 @@ mod tests {
 
 		assert_eq!(
 			Sacrifice::execute(&input, None, &context),
-			Ok((ExitSucceed::Returned, [0u8; 0].to_vec(), 123456)),
+			Ok((ExitSucceed::Returned, Default::default(), 123456)),
 		);
 
 		Ok(())
@@ -123,8 +123,8 @@ mod tests {
 
 	#[test]
 	fn test_oog() -> std::result::Result<(), ExitError> {
-		let mut input: [u8; 8] = [0; 8];
-		input[..8].copy_from_slice(&100_u64.to_be_bytes());
+		let mut input: [u8; 32] = [0; 32];
+		input[24..32].copy_from_slice(&100_u64.to_be_bytes());
 
 		let context: Context = Context {
 			address: Default::default(),
