@@ -25,8 +25,8 @@ use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_simple::{ECRecover, Identity, Ripemd160, Sha256};
 use sp_core::{H160, U256};
-use sp_std::{marker::PhantomData, vec::Vec};
 use sp_std::convert::TryInto;
+use sp_std::{marker::PhantomData, vec::Vec};
 
 /// A precompile intended to burn gas without actually doing any work.
 /// Meant for testing.
@@ -46,14 +46,13 @@ impl Precompile for Sacrifice {
 		// input should be exactly 32 bytes (one u256)
 		if input.len() != INPUT_SIZE_BYTES {
 			return Err(ExitError::Other(
-				"input length for Sacrifice must be exactly 32 bytes".into()));
+				"input length for Sacrifice must be exactly 32 bytes".into(),
+			));
 		}
 
 		let gas_cost: u64 = U256::from_big_endian(&input[..])
 			.try_into()
-			.map_err(|_| {
-				ExitError::Other("amount is too large for u64".into())
-			})?;
+			.map_err(|_| ExitError::Other("amount is too large for u64".into()))?;
 
 		// ensure we can afford our sacrifice...
 		if let Some(gas_left) = target_gas {
@@ -87,14 +86,18 @@ mod tests {
 		let input: [u8; 31] = [0; 31];
 		assert_eq!(
 			Sacrifice::execute(&input, Some(cost), &context),
-			Err(ExitError::Other("input length for Sacrifice must be exactly 32 bytes".into())),
+			Err(ExitError::Other(
+				"input length for Sacrifice must be exactly 32 bytes".into()
+			)),
 		);
 
 		// should fail with input of 33 byte length
 		let input: [u8; 33] = [0; 33];
 		assert_eq!(
 			Sacrifice::execute(&input, Some(cost), &context),
-			Err(ExitError::Other("input length for Sacrifice must be exactly 32 bytes".into())),
+			Err(ExitError::Other(
+				"input length for Sacrifice must be exactly 32 bytes".into()
+			)),
 		);
 
 		Ok(())
