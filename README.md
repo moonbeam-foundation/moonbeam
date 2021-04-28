@@ -163,4 +163,4 @@ The following pallets are stored in `pallets/`. They are designed for Moonbeam's
 ## Contribute
 
 Moonbeam is open source under the terms of the GPL3. We welcome contributions. Please review our
-[CONTRIBUTIONS.md](Contributions.MD) document for more information.
+[CONTRIBUTIONS.md](CONTRIBUTIONS.MD) document for more information.
