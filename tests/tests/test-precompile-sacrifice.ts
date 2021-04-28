@@ -38,7 +38,6 @@ describeDevMoonbeam("Precompiles - sacrifice", (context) => {
 
   // helper to send a txn to call sacrifice with a specified amount of gas.
   async function transact(amount: Number) {
-
     const txnData = contract.methods.sacrifice(amount).encodeABI();
 
     // create and sign txn...
@@ -56,7 +55,7 @@ describeDevMoonbeam("Precompiles - sacrifice", (context) => {
 
     // send txn...
     const txnResult = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
-      tx.rawTransaction
+      tx.rawTransaction,
     ]);
 
     // produce a block with this txn...
@@ -73,8 +72,7 @@ describeDevMoonbeam("Precompiles - sacrifice", (context) => {
       receipt,
       txnDataCost,
     };
-
-  };
+  }
 
   it("should be accessible from a smart contract", async function () {
     const result = await transact(132862);
