@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["moonbeam_rpc_trace"] = [{"text":"impl Trace for Trace","synthetic":false,"types":[]}];
+implementors["moonbeam_rpc_trace"] = [{"text":"impl&lt;B, C&gt; Trace for Trace&lt;B, C&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;B: BlockT&lt;Hash = H256&gt; + Send + Sync + 'static,<br>&nbsp;&nbsp;&nbsp;&nbsp;B::Header: HeaderT&lt;Number = u32&gt;,<br>&nbsp;&nbsp;&nbsp;&nbsp;C: HeaderMetadata&lt;B, Error = BlockChainError&gt; + HeaderBackend&lt;B&gt;,<br>&nbsp;&nbsp;&nbsp;&nbsp;C: Send + Sync + 'static,&nbsp;</span>","synthetic":false,"types":[]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

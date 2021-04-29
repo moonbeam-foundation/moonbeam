@@ -440,7 +440,7 @@
 	<span class="doccomment">/// Duration (in seconds) after which the cache of `trace_filter` for a given block will be</span>
 	<span class="doccomment">/// discarded.</span>
 	<span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;300&quot;</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">ethapi_trace_cache_duration</span>: <span class="ident">u32</span>,
+	<span class="kw">pub</span> <span class="ident">ethapi_trace_cache_duration</span>: <span class="ident">u64</span>,
 }
 
 <span class="kw">fn</span> <span class="ident">parse_h160</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">H160</span>, <span class="ident">String</span><span class="op">&gt;</span> {
