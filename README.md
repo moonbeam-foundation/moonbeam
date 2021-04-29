@@ -91,8 +91,6 @@ Substrate's canonical mnemonic: `bottom drive obey lake curtain smoke basket hol
 - PrivKey: 0x94c49300a58d576011096bcb006aa06f5a91b34b4383891e8029c21dc39fbb8b
 ```
 
-You can find the full list of pre-funded account [here](https://docs.moonbeam.network/getting-started/local-node/setting-up-a-node/#pre-funded-development-accounts)
-
 ## Build the Moonbeam Node
 
 To build Moonbeam, you will need a proper Substrate development environment. If you've never worked with a Substrate-based blockchain before, you should probably try the [Setting Up a Moonbeam Node](https://docs.moonbeam.network/getting-started/local-node/setting-up-a-node/) docs first. 
