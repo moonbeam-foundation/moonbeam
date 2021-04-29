@@ -17,7 +17,7 @@ Docker images are published for every tagged release. Learn more with `moonbeam 
 docker run --network="host" purestake/moonbeam:v0.7.0 --chain alphanet
 ```
 
-You can find a more detailed set of instructions to run a full node in our TestNet [here](https://docs.moonbeam.network/node-operators/networks/full-node/)
+You can find more detailed instructions to [run a full node in our TestNet](https://docs.moonbeam.network/node-operators/networks/full-node/)
 
 ## Run a local development node with Docker
 
