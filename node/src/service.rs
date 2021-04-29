@@ -335,7 +335,7 @@ where
 				pending_transactions: pending.clone(),
 				filter_pool: filter_pool.clone(),
 				ethapi_cmd: ethapi_cmd.clone(),
-				command_sink: None,				
+				command_sink: None,
 				frontier_backend: frontier_backend.clone(),
 				backend: backend.clone(),
 				debug_requester: debug_requester.clone(),
