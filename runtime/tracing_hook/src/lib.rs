@@ -14,12 +14,155 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use evm::Opcode;
-extern crate alloc;
-use alloc::string::ToString;
-use sp_std::vec::Vec;
+//! Substrate EVM tracing.
+//!
+//! The purpose of this crate is enable tracing the EVM opcode execution and will be used by
+//! both Dapp developers - to get a granular view on their transactions - and indexers to access
+//! the EVM callstack (internal transactions).
+//!
+//! This crate provide a Hook with 2 modes :
+//!
+//! - Raw : allows capturing the intermediate machine
+//!   state between opcode executions (stepping), resulting in either a granular per opcode response:
+//!   ```json
+//!   {
+//!     "pc": 230,
+//!     "op": "SSTORE",
+//!     "gas": 62841,
+//!     "gasCost": 20000,
+//!     "depth": 1,
+//!     "stack": [
+//!       "00000000000000000000000000000000000000000000000000000000398f7223",
+//!     ],
+//!     "memory": [
+//!       "0000000000000000000000000000000000000000000000000000000000000000",
+//!     ],
+//!     "storage": {"0x":"0x"}
+//!   }
+//!   ```
+//! - Call list : overview of the internal transactions in a context type : 
+//!   ```json
+//!   [
+//!    {
+//!      "type": "call",
+//!      "callType": "call",
+//!      "from": "0xfe2882ac0a337a976aa73023c2a2a917f57ba2ed",
+//!      "to": "0x3ca17a1c4995b95c600275e52da93d2e64dd591f",
+//!      "input": "0x",
+//!      "output": "0x",
+//!      "traceAddress": [],
+//!      "value": "0x0",
+//!      "gas": "0xf9be",
+//!      "gasUsed": "0xf9be"
+//!    },
+//!    {
+//!      "type": "call",
+//!      "callType": "call",
+//!      "from": "0x3ca17a1c4995b95c600275e52da93d2e64dd591f",
+//!      "to": "0x1416aa2a27db08ce3a81a01cdfc981417d28a6e6",
+//!      "input": "0xfd63983b0000000000000000000000000000000000000000000000000000000000000006",
+//!      "output": "0x000000000000000000000000000000000000000000000000000000000000000d",
+//!      "traceAddress": [0],
+//!      "value": "0x0",
+//!      "gas": "0x9b9b",
+//!      "gasUsed": "0x4f6d"
+//!    }
+//!   ]
+//!   ```
 
-pub fn opcodes(opcode: Opcode) -> Vec<u8> {
+#![cfg_attr(not(feature = "std"), no_std)]
+
+use sp_std::vec::Vec;
+use evm::{
+	executor::{Hook, StackExecutor, StackState},
+	ExitReason, Runtime, Opcode,
+};
+use moonbeam_rpc_primitives_debug::single::TransactionTrace;
+
+mod call_list;
+mod raw;
+
+pub struct TracingHook(TracingHookInner);
+
+impl TracingHook {
+	pub fn new_raw(disable_storage: bool, disable_memory: bool, disable_stack: bool) -> Self {
+		Self(TracingHookInner::Raw(raw::State::new(
+			disable_storage,
+			disable_memory,
+			disable_stack,
+		)))
+	}
+
+	pub fn new_call_list() -> Self {
+		Self(TracingHookInner::CallList(call_list::State::new()))
+	}
+
+	pub fn finish(self) -> TransactionTrace {
+		match self.0 {
+			TracingHookInner::Raw(state) => state.finish(),
+			TracingHookInner::CallList(state) => state.finish(),
+		}
+	}
+}
+
+enum TracingHookInner {
+	Raw(raw::State),
+	CallList(call_list::State),
+}
+
+impl Hook for TracingHook {
+	/// Called before the execution of a context.
+	fn before_loop<'config, S: StackState<'config>, H: Hook>(
+		&mut self,
+		executor: &StackExecutor<'config, S, H>,
+		runtime: &Runtime,
+	) {
+		match &mut self.0 {
+			TracingHookInner::Raw(state) => state.before_loop(executor, runtime),
+			TracingHookInner::CallList(state) => state.before_loop(executor, runtime),
+		}
+	}
+
+	/// Called before each step.
+	fn before_step<'config, S: StackState<'config>, H: Hook>(
+		&mut self,
+		executor: &StackExecutor<'config, S, H>,
+		runtime: &Runtime,
+	) {
+		match &mut self.0 {
+			TracingHookInner::Raw(state) => state.before_step(executor, runtime),
+			TracingHookInner::CallList(state) => state.before_step(executor, runtime),
+		}
+	}
+
+	/// Called after each step. Will not be called if runtime exited
+	/// from the loop.
+	fn after_step<'config, S: StackState<'config>, H: Hook>(
+		&mut self,
+		executor: &StackExecutor<'config, S, H>,
+		runtime: &Runtime,
+	) {
+		match &mut self.0 {
+			TracingHookInner::Raw(state) => state.after_step(executor, runtime),
+			TracingHookInner::CallList(state) => state.after_step(executor, runtime),
+		}
+	}
+
+	/// Called after the execution of a context.
+	fn after_loop<'config, S: StackState<'config>, H: Hook>(
+		&mut self,
+		executor: &StackExecutor<'config, S, H>,
+		runtime: &Runtime,
+		reason: &ExitReason,
+	) {
+		match &mut self.0 {
+			TracingHookInner::Raw(state) => state.after_loop(executor, runtime, reason),
+			TracingHookInner::CallList(state) => state.after_loop(executor, runtime, reason),
+		}
+	}
+}
+
+fn opcodes(opcode: Opcode) -> Vec<u8> {
 	let out = match opcode {
 		Opcode(0) => "Stop",
 		Opcode(1) => "Add",
@@ -177,5 +320,5 @@ pub fn opcodes(opcode: Opcode) -> Vec<u8> {
 		Opcode(255) => "SelfDestruct",
 		_ => unreachable!("Unreachable Opcode identifier."),
 	};
-	out.to_string().as_bytes().to_vec()
+	out.as_bytes().to_vec()
 }

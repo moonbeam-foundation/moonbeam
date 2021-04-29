@@ -37,7 +37,7 @@ use frame_support::{
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 };
 use frame_system::{EnsureOneOf, EnsureRoot};
-use moonbeam_extensions_evm::{hook::TracingHook, runner::stack::TraceRunner as TraceRunnerT};
+use moonbeam_tracing_hook::TracingHook;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{Transaction as EthereumTransaction, TransactionAction};
 use pallet_evm::{

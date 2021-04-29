@@ -1,5 +1,5 @@
 [package]
-name = "moonbeam-extensions-evm"
+name = "moonbeam-tracing-hook"
 version = '0.1.0'
 authors = ['PureStake']
 edition = '2018'
@@ -16,7 +16,7 @@ sp-core = { default-features = false, git = "https://github.com/paritytech/subst
 sp-std = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1" }
 sp-io = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1" }
 sp-runtime = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1" }
-moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug", default-features = false }
+moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug", default-features = false }
 ethereum-types = { version = "0.11.0", default-features = false }
 tracing = { version = "0.1", optional = true}
 

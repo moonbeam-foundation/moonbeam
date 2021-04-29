@@ -40,7 +40,3 @@ fc-rpc = { git = "https://github.com/purestake/frontier", branch = "jeremy-runne
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "jeremy-runner-evm-hook" }
 fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "jeremy-runner-evm-hook" }
 moonbeam-rpc-core-trace = { path = "../../rpc-core/trace" }
-
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "jeremy-runner-evm-hook" }
-moonbeam-runtime = { path = "../../../runtime" }
-moonbeam-extensions-evm = { path = "../../../runtime/extensions/evm"}

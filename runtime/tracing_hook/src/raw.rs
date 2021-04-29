@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::executor::util::opcodes;
-
 use super::*;
 
 use ethereum_types::{H160, H256};
