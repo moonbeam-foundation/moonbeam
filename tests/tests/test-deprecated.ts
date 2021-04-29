@@ -1,7 +1,8 @@
 import { expect } from "chai";
-import { customRequest, describeWithMoonbeam } from "./util";
+import { customWeb3Request } from "../util/providers";
+import { describeDevMoonbeam } from "../util/setup-dev-tests";
 
-describeWithMoonbeam("Moonbeam RPC (Deprecated)", `simple-specs.json`, (context) => {
+describeDevMoonbeam("Deprecated RPC", (context) => {
   // List of deprecated methods
   [
     { method: "eth_getCompilers", params: [] },
@@ -12,8 +13,8 @@ describeWithMoonbeam("Moonbeam RPC (Deprecated)", `simple-specs.json`, (context)
     },
     { method: "eth_compileSerpent", params: ["/* some serpent */"] },
   ].forEach(({ method, params }) => {
-    it(`${method} should be deprecated`, async function () {
-      expect(await customRequest(context.web3, method, params)).to.deep.equal({
+    it(`${method} should be mark as not found`, async function () {
+      expect(await customWeb3Request(context.web3, method, params)).to.deep.equal({
         id: 1,
         jsonrpc: "2.0",
         error: { message: `Method not found`, code: -32601 },

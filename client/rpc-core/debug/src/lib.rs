@@ -13,9 +13,9 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-
 use ethereum_types::H256;
-use jsonrpc_core::Result;
+use futures::{compat::Compat, future::BoxFuture};
+use jsonrpc_core::Result as RpcResult;
 use jsonrpc_derive::rpc;
 use serde::Deserialize;
 
@@ -29,10 +29,10 @@ use crate::types::single;
 #[derive(Clone, Eq, PartialEq, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TraceParams {
-	/// Javascript tracer (we just check if it's Blockscout tracer string)
 	pub disable_storage: Option<bool>,
 	pub disable_memory: Option<bool>,
 	pub disable_stack: Option<bool>,
+	/// Javascript tracer (we just check if it's Blockscout tracer string)
 	pub tracer: Option<String>,
 	pub timeout: Option<String>,
 }
@@ -44,5 +44,5 @@ pub trait Debug {
 		&self,
 		transaction_hash: H256,
 		params: Option<TraceParams>,
-	) -> Result<single::TransactionTrace>;
+	) -> Compat<BoxFuture<'static, RpcResult<single::TransactionTrace>>>;
 }

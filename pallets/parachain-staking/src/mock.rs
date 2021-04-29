@@ -121,132 +121,100 @@ impl Config for Test {
 	type MinNomination = MinNomination;
 }
 
-fn genesis(
+pub(crate) struct ExtBuilder {
+	// endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
-	stakers: Vec<(AccountId, Option<AccountId>, Balance)>,
-) -> sp_io::TestExternalities {
-	let expect: Range<Balance> = Range {
-		min: 700,
-		ideal: 700,
-		max: 700,
-	};
-	// very unrealistic test parameterization, would be dumb to have per-round inflation this high
-	let round: Range<Perbill> = Range {
-		min: Perbill::from_percent(5),
-		ideal: Perbill::from_percent(5),
-		max: Perbill::from_percent(5),
-	};
-	let inflation_config: InflationInfo<Balance> = InflationInfo { expect, round };
-	let mut storage = frame_system::GenesisConfig::default()
-		.build_storage::<Test>()
-		.unwrap();
-	pallet_balances::GenesisConfig::<Test> { balances }
-		.assimilate_storage(&mut storage)
-		.unwrap();
-	stake::GenesisConfig::<Test> {
-		stakers,
-		inflation_config,
+	// [collator, amount]
+	collators: Vec<(AccountId, Balance)>,
+	// [nominator, collator, nomination_amount]
+	nominators: Vec<(AccountId, AccountId, Balance)>,
+	// inflation config
+	inflation: InflationInfo<Balance>,
+}
+
+impl Default for ExtBuilder {
+	fn default() -> ExtBuilder {
+		ExtBuilder {
+			balances: vec![],
+			nominators: vec![],
+			collators: vec![],
+			inflation: InflationInfo {
+				expect: Range {
+					min: 700,
+					ideal: 700,
+					max: 700,
+				},
+				// not used
+				annual: Range {
+					min: Perbill::from_percent(50),
+					ideal: Perbill::from_percent(50),
+					max: Perbill::from_percent(50),
+				},
+				// unrealistically high parameterization, only for testing
+				round: Range {
+					min: Perbill::from_percent(5),
+					ideal: Perbill::from_percent(5),
+					max: Perbill::from_percent(5),
+				},
+			},
+		}
 	}
-	.assimilate_storage(&mut storage)
-	.unwrap();
-	let mut ext = sp_io::TestExternalities::from(storage);
-	ext.execute_with(|| System::set_block_number(1));
-	ext
 }
 
-pub(crate) fn two_collators_four_nominators() -> sp_io::TestExternalities {
-	genesis(
-		vec![
-			(1, 1000),
-			(2, 300),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-			(7, 100),
-			(8, 9),
-			(9, 4),
-		],
-		vec![
-			// collators
-			(1, None, 500),
-			(2, None, 200),
-			// nominators
-			(3, Some(1), 100),
-			(4, Some(1), 100),
-			(5, Some(2), 100),
-			(6, Some(2), 100),
-		],
-	)
-}
+impl ExtBuilder {
+	pub(crate) fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
+		self.balances = balances;
+		self
+	}
 
-pub(crate) fn five_collators_no_nominators() -> sp_io::TestExternalities {
-	genesis(
-		vec![
-			(1, 1000),
-			(2, 1000),
-			(3, 1000),
-			(4, 1000),
-			(5, 1000),
-			(6, 1000),
-			(7, 33),
-			(8, 33),
-			(9, 33),
-		],
-		vec![
-			// collators
-			(1, None, 100),
-			(2, None, 90),
-			(3, None, 80),
-			(4, None, 70),
-			(5, None, 60),
-			(6, None, 50),
-		],
-	)
-}
+	pub(crate) fn with_collators(mut self, collators: Vec<(AccountId, Balance)>) -> Self {
+		self.collators = collators;
+		self
+	}
 
-pub(crate) fn five_collators_five_nominators() -> sp_io::TestExternalities {
-	genesis(
-		vec![
-			(1, 100),
-			(2, 100),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-			(7, 100),
-			(8, 100),
-			(9, 100),
-			(10, 100),
-		],
-		vec![
-			// collators
-			(1, None, 20),
-			(2, None, 20),
-			(3, None, 20),
-			(4, None, 20),
-			(5, None, 10),
-			// nominators
-			(6, Some(1), 10),
-			(7, Some(1), 10),
-			(8, Some(2), 10),
-			(9, Some(2), 10),
-			(10, Some(1), 10),
-		],
-	)
-}
+	pub(crate) fn with_nominators(
+		mut self,
+		nominators: Vec<(AccountId, AccountId, Balance)>,
+	) -> Self {
+		self.nominators = nominators;
+		self
+	}
 
-pub(crate) fn one_collator_two_nominators() -> sp_io::TestExternalities {
-	genesis(
-		vec![(1, 100), (2, 100), (3, 100), (4, 100), (5, 100), (6, 100)],
-		vec![
-			// collators
-			(1, None, 20),
-			// nominators
-			(2, Some(1), 10),
-			(3, Some(1), 10),
-		],
-	)
+	#[allow(dead_code)]
+	pub(crate) fn with_inflation(mut self, inflation: InflationInfo<Balance>) -> Self {
+		self.inflation = inflation;
+		self
+	}
+
+	pub(crate) fn build(self) -> sp_io::TestExternalities {
+		let mut t = frame_system::GenesisConfig::default()
+			.build_storage::<Test>()
+			.expect("Frame system builds valid default genesis config");
+
+		pallet_balances::GenesisConfig::<Test> {
+			balances: self.balances,
+		}
+		.assimilate_storage(&mut t)
+		.expect("Pallet balances storage can be assimilated");
+
+		let mut stakers: Vec<(AccountId, Option<AccountId>, Balance)> = Vec::new();
+		for collator in self.collators {
+			stakers.push((collator.0, None, collator.1));
+		}
+		for nominator in self.nominators {
+			stakers.push((nominator.0, Some(nominator.1), nominator.2));
+		}
+		stake::GenesisConfig::<Test> {
+			stakers,
+			inflation_config: self.inflation,
+		}
+		.assimilate_storage(&mut t)
+		.expect("Parachain Staking's storage can be assimilated");
+
+		let mut ext = sp_io::TestExternalities::new(t);
+		ext.execute_with(|| System::set_block_number(1));
+		ext
+	}
 }
 
 pub(crate) fn roll_to(n: u64) {

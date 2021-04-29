@@ -16,26 +16,60 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use codec::Decode;
+use evm::{Context, ExitError, ExitSucceed};
+use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
+use pallet_evm::{Config, Precompile, PrecompileSet};
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
+use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, Identity, Ripemd160, Sha256};
+use sp_core::H160;
+use sp_std::{marker::PhantomData, vec::Vec};
 
 /// The PrecompileSet installed in the Moonbeam runtime.
 /// We include the nine Istanbul precompiles
 /// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
 /// as well as a special precompile for dispatching Substrate extrinsics
-///
-/// TODO I had trouble getting the BN precompiles to compile.
-/// Also, Why are the BN precompiles in geth called bn256*, but in Frontier they are called Bn128*
-pub type MoonbeamPrecompiles<Runtime> = (
-	ECRecover,
-	Sha256,
-	Ripemd160,
-	Identity,
-	Modexp,
-	Bn128Add,
-	Bn128Mul,
-	Bn128Pairing,
-	Dispatch<Runtime>,
-);
+#[derive(Debug, Clone, Copy)]
+pub struct MoonbeamPrecompiles<R>(PhantomData<R>);
+
+/// The following distribution has been decided for the precompiles
+/// 0-1023: Ethereum Mainnet Precompiles
+/// 1024-2047 Precompiles that are not in Ethereum Mainnet but are neither Moonbeam specific
+/// 2048-4095 Moonbeam specific prerecompiles
+
+impl<R> PrecompileSet for MoonbeamPrecompiles<R>
+where
+	R: Config,
+	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
+	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
+{
+	fn execute(
+		address: H160,
+		input: &[u8],
+		target_gas: Option<u64>,
+		context: &Context,
+	) -> Option<Result<(ExitSucceed, Vec<u8>, u64), ExitError>> {
+		match address {
+			// Ethereum precompiles :
+			a if a == hash(1) => Some(ECRecover::execute(input, target_gas, context)),
+			a if a == hash(2) => Some(Sha256::execute(input, target_gas, context)),
+			a if a == hash(3) => Some(Ripemd160::execute(input, target_gas, context)),
+			a if a == hash(4) => Some(Identity::execute(input, target_gas, context)),
+			a if a == hash(5) => Some(Modexp::execute(input, target_gas, context)),
+			a if a == hash(6) => Some(Bn128Add::execute(input, target_gas, context)),
+			a if a == hash(7) => Some(Bn128Mul::execute(input, target_gas, context)),
+			a if a == hash(8) => Some(Bn128Pairing::execute(input, target_gas, context)),
+			// Non-Moonbeam specific nor Ethereum precompiles :
+			a if a == hash(1024) => Some(Dispatch::<R>::execute(input, target_gas, context)),
+			a if a == hash(1025) => Some(Sha3FIPS256::execute(input, target_gas, context)),
+			_ => None,
+		}
+	}
+}
+
+fn hash(a: u64) -> H160 {
+	H160::from_low_u64_be(a)
+}

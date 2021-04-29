@@ -31,7 +31,11 @@ use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Encode, Decode)]
 pub enum TraceType {
 	/// Classic geth with no javascript based tracing.
-	Raw,
+	Raw {
+		disable_storage: bool,
+		disable_memory: bool,
+		disable_stack: bool,
+	},
 	/// List of calls and subcalls (output Blockscout expects).
 	CallList,
 }
@@ -68,8 +72,14 @@ pub struct RawStepLog {
 	#[cfg_attr(feature = "std", serde(serialize_with = "u256_serialize"))]
 	pub gas_cost: U256,
 
-	#[cfg_attr(feature = "std", serde(serialize_with = "seq_h256_serialize"))]
-	pub memory: Vec<H256>,
+	#[cfg_attr(
+		feature = "std",
+		serde(
+			serialize_with = "seq_h256_serialize",
+			skip_serializing_if = "Option::is_none"
+		)
+	)]
+	pub memory: Option<Vec<H256>>,
 
 	#[cfg_attr(feature = "std", serde(serialize_with = "opcode_serialize"))]
 	pub op: Vec<u8>,
@@ -77,10 +87,17 @@ pub struct RawStepLog {
 	#[cfg_attr(feature = "std", serde(serialize_with = "u256_serialize"))]
 	pub pc: U256,
 
-	#[cfg_attr(feature = "std", serde(serialize_with = "seq_h256_serialize"))]
-	pub stack: Vec<H256>,
+	#[cfg_attr(
+		feature = "std",
+		serde(
+			serialize_with = "seq_h256_serialize",
+			skip_serializing_if = "Option::is_none"
+		)
+	)]
+	pub stack: Option<Vec<H256>>,
 
-	pub storage: BTreeMap<H256, H256>,
+	#[cfg_attr(feature = "std", serde(skip_serializing_if = "Option::is_none"))]
+	pub storage: Option<BTreeMap<H256, H256>>,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]

@@ -22,12 +22,13 @@ use serde::{
 	Serializer,
 };
 
-pub fn seq_h256_serialize<S>(data: &[H256], serializer: S) -> Result<S::Ok, S::Error>
+pub fn seq_h256_serialize<S>(data: &Option<Vec<H256>>, serializer: S) -> Result<S::Ok, S::Error>
 where
 	S: Serializer,
 {
-	let mut seq = serializer.serialize_seq(Some(data.len()))?;
-	for h in data {
+	let d = data.clone().unwrap();
+	let mut seq = serializer.serialize_seq(Some(d.len()))?;
+	for h in d {
 		seq.serialize_element(&format!("{:x}", h))?;
 	}
 	seq.end()
