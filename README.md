@@ -93,16 +93,16 @@ Substrate's canonical mnemonic: `bottom drive obey lake curtain smoke basket hol
 
 ## Build the Moonbeam Node
 
-To build Moonbeam, you will need a proper Substrate development environment. If you've never worked with a Substrate-based blockchain before, you should probably try the [Setting Up a Moonbeam Node](https://docs.moonbeam.network/getting-started/local-node/setting-up-a-node/) docs first. 
+To build Moonbeam, you will need a proper Substrate development environment. If you've never worked with a Substrate-based blockchain before, you should probably try the [Setting Up a Moonbeam Node](https://docs.moonbeam.network/getting-started/local-node/setting-up-a-node/) docs first.
+
 If you need a refresher setting up your Substrate environment, see [Substrate's Getting Started Guide](https://substrate.dev/docs/en/knowledgebase/getting-started/).
+
+Note that cloning master might result in an unstable build. If you want a stable version, check out the [latest releases](https://github.com/PureStake/moonbeam/releases).
 
 ```bash
 # Fetch the code
 git clone https://github.com/PureStake/moonbeam
 cd moonbeam
-
-# Checkout the latest release tag
-git checkout tags/$(git tag | tail -1)
 
 # Build the node (The first build will be long (~30min))
 cargo build --release
