@@ -1,8 +1,4 @@
 // SPDX-License-Identifier: GPL-3.0-only
-
-// @nanocryk I've copied over the doc comments from the pallet. Is that useful to solidity devs?
-// Like specifically, will their IDEs show those docs or something? Otherwise, not worth copying.
-
 pragma solidity >=0.8.0;
 
 /// The interface through which solidity contracts will interact with Parachain Staking
@@ -16,6 +12,9 @@ interface ParachainStaking {
 
     /// Check whether the specified addess is currently a collator candidate
     function is_candidate(address collator) external view returns (bool);
+
+    /// Get the minimum nomination amount, TODO: impl accessor in Rust
+    function min_nomination() external view returns (uint256);
 
     // Now the dispatchables
 
@@ -60,26 +59,18 @@ interface ParachainStaking {
 // https://ethereum.stackexchange.com/a/73405/9963
 // Eventually we will probably want a better way of generating these and copying them to Rust
 // {
-// 	"42a72461": "at_stake(uint256,address)",
 // 	"289b6ba7": "candidate_bond_less(uint256)",
 // 	"c57bd3a8": "candidate_bond_more(uint256)",
-// 	"96b41b5b": "candidate_pool()",
-// 	"b0c0081f": "collator_commission()",
-// 	"427c3c14": "exit_queue()",
 // 	"767e0450": "go_offline()",
 // 	"d2f73ceb": "go_online()",
-// 	"10db2de9": "inflation_config()",
 // 	"8545c833": "is_candidate(address)",
 // 	"8e5080e7": "is_nominator(address)",
-// 	"8f6d27c7": "is_selected_candidate(address)",
 // 	"ad76ed5a": "join_candidates(uint256)",
 // 	"b7694219": "leave_candidates()",
 // 	"e8d68a37": "leave_nominators()",
+// 	"c9f593b2": "min_nomination()",
 // 	"82f2c8df": "nominate(address,uint256)",
 // 	"f6a52569": "nominator_bond_less(address,uint256)",
 // 	"971d44c8": "nominator_bond_more(address,uint256)",
-// 	"9799b4e7": "points(uint256)",
-// 	"4b65c34b": "revoke_nomination(address)",
-// 	"98807d84": "staked(address)",
-// 	"7b46e61b": "total_selected()"
+// 	"4b65c34b": "revoke_nomination(address)"
 // }

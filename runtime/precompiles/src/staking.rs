@@ -55,7 +55,7 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Result<(ExitSucceed, Vec<u8>, u64), ExitError> {
-		log::info!("In parachain staking wrapper");
+		log::trace!(target: "staking-precompile", "In parachain staking wrapper");
 
 		// Basic sanity checking for length
 		// https://solidity-by-example.org/primitives/
@@ -66,8 +66,8 @@ where
 			return Err(ExitError::Other("input length less than 4 bytes".into()));
 		}
 
-		log::info!("Made it past preliminary length check");
-		log::info!("context.caller is {:?}", context.caller);
+		log::trace!(target: "staking-precompile", "Made it past preliminary length check");
+		log::trace!(target: "staking-precompile", "context.caller is {:?}", context.caller);
 
 		// Parse the function selector
 		let inner_call = match input[0..SELECTOR_SIZE_BYTES] {
@@ -92,7 +92,10 @@ where
 			[0xf6, 0xa5, 0x25, 0x69] => Self::nominator_bond_less(&input[SELECTOR_SIZE_BYTES..])?,
 			[0x97, 0x1d, 0x44, 0xc8] => Self::nominator_bond_more(&input[SELECTOR_SIZE_BYTES..])?,
 			_ => {
-				log::info!("Failed to match function selector in staking wrapper precompile");
+				log::trace!(
+					target: "staking-precompile",
+					"Failed to match function selector in staking wrapper precompile"
+				);
 				return Err(ExitError::Other(
 					"No staking wrapper method at selector given selector".into(),
 				));
@@ -109,23 +112,26 @@ where
 				return Err(ExitError::OutOfGas);
 			}
 		}
-		log::info!("Made it past gas check");
+		log::trace!(target: "staking-precompile", "Made it past gas check");
 
 		// Dispatch that call
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 
-		log::info!("Gonna call with origin {:?}", origin);
+		log::trace!(target: "staking-precompile", "Gonna call with origin {:?}", origin);
 
 		match outer_call.dispatch(Some(origin).into()) {
 			Ok(post_info) => {
 				let gas_used = Runtime::GasWeightMapping::weight_to_gas(
 					post_info.actual_weight.unwrap_or(info.weight),
 				);
-				//TODO Should this be returned?
 				Ok((ExitSucceed::Stopped, Default::default(), gas_used))
 			}
 			Err(e) => {
-				log::info!("Parachain staking call via evm failed {:?}", e);
+				log::trace!(
+					target: "staking-precompile",
+					"Parachain staking call via evm failed {:?}",
+					e
+				);
 				Err(ExitError::Other(
 					"Parachain staking call via EVM failed".into(),
 				))
@@ -141,7 +147,7 @@ fn parse_account(input: &[u8]) -> Result<H160, ExitError> {
 	const TOTAL_SIZE_BYTES: usize = PADDING_SIZE_BYTES + ACCOUNT_SIZE_BYTES;
 
 	if input.len() != TOTAL_SIZE_BYTES {
-		log::info!(
+		log::trace!(target: "staking-precompile",
 			"Unable to parse address. Got {} bytes, expected {}",
 			input.len(),
 			TOTAL_SIZE_BYTES,
@@ -165,7 +171,7 @@ where
 	const AMOUNT_SIZE_BYTES: usize = 32;
 
 	if input.len() != AMOUNT_SIZE_BYTES {
-		log::info!(
+		log::trace!(target: "staking-precompile",
 			"Unable to parse amount. Got {} bytes, expected {}",
 			input.len(),
 			AMOUNT_SIZE_BYTES,
@@ -196,12 +202,16 @@ where
 		// parse the address
 		let nominator = H160::from_slice(&input[12..32]);
 
-		log::info!("Checking whether {:?} is a nominator", nominator);
+		log::trace!(
+			target: "staking-precompile",
+			"Checking whether {:?} is a nominator",
+			nominator
+		);
 
 		// fetch data from pallet
 		let is_nominator = parachain_staking::Pallet::<Runtime>::is_nominator(&nominator.into());
 
-		log::info!("Result from pallet is {:?}", is_nominator);
+		log::trace!(target: "staking-precompile", "Result from pallet is {:?}", is_nominator);
 
 		// Solidity's bool type is 256 bits as shown by these examples
 		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html
@@ -210,11 +220,9 @@ where
 			result_bytes[31] = 1;
 		}
 
-		log::info!("Result bytes are {:?}", result_bytes);
+		log::trace!(target: "staking-precompile", "Result bytes are {:?}", result_bytes);
 
-		//TODO figure out how much gas it costs to check whether you're a nominator.
-		// That function will not naturally be benchmarked because it is not dispatchable
-		// I guess the heavy part will be one storage read.
+		// TODO benchmark to derive cost of single storage read
 		let gas_consumed = 0;
 
 		return Ok((ExitSucceed::Returned, result_bytes.to_vec(), gas_consumed));
@@ -224,12 +232,16 @@ where
 		// parse the address
 		let candidate = H160::from_slice(&input[12..32]);
 
-		log::info!("Checking whether {:?} is a collator candidate", candidate);
+		log::trace!(
+			target: "staking-precompile",
+			"Checking whether {:?} is a collator candidate",
+			candidate
+		);
 
 		// fetch data from pallet
 		let is_candidate = parachain_staking::Pallet::<Runtime>::is_candidate(&candidate.into());
 
-		log::info!("Result from pallet is {:?}", is_candidate);
+		log::trace!(target: "staking-precompile", "Result from pallet is {:?}", is_candidate);
 
 		// Solidity's bool type is 256 bits as shown by these examples
 		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html
@@ -238,11 +250,9 @@ where
 			result_bytes[31] = 1;
 		}
 
-		log::info!("Result bytes are {:?}", result_bytes);
+		log::trace!(target: "staking-precompile", "Result bytes are {:?}", result_bytes);
 
-		//TODO figure out how much gas it costs to check whether you're a collator candidate.
-		// That function will not naturally be benchmarked because it is not dispatchable
-		// I guess the heavy part will be one storage read.
+		// TODO benchmark to derive cost of single storage read
 		let gas_consumed = 0;
 
 		return Ok((ExitSucceed::Returned, result_bytes.to_vec(), gas_consumed));
@@ -253,7 +263,7 @@ where
 	fn join_candidates(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
 		let amount = parse_amount::<BalanceOf<Runtime>>(input)?;
 
-		log::info!("Collator stake amount is {:?}", amount);
+		log::trace!(target: "staking-precompile", "Collator stake amount is {:?}", amount);
 
 		Ok(parachain_staking::Call::<Runtime>::join_candidates(amount))
 	}
@@ -273,7 +283,7 @@ where
 	fn candidate_bond_more(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
 		let amount = parse_amount::<BalanceOf<Runtime>>(input)?;
 
-		log::info!("Collator bond increment is {:?}", amount);
+		log::trace!(target: "staking-precompile", "Collator bond increment is {:?}", amount);
 
 		Ok(parachain_staking::Call::<Runtime>::candidate_bond_more(
 			amount,
@@ -283,7 +293,7 @@ where
 	fn candidate_bond_less(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
 		let amount = parse_amount::<BalanceOf<Runtime>>(input)?;
 
-		log::info!("Collator bond decrement is {:?}", amount);
+		log::trace!(target: "staking-precompile", "Collator bond decrement is {:?}", amount);
 
 		Ok(parachain_staking::Call::<Runtime>::candidate_bond_less(
 			amount,
@@ -291,13 +301,13 @@ where
 	}
 
 	fn nominate(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		log::info!("In nominate dispatchable wrapper");
-		log::info!("input is {:?}", input);
+		log::trace!(target: "staking-precompile", "In nominate dispatchable wrapper");
+		log::trace!(target: "staking-precompile", "input is {:?}", input);
 		let collator = parse_account(&input[..32])?;
 		let amount = parse_amount::<BalanceOf<Runtime>>(&input[32..])?;
 
-		log::info!("Collator account is {:?}", collator);
-		log::info!("Nomination amount is {:?}", amount);
+		log::trace!(target: "staking-precompile", "Collator account is {:?}", collator);
+		log::trace!(target: "staking-precompile", "Nomination amount is {:?}", amount);
 
 		Ok(parachain_staking::Call::<Runtime>::nominate(
 			collator.into(),
@@ -310,10 +320,10 @@ where
 	}
 
 	fn revoke_nomination(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		log::info!("In revoke nomination dispatchable wrapper");
+		log::trace!(target: "staking-precompile", "In revoke nomination dispatchable wrapper");
 		let collator = parse_account(&input[..32])?;
 
-		log::info!("Collator account is {:?}", collator);
+		log::trace!(target: "staking-precompile", "Collator account is {:?}", collator);
 
 		Ok(parachain_staking::Call::<Runtime>::revoke_nomination(
 			collator.into(),
@@ -324,8 +334,8 @@ where
 		let collator = parse_account(&input[..32])?;
 		let amount = parse_amount::<BalanceOf<Runtime>>(&input[32..])?;
 
-		log::info!("Collator account is {:?}", collator);
-		log::info!("Nomination increment is {:?}", amount);
+		log::trace!(target: "staking-precompile", "Collator account is {:?}", collator);
+		log::trace!(target: "staking-precompile", "Nomination increment is {:?}", amount);
 
 		Ok(parachain_staking::Call::<Runtime>::nominator_bond_more(
 			collator.into(),
@@ -337,8 +347,8 @@ where
 		let collator = parse_account(&input[..32])?;
 		let amount = parse_amount::<BalanceOf<Runtime>>(&input[32..])?;
 
-		log::info!("Collator account is {:?}", collator);
-		log::info!("Nomination decrement is {:?}", amount);
+		log::trace!(target: "staking-precompile", "Collator account is {:?}", collator);
+		log::trace!(target: "staking-precompile", "Nomination decrement is {:?}", amount);
 
 		Ok(parachain_staking::Call::<Runtime>::nominator_bond_less(
 			collator.into(),

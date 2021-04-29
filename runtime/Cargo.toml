@@ -73,12 +73,9 @@ evm = { version = "0.26.0", default-features = false, features = ["with-codec"] 
 substrate-wasm-builder = { version = "4.0.0", git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
 
 [features]
-# By default, we build the parachain runtime
 default = [
 	"std",
-	
-	
-] # Default feature dependencies must not be optional (aparently)
+]
 std = [
 	"parity-scale-codec/std",
 	"serde",
@@ -126,8 +123,8 @@ std = [
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
 runtime-wasm = [
-	
-] # "cumulus-upward-message/runtime-wasm",
+	# "cumulus-upward-message/runtime-wasm",	
+]
 
 # A feature that should be enabled when the runtime should be build for on-chain
 # deployment. This will disable stuff that shouldn't be part of the on-chain wasm
