@@ -155,7 +155,7 @@ pub struct RunCmd {
 	/// Duration (in seconds) after which the cache of `trace_filter` for a given block will be
 	/// discarded.
 	#[structopt(long, default_value = "300")]
-	pub ethapi_trace_cache_duration: u32,
+	pub ethapi_trace_cache_duration: u64,
 }
 
 fn parse_h160(input: &str) -> Result<H160, String> {
