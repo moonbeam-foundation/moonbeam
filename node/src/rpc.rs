@@ -123,7 +123,7 @@ where
 		ethapi_cmd,
 		command_sink,
 		frontier_backend,
-		backend,
+		backend: _,
 		debug_requester,
 		trace_filter_requester,
 		trace_filter_max_count,
