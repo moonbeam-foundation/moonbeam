@@ -19,6 +19,7 @@
 #![cfg(test)]
 
 use cumulus_primitives_parachain_inherent::ParachainInherentData;
+use evm::{Context, ExitSucceed};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
@@ -28,6 +29,7 @@ use moonbeam_runtime::{
 	AccountId, AuthorInherent, Balance, Balances, Call, Event, InflationInfo, ParachainStaking,
 	Range, Runtime, System, GLMR,
 };
+use pallet_evm::PrecompileSet;
 use parachain_staking::Bond;
 use precompiles::MoonbeamPrecompiles;
 use sp_core::{H160, U256};
@@ -390,8 +392,6 @@ fn join_candidates_via_precompile() {
 				None, // Use the next nonce
 			))
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
-
-			println!("Made it past dispatching");
 
 			// Assert that Alice is now a candidate
 			assert!(ParachainStaking::is_candidate(&AccountId::from(ALICE)));
@@ -992,10 +992,7 @@ fn nominator_bond_more_less_via_precompile() {
 }
 
 #[test]
-fn is_nominator_accessor_true() {
-	use evm::{Context, ExitSucceed};
-	use pallet_evm::PrecompileSet;
-
+fn is_nominator_via_precompile() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), 1_000 * GLMR),
@@ -1009,29 +1006,27 @@ fn is_nominator_accessor_true() {
 		)])
 		.build()
 		.execute_with(|| {
-			println!("Starting test execution");
-
 			// Confirm Bob is initialized as a nominator directly
 			assert!(ParachainStaking::is_nominator(&AccountId::from(BOB)));
 
 			let staking_precompile_address = H160::from_low_u64_be(256);
 
-			// Construct the input data
-			let mut input_data = Vec::<u8>::from([0u8; 36]);
-			input_data[0..4].copy_from_slice(&hex_literal::hex!("8e5080e7"));
-			input_data[16..36].copy_from_slice(&BOB);
+			// Construct the input data to check if Bob is a nominator
+			let mut bob_input_data = Vec::<u8>::from([0u8; 36]);
+			bob_input_data[0..4].copy_from_slice(&hex_literal::hex!("8e5080e7"));
+			bob_input_data[16..36].copy_from_slice(&BOB);
 
 			// Expected result is an EVM boolean true which is 256 bits long.
 			let mut expected_bytes = Vec::from([0u8; 32]);
 			expected_bytes[31] = 1;
-			let expected_result = Some(Ok((ExitSucceed::Returned, expected_bytes, 0)));
+			let expected_true_result = Some(Ok((ExitSucceed::Returned, expected_bytes, 0)));
 
-			// Assert precompile also reports Alice as a nominator
+			// Assert precompile reports Bob is a nominator
 			assert_eq!(
 				MoonbeamPrecompiles::<Runtime>::execute(
 					staking_precompile_address,
-					&input_data,
-					None, //target_gas is not necessary right now because I consume none
+					&bob_input_data,
+					None, // target_gas is not necessary right now because consumed none now
 					&Context {
 						// This context copied from Sacrifice tests, it's not great.
 						address: Default::default(),
@@ -1039,51 +1034,64 @@ fn is_nominator_accessor_true() {
 						apparent_value: From::from(0),
 					}
 				),
-				expected_result
+				expected_true_result
+			);
+
+			// Construct the input data to check if Charlie is a nominator
+			let mut charlie_input_data = Vec::<u8>::from([0u8; 36]);
+			charlie_input_data[0..4].copy_from_slice(&hex_literal::hex!("8e5080e7"));
+			charlie_input_data[16..36].copy_from_slice(&CHARLIE);
+
+			// Expected result is an EVM boolean false which is 256 bits long.
+			expected_bytes = Vec::from([0u8; 32]);
+			let expected_false_result = Some(Ok((ExitSucceed::Returned, expected_bytes, 0)));
+
+			// Assert precompile also reports Charlie as not a nominator
+			assert_eq!(
+				MoonbeamPrecompiles::<Runtime>::execute(
+					staking_precompile_address,
+					&charlie_input_data,
+					None,
+					&Context {
+						// This context copied from Sacrifice tests, it's not great.
+						address: Default::default(),
+						caller: Default::default(),
+						apparent_value: From::from(0),
+					}
+				),
+				expected_false_result
 			);
 		})
 }
 
 #[test]
-fn is_nominator_accessor_false() {
-	use evm::{Context, ExitSucceed};
-	use pallet_evm::PrecompileSet;
-
+fn is_candidate_via_precompile() {
 	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 1_000 * GLMR),
-			(AccountId::from(BOB), 1_500 * GLMR),
-		])
+		.with_balances(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
-		.with_nominators(vec![(
-			AccountId::from(BOB),
-			AccountId::from(ALICE),
-			500 * GLMR,
-		)])
 		.build()
 		.execute_with(|| {
-			println!("Starting test execution");
-
-			// Confirm Charlie is not initialized as a nominator directly
-			assert!(!ParachainStaking::is_nominator(&AccountId::from(CHARLIE)));
+			// Confirm Alice is initialized as a candidate directly
+			assert!(ParachainStaking::is_candidate(&AccountId::from(ALICE)));
 
 			let staking_precompile_address = H160::from_low_u64_be(256);
 
-			// Construct the input data
-			let mut input_data = Vec::<u8>::from([0u8; 36]);
-			input_data[0..4].copy_from_slice(&hex_literal::hex!("8e5080e7"));
-			input_data[16..36].copy_from_slice(&CHARLIE);
+			// Construct the input data to check if Alice is a candidate
+			let mut alice_input_data = Vec::<u8>::from([0u8; 36]);
+			alice_input_data[0..4].copy_from_slice(&hex_literal::hex!("8545c833"));
+			alice_input_data[16..36].copy_from_slice(&ALICE);
 
-			// Expected result is an EVM boolean false which is 256 bits long.
-			let expected_bytes = Vec::from([0u8; 32]);
-			let expected_result = Some(Ok((ExitSucceed::Returned, expected_bytes, 0)));
+			// Expected result is an EVM boolean true which is 256 bits long.
+			let mut expected_bytes = Vec::from([0u8; 32]);
+			expected_bytes[31] = 1;
+			let expected_true_result = Some(Ok((ExitSucceed::Returned, expected_bytes, 0)));
 
-			// Assert precompile also reports Alice as a nominator
+			// Assert precompile reports Alice is a collator candidate
 			assert_eq!(
 				MoonbeamPrecompiles::<Runtime>::execute(
 					staking_precompile_address,
-					&input_data,
-					None, //target_gas is not necessary right now because I consume none
+					&alice_input_data,
+					None, // target_gas is not necessary right now because consumed none now
 					&Context {
 						// This context copied from Sacrifice tests, it's not great.
 						address: Default::default(),
@@ -1091,7 +1099,32 @@ fn is_nominator_accessor_false() {
 						apparent_value: From::from(0),
 					}
 				),
-				expected_result
+				expected_true_result
+			);
+
+			// Construct the input data to check if Bob is a collator candidate
+			let mut bob_input_data = Vec::<u8>::from([0u8; 36]);
+			bob_input_data[0..4].copy_from_slice(&hex_literal::hex!("8545c833"));
+			bob_input_data[16..36].copy_from_slice(&CHARLIE);
+
+			// Expected result is an EVM boolean false which is 256 bits long.
+			expected_bytes = Vec::from([0u8; 32]);
+			let expected_false_result = Some(Ok((ExitSucceed::Returned, expected_bytes, 0)));
+
+			// Assert precompile also reports Bob as not a collator candidate
+			assert_eq!(
+				MoonbeamPrecompiles::<Runtime>::execute(
+					staking_precompile_address,
+					&bob_input_data,
+					None,
+					&Context {
+						// This context copied from Sacrifice tests, it's not great.
+						address: Default::default(),
+						caller: Default::default(),
+						apparent_value: From::from(0),
+					}
+				),
+				expected_false_result
 			);
 		})
 }

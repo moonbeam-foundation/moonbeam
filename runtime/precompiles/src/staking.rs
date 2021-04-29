@@ -75,6 +75,9 @@ where
 			[0x8e, 0x50, 0x80, 0xe7] => {
 				return Self::is_nominator(&input[SELECTOR_SIZE_BYTES..]);
 			}
+			[0x85, 0x45, 0xc8, 0x33] => {
+				return Self::is_candidate(&input[SELECTOR_SIZE_BYTES..]);
+			}
 
 			// If not an accessor, check for dispatchables. These calls ready for dispatch below.
 			[0xad, 0x76, 0xed, 0x5a] => Self::join_candidates(&input[SELECTOR_SIZE_BYTES..])?,
@@ -187,13 +190,10 @@ where
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<parachain_staking::Call<Runtime>>,
 {
-	// The accessors are first. They directly return their result
+	// The accessors are first. They directly return their result.
 
 	fn is_nominator(input: &[u8]) -> Result<(ExitSucceed, Vec<u8>, u64), ExitError> {
 		// parse the address
-
-		// TODO generalize Amar's parsing functions
-		// For some reason there are 12 blank bytes. Not sure why.
 		let nominator = H160::from_slice(&input[12..32]);
 
 		log::info!("Checking whether {:?} is a nominator", nominator);
@@ -220,7 +220,35 @@ where
 		return Ok((ExitSucceed::Returned, result_bytes.to_vec(), gas_consumed));
 	}
 
-	// The dispatchable wrappers are next. They return a dispatchable ready for dispatch.
+	fn is_candidate(input: &[u8]) -> Result<(ExitSucceed, Vec<u8>, u64), ExitError> {
+		// parse the address
+		let candidate = H160::from_slice(&input[12..32]);
+
+		log::info!("Checking whether {:?} is a collator candidate", candidate);
+
+		// fetch data from pallet
+		let is_candidate = parachain_staking::Pallet::<Runtime>::is_candidate(&candidate.into());
+
+		log::info!("Result from pallet is {:?}", is_candidate);
+
+		// Solidity's bool type is 256 bits as shown by these examples
+		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html
+		let mut result_bytes = [0u8; 32];
+		if is_candidate {
+			result_bytes[31] = 1;
+		}
+
+		log::info!("Result bytes are {:?}", result_bytes);
+
+		//TODO figure out how much gas it costs to check whether you're a collator candidate.
+		// That function will not naturally be benchmarked because it is not dispatchable
+		// I guess the heavy part will be one storage read.
+		let gas_consumed = 0;
+
+		return Ok((ExitSucceed::Returned, result_bytes.to_vec(), gas_consumed));
+	}
+
+	// The dispatchable wrappers are next. They return a substrate inner Call ready for dispatch.
 
 	fn join_candidates(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
 		let amount = parse_amount::<BalanceOf<Runtime>>(input)?;
