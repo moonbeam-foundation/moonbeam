@@ -2,7 +2,7 @@
 
 ### Generated Documentation
 
-You can explore our crate-level documentation at
+You can explore our [crate-level documentation](https://purestake.github.io/moonbeam).
 [https://purestake.github.io/moonbeam](https://purestake.github.io/moonbeam). This documentation is
 automatically built and reflects the latest `master` commit.
 
@@ -35,4 +35,3 @@ The following is a list of directories of interest in development.
 |scripts/               | Utilities for launching and interacting with a Moonbeam chain (typescript) |
 |specs/                 | Spec files used to generate genesis for well-known Moonbeam networks       |
 |tools/                 | Various tools generally related to development (typescript)                |
-
