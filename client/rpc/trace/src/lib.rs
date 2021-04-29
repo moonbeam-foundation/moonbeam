@@ -641,7 +641,8 @@ where
 					..
 				} => {
 					tracing::warn!(
-						"A request asked a pooled block ({}), adding it to the list of waiting requests.",
+						"A request asked a pooled block ({}), adding it to the list of \
+						waiting requests.",
 						block
 					);
 					waiting_requests.push(sender);
@@ -731,7 +732,8 @@ where
 			} = block_cache.state
 			{
 				tracing::trace!(
-					"A new block ({}) has been traced, adding it to the cache and responding to {} waiting requests.",
+					"A new block ({}) has been traced, adding it to the cache and responding to \
+					{} waiting requests.",
 					block_hash,
 					waiting_requests.len()
 				);
