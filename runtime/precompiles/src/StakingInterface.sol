@@ -17,45 +17,6 @@ interface ParachainStaking {
     /// Check whether the specified addess is currently a collator candidate
     function is_candidate(address collator) external view returns (bool);
 
-    /// Check whether the specified address is an active collator
-    function is_selected_candidate(address collator)
-        external
-        view
-        returns (bool);
-
-    /// Commission percent taken off of rewards for all collators
-    // TODO Skipping Rust implementation for now because I don't know how to express
-    // the fixed point type.
-    function collator_commission() external view returns (bool); //TODO wrong return type
-
-    /// The total number candidates selected every round
-    function total_selected() external view returns (uint256);
-
-    /// The pool of collator candidates, each with their total backing stake
-    // The return type might get hariy here too. Maybe this answer will help?
-    // https://ethereum.stackexchange.com/a/74334/9963
-    function candidate_pool() external view returns (address[] memory);
-
-    /// The queue of collators waiting to exit
-    function exit_queue() external view returns (address[] memory);
-
-    /// Snapshot of collator nomination stake at the start of the round
-    function at_stake(uint256 roundIndex, address target)
-        external
-        view
-        returns (uint256);
-
-    /// Total backing stake for selected candidate as of right now
-    function staked(address target) external view returns (uint256);
-
-    /// The current inflation configuration
-    // TODO do we want to do this? It returns a custom struct. Maybe we could have seperate
-    // accessors for each part of it?
-    function inflation_config() external view returns (bool); //TODO wrong return type
-
-    /// Total points awarded to all collators for block production so far in the current round
-    function points(uint256 roundIndex) external view returns (uint256);
-
     // Now the dispatchables
 
     /// Join the set of collator candidates
