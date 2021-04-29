@@ -30,7 +30,7 @@ service.
 docker run --network="host" purestake/moonbeam:v0.7.0 --dev
 ```
 
-You can find a more detailed set of instructions to run a development node [here](https://docs.moonbeam.network/getting-started/local-node/setting-up-a-node/)
+For more information, see our detailed instructions to [run a development node](https://docs.moonbeam.network/getting-started/local-node/setting-up-a-node/)
 
 ### Sealing options
 
