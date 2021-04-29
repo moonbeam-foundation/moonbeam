@@ -14,8 +14,10 @@ Docker images are published for every tagged release. Learn more with `moonbeam 
 
 ```bash
 # Join the public testnet
-docker run --network="host" purestake/moonbeam:v0.6.1 --chain alphanet
+docker run --network="host" purestake/moonbeam:v0.7.0 --chain alphanet
 ```
+
+You can find a more detailed set of instructions to run a full node in our TestNet [here](https://docs.moonbeam.network/node-operators/networks/full-node/)
 
 ## Run a local development node with Docker
 
@@ -25,8 +27,10 @@ service.
 
 ```bash
 # Run a dev service node.
-docker run --network="host" purestake/moonbeam:v0.6.1 --dev
+docker run --network="host" purestake/moonbeam:v0.7.0 --dev
 ```
+
+You can find a more detailed set of instructions to run a development node [here](https://docs.moonbeam.network/getting-started/local-node/setting-up-a-node/)
 
 ### Sealing options
 
@@ -34,10 +38,10 @@ The command above will start the node in instant seal mode. It creates a block w
 
 ```bash
 # Author a block every 6 seconds.
-docker run --network="host" purestake/moonbeam:v0.6.1 --dev --sealing 3000
+docker run --network="host" purestake/moonbeam:v0.7.0 --dev --sealing 6000
 
 # Manually control the block authorship and finality
-docker run --network="host" purestake/moonbeam:v0.6.1 --dev --sealing manual
+docker run --network="host" purestake/moonbeam:v0.7.0 --dev --sealing manual
 ```
 
 ### Prefunded Development Addresses
@@ -75,16 +79,20 @@ Substrate's canonical mnemonic: `bottom drive obey lake curtain smoke basket hol
 - PrivKey:0x96b8a38e12e1a31dee1eab2fffdf9d9990045f5b37e44d8cc27766ef294acf18
 ```
 
+You can find the full list of pre-funded account [here](https://docs.moonbeam.network/getting-started/local-node/setting-up-a-node/#pre-funded-development-accounts)
+
 ## Build the Moonbeam Node
 
-To build Moonbeam, you will need a proper Substrate development environment. If you've never worked
-with a Substrate-based blockchain before, you should probably try the [Setting Up a Moonbeam Node](https://docs.moonbeam.network/getting-started/local-node/setting-up-a-node/) docs first. If you
-need a refresher setting up your Substrate environment, see [Substrate's Getting Started Guide](https://substrate.dev/docs/en/knowledgebase/getting-started/).
+To build Moonbeam, you will need a proper Substrate development environment. If you've never worked with a Substrate-based blockchain before, you should probably try the [Setting Up a Moonbeam Node](https://docs.moonbeam.network/getting-started/local-node/setting-up-a-node/) docs first. 
+If you need a refresher setting up your Substrate environment, see [Substrate's Getting Started Guide](https://substrate.dev/docs/en/knowledgebase/getting-started/).
 
 ```bash
 # Fetch the code
 git clone https://github.com/PureStake/moonbeam
 cd moonbeam
+
+# Checkout the latest release tag
+git checkout tags/$(git tag | tail -1)
 
 # Build the node (The first build will be long (~30min))
 cargo build --release
