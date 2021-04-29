@@ -69,6 +69,12 @@ impl Default for ExtBuilder {
 					ideal: 200_000 * GLMR,
 					max: 500_000 * GLMR,
 				},
+				// not used
+				annual: Range {
+					min: Perbill::from_percent(50),
+					ideal: Perbill::from_percent(50),
+					max: Perbill::from_percent(50),
+				},
 				// unrealistically high parameterization, only for testing
 				round: Range {
 					min: Perbill::from_percent(5),
