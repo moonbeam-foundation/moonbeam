@@ -16,7 +16,8 @@ describeDevMoonbeam("Block Contract - Block variables", (context) => {
     expect(await blockContract.methods.initialnumber().call()).to.eq("1");
   });
 
-  it("should return parent block number + 1 when accessed through RPC call", async function () {
+  // TODO: Fix block number from contract call
+  it.skip("should return parent block number + 1 when accessed through RPC call", async function () {
     const block = await context.web3.eth.getBlock("latest");
     expect(await blockContract.methods.getNumber().call()).to.eq("1");
     expect(await blockContract.methods.getNumber().call()).to.eq(block.number.toString());
