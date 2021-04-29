@@ -1,5 +1,14 @@
 # ![Moonbeam](media/moonbeam-cover.jpg)
 
+## Contributions
+
+Moonbeam primarily uses GitHub Pull Requests to orchestrate code changes. If you wish to propose a
+contribution, open a pull request and review the template, which explains how to document your
+proposal.
+
+You may also consider joining our [Discord server](https://discord.gg/PfpUATX) or
+[Element room](https://app.element.io/#/room/#moonbeam:matrix.org) to discuss your changes.
+
 ### Generated Documentation
 
 You can explore our [crate-level documentation](https://purestake.github.io/moonbeam).
