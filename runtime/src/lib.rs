@@ -669,17 +669,17 @@ impl_runtime_apis! {
 									disable_storage,
 									disable_memory,
 									disable_stack,
-								} => {									
+								} => {
 									TracingHook::new_raw(
 										disable_storage,
 										disable_memory,
 										disable_stack,
-									)									
+									)
 								},
-								TraceType::CallList => todo!(),
+								TraceType::CallList => TracingHook::new_call_list(),
 							};
 
-							let other_hook = pallet_evm::runner::stack::Runner::<Runtime, TracingHook>::set_hook(Some(hook));		
+							let other_hook = pallet_evm::runner::stack::Runner::<Runtime, TracingHook>::set_hook(Some(hook));
 							let _ = Executive::apply_extrinsic(ext);
 							let hook = pallet_evm::runner::stack::Runner::<Runtime, TracingHook>::set_hook(other_hook);
 
@@ -687,7 +687,7 @@ impl_runtime_apis! {
 								Some(hook) => Ok(hook.finish()),
 								None => Err(sp_runtime::DispatchError::Other("Could not get back hook.")),
 							}
-							
+
 						} else {
 							Executive::apply_extrinsic(ext)
 						}
@@ -718,49 +718,15 @@ impl_runtime_apis! {
 			for ext in extrinsics.into_iter() {
 				match &ext.function {
 					Call::Ethereum(transact(transaction)) => {
-						// Get the caller;
-						let mut sig = [0u8; 65];
-						let mut msg = [0u8; 32];
-						sig[0..32].copy_from_slice(&transaction.signature.r()[..]);
-						sig[32..64].copy_from_slice(&transaction.signature.s()[..]);
-						sig[64] = transaction.signature.standard_v();
-						msg.copy_from_slice(
-							&pallet_ethereum::TransactionMessage::from(transaction.clone())
-								.hash()[..]
-						);
+						let hook = TracingHook::new_call_list();
 
-						let from = match sp_io::crypto::secp256k1_ecdsa_recover(&sig, &msg) {
-							Ok(pk) => H160::from(
-								H256::from_slice(Keccak256::digest(&pk).as_slice())
-							),
-							_ => H160::default()
-						};
+						let other_hook = pallet_evm::runner::stack::Runner::<Runtime, TracingHook>::set_hook(Some(hook));
+						let _ = Executive::apply_extrinsic(ext);
+						let hook = pallet_evm::runner::stack::Runner::<Runtime, TracingHook>::set_hook(other_hook);
 
-						// Use the runner extension to interface with our evm's trace executor and
-						// return the TraceExecutorResult.
-						let tx_traces = match transaction.action {
-							TransactionAction::Call(to) => {
-								<Runtime as pallet_evm::Config>::Runner::trace_call(
-									from,
-									to,
-									transaction.input.clone(),
-									transaction.value,
-									transaction.gas_limit.low_u64(),
-									&config,
-									single::TraceType::CallList,
-								).map_err(|_| sp_runtime::DispatchError::Other("Evm error"))?
-
-							},
-							TransactionAction::Create => {
-								<Runtime as pallet_evm::Config>::Runner::trace_create(
-									from,
-									transaction.input.clone(),
-									transaction.value,
-									transaction.gas_limit.low_u64(),
-									&config,
-									single::TraceType::CallList,
-								).map_err(|_| sp_runtime::DispatchError::Other("Evm error"))?
-							}
+						let tx_traces = match hook {
+							Some(hook) => hook.finish(),
+							None => return Err(sp_runtime::DispatchError::Other("Could not get back hook.")),
 						};
 
 						let tx_traces = match tx_traces {
@@ -844,7 +810,7 @@ impl_runtime_apis! {
 									refund_address
 								} => block::TransactionTrace {
 									action: block::TransactionTraceAction::Suicide {
-										address: from,
+										address: trace.from,
 										balance,
 										refund_address,
 									},

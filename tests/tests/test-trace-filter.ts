@@ -49,7 +49,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     expect(response.result[0].action).to.include({
       creationMethod: "create",
       from: "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b",
-      gas: "0xb718d7",
+      gas: "0xb60b27",
       value: "0x0",
     });
     expect(response.result[0].result).to.include({
@@ -78,7 +78,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     expect(response.result.length).to.equal(1);
     expect(response.result[0].action.creationMethod).to.equal("create");
     expect(response.result[0].action.from).to.equal("0x6be02d1d3665660d22ff9624b7be0551ee1ac91b");
-    expect(response.result[0].action.gas).to.equal("0xb7198c");
+    expect(response.result[0].action.gas).to.equal("0xb60bd0");
     expect(response.result[0].action.init).to.be.a("string");
     expect(response.result[0].action.value).to.equal("0x0");
     expect(response.result[0].blockHash).to.be.a("string");
