@@ -3,7 +3,7 @@
 ### Generated Documentation
 
 You can explore our [crate-level documentation](https://purestake.github.io/moonbeam).
-[https://purestake.github.io/moonbeam](https://purestake.github.io/moonbeam). This documentation is
+This documentation is
 automatically built and reflects the latest `master` commit.
 
 ### Code style
