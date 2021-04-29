@@ -40,7 +40,7 @@
 //!     "storage": {"0x":"0x"}
 //!   }
 //!   ```
-//! - Call list : overview of the internal transactions in a context type : 
+//! - Call list : overview of the internal transactions in a context type :
 //!   ```json
 //!   [
 //!    {
@@ -72,12 +72,12 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use sp_std::vec::Vec;
 use evm::{
 	executor::{Hook, StackExecutor, StackState},
-	ExitReason, Runtime, Opcode,
+	ExitReason, Opcode, Runtime,
 };
 use moonbeam_rpc_primitives_debug::single::TransactionTrace;
+use sp_std::vec::Vec;
 
 mod call_list;
 mod raw;

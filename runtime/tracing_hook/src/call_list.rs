@@ -17,7 +17,10 @@
 use super::*;
 
 use ethereum_types::{H160, U256};
-use evm::{ExitError, ExitSucceed, Handler, Opcode};
+use evm::{
+	gasometer::{self, TransactionCost},
+	Config, ExitError, ExitSucceed, Handler, Opcode,
+};
 use moonbeam_rpc_primitives_debug::{
 	single::{Call, CallInner},
 	CallResult, CallType, CreateResult,
@@ -78,6 +81,13 @@ impl State {
 			}
 		});
 
+		let transaction_cost = match context_type {
+			ContextType::Create => gasometer::create_transaction_cost(runtime.machine().data()),
+			ContextType::Call(_) => gasometer::call_transaction_cost(runtime.machine().data()),
+		};
+
+		let transaction_cost = real_transaction_cost(executor.config(), transaction_cost);
+
 		self.trace_address.push(0);
 
 		self.context_stack.push(Context {
@@ -86,7 +96,7 @@ impl State {
 			from: runtime.context().caller,
 			to: runtime.context().address,
 			value: runtime.context().apparent_value,
-			gas_at_start: executor.gas(),
+			gas_at_start: executor.gas() + transaction_cost,
 
 			input: runtime.machine().data().to_vec(),
 			subcall_step: false,
@@ -279,4 +289,25 @@ fn error_message(error: &ExitError) -> Vec<u8> {
 	}
 	.as_bytes()
 	.to_vec()
+}
+
+fn real_transaction_cost(config: &Config, cost: TransactionCost) -> u64 {
+	match cost {
+		TransactionCost::Call {
+			zero_data_len,
+			non_zero_data_len,
+		} => {
+			config.gas_transaction_call
+				+ zero_data_len as u64 * config.gas_transaction_zero_data
+				+ non_zero_data_len as u64 * config.gas_transaction_non_zero_data
+		}
+		TransactionCost::Create {
+			zero_data_len,
+			non_zero_data_len,
+		} => {
+			config.gas_transaction_create
+				+ zero_data_len as u64 * config.gas_transaction_zero_data
+				+ non_zero_data_len as u64 * config.gas_transaction_non_zero_data
+		}
+	}
 }

@@ -39,7 +39,7 @@ use frame_support::{
 use frame_system::{EnsureOneOf, EnsureRoot};
 use moonbeam_tracing_hook::TracingHook;
 use pallet_ethereum::Call::transact;
-use pallet_ethereum::{Transaction as EthereumTransaction, TransactionAction};
+use pallet_ethereum::Transaction as EthereumTransaction;
 use pallet_evm::{
 	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator,
 	IdentityAddressMapping, Runner,
@@ -47,7 +47,6 @@ use pallet_evm::{
 use pallet_transaction_payment::CurrencyAdapter;
 pub use parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode};
-use sha3::{Digest, Keccak256};
 use sp_api::impl_runtime_apis;
 use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
@@ -717,7 +716,7 @@ impl_runtime_apis! {
 			// Apply all extrinsics. Ethereum extrinsics are traced.
 			for ext in extrinsics.into_iter() {
 				match &ext.function {
-					Call::Ethereum(transact(transaction)) => {
+					Call::Ethereum(transact(_transaction)) => {
 						let hook = TracingHook::new_call_list();
 
 						let other_hook = pallet_evm::runner::stack::Runner::<Runtime, TracingHook>::set_hook(Some(hook));

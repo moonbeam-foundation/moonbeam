@@ -54,7 +54,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     });
     expect(response.result[0].result).to.include({
       address: "0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a",
-      gasUsed: "0x229",
+      gasUsed: "0xd131",
     });
 
     expect(response.result[0]).to.include({
