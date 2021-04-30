@@ -58,7 +58,7 @@ where
 	/// precompiles at their addresses explicitly using something like SignedExtra.
 	#[allow(dead_code)]
 	fn used_addresses() -> impl Iterator<Item = R::AccountId> {
-		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 255, 256, 511]
+		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 1024, 1025, 2048]
 			.into_iter()
 			.map(|x| hash(x).into())
 	}
