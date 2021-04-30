@@ -2,7 +2,7 @@
 
 ## Contributions
 
-Moonbeam primarily uses GitHub Pull Requests to orchestrate code changes. If you wish to propose a
+Moonbeam primarily uses GitHub Pull Requests to coordinate code changes. If you wish to propose a
 contribution, open a pull request and review the template, which explains how to document your
 proposal.
 
