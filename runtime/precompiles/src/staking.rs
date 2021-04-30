@@ -70,6 +70,9 @@ where
 		log::trace!(target: "staking-precompile", "context.caller is {:?}", context.caller);
 
 		// Parse the function selector
+		// These are the four-byte function selectors calculated from the StakingInterface.sol
+		// according to the solidity specification
+		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html#function-selector
 		let inner_call = match input[0..SELECTOR_SIZE_BYTES] {
 			// Check for accessor methods first. These return results immediately
 			[0x8e, 0x50, 0x80, 0xe7] => {

@@ -239,7 +239,7 @@ pub fn testnet_genesis(
 	// (PUSH1 0x00 PUSH1 0x00 REVERT)
 	let revert_bytecode = vec![0x60, 0x00, 0x60, 0x00, 0xFD];
 	// TODO consider whether this should be imported from moonbeam precompiles
-	let precompile_addresses = vec![1, 2, 3, 4, 5, 6, 7, 8, 255, 256, 511]
+	let precompile_addresses = vec![1, 2, 3, 4, 5, 6, 7, 8, 1024, 1025, 2048]
 		.into_iter()
 		.map(H160::from_low_u64_be);
 	GenesisConfig {
