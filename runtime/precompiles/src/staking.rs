@@ -17,7 +17,7 @@
 //! Precompile to call parachain-staking runtime methods via the EVM
 use evm::{Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use frame_support::traits::Currency;
+use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
 use pallet_evm::GasWeightMapping;
 use pallet_evm::Precompile;
@@ -77,6 +77,10 @@ where
 			}
 			[0x85, 0x45, 0xc8, 0x33] => {
 				return Self::is_candidate(&input[SELECTOR_SIZE_BYTES..]);
+			}
+			// c9f593b2
+			[0xc9, 0xf5, 0x93, 0xb2] => {
+				return Self::min_nomination();
 			}
 
 			// If not an accessor, check for dispatchables. These calls ready for dispatch below.
@@ -191,7 +195,7 @@ impl<Runtime> ParachainStakingWrapper<Runtime>
 where
 	Runtime: parachain_staking::Config + pallet_evm::Config,
 	Runtime::AccountId: From<H160>,
-	BalanceOf<Runtime>: TryFrom<U256> + Debug,
+	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Debug,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<parachain_staking::Call<Runtime>>,
@@ -222,7 +226,7 @@ where
 
 		log::trace!(target: "staking-precompile", "Result bytes are {:?}", result_bytes);
 
-		// TODO benchmark to derive cost of single storage read
+		// TODO find gas cost of single storage read
 		let gas_consumed = 0;
 
 		return Ok((ExitSucceed::Returned, result_bytes.to_vec(), gas_consumed));
@@ -252,10 +256,31 @@ where
 
 		log::trace!(target: "staking-precompile", "Result bytes are {:?}", result_bytes);
 
-		// TODO benchmark to derive cost of single storage read
+		// TODO find gas cost of single storage read
 		let gas_consumed = 0;
 
 		return Ok((ExitSucceed::Returned, result_bytes.to_vec(), gas_consumed));
+	}
+
+	fn min_nomination() -> Result<(ExitSucceed, Vec<u8>, u64), ExitError> {
+		// fetch data from pallet
+		let raw_min_nomination: u128 = <
+			<Runtime as parachain_staking::Config>::MinNomination
+				as Get<BalanceOf<Runtime>>
+			>::get().try_into()
+				.map_err(|_|
+					ExitError::Other("Amount is too large for provided balance type".into())
+				)?;
+		let min_nomination: U256 = raw_min_nomination.into();
+
+		log::trace!(target: "staking-precompile", "Result from pallet is {:?}", min_nomination);
+		// TODO find cost of Config associated type read
+		let gas_consumed = 0;
+
+		let mut buffer = [0u8; 32];
+		min_nomination.to_big_endian(&mut buffer);
+
+		return Ok((ExitSucceed::Returned, buffer.to_vec(), gas_consumed));
 	}
 
 	// The dispatchable wrappers are next. They return a substrate inner Call ready for dispatch.

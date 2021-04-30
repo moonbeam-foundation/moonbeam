@@ -67,7 +67,7 @@ where
 /// The following distribution has been decided for the precompiles
 /// 0-1023: Ethereum Mainnet Precompiles
 /// 1024-2047 Precompiles that are not in Ethereum Mainnet but are neither Moonbeam specific
-/// 2048-4095 Moonbeam specific prerecompiles
+/// 2048-4095 Moonbeam specific precompiles
 impl<R> PrecompileSet for MoonbeamPrecompiles<R>
 where
 	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
@@ -93,14 +93,13 @@ where
 			a if a == hash(6) => Some(Bn128Add::execute(input, target_gas, context)),
 			a if a == hash(7) => Some(Bn128Mul::execute(input, target_gas, context)),
 			a if a == hash(8) => Some(Bn128Pairing::execute(input, target_gas, context)),
-			// Moonbeam precompiles :
-			a if a == hash(255) => Some(Dispatch::<R>::execute(input, target_gas, context)),
-			a if a == hash(256) => Some(ParachainStakingWrapper::<R>::execute(
-				input, target_gas, context,
-			)),
 			// Non-Moonbeam specific nor Ethereum precompiles :
 			a if a == hash(1024) => Some(Dispatch::<R>::execute(input, target_gas, context)),
 			a if a == hash(1025) => Some(Sha3FIPS256::execute(input, target_gas, context)),
+			// Moonbeam specific precompiles :
+			a if a == hash(2048) => Some(ParachainStakingWrapper::<R>::execute(
+				input, target_gas, context,
+			)),
 			_ => None,
 		}
 	}

@@ -13,7 +13,7 @@ interface ParachainStaking {
     /// Check whether the specified addess is currently a collator candidate
     function is_candidate(address collator) external view returns (bool);
 
-    /// Get the minimum nomination amount, TODO: impl accessor in Rust
+    /// Get the minimum nomination amount
     function min_nomination() external view returns (uint256);
 
     // Now the dispatchables

@@ -370,7 +370,7 @@ fn join_candidates_via_precompile() {
 		.with_balances(vec![(AccountId::from(ALICE), 3_000 * GLMR)])
 		.build()
 		.execute_with(|| {
-			let staking_precompile_address = H160::from_low_u64_be(256);
+			let staking_precompile_address = H160::from_low_u64_be(2048);
 
 			// Alice uses the staking precompile to join as a candidate through the EVM
 			let gas_limit = 100000u64;
@@ -429,7 +429,7 @@ fn leave_candidates_via_precompile() {
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
 		.build()
 		.execute_with(|| {
-			let staking_precompile_address = H160::from_low_u64_be(256);
+			let staking_precompile_address = H160::from_low_u64_be(2048);
 
 			// Alice uses the staking precompile to leave_candidates
 			let gas_limit = 100000u64;
@@ -481,7 +481,7 @@ fn go_online_offline_via_precompile() {
 		.execute_with(|| {
 			// Alice is initialized as a candidate
 			assert!(ParachainStaking::is_candidate(&AccountId::from(ALICE)));
-			let staking_precompile_address = H160::from_low_u64_be(256);
+			let staking_precompile_address = H160::from_low_u64_be(2048);
 
 			// Alice uses the staking precompile to go offline
 			let gas_limit = 100000u64;
@@ -567,7 +567,7 @@ fn candidate_bond_more_less_via_precompile() {
 		.execute_with(|| {
 			// Alice is initialized as a candidate
 			assert!(ParachainStaking::is_candidate(&AccountId::from(ALICE)));
-			let staking_precompile_address = H160::from_low_u64_be(256);
+			let staking_precompile_address = H160::from_low_u64_be(2048);
 
 			// Alice uses the staking precompile to bond more
 			let gas_limit = 100000u64;
@@ -668,7 +668,7 @@ fn nominate_via_precompile() {
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
 		.build()
 		.execute_with(|| {
-			let staking_precompile_address = H160::from_low_u64_be(256);
+			let staking_precompile_address = H160::from_low_u64_be(2048);
 
 			// Bob uses the staking precompile to nominate Alice through the EVM
 			let gas_limit = 100000u64;
@@ -742,7 +742,7 @@ fn leave_nominators_via_precompile() {
 		.execute_with(|| {
 			// Charlie is initialized as a nominator
 			assert!(ParachainStaking::is_nominator(&AccountId::from(CHARLIE)));
-			let staking_precompile_address = H160::from_low_u64_be(256);
+			let staking_precompile_address = H160::from_low_u64_be(2048);
 
 			// Charlie uses staking precompile to leave nominator set
 			let gas_limit = 100000u64;
@@ -827,7 +827,7 @@ fn revoke_nomination_via_precompile() {
 		.execute_with(|| {
 			// Charlie is initialized as a nominator
 			assert!(ParachainStaking::is_nominator(&AccountId::from(CHARLIE)));
-			let staking_precompile_address = H160::from_low_u64_be(256);
+			let staking_precompile_address = H160::from_low_u64_be(2048);
 
 			// Charlie uses staking precompile to revoke nomination
 			let gas_limit = 100000u64;
@@ -896,7 +896,7 @@ fn nominator_bond_more_less_via_precompile() {
 		.execute_with(|| {
 			// Bob is initialized as a nominator
 			assert!(ParachainStaking::is_nominator(&AccountId::from(BOB)));
-			let staking_precompile_address = H160::from_low_u64_be(256);
+			let staking_precompile_address = H160::from_low_u64_be(2048);
 
 			// Alice uses the staking precompile to bond more
 			let gas_limit = 100000u64;
@@ -1009,7 +1009,7 @@ fn is_nominator_via_precompile() {
 			// Confirm Bob is initialized as a nominator directly
 			assert!(ParachainStaking::is_nominator(&AccountId::from(BOB)));
 
-			let staking_precompile_address = H160::from_low_u64_be(256);
+			let staking_precompile_address = H160::from_low_u64_be(2048);
 
 			// Construct the input data to check if Bob is a nominator
 			let mut bob_input_data = Vec::<u8>::from([0u8; 36]);
@@ -1074,7 +1074,7 @@ fn is_candidate_via_precompile() {
 			// Confirm Alice is initialized as a candidate directly
 			assert!(ParachainStaking::is_candidate(&AccountId::from(ALICE)));
 
-			let staking_precompile_address = H160::from_low_u64_be(256);
+			let staking_precompile_address = H160::from_low_u64_be(2048);
 
 			// Construct the input data to check if Alice is a candidate
 			let mut alice_input_data = Vec::<u8>::from([0u8; 36]);
@@ -1128,3 +1128,36 @@ fn is_candidate_via_precompile() {
 			);
 		})
 }
+
+// #[test]
+// fn min_nomination_via_precompile() {
+// 	ExtBuilder::default()
+// 		.build()
+// 		.execute_with(|| {
+// 			let staking_precompile_address = H160::from_low_u64_be(2048);
+
+// 			let mut get_min_nom = Vec::<u8>::from([0u8; 4]);
+// 			get_min_nom[0..4].copy_from_slice(&hex_literal::hex!("c9f593b2"));
+
+// 			let min_nomination = 5u128;
+// 			let expected_min: U256 = min_nomination.into();
+// 			let mut buffer = [0u8; 32];
+// 			expected_min.to_big_endian(&mut buffer);
+// 			let expected_result = Some(Ok((ExitSucceed::Returned, buffer.to_vec(), 0)));
+
+// 			assert_eq!(
+// 				MoonbeamPrecompiles::<Runtime>::execute(
+// 					staking_precompile_address,
+// 					&get_min_nom,
+// 					None,
+// 					&Context {
+// 						// This context copied from Sacrifice tests, it's not great.
+// 						address: Default::default(),
+// 						caller: Default::default(),
+// 						apparent_value: From::from(0),
+// 					}
+// 				),
+// 				expected_result
+// 			);
+// 		});
+// }
