@@ -29,10 +29,9 @@ use sp_std::convert::TryInto;
 use sp_std::{marker::PhantomData, vec::Vec};
 
 /// A precompile intended to burn gas without actually doing any work.
-/// Meant for testing.
+/// Originally designed for testing purposes, but left in place since it's harmless.
 ///
 /// Expects call data to include a single u256 representing the amount of gas to burn.
-/// TODO: use feature flags / somehow prevent this from deployment onto live networks (or not?)
 pub struct Sacrifice;
 
 impl Precompile for Sacrifice {

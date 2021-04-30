@@ -69,9 +69,7 @@ where
 			// Non-Moonbeam specific nor Ethereum precompiles :
 			a if a == hash(1024) => Some(Dispatch::<R>::execute(input, target_gas, context)),
 			a if a == hash(1025) => Some(Sha3FIPS256::execute(input, target_gas, context)),
-
-			// Moonbeam testing-only precompile(s):
-			a if a == hash(4095) => Some(Sacrifice::execute(input, target_gas, context)),
+			a if a == hash(1026) => Some(Sacrifice::execute(input, target_gas, context)),
 
 			_ => None,
 		}
