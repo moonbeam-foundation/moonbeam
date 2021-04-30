@@ -1129,35 +1129,33 @@ fn is_candidate_via_precompile() {
 		})
 }
 
-// #[test]
-// fn min_nomination_via_precompile() {
-// 	ExtBuilder::default()
-// 		.build()
-// 		.execute_with(|| {
-// 			let staking_precompile_address = H160::from_low_u64_be(2048);
+#[test]
+fn min_nomination_via_precompile() {
+	ExtBuilder::default().build().execute_with(|| {
+		let staking_precompile_address = H160::from_low_u64_be(2048);
 
-// 			let mut get_min_nom = Vec::<u8>::from([0u8; 4]);
-// 			get_min_nom[0..4].copy_from_slice(&hex_literal::hex!("c9f593b2"));
+		let mut get_min_nom = Vec::<u8>::from([0u8; 4]);
+		get_min_nom[0..4].copy_from_slice(&hex_literal::hex!("c9f593b2"));
 
-// 			let min_nomination = 5u128;
-// 			let expected_min: U256 = min_nomination.into();
-// 			let mut buffer = [0u8; 32];
-// 			expected_min.to_big_endian(&mut buffer);
-// 			let expected_result = Some(Ok((ExitSucceed::Returned, buffer.to_vec(), 0)));
+		let min_nomination = 5u128 * GLMR;
+		let expected_min: U256 = min_nomination.into();
+		let mut buffer = [0u8; 32];
+		expected_min.to_big_endian(&mut buffer);
+		let expected_result = Some(Ok((ExitSucceed::Returned, buffer.to_vec(), 0)));
 
-// 			assert_eq!(
-// 				MoonbeamPrecompiles::<Runtime>::execute(
-// 					staking_precompile_address,
-// 					&get_min_nom,
-// 					None,
-// 					&Context {
-// 						// This context copied from Sacrifice tests, it's not great.
-// 						address: Default::default(),
-// 						caller: Default::default(),
-// 						apparent_value: From::from(0),
-// 					}
-// 				),
-// 				expected_result
-// 			);
-// 		});
-// }
+		assert_eq!(
+			MoonbeamPrecompiles::<Runtime>::execute(
+				staking_precompile_address,
+				&get_min_nom,
+				None,
+				&Context {
+					// This context copied from Sacrifice tests, it's not great.
+					address: Default::default(),
+					caller: Default::default(),
+					apparent_value: From::from(0),
+				}
+			),
+			expected_result
+		);
+	});
+}
