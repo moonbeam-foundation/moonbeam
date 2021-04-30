@@ -274,15 +274,29 @@ export const contractSources: { [key: string]: string } = {
             return number;
         }
     }`,
-  CheckBlockGasLimit: `
+  CheckBlockVariables: `
     pragma solidity >=0.8.0;
-    contract CheckBlockGasLimit {
-        uint public gaslimit;
-        uint public chainid;
+    contract CheckBlockVariables {
+        uint public initialgaslimit;
+        uint public initialchainid;
+        uint public initialnumber;
         
         constructor() {
-            gaslimit = block.gaslimit;
-            chainid = block.chainid;
+            initialgaslimit = block.gaslimit;
+            initialchainid = block.chainid;
+            initialnumber = block.number;
+        }
+
+        function getGasLimit() public view returns (uint) {
+            return block.gaslimit;
+        }
+
+        function getChainId() public view returns (uint) {
+            return block.chainid;
+        }
+
+        function getNumber() public view returns (uint) {
+            return block.number;
         }
     }`,
 };
