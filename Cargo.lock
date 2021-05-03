@@ -19,7 +19,6 @@ dependencies = [
  "blake2-rfc",
  "hex",
  "log",
- "pallet-evm",
  "parity-scale-codec",
  "serde",
  "sha3 0.8.2",
