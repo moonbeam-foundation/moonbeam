@@ -15,6 +15,7 @@ serde = { version = "1.0.101", optional = true }
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false, optional = true }
+substrate-fixed = { default-features = false, git = "https://github.com/encointer/substrate-fixed"}
 
 [dev-dependencies]
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }

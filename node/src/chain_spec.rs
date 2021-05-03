@@ -21,6 +21,7 @@
 
 use bip39::{Language, Mnemonic, Seed};
 use cumulus_primitives_core::ParaId;
+use evm::GenesisAccount;
 use log::debug;
 use moonbeam_runtime::{
 	AccountId, Balance, BalancesConfig, CouncilCollectiveConfig, DemocracyConfig, EVMConfig,
@@ -39,7 +40,7 @@ use sp_runtime::{
 	Perbill,
 };
 use std::convert::TryInto;
-use std::{collections::BTreeMap, str::FromStr};
+use std::str::FromStr;
 use tiny_hderive::bip32::ExtendedPrivKey;
 
 /// Helper function to derive `num_accounts` child pairs from mnemonics
@@ -210,6 +211,11 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 			ideal: 200_000 * GLMR,
 			max: 500_000 * GLMR,
 		},
+		annual: Range {
+			min: Perbill::from_percent(4),
+			ideal: Perbill::from_percent(5),
+			max: Perbill::from_percent(5),
+		},
 		// 8766 rounds (hours) in a year
 		round: Range {
 			min: Perbill::from_parts(Perbill::from_percent(4).deconstruct() / 8766),
@@ -227,6 +233,15 @@ pub fn testnet_genesis(
 	para_id: ParaId,
 	chain_id: u64,
 ) -> GenesisConfig {
+	// This is supposed the be the simplest bytecode to revert without returning any data.
+	// We will pre-deploy it under all of our precompiles to ensure they can be called from
+	// within contracts. TODO We should have a test to ensure this is the right bytecode.
+	// (PUSH1 0x00 PUSH1 0x00 REVERT)
+	let revert_bytecode = vec![0x60, 0x00, 0x60, 0x00, 0xFD];
+	// TODO consider whether this should be imported from moonbeam precompiles
+	let precompile_addresses = vec![1, 2, 3, 4, 5, 6, 7, 8, 1024, 1025, 2048]
+		.into_iter()
+		.map(H160::from_low_u64_be);
 	GenesisConfig {
 		frame_system: SystemConfig {
 			code: WASM_BINARY
@@ -247,7 +262,26 @@ pub fn testnet_genesis(
 		},
 		pallet_ethereum_chain_id: EthereumChainIdConfig { chain_id },
 		pallet_evm: EVMConfig {
-			accounts: BTreeMap::new(),
+			// We need _some_ code inserted at the precompile address so that
+			// the evm will actually call the address.
+			// TODO Cleanly fetch the addresses from
+			// the runtime/moonbeam precompiles and systematically fill them with code
+			// that will revert if it is called by accident (it shouldn't be because
+			// it is shadowed by the precompile).
+			// This one is for the parachain staking precompile wrappers
+			accounts: precompile_addresses
+				.map(|a| {
+					(
+						a,
+						GenesisAccount {
+							nonce: Default::default(),
+							balance: Default::default(),
+							storage: Default::default(),
+							code: revert_bytecode.clone(),
+						},
+					)
+				})
+				.collect(),
 		},
 		pallet_ethereum: EthereumConfig {},
 		pallet_democracy: DemocracyConfig {},

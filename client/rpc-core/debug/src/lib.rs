@@ -13,9 +13,9 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-
 use ethereum_types::H256;
-use jsonrpc_core::Result;
+use futures::{compat::Compat, future::BoxFuture};
+use jsonrpc_core::Result as RpcResult;
 use jsonrpc_derive::rpc;
 use serde::Deserialize;
 
@@ -44,5 +44,5 @@ pub trait Debug {
 		&self,
 		transaction_hash: H256,
 		params: Option<TraceParams>,
-	) -> Result<single::TransactionTrace>;
+	) -> Compat<BoxFuture<'static, RpcResult<single::TransactionTrace>>>;
 }
