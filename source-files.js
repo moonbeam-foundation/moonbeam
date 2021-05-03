@@ -15,5 +15,5 @@ sourcesIndex["moonbeam_runtime"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_author_filter"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_ethereum_chain_id"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["parachain_staking"] = {"name":"","files":["inflation.rs","lib.rs","set.rs"]};
-sourcesIndex["precompiles"] = {"name":"","files":["lib.rs"]};
+sourcesIndex["precompiles"] = {"name":"","files":["lib.rs","staking.rs"]};
 createSourceSidebar();
