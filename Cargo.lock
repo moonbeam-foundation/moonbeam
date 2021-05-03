@@ -4605,6 +4605,7 @@ dependencies = [
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
  "cumulus-test-relay-sproof-builder",
+ "evm",
  "fp-rpc",
  "frame-executive",
  "frame-support",
@@ -7141,6 +7142,8 @@ version = "0.6.0"
 dependencies = [
  "evm",
  "frame-support",
+ "frame-system",
+ "hex",
  "log",
  "pallet-evm",
  "pallet-evm-precompile-bn128",
@@ -7148,10 +7151,12 @@ dependencies = [
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
+ "parachain-staking",
  "parity-scale-codec",
  "rand 0.5.6",
  "rustc-hex",
  "sp-core",
+ "sp-io",
  "sp-std",
 ]
 

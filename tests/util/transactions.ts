@@ -74,7 +74,7 @@ export async function createContract(
   contractName: string,
   options: TransactionOptions = GENESIS_TRANSACTION,
   contractArguments: any[] = []
-): Promise<{ rawTx: string; contract: Contract }> {
+): Promise<{ rawTx: string; contract: Contract; contractAddress: string }> {
   const contractCompiled = await getCompiled(contractName);
   const from = options.from !== undefined ? options.from : GENESIS_ACCOUNT;
   const nonce = options.nonce || (await web3.eth.getTransactionCount(from));
@@ -98,6 +98,7 @@ export async function createContract(
   return {
     rawTx,
     contract,
+    contractAddress,
   };
 }
 
