@@ -80,6 +80,7 @@ impl frame_system::Config for Test {
 	type BlockWeights = ();
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
+	type OnSetCode = ();
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 1;
