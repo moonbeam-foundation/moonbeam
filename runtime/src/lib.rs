@@ -526,7 +526,7 @@ construct_runtime! {
 		TechComitteeCollective:
 			pallet_collective::<Instance2>::{Pallet, Call, Event<T>, Origin<T>, Config<T>},
 		// The order matters here. Inherents will be included in the order specified here.
-		// Concretely we need the author inherent to come after the parachain_upgrade inherent.
+		// Concretely we need the author inherent to come after the parachain_system inherent.
 		AuthorInherent: author_inherent::{Pallet, Call, Storage, Inherent},
 		AuthorFilter: pallet_author_filter::{Pallet, Call, Storage, Event<T>,}
 	}
