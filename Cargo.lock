@@ -4797,6 +4797,7 @@ name = "moonbeam-runtime"
 version = "0.6.0"
 dependencies = [
  "account",
+ "author-inherent",
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
@@ -5193,6 +5194,7 @@ dependencies = [
  "parity-scale-codec",
  "sp-core",
  "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]

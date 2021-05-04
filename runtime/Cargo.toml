@@ -18,7 +18,7 @@ precompiles = { path = "precompiles/", default-features = false }
 account = { path = "account/", default-features = false }
 pallet-ethereum-chain-id = { path = "../pallets/ethereum-chain-id", default-features = false }
 parachain-staking = { path = "../pallets/parachain-staking", default-features = false }
-# author-inherent = { path = "../pallets/author-inherent", default-features = false }
+author-inherent = { path = "../pallets/author-inherent", default-features = false }
 pallet-author-filter = { path = "../pallets/author-filter", default-features = false }
 
 # Substrate dependencies
@@ -109,7 +109,7 @@ std = [
 	"pallet-democracy/std",
 	"pallet-scheduler/std",
 	"pallet-collective/std",
-	
+	"author-inherent/std",
 	"moonbeam-extensions-evm/std",
 	"parachain-info/std",
 	"cumulus-pallet-parachain-system/std",
@@ -117,7 +117,7 @@ std = [
 	"account/std",
 	"parachain-staking/std",
 	"pallet-author-filter/std",
-] # "author-inherent/std",
+]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
 runtime-wasm = [] # "cumulus-upward-message/runtime-wasm",	
