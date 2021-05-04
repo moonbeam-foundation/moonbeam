@@ -7464,7 +7464,6 @@ dependencies = [
  "pallet-evm-precompile-simple",
  "parachain-staking",
  "parity-scale-codec",
- "rand 0.5.6",
  "rustc-hex",
  "sp-core",
  "sp-io",
