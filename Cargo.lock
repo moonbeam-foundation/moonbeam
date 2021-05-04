@@ -1879,50 +1879,20 @@ checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
 
 [[package]]
 name = "evm"
-version = "0.25.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b4bd1fb06a4962a243c8be285d8a9b2493ffa79acb32633ad07a0bc523b1acd"
-dependencies = [
- "ethereum 0.7.1",
- "evm-core 0.25.0",
- "evm-gasometer 0.25.0",
- "evm-runtime 0.25.0",
- "log",
- "parity-scale-codec",
- "primitive-types",
- "rlp",
- "serde",
- "sha3 0.8.2",
-]
-
-[[package]]
-name = "evm"
 version = "0.26.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1202e8dfa45bea73ee003c4be2f3549d60cb2e2ac5b0c1db563bd4653213efde"
 dependencies = [
  "ethereum 0.7.1",
- "evm-core 0.26.0",
- "evm-gasometer 0.26.0",
- "evm-runtime 0.26.0",
+ "evm-core",
+ "evm-gasometer",
+ "evm-runtime",
  "log",
  "parity-scale-codec",
  "primitive-types",
  "rlp",
  "serde",
  "sha3 0.8.2",
-]
-
-[[package]]
-name = "evm-core"
-version = "0.25.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b4eea3882c798813a6f92e8855ec1fc3f5ababd8b274cb81d4bedee701b478e"
-dependencies = [
- "funty",
- "parity-scale-codec",
- "primitive-types",
- "serde",
 ]
 
 [[package]]
@@ -1939,35 +1909,13 @@ dependencies = [
 
 [[package]]
 name = "evm-gasometer"
-version = "0.25.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0a8f04dcc8b0296652eabfa443a08ebed6071a1178e0f42a7f7b63a612bddf0b"
-dependencies = [
- "evm-core 0.25.0",
- "evm-runtime 0.25.0",
- "primitive-types",
-]
-
-[[package]]
-name = "evm-gasometer"
 version = "0.26.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "463412356790c5e34e8a13cd23ba06284d9afa999e82e8c64497aed2ee625375"
 dependencies = [
- "evm-core 0.26.0",
- "evm-runtime 0.26.0",
+ "evm-core",
+ "evm-runtime",
  "primitive-types",
-]
-
-[[package]]
-name = "evm-runtime"
-version = "0.25.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "54c302f29ca8bba82a382aa52d427869964179e4f24eae57bde70958ce9b7607"
-dependencies = [
- "evm-core 0.25.0",
- "primitive-types",
- "sha3 0.8.2",
 ]
 
 [[package]]
@@ -1976,7 +1924,7 @@ version = "0.26.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c08f510e5535cee2352adb9b93ff24dc80f8ca1bad445a9aa1292ce144b45a1"
 dependencies = [
- "evm-core 0.26.0",
+ "evm-core",
  "primitive-types",
  "sha3 0.8.2",
 ]
@@ -2046,7 +1994,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "1.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#b32e61460e1ecc555df24566fdb961f6e3d05b7c"
 dependencies = [
  "async-trait",
  "derive_more",
@@ -2071,7 +2019,7 @@ dependencies = [
 [[package]]
 name = "fc-db"
 version = "1.0.0"
-source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#b32e61460e1ecc555df24566fdb961f6e3d05b7c"
 dependencies = [
  "kvdb",
  "kvdb-rocksdb",
@@ -2085,7 +2033,7 @@ dependencies = [
 [[package]]
 name = "fc-mapping-sync"
 version = "1.1.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#b32e61460e1ecc555df24566fdb961f6e3d05b7c"
 dependencies = [
  "fc-consensus",
  "fc-db",
@@ -2103,11 +2051,11 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#b32e61460e1ecc555df24566fdb961f6e3d05b7c"
 dependencies = [
  "ethereum 0.7.1",
  "ethereum-types",
- "evm 0.25.0",
+ "evm",
  "fc-consensus",
  "fc-db",
  "fc-rpc-core",
@@ -2144,7 +2092,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "1.1.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#b32e61460e1ecc555df24566fdb961f6e3d05b7c"
 dependencies = [
  "ethereum-types",
  "jsonrpc-core 15.1.0",
@@ -2248,7 +2196,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "1.0.0"
-source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#b32e61460e1ecc555df24566fdb961f6e3d05b7c"
 dependencies = [
  "ethereum 0.7.1",
  "parity-scale-codec",
@@ -2262,9 +2210,9 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "1.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#b32e61460e1ecc555df24566fdb961f6e3d05b7c"
 dependencies = [
- "evm 0.25.0",
+ "evm",
  "impl-trait-for-tuples 0.1.3",
  "parity-scale-codec",
  "serde",
@@ -2275,7 +2223,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "1.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#b32e61460e1ecc555df24566fdb961f6e3d05b7c"
 dependencies = [
  "ethereum 0.7.1",
  "ethereum-types",
@@ -2291,7 +2239,7 @@ dependencies = [
 [[package]]
 name = "fp-storage"
 version = "1.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#b32e61460e1ecc555df24566fdb961f6e3d05b7c"
 dependencies = [
  "ethereum 0.7.1",
  "ethereum-types",
@@ -4679,8 +4627,8 @@ name = "moonbeam-extensions-evm"
 version = "0.1.0"
 dependencies = [
  "ethereum-types",
- "evm 0.26.0",
- "evm-core 0.26.0",
+ "evm",
+ "evm-core",
  "fp-evm",
  "moonbeam-rpc-primitives-debug",
  "pallet-evm",
@@ -4848,7 +4796,7 @@ dependencies = [
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
  "cumulus-test-relay-sproof-builder",
- "evm 0.26.0",
+ "evm",
  "fp-rpc",
  "frame-executive",
  "frame-support",
@@ -5404,11 +5352,11 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "1.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#b32e61460e1ecc555df24566fdb961f6e3d05b7c"
 dependencies = [
  "ethereum 0.7.1",
  "ethereum-types",
- "evm 0.25.0",
+ "evm",
  "fp-consensus",
  "fp-evm",
  "fp-rpc",
@@ -5442,11 +5390,11 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "3.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#b32e61460e1ecc555df24566fdb961f6e3d05b7c"
 dependencies = [
- "evm 0.25.0",
- "evm-gasometer 0.25.0",
- "evm-runtime 0.25.0",
+ "evm",
+ "evm-gasometer",
+ "evm-runtime",
  "fp-evm",
  "frame-support",
  "frame-system",
@@ -5467,9 +5415,9 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-bn128"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#b32e61460e1ecc555df24566fdb961f6e3d05b7c"
 dependencies = [
- "evm 0.25.0",
+ "evm",
  "fp-evm",
  "sp-core",
  "sp-io",
@@ -5479,9 +5427,9 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "1.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#b32e61460e1ecc555df24566fdb961f6e3d05b7c"
 dependencies = [
- "evm 0.25.0",
+ "evm",
  "fp-evm",
  "frame-support",
  "pallet-evm",
@@ -5493,9 +5441,9 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "1.1.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#b32e61460e1ecc555df24566fdb961f6e3d05b7c"
 dependencies = [
- "evm 0.25.0",
+ "evm",
  "fp-evm",
  "num",
  "sp-core",
@@ -5505,9 +5453,9 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "1.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#b32e61460e1ecc555df24566fdb961f6e3d05b7c"
 dependencies = [
- "evm 0.25.0",
+ "evm",
  "fp-evm",
  "sp-core",
  "sp-io",
@@ -5517,9 +5465,9 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "1.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#b32e61460e1ecc555df24566fdb961f6e3d05b7c"
 dependencies = [
- "evm 0.25.0",
+ "evm",
  "fp-evm",
  "ripemd160",
  "sp-core",
@@ -7481,7 +7429,7 @@ checksum = "ac74c624d6b2d21f425f752262f42188365d7b8ff1aff74c82e45136510a4857"
 name = "precompiles"
 version = "0.6.0"
 dependencies = [
- "evm 0.26.0",
+ "evm",
  "frame-support",
  "frame-system",
  "hex",
