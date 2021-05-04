@@ -15,9 +15,9 @@ ethereum-types = "0.11.0"
 ethereum = { git = "https://github.com/notlesh/ethereum", branch = "notlesh-moonbeam-v0.6", features = ["with-codec"] }
 
 # Async and logs
-tokio = { version = "0.2.21", features = ["sync", "time"]}
+tokio = { version = "0.2.13", features = ["sync", "time"]}
 futures = { version = "0.3", features = ["compat"] }
-tracing = "0.1"
+tracing = "0.1.25"
 
 # Primitives
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }

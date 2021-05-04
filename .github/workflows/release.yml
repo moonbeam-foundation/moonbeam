@@ -110,6 +110,8 @@ jobs:
     runs-on: self-hosted
     env:
       CARGO_SCCACHE_VERSION: 0.2.14-alpha.0-parity
+      # MOONBEAM_LOG: info
+      # DEBUG: "test*"
     outputs:
       RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
     steps:
@@ -176,7 +178,7 @@ jobs:
           npm install
           cd ../tests
           npm install
-          npm run test -- -j $(($(nproc) / 2));
+          npm run test -- -j $(($(nproc) / 2 - 2));
       - name: Save parachain binary
         run: |
           mkdir -p build

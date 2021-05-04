@@ -16,14 +16,21 @@ frame-support = { git = "https://github.com/paritytech/substrate", branch = "roc
 evm = { git = "https://github.com/PureStake/evm", branch = "jeremy-evm-hook", default-features = false, features = ["with-codec"] }
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
+frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "jeremy-runner-evm-hook" }
 pallet-evm-precompile-bn128 = { git = "https://github.com/purestake/frontier", default-features = false, branch = "jeremy-runner-evm-hook" }
 pallet-evm-precompile-dispatch = { git = "https://github.com/purestake/frontier", default-features = false, branch = "jeremy-runner-evm-hook" }
 pallet-evm-precompile-modexp = { git = "https://github.com/purestake/frontier", default-features = false, branch = "jeremy-runner-evm-hook" }
 pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", default-features = false, branch = "jeremy-runner-evm-hook" }
+pallet-evm-precompile-sha3fips = { git = "https://github.com/purestake/frontier", default-features = false, branch = "jeremy-runner-evm-hook" }
+
+[dev-dependencies]
+hex = "0.4"
 
 [features]
-default = [ "std" ]
+default = ["std"]
 std = [
 	"codec/std",
 	"frame-support/std",
@@ -35,4 +42,7 @@ std = [
 	"pallet-evm-precompile-dispatch/std",
 	"pallet-evm-precompile-modexp/std",
 	"pallet-evm-precompile-simple/std",
+	"parachain-staking/std",
+	"frame-system/std",
+	"pallet-evm-precompile-sha3fips/std",
 ]
