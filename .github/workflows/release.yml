@@ -111,7 +111,7 @@ jobs:
     env:
       CARGO_SCCACHE_VERSION: 0.2.14-alpha.0-parity
       # MOONBEAM_LOG: info
-      DEBUG: "test*"
+      # DEBUG: "test*"
     outputs:
       RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
     steps:
