@@ -495,12 +495,13 @@ impl parachain_staking::Config for Runtime {
 }
 
 impl author_inherent::Config for Runtime {
+	type AuthorId = AccountId;
 	type EventHandler = ParachainStaking;
 	// We cannot run the full filtered author checking logic in the preliminary check because it
 	// depends on entropy from the relay chain. Instead we just make sure that the author is staked
-	// in the preliminary check. The final check including the filtering happens during execution.
+	// in the preliminary check. The final check including filtering happens during block execution.
 	type PreliminaryCanAuthor = ParachainStaking;
-	type FinalCanAuthor = AuthorFilter;
+	type FullCanAuthor = AuthorFilter;
 }
 
 impl pallet_author_filter::Config for Runtime {

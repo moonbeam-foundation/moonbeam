@@ -12,7 +12,7 @@ frame-system = { git = "https://github.com/paritytech/substrate", default-featur
 sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-author-inherent = { path = "../author-inherent", default-features = false }
+author-inherent = { package = 'pallet-author-inherent', git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
 parachain-staking = { path = "../parachain-staking", default-features = false }
 cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus" }
 
