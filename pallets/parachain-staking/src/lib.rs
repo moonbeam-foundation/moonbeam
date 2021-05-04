@@ -687,7 +687,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Set the annual inflation rate to derive per-round inflation
-		#[pallet::weight(<T as Config>::WeightInfo::set_inflation())]
+		#[pallet::weight(0)]
 		pub fn set_inflation(
 			origin: OriginFor<T>,
 			schedule: Range<Perbill>,

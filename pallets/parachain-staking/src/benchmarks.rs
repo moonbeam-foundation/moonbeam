@@ -25,6 +25,7 @@ use frame_system::RawOrigin;
 use sp_runtime::Perbill;
 
 benchmarks! {
+	// TODO: remove this bench, sudo methods do not track weight 
 	set_inflation {
 		let inflation_range: Range<Perbill> = Range {
 			min: Perbill::from_perthousand(1),
