@@ -21,7 +21,7 @@ use std::sync::Arc;
 
 use crate::cli::EthApi as EthApiCmd;
 use ethereum::EthereumStorageSchema;
-use fc_rpc::{SchemaV1Override, StorageOverride};
+use fc_rpc::{OverrideHandle, RuntimeApiStorageOverride, SchemaV1Override, StorageOverride};
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use jsonrpc_pubsub::manager::SubscriptionManager;
 use moonbeam_rpc_debug::DebugRequester;
@@ -141,31 +141,38 @@ where
 	// TODO: are we supporting signing?
 	let signers = Vec::new();
 
-	let mut overrides = BTreeMap::new();
-	overrides.insert(
+	let mut overrides_map = BTreeMap::new();
+	overrides_map.insert(
 		EthereumStorageSchema::V1,
 		Box::new(SchemaV1Override::new(client.clone()))
 			as Box<dyn StorageOverride<_> + Send + Sync>,
 	);
 
+	let overrides = Arc::new(OverrideHandle {
+		schemas: overrides_map,
+		fallback: Box::new(RuntimeApiStorageOverride::new(client.clone())),
+	});
+
 	io.extend_with(EthApiServer::to_delegate(EthApi::new(
 		client.clone(),
 		pool.clone(),
-		graph,
 		moonbeam_runtime::TransactionConverter,
 		network.clone(),
 		pending_transactions,
 		signers,
-		overrides,
+		overrides.clone(),
 		frontier_backend.clone(),
 		is_authority,
+		5, //TODO max past logs
 	)));
 
 	if let Some(filter_pool) = filter_pool {
 		io.extend_with(EthFilterApiServer::to_delegate(EthFilterApi::new(
 			client.clone(),
 			filter_pool.clone(),
-			500 as usize, // max stored filters
+			500 as usize,      // max stored filters
+			overrides.clone(),
+			5,                 //TODO max past logs
 		)));
 	}
 
@@ -182,6 +189,7 @@ where
 			HexEncodedIdProvider::default(),
 			Arc::new(subscription_task_executor),
 		),
+		overrides,
 	)));
 	if ethapi_cmd.contains(&EthApiCmd::Txpool) {
 		io.extend_with(TxPoolServer::to_delegate(TxPool::new(
