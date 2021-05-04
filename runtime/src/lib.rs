@@ -486,14 +486,17 @@ impl parachain_staking::Config for Runtime {
 	type MinNomination = MinNominatorStk;
 	type MinNominatorStk = MinNominatorStk;
 }
-impl author_inherent::Config for Runtime {
-	type EventHandler = ParachainStaking;
-	// We cannot run the full filtered author checking logic in the preliminary check because it
-	// depends on entropy from the relay chain. Instead we just make sure that the author is staked
-	// in the preliminary check. The final check including the filtering happens during execution.
-	type PreliminaryCanAuthor = ParachainStaking;
-	type FinalCanAuthor = AuthorFilter;
-}
+
+// Try to disable this pallet to make the runtime compile.
+
+// impl author_inherent::Config for Runtime {
+// 	type EventHandler = ParachainStaking;
+// 	// We cannot run the full filtered author checking logic in the preliminary check because it
+// 	// depends on entropy from the relay chain. Instead we just make sure that the author is staked
+// 	// in the preliminary check. The final check including the filtering happens during execution.
+// 	type PreliminaryCanAuthor = ParachainStaking;
+// 	type FinalCanAuthor = AuthorFilter;
+// }
 
 impl pallet_author_filter::Config for Runtime {
 	type Event = Event;
@@ -528,7 +531,7 @@ construct_runtime! {
 		// The order matters here. Inherents will be included in the order specified here.
 		// Concretely we need the author inherent to come after the parachain_upgrade inherent.
 		AuthorInherent: author_inherent::{Pallet, Call, Storage, Inherent},
-		AuthorFilter: pallet_author_filter::{Pallet, Call, Storage, Event<T>,}
+		// AuthorFilter: pallet_author_filter::{Pallet, Call, Storage, Event<T>,}
 	}
 }
 
