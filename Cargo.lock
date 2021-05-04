@@ -115,12 +115,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "always-assert"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fbf688625d06217d5b1bb0ea9d9c44a1635fd0ee3534466388d18203174f4d11"
-
-[[package]]
 name = "ansi_term"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1181,7 +1175,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-cli"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=rococo-v1#9d89ed653217203810822483ae86fd8867f59620"
+source = "git+https://github.com/purestake/cumulus?branch=nimbus#9fcbd0177f250f88aac3f22cd282060ec5354bcb"
 dependencies = [
  "sc-cli",
  "sc-service",
@@ -1191,7 +1185,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-collator"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=rococo-v1#9d89ed653217203810822483ae86fd8867f59620"
+source = "git+https://github.com/purestake/cumulus?branch=nimbus#9fcbd0177f250f88aac3f22cd282060ec5354bcb"
 dependencies = [
  "cumulus-client-consensus-common",
  "cumulus-client-network",
@@ -1215,7 +1209,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-common"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=rococo-v1#9d89ed653217203810822483ae86fd8867f59620"
+source = "git+https://github.com/purestake/cumulus?branch=nimbus#9fcbd0177f250f88aac3f22cd282060ec5354bcb"
 dependencies = [
  "async-trait",
  "dyn-clone",
@@ -1240,7 +1234,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-relay-chain"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=rococo-v1#9d89ed653217203810822483ae86fd8867f59620"
+source = "git+https://github.com/purestake/cumulus?branch=nimbus#9fcbd0177f250f88aac3f22cd282060ec5354bcb"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -1265,7 +1259,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-network"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=rococo-v1#9d89ed653217203810822483ae86fd8867f59620"
+source = "git+https://github.com/purestake/cumulus?branch=nimbus#9fcbd0177f250f88aac3f22cd282060ec5354bcb"
 dependencies = [
  "derive_more",
  "futures 0.3.13",
@@ -1289,7 +1283,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-service"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=rococo-v1#9d89ed653217203810822483ae86fd8867f59620"
+source = "git+https://github.com/purestake/cumulus?branch=nimbus#9fcbd0177f250f88aac3f22cd282060ec5354bcb"
 dependencies = [
  "cumulus-client-collator",
  "cumulus-client-consensus-common",
@@ -1314,7 +1308,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=rococo-v1#9d89ed653217203810822483ae86fd8867f59620"
+source = "git+https://github.com/purestake/cumulus?branch=nimbus#9fcbd0177f250f88aac3f22cd282060ec5354bcb"
 dependencies = [
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
@@ -1338,13 +1332,15 @@ dependencies = [
  "sp-trie",
  "sp-version",
  "trie-db",
+ "xcm",
 ]
 
 [[package]]
 name = "cumulus-primitives-core"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=rococo-v1#9d89ed653217203810822483ae86fd8867f59620"
+source = "git+https://github.com/purestake/cumulus?branch=nimbus#9fcbd0177f250f88aac3f22cd282060ec5354bcb"
 dependencies = [
+ "frame-support",
  "impl-trait-for-tuples 0.2.1",
  "parity-scale-codec",
  "polkadot-core-primitives",
@@ -1353,12 +1349,13 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "sp-trie",
+ "xcm",
 ]
 
 [[package]]
 name = "cumulus-primitives-parachain-inherent"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=rococo-v1#9d89ed653217203810822483ae86fd8867f59620"
+source = "git+https://github.com/purestake/cumulus?branch=nimbus#9fcbd0177f250f88aac3f22cd282060ec5354bcb"
 dependencies = [
  "cumulus-primitives-core",
  "parity-scale-codec",
@@ -1376,7 +1373,7 @@ dependencies = [
 [[package]]
 name = "cumulus-test-relay-sproof-builder"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=rococo-v1#9d89ed653217203810822483ae86fd8867f59620"
+source = "git+https://github.com/purestake/cumulus?branch=nimbus#9fcbd0177f250f88aac3f22cd282060ec5354bcb"
 dependencies = [
  "cumulus-primitives-core",
  "parity-scale-codec",
@@ -1752,20 +1749,50 @@ checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
 
 [[package]]
 name = "evm"
-version = "0.26.0"
+version = "0.25.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1202e8dfa45bea73ee003c4be2f3549d60cb2e2ac5b0c1db563bd4653213efde"
+checksum = "1b4bd1fb06a4962a243c8be285d8a9b2493ffa79acb32633ad07a0bc523b1acd"
 dependencies = [
  "ethereum 0.7.1",
- "evm-core",
- "evm-gasometer",
- "evm-runtime",
+ "evm-core 0.25.0",
+ "evm-gasometer 0.25.0",
+ "evm-runtime 0.25.0",
  "log",
  "parity-scale-codec",
  "primitive-types",
  "rlp",
  "serde",
  "sha3 0.8.2",
+]
+
+[[package]]
+name = "evm"
+version = "0.26.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1202e8dfa45bea73ee003c4be2f3549d60cb2e2ac5b0c1db563bd4653213efde"
+dependencies = [
+ "ethereum 0.7.1",
+ "evm-core 0.26.0",
+ "evm-gasometer 0.26.0",
+ "evm-runtime 0.26.0",
+ "log",
+ "parity-scale-codec",
+ "primitive-types",
+ "rlp",
+ "serde",
+ "sha3 0.8.2",
+]
+
+[[package]]
+name = "evm-core"
+version = "0.25.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6b4eea3882c798813a6f92e8855ec1fc3f5ababd8b274cb81d4bedee701b478e"
+dependencies = [
+ "funty",
+ "parity-scale-codec",
+ "primitive-types",
+ "serde",
 ]
 
 [[package]]
@@ -1782,13 +1809,35 @@ dependencies = [
 
 [[package]]
 name = "evm-gasometer"
+version = "0.25.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0a8f04dcc8b0296652eabfa443a08ebed6071a1178e0f42a7f7b63a612bddf0b"
+dependencies = [
+ "evm-core 0.25.0",
+ "evm-runtime 0.25.0",
+ "primitive-types",
+]
+
+[[package]]
+name = "evm-gasometer"
 version = "0.26.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "463412356790c5e34e8a13cd23ba06284d9afa999e82e8c64497aed2ee625375"
 dependencies = [
- "evm-core",
- "evm-runtime",
+ "evm-core 0.26.0",
+ "evm-runtime 0.26.0",
  "primitive-types",
+]
+
+[[package]]
+name = "evm-runtime"
+version = "0.25.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "54c302f29ca8bba82a382aa52d427869964179e4f24eae57bde70958ce9b7607"
+dependencies = [
+ "evm-core 0.25.0",
+ "primitive-types",
+ "sha3 0.8.2",
 ]
 
 [[package]]
@@ -1797,7 +1846,7 @@ version = "0.26.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c08f510e5535cee2352adb9b93ff24dc80f8ca1bad445a9aa1292ce144b45a1"
 dependencies = [
- "evm-core",
+ "evm-core 0.26.0",
  "primitive-types",
  "sha3 0.8.2",
 ]
@@ -1866,9 +1915,10 @@ dependencies = [
 
 [[package]]
 name = "fc-consensus"
-version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
+version = "1.0.1-dev"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
 dependencies = [
+ "async-trait",
  "derive_more",
  "fc-db",
  "fp-consensus",
@@ -1890,8 +1940,8 @@ dependencies = [
 
 [[package]]
 name = "fc-db"
-version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
+version = "1.0.0"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
 dependencies = [
  "kvdb",
  "kvdb-rocksdb",
@@ -1904,8 +1954,8 @@ dependencies = [
 
 [[package]]
 name = "fc-mapping-sync"
-version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
+version = "1.1.0-dev"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
 dependencies = [
  "fc-consensus",
  "fc-db",
@@ -1922,12 +1972,12 @@ dependencies = [
 
 [[package]]
 name = "fc-rpc"
-version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
+version = "2.0.0-dev"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
 dependencies = [
  "ethereum 0.7.1",
  "ethereum-types",
- "evm",
+ "evm 0.25.0",
  "fc-consensus",
  "fc-db",
  "fc-rpc-core",
@@ -1952,7 +2002,6 @@ dependencies = [
  "sc-network",
  "sc-rpc",
  "sc-service",
- "sc-transaction-graph",
  "sha3 0.8.2",
  "sp-api",
  "sp-blockchain",
@@ -1964,8 +2013,8 @@ dependencies = [
 
 [[package]]
 name = "fc-rpc-core"
-version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
+version = "1.1.0-dev"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
 dependencies = [
  "ethereum-types",
  "jsonrpc-core 15.1.0",
@@ -2068,8 +2117,8 @@ dependencies = [
 
 [[package]]
 name = "fp-consensus"
-version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
+version = "1.0.0"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
 dependencies = [
  "ethereum 0.7.1",
  "parity-scale-codec",
@@ -2082,10 +2131,10 @@ dependencies = [
 
 [[package]]
 name = "fp-evm"
-version = "0.8.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
+version = "1.0.1-dev"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
 dependencies = [
- "evm",
+ "evm 0.25.0",
  "impl-trait-for-tuples 0.1.3",
  "parity-scale-codec",
  "serde",
@@ -2095,8 +2144,8 @@ dependencies = [
 
 [[package]]
 name = "fp-rpc"
-version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
+version = "1.0.1-dev"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
 dependencies = [
  "ethereum 0.7.1",
  "ethereum-types",
@@ -2111,8 +2160,8 @@ dependencies = [
 
 [[package]]
 name = "fp-storage"
-version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
+version = "1.0.1-dev"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
 dependencies = [
  "ethereum 0.7.1",
  "ethereum-types",
@@ -4179,15 +4228,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "memory-lru"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "beeb98b3d1ed2c0054bd81b5ba949a0243c3ccad751d45ea898fa8059fa2860a"
-dependencies = [
- "lru",
-]
-
-[[package]]
 name = "memory_units"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4436,8 +4476,8 @@ name = "moonbeam-extensions-evm"
 version = "0.1.0"
 dependencies = [
  "ethereum-types",
- "evm",
- "evm-core",
+ "evm 0.26.0",
+ "evm-core 0.26.0",
  "fp-evm",
  "moonbeam-rpc-primitives-debug",
  "pallet-evm",
@@ -4605,7 +4645,7 @@ dependencies = [
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
  "cumulus-test-relay-sproof-builder",
- "evm",
+ "evm 0.26.0",
  "fp-rpc",
  "frame-executive",
  "frame-support",
@@ -5168,12 +5208,12 @@ dependencies = [
 
 [[package]]
 name = "pallet-ethereum"
-version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
+version = "1.0.1-dev"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
 dependencies = [
  "ethereum 0.7.1",
  "ethereum-types",
- "evm",
+ "evm 0.25.0",
  "fp-consensus",
  "fp-evm",
  "fp-rpc",
@@ -5206,15 +5246,16 @@ dependencies = [
 
 [[package]]
 name = "pallet-evm"
-version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
+version = "3.0.1-dev"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
 dependencies = [
- "evm",
- "evm-gasometer",
- "evm-runtime",
+ "evm 0.25.0",
+ "evm-gasometer 0.25.0",
+ "evm-runtime 0.25.0",
  "fp-evm",
  "frame-support",
  "frame-system",
+ "log",
  "pallet-balances",
  "pallet-timestamp",
  "parity-scale-codec",
@@ -5230,10 +5271,10 @@ dependencies = [
 
 [[package]]
 name = "pallet-evm-precompile-bn128"
-version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
+version = "2.0.0-dev"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
 dependencies = [
- "evm",
+ "evm 0.25.0",
  "fp-evm",
  "sp-core",
  "sp-io",
@@ -5242,10 +5283,10 @@ dependencies = [
 
 [[package]]
 name = "pallet-evm-precompile-dispatch"
-version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
+version = "1.0.1-dev"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
 dependencies = [
- "evm",
+ "evm 0.25.0",
  "fp-evm",
  "frame-support",
  "pallet-evm",
@@ -5256,10 +5297,10 @@ dependencies = [
 
 [[package]]
 name = "pallet-evm-precompile-modexp"
-version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
+version = "1.1.0-dev"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
 dependencies = [
- "evm",
+ "evm 0.25.0",
  "fp-evm",
  "num",
  "sp-core",
@@ -5268,10 +5309,10 @@ dependencies = [
 
 [[package]]
 name = "pallet-evm-precompile-sha3fips"
-version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
+version = "1.0.1-dev"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
 dependencies = [
- "evm",
+ "evm 0.25.0",
  "fp-evm",
  "sp-core",
  "sp-io",
@@ -5280,10 +5321,10 @@ dependencies = [
 
 [[package]]
 name = "pallet-evm-precompile-simple"
-version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
+version = "1.0.1-dev"
+source = "git+https://github.com/purestake/frontier?branch=joshy-substrate-2be8fcc4#71aa10d5da0f7c21ab8263dc2eaf4460a6a908aa"
 dependencies = [
- "evm",
+ "evm 0.25.0",
  "fp-evm",
  "ripemd160",
  "sp-core",
@@ -5686,7 +5727,7 @@ dependencies = [
 [[package]]
 name = "parachain-info"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=rococo-v1#9d89ed653217203810822483ae86fd8867f59620"
+source = "git+https://github.com/purestake/cumulus?branch=nimbus#9fcbd0177f250f88aac3f22cd282060ec5354bcb"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
@@ -6155,74 +6196,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "989d43012e2ca1c4a02507c67282691a0a3207f9dc67cec596b43fe925b3d325"
 
 [[package]]
-name = "polkadot-approval-distribution"
-version = "0.1.0"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-v1#b64741e6df8b3dd060ec3829534902704b5ce6f8"
-dependencies = [
- "futures 0.3.13",
- "polkadot-node-network-protocol",
- "polkadot-node-primitives",
- "polkadot-node-subsystem",
- "polkadot-node-subsystem-util",
- "polkadot-primitives",
- "tracing",
-]
-
-[[package]]
-name = "polkadot-availability-bitfield-distribution"
-version = "0.1.0"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-v1#b64741e6df8b3dd060ec3829534902704b5ce6f8"
-dependencies = [
- "futures 0.3.13",
- "parity-scale-codec",
- "polkadot-node-network-protocol",
- "polkadot-node-subsystem",
- "polkadot-node-subsystem-util",
- "polkadot-primitives",
- "tracing",
-]
-
-[[package]]
-name = "polkadot-availability-distribution"
-version = "0.1.0"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-v1#b64741e6df8b3dd060ec3829534902704b5ce6f8"
-dependencies = [
- "futures 0.3.13",
- "lru",
- "parity-scale-codec",
- "polkadot-erasure-coding",
- "polkadot-node-core-runtime-api",
- "polkadot-node-network-protocol",
- "polkadot-node-subsystem",
- "polkadot-node-subsystem-util",
- "polkadot-primitives",
- "rand 0.8.3",
- "sp-application-crypto",
- "sp-core",
- "sp-keystore",
- "thiserror",
- "tracing",
-]
-
-[[package]]
-name = "polkadot-availability-recovery"
-version = "0.1.0"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-v1#b64741e6df8b3dd060ec3829534902704b5ce6f8"
-dependencies = [
- "futures 0.3.13",
- "lru",
- "parity-scale-codec",
- "polkadot-erasure-coding",
- "polkadot-node-network-protocol",
- "polkadot-node-subsystem",
- "polkadot-node-subsystem-util",
- "polkadot-primitives",
- "rand 0.8.3",
- "thiserror",
- "tracing",
-]
-
-[[package]]
 name = "polkadot-cli"
 version = "0.8.29"
 source = "git+https://github.com/paritytech/polkadot?branch=rococo-v1#b64741e6df8b3dd060ec3829534902704b5ce6f8"
@@ -6240,25 +6213,6 @@ dependencies = [
  "substrate-build-script-utils",
  "thiserror",
  "try-runtime-cli",
-]
-
-[[package]]
-name = "polkadot-collator-protocol"
-version = "0.1.0"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-v1#b64741e6df8b3dd060ec3829534902704b5ce6f8"
-dependencies = [
- "always-assert",
- "futures 0.3.13",
- "futures-timer 3.0.2",
- "polkadot-node-network-protocol",
- "polkadot-node-primitives",
- "polkadot-node-subsystem",
- "polkadot-node-subsystem-util",
- "polkadot-primitives",
- "sp-core",
- "sp-runtime",
- "thiserror",
- "tracing",
 ]
 
 [[package]]
@@ -6284,54 +6238,6 @@ dependencies = [
  "sp-core",
  "sp-trie",
  "thiserror",
-]
-
-[[package]]
-name = "polkadot-gossip-support"
-version = "0.1.0"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-v1#b64741e6df8b3dd060ec3829534902704b5ce6f8"
-dependencies = [
- "futures 0.3.13",
- "polkadot-node-network-protocol",
- "polkadot-node-subsystem",
- "polkadot-node-subsystem-util",
- "polkadot-primitives",
- "rand 0.8.3",
- "tracing",
-]
-
-[[package]]
-name = "polkadot-network-bridge"
-version = "0.1.0"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-v1#b64741e6df8b3dd060ec3829534902704b5ce6f8"
-dependencies = [
- "async-trait",
- "futures 0.3.13",
- "parity-scale-codec",
- "parking_lot 0.11.1",
- "polkadot-node-network-protocol",
- "polkadot-node-subsystem",
- "polkadot-primitives",
- "sc-authority-discovery",
- "sc-network",
- "strum",
- "tracing",
-]
-
-[[package]]
-name = "polkadot-node-collation-generation"
-version = "0.1.0"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-v1#b64741e6df8b3dd060ec3829534902704b5ce6f8"
-dependencies = [
- "futures 0.3.13",
- "polkadot-erasure-coding",
- "polkadot-node-primitives",
- "polkadot-node-subsystem",
- "polkadot-node-subsystem-util",
- "polkadot-primitives",
- "sp-core",
- "thiserror",
- "tracing",
 ]
 
 [[package]]
@@ -6385,83 +6291,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "polkadot-node-core-backing"
-version = "0.1.0"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-v1#b64741e6df8b3dd060ec3829534902704b5ce6f8"
-dependencies = [
- "bitvec",
- "futures 0.3.13",
- "polkadot-erasure-coding",
- "polkadot-node-primitives",
- "polkadot-node-subsystem",
- "polkadot-node-subsystem-util",
- "polkadot-primitives",
- "polkadot-statement-table",
- "sp-keystore",
- "thiserror",
- "tracing",
-]
-
-[[package]]
-name = "polkadot-node-core-bitfield-signing"
-version = "0.1.0"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-v1#b64741e6df8b3dd060ec3829534902704b5ce6f8"
-dependencies = [
- "futures 0.3.13",
- "polkadot-node-subsystem",
- "polkadot-node-subsystem-util",
- "polkadot-primitives",
- "sp-keystore",
- "thiserror",
- "tracing",
- "wasm-timer",
-]
-
-[[package]]
-name = "polkadot-node-core-candidate-selection"
-version = "0.1.0"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-v1#b64741e6df8b3dd060ec3829534902704b5ce6f8"
-dependencies = [
- "futures 0.3.13",
- "polkadot-node-primitives",
- "polkadot-node-subsystem",
- "polkadot-node-subsystem-util",
- "polkadot-primitives",
- "sp-keystore",
- "thiserror",
- "tracing",
-]
-
-[[package]]
-name = "polkadot-node-core-candidate-validation"
-version = "0.1.0"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-v1#b64741e6df8b3dd060ec3829534902704b5ce6f8"
-dependencies = [
- "futures 0.3.13",
- "parity-scale-codec",
- "polkadot-node-primitives",
- "polkadot-node-subsystem",
- "polkadot-node-subsystem-util",
- "polkadot-parachain",
- "polkadot-primitives",
- "sp-core",
- "tracing",
-]
-
-[[package]]
-name = "polkadot-node-core-chain-api"
-version = "0.1.0"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-v1#b64741e6df8b3dd060ec3829534902704b5ce6f8"
-dependencies = [
- "futures 0.3.13",
- "polkadot-node-subsystem",
- "polkadot-node-subsystem-util",
- "polkadot-primitives",
- "sp-blockchain",
- "tracing",
-]
-
-[[package]]
 name = "polkadot-node-core-proposer"
 version = "0.1.0"
 source = "git+https://github.com/paritytech/polkadot?branch=rococo-v1#b64741e6df8b3dd060ec3829534902704b5ce6f8"
@@ -6483,38 +6312,6 @@ dependencies = [
  "sp-runtime",
  "sp-transaction-pool",
  "substrate-prometheus-endpoint",
- "tracing",
-]
-
-[[package]]
-name = "polkadot-node-core-provisioner"
-version = "0.1.0"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-v1#b64741e6df8b3dd060ec3829534902704b5ce6f8"
-dependencies = [
- "bitvec",
- "futures 0.3.13",
- "futures-timer 3.0.2",
- "polkadot-node-subsystem",
- "polkadot-node-subsystem-util",
- "polkadot-primitives",
- "thiserror",
- "tracing",
-]
-
-[[package]]
-name = "polkadot-node-core-runtime-api"
-version = "0.1.0"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-v1#b64741e6df8b3dd060ec3829534902704b5ce6f8"
-dependencies = [
- "futures 0.3.13",
- "memory-lru",
- "parity-util-mem",
- "polkadot-node-subsystem",
- "polkadot-node-subsystem-util",
- "polkadot-primitives",
- "sp-api",
- "sp-consensus-babe",
- "sp-core",
  "tracing",
 ]
 
@@ -6893,24 +6690,9 @@ dependencies = [
  "pallet-im-online",
  "pallet-staking",
  "pallet-transaction-payment-rpc-runtime-api",
- "polkadot-approval-distribution",
- "polkadot-availability-bitfield-distribution",
- "polkadot-availability-distribution",
- "polkadot-availability-recovery",
- "polkadot-collator-protocol",
- "polkadot-gossip-support",
- "polkadot-network-bridge",
- "polkadot-node-collation-generation",
  "polkadot-node-core-approval-voting",
  "polkadot-node-core-av-store",
- "polkadot-node-core-backing",
- "polkadot-node-core-bitfield-signing",
- "polkadot-node-core-candidate-selection",
- "polkadot-node-core-candidate-validation",
- "polkadot-node-core-chain-api",
  "polkadot-node-core-proposer",
- "polkadot-node-core-provisioner",
- "polkadot-node-core-runtime-api",
  "polkadot-node-subsystem",
  "polkadot-node-subsystem-util",
  "polkadot-overseer",
@@ -6919,7 +6701,6 @@ dependencies = [
  "polkadot-rpc",
  "polkadot-runtime",
  "polkadot-runtime-parachains",
- "polkadot-statement-distribution",
  "rococo-runtime",
  "sc-authority-discovery",
  "sc-block-builder",
@@ -6960,23 +6741,6 @@ dependencies = [
  "thiserror",
  "tracing",
  "westend-runtime",
-]
-
-[[package]]
-name = "polkadot-statement-distribution"
-version = "0.1.0"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-v1#b64741e6df8b3dd060ec3829534902704b5ce6f8"
-dependencies = [
- "arrayvec 0.5.2",
- "futures 0.3.13",
- "indexmap",
- "polkadot-node-network-protocol",
- "polkadot-node-primitives",
- "polkadot-node-subsystem",
- "polkadot-node-subsystem-util",
- "polkadot-primitives",
- "sp-staking",
- "tracing",
 ]
 
 [[package]]
@@ -7140,7 +6904,7 @@ checksum = "ac74c624d6b2d21f425f752262f42188365d7b8ff1aff74c82e45136510a4857"
 name = "precompiles"
 version = "0.6.0"
 dependencies = [
- "evm",
+ "evm 0.26.0",
  "frame-support",
  "frame-system",
  "hex",
@@ -10268,14 +10032,14 @@ dependencies = [
 
 [[package]]
 name = "substrate-bn"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "acb439bec2318e98b83f1e12ddaaf2082d6fc29becc3117714ccb575fa343bc1"
+checksum = "72b5bbfa79abbae15dd642ea8176a21a635ff3c00059961d1ea27ad04e5b441c"
 dependencies = [
  "byteorder",
  "crunchy",
  "lazy_static",
- "rand 0.5.6",
+ "rand 0.8.3",
  "rustc-hex",
 ]
 
