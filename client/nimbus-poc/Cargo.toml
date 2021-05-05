@@ -1,0 +1,35 @@
+[package]
+name = "nimbus-poc"
+description = "Temporary solution to make slot prediction work before wiring in keystore"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+# Substrate deps
+sp-consensus = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-inherents = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-api = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+substrate-prometheus-endpoint = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+
+# Polkadot dependencies
+polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1" }
+
+# Cumulus dependencies
+author-filter-api = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+cumulus-client-consensus-common = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+
+# Other deps
+futures = { version = "0.3.8", features = ["compat"] }
+codec = { package = "parity-scale-codec", version = "2.0.0", features = ["derive"] }
+tracing = "0.1.22"
+async-trait = "0.1.42"
+parking_lot = "0.9"
+log = "0.4"
