@@ -1054,6 +1054,17 @@ impl_runtime_apis! {
 			TransactionPayment::query_fee_details(uxt, len)
 		}
 	}
+
+	impl author_filter_api::AuthorFilterAPI<Block, AccountId> for Runtime {
+		fn can_author(author: AccountId, relay_parent: u32) -> bool {
+			// Rather than referring to the author filter directly here,
+			// refer to it via the author inherent config. This avoid the possibility
+			// of accidentally using different filters in different places.
+			// This will make more sense when the CanAuthor trait is revised so its method accepts
+			// the slot number. Basically what is currently called the "helper" should be the main method.
+			AuthorFilter::can_author_helper(&author, relay_parent)
+		}
+	}
 }
 
 cumulus_pallet_parachain_system::register_validate_block!(Runtime, Executive);
