@@ -4520,7 +4520,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam"
-version = "0.7.0"
+version = "0.8.0-dev-nimbus"
 dependencies = [
  "ansi_term 0.12.1",
  "assert_cmd",
@@ -4778,7 +4778,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-runtime"
-version = "0.6.0"
+version = "0.8.0-dev-nimbus"
 dependencies = [
  "account",
  "cumulus-pallet-parachain-system",
