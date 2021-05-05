@@ -102,7 +102,7 @@ cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cu
 # TODO what do we need this for? The inherent data provider?
 # It feels weird to depend on a pallet here.
 # For example we have sp-timestamp above rather than pallet-timestamp
-author-inherent = { package = "pallet-author-inherent", git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
 
 # Polkadot dependencies
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1" }

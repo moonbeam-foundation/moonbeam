@@ -6,7 +6,7 @@ edition = "2018"
 description = "parachain staking pallet for collator selection and reward distribution"
 
 [dependencies]
-author-inherent = { package = 'pallet-author-inherent', git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
+pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
@@ -23,7 +23,7 @@ sp-core = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1
 [features]
 default = ["std"]
 std = [
-	"author-inherent/std",
+	"pallet-author-inherent/std",
 	"frame-support/std",
 	"frame-system/std",
 	"pallet-balances/std",

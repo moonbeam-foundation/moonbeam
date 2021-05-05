@@ -1300,7 +1300,7 @@ pub mod pallet {
 	}
 	/// Add reward points to block authors:
 	/// * 20 points to the block producer for producing a block in the chain
-	impl<T: Config> author_inherent::EventHandler<T::AccountId> for Pallet<T> {
+	impl<T: Config> pallet_author_inherent::EventHandler<T::AccountId> for Pallet<T> {
 		fn note_author(author: T::AccountId) {
 			let now = <Round<T>>::get().current;
 			let score_plus_20 = <AwardedPts<T>>::get(now, &author) + 20;
@@ -1309,7 +1309,7 @@ pub mod pallet {
 		}
 	}
 
-	impl<T: Config> author_inherent::CanAuthor<T::AccountId> for Pallet<T> {
+	impl<T: Config> pallet_author_inherent::CanAuthor<T::AccountId> for Pallet<T> {
 		fn can_author(account: &T::AccountId) -> bool {
 			Self::is_selected_candidate(account)
 		}

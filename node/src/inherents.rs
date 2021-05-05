@@ -52,7 +52,9 @@ pub fn build_inherent_data_providers(
 	// Author ID Provider for authoring node only.
 	if let Some(account) = author {
 		providers
-			.register_provider(author_inherent::InherentDataProvider::<H160>(account))
+			.register_provider(pallet_author_inherent::InherentDataProvider::<H160>(
+				account,
+			))
 			.map_err(Into::into)
 			.map_err(sp_consensus::error::Error::InherentData)?;
 	}

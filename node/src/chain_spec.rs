@@ -298,7 +298,7 @@ pub fn testnet_genesis(
 			phantom: Default::default(),
 			members: vec![], // TODO : Set members
 		},
-		pallet_author_filter: AuthorFilterConfig { eligible_ratio: 50 },
+		pallet_author_slot_filter: AuthorFilterConfig { eligible_ratio: 50 },
 	}
 }
 

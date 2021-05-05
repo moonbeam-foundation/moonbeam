@@ -494,7 +494,7 @@ impl parachain_staking::Config for Runtime {
 	type MinNominatorStk = MinNominatorStk;
 }
 
-impl author_inherent::Config for Runtime {
+impl pallet_author_inherent::Config for Runtime {
 	type AuthorId = AccountId;
 	type EventHandler = ParachainStaking;
 	// We cannot run the full filtered author checking logic in the preliminary check because it
@@ -504,7 +504,7 @@ impl author_inherent::Config for Runtime {
 	type FullCanAuthor = AuthorFilter;
 }
 
-impl pallet_author_filter::Config for Runtime {
+impl pallet_author_slot_filter::Config for Runtime {
 	type AuthorId = AccountId;
 	type Event = Event;
 	type RandomnessSource = RandomnessCollectiveFlip;
@@ -538,8 +538,8 @@ construct_runtime! {
 			pallet_collective::<Instance2>::{Pallet, Call, Event<T>, Origin<T>, Config<T>},
 		// The order matters here. Inherents will be included in the order specified here.
 		// Concretely we need the author inherent to come after the parachain_system inherent.
-		AuthorInherent: author_inherent::{Pallet, Call, Storage, Inherent},
-		AuthorFilter: pallet_author_filter::{Pallet, Storage, Event, Config},
+		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent},
+		AuthorFilter: pallet_author_slot_filter::{Pallet, Storage, Event, Config},
 	}
 }
 
