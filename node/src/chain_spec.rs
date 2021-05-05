@@ -24,10 +24,10 @@ use cumulus_primitives_core::ParaId;
 use evm::GenesisAccount;
 use log::debug;
 use moonbeam_runtime::{
-	AccountId, Balance, BalancesConfig, CouncilCollectiveConfig, DemocracyConfig, EVMConfig,
-	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig,
-	ParachainStakingConfig, Range, SchedulerConfig, SudoConfig, SystemConfig,
-	TechComitteeCollectiveConfig, GLMR, WASM_BINARY,
+	AccountId, AuthorFilterConfig, Balance, BalancesConfig, CouncilCollectiveConfig,
+	DemocracyConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig, GenesisConfig,
+	InflationInfo, ParachainInfoConfig, ParachainStakingConfig, Range, SchedulerConfig, SudoConfig,
+	SystemConfig, TechComitteeCollectiveConfig, GLMR, WASM_BINARY,
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
@@ -298,6 +298,7 @@ pub fn testnet_genesis(
 			phantom: Default::default(),
 			members: vec![], // TODO : Set members
 		},
+		pallet_author_filter: AuthorFilterConfig { eligible_ratio: 50 },
 	}
 }
 
