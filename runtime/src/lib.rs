@@ -505,8 +505,10 @@ impl author_inherent::Config for Runtime {
 }
 
 impl pallet_author_filter::Config for Runtime {
+	type AuthorId = AccountId;
 	type Event = Event;
 	type RandomnessSource = RandomnessCollectiveFlip;
+	type PotentialAuthors = ParachainStaking;
 }
 
 construct_runtime! {
@@ -537,7 +539,7 @@ construct_runtime! {
 		// The order matters here. Inherents will be included in the order specified here.
 		// Concretely we need the author inherent to come after the parachain_system inherent.
 		AuthorInherent: author_inherent::{Pallet, Call, Storage, Inherent},
-		AuthorFilter: pallet_author_filter::{Pallet, Call, Storage, Event<T>,}
+		AuthorFilter: pallet_author_filter::{Pallet, Storage, Event, Config},
 	}
 }
 

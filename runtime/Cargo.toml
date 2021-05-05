@@ -19,7 +19,12 @@ precompiles = { path = "precompiles/", default-features = false }
 account = { path = "account/", default-features = false }
 pallet-ethereum-chain-id = { path = "../pallets/ethereum-chain-id", default-features = false }
 parachain-staking = { path = "../pallets/parachain-staking", default-features = false }
-pallet-author-filter = { path = "../pallets/author-filter", default-features = false }
+
+# Original moonbeam way
+# pallet-author-filter = { path = "../pallets/author-filter", default-features = false }
+
+# New nimbus way
+pallet-author-filter = { package = 'pallet-author-slot-filter', git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }

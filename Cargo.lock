@@ -4812,8 +4812,8 @@ dependencies = [
  "moonbeam-extensions-evm",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
- "pallet-author-filter",
  "pallet-author-inherent",
+ "pallet-author-slot-filter",
  "pallet-balances",
  "pallet-collective",
  "pallet-democracy",
@@ -5183,21 +5183,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-author-filter"
-version = "0.6.0"
-dependencies = [
- "cumulus-pallet-parachain-system",
- "frame-support",
- "frame-system",
- "pallet-author-inherent",
- "parachain-staking",
- "parity-scale-codec",
- "sp-core",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "pallet-author-inherent"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=nimbus#3289b17b18a6813dffa379f94373fe53ce4b17bb"
@@ -5208,6 +5193,23 @@ dependencies = [
  "parity-scale-codec",
  "sp-authorship",
  "sp-inherents",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-author-slot-filter"
+version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=nimbus#3289b17b18a6813dffa379f94373fe53ce4b17bb"
+dependencies = [
+ "cumulus-pallet-parachain-system",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-author-inherent",
+ "parity-scale-codec",
+ "serde",
+ "sp-core",
  "sp-runtime",
  "sp-std",
 ]
@@ -7716,19 +7718,6 @@ dependencies = [
  "libc",
  "rand_core 0.3.1",
  "rdrand",
- "winapi 0.3.9",
-]
-
-[[package]]
-name = "rand"
-version = "0.5.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c618c47cd3ebd209790115ab837de41425723956ad3ce2e6a7f09890947cacb9"
-dependencies = [
- "cloudabi",
- "fuchsia-cprng",
- "libc",
- "rand_core 0.3.1",
  "winapi 0.3.9",
 ]
 
@@ -11515,7 +11504,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04f8ab788026715fa63b31960869617cba39117e520eb415b0139543e325ab59"
 dependencies = [
  "cfg-if 0.1.10",
- "rand 0.5.6",
+ "rand 0.6.5",
  "static_assertions",
 ]
 
