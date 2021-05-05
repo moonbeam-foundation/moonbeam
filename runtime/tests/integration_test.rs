@@ -157,7 +157,7 @@ fn inherent_origin() -> <Runtime as frame_system::Config>::Origin {
 /// Mock the inherent that sets author in `author-inherent`
 fn set_author(a: AccountId) {
 	assert_ok!(
-		Call::AuthorInherent(author_inherent::Call::<Runtime>::set_author(a))
+		Call::AuthorInherent(pallet_author_inherent::Call::<Runtime>::set_author(a))
 			.dispatch(inherent_origin())
 	);
 }
