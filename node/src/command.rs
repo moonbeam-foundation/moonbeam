@@ -52,14 +52,17 @@ fn load_spec(
 			&include_bytes!("../../specs/stagenet/parachain-embedded-specs-v7.json")[..],
 		)?)),
 		"dev" | "development" => Ok(Box::new(chain_spec::development_chain_spec(None, None))),
-		"local" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
+		"" | "local" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
 		#[cfg(feature = "test-spec")]
 		"staking" => Ok(Box::new(crate::test_spec::staking_spec(para_id))),
-		"" => Err(
-			"You have not specified what chain to sync. In the future, this will default to \
-				Moonbeam mainnet. Mainnet is not yet live so you must choose a spec."
-				.into(),
-		),
+		//TODO I've temporarily hacked this so that no chain means local. This is so we can
+		// work with polkadot launch.
+		// Maybe I could add `"chain": "local"` in the config.json?
+		// "" => Err(
+		// 	"You have not specified what chain to sync. In the future, this will default to \
+		// 		Moonbeam mainnet. Mainnet is not yet live so you must choose a spec."
+		// 		.into(),
+		// ),
 		path => Ok(Box::new(chain_spec::ChainSpec::from_json_file(
 			path.into(),
 		)?)),
