@@ -123,7 +123,7 @@ where
 		&self,
 		validation_data: &PersistedValidationData,
 		relay_parent: PHash,
-		author_id: &AuthorId,
+		_author_id: &AuthorId,
 	) -> Option<InherentData> {
 		// Build the inherents that use normal inherent data providers.
 		let mut inherent_data = self
@@ -163,19 +163,19 @@ where
 			.ok()?;
 
 		// Now manually attach the author one.
-		inherent_data
-			//TODO import the inherent id from somewhere. Currently it is defined in the pallet.
-			.put_data(*b"author__", author_id)
-			.map_err(|e| {
-				error!(
-					target: LOG_TARGET,
-					error = ?e,
-					"Failed to put the author inherent into inherent data.",
-				)
-			})
-			.ok()?;
+		// inherent_data
+		// 	//TODO import the inherent id from somewhere. Currently it is defined in the pallet.
+		// 	.put_data(*b"author__", author_id)
+		// 	.map_err(|e| {
+		// 		error!(
+		// 			target: LOG_TARGET,
+		// 			error = ?e,
+		// 			"Failed to put the author inherent into inherent data.",
+		// 		)
+		// 	})
+		// 	.ok()?;
 
-		println!("On client side. Inherent data is");
+		// println!("On client side. Inherent data is");
 		// Grrr debug isn't implemented
 		// println!("{:?}", inherent_data);
 
@@ -294,7 +294,7 @@ where
 /// I'm going to start trying to add the keystore here. I briefly tried the async approach, but
 /// decided t ogo sync so I can copy code from Aura. Maybe after it is working, Jeremy can help me
 /// go async.
-pub struct BuildFilteringConsensusParams<PF, BI, RBackend, ParaClient, AuthorId> {
+pub struct BuildRelayChainConsensusParams<PF, BI, RBackend, ParaClient, AuthorId> {
 	pub para_id: ParaId,
 	pub proposer_factory: PF,
 	pub inherent_data_providers: InherentDataProviders,
@@ -309,8 +309,8 @@ pub struct BuildFilteringConsensusParams<PF, BI, RBackend, ParaClient, AuthorId>
 /// Build the [`FilteringConsensus`].
 ///
 /// Returns a boxed [`ParachainConsensus`].
-pub fn build_filtering_consensus<Block, PF, BI, RBackend, ParaClient, AuthorId>(
-	BuildFilteringConsensusParams {
+pub fn build_relay_chain_consensus<Block, PF, BI, RBackend, ParaClient, AuthorId>(
+	BuildRelayChainConsensusParams {
 		para_id,
 		proposer_factory,
 		inherent_data_providers,
@@ -320,7 +320,7 @@ pub fn build_filtering_consensus<Block, PF, BI, RBackend, ParaClient, AuthorId>(
 		parachain_client,
 		author,
 		keystore,
-	}: BuildFilteringConsensusParams<PF, BI, RBackend, ParaClient, AuthorId>,
+	}: BuildRelayChainConsensusParams<PF, BI, RBackend, ParaClient, AuthorId>,
 ) -> Box<dyn ParachainConsensus<Block>>
 where
 	Block: BlockT,

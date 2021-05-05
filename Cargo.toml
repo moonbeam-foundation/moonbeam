@@ -1,5 +1,5 @@
 [workspace]
-members = ['client/nimbus-poc', 'runtime', 'node']
+members = ['runtime', 'node']
 
 [profile.release]
 panic = 'unwind'

@@ -434,6 +434,9 @@ where
 			block_import,
 			relay_chain_client: polkadot_full_node.client.clone(),
 			relay_chain_backend: polkadot_full_node.backend.clone(),
+			parachain_client: client.clone(),
+			author: author_id.expect("collator should provide author id"),
+			keystore: params.keystore_container.sync_keystore(),
 		});
 
 		let params = StartCollatorParams {
