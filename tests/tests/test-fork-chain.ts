@@ -39,7 +39,7 @@ describeDevMoonbeam("Fork", (context) => {
       transactions: [await createTransfer(context.web3, TEST_ACCOUNT, 512)],
     });
     const insertedTx = txResults[0].result;
-    let retractedTx = await context.web3.eth.getTransaction(insertedTx);
+    const retractedTx = await context.web3.eth.getTransaction(insertedTx);
     expect(retractedTx).to.not.be.null;
 
     // Fork 4 blocks 0-1-2-3-4
@@ -51,8 +51,8 @@ describeDevMoonbeam("Fork", (context) => {
     parentHash = (await context.createBlock({ parentHash, finalize: false })).block.hash;
     // All the transactions that were in the pool are now on-chain
     parentHash = (await context.createBlock({ parentHash, finalize: true })).block.hash;
-    let finalTx = await context.web3.eth.getTransaction(insertedTx);
-    let currentHeight = await context.web3.eth.getBlockNumber();
+    const finalTx = await context.web3.eth.getTransaction(insertedTx);
+    const currentHeight = await context.web3.eth.getBlockNumber();
     // The Tx should have been inserted in the last block
     expect(finalTx.blockNumber).to.equal(currentHeight);
     // The Tx should have the hash of the latest canonical chain
