@@ -120,6 +120,7 @@ impl Config for Test {
 	type MinCollatorCandidateStk = MinCollatorStk;
 	type MinNominatorStk = MinNominatorStk;
 	type MinNomination = MinNomination;
+	type WeightInfo = ();
 }
 
 pub(crate) struct ExtBuilder {

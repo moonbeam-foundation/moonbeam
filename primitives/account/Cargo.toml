@@ -26,7 +26,6 @@ sp-runtime = { git = "https://github.com/paritytech/substrate", default-features
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "joshy-substrate-2be8fcc4" }
 
-
 [features]
 default = ["std"]
 std = [

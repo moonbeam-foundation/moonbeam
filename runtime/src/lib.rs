@@ -492,6 +492,7 @@ impl parachain_staking::Config for Runtime {
 	type MinCollatorCandidateStk = MinCollatorStk;
 	type MinNomination = MinNominatorStk;
 	type MinNominatorStk = MinNominatorStk;
+	type WeightInfo = parachain_staking::weights::SubstrateWeight<Runtime>;
 }
 
 impl pallet_author_inherent::Config for Runtime {
@@ -1063,6 +1064,29 @@ impl_runtime_apis! {
 			// This will make more sense when the CanAuthor trait is revised so its method accepts
 			// the slot number. Basically what is currently called the "helper" should be the main method.
 			AuthorFilter::can_author_helper(&author, relay_parent)
+
+	#[cfg(feature = "runtime-benchmarks")]
+	impl frame_benchmarking::Benchmark<Block> for Runtime {
+		fn dispatch_benchmark(
+			config: frame_benchmarking::BenchmarkConfig
+			) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
+			use frame_benchmarking::{Benchmarking, BenchmarkBatch, add_benchmark, TrackedStorageKey};
+
+			use frame_system_benchmarking::Pallet as SystemBench;
+			impl frame_system_benchmarking::Config for Runtime {}
+
+			use parachain_staking::Pallet as ParachainStakingBench;
+
+			let whitelist: Vec<TrackedStorageKey> = vec![];
+
+			let mut batches = Vec::<BenchmarkBatch>::new();
+			let params = (&config, &whitelist);
+
+			add_benchmark!(params, batches, parachain_staking, ParachainStakingBench::<Runtime>);
+			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
+
+			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
+			Ok(batches)
 		}
 	}
 }
