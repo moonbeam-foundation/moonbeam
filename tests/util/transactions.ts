@@ -45,14 +45,24 @@ export const createTransaction = async (
     nonce: options.nonce,
     data: options.data,
   };
-  debug("Sending transaction", {
-    ...data,
-    data: !data.data
-      ? ""
-      : data.data.length < 80
-      ? data.data
-      : data.data.substr(0, 7) + "..." + data.data.substr(data.data.length - 5),
-  });
+  debug(
+    `Tx [${/:([0-9]+)$/.exec((web3.currentProvider as any).host)[1]}] ` +
+      `from: ${data.from.substr(0, 5) + "..." + data.from.substr(data.from.length - 3)}, ` +
+      (data.to
+        ? `to: ${data.to.substr(0, 5) + "..." + data.to.substr(data.to.length - 3)}, `
+        : "") +
+      (data.value ? `value: ${data.value.toString()}, ` : "") +
+      `gasPrice: ${data.gasPrice.toString()}, ` +
+      (data.gas ? `gas: ${data.gas.toString()}, ` : "") +
+      (data.nonce ? `nonce: ${data.nonce.toString()}, ` : "") +
+      (!data.data
+        ? ""
+        : `data: ${
+            data.data.length < 50
+              ? data.data
+              : data.data.substr(0, 5) + "..." + data.data.substr(data.data.length - 3)
+          }`)
+  );
   const tx = await web3.eth.accounts.signTransaction(data, privateKey);
   return tx.rawTransaction;
 };
