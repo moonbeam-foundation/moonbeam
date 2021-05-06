@@ -170,9 +170,9 @@ where
 		io.extend_with(EthFilterApiServer::to_delegate(EthFilterApi::new(
 			client.clone(),
 			filter_pool.clone(),
-			500 as usize,      // max stored filters
+			500 as usize, // max stored filters
 			overrides.clone(),
-			5,                 //TODO max past logs
+			5, //TODO max past logs
 		)));
 	}
 
