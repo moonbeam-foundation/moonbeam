@@ -168,7 +168,7 @@ pub mod pallet {
 			}
 		}
 		pub fn is_active(&self) -> bool {
-			self.state == CollatorStatus::Active
+			matches!(self.state, CollatorStatus::Active)
 		}
 		pub fn is_leaving(&self) -> bool {
 			matches!(self.state, CollatorStatus::Leaving(_))
