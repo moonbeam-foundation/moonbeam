@@ -1064,6 +1064,8 @@ impl_runtime_apis! {
 			// This will make more sense when the CanAuthor trait is revised so its method accepts
 			// the slot number. Basically what is currently called the "helper" should be the main method.
 			AuthorFilter::can_author_helper(&author, relay_parent)
+		}
+	}
 
 	#[cfg(feature = "runtime-benchmarks")]
 	impl frame_benchmarking::Benchmark<Block> for Runtime {
