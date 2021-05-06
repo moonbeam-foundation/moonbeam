@@ -179,6 +179,7 @@ where
 	io.extend_with(NetApiServer::to_delegate(NetApi::new(
 		client.clone(),
 		network.clone(),
+		true,
 	)));
 	io.extend_with(Web3ApiServer::to_delegate(Web3Api::new(client.clone())));
 	io.extend_with(EthPubSubApiServer::to_delegate(EthPubSubApi::new(
