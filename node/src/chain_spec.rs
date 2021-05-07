@@ -34,6 +34,7 @@ use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
 
+use nimbus_primitives::NimbusId;
 use sp_core::{ecdsa, Pair, Public, H160, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, Hash},
@@ -91,6 +92,13 @@ pub fn get_account_id_from_pair<TPublic: Public>(pair: TPublic::Pair) -> Option<
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
+
+/// Helper function to generate a crypto pair from seed
+pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
+	TPublic::Pair::from_string(&format!("//{}", seed), None)
+		.expect("static values are valid; qed")
+		.public()
+}
 
 /// The extensions for the [`ChainSpec`].
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
@@ -287,8 +295,14 @@ pub fn testnet_genesis(
 		pallet_democracy: DemocracyConfig {},
 		pallet_scheduler: SchedulerConfig {},
 		parachain_staking: ParachainStakingConfig {
-			stakers,
+			stakers: stakers.clone(),
 			inflation_config,
+			// Super hack. We just set all the stakers to use alice's nimbus id.
+			// This would cause weird behaivior in rewards. Lukily I already disabled rewards XD
+			author_ids: stakers
+				.iter()
+				.map(|staker| (staker.0, get_from_seed::<NimbusId>("Alice")))
+				.collect(),
 		},
 		pallet_collective_Instance1: CouncilCollectiveConfig {
 			phantom: Default::default(),

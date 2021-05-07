@@ -4544,6 +4544,7 @@ dependencies = [
  "moonbeam-rpc-txpool",
  "moonbeam-runtime",
  "nimbus-consensus",
+ "nimbus-primitives",
  "nix",
  "pallet-author-inherent",
  "pallet-ethereum",

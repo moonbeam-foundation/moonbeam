@@ -61,6 +61,8 @@ use sp_std::{convert::TryFrom, prelude::*};
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
+use nimbus_primitives::NimbusId;
+
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
@@ -104,7 +106,9 @@ pub mod opaque {
 	pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 
 	impl_opaque_keys! {
-		pub struct SessionKeys {}
+		pub struct SessionKeys {
+			pub author_inherent: AuthorInherent,
+		}
 	}
 }
 
@@ -435,7 +439,9 @@ pub struct EthereumFindAuthor<F>(PhantomData<F>);
 
 impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
-	type FindAuthor = AuthorInherent;
+	//TODO we need to report an H160 to pallet ethereum, but the author inherent is in a crypto specific type
+	// This is another place we need the mapping. For now I'll disable this feature in the evm
+	type FindAuthor = (); //AuthorInherent;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot;
 }
 
@@ -479,6 +485,7 @@ parameter_types! {
 	pub const MinNominatorStk: u128 = 5 * GLMR;
 }
 impl parachain_staking::Config for Runtime {
+	type AuthorId = NimbusId;
 	type Event = Event;
 	type Currency = Balances;
 	type MinBlocksPerRound = MinBlocksPerRound;
@@ -496,17 +503,18 @@ impl parachain_staking::Config for Runtime {
 }
 
 impl pallet_author_inherent::Config for Runtime {
-	type AuthorId = AccountId;
-	type EventHandler = ParachainStaking;
-	// We cannot run the full filtered author checking logic in the preliminary check because it
-	// depends on entropy from the relay chain. Instead we just make sure that the author is staked
-	// in the preliminary check. The final check including filtering happens during block execution.
+	type AuthorId = NimbusId;
+	//TODO I'm also disabling rewards for now. This is another place we need the mapping.
+	type EventHandler = (); //ParachainStaking;
+						// We cannot run the full filtered author checking logic in the preliminary check because it
+						// depends on entropy from the relay chain. Instead we just make sure that the author is staked
+						// in the preliminary check. The final check including filtering happens during block execution.
 	type PreliminaryCanAuthor = ParachainStaking;
 	type FullCanAuthor = AuthorFilter;
 }
 
 impl pallet_author_slot_filter::Config for Runtime {
-	type AuthorId = AccountId;
+	type AuthorId = NimbusId;
 	type Event = Event;
 	type RandomnessSource = RandomnessCollectiveFlip;
 	type PotentialAuthors = ParachainStaking;
@@ -1056,8 +1064,8 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl nimbus_primitives::AuthorFilterAPI<Block, AccountId> for Runtime {
-		fn can_author(author: AccountId, relay_parent: u32) -> bool {
+	impl nimbus_primitives::AuthorFilterAPI<Block, NimbusId> for Runtime {
+		fn can_author(author: NimbusId, relay_parent: u32) -> bool {
 			// Rather than referring to the author filter directly here,
 			// refer to it via the author inherent config. This avoid the possibility
 			// of accidentally using different filters in different places.
