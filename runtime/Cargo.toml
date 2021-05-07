@@ -53,6 +53,7 @@ fp-rpc = { default-features = false, git = "https://github.com/purestake/frontie
 
 pallet-democracy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+pallet-society = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-collective = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 
 moonbeam-extensions-evm = { path = "extensions/evm", default-features = false }
@@ -123,6 +124,7 @@ std = [
 	"account/std",
 	"parachain-staking/std",
 	"pallet-author-filter/std",
+	"pallet-society/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
@@ -142,4 +144,8 @@ runtime-benchmarks = [
 	"frame-system/runtime-benchmarks",
 	"pallet-collective/runtime-benchmarks",
 	"parachain-staking/runtime-benchmarks",
+	"sp-runtime/runtime-benchmarks",
+	"pallet-balances/runtime-benchmarks",
+	"pallet-timestamp/runtime-benchmarks",
+	"pallet-society/runtime-benchmarks",
 ]
