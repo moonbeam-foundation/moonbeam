@@ -4792,6 +4792,7 @@ dependencies = [
  "moonbeam-rpc-primitives-txpool",
  "nimbus-primitives",
  "pallet-author-inherent",
+ "pallet-author-mapping",
  "pallet-author-slot-filter",
  "pallet-balances",
  "pallet-collective",
@@ -5215,6 +5216,19 @@ dependencies = [
  "sp-api",
  "sp-authorship",
  "sp-inherents",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-author-mapping"
+version = "1.0.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "pallet-author-inherent",
+ "parity-scale-codec",
+ "serde",
  "sp-runtime",
  "sp-std",
 ]

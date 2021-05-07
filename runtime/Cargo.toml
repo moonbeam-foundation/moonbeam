@@ -21,6 +21,7 @@ pallet-ethereum-chain-id = { path = "../pallets/ethereum-chain-id", default-feat
 parachain-staking = { path = "../pallets/parachain-staking", default-features = false }
 pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
 nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
+pallet-author-mapping = { path = "../pallets/author-mapping", default-features = false }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
@@ -123,6 +124,7 @@ std = [
 	"parachain-staking/std",
 	"pallet-author-slot-filter/std",
 	"nimbus-primitives/std",
+	"pallet-author-mapping/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
