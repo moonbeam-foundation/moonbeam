@@ -403,10 +403,6 @@ pub mod pallet {
 		type MinNominatorStk: Get<BalanceOf<Self>>;
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
-		/// The type of authority id that will be used at the conensus layer.
-		/// Really this should not be in the staking solution. It should be in like
-		/// pallet session or something else dedicated like that. But for now it goes here.
-		type AuthorId: Member + Parameter + MaybeSerializeDeserialize;
 	}
 
 	#[pallet::error]
@@ -509,13 +505,6 @@ pub mod pallet {
 			}
 		}
 	}
-
-	#[pallet::storage]
-	#[pallet::getter(fn author_id_of)]
-	/// We maintain a mapping from the AccountIds used in the runtime (including this staking pallet)
-	/// to the AuthorIds used in the consensus layer. Ultimately this should be in some kind of session
-	/// pallet imo, but for now it goes here.
-	type AuthorIds<T: Config> = StorageMap<_, Twox64Concat, T::AccountId, T::AuthorId, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn collator_commission)]
@@ -621,8 +610,6 @@ pub mod pallet {
 	pub struct GenesisConfig<T: Config> {
 		pub stakers: Vec<(T::AccountId, Option<T::AccountId>, BalanceOf<T>)>,
 		pub inflation_config: InflationInfo<BalanceOf<T>>,
-		// Adding this as a seperate field so it can be more easily stripped out when we use a sessions solution
-		pub author_ids: Vec<(T::AccountId, T::AuthorId)>,
 	}
 
 	#[cfg(feature = "std")]
@@ -657,10 +644,6 @@ pub mod pallet {
 					)
 				};
 			}
-			// Initialize the author id mapping.
-			for (account_id, author_id) in &self.author_ids {
-				AuthorIds::<T>::insert(account_id, author_id);
-			}
 			// Set collator commission to default config
 			<CollatorCommission<T>>::put(T::DefaultCollatorCommission::get());
 			// Set total selected candidates to minimum config
@@ -684,8 +667,6 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		//TODO an extrinsic for candidates to set or change their AuthorId. Need it for practical operation, but not PoC
-
 		/// Set the expectations for total staked. These expectations determine the issuance for
 		/// the round according to logic in `fn compute_issuance`
 		#[pallet::weight(0)]
@@ -1336,27 +1317,18 @@ pub mod pallet {
 		}
 	}
 
-	impl<T: Config> pallet_author_inherent::CanAuthor<T::AuthorId> for Pallet<T> {
-		fn can_author(author: &T::AuthorId) -> bool {
-			Self::selected_candidates()
-				.iter()
-				.filter_map(|candidate| AuthorIds::<T>::get(candidate))
-				.collect::<Vec<_>>()
-				.contains(author)
+	impl<T: Config> pallet_author_inherent::CanAuthor<T::AccountId> for Pallet<T> {
+		fn can_author(author: &T::AccountId) -> bool {
+			Self::selected_candidates().contains(author)
 		}
 	}
 
 	//TODO this is for coupling with the author slot filter.
 	// Nimbus should introduce its own trait for exhaustive sets
 	// and then use that here.
-	impl<T: Config> Get<Vec<T::AuthorId>> for Pallet<T> {
-		fn get() -> Vec<T::AuthorId> {
-			//Note the use of filter_map here. Selected candidates who have not configured
-			// AuthorIds will not be considered eligible according to the CanAuthor trait
+	impl<T: Config> Get<Vec<T::AccountId>> for Pallet<T> {
+		fn get() -> Vec<T::AccountId> {
 			Self::selected_candidates()
-				.iter()
-				.filter_map(|candidate| AuthorIds::<T>::get(candidate))
-				.collect()
 		}
 	}
 }
