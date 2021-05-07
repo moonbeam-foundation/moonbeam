@@ -1056,7 +1056,7 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl author_filter_api::AuthorFilterAPI<Block, AccountId> for Runtime {
+	impl nimbus_primitives::AuthorFilterAPI<Block, AccountId> for Runtime {
 		fn can_author(author: AccountId, relay_parent: u32) -> bool {
 			// Rather than referring to the author filter directly here,
 			// refer to it via the author inherent config. This avoid the possibility
