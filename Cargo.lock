@@ -1318,31 +1318,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cumulus-client-consensus-relay-chain"
-version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus#cd68f7a3f42b7a06612c17c234612a2097268d93"
-dependencies = [
- "async-trait",
- "cumulus-client-consensus-common",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
- "futures 0.3.14",
- "parity-scale-codec",
- "parking_lot 0.9.0",
- "polkadot-service",
- "sc-client-api",
- "sp-api",
- "sp-block-builder",
- "sp-blockchain",
- "sp-consensus",
- "sp-core",
- "sp-inherents",
- "sp-runtime",
- "substrate-prometheus-endpoint",
- "tracing",
-]
-
-[[package]]
 name = "cumulus-client-network"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=nimbus#cd68f7a3f42b7a06612c17c234612a2097268d93"
@@ -4542,7 +4517,6 @@ dependencies = [
  "cumulus-client-cli",
  "cumulus-client-collator",
  "cumulus-client-consensus-common",
- "cumulus-client-consensus-relay-chain",
  "cumulus-client-network",
  "cumulus-client-service",
  "cumulus-primitives-core",
@@ -4569,6 +4543,7 @@ dependencies = [
  "moonbeam-rpc-trace",
  "moonbeam-rpc-txpool",
  "moonbeam-runtime",
+ "nimbus-consensus",
  "nix",
  "pallet-author-inherent",
  "pallet-ethereum",
@@ -4964,6 +4939,35 @@ dependencies = [
  "cfg-if 0.1.10",
  "libc",
  "winapi 0.3.9",
+]
+
+[[package]]
+name = "nimbus-consensus"
+version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=nimbus#cd68f7a3f42b7a06612c17c234612a2097268d93"
+dependencies = [
+ "async-trait",
+ "cumulus-client-consensus-common",
+ "cumulus-primitives-core",
+ "cumulus-primitives-parachain-inherent",
+ "futures 0.3.14",
+ "log",
+ "nimbus-primitives",
+ "parity-scale-codec",
+ "parking_lot 0.9.0",
+ "polkadot-service",
+ "sc-client-api",
+ "sp-api",
+ "sp-application-crypto",
+ "sp-block-builder",
+ "sp-blockchain",
+ "sp-consensus",
+ "sp-core",
+ "sp-inherents",
+ "sp-keystore",
+ "sp-runtime",
+ "substrate-prometheus-endpoint",
+ "tracing",
 ]
 
 [[package]]
@@ -11523,7 +11527,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04f8ab788026715fa63b31960869617cba39117e520eb415b0139543e325ab59"
 dependencies = [
  "cfg-if 0.1.10",
- "rand 0.6.5",
+ "rand 0.7.3",
  "static_assertions",
 ]
 

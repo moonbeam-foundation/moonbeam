@@ -1093,4 +1093,5 @@ impl_runtime_apis! {
 	}
 }
 
-cumulus_pallet_parachain_system::register_validate_block!(Runtime, Executive);
+// Notice we're using Nimbus's Executive wrapper to pop (and in the future verify) the seal digest.
+cumulus_pallet_parachain_system::register_validate_block!(Runtime, pallet_author_inherent::BlockExecutor<Runtime, Executive>);

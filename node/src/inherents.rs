@@ -49,8 +49,9 @@ pub fn build_inherent_data_providers(
 		.map_err(Into::into)
 		.map_err(sp_consensus::error::Error::InherentData)?;
 
-	// Author ID Provider for authoring node only.
+	// Author ID Provider for use in dev-service authoring nodes only
 	if let Some(account) = author {
+		//TODO move inherent data provider to nimbus primitives
 		providers
 			.register_provider(pallet_author_inherent::InherentDataProvider::<H160>(
 				account,
