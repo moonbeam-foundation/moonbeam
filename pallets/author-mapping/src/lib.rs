@@ -90,14 +90,38 @@ pub mod pallet {
 		}
 	}
 
-	impl<T: Config> FindAuthor<T::AccountId> for Pallet<T> {
+	//TODO EventHandlerWrapper
+	//TODO CanAuthorWrapper
+
+	pub struct FindAuthorWrapper<T, Inner>(PhantomData<(T, Inner)>);
+
+	impl<T, Inner> FindAuthor<T::AccountId> for FindAuthorWrapper<T, Inner>
+	where
+		T: Config,
+		Inner: FindAuthor<T::AuthorId>,
+	{
 		fn find_author<'a, I>(digests: I) -> Option<T::AccountId>
 		where
 			I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
 		{
-			T::InnerFindAuthor::find_author(digests)
+			Inner::find_author(digests)
 				.map(|a| AuthorIds::<T>::get(a))
 				.flatten()
 		}
 	}
+
+	//This is copied from the old v0.3.0 standalone node. I'm trying to do the same thing,
+	// But without the concrete types.
+	// impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F> {
+	// 	fn find_author<'a, I>(digests: I) -> Option<H160>
+	// 	where
+	// 		I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
+	// 	{
+	// 		if let Some(author_index) = F::find_author(digests) {
+	// 			let authority_id = Aura::authorities()[author_index as usize].clone();
+	// 			return Some(H160::from_slice(&authority_id.to_raw_vec()[4..24]));
+	// 		}
+	// 		None
+	// 	}
+	// }
 }

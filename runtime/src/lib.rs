@@ -520,6 +520,11 @@ impl pallet_author_slot_filter::Config for Runtime {
 	type PotentialAuthors = ParachainStaking;
 }
 
+impl pallet_author_mapping::Config for Runtime {
+	type AuthorId = NimbusId;
+	type InnerFindAuthor = AuthorInherent;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
