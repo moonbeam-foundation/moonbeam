@@ -51,7 +51,6 @@ use sp_std::marker::PhantomData;
 
 /// Weight functions needed for parachain_staking.
 pub trait WeightInfo {
-	fn set_inflation() -> Weight;
 	fn join_candidates() -> Weight;
 	fn leave_candidates() -> Weight;
 	fn go_offline() -> Weight;
@@ -68,11 +67,6 @@ pub trait WeightInfo {
 /// Weights for parachain_staking using the Substrate node and recommended hardware.
 pub struct SubstrateWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
-	fn set_inflation() -> Weight {
-		(100_000_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(6 as Weight))
-			.saturating_add(T::DbWeight::get().writes(3 as Weight))
-	}
 	fn join_candidates() -> Weight {
 		(96_000_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(8 as Weight))
@@ -132,11 +126,6 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 
 // For backwards compatibility and tests
 impl WeightInfo for () {
-	fn set_inflation() -> Weight {
-		(100_000_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
-	}
 	fn join_candidates() -> Weight {
 		(96_000_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(8 as Weight))

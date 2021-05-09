@@ -44,7 +44,7 @@ fn create_funded_user<T: Config>(
 }
 
 /// Create a funded collator. Base amount is MinCollatorStk == default_balance but the
-/// last parameter `extra` represents how much additional balance is minted to the collator
+/// last parameter `extra` represents how much additional balance is minted to the collator.
 fn create_funded_collator<T: Config>(
 	string: &'static str,
 	n: u32,
@@ -61,17 +61,6 @@ fn create_funded_collator<T: Config>(
 const USER_SEED: u32 = 999666;
 
 benchmarks! {
-	set_inflation {
-		let inflation_range: Range<Perbill> = Range {
-			min: Perbill::from_perthousand(1),
-			ideal: Perbill::from_perthousand(2),
-			max: Perbill::from_perthousand(3),
-		};
-
-	}: _(RawOrigin::Root, inflation_range)
-	verify {
-	}
-
 	join_candidates {
 		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
 		let min_collator_stk = default_balance::<T>();
@@ -217,13 +206,6 @@ mod tests {
 			.build_storage::<Test>()
 			.unwrap();
 		TestExternalities::new(t)
-	}
-
-	#[test]
-	fn bench_set_inflation() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_set_inflation::<Test>());
-		});
 	}
 
 	#[test]
