@@ -17,39 +17,44 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 //! Benchmarking
-use crate::{Call, Config, Pallet, Range};
+use crate::{BalanceOf, Call, Config, Pallet, Range};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, whitelist_account};
-use frame_support::traits::{Currency, ReservableCurrency};
+use frame_support::traits::{Currency, Get, ReservableCurrency};
 use frame_system::RawOrigin;
 use sp_runtime::Perbill;
 
+/// Default balance amount is minimum collator stake
+fn default_balance<T: Config>() -> BalanceOf<T> {
+	<<T as Config>::MinCollatorStk as Get<BalanceOf<T>>>::get()
+}
+
 /// Create a funded user.
-pub fn create_funded_user<T: Config>(
+fn create_funded_user<T: Config>(
 	string: &'static str,
 	n: u32,
-	balance_factor: u32,
+	extra: BalanceOf<T>,
 ) -> T::AccountId {
 	const SEED: u32 = 0;
 	let user = account(string, n, SEED);
-	let balance = T::Currency::minimum_balance() * balance_factor.into();
-	T::Currency::make_free_balance_be(&user, balance);
-	T::Currency::issue(balance);
+	let default_balance = default_balance::<T>();
+	let total = default_balance + extra;
+	T::Currency::make_free_balance_be(&user, total);
+	T::Currency::issue(total);
 	user
 }
 
-/// Create a funded collator.
-pub fn create_funded_collator<T: Config>(
+/// Create a funded collator. Base amount is MinCollatorStk == default_balance but the
+/// last parameter `extra` represents how much additional balance is minted to the collator
+fn create_funded_collator<T: Config>(
 	string: &'static str,
 	n: u32,
-	balance_factor: u32,
-	bond: u32,
+	extra: BalanceOf<T>,
 ) -> Result<T::AccountId, &'static str> {
-	const SEED: u32 = 0;
-	let user = account(string, n, SEED);
-	let balance = T::Currency::minimum_balance() * balance_factor.into();
-	T::Currency::make_free_balance_be(&user, balance);
-	T::Currency::issue(balance);
-	Pallet::<T>::join_candidates(RawOrigin::Signed(user.clone()).into(), bond.into())?;
+	let user = create_funded_user::<T>(string, n, extra);
+	Pallet::<T>::join_candidates(
+		RawOrigin::Signed(user.clone()).into(),
+		default_balance::<T>(),
+	)?;
 	Ok(user)
 }
 
@@ -68,15 +73,16 @@ benchmarks! {
 	}
 
 	join_candidates {
-		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 100);
+		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
+		let min_collator_stk = default_balance::<T>();
 		whitelist_account!(caller); // TODO: why is this line necessary, copy pasta-ed
-	}: _(RawOrigin::Signed(caller.clone()), 20u32.into())
+	}: _(RawOrigin::Signed(caller.clone()), min_collator_stk)
 	verify {
 		assert!(Pallet::<T>::is_candidate(&caller));
 	}
 
 	leave_candidates {
-		let caller: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, 100, 10)?;
+		let caller: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, 0u32.into())?;
 		whitelist_account!(caller); // TODO: why is this line necessary, copy pasta-ed
 	}: _(RawOrigin::Signed(caller.clone()))
 	verify {
@@ -85,7 +91,7 @@ benchmarks! {
 	}
 
 	go_offline {
-		let caller: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, 100, 10)?;
+		let caller: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, 0u32.into())?;
 		whitelist_account!(caller); // TODO: why is this line necessary, copy pasta-ed
 	}: _(RawOrigin::Signed(caller.clone()))
 	verify {
@@ -93,7 +99,7 @@ benchmarks! {
 	}
 
 	go_online {
-		let caller: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, 100, 10)?;
+		let caller: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, 0u32.into())?;
 		Pallet::<T>::go_offline(RawOrigin::Signed(caller.clone()).into())?;
 		whitelist_account!(caller); // TODO: why is this line necessary, copy pasta-ed
 	}: _(RawOrigin::Signed(caller.clone()))
@@ -102,34 +108,48 @@ benchmarks! {
 	}
 
 	candidate_bond_more {
-		let caller: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, 100, 10)?;
+		let balance = default_balance::<T>();
+		let caller: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, balance)?;
 		whitelist_account!(caller); // TODO: why is this line necessary, copy pasta-ed
-	}: _(RawOrigin::Signed(caller.clone()), 5u32.into())
+	}: _(RawOrigin::Signed(caller.clone()), balance)
 	verify {
-		assert_eq!(T::Currency::reserved_balance(&caller), 15u32.into());
+		let expected_bond = balance * 2u32.into();
+		assert_eq!(T::Currency::reserved_balance(&caller), expected_bond);
 	}
 
 	candidate_bond_less {
-		let caller: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, 100, 20)?;
+		let balance = default_balance::<T>();
+		let caller: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, balance)?;
+		Pallet::<T>::candidate_bond_more(RawOrigin::Signed(caller.clone()).into(), balance)?;
 		whitelist_account!(caller); // TODO: why is this line necessary, copy pasta-ed
-	}: _(RawOrigin::Signed(caller.clone()), 5u32.into())
+	}: _(RawOrigin::Signed(caller.clone()), balance)
 	verify {
-		assert_eq!(T::Currency::reserved_balance(&caller), 15u32.into());
+		assert_eq!(T::Currency::reserved_balance(&caller), balance);
 	}
 
 	nominate {
-		let collator: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, 100, 10)?;
-		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 100);
+		let collator: T::AccountId = create_funded_collator::<T>(
+			"collator",
+			USER_SEED,
+			0u32.into()
+		)?;
+		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
+		let bond = <<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get();
 		whitelist_account!(caller); // TODO: why is this line necessary, copy pasta-ed
-	}: _(RawOrigin::Signed(caller.clone()), collator, 20u32.into())
+	}: _(RawOrigin::Signed(caller.clone()), collator, bond)
 	verify {
 		assert!(Pallet::<T>::is_nominator(&caller));
 	}
 
 	leave_nominators {
-		let collator: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, 100, 10)?;
-		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 100);
-		Pallet::<T>::nominate(RawOrigin::Signed(caller.clone()).into(), collator, 10u32.into())?;
+		let collator: T::AccountId = create_funded_collator::<T>(
+			"collator",
+			USER_SEED,
+			0u32.into()
+		)?;
+		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
+		let bond = <<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get();
+		Pallet::<T>::nominate(RawOrigin::Signed(caller.clone()).into(), collator, bond)?;
 		whitelist_account!(caller); // TODO: why is this line necessary, copy pasta-ed
 	}: _(RawOrigin::Signed(caller.clone()))
 	verify {
@@ -137,9 +157,14 @@ benchmarks! {
 	}
 
 	revoke_nomination {
-		let collator: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, 100, 10)?;
-		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 100);
-		Pallet::<T>::nominate(RawOrigin::Signed(caller.clone()).into(), collator.clone(), 10u32.into())?;
+		let collator: T::AccountId = create_funded_collator::<T>(
+			"collator",
+			USER_SEED,
+			0u32.into()
+		)?;
+		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
+		let bond = <<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get();
+		Pallet::<T>::nominate(RawOrigin::Signed(caller.clone()).into(), collator.clone(), bond)?;
 		whitelist_account!(caller); // TODO: why is this line necessary, copy pasta-ed
 	}: _(RawOrigin::Signed(caller.clone()), collator)
 	verify {
@@ -147,23 +172,36 @@ benchmarks! {
 	}
 
 	nominator_bond_more {
-		let collator: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, 100, 10)?;
-		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 100);
-		Pallet::<T>::nominate(RawOrigin::Signed(caller.clone()).into(), collator.clone(), 10u32.into())?;
+		let collator: T::AccountId = create_funded_collator::<T>(
+			"collator",
+			USER_SEED,
+			0u32.into()
+		)?;
+		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
+		let bond = <<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get();
+		Pallet::<T>::nominate(RawOrigin::Signed(caller.clone()).into(), collator.clone(), bond)?;
 		whitelist_account!(caller); // TODO: why is this line necessary, copy pasta-ed
-	}: _(RawOrigin::Signed(caller.clone()), collator, 10u32.into())
+	}: _(RawOrigin::Signed(caller.clone()), collator, bond)
 	verify {
-		assert_eq!(T::Currency::reserved_balance(&caller), 20u32.into());
+		let expected_bond = bond * 2u32.into();
+		assert_eq!(T::Currency::reserved_balance(&caller), expected_bond);
 	}
 
 	nominator_bond_less {
-		let collator: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, 100, 10)?;
-		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 100);
-		Pallet::<T>::nominate(RawOrigin::Signed(caller.clone()).into(), collator.clone(), 10u32.into())?;
+		let collator: T::AccountId = create_funded_collator::<T>(
+			"collator",
+			USER_SEED,
+			0u32.into()
+		)?;
+		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
+		let total = default_balance::<T>();
+		Pallet::<T>::nominate(RawOrigin::Signed(caller.clone()).into(), collator.clone(), total)?;
+		let bond_less = <<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get();
 		whitelist_account!(caller); // TODO: why is this line necessary, copy pasta-ed
-	}: _(RawOrigin::Signed(caller.clone()), collator, 5u32.into())
+	}: _(RawOrigin::Signed(caller.clone()), collator, bond_less)
 	verify {
-		assert_eq!(T::Currency::reserved_balance(&caller), 5u32.into());
+		let expected = total - bond_less;
+		assert_eq!(T::Currency::reserved_balance(&caller), expected);
 	}
 }
 
