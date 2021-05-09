@@ -765,7 +765,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Join the set of collator candidates
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::join_candidates())]
 		pub fn join_candidates(
 			origin: OriginFor<T>,
 			bond: BalanceOf<T>,
@@ -797,7 +797,7 @@ pub mod pallet {
 		/// Request to leave the set of candidates. If successful, the account is immediately
 		/// removed from the candidate pool to prevent selection as a collator, but unbonding is
 		/// executed with a delay of `BondDuration` rounds.
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::leave_candidates())]
 		pub fn leave_candidates(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
@@ -823,7 +823,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Temporarily leave the set of collator candidates without unbonding
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::go_offline())]
 		pub fn go_offline(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
@@ -842,7 +842,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Rejoin the set of collator candidates if previously had called `go_offline`
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::go_online())]
 		pub fn go_online(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
@@ -866,7 +866,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Bond more for collator candidates
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::candidate_bond_more())]
 		pub fn candidate_bond_more(
 			origin: OriginFor<T>,
 			more: BalanceOf<T>,
@@ -886,7 +886,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Bond less for collator candidates
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::candidate_bond_less())]
 		pub fn candidate_bond_less(
 			origin: OriginFor<T>,
 			less: BalanceOf<T>,
@@ -910,7 +910,7 @@ pub mod pallet {
 		}
 		/// If caller is not a nominator, then join the set of nominators
 		/// If caller is a nominator, then makes nomination to change their nomination state
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::nominate())]
 		pub fn nominate(
 			origin: OriginFor<T>,
 			collator: T::AccountId,
@@ -996,7 +996,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Leave the set of nominators and, by implication, revoke all ongoing nominations
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::leave_nominators())]
 		pub fn leave_nominators(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
 			let nominator = <NominatorState<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
@@ -1008,7 +1008,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Revoke an existing nomination
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::revoke_nomination())]
 		pub fn revoke_nomination(
 			origin: OriginFor<T>,
 			collator: T::AccountId,
@@ -1016,7 +1016,7 @@ pub mod pallet {
 			Self::nominator_revokes_collator(ensure_signed(origin)?, collator)
 		}
 		/// Bond more for nominators with respect to a specific collator candidate
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::nominator_bond_more())]
 		pub fn nominator_bond_more(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
@@ -1045,7 +1045,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Bond less for nominators with respect to a specific nominator candidate
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::nominator_bond_less())]
 		pub fn nominator_bond_less(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
