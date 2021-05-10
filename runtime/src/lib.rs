@@ -30,9 +30,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use fp_rpc::TransactionStatus;
 use frame_support::{
-	construct_runtime,
-	pallet_prelude::PhantomData,
-	parameter_types,
+	construct_runtime, parameter_types,
 	traits::{Get, Randomness},
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 };
@@ -435,13 +433,9 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 	}
 }
 
-pub struct EthereumFindAuthor<F>(PhantomData<F>);
-
 impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
-	//TODO we need to report an H160 to pallet ethereum, but the author inherent is in a crypto specific type
-	// This is another place we need the mapping. For now I'll disable this feature in the evm
-	type FindAuthor = (); //AuthorInherent;
+	type FindAuthor = pallet_author_mapping::MappedFindAuthor<Self, AuthorInherent>;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot;
 }
 
@@ -485,7 +479,6 @@ parameter_types! {
 	pub const MinNominatorStk: u128 = 5 * GLMR;
 }
 impl parachain_staking::Config for Runtime {
-	type AuthorId = NimbusId;
 	type Event = Event;
 	type Currency = Balances;
 	type MinBlocksPerRound = MinBlocksPerRound;
@@ -506,23 +499,23 @@ impl pallet_author_inherent::Config for Runtime {
 	type AuthorId = NimbusId;
 	//TODO I'm also disabling rewards for now. This is another place we need the mapping.
 	type EventHandler = (); //ParachainStaking;
-						// We cannot run the full filtered author checking logic in the preliminary check because it
-						// depends on entropy from the relay chain. Instead we just make sure that the author is staked
-						// in the preliminary check. The final check including filtering happens during block execution.
-	type PreliminaryCanAuthor = ParachainStaking;
-	type FullCanAuthor = AuthorFilter;
+	type PreliminaryCanAuthor = pallet_author_mapping::MappedCanAuthor<Self, ParachainStaking>;
+	type FullCanAuthor = pallet_author_mapping::MappedCanAuthor<Self, AuthorFilter>;
 }
 
 impl pallet_author_slot_filter::Config for Runtime {
-	type AuthorId = NimbusId;
+	// All of our filtering is going to happen in the runtime's accountId type (same as staking.)
+	// Maybe I should remove this associated type entirely
+	type AuthorId = AccountId;
 	type Event = Event;
 	type RandomnessSource = RandomnessCollectiveFlip;
 	type PotentialAuthors = ParachainStaking;
 }
 
+// This is a simple session key manager. It should probably either work with, or be replaced
+// entirely by pallet sessions
 impl pallet_author_mapping::Config for Runtime {
 	type AuthorId = NimbusId;
-	type InnerFindAuthor = AuthorInherent;
 }
 
 construct_runtime! {
@@ -554,6 +547,7 @@ construct_runtime! {
 		// Concretely we need the author inherent to come after the parachain_system inherent.
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent},
 		AuthorFilter: pallet_author_slot_filter::{Pallet, Storage, Event, Config},
+		AuthorMapping: pallet_author_mapping::{Pallet, Config<T>, Storage},
 	}
 }
 
@@ -1071,12 +1065,13 @@ impl_runtime_apis! {
 
 	impl nimbus_primitives::AuthorFilterAPI<Block, NimbusId> for Runtime {
 		fn can_author(author: NimbusId, relay_parent: u32) -> bool {
-			// Rather than referring to the author filter directly here,
+			// TODO Rather than referring to the author filter directly here,
 			// refer to it via the author inherent config. This avoid the possibility
 			// of accidentally using different filters in different places.
 			// This will make more sense when the CanAuthor trait is revised so its method accepts
 			// the slot number. Basically what is currently called the "helper" should be the main method.
-			AuthorFilter::can_author_helper(&author, relay_parent)
+			AuthorMapping::account_id_of(author).map(|account|
+			AuthorFilter::can_author_helper(&account, relay_parent)).unwrap_or(false)
 		}
 	}
 

@@ -35,6 +35,8 @@ pub mod pallet {
 	use frame_support::traits::FindAuthor;
 	use frame_system::pallet_prelude::*;
 	use sp_runtime::ConsensusEngineId;
+	//TODO move this to the primitives crate
+	use pallet_author_inherent::CanAuthor;
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
@@ -44,8 +46,6 @@ pub mod pallet {
 	pub trait Config: frame_system::Config {
 		/// The type of authority id that will be used at the conensus layer.
 		type AuthorId: Member + Parameter + MaybeSerializeDeserialize;
-		/// A source of authorship information in the AuthorId type.
-		type InnerFindAuthor: FindAuthor<Self::AuthorId>;
 	}
 
 	#[pallet::hooks]
@@ -61,9 +61,9 @@ pub mod pallet {
 	}
 
 	#[pallet::storage]
-	#[pallet::getter(fn author_id_of)]
-	/// We maintain a mapping from the AuthorIds used in the runtime (including this staking pallet)
-	/// to the AccountIds used in the consensus layer. Ultimately this should be in some kind of session
+	#[pallet::getter(fn account_id_of)]
+	/// We maintain a mapping from the AuthorIds used in the consensus layer
+	/// to the AccountIds runtime (including this staking pallet). Ultimately this should be in some kind of session
 	/// pallet imo, but for now it goes here.
 	type AuthorIds<T: Config> = StorageMap<_, Twox64Concat, T::AuthorId, T::AccountId, OptionQuery>;
 
@@ -92,10 +92,23 @@ pub mod pallet {
 
 	//TODO EventHandlerWrapper
 	//TODO CanAuthorWrapper
+	pub struct MappedCanAuthor<T, Inner>(PhantomData<(T, Inner)>);
 
-	pub struct FindAuthorWrapper<T, Inner>(PhantomData<(T, Inner)>);
+	impl<T, Inner> CanAuthor<T::AuthorId> for MappedCanAuthor<T, Inner>
+	where
+		T: Config,
+		Inner: CanAuthor<T::AccountId>,
+	{
+		fn can_author(author_id: &T::AuthorId) -> bool {
+			AuthorIds::<T>::get(author_id)
+				.map(|account_id| Inner::can_author(&account_id))
+				.unwrap_or(false)
+		}
+	}
 
-	impl<T, Inner> FindAuthor<T::AccountId> for FindAuthorWrapper<T, Inner>
+	pub struct MappedFindAuthor<T, Inner>(PhantomData<(T, Inner)>);
+
+	impl<T, Inner> FindAuthor<T::AccountId> for MappedFindAuthor<T, Inner>
 	where
 		T: Config,
 		Inner: FindAuthor<T::AuthorId>,
