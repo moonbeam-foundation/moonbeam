@@ -36,7 +36,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use sp_runtime::ConsensusEngineId;
 	//TODO move this to the primitives crate
-	use pallet_author_inherent::CanAuthor;
+	use pallet_author_inherent::{CanAuthor, EventHandler};
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
@@ -90,8 +90,18 @@ pub mod pallet {
 		}
 	}
 
-	//TODO EventHandlerWrapper
-	//TODO CanAuthorWrapper
+	pub struct MappedEventHandler<T, Inner>(PhantomData<(T, Inner)>);
+
+	impl<T, Inner> EventHandler<T::AuthorId> for MappedEventHandler<T, Inner>
+	where
+		T: Config,
+		Inner: EventHandler<T::AccountId>,
+	{
+		fn note_author(author_id: T::AuthorId) {
+			AuthorIds::<T>::get(&author_id).map(|account_id| Inner::note_author(account_id));
+		}
+	}
+
 	pub struct MappedCanAuthor<T, Inner>(PhantomData<(T, Inner)>);
 
 	impl<T, Inner> CanAuthor<T::AuthorId> for MappedCanAuthor<T, Inner>

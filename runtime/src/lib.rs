@@ -496,9 +496,9 @@ impl parachain_staking::Config for Runtime {
 }
 
 impl pallet_author_inherent::Config for Runtime {
+	//TODO Okay, wow, this is making me think the mapping should just happen in the author inherent pallet
 	type AuthorId = NimbusId;
-	//TODO I'm also disabling rewards for now. This is another place we need the mapping.
-	type EventHandler = (); //ParachainStaking;
+	type EventHandler = pallet_author_mapping::MappedEventHandler<Self, ParachainStaking>;
 	type PreliminaryCanAuthor = pallet_author_mapping::MappedCanAuthor<Self, ParachainStaking>;
 	type FullCanAuthor = pallet_author_mapping::MappedCanAuthor<Self, AuthorFilter>;
 }
