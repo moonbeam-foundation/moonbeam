@@ -317,10 +317,13 @@ pub fn testnet_genesis(
 				.map(|staker| {
 					let author_id = get_from_seed::<NimbusId>("Alice");
 					let account_id = staker.0;
-					println!(
-						"Initializing author -> account mapping: ({:?}, {:?})",
-						author_id, account_id
-					);
+					// This println was for debugging. It confirmed that I mapped Alice's session key to Gerald's account ID
+					// Initializing author -> account mapping: (Public(d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d (5GrwvaEF...)), 0x6be02d1d3665660d22ff9624b7be0551ee1ac91b)
+					// Now I'm disabling it because it also showed up in my parachain genesis state file
+					// println!(
+					// 	"Initializing author -> account mapping: ({:?}, {:?})",
+					// 	author_id, account_id
+					// );
 					(author_id, account_id)
 				})
 				.collect(),
