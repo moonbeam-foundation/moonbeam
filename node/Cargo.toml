@@ -74,7 +74,7 @@ pallet-transaction-payment-rpc = { git = "https://github.com/paritytech/substrat
 sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
 sc-consensus-manual-seal = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
 
-evm = { package = "pallet-evm", git = "https://github.com/purestake/frontier", branch = "jeremy-runner-evm-hook" }
+evm = { package = "pallet-evm", git = "https://github.com/purestake/frontier", branch = "jeremy-runner-evm-hook", features = ["hook"] }
 ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "jeremy-runner-evm-hook" }
 
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "jeremy-runner-evm-hook" }

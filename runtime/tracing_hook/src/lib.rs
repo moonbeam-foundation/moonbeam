@@ -73,8 +73,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use evm::{
-	executor::{Hook, StackExecutor, StackState},
-	ExitReason, Opcode, Runtime,
+	executor::{Hook, HookSite, StackExecutor, StackState},
+	Config, ExitReason, Opcode, Runtime,
 };
 use moonbeam_rpc_primitives_debug::single::TransactionTrace;
 use sp_std::vec::Vec;
@@ -111,53 +111,16 @@ enum TracingHookInner {
 }
 
 impl Hook for TracingHook {
-	/// Called before the execution of a context.
-	fn before_loop<'config, S: StackState<'config>, H: Hook>(
+	fn hook<'config, S: StackState<'config>>(
 		&mut self,
-		executor: &StackExecutor<'config, S, H>,
+		site: HookSite,
+		config: &'config Config,
+		state: &S,
 		runtime: &Runtime,
 	) {
 		match &mut self.0 {
-			TracingHookInner::Raw(state) => state.before_loop(executor, runtime),
-			TracingHookInner::CallList(state) => state.before_loop(executor, runtime),
-		}
-	}
-
-	/// Called before each step.
-	fn before_step<'config, S: StackState<'config>, H: Hook>(
-		&mut self,
-		executor: &StackExecutor<'config, S, H>,
-		runtime: &Runtime,
-	) {
-		match &mut self.0 {
-			TracingHookInner::Raw(state) => state.before_step(executor, runtime),
-			TracingHookInner::CallList(state) => state.before_step(executor, runtime),
-		}
-	}
-
-	/// Called after each step. Will not be called if runtime exited
-	/// from the loop.
-	fn after_step<'config, S: StackState<'config>, H: Hook>(
-		&mut self,
-		executor: &StackExecutor<'config, S, H>,
-		runtime: &Runtime,
-	) {
-		match &mut self.0 {
-			TracingHookInner::Raw(state) => state.after_step(executor, runtime),
-			TracingHookInner::CallList(state) => state.after_step(executor, runtime),
-		}
-	}
-
-	/// Called after the execution of a context.
-	fn after_loop<'config, S: StackState<'config>, H: Hook>(
-		&mut self,
-		executor: &StackExecutor<'config, S, H>,
-		runtime: &Runtime,
-		reason: &ExitReason,
-	) {
-		match &mut self.0 {
-			TracingHookInner::Raw(state) => state.after_loop(executor, runtime, reason),
-			TracingHookInner::CallList(state) => state.after_loop(executor, runtime, reason),
+			TracingHookInner::Raw(inner) => inner.hook(site, config, state, runtime),
+			TracingHookInner::CallList(inner) => inner.hook(site, config, state, runtime),
 		}
 	}
 }

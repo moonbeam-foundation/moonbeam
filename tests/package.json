@@ -35,7 +35,7 @@
     "watch": "npm-watch",
     "build": "cargo build --release",
     "non-ci-test": "mocha -r ts-node/register 'non_ci_tests/**/test-*.ts'",
-    "test-single": "mocha -r ts-node/register 'tests/test-contract-methods.ts'"
+    "test-single": "mocha -r ts-node/register 'tests/test-trace-filter-reorg.ts'"
   },
   "author": "",
   "license": "ISC",

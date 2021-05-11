@@ -61,6 +61,23 @@ struct BeforeStep {
 	stack: Option<Vec<H256>>,
 }
 
+impl Hook for State {
+	fn hook<'config, S: StackState<'config>>(
+		&mut self,
+		site: HookSite,
+		config: &'config Config,
+		state: &S,
+		runtime: &Runtime,
+	) {
+		match site {
+			HookSite::EnterContext => self.before_loop(config, state, runtime),
+			HookSite::ExitContext(reason) => self.after_loop(config, state, runtime, reason),
+			HookSite::BeforeStep => self.before_step(config, state, runtime),
+			HookSite::AfterStep => self.after_step(config, state, runtime),
+		}
+	}
+}
+
 impl State {
 	pub fn new(disable_storage: bool, disable_memory: bool, disable_stack: bool) -> Self {
 		Self {
@@ -78,9 +95,10 @@ impl State {
 	}
 
 	/// Called before the execution of a context.
-	pub fn before_loop<'config, S: StackState<'config>, H: Hook>(
+	pub fn before_loop<'config, S: StackState<'config>>(
 		&mut self,
-		_executor: &StackExecutor<'config, S, H>,
+		_config: &Config,
+		_state: &S,
 		runtime: &Runtime,
 	) {
 		self.depth += 1;
@@ -92,34 +110,35 @@ impl State {
 	}
 
 	/// Called before each step.
-	pub fn before_step<'config, S: StackState<'config>, H: Hook>(
+	pub fn before_step<'config, S: StackState<'config>>(
 		&mut self,
-		executor: &StackExecutor<'config, S, H>,
+		_config: &Config,
+		state: &S,
 		runtime: &Runtime,
 	) {
 		if let Some((opcode, stack)) = runtime.machine().inspect() {
 			// Get all data.
-			let depth = executor.state().metadata().depth().unwrap_or_default() + 1;
-			let gas = executor.gas();
+			let depth = state.metadata().depth().unwrap_or_default() + 1;
+			let gas = state.metadata().gasometer().gas();
 			let gas_cost = match gasometer::static_opcode_cost(opcode) {
 				Some(cost) => cost,
 				_ => {
-					match gasometer::dynamic_opcode_cost(
-						runtime.context().address,
-						opcode,
-						stack,
-						executor.state().metadata().is_static(),
-						executor.config(),
-						executor,
-					) {
-						Ok((opcode_cost, _)) => executor
-							.state()
-							.metadata()
-							.gasometer()
-							.gas_cost(opcode_cost, gas)
-							.unwrap_or(0),
-						Err(_) => 0,
-					}
+					// match gasometer::dynamic_opcode_cost(
+					// 	runtime.context().address,
+					// 	opcode,
+					// 	stack,
+					// 	state.metadata().is_static(),
+					// 	config,
+					// 	executor,
+					// ) {
+					// 	Ok((opcode_cost, _)) => state
+					// 		.metadata()
+					// 		.gasometer()
+					// 		.gas_cost(opcode_cost, gas)
+					// 		.unwrap_or(0),
+					// 	Err(_) => 0,
+					// }
+					todo!("calculate dynamic opcode cost without the executor")
 				}
 			};
 
@@ -167,9 +186,10 @@ impl State {
 
 	/// Called after each step. Will not be called if runtime exited
 	/// from the loop.
-	pub fn after_step<'config, S: StackState<'config>, H: Hook>(
+	pub fn after_step<'config, S: StackState<'config>>(
 		&mut self,
-		executor: &StackExecutor<'config, S, H>,
+		config: &Config,
+		state: &S,
 		_runtime: &Runtime,
 	) {
 		let context = self
@@ -182,15 +202,16 @@ impl State {
 			.take()
 			.expect("after_step is called after before_step");
 
-		self.end_step(executor, before_step);
+		self.end_step(config, state, before_step);
 	}
 
 	/// Called after the execution of a context.
-	pub fn after_loop<'config, S: StackState<'config>, H: Hook>(
+	pub fn after_loop<'config, S: StackState<'config>>(
 		&mut self,
-		executor: &StackExecutor<'config, S, H>,
+		config: &Config,
+		state: &S,
 		runtime: &Runtime,
-		reason: &ExitReason,
+		reason: ExitReason,
 	) {
 		self.depth -= 1;
 		let context = self
@@ -201,9 +222,9 @@ impl State {
 		// If we're exiting the root scope, we store the final gas
 		// and result.
 		if self.depth == 0 {
-			self.final_gas = executor.gas();
+			self.final_gas = state.metadata().gasometer().gas();
 
-			if &ExitReason::Succeed(ExitSucceed::Returned) == reason {
+			if &ExitReason::Succeed(ExitSucceed::Returned) == &reason {
 				self.return_value = runtime.machine().return_value();
 			}
 		}
@@ -212,16 +233,17 @@ impl State {
 		// step data is still here, and we need to process it
 		// now.
 		if let Some(before_step) = context.before_step.take() {
-			self.end_step(executor, before_step);
+			self.end_step(config, state, before_step);
 		}
 
 		// We pop the last context as we're exiting it.
 		let _ = self.context_stack.pop();
 	}
 
-	fn end_step<'config, S: StackState<'config>, H: Hook>(
+	fn end_step<'config, S: StackState<'config>>(
 		&mut self,
-		executor: &StackExecutor<'config, S, H>,
+		config: &Config,
+		state: &S,
 		before_step: BeforeStep,
 	) {
 		let context = self
@@ -244,13 +266,13 @@ impl State {
 		if let Some(key) = storage_key {
 			let _ = context
 				.storage_cache
-				.insert(key, executor.storage(context.address, key));
+				.insert(key, state.storage(context.address, key));
 		}
 		// Call opcodes can indirectly change the storage values
 		// in subcalls.
 		else if rescan_storage_opcode(opcode) {
 			for (key, value) in context.storage_cache.iter_mut() {
-				*value = executor.storage(context.address, *key);
+				*value = state.storage(context.address, *key);
 			}
 		}
 

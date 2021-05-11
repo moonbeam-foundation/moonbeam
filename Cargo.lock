@@ -1764,7 +1764,7 @@ checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
 [[package]]
 name = "evm"
 version = "0.26.0"
-source = "git+https://github.com/PureStake/evm?branch=jeremy-evm-hook#5d62b40b6b8ba8072a9f786d1cca44b5e231d414"
+source = "git+https://github.com/PureStake/evm?branch=jeremy-evm-hook#a7eb24c29d07a8a441e6b3881230a96a3f30e835"
 dependencies = [
  "ethereum 0.7.1",
  "evm-core",
@@ -1781,7 +1781,7 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.26.0"
-source = "git+https://github.com/PureStake/evm?branch=jeremy-evm-hook#5d62b40b6b8ba8072a9f786d1cca44b5e231d414"
+source = "git+https://github.com/PureStake/evm?branch=jeremy-evm-hook#a7eb24c29d07a8a441e6b3881230a96a3f30e835"
 dependencies = [
  "funty",
  "parity-scale-codec",
@@ -1792,7 +1792,7 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.26.0"
-source = "git+https://github.com/PureStake/evm?branch=jeremy-evm-hook#5d62b40b6b8ba8072a9f786d1cca44b5e231d414"
+source = "git+https://github.com/PureStake/evm?branch=jeremy-evm-hook#a7eb24c29d07a8a441e6b3881230a96a3f30e835"
 dependencies = [
  "evm-core",
  "evm-runtime",
@@ -1802,7 +1802,7 @@ dependencies = [
 [[package]]
 name = "evm-runtime"
 version = "0.26.0"
-source = "git+https://github.com/PureStake/evm?branch=jeremy-evm-hook#5d62b40b6b8ba8072a9f786d1cca44b5e231d414"
+source = "git+https://github.com/PureStake/evm?branch=jeremy-evm-hook#a7eb24c29d07a8a441e6b3881230a96a3f30e835"
 dependencies = [
  "evm-core",
  "primitive-types",
@@ -1874,7 +1874,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#b49778cc0d1c6ffc4a5c03952348f6e75c803076"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
 dependencies = [
  "derive_more",
  "fc-db",
@@ -1898,7 +1898,7 @@ dependencies = [
 [[package]]
 name = "fc-db"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#b49778cc0d1c6ffc4a5c03952348f6e75c803076"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
 dependencies = [
  "kvdb",
  "kvdb-rocksdb",
@@ -1912,7 +1912,7 @@ dependencies = [
 [[package]]
 name = "fc-mapping-sync"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#b49778cc0d1c6ffc4a5c03952348f6e75c803076"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
 dependencies = [
  "fc-consensus",
  "fc-db",
@@ -1930,7 +1930,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#b49778cc0d1c6ffc4a5c03952348f6e75c803076"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
 dependencies = [
  "ethereum 0.7.1",
  "ethereum-types",
@@ -1972,7 +1972,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#b49778cc0d1c6ffc4a5c03952348f6e75c803076"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
 dependencies = [
  "ethereum-types",
  "jsonrpc-core 15.1.0",
@@ -2076,7 +2076,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#b49778cc0d1c6ffc4a5c03952348f6e75c803076"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
 dependencies = [
  "ethereum 0.7.1",
  "parity-scale-codec",
@@ -2090,7 +2090,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "0.8.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#b49778cc0d1c6ffc4a5c03952348f6e75c803076"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
 dependencies = [
  "evm",
  "impl-trait-for-tuples 0.1.3",
@@ -2103,7 +2103,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#b49778cc0d1c6ffc4a5c03952348f6e75c803076"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
 dependencies = [
  "ethereum 0.7.1",
  "ethereum-types",
@@ -2119,7 +2119,7 @@ dependencies = [
 [[package]]
 name = "fp-storage"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#b49778cc0d1c6ffc4a5c03952348f6e75c803076"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
 dependencies = [
  "ethereum 0.7.1",
  "ethereum-types",
@@ -5205,7 +5205,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#b49778cc0d1c6ffc4a5c03952348f6e75c803076"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
 dependencies = [
  "ethereum 0.7.1",
  "ethereum-types",
@@ -5243,7 +5243,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#b49778cc0d1c6ffc4a5c03952348f6e75c803076"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
 dependencies = [
  "evm",
  "evm-gasometer",
@@ -5271,7 +5271,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-bn128"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#b49778cc0d1c6ffc4a5c03952348f6e75c803076"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
 dependencies = [
  "evm",
  "fp-evm",
@@ -5283,7 +5283,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#b49778cc0d1c6ffc4a5c03952348f6e75c803076"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
 dependencies = [
  "evm",
  "fp-evm",
@@ -5297,7 +5297,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#b49778cc0d1c6ffc4a5c03952348f6e75c803076"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
 dependencies = [
  "evm",
  "fp-evm",
@@ -5309,7 +5309,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#b49778cc0d1c6ffc4a5c03952348f6e75c803076"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
 dependencies = [
  "evm",
  "fp-evm",
@@ -5321,7 +5321,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#b49778cc0d1c6ffc4a5c03952348f6e75c803076"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
 dependencies = [
  "evm",
  "fp-evm",

@@ -53,6 +53,23 @@ enum ContextType {
 	Create,
 }
 
+impl Hook for State {
+	fn hook<'config, S: StackState<'config>>(
+		&mut self,
+		site: HookSite,
+		config: &'config Config,
+		state: &S,
+		runtime: &Runtime,
+	) {
+		match site {
+			HookSite::EnterContext => self.before_loop(config, state, runtime),
+			HookSite::ExitContext(reason) => self.after_loop(config, state, runtime, reason),
+			HookSite::BeforeStep => self.before_step(config, state, runtime),
+			HookSite::AfterStep => self.after_step(config, state, runtime),
+		}
+	}
+}
+
 impl State {
 	pub fn new() -> Self {
 		Self {
@@ -65,16 +82,17 @@ impl State {
 	}
 
 	/// Called before the execution of a context.
-	pub fn before_loop<'config, S: StackState<'config>, H: Hook>(
+	pub fn before_loop<'config, S: StackState<'config>>(
 		&mut self,
-		executor: &StackExecutor<'config, S, H>,
+		config: &Config,
+		state: &S,
 		runtime: &Runtime,
 	) {
 		let context_type = self.next_context_type.take().unwrap_or_else(|| {
 			// This will be reached only in the first context entry/root context.
 			// We can know if we're in a Call or a Create by looking at the
 			// "to" codesize. Inside a Create, this size will be 0.
-			if executor.code_size(runtime.context().address) == 0.into() {
+			if state.code(runtime.context().address).is_empty() {
 				ContextType::Create
 			} else {
 				ContextType::Call(CallType::Call)
@@ -86,7 +104,7 @@ impl State {
 			ContextType::Call(_) => gasometer::call_transaction_cost(runtime.machine().data()),
 		};
 
-		let transaction_cost = real_transaction_cost(executor.config(), transaction_cost);
+		let transaction_cost = real_transaction_cost(config, transaction_cost);
 
 		self.trace_address.push(0);
 
@@ -96,7 +114,7 @@ impl State {
 			from: runtime.context().caller,
 			to: runtime.context().address,
 			value: runtime.context().apparent_value,
-			gas_at_start: executor.gas() + transaction_cost,
+			gas_at_start: state.metadata().gasometer().gas() + transaction_cost,
 
 			input: runtime.machine().data().to_vec(),
 			subcall_step: false,
@@ -107,9 +125,10 @@ impl State {
 	}
 
 	/// Called before each step.
-	pub fn before_step<'config, S: StackState<'config>, H: Hook>(
+	pub fn before_step<'config, S: StackState<'config>>(
 		&mut self,
-		executor: &StackExecutor<'config, S, H>,
+		config: &Config,
+		state: &S,
 		runtime: &Runtime,
 	) {
 		let context = self
@@ -137,16 +156,18 @@ impl State {
 				context.suicide_send = stack
 					.get(stack.len() - 1)
 					.cloned()
-					.map(|v| (H160::from(v), executor.balance(runtime.context().address)));
+					.map(|v| H160::from(v))
+					.map(|v| (v, state.basic(v).balance));
 			}
 		}
 	}
 
 	/// Called after each step. Will not be called if runtime exited
 	/// from the loop.
-	pub fn after_step<'config, S: StackState<'config>, H: Hook>(
+	pub fn after_step<'config, S: StackState<'config>>(
 		&mut self,
-		_executor: &StackExecutor<'config, S, H>,
+		_config: &Config,
+		_state: &S,
 		_runtime: &Runtime,
 	) {
 		let context = self
@@ -160,11 +181,12 @@ impl State {
 	}
 
 	/// Called after the execution of a context.
-	pub fn after_loop<'config, S: StackState<'config>, H: Hook>(
+	pub fn after_loop<'config, S: StackState<'config>>(
 		&mut self,
-		executor: &StackExecutor<'config, S, H>,
+		_config: &Config,
+		state: &S,
 		runtime: &Runtime,
-		reason: &ExitReason,
+		reason: ExitReason,
 	) {
 		let context = self
 			.context_stack
@@ -172,7 +194,7 @@ impl State {
 			.expect("after_loop called after after_step");
 
 		// Compute used gas.
-		let gas_at_end = executor.gas();
+		let gas_at_end = state.metadata().gasometer().gas();
 		let gas_used = context.gas_at_start - gas_at_end;
 
 		// Handle suicide additional entry.
@@ -232,7 +254,7 @@ impl State {
 				}
 				ContextType::Create => {
 					// let offset = runtine.machine().stack().data();
-					let contract_code = executor.code(context.to);
+					let contract_code = state.code(context.to);
 
 					let res = match &reason {
 						ExitReason::Succeed(_) => CreateResult::Success {

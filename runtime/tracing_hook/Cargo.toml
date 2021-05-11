@@ -9,7 +9,7 @@ repository = 'https://github.com/PureStake/moonbeam/'
 
 [dependencies]
 fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "jeremy-runner-evm-hook" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "jeremy-runner-evm-hook" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "jeremy-runner-evm-hook", features = ["hook"] }
 evm = { git = "https://github.com/PureStake/evm", branch = "jeremy-evm-hook", default-features = false, features = ["with-codec"] }
 evm-core = { git = "https://github.com/PureStake/evm", branch = "jeremy-evm-hook", default-features = false, features = ["with-codec"] }
 sp-core = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1" }
