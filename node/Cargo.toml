@@ -36,6 +36,7 @@ tokio = { version = "0.2.13", features = ["macros", "sync"] }
 moonbeam-runtime = { path = "../runtime" }
 moonbeam-rpc-txpool = { path = "../client/rpc/txpool" }
 moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool" }
+moonbeam-primitives-ext = { path = "../primitives/ext" }
 moonbeam-rpc-debug = { path = "../client/rpc/debug" }
 moonbeam-rpc-primitives-debug = { path = "../primitives/rpc/debug" }
 moonbeam-rpc-trace = { path = "../client/rpc/trace" }

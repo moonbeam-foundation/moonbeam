@@ -1,0 +1,19 @@
+[package]
+name = "moonbeam-primitives-ext"
+version = '0.1.0'
+authors = ['PureStake']
+edition = '2018'
+homepage = 'https://moonbeam.network'
+license = 'GPL-3.0-only'
+repository = 'https://github.com/PureStake/moonbeam/'
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+sp-runtime-interface = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1",default-features = false }
+
+[features]
+default = ["std"]
+std = [
+	"sp-runtime-interface/std",
+]

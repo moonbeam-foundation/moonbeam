@@ -65,7 +65,8 @@ native_executor_instance!(
 	pub Executor,
 	moonbeam_runtime::api::dispatch,
 	moonbeam_runtime::native_version,
-	frame_benchmarking::benchmarking::HostFunctions,
+	// Make the executor aware of the custom host functions.
+	(frame_benchmarking::benchmarking::HostFunctions, moonbeam_primitives_ext::moonbeam_ext::HostFunctions),
 );
 use sc_telemetry::{Telemetry, TelemetryWorker, TelemetryWorkerHandle};
 

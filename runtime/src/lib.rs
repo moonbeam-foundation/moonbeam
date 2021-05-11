@@ -918,6 +918,8 @@ impl_runtime_apis! {
 
 	impl fp_rpc::EthereumRuntimeRPCApi<Block> for Runtime {
 		fn chain_id() -> u64 {
+			// Just find some place in the runtime to call it.
+			moonbeam_primitives_ext::moonbeam_ext::foo();
 			<Runtime as pallet_evm::Config>::ChainId::get()
 		}
 
