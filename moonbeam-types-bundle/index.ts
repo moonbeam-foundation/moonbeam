@@ -140,7 +140,7 @@ export const moonbeamDefinitions = {
       },
     },
     {
-      minmax: [19, undefined],
+      minmax: [19, 35],
       types: {
         AccountId: "EthereumAccountId",
         AccountInfo: "AccountInfoWithTripleRefCount",
