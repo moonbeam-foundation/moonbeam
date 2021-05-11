@@ -16,7 +16,7 @@ describeDevMoonbeam("Resubmit transations", (context) => {
       const transactions = [
         await createTransfer(context.web3, testAccount, 1, optionsLowGas),
         await createTransfer(context.web3, testAccount, 2, optionsHighGas),
-      ],
+      ];
       await context.createBlock({ transactions });
 
       expect(await context.web3.eth.getBalance(testAccount, 1)).to.equal(
