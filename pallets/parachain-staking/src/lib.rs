@@ -367,6 +367,39 @@ pub mod pallet {
 		}
 	}
 
+	#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, Default)]
+	/// Total collator candidates (NOT active collators, for this see TotalSelected storage item)
+	pub struct CollatorCount {
+		pub candidate_count: u32,
+		pub max_collator_candidates: u32,
+	}
+
+	impl CollatorCount {
+		pub fn new(candidate_count: u32, max_collator_candidates: u32) -> Self {
+			CollatorCount {
+				candidate_count,
+				max_collator_candidates,
+			}
+		}
+
+		pub fn can_increment(&self) -> bool {
+			self.candidate_count < self.max_collator_candidates
+				|| self.max_collator_candidates == 0u32
+		}
+
+		pub fn increment<T: Config>(&mut self) {
+			if self.max_collator_candidates == 0u32 {
+				// initialize if not initialized in genesis build => is 0u32 by default
+				self.max_collator_candidates = T::MaxCollatorCandidates::get();
+			}
+			self.candidate_count += 1u32;
+		}
+
+		pub fn decrement(&mut self) {
+			self.candidate_count -= 1u32;
+		}
+	}
+
 	type RoundIndex = u32;
 	type RewardPoint = u32;
 	pub type BalanceOf<T> =
@@ -422,7 +455,7 @@ pub mod pallet {
 		AlreadyLeaving,
 		TooManyNominators,
 		CannotActivateIfLeaving,
-		MaxCandidates,
+		ExceedsMaxCollatorCandidates,
 		ExceedMaxCollatorsPerNom,
 		AlreadyNominatedCollator,
 		NominationDNE,
@@ -565,7 +598,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn candidate_count)]
 	/// Total number of collator candidates, TODO: replace with OrderedSet + BoundedVec instead
-	type CandidateCount<T: Config> = StorageValue<_, u32, ValueQuery>;
+	type CandidateCount<T: Config> = StorageValue<_, CollatorCount, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn exit_queue)]
@@ -634,6 +667,8 @@ pub mod pallet {
 	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
 			<InflationConfig<T>>::put(self.inflation_config.clone());
+			// Set initial collator candidate count
+			<CandidateCount<T>>::put(CollatorCount::new(0u32, T::MaxCollatorCandidates::get()));
 			for &(ref actor, ref opt_val, balance) in &self.stakers {
 				assert!(
 					T::Currency::free_balance(&actor) >= balance,
@@ -793,15 +828,16 @@ pub mod pallet {
 				}),
 				Error::<T>::CandidateExists
 			);
-			let new_candidate_count = <CandidateCount<T>>::get() + 1u32;
+			let mut count = <CandidateCount<T>>::get();
 			ensure!(
-				new_candidate_count <= T::MaxCollatorCandidates::get(),
-				Error::<T>::MaxCandidates
+				count.can_increment(), // count.candidate_count < count.max_collator_candidates
+				Error::<T>::ExceedsMaxCollatorCandidates
 			);
+			count.increment::<T>();
 			T::Currency::reserve(&acc, bond)?;
 			let new_total = <Total<T>>::get() + bond;
 			<Total<T>>::put(new_total);
-			<CandidateCount<T>>::put(new_candidate_count);
+			<CandidateCount<T>>::put(count);
 			<CollatorState<T>>::insert(&acc, Collator::new(acc.clone(), bond));
 			<CandidatePool<T>>::put(candidates);
 			Self::deposit_event(Event::JoinedCollatorCandidates(acc, bond, new_total));
@@ -1272,9 +1308,11 @@ pub mod pallet {
 							}
 							// return stake to collator
 							T::Currency::unreserve(&state.id, state.bond);
-							<CandidateCount<T>>::mutate(|x| *x -= 1u32);
+							let mut new_count = <CandidateCount<T>>::get();
+							new_count.decrement();
 							let new_total = <Total<T>>::get() - state.total;
 							<Total<T>>::put(new_total);
+							<CandidateCount<T>>::put(new_count);
 							<CollatorState<T>>::remove(&x.owner);
 							Self::deposit_event(Event::CollatorLeft(
 								x.owner,

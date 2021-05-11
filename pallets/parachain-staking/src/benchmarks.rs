@@ -74,20 +74,23 @@ const USER_SEED: u32 = 999666;
 
 benchmarks! {
 	join_candidates {
-		// Worst Case Complexity is insertion into an ordered list so \exists ordered list prior
-		// to join_candidates call
-		for i in 2..<<T as Config>::MaxCollatorCandidates as Get<u32>>::get() {
-			let seed = USER_SEED - i;
-			let collator = create_funded_collator::<T>("collator", seed, 0u32.into())?;
-			whitelist_account!(collator);
-		}
-		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED + 1, 0u32.into());
+		// Worst Case Complexity is insertion into an ordered list so \exists full list before call
+		// for i in 2..<<T as Config>::MaxCollatorCandidates as Get<u32>>::get() {
+		// 	let seed = USER_SEED - i;
+		// 	let collator = create_funded_collator::<T>("collator", seed, 0u32.into())?;
+		// 	whitelist_account!(collator);
+		// }
+		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
 		whitelist_account!(caller);
 	}: _(RawOrigin::Signed(caller.clone()), default_balance::<T>())
 	verify {
 		assert!(Pallet::<T>::is_candidate(&caller));
 	}
 
+	// Right now, the delay is messing with things
+	// -> rewrite it as `force_leave_candidates` and `leave_candidates` such that
+	// `leave_candidates` calls `force_leave_candidates` but with an N-round delay and
+	// `force_leave_candidates` is only open to root
 	leave_candidates {
 		let caller: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, 0u32.into())?;
 		// fill up collator with max nominations for worst complexity upon exit
