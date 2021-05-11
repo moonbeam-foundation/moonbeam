@@ -13,7 +13,7 @@ rustc-hex = { version = "2.0.1", default-features = false }
 
 codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
-evm = { git = "https://github.com/PureStake/evm", branch = "jeremy-evm-hook", default-features = false, features = ["with-codec"] }
+evm = { version = "0.26.0", default-features = false, features = ["with-codec"] }
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
