@@ -160,6 +160,10 @@ pub struct RunCmd {
 	/// discarded.
 	#[structopt(long, default_value = "300")]
 	pub ethapi_trace_cache_duration: u64,
+
+	/// Maximum number of logs in a query.
+	#[structopt(long, default_value = "10000")]
+	pub max_past_logs: u32,
 }
 
 fn parse_h160(input: &str) -> Result<H160, String> {
