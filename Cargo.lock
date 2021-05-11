@@ -4614,7 +4614,6 @@ dependencies = [
  "sc-service",
  "sc-telemetry",
  "sc-tracing",
- "sc-transaction-graph",
  "sc-transaction-pool",
  "serde",
  "serde_json",

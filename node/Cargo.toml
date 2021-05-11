@@ -58,7 +58,6 @@ sc-transaction-pool = { git = "https://github.com/paritytech/substrate", branch 
 sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
 sc-network = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
 sc-basic-authorship = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
-sc-transaction-graph = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
 sp-timestamp = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
 sp-trie = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
 sc-finality-grandpa = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
