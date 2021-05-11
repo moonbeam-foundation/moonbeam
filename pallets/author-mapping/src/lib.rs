@@ -63,8 +63,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn account_id_of)]
 	/// We maintain a mapping from the AuthorIds used in the consensus layer
-	/// to the AccountIds runtime (including this staking pallet). Ultimately this should be in some kind of session
-	/// pallet imo, but for now it goes here.
+	/// to the AccountIds runtime (including this staking pallet).
 	type AuthorIds<T: Config> = StorageMap<_, Twox64Concat, T::AuthorId, T::AccountId, OptionQuery>;
 
 	#[pallet::genesis_config]
@@ -132,19 +131,4 @@ pub mod pallet {
 				.flatten()
 		}
 	}
-
-	//This is copied from the old v0.3.0 standalone node. I'm trying to do the same thing,
-	// But without the concrete types.
-	// impl<F: FindAuthor<u32>> FindAuthor<H160> for EthereumFindAuthor<F> {
-	// 	fn find_author<'a, I>(digests: I) -> Option<H160>
-	// 	where
-	// 		I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
-	// 	{
-	// 		if let Some(author_index) = F::find_author(digests) {
-	// 			let authority_id = Aura::authorities()[author_index as usize].clone();
-	// 			return Some(H160::from_slice(&authority_id.to_raw_vec()[4..24]));
-	// 		}
-	// 		None
-	// 	}
-	// }
 }
