@@ -75,11 +75,11 @@ const USER_SEED: u32 = 999666;
 benchmarks! {
 	join_candidates {
 		// Worst Case Complexity is insertion into an ordered list so \exists full list before call
-		// for i in 2..<<T as Config>::MaxCollatorCandidates as Get<u32>>::get() {
-		// 	let seed = USER_SEED - i;
-		// 	let collator = create_funded_collator::<T>("collator", seed, 0u32.into())?;
-		// 	whitelist_account!(collator);
-		// }
+		for i in 2..<<T as Config>::MaxCollatorCandidates as Get<u32>>::get() {
+			let seed = USER_SEED - i;
+			let collator = create_funded_collator::<T>("collator", seed, 0u32.into())?;
+			whitelist_account!(collator);
+		}
 		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
 		whitelist_account!(caller);
 	}: _(RawOrigin::Signed(caller.clone()), default_balance::<T>())
