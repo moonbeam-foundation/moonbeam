@@ -1,5 +1,4 @@
 (function() {var implementors = {};
-implementors["author_inherent"] = [{"text":"impl&lt;T:&nbsp;Copy + Config&gt; Copy for Module&lt;T&gt;","synthetic":false,"types":[]}];
 implementors["moonbeam_rpc_core_trace"] = [{"text":"impl Copy for RequestBlockId","synthetic":false,"types":[]},{"text":"impl Copy for RequestBlockTag","synthetic":false,"types":[]}];
 implementors["moonbeam_rpc_primitives_debug"] = [{"text":"impl Copy for TraceType","synthetic":false,"types":[]},{"text":"impl Copy for CallType","synthetic":false,"types":[]},{"text":"impl Copy for CreateType","synthetic":false,"types":[]}];
 implementors["moonbeam_rpc_trace"] = [{"text":"impl Copy for CacheBatchId","synthetic":false,"types":[]}];

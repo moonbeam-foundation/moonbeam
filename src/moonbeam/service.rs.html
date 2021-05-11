@@ -741,6 +741,8 @@
 <span id="738">738</span>
 <span id="739">739</span>
 <span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1068,12 +1070,12 @@
 		<span class="kw">let</span> <span class="ident">frontier_backend</span> <span class="op">=</span> <span class="ident">frontier_backend</span>.<span class="ident">clone</span>();
 		<span class="kw">let</span> <span class="ident">backend</span> <span class="op">=</span> <span class="ident">backend</span>.<span class="ident">clone</span>();
 		<span class="kw">let</span> <span class="ident">ethapi_cmd</span> <span class="op">=</span> <span class="ident">cmd</span>.<span class="ident">ethapi</span>.<span class="ident">clone</span>();
+		<span class="kw">let</span> <span class="ident">max_past_logs</span> <span class="op">=</span> <span class="ident">cmd</span>.<span class="ident">max_past_logs</span>;
 
 		<span class="ident">Box</span>::<span class="ident">new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">deny_unsafe</span>, <span class="kw">_</span><span class="op">|</span> {
 			<span class="kw">let</span> <span class="ident">deps</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">rpc</span>::<span class="ident">FullDeps</span> {
 				<span class="ident">client</span>: <span class="ident">client</span>.<span class="ident">clone</span>(),
 				<span class="ident">pool</span>: <span class="ident">pool</span>.<span class="ident">clone</span>(),
-				<span class="ident">graph</span>: <span class="ident">pool</span>.<span class="ident">pool</span>().<span class="ident">clone</span>(),
 				<span class="ident">deny_unsafe</span>,
 				<span class="ident">is_authority</span>: <span class="ident">collator</span>,
 				<span class="ident">network</span>: <span class="ident">network</span>.<span class="ident">clone</span>(),
@@ -1086,6 +1088,7 @@
 				<span class="ident">debug_requester</span>: <span class="ident">debug_requester</span>.<span class="ident">clone</span>(),
 				<span class="ident">trace_filter_requester</span>: <span class="ident">trace_filter_requester</span>.<span class="ident">clone</span>(),
 				<span class="ident">trace_filter_max_count</span>: <span class="ident">cmd</span>.<span class="ident">ethapi_trace_max_count</span>,
+				<span class="ident">max_past_logs</span>,
 			};
 
 			<span class="kw">crate</span>::<span class="ident">rpc</span>::<span class="ident">create_full</span>(<span class="ident">deps</span>, <span class="ident">subscription_task_executor</span>.<span class="ident">clone</span>())
@@ -1389,12 +1392,12 @@
 		<span class="kw">let</span> <span class="ident">filter_pool</span> <span class="op">=</span> <span class="ident">filter_pool</span>.<span class="ident">clone</span>();
 		<span class="kw">let</span> <span class="ident">ethapi_cmd</span> <span class="op">=</span> <span class="ident">cmd</span>.<span class="ident">ethapi</span>.<span class="ident">clone</span>();
 		<span class="kw">let</span> <span class="ident">frontier_backend</span> <span class="op">=</span> <span class="ident">frontier_backend</span>.<span class="ident">clone</span>();
+		<span class="kw">let</span> <span class="ident">max_past_logs</span> <span class="op">=</span> <span class="ident">cmd</span>.<span class="ident">max_past_logs</span>;
 
 		<span class="ident">Box</span>::<span class="ident">new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">deny_unsafe</span>, <span class="kw">_</span><span class="op">|</span> {
 			<span class="kw">let</span> <span class="ident">deps</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">rpc</span>::<span class="ident">FullDeps</span> {
 				<span class="ident">client</span>: <span class="ident">client</span>.<span class="ident">clone</span>(),
 				<span class="ident">pool</span>: <span class="ident">pool</span>.<span class="ident">clone</span>(),
-				<span class="ident">graph</span>: <span class="ident">pool</span>.<span class="ident">pool</span>().<span class="ident">clone</span>(),
 				<span class="ident">deny_unsafe</span>,
 				<span class="ident">is_authority</span>: <span class="ident">collator</span>,
 				<span class="ident">network</span>: <span class="ident">network</span>.<span class="ident">clone</span>(),
@@ -1407,6 +1410,7 @@
 				<span class="ident">debug_requester</span>: <span class="ident">debug_requester</span>.<span class="ident">clone</span>(),
 				<span class="ident">trace_filter_requester</span>: <span class="ident">trace_filter_requester</span>.<span class="ident">clone</span>(),
 				<span class="ident">trace_filter_max_count</span>: <span class="ident">cmd</span>.<span class="ident">ethapi_trace_max_count</span>,
+				<span class="ident">max_past_logs</span>,
 			};
 			<span class="kw">crate</span>::<span class="ident">rpc</span>::<span class="ident">create_full</span>(<span class="ident">deps</span>, <span class="ident">subscription_task_executor</span>.<span class="ident">clone</span>())
 		})

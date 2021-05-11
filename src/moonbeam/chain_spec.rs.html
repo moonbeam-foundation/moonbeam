@@ -347,6 +347,7 @@
 <span id="344">344</span>
 <span id="345">345</span>
 <span id="346">346</span>
+<span id="347">347</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -374,10 +375,10 @@
 <span class="kw">use</span> <span class="ident">evm</span>::<span class="ident">GenesisAccount</span>;
 <span class="kw">use</span> <span class="ident">log</span>::<span class="ident">debug</span>;
 <span class="kw">use</span> <span class="ident">moonbeam_runtime</span>::{
-	<span class="ident">AccountId</span>, <span class="ident">Balance</span>, <span class="ident">BalancesConfig</span>, <span class="ident">CouncilCollectiveConfig</span>, <span class="ident">DemocracyConfig</span>, <span class="ident">EVMConfig</span>,
-	<span class="ident">EthereumChainIdConfig</span>, <span class="ident">EthereumConfig</span>, <span class="ident">GenesisConfig</span>, <span class="ident">InflationInfo</span>, <span class="ident">ParachainInfoConfig</span>,
-	<span class="ident">ParachainStakingConfig</span>, <span class="ident">Range</span>, <span class="ident">SchedulerConfig</span>, <span class="ident">SudoConfig</span>, <span class="ident">SystemConfig</span>,
-	<span class="ident">TechComitteeCollectiveConfig</span>, <span class="ident">GLMR</span>, <span class="ident">WASM_BINARY</span>,
+	<span class="ident">AccountId</span>, <span class="ident">AuthorFilterConfig</span>, <span class="ident">Balance</span>, <span class="ident">BalancesConfig</span>, <span class="ident">CouncilCollectiveConfig</span>,
+	<span class="ident">DemocracyConfig</span>, <span class="ident">EVMConfig</span>, <span class="ident">EthereumChainIdConfig</span>, <span class="ident">EthereumConfig</span>, <span class="ident">GenesisConfig</span>,
+	<span class="ident">InflationInfo</span>, <span class="ident">ParachainInfoConfig</span>, <span class="ident">ParachainStakingConfig</span>, <span class="ident">Range</span>, <span class="ident">SchedulerConfig</span>, <span class="ident">SudoConfig</span>,
+	<span class="ident">SystemConfig</span>, <span class="ident">TechComitteeCollectiveConfig</span>, <span class="ident">GLMR</span>, <span class="ident">WASM_BINARY</span>,
 };
 <span class="kw">use</span> <span class="ident">sc_chain_spec</span>::{<span class="ident">ChainSpecExtension</span>, <span class="ident">ChainSpecGroup</span>};
 <span class="kw">use</span> <span class="ident">sc_service</span>::<span class="ident">ChainType</span>;
@@ -648,6 +649,7 @@
 			<span class="ident">phantom</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
 			<span class="ident">members</span>: <span class="macro">vec</span><span class="macro">!</span>[], <span class="comment">// TODO : Set members</span>
 		},
+		<span class="ident">pallet_author_slot_filter</span>: <span class="ident">AuthorFilterConfig</span> { <span class="ident">eligible_ratio</span>: <span class="number">50</span> },
 	}
 }
 

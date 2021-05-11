@@ -1,6 +1,5 @@
 (function() {var implementors = {};
 implementors["account"] = [{"text":"impl StructuralPartialEq for EthereumSignature","synthetic":false,"types":[]},{"text":"impl StructuralPartialEq for EthereumSigner","synthetic":false,"types":[]}];
-implementors["author_inherent"] = [{"text":"impl&lt;T:&nbsp;Config&gt; StructuralPartialEq for Module&lt;T&gt;","synthetic":false,"types":[]}];
 implementors["moonbeam"] = [{"text":"impl StructuralPartialEq for Extensions","synthetic":false,"types":[]},{"text":"impl StructuralPartialEq for ExtensionsFork","synthetic":false,"types":[]},{"text":"impl StructuralPartialEq for EthApi","synthetic":false,"types":[]}];
 implementors["moonbeam_rpc_core_debug"] = [{"text":"impl StructuralPartialEq for TraceParams","synthetic":false,"types":[]}];
 implementors["moonbeam_rpc_core_trace"] = [{"text":"impl StructuralPartialEq for FilterRequest","synthetic":false,"types":[]},{"text":"impl StructuralPartialEq for RequestBlockId","synthetic":false,"types":[]},{"text":"impl StructuralPartialEq for RequestBlockTag","synthetic":false,"types":[]}];
