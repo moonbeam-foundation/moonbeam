@@ -5,10 +5,7 @@ name: Release
 # 2. It includes the PR/Commit text in the action item
 # 3. Artifacts are not available between workflows.
 
-# This is only allowing pushes on the moonbeam repo or pull request.
-# In the case of pull request, the CI executes the workflow from
-# the commit the **PR is merging into**. This prevents malicious attack trying
-# to change the CI in the PR.
+# This is only allowing pushes on the moonbeam repo for pull requests.
 ####### DO NOT CHANGE THIS !! #######
 on: ["push"]
 
@@ -19,21 +16,6 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Checkout
-        if: github.event_name == 'pull_request_target'
-        uses: actions/checkout@v2
-        # by default the pull_requst_target event checks out the base branch, i.e. dev
-        # so we need to explicitly checkout the head of the PR
-        # we use fetch-depth 0 to make sure the full history is checked out and we can compare against
-        # the base commit (branch) of the PR
-        # more info https://github.community/t/github-actions-are-severely-limited-on-prs/18179/16
-        # we checkout merge_commit here as this contains all new code from dev also. we don't need to compare against base_commit
-        with:
-          fetch-depth: 0
-          ref: refs/pull/${{ github.event.pull_request.number }}/merge
-          # repository: ${{github.event.pull_request.head.repo.full_name}}
-      - name: Checkout
-        # for non PR runs we just checkout the default, which is a sha on a branch probably
-        if: github.event_name != 'pull_request_target'
         uses: actions/checkout@v2
       - name: Find un-copyrighted files
         run: |
@@ -49,13 +31,6 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Checkout
-        if: github.event_name == 'pull_request_target'
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          ref: refs/pull/${{ github.event.pull_request.number }}/merge
-      - name: Checkout
-        if: github.event_name != 'pull_request_target'
         uses: actions/checkout@v2
       - uses: gaurav-nelson/github-action-markdown-link-check@v1
         with:
@@ -66,13 +41,6 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Checkout
-        if: github.event_name == 'pull_request_target'
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          ref: refs/pull/${{ github.event.pull_request.number }}/merge
-      - name: Checkout
-        if: github.event_name != 'pull_request_target'
         uses: actions/checkout@v2
       - name: Setup editorconfig checker
         run: |
@@ -89,13 +57,6 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Checkout
-        if: github.event_name == 'pull_request_target'
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          ref: refs/pull/${{ github.event.pull_request.number }}/merge
-      - name: Checkout
-        if: github.event_name != 'pull_request_target'
         uses: actions/checkout@v2
       - name: Use Node.js 14.x
         uses: actions/setup-node@v2
@@ -116,13 +77,6 @@ jobs:
       RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
     steps:
       - name: Checkout
-        if: github.event_name == 'pull_request_target'
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          ref: refs/pull/${{ github.event.pull_request.number }}/merge
-      - name: Checkout
-        if: github.event_name != 'pull_request_target'
         uses: actions/checkout@v2
         # Install sccache
       - uses: actions/cache@v2
@@ -178,7 +132,7 @@ jobs:
           npm install
           cd ../tests
           npm install
-          npm run test -- -j $(($(nproc) / 2 - 2));
+          npm run test -- -j 1
       - name: Save parachain binary
         run: |
           mkdir -p build

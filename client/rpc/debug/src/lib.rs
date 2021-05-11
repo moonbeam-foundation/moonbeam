@@ -179,15 +179,12 @@ where
 			Err(e) => return Err(e),
 		};
 
-		let reference_id = match frontier_backend_client::load_hash::<B, C>(
-			client.as_ref(),
-			frontier_backend.as_ref(),
-			hash,
-		) {
-			Ok(Some(hash)) => hash,
-			Ok(_) => return Err(internal_err("Block hash not found".to_string())),
-			Err(e) => return Err(e),
-		};
+		let reference_id =
+			match frontier_backend_client::load_hash::<B>(frontier_backend.as_ref(), hash) {
+				Ok(Some(hash)) => hash,
+				Ok(_) => return Err(internal_err("Block hash not found".to_string())),
+				Err(e) => return Err(e),
+			};
 		// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
 		let api = client.runtime_api();
 		// Get Blockchain backend
