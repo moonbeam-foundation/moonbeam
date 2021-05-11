@@ -95,9 +95,7 @@ cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulu
 cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
 
 # Nimbus Dependency
-# TODO what do we need this for? The inherent data provider?
-# It feels weird to depend on a pallet here.
-# For example we have sp-timestamp above rather than pallet-timestamp
+# TODO When we bump nimbus, we can depend on the smaller primitives crate here.
 pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
 
 # Polkadot dependencies
