@@ -49,3 +49,74 @@ describeDevMoonbeam("Trace filter - Concurrency", (context) => {
     await initialQueryPromise;
   });
 });
+
+describeDevMoonbeam("Trace debug - Concurrency", (context) => {
+  it("should allow 4 concurrent execution", async function () {
+    this.timeout(20000);
+    const { contract, rawTx } = await createContract(context.web3, "TestContract");
+    const { txResults } = await context.createBlock({ transactions: [rawTx] });
+    // A single request.
+    let start = Date.now();
+    // await customWeb3Request(
+    //     context.web3, "debug_traceTransaction", [txResults[0].result]
+    // );
+    let end = Date.now();
+    // // 300 ms
+    // console.log(end - start);
+    let i;
+    let promises = [];
+    for (i = 0; i < 4; i++) {
+      promises.push(
+        customWeb3Request(context.web3, "debug_traceTransaction", [txResults[0].result])
+      );
+    }
+    start = Date.now();
+    await Promise.all(promises);
+    end = Date.now() - start;
+    console.log(end);
+  });
+});
+
+describeDevMoonbeam("Trace debug - Concurrency", (context) => {
+  it("should allow long concurrent execution", async function () {
+    this.timeout(30000);
+
+    const { contract, rawTx } = await createContract(context.web3, "FiniteLoopContract");
+    await context.createBlock({ transactions: [rawTx] });
+
+    const txResults = [];
+    for (let i = 0; i < 10; i++) {
+      txResults.push(
+        (
+          await context.createBlock({
+            transactions: [
+              await createContractExecution(context.web3, {
+                contract,
+                contractCall: contract.methods.incr(1000),
+              }),
+            ],
+          })
+        ).txResults[0]
+      );
+    }
+    // A single request.
+    let start = Date.now();
+    // await customWeb3Request(
+    //     context.web3, "debug_traceTransaction", [txResults[0].result]
+    // );
+    let end = Date.now();
+    // // 300 ms
+    // console.log(end - start);
+    let i;
+    let promises = [];
+    for (i = 0; i < 2; i++) {
+      promises.push(
+        customWeb3Request(context.web3, "debug_traceTransaction", [txResults[i].result])
+      );
+    }
+    start = Date.now();
+    await Promise.all(promises);
+    end = Date.now() - start;
+    console.log(end);
+  });
+});
