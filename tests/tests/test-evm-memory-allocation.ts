@@ -5,7 +5,7 @@ import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../util/constants"
 import { customWeb3Request } from "../util/providers";
 
 describeDevMoonbeam("", (context) => {
-  it("should fail with OOG", async () => {
+  it.skip("should fail with OOG", async () => {
     /*
     const bytecode = 
       [65, 65, 4, 97, 89, 134, 65, 65,
