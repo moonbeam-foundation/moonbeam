@@ -15,7 +15,7 @@ describeDevMoonbeam("", (context) => {
         30, 1, 0, 0, 0, 0, 0, 0];
         */
 
-    const value = "0x"+(993452714685890559).toString(16);
+    const value = "0x" + (993452714685890559).toString(16);
 
     const tx = await context.web3.eth.accounts.signTransaction(
       {
@@ -26,14 +26,15 @@ describeDevMoonbeam("", (context) => {
         gasPrice: "0x01",
         data: "0x4141046159864141414141343933343346460100000028F900E06F01000000F71E01000000000000",
       },
-      GENESIS_ACCOUNT_PRIVATE_KEY,
+      GENESIS_ACCOUNT_PRIVATE_KEY
     );
 
-    const txResults = await customWeb3Request(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
+    const txResults = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+      tx.rawTransaction,
+    ]);
     await context.createBlock();
 
     const receipt = await context.web3.eth.getTransactionReceipt(txResults.result);
     expect(receipt.status).to.be.false;
-
   });
 });
