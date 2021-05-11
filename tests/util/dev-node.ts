@@ -69,12 +69,9 @@ export async function startMoonbeamDevNode(): Promise<{
 
   const [cmd, args] =
     ANALYZER == "valgrind"
-      ? [
-          "valgrind",
-          ["--tool=callgrind", "--separate-threads=yes", "-v", BINARY_PATH, ...moonbeamArgs],
-        ]
+      ? ["valgrind", ["--tool=callgrind", "-v", BINARY_PATH, ...moonbeamArgs]]
       : ANALYZER == "perf"
-      ? ["perf", ["record", "-F", "997", BINARY_PATH, ...moonbeamArgs]]
+      ? ["perf", ["record", "-F", "997", "-g", BINARY_PATH, ...moonbeamArgs]]
       : [BINARY_PATH, moonbeamArgs];
 
   debug(`Starting dev node: --port=${p2pPort} --rpc-port=${rpcPort} --ws-port=${wsPort}`);
