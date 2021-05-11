@@ -123,7 +123,7 @@ jobs:
       - name: Unit tests
         run: cargo test --release --verbose --all
       - name: Ensure benchmarking compiles
-        run: cargo build --features=runtime-benchmarks
+        run: cargo build --release --features=runtime-benchmarks
       - name: Use Node.js 14.x
         uses: actions/setup-node@v2
         with:

@@ -452,6 +452,8 @@ impl parachain_info::Config for Runtime {}
 pub const GLMR: Balance = 1_000_000_000_000_000_000;
 
 parameter_types! {
+	/// Maximum active collator candidates
+	pub const MaxCollatorCandidates: u32 = 300;
 	/// Minimum round length is 2 minutes (20 * 6 second block times)
 	pub const MinBlocksPerRound: u32 = 20;
 	/// Default BlocksPerRound is every hour (600 * 6 second block times)
@@ -474,6 +476,7 @@ parameter_types! {
 impl parachain_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
+	type MaxCollatorCandidates = MaxCollatorCandidates;
 	type MinBlocksPerRound = MinBlocksPerRound;
 	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type BondDuration = BondDuration;

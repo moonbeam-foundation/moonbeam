@@ -379,6 +379,8 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The currency type
 		type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
+		/// Maximum Collator Candidates, bound collator candidate pool storage item
+		type MaxCollatorCandidates: Get<u32>;
 		/// Minimum number of blocks per round
 		type MinBlocksPerRound: Get<u32>;
 		/// Default number of blocks per round at genesis
@@ -420,6 +422,7 @@ pub mod pallet {
 		AlreadyLeaving,
 		TooManyNominators,
 		CannotActivateIfLeaving,
+		MaxCandidates,
 		ExceedMaxCollatorsPerNom,
 		AlreadyNominatedCollator,
 		NominationDNE,
@@ -558,6 +561,11 @@ pub mod pallet {
 	/// The pool of collator candidates, each with their total backing stake
 	type CandidatePool<T: Config> =
 		StorageValue<_, OrderedSet<Bond<T::AccountId, BalanceOf<T>>>, ValueQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn candidate_count)]
+	/// Total number of collator candidates, TODO: replace with OrderedSet + BoundedVec instead
+	type CandidateCount<T: Config> = StorageValue<_, u32, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn exit_queue)]
@@ -785,11 +793,16 @@ pub mod pallet {
 				}),
 				Error::<T>::CandidateExists
 			);
+			let new_candidate_count = <CandidateCount<T>>::get() + 1u32;
+			ensure!(
+				new_candidate_count <= T::MaxCollatorCandidates::get(),
+				Error::<T>::MaxCandidates
+			);
 			T::Currency::reserve(&acc, bond)?;
-			let candidate = Collator::new(acc.clone(), bond);
 			let new_total = <Total<T>>::get() + bond;
 			<Total<T>>::put(new_total);
-			<CollatorState<T>>::insert(&acc, candidate);
+			<CandidateCount<T>>::put(new_candidate_count);
+			<CollatorState<T>>::insert(&acc, Collator::new(acc.clone(), bond));
 			<CandidatePool<T>>::put(candidates);
 			Self::deposit_event(Event::JoinedCollatorCandidates(acc, bond, new_total));
 			Ok(().into())
@@ -1259,6 +1272,7 @@ pub mod pallet {
 							}
 							// return stake to collator
 							T::Currency::unreserve(&state.id, state.bond);
+							<CandidateCount<T>>::mutate(|x| *x -= 1u32);
 							let new_total = <Total<T>>::get() - state.total;
 							<Total<T>>::put(new_total);
 							<CollatorState<T>>::remove(&x.owner);
