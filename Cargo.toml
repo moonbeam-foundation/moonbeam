@@ -14,9 +14,9 @@ panic = 'unwind'
 # TODO : Currently use relative path, change to branch when the feature is stable.
 # This will be necessary as long as frontier don't depend on this crate version.
 evm = { path = "../evm", default-features = false, features = ["with-codec", "tracing"] }
-evm-runtime = { path = "../evm/runtime", default-features = false, features = ["with-codec", "tracing"] }
+evm-runtime = { path = "../evm/runtime", default-features = false, features = ["tracing"] }
 evm-core = { path = "../evm/core", default-features = false, features = ["with-codec", "tracing"] }
-evm-gasometer = { path = "../evm/gasometer", default-features = false, features = ["with-codec", "tracing"] }
+evm-gasometer = { path = "../evm/gasometer", default-features = false, features = ["tracing"] }
 
 # [patch.'https://github.com/PureStake/evm']
 # evm = { path = "../evm", default-features = false, features = ["with-codec", "tracing"] }

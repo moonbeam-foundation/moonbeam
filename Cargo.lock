@@ -4654,6 +4654,8 @@ dependencies = [
  "ethereum-types",
  "evm",
  "evm-core",
+ "evm-gasometer",
+ "evm-runtime",
  "fp-evm",
  "moonbeam-rpc-primitives-debug",
  "pallet-evm",
