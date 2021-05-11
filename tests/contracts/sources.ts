@@ -37,7 +37,7 @@ export const contractSources: { [key: string]: string } = {
     contract InfiniteContract {
         function infinite() public pure returns(uint d) {while (true) {}}
     }`,
-  // infinite loop call with variable alocation
+  // infinite loop call with variable allocation
   InfiniteContractVar: `
     pragma solidity >=0.8.0;
     
@@ -54,7 +54,7 @@ export const contractSources: { [key: string]: string } = {
             }
         }
     }`,
-  // definite loop call with variable alocation
+  // definite loop call with variable allocation
   FiniteLoopContract: `
     pragma solidity >=0.8.0;
     
@@ -274,15 +274,98 @@ export const contractSources: { [key: string]: string } = {
             return number;
         }
     }`,
-  CheckBlockGasLimit: `
+  CheckBlockVariables: `
     pragma solidity >=0.8.0;
-    contract CheckBlockGasLimit {
-        uint public gaslimit;
-        uint public chainid;
+    contract CheckBlockVariables {
+        uint public initialgaslimit;
+        uint public initialchainid;
+        uint public initialnumber;
         
         constructor() {
-            gaslimit = block.gaslimit;
-            chainid = block.chainid;
+            initialgaslimit = block.gaslimit;
+            initialchainid = block.chainid;
+            initialnumber = block.number;
+        }
+
+        function getGasLimit() public view returns (uint) {
+            return block.gaslimit;
+        }
+
+        function getChainId() public view returns (uint) {
+            return block.chainid;
+        }
+
+        function getNumber() public view returns (uint) {
+            return block.number;
+        }
+    }`,
+  JoinCandidatesWrapper: `
+    pragma solidity >=0.8.0;
+
+    interface ParachainStaking {
+        // First some simple accessors
+    
+        /// Check whether the specified address is currently a staking nominator
+        function is_nominator(address) external view returns (bool);
+    
+        // Now the dispatchables
+    
+        /// Join the set of collator candidates
+        function join_candidates(uint256 amount) external;
+    
+        /// Request to leave the set of candidates. If successful, the account is immediately
+        /// removed from the candidate pool to prevent selection as a collator, but unbonding is
+        /// executed with a delay of BondDuration rounds.
+        function leave_candidates() external;
+    
+        /// Temporarily leave the set of collator candidates without unbonding
+        function go_offline() external;
+    
+        /// Rejoin the set of collator candidates if previously had called go_offline
+        function go_online() external;
+    
+        /// Bond more for collator candidates
+        function candidate_bond_more(uint256 more) external;
+    
+        /// Bond less for collator candidates
+        function candidate_bond_less(uint256 less) external;
+    
+        /// If caller is not a nominator, then join the set of nominators
+        /// If caller is a nominator, then makes nomination to change their nomination state
+        function nominate(address collator, uint256 amount) external;
+    
+        /// Leave the set of nominators and, by implication, revoke all ongoing nominations
+        function leave_nominators() external;
+    
+        /// Revoke an existing nomination
+        function revoke_nomination(address collator) external;
+    
+        /// Bond more for nominators with respect to a specific collator candidate
+        function nominator_bond_more(address candidate, uint256 more) external;
+    
+        /// Bond less for nominators with respect to a specific nominator candidate
+        function nominator_bond_less(address candidate, uint256 less) external;
+    }
+
+    /// An even more dead simple example to call the precompile
+    contract JoinCandidatesWrapper {
+        /// The ParachainStaking wrapper at the known pre-compile address. This will be used to 
+        /// make all calls to the underlying staking solution
+        ParachainStaking public staking;
+
+        /// Solely for debugging purposes
+        event Trace(uint256);
+
+        constructor(address _staking) {
+            staking = ParachainStaking(_staking);
+        }
+
+        receive() external payable {}
+
+        function join() public {
+            emit Trace(1 << 250);
+            staking.join_candidates(1234 ether);
+            emit Trace(2 << 250);
         }
     }`,
   SacrificeWrapper: `
