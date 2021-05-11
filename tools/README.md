@@ -42,7 +42,8 @@ Run `yarn run build-moonbeam-launch` to install the correct dependency
 
 Run `yarn run moonbeam-launch` to start a network with `config_moonbeam.json`
 
-- Installs PureStake moonbeam-launch branch - Starts a local network with `config_moonbeam.json`
+- Installs PureStake moonbeam-launch branch
+- Starts a local network with `config_moonbeam.json`
 
 Run `yarn run moonbeam-test`, if you want to run a simple test sending transactions to different addresses:
 
