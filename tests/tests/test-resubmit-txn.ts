@@ -9,81 +9,71 @@ const testAccount = "0x1111111111111111111111111111111111111111";
 
 describeDevMoonbeam("Resubmit transations", (context) => {
   it("should allow resubmitting with higher gas", async function () {
+    const optionsLowGas = { nonce: 0, gasPrice: 0 };
+    const optionsHighGas = { nonce: 0, gasPrice: 1 };
 
-      const optionsLowGas = { nonce: 0, gasPrice: 0 };
-      const optionsHighGas = { nonce: 0, gasPrice: 1 };
+    const transactions = [
+      await createTransfer(context.web3, testAccount, 1, optionsLowGas),
+      await createTransfer(context.web3, testAccount, 2, optionsHighGas),
+    ];
+    await context.createBlock({ transactions });
 
-      const transactions = [
-        await createTransfer(context.web3, testAccount, 1, optionsLowGas),
-        await createTransfer(context.web3, testAccount, 2, optionsHighGas),
-      ];
-      await context.createBlock({ transactions });
-
-      expect(await context.web3.eth.getBalance(testAccount, 1)).to.equal(
-        (2).toString()
-      );
+    expect(await context.web3.eth.getBalance(testAccount, 1)).to.equal((2).toString());
   });
 });
 
 describeDevMoonbeam("Resubmit transations", (context) => {
   it("should ignore resubmitting with lower gas", async function () {
+    const optionsLowGas = { nonce: 0, gasPrice: 0 };
+    const optionsHighGas = { nonce: 0, gasPrice: 1 };
 
-      const optionsLowGas = { nonce: 0, gasPrice: 0 };
-      const optionsHighGas = { nonce: 0, gasPrice: 1 };
+    const transactions = [
+      await createTransfer(context.web3, testAccount, 3, optionsHighGas),
+      await createTransfer(context.web3, testAccount, 1, optionsLowGas),
+    ];
+    await context.createBlock({ transactions });
 
-      const transactions = [
-        await createTransfer(context.web3, testAccount, 3, optionsHighGas),
-        await createTransfer(context.web3, testAccount, 1, optionsLowGas),
-      ],
-      await context.createBlock({ transactions });
-
-      expect(await context.web3.eth.getBalance(testAccount, 1)).to.equal(
-        (3).toString()
-      );
+    expect(await context.web3.eth.getBalance(testAccount, 1)).to.equal((3).toString());
   });
 });
 
 describeDevMoonbeam("Resubmit transations", (context) => {
   it("should allow cancelling transaction", async function () {
 
-      const optionsLowGas = { nonce: 0, gasPrice: 0, gas: 0xFFFFF };
-      const optionsHighGas = { nonce: 0, gasPrice: 1, gas: 0x10000 }; // gas price should trump limit
+    // gas price should trump limit
+    const optionsLowGas = { nonce: 0, gasPrice: 0, gas: 0xfffff };
+    const optionsHighGas = { nonce: 0, gasPrice: 1, gas: 0x10000 };
 
-      const transactions = [
-        await createTransfer(context.web3, testAccount, 1, optionsLowGas),
-        await createTransfer(context.web3, testAccount, 2, optionsHighGas),
-      ],
-      await context.createBlock({ transactions });
+    const transactions = [
+      await createTransfer(context.web3, testAccount, 1, optionsLowGas),
+      await createTransfer(context.web3, testAccount, 2, optionsHighGas),
+    ];
+    await context.createBlock({ transactions });
 
-      expect(await context.web3.eth.getBalance(testAccount, 1)).to.equal(
-        (2).toString()
-      );
+    expect(await context.web3.eth.getBalance(testAccount, 1)).to.equal((2).toString());
   });
 });
 
 describeDevMoonbeam("Resubmit transations", (context) => {
   it("should pick highest gas price from many transactions", async function () {
+    const optionsHighGas = { nonce: 0, gasPrice: 100 }; // gas price should trump limit
 
-      const optionsHighGas = { nonce: 0, gasPrice: 100 }; // gas price should trump limit
+    let transactions = [];
+    for (let i = 1; i < 20; i++) {
+      const options = { nonce: 0, gasPrice: i };
+      transactions.push(await createTransfer(context.web3, testAccount, i * 10, options));
+    }
 
-      let transactions = [];
-      for (let i=1; i<20; i++) {
-        const options = { nonce: 0, gasPrice: i };
-        transactions.push(await createTransfer(context.web3, testAccount, i * 10, options));
-      }
+    // our expected txn...
+    transactions.push(await createTransfer(context.web3, testAccount, 42, optionsHighGas));
 
-      // our expected txn...
-      transactions.push(await createTransfer(context.web3, testAccount, 42, optionsHighGas));
+    for (let i = 1; i < 20; i++) {
+      const options = { nonce: 0, gasPrice: i + 30 };
+      transactions.push(await createTransfer(context.web3, testAccount, i * 100, options));
+    }
 
-      for (let i=1; i<20; i++) {
-        const options = { nonce: 0, gasPrice: i+30 };
-        transactions.push(await createTransfer(context.web3, testAccount, i * 100, options));
-      }
+    await context.createBlock({ transactions });
 
-      await context.createBlock({ transactions });
-
-      expect(await context.web3.eth.getBalance(testAccount, 1)).to.equal(
-        (42).toString()
-      );
+    expect(await context.web3.eth.getBalance(testAccount, 1)).to.equal((42).toString());
   });
 });
