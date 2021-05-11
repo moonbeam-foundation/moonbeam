@@ -1318,8 +1318,8 @@ pub mod pallet {
 	}
 
 	impl<T: Config> pallet_author_inherent::CanAuthor<T::AccountId> for Pallet<T> {
-		fn can_author(author: &T::AccountId) -> bool {
-			Self::selected_candidates().contains(author)
+		fn can_author(account: &T::AccountId) -> bool {
+			Self::is_selected_candidate(account)
 		}
 	}
 
