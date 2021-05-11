@@ -3,7 +3,7 @@ name = 'moonbeam-runtime'
 description = 'Moonbeam Runtime'
 homepage = 'https://moonbeam.network'
 license = 'GPL-3.0-only'
-version = '0.8.0-dev-nimbus'
+version = '0.8.0-dev'
 authors = ["PureStake"]
 edition = '2018'
 
@@ -126,7 +126,7 @@ std = [
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
-runtime-wasm = [] # "cumulus-upward-message/runtime-wasm",	
+runtime-wasm = []
 
 # A feature that should be enabled when the runtime should be build for on-chain
 # deployment. This will disable stuff that shouldn't be part of the on-chain wasm
