@@ -76,6 +76,8 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub trace_filter_requester: Option<TraceFilterCacheRequester>,
 	/// Trace filter max count.
 	pub trace_filter_max_count: u32,
+	/// Maximum number of logs in a query.
+	pub max_past_logs: u32,
 }
 
 /// Instantiate all Full RPC extensions.
@@ -127,6 +129,7 @@ where
 		debug_requester,
 		trace_filter_requester,
 		trace_filter_max_count,
+		max_past_logs,
 	} = deps;
 
 	io.extend_with(SystemApi::to_delegate(FullSystem::new(
@@ -163,7 +166,7 @@ where
 		overrides.clone(),
 		frontier_backend.clone(),
 		is_authority,
-		5, //TODO max past logs
+		max_past_logs,
 	)));
 
 	if let Some(filter_pool) = filter_pool {
@@ -172,7 +175,7 @@ where
 			filter_pool.clone(),
 			500 as usize, // max stored filters
 			overrides.clone(),
-			5, //TODO max past logs
+			max_past_logs,
 		)));
 	}
 

@@ -324,6 +324,7 @@ where
 		let frontier_backend = frontier_backend.clone();
 		let backend = backend.clone();
 		let ethapi_cmd = cmd.ethapi.clone();
+		let max_past_logs = cmd.max_past_logs;
 
 		Box::new(move |deny_unsafe, _| {
 			let deps = crate::rpc::FullDeps {
@@ -342,6 +343,7 @@ where
 				debug_requester: debug_requester.clone(),
 				trace_filter_requester: trace_filter_requester.clone(),
 				trace_filter_max_count: cmd.ethapi_trace_max_count,
+				max_past_logs,
 			};
 
 			crate::rpc::create_full(deps, subscription_task_executor.clone())
@@ -645,6 +647,7 @@ pub fn new_dev(
 		let filter_pool = filter_pool.clone();
 		let ethapi_cmd = cmd.ethapi.clone();
 		let frontier_backend = frontier_backend.clone();
+		let max_past_logs = cmd.max_past_logs;
 
 		Box::new(move |deny_unsafe, _| {
 			let deps = crate::rpc::FullDeps {
@@ -663,6 +666,7 @@ pub fn new_dev(
 				debug_requester: debug_requester.clone(),
 				trace_filter_requester: trace_filter_requester.clone(),
 				trace_filter_max_count: cmd.ethapi_trace_max_count,
+				max_past_logs,
 			};
 			crate::rpc::create_full(deps, subscription_task_executor.clone())
 		})
