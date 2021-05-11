@@ -106,17 +106,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "739f4a8db6605981345c5654f3a85b056ce52f37a39d34da03f25bf2151ea16e"
 
 [[package]]
-name = "ahash"
-version = "0.7.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7f200cbb1e856866d9eade941cf3aa0c5d7dd36f74311c4273b494f4ef036957"
-dependencies = [
- "getrandom 0.2.2",
- "once_cell 1.7.2",
- "version_check",
-]
-
-[[package]]
 name = "aho-corasick"
 version = "0.7.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1764,18 +1753,57 @@ checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
 [[package]]
 name = "evm"
 version = "0.26.0"
-source = "git+https://github.com/PureStake/evm?branch=jeremy-evm-hook#a7eb24c29d07a8a441e6b3881230a96a3f30e835"
 dependencies = [
+ "environmental",
  "ethereum 0.7.1",
- "evm-core",
- "evm-gasometer",
- "evm-runtime",
+ "evm-core 0.26.0",
+ "evm-gasometer 0.26.0",
+ "evm-runtime 0.26.0",
  "log",
  "parity-scale-codec",
  "primitive-types",
  "rlp",
  "serde",
  "sha3 0.8.2",
+]
+
+[[package]]
+name = "evm"
+version = "0.26.0"
+source = "git+https://github.com/PureStake/evm?branch=jeremy-evm-hook#a7eb24c29d07a8a441e6b3881230a96a3f30e835"
+dependencies = [
+ "ethereum 0.7.1",
+ "evm-core 0.26.0 (git+https://github.com/PureStake/evm?branch=jeremy-evm-hook)",
+ "evm-gasometer 0.26.0 (git+https://github.com/PureStake/evm?branch=jeremy-evm-hook)",
+ "evm-runtime 0.26.0 (git+https://github.com/PureStake/evm?branch=jeremy-evm-hook)",
+ "log",
+ "parity-scale-codec",
+ "primitive-types",
+ "rlp",
+ "serde",
+ "sha3 0.8.2",
+]
+
+[[package]]
+name = "evm-core"
+version = "0.26.0"
+dependencies = [
+ "funty",
+ "parity-scale-codec",
+ "primitive-types",
+ "serde",
+]
+
+[[package]]
+name = "evm-core"
+version = "0.26.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9aeed00c943f6347108393c98907f432d8f2b82683725dfefbd734d335faace4"
+dependencies = [
+ "funty",
+ "parity-scale-codec",
+ "primitive-types",
+ "serde",
 ]
 
 [[package]]
@@ -1792,11 +1820,53 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.26.0"
+dependencies = [
+ "environmental",
+ "evm-core 0.26.0",
+ "evm-runtime 0.26.0",
+ "primitive-types",
+]
+
+[[package]]
+name = "evm-gasometer"
+version = "0.26.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "463412356790c5e34e8a13cd23ba06284d9afa999e82e8c64497aed2ee625375"
+dependencies = [
+ "evm-core 0.26.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "evm-runtime 0.26.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "primitive-types",
+]
+
+[[package]]
+name = "evm-gasometer"
+version = "0.26.0"
 source = "git+https://github.com/PureStake/evm?branch=jeremy-evm-hook#a7eb24c29d07a8a441e6b3881230a96a3f30e835"
 dependencies = [
- "evm-core",
- "evm-runtime",
+ "evm-core 0.26.0 (git+https://github.com/PureStake/evm?branch=jeremy-evm-hook)",
+ "evm-runtime 0.26.0 (git+https://github.com/PureStake/evm?branch=jeremy-evm-hook)",
  "primitive-types",
+]
+
+[[package]]
+name = "evm-runtime"
+version = "0.26.0"
+dependencies = [
+ "environmental",
+ "evm-core 0.26.0",
+ "primitive-types",
+ "sha3 0.8.2",
+]
+
+[[package]]
+name = "evm-runtime"
+version = "0.26.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0c08f510e5535cee2352adb9b93ff24dc80f8ca1bad445a9aa1292ce144b45a1"
+dependencies = [
+ "evm-core 0.26.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "primitive-types",
+ "sha3 0.8.2",
 ]
 
 [[package]]
@@ -1804,7 +1874,7 @@ name = "evm-runtime"
 version = "0.26.0"
 source = "git+https://github.com/PureStake/evm?branch=jeremy-evm-hook#a7eb24c29d07a8a441e6b3881230a96a3f30e835"
 dependencies = [
- "evm-core",
+ "evm-core 0.26.0 (git+https://github.com/PureStake/evm?branch=jeremy-evm-hook)",
  "primitive-types",
  "sha3 0.8.2",
 ]
@@ -1874,7 +1944,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
 dependencies = [
  "derive_more",
  "fc-db",
@@ -1898,7 +1968,7 @@ dependencies = [
 [[package]]
 name = "fc-db"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
 dependencies = [
  "kvdb",
  "kvdb-rocksdb",
@@ -1912,7 +1982,7 @@ dependencies = [
 [[package]]
 name = "fc-mapping-sync"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
 dependencies = [
  "fc-consensus",
  "fc-db",
@@ -1930,11 +2000,11 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
 dependencies = [
  "ethereum 0.7.1",
  "ethereum-types",
- "evm",
+ "evm 0.26.0",
  "fc-consensus",
  "fc-db",
  "fc-rpc-core",
@@ -1972,7 +2042,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
 dependencies = [
  "ethereum-types",
  "jsonrpc-core 15.1.0",
@@ -2076,7 +2146,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
 dependencies = [
  "ethereum 0.7.1",
  "parity-scale-codec",
@@ -2090,9 +2160,9 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "0.8.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
 dependencies = [
- "evm",
+ "evm 0.26.0",
  "impl-trait-for-tuples 0.1.3",
  "parity-scale-codec",
  "serde",
@@ -2103,7 +2173,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
 dependencies = [
  "ethereum 0.7.1",
  "ethereum-types",
@@ -2119,7 +2189,7 @@ dependencies = [
 [[package]]
 name = "fp-storage"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
 dependencies = [
  "ethereum 0.7.1",
  "ethereum-types",
@@ -2737,16 +2807,7 @@ version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d7afe4a420e3fe79967a00898cc1f4db7c8a49a9333a29f8a4bd76a253d5cd04"
 dependencies = [
- "ahash 0.4.7",
-]
-
-[[package]]
-name = "hashbrown"
-version = "0.11.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab5ef0d4909ef3724cc8cce6ccc8572c5c817592e9285f5464f8e86f8bd3726e"
-dependencies = [
- "ahash 0.7.2",
+ "ahash",
 ]
 
 [[package]]
@@ -4621,7 +4682,7 @@ dependencies = [
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
  "cumulus-test-relay-sproof-builder",
- "evm",
+ "evm 0.26.0 (git+https://github.com/PureStake/evm?branch=jeremy-evm-hook)",
  "fp-rpc",
  "frame-benchmarking",
  "frame-executive",
@@ -4673,8 +4734,8 @@ name = "moonbeam-tracing-hook"
 version = "0.1.0"
 dependencies = [
  "ethereum-types",
- "evm",
- "evm-core",
+ "evm 0.26.0 (git+https://github.com/PureStake/evm?branch=jeremy-evm-hook)",
+ "evm-core 0.26.0 (git+https://github.com/PureStake/evm?branch=jeremy-evm-hook)",
  "fp-evm",
  "moonbeam-rpc-primitives-debug",
  "pallet-evm",
@@ -5205,11 +5266,11 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "0.1.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
 dependencies = [
  "ethereum 0.7.1",
  "ethereum-types",
- "evm",
+ "evm 0.26.0",
  "fp-consensus",
  "fp-evm",
  "fp-rpc",
@@ -5243,20 +5304,18 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
 dependencies = [
- "evm",
- "evm-gasometer",
- "evm-runtime",
+ "evm 0.26.0",
+ "evm-gasometer 0.26.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "evm-runtime 0.26.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "fp-evm",
  "frame-support",
  "frame-system",
- "lazy_static",
  "pallet-balances",
  "pallet-timestamp",
  "parity-scale-codec",
  "primitive-types",
- "ref_thread_local",
  "rlp",
  "serde",
  "sha3 0.8.2",
@@ -5264,16 +5323,14 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "static_type_map",
- "synctools",
 ]
 
 [[package]]
 name = "pallet-evm-precompile-bn128"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
 dependencies = [
- "evm",
+ "evm 0.26.0",
  "fp-evm",
  "sp-core",
  "sp-io",
@@ -5283,9 +5340,9 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
 dependencies = [
- "evm",
+ "evm 0.26.0",
  "fp-evm",
  "frame-support",
  "pallet-evm",
@@ -5297,9 +5354,9 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
 dependencies = [
- "evm",
+ "evm 0.26.0",
  "fp-evm",
  "num",
  "sp-core",
@@ -5309,9 +5366,9 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
 dependencies = [
- "evm",
+ "evm 0.26.0",
  "fp-evm",
  "sp-core",
  "sp-io",
@@ -5321,9 +5378,9 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "3.0.0"
-source = "git+https://github.com/purestake/frontier?branch=jeremy-runner-evm-hook#53fc07f3117c71f7214f8e4f018310003fc18c2b"
+source = "git+https://github.com/purestake/frontier?branch=notlesh-moonbeam-v0.7#cce4b72d351056e5d63332af3e0a5bab67738417"
 dependencies = [
- "evm",
+ "evm 0.26.0",
  "fp-evm",
  "ripemd160",
  "sp-core",
@@ -7181,7 +7238,7 @@ checksum = "ac74c624d6b2d21f425f752262f42188365d7b8ff1aff74c82e45136510a4857"
 name = "precompiles"
 version = "0.6.0"
 dependencies = [
- "evm",
+ "evm 0.26.0 (git+https://github.com/PureStake/evm?branch=jeremy-evm-hook)",
  "frame-support",
  "frame-system",
  "hex",
@@ -7689,7 +7746,7 @@ dependencies = [
  "cfg-if 0.1.10",
  "libc",
  "nix 0.20.0",
- "rand 0.8.3",
+ "rand 0.3.23",
  "winapi 0.3.9",
 ]
 
@@ -7801,12 +7858,6 @@ dependencies = [
  "quote",
  "syn",
 ]
-
-[[package]]
-name = "ref_thread_local"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "13ed77408f669435578692a16ae54efbbc662f9727c85315d9beb319be098d94"
 
 [[package]]
 name = "regalloc"
@@ -9398,7 +9449,7 @@ dependencies = [
  "libc",
  "nix 0.20.0",
  "quick-error 2.0.0",
- "rand 0.8.3",
+ "rand 0.3.23",
  "winapi 0.3.9",
 ]
 
@@ -10210,15 +10261,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "static_type_map"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0a5490806fd851de909b3739ea043b8bca13a67075add6bcf28550ca86c25abd"
-dependencies = [
- "hashbrown 0.11.2",
-]
-
-[[package]]
 name = "statrs"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10532,12 +10574,6 @@ dependencies = [
  "quote",
  "unicode-xid",
 ]
-
-[[package]]
-name = "synctools"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1cf77797be4daff9739707f9e8db8a94ef6f2ec15b06994093616b9b28937161"
 
 [[package]]
 name = "synstructure"

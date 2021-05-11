@@ -6,3 +6,6 @@ members = [
 
 [profile.release]
 panic = 'unwind'
+
+[patch.crates-io]
+evm = { path = "../evm" } # We use a custom version of the EVM not yet used in frontier.

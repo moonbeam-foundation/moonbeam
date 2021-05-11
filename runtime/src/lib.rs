@@ -37,7 +37,6 @@ use frame_support::{
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 };
 use frame_system::{EnsureOneOf, EnsureRoot};
-use moonbeam_tracing_hook::TracingHook;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::Transaction as EthereumTransaction;
 use pallet_evm::{
@@ -269,7 +268,7 @@ impl pallet_evm::Config for Runtime {
 	type AddressMapping = IdentityAddressMapping;
 	type Currency = Balances;
 	type Event = Event;
-	type Runner = pallet_evm::runner::stack::Runner<Self, TracingHook>;
+	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type Precompiles = precompiles::MoonbeamPrecompiles<Self>;
 	type ChainId = EthereumChainId;
 	type OnChargeTransaction = ();
@@ -664,29 +663,32 @@ impl_runtime_apis! {
 				let _ = match &ext.function {
 					Call::Ethereum(transact(t)) => {
 						if t == transaction {
-							let hook = match trace_type {
-								TraceType::Raw {
-									disable_storage,
-									disable_memory,
-									disable_stack,
-								} => {
-									TracingHook::new_raw(
-										disable_storage,
-										disable_memory,
-										disable_stack,
-									)
-								},
-								TraceType::CallList => TracingHook::new_call_list(),
-							};
+							// let hook = match trace_type {
+							// 	TraceType::Raw {
+							// 		disable_storage,
+							// 		disable_memory,
+							// 		disable_stack,
+							// 	} => {
+							// 		TracingHook::new_raw(
+							// 			disable_storage,
+							// 			disable_memory,
+							// 			disable_stack,
+							// 		)
+							// 	},
+							// 	TraceType::CallList => TracingHook::new_call_list(),
+							// };
 
-							let other_hook = pallet_evm::runner::stack::Runner::<Runtime, TracingHook>::set_hook(Some(hook));
+							// let other_hook = pallet_evm::runner::stack::Runner::<Runtime, TracingHook>::set_hook(Some(hook));
+							
 							let _ = Executive::apply_extrinsic(ext);
-							let hook = pallet_evm::runner::stack::Runner::<Runtime, TracingHook>::set_hook(other_hook);
+							// let hook = pallet_evm::runner::stack::Runner::<Runtime, TracingHook>::set_hook(other_hook);
 
-							return match hook {
-								Some(hook) => Ok(hook.finish()),
-								None => Err(sp_runtime::DispatchError::Other("Could not get back hook.")),
-							}
+							return todo!("replace hook with new evm events");
+
+							// return match hook {
+							// 	Some(hook) => Ok(hook.finish()),
+							// 	None => Err(sp_runtime::DispatchError::Other("Could not get back hook.")),
+							// }
 
 						} else {
 							Executive::apply_extrinsic(ext)
@@ -718,16 +720,19 @@ impl_runtime_apis! {
 			for ext in extrinsics.into_iter() {
 				match &ext.function {
 					Call::Ethereum(transact(_transaction)) => {
-						let hook = TracingHook::new_call_list();
+						// let hook = TracingHook::new_call_list();
 
-						let other_hook = pallet_evm::runner::stack::Runner::<Runtime, TracingHook>::set_hook(Some(hook));
+						
+						// let other_hook = pallet_evm::runner::stack::Runner::<Runtime, TracingHook>::set_hook(Some(hook));
 						let _ = Executive::apply_extrinsic(ext);
-						let hook = pallet_evm::runner::stack::Runner::<Runtime, TracingHook>::set_hook(other_hook);
+						// let hook = pallet_evm::runner::stack::Runner::<Runtime, TracingHook>::set_hook(other_hook);
 
-						let tx_traces = match hook {
-							Some(hook) => hook.finish(),
-							None => return Err(sp_runtime::DispatchError::Other("Could not get back hook.")),
-						};
+						let tx_traces = todo!("replace hook with new evm events");
+
+						// let tx_traces = match hook {
+						// 	Some(hook) => hook.finish(),
+						// 	None => return Err(sp_runtime::DispatchError::Other("Could not get back hook.")),
+						// };
 
 						let tx_traces = match tx_traces {
 							single::TransactionTrace::CallList(t) => t,
