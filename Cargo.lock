@@ -4509,7 +4509,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam"
-version = "0.8.0-dev-nimbus"
+version = "0.8.0-dev"
 dependencies = [
  "ansi_term 0.12.1",
  "assert_cmd",
@@ -4577,7 +4577,6 @@ dependencies = [
  "sc-service",
  "sc-telemetry",
  "sc-tracing",
- "sc-transaction-graph",
  "sc-transaction-pool",
  "serde",
  "serde_json",
@@ -4770,7 +4769,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-runtime"
-version = "0.8.0-dev-nimbus"
+version = "0.8.0-dev"
 dependencies = [
  "account",
  "cumulus-pallet-parachain-system",

@@ -35,7 +35,6 @@ use sc_consensus_manual_seal::rpc::{EngineCommand, ManualSeal, ManualSealApi};
 use sc_network::NetworkService;
 use sc_rpc::SubscriptionTaskExecutor;
 use sc_rpc_api::DenyUnsafe;
-use sc_transaction_graph::{ChainApi, Pool};
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
@@ -45,13 +44,11 @@ use sp_runtime::traits::BlakeTwo256;
 use sp_transaction_pool::TransactionPool;
 
 /// Full client dependencies.
-pub struct FullDeps<C, P, A: ChainApi, BE> {
+pub struct FullDeps<C, P, BE> {
 	/// The client instance to use.
 	pub client: Arc<C>,
 	/// Transaction pool instance.
 	pub pool: Arc<P>,
-	/// Graph pool instance.
-	pub graph: Arc<Pool<A>>,
 	/// Whether to deny unsafe calls
 	pub deny_unsafe: DenyUnsafe,
 	/// The Node authority flag
@@ -76,11 +73,13 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub trace_filter_requester: Option<TraceFilterCacheRequester>,
 	/// Trace filter max count.
 	pub trace_filter_max_count: u32,
+	/// Maximum number of logs in a query.
+	pub max_past_logs: u32,
 }
 
 /// Instantiate all Full RPC extensions.
-pub fn create_full<C, P, BE, A>(
-	deps: FullDeps<C, P, A, BE>,
+pub fn create_full<C, P, BE>(
+	deps: FullDeps<C, P, BE>,
 	subscription_task_executor: SubscriptionTaskExecutor,
 ) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
 where
@@ -94,7 +93,6 @@ where
 	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>,
 	C::Api: BlockBuilder<Block>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
-	A: ChainApi<Block = Block> + 'static,
 	C::Api: fp_rpc::EthereumRuntimeRPCApi<Block>,
 	C::Api: moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>,
 	C::Api: moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>,
@@ -114,7 +112,6 @@ where
 	let FullDeps {
 		client,
 		pool,
-		graph,
 		deny_unsafe,
 		is_authority,
 		network,
@@ -127,6 +124,7 @@ where
 		debug_requester,
 		trace_filter_requester,
 		trace_filter_max_count,
+		max_past_logs,
 	} = deps;
 
 	io.extend_with(SystemApi::to_delegate(FullSystem::new(
@@ -163,7 +161,7 @@ where
 		overrides.clone(),
 		frontier_backend.clone(),
 		is_authority,
-		5, //TODO max past logs
+		max_past_logs,
 	)));
 
 	if let Some(filter_pool) = filter_pool {
@@ -172,7 +170,7 @@ where
 			filter_pool.clone(),
 			500 as usize, // max stored filters
 			overrides.clone(),
-			5, //TODO max past logs
+			max_past_logs,
 		)));
 	}
 

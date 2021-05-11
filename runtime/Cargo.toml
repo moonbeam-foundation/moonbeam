@@ -3,7 +3,7 @@ name = 'moonbeam-runtime'
 description = 'Moonbeam Runtime'
 homepage = 'https://moonbeam.network'
 license = 'GPL-3.0-only'
-version = '0.8.0-dev-nimbus'
+version = '0.8.0-dev'
 authors = ["PureStake"]
 edition = '2018'
 
@@ -51,7 +51,7 @@ pallet-evm = { git = "https://github.com/purestake/frontier", default-features =
 pallet-utility = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 
 pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
-fp-rpc = { version = "1.0.1-dev", default-features = false, git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
+fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
 
 pallet-democracy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
@@ -128,7 +128,7 @@ std = [
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
-runtime-wasm = [] # "cumulus-upward-message/runtime-wasm",	
+runtime-wasm = []
 
 # A feature that should be enabled when the runtime should be build for on-chain
 # deployment. This will disable stuff that shouldn't be part of the on-chain wasm
