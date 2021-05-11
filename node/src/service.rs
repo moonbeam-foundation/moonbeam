@@ -104,7 +104,7 @@ pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backen
 #[allow(clippy::type_complexity)]
 pub fn new_partial(
 	config: &Configuration,
-	author: Option<H160>,
+	author: Option<nimbus_primitives::NimbusId>,
 	dev_service: bool,
 ) -> Result<
 	PartialComponents<
@@ -243,7 +243,7 @@ where
 
 	let parachain_config = prepare_node_config(parachain_config);
 
-	let params = new_partial(&parachain_config, author_id, false)?;
+	let params = new_partial(&parachain_config, None, false)?;
 	let (
 		block_import,
 		pending_transactions,
@@ -498,7 +498,7 @@ pub async fn start_node(
 /// the parachain inherent.
 pub fn new_dev(
 	config: Configuration,
-	author_id: Option<H160>,
+	author_id: Option<nimbus_primitives::NimbusId>,
 	// TODO I guess we should use substrate-cli's validator flag for this.
 	// Resolve after https://github.com/paritytech/cumulus/pull/380 is reviewed.
 	collator: bool,

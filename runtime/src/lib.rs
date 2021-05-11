@@ -497,6 +497,7 @@ impl parachain_staking::Config for Runtime {
 
 impl pallet_author_inherent::Config for Runtime {
 	//TODO Okay, wow, this is making me think the mapping should just happen in the author inherent pallet
+	// Or maybe the sessions pallet will interface really naturally with the author inherent pallet?
 	type AuthorId = NimbusId;
 	type EventHandler = pallet_author_mapping::MappedEventHandler<Self, ParachainStaking>;
 	type PreliminaryCanAuthor = pallet_author_mapping::MappedCanAuthor<Self, ParachainStaking>;

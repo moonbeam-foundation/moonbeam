@@ -24,10 +24,10 @@ use cumulus_primitives_core::ParaId;
 use evm::GenesisAccount;
 use log::debug;
 use moonbeam_runtime::{
-	AccountId, AuthorFilterConfig, Balance, BalancesConfig, CouncilCollectiveConfig,
-	DemocracyConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig, GenesisConfig,
-	InflationInfo, ParachainInfoConfig, ParachainStakingConfig, Range, SchedulerConfig, SudoConfig,
-	SystemConfig, TechComitteeCollectiveConfig, GLMR, WASM_BINARY,
+	AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
+	CouncilCollectiveConfig, DemocracyConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig,
+	GenesisConfig, InflationInfo, ParachainInfoConfig, ParachainStakingConfig, Range,
+	SchedulerConfig, SudoConfig, SystemConfig, TechComitteeCollectiveConfig, GLMR, WASM_BINARY,
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
@@ -297,12 +297,6 @@ pub fn testnet_genesis(
 		parachain_staking: ParachainStakingConfig {
 			stakers: stakers.clone(),
 			inflation_config,
-			// Super hack. We just set all the stakers to use alice's nimbus id.
-			// This would cause weird behaivior in rewards. Lukily I already disabled rewards XD
-			author_ids: stakers
-				.iter()
-				.map(|staker| (staker.0, get_from_seed::<NimbusId>("Alice")))
-				.collect(),
 		},
 		pallet_collective_Instance1: CouncilCollectiveConfig {
 			phantom: Default::default(),
@@ -313,6 +307,24 @@ pub fn testnet_genesis(
 			members: vec![], // TODO : Set members
 		},
 		pallet_author_slot_filter: AuthorFilterConfig { eligible_ratio: 50 },
+		pallet_author_mapping: AuthorMappingConfig {
+			// Pretty hacky. We just set the first staker to use alice's session keys.
+			// Maybe this is the moment we should finally make the `--alice` flags make sense.
+			// Which is to say, we should prefund the alice account. Actually, I think we already do that...
+			author_ids: stakers
+				.iter()
+				.take(1)
+				.map(|staker| {
+					let author_id = get_from_seed::<NimbusId>("Alice");
+					let account_id = staker.0;
+					println!(
+						"Initializing author -> account mapping: ({:?}, {:?})",
+						author_id, account_id
+					);
+					(author_id, account_id)
+				})
+				.collect(),
+		},
 	}
 }
 
