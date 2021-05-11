@@ -50,7 +50,7 @@ pallet-evm = { git = "https://github.com/purestake/frontier", default-features =
 pallet-utility = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 
 pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
-fp-rpc = { version = "1.0.1-dev", default-features = false, git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
+fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
 
 pallet-democracy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
