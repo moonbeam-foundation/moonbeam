@@ -834,6 +834,15 @@ pub mod pallet {
 			<InflationConfig<T>>::put(inflation_config);
 			Ok(().into())
 		}
+		#[pallet::weight(T::WeightInfo::force_leave_candidates())]
+		/// Root dispatchable to force a collator candidate's immediate exit
+		pub fn force_leave_candidates(
+			origin: OriginFor<T>,
+			who: T::AccountId,
+		) -> DispatchResultWithPostInfo {
+			frame_system::ensure_root(origin)?;
+			Self::collator_exit(who, true)
+		}
 		/// Join the set of collator candidates
 		#[pallet::weight(T::WeightInfo::join_candidates())]
 		pub fn join_candidates(
@@ -870,10 +879,12 @@ pub mod pallet {
 			Self::deposit_event(Event::JoinedCollatorCandidates(acc, bond, new_total));
 			Ok(().into())
 		}
-		/// Request to leave the set of candidates. If successful, the account is immediately
+		/// Schedule exit from the set of candidates. If successful, the account is immediately
 		/// removed from the candidate pool to prevent selection as a collator, but unbonding is
-		/// executed with a delay of `BondDuration` rounds.
-		#[pallet::weight(T::WeightInfo::leave_candidates())]
+		/// executed after `BondDuration` rounds.
+		#[pallet::weight(
+			T::WeightInfo::leave_candidates() + T::WeightInfo::force_leave_candidates()
+		)]
 		pub fn leave_candidates(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
@@ -1196,6 +1207,51 @@ pub mod pallet {
 				return round_issuance.ideal;
 			}
 		}
+		fn collator_exit(who: T::AccountId, clear_exit: bool) -> DispatchResultWithPostInfo {
+			let state = <CollatorState<T>>::get(&who).ok_or(Error::<T>::CandidateDNE)?;
+			if state.is_active() {
+				// remove from candidate pool
+				let mut candidates = <CandidatePool<T>>::get();
+				if candidates.remove(&Bond::from_owner(who.clone())) {
+					<CandidatePool<T>>::put(candidates);
+				}
+			}
+			// return all nominator bonds
+			for bond in &state.nominators.0 {
+				// return stake to nominator
+				T::Currency::unreserve(&bond.owner, bond.amount);
+				// remove nomination from nominator state
+				if let Some(mut nominator) = <NominatorState<T>>::get(&bond.owner) {
+					if let Some(remaining) = nominator.rm_nomination(who.clone()) {
+						if remaining.is_zero() {
+							<NominatorState<T>>::remove(&bond.owner);
+						} else {
+							<NominatorState<T>>::insert(&bond.owner, nominator);
+						}
+					}
+				}
+			}
+			if state.is_leaving() && clear_exit {
+				// collator was already in exit queue but exit was expedited
+				// => need to remove from the exit queue before executing exit
+				let remain_exits = <ExitQueue<T>>::get()
+					.0
+					.into_iter()
+					.filter_map(|x| if x.owner == who { None } else { Some(x) })
+					.collect::<Vec<Bond<T::AccountId, RoundIndex>>>();
+				<ExitQueue<T>>::put(OrderedSet::from(remain_exits));
+			}
+			// return collator bond
+			T::Currency::unreserve(&state.id, state.bond);
+			let mut new_count = <CandidateCount<T>>::get();
+			new_count.decrement();
+			let new_total = <Total<T>>::get() - state.total;
+			<Total<T>>::put(new_total);
+			<CandidateCount<T>>::put(new_count);
+			<CollatorState<T>>::remove(&who);
+			Self::deposit_event(Event::CollatorLeft(who, state.total, new_total));
+			Ok(().into())
+		}
 		fn nominator_revokes_collator(
 			acc: T::AccountId,
 			collator: T::AccountId,
@@ -1316,37 +1372,8 @@ pub mod pallet {
 					if x.amount > next {
 						Some(x)
 					} else {
-						if let Some(state) = <CollatorState<T>>::get(&x.owner) {
-							for bond in state.nominators.0 {
-								// return stake to nominator
-								T::Currency::unreserve(&bond.owner, bond.amount);
-								// remove nomination from nominator state
-								if let Some(mut nominator) = <NominatorState<T>>::get(&bond.owner) {
-									if let Some(remaining) =
-										nominator.rm_nomination(x.owner.clone())
-									{
-										if remaining.is_zero() {
-											<NominatorState<T>>::remove(&bond.owner);
-										} else {
-											<NominatorState<T>>::insert(&bond.owner, nominator);
-										}
-									}
-								}
-							}
-							// return stake to collator
-							T::Currency::unreserve(&state.id, state.bond);
-							let mut new_count = <CandidateCount<T>>::get();
-							new_count.decrement();
-							let new_total = <Total<T>>::get() - state.total;
-							<Total<T>>::put(new_total);
-							<CandidateCount<T>>::put(new_count);
-							<CollatorState<T>>::remove(&x.owner);
-							Self::deposit_event(Event::CollatorLeft(
-								x.owner,
-								state.total,
-								new_total,
-							));
-						}
+						// TODO: debug print upon failure
+						let _ = Self::collator_exit(x.owner.clone(), false);
 						None
 					}
 				})

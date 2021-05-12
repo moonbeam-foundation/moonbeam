@@ -4588,6 +4588,7 @@ dependencies = [
  "pallet-evm",
  "pallet-sudo",
  "pallet-transaction-payment-rpc",
+ "pallet-xcm",
  "parity-scale-codec",
  "parking_lot 0.9.0",
  "polkadot-cli",
@@ -4638,6 +4639,7 @@ dependencies = [
  "tiny-hderive",
  "tokio 0.2.25",
  "trie-root 0.15.2",
+ "xcm-builder",
 ]
 
 [[package]]

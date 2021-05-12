@@ -114,6 +114,14 @@ benchmarks! {
 		assert_eq!(Pallet::<T>::round().length, 1200u32);
 	}
 
+	force_leave_candidates {
+		let caller: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, 0u32.into())?;
+		whitelist_account!(caller);
+	}: _(RawOrigin::Root, caller.clone())
+	verify {
+		assert!(!Pallet::<T>::is_candidate(&caller));
+	}
+
 	// USER DISPATCHABLES
 
 	join_candidates {
@@ -136,6 +144,7 @@ benchmarks! {
 	// `force_leave_candidates` is only open to root
 	leave_candidates {
 		let caller: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, 0u32.into())?;
+		whitelist_account!(caller);
 		// fill up collator with max nominations for worst complexity upon exit
 		// for i in 0..<<T as Config>::MaxNominatorsPerCollator as Get<u32>>::get() {
 		// 	let seed = USER_SEED - i;
@@ -147,7 +156,6 @@ benchmarks! {
 		// let now = System::<T>::block_number();
 		// // round length
 		// let blocks_per_round: T::BlockNumber = Pallet::<T>::round().length.into();
-		// whitelist_account!(caller);
 	}: _(RawOrigin::Signed(caller.clone()))
 	verify {
 		// check that collator state is immediately `is-leaving`
@@ -328,6 +336,13 @@ mod tests {
 	fn bench_set_inflation() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(test_benchmark_set_inflation::<Test>());
+		});
+	}
+
+	#[test]
+	fn bench_force_leave_candidates() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(test_benchmark_force_leave_candidates::<Test>());
 		});
 	}
 
