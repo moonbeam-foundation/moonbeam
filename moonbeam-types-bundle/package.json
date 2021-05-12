@@ -6,7 +6,8 @@
   "types": "dist/index.d.ts",
   "prepublish": "tsc",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "lint": "npx prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'"
   },
   "keywords": [
     "moonbeam",
