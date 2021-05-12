@@ -13,19 +13,17 @@ describeDevMoonbeam("Debug module - Concurrency", (context) => {
     const { contract, rawTx } = await createContract(context.web3, "FiniteLoopContract");
     await context.createBlock({ transactions: [rawTx] });
 
-    txResults = await Promise.all(
-      [...Array(CONCURRENT_EXECUTION + 1).keys()].map(async (i) => {
-        const response = await context.createBlock({
-          transactions: [
-            await createContractExecution(context.web3, {
-              contract,
-              contractCall: contract.methods.incr(CONTRACT_LOOP),
-            }),
-          ],
-        });
-        return response.txResults[0];
-      })
-    );
+    for (let i = 0; i < CONCURRENT_EXECUTION + 1; i++) {
+      const response = await context.createBlock({
+        transactions: [
+          await createContractExecution(context.web3, {
+            contract,
+            contractCall: contract.methods.incr(CONTRACT_LOOP),
+          }),
+        ],
+      });
+      txResults.push(response.txResults[0]);
+    }
   });
 
   it("should allow optimized concurrent execution", async function () {
