@@ -4443,6 +4443,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "moonbeam-evm-tracer"
+version = "0.1.0"
+dependencies = [
+ "ethereum-types",
+ "evm",
+ "evm-core",
+ "evm-gasometer",
+ "evm-runtime",
+ "fp-evm",
+ "moonbeam-rpc-primitives-debug",
+ "pallet-evm",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "tracing",
+]
+
+[[package]]
 name = "moonbeam-rpc-core-debug"
 version = "0.1.0"
 dependencies = [
@@ -4610,9 +4629,9 @@ dependencies = [
  "frame-system-rpc-runtime-api",
  "hex-literal",
  "log",
+ "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
- "moonbeam-tracing-hook",
  "pallet-author-filter",
  "pallet-balances",
  "pallet-collective",
@@ -4645,25 +4664,6 @@ dependencies = [
  "sp-transaction-pool",
  "sp-version",
  "substrate-wasm-builder 4.0.0",
-]
-
-[[package]]
-name = "moonbeam-tracing-hook"
-version = "0.1.0"
-dependencies = [
- "ethereum-types",
- "evm",
- "evm-core",
- "evm-gasometer",
- "evm-runtime",
- "fp-evm",
- "moonbeam-rpc-primitives-debug",
- "pallet-evm",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "tracing",
 ]
 
 [[package]]

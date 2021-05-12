@@ -70,7 +70,77 @@
 //!   ]
 //!   ```
 
-use evm_gasometer::tracing; // working use !
+#![cfg_attr(not(feature = "std"), no_std)]
+
+use evm_gasometer::tracing::{
+	using as gasometer_using, Event as GasometerEvent, EventListener as GasometerListener,
+};
+use evm_runtime::tracing::{
+	using as runtime_using, Event as RuntimeEvent, EventListener as RuntimeListener,
+};
+use sp_std::{cell::RefCell, rc::Rc};
+
+struct GasometerListenerProxy<T>(Rc<RefCell<T>>);
+
+impl<T: GasometerListener> GasometerListener for GasometerListenerProxy<T> {
+	fn event(&mut self, event: GasometerEvent) {
+		self.0.borrow_mut().event(event);
+	}
+}
+
+struct RuntimeListenerProxy<T>(Rc<RefCell<T>>);
+
+impl<T: RuntimeListener> RuntimeListener for RuntimeListenerProxy<T> {
+	fn event(&mut self, event: RuntimeEvent) {
+		self.0.borrow_mut().event(event);
+	}
+}
+#[derive(Debug, Clone)]
+pub struct DummyTracer {
+	count: u32,
+}
+
+impl DummyTracer {
+	pub fn trace<R, F: FnOnce() -> R>(f: F) -> (Self, R) {
+		let tracer = Rc::new(RefCell::new(DummyTracer { count: 0 }));
+
+		let result = {
+			let mut gasometer = GasometerListenerProxy(Rc::clone(&tracer));
+			let mut runtime = RuntimeListenerProxy(Rc::clone(&tracer));
+
+			gasometer_using(&mut gasometer, || runtime_using(&mut runtime, || f()))
+		};
+
+		(Rc::try_unwrap(tracer).unwrap().into_inner(), result)
+	}
+}
+
+impl GasometerListener for DummyTracer {
+	#[cfg(feature = "std")]
+	fn event(&mut self, event: GasometerEvent) {
+		tracing::trace!("event: {:?}", event);
+		self.count += 1;
+	}
+
+	#[cfg(not(feature = "std"))]
+	fn event(&mut self, _event: GasometerEvent) {}
+}
+
+impl RuntimeListener for DummyTracer {
+	#[cfg(feature = "std")]
+	fn event(&mut self, event: RuntimeEvent) {
+		match event {
+			RuntimeEvent::Step { opcode, .. } => {
+				tracing::trace!("event: Step( opcode: {:?}, ..)", opcode)
+			}
+			event => tracing::trace!("event: {:?}", event),
+		}
+		self.count += 1;
+	}
+
+	#[cfg(not(feature = "std"))]
+	fn event(&mut self, _event: RuntimeEvent) {}
+}
 
 // #![cfg_attr(not(feature = "std"), no_std)]
 
