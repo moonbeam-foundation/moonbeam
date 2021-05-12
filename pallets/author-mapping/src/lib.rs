@@ -34,9 +34,8 @@ pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::FindAuthor;
 	use frame_system::pallet_prelude::*;
+	use nimbus_primitives::{CanAuthor, EventHandler};
 	use sp_runtime::ConsensusEngineId;
-	//TODO move this to the primitives crate
-	use pallet_author_inherent::{CanAuthor, EventHandler};
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
@@ -108,9 +107,9 @@ pub mod pallet {
 		T: Config,
 		Inner: CanAuthor<T::AccountId>,
 	{
-		fn can_author(author_id: &T::AuthorId) -> bool {
+		fn can_author(author_id: &T::AuthorId, slot: &u32) -> bool {
 			AuthorIds::<T>::get(author_id)
-				.map(|account_id| Inner::can_author(&account_id))
+				.map(|account_id| Inner::can_author(&account_id, slot))
 				.unwrap_or(false)
 		}
 	}

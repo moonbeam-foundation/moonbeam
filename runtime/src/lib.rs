@@ -496,9 +496,10 @@ impl parachain_staking::Config for Runtime {
 }
 
 impl pallet_author_inherent::Config for Runtime {
+	type AuthorId = NimbusId;
+	type SlotBeacon = pallet_author_inherent::RelayChainBeacon<Self>;
 	//TODO This is making me think the mapping should just happen in the author inherent pallet
 	// Or maybe the sessions pallet will interface really naturally with the author inherent pallet?
-	type AuthorId = NimbusId;
 	type EventHandler = pallet_author_mapping::MappedEventHandler<Self, ParachainStaking>;
 	type PreliminaryCanAuthor = pallet_author_mapping::MappedCanAuthor<Self, ParachainStaking>;
 	type FullCanAuthor = pallet_author_mapping::MappedCanAuthor<Self, AuthorFilter>;
@@ -1064,16 +1065,9 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl nimbus_primitives::AuthorFilterAPI<Block, NimbusId> for Runtime {
-		fn can_author(author: NimbusId, relay_parent: u32) -> bool {
-			// TODO Rather than referring to the author filter directly here,
-			// refer to it via the author inherent config. This avoid the possibility
-			// of accidentally using different filters in different places.
-			// This will make more sense when the CanAuthor trait is revised so its method accepts
-			// the slot number.
-			// Basically what is currently called the "helper" should be the main method.
-			AuthorMapping::account_id_of(author).map(|account|
-			AuthorFilter::can_author_helper(&account, relay_parent)).unwrap_or(false)
+	impl nimbus_primitives::AuthorFilterAPI<Block, nimbus_primitives::NimbusId> for Runtime {
+		fn can_author(author: nimbus_primitives::NimbusId, slot: u32) -> bool {
+			<<Runtime as pallet_author_inherent::Config>::FullCanAuthor as nimbus_primitives::CanAuthor<nimbus_primitives::NimbusId>>::can_author(&author, &slot)
 		}
 	}
 

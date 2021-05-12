@@ -6,7 +6,7 @@ edition = "2018"
 description = "parachain staking pallet for collator selection and reward distribution"
 
 [dependencies]
-pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
+nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
@@ -14,7 +14,7 @@ parity-scale-codec = { version = "2.0.0", default-features = false, features = [
 serde = { version = "1.0.101", optional = true }
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
-substrate-fixed = { default-features = false, git = "https://github.com/encointer/substrate-fixed"}
+substrate-fixed = { default-features = false, git = "https://github.com/encointer/substrate-fixed" }
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false, optional = true }
 
 [dev-dependencies]
@@ -24,7 +24,7 @@ sp-core = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1
 [features]
 default = ["std"]
 std = [
-	"pallet-author-inherent/std",
+	"nimbus-primitives/std",
 	"frame-support/std",
 	"frame-system/std",
 	"pallet-balances/std",
@@ -33,6 +33,4 @@ std = [
 	"sp-std/std",
 	"sp-runtime/std",
 ]
-runtime-benchmarks = [
-	"frame-benchmarking",
-]
+runtime-benchmarks = ["frame-benchmarking"]
