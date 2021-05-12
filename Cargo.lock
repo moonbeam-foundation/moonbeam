@@ -4382,6 +4382,7 @@ dependencies = [
  "jsonrpc-core 15.1.0",
  "jsonrpc-pubsub 15.1.0",
  "log",
+ "moonbeam-primitives-ext",
  "moonbeam-rpc-debug",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
@@ -4454,11 +4455,21 @@ dependencies = [
  "evm",
  "evm-core",
  "fp-evm",
+ "moonbeam-primitives-ext",
  "moonbeam-rpc-primitives-debug",
  "pallet-evm",
  "sp-core",
  "sp-io",
  "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "moonbeam-primitives-ext"
+version = "0.1.0"
+dependencies = [
+ "sp-externalities",
+ "sp-runtime-interface",
  "sp-std",
 ]
 
@@ -4631,6 +4642,7 @@ dependencies = [
  "hex-literal",
  "log",
  "moonbeam-extensions-evm",
+ "moonbeam-primitives-ext",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "pallet-author-filter",

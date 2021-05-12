@@ -11,9 +11,13 @@ repository = 'https://github.com/PureStake/moonbeam/'
 
 [dependencies]
 sp-runtime-interface = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1",default-features = false }
+sp-externalities = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1",default-features = false }
+sp-std = { git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1",default-features = false }
 
 [features]
 default = ["std"]
 std = [
 	"sp-runtime-interface/std",
+	"sp-externalities/std",
+	"sp-std/std",
 ]
