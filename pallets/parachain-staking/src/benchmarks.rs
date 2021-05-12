@@ -17,10 +17,11 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 //! Benchmarking
-use crate::{BalanceOf, Call, Config, Pallet};
+use crate::{BalanceOf, Call, Config, Pallet, Range};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, whitelist_account};
 use frame_support::traits::{Currency, Get, ReservableCurrency}; // OnInitialize, OnFinalize
 use frame_system::RawOrigin;
+use sp_runtime::Perbill;
 
 /// Default balance amount is minimum collator stake
 fn default_balance<T: Config>() -> BalanceOf<T> {
@@ -73,6 +74,48 @@ const USER_SEED: u32 = 999666;
 // }
 
 benchmarks! {
+	// ROOT DISPATCHABLES
+
+	set_staking_expectations {
+		let stake_range: Range<BalanceOf<T>> = Range {
+			min: 100u32.into(),
+			ideal: 200u32.into(),
+			max: 300u32.into(),
+		};
+	}: _(RawOrigin::Root, stake_range)
+	verify {}
+
+	set_inflation {
+		let inflation_range: Range<Perbill> = Range {
+			min: Perbill::from_perthousand(1),
+			ideal: Perbill::from_perthousand(2),
+			max: Perbill::from_perthousand(3),
+		};
+	}: _(RawOrigin::Root, inflation_range)
+	verify {}
+
+	set_total_selected {}: _(RawOrigin::Root, 100u32)
+	verify {
+		assert_eq!(Pallet::<T>::total_selected(), 100u32);
+	}
+
+	set_max_collator_candidates {}: _(RawOrigin::Root, 500u32)
+	verify {
+		assert_eq!(Pallet::<T>::candidate_count().max_collator_candidates, 500u32);
+	}
+
+	set_collator_commission {}: _(RawOrigin::Root, Perbill::from_percent(33))
+	verify {
+		assert_eq!(Pallet::<T>::collator_commission(), Perbill::from_percent(33));
+	}
+
+	set_blocks_per_round {}: _(RawOrigin::Root, 1200u32)
+	verify {
+		assert_eq!(Pallet::<T>::round().length, 1200u32);
+	}
+
+	// USER DISPATCHABLES
+
 	join_candidates {
 		// Worst Case Complexity is insertion into an ordered list so \exists full list before call
 		for i in 2..<<T as Config>::MaxCollatorCandidates as Get<u32>>::get() {
@@ -244,6 +287,48 @@ mod tests {
 			.build_storage::<Test>()
 			.unwrap();
 		TestExternalities::new(t)
+	}
+
+	#[test]
+	fn bench_set_blocks_per_round() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(test_benchmark_set_blocks_per_round::<Test>());
+		});
+	}
+
+	#[test]
+	fn bench_set_collator_commission() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(test_benchmark_set_collator_commission::<Test>());
+		});
+	}
+
+	#[test]
+	fn bench_set_max_collator_candidates() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(test_benchmark_set_max_collator_candidates::<Test>());
+		});
+	}
+
+	#[test]
+	fn bench_set_total_selected() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(test_benchmark_set_total_selected::<Test>());
+		});
+	}
+
+	#[test]
+	fn bench_set_staking_expectations() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(test_benchmark_set_staking_expectations::<Test>());
+		});
+	}
+
+	#[test]
+	fn bench_set_inflation() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(test_benchmark_set_inflation::<Test>());
+		});
 	}
 
 	#[test]

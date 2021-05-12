@@ -389,7 +389,7 @@ pub mod pallet {
 
 		pub fn increment<T: Config>(&mut self) {
 			if self.max_collator_candidates == 0u32 {
-				// initialize if not initialized in genesis build => is 0u32 by default
+				// must initialize if not initialized in genesis build b/c derived default is 0u32
 				self.max_collator_candidates = T::MaxCollatorCandidates::get();
 			}
 			self.candidate_count += 1u32;
@@ -442,6 +442,9 @@ pub mod pallet {
 
 	#[pallet::error]
 	pub enum Error<T> {
+		// TODO: reorg with root at top and everything else below
+		CannotSetMaxCandidatesBelowTotalSelected,
+		MaxCollatorCandidatesOnlyIncreases,
 		// Nominator Does Not Exist
 		NominatorDNE,
 		CandidateDNE,
@@ -501,6 +504,8 @@ pub mod pallet {
 		StakeExpectationsSet(BalanceOf<T>, BalanceOf<T>, BalanceOf<T>),
 		/// Set total selected candidates to this value [old, new]
 		TotalSelectedSet(u32, u32),
+		/// Set maximum collator candidates to this value [old, new]
+		MaxCollatorCandidatesSet(u32, u32),
 		/// Set collator commission to this value [old, new]
 		CollatorCommissionSet(Perbill, Perbill),
 		/// Set blocks per round [current_round, first_block, old, new, new_per_round_inflation]
@@ -712,7 +717,7 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		/// Set the expectations for total staked. These expectations determine the issuance for
 		/// the round according to logic in `fn compute_issuance`
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::set_staking_expectations())]
 		pub fn set_staking_expectations(
 			origin: OriginFor<T>,
 			expectations: Range<BalanceOf<T>>,
@@ -730,7 +735,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Set the annual inflation rate to derive per-round inflation
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::set_inflation())]
 		pub fn set_inflation(
 			origin: OriginFor<T>,
 			schedule: Range<Perbill>,
@@ -751,7 +756,7 @@ pub mod pallet {
 			<InflationConfig<T>>::put(config);
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::set_total_selected())]
 		/// Set the total number of collator candidates selected per round
 		/// - changes are not applied until the start of the next round
 		pub fn set_total_selected(origin: OriginFor<T>, new: u32) -> DispatchResultWithPostInfo {
@@ -765,7 +770,29 @@ pub mod pallet {
 			Self::deposit_event(Event::TotalSelectedSet(old, new));
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::set_max_collator_candidates())]
+		/// Set the maximum number of collator candidates to be allowed in the CandidatePool
+		/// - current implementation requires new_max > old_max
+		pub fn set_max_collator_candidates(
+			origin: OriginFor<T>,
+			new: u32,
+		) -> DispatchResultWithPostInfo {
+			frame_system::ensure_root(origin)?;
+			ensure!(
+				new >= <TotalSelected<T>>::get(),
+				Error::<T>::CannotSetMaxCandidatesBelowTotalSelected
+			);
+			let mut count = <CandidateCount<T>>::get();
+			let old = count.max_collator_candidates;
+			// TODO: add path to set lower max collator candidates by immediately kicking lowest
+			// new_max - old_max of existing candidates if old candidate pool is full
+			ensure!(new > old, Error::<T>::MaxCollatorCandidatesOnlyIncreases);
+			count.max_collator_candidates = new;
+			<CandidateCount<T>>::put(count);
+			Self::deposit_event(Event::MaxCollatorCandidatesSet(old, new));
+			Ok(().into())
+		}
+		#[pallet::weight(T::WeightInfo::set_collator_commission())]
 		/// Set the commission for all collators
 		pub fn set_collator_commission(
 			origin: OriginFor<T>,
@@ -777,7 +804,7 @@ pub mod pallet {
 			Self::deposit_event(Event::CollatorCommissionSet(old, pct));
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::set_blocks_per_round())]
 		/// Set blocks per round
 		/// - if called with `new` less than length of current round, will transition immediately
 		/// in the next block
