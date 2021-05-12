@@ -48,7 +48,7 @@ describeDevMoonbeam("Debug module - Concurrency", (context) => {
     debug(`Witness time: ${witnesstime}`);
     debug(`Concurrent (${CONCURRENT_EXECUTION}) time: ${timeConcurrent}`);
 
-    // We consider it concurrent if the 4 requests take less than 2 times a single request
-    expect(witnesstime * 2).to.be.at.least(timeConcurrent);
+    // We consider it concurrent if the 4 requests take less than 3 times a single request
+    expect(witnesstime * 3).to.be.at.least(timeConcurrent);
   });
 });
