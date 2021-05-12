@@ -24,6 +24,7 @@ sp-core = { git = "https://github.com/paritytech/substrate", default-features = 
 sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "joshy-substrate-2be8fcc4" }
 
 [features]
 default = ["std"]
@@ -32,12 +33,10 @@ std = [
 	"serde/std",
 	"hex/std",
 	"sha3/std",
-
 	"sp-core/std",
 	"sp-io/std",
 	"sp-runtime/std",
 	"sp-std/std",
-
 	"full_crypto",
 ]
 

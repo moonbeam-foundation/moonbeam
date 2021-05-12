@@ -113,7 +113,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 35,
+	spec_version: 36,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -181,6 +181,7 @@ impl frame_system::Config for Runtime {
 	type SystemWeightInfo = ();
 	/// This is used as an identifier of the chain. 42 is the generic substrate prefix.
 	type SS58Prefix = SS58Prefix;
+	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 }
 
 impl pallet_utility::Config for Runtime {
@@ -438,12 +439,18 @@ impl pallet_ethereum::Config for Runtime {
 	type StateRoot = pallet_ethereum::IntermediateStateRoot;
 }
 
+parameter_types! {
+	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 4;
+}
+
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
 	type SelfParaId = ParachainInfo;
 	type DownwardMessageHandlers = ();
-	type HrmpMessageHandlers = ();
+	type OutboundXcmpMessageSource = ();
+	type XcmpMessageHandler = ();
+	type ReservedXcmpWeight = ReservedXcmpWeight;
 }
 
 impl parachain_info::Config for Runtime {}
@@ -490,18 +497,22 @@ impl parachain_staking::Config for Runtime {
 	type MinNominatorStk = MinNominatorStk;
 	type WeightInfo = parachain_staking::weights::SubstrateWeight<Runtime>;
 }
-impl author_inherent::Config for Runtime {
+
+impl pallet_author_inherent::Config for Runtime {
+	type AuthorId = AccountId;
 	type EventHandler = ParachainStaking;
 	// We cannot run the full filtered author checking logic in the preliminary check because it
 	// depends on entropy from the relay chain. Instead we just make sure that the author is staked
-	// in the preliminary check. The final check including the filtering happens during execution.
+	// in the preliminary check. The final check including filtering happens during block execution.
 	type PreliminaryCanAuthor = ParachainStaking;
-	type FinalCanAuthor = AuthorFilter;
+	type FullCanAuthor = AuthorFilter;
 }
 
-impl pallet_author_filter::Config for Runtime {
+impl pallet_author_slot_filter::Config for Runtime {
+	type AuthorId = AccountId;
 	type Event = Event;
 	type RandomnessSource = RandomnessCollectiveFlip;
+	type PotentialAuthors = ParachainStaking;
 }
 
 construct_runtime! {
@@ -514,9 +525,9 @@ construct_runtime! {
 		Utility: pallet_utility::{Pallet, Call, Event},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Sudo: pallet_sudo::{Pallet, Call, Storage, Config<T>, Event<T>},
+		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
 		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Call, Storage},
-		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event},
+		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>},
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
 		ParachainInfo: parachain_info::{Pallet, Storage, Config},
 		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config},
@@ -530,9 +541,9 @@ construct_runtime! {
 		TechComitteeCollective:
 			pallet_collective::<Instance2>::{Pallet, Call, Event<T>, Origin<T>, Config<T>},
 		// The order matters here. Inherents will be included in the order specified here.
-		// Concretely we need the author inherent to come after the parachain_upgrade inherent.
-		AuthorInherent: author_inherent::{Pallet, Call, Storage, Inherent},
-		AuthorFilter: pallet_author_filter::{Pallet, Call, Storage, Event<T>,}
+		// Concretely we need the author inherent to come after the parachain_system inherent.
+		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent},
+		AuthorFilter: pallet_author_slot_filter::{Pallet, Storage, Event, Config},
 	}
 }
 
@@ -1028,10 +1039,6 @@ impl_runtime_apis! {
 				Ethereum::current_transaction_statuses()
 			)
 		}
-
-		fn current_block_gas_limit() -> U256 {
-			<Runtime as pallet_evm::Config>::BlockGasLimit::get()
-		}
 	}
 
 	impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
@@ -1049,6 +1056,17 @@ impl_runtime_apis! {
 			len: u32,
 		) -> pallet_transaction_payment::FeeDetails<Balance> {
 			TransactionPayment::query_fee_details(uxt, len)
+		}
+	}
+
+	impl author_filter_api::AuthorFilterAPI<Block, AccountId> for Runtime {
+		fn can_author(author: AccountId, relay_parent: u32) -> bool {
+			// Rather than referring to the author filter directly here,
+			// refer to it via the author inherent config. This avoid the possibility
+			// of accidentally using different filters in different places.
+			// This will make more sense when the CanAuthor trait is revised so its method accepts
+			// the slot number. Basically what is currently called the "helper" should be the main method.
+			AuthorFilter::can_author_helper(&author, relay_parent)
 		}
 	}
 

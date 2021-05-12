@@ -27,9 +27,7 @@ export interface DevTestContext {
   createEthers: () => Promise<ethers.providers.JsonRpcProvider>;
   createPolkadotApi: () => Promise<ApiPromise>;
 
-  createBlock: (
-    options?: BlockCreation
-  ) => Promise<{
+  createBlock: (options?: BlockCreation) => Promise<{
     txResults: JsonRpcResponse[];
     block: {
       duration: number;
