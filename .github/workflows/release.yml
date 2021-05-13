@@ -71,8 +71,8 @@ jobs:
     runs-on: self-hosted
     env:
       CARGO_SCCACHE_VERSION: 0.2.14-alpha.0-parity
-      DEBUG: "test:dev-node"
-      MOONBEAM_LOG: "debug"
+      # DEBUG: "test:dev-node"
+      # MOONBEAM_LOG: "debug"
       # DEBUG: "test*"
     outputs:
       RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
@@ -106,7 +106,7 @@ jobs:
         run: |
           echo "::set-output name=rustc::$(rustc --version)"
       - name: Build Node
-        run: RUSTFLAGS="-C opt-level=3" cargo build --release --verbose --all
+        run: RUSTFLAGS="-C opt-level=3" cargo build --release --all
       # We determine whether there are unmodified Cargo.lock files by:
       # 1. Asking git for a list of all modified files
       # 2. Using grep to reduce the list to only Cargo.lock files
@@ -121,8 +121,8 @@ jobs:
             git diff-index --name-only HEAD | grep Cargo.lock
             false
           fi
-      # - name: Unit tests
-      #   run: RUSTFLAGS="-C opt-level=3" cargo test --release --verbose --all
+      - name: Unit tests
+        run: RUSTFLAGS="-C opt-level=3" cargo test --release --all
       - name: Use Node.js 14.x
         uses: actions/setup-node@v2
         with:
