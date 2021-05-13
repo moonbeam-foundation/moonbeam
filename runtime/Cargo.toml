@@ -142,4 +142,5 @@ runtime-benchmarks = [
 	"frame-system/runtime-benchmarks",
 	"pallet-collective/runtime-benchmarks",
 	"parachain-staking/runtime-benchmarks",
+	"pallet-crowdloan-rewards/runtime-benchmarks",
 ]

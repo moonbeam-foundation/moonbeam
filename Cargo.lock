@@ -5346,6 +5346,7 @@ name = "pallet-crowdloan-rewards"
 version = "0.6.0"
 source = "git+https://github.com/purestake/crowdloan-rewards?branch=gorka-cb#2c6de32f36110bb815991eb950652293aa4c43b1"
 dependencies = [
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",
