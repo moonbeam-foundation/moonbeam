@@ -122,17 +122,17 @@ jobs:
           fi
       - name: Unit tests
         run: cargo test --release --verbose --all
-      - name: Use Node.js 14.x
-        uses: actions/setup-node@v2
-        with:
-          node-version: 14.x
-      - name: Typescript integration tests (against dev service)
-        run: |
-          cd moonbeam-types-bundle
-          npm install
-          cd ../tests
-          npm install
-          npm run test -- -j 1
+      # - name: Use Node.js 14.x
+      #   uses: actions/setup-node@v2
+      #   with:
+      #     node-version: 14.x
+      # - name: Typescript integration tests (against dev service)
+      #   run: |
+      #     cd moonbeam-types-bundle
+      #     npm install
+      #     cd ../tests
+      #     npm install
+      #     npm run test -- -j 1
       - name: Save parachain binary
         run: |
           mkdir -p build
