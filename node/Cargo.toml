@@ -97,6 +97,8 @@ cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cu
 # Nimbus Dependency
 # TODO When we bump nimbus, we can depend on the smaller primitives crate here.
 pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+pallet-xcm = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1" }
+xcm-builder = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1" }
 
 # Polkadot dependencies
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1" }
@@ -135,4 +137,6 @@ test-spec = []
 
 runtime-benchmarks = [
 	"moonbeam-runtime/runtime-benchmarks",
+	"pallet-xcm/runtime-benchmarks",
+	"xcm-builder/runtime-benchmarks",
 ]

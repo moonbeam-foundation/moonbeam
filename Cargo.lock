@@ -4588,6 +4588,7 @@ dependencies = [
  "pallet-evm",
  "pallet-sudo",
  "pallet-transaction-payment-rpc",
+ "pallet-xcm",
  "parity-scale-codec",
  "parking_lot 0.9.0",
  "polkadot-cli",
@@ -4638,6 +4639,7 @@ dependencies = [
  "tiny-hderive",
  "tokio 0.2.25",
  "trie-root 0.15.2",
+ "xcm-builder",
 ]
 
 [[package]]
@@ -5345,7 +5347,7 @@ dependencies = [
 [[package]]
 name = "pallet-crowdloan-rewards"
 version = "0.6.0"
-source = "git+https://github.com/purestake/crowdloan-rewards?rev=648708b#648708b059dfea3700eb179c115504c5cdd67ce8"
+source = "git+https://github.com/purestake/crowdloan-rewards?rev=649176a#649176a1ea9350ce914a98d8493f1215a611cd70"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5859,6 +5861,7 @@ dependencies = [
  "log",
  "parity-scale-codec",
  "sp-inherents",
+ "sp-io",
  "sp-runtime",
  "sp-std",
  "sp-timestamp",
