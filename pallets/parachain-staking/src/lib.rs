@@ -47,12 +47,18 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(any(test, feature = "runtime-benchmarks"))]
+mod benchmarks;
 mod inflation;
 #[cfg(test)]
 mod mock;
 mod set;
 #[cfg(test)]
 mod tests;
+
+pub mod weights;
+use weights::WeightInfo;
+
 use frame_support::pallet;
 pub use inflation::{InflationInfo, Range};
 
@@ -60,7 +66,7 @@ pub use pallet::*;
 
 #[pallet]
 pub mod pallet {
-	use super::{InflationInfo, Range};
+	use super::*;
 	use crate::set::OrderedSet;
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, Get, Imbalance, ReservableCurrency};
@@ -395,6 +401,8 @@ pub mod pallet {
 		type MinNomination: Get<BalanceOf<Self>>;
 		/// Minimum stake for any registered on-chain account to become a nominator
 		type MinNominatorStk: Get<BalanceOf<Self>>;
+		/// Weight information for extrinsics in this pallet.
+		type WeightInfo: WeightInfo;
 	}
 
 	#[pallet::error]
@@ -679,7 +687,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Set the annual inflation rate to derive per-round inflation
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::set_inflation())]
 		pub fn set_inflation(
 			origin: OriginFor<T>,
 			schedule: Range<Perbill>,
@@ -1300,7 +1308,7 @@ pub mod pallet {
 	}
 	/// Add reward points to block authors:
 	/// * 20 points to the block producer for producing a block in the chain
-	impl<T: Config> author_inherent::EventHandler<T::AccountId> for Pallet<T> {
+	impl<T: Config> pallet_author_inherent::EventHandler<T::AccountId> for Pallet<T> {
 		fn note_author(author: T::AccountId) {
 			let now = <Round<T>>::get().current;
 			let score_plus_20 = <AwardedPts<T>>::get(now, &author) + 20;
@@ -1309,9 +1317,18 @@ pub mod pallet {
 		}
 	}
 
-	impl<T: Config> author_inherent::CanAuthor<T::AccountId> for Pallet<T> {
+	impl<T: Config> pallet_author_inherent::CanAuthor<T::AccountId> for Pallet<T> {
 		fn can_author(account: &T::AccountId) -> bool {
 			Self::is_selected_candidate(account)
+		}
+	}
+
+	//TODO this is for coupling with the author slot filter.
+	// Nimbus should introduce its own trait for exhaustive sets
+	// and then use that here.
+	impl<T: Config> Get<Vec<T::AccountId>> for Pallet<T> {
+		fn get() -> Vec<T::AccountId> {
+			Self::selected_candidates()
 		}
 	}
 }

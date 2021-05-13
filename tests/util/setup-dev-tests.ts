@@ -14,6 +14,7 @@ import { ChildProcess } from "child_process";
 import { createAndFinalizeBlock } from "./block";
 import { SPAWNING_TIME, DEBUG_MODE } from "./constants";
 import { HttpProvider } from "web3-core";
+const debug = require("debug")("test:setup");
 
 export interface BlockCreation {
   parentHash?: BlockHash;
@@ -26,9 +27,7 @@ export interface DevTestContext {
   createEthers: () => Promise<ethers.providers.JsonRpcProvider>;
   createPolkadotApi: () => Promise<ApiPromise>;
 
-  createBlock: (
-    options?: BlockCreation
-  ) => Promise<{
+  createBlock: (options?: BlockCreation) => Promise<{
     txResults: JsonRpcResponse[];
     block: {
       duration: number;
@@ -118,6 +117,12 @@ export function describeDevMoonbeam(title: string, cb: (context: DevTestContext)
           block,
         };
       };
+
+      debug(
+        `Setup ready [${/:([0-9]+)$/.exec((context.web3.currentProvider as any).host)[1]}] for ${
+          this.currentTest.title
+        }`
+      );
     });
 
     after(async function () {
