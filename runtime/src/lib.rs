@@ -655,7 +655,8 @@ impl_runtime_apis! {
 			moonbeam_rpc_primitives_debug::single::TransactionTrace,
 			sp_runtime::DispatchError
 		> {
-
+			use moonbeam_rpc_primitives_debug::single::{TraceType, TransactionTrace};
+			use moonbeam_evm_tracer::{RawTracer, EvmListener};
 
 			// Apply the a subset of extrinsics: all the substrate-specific or ethereum transactions
 			// that preceded the requested transaction.
@@ -680,13 +681,25 @@ impl_runtime_apis! {
 
 							// let other_hook = pallet_evm::runner::stack::Runner::<Runtime, TracingHook>::set_hook(Some(hook));
 
-							let (tracer, _) = moonbeam_evm_tracer::DummyTracer::trace(|| Executive::apply_extrinsic(ext));
+							return match trace_type {
+								TraceType::Raw {
+									disable_storage,
+									disable_memory,
+									disable_stack,
+								} => {
+									Ok(RawTracer::new(disable_storage,
+										disable_memory,
+										disable_stack,).trace(|| Executive::apply_extrinsic(ext))
+										.0.into_tx_trace())
+								},
+								_ => return Err(sp_runtime::DispatchError::Other("TODO : Implement call list tracer")),
+							}
 
 							// #[cfg(feature = "std")]
 							// tracing::trace!("tracer : {:?}", tracer);
 							// let hook = pallet_evm::runner::stack::Runner::<Runtime, TracingHook>::set_hook(other_hook);
 
-							return Err(sp_runtime::DispatchError::Other("TODO : Implement real result"));
+							// return Err(sp_runtime::DispatchError::Other("TODO : Implement real result"));
 
 							// return match hook {
 							// 	Some(hook) => Ok(hook.finish()),
@@ -712,6 +725,7 @@ impl_runtime_apis! {
 				sp_runtime::DispatchError
 			> {
 			use moonbeam_rpc_primitives_debug::{single, block, CallResult, CreateResult, CreateType};
+			use moonbeam_evm_tracer::{DummyTracer, EvmListener};
 
 			let mut config = <Runtime as pallet_evm::Config>::config().clone();
 			config.estimate = true;
@@ -730,7 +744,7 @@ impl_runtime_apis! {
 						// let _ = Executive::apply_extrinsic(ext);
 						// let hook = pallet_evm::runner::stack::Runner::<Runtime, TracingHook>::set_hook(other_hook);
 
-						let (tracer, _) = moonbeam_evm_tracer::DummyTracer::trace(|| Executive::apply_extrinsic(ext));
+						let (tracer, _) = DummyTracer.trace(|| Executive::apply_extrinsic(ext));
 						return Ok(vec![]);
 
 						let tx_traces = todo!("replace hook with new evm events");

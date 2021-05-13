@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2020 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -14,41 +14,42 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use super::*;
+use crate::util::*;
 
 use ethereum_types::{H160, H256};
-use evm::{gasometer, ExitSucceed, Handler, Opcode};
-use moonbeam_rpc_primitives_debug::single::RawStepLog;
+use evm::{Capture, ExitReason};
+use moonbeam_rpc_primitives_debug::single::{RawStepLog, TransactionTrace};
 use sp_std::{collections::btree_map::BTreeMap, vec, vec::Vec};
 
-pub struct State {
+#[derive(Debug)]
+pub struct RawTracer {
 	disable_storage: bool,
 	disable_memory: bool,
 	disable_stack: bool,
 
-	depth: usize,
 	step_logs: Vec<RawStepLog>,
-	context_stack: Vec<Context>,
-
-	/// Gas at the end of the EVM execution.
-	final_gas: u64,
-	/// Return value of the EVM execution.
 	return_value: Vec<u8>,
+	final_gas: u64,
+
+	new_context: Option<u64>, // gas limit of the new context
+	context_stack: Vec<Context>,
 }
 
+#[derive(Debug)]
 struct Context {
 	storage_cache: BTreeMap<H256, H256>,
 	address: H160,
-	before_step: Option<BeforeStep>,
+	current_step: Option<Step>,
+	gas: u64,
+	global_storage_changes: BTreeMap<H160, BTreeMap<H256, H256>>,
 }
 
-struct BeforeStep {
+#[derive(Debug)]
+struct Step {
 	/// Current opcode.
 	opcode: Opcode,
 	/// Depth of the context.
 	depth: usize,
-	/// Key of a storage entry in case of storage interaction.
-	storage_key: Option<H256>,
 	/// Remaining gas.
 	gas: u64,
 	/// Gas cost of the following opcode.
@@ -61,289 +62,234 @@ struct BeforeStep {
 	stack: Option<Vec<H256>>,
 }
 
-impl Hook for State {
-	fn hook<'config, S: StackState<'config>>(
-		&mut self,
-		site: HookSite,
-		config: &'config Config,
-		state: &S,
-		runtime: &Runtime,
-	) {
-		match site {
-			HookSite::EnterContext => self.before_loop(config, state, runtime),
-			HookSite::ExitContext(reason) => self.after_loop(config, state, runtime, reason),
-			HookSite::BeforeStep => self.before_step(config, state, runtime),
-			HookSite::AfterStep => self.after_step(config, state, runtime),
-		}
-	}
-}
-
-impl State {
+impl RawTracer {
 	pub fn new(disable_storage: bool, disable_memory: bool, disable_stack: bool) -> Self {
 		Self {
 			disable_storage,
 			disable_memory,
 			disable_stack,
 
-			depth: 0,
 			step_logs: vec![],
-			context_stack: vec![],
-
-			final_gas: 0,
 			return_value: vec![],
+			final_gas: 0,
+
+			new_context: None,
+			context_stack: vec![],
 		}
 	}
 
-	/// Called before the execution of a context.
-	pub fn before_loop<'config, S: StackState<'config>>(
-		&mut self,
-		_config: &Config,
-		_state: &S,
-		runtime: &Runtime,
-	) {
-		self.depth += 1;
-		self.context_stack.push(Context {
-			storage_cache: BTreeMap::new(),
-			address: runtime.context().address,
-			before_step: None,
-		});
-	}
-
-	/// Called before each step.
-	pub fn before_step<'config, S: StackState<'config>>(
-		&mut self,
-		_config: &Config,
-		state: &S,
-		runtime: &Runtime,
-	) {
-		if let Some((opcode, stack)) = runtime.machine().inspect() {
-			// Get all data.
-			let depth = state.metadata().depth().unwrap_or_default() + 1;
-			let gas = state.metadata().gasometer().gas();
-			let gas_cost = match gasometer::static_opcode_cost(opcode) {
-				Some(cost) => cost,
-				_ => {
-					// match gasometer::dynamic_opcode_cost(
-					// 	runtime.context().address,
-					// 	opcode,
-					// 	stack,
-					// 	state.metadata().is_static(),
-					// 	config,
-					// 	executor,
-					// ) {
-					// 	Ok((opcode_cost, _)) => state
-					// 		.metadata()
-					// 		.gasometer()
-					// 		.gas_cost(opcode_cost, gas)
-					// 		.unwrap_or(0),
-					// 	Err(_) => 0,
-					// }
-					todo!("calculate dynamic opcode cost without the executor")
-				}
-			};
-
-			let position = *runtime.machine().position().as_ref().unwrap_or(&0);
-
-			let memory_copy = if self.disable_memory {
-				None
-			} else {
-				Some(runtime.machine().memory().data().clone())
-			};
-
-			let stack_copy = if self.disable_stack {
-				None
-			} else {
-				Some(runtime.machine().stack().data().clone())
-			};
-
-			let mut before_step = BeforeStep {
-				depth,
-				opcode,
-				storage_key: None,
-				gas,
-				gas_cost,
-				position,
-				memory: memory_copy,
-				stack: stack_copy,
-			};
-
-			// If an opcode is directly reading/writing storage we need to
-			// keep track of it.
-			if single_storage_opcode(opcode) {
-				if let Ok(key) = stack.peek(0) {
-					before_step.storage_key = Some(key)
-				}
-			}
-
-			// Keep this data in the context so it can be retreived
-			// after this opcode in this context is executed.
-			self.context_stack
-				.last_mut()
-				.expect("before_step is called after before_loop")
-				.before_step = Some(before_step);
-		}
-	}
-
-	/// Called after each step. Will not be called if runtime exited
-	/// from the loop.
-	pub fn after_step<'config, S: StackState<'config>>(
-		&mut self,
-		config: &Config,
-		state: &S,
-		_runtime: &Runtime,
-	) {
-		let context = self
-			.context_stack
-			.last_mut()
-			.expect("after_step is called after before_loop");
-
-		let before_step = context
-			.before_step
-			.take()
-			.expect("after_step is called after before_step");
-
-		self.end_step(config, state, before_step);
-	}
-
-	/// Called after the execution of a context.
-	pub fn after_loop<'config, S: StackState<'config>>(
-		&mut self,
-		config: &Config,
-		state: &S,
-		runtime: &Runtime,
-		reason: ExitReason,
-	) {
-		self.depth -= 1;
-		let context = self
-			.context_stack
-			.last_mut()
-			.expect("after_step is called after before_loop");
-
-		// If we're exiting the root scope, we store the final gas
-		// and result.
-		if self.depth == 0 {
-			self.final_gas = state.metadata().gasometer().gas();
-
-			if &ExitReason::Succeed(ExitSucceed::Returned) == &reason {
-				self.return_value = runtime.machine().return_value();
-			}
-		}
-
-		// If the last opcode of the scope reverted then the
-		// step data is still here, and we need to process it
-		// now.
-		if let Some(before_step) = context.before_step.take() {
-			self.end_step(config, state, before_step);
-		}
-
-		// We pop the last context as we're exiting it.
-		let _ = self.context_stack.pop();
-	}
-
-	fn end_step<'config, S: StackState<'config>>(
-		&mut self,
-		config: &Config,
-		state: &S,
-		before_step: BeforeStep,
-	) {
-		let context = self
-			.context_stack
-			.last_mut()
-			.expect("after_step is called after before_loop");
-
-		let BeforeStep {
-			depth,
-			opcode,
-			storage_key,
-			gas,
-			gas_cost,
-			position,
-			memory,
-			stack,
-		} = before_step;
-
-		// Update the storage cache if necessary.
-		if let Some(key) = storage_key {
-			let _ = context
-				.storage_cache
-				.insert(key, state.storage(context.address, key));
-		}
-		// Call opcodes can indirectly change the storage values
-		// in subcalls.
-		else if rescan_storage_opcode(opcode) {
-			for (key, value) in context.storage_cache.iter_mut() {
-				*value = state.storage(context.address, *key);
-			}
-		}
-
-		// Copy cached storage if not disabled.
-		let storage = if self.disable_storage {
-			None
-		} else {
-			Some(context.storage_cache.clone())
-		};
-
-		// Convert memory format.
-		let memory = memory.map(convert_memory);
-
-		// Add log to result array.
-		self.step_logs.push(RawStepLog {
-			depth: depth.into(),
-			gas: gas.into(),
-			gas_cost: gas_cost.into(),
-			memory,
-			op: opcodes(opcode),
-			pc: position.into(),
-			stack,
-			storage,
-		});
-	}
-
-	pub fn finish(self) -> TransactionTrace {
+	pub fn into_tx_trace(self) -> TransactionTrace {
 		TransactionTrace::Raw {
+			step_logs: self.step_logs,
 			gas: self.final_gas.into(),
 			return_value: self.return_value,
-			step_logs: self.step_logs,
 		}
 	}
 }
 
-fn single_storage_opcode(opcode: Opcode) -> bool {
-	matches!(
-		opcode,
-		Opcode(0x54) | // sload
-        Opcode(0x55) // sstore
-	)
-}
+impl EvmListener for RawTracer {}
 
-fn rescan_storage_opcode(opcode: Opcode) -> bool {
-	matches!(
-		opcode,
-		Opcode(240) | // create
-        Opcode(241) | // call
-        Opcode(242) | // call code
-        Opcode(244) | // delegate call
-        Opcode(245) | // create 2
-        Opcode(250) // static call
-	)
-}
-
-fn convert_memory(memory: Vec<u8>) -> Vec<H256> {
-	let size = 32;
-	memory
-		.chunks(size)
-		.map(|c| {
-			let mut msg = [0u8; 32];
-			let chunk = c.len();
-			if chunk < size {
-				let left = size - chunk;
-				let remainder = vec![0; left];
-				msg[0..left].copy_from_slice(&remainder[..]);
-				msg[left..size].copy_from_slice(c);
-			} else {
-				msg[0..size].copy_from_slice(c)
+impl GasometerListener for RawTracer {
+	fn event(&mut self, event: GasometerEvent) {
+		match event {
+			GasometerEvent::RecordTransaction(_) => {
+				// First event of a transaction.
+				// Next step will be the first context.
+				self.new_context = Some(0); // we don't know the gas limit yet.
 			}
-			H256::from_slice(&msg[..])
-		})
-		.collect()
+			GasometerEvent::RecordCost(gas_cost) => {
+				// When a new context is created the gas limit is recorded afterward.
+				if let Some(gas_limit) = &mut self.new_context {
+					*gas_limit = gas_cost;
+				}
+				// If we're not creating a new context.
+				else if let Some(context) = self.context_stack.last_mut() {
+					context.gas -= gas_cost;
+
+					// Register opcode cost.
+					if let Some(step) = &mut context.current_step {
+						step.gas_cost += gas_cost;
+					}
+				}
+			}
+			GasometerEvent::RecordDynamicCost {
+				gas_cost,
+				memory_gas,
+				gas_refund: _,
+			} => {
+				if let Some(context) = self.context_stack.last_mut() {
+					context.gas -= gas_cost;
+					context.gas -= memory_gas;
+
+					// Register opcode cost.
+					if let Some(step) = &mut context.current_step {
+						step.gas_cost += gas_cost;
+					}
+				}
+			}
+			GasometerEvent::RecordStipend(stipend) => {
+				if let Some(context) = self.context_stack.last_mut() {
+					context.gas += stipend;
+				}
+			}
+			_ => (),
+		}
+	}
+}
+
+impl RuntimeListener for RawTracer {
+	fn event(&mut self, event: RuntimeEvent) {
+		match event {
+			RuntimeEvent::Step {
+				context,
+				opcode,
+				position,
+				stack,
+				memory,
+			} => {
+				// Create a context if needed.
+				if let Some(gas_limit) = self.new_context {
+					self.new_context = None;
+
+					self.context_stack.push(Context {
+						storage_cache: BTreeMap::new(),
+						address: context.address,
+						current_step: None,
+						gas: gas_limit,
+						global_storage_changes: BTreeMap::new(),
+					});
+				}
+
+				let depth = self.context_stack.len();
+
+				// Ignore steps outside of any context (shouldn't even be possible).
+				if let Some(context) = self.context_stack.last_mut() {
+					context.current_step = Some(Step {
+						opcode,
+						depth,
+						gas: context.gas,
+						gas_cost: 0, // 0 for now, will add with gas events
+						position: *position.as_ref().unwrap_or(&0),
+						memory: if self.disable_memory {
+							None
+						} else {
+							Some(memory.data().clone())
+						},
+						stack: if self.disable_stack {
+							None
+						} else {
+							Some(stack.data().clone())
+						},
+					});
+				}
+			}
+			RuntimeEvent::StepResult {
+				result,
+				return_value,
+			} => {
+				// StepResult is expected to be emited after a step (in a context).
+				if let Some(context) = self.context_stack.last_mut() {
+					if let Some(current_step) = context.current_step.take() {
+						let Step {
+							opcode,
+							depth,
+							gas,
+							gas_cost,
+							position,
+							memory,
+							stack,
+						} = current_step;
+
+						let memory = memory.map(convert_memory);
+
+						let storage = if self.disable_storage {
+							None
+						} else {
+							Some(context.storage_cache.clone())
+						};
+
+						self.step_logs.push(RawStepLog {
+							depth: depth.into(),
+							gas: gas.into(),
+							gas_cost: gas_cost.into(),
+							memory,
+							op: opcodes_string(opcode),
+							pc: position.into(),
+							stack,
+							storage,
+						});
+					}
+				}
+
+				// We match on the capture to handle traps/exits.
+				match result {
+					Err(Capture::Exit(reason)) => {
+						// Exit = we exit the context (should always be some)
+						if let Some(mut context) = self.context_stack.pop() {
+							// If final context is exited, we store gas and return value.
+							if self.context_stack.is_empty() {
+								self.final_gas = context.gas;
+								self.return_value = return_value.to_vec();
+							}
+
+							// If the context exited without revert we must keep track of the
+							// updated storage keys.
+							if !self.disable_storage && matches!(reason, &ExitReason::Succeed(_)) {
+								if let Some(parent_context) = self.context_stack.last_mut() {
+									// Add cache to storage changes.
+									context
+										.global_storage_changes
+										.insert(context.address, context.storage_cache);
+
+									// Apply storage changes to parent, either updating its cache or map of changes.
+									for (address, mut storage) in
+										context.global_storage_changes.into_iter()
+									{
+										// Same address => We update its cache (only tracked keys)
+										if parent_context.address == address {
+											for (cached_key, cached_value) in
+												parent_context.storage_cache.iter_mut()
+											{
+												if let Some(value) = storage.remove(cached_key) {
+													*cached_value = value;
+												}
+											}
+										}
+										// Otherwise, update the storage changes.
+										else {
+											parent_context
+												.global_storage_changes
+												.entry(address)
+												.or_insert_with(BTreeMap::new)
+												.append(&mut storage);
+										}
+									}
+								}
+							}
+						}
+					}
+					Err(Capture::Trap(opcode)) if is_subcall(*opcode) => {
+						self.new_context = Some(0);
+					}
+					_ => (),
+				}
+			}
+			RuntimeEvent::SLoad {
+				address: _,
+				index,
+				value,
+			}
+			| RuntimeEvent::SStore {
+				address: _,
+				index,
+				value,
+			} => {
+				if let Some(context) = self.context_stack.last_mut() {
+					if !self.disable_storage {
+						context.storage_cache.insert(index, value);
+					}
+				}
+			}
+		}
+	}
 }
