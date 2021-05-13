@@ -4838,6 +4838,7 @@ dependencies = [
  "pallet-evm",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
+ "pallet-society",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
@@ -5344,7 +5345,7 @@ dependencies = [
 [[package]]
 name = "pallet-crowdloan-rewards"
 version = "0.6.0"
-source = "git+https://github.com/purestake/crowdloan-rewards?branch=gorka-cb#2c6de32f36110bb815991eb950652293aa4c43b1"
+source = "git+https://github.com/purestake/crowdloan-rewards?rev=648708b#648708b059dfea3700eb179c115504c5cdd67ce8"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5353,6 +5354,7 @@ dependencies = [
  "pallet-balances",
  "pallet-utility",
  "parity-scale-codec",
+ "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",
