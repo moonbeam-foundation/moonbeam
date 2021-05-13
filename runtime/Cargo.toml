@@ -126,6 +126,7 @@ std = [
 	"pallet-author-slot-filter/std",
 	"author-filter-api/std",
 	"pallet-crowdloan-rewards/std",
+	"frame-benchmarking/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
