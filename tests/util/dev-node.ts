@@ -67,7 +67,9 @@ export async function startMoonbeamDevNode(): Promise<{
     `--ws-port=${wsPort}`,
     `--tmp`,
   ];
-  debug(`Starting dev node: --port=${p2pPort} --rpc-port=${rpcPort} --ws-port=${wsPort}`);
+  debug(
+    `${new Date().toISOString()} Starting dev node: --port=${p2pPort} --rpc-port=${rpcPort} --ws-port=${wsPort}`
+  );
 
   const onProcessExit = function () {
     runningNode && runningNode.kill();
@@ -85,7 +87,9 @@ export async function startMoonbeamDevNode(): Promise<{
     process.removeListener("exit", onProcessExit);
     process.removeListener("SIGINT", onProcessInterrupt);
     nodeStarted = false;
-    debug(`Exiting dev node: --port=${p2pPort} --rpc-port=${rpcPort} --ws-port=${wsPort}`);
+    debug(
+      `${new Date().toISOString()} Exiting dev node: --port=${p2pPort} --rpc-port=${rpcPort} --ws-port=${wsPort}`
+    );
   });
 
   runningNode.on("error", (err) => {
@@ -103,6 +107,9 @@ export async function startMoonbeamDevNode(): Promise<{
   const binaryLogs = [];
   await new Promise<void>((resolve) => {
     const timer = setTimeout(() => {
+      debug(
+        `${new Date().toISOString()} Failed dev node: --port=${p2pPort} --rpc-port=${rpcPort} --ws-port=${wsPort}`
+      );
       console.error(`\x1b[31m Failed to start Moonbeam Test Node.\x1b[0m`);
       console.error(`Command: ${cmd} ${args.join(" ")}`);
       console.error(`Logs:`);
