@@ -159,6 +159,8 @@ fn inherent_origin() -> <Runtime as frame_system::Config>::Origin {
 
 fn root_origin() -> <Runtime as frame_system::Config>::Origin {
 	<Runtime as frame_system::Config>::Origin::root()
+}
+
 /// Mock the inherent that sets author in `author-inherent`
 fn set_author(a: AccountId) {
 	assert_ok!(
@@ -349,13 +351,13 @@ fn reward_block_authors() {
 		.execute_with(|| {
 			set_parachain_inherent_data();
 			for x in 2..1201 {
-				set_author(AccountId::from(ALICE)).unwrap();
+				set_author(AccountId::from(ALICE));
 				run_to_block(x);
 			}
 			// no rewards doled out yet
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * GLMR,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * GLMR,);
-			set_author(AccountId::from(ALICE)).unwrap();
+			set_author(AccountId::from(ALICE));
 			run_to_block(1201);
 			// rewards minted and distributed
 			assert_eq!(
