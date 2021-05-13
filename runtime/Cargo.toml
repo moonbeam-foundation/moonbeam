@@ -56,7 +56,7 @@ pallet-democracy = { git = "https://github.com/paritytech/substrate", default-fe
 pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-collective = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 
-pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false, branch = "main" }
+pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false, branch = "gorka-cb" }
 
 moonbeam-extensions-evm = { path = "extensions/evm", default-features = false }
 moonbeam-rpc-primitives-debug = { path = "../primitives/rpc/debug", default-features = false }

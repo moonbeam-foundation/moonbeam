@@ -523,12 +523,16 @@ parameter_types! {
 	pub const LeasePeriod: BlockNumber = 6 * MONTHS;
 	pub const VestingPeriod: BlockNumber = 1 * MONTHS;
 	pub const DefaultNextInitialization: BlockNumber = 0;
+	pub const DefaultBlocksPerRoundCrowdloan: BlockNumber = 500;
+	pub const MinimumContribution: Balance = 0;
 }
 
 impl pallet_crowdloan_rewards::Config for Runtime {
 	type Event = Event;
 	type LeasePeriod = LeasePeriod;
+	type DefaultBlocksPerRound = DefaultBlocksPerRoundCrowdloan;
 	type DefaultNextInitialization = DefaultNextInitialization;
+	type MinimumContribution = MinimumContribution;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = AccountId32;
 	type VestingPeriod = VestingPeriod;

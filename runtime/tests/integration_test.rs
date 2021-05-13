@@ -425,7 +425,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				0,
 				DispatchError::Module {
 					index: 19,
-					error: 1,
+					error: 2,
 					message: None,
 				},
 			));
@@ -454,7 +454,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				pallet_crowdloan_rewards::Error::<Runtime>::NoAssociatedClaim
 			);
 		});
-	}
+}
 
 #[test]
 fn join_candidates_via_precompile() {
