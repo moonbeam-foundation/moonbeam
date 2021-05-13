@@ -3,7 +3,7 @@ name = 'moonbeam'
 description = 'Moonbeam Collator'
 homepage = 'https://moonbeam.network'
 license = 'GPL-3.0-only'
-version = '0.7.0'
+version = '0.8.0-dev'
 authors = ["PureStake"]
 build = 'build.rs'
 edition = '2018'
@@ -29,7 +29,7 @@ jsonrpc-core = "15.0.0"
 jsonrpc-pubsub = "15.0.0"
 sha3 = { version = "0.8", default-features = false }
 tiny-hderive = { version = "0.3.0", default-features = false }
-tiny-bip39 = {version = "0.6", default-features = false}
+tiny-bip39 = { version = "0.6", default-features = false }
 tokio = { version = "0.2.13", features = ["macros", "sync"] }
 
 # Moonbeam dependencies
@@ -39,7 +39,6 @@ moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool" }
 moonbeam-rpc-debug = { path = "../client/rpc/debug" }
 moonbeam-rpc-primitives-debug = { path = "../primitives/rpc/debug" }
 moonbeam-rpc-trace = { path = "../client/rpc/trace" }
-author-inherent = { path = "../pallets/author-inherent"}
 
 # Substrate dependencies
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
@@ -59,7 +58,6 @@ sc-transaction-pool = { git = "https://github.com/paritytech/substrate", branch 
 sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
 sc-network = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
 sc-basic-authorship = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
-sc-transaction-graph = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
 sp-timestamp = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
 sp-trie = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
 sc-finality-grandpa = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
@@ -74,27 +72,31 @@ pallet-transaction-payment-rpc = { git = "https://github.com/paritytech/substrat
 sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
 sc-consensus-manual-seal = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
 
-evm = { package = "pallet-evm", git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
-ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
+evm = { package = "pallet-evm", git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
+ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
 
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
-fp-consensus = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
-fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
-fc-db = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
-fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "notlesh-moonbeam-v0.7" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
+fp-consensus = { git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
+fc-db = { git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
+fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
 
 # Cumulus dependencies
-cumulus-client-cli = { git = "https://github.com/paritytech/cumulus", branch = "rococo-v1" }
-cumulus-client-consensus-common = { git = "https://github.com/paritytech/cumulus", branch = "rococo-v1" }
-cumulus-client-collator = { git = "https://github.com/paritytech/cumulus", branch = "rococo-v1" }
-cumulus-client-network = { git = "https://github.com/paritytech/cumulus", branch = "rococo-v1" }
-cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus", branch = "rococo-v1" }
-cumulus-client-service = { git = "https://github.com/paritytech/cumulus", branch = "rococo-v1" }
-cumulus-client-consensus-relay-chain = { git = "https://github.com/paritytech/cumulus", branch = "rococo-v1" }
-cumulus-test-relay-sproof-builder = { git = "https://github.com/paritytech/cumulus", branch = "rococo-v1" }
-cumulus-primitives-parachain-inherent = { git = "https://github.com/paritytech/cumulus", branch = "rococo-v1" }
+cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+cumulus-client-consensus-common = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+cumulus-client-collator = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+cumulus-client-network = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+cumulus-client-consensus-relay-chain = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+
+# Nimbus Dependency
+# TODO When we bump nimbus, we can depend on the smaller primitives crate here.
+pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
 
 # Polkadot dependencies
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1" }
