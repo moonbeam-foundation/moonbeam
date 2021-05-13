@@ -39,7 +39,6 @@ describeDevMoonbeam("Resubmit transations", (context) => {
 
 describeDevMoonbeam("Resubmit transations", (context) => {
   it("should allow cancelling transaction", async function () {
-
     // gas price should trump limit
     const optionsLowGas = { nonce: 0, gasPrice: 0, gas: 0xfffff };
     const optionsHighGas = { nonce: 0, gasPrice: 1, gas: 0x10000 };
