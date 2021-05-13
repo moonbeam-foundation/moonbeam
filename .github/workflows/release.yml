@@ -90,18 +90,18 @@ jobs:
       - name: Setup Rust toolchain
         run: rustup show
 
-      - name: Install sccache
-        run: |
-          if [ ! -f ${{ runner.tool_cache }}/cargo-sccache/bin/sccache ]; then
-            cargo install sccache --git https://github.com/paritytech/sccache.git --no-default-features --features=dist-client --root ${{ runner.tool_cache }}/cargo-sccache
-          fi
-        shell: bash
-      - name: Start sccache
-        run: |
-          chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
-          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
-          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
-          echo "RUSTC_WRAPPER=${{ runner.tool_cache }}/cargo-sccache/bin/sccache" >> $GITHUB_ENV
+      # - name: Install sccache
+      #   run: |
+      #     if [ ! -f ${{ runner.tool_cache }}/cargo-sccache/bin/sccache ]; then
+      #       cargo install sccache --git https://github.com/paritytech/sccache.git --no-default-features --features=dist-client --root ${{ runner.tool_cache }}/cargo-sccache
+      #     fi
+      #   shell: bash
+      # - name: Start sccache
+      #   run: |
+      #     chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
+      #     ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
+      #     ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
+      #     echo "RUSTC_WRAPPER=${{ runner.tool_cache }}/cargo-sccache/bin/sccache" >> $GITHUB_ENV
       - id: get-rust-versions
         run: |
           echo "::set-output name=rustc::$(rustc --version)"
