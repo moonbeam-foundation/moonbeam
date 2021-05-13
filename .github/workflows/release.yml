@@ -72,7 +72,7 @@ jobs:
     env:
       CARGO_SCCACHE_VERSION: 0.2.14-alpha.0-parity
       DEBUG: "test:dev-node"
-      # MOONBEAM_LOG: info
+      MOONBEAM_LOG: "debug"
       # DEBUG: "test*"
     outputs:
       RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
@@ -121,8 +121,8 @@ jobs:
             git diff-index --name-only HEAD | grep Cargo.lock
             false
           fi
-      - name: Unit tests
-        run: cargo test --release --verbose --all
+      # - name: Unit tests
+      #   run: RUSTFLAGS="-C opt-level=3" cargo test --release --verbose --all
       - name: Use Node.js 14.x
         uses: actions/setup-node@v2
         with:
