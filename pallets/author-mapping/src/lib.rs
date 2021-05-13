@@ -50,13 +50,59 @@ pub mod pallet {
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
 
+	/// An error that can occur while executing the mapping pallet's logic.
+	#[pallet::error]
+	pub enum Error<T> {
+		/// The association can't be cleared because it is not found.
+		AssociationNotFound,
+		/// The association can't be cleared because it belongs to another account.
+		NotYourAssociation,
+	}
+
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		//TODO a call to set / update your associated key should take a deposit to avoid state bloat
+		/// Extrinsic for account ids to register their corresponding author id.
+		/// Users who have been (or will be) elected active colaltors in staking,
+		/// should submit this extrinsic to earn rewards.
+		/// TODO require a security deposit so users clean up after themselves
+		#[pallet::weight(0)]
+		pub fn add_association(
+			origin: OriginFor<T>,
+			author_id: T::AuthorId,
+		) -> DispatchResultWithPostInfo {
+			let account_id = ensure_signed(origin)?;
+
+			AuthorIds::<T>::insert(author_id, account_id);
+
+			//TODO Emit an event
+
+			Ok(().into())
+		}
 
 		//TODO a call to clear your associated key and get your deposit back
+		#[pallet::weight(0)]
+		pub fn clear_association(
+			origin: OriginFor<T>,
+			author_id: T::AuthorId,
+		) -> DispatchResultWithPostInfo {
+			let calling_accout = ensure_signed(origin)?;
 
-		//TODO a call to clear someone else's defunt key? Maybe get a reward for doing it.
+			let stored_account =
+				AuthorIds::<T>::try_get(&author_id).map_err(|_| Error::<T>::AssociationNotFound)?;
+
+			ensure!(
+				calling_accout == stored_account,
+				Error::<T>::NotYourAssociation
+			);
+
+			AuthorIds::<T>::remove(&author_id);
+
+			//TODO Emit event
+
+			Ok(().into())
+		}
+
+		//TODO(Maybe Someday) a call to clear someone else's defunct key and collect a bounty
 	}
 
 	#[pallet::storage]
