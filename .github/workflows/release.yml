@@ -71,8 +71,7 @@ jobs:
     runs-on: self-hosted
     env:
       CARGO_SCCACHE_VERSION: 0.2.14-alpha.0-parity
-      # DEBUG: "test:dev-node"
-      # MOONBEAM_LOG: "debug"
+      # MOONBEAM_LOG: info
       # DEBUG: "test*"
     outputs:
       RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
