@@ -943,7 +943,7 @@ fn revoke_nomination_or_leave_nominators() {
 				Error::<Test>::NominationDNE
 			);
 			assert_noop!(
-				Stake::leave_nominators(Origin::signed(1)),
+				Stake::leave_nominators(Origin::signed(1), 0u32),
 				Error::<Test>::NominatorDNE
 			);
 			assert_ok!(Stake::nominate(Origin::signed(6), 2, 3));
@@ -959,7 +959,7 @@ fn revoke_nomination_or_leave_nominators() {
 				Error::<Test>::NomBondBelowMin
 			);
 			// can revoke both remaining by calling leave nominators
-			assert_ok!(Stake::leave_nominators(Origin::signed(6)));
+			assert_ok!(Stake::leave_nominators(Origin::signed(6), 2u32));
 			// this leads to 8 leaving set of nominators
 			assert_ok!(Stake::revoke_nomination(Origin::signed(8), 2));
 		});
@@ -1030,10 +1030,10 @@ fn payouts_follow_nomination_changes() {
 			set_author(4, 1, 100);
 			// 1. ensure nominators are paid for 2 rounds after they leave
 			assert_noop!(
-				Stake::leave_nominators(Origin::signed(66)),
+				Stake::leave_nominators(Origin::signed(66), 0u32),
 				Error::<Test>::NominatorDNE
 			);
-			assert_ok!(Stake::leave_nominators(Origin::signed(6)));
+			assert_ok!(Stake::leave_nominators(Origin::signed(6), 1u32));
 			roll_to(21);
 			// keep paying 6 (note: inflation is in terms of total issuance so that's why 1 is 21)
 			let mut new2 = vec![

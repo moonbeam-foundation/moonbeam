@@ -465,6 +465,7 @@ pub mod pallet {
 		Underflow,
 		InvalidSchedule,
 		CannotSetBelowMin,
+		WrongNominationCountToLeave,
 	}
 
 	#[pallet::event]
@@ -1090,10 +1091,17 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Leave the set of nominators and, by implication, revoke all ongoing nominations
-		#[pallet::weight(T::WeightInfo::leave_nominators(T::MaxCollatorsPerNominator::get()))]
-		pub fn leave_nominators(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+		#[pallet::weight(T::WeightInfo::leave_nominators(*nomination_count))]
+		pub fn leave_nominators(
+			origin: OriginFor<T>,
+			nomination_count: u32,
+		) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
 			let nominator = <NominatorState<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
+			ensure!(
+				(nominator.nominations.0.len() as u32) <= nomination_count,
+				Error::<T>::WrongNominationCountToLeave
+			);
 			for bond in nominator.nominations.0 {
 				Self::nominator_leaves_collator(acc.clone(), bond.owner.clone())?;
 			}

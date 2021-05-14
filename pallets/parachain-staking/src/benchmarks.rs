@@ -18,7 +18,7 @@
 
 //! Benchmarking
 use crate::{BalanceOf, Call, Config, Pallet, Range};
-use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, whitelist_account};
+use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, ReservableCurrency}; // OnInitialize, OnFinalize
 use frame_system::RawOrigin;
 use sp_runtime::Perbill;
@@ -124,7 +124,6 @@ benchmarks! {
 			)?;
 			nominators.push(nominator.clone());
 		}
-		whitelist_account!(caller);
 	}: _(RawOrigin::Root, caller.clone())
 	verify {
 		assert!(!Pallet::<T>::is_candidate(&caller));
@@ -144,7 +143,6 @@ benchmarks! {
 			let collator = create_funded_collator::<T>("collator", seed, 0u32.into())?;
 		}
 		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
-		whitelist_account!(caller);
 	}: _(RawOrigin::Signed(caller.clone()), default_balance::<T>())
 	verify {
 		assert!(Pallet::<T>::is_candidate(&caller));
@@ -154,7 +152,6 @@ benchmarks! {
 	// -> it retains the self-bond and nominator bonds
 	leave_candidates {
 		let caller: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, 0u32.into())?;
-		whitelist_account!(caller);
 	}: _(RawOrigin::Signed(caller.clone()))
 	verify {
 		assert!(Pallet::<T>::collator_state(&caller).unwrap().is_leaving());
@@ -162,7 +159,6 @@ benchmarks! {
 
 	go_offline {
 		let caller: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, 0u32.into())?;
-		whitelist_account!(caller);
 	}: _(RawOrigin::Signed(caller.clone()))
 	verify {
 		assert!(!Pallet::<T>::collator_state(&caller).unwrap().is_active());
@@ -171,7 +167,6 @@ benchmarks! {
 	go_online {
 		let caller: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, 0u32.into())?;
 		Pallet::<T>::go_offline(RawOrigin::Signed(caller.clone()).into())?;
-		whitelist_account!(caller);
 	}: _(RawOrigin::Signed(caller.clone()))
 	verify {
 		assert!(Pallet::<T>::collator_state(&caller).unwrap().is_active());
@@ -180,7 +175,6 @@ benchmarks! {
 	candidate_bond_more {
 		let balance = default_balance::<T>();
 		let caller: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, balance)?;
-		whitelist_account!(caller);
 	}: _(RawOrigin::Signed(caller.clone()), balance)
 	verify {
 		let expected_bond = balance * 2u32.into();
@@ -191,7 +185,6 @@ benchmarks! {
 		let balance = default_balance::<T>();
 		let caller: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, balance)?;
 		Pallet::<T>::candidate_bond_more(RawOrigin::Signed(caller.clone()).into(), balance)?;
-		whitelist_account!(caller);
 	}: _(RawOrigin::Signed(caller.clone()), balance)
 	verify {
 		assert_eq!(T::Currency::reserved_balance(&caller), balance);
@@ -216,7 +209,6 @@ benchmarks! {
 			)?;
 		}
 		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
-		whitelist_account!(caller);
 	}: _(RawOrigin::Signed(caller.clone()), collator, bond)
 	verify {
 		assert!(Pallet::<T>::is_nominator(&caller));
@@ -242,12 +234,12 @@ benchmarks! {
 		};
 		// Fund the nominator
 		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, need);
+		let nomination_count = collators.len() as u32;
 		// Nominate MaxCollatorsPerNominators collator candidates
 		for col in collators {
 			Pallet::<T>::nominate(RawOrigin::Signed(caller.clone()).into(), col, bond)?;
 		}
-		whitelist_account!(caller);
-	}: _(RawOrigin::Signed(caller.clone()))
+	}: _(RawOrigin::Signed(caller.clone()), nomination_count)
 	verify {
 		assert!(!Pallet::<T>::is_nominator(&caller));
 	}
@@ -261,7 +253,6 @@ benchmarks! {
 		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
 		let bond = <<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get();
 		Pallet::<T>::nominate(RawOrigin::Signed(caller.clone()).into(), collator.clone(), bond)?;
-		whitelist_account!(caller);
 	}: _(RawOrigin::Signed(caller.clone()), collator)
 	verify {
 		assert!(!Pallet::<T>::is_nominator(&caller));
@@ -276,7 +267,6 @@ benchmarks! {
 		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
 		let bond = <<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get();
 		Pallet::<T>::nominate(RawOrigin::Signed(caller.clone()).into(), collator.clone(), bond)?;
-		whitelist_account!(caller);
 	}: _(RawOrigin::Signed(caller.clone()), collator, bond)
 	verify {
 		let expected_bond = bond * 2u32.into();
@@ -293,7 +283,6 @@ benchmarks! {
 		let total = default_balance::<T>();
 		Pallet::<T>::nominate(RawOrigin::Signed(caller.clone()).into(), collator.clone(), total)?;
 		let bond_less = <<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get();
-		whitelist_account!(caller);
 	}: _(RawOrigin::Signed(caller.clone()), collator, bond_less)
 	verify {
 		let expected = total - bond_less;
