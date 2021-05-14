@@ -52,14 +52,16 @@ fn load_spec(
 			&include_bytes!("../../specs/stagenet/parachain-embedded-specs-v7.json")[..],
 		)?)),
 		"dev" | "development" => Ok(Box::new(chain_spec::development_chain_spec(None, None))),
-		"local" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
+		"" | "local" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
 		#[cfg(feature = "test-spec")]
 		"staking" => Ok(Box::new(crate::test_spec::staking_spec(para_id))),
-		"" => Err(
-			"You have not specified what chain to sync. In the future, this will default to \
-				Moonbeam mainnet. Mainnet is not yet live so you must choose a spec."
-				.into(),
-		),
+		// Hack to work around Polkadot Launch
+		// https://github.com/paritytech/polkadot-launch/issues/96
+		// "" => Err(
+		// 	"You have not specified what chain to sync. In the future, this will default to \
+		// 		Moonbeam mainnet. Mainnet is not yet live so you must choose a spec."
+		// 		.into(),
+		// ),
 		path => Ok(Box::new(chain_spec::ChainSpec::from_json_file(
 			path.into(),
 		)?)),
@@ -346,10 +348,6 @@ pub fn run() -> Result<()> {
 		None => {
 			let runner = cli.create_runner(&*cli.run)?;
 			let collator = cli.run.base.validator || cli.collator;
-			let author_id: Option<H160> = cli.run.author_id;
-			if collator && author_id.is_none() {
-				return Err("Collator nodes must specify an author account id".into());
-			}
 
 			runner
 				.run_node_until_exit(|config| async move {
@@ -371,14 +369,12 @@ pub fn run() -> Result<()> {
 						// --dev implies --collator
 						let collator = collator || cli.run.shared_params.dev;
 
-						// If no author id was supplied, use the one that is staked at genesis
-						// in the default development spec.
-						let author_id = author_id.or_else(|| {
-							Some(
-								AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")
-									.expect("Gerald is a valid account"),
-							)
-						});
+						// When running the dev service, just use Alice's author inherent
+						//TODO maybe make the --alice etc flags work here, and consider bringing back
+						// the author-id flag. For now, this will work.
+						let author_id = Some(crate::chain_spec::get_from_seed::<
+							nimbus_primitives::NimbusId,
+						>("Alice"));
 
 						return crate::service::new_dev(config, author_id, collator, cli.run);
 					}
@@ -418,7 +414,9 @@ pub fn run() -> Result<()> {
 					crate::service::start_node(
 						config,
 						key,
-						author_id,
+						// The parachain service will now use the keystore for authoring info.
+						// TODO rip this wire out after stuff works
+						None,
 						polkadot_config,
 						id,
 						collator,

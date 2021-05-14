@@ -24,16 +24,17 @@ use cumulus_primitives_core::ParaId;
 use evm::GenesisAccount;
 use log::debug;
 use moonbeam_runtime::{
-	AccountId, AuthorFilterConfig, Balance, BalancesConfig, CouncilCollectiveConfig,
-	DemocracyConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig, GenesisConfig,
-	InflationInfo, ParachainInfoConfig, ParachainStakingConfig, Range, SchedulerConfig, SudoConfig,
-	SystemConfig, TechComitteeCollectiveConfig, GLMR, WASM_BINARY,
+	AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
+	CouncilCollectiveConfig, DemocracyConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig,
+	GenesisConfig, InflationInfo, ParachainInfoConfig, ParachainStakingConfig, Range,
+	SchedulerConfig, SudoConfig, SystemConfig, TechComitteeCollectiveConfig, GLMR, WASM_BINARY,
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
 
+use nimbus_primitives::NimbusId;
 use sp_core::{ecdsa, Pair, Public, H160, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, Hash},
@@ -91,6 +92,13 @@ pub fn get_account_id_from_pair<TPublic: Public>(pair: TPublic::Pair) -> Option<
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
+
+/// Helper function to generate a crypto pair from seed
+pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
+	TPublic::Pair::from_string(&format!("//{}", seed), None)
+		.expect("static values are valid; qed")
+		.public()
+}
 
 /// The extensions for the [`ChainSpec`].
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
@@ -287,7 +295,7 @@ pub fn testnet_genesis(
 		pallet_democracy: DemocracyConfig {},
 		pallet_scheduler: SchedulerConfig {},
 		parachain_staking: ParachainStakingConfig {
-			stakers,
+			stakers: stakers.clone(),
 			inflation_config,
 		},
 		pallet_collective_Instance1: CouncilCollectiveConfig {
@@ -299,6 +307,26 @@ pub fn testnet_genesis(
 			members: vec![], // TODO : Set members
 		},
 		pallet_author_slot_filter: AuthorFilterConfig { eligible_ratio: 50 },
+		pallet_author_mapping: AuthorMappingConfig {
+			// Pretty hacky. We just set the first staker to use alice's session keys.
+			// Maybe this is the moment we should finally make the `--alice` flags make sense.
+			// Which is to say, we should prefund the alice account. Actually, I think we already do that...
+			author_ids: stakers
+				.iter()
+				.take(1)
+				.map(|staker| {
+					let author_id = get_from_seed::<NimbusId>("Alice");
+					let account_id = staker.0;
+					// This println confirmed that I mapped Alice's session key to Gerald's account ID
+					// Now I'm disabling it because it also showed up in my parachain genesis state file
+					// println!(
+					// 	"Initializing author -> account mapping: ({:?}, {:?})",
+					// 	author_id, account_id
+					// );
+					(author_id, account_id)
+				})
+				.collect(),
+		},
 	}
 }
 
