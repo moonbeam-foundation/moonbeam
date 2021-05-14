@@ -834,7 +834,10 @@ pub mod pallet {
 			<InflationConfig<T>>::put(inflation_config);
 			Ok(().into())
 		}
-		#[pallet::weight(T::WeightInfo::force_leave_candidates())]
+		#[pallet::weight(T::WeightInfo::force_leave_candidates(
+			T::MaxCollatorCandidates::get(),
+			T::MaxNominatorsPerCollator::get(),
+		))]
 		/// Root dispatchable to force a collator candidate's immediate exit
 		pub fn force_leave_candidates(
 			origin: OriginFor<T>,
@@ -844,7 +847,7 @@ pub mod pallet {
 			Self::collator_exit(who, true)
 		}
 		/// Join the set of collator candidates
-		#[pallet::weight(T::WeightInfo::join_candidates())]
+		#[pallet::weight(T::WeightInfo::join_candidates(T::MaxCollatorCandidates::get()))]
 		pub fn join_candidates(
 			origin: OriginFor<T>,
 			bond: BalanceOf<T>,
@@ -883,7 +886,11 @@ pub mod pallet {
 		/// removed from the candidate pool to prevent selection as a collator, but unbonding is
 		/// executed after `BondDuration` rounds.
 		#[pallet::weight(
-			T::WeightInfo::leave_candidates() + T::WeightInfo::force_leave_candidates()
+			T::WeightInfo::leave_candidates() +
+			T::WeightInfo::force_leave_candidates(
+				T::MaxCollatorCandidates::get(),
+				T::MaxNominatorsPerCollator::get(),
+			)
 		)]
 		pub fn leave_candidates(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
@@ -997,7 +1004,7 @@ pub mod pallet {
 		}
 		/// If caller is not a nominator, then join the set of nominators
 		/// If caller is a nominator, then makes nomination to change their nomination state
-		#[pallet::weight(T::WeightInfo::nominate())]
+		#[pallet::weight(T::WeightInfo::nominate(T::MaxNominatorsPerCollator::get()))]
 		pub fn nominate(
 			origin: OriginFor<T>,
 			collator: T::AccountId,
@@ -1083,7 +1090,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Leave the set of nominators and, by implication, revoke all ongoing nominations
-		#[pallet::weight(T::WeightInfo::leave_nominators())]
+		#[pallet::weight(T::WeightInfo::leave_nominators(T::MaxCollatorsPerNominator::get()))]
 		pub fn leave_nominators(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
 			let nominator = <NominatorState<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;

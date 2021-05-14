@@ -103,15 +103,17 @@ benchmarks! {
 	}
 
 	force_leave_candidates {
+		let x in 3..<<T as Config>::MaxCollatorCandidates as Get<u32>>::get();
+		let y in 3..<<T as Config>::MaxNominatorsPerCollator as Get<u32>>::get();
 		// Worst Case Complexity is removal from an ordered list so \exists full list before call
-		for i in 2..<<T as Config>::MaxCollatorCandidates as Get<u32>>::get() {
+		for i in 2..x {
 			let seed = USER_SEED - i;
 			let collator = create_funded_collator::<T>("collator", seed, 0u32.into())?;
 		}
 		let caller: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, 0u32.into())?;
 		let mut nominators: Vec<T::AccountId> = Vec::new();
 		// Worst Case Complexity is also leaving collator that is full of nominations
-		for j in 2..<<T as Config>::MaxNominatorsPerCollator as Get<u32>>::get() {
+		for j in 2..y {
 			let seed = USER_SEED + j;
 			let nominator = create_funded_user::<T>("nominator", seed, 0u32.into());
 			let bond = <<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get();
@@ -135,8 +137,9 @@ benchmarks! {
 	// USER DISPATCHABLES
 
 	join_candidates {
+		let x in 3..<<T as Config>::MaxCollatorCandidates as Get<u32>>::get();
 		// Worst Case Complexity is insertion into an ordered list so \exists full list before call
-		for i in 2..<<T as Config>::MaxCollatorCandidates as Get<u32>>::get() {
+		for i in 2..x {
 			let seed = USER_SEED - i;
 			let collator = create_funded_collator::<T>("collator", seed, 0u32.into())?;
 		}
@@ -147,6 +150,8 @@ benchmarks! {
 		assert!(Pallet::<T>::is_candidate(&caller));
 	}
 
+	// This call schedules the collator's exit and removes them from the candidate pool
+	// -> it retains the self-bond and nominator bonds
 	leave_candidates {
 		let caller: T::AccountId = create_funded_collator::<T>("collator", USER_SEED, 0u32.into())?;
 		whitelist_account!(caller);
@@ -193,6 +198,7 @@ benchmarks! {
 	}
 
 	nominate {
+		let x in 2..<<T as Config>::MaxNominatorsPerCollator as Get<u32>>::get();
 		let collator: T::AccountId = create_funded_collator::<T>(
 			"collator",
 			USER_SEED,
@@ -200,7 +206,7 @@ benchmarks! {
 		)?;
 		let bond = <<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get();
 		// Worst Case Complexity is insertion into an almost full collator
-		for i in 1..<<T as Config>::MaxNominatorsPerCollator as Get<u32>>::get() {
+		for i in 1..x {
 			let seed = USER_SEED + i;
 			let nominator = create_funded_user::<T>("nominator", seed, 0u32.into());
 			Pallet::<T>::nominate(
@@ -217,10 +223,11 @@ benchmarks! {
 	}
 
 	leave_nominators {
+		let x in 2..<<T as Config>::MaxCollatorsPerNominator as Get<u32>>::get();
 		// Worst Case is full of nominations before exit
 		let mut collators: Vec<T::AccountId> = Vec::new();
 		// Initialize MaxCollatorsPerNominator collator candidates
-		for i in 1..<<T as Config>::MaxCollatorsPerNominator as Get<u32>>::get() {
+		for i in 1..x {
 			let seed = USER_SEED - i;
 			let collator = create_funded_collator::<T>("collator", seed, 0u32.into())?;
 			collators.push(collator.clone());
