@@ -105,7 +105,7 @@ jobs:
         run: |
           echo "::set-output name=rustc::$(rustc --version)"
       - name: Build Node
-        run: RUSTFLAGS="-C opt-level=3" cargo build --release --verbose --all
+        run: RUSTFLAGS="-C opt-level=3" cargo build --release --all
       # We determine whether there are unmodified Cargo.lock files by:
       # 1. Asking git for a list of all modified files
       # 2. Using grep to reduce the list to only Cargo.lock files
@@ -121,7 +121,7 @@ jobs:
             false
           fi
       - name: Unit tests
-        run: cargo test --release --verbose --all
+        run: RUSTFLAGS="-C opt-level=3" cargo test --release --all
       - name: Use Node.js 14.x
         uses: actions/setup-node@v2
         with:
