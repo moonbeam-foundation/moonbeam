@@ -1306,9 +1306,10 @@ pub mod pallet {
 			(all_collators, total)
 		}
 	}
+
 	/// Add reward points to block authors:
 	/// * 20 points to the block producer for producing a block in the chain
-	impl<T: Config> pallet_author_inherent::EventHandler<T::AccountId> for Pallet<T> {
+	impl<T: Config> nimbus_primitives::EventHandler<T::AccountId> for Pallet<T> {
 		fn note_author(author: T::AccountId) {
 			let now = <Round<T>>::get().current;
 			let score_plus_20 = <AwardedPts<T>>::get(now, &author) + 20;
@@ -1317,8 +1318,8 @@ pub mod pallet {
 		}
 	}
 
-	impl<T: Config> pallet_author_inherent::CanAuthor<T::AccountId> for Pallet<T> {
-		fn can_author(account: &T::AccountId) -> bool {
+	impl<T: Config> nimbus_primitives::CanAuthor<T::AccountId> for Pallet<T> {
+		fn can_author(account: &T::AccountId, _slot: &u32) -> bool {
 			Self::is_selected_candidate(account)
 		}
 	}
