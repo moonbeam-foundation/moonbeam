@@ -16,13 +16,15 @@
 
 //! This module constructs and executes the appropriate service components for the given subcommand
 
-use crate::{
-	chain_spec,
-	cli::{Cli, RelayChainCli, Subcommand},
-};
+use crate::cli::{Cli, RelayChainCli, Subcommand};
+use cli_opt::RpcParams;
 use cumulus_client_service::genesis::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
 use log::info;
+// TODO-multiple-runtimes
+#[cfg(feature = "with-moonbase-runtime")]
+use moonbase_runtime::{AccountId, Block};
+#[cfg(feature = "with-moonbeam-runtime")]
 use moonbeam_runtime::{AccountId, Block};
 use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::AccountIdConversion;
@@ -39,31 +41,36 @@ use sp_core::hexdisplay::HexDisplay;
 use sp_core::H160;
 use sp_runtime::traits::Block as _;
 use std::{io::Write, net::SocketAddr, str::FromStr};
+use service::{chain_spec, IdentifyVariant};
 
 fn load_spec(
 	id: &str,
 	para_id: ParaId,
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-	match id {
-		"alphanet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
-			&include_bytes!("../../specs/alphanet/parachain-embedded-specs-v7.json")[..],
-		)?)),
-		"stagenet" => Ok(Box::new(chain_spec::ChainSpec::from_json_bytes(
-			&include_bytes!("../../specs/stagenet/parachain-embedded-specs-v7.json")[..],
-		)?)),
-		"dev" | "development" => Ok(Box::new(chain_spec::development_chain_spec(None, None))),
-		"local" => Ok(Box::new(chain_spec::get_chain_spec(para_id))),
-		#[cfg(feature = "test-spec")]
-		"staking" => Ok(Box::new(crate::test_spec::staking_spec(para_id))),
-		"" => Err(
-			"You have not specified what chain to sync. In the future, this will default to \
-				Moonbeam mainnet. Mainnet is not yet live so you must choose a spec."
-				.into(),
-		),
-		path => Ok(Box::new(chain_spec::ChainSpec::from_json_file(
-			path.into(),
-		)?)),
+	if id.is_empty() {
+		return Err("Not specific which chain to run.".into());
 	}
+	Ok(match id {
+		#[cfg(feature = "with-moonbase-runtime")]
+		"local" => Box::new(chain_spec::moonbase::get_chain_spec(para_id)),
+		#[cfg(feature = "with-moonbase-runtime")]
+		"dev" | "development" => Box::new(chain_spec::moonbase::development_chain_spec(None, None)),
+		#[cfg(feature = "with-moonbase-runtime")]
+		"alphanet" => Box::new(chain_spec::ChainSpec::from_json_bytes(
+			&include_bytes!("../../specs/alphanet/parachain-embedded-specs-v7.json")[..],
+		)?),
+		#[cfg(feature = "with-moonbase-runtime")]
+		"stagenet" => Box::new(chain_spec::ChainSpec::from_json_bytes(
+			&include_bytes!("../../specs/stagenet/parachain-embedded-specs-v7.json")[..],
+		)?),
+		// TODO-multiple-runtimes test-spec staking
+		// TODO-multiple-runtimes live release
+		#[cfg(feature = "with-moonbeam-runtime")]
+		"moonbeam" => Box::new(chain_spec::moonbeam::development_chain_spec(None, None)),
+		path => Box::new(chain_spec::ChainSpec::from_json_file(
+			path.into(),
+		)?),
+	})
 }
 
 impl SubstrateCli for Cli {
@@ -101,8 +108,17 @@ impl SubstrateCli for Cli {
 		load_spec(id, self.run.parachain_id.unwrap_or(1000).into())
 	}
 
-	fn native_runtime_version(_: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
-		&moonbeam_runtime::VERSION
+	fn native_runtime_version(spec: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
+		if spec.is_moonbase() {
+			#[cfg(feature = "with-moonbase-runtime")]
+			return &service::moonbase_runtime::VERSION;
+		} else if spec.is_moonbeam() {
+			#[cfg(feature = "with-moonbeam-runtime")]
+			return &service::moonbeam_runtime::VERSION;
+		} else {
+			#[cfg(feature = "with-moonbase-runtime")]
+			return &service::moonbase_runtime::VERSION;
+		}
 	}
 }
 
@@ -173,13 +189,26 @@ pub fn run() -> Result<()> {
 			let runner = cli.create_runner(&params.base)?;
 			runner.sync_run(|config| {
 				if params.mnemonic.is_some() || params.accounts.is_some() {
-					params.base.run(
-						Box::new(chain_spec::development_chain_spec(
-							params.mnemonic.clone(),
-							params.accounts,
-						)),
-						config.network,
-					)
+					if chain_spec.is_moonbeam {
+						// TODO-multiple-runtimes
+						#[cfg(feature = "with-moonbeam-runtime")]
+						params.base.run(
+							Box::new(chain_spec::moonbeam::development_chain_spec(
+								params.mnemonic.clone(),
+								params.accounts,
+							)),
+							config.network,
+						)
+					} else {
+						#[cfg(feature = "with-moonbase-runtime")]
+						params.base.run(
+							Box::new(chain_spec::moonbase::development_chain_spec(
+								params.mnemonic.clone(),
+								params.accounts,
+							)),
+							config.network,
+						)
+					}
 				} else {
 					params.base.run(config.chain_spec, config.network)
 				}
@@ -187,62 +216,42 @@ pub fn run() -> Result<()> {
 		}
 		Some(Subcommand::CheckBlock(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.async_run(|config| {
-				// maybe these three lines could be a helper function is_dev(config) -> bool
-				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
-				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
-				let dev_service =
-					cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
+			let chain_spec = &runner.config().chain_spec;
 
-				let PartialComponents {
-					client,
-					task_manager,
-					import_queue,
-					..
-				} = crate::service::new_partial(&config, None, dev_service)?;
+			runner.async_run(|mut config| {
+				let (client, _, import_queue, task_manager) = service::new_chain_ops(&mut config)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
 		Some(Subcommand::ExportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.async_run(|config| {
-				let PartialComponents {
-					client,
-					task_manager,
-					..
-				} = crate::service::new_partial(&config, None, false)?;
+			let chain_spec = &runner.config().chain_spec;
+
+			runner.async_run(|mut config| {
+				let (client, _, _, task_manager) = service::new_chain_ops(&mut config)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
 		}
 		Some(Subcommand::ExportState(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.async_run(|config| {
-				let PartialComponents {
-					client,
-					task_manager,
-					..
-				} = crate::service::new_partial(&config, None, false)?;
+			let chain_spec = &runner.config().chain_spec;
+
+			runner.async_run(|mut config| {
+				let (client, _, _, task_manager) = service::new_chain_ops(&mut config)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
 		}
 		Some(Subcommand::ImportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.async_run(|config| {
-				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
-				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
-				let dev_service =
-					cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
+			let chain_spec = &runner.config().chain_spec;
 
-				let PartialComponents {
-					client,
-					task_manager,
-					import_queue,
-					..
-				} = crate::service::new_partial(&config, None, dev_service)?;
+			runner.async_run(|mut config| {
+				let (client, _, import_queue, task_manager) = service::new_chain_ops(&mut config)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
 		Some(Subcommand::PurgeChain(cmd)) => {
+			// TODO-multiple-runtimes
 			let runner = cli.create_runner(cmd)?;
 
 			runner.sync_run(|config| {
@@ -277,13 +286,10 @@ pub fn run() -> Result<()> {
 		}
 		Some(Subcommand::Revert(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.async_run(|config| {
-				let PartialComponents {
-					client,
-					task_manager,
-					backend,
-					..
-				} = crate::service::new_partial(&config, None, false)?;
+			let chain_spec = &runner.config().chain_spec;
+
+			runner.async_run(|mut config| {
+				let (client, backend, _, task_manager) = service::new_chain_ops(&mut config)?;
 				Ok((cmd.run(client, backend), task_manager))
 			})
 		}
@@ -292,16 +298,37 @@ pub fn run() -> Result<()> {
 			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
 			let _ = builder.init();
 
-			let block: Block = generate_genesis_block(&load_spec(
-				&params.chain.clone().unwrap_or_default(),
-				params.parachain_id.into(),
-			)?)?;
-			let raw_header = block.header().encode();
-			let output_buf = if params.raw {
-				raw_header
+			let chain_spec = cli.load_spec(&params.chain.clone().unwrap_or_default())?;
+			let output_buf = if chain_spec.is_moonbeam() {
+				#[cfg(feature = "with-moonbeam-runtime")]
+				{
+					let block: service::moonbeam_runtime::Block =
+						generate_genesis_block(&chain_spec).map_err(|e| format!("{:?}", e))?;
+					let raw_header = block.header().encode();
+					let output_buf = if params.raw {
+						raw_header
+					} else {
+						format!("0x{:?}", HexDisplay::from(&block.header().encode())).into_bytes()
+					};
+					output_buf
+				}
+				#[cfg(not(feature = "with-moonbeam-runtime"))]
+				return Err("Moonbeam runtime is not available. Please compile the node with `--features with-moonbeam-runtime` to enable it.".into());
 			} else {
-				format!("0x{:?}", HexDisplay::from(&block.header().encode())).into_bytes()
-			};
+				#[cfg(feature = "with-moonbase-runtime")]
+				{
+					let block: service::moonbase_runtime::Block = generate_genesis_block(&chain_spec)?;
+					let raw_header = block.header().encode();
+					let output_buf = if params.raw {
+						raw_header
+					} else {
+						format!("0x{:?}", HexDisplay::from(&block.header().encode())).into_bytes()
+					};
+					output_buf
+				}
+				#[cfg(not(feature = "with-moonbase-runtime"))]
+				return Err("Moonbase runtime is not available. Please compile the node with `--features with-moonbase-runtime` to enable it.".into());
+			}
 
 			if let Some(output) = &params.output {
 				std::fs::write(output, output_buf)?;
@@ -312,6 +339,7 @@ pub fn run() -> Result<()> {
 			Ok(())
 		}
 		Some(Subcommand::ExportGenesisWasm(params)) => {
+			// TODO-multiple-runtimes?
 			let mut builder = sc_cli::LoggerBuilder::new("");
 			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
 			let _ = builder.init();
@@ -335,8 +363,13 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::Benchmark(cmd)) => {
 			if cfg!(feature = "runtime-benchmarks") {
 				let runner = cli.create_runner(cmd)?;
-
-				runner.sync_run(|config| cmd.run::<Block, crate::service::Executor>(config))
+				if chain_spec.is_moonbeam() {
+					#[cfg(feature = "with-moonbeam-runtime")]
+					return runner.sync_run(|config| cmd.run::<service::moonbeam_runtime::Block, service::MoonbeamExecutor>(config))
+				} else {
+					#[cfg(feature = "with-moonbase-runtime")]
+					return runner.sync_run(|config| cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(config))
+				}
 			} else {
 				Err("Benchmarking wasn't enabled when building the node. \
 				You can enable it with `--features runtime-benchmarks`."
@@ -345,21 +378,31 @@ pub fn run() -> Result<()> {
 		}
 		None => {
 			let runner = cli.create_runner(&*cli.run)?;
-			let collator = cli.run.base.validator || cli.collator;
-			let author_id: Option<H160> = cli.run.author_id;
-			if collator && author_id.is_none() {
-				return Err("Collator nodes must specify an author account id".into());
-			}
+			let chain_spec = &runner.config().chain_spec;
 
 			runner
 				.run_node_until_exit(|config| async move {
+
+					let collator = cli.run.base.validator || cli.collator;
+					let author_id: Option<H160> = cli.run.author_id;
+					if collator && author_id.is_none() {
+						return Err("Collator nodes must specify an author account id".into());
+					}
+
 					let key = sp_core::Pair::generate().0;
 
 					let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
 					let relay_chain_id = extension.map(|e| e.relay_chain.clone());
 					let dev_service =
-						cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
+						chain_spec.is_moonbase_dev() || relay_chain_id == Some("dev-service".to_string());
 					let para_id = extension.map(|e| e.para_id);
+
+					let rpc_params = RpcParams {
+						ethapi_max_permits: cli.run.ethapi_max_permits,
+						ethapi_trace_max_count: cli.run.ethapi_trace_max_count,
+						ethapi_trace_cache_duration: cli.run.ethapi_trace_cache_duration,
+						max_past_logs: cli.run.max_past_logs,
+					};
 
 					// If dev service was requested, start up manual or instant seal.
 					// Otherwise continue with the normal parachain node.
@@ -379,8 +422,10 @@ pub fn run() -> Result<()> {
 									.expect("Gerald is a valid account"),
 							)
 						});
-
-						return crate::service::new_dev(config, author_id, collator, cli.run);
+						#[cfg(feature = "with-moonbase-runtime")]
+						return service::new_dev(config, author_id, collator, cli.run.sealing, cli.run.ethapi, rpc_params);
+						#[cfg(not(feature = "with-moonbase-runtime"))]
+						return Err("Moonbase runtime is not available. Please compile the node with `--features with-moonbase-runtime` to enable it.".into());
 					}
 
 					let polkadot_cli = RelayChainCli::new(
@@ -396,11 +441,24 @@ pub fn run() -> Result<()> {
 						AccountIdConversion::<polkadot_primitives::v0::AccountId>::into_account(
 							&id,
 						);
-
-					let block: Block = generate_genesis_block(&config.chain_spec)
-						.map_err(|e| format!("{:?}", e))?;
-					let genesis_state =
-						format!("0x{:?}", HexDisplay::from(&block.header().encode()));
+					
+					let genesis_state = if config.chain_spec.is_moonbeam() {
+						#[cfg(feature = "with-moonbeam-runtime")]
+						{
+							let block: service::moonbeam_runtime::Block = generate_genesis_block(&config.chain_spec).map_err(|e| format!("{:?}", e))?;
+							format!("0x{:?}", HexDisplay::from(&block.header().encode()))
+						}
+						#[cfg(not(feature = "with-moonbeam-runtime"))]
+						return Err("Moonbeam runtime is not available. Please compile the node with `--features with-moonbeam-runtime` to enable it.".into());
+					} else {
+						#[cfg(feature = "with-moonbase-runtime")]
+						{
+							let block: service::moonbase_runtime::Block = generate_genesis_block(&config.chain_spec).map_err(|e| format!("{:?}", e))?;
+							format!("0x{:?}", HexDisplay::from(&block.header().encode()))
+						}
+						#[cfg(not(feature = "with-moonbase-runtime"))]
+						return Err("Moonbase runtime is not available. Please compile the node with `--features with-moonbase-runtime` to enable it.".into());
+					};
 
 					let task_executor = config.task_executor.clone();
 					let polkadot_config = SubstrateCli::create_configuration(
@@ -415,18 +473,45 @@ pub fn run() -> Result<()> {
 					info!("Parachain genesis state: {}", genesis_state);
 					info!("Is collating: {}", if collator { "yes" } else { "no" });
 
-					crate::service::start_node(
-						config,
-						key,
-						author_id,
-						polkadot_config,
-						id,
-						collator,
-						cli.run,
-					)
-					.await
-					.map(|r| r.0)
-					.map_err(Into::into)
+					if config.chain_spec.is_moonbeam() {
+						#[cfg(feature = "with-moonbeam-runtime")]
+						{
+							service::start_node::<service::acala_moonbeam::RuntimeApi, service::MoonbeamExecutor>(
+								config,
+								key,
+								polkadot_config,
+								id,
+								collator,
+								cli.run.sealing,
+								cli.run.ethapi,
+								rpc_params,
+							)
+							.await
+							.map(|r| r.0)
+							.map_err(Into::into)
+						}
+						#[cfg(not(feature = "with-moonbeam-runtime"))]
+						return Err("Moonbeam runtime is not available. Please compile the node with `--features with-moonbeam-runtime` to enable it.".into());
+					} else {
+						#[cfg(feature = "with-moonbase-runtime")]
+						{
+							service::start_node::<service::moonbase_runtime::RuntimeApi, service::MoonbaseExecutor>(
+								config,
+								key,
+								polkadot_config,
+								id,
+								collator,
+								cli.run.sealing,
+								cli.run.ethapi,
+								rpc_params,
+							)
+							.await
+							.map(|r| r.0)
+							.map_err(Into::into)
+						}
+						#[cfg(not(feature = "with-moonbase-runtime"))]
+						return Err("Moonbase runtime is not available. Please compile the node with `--features with-moonbase-runtime` to enable it.".into());
+					}
 				})
 				.map_err(Into::into)
 		}

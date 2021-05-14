@@ -1,7 +1,10 @@
 [workspace]
 members = [
-    'runtime',
+    'runtime/moonbeam',
+    'runtime/moonbase',
     'node',
+    'node/cli',
+    'node/service',
 ]
 
 [profile.release]

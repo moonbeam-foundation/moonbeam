@@ -1,0 +1,50 @@
+[package]
+name = "moonbeam-cli"
+version = "0.8.0"
+authors = ["PureStake"]
+edition = "2018"
+
+[dependencies]
+log = "0.4.8"
+structopt = "0.3.8"
+parity-scale-codec = '2.0.0'
+
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", optional = true }
+sc-cli = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", optional = true }
+sc-service = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", optional = true }
+sc-tracing = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sc-telemetry = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", optional = true }
+try-runtime-cli = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", optional = true }
+
+cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1" }
+polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1" }
+polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1" }
+
+service = { package = "moonbeam-service", path = "../service", default-features = false, optional = true }
+cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt", default-features = false }
+
+[build-dependencies]
+substrate-build-script-utils = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+
+[features]
+default = [ "wasmtime", "cli" ]
+wasmtime = [ "sc-cli/wasmtime" ]
+cli = [
+	"service",
+	"sp-core",
+	"sc-cli",
+	"sc-service",
+	"frame-benchmarking-cli",
+	"try-runtime-cli",
+]
+runtime-benchmarks = [ "service/runtime-benchmarks" ]
+with-moonbeam-runtime = [
+	"service/with-moonbeam-runtime",
+]
+with-moonbase-runtime = [
+	"service/with-moonbase-runtime",
+]
