@@ -468,7 +468,7 @@ pub fn run() -> Result<()> {
 							)
 						});
 						#[cfg(feature = "with-moonbase-runtime")]
-						return service::new_dev(config, author_id, collator, cli.run.sealing, cli.run.ethapi, rpc_params);
+						return service::new_dev(config, author_id, collator, cli.run.sealing, cli.run.ethapi, rpc_params).map_err(Into::into);
 						#[cfg(not(feature = "with-moonbase-runtime"))]
 						return Err("Moonbase runtime is not available. Please compile the node with `--features with-moonbase-runtime` to enable it.".into());
 					}
@@ -521,7 +521,7 @@ pub fn run() -> Result<()> {
 					if config.chain_spec.is_moonbeam() {
 						#[cfg(feature = "with-moonbeam-runtime")]
 						{
-							service::start_node::<service::moonbeam::RuntimeApi, service::MoonbeamExecutor>(
+							service::start_node::<service::moonbeam_runtime::RuntimeApi, service::MoonbeamExecutor>(
 								config,
 								key,
 								author_id,
@@ -560,7 +560,6 @@ pub fn run() -> Result<()> {
 						return Err("Moonbase runtime is not available. Please compile the node with `--features with-moonbase-runtime` to enable it.".into());
 					}
 				})
-				.map_err(Into::into)
 		}
 	}
 }
