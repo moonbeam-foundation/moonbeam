@@ -554,8 +554,6 @@
 <span id="551">551</span>
 <span id="552">552</span>
 <span id="553">553</span>
-<span id="554">554</span>
-<span id="555">555</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -611,14 +609,16 @@
 			<span class="kw-2">&amp;</span><span class="macro">include_bytes</span><span class="macro">!</span>(<span class="string">&quot;../../specs/stagenet/parachain-embedded-specs-v7.json&quot;</span>)[..],
 		)<span class="question-mark">?</span>)),
 		<span class="string">&quot;dev&quot;</span> <span class="op">|</span> <span class="string">&quot;development&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">chain_spec</span>::<span class="ident">development_chain_spec</span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>))),
-		<span class="string">&quot;local&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">chain_spec</span>::<span class="ident">get_chain_spec</span>(<span class="ident">para_id</span>))),
+		<span class="string">&quot;&quot;</span> <span class="op">|</span> <span class="string">&quot;local&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">chain_spec</span>::<span class="ident">get_chain_spec</span>(<span class="ident">para_id</span>))),
 		<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;test-spec&quot;</span>)]</span>
 		<span class="string">&quot;staking&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="kw">crate</span>::<span class="ident">test_spec</span>::<span class="ident">staking_spec</span>(<span class="ident">para_id</span>))),
-		<span class="string">&quot;&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(
-			<span class="string">&quot;You have not specified what chain to sync. In the future, this will default to \
-				Moonbeam mainnet. Mainnet is not yet live so you must choose a spec.&quot;</span>
-				.<span class="ident">into</span>(),
-		),
+		<span class="comment">// Hack to work around Polkadot Launch</span>
+		<span class="comment">// https://github.com/paritytech/polkadot-launch/issues/96</span>
+		<span class="comment">// &quot;&quot; =&gt; Err(</span>
+		<span class="comment">// 	&quot;You have not specified what chain to sync. In the future, this will default to \</span>
+		<span class="comment">// 		Moonbeam mainnet. Mainnet is not yet live so you must choose a spec.&quot;</span>
+		<span class="comment">// 		.into(),</span>
+		<span class="comment">// ),</span>
 		<span class="ident">path</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">chain_spec</span>::<span class="ident">ChainSpec</span>::<span class="ident">from_json_file</span>(
 			<span class="ident">path</span>.<span class="ident">into</span>(),
 		)<span class="question-mark">?</span>)),
@@ -905,10 +905,6 @@
 		<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
 			<span class="kw">let</span> <span class="ident">runner</span> <span class="op">=</span> <span class="ident">cli</span>.<span class="ident">create_runner</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">cli</span>.<span class="ident">run</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">cli</span>.<span class="ident">run</span>.<span class="ident">base</span>.<span class="ident">validator</span> <span class="op">|</span><span class="op">|</span> <span class="ident">cli</span>.<span class="ident">collator</span>;
-			<span class="kw">let</span> <span class="ident">author_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">cli</span>.<span class="ident">run</span>.<span class="ident">author_id</span>;
-			<span class="kw">if</span> <span class="ident">collator</span> <span class="op">&amp;&amp;</span> <span class="ident">author_id</span>.<span class="ident">is_none</span>() {
-				<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;Collator nodes must specify an author account id&quot;</span>.<span class="ident">into</span>());
-			}
 
 			<span class="ident">runner</span>
 				.<span class="ident">run_node_until_exit</span>(<span class="op">|</span><span class="ident">config</span><span class="op">|</span> <span class="kw">async</span> <span class="kw">move</span> {
@@ -930,14 +926,12 @@
 						<span class="comment">// --dev implies --collator</span>
 						<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">collator</span> <span class="op">|</span><span class="op">|</span> <span class="ident">cli</span>.<span class="ident">run</span>.<span class="ident">shared_params</span>.<span class="ident">dev</span>;
 
-						<span class="comment">// If no author id was supplied, use the one that is staked at genesis</span>
-						<span class="comment">// in the default development spec.</span>
-						<span class="kw">let</span> <span class="ident">author_id</span> <span class="op">=</span> <span class="ident">author_id</span>.<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
-							<span class="prelude-val">Some</span>(
-								<span class="ident">AccountId</span>::<span class="ident">from_str</span>(<span class="string">&quot;6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b&quot;</span>)
-									.<span class="ident">expect</span>(<span class="string">&quot;Gerald is a valid account&quot;</span>),
-							)
-						});
+						<span class="comment">// When running the dev service, just use Alice&#39;s author inherent</span>
+						<span class="comment">//TODO maybe make the --alice etc flags work here, and consider bringing back</span>
+						<span class="comment">// the author-id flag. For now, this will work.</span>
+						<span class="kw">let</span> <span class="ident">author_id</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw">crate</span>::<span class="ident">chain_spec</span>::<span class="ident">get_from_seed</span>::<span class="op">&lt;</span>
+							<span class="ident">nimbus_primitives</span>::<span class="ident">NimbusId</span>,
+						<span class="op">&gt;</span>(<span class="string">&quot;Alice&quot;</span>));
 
 						<span class="kw">return</span> <span class="kw">crate</span>::<span class="ident">service</span>::<span class="ident">new_dev</span>(<span class="ident">config</span>, <span class="ident">author_id</span>, <span class="ident">collator</span>, <span class="ident">cli</span>.<span class="ident">run</span>);
 					}
@@ -977,7 +971,9 @@
 					<span class="kw">crate</span>::<span class="ident">service</span>::<span class="ident">start_node</span>(
 						<span class="ident">config</span>,
 						<span class="ident">key</span>,
-						<span class="ident">author_id</span>,
+						<span class="comment">// The parachain service will now use the keystore for authoring info.</span>
+						<span class="comment">// TODO rip this wire out after stuff works</span>
+						<span class="prelude-val">None</span>,
 						<span class="ident">polkadot_config</span>,
 						<span class="ident">id</span>,
 						<span class="ident">collator</span>,

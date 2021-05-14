@@ -743,6 +743,9 @@
 <span id="740">740</span>
 <span id="741">741</span>
 <span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -774,9 +777,6 @@
 	<span class="ident">inherents</span>::<span class="ident">build_inherent_data_providers</span>,
 };
 <span class="kw">use</span> <span class="ident">async_io</span>::<span class="ident">Timer</span>;
-<span class="kw">use</span> <span class="ident">cumulus_client_consensus_relay_chain</span>::{
-	<span class="ident">build_relay_chain_consensus</span>, <span class="ident">BuildRelayChainConsensusParams</span>,
-};
 <span class="kw">use</span> <span class="ident">cumulus_client_network</span>::<span class="ident">build_block_announce_validator</span>;
 <span class="kw">use</span> <span class="ident">cumulus_client_service</span>::{
 	<span class="ident">prepare_node_config</span>, <span class="ident">start_collator</span>, <span class="ident">start_full_node</span>, <span class="ident">StartCollatorParams</span>, <span class="ident">StartFullNodeParams</span>,
@@ -788,6 +788,10 @@
 <span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">Stream</span>, <span class="ident">StreamExt</span>};
 <span class="kw">use</span> <span class="ident">moonbeam_rpc_debug</span>::<span class="ident">DebugHandler</span>;
 <span class="kw">use</span> <span class="ident">moonbeam_runtime</span>::{<span class="ident">opaque</span>::<span class="ident">Block</span>, <span class="ident">RuntimeApi</span>};
+<span class="kw">use</span> <span class="ident">nimbus_consensus</span>::{
+	<span class="ident">build_filtering_consensus</span> <span class="kw">as</span> <span class="ident">build_nimbus_consensus</span>,
+	<span class="ident">BuildFilteringConsensusParams</span> <span class="kw">as</span> <span class="ident">BuildNimbusConsensusParams</span>,
+};
 <span class="kw">use</span> <span class="ident">polkadot_primitives</span>::<span class="ident">v0</span>::<span class="ident">CollatorPair</span>;
 <span class="kw">use</span> <span class="ident">sc_cli</span>::<span class="ident">SubstrateCli</span>;
 <span class="kw">use</span> <span class="ident">sc_client_api</span>::<span class="ident">BlockchainEvents</span>;
@@ -849,7 +853,7 @@
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">type_complexity</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_partial</span>(
 	<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">Configuration</span>,
-	<span class="ident">author</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
+	<span class="ident">author</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nimbus_primitives</span>::<span class="ident">NimbusId</span><span class="op">&gt;</span>,
 	<span class="ident">dev_service</span>: <span class="ident">bool</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
 	<span class="ident">PartialComponents</span><span class="op">&lt;</span>
@@ -933,7 +937,7 @@
 		<span class="comment">// It would be nice if we could just use this one in either case, but</span>
 		<span class="comment">// it doesn&#39;t properly follow the longest chain rule.</span>
 		<span class="comment">// https://github.com/PureStake/moonbeam/pull/266</span>
-		<span class="ident">cumulus_client_consensus_relay_chain</span>::<span class="ident">import_queue</span>(
+		<span class="ident">nimbus_consensus</span>::<span class="ident">import_queue</span>(
 			<span class="ident">client</span>.<span class="ident">clone</span>(),
 			<span class="ident">frontier_block_import</span>.<span class="ident">clone</span>(),
 			<span class="ident">inherent_data_providers</span>.<span class="ident">clone</span>(),
@@ -988,7 +992,7 @@
 
 	<span class="kw">let</span> <span class="ident">parachain_config</span> <span class="op">=</span> <span class="ident">prepare_node_config</span>(<span class="ident">parachain_config</span>);
 
-	<span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">new_partial</span>(<span class="kw-2">&amp;</span><span class="ident">parachain_config</span>, <span class="ident">author_id</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+	<span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">new_partial</span>(<span class="kw-2">&amp;</span><span class="ident">parachain_config</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 	<span class="kw">let</span> (
 		<span class="ident">block_import</span>,
 		<span class="ident">pending_transactions</span>,
@@ -1175,13 +1179,15 @@
 		);
 		<span class="kw">let</span> <span class="ident">spawner</span> <span class="op">=</span> <span class="ident">task_manager</span>.<span class="ident">spawn_handle</span>();
 
-		<span class="kw">let</span> <span class="ident">parachain_consensus</span> <span class="op">=</span> <span class="ident">build_relay_chain_consensus</span>(<span class="ident">BuildRelayChainConsensusParams</span> {
+		<span class="kw">let</span> <span class="ident">parachain_consensus</span> <span class="op">=</span> <span class="ident">build_nimbus_consensus</span>(<span class="ident">BuildNimbusConsensusParams</span> {
 			<span class="ident">para_id</span>: <span class="ident">id</span>,
 			<span class="ident">proposer_factory</span>,
 			<span class="ident">inherent_data_providers</span>: <span class="ident">params</span>.<span class="ident">inherent_data_providers</span>,
 			<span class="ident">block_import</span>,
 			<span class="ident">relay_chain_client</span>: <span class="ident">polkadot_full_node</span>.<span class="ident">client</span>.<span class="ident">clone</span>(),
 			<span class="ident">relay_chain_backend</span>: <span class="ident">polkadot_full_node</span>.<span class="ident">backend</span>.<span class="ident">clone</span>(),
+			<span class="ident">parachain_client</span>: <span class="ident">client</span>.<span class="ident">clone</span>(),
+			<span class="ident">keystore</span>: <span class="ident">params</span>.<span class="ident">keystore_container</span>.<span class="ident">sync_keystore</span>(),
 		});
 
 		<span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">StartCollatorParams</span> {
@@ -1242,7 +1248,7 @@
 <span class="doccomment">/// the parachain inherent.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_dev</span>(
 	<span class="ident">config</span>: <span class="ident">Configuration</span>,
-	<span class="ident">author_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
+	<span class="ident">author_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nimbus_primitives</span>::<span class="ident">NimbusId</span><span class="op">&gt;</span>,
 	<span class="comment">// TODO I guess we should use substrate-cli&#39;s validator flag for this.</span>
 	<span class="comment">// Resolve after https://github.com/paritytech/cumulus/pull/380 is reviewed.</span>
 	<span class="ident">collator</span>: <span class="ident">bool</span>,

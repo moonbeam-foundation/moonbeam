@@ -11,6 +11,7 @@ sourcesIndex["moonbeam_rpc_primitives_txpool"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["moonbeam_rpc_trace"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["moonbeam_rpc_txpool"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["moonbeam_runtime"] = {"name":"","files":["lib.rs"]};
+sourcesIndex["pallet_author_mapping"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_ethereum_chain_id"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["parachain_staking"] = {"name":"","files":["inflation.rs","lib.rs","set.rs","weights.rs"]};
 sourcesIndex["precompiles"] = {"name":"","files":["lib.rs","staking.rs"]};

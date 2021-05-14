@@ -348,6 +348,34 @@
 <span id="345">345</span>
 <span id="346">346</span>
 <span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -375,16 +403,17 @@
 <span class="kw">use</span> <span class="ident">evm</span>::<span class="ident">GenesisAccount</span>;
 <span class="kw">use</span> <span class="ident">log</span>::<span class="ident">debug</span>;
 <span class="kw">use</span> <span class="ident">moonbeam_runtime</span>::{
-	<span class="ident">AccountId</span>, <span class="ident">AuthorFilterConfig</span>, <span class="ident">Balance</span>, <span class="ident">BalancesConfig</span>, <span class="ident">CouncilCollectiveConfig</span>,
-	<span class="ident">DemocracyConfig</span>, <span class="ident">EVMConfig</span>, <span class="ident">EthereumChainIdConfig</span>, <span class="ident">EthereumConfig</span>, <span class="ident">GenesisConfig</span>,
-	<span class="ident">InflationInfo</span>, <span class="ident">ParachainInfoConfig</span>, <span class="ident">ParachainStakingConfig</span>, <span class="ident">Range</span>, <span class="ident">SchedulerConfig</span>, <span class="ident">SudoConfig</span>,
-	<span class="ident">SystemConfig</span>, <span class="ident">TechComitteeCollectiveConfig</span>, <span class="ident">GLMR</span>, <span class="ident">WASM_BINARY</span>,
+	<span class="ident">AccountId</span>, <span class="ident">AuthorFilterConfig</span>, <span class="ident">AuthorMappingConfig</span>, <span class="ident">Balance</span>, <span class="ident">BalancesConfig</span>,
+	<span class="ident">CouncilCollectiveConfig</span>, <span class="ident">DemocracyConfig</span>, <span class="ident">EVMConfig</span>, <span class="ident">EthereumChainIdConfig</span>, <span class="ident">EthereumConfig</span>,
+	<span class="ident">GenesisConfig</span>, <span class="ident">InflationInfo</span>, <span class="ident">ParachainInfoConfig</span>, <span class="ident">ParachainStakingConfig</span>, <span class="ident">Range</span>,
+	<span class="ident">SchedulerConfig</span>, <span class="ident">SudoConfig</span>, <span class="ident">SystemConfig</span>, <span class="ident">TechComitteeCollectiveConfig</span>, <span class="ident">GLMR</span>, <span class="ident">WASM_BINARY</span>,
 };
 <span class="kw">use</span> <span class="ident">sc_chain_spec</span>::{<span class="ident">ChainSpecExtension</span>, <span class="ident">ChainSpecGroup</span>};
 <span class="kw">use</span> <span class="ident">sc_service</span>::<span class="ident">ChainType</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 <span class="kw">use</span> <span class="ident">sha3</span>::{<span class="ident">Digest</span>, <span class="ident">Keccak256</span>};
 
+<span class="kw">use</span> <span class="ident">nimbus_primitives</span>::<span class="ident">NimbusId</span>;
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">ecdsa</span>, <span class="ident">Pair</span>, <span class="ident">Public</span>, <span class="ident">H160</span>, <span class="ident">H256</span>};
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::{
 	<span class="ident">traits</span>::{<span class="ident">BlakeTwo256</span>, <span class="ident">Hash</span>},
@@ -442,6 +471,13 @@
 
 <span class="doccomment">/// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ChainSpec</span> <span class="op">=</span> <span class="ident">sc_service</span>::<span class="ident">GenericChainSpec</span><span class="op">&lt;</span><span class="ident">GenesisConfig</span>, <span class="ident">Extensions</span><span class="op">&gt;</span>;
+
+<span class="doccomment">/// Helper function to generate a crypto pair from seed</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_from_seed</span><span class="op">&lt;</span><span class="ident">TPublic</span>: <span class="ident">Public</span><span class="op">&gt;</span>(<span class="ident">seed</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="ident">TPublic</span>::<span class="ident">Pair</span> <span class="kw">as</span> <span class="ident">Pair</span><span class="op">&gt;</span>::<span class="ident">Public</span> {
+	<span class="ident">TPublic</span>::<span class="ident">Pair</span>::<span class="ident">from_string</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;//{}&quot;</span>, <span class="ident">seed</span>), <span class="prelude-val">None</span>)
+		.<span class="ident">expect</span>(<span class="string">&quot;static values are valid; qed&quot;</span>)
+		.<span class="ident">public</span>()
+}
 
 <span class="doccomment">/// The extensions for the [`ChainSpec`].</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">ChainSpecGroup</span>, <span class="ident">ChainSpecExtension</span>)]</span>
@@ -638,7 +674,7 @@
 		<span class="ident">pallet_democracy</span>: <span class="ident">DemocracyConfig</span> {},
 		<span class="ident">pallet_scheduler</span>: <span class="ident">SchedulerConfig</span> {},
 		<span class="ident">parachain_staking</span>: <span class="ident">ParachainStakingConfig</span> {
-			<span class="ident">stakers</span>,
+			<span class="ident">stakers</span>: <span class="ident">stakers</span>.<span class="ident">clone</span>(),
 			<span class="ident">inflation_config</span>,
 		},
 		<span class="ident">pallet_collective_Instance1</span>: <span class="ident">CouncilCollectiveConfig</span> {
@@ -650,6 +686,26 @@
 			<span class="ident">members</span>: <span class="macro">vec</span><span class="macro">!</span>[], <span class="comment">// TODO : Set members</span>
 		},
 		<span class="ident">pallet_author_slot_filter</span>: <span class="ident">AuthorFilterConfig</span> { <span class="ident">eligible_ratio</span>: <span class="number">50</span> },
+		<span class="ident">pallet_author_mapping</span>: <span class="ident">AuthorMappingConfig</span> {
+			<span class="comment">// Pretty hacky. We just set the first staker to use alice&#39;s session keys.</span>
+			<span class="comment">// Maybe this is the moment we should finally make the `--alice` flags make sense.</span>
+			<span class="comment">// Which is to say, we should prefund the alice account. Actually, I think we already do that...</span>
+			<span class="ident">author_ids</span>: <span class="ident">stakers</span>
+				.<span class="ident">iter</span>()
+				.<span class="ident">take</span>(<span class="number">1</span>)
+				.<span class="ident">map</span>(<span class="op">|</span><span class="ident">staker</span><span class="op">|</span> {
+					<span class="kw">let</span> <span class="ident">author_id</span> <span class="op">=</span> <span class="ident">get_from_seed</span>::<span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span>(<span class="string">&quot;Alice&quot;</span>);
+					<span class="kw">let</span> <span class="ident">account_id</span> <span class="op">=</span> <span class="ident">staker</span>.<span class="number">0</span>;
+					<span class="comment">// This println confirmed that I mapped Alice&#39;s session key to Gerald&#39;s account ID</span>
+					<span class="comment">// Now I&#39;m disabling it because it also showed up in my parachain genesis state file</span>
+					<span class="comment">// println!(</span>
+					<span class="comment">// 	&quot;Initializing author -&gt; account mapping: ({:?}, {:?})&quot;,</span>
+					<span class="comment">// 	author_id, account_id</span>
+					<span class="comment">// );</span>
+					(<span class="ident">author_id</span>, <span class="ident">account_id</span>)
+				})
+				.<span class="ident">collect</span>(),
+		},
 	}
 }
 

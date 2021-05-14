@@ -290,6 +290,7 @@
 <span id="287">287</span>
 <span id="288">288</span>
 <span id="289">289</span>
+<span id="290">290</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -426,9 +427,10 @@
 	<span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;instant&quot;</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">sealing</span>: <span class="ident">Sealing</span>,
 
-	<span class="doccomment">/// Public identity for participating in staking and receiving rewards</span>
-	<span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">long</span>, <span class="ident">parse</span>(<span class="ident">try_from_str</span> <span class="op">=</span> <span class="ident">parse_h160</span>))]</span>
-	<span class="kw">pub</span> <span class="ident">author_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Public authoring identity to be inserted in the author inherent</span>
+	<span class="doccomment">/// This is not currently used, but we may want a way to use it in the dev service.</span>
+	<span class="comment">// #[structopt(long)]</span>
+	<span class="comment">// pub author_id: Option&lt;NimbusId&gt;,</span>
 
 	<span class="doccomment">/// Enable EVM tracing module on a non-authority node.</span>
 	<span class="attribute">#[<span class="ident">structopt</span>(
