@@ -8,8 +8,8 @@ license = 'GPL-3.0-only'
 repository = 'https://github.com/PureStake/moonbeam/'
 
 [dependencies]
-fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "update-substrate-bn-128" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "update-substrate-bn-128" }
+fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-moonbeam-v0.7" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-moonbeam-v0.7" }
 evm = { version = "0.26.0", default-features = false, features = ["with-codec"] }
 evm-core = { version = "0.26.0", default-features = false, features = ["with-codec"] }
 sp-core = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1" }
