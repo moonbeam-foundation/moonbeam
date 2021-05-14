@@ -23,9 +23,9 @@ use cumulus_primitives_core::ParaId;
 use log::info;
 // TODO-multiple-runtimes
 #[cfg(feature = "with-moonbase-runtime")]
-use moonbase_runtime::{AccountId, Block};
+use service::moonbase_runtime::{AccountId, Block};
 #[cfg(feature = "with-moonbeam-runtime")]
-use moonbeam_runtime::{AccountId, Block};
+use service::moonbeam_runtime::{AccountId, Block};
 use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::AccountIdConversion;
 use polkadot_service::RococoChainSpec;
@@ -56,20 +56,33 @@ fn load_spec(
 		#[cfg(feature = "with-moonbase-runtime")]
 		"dev" | "development" => Box::new(chain_spec::moonbase::development_chain_spec(None, None)),
 		#[cfg(feature = "with-moonbase-runtime")]
-		"alphanet" => Box::new(chain_spec::ChainSpec::from_json_bytes(
-			&include_bytes!("../../specs/alphanet/parachain-embedded-specs-v7.json")[..],
+		"alphanet" => Box::new(chain_spec::moonbase::ChainSpec::from_json_bytes(
+			&include_bytes!("../../../specs/alphanet/parachain-embedded-specs-v7.json")[..],
 		)?),
 		#[cfg(feature = "with-moonbase-runtime")]
-		"stagenet" => Box::new(chain_spec::ChainSpec::from_json_bytes(
-			&include_bytes!("../../specs/stagenet/parachain-embedded-specs-v7.json")[..],
+		"stagenet" => Box::new(chain_spec::moonbase::ChainSpec::from_json_bytes(
+			&include_bytes!("../../../specs/stagenet/parachain-embedded-specs-v7.json")[..],
 		)?),
 		// TODO-multiple-runtimes test-spec staking
 		// TODO-multiple-runtimes live release
 		#[cfg(feature = "with-moonbeam-runtime")]
 		"moonbeam" => Box::new(chain_spec::moonbeam::development_chain_spec(None, None)),
-		path => Box::new(chain_spec::ChainSpec::from_json_file(
-			path.into(),
-		)?),
+		// TODO-multiple-runtimes
+		path => {
+			#[cfg(feature = "with-moonbeam-runtime")]
+			{
+				Box::new(chain_spec::moonbeam::ChainSpec::from_json_file(
+					path.into(),
+				)?)
+			}
+			
+			#[cfg(feature = "with-moonbase-runtime")]
+			{
+				Box::new(chain_spec::moonbase::ChainSpec::from_json_file(
+					path.into(),
+				)?)
+			}
+		},
 	})
 }
 
@@ -108,16 +121,17 @@ impl SubstrateCli for Cli {
 		load_spec(id, self.run.parachain_id.unwrap_or(1000).into())
 	}
 
-	fn native_runtime_version(spec: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
+	fn native_runtime_version(spec: &Box<dyn sc_service::ChainSpec>) -> &'static RuntimeVersion {
 		if spec.is_moonbase() {
 			#[cfg(feature = "with-moonbase-runtime")]
 			return &service::moonbase_runtime::VERSION;
-		} else if spec.is_moonbeam() {
+			#[cfg(not(feature = "with-moonbase-runtime"))]
+			panic!("Moonbase runtime is not available. Please compile the node with `--features with-moonbase-runtime` to enable it.");
+		} else {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			return &service::moonbeam_runtime::VERSION;
-		} else {
-			#[cfg(feature = "with-moonbase-runtime")]
-			return &service::moonbase_runtime::VERSION;
+			#[cfg(not(feature = "with-moonbeam-runtime"))]
+			panic!("Moonbeam runtime is not available. Please compile the node with `--features with-moonbeam-runtime` to enable it.");
 		}
 	}
 }
@@ -154,10 +168,10 @@ impl SubstrateCli for RelayChainCli {
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		match id {
 			"moonbase_alpha_relay" => Ok(Box::new(RococoChainSpec::from_json_bytes(
-				&include_bytes!("../../specs/alphanet/rococo-embedded-specs-v7.json")[..],
+				&include_bytes!("../../../specs/alphanet/rococo-embedded-specs-v7.json")[..],
 			)?)),
 			"moonbase_stage_relay" => Ok(Box::new(RococoChainSpec::from_json_bytes(
-				&include_bytes!("../../specs/stagenet/rococo-embedded-specs-v7.json")[..],
+				&include_bytes!("../../../specs/stagenet/rococo-embedded-specs-v7.json")[..],
 			)?)),
 			// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the
 			// Polkadot service to interpret the id.
@@ -184,30 +198,40 @@ fn extract_genesis_wasm(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Result<V
 /// Parse command line arguments into service configuration.
 pub fn run() -> Result<()> {
 	let cli = Cli::from_args();
+	let author_id: Option<H160> = cli.run.author_id;
 	match &cli.subcommand {
 		Some(Subcommand::BuildSpec(params)) => {
 			let runner = cli.create_runner(&params.base)?;
 			runner.sync_run(|config| {
 				if params.mnemonic.is_some() || params.accounts.is_some() {
-					if chain_spec.is_moonbeam {
+					if config.chain_spec.is_moonbeam() {
 						// TODO-multiple-runtimes
 						#[cfg(feature = "with-moonbeam-runtime")]
-						params.base.run(
-							Box::new(chain_spec::moonbeam::development_chain_spec(
-								params.mnemonic.clone(),
-								params.accounts,
-							)),
-							config.network,
-						)
+						{
+							params.base.run(
+								Box::new(chain_spec::moonbeam::development_chain_spec(
+									params.mnemonic.clone(),
+									params.accounts,
+								)),
+								config.network,
+							)
+
+						}
+						#[cfg(not(feature = "with-moonbeam-runtime"))]
+						return Err("Moonbeam runtime is not available. Please compile the node with `--features with-moonbeam-runtime` to enable it.".into());
 					} else {
 						#[cfg(feature = "with-moonbase-runtime")]
-						params.base.run(
-							Box::new(chain_spec::moonbase::development_chain_spec(
-								params.mnemonic.clone(),
-								params.accounts,
-							)),
-							config.network,
-						)
+						{
+							params.base.run(
+								Box::new(chain_spec::moonbase::development_chain_spec(
+									params.mnemonic.clone(),
+									params.accounts,
+								)),
+								config.network,
+							)
+						}
+						#[cfg(not(feature = "with-moonbase-runtime"))]
+						return Err("Moonbase runtime is not available. Please compile the node with `--features with-moonbase-runtime` to enable it.".into());
 					}
 				} else {
 					params.base.run(config.chain_spec, config.network)
@@ -219,7 +243,7 @@ pub fn run() -> Result<()> {
 			let chain_spec = &runner.config().chain_spec;
 
 			runner.async_run(|mut config| {
-				let (client, _, import_queue, task_manager) = service::new_chain_ops(&mut config)?;
+				let (client, _, import_queue, task_manager) = service::new_chain_ops(&mut config, author_id)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -228,7 +252,7 @@ pub fn run() -> Result<()> {
 			let chain_spec = &runner.config().chain_spec;
 
 			runner.async_run(|mut config| {
-				let (client, _, _, task_manager) = service::new_chain_ops(&mut config)?;
+				let (client, _, _, task_manager) = service::new_chain_ops(&mut config, author_id)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
 		}
@@ -237,7 +261,7 @@ pub fn run() -> Result<()> {
 			let chain_spec = &runner.config().chain_spec;
 
 			runner.async_run(|mut config| {
-				let (client, _, _, task_manager) = service::new_chain_ops(&mut config)?;
+				let (client, _, _, task_manager) = service::new_chain_ops(&mut config, author_id)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
 		}
@@ -246,7 +270,7 @@ pub fn run() -> Result<()> {
 			let chain_spec = &runner.config().chain_spec;
 
 			runner.async_run(|mut config| {
-				let (client, _, import_queue, task_manager) = service::new_chain_ops(&mut config)?;
+				let (client, _, import_queue, task_manager) = service::new_chain_ops(&mut config, author_id)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -257,7 +281,16 @@ pub fn run() -> Result<()> {
 			runner.sync_run(|config| {
 				// Although the cumulus_client_cli::PurgeCommand will extract the relay chain id,
 				// we need to extract it here to determine whether we are running the dev service.
-				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
+				let extension = {
+					#[cfg(feature = "with-moonbase-runtime")]
+					{
+						chain_spec::moonbase::Extensions::try_get(&*config.chain_spec)
+					}
+					#[cfg(feature = "with-moonbeam-runtime")]
+					{
+						chain_spec::moonbeam::Extensions::try_get(&*config.chain_spec)
+					}
+				};
 				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
 				let dev_service =
 					cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
@@ -289,7 +322,7 @@ pub fn run() -> Result<()> {
 			let chain_spec = &runner.config().chain_spec;
 
 			runner.async_run(|mut config| {
-				let (client, backend, _, task_manager) = service::new_chain_ops(&mut config)?;
+				let (client, backend, _, task_manager) = service::new_chain_ops(&mut config, author_id)?;
 				Ok((cmd.run(client, backend), task_manager))
 			})
 		}
@@ -328,7 +361,7 @@ pub fn run() -> Result<()> {
 				}
 				#[cfg(not(feature = "with-moonbase-runtime"))]
 				return Err("Moonbase runtime is not available. Please compile the node with `--features with-moonbase-runtime` to enable it.".into());
-			}
+			};
 
 			if let Some(output) = &params.output {
 				std::fs::write(output, output_buf)?;
@@ -363,12 +396,17 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::Benchmark(cmd)) => {
 			if cfg!(feature = "runtime-benchmarks") {
 				let runner = cli.create_runner(cmd)?;
+				let chain_spec = &runner.config().chain_spec;
 				if chain_spec.is_moonbeam() {
 					#[cfg(feature = "with-moonbeam-runtime")]
-					return runner.sync_run(|config| cmd.run::<service::moonbeam_runtime::Block, service::MoonbeamExecutor>(config))
+					return runner.sync_run(|config| cmd.run::<service::moonbeam_runtime::Block, service::MoonbeamExecutor>(config));
+					#[cfg(not(feature = "with-moonbeam-runtime"))]
+					return Err("Moonbeam runtime is not available. Please compile the node with `--features with-moonbeam-runtime` to enable it.".into());
 				} else {
 					#[cfg(feature = "with-moonbase-runtime")]
-					return runner.sync_run(|config| cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(config))
+					return runner.sync_run(|config| cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(config));
+					#[cfg(not(feature = "with-moonbase-runtime"))]
+					return Err("Moonbase runtime is not available. Please compile the node with `--features with-moonbase-runtime` to enable it.".into());
 				}
 			} else {
 				Err("Benchmarking wasn't enabled when building the node. \
@@ -378,8 +416,6 @@ pub fn run() -> Result<()> {
 		}
 		None => {
 			let runner = cli.create_runner(&*cli.run)?;
-			let chain_spec = &runner.config().chain_spec;
-
 			runner
 				.run_node_until_exit(|config| async move {
 
@@ -391,10 +427,19 @@ pub fn run() -> Result<()> {
 
 					let key = sp_core::Pair::generate().0;
 
-					let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
+					let extension = {
+						#[cfg(feature = "with-moonbase-runtime")]
+						{
+							chain_spec::moonbase::Extensions::try_get(&*config.chain_spec)
+						}
+						#[cfg(feature = "with-moonbeam-runtime")]
+						{
+							chain_spec::moonbeam::Extensions::try_get(&*config.chain_spec)
+						}
+					};
 					let relay_chain_id = extension.map(|e| e.relay_chain.clone());
 					let dev_service =
-						chain_spec.is_moonbase_dev() || relay_chain_id == Some("dev-service".to_string());
+						config.chain_spec.is_moonbase_dev() || relay_chain_id == Some("dev-service".to_string());
 					let para_id = extension.map(|e| e.para_id);
 
 					let rpc_params = RpcParams {
@@ -476,9 +521,10 @@ pub fn run() -> Result<()> {
 					if config.chain_spec.is_moonbeam() {
 						#[cfg(feature = "with-moonbeam-runtime")]
 						{
-							service::start_node::<service::acala_moonbeam::RuntimeApi, service::MoonbeamExecutor>(
+							service::start_node::<service::moonbeam::RuntimeApi, service::MoonbeamExecutor>(
 								config,
 								key,
+								author_id,
 								polkadot_config,
 								id,
 								collator,
@@ -498,6 +544,7 @@ pub fn run() -> Result<()> {
 							service::start_node::<service::moonbase_runtime::RuntimeApi, service::MoonbaseExecutor>(
 								config,
 								key,
+								author_id,
 								polkadot_config,
 								id,
 								collator,

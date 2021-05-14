@@ -53,8 +53,8 @@ impl FromStr for EthApi {
 }
 
 pub struct RpcParams {
-    ethapi_max_permits: u32,
-    ethapi_trace_max_count: u32,
-    ethapi_trace_cache_duration: u64,
-    max_past_logs: u32,
+    pub ethapi_max_permits: u32,
+    pub ethapi_trace_max_count: u32,
+    pub ethapi_trace_cache_duration: u64,
+    pub max_past_logs: u32,
 }

@@ -19,14 +19,17 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use crate::cli::EthApi as EthApiCmd;
+use cli_opt::EthApi as EthApiCmd;
 use ethereum::EthereumStorageSchema;
 use fc_rpc::{OverrideHandle, RuntimeApiStorageOverride, SchemaV1Override, StorageOverride};
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use jsonrpc_pubsub::manager::SubscriptionManager;
 use moonbeam_rpc_debug::DebugRequester;
 use moonbeam_rpc_trace::CacheRequester as TraceFilterCacheRequester;
+#[cfg(feature = "with-moonbeam-runtime")]
 use moonbeam_runtime::{opaque::Block, AccountId, Balance, Hash, Index};
+#[cfg(feature = "with-moonbase-runtime")]
+use moonbase_runtime::{opaque::Block, AccountId, Balance, Hash, Index};
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
 	client::BlockchainEvents,
@@ -152,11 +155,17 @@ where
 		schemas: overrides_map,
 		fallback: Box::new(RuntimeApiStorageOverride::new(client.clone())),
 	});
+	#[cfg(feature = "with-moonbeam-runtime")]
+	let tx_converter: moonbeam_runtime::TransactionConverter =
+		moonbeam_runtime::TransactionConverter;
+	#[cfg(feature = "with-moonbase-runtime")]
+	let tx_converter: moonbase_runtime::TransactionConverter =
+		moonbase_runtime::TransactionConverter;
 
 	io.extend_with(EthApiServer::to_delegate(EthApi::new(
 		client.clone(),
 		pool.clone(),
-		moonbeam_runtime::TransactionConverter,
+		tx_converter,
 		network.clone(),
 		pending_transactions,
 		signers,

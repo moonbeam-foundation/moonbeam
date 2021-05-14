@@ -4616,6 +4616,7 @@ dependencies = [
 name = "moonbeam-cli"
 version = "0.8.0"
 dependencies = [
+ "cumulus-client-cli",
  "cumulus-client-service",
  "cumulus-primitives-core",
  "frame-benchmarking-cli",
@@ -4626,6 +4627,7 @@ dependencies = [
  "polkadot-cli",
  "polkadot-parachain",
  "polkadot-primitives",
+ "polkadot-service",
  "sc-cli",
  "sc-service",
  "sc-telemetry",
@@ -4890,6 +4892,7 @@ dependencies = [
  "fp-rpc",
  "frame-benchmarking",
  "frame-benchmarking-cli",
+ "frame-system-rpc-runtime-api",
  "futures 0.3.14",
  "jsonrpc-core 15.1.0",
  "jsonrpc-pubsub 15.1.0",
@@ -4908,6 +4911,7 @@ dependencies = [
  "pallet-evm",
  "pallet-sudo",
  "pallet-transaction-payment-rpc",
+ "pallet-transaction-payment-rpc-runtime-api",
  "parity-scale-codec",
  "parking_lot 0.9.0",
  "polkadot-cli",
@@ -4945,7 +4949,10 @@ dependencies = [
  "sp-core",
  "sp-inherents",
  "sp-io",
+ "sp-offchain",
  "sp-runtime",
+ "sp-session",
+ "sp-storage",
  "sp-timestamp",
  "sp-transaction-pool",
  "sp-trie",

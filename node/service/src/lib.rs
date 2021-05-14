@@ -41,18 +41,22 @@ use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use futures::{Stream, StreamExt};
 use moonbeam_rpc_debug::DebugHandler;
 #[cfg(feature = "with-moonbeam-runtime")]
+pub use moonbeam_runtime;
+#[cfg(feature = "with-moonbeam-runtime")]
 use moonbeam_runtime::{opaque::Block, RuntimeApi};
+#[cfg(feature = "with-moonbase-runtime")]
+pub use moonbase_runtime;
 #[cfg(feature = "with-moonbase-runtime")]
 use moonbase_runtime::{opaque::Block, RuntimeApi};
 use polkadot_primitives::v0::CollatorPair;
 use sc_cli::SubstrateCli;
 use sc_client_api::BlockchainEvents;
 use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
-use sc_executor::native_executor_instance;
+use sc_executor::{native_executor_instance, NativeExecutionDispatch};
 pub use sc_executor::NativeExecutor;
 use sc_service::{
 	error::Error as ServiceError, BasePath, Configuration, PartialComponents, Role, TFullBackend,
-	TFullClient, TaskManager,
+	TFullClient, TaskManager, ChainSpec,
 };
 use sp_core::{H160, H256};
 use std::{
@@ -63,6 +67,7 @@ use std::{
 use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
 use tokio::sync::Semaphore;
+use sp_api::ConstructRuntimeApi;
 
 pub use client::*;
 pub mod chain_spec;
@@ -125,7 +130,9 @@ pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backen
 		.as_ref()
 		.map(|base_path| base_path.config_dir(config.chain_spec.id()))
 		.unwrap_or_else(|| {
-			BasePath::from_project("", "", &crate::cli::Cli::executable_name())
+            // TODO-multiple-runtimes
+            // no longer acces to &crate::cli::Cli::executable_name()
+			BasePath::from_project("", "", "todo")
 				.config_dir(config.chain_spec.id())
 		});
 	let database_dir = config_dir.join("frontier").join("db");
@@ -142,7 +149,8 @@ pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backen
 
 /// Builds a new object suitable for chain operations.
 pub fn new_chain_ops(
-	mut config: &mut Configuration,
+    mut config: &mut Configuration,
+    author_id: Option<H160>,
 ) -> Result<
 	(
 		Arc<Client>,
@@ -162,7 +170,7 @@ pub fn new_chain_ops(
 				import_queue,
 				task_manager,
 				..
-			} = new_partial(config, config.chain_spec.is_moonbase_dev(), false)?;
+			} = new_partial(config, author_id, config.chain_spec.is_moonbase_dev())?;
 			Ok((Arc::new(Client::Moonbase(client)), backend, import_queue, task_manager))
 		}
 		#[cfg(not(feature = "with-moonbase-runtime"))]
@@ -176,7 +184,7 @@ pub fn new_chain_ops(
 				import_queue,
 				task_manager,
 				..
-			} = new_partial::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(config, false, false)?;
+			} = new_partial::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(config, author_id, false)?;
 			Ok((Arc::new(Client::Moonbeam(client)), backend, import_queue, task_manager))
 		}
 		#[cfg(not(feature = "with-moonbeam-runtime"))]
@@ -320,7 +328,7 @@ async fn start_node_impl<RB, RuntimeApi, Executor>(
 	id: polkadot_primitives::v0::Id,
 	collator: bool,
 	sealing: Sealing,
-    ethapi: EthApiCmd,
+    ethapi: Vec<EthApiCmd>,
     rpc_params: RpcParams,
 	_rpc_ext_builder: RB,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
@@ -576,7 +584,7 @@ pub async fn start_node<RuntimeApi, Executor>(
 	id: polkadot_primitives::v0::Id,
 	collator: bool,
     sealing: Sealing,
-    ethapi: EthApiCmd,
+    ethapi: Vec<EthApiCmd>,
     rpc_params: RpcParams,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
 where
@@ -609,7 +617,7 @@ pub fn new_dev(
 	// Resolve after https://github.com/paritytech/cumulus/pull/380 is reviewed.
 	collator: bool,
     sealing: Sealing,
-    ethapi: EthApiCmd,
+    ethapi: Vec<EthApiCmd>,
     rpc_params: RpcParams,
 ) -> Result<TaskManager, ServiceError> {
 	let sc_service::PartialComponents {

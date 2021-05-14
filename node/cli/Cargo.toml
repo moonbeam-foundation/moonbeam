@@ -18,9 +18,11 @@ sc-telemetry = { git = "https://github.com/paritytech/substrate", branch = "roco
 frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", optional = true }
 try-runtime-cli = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", optional = true }
 
+cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
 cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
 cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
 polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1" }
+polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1" }
 polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1" }
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1" }
 

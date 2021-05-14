@@ -1,4 +1,7 @@
-use moonbeam_runtime::{AccountId, Block, BlockNumber, Balance, Hash, Index, Header};
+#[cfg(feature = "with-moonbeam-runtime")]
+use moonbeam_runtime::{AccountId, opaque::Block, BlockNumber, Balance, Hash, Index, Header};
+#[cfg(feature = "with-moonbase-runtime")]
+use moonbase_runtime::{AccountId, opaque::Block, BlockNumber, Balance, Hash, Index, Header};
 use sc_client_api::{Backend as BackendT, BlockchainEvents, KeyIterator};
 use sp_api::{CallApiAt, NumberFor, ProvideRuntimeApi};
 use sp_blockchain::HeaderBackend;
@@ -11,16 +14,37 @@ use sp_runtime::{
 use sp_storage::{ChildInfo, PrefixedStorageKey, StorageData, StorageKey};
 use std::sync::Arc;
 
+/*
+BE: Backend<Block> + 'static,
+	BE::State: StateBackend<BlakeTwo256>,
+	BE::Blockchain: BlockchainBackend<Block>,
+	C: ProvideRuntimeApi<Block> + StorageProvider<Block, BE> + AuxStore,
+	C: BlockchainEvents<Block>,
+	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
+	C: Send + Sync + 'static,
+	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>,
+	C::Api: BlockBuilder<Block>,
+	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
+	C::Api: fp_rpc::EthereumRuntimeRPCApi<Block>,
+	C::Api: moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>,
+	C::Api: moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>,
+	P: TransactionPool<Block = Block> + 'static,
+*/
+
+
 /// A set of APIs that polkadot-like runtimes must implement.
 pub trait RuntimeApiCollection:
 	sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block>
 	+ sp_api::ApiExt<Block>
 	+ sp_block_builder::BlockBuilder<Block>
-	+ frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Index>
+	+ substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>
 	+ pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
 	+ sp_api::Metadata<Block>
 	+ sp_offchain::OffchainWorkerApi<Block>
-	+ sp_session::SessionKeys<Block>
+    + sp_session::SessionKeys<Block>
+    + fp_rpc::EthereumRuntimeRPCApi<Block>
+    + moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>
+    + moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>
 where
 	<Self as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<BlakeTwo256>,
 {
@@ -31,11 +55,14 @@ where
 	Api: sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block>
 		+ sp_api::ApiExt<Block>
 		+ sp_block_builder::BlockBuilder<Block>
-		+ frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Index>
+		+ substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>
 		+ pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
-		+ sp_api::Metadata<Block>
-		+ sp_offchain::OffchainWorkerApi<Block>
-		+ sp_session::SessionKeys<Block>,
+        + sp_api::Metadata<Block>
+	    + sp_offchain::OffchainWorkerApi<Block>
+		+ sp_session::SessionKeys<Block>
+        + fp_rpc::EthereumRuntimeRPCApi<Block>
+        + moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>
+        + moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>,
 	<Self as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<BlakeTwo256>,
 {
 }
