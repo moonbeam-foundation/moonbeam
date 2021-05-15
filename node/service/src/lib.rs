@@ -22,11 +22,15 @@
 //! Full Service: A complete parachain node including the pool, rpc, network, embedded relay chain
 //! Dev Service: A leaner service without the relay chain backing.
 
-use cli_opt::{EthApi as EthApiCmd, Sealing, RpcParams};
+#[cfg(feature = "with-moonbeam-runtime")]
+pub use moonbeam_runtime;
+#[cfg(feature = "with-moonbase-runtime")]
+pub use moonbase_runtime;
+
+use cli_opt::{EthApi as EthApiCmd, RpcParams};
 mod inherents;
 mod rpc;
 use inherents::build_inherent_data_providers;
-use async_io::Timer;
 use cumulus_client_consensus_relay_chain::{
 	build_relay_chain_consensus, BuildRelayChainConsensusParams,
 };
@@ -38,27 +42,17 @@ use fc_consensus::FrontierBlockImport;
 use fc_mapping_sync::MappingSyncWorker;
 use fc_rpc::EthTask;
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
-use futures::{Stream, StreamExt};
+use futures::StreamExt;
 use moonbeam_rpc_debug::DebugHandler;
-#[cfg(feature = "with-moonbeam-runtime")]
-pub use moonbeam_runtime;
-#[cfg(feature = "with-moonbeam-runtime")]
-use moonbeam_runtime::{opaque::Block, RuntimeApi};
-#[cfg(feature = "with-moonbase-runtime")]
-pub use moonbase_runtime;
-#[cfg(feature = "with-moonbase-runtime")]
-use moonbase_runtime::{opaque::Block, RuntimeApi};
 use polkadot_primitives::v0::CollatorPair;
-use sc_cli::SubstrateCli;
 use sc_client_api::BlockchainEvents;
-use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
 use sc_executor::{native_executor_instance, NativeExecutionDispatch};
 pub use sc_executor::NativeExecutor;
 use sc_service::{
 	error::Error as ServiceError, BasePath, Configuration, PartialComponents, Role, TFullBackend,
 	TFullClient, TaskManager, ChainSpec,
 };
-use sp_core::{H160, H256};
+use sp_core::H160;
 use std::{
 	collections::{BTreeMap, HashMap},
 	sync::{Arc, Mutex},
@@ -74,6 +68,11 @@ pub mod chain_spec;
 mod client;
 
 use sc_telemetry::{Telemetry, TelemetryWorker, TelemetryWorkerHandle};
+
+#[cfg(feature = "with-moonbeam-runtime")]
+type Block = moonbeam_runtime::opaque::Block;
+#[cfg(feature = "with-moonbase-runtime")]
+type Block = moonbase_runtime::opaque::Block;
 
 type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = TFullBackend<Block>;
@@ -327,7 +326,6 @@ async fn start_node_impl<RB, RuntimeApi, Executor>(
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	collator: bool,
-	sealing: Sealing,
     ethapi: Vec<EthApiCmd>,
     rpc_params: RpcParams,
 	_rpc_ext_builder: RB,
@@ -583,7 +581,6 @@ pub async fn start_node<RuntimeApi, Executor>(
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	collator: bool,
-    sealing: Sealing,
     ethapi: Vec<EthApiCmd>,
     rpc_params: RpcParams,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
@@ -599,7 +596,6 @@ where
 		polkadot_config,
 		id,
 		collator,
-		sealing,
 		ethapi,
 		rpc_params,
 		|_| Default::default(),
@@ -616,10 +612,16 @@ pub fn new_dev(
 	// TODO I guess we should use substrate-cli's validator flag for this.
 	// Resolve after https://github.com/paritytech/cumulus/pull/380 is reviewed.
 	collator: bool,
-    sealing: Sealing,
+    sealing: cli_opt::Sealing,
     ethapi: Vec<EthApiCmd>,
     rpc_params: RpcParams,
 ) -> Result<TaskManager, ServiceError> {
+
+	use async_io::Timer;
+	use futures::Stream;
+	use sp_core::H256;
+	use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
+
 	let sc_service::PartialComponents {
 		client,
 		backend,
@@ -676,7 +678,7 @@ pub fn new_dev(
 
 		let commands_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> =
 			match sealing {
-				Sealing::Instant => {
+				cli_opt::Sealing::Instant => {
 					Box::new(
 						// This bit cribbed from the implementation of instant seal.
 						transaction_pool
@@ -691,13 +693,13 @@ pub fn new_dev(
 							}),
 					)
 				}
-				Sealing::Manual => {
+				cli_opt::Sealing::Manual => {
 					let (sink, stream) = futures::channel::mpsc::channel(1000);
 					// Keep a reference to the other end of the channel. It goes to the RPC.
 					command_sink = Some(sink);
 					Box::new(stream)
 				}
-				Sealing::Interval(millis) => Box::new(StreamExt::map(
+				cli_opt::Sealing::Interval(millis) => Box::new(StreamExt::map(
 					Timer::interval(Duration::from_millis(millis)),
 					|_| EngineCommand::SealNewBlock {
 						create_empty: true,

@@ -22,7 +22,6 @@
 use service::chain_spec;
 use sp_core::H160;
 use std::path::PathBuf;
-use std::str::FromStr;
 use structopt::StructOpt;
 use cli_opt::{EthApi, Sealing};
 

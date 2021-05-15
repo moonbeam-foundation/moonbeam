@@ -21,11 +21,6 @@ use cli_opt::RpcParams;
 use cumulus_client_service::genesis::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
 use log::info;
-// TODO-multiple-runtimes
-#[cfg(feature = "with-moonbase-runtime")]
-use service::moonbase_runtime::{AccountId, Block};
-#[cfg(feature = "with-moonbeam-runtime")]
-use service::moonbeam_runtime::{AccountId, Block};
 use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::AccountIdConversion;
 use polkadot_service::RococoChainSpec;
@@ -35,21 +30,32 @@ use sc_cli::{
 };
 use sc_service::{
 	config::{BasePath, PrometheusConfig},
-	PartialComponents,
 };
 use sp_core::hexdisplay::HexDisplay;
 use sp_core::H160;
 use sp_runtime::traits::Block as _;
-use std::{io::Write, net::SocketAddr, str::FromStr};
+use std::{io::Write, net::SocketAddr};
 use service::{chain_spec, IdentifyVariant};
+#[cfg(feature = "with-moonbase-runtime")]
+use std::str::FromStr;
+
+#[cfg(not(feature = "with-moonbeam-runtime"))]
+const MISSING_MOONBEAM: &str =
+	"Moonbeam runtime is not available. Please compile the node with `--features with-moonbeam-runtime` to enable it.";
+#[cfg(not(feature = "with-moonbase-runtime"))]
+const MISSING_MOONBASE: &str =
+	"Moonbase runtime is not available. Please compile the node with `--features with-moonbase-runtime` to enable it.";
 
 fn load_spec(
 	id: &str,
+	// `para_id` only used on with-moonbase-runtime feature. 
+	#[allow(unused_variables)]
 	para_id: ParaId,
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	if id.is_empty() {
 		return Err("Not specific which chain to run.".into());
 	}
+	println!("load_spec {:?}",id);
 	Ok(match id {
 		#[cfg(feature = "with-moonbase-runtime")]
 		"local" => Box::new(chain_spec::moonbase::get_chain_spec(para_id)),
@@ -122,16 +128,17 @@ impl SubstrateCli for Cli {
 	}
 
 	fn native_runtime_version(spec: &Box<dyn sc_service::ChainSpec>) -> &'static RuntimeVersion {
-		if spec.is_moonbase() {
+		println!("native_runtime_version {:?}", spec.id());
+		if spec.is_moonbase() || spec.is_moonbase_dev() {
 			#[cfg(feature = "with-moonbase-runtime")]
 			return &service::moonbase_runtime::VERSION;
 			#[cfg(not(feature = "with-moonbase-runtime"))]
-			panic!("Moonbase runtime is not available. Please compile the node with `--features with-moonbase-runtime` to enable it.");
+			panic!(MISSING_MOONBASE);
 		} else {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			return &service::moonbeam_runtime::VERSION;
 			#[cfg(not(feature = "with-moonbeam-runtime"))]
-			panic!("Moonbeam runtime is not available. Please compile the node with `--features with-moonbeam-runtime` to enable it.");
+			panic!(MISSING_MOONBEAM);
 		}
 	}
 }
@@ -218,7 +225,7 @@ pub fn run() -> Result<()> {
 
 						}
 						#[cfg(not(feature = "with-moonbeam-runtime"))]
-						return Err("Moonbeam runtime is not available. Please compile the node with `--features with-moonbeam-runtime` to enable it.".into());
+						return Err(MISSING_MOONBEAM.into());
 					} else {
 						#[cfg(feature = "with-moonbase-runtime")]
 						{
@@ -231,7 +238,7 @@ pub fn run() -> Result<()> {
 							)
 						}
 						#[cfg(not(feature = "with-moonbase-runtime"))]
-						return Err("Moonbase runtime is not available. Please compile the node with `--features with-moonbase-runtime` to enable it.".into());
+						return Err(MISSING_MOONBASE.into());
 					}
 				} else {
 					params.base.run(config.chain_spec, config.network)
@@ -240,8 +247,6 @@ pub fn run() -> Result<()> {
 		}
 		Some(Subcommand::CheckBlock(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			let chain_spec = &runner.config().chain_spec;
-
 			runner.async_run(|mut config| {
 				let (client, _, import_queue, task_manager) = service::new_chain_ops(&mut config, author_id)?;
 				Ok((cmd.run(client, import_queue), task_manager))
@@ -249,8 +254,6 @@ pub fn run() -> Result<()> {
 		}
 		Some(Subcommand::ExportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			let chain_spec = &runner.config().chain_spec;
-
 			runner.async_run(|mut config| {
 				let (client, _, _, task_manager) = service::new_chain_ops(&mut config, author_id)?;
 				Ok((cmd.run(client, config.database), task_manager))
@@ -258,8 +261,6 @@ pub fn run() -> Result<()> {
 		}
 		Some(Subcommand::ExportState(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			let chain_spec = &runner.config().chain_spec;
-
 			runner.async_run(|mut config| {
 				let (client, _, _, task_manager) = service::new_chain_ops(&mut config, author_id)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
@@ -267,8 +268,6 @@ pub fn run() -> Result<()> {
 		}
 		Some(Subcommand::ImportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			let chain_spec = &runner.config().chain_spec;
-
 			runner.async_run(|mut config| {
 				let (client, _, import_queue, task_manager) = service::new_chain_ops(&mut config, author_id)?;
 				Ok((cmd.run(client, import_queue), task_manager))
@@ -319,8 +318,6 @@ pub fn run() -> Result<()> {
 		}
 		Some(Subcommand::Revert(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			let chain_spec = &runner.config().chain_spec;
-
 			runner.async_run(|mut config| {
 				let (client, backend, _, task_manager) = service::new_chain_ops(&mut config, author_id)?;
 				Ok((cmd.run(client, backend), task_manager))
@@ -346,7 +343,7 @@ pub fn run() -> Result<()> {
 					output_buf
 				}
 				#[cfg(not(feature = "with-moonbeam-runtime"))]
-				return Err("Moonbeam runtime is not available. Please compile the node with `--features with-moonbeam-runtime` to enable it.".into());
+				return Err(MISSING_MOONBEAM.into());
 			} else {
 				#[cfg(feature = "with-moonbase-runtime")]
 				{
@@ -360,7 +357,7 @@ pub fn run() -> Result<()> {
 					output_buf
 				}
 				#[cfg(not(feature = "with-moonbase-runtime"))]
-				return Err("Moonbase runtime is not available. Please compile the node with `--features with-moonbase-runtime` to enable it.".into());
+				return Err(MISSING_MOONBASE.into());
 			};
 
 			if let Some(output) = &params.output {
@@ -401,12 +398,12 @@ pub fn run() -> Result<()> {
 					#[cfg(feature = "with-moonbeam-runtime")]
 					return runner.sync_run(|config| cmd.run::<service::moonbeam_runtime::Block, service::MoonbeamExecutor>(config));
 					#[cfg(not(feature = "with-moonbeam-runtime"))]
-					return Err("Moonbeam runtime is not available. Please compile the node with `--features with-moonbeam-runtime` to enable it.".into());
+					return Err(MISSING_MOONBEAM.into());
 				} else {
 					#[cfg(feature = "with-moonbase-runtime")]
 					return runner.sync_run(|config| cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(config));
 					#[cfg(not(feature = "with-moonbase-runtime"))]
-					return Err("Moonbase runtime is not available. Please compile the node with `--features with-moonbase-runtime` to enable it.".into());
+					return Err(MISSING_MOONBASE.into());
 				}
 			} else {
 				Err("Benchmarking wasn't enabled when building the node. \
@@ -437,9 +434,6 @@ pub fn run() -> Result<()> {
 							chain_spec::moonbeam::Extensions::try_get(&*config.chain_spec)
 						}
 					};
-					let relay_chain_id = extension.map(|e| e.relay_chain.clone());
-					let dev_service =
-						config.chain_spec.is_moonbase_dev() || relay_chain_id == Some("dev-service".to_string());
 					let para_id = extension.map(|e| e.para_id);
 
 					let rpc_params = RpcParams {
@@ -455,22 +449,27 @@ pub fn run() -> Result<()> {
 					// 1. by providing the --dev-service flag to the CLI
 					// 2. by specifying "dev-service" in the chain spec's "relay-chain" field.
 					// NOTE: the --dev flag triggers the dev service by way of number 2
-					if dev_service {
-						// --dev implies --collator
-						let collator = collator || cli.run.shared_params.dev;
 
-						// If no author id was supplied, use the one that is staked at genesis
-						// in the default development spec.
-						let author_id = author_id.or_else(|| {
-							Some(
-								AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")
-									.expect("Gerald is a valid account"),
-							)
-						});
-						#[cfg(feature = "with-moonbase-runtime")]
-						return service::new_dev(config, author_id, collator, cli.run.sealing, cli.run.ethapi, rpc_params).map_err(Into::into);
-						#[cfg(not(feature = "with-moonbase-runtime"))]
-						return Err("Moonbase runtime is not available. Please compile the node with `--features with-moonbase-runtime` to enable it.".into());
+					#[cfg(feature = "with-moonbase-runtime")]
+					{
+						let relay_chain_id = extension.map(|e| e.relay_chain.clone());
+						let dev_service =
+							config.chain_spec.is_moonbase_dev() || relay_chain_id == Some("dev-service".to_string());
+	
+						if dev_service {
+							// --dev implies --collator
+							let collator = collator || cli.run.shared_params.dev;
+	
+							// If no author id was supplied, use the one that is staked at genesis
+							// in the default development spec.
+							let author_id = author_id.or_else(|| {
+								Some(
+									service::moonbase_runtime::AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")
+										.expect("Gerald is a valid account"),
+								)
+							});
+							return service::new_dev(config, author_id, collator, cli.run.sealing, cli.run.ethapi, rpc_params).map_err(Into::into);
+						}
 					}
 
 					let polkadot_cli = RelayChainCli::new(
@@ -494,7 +493,7 @@ pub fn run() -> Result<()> {
 							format!("0x{:?}", HexDisplay::from(&block.header().encode()))
 						}
 						#[cfg(not(feature = "with-moonbeam-runtime"))]
-						return Err("Moonbeam runtime is not available. Please compile the node with `--features with-moonbeam-runtime` to enable it.".into());
+						return Err(MISSING_MOONBEAM.into());
 					} else {
 						#[cfg(feature = "with-moonbase-runtime")]
 						{
@@ -502,7 +501,7 @@ pub fn run() -> Result<()> {
 							format!("0x{:?}", HexDisplay::from(&block.header().encode()))
 						}
 						#[cfg(not(feature = "with-moonbase-runtime"))]
-						return Err("Moonbase runtime is not available. Please compile the node with `--features with-moonbase-runtime` to enable it.".into());
+						return Err(MISSING_MOONBASE.into());
 					};
 
 					let task_executor = config.task_executor.clone();
@@ -528,7 +527,6 @@ pub fn run() -> Result<()> {
 								polkadot_config,
 								id,
 								collator,
-								cli.run.sealing,
 								cli.run.ethapi,
 								rpc_params,
 							)
@@ -537,7 +535,7 @@ pub fn run() -> Result<()> {
 							.map_err(Into::into)
 						}
 						#[cfg(not(feature = "with-moonbeam-runtime"))]
-						return Err("Moonbeam runtime is not available. Please compile the node with `--features with-moonbeam-runtime` to enable it.".into());
+						return Err(MISSING_MOONBEAM.into());
 					} else {
 						#[cfg(feature = "with-moonbase-runtime")]
 						{
@@ -548,7 +546,6 @@ pub fn run() -> Result<()> {
 								polkadot_config,
 								id,
 								collator,
-								cli.run.sealing,
 								cli.run.ethapi,
 								rpc_params,
 							)
@@ -557,7 +554,7 @@ pub fn run() -> Result<()> {
 							.map_err(Into::into)
 						}
 						#[cfg(not(feature = "with-moonbase-runtime"))]
-						return Err("Moonbase runtime is not available. Please compile the node with `--features with-moonbase-runtime` to enable it.".into());
+						return Err(MISSING_MOONBASE.into());
 					}
 				})
 		}
