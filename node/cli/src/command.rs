@@ -45,7 +45,10 @@ const MISSING_MOONBEAM: &str =
 #[cfg(not(feature = "with-moonbase-runtime"))]
 const MISSING_MOONBASE: &str =
 	"Moonbase runtime is not available. Please compile the node with `--features with-moonbase-runtime` to enable it.";
-
+#[cfg(not(feature = "with-moonriver-runtime"))]
+const MISSING_MOONRIVER: &str =
+	"Moonriver runtime is not available. Please compile the node with `--features with-moonriver-runtime` to enable it.";
+	
 fn load_spec(
 	id: &str,
 	// `para_id` only used on with-moonbase-runtime feature. 
@@ -73,6 +76,8 @@ fn load_spec(
 		// TODO-multiple-runtimes live release
 		#[cfg(feature = "with-moonbeam-runtime")]
 		"moonbeam" => Box::new(chain_spec::moonbeam::development_chain_spec(None, None)),
+		#[cfg(feature = "with-moonriver-runtime")]
+		"moonriver" => Box::new(chain_spec::moonriver::development_chain_spec(None, None)),
 		// TODO-multiple-runtimes
 		path => {
 			#[cfg(feature = "with-moonbeam-runtime")]
@@ -81,7 +86,12 @@ fn load_spec(
 					path.into(),
 				)?)
 			}
-			
+			#[cfg(feature = "with-moonriver-runtime")]
+			{
+				Box::new(chain_spec::moonriver::ChainSpec::from_json_file(
+					path.into(),
+				)?)
+			}
 			#[cfg(feature = "with-moonbase-runtime")]
 			{
 				Box::new(chain_spec::moonbase::ChainSpec::from_json_file(
@@ -94,7 +104,12 @@ fn load_spec(
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
-		"Moonbase Parachain Collator".into()
+		#[cfg(feature = "with-moonbeam-runtime")]
+		return "Moonbeam Parachain Collator".into();
+		#[cfg(feature = "with-moonriver-runtime")]
+		return "Moonriver Parachain Collator".into();
+		#[cfg(feature = "with-moonbase-runtime")]
+		return "Moonbase Parachain Collator".into();
 	}
 
 	fn impl_version() -> String {
@@ -134,6 +149,11 @@ impl SubstrateCli for Cli {
 			return &service::moonbase_runtime::VERSION;
 			#[cfg(not(feature = "with-moonbase-runtime"))]
 			panic!(MISSING_MOONBASE);
+		} else if spec.is_moonriver() {
+			#[cfg(feature = "with-moonriver-runtime")]
+			return &service::moonriver_runtime::VERSION;
+			#[cfg(not(feature = "with-moonriver-runtime"))]
+			panic!(MISSING_MOONRIVER);
 		} else {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			return &service::moonbeam_runtime::VERSION;
@@ -145,7 +165,12 @@ impl SubstrateCli for Cli {
 
 impl SubstrateCli for RelayChainCli {
 	fn impl_name() -> String {
-		"Moonbeam Parachain Collator".into()
+		#[cfg(feature = "with-moonbeam-runtime")]
+		return "Moonbeam Parachain Collator".into();
+		#[cfg(feature = "with-moonriver-runtime")]
+		return "Moonriver Parachain Collator".into();
+		#[cfg(feature = "with-moonbase-runtime")]
+		return "Moonbase Parachain Collator".into();
 	}
 
 	fn impl_version() -> String {
@@ -226,6 +251,19 @@ pub fn run() -> Result<()> {
 						}
 						#[cfg(not(feature = "with-moonbeam-runtime"))]
 						return Err(MISSING_MOONBEAM.into());
+					} else if config.chain_spec.is_moonriver() {
+						#[cfg(feature = "with-moonriver-runtime")]
+						{
+							params.base.run(
+								Box::new(chain_spec::moonriver::development_chain_spec(
+									params.mnemonic.clone(),
+									params.accounts,
+								)),
+								config.network,
+							)
+						}
+						#[cfg(not(feature = "with-moonriver-runtime"))]
+						return Err(MISSING_MOONRIVER.into());
 					} else {
 						#[cfg(feature = "with-moonbase-runtime")]
 						{
@@ -289,6 +327,10 @@ pub fn run() -> Result<()> {
 					{
 						chain_spec::moonbeam::Extensions::try_get(&*config.chain_spec)
 					}
+					#[cfg(feature = "with-moonriver-runtime")]
+					{
+						chain_spec::moonriver::Extensions::try_get(&*config.chain_spec)
+					}
 				};
 				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
 				let dev_service =
@@ -344,6 +386,20 @@ pub fn run() -> Result<()> {
 				}
 				#[cfg(not(feature = "with-moonbeam-runtime"))]
 				return Err(MISSING_MOONBEAM.into());
+			} else if chain_spec.is_moonriver() {
+				#[cfg(feature = "with-moonriver-runtime")]
+				{
+					let block: service::moonriver_runtime::Block = generate_genesis_block(&chain_spec)?;
+					let raw_header = block.header().encode();
+					let output_buf = if params.raw {
+						raw_header
+					} else {
+						format!("0x{:?}", HexDisplay::from(&block.header().encode())).into_bytes()
+					};
+					output_buf
+				}
+				#[cfg(not(feature = "with-moonriver-runtime"))]
+				return Err(MISSING_MOONRIVER.into());
 			} else {
 				#[cfg(feature = "with-moonbase-runtime")]
 				{
@@ -399,6 +455,11 @@ pub fn run() -> Result<()> {
 					return runner.sync_run(|config| cmd.run::<service::moonbeam_runtime::Block, service::MoonbeamExecutor>(config));
 					#[cfg(not(feature = "with-moonbeam-runtime"))]
 					return Err(MISSING_MOONBEAM.into());
+				} else if chain_spec.is_moonriver() {
+					#[cfg(feature = "with-moonriver-runtime")]
+					return runner.sync_run(|config| cmd.run::<service::moonriver_runtime::Block, service::MoonriverExecutor>(config));
+					#[cfg(not(feature = "with-moonriver-runtime"))]
+					return Err(MISSING_MOONRIVER.into());
 				} else {
 					#[cfg(feature = "with-moonbase-runtime")]
 					return runner.sync_run(|config| cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(config));
@@ -432,6 +493,10 @@ pub fn run() -> Result<()> {
 						#[cfg(feature = "with-moonbeam-runtime")]
 						{
 							chain_spec::moonbeam::Extensions::try_get(&*config.chain_spec)
+						}
+						#[cfg(feature = "with-moonriver-runtime")]
+						{
+							chain_spec::moonriver::Extensions::try_get(&*config.chain_spec)
 						}
 					};
 					let para_id = extension.map(|e| e.para_id);
@@ -494,6 +559,14 @@ pub fn run() -> Result<()> {
 						}
 						#[cfg(not(feature = "with-moonbeam-runtime"))]
 						return Err(MISSING_MOONBEAM.into());
+					} else if config.chain_spec.is_moonriver() {
+						#[cfg(feature = "with-moonriver-runtime")]
+						{
+							let block: service::moonriver_runtime::Block = generate_genesis_block(&config.chain_spec).map_err(|e| format!("{:?}", e))?;
+							format!("0x{:?}", HexDisplay::from(&block.header().encode()))
+						}
+						#[cfg(not(feature = "with-moonriver-runtime"))]
+						return Err(MISSING_MOONRIVER.into());
 					} else {
 						#[cfg(feature = "with-moonbase-runtime")]
 						{
@@ -536,6 +609,23 @@ pub fn run() -> Result<()> {
 						}
 						#[cfg(not(feature = "with-moonbeam-runtime"))]
 						return Err(MISSING_MOONBEAM.into());
+					} else if config.chain_spec.is_moonriver() {
+						#[cfg(feature = "with-moonriver-runtime")]
+						{
+							service::start_node_moonriver::<service::moonriver_runtime::RuntimeApi, service::MoonriverExecutor>(
+								config,
+								key,
+								author_id,
+								polkadot_config,
+								id,
+								collator,
+							)
+							.await
+							.map(|r| r.0)
+							.map_err(Into::into)
+						}
+						#[cfg(not(feature = "with-moonriver-runtime"))]
+						return Err(MISSING_MOONRIVER.into());
 					} else {
 						#[cfg(feature = "with-moonbase-runtime")]
 						{

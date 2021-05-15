@@ -15,6 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 #[cfg(feature = "with-moonbeam-runtime")]
 use moonbeam_runtime::{AccountId, opaque::Block, BlockNumber, Balance, Hash, Index, Header};
+#[cfg(feature = "with-moonriver-runtime")]
+use moonriver_runtime::{AccountId, opaque::Block, BlockNumber, Balance, Hash, Index, Header};
 #[cfg(feature = "with-moonbase-runtime")]
 use moonbase_runtime::{AccountId, opaque::Block, BlockNumber, Balance, Hash, Index, Header};
 use sc_client_api::{Backend as BackendT, BlockchainEvents, KeyIterator};
@@ -39,9 +41,6 @@ pub trait RuntimeApiCollection:
 	+ sp_api::Metadata<Block>
 	+ sp_offchain::OffchainWorkerApi<Block>
     + sp_session::SessionKeys<Block>
-    + fp_rpc::EthereumRuntimeRPCApi<Block>
-    + moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>
-    + moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>
 where
 	<Self as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<BlakeTwo256>,
 {
@@ -56,11 +55,31 @@ where
 		+ pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
         + sp_api::Metadata<Block>
 	    + sp_offchain::OffchainWorkerApi<Block>
-		+ sp_session::SessionKeys<Block>
-        + fp_rpc::EthereumRuntimeRPCApi<Block>
-        + moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>
-        + moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>,
+		+ sp_session::SessionKeys<Block>,
 	<Self as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<BlakeTwo256>,
+{
+}
+
+
+#[cfg(feature = "with-moonriver-runtime")]
+pub trait EthereumRuntimeApiCollection {}
+#[cfg(feature = "with-moonriver-runtime")]
+impl<Api> EthereumRuntimeApiCollection for Api {}
+
+#[cfg(not(feature = "with-moonriver-runtime"))]
+pub trait EthereumRuntimeApiCollection:
+	fp_rpc::EthereumRuntimeRPCApi<Block>
+	+ moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>
+	+ moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>
+{
+}
+
+#[cfg(not(feature = "with-moonriver-runtime"))]
+impl<Api> EthereumRuntimeApiCollection for Api
+where
+	Api: fp_rpc::EthereumRuntimeRPCApi<Block>
+	+ moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>
+	+ moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>
 {
 }
 
@@ -79,7 +98,7 @@ where
 	Block: BlockT,
 	Backend: BackendT<Block>,
 	Backend::State: sp_api::StateBackend<BlakeTwo256>,
-	Self::Api: RuntimeApiCollection<StateBackend = Backend::State>,
+	Self::Api: RuntimeApiCollection<StateBackend = Backend::State> + EthereumRuntimeApiCollection,
 {
 }
 
@@ -95,7 +114,7 @@ where
 		+ Send
 		+ Sync
 		+ CallApiAt<Block, StateBackend = Backend::State>,
-	Client::Api: RuntimeApiCollection<StateBackend = Backend::State>,
+	Client::Api: RuntimeApiCollection<StateBackend = Backend::State> + EthereumRuntimeApiCollection,
 {
 }
 
@@ -122,7 +141,7 @@ pub trait ExecuteWithClient {
 		<Api as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<BlakeTwo256>,
 		Backend: sc_client_api::Backend<Block>,
 		Backend::State: sp_api::StateBackend<BlakeTwo256>,
-		Api: crate::RuntimeApiCollection<StateBackend = Backend::State>,
+		Api: crate::RuntimeApiCollection<StateBackend = Backend::State> + crate::EthereumRuntimeApiCollection,
 		Client: AbstractClient<Block, Backend, Api = Api> + 'static;
 }
 
@@ -143,6 +162,8 @@ pub trait ClientHandle {
 pub enum Client {
 	#[cfg(feature = "with-moonbeam-runtime")]
 	Moonbeam(Arc<crate::FullClient<moonbeam_runtime::RuntimeApi, crate::MoonbeamExecutor>>),
+	#[cfg(feature = "with-moonriver-runtime")]
+	Moonriver(Arc<crate::FullClient<moonriver_runtime::RuntimeApi, crate::MoonriverExecutor>>),
 	#[cfg(feature = "with-moonbase-runtime")]
 	Moonbase(Arc<crate::FullClient<moonbase_runtime::RuntimeApi, crate::MoonbaseExecutor>>),
 }
@@ -152,6 +173,8 @@ impl ClientHandle for Client {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => T::execute_with_client::<_, _, crate::FullBackend>(t, client.clone()),
+			#[cfg(feature = "with-moonriver-runtime")]
+			Self::Moonriver(client) => T::execute_with_client::<_, _, crate::FullBackend>(t, client.clone()),
 			#[cfg(feature = "with-moonbase-runtime")]
 			Self::Moonbase(client) => T::execute_with_client::<_, _, crate::FullBackend>(t, client.clone()),
 		}
@@ -163,6 +186,8 @@ impl sc_client_api::UsageProvider<Block> for Client {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.usage_info(),
+			#[cfg(feature = "with-moonriver-runtime")]
+			Self::Moonriver(client) => client.usage_info(),
 			#[cfg(feature = "with-moonbase-runtime")]
 			Self::Moonbase(client) => client.usage_info(),
 		}
@@ -174,6 +199,8 @@ impl sc_client_api::BlockBackend<Block> for Client {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.block_body(id),
+			#[cfg(feature = "with-moonriver-runtime")]
+			Self::Moonriver(client) => client.block_body(id),
 			#[cfg(feature = "with-moonbase-runtime")]
 			Self::Moonbase(client) => client.block_body(id),
 		}
@@ -183,6 +210,8 @@ impl sc_client_api::BlockBackend<Block> for Client {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.block(id),
+			#[cfg(feature = "with-moonriver-runtime")]
+			Self::Moonriver(client) => client.block(id),
 			#[cfg(feature = "with-moonbase-runtime")]
 			Self::Moonbase(client) => client.block(id),
 		}
@@ -192,6 +221,8 @@ impl sc_client_api::BlockBackend<Block> for Client {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.block_status(id),
+			#[cfg(feature = "with-moonriver-runtime")]
+			Self::Moonriver(client) => client.block_status(id),
 			#[cfg(feature = "with-moonbase-runtime")]
 			Self::Moonbase(client) => client.block_status(id),
 		}
@@ -201,6 +232,8 @@ impl sc_client_api::BlockBackend<Block> for Client {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.justifications(id),
+			#[cfg(feature = "with-moonriver-runtime")]
+			Self::Moonriver(client) => client.justifications(id),
 			#[cfg(feature = "with-moonbase-runtime")]
 			Self::Moonbase(client) => client.justifications(id),
 		}
@@ -210,6 +243,8 @@ impl sc_client_api::BlockBackend<Block> for Client {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.block_hash(number),
+			#[cfg(feature = "with-moonriver-runtime")]
+			Self::Moonriver(client) => client.block_hash(number),
 			#[cfg(feature = "with-moonbase-runtime")]
 			Self::Moonbase(client) => client.block_hash(number),
 		}
@@ -219,6 +254,8 @@ impl sc_client_api::BlockBackend<Block> for Client {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.indexed_transaction(hash),
+			#[cfg(feature = "with-moonriver-runtime")]
+			Self::Moonriver(client) => client.indexed_transaction(hash),
 			#[cfg(feature = "with-moonbase-runtime")]
 			Self::Moonbase(client) => client.indexed_transaction(hash),
 		}
@@ -228,6 +265,8 @@ impl sc_client_api::BlockBackend<Block> for Client {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.has_indexed_transaction(hash),
+			#[cfg(feature = "with-moonriver-runtime")]
+			Self::Moonriver(client) => client.has_indexed_transaction(hash),
 			#[cfg(feature = "with-moonbase-runtime")]
 			Self::Moonbase(client) => client.has_indexed_transaction(hash),
 		}
@@ -239,6 +278,8 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.storage(id, key),
+			#[cfg(feature = "with-moonriver-runtime")]
+			Self::Moonriver(client) => client.storage(id, key),
 			#[cfg(feature = "with-moonbase-runtime")]
 			Self::Moonbase(client) => client.storage(id, key),
 		}
@@ -248,6 +289,8 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.storage_keys(id, key_prefix),
+			#[cfg(feature = "with-moonriver-runtime")]
+			Self::Moonriver(client) => client.storage_keys(id, key_prefix),
 			#[cfg(feature = "with-moonbase-runtime")]
 			Self::Moonbase(client) => client.storage_keys(id, key_prefix),
 		}
@@ -261,6 +304,8 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.storage_hash(id, key),
+			#[cfg(feature = "with-moonriver-runtime")]
+			Self::Moonriver(client) => client.storage_hash(id, key),
 			#[cfg(feature = "with-moonbase-runtime")]
 			Self::Moonbase(client) => client.storage_hash(id, key),
 		}
@@ -274,6 +319,8 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.storage_pairs(id, key_prefix),
+			#[cfg(feature = "with-moonriver-runtime")]
+			Self::Moonriver(client) => client.storage_pairs(id, key_prefix),
 			#[cfg(feature = "with-moonbase-runtime")]
 			Self::Moonbase(client) => client.storage_pairs(id, key_prefix),
 		}
@@ -288,6 +335,8 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.storage_keys_iter(id, prefix, start_key),
+			#[cfg(feature = "with-moonriver-runtime")]
+			Self::Moonriver(client) => client.storage_keys_iter(id, prefix, start_key),
 			#[cfg(feature = "with-moonbase-runtime")]
 			Self::Moonbase(client) => client.storage_keys_iter(id, prefix, start_key),
 		}
@@ -302,6 +351,8 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.child_storage(id, child_info, key),
+			#[cfg(feature = "with-moonriver-runtime")]
+			Self::Moonriver(client) => client.child_storage(id, child_info, key),
 			#[cfg(feature = "with-moonbase-runtime")]
 			Self::Moonbase(client) => client.child_storage(id, child_info, key),
 		}
@@ -316,6 +367,8 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.child_storage_keys(id, child_info, key_prefix),
+			#[cfg(feature = "with-moonriver-runtime")]
+			Self::Moonriver(client) => client.child_storage_keys(id, child_info, key_prefix),
 			#[cfg(feature = "with-moonbase-runtime")]
 			Self::Moonbase(client) => client.child_storage_keys(id, child_info, key_prefix),
 		}
@@ -330,6 +383,8 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.child_storage_hash(id, child_info, key),
+			#[cfg(feature = "with-moonriver-runtime")]
+			Self::Moonriver(client) => client.child_storage_hash(id, child_info, key),
 			#[cfg(feature = "with-moonbase-runtime")]
 			Self::Moonbase(client) => client.child_storage_hash(id, child_info, key),
 		}
@@ -343,6 +398,8 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.max_key_changes_range(first, last),
+			#[cfg(feature = "with-moonriver-runtime")]
+			Self::Moonriver(client) => client.max_key_changes_range(first, last),
 			#[cfg(feature = "with-moonbase-runtime")]
 			Self::Moonbase(client) => client.max_key_changes_range(first, last),
 		}
@@ -358,6 +415,8 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.key_changes(first, last, storage_key, key),
+			#[cfg(feature = "with-moonriver-runtime")]
+			Self::Moonriver(client) => client.key_changes(first, last, storage_key, key),
 			#[cfg(feature = "with-moonbase-runtime")]
 			Self::Moonbase(client) => client.key_changes(first, last, storage_key, key),
 		}
@@ -369,6 +428,8 @@ impl sp_blockchain::HeaderBackend<Block> for Client {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.header(&id),
+			#[cfg(feature = "with-moonriver-runtime")]
+			Self::Moonriver(client) => client.header(&id),
 			#[cfg(feature = "with-moonbase-runtime")]
 			Self::Moonbase(client) => client.header(&id),
 		}
@@ -378,6 +439,8 @@ impl sp_blockchain::HeaderBackend<Block> for Client {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.info(),
+			#[cfg(feature = "with-moonriver-runtime")]
+			Self::Moonriver(client) => client.info(),
 			#[cfg(feature = "with-moonbase-runtime")]
 			Self::Moonbase(client) => client.info(),
 		}
@@ -387,6 +450,8 @@ impl sp_blockchain::HeaderBackend<Block> for Client {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.status(id),
+			#[cfg(feature = "with-moonriver-runtime")]
+			Self::Moonriver(client) => client.status(id),
 			#[cfg(feature = "with-moonbase-runtime")]
 			Self::Moonbase(client) => client.status(id),
 		}
@@ -396,6 +461,8 @@ impl sp_blockchain::HeaderBackend<Block> for Client {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.number(hash),
+			#[cfg(feature = "with-moonriver-runtime")]
+			Self::Moonriver(client) => client.number(hash),
 			#[cfg(feature = "with-moonbase-runtime")]
 			Self::Moonbase(client) => client.number(hash),
 		}
@@ -405,6 +472,8 @@ impl sp_blockchain::HeaderBackend<Block> for Client {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.hash(number),
+			#[cfg(feature = "with-moonriver-runtime")]
+			Self::Moonriver(client) => client.hash(number),
 			#[cfg(feature = "with-moonbase-runtime")]
 			Self::Moonbase(client) => client.hash(number),
 		}

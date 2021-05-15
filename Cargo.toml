@@ -1,6 +1,7 @@
 [workspace]
 members = [
     'runtime/moonbeam',
+    'runtime/moonriver',
     'runtime/moonbase',
     'node',
     'node/cli',

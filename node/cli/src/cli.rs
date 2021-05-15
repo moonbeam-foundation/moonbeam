@@ -231,6 +231,10 @@ impl RelayChainCli {
 			{
 				chain_spec::moonbeam::Extensions::try_get(&*para_config.chain_spec)
 			}
+			#[cfg(feature = "with-moonriver-runtime")]
+			{
+				chain_spec::moonriver::Extensions::try_get(&*para_config.chain_spec)
+			}
 		};
 		let chain_id = extension.map(|e| e.relay_chain.clone());
 		let base_path = para_config

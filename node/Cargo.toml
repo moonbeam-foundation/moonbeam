@@ -32,3 +32,7 @@ with-moonbase-runtime = [
 	"moonbeam-service/with-moonbase-runtime",
 	"moonbeam-cli/with-moonbase-runtime",
 ]
+with-moonriver-runtime = [
+	"moonbeam-service/with-moonriver-runtime",
+	"moonbeam-cli/with-moonriver-runtime",
+]

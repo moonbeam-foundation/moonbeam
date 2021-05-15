@@ -50,3 +50,6 @@ with-moonbeam-runtime = [
 with-moonbase-runtime = [
 	"service/with-moonbase-runtime",
 ]
+with-moonriver-runtime = [
+	"service/with-moonriver-runtime",
+]
