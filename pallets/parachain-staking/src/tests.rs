@@ -197,19 +197,19 @@ fn join_collator_candidates() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				Stake::join_candidates(Origin::signed(1), 11u128,),
+				Stake::join_candidates(Origin::signed(1), 11u128, 2u32),
 				Error::<Test>::CandidateExists
 			);
 			assert_noop!(
-				Stake::join_candidates(Origin::signed(3), 11u128,),
+				Stake::join_candidates(Origin::signed(3), 11u128, 2u32),
 				Error::<Test>::NominatorExists
 			);
 			assert_noop!(
-				Stake::join_candidates(Origin::signed(7), 9u128,),
+				Stake::join_candidates(Origin::signed(7), 9u128, 2u32),
 				Error::<Test>::ValBondBelowMin
 			);
 			assert_noop!(
-				Stake::join_candidates(Origin::signed(8), 10u128,),
+				Stake::join_candidates(Origin::signed(8), 10u128, 2u32),
 				DispatchError::Module {
 					index: 1,
 					error: 3,
@@ -217,7 +217,7 @@ fn join_collator_candidates() {
 				}
 			);
 			assert!(System::events().is_empty());
-			assert_ok!(Stake::join_candidates(Origin::signed(7), 10u128,));
+			assert_ok!(Stake::join_candidates(Origin::signed(7), 10u128, 2u32));
 			assert_eq!(
 				last_event(),
 				MetaEvent::stake(Event::JoinedCollatorCandidates(7, 10u128, 1110u128))
@@ -245,11 +245,11 @@ fn collator_exit_executes_after_delay() {
 		.execute_with(|| {
 			roll_to(4);
 			assert_noop!(
-				Stake::leave_candidates(Origin::signed(3)),
+				Stake::leave_candidates(Origin::signed(3), 2u32, 0u32),
 				Error::<Test>::CandidateDNE
 			);
 			roll_to(11);
-			assert_ok!(Stake::leave_candidates(Origin::signed(2)));
+			assert_ok!(Stake::leave_candidates(Origin::signed(2), 2u32, 2u32));
 			assert_eq!(
 				last_event(),
 				MetaEvent::stake(Event::CollatorScheduledExit(3, 2, 5))
@@ -306,13 +306,13 @@ fn collator_selection_chooses_top_candidates() {
 				Event::NewRound(5, 2, 5, 400),
 			];
 			assert_eq!(events(), expected);
-			assert_ok!(Stake::leave_candidates(Origin::signed(6)));
+			assert_ok!(Stake::leave_candidates(Origin::signed(6), 6u32, 0u32));
 			assert_eq!(
 				last_event(),
 				MetaEvent::stake(Event::CollatorScheduledExit(2, 6, 4))
 			);
 			roll_to(21);
-			assert_ok!(Stake::join_candidates(Origin::signed(6), 69u128));
+			assert_ok!(Stake::join_candidates(Origin::signed(6), 69u128, 5u32));
 			assert_eq!(
 				last_event(),
 				MetaEvent::stake(Event::JoinedCollatorCandidates(6, 69u128, 469u128))
@@ -386,25 +386,25 @@ fn exit_queue() {
 				Event::NewRound(5, 2, 5, 400),
 			];
 			assert_eq!(events(), expected);
-			assert_ok!(Stake::leave_candidates(Origin::signed(6)));
+			assert_ok!(Stake::leave_candidates(Origin::signed(6), 6u32, 0u32));
 			assert_eq!(
 				last_event(),
 				MetaEvent::stake(Event::CollatorScheduledExit(2, 6, 4))
 			);
 			roll_to(11);
-			assert_ok!(Stake::leave_candidates(Origin::signed(5)));
+			assert_ok!(Stake::leave_candidates(Origin::signed(5), 5u32, 0u32));
 			assert_eq!(
 				last_event(),
 				MetaEvent::stake(Event::CollatorScheduledExit(3, 5, 5))
 			);
 			roll_to(16);
-			assert_ok!(Stake::leave_candidates(Origin::signed(4)));
+			assert_ok!(Stake::leave_candidates(Origin::signed(4), 4u32, 0u32));
 			assert_eq!(
 				last_event(),
 				MetaEvent::stake(Event::CollatorScheduledExit(4, 4, 6))
 			);
 			assert_noop!(
-				Stake::leave_candidates(Origin::signed(4)),
+				Stake::leave_candidates(Origin::signed(4), 3u32, 0u32),
 				Error::<Test>::AlreadyLeaving
 			);
 			roll_to(21);
@@ -571,14 +571,14 @@ fn collator_commission() {
 				Event::NewRound(5, 2, 1, 40),
 			];
 			assert_eq!(events(), expected);
-			assert_ok!(Stake::join_candidates(Origin::signed(4), 20u128));
+			assert_ok!(Stake::join_candidates(Origin::signed(4), 20u128, 1u32));
 			assert_eq!(
 				last_event(),
 				MetaEvent::stake(Event::JoinedCollatorCandidates(4, 20u128, 60u128))
 			);
 			roll_to(9);
-			assert_ok!(Stake::nominate(Origin::signed(5), 4, 10));
-			assert_ok!(Stake::nominate(Origin::signed(6), 4, 10));
+			assert_ok!(Stake::nominate(Origin::signed(5), 4, 10, 0u32));
+			assert_ok!(Stake::nominate(Origin::signed(6), 4, 10, 0u32));
 			roll_to(11);
 			let mut new = vec![
 				Event::JoinedCollatorCandidates(4, 20, 60),
@@ -648,18 +648,18 @@ fn multiple_nominations() {
 			];
 			assert_eq!(events(), expected);
 			assert_noop!(
-				Stake::nominate(Origin::signed(6), 1, 10),
+				Stake::nominate(Origin::signed(6), 1, 10, 1u32),
 				Error::<Test>::AlreadyNominatedCollator,
 			);
 			assert_noop!(
-				Stake::nominate(Origin::signed(6), 2, 2),
+				Stake::nominate(Origin::signed(6), 2, 2, 1u32),
 				Error::<Test>::NominationBelowMin,
 			);
-			assert_ok!(Stake::nominate(Origin::signed(6), 2, 10));
-			assert_ok!(Stake::nominate(Origin::signed(6), 3, 10));
-			assert_ok!(Stake::nominate(Origin::signed(6), 4, 10));
+			assert_ok!(Stake::nominate(Origin::signed(6), 2, 10, 1u32));
+			assert_ok!(Stake::nominate(Origin::signed(6), 3, 10, 2u32));
+			assert_ok!(Stake::nominate(Origin::signed(6), 4, 10, 3u32));
 			assert_noop!(
-				Stake::nominate(Origin::signed(6), 5, 10),
+				Stake::nominate(Origin::signed(6), 5, 10, 4u32),
 				Error::<Test>::ExceedMaxCollatorsPerNom,
 			);
 			roll_to(16);
@@ -683,9 +683,9 @@ fn multiple_nominations() {
 			expected.append(&mut new);
 			assert_eq!(events(), expected);
 			roll_to(21);
-			assert_ok!(Stake::nominate(Origin::signed(7), 2, 80));
+			assert_ok!(Stake::nominate(Origin::signed(7), 2, 80, 1u32));
 			assert_noop!(
-				Stake::nominate(Origin::signed(7), 3, 11),
+				Stake::nominate(Origin::signed(7), 3, 11, 2u32),
 				DispatchError::Module {
 					index: 1,
 					error: 3,
@@ -693,7 +693,7 @@ fn multiple_nominations() {
 				},
 			);
 			assert_noop!(
-				Stake::nominate(Origin::signed(10), 2, 10),
+				Stake::nominate(Origin::signed(10), 2, 10, 1u32),
 				Error::<Test>::TooManyNominators
 			);
 			roll_to(26);
@@ -714,7 +714,7 @@ fn multiple_nominations() {
 			];
 			expected.append(&mut new2);
 			assert_eq!(events(), expected);
-			assert_ok!(Stake::leave_candidates(Origin::signed(2)));
+			assert_ok!(Stake::leave_candidates(Origin::signed(2), 5u32, 5u32));
 			assert_eq!(
 				last_event(),
 				MetaEvent::stake(Event::CollatorScheduledExit(6, 2, 8))
@@ -802,7 +802,7 @@ fn collators_bond() {
 					message: Some("InsufficientBalance")
 				}
 			);
-			assert_ok!(Stake::leave_candidates(Origin::signed(1)));
+			assert_ok!(Stake::leave_candidates(Origin::signed(1), 5u32, 3u32));
 			assert_noop!(
 				Stake::candidate_bond_more(Origin::signed(1), 30),
 				Error::<Test>::CannotActivateIfLeaving
@@ -900,7 +900,7 @@ fn nominators_bond() {
 			);
 			roll_to(9);
 			assert_eq!(Balances::reserved_balance(&6), 20);
-			assert_ok!(Stake::leave_candidates(Origin::signed(1)));
+			assert_ok!(Stake::leave_candidates(Origin::signed(1), 5u32, 3u32));
 			roll_to(31);
 			assert!(!Stake::is_nominator(&6));
 			assert_eq!(Balances::reserved_balance(&6), 0);
@@ -946,8 +946,8 @@ fn revoke_nomination_or_leave_nominators() {
 				Stake::leave_nominators(Origin::signed(1), 0u32),
 				Error::<Test>::NominatorDNE
 			);
-			assert_ok!(Stake::nominate(Origin::signed(6), 2, 3));
-			assert_ok!(Stake::nominate(Origin::signed(6), 3, 3));
+			assert_ok!(Stake::nominate(Origin::signed(6), 2, 3, 1u32));
+			assert_ok!(Stake::nominate(Origin::signed(6), 3, 3, 2u32));
 			assert_ok!(Stake::revoke_nomination(Origin::signed(6), 1));
 			// cannot revoke nomination because would leave remaining total below MinNominatorStk
 			assert_noop!(
@@ -1087,7 +1087,7 @@ fn payouts_follow_nomination_changes() {
 			expected.append(&mut new4);
 			assert_eq!(events(), expected);
 			set_author(7, 1, 100);
-			assert_ok!(Stake::nominate(Origin::signed(8), 1, 10));
+			assert_ok!(Stake::nominate(Origin::signed(8), 1, 10, 1u32));
 			roll_to(36);
 			// new nomination is not rewarded yet
 			let mut new5 = vec![

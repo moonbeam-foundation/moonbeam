@@ -293,11 +293,12 @@ where
 
 		log::trace!(target: "staking-precompile", "Collator stake amount is {:?}", amount);
 
-		Ok(parachain_staking::Call::<Runtime>::join_candidates(amount))
+		// TODO: parse input into u32 for candidate_count
+		Ok(parachain_staking::Call::<Runtime>::join_candidates(amount, 0u32))
 	}
 
 	fn leave_candidates() -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		Ok(parachain_staking::Call::<Runtime>::leave_candidates())
+		Ok(parachain_staking::Call::<Runtime>::leave_candidates(0u32, 0u32))
 	}
 
 	fn go_offline() -> Result<parachain_staking::Call<Runtime>, ExitError> {
@@ -340,6 +341,8 @@ where
 		Ok(parachain_staking::Call::<Runtime>::nominate(
 			collator.into(),
 			amount,
+			0u32, // TODO: parse input into u32 for collator_nom_count
+			0u32, // TODO: parse input into u32 for nomination_count
 		))
 	}
 

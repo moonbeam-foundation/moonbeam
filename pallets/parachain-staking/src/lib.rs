@@ -442,10 +442,8 @@ pub mod pallet {
 
 	#[pallet::error]
 	pub enum Error<T> {
-		// TODO: reorg with root at top and everything else below
 		CannotSetMaxCandidatesBelowTotalSelected,
 		MaxCollatorCandidatesOnlyIncreases,
-		// Nominator Does Not Exist
 		NominatorDNE,
 		CandidateDNE,
 		NominatorExists,
@@ -465,7 +463,12 @@ pub mod pallet {
 		Underflow,
 		InvalidSchedule,
 		CannotSetBelowMin,
-		WrongNominationCountToLeave,
+		TooLowCollatorCandidateCountToJoinCandidates,
+		TooLowCollatorCandidateCountToLeaveCandidates,
+		TooLowNominationCountToNominate,
+		TooLowCollatorCountToNominate,
+		TooLowNominatorCountToLeaveCandidates,
+		TooLowNominationCountToLeaveNominators,
 	}
 
 	#[pallet::event]
@@ -675,21 +678,30 @@ pub mod pallet {
 			<InflationConfig<T>>::put(self.inflation_config.clone());
 			// Set initial collator candidate count
 			<CandidateCount<T>>::put(CollatorCount::new(0u32, T::MaxCollatorCandidates::get()));
+			let mut collator_count = 0u32;
+			// TODO: fix nominate call args using following:
+			// collator_nomination_count BTreeMap acc -> x
+			// nominator_nomination_count BTreeMap acc -> y
 			for &(ref actor, ref opt_val, balance) in &self.stakers {
 				assert!(
 					T::Currency::free_balance(&actor) >= balance,
 					"Account does not have enough balance to bond."
 				);
+				// TODO: print something if either branch fails
 				let _ = if let Some(nominated_val) = opt_val {
 					<Pallet<T>>::nominate(
 						T::Origin::from(Some(actor.clone()).into()),
 						nominated_val.clone(),
 						balance,
+						0u32,
+						0u32,
 					)
 				} else {
+					collator_count += 1u32;
 					<Pallet<T>>::join_candidates(
 						T::Origin::from(Some(actor.clone()).into()),
 						balance,
+						collator_count - 1u32,
 					)
 				};
 			}
@@ -836,22 +848,28 @@ pub mod pallet {
 			Ok(().into())
 		}
 		#[pallet::weight(T::WeightInfo::force_leave_candidates(
-			T::MaxCollatorCandidates::get(),
-			T::MaxNominatorsPerCollator::get(),
+			*collator_count,
+			*nominator_count,
 		))]
 		/// Root dispatchable to force a collator candidate's immediate exit
+		/// - `collator_count` weight hint is the number of collator candidates in CandidatePool
+		/// - `nominator_count` weight hint is the number of nominators for the collator leaving
 		pub fn force_leave_candidates(
 			origin: OriginFor<T>,
 			who: T::AccountId,
+			collator_count: u32,
+			nominator_count: u32,
 		) -> DispatchResultWithPostInfo {
 			frame_system::ensure_root(origin)?;
-			Self::collator_exit(who, true)
+			Self::collator_exit(who, true, Some(collator_count), Some(nominator_count))
 		}
 		/// Join the set of collator candidates
-		#[pallet::weight(T::WeightInfo::join_candidates(T::MaxCollatorCandidates::get()))]
+		/// - `collator_count` weight hint is the number of collator candidates in CandidatePool
+		#[pallet::weight(T::WeightInfo::join_candidates(*collator_count))]
 		pub fn join_candidates(
 			origin: OriginFor<T>,
 			bond: BalanceOf<T>,
+			collator_count: u32,
 		) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
 			ensure!(!Self::is_candidate(&acc), Error::<T>::CandidateExists);
@@ -861,6 +879,10 @@ pub mod pallet {
 				Error::<T>::ValBondBelowMin
 			);
 			let mut candidates = <CandidatePool<T>>::get();
+			ensure!(
+				collator_count >= candidates.0.len() as u32,
+				Error::<T>::TooLowCollatorCandidateCountToJoinCandidates
+			);
 			ensure!(
 				candidates.insert(Bond {
 					owner: acc.clone(),
@@ -886,17 +908,32 @@ pub mod pallet {
 		/// Schedule exit from the set of candidates. If successful, the account is immediately
 		/// removed from the candidate pool to prevent selection as a collator, but unbonding is
 		/// executed after `BondDuration` rounds.
+		/// - `collator_count` weight hint is the number of collator candidates in CandidatePool
+		/// - `nominator_count` weight hint is the number of nominators for the collator leaving
 		#[pallet::weight(
-			T::WeightInfo::leave_candidates() +
+			T::WeightInfo::leave_candidates(*collator_count) +
 			T::WeightInfo::force_leave_candidates(
-				T::MaxCollatorCandidates::get(),
-				T::MaxNominatorsPerCollator::get(),
+				*collator_count,
+				*nominator_count,
 			)
 		)]
-		pub fn leave_candidates(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+		pub fn leave_candidates(
+			origin: OriginFor<T>,
+			collator_count: u32,
+			nominator_count: u32,
+		) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_leaving(), Error::<T>::AlreadyLeaving);
+			ensure!(
+				nominator_count >= state.nominators.0.len() as u32,
+				Error::<T>::TooLowNominationCountToLeaveNominators,
+			);
+			let mut candidates = <CandidatePool<T>>::get();
+			ensure!(
+				collator_count >= candidates.0.len() as u32,
+				Error::<T>::TooLowCollatorCandidateCountToLeaveCandidates
+			);
 			let mut exits = <ExitQueue<T>>::get();
 			let now = <Round<T>>::get().current;
 			let when = now + T::BondDuration::get();
@@ -908,7 +945,6 @@ pub mod pallet {
 				Error::<T>::AlreadyLeaving
 			);
 			state.leave_candidates(when);
-			let mut candidates = <CandidatePool<T>>::get();
 			if candidates.remove(&Bond::from_owner(collator.clone())) {
 				<CandidatePool<T>>::put(candidates);
 			}
@@ -1005,11 +1041,14 @@ pub mod pallet {
 		}
 		/// If caller is not a nominator, then join the set of nominators
 		/// If caller is a nominator, then makes nomination to change their nomination state
-		#[pallet::weight(T::WeightInfo::nominate(T::MaxNominatorsPerCollator::get()))]
+		/// - `nomination_count` weight hint is the current number of nominations for the caller
+		#[pallet::weight(T::WeightInfo::nominate(*collator_nominator_count, *nomination_count))]
 		pub fn nominate(
 			origin: OriginFor<T>,
 			collator: T::AccountId,
 			amount: BalanceOf<T>,
+			collator_nominator_count: u32,
+			nomination_count: u32,
 		) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
 			if let Some(mut nominator) = <NominatorState<T>>::get(&acc) {
@@ -1019,11 +1058,19 @@ pub mod pallet {
 					Error::<T>::NominationBelowMin
 				);
 				ensure!(
+					nomination_count >= nominator.nominations.0.len() as u32,
+					Error::<T>::TooLowNominationCountToNominate
+				);
+				ensure!(
 					(nominator.nominations.0.len() as u32) < T::MaxCollatorsPerNominator::get(),
 					Error::<T>::ExceedMaxCollatorsPerNom
 				);
 				let mut state =
 					<CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
+				ensure!(
+					collator_nominator_count >= state.nominators.0.len() as u32,
+					Error::<T>::TooLowCollatorCountToNominate
+				);
 				ensure!(
 					nominator.add_nomination(Bond {
 						owner: collator.clone(),
@@ -1064,6 +1111,10 @@ pub mod pallet {
 				ensure!(!Self::is_candidate(&acc), Error::<T>::CandidateExists);
 				let mut state =
 					<CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
+				ensure!(
+					collator_nominator_count >= state.nominators.0.len() as u32,
+					Error::<T>::TooLowCollatorCountToNominate
+				);
 				let nomination = Bond {
 					owner: acc.clone(),
 					amount,
@@ -1091,6 +1142,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Leave the set of nominators and, by implication, revoke all ongoing nominations
+		/// - `nomination_count` is the number of nominations for the account in question
 		#[pallet::weight(T::WeightInfo::leave_nominators(*nomination_count))]
 		pub fn leave_nominators(
 			origin: OriginFor<T>,
@@ -1100,7 +1152,7 @@ pub mod pallet {
 			let nominator = <NominatorState<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
 			ensure!(
 				(nominator.nominations.0.len() as u32) <= nomination_count,
-				Error::<T>::WrongNominationCountToLeave
+				Error::<T>::TooLowNominationCountToLeaveNominators
 			);
 			for bond in nominator.nominations.0 {
 				Self::nominator_leaves_collator(acc.clone(), bond.owner.clone())?;
@@ -1109,7 +1161,7 @@ pub mod pallet {
 			Self::deposit_event(Event::NominatorLeft(acc, nominator.total));
 			Ok(().into())
 		}
-		/// Revoke an existing nomination
+		/// Revoke a single existing nomination
 		#[pallet::weight(T::WeightInfo::revoke_nomination())]
 		pub fn revoke_nomination(
 			origin: OriginFor<T>,
@@ -1196,7 +1248,8 @@ pub mod pallet {
 		pub fn is_selected_candidate(acc: &T::AccountId) -> bool {
 			<SelectedCandidates<T>>::get().binary_search(acc).is_ok()
 		}
-		// ensure candidate is active before calling
+		/// Update a collator candidate's balance
+		/// - caller must ensure candidate is active before calling
 		fn update_active(candidate: T::AccountId, total: BalanceOf<T>) {
 			let mut candidates = <CandidatePool<T>>::get();
 			candidates.remove(&Bond::from_owner(candidate.clone()));
@@ -1206,7 +1259,7 @@ pub mod pallet {
 			});
 			<CandidatePool<T>>::put(candidates);
 		}
-		// Calculate round issuance based on total staked for the given round
+		/// Calculate round issuance based on total staked for the given round
 		fn compute_issuance(staked: BalanceOf<T>) -> BalanceOf<T> {
 			let config = <InflationConfig<T>>::get();
 			let round_issuance = crate::inflation::round_issuance_range::<T>(config.round);
@@ -1222,13 +1275,42 @@ pub mod pallet {
 				return round_issuance.ideal;
 			}
 		}
-		fn collator_exit(who: T::AccountId, clear_exit: bool) -> DispatchResultWithPostInfo {
+
+		/// Executes collator exit
+		/// - for the collator `who`
+		/// - `clear_exit` => exit queue entry exists and must be removed as well
+		/// - `collator_count` is a weight hint for the number of active collator candidates
+		/// - `nominator_count` is a weight hint for the number of nominations for the collator
+		fn collator_exit(
+			who: T::AccountId,
+			clear_exit: bool,
+			collator_count: Option<u32>,
+			nominator_count: Option<u32>,
+		) -> DispatchResultWithPostInfo {
 			let state = <CollatorState<T>>::get(&who).ok_or(Error::<T>::CandidateDNE)?;
+			if let Some(count) = nominator_count {
+				ensure!(
+					count >= state.nominators.0.len() as u32,
+					Error::<T>::TooLowNominatorCountToLeaveCandidates
+				);
+			}
+			let mut candidates: Option<OrderedSet<Bond<T::AccountId, BalanceOf<T>>>> = None;
+			if let Some(count) = collator_count {
+				let candidate_pool = <CandidatePool<T>>::get();
+				ensure!(
+					count >= candidate_pool.0.len() as u32,
+					Error::<T>::TooLowCollatorCandidateCountToLeaveCandidates
+				);
+				candidates = Some(candidate_pool);
+			}
 			if state.is_active() {
-				// remove from candidate pool
-				let mut candidates = <CandidatePool<T>>::get();
-				if candidates.remove(&Bond::from_owner(who.clone())) {
-					<CandidatePool<T>>::put(candidates);
+				let mut collator_candidates = if let Some(pool) = candidates {
+					pool
+				} else {
+					<CandidatePool<T>>::get()
+				};
+				if collator_candidates.remove(&Bond::from_owner(who.clone())) {
+					<CandidatePool<T>>::put(collator_candidates);
 				}
 			}
 			// return all nominator bonds
@@ -1387,8 +1469,8 @@ pub mod pallet {
 					if x.amount > next {
 						Some(x)
 					} else {
-						// TODO: debug print upon failure
-						let _ = Self::collator_exit(x.owner.clone(), false);
+						// TODO: handle error path explicitly, log something at least
+						let _ = Self::collator_exit(x.owner.clone(), false, None, None);
 						None
 					}
 				})
