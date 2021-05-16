@@ -19,11 +19,11 @@
 //! This module defines the Moonbeam node's Command Line Interface (CLI)
 //! It is built using structopt and inherits behavior from Substrate's sc_cli crate.
 
+use cli_opt::{EthApi, Sealing};
 use service::chain_spec;
 use sp_core::H160;
 use std::path::PathBuf;
 use structopt::StructOpt;
-use cli_opt::{EthApi, Sealing};
 
 /// Sub-commands supported by the collator.
 #[derive(Debug, StructOpt)]

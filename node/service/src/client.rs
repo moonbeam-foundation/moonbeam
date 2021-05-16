@@ -13,12 +13,12 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-#[cfg(feature = "with-moonbeam-runtime")]
-use moonbeam_runtime::{AccountId, opaque::Block, BlockNumber, Balance, Hash, Index, Header};
-#[cfg(feature = "with-moonriver-runtime")]
-use moonriver_runtime::{AccountId, opaque::Block, BlockNumber, Balance, Hash, Index, Header};
 #[cfg(feature = "with-moonbase-runtime")]
-use moonbase_runtime::{AccountId, opaque::Block, BlockNumber, Balance, Hash, Index, Header};
+use moonbase_runtime::{opaque::Block, AccountId, Balance, BlockNumber, Hash, Header, Index};
+#[cfg(feature = "with-moonbeam-runtime")]
+use moonbeam_runtime::{opaque::Block, AccountId, Balance, BlockNumber, Hash, Header, Index};
+#[cfg(feature = "with-moonriver-runtime")]
+use moonriver_runtime::{opaque::Block, AccountId, Balance, BlockNumber, Hash, Header, Index};
 use sc_client_api::{Backend as BackendT, BlockchainEvents, KeyIterator};
 use sp_api::{CallApiAt, NumberFor, ProvideRuntimeApi};
 use sp_blockchain::HeaderBackend;
@@ -40,7 +40,7 @@ pub trait RuntimeApiCollection:
 	+ pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
 	+ sp_api::Metadata<Block>
 	+ sp_offchain::OffchainWorkerApi<Block>
-    + sp_session::SessionKeys<Block>
+	+ sp_session::SessionKeys<Block>
 where
 	<Self as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<BlakeTwo256>,
 {
@@ -53,13 +53,12 @@ where
 		+ sp_block_builder::BlockBuilder<Block>
 		+ substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>
 		+ pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
-        + sp_api::Metadata<Block>
-	    + sp_offchain::OffchainWorkerApi<Block>
+		+ sp_api::Metadata<Block>
+		+ sp_offchain::OffchainWorkerApi<Block>
 		+ sp_session::SessionKeys<Block>,
 	<Self as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<BlakeTwo256>,
 {
 }
-
 
 #[cfg(feature = "with-moonriver-runtime")]
 pub trait EthereumRuntimeApiCollection {}
@@ -75,11 +74,10 @@ pub trait EthereumRuntimeApiCollection:
 }
 
 #[cfg(not(feature = "with-moonriver-runtime"))]
-impl<Api> EthereumRuntimeApiCollection for Api
-where
+impl<Api> EthereumRuntimeApiCollection for Api where
 	Api: fp_rpc::EthereumRuntimeRPCApi<Block>
-	+ moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>
-	+ moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>
+		+ moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>
+		+ moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>
 {
 }
 
@@ -141,7 +139,8 @@ pub trait ExecuteWithClient {
 		<Api as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<BlakeTwo256>,
 		Backend: sc_client_api::Backend<Block>,
 		Backend::State: sp_api::StateBackend<BlakeTwo256>,
-		Api: crate::RuntimeApiCollection<StateBackend = Backend::State> + crate::EthereumRuntimeApiCollection,
+		Api: crate::RuntimeApiCollection<StateBackend = Backend::State>
+			+ crate::EthereumRuntimeApiCollection,
 		Client: AbstractClient<Block, Backend, Api = Api> + 'static;
 }
 
@@ -195,7 +194,10 @@ impl sc_client_api::UsageProvider<Block> for Client {
 }
 
 impl sc_client_api::BlockBackend<Block> for Client {
-	fn block_body(&self, id: &BlockId<Block>) -> sp_blockchain::Result<Option<Vec<<Block as BlockT>::Extrinsic>>> {
+	fn block_body(
+		&self,
+		id: &BlockId<Block>,
+	) -> sp_blockchain::Result<Option<Vec<<Block as BlockT>::Extrinsic>>> {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.block_body(id),
@@ -239,7 +241,10 @@ impl sc_client_api::BlockBackend<Block> for Client {
 		}
 	}
 
-	fn block_hash(&self, number: NumberFor<Block>) -> sp_blockchain::Result<Option<<Block as BlockT>::Hash>> {
+	fn block_hash(
+		&self,
+		number: NumberFor<Block>,
+	) -> sp_blockchain::Result<Option<<Block as BlockT>::Hash>> {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.block_hash(number),
@@ -250,7 +255,10 @@ impl sc_client_api::BlockBackend<Block> for Client {
 		}
 	}
 
-	fn indexed_transaction(&self, hash: &<Block as BlockT>::Hash) -> sp_blockchain::Result<Option<Vec<u8>>> {
+	fn indexed_transaction(
+		&self,
+		hash: &<Block as BlockT>::Hash,
+	) -> sp_blockchain::Result<Option<Vec<u8>>> {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.indexed_transaction(hash),
@@ -261,7 +269,10 @@ impl sc_client_api::BlockBackend<Block> for Client {
 		}
 	}
 
-	fn has_indexed_transaction(&self, hash: &<Block as BlockT>::Hash) -> sp_blockchain::Result<bool> {
+	fn has_indexed_transaction(
+		&self,
+		hash: &<Block as BlockT>::Hash,
+	) -> sp_blockchain::Result<bool> {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.has_indexed_transaction(hash),
@@ -274,7 +285,11 @@ impl sc_client_api::BlockBackend<Block> for Client {
 }
 
 impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
-	fn storage(&self, id: &BlockId<Block>, key: &StorageKey) -> sp_blockchain::Result<Option<StorageData>> {
+	fn storage(
+		&self,
+		id: &BlockId<Block>,
+		key: &StorageKey,
+	) -> sp_blockchain::Result<Option<StorageData>> {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.storage(id, key),
@@ -285,7 +300,11 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		}
 	}
 
-	fn storage_keys(&self, id: &BlockId<Block>, key_prefix: &StorageKey) -> sp_blockchain::Result<Vec<StorageKey>> {
+	fn storage_keys(
+		&self,
+		id: &BlockId<Block>,
+		key_prefix: &StorageKey,
+	) -> sp_blockchain::Result<Vec<StorageKey>> {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.storage_keys(id, key_prefix),
@@ -331,7 +350,9 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		id: &BlockId<Block>,
 		prefix: Option<&'a StorageKey>,
 		start_key: Option<&StorageKey>,
-	) -> sp_blockchain::Result<KeyIterator<'a, <crate::FullBackend as sc_client_api::Backend<Block>>::State, Block>> {
+	) -> sp_blockchain::Result<
+		KeyIterator<'a, <crate::FullBackend as sc_client_api::Backend<Block>>::State, Block>,
+	> {
 		match self {
 			#[cfg(feature = "with-moonbeam-runtime")]
 			Self::Moonbeam(client) => client.storage_keys_iter(id, prefix, start_key),

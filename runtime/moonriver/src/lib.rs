@@ -29,8 +29,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use frame_support::{
-	construct_runtime,
-	parameter_types,
+	construct_runtime, parameter_types,
 	traits::Randomness,
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 };

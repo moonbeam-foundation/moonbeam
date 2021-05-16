@@ -22,20 +22,20 @@
 //! Full Service: A complete parachain node including the pool, rpc, network, embedded relay chain
 //! Dev Service: A leaner service without the relay chain backing.
 
+#[cfg(feature = "with-moonbase-runtime")]
+pub use moonbase_runtime;
 #[cfg(feature = "with-moonbeam-runtime")]
 pub use moonbeam_runtime;
 #[cfg(feature = "with-moonriver-runtime")]
 pub use moonriver_runtime;
-#[cfg(feature = "with-moonbase-runtime")]
-pub use moonbase_runtime;
 
-#[cfg(not(feature = "with-moonbeam-runtime"))]
-use cli_opt::MISSING_MOONBEAM;
 #[cfg(not(feature = "with-moonbase-runtime"))]
 use cli_opt::MISSING_MOONBASE;
+#[cfg(not(feature = "with-moonbeam-runtime"))]
+use cli_opt::MISSING_MOONBEAM;
 
 cfg_if::cfg_if! {
-    if #[cfg(not(feature = "with-moonriver-runtime"))] {
+	if #[cfg(not(feature = "with-moonriver-runtime"))] {
 		use futures::StreamExt;
 		use cli_opt::{EthApi as EthApiCmd, RpcParams, MISSING_MOONRIVER};
 		use fc_consensus::FrontierBlockImport;
@@ -51,13 +51,11 @@ cfg_if::cfg_if! {
 			sync::Mutex,
 			time::Duration,
 		};
-    }
+	}
 }
-
 
 mod inherents;
 mod rpc;
-use inherents::build_inherent_data_providers;
 use cumulus_client_consensus_relay_chain::{
 	build_relay_chain_consensus, BuildRelayChainConsensusParams,
 };
@@ -65,18 +63,19 @@ use cumulus_client_network::build_block_announce_validator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
+use inherents::build_inherent_data_providers;
 use polkadot_primitives::v0::CollatorPair;
-use sc_executor::{native_executor_instance, NativeExecutionDispatch};
 pub use sc_executor::NativeExecutor;
+use sc_executor::{native_executor_instance, NativeExecutionDispatch};
 use sc_service::{
-	error::Error as ServiceError, Configuration, PartialComponents, Role, TFullBackend,
-	TFullClient, TaskManager, ChainSpec,
+	error::Error as ServiceError, ChainSpec, Configuration, PartialComponents, Role, TFullBackend,
+	TFullClient, TaskManager,
 };
+use sp_api::ConstructRuntimeApi;
 use sp_core::H160;
-use std::sync::Arc;
 use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
-use sp_api::ConstructRuntimeApi;
+use std::sync::Arc;
 
 pub use client::*;
 pub mod chain_spec;
@@ -123,8 +122,8 @@ native_executor_instance!(
 /// the `Moonbeam` network.
 pub trait IdentifyVariant {
 	/// Returns `true` if this is a configuration for the `Moonbase` network.
-    fn is_moonbase(&self) -> bool;
-    
+	fn is_moonbase(&self) -> bool;
+
 	/// Returns `true` if this is a configuration for the `Moonbase` dev network.
 	fn is_moonbase_dev(&self) -> bool;
 
@@ -138,8 +137,8 @@ pub trait IdentifyVariant {
 impl IdentifyVariant for Box<dyn ChainSpec> {
 	fn is_moonbase(&self) -> bool {
 		self.id().starts_with("moonbase") || self.id().ends_with("base")
-    }
-    
+	}
+
 	fn is_moonbase_dev(&self) -> bool {
 		self.id().starts_with("dev") || self.id().ends_with("ment")
 	}
@@ -162,10 +161,9 @@ pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backen
 		.as_ref()
 		.map(|base_path| base_path.config_dir(config.chain_spec.id()))
 		.unwrap_or_else(|| {
-            // TODO-multiple-runtimes
-            // no longer acces to &crate::cli::Cli::executable_name()
-			BasePath::from_project("", "", "todo")
-				.config_dir(config.chain_spec.id())
+			// TODO-multiple-runtimes
+			// no longer acces to &crate::cli::Cli::executable_name()
+			BasePath::from_project("", "", "todo").config_dir(config.chain_spec.id())
 		});
 	let database_dir = config_dir.join("frontier").join("db");
 
@@ -181,8 +179,8 @@ pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backen
 
 /// Builds a new object suitable for chain operations.
 pub fn new_chain_ops(
-    mut config: &mut Configuration,
-    author_id: Option<H160>,
+	mut config: &mut Configuration,
+	author_id: Option<H160>,
 ) -> Result<
 	(
 		Arc<Client>,
@@ -203,7 +201,12 @@ pub fn new_chain_ops(
 				task_manager,
 				..
 			} = new_partial(config, author_id, config.chain_spec.is_moonbase_dev())?;
-			Ok((Arc::new(Client::Moonbase(client)), backend, import_queue, task_manager))
+			Ok((
+				Arc::new(Client::Moonbase(client)),
+				backend,
+				import_queue,
+				task_manager,
+			))
 		}
 		#[cfg(not(feature = "with-moonbase-runtime"))]
 		Err(MISSING_MOONBASE.into())
@@ -216,8 +219,15 @@ pub fn new_chain_ops(
 				import_queue,
 				task_manager,
 				..
-			} = new_partial_moonriver::<moonriver_runtime::RuntimeApi, MoonriverExecutor>(config, author_id, false)?;
-			Ok((Arc::new(Client::Moonriver(client)), backend, import_queue, task_manager))
+			} = new_partial_moonriver::<moonriver_runtime::RuntimeApi, MoonriverExecutor>(
+				config, author_id, false,
+			)?;
+			Ok((
+				Arc::new(Client::Moonriver(client)),
+				backend,
+				import_queue,
+				task_manager,
+			))
 		}
 		#[cfg(not(feature = "with-moonriver-runtime"))]
 		Err(MISSING_MOONRIVER.into())
@@ -230,8 +240,15 @@ pub fn new_chain_ops(
 				import_queue,
 				task_manager,
 				..
-			} = new_partial::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(config, author_id, false)?;
-			Ok((Arc::new(Client::Moonbeam(client)), backend, import_queue, task_manager))
+			} = new_partial::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(
+				config, author_id, false,
+			)?;
+			Ok((
+				Arc::new(Client::Moonbeam(client)),
+				backend,
+				import_queue,
+				task_manager,
+			))
 		}
 		#[cfg(not(feature = "with-moonbeam-runtime"))]
 		Err(MISSING_MOONBEAM.into())
@@ -256,7 +273,11 @@ pub fn new_partial<RuntimeApi, Executor>(
 		sp_consensus::DefaultImportQueue<Block, FullClient<RuntimeApi, Executor>>,
 		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
 		(
-			FrontierBlockImport<Block, Arc<FullClient<RuntimeApi, Executor>>, FullClient<RuntimeApi, Executor>>,
+			FrontierBlockImport<
+				Block,
+				Arc<FullClient<RuntimeApi, Executor>>,
+				FullClient<RuntimeApi, Executor>,
+			>,
 			PendingTransactions,
 			Option<FilterPool>,
 			Option<Telemetry>,
@@ -267,8 +288,11 @@ pub fn new_partial<RuntimeApi, Executor>(
 	ServiceError,
 >
 where
-	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>> + EthereumRuntimeApiCollection,
+	RuntimeApi:
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection<
+		StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>,
+	> + EthereumRuntimeApiCollection,
 	Executor: NativeExecutionDispatch + 'static,
 {
 	let inherent_data_providers = build_inherent_data_providers(author, dev_service)?;
@@ -316,7 +340,7 @@ where
 	let pending_transactions: PendingTransactions = Some(Arc::new(Mutex::new(HashMap::new())));
 
 	let filter_pool: Option<FilterPool> = Some(Arc::new(Mutex::new(BTreeMap::new())));
-	
+
 	let frontier_backend = open_frontier_backend(config)?;
 
 	let frontier_block_import =
@@ -364,7 +388,6 @@ where
 	})
 }
 
-
 /// Builds the PartialComponents for a parachain or development service
 ///
 /// Use this function if you don't actually need the full service, but just the partial in order to
@@ -382,16 +405,15 @@ pub fn new_partial_moonriver<RuntimeApi, Executor>(
 		MaybeSelectChain,
 		sp_consensus::DefaultImportQueue<Block, FullClient<RuntimeApi, Executor>>,
 		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
-		(
-			Option<Telemetry>,
-			Option<TelemetryWorkerHandle>,
-		),
+		(Option<Telemetry>, Option<TelemetryWorkerHandle>),
 	>,
 	ServiceError,
 >
 where
-	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	RuntimeApi:
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
 	let inherent_data_providers = build_inherent_data_providers(author, dev_service)?;
@@ -467,10 +489,7 @@ where
 		transaction_pool,
 		inherent_data_providers,
 		select_chain: maybe_select_chain,
-		other: (
-			telemetry,
-			telemetry_worker_handle,
-		),
+		other: (telemetry, telemetry_worker_handle),
 	})
 }
 
@@ -485,19 +504,20 @@ async fn start_node_impl<RB, RuntimeApi, Executor>(
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	collator: bool,
-    ethapi: Vec<EthApiCmd>,
-    rpc_params: RpcParams,
+	ethapi: Vec<EthApiCmd>,
+	rpc_params: RpcParams,
 	_rpc_ext_builder: RB,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
 where
-	RB: Fn(
-		Arc<FullClient<RuntimeApi, Executor>>,
-	) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
+	RB: Fn(Arc<FullClient<RuntimeApi, Executor>>) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
 		+ Send
-        + 'static,
-    RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-    RuntimeApi::RuntimeApi: RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>> + EthereumRuntimeApiCollection,
-    Executor: NativeExecutionDispatch + 'static,
+		+ 'static,
+	RuntimeApi:
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection<
+		StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>,
+	> + EthereumRuntimeApiCollection,
+	Executor: NativeExecutionDispatch + 'static,
 {
 	if matches!(parachain_config.role, Role::Light) {
 		return Err("Light client not supported!".into());
@@ -745,14 +765,14 @@ async fn start_node_impl_moonriver<RB, RuntimeApi, Executor>(
 	_rpc_ext_builder: RB,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
 where
-	RB: Fn(
-		Arc<FullClient<RuntimeApi, Executor>>,
-	) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
+	RB: Fn(Arc<FullClient<RuntimeApi, Executor>>) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
 		+ Send
-        + 'static,
-    RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-    RuntimeApi::RuntimeApi: RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
-    Executor: NativeExecutionDispatch + 'static,
+		+ 'static,
+	RuntimeApi:
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	Executor: NativeExecutionDispatch + 'static,
 {
 	if matches!(parachain_config.role, Role::Light) {
 		return Err("Light client not supported!".into());
@@ -761,10 +781,7 @@ where
 	let parachain_config = prepare_node_config(parachain_config);
 
 	let params = new_partial_moonriver(&parachain_config, author_id, false)?;
-	let (
-		mut telemetry,
-		telemetry_worker_handle,
-	) = params.other;
+	let (mut telemetry, telemetry_worker_handle) = params.other;
 
 	let polkadot_full_node = cumulus_client_service::build_polkadot_full_node(
 		polkadot_config,
@@ -888,7 +905,7 @@ where
 	Ok((task_manager, client))
 }
 
-/// Start a normal parachain node. 
+/// Start a normal parachain node.
 #[cfg(not(feature = "with-moonriver-runtime"))]
 pub async fn start_node<RuntimeApi, Executor>(
 	parachain_config: Configuration,
@@ -897,12 +914,15 @@ pub async fn start_node<RuntimeApi, Executor>(
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	collator: bool,
-    ethapi: Vec<EthApiCmd>,
-    rpc_params: RpcParams,
+	ethapi: Vec<EthApiCmd>,
+	rpc_params: RpcParams,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
 where
-	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>> + EthereumRuntimeApiCollection,
+	RuntimeApi:
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection<
+		StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>,
+	> + EthereumRuntimeApiCollection,
 	Executor: NativeExecutionDispatch + 'static,
 {
 	start_node_impl(
@@ -919,7 +939,6 @@ where
 	.await
 }
 
-
 /// Start a normal parachain node.
 #[cfg(feature = "with-moonriver-runtime")]
 pub async fn start_node_moonriver<RuntimeApi, Executor>(
@@ -931,8 +950,10 @@ pub async fn start_node_moonriver<RuntimeApi, Executor>(
 	collator: bool,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
 where
-	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	RuntimeApi:
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
 	start_node_impl_moonriver(
@@ -956,15 +977,14 @@ pub fn new_dev(
 	// TODO I guess we should use substrate-cli's validator flag for this.
 	// Resolve after https://github.com/paritytech/cumulus/pull/380 is reviewed.
 	collator: bool,
-    sealing: cli_opt::Sealing,
-    ethapi: Vec<EthApiCmd>,
-    rpc_params: RpcParams,
+	sealing: cli_opt::Sealing,
+	ethapi: Vec<EthApiCmd>,
+	rpc_params: RpcParams,
 ) -> Result<TaskManager, ServiceError> {
-
 	use async_io::Timer;
 	use futures::Stream;
-	use sp_core::H256;
 	use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
+	use sp_core::H256;
 
 	let sc_service::PartialComponents {
 		client,

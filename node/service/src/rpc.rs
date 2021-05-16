@@ -18,12 +18,13 @@
 
 use std::sync::Arc;
 
+use crate::client::{EthereumRuntimeApiCollection, RuntimeApiCollection};
+#[cfg(feature = "with-moonbase-runtime")]
+use moonbase_runtime::{opaque::Block, Hash};
 #[cfg(feature = "with-moonbeam-runtime")]
 use moonbeam_runtime::{opaque::Block, Hash};
 #[cfg(feature = "with-moonriver-runtime")]
 use moonriver_runtime::opaque::Block;
-#[cfg(feature = "with-moonbase-runtime")]
-use moonbase_runtime::{opaque::Block, Hash};
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
 	client::BlockchainEvents,
@@ -35,10 +36,9 @@ use sp_blockchain::{
 };
 use sp_runtime::traits::BlakeTwo256;
 use sp_transaction_pool::TransactionPool;
-use crate::client::{RuntimeApiCollection, EthereumRuntimeApiCollection};
 
 cfg_if::cfg_if! {
-    if #[cfg(not(feature = "with-moonriver-runtime"))] {
+	if #[cfg(not(feature = "with-moonriver-runtime"))] {
 		use std::collections::BTreeMap;
 		use cli_opt::EthApi as EthApiCmd;
 		use ethereum::EthereumStorageSchema;
@@ -147,24 +147,22 @@ where
 	{
 		// TODO: are we supporting signing?
 		let signers = Vec::new();
-	
+
 		let mut overrides_map = BTreeMap::new();
 		overrides_map.insert(
 			EthereumStorageSchema::V1,
 			Box::new(SchemaV1Override::new(client.clone()))
 				as Box<dyn StorageOverride<_> + Send + Sync>,
 		);
-	
+
 		let overrides = Arc::new(OverrideHandle {
 			schemas: overrides_map,
 			fallback: Box::new(RuntimeApiStorageOverride::new(client.clone())),
 		});
 		#[cfg(feature = "with-moonbeam-runtime")]
-		let tx_converter: moonbeam_runtime::TransactionConverter =
-			moonbeam_runtime::TransactionConverter;
+		let tx_converter: moonbeam_runtime::TransactionConverter = moonbeam_runtime::TransactionConverter;
 		#[cfg(feature = "with-moonbase-runtime")]
-		let tx_converter: moonbase_runtime::TransactionConverter =
-			moonbase_runtime::TransactionConverter;
+		let tx_converter: moonbase_runtime::TransactionConverter = moonbase_runtime::TransactionConverter;
 
 		io.extend_with(EthApiServer::to_delegate(EthApi::new(
 			client.clone(),
@@ -178,7 +176,7 @@ where
 			is_authority,
 			max_past_logs,
 		)));
-	
+
 		if let Some(filter_pool) = filter_pool {
 			io.extend_with(EthFilterApiServer::to_delegate(EthFilterApi::new(
 				client.clone(),
@@ -188,7 +186,7 @@ where
 				max_past_logs,
 			)));
 		}
-	
+
 		io.extend_with(NetApiServer::to_delegate(NetApi::new(
 			client.clone(),
 			network.clone(),
@@ -210,7 +208,7 @@ where
 				pool,
 			)));
 		}
-	
+
 		if let Some(command_sink) = command_sink {
 			io.extend_with(
 				// We provide the rpc handler with the sending end of the channel to allow the rpc
@@ -218,7 +216,7 @@ where
 				ManualSealApi::to_delegate(ManualSeal::new(command_sink)),
 			);
 		};
-	
+
 		if let Some(trace_filter_requester) = trace_filter_requester {
 			io.extend_with(TraceServer::to_delegate(Trace::new(
 				client,
@@ -226,7 +224,7 @@ where
 				trace_filter_max_count,
 			)));
 		}
-	
+
 		if let Some(debug_requester) = debug_requester {
 			io.extend_with(DebugServer::to_delegate(Debug::new(debug_requester)));
 		}

@@ -68,10 +68,10 @@ impl FromStr for EthApi {
 }
 
 pub struct RpcParams {
-    pub ethapi_max_permits: u32,
-    pub ethapi_trace_max_count: u32,
-    pub ethapi_trace_cache_duration: u64,
-    pub max_past_logs: u32,
+	pub ethapi_max_permits: u32,
+	pub ethapi_trace_max_count: u32,
+	pub ethapi_trace_cache_duration: u64,
+	pub max_past_logs: u32,
 }
 
 #[cfg(not(feature = "with-moonbeam-runtime"))]

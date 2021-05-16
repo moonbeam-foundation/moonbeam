@@ -27,37 +27,34 @@ use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
 	NetworkParams, Result, RuntimeVersion, SharedParams, SubstrateCli,
 };
-use sc_service::{
-	config::{BasePath, PrometheusConfig},
-};
+use sc_service::config::{BasePath, PrometheusConfig};
+use service::{chain_spec, IdentifyVariant};
 use sp_core::hexdisplay::HexDisplay;
 use sp_core::H160;
 use sp_runtime::traits::Block as _;
-use std::{io::Write, net::SocketAddr};
-use service::{chain_spec, IdentifyVariant};
 #[cfg(feature = "with-moonbase-runtime")]
 use std::str::FromStr;
+use std::{io::Write, net::SocketAddr};
 
 #[cfg(not(feature = "with-moonriver-runtime"))]
 use cli_opt::RpcParams;
 
+#[cfg(not(feature = "with-moonbase-runtime"))]
+use cli_opt::MISSING_MOONBASE;
 #[cfg(not(feature = "with-moonbeam-runtime"))]
 use cli_opt::MISSING_MOONBEAM;
 #[cfg(not(feature = "with-moonriver-runtime"))]
 use cli_opt::MISSING_MOONRIVER;
-#[cfg(not(feature = "with-moonbase-runtime"))]
-use cli_opt::MISSING_MOONBASE;
-	
+
 fn load_spec(
 	id: &str,
-	// `para_id` only used on with-moonbase-runtime feature. 
-	#[allow(unused_variables)]
-	para_id: ParaId,
+	// `para_id` only used on with-moonbase-runtime feature.
+	#[allow(unused_variables)] para_id: ParaId,
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	if id.is_empty() {
 		return Err("Not specific which chain to run.".into());
 	}
-	println!("load_spec {:?}",id);
+	println!("load_spec {:?}", id);
 	Ok(match id {
 		#[cfg(feature = "with-moonbase-runtime")]
 		"local" => Box::new(chain_spec::moonbase::get_chain_spec(para_id)),
@@ -97,7 +94,7 @@ fn load_spec(
 					path.into(),
 				)?)
 			}
-		},
+		}
 	})
 }
 
@@ -246,7 +243,6 @@ pub fn run() -> Result<()> {
 								)),
 								config.network,
 							)
-
 						}
 						#[cfg(not(feature = "with-moonbeam-runtime"))]
 						return Err(MISSING_MOONBEAM.into());
@@ -285,7 +281,8 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::CheckBlock(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
-				let (client, _, import_queue, task_manager) = service::new_chain_ops(&mut config, author_id)?;
+				let (client, _, import_queue, task_manager) =
+					service::new_chain_ops(&mut config, author_id)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -306,7 +303,8 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::ImportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
-				let (client, _, import_queue, task_manager) = service::new_chain_ops(&mut config, author_id)?;
+				let (client, _, import_queue, task_manager) =
+					service::new_chain_ops(&mut config, author_id)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -360,7 +358,8 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::Revert(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
-				let (client, backend, _, task_manager) = service::new_chain_ops(&mut config, author_id)?;
+				let (client, backend, _, task_manager) =
+					service::new_chain_ops(&mut config, author_id)?;
 				Ok((cmd.run(client, backend), task_manager))
 			})
 		}
@@ -388,7 +387,8 @@ pub fn run() -> Result<()> {
 			} else if chain_spec.is_moonriver() {
 				#[cfg(feature = "with-moonriver-runtime")]
 				{
-					let block: service::moonriver_runtime::Block = generate_genesis_block(&chain_spec)?;
+					let block: service::moonriver_runtime::Block =
+						generate_genesis_block(&chain_spec)?;
 					let raw_header = block.header().encode();
 					let output_buf = if params.raw {
 						raw_header
@@ -402,7 +402,8 @@ pub fn run() -> Result<()> {
 			} else {
 				#[cfg(feature = "with-moonbase-runtime")]
 				{
-					let block: service::moonbase_runtime::Block = generate_genesis_block(&chain_spec)?;
+					let block: service::moonbase_runtime::Block =
+						generate_genesis_block(&chain_spec)?;
 					let raw_header = block.header().encode();
 					let output_buf = if params.raw {
 						raw_header
@@ -451,17 +452,29 @@ pub fn run() -> Result<()> {
 				let chain_spec = &runner.config().chain_spec;
 				if chain_spec.is_moonbeam() {
 					#[cfg(feature = "with-moonbeam-runtime")]
-					return runner.sync_run(|config| cmd.run::<service::moonbeam_runtime::Block, service::MoonbeamExecutor>(config));
+					return runner.sync_run(|config| {
+						cmd.run::<service::moonbeam_runtime::Block, service::MoonbeamExecutor>(
+							config,
+						)
+					});
 					#[cfg(not(feature = "with-moonbeam-runtime"))]
 					return Err(MISSING_MOONBEAM.into());
 				} else if chain_spec.is_moonriver() {
 					#[cfg(feature = "with-moonriver-runtime")]
-					return runner.sync_run(|config| cmd.run::<service::moonriver_runtime::Block, service::MoonriverExecutor>(config));
+					return runner.sync_run(|config| {
+						cmd.run::<service::moonriver_runtime::Block, service::MoonriverExecutor>(
+							config,
+						)
+					});
 					#[cfg(not(feature = "with-moonriver-runtime"))]
 					return Err(MISSING_MOONRIVER.into());
 				} else {
 					#[cfg(feature = "with-moonbase-runtime")]
-					return runner.sync_run(|config| cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(config));
+					return runner.sync_run(|config| {
+						cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(
+							config,
+						)
+					});
 					#[cfg(not(feature = "with-moonbase-runtime"))]
 					return Err(MISSING_MOONBASE.into());
 				}
@@ -473,180 +486,191 @@ pub fn run() -> Result<()> {
 		}
 		None => {
 			let runner = cli.create_runner(&*cli.run)?;
-			runner
-				.run_node_until_exit(|config| async move {
+			runner.run_node_until_exit(|config| async move {
+				let collator = cli.run.base.validator || cli.collator;
+				let author_id: Option<H160> = cli.run.author_id;
+				if collator && author_id.is_none() {
+					return Err("Collator nodes must specify an author account id".into());
+				}
 
-					let collator = cli.run.base.validator || cli.collator;
-					let author_id: Option<H160> = cli.run.author_id;
-					if collator && author_id.is_none() {
-						return Err("Collator nodes must specify an author account id".into());
-					}
+				let key = sp_core::Pair::generate().0;
 
-					let key = sp_core::Pair::generate().0;
-
-					let extension = {
-						#[cfg(feature = "with-moonbase-runtime")]
-						{
-							chain_spec::moonbase::Extensions::try_get(&*config.chain_spec)
-						}
-						#[cfg(feature = "with-moonbeam-runtime")]
-						{
-							chain_spec::moonbeam::Extensions::try_get(&*config.chain_spec)
-						}
-						#[cfg(feature = "with-moonriver-runtime")]
-						{
-							chain_spec::moonriver::Extensions::try_get(&*config.chain_spec)
-						}
-					};
-					let para_id = extension.map(|e| e.para_id);
-
-					#[cfg(not(feature = "with-moonriver-runtime"))]
-					let rpc_params = RpcParams {
-						ethapi_max_permits: cli.run.ethapi_max_permits,
-						ethapi_trace_max_count: cli.run.ethapi_trace_max_count,
-						ethapi_trace_cache_duration: cli.run.ethapi_trace_cache_duration,
-						max_past_logs: cli.run.max_past_logs,
-					};
-
-					// If dev service was requested, start up manual or instant seal.
-					// Otherwise continue with the normal parachain node.
-					// Dev service can be requested in two ways.
-					// 1. by providing the --dev-service flag to the CLI
-					// 2. by specifying "dev-service" in the chain spec's "relay-chain" field.
-					// NOTE: the --dev flag triggers the dev service by way of number 2
-
+				let extension = {
 					#[cfg(feature = "with-moonbase-runtime")]
 					{
-						let relay_chain_id = extension.map(|e| e.relay_chain.clone());
-						let dev_service =
-							config.chain_spec.is_moonbase_dev() || relay_chain_id == Some("dev-service".to_string());
-	
-						if dev_service {
-							// --dev implies --collator
-							let collator = collator || cli.run.shared_params.dev;
-	
-							// If no author id was supplied, use the one that is staked at genesis
-							// in the default development spec.
-							let author_id = author_id.or_else(|| {
-								Some(
-									service::moonbase_runtime::AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")
-										.expect("Gerald is a valid account"),
+						chain_spec::moonbase::Extensions::try_get(&*config.chain_spec)
+					}
+					#[cfg(feature = "with-moonbeam-runtime")]
+					{
+						chain_spec::moonbeam::Extensions::try_get(&*config.chain_spec)
+					}
+					#[cfg(feature = "with-moonriver-runtime")]
+					{
+						chain_spec::moonriver::Extensions::try_get(&*config.chain_spec)
+					}
+				};
+				let para_id = extension.map(|e| e.para_id);
+
+				#[cfg(not(feature = "with-moonriver-runtime"))]
+				let rpc_params = RpcParams {
+					ethapi_max_permits: cli.run.ethapi_max_permits,
+					ethapi_trace_max_count: cli.run.ethapi_trace_max_count,
+					ethapi_trace_cache_duration: cli.run.ethapi_trace_cache_duration,
+					max_past_logs: cli.run.max_past_logs,
+				};
+
+				// If dev service was requested, start up manual or instant seal.
+				// Otherwise continue with the normal parachain node.
+				// Dev service can be requested in two ways.
+				// 1. by providing the --dev-service flag to the CLI
+				// 2. by specifying "dev-service" in the chain spec's "relay-chain" field.
+				// NOTE: the --dev flag triggers the dev service by way of number 2
+
+				#[cfg(feature = "with-moonbase-runtime")]
+				{
+					let relay_chain_id = extension.map(|e| e.relay_chain.clone());
+					let dev_service = config.chain_spec.is_moonbase_dev()
+						|| relay_chain_id == Some("dev-service".to_string());
+
+					if dev_service {
+						// --dev implies --collator
+						let collator = collator || cli.run.shared_params.dev;
+
+						// If no author id was supplied, use the one that is staked at genesis
+						// in the default development spec.
+						let author_id = author_id.or_else(|| {
+							Some(
+								service::moonbase_runtime::AccountId::from_str(
+									"6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b",
 								)
-							});
-							return service::new_dev(config, author_id, collator, cli.run.sealing, cli.run.ethapi, rpc_params).map_err(Into::into);
-						}
+								.expect("Gerald is a valid account"),
+							)
+						});
+						return service::new_dev(
+							config,
+							author_id,
+							collator,
+							cli.run.sealing,
+							cli.run.ethapi,
+							rpc_params,
+						)
+						.map_err(Into::into);
 					}
+				}
 
-					let polkadot_cli = RelayChainCli::new(
-						&config,
-						[RelayChainCli::executable_name().to_string()]
-							.iter()
-							.chain(cli.relaychain_args.iter()),
-					);
+				let polkadot_cli = RelayChainCli::new(
+					&config,
+					[RelayChainCli::executable_name().to_string()]
+						.iter()
+						.chain(cli.relaychain_args.iter()),
+				);
 
-					let id = ParaId::from(cli.run.parachain_id.or(para_id).unwrap_or(1000));
+				let id = ParaId::from(cli.run.parachain_id.or(para_id).unwrap_or(1000));
 
-					let parachain_account =
-						AccountIdConversion::<polkadot_primitives::v0::AccountId>::into_account(
-							&id,
-						);
-					
-					let genesis_state = if config.chain_spec.is_moonbeam() {
-						#[cfg(feature = "with-moonbeam-runtime")]
-						{
-							let block: service::moonbeam_runtime::Block = generate_genesis_block(&config.chain_spec).map_err(|e| format!("{:?}", e))?;
-							format!("0x{:?}", HexDisplay::from(&block.header().encode()))
-						}
-						#[cfg(not(feature = "with-moonbeam-runtime"))]
-						return Err(MISSING_MOONBEAM.into());
-					} else if config.chain_spec.is_moonriver() {
-						#[cfg(feature = "with-moonriver-runtime")]
-						{
-							let block: service::moonriver_runtime::Block = generate_genesis_block(&config.chain_spec).map_err(|e| format!("{:?}", e))?;
-							format!("0x{:?}", HexDisplay::from(&block.header().encode()))
-						}
-						#[cfg(not(feature = "with-moonriver-runtime"))]
-						return Err(MISSING_MOONRIVER.into());
-					} else {
-						#[cfg(feature = "with-moonbase-runtime")]
-						{
-							let block: service::moonbase_runtime::Block = generate_genesis_block(&config.chain_spec).map_err(|e| format!("{:?}", e))?;
-							format!("0x{:?}", HexDisplay::from(&block.header().encode()))
-						}
-						#[cfg(not(feature = "with-moonbase-runtime"))]
-						return Err(MISSING_MOONBASE.into());
-					};
+				let parachain_account =
+					AccountIdConversion::<polkadot_primitives::v0::AccountId>::into_account(&id);
 
-					let task_executor = config.task_executor.clone();
-					let polkadot_config = SubstrateCli::create_configuration(
-						&polkadot_cli,
-						&polkadot_cli,
-						task_executor,
-					)
-					.map_err(|err| format!("Relay chain argument error: {}", err))?;
-
-					info!("Parachain id: {:?}", id);
-					info!("Parachain Account: {}", parachain_account);
-					info!("Parachain genesis state: {}", genesis_state);
-					info!("Is collating: {}", if collator { "yes" } else { "no" });
-
-					if config.chain_spec.is_moonbeam() {
-						#[cfg(feature = "with-moonbeam-runtime")]
-						{
-							service::start_node::<service::moonbeam_runtime::RuntimeApi, service::MoonbeamExecutor>(
-								config,
-								key,
-								author_id,
-								polkadot_config,
-								id,
-								collator,
-								cli.run.ethapi,
-								rpc_params,
-							)
-							.await
-							.map(|r| r.0)
-							.map_err(Into::into)
-						}
-						#[cfg(not(feature = "with-moonbeam-runtime"))]
-						return Err(MISSING_MOONBEAM.into());
-					} else if config.chain_spec.is_moonriver() {
-						#[cfg(feature = "with-moonriver-runtime")]
-						{
-							service::start_node_moonriver::<service::moonriver_runtime::RuntimeApi, service::MoonriverExecutor>(
-								config,
-								key,
-								author_id,
-								polkadot_config,
-								id,
-								collator,
-							)
-							.await
-							.map(|r| r.0)
-							.map_err(Into::into)
-						}
-						#[cfg(not(feature = "with-moonriver-runtime"))]
-						return Err(MISSING_MOONRIVER.into());
-					} else {
-						#[cfg(feature = "with-moonbase-runtime")]
-						{
-							service::start_node::<service::moonbase_runtime::RuntimeApi, service::MoonbaseExecutor>(
-								config,
-								key,
-								author_id,
-								polkadot_config,
-								id,
-								collator,
-								cli.run.ethapi,
-								rpc_params,
-							)
-							.await
-							.map(|r| r.0)
-							.map_err(Into::into)
-						}
-						#[cfg(not(feature = "with-moonbase-runtime"))]
-						return Err(MISSING_MOONBASE.into());
+				let genesis_state = if config.chain_spec.is_moonbeam() {
+					#[cfg(feature = "with-moonbeam-runtime")]
+					{
+						let block: service::moonbeam_runtime::Block =
+							generate_genesis_block(&config.chain_spec)
+								.map_err(|e| format!("{:?}", e))?;
+						format!("0x{:?}", HexDisplay::from(&block.header().encode()))
 					}
-				})
+					#[cfg(not(feature = "with-moonbeam-runtime"))]
+					return Err(MISSING_MOONBEAM.into());
+				} else if config.chain_spec.is_moonriver() {
+					#[cfg(feature = "with-moonriver-runtime")]
+					{
+						let block: service::moonriver_runtime::Block =
+							generate_genesis_block(&config.chain_spec)
+								.map_err(|e| format!("{:?}", e))?;
+						format!("0x{:?}", HexDisplay::from(&block.header().encode()))
+					}
+					#[cfg(not(feature = "with-moonriver-runtime"))]
+					return Err(MISSING_MOONRIVER.into());
+				} else {
+					#[cfg(feature = "with-moonbase-runtime")]
+					{
+						let block: service::moonbase_runtime::Block =
+							generate_genesis_block(&config.chain_spec)
+								.map_err(|e| format!("{:?}", e))?;
+						format!("0x{:?}", HexDisplay::from(&block.header().encode()))
+					}
+					#[cfg(not(feature = "with-moonbase-runtime"))]
+					return Err(MISSING_MOONBASE.into());
+				};
+
+				let task_executor = config.task_executor.clone();
+				let polkadot_config =
+					SubstrateCli::create_configuration(&polkadot_cli, &polkadot_cli, task_executor)
+						.map_err(|err| format!("Relay chain argument error: {}", err))?;
+
+				info!("Parachain id: {:?}", id);
+				info!("Parachain Account: {}", parachain_account);
+				info!("Parachain genesis state: {}", genesis_state);
+				info!("Is collating: {}", if collator { "yes" } else { "no" });
+
+				if config.chain_spec.is_moonbeam() {
+					#[cfg(feature = "with-moonbeam-runtime")]
+					{
+						service::start_node::<
+							service::moonbeam_runtime::RuntimeApi,
+							service::MoonbeamExecutor,
+						>(
+							config,
+							key,
+							author_id,
+							polkadot_config,
+							id,
+							collator,
+							cli.run.ethapi,
+							rpc_params,
+						)
+						.await
+						.map(|r| r.0)
+						.map_err(Into::into)
+					}
+					#[cfg(not(feature = "with-moonbeam-runtime"))]
+					return Err(MISSING_MOONBEAM.into());
+				} else if config.chain_spec.is_moonriver() {
+					#[cfg(feature = "with-moonriver-runtime")]
+					{
+						service::start_node_moonriver::<
+							service::moonriver_runtime::RuntimeApi,
+							service::MoonriverExecutor,
+						>(config, key, author_id, polkadot_config, id, collator)
+						.await
+						.map(|r| r.0)
+						.map_err(Into::into)
+					}
+					#[cfg(not(feature = "with-moonriver-runtime"))]
+					return Err(MISSING_MOONRIVER.into());
+				} else {
+					#[cfg(feature = "with-moonbase-runtime")]
+					{
+						service::start_node::<
+							service::moonbase_runtime::RuntimeApi,
+							service::MoonbaseExecutor,
+						>(
+							config,
+							key,
+							author_id,
+							polkadot_config,
+							id,
+							collator,
+							cli.run.ethapi,
+							rpc_params,
+						)
+						.await
+						.map(|r| r.0)
+						.map_err(Into::into)
+					}
+					#[cfg(not(feature = "with-moonbase-runtime"))]
+					return Err(MISSING_MOONBASE.into());
+				}
+			})
 		}
 	}
 }

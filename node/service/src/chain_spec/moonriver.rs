@@ -23,9 +23,9 @@ use bip39::{Language, Mnemonic, Seed};
 use cumulus_primitives_core::ParaId;
 use log::debug;
 use moonriver_runtime::{
-	AccountId, AuthorFilterConfig, Balance, BalancesConfig, GenesisConfig,
-	InflationInfo, ParachainInfoConfig, ParachainStakingConfig, Range, SchedulerConfig, SudoConfig,
-	SystemConfig, GLMR, WASM_BINARY,
+	AccountId, AuthorFilterConfig, Balance, BalancesConfig, GenesisConfig, InflationInfo,
+	ParachainInfoConfig, ParachainStakingConfig, Range, SchedulerConfig, SudoConfig, SystemConfig,
+	GLMR, WASM_BINARY,
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
