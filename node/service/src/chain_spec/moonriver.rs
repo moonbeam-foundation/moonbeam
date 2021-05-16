@@ -152,7 +152,6 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 				moonbeam_inflation_config(),
 				accounts.clone(),
 				Default::default(), // para_id
-				1281,               //ChainId
 			)
 		},
 		vec![],
@@ -188,7 +187,6 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 				moonbeam_inflation_config(),
 				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
 				para_id,
-				1280, //ChainId
 			)
 		},
 		vec![],
@@ -229,17 +227,7 @@ pub fn testnet_genesis(
 	inflation_config: InflationInfo<Balance>,
 	endowed_accounts: Vec<AccountId>,
 	para_id: ParaId,
-	chain_id: u64,
 ) -> GenesisConfig {
-	// This is supposed the be the simplest bytecode to revert without returning any data.
-	// We will pre-deploy it under all of our precompiles to ensure they can be called from
-	// within contracts. TODO We should have a test to ensure this is the right bytecode.
-	// (PUSH1 0x00 PUSH1 0x00 REVERT)
-	let revert_bytecode = vec![0x60, 0x00, 0x60, 0x00, 0xFD];
-	// TODO consider whether this should be imported from moonbeam precompiles
-	let precompile_addresses = vec![1, 2, 3, 4, 5, 6, 7, 8, 1024, 1025, 2048]
-		.into_iter()
-		.map(H160::from_low_u64_be);
 	GenesisConfig {
 		frame_system: SystemConfig {
 			code: WASM_BINARY

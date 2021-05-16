@@ -16,38 +16,51 @@
 
 //! A collection of node-specific RPC methods.
 
-use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use cli_opt::EthApi as EthApiCmd;
-use ethereum::EthereumStorageSchema;
-use fc_rpc::{OverrideHandle, RuntimeApiStorageOverride, SchemaV1Override, StorageOverride};
-use fc_rpc_core::types::{FilterPool, PendingTransactions};
-use jsonrpc_pubsub::manager::SubscriptionManager;
-use moonbeam_rpc_debug::DebugRequester;
-use moonbeam_rpc_trace::CacheRequester as TraceFilterCacheRequester;
 #[cfg(feature = "with-moonbeam-runtime")]
-use moonbeam_runtime::{opaque::Block, AccountId, Balance, Hash, Index};
+use moonbeam_runtime::{opaque::Block, Hash};
 #[cfg(feature = "with-moonriver-runtime")]
-use moonriver_runtime::{opaque::Block, AccountId, Balance, Hash, Index};
+use moonriver_runtime::opaque::Block;
 #[cfg(feature = "with-moonbase-runtime")]
-use moonbase_runtime::{opaque::Block, AccountId, Balance, Hash, Index};
+use moonbase_runtime::{opaque::Block, Hash};
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
 	client::BlockchainEvents,
 };
-use sc_consensus_manual_seal::rpc::{EngineCommand, ManualSeal, ManualSealApi};
-use sc_network::NetworkService;
-use sc_rpc::SubscriptionTaskExecutor;
 use sc_rpc_api::DenyUnsafe;
 use sp_api::ProvideRuntimeApi;
-use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
 };
 use sp_runtime::traits::BlakeTwo256;
 use sp_transaction_pool::TransactionPool;
 use crate::client::{RuntimeApiCollection, EthereumRuntimeApiCollection};
+
+cfg_if::cfg_if! {
+    if #[cfg(not(feature = "with-moonriver-runtime"))] {
+		use std::collections::BTreeMap;
+		use cli_opt::EthApi as EthApiCmd;
+		use ethereum::EthereumStorageSchema;
+		use fc_rpc::{
+			OverrideHandle, RuntimeApiStorageOverride, SchemaV1Override, StorageOverride, EthApi,
+			EthApiServer, EthFilterApi, EthFilterApiServer, EthPubSubApi, EthPubSubApiServer,
+			HexEncodedIdProvider, NetApi, NetApiServer, Web3Api, Web3ApiServer,
+		};
+		use sc_rpc::SubscriptionTaskExecutor;
+		use sc_network::NetworkService;
+		use fc_rpc_core::types::{FilterPool, PendingTransactions};
+		use jsonrpc_pubsub::manager::SubscriptionManager;
+		use sc_consensus_manual_seal::rpc::{EngineCommand, ManualSeal, ManualSealApi};
+		use moonbeam_rpc_debug::{Debug, DebugServer, DebugRequester};
+		use moonbeam_rpc_trace::{
+			Trace, TraceServer, CacheRequester as TraceFilterCacheRequester,
+		};
+		use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
+		use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
+		use substrate_frame_rpc_system::{FullSystem, SystemApi};
+	}
+}
 
 // TODO-multiples-runtimes one rpc definition per network
 
@@ -102,16 +115,6 @@ where
 	C::Api: RuntimeApiCollection<StateBackend = BE::State> + EthereumRuntimeApiCollection,
 	P: TransactionPool<Block = Block> + 'static,
 {
-	use fc_rpc::{
-		EthApi, EthApiServer, EthFilterApi, EthFilterApiServer, EthPubSubApi, EthPubSubApiServer,
-		HexEncodedIdProvider, NetApi, NetApiServer, Web3Api, Web3ApiServer,
-	};
-	use moonbeam_rpc_debug::{Debug, DebugServer};
-	use moonbeam_rpc_trace::{Trace, TraceServer};
-	use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
-	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
-	use substrate_frame_rpc_system::{FullSystem, SystemApi};
-
 	let mut io = jsonrpc_core::IoHandler::default();
 	let FullDeps {
 		client,
@@ -241,20 +244,13 @@ pub struct FullDepsMoonriver<C, P, BE> {
 	pub pool: Arc<P>,
 	/// Whether to deny unsafe calls
 	pub deny_unsafe: DenyUnsafe,
-	/// The Node authority flag
-	pub is_authority: bool,
-	/// Network service
-	pub network: Arc<NetworkService<Block, Hash>>,
 	/// Backend.
 	pub backend: Arc<BE>,
-	/// Manual seal command sink
-	pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
 }
 /// Instantiate all Full RPC extensions.
 #[cfg(feature = "with-moonriver-runtime")]
 pub fn create_full_moonriver<C, P, BE>(
 	deps: FullDepsMoonriver<C, P, BE>,
-	subscription_task_executor: SubscriptionTaskExecutor,
 ) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
 where
 	BE: Backend<Block> + 'static,
@@ -275,9 +271,6 @@ where
 		client,
 		pool,
 		deny_unsafe,
-		is_authority,
-		network,
-		command_sink,
 		backend: _,
 	} = deps;
 

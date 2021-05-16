@@ -17,7 +17,6 @@
 //! This module constructs and executes the appropriate service components for the given subcommand
 
 use crate::cli::{Cli, RelayChainCli, Subcommand};
-use cli_opt::RpcParams;
 use cumulus_client_service::genesis::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
 use log::info;
@@ -39,15 +38,15 @@ use service::{chain_spec, IdentifyVariant};
 #[cfg(feature = "with-moonbase-runtime")]
 use std::str::FromStr;
 
-#[cfg(not(feature = "with-moonbeam-runtime"))]
-const MISSING_MOONBEAM: &str =
-	"Moonbeam runtime is not available. Please compile the node with `--features with-moonbeam-runtime` to enable it.";
-#[cfg(not(feature = "with-moonbase-runtime"))]
-const MISSING_MOONBASE: &str =
-	"Moonbase runtime is not available. Please compile the node with `--features with-moonbase-runtime` to enable it.";
 #[cfg(not(feature = "with-moonriver-runtime"))]
-const MISSING_MOONRIVER: &str =
-	"Moonriver runtime is not available. Please compile the node with `--features with-moonriver-runtime` to enable it.";
+use cli_opt::RpcParams;
+
+#[cfg(not(feature = "with-moonbeam-runtime"))]
+use cli_opt::MISSING_MOONBEAM;
+#[cfg(not(feature = "with-moonriver-runtime"))]
+use cli_opt::MISSING_MOONRIVER;
+#[cfg(not(feature = "with-moonbase-runtime"))]
+use cli_opt::MISSING_MOONBASE;
 	
 fn load_spec(
 	id: &str,
@@ -501,6 +500,7 @@ pub fn run() -> Result<()> {
 					};
 					let para_id = extension.map(|e| e.para_id);
 
+					#[cfg(not(feature = "with-moonriver-runtime"))]
 					let rpc_params = RpcParams {
 						ethapi_max_permits: cli.run.ethapi_max_permits,
 						ethapi_trace_max_count: cli.run.ethapi_trace_max_count,

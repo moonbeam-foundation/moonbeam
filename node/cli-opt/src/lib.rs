@@ -73,3 +73,13 @@ pub struct RpcParams {
     pub ethapi_trace_cache_duration: u64,
     pub max_past_logs: u32,
 }
+
+#[cfg(not(feature = "with-moonbeam-runtime"))]
+pub const MISSING_MOONBEAM: &str =
+	"Moonbeam runtime is not available. Please compile the node with `--features with-moonbeam-runtime` to enable it.";
+#[cfg(not(feature = "with-moonbase-runtime"))]
+pub const MISSING_MOONBASE: &str =
+	"Moonbase runtime is not available. Please compile the node with `--features with-moonbase-runtime` to enable it.";
+#[cfg(not(feature = "with-moonriver-runtime"))]
+pub const MISSING_MOONRIVER: &str =
+	"Moonriver runtime is not available. Please compile the node with `--features with-moonriver-runtime` to enable it.";

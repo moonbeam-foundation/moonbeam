@@ -29,7 +29,32 @@ pub use moonriver_runtime;
 #[cfg(feature = "with-moonbase-runtime")]
 pub use moonbase_runtime;
 
-use cli_opt::{EthApi as EthApiCmd, RpcParams};
+#[cfg(not(feature = "with-moonbeam-runtime"))]
+use cli_opt::MISSING_MOONBEAM;
+#[cfg(not(feature = "with-moonbase-runtime"))]
+use cli_opt::MISSING_MOONBASE;
+
+cfg_if::cfg_if! {
+    if #[cfg(not(feature = "with-moonriver-runtime"))] {
+		use futures::StreamExt;
+		use cli_opt::{EthApi as EthApiCmd, RpcParams, MISSING_MOONRIVER};
+		use fc_consensus::FrontierBlockImport;
+		use fc_mapping_sync::MappingSyncWorker;
+		use fc_rpc::EthTask;
+		use fc_rpc_core::types::{FilterPool, PendingTransactions};
+		use moonbeam_rpc_debug::DebugHandler;
+		use sc_client_api::BlockchainEvents;
+		use tokio::sync::Semaphore;
+		use sc_service::BasePath;
+		use std::{
+			collections::{BTreeMap, HashMap},
+			sync::Mutex,
+			time::Duration,
+		};
+    }
+}
+
+
 mod inherents;
 mod rpc;
 use inherents::build_inherent_data_providers;
@@ -40,29 +65,17 @@ use cumulus_client_network::build_block_announce_validator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
-use fc_consensus::FrontierBlockImport;
-use fc_mapping_sync::MappingSyncWorker;
-use fc_rpc::EthTask;
-use fc_rpc_core::types::{FilterPool, PendingTransactions};
-use futures::StreamExt;
-use moonbeam_rpc_debug::DebugHandler;
 use polkadot_primitives::v0::CollatorPair;
-use sc_client_api::BlockchainEvents;
 use sc_executor::{native_executor_instance, NativeExecutionDispatch};
 pub use sc_executor::NativeExecutor;
 use sc_service::{
-	error::Error as ServiceError, BasePath, Configuration, PartialComponents, Role, TFullBackend,
+	error::Error as ServiceError, Configuration, PartialComponents, Role, TFullBackend,
 	TFullClient, TaskManager, ChainSpec,
 };
 use sp_core::H160;
-use std::{
-	collections::{BTreeMap, HashMap},
-	sync::{Arc, Mutex},
-	time::Duration,
-};
+use std::sync::Arc;
 use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
-use tokio::sync::Semaphore;
 use sp_api::ConstructRuntimeApi;
 
 pub use client::*;
@@ -193,7 +206,7 @@ pub fn new_chain_ops(
 			Ok((Arc::new(Client::Moonbase(client)), backend, import_queue, task_manager))
 		}
 		#[cfg(not(feature = "with-moonbase-runtime"))]
-		Err("Moonbase runtime is not available. Please compile the node with `--features with-moonbase-runtime` to enable it.".into())
+		Err(MISSING_MOONBASE.into())
 	} else if config.chain_spec.is_moonriver() {
 		#[cfg(feature = "with-moonriver-runtime")]
 		{
@@ -207,7 +220,7 @@ pub fn new_chain_ops(
 			Ok((Arc::new(Client::Moonriver(client)), backend, import_queue, task_manager))
 		}
 		#[cfg(not(feature = "with-moonriver-runtime"))]
-		Err("Moonriver runtime is not available. Please compile the node with `--features with-moonriver-runtime` to enable it.".into())
+		Err(MISSING_MOONRIVER.into())
 	} else {
 		#[cfg(feature = "with-moonbeam-runtime")]
 		{
@@ -221,7 +234,7 @@ pub fn new_chain_ops(
 			Ok((Arc::new(Client::Moonbeam(client)), backend, import_queue, task_manager))
 		}
 		#[cfg(not(feature = "with-moonbeam-runtime"))]
-		Err("Moonbeam runtime is not available. Please compile the node with `--features with-moonbeam-runtime` to enable it.".into())
+		Err(MISSING_MOONBEAM.into())
 	}
 }
 
@@ -787,13 +800,9 @@ where
 			block_announce_validator_builder: Some(Box::new(|_| block_announce_validator)),
 		})?;
 
-	let subscription_task_executor =
-		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
-
 	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
-		let network = network.clone();
 		let backend = backend.clone();
 
 		Box::new(move |deny_unsafe, _| {
@@ -801,13 +810,10 @@ where
 				client: client.clone(),
 				pool: pool.clone(),
 				deny_unsafe,
-				is_authority: collator,
-				network: network.clone(),
-				command_sink: None,
 				backend: backend.clone(),
 			};
 
-			rpc::create_full_moonriver(deps, subscription_task_executor.clone())
+			rpc::create_full_moonriver(deps)
 		})
 	};
 
@@ -926,7 +932,7 @@ pub async fn start_node_moonriver<RuntimeApi, Executor>(
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>> + EthereumRuntimeApiCollection,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
 	start_node_impl_moonriver(
