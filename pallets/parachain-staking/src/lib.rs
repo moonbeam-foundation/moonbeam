@@ -76,7 +76,7 @@ pub mod pallet {
 		traits::{AtLeast32BitUnsigned, Zero},
 		Perbill, RuntimeDebug,
 	};
-	use sp_std::{cmp::Ordering, prelude::*};
+	use sp_std::{cmp::Ordering, collections::btree_map::BTreeMap, prelude::*};
 
 	/// Pallet for parachain staking
 	#[pallet::pallet]
@@ -679,31 +679,50 @@ pub mod pallet {
 			// Set initial collator candidate count
 			<CandidateCount<T>>::put(CollatorCount::new(0u32, T::MaxCollatorCandidates::get()));
 			let mut collator_count = 0u32;
-			// TODO: fix nominate call args using following:
-			// collator_nomination_count BTreeMap acc -> x
-			// nominator_nomination_count BTreeMap acc -> y
+			let mut col_nominator_count: BTreeMap<T::AccountId, u32> = BTreeMap::new();
+			let mut nom_nominator_count: BTreeMap<T::AccountId, u32> = BTreeMap::new();
 			for &(ref actor, ref opt_val, balance) in &self.stakers {
 				assert!(
 					T::Currency::free_balance(&actor) >= balance,
 					"Account does not have enough balance to bond."
 				);
-				// TODO: print something if either branch fails
-				let _ = if let Some(nominated_val) = opt_val {
-					<Pallet<T>>::nominate(
+				if let Some(nominated_val) = opt_val {
+					let cn_count = if let Some(x) = col_nominator_count.get(&nominated_val) {
+						*x
+					} else {
+						0u32
+					};
+					let nn_count = if let Some(x) = nom_nominator_count.get(&actor) {
+						*x
+					} else {
+						0u32
+					};
+					if let Ok(_) = <Pallet<T>>::nominate(
 						T::Origin::from(Some(actor.clone()).into()),
 						nominated_val.clone(),
 						balance,
-						0u32,
-						0u32,
-					)
+						cn_count,
+						nn_count,
+					) {
+						if let Some(x) = col_nominator_count.get_mut(&nominated_val) {
+							*x += 1u32;
+						} else {
+							col_nominator_count.insert(nominated_val.clone(), 1u32);
+						};
+						if let Some(x) = nom_nominator_count.get_mut(&actor) {
+							*x += 1u32;
+						} else {
+							nom_nominator_count.insert(actor.clone(), 1u32);
+						};
+					}
 				} else {
 					collator_count += 1u32;
-					<Pallet<T>>::join_candidates(
+					let _ = <Pallet<T>>::join_candidates(
 						T::Origin::from(Some(actor.clone()).into()),
 						balance,
 						collator_count - 1u32,
-					)
-				};
+					);
+				}
 			}
 			// Set collator commission to default config
 			<CollatorCommission<T>>::put(T::DefaultCollatorCommission::get());

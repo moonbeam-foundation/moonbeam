@@ -577,8 +577,8 @@ fn collator_commission() {
 				MetaEvent::stake(Event::JoinedCollatorCandidates(4, 20u128, 60u128))
 			);
 			roll_to(9);
-			assert_ok!(Stake::nominate(Origin::signed(5), 4, 10, 0u32));
-			assert_ok!(Stake::nominate(Origin::signed(6), 4, 10, 0u32));
+			assert_ok!(Stake::nominate(Origin::signed(5), 4, 10, 0u32, 0u32));
+			assert_ok!(Stake::nominate(Origin::signed(6), 4, 10, 1u32, 0u32));
 			roll_to(11);
 			let mut new = vec![
 				Event::JoinedCollatorCandidates(4, 20, 60),
@@ -648,18 +648,18 @@ fn multiple_nominations() {
 			];
 			assert_eq!(events(), expected);
 			assert_noop!(
-				Stake::nominate(Origin::signed(6), 1, 10, 1u32),
+				Stake::nominate(Origin::signed(6), 1, 10, 3u32, 1u32),
 				Error::<Test>::AlreadyNominatedCollator,
 			);
 			assert_noop!(
-				Stake::nominate(Origin::signed(6), 2, 2, 1u32),
+				Stake::nominate(Origin::signed(6), 2, 2, 2u32, 1u32),
 				Error::<Test>::NominationBelowMin,
 			);
-			assert_ok!(Stake::nominate(Origin::signed(6), 2, 10, 1u32));
-			assert_ok!(Stake::nominate(Origin::signed(6), 3, 10, 2u32));
-			assert_ok!(Stake::nominate(Origin::signed(6), 4, 10, 3u32));
+			assert_ok!(Stake::nominate(Origin::signed(6), 2, 10, 2u32, 1u32));
+			assert_ok!(Stake::nominate(Origin::signed(6), 3, 10, 0u32, 2u32));
+			assert_ok!(Stake::nominate(Origin::signed(6), 4, 10, 0u32, 3u32));
 			assert_noop!(
-				Stake::nominate(Origin::signed(6), 5, 10, 4u32),
+				Stake::nominate(Origin::signed(6), 5, 10, 0u32, 4u32),
 				Error::<Test>::ExceedMaxCollatorsPerNom,
 			);
 			roll_to(16);
@@ -683,9 +683,9 @@ fn multiple_nominations() {
 			expected.append(&mut new);
 			assert_eq!(events(), expected);
 			roll_to(21);
-			assert_ok!(Stake::nominate(Origin::signed(7), 2, 80, 1u32));
+			assert_ok!(Stake::nominate(Origin::signed(7), 2, 80, 3u32, 1u32));
 			assert_noop!(
-				Stake::nominate(Origin::signed(7), 3, 11, 2u32),
+				Stake::nominate(Origin::signed(7), 3, 11, 1u32, 2u32),
 				DispatchError::Module {
 					index: 1,
 					error: 3,
@@ -693,7 +693,7 @@ fn multiple_nominations() {
 				},
 			);
 			assert_noop!(
-				Stake::nominate(Origin::signed(10), 2, 10, 1u32),
+				Stake::nominate(Origin::signed(10), 2, 10, 4u32, 1u32),
 				Error::<Test>::TooManyNominators
 			);
 			roll_to(26);
@@ -946,8 +946,8 @@ fn revoke_nomination_or_leave_nominators() {
 				Stake::leave_nominators(Origin::signed(1), 0u32),
 				Error::<Test>::NominatorDNE
 			);
-			assert_ok!(Stake::nominate(Origin::signed(6), 2, 3, 1u32));
-			assert_ok!(Stake::nominate(Origin::signed(6), 3, 3, 2u32));
+			assert_ok!(Stake::nominate(Origin::signed(6), 2, 3, 2u32, 1u32));
+			assert_ok!(Stake::nominate(Origin::signed(6), 3, 3, 0u32, 2u32));
 			assert_ok!(Stake::revoke_nomination(Origin::signed(6), 1));
 			// cannot revoke nomination because would leave remaining total below MinNominatorStk
 			assert_noop!(
@@ -1087,7 +1087,7 @@ fn payouts_follow_nomination_changes() {
 			expected.append(&mut new4);
 			assert_eq!(events(), expected);
 			set_author(7, 1, 100);
-			assert_ok!(Stake::nominate(Origin::signed(8), 1, 10, 1u32));
+			assert_ok!(Stake::nominate(Origin::signed(8), 1, 10, 3u32, 1u32));
 			roll_to(36);
 			// new nomination is not rewarded yet
 			let mut new5 = vec![
