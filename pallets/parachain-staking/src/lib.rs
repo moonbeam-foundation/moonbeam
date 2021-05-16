@@ -1070,94 +1070,65 @@ pub mod pallet {
 			nomination_count: u32,
 		) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
-			if let Some(mut nominator) = <NominatorState<T>>::get(&acc) {
+			let nominator = if let Some(mut nom) = <NominatorState<T>>::get(&acc) {
 				// nomination after first
 				ensure!(
 					amount >= T::MinNomination::get(),
 					Error::<T>::NominationBelowMin
 				);
 				ensure!(
-					nomination_count >= nominator.nominations.0.len() as u32,
+					nomination_count >= nom.nominations.0.len() as u32,
 					Error::<T>::TooLowNominationCountToNominate
 				);
 				ensure!(
-					(nominator.nominations.0.len() as u32) < T::MaxCollatorsPerNominator::get(),
+					(nom.nominations.0.len() as u32) < T::MaxCollatorsPerNominator::get(),
 					Error::<T>::ExceedMaxCollatorsPerNom
 				);
-				let mut state =
-					<CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 				ensure!(
-					collator_nominator_count >= state.nominators.0.len() as u32,
-					Error::<T>::TooLowCollatorCountToNominate
-				);
-				ensure!(
-					nominator.add_nomination(Bond {
+					nom.add_nomination(Bond {
 						owner: collator.clone(),
 						amount
 					}),
 					Error::<T>::AlreadyNominatedCollator
 				);
-				let nomination = Bond {
-					owner: acc.clone(),
-					amount,
-				};
-				ensure!(
-					(state.nominators.0.len() as u32) < T::MaxNominatorsPerCollator::get(),
-					Error::<T>::TooManyNominators
-				);
-				ensure!(
-					state.nominators.insert(nomination),
-					Error::<T>::NominatorExists
-				);
-				T::Currency::reserve(&acc, amount)?;
-				let new_total = state.total + amount;
-				if state.is_active() {
-					Self::update_active(collator.clone(), new_total);
-				}
-				let new_total_locked = <Total<T>>::get() + amount;
-				<Total<T>>::put(new_total_locked);
-				state.total = new_total;
-				<CollatorState<T>>::insert(&collator, state);
-				<NominatorState<T>>::insert(&acc, nominator);
-				Self::deposit_event(Event::Nomination(acc, amount, collator, new_total));
+				nom
 			} else {
 				// first nomination
 				ensure!(
 					amount >= T::MinNominatorStk::get(),
 					Error::<T>::NomBondBelowMin
 				);
-				// cannot be a collator candidate and nominator with same AccountId
 				ensure!(!Self::is_candidate(&acc), Error::<T>::CandidateExists);
-				let mut state =
-					<CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
-				ensure!(
-					collator_nominator_count >= state.nominators.0.len() as u32,
-					Error::<T>::TooLowCollatorCountToNominate
-				);
-				let nomination = Bond {
-					owner: acc.clone(),
-					amount,
-				};
-				ensure!(
-					state.nominators.insert(nomination),
-					Error::<T>::NominatorExists
-				);
-				ensure!(
-					(state.nominators.0.len() as u32) <= T::MaxNominatorsPerCollator::get(),
-					Error::<T>::TooManyNominators
-				);
-				T::Currency::reserve(&acc, amount)?;
-				let new_total = state.total + amount;
-				if state.is_active() {
-					Self::update_active(collator.clone(), new_total);
-				}
-				let new_total_locked = <Total<T>>::get() + amount;
-				<Total<T>>::put(new_total_locked);
-				state.total = new_total;
-				<CollatorState<T>>::insert(&collator, state);
-				<NominatorState<T>>::insert(&acc, Nominator::new(collator.clone(), amount));
-				Self::deposit_event(Event::Nomination(acc, amount, collator, new_total));
+				Nominator::new(collator.clone(), amount)
+			};
+			let mut state = <CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
+			ensure!(
+				collator_nominator_count >= state.nominators.0.len() as u32,
+				Error::<T>::TooLowCollatorCountToNominate
+			);
+			let nomination = Bond {
+				owner: acc.clone(),
+				amount,
+			};
+			ensure!(
+				(state.nominators.0.len() as u32) < T::MaxNominatorsPerCollator::get(),
+				Error::<T>::TooManyNominators
+			);
+			ensure!(
+				state.nominators.insert(nomination),
+				Error::<T>::NominatorExists
+			);
+			T::Currency::reserve(&acc, amount)?;
+			let new_total = state.total + amount;
+			if state.is_active() {
+				Self::update_active(collator.clone(), new_total);
 			}
+			let new_total_locked = <Total<T>>::get() + amount;
+			<Total<T>>::put(new_total_locked);
+			state.total = new_total;
+			<CollatorState<T>>::insert(&collator, state);
+			<NominatorState<T>>::insert(&acc, nominator);
+			Self::deposit_event(Event::Nomination(acc, amount, collator, new_total));
 			Ok(().into())
 		}
 		/// Leave the set of nominators and, by implication, revoke all ongoing nominations
