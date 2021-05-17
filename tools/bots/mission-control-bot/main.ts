@@ -1,9 +1,17 @@
 import { Client, Message } from "discord.js";
 import Web3 from "web3";
+import { mnemonicToSeedSync } from "bip39";
+import { hdkey } from "ethereumjs-wallet";
 
-import { UserToTimestamp, BalanceCheck } from "./types";
+import { Receivers, FundsRequest, WorkerAccount } from "./types";
 import { params } from "./constants";
-import { botActionBalance, botActionFaucetSend, balanceCheck } from "./actions";
+import {
+  botActionBalance,
+  botActionFaucetSend,
+  balanceMonitorCheck,
+  fundRequestsResolver,
+} from "./actions";
+import { deriveWorkerAccount, range } from "./utils";
 
 async function onReceiveMessage(msg: Message) {
   const authorId = msg?.author?.id;
@@ -21,8 +29,8 @@ async function onReceiveMessage(msg: Message) {
       msg,
       authorId,
       messageContent,
-      receivers,
-      lastBalanceCheck,
+      discordUserReceivers,
+      addressReceivers,
       pendingQueue
     );
   } else if (messageContent.startsWith("!balance")) {
@@ -38,12 +46,11 @@ Object.keys(params).forEach((param) => {
   }
 });
 
-const receivers: UserToTimestamp = {};
-const pendingQueue: string[] = [];
-const lastBalanceCheck: BalanceCheck = {
-  timestamp: 0,
-  balance: BigInt(0),
-};
+const hdkeyGenerator = hdkey.fromMasterSeed(mnemonicToSeedSync(params.WORKERS_MNEMONIC));
+const discordUserReceivers: Receivers = {};
+const addressReceivers: Receivers = {};
+const workers: WorkerAccount[] = [];
+const pendingQueue: FundsRequest[] = [];
 
 console.log(`Starting bot...`);
 const client: Client = new Client();
@@ -59,12 +66,22 @@ client.on("message", async (msg) => {
   try {
     await onReceiveMessage(msg);
   } catch (e) {
-    console.log(new Date().toISOString(), "ERROR", e.stack || e);
+    console.log(new Date().toISOString(), "ERROR_0", e.stack || e);
   }
 });
 
+// Derive worker accounts
+for (const index of range(params.WORKERS_COUNT)) {
+  workers.push(deriveWorkerAccount(hdkeyGenerator, index));
+}
+
 // Start balance checker
-balanceCheck(web3Api);
+console.log(`Starting bot balance monitor...`);
+balanceMonitorCheck(web3Api, workers);
+
+// Start resolver
+console.log(`Starting funds requests resolver...`);
+fundRequestsResolver(web3Api, workers, pendingQueue, discordUserReceivers, addressReceivers);
 
 // Perform login and listen for new events
 client.login(params.DISCORD_TOKEN);

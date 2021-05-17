@@ -1,25 +1,22 @@
 import https from "https";
-import { MessageEmbed, Message } from "discord.js";
+import { hdkey } from "ethereumjs-wallet";
 
-import { EMBED_COLOR_ERROR } from "./constants";
+import { WorkerAccount } from "./types";
 
 /**
  * Send notification to Slack using a webhook URL.
  * @param webhookUrl Webhook to Slack app
  * @param accountId Account of the bot
  * @param account_balance Balance of the account in DEV
- * @param tokens_issued Number of tokens issued each time
  */
 export async function sendSlackNotification(
   webhookUrl: string,
   accountId: string,
-  account_balance: bigint,
-  tokens_issued: bigint
+  account_balance: bigint
 ) {
   // Message to send to Slack (JSON payload)
   const title = "Fund bot operational account";
-  const message = "The account linked to the bot is running low on funds.";
-  const remainingAlerts = account_balance / tokens_issued;
+  const message = "The account linked to the bot is running low on funds";
 
   const payload = {
     attachments: [
@@ -27,20 +24,20 @@ export async function sendSlackNotification(
         color: "warning",
         fallback:
           `${title}. ${message}\n` +
-          `  * Balance: ${account_balance.toString()} DEV\n` +
-          `  * Alerts until failure: ${remainingAlerts.toString()}\n` +
+          `  * Current balance: ${account_balance.toString()} DEV\n` +
+          `  * Desired balance: 10,000+ DEV\n` +
           `  * Fund the following account: ${accountId}`,
         title: title,
         text: message,
         fields: [
           {
-            title: "Balance",
+            title: "Current balance",
             value: `${account_balance.toString()} DEV`,
             short: true,
           },
           {
-            title: "Alerts until failure",
-            value: `${remainingAlerts.toString()}`,
+            title: "Desired balance",
+            value: `10,000+ DEV`,
             short: true,
           },
           {
@@ -115,49 +112,38 @@ export function nextAvailableToken(lastTokenRequestMoment: number, faucet_interv
 }
 
 /**
- * Checks that the address follows the H160 adress format
- * @param {string} address Address to check
- * @param {Message} msg Received discord message object
- */
-export function checkH160AddressIsCorrect(address: string, msg: Message) {
-  let addressIsCorrect = true;
-
-  // slice address if defined in hexadecimal
-  if (address.startsWith("0x")) {
-    address = address.slice(2);
-  }
-
-  // check that address is 40 characters long
-  if (address.length != 40) {
-    addressIsCorrect = false;
-  }
-
-  // check that address only contains alphanumerical characters
-  if (!address.match(/^[a-z0-9]+$/i)) {
-    addressIsCorrect = false;
-  }
-
-  // resolve if address was not correct
-  if (addressIsCorrect === false) {
-    const errorEmbed = new MessageEmbed()
-      .setColor(EMBED_COLOR_ERROR)
-      .setTitle("Invalid address")
-      .setFooter("Addresses must follow the H160 address format");
-
-    // send message to channel
-    msg.channel.send(errorEmbed);
-  }
-
-  return addressIsCorrect;
-}
-
-/**
  * Sleeps for a defined number of seconds and minutes (latter not required)
  * @param seconds Number of seconds
  * @param minutes Number of minutes (not required)
  */
-export async function sleep(seconds: number, minutes: number = 0){
-  let totalMs = (minutes * 60 * 1000) + (seconds * 1000)
+export async function sleep(seconds: number, minutes: number = 0) {
+  let totalMs = minutes * 60 * 1000 + seconds * 1000;
 
   await new Promise((r) => setTimeout(r, totalMs));
+}
+
+/**
+ * Returns an array with a range of numbers from 0 to length-1
+ * @param length Length of the resultant array
+ */
+export function range(length: number) {
+  return [...Array(length).keys()];
+}
+
+/**
+ * Derive the account of a worker from a mnemonic
+ * @param hdkeyGenerator The hdkey used to derive the account
+ * @param index The index used for the path of the derivation
+ * @returns The account of the worker with its address and private key
+ */
+export function deriveWorkerAccount(hdkeyGenerator: hdkey, index: number): WorkerAccount {
+  const path = `m/44'/60'/0'/0/${index}`;
+  const wallet = hdkeyGenerator.derivePath(path).getWallet();
+
+  const worker: WorkerAccount = {
+    address: wallet.getAddressString(),
+    privateKey: wallet.getPrivateKeyString(),
+  };
+
+  return worker;
 }
