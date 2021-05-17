@@ -98,7 +98,7 @@ pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
 pub const HOURS: BlockNumber = MINUTES * 60;
 pub const DAYS: BlockNumber = HOURS * 24;
 pub const MONTHS: BlockNumber = DAYS * 30;
-
+const ALICE: [u8; 20] = [4u8; 20];
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
@@ -191,6 +191,16 @@ impl frame_system::Config for Runtime {
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 }
+
+/*impl cumulus_pallet_parachain_system::Config for Test {
+	type SelfParaId = ParachainId;
+	type Event = Event;
+	type OnValidationData = ();
+	type DownwardMessageHandlers = ();
+	type OutboundXcmpMessageSource = ();
+	type XcmpMessageHandler = ();
+	type ReservedXcmpWeight = ();
+}*/
 
 impl pallet_utility::Config for Runtime {
 	type Event = Event;
@@ -522,22 +532,23 @@ impl pallet_author_slot_filter::Config for Runtime {
 
 parameter_types! {
 	// Thinking a
-	pub const LeasePeriod: BlockNumber = 6 * MONTHS;
 	pub const VestingPeriod: BlockNumber = 1 * MONTHS;
-	pub const DefaultNextInitialization: BlockNumber = 0;
 	pub const DefaultBlocksPerRoundCrowdloan: BlockNumber = 500;
 	pub const MinimumContribution: Balance = 0;
+	pub const Initialized: bool = false;
+	pub const InitializationPayment: Perbill = Perbill::from_percent(20);
 }
 
 impl pallet_crowdloan_rewards::Config for Runtime {
 	type Event = Event;
-	type LeasePeriod = LeasePeriod;
 	type DefaultBlocksPerRound = DefaultBlocksPerRoundCrowdloan;
-	type DefaultNextInitialization = DefaultNextInitialization;
+	type Initialized = Initialized;
+	type InitializationPayment = InitializationPayment;
 	type MinimumContribution = MinimumContribution;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = AccountId32;
 	type VestingPeriod = VestingPeriod;
+}
 // This is a simple session key manager. It should probably either work with, or be replaced
 // entirely by pallet sessions
 impl pallet_author_mapping::Config for Runtime {
@@ -573,7 +584,7 @@ construct_runtime! {
 		// Concretely we need the author inherent to come after the parachain_system inherent.
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent},
 		AuthorFilter: pallet_author_slot_filter::{Pallet, Storage, Event, Config},
-		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Storage, Event<T>}
+		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Storage, Event<T>},
 		AuthorMapping: pallet_author_mapping::{Pallet, Config<T>, Storage},
 	}
 }
@@ -1114,7 +1125,7 @@ impl_runtime_apis! {
 			let params = (&config, &whitelist);
 
 			add_benchmark!(params, batches, parachain_staking, ParachainStakingBench::<Runtime>);
-			add_benchmark!(params, batches, pallet_crowdloan_Rewards, PalletCrowdloanRewardsBench::<Runtime>);
+			add_benchmark!(params, batches, pallet_crowdloan_rewards, PalletCrowdloanRewardsBench::<Runtime>);
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }

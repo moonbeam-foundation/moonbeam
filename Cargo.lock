@@ -1369,7 +1369,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus#9f16c89475d9b27ac1ba7ebec9f5670d61ddf72d"
+source = "git+https://github.com/purestake/cumulus?branch=nimbus#c6744d77c935febb27056836894073a2b9a98286"
 dependencies = [
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
@@ -5370,12 +5370,16 @@ dependencies = [
 [[package]]
 name = "pallet-crowdloan-rewards"
 version = "0.6.0"
-source = "git+https://github.com/purestake/crowdloan-rewards?rev=649176a#649176a1ea9350ce914a98d8493f1215a611cd70"
+source = "git+https://github.com/purestake/crowdloan-rewards?rev=e020137#e0201374fc5e850df20b6bfb78851d3ec8d84ee6"
 dependencies = [
+ "cumulus-pallet-parachain-system",
+ "cumulus-primitives-core",
+ "cumulus-primitives-parachain-inherent",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",
+ "nimbus-primitives",
  "pallet-balances",
  "pallet-utility",
  "parity-scale-codec",
@@ -5384,6 +5388,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+ "sp-trie",
 ]
 
 [[package]]
