@@ -25,7 +25,6 @@ sha3 = { version = "0.8", default-features = false }
 tiny-hderive = { version = "0.3.0", default-features = false }
 tiny-bip39 = { version = "0.6", default-features = false }
 tokio = { version = "0.2.13", features = ["macros", "sync"] }
-cfg-if = "1.0"
 
 cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt" }
 
