@@ -22,24 +22,24 @@
 //! Full Service: A complete parachain node including the pool, rpc, network, embedded relay chain
 //! Dev Service: A leaner service without the relay chain backing.
 
-pub use moonbase_runtime;
-pub use moonbeam_runtime;
-pub use moonriver_runtime;
-use futures::StreamExt;
 use cli_opt::{EthApi as EthApiCmd, RpcParams};
 use fc_consensus::FrontierBlockImport;
 use fc_mapping_sync::MappingSyncWorker;
 use fc_rpc::EthTask;
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
+use futures::StreamExt;
+pub use moonbase_runtime;
 use moonbeam_rpc_debug::DebugHandler;
+pub use moonbeam_runtime;
+pub use moonriver_runtime;
 use sc_client_api::BlockchainEvents;
-use tokio::sync::Semaphore;
 use sc_service::BasePath;
 use std::{
 	collections::{BTreeMap, HashMap},
 	sync::Mutex,
 	time::Duration,
 };
+use tokio::sync::Semaphore;
 mod inherents;
 mod rpc;
 use cumulus_client_consensus_relay_chain::{
@@ -203,9 +203,7 @@ pub fn new_chain_ops(
 			import_queue,
 			task_manager,
 			..
-		} = new_partial::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(
-			config, author_id, false,
-		)?;
+		} = new_partial::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(config, author_id, false)?;
 		Ok((
 			Arc::new(Client::Moonbeam(client)),
 			backend,
@@ -249,9 +247,8 @@ pub fn new_partial<RuntimeApi, Executor>(
 where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection<
-		StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>,
-	>,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
 	let inherent_data_providers = build_inherent_data_providers(author, dev_service)?;
@@ -471,9 +468,8 @@ where
 		+ 'static,
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection<
-		StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>,
-	>,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
 	if matches!(parachain_config.role, Role::Light) {
@@ -875,9 +871,8 @@ pub async fn start_node<RuntimeApi, Executor>(
 where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection<
-		StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>,
-	>,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
 	start_node_impl(

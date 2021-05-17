@@ -1,9 +1,12 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use sp_runtime::{generic, traits::{Verify, IdentifyAccount}};
+use account::EthereumSignature;
 use sp_runtime::traits::BlakeTwo256;
 pub use sp_runtime::OpaqueExtrinsic as UncheckedExtrinsic;
-use account::EthereumSignature;
+use sp_runtime::{
+	generic,
+	traits::{IdentifyAccount, Verify},
+};
 
 pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 /// Alias to 512-bit hash when used in the context of a transaction signature on the chain.

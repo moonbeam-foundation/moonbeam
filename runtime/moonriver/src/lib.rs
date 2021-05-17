@@ -28,13 +28,15 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-pub use moonbeam_core_primitives::{AccountId, Balance, BlockNumber, Hash, Header, Index, Signature};
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::Randomness,
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 };
 use frame_system::EnsureRoot;
+pub use moonbeam_core_primitives::{
+	AccountId, Balance, BlockNumber, Hash, Header, Index, Signature,
+};
 
 use pallet_transaction_payment::CurrencyAdapter;
 pub use parachain_staking::{InflationInfo, Range};

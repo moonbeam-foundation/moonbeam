@@ -67,7 +67,7 @@ fn load_spec(
 					.flatten()
 					.unwrap_or(false)
 			};
-			
+
 			if starts_with("moonbeam") {
 				Box::new(chain_spec::moonbeam::ChainSpec::from_json_file(path)?)
 			} else if starts_with("moonriver") {
@@ -311,8 +311,7 @@ pub fn run() -> Result<()> {
 				};
 				output_buf
 			} else if chain_spec.is_moonriver() {
-				let block: service::moonriver_runtime::Block =
-					generate_genesis_block(&chain_spec)?;
+				let block: service::moonriver_runtime::Block = generate_genesis_block(&chain_spec)?;
 				let raw_header = block.header().encode();
 				let output_buf = if params.raw {
 					raw_header
@@ -321,8 +320,7 @@ pub fn run() -> Result<()> {
 				};
 				output_buf
 			} else {
-				let block: service::moonbase_runtime::Block =
-					generate_genesis_block(&chain_spec)?;
+				let block: service::moonbase_runtime::Block = generate_genesis_block(&chain_spec)?;
 				let raw_header = block.header().encode();
 				let output_buf = if params.raw {
 					raw_header

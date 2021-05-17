@@ -13,8 +13,8 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-use serde::{Deserialize, Serialize};
 use sc_chain_spec::ChainSpecExtension;
+use serde::{Deserialize, Serialize};
 pub mod moonbase;
 pub mod moonbeam;
 pub mod moonriver;

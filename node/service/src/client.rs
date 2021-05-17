@@ -13,7 +13,7 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-pub use moonbeam_core_primitives::{Block, AccountId, Balance, BlockNumber, Hash, Header, Index};
+pub use moonbeam_core_primitives::{AccountId, Balance, Block, BlockNumber, Hash, Header, Index};
 use sc_client_api::{Backend as BackendT, BlockchainEvents, KeyIterator};
 use sp_api::{CallApiAt, NumberFor, ProvideRuntimeApi};
 use sp_blockchain::HeaderBackend;
@@ -146,9 +146,15 @@ pub enum Client {
 impl ClientHandle for Client {
 	fn execute_with<T: ExecuteWithClient>(&self, t: T) -> T::Output {
 		match self {
-			Self::Moonbeam(client) => T::execute_with_client::<_, _, crate::FullBackend>(t, client.clone()),
-			Self::Moonriver(client) => T::execute_with_client::<_, _, crate::FullBackend>(t, client.clone()),
-			Self::Moonbase(client) => T::execute_with_client::<_, _, crate::FullBackend>(t, client.clone()),
+			Self::Moonbeam(client) => {
+				T::execute_with_client::<_, _, crate::FullBackend>(t, client.clone())
+			}
+			Self::Moonriver(client) => {
+				T::execute_with_client::<_, _, crate::FullBackend>(t, client.clone())
+			}
+			Self::Moonbase(client) => {
+				T::execute_with_client::<_, _, crate::FullBackend>(t, client.clone())
+			}
 		}
 	}
 }

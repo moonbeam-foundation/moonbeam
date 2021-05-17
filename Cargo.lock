@@ -4883,7 +4883,6 @@ dependencies = [
  "ansi_term 0.12.1",
  "assert_cmd",
  "async-io",
- "cfg-if 1.0.0",
  "cumulus-client-cli",
  "cumulus-client-collator",
  "cumulus-client-consensus-common",

@@ -28,7 +28,6 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-pub use moonbeam_core_primitives::{AccountId, Balance, BlockNumber, Hash, Header, Index, Signature};
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime,
@@ -38,6 +37,9 @@ use frame_support::{
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 };
 use frame_system::{EnsureOneOf, EnsureRoot};
+pub use moonbeam_core_primitives::{
+	AccountId, Balance, BlockNumber, Hash, Header, Index, Signature,
+};
 use moonbeam_extensions_evm::runner::stack::TraceRunner as TraceRunnerT;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{Transaction as EthereumTransaction, TransactionAction};
