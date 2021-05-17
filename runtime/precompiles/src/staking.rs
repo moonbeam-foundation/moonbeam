@@ -88,7 +88,7 @@ where
 
 			// If not an accessor, check for dispatchables. These calls ready for dispatch below.
 			[0xad, 0x76, 0xed, 0x5a] => Self::join_candidates(&input[SELECTOR_SIZE_BYTES..])?,
-			[0xb7, 0x69, 0x42, 0x19] => Self::leave_candidates()?,
+			[0xb7, 0x69, 0x42, 0x19] => Self::leave_candidates(&input[SELECTOR_SIZE_BYTES..])?,
 			[0x76, 0x7e, 0x04, 0x50] => Self::go_offline()?,
 			[0xd2, 0xf7, 0x3c, 0xeb] => Self::go_online()?,
 			[0x28, 0x9b, 0x6b, 0xa7] => Self::candidate_bond_less(&input[SELECTOR_SIZE_BYTES..])?,
@@ -194,6 +194,27 @@ where
 	Ok(amount)
 }
 
+/// Parses Weight Hint: u32 from a 256 bit (32 byte) slice.
+fn parse_weight_hint(input: &[u8]) -> Result<u32, ExitError> {
+	const WEIGHT_HINT_SIZE_BYTES: usize = 32;
+
+	if input.len() != WEIGHT_HINT_SIZE_BYTES {
+		log::trace!(target: "staking-precompile",
+			"Unable to parse weight hint. Got {} bytes, expected {}",
+			input.len(),
+			WEIGHT_HINT_SIZE_BYTES,
+		);
+		return Err(ExitError::Other(
+			"Incorrect input length for weight hint parsing".into(),
+		));
+	}
+
+	let weight_hint: u32 = U256::from_big_endian(&input[0..WEIGHT_HINT_SIZE_BYTES])
+		.try_into()
+		.map_err(|_| ExitError::Other("Weight hint is too large for u32".into()))?;
+	Ok(weight_hint)
+}
+
 impl<Runtime> ParachainStakingWrapper<Runtime>
 where
 	Runtime: parachain_staking::Config + pallet_evm::Config,
@@ -289,16 +310,41 @@ where
 	// The dispatchable wrappers are next. They return a substrate inner Call ready for dispatch.
 
 	fn join_candidates(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		let amount = parse_amount::<BalanceOf<Runtime>>(input)?;
+		let amount = parse_amount::<BalanceOf<Runtime>>(&input[..32])?;
+		let collator_candidate_count = parse_weight_hint(&input[32..])?;
 
 		log::trace!(target: "staking-precompile", "Collator stake amount is {:?}", amount);
+		log::trace!(
+			target: "staking-precompile",
+			"Weight Hint: collator count is {:?}",
+			collator_candidate_count
+		);
 
-		// TODO: parse input into u32 for candidate_count
-		Ok(parachain_staking::Call::<Runtime>::join_candidates(amount, 0u32))
+		Ok(parachain_staking::Call::<Runtime>::join_candidates(
+			amount,
+			collator_candidate_count,
+		))
 	}
 
-	fn leave_candidates() -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		Ok(parachain_staking::Call::<Runtime>::leave_candidates(0u32, 0u32))
+	fn leave_candidates(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
+		let collator_candidate_count = parse_weight_hint(&input[..32])?;
+		let collator_nominator_count = parse_weight_hint(&input[32..])?;
+
+		log::trace!(
+			target: "staking-precompile",
+			"Weight Hint: collator candidate count is {:?}",
+			collator_candidate_count
+		);
+		log::trace!(
+			target: "staking-precompile",
+			"Weight Hint: collator nominator count is {:?}",
+			collator_nominator_count
+		);
+
+		Ok(parachain_staking::Call::<Runtime>::leave_candidates(
+			collator_candidate_count,
+			collator_nominator_count,
+		))
 	}
 
 	fn go_offline() -> Result<parachain_staking::Call<Runtime>, ExitError> {
@@ -333,22 +379,43 @@ where
 		log::trace!(target: "staking-precompile", "In nominate dispatchable wrapper");
 		log::trace!(target: "staking-precompile", "input is {:?}", input);
 		let collator = parse_account(&input[..32])?;
-		let amount = parse_amount::<BalanceOf<Runtime>>(&input[32..])?;
+		let amount = parse_amount::<BalanceOf<Runtime>>(&input[32..64])?;
+		let col_nom_count = parse_weight_hint(&input[64..96])?;
+		let nom_nom_count = parse_weight_hint(&input[96..])?;
 
 		log::trace!(target: "staking-precompile", "Collator account is {:?}", collator);
 		log::trace!(target: "staking-precompile", "Nomination amount is {:?}", amount);
+		log::trace!(
+			target: "staking-precompile",
+			"Weight Hint: collator nominations count is {:?}",
+			col_nom_count
+		);
+		log::trace!(
+			target: "staking-precompile",
+			"Weight Hint: nominator nominations count is {:?}",
+			nom_nom_count
+		);
 
 		Ok(parachain_staking::Call::<Runtime>::nominate(
 			collator.into(),
 			amount,
-			0u32, // TODO: parse input into u32 for collator_nom_count
-			0u32, // TODO: parse input into u32 for nomination_count
+			col_nom_count,
+			nom_nom_count,
 		))
 	}
 
 	fn leave_nominators(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		// TODO: parse input into u32 for nomination_count
-		Ok(parachain_staking::Call::<Runtime>::leave_nominators(0u32))
+		let weight_hint = parse_weight_hint(&input[..32])?;
+
+		log::trace!(
+			target: "staking-precompile",
+			"Weight Hint: nominator nomination count is {:?}",
+			weight_hint
+		);
+
+		Ok(parachain_staking::Call::<Runtime>::leave_nominators(
+			weight_hint,
+		))
 	}
 
 	fn revoke_nomination(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {

@@ -19,12 +19,13 @@ interface ParachainStaking {
     // Now the dispatchables
 
     /// Join the set of collator candidates
-    function join_candidates(uint256 amount) external;
+    function join_candidates(uint256 amount, uint256 candidateCount) external;
 
     /// Request to leave the set of candidates. If successful, the account is immediately
     /// removed from the candidate pool to prevent selection as a collator, but unbonding is
     /// executed with a delay of `BondDuration` rounds.
-    function leave_candidates() external;
+    function leave_candidates(uint256 candidateCount, uint256 nominationCount)
+        external;
 
     /// Temporarily leave the set of collator candidates without unbonding
     function go_offline() external;
@@ -40,10 +41,15 @@ interface ParachainStaking {
 
     /// If caller is not a nominator, then join the set of nominators
     /// If caller is a nominator, then makes nomination to change their nomination state
-    function nominate(address collator, uint256 amount) external;
+    function nominate(
+        address collator,
+        uint256 amount,
+        uint256 colNomCount,
+        uint256 nomNomCount
+    ) external;
 
     /// Leave the set of nominators and, by implication, revoke all ongoing nominations
-    function leave_nominators() external;
+    function leave_nominators(uint256 nominationCount) external;
 
     /// Revoke an existing nomination
     function revoke_nomination(address collator) external;

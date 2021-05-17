@@ -1106,16 +1106,15 @@ pub mod pallet {
 				collator_nominator_count >= state.nominators.0.len() as u32,
 				Error::<T>::TooLowCollatorCountToNominate
 			);
-			let nomination = Bond {
-				owner: acc.clone(),
-				amount,
-			};
 			ensure!(
 				(state.nominators.0.len() as u32) < T::MaxNominatorsPerCollator::get(),
 				Error::<T>::TooManyNominators
 			);
 			ensure!(
-				state.nominators.insert(nomination),
+				state.nominators.insert(Bond {
+					owner: acc.clone(),
+					amount,
+				}),
 				Error::<T>::NominatorExists
 			);
 			T::Currency::reserve(&acc, amount)?;
