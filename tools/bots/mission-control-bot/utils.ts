@@ -150,3 +150,14 @@ export function checkH160AddressIsCorrect(address: string, msg: Message) {
 
   return addressIsCorrect;
 }
+
+/**
+ * Sleeps for a defined number of seconds and minutes (latter not required)
+ * @param seconds Number of seconds
+ * @param minutes Number of minutes (not required)
+ */
+export async function sleep(seconds: number, minutes: number = 0){
+  let totalMs = (minutes * 60 * 1000) + (seconds * 1000)
+
+  await new Promise((r) => setTimeout(r, totalMs));
+}

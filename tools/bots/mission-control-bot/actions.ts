@@ -3,7 +3,12 @@ import Web3 from "web3";
 
 import { UserToTimestamp, BalanceCheck } from "./types";
 import { TOKEN_DECIMAL, EMBED_COLOR_CORRECT, EMBED_COLOR_ERROR, params } from "./constants";
-import { sendSlackNotification, nextAvailableToken, checkH160AddressIsCorrect } from "./utils";
+import {
+  sendSlackNotification,
+  nextAvailableToken,
+  checkH160AddressIsCorrect,
+  sleep,
+} from "./utils";
 
 /**
  * Waits for the request to be on top of the pending queue
@@ -18,7 +23,7 @@ const waitForQueue = async (authorId: string, address: string, pendingQueue: str
     if (pendingQueue[0] == `${authorId}:0x${address}`) break;
 
     // wait for next block
-    await new Promise((r) => setTimeout(r, 6200));
+    await sleep(6.2);
   }
 };
 
@@ -30,7 +35,6 @@ const waitForQueue = async (authorId: string, address: string, pendingQueue: str
  * @param authorId Author ID of the message
  * @param messageContent Content of the message
  * @param receivers Map with the timestamp of the last received request of a user
- * @param unlimitedUsers List of users with no rate limit
  * @param lastBalanceCheck Object with the info of the last balance check of the account of the bot
  * @param pendingQueue Queue of tasks
  */
@@ -40,7 +44,6 @@ export async function botActionFaucetSend(
   authorId: string,
   messageContent: string,
   receivers: UserToTimestamp,
-  unlimitedUsers: string[],
   lastBalanceCheck: BalanceCheck,
   pendingQueue: string[]
 ) {
@@ -48,7 +51,7 @@ export async function botActionFaucetSend(
   if (!receivers[authorId]) receivers[authorId] = 0;
 
   const canReceiveTokensAgain =
-    unlimitedUsers.includes(authorId) ||
+    params.NOT_LIMITED_USERS.includes(authorId) ||
     receivers[authorId] <= Date.now() - params.FAUCET_SEND_INTERVAL * 3600 * 1000;
 
   if (!canReceiveTokensAgain) {
@@ -128,25 +131,6 @@ export async function botActionFaucetSend(
   }
 
   const accountBalance = BigInt(await web3Api.eth.getBalance(`0x${address}`));
-
-  // Check balance every 10min (minimum interval, dependent on when the function is called)
-  if (lastBalanceCheck.timestamp < Date.now() - 600 * 1000) {
-    // Update cached info for last balance check
-    lastBalanceCheck.balance = BigInt(await web3Api.eth.getBalance(`0x${params.ACCOUNT_ID}`));
-    lastBalanceCheck.timestamp = Date.now();
-
-    // If balance is low, send notification to Slack
-    if (lastBalanceCheck.balance < params.BALANCE_ALERT_THRESHOLD * 10n ** TOKEN_DECIMAL) {
-      const accountBalance = lastBalanceCheck.balance / 10n ** TOKEN_DECIMAL;
-      await sendSlackNotification(
-        params.SLACK_WEBHOOK,
-        params.ACCOUNT_ID,
-        accountBalance,
-        params.TOKEN_COUNT
-      );
-    }
-  }
-
   const fundsTransactionEmbed = new MessageEmbed()
     .setColor(EMBED_COLOR_CORRECT)
     .setTitle("Transaction of funds")
@@ -184,4 +168,38 @@ export async function botActionBalance(web3Api: Web3, msg: Message, messageConte
     .addField("Balance", `${accountBalance / 10n ** TOKEN_DECIMAL} DEV`, true);
 
   msg.channel.send(balanceEmbed);
+}
+
+/**
+ * Checks the balance of the bot is over a certain threshold, alerting
+ * if that's the case on Slack
+ * @param web3Api Instance of the web3 API connected to the chain endpoint
+ */
+export async function balanceCheck(web3Api: Web3) {
+  let balance = 0n;
+  const alert_threshold = params.BALANCE_ALERT_THRESHOLD * 10n ** TOKEN_DECIMAL;
+
+  while (true) {
+    try {
+      // Get balance using web3 API
+      balance = BigInt(await web3Api.eth.getBalance(`0x${params.ACCOUNT_ID}`));
+
+      // Check if balance is below the threshold and alert if so
+      if (balance < alert_threshold) {
+        await sendSlackNotification(
+          params.SLACK_WEBHOOK,
+          params.ACCOUNT_ID,
+          balance / 10n ** TOKEN_DECIMAL,
+          params.TOKEN_COUNT
+        );
+      }
+
+      // Sleep for 10min
+      await sleep(0, 10);
+    } catch (e) {
+      // In case of error, log and sleep for 3sec before retrying
+      console.log(new Date().toISOString(), "ERROR", e.stack || e);
+      await sleep(3);
+    }
+  }
 }

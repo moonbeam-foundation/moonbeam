@@ -10,7 +10,7 @@ export const params = {
 
   // Items for monitoring
   TESTS_DISCORD_CHANNEL: process.env.TESTS_DISCORD_CHANNEL,
-  NOT_LIMITED_USERS: process.env.NOT_LIMITED_USERS,
+  NOT_LIMITED_USERS: JSON.parse(process.env.NOT_LIMITED_USERS || "false"),
 
   // Slack app information
   SLACK_WEBHOOK: process.env.SLACK_WEBHOOK,

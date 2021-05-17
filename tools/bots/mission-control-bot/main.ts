@@ -3,7 +3,7 @@ import Web3 from "web3";
 
 import { UserToTimestamp, BalanceCheck } from "./types";
 import { params } from "./constants";
-import { botActionBalance, botActionFaucetSend } from "./actions";
+import { botActionBalance, botActionFaucetSend, balanceCheck } from "./actions";
 
 async function onReceiveMessage(msg: Message) {
   const authorId = msg?.author?.id;
@@ -22,7 +22,6 @@ async function onReceiveMessage(msg: Message) {
       authorId,
       messageContent,
       receivers,
-      unlimitedUsers,
       lastBalanceCheck,
       pendingQueue
     );
@@ -41,7 +40,6 @@ Object.keys(params).forEach((param) => {
 
 const receivers: UserToTimestamp = {};
 const pendingQueue: string[] = [];
-const unlimitedUsers = JSON.parse(params.NOT_LIMITED_USERS);
 const lastBalanceCheck: BalanceCheck = {
   timestamp: 0,
   balance: BigInt(0),
@@ -64,6 +62,9 @@ client.on("message", async (msg) => {
     console.log(new Date().toISOString(), "ERROR", e.stack || e);
   }
 });
+
+// Start balance checker
+balanceCheck(web3Api);
 
 // Perform login and listen for new events
 client.login(params.DISCORD_TOKEN);
