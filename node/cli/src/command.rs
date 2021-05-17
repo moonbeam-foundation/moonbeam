@@ -45,19 +45,52 @@ fn load_spec(
 		return Err("Not specific which chain to run.".into());
 	}
 	Ok(match id {
-		"local" => Box::new(chain_spec::moonbase::get_chain_spec(para_id)),
-		"dev" | "development" => Box::new(chain_spec::moonbase::development_chain_spec(None, None)),
-		"alphanet" => Box::new(chain_spec::moonbase::ChainSpec::from_json_bytes(
-			&include_bytes!("../../../specs/alphanet/parachain-embedded-specs-v7.json")[..],
-		)?),
-		"stagenet" => Box::new(chain_spec::moonbase::ChainSpec::from_json_bytes(
-			&include_bytes!("../../../specs/stagenet/parachain-embedded-specs-v7.json")[..],
-		)?),
-		// TODO-multiple-runtimes test-spec staking
-		// TODO-multiple-runtimes live release
-		"moonbeam" => Box::new(chain_spec::moonbeam::development_chain_spec(None, None)),
-		"moonriver" => Box::new(chain_spec::moonriver::development_chain_spec(None, None)),
-		// TODO-multiple-runtimes
+		// Moonbase networks
+		"moonbase-alpha" | "alphanet" => {
+			Box::new(chain_spec::moonbase::ChainSpec::from_json_bytes(
+				&include_bytes!("../../../specs/alphanet/parachain-embedded-specs-v7.json")[..],
+			)?)
+		}
+		"moonbase-stage" | "stagenet" => {
+			Box::new(chain_spec::moonbase::ChainSpec::from_json_bytes(
+				&include_bytes!("../../../specs/stagenet/parachain-embedded-specs-v7.json")[..],
+			)?)
+		}
+		"moonbase-local" => Box::new(chain_spec::moonbase::get_chain_spec(para_id)),
+		"moonbase-dev" | "dev" | "development" => {
+			Box::new(chain_spec::moonbase::development_chain_spec(None, None))
+		}
+		"staking-test-spec" => todo!("decide where it lives and bring it in."),
+
+		// Moonriver networks
+		"moonriver" => {
+			return Err(
+				"You chosen the moonriver mainnet spec. This network is not yet available.".into(),
+			);
+			// Box::new(chain_spec::moonriver::ChainSpec::from_json_bytes(
+			// 	&include_bytes!("../../../specs/moonriver.json")[..],
+			// )?)
+		}
+		"moonriver-dev" => Box::new(chain_spec::moonriver::development_chain_spec(None, None)),
+		"moonriver-local" => Box::new(chain_spec::moonriver::get_chain_spec(para_id)),
+
+		// Moonbeam networks
+		"moonbeam" => {
+			return Err(
+				"You chosen the moonbeam mainnet spec. This network is not yet available.".into(),
+			);
+			// Box::new(chain_spec::moonriver::ChainSpec::from_json_bytes(
+			// 	&include_bytes!("../../../specs/moonbeam.json")[..],
+			// )?)
+		}
+		"moonbeam-dev" => Box::new(chain_spec::moonbeam::development_chain_spec(None, None)),
+		"moonbeam-local" => Box::new(chain_spec::moonbeam::get_chain_spec(para_id)),
+
+		// Specs provided as json specify which runtime to use in their file name. For example,
+		// `moonbeam-custom.json` uses the moonbeam runtime.
+		// `moonbase-dev-workshop.json` uses the moonbase runtime.
+		// If no magic strings match, then the moonbase runtime is used by default.
+		// TODO explore CLI options to make this nicer. eg `--force-moonriver-runtime`
 		path => {
 			let path = std::path::PathBuf::from(path);
 
