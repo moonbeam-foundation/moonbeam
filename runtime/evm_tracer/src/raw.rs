@@ -78,6 +78,21 @@ impl RawTracer {
 		}
 	}
 
+	pub fn trace<R, F: FnOnce() -> R>(self, f: F) -> (Self, R) {
+		let wrapped = Rc::new(RefCell::new(self));
+
+		let result = {
+			let mut gasometer = ListenerProxy(Rc::clone(&wrapped));
+			let mut runtime = ListenerProxy(Rc::clone(&wrapped));
+
+			let f = || runtime_using(&mut runtime, f);
+			let f = || gasometer_using(&mut gasometer, f);
+			f()
+		};
+
+		(Rc::try_unwrap(wrapped).unwrap().into_inner(), result)
+	}
+
 	pub fn into_tx_trace(self) -> TransactionTrace {
 		TransactionTrace::Raw {
 			step_logs: self.step_logs,
@@ -86,8 +101,6 @@ impl RawTracer {
 		}
 	}
 }
-
-impl EvmListener for RawTracer {}
 
 impl GasometerListener for RawTracer {
 	fn event(&mut self, event: GasometerEvent) {

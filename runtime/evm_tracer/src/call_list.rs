@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -15,11 +15,21 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::util::*;
+use moonbeam_rpc_primitives_debug::single::{Call, TransactionTrace};
+use sp_std::collections::btree_map::BTreeMap;
 
-#[derive(Debug, Clone)]
-pub struct DummyTracer;
+#[derive(Debug)]
+pub struct CallListTracer {
+	entries: BTreeMap<u32, Call>,
+}
 
-impl DummyTracer {
+impl CallListTracer {
+	pub fn new() -> Self {
+		Self {
+			entries: BTreeMap::new(),
+		}
+	}
+
 	pub fn trace<R, F: FnOnce() -> R>(self, f: F) -> (Self, R) {
 		let wrapped = Rc::new(RefCell::new(self));
 
@@ -36,46 +46,26 @@ impl DummyTracer {
 
 		(Rc::try_unwrap(wrapped).unwrap().into_inner(), result)
 	}
+
+	pub fn into_tx_trace(self) -> TransactionTrace {
+		todo!()
+	}
 }
 
-impl GasometerListener for DummyTracer {
-	#[cfg(feature = "std")]
+impl GasometerListener for CallListTracer {
 	fn event(&mut self, event: GasometerEvent) {
-		tracing::trace!("event: {:?}", event);
+		todo!()
 	}
-
-	#[cfg(not(feature = "std"))]
-	fn event(&mut self, _event: GasometerEvent) {}
 }
 
-impl RuntimeListener for DummyTracer {
-	#[cfg(feature = "std")]
+impl RuntimeListener for CallListTracer {
 	fn event(&mut self, event: RuntimeEvent) {
-		match event {
-			RuntimeEvent::Step { opcode, .. } => {
-				tracing::trace!("event: Step( opcode: {:?}, ..)", opcode)
-			}
-			event => tracing::trace!("event: {:?}", event),
-		}
+		todo!()
 	}
-
-	#[cfg(not(feature = "std"))]
-	fn event(&mut self, _event: RuntimeEvent) {}
 }
 
-impl EvmListener for DummyTracer {
-	#[cfg(feature = "std")]
+impl EvmListener for CallListTracer {
 	fn event(&mut self, event: EvmEvent) {
-		match event {
-			EvmEvent::Call { code_address, .. } => {
-				tracing::trace!("event: Call( code_address: {:?}, ..)", code_address)
-			}
-			EvmEvent::Create { caller, .. } => {
-				tracing::trace!("event: Create( caller: {:?}, ..)", caller)
-			}
-		}
+		todo!()
 	}
-
-	#[cfg(not(feature = "std"))]
-	fn event(&mut self, _event: RuntimeEvent) {}
 }

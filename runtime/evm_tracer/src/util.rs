@@ -15,6 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use ethereum_types::H256;
+pub use evm::tracing::{using as evm_using, Event as EvmEvent, EventListener as EvmListener};
 pub use evm::Opcode;
 pub use evm_gasometer::tracing::{
 	using as gasometer_using, Event as GasometerEvent, EventListener as GasometerListener,
@@ -23,38 +24,23 @@ pub use evm_runtime::tracing::{
 	using as runtime_using, Event as RuntimeEvent, EventListener as RuntimeListener,
 };
 pub use sp_std::{cell::RefCell, fmt::Debug, rc::Rc, vec, vec::Vec};
-struct GasometerListenerProxy<T>(Rc<RefCell<T>>);
+pub struct ListenerProxy<T>(pub Rc<RefCell<T>>);
 
-impl<T: GasometerListener> GasometerListener for GasometerListenerProxy<T> {
+impl<T: GasometerListener> GasometerListener for ListenerProxy<T> {
 	fn event(&mut self, event: GasometerEvent) {
 		self.0.borrow_mut().event(event);
 	}
 }
 
-struct RuntimeListenerProxy<T>(Rc<RefCell<T>>);
-
-impl<T: RuntimeListener> RuntimeListener for RuntimeListenerProxy<T> {
+impl<T: RuntimeListener> RuntimeListener for ListenerProxy<T> {
 	fn event(&mut self, event: RuntimeEvent) {
 		self.0.borrow_mut().event(event);
 	}
 }
 
-pub trait EvmListener
-where
-	Self: Sized + Debug + 'static,
-	Self: GasometerListener + RuntimeListener,
-{
-	fn trace<R, F: FnOnce() -> R>(self, f: F) -> (Self, R) {
-		let wrapped = Rc::new(RefCell::new(self));
-
-		let result = {
-			let mut gasometer = GasometerListenerProxy(Rc::clone(&wrapped));
-			let mut runtime = RuntimeListenerProxy(Rc::clone(&wrapped));
-
-			gasometer_using(&mut gasometer, || runtime_using(&mut runtime, || f()))
-		};
-
-		(Rc::try_unwrap(wrapped).unwrap().into_inner(), result)
+impl<T: EvmListener> EvmListener for ListenerProxy<T> {
+	fn event(&mut self, event: EvmEvent) {
+		self.0.borrow_mut().event(event);
 	}
 }
 
