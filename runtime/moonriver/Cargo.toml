@@ -16,6 +16,7 @@ hex-literal = "0.3.1"
 
 pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
 account = { path = "../../primitives/account/", default-features = false }
+moonbeam-core-primitives = { path = "../../primitives/runtime/", default-features = false }
 parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
 pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
 author-filter-api = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
@@ -47,6 +48,12 @@ pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/parityt
 pallet-utility = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 
 pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "joshy-substrate-2be8fcc4" }
+fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
+
+moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug", default-features = false }
+moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool", default-features = false }
 
 # Cumulus dependencies
 cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus" }
@@ -98,9 +105,15 @@ std = [
 	"cumulus-pallet-parachain-system/std",
 	"cumulus-primitives-core/std",
 	"account/std",
+	"moonbeam-core-primitives/std",
 	"parachain-staking/std",
 	"pallet-author-slot-filter/std",
 	"author-filter-api/std",
+	"pallet-ethereum/std",
+	"pallet-evm/std",
+	"moonbeam-rpc-primitives-debug/std",
+	"moonbeam-rpc-primitives-txpool/std",
+	"fp-rpc/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.

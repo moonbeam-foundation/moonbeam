@@ -18,13 +18,8 @@
 
 use std::sync::Arc;
 
-use crate::client::{EthereumRuntimeApiCollection, RuntimeApiCollection};
-#[cfg(feature = "with-moonbase-runtime")]
-use moonbase_runtime::{opaque::Block, Hash};
-#[cfg(feature = "with-moonbeam-runtime")]
-use moonbeam_runtime::{opaque::Block, Hash};
-#[cfg(feature = "with-moonriver-runtime")]
-use moonriver_runtime::opaque::Block;
+use crate::client::RuntimeApiCollection;
+use moonbeam_core_primitives::{Block, Hash};
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
 	client::BlockchainEvents,
@@ -36,36 +31,30 @@ use sp_blockchain::{
 };
 use sp_runtime::traits::BlakeTwo256;
 use sp_transaction_pool::TransactionPool;
-
-cfg_if::cfg_if! {
-	if #[cfg(not(feature = "with-moonriver-runtime"))] {
-		use std::collections::BTreeMap;
-		use cli_opt::EthApi as EthApiCmd;
-		use ethereum::EthereumStorageSchema;
-		use fc_rpc::{
-			OverrideHandle, RuntimeApiStorageOverride, SchemaV1Override, StorageOverride, EthApi,
-			EthApiServer, EthFilterApi, EthFilterApiServer, EthPubSubApi, EthPubSubApiServer,
-			HexEncodedIdProvider, NetApi, NetApiServer, Web3Api, Web3ApiServer,
-		};
-		use sc_rpc::SubscriptionTaskExecutor;
-		use sc_network::NetworkService;
-		use fc_rpc_core::types::{FilterPool, PendingTransactions};
-		use jsonrpc_pubsub::manager::SubscriptionManager;
-		use sc_consensus_manual_seal::rpc::{EngineCommand, ManualSeal, ManualSealApi};
-		use moonbeam_rpc_debug::{Debug, DebugServer, DebugRequester};
-		use moonbeam_rpc_trace::{
-			Trace, TraceServer, CacheRequester as TraceFilterCacheRequester,
-		};
-		use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
-		use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
-		use substrate_frame_rpc_system::{FullSystem, SystemApi};
-	}
-}
+use std::collections::BTreeMap;
+use cli_opt::EthApi as EthApiCmd;
+use ethereum::EthereumStorageSchema;
+use fc_rpc::{
+	OverrideHandle, RuntimeApiStorageOverride, SchemaV1Override, StorageOverride, EthApi,
+	EthApiServer, EthFilterApi, EthFilterApiServer, EthPubSubApi, EthPubSubApiServer,
+	HexEncodedIdProvider, NetApi, NetApiServer, Web3Api, Web3ApiServer,
+};
+use sc_rpc::SubscriptionTaskExecutor;
+use sc_network::NetworkService;
+use fc_rpc_core::types::{FilterPool, PendingTransactions};
+use jsonrpc_pubsub::manager::SubscriptionManager;
+use sc_consensus_manual_seal::rpc::{EngineCommand, ManualSeal, ManualSealApi};
+use moonbeam_rpc_debug::{Debug, DebugServer, DebugRequester};
+use moonbeam_rpc_trace::{
+	Trace, TraceServer, CacheRequester as TraceFilterCacheRequester,
+};
+use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
+use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
+use substrate_frame_rpc_system::{FullSystem, SystemApi};
 
 // TODO-multiples-runtimes one rpc definition per network
 
 /// Full client dependencies.
-#[cfg(not(feature = "with-moonriver-runtime"))]
 pub struct FullDeps<C, P, BE> {
 	/// The client instance to use.
 	pub client: Arc<C>,
@@ -99,7 +88,6 @@ pub struct FullDeps<C, P, BE> {
 	pub max_past_logs: u32,
 }
 /// Instantiate all Full RPC extensions.
-#[cfg(not(feature = "with-moonriver-runtime"))]
 pub fn create_full<C, P, BE>(
 	deps: FullDeps<C, P, BE>,
 	subscription_task_executor: SubscriptionTaskExecutor,
@@ -112,7 +100,7 @@ where
 	C: BlockchainEvents<Block>,
 	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
 	C: Send + Sync + 'static,
-	C::Api: RuntimeApiCollection<StateBackend = BE::State> + EthereumRuntimeApiCollection,
+	C::Api: RuntimeApiCollection<StateBackend = BE::State>,
 	P: TransactionPool<Block = Block> + 'static,
 {
 	let mut io = jsonrpc_core::IoHandler::default();
@@ -142,99 +130,92 @@ where
 	io.extend_with(TransactionPaymentApi::to_delegate(TransactionPayment::new(
 		client.clone(),
 	)));
+	// TODO: are we supporting signing?
+	let signers = Vec::new();
 
-	#[cfg(not(feature = "with-moonriver-runtime"))]
-	{
-		// TODO: are we supporting signing?
-		let signers = Vec::new();
+	let mut overrides_map = BTreeMap::new();
+	overrides_map.insert(
+		EthereumStorageSchema::V1,
+		Box::new(SchemaV1Override::new(client.clone()))
+			as Box<dyn StorageOverride<_> + Send + Sync>,
+	);
 
-		let mut overrides_map = BTreeMap::new();
-		overrides_map.insert(
-			EthereumStorageSchema::V1,
-			Box::new(SchemaV1Override::new(client.clone()))
-				as Box<dyn StorageOverride<_> + Send + Sync>,
-		);
+	let overrides = Arc::new(OverrideHandle {
+		schemas: overrides_map,
+		fallback: Box::new(RuntimeApiStorageOverride::new(client.clone())),
+	});
+	// TODO-multiple-runtimes
+	let tx_converter: moonbeam_runtime::TransactionConverter = moonbeam_runtime::TransactionConverter;
 
-		let overrides = Arc::new(OverrideHandle {
-			schemas: overrides_map,
-			fallback: Box::new(RuntimeApiStorageOverride::new(client.clone())),
-		});
-		#[cfg(feature = "with-moonbeam-runtime")]
-		let tx_converter: moonbeam_runtime::TransactionConverter = moonbeam_runtime::TransactionConverter;
-		#[cfg(feature = "with-moonbase-runtime")]
-		let tx_converter: moonbase_runtime::TransactionConverter = moonbase_runtime::TransactionConverter;
+	io.extend_with(EthApiServer::to_delegate(EthApi::new(
+		client.clone(),
+		pool.clone(),
+		tx_converter,
+		network.clone(),
+		pending_transactions,
+		signers,
+		overrides.clone(),
+		frontier_backend.clone(),
+		is_authority,
+		max_past_logs,
+	)));
 
-		io.extend_with(EthApiServer::to_delegate(EthApi::new(
+	if let Some(filter_pool) = filter_pool {
+		io.extend_with(EthFilterApiServer::to_delegate(EthFilterApi::new(
 			client.clone(),
-			pool.clone(),
-			tx_converter,
-			network.clone(),
-			pending_transactions,
-			signers,
+			filter_pool.clone(),
+			500 as usize, // max stored filters
 			overrides.clone(),
-			frontier_backend.clone(),
-			is_authority,
 			max_past_logs,
 		)));
+	}
 
-		if let Some(filter_pool) = filter_pool {
-			io.extend_with(EthFilterApiServer::to_delegate(EthFilterApi::new(
-				client.clone(),
-				filter_pool.clone(),
-				500 as usize, // max stored filters
-				overrides.clone(),
-				max_past_logs,
-			)));
-		}
-
-		io.extend_with(NetApiServer::to_delegate(NetApi::new(
-			client.clone(),
-			network.clone(),
+	io.extend_with(NetApiServer::to_delegate(NetApi::new(
+		client.clone(),
+		network.clone(),
+	)));
+	io.extend_with(Web3ApiServer::to_delegate(Web3Api::new(client.clone())));
+	io.extend_with(EthPubSubApiServer::to_delegate(EthPubSubApi::new(
+		pool.clone(),
+		client.clone(),
+		network,
+		SubscriptionManager::<HexEncodedIdProvider>::with_id_provider(
+			HexEncodedIdProvider::default(),
+			Arc::new(subscription_task_executor),
+		),
+		overrides,
+	)));
+	if ethapi_cmd.contains(&EthApiCmd::Txpool) {
+		io.extend_with(TxPoolServer::to_delegate(TxPool::new(
+			Arc::clone(&client),
+			pool,
 		)));
-		io.extend_with(Web3ApiServer::to_delegate(Web3Api::new(client.clone())));
-		io.extend_with(EthPubSubApiServer::to_delegate(EthPubSubApi::new(
-			pool.clone(),
-			client.clone(),
-			network,
-			SubscriptionManager::<HexEncodedIdProvider>::with_id_provider(
-				HexEncodedIdProvider::default(),
-				Arc::new(subscription_task_executor),
-			),
-			overrides,
+	}
+
+	if let Some(command_sink) = command_sink {
+		io.extend_with(
+			// We provide the rpc handler with the sending end of the channel to allow the rpc
+			// send EngineCommands to the background block authorship task.
+			ManualSealApi::to_delegate(ManualSeal::new(command_sink)),
+		);
+	};
+
+	if let Some(trace_filter_requester) = trace_filter_requester {
+		io.extend_with(TraceServer::to_delegate(Trace::new(
+			client,
+			trace_filter_requester,
+			trace_filter_max_count,
 		)));
-		if ethapi_cmd.contains(&EthApiCmd::Txpool) {
-			io.extend_with(TxPoolServer::to_delegate(TxPool::new(
-				Arc::clone(&client),
-				pool,
-			)));
-		}
+	}
 
-		if let Some(command_sink) = command_sink {
-			io.extend_with(
-				// We provide the rpc handler with the sending end of the channel to allow the rpc
-				// send EngineCommands to the background block authorship task.
-				ManualSealApi::to_delegate(ManualSeal::new(command_sink)),
-			);
-		};
-
-		if let Some(trace_filter_requester) = trace_filter_requester {
-			io.extend_with(TraceServer::to_delegate(Trace::new(
-				client,
-				trace_filter_requester,
-				trace_filter_max_count,
-			)));
-		}
-
-		if let Some(debug_requester) = debug_requester {
-			io.extend_with(DebugServer::to_delegate(Debug::new(debug_requester)));
-		}
+	if let Some(debug_requester) = debug_requester {
+		io.extend_with(DebugServer::to_delegate(Debug::new(debug_requester)));
 	}
 
 	io
 }
 
 /// Full client dependencies.
-#[cfg(feature = "with-moonriver-runtime")]
 pub struct FullDepsMoonriver<C, P, BE> {
 	/// The client instance to use.
 	pub client: Arc<C>,
@@ -246,7 +227,6 @@ pub struct FullDepsMoonriver<C, P, BE> {
 	pub backend: Arc<BE>,
 }
 /// Instantiate all Full RPC extensions.
-#[cfg(feature = "with-moonriver-runtime")]
 pub fn create_full_moonriver<C, P, BE>(
 	deps: FullDepsMoonriver<C, P, BE>,
 ) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
@@ -258,12 +238,9 @@ where
 	C: BlockchainEvents<Block>,
 	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
 	C: Send + Sync + 'static,
-	C::Api: RuntimeApiCollection<StateBackend = BE::State> + EthereumRuntimeApiCollection,
+	C::Api: RuntimeApiCollection<StateBackend = BE::State>,
 	P: TransactionPool<Block = Block> + 'static,
 {
-	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
-	use substrate_frame_rpc_system::{FullSystem, SystemApi};
-
 	let mut io = jsonrpc_core::IoHandler::default();
 	let FullDepsMoonriver {
 		client,

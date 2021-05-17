@@ -13,9 +13,24 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-#[cfg(feature = "with-moonbase-runtime")]
+use serde::{Deserialize, Serialize};
+use sc_chain_spec::ChainSpecExtension;
 pub mod moonbase;
-#[cfg(feature = "with-moonbeam-runtime")]
 pub mod moonbeam;
-#[cfg(feature = "with-moonriver-runtime")]
 pub mod moonriver;
+
+#[derive(Default, Clone, Serialize, Deserialize, ChainSpecExtension)]
+#[serde(rename_all = "camelCase")]
+pub struct Extensions {
+	/// The relay chain of the Parachain.
+	pub relay_chain: String,
+	/// The id of the Parachain.
+	pub para_id: u32,
+}
+
+impl Extensions {
+	/// Try to get the extension from the given `ChainSpec`.
+	pub fn try_get(chain_spec: &dyn sc_service::ChainSpec) -> Option<&Self> {
+		sc_chain_spec::get_extension(chain_spec.extensions())
+	}
+}

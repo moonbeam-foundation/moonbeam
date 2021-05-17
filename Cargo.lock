@@ -4565,6 +4565,7 @@ dependencies = [
  "frame-system-rpc-runtime-api",
  "hex-literal",
  "log",
+ "moonbeam-core-primitives",
  "moonbeam-extensions-evm",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
@@ -4642,6 +4643,15 @@ dependencies = [
 [[package]]
 name = "moonbeam-cli-opt"
 version = "0.8.0-dev"
+
+[[package]]
+name = "moonbeam-core-primitives"
+version = "0.1.1"
+dependencies = [
+ "account",
+ "sp-core",
+ "sp-runtime",
+]
 
 [[package]]
 name = "moonbeam-extensions-evm"
@@ -4827,6 +4837,7 @@ dependencies = [
  "frame-system-rpc-runtime-api",
  "hex-literal",
  "log",
+ "moonbeam-core-primitives",
  "moonbeam-extensions-evm",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
@@ -4900,6 +4911,7 @@ dependencies = [
  "log",
  "moonbase-runtime",
  "moonbeam-cli-opt",
+ "moonbeam-core-primitives",
  "moonbeam-rpc-debug",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
@@ -4980,6 +4992,7 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-test-relay-sproof-builder",
  "evm",
+ "fp-rpc",
  "frame-benchmarking",
  "frame-executive",
  "frame-support",
@@ -4988,9 +5001,14 @@ dependencies = [
  "frame-system-rpc-runtime-api",
  "hex-literal",
  "log",
+ "moonbeam-core-primitives",
+ "moonbeam-rpc-primitives-debug",
+ "moonbeam-rpc-primitives-txpool",
  "pallet-author-inherent",
  "pallet-author-slot-filter",
  "pallet-balances",
+ "pallet-ethereum",
+ "pallet-evm",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
  "pallet-sudo",

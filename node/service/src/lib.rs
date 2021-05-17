@@ -22,38 +22,24 @@
 //! Full Service: A complete parachain node including the pool, rpc, network, embedded relay chain
 //! Dev Service: A leaner service without the relay chain backing.
 
-#[cfg(feature = "with-moonbase-runtime")]
 pub use moonbase_runtime;
-#[cfg(feature = "with-moonbeam-runtime")]
 pub use moonbeam_runtime;
-#[cfg(feature = "with-moonriver-runtime")]
 pub use moonriver_runtime;
-
-#[cfg(not(feature = "with-moonbase-runtime"))]
-use cli_opt::MISSING_MOONBASE;
-#[cfg(not(feature = "with-moonbeam-runtime"))]
-use cli_opt::MISSING_MOONBEAM;
-
-cfg_if::cfg_if! {
-	if #[cfg(not(feature = "with-moonriver-runtime"))] {
-		use futures::StreamExt;
-		use cli_opt::{EthApi as EthApiCmd, RpcParams, MISSING_MOONRIVER};
-		use fc_consensus::FrontierBlockImport;
-		use fc_mapping_sync::MappingSyncWorker;
-		use fc_rpc::EthTask;
-		use fc_rpc_core::types::{FilterPool, PendingTransactions};
-		use moonbeam_rpc_debug::DebugHandler;
-		use sc_client_api::BlockchainEvents;
-		use tokio::sync::Semaphore;
-		use sc_service::BasePath;
-		use std::{
-			collections::{BTreeMap, HashMap},
-			sync::Mutex,
-			time::Duration,
-		};
-	}
-}
-
+use futures::StreamExt;
+use cli_opt::{EthApi as EthApiCmd, RpcParams};
+use fc_consensus::FrontierBlockImport;
+use fc_mapping_sync::MappingSyncWorker;
+use fc_rpc::EthTask;
+use fc_rpc_core::types::{FilterPool, PendingTransactions};
+use moonbeam_rpc_debug::DebugHandler;
+use sc_client_api::BlockchainEvents;
+use tokio::sync::Semaphore;
+use sc_service::BasePath;
+use std::{
+	collections::{BTreeMap, HashMap},
+	sync::Mutex,
+	time::Duration,
+};
 mod inherents;
 mod rpc;
 use cumulus_client_consensus_relay_chain::{
@@ -83,18 +69,10 @@ mod client;
 
 use sc_telemetry::{Telemetry, TelemetryWorker, TelemetryWorkerHandle};
 
-#[cfg(feature = "with-moonbeam-runtime")]
-type Block = moonbeam_runtime::opaque::Block;
-#[cfg(feature = "with-moonriver-runtime")]
-type Block = moonriver_runtime::opaque::Block;
-#[cfg(feature = "with-moonbase-runtime")]
-type Block = moonbase_runtime::opaque::Block;
-
 type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = TFullBackend<Block>;
 type MaybeSelectChain = Option<sc_consensus::LongestChain<FullBackend, Block>>;
 
-#[cfg(feature = "with-moonbeam-runtime")]
 native_executor_instance!(
 	pub MoonbeamExecutor,
 	moonbeam_runtime::api::dispatch,
@@ -102,7 +80,6 @@ native_executor_instance!(
 	frame_benchmarking::benchmarking::HostFunctions,
 );
 
-#[cfg(feature = "with-moonriver-runtime")]
 native_executor_instance!(
 	pub MoonriverExecutor,
 	moonriver_runtime::api::dispatch,
@@ -110,7 +87,6 @@ native_executor_instance!(
 	frame_benchmarking::benchmarking::HostFunctions,
 );
 
-#[cfg(feature = "with-moonbase-runtime")]
 native_executor_instance!(
 	pub MoonbaseExecutor,
 	moonbase_runtime::api::dispatch,
@@ -154,7 +130,6 @@ impl IdentifyVariant for Box<dyn ChainSpec> {
 
 // TODO This is copied from frontier. It should be imported instead after
 // https://github.com/paritytech/frontier/issues/333 is solved
-#[cfg(not(feature = "with-moonriver-runtime"))]
 pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backend<Block>>, String> {
 	let config_dir = config
 		.base_path
@@ -192,66 +167,51 @@ pub fn new_chain_ops(
 > {
 	config.keystore = sc_service::config::KeystoreConfig::InMemory;
 	if config.chain_spec.is_moonbase_dev() || config.chain_spec.is_moonbase() {
-		#[cfg(feature = "with-moonbase-runtime")]
-		{
-			let PartialComponents {
-				client,
-				backend,
-				import_queue,
-				task_manager,
-				..
-			} = new_partial(config, author_id, config.chain_spec.is_moonbase_dev())?;
-			Ok((
-				Arc::new(Client::Moonbase(client)),
-				backend,
-				import_queue,
-				task_manager,
-			))
-		}
-		#[cfg(not(feature = "with-moonbase-runtime"))]
-		Err(MISSING_MOONBASE.into())
+		let PartialComponents {
+			client,
+			backend,
+			import_queue,
+			task_manager,
+			..
+		} = new_partial(config, author_id, config.chain_spec.is_moonbase_dev())?;
+		Ok((
+			Arc::new(Client::Moonbase(client)),
+			backend,
+			import_queue,
+			task_manager,
+		))
 	} else if config.chain_spec.is_moonriver() {
-		#[cfg(feature = "with-moonriver-runtime")]
-		{
-			let PartialComponents {
-				client,
-				backend,
-				import_queue,
-				task_manager,
-				..
-			} = new_partial_moonriver::<moonriver_runtime::RuntimeApi, MoonriverExecutor>(
-				config, author_id, false,
-			)?;
-			Ok((
-				Arc::new(Client::Moonriver(client)),
-				backend,
-				import_queue,
-				task_manager,
-			))
-		}
-		#[cfg(not(feature = "with-moonriver-runtime"))]
-		Err(MISSING_MOONRIVER.into())
+		let PartialComponents {
+			client,
+			backend,
+			import_queue,
+			task_manager,
+			..
+		} = new_partial_moonriver::<moonriver_runtime::RuntimeApi, MoonriverExecutor>(
+			config, author_id, false,
+		)?;
+		Ok((
+			Arc::new(Client::Moonriver(client)),
+			backend,
+			import_queue,
+			task_manager,
+		))
 	} else {
-		#[cfg(feature = "with-moonbeam-runtime")]
-		{
-			let PartialComponents {
-				client,
-				backend,
-				import_queue,
-				task_manager,
-				..
-			} = new_partial::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(
-				config, author_id, false,
-			)?;
-			Ok((
-				Arc::new(Client::Moonbeam(client)),
-				backend,
-				import_queue,
-				task_manager,
-			))
-		}
-		#[cfg(not(feature = "with-moonbeam-runtime"))]
-		Err(MISSING_MOONBEAM.into())
+		let PartialComponents {
+			client,
+			backend,
+			import_queue,
+			task_manager,
+			..
+		} = new_partial::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(
+			config, author_id, false,
+		)?;
+		Ok((
+			Arc::new(Client::Moonbeam(client)),
+			backend,
+			import_queue,
+			task_manager,
+		))
 	}
 }
 
@@ -260,7 +220,6 @@ pub fn new_chain_ops(
 /// Use this function if you don't actually need the full service, but just the partial in order to
 /// be able to perform chain operations.
 #[allow(clippy::type_complexity)]
-#[cfg(not(feature = "with-moonriver-runtime"))]
 pub fn new_partial<RuntimeApi, Executor>(
 	config: &Configuration,
 	author: Option<H160>,
@@ -292,7 +251,7 @@ where
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection<
 		StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>,
-	> + EthereumRuntimeApiCollection,
+	>,
 	Executor: NativeExecutionDispatch + 'static,
 {
 	let inherent_data_providers = build_inherent_data_providers(author, dev_service)?;
@@ -393,7 +352,6 @@ where
 /// Use this function if you don't actually need the full service, but just the partial in order to
 /// be able to perform chain operations.
 #[allow(clippy::type_complexity)]
-#[cfg(feature = "with-moonriver-runtime")]
 pub fn new_partial_moonriver<RuntimeApi, Executor>(
 	config: &Configuration,
 	author: Option<H160>,
@@ -496,7 +454,6 @@ where
 /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
-#[cfg(not(feature = "with-moonriver-runtime"))]
 async fn start_node_impl<RB, RuntimeApi, Executor>(
 	parachain_config: Configuration,
 	collator_key: CollatorPair,
@@ -516,7 +473,7 @@ where
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection<
 		StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>,
-	> + EthereumRuntimeApiCollection,
+	>,
 	Executor: NativeExecutionDispatch + 'static,
 {
 	if matches!(parachain_config.role, Role::Light) {
@@ -754,7 +711,6 @@ where
 /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
-#[cfg(feature = "with-moonriver-runtime")]
 async fn start_node_impl_moonriver<RB, RuntimeApi, Executor>(
 	parachain_config: Configuration,
 	collator_key: CollatorPair,
@@ -906,7 +862,6 @@ where
 }
 
 /// Start a normal parachain node.
-#[cfg(not(feature = "with-moonriver-runtime"))]
 pub async fn start_node<RuntimeApi, Executor>(
 	parachain_config: Configuration,
 	collator_key: CollatorPair,
@@ -922,7 +877,7 @@ where
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection<
 		StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>,
-	> + EthereumRuntimeApiCollection,
+	>,
 	Executor: NativeExecutionDispatch + 'static,
 {
 	start_node_impl(
@@ -940,7 +895,6 @@ where
 }
 
 /// Start a normal parachain node.
-#[cfg(feature = "with-moonriver-runtime")]
 pub async fn start_node_moonriver<RuntimeApi, Executor>(
 	parachain_config: Configuration,
 	collator_key: CollatorPair,
@@ -970,7 +924,6 @@ where
 
 /// Builds a new development service. This service uses manual seal, and mocks
 /// the parachain inherent.
-#[cfg(feature = "with-moonbase-runtime")]
 pub fn new_dev(
 	config: Configuration,
 	author_id: Option<H160>,

@@ -30,15 +30,17 @@ cfg-if = "1.0"
 cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt" }
 
 # Runtimes
-moonbeam-runtime = { path = "../../runtime/moonbeam", optional = true }
-moonriver-runtime = { path = "../../runtime/moonriver", optional = true }
-moonbase-runtime = { path = "../../runtime/moonbase", optional = true }
+moonbeam-runtime = { path = "../../runtime/moonbeam" }
+moonriver-runtime = { path = "../../runtime/moonriver" }
+moonbase-runtime = { path = "../../runtime/moonbase" }
 
 moonbeam-rpc-txpool = { path = "../../client/rpc/txpool" }
 moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool" }
 moonbeam-rpc-debug = { path = "../../client/rpc/debug" }
 moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug" }
 moonbeam-rpc-trace = { path = "../../client/rpc/trace" }
+
+moonbeam-core-primitives = { path = "../../primitives/runtime/" }
 
 # Substrate dependencies
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
@@ -141,13 +143,4 @@ test-spec = []
 runtime-benchmarks = [
 	"moonbeam-runtime/runtime-benchmarks",
 	"moonbase-runtime/runtime-benchmarks",
-]
-with-moonbeam-runtime = [
-	"moonbeam-runtime",
-]
-with-moonbase-runtime = [
-	"moonbase-runtime",
-]
-with-moonriver-runtime = [
-	"moonriver-runtime",
 ]

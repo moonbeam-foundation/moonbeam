@@ -28,6 +28,7 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+pub use moonbeam_core_primitives::{AccountId, Balance, BlockNumber, Hash, Header, Index, Signature};
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::Randomness,
@@ -38,10 +39,10 @@ use frame_system::EnsureRoot;
 use pallet_transaction_payment::CurrencyAdapter;
 pub use parachain_staking::{InflationInfo, Range};
 use sp_api::impl_runtime_apis;
-use sp_core::OpaqueMetadata;
+use sp_core::{OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify},
+	traits::{BlakeTwo256, Block as BlockT, IdentityLookup},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, Perbill,
 };
@@ -53,28 +54,9 @@ use sp_version::RuntimeVersion;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
-/// An index to a block.
-pub type BlockNumber = u32;
-
-/// Alias to 512-bit hash when used in the context of a transaction signature on the chain.
-pub type Signature = account::EthereumSignature;
-
-/// Some way of identifying an account on the chain. We intentionally make it equivalent
-/// to the public key of our transaction signing scheme.
-pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::AccountId;
-
 /// The type for looking up accounts. We don't expect more than 4 billion of them, but you
 /// never know...
 pub type AccountIndex = u32;
-
-/// Balance of an account.
-pub type Balance = u128;
-
-/// Index of a transaction in the chain.
-pub type Index = u32;
-
-/// A hash of some data used by the chain.
-pub type Hash = sp_core::H256;
 
 /// Digest item type.
 pub type DigestItem = generic::DigestItem<Hash>;
@@ -338,8 +320,6 @@ construct_runtime! {
 
 /// The address format for describing accounts.
 pub type Address = AccountId;
-/// Block header type as expected by this runtime.
-pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
 /// Block type as expected by this runtime.
 pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 /// A Block signed with a Justification
@@ -478,6 +458,111 @@ impl_runtime_apis! {
 			// This will make more sense when the CanAuthor trait is revised so its method accepts
 			// the slot number. Basically what is currently called the "helper" should be the main method.
 			AuthorFilter::can_author_helper(&author, relay_parent)
+		}
+	}
+
+	impl moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block> for Runtime {
+		fn trace_transaction(
+			_extrinsics: Vec<<Block as BlockT>::Extrinsic>,
+			_transaction: &pallet_ethereum::Transaction,
+			_trace_type: moonbeam_rpc_primitives_debug::single::TraceType,
+		) -> Result<
+			moonbeam_rpc_primitives_debug::single::TransactionTrace,
+			sp_runtime::DispatchError
+		> {
+			Err(sp_runtime::DispatchError::Other("TBD"))
+		}
+
+		fn trace_block(
+			_extrinsics: Vec<<Block as BlockT>::Extrinsic>,
+		) -> Result<
+			Vec<
+				moonbeam_rpc_primitives_debug::block::TransactionTrace>,
+				sp_runtime::DispatchError
+			> {
+			Err(sp_runtime::DispatchError::Other("TBD"))
+		}
+	}
+
+	impl moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block> for Runtime {
+		fn extrinsic_filter(
+			_xts: Vec<<Block as BlockT>::Extrinsic>
+		) -> Vec<pallet_ethereum::Transaction> {
+			Vec::new()
+		}
+	}
+
+	impl fp_rpc::EthereumRuntimeRPCApi<Block> for Runtime {
+		fn chain_id() -> u64 {
+			0u64
+		}
+
+		fn account_basic(_address: H160) -> pallet_evm::Account {
+			pallet_evm::Account {
+				balance: U256::zero(),
+				nonce: U256::zero(),
+			}
+		}
+
+		fn gas_price() -> U256 {
+			U256::default()
+		}
+
+		fn account_code_at(_address: H160) -> Vec<u8> {
+			Vec::new()
+		}
+
+		fn author() -> H160 {
+			H160::default()
+		}
+
+		fn storage_at(_address: H160, _index: U256) -> H256 {
+			H256::default()
+		}
+
+		fn call(
+			_from: H160,
+			_to: H160,
+			_data: Vec<u8>,
+			_value: U256,
+			_gas_limit: U256,
+			_gas_price: Option<U256>,
+			_nonce: Option<U256>,
+			_estimate: bool,
+		) -> Result<pallet_evm::CallInfo, sp_runtime::DispatchError> {
+			Err(sp_runtime::DispatchError::Other("TBD"))
+		}
+
+		fn create(
+			_from: H160,
+			_data: Vec<u8>,
+			_value: U256,
+			_gas_limit: U256,
+			_gas_price: Option<U256>,
+			_nonce: Option<U256>,
+			_estimate: bool,
+		) -> Result<pallet_evm::CreateInfo, sp_runtime::DispatchError> {
+			Err(sp_runtime::DispatchError::Other("TBD"))
+		}
+
+		fn current_transaction_statuses() -> Option<Vec<fp_rpc::TransactionStatus>> {
+			None
+		}
+
+		fn current_block() -> Option<pallet_ethereum::Block> {
+			None
+		}
+
+		fn current_receipts() -> Option<Vec<pallet_ethereum::Receipt>> {
+			None
+		}
+
+		fn current_all() -> (
+			Option<pallet_ethereum::Block>,
+			Option<Vec<pallet_ethereum::Receipt>>,
+			Option<Vec<fp_rpc::TransactionStatus>>
+		) {
+			(None, None, None)
 		}
 	}
 

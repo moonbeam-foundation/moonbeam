@@ -24,15 +24,3 @@ test-spec = []
 runtime-benchmarks = [
 	"moonbeam-cli/runtime-benchmarks",
 ]
-with-moonbeam-runtime = [
-	"moonbeam-service/with-moonbeam-runtime",
-	"moonbeam-cli/with-moonbeam-runtime",
-]
-with-moonbase-runtime = [
-	"moonbeam-service/with-moonbase-runtime",
-	"moonbeam-cli/with-moonbase-runtime",
-]
-with-moonriver-runtime = [
-	"moonbeam-service/with-moonriver-runtime",
-	"moonbeam-cli/with-moonriver-runtime",
-]

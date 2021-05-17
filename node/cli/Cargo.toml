@@ -44,12 +44,3 @@ cli = [
 	"try-runtime-cli",
 ]
 runtime-benchmarks = [ "service/runtime-benchmarks" ]
-with-moonbeam-runtime = [
-	"service/with-moonbeam-runtime",
-]
-with-moonbase-runtime = [
-	"service/with-moonbase-runtime",
-]
-with-moonriver-runtime = [
-	"service/with-moonriver-runtime",
-]
