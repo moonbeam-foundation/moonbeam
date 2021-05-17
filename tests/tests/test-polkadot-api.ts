@@ -62,9 +62,7 @@ describeDevMoonbeam("Polkadot API - Transfers", (context) => {
           expect(message.substring(0, 33)).to.eq(`parachainSystem.setValidationData`);
           break;
         case 2:
-          expect(message).to.eq(
-            `authorInherent.setAuthor(0x6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b)`
-          );
+          expect(message.substring(0, 24)).to.eq(`authorInherent.setAuthor`);
           break;
         case 3:
           expect(message).to.eq(

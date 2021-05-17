@@ -28,9 +28,6 @@ use crate::{
 	inherents::build_inherent_data_providers,
 };
 use async_io::Timer;
-use cumulus_client_consensus_relay_chain::{
-	build_relay_chain_consensus, BuildRelayChainConsensusParams,
-};
 use cumulus_client_network::build_block_announce_validator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
@@ -42,6 +39,10 @@ use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use futures::{Stream, StreamExt};
 use moonbeam_rpc_debug::DebugHandler;
 use moonbeam_runtime::{opaque::Block, RuntimeApi};
+use nimbus_consensus::{
+	build_filtering_consensus as build_nimbus_consensus,
+	BuildFilteringConsensusParams as BuildNimbusConsensusParams,
+};
 use polkadot_primitives::v0::CollatorPair;
 use sc_cli::SubstrateCli;
 use sc_client_api::BlockchainEvents;
@@ -103,7 +104,7 @@ pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backen
 #[allow(clippy::type_complexity)]
 pub fn new_partial(
 	config: &Configuration,
-	author: Option<H160>,
+	author: Option<nimbus_primitives::NimbusId>,
 	dev_service: bool,
 ) -> Result<
 	PartialComponents<
@@ -187,7 +188,7 @@ pub fn new_partial(
 		// It would be nice if we could just use this one in either case, but
 		// it doesn't properly follow the longest chain rule.
 		// https://github.com/PureStake/moonbeam/pull/266
-		cumulus_client_consensus_relay_chain::import_queue(
+		nimbus_consensus::import_queue(
 			client.clone(),
 			frontier_block_import.clone(),
 			inherent_data_providers.clone(),
@@ -242,7 +243,7 @@ where
 
 	let parachain_config = prepare_node_config(parachain_config);
 
-	let params = new_partial(&parachain_config, author_id, false)?;
+	let params = new_partial(&parachain_config, None, false)?;
 	let (
 		block_import,
 		pending_transactions,
@@ -429,13 +430,15 @@ where
 		);
 		let spawner = task_manager.spawn_handle();
 
-		let parachain_consensus = build_relay_chain_consensus(BuildRelayChainConsensusParams {
+		let parachain_consensus = build_nimbus_consensus(BuildNimbusConsensusParams {
 			para_id: id,
 			proposer_factory,
 			inherent_data_providers: params.inherent_data_providers,
 			block_import,
 			relay_chain_client: polkadot_full_node.client.clone(),
 			relay_chain_backend: polkadot_full_node.backend.clone(),
+			parachain_client: client.clone(),
+			keystore: params.keystore_container.sync_keystore(),
 		});
 
 		let params = StartCollatorParams {
@@ -496,7 +499,7 @@ pub async fn start_node(
 /// the parachain inherent.
 pub fn new_dev(
 	config: Configuration,
-	author_id: Option<H160>,
+	author_id: Option<nimbus_primitives::NimbusId>,
 	// TODO I guess we should use substrate-cli's validator flag for this.
 	// Resolve after https://github.com/paritytech/cumulus/pull/380 is reviewed.
 	collator: bool,
