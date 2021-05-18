@@ -58,7 +58,7 @@ pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-fe
 pallet-collective = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-society = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 
-pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false, rev = "e020137" }
+pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false, rev = "b6f11ff" }
 
 moonbeam-extensions-evm = { path = "extensions/evm", default-features = false }
 moonbeam-rpc-primitives-debug = { path = "../primitives/rpc/debug", default-features = false }
@@ -149,7 +149,6 @@ runtime-benchmarks = [
 	"frame-system/runtime-benchmarks",
 	"pallet-collective/runtime-benchmarks",
 	"parachain-staking/runtime-benchmarks",
-	"pallet-crowdloan-rewards/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",

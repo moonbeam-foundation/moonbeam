@@ -61,6 +61,8 @@ struct ExtBuilder {
 	nominators: Vec<(AccountId, AccountId, Balance)>,
 	// per-round inflation config
 	inflation: InflationInfo<Balance>,
+	// Crowdloan fund
+	crowdloan_fund: Balance,
 }
 
 impl Default for ExtBuilder {
@@ -88,6 +90,7 @@ impl Default for ExtBuilder {
 					max: Perbill::from_percent(5),
 				},
 			},
+			crowdloan_fund: 0,
 		}
 	}
 }
@@ -105,6 +108,11 @@ impl ExtBuilder {
 
 	fn with_nominators(mut self, nominators: Vec<(AccountId, AccountId, Balance)>) -> Self {
 		self.nominators = nominators;
+		self
+	}
+
+	fn with_crowdloan_fund(mut self, crowdloan_fund: Balance) -> Self {
+		self.crowdloan_fund = crowdloan_fund;
 		self
 	}
 
@@ -135,6 +143,12 @@ impl ExtBuilder {
 		parachain_staking::GenesisConfig::<Runtime> {
 			stakers,
 			inflation_config: self.inflation,
+		}
+		.assimilate_storage(&mut t)
+		.unwrap();
+
+		pallet_crowdloan_rewards::GenesisConfig::<Runtime> {
+			funded_amount: self.crowdloan_fund,
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();
@@ -390,34 +404,37 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			(AccountId::from(BOB), 1_000 * GLMR),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_crowdloan_fund(1_000_000 * GLMR)
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
 			set_parachain_inherent_data();
-			set_author(AccountId::from(ALICE));
+			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 			for x in 1..3 {
 				run_to_block(x);
 			}
 			// Batch calls always succeed. We just need to check the inner event
-			assert_ok!(Call::Utility(pallet_utility::Call::<Runtime>::batch(vec![
-				Call::CrowdloanRewards(
-					pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
-						vec![([4u8; 32].into(), Some(AccountId::from(CHARLIE)), 432000)],
-						1,
-						0,
-						2
+			assert_ok!(
+				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
+							vec![([4u8; 32].into(), Some(AccountId::from(CHARLIE)), 432 * GLMR)],
+							1,
+							0,
+							2
+						)
+					),
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
+							vec![([5u8; 32].into(), Some(AccountId::from(DAVE)), 432 * GLMR)],
+							1,
+							1,
+							2
+						)
 					)
-				),
-				Call::CrowdloanRewards(
-					pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
-						vec![([5u8; 32].into(), Some(AccountId::from(DAVE)), 432000)],
-						1,
-						1,
-						2
-					)
-				)
-			]))
-			.dispatch(root_origin()));
+				]))
+				.dispatch(root_origin())
+			);
 			let expected = Event::pallet_utility(pallet_utility::Event::BatchCompleted);
 			assert_eq!(last_event(), expected);
 			// This one should fail, as we already filled our data
@@ -436,7 +453,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				0,
 				DispatchError::Module {
 					index: 19,
-					error: 2,
+					error: 5,
 					message: None,
 				},
 			));
@@ -451,13 +468,13 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE))
 					.unwrap()
 					.claimed_reward,
-				2
+				86400800000000000000
 			);
 			assert_eq!(
 				CrowdloanRewards::accounts_payable(&AccountId::from(DAVE))
 					.unwrap()
 					.claimed_reward,
-				2
+				86400800000000000000
 			);
 
 			assert_noop!(

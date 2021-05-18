@@ -25,9 +25,10 @@ use evm::GenesisAccount;
 use log::debug;
 use moonbeam_runtime::{
 	AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	CouncilCollectiveConfig, DemocracyConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig,
-	GenesisConfig, InflationInfo, ParachainInfoConfig, ParachainStakingConfig, Range,
-	SchedulerConfig, SudoConfig, SystemConfig, TechComitteeCollectiveConfig, GLMR, WASM_BINARY,
+	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
+	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig,
+	ParachainStakingConfig, Range, SchedulerConfig, SudoConfig, SystemConfig,
+	TechComitteeCollectiveConfig, GLMR, WASM_BINARY,
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
@@ -161,6 +162,7 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 				)],
 				moonbeam_inflation_config(),
 				accounts.clone(),
+				1_000_000 * GLMR,
 				Default::default(), // para_id
 				1281,               //ChainId
 			)
@@ -197,6 +199,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 				)],
 				moonbeam_inflation_config(),
 				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
+				1_000_000 * GLMR,
 				para_id,
 				1280, //ChainId
 			)
@@ -238,6 +241,7 @@ pub fn testnet_genesis(
 	stakers: Vec<(AccountId, Option<AccountId>, Balance)>,
 	inflation_config: InflationInfo<Balance>,
 	endowed_accounts: Vec<AccountId>,
+	crowdloan_fund_pot: Balance,
 	para_id: ParaId,
 	chain_id: u64,
 ) -> GenesisConfig {
@@ -263,6 +267,9 @@ pub fn testnet_genesis(
 				.cloned()
 				.map(|k| (k, 1 << 80))
 				.collect(),
+		},
+		pallet_crowdloan_rewards: CrowdloanRewardsConfig {
+			funded_amount: crowdloan_fund_pot,
 		},
 		pallet_sudo: SudoConfig { key: root_key },
 		parachain_info: ParachainInfoConfig {

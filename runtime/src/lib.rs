@@ -98,7 +98,6 @@ pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
 pub const HOURS: BlockNumber = MINUTES * 60;
 pub const DAYS: BlockNumber = HOURS * 24;
 pub const MONTHS: BlockNumber = DAYS * 30;
-const ALICE: [u8; 20] = [4u8; 20];
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
@@ -533,7 +532,6 @@ impl pallet_author_slot_filter::Config for Runtime {
 parameter_types! {
 	// Thinking a
 	pub const VestingPeriod: BlockNumber = 1 * MONTHS;
-	pub const DefaultBlocksPerRoundCrowdloan: BlockNumber = 500;
 	pub const MinimumContribution: Balance = 0;
 	pub const Initialized: bool = false;
 	pub const InitializationPayment: Perbill = Perbill::from_percent(20);
@@ -541,7 +539,6 @@ parameter_types! {
 
 impl pallet_crowdloan_rewards::Config for Runtime {
 	type Event = Event;
-	type DefaultBlocksPerRound = DefaultBlocksPerRoundCrowdloan;
 	type Initialized = Initialized;
 	type InitializationPayment = InitializationPayment;
 	type MinimumContribution = MinimumContribution;
@@ -584,7 +581,7 @@ construct_runtime! {
 		// Concretely we need the author inherent to come after the parachain_system inherent.
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent},
 		AuthorFilter: pallet_author_slot_filter::{Pallet, Storage, Event, Config},
-		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Storage, Event<T>},
+		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>},
 		AuthorMapping: pallet_author_mapping::{Pallet, Config<T>, Storage},
 	}
 }
