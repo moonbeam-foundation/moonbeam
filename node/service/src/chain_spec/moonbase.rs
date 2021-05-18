@@ -31,6 +31,8 @@ use moonbase_runtime::{
 	SystemConfig, TechComitteeCollectiveConfig, GLMR, WASM_BINARY,
 };
 use sc_service::ChainType;
+#[cfg(test)]
+use sp_core::ecdsa;
 use sp_core::H160;
 use sp_runtime::Perbill;
 use std::str::FromStr;
