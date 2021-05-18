@@ -191,16 +191,6 @@ impl frame_system::Config for Runtime {
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 }
 
-/*impl cumulus_pallet_parachain_system::Config for Test {
-	type SelfParaId = ParachainId;
-	type Event = Event;
-	type OnValidationData = ();
-	type DownwardMessageHandlers = ();
-	type OutboundXcmpMessageSource = ();
-	type XcmpMessageHandler = ();
-	type ReservedXcmpWeight = ();
-}*/
-
 impl pallet_utility::Config for Runtime {
 	type Event = Event;
 	type Call = Call;
