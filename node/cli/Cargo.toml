@@ -9,14 +9,14 @@ log = "0.4.8"
 structopt = "0.3.8"
 parity-scale-codec = '2.0.0'
 
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", optional = true }
-sc-cli = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", optional = true }
-sc-service = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", optional = true }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sc-cli = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sc-service = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
 sc-tracing = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
 sc-telemetry = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
-frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", optional = true }
-try-runtime-cli = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", optional = true }
+frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+try-runtime-cli = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
 
 cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
 cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
@@ -26,21 +26,13 @@ polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "r
 polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1" }
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1" }
 
-service = { package = "moonbeam-service", path = "../service", default-features = false, optional = true }
+service = { package = "moonbeam-service", path = "../service", default-features = false }
 cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt", default-features = false }
 
 [build-dependencies]
 substrate-build-script-utils = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
 
 [features]
-default = [ "wasmtime", "cli" ]
+default = [ "wasmtime" ]
 wasmtime = [ "sc-cli/wasmtime" ]
-cli = [
-	"service",
-	"sp-core",
-	"sc-cli",
-	"sc-service",
-	"frame-benchmarking-cli",
-	"try-runtime-cli",
-]
 runtime-benchmarks = [ "service/runtime-benchmarks" ]

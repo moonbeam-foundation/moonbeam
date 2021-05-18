@@ -13,16 +13,8 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-#[cfg(feature = "cli")]
 mod cli;
-#[cfg(feature = "cli")]
 mod command;
-
-#[cfg(feature = "cli")]
 pub use cli::*;
-
-#[cfg(feature = "cli")]
 pub use command::*;
-
-#[cfg(feature = "cli")]
 pub use sc_cli::{Error, Result};
