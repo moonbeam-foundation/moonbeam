@@ -18,7 +18,7 @@ sha3 = { version = "0.9", default-features = false }
 pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
 precompiles = { path = "../precompiles/", default-features = false }
 account = { path = "../../primitives/account/", default-features = false }
-moonbeam-core-primitives = { path = "../../primitives/runtime/", default-features = false }
+moonbeam-core-primitives = { path = "../../core-primitives", default-features = false }
 pallet-ethereum-chain-id = { path = "../../pallets/ethereum-chain-id", default-features = false }
 parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
 pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }

@@ -39,7 +39,7 @@ moonbeam-rpc-debug = { path = "../../client/rpc/debug" }
 moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug" }
 moonbeam-rpc-trace = { path = "../../client/rpc/trace" }
 
-moonbeam-core-primitives = { path = "../../primitives/runtime/" }
+moonbeam-core-primitives = { path = "../../core-primitives" }
 
 # Substrate dependencies
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
