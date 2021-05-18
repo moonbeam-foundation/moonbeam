@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Moonbeam Runtime Integration Tests
+//! Moonbase Runtime Integration Tests
 
 #![cfg(test)]
 
@@ -25,7 +25,7 @@ use frame_support::{
 	dispatch::Dispatchable,
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
-use moonbeam_runtime::{
+use moonbase_runtime::{
 	AccountId, AuthorInherent, Balance, Balances, Call, Event, InflationInfo, ParachainStaking,
 	Range, Runtime, System, GLMR,
 };
