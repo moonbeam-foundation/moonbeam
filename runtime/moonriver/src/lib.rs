@@ -35,7 +35,7 @@ use frame_support::{
 };
 use frame_system::EnsureRoot;
 pub use moonbeam_core_primitives::{
-	AccountId, Balance, BlockNumber, Hash, Header, Index, Signature,
+	AccountId, Address, Balance, BlockNumber, Hash, Header, Index, Signature, AccountIndex, DigestItem,
 };
 
 use pallet_transaction_payment::CurrencyAdapter;
@@ -55,13 +55,6 @@ use sp_version::RuntimeVersion;
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
-
-/// The type for looking up accounts. We don't expect more than 4 billion of them, but you
-/// never know...
-pub type AccountIndex = u32;
-
-/// Digest item type.
-pub type DigestItem = generic::DigestItem<Hash>;
 
 /// Maximum weight per block
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
@@ -320,8 +313,6 @@ construct_runtime! {
 	}
 }
 
-/// The address format for describing accounts.
-pub type Address = AccountId;
 /// Block type as expected by this runtime.
 pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 /// A Block signed with a Justification
