@@ -35,7 +35,7 @@
     "watch": "npm-watch",
     "build": "cargo build --release",
     "non-ci-test": "mocha -r ts-node/register 'non_ci_tests/**/test-*.ts'",
-    "test-single": "mocha -r ts-node/register 'tests/test-balance.ts'"
+    "test-single": "mocha -r ts-node/register 'tests/test-crowdloan.ts'"
   },
   "author": "",
   "license": "ISC",
