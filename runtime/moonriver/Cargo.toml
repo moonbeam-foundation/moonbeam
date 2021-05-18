@@ -13,10 +13,13 @@ serde = { version = "1.0.101", default-features = false, optional = true, featur
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
 log = "0.4"
 hex-literal = "0.3.1"
+sha3 = { version = "0.9", default-features = false }
 
 pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
+precompiles = { path = "../precompiles/", default-features = false }
 account = { path = "../../primitives/account/", default-features = false }
 moonbeam-core-primitives = { path = "../../core-primitives", default-features = false }
+pallet-ethereum-chain-id = { path = "../../pallets/ethereum-chain-id", default-features = false }
 parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
 pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
 author-filter-api = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
@@ -45,13 +48,17 @@ pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", 
 
 frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "joshy-substrate-2be8fcc4" }
 pallet-utility = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 
-pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "joshy-substrate-2be8fcc4" }
 fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
 
+pallet-democracy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+pallet-collective = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+
+moonbeam-extensions-evm = { path = "../extensions/evm", default-features = false }
 moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug", default-features = false }
 moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool", default-features = false }
 
@@ -77,6 +84,7 @@ default = ["std"]
 std = [
 	"parity-scale-codec/std",
 	"serde",
+	"sha3/std",
 	"sp-api/std",
 	"sp-std/std",
 	"sp-io/std",
@@ -97,10 +105,19 @@ std = [
 	"pallet-sudo/std",
 	"pallet-transaction-payment/std",
 	"pallet-utility/std",
+	"pallet-ethereum/std",
+	"pallet-evm/std",
+	"moonbeam-rpc-primitives-debug/std",
+	"moonbeam-rpc-primitives-txpool/std",
+	"fp-rpc/std",
 	"frame-system-rpc-runtime-api/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
+	"pallet-ethereum-chain-id/std",
+	"pallet-democracy/std",
 	"pallet-scheduler/std",
+	"pallet-collective/std",
 	"pallet-author-inherent/std",
+	"moonbeam-extensions-evm/std",
 	"parachain-info/std",
 	"cumulus-pallet-parachain-system/std",
 	"cumulus-primitives-core/std",
@@ -109,11 +126,6 @@ std = [
 	"parachain-staking/std",
 	"pallet-author-slot-filter/std",
 	"author-filter-api/std",
-	"pallet-ethereum/std",
-	"pallet-evm/std",
-	"moonbeam-rpc-primitives-debug/std",
-	"moonbeam-rpc-primitives-txpool/std",
-	"fp-rpc/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
@@ -129,5 +141,6 @@ runtime-benchmarks = [
 	"frame-support/runtime-benchmarks",
 	"frame-system-benchmarking",
 	"frame-system/runtime-benchmarks",
+	"pallet-collective/runtime-benchmarks",
 	"parachain-staking/runtime-benchmarks",
 ]

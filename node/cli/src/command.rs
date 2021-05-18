@@ -462,25 +462,15 @@ pub fn run() -> Result<()> {
 							.expect("Gerald is a valid account"),
 						)
 					});
-					if config.chain_spec.is_moonriver() {
-						return service::new_dev_moonriver(
-							config,
-							author_id,
-							true,
-							cli.run.sealing,
-						)
-						.map_err(Into::into);
-					} else {
-						return service::new_dev(
-							config,
-							author_id,
-							true,
-							cli.run.sealing,
-							cli.run.ethapi,
-							rpc_params,
-						)
-						.map_err(Into::into);
-					}
+					return service::new_dev(
+						config,
+						author_id,
+						true,
+						cli.run.sealing,
+						cli.run.ethapi,
+						rpc_params,
+					)
+					.map_err(Into::into);
 				}
 
 				let polkadot_cli = RelayChainCli::new(
@@ -540,10 +530,19 @@ pub fn run() -> Result<()> {
 					.map(|r| r.0)
 					.map_err(Into::into)
 				} else if config.chain_spec.is_moonriver() {
-					service::start_node_moonriver::<
+					service::start_node::<
 						service::moonriver_runtime::RuntimeApi,
 						service::MoonriverExecutor,
-					>(config, key, author_id, polkadot_config, id, collator)
+					>(
+						config,
+						key,
+						author_id,
+						polkadot_config,
+						id,
+						collator,
+						cli.run.ethapi,
+						rpc_params,
+					)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into)
