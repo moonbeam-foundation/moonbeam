@@ -282,8 +282,18 @@ async function resolveFundsRequests(
   let transferReceipts: TransferReceipts[] = [];
 
   for (const worker of workers) {
+    const workerBalance = BigInt(await web3Api.eth.getBalance(worker.address));
+    const requiredBalance = params.TOKEN_COUNT * 10n ** TOKEN_DECIMAL + 21000n;
+
+    // if the worker doesn't have enough balance, skip before
+    // consuming a task from the queue. This way workers
+    // at the end of the list, which are not used that often,
+    // will resolve the requests until this worker is funded again
+    if (workerBalance < requiredBalance) continue;
+
     const fundsRequest = pendingQueue.pop();
 
+    // if the fr is undefined, it means that the queue is empty
     if (!fundsRequest) continue;
 
     const tx = web3Api.eth.sendSignedTransaction(
