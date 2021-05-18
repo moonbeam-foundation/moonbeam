@@ -100,11 +100,11 @@ pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch 
 nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
 
 # Polkadot dependencies
-polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "master" }
-polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "master" }
-polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "master" }
-polkadot-test-service = { git = "https://github.com/paritytech/polkadot", branch = "master" }
-polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "master" }
+polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.1" }
+polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.1" }
+polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.1" }
+polkadot-test-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.1" }
+polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.1" }
 
 # benchmarking dependencies
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.1" }
@@ -119,9 +119,9 @@ nix = "0.17"
 rand = "0.7.3"
 
 # Polkadot dev-dependencies
-polkadot-runtime-common = { git = "https://github.com/paritytech/polkadot", branch = "master" }
-polkadot-test-runtime = { git = "https://github.com/paritytech/polkadot", branch = "master" }
-polkadot-test-service = { git = "https://github.com/paritytech/polkadot", branch = "master" }
+polkadot-runtime-common = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.1" }
+polkadot-test-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.1" }
+polkadot-test-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.1" }
 
 # Substrate dev-dependencies
 pallet-sudo = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.1" }
