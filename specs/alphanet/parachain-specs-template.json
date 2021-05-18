@@ -110,6 +110,18 @@
       },
       "palletAuthorSlotFilter": {
         "eligibleRatio": 50
+      },
+      "palletAuthorMapping": {
+        "authorIds": [
+          [
+            "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+            "0x4c5a56ed5a4ff7b09aa86560afd7d383f4831cce"
+          ],
+          [
+            "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty",
+            "0x623c9e50647a049f92090fe55e22cc0509872fb6"
+          ]
+        ]
       }
     }
   }

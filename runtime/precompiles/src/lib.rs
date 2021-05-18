@@ -94,8 +94,8 @@ where
 			a if a == hash(7) => Some(Bn128Mul::execute(input, target_gas, context)),
 			a if a == hash(8) => Some(Bn128Pairing::execute(input, target_gas, context)),
 			// Non-Moonbeam specific nor Ethereum precompiles :
-			a if a == hash(1024) => Some(Dispatch::<R>::execute(input, target_gas, context)),
-			a if a == hash(1025) => Some(Sha3FIPS256::execute(input, target_gas, context)),
+			a if a == hash(1024) => Some(Sha3FIPS256::execute(input, target_gas, context)),
+			a if a == hash(1025) => Some(Dispatch::<R>::execute(input, target_gas, context)),
 			// Moonbeam specific precompiles :
 			a if a == hash(2048) => Some(ParachainStakingWrapper::<R>::execute(
 				input, target_gas, context,

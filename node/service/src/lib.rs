@@ -261,7 +261,7 @@ pub fn new_chain_ops(
 #[allow(clippy::type_complexity)]
 pub fn new_partial<RuntimeApi, Executor>(
 	config: &Configuration,
-	author: Option<H160>,
+	author: Option<nimbus_primitives::NimbusId>,
 	dev_service: bool,
 ) -> Result<
 	PartialComponents<
@@ -356,7 +356,7 @@ where
 		// It would be nice if we could just use this one in either case, but
 		// it doesn't properly follow the longest chain rule.
 		// https://github.com/PureStake/moonbeam/pull/266
-		cumulus_client_consensus_relay_chain::import_queue(
+		nimbus_consensus::import_queue(
 			client.clone(),
 			frontier_block_import.clone(),
 			inherent_data_providers.clone(),
@@ -438,7 +438,7 @@ where
 
 	let parachain_config = prepare_node_config(parachain_config);
 
-	let params = new_partial(&parachain_config, author_id, false)?;
+	let params = new_partial(&parachain_config, None, false)?;
 	let (
 		block_import,
 		pending_transactions,
@@ -633,13 +633,15 @@ where
 		);
 		let spawner = task_manager.spawn_handle();
 
-		let parachain_consensus = build_relay_chain_consensus(BuildRelayChainConsensusParams {
+		let parachain_consensus = build_nimbus_consensus(BuildNimbusConsensusParams {
 			para_id: id,
 			proposer_factory,
 			inherent_data_providers: params.inherent_data_providers,
 			block_import,
 			relay_chain_client: polkadot_full_node.client.clone(),
 			relay_chain_backend: polkadot_full_node.backend.clone(),
+			parachain_client: client.clone(),
+			keystore: params.keystore_container.sync_keystore(),
 		});
 
 		let params = StartCollatorParams {
@@ -709,7 +711,7 @@ where
 /// the parachain inherent.
 pub fn new_dev(
 	config: Configuration,
-	author_id: Option<H160>,
+	author_id: Option<nimbus_primitives::NimbusId>,
 	// TODO I guess we should use substrate-cli's validator flag for this.
 	// Resolve after https://github.com/paritytech/cumulus/pull/380 is reviewed.
 	collator: bool,

@@ -133,9 +133,10 @@ pub struct RunCmd {
 	#[structopt(long, default_value = "instant")]
 	pub sealing: Sealing,
 
-	/// Public identity for participating in staking and receiving rewards
-	#[structopt(long, parse(try_from_str = parse_h160))]
-	pub author_id: Option<H160>,
+	/// Public authoring identity to be inserted in the author inherent
+	/// This is not currently used, but we may want a way to use it in the dev service.
+	// #[structopt(long)]
+	// pub author_id: Option<NimbusId>,
 
 	/// Enable EVM tracing module on a non-authority node.
 	#[structopt(
