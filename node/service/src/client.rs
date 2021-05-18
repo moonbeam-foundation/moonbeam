@@ -28,7 +28,8 @@ use std::sync::Arc;
 
 /// A set of APIs that polkadot-like runtimes must implement.
 ///
-/// This trait has no methods or associated type. It is a concise marker for all the trait bounds that it contains.
+/// This trait has no methods or associated type. It is a concise marker for all the trait bounds
+/// that it contains.
 pub trait RuntimeApiCollection:
 	sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block>
 	+ sp_api::ApiExt<Block>
