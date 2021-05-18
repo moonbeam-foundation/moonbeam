@@ -29,9 +29,7 @@ use moonbeam_runtime::{
 	InflationInfo, ParachainInfoConfig, ParachainStakingConfig, Range, SchedulerConfig, SudoConfig,
 	SystemConfig, TechComitteeCollectiveConfig, GLMR, WASM_BINARY,
 };
-use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
-use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
 
 use sp_core::{ecdsa, Pair, Public, H160, H256};
@@ -42,6 +40,7 @@ use sp_runtime::{
 use std::convert::TryInto;
 use std::str::FromStr;
 use tiny_hderive::bip32::ExtendedPrivKey;
+use crate::chain_spec::Extensions;
 
 /// Helper function to derive `num_accounts` child pairs from mnemonics
 /// Substrate derive function cannot be used because the derivation is different than Ethereum's
@@ -91,23 +90,6 @@ pub fn get_account_id_from_pair<TPublic: Public>(pair: TPublic::Pair) -> Option<
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
-
-/// The extensions for the [`ChainSpec`].
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
-#[serde(deny_unknown_fields)]
-pub struct Extensions {
-	/// The relay chain of the Parachain.
-	pub relay_chain: String,
-	/// The id of the Parachain.
-	pub para_id: u32,
-}
-
-impl Extensions {
-	/// Try to get the extension from the given `ChainSpec`.
-	pub fn try_get(chain_spec: &dyn sc_service::ChainSpec) -> Option<&Self> {
-		sc_chain_spec::get_extension(chain_spec.extensions())
-	}
-}
 
 /// Function to generate accounts given a mnemonic and a number of child accounts to be generated
 /// Defaults to a default mnemonic if no mnemonic is supplied
