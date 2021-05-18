@@ -96,7 +96,7 @@ $MOONBEAM_BINARY \
   --name parachain_$PARACHAIN_INDEX \
   $PARACHAIN_BASE_PATH \
   '-linfo,evm=debug,ethereum=trace,rpc=trace,cumulus_collator=debug,txpool=debug' \
-  --author-id ${STAKERS[$PARACHAIN_INDEX]} \
+  --${WELL_KNOWN_USERS[$PARACHAIN_INDEX]} \
   --chain $CHAIN \
   $PARACHAIN_BOOTNODES_ARGS \
   -- \

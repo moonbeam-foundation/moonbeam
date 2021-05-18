@@ -20,7 +20,8 @@ account = { path = "../primitives/account/", default-features = false }
 pallet-ethereum-chain-id = { path = "../pallets/ethereum-chain-id", default-features = false }
 parachain-staking = { path = "../pallets/parachain-staking", default-features = false }
 pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
-author-filter-api = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
+nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
+pallet-author-mapping = { path = "../pallets/author-mapping", default-features = false }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
@@ -57,7 +58,7 @@ pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-fe
 pallet-collective = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-society = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 
-pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false, rev = "649176a" }
+pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false, rev = "b6f11ff" }
 
 moonbeam-extensions-evm = { path = "extensions/evm", default-features = false }
 moonbeam-rpc-primitives-debug = { path = "../primitives/rpc/debug", default-features = false }
@@ -73,9 +74,10 @@ frame-benchmarking = { git = "https://github.com/paritytech/substrate", default-
 frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1", optional = true }
 
 [dev-dependencies]
+evm = { version = "0.26.0", default-features = false, features = ["with-codec"] }
 cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus" }
 cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus" }
-evm = { version = "0.26.0", default-features = false, features = ["with-codec"] }
+
 
 [build-dependencies]
 substrate-wasm-builder = { version = "4.0.0", git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
@@ -125,10 +127,11 @@ std = [
 	"account/std",
 	"parachain-staking/std",
 	"pallet-author-slot-filter/std",
-	"author-filter-api/std",
 	"pallet-crowdloan-rewards/std",
 	"frame-benchmarking/std",
 	"pallet-society/std",
+	"nimbus-primitives/std",
+	"pallet-author-mapping/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
@@ -146,7 +149,6 @@ runtime-benchmarks = [
 	"frame-system/runtime-benchmarks",
 	"pallet-collective/runtime-benchmarks",
 	"parachain-staking/runtime-benchmarks",
-	"pallet-crowdloan-rewards/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
