@@ -270,7 +270,7 @@ impl RuntimeListener for RawTracer {
 							}
 						}
 					}
-					Err(Capture::Trap(opcode)) if is_subcall(*opcode) => {
+					Err(Capture::Trap(opcode)) if ContextType::from(*opcode).is_some() => {
 						self.new_context = true;
 					}
 					_ => (),

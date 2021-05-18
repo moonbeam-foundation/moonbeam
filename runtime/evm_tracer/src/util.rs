@@ -23,6 +23,7 @@ pub use evm_gasometer::tracing::{
 pub use evm_runtime::tracing::{
 	using as runtime_using, Event as RuntimeEvent, EventListener as RuntimeListener,
 };
+use moonbeam_rpc_primitives_debug::CallType;
 pub use sp_std::{cell::RefCell, fmt::Debug, rc::Rc, vec, vec::Vec};
 pub struct ListenerProxy<T>(pub Rc<RefCell<T>>);
 
@@ -205,16 +206,23 @@ pub fn opcodes_string(opcode: Opcode) -> Vec<u8> {
 	out.as_bytes().to_vec()
 }
 
-pub fn is_subcall(opcode: Opcode) -> bool {
-	matches!(
-		opcode,
-		Opcode(0xF0) | // create
-        Opcode(0xF1) | // call
-        Opcode(0xF2) | // call code
-        Opcode(0xF4) | // delegate call
-        Opcode(0xF5) | // create 2
-        Opcode(0xFA) // static call
-	)
+#[derive(Debug)]
+pub enum ContextType {
+	Call(CallType),
+	Create,
+}
+
+impl ContextType {
+	pub fn from(opcode: Opcode) -> Option<Self> {
+		match opcode.0 {
+			0xF0 | 0xF5 => Some(ContextType::Create),
+			0xF1 => Some(ContextType::Call(CallType::Call)),
+			0xF2 => Some(ContextType::Call(CallType::CallCode)),
+			0xF4 => Some(ContextType::Call(CallType::DelegateCall)),
+			0xFA => Some(ContextType::Call(CallType::StaticCall)),
+			_ => None,
+		}
+	}
 }
 
 pub fn convert_memory(memory: Vec<u8>) -> Vec<H256> {

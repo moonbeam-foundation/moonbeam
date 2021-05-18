@@ -77,6 +77,7 @@ mod dummy;
 mod raw;
 mod util;
 
+pub use call_list::CallListTracer;
 pub use dummy::DummyTracer;
 pub use raw::RawTracer;
 pub use util::EvmListener;

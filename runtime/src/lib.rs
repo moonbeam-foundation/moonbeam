@@ -655,8 +655,8 @@ impl_runtime_apis! {
 			moonbeam_rpc_primitives_debug::single::TransactionTrace,
 			sp_runtime::DispatchError
 		> {
-			use moonbeam_rpc_primitives_debug::single::{TraceType, TransactionTrace};
-			use moonbeam_evm_tracer::{RawTracer, EvmListener};
+			use moonbeam_rpc_primitives_debug::single::TraceType;
+			use moonbeam_evm_tracer::{RawTracer, CallListTracer};
 
 			// Apply the a subset of extrinsics: all the substrate-specific or ethereum transactions
 			// that preceded the requested transaction.
@@ -664,23 +664,6 @@ impl_runtime_apis! {
 				let _ = match &ext.function {
 					Call::Ethereum(transact(t)) => {
 						if t == transaction {
-							// let hook = match trace_type {
-							// 	TraceType::Raw {
-							// 		disable_storage,
-							// 		disable_memory,
-							// 		disable_stack,
-							// 	} => {
-							// 		TracingHook::new_raw(
-							// 			disable_storage,
-							// 			disable_memory,
-							// 			disable_stack,
-							// 		)
-							// 	},
-							// 	TraceType::CallList => TracingHook::new_call_list(),
-							// };
-
-							// let other_hook = pallet_evm::runner::stack::Runner::<Runtime, TracingHook>::set_hook(Some(hook));
-
 							return match trace_type {
 								TraceType::Raw {
 									disable_storage,
@@ -692,19 +675,11 @@ impl_runtime_apis! {
 										disable_stack,).trace(|| Executive::apply_extrinsic(ext))
 										.0.into_tx_trace())
 								},
-								_ => return Err(sp_runtime::DispatchError::Other("TODO : Implement call list tracer")),
+								TraceType::CallList => {
+									Ok(CallListTracer::new().trace(|| Executive::apply_extrinsic(ext))
+									.0.into_tx_trace())
+								}
 							}
-
-							// #[cfg(feature = "std")]
-							// tracing::trace!("tracer : {:?}", tracer);
-							// let hook = pallet_evm::runner::stack::Runner::<Runtime, TracingHook>::set_hook(other_hook);
-
-							// return Err(sp_runtime::DispatchError::Other("TODO : Implement real result"));
-
-							// return match hook {
-							// 	Some(hook) => Ok(hook.finish()),
-							// 	None => Err(sp_runtime::DispatchError::Other("Could not get back hook.")),
-							// }
 
 						} else {
 							Executive::apply_extrinsic(ext)
@@ -725,7 +700,7 @@ impl_runtime_apis! {
 				sp_runtime::DispatchError
 			> {
 			use moonbeam_rpc_primitives_debug::{single, block, CallResult, CreateResult, CreateType};
-			use moonbeam_evm_tracer::DummyTracer;
+			use moonbeam_evm_tracer::CallListTracer;
 
 			let mut config = <Runtime as pallet_evm::Config>::config().clone();
 			config.estimate = true;
@@ -737,22 +712,10 @@ impl_runtime_apis! {
 			for ext in extrinsics.into_iter() {
 				match &ext.function {
 					Call::Ethereum(transact(_transaction)) => {
-						// let hook = TracingHook::new_call_list();
-
-
-						// let other_hook = pallet_evm::runner::stack::Runner::<Runtime, TracingHook>::set_hook(Some(hook));
-						// let _ = Executive::apply_extrinsic(ext);
-						// let hook = pallet_evm::runner::stack::Runner::<Runtime, TracingHook>::set_hook(other_hook);
-
-						let (tracer, _) = DummyTracer.trace(|| Executive::apply_extrinsic(ext));
-						return Ok(vec![]);
-
-						let tx_traces = todo!("replace hook with new evm events");
-
-						// let tx_traces = match hook {
-						// 	Some(hook) => hook.finish(),
-						// 	None => return Err(sp_runtime::DispatchError::Other("Could not get back hook.")),
-						// };
+						let tx_traces = CallListTracer::new()
+							.trace(|| Executive::apply_extrinsic(ext))
+							.0
+							.into_tx_trace();
 
 						let tx_traces = match tx_traces {
 							single::TransactionTrace::CallList(t) => t,
