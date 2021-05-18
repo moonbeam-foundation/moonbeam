@@ -222,6 +222,8 @@ pub struct FullDepsMoonriver<C, P, BE> {
 	pub deny_unsafe: DenyUnsafe,
 	/// Backend.
 	pub backend: Arc<BE>,
+	/// Manual seal command sink
+	pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
 }
 /// Instantiate all Full RPC extensions.
 pub fn create_full_moonriver<C, P, BE>(
@@ -244,6 +246,7 @@ where
 		pool,
 		deny_unsafe,
 		backend: _,
+		command_sink,
 	} = deps;
 
 	io.extend_with(SystemApi::to_delegate(FullSystem::new(
@@ -254,5 +257,14 @@ where
 	io.extend_with(TransactionPaymentApi::to_delegate(TransactionPayment::new(
 		client.clone(),
 	)));
+
+	if let Some(command_sink) = command_sink {
+		io.extend_with(
+			// We provide the rpc handler with the sending end of the channel to allow the rpc
+			// send EngineCommands to the background block authorship task.
+			ManualSealApi::to_delegate(ManualSeal::new(command_sink)),
+		);
+	};
+
 	io
 }

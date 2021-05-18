@@ -100,31 +100,31 @@ pub trait IdentifyVariant {
 	/// Returns `true` if this is a configuration for the `Moonbase` network.
 	fn is_moonbase(&self) -> bool;
 
-	/// Returns `true` if this is a configuration for the `Moonbase` dev network.
-	fn is_moonbase_dev(&self) -> bool;
-
 	/// Returns `true` if this is a configuration for the `Moonbeam` network.
 	fn is_moonbeam(&self) -> bool;
 
 	/// Returns `true` if this is a configuration for the `Moonriver` network.
 	fn is_moonriver(&self) -> bool;
+
+	/// Returns `true` if this is a configuration for a dev network.
+	fn is_dev(&self) -> bool;
 }
 
 impl IdentifyVariant for Box<dyn ChainSpec> {
 	fn is_moonbase(&self) -> bool {
-		self.id().starts_with("moonbase") || self.id().ends_with("base")
-	}
-
-	fn is_moonbase_dev(&self) -> bool {
-		self.id().starts_with("dev") || self.id().ends_with("ment")
+		self.id().starts_with("moonbase")
 	}
 
 	fn is_moonbeam(&self) -> bool {
-		self.id().starts_with("moonbeam") || self.id().ends_with("beam")
+		self.id().starts_with("moonbeam")
 	}
 
 	fn is_moonriver(&self) -> bool {
-		self.id().starts_with("moonriver") || self.id().ends_with("river")
+		self.id().starts_with("moonriver")
+	}
+
+	fn is_dev(&self) -> bool {
+		self.id().ends_with("dev")
 	}
 }
 
@@ -164,14 +164,14 @@ pub fn new_chain_ops(
 	ServiceError,
 > {
 	config.keystore = sc_service::config::KeystoreConfig::InMemory;
-	if config.chain_spec.is_moonbase_dev() || config.chain_spec.is_moonbase() {
+	if config.chain_spec.is_moonbase() {
 		let PartialComponents {
 			client,
 			backend,
 			import_queue,
 			task_manager,
 			..
-		} = new_partial(config, author_id, config.chain_spec.is_moonbase_dev())?;
+		} = new_partial(config, author_id, config.chain_spec.is_dev())?;
 		Ok((
 			Arc::new(Client::Moonbase(client)),
 			backend,
@@ -186,7 +186,9 @@ pub fn new_chain_ops(
 			task_manager,
 			..
 		} = new_partial_moonriver::<moonriver_runtime::RuntimeApi, MoonriverExecutor>(
-			config, author_id, false,
+			config,
+			author_id,
+			config.chain_spec.is_dev(),
 		)?;
 		Ok((
 			Arc::new(Client::Moonriver(client)),
@@ -201,7 +203,11 @@ pub fn new_chain_ops(
 			import_queue,
 			task_manager,
 			..
-		} = new_partial::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(config, author_id, false)?;
+		} = new_partial::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(
+			config,
+			author_id,
+			config.chain_spec.is_dev(),
+		)?;
 		Ok((
 			Arc::new(Client::Moonbeam(client)),
 			backend,
@@ -569,8 +575,7 @@ where
 		(None, None)
 	};
 
-	let is_moonbase =
-		parachain_config.chain_spec.is_moonbase_dev() || parachain_config.chain_spec.is_moonbase();
+	let is_moonbase = parachain_config.chain_spec.is_moonbase();
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
@@ -808,6 +813,7 @@ where
 				pool: pool.clone(),
 				deny_unsafe,
 				backend: backend.clone(),
+				command_sink: None,
 			};
 
 			rpc::create_full_moonriver(deps)
@@ -1097,7 +1103,7 @@ pub fn new_dev(
 		(None, None)
 	};
 
-	let is_moonbase = config.chain_spec.is_moonbase_dev() || config.chain_spec.is_moonbase();
+	let is_moonbase = config.chain_spec.is_moonbase();
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
@@ -1203,6 +1209,160 @@ pub fn new_dev(
 			),
 		);
 	}
+
+	log::info!("Development Service Ready");
+
+	network_starter.start_network();
+	Ok(task_manager)
+}
+
+/// Builds a new development service. This service uses manual seal, and mocks
+/// the parachain inherent.
+pub fn new_dev_moonriver(
+	config: Configuration,
+	author_id: Option<H160>,
+	// TODO I guess we should use substrate-cli's validator flag for this.
+	// Resolve after https://github.com/paritytech/cumulus/pull/380 is reviewed.
+	collator: bool,
+	sealing: cli_opt::Sealing,
+) -> Result<TaskManager, ServiceError> {
+	use async_io::Timer;
+	use futures::Stream;
+	use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
+	use sp_core::H256;
+
+	let sc_service::PartialComponents {
+		client,
+		backend,
+		mut task_manager,
+		import_queue,
+		keystore_container,
+		select_chain: maybe_select_chain,
+		transaction_pool,
+		inherent_data_providers,
+		other: (telemetry, _telemetry_worker_handle),
+	} = new_partial_moonriver::<moonriver_runtime::RuntimeApi, MoonbaseExecutor>(
+		&config, author_id, true,
+	)?;
+
+	let (network, network_status_sinks, system_rpc_tx, network_starter) =
+		sc_service::build_network(sc_service::BuildNetworkParams {
+			config: &config,
+			client: client.clone(),
+			transaction_pool: transaction_pool.clone(),
+			spawn_handle: task_manager.spawn_handle(),
+			import_queue,
+			on_demand: None,
+			block_announce_validator_builder: None,
+		})?;
+
+	if config.offchain_worker.enabled {
+		sc_service::build_offchain_workers(
+			&config,
+			task_manager.spawn_handle(),
+			client.clone(),
+			network.clone(),
+		);
+	}
+
+	let prometheus_registry = config.prometheus_registry().cloned();
+	let mut command_sink = None;
+
+	if collator {
+		let env = sc_basic_authorship::ProposerFactory::new(
+			task_manager.spawn_handle(),
+			client.clone(),
+			transaction_pool.clone(),
+			prometheus_registry.as_ref(),
+			telemetry.as_ref().map(|x| x.handle()),
+		);
+
+		let commands_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> =
+			match sealing {
+				cli_opt::Sealing::Instant => {
+					Box::new(
+						// This bit cribbed from the implementation of instant seal.
+						transaction_pool
+							.pool()
+							.validated_pool()
+							.import_notification_stream()
+							.map(|_| EngineCommand::SealNewBlock {
+								create_empty: false,
+								finalize: false,
+								parent_hash: None,
+								sender: None,
+							}),
+					)
+				}
+				cli_opt::Sealing::Manual => {
+					let (sink, stream) = futures::channel::mpsc::channel(1000);
+					// Keep a reference to the other end of the channel. It goes to the RPC.
+					command_sink = Some(sink);
+					Box::new(stream)
+				}
+				cli_opt::Sealing::Interval(millis) => Box::new(StreamExt::map(
+					Timer::interval(Duration::from_millis(millis)),
+					|_| EngineCommand::SealNewBlock {
+						create_empty: true,
+						finalize: false,
+						parent_hash: None,
+						sender: None,
+					},
+				)),
+			};
+
+		let select_chain = maybe_select_chain.expect(
+			"`new_partial` builds a `LongestChainRule` when building dev service.\
+				We specified the dev service when calling `new_partial`.\
+				Therefore, a `LongestChainRule` is present. qed.",
+		);
+
+		task_manager.spawn_essential_handle().spawn_blocking(
+			"authorship_task",
+			run_manual_seal(ManualSealParams {
+				block_import: client.clone(),
+				env,
+				client: client.clone(),
+				pool: transaction_pool.pool().clone(),
+				commands_stream,
+				select_chain,
+				consensus_data_provider: None,
+				inherent_data_providers,
+			}),
+		);
+	}
+
+	let rpc_extensions_builder = {
+		let client = client.clone();
+		let pool = transaction_pool.clone();
+		let backend = backend.clone();
+		Box::new(move |deny_unsafe, _| {
+			let deps = rpc::FullDepsMoonriver {
+				client: client.clone(),
+				pool: pool.clone(),
+				deny_unsafe,
+				backend: backend.clone(),
+				command_sink: command_sink.clone(),
+			};
+			rpc::create_full_moonriver(deps)
+		})
+	};
+
+	let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
+		network,
+		client: client.clone(),
+		keystore: keystore_container.sync_keystore(),
+		task_manager: &mut task_manager,
+		transaction_pool: transaction_pool.clone(),
+		rpc_extensions_builder,
+		on_demand: None,
+		remote_blockchain: None,
+		backend: backend.clone(),
+		network_status_sinks,
+		system_rpc_tx,
+		config,
+		telemetry: None,
+	})?;
 
 	log::info!("Development Service Ready");
 

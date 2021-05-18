@@ -148,7 +148,7 @@ impl SubstrateCli for Cli {
 	}
 
 	fn native_runtime_version(spec: &Box<dyn sc_service::ChainSpec>) -> &'static RuntimeVersion {
-		if spec.is_moonbase() || spec.is_moonbase_dev() {
+		if spec.is_moonbase() {
 			return &service::moonbase_runtime::VERSION;
 		} else if spec.is_moonriver() {
 			return &service::moonriver_runtime::VERSION;
@@ -448,13 +448,10 @@ pub fn run() -> Result<()> {
 				// 2. by specifying "dev-service" in the chain spec's "relay-chain" field.
 				// NOTE: the --dev flag triggers the dev service by way of number 2
 				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
-				let dev_service = config.chain_spec.is_moonbase_dev()
-					|| relay_chain_id == Some("dev-service".to_string());
+				let dev_service =
+					config.chain_spec.is_dev() || relay_chain_id == Some("dev-service".to_string());
 
 				if dev_service {
-					// --dev implies --collator
-					let collator = collator || cli.run.shared_params.dev;
-
 					// If no author id was supplied, use the one that is staked at genesis
 					// in the default development spec.
 					let author_id = author_id.or_else(|| {
@@ -465,15 +462,25 @@ pub fn run() -> Result<()> {
 							.expect("Gerald is a valid account"),
 						)
 					});
-					return service::new_dev(
-						config,
-						author_id,
-						collator,
-						cli.run.sealing,
-						cli.run.ethapi,
-						rpc_params,
-					)
-					.map_err(Into::into);
+					if config.chain_spec.is_moonriver() {
+						return service::new_dev_moonriver(
+							config,
+							author_id,
+							true,
+							cli.run.sealing,
+						)
+						.map_err(Into::into);
+					} else {
+						return service::new_dev(
+							config,
+							author_id,
+							true,
+							cli.run.sealing,
+							cli.run.ethapi,
+							rpc_params,
+						)
+						.map_err(Into::into);
+					}
 				}
 
 				let polkadot_cli = RelayChainCli::new(

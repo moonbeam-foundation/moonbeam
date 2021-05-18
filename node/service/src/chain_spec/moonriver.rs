@@ -46,7 +46,7 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 	accounts.push(AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap());
 	ChainSpec::from_genesis(
 		"Moonriver Development Testnet",
-		"development",
+		"moonriver_dev",
 		ChainType::Development,
 		move || {
 			testnet_genesis(
