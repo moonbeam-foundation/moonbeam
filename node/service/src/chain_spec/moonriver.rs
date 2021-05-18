@@ -19,95 +19,21 @@
 //! Learn more about Substrate chain specifications at
 //! https://substrate.dev/docs/en/knowledgebase/integrate/chain-spec
 
-use bip39::{Language, Mnemonic, Seed};
 use cumulus_primitives_core::ParaId;
-use log::debug;
 use moonriver_runtime::{
 	AccountId, AuthorFilterConfig, Balance, BalancesConfig, GenesisConfig, InflationInfo,
 	ParachainInfoConfig, ParachainStakingConfig, Range, SchedulerConfig, SudoConfig, SystemConfig,
 	GLMR, WASM_BINARY,
 };
 use sc_service::ChainType;
-use sha3::{Digest, Keccak256};
-
-use sp_core::{ecdsa, Pair, Public, H160, H256};
-use sp_runtime::{
-	traits::{BlakeTwo256, Hash},
-	Perbill,
-};
-use std::convert::TryInto;
+use sp_runtime::Perbill;
 use std::str::FromStr;
-use tiny_hderive::bip32::ExtendedPrivKey;
-use crate::chain_spec::Extensions;
-
-/// Helper function to derive `num_accounts` child pairs from mnemonics
-/// Substrate derive function cannot be used because the derivation is different than Ethereum's
-/// https://substrate.dev/rustdocs/v2.0.0/src/sp_core/ecdsa.rs.html#460-470
-pub fn derive_bip44_pairs_from_mnemonic<TPublic: Public>(
-	mnemonic: &str,
-	num_accounts: u32,
-) -> Vec<TPublic::Pair> {
-	let seed = Mnemonic::from_phrase(mnemonic, Language::English)
-		.map(|x| Seed::new(&x, ""))
-		.expect("Wrong mnemonic provided");
-
-	let mut childs = Vec::new();
-	for i in 0..num_accounts {
-		if let Some(child_pair) =
-			ExtendedPrivKey::derive(seed.as_bytes(), format!("m/44'/60'/0'/0/{}", i).as_ref())
-				.ok()
-				.map(|account| TPublic::Pair::from_seed_slice(&account.secret()).ok())
-				.flatten()
-		{
-			childs.push(child_pair);
-		} else {
-			log::error!("An error ocurred while deriving key {} from parent", i)
-		}
-	}
-	childs
-}
-
-/// Helper function to get an AccountId from Key Pair
-/// We need the full decompressed public key to derive an ethereum-style account
-/// Substrate does not provide a method to obtain the full decompressed public key
-/// Therefore, this function uses the secp256k1_ecdsa_recover method to recover the full key
-/// A solution without using the private key would imply solving the secp256k1 curve equation
-/// The latter is currently not possible with current substrate methods
-pub fn get_account_id_from_pair<TPublic: Public>(pair: TPublic::Pair) -> Option<AccountId> {
-	let test_message = [1u8; 32];
-	let signature: [u8; 65] = pair.sign(&test_message).as_ref().try_into().ok()?;
-	let pubkey = sp_io::crypto::secp256k1_ecdsa_recover(
-		&signature,
-		BlakeTwo256::hash_of(&test_message).as_fixed_bytes(),
-	)
-	.ok()?;
-	Some(H160::from(H256::from_slice(
-		Keccak256::digest(&pubkey).as_slice(),
-	)))
-}
+use crate::chain_spec::{Extensions, generate_accounts};
+#[cfg(test)]
+use crate::chain_spec::{derive_bip44_pairs_from_mnemonic, get_account_id_from_pair};
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
-
-/// Function to generate accounts given a mnemonic and a number of child accounts to be generated
-/// Defaults to a default mnemonic if no mnemonic is supplied
-pub fn generate_accounts(mnemonic: String, num_accounts: u32) -> Vec<AccountId> {
-	let childs = derive_bip44_pairs_from_mnemonic::<ecdsa::Public>(&mnemonic, num_accounts);
-	debug!("Account Generation");
-	childs
-		.iter()
-		.map(|par| {
-			let account = get_account_id_from_pair::<ecdsa::Public>(par.clone());
-			debug!(
-				"private_key {} --------> Account {:x?}",
-				sp_core::hexdisplay::HexDisplay::from(&par.clone().seed()),
-				account
-			);
-			account
-		})
-		.flatten()
-		.collect()
-}
 
 /// Generate a chain spec for use with the development service.
 pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32>) -> ChainSpec {
