@@ -56,7 +56,7 @@ struct Context {
 	value: U256,
 
 	gas: u64,
-	gas_used: u64,
+	start_gas: Option<u64>,
 
 	// input / data
 	data: Vec<u8>,
@@ -108,8 +108,10 @@ impl GasometerListener for CallListTracer {
 			| GasometerEvent::RecordDynamicCost { snapshot, .. }
 			| GasometerEvent::RecordStipend { snapshot, .. } => {
 				if let Some(context) = self.context_stack.last_mut() {
-					context.gas = snapshot_after.gas();
-					context.gas_used = snapshot_after.used_gas - snapshot_after.refunded_gas as u64;
+					if context.start_gas.is_none() {
+						context.start_gas = Some(snapshot.gas());
+					}
+					context.gas = snapshot.gas();
 				}
 			}
 			GasometerEvent::RecordTransaction { cost, .. } => self.transaction_cost = cost,
@@ -136,6 +138,11 @@ impl RuntimeListener for CallListTracer {
 				return_value,
 			} => {
 				if let Some(context) = self.context_stack.pop() {
+					let mut gas_used = context.start_gas.unwrap() - context.gas;
+					if context.entries_index == 0 {
+						gas_used += self.transaction_cost;
+					}
+
 					self.entries.insert(
 						context.entries_index,
 						match context.context_type {
@@ -161,13 +168,7 @@ impl RuntimeListener for CallListTracer {
 									subtraces: context.subtraces,
 									value: context.value,
 									gas: context.gas.into(),
-									gas_used: (context.gas_used
-										+ if context.entries_index == 0 {
-											self.transaction_cost
-										} else {
-											0
-										})
-									.into(),
+									gas_used: gas_used.into(),
 									inner: CallInner::Call {
 										call_type,
 										to: context.to,
@@ -196,13 +197,7 @@ impl RuntimeListener for CallListTracer {
 									trace_address: context.trace_address,
 									subtraces: context.subtraces,
 									gas: context.gas.into(),
-									gas_used: (context.gas_used
-										+ if context.entries_index == 0 {
-											self.transaction_cost
-										} else {
-											0
-										})
-									.into(),
+									gas_used: gas_used.into(),
 									from: context.from,
 									inner: CallInner::Create {
 										init: context.data,
@@ -259,7 +254,7 @@ impl EvmListener for CallListTracer {
 					value: context.apparent_value,
 
 					gas: 0,
-					gas_used: 0,
+					start_gas: None,
 
 					data: input.to_vec(),
 					to: context.address,
@@ -287,7 +282,7 @@ impl EvmListener for CallListTracer {
 					value,
 
 					gas: 0,
-					gas_used: 0,
+					start_gas: None,
 
 					data: init_code.to_vec(),
 					to: address,
