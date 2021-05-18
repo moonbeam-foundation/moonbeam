@@ -35,7 +35,8 @@ use frame_support::{
 };
 use frame_system::EnsureRoot;
 pub use moonbeam_core_primitives::{
-	AccountId, Address, Balance, BlockNumber, Hash, Header, Index, Signature, AccountIndex, DigestItem,
+	AccountId, AccountIndex, Address, Balance, BlockNumber, DigestItem, Hash, Header, Index,
+	Signature,
 };
 
 use pallet_transaction_payment::CurrencyAdapter;

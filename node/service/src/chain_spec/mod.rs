@@ -13,16 +13,16 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+use bip39::{Language, Mnemonic, Seed};
+use log::debug;
+pub use moonbeam_core_primitives::AccountId;
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use serde::{Deserialize, Serialize};
-use sp_core::{ecdsa, Pair, Public, H160, H256};
-use bip39::{Language, Mnemonic, Seed};
-use tiny_hderive::bip32::ExtendedPrivKey;
-use sp_runtime::traits::{BlakeTwo256, Hash};
-pub use moonbeam_core_primitives::AccountId;
 use sha3::{Digest, Keccak256};
-use log::debug;
+use sp_core::{ecdsa, Pair, Public, H160, H256};
+use sp_runtime::traits::{BlakeTwo256, Hash};
 use std::convert::TryInto;
+use tiny_hderive::bip32::ExtendedPrivKey;
 
 pub mod moonbase;
 pub mod moonbeam;

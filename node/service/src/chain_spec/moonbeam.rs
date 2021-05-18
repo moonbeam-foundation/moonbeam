@@ -19,6 +19,9 @@
 //! Learn more about Substrate chain specifications at
 //! https://substrate.dev/docs/en/knowledgebase/integrate/chain-spec
 
+#[cfg(test)]
+use crate::chain_spec::{derive_bip44_pairs_from_mnemonic, get_account_id_from_pair};
+use crate::chain_spec::{generate_accounts, Extensions};
 use cumulus_primitives_core::ParaId;
 use evm::GenesisAccount;
 use moonbeam_runtime::{
@@ -31,9 +34,6 @@ use sc_service::ChainType;
 use sp_core::H160;
 use sp_runtime::Perbill;
 use std::str::FromStr;
-use crate::chain_spec::{Extensions, generate_accounts};
-#[cfg(test)]
-use crate::chain_spec::{derive_bip44_pairs_from_mnemonic, get_account_id_from_pair};
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;

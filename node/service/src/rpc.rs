@@ -18,7 +18,7 @@
 
 use std::sync::Arc;
 
-use crate::{TransactionConverters, client::RuntimeApiCollection};
+use crate::{client::RuntimeApiCollection, TransactionConverters};
 use cli_opt::EthApi as EthApiCmd;
 use ethereum::EthereumStorageSchema;
 use fc_rpc::{
@@ -83,7 +83,7 @@ pub struct FullDeps<C, P, BE> {
 	/// Maximum number of logs in a query.
 	pub max_past_logs: u32,
 	/// Ethereum transaction to Extrinsic converter.
-	pub transaction_converter: TransactionConverters
+	pub transaction_converter: TransactionConverters,
 }
 /// Instantiate all Full RPC extensions.
 pub fn create_full<C, P, BE>(

@@ -38,7 +38,8 @@ use frame_support::{
 };
 use frame_system::{EnsureOneOf, EnsureRoot};
 pub use moonbeam_core_primitives::{
-	AccountId, Address, Balance, BlockNumber, Hash, Header, Index, Signature, AccountIndex, DigestItem,
+	AccountId, AccountIndex, Address, Balance, BlockNumber, DigestItem, Hash, Header, Index,
+	Signature,
 };
 use moonbeam_extensions_evm::runner::stack::TraceRunner as TraceRunnerT;
 use pallet_ethereum::Call::transact;

@@ -61,9 +61,7 @@ fn load_spec(
 			Box::new(chain_spec::moonbase::development_chain_spec(None, None))
 		}
 		#[cfg(feature = "test-spec")]
-		"staking" => {
-			Box::new(chain_spec::test_spec::staking_spec(para_id))
-		}
+		"staking" => Box::new(chain_spec::test_spec::staking_spec(para_id)),
 		// Moonriver networks
 		"moonriver" => {
 			return Err(

@@ -452,12 +452,12 @@ pub enum TransactionConverters {
 	// Moonriver(moonriver_runtime::TransactionConverter),
 }
 
-impl fp_rpc::ConvertTransaction<
-	moonbeam_core_primitives::UncheckedExtrinsic
-> for TransactionConverters {
+impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::UncheckedExtrinsic>
+	for TransactionConverters
+{
 	fn convert_transaction(
 		&self,
-		transaction: ethereum_primitives::Transaction
+		transaction: ethereum_primitives::Transaction,
 	) -> moonbeam_core_primitives::UncheckedExtrinsic {
 		match &self {
 			Self::Moonbeam(inner) => inner.convert_transaction(transaction),
@@ -569,8 +569,8 @@ where
 		(None, None)
 	};
 
-	let is_moonbase = parachain_config.chain_spec.is_moonbase_dev()
-		|| parachain_config.chain_spec.is_moonbase();
+	let is_moonbase =
+		parachain_config.chain_spec.is_moonbase_dev() || parachain_config.chain_spec.is_moonbase();
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
@@ -584,7 +584,6 @@ where
 		let max_past_logs = rpc_params.max_past_logs;
 
 		Box::new(move |deny_unsafe, _| {
-
 			let transaction_converter: TransactionConverters = if is_moonbase {
 				TransactionConverters::Moonbase(moonbase_runtime::TransactionConverter)
 			} else {
@@ -1112,7 +1111,6 @@ pub fn new_dev(
 		let max_past_logs = rpc_params.max_past_logs;
 
 		Box::new(move |deny_unsafe, _| {
-			
 			let transaction_converter: TransactionConverters = if is_moonbase {
 				TransactionConverters::Moonbase(moonbase_runtime::TransactionConverter)
 			} else {
