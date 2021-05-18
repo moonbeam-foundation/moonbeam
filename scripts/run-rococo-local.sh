@@ -66,7 +66,7 @@ docker run \
       --unsafe-rpc-external \
       --unsafe-ws-external \
       --rpc-cors all \
-      --port $((RELAY_PORT)) \
+      --listen-addr /ip4/0.0.0.0/tcp/$((RELAY_PORT)) \
       --rpc-port $((RELAY_PORT + 1)) \
       --ws-port $((RELAY_PORT + 2)) \
       $BOOTNODES_ARGS \
