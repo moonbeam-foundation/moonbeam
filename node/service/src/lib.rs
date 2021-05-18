@@ -32,6 +32,7 @@ pub use moonbase_runtime;
 use moonbeam_rpc_debug::DebugHandler;
 pub use moonbeam_runtime;
 pub use moonriver_runtime;
+pub use moonshadow_runtime;
 use sc_client_api::BlockchainEvents;
 use sc_service::BasePath;
 use std::{
@@ -88,6 +89,13 @@ native_executor_instance!(
 );
 
 native_executor_instance!(
+	pub MoonshadowExecutor,
+	moonshadow_runtime::api::dispatch,
+	moonshadow_runtime::native_version,
+	frame_benchmarking::benchmarking::HostFunctions,
+);
+
+native_executor_instance!(
 	pub MoonbaseExecutor,
 	moonbase_runtime::api::dispatch,
 	moonbase_runtime::native_version,
@@ -106,6 +114,9 @@ pub trait IdentifyVariant {
 	/// Returns `true` if this is a configuration for the `Moonriver` network.
 	fn is_moonriver(&self) -> bool;
 
+	/// Returns `true` if this is a configuration for the `Moonshadow` network.
+	fn is_moonshadow(&self) -> bool;
+
 	/// Returns `true` if this is a configuration for a dev network.
 	fn is_dev(&self) -> bool;
 }
@@ -121,6 +132,10 @@ impl IdentifyVariant for Box<dyn ChainSpec> {
 
 	fn is_moonriver(&self) -> bool {
 		self.id().starts_with("moonriver")
+	}
+
+	fn is_moonshadow(&self) -> bool {
+		self.id().starts_with("moonshadow")
 	}
 
 	fn is_dev(&self) -> bool {
@@ -196,6 +211,24 @@ pub fn new_chain_ops(
 		)?;
 		Ok((
 			Arc::new(Client::Moonriver(client)),
+			backend,
+			import_queue,
+			task_manager,
+		))
+	} else if config.chain_spec.is_moonshadow() {
+		let PartialComponents {
+			client,
+			backend,
+			import_queue,
+			task_manager,
+			..
+		} = new_partial::<moonshadow_runtime::RuntimeApi, MoonshadowExecutor>(
+			config,
+			author_id,
+			config.chain_spec.is_dev(),
+		)?;
+		Ok((
+			Arc::new(Client::Moonshadow(client)),
 			backend,
 			import_queue,
 			task_manager,
@@ -355,7 +388,8 @@ where
 pub enum TransactionConverters {
 	Moonbeam(moonbeam_runtime::TransactionConverter),
 	Moonbase(moonbase_runtime::TransactionConverter),
-	// Moonriver(moonriver_runtime::TransactionConverter),
+	Moonriver(moonriver_runtime::TransactionConverter),
+	Moonshadow(moonshadow_runtime::TransactionConverter),
 }
 
 impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::UncheckedExtrinsic>
@@ -367,6 +401,8 @@ impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::UncheckedExtrinsic>
 	) -> moonbeam_core_primitives::UncheckedExtrinsic {
 		match &self {
 			Self::Moonbeam(inner) => inner.convert_transaction(transaction),
+			Self::Moonriver(inner) => inner.convert_transaction(transaction),
+			Self::Moonshadow(inner) => inner.convert_transaction(transaction),
 			Self::Moonbase(inner) => inner.convert_transaction(transaction),
 		}
 	}

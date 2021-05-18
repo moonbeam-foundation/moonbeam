@@ -2,6 +2,7 @@
 members = [
     'runtime/moonbeam',
     'runtime/moonriver',
+    'runtime/moonshadow',
     'runtime/moonbase',
     'node',
     'node/cli',

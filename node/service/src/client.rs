@@ -143,6 +143,7 @@ pub trait ClientHandle {
 pub enum Client {
 	Moonbeam(Arc<crate::FullClient<moonbeam_runtime::RuntimeApi, crate::MoonbeamExecutor>>),
 	Moonriver(Arc<crate::FullClient<moonriver_runtime::RuntimeApi, crate::MoonriverExecutor>>),
+	Moonshadow(Arc<crate::FullClient<moonshadow_runtime::RuntimeApi, crate::MoonshadowExecutor>>),
 	Moonbase(Arc<crate::FullClient<moonbase_runtime::RuntimeApi, crate::MoonbaseExecutor>>),
 }
 
@@ -153,6 +154,9 @@ impl ClientHandle for Client {
 				T::execute_with_client::<_, _, crate::FullBackend>(t, client.clone())
 			}
 			Self::Moonriver(client) => {
+				T::execute_with_client::<_, _, crate::FullBackend>(t, client.clone())
+			}
+			Self::Moonshadow(client) => {
 				T::execute_with_client::<_, _, crate::FullBackend>(t, client.clone())
 			}
 			Self::Moonbase(client) => {
@@ -167,6 +171,7 @@ impl sc_client_api::UsageProvider<Block> for Client {
 		match self {
 			Self::Moonbeam(client) => client.usage_info(),
 			Self::Moonriver(client) => client.usage_info(),
+			Self::Moonshadow(client) => client.usage_info(),
 			Self::Moonbase(client) => client.usage_info(),
 		}
 	}
@@ -180,6 +185,7 @@ impl sc_client_api::BlockBackend<Block> for Client {
 		match self {
 			Self::Moonbeam(client) => client.block_body(id),
 			Self::Moonriver(client) => client.block_body(id),
+			Self::Moonshadow(client) => client.block_body(id),
 			Self::Moonbase(client) => client.block_body(id),
 		}
 	}
@@ -188,6 +194,7 @@ impl sc_client_api::BlockBackend<Block> for Client {
 		match self {
 			Self::Moonbeam(client) => client.block(id),
 			Self::Moonriver(client) => client.block(id),
+			Self::Moonshadow(client) => client.block(id),
 			Self::Moonbase(client) => client.block(id),
 		}
 	}
@@ -196,6 +203,7 @@ impl sc_client_api::BlockBackend<Block> for Client {
 		match self {
 			Self::Moonbeam(client) => client.block_status(id),
 			Self::Moonriver(client) => client.block_status(id),
+			Self::Moonshadow(client) => client.block_status(id),
 			Self::Moonbase(client) => client.block_status(id),
 		}
 	}
@@ -204,6 +212,7 @@ impl sc_client_api::BlockBackend<Block> for Client {
 		match self {
 			Self::Moonbeam(client) => client.justifications(id),
 			Self::Moonriver(client) => client.justifications(id),
+			Self::Moonshadow(client) => client.justifications(id),
 			Self::Moonbase(client) => client.justifications(id),
 		}
 	}
@@ -215,6 +224,7 @@ impl sc_client_api::BlockBackend<Block> for Client {
 		match self {
 			Self::Moonbeam(client) => client.block_hash(number),
 			Self::Moonriver(client) => client.block_hash(number),
+			Self::Moonshadow(client) => client.block_hash(number),
 			Self::Moonbase(client) => client.block_hash(number),
 		}
 	}
@@ -226,6 +236,7 @@ impl sc_client_api::BlockBackend<Block> for Client {
 		match self {
 			Self::Moonbeam(client) => client.indexed_transaction(hash),
 			Self::Moonriver(client) => client.indexed_transaction(hash),
+			Self::Moonshadow(client) => client.indexed_transaction(hash),
 			Self::Moonbase(client) => client.indexed_transaction(hash),
 		}
 	}
@@ -237,6 +248,7 @@ impl sc_client_api::BlockBackend<Block> for Client {
 		match self {
 			Self::Moonbeam(client) => client.has_indexed_transaction(hash),
 			Self::Moonriver(client) => client.has_indexed_transaction(hash),
+			Self::Moonshadow(client) => client.has_indexed_transaction(hash),
 			Self::Moonbase(client) => client.has_indexed_transaction(hash),
 		}
 	}
@@ -251,6 +263,7 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		match self {
 			Self::Moonbeam(client) => client.storage(id, key),
 			Self::Moonriver(client) => client.storage(id, key),
+			Self::Moonshadow(client) => client.storage(id, key),
 			Self::Moonbase(client) => client.storage(id, key),
 		}
 	}
@@ -263,6 +276,7 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		match self {
 			Self::Moonbeam(client) => client.storage_keys(id, key_prefix),
 			Self::Moonriver(client) => client.storage_keys(id, key_prefix),
+			Self::Moonshadow(client) => client.storage_keys(id, key_prefix),
 			Self::Moonbase(client) => client.storage_keys(id, key_prefix),
 		}
 	}
@@ -275,6 +289,7 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		match self {
 			Self::Moonbeam(client) => client.storage_hash(id, key),
 			Self::Moonriver(client) => client.storage_hash(id, key),
+			Self::Moonshadow(client) => client.storage_hash(id, key),
 			Self::Moonbase(client) => client.storage_hash(id, key),
 		}
 	}
@@ -287,6 +302,7 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		match self {
 			Self::Moonbeam(client) => client.storage_pairs(id, key_prefix),
 			Self::Moonriver(client) => client.storage_pairs(id, key_prefix),
+			Self::Moonshadow(client) => client.storage_pairs(id, key_prefix),
 			Self::Moonbase(client) => client.storage_pairs(id, key_prefix),
 		}
 	}
@@ -302,6 +318,7 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		match self {
 			Self::Moonbeam(client) => client.storage_keys_iter(id, prefix, start_key),
 			Self::Moonriver(client) => client.storage_keys_iter(id, prefix, start_key),
+			Self::Moonshadow(client) => client.storage_keys_iter(id, prefix, start_key),
 			Self::Moonbase(client) => client.storage_keys_iter(id, prefix, start_key),
 		}
 	}
@@ -315,6 +332,7 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		match self {
 			Self::Moonbeam(client) => client.child_storage(id, child_info, key),
 			Self::Moonriver(client) => client.child_storage(id, child_info, key),
+			Self::Moonshadow(client) => client.child_storage(id, child_info, key),
 			Self::Moonbase(client) => client.child_storage(id, child_info, key),
 		}
 	}
@@ -328,6 +346,7 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		match self {
 			Self::Moonbeam(client) => client.child_storage_keys(id, child_info, key_prefix),
 			Self::Moonriver(client) => client.child_storage_keys(id, child_info, key_prefix),
+			Self::Moonshadow(client) => client.child_storage_keys(id, child_info, key_prefix),
 			Self::Moonbase(client) => client.child_storage_keys(id, child_info, key_prefix),
 		}
 	}
@@ -341,6 +360,7 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		match self {
 			Self::Moonbeam(client) => client.child_storage_hash(id, child_info, key),
 			Self::Moonriver(client) => client.child_storage_hash(id, child_info, key),
+			Self::Moonshadow(client) => client.child_storage_hash(id, child_info, key),
 			Self::Moonbase(client) => client.child_storage_hash(id, child_info, key),
 		}
 	}
@@ -353,6 +373,7 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		match self {
 			Self::Moonbeam(client) => client.max_key_changes_range(first, last),
 			Self::Moonriver(client) => client.max_key_changes_range(first, last),
+			Self::Moonshadow(client) => client.max_key_changes_range(first, last),
 			Self::Moonbase(client) => client.max_key_changes_range(first, last),
 		}
 	}
@@ -367,6 +388,7 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		match self {
 			Self::Moonbeam(client) => client.key_changes(first, last, storage_key, key),
 			Self::Moonriver(client) => client.key_changes(first, last, storage_key, key),
+			Self::Moonshadow(client) => client.key_changes(first, last, storage_key, key),
 			Self::Moonbase(client) => client.key_changes(first, last, storage_key, key),
 		}
 	}
@@ -377,6 +399,7 @@ impl sp_blockchain::HeaderBackend<Block> for Client {
 		match self {
 			Self::Moonbeam(client) => client.header(&id),
 			Self::Moonriver(client) => client.header(&id),
+			Self::Moonshadow(client) => client.header(&id),
 			Self::Moonbase(client) => client.header(&id),
 		}
 	}
@@ -385,6 +408,7 @@ impl sp_blockchain::HeaderBackend<Block> for Client {
 		match self {
 			Self::Moonbeam(client) => client.info(),
 			Self::Moonriver(client) => client.info(),
+			Self::Moonshadow(client) => client.info(),
 			Self::Moonbase(client) => client.info(),
 		}
 	}
@@ -393,6 +417,7 @@ impl sp_blockchain::HeaderBackend<Block> for Client {
 		match self {
 			Self::Moonbeam(client) => client.status(id),
 			Self::Moonriver(client) => client.status(id),
+			Self::Moonshadow(client) => client.status(id),
 			Self::Moonbase(client) => client.status(id),
 		}
 	}
@@ -401,6 +426,7 @@ impl sp_blockchain::HeaderBackend<Block> for Client {
 		match self {
 			Self::Moonbeam(client) => client.number(hash),
 			Self::Moonriver(client) => client.number(hash),
+			Self::Moonshadow(client) => client.number(hash),
 			Self::Moonbase(client) => client.number(hash),
 		}
 	}
@@ -409,6 +435,7 @@ impl sp_blockchain::HeaderBackend<Block> for Client {
 		match self {
 			Self::Moonbeam(client) => client.hash(number),
 			Self::Moonriver(client) => client.hash(number),
+			Self::Moonshadow(client) => client.hash(number),
 			Self::Moonbase(client) => client.hash(number),
 		}
 	}

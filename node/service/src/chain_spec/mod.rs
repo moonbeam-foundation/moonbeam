@@ -27,6 +27,7 @@ use tiny_hderive::bip32::ExtendedPrivKey;
 pub mod moonbase;
 pub mod moonbeam;
 pub mod moonriver;
+pub mod moonshadow;
 pub mod test_spec;
 
 #[derive(Default, Clone, Serialize, Deserialize, ChainSpecExtension, ChainSpecGroup)]
