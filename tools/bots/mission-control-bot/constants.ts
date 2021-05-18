@@ -1,4 +1,3 @@
-
 export const TOKEN_DECIMAL = 18n;
 export const EMBED_COLOR_CORRECT = 0x642f95;
 export const EMBED_COLOR_ERROR = 0xc0392b;
@@ -21,7 +20,7 @@ export const params = {
   ACCOUNT_ID: process.env.ACCOUNT_ID,
   ACCOUNT_KEY: process.env.ACCOUNT_KEY,
   WORKERS_MNEMONIC: process.env.WORKERS_MNEMONIC,
-  
+
   // Token distribution
   TOKEN_COUNT: BigInt(process.env.TOKEN_COUNT || 10), // DEV
   WORKERS_COUNT: parseInt(process.env.WORKERS_COUNT || "10"),
