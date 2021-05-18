@@ -73,9 +73,10 @@ impl EvmListener for DummyTracer {
 			EvmEvent::Create { caller, .. } => {
 				tracing::trace!("event: Create( caller: {:?}, ..)", caller)
 			}
+			event => tracing::trace!("event: {:?}", event),
 		}
 	}
 
 	#[cfg(not(feature = "std"))]
-	fn event(&mut self, _event: RuntimeEvent) {}
+	fn event(&mut self, _event: EvmEvent) {}
 }

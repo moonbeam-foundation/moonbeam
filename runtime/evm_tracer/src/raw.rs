@@ -31,7 +31,7 @@ pub struct RawTracer {
 	return_value: Vec<u8>,
 	final_gas: u64,
 
-	new_context: Option<u64>, // gas limit of the new context
+	new_context: bool,
 	context_stack: Vec<Context>,
 }
 
@@ -40,7 +40,6 @@ struct Context {
 	storage_cache: BTreeMap<H256, H256>,
 	address: H160,
 	current_step: Option<Step>,
-	gas: u64,
 	global_storage_changes: BTreeMap<H160, BTreeMap<H256, H256>>,
 }
 
@@ -73,7 +72,7 @@ impl RawTracer {
 			return_value: vec![],
 			final_gas: 0,
 
-			new_context: None,
+			new_context: false,
 			context_stack: vec![],
 		}
 	}
@@ -105,46 +104,35 @@ impl RawTracer {
 impl GasometerListener for RawTracer {
 	fn event(&mut self, event: GasometerEvent) {
 		match event {
-			GasometerEvent::RecordTransaction(_) => {
+			GasometerEvent::RecordTransaction { .. } => {
 				// First event of a transaction.
 				// Next step will be the first context.
-				self.new_context = Some(0); // we don't know the gas limit yet.
+				self.new_context = true;
 			}
-			GasometerEvent::RecordCost(gas_cost) => {
-				// When a new context is created the gas limit is recorded afterward.
-				if let Some(gas_limit) = &mut self.new_context {
-					*gas_limit = gas_cost;
-				}
-				// If we're not creating a new context.
-				else if let Some(context) = self.context_stack.last_mut() {
-					context.gas -= gas_cost;
-
-					// Register opcode cost.
+			GasometerEvent::RecordCost { cost, snapshot } => {
+				if let Some(context) = self.context_stack.last_mut() {
+					// Register opcode cost. (ignore costs not between Step and StepResult)
 					if let Some(step) = &mut context.current_step {
-						step.gas_cost += gas_cost;
+						step.gas = snapshot.gas();
+						step.gas_cost = cost;
+						self.final_gas = step.gas;
 					}
 				}
 			}
 			GasometerEvent::RecordDynamicCost {
-				gas_cost,
-				memory_gas,
-				gas_refund: _,
+				gas_cost, snapshot, ..
 			} => {
 				if let Some(context) = self.context_stack.last_mut() {
-					context.gas -= gas_cost;
-					context.gas -= memory_gas;
-
-					// Register opcode cost.
+					// Register opcode cost. (ignore costs not between Step and StepResult)
 					if let Some(step) = &mut context.current_step {
-						step.gas_cost += gas_cost;
+						step.gas = snapshot.gas();
+						step.gas_cost = gas_cost;
+						self.final_gas = step.gas;
 					}
 				}
 			}
-			GasometerEvent::RecordStipend(stipend) => {
-				if let Some(context) = self.context_stack.last_mut() {
-					context.gas += stipend;
-				}
-			}
+			// We ignore other kinds of message if any (new ones may be added in the future).
+			#[allow(unreachable_patterns)]
 			_ => (),
 		}
 	}
@@ -161,14 +149,13 @@ impl RuntimeListener for RawTracer {
 				memory,
 			} => {
 				// Create a context if needed.
-				if let Some(gas_limit) = self.new_context {
-					self.new_context = None;
+				if self.new_context {
+					self.new_context = false;
 
 					self.context_stack.push(Context {
 						storage_cache: BTreeMap::new(),
 						address: context.address,
 						current_step: None,
-						gas: gas_limit,
 						global_storage_changes: BTreeMap::new(),
 					});
 				}
@@ -180,7 +167,7 @@ impl RuntimeListener for RawTracer {
 					context.current_step = Some(Step {
 						opcode,
 						depth,
-						gas: context.gas,
+						gas: 0,      // 0 for now, will add with gas events
 						gas_cost: 0, // 0 for now, will add with gas events
 						position: *position.as_ref().unwrap_or(&0),
 						memory: if self.disable_memory {
@@ -201,6 +188,9 @@ impl RuntimeListener for RawTracer {
 				return_value,
 			} => {
 				// StepResult is expected to be emited after a step (in a context).
+				// Only case StepResult will occur without a Step before is in a transfer
+				// transaction to a non-contract address. However it will not contain any
+				// steps and return an empty trace, so we can ignore this edge case.
 				if let Some(context) = self.context_stack.last_mut() {
 					if let Some(current_step) = context.current_step.take() {
 						let Step {
@@ -241,7 +231,6 @@ impl RuntimeListener for RawTracer {
 						if let Some(mut context) = self.context_stack.pop() {
 							// If final context is exited, we store gas and return value.
 							if self.context_stack.is_empty() {
-								self.final_gas = context.gas;
 								self.return_value = return_value.to_vec();
 							}
 
@@ -282,7 +271,7 @@ impl RuntimeListener for RawTracer {
 						}
 					}
 					Err(Capture::Trap(opcode)) if is_subcall(*opcode) => {
-						self.new_context = Some(0);
+						self.new_context = true;
 					}
 					_ => (),
 				}
@@ -303,6 +292,9 @@ impl RuntimeListener for RawTracer {
 					}
 				}
 			}
+			// We ignore other kinds of message if any (new ones may be added in the future).
+			#[allow(unreachable_patterns)]
+			_ => (),
 		}
 	}
 }

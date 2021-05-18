@@ -725,7 +725,7 @@ impl_runtime_apis! {
 				sp_runtime::DispatchError
 			> {
 			use moonbeam_rpc_primitives_debug::{single, block, CallResult, CreateResult, CreateType};
-			use moonbeam_evm_tracer::{DummyTracer, EvmListener};
+			use moonbeam_evm_tracer::DummyTracer;
 
 			let mut config = <Runtime as pallet_evm::Config>::config().clone();
 			config.estimate = true;
