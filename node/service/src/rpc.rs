@@ -18,7 +18,7 @@
 
 use std::sync::Arc;
 
-use crate::client::RuntimeApiCollection;
+use crate::{TransactionConverters, client::RuntimeApiCollection};
 use cli_opt::EthApi as EthApiCmd;
 use ethereum::EthereumStorageSchema;
 use fc_rpc::{
@@ -49,8 +49,6 @@ use sp_runtime::traits::BlakeTwo256;
 use sp_transaction_pool::TransactionPool;
 use std::collections::BTreeMap;
 use substrate_frame_rpc_system::{FullSystem, SystemApi};
-
-// TODO-multiples-runtimes one rpc definition per network
 
 /// Full client dependencies.
 pub struct FullDeps<C, P, BE> {
@@ -84,6 +82,8 @@ pub struct FullDeps<C, P, BE> {
 	pub trace_filter_max_count: u32,
 	/// Maximum number of logs in a query.
 	pub max_past_logs: u32,
+	/// Ethereum transaction to Extrinsic converter.
+	pub transaction_converter: TransactionConverters
 }
 /// Instantiate all Full RPC extensions.
 pub fn create_full<C, P, BE>(
@@ -118,6 +118,7 @@ where
 		trace_filter_requester,
 		trace_filter_max_count,
 		max_past_logs,
+		transaction_converter,
 	} = deps;
 
 	io.extend_with(SystemApi::to_delegate(FullSystem::new(
@@ -142,14 +143,11 @@ where
 		schemas: overrides_map,
 		fallback: Box::new(RuntimeApiStorageOverride::new(client.clone())),
 	});
-	// TODO-multiple-runtimes
-	let tx_converter: moonbeam_runtime::TransactionConverter =
-		moonbeam_runtime::TransactionConverter;
 
 	io.extend_with(EthApiServer::to_delegate(EthApi::new(
 		client.clone(),
 		pool.clone(),
-		tx_converter,
+		transaction_converter,
 		network.clone(),
 		pending_transactions,
 		signers,

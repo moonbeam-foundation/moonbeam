@@ -289,7 +289,6 @@ pub fn run() -> Result<()> {
 			})
 		}
 		Some(Subcommand::PurgeChain(cmd)) => {
-			// TODO-multiple-runtimes
 			let runner = cli.create_runner(cmd)?;
 			runner.sync_run(|config| {
 				// Although the cumulus_client_cli::PurgeCommand will extract the relay chain id,
@@ -374,7 +373,6 @@ pub fn run() -> Result<()> {
 			Ok(())
 		}
 		Some(Subcommand::ExportGenesisWasm(params)) => {
-			// TODO-multiple-runtimes?
 			let mut builder = sc_cli::LoggerBuilder::new("");
 			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
 			let _ = builder.init();

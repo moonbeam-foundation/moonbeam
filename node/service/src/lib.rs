@@ -136,9 +136,7 @@ pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backen
 		.as_ref()
 		.map(|base_path| base_path.config_dir(config.chain_spec.id()))
 		.unwrap_or_else(|| {
-			// TODO-multiple-runtimes
-			// no longer acces to &crate::cli::Cli::executable_name()
-			BasePath::from_project("", "", "todo").config_dir(config.chain_spec.id())
+			BasePath::from_project("", "", "moonbeam").config_dir(config.chain_spec.id())
 		});
 	let database_dir = config_dir.join("frontier").join("db");
 
@@ -448,6 +446,26 @@ where
 	})
 }
 
+pub enum TransactionConverters {
+	Moonbeam(moonbeam_runtime::TransactionConverter),
+	Moonbase(moonbase_runtime::TransactionConverter),
+	// Moonriver(moonriver_runtime::TransactionConverter),
+}
+
+impl fp_rpc::ConvertTransaction<
+	moonbeam_core_primitives::UncheckedExtrinsic
+> for TransactionConverters {
+	fn convert_transaction(
+		&self,
+		transaction: ethereum_primitives::Transaction
+	) -> moonbeam_core_primitives::UncheckedExtrinsic {
+		match &self {
+			Self::Moonbeam(inner) => inner.convert_transaction(transaction),
+			Self::Moonbase(inner) => inner.convert_transaction(transaction),
+		}
+	}
+}
+
 /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
@@ -551,6 +569,9 @@ where
 		(None, None)
 	};
 
+	let is_moonbase = parachain_config.chain_spec.is_moonbase_dev()
+		|| parachain_config.chain_spec.is_moonbase();
+
 	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
@@ -563,6 +584,13 @@ where
 		let max_past_logs = rpc_params.max_past_logs;
 
 		Box::new(move |deny_unsafe, _| {
+
+			let transaction_converter: TransactionConverters = if is_moonbase {
+				TransactionConverters::Moonbase(moonbase_runtime::TransactionConverter)
+			} else {
+				TransactionConverters::Moonbeam(moonbeam_runtime::TransactionConverter)
+			};
+
 			let deps = rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
@@ -579,6 +607,7 @@ where
 				trace_filter_requester: trace_filter_requester.clone(),
 				trace_filter_max_count: rpc_params.ethapi_trace_max_count,
 				max_past_logs,
+				transaction_converter,
 			};
 
 			rpc::create_full(deps, subscription_task_executor.clone())
@@ -1069,6 +1098,8 @@ pub fn new_dev(
 		(None, None)
 	};
 
+	let is_moonbase = config.chain_spec.is_moonbase_dev() || config.chain_spec.is_moonbase();
+
 	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
@@ -1081,6 +1112,13 @@ pub fn new_dev(
 		let max_past_logs = rpc_params.max_past_logs;
 
 		Box::new(move |deny_unsafe, _| {
+			
+			let transaction_converter: TransactionConverters = if is_moonbase {
+				TransactionConverters::Moonbase(moonbase_runtime::TransactionConverter)
+			} else {
+				TransactionConverters::Moonbeam(moonbeam_runtime::TransactionConverter)
+			};
+
 			let deps = rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
@@ -1097,6 +1135,7 @@ pub fn new_dev(
 				trace_filter_requester: trace_filter_requester.clone(),
 				trace_filter_max_count: rpc_params.ethapi_trace_max_count,
 				max_past_logs,
+				transaction_converter,
 			};
 			rpc::create_full(deps, subscription_task_executor.clone())
 		})

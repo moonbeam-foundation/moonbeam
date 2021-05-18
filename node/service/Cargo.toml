@@ -80,6 +80,7 @@ pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/parityt
 
 evm = { package = "pallet-evm", git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
 ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
+ethereum-primitives = { package="ethereum", version = "0.7.1", default-features = false, features = ["with-codec"] }
 
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
 fp-consensus = { git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }

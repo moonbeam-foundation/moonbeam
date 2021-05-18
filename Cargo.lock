@@ -4893,6 +4893,7 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-test-relay-sproof-builder",
  "derive_more",
+ "ethereum 0.7.1",
  "exit-future 0.1.4",
  "fc-consensus",
  "fc-db",
