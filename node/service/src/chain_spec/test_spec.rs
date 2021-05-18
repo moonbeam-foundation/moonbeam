@@ -15,7 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Embedded specs for testing purposes, must be compiled with --features=test-spec
-use crate::chain_spec::{moonbeam_inflation_config, testnet_genesis, ChainSpec, Extensions};
+use crate::chain_spec::Extensions;
+use crate::chain_spec::moonbase::{moonbeam_inflation_config, testnet_genesis, ChainSpec};
 use cumulus_primitives_core::ParaId;
 use moonbeam_runtime::{AccountId, GLMR};
 use sc_service::ChainType;

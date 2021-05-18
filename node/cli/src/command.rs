@@ -60,8 +60,9 @@ fn load_spec(
 		"moonbase-dev" | "dev" | "development" => {
 			Box::new(chain_spec::moonbase::development_chain_spec(None, None))
 		}
-		"staking-test-spec" => todo!("decide where it lives and bring it in."),
-
+		"staking-test-spec" => {
+			Box::new(chain_spec::test_spec::staking_spec(para_id))
+		}
 		// Moonriver networks
 		"moonriver" => {
 			return Err(
