@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Moonbeam Chain Specifications and utilities for building them.
+//! Moonriver Chain Specifications and utilities for building them.
 //!
 //! Learn more about Substrate chain specifications at
 //! https://substrate.dev/docs/en/knowledgebase/integrate/chain-spec
