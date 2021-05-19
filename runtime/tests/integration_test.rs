@@ -418,14 +418,22 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
 					Call::CrowdloanRewards(
 						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
-							vec![([4u8; 32].into(), Some(AccountId::from(CHARLIE)), 500_000 * GLMR)],
+							vec![(
+								[4u8; 32].into(),
+								Some(AccountId::from(CHARLIE)),
+								500_000 * GLMR
+							)],
 							0,
 							2
 						)
 					),
 					Call::CrowdloanRewards(
 						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
-							vec![([5u8; 32].into(), Some(AccountId::from(DAVE)), 500_000 * GLMR)],
+							vec![(
+								[5u8; 32].into(),
+								Some(AccountId::from(DAVE)),
+								500_000 * GLMR
+							)],
 							1,
 							2
 						)
