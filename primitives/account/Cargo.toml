@@ -25,6 +25,7 @@ sp-io = { git = "https://github.com/paritytech/substrate", default-features = fa
 sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "joshy-substrate-2be8fcc4" }
+libsecp256k1 = { version = "0.3.2", default-features = false, features = ["hmac"] }
 
 [features]
 default = ["std"]
@@ -38,7 +39,8 @@ std = [
 	"sp-runtime/std",
 	"sp-std/std",
 	"full_crypto",
-	"pallet-evm/std"
+	"pallet-evm/std",
+	"libsecp256k1/std"
 ]
 
 full_crypto = [
