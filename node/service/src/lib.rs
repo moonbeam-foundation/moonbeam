@@ -517,8 +517,6 @@ where
 		(None, None)
 	};
 
-	let is_moonbase = parachain_config.chain_spec.is_moonbase();
-
 	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
@@ -530,11 +528,19 @@ where
 		let ethapi_cmd = ethapi.clone();
 		let max_past_logs = rpc_params.max_past_logs;
 
+		let is_moonbeam = parachain_config.chain_spec.is_moonbeam();
+		let is_moonriver = parachain_config.chain_spec.is_moonriver();
+		let is_moonshadow = parachain_config.chain_spec.is_moonshadow();
+
 		Box::new(move |deny_unsafe, _| {
-			let transaction_converter: TransactionConverters = if is_moonbase {
-				TransactionConverters::Moonbase(moonbase_runtime::TransactionConverter)
-			} else {
+			let transaction_converter: TransactionConverters = if is_moonbeam {
 				TransactionConverters::Moonbeam(moonbeam_runtime::TransactionConverter)
+			} else if is_moonriver {
+				TransactionConverters::Moonriver(moonriver_runtime::TransactionConverter)
+			} else if is_moonshadow {
+				TransactionConverters::Moonshadow(moonshadow_runtime::TransactionConverter)
+			} else {
+				TransactionConverters::Moonbase(moonbase_runtime::TransactionConverter)
 			};
 
 			let deps = rpc::FullDeps {
@@ -863,8 +869,6 @@ pub fn new_dev(
 		(None, None)
 	};
 
-	let is_moonbase = config.chain_spec.is_moonbase();
-
 	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
@@ -876,11 +880,19 @@ pub fn new_dev(
 		let frontier_backend = frontier_backend.clone();
 		let max_past_logs = rpc_params.max_past_logs;
 
+		let is_moonbeam = config.chain_spec.is_moonbeam();
+		let is_moonriver = config.chain_spec.is_moonriver();
+		let is_moonshadow = config.chain_spec.is_moonshadow();
+
 		Box::new(move |deny_unsafe, _| {
-			let transaction_converter: TransactionConverters = if is_moonbase {
-				TransactionConverters::Moonbase(moonbase_runtime::TransactionConverter)
-			} else {
+			let transaction_converter: TransactionConverters = if is_moonbeam {
 				TransactionConverters::Moonbeam(moonbeam_runtime::TransactionConverter)
+			} else if is_moonriver {
+				TransactionConverters::Moonriver(moonriver_runtime::TransactionConverter)
+			} else if is_moonshadow {
+				TransactionConverters::Moonshadow(moonshadow_runtime::TransactionConverter)
+			} else {
+				TransactionConverters::Moonbase(moonbase_runtime::TransactionConverter)
 			};
 
 			let deps = rpc::FullDeps {
