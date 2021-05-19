@@ -47,24 +47,15 @@ export async function botActionFaucetSend(
   if (!discordUserReceivers[discordUserId]) discordUserReceivers[discordUserId] = 0;
   if (!addressReceivers[address]) addressReceivers[address] = 0;
 
-  let reason = null;
-  const canReceiveTokensAgain = await (async function (): Promise<boolean> {
-    // if user is in unlimited user list, then automatically true
-    if (params.NOT_LIMITED_USERS.includes(discordUserId)) return true;
+  const lastPermittedClaimDate = Date.now() - params.FAUCET_SEND_INTERVAL * 3600 * 1000;
 
-    const now = Date.now();
-    const interval = params.FAUCET_SEND_INTERVAL * 3600 * 1000;
-
-    if (discordUserReceivers[discordUserId] > now - interval) {
-      reason = "user";
-      return false;
-    }
-    if (addressReceivers[address] > now - interval) {
-      reason = "address";
-      return false;
-    }
-    return true;
-  })();
+  const [reason, canReceiveTokensAgain] = params.NOT_LIMITED_USERS.includes(discordUserId)
+    ? [null, true]
+    : discordUserReceivers[discordUserId] > lastPermittedClaimDate
+    ? ["user", false]
+    : addressReceivers[address] > lastPermittedClaimDate
+    ? ["address", false]
+    : [null, true];
 
   if (!canReceiveTokensAgain) {
     const errorEmbed = new MessageEmbed();
