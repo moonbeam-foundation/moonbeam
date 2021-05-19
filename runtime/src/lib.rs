@@ -532,10 +532,8 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type Initialized = Initialized;
 	type InitializationPayment = InitializationPayment;
 	type MinimumReward = MinimumReward;
-	type Public = account::EthereumSigner;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = AccountId32;
-	type Signature = Signature;
 	type VestingPeriod = VestingPeriod;
 }
 // This is a simple session key manager. It should probably either work with, or be replaced
