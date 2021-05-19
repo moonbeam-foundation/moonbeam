@@ -102,7 +102,6 @@ impl CallListTracer {
 
 impl GasometerListener for CallListTracer {
 	fn event(&mut self, event: GasometerEvent) {
-		let snapshot_after = after_step_snapshot(&event);
 		match event {
 			GasometerEvent::RecordCost { snapshot, .. }
 			| GasometerEvent::RecordDynamicCost { snapshot, .. }
@@ -338,40 +337,4 @@ fn error_message(error: &ExitError) -> Vec<u8> {
 	}
 	.as_bytes()
 	.to_vec()
-}
-
-pub fn after_step_snapshot(event: &GasometerEvent) -> Snapshot {
-	match event {
-		GasometerEvent::RecordCost { cost, snapshot } => {
-			let mut snapshot = *snapshot;
-			snapshot.used_gas += cost;
-			snapshot
-		}
-		GasometerEvent::RecordRefund { snapshot, refund } => {
-			let mut snapshot = *snapshot;
-			snapshot.refunded_gas += refund;
-			snapshot
-		}
-		GasometerEvent::RecordStipend { stipend, snapshot } => {
-			let mut snapshot = *snapshot;
-			snapshot.used_gas -= stipend;
-			snapshot
-		}
-		GasometerEvent::RecordDynamicCost {
-			gas_cost,
-			memory_gas,
-			snapshot,
-			..
-		} => {
-			let mut snapshot = *snapshot;
-			snapshot.used_gas += gas_cost;
-			snapshot.memory_gas += memory_gas;
-			snapshot
-		}
-		GasometerEvent::RecordTransaction { cost, snapshot } => {
-			let mut snapshot = *snapshot;
-			snapshot.used_gas += cost;
-			snapshot
-		}
-	}
 }
