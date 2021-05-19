@@ -63,22 +63,12 @@ describeDevMoonbeam("Crowdloan", (context) => {
     expect((isPayable4.toHuman() as any).claimed_reward).to.equal("200.0000 Unit");
   });
   it("check balances", async function () {
-    // console.log("deflt blc", GENESIS_ACCOUNT_BALANCE.toString());
-    // console.log("blc 1", await context.web3.eth.getBalance(GENESIS_ACCOUNT));
-    // console.log(
-    //   "dif",
-    //   (
-    //     Number(await context.web3.eth.getBalance(GENESIS_ACCOUNT)) - Number(GENESIS_ACCOUNT_BALANCE)
-    //   ).toString()
-    // );
     expect(
       (
         Number(await context.web3.eth.getBalance(GENESIS_ACCOUNT)) - Number(GENESIS_ACCOUNT_BALANCE)
       ).toString()
     ).to.equal("200000000000031460000");
     const account = await context.polkadotApi.query.system.account(GENESIS_ACCOUNT);
-    // console.log("blc 2", account.data.free.toString());
-    // console.log("blc 2", account.data.reserved.toString());
     expect(
       (Number(account.data.free.toString()) - Number(GENESIS_ACCOUNT_BALANCE)).toString()
     ).to.equal("200000000000031460000");
@@ -95,7 +85,8 @@ describeDevMoonbeam("Crowdloan", (context) => {
     const isPayable4 = await context.polkadotApi.query.crowdloanRewards.accountsPayable(
       GENESIS_ACCOUNT
     );
-    expect((isPayable4.toHuman() as any).claimed_reward).to.equal("200.0000 Unit"); // TODO : this should be higher
+    // TODO : this should be higher but requires polkadot launch
+    expect((isPayable4.toHuman() as any).claimed_reward).to.equal("200.0000 Unit");
   });
   it("should not be able to call initializeRewardVec another time", async function () {
     await context.polkadotApi.tx.sudo
@@ -171,7 +162,7 @@ describeDevMoonbeam(
       genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     });
 
-    it("should be able to register the genesis account for reward - with multiplier", async function () {
+    it("should be able to register the genesis account- with multiplier", async function () {
       expect(
         (
           await context.polkadotApi.query.crowdloanRewards.accountsPayable(GENESIS_ACCOUNT)
