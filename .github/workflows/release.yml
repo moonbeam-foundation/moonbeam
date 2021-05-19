@@ -72,6 +72,7 @@ jobs:
     env:
       CARGO_SCCACHE_VERSION: 0.2.14-alpha.0-parity
       RUSTFLAGS: "-C opt-level=3"
+      SCCACHE_RECACHE: "true"
       # MOONBEAM_LOG: info
       # DEBUG: "test*"
     outputs:
@@ -80,6 +81,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         # Install sccache
+      - name: GITHUB CONTEXT
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github.event) }}
+        run: echo "$GITHUB_CONTEXT"
+
       - uses: actions/cache@v2
         with:
           path: ${{ runner.tool_cache }}/cargo-sccache
