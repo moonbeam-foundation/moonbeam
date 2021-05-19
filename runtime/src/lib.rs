@@ -520,7 +520,7 @@ impl pallet_author_slot_filter::Config for Runtime {
 }
 
 parameter_types! {
-	// Thinking a
+	// TODO to be revisited
 	pub const VestingPeriod: BlockNumber = 1 * MONTHS;
 	pub const MinimumReward: Balance = 0;
 	pub const Initialized: bool = false;
