@@ -72,7 +72,7 @@ jobs:
     env:
       CARGO_SCCACHE_VERSION: 0.2.14-alpha.0-parity
       RUSTFLAGS: "-C opt-level=3"
-      SCCACHE_RECACHE: ${{ !/NO-CACHE/.test(github.event.commits.map(c => c.message.toUpperCase()).join(" ")) }}
+      SCCACHE_RECACHE: ${{ contains(github.event.commits.map(c => c.message.toUpperCase()).join(' '), 'NO-CACHE') }}
       # MOONBEAM_LOG: info
       # DEBUG: "test*"
     outputs:
