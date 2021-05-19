@@ -8,8 +8,8 @@ license = 'GPL-3.0-only'
 repository = 'https://github.com/PureStake/moonbeam/'
 
 [dependencies]
-fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-moonbeam-v0.7" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "notlesh-moonbeam-v0.7" }
+fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "jeremy-evm-precompile-change" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "jeremy-evm-precompile-change" }
 evm = { version = "0.26.0", default-features = false, features = ["with-codec", "tracing"] }
 evm-core = { version = "0.26.0", default-features = false, features = ["with-codec"] }
 evm-runtime = { version = "0.26.0", default-features = false, features = ["tracing"] }

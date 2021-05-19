@@ -11,15 +11,8 @@ panic = 'unwind'
 [patch.crates-io]
 # We use a custom EVM which support "environmental tracing". The patch allow to force usage of
 # this crate version in all transitive dependencies (frontier).
-# TODO : Currently use relative path, change to branch when the feature is stable.
 # This will be necessary as long as frontier don't depend on this crate version.
-evm = { path = "../evm", default-features = false, features = ["with-codec", "tracing"] }
-evm-runtime = { path = "../evm/runtime", default-features = false, features = ["tracing"] }
-evm-core = { path = "../evm/core", default-features = false, features = ["with-codec", "tracing"] }
-evm-gasometer = { path = "../evm/gasometer", default-features = false, features = ["tracing"] }
-
-# [patch.'https://github.com/PureStake/evm']
-# evm = { path = "../evm", default-features = false, features = ["with-codec", "tracing"] }
-# evm-runtime = { path = "../evm/runtime", default-features = false, features = ["with-codec", "tracing"] }
-# evm-core = { path = "../evm/core", default-features = false, features = ["with-codec", "tracing"] }
-# evm-gasometer = { path = "../evm/gasometer", default-features = false, features = ["with-codec", "tracing"] }
+evm = { git = "https://github.com/PureStake/evm", branch = "jeremy-environmental-hook", default-features = false, features = ["with-codec", "tracing"] }
+evm-runtime = { git = "https://github.com/PureStake/evm", branch = "jeremy-environmental-hook", default-features = false, features = ["tracing"] }
+evm-core = { git = "https://github.com/PureStake/evm", branch = "jeremy-environmental-hook", default-features = false, features = ["with-codec", "tracing"] }
+evm-gasometer = { git = "https://github.com/PureStake/evm", branch = "jeremy-environmental-hook", default-features = false, features = ["tracing"] }
