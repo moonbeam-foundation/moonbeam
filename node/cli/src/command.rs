@@ -492,7 +492,7 @@ pub fn run() -> Result<()> {
 					return service::new_dev(
 						config,
 						author_id,
-						true,
+						true, // always collator on dev_service
 						cli.run.sealing,
 						cli.run.ethapi,
 						rpc_params,
