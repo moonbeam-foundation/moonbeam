@@ -463,9 +463,14 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				},
 			));
 			assert_eq!(last_event(), expected_fail);
-			assert_ok!(CrowdloanRewards::show_me_the_money(origin_of(
+			assert_ok!(CrowdloanRewards::my_first_claim(origin_of(
 				AccountId::from(CHARLIE)
 			)));
+			assert_noop!(CrowdloanRewards::my_first_claim(origin_of(
+				AccountId::from(CHARLIE)
+			)),
+			pallet_crowdloan_rewards::Error::<Runtime>::FirstClaimAlreadyDone
+			);
 			assert_ok!(CrowdloanRewards::show_me_the_money(origin_of(
 				AccountId::from(DAVE)
 			)));
