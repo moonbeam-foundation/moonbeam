@@ -58,6 +58,9 @@ fp-rpc = { default-features = false, git = "https://github.com/purestake/frontie
 pallet-democracy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-collective = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+pallet-society = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+
+pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false, branch = "main" }
 
 moonbeam-extensions-evm = { path = "../extensions/evm", default-features = false }
 moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug", default-features = false }
@@ -126,6 +129,9 @@ std = [
 	"moonbeam-core-primitives/std",
 	"parachain-staking/std",
 	"pallet-author-slot-filter/std",
+	"pallet-crowdloan-rewards/std",
+	"frame-benchmarking/std",
+	"pallet-society/std",
 	"nimbus-primitives/std",
 	"pallet-author-mapping/std",
 ]
@@ -145,4 +151,8 @@ runtime-benchmarks = [
 	"frame-system/runtime-benchmarks",
 	"pallet-collective/runtime-benchmarks",
 	"parachain-staking/runtime-benchmarks",
+	"sp-runtime/runtime-benchmarks",
+	"pallet-balances/runtime-benchmarks",
+	"pallet-timestamp/runtime-benchmarks",
+	"pallet-society/runtime-benchmarks",
 ]

@@ -66,7 +66,7 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 				)],
 				moonbeam_inflation_config(),
 				accounts.clone(),
-				1_000_000 * GLMR,
+				3_000_000 * GLMR,
 				Default::default(), // para_id
 				1281,               //ChainId
 			)
@@ -103,7 +103,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 				)],
 				moonbeam_inflation_config(),
 				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
-				1_000_000 * GLMR,
+				3_000_000 * GLMR,
 				para_id,
 				1280, //ChainId
 			)
