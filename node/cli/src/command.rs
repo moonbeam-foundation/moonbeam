@@ -17,6 +17,7 @@
 //! This module constructs and executes the appropriate service components for the given subcommand
 
 use crate::cli::{Cli, RelayChainCli, Subcommand};
+use cli_opt::RpcParams;
 use cumulus_client_service::genesis::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
 use log::info;
@@ -32,7 +33,6 @@ use service::{chain_spec, IdentifyVariant};
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::Block as _;
 use std::{io::Write, net::SocketAddr};
-use cli_opt::RpcParams;
 
 fn load_spec(
 	id: &str,
@@ -279,8 +279,7 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::CheckBlock(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
-				let (client, _, import_queue, task_manager) =
-					service::new_chain_ops(&mut config)?;
+				let (client, _, import_queue, task_manager) = service::new_chain_ops(&mut config)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -301,8 +300,7 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::ImportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
-				let (client, _, import_queue, task_manager) =
-					service::new_chain_ops(&mut config)?;
+				let (client, _, import_queue, task_manager) = service::new_chain_ops(&mut config)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -341,8 +339,7 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::Revert(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
-				let (client, backend, _, task_manager) =
-					service::new_chain_ops(&mut config)?;
+				let (client, backend, _, task_manager) = service::new_chain_ops(&mut config)?;
 				Ok((cmd.run(client, backend), task_manager))
 			})
 		}
@@ -487,10 +484,10 @@ pub fn run() -> Result<()> {
 					// When running the dev service, just use Alice's author inherent
 					//TODO maybe make the --alice etc flags work here, and consider bringing back
 					// the author-id flag. For now, this will work.
-					
-					let author_id = Some(chain_spec::get_from_seed::<
-						nimbus_primitives::NimbusId,
-					>("Alice"));
+
+					let author_id = Some(chain_spec::get_from_seed::<nimbus_primitives::NimbusId>(
+						"Alice",
+					));
 
 					return service::new_dev(
 						config,

@@ -30,8 +30,8 @@ use moonbase_runtime::{
 	GenesisConfig, InflationInfo, ParachainInfoConfig, ParachainStakingConfig, Range,
 	SchedulerConfig, SudoConfig, SystemConfig, TechComitteeCollectiveConfig, GLMR, WASM_BINARY,
 };
-use sc_service::ChainType;
 use nimbus_primitives::NimbusId;
+use sc_service::ChainType;
 #[cfg(test)]
 use sp_core::ecdsa;
 use sp_core::H160;

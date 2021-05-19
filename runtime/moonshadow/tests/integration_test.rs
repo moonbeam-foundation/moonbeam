@@ -135,7 +135,7 @@ impl ExtBuilder {
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();
-		
+
 		// Here we map the author id ALICE_NIMBUS to the AccountId ALICE
 		// This is not (currently) configureable because it is enough for all of our tests
 		// It could bemade configureable.
