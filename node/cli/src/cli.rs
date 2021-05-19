@@ -167,12 +167,6 @@ pub struct RunCmd {
 	pub max_past_logs: u32,
 }
 
-fn parse_h160(input: &str) -> Result<H160, String> {
-	input
-		.parse::<H160>()
-		.map_err(|_| "Failed to parse H160".to_string())
-}
-
 impl std::ops::Deref for RunCmd {
 	type Target = sc_cli::RunCmd;
 

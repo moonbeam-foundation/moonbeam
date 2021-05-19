@@ -30,9 +30,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use fp_rpc::TransactionStatus;
 use frame_support::{
-	construct_runtime,
-	pallet_prelude::PhantomData,
-	parameter_types,
+	construct_runtime, parameter_types,
 	traits::{Get, Randomness},
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 };
@@ -65,6 +63,8 @@ use sp_std::{convert::TryFrom, prelude::*};
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
+use nimbus_primitives::{CanAuthor, NimbusId};
+
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
@@ -82,7 +82,9 @@ pub mod opaque {
 	pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 
 	impl_opaque_keys! {
-		pub struct SessionKeys {}
+		pub struct SessionKeys {
+			pub author_inherent: AuthorInherent,
+		}
 	}
 }
 
@@ -409,11 +411,9 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 	}
 }
 
-pub struct EthereumFindAuthor<F>(PhantomData<F>);
-
 impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
-	type FindAuthor = AuthorInherent;
+	type FindAuthor = pallet_author_mapping::MappedFindAuthor<Self, AuthorInherent>;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot;
 }
 
@@ -474,20 +474,28 @@ impl parachain_staking::Config for Runtime {
 }
 
 impl pallet_author_inherent::Config for Runtime {
-	type AuthorId = AccountId;
-	type EventHandler = ParachainStaking;
-	// We cannot run the full filtered author checking logic in the preliminary check because it
-	// depends on entropy from the relay chain. Instead we just make sure that the author is staked
-	// in the preliminary check. The final check including filtering happens during block execution.
-	type PreliminaryCanAuthor = ParachainStaking;
-	type FullCanAuthor = AuthorFilter;
+	type AuthorId = NimbusId;
+	type SlotBeacon = pallet_author_inherent::RelayChainBeacon<Self>;
+	//TODO This is making me think the mapping should just happen in the author inherent pallet
+	// Or maybe the sessions pallet will interface really naturally with the author inherent pallet?
+	type EventHandler = pallet_author_mapping::MappedEventHandler<Self, ParachainStaking>;
+	type PreliminaryCanAuthor = pallet_author_mapping::MappedCanAuthor<Self, ParachainStaking>;
+	type FullCanAuthor = pallet_author_mapping::MappedCanAuthor<Self, AuthorFilter>;
 }
 
 impl pallet_author_slot_filter::Config for Runtime {
+	// All of our filtering is going to happen in the runtime's accountId type (same as staking.)
+	// Maybe I should remove this associated type entirely
 	type AuthorId = AccountId;
 	type Event = Event;
 	type RandomnessSource = RandomnessCollectiveFlip;
 	type PotentialAuthors = ParachainStaking;
+}
+
+// This is a simple session key manager. It should probably either work with, or be replaced
+// entirely by pallet sessions
+impl pallet_author_mapping::Config for Runtime {
+	type AuthorId = NimbusId;
 }
 
 construct_runtime! {
@@ -519,6 +527,7 @@ construct_runtime! {
 		// Concretely we need the author inherent to come after the parachain_system inherent.
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent},
 		AuthorFilter: pallet_author_slot_filter::{Pallet, Storage, Event, Config},
+		AuthorMapping: pallet_author_mapping::{Pallet, Config<T>, Storage},
 	}
 }
 
@@ -1030,14 +1039,9 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl author_filter_api::AuthorFilterAPI<Block, AccountId> for Runtime {
-		fn can_author(author: AccountId, relay_parent: u32) -> bool {
-			// Rather than referring to the author filter directly here,
-			// refer to it via the author inherent config. This avoid the possibility
-			// of accidentally using different filters in different places.
-			// This will make more sense when the CanAuthor trait is revised so its method accepts
-			// the slot number. Basically what is currently called the "helper" should be the main method.
-			AuthorFilter::can_author_helper(&author, relay_parent)
+	impl nimbus_primitives::AuthorFilterAPI<Block, nimbus_primitives::NimbusId> for Runtime {
+		fn can_author(author: nimbus_primitives::NimbusId, slot: u32) -> bool {
+			<Runtime as pallet_author_inherent::Config>::FullCanAuthor::can_author(&author, &slot)
 		}
 	}
 
@@ -1067,4 +1071,8 @@ impl_runtime_apis! {
 	}
 }
 
-cumulus_pallet_parachain_system::register_validate_block!(Runtime, Executive);
+// Notice we're using Nimbus's Executive wrapper to pop (and in the future verify) the seal digest.
+cumulus_pallet_parachain_system::register_validate_block!(
+	Runtime,
+	pallet_author_inherent::BlockExecutor<Runtime, Executive>
+);

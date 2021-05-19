@@ -111,3 +111,10 @@ pub fn generate_accounts(mnemonic: String, num_accounts: u32) -> Vec<AccountId> 
 		.flatten()
 		.collect()
 }
+
+/// Helper function to generate a crypto pair from seed
+pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
+	TPublic::Pair::from_string(&format!("//{}", seed), None)
+		.expect("static values are valid; qed")
+		.public()
+}

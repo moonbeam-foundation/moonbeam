@@ -29,10 +29,11 @@ use moonriver_runtime::{
 	AccountId, AuthorInherent, Balance, Balances, Call, Event, InflationInfo, ParachainStaking,
 	Range, Runtime, System, GLMR,
 };
+use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use parachain_staking::Bond;
 use precompiles::MoonbeamPrecompiles;
-use sp_core::{H160, U256};
+use sp_core::{Public, H160, U256};
 use sp_runtime::{DispatchError, Perbill};
 
 fn run_to_block(n: u32) {
@@ -134,6 +135,15 @@ impl ExtBuilder {
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();
+		
+		// Here we map the author id ALICE_NIMBUS to the AccountId ALICE
+		// This is not (currently) configureable because it is enough for all of our tests
+		// It could bemade configureable.
+		pallet_author_mapping::GenesisConfig::<Runtime> {
+			author_ids: vec![(NimbusId::from_slice(&ALICE_NIMBUS), AccountId::from(ALICE))],
+		}
+		.assimilate_storage(&mut t)
+		.unwrap();
 
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
@@ -142,6 +152,7 @@ impl ExtBuilder {
 }
 
 const ALICE: [u8; 20] = [4u8; 20];
+const ALICE_NIMBUS: [u8; 32] = [4u8; 32];
 const BOB: [u8; 20] = [5u8; 20];
 const CHARLIE: [u8; 20] = [6u8; 20];
 const DAVE: [u8; 20] = [7u8; 20];
@@ -155,7 +166,7 @@ fn inherent_origin() -> <Runtime as frame_system::Config>::Origin {
 }
 
 /// Mock the inherent that sets author in `author-inherent`
-fn set_author(a: AccountId) {
+fn set_author(a: NimbusId) {
 	assert_ok!(
 		Call::AuthorInherent(pallet_author_inherent::Call::<Runtime>::set_author(a))
 			.dispatch(inherent_origin())
@@ -344,13 +355,13 @@ fn reward_block_authors() {
 		.execute_with(|| {
 			set_parachain_inherent_data();
 			for x in 2..1201 {
-				set_author(AccountId::from(ALICE));
+				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 				run_to_block(x);
 			}
 			// no rewards doled out yet
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * GLMR,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * GLMR,);
-			set_author(AccountId::from(ALICE));
+			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 			run_to_block(1201);
 			// rewards minted and distributed
 			assert_eq!(

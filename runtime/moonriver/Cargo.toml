@@ -22,7 +22,8 @@ moonbeam-core-primitives = { path = "../../core-primitives", default-features = 
 pallet-ethereum-chain-id = { path = "../../pallets/ethereum-chain-id", default-features = false }
 parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
 pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
-author-filter-api = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
+nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
+pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
@@ -125,7 +126,8 @@ std = [
 	"moonbeam-core-primitives/std",
 	"parachain-staking/std",
 	"pallet-author-slot-filter/std",
-	"author-filter-api/std",
+	"nimbus-primitives/std",
+	"pallet-author-mapping/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.

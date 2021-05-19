@@ -21,16 +21,17 @@
 
 #[cfg(test)]
 use crate::chain_spec::{derive_bip44_pairs_from_mnemonic, get_account_id_from_pair};
-use crate::chain_spec::{generate_accounts, Extensions};
+use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
 use evm::GenesisAccount;
 use moonshadow_runtime::{
-	AccountId, AuthorFilterConfig, Balance, BalancesConfig, CouncilCollectiveConfig,
-	DemocracyConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig, GenesisConfig,
-	InflationInfo, ParachainInfoConfig, ParachainStakingConfig, Range, SchedulerConfig, SudoConfig,
-	SystemConfig, TechComitteeCollectiveConfig, GLMR, WASM_BINARY,
+	AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
+	CouncilCollectiveConfig, DemocracyConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig,
+	GenesisConfig, InflationInfo, ParachainInfoConfig, ParachainStakingConfig, Range,
+	SchedulerConfig, SudoConfig, SystemConfig, TechComitteeCollectiveConfig, GLMR, WASM_BINARY,
 };
 use sc_service::ChainType;
+use nimbus_primitives::NimbusId;
 #[cfg(test)]
 use sp_core::ecdsa;
 use sp_core::H160;
@@ -198,7 +199,7 @@ pub fn testnet_genesis(
 		pallet_democracy: DemocracyConfig {},
 		pallet_scheduler: SchedulerConfig {},
 		parachain_staking: ParachainStakingConfig {
-			stakers,
+			stakers: stakers.clone(),
 			inflation_config,
 		},
 		pallet_collective_Instance1: CouncilCollectiveConfig {
@@ -210,6 +211,26 @@ pub fn testnet_genesis(
 			members: vec![], // TODO : Set members
 		},
 		pallet_author_slot_filter: AuthorFilterConfig { eligible_ratio: 50 },
+		pallet_author_mapping: AuthorMappingConfig {
+			// Pretty hacky. We just set the first staker to use alice's session keys.
+			// Maybe this is the moment we should finally make the `--alice` flags make sense.
+			// Which is to say, we should prefund the alice account. Actually, I think we already do that...
+			author_ids: stakers
+				.iter()
+				.take(1)
+				.map(|staker| {
+					let author_id = get_from_seed::<NimbusId>("Alice");
+					let account_id = staker.0;
+					// This println confirmed that I mapped Alice's session key to Gerald's account ID
+					// Now I'm disabling it because it also showed up in my parachain genesis state file
+					// println!(
+					// 	"Initializing author -> account mapping: ({:?}, {:?})",
+					// 	author_id, account_id
+					// );
+					(author_id, account_id)
+				})
+				.collect(),
+		},
 	}
 }
 

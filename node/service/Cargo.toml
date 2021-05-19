@@ -102,9 +102,11 @@ cumulus-client-consensus-relay-chain = { git = "https://github.com/purestake/cum
 cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
 cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
 
-# Nimbus Dependency
-# TODO When we bump nimbus, we can depend on the smaller primitives crate here.
+# Nimbus dependencies
+nimbus-consensus = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
 pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+# TODO we should be able to depend only on the primitives crate once we move the inherent data provider there.
+nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
 
 # Polkadot dependencies
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1" }

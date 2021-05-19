@@ -42,6 +42,7 @@ pub trait RuntimeApiCollection:
 	+ fp_rpc::EthereumRuntimeRPCApi<Block>
 	+ moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>
 	+ moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>
+	+ nimbus_primitives::AuthorFilterAPI<Block, nimbus_primitives::NimbusId>
 where
 	<Self as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<BlakeTwo256>,
 {
@@ -59,7 +60,8 @@ where
 		+ sp_session::SessionKeys<Block>
 		+ fp_rpc::EthereumRuntimeRPCApi<Block>
 		+ moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>
-		+ moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>,
+		+ moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>
+		+ nimbus_primitives::AuthorFilterAPI<Block, nimbus_primitives::NimbusId>,
 	<Self as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<BlakeTwo256>,
 {
 }

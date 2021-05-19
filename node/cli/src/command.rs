@@ -30,7 +30,6 @@ use sc_cli::{
 use sc_service::config::{BasePath, PrometheusConfig};
 use service::{chain_spec, IdentifyVariant};
 use sp_core::hexdisplay::HexDisplay;
-use sp_core::H160;
 use sp_runtime::traits::Block as _;
 use std::str::FromStr;
 use std::{io::Write, net::SocketAddr};
@@ -236,7 +235,6 @@ fn extract_genesis_wasm(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Result<V
 /// Parse command line arguments into service configuration.
 pub fn run() -> Result<()> {
 	let cli = Cli::from_args();
-	let author_id: Option<H160> = cli.run.author_id;
 	match &cli.subcommand {
 		Some(Subcommand::BuildSpec(params)) => {
 			let runner = cli.create_runner(&params.base)?;
@@ -284,21 +282,21 @@ pub fn run() -> Result<()> {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
 				let (client, _, import_queue, task_manager) =
-					service::new_chain_ops(&mut config, author_id)?;
+					service::new_chain_ops(&mut config)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
 		Some(Subcommand::ExportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
-				let (client, _, _, task_manager) = service::new_chain_ops(&mut config, author_id)?;
+				let (client, _, _, task_manager) = service::new_chain_ops(&mut config)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
 		}
 		Some(Subcommand::ExportState(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
-				let (client, _, _, task_manager) = service::new_chain_ops(&mut config, author_id)?;
+				let (client, _, _, task_manager) = service::new_chain_ops(&mut config)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
 		}
@@ -306,7 +304,7 @@ pub fn run() -> Result<()> {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
 				let (client, _, import_queue, task_manager) =
-					service::new_chain_ops(&mut config, author_id)?;
+					service::new_chain_ops(&mut config)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -346,7 +344,7 @@ pub fn run() -> Result<()> {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
 				let (client, backend, _, task_manager) =
-					service::new_chain_ops(&mut config, author_id)?;
+					service::new_chain_ops(&mut config)?;
 				Ok((cmd.run(client, backend), task_manager))
 			})
 		}
@@ -464,10 +462,6 @@ pub fn run() -> Result<()> {
 			let runner = cli.create_runner(&*cli.run)?;
 			runner.run_node_until_exit(|config| async move {
 				let collator = cli.run.base.validator || cli.collator;
-				let author_id: Option<H160> = cli.run.author_id;
-				if collator && author_id.is_none() {
-					return Err("Collator nodes must specify an author account id".into());
-				}
 
 				let key = sp_core::Pair::generate().0;
 
@@ -492,19 +486,12 @@ pub fn run() -> Result<()> {
 					config.chain_spec.is_dev() || relay_chain_id == Some("dev-service".to_string());
 
 				if dev_service {
-					// If no author id was supplied, use the one that is staked at genesis
-					// in the default development spec.
-					let author_id = author_id.or_else(|| {
-						Some(
-							service::moonbase_runtime::AccountId::from_str(
-								"6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b",
-							)
-							.expect("Gerald is a valid account"),
-						)
-					});
+					// When running the dev service, just use Alice's author inherent
+					//TODO maybe make the --alice etc flags work here, and consider bringing back
+					// the author-id flag. For now, this will work.
+					
 					return service::new_dev(
 						config,
-						author_id,
 						true,
 						cli.run.sealing,
 						cli.run.ethapi,
@@ -564,7 +551,6 @@ pub fn run() -> Result<()> {
 					>(
 						config,
 						key,
-						author_id,
 						polkadot_config,
 						id,
 						collator,
@@ -581,7 +567,6 @@ pub fn run() -> Result<()> {
 					>(
 						config,
 						key,
-						author_id,
 						polkadot_config,
 						id,
 						collator,
@@ -598,7 +583,6 @@ pub fn run() -> Result<()> {
 					>(
 						config,
 						key,
-						author_id,
 						polkadot_config,
 						id,
 						collator,
@@ -615,7 +599,6 @@ pub fn run() -> Result<()> {
 					>(
 						config,
 						key,
-						author_id,
 						polkadot_config,
 						id,
 						collator,

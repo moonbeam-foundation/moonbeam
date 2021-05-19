@@ -21,7 +21,7 @@
 
 #[cfg(test)]
 use crate::chain_spec::{derive_bip44_pairs_from_mnemonic, get_account_id_from_pair};
-use crate::chain_spec::{generate_accounts, Extensions};
+use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
 use evm::GenesisAccount;
 use moonbeam_runtime::{
@@ -31,6 +31,7 @@ use moonbeam_runtime::{
 	SchedulerConfig, SudoConfig, SystemConfig, TechComitteeCollectiveConfig, GLMR, WASM_BINARY,
 };
 use sc_service::ChainType;
+use nimbus_primitives::NimbusId;
 #[cfg(test)]
 use sp_core::ecdsa;
 use sp_core::H160;
@@ -229,7 +230,7 @@ pub fn testnet_genesis(
 					(author_id, account_id)
 				})
 				.collect(),
-		},
+		}
 	}
 }
 
