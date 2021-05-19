@@ -31,7 +31,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Currency, FindAuthor, Get, Imbalance, OnUnbalanced, Randomness},
+	traits::{Get, Imbalance, OnUnbalanced, Randomness},
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 	PalletId,
 };
@@ -201,41 +201,24 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
-/// Logic for the author to get a portion of fees.
-pub struct ToAuthor<R>(sp_std::marker::PhantomData<R>);
-impl<R> OnUnbalanced<NegativeImbalance<R>> for ToAuthor<R>
-where
-	R: pallet_balances::Config + pallet_author_inherent::Config,
-	<R as frame_system::Config>::Event: From<pallet_balances::Event<R>>,
-{
-	fn on_nonzero_unbalanced(amount: NegativeImbalance<R>) {
-		// TODO: get block author from author_inherent
-		todo!()
-		//let numeric_amount = amount.peek();
-		//let author = <pallet_author_inherent::Pallet<R>>::find_author(Default::default()).expect("Author must be set");
-		//<pallet_balances::Pallet<R>>::resolve_creating(&author, amount);
-		//<frame_system::Pallet<R>>::deposit_event(pallet_balances::Event::Deposit(author, numeric_amount));
-	}
-}
-
 pub struct DealWithFees<R>(sp_std::marker::PhantomData<R>);
 impl<R> OnUnbalanced<NegativeImbalance<R>> for DealWithFees<R>
 where
-	R: pallet_balances::Config + pallet_treasury::Config + pallet_author_inherent::Config,
+	R: pallet_balances::Config + pallet_treasury::Config,
 	pallet_treasury::Module<R>: OnUnbalanced<NegativeImbalance<R>>,
-	<R as frame_system::Config>::Event: From<pallet_balances::Event<R>>,
 {
 	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
 		if let Some(fees) = fees_then_tips.next() {
-			// for fees, 80% to treasury, 20% to author
-			let mut split = fees.ration(80, 20);
-			if let Some(tips) = fees_then_tips.next() {
-				// for tips, if any, 100% to author
-				tips.merge_into(&mut split.1);
-			}
-			use pallet_treasury::Module as Treasury;
-			<Treasury<R> as OnUnbalanced<_>>::on_unbalanced(split.0);
-			<ToAuthor<R> as OnUnbalanced<_>>::on_unbalanced(split.1);
+			// for fees, 80% are burned, 20% to the treasury
+			let (_, to_treasury) = fees.ration(80, 20);
+			// TODO: why support tips? where should tips be sent? substrate impl commented out:
+			// if let Some(tips) = fees_then_tips.next() {
+			// 	// for tips, if any, 100% to treasury
+			// 	tips.merge_into(&mut split.1);
+			// }
+			// Balances module automatically burns dropped Negative Imbalances by decreasing
+			// total_supply accordingly TODO: verify this statement
+			<pallet_treasury::Module<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
 		}
 	}
 }
@@ -440,9 +423,20 @@ parameter_types! {
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryPalletId;
 	type Currency = Balances;
-	type ApproveOrigin = EnsureRoot<AccountId>;
-	type RejectOrigin = EnsureRoot<AccountId>;
+	// Approval requires 2/3 of the council or sudo
+	type ApproveOrigin = EnsureOneOf<
+		AccountId,
+		EnsureRoot<AccountId>,
+		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, CouncilInstance>,
+	>;
+	// Rejection requires 1/2 of the council or sudo
+	type RejectOrigin = EnsureOneOf<
+		AccountId,
+		EnsureRoot<AccountId>,
+		pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, CouncilInstance>,
+	>;
 	type Event = Event;
+	// If spending proposal rejected, transfer proposer bond to treasury
 	type OnSlash = Treasury;
 	type ProposalBond = ProposalBond;
 	type ProposalBondMinimum = ProposalBondMinimum;
