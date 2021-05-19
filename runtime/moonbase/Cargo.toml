@@ -44,6 +44,7 @@ frame-system = { git = "https://github.com/paritytech/substrate", default-featur
 pallet-balances = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-randomness-collective-flip = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-timestamp = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+pallet-treasury = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-sudo = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 
@@ -103,6 +104,7 @@ std = [
 	"pallet-balances/std",
 	"pallet-randomness-collective-flip/std",
 	"pallet-timestamp/std",
+	"pallet-treasury/std",
 	"pallet-sudo/std",
 	"pallet-transaction-payment/std",
 	"pallet-utility/std",

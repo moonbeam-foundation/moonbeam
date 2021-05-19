@@ -31,8 +31,9 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Get, Randomness},
+	traits::{Currency, FindAuthor, Get, Imbalance, OnUnbalanced, Randomness},
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
+	PalletId,
 };
 use frame_system::{EnsureOneOf, EnsureRoot};
 pub use moonbeam_core_primitives::{
@@ -40,6 +41,7 @@ pub use moonbeam_core_primitives::{
 	Signature,
 };
 use moonbeam_extensions_evm::runner::stack::TraceRunner as TraceRunnerT;
+use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{Transaction as EthereumTransaction, TransactionAction};
 use pallet_evm::{
@@ -56,7 +58,7 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentityLookup},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, Perbill,
+	ApplyExtrinsicResult, Perbill, Permill,
 };
 use sp_std::{convert::TryFrom, prelude::*};
 #[cfg(feature = "std")]
@@ -199,12 +201,51 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
+/// Logic for the author to get a portion of fees.
+pub struct ToAuthor<R>(sp_std::marker::PhantomData<R>);
+impl<R> OnUnbalanced<NegativeImbalance<R>> for ToAuthor<R>
+where
+	R: pallet_balances::Config + pallet_author_inherent::Config,
+	<R as frame_system::Config>::Event: From<pallet_balances::Event<R>>,
+{
+	fn on_nonzero_unbalanced(amount: NegativeImbalance<R>) {
+		// TODO: get block author from author_inherent
+		todo!()
+		//let numeric_amount = amount.peek();
+		//let author = <pallet_author_inherent::Pallet<R>>::find_author(Default::default()).expect("Author must be set");
+		//<pallet_balances::Pallet<R>>::resolve_creating(&author, amount);
+		//<frame_system::Pallet<R>>::deposit_event(pallet_balances::Event::Deposit(author, numeric_amount));
+	}
+}
+
+pub struct DealWithFees<R>(sp_std::marker::PhantomData<R>);
+impl<R> OnUnbalanced<NegativeImbalance<R>> for DealWithFees<R>
+where
+	R: pallet_balances::Config + pallet_treasury::Config + pallet_author_inherent::Config,
+	pallet_treasury::Module<R>: OnUnbalanced<NegativeImbalance<R>>,
+	<R as frame_system::Config>::Event: From<pallet_balances::Event<R>>,
+{
+	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
+		if let Some(fees) = fees_then_tips.next() {
+			// for fees, 80% to treasury, 20% to author
+			let mut split = fees.ration(80, 20);
+			if let Some(tips) = fees_then_tips.next() {
+				// for tips, if any, 100% to author
+				tips.merge_into(&mut split.1);
+			}
+			use pallet_treasury::Module as Treasury;
+			<Treasury<R> as OnUnbalanced<_>>::on_unbalanced(split.0);
+			<ToAuthor<R> as OnUnbalanced<_>>::on_unbalanced(split.1);
+		}
+	}
+}
+
 parameter_types! {
 	pub const TransactionByteFee: Balance = 1;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
-	type OnChargeTransaction = CurrencyAdapter<Balances, ()>;
+	type OnChargeTransaction = CurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type TransactionByteFee = TransactionByteFee;
 	type WeightToFee = IdentityFee<Balance>;
 	type FeeMultiplierUpdate = ();
@@ -387,6 +428,32 @@ impl pallet_democracy::Config for Runtime {
 	type MaxProposals = MaxProposals;
 }
 
+parameter_types! {
+	pub const ProposalBond: Permill = Permill::from_percent(5);
+	pub const ProposalBondMinimum: Balance = 1 * GLMR;
+	pub const SpendPeriod: BlockNumber = 6 * BLOCKS_PER_DAY;
+	pub const Burn: Permill = Permill::from_perthousand(2);
+	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
+	//pub const MaxApprovals: u32 = 100; // will be needed for upcoming version
+}
+
+impl pallet_treasury::Config for Runtime {
+	type PalletId = TreasuryPalletId;
+	type Currency = Balances;
+	type ApproveOrigin = EnsureRoot<AccountId>;
+	type RejectOrigin = EnsureRoot<AccountId>;
+	type Event = Event;
+	type OnSlash = Treasury;
+	type ProposalBond = ProposalBond;
+	type ProposalBondMinimum = ProposalBondMinimum;
+	type SpendPeriod = SpendPeriod;
+	type Burn = ();
+	type BurnDestination = ();
+	// type MaxApprovals = MaxApprovals; // will be needed for upcoming version
+	type WeightInfo = ();
+	type SpendFunds = ();
+}
+
 pub struct TransactionConverter;
 
 impl fp_rpc::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
@@ -523,6 +590,7 @@ construct_runtime! {
 			pallet_collective::<Instance1>::{Pallet, Call, Event<T>, Origin<T>, Config<T>},
 		TechComitteeCollective:
 			pallet_collective::<Instance2>::{Pallet, Call, Event<T>, Origin<T>, Config<T>},
+		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call},
 		// The order matters here. Inherents will be included in the order specified here.
 		// Concretely we need the author inherent to come after the parachain_system inherent.
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent},
