@@ -1177,7 +1177,7 @@ fn round_transitions() {
 				))
 			);
 			roll_to(9);
-			assert_eq!(last_event(), MetaEvent::stake(Event::NewRound(8, 3, 1, 40)));
+			assert_eq!(last_event(), MetaEvent::stake(Event::NewRound(9, 3, 1, 40)));
 		});
 	// round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round
 	ExtBuilder::default()
@@ -1213,7 +1213,10 @@ fn round_transitions() {
 				))
 			);
 			roll_to(10);
-			assert_eq!(last_event(), MetaEvent::stake(Event::NewRound(9, 3, 1, 40)));
+			assert_eq!(
+				last_event(),
+				MetaEvent::stake(Event::NewRound(10, 3, 1, 40))
+			);
 		});
 	// if current duration less than new blocks per round (bpr), round waits until new bpr passes
 	ExtBuilder::default()
@@ -1251,19 +1254,6 @@ fn round_transitions() {
 				))
 			);
 			roll_to(8);
-			assert_eq!(
-				last_event(),
-				MetaEvent::stake(Event::BlocksPerRoundSet(
-					2,
-					5,
-					5,
-					3,
-					Perbill::from_parts(232),
-					Perbill::from_parts(232),
-					Perbill::from_parts(232)
-				))
-			);
-			roll_to(9);
 			assert_eq!(last_event(), MetaEvent::stake(Event::NewRound(8, 3, 1, 40)));
 		});
 }

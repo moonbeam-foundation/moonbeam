@@ -526,9 +526,9 @@ pub mod pallet {
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		fn on_finalize(n: T::BlockNumber) {
+		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut round = <Round<T>>::get();
-			if round.should_update(n) {
+			let (collator_count, nomination_count) = if round.should_update(n) {
 				// mutate round
 				round.update(n);
 				// pay all stakers for T::BondDuration rounds ago
@@ -547,7 +547,12 @@ pub mod pallet {
 					collator_count,
 					total_staked,
 				));
-			}
+				// TODO: return nomination_count as well from select_top_candidates
+				(collator_count, 0u32)
+			} else {
+				(0u32, 0u32)
+			};
+			T::WeightInfo::on_initialize(collator_count, nomination_count)
 		}
 	}
 
