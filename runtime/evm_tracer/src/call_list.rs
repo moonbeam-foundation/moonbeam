@@ -17,7 +17,6 @@
 use crate::util::*;
 use ethereum_types::{H160, U256};
 use evm::{Capture, ExitError, ExitReason, ExitSucceed};
-use evm_gasometer::tracing::Snapshot;
 use moonbeam_rpc_primitives_debug::{
 	single::{Call, CallInner, TransactionTrace},
 	CallResult, CallType, CreateResult,
