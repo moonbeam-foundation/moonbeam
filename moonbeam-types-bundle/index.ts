@@ -438,11 +438,13 @@ export const moonbeamDefinitions = {
           horizontal_messages: "BTreeMap<ParaId, Vec<InboundHrmpMessage>>",
         },
         RelayChainAccountId: "H256",
-        RewardInfo:{
+        RewardInfo: {
           total_reward: "Balance",
           claimed_reward: "Balance",
           last_paid: "BlockNumber",
+          free_claim_done: "bool",
         },
+        RelayBalance: "Balance",
         RoundInfo: {
           current: "RoundIndex",
           first: "BlockNumber",
