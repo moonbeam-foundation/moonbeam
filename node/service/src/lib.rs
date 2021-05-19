@@ -388,7 +388,7 @@ where
 /// `fp_rpc::ConvertTransaction` is implemented for an arbitrary struct that lives in each runtime.
 /// It receives a ethereum::Transaction and returns a pallet-ethereum transact Call wrapped in an
 /// UncheckedExtrinsic.
-/// 
+///
 /// Although the implementation should be the same in each runtime, this might change at some point.
 /// `TransactionConverters` is just a `fp_rpc::ConvertTransaction` implementor that proxies calls to
 /// each runtime implementation.
