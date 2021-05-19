@@ -1,5 +1,8 @@
 (function() {var implementors = {};
+implementors["moonbase_runtime"] = [{"text":"impl GetDispatchInfo for Call","synthetic":false,"types":[]}];
 implementors["moonbeam_runtime"] = [{"text":"impl GetDispatchInfo for Call","synthetic":false,"types":[]}];
+implementors["moonriver_runtime"] = [{"text":"impl GetDispatchInfo for Call","synthetic":false,"types":[]}];
+implementors["moonshadow_runtime"] = [{"text":"impl GetDispatchInfo for Call","synthetic":false,"types":[]}];
 implementors["pallet_author_mapping"] = [{"text":"impl&lt;T:&nbsp;Config&gt; GetDispatchInfo for Call&lt;T&gt;","synthetic":false,"types":[]}];
 implementors["pallet_ethereum_chain_id"] = [{"text":"impl&lt;T:&nbsp;Config&gt; GetDispatchInfo for Call&lt;T&gt;","synthetic":false,"types":[]}];
 implementors["parachain_staking"] = [{"text":"impl&lt;T:&nbsp;Config&gt; GetDispatchInfo for Call&lt;T&gt;","synthetic":false,"types":[]}];

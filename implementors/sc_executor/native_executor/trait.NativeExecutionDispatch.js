@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["moonbeam"] = [{"text":"impl NativeExecutionDispatch for Executor","synthetic":false,"types":[]}];
+implementors["moonbeam_service"] = [{"text":"impl NativeExecutionDispatch for MoonbeamExecutor","synthetic":false,"types":[]},{"text":"impl NativeExecutionDispatch for MoonriverExecutor","synthetic":false,"types":[]},{"text":"impl NativeExecutionDispatch for MoonshadowExecutor","synthetic":false,"types":[]},{"text":"impl NativeExecutionDispatch for MoonbaseExecutor","synthetic":false,"types":[]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

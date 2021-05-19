@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["staking_spec","Generate testing chain_spec for staking integration tests with accounts initialized for collating and nominating."]]});

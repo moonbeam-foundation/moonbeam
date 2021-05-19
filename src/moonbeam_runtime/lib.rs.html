@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/moonbeam/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../moonbeam_runtime/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -1079,32 +1079,6 @@
 <span id="1076">1076</span>
 <span id="1077">1077</span>
 <span id="1078">1078</span>
-<span id="1079">1079</span>
-<span id="1080">1080</span>
-<span id="1081">1081</span>
-<span id="1082">1082</span>
-<span id="1083">1083</span>
-<span id="1084">1084</span>
-<span id="1085">1085</span>
-<span id="1086">1086</span>
-<span id="1087">1087</span>
-<span id="1088">1088</span>
-<span id="1089">1089</span>
-<span id="1090">1090</span>
-<span id="1091">1091</span>
-<span id="1092">1092</span>
-<span id="1093">1093</span>
-<span id="1094">1094</span>
-<span id="1095">1095</span>
-<span id="1096">1096</span>
-<span id="1097">1097</span>
-<span id="1098">1098</span>
-<span id="1099">1099</span>
-<span id="1100">1100</span>
-<span id="1101">1101</span>
-<span id="1102">1102</span>
-<span id="1103">1103</span>
-<span id="1104">1104</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1143,6 +1117,10 @@
 	<span class="ident">weights</span>::{<span class="ident">constants</span>::<span class="ident">WEIGHT_PER_SECOND</span>, <span class="ident">IdentityFee</span>, <span class="ident">Weight</span>},
 };
 <span class="kw">use</span> <span class="ident">frame_system</span>::{<span class="ident">EnsureOneOf</span>, <span class="ident">EnsureRoot</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">moonbeam_core_primitives</span>::{
+	<span class="ident">AccountId</span>, <span class="ident">AccountIndex</span>, <span class="ident">Address</span>, <span class="ident">Balance</span>, <span class="ident">BlockNumber</span>, <span class="ident">DigestItem</span>, <span class="ident">Hash</span>, <span class="ident">Header</span>, <span class="ident">Index</span>,
+	<span class="ident">Signature</span>,
+};
 <span class="kw">use</span> <span class="ident">moonbeam_extensions_evm</span>::<span class="ident">runner</span>::<span class="ident">stack</span>::<span class="ident">TraceRunner</span> <span class="kw">as</span> <span class="ident">TraceRunnerT</span>;
 <span class="kw">use</span> <span class="ident">pallet_ethereum</span>::<span class="ident">Call</span>::<span class="ident">transact</span>;
 <span class="kw">use</span> <span class="ident">pallet_ethereum</span>::{<span class="ident">Transaction</span> <span class="kw">as</span> <span class="ident">EthereumTransaction</span>, <span class="ident">TransactionAction</span>};
@@ -1158,7 +1136,7 @@
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">u32_trait</span>::<span class="kw-2">*</span>, <span class="ident">OpaqueMetadata</span>, <span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>};
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::{
 	<span class="ident">create_runtime_str</span>, <span class="ident">generic</span>, <span class="ident">impl_opaque_keys</span>,
-	<span class="ident">traits</span>::{<span class="ident">BlakeTwo256</span>, <span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>, <span class="ident">IdentifyAccount</span>, <span class="ident">IdentityLookup</span>, <span class="ident">Verify</span>},
+	<span class="ident">traits</span>::{<span class="ident">BlakeTwo256</span>, <span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>, <span class="ident">IdentityLookup</span>},
 	<span class="ident">transaction_validity</span>::{<span class="ident">TransactionSource</span>, <span class="ident">TransactionValidity</span>},
 	<span class="ident">ApplyExtrinsicResult</span>, <span class="ident">Perbill</span>,
 };
@@ -1171,32 +1149,6 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">sp_runtime</span>::<span class="ident">BuildStorage</span>;
-
-<span class="doccomment">/// An index to a block.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="ident">u32</span>;
-
-<span class="doccomment">/// Alias to 512-bit hash when used in the context of a transaction signature on the chain.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Signature</span> <span class="op">=</span> <span class="ident">account</span>::<span class="ident">EthereumSignature</span>;
-
-<span class="doccomment">/// Some way of identifying an account on the chain. We intentionally make it equivalent</span>
-<span class="doccomment">/// to the public key of our transaction signing scheme.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">AccountId</span> <span class="op">=</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Signature</span> <span class="kw">as</span> <span class="ident">Verify</span><span class="op">&gt;</span>::<span class="ident">Signer</span> <span class="kw">as</span> <span class="ident">IdentifyAccount</span><span class="op">&gt;</span>::<span class="ident">AccountId</span>;
-
-<span class="doccomment">/// The type for looking up accounts. We don&#39;t expect more than 4 billion of them, but you</span>
-<span class="doccomment">/// never know...</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">AccountIndex</span> <span class="op">=</span> <span class="ident">u32</span>;
-
-<span class="doccomment">/// Balance of an account.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">u128</span>;
-
-<span class="doccomment">/// Index of a transaction in the chain.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Index</span> <span class="op">=</span> <span class="ident">u32</span>;
-
-<span class="doccomment">/// A hash of some data used by the chain.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Hash</span> <span class="op">=</span> <span class="ident">sp_core</span>::<span class="ident">H256</span>;
-
-<span class="doccomment">/// Digest item type.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">DigestItem</span> <span class="op">=</span> <span class="ident">generic</span>::<span class="ident">DigestItem</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span>;
 
 <span class="doccomment">/// Maximum weight per block</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MAXIMUM_BLOCK_WEIGHT</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="ident">WEIGHT_PER_SECOND</span> <span class="op">/</span> <span class="number">2</span>;
@@ -1661,10 +1613,6 @@
 	}
 }
 
-<span class="doccomment">/// The address format for describing accounts.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Address</span> <span class="op">=</span> <span class="ident">AccountId</span>;
-<span class="doccomment">/// Block header type as expected by this runtime.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Header</span> <span class="op">=</span> <span class="ident">generic</span>::<span class="ident">Header</span><span class="op">&lt;</span><span class="ident">BlockNumber</span>, <span class="ident">BlakeTwo256</span><span class="op">&gt;</span>;
 <span class="doccomment">/// Block type as expected by this runtime.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Block</span> <span class="op">=</span> <span class="ident">generic</span>::<span class="ident">Block</span><span class="op">&lt;</span><span class="ident">Header</span>, <span class="ident">UncheckedExtrinsic</span><span class="op">&gt;</span>;
 <span class="doccomment">/// A Block signed with a Justification</span>
