@@ -18,14 +18,11 @@
 
 #![cfg(test)]
 
-use cumulus_primitives_core::PersistedValidationData;
 use cumulus_primitives_parachain_inherent::ParachainInherentData;
-use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 use evm::{Context, ExitSucceed};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
-	pallet_prelude::DispatchResultWithPostInfo,
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
 use moonbase_runtime::{
@@ -404,7 +401,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			(AccountId::from(BOB), 1_000 * GLMR),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
-		.with_crowdloan_fund(1_000_000 * GLMR)
+		.with_crowdloan_fund(3_000_000 * GLMR)
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
@@ -421,7 +418,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 							vec![(
 								[4u8; 32].into(),
 								Some(AccountId::from(CHARLIE)),
-								500_000 * GLMR
+								1_500_000 * GLMR
 							)],
 							0,
 							2
@@ -432,7 +429,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 							vec![(
 								[5u8; 32].into(),
 								Some(AccountId::from(DAVE)),
-								500_000 * GLMR
+								1_500_000 * GLMR
 							)],
 							1,
 							2
@@ -477,13 +474,13 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE))
 					.unwrap()
 					.claimed_reward,
-				100000925925925925925925
+				300002976190476190476190
 			);
 			assert_eq!(
 				CrowdloanRewards::accounts_payable(&AccountId::from(DAVE))
 					.unwrap()
 					.claimed_reward,
-				100000925925925925925925
+				300002976190476190476190
 			);
 
 			assert_noop!(
