@@ -23,6 +23,7 @@
 use parity_scale_codec::{Decode, Encode};
 use sha3::{Digest, Keccak256};
 use sp_core::{ecdsa, H160, H256};
+use sp_io::hashing::blake2_256;
 
 #[cfg(feature = "std")]
 pub use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -31,9 +32,19 @@ pub use serde::{de::DeserializeOwned, Deserialize, Serialize};
 #[derive(Eq, PartialEq, Clone, Encode, Decode, sp_core::RuntimeDebug)]
 pub struct EthereumSignature(ecdsa::Signature);
 
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Eq, PartialEq, Clone, Encode, Decode, sp_core::RuntimeDebug)]
+pub struct SubstrateSignature(ecdsa::Signature);
+
 impl From<ecdsa::Signature> for EthereumSignature {
 	fn from(x: ecdsa::Signature) -> Self {
 		EthereumSignature(x)
+	}
+}
+
+impl From<ecdsa::Signature> for SubstrateSignature {
+	fn from(x: ecdsa::Signature) -> Self {
+		SubstrateSignature(x)
 	}
 }
 
@@ -42,6 +53,32 @@ impl sp_runtime::traits::Verify for EthereumSignature {
 	fn verify<L: sp_runtime::traits::Lazy<[u8]>>(&self, mut msg: L, signer: &H160) -> bool {
 		let mut m = [0u8; 32];
 		m.copy_from_slice(Keccak256::digest(msg.get()).as_slice());
+		match sp_io::crypto::secp256k1_ecdsa_recover(self.0.as_ref(), &m) {
+			Ok(pubkey) => {
+				// TODO This conversion could use a comment. Why H256 first, then H160?
+				H160::from(H256::from_slice(Keccak256::digest(&pubkey).as_slice())) == *signer
+			}
+			Err(sp_io::EcdsaVerifyError::BadRS) => {
+				log::error!(target: "evm", "Error recovering: Incorrect value of R or S");
+				false
+			}
+			Err(sp_io::EcdsaVerifyError::BadV) => {
+				log::error!(target: "evm", "Error recovering: Incorrect value of V");
+				false
+			}
+			Err(sp_io::EcdsaVerifyError::BadSignature) => {
+				log::error!(target: "evm", "Error recovering: Invalid signature");
+				false
+			}
+		}
+	}
+}
+
+impl sp_runtime::traits::Verify for SubstrateSignature {
+	type Signer = EthereumSigner;
+	fn verify<L: sp_runtime::traits::Lazy<[u8]>>(&self, mut msg: L, signer: &H160) -> bool {
+		let mut m = [0u8; 32];
+		m.copy_from_slice(&blake2_256(msg.get()));
 		match sp_io::crypto::secp256k1_ecdsa_recover(self.0.as_ref(), &m) {
 			Ok(pubkey) => {
 				// TODO This conversion could use a comment. Why H256 first, then H160?

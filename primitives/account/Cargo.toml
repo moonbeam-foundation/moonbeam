@@ -38,6 +38,7 @@ std = [
 	"sp-runtime/std",
 	"sp-std/std",
 	"full_crypto",
+	"pallet-evm/std"
 ]
 
 full_crypto = [
