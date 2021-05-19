@@ -522,7 +522,7 @@ impl pallet_author_slot_filter::Config for Runtime {
 parameter_types! {
 	// Thinking a
 	pub const VestingPeriod: BlockNumber = 1 * MONTHS;
-	pub const MinimumContribution: Balance = 0;
+	pub const MinimumReward: Balance = 0;
 	pub const Initialized: bool = false;
 	pub const InitializationPayment: Perbill = Perbill::from_percent(20);
 }
@@ -531,9 +531,11 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type Event = Event;
 	type Initialized = Initialized;
 	type InitializationPayment = InitializationPayment;
-	type MinimumContribution = MinimumContribution;
+	type MinimumReward = MinimumReward;
+	type Public = account::EthereumSigner;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = AccountId32;
+	type Signature = Signature;
 	type VestingPeriod = VestingPeriod;
 }
 // This is a simple session key manager. It should probably either work with, or be replaced
