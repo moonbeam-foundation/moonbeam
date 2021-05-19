@@ -33,6 +33,7 @@ use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::Block as _;
 use std::str::FromStr;
 use std::{io::Write, net::SocketAddr};
+use nimbus_primitives::NimbusId;
 
 use cli_opt::RpcParams;
 
@@ -490,8 +491,17 @@ pub fn run() -> Result<()> {
 					//TODO maybe make the --alice etc flags work here, and consider bringing back
 					// the author-id flag. For now, this will work.
 					
+					let author_id: = Some(
+						
+						service::moonbase_runtime::AccountId::from_str(
+							"6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b",
+						)
+						.expect("Gerald is a valid account"),
+					);
+
 					return service::new_dev(
 						config,
+						author_id,
 						true,
 						cli.run.sealing,
 						cli.run.ethapi,

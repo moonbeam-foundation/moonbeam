@@ -37,6 +37,7 @@ use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 /// - The author provider is only necessary for block producing nodes
 /// - The validation data provider can be mocked.
 pub fn build_inherent_data_providers(
+	author: Option<nimbus_primitives::NimbusId>,
 	mock: bool,
 ) -> Result<InherentDataProviders, sc_service::Error> {
 	let providers = InherentDataProviders::new();
@@ -46,6 +47,15 @@ pub fn build_inherent_data_providers(
 		.register_provider(sp_timestamp::InherentDataProvider)
 		.map_err(Into::into)
 		.map_err(sp_consensus::error::Error::InherentData)?;
+
+	// Author ID Provider for use in dev-service authoring nodes only
+	if let Some(account) = author {
+		//TODO move inherent data provider to nimbus primitives
+		providers
+			.register_provider(pallet_author_inherent::InherentDataProvider(account))
+			.map_err(Into::into)
+			.map_err(sp_consensus::error::Error::InherentData)?;
+	}
 
 	// Parachain inherent provider, only for dev-service nodes.
 	if mock {

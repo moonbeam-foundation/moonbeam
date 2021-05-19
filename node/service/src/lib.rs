@@ -188,6 +188,7 @@ pub fn new_chain_ops(
 			..
 		} = new_partial::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(
 			config,
+			None,
 			config.chain_spec.is_dev(),
 		)?;
 		Ok((
@@ -205,6 +206,7 @@ pub fn new_chain_ops(
 			..
 		} = new_partial::<moonriver_runtime::RuntimeApi, MoonriverExecutor>(
 			config,
+			None,
 			config.chain_spec.is_dev(),
 		)?;
 		Ok((
@@ -222,6 +224,7 @@ pub fn new_chain_ops(
 			..
 		} = new_partial::<moonshadow_runtime::RuntimeApi, MoonshadowExecutor>(
 			config,
+			None,
 			config.chain_spec.is_dev(),
 		)?;
 		Ok((
@@ -239,6 +242,7 @@ pub fn new_chain_ops(
 			..
 		} = new_partial::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(
 			config,
+			None,
 			config.chain_spec.is_dev(),
 		)?;
 		Ok((
@@ -257,6 +261,7 @@ pub fn new_chain_ops(
 #[allow(clippy::type_complexity)]
 pub fn new_partial<RuntimeApi, Executor>(
 	config: &Configuration,
+	author: Option<nimbus_primitives::NimbusId>,
 	dev_service: bool,
 ) -> Result<
 	PartialComponents<
@@ -287,7 +292,7 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
-	let inherent_data_providers = build_inherent_data_providers(dev_service)?;
+	let inherent_data_providers = build_inherent_data_providers(author, dev_service)?;
 
 	let telemetry = config
 		.telemetry_endpoints
@@ -432,7 +437,7 @@ where
 
 	let parachain_config = prepare_node_config(parachain_config);
 
-	let params = new_partial(&parachain_config, false)?;
+	let params = new_partial(&parachain_config, None, false)?;
 	let (
 		block_import,
 		pending_transactions,
@@ -703,6 +708,7 @@ where
 /// the parachain inherent.
 pub fn new_dev(
 	config: Configuration,
+	author_id: Option<nimbus_primitives::NimbusId>,
 	// TODO I guess we should use substrate-cli's validator flag for this.
 	// Resolve after https://github.com/paritytech/cumulus/pull/380 is reviewed.
 	collator: bool,
@@ -733,7 +739,7 @@ pub fn new_dev(
 				_telemetry_worker_handle,
 				frontier_backend,
 			),
-	} = new_partial::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(&config, true)?;
+	} = new_partial::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(&config, author_id, true)?;
 
 	let (network, network_status_sinks, system_rpc_tx, network_starter) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
