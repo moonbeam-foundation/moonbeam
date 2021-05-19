@@ -23,7 +23,8 @@
 //! This crate provide a Hook with 2 modes :
 //!
 //! - Raw : allows capturing the intermediate machine
-//!   state between opcode executions (stepping), resulting in either a granular per opcode response:
+//!   state between opcode executions (stepping), resulting in either a granular per opcode
+//!   response:
 //!   ```json
 //!   {
 //!     "pc": 230,

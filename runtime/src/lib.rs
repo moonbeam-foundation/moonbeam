@@ -672,12 +672,18 @@ impl_runtime_apis! {
 								} => {
 									Ok(RawTracer::new(disable_storage,
 										disable_memory,
-										disable_stack,).trace(|| Executive::apply_extrinsic(ext))
-										.0.into_tx_trace())
+										disable_stack,)
+										.trace(|| Executive::apply_extrinsic(ext))
+										.0
+										.into_tx_trace()
+									)
 								},
 								TraceType::CallList => {
-									Ok(CallListTracer::new().trace(|| Executive::apply_extrinsic(ext))
-									.0.into_tx_trace())
+									Ok(CallListTracer::new()
+										.trace(|| Executive::apply_extrinsic(ext))
+										.0
+										.into_tx_trace()
+									)
 								}
 							}
 
