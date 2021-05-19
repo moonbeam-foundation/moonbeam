@@ -418,16 +418,14 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
 					Call::CrowdloanRewards(
 						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
-							vec![([4u8; 32].into(), Some(AccountId::from(CHARLIE)), 432 * GLMR)],
-							1,
+							vec![([4u8; 32].into(), Some(AccountId::from(CHARLIE)), 500_000 * GLMR)],
 							0,
 							2
 						)
 					),
 					Call::CrowdloanRewards(
 						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
-							vec![([5u8; 32].into(), Some(AccountId::from(DAVE)), 432 * GLMR)],
-							1,
+							vec![([5u8; 32].into(), Some(AccountId::from(DAVE)), 500_000 * GLMR)],
 							1,
 							2
 						)
@@ -442,7 +440,6 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				Call::CrowdloanRewards(
 					pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
 						vec![([4u8; 32].into(), Some(AccountId::from(ALICE)), 432000)],
-						1,
 						0,
 						1
 					)
@@ -453,7 +450,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				0,
 				DispatchError::Module {
 					index: 19,
-					error: 5,
+					error: 7,
 					message: None,
 				},
 			));
@@ -468,13 +465,13 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE))
 					.unwrap()
 					.claimed_reward,
-				86400800000000000000
+				100000925925925925925925
 			);
 			assert_eq!(
 				CrowdloanRewards::accounts_payable(&AccountId::from(DAVE))
 					.unwrap()
 					.claimed_reward,
-				86400800000000000000
+				100000925925925925925925
 			);
 
 			assert_noop!(
