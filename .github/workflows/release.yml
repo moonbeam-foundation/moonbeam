@@ -98,6 +98,8 @@ jobs:
         shell: bash
       - name: Start sccache
         run: |
+          hostname
+          ps aux
           chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
           ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
           ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
@@ -167,6 +169,7 @@ jobs:
         shell: bash
       - name: Start sccache
         run: |
+          hostname
           chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
           ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
           ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
