@@ -121,7 +121,6 @@ describeDevMoonbeam("Crowdloan", (context) => {
     //   GENESIS_ACCOUNT
     // );
     // console.log("ACCOUNT", isPayable5.toHuman());
-    console.log("keys", Object.keys(context.polkadotApi.query.crowdloanRewards));
   });
 });
 describeDevMoonbeam(
