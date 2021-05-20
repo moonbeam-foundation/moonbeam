@@ -163,7 +163,7 @@ jobs:
           npm install
           cd ../tests
           npm install
-          npm run test -- -j 5
+          npm run test -- -j 2
 
   ####### Prepare and Deploy Docker images #######
 
