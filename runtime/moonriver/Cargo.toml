@@ -1,11 +1,12 @@
 [package]
-name = 'moonbeam-runtime'
-description = 'Moonbeam Runtime'
+name = 'moonriver-runtime'
+description = 'Moonriver Runtime'
 homepage = 'https://moonbeam.network'
 license = 'GPL-3.0-only'
 version = '0.8.0-dev'
 authors = ["PureStake"]
 edition = '2018'
+build = "build.rs"
 
 [dependencies]
 serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
@@ -15,13 +16,14 @@ hex-literal = "0.3.1"
 sha3 = { version = "0.9", default-features = false }
 
 pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
-precompiles = { path = "precompiles/", default-features = false }
-account = { path = "../primitives/account/", default-features = false }
-pallet-ethereum-chain-id = { path = "../pallets/ethereum-chain-id", default-features = false }
-parachain-staking = { path = "../pallets/parachain-staking", default-features = false }
+precompiles = { path = "../precompiles/", default-features = false }
+account = { path = "../../primitives/account/", default-features = false }
+moonbeam-core-primitives = { path = "../../core-primitives", default-features = false }
+pallet-ethereum-chain-id = { path = "../../pallets/ethereum-chain-id", default-features = false }
+parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
 pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
 nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
-pallet-author-mapping = { path = "../pallets/author-mapping", default-features = false }
+pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
@@ -58,11 +60,11 @@ pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-fe
 pallet-collective = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-society = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 
-pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false, rev = "b6f11ff" }
+pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false, branch = "main" }
 
-moonbeam-extensions-evm = { path = "extensions/evm", default-features = false }
-moonbeam-rpc-primitives-debug = { path = "../primitives/rpc/debug", default-features = false }
-moonbeam-rpc-primitives-txpool = { path = "../primitives/rpc/txpool", default-features = false }
+moonbeam-extensions-evm = { path = "../extensions/evm", default-features = false }
+moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug", default-features = false }
+moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool", default-features = false }
 
 # Cumulus dependencies
 cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus" }
@@ -74,10 +76,9 @@ frame-benchmarking = { git = "https://github.com/paritytech/substrate", default-
 frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1", optional = true }
 
 [dev-dependencies]
-evm = { version = "0.26.0", default-features = false, features = ["with-codec"] }
 cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus" }
 cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus" }
-
+evm = { version = "0.26.0", default-features = false, features = ["with-codec"] }
 
 [build-dependencies]
 substrate-wasm-builder = { version = "4.0.0", git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
@@ -125,6 +126,7 @@ std = [
 	"cumulus-pallet-parachain-system/std",
 	"cumulus-primitives-core/std",
 	"account/std",
+	"moonbeam-core-primitives/std",
 	"parachain-staking/std",
 	"pallet-author-slot-filter/std",
 	"pallet-crowdloan-rewards/std",

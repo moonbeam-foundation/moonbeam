@@ -404,7 +404,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			(AccountId::from(BOB), 1_000 * GLMR),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
-		.with_crowdloan_fund(1_000_000 * GLMR)
+		.with_crowdloan_fund(3_000_000 * GLMR)
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
@@ -418,16 +418,22 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
 					Call::CrowdloanRewards(
 						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
-							vec![([4u8; 32].into(), Some(AccountId::from(CHARLIE)), 432 * GLMR)],
-							1,
+							vec![(
+								[4u8; 32].into(),
+								Some(AccountId::from(CHARLIE)),
+								1_500_000 * GLMR
+							)],
 							0,
 							2
 						)
 					),
 					Call::CrowdloanRewards(
 						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
-							vec![([5u8; 32].into(), Some(AccountId::from(DAVE)), 432 * GLMR)],
-							1,
+							vec![(
+								[5u8; 32].into(),
+								Some(AccountId::from(DAVE)),
+								1_500_000 * GLMR
+							)],
 							1,
 							2
 						)
@@ -442,7 +448,6 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				Call::CrowdloanRewards(
 					pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
 						vec![([4u8; 32].into(), Some(AccountId::from(ALICE)), 432000)],
-						1,
 						0,
 						1
 					)
@@ -453,14 +458,18 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				0,
 				DispatchError::Module {
 					index: 19,
-					error: 5,
+					error: 7,
 					message: None,
 				},
 			));
 			assert_eq!(last_event(), expected_fail);
-			assert_ok!(CrowdloanRewards::show_me_the_money(origin_of(
+			assert_ok!(CrowdloanRewards::my_first_claim(origin_of(
 				AccountId::from(CHARLIE)
 			)));
+			assert_noop!(
+				CrowdloanRewards::my_first_claim(origin_of(AccountId::from(CHARLIE))),
+				pallet_crowdloan_rewards::Error::<Runtime>::FirstClaimAlreadyDone
+			);
 			assert_ok!(CrowdloanRewards::show_me_the_money(origin_of(
 				AccountId::from(DAVE)
 			)));
@@ -468,13 +477,13 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE))
 					.unwrap()
 					.claimed_reward,
-				86400800000000000000
+				300002777777777777777777
 			);
 			assert_eq!(
 				CrowdloanRewards::accounts_payable(&AccountId::from(DAVE))
 					.unwrap()
 					.claimed_reward,
-				86400800000000000000
+				300002777777777777777777
 			);
 
 			assert_noop!(

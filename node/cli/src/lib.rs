@@ -13,11 +13,8 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-
-//! Moonbase parachain collator
-
-#![warn(missing_docs)]
-
-fn main() -> moonbeam_cli::Result<()> {
-	moonbeam_cli::run()
-}
+mod cli;
+mod command;
+pub use cli::*;
+pub use command::*;
+pub use sc_cli::{Error, Result};
