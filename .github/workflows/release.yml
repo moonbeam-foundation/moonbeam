@@ -72,7 +72,6 @@ jobs:
     env:
       CARGO_SCCACHE_VERSION: 0.2.14-alpha.0-parity
       RUSTFLAGS: "-C opt-level=3"
-      SCCACHE_RECACHE: ${{ contains(github.event.head_commit.message, 'SCCACHE_RECACHE') }}
       # MOONBEAM_LOG: info
       # DEBUG: "test*"
     outputs:
@@ -99,12 +98,10 @@ jobs:
         shell: bash
       - name: Start sccache
         run: |
-          if [ "${{ contains(github.event.head_commit.message, 'NO_CACHE') }}" != "true" ]; then
-            chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
-            ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
-            ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
-            echo "RUSTC_WRAPPER=${{ runner.tool_cache }}/cargo-sccache/bin/sccache" >> $GITHUB_ENV
-          fi
+          chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
+          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
+          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
+          echo "RUSTC_WRAPPER=${{ runner.tool_cache }}/cargo-sccache/bin/sccache" >> $GITHUB_ENV
       - id: get-rust-versions
         run: |
           echo "::set-output name=rustc::$(rustc --version)"
@@ -126,22 +123,9 @@ jobs:
           fi
       - name: Unit tests
         run: cargo test --release --all
-      - name: Use Node.js 14.x
-        uses: actions/setup-node@v2
-        with:
-          node-version: 14.x
       - name: Stop sccache
         run: |
-          if [ "${{ contains(github.event.head_commit.message, 'NO_CACHE') }}" != "true" ]; then
-            ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --stop-server
-          fi
-      - name: Typescript integration tests (against dev service)
-        run: |
-          cd moonbeam-types-bundle
-          npm install
-          cd ../tests
-          npm install
-          npm run test -- -j 10
+          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --stop-server || true
       - name: Save parachain binary
         run: |
           mkdir -p build
@@ -156,12 +140,37 @@ jobs:
       - name: Format code with rustfmt
         run: cargo fmt -- --check
 
+  typescript-tests:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: moonbeam
+          path: build
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
+      - name: Typescript integration tests (against dev service)
+        env:
+          BINARY_PATH: ../build/moonbeam
+        run: |
+          chmod uog+x build/moonbeam
+          cd moonbeam-types-bundle
+          npm install
+          cd ../tests
+          npm install
+          node_modules/.bin/mocha -r ts-node/register 'tests/**/test-*.ts'
+
   ####### Prepare and Deploy Docker images #######
 
   generate-parachain-specs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
-    needs: build
+    needs: ["build", "typescript-tests"]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
