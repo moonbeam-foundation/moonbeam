@@ -444,7 +444,6 @@ export const moonbeamDefinitions = {
           last_paid: "BlockNumber",
           free_claim_done: "bool",
         },
-        RelayBalance: "Balance",
         RoundInfo: {
           current: "RoundIndex",
           first: "BlockNumber",
