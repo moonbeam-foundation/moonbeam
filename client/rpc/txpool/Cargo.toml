@@ -23,4 +23,4 @@ frame-system = { git = "https://github.com/paritytech/substrate", branch = "polk
 serde = { version = "1.0", features = ["derive"] }
 
 moonbeam-rpc-primitives-txpool = { path = "../../../primitives/rpc/txpool" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-v0.8" }
