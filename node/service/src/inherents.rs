@@ -26,8 +26,10 @@
 
 use cumulus_primitives_core::PersistedValidationData;
 use cumulus_primitives_parachain_inherent::{ParachainInherentData, INHERENT_IDENTIFIER};
+use parking_lot::RwLock;
 use sp_inherents::{InherentData, InherentDataProviders, InherentIdentifier, ProvideInherentData};
 use sp_timestamp::InherentError;
+use std::sync::Arc;
 
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 
@@ -60,7 +62,9 @@ pub fn build_inherent_data_providers(
 	// Parachain inherent provider, only for dev-service nodes.
 	if mock {
 		providers
-			.register_provider(MockValidationDataInherentDataProvider)
+			.register_provider(MockValidationDataInherentDataProvider {
+				relay_number: Default::default(),
+			})
 			.map_err(Into::into)
 			.map_err(sp_consensus::error::Error::InherentData)?;
 	}
@@ -76,7 +80,16 @@ pub fn build_inherent_data_providers(
 ///
 /// This is useful when running a node that is not actually backed by any relay chain.
 /// For example when running a local node, or running integration tests.
-struct MockValidationDataInherentDataProvider;
+#[derive(Default)]
+struct MockValidationDataInherentDataProvider {
+	relay_number: Arc<RwLock<u32>>,
+}
+
+impl MockValidationDataInherentDataProvider {
+	fn get_current_height(&self) -> u32 {
+		*self.relay_number.read()
+	}
+}
 
 impl ProvideInherentData for MockValidationDataInherentDataProvider {
 	fn inherent_identifier(&self) -> &'static InherentIdentifier {
@@ -87,15 +100,19 @@ impl ProvideInherentData for MockValidationDataInherentDataProvider {
 		&self,
 		inherent_data: &mut InherentData,
 	) -> Result<(), sp_inherents::Error> {
+		// Get current relay number
+		let current_height = self.get_current_height();
+
 		// Use the "sproof" (spoof proof) builder to build valid mock state root and proof.
 		let (relay_storage_root, proof) =
 			RelayStateSproofBuilder::default().into_state_root_and_proof();
 
+		// Insert current relay number
 		let data = ParachainInherentData {
 			validation_data: PersistedValidationData {
 				parent_head: Default::default(),
 				relay_parent_storage_root: relay_storage_root,
-				relay_parent_number: Default::default(),
+				relay_parent_number: current_height,
 				max_pov_size: Default::default(),
 			},
 			downward_messages: Default::default(),
@@ -103,6 +120,8 @@ impl ProvideInherentData for MockValidationDataInherentDataProvider {
 			relay_chain_state: proof,
 		};
 
+		// Increment the relay number
+		*self.relay_number.write() = current_height + 1;
 		inherent_data.put_data(INHERENT_IDENTIFIER, &data)
 	}
 
