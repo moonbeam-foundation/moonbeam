@@ -27,6 +27,7 @@ std = [
 	"nimbus-primitives/std",
 	"frame-support/std",
 	"frame-system/std",
+	"frame-benchmarking/std",
 	"pallet-balances/std",
 	"parity-scale-codec/std",
 	"serde",
