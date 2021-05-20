@@ -122,10 +122,6 @@ jobs:
             git diff-index --name-only HEAD | grep Cargo.lock
             false
           fi
-      - name: Use Node.js 14.x
-        uses: actions/setup-node@v2
-        with:
-          node-version: 14.x
       - name: Stop sccache
         run: |
           ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --stop-server
@@ -193,6 +189,10 @@ jobs:
         with:
           name: moonbeam
           path: build
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
       - name: Typescript integration tests (against dev service)
         env:
           MOONBEAM_LOG: "info"
