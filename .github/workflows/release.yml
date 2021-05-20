@@ -74,7 +74,7 @@ jobs:
       RUSTFLAGS: "-C opt-level=3"
       SCCACHE_RECACHE: ${{ contains(github.event.head_commit.message, 'SCCACHE_RECACHE') }}
       SCCACHE_DIR: "~/.cache/sccache"
-      SCCACHE_CACHE_SIZE: "64G"
+      SCCACHE_CACHE_SIZE: "8G"
       # MOONBEAM_LOG: info
       # DEBUG: "test*"
     outputs:
@@ -137,6 +137,9 @@ jobs:
         run: cargo clippy --release --workspace
       - name: Format code with rustfmt
         run: cargo fmt -- --check
+      - name: Check cache
+        run: |
+          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
 
   unit-tests:
     runs-on: self-hosted
@@ -146,7 +149,7 @@ jobs:
       RUSTFLAGS: "-C opt-level=3"
       SCCACHE_RECACHE: ${{ contains(github.event.head_commit.message, 'SCCACHE_RECACHE') }}
       SCCACHE_DIR: "~/.cache/sccache"
-      SCCACHE_CACHE_SIZE: "64G"
+      SCCACHE_CACHE_SIZE: "16G"
     outputs:
       RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
     steps:
@@ -171,14 +174,15 @@ jobs:
         shell: bash
       - name: Start sccache
         run: |
-          if [ "${{ contains(github.event.head_commit.message, 'NO_CACHE') }}" != "true" ]; then
-            chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
-            ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
-            ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
-            echo "RUSTC_WRAPPER=${{ runner.tool_cache }}/cargo-sccache/bin/sccache" >> $GITHUB_ENV
-          fi
+          chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
+          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
+          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
+          echo "RUSTC_WRAPPER=${{ runner.tool_cache }}/cargo-sccache/bin/sccache" >> $GITHUB_ENV
       - name: Unit tests
         run: cargo test --release --all
+      - name: Check cache
+        run: |
+          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
 
   typescript-tests:
     runs-on: ubuntu-latest
