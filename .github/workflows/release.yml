@@ -135,13 +135,6 @@ jobs:
           if [ "${{ contains(github.event.head_commit.message, 'NO_CACHE') }}" != "true" ]; then
             ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --stop-server
           fi
-      - name: Typescript integration tests (against dev service)
-        run: |
-          cd moonbeam-types-bundle
-          npm install
-          cd ../tests
-          npm install
-          npm run test -- -j 10
       - name: Save parachain binary
         run: |
           mkdir -p build
@@ -156,12 +149,33 @@ jobs:
       - name: Format code with rustfmt
         run: cargo fmt -- --check
 
+  typescript-tests:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: moonbeam
+          path: build
+      - name: Typescript integration tests (against dev service)
+        env:
+          MOONBEAM_LOG: "info"
+          BINARY_PATH: build/moonbeam
+        run: |
+          cd moonbeam-types-bundle
+          npm install
+          cd ../tests
+          npm install
+          npm run test -- -j 1
+
   ####### Prepare and Deploy Docker images #######
 
   generate-parachain-specs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
-    needs: build
+    needs: ["build", "typescript-tests"]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -181,7 +195,7 @@ jobs:
 
   docker-parachain:
     runs-on: ubuntu-latest
-    needs: ["build", "generate-parachain-specs"]
+    needs: ["build", "typescript-tests", "generate-parachain-specs"]
     if: github.event_name == 'push'
     steps:
       - name: Checkout
@@ -252,7 +266,7 @@ jobs:
 
   docker-moonbeam:
     runs-on: ubuntu-latest
-    needs: ["build", "generate-parachain-specs"]
+    needs: ["build", "typescript-tests", "generate-parachain-specs"]
     if: github.event_name == 'push'
     steps:
       - name: Checkout
@@ -325,7 +339,7 @@ jobs:
 
   publish-draft-release:
     runs-on: ubuntu-latest
-    needs: ["build", "generate-parachain-specs"]
+    needs: ["build", "typescript-tests", "generate-parachain-specs"]
     if: |
       github.event_name == 'push' &&
       startsWith(github.ref, 'refs/tags/v')
