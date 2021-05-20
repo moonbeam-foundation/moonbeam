@@ -143,6 +143,8 @@ jobs:
         run: |
           sha256sum target/release/moonbeam
       - name: Typescript integration tests (against dev service)
+        env:
+          MOONBEAM_LOG: "info"
         run: |
           cd moonbeam-types-bundle
           npm install
