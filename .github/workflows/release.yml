@@ -130,13 +130,6 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 14.x
-      - name: Typescript integration tests (against dev service)
-        run: |
-          cd moonbeam-types-bundle
-          npm install
-          cd ../tests
-          npm install
-          npm run test -- -j 5
       - name: Save parachain binary
         run: |
           mkdir -p build
@@ -146,6 +139,16 @@ jobs:
         with:
           name: moonbeam
           path: build
+      - name: Check binary
+        run: |
+          sha256sum target/release/moonbeam
+      - name: Typescript integration tests (against dev service)
+        run: |
+          cd moonbeam-types-bundle
+          npm install
+          cd ../tests
+          npm install
+          npm run test -- -j 5
       - name: Check with Clippy
         run: cargo clippy --release --workspace
       - name: Format code with rustfmt
