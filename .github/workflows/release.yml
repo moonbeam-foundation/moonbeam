@@ -73,8 +73,6 @@ jobs:
       CARGO_SCCACHE_VERSION: 0.2.14-alpha.0-parity
       RUSTFLAGS: "-C opt-level=3"
       SCCACHE_RECACHE: ${{ contains(github.event.head_commit.message, 'SCCACHE_RECACHE') }}
-      SCCACHE_DIR: "~/.cache/sccache"
-      SCCACHE_CACHE_SIZE: "8G"
       # MOONBEAM_LOG: info
       # DEBUG: "test*"
     outputs:
@@ -148,8 +146,6 @@ jobs:
       CARGO_SCCACHE_VERSION: 0.2.14-alpha.0-parity
       RUSTFLAGS: "-C opt-level=3"
       SCCACHE_RECACHE: ${{ contains(github.event.head_commit.message, 'SCCACHE_RECACHE') }}
-      SCCACHE_DIR: "~/.cache/sccache"
-      SCCACHE_CACHE_SIZE: "16G"
     outputs:
       RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
     steps:
