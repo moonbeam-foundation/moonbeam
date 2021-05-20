@@ -178,7 +178,7 @@ jobs:
           ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
 
   typescript-tests:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: build
     steps:
       - name: Checkout
@@ -200,7 +200,7 @@ jobs:
           npm install
           cd ../tests
           npm install
-          npm run test -- -j 1
+          npm run test -- -j 5
 
   ####### Prepare and Deploy Docker images #######
 
