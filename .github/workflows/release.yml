@@ -99,7 +99,7 @@ jobs:
         shell: bash
       - name: Start sccache
         run: |
-          if [ "${{ contains(github.event.head_commit.message, 'NO_CACHE') }}" != "false" ]; then
+          if [ "${{ contains(github.event.head_commit.message, 'NO_CACHE') }}" != "true" ]; then
             chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
             ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
             ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
@@ -132,7 +132,7 @@ jobs:
           node-version: 14.x
       - name: Stop sccache
         run: |
-          if [ "${{ contains(github.event.head_commit.message, 'NO_CACHE') }}" != "false" ]; then
+          if [ "${{ contains(github.event.head_commit.message, 'NO_CACHE') }}" != "true" ]; then
             ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --stop-server
           fi
       - name: Typescript integration tests (against dev service)
