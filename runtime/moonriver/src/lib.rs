@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! The Moonbeam Runtime.
+//! The Moonriver Runtime.
 //!
 //! Primary features of this runtime include:
 //! * Ethereum compatibility
-//! * Moonbeam tokenomics
+//! * Moonriver tokenomics
 
 #![cfg_attr(not(feature = "std"), no_std)]
 // `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
@@ -35,6 +35,10 @@ use frame_support::{
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 };
 use frame_system::{EnsureOneOf, EnsureRoot};
+pub use moonbeam_core_primitives::{
+	AccountId, AccountIndex, Address, Balance, BlockNumber, DigestItem, Hash, Header, Index,
+	Signature,
+};
 use moonbeam_extensions_evm::runner::stack::TraceRunner as TraceRunnerT;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{Transaction as EthereumTransaction, TransactionAction};
@@ -50,9 +54,9 @@ use sp_api::impl_runtime_apis;
 use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify},
+	traits::{BlakeTwo256, Block as BlockT, IdentityLookup},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, Perbill,
+	AccountId32, ApplyExtrinsicResult, Perbill,
 };
 use sp_std::{convert::TryFrom, prelude::*};
 #[cfg(feature = "std")]
@@ -64,35 +68,14 @@ use nimbus_primitives::{CanAuthor, NimbusId};
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
-/// An index to a block.
-pub type BlockNumber = u32;
-
-/// Alias to 512-bit hash when used in the context of a transaction signature on the chain.
-pub type Signature = account::EthereumSignature;
-
-/// Some way of identifying an account on the chain. We intentionally make it equivalent
-/// to the public key of our transaction signing scheme.
-pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::AccountId;
-
-/// The type for looking up accounts. We don't expect more than 4 billion of them, but you
-/// never know...
-pub type AccountIndex = u32;
-
-/// Balance of an account.
-pub type Balance = u128;
-
-/// Index of a transaction in the chain.
-pub type Index = u32;
-
-/// A hash of some data used by the chain.
-pub type Hash = sp_core::H256;
-
-/// Digest item type.
-pub type DigestItem = generic::DigestItem<Hash>;
-
 /// Maximum weight per block
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
 
+pub const MILLISECS_PER_BLOCK: u64 = 6000;
+pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
+pub const HOURS: BlockNumber = MINUTES * 60;
+pub const DAYS: BlockNumber = HOURS * 24;
+pub const WEEKS: BlockNumber = DAYS * 7;
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
@@ -112,8 +95,8 @@ pub mod opaque {
 
 /// This runtime version.
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("moonbeam"),
-	impl_name: create_runtime_str!("moonbeam"),
+	spec_name: create_runtime_str!("moonriver"),
+	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
 	spec_version: 36,
 	impl_version: 1,
@@ -514,6 +497,23 @@ impl pallet_author_slot_filter::Config for Runtime {
 	type PotentialAuthors = ParachainStaking;
 }
 
+parameter_types! {
+	// TODO to be revisited
+	pub const VestingPeriod: BlockNumber = 48 * WEEKS;
+	pub const MinimumReward: Balance = 0;
+	pub const Initialized: bool = false;
+	pub const InitializationPayment: Perbill = Perbill::from_percent(20);
+}
+
+impl pallet_crowdloan_rewards::Config for Runtime {
+	type Event = Event;
+	type Initialized = Initialized;
+	type InitializationPayment = InitializationPayment;
+	type MinimumReward = MinimumReward;
+	type RewardCurrency = Balances;
+	type RelayChainAccountId = AccountId32;
+	type VestingPeriod = VestingPeriod;
+}
 // This is a simple session key manager. It should probably either work with, or be replaced
 // entirely by pallet sessions
 impl pallet_author_mapping::Config for Runtime {
@@ -549,14 +549,11 @@ construct_runtime! {
 		// Concretely we need the author inherent to come after the parachain_system inherent.
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent},
 		AuthorFilter: pallet_author_slot_filter::{Pallet, Storage, Event, Config},
+		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>},
 		AuthorMapping: pallet_author_mapping::{Pallet, Config<T>, Storage},
 	}
 }
 
-/// The address format for describing accounts.
-pub type Address = AccountId;
-/// Block header type as expected by this runtime.
-pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
 /// Block type as expected by this runtime.
 pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 /// A Block signed with a Justification
@@ -1082,13 +1079,16 @@ impl_runtime_apis! {
 			impl frame_system_benchmarking::Config for Runtime {}
 
 			use parachain_staking::Pallet as ParachainStakingBench;
-
+			use pallet_crowdloan_rewards::Pallet as PalletCrowdloanRewardsBench;
 			let whitelist: Vec<TrackedStorageKey> = vec![];
 
 			let mut batches = Vec::<BenchmarkBatch>::new();
 			let params = (&config, &whitelist);
 
 			add_benchmark!(params, batches, parachain_staking, ParachainStakingBench::<Runtime>);
+			add_benchmark!(
+				params, batches, pallet_crowdloan_rewards, PalletCrowdloanRewardsBench::<Runtime>
+			);
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }

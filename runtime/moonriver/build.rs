@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Moonbase parachain collator
+use substrate_wasm_builder::WasmBuilder;
 
-#![warn(missing_docs)]
-
-fn main() -> moonbeam_cli::Result<()> {
-	moonbeam_cli::run()
+fn main() {
+	WasmBuilder::new()
+		.with_current_project()
+		.export_heap_base()
+		.import_memory()
+		.build()
 }
