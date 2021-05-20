@@ -207,7 +207,7 @@ jobs:
   generate-parachain-specs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
-    needs: ["build", "typescript-tests", "unit-tests"]
+    needs: ["build"]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -227,8 +227,7 @@ jobs:
 
   docker-parachain:
     runs-on: ubuntu-latest
-    needs:
-      ["build", "typescript-tests", "unit-tests", "generate-parachain-specs"]
+    needs: ["build", "generate-parachain-specs"]
     if: github.event_name == 'push'
     steps:
       - name: Checkout
@@ -299,8 +298,7 @@ jobs:
 
   docker-moonbeam:
     runs-on: ubuntu-latest
-    needs:
-      ["build", "typescript-tests", "unit-tests", "generate-parachain-specs"]
+    needs: ["build", "generate-parachain-specs"]
     if: github.event_name == 'push'
     steps:
       - name: Checkout
