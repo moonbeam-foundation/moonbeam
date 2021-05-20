@@ -163,7 +163,7 @@ jobs:
           npm install
           cd ../tests
           npm install
-          npm run test -- -j 2
+          node_modules/.bin/mocha -r ts-node/register 'tests/**/test-*.ts'
 
   ####### Prepare and Deploy Docker images #######
 
