@@ -18,14 +18,11 @@
 
 #![cfg(test)]
 
-use cumulus_primitives_core::PersistedValidationData;
 use cumulus_primitives_parachain_inherent::ParachainInherentData;
-use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 use evm::{Context, ExitSucceed};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
-	pallet_prelude::DispatchResultWithPostInfo,
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
 use moonbeam_runtime::{
