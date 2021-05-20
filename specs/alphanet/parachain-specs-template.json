@@ -111,6 +111,9 @@
       "palletAuthorSlotFilter": {
         "eligibleRatio": 50
       },
+      "palletCrowdloanRewards": {
+        "fundedAmount": 3000000000000000000000000
+      },
       "palletAuthorMapping": {
         "authorIds": [
           [

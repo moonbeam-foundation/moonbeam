@@ -55,6 +55,7 @@ pub fn staking_spec(para_id: ParaId) -> ChainSpec {
 					AccountId::from_str("Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB").unwrap(),
 					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
 				],
+				3_000_000 * GLMR,
 				para_id,
 				// Chain ID
 				1280,
