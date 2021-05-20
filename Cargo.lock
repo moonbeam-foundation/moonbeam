@@ -4561,12 +4561,14 @@ dependencies = [
  "pallet-author-slot-filter",
  "pallet-balances",
  "pallet-collective",
+ "pallet-crowdloan-rewards",
  "pallet-democracy",
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-evm",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
+ "pallet-society",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
@@ -4835,12 +4837,14 @@ dependencies = [
  "pallet-author-slot-filter",
  "pallet-balances",
  "pallet-collective",
+ "pallet-crowdloan-rewards",
  "pallet-democracy",
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-evm",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
+ "pallet-society",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
@@ -5003,12 +5007,14 @@ dependencies = [
  "pallet-author-slot-filter",
  "pallet-balances",
  "pallet-collective",
+ "pallet-crowdloan-rewards",
  "pallet-democracy",
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-evm",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
+ "pallet-society",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
@@ -5063,12 +5069,14 @@ dependencies = [
  "pallet-author-slot-filter",
  "pallet-balances",
  "pallet-collective",
+ "pallet-crowdloan-rewards",
  "pallet-democracy",
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-evm",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
+ "pallet-society",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
@@ -5633,6 +5641,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-crowdloan-rewards"
+version = "0.6.0"
+source = "git+https://github.com/purestake/crowdloan-rewards?branch=main#5088641d12d2a7a00ee01527db232d739af3e926"
+dependencies = [
+ "cumulus-pallet-parachain-system",
+ "cumulus-primitives-core",
+ "cumulus-primitives-parachain-inherent",
+ "frame-support",
+ "frame-system",
+ "log",
+ "nimbus-primitives",
+ "pallet-balances",
+ "pallet-utility",
+ "parity-scale-codec",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-democracy"
 version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.1#3f110196163b5ec03bac5ee188d60bedf3ebd91d"
@@ -6130,6 +6160,7 @@ dependencies = [
  "log",
  "parity-scale-codec",
  "sp-inherents",
+ "sp-io",
  "sp-runtime",
  "sp-std",
  "sp-timestamp",
