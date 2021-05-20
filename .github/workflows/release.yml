@@ -99,7 +99,7 @@ jobs:
         shell: bash
       - name: Start sccache
         run: |
-          if [ "${{ contains(github.event.head_commit.message, 'NO-CACHE') }}" != "false" ]; then
+          if [ "${{ contains(github.event.head_commit.message, 'NO_CACHE') }}" != "false" ]; then
             chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
             ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
             ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
@@ -130,13 +130,18 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 14.x
+      - name: Stop sccache
+        run: |
+          if [ "${{ contains(github.event.head_commit.message, 'NO_CACHE') }}" != "false" ]; then
+            ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --stop-server
+          fi
       - name: Typescript integration tests (against dev service)
         run: |
           cd moonbeam-types-bundle
           npm install
           cd ../tests
           npm install
-          npm run test -- -j 5
+          npm run test -- -j 10
       - name: Save parachain binary
         run: |
           mkdir -p build
