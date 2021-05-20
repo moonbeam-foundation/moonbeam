@@ -7280,21 +7280,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "polkadot-parachain"
-version = "0.8.30"
-source = "git+https://github.com/paritytech/polkadot?branch=release-v0.9.2#f36bb820120e7ed460071acbdd512850348ae901"
-dependencies = [
- "derive_more",
- "parity-scale-codec",
- "parity-util-mem",
- "polkadot-core-primitives",
- "serde",
- "sp-core",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "polkadot-primitives"
 version = "0.8.30"
 source = "git+https://github.com/paritytech/polkadot?branch=release-v0.9.2#f36bb820120e7ed460071acbdd512850348ae901"
