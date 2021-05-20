@@ -98,7 +98,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 36,
+	spec_version: 37,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -121,7 +121,9 @@ impl Filter<Call> for BaseFilter {
 	fn filter(c: &Call) -> bool {
 		match c {
 			Call::Balances(_) => false,
+			Call::CrowdloanRewards(_) => false,
 			Call::Democracy(_) => false,
+			Call::Ethereum(_) => false,
 			Call::EVM(_) => false,
 			_ => true,
 		}
