@@ -197,7 +197,7 @@ jobs:
       - name: Typescript integration tests (against dev service)
         env:
           MOONBEAM_LOG: "info"
-          BINARY_PATH: build/moonbeam
+          BINARY_PATH: ../build/moonbeam
         run: |
           chmod uog+x build/moonbeam
           cd moonbeam-types-bundle
