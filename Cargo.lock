@@ -5012,6 +5012,7 @@ dependencies = [
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-evm",
+ "pallet-proxy",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
  "pallet-society",

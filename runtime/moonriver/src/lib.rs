@@ -31,7 +31,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Get, Randomness},
+	traits::{Get, InstanceFilter, Randomness},
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 };
 use frame_system::{EnsureOneOf, EnsureRoot};
@@ -68,6 +68,21 @@ use nimbus_primitives::{CanAuthor, NimbusId};
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
+// Copied from https://github.com/paritytech/polkadot/blob/master/runtime/kusama/src/constants.rs#L18
+// TODO : Adjust values.
+pub mod currency {
+	use super::Balance;
+
+	pub const UNITS: Balance = 1_000_000_000_000;
+	pub const CENTS: Balance = UNITS / 30_000;
+	pub const GRAND: Balance = CENTS * 100_000;
+	pub const MILLICENTS: Balance = CENTS / 1_000;
+
+	pub const fn deposit(items: u32, bytes: u32) -> Balance {
+		items as Balance * 2_000 * CENTS + (bytes as Balance) * 100 * MILLICENTS
+	}
+}
+
 /// Maximum weight per block
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
 
@@ -98,7 +113,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 36,
+	spec_version: 37,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -520,6 +535,74 @@ impl pallet_author_mapping::Config for Runtime {
 	type AuthorId = NimbusId;
 }
 
+parameter_types! {
+	// One storage item; key size 32, value size 8; .
+	pub const ProxyDepositBase: Balance = currency::deposit(1, 8);
+	// Additional storage item size of 33 bytes.
+	pub const ProxyDepositFactor: Balance = currency::deposit(0, 33);
+	pub const MaxProxies: u16 = 32;
+	pub const AnnouncementDepositBase: Balance = currency::deposit(1, 8);
+	pub const AnnouncementDepositFactor: Balance = currency::deposit(0, 66);
+	pub const MaxPending: u16 = 32;
+}
+
+/// The type used to represent the kinds of proxying allowed.
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug)]
+pub enum ProxyType {
+	Any,
+	Governance,
+	Staking,
+	CancelProxy,
+}
+
+impl Default for ProxyType {
+	fn default() -> Self {
+		Self::Any
+	}
+}
+
+impl InstanceFilter<Call> for ProxyType {
+	fn filter(&self, c: &Call) -> bool {
+		match self {
+			ProxyType::Any => true,
+			ProxyType::Governance => matches!(
+				c,
+				Call::Democracy(..)
+					| Call::CouncilCollective(..)
+					| Call::TechComitteeCollective(..)
+			),
+			ProxyType::Staking => matches!(c, Call::ParachainStaking(..)),
+			ProxyType::CancelProxy => {
+				matches!(c, Call::Proxy(pallet_proxy::Call::reject_announcement(..)))
+			}
+		}
+	}
+
+	fn is_superset(&self, o: &Self) -> bool {
+		match (self, o) {
+			(x, y) if x == y => true,
+			(ProxyType::Any, _) => true,
+			(_, ProxyType::Any) => false,
+			_ => false,
+		}
+	}
+}
+
+impl pallet_proxy::Config for Runtime {
+	type Event = Event;
+	type Call = Call;
+	type Currency = Balances;
+	type ProxyType = ProxyType;
+	type ProxyDepositBase = ProxyDepositBase;
+	type ProxyDepositFactor = ProxyDepositFactor;
+	type MaxProxies = MaxProxies;
+	type WeightInfo = ();
+	type MaxPending = MaxPending;
+	type CallHasher = BlakeTwo256;
+	type AnnouncementDepositBase = AnnouncementDepositBase;
+	type AnnouncementDepositFactor = AnnouncementDepositFactor;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -551,6 +634,7 @@ construct_runtime! {
 		AuthorFilter: pallet_author_slot_filter::{Pallet, Storage, Event, Config},
 		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>},
 		AuthorMapping: pallet_author_mapping::{Pallet, Config<T>, Storage},
+		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
 	}
 }
 
