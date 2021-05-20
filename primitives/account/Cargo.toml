@@ -27,6 +27,9 @@ sp-std = { git = "https://github.com/paritytech/substrate", default-features = f
 pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "joshy-substrate-2be8fcc4" }
 libsecp256k1 = { version = "0.3.2", default-features = false, features = ["hmac"] }
 
+[dev-dependencies]
+hex = "0.4.3"
+
 [features]
 default = ["std"]
 std = [
