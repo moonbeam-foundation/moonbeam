@@ -12,7 +12,7 @@ repository = 'https://github.com/PureStake/moonbeam/'
 serde = { version = "1.0", features = ["derive"] }
 sha3 = "0.8"
 ethereum-types = "0.11.0"
-ethereum = { git = "https://github.com/notlesh/ethereum", branch = "notlesh-moonbeam-v0.6", features = ["with-codec"] }
+ethereum = { version = "0.7.1", features = ["with-codec"] }
 
 # Async and logs
 tokio = { version = "0.2.13", features = ["sync", "time"] }
