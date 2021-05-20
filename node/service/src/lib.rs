@@ -22,57 +22,127 @@
 //! Full Service: A complete parachain node including the pool, rpc, network, embedded relay chain
 //! Dev Service: A leaner service without the relay chain backing.
 
-use crate::cli::EthApi as EthApiCmd;
-use crate::{
-	cli::{RunCmd, Sealing},
-	inherents::build_inherent_data_providers,
-};
-use async_io::Timer;
-use cumulus_client_network::build_block_announce_validator;
-use cumulus_client_service::{
-	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
-};
+use cli_opt::{EthApi as EthApiCmd, RpcParams};
 use fc_consensus::FrontierBlockImport;
 use fc_mapping_sync::MappingSyncWorker;
 use fc_rpc::EthTask;
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
-use futures::{Stream, StreamExt};
+use futures::StreamExt;
+pub use moonbase_runtime;
 use moonbeam_rpc_debug::DebugHandler;
-use moonbeam_runtime::{opaque::Block, RuntimeApi};
+pub use moonbeam_runtime;
+pub use moonriver_runtime;
+pub use moonshadow_runtime;
+use sc_client_api::BlockchainEvents;
+use sc_service::BasePath;
+use std::{
+	collections::{BTreeMap, HashMap},
+	sync::Mutex,
+	time::Duration,
+};
+use tokio::sync::Semaphore;
+mod inherents;
+mod rpc;
+use cumulus_client_network::build_block_announce_validator;
+use cumulus_client_service::{
+	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
+};
 use nimbus_consensus::{
 	build_filtering_consensus as build_nimbus_consensus,
 	BuildFilteringConsensusParams as BuildNimbusConsensusParams,
 };
+
+use inherents::build_inherent_data_providers;
 use polkadot_primitives::v0::CollatorPair;
-use sc_cli::SubstrateCli;
-use sc_client_api::BlockchainEvents;
-use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
-use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
+use sc_executor::{native_executor_instance, NativeExecutionDispatch};
 use sc_service::{
-	error::Error as ServiceError, BasePath, Configuration, PartialComponents, Role, TFullBackend,
+	error::Error as ServiceError, ChainSpec, Configuration, PartialComponents, Role, TFullBackend,
 	TFullClient, TaskManager,
 };
-use sp_core::{H160, H256};
-use std::{
-	collections::{BTreeMap, HashMap},
-	sync::{Arc, Mutex},
-	time::Duration,
-};
-use tokio::sync::Semaphore;
+use sp_api::ConstructRuntimeApi;
+use sp_runtime::traits::BlakeTwo256;
+use sp_trie::PrefixedMemoryDB;
+use std::sync::Arc;
 
-// Our native executor instance.
+pub use client::*;
+pub mod chain_spec;
+mod client;
+
+use sc_telemetry::{Telemetry, TelemetryWorker, TelemetryWorkerHandle};
+
+type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>;
+type FullBackend = TFullBackend<Block>;
+type MaybeSelectChain = Option<sc_consensus::LongestChain<FullBackend, Block>>;
+
 native_executor_instance!(
-	pub Executor,
+	pub MoonbeamExecutor,
 	moonbeam_runtime::api::dispatch,
 	moonbeam_runtime::native_version,
 	frame_benchmarking::benchmarking::HostFunctions,
 );
-use sc_telemetry::{Telemetry, TelemetryWorker, TelemetryWorkerHandle};
 
-type FullClient = TFullClient<Block, RuntimeApi, Executor>;
-type FullBackend = TFullBackend<Block>;
-type MaybeSelectChain = Option<sc_consensus::LongestChain<FullBackend, Block>>;
+native_executor_instance!(
+	pub MoonriverExecutor,
+	moonriver_runtime::api::dispatch,
+	moonriver_runtime::native_version,
+	frame_benchmarking::benchmarking::HostFunctions,
+);
+
+native_executor_instance!(
+	pub MoonshadowExecutor,
+	moonshadow_runtime::api::dispatch,
+	moonshadow_runtime::native_version,
+	frame_benchmarking::benchmarking::HostFunctions,
+);
+
+native_executor_instance!(
+	pub MoonbaseExecutor,
+	moonbase_runtime::api::dispatch,
+	moonbase_runtime::native_version,
+	frame_benchmarking::benchmarking::HostFunctions,
+);
+
+/// Can be called for a `Configuration` to check if it is a configuration for
+/// the `Moonbeam` network.
+pub trait IdentifyVariant {
+	/// Returns `true` if this is a configuration for the `Moonbase` network.
+	fn is_moonbase(&self) -> bool;
+
+	/// Returns `true` if this is a configuration for the `Moonbeam` network.
+	fn is_moonbeam(&self) -> bool;
+
+	/// Returns `true` if this is a configuration for the `Moonriver` network.
+	fn is_moonriver(&self) -> bool;
+
+	/// Returns `true` if this is a configuration for the `Moonshadow` network.
+	fn is_moonshadow(&self) -> bool;
+
+	/// Returns `true` if this is a configuration for a dev network.
+	fn is_dev(&self) -> bool;
+}
+
+impl IdentifyVariant for Box<dyn ChainSpec> {
+	fn is_moonbase(&self) -> bool {
+		self.id().starts_with("moonbase")
+	}
+
+	fn is_moonbeam(&self) -> bool {
+		self.id().starts_with("moonbeam")
+	}
+
+	fn is_moonriver(&self) -> bool {
+		self.id().starts_with("moonriver")
+	}
+
+	fn is_moonshadow(&self) -> bool {
+		self.id().starts_with("moonshadow")
+	}
+
+	fn is_dev(&self) -> bool {
+		self.id().ends_with("dev")
+	}
+}
 
 // TODO This is copied from frontier. It should be imported instead after
 // https://github.com/paritytech/frontier/issues/333 is solved
@@ -82,8 +152,7 @@ pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backen
 		.as_ref()
 		.map(|base_path| base_path.config_dir(config.chain_spec.id()))
 		.unwrap_or_else(|| {
-			BasePath::from_project("", "", &crate::cli::Cli::executable_name())
-				.config_dir(config.chain_spec.id())
+			BasePath::from_project("", "", "moonbeam").config_dir(config.chain_spec.id())
 		});
 	let database_dir = config_dir.join("frontier").join("db");
 
@@ -97,24 +166,116 @@ pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backen
 	)?))
 }
 
+/// Builds a new object suitable for chain operations.
+pub fn new_chain_ops(
+	mut config: &mut Configuration,
+) -> Result<
+	(
+		Arc<Client>,
+		Arc<FullBackend>,
+		sp_consensus::import_queue::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
+		TaskManager,
+	),
+	ServiceError,
+> {
+	config.keystore = sc_service::config::KeystoreConfig::InMemory;
+	if config.chain_spec.is_moonbase() {
+		let PartialComponents {
+			client,
+			backend,
+			import_queue,
+			task_manager,
+			..
+		} = new_partial::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(
+			config,
+			None,
+			config.chain_spec.is_dev(),
+		)?;
+		Ok((
+			Arc::new(Client::Moonbase(client)),
+			backend,
+			import_queue,
+			task_manager,
+		))
+	} else if config.chain_spec.is_moonriver() {
+		let PartialComponents {
+			client,
+			backend,
+			import_queue,
+			task_manager,
+			..
+		} = new_partial::<moonriver_runtime::RuntimeApi, MoonriverExecutor>(
+			config,
+			None,
+			config.chain_spec.is_dev(),
+		)?;
+		Ok((
+			Arc::new(Client::Moonriver(client)),
+			backend,
+			import_queue,
+			task_manager,
+		))
+	} else if config.chain_spec.is_moonshadow() {
+		let PartialComponents {
+			client,
+			backend,
+			import_queue,
+			task_manager,
+			..
+		} = new_partial::<moonshadow_runtime::RuntimeApi, MoonshadowExecutor>(
+			config,
+			None,
+			config.chain_spec.is_dev(),
+		)?;
+		Ok((
+			Arc::new(Client::Moonshadow(client)),
+			backend,
+			import_queue,
+			task_manager,
+		))
+	} else {
+		let PartialComponents {
+			client,
+			backend,
+			import_queue,
+			task_manager,
+			..
+		} = new_partial::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(
+			config,
+			None,
+			config.chain_spec.is_dev(),
+		)?;
+		Ok((
+			Arc::new(Client::Moonbeam(client)),
+			backend,
+			import_queue,
+			task_manager,
+		))
+	}
+}
+
 /// Builds the PartialComponents for a parachain or development service
 ///
 /// Use this function if you don't actually need the full service, but just the partial in order to
 /// be able to perform chain operations.
 #[allow(clippy::type_complexity)]
-pub fn new_partial(
+pub fn new_partial<RuntimeApi, Executor>(
 	config: &Configuration,
 	author: Option<nimbus_primitives::NimbusId>,
 	dev_service: bool,
 ) -> Result<
 	PartialComponents<
-		FullClient,
+		FullClient<RuntimeApi, Executor>,
 		FullBackend,
 		MaybeSelectChain,
-		sp_consensus::DefaultImportQueue<Block, FullClient>,
-		sc_transaction_pool::FullPool<Block, FullClient>,
+		sp_consensus::DefaultImportQueue<Block, FullClient<RuntimeApi, Executor>>,
+		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
 		(
-			FrontierBlockImport<Block, Arc<FullClient>, FullClient>,
+			FrontierBlockImport<
+				Block,
+				Arc<FullClient<RuntimeApi, Executor>>,
+				FullClient<RuntimeApi, Executor>,
+			>,
 			PendingTransactions,
 			Option<FilterPool>,
 			Option<Telemetry>,
@@ -123,7 +284,14 @@ pub fn new_partial(
 		),
 	>,
 	ServiceError,
-> {
+>
+where
+	RuntimeApi:
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	Executor: NativeExecutionDispatch + 'static,
+{
 	let inherent_data_providers = build_inherent_data_providers(author, dev_service)?;
 
 	let telemetry = config
@@ -217,25 +385,58 @@ pub fn new_partial(
 	})
 }
 
+/// `fp_rpc::ConvertTransaction` is implemented for an arbitrary struct that lives in each runtime.
+/// It receives a ethereum::Transaction and returns a pallet-ethereum transact Call wrapped in an
+/// UncheckedExtrinsic.
+///
+/// Although the implementation should be the same in each runtime, this might change at some point.
+/// `TransactionConverters` is just a `fp_rpc::ConvertTransaction` implementor that proxies calls to
+/// each runtime implementation.
+pub enum TransactionConverters {
+	Moonbeam(moonbeam_runtime::TransactionConverter),
+	Moonbase(moonbase_runtime::TransactionConverter),
+	Moonriver(moonriver_runtime::TransactionConverter),
+	Moonshadow(moonshadow_runtime::TransactionConverter),
+}
+
+impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::UncheckedExtrinsic>
+	for TransactionConverters
+{
+	fn convert_transaction(
+		&self,
+		transaction: ethereum_primitives::Transaction,
+	) -> moonbeam_core_primitives::UncheckedExtrinsic {
+		match &self {
+			Self::Moonbeam(inner) => inner.convert_transaction(transaction),
+			Self::Moonriver(inner) => inner.convert_transaction(transaction),
+			Self::Moonshadow(inner) => inner.convert_transaction(transaction),
+			Self::Moonbase(inner) => inner.convert_transaction(transaction),
+		}
+	}
+}
+
 /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
-async fn start_node_impl<RB>(
+async fn start_node_impl<RB, RuntimeApi, Executor>(
 	parachain_config: Configuration,
 	collator_key: CollatorPair,
-	author_id: Option<H160>,
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	collator: bool,
-	cmd: RunCmd,
+	ethapi: Vec<EthApiCmd>,
+	rpc_params: RpcParams,
 	_rpc_ext_builder: RB,
-) -> sc_service::error::Result<(TaskManager, Arc<FullClient>)>
+) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
 where
-	RB: Fn(
-		Arc<TFullClient<Block, RuntimeApi, Executor>>,
-	) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
+	RB: Fn(Arc<FullClient<RuntimeApi, Executor>>) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
 		+ Send
 		+ 'static,
+	RuntimeApi:
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	Executor: NativeExecutionDispatch + 'static,
 {
 	if matches!(parachain_config.role, Role::Light) {
 		return Err("Light client not supported!".into());
@@ -290,13 +491,13 @@ where
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 
-	let permit_pool = Arc::new(Semaphore::new(cmd.ethapi_max_permits as usize));
+	let permit_pool = Arc::new(Semaphore::new(rpc_params.ethapi_max_permits as usize));
 
-	let (trace_filter_task, trace_filter_requester) = if cmd.ethapi.contains(&EthApiCmd::Trace) {
+	let (trace_filter_task, trace_filter_requester) = if ethapi.contains(&EthApiCmd::Trace) {
 		let (trace_filter_task, trace_filter_requester) = moonbeam_rpc_trace::CacheTask::create(
 			Arc::clone(&client),
 			Arc::clone(&backend),
-			Duration::from_secs(cmd.ethapi_trace_cache_duration),
+			Duration::from_secs(rpc_params.ethapi_trace_cache_duration),
 			Arc::clone(&permit_pool),
 		);
 		(Some(trace_filter_task), Some(trace_filter_requester))
@@ -304,7 +505,7 @@ where
 		(None, None)
 	};
 
-	let (debug_task, debug_requester) = if cmd.ethapi.contains(&EthApiCmd::Debug) {
+	let (debug_task, debug_requester) = if ethapi.contains(&EthApiCmd::Debug) {
 		let (debug_task, debug_requester) = DebugHandler::task(
 			Arc::clone(&client),
 			Arc::clone(&backend),
@@ -324,11 +525,25 @@ where
 		let filter_pool = filter_pool.clone();
 		let frontier_backend = frontier_backend.clone();
 		let backend = backend.clone();
-		let ethapi_cmd = cmd.ethapi.clone();
-		let max_past_logs = cmd.max_past_logs;
+		let ethapi_cmd = ethapi.clone();
+		let max_past_logs = rpc_params.max_past_logs;
+
+		let is_moonbeam = parachain_config.chain_spec.is_moonbeam();
+		let is_moonriver = parachain_config.chain_spec.is_moonriver();
+		let is_moonshadow = parachain_config.chain_spec.is_moonshadow();
 
 		Box::new(move |deny_unsafe, _| {
-			let deps = crate::rpc::FullDeps {
+			let transaction_converter: TransactionConverters = if is_moonbeam {
+				TransactionConverters::Moonbeam(moonbeam_runtime::TransactionConverter)
+			} else if is_moonriver {
+				TransactionConverters::Moonriver(moonriver_runtime::TransactionConverter)
+			} else if is_moonshadow {
+				TransactionConverters::Moonshadow(moonshadow_runtime::TransactionConverter)
+			} else {
+				TransactionConverters::Moonbase(moonbase_runtime::TransactionConverter)
+			};
+
+			let deps = rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
 				deny_unsafe,
@@ -342,14 +557,14 @@ where
 				backend: backend.clone(),
 				debug_requester: debug_requester.clone(),
 				trace_filter_requester: trace_filter_requester.clone(),
-				trace_filter_max_count: cmd.ethapi_trace_max_count,
+				trace_filter_max_count: rpc_params.ethapi_trace_max_count,
 				max_past_logs,
+				transaction_converter,
 			};
 
-			crate::rpc::create_full(deps, subscription_task_executor.clone())
+			rpc::create_full(deps, subscription_task_executor.clone())
 		})
 	};
-
 	task_manager.spawn_essential_handle().spawn(
 		"frontier-mapping-sync-worker",
 		MappingSyncWorker::new(
@@ -473,23 +688,30 @@ where
 }
 
 /// Start a normal parachain node.
-pub async fn start_node(
+pub async fn start_node<RuntimeApi, Executor>(
 	parachain_config: Configuration,
 	collator_key: CollatorPair,
-	author_id: Option<H160>,
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	collator: bool,
-	cmd: RunCmd,
-) -> sc_service::error::Result<(TaskManager, Arc<FullClient>)> {
+	ethapi: Vec<EthApiCmd>,
+	rpc_params: RpcParams,
+) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
+where
+	RuntimeApi:
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	Executor: NativeExecutionDispatch + 'static,
+{
 	start_node_impl(
 		parachain_config,
 		collator_key,
-		author_id,
 		polkadot_config,
 		id,
 		collator,
-		cmd,
+		ethapi,
+		rpc_params,
 		|_| Default::default(),
 	)
 	.await
@@ -503,8 +725,15 @@ pub fn new_dev(
 	// TODO I guess we should use substrate-cli's validator flag for this.
 	// Resolve after https://github.com/paritytech/cumulus/pull/380 is reviewed.
 	collator: bool,
-	cmd: RunCmd,
+	sealing: cli_opt::Sealing,
+	ethapi: Vec<EthApiCmd>,
+	rpc_params: RpcParams,
 ) -> Result<TaskManager, ServiceError> {
+	use async_io::Timer;
+	use futures::Stream;
+	use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
+	use sp_core::H256;
+
 	let sc_service::PartialComponents {
 		client,
 		backend,
@@ -523,7 +752,7 @@ pub fn new_dev(
 				_telemetry_worker_handle,
 				frontier_backend,
 			),
-	} = new_partial(&config, author_id, true)?;
+	} = new_partial::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(&config, author_id, true)?;
 
 	let (network, network_status_sinks, system_rpc_tx, network_starter) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
@@ -560,8 +789,8 @@ pub fn new_dev(
 		);
 
 		let commands_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> =
-			match cmd.sealing {
-				Sealing::Instant => {
+			match sealing {
+				cli_opt::Sealing::Instant => {
 					Box::new(
 						// This bit cribbed from the implementation of instant seal.
 						transaction_pool
@@ -576,13 +805,13 @@ pub fn new_dev(
 							}),
 					)
 				}
-				Sealing::Manual => {
+				cli_opt::Sealing::Manual => {
 					let (sink, stream) = futures::channel::mpsc::channel(1000);
 					// Keep a reference to the other end of the channel. It goes to the RPC.
 					command_sink = Some(sink);
 					Box::new(stream)
 				}
-				Sealing::Interval(millis) => Box::new(StreamExt::map(
+				cli_opt::Sealing::Interval(millis) => Box::new(StreamExt::map(
 					Timer::interval(Duration::from_millis(millis)),
 					|_| EngineCommand::SealNewBlock {
 						create_empty: true,
@@ -614,13 +843,13 @@ pub fn new_dev(
 		);
 	}
 
-	let permit_pool = Arc::new(Semaphore::new(cmd.ethapi_max_permits as usize));
+	let permit_pool = Arc::new(Semaphore::new(rpc_params.ethapi_max_permits as usize));
 
-	let (trace_filter_task, trace_filter_requester) = if cmd.ethapi.contains(&EthApiCmd::Trace) {
+	let (trace_filter_task, trace_filter_requester) = if ethapi.contains(&EthApiCmd::Trace) {
 		let (trace_filter_task, trace_filter_requester) = moonbeam_rpc_trace::CacheTask::create(
 			Arc::clone(&client),
 			Arc::clone(&backend),
-			Duration::from_secs(cmd.ethapi_trace_cache_duration),
+			Duration::from_secs(rpc_params.ethapi_trace_cache_duration),
 			Arc::clone(&permit_pool),
 		);
 		(Some(trace_filter_task), Some(trace_filter_requester))
@@ -628,7 +857,7 @@ pub fn new_dev(
 		(None, None)
 	};
 
-	let (debug_task, debug_requester) = if cmd.ethapi.contains(&EthApiCmd::Debug) {
+	let (debug_task, debug_requester) = if ethapi.contains(&EthApiCmd::Debug) {
 		let (debug_task, debug_requester) = DebugHandler::task(
 			Arc::clone(&client),
 			Arc::clone(&backend),
@@ -647,12 +876,26 @@ pub fn new_dev(
 		let network = network.clone();
 		let pending = pending_transactions.clone();
 		let filter_pool = filter_pool.clone();
-		let ethapi_cmd = cmd.ethapi.clone();
+		let ethapi_cmd = ethapi.clone();
 		let frontier_backend = frontier_backend.clone();
-		let max_past_logs = cmd.max_past_logs;
+		let max_past_logs = rpc_params.max_past_logs;
+
+		let is_moonbeam = config.chain_spec.is_moonbeam();
+		let is_moonriver = config.chain_spec.is_moonriver();
+		let is_moonshadow = config.chain_spec.is_moonshadow();
 
 		Box::new(move |deny_unsafe, _| {
-			let deps = crate::rpc::FullDeps {
+			let transaction_converter: TransactionConverters = if is_moonbeam {
+				TransactionConverters::Moonbeam(moonbeam_runtime::TransactionConverter)
+			} else if is_moonriver {
+				TransactionConverters::Moonriver(moonriver_runtime::TransactionConverter)
+			} else if is_moonshadow {
+				TransactionConverters::Moonshadow(moonshadow_runtime::TransactionConverter)
+			} else {
+				TransactionConverters::Moonbase(moonbase_runtime::TransactionConverter)
+			};
+
+			let deps = rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
 				deny_unsafe,
@@ -666,10 +909,11 @@ pub fn new_dev(
 				backend: backend.clone(),
 				debug_requester: debug_requester.clone(),
 				trace_filter_requester: trace_filter_requester.clone(),
-				trace_filter_max_count: cmd.ethapi_trace_max_count,
+				trace_filter_max_count: rpc_params.ethapi_trace_max_count,
 				max_past_logs,
+				transaction_converter,
 			};
-			crate::rpc::create_full(deps, subscription_task_executor.clone())
+			rpc::create_full(deps, subscription_task_executor.clone())
 		})
 	};
 

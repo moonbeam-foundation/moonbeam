@@ -10,8 +10,8 @@
   "properties": {
     "tokenDecimals": 18
   },
-  "relay_chain": "moonbase_alpha_relay",
-  "para_id": 1000,
+  "relayChain": "moonbase_alpha_relay",
+  "paraId": 1000,
   "consensusEngine": null,
   "genesis": {
     "runtime": {
@@ -110,6 +110,9 @@
       },
       "palletAuthorSlotFilter": {
         "eligibleRatio": 50
+      },
+      "palletCrowdloanRewards": {
+        "fundedAmount": 3000000000000000000000000
       },
       "palletAuthorMapping": {
         "authorIds": [
