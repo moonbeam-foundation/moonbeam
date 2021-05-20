@@ -194,7 +194,6 @@ jobs:
           node-version: 14.x
       - name: Typescript integration tests (against dev service)
         env:
-          MOONBEAM_LOG: "info"
           BINARY_PATH: ../build/moonbeam
         run: |
           chmod uog+x build/moonbeam
