@@ -76,6 +76,11 @@ export async function startMoonbeamDevNode(): Promise<{
     process.exit(2);
   };
 
+  const psProcess = spawn("ps", ["-AFl"]);
+  psProcess.stdout.on("data", (data) => {
+    console.log(data.toString());
+  });
+
   let runningNode: ChildProcess = null;
   process.once("exit", onProcessExit);
   process.once("SIGINT", onProcessInterrupt);
@@ -107,7 +112,7 @@ export async function startMoonbeamDevNode(): Promise<{
       console.error(`Command: ${cmd} ${args.join(" ")}`);
       console.error(`Logs:`);
       console.error(binaryLogs.map((chunk) => chunk.toString()).join("\n"));
-      throw new Error("Failed to launch node");
+      process.exit(1);
     }, SPAWNING_TIME - 2000);
 
     const onData = async (chunk) => {
