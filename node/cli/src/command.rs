@@ -16,7 +16,7 @@
 
 //! This module constructs and executes the appropriate service components for the given subcommand
 
-use crate::cli::{Cli, RelayChainCli, Subcommand};
+use crate::cli::{Cli, RelayChainCli, RunCmd, Subcommand};
 use cli_opt::RpcParams;
 use cumulus_client_service::genesis::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
@@ -37,6 +37,7 @@ use std::{io::Write, net::SocketAddr};
 fn load_spec(
 	id: &str,
 	para_id: ParaId,
+	run_cmd: &RunCmd,
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	if id.is_empty() {
 		return Err("Not specific which chain to run.".into());
@@ -110,14 +111,14 @@ fn load_spec(
 					.unwrap_or(false)
 			};
 
-			if starts_with("moonbeam") {
-				Box::new(chain_spec::moonbeam::ChainSpec::from_json_file(path)?)
-			} else if starts_with("moonriver") {
+			if run_cmd.force_moonbase || starts_with("moonbase") {
+				Box::new(chain_spec::moonbase::ChainSpec::from_json_file(path)?)
+			} else if run_cmd.force_moonriver || starts_with("moonriver") {
 				Box::new(chain_spec::moonriver::ChainSpec::from_json_file(path)?)
-			} else if starts_with("moonshadow") {
+			} else if run_cmd.force_moonshadow || starts_with("moonshadow") {
 				Box::new(chain_spec::moonshadow::ChainSpec::from_json_file(path)?)
 			} else {
-				Box::new(chain_spec::moonbase::ChainSpec::from_json_file(path)?)
+				Box::new(chain_spec::moonbeam::ChainSpec::from_json_file(path)?)
 			}
 		}
 	})
@@ -155,7 +156,7 @@ impl SubstrateCli for Cli {
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-		load_spec(id, self.run.parachain_id.unwrap_or(1000).into())
+		load_spec(id, self.run.parachain_id.unwrap_or(1000).into(), &self.run)
 	}
 
 	fn native_runtime_version(spec: &Box<dyn sc_service::ChainSpec>) -> &'static RuntimeVersion {
