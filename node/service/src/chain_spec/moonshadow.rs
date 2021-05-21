@@ -238,6 +238,8 @@ pub fn testnet_genesis(
 				})
 				.collect(),
 		},
+		pallet_treasury_Instance1: Default::default(),
+		pallet_treasury_Instance2: Default::default(),
 	}
 }
 

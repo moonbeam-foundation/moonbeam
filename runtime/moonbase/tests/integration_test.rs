@@ -457,7 +457,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			let expected_fail = Event::pallet_utility(pallet_utility::Event::BatchInterrupted(
 				0,
 				DispatchError::Module {
-					index: 19,
+					index: 21,
 					error: 7,
 					message: None,
 				},
