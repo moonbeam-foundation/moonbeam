@@ -92,21 +92,21 @@ fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-v0.8
 fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "moonbeam-v0.8" }
 
 # Cumulus dependencies
-cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-merge-polkadot-v0.9.2" }
-cumulus-client-consensus-common = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-merge-polkadot-v0.9.2" }
-cumulus-client-collator = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-merge-polkadot-v0.9.2" }
-cumulus-client-network = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-merge-polkadot-v0.9.2" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-merge-polkadot-v0.9.2" }
-cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-merge-polkadot-v0.9.2" }
-cumulus-client-consensus-relay-chain = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-merge-polkadot-v0.9.2" }
-cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-merge-polkadot-v0.9.2" }
-cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-merge-polkadot-v0.9.2" }
+cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+cumulus-client-consensus-common = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+cumulus-client-collator = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+cumulus-client-network = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+cumulus-client-consensus-relay-chain = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
 
 # Nimbus dependencies
-nimbus-consensus = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-merge-polkadot-v0.9.2" }
-pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-merge-polkadot-v0.9.2" }
+nimbus-consensus = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
 # TODO we should be able to depend only on the primitives crate once we move the inherent data provider there.
-nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "notlesh-nimbus-merge-polkadot-v0.9.2" }
+nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
 
 # Polkadot dependencies
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.2" }
