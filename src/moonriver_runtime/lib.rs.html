@@ -1227,6 +1227,8 @@
 <span id="1224">1224</span>
 <span id="1225">1225</span>
 <span id="1226">1226</span>
+<span id="1227">1227</span>
+<span id="1228">1228</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1587,12 +1589,14 @@
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> (); <span class="comment">// TODO : Better Weight Info ?</span>
 }
 
+<span class="kw">const</span> <span class="ident">BLOCKS_PER_DAY</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">24</span> <span class="op">*</span> <span class="number">60</span> <span class="op">*</span> <span class="number">10</span>;
+
 <span class="macro">parameter_types</span><span class="macro">!</span> {
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LaunchPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">DAYS</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">VotingPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">5</span> <span class="op">*</span> <span class="ident">DAYS</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FastTrackVotingPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">DAYS</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EnactmentPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">1</span> <span class="kw-2">*</span><span class="ident">DAYS</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CooloffPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">7</span> <span class="op">*</span> <span class="ident">DAYS</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LaunchPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="ident">BLOCKS_PER_DAY</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">VotingPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">5</span> <span class="op">*</span> <span class="ident">BLOCKS_PER_DAY</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FastTrackVotingPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="ident">BLOCKS_PER_DAY</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EnactmentPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="ident">BLOCKS_PER_DAY</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CooloffPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">7</span> <span class="op">*</span> <span class="ident">BLOCKS_PER_DAY</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinimumDeposit</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">4</span> <span class="op">*</span> <span class="ident">currency</span>::<span class="ident">MOVR</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxVotes</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxProposals</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
