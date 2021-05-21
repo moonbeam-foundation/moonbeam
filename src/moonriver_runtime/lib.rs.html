@@ -1120,6 +1120,13 @@
 <span id="1117">1117</span>
 <span id="1118">1118</span>
 <span id="1119">1119</span>
+<span id="1120">1120</span>
+<span id="1121">1121</span>
+<span id="1122">1122</span>
+<span id="1123">1123</span>
+<span id="1124">1124</span>
+<span id="1125">1125</span>
+<span id="1126">1126</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1194,7 +1201,7 @@
 <span class="doccomment">/// Maximum weight per block</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MAXIMUM_BLOCK_WEIGHT</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="ident">WEIGHT_PER_SECOND</span> <span class="op">/</span> <span class="number">2</span>;
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MILLISECS_PER_BLOCK</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">6000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MILLISECS_PER_BLOCK</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">12000</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MINUTES</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">60_000</span> <span class="op">/</span> (<span class="ident">MILLISECS_PER_BLOCK</span> <span class="kw">as</span> <span class="ident">BlockNumber</span>);
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HOURS</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="ident">MINUTES</span> <span class="op">*</span> <span class="number">60</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DAYS</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="ident">HOURS</span> <span class="op">*</span> <span class="number">24</span>;
@@ -1386,8 +1393,15 @@
 		<span class="op">=</span> <span class="ident">U256</span>::<span class="ident">from</span>(<span class="ident">NORMAL_DISPATCH_RATIO</span> <span class="op">*</span> <span class="ident">MAXIMUM_BLOCK_WEIGHT</span> <span class="op">/</span> <span class="ident">WEIGHT_PER_GAS</span>);
 }
 
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FixedGasPrice</span>;
+<span class="kw">impl</span> <span class="ident">FeeCalculator</span> <span class="kw">for</span> <span class="ident">FixedGasPrice</span> {
+	<span class="kw">fn</span> <span class="ident">min_gas_price</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U256</span> {
+		<span class="number">1_000_000_000</span>.<span class="ident">into</span>()
+	}
+}
+
 <span class="kw">impl</span> <span class="ident">pallet_evm</span>::<span class="ident">Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-	<span class="kw">type</span> <span class="ident">FeeCalculator</span> <span class="op">=</span> ();
+	<span class="kw">type</span> <span class="ident">FeeCalculator</span> <span class="op">=</span> <span class="ident">FixedGasPrice</span>;
 	<span class="kw">type</span> <span class="ident">GasWeightMapping</span> <span class="op">=</span> <span class="ident">MoonbeamGasWeightMapping</span>;
 	<span class="kw">type</span> <span class="ident">CallOrigin</span> <span class="op">=</span> <span class="ident">EnsureAddressRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">WithdrawOrigin</span> <span class="op">=</span> <span class="ident">EnsureAddressNever</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
