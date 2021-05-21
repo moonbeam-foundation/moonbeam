@@ -26,8 +26,8 @@ use frame_support::{
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
 use moonbeam_runtime::{
-	AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Event, InflationInfo,
-	ParachainStaking, Range, Runtime, System, currency::GLMR,
+	currency::GLMR, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Event,
+	InflationInfo, ParachainStaking, Range, Runtime, System,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;

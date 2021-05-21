@@ -26,8 +26,8 @@ use frame_support::{
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
 use moonbase_runtime::{
-	AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Event, InflationInfo,
-	ParachainStaking, Range, Runtime, System, currency::UNITS,
+	currency::UNITS, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Event,
+	InflationInfo, ParachainStaking, Range, Runtime, System,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -377,7 +377,10 @@ fn reward_block_authors() {
 				run_to_block(x);
 			}
 			// no rewards doled out yet
-			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * UNITS,);
+			assert_eq!(
+				Balances::free_balance(AccountId::from(ALICE)),
+				1_000 * UNITS,
+			);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * UNITS,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 			run_to_block(1201);
@@ -861,7 +864,11 @@ fn leave_nominators_via_precompile() {
 			(AccountId::from(BOB), 1_000 * UNITS),
 		])
 		.with_nominators(vec![
-			(AccountId::from(CHARLIE), AccountId::from(ALICE), 500 * UNITS),
+			(
+				AccountId::from(CHARLIE),
+				AccountId::from(ALICE),
+				500 * UNITS,
+			),
 			(AccountId::from(CHARLIE), AccountId::from(BOB), 500 * UNITS),
 		])
 		.build()
@@ -946,7 +953,11 @@ fn revoke_nomination_via_precompile() {
 			(AccountId::from(BOB), 1_000 * UNITS),
 		])
 		.with_nominators(vec![
-			(AccountId::from(CHARLIE), AccountId::from(ALICE), 500 * UNITS),
+			(
+				AccountId::from(CHARLIE),
+				AccountId::from(ALICE),
+				500 * UNITS,
+			),
 			(AccountId::from(CHARLIE), AccountId::from(BOB), 500 * UNITS),
 		])
 		.build()

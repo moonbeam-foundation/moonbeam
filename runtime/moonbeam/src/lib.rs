@@ -563,7 +563,8 @@ impl InstanceFilter<Call> for ProxyType {
 	fn filter(&self, c: &Call) -> bool {
 		match self {
 			ProxyType::Any => true,
-			ProxyType::NonTransfer => matches!(c,
+			ProxyType::NonTransfer => matches!(
+				c,
 				Call::System(..) |
 				Call::Timestamp(..) |
 				Call::ParachainStaking(..) |
@@ -582,12 +583,9 @@ impl InstanceFilter<Call> for ProxyType {
 					| Call::CouncilCollective(..)
 					| Call::TechComitteeCollective(..)
 					// | Call::Treasury(..) 
-					| Call::Utility(..) 
+					| Call::Utility(..)
 			),
-			ProxyType::Staking => matches!(c,  
-				Call::ParachainStaking(..) | 
-				Call::Utility(..) 
-			),
+			ProxyType::Staking => matches!(c, Call::ParachainStaking(..) | Call::Utility(..)),
 			ProxyType::CancelProxy => {
 				matches!(c, Call::Proxy(pallet_proxy::Call::reject_announcement(..)))
 			}

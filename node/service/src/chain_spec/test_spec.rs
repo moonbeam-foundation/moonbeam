@@ -18,7 +18,7 @@
 use crate::chain_spec::moonbase::{moonbeam_inflation_config, testnet_genesis, ChainSpec};
 use crate::chain_spec::Extensions;
 use cumulus_primitives_core::ParaId;
-use moonbeam_runtime::{AccountId, currency::GLMR};
+use moonbeam_runtime::{currency::GLMR, AccountId};
 use sc_service::ChainType;
 use std::str::FromStr;
 
