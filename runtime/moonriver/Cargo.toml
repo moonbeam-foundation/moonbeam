@@ -133,6 +133,7 @@ std = [
 	"pallet-crowdloan-rewards/std",
 	"frame-benchmarking/std",
 	"pallet-society/std",
+	"pallet-proxy/std",
 	"nimbus-primitives/std",
 	"pallet-author-mapping/std",
 ]

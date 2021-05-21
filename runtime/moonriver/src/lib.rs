@@ -68,18 +68,17 @@ use nimbus_primitives::{CanAuthor, NimbusId};
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
-// Copied from https://github.com/paritytech/polkadot/blob/master/runtime/kusama/src/constants.rs#L18
-// TODO : Adjust values.
+/// MOVR, the native token, uses 18 decimals of precision.
 pub mod currency {
 	use super::Balance;
 
-	pub const UNITS: Balance = 1_000_000_000_000;
-	pub const CENTS: Balance = UNITS / 30_000;
-	pub const GRAND: Balance = CENTS * 100_000;
+	pub const MOVR: Balance = 1_000_000_000_000_000_000;
+	pub const CENTS: Balance = MOVR / 100;
+	pub const GRAND: Balance = MOVR * 1_000;
 	pub const MILLICENTS: Balance = CENTS / 1_000;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 2_000 * CENTS + (bytes as Balance) * 100 * MILLICENTS
+		items as Balance * 100 * CENTS + (bytes as Balance) * 10 * MILLICENTS
 	}
 }
 
@@ -344,10 +343,10 @@ parameter_types! {
 	pub const FastTrackVotingPeriod: BlockNumber = BLOCKS_PER_DAY;
 	pub const EnactmentPeriod: BlockNumber = BLOCKS_PER_DAY;
 	pub const CooloffPeriod: BlockNumber = 7 * BLOCKS_PER_DAY;
-	pub const MinimumDeposit: Balance = 4 * GLMR;
+	pub const MinimumDeposit: Balance = 4 * currency::MOVR;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
-	pub const PreimageByteDeposit: Balance = GLMR / 1_000;
+	pub const PreimageByteDeposit: Balance = currency::MOVR / 1_000;
 	pub const InstantAllowed: bool = false;
 }
 
@@ -453,9 +452,6 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 
 impl parachain_info::Config for Runtime {}
 
-/// GLMR, the native token, uses 18 decimals of precision.
-pub const GLMR: Balance = 1_000_000_000_000_000_000;
-
 parameter_types! {
 	/// Minimum round length is 2 minutes (20 * 6 second block times)
 	pub const MinBlocksPerRound: u32 = 20;
@@ -472,9 +468,9 @@ parameter_types! {
 	/// The fixed percent a collator takes off the top of due rewards is 20%
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
 	/// Minimum stake required to be reserved to be a collator is 1_000
-	pub const MinCollatorStk: u128 = 1_000 * GLMR;
+	pub const MinCollatorStk: u128 = 1_000 * currency::MOVR;
 	/// Minimum stake required to be reserved to be a nominator is 5
-	pub const MinNominatorStk: u128 = 5 * GLMR;
+	pub const MinNominatorStk: u128 = 5 * currency::MOVR;
 }
 impl parachain_staking::Config for Runtime {
 	type Event = Event;
@@ -550,6 +546,7 @@ parameter_types! {
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug)]
 pub enum ProxyType {
 	Any,
+	NonTransfer,
 	Governance,
 	Staking,
 	CancelProxy,
@@ -565,13 +562,31 @@ impl InstanceFilter<Call> for ProxyType {
 	fn filter(&self, c: &Call) -> bool {
 		match self {
 			ProxyType::Any => true,
+			ProxyType::NonTransfer => matches!(c,
+				Call::System(..) |
+				Call::Timestamp(..) |
+				Call::ParachainStaking(..) |
+				// Call::Session(..) |
+				Call::Democracy(..) |
+				Call::CouncilCollective(..) |
+				Call::TechComitteeCollective(..) |
+				// Call::Treasury(..) |
+				Call::Utility(..) |
+				Call::Scheduler(..) |
+				Call::Proxy(..)
+			),
 			ProxyType::Governance => matches!(
 				c,
 				Call::Democracy(..)
 					| Call::CouncilCollective(..)
 					| Call::TechComitteeCollective(..)
+					// | Call::Treasury(..) 
+					| Call::Utility(..) 
 			),
-			ProxyType::Staking => matches!(c, Call::ParachainStaking(..)),
+			ProxyType::Staking => matches!(c,  
+				Call::ParachainStaking(..) | 
+				Call::Utility(..) 
+			),
 			ProxyType::CancelProxy => {
 				matches!(c, Call::Proxy(pallet_proxy::Call::reject_announcement(..)))
 			}

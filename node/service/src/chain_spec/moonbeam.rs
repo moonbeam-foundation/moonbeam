@@ -29,7 +29,7 @@ use moonbeam_runtime::{
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig,
 	ParachainStakingConfig, Range, SchedulerConfig, SudoConfig, SystemConfig,
-	TechComitteeCollectiveConfig, GLMR, WASM_BINARY,
+	TechComitteeCollectiveConfig, currency::GLMR, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;

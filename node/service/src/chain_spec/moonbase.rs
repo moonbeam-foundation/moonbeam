@@ -29,7 +29,7 @@ use moonbase_runtime::{
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig,
 	ParachainStakingConfig, Range, SchedulerConfig, SudoConfig, SystemConfig,
-	TechComitteeCollectiveConfig, GLMR, WASM_BINARY,
+	TechComitteeCollectiveConfig, currency::UNITS, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
@@ -62,11 +62,11 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 				vec![(
 					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
 					None,
-					1_000 * GLMR,
+					1_000 * UNITS,
 				)],
 				moonbeam_inflation_config(),
 				accounts.clone(),
-				3_000_000 * GLMR,
+				3_000_000 * UNITS,
 				Default::default(), // para_id
 				1281,               //ChainId
 			)
@@ -99,11 +99,11 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 				vec![(
 					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
 					None,
-					1_000 * GLMR,
+					1_000 * UNITS,
 				)],
 				moonbeam_inflation_config(),
 				vec![AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap()],
-				3_000_000 * GLMR,
+				3_000_000 * UNITS,
 				para_id,
 				1280, //ChainId
 			)
@@ -122,9 +122,9 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 	InflationInfo {
 		expect: Range {
-			min: 100_000 * GLMR,
-			ideal: 200_000 * GLMR,
-			max: 500_000 * GLMR,
+			min: 100_000 * UNITS,
+			ideal: 200_000 * UNITS,
+			max: 500_000 * UNITS,
 		},
 		annual: Range {
 			min: Perbill::from_percent(4),
