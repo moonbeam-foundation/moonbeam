@@ -5,7 +5,7 @@ source scripts/_init_var.sh
 echo "=================== Alphanet ==================="
 $MOONBEAM_BINARY build-spec \
   --disable-default-bootnode \
-  --chain 'local' \
+  --chain 'moonbeam-local' \
   | grep '\"code\"' \
   | head -n1 > $ALPHANET_PARACHAIN_SPEC_TMP
 echo $ALPHANET_PARACHAIN_SPEC_TMP generated	
@@ -44,7 +44,7 @@ grep -v '/p2p/' $ALPHANET_ROCOCO_EMBEDDED_SPEC > \
 echo "=================== Stagenet ==================="
 $MOONBEAM_BINARY build-spec \
   --disable-default-bootnode \
-  --chain 'local' \
+  --chain 'moonbeam-local' \
   | grep '\"code\"' \
   | head -n1 > $STAGENET_PARACHAIN_SPEC_TMP
 echo $STAGENET_PARACHAIN_SPEC_TMP generated	

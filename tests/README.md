@@ -7,7 +7,7 @@ It is written in typescript, using Mocha/Chai as Test framework.
 ## Test flow
 
 Each group will start a dev service with the
-[development spec](../node/src/chain_spec.rs) before executing the tests.
+[development spec](../node/service/src/chain_spec) before executing the tests.
 
 ## Installation
 

@@ -76,7 +76,9 @@ pub mod pallet {
 		traits::{AtLeast32BitUnsigned, Zero},
 		Perbill, RuntimeDebug,
 	};
-	use sp_std::{cmp::Ordering, collections::btree_map::BTreeMap, prelude::*};
+	#[cfg(feature = "std")]
+	use sp_std::collections::btree_map::BTreeMap;
+	use sp_std::{cmp::Ordering, prelude::*};
 
 	/// Pallet for parachain staking
 	#[pallet::pallet]
@@ -390,7 +392,7 @@ pub mod pallet {
 		pub fn increment<T: Config>(&mut self) {
 			if self.max_collator_candidates == 0u32 {
 				// must initialize if not initialized in genesis build b/c derived default is 0u32
-				self.max_collator_candidates = T::MaxCollatorCandidates::get();
+				self.max_collator_candidates = T::DefaultMaxCollatorCandidates::get();
 			}
 			self.candidate_count += 1u32;
 		}
@@ -413,7 +415,7 @@ pub mod pallet {
 		/// The currency type
 		type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 		/// Maximum Collator Candidates, bound collator candidate pool storage item
-		type MaxCollatorCandidates: Get<u32>;
+		type DefaultMaxCollatorCandidates: Get<u32>;
 		/// Minimum number of blocks per round
 		type MinBlocksPerRound: Get<u32>;
 		/// Default number of blocks per round at genesis
@@ -443,7 +445,7 @@ pub mod pallet {
 	#[pallet::error]
 	pub enum Error<T> {
 		CannotSetMaxCandidatesBelowTotalSelected,
-		MaxCollatorCandidatesOnlyIncreases,
+		DefaultMaxCollatorCandidatesOnlyIncreases,
 		NominatorDNE,
 		CandidateDNE,
 		NominatorExists,
@@ -456,7 +458,7 @@ pub mod pallet {
 		AlreadyLeaving,
 		TooManyNominators,
 		CannotActivateIfLeaving,
-		ExceedsMaxCollatorCandidates,
+		ExceedsDefaultMaxCollatorCandidates,
 		ExceedMaxCollatorsPerNom,
 		AlreadyNominatedCollator,
 		NominationDNE,
@@ -509,7 +511,7 @@ pub mod pallet {
 		/// Set total selected candidates to this value [old, new]
 		TotalSelectedSet(u32, u32),
 		/// Set maximum collator candidates to this value [old, new]
-		MaxCollatorCandidatesSet(u32, u32),
+		DefaultMaxCollatorCandidatesSet(u32, u32),
 		/// Set collator commission to this value [old, new]
 		CollatorCommissionSet(Perbill, Perbill),
 		/// Set blocks per round [current_round, first_block, old, new, new_per_round_inflation]
@@ -682,7 +684,10 @@ pub mod pallet {
 		fn build(&self) {
 			<InflationConfig<T>>::put(self.inflation_config.clone());
 			// Set initial collator candidate count
-			<CandidateCount<T>>::put(CollatorCount::new(0u32, T::MaxCollatorCandidates::get()));
+			<CandidateCount<T>>::put(CollatorCount::new(
+				0u32,
+				T::DefaultMaxCollatorCandidates::get(),
+			));
 			let mut collator_count = 0u32;
 			let mut col_nominator_count: BTreeMap<T::AccountId, u32> = BTreeMap::new();
 			let mut nom_nominator_count: BTreeMap<T::AccountId, u32> = BTreeMap::new();
@@ -823,10 +828,13 @@ pub mod pallet {
 			let old = count.max_collator_candidates;
 			// TODO: add path to set lower max collator candidates by immediately kicking lowest
 			// new_max - old_max of existing candidates if old candidate pool is full
-			ensure!(new > old, Error::<T>::MaxCollatorCandidatesOnlyIncreases);
+			ensure!(
+				new > old,
+				Error::<T>::DefaultMaxCollatorCandidatesOnlyIncreases
+			);
 			count.max_collator_candidates = new;
 			<CandidateCount<T>>::put(count);
-			Self::deposit_event(Event::MaxCollatorCandidatesSet(old, new));
+			Self::deposit_event(Event::DefaultMaxCollatorCandidatesSet(old, new));
 			Ok(().into())
 		}
 		#[pallet::weight(T::WeightInfo::set_collator_commission())]
@@ -917,7 +925,7 @@ pub mod pallet {
 			let mut count = <CandidateCount<T>>::get();
 			ensure!(
 				count.can_increment(), // count.candidate_count < count.max_collator_candidates
-				Error::<T>::ExceedsMaxCollatorCandidates
+				Error::<T>::ExceedsDefaultMaxCollatorCandidates
 			);
 			count.increment::<T>();
 			T::Currency::reserve(&acc, bond)?;
@@ -1503,9 +1511,10 @@ pub mod pallet {
 			(all_collators, total)
 		}
 	}
+
 	/// Add reward points to block authors:
 	/// * 20 points to the block producer for producing a block in the chain
-	impl<T: Config> pallet_author_inherent::EventHandler<T::AccountId> for Pallet<T> {
+	impl<T: Config> nimbus_primitives::EventHandler<T::AccountId> for Pallet<T> {
 		fn note_author(author: T::AccountId) {
 			let now = <Round<T>>::get().current;
 			let score_plus_20 = <AwardedPts<T>>::get(now, &author) + 20;
@@ -1514,8 +1523,8 @@ pub mod pallet {
 		}
 	}
 
-	impl<T: Config> pallet_author_inherent::CanAuthor<T::AccountId> for Pallet<T> {
-		fn can_author(account: &T::AccountId) -> bool {
+	impl<T: Config> nimbus_primitives::CanAuthor<T::AccountId> for Pallet<T> {
+		fn can_author(account: &T::AccountId, _slot: &u32) -> bool {
 			Self::is_selected_candidate(account)
 		}
 	}

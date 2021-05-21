@@ -244,7 +244,7 @@ export const moonbeamDefinitions = {
       minmax: [36, undefined],
       types: {
         AccountId: "EthereumAccountId",
-        AccountInfo: "AccountInfoWithProviders",
+        AccountInfo: "AccountInfoWithTripleRefCount",
         Address: "AccountId",
         AuthorId: "AccountId",
         Balance: "u128",
@@ -342,6 +342,115 @@ export const moonbeamDefinitions = {
         },
       },
     },
+    {
+      minmax: [36, undefined],
+      types: {
+        AccountId: "EthereumAccountId",
+        AccountInfo: "AccountInfoWithProviders",
+        Address: "AccountId",
+        AuthorId: "AccountId",
+        Balance: "u128",
+        LookupSource: "AccountId",
+        Account: {
+          nonce: "U256",
+          balance: "u128",
+        },
+        ExtrinsicSignature: "EthereumSignature",
+        RoundIndex: "u32",
+        Candidate: {
+          id: "AccountId",
+          fee: "Perbill",
+          bond: "Balance",
+          nominators: "Vec<Bond>",
+          total: "Balance",
+          state: "CollatorStatus",
+        },
+        Nominator: {
+          nominations: "Vec<Bond>",
+          total: "Balance",
+        },
+        Bond: {
+          owner: "AccountId",
+          amount: "Balance",
+        },
+        CollatorStatus: {
+          _enum: ["Active", "Idle", { Leaving: "RoundIndex" }],
+        },
+        TxPoolResultContent: {
+          pending: "HashMap<H160, HashMap<U256, PoolTransaction>>",
+          queued: "HashMap<H160, HashMap<U256, PoolTransaction>>",
+        },
+        TxPoolResultInspect: {
+          pending: "HashMap<H160, HashMap<U256, Summary>>",
+          queued: "HashMap<H160, HashMap<U256, Summary>>",
+        },
+        TxPoolResultStatus: {
+          pending: "U256",
+          queued: "U256",
+        },
+        Summary: "Bytes",
+        PoolTransaction: {
+          hash: "H256",
+          nonce: "U256",
+          block_hash: "Option<H256>",
+          block_number: "Option<U256>",
+          from: "H160",
+          to: "Option<H160>",
+          value: "U256",
+          gas_price: "U256",
+          gas: "U256",
+          input: "Bytes",
+        },
+        // Staking inflation
+        Range: "RangeBalance",
+        RangeBalance: {
+          min: "Balance",
+          ideal: "Balance",
+          max: "Balance",
+        },
+        RangePerbill: {
+          min: "Perbill",
+          ideal: "Perbill",
+          max: "Perbill",
+        },
+        InflationInfo: {
+          expect: "RangeBalance",
+          annual: "RangePerbill",
+          round: "RangePerbill",
+        },
+        OrderedSet: "Vec<Bond>",
+        Collator: {
+          id: "AccountId",
+          bond: "Balance",
+          nominators: "Vec<Bond>",
+          total: "Balance",
+          state: "CollatorStatus",
+        },
+        CollatorSnapshot: {
+          bond: "Balance",
+          nominators: "Vec<Bond>",
+          total: "Balance",
+        },
+        SystemInherentData: {
+          validation_data: "PersistedValidationData",
+          relay_chain_state: "StorageProof",
+          downward_messages: "Vec<InboundDownwardMessage>",
+          horizontal_messages: "BTreeMap<ParaId, Vec<InboundHrmpMessage>>",
+        },
+        RelayChainAccountId: "H256",
+        RoundInfo: {
+          current: "RoundIndex",
+          first: "BlockNumber",
+          length: "u32",
+        },
+        RewardInfo: {
+          total_reward: "Balance",
+          claimed_reward: "Balance",
+          last_paid: "BlockNumber",
+          free_claim_done: "bool",
+        },
+      },
+    },
   ],
 } as OverrideBundleDefinition;
 
@@ -352,5 +461,8 @@ export const typesBundle = {
     moonbeamDefinitions,
     "moonbeam-standalone": moonbeamDefinitions,
     "node-moonbeam": moonbeamDefinitions,
+    moonbase: moonbeamDefinitions,
+    moonriver: moonbeamDefinitions,
+    moonshadow: moonbeamDefinitions,
   },
 } as OverrideBundleType;

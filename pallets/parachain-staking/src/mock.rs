@@ -95,7 +95,7 @@ impl pallet_balances::Config for Test {
 	type WeightInfo = ();
 }
 parameter_types! {
-	pub const MaxCollatorCandidates: u32 = 10;
+	pub const DefaultMaxCollatorCandidates: u32 = 10;
 	pub const MinBlocksPerRound: u32 = 3;
 	pub const DefaultBlocksPerRound: u32 = 5;
 	pub const BondDuration: u32 = 2;
@@ -110,7 +110,7 @@ parameter_types! {
 impl Config for Test {
 	type Event = Event;
 	type Currency = Balances;
-	type MaxCollatorCandidates = MaxCollatorCandidates;
+	type DefaultMaxCollatorCandidates = DefaultMaxCollatorCandidates;
 	type MinBlocksPerRound = MinBlocksPerRound;
 	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type BondDuration = BondDuration;

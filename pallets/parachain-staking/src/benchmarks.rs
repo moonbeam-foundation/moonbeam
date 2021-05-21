@@ -21,7 +21,7 @@ use crate::{BalanceOf, Call, Config, Pallet, Range};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, OnInitialize, ReservableCurrency};
 use frame_system::RawOrigin;
-use pallet_author_inherent::EventHandler;
+use nimbus_primitives::EventHandler;
 use sp_runtime::Perbill;
 use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
@@ -128,10 +128,10 @@ benchmarks! {
 
 	force_leave_candidates {
 		let (max_candidates, max_nominators) = (
-			<<T as Config>::MaxCollatorCandidates as Get<u32>>::get(),
+			<<T as Config>::DefaultMaxCollatorCandidates as Get<u32>>::get(),
 			<<T as Config>::MaxNominatorsPerCollator as Get<u32>>::get(),
 		);
-		let x in 3..<<T as Config>::MaxCollatorCandidates as Get<u32>>::get();
+		let x in 3..<<T as Config>::DefaultMaxCollatorCandidates as Get<u32>>::get();
 		let y in 3..<<T as Config>::MaxNominatorsPerCollator as Get<u32>>::get();
 		// Worst Case Complexity is removal from an ordered list so \exists full list before call
 		let mut collator_count = 1u32;
@@ -178,8 +178,8 @@ benchmarks! {
 	// USER DISPATCHABLES
 
 	join_candidates {
-		let max_candidates = <<T as Config>::MaxCollatorCandidates as Get<u32>>::get();
-		let x in 3..<<T as Config>::MaxCollatorCandidates as Get<u32>>::get();
+		let max_candidates = <<T as Config>::DefaultMaxCollatorCandidates as Get<u32>>::get();
+		let x in 3..<<T as Config>::DefaultMaxCollatorCandidates as Get<u32>>::get();
 		// Worst Case Complexity is insertion into an ordered list so \exists full list before call
 		let mut collator_count = 1u32;
 		for i in 2..x {
@@ -201,8 +201,8 @@ benchmarks! {
 	// This call schedules the collator's exit and removes them from the candidate pool
 	// -> it retains the self-bond and nominator bonds
 	leave_candidates {
-		let max_candidates = <<T as Config>::MaxCollatorCandidates as Get<u32>>::get();
-		let x in 3..<<T as Config>::MaxCollatorCandidates as Get<u32>>::get();
+		let max_candidates = <<T as Config>::DefaultMaxCollatorCandidates as Get<u32>>::get();
+		let x in 3..<<T as Config>::DefaultMaxCollatorCandidates as Get<u32>>::get();
 		// Worst Case Complexity is removal from an ordered list so \exists full list before call
 		let mut collator_count = 1u32;
 		for i in 2..x {
