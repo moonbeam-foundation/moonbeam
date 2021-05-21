@@ -1,6 +1,7 @@
 import tcpPortUsed from "tcp-port-used";
 import { spawn, ChildProcess } from "child_process";
 import { BINARY_PATH, DISPLAY_LOG, MOONBEAM_LOG, SPAWNING_TIME } from "./constants";
+const debug = require("debug")("test:dev-node");
 
 export async function findAvailablePorts() {
   const availablePorts = await Promise.all(
@@ -66,6 +67,7 @@ export async function startMoonbeamDevNode(): Promise<{
     `--ws-port=${wsPort}`,
     `--tmp`,
   ];
+  debug(`Starting dev node: --port=${p2pPort} --rpc-port=${rpcPort} --ws-port=${wsPort}`);
 
   const onProcessExit = function () {
     runningNode && runningNode.kill();
@@ -83,6 +85,7 @@ export async function startMoonbeamDevNode(): Promise<{
     process.removeListener("exit", onProcessExit);
     process.removeListener("SIGINT", onProcessInterrupt);
     nodeStarted = false;
+    debug(`Exiting dev node: --port=${p2pPort} --rpc-port=${rpcPort} --ws-port=${wsPort}`);
   });
 
   runningNode.on("error", (err) => {
@@ -104,7 +107,7 @@ export async function startMoonbeamDevNode(): Promise<{
       console.error(`Command: ${cmd} ${args.join(" ")}`);
       console.error(`Logs:`);
       console.error(binaryLogs.map((chunk) => chunk.toString()).join("\n"));
-      process.exit(1);
+      throw new Error("Failed to launch node");
     }, SPAWNING_TIME - 2000);
 
     const onData = async (chunk) => {

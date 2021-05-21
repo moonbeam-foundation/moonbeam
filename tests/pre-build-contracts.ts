@@ -3,8 +3,15 @@ import fs from "fs/promises";
 import { contractSources } from "./contracts/sources";
 import { Compiled } from "../tests/util/contracts";
 
-function compileSolidity(contractContent: string, contractName: string = "Test"): Compiled {
-  let result = JSON.parse(
+function getImports(dependency) {
+  if (contractSources[dependency]) {
+    return { contents: contractSources[dependency] };
+  }
+  return { error: "Source not found" };
+}
+
+function compileSolidity(contractContent: string, contractName: string): Compiled {
+  const result = JSON.parse(
     solc.compile(
       JSON.stringify({
         language: "Solidity",
@@ -20,10 +27,10 @@ function compileSolidity(contractContent: string, contractName: string = "Test")
             },
           },
         },
-      })
+      }),
+      { import: getImports }
     )
   );
-
   const contract = result.contracts["main.sol"][contractName];
   return {
     byteCode: "0x" + contract.evm.bytecode.object,
@@ -36,6 +43,7 @@ function compileSolidity(contractContent: string, contractName: string = "Test")
 async function compile(name: string): Promise<Compiled> {
   if (!contractSources[name])
     throw new Error(`Contract name (${name}) doesn't exist in test suite`);
+
   const contractCompiled = compileSolidity(contractSources[name], name);
   let compiled = JSON.stringify(contractCompiled);
   await fs.mkdir(`contracts/compiled`, { recursive: true });
@@ -49,7 +57,12 @@ async function compile(name: string): Promise<Compiled> {
 const main = async () => {
   for (let name of Object.keys(contractSources)) {
     console.log(`Compiling ${name}`);
-    await compile(name);
+    try {
+      await compile(name);
+    } catch (e) {
+      console.log(`Can't process contract ${name}: ${e.msg || e}`);
+      process.exit(1);
+    }
   }
 
   // Forcing exit to avoid solc maintaining the process
