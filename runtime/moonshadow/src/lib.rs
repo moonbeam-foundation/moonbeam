@@ -345,7 +345,7 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 
 parameter_types! {
 	pub const LaunchPeriod: BlockNumber = 1 * DAYS;
-	pub const VotingPeriod: BlockNumber = 1 * DAYS;
+	pub const VotingPeriod: BlockNumber = 5 * DAYS;
 	pub const FastTrackVotingPeriod: BlockNumber = 4 * HOURS;
 	pub const EnactmentPeriod: BlockNumber = 1 * DAYS;
 	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
