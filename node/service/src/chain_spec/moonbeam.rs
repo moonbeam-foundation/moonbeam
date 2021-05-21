@@ -238,6 +238,7 @@ pub fn testnet_genesis(
 				})
 				.collect(),
 		},
+		..Default::default()
 	}
 }
 

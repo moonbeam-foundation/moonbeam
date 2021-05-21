@@ -238,7 +238,7 @@ pub fn testnet_genesis(
 				})
 				.collect(),
 		},
-		pallet_treasury: Default::default(),
+		..Default::default()
 	}
 }
 
