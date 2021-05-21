@@ -11,7 +11,7 @@ describeDevMoonbeam("Precompiles - sha3fips", (context) => {
         from: GENESIS_ACCOUNT,
         value: "0x0",
         gas: "0x10000",
-        gasPrice: "0x01",
+        gasPrice: context.web3.utils.numberToHex(1_000_000_000),
         to: "0x0000000000000000000000000000000000000400",
         data:
           "0x0448250ebe88d77e0a12bcf530fe6a2cf1ac176945638d309b840d631940c93b78c2bd6d16f227a8877e" +
