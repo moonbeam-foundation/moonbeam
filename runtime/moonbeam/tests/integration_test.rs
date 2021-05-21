@@ -27,7 +27,7 @@ use frame_support::{
 };
 use moonbeam_runtime::{
 	AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Event, InflationInfo,
-	ParachainStaking, Range, Runtime, System, GLMR,
+	ParachainStaking, Range, Runtime, System, currency::GLMR,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
