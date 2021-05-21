@@ -928,6 +928,7 @@ pub fn new_dev(
 				commands_stream,
 				select_chain,
 				consensus_data_provider: None,
+				create_inherent_data_providers: |_, _| async { Ok(()) }, // TODO
 			}),
 		);
 	}
