@@ -328,14 +328,12 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 	type WeightInfo = (); // TODO : Better Weight Info ?
 }
 
-const BLOCKS_PER_DAY: BlockNumber = 24 * 60 * 10;
-
 parameter_types! {
-	pub const LaunchPeriod: BlockNumber = BLOCKS_PER_DAY;
-	pub const VotingPeriod: BlockNumber = 5 * BLOCKS_PER_DAY;
-	pub const FastTrackVotingPeriod: BlockNumber = BLOCKS_PER_DAY;
-	pub const EnactmentPeriod: BlockNumber = BLOCKS_PER_DAY;
-	pub const CooloffPeriod: BlockNumber = 7 * BLOCKS_PER_DAY;
+	pub const LaunchPeriod: BlockNumber = 1 * DAYS;
+	pub const VotingPeriod: BlockNumber = 5 * DAYS;
+	pub const FastTrackVotingPeriod: BlockNumber = 4 * HOURS;
+	pub const EnactmentPeriod: BlockNumber = 1 *DAYS;
+	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
 	pub const MinimumDeposit: Balance = 4 * GLMR;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
