@@ -169,96 +169,92 @@ pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backen
 }
 
 
-// use sp_runtime::traits::BlakeTwo256;
-// use sp_trie::PrefixedMemoryDB;
-//
-// /// Builds a new object suitable for chain operations.
-// pub fn new_chain_ops(
-// 	mut config: &mut Configuration,
-// ) -> Result<
-// 	(
-// 		Arc<Client>,
-// 		Arc<FullBackend>,
-// 		sp_consensus::import_queue::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
-// 		TaskManager,
-// 	),
-// 	ServiceError,
-// > {
-// 	config.keystore = sc_service::config::KeystoreConfig::InMemory;
-// 	if config.chain_spec.is_moonbase() {
-// 		let PartialComponents {
-// 			client,
-// 			backend,
-// 			import_queue,
-// 			task_manager,
-// 			..
-// 		} = new_partial::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(
-// 			config,
-// 			None,
-// 			config.chain_spec.is_dev(),
-// 		)?;
-// 		Ok((
-// 			Arc::new(Client::Moonbase(client)),
-// 			backend,
-// 			import_queue,
-// 			task_manager,
-// 		))
-// 	} else if config.chain_spec.is_moonriver() {
-// 		let PartialComponents {
-// 			client,
-// 			backend,
-// 			import_queue,
-// 			task_manager,
-// 			..
-// 		} = new_partial::<moonriver_runtime::RuntimeApi, MoonriverExecutor>(
-// 			config,
-// 			None,
-// 			config.chain_spec.is_dev(),
-// 		)?;
-// 		Ok((
-// 			Arc::new(Client::Moonriver(client)),
-// 			backend,
-// 			import_queue,
-// 			task_manager,
-// 		))
-// 	} else if config.chain_spec.is_moonshadow() {
-// 		let PartialComponents {
-// 			client,
-// 			backend,
-// 			import_queue,
-// 			task_manager,
-// 			..
-// 		} = new_partial::<moonshadow_runtime::RuntimeApi, MoonshadowExecutor>(
-// 			config,
-// 			None,
-// 			config.chain_spec.is_dev(),
-// 		)?;
-// 		Ok((
-// 			Arc::new(Client::Moonshadow(client)),
-// 			backend,
-// 			import_queue,
-// 			task_manager,
-// 		))
-// 	} else {
-// 		let PartialComponents {
-// 			client,
-// 			backend,
-// 			import_queue,
-// 			task_manager,
-// 			..
-// 		} = new_partial::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(
-// 			config,
-// 			None,
-// 			config.chain_spec.is_dev(),
-// 		)?;
-// 		Ok((
-// 			Arc::new(Client::Moonbeam(client)),
-// 			backend,
-// 			import_queue,
-// 			task_manager,
-// 		))
-// 	}
-// }
+use sp_runtime::traits::BlakeTwo256;
+use sp_trie::PrefixedMemoryDB;
+
+/// Builds a new object suitable for chain operations.
+pub fn new_chain_ops(
+	mut config: &mut Configuration,
+) -> Result<
+	(
+		Arc<Client>,
+		Arc<FullBackend>,
+		sp_consensus::import_queue::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
+		TaskManager,
+	),
+	ServiceError,
+> {
+	config.keystore = sc_service::config::KeystoreConfig::InMemory;
+	if config.chain_spec.is_moonbase() {
+		let PartialComponents {
+			client,
+			backend,
+			import_queue,
+			task_manager,
+			..
+		} = new_partial::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(
+			config,
+			config.chain_spec.is_dev(),
+		)?;
+		Ok((
+			Arc::new(Client::Moonbase(client)),
+			backend,
+			import_queue,
+			task_manager,
+		))
+	} else if config.chain_spec.is_moonriver() {
+		let PartialComponents {
+			client,
+			backend,
+			import_queue,
+			task_manager,
+			..
+		} = new_partial::<moonriver_runtime::RuntimeApi, MoonriverExecutor>(
+			config,
+			config.chain_spec.is_dev(),
+		)?;
+		Ok((
+			Arc::new(Client::Moonriver(client)),
+			backend,
+			import_queue,
+			task_manager,
+		))
+	} else if config.chain_spec.is_moonshadow() {
+		let PartialComponents {
+			client,
+			backend,
+			import_queue,
+			task_manager,
+			..
+		} = new_partial::<moonshadow_runtime::RuntimeApi, MoonshadowExecutor>(
+			config,
+			config.chain_spec.is_dev(),
+		)?;
+		Ok((
+			Arc::new(Client::Moonshadow(client)),
+			backend,
+			import_queue,
+			task_manager,
+		))
+	} else {
+		let PartialComponents {
+			client,
+			backend,
+			import_queue,
+			task_manager,
+			..
+		} = new_partial::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(
+			config,
+			config.chain_spec.is_dev(),
+		)?;
+		Ok((
+			Arc::new(Client::Moonbeam(client)),
+			backend,
+			import_queue,
+			task_manager,
+		))
+	}
+}
 
 /// Build the import queue that checks timestamp inherents.
 ///
