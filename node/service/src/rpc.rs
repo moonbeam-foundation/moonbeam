@@ -170,6 +170,7 @@ where
 	io.extend_with(NetApiServer::to_delegate(NetApi::new(
 		client.clone(),
 		network.clone(),
+		true, //TODO This is the new peer_cout_as_hex field. Obviously this will compile, but I forget whether we want it in hex or not.
 	)));
 	io.extend_with(Web3ApiServer::to_delegate(Web3Api::new(client.clone())));
 	io.extend_with(EthPubSubApiServer::to_delegate(EthPubSubApi::new(
