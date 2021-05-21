@@ -474,13 +474,13 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE))
 					.unwrap()
 					.claimed_reward,
-				300005555555555555555555
+				300005952380952380952380
 			);
 			assert_eq!(
 				CrowdloanRewards::accounts_payable(&AccountId::from(DAVE))
 					.unwrap()
 					.claimed_reward,
-				300005555555555555555555
+				300005952380952380952380
 			);
 
 			assert_noop!(
