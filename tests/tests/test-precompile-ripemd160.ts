@@ -11,7 +11,7 @@ describeDevMoonbeam("Precompiles - ripemd160 ", (context) => {
         from: GENESIS_ACCOUNT,
         value: "0x0",
         gas: "0x10000",
-        gasPrice: "0x01",
+        gasPrice: context.web3.utils.numberToHex(1_000_000_000),
         to: "0x0000000000000000000000000000000000000003",
         data: `0x${Buffer.from("Hello world!").toString("hex")}`,
       },
