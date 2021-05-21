@@ -5,14 +5,14 @@ import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createTransfer } from "../util/transactions";
 
 describeDevMoonbeam("Balance transfer cost", (context) => {
-  it("should cost 21000", async function () {
+  it("should cost 21000 * 1_000_000_000", async function () {
     const testAccount = "0x1111111111111111111111111111111111111111";
     await context.createBlock({
       transactions: [await createTransfer(context.web3, testAccount, 0)],
     });
 
     expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT, 1)).to.equal(
-      (GENESIS_ACCOUNT_BALANCE - 21000n).toString()
+      (GENESIS_ACCOUNT_BALANCE - 21000n * 1_000_000_000n).toString()
     );
   });
 });
@@ -28,7 +28,7 @@ describeDevMoonbeam("Balance transfer", (context) => {
   it("should decrease from account", async function () {
     // 21000 covers the cost of the transaction
     expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT, 1)).to.equal(
-      (GENESIS_ACCOUNT_BALANCE - 512n - 21000n).toString()
+      (GENESIS_ACCOUNT_BALANCE - 512n - 21000n * 1_000_000_000n).toString()
     );
   });
 
