@@ -65,8 +65,6 @@ use sc_service::{
 	TFullClient, TaskManager,
 };
 use sp_api::ConstructRuntimeApi;
-use sp_runtime::traits::BlakeTwo256;
-use sp_trie::PrefixedMemoryDB;
 use std::sync::Arc;
 
 pub use client::*;
@@ -170,6 +168,10 @@ pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backen
 	)?))
 }
 
+
+// use sp_runtime::traits::BlakeTwo256;
+// use sp_trie::PrefixedMemoryDB;
+//
 // /// Builds a new object suitable for chain operations.
 // pub fn new_chain_ops(
 // 	mut config: &mut Configuration,

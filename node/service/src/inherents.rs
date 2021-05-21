@@ -26,8 +26,7 @@
 
 use cumulus_primitives_core::PersistedValidationData;
 use cumulus_primitives_parachain_inherent::{ParachainInherentData, INHERENT_IDENTIFIER};
-use sp_inherents::{InherentData, InherentDataProvider, InherentIdentifier};
-use sp_timestamp::InherentError;
+use sp_inherents::{InherentData, InherentDataProvider};
 
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 
