@@ -132,7 +132,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     alithAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
 
-  it("should be able to register the genesis account for reward - with small amount", async function () {
+  it("should be able to register the genesis account - with small amount", async function () {
     // initializeRewardVec
     await context.polkadotApi.tx.sudo
       .sudo(
