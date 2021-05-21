@@ -315,11 +315,11 @@
 <span class="kw">use</span> <span class="ident">cumulus_primitives_core</span>::<span class="ident">ParaId</span>;
 <span class="kw">use</span> <span class="ident">evm</span>::<span class="ident">GenesisAccount</span>;
 <span class="kw">use</span> <span class="ident">moonbase_runtime</span>::{
-	<span class="ident">AccountId</span>, <span class="ident">AuthorFilterConfig</span>, <span class="ident">AuthorMappingConfig</span>, <span class="ident">Balance</span>, <span class="ident">BalancesConfig</span>,
+	<span class="ident">currency</span>::<span class="ident">UNITS</span>, <span class="ident">AccountId</span>, <span class="ident">AuthorFilterConfig</span>, <span class="ident">AuthorMappingConfig</span>, <span class="ident">Balance</span>, <span class="ident">BalancesConfig</span>,
 	<span class="ident">CouncilCollectiveConfig</span>, <span class="ident">CrowdloanRewardsConfig</span>, <span class="ident">DemocracyConfig</span>, <span class="ident">EVMConfig</span>,
 	<span class="ident">EthereumChainIdConfig</span>, <span class="ident">EthereumConfig</span>, <span class="ident">GenesisConfig</span>, <span class="ident">InflationInfo</span>, <span class="ident">ParachainInfoConfig</span>,
 	<span class="ident">ParachainStakingConfig</span>, <span class="ident">Range</span>, <span class="ident">SchedulerConfig</span>, <span class="ident">SudoConfig</span>, <span class="ident">SystemConfig</span>,
-	<span class="ident">TechComitteeCollectiveConfig</span>, <span class="ident">GLMR</span>, <span class="ident">WASM_BINARY</span>,
+	<span class="ident">TechComitteeCollectiveConfig</span>, <span class="ident">WASM_BINARY</span>,
 };
 <span class="kw">use</span> <span class="ident">nimbus_primitives</span>::<span class="ident">NimbusId</span>;
 <span class="kw">use</span> <span class="ident">sc_service</span>::<span class="ident">ChainType</span>;
@@ -352,11 +352,11 @@
 				<span class="macro">vec</span><span class="macro">!</span>[(
 					<span class="ident">AccountId</span>::<span class="ident">from_str</span>(<span class="string">&quot;6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b&quot;</span>).<span class="ident">unwrap</span>(),
 					<span class="prelude-val">None</span>,
-					<span class="number">1_000</span> <span class="op">*</span> <span class="ident">GLMR</span>,
+					<span class="number">1_000</span> <span class="op">*</span> <span class="ident">UNITS</span>,
 				)],
 				<span class="ident">moonbeam_inflation_config</span>(),
 				<span class="ident">accounts</span>.<span class="ident">clone</span>(),
-				<span class="number">3_000_000</span> <span class="op">*</span> <span class="ident">GLMR</span>,
+				<span class="number">3_000_000</span> <span class="op">*</span> <span class="ident">UNITS</span>,
 				<span class="ident">Default</span>::<span class="ident">default</span>(), <span class="comment">// para_id</span>
 				<span class="number">1281</span>,               <span class="comment">//ChainId</span>
 			)
@@ -389,11 +389,11 @@
 				<span class="macro">vec</span><span class="macro">!</span>[(
 					<span class="ident">AccountId</span>::<span class="ident">from_str</span>(<span class="string">&quot;6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b&quot;</span>).<span class="ident">unwrap</span>(),
 					<span class="prelude-val">None</span>,
-					<span class="number">1_000</span> <span class="op">*</span> <span class="ident">GLMR</span>,
+					<span class="number">1_000</span> <span class="op">*</span> <span class="ident">UNITS</span>,
 				)],
 				<span class="ident">moonbeam_inflation_config</span>(),
 				<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">AccountId</span>::<span class="ident">from_str</span>(<span class="string">&quot;6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b&quot;</span>).<span class="ident">unwrap</span>()],
-				<span class="number">3_000_000</span> <span class="op">*</span> <span class="ident">GLMR</span>,
+				<span class="number">3_000_000</span> <span class="op">*</span> <span class="ident">UNITS</span>,
 				<span class="ident">para_id</span>,
 				<span class="number">1280</span>, <span class="comment">//ChainId</span>
 			)
@@ -412,9 +412,9 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">moonbeam_inflation_config</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">InflationInfo</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> {
 	<span class="ident">InflationInfo</span> {
 		<span class="ident">expect</span>: <span class="ident">Range</span> {
-			<span class="ident">min</span>: <span class="number">100_000</span> <span class="op">*</span> <span class="ident">GLMR</span>,
-			<span class="ident">ideal</span>: <span class="number">200_000</span> <span class="op">*</span> <span class="ident">GLMR</span>,
-			<span class="ident">max</span>: <span class="number">500_000</span> <span class="op">*</span> <span class="ident">GLMR</span>,
+			<span class="ident">min</span>: <span class="number">100_000</span> <span class="op">*</span> <span class="ident">UNITS</span>,
+			<span class="ident">ideal</span>: <span class="number">200_000</span> <span class="op">*</span> <span class="ident">UNITS</span>,
+			<span class="ident">max</span>: <span class="number">500_000</span> <span class="op">*</span> <span class="ident">UNITS</span>,
 		},
 		<span class="ident">annual</span>: <span class="ident">Range</span> {
 			<span class="ident">min</span>: <span class="ident">Perbill</span>::<span class="ident">from_percent</span>(<span class="number">4</span>),
