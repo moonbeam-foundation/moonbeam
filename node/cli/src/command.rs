@@ -456,8 +456,6 @@ pub fn run() -> Result<()> {
 		None => {
 			let runner = cli.create_runner(&*cli.run)?;
 			runner.run_node_until_exit(|config| async move {
-				let collator = cli.run.base.validator || cli.collator;
-
 				let key = sp_core::Pair::generate().0;
 
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
@@ -492,7 +490,6 @@ pub fn run() -> Result<()> {
 					return service::new_dev(
 						config,
 						author_id,
-						true, // always collator on dev_service
 						cli.run.sealing,
 						cli.run.ethapi,
 						rpc_params,
@@ -542,7 +539,6 @@ pub fn run() -> Result<()> {
 				info!("Parachain id: {:?}", id);
 				info!("Parachain Account: {}", parachain_account);
 				info!("Parachain genesis state: {}", genesis_state);
-				info!("Is collating: {}", if collator { "yes" } else { "no" });
 
 				if config.chain_spec.is_moonbeam() {
 					service::start_node::<
@@ -553,7 +549,6 @@ pub fn run() -> Result<()> {
 						key,
 						polkadot_config,
 						id,
-						collator,
 						cli.run.ethapi,
 						rpc_params,
 					)
@@ -569,7 +564,6 @@ pub fn run() -> Result<()> {
 						key,
 						polkadot_config,
 						id,
-						collator,
 						cli.run.ethapi,
 						rpc_params,
 					)
@@ -585,7 +579,6 @@ pub fn run() -> Result<()> {
 						key,
 						polkadot_config,
 						id,
-						collator,
 						cli.run.ethapi,
 						rpc_params,
 					)
@@ -601,7 +594,6 @@ pub fn run() -> Result<()> {
 						key,
 						polkadot_config,
 						id,
-						collator,
 						cli.run.ethapi,
 						rpc_params,
 					)
