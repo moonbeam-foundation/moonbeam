@@ -90,7 +90,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		// or not. We should decide the proper strings, and update Apps accordingly.
 		// Or maybe Apps can be smart enough to say if the string contains "moonbeam" at all...
 		"Moonbase Development Testnet",
-		"local_testnet",
+		"moonbase_local",
 		ChainType::Local,
 		move || {
 			testnet_genesis(
