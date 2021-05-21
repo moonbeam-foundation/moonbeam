@@ -209,21 +209,17 @@ impl pallet_balances::Config for Runtime {
 pub struct DealWithFees<R>(sp_std::marker::PhantomData<R>);
 impl<R> OnUnbalanced<NegativeImbalance<R>> for DealWithFees<R>
 where
-	R: pallet_balances::Config + pallet_treasury::Config,
-	pallet_treasury::Module<R>: OnUnbalanced<NegativeImbalance<R>>,
+	R: pallet_balances::Config + pallet_treasury::Config<pallet_treasury::Instance1>,
+	pallet_treasury::Module<R, pallet_treasury::Instance1>: OnUnbalanced<NegativeImbalance<R>>,
 {
 	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
 		if let Some(fees) = fees_then_tips.next() {
 			// for fees, 80% are burned, 20% to the treasury
 			let (_, to_treasury) = fees.ration(80, 20);
-			// TODO: why support tips? where should tips be sent? substrate impl commented out:
-			// if let Some(tips) = fees_then_tips.next() {
-			// 	// for tips, if any, 100% to treasury
-			// 	tips.merge_into(&mut split.1);
-			// }
 			// Balances module automatically burns dropped Negative Imbalances by decreasing
-			// total_supply accordingly TODO: verify this statement
-			<pallet_treasury::Module<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
+			// total_supply accordingly
+			<pallet_treasury::Module<R, pallet_treasury::Instance1> as OnUnbalanced<_>>
+				::on_unbalanced(to_treasury);
 		}
 	}
 }
@@ -421,28 +417,42 @@ parameter_types! {
 	pub const ProposalBondMinimum: Balance = 1 * GLMR;
 	pub const SpendPeriod: BlockNumber = 6 * BLOCKS_PER_DAY;
 	pub const Burn: Permill = Permill::from_perthousand(2);
-	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
+	pub const CommunityTreasuryId: PalletId = PalletId(*b"pc/trsry");
+	pub const ParachainBondPalletId: PalletId = PalletId(*b"pb/trsry");
 	//pub const MaxApprovals: u32 = 100; // will be needed for upcoming version
 }
 
-impl pallet_treasury::Config for Runtime {
-	type PalletId = TreasuryPalletId;
+type CommunityTreasuryInstance = pallet_treasury::Instance1;
+type ParachainBondTreasuryInstance = pallet_treasury::Instance2;
+
+impl pallet_treasury::Config<CommunityTreasuryInstance> for Runtime {
+	type PalletId = CommunityTreasuryId;
 	type Currency = Balances;
-	// Approval requires 2/3 of the council or sudo
-	type ApproveOrigin = EnsureOneOf<
-		AccountId,
-		EnsureRoot<AccountId>,
-		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, CouncilInstance>,
-	>;
-	// Rejection requires 1/2 of the council or sudo
-	type RejectOrigin = EnsureOneOf<
-		AccountId,
-		EnsureRoot<AccountId>,
-		pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, CouncilInstance>,
-	>;
+	// Democracy dispatches Root
+	type ApproveOrigin = EnsureRoot<AccountId>;
+	// Democracy dispatches Root
+	type RejectOrigin = EnsureRoot<AccountId>;
 	type Event = Event;
 	// If spending proposal rejected, transfer proposer bond to treasury
-	type OnSlash = Treasury;
+	type OnSlash = CommunityTreasury;
+	type ProposalBond = ProposalBond;
+	type ProposalBondMinimum = ProposalBondMinimum;
+	type SpendPeriod = SpendPeriod;
+	type Burn = ();
+	type BurnDestination = ();
+	// type MaxApprovals = MaxApprovals; // will be needed for upcoming version
+	type WeightInfo = ();
+	type SpendFunds = ();
+}
+
+impl pallet_treasury::Config<ParachainBondTreasuryInstance> for Runtime {
+	type PalletId = ParachainBondPalletId;
+	type Currency = Balances;
+	type ApproveOrigin = EnsureRoot<AccountId>;
+	type RejectOrigin = EnsureRoot<AccountId>;
+	type Event = Event;
+	// If spending proposal rejected, transfer proposer bond to treasury
+	type OnSlash = ParachainBondTreasury;
 	type ProposalBond = ProposalBond;
 	type ProposalBondMinimum = ProposalBondMinimum;
 	type SpendPeriod = SpendPeriod;
@@ -606,7 +616,9 @@ construct_runtime! {
 			pallet_collective::<Instance1>::{Pallet, Call, Event<T>, Origin<T>, Config<T>},
 		TechComitteeCollective:
 			pallet_collective::<Instance2>::{Pallet, Call, Event<T>, Origin<T>, Config<T>},
-		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call},
+		CommunityTreasury: pallet_treasury::<Instance1>::{Pallet, Storage, Config, Event<T>, Call},
+		ParachainBondTreasury:
+			pallet_treasury::<Instance2>::{Pallet, Storage, Config, Event<T>, Call},
 		// The order matters here. Inherents will be included in the order specified here.
 		// Concretely we need the author inherent to come after the parachain_system inherent.
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent},

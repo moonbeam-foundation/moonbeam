@@ -126,7 +126,8 @@
           ]
         ]
       },
-      "palletTreasury": {}
+      "palletTreasuryInstance1": {},
+      "palletTreasuryInstance2": {}
     }
   }
 }
