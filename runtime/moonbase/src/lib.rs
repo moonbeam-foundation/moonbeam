@@ -545,10 +545,15 @@ parameter_types! {
 /// The type used to represent the kinds of proxying allowed.
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug)]
 pub enum ProxyType {
+	/// All calls can be proxied. This is the trivial/most permissive filter.
 	Any,
+	/// Only extrinsics that do not transfer funds.
 	NonTransfer,
+	/// Only extrinsics related to governance (democracy and collectives).
 	Governance,
+	/// Only extrinsics related to staking.
 	Staking,
+	/// Allow to veto an announced proxy call.
 	CancelProxy,
 }
 
