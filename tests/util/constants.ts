@@ -6,7 +6,7 @@ export const MOONBEAM_LOG = process.env.MOONBEAM_LOG || "info";
 export const ANALYZER = process.env.ANALYZER || false;
 
 export const BINARY_PATH = process.env.BINARY_PATH || `../target/release/moonbeam`;
-export const SPAWNING_TIME = 30000;
+export const SPAWNING_TIME = 10000;
 
 // Test variables
 export const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";

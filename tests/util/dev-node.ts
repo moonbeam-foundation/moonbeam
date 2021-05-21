@@ -114,7 +114,7 @@ export async function startMoonbeamDevNode(): Promise<{
       console.error(`Command: ${cmd} ${args.join(" ")}`);
       console.error(`Logs:`);
       console.error(binaryLogs.map((chunk) => chunk.toString()).join("\n"));
-      process.exit(1);
+      throw new Error("Failed to launch node");
     }, SPAWNING_TIME - 2000);
 
     const onData = async (chunk) => {

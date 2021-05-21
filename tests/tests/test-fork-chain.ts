@@ -31,7 +31,7 @@ describeDevMoonbeam("Fork", (context) => {
 });
 
 describeDevMoonbeam("Fork", (context) => {
-  it("should discard lost transaction on fork", async function () {
+  it("should re-insert Tx from retracted fork on new canonical chain", async function () {
     // Creation of the best chain so far, with blocks 0-1-2 and a transfer in block 2
     await context.createBlock({ finalize: false });
     const { txResults } = await context.createBlock({
@@ -39,14 +39,24 @@ describeDevMoonbeam("Fork", (context) => {
       transactions: [await createTransfer(context.web3, TEST_ACCOUNT, 512)],
     });
     const insertedTx = txResults[0].result;
-    expect(await context.web3.eth.getTransaction(insertedTx)).to.not.be.null;
+    const retractedTx = await context.web3.eth.getTransaction(insertedTx);
+    expect(retractedTx).to.not.be.null;
 
-    // Fork
+    // Fork 4 blocks 0-1-2-3-4
     let parentHash = await context.polkadotApi.rpc.chain.getBlockHash(0);
     parentHash = (await context.createBlock({ parentHash, finalize: false })).block.hash;
     parentHash = (await context.createBlock({ parentHash, finalize: false })).block.hash;
+    // This next block defines a new best chain.
+    // Substrate will insert the retracted block's txs in the tx pool
     parentHash = (await context.createBlock({ parentHash, finalize: false })).block.hash;
-
-    expect(await context.web3.eth.getTransaction(insertedTx)).to.be.null;
+    // All the transactions that were in the pool are now on-chain
+    parentHash = (await context.createBlock({ parentHash, finalize: true })).block.hash;
+    const finalTx = await context.web3.eth.getTransaction(insertedTx);
+    const currentHeight = await context.web3.eth.getBlockNumber();
+    // The Tx should have been inserted in the last block
+    expect(finalTx.blockNumber).to.equal(currentHeight);
+    // The Tx should have the hash of the latest canonical chain
+    expect(finalTx.blockHash).to.not.equal(retractedTx.blockHash);
+    expect(finalTx.blockHash).to.equal((await context.web3.eth.getBlock(currentHeight)).hash);
   });
 });
