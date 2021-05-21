@@ -38,7 +38,7 @@ describeDevMoonbeam("Trace filter - Gas Loop", (context) => {
     }
   });
 
-  it("should return 21630 gasUsed for 0 loop", async function () {
+  it.skip("should return 21630 gasUsed for 0 loop", async function () {
     const { rawTx } = await createContract(context.web3, "FiniteLoopContract");
     await context.createBlock({ transactions: [rawTx] });
 
@@ -55,7 +55,7 @@ describeDevMoonbeam("Trace filter - Gas Loop", (context) => {
     );
   });
 
-  it("should return 245542 gasUsed for 100 loop", async function () {
+  it.skip("should return 245542 gasUsed for 100 loop", async function () {
     const { rawTx } = await createContract(context.web3, "FiniteLoopContract");
     await context.createBlock({ transactions: [rawTx] });
 
@@ -72,7 +72,7 @@ describeDevMoonbeam("Trace filter - Gas Loop", (context) => {
     );
   });
 
-  it("should return 2068654 gasUsed for 1000 loop", async function () {
+  it.skip("should return 2068654 gasUsed for 1000 loop", async function () {
     const { rawTx } = await createContract(context.web3, "FiniteLoopContract");
     await context.createBlock({ transactions: [rawTx] });
 
@@ -89,7 +89,7 @@ describeDevMoonbeam("Trace filter - Gas Loop", (context) => {
     );
   });
 
-  it("should return 12303654 gasUsed for 6000 loop", async function () {
+  it.skip("should return 12303654 gasUsed for 6000 loop", async function () {
     const { rawTx } = await createContract(context.web3, "FiniteLoopContract");
     await context.createBlock({ transactions: [rawTx] });
 
