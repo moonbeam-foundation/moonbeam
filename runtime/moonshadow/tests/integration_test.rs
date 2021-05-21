@@ -318,7 +318,7 @@ fn transfer_through_evm_to_stake() {
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 2_000 * MSHD,);
 			let gas_limit = 100000u64;
 			let gas_price: U256 = 1_000_000_000.into();
-			// Bob transfers 1000 GLMR to Charlie via EVM
+			// Bob transfers 1000 MSHD to Charlie via EVM
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(BOB),
 				AccountId::from(CHARLIE),
@@ -501,7 +501,7 @@ fn join_candidates_via_precompile() {
 			// Alice uses the staking precompile to join as a candidate through the EVM
 			let gas_limit = 100000u64;
 			let gas_price: U256 = 1_000_000_000.into();
-			let amount: U256 = (1000 * GLMR).into();
+			let amount: U256 = (1000 * MSHD).into();
 
 			// Construct the call data (selector, amount)
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
@@ -799,7 +799,7 @@ fn nominate_via_precompile() {
 			// Bob uses the staking precompile to nominate Alice through the EVM
 			let gas_limit = 100000u64;
 			let gas_price: U256 = 1_000_000_000.into();
-			let nomination_amount: U256 = (1000 * GLMR).into();
+			let nomination_amount: U256 = (1000 * MSHD).into();
 
 			// Construct the call data (selector, collator, nomination amount)
 			let mut call_data = Vec::<u8>::from([0u8; 68]);
