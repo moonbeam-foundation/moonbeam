@@ -317,7 +317,7 @@ fn transfer_through_evm_to_stake() {
 			));
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 2_000 * GLMR,);
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
+			let gas_price: U256 = 1_000_000_000.into();
 			// Bob transfers 1000 GLMR to Charlie via EVM
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(BOB),
@@ -474,13 +474,13 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE))
 					.unwrap()
 					.claimed_reward,
-				300000248015873015873015
+				300000496031746031746031
 			);
 			assert_eq!(
 				CrowdloanRewards::accounts_payable(&AccountId::from(DAVE))
 					.unwrap()
 					.claimed_reward,
-				300000248015873015873015
+				300000496031746031746031
 			);
 
 			assert_noop!(
@@ -500,7 +500,7 @@ fn join_candidates_via_precompile() {
 
 			// Alice uses the staking precompile to join as a candidate through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
+			let gas_price: U256 = 1_000_000_000.into();
 			let amount: U256 = (1000 * GLMR).into();
 
 			// Construct the call data (selector, amount)
@@ -559,7 +559,7 @@ fn leave_candidates_via_precompile() {
 
 			// Alice uses the staking precompile to leave_candidates
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
+			let gas_price: U256 = 1_000_000_000.into();
 
 			// Construct the leave_candidates call data
 			let mut call_data = Vec::<u8>::from([0u8; 4]);
@@ -611,7 +611,7 @@ fn go_online_offline_via_precompile() {
 
 			// Alice uses the staking precompile to go offline
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
+			let gas_price: U256 = 1_000_000_000.into();
 
 			// Construct the go_offline call data
 			let mut go_offline_call_data = Vec::<u8>::from([0u8; 4]);
@@ -697,7 +697,7 @@ fn candidate_bond_more_less_via_precompile() {
 
 			// Alice uses the staking precompile to bond more
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
+			let gas_price: U256 = 1_000_000_000.into();
 
 			// Construct the candidate_bond_more call
 			let mut bond_more_call_data = Vec::<u8>::from([0u8; 36]);
@@ -798,7 +798,7 @@ fn nominate_via_precompile() {
 
 			// Bob uses the staking precompile to nominate Alice through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
+			let gas_price: U256 = 1_000_000_000.into();
 			let nomination_amount: U256 = (1000 * GLMR).into();
 
 			// Construct the call data (selector, collator, nomination amount)
@@ -872,7 +872,7 @@ fn leave_nominators_via_precompile() {
 
 			// Charlie uses staking precompile to leave nominator set
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
+			let gas_price: U256 = 1_000_000_000.into();
 
 			// Construct leave_nominators call
 			let mut call_data = Vec::<u8>::from([0u8; 4]);
@@ -957,7 +957,7 @@ fn revoke_nomination_via_precompile() {
 
 			// Charlie uses staking precompile to revoke nomination
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
+			let gas_price: U256 = 1_000_000_000.into();
 
 			// Construct revoke_nomination call
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
@@ -1026,7 +1026,7 @@ fn nominator_bond_more_less_via_precompile() {
 
 			// Alice uses the staking precompile to bond more
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
+			let gas_price: U256 = 1_000_000_000.into();
 
 			// Construct the nominator_bond_more call
 			let mut bond_more_call_data = Vec::<u8>::from([0u8; 68]);
