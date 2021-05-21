@@ -1229,6 +1229,77 @@
 <span id="1226">1226</span>
 <span id="1227">1227</span>
 <span id="1228">1228</span>
+<span id="1229">1229</span>
+<span id="1230">1230</span>
+<span id="1231">1231</span>
+<span id="1232">1232</span>
+<span id="1233">1233</span>
+<span id="1234">1234</span>
+<span id="1235">1235</span>
+<span id="1236">1236</span>
+<span id="1237">1237</span>
+<span id="1238">1238</span>
+<span id="1239">1239</span>
+<span id="1240">1240</span>
+<span id="1241">1241</span>
+<span id="1242">1242</span>
+<span id="1243">1243</span>
+<span id="1244">1244</span>
+<span id="1245">1245</span>
+<span id="1246">1246</span>
+<span id="1247">1247</span>
+<span id="1248">1248</span>
+<span id="1249">1249</span>
+<span id="1250">1250</span>
+<span id="1251">1251</span>
+<span id="1252">1252</span>
+<span id="1253">1253</span>
+<span id="1254">1254</span>
+<span id="1255">1255</span>
+<span id="1256">1256</span>
+<span id="1257">1257</span>
+<span id="1258">1258</span>
+<span id="1259">1259</span>
+<span id="1260">1260</span>
+<span id="1261">1261</span>
+<span id="1262">1262</span>
+<span id="1263">1263</span>
+<span id="1264">1264</span>
+<span id="1265">1265</span>
+<span id="1266">1266</span>
+<span id="1267">1267</span>
+<span id="1268">1268</span>
+<span id="1269">1269</span>
+<span id="1270">1270</span>
+<span id="1271">1271</span>
+<span id="1272">1272</span>
+<span id="1273">1273</span>
+<span id="1274">1274</span>
+<span id="1275">1275</span>
+<span id="1276">1276</span>
+<span id="1277">1277</span>
+<span id="1278">1278</span>
+<span id="1279">1279</span>
+<span id="1280">1280</span>
+<span id="1281">1281</span>
+<span id="1282">1282</span>
+<span id="1283">1283</span>
+<span id="1284">1284</span>
+<span id="1285">1285</span>
+<span id="1286">1286</span>
+<span id="1287">1287</span>
+<span id="1288">1288</span>
+<span id="1289">1289</span>
+<span id="1290">1290</span>
+<span id="1291">1291</span>
+<span id="1292">1292</span>
+<span id="1293">1293</span>
+<span id="1294">1294</span>
+<span id="1295">1295</span>
+<span id="1296">1296</span>
+<span id="1297">1297</span>
+<span id="1298">1298</span>
+<span id="1299">1299</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1263,8 +1334,9 @@
 <span class="kw">use</span> <span class="ident">fp_rpc</span>::<span class="ident">TransactionStatus</span>;
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
 	<span class="ident">construct_runtime</span>, <span class="ident">parameter_types</span>,
-	<span class="ident">traits</span>::{<span class="ident">Filter</span>, <span class="ident">Get</span>, <span class="ident">InstanceFilter</span>, <span class="ident">Randomness</span>},
+	<span class="ident">traits</span>::{<span class="ident">Filter</span>, <span class="ident">Get</span>, <span class="ident">Imbalance</span>, <span class="ident">InstanceFilter</span>, <span class="ident">OnUnbalanced</span>, <span class="ident">Randomness</span>},
 	<span class="ident">weights</span>::{<span class="ident">constants</span>::<span class="ident">WEIGHT_PER_SECOND</span>, <span class="ident">IdentityFee</span>, <span class="ident">Weight</span>},
+	<span class="ident">PalletId</span>,
 };
 <span class="kw">use</span> <span class="ident">frame_system</span>::{<span class="ident">EnsureOneOf</span>, <span class="ident">EnsureRoot</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">moonbeam_core_primitives</span>::{
@@ -1272,6 +1344,7 @@
 	<span class="ident">Signature</span>,
 };
 <span class="kw">use</span> <span class="ident">moonbeam_extensions_evm</span>::<span class="ident">runner</span>::<span class="ident">stack</span>::<span class="ident">TraceRunner</span> <span class="kw">as</span> <span class="ident">TraceRunnerT</span>;
+<span class="kw">use</span> <span class="ident">pallet_balances</span>::<span class="ident">NegativeImbalance</span>;
 <span class="kw">use</span> <span class="ident">pallet_ethereum</span>::<span class="ident">Call</span>::<span class="ident">transact</span>;
 <span class="kw">use</span> <span class="ident">pallet_ethereum</span>::{<span class="ident">Transaction</span> <span class="kw">as</span> <span class="ident">EthereumTransaction</span>, <span class="ident">TransactionAction</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{
@@ -1288,7 +1361,7 @@
 	<span class="ident">create_runtime_str</span>, <span class="ident">generic</span>, <span class="ident">impl_opaque_keys</span>,
 	<span class="ident">traits</span>::{<span class="ident">BlakeTwo256</span>, <span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>, <span class="ident">IdentityLookup</span>},
 	<span class="ident">transaction_validity</span>::{<span class="ident">TransactionSource</span>, <span class="ident">TransactionValidity</span>},
-	<span class="ident">AccountId32</span>, <span class="ident">ApplyExtrinsicResult</span>, <span class="ident">Perbill</span>,
+	<span class="ident">AccountId32</span>, <span class="ident">ApplyExtrinsicResult</span>, <span class="ident">Perbill</span>, <span class="ident">Permill</span>,
 };
 <span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">convert</span>::<span class="ident">TryFrom</span>, <span class="ident">prelude</span>::<span class="kw-2">*</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
@@ -1465,6 +1538,24 @@
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> ();
 }
 
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DealWithFees</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">sp_std</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>);
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">OnUnbalanced</span><span class="op">&lt;</span><span class="ident">NegativeImbalance</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DealWithFees</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+	<span class="ident">R</span>: <span class="ident">pallet_balances</span>::<span class="ident">Config</span> <span class="op">+</span> <span class="ident">pallet_treasury</span>::<span class="ident">Config</span><span class="op">&lt;</span><span class="ident">pallet_treasury</span>::<span class="ident">Instance1</span><span class="op">&gt;</span>,
+	<span class="ident">pallet_treasury</span>::<span class="ident">Module</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">pallet_treasury</span>::<span class="ident">Instance1</span><span class="op">&gt;</span>: <span class="ident">OnUnbalanced</span><span class="op">&lt;</span><span class="ident">NegativeImbalance</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+{
+	<span class="kw">fn</span> <span class="ident">on_unbalanceds</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">fees_then_tips</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">NegativeImbalance</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
+		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">fees</span>) <span class="op">=</span> <span class="ident">fees_then_tips</span>.<span class="ident">next</span>() {
+			<span class="comment">// for fees, 80% are burned, 20% to the treasury</span>
+			<span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">to_treasury</span>) <span class="op">=</span> <span class="ident">fees</span>.<span class="ident">ration</span>(<span class="number">80</span>, <span class="number">20</span>);
+			<span class="comment">// Balances module automatically burns dropped Negative Imbalances by decreasing</span>
+			<span class="comment">// total_supply accordingly</span>
+			<span class="op">&lt;</span><span class="ident">pallet_treasury</span>::<span class="ident">Module</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">pallet_treasury</span>::<span class="ident">Instance1</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="ident">OnUnbalanced</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>
+				::<span class="ident">on_unbalanced</span>(<span class="ident">to_treasury</span>);
+		}
+	}
+}
+
 <span class="macro">parameter_types</span><span class="macro">!</span> {
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TransactionByteFee</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1</span>;
 }
@@ -1589,14 +1680,12 @@
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> (); <span class="comment">// TODO : Better Weight Info ?</span>
 }
 
-<span class="kw">const</span> <span class="ident">BLOCKS_PER_DAY</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">24</span> <span class="op">*</span> <span class="number">60</span> <span class="op">*</span> <span class="number">10</span>;
-
 <span class="macro">parameter_types</span><span class="macro">!</span> {
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LaunchPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="ident">BLOCKS_PER_DAY</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">VotingPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">5</span> <span class="op">*</span> <span class="ident">BLOCKS_PER_DAY</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FastTrackVotingPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="ident">BLOCKS_PER_DAY</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EnactmentPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="ident">BLOCKS_PER_DAY</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CooloffPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">7</span> <span class="op">*</span> <span class="ident">BLOCKS_PER_DAY</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LaunchPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">DAYS</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">VotingPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">5</span> <span class="op">*</span> <span class="ident">DAYS</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FastTrackVotingPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">DAYS</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EnactmentPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">1</span> <span class="kw-2">*</span><span class="ident">DAYS</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CooloffPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">7</span> <span class="op">*</span> <span class="ident">DAYS</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinimumDeposit</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">4</span> <span class="op">*</span> <span class="ident">currency</span>::<span class="ident">MOVR</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxVotes</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxProposals</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
@@ -1658,6 +1747,56 @@
 	<span class="kw">type</span> <span class="ident">PalletsOrigin</span> <span class="op">=</span> <span class="ident">OriginCaller</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> ();
 	<span class="kw">type</span> <span class="ident">MaxProposals</span> <span class="op">=</span> <span class="ident">MaxProposals</span>;
+}
+
+<span class="macro">parameter_types</span><span class="macro">!</span> {
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ProposalBond</span>: <span class="ident">Permill</span> <span class="op">=</span> <span class="ident">Permill</span>::<span class="ident">from_percent</span>(<span class="number">5</span>);
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ProposalBondMinimum</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">currency</span>::<span class="ident">MOVR</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SpendPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">6</span> <span class="op">*</span> <span class="ident">DAYS</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CommunityTreasuryId</span>: <span class="ident">PalletId</span> <span class="op">=</span> <span class="ident">PalletId</span>(<span class="kw-2">*</span><span class="string">b&quot;pc/trsry&quot;</span>);
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ParachainBondPalletId</span>: <span class="ident">PalletId</span> <span class="op">=</span> <span class="ident">PalletId</span>(<span class="kw-2">*</span><span class="string">b&quot;pb/trsry&quot;</span>);
+	<span class="comment">//pub const MaxApprovals: u32 = 100; // will be needed for upcoming version</span>
+}
+
+<span class="kw">type</span> <span class="ident">CommunityTreasuryInstance</span> <span class="op">=</span> <span class="ident">pallet_treasury</span>::<span class="ident">Instance1</span>;
+<span class="kw">type</span> <span class="ident">ParachainBondTreasuryInstance</span> <span class="op">=</span> <span class="ident">pallet_treasury</span>::<span class="ident">Instance2</span>;
+
+<span class="kw">impl</span> <span class="ident">pallet_treasury</span>::<span class="ident">Config</span><span class="op">&lt;</span><span class="ident">CommunityTreasuryInstance</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
+	<span class="kw">type</span> <span class="ident">PalletId</span> <span class="op">=</span> <span class="ident">CommunityTreasuryId</span>;
+	<span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
+	<span class="comment">// Democracy dispatches Root</span>
+	<span class="kw">type</span> <span class="ident">ApproveOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
+	<span class="comment">// Democracy dispatches Root</span>
+	<span class="kw">type</span> <span class="ident">RejectOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
+	<span class="comment">// If spending proposal rejected, transfer proposer bond to treasury</span>
+	<span class="kw">type</span> <span class="ident">OnSlash</span> <span class="op">=</span> <span class="ident">CommunityTreasury</span>;
+	<span class="kw">type</span> <span class="ident">ProposalBond</span> <span class="op">=</span> <span class="ident">ProposalBond</span>;
+	<span class="kw">type</span> <span class="ident">ProposalBondMinimum</span> <span class="op">=</span> <span class="ident">ProposalBondMinimum</span>;
+	<span class="kw">type</span> <span class="ident">SpendPeriod</span> <span class="op">=</span> <span class="ident">SpendPeriod</span>;
+	<span class="kw">type</span> <span class="ident">Burn</span> <span class="op">=</span> ();
+	<span class="kw">type</span> <span class="ident">BurnDestination</span> <span class="op">=</span> ();
+	<span class="comment">// type MaxApprovals = MaxApprovals; // will be needed for upcoming version</span>
+	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> ();
+	<span class="kw">type</span> <span class="ident">SpendFunds</span> <span class="op">=</span> ();
+}
+
+<span class="kw">impl</span> <span class="ident">pallet_treasury</span>::<span class="ident">Config</span><span class="op">&lt;</span><span class="ident">ParachainBondTreasuryInstance</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
+	<span class="kw">type</span> <span class="ident">PalletId</span> <span class="op">=</span> <span class="ident">ParachainBondPalletId</span>;
+	<span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
+	<span class="kw">type</span> <span class="ident">ApproveOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">RejectOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
+	<span class="comment">// If spending proposal rejected, transfer proposer bond to treasury</span>
+	<span class="kw">type</span> <span class="ident">OnSlash</span> <span class="op">=</span> <span class="ident">ParachainBondTreasury</span>;
+	<span class="kw">type</span> <span class="ident">ProposalBond</span> <span class="op">=</span> <span class="ident">ProposalBond</span>;
+	<span class="kw">type</span> <span class="ident">ProposalBondMinimum</span> <span class="op">=</span> <span class="ident">ProposalBondMinimum</span>;
+	<span class="kw">type</span> <span class="ident">SpendPeriod</span> <span class="op">=</span> <span class="ident">SpendPeriod</span>;
+	<span class="kw">type</span> <span class="ident">Burn</span> <span class="op">=</span> ();
+	<span class="kw">type</span> <span class="ident">BurnDestination</span> <span class="op">=</span> ();
+	<span class="comment">// type MaxApprovals = MaxApprovals; // will be needed for upcoming version</span>
+	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> ();
+	<span class="kw">type</span> <span class="ident">SpendFunds</span> <span class="op">=</span> ();
 }
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TransactionConverter</span>;
@@ -1900,6 +2039,9 @@
 			<span class="ident">pallet_collective</span>::<span class="op">&lt;</span><span class="ident">Instance1</span><span class="op">&gt;</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Origin</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
 		<span class="ident">TechComitteeCollective</span>:
 			<span class="ident">pallet_collective</span>::<span class="op">&lt;</span><span class="ident">Instance2</span><span class="op">&gt;</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Origin</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
+		<span class="ident">CommunityTreasury</span>: <span class="ident">pallet_treasury</span>::<span class="op">&lt;</span><span class="ident">Instance1</span><span class="op">&gt;</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Call</span>},
+		<span class="ident">ParachainBondTreasury</span>:
+			<span class="ident">pallet_treasury</span>::<span class="op">&lt;</span><span class="ident">Instance2</span><span class="op">&gt;</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Call</span>},
 		<span class="comment">// The order matters here. Inherents will be included in the order specified here.</span>
 		<span class="comment">// Concretely we need the author inherent to come after the parachain_system inherent.</span>
 		<span class="ident">AuthorInherent</span>: <span class="ident">pallet_author_inherent</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Inherent</span>},
