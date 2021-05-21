@@ -438,7 +438,6 @@ parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
 	pub const ProposalBondMinimum: Balance = 1 * GLMR;
 	pub const SpendPeriod: BlockNumber = 6 * BLOCKS_PER_DAY;
-	pub const Burn: Permill = Permill::from_perthousand(2);
 	pub const CommunityTreasuryId: PalletId = PalletId(*b"pc/trsry");
 	pub const ParachainBondPalletId: PalletId = PalletId(*b"pb/trsry");
 	//pub const MaxApprovals: u32 = 100; // will be needed for upcoming version
