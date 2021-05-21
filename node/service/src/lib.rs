@@ -397,8 +397,7 @@ where
 			},
 			&task_manager.spawn_essential_handle(),
 			config.prometheus_registry().clone(),
-		)
-		.map_err(Into::into)?
+		)?
 	};
 
 	Ok(PartialComponents {
@@ -520,6 +519,7 @@ where
 	let transaction_pool = params.transaction_pool.clone();
 	let mut task_manager = params.task_manager;
 	let import_queue = params.import_queue;
+	let force_authoring = parachain_config.force_authoring;
 	let (network, network_status_sinks, system_rpc_tx, start_network) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &parachain_config,
@@ -688,7 +688,7 @@ where
 			transaction_pool,
 			network,
 			params.keystore_container.sync_keystore(),
-			parachain_config.force_authoring,
+			force_authoring,
 		)?;
 
 		let spawner = task_manager.spawn_handle();
