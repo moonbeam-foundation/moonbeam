@@ -31,7 +31,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Get, Randomness},
+	traits::Get,
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 };
 use frame_system::{EnsureOneOf, EnsureRoot};
@@ -1062,6 +1062,12 @@ impl_runtime_apis! {
 	impl nimbus_primitives::AuthorFilterAPI<Block, nimbus_primitives::NimbusId> for Runtime {
 		fn can_author(author: nimbus_primitives::NimbusId, slot: u32) -> bool {
 			<Runtime as pallet_author_inherent::Config>::FullCanAuthor::can_author(&author, &slot)
+		}
+	}
+
+	impl cumulus_primitives_core::CollectCollationInfo<Block> for Runtime {
+		fn collect_collation_info() -> cumulus_primitives_core::CollationInfo {
+			ParachainSystem::collect_collation_info()
 		}
 	}
 
