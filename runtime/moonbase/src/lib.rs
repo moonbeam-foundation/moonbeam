@@ -433,7 +433,7 @@ impl pallet_democracy::Config for Runtime {
 
 parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
-	pub const ProposalBondMinimum: Balance = 1 * currency::GLMR;
+	pub const ProposalBondMinimum: Balance = 1 * currency::UNITS;
 	pub const SpendPeriod: BlockNumber = 6 * DAYS;
 	pub const CommunityTreasuryId: PalletId = PalletId(*b"pc/trsry");
 	pub const ParachainBondPalletId: PalletId = PalletId(*b"pb/trsry");
