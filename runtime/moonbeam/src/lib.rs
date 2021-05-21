@@ -56,7 +56,7 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentityLookup},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, Perbill,
+	AccountId32, ApplyExtrinsicResult, Perbill,
 };
 use sp_std::{convert::TryFrom, prelude::*};
 #[cfg(feature = "std")]
@@ -71,6 +71,11 @@ pub use sp_runtime::BuildStorage;
 /// Maximum weight per block
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
 
+pub const MILLISECS_PER_BLOCK: u64 = 6000;
+pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
+pub const HOURS: BlockNumber = MINUTES * 60;
+pub const DAYS: BlockNumber = HOURS * 24;
+pub const MONTHS: BlockNumber = DAYS * 30;
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
@@ -492,6 +497,23 @@ impl pallet_author_slot_filter::Config for Runtime {
 	type PotentialAuthors = ParachainStaking;
 }
 
+parameter_types! {
+	// TODO to be revisited
+	pub const VestingPeriod: BlockNumber = 1 * MONTHS;
+	pub const MinimumReward: Balance = 0;
+	pub const Initialized: bool = false;
+	pub const InitializationPayment: Perbill = Perbill::from_percent(20);
+}
+
+impl pallet_crowdloan_rewards::Config for Runtime {
+	type Event = Event;
+	type Initialized = Initialized;
+	type InitializationPayment = InitializationPayment;
+	type MinimumReward = MinimumReward;
+	type RewardCurrency = Balances;
+	type RelayChainAccountId = AccountId32;
+	type VestingPeriod = VestingPeriod;
+}
 // This is a simple session key manager. It should probably either work with, or be replaced
 // entirely by pallet sessions
 impl pallet_author_mapping::Config for Runtime {
@@ -527,6 +549,7 @@ construct_runtime! {
 		// Concretely we need the author inherent to come after the parachain_system inherent.
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent},
 		AuthorFilter: pallet_author_slot_filter::{Pallet, Storage, Event, Config},
+		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>},
 		AuthorMapping: pallet_author_mapping::{Pallet, Config<T>, Storage},
 	}
 }
@@ -1056,13 +1079,16 @@ impl_runtime_apis! {
 			impl frame_system_benchmarking::Config for Runtime {}
 
 			use parachain_staking::Pallet as ParachainStakingBench;
-
+			use pallet_crowdloan_rewards::Pallet as PalletCrowdloanRewardsBench;
 			let whitelist: Vec<TrackedStorageKey> = vec![];
 
 			let mut batches = Vec::<BenchmarkBatch>::new();
 			let params = (&config, &whitelist);
 
 			add_benchmark!(params, batches, parachain_staking, ParachainStakingBench::<Runtime>);
+			add_benchmark!(
+				params, batches, pallet_crowdloan_rewards, PalletCrowdloanRewardsBench::<Runtime>
+			);
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }

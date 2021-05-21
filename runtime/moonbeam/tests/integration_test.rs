@@ -26,8 +26,8 @@ use frame_support::{
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
 use moonbeam_runtime::{
-	AccountId, AuthorInherent, Balance, Balances, Call, Event, InflationInfo, ParachainStaking,
-	Range, Runtime, System, GLMR,
+	AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Event, InflationInfo,
+	ParachainStaking, Range, Runtime, System, GLMR,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -58,6 +58,8 @@ struct ExtBuilder {
 	nominators: Vec<(AccountId, AccountId, Balance)>,
 	// per-round inflation config
 	inflation: InflationInfo<Balance>,
+	// Crowdloan fund
+	crowdloan_fund: Balance,
 }
 
 impl Default for ExtBuilder {
@@ -85,6 +87,7 @@ impl Default for ExtBuilder {
 					max: Perbill::from_percent(5),
 				},
 			},
+			crowdloan_fund: 0,
 		}
 	}
 }
@@ -102,6 +105,11 @@ impl ExtBuilder {
 
 	fn with_nominators(mut self, nominators: Vec<(AccountId, AccountId, Balance)>) -> Self {
 		self.nominators = nominators;
+		self
+	}
+
+	fn with_crowdloan_fund(mut self, crowdloan_fund: Balance) -> Self {
+		self.crowdloan_fund = crowdloan_fund;
 		self
 	}
 
@@ -136,6 +144,12 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
+		pallet_crowdloan_rewards::GenesisConfig::<Runtime> {
+			funded_amount: self.crowdloan_fund,
+		}
+		.assimilate_storage(&mut t)
+		.unwrap();
+
 		// Here we map the author id ALICE_NIMBUS to the AccountId ALICE
 		// This is not (currently) configureable because it is enough for all of our tests
 		// It could bemade configureable.
@@ -163,6 +177,10 @@ fn origin_of(account_id: AccountId) -> <Runtime as frame_system::Config>::Origin
 
 fn inherent_origin() -> <Runtime as frame_system::Config>::Origin {
 	<Runtime as frame_system::Config>::Origin::none()
+}
+
+fn root_origin() -> <Runtime as frame_system::Config>::Origin {
+	<Runtime as frame_system::Config>::Origin::root()
 }
 
 /// Mock the inherent that sets author in `author-inherent`
@@ -371,6 +389,103 @@ fn reward_block_authors() {
 			assert_eq!(
 				Balances::free_balance(AccountId::from(BOB)),
 				539999999960000000000,
+			);
+		});
+}
+
+#[test]
+fn initialize_crowdloan_addresses_with_batch_and_pay() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * GLMR),
+			(AccountId::from(BOB), 1_000 * GLMR),
+		])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_crowdloan_fund(3_000_000 * GLMR)
+		.build()
+		.execute_with(|| {
+			// set parachain inherent data
+			set_parachain_inherent_data();
+			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+			for x in 1..3 {
+				run_to_block(x);
+			}
+			// Batch calls always succeed. We just need to check the inner event
+			assert_ok!(
+				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
+							vec![(
+								[4u8; 32].into(),
+								Some(AccountId::from(CHARLIE)),
+								1_500_000 * GLMR
+							)],
+							0,
+							2
+						)
+					),
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
+							vec![(
+								[5u8; 32].into(),
+								Some(AccountId::from(DAVE)),
+								1_500_000 * GLMR
+							)],
+							1,
+							2
+						)
+					)
+				]))
+				.dispatch(root_origin())
+			);
+			let expected = Event::pallet_utility(pallet_utility::Event::BatchCompleted);
+			assert_eq!(last_event(), expected);
+			// This one should fail, as we already filled our data
+			assert_ok!(Call::Utility(pallet_utility::Call::<Runtime>::batch(vec![
+				Call::CrowdloanRewards(
+					pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
+						vec![([4u8; 32].into(), Some(AccountId::from(ALICE)), 432000)],
+						0,
+						1
+					)
+				)
+			]))
+			.dispatch(root_origin()));
+			let expected_fail = Event::pallet_utility(pallet_utility::Event::BatchInterrupted(
+				0,
+				DispatchError::Module {
+					index: 19,
+					error: 7,
+					message: None,
+				},
+			));
+			assert_eq!(last_event(), expected_fail);
+			assert_ok!(CrowdloanRewards::my_first_claim(origin_of(
+				AccountId::from(CHARLIE)
+			)));
+			assert_noop!(
+				CrowdloanRewards::my_first_claim(origin_of(AccountId::from(CHARLIE))),
+				pallet_crowdloan_rewards::Error::<Runtime>::FirstClaimAlreadyDone
+			);
+			assert_ok!(CrowdloanRewards::show_me_the_money(origin_of(
+				AccountId::from(DAVE)
+			)));
+			assert_eq!(
+				CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE))
+					.unwrap()
+					.claimed_reward,
+				300002777777777777777777
+			);
+			assert_eq!(
+				CrowdloanRewards::accounts_payable(&AccountId::from(DAVE))
+					.unwrap()
+					.claimed_reward,
+				300002777777777777777777
+			);
+
+			assert_noop!(
+				CrowdloanRewards::show_me_the_money(origin_of(AccountId::from(ALICE))),
+				pallet_crowdloan_rewards::Error::<Runtime>::NoAssociatedClaim
 			);
 		});
 }
