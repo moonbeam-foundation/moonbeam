@@ -26,51 +26,51 @@
 
 use cumulus_primitives_core::PersistedValidationData;
 use cumulus_primitives_parachain_inherent::{ParachainInherentData, INHERENT_IDENTIFIER};
-use sp_inherents::{InherentData, InherentDataProviders, InherentIdentifier, ProvideInherentData};
+use sp_inherents::{InherentData, InherentDataProvider, InherentIdentifier};
 use sp_timestamp::InherentError;
 
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 
-/// Build the inherent data providers for the node.
-///
-/// Not all nodes will need all inherent data providers:
-/// - The author provider is only necessary for block producing nodes
-/// - The validation data provider can be mocked.
-pub fn build_inherent_data_providers(
-	author: Option<nimbus_primitives::NimbusId>,
-	mock: bool,
-) -> Result<InherentDataProviders, sc_service::Error> {
-	let providers = InherentDataProviders::new();
+// /// Build the inherent data providers for the node.
+// ///
+// /// Not all nodes will need all inherent data providers:
+// /// - The author provider is only necessary for block producing nodes
+// /// - The validation data provider can be mocked.
+// pub fn build_inherent_data_providers(
+// 	author: Option<nimbus_primitives::NimbusId>,
+// 	mock: bool,
+// ) -> Result<InherentDataProviders, sc_service::Error> {
+// 	let providers = InherentDataProviders::new();
 
-	// Timestamp provider. Needed in all nodes.
-	providers
-		.register_provider(sp_timestamp::InherentDataProvider)
-		.map_err(Into::into)
-		.map_err(sp_consensus::error::Error::InherentData)?;
+// 	// Timestamp provider. Needed in all nodes.
+// 	providers
+// 		.register_provider(sp_timestamp::InherentDataProvider)
+// 		.map_err(Into::into)
+// 		.map_err(sp_consensus::error::Error::InherentData)?;
 
-	// Author ID Provider for use in dev-service authoring nodes only
-	if let Some(account) = author {
-		//TODO move inherent data provider to nimbus primitives
-		providers
-			.register_provider(pallet_author_inherent::InherentDataProvider(account))
-			.map_err(Into::into)
-			.map_err(sp_consensus::error::Error::InherentData)?;
-	}
+// 	// Author ID Provider for use in dev-service authoring nodes only
+// 	if let Some(account) = author {
+// 		//TODO move inherent data provider to nimbus primitives
+// 		providers
+// 			.register_provider(pallet_author_inherent::InherentDataProvider(account))
+// 			.map_err(Into::into)
+// 			.map_err(sp_consensus::error::Error::InherentData)?;
+// 	}
 
-	// Parachain inherent provider, only for dev-service nodes.
-	if mock {
-		providers
-			.register_provider(MockValidationDataInherentDataProvider)
-			.map_err(Into::into)
-			.map_err(sp_consensus::error::Error::InherentData)?;
-	}
+// 	// Parachain inherent provider, only for dev-service nodes.
+// 	if mock {
+// 		providers
+// 			.register_provider(MockValidationDataInherentDataProvider)
+// 			.map_err(Into::into)
+// 			.map_err(sp_consensus::error::Error::InherentData)?;
+// 	}
 
-	// When we are not mocking the validation data, we do not register a real validation data
-	// provider here. The validation data inherent is inserted manually by the cumulus colaltor
-	// https://github.com/paritytech/cumulus/blob/c3e3f443/collator/src/lib.rs#L274-L321
+// 	// When we are not mocking the validation data, we do not register a real validation data
+// 	// provider here. The validation data inherent is inserted manually by the cumulus colaltor
+// 	// https://github.com/paritytech/cumulus/blob/c3e3f443/collator/src/lib.rs#L274-L321
 
-	Ok(providers)
-}
+// 	Ok(providers)
+// }
 
 /// Inherent data provider that supplies mocked validation data.
 ///
@@ -78,11 +78,8 @@ pub fn build_inherent_data_providers(
 /// For example when running a local node, or running integration tests.
 struct MockValidationDataInherentDataProvider;
 
-impl ProvideInherentData for MockValidationDataInherentDataProvider {
-	fn inherent_identifier(&self) -> &'static InherentIdentifier {
-		&INHERENT_IDENTIFIER
-	}
-
+#[async_trait::async_trait]
+impl InherentDataProvider for MockValidationDataInherentDataProvider {
 	fn provide_inherent_data(
 		&self,
 		inherent_data: &mut InherentData,
@@ -106,7 +103,12 @@ impl ProvideInherentData for MockValidationDataInherentDataProvider {
 		inherent_data.put_data(INHERENT_IDENTIFIER, &data)
 	}
 
-	fn error_to_string(&self, error: &[u8]) -> Option<String> {
-		InherentError::try_from(&INHERENT_IDENTIFIER, error).map(|e| format!("{:?}", e))
+	// Copied from the real implementation
+	async fn try_handle_error(
+		&self,
+		_: &sp_inherents::InherentIdentifier,
+		_: &[u8],
+	) -> Option<Result<(), sp_inherents::Error>> {
+		None
 	}
 }

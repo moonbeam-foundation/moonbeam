@@ -35,6 +35,7 @@ pub use moonriver_runtime;
 pub use moonshadow_runtime;
 use sc_client_api::BlockchainEvents;
 use sc_service::BasePath;
+use sp_keystore::SyncCryptoStorePtr;
 use std::{
 	collections::{BTreeMap, HashMap},
 	sync::Mutex,
@@ -43,16 +44,19 @@ use std::{
 use tokio::sync::Semaphore;
 mod inherents;
 mod rpc;
+use cumulus_client_consensus_common::ParachainConsensus;
 use cumulus_client_network::build_block_announce_validator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
 use nimbus_consensus::{
-	build_filtering_consensus as build_nimbus_consensus,
-	BuildFilteringConsensusParams as BuildNimbusConsensusParams,
+	build_filtering_consensus as build_nimbus_consensus, BuildNimbusConsensusParams,
 };
+use nimbus_primitives::NimbusId;
+use sc_network::NetworkService;
+use substrate_prometheus_endpoint::Registry;
 
-use inherents::build_inherent_data_providers;
+// use inherents::build_inherent_data_providers;
 use polkadot_primitives::v0::CollatorPair;
 pub use sc_executor::NativeExecutor;
 use sc_executor::{native_executor_instance, NativeExecutionDispatch};
@@ -69,7 +73,7 @@ pub use client::*;
 pub mod chain_spec;
 mod client;
 
-use sc_telemetry::{Telemetry, TelemetryWorker, TelemetryWorkerHandle};
+use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
 
 type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = TFullBackend<Block>;
@@ -166,93 +170,126 @@ pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backen
 	)?))
 }
 
-/// Builds a new object suitable for chain operations.
-pub fn new_chain_ops(
-	mut config: &mut Configuration,
+// /// Builds a new object suitable for chain operations.
+// pub fn new_chain_ops(
+// 	mut config: &mut Configuration,
+// ) -> Result<
+// 	(
+// 		Arc<Client>,
+// 		Arc<FullBackend>,
+// 		sp_consensus::import_queue::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
+// 		TaskManager,
+// 	),
+// 	ServiceError,
+// > {
+// 	config.keystore = sc_service::config::KeystoreConfig::InMemory;
+// 	if config.chain_spec.is_moonbase() {
+// 		let PartialComponents {
+// 			client,
+// 			backend,
+// 			import_queue,
+// 			task_manager,
+// 			..
+// 		} = new_partial::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(
+// 			config,
+// 			None,
+// 			config.chain_spec.is_dev(),
+// 		)?;
+// 		Ok((
+// 			Arc::new(Client::Moonbase(client)),
+// 			backend,
+// 			import_queue,
+// 			task_manager,
+// 		))
+// 	} else if config.chain_spec.is_moonriver() {
+// 		let PartialComponents {
+// 			client,
+// 			backend,
+// 			import_queue,
+// 			task_manager,
+// 			..
+// 		} = new_partial::<moonriver_runtime::RuntimeApi, MoonriverExecutor>(
+// 			config,
+// 			None,
+// 			config.chain_spec.is_dev(),
+// 		)?;
+// 		Ok((
+// 			Arc::new(Client::Moonriver(client)),
+// 			backend,
+// 			import_queue,
+// 			task_manager,
+// 		))
+// 	} else if config.chain_spec.is_moonshadow() {
+// 		let PartialComponents {
+// 			client,
+// 			backend,
+// 			import_queue,
+// 			task_manager,
+// 			..
+// 		} = new_partial::<moonshadow_runtime::RuntimeApi, MoonshadowExecutor>(
+// 			config,
+// 			None,
+// 			config.chain_spec.is_dev(),
+// 		)?;
+// 		Ok((
+// 			Arc::new(Client::Moonshadow(client)),
+// 			backend,
+// 			import_queue,
+// 			task_manager,
+// 		))
+// 	} else {
+// 		let PartialComponents {
+// 			client,
+// 			backend,
+// 			import_queue,
+// 			task_manager,
+// 			..
+// 		} = new_partial::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(
+// 			config,
+// 			None,
+// 			config.chain_spec.is_dev(),
+// 		)?;
+// 		Ok((
+// 			Arc::new(Client::Moonbeam(client)),
+// 			backend,
+// 			import_queue,
+// 			task_manager,
+// 		))
+// 	}
+// }
+
+/// Build the import queue that checks timestamp inherents.
+///
+/// There is a seperate one for each runtime because they need different executors
+pub fn moonbase_build_import_queue(
+	client: Arc<TFullClient<Block, moonbase_runtime::RuntimeApi, MoonbaseExecutor>>,
+	config: &Configuration,
+	_: Option<TelemetryHandle>,
+	task_manager: &TaskManager,
 ) -> Result<
-	(
-		Arc<Client>,
-		Arc<FullBackend>,
-		sp_consensus::import_queue::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
-		TaskManager,
-	),
-	ServiceError,
+	sp_consensus::DefaultImportQueue<
+		Block,
+		TFullClient<Block, moonbase_runtime::RuntimeApi, MoonbaseExecutor>,
+	>,
+	sc_service::Error,
 > {
-	config.keystore = sc_service::config::KeystoreConfig::InMemory;
-	if config.chain_spec.is_moonbase() {
-		let PartialComponents {
-			client,
-			backend,
-			import_queue,
-			task_manager,
-			..
-		} = new_partial::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(
-			config,
-			None,
-			config.chain_spec.is_dev(),
-		)?;
-		Ok((
-			Arc::new(Client::Moonbase(client)),
-			backend,
-			import_queue,
-			task_manager,
-		))
-	} else if config.chain_spec.is_moonriver() {
-		let PartialComponents {
-			client,
-			backend,
-			import_queue,
-			task_manager,
-			..
-		} = new_partial::<moonriver_runtime::RuntimeApi, MoonriverExecutor>(
-			config,
-			None,
-			config.chain_spec.is_dev(),
-		)?;
-		Ok((
-			Arc::new(Client::Moonriver(client)),
-			backend,
-			import_queue,
-			task_manager,
-		))
-	} else if config.chain_spec.is_moonshadow() {
-		let PartialComponents {
-			client,
-			backend,
-			import_queue,
-			task_manager,
-			..
-		} = new_partial::<moonshadow_runtime::RuntimeApi, MoonshadowExecutor>(
-			config,
-			None,
-			config.chain_spec.is_dev(),
-		)?;
-		Ok((
-			Arc::new(Client::Moonshadow(client)),
-			backend,
-			import_queue,
-			task_manager,
-		))
-	} else {
-		let PartialComponents {
-			client,
-			backend,
-			import_queue,
-			task_manager,
-			..
-		} = new_partial::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(
-			config,
-			None,
-			config.chain_spec.is_dev(),
-		)?;
-		Ok((
-			Arc::new(Client::Moonbeam(client)),
-			backend,
-			import_queue,
-			task_manager,
-		))
-	}
+	nimbus_consensus::import_queue(
+		client.clone(),
+		client,
+		move |_, _| async move {
+			let time = sp_timestamp::InherentDataProvider::from_system_time();
+
+			Ok((time,))
+		},
+		&task_manager.spawn_essential_handle(),
+		config.prometheus_registry().clone(),
+	)
+	.map_err(Into::into)
 }
+
+//TODO moonbeam_build_import_queue
+//TODO moonshadow_build_import_queue
+//TODO moonriver_build_import_queue
 
 /// Builds the PartialComponents for a parachain or development service
 ///
@@ -261,20 +298,19 @@ pub fn new_chain_ops(
 #[allow(clippy::type_complexity)]
 pub fn new_partial<RuntimeApi, Executor>(
 	config: &Configuration,
-	author: Option<nimbus_primitives::NimbusId>,
 	dev_service: bool,
 ) -> Result<
 	PartialComponents<
-		FullClient<RuntimeApi, Executor>,
+		TFullClient<Block, RuntimeApi, Executor>,
 		FullBackend,
 		MaybeSelectChain,
-		sp_consensus::DefaultImportQueue<Block, FullClient<RuntimeApi, Executor>>,
+		sp_consensus::DefaultImportQueue<Block, TFullClient<Block, RuntimeApi, Executor>>,
 		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
 		(
 			FrontierBlockImport<
 				Block,
-				Arc<FullClient<RuntimeApi, Executor>>,
-				FullClient<RuntimeApi, Executor>,
+				Arc<TFullClient<Block, RuntimeApi, Executor>>,
+				TFullClient<Block, RuntimeApi, Executor>,
 			>,
 			PendingTransactions,
 			Option<FilterPool>,
@@ -292,8 +328,6 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
-	let inherent_data_providers = build_inherent_data_providers(author, dev_service)?;
-
 	let telemetry = config
 		.telemetry_endpoints
 		.clone()
@@ -353,16 +387,18 @@ where
 			config.prometheus_registry(),
 		)
 	} else {
-		// It would be nice if we could just use this one in either case, but
-		// it doesn't properly follow the longest chain rule.
-		// https://github.com/PureStake/moonbeam/pull/266
 		nimbus_consensus::import_queue(
 			client.clone(),
 			frontier_block_import.clone(),
-			inherent_data_providers.clone(),
+			move |_, _| async move {
+				let time = sp_timestamp::InherentDataProvider::from_system_time();
+
+				Ok((time,))
+			},
 			&task_manager.spawn_essential_handle(),
-			config.prometheus_registry(),
-		)?
+			config.prometheus_registry().clone(),
+		)
+		.map_err(Into::into)?
 	};
 
 	Ok(PartialComponents {
@@ -372,7 +408,6 @@ where
 		keystore_container,
 		task_manager,
 		transaction_pool,
-		inherent_data_providers,
 		select_chain: maybe_select_chain,
 		other: (
 			frontier_block_import,
@@ -418,25 +453,32 @@ impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::UncheckedExtrinsic>
 /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
-async fn start_node_impl<RB, RuntimeApi, Executor>(
+async fn start_node_impl<RuntimeApi, Executor, BC>(
 	parachain_config: Configuration,
 	collator_key: CollatorPair,
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
-	collator: bool,
 	ethapi: Vec<EthApiCmd>,
 	rpc_params: RpcParams,
-	_rpc_ext_builder: RB,
-) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
+	build_consensus: BC,
+) -> sc_service::error::Result<(TaskManager, Arc<TFullClient<Block, RuntimeApi, Executor>>)>
 where
-	RB: Fn(Arc<FullClient<RuntimeApi, Executor>>) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
-		+ Send
-		+ 'static,
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi:
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
+	BC: FnOnce(
+		Arc<TFullClient<Block, RuntimeApi, Executor>>,
+		Option<&Registry>,
+		Option<TelemetryHandle>,
+		&TaskManager,
+		&polkadot_service::NewFull<polkadot_service::Client>,
+		Arc<sc_transaction_pool::FullPool<Block, TFullClient<Block, RuntimeApi, Executor>>>,
+		Arc<NetworkService<Block, Hash>>,
+		SyncCryptoStorePtr,
+		bool,
+	) -> Result<Box<dyn ParachainConsensus<Block>>, sc_service::Error>,
 {
 	if matches!(parachain_config.role, Role::Light) {
 		return Err("Light client not supported!".into());
@@ -444,7 +486,7 @@ where
 
 	let parachain_config = prepare_node_config(parachain_config);
 
-	let params = new_partial(&parachain_config, None, false)?;
+	let params = new_partial(&parachain_config, false)?;
 	let (
 		block_import,
 		pending_transactions,
@@ -473,6 +515,7 @@ where
 		polkadot_full_node.backend.clone(),
 	);
 
+	let collator = parachain_config.role.is_authority();
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
 	let transaction_pool = params.transaction_pool.clone();
 	let mut task_manager = params.task_manager;
@@ -636,25 +679,19 @@ where
 	};
 
 	if collator {
-		let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
-			task_manager.spawn_handle(),
+		let parachain_consensus = build_consensus(
 			client.clone(),
-			transaction_pool,
 			prometheus_registry.as_ref(),
-			telemetry.as_ref().map(|x| x.handle()),
-		);
-		let spawner = task_manager.spawn_handle();
+			telemetry.as_ref().map(|t| t.handle()),
+			&task_manager,
+			&polkadot_full_node,
+			transaction_pool,
+			network,
+			params.keystore_container.sync_keystore(),
+			parachain_config.force_authoring,
+		)?;
 
-		let parachain_consensus = build_nimbus_consensus(BuildNimbusConsensusParams {
-			para_id: id,
-			proposer_factory,
-			inherent_data_providers: params.inherent_data_providers,
-			block_import,
-			relay_chain_client: polkadot_full_node.client.clone(),
-			relay_chain_backend: polkadot_full_node.backend.clone(),
-			parachain_client: client.clone(),
-			keystore: params.keystore_container.sync_keystore(),
-		});
+		let spawner = task_manager.spawn_handle();
 
 		let params = StartCollatorParams {
 			para_id: id,
@@ -664,7 +701,6 @@ where
 			task_manager: &mut task_manager,
 			collator_key,
 			spawner,
-			backend,
 			relay_chain_full_node: polkadot_full_node,
 			parachain_consensus,
 		};
@@ -693,10 +729,9 @@ pub async fn start_node<RuntimeApi, Executor>(
 	collator_key: CollatorPair,
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
-	collator: bool,
 	ethapi: Vec<EthApiCmd>,
 	rpc_params: RpcParams,
-) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
+) -> sc_service::error::Result<(TaskManager, Arc<TFullClient<Block, RuntimeApi, Executor>>)>
 where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
@@ -709,10 +744,66 @@ where
 		collator_key,
 		polkadot_config,
 		id,
-		collator,
 		ethapi,
 		rpc_params,
-		|_| Default::default(),
+		|client,
+		 prometheus_registry,
+		 telemetry,
+		 task_manager,
+		 relay_chain_node,
+		 transaction_pool,
+		 _,
+		 keystore,
+		 _| {
+			let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
+				task_manager.spawn_handle(),
+				client.clone(),
+				transaction_pool,
+				prometheus_registry.clone(),
+				telemetry.clone(),
+			);
+
+			let relay_chain_backend = relay_chain_node.backend.clone();
+			let relay_chain_client = relay_chain_node.client.clone();
+
+			Ok(build_nimbus_consensus(BuildNimbusConsensusParams {
+				para_id: id,
+				proposer_factory,
+				block_import: client.clone(),
+				relay_chain_client: relay_chain_node.client.clone(),
+				relay_chain_backend: relay_chain_node.backend.clone(),
+				parachain_client: client.clone(),
+				keystore,
+				create_inherent_data_providers: move |_,
+				                                      (
+					relay_parent,
+					validation_data,
+					author_id,
+				)| {
+					let parachain_inherent =
+								cumulus_primitives_parachain_inherent::ParachainInherentData::create_at_with_client(
+									relay_parent,
+									&relay_chain_client,
+									&*relay_chain_backend,
+									&validation_data,
+									id,
+								);
+					async move {
+						let time = sp_timestamp::InherentDataProvider::from_system_time();
+
+						let parachain_inherent = parachain_inherent.ok_or_else(|| {
+							Box::<dyn std::error::Error + Send + Sync>::from(
+								"Failed to create parachain inherent",
+							)
+						})?;
+
+						let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
+
+						Ok((time, parachain_inherent, author))
+					}
+				},
+			}))
+		},
 	)
 	.await
 }
@@ -722,9 +813,6 @@ where
 pub fn new_dev(
 	config: Configuration,
 	author_id: Option<nimbus_primitives::NimbusId>,
-	// TODO I guess we should use substrate-cli's validator flag for this.
-	// Resolve after https://github.com/paritytech/cumulus/pull/380 is reviewed.
-	collator: bool,
 	sealing: cli_opt::Sealing,
 	ethapi: Vec<EthApiCmd>,
 	rpc_params: RpcParams,
@@ -742,7 +830,6 @@ pub fn new_dev(
 		keystore_container,
 		select_chain: maybe_select_chain,
 		transaction_pool,
-		inherent_data_providers,
 		other:
 			(
 				block_import,
@@ -752,7 +839,7 @@ pub fn new_dev(
 				_telemetry_worker_handle,
 				frontier_backend,
 			),
-	} = new_partial::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(&config, author_id, true)?;
+	} = new_partial::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(&config, true)?;
 
 	let (network, network_status_sinks, system_rpc_tx, network_starter) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
@@ -778,6 +865,7 @@ pub fn new_dev(
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 	let mut command_sink = None;
+	let collator = config.role.is_authority();
 
 	if collator {
 		let env = sc_basic_authorship::ProposerFactory::new(
@@ -838,7 +926,6 @@ pub fn new_dev(
 				commands_stream,
 				select_chain,
 				consensus_data_provider: None,
-				inherent_data_providers,
 			}),
 		);
 	}
