@@ -5,5 +5,5 @@
     "target": "esnext",
     "esModuleInterop": true
   },
-  "files": ["mission-control-bot.ts"]
+  "files": ["main.ts"]
 }
