@@ -10,7 +10,7 @@ describeDevMoonbeam("Existential Deposit", (context) => {
         await createTransfer(
           context.web3,
           "0x1111111111111111111111111111111111111111",
-          GENESIS_ACCOUNT_BALANCE - 21000n,
+          GENESIS_ACCOUNT_BALANCE - 21000n * 1_000_000_000n,
           {
             from: GENESIS_ACCOUNT,
             gas: 21000,

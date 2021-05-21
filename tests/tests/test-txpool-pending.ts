@@ -20,7 +20,7 @@ describeDevMoonbeam("TxPool - Pending Ethereum transaction", (context) => {
     let data = inspect.result.pending[GENESIS_ACCOUNT][context.web3.utils.toHex(0)];
     expect(data).to.not.be.undefined;
     expect(data).to.be.equal(
-      "0x0000000000000000000000000000000000000000: 0 wei + 1048576 gas x 1 wei"
+      "0x0000000000000000000000000000000000000000: 0 wei + 1048576 gas x 1000000000 wei"
     );
   });
 
@@ -44,7 +44,7 @@ describeDevMoonbeam("TxPool - Pending Ethereum transaction", (context) => {
       blockNumber: null,
       from: GENESIS_ACCOUNT.toString(),
       gas: "0x100000",
-      gasPrice: "0x1",
+      gasPrice: "0x3b9aca00",
       nonce: context.web3.utils.toHex(0),
       to: "0x0000000000000000000000000000000000000000",
       value: "0x0",
@@ -77,7 +77,7 @@ describeDevMoonbeam("TxPool - Ethereum Contract Call", (context) => {
 
     expect(data).to.not.be.undefined;
     expect(data).to.be.equal(
-      contractAddress.toString().toLowerCase() + ": 0 wei + 12000000 gas x 1 wei"
+      contractAddress.toString().toLowerCase() + ": 0 wei + 12000000 gas x 1000000000 wei"
     );
   });
 
@@ -89,7 +89,7 @@ describeDevMoonbeam("TxPool - Ethereum Contract Call", (context) => {
       blockNumber: null,
       from: GENESIS_ACCOUNT.toString(),
       gas: "0xb71b00",
-      gasPrice: "0x1",
+      gasPrice: "0x3b9aca00",
       nonce: context.web3.utils.toHex(1),
       to: testContract.options.address.toString().toLowerCase(),
       value: "0x0",
