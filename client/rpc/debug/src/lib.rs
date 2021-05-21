@@ -88,9 +88,7 @@ impl DebugT for Debug {
 				"-------> END {}",
 				rnd,
 			);
-			r.map_err(|err| {
-				internal_err(format!("debug service dropped the channel : {:?}", err))
-			})?
+			r.map_err(|err| internal_err(format!("debug service dropped the channel : {:?}", err)))?
 		}
 		.boxed()
 		.compat()
@@ -148,7 +146,7 @@ where
 										frontier_backend.clone(),
 										transaction_hash,
 										params,
-										rnd
+										rnd,
 									)
 								})
 								.await
@@ -248,16 +246,18 @@ where
 		if let Some(block) = reference_block {
 			let transactions = block.transactions;
 			if let Some(transaction) = transactions.get(index) {
-				
 				log::debug!(
 					target: "debug-test",
 					"-------> START RUNTIME {}",
 					rnd,
 				);
-				let runtime_call = client
-					.runtime_api()
-					.trace_transaction(&parent_block_id, ext, &transaction, trace_type);
-				
+				let runtime_call = client.runtime_api().trace_transaction(
+					&parent_block_id,
+					ext,
+					&transaction,
+					trace_type,
+				);
+
 				log::debug!(
 					target: "debug-test",
 					"-------> END RUNTIME {}",
