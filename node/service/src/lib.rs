@@ -832,6 +832,16 @@ pub fn new_dev(
 	let collator = config.role.is_authority();
 
 	if collator {
+		//TODO Actually even tthe following TODO isn't relevant. I ran into some issues with ownership
+		// in the closure below, so this variabel isn't even used yet.
+		//TODO For now, all dev service nodes use Alith's nimbus id in their author inherent. This could
+		// and perhaps should be made more flexible. Here are some options:
+		// 1. a dedicated `--dev-author-id` flag that only works with the dev service
+		// 2. restore the old --author-id` and also allow it to force a secific key in the parachain context
+		// 3. check the keystore like we do in nimbus. Actually, maybe the keystore-checking could be
+		//    exported as a helper function from nimbus.
+		let author_id = chain_spec::get_from_seed::<NimbusId>("Alice");
+
 		let env = sc_basic_authorship::ProposerFactory::new(
 			task_manager.spawn_handle(),
 			client.clone(),
@@ -890,7 +900,18 @@ pub fn new_dev(
 				commands_stream,
 				select_chain,
 				consensus_data_provider: None,
-				create_inherent_data_providers: |_, _| async { Ok(()) }, // TODO
+				create_inherent_data_providers: move |_, _| async move {
+					let time = sp_timestamp::InherentDataProvider::from_system_time();
+
+					let mocked_parachain = inherents::MockValidationDataInherentDataProvider;
+
+					//TODO I want to use the value from a variable above.
+					let author = nimbus_primitives::InherentDataProvider::<NimbusId>(
+						chain_spec::get_from_seed::<NimbusId>("Alice"),
+					);
+
+					Ok((time, mocked_parachain, author))
+				},
 			}),
 		);
 	}

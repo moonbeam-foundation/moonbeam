@@ -30,6 +30,9 @@ use sp_inherents::{InherentData, InherentDataProvider};
 
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 
+// TODO it would be nice to re-enable this function and use it in both cases from lib.rs
+// It's signature may need to change significantly. For now I've written individual closures in lib.rs
+
 // /// Build the inherent data providers for the node.
 // ///
 // /// Not all nodes will need all inherent data providers:
@@ -75,7 +78,7 @@ use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 ///
 /// This is useful when running a node that is not actually backed by any relay chain.
 /// For example when running a local node, or running integration tests.
-struct MockValidationDataInherentDataProvider;
+pub struct MockValidationDataInherentDataProvider;
 
 #[async_trait::async_trait]
 impl InherentDataProvider for MockValidationDataInherentDataProvider {
