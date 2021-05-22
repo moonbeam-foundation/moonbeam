@@ -168,7 +168,6 @@ pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backen
 	)?))
 }
 
-
 use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
 
@@ -255,39 +254,6 @@ pub fn new_chain_ops(
 		))
 	}
 }
-
-/// Build the import queue that checks timestamp inherents.
-///
-/// There is a seperate one for each runtime because they need different executors
-pub fn moonbase_build_import_queue(
-	client: Arc<TFullClient<Block, moonbase_runtime::RuntimeApi, MoonbaseExecutor>>,
-	config: &Configuration,
-	_: Option<TelemetryHandle>,
-	task_manager: &TaskManager,
-) -> Result<
-	sp_consensus::DefaultImportQueue<
-		Block,
-		TFullClient<Block, moonbase_runtime::RuntimeApi, MoonbaseExecutor>,
-	>,
-	sc_service::Error,
-> {
-	nimbus_consensus::import_queue(
-		client.clone(),
-		client,
-		move |_, _| async move {
-			let time = sp_timestamp::InherentDataProvider::from_system_time();
-
-			Ok((time,))
-		},
-		&task_manager.spawn_essential_handle(),
-		config.prometheus_registry().clone(),
-	)
-	.map_err(Into::into)
-}
-
-//TODO moonbeam_build_import_queue
-//TODO moonshadow_build_import_queue
-//TODO moonriver_build_import_queue
 
 /// Builds the PartialComponents for a parachain or development service
 ///
