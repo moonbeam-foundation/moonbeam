@@ -39,9 +39,9 @@ use sp_runtime::{DispatchError, Perbill};
 fn run_to_block(n: u32) {
 	while System::block_number() < n {
 		AuthorInherent::on_finalize(System::block_number());
-		ParachainStaking::on_finalize(System::block_number());
 		System::set_block_number(System::block_number() + 1);
 		AuthorInherent::on_initialize(System::block_number());
+		ParachainStaking::on_initialize(System::block_number());
 	}
 }
 
@@ -238,13 +238,18 @@ fn join_collator_candidates() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::join_candidates(origin_of(AccountId::from(ALICE)), 1_000 * GLMR,),
+				ParachainStaking::join_candidates(
+					origin_of(AccountId::from(ALICE)),
+					1_000 * GLMR,
+					2u32,
+				),
 				parachain_staking::Error::<Runtime>::CandidateExists
 			);
 			assert_noop!(
 				ParachainStaking::join_candidates(
 					origin_of(AccountId::from(CHARLIE)),
-					1_000 * GLMR
+					1_000 * GLMR,
+					2u32,
 				),
 				parachain_staking::Error::<Runtime>::NominatorExists
 			);
@@ -252,6 +257,7 @@ fn join_collator_candidates() {
 			assert_ok!(ParachainStaking::join_candidates(
 				origin_of(AccountId::from(DAVE)),
 				1_000 * GLMR,
+				2u32,
 			));
 			assert_eq!(
 				last_event(),
@@ -297,6 +303,7 @@ fn transfer_through_evm_to_stake() {
 				ParachainStaking::join_candidates(
 					origin_of(AccountId::from(CHARLIE)),
 					1_000 * GLMR,
+					0u32,
 				),
 				DispatchError::Module {
 					index: 3,
@@ -308,6 +315,7 @@ fn transfer_through_evm_to_stake() {
 			assert_ok!(ParachainStaking::join_candidates(
 				origin_of(AccountId::from(ALICE)),
 				1_000 * GLMR,
+				0u32,
 			));
 			// Alice transfer from free balance 1000 GLMR to Bob
 			assert_ok!(Balances::transfer(
@@ -337,6 +345,7 @@ fn transfer_through_evm_to_stake() {
 			assert_ok!(ParachainStaking::join_candidates(
 				origin_of(AccountId::from(CHARLIE)),
 				1_000 * GLMR,
+				1u32,
 			),);
 			let candidates = ParachainStaking::candidate_pool();
 			assert_eq!(
@@ -372,7 +381,7 @@ fn reward_block_authors() {
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			for x in 2..1201 {
+			for x in 2..1199 {
 				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 				run_to_block(x);
 			}
@@ -380,7 +389,7 @@ fn reward_block_authors() {
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * GLMR,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * GLMR,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(1201);
+			run_to_block(1200);
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -502,11 +511,13 @@ fn join_candidates_via_precompile() {
 			let gas_limit = 100000u64;
 			let gas_price: U256 = 1_000_000_000.into();
 			let amount: U256 = (1000 * GLMR).into();
+			let candidate_count: U256 = U256::zero();
 
 			// Construct the call data (selector, amount)
-			let mut call_data = Vec::<u8>::from([0u8; 36]);
+			let mut call_data = Vec::<u8>::from([0u8; 68]);
 			call_data[0..4].copy_from_slice(&hex_literal::hex!("ad76ed5a"));
 			amount.to_big_endian(&mut call_data[4..36]);
+			candidate_count.to_big_endian(&mut call_data[36..]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(ALICE),
@@ -559,11 +570,15 @@ fn leave_candidates_via_precompile() {
 
 			// Alice uses the staking precompile to leave_candidates
 			let gas_limit = 100000u64;
+			let collator_count: U256 = U256::one();
+			let nominator_count: U256 = U256::zero();
 			let gas_price: U256 = 1_000_000_000.into();
 
 			// Construct the leave_candidates call data
-			let mut call_data = Vec::<u8>::from([0u8; 4]);
+			let mut call_data = Vec::<u8>::from([0u8; 68]);
 			call_data[0..4].copy_from_slice(&hex_literal::hex!("b7694219"));
+			collator_count.to_big_endian(&mut call_data[4..36]);
+			nominator_count.to_big_endian(&mut call_data[36..]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(ALICE),
@@ -800,12 +815,16 @@ fn nominate_via_precompile() {
 			let gas_limit = 100000u64;
 			let gas_price: U256 = 1_000_000_000.into();
 			let nomination_amount: U256 = (1000 * GLMR).into();
+			let collator_nominator_count: U256 = U256::zero();
+			let nomination_count: U256 = U256::zero();
 
 			// Construct the call data (selector, collator, nomination amount)
-			let mut call_data = Vec::<u8>::from([0u8; 68]);
+			let mut call_data = Vec::<u8>::from([0u8; 132]);
 			call_data[0..4].copy_from_slice(&hex_literal::hex!("82f2c8df"));
 			call_data[16..36].copy_from_slice(&ALICE);
 			nomination_amount.to_big_endian(&mut call_data[36..68]);
+			collator_nominator_count.to_big_endian(&mut call_data[68..100]);
+			nomination_count.to_big_endian(&mut call_data[100..]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(BOB),
@@ -872,11 +891,13 @@ fn leave_nominators_via_precompile() {
 
 			// Charlie uses staking precompile to leave nominator set
 			let gas_limit = 100000u64;
+			let nomination_count: U256 = 2.into();
 			let gas_price: U256 = 1_000_000_000.into();
 
 			// Construct leave_nominators call
-			let mut call_data = Vec::<u8>::from([0u8; 4]);
+			let mut call_data = Vec::<u8>::from([0u8; 36]);
 			call_data[0..4].copy_from_slice(&hex_literal::hex!("e8d68a37"));
+			nomination_count.to_big_endian(&mut call_data[4..]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(CHARLIE),

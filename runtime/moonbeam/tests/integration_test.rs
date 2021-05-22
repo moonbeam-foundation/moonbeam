@@ -39,9 +39,9 @@ use sp_runtime::{DispatchError, Perbill};
 fn run_to_block(n: u32) {
 	while System::block_number() < n {
 		AuthorInherent::on_finalize(System::block_number());
-		ParachainStaking::on_finalize(System::block_number());
 		System::set_block_number(System::block_number() + 1);
 		AuthorInherent::on_initialize(System::block_number());
+		ParachainStaking::on_initialize(System::block_number());
 	}
 }
 
@@ -381,7 +381,7 @@ fn reward_block_authors() {
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			for x in 2..1201 {
+			for x in 2..1199 {
 				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 				run_to_block(x);
 			}
@@ -389,7 +389,7 @@ fn reward_block_authors() {
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * GLMR,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * GLMR,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(1201);
+			run_to_block(1200);
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
