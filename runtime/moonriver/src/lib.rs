@@ -31,8 +31,9 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Filter, Get, Randomness},
+	traits::{Filter, Get, Imbalance, InstanceFilter, OnUnbalanced, Randomness},
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
+	PalletId,
 };
 use frame_system::{EnsureOneOf, EnsureRoot};
 pub use moonbeam_core_primitives::{
@@ -40,6 +41,7 @@ pub use moonbeam_core_primitives::{
 	Signature,
 };
 use moonbeam_extensions_evm::runner::stack::TraceRunner as TraceRunnerT;
+use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{Transaction as EthereumTransaction, TransactionAction};
 use pallet_evm::{
@@ -56,7 +58,7 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentityLookup},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	AccountId32, ApplyExtrinsicResult, Perbill,
+	AccountId32, ApplyExtrinsicResult, Perbill, Permill,
 };
 use sp_std::{convert::TryFrom, prelude::*};
 #[cfg(feature = "std")]
@@ -67,6 +69,20 @@ use nimbus_primitives::{CanAuthor, NimbusId};
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
+
+/// MOVR, the native token, uses 18 decimals of precision.
+pub mod currency {
+	use super::Balance;
+
+	pub const MOVR: Balance = 1_000_000_000_000_000_000;
+	pub const CENTS: Balance = MOVR / 100;
+	pub const GRAND: Balance = MOVR * 1_000;
+	pub const MILLICENTS: Balance = CENTS / 1_000;
+
+	pub const fn deposit(items: u32, bytes: u32) -> Balance {
+		items as Balance * 100 * CENTS + (bytes as Balance) * 10 * MILLICENTS
+	}
+}
 
 /// Maximum weight per block
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
@@ -98,7 +114,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 37,
+	spec_version: 38,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -217,6 +233,24 @@ impl pallet_balances::Config for Runtime {
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
+}
+
+pub struct DealWithFees<R>(sp_std::marker::PhantomData<R>);
+impl<R> OnUnbalanced<NegativeImbalance<R>> for DealWithFees<R>
+where
+	R: pallet_balances::Config + pallet_treasury::Config<pallet_treasury::Instance1>,
+	pallet_treasury::Module<R, pallet_treasury::Instance1>: OnUnbalanced<NegativeImbalance<R>>,
+{
+	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
+		if let Some(fees) = fees_then_tips.next() {
+			// for fees, 80% are burned, 20% to the treasury
+			let (_, to_treasury) = fees.ration(80, 20);
+			// Balances module automatically burns dropped Negative Imbalances by decreasing
+			// total_supply accordingly
+			<pallet_treasury::Module<R, pallet_treasury::Instance1> as OnUnbalanced<_>>
+				::on_unbalanced(to_treasury);
+		}
+	}
 }
 
 parameter_types! {
@@ -343,18 +377,16 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 	type WeightInfo = (); // TODO : Better Weight Info ?
 }
 
-const BLOCKS_PER_DAY: BlockNumber = 24 * 60 * 10;
-
 parameter_types! {
-	pub const LaunchPeriod: BlockNumber = BLOCKS_PER_DAY;
-	pub const VotingPeriod: BlockNumber = 5 * BLOCKS_PER_DAY;
-	pub const FastTrackVotingPeriod: BlockNumber = BLOCKS_PER_DAY;
-	pub const EnactmentPeriod: BlockNumber = BLOCKS_PER_DAY;
-	pub const CooloffPeriod: BlockNumber = 7 * BLOCKS_PER_DAY;
-	pub const MinimumDeposit: Balance = 4 * GLMR;
+	pub const LaunchPeriod: BlockNumber = 1 * DAYS;
+	pub const VotingPeriod: BlockNumber = 5 * DAYS;
+	pub const FastTrackVotingPeriod: BlockNumber = 1 * DAYS;
+	pub const EnactmentPeriod: BlockNumber = 1 *DAYS;
+	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
+	pub const MinimumDeposit: Balance = 4 * currency::MOVR;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
-	pub const PreimageByteDeposit: Balance = GLMR / 1_000;
+	pub const PreimageByteDeposit: Balance = currency::MOVR / 1_000;
 	pub const InstantAllowed: bool = false;
 }
 
@@ -414,6 +446,56 @@ impl pallet_democracy::Config for Runtime {
 	type MaxProposals = MaxProposals;
 }
 
+parameter_types! {
+	pub const ProposalBond: Permill = Permill::from_percent(5);
+	pub const ProposalBondMinimum: Balance = 1 * currency::MOVR;
+	pub const SpendPeriod: BlockNumber = 6 * DAYS;
+	pub const CommunityTreasuryId: PalletId = PalletId(*b"pc/trsry");
+	pub const ParachainBondPalletId: PalletId = PalletId(*b"pb/trsry");
+	//pub const MaxApprovals: u32 = 100; // will be needed for upcoming version
+}
+
+type CommunityTreasuryInstance = pallet_treasury::Instance1;
+type ParachainBondTreasuryInstance = pallet_treasury::Instance2;
+
+impl pallet_treasury::Config<CommunityTreasuryInstance> for Runtime {
+	type PalletId = CommunityTreasuryId;
+	type Currency = Balances;
+	// Democracy dispatches Root
+	type ApproveOrigin = EnsureRoot<AccountId>;
+	// Democracy dispatches Root
+	type RejectOrigin = EnsureRoot<AccountId>;
+	type Event = Event;
+	// If spending proposal rejected, transfer proposer bond to treasury
+	type OnSlash = CommunityTreasury;
+	type ProposalBond = ProposalBond;
+	type ProposalBondMinimum = ProposalBondMinimum;
+	type SpendPeriod = SpendPeriod;
+	type Burn = ();
+	type BurnDestination = ();
+	// type MaxApprovals = MaxApprovals; // will be needed for upcoming version
+	type WeightInfo = ();
+	type SpendFunds = ();
+}
+
+impl pallet_treasury::Config<ParachainBondTreasuryInstance> for Runtime {
+	type PalletId = ParachainBondPalletId;
+	type Currency = Balances;
+	type ApproveOrigin = EnsureRoot<AccountId>;
+	type RejectOrigin = EnsureRoot<AccountId>;
+	type Event = Event;
+	// If spending proposal rejected, transfer proposer bond to treasury
+	type OnSlash = ParachainBondTreasury;
+	type ProposalBond = ProposalBond;
+	type ProposalBondMinimum = ProposalBondMinimum;
+	type SpendPeriod = SpendPeriod;
+	type Burn = ();
+	type BurnDestination = ();
+	// type MaxApprovals = MaxApprovals; // will be needed for upcoming version
+	type WeightInfo = ();
+	type SpendFunds = ();
+}
+
 pub struct TransactionConverter;
 
 impl fp_rpc::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
@@ -460,9 +542,6 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 
 impl parachain_info::Config for Runtime {}
 
-/// GLMR, the native token, uses 18 decimals of precision.
-pub const GLMR: Balance = 1_000_000_000_000_000_000;
-
 parameter_types! {
 	/// Maximum active collator candidates
 	pub const DefaultMaxCollatorCandidates: u32 = 300;
@@ -481,9 +560,9 @@ parameter_types! {
 	/// The fixed percent a collator takes off the top of due rewards is 20%
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
 	/// Minimum stake required to be reserved to be a collator is 1_000
-	pub const MinCollatorStk: u128 = 1_000 * GLMR;
+	pub const MinCollatorStk: u128 = 1_000 * currency::MOVR;
 	/// Minimum stake required to be reserved to be a nominator is 5
-	pub const MinNominatorStk: u128 = 5 * GLMR;
+	pub const MinNominatorStk: u128 = 5 * currency::MOVR;
 }
 impl parachain_staking::Config for Runtime {
 	type Event = Event;
@@ -545,6 +624,96 @@ impl pallet_author_mapping::Config for Runtime {
 	type AuthorId = NimbusId;
 }
 
+parameter_types! {
+	// One storage item; key size 32, value size 8; .
+	pub const ProxyDepositBase: Balance = currency::deposit(1, 8);
+	// Additional storage item size of 33 bytes.
+	pub const ProxyDepositFactor: Balance = currency::deposit(0, 33);
+	pub const MaxProxies: u16 = 32;
+	pub const AnnouncementDepositBase: Balance = currency::deposit(1, 8);
+	pub const AnnouncementDepositFactor: Balance = currency::deposit(0, 66);
+	pub const MaxPending: u16 = 32;
+}
+
+/// The type used to represent the kinds of proxying allowed.
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug)]
+pub enum ProxyType {
+	/// All calls can be proxied. This is the trivial/most permissive filter.
+	Any,
+	/// Only extrinsics that do not transfer funds.
+	NonTransfer,
+	/// Only extrinsics related to governance (democracy and collectives).
+	Governance,
+	/// Only extrinsics related to staking.
+	Staking,
+	/// Allow to veto an announced proxy call.
+	CancelProxy,
+}
+
+impl Default for ProxyType {
+	fn default() -> Self {
+		Self::Any
+	}
+}
+
+impl InstanceFilter<Call> for ProxyType {
+	fn filter(&self, c: &Call) -> bool {
+		match self {
+			ProxyType::Any => true,
+			ProxyType::NonTransfer => matches!(
+				c,
+				Call::System(..) |
+				Call::Timestamp(..) |
+				Call::ParachainStaking(..) |
+				// Call::Session(..) |
+				Call::Democracy(..) |
+				Call::CouncilCollective(..) |
+				Call::TechComitteeCollective(..) |
+				// Call::Treasury(..) |
+				Call::Utility(..) |
+				Call::Scheduler(..) |
+				Call::Proxy(..)
+			),
+			ProxyType::Governance => matches!(
+				c,
+				Call::Democracy(..)
+					| Call::CouncilCollective(..)
+					| Call::TechComitteeCollective(..)
+					// | Call::Treasury(..) 
+					| Call::Utility(..)
+			),
+			ProxyType::Staking => matches!(c, Call::ParachainStaking(..) | Call::Utility(..)),
+			ProxyType::CancelProxy => {
+				matches!(c, Call::Proxy(pallet_proxy::Call::reject_announcement(..)))
+			}
+		}
+	}
+
+	fn is_superset(&self, o: &Self) -> bool {
+		match (self, o) {
+			(x, y) if x == y => true,
+			(ProxyType::Any, _) => true,
+			(_, ProxyType::Any) => false,
+			_ => false,
+		}
+	}
+}
+
+impl pallet_proxy::Config for Runtime {
+	type Event = Event;
+	type Call = Call;
+	type Currency = Balances;
+	type ProxyType = ProxyType;
+	type ProxyDepositBase = ProxyDepositBase;
+	type ProxyDepositFactor = ProxyDepositFactor;
+	type MaxProxies = MaxProxies;
+	type WeightInfo = ();
+	type MaxPending = MaxPending;
+	type CallHasher = BlakeTwo256;
+	type AnnouncementDepositBase = AnnouncementDepositBase;
+	type AnnouncementDepositFactor = AnnouncementDepositFactor;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -570,12 +739,16 @@ construct_runtime! {
 			pallet_collective::<Instance1>::{Pallet, Call, Event<T>, Origin<T>, Config<T>},
 		TechComitteeCollective:
 			pallet_collective::<Instance2>::{Pallet, Call, Event<T>, Origin<T>, Config<T>},
+		CommunityTreasury: pallet_treasury::<Instance1>::{Pallet, Storage, Config, Event<T>, Call},
+		ParachainBondTreasury:
+			pallet_treasury::<Instance2>::{Pallet, Storage, Config, Event<T>, Call},
 		// The order matters here. Inherents will be included in the order specified here.
 		// Concretely we need the author inherent to come after the parachain_system inherent.
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent},
 		AuthorFilter: pallet_author_slot_filter::{Pallet, Storage, Event, Config},
 		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>},
 		AuthorMapping: pallet_author_mapping::{Pallet, Config<T>, Storage},
+		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
 	}
 }
 

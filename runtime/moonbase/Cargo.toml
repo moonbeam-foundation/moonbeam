@@ -44,6 +44,7 @@ frame-system = { git = "https://github.com/paritytech/substrate", default-featur
 pallet-balances = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-randomness-collective-flip = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-timestamp = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+pallet-treasury = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-sudo = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 
@@ -59,6 +60,7 @@ pallet-democracy = { git = "https://github.com/paritytech/substrate", default-fe
 pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-collective = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 pallet-society = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+pallet-proxy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
 
 pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false, branch = "main" }
 
@@ -106,6 +108,7 @@ std = [
 	"pallet-balances/std",
 	"pallet-randomness-collective-flip/std",
 	"pallet-timestamp/std",
+	"pallet-treasury/std",
 	"pallet-sudo/std",
 	"pallet-transaction-payment/std",
 	"pallet-utility/std",
@@ -132,6 +135,7 @@ std = [
 	"pallet-crowdloan-rewards/std",
 	"frame-benchmarking/std",
 	"pallet-society/std",
+	"pallet-proxy/std",
 	"nimbus-primitives/std",
 	"pallet-author-mapping/std",
 ]

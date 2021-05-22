@@ -125,7 +125,9 @@
             "0x623c9e50647a049f92090fe55e22cc0509872fb6"
           ]
         ]
-      }
+      },
+      "palletTreasuryInstance1": {},
+      "palletTreasuryInstance2": {}
     }
   }
 }

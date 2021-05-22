@@ -26,8 +26,8 @@ use frame_support::{
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
 use moonbeam_runtime::{
-	AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Event, InflationInfo,
-	ParachainStaking, Range, Runtime, System, GLMR,
+	currency::GLMR, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Event,
+	InflationInfo, ParachainStaking, Range, Runtime, System,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -463,7 +463,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			let expected_fail = Event::pallet_utility(pallet_utility::Event::BatchInterrupted(
 				0,
 				DispatchError::Module {
-					index: 19,
+					index: 21,
 					error: 7,
 					message: None,
 				},
@@ -483,13 +483,13 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE))
 					.unwrap()
 					.claimed_reward,
-				300005555555555555555555
+				300005952380952380952380
 			);
 			assert_eq!(
 				CrowdloanRewards::accounts_payable(&AccountId::from(DAVE))
 					.unwrap()
 					.claimed_reward,
-				300005555555555555555555
+				300005952380952380952380
 			);
 
 			assert_noop!(

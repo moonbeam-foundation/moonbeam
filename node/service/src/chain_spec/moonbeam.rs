@@ -25,11 +25,11 @@ use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
 use evm::GenesisAccount;
 use moonbeam_runtime::{
-	AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
+	currency::GLMR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig,
 	ParachainStakingConfig, Range, SchedulerConfig, SudoConfig, SystemConfig,
-	TechComitteeCollectiveConfig, GLMR, WASM_BINARY,
+	TechComitteeCollectiveConfig, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
@@ -90,7 +90,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		// or not. We should decide the proper strings, and update Apps accordingly.
 		// Or maybe Apps can be smart enough to say if the string contains "moonbeam" at all...
 		"Moonbase Development Testnet",
-		"local_testnet",
+		"moonbeam_local",
 		ChainType::Local,
 		move || {
 			testnet_genesis(
@@ -238,6 +238,8 @@ pub fn testnet_genesis(
 				})
 				.collect(),
 		},
+		pallet_treasury_Instance1: Default::default(),
+		pallet_treasury_Instance2: Default::default(),
 	}
 }
 
