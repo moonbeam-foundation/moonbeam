@@ -348,6 +348,7 @@ pub mod pallet {
 		}
 		/// Check if the round should be updated
 		pub fn should_update(&self, now: B) -> bool {
+			// TODO: patch edge case wherein now = 0 and self.first = 1
 			now - self.first >= self.length.into()
 		}
 		/// New round
@@ -538,7 +539,8 @@ pub mod pallet {
 				// execute all delayed collator exits
 				Self::execute_delayed_collator_exits(round.current);
 				// select top collator candidates for next round
-				let (collator_count, total_staked) = Self::select_top_candidates(round.current);
+				let (collator_count, nomination_count, total_staked) =
+					Self::select_top_candidates(round.current);
 				// start next round
 				<Round<T>>::put(round);
 				// snapshot total stake
@@ -549,8 +551,7 @@ pub mod pallet {
 					collator_count,
 					total_staked,
 				));
-				// TODO: return nomination_count as well from select_top_candidates
-				(collator_count, 0u32)
+				(collator_count, nomination_count)
 			} else {
 				(0u32, 0u32)
 			};
@@ -739,7 +740,7 @@ pub mod pallet {
 			// Set total selected candidates to minimum config
 			<TotalSelected<T>>::put(T::MinSelectedCandidates::get());
 			// Choose top TotalSelected collator candidates
-			let (v_count, total_staked) = <Pallet<T>>::select_top_candidates(1u32);
+			let (v_count, _, total_staked) = <Pallet<T>>::select_top_candidates(1u32);
 			// Start Round 1 at Block 0
 			let round: RoundInfo<T::BlockNumber> =
 				RoundInfo::new(1u32, 0u32.into(), T::DefaultBlocksPerRound::get());
@@ -1480,8 +1481,10 @@ pub mod pallet {
 			<ExitQueue<T>>::put(OrderedSet::from(remain_exits));
 		}
 		/// Best as in most cumulatively supported in terms of stake
-		fn select_top_candidates(next: RoundIndex) -> (u32, BalanceOf<T>) {
-			let (mut all_collators, mut total) = (0u32, BalanceOf::<T>::zero());
+		/// Returns [collator_count, nomination_count, total staked]
+		fn select_top_candidates(next: RoundIndex) -> (u32, u32, BalanceOf<T>) {
+			let (mut collator_count, mut nomination_count, mut total) =
+				(0u32, 0u32, BalanceOf::<T>::zero());
 			let mut candidates = <CandidatePool<T>>::get().0;
 			// order candidates by stake (least to greatest so requires `rev()`)
 			candidates.sort_unstable_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
@@ -1498,17 +1501,18 @@ pub mod pallet {
 			for account in collators.iter() {
 				let state = <CollatorState<T>>::get(&account)
 					.expect("all members of CandidateQ must be candidates");
+				collator_count += 1u32;
+				nomination_count += state.nominators.0.len() as u32;
 				let amount = state.total;
+				total += amount;
 				let exposure: CollatorSnapshot<T::AccountId, BalanceOf<T>> = state.into();
 				<AtStake<T>>::insert(next, account, exposure);
-				all_collators += 1u32;
-				total += amount;
 				Self::deposit_event(Event::CollatorChosen(next, account.clone(), amount));
 			}
 			collators.sort();
 			// insert canonical collator set
 			<SelectedCandidates<T>>::put(collators);
-			(all_collators, total)
+			(collator_count, nomination_count, total)
 		}
 	}
 

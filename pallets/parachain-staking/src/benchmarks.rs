@@ -19,7 +19,7 @@
 //! Benchmarking
 use crate::{BalanceOf, Call, Config, Pallet, Range};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
-use frame_support::traits::{Currency, Get, OnInitialize, ReservableCurrency};
+use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize, ReservableCurrency};
 use frame_system::RawOrigin;
 use nimbus_primitives::EventHandler;
 use sp_runtime::Perbill;
@@ -482,6 +482,11 @@ benchmarks! {
 		)?;
 		//collator_count += 1u32; // uncomment if collator_count is ever used again
 		collators.push(collator.clone());
+		// // create vector for collator balances now, before any rewards
+		// let mut balances: Vec<BalanceOf<T>> = Vec::new();
+		// for col in collators.clone() {
+		// 	balances.push(T::Currency::free_balance(&col));
+		// }
 		// Initialize nominator set
 		let mut collator_nomination_count: BTreeMap<T::AccountId, u32> = BTreeMap::new();
 		let mut nominators: Vec<T::AccountId> = Vec::new();
@@ -538,24 +543,32 @@ benchmarks! {
 				}
 			}
 		}
-		// Mock set author for the first round
-		let current_round = Pallet::<T>::round().current;
-		let mut start = Pallet::<T>::round().first;
+		// Verify reward payout to author
+		let before_running_round_index = Pallet::<T>::round().current;
 		let round_length: T::BlockNumber = Pallet::<T>::round().length.into();
-		let reward_delay = <<T as Config>::BondDuration as Get<u32>>::get();
-		let end = start + (round_length * reward_delay.into());
-		let mut count = 0usize;
-		while start < end {
-			let mock_author = collators[count % collators.len()].clone();
-			Pallet::<T>::note_author(mock_author);
-			Pallet::<T>::on_initialize(start);
-			start += 1u32.into();
-			count += 1usize;
+		let reward_delay = <<T as Config>::BondDuration as Get<u32>>::get() + 1u32;
+		let mut now = <frame_system::Pallet<T>>::block_number();
+		let end = Pallet::<T>::round().first + (round_length * reward_delay.into());
+		let mock_author = collators[collators.len()-1usize].clone();
+		//println!("START AUTHORING: {}", now);
+		while now < end {
+			Pallet::<T>::note_author(mock_author.clone());
+			//<pallet_balances::Pallet<T>>::on_finalize(start);
+			<frame_system::Pallet<T>>::on_finalize(<frame_system::Pallet<T>>::block_number());
+			<frame_system::Pallet<T>>::set_block_number(
+				<frame_system::Pallet<T>>::block_number() + 1u32.into()
+			);
+			<frame_system::Pallet<T>>::on_initialize(<frame_system::Pallet<T>>::block_number());
+			//<pallet_balances::Pallet<T>>::on_initialize(start);
+			Pallet::<T>::on_initialize(<frame_system::Pallet<T>>::block_number());
+			now += 1u32.into();
 		}
+		//println!("END AUTHORING: {}", end);
 	}: { Pallet::<T>::on_initialize(end); }
 	verify {
 		// TODO: ensure that the authors have been paid
-		assert_eq!(Pallet::<T>::round().current, current_round + 2u32);
+		//assert!(T::Currency::free_balance(&mock_author) != balances[collators.len()-1usize]);
+		assert_eq!(Pallet::<T>::round().current, before_running_round_index + reward_delay);
 	}
 }
 
