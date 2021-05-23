@@ -711,14 +711,14 @@ where
 		ethapi,
 		rpc_params,
 		|client,
-		 prometheus_registry,
-		 telemetry,
-		 task_manager,
-		 relay_chain_node,
-		 transaction_pool,
-		 _,
-		 keystore,
-		 _| {
+			prometheus_registry,
+			telemetry,
+			task_manager,
+			relay_chain_node,
+			transaction_pool,
+			_,
+			keystore,
+			_| {
 			let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
 				task_manager.spawn_handle(),
 				client.clone(),
@@ -739,7 +739,7 @@ where
 				parachain_client: client.clone(),
 				keystore,
 				create_inherent_data_providers: move |_,
-				                                      (
+				(
 					relay_parent,
 					validation_data,
 					author_id,
@@ -833,14 +833,16 @@ pub fn new_dev(
 	let collator = config.role.is_authority();
 
 	if collator {
-		//TODO Actually even tthe following TODO isn't relevant. I ran into some issues with ownership
-		// in the closure below, so this variabel isn't even used yet.
-		//TODO For now, all dev service nodes use Alith's nimbus id in their author inherent. This could
-		// and perhaps should be made more flexible. Here are some options:
+		//TODO Actually even tthe following TODO isn't relevant. 
+		// I ran into some issues with ownership in the closure below, 
+		// so this variabel isn't even used yet.
+		//TODO For now, all dev service nodes use Alith's nimbus id in their author inherent. 
+		// This could and perhaps should be made more flexible. Here are some options:
 		// 1. a dedicated `--dev-author-id` flag that only works with the dev service
-		// 2. restore the old --author-id` and also allow it to force a secific key in the parachain context
-		// 3. check the keystore like we do in nimbus. Actually, maybe the keystore-checking could be
-		//    exported as a helper function from nimbus.
+		// 2. restore the old --author-id` and also allow it to force a secific key
+		//    in the parachain context
+		// 3. check the keystore like we do in nimbus. Actually, maybe the keystore-checking could 
+		//    be exported as a helper function from nimbus.
 		let author_id = chain_spec::get_from_seed::<NimbusId>("Alice");
 
 		let env = sc_basic_authorship::ProposerFactory::new(
