@@ -31,7 +31,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Filter, Get, Imbalance, InstanceFilter, OnUnbalanced, Randomness},
+	traits::{Filter, Get, Imbalance, InstanceFilter, OnUnbalanced},
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 	PalletId,
 };
@@ -452,7 +452,7 @@ parameter_types! {
 	pub const SpendPeriod: BlockNumber = 6 * DAYS;
 	pub const CommunityTreasuryId: PalletId = PalletId(*b"pc/trsry");
 	pub const ParachainBondPalletId: PalletId = PalletId(*b"pb/trsry");
-	//pub const MaxApprovals: u32 = 100; // will be needed for upcoming version
+	pub const MaxApprovals: u32 = 100;
 }
 
 type CommunityTreasuryInstance = pallet_treasury::Instance1;
@@ -473,7 +473,7 @@ impl pallet_treasury::Config<CommunityTreasuryInstance> for Runtime {
 	type SpendPeriod = SpendPeriod;
 	type Burn = ();
 	type BurnDestination = ();
-	// type MaxApprovals = MaxApprovals; // will be needed for upcoming version
+	type MaxApprovals = MaxApprovals;
 	type WeightInfo = ();
 	type SpendFunds = ();
 }
@@ -491,7 +491,7 @@ impl pallet_treasury::Config<ParachainBondTreasuryInstance> for Runtime {
 	type SpendPeriod = SpendPeriod;
 	type Burn = ();
 	type BurnDestination = ();
-	// type MaxApprovals = MaxApprovals; // will be needed for upcoming version
+	type MaxApprovals = MaxApprovals;
 	type WeightInfo = ();
 	type SpendFunds = ();
 }
