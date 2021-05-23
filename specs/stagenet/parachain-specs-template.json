@@ -82,7 +82,7 @@
           ]
         ]
       },
-      "palletScheduler": {},
+      "palletScheduler": null,
       "palletDemocracy": {},
       "palletCollectiveInstance1": {
         "phantom": null,
