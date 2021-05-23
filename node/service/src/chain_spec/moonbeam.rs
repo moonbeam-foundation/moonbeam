@@ -52,7 +52,7 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 	// We add Gerald here
 	accounts.push(AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap());
 	ChainSpec::from_genesis(
-		"Moonbase Development Testnet",
+		"Moonbeam Development Testnet",
 		"moonbeam_dev",
 		ChainType::Development,
 		move || {
@@ -89,7 +89,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		// TODO Apps depends on this string to determine whether the chain is an ethereum compat
 		// or not. We should decide the proper strings, and update Apps accordingly.
 		// Or maybe Apps can be smart enough to say if the string contains "moonbeam" at all...
-		"Moonbase Development Testnet",
+		"Moonbeam Local Testnet",
 		"moonbeam_local",
 		ChainType::Local,
 		move || {
