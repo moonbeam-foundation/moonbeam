@@ -544,14 +544,7 @@ pub fn run() -> Result<()> {
 					service::start_node::<
 						service::moonbeam_runtime::RuntimeApi,
 						service::MoonbeamExecutor,
-					>(
-						config,
-						key,
-						polkadot_config,
-						id,
-						cli.run.ethapi,
-						rpc_params,
-					)
+					>(config, key, polkadot_config, id, cli.run.ethapi, rpc_params)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into)
@@ -559,14 +552,7 @@ pub fn run() -> Result<()> {
 					service::start_node::<
 						service::moonriver_runtime::RuntimeApi,
 						service::MoonriverExecutor,
-					>(
-						config,
-						key,
-						polkadot_config,
-						id,
-						cli.run.ethapi,
-						rpc_params,
-					)
+					>(config, key, polkadot_config, id, cli.run.ethapi, rpc_params)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into)
@@ -574,14 +560,7 @@ pub fn run() -> Result<()> {
 					service::start_node::<
 						service::moonshadow_runtime::RuntimeApi,
 						service::MoonshadowExecutor,
-					>(
-						config,
-						key,
-						polkadot_config,
-						id,
-						cli.run.ethapi,
-						rpc_params,
-					)
+					>(config, key, polkadot_config, id, cli.run.ethapi, rpc_params)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into)
@@ -589,14 +568,7 @@ pub fn run() -> Result<()> {
 					service::start_node::<
 						service::moonbase_runtime::RuntimeApi,
 						service::MoonbaseExecutor,
-					>(
-						config,
-						key,
-						polkadot_config,
-						id,
-						cli.run.ethapi,
-						rpc_params,
-					)
+					>(config, key, polkadot_config, id, cli.run.ethapi, rpc_params)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into)

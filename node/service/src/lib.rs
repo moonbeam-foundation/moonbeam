@@ -168,7 +168,6 @@ pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backen
 	)?))
 }
 
-
 use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
 
