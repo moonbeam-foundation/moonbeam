@@ -416,14 +416,13 @@ impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::UncheckedExtrinsic>
 /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
-async fn start_node_impl<RuntimeApi, Executor, BC>(
+async fn start_node_impl<RuntimeApi, Executor>(
 	parachain_config: Configuration,
 	collator_key: CollatorPair,
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	ethapi: Vec<EthApiCmd>,
 	rpc_params: RpcParams,
-	build_consensus: BC,
 ) -> sc_service::error::Result<(TaskManager, Arc<TFullClient<Block, RuntimeApi, Executor>>)>
 where
 	RuntimeApi:
@@ -431,17 +430,6 @@ where
 	RuntimeApi::RuntimeApi:
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
-	BC: FnOnce(
-		Arc<TFullClient<Block, RuntimeApi, Executor>>,
-		Option<&Registry>,
-		Option<TelemetryHandle>,
-		&TaskManager,
-		&polkadot_service::NewFull<polkadot_service::Client>,
-		Arc<sc_transaction_pool::FullPool<Block, TFullClient<Block, RuntimeApi, Executor>>>,
-		Arc<NetworkService<Block, Hash>>,
-		SyncCryptoStorePtr,
-		bool,
-	) -> Result<Box<dyn ParachainConsensus<Block>>, sc_service::Error>,
 {
 	if matches!(parachain_config.role, Role::Light) {
 		return Err("Light client not supported!".into());
@@ -643,17 +631,50 @@ where
 	};
 
 	if collator {
-		let parachain_consensus = build_consensus(
+		let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
+			task_manager.spawn_handle(),
 			client.clone(),
-			prometheus_registry.as_ref(),
-			telemetry.as_ref().map(|t| t.handle()),
-			&task_manager,
-			&polkadot_full_node,
 			transaction_pool,
-			network,
-			params.keystore_container.sync_keystore(),
-			force_authoring,
-		)?;
+			prometheus_registry.as_ref(),
+			telemetry.as_ref().map(|t| t.handle()).clone(),
+		);
+
+		let relay_chain_backend = polkadot_full_node.backend.clone();
+		let relay_chain_client = polkadot_full_node.client.clone();
+
+		let parachain_consensus = build_nimbus_consensus(BuildNimbusConsensusParams {
+			para_id: id,
+			proposer_factory,
+			block_import: client.clone(),
+			relay_chain_client: polkadot_full_node.client.clone(),
+			relay_chain_backend: polkadot_full_node.backend.clone(),
+			parachain_client: client.clone(),
+			keystore: params.keystore_container.sync_keystore(),
+			create_inherent_data_providers: move |_, (relay_parent, validation_data, author_id)| {
+				let parachain_inherent =
+							cumulus_primitives_parachain_inherent::ParachainInherentData::
+							create_at_with_client(
+								relay_parent,
+								&relay_chain_client,
+								&*relay_chain_backend,
+								&validation_data,
+								id,
+							);
+				async move {
+					let time = sp_timestamp::InherentDataProvider::from_system_time();
+
+					let parachain_inherent = parachain_inherent.ok_or_else(|| {
+						Box::<dyn std::error::Error + Send + Sync>::from(
+							"Failed to create parachain inherent",
+						)
+					})?;
+
+					let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
+
+					Ok((time, parachain_inherent, author))
+				}
+			},
+		});
 
 		let spawner = task_manager.spawn_handle();
 
@@ -710,65 +731,6 @@ where
 		id,
 		ethapi,
 		rpc_params,
-		|client,
-			prometheus_registry,
-			telemetry,
-			task_manager,
-			relay_chain_node,
-			transaction_pool,
-			_,
-			keystore,
-			_| {
-			let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
-				task_manager.spawn_handle(),
-				client.clone(),
-				transaction_pool,
-				prometheus_registry.clone(),
-				telemetry.clone(),
-			);
-
-			let relay_chain_backend = relay_chain_node.backend.clone();
-			let relay_chain_client = relay_chain_node.client.clone();
-
-			Ok(build_nimbus_consensus(BuildNimbusConsensusParams {
-				para_id: id,
-				proposer_factory,
-				block_import: client.clone(),
-				relay_chain_client: relay_chain_node.client.clone(),
-				relay_chain_backend: relay_chain_node.backend.clone(),
-				parachain_client: client.clone(),
-				keystore,
-				create_inherent_data_providers: move |_,
-				(
-					relay_parent,
-					validation_data,
-					author_id,
-				)| {
-					let parachain_inherent =
-								cumulus_primitives_parachain_inherent::ParachainInherentData::
-								create_at_with_client(
-									relay_parent,
-									&relay_chain_client,
-									&*relay_chain_backend,
-									&validation_data,
-									id,
-								);
-					async move {
-						let time = sp_timestamp::InherentDataProvider::from_system_time();
-
-						let parachain_inherent = parachain_inherent.ok_or_else(|| {
-							Box::<dyn std::error::Error + Send + Sync>::from(
-								"Failed to create parachain inherent",
-							)
-						})?;
-
-						let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
-
-						Ok((time, parachain_inherent, author))
-					}
-				},
-			}))
-		},
 	)
 	.await
 }
@@ -833,15 +795,15 @@ pub fn new_dev(
 	let collator = config.role.is_authority();
 
 	if collator {
-		//TODO Actually even tthe following TODO isn't relevant. 
-		// I ran into some issues with ownership in the closure below, 
+		//TODO Actually even tthe following TODO isn't relevant.
+		// I ran into some issues with ownership in the closure below,
 		// so this variabel isn't even used yet.
-		//TODO For now, all dev service nodes use Alith's nimbus id in their author inherent. 
+		//TODO For now, all dev service nodes use Alith's nimbus id in their author inherent.
 		// This could and perhaps should be made more flexible. Here are some options:
 		// 1. a dedicated `--dev-author-id` flag that only works with the dev service
 		// 2. restore the old --author-id` and also allow it to force a secific key
 		//    in the parachain context
-		// 3. check the keystore like we do in nimbus. Actually, maybe the keystore-checking could 
+		// 3. check the keystore like we do in nimbus. Actually, maybe the keystore-checking could
 		//    be exported as a helper function from nimbus.
 		let author_id = chain_spec::get_from_seed::<NimbusId>("Alice");
 
