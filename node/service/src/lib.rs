@@ -745,7 +745,8 @@ where
 					author_id,
 				)| {
 					let parachain_inherent =
-								cumulus_primitives_parachain_inherent::ParachainInherentData::create_at_with_client(
+								cumulus_primitives_parachain_inherent::ParachainInherentData::
+								create_at_with_client(
 									relay_parent,
 									&relay_chain_client,
 									&*relay_chain_backend,

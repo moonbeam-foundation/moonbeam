@@ -31,7 +31,8 @@ use sp_inherents::{InherentData, InherentDataProvider};
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 
 // TODO it would be nice to re-enable this function and use it in both cases from lib.rs
-// It's signature may need to change significantly. For now I've written individual closures in lib.rs
+// It's signature may need to change significantly. For now I've written
+// individual closures in lib.rs
 
 // /// Build the inherent data providers for the node.
 // ///
