@@ -59,6 +59,7 @@ pallet-democracy = { git = "https://github.com/paritytech/substrate", default-fe
 pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.2" }
 pallet-collective = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.2" }
 pallet-society = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.2" }
+pallet-proxy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.2" }
 
 pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false, branch = "notlesh-update-deps-polkadot-v0.9.2" }
 
@@ -132,8 +133,10 @@ std = [
 	"pallet-crowdloan-rewards/std",
 	"frame-benchmarking/std",
 	"pallet-society/std",
+	"pallet-proxy/std",
 	"nimbus-primitives/std",
 	"pallet-author-mapping/std",
+	"pallet-treasury/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
