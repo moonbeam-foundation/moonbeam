@@ -21,13 +21,13 @@ use jsonrpc_core::Result as RpcResult;
 pub use moonbeam_rpc_core_txpool::{
 	GetT, Summary, Transaction, TransactionMap, TxPool as TxPoolT, TxPoolResult, TxPoolServer,
 };
+use sc_transaction_graph::{ChainApi, Pool};
+use serde::Serialize;
 use sha3::{Digest, Keccak256};
 use sp_api::{BlockId, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
 use sp_runtime::traits::Block as BlockT;
 use sp_transaction_pool::InPoolTransaction;
-use sc_transaction_graph::{ChainApi, Pool};
-use serde::Serialize;
 use std::collections::HashMap;
 use std::{marker::PhantomData, sync::Arc};
 
@@ -49,12 +49,12 @@ where
 	C::Api: TxPoolRuntimeApi<B>,
 {
 	/// Use the transaction graph interface to get the extrinsics currently in the ready and future
-	/// queues. 
+	/// queues.
 	fn map_build<T>(&self) -> RpcResult<TxPoolResult<TransactionMap<T>>>
 	where
 		T: GetT + Serialize,
 	{
-		// Collect transactions in the ready validated pool. 
+		// Collect transactions in the ready validated pool.
 		let txs_ready = self
 			.graph
 			.validated_pool()
@@ -62,7 +62,7 @@ where
 			.map(|in_pool_tx| in_pool_tx.data().clone())
 			.collect();
 
-		// Collect transactions in the future validated pool. 
+		// Collect transactions in the future validated pool.
 		let txs_future = self
 			.graph
 			.validated_pool()
@@ -89,7 +89,8 @@ where
 				Ok(pk) => H160::from(H256::from_slice(Keccak256::digest(&pk).as_slice())),
 				Err(_e) => H160::default(),
 			};
-			pending.entry(from_address)
+			pending
+				.entry(from_address)
 				.or_insert_with(HashMap::new)
 				.insert(txn.nonce, T::get(hash, from_address, txn));
 		}
@@ -101,14 +102,12 @@ where
 				Ok(pk) => H160::from(H256::from_slice(Keccak256::digest(&pk).as_slice())),
 				Err(_e) => H160::default(),
 			};
-			queued.entry(from_address)
+			queued
+				.entry(from_address)
 				.or_insert_with(HashMap::new)
 				.insert(txn.nonce, T::get(hash, from_address, txn));
 		}
-		Ok(TxPoolResult {
-			pending,
-			queued,
-		})
+		Ok(TxPoolResult { pending, queued })
 	}
 }
 
