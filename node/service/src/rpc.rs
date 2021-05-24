@@ -41,6 +41,7 @@ use sc_consensus_manual_seal::rpc::{EngineCommand, ManualSeal, ManualSealApi};
 use sc_network::NetworkService;
 use sc_rpc::SubscriptionTaskExecutor;
 use sc_rpc_api::DenyUnsafe;
+use sc_transaction_graph::{ChainApi, Pool};
 use sp_api::ProvideRuntimeApi;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
@@ -51,11 +52,13 @@ use std::collections::BTreeMap;
 use substrate_frame_rpc_system::{FullSystem, SystemApi};
 
 /// Full client dependencies.
-pub struct FullDeps<C, P, BE> {
+pub struct FullDeps<C, P, A: ChainApi, BE> {
 	/// The client instance to use.
 	pub client: Arc<C>,
 	/// Transaction pool instance.
 	pub pool: Arc<P>,
+	/// Graph pool instance.
+	pub graph: Arc<Pool<A>>,
 	/// Whether to deny unsafe calls
 	pub deny_unsafe: DenyUnsafe,
 	/// The Node authority flag
@@ -86,8 +89,8 @@ pub struct FullDeps<C, P, BE> {
 	pub transaction_converter: TransactionConverters,
 }
 /// Instantiate all Full RPC extensions.
-pub fn create_full<C, P, BE>(
-	deps: FullDeps<C, P, BE>,
+pub fn create_full<C, P, BE, A>(
+	deps: FullDeps<C, P, A, BE>,
 	subscription_task_executor: SubscriptionTaskExecutor,
 ) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
 where
@@ -98,6 +101,7 @@ where
 	C: BlockchainEvents<Block>,
 	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
 	C: Send + Sync + 'static,
+	A: ChainApi<Block = Block> + 'static,
 	C::Api: RuntimeApiCollection<StateBackend = BE::State>,
 	P: TransactionPool<Block = Block> + 'static,
 {
@@ -105,6 +109,7 @@ where
 	let FullDeps {
 		client,
 		pool,
+		graph,
 		deny_unsafe,
 		is_authority,
 		network,
@@ -174,7 +179,7 @@ where
 	)));
 	io.extend_with(Web3ApiServer::to_delegate(Web3Api::new(client.clone())));
 	io.extend_with(EthPubSubApiServer::to_delegate(EthPubSubApi::new(
-		pool.clone(),
+		pool,
 		client.clone(),
 		network,
 		SubscriptionManager::<HexEncodedIdProvider>::with_id_provider(
@@ -186,7 +191,7 @@ where
 	if ethapi_cmd.contains(&EthApiCmd::Txpool) {
 		io.extend_with(TxPoolServer::to_delegate(TxPool::new(
 			Arc::clone(&client),
-			pool,
+			graph,
 		)));
 	}
 
