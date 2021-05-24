@@ -73,11 +73,9 @@ fn load_spec(
 		"moonriver-local" => Box::new(chain_spec::moonriver::get_chain_spec(para_id)),
 
 		// Moonshadow networks
-		"moonshadow" => {
-			Box::new(chain_spec::moonbase::ChainSpec::from_json_bytes(
-				&include_bytes!("../../../specs/moonshadow/parachain-embedded-specs-v8.json")[..],
-			)?)
-		}
+		"moonshadow" => Box::new(chain_spec::moonbase::ChainSpec::from_json_bytes(
+			&include_bytes!("../../../specs/moonshadow/parachain-embedded-specs-v8.json")[..],
+		)?),
 		"moonshadow-dev" => Box::new(chain_spec::moonshadow::development_chain_spec(None, None)),
 		"moonshadow-local" => Box::new(chain_spec::moonshadow::get_chain_spec(para_id)),
 
