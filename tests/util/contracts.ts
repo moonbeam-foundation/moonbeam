@@ -35,7 +35,7 @@ export async function getCompiled(name: string): Promise<Compiled> {
           contracts[name] = require(`../contracts/compiled/${name}.json`);
         } catch (e) {
           throw new Error(
-            `Contract name ${name} is not compiled. (should be done in mochaGlobalSetup)`
+            `Contract name ${name} is not compiled. Please run 'npm run pre-build-contracts`
           );
         }
 
@@ -63,7 +63,7 @@ export async function deployContractManualSeal(
       from: account,
       data: contractByteCode,
       value: "0x00",
-      gasPrice: "0x01",
+      gasPrice: 1_000_000_000,
       gas: "0x100000",
     },
     privateKey

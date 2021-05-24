@@ -53,14 +53,14 @@ pub struct FilterRequest {
 	pub count: Option<u32>,
 }
 
-#[derive(Clone, Eq, PartialEq, Debug, Deserialize)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Deserialize)]
 #[serde(rename_all = "camelCase", untagged)]
 pub enum RequestBlockId {
 	Number(#[serde(deserialize_with = "deserialize_u32_0x")] u32),
 	Tag(RequestBlockTag),
 }
 
-#[derive(Clone, Eq, PartialEq, Debug, Deserialize)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum RequestBlockTag {
 	Earliest,

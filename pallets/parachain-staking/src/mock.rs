@@ -80,6 +80,7 @@ impl frame_system::Config for Test {
 	type BlockWeights = ();
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
+	type OnSetCode = ();
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 1;
@@ -119,6 +120,7 @@ impl Config for Test {
 	type MinCollatorCandidateStk = MinCollatorStk;
 	type MinNominatorStk = MinNominatorStk;
 	type MinNomination = MinNomination;
+	type WeightInfo = ();
 }
 
 pub(crate) struct ExtBuilder {
@@ -143,6 +145,12 @@ impl Default for ExtBuilder {
 					min: 700,
 					ideal: 700,
 					max: 700,
+				},
+				// not used
+				annual: Range {
+					min: Perbill::from_percent(50),
+					ideal: Perbill::from_percent(50),
+					max: Perbill::from_percent(50),
 				},
 				// unrealistically high parameterization, only for testing
 				round: Range {

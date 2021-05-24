@@ -35,7 +35,7 @@ fn rounds_per_year<T: Config>() -> u32 {
 }
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(Eq, PartialEq, Clone, Encode, Decode, Default, RuntimeDebug)]
+#[derive(Eq, PartialEq, Clone, Copy, Encode, Decode, Default, RuntimeDebug)]
 pub struct Range<T> {
 	pub min: T,
 	pub ideal: T,
@@ -98,6 +98,8 @@ pub fn round_issuance_range<T: Config>(round: Range<Perbill>) -> Range<BalanceOf
 pub struct InflationInfo<Balance> {
 	/// Staking expectations
 	pub expect: Range<Balance>,
+	/// Annual inflation range
+	pub annual: Range<Perbill>,
 	/// Round inflation range
 	pub round: Range<Perbill>,
 }
@@ -109,12 +111,18 @@ impl<Balance> InflationInfo<Balance> {
 	) -> InflationInfo<Balance> {
 		InflationInfo {
 			expect,
+			annual,
 			round: annual_to_round::<T>(annual),
 		}
 	}
 	/// Set round inflation range according to input annual inflation range
-	pub fn set_annual_rate<T: Config>(&mut self, new: Range<Perbill>) {
+	pub fn set_round_from_annual<T: Config>(&mut self, new: Range<Perbill>) {
 		self.round = annual_to_round::<T>(new);
+	}
+	/// Reset round inflation rate based on changes to round length
+	pub fn reset_round(&mut self, new_length: u32) {
+		let periods = BLOCKS_PER_YEAR / new_length;
+		self.round = perbill_annual_to_perbill_round(self.annual, periods);
 	}
 	/// Set staking expectations
 	pub fn set_expectations(&mut self, expect: Range<Balance>) {

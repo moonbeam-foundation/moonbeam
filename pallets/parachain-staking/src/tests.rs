@@ -21,7 +21,7 @@ use crate::mock::{
 };
 use crate::{CollatorStatus, Error, Event};
 use frame_support::{assert_noop, assert_ok};
-use sp_runtime::{traits::Zero, DispatchError};
+use sp_runtime::{traits::Zero, DispatchError, Perbill};
 
 #[test]
 fn geneses() {
@@ -212,7 +212,8 @@ fn join_collator_candidates() {
 				Stake::join_candidates(Origin::signed(8), 10u128,),
 				DispatchError::Module {
 					index: 1,
-					error: 3,
+
+					error: 2,
 					message: Some("InsufficientBalance")
 				}
 			);
@@ -688,7 +689,8 @@ fn multiple_nominations() {
 				Stake::nominate(Origin::signed(7), 3, 11),
 				DispatchError::Module {
 					index: 1,
-					error: 3,
+
+					error: 2,
 					message: Some("InsufficientBalance")
 				},
 			);
@@ -798,7 +800,8 @@ fn collators_bond() {
 				Stake::candidate_bond_more(Origin::signed(1), 40),
 				DispatchError::Module {
 					index: 1,
-					error: 3,
+
+					error: 2,
 					message: Some("InsufficientBalance")
 				}
 			);
@@ -894,7 +897,8 @@ fn nominators_bond() {
 				Stake::nominator_bond_more(Origin::signed(6), 1, 81),
 				DispatchError::Module {
 					index: 1,
-					error: 3,
+
+					error: 2,
 					message: Some("InsufficientBalance")
 				}
 			);
@@ -1166,7 +1170,15 @@ fn round_transitions() {
 			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::BlocksPerRoundSet(2, 5, 5, 3))
+				MetaEvent::stake(Event::BlocksPerRoundSet(
+					2,
+					5,
+					5,
+					3,
+					Perbill::from_parts(232),
+					Perbill::from_parts(232),
+					Perbill::from_parts(232)
+				))
 			);
 			roll_to(9);
 			assert_eq!(last_event(), MetaEvent::stake(Event::NewRound(8, 3, 1, 40)));
@@ -1194,7 +1206,15 @@ fn round_transitions() {
 			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::BlocksPerRoundSet(2, 5, 5, 3))
+				MetaEvent::stake(Event::BlocksPerRoundSet(
+					2,
+					5,
+					5,
+					3,
+					Perbill::from_parts(232),
+					Perbill::from_parts(232),
+					Perbill::from_parts(232)
+				))
 			);
 			roll_to(10);
 			assert_eq!(last_event(), MetaEvent::stake(Event::NewRound(9, 3, 1, 40)));
@@ -1224,12 +1244,28 @@ fn round_transitions() {
 			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::BlocksPerRoundSet(2, 5, 5, 3))
+				MetaEvent::stake(Event::BlocksPerRoundSet(
+					2,
+					5,
+					5,
+					3,
+					Perbill::from_parts(232),
+					Perbill::from_parts(232),
+					Perbill::from_parts(232)
+				))
 			);
 			roll_to(8);
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::BlocksPerRoundSet(2, 5, 5, 3))
+				MetaEvent::stake(Event::BlocksPerRoundSet(
+					2,
+					5,
+					5,
+					3,
+					Perbill::from_parts(232),
+					Perbill::from_parts(232),
+					Perbill::from_parts(232)
+				))
 			);
 			roll_to(9);
 			assert_eq!(last_event(), MetaEvent::stake(Event::NewRound(8, 3, 1, 40)));
