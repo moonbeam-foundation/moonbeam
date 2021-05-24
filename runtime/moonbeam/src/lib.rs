@@ -115,7 +115,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 38,
+	spec_version: 39,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -831,14 +831,8 @@ impl_runtime_apis! {
 			source: TransactionSource,
 			tx: <Block as BlockT>::Extrinsic,
 		) -> TransactionValidity {
-			let mut allowed = match &tx.function {
-				Call::Balances(_) => false,
-				Call::CrowdloanRewards(_) => false,
-				Call::Democracy(_) => false,
-				Call::Ethereum(_) => false,
-				Call::EVM(_) => false,
-				_ => true,
-			};
+			let mut allowed = <Runtime as frame_system::Config>
+				::BaseCallFilter::filter(&tx.function);
 			// only exception is if caller is root
 			if !allowed {
 				match &tx.signature {

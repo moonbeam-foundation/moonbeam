@@ -57,7 +57,7 @@ use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentityLookup},
-	transaction_validity::{TransactionSource, TransactionValidity},
+	transaction_validity::{InvalidTransaction, TransactionSource, TransactionValidity},
 	AccountId32, ApplyExtrinsicResult, Perbill, Permill,
 };
 use sp_std::{convert::TryFrom, prelude::*};
@@ -114,7 +114,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonshadow"),
 	impl_name: create_runtime_str!("moonshadow"),
 	authoring_version: 3,
-	spec_version: 38,
+	spec_version: 39,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -830,7 +830,23 @@ impl_runtime_apis! {
 			source: TransactionSource,
 			tx: <Block as BlockT>::Extrinsic,
 		) -> TransactionValidity {
-			Executive::validate_transaction(source, tx)
+			let mut allowed = <Runtime as frame_system::Config>
+				::BaseCallFilter::filter(&tx.function);
+			// only exception is if caller is root
+			if !allowed {
+				match &tx.signature {
+					Some((account, ..)) => if &Sudo::key() == account {
+						// no need to verify signature because validate_transaction does so
+						allowed = true;
+					},
+					_ => (),
+				}
+			}
+			if allowed {
+				Executive::validate_transaction(source, tx)
+			} else {
+				InvalidTransaction::Call.into()
+			}
 		}
 	}
 
