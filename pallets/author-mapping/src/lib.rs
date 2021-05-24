@@ -35,14 +35,25 @@ pub mod pallet {
 	use frame_support::traits::FindAuthor;
 	use frame_system::pallet_prelude::*;
 	use nimbus_primitives::{CanAuthor, EventHandler};
-	use sp_runtime::ConsensusEngineId;
+	use sp_runtime::{ConsensusEngineId, Percent};
+
+	/// The portion of the security deposit that goes to the the account who reports it occupying
+	/// space after it should have been cleaned or rotated.
+	pub const NARC_REWARD: Percent = Percent::from_percent(5);
+
+	/// The period of time after which an AuthorId can be reported as defunct.
+	/// This value should be roughly the recommended key rotation period.
+	pub const NARC_GRACE_PERIOD: u32 = 2_000;
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
 
-	/// Configuration trait of this pallet.
+	/// Configuration trait of this pallet. We tightly couple to Parachain Staking in order to ensure
+	/// that only staked accounts can create registrations in the first place. This could be generalized.
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
+		/// Overarching event type
+		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The type of authority id that will be used at the conensus layer.
 		type AuthorId: Member + Parameter + MaybeSerializeDeserialize;
 	}
@@ -59,6 +70,20 @@ pub mod pallet {
 		NotYourAssociation,
 	}
 
+	#[pallet::event]
+	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
+	pub enum Event<T: Config> {
+		/// An AuthorId has been registered and mapped to an AccountId.
+		AuthorRegistered(T::AuthorId, T::AccountId),
+		/// An AuthorId has been de-registered, and its AccountId mapping removed.
+		AuthorDeRegistered(T::AuthorId),
+		/// An AuthorId has been registered, replacing a previous registration and its AccoutId mapping.
+		AuthorRotated(T::AuthorId, T::AccountId),
+		/// An AuthorId has been forcibly deregistered after not being rotated or cleaned up.
+		/// The reporteing account has been rewarded accordingly.
+		DefunctAuthorBusted(T::AuthorId, T::AccountId),
+	}
+
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Register your AuthorId onchain so blocks you author are associated with your account.
@@ -73,9 +98,9 @@ pub mod pallet {
 
 			//TODO take the security deposit
 
-			AuthorIds::<T>::insert(author_id, account_id);
+			AuthorIds::<T>::insert(&author_id, &account_id);
 
-			//TODO Emit an event
+			<Pallet<T>>::deposit_event(Event::AuthorRegistered(author_id, account_id));
 
 			Ok(())
 		}
@@ -116,7 +141,7 @@ pub mod pallet {
 
 			//TODO return the security deposit
 
-			//TODO Emit event
+			<Pallet<T>>::deposit_event(Event::AuthorDeRegistered(author_id));
 
 			Ok(().into())
 		}
@@ -209,3 +234,14 @@ pub mod pallet {
 		}
 	}
 }
+
+//Test ideas:
+// Genesis config works
+// Staked account can register
+// Unstaked account cannot register
+// Staked account can double register
+// Registered account can clear
+// Unregistered account cannot clear
+// Registered account can rotate
+// unstaked account can be narced after period
+// unstaked account cannot be narced before period
