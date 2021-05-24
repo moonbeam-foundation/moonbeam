@@ -570,9 +570,7 @@ impl pallet_author_inherent::Config for Runtime {
 	type SlotBeacon = pallet_author_inherent::RelayChainBeacon<Self>;
 	type AccountLookup = AuthorMapping;
 	type EventHandler = ParachainStaking;
-	//TODO remove this when nimbus supports it
-	type PreliminaryCanAuthor = ();
-	type FullCanAuthor = AuthorFilter;
+	type CanAuthor = AuthorFilter;
 }
 
 impl pallet_author_slot_filter::Config for Runtime {
