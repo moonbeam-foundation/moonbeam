@@ -697,11 +697,6 @@
 <span id="694">694</span>
 <span id="695">695</span>
 <span id="696">696</span>
-<span id="697">697</span>
-<span id="698">698</span>
-<span id="699">699</span>
-<span id="700">700</span>
-<span id="701">701</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -778,14 +773,9 @@
 		<span class="string">&quot;moonriver-local&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">chain_spec</span>::<span class="ident">moonriver</span>::<span class="ident">get_chain_spec</span>(<span class="ident">para_id</span>)),
 
 		<span class="comment">// Moonshadow networks</span>
-		<span class="string">&quot;moonshadow&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(
-				<span class="string">&quot;You chosen the moonshadow mainnet spec. This network is not yet available.&quot;</span>.<span class="ident">into</span>(),
-			);
-			<span class="comment">// Box::new(chain_spec::moonshadow::ChainSpec::from_json_bytes(</span>
-			<span class="comment">// 	&amp;include_bytes!(&quot;../../../specs/moonshadow.json&quot;)[..],</span>
-			<span class="comment">// )?)</span>
-		}
+		<span class="string">&quot;moonshadow&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">chain_spec</span>::<span class="ident">moonbase</span>::<span class="ident">ChainSpec</span>::<span class="ident">from_json_bytes</span>(
+			<span class="kw-2">&amp;</span><span class="macro">include_bytes</span><span class="macro">!</span>(<span class="string">&quot;../../../specs/moonshadow/parachain-embedded-specs.json&quot;</span>)[..],
+		)<span class="question-mark">?</span>),
 		<span class="string">&quot;moonshadow-dev&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">chain_spec</span>::<span class="ident">moonshadow</span>::<span class="ident">development_chain_spec</span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>)),
 		<span class="string">&quot;moonshadow-local&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">chain_spec</span>::<span class="ident">moonshadow</span>::<span class="ident">get_chain_spec</span>(<span class="ident">para_id</span>)),
 
