@@ -74,12 +74,9 @@ fn load_spec(
 
 		// Moonshadow networks
 		"moonshadow" => {
-			return Err(
-				"You chosen the moonshadow mainnet spec. This network is not yet available.".into(),
-			);
-			// Box::new(chain_spec::moonshadow::ChainSpec::from_json_bytes(
-			// 	&include_bytes!("../../../specs/moonshadow.json")[..],
-			// )?)
+			Box::new(chain_spec::moonbase::ChainSpec::from_json_bytes(
+				&include_bytes!("../../../specs/moonshadow/parachain-embedded-specs-v8.json")[..],
+			)?)
 		}
 		"moonshadow-dev" => Box::new(chain_spec::moonshadow::development_chain_spec(None, None)),
 		"moonshadow-local" => Box::new(chain_spec::moonshadow::get_chain_spec(para_id)),
