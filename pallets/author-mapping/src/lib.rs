@@ -51,7 +51,7 @@ pub mod pallet {
 	/// Configuration trait of this pallet. We tightly couple to Parachain Staking in order to ensure
 	/// that only staked accounts can create registrations in the first place. This could be generalized.
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
+	pub trait Config: frame_system::Config + parachain_staking::Config {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The type of authority id that will be used at the conensus layer.
@@ -68,6 +68,8 @@ pub mod pallet {
 		AssociationNotFound,
 		/// The association can't be cleared because it belongs to another account.
 		NotYourAssociation,
+		/// This account cannot set an author (because it is not staked)
+		CannotSetAuthor,
 	}
 
 	#[pallet::event]
@@ -94,7 +96,10 @@ pub mod pallet {
 		pub fn add_association(origin: OriginFor<T>, author_id: T::AuthorId) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
 
-			//TODO make sure they're a candidate
+			ensure!(
+				parachain_staking::Pallet::<T>::is_candidate(&account_id),
+				Error::<T>::CannotSetAuthor
+			);
 
 			//TODO take the security deposit
 
@@ -122,7 +127,10 @@ pub mod pallet {
 
 			ensure!(account_id == stored_account, Error::<T>::NotYourAssociation);
 
-			//TODO make sure they're still a candidate
+			ensure!(
+				parachain_staking::Pallet::<T>::is_candidate(&account_id),
+				Error::<T>::CannotSetAuthor
+			);
 
 			AuthorIds::<T>::insert(&new_author_id, &account_id);
 
