@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["TxPoolRuntimeApi",""]]});
+initSidebarItems({"struct":[["TxPoolResponse",""]],"trait":[["TxPoolRuntimeApi",""]]});

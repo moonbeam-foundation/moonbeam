@@ -31,6 +31,16 @@
 <span id="28">28</span>
 <span id="29">29</span>
 <span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -53,13 +63,23 @@
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">unnecessary_mut_passed</span>)]</span>
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">too_many_arguments</span>)]</span>
 
+<span class="kw">use</span> <span class="ident">codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
 <span class="kw">use</span> <span class="ident">ethereum</span>::<span class="ident">Transaction</span>;
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::<span class="ident">traits</span>::<span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>;
 <span class="kw">use</span> <span class="ident">sp_std</span>::<span class="ident">vec</span>::<span class="ident">Vec</span>;
 
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">sp_runtime</span>::<span class="ident">RuntimeDebug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TxPoolResponse</span> {
+	<span class="kw">pub</span> <span class="ident">ready</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Transaction</span><span class="op">&gt;</span>,
+	<span class="kw">pub</span> <span class="ident">future</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Transaction</span><span class="op">&gt;</span>,
+}
+
 <span class="ident">sp_api</span>::<span class="macro">decl_runtime_apis</span><span class="macro">!</span> {
 	<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">TxPoolRuntimeApi</span> {
-		<span class="kw">fn</span> <span class="ident">extrinsic_filter</span>(<span class="ident">xt</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span>::<span class="ident">Extrinsic</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Transaction</span><span class="op">&gt;</span>;
+		<span class="kw">fn</span> <span class="ident">extrinsic_filter</span>(
+			<span class="ident">xt_ready</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span>::<span class="ident">Extrinsic</span><span class="op">&gt;</span>,
+			<span class="ident">xt_future</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span>::<span class="ident">Extrinsic</span><span class="op">&gt;</span>,
+		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TxPoolResponse</span>;
 	}
 }
 </pre></div>

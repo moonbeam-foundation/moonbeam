@@ -1023,6 +1023,8 @@
 <span id="1020">1020</span>
 <span id="1021">1021</span>
 <span id="1022">1022</span>
+<span id="1023">1023</span>
+<span id="1024">1024</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1562,6 +1564,7 @@
 			<span class="kw">let</span> <span class="ident">deps</span> <span class="op">=</span> <span class="ident">rpc</span>::<span class="ident">FullDeps</span> {
 				<span class="ident">client</span>: <span class="ident">client</span>.<span class="ident">clone</span>(),
 				<span class="ident">pool</span>: <span class="ident">pool</span>.<span class="ident">clone</span>(),
+				<span class="ident">graph</span>: <span class="ident">pool</span>.<span class="ident">pool</span>().<span class="ident">clone</span>(),
 				<span class="ident">deny_unsafe</span>,
 				<span class="ident">is_authority</span>: <span class="ident">collator</span>,
 				<span class="ident">network</span>: <span class="ident">network</span>.<span class="ident">clone</span>(),
@@ -1957,6 +1960,7 @@
 			<span class="kw">let</span> <span class="ident">deps</span> <span class="op">=</span> <span class="ident">rpc</span>::<span class="ident">FullDeps</span> {
 				<span class="ident">client</span>: <span class="ident">client</span>.<span class="ident">clone</span>(),
 				<span class="ident">pool</span>: <span class="ident">pool</span>.<span class="ident">clone</span>(),
+				<span class="ident">graph</span>: <span class="ident">pool</span>.<span class="ident">pool</span>().<span class="ident">clone</span>(),
 				<span class="ident">deny_unsafe</span>,
 				<span class="ident">is_authority</span>: <span class="ident">collator</span>,
 				<span class="ident">network</span>: <span class="ident">network</span>.<span class="ident">clone</span>(),

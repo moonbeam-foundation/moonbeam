@@ -1303,6 +1303,14 @@
 <span id="1300">1300</span>
 <span id="1301">1301</span>
 <span id="1302">1302</span>
+<span id="1303">1303</span>
+<span id="1304">1304</span>
+<span id="1305">1305</span>
+<span id="1306">1306</span>
+<span id="1307">1307</span>
+<span id="1308">1308</span>
+<span id="1309">1309</span>
+<span id="1310">1310</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1347,6 +1355,7 @@
 	<span class="ident">Signature</span>,
 };
 <span class="kw">use</span> <span class="ident">moonbeam_extensions_evm</span>::<span class="ident">runner</span>::<span class="ident">stack</span>::<span class="ident">TraceRunner</span> <span class="kw">as</span> <span class="ident">TraceRunnerT</span>;
+<span class="kw">use</span> <span class="ident">moonbeam_rpc_primitives_txpool</span>::<span class="ident">TxPoolResponse</span>;
 <span class="kw">use</span> <span class="ident">pallet_balances</span>::<span class="ident">NegativeImbalance</span>;
 <span class="kw">use</span> <span class="ident">pallet_ethereum</span>::<span class="ident">Call</span>::<span class="ident">transact</span>;
 <span class="kw">use</span> <span class="ident">pallet_ethereum</span>::{<span class="ident">Transaction</span> <span class="kw">as</span> <span class="ident">EthereumTransaction</span>, <span class="ident">TransactionAction</span>};
@@ -1420,7 +1429,7 @@
 	<span class="ident">spec_name</span>: <span class="macro">create_runtime_str</span><span class="macro">!</span>(<span class="string">&quot;moonshadow&quot;</span>),
 	<span class="ident">impl_name</span>: <span class="macro">create_runtime_str</span><span class="macro">!</span>(<span class="string">&quot;moonshadow&quot;</span>),
 	<span class="ident">authoring_version</span>: <span class="number">3</span>,
-	<span class="ident">spec_version</span>: <span class="number">38</span>,
+	<span class="ident">spec_version</span>: <span class="number">39</span>,
 	<span class="ident">impl_version</span>: <span class="number">1</span>,
 	<span class="ident">apis</span>: <span class="ident">RUNTIME_API_VERSIONS</span>,
 	<span class="ident">transaction_version</span>: <span class="number">2</span>,
@@ -2422,12 +2431,19 @@
 
 	<span class="kw">impl</span> <span class="ident">moonbeam_rpc_primitives_txpool</span>::<span class="ident">TxPoolRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 		<span class="kw">fn</span> <span class="ident">extrinsic_filter</span>(
-			<span class="ident">xts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span>::<span class="ident">Extrinsic</span><span class="op">&gt;</span>
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">pallet_ethereum</span>::<span class="ident">Transaction</span><span class="op">&gt;</span> {
-			<span class="ident">xts</span>.<span class="ident">into_iter</span>().<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">xt</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">xt</span>.<span class="ident">function</span> {
-				<span class="ident">Call</span>::<span class="ident">Ethereum</span>(<span class="ident">transact</span>(<span class="ident">t</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>),
-				<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>
-			}).<span class="ident">collect</span>()
+			<span class="ident">xts_ready</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span>::<span class="ident">Extrinsic</span><span class="op">&gt;</span>,
+			<span class="ident">xts_future</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span>::<span class="ident">Extrinsic</span><span class="op">&gt;</span>
+		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TxPoolResponse</span> {
+			<span class="ident">TxPoolResponse</span> {
+				<span class="ident">ready</span>: <span class="ident">xts_ready</span>.<span class="ident">into_iter</span>().<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">xt</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">xt</span>.<span class="ident">function</span> {
+					<span class="ident">Call</span>::<span class="ident">Ethereum</span>(<span class="ident">transact</span>(<span class="ident">t</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>),
+					<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>
+				}).<span class="ident">collect</span>(),
+				<span class="ident">future</span>: <span class="ident">xts_future</span>.<span class="ident">into_iter</span>().<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">xt</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">xt</span>.<span class="ident">function</span> {
+					<span class="ident">Call</span>::<span class="ident">Ethereum</span>(<span class="ident">transact</span>(<span class="ident">t</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>),
+					<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>
+				}).<span class="ident">collect</span>(),
+			}
 		}
 	}
 
