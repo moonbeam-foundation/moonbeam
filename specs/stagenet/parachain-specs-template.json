@@ -10,8 +10,8 @@
   "properties": {
     "tokenDecimals": 18
   },
-  "relay_chain": "rococo_moonbase_relay_stagenet",
-  "para_id": 1000,
+  "relayChain": "rococo_moonbase_relay_stagenet",
+  "paraId": 1000,
   "consensusEngine": null,
   "genesis": {
     "runtime": {
@@ -82,7 +82,7 @@
           ]
         ]
       },
-      "palletScheduler": {},
+      "palletScheduler": null,
       "palletDemocracy": {},
       "palletCollectiveInstance1": {
         "phantom": null,
@@ -107,6 +107,9 @@
       "palletAuthorSlotFilter": {
         "eligibleRatio": 50
       },
+      "palletCrowdloanRewards": {
+        "fundedAmount": 3000000000000000000000000
+      },
       "palletAuthorMapping": {
         "authorIds": [
           [
@@ -118,7 +121,9 @@
             "0xcbeb4a1b8f36436d9983b94636f9e988e73e1c2f"
           ]
         ]
-      }
+      },
+      "palletTreasuryInstance1": {},
+      "palletTreasuryInstance2": {}
     }
   }
 }

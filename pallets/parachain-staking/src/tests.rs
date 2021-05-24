@@ -212,7 +212,8 @@ fn join_collator_candidates() {
 				Stake::join_candidates(Origin::signed(8), 10u128,),
 				DispatchError::Module {
 					index: 1,
-					error: 3,
+
+					error: 2,
 					message: Some("InsufficientBalance")
 				}
 			);
@@ -688,7 +689,8 @@ fn multiple_nominations() {
 				Stake::nominate(Origin::signed(7), 3, 11),
 				DispatchError::Module {
 					index: 1,
-					error: 3,
+
+					error: 2,
 					message: Some("InsufficientBalance")
 				},
 			);
@@ -798,7 +800,8 @@ fn collators_bond() {
 				Stake::candidate_bond_more(Origin::signed(1), 40),
 				DispatchError::Module {
 					index: 1,
-					error: 3,
+
+					error: 2,
 					message: Some("InsufficientBalance")
 				}
 			);
@@ -894,7 +897,8 @@ fn nominators_bond() {
 				Stake::nominator_bond_more(Origin::signed(6), 1, 81),
 				DispatchError::Module {
 					index: 1,
-					error: 3,
+
+					error: 2,
 					message: Some("InsufficientBalance")
 				}
 			);

@@ -21,7 +21,7 @@ const GENESIS_TRANSACTION: TransactionOptions = {
   privateKey: GENESIS_ACCOUNT_PRIVATE_KEY,
   nonce: null,
   gas: 12_000_000,
-  gasPrice: 1,
+  gasPrice: 1_000_000_000,
   value: "0x00",
 };
 
@@ -30,7 +30,7 @@ export const createTransaction = async (
   options: TransactionOptions
 ): Promise<string> => {
   const gas = options.gas || 12_000_000;
-  const gasPrice = options.gasPrice !== undefined ? options.gasPrice : 1;
+  const gasPrice = options.gasPrice !== undefined ? options.gasPrice : 1_000_000_000;
   const value = options.value !== undefined ? options.value : "0x00";
   const from = options.from || GENESIS_ACCOUNT;
   const privateKey =

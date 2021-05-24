@@ -241,7 +241,7 @@ export const moonbeamDefinitions = {
       },
     },
     {
-      minmax: [36, undefined],
+      minmax: [36, 36],
       types: {
         AccountId: "EthereumAccountId",
         AccountInfo: "AccountInfoWithTripleRefCount",
@@ -343,10 +343,10 @@ export const moonbeamDefinitions = {
       },
     },
     {
-      minmax: [36, undefined],
+      minmax: [37, undefined],
       types: {
         AccountId: "EthereumAccountId",
-        AccountInfo: "AccountInfoWithProviders",
+        AccountInfo: "AccountInfoWithTripleRefCount",
         Address: "AccountId",
         AuthorId: "AccountId",
         Balance: "u128",
@@ -437,10 +437,17 @@ export const moonbeamDefinitions = {
           downward_messages: "Vec<InboundDownwardMessage>",
           horizontal_messages: "BTreeMap<ParaId, Vec<InboundHrmpMessage>>",
         },
+        RelayChainAccountId: "H256",
         RoundInfo: {
           current: "RoundIndex",
           first: "BlockNumber",
           length: "u32",
+        },
+        RewardInfo: {
+          total_reward: "Balance",
+          claimed_reward: "Balance",
+          last_paid: "BlockNumber",
+          free_claim_done: "bool",
         },
       },
     },
@@ -454,5 +461,8 @@ export const typesBundle = {
     moonbeamDefinitions,
     "moonbeam-standalone": moonbeamDefinitions,
     "node-moonbeam": moonbeamDefinitions,
+    moonbase: moonbeamDefinitions,
+    moonriver: moonbeamDefinitions,
+    moonshadow: moonbeamDefinitions,
   },
 } as OverrideBundleType;

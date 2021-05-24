@@ -50,6 +50,6 @@ describeDevMoonbeam("Estimate Gas - Multiply", (context) => {
       .then(() => {
         return Promise.reject({ message: "Execution succeeded but should have failed" });
       })
-      .catch((err) => expect(err.message).to.equal(`Returned error: out of gas or fund`));
+      .catch((err) => expect(err.message).to.equal(`Returned error: out of gas`));
   });
 });

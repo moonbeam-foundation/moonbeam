@@ -10,8 +10,8 @@
   "properties": {
     "tokenDecimals": 18
   },
-  "relay_chain": "moonbase_alpha_relay",
-  "para_id": 1000,
+  "relayChain": "moonbase_alpha_relay",
+  "paraId": 1000,
   "consensusEngine": null,
   "genesis": {
     "runtime": {
@@ -86,7 +86,6 @@
           ]
         ]
       },
-      "palletScheduler": {},
       "palletDemocracy": {},
       "palletCollectiveInstance1": {
         "phantom": null,
@@ -111,6 +110,9 @@
       "palletAuthorSlotFilter": {
         "eligibleRatio": 50
       },
+      "palletCrowdloanRewards": {
+        "fundedAmount": 3000000000000000000000000
+      },
       "palletAuthorMapping": {
         "authorIds": [
           [
@@ -122,7 +124,10 @@
             "0x623c9e50647a049f92090fe55e22cc0509872fb6"
           ]
         ]
-      }
+      },
+      "palletTreasuryInstance1": {},
+      "palletTreasuryInstance2": {},
+      "palletScheduler": null
     }
   }
 }
