@@ -116,7 +116,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 39,
+	spec_version: 40,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -616,7 +616,9 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 // This is a simple session key manager. It should probably either work with, or be replaced
 // entirely by pallet sessions
 impl pallet_author_mapping::Config for Runtime {
+	type Event = Event;
 	type AuthorId = NimbusId;
+	type DepositCurrency = Balances;
 }
 
 parameter_types! {
@@ -737,12 +739,10 @@ construct_runtime! {
 		CommunityTreasury: pallet_treasury::<Instance1>::{Pallet, Storage, Config, Event<T>, Call},
 		ParachainBondTreasury:
 			pallet_treasury::<Instance2>::{Pallet, Storage, Config, Event<T>, Call},
-		// The order matters here. Inherents will be included in the order specified here.
-		// Concretely we need the author inherent to come after the parachain_system inherent.
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent},
 		AuthorFilter: pallet_author_slot_filter::{Pallet, Storage, Event, Config},
 		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>},
-		AuthorMapping: pallet_author_mapping::{Pallet, Config<T>, Storage},
+		AuthorMapping: pallet_author_mapping::{Pallet, Config<T>, Storage, Event<T>},
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
 	}
 }
