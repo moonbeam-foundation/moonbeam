@@ -604,7 +604,9 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 // This is a simple session key manager. It should probably either work with, or be replaced
 // entirely by pallet sessions
 impl pallet_author_mapping::Config for Runtime {
+	type Event = Event;
 	type AuthorId = NimbusId;
+	type DepositCurrency = Balances;
 }
 
 parameter_types! {
