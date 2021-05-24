@@ -35,7 +35,6 @@ pub use moonriver_runtime;
 pub use moonshadow_runtime;
 use sc_client_api::BlockchainEvents;
 use sc_service::BasePath;
-use sp_keystore::SyncCryptoStorePtr;
 use std::{
 	collections::{BTreeMap, HashMap},
 	sync::Mutex,
@@ -44,7 +43,6 @@ use std::{
 use tokio::sync::Semaphore;
 mod inherents;
 mod rpc;
-use cumulus_client_consensus_common::ParachainConsensus;
 use cumulus_client_network::build_block_announce_validator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
@@ -53,8 +51,6 @@ use nimbus_consensus::{
 	build_filtering_consensus as build_nimbus_consensus, BuildNimbusConsensusParams,
 };
 use nimbus_primitives::NimbusId;
-use sc_network::NetworkService;
-use substrate_prometheus_endpoint::Registry;
 
 // use inherents::build_inherent_data_providers;
 use polkadot_primitives::v0::CollatorPair;
@@ -71,7 +67,7 @@ pub use client::*;
 pub mod chain_spec;
 mod client;
 
-use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
+use sc_telemetry::{Telemetry, TelemetryWorker, TelemetryWorkerHandle};
 
 type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = TFullBackend<Block>;
@@ -471,7 +467,6 @@ where
 	let transaction_pool = params.transaction_pool.clone();
 	let mut task_manager = params.task_manager;
 	let import_queue = params.import_queue;
-	let force_authoring = parachain_config.force_authoring;
 	let (network, network_status_sinks, system_rpc_tx, start_network) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &parachain_config,
@@ -645,7 +640,7 @@ where
 		let parachain_consensus = build_nimbus_consensus(BuildNimbusConsensusParams {
 			para_id: id,
 			proposer_factory,
-			block_import: client.clone(),
+			block_import,
 			relay_chain_client: polkadot_full_node.client.clone(),
 			relay_chain_backend: polkadot_full_node.backend.clone(),
 			parachain_client: client.clone(),
@@ -739,7 +734,7 @@ where
 /// the parachain inherent.
 pub fn new_dev(
 	config: Configuration,
-	author_id: Option<nimbus_primitives::NimbusId>,
+	_author_id: Option<nimbus_primitives::NimbusId>,
 	sealing: cli_opt::Sealing,
 	ethapi: Vec<EthApiCmd>,
 	rpc_params: RpcParams,
@@ -805,7 +800,7 @@ pub fn new_dev(
 		//    in the parachain context
 		// 3. check the keystore like we do in nimbus. Actually, maybe the keystore-checking could
 		//    be exported as a helper function from nimbus.
-		let author_id = chain_spec::get_from_seed::<NimbusId>("Alice");
+		// let author_id = chain_spec::get_from_seed::<NimbusId>("Alice");
 
 		let env = sc_basic_authorship::ProposerFactory::new(
 			task_manager.spawn_handle(),
