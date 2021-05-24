@@ -1,3 +1,0 @@
-(function() {var implementors = {};
-implementors["pallet_author_mapping"] = [{"text":"impl&lt;T, Inner&gt; FindAuthor&lt;&lt;T as Config&gt;::AccountId&gt; for MappedFindAuthor&lt;T, Inner&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;T: Config,<br>&nbsp;&nbsp;&nbsp;&nbsp;Inner: FindAuthor&lt;T::AuthorId&gt;,&nbsp;</span>","synthetic":false,"types":[]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
