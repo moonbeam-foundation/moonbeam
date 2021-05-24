@@ -457,8 +457,6 @@ pub fn run() -> Result<()> {
 		None => {
 			let runner = cli.create_runner(&*cli.run)?;
 			runner.run_node_until_exit(|config| async move {
-				let collator = cli.run.base.validator || cli.collator;
-
 				let key = sp_core::Pair::generate().0;
 
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
@@ -493,7 +491,6 @@ pub fn run() -> Result<()> {
 					return service::new_dev(
 						config,
 						author_id,
-						true, // always collator on dev_service
 						cli.run.sealing,
 						cli.run.ethapi,
 						rpc_params,
@@ -543,21 +540,12 @@ pub fn run() -> Result<()> {
 				info!("Parachain id: {:?}", id);
 				info!("Parachain Account: {}", parachain_account);
 				info!("Parachain genesis state: {}", genesis_state);
-				info!("Is collating: {}", if collator { "yes" } else { "no" });
 
 				if config.chain_spec.is_moonbeam() {
 					service::start_node::<
 						service::moonbeam_runtime::RuntimeApi,
 						service::MoonbeamExecutor,
-					>(
-						config,
-						key,
-						polkadot_config,
-						id,
-						collator,
-						cli.run.ethapi,
-						rpc_params,
-					)
+					>(config, key, polkadot_config, id, cli.run.ethapi, rpc_params)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into)
@@ -565,15 +553,7 @@ pub fn run() -> Result<()> {
 					service::start_node::<
 						service::moonriver_runtime::RuntimeApi,
 						service::MoonriverExecutor,
-					>(
-						config,
-						key,
-						polkadot_config,
-						id,
-						collator,
-						cli.run.ethapi,
-						rpc_params,
-					)
+					>(config, key, polkadot_config, id, cli.run.ethapi, rpc_params)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into)
@@ -581,15 +561,7 @@ pub fn run() -> Result<()> {
 					service::start_node::<
 						service::moonshadow_runtime::RuntimeApi,
 						service::MoonshadowExecutor,
-					>(
-						config,
-						key,
-						polkadot_config,
-						id,
-						collator,
-						cli.run.ethapi,
-						rpc_params,
-					)
+					>(config, key, polkadot_config, id, cli.run.ethapi, rpc_params)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into)
@@ -597,15 +569,7 @@ pub fn run() -> Result<()> {
 					service::start_node::<
 						service::moonbase_runtime::RuntimeApi,
 						service::MoonbaseExecutor,
-					>(
-						config,
-						key,
-						polkadot_config,
-						id,
-						collator,
-						cli.run.ethapi,
-						rpc_params,
-					)
+					>(config, key, polkadot_config, id, cli.run.ethapi, rpc_params)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into)

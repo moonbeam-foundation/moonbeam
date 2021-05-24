@@ -89,7 +89,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		// TODO Apps depends on this string to determine whether the chain is an ethereum compat
 		// or not. We should decide the proper strings, and update Apps accordingly.
 		// Or maybe Apps can be smart enough to say if the string contains "moonbeam" at all...
-		"Moonbase Development Testnet",
+		"Moonbase Local Testnet",
 		"moonbase_local",
 		ChainType::Local,
 		move || {
@@ -217,7 +217,9 @@ pub fn testnet_genesis(
 			phantom: Default::default(),
 			members: vec![], // TODO : Set members
 		},
-		pallet_author_slot_filter: AuthorFilterConfig { eligible_ratio: 50 },
+		pallet_author_slot_filter: AuthorFilterConfig {
+			eligible_ratio: sp_runtime::Percent::from_percent(50),
+		},
 		pallet_author_mapping: AuthorMappingConfig {
 			// Pretty hacky. We just set the first staker to use alice's session keys.
 			// Maybe this is the moment we should finally make the `--alice` flags make sense.

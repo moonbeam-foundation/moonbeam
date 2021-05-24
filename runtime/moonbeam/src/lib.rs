@@ -31,7 +31,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Filter, Get, Imbalance, InstanceFilter, OnUnbalanced, Randomness},
+	traits::{Filter, Get, Imbalance, InstanceFilter, OnUnbalanced},
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
 	PalletId,
 };
@@ -453,7 +453,7 @@ parameter_types! {
 	pub const SpendPeriod: BlockNumber = 6 * DAYS;
 	pub const CommunityTreasuryId: PalletId = PalletId(*b"pc/trsry");
 	pub const ParachainBondPalletId: PalletId = PalletId(*b"pb/trsry");
-	//pub const MaxApprovals: u32 = 100; // will be needed for upcoming version
+	pub const MaxApprovals: u32 = 100;
 }
 
 type CommunityTreasuryInstance = pallet_treasury::Instance1;
@@ -474,7 +474,7 @@ impl pallet_treasury::Config<CommunityTreasuryInstance> for Runtime {
 	type SpendPeriod = SpendPeriod;
 	type Burn = ();
 	type BurnDestination = ();
-	// type MaxApprovals = MaxApprovals; // will be needed for upcoming version
+	type MaxApprovals = MaxApprovals;
 	type WeightInfo = ();
 	type SpendFunds = ();
 }
@@ -492,7 +492,7 @@ impl pallet_treasury::Config<ParachainBondTreasuryInstance> for Runtime {
 	type SpendPeriod = SpendPeriod;
 	type Burn = ();
 	type BurnDestination = ();
-	// type MaxApprovals = MaxApprovals; // will be needed for upcoming version
+	type MaxApprovals = MaxApprovals;
 	type WeightInfo = ();
 	type SpendFunds = ();
 }
@@ -535,7 +535,8 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
 	type SelfParaId = ParachainInfo;
-	type DownwardMessageHandlers = ();
+	type DmpMessageHandler = ();
+	type ReservedDmpWeight = ();
 	type OutboundXcmpMessageSource = ();
 	type XcmpMessageHandler = ();
 	type ReservedXcmpWeight = ReservedXcmpWeight;
@@ -822,10 +823,6 @@ impl_runtime_apis! {
 			data: sp_inherents::InherentData,
 		) -> sp_inherents::CheckInherentsResult {
 			data.check_extrinsics(&block)
-		}
-
-		fn random_seed() -> <Block as BlockT>::Hash {
-			RandomnessCollectiveFlip::random_seed().0
 		}
 	}
 
@@ -1261,6 +1258,12 @@ impl_runtime_apis! {
 	impl nimbus_primitives::AuthorFilterAPI<Block, nimbus_primitives::NimbusId> for Runtime {
 		fn can_author(author: nimbus_primitives::NimbusId, slot: u32) -> bool {
 			<Runtime as pallet_author_inherent::Config>::FullCanAuthor::can_author(&author, &slot)
+		}
+	}
+
+	impl cumulus_primitives_core::CollectCollationInfo<Block> for Runtime {
+		fn collect_collation_info() -> cumulus_primitives_core::CollationInfo {
+			ParachainSystem::collect_collation_info()
 		}
 	}
 

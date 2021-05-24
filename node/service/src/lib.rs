@@ -35,6 +35,7 @@ pub use moonriver_runtime;
 pub use moonshadow_runtime;
 use sc_client_api::BlockchainEvents;
 use sc_service::BasePath;
+use sp_keystore::SyncCryptoStorePtr;
 use std::{
 	collections::{BTreeMap, HashMap},
 	sync::Mutex,
@@ -43,16 +44,19 @@ use std::{
 use tokio::sync::Semaphore;
 mod inherents;
 mod rpc;
+use cumulus_client_consensus_common::ParachainConsensus;
 use cumulus_client_network::build_block_announce_validator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
 use nimbus_consensus::{
-	build_filtering_consensus as build_nimbus_consensus,
-	BuildFilteringConsensusParams as BuildNimbusConsensusParams,
+	build_filtering_consensus as build_nimbus_consensus, BuildNimbusConsensusParams,
 };
+use nimbus_primitives::NimbusId;
+use sc_network::NetworkService;
+use substrate_prometheus_endpoint::Registry;
 
-use inherents::build_inherent_data_providers;
+// use inherents::build_inherent_data_providers;
 use polkadot_primitives::v0::CollatorPair;
 pub use sc_executor::NativeExecutor;
 use sc_executor::{native_executor_instance, NativeExecutionDispatch};
@@ -61,15 +65,13 @@ use sc_service::{
 	TFullClient, TaskManager,
 };
 use sp_api::ConstructRuntimeApi;
-use sp_runtime::traits::BlakeTwo256;
-use sp_trie::PrefixedMemoryDB;
 use std::sync::Arc;
 
 pub use client::*;
 pub mod chain_spec;
 mod client;
 
-use sc_telemetry::{Telemetry, TelemetryWorker, TelemetryWorkerHandle};
+use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
 
 type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = TFullBackend<Block>;
@@ -166,6 +168,9 @@ pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backen
 	)?))
 }
 
+use sp_runtime::traits::BlakeTwo256;
+use sp_trie::PrefixedMemoryDB;
+
 /// Builds a new object suitable for chain operations.
 pub fn new_chain_ops(
 	mut config: &mut Configuration,
@@ -188,7 +193,6 @@ pub fn new_chain_ops(
 			..
 		} = new_partial::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(
 			config,
-			None,
 			config.chain_spec.is_dev(),
 		)?;
 		Ok((
@@ -206,7 +210,6 @@ pub fn new_chain_ops(
 			..
 		} = new_partial::<moonriver_runtime::RuntimeApi, MoonriverExecutor>(
 			config,
-			None,
 			config.chain_spec.is_dev(),
 		)?;
 		Ok((
@@ -224,7 +227,6 @@ pub fn new_chain_ops(
 			..
 		} = new_partial::<moonshadow_runtime::RuntimeApi, MoonshadowExecutor>(
 			config,
-			None,
 			config.chain_spec.is_dev(),
 		)?;
 		Ok((
@@ -242,7 +244,6 @@ pub fn new_chain_ops(
 			..
 		} = new_partial::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(
 			config,
-			None,
 			config.chain_spec.is_dev(),
 		)?;
 		Ok((
@@ -261,20 +262,19 @@ pub fn new_chain_ops(
 #[allow(clippy::type_complexity)]
 pub fn new_partial<RuntimeApi, Executor>(
 	config: &Configuration,
-	author: Option<nimbus_primitives::NimbusId>,
 	dev_service: bool,
 ) -> Result<
 	PartialComponents<
-		FullClient<RuntimeApi, Executor>,
+		TFullClient<Block, RuntimeApi, Executor>,
 		FullBackend,
 		MaybeSelectChain,
-		sp_consensus::DefaultImportQueue<Block, FullClient<RuntimeApi, Executor>>,
+		sp_consensus::DefaultImportQueue<Block, TFullClient<Block, RuntimeApi, Executor>>,
 		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
 		(
 			FrontierBlockImport<
 				Block,
-				Arc<FullClient<RuntimeApi, Executor>>,
-				FullClient<RuntimeApi, Executor>,
+				Arc<TFullClient<Block, RuntimeApi, Executor>>,
+				TFullClient<Block, RuntimeApi, Executor>,
 			>,
 			PendingTransactions,
 			Option<FilterPool>,
@@ -292,8 +292,6 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
-	let inherent_data_providers = build_inherent_data_providers(author, dev_service)?;
-
 	let telemetry = config
 		.telemetry_endpoints
 		.clone()
@@ -353,15 +351,16 @@ where
 			config.prometheus_registry(),
 		)
 	} else {
-		// It would be nice if we could just use this one in either case, but
-		// it doesn't properly follow the longest chain rule.
-		// https://github.com/PureStake/moonbeam/pull/266
 		nimbus_consensus::import_queue(
 			client.clone(),
 			frontier_block_import.clone(),
-			inherent_data_providers.clone(),
+			move |_, _| async move {
+				let time = sp_timestamp::InherentDataProvider::from_system_time();
+
+				Ok((time,))
+			},
 			&task_manager.spawn_essential_handle(),
-			config.prometheus_registry(),
+			config.prometheus_registry().clone(),
 		)?
 	};
 
@@ -372,7 +371,6 @@ where
 		keystore_container,
 		task_manager,
 		transaction_pool,
-		inherent_data_providers,
 		select_chain: maybe_select_chain,
 		other: (
 			frontier_block_import,
@@ -418,20 +416,15 @@ impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::UncheckedExtrinsic>
 /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
-async fn start_node_impl<RB, RuntimeApi, Executor>(
+async fn start_node_impl<RuntimeApi, Executor>(
 	parachain_config: Configuration,
 	collator_key: CollatorPair,
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
-	collator: bool,
 	ethapi: Vec<EthApiCmd>,
 	rpc_params: RpcParams,
-	_rpc_ext_builder: RB,
-) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
+) -> sc_service::error::Result<(TaskManager, Arc<TFullClient<Block, RuntimeApi, Executor>>)>
 where
-	RB: Fn(Arc<FullClient<RuntimeApi, Executor>>) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
-		+ Send
-		+ 'static,
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi:
@@ -444,7 +437,7 @@ where
 
 	let parachain_config = prepare_node_config(parachain_config);
 
-	let params = new_partial(&parachain_config, None, false)?;
+	let params = new_partial(&parachain_config, false)?;
 	let (
 		block_import,
 		pending_transactions,
@@ -473,10 +466,12 @@ where
 		polkadot_full_node.backend.clone(),
 	);
 
+	let collator = parachain_config.role.is_authority();
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
 	let transaction_pool = params.transaction_pool.clone();
 	let mut task_manager = params.task_manager;
 	let import_queue = params.import_queue;
+	let force_authoring = parachain_config.force_authoring;
 	let (network, network_status_sinks, system_rpc_tx, start_network) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &parachain_config,
@@ -641,20 +636,47 @@ where
 			client.clone(),
 			transaction_pool,
 			prometheus_registry.as_ref(),
-			telemetry.as_ref().map(|x| x.handle()),
+			telemetry.as_ref().map(|t| t.handle()).clone(),
 		);
-		let spawner = task_manager.spawn_handle();
+
+		let relay_chain_backend = polkadot_full_node.backend.clone();
+		let relay_chain_client = polkadot_full_node.client.clone();
 
 		let parachain_consensus = build_nimbus_consensus(BuildNimbusConsensusParams {
 			para_id: id,
 			proposer_factory,
-			inherent_data_providers: params.inherent_data_providers,
-			block_import,
+			block_import: client.clone(),
 			relay_chain_client: polkadot_full_node.client.clone(),
 			relay_chain_backend: polkadot_full_node.backend.clone(),
 			parachain_client: client.clone(),
 			keystore: params.keystore_container.sync_keystore(),
+			create_inherent_data_providers: move |_, (relay_parent, validation_data, author_id)| {
+				let parachain_inherent =
+							cumulus_primitives_parachain_inherent::ParachainInherentData::
+							create_at_with_client(
+								relay_parent,
+								&relay_chain_client,
+								&*relay_chain_backend,
+								&validation_data,
+								id,
+							);
+				async move {
+					let time = sp_timestamp::InherentDataProvider::from_system_time();
+
+					let parachain_inherent = parachain_inherent.ok_or_else(|| {
+						Box::<dyn std::error::Error + Send + Sync>::from(
+							"Failed to create parachain inherent",
+						)
+					})?;
+
+					let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
+
+					Ok((time, parachain_inherent, author))
+				}
+			},
 		});
+
+		let spawner = task_manager.spawn_handle();
 
 		let params = StartCollatorParams {
 			para_id: id,
@@ -664,7 +686,6 @@ where
 			task_manager: &mut task_manager,
 			collator_key,
 			spawner,
-			backend,
 			relay_chain_full_node: polkadot_full_node,
 			parachain_consensus,
 		};
@@ -693,10 +714,9 @@ pub async fn start_node<RuntimeApi, Executor>(
 	collator_key: CollatorPair,
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
-	collator: bool,
 	ethapi: Vec<EthApiCmd>,
 	rpc_params: RpcParams,
-) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
+) -> sc_service::error::Result<(TaskManager, Arc<TFullClient<Block, RuntimeApi, Executor>>)>
 where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
@@ -709,10 +729,8 @@ where
 		collator_key,
 		polkadot_config,
 		id,
-		collator,
 		ethapi,
 		rpc_params,
-		|_| Default::default(),
 	)
 	.await
 }
@@ -722,9 +740,6 @@ where
 pub fn new_dev(
 	config: Configuration,
 	author_id: Option<nimbus_primitives::NimbusId>,
-	// TODO I guess we should use substrate-cli's validator flag for this.
-	// Resolve after https://github.com/paritytech/cumulus/pull/380 is reviewed.
-	collator: bool,
 	sealing: cli_opt::Sealing,
 	ethapi: Vec<EthApiCmd>,
 	rpc_params: RpcParams,
@@ -742,7 +757,6 @@ pub fn new_dev(
 		keystore_container,
 		select_chain: maybe_select_chain,
 		transaction_pool,
-		inherent_data_providers,
 		other:
 			(
 				block_import,
@@ -752,7 +766,7 @@ pub fn new_dev(
 				_telemetry_worker_handle,
 				frontier_backend,
 			),
-	} = new_partial::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(&config, author_id, true)?;
+	} = new_partial::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(&config, true)?;
 
 	let (network, network_status_sinks, system_rpc_tx, network_starter) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
@@ -778,8 +792,21 @@ pub fn new_dev(
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 	let mut command_sink = None;
+	let collator = config.role.is_authority();
 
 	if collator {
+		//TODO Actually even tthe following TODO isn't relevant.
+		// I ran into some issues with ownership in the closure below,
+		// so this variabel isn't even used yet.
+		//TODO For now, all dev service nodes use Alith's nimbus id in their author inherent.
+		// This could and perhaps should be made more flexible. Here are some options:
+		// 1. a dedicated `--dev-author-id` flag that only works with the dev service
+		// 2. restore the old --author-id` and also allow it to force a secific key
+		//    in the parachain context
+		// 3. check the keystore like we do in nimbus. Actually, maybe the keystore-checking could
+		//    be exported as a helper function from nimbus.
+		let author_id = chain_spec::get_from_seed::<NimbusId>("Alice");
+
 		let env = sc_basic_authorship::ProposerFactory::new(
 			task_manager.spawn_handle(),
 			client.clone(),
@@ -838,7 +865,18 @@ pub fn new_dev(
 				commands_stream,
 				select_chain,
 				consensus_data_provider: None,
-				inherent_data_providers,
+				create_inherent_data_providers: move |_, _| async move {
+					let time = sp_timestamp::InherentDataProvider::from_system_time();
+
+					let mocked_parachain = inherents::MockValidationDataInherentDataProvider;
+
+					//TODO I want to use the value from a variable above.
+					let author = nimbus_primitives::InherentDataProvider::<NimbusId>(
+						chain_spec::get_from_seed::<NimbusId>("Alice"),
+					);
+
+					Ok((time, mocked_parachain, author))
+				},
 			}),
 		);
 	}
