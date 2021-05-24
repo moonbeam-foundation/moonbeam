@@ -1023,11 +1023,6 @@
 <span id="1020">1020</span>
 <span id="1021">1021</span>
 <span id="1022">1022</span>
-<span id="1023">1023</span>
-<span id="1024">1024</span>
-<span id="1025">1025</span>
-<span id="1026">1026</span>
-<span id="1027">1027</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1066,7 +1061,6 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">moonshadow_runtime</span>;
 <span class="kw">use</span> <span class="ident">sc_client_api</span>::<span class="ident">BlockchainEvents</span>;
 <span class="kw">use</span> <span class="ident">sc_service</span>::<span class="ident">BasePath</span>;
-<span class="kw">use</span> <span class="ident">sp_keystore</span>::<span class="ident">SyncCryptoStorePtr</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{
 	<span class="ident">collections</span>::{<span class="ident">BTreeMap</span>, <span class="ident">HashMap</span>},
 	<span class="ident">sync</span>::<span class="ident">Mutex</span>,
@@ -1075,7 +1069,6 @@
 <span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">sync</span>::<span class="ident">Semaphore</span>;
 <span class="kw">mod</span> <span class="ident">inherents</span>;
 <span class="kw">mod</span> <span class="ident">rpc</span>;
-<span class="kw">use</span> <span class="ident">cumulus_client_consensus_common</span>::<span class="ident">ParachainConsensus</span>;
 <span class="kw">use</span> <span class="ident">cumulus_client_network</span>::<span class="ident">build_block_announce_validator</span>;
 <span class="kw">use</span> <span class="ident">cumulus_client_service</span>::{
 	<span class="ident">prepare_node_config</span>, <span class="ident">start_collator</span>, <span class="ident">start_full_node</span>, <span class="ident">StartCollatorParams</span>, <span class="ident">StartFullNodeParams</span>,
@@ -1084,8 +1077,6 @@
 	<span class="ident">build_filtering_consensus</span> <span class="kw">as</span> <span class="ident">build_nimbus_consensus</span>, <span class="ident">BuildNimbusConsensusParams</span>,
 };
 <span class="kw">use</span> <span class="ident">nimbus_primitives</span>::<span class="ident">NimbusId</span>;
-<span class="kw">use</span> <span class="ident">sc_network</span>::<span class="ident">NetworkService</span>;
-<span class="kw">use</span> <span class="ident">substrate_prometheus_endpoint</span>::<span class="ident">Registry</span>;
 
 <span class="comment">// use inherents::build_inherent_data_providers;</span>
 <span class="kw">use</span> <span class="ident">polkadot_primitives</span>::<span class="ident">v0</span>::<span class="ident">CollatorPair</span>;
@@ -1102,7 +1093,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">chain_spec</span>;
 <span class="kw">mod</span> <span class="ident">client</span>;
 
-<span class="kw">use</span> <span class="ident">sc_telemetry</span>::{<span class="ident">Telemetry</span>, <span class="ident">TelemetryHandle</span>, <span class="ident">TelemetryWorker</span>, <span class="ident">TelemetryWorkerHandle</span>};
+<span class="kw">use</span> <span class="ident">sc_telemetry</span>::{<span class="ident">Telemetry</span>, <span class="ident">TelemetryWorker</span>, <span class="ident">TelemetryWorkerHandle</span>};
 
 <span class="kw">type</span> <span class="ident">FullClient</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">TFullClient</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span>;
 <span class="kw">type</span> <span class="ident">FullBackend</span> <span class="op">=</span> <span class="ident">TFullBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>;
@@ -1502,7 +1493,6 @@
 	<span class="kw">let</span> <span class="ident">transaction_pool</span> <span class="op">=</span> <span class="ident">params</span>.<span class="ident">transaction_pool</span>.<span class="ident">clone</span>();
 	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">task_manager</span> <span class="op">=</span> <span class="ident">params</span>.<span class="ident">task_manager</span>;
 	<span class="kw">let</span> <span class="ident">import_queue</span> <span class="op">=</span> <span class="ident">params</span>.<span class="ident">import_queue</span>;
-	<span class="kw">let</span> <span class="ident">force_authoring</span> <span class="op">=</span> <span class="ident">parachain_config</span>.<span class="ident">force_authoring</span>;
 	<span class="kw">let</span> (<span class="ident">network</span>, <span class="ident">network_status_sinks</span>, <span class="ident">system_rpc_tx</span>, <span class="ident">start_network</span>) <span class="op">=</span>
 		<span class="ident">sc_service</span>::<span class="ident">build_network</span>(<span class="ident">sc_service</span>::<span class="ident">BuildNetworkParams</span> {
 			<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">parachain_config</span>,
@@ -1676,7 +1666,7 @@
 		<span class="kw">let</span> <span class="ident">parachain_consensus</span> <span class="op">=</span> <span class="ident">build_nimbus_consensus</span>(<span class="ident">BuildNimbusConsensusParams</span> {
 			<span class="ident">para_id</span>: <span class="ident">id</span>,
 			<span class="ident">proposer_factory</span>,
-			<span class="ident">block_import</span>: <span class="ident">client</span>.<span class="ident">clone</span>(),
+			<span class="ident">block_import</span>,
 			<span class="ident">relay_chain_client</span>: <span class="ident">polkadot_full_node</span>.<span class="ident">client</span>.<span class="ident">clone</span>(),
 			<span class="ident">relay_chain_backend</span>: <span class="ident">polkadot_full_node</span>.<span class="ident">backend</span>.<span class="ident">clone</span>(),
 			<span class="ident">parachain_client</span>: <span class="ident">client</span>.<span class="ident">clone</span>(),
@@ -1770,7 +1760,7 @@
 <span class="doccomment">/// the parachain inherent.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_dev</span>(
 	<span class="ident">config</span>: <span class="ident">Configuration</span>,
-	<span class="ident">author_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nimbus_primitives</span>::<span class="ident">NimbusId</span><span class="op">&gt;</span>,
+	<span class="ident">_author_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nimbus_primitives</span>::<span class="ident">NimbusId</span><span class="op">&gt;</span>,
 	<span class="ident">sealing</span>: <span class="ident">cli_opt</span>::<span class="ident">Sealing</span>,
 	<span class="ident">ethapi</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EthApiCmd</span><span class="op">&gt;</span>,
 	<span class="ident">rpc_params</span>: <span class="ident">RpcParams</span>,
@@ -1836,7 +1826,7 @@
 		<span class="comment">//    in the parachain context</span>
 		<span class="comment">// 3. check the keystore like we do in nimbus. Actually, maybe the keystore-checking could</span>
 		<span class="comment">//    be exported as a helper function from nimbus.</span>
-		<span class="kw">let</span> <span class="ident">author_id</span> <span class="op">=</span> <span class="ident">chain_spec</span>::<span class="ident">get_from_seed</span>::<span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span>(<span class="string">&quot;Alice&quot;</span>);
+		<span class="comment">// let author_id = chain_spec::get_from_seed::&lt;NimbusId&gt;(&quot;Alice&quot;);</span>
 
 		<span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">sc_basic_authorship</span>::<span class="ident">ProposerFactory</span>::<span class="ident">new</span>(
 			<span class="ident">task_manager</span>.<span class="ident">spawn_handle</span>(),
