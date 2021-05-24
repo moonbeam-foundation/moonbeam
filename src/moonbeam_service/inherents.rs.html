@@ -113,6 +113,11 @@
 <span id="110">110</span>
 <span id="111">111</span>
 <span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -142,63 +147,63 @@
 
 <span class="kw">use</span> <span class="ident">cumulus_primitives_core</span>::<span class="ident">PersistedValidationData</span>;
 <span class="kw">use</span> <span class="ident">cumulus_primitives_parachain_inherent</span>::{<span class="ident">ParachainInherentData</span>, <span class="ident">INHERENT_IDENTIFIER</span>};
-<span class="kw">use</span> <span class="ident">sp_inherents</span>::{<span class="ident">InherentData</span>, <span class="ident">InherentDataProviders</span>, <span class="ident">InherentIdentifier</span>, <span class="ident">ProvideInherentData</span>};
-<span class="kw">use</span> <span class="ident">sp_timestamp</span>::<span class="ident">InherentError</span>;
+<span class="kw">use</span> <span class="ident">sp_inherents</span>::{<span class="ident">InherentData</span>, <span class="ident">InherentDataProvider</span>};
 
 <span class="kw">use</span> <span class="ident">cumulus_test_relay_sproof_builder</span>::<span class="ident">RelayStateSproofBuilder</span>;
 
-<span class="doccomment">/// Build the inherent data providers for the node.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Not all nodes will need all inherent data providers:</span>
-<span class="doccomment">/// - The author provider is only necessary for block producing nodes</span>
-<span class="doccomment">/// - The validation data provider can be mocked.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_inherent_data_providers</span>(
-	<span class="ident">author</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nimbus_primitives</span>::<span class="ident">NimbusId</span><span class="op">&gt;</span>,
-	<span class="ident">mock</span>: <span class="ident">bool</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">InherentDataProviders</span>, <span class="ident">sc_service</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">providers</span> <span class="op">=</span> <span class="ident">InherentDataProviders</span>::<span class="ident">new</span>();
+<span class="comment">// TODO it would be nice to re-enable this function and use it in both cases from lib.rs</span>
+<span class="comment">// It&#39;s signature may need to change significantly. For now I&#39;ve written</span>
+<span class="comment">// individual closures in lib.rs</span>
 
-	<span class="comment">// Timestamp provider. Needed in all nodes.</span>
-	<span class="ident">providers</span>
-		.<span class="ident">register_provider</span>(<span class="ident">sp_timestamp</span>::<span class="ident">InherentDataProvider</span>)
-		.<span class="ident">map_err</span>(<span class="ident">Into</span>::<span class="ident">into</span>)
-		.<span class="ident">map_err</span>(<span class="ident">sp_consensus</span>::<span class="ident">error</span>::<span class="ident">Error</span>::<span class="ident">InherentData</span>)<span class="question-mark">?</span>;
+<span class="comment">// /// Build the inherent data providers for the node.</span>
+<span class="comment">// ///</span>
+<span class="comment">// /// Not all nodes will need all inherent data providers:</span>
+<span class="comment">// /// - The author provider is only necessary for block producing nodes</span>
+<span class="comment">// /// - The validation data provider can be mocked.</span>
+<span class="comment">// pub fn build_inherent_data_providers(</span>
+<span class="comment">// 	author: Option&lt;nimbus_primitives::NimbusId&gt;,</span>
+<span class="comment">// 	mock: bool,</span>
+<span class="comment">// ) -&gt; Result&lt;InherentDataProviders, sc_service::Error&gt; {</span>
+<span class="comment">// 	let providers = InherentDataProviders::new();</span>
 
-	<span class="comment">// Author ID Provider for use in dev-service authoring nodes only</span>
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">account</span>) <span class="op">=</span> <span class="ident">author</span> {
-		<span class="comment">//TODO move inherent data provider to nimbus primitives</span>
-		<span class="ident">providers</span>
-			.<span class="ident">register_provider</span>(<span class="ident">pallet_author_inherent</span>::<span class="ident">InherentDataProvider</span>(<span class="ident">account</span>))
-			.<span class="ident">map_err</span>(<span class="ident">Into</span>::<span class="ident">into</span>)
-			.<span class="ident">map_err</span>(<span class="ident">sp_consensus</span>::<span class="ident">error</span>::<span class="ident">Error</span>::<span class="ident">InherentData</span>)<span class="question-mark">?</span>;
-	}
+<span class="comment">// 	// Timestamp provider. Needed in all nodes.</span>
+<span class="comment">// 	providers</span>
+<span class="comment">// 		.register_provider(sp_timestamp::InherentDataProvider)</span>
+<span class="comment">// 		.map_err(Into::into)</span>
+<span class="comment">// 		.map_err(sp_consensus::error::Error::InherentData)?;</span>
 
-	<span class="comment">// Parachain inherent provider, only for dev-service nodes.</span>
-	<span class="kw">if</span> <span class="ident">mock</span> {
-		<span class="ident">providers</span>
-			.<span class="ident">register_provider</span>(<span class="ident">MockValidationDataInherentDataProvider</span>)
-			.<span class="ident">map_err</span>(<span class="ident">Into</span>::<span class="ident">into</span>)
-			.<span class="ident">map_err</span>(<span class="ident">sp_consensus</span>::<span class="ident">error</span>::<span class="ident">Error</span>::<span class="ident">InherentData</span>)<span class="question-mark">?</span>;
-	}
+<span class="comment">// 	// Author ID Provider for use in dev-service authoring nodes only</span>
+<span class="comment">// 	if let Some(account) = author {</span>
+<span class="comment">// 		//TODO move inherent data provider to nimbus primitives</span>
+<span class="comment">// 		providers</span>
+<span class="comment">// 			.register_provider(pallet_author_inherent::InherentDataProvider(account))</span>
+<span class="comment">// 			.map_err(Into::into)</span>
+<span class="comment">// 			.map_err(sp_consensus::error::Error::InherentData)?;</span>
+<span class="comment">// 	}</span>
 
-	<span class="comment">// When we are not mocking the validation data, we do not register a real validation data</span>
-	<span class="comment">// provider here. The validation data inherent is inserted manually by the cumulus colaltor</span>
-	<span class="comment">// https://github.com/paritytech/cumulus/blob/c3e3f443/collator/src/lib.rs#L274-L321</span>
+<span class="comment">// 	// Parachain inherent provider, only for dev-service nodes.</span>
+<span class="comment">// 	if mock {</span>
+<span class="comment">// 		providers</span>
+<span class="comment">// 			.register_provider(MockValidationDataInherentDataProvider)</span>
+<span class="comment">// 			.map_err(Into::into)</span>
+<span class="comment">// 			.map_err(sp_consensus::error::Error::InherentData)?;</span>
+<span class="comment">// 	}</span>
 
-	<span class="prelude-val">Ok</span>(<span class="ident">providers</span>)
-}
+<span class="comment">// 	// When we are not mocking the validation data, we do not register a real validation data</span>
+<span class="comment">// 	// provider here. The validation data inherent is inserted manually by the cumulus colaltor</span>
+<span class="comment">// 	// https://github.com/paritytech/cumulus/blob/c3e3f443/collator/src/lib.rs#L274-L321</span>
+
+<span class="comment">// 	Ok(providers)</span>
+<span class="comment">// }</span>
 
 <span class="doccomment">/// Inherent data provider that supplies mocked validation data.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This is useful when running a node that is not actually backed by any relay chain.</span>
 <span class="doccomment">/// For example when running a local node, or running integration tests.</span>
-<span class="kw">struct</span> <span class="ident">MockValidationDataInherentDataProvider</span>;
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MockValidationDataInherentDataProvider</span>;
 
-<span class="kw">impl</span> <span class="ident">ProvideInherentData</span> <span class="kw">for</span> <span class="ident">MockValidationDataInherentDataProvider</span> {
-	<span class="kw">fn</span> <span class="ident">inherent_identifier</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">InherentIdentifier</span> {
-		<span class="kw-2">&amp;</span><span class="ident">INHERENT_IDENTIFIER</span>
-	}
-
+<span class="attribute">#[<span class="ident">async_trait</span>::<span class="ident">async_trait</span>]</span>
+<span class="kw">impl</span> <span class="ident">InherentDataProvider</span> <span class="kw">for</span> <span class="ident">MockValidationDataInherentDataProvider</span> {
 	<span class="kw">fn</span> <span class="ident">provide_inherent_data</span>(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		<span class="ident">inherent_data</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">InherentData</span>,
@@ -222,8 +227,13 @@
 		<span class="ident">inherent_data</span>.<span class="ident">put_data</span>(<span class="ident">INHERENT_IDENTIFIER</span>, <span class="kw-2">&amp;</span><span class="ident">data</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">error_to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">error</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
-		<span class="ident">InherentError</span>::<span class="ident">try_from</span>(<span class="kw-2">&amp;</span><span class="ident">INHERENT_IDENTIFIER</span>, <span class="ident">error</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">e</span>))
+	<span class="comment">// Copied from the real implementation</span>
+	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">try_handle_error</span>(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+		<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">sp_inherents</span>::<span class="ident">InherentIdentifier</span>,
+		<span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">sp_inherents</span>::<span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+		<span class="prelude-val">None</span>
 	}
 }
 </pre></div>

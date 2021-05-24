@@ -445,6 +445,8 @@
 <span id="442">442</span>
 <span id="443">443</span>
 <span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -491,6 +493,7 @@
 	<span class="op">+</span> <span class="ident">moonbeam_rpc_primitives_debug</span>::<span class="ident">DebugRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>
 	<span class="op">+</span> <span class="ident">moonbeam_rpc_primitives_txpool</span>::<span class="ident">TxPoolRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>
 	<span class="op">+</span> <span class="ident">nimbus_primitives</span>::<span class="ident">AuthorFilterAPI</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">nimbus_primitives</span>::<span class="ident">NimbusId</span><span class="op">&gt;</span>
+	<span class="op">+</span> <span class="ident">cumulus_primitives_core</span>::<span class="ident">CollectCollationInfo</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">sp_api</span>::<span class="ident">ApiExt</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">StateBackend</span>: <span class="ident">sp_api</span>::<span class="ident">StateBackend</span><span class="op">&lt;</span><span class="ident">BlakeTwo256</span><span class="op">&gt;</span>,
 {
@@ -509,7 +512,8 @@
 		<span class="op">+</span> <span class="ident">fp_rpc</span>::<span class="ident">EthereumRuntimeRPCApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>
 		<span class="op">+</span> <span class="ident">moonbeam_rpc_primitives_debug</span>::<span class="ident">DebugRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>
 		<span class="op">+</span> <span class="ident">moonbeam_rpc_primitives_txpool</span>::<span class="ident">TxPoolRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>
-		<span class="op">+</span> <span class="ident">nimbus_primitives</span>::<span class="ident">AuthorFilterAPI</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">nimbus_primitives</span>::<span class="ident">NimbusId</span><span class="op">&gt;</span>,
+		<span class="op">+</span> <span class="ident">nimbus_primitives</span>::<span class="ident">AuthorFilterAPI</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">nimbus_primitives</span>::<span class="ident">NimbusId</span><span class="op">&gt;</span>
+		<span class="op">+</span> <span class="ident">cumulus_primitives_core</span>::<span class="ident">CollectCollationInfo</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
 	<span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">sp_api</span>::<span class="ident">ApiExt</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">StateBackend</span>: <span class="ident">sp_api</span>::<span class="ident">StateBackend</span><span class="op">&lt;</span><span class="ident">BlakeTwo256</span><span class="op">&gt;</span>,
 {
 }
