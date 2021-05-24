@@ -115,7 +115,20 @@ pub mod pallet {
 			old_author_id: T::AuthorId,
 			new_author_id: T::AuthorId,
 		) -> DispatchResult {
-			todo!()
+			let account_id = ensure_signed(origin)?;
+
+			let stored_account = AuthorIds::<T>::try_get(&old_author_id)
+				.map_err(|_| Error::<T>::AssociationNotFound)?;
+
+			ensure!(account_id == stored_account, Error::<T>::NotYourAssociation);
+
+			//TODO make sure they're still a candidate
+
+			AuthorIds::<T>::insert(&new_author_id, &account_id);
+
+			<Pallet<T>>::deposit_event(Event::AuthorRotated(new_author_id, account_id));
+
+			Ok(())
 		}
 
 		/// Clear your AuthorId.
@@ -127,15 +140,12 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			author_id: T::AuthorId,
 		) -> DispatchResultWithPostInfo {
-			let calling_accout = ensure_signed(origin)?;
+			let account_id = ensure_signed(origin)?;
 
 			let stored_account =
 				AuthorIds::<T>::try_get(&author_id).map_err(|_| Error::<T>::AssociationNotFound)?;
 
-			ensure!(
-				calling_accout == stored_account,
-				Error::<T>::NotYourAssociation
-			);
+			ensure!(account_id == stored_account, Error::<T>::NotYourAssociation);
 
 			AuthorIds::<T>::remove(&author_id);
 
