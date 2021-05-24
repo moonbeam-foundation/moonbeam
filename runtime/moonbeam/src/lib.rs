@@ -831,13 +831,28 @@ impl_runtime_apis! {
 			source: TransactionSource,
 			tx: <Block as BlockT>::Extrinsic,
 		) -> TransactionValidity {
-			match &tx.function {
-				Call::Balances(_) => InvalidTransaction::Call.into(),
-				Call::CrowdloanRewards(_) => InvalidTransaction::Call.into(),
-				Call::Democracy(_) => InvalidTransaction::Call.into(),
-				Call::Ethereum(_) => InvalidTransaction::Call.into(),
-				Call::EVM(_) => InvalidTransaction::Call.into(),
-				_ => Executive::validate_transaction(source, tx),
+			let mut allowed = match &tx.function {
+				Call::Balances(_) => false,
+				Call::CrowdloanRewards(_) => false,
+				Call::Democracy(_) => false,
+				Call::Ethereum(_) => false,
+				Call::EVM(_) => false,
+				_ => true,
+			};
+			// only exception is if caller is root
+			if !allowed {
+				match &tx.signature {
+					Some((account, ..)) => if &Sudo::key() == account {
+						// no need to verify signature because validate_transaction does so
+						allowed = true;
+					},
+					_ => (),
+				}
+			}
+			if allowed {
+				Executive::validate_transaction(source, tx)
+			} else {
+				InvalidTransaction::Call.into()
 			}
 		}
 	}
