@@ -41,6 +41,7 @@ pub use moonbeam_core_primitives::{
 	Signature,
 };
 use moonbeam_extensions_evm::runner::stack::TraceRunner as TraceRunnerT;
+use moonbeam_rpc_primitives_txpool::TxPoolResponse;
 use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{Transaction as EthereumTransaction, TransactionAction};
@@ -1116,15 +1117,21 @@ impl_runtime_apis! {
 
 	impl moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block> for Runtime {
 		fn extrinsic_filter(
-			xts: Vec<<Block as BlockT>::Extrinsic>
-		) -> Vec<pallet_ethereum::Transaction> {
-			xts.into_iter().filter_map(|xt| match xt.function {
-				Call::Ethereum(transact(t)) => Some(t),
-				_ => None
-			}).collect()
+			xts_ready: Vec<<Block as BlockT>::Extrinsic>,
+			xts_future: Vec<<Block as BlockT>::Extrinsic>
+		) -> TxPoolResponse {
+			TxPoolResponse {
+				ready: xts_ready.into_iter().filter_map(|xt| match xt.function {
+					Call::Ethereum(transact(t)) => Some(t),
+					_ => None
+				}).collect(),
+				future: xts_future.into_iter().filter_map(|xt| match xt.function {
+					Call::Ethereum(transact(t)) => Some(t),
+					_ => None
+				}).collect(),
+			}
 		}
 	}
-
 	impl fp_rpc::EthereumRuntimeRPCApi<Block> for Runtime {
 		fn chain_id() -> u64 {
 			<Runtime as pallet_evm::Config>::ChainId::get()
