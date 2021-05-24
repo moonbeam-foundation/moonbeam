@@ -51,8 +51,9 @@ pub mod pallet {
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
 
-	/// Configuration trait of this pallet. We tightly couple to Parachain Staking in order to ensure
-	/// that only staked accounts can create registrations in the first place. This could be generalized.
+	/// Configuration trait of this pallet. We tightly couple to Parachain Staking in order to
+	/// ensure that only staked accounts can create registrations in the first place. This could be
+	/// generalized.
 	#[pallet::config]
 	pub trait Config: frame_system::Config + parachain_staking::Config {
 		/// Overarching event type
@@ -86,7 +87,7 @@ pub mod pallet {
 		AuthorRegistered(T::AuthorId, T::AccountId),
 		/// An AuthorId has been de-registered, and its AccountId mapping removed.
 		AuthorDeRegistered(T::AuthorId),
-		/// An AuthorId has been registered, replacing a previous registration and its AccoutId mapping.
+		/// An AuthorId has been registered, replacing a previous registration and its mapping.
 		AuthorRotated(T::AuthorId, T::AccountId),
 		/// An AuthorId has been forcibly deregistered after not being rotated or cleaned up.
 		/// The reporteing account has been rewarded accordingly.
@@ -175,10 +176,16 @@ pub mod pallet {
 		/// Narc on another account for having a useless association and colelct a bounty.
 		///
 		/// This incentivizes good citizenship in the form of cleaning up others' defunct associations.
-		/// When you clean up another account's association, you will receive X percent of their security deposit.
-		/// TODO there probably needs to be some kind of grace period. Like you can't clean someone else's up
-		/// within the first Y blocks it has been registered. Actually this is a great idea. That _forces_
-		/// collators to clean up their associations or else risk having them cleaned out from under them.
+		/// When you clean up another account's association, you will receive X percent of their
+		/// security deposit.
+		///
+		/// No association can be cleaned up within the initial grace period which allows collators
+		/// some time to get their associations onchain before they become active, and to clean up
+		/// after they are no longer active.
+		///
+		/// This also _forces_ collators to rotate their keys regularly because failing to do so will
+		/// make their mappings ripe for narcing. If an active collator gets its association reaped
+		/// they will lose out on their block rewards (and in the future potentially be slashed).
 		#[pallet::weight(0)]
 		pub fn narc_defunct_association(
 			origin: OriginFor<T>,
