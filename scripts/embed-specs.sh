@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# This script copies a raw spec file from a moonbeam network repository into the correct place in this repository to be embedded in the moonbeam binary.
 if [ -z "$2" ]; then
   echo "Usage: $0 [moonriver|moonshadow|alphanet] <docker_tag>"
   echo "Ex: $0 alphanet sha-081b1aab-4"
