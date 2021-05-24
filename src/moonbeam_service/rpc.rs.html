@@ -215,8 +215,6 @@
 <span id="212">212</span>
 <span id="213">213</span>
 <span id="214">214</span>
-<span id="215">215</span>
-<span id="216">216</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -390,8 +388,6 @@
 	<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">NetApiServer</span>::<span class="ident">to_delegate</span>(<span class="ident">NetApi</span>::<span class="ident">new</span>(
 		<span class="ident">client</span>.<span class="ident">clone</span>(),
 		<span class="ident">network</span>.<span class="ident">clone</span>(),
-		<span class="comment">// TODO This is the new peer_cout_as_hex field. Obviously this will compile,</span>
-		<span class="comment">// but I forget whether we want it in hex or not.</span>
 		<span class="bool-val">true</span>,
 	)));
 	<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">Web3ApiServer</span>::<span class="ident">to_delegate</span>(<span class="ident">Web3Api</span>::<span class="ident">new</span>(<span class="ident">client</span>.<span class="ident">clone</span>())));
