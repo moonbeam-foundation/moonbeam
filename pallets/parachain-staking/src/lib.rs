@@ -445,8 +445,6 @@ pub mod pallet {
 
 	#[pallet::error]
 	pub enum Error<T> {
-		CannotSetMaxCandidatesBelowTotalSelected,
-		DefaultMaxCollatorCandidatesOnlyIncreases,
 		NominatorDNE,
 		CandidateDNE,
 		NominatorExists,
@@ -459,18 +457,19 @@ pub mod pallet {
 		AlreadyLeaving,
 		TooManyNominators,
 		CannotActivateIfLeaving,
-		ExceedsDefaultMaxCollatorCandidates,
 		ExceedMaxCollatorsPerNom,
+		ExceedsMaxCollatorCandidates,
 		AlreadyNominatedCollator,
 		NominationDNE,
 		Underflow,
 		InvalidSchedule,
 		CannotSetBelowMin,
+		NoWritingSameValue,
 		TooLowCollatorCandidateCountToJoinCandidates,
 		TooLowCollatorCandidateCountToLeaveCandidates,
-		TooLowNominationCountToNominate,
-		TooLowCollatorCountToNominate,
 		TooLowNominatorCountToLeaveCandidates,
+		TooLowNominationCountToNominate,
+		TooLowCollatorNominationCountToNominate,
 		TooLowNominationCountToLeaveNominators,
 	}
 
@@ -512,7 +511,7 @@ pub mod pallet {
 		/// Set total selected candidates to this value [old, new]
 		TotalSelectedSet(u32, u32),
 		/// Set maximum collator candidates to this value [old, new]
-		DefaultMaxCollatorCandidatesSet(u32, u32),
+		MaxCollatorCandidatesSet(u32, u32),
 		/// Set collator commission to this value [old, new]
 		CollatorCommissionSet(Perbill, Perbill),
 		/// Set blocks per round [current_round, first_block, old, new, new_per_round_inflation]
@@ -768,6 +767,10 @@ pub mod pallet {
 			frame_system::ensure_root(origin)?;
 			ensure!(expectations.is_valid(), Error::<T>::InvalidSchedule);
 			let mut config = <InflationConfig<T>>::get();
+			ensure!(
+				config.expect != expectations,
+				Error::<T>::NoWritingSameValue
+			);
 			config.set_expectations(expectations);
 			Self::deposit_event(Event::StakeExpectationsSet(
 				config.expect.min,
@@ -786,6 +789,7 @@ pub mod pallet {
 			frame_system::ensure_root(origin)?;
 			ensure!(schedule.is_valid(), Error::<T>::InvalidSchedule);
 			let mut config = <InflationConfig<T>>::get();
+			ensure!(config.annual != schedule, Error::<T>::NoWritingSameValue);
 			config.annual = schedule;
 			config.set_round_from_annual::<T>(schedule);
 			Self::deposit_event(Event::InflationSet(
@@ -809,13 +813,14 @@ pub mod pallet {
 				Error::<T>::CannotSetBelowMin
 			);
 			let old = <TotalSelected<T>>::get();
+			ensure!(old != new, Error::<T>::NoWritingSameValue);
 			<TotalSelected<T>>::put(new);
 			Self::deposit_event(Event::TotalSelectedSet(old, new));
 			Ok(().into())
 		}
 		#[pallet::weight(T::WeightInfo::set_max_collator_candidates())]
 		/// Set the maximum number of collator candidates to be allowed in the CandidatePool
-		/// - current implementation requires new_max > old_max
+		/// - must be greater than the TotalSelected
 		pub fn set_max_collator_candidates(
 			origin: OriginFor<T>,
 			new: u32,
@@ -823,31 +828,45 @@ pub mod pallet {
 			frame_system::ensure_root(origin)?;
 			ensure!(
 				new >= <TotalSelected<T>>::get(),
-				Error::<T>::CannotSetMaxCandidatesBelowTotalSelected
+				Error::<T>::CannotSetBelowMin
 			);
 			let mut count = <CandidateCount<T>>::get();
 			let old = count.max_collator_candidates;
-			// TODO: add path to set lower max collator candidates by immediately kicking lowest
-			// new_max - old_max of existing candidates if old candidate pool is full
-			ensure!(
-				new > old,
-				Error::<T>::DefaultMaxCollatorCandidatesOnlyIncreases
-			);
+			ensure!(new != old, Error::<T>::NoWritingSameValue);
+			if new < old {
+				let mut candidates = <CandidatePool<T>>::get().0;
+				if candidates.len() as u32 > new {
+					// kick the lowest current.len - new_max
+					let bottom_n = candidates.len() - new as usize;
+					candidates.sort_unstable_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
+					let top_n = candidates.split_off(bottom_n);
+					for leaving in candidates {
+						// collator goes offline
+						if let Some(mut state) = <CollatorState<T>>::get(&leaving.owner) {
+							state.go_offline();
+							<CollatorState<T>>::insert(&leaving.owner, state);
+						}
+					}
+					count.candidate_count = new;
+					<CandidatePool<T>>::put(OrderedSet::from(top_n));
+				}
+			} // new > old is happy path, no changes to candidate_pool necessary
 			count.max_collator_candidates = new;
 			<CandidateCount<T>>::put(count);
-			Self::deposit_event(Event::DefaultMaxCollatorCandidatesSet(old, new));
+			Self::deposit_event(Event::MaxCollatorCandidatesSet(old, new));
 			Ok(().into())
 		}
 		#[pallet::weight(T::WeightInfo::set_collator_commission())]
 		/// Set the commission for all collators
 		pub fn set_collator_commission(
 			origin: OriginFor<T>,
-			pct: Perbill,
+			new: Perbill,
 		) -> DispatchResultWithPostInfo {
 			frame_system::ensure_root(origin)?;
 			let old = <CollatorCommission<T>>::get();
-			<CollatorCommission<T>>::put(pct);
-			Self::deposit_event(Event::CollatorCommissionSet(old, pct));
+			ensure!(old != new, Error::<T>::NoWritingSameValue);
+			<CollatorCommission<T>>::put(new);
+			Self::deposit_event(Event::CollatorCommissionSet(old, new));
 			Ok(().into())
 		}
 		#[pallet::weight(T::WeightInfo::set_blocks_per_round())]
@@ -862,6 +881,7 @@ pub mod pallet {
 				Error::<T>::CannotSetBelowMin
 			);
 			let mut round = <Round<T>>::get();
+			ensure!(round.length != new, Error::<T>::NoWritingSameValue);
 			let (now, first, old) = (round.current, round.first, round.length);
 			round.length = new;
 			// update per-round inflation given new rounds per year
@@ -905,6 +925,11 @@ pub mod pallet {
 			collator_count: u32,
 		) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
+			let mut count = <CandidateCount<T>>::get();
+			ensure!(
+				count.can_increment(), // count.candidate_count < count.max_collator_candidates
+				Error::<T>::ExceedsMaxCollatorCandidates
+			);
 			ensure!(!Self::is_candidate(&acc), Error::<T>::CandidateExists);
 			ensure!(!Self::is_nominator(&acc), Error::<T>::NominatorExists);
 			ensure!(
@@ -923,15 +948,10 @@ pub mod pallet {
 				}),
 				Error::<T>::CandidateExists
 			);
-			let mut count = <CandidateCount<T>>::get();
-			ensure!(
-				count.can_increment(), // count.candidate_count < count.max_collator_candidates
-				Error::<T>::ExceedsDefaultMaxCollatorCandidates
-			);
-			count.increment::<T>();
 			T::Currency::reserve(&acc, bond)?;
 			let new_total = <Total<T>>::get() + bond;
 			<Total<T>>::put(new_total);
+			count.increment::<T>();
 			<CandidateCount<T>>::put(count);
 			<CollatorState<T>>::insert(&acc, Collator::new(acc.clone(), bond));
 			<CandidatePool<T>>::put(candidates);
@@ -960,7 +980,7 @@ pub mod pallet {
 			ensure!(!state.is_leaving(), Error::<T>::AlreadyLeaving);
 			ensure!(
 				nominator_count >= state.nominators.0.len() as u32,
-				Error::<T>::TooLowNominationCountToLeaveNominators,
+				Error::<T>::TooLowNominatorCountToLeaveCandidates
 			);
 			let mut candidates = <CandidatePool<T>>::get();
 			ensure!(
@@ -994,10 +1014,13 @@ pub mod pallet {
 			ensure!(state.is_active(), Error::<T>::AlreadyOffline);
 			state.go_offline();
 			let mut candidates = <CandidatePool<T>>::get();
-			// TODO: investigate possible bug in this next line
 			if candidates.remove(&Bond::from_owner(collator.clone())) {
 				<CandidatePool<T>>::put(candidates);
 			}
+			// decrement active collator candidate count
+			let mut count = <CandidateCount<T>>::get();
+			count.decrement();
+			<CandidateCount<T>>::put(count);
 			<CollatorState<T>>::insert(&collator, state);
 			Self::deposit_event(Event::CollatorWentOffline(
 				<Round<T>>::get().current,
@@ -1009,6 +1032,11 @@ pub mod pallet {
 		#[pallet::weight(T::WeightInfo::go_online())]
 		pub fn go_online(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
+			let mut count = <CandidateCount<T>>::get();
+			ensure!(
+				count.can_increment(), // count.candidate_count < count.max_collator_candidates
+				Error::<T>::ExceedsMaxCollatorCandidates
+			);
 			let mut state = <CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_active(), Error::<T>::AlreadyActive);
 			ensure!(!state.is_leaving(), Error::<T>::CannotActivateIfLeaving);
@@ -1021,6 +1049,9 @@ pub mod pallet {
 				}),
 				Error::<T>::AlreadyActive
 			);
+			// increment active collator candidate count
+			count.increment::<T>();
+			<CandidateCount<T>>::put(count);
 			<CandidatePool<T>>::put(candidates);
 			<CollatorState<T>>::insert(&collator, state);
 			Self::deposit_event(Event::CollatorBackOnline(
@@ -1118,7 +1149,7 @@ pub mod pallet {
 			let mut state = <CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(
 				collator_nominator_count >= state.nominators.0.len() as u32,
-				Error::<T>::TooLowCollatorCountToNominate
+				Error::<T>::TooLowCollatorNominationCountToNominate
 			);
 			ensure!(
 				(state.nominators.0.len() as u32) < T::MaxNominatorsPerCollator::get(),

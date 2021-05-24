@@ -15,98 +15,17 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Unit testing
+//! - Public Dispatchables
+//! - Root Dispatchables
 use crate::mock::{
 	events, last_event, roll_to, set_author, Balances, Event as MetaEvent, ExtBuilder, Origin,
 	Stake, System, Test,
 };
-use crate::{CollatorStatus, Error, Event};
+use crate::{CollatorStatus, Error, Event, Range};
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, Perbill};
 
-#[test]
-fn geneses() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 1000),
-			(2, 300),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-			(7, 100),
-			(8, 9),
-			(9, 4),
-		])
-		.with_collators(vec![(1, 500), (2, 200)])
-		.with_nominators(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
-		.build()
-		.execute_with(|| {
-			assert!(System::events().is_empty());
-			// collators
-			assert_eq!(Balances::reserved_balance(&1), 500);
-			assert_eq!(Balances::free_balance(&1), 500);
-			assert!(Stake::is_candidate(&1));
-			assert_eq!(Balances::reserved_balance(&2), 200);
-			assert_eq!(Balances::free_balance(&2), 100);
-			assert!(Stake::is_candidate(&2));
-			// nominators
-			for x in 3..7 {
-				assert!(Stake::is_nominator(&x));
-				assert_eq!(Balances::free_balance(&x), 0);
-				assert_eq!(Balances::reserved_balance(&x), 100);
-			}
-			// uninvolved
-			for x in 7..10 {
-				assert!(!Stake::is_nominator(&x));
-			}
-			assert_eq!(Balances::free_balance(&7), 100);
-			assert_eq!(Balances::reserved_balance(&7), 0);
-			assert_eq!(Balances::free_balance(&8), 9);
-			assert_eq!(Balances::reserved_balance(&8), 0);
-			assert_eq!(Balances::free_balance(&9), 4);
-			assert_eq!(Balances::reserved_balance(&9), 0);
-		});
-	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 100),
-			(2, 100),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-			(7, 100),
-			(8, 100),
-			(9, 100),
-			(10, 100),
-		])
-		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
-		.with_nominators(vec![
-			(6, 1, 10),
-			(7, 1, 10),
-			(8, 2, 10),
-			(9, 2, 10),
-			(10, 1, 10),
-		])
-		.build()
-		.execute_with(|| {
-			assert!(System::events().is_empty());
-			// collators
-			for x in 1..5 {
-				assert!(Stake::is_candidate(&x));
-				assert_eq!(Balances::free_balance(&x), 80);
-				assert_eq!(Balances::reserved_balance(&x), 20);
-			}
-			assert!(Stake::is_candidate(&5));
-			assert_eq!(Balances::free_balance(&5), 90);
-			assert_eq!(Balances::reserved_balance(&5), 10);
-			// nominators
-			for x in 6..11 {
-				assert!(Stake::is_nominator(&x));
-				assert_eq!(Balances::free_balance(&x), 90);
-				assert_eq!(Balances::reserved_balance(&x), 10);
-			}
-		});
-}
+// ~~ PUBLIC DISPATCHABLES ~~
 
 #[test]
 fn online_offline_works() {
@@ -217,6 +136,10 @@ fn join_collator_candidates() {
 				}
 			);
 			assert!(System::events().is_empty());
+			assert_noop!(
+				Stake::join_candidates(Origin::signed(7), 10u128, 1u32),
+				Error::<Test>::TooLowCollatorCandidateCountToJoinCandidates
+			);
 			assert_ok!(Stake::join_candidates(Origin::signed(7), 10u128, 2u32));
 			assert_eq!(
 				last_event(),
@@ -249,6 +172,14 @@ fn collator_exit_executes_after_delay() {
 				Error::<Test>::CandidateDNE
 			);
 			roll_to(11);
+			assert_noop!(
+				Stake::leave_candidates(Origin::signed(2), 2u32, 1u32),
+				Error::<Test>::TooLowNominatorCountToLeaveCandidates
+			);
+			assert_noop!(
+				Stake::leave_candidates(Origin::signed(2), 1u32, 2u32),
+				Error::<Test>::TooLowCollatorCandidateCountToLeaveCandidates
+			);
 			assert_ok!(Stake::leave_candidates(Origin::signed(2), 2u32, 2u32));
 			assert_eq!(
 				last_event(),
@@ -655,6 +586,14 @@ fn multiple_nominations() {
 				Stake::nominate(Origin::signed(6), 2, 2, 2u32, 1u32),
 				Error::<Test>::NominationBelowMin,
 			);
+			assert_noop!(
+				Stake::nominate(Origin::signed(6), 2, 10, 2u32, 0u32),
+				Error::<Test>::TooLowNominationCountToNominate,
+			);
+			assert_noop!(
+				Stake::nominate(Origin::signed(6), 2, 10, 1u32, 1u32),
+				Error::<Test>::TooLowCollatorNominationCountToNominate,
+			);
 			assert_ok!(Stake::nominate(Origin::signed(6), 2, 10, 2u32, 1u32));
 			assert_ok!(Stake::nominate(Origin::signed(6), 3, 10, 0u32, 2u32));
 			assert_ok!(Stake::nominate(Origin::signed(6), 4, 10, 0u32, 3u32));
@@ -958,6 +897,10 @@ fn revoke_nomination_or_leave_nominators() {
 				Stake::revoke_nomination(Origin::signed(6), 3),
 				Error::<Test>::NomBondBelowMin
 			);
+			assert_noop!(
+				Stake::leave_nominators(Origin::signed(6), 1u32),
+				Error::<Test>::TooLowNominationCountToLeaveNominators
+			);
 			// can revoke both remaining by calling leave nominators
 			assert_ok!(Stake::leave_nominators(Origin::signed(6), 2u32));
 			// this leads to 8 leaving set of nominators
@@ -1139,8 +1082,231 @@ fn payouts_follow_nomination_changes() {
 		});
 }
 
+// ~~ ROOT DISPATCHABLES ~~
+
 #[test]
-fn round_transitions() {
+fn set_staking_expectations_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		// invalid call fails
+		assert_noop!(
+			Stake::set_staking_expectations(
+				Origin::root(),
+				Range {
+					min: 5u32.into(),
+					ideal: 4u32.into(),
+					max: 3u32.into()
+				}
+			),
+			Error::<Test>::InvalidSchedule
+		);
+		let (min, ideal, max): (u128, u128, u128) = (3u32.into(), 4u32.into(), 5u32.into());
+		// valid call succeeds
+		assert_ok!(Stake::set_staking_expectations(
+			Origin::root(),
+			Range { min, ideal, max }
+		),);
+		// verify event emission
+		assert_eq!(
+			last_event(),
+			MetaEvent::stake(Event::StakeExpectationsSet(min, ideal, max))
+		);
+		// verify storage change
+		let config = Stake::inflation_config();
+		assert_eq!(config.expect, Range { min, ideal, max });
+	});
+}
+
+#[test]
+fn set_inflation_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		// invalid call fails
+		assert_noop!(
+			Stake::set_inflation(
+				Origin::root(),
+				Range {
+					min: Perbill::from_percent(5),
+					ideal: Perbill::from_percent(4),
+					max: Perbill::from_percent(3)
+				}
+			),
+			Error::<Test>::InvalidSchedule
+		);
+		let (min, ideal, max): (Perbill, Perbill, Perbill) = (
+			Perbill::from_percent(3),
+			Perbill::from_percent(4),
+			Perbill::from_percent(5),
+		);
+		// valid call succeeds
+		assert_ok!(Stake::set_inflation(
+			Origin::root(),
+			Range { min, ideal, max }
+		),);
+		// verify event emission
+		assert_eq!(
+			last_event(),
+			MetaEvent::stake(Event::InflationSet(
+				Perbill::from_parts(30000000),
+				Perbill::from_parts(40000000),
+				Perbill::from_parts(50000000),
+				Perbill::from_parts(29),
+				Perbill::from_parts(38),
+				Perbill::from_parts(47)
+			))
+		);
+		// verify storage change
+		let config = Stake::inflation_config();
+		assert_eq!(config.annual, Range { min, ideal, max });
+		assert_eq!(
+			config.round,
+			Range {
+				min: Perbill::from_parts(29),
+				ideal: Perbill::from_parts(38),
+				max: Perbill::from_parts(47)
+			}
+		);
+		// invalid call fails
+		assert_noop!(
+			Stake::set_inflation(Origin::root(), Range { min, ideal, max }),
+			Error::<Test>::NoWritingSameValue
+		);
+	});
+}
+
+#[test]
+fn set_total_selected_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		// invalid call fails
+		assert_noop!(
+			Stake::set_total_selected(Origin::root(), 4u32),
+			Error::<Test>::CannotSetBelowMin
+		);
+		// valid call succeeds
+		assert_ok!(Stake::set_total_selected(Origin::root(), 6u32));
+		// verify event emission
+		assert_eq!(
+			last_event(),
+			MetaEvent::stake(Event::TotalSelectedSet(5u32, 6u32,))
+		);
+		// verify storage change
+		assert_eq!(Stake::total_selected(), 6u32);
+		// invalid call fails
+		assert_noop!(
+			Stake::set_total_selected(Origin::root(), 6u32),
+			Error::<Test>::NoWritingSameValue
+		);
+	});
+}
+
+#[test]
+fn set_max_collator_candidates_works() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 100),
+			(2, 100),
+			(3, 100),
+			(4, 100),
+			(5, 100),
+			(6, 100),
+			(7, 100),
+			(8, 100),
+			(9, 100),
+			(10, 100),
+			(11, 100),
+		])
+		.with_collators(vec![
+			(1, 20),
+			(2, 20),
+			(3, 20),
+			(4, 20),
+			(5, 20),
+			(6, 10),
+			(7, 10),
+			(8, 10),
+			(9, 10),
+			(10, 10),
+		])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Stake::join_candidates(Origin::signed(11), 10u128, 10u32),
+				Error::<Test>::ExceedsMaxCollatorCandidates
+			);
+			assert_noop!(
+				Stake::set_max_collator_candidates(Origin::root(), 10u32),
+				Error::<Test>::NoWritingSameValue
+			);
+			assert_ok!(Stake::set_max_collator_candidates(Origin::root(), 20u32));
+			assert_eq!(
+				last_event(),
+				MetaEvent::stake(Event::MaxCollatorCandidatesSet(10, 20))
+			);
+			assert_noop!(
+				Stake::set_max_collator_candidates(Origin::root(), 4u32),
+				Error::<Test>::CannotSetBelowMin
+			);
+			assert_eq!(Stake::candidate_pool().0.len(), 10usize);
+			for x in 1..11 {
+				assert_eq!(
+					Stake::collator_state(&x).unwrap().state,
+					CollatorStatus::Active
+				);
+			}
+			assert_ok!(Stake::set_max_collator_candidates(Origin::root(), 5u32));
+			assert_eq!(
+				last_event(),
+				MetaEvent::stake(Event::MaxCollatorCandidatesSet(20, 5))
+			);
+			assert_eq!(Stake::candidate_pool().0.len(), 5usize);
+			// top 5 are still active
+			for x in 1..6 {
+				assert_eq!(
+					Stake::collator_state(&x).unwrap().state,
+					CollatorStatus::Active
+				);
+			}
+			// bottom 5 are idle and no longer active, I'd advocate calling leave_candidates
+			for x in 6..11 {
+				assert_eq!(
+					Stake::collator_state(&x).unwrap().state,
+					CollatorStatus::Idle
+				);
+				// cannot go back online because candidate pool is full
+				assert_noop!(
+					Stake::go_online(Origin::signed(x)),
+					Error::<Test>::ExceedsMaxCollatorCandidates
+				);
+			}
+		});
+}
+
+#[test]
+fn set_collator_commission_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		// valid call succeeds
+		assert_ok!(Stake::set_collator_commission(
+			Origin::root(),
+			Perbill::from_percent(5)
+		));
+		// verify event emission
+		assert_eq!(
+			last_event(),
+			MetaEvent::stake(Event::CollatorCommissionSet(
+				Perbill::from_percent(20),
+				Perbill::from_percent(5),
+			))
+		);
+		// verify storage change
+		assert_eq!(Stake::collator_commission(), Perbill::from_percent(5));
+		// invalid call fails
+		assert_noop!(
+			Stake::set_collator_commission(Origin::root(), Perbill::from_percent(5)),
+			Error::<Test>::NoWritingSameValue
+		);
+	});
+}
+
+#[test]
+fn mutable_blocks_per_round() {
 	// round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -1155,6 +1321,14 @@ fn round_transitions() {
 		.with_nominators(vec![(2, 1, 10), (3, 1, 10)])
 		.build()
 		.execute_with(|| {
+			assert_noop!(
+				Stake::set_blocks_per_round(Origin::root(), 2u32),
+				Error::<Test>::CannotSetBelowMin
+			);
+			assert_noop!(
+				Stake::set_blocks_per_round(Origin::root(), 5u32),
+				Error::<Test>::NoWritingSameValue
+			);
 			// Default round every 5 blocks, but MinBlocksPerRound is 3 and we set it to min 3 blocks
 			roll_to(8);
 			// chooses top TotalSelectedCandidates (5), in order
