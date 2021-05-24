@@ -32,7 +32,7 @@ pub use pallet::*;
 pub mod pallet {
 
 	use frame_support::pallet_prelude::*;
-	use frame_support::traits::FindAuthor;
+	use frame_support::traits::{FindAuthor, ReservableCurrency};
 	use frame_system::pallet_prelude::*;
 	use nimbus_primitives::{CanAuthor, EventHandler};
 	use sp_runtime::{ConsensusEngineId, Percent};
@@ -45,6 +45,9 @@ pub mod pallet {
 	/// This value should be roughly the recommended key rotation period.
 	pub const NARC_GRACE_PERIOD: u32 = 2_000;
 
+	/// The security deposit amount.
+	pub const DEPOSIT_AMOUNT: u32 = 500;
+
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
 
@@ -56,6 +59,8 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The type of authority id that will be used at the conensus layer.
 		type AuthorId: Member + Parameter + MaybeSerializeDeserialize;
+		/// Currency in which the security deposit will be taken.
+		type DepositCurrency: ReservableCurrency<Self::AccountId>;
 	}
 
 	#[pallet::hooks]
@@ -70,6 +75,8 @@ pub mod pallet {
 		NotYourAssociation,
 		/// This account cannot set an author (because it is not staked)
 		CannotSetAuthor,
+		/// This account cannot set an author because it cannon afford the security deposit
+		CannotAffordSecurityDeposit,
 	}
 
 	#[pallet::event]
@@ -101,7 +108,8 @@ pub mod pallet {
 				Error::<T>::CannotSetAuthor
 			);
 
-			//TODO take the security deposit
+			T::DepositCurrency::reserve(&account_id, DEPOSIT_AMOUNT.into())
+				.map_err(|_| Error::<T>::CannotAffordSecurityDeposit)?;
 
 			AuthorIds::<T>::insert(&author_id, &account_id);
 
@@ -157,7 +165,7 @@ pub mod pallet {
 
 			AuthorIds::<T>::remove(&author_id);
 
-			//TODO return the security deposit
+			T::DepositCurrency::unreserve(&account_id, DEPOSIT_AMOUNT.into());
 
 			<Pallet<T>>::deposit_event(Event::AuthorDeRegistered(author_id));
 
