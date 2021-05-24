@@ -4878,6 +4878,7 @@ name = "moonbeam-rpc-primitives-txpool"
 version = "0.6.0"
 dependencies = [
  "ethereum",
+ "parity-scale-codec",
  "sp-api",
  "sp-io",
  "sp-runtime",
@@ -4926,6 +4927,7 @@ dependencies = [
  "jsonrpc-core 15.1.0",
  "moonbeam-rpc-core-txpool",
  "moonbeam-rpc-primitives-txpool",
+ "sc-transaction-graph",
  "serde",
  "sha3 0.8.2",
  "sp-api",
@@ -5079,6 +5081,7 @@ dependencies = [
  "sc-service",
  "sc-telemetry",
  "sc-tracing",
+ "sc-transaction-graph",
  "sc-transaction-pool",
  "serde",
  "serde_json",
