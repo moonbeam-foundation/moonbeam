@@ -61,25 +61,42 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		/// Extrinsic for account ids to register their corresponding author id.
-		/// Users who have been (or will be) elected active colaltors in staking,
+		/// Register your AuthorId onchain so blocks you author are associated with your account.
+		///
+		/// Users who have been (or will soon be) elected active collators in staking,
 		/// should submit this extrinsic to earn rewards.
-		/// TODO require a security deposit so users clean up after themselves
 		#[pallet::weight(0)]
-		pub fn add_association(
-			origin: OriginFor<T>,
-			author_id: T::AuthorId,
-		) -> DispatchResultWithPostInfo {
+		pub fn add_association(origin: OriginFor<T>, author_id: T::AuthorId) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
+
+			//TODO make sure they're a candidate
+
+			//TODO take the security deposit
 
 			AuthorIds::<T>::insert(author_id, account_id);
 
 			//TODO Emit an event
 
-			Ok(().into())
+			Ok(())
 		}
 
-		//TODO a call to clear your associated key and get your deposit back
+		/// Change your AuthorId.
+		///
+		/// This is useful for normal key rotation or for when switching from one pysical collator
+		/// machine to another. No new security deposit is required.
+		#[pallet::weight(0)]
+		pub fn update_association(
+			origin: OriginFor<T>,
+			old_author_id: T::AuthorId,
+			new_author_id: T::AuthorId,
+		) -> DispatchResult {
+			todo!()
+		}
+
+		/// Clear your AuthorId.
+		///
+		/// This is useful when you are no longer an author and would like to re-claim your security
+		/// deposit.
 		#[pallet::weight(0)]
 		pub fn clear_association(
 			origin: OriginFor<T>,
@@ -97,12 +114,27 @@ pub mod pallet {
 
 			AuthorIds::<T>::remove(&author_id);
 
+			//TODO return the security deposit
+
 			//TODO Emit event
 
 			Ok(().into())
 		}
 
-		//TODO(Maybe Someday) a call to clear someone else's defunct key and collect a bounty
+		/// Narc on another account for having a useless association and colelct a bounty.
+		///
+		/// This incentivizes good citizenship in the form of cleaning up others' defunct associations.
+		/// When you clean up another account's association, you will receive X percent of their security deposit.
+		/// TODO there probably needs to be some kind of grace period. Like you can't clean someone else's up
+		/// within the first Y blocks it has been registered. Actually this is a great idea. That _forces_
+		/// collators to clean up their associations or else risk having them cleaned out from under them.
+		#[pallet::weight(0)]
+		pub fn narc_defunct_association(
+			origin: OriginFor<T>,
+			author_id: T::AuthorId,
+		) -> DispatchResult {
+			todo!()
+		}
 	}
 
 	#[pallet::storage]
