@@ -105,7 +105,7 @@ pub mod opaque {
 
 	impl_opaque_keys! {
 		pub struct SessionKeys {
-			pub author_inherent: AuthorInherent,
+			pub nimbus: AuthorInherent,
 		}
 	}
 }
@@ -523,7 +523,7 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 
 impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
-	type FindAuthor = pallet_author_mapping::MappedFindAuthor<Self, AuthorInherent>;
+	type FindAuthor = AuthorInherent;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot;
 }
 
@@ -584,17 +584,12 @@ impl parachain_staking::Config for Runtime {
 impl pallet_author_inherent::Config for Runtime {
 	type AuthorId = NimbusId;
 	type SlotBeacon = pallet_author_inherent::RelayChainBeacon<Self>;
-	//TODO This is making me think the mapping should just happen in the author inherent pallet
-	// Or maybe the sessions pallet will interface really naturally with the author inherent pallet?
-	type EventHandler = pallet_author_mapping::MappedEventHandler<Self, ParachainStaking>;
-	type PreliminaryCanAuthor = pallet_author_mapping::MappedCanAuthor<Self, ParachainStaking>;
-	type FullCanAuthor = pallet_author_mapping::MappedCanAuthor<Self, AuthorFilter>;
+	type AccountLookup = AuthorMapping;
+	type EventHandler = ParachainStaking;
+	type CanAuthor = AuthorFilter;
 }
 
 impl pallet_author_slot_filter::Config for Runtime {
-	// All of our filtering is going to happen in the runtime's accountId type (same as staking.)
-	// Maybe I should remove this associated type entirely
-	type AuthorId = AccountId;
 	type Event = Event;
 	type RandomnessSource = RandomnessCollectiveFlip;
 	type PotentialAuthors = ParachainStaking;
@@ -1263,7 +1258,7 @@ impl_runtime_apis! {
 
 	impl nimbus_primitives::AuthorFilterAPI<Block, nimbus_primitives::NimbusId> for Runtime {
 		fn can_author(author: nimbus_primitives::NimbusId, slot: u32) -> bool {
-			<Runtime as pallet_author_inherent::Config>::FullCanAuthor::can_author(&author, &slot)
+			AuthorInherent::can_author(&author, &slot)
 		}
 	}
 
