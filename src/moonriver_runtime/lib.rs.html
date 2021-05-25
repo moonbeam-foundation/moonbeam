@@ -1321,6 +1321,11 @@
 <span id="1318">1318</span>
 <span id="1319">1319</span>
 <span id="1320">1320</span>
+<span id="1321">1321</span>
+<span id="1322">1322</span>
+<span id="1323">1323</span>
+<span id="1324">1324</span>
+<span id="1325">1325</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1439,7 +1444,7 @@
 	<span class="ident">spec_name</span>: <span class="macro">create_runtime_str</span><span class="macro">!</span>(<span class="string">&quot;moonriver&quot;</span>),
 	<span class="ident">impl_name</span>: <span class="macro">create_runtime_str</span><span class="macro">!</span>(<span class="string">&quot;moonriver&quot;</span>),
 	<span class="ident">authoring_version</span>: <span class="number">3</span>,
-	<span class="ident">spec_version</span>: <span class="number">39</span>,
+	<span class="ident">spec_version</span>: <span class="number">40</span>,
 	<span class="ident">impl_version</span>: <span class="number">1</span>,
 	<span class="ident">apis</span>: <span class="ident">RUNTIME_API_VERSIONS</span>,
 	<span class="ident">transaction_version</span>: <span class="number">2</span>,
@@ -1936,10 +1941,17 @@
 	<span class="kw">type</span> <span class="ident">RelayChainAccountId</span> <span class="op">=</span> <span class="ident">AccountId32</span>;
 	<span class="kw">type</span> <span class="ident">VestingPeriod</span> <span class="op">=</span> <span class="ident">VestingPeriod</span>;
 }
+
+<span class="macro">parameter_types</span><span class="macro">!</span> {
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DepositAmount</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">100</span>;
+}
 <span class="comment">// This is a simple session key manager. It should probably either work with, or be replaced</span>
 <span class="comment">// entirely by pallet sessions</span>
 <span class="kw">impl</span> <span class="ident">pallet_author_mapping</span>::<span class="ident">Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
+	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">AuthorId</span> <span class="op">=</span> <span class="ident">NimbusId</span>;
+	<span class="kw">type</span> <span class="ident">DepositCurrency</span> <span class="op">=</span> <span class="ident">Balances</span>;
+	<span class="kw">type</span> <span class="ident">DepositAmount</span> <span class="op">=</span> <span class="ident">DepositAmount</span>;
 }
 
 <span class="macro">parameter_types</span><span class="macro">!</span> {
@@ -2060,12 +2072,10 @@
 		<span class="ident">CommunityTreasury</span>: <span class="ident">pallet_treasury</span>::<span class="op">&lt;</span><span class="ident">Instance1</span><span class="op">&gt;</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Call</span>},
 		<span class="ident">ParachainBondTreasury</span>:
 			<span class="ident">pallet_treasury</span>::<span class="op">&lt;</span><span class="ident">Instance2</span><span class="op">&gt;</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Call</span>},
-		<span class="comment">// The order matters here. Inherents will be included in the order specified here.</span>
-		<span class="comment">// Concretely we need the author inherent to come after the parachain_system inherent.</span>
 		<span class="ident">AuthorInherent</span>: <span class="ident">pallet_author_inherent</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Inherent</span>},
 		<span class="ident">AuthorFilter</span>: <span class="ident">pallet_author_slot_filter</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Event</span>, <span class="ident">Config</span>},
 		<span class="ident">CrowdloanRewards</span>: <span class="ident">pallet_crowdloan_rewards</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
-		<span class="ident">AuthorMapping</span>: <span class="ident">pallet_author_mapping</span>::{<span class="ident">Pallet</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Storage</span>},
+		<span class="ident">AuthorMapping</span>: <span class="ident">pallet_author_mapping</span>::{<span class="ident">Pallet</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
 		<span class="ident">Proxy</span>: <span class="ident">pallet_proxy</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
 	}
 }
