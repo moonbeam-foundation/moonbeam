@@ -5644,6 +5644,7 @@ version = "1.0.0"
 dependencies = [
  "frame-support",
  "frame-system",
+ "log",
  "nimbus-primitives",
  "pallet-balances",
  "parachain-staking",
