@@ -15,11 +15,10 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! A minimal runtime including the author-mapping pallet
-use super::*;
 use crate as pallet_author_mapping;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{GenesisBuild, OnFinalize, OnInitialize},
+	traits::GenesisBuild,
 	weights::Weight,
 };
 use parity_scale_codec::{Decode, Encode};
@@ -173,33 +172,6 @@ impl ExtBuilder {
 	}
 }
 
-//TODO Do I even need this?
-pub(crate) fn roll_to(n: u64) {
-	while System::block_number() < n {
-		AuthorMapping::on_finalize(System::block_number());
-		Balances::on_finalize(System::block_number());
-		System::on_finalize(System::block_number());
-		System::set_block_number(System::block_number() + 1);
-		System::on_initialize(System::block_number());
-		Balances::on_initialize(System::block_number());
-		AuthorMapping::on_initialize(System::block_number());
-	}
-}
-
 pub(crate) fn last_event() -> Event {
 	System::events().pop().expect("Event expected").event
-}
-
-pub(crate) fn events() -> Vec<pallet::Event<Test>> {
-	System::events()
-		.into_iter()
-		.map(|r| r.event)
-		.filter_map(|e| {
-			if let Event::pallet_author_mapping(inner) = e {
-				Some(inner)
-			} else {
-				None
-			}
-		})
-		.collect::<Vec<_>>()
 }

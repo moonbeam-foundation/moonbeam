@@ -16,12 +16,11 @@
 
 //! Unit testing
 use crate::mock::{
-	events, last_event, roll_to, AuthorMapping, Balances, Event as MetaEvent, ExtBuilder, Origin,
+	last_event, AuthorMapping, Balances, Event as MetaEvent, ExtBuilder, Origin,
 	System, Test, TestAuthor,
 };
 use crate::{Error, Event};
 use frame_support::{assert_noop, assert_ok};
-use sp_runtime::{traits::Zero, DispatchError, Perbill};
 
 #[test]
 fn genesis_builder_works() {
