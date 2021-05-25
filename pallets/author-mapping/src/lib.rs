@@ -131,6 +131,8 @@ pub mod pallet {
 		) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
 
+			ensure!(T::can_register(&account_id), Error::<T>::CannotSetAuthor);
+
 			let stored_account = Mapping::<T>::try_get(&old_author_id)
 				.map_err(|_| Error::<T>::AssociationNotFound)?;
 

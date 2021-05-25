@@ -214,9 +214,50 @@ fn registered_can_rotate() {
 		})
 }
 
-// Can't rotate unless you're the owner
-// Can't rotate if author not already registered
-// No longer eligible account cannot rotate
+#[test]
+fn unregistered_author_cannot_be_rotated() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			AuthorMapping::update_association(Origin::signed(2), TestAuthor::Alice, TestAuthor::Bob),
+			Error::<Test>::AssociationNotFound
+		);
+	})
+}
+
+#[test]
+fn registered_author_cannot_be_rotated_by_non_owner() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000)])
+		.with_mappings(vec![(TestAuthor::Alice, 1)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				AuthorMapping::update_association(Origin::signed(2), TestAuthor::Alice, TestAuthor::Bob),
+				Error::<Test>::NotYourAssociation
+			);
+		})
+}
+
+// The notion of eligible accounts may change as runtimes are upgraded. If an account previously
+// registered when it was eligible and has ince become ineleigible, we don't want them to rotate
+// anymore as this takes compute that is not useful. This mechanism interacts well with the narc
+// extrinsic if we ever bring it back.
+#[test]
+fn no_longer_eligible_account_cannot_rotate() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000)])
+		.with_mappings(vec![(TestAuthor::Alice, 1)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				AuthorMapping::update_association(Origin::signed(1), TestAuthor::Alice, TestAuthor::Bob),
+				Error::<Test>::CannotSetAuthor
+			);
+
+			assert_eq!(Balances::free_balance(&1), 900);
+			assert_eq!(AuthorMapping::account_id_of(TestAuthor::Alice), Some(1));
+		})
+}
 
 
 //TODO Test ideas in case we bring back the narc extrinsic
