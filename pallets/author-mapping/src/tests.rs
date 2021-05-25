@@ -140,7 +140,18 @@ fn registered_account_can_clear() {
 		})
 }
 
-// Unregistered account cannot clear
+#[test]
+fn unregistered_author_cannot_be_cleared() {
+	ExtBuilder::default()
+		.build()
+		.execute_with(|| {
+			
+			assert_noop!(
+				AuthorMapping::clear_association(Origin::signed(1), TestAuthor::Alice),
+				Error::<Test>::AssociationNotFound
+			);
+		})
+}
 // Cannot unregister for another account
 // Cannot unregister whe no registration existed to begin with
 // Registered author cannot be stolen by someone else
