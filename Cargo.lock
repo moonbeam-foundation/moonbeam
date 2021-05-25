@@ -5645,9 +5645,12 @@ dependencies = [
  "frame-support",
  "frame-system",
  "nimbus-primitives",
+ "pallet-balances",
  "parachain-staking",
  "parity-scale-codec",
  "serde",
+ "sp-core",
+ "sp-io",
  "sp-runtime",
  "sp-std",
 ]

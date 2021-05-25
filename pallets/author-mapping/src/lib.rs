@@ -28,6 +28,11 @@ use frame_support::pallet;
 
 pub use pallet::*;
 
+#[cfg(test)]
+mod mock;
+// #[cfg(test)]
+// mod tests;
+
 #[pallet]
 pub mod pallet {
 
@@ -43,7 +48,7 @@ pub mod pallet {
 	/// ensure that only staked accounts can create registrations in the first place. This could be
 	/// generalized.
 	#[pallet::config]
-	pub trait Config: frame_system::Config + parachain_staking::Config {
+	pub trait Config: frame_system::Config {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The type of authority id that will be used at the conensus layer.
@@ -52,6 +57,10 @@ pub mod pallet {
 		type DepositCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 		/// The amount that should be taken as a security deposit when registering an AuthorId.
 		type DepositAmount: Get<<Self::DepositCurrency as Currency<Self::AccountId>>::Balance>;
+
+		/// A rough preliminary check to determine whether an account can make a new registration.
+		/// If you don't wish to do any such check, just return `true`.
+		fn can_register(account: &Self::AccountId) -> bool;
 	}
 
 	#[pallet::hooks]
@@ -95,7 +104,7 @@ pub mod pallet {
 			let account_id = ensure_signed(origin)?;
 
 			ensure!(
-				parachain_staking::Pallet::<T>::is_candidate(&account_id),
+				T::can_register(&account_id),
 				Error::<T>::CannotSetAuthor
 			);
 
@@ -127,7 +136,7 @@ pub mod pallet {
 			ensure!(account_id == stored_account, Error::<T>::NotYourAssociation);
 
 			ensure!(
-				parachain_staking::Pallet::<T>::is_candidate(&account_id),
+				T::can_register(&account_id),
 				Error::<T>::CannotSetAuthor
 			);
 
@@ -206,20 +215,20 @@ pub mod pallet {
 	/// Genesis config for author mapping pallet
 	pub struct GenesisConfig<T: Config> {
 		/// The associations that should exist at chain genesis
-		pub author_ids: Vec<(T::AuthorId, T::AccountId)>,
+		pub mappings: Vec<(T::AuthorId, T::AccountId)>,
 	}
 
 	#[cfg(feature = "std")]
 	impl<T: Config> Default for GenesisConfig<T> {
 		fn default() -> Self {
-			Self { author_ids: vec![] }
+			Self { mappings: vec![] }
 		}
 	}
 
 	#[pallet::genesis_build]
 	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
-			for (author_id, account_id) in &self.author_ids {
+			for (author_id, account_id) in &self.mappings {
 				Mapping::<T>::insert(author_id, account_id);
 			}
 		}
@@ -244,3 +253,4 @@ pub mod pallet {
 // unstaked account cannot be narced before period
 // staked account can be narced after period
 // staked account cannot be narced before period
+// Account that cannot afford security deposit cannot register

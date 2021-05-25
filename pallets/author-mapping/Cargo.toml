@@ -15,9 +15,10 @@ sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.2", default-features = false }
 parachain-staking = { path = "../parachain-staking", default-features = false }
 
-# [dev-dependencies]
-# sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.2", default-features = false }
-# sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.2", default-features = false }
+[dev-dependencies]
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.2", default-features = false }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.2", default-features = false }
+pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.2", default-features = false }
 
 [features]
 default = ["std"]
