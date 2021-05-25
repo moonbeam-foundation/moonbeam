@@ -108,10 +108,7 @@ pub mod pallet {
 				Error::<T>::CannotSetAuthor
 			);
 
-			T::DepositCurrency::reserve(&account_id, T::DepositAmount::get())
-				.map_err(|_| Error::<T>::CannotAffordSecurityDeposit)?;
-
-			Mapping::<T>::insert(&author_id, &account_id);
+			Self::enact_registration(&author_id, &account_id)?;
 
 			<Pallet<T>>::deposit_event(Event::AuthorRegistered(author_id, account_id));
 
@@ -205,6 +202,17 @@ pub mod pallet {
 		// }
 	}
 
+	impl<T: Config> Pallet<T> {
+		pub fn enact_registration(author_id: &T::AuthorId, account_id: &T::AccountId) -> DispatchResult {
+			T::DepositCurrency::reserve(&account_id, T::DepositAmount::get())
+				.map_err(|_| Error::<T>::CannotAffordSecurityDeposit)?;
+
+			Mapping::<T>::insert(&author_id, &account_id);
+
+			Ok(())
+		}
+	}
+
 	#[pallet::storage]
 	#[pallet::getter(fn account_id_of)]
 	/// We maintain a mapping from the AuthorIds used in the consensus layer
@@ -229,7 +237,7 @@ pub mod pallet {
 	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
 			for (author_id, account_id) in &self.mappings {
-				Mapping::<T>::insert(author_id, account_id);
+				Pallet::<T>::enact_registration(author_id, account_id);
 			}
 		}
 	}

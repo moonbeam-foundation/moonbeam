@@ -33,7 +33,8 @@ fn genesis_builder_works() {
 		.build()
 		.execute_with(|| {
 			assert!(System::events().is_empty());
-			assert_eq!(Balances::free_balance(&1), 1000);
+			assert_eq!(Balances::free_balance(&1), 900);
+			assert_eq!(Balances::reserved_balance(&1), 100);
 			assert_eq!(AuthorMapping::account_id_of(TestAuthor::Alice), Some(1));
 			assert_eq!(AuthorMapping::account_id_of(TestAuthor::Bob), None);
 		})
@@ -115,9 +116,33 @@ fn double_registration_costs_twice_as_much() {
 			assert_eq!(AuthorMapping::account_id_of(TestAuthor::Bob), Some(2));
 		})
 }
-// Registered account can clear
+
+#[test]
+fn registered_account_can_clear() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 1000),
+		])
+		.with_mappings(vec![(TestAuthor::Alice, 1)])
+		.build()
+		.execute_with(|| {
+			
+			assert_ok!(AuthorMapping::clear_association(Origin::signed(1), TestAuthor::Alice));
+
+			assert_eq!(Balances::free_balance(&1), 1000);
+			assert_eq!(Balances::reserved_balance(&1), 0);
+			assert_eq!(AuthorMapping::account_id_of(TestAuthor::Alice), None);
+
+			assert_eq!(
+				last_event(),
+				MetaEvent::pallet_author_mapping(Event::AuthorDeRegistered(TestAuthor::Alice))
+			);
+		})
+}
+
 // Unregistered account cannot clear
 // Cannot unregister for another account
+// Cannot unregister whe no registration existed to begin with
 // Registered author cannot be stolen by someone else
 // Registered account can rotate
 // unstaked account can be narced after period
