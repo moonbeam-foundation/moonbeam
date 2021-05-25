@@ -173,7 +173,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 
-		/// Narc on another account for having a useless association and colelct a bounty.
+		/// Narc on another account for having a useless association and collect a bounty.
 		///
 		/// This incentivizes good citizenship in the form of cleaning up others' defunct associations.
 		/// When you clean up another account's association, you will receive X percent of their
