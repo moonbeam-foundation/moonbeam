@@ -241,3 +241,5 @@ pub mod pallet {
 // Registered account can rotate
 // unstaked account can be narced after period
 // unstaked account cannot be narced before period
+// staked account can be narced after period
+// staked account cannot be narced before period 
