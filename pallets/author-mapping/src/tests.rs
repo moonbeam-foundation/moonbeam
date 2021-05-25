@@ -194,7 +194,29 @@ fn registered_author_cannot_be_overwritten() {
 		})
 }
 
-// Registered account can rotate
+#[test]
+fn registered_can_rotate() {
+	ExtBuilder::default()
+		.with_balances(vec![(2, 1000)])
+		.with_mappings(vec![(TestAuthor::Bob, 2)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(
+				AuthorMapping::update_association(Origin::signed(2), TestAuthor::Bob, TestAuthor::Charlie)
+			);
+
+			assert_eq!(AuthorMapping::account_id_of(TestAuthor::Bob), None);
+			assert_eq!(AuthorMapping::account_id_of(TestAuthor::Charlie), Some(2));
+
+			// Should still only ahve paid a single security deposit
+			assert_eq!(Balances::free_balance(&2), 900);
+			assert_eq!(Balances::reserved_balance(&2), 100);
+		})
+}
+
+// Can't rotate unless you're the owner
+// Can't rotate if author not already registered
+// No longer eligible account cannot rotate
 
 
 //TODO Test ideas in case we bring back the narc extrinsic
