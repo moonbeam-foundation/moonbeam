@@ -61,7 +61,24 @@ fn eligible_account_can_register() {
 }
 
 
-// Unstaked account cannot register
+#[test]
+fn ineligible_account_cannot_register() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 1000),
+		])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				AuthorMapping::add_association(Origin::signed(1), TestAuthor::Alice),
+				Error::<Test>::CannotSetAuthor
+			);
+
+			assert_eq!(Balances::free_balance(&1), 1000);
+			assert_eq!(AuthorMapping::account_id_of(TestAuthor::Alice), None);
+		})
+}
+
 // Staked account can double register
 // Registered account can clear
 // Unregistered account cannot clear

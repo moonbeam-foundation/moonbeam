@@ -73,7 +73,7 @@ pub mod pallet {
 		AssociationNotFound,
 		/// The association can't be cleared because it belongs to another account.
 		NotYourAssociation,
-		/// This account cannot set an author (because it is not staked)
+		/// This account cannot set an author because it fails the preliminary check
 		CannotSetAuthor,
 		/// This account cannot set an author because it cannon afford the security deposit
 		CannotAffordSecurityDeposit,
