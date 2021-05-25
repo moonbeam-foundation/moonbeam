@@ -167,8 +167,8 @@ pub mod pallet {
 
 		//TODO maybe in the future we will add some more incentivization for key cleanup and also
 		// proper key rotation
-		// /// The portion of the security deposit that goes to the the account who reports it occupying
-		// /// space after it should have been cleaned or rotated.
+		// /// The portion of the security deposit that goes to the the account who reports it
+		// /// occupying space after it should have been cleaned or rotated.
 		// pub const NARC_REWARD: Percent = Percent::from_percent(5);
 
 		// /// The period of time after which an AuthorId can be reported as defunct.
@@ -177,15 +177,15 @@ pub mod pallet {
 		//
 		// /// Narc on another account for having a useless association and collect a bounty.
 		// ///
-		// /// This incentivizes good citizenship in the form of cleaning up others' defunct associations.
-		// /// When you clean up another account's association, you will receive X percent of their
-		// /// security deposit.
+		// /// This incentivizes good citizenship in the form of cleaning up others' defunct
+		// /// associations. When you clean up another account's association, you will receive X
+		// /// percent of their security deposit.
 		// ///
 		// /// No association can be cleaned up within the initial grace period which allows collators
 		// /// some time to get their associations onchain before they become active, and to clean up
 		// /// after they are no longer active.
 		// ///
-		// /// This also _forces_ collators to rotate their keys regularly because failing to do so will
+		// /// This also _forces_ collators to rotate their keys regularly because failing to will
 		// /// make their mappings ripe for narcing. If an active collator gets its association reaped
 		// /// they will lose out on their block rewards (and in the future potentially be slashed).
 		// #[pallet::weight(0)]
@@ -244,4 +244,4 @@ pub mod pallet {
 // unstaked account can be narced after period
 // unstaked account cannot be narced before period
 // staked account can be narced after period
-// staked account cannot be narced before period 
+// staked account cannot be narced before period
