@@ -154,7 +154,7 @@ impl ExtBuilder {
 		// This is not (currently) configureable because it is enough for all of our tests
 		// It could bemade configureable.
 		pallet_author_mapping::GenesisConfig::<Runtime> {
-			author_ids: vec![(NimbusId::from_slice(&ALICE_NIMBUS), AccountId::from(ALICE))],
+			mappings: vec![(NimbusId::from_slice(&ALICE_NIMBUS), AccountId::from(ALICE))],
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();
