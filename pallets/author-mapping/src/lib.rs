@@ -35,7 +35,6 @@ pub mod pallet {
 	use frame_support::traits::ReservableCurrency;
 	use frame_system::pallet_prelude::*;
 	use nimbus_primitives::AccountLookup;
-	use sp_runtime::Percent;
 
 	/// The security deposit amount.
 	pub const DEPOSIT_AMOUNT: u32 = 500;
