@@ -240,17 +240,3 @@ pub mod pallet {
 		}
 	}
 }
-
-//Test ideas:
-// Genesis config works
-// Staked account can register
-// Unstaked account cannot register
-// Staked account can double register
-// Registered account can clear
-// Unregistered account cannot clear
-// Registered account can rotate
-// unstaked account can be narced after period
-// unstaked account cannot be narced before period
-// staked account can be narced after period
-// staked account cannot be narced before period
-// Account that cannot afford security deposit cannot register
