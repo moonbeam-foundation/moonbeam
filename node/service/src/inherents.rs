@@ -91,7 +91,6 @@ impl InherentDataProvider for MockValidationDataInherentDataProvider {
 		let (relay_storage_root, proof) =
 			RelayStateSproofBuilder::default().into_state_root_and_proof();
 
-		// Insert current relay number
 		let data = ParachainInherentData {
 			validation_data: PersistedValidationData {
 				parent_head: Default::default(),

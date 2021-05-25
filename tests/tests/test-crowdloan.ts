@@ -71,7 +71,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     const keyring = new Keyring({ type: "ethereum" });
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
   });
-  it("should be able to make a first claim", async function () {
+  it("should be able to make a first claim for free", async function () {
     await context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.crowdloanRewards.initializeRewardVec(
@@ -119,7 +119,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     const keyring = new Keyring({ type: "ethereum" });
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
   });
-  it("should not be able to perform first check again", async function () {
+  it("should not be able to perform first claim again", async function () {
     await context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.crowdloanRewards.initializeRewardVec(
@@ -137,7 +137,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     await transfer.signAndSend(genesisAccount);
     await context.createBlock();
 
-    //should not be able to perform first check again
+    //should not be able to perform first claim again
     await context.polkadotApi.tx.crowdloanRewards.myFirstClaim().signAndSend(genesisAccount);
     await context.createBlock();
     const isPayable3 = await context.polkadotApi.query.crowdloanRewards.accountsPayable(
@@ -155,7 +155,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     const keyring = new Keyring({ type: "ethereum" });
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
   });
-  it("should show me the money after 5 blocks", async function () {
+  it("should show me the money after 5 blocks, after first claim was called", async function () {
     await context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.crowdloanRewards.initializeRewardVec(
@@ -180,6 +180,45 @@ describeDevMoonbeam("Crowdloan", (context) => {
     await context.createBlock();
     await context.createBlock();
     await context.polkadotApi.tx.crowdloanRewards.showMeTheMoney().signAndSend(genesisAccount);
+    await context.createBlock();
+    const isPayable4 = await context.polkadotApi.query.crowdloanRewards.accountsPayable(
+      GENESIS_ACCOUNT
+    );
+    expect((isPayable4.toHuman() as any).claimed_reward).to.equal("600.0357 kUnit");
+  });
+});
+describeDevMoonbeam("Crowdloan", (context) => {
+  let genesisAccount: KeyringPair;
+  const relayChainAddress: string = "couldBeAnyString";
+  before("Setup genesis account for substrate", async () => {
+    const keyring = new Keyring({ type: "ethereum" });
+    genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+  });
+  it("should make first claim after 5 blocks, after show me the money was called", async function () {
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.crowdloanRewards.initializeRewardVec(
+          [[relayChainAddress, GENESIS_ACCOUNT, 3_000_000n * GLMR]],
+          0,
+          1
+        )
+      )
+      .signAndSend(genesisAccount);
+    await context.createBlock();
+
+    // construct a transaction
+    // First claim should have 0 fees
+    const transfer = context.polkadotApi.tx.crowdloanRewards.showMeTheMoney();
+    await transfer.signAndSend(genesisAccount);
+
+    await context.createBlock();
+
+    // should show me the money after 5 blocks
+    // only works with a relaychain
+    await context.createBlock();
+    await context.createBlock();
+    await context.createBlock();
+    await context.polkadotApi.tx.crowdloanRewards.myFirstClaim().signAndSend(genesisAccount);
     await context.createBlock();
     const isPayable4 = await context.polkadotApi.query.crowdloanRewards.accountsPayable(
       GENESIS_ACCOUNT
