@@ -152,9 +152,25 @@ fn unregistered_author_cannot_be_cleared() {
 			);
 		})
 }
-// Cannot unregister for another account
-// Cannot unregister whe no registration existed to begin with
-// Registered author cannot be stolen by someone else
+
+#[test]
+fn registered_author_cannot_be_cleared_by_non_owner() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 1000),
+		])
+		.with_mappings(vec![(TestAuthor::Alice, 1)])
+		.build()
+		.execute_with(|| {
+			
+			assert_noop!(
+				AuthorMapping::clear_association(Origin::signed(2), TestAuthor::Alice),
+				Error::<Test>::NotYourAssociation
+			);
+		})
+}
+
+// Registered author cannot be stolen by someone else registering over top
 // Registered account can rotate
 // unstaked account can be narced after period
 // unstaked account cannot be narced before period
