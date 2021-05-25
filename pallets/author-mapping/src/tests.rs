@@ -79,9 +79,46 @@ fn ineligible_account_cannot_register() {
 		})
 }
 
-// Staked account can double register
+#[test]
+fn double_registration_costs_twice_as_much() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(2, 1000),
+		])
+		.build()
+		.execute_with(|| {
+			// Register once as Bob
+			assert_ok!(AuthorMapping::add_association(Origin::signed(2), TestAuthor::Bob));
+
+			assert_eq!(Balances::free_balance(&2), 900);
+			assert_eq!(Balances::reserved_balance(&2), 100);
+			assert_eq!(AuthorMapping::account_id_of(TestAuthor::Bob), Some(2));
+
+			assert_eq!(
+				last_event(),
+				MetaEvent::pallet_author_mapping(Event::AuthorRegistered(TestAuthor::Bob, 2))
+			);
+
+			// Register again as Alice
+			assert_ok!(AuthorMapping::add_association(Origin::signed(2), TestAuthor::Alice));
+
+			assert_eq!(Balances::free_balance(&2), 800);
+			assert_eq!(Balances::reserved_balance(&2), 200);
+			assert_eq!(AuthorMapping::account_id_of(TestAuthor::Alice), Some(2));
+
+			assert_eq!(
+				last_event(),
+				MetaEvent::pallet_author_mapping(Event::AuthorRegistered(TestAuthor::Alice, 2))
+			);
+
+			// Should still be registered as Bob as well
+			assert_eq!(AuthorMapping::account_id_of(TestAuthor::Bob), Some(2));
+		})
+}
 // Registered account can clear
 // Unregistered account cannot clear
+// Cannot unregister for another account
+// Registered author cannot be stolen by someone else
 // Registered account can rotate
 // unstaked account can be narced after period
 // unstaked account cannot be narced before period
