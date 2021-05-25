@@ -132,6 +132,7 @@ pub mod pallet {
 			);
 
 			Mapping::<T>::insert(&new_author_id, &account_id);
+			Mapping::<T>::remove(&old_author_id);
 
 			<Pallet<T>>::deposit_event(Event::AuthorRotated(new_author_id, account_id));
 
