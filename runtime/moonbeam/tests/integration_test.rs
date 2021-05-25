@@ -303,7 +303,7 @@ fn transfer_through_evm_to_stake() {
 				),
 				DispatchError::Module {
 					index: 3,
-					error: 3,
+					error: 2,
 					message: Some("InsufficientBalance")
 				}
 			);
@@ -536,7 +536,7 @@ fn join_candidates_via_precompile() {
 					1000 * GLMR,
 					1000 * GLMR,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -586,7 +586,7 @@ fn leave_candidates_via_precompile() {
 					AccountId::from(ALICE),
 					3,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -637,7 +637,7 @@ fn go_online_offline_via_precompile() {
 					1,
 					AccountId::from(ALICE),
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -671,7 +671,7 @@ fn go_online_offline_via_precompile() {
 					1,
 					AccountId::from(ALICE),
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -730,7 +730,7 @@ fn candidate_bond_more_less_via_precompile() {
 					1_000 * GLMR,
 					2_000 * GLMR,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -771,7 +771,7 @@ fn candidate_bond_more_less_via_precompile() {
 					2_000 * GLMR,
 					1_500 * GLMR,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -836,7 +836,7 @@ fn nominate_via_precompile() {
 					AccountId::from(ALICE),
 					2000 * GLMR,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -921,7 +921,7 @@ fn leave_nominators_via_precompile() {
 					AccountId::from(CHARLIE),
 					1_000 * GLMR,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -993,7 +993,7 @@ fn revoke_nomination_via_precompile() {
 					500 * GLMR,
 					1_000 * GLMR,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -1061,7 +1061,7 @@ fn nominator_bond_more_less_via_precompile() {
 					1_500 * GLMR,
 					2_000 * GLMR,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -1104,7 +1104,7 @@ fn nominator_bond_more_less_via_precompile() {
 					2_000 * GLMR,
 					1_500 * GLMR,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];

@@ -8,14 +8,14 @@ license = 'GPL-3.0-only'
 repository = 'https://github.com/PureStake/moonbeam/'
 
 [dependencies]
-fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "joshy-substrate-2be8fcc4" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "joshy-substrate-2be8fcc4" }
+fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-v0.8" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-v0.8" }
 evm = { version = "0.26.0", default-features = false, features = ["with-codec"] }
 evm-core = { version = "0.26.0", default-features = false, features = ["with-codec"] }
-sp-core = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1" }
-sp-std = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1" }
-sp-io = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1" }
-sp-runtime = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "rococo-v1" }
+sp-core = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.2" }
+sp-std = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.2" }
+sp-io = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.2" }
+sp-runtime = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.2" }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug", default-features = false }
 ethereum-types = { version = "0.11.0", default-features = false }
 

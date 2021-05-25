@@ -37,7 +37,7 @@ cat $WASM  >> $CONFIG;
 echo -n "\",\"parachain\":true}" >> $CONFIG;
 
 TYPES="$TMP_FOLDER/relay-types.json"
-echo '{"Address": "MultiAddress", "LookupSource": "MultiAddress"}' > $TYPES;
+echo '{"Address": "MultiAddress", "LookupSource": "MultiAddress", "BridgedBlockHash": "H256"}' > $TYPES;
 
 docker run --rm --network=host \
   -v $(pwd)/$CONFIG:/config \
