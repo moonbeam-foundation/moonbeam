@@ -115,7 +115,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 40,
+	spec_version: 41,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -746,7 +746,7 @@ construct_runtime! {
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent},
 		AuthorFilter: pallet_author_slot_filter::{Pallet, Storage, Event, Config},
 		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>},
-		AuthorMapping: pallet_author_mapping::{Pallet, Config<T>, Storage, Event<T>},
+		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
 	}
 }
