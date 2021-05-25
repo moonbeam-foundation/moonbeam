@@ -77,6 +77,8 @@ pub mod pallet {
 		CannotSetAuthor,
 		/// This account cannot set an author because it cannon afford the security deposit
 		CannotAffordSecurityDeposit,
+		/// The AuthorId in question is already associated and cannot be overwritten
+		AlreadyAssociated,
 	}
 
 	#[pallet::event]
@@ -104,6 +106,11 @@ pub mod pallet {
 			let account_id = ensure_signed(origin)?;
 
 			ensure!(T::can_register(&account_id), Error::<T>::CannotSetAuthor);
+
+			ensure!(
+				Mapping::<T>::get(&author_id).is_none(),
+				Error::<T>::AlreadyAssociated
+			);
 
 			Self::enact_registration(&author_id, &account_id)?;
 

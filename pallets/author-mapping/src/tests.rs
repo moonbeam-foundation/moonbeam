@@ -164,7 +164,20 @@ fn registered_author_cannot_be_cleared_by_non_owner() {
 		})
 }
 
-// Registered author cannot be stolen by someone else registering over top
+#[test]
+fn registered_author_cannot_be_overwritten() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000)])
+		.with_mappings(vec![(TestAuthor::Alice, 1)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				AuthorMapping::add_association(Origin::signed(2), TestAuthor::Alice),
+				Error::<Test>::AlreadyAssociated
+			);
+		})
+}
+
 // Registered account can rotate
 // unstaked account can be narced after period
 // unstaked account cannot be narced before period
