@@ -121,7 +121,7 @@ pub mod pallet {
 
 		/// Change your AuthorId.
 		///
-		/// This is useful for normal key rotation or for when switching from one pysical collator
+		/// This is useful for normal key rotation or for when switching from one physical collator
 		/// machine to another. No new security deposit is required.
 		#[pallet::weight(0)]
 		pub fn update_association(
