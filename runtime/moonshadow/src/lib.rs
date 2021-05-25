@@ -830,13 +830,13 @@ impl_runtime_apis! {
 			source: TransactionSource,
 			tx: <Block as BlockT>::Extrinsic,
 		) -> TransactionValidity {
+			// filtered calls should never enter the tx pool so they never enter a block
 			let mut allowed = <Runtime as frame_system::Config>
 				::BaseCallFilter::filter(&tx.function);
-			// only exception is if caller is root
+			// filtered calls are still allowed if source is sudo
 			if !allowed {
 				match &tx.signature {
 					Some((account, ..)) => if &Sudo::key() == account {
-						// no need to verify signature because validate_transaction does so
 						allowed = true;
 					},
 					_ => (),
