@@ -77,6 +77,22 @@ fn ineligible_account_cannot_register() {
 }
 
 #[test]
+fn cannot_register_without_deposit() {
+	ExtBuilder::default()
+		.with_balances(vec![(2, 10)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				AuthorMapping::add_association(Origin::signed(2), TestAuthor::Alice),
+				Error::<Test>::CannotAffordSecurityDeposit
+			);
+
+			assert_eq!(Balances::free_balance(&2), 10);
+			assert_eq!(AuthorMapping::account_id_of(TestAuthor::Alice), None);
+		})
+}
+
+#[test]
 fn double_registration_costs_twice_as_much() {
 	ExtBuilder::default()
 		.with_balances(vec![(2, 1000)])
@@ -179,8 +195,10 @@ fn registered_author_cannot_be_overwritten() {
 }
 
 // Registered account can rotate
+
+
+//TODO Test ideas in case we bring back the narc extrinsic
 // unstaked account can be narced after period
 // unstaked account cannot be narced before period
 // staked account can be narced after period
 // staked account cannot be narced before period
-// Account that cannot afford security deposit cannot register
