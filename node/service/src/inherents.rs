@@ -87,9 +87,6 @@ impl InherentDataProvider for MockValidationDataInherentDataProvider {
 		&self,
 		inherent_data: &mut InherentData,
 	) -> Result<(), sp_inherents::Error> {
-		// Get current relay number
-		let current_height = self.get_current_height();
-
 		// Use the "sproof" (spoof proof) builder to build valid mock state root and proof.
 		let (relay_storage_root, proof) =
 			RelayStateSproofBuilder::default().into_state_root_and_proof();
@@ -99,7 +96,7 @@ impl InherentDataProvider for MockValidationDataInherentDataProvider {
 			validation_data: PersistedValidationData {
 				parent_head: Default::default(),
 				relay_parent_storage_root: relay_storage_root,
-				relay_parent_number: current_height,
+				relay_parent_number: Default::default(),
 				max_pov_size: Default::default(),
 			},
 			downward_messages: Default::default(),
@@ -107,8 +104,6 @@ impl InherentDataProvider for MockValidationDataInherentDataProvider {
 			relay_chain_state: proof,
 		};
 
-		// Increment the relay number
-		*self.relay_number.write() = current_height + 1;
 		inherent_data.put_data(INHERENT_IDENTIFIER, &data)
 	}
 
