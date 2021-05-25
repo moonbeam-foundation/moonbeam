@@ -19,10 +19,9 @@
 //! This module defines the Moonbeam node's Command Line Interface (CLI)
 //! It is built using structopt and inherits behavior from Substrate's sc_cli crate.
 
-use crate::chain_spec;
-use sp_core::H160;
+use cli_opt::{EthApi, Sealing};
+use service::chain_spec;
 use std::path::PathBuf;
-use std::str::FromStr;
 use structopt::StructOpt;
 
 /// Sub-commands supported by the collator.
@@ -165,12 +164,18 @@ pub struct RunCmd {
 	/// Maximum number of logs in a query.
 	#[structopt(long, default_value = "10000")]
 	pub max_past_logs: u32,
-}
 
-fn parse_h160(input: &str) -> Result<H160, String> {
-	input
-		.parse::<H160>()
-		.map_err(|_| "Failed to parse H160".to_string())
+	/// Force using Moonbase native runtime.
+	#[structopt(long = "force-moonbase")]
+	pub force_moonbase: bool,
+
+	/// Force using Moonriver native runtime.
+	#[structopt(long = "force-moonriver")]
+	pub force_moonriver: bool,
+
+	/// Force using Moonshadow native runtime.
+	#[structopt(long = "force-moonshadow")]
+	pub force_moonshadow: bool,
 }
 
 impl std::ops::Deref for RunCmd {
@@ -234,57 +239,5 @@ impl RelayChainCli {
 			chain_id,
 			base: polkadot_cli::RunCmd::from_iter(relay_chain_args),
 		}
-	}
-}
-
-/// Block authoring scheme to be used by the dev service.
-#[derive(Debug)]
-pub enum Sealing {
-	/// Author a block immediately upon receiving a transaction into the transaction pool
-	Instant,
-	/// Author a block upon receiving an RPC command
-	Manual,
-	/// Author blocks at a regular interval specified in milliseconds
-	Interval(u64),
-}
-
-impl FromStr for Sealing {
-	type Err = String;
-
-	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		Ok(match s {
-			"instant" => Self::Instant,
-			"manual" => Self::Manual,
-			s => {
-				let millis =
-					u64::from_str_radix(s, 10).map_err(|_| "couldn't decode sealing param")?;
-				Self::Interval(millis)
-			}
-		})
-	}
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum EthApi {
-	Txpool,
-	Debug,
-	Trace,
-}
-
-impl FromStr for EthApi {
-	type Err = String;
-
-	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		Ok(match s {
-			"txpool" => Self::Txpool,
-			"debug" => Self::Debug,
-			"trace" => Self::Trace,
-			_ => {
-				return Err(format!(
-					"`{}` is not recognized as a supported Ethereum Api",
-					s
-				))
-			}
-		})
 	}
 }

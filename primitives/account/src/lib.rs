@@ -83,9 +83,14 @@ impl From<[u8; 20]> for EthereumSigner {
 
 impl From<ecdsa::Public> for EthereumSigner {
 	fn from(x: ecdsa::Public) -> Self {
-		let mut m = [0u8; 20];
-		m.copy_from_slice(&x.as_ref()[13..33]);
-		EthereumSigner(m)
+		let decompressed =
+			secp256k1::PublicKey::parse_slice(&x.0, Some(secp256k1::PublicKeyFormat::Compressed))
+				.expect("Wrong compressed public key provided")
+				.serialize();
+		let mut m = [0u8; 64];
+		m.copy_from_slice(&decompressed[1..65]);
+		let account = H160::from(H256::from_slice(Keccak256::digest(&m).as_slice()));
+		EthereumSigner(account.into())
 	}
 }
 
@@ -93,5 +98,39 @@ impl From<ecdsa::Public> for EthereumSigner {
 impl std::fmt::Display for EthereumSigner {
 	fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
 		write!(fmt, "ethereum signature: {:?}", H160::from_slice(&self.0))
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use sp_core::{ecdsa, Pair};
+	use sp_runtime::traits::IdentifyAccount;
+
+	#[test]
+	fn test_account_derivation_1() {
+		// Test from https://asecuritysite.com/encryption/ethadd
+		let secret_key =
+			hex::decode("502f97299c472b88754accd412b7c9a6062ef3186fba0c0388365e1edec24875")
+				.unwrap();
+		let expected_hex_account = hex::decode("976f8456e4e2034179b284a23c0e0c8f6d3da50c").unwrap();
+
+		let public_key = ecdsa::Pair::from_seed_slice(&secret_key).unwrap().public();
+		let account: EthereumSigner = public_key.into();
+		let expected_account = H160::from_slice(&expected_hex_account);
+		assert_eq!(account.into_account(), expected_account);
+	}
+	#[test]
+	fn test_account_derivation_2() {
+		// Test from https://asecuritysite.com/encryption/ethadd
+		let secret_key =
+			hex::decode("0f02ba4d7f83e59eaa32eae9c3c4d99b68ce76decade21cdab7ecce8f4aef81a")
+				.unwrap();
+		let expected_hex_account = hex::decode("420e9f260b40af7e49440cead3069f8e82a5230f").unwrap();
+
+		let public_key = ecdsa::Pair::from_seed_slice(&secret_key).unwrap().public();
+		let account: EthereumSigner = public_key.into();
+		let expected_account = H160::from_slice(&expected_hex_account);
+		assert_eq!(account.into_account(), expected_account);
 	}
 }
