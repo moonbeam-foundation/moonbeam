@@ -103,10 +103,7 @@ pub mod pallet {
 		pub fn add_association(origin: OriginFor<T>, author_id: T::AuthorId) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
 
-			ensure!(
-				T::can_register(&account_id),
-				Error::<T>::CannotSetAuthor
-			);
+			ensure!(T::can_register(&account_id), Error::<T>::CannotSetAuthor);
 
 			Self::enact_registration(&author_id, &account_id)?;
 
@@ -132,10 +129,7 @@ pub mod pallet {
 
 			ensure!(account_id == stored_account, Error::<T>::NotYourAssociation);
 
-			ensure!(
-				T::can_register(&account_id),
-				Error::<T>::CannotSetAuthor
-			);
+			ensure!(T::can_register(&account_id), Error::<T>::CannotSetAuthor);
 
 			Mapping::<T>::insert(&new_author_id, &account_id);
 			Mapping::<T>::remove(&old_author_id);
@@ -203,7 +197,10 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
-		pub fn enact_registration(author_id: &T::AuthorId, account_id: &T::AccountId) -> DispatchResult {
+		pub fn enact_registration(
+			author_id: &T::AuthorId,
+			account_id: &T::AccountId,
+		) -> DispatchResult {
 			T::DepositCurrency::reserve(&account_id, T::DepositAmount::get())
 				.map_err(|_| Error::<T>::CannotAffordSecurityDeposit)?;
 

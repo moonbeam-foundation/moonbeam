@@ -16,8 +16,8 @@
 
 //! Unit testing
 use crate::mock::{
-	events, last_event, roll_to, Balances, Event as MetaEvent, ExtBuilder, Origin,
-	AuthorMapping, System, Test, TestAuthor,
+	events, last_event, roll_to, AuthorMapping, Balances, Event as MetaEvent, ExtBuilder, Origin,
+	System, Test, TestAuthor,
 };
 use crate::{Error, Event};
 use frame_support::{assert_noop, assert_ok};
@@ -26,9 +26,7 @@ use sp_runtime::{traits::Zero, DispatchError, Perbill};
 #[test]
 fn genesis_builder_works() {
 	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 1000),
-		])
+		.with_balances(vec![(1, 1000)])
 		.with_mappings(vec![(TestAuthor::Alice, 1)])
 		.build()
 		.execute_with(|| {
@@ -43,12 +41,13 @@ fn genesis_builder_works() {
 #[test]
 fn eligible_account_can_register() {
 	ExtBuilder::default()
-		.with_balances(vec![
-			(2, 1000),
-		])
+		.with_balances(vec![(2, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(AuthorMapping::add_association(Origin::signed(2), TestAuthor::Bob));
+			assert_ok!(AuthorMapping::add_association(
+				Origin::signed(2),
+				TestAuthor::Bob
+			));
 
 			assert_eq!(Balances::free_balance(&2), 900);
 			assert_eq!(Balances::reserved_balance(&2), 100);
@@ -61,13 +60,10 @@ fn eligible_account_can_register() {
 		})
 }
 
-
 #[test]
 fn ineligible_account_cannot_register() {
 	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 1000),
-		])
+		.with_balances(vec![(1, 1000)])
 		.build()
 		.execute_with(|| {
 			assert_noop!(
@@ -83,13 +79,14 @@ fn ineligible_account_cannot_register() {
 #[test]
 fn double_registration_costs_twice_as_much() {
 	ExtBuilder::default()
-		.with_balances(vec![
-			(2, 1000),
-		])
+		.with_balances(vec![(2, 1000)])
 		.build()
 		.execute_with(|| {
 			// Register once as Bob
-			assert_ok!(AuthorMapping::add_association(Origin::signed(2), TestAuthor::Bob));
+			assert_ok!(AuthorMapping::add_association(
+				Origin::signed(2),
+				TestAuthor::Bob
+			));
 
 			assert_eq!(Balances::free_balance(&2), 900);
 			assert_eq!(Balances::reserved_balance(&2), 100);
@@ -101,7 +98,10 @@ fn double_registration_costs_twice_as_much() {
 			);
 
 			// Register again as Alice
-			assert_ok!(AuthorMapping::add_association(Origin::signed(2), TestAuthor::Alice));
+			assert_ok!(AuthorMapping::add_association(
+				Origin::signed(2),
+				TestAuthor::Alice
+			));
 
 			assert_eq!(Balances::free_balance(&2), 800);
 			assert_eq!(Balances::reserved_balance(&2), 200);
@@ -120,14 +120,14 @@ fn double_registration_costs_twice_as_much() {
 #[test]
 fn registered_account_can_clear() {
 	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 1000),
-		])
+		.with_balances(vec![(1, 1000)])
 		.with_mappings(vec![(TestAuthor::Alice, 1)])
 		.build()
 		.execute_with(|| {
-			
-			assert_ok!(AuthorMapping::clear_association(Origin::signed(1), TestAuthor::Alice));
+			assert_ok!(AuthorMapping::clear_association(
+				Origin::signed(1),
+				TestAuthor::Alice
+			));
 
 			assert_eq!(Balances::free_balance(&1), 1000);
 			assert_eq!(Balances::reserved_balance(&1), 0);
@@ -142,27 +142,21 @@ fn registered_account_can_clear() {
 
 #[test]
 fn unregistered_author_cannot_be_cleared() {
-	ExtBuilder::default()
-		.build()
-		.execute_with(|| {
-			
-			assert_noop!(
-				AuthorMapping::clear_association(Origin::signed(1), TestAuthor::Alice),
-				Error::<Test>::AssociationNotFound
-			);
-		})
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			AuthorMapping::clear_association(Origin::signed(1), TestAuthor::Alice),
+			Error::<Test>::AssociationNotFound
+		);
+	})
 }
 
 #[test]
 fn registered_author_cannot_be_cleared_by_non_owner() {
 	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 1000),
-		])
+		.with_balances(vec![(1, 1000)])
 		.with_mappings(vec![(TestAuthor::Alice, 1)])
 		.build()
 		.execute_with(|| {
-			
 			assert_noop!(
 				AuthorMapping::clear_association(Origin::signed(2), TestAuthor::Alice),
 				Error::<Test>::NotYourAssociation

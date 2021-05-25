@@ -22,17 +22,16 @@ use frame_support::{
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 	weights::Weight,
 };
+use parity_scale_codec::{Decode, Encode};
+#[cfg(feature = "std")]
+use serde::{Deserialize, Serialize};
 use sp_core::H256;
 use sp_io;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
-	Perbill,
-	RuntimeDebug,
+	Perbill, RuntimeDebug,
 };
-use parity_scale_codec::{Decode, Encode};
-#[cfg(feature = "std")]
-use serde::{Deserialize, Serialize};
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(Eq, PartialEq, Clone, Copy, Encode, Decode, RuntimeDebug)]
@@ -122,15 +121,13 @@ impl pallet_author_mapping::Config for Test {
 	}
 }
 
-
 /// Externality builder for pallet author mapping's mock runtime
 /// Allows configuring balances and initial mappings
 pub(crate) struct ExtBuilder {
 	/// Accounts endowed with balances
 	balances: Vec<(AccountId, Balance)>,
 	/// AuthorId -> AccoutId mappings
-	mappings: Vec<(TestAuthor, AccountId)>
-
+	mappings: Vec<(TestAuthor, AccountId)>,
 }
 
 impl Default for ExtBuilder {
