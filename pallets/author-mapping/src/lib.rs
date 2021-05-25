@@ -32,12 +32,9 @@ pub use pallet::*;
 pub mod pallet {
 
 	use frame_support::pallet_prelude::*;
-	use frame_support::traits::ReservableCurrency;
+	use frame_support::traits::{Currency, ReservableCurrency};
 	use frame_system::pallet_prelude::*;
 	use nimbus_primitives::AccountLookup;
-
-	/// The security deposit amount.
-	pub const DEPOSIT_AMOUNT: u32 = 500;
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
@@ -52,7 +49,9 @@ pub mod pallet {
 		/// The type of authority id that will be used at the conensus layer.
 		type AuthorId: Member + Parameter + MaybeSerializeDeserialize;
 		/// Currency in which the security deposit will be taken.
-		type DepositCurrency: ReservableCurrency<Self::AccountId>;
+		type DepositCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
+		/// The amount that should be taken as a security deposit when registering an AuthorId.
+		type DepositAmount: Get<<Self::DepositCurrency as Currency<Self::AccountId>>::Balance>;
 	}
 
 	#[pallet::hooks]
@@ -100,7 +99,7 @@ pub mod pallet {
 				Error::<T>::CannotSetAuthor
 			);
 
-			T::DepositCurrency::reserve(&account_id, DEPOSIT_AMOUNT.into())
+			T::DepositCurrency::reserve(&account_id, T::DepositAmount::get())
 				.map_err(|_| Error::<T>::CannotAffordSecurityDeposit)?;
 
 			Mapping::<T>::insert(&author_id, &account_id);
@@ -157,7 +156,7 @@ pub mod pallet {
 
 			Mapping::<T>::remove(&author_id);
 
-			T::DepositCurrency::unreserve(&account_id, DEPOSIT_AMOUNT.into());
+			T::DepositCurrency::unreserve(&account_id, T::DepositAmount::get());
 
 			<Pallet<T>>::deposit_event(Event::AuthorDeRegistered(author_id));
 

@@ -612,12 +612,17 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type RelayChainAccountId = AccountId32;
 	type VestingPeriod = VestingPeriod;
 }
+
+parameter_types! {
+	pub const DepositAmount: Balance = 100;
+}
 // This is a simple session key manager. It should probably either work with, or be replaced
 // entirely by pallet sessions
 impl pallet_author_mapping::Config for Runtime {
 	type Event = Event;
 	type AuthorId = NimbusId;
 	type DepositCurrency = Balances;
+	type DepositAmount = DepositAmount;
 }
 
 parameter_types! {
