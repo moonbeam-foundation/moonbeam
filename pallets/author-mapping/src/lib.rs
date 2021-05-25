@@ -89,7 +89,7 @@ pub mod pallet {
 		/// Register your AuthorId onchain so blocks you author are associated with your account.
 		///
 		/// Users who have been (or will soon be) elected active collators in staking,
-		/// should submit this extrinsic to earn rewards.
+		/// should submit this extrinsic to have their blocks accepted and earn rewards.
 		#[pallet::weight(0)]
 		pub fn add_association(origin: OriginFor<T>, author_id: T::AuthorId) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
