@@ -241,7 +241,7 @@ export const moonbeamDefinitions = {
       },
     },
     {
-      minmax: [36, undefined],
+      minmax: [36, 36],
       types: {
         AccountId: "EthereumAccountId",
         AccountInfo: "AccountInfoWithTripleRefCount",
@@ -343,10 +343,10 @@ export const moonbeamDefinitions = {
       },
     },
     {
-      minmax: [36, undefined],
+      minmax: [37, undefined],
       types: {
         AccountId: "EthereumAccountId",
-        AccountInfo: "AccountInfoWithProviders",
+        AccountInfo: "AccountInfoWithTripleRefCount",
         Address: "AccountId",
         AuthorId: "AccountId",
         Balance: "u128",

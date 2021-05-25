@@ -31,8 +31,9 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Get, Randomness},
+	traits::{Get, Imbalance, InstanceFilter, OnUnbalanced},
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
+	PalletId,
 };
 use frame_system::{EnsureOneOf, EnsureRoot};
 pub use moonbeam_core_primitives::{
@@ -40,6 +41,8 @@ pub use moonbeam_core_primitives::{
 	Signature,
 };
 use moonbeam_extensions_evm::runner::stack::TraceRunner as TraceRunnerT;
+use moonbeam_rpc_primitives_txpool::TxPoolResponse;
+use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{Transaction as EthereumTransaction, TransactionAction};
 use pallet_evm::{
@@ -56,7 +59,7 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentityLookup},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	AccountId32, ApplyExtrinsicResult, Perbill,
+	AccountId32, ApplyExtrinsicResult, Perbill, Permill,
 };
 use sp_std::{convert::TryFrom, prelude::*};
 #[cfg(feature = "std")]
@@ -68,10 +71,24 @@ use nimbus_primitives::{CanAuthor, NimbusId};
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
+/// UNITS, the native token, uses 18 decimals of precision.
+pub mod currency {
+	use super::Balance;
+
+	pub const UNITS: Balance = 1_000_000_000_000_000_000;
+	pub const CENTS: Balance = UNITS / 100;
+	pub const GRAND: Balance = UNITS * 1_000;
+	pub const MILLICENTS: Balance = CENTS / 1_000;
+
+	pub const fn deposit(items: u32, bytes: u32) -> Balance {
+		items as Balance * 100 * CENTS + (bytes as Balance) * 10 * MILLICENTS
+	}
+}
+
 /// Maximum weight per block
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
 
-pub const MILLISECS_PER_BLOCK: u64 = 6000;
+pub const MILLISECS_PER_BLOCK: u64 = 12000;
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
 pub const HOURS: BlockNumber = MINUTES * 60;
 pub const DAYS: BlockNumber = HOURS * 24;
@@ -88,7 +105,7 @@ pub mod opaque {
 
 	impl_opaque_keys! {
 		pub struct SessionKeys {
-			pub author_inherent: AuthorInherent,
+			pub nimbus: AuthorInherent,
 		}
 	}
 }
@@ -98,7 +115,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 3,
-	spec_version: 36,
+	spec_version: 38,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -204,12 +221,30 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
+pub struct DealWithFees<R>(sp_std::marker::PhantomData<R>);
+impl<R> OnUnbalanced<NegativeImbalance<R>> for DealWithFees<R>
+where
+	R: pallet_balances::Config + pallet_treasury::Config<pallet_treasury::Instance1>,
+	pallet_treasury::Module<R, pallet_treasury::Instance1>: OnUnbalanced<NegativeImbalance<R>>,
+{
+	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
+		if let Some(fees) = fees_then_tips.next() {
+			// for fees, 80% are burned, 20% to the treasury
+			let (_, to_treasury) = fees.ration(80, 20);
+			// Balances module automatically burns dropped Negative Imbalances by decreasing
+			// total_supply accordingly
+			<pallet_treasury::Module<R, pallet_treasury::Instance1> as OnUnbalanced<_>>
+				::on_unbalanced(to_treasury);
+		}
+	}
+}
+
 parameter_types! {
 	pub const TransactionByteFee: Balance = 1;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
-	type OnChargeTransaction = CurrencyAdapter<Balances, ()>;
+	type OnChargeTransaction = CurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type TransactionByteFee = TransactionByteFee;
 	type WeightToFee = IdentityFee<Balance>;
 	type FeeMultiplierUpdate = ();
@@ -248,8 +283,15 @@ parameter_types! {
 		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT / WEIGHT_PER_GAS);
 }
 
+pub struct FixedGasPrice;
+impl FeeCalculator for FixedGasPrice {
+	fn min_gas_price() -> U256 {
+		1_000_000_000.into()
+	}
+}
+
 impl pallet_evm::Config for Runtime {
-	type FeeCalculator = ();
+	type FeeCalculator = FixedGasPrice;
 	type GasWeightMapping = MoonbeamGasWeightMapping;
 	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
@@ -321,18 +363,16 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 	type WeightInfo = (); // TODO : Better Weight Info ?
 }
 
-const BLOCKS_PER_DAY: BlockNumber = 24 * 60 * 10;
-
 parameter_types! {
-	pub const LaunchPeriod: BlockNumber = BLOCKS_PER_DAY;
-	pub const VotingPeriod: BlockNumber = 5 * BLOCKS_PER_DAY;
-	pub const FastTrackVotingPeriod: BlockNumber = BLOCKS_PER_DAY;
-	pub const EnactmentPeriod: BlockNumber = BLOCKS_PER_DAY;
-	pub const CooloffPeriod: BlockNumber = 7 * BLOCKS_PER_DAY;
-	pub const MinimumDeposit: Balance = 4 * GLMR;
+	pub const LaunchPeriod: BlockNumber = 1 * DAYS;
+	pub const VotingPeriod: BlockNumber = 5 * DAYS;
+	pub const FastTrackVotingPeriod: BlockNumber = 4 * HOURS;
+	pub const EnactmentPeriod: BlockNumber = 1 *DAYS;
+	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
+	pub const MinimumDeposit: Balance = 4 * currency::UNITS;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
-	pub const PreimageByteDeposit: Balance = GLMR / 1_000;
+	pub const PreimageByteDeposit: Balance = currency::UNITS / 1_000;
 	pub const InstantAllowed: bool = false;
 }
 
@@ -392,6 +432,56 @@ impl pallet_democracy::Config for Runtime {
 	type MaxProposals = MaxProposals;
 }
 
+parameter_types! {
+	pub const ProposalBond: Permill = Permill::from_percent(5);
+	pub const ProposalBondMinimum: Balance = 1 * currency::UNITS;
+	pub const SpendPeriod: BlockNumber = 6 * DAYS;
+	pub const CommunityTreasuryId: PalletId = PalletId(*b"pc/trsry");
+	pub const ParachainBondPalletId: PalletId = PalletId(*b"pb/trsry");
+	pub const MaxApprovals: u32 = 100;
+}
+
+type CommunityTreasuryInstance = pallet_treasury::Instance1;
+type ParachainBondTreasuryInstance = pallet_treasury::Instance2;
+
+impl pallet_treasury::Config<CommunityTreasuryInstance> for Runtime {
+	type PalletId = CommunityTreasuryId;
+	type Currency = Balances;
+	// Democracy dispatches Root
+	type ApproveOrigin = EnsureRoot<AccountId>;
+	// Democracy dispatches Root
+	type RejectOrigin = EnsureRoot<AccountId>;
+	type Event = Event;
+	// If spending proposal rejected, transfer proposer bond to treasury
+	type OnSlash = CommunityTreasury;
+	type ProposalBond = ProposalBond;
+	type ProposalBondMinimum = ProposalBondMinimum;
+	type SpendPeriod = SpendPeriod;
+	type Burn = ();
+	type BurnDestination = ();
+	type MaxApprovals = MaxApprovals;
+	type WeightInfo = ();
+	type SpendFunds = ();
+}
+
+impl pallet_treasury::Config<ParachainBondTreasuryInstance> for Runtime {
+	type PalletId = ParachainBondPalletId;
+	type Currency = Balances;
+	type ApproveOrigin = EnsureRoot<AccountId>;
+	type RejectOrigin = EnsureRoot<AccountId>;
+	type Event = Event;
+	// If spending proposal rejected, transfer proposer bond to treasury
+	type OnSlash = ParachainBondTreasury;
+	type ProposalBond = ProposalBond;
+	type ProposalBondMinimum = ProposalBondMinimum;
+	type SpendPeriod = SpendPeriod;
+	type Burn = ();
+	type BurnDestination = ();
+	type MaxApprovals = MaxApprovals;
+	type WeightInfo = ();
+	type SpendFunds = ();
+}
+
 pub struct TransactionConverter;
 
 impl fp_rpc::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
@@ -418,7 +508,7 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 
 impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
-	type FindAuthor = pallet_author_mapping::MappedFindAuthor<Self, AuthorInherent>;
+	type FindAuthor = AuthorInherent;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot;
 }
 
@@ -430,16 +520,14 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
 	type SelfParaId = ParachainInfo;
-	type DownwardMessageHandlers = ();
+	type DmpMessageHandler = ();
+	type ReservedDmpWeight = ();
 	type OutboundXcmpMessageSource = ();
 	type XcmpMessageHandler = ();
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 }
 
 impl parachain_info::Config for Runtime {}
-
-/// GLMR, the native token, uses 18 decimals of precision.
-pub const GLMR: Balance = 1_000_000_000_000_000_000;
 
 parameter_types! {
 	/// Minimum round length is 2 minutes (20 * 6 second block times)
@@ -457,9 +545,9 @@ parameter_types! {
 	/// The fixed percent a collator takes off the top of due rewards is 20%
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
 	/// Minimum stake required to be reserved to be a collator is 1_000
-	pub const MinCollatorStk: u128 = 1_000 * GLMR;
+	pub const MinCollatorStk: u128 = 1_000 * currency::UNITS;
 	/// Minimum stake required to be reserved to be a nominator is 5
-	pub const MinNominatorStk: u128 = 5 * GLMR;
+	pub const MinNominatorStk: u128 = 5 * currency::UNITS;
 }
 impl parachain_staking::Config for Runtime {
 	type Event = Event;
@@ -481,17 +569,12 @@ impl parachain_staking::Config for Runtime {
 impl pallet_author_inherent::Config for Runtime {
 	type AuthorId = NimbusId;
 	type SlotBeacon = pallet_author_inherent::RelayChainBeacon<Self>;
-	//TODO This is making me think the mapping should just happen in the author inherent pallet
-	// Or maybe the sessions pallet will interface really naturally with the author inherent pallet?
-	type EventHandler = pallet_author_mapping::MappedEventHandler<Self, ParachainStaking>;
-	type PreliminaryCanAuthor = pallet_author_mapping::MappedCanAuthor<Self, ParachainStaking>;
-	type FullCanAuthor = pallet_author_mapping::MappedCanAuthor<Self, AuthorFilter>;
+	type AccountLookup = AuthorMapping;
+	type EventHandler = ParachainStaking;
+	type CanAuthor = AuthorFilter;
 }
 
 impl pallet_author_slot_filter::Config for Runtime {
-	// All of our filtering is going to happen in the runtime's accountId type (same as staking.)
-	// Maybe I should remove this associated type entirely
-	type AuthorId = AccountId;
 	type Event = Event;
 	type RandomnessSource = RandomnessCollectiveFlip;
 	type PotentialAuthors = ParachainStaking;
@@ -520,6 +603,96 @@ impl pallet_author_mapping::Config for Runtime {
 	type AuthorId = NimbusId;
 }
 
+parameter_types! {
+	// One storage item; key size 32, value size 8; .
+	pub const ProxyDepositBase: Balance = currency::deposit(1, 8);
+	// Additional storage item size of 33 bytes.
+	pub const ProxyDepositFactor: Balance = currency::deposit(0, 33);
+	pub const MaxProxies: u16 = 32;
+	pub const AnnouncementDepositBase: Balance = currency::deposit(1, 8);
+	pub const AnnouncementDepositFactor: Balance = currency::deposit(0, 66);
+	pub const MaxPending: u16 = 32;
+}
+
+/// The type used to represent the kinds of proxying allowed.
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug)]
+pub enum ProxyType {
+	/// All calls can be proxied. This is the trivial/most permissive filter.
+	Any,
+	/// Only extrinsics that do not transfer funds.
+	NonTransfer,
+	/// Only extrinsics related to governance (democracy and collectives).
+	Governance,
+	/// Only extrinsics related to staking.
+	Staking,
+	/// Allow to veto an announced proxy call.
+	CancelProxy,
+}
+
+impl Default for ProxyType {
+	fn default() -> Self {
+		Self::Any
+	}
+}
+
+impl InstanceFilter<Call> for ProxyType {
+	fn filter(&self, c: &Call) -> bool {
+		match self {
+			ProxyType::Any => true,
+			ProxyType::NonTransfer => matches!(
+				c,
+				Call::System(..) |
+				Call::Timestamp(..) |
+				Call::ParachainStaking(..) |
+				// Call::Session(..) |
+				Call::Democracy(..) |
+				Call::CouncilCollective(..) |
+				Call::TechComitteeCollective(..) |
+				// Call::Treasury(..) |
+				Call::Utility(..) |
+				Call::Scheduler(..) |
+				Call::Proxy(..)
+			),
+			ProxyType::Governance => matches!(
+				c,
+				Call::Democracy(..)
+					| Call::CouncilCollective(..)
+					| Call::TechComitteeCollective(..)
+					// | Call::Treasury(..) 
+					| Call::Utility(..)
+			),
+			ProxyType::Staking => matches!(c, Call::ParachainStaking(..) | Call::Utility(..)),
+			ProxyType::CancelProxy => {
+				matches!(c, Call::Proxy(pallet_proxy::Call::reject_announcement(..)))
+			}
+		}
+	}
+
+	fn is_superset(&self, o: &Self) -> bool {
+		match (self, o) {
+			(x, y) if x == y => true,
+			(ProxyType::Any, _) => true,
+			(_, ProxyType::Any) => false,
+			_ => false,
+		}
+	}
+}
+
+impl pallet_proxy::Config for Runtime {
+	type Event = Event;
+	type Call = Call;
+	type Currency = Balances;
+	type ProxyType = ProxyType;
+	type ProxyDepositBase = ProxyDepositBase;
+	type ProxyDepositFactor = ProxyDepositFactor;
+	type MaxProxies = MaxProxies;
+	type WeightInfo = ();
+	type MaxPending = MaxPending;
+	type CallHasher = BlakeTwo256;
+	type AnnouncementDepositBase = AnnouncementDepositBase;
+	type AnnouncementDepositFactor = AnnouncementDepositFactor;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -545,12 +718,16 @@ construct_runtime! {
 			pallet_collective::<Instance1>::{Pallet, Call, Event<T>, Origin<T>, Config<T>},
 		TechComitteeCollective:
 			pallet_collective::<Instance2>::{Pallet, Call, Event<T>, Origin<T>, Config<T>},
+		CommunityTreasury: pallet_treasury::<Instance1>::{Pallet, Storage, Config, Event<T>, Call},
+		ParachainBondTreasury:
+			pallet_treasury::<Instance2>::{Pallet, Storage, Config, Event<T>, Call},
 		// The order matters here. Inherents will be included in the order specified here.
 		// Concretely we need the author inherent to come after the parachain_system inherent.
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent},
 		AuthorFilter: pallet_author_slot_filter::{Pallet, Storage, Event, Config},
 		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>},
 		AuthorMapping: pallet_author_mapping::{Pallet, Config<T>, Storage},
+		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
 	}
 }
 
@@ -626,10 +803,6 @@ impl_runtime_apis! {
 			data: sp_inherents::InherentData,
 		) -> sp_inherents::CheckInherentsResult {
 			data.check_extrinsics(&block)
-		}
-
-		fn random_seed() -> <Block as BlockT>::Hash {
-			RandomnessCollectiveFlip::random_seed().0
 		}
 	}
 
@@ -924,12 +1097,19 @@ impl_runtime_apis! {
 
 	impl moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block> for Runtime {
 		fn extrinsic_filter(
-			xts: Vec<<Block as BlockT>::Extrinsic>
-		) -> Vec<pallet_ethereum::Transaction> {
-			xts.into_iter().filter_map(|xt| match xt.function {
-				Call::Ethereum(transact(t)) => Some(t),
-				_ => None
-			}).collect()
+			xts_ready: Vec<<Block as BlockT>::Extrinsic>,
+			xts_future: Vec<<Block as BlockT>::Extrinsic>
+		) -> TxPoolResponse {
+			TxPoolResponse {
+				ready: xts_ready.into_iter().filter_map(|xt| match xt.function {
+					Call::Ethereum(transact(t)) => Some(t),
+					_ => None
+				}).collect(),
+				future: xts_future.into_iter().filter_map(|xt| match xt.function {
+					Call::Ethereum(transact(t)) => Some(t),
+					_ => None
+				}).collect(),
+			}
 		}
 	}
 
@@ -1064,7 +1244,13 @@ impl_runtime_apis! {
 
 	impl nimbus_primitives::AuthorFilterAPI<Block, nimbus_primitives::NimbusId> for Runtime {
 		fn can_author(author: nimbus_primitives::NimbusId, slot: u32) -> bool {
-			<Runtime as pallet_author_inherent::Config>::FullCanAuthor::can_author(&author, &slot)
+			AuthorInherent::can_author(&author, &slot)
+		}
+	}
+
+	impl cumulus_primitives_core::CollectCollationInfo<Block> for Runtime {
+		fn collect_collation_info() -> cumulus_primitives_core::CollationInfo {
+			ParachainSystem::collect_collation_info()
 		}
 	}
 

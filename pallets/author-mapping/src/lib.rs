@@ -32,10 +32,8 @@ pub use pallet::*;
 pub mod pallet {
 
 	use frame_support::pallet_prelude::*;
-	use frame_support::traits::FindAuthor;
 	use frame_system::pallet_prelude::*;
-	use nimbus_primitives::{CanAuthor, EventHandler};
-	use sp_runtime::ConsensusEngineId;
+	use nimbus_primitives::AccountLookup;
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
@@ -63,7 +61,7 @@ pub mod pallet {
 	#[pallet::getter(fn account_id_of)]
 	/// We maintain a mapping from the AuthorIds used in the consensus layer
 	/// to the AccountIds runtime (including this staking pallet).
-	type AuthorIds<T: Config> = StorageMap<_, Twox64Concat, T::AuthorId, T::AccountId, OptionQuery>;
+	type Mapping<T: Config> = StorageMap<_, Twox64Concat, T::AuthorId, T::AccountId, OptionQuery>;
 
 	#[pallet::genesis_config]
 	/// Genesis config for author mapping pallet
@@ -83,51 +81,14 @@ pub mod pallet {
 	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
 			for (author_id, account_id) in &self.author_ids {
-				AuthorIds::<T>::insert(author_id, account_id);
+				Mapping::<T>::insert(author_id, account_id);
 			}
 		}
 	}
 
-	pub struct MappedEventHandler<T, Inner>(PhantomData<(T, Inner)>);
-
-	impl<T, Inner> EventHandler<T::AuthorId> for MappedEventHandler<T, Inner>
-	where
-		T: Config,
-		Inner: EventHandler<T::AccountId>,
-	{
-		fn note_author(author_id: T::AuthorId) {
-			AuthorIds::<T>::get(&author_id).map(|account_id| Inner::note_author(account_id));
-		}
-	}
-
-	pub struct MappedCanAuthor<T, Inner>(PhantomData<(T, Inner)>);
-
-	impl<T, Inner> CanAuthor<T::AuthorId> for MappedCanAuthor<T, Inner>
-	where
-		T: Config,
-		Inner: CanAuthor<T::AccountId>,
-	{
-		fn can_author(author_id: &T::AuthorId, slot: &u32) -> bool {
-			AuthorIds::<T>::get(author_id)
-				.map(|account_id| Inner::can_author(&account_id, slot))
-				.unwrap_or(false)
-		}
-	}
-
-	pub struct MappedFindAuthor<T, Inner>(PhantomData<(T, Inner)>);
-
-	impl<T, Inner> FindAuthor<T::AccountId> for MappedFindAuthor<T, Inner>
-	where
-		T: Config,
-		Inner: FindAuthor<T::AuthorId>,
-	{
-		fn find_author<'a, I>(digests: I) -> Option<T::AccountId>
-		where
-			I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
-		{
-			Inner::find_author(digests)
-				.map(|a| AuthorIds::<T>::get(a))
-				.flatten()
+	impl<T: Config> AccountLookup<T::AuthorId, T::AccountId> for Pallet<T> {
+		fn lookup_account(author: &T::AuthorId) -> Option<T::AccountId> {
+			Mapping::<T>::get(author)
 		}
 	}
 }

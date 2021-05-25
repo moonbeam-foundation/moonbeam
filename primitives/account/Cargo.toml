@@ -18,13 +18,17 @@ hex = { version = "0.4", default-features = false }
 sha3 = { version = "0.8", default-features = false }
 
 blake2-rfc = { version = "0.2.18", default-features = false, optional = true }
-sp-runtime-interface = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+sp-runtime-interface = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.2" }
 
-sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "joshy-substrate-2be8fcc4" }
+sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.2" }
+sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.2" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.2" }
+sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.2" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-v0.8" }
+libsecp256k1 = { version = "0.3.2", default-features = false, features = ["hmac"] }
+
+[dev-dependencies]
+hex = "0.4.3"
 
 [features]
 default = ["std"]
@@ -38,6 +42,8 @@ std = [
 	"sp-runtime/std",
 	"sp-std/std",
 	"full_crypto",
+	"pallet-evm/std",
+	"libsecp256k1/std"
 ]
 
 full_crypto = [

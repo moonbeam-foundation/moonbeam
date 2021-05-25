@@ -26,8 +26,8 @@ use frame_support::{
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
 use moonbeam_runtime::{
-	AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Event, InflationInfo,
-	ParachainStaking, Range, Runtime, System, GLMR,
+	currency::GLMR, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Event,
+	InflationInfo, ParachainStaking, Range, Runtime, System,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -300,7 +300,7 @@ fn transfer_through_evm_to_stake() {
 				),
 				DispatchError::Module {
 					index: 3,
-					error: 3,
+					error: 2,
 					message: Some("InsufficientBalance")
 				}
 			);
@@ -317,7 +317,7 @@ fn transfer_through_evm_to_stake() {
 			));
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 2_000 * GLMR,);
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
+			let gas_price: U256 = 1_000_000_000.into();
 			// Bob transfers 1000 GLMR to Charlie via EVM
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(BOB),
@@ -454,7 +454,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			let expected_fail = Event::pallet_utility(pallet_utility::Event::BatchInterrupted(
 				0,
 				DispatchError::Module {
-					index: 19,
+					index: 21,
 					error: 7,
 					message: None,
 				},
@@ -474,13 +474,13 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE))
 					.unwrap()
 					.claimed_reward,
-				300002777777777777777777
+				300005952380952380952380
 			);
 			assert_eq!(
 				CrowdloanRewards::accounts_payable(&AccountId::from(DAVE))
 					.unwrap()
 					.claimed_reward,
-				300002777777777777777777
+				300005952380952380952380
 			);
 
 			assert_noop!(
@@ -500,7 +500,7 @@ fn join_candidates_via_precompile() {
 
 			// Alice uses the staking precompile to join as a candidate through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
+			let gas_price: U256 = 1_000_000_000.into();
 			let amount: U256 = (1000 * GLMR).into();
 
 			// Construct the call data (selector, amount)
@@ -533,7 +533,7 @@ fn join_candidates_via_precompile() {
 					1000 * GLMR,
 					1000 * GLMR,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -559,7 +559,7 @@ fn leave_candidates_via_precompile() {
 
 			// Alice uses the staking precompile to leave_candidates
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
+			let gas_price: U256 = 1_000_000_000.into();
 
 			// Construct the leave_candidates call data
 			let mut call_data = Vec::<u8>::from([0u8; 4]);
@@ -583,7 +583,7 @@ fn leave_candidates_via_precompile() {
 					AccountId::from(ALICE),
 					3,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -611,7 +611,7 @@ fn go_online_offline_via_precompile() {
 
 			// Alice uses the staking precompile to go offline
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
+			let gas_price: U256 = 1_000_000_000.into();
 
 			// Construct the go_offline call data
 			let mut go_offline_call_data = Vec::<u8>::from([0u8; 4]);
@@ -634,7 +634,7 @@ fn go_online_offline_via_precompile() {
 					1,
 					AccountId::from(ALICE),
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -668,7 +668,7 @@ fn go_online_offline_via_precompile() {
 					1,
 					AccountId::from(ALICE),
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -697,7 +697,7 @@ fn candidate_bond_more_less_via_precompile() {
 
 			// Alice uses the staking precompile to bond more
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
+			let gas_price: U256 = 1_000_000_000.into();
 
 			// Construct the candidate_bond_more call
 			let mut bond_more_call_data = Vec::<u8>::from([0u8; 36]);
@@ -727,7 +727,7 @@ fn candidate_bond_more_less_via_precompile() {
 					1_000 * GLMR,
 					2_000 * GLMR,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -768,7 +768,7 @@ fn candidate_bond_more_less_via_precompile() {
 					2_000 * GLMR,
 					1_500 * GLMR,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -798,7 +798,7 @@ fn nominate_via_precompile() {
 
 			// Bob uses the staking precompile to nominate Alice through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
+			let gas_price: U256 = 1_000_000_000.into();
 			let nomination_amount: U256 = (1000 * GLMR).into();
 
 			// Construct the call data (selector, collator, nomination amount)
@@ -833,7 +833,7 @@ fn nominate_via_precompile() {
 					AccountId::from(ALICE),
 					2000 * GLMR,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -872,7 +872,7 @@ fn leave_nominators_via_precompile() {
 
 			// Charlie uses staking precompile to leave nominator set
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
+			let gas_price: U256 = 1_000_000_000.into();
 
 			// Construct leave_nominators call
 			let mut call_data = Vec::<u8>::from([0u8; 4]);
@@ -918,7 +918,7 @@ fn leave_nominators_via_precompile() {
 					AccountId::from(CHARLIE),
 					1_000 * GLMR,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -957,7 +957,7 @@ fn revoke_nomination_via_precompile() {
 
 			// Charlie uses staking precompile to revoke nomination
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
+			let gas_price: U256 = 1_000_000_000.into();
 
 			// Construct revoke_nomination call
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
@@ -990,7 +990,7 @@ fn revoke_nomination_via_precompile() {
 					500 * GLMR,
 					1_000 * GLMR,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -1026,7 +1026,7 @@ fn nominator_bond_more_less_via_precompile() {
 
 			// Alice uses the staking precompile to bond more
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
+			let gas_price: U256 = 1_000_000_000.into();
 
 			// Construct the nominator_bond_more call
 			let mut bond_more_call_data = Vec::<u8>::from([0u8; 68]);
@@ -1058,7 +1058,7 @@ fn nominator_bond_more_less_via_precompile() {
 					1_500 * GLMR,
 					2_000 * GLMR,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -1101,7 +1101,7 @@ fn nominator_bond_more_less_via_precompile() {
 					2_000 * GLMR,
 					1_500 * GLMR,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];

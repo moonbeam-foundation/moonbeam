@@ -82,7 +82,7 @@
           ]
         ]
       },
-      "palletScheduler": {},
+      "palletScheduler": null,
       "palletDemocracy": {},
       "palletCollectiveInstance1": {
         "phantom": null,
@@ -121,7 +121,9 @@
             "0xcbeb4a1b8f36436d9983b94636f9e988e73e1c2f"
           ]
         ]
-      }
+      },
+      "palletTreasuryInstance1": {},
+      "palletTreasuryInstance2": {}
     }
   }
 }

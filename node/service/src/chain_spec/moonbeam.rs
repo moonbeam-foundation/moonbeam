@@ -25,11 +25,11 @@ use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
 use evm::GenesisAccount;
 use moonbeam_runtime::{
-	AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
+	currency::GLMR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig,
 	ParachainStakingConfig, Range, SchedulerConfig, SudoConfig, SystemConfig,
-	TechComitteeCollectiveConfig, GLMR, WASM_BINARY,
+	TechComitteeCollectiveConfig, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
@@ -52,7 +52,7 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 	// We add Gerald here
 	accounts.push(AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap());
 	ChainSpec::from_genesis(
-		"Moonbase Development Testnet",
+		"Moonbeam Development Testnet",
 		"moonbeam_dev",
 		ChainType::Development,
 		move || {
@@ -89,8 +89,8 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		// TODO Apps depends on this string to determine whether the chain is an ethereum compat
 		// or not. We should decide the proper strings, and update Apps accordingly.
 		// Or maybe Apps can be smart enough to say if the string contains "moonbeam" at all...
-		"Moonbase Development Testnet",
-		"local_testnet",
+		"Moonbeam Local Testnet",
+		"moonbeam_local",
 		ChainType::Local,
 		move || {
 			testnet_genesis(
@@ -217,7 +217,9 @@ pub fn testnet_genesis(
 			phantom: Default::default(),
 			members: vec![], // TODO : Set members
 		},
-		pallet_author_slot_filter: AuthorFilterConfig { eligible_ratio: 50 },
+		pallet_author_slot_filter: AuthorFilterConfig {
+			eligible_ratio: sp_runtime::Percent::from_percent(50),
+		},
 		pallet_author_mapping: AuthorMappingConfig {
 			// Pretty hacky. We just set the first staker to use alice's session keys.
 			// Maybe this is the moment we should finally make the `--alice` flags make sense.
@@ -238,6 +240,8 @@ pub fn testnet_genesis(
 				})
 				.collect(),
 		},
+		pallet_treasury_Instance1: Default::default(),
+		pallet_treasury_Instance2: Default::default(),
 	}
 }
 

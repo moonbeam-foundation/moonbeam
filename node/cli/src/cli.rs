@@ -164,6 +164,18 @@ pub struct RunCmd {
 	/// Maximum number of logs in a query.
 	#[structopt(long, default_value = "10000")]
 	pub max_past_logs: u32,
+
+	/// Force using Moonbase native runtime.
+	#[structopt(long = "force-moonbase")]
+	pub force_moonbase: bool,
+
+	/// Force using Moonriver native runtime.
+	#[structopt(long = "force-moonriver")]
+	pub force_moonriver: bool,
+
+	/// Force using Moonshadow native runtime.
+	#[structopt(long = "force-moonshadow")]
+	pub force_moonshadow: bool,
 }
 
 impl std::ops::Deref for RunCmd {

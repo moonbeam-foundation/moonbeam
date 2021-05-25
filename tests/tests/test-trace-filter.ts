@@ -60,7 +60,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     expect(response.result[0]).to.include({
       blockNumber: 1,
       subtraces: 0,
-      transactionHash: "0x5301ed3a9a1be6001cf261f4197169fd6bc24804270be3c7de19fffdb63ad198",
+      transactionHash: "0x38543a19a4fdf101ff6607f712a2283e0056d849f7dbe36715b464c6b08e317e",
       transactionPosition: 0,
       type: "create",
     });
@@ -88,7 +88,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     expect(response.result[0].subtraces).to.equal(0);
     expect(response.result[0].traceAddress.length).to.equal(0);
     expect(response.result[0].transactionHash).to.equal(
-      "0x0ddcb527475b0d5e6a45ba6d9bb367c18a7142b5919247f5dd521c744fcd22a3"
+      "0xe910be3a7b2de6bde555be5ac30d79189b1e000cb09bf0591b05972f6d9052eb"
     );
     expect(response.result[0].transactionPosition).to.equal(0);
     expect(response.result[0].type).to.equal("create");
