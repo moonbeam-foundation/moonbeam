@@ -857,15 +857,17 @@ where
 		for trace in traces.iter_mut() {
 			trace.block_hash = eth_block_hash;
 			trace.block_number = height;
-			trace.transaction_hash = eth_transactions
-				.get(trace.transaction_position as usize)
-				.ok_or_else(|| {
-					internal_err(format!(
+			trace.transaction_hash =
+				eth_transactions
+					.get(trace.transaction_position as usize)
+					.ok_or_else(|| {
+						tracing::warn!("Bug: A transaction has been replayed while it shouldn't (in block {}).", height);
+						internal_err(format!(
 						"Bug: A transaction has been replayed while it shouldn't (in block {}).",
 						height
 					))
-				})?
-				.transaction_hash;
+					})?
+					.transaction_hash;
 
 			// Reformat error messages.
 			if let block::TransactionTraceOutput::Error(ref mut error) = trace.output {
