@@ -16,8 +16,8 @@ futures = { version = "0.3.1", features = ["compat"] }
 moonbeam-cli = { path = "cli" }
 moonbeam-service = { path = "service" }
 # required for benchmarking
-pallet-xcm = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1" }
-xcm-builder = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1" }
+pallet-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.2" }
+xcm-builder = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.2" }
 
 [features]
 default = []
