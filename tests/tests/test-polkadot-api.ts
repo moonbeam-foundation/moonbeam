@@ -1,44 +1,49 @@
 import { expect } from "chai";
-import { Keyring } from "@polkadot/keyring";
-import { step } from "mocha-steps";
 
-import { createAndFinalizeBlock, describeWithMoonbeam } from "./util";
 import { AnyTuple, IEvent } from "@polkadot/types/types";
-import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
+import { GENESIS_ACCOUNT } from "../util/constants";
+import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import Keyring from "@polkadot/keyring";
+import { GENESIS_ACCOUNT_PRIVATE_KEY } from "../util/constants";
 
-describeWithMoonbeam("Moonbeam Polkadot API", `simple-specs.json`, (context) => {
-  step("api can retrieve last header", async function () {
+describeDevMoonbeam("Polkadot API - Header", (context) => {
+  it("should return genesis block", async function () {
     const lastHeader = await context.polkadotApi.rpc.chain.getHeader();
     expect(Number(lastHeader.number) >= 0).to.be.true;
   });
+});
 
-  step("api can retrieve last block", async function () {
+describeDevMoonbeam("Polkadot API", (context) => {
+  before("Setup: Create empty block", async () => {
+    await context.createBlock();
+  });
+
+  it("should return latest header number", async function () {
+    const lastHeader = await context.polkadotApi.rpc.chain.getHeader();
+    expect(Number(lastHeader.number)).to.be.at.least(0);
+  });
+
+  it("should return latest block number", async function () {
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
     expect(signedBlock.block.header.number.toNumber() >= 0).to.be.true;
   });
+});
 
-  const TEST_ACCOUNT_2 = "0x1111111111111111111111111111111111111112";
-
-  step("transfer from polkadotjs should appear in ethereum", async function () {
-    this.timeout(30000);
-
+describeDevMoonbeam("Polkadot API - Transfers", (context) => {
+  const testAccount = "0x1111111111111111111111111111111111111111";
+  before("Setup: Create empty block with balance.transfer", async () => {
     const keyring = new Keyring({ type: "ethereum" });
-    const testAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
-    try {
-      let hash = await context.polkadotApi.tx.balances
-        .transfer(TEST_ACCOUNT_2, 123)
-        .signAndSend(testAccount);
-    } catch (e) {
-      expect(false, "error during polkadot api transfer" + e);
-    }
-    // TODO: do some testing with the hash
-    await createAndFinalizeBlock(context.polkadotApi);
-    expect(await context.web3.eth.getBalance(TEST_ACCOUNT_2)).to.equal("123");
+    const genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+    await context.polkadotApi.tx.balances.transfer(testAccount, 123).signAndSend(genesisAccount);
+    await context.createBlock();
   });
 
-  step("read extrinsic information", async function () {
+  it("should be stored on chain", async function () {
+    expect(await context.web3.eth.getBalance(testAccount)).to.equal("123");
+  });
+
+  it("should appear in extrinsics", async function () {
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
-    expect(signedBlock.block.header.number.toNumber() >= 0).to.be.true;
 
     // Expecting 4 extrinsics so far:
     // timestamp, author, the parachain validation data and the balances transfer.
@@ -46,7 +51,6 @@ describeWithMoonbeam("Moonbeam Polkadot API", `simple-specs.json`, (context) => 
 
     signedBlock.block.extrinsics.forEach((ex, index) => {
       const {
-        isSigned,
         method: { args, method, section },
       } = ex;
       const message = `${section}.${method}(${args.map((a) => a.toString()).join(", ")})`;
@@ -58,15 +62,13 @@ describeWithMoonbeam("Moonbeam Polkadot API", `simple-specs.json`, (context) => 
           expect(message.substring(0, 33)).to.eq(`parachainSystem.setValidationData`);
           break;
         case 2:
-          expect(message).to.eq(
-            `authorInherent.setAuthor(0x6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b)`
-          );
+          expect(message.substring(0, 24)).to.eq(`authorInherent.setAuthor`);
           break;
         case 3:
-          expect(ex.signer.toString().toLocaleLowerCase()).to.eq(GENESIS_ACCOUNT);
           expect(message).to.eq(
-            `balances.transfer(0x1111111111111111111111111111111111111112, 123)`
+            `balances.transfer(0x1111111111111111111111111111111111111111, 123)`
           );
+          expect(ex.signer.toString().toLocaleLowerCase()).to.eq(GENESIS_ACCOUNT);
           break;
         default:
           throw new Error(`Unexpected extrinsic: ${message}`);
@@ -74,7 +76,7 @@ describeWithMoonbeam("Moonbeam Polkadot API", `simple-specs.json`, (context) => 
     });
   });
 
-  step("read extrinsic events", async function () {
+  it("should appear in events", async function () {
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
     const allRecords = await context.polkadotApi.query.system.events.at(
       signedBlock.block.header.hash
@@ -96,18 +98,20 @@ describeWithMoonbeam("Moonbeam Polkadot API", `simple-specs.json`, (context) => 
         case 0:
         case 1:
         case 2:
-          expect(
-            events.length === 1 && context.polkadotApi.events.system.ExtrinsicSuccess.is(events[0])
-          ).to.be.true;
+          expect(events).to.be.of.length(1);
+          expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[0])).to.be.true;
           break;
         // Fourth event: balances.transfer:: system.NewAccount, balances.Endowed, balances.Transfer,
         // system.ExtrinsicSuccess
         case 3:
-          expect(events.length === 4);
+          expect(events).to.be.of.length(7);
           expect(context.polkadotApi.events.system.NewAccount.is(events[0])).to.be.true;
           expect(context.polkadotApi.events.balances.Endowed.is(events[1])).to.be.true;
           expect(context.polkadotApi.events.balances.Transfer.is(events[2])).to.be.true;
-          expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[3])).to.be.true;
+          expect(context.polkadotApi.events.system.NewAccount.is(events[3])).to.be.true;
+          expect(context.polkadotApi.events.balances.Endowed.is(events[4])).to.be.true;
+          expect(context.polkadotApi.events.techComitteeCollective.Proposed.is(events[5])).to.be;
+          expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[6])).to.be.true;
           break;
         default:
           throw new Error(`Unexpected extrinsic`);

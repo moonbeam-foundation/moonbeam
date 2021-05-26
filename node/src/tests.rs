@@ -195,11 +195,13 @@ fn export_current_state() {
 
 		let base_path = tempfile::tempdir().unwrap();
 
+		println!("{:?}", base_path);
+
 		let mut cmd = Command::new(cargo_bin("moonbeam"))
 			.arg("-d")
 			.arg(base_path.path())
 			.arg("--chain")
-			.arg("local")
+			.arg("moonbase-local")
 			.arg("--dev-service")
 			.arg("--sealing")
 			.arg("1000")

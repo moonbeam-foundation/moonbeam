@@ -85,7 +85,7 @@ http-port: $((PARACHAIN_PORT + 10 + 1)), ws-port: $((PARACHAIN_PORT + 10 + 2))"
 sha256sum $CHAIN
 $MOONBEAM_BINARY \
   --node-key ${PARACHAIN_NODE_KEYS[$PARACHAIN_INDEX]} \
-  --port $((PARACHAIN_PORT + 10)) \
+  --listen-addr "/ip4/0.0.0.0/tcp/$((PARACHAIN_PORT + 10))" \
   --rpc-port $((PARACHAIN_PORT + 10 + 1)) \
   --ws-port $((PARACHAIN_PORT + 10 + 2)) \
   --collator \
@@ -96,14 +96,15 @@ $MOONBEAM_BINARY \
   --name parachain_$PARACHAIN_INDEX \
   $PARACHAIN_BASE_PATH \
   '-linfo,evm=debug,ethereum=trace,rpc=trace,cumulus_collator=debug,txpool=debug' \
-  --author-id ${STAKERS[$PARACHAIN_INDEX]} \
+  --${WELL_KNOWN_USERS[$PARACHAIN_INDEX]} \
   --chain $CHAIN \
   $PARACHAIN_BOOTNODES_ARGS \
   -- \
     --node-key ${PARACHAIN_NODE_KEYS[$PARACHAIN_INDEX]} \
     $PARACHAIN_BASE_PATH \
-    --port $((PARACHAIN_PORT)) \
+    --listen-addr "/ip4/0.0.0.0/tcp/$((PARACHAIN_PORT))" \
     --rpc-port $((PARACHAIN_PORT + 1)) \
     --ws-port $((PARACHAIN_PORT + 2)) \
     --chain $ROCOCO_LOCAL_RAW_SPEC \
   $RELAY_BOOTNODES_ARGS;
+  

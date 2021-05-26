@@ -1,24 +1,23 @@
 import { expect } from "chai";
-import { step } from "mocha-steps";
-import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY, TEST_ACCOUNT } from "./constants";
+import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { createTransfer } from "../util/transactions";
+import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_BALANCE } from "../util/constants";
 
-import { createAndFinalizeBlock, describeWithMoonbeam, customRequest } from "./util";
-
-describeWithMoonbeam("Moonbeam RPC (Existential Deposit)", `simple-specs.json`, (context) => {
-  step("Account is not reaped on zero balance", async function () {
-    const balance = await context.web3.eth.getBalance(GENESIS_ACCOUNT);
-    const tx = await context.web3.eth.accounts.signTransaction(
-      {
-        from: GENESIS_ACCOUNT,
-        to: TEST_ACCOUNT,
-        value: balance,
-        gasPrice: "0x00",
-        gas: "0x100000",
-      },
-      GENESIS_ACCOUNT_PRIVATE_KEY
-    );
-    await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);
-    await createAndFinalizeBlock(context.polkadotApi);
+describeDevMoonbeam("Existential Deposit", (context) => {
+  it("should be disabled (no reaped account on 0 balance)", async function () {
+    await context.createBlock({
+      transactions: [
+        await createTransfer(
+          context.web3,
+          "0x1111111111111111111111111111111111111111",
+          GENESIS_ACCOUNT_BALANCE - 21000n * 1_000_000_000n,
+          {
+            from: GENESIS_ACCOUNT,
+            gas: 21000,
+          }
+        ),
+      ],
+    });
     expect(parseInt(await context.web3.eth.getBalance(GENESIS_ACCOUNT))).to.eq(0);
     expect(await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT)).to.eq(1);
   });

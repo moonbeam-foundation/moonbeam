@@ -1,0 +1,23 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build Moonbeam (debug symbols)",
+      "type": "shell",
+      "command": "RUSTFLAGS=-g cargo build --release",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Run single test file in debug mode",
+      "type": "shell",
+      "command": "cd tests && DEBUG_MODE=true npm run test-single",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    }
+  ]
+}

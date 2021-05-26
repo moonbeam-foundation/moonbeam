@@ -10,8 +10,8 @@
   "properties": {
     "tokenDecimals": 18
   },
-  "relay_chain": "rococo_moonbase_relay_stagenet",
-  "para_id": 1000,
+  "relayChain": "rococo_moonbase_relay_stagenet",
+  "paraId": 1000,
   "consensusEngine": null,
   "genesis": {
     "runtime": {
@@ -58,6 +58,11 @@
             "ideal": 200000000000000000000000,
             "max": 500000000000000000000000
           },
+          "annual": {
+            "min": 40000000,
+            "ideal": 50000000,
+            "max": 50000000
+          },
           "round": {
             "min": 4563,
             "ideal": 5703,
@@ -77,7 +82,7 @@
           ]
         ]
       },
-      "palletScheduler": {},
+      "palletScheduler": null,
       "palletDemocracy": {},
       "palletCollectiveInstance1": {
         "phantom": null,
@@ -98,7 +103,27 @@
           "0x5D05cFa295b9830908d971C29F48857Af79e729b",
           "0xd9465f9bdF362802F2954a15698E3aF0515961f7"
         ]
-      }
+      },
+      "palletAuthorSlotFilter": {
+        "eligibleRatio": 50
+      },
+      "palletCrowdloanRewards": {
+        "fundedAmount": 3000000000000000000000000
+      },
+      "palletAuthorMapping": {
+        "authorIds": [
+          [
+            "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+            "0x5e583614f17d3ebe3bd72653f28e2c01d247419a"
+          ],
+          [
+            "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty",
+            "0xcbeb4a1b8f36436d9983b94636f9e988e73e1c2f"
+          ]
+        ]
+      },
+      "palletTreasuryInstance1": {},
+      "palletTreasuryInstance2": {}
     }
   }
 }

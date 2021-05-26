@@ -1,9 +1,13 @@
 [workspace]
 members = [
-    'runtime',
+    'runtime/moonbeam',
+    'runtime/moonriver',
+    'runtime/moonshadow',
+    'runtime/moonbase',
     'node',
+    'node/cli',
+    'node/service',
 ]
 
 [profile.release]
 panic = 'unwind'
-opt-level = 0

@@ -6,7 +6,7 @@
 
 👉 _Discover the Moonbeam project at [moonbeam.network](https://moonbeam.network)._<br>
 👉 _Learn to [use the Moonbeam network](https://docs.moonbeam.network/) with our technical docs._<br>
-👉 _Reference our [crate-level docs (rustdocs)](https://purestake.github.io) to contribute._
+👉 _Reference our [crate-level docs (rustdocs)](https://purestake.github.io/moonbeam) to contribute._
 
 ## Run an alphanet node with Docker
 
@@ -162,11 +162,5 @@ The following pallets are stored in `pallets/`. They are designed for Moonbeam's
 
 ## Contribute
 
-Moonbeam is open source under the terms of the GPL3. We welcome contributions. You can explore our
-crate-level documentation at https://purestake.github.io/moonbeam
-
-### Code style
-
-Moonbeam is following the
-[Substrate code style](https://github.com/paritytech/substrate/blob/master/docs/STYLE_GUIDE.md)  
-We provide a [.editorconfig](.editorconfig) (_compatible with VSCode using RLS_)
+Moonbeam is open source under the terms of the GPL3. We welcome contributions. Please review our
+[CONTRIBUTIONS.md](CONTRIBUTIONS.md) document for more information.
