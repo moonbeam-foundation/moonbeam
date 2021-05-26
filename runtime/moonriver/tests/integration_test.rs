@@ -365,7 +365,10 @@ fn reward_block_authors() {
 			AccountId::from(ALICE),
 			500 * MOVR,
 		)])
-		.with_mappings(vec![(NimbusId::from_slice(&ALICE_NIMBUS), AccountId::from(ALICE))])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
+		)])
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
@@ -398,7 +401,10 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
-		.with_mappings(vec![(NimbusId::from_slice(&ALICE_NIMBUS), AccountId::from(ALICE))])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
+		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)
 		.build()
 		.execute_with(|| {
