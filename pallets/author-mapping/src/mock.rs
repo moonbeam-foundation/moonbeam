@@ -16,11 +16,7 @@
 
 //! A minimal runtime including the author-mapping pallet
 use crate as pallet_author_mapping;
-use frame_support::{
-	construct_runtime, parameter_types,
-	traits::GenesisBuild,
-	weights::Weight,
-};
+use frame_support::{construct_runtime, parameter_types, traits::GenesisBuild, weights::Weight};
 use parity_scale_codec::{Decode, Encode};
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};

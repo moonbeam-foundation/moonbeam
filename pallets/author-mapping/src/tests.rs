@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -16,8 +16,8 @@
 
 //! Unit testing
 use crate::mock::{
-	last_event, AuthorMapping, Balances, Event as MetaEvent, ExtBuilder, Origin,
-	System, Test, TestAuthor,
+	last_event, AuthorMapping, Balances, Event as MetaEvent, ExtBuilder, Origin, System, Test,
+	TestAuthor,
 };
 use crate::{Error, Event};
 use frame_support::{assert_noop, assert_ok};
@@ -200,9 +200,11 @@ fn registered_can_rotate() {
 		.with_mappings(vec![(TestAuthor::Bob, 2)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(
-				AuthorMapping::update_association(Origin::signed(2), TestAuthor::Bob, TestAuthor::Charlie)
-			);
+			assert_ok!(AuthorMapping::update_association(
+				Origin::signed(2),
+				TestAuthor::Bob,
+				TestAuthor::Charlie
+			));
 
 			assert_eq!(AuthorMapping::account_id_of(TestAuthor::Bob), None);
 			assert_eq!(AuthorMapping::account_id_of(TestAuthor::Charlie), Some(2));
@@ -217,7 +219,11 @@ fn registered_can_rotate() {
 fn unregistered_author_cannot_be_rotated() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			AuthorMapping::update_association(Origin::signed(2), TestAuthor::Alice, TestAuthor::Bob),
+			AuthorMapping::update_association(
+				Origin::signed(2),
+				TestAuthor::Alice,
+				TestAuthor::Bob
+			),
 			Error::<Test>::AssociationNotFound
 		);
 	})
@@ -231,7 +237,11 @@ fn registered_author_cannot_be_rotated_by_non_owner() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				AuthorMapping::update_association(Origin::signed(2), TestAuthor::Alice, TestAuthor::Bob),
+				AuthorMapping::update_association(
+					Origin::signed(2),
+					TestAuthor::Alice,
+					TestAuthor::Bob
+				),
 				Error::<Test>::NotYourAssociation
 			);
 		})
@@ -249,7 +259,11 @@ fn no_longer_eligible_account_cannot_rotate() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				AuthorMapping::update_association(Origin::signed(1), TestAuthor::Alice, TestAuthor::Bob),
+				AuthorMapping::update_association(
+					Origin::signed(1),
+					TestAuthor::Alice,
+					TestAuthor::Bob
+				),
 				Error::<Test>::CannotSetAuthor
 			);
 
@@ -257,7 +271,6 @@ fn no_longer_eligible_account_cannot_rotate() {
 			assert_eq!(AuthorMapping::account_id_of(TestAuthor::Alice), Some(1));
 		})
 }
-
 
 //TODO Test ideas in case we bring back the narc extrinsic
 // unstaked account can be narced after period
