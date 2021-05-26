@@ -289,7 +289,7 @@ fn join_collator_candidates() {
 #[test]
 fn transfer_through_evm_to_stake() {
 	ExtBuilder::default()
-		.with_balances(vec![(AccountId::from(ALICE), 3_100 * GLMR)])
+		.with_balances(vec![(AccountId::from(ALICE), 3_000 * GLMR + 100)])
 		.build()
 		.execute_with(|| {
 			// Charlie has no balance => fails to stake
