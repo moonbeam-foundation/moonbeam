@@ -866,6 +866,26 @@
 <span id="863">863</span>
 <span id="864">864</span>
 <span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2020 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1693,8 +1713,18 @@
 		<span class="kw">let</span> <span class="ident">extrinsics</span> <span class="op">=</span> <span class="ident">backend</span>
 			.<span class="ident">blockchain</span>()
 			.<span class="ident">body</span>(<span class="ident">substrate_block_id</span>)
-			.<span class="ident">unwrap</span>()
-			.<span class="ident">unwrap</span>();
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+				<span class="ident">internal_err</span>(<span class="macro">format</span><span class="macro">!</span>(
+					<span class="string">&quot;Blockchain error when fetching extrinsics of block {} : {:?}&quot;</span>,
+					<span class="ident">height</span>, <span class="ident">e</span>
+				))
+			})<span class="question-mark">?</span>
+			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+				<span class="ident">internal_err</span>(<span class="macro">format</span><span class="macro">!</span>(
+					<span class="string">&quot;Could not find block {} when fetching extrinsics.&quot;</span>,
+					<span class="ident">height</span>
+				))
+			})<span class="question-mark">?</span>;
 
 		<span class="comment">// Trace the block.</span>
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">traces</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">api</span>
@@ -1718,7 +1748,17 @@
 			<span class="ident">trace</span>.<span class="ident">block_number</span> <span class="op">=</span> <span class="ident">height</span>;
 			<span class="ident">trace</span>.<span class="ident">transaction_hash</span> <span class="op">=</span> <span class="ident">eth_transactions</span>
 				.<span class="ident">get</span>(<span class="ident">trace</span>.<span class="ident">transaction_position</span> <span class="kw">as</span> <span class="ident">usize</span>)
-				.<span class="ident">expect</span>(<span class="string">&quot;amount of eth transactions should match&quot;</span>)
+				.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+					<span class="ident">tracing</span>::<span class="macro">warn</span><span class="macro">!</span>(
+						<span class="string">&quot;Bug: A transaction has been replayed while it shouldn&#39;t (in block {}).&quot;</span>,
+						<span class="ident">height</span>
+					);
+
+					<span class="ident">internal_err</span>(<span class="macro">format</span><span class="macro">!</span>(
+						<span class="string">&quot;Bug: A transaction has been replayed while it shouldn&#39;t (in block {}).&quot;</span>,
+						<span class="ident">height</span>
+					))
+				})<span class="question-mark">?</span>
 				.<span class="ident">transaction_hash</span>;
 
 			<span class="comment">// Reformat error messages.</span>
