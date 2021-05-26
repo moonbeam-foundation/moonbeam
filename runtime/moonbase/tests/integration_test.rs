@@ -316,7 +316,7 @@ fn transfer_through_evm_to_stake() {
 				AccountId::from(BOB),
 				2_000 * UNITS,
 			));
-			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 2_000 * UNITS,);
+			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 2_000 * UNITS);
 
 			let gas_limit = 100000u64;
 			let gas_price: U256 = 1_000_000_000.into();
@@ -344,13 +344,6 @@ fn transfer_through_evm_to_stake() {
 			let candidates = ParachainStaking::candidate_pool();
 			assert_eq!(
 				candidates.0[0],
-			// 	Bond {
-			// 		owner: AccountId::from(ALICE),
-			// 		amount: 2_000 * UNITS
-			// 	}
-			// );
-			// assert_eq!(
-			// 	candidates.0[1],
 				Bond {
 					owner: AccountId::from(CHARLIE),
 					amount: 1_000 * UNITS
@@ -405,7 +398,6 @@ fn reward_block_authors() {
 fn initialize_crowdloan_addresses_with_batch_and_pay() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			//TODO does alice need some extra tokens here to cover mapping deposit?
 			(AccountId::from(ALICE), 2_000 * UNITS),
 			(AccountId::from(BOB), 1_000 * UNITS),
 		])

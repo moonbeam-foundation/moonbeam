@@ -615,7 +615,7 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 }
 
 parameter_types! {
-	pub const DepositAmount: Balance = 100 * GLMR;
+	pub const DepositAmount: Balance = 100 * currency::GLMR;
 }
 // This is a simple session key manager. It should probably either work with, or be replaced
 // entirely by pallet sessions
