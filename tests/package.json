@@ -35,12 +35,12 @@
     "watch": "npm-watch",
     "build": "cargo build --release",
     "non-ci-test": "mocha -r ts-node/register 'non_ci_tests/**/test-*.ts'",
-    "test-single": "mocha -r ts-node/register 'tests/test-balance.ts'"
+    "test-single": "mocha -r ts-node/register 'tests/test-author-mapping.ts'"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@polkadot/api": "^4.10.1",
+    "@polkadot/api": "^4.11.2",
     "@polkadot/types": "^4.10.1",
     "@types/chai": "^4.2.11",
     "@types/mocha": "^8.2.2",
