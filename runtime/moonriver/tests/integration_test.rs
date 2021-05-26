@@ -289,7 +289,7 @@ fn join_collator_candidates() {
 #[test]
 fn transfer_through_evm_to_stake() {
 	ExtBuilder::default()
-		.with_balances(vec![(AccountId::from(ALICE), 3_000 * MOVR)])
+		.with_balances(vec![(AccountId::from(ALICE), 3_100 * MOVR)])
 		.build()
 		.execute_with(|| {
 			// Charlie has no balance => fails to stake
@@ -377,14 +377,17 @@ fn reward_block_authors() {
 				run_to_block(x);
 			}
 			// no rewards doled out yet
-			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * MOVR,);
+			assert_eq!(
+				Balances::free_balance(AccountId::from(ALICE)),
+				1_000 * MOVR - 100,
+			);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * MOVR,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 			run_to_block(1201);
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				1109999999920000000000,
+				1109999999920000000000 - 100,
 			);
 			assert_eq!(
 				Balances::free_balance(AccountId::from(BOB)),
