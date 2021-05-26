@@ -16,6 +16,10 @@ RUN git clone ${POLKADOT_REPO}
 WORKDIR /polkadot
 RUN git checkout ${POLKADOT_COMMIT}
 
+# Modification to improve usage
+# Changing epoch time (needed for parachain onboarding) to 2 minutes for kusama/westend runtimes
+RUN sed -i 's/pub const EPOCH_DURATION_IN_SLOTS: BlockNumber = 1 \* HOURS/pub const EPOCH_DURATION_IN_SLOTS: BlockNumber = 2 \* MINUTES/' runtime/*/src/constants.rs
+
 # Download rust dependencies and build the rust binary
 RUN cargo build --$PROFILE
 
