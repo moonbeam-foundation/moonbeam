@@ -518,7 +518,7 @@
 			<span class="comment">// Pretty hacky. We just set the first staker to use alice&#39;s session keys.</span>
 			<span class="comment">// Maybe this is the moment we should finally make the `--alice` flags make sense.</span>
 			<span class="comment">// Which is to say, we should prefund the alice account. Actually, I think we already do that...</span>
-			<span class="ident">author_ids</span>: <span class="ident">stakers</span>
+			<span class="ident">mappings</span>: <span class="ident">stakers</span>
 				.<span class="ident">iter</span>()
 				.<span class="ident">take</span>(<span class="number">1</span>)
 				.<span class="ident">map</span>(<span class="op">|</span><span class="ident">staker</span><span class="op">|</span> {
