@@ -104,9 +104,10 @@ impl InherentDataProvider for MockValidationDataInherentDataProvider {
 		// Use the "sproof" (spoof proof) builder to build valid mock state root and proof.
 		let (relay_storage_root, proof) =
 			RelayStateSproofBuilder::default().into_state_root_and_proof();
-		
+
 		// Calculate the mocked relay block based on the current para block
-		let relay_parent_number = self.relay_offset + self.relay_blocks_per_para_block * self.current_para_block;
+		let relay_parent_number =
+			self.relay_offset + self.relay_blocks_per_para_block * self.current_para_block;
 
 		let data = ParachainInherentData {
 			validation_data: PersistedValidationData {
