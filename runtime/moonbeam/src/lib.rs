@@ -614,7 +614,7 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 }
 
 parameter_types! {
-	pub const DepositAmount: Balance = 100;
+	pub const DepositAmount: Balance = 100 * currency::GLMR;
 }
 // This is a simple session key manager. It should probably either work with, or be replaced
 // entirely by pallet sessions
@@ -623,6 +623,9 @@ impl pallet_author_mapping::Config for Runtime {
 	type AuthorId = NimbusId;
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
+	fn can_register(account: &AccountId) -> bool {
+		ParachainStaking::is_candidate(account)
+	}
 }
 
 parameter_types! {

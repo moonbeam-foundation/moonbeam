@@ -224,7 +224,7 @@ pub fn testnet_genesis(
 			// Pretty hacky. We just set the first staker to use alice's session keys.
 			// Maybe this is the moment we should finally make the `--alice` flags make sense.
 			// Which is to say, we should prefund the alice account. Actually, I think we already do that...
-			author_ids: stakers
+			mappings: stakers
 				.iter()
 				.take(1)
 				.map(|staker| {
