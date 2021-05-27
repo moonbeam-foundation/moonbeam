@@ -23,7 +23,7 @@ use cumulus_primitives_core::ParaId;
 use log::info;
 use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::AccountIdConversion;
-use polkadot_service::RococoChainSpec;
+use polkadot_service::WestendChainSpec;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
 	NetworkParams, Result, RuntimeVersion, SharedParams, SubstrateCli,
@@ -193,7 +193,7 @@ impl SubstrateCli for RelayChainCli {
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		match id {
-			"westend_moonbase_relay_testnet" => Ok(Box::new(RococoChainSpec::from_json_bytes(
+			"westend_moonbase_relay_testnet" => Ok(Box::new(WestendChainSpec::from_json_bytes(
 				&include_bytes!("../../../specs/alphanet/rococo-embedded-specs-v8.json")[..],
 			)?)),
 			// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the
