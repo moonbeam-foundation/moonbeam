@@ -861,10 +861,15 @@ pub fn new_dev(
 				commands_stream,
 				select_chain,
 				consensus_data_provider: None,
-				create_inherent_data_providers: move |_, _| async move {
+				//TODO I need a type annotation on the block type here. What type should I use?
+				create_inherent_data_providers: move |block, ()| async move {
 					let time = sp_timestamp::InherentDataProvider::from_system_time();
 
-					let mocked_parachain = inherents::MockValidationDataInherentDataProvider;
+					let mocked_parachain = inherents::MockValidationDataInherentDataProvider{
+						current_para_block: block.header().number().into(),
+						relay_offset: 1000,
+						relay_blocks_per_para_block: 2,
+					};
 
 					//TODO I want to use the value from a variable above.
 					let author = nimbus_primitives::InherentDataProvider::<NimbusId>(
