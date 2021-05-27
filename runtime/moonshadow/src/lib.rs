@@ -923,7 +923,9 @@ impl_runtime_apis! {
 				};
 			}
 
-			Err(sp_runtime::DispatchError::Other("Failed to find Ethereum transaction among the extrinsics."))
+			Err(sp_runtime::DispatchError::Other(
+				"Failed to find Ethereum transaction among the extrinsics."
+			))
 		}
 
 		fn trace_block(
