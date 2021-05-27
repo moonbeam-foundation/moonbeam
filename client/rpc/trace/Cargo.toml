@@ -28,7 +28,7 @@ sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v
 sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.2" }
 sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.2" }
 sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.2" }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "jeremy-evm-0.27" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-v0.8" }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug" }
 
 # Client and RPC
@@ -36,7 +36,7 @@ jsonrpc-core = "15.0.0"
 sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.2" }
 sc-network = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.2" }
 sc-transaction-graph = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.2" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "jeremy-evm-0.27" }
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "jeremy-evm-0.27" }
-fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "jeremy-evm-0.27" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-v0.8" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-v0.8" }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "moonbeam-v0.8" }
 moonbeam-rpc-core-trace = { path = "../../rpc-core/trace" }
