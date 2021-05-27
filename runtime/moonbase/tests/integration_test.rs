@@ -1512,7 +1512,11 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 			set_parachain_inherent_data();
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 			// {from: 0x6be02d1d3665660d22ff9624b7be0551ee1ac91b, .., gasPrice: "0x01"}
-			let bytes = hex_literal::hex!("f86880843b9aca0083b71b0094111111111111111111111111111111111111111182020080820a26a08c69faf613b9f72dbb029bb5d5acf42742d214c79743507e75fdc8adecdee928a001be4f58ff278ac61125a81a582a717d9c5d6554326c01b878297c6522b12282");
+			let bytes = hex::decode(
+				"f86880843b9aca0083b71b0094111111111111111111111111111111111111111182020080820a26a0\
+				8c69faf613b9f72dbb029bb5d5acf42742d214c79743507e75fdc8adecdee928a001be4f58ff278ac61\
+				125a81a582a717d9c5d6554326c01b878297c6522b12282")
+				.expect("Transaction bytes.");
 			let transaction = rlp::decode::<pallet_ethereum::Transaction>(&bytes[..]);
 			assert!(transaction.is_ok());
 			let converter = TransactionConverter;
@@ -1572,7 +1576,11 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 			set_parachain_inherent_data();
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 			// {from: 0x6be02d1d3665660d22ff9624b7be0551ee1ac91b, .., gasPrice: "0x01"}
-			let bytes = hex_literal::hex!("f86880843b9aca0083b71b0094111111111111111111111111111111111111111182020080820a26a08c69faf613b9f72dbb029bb5d5acf42742d214c79743507e75fdc8adecdee928a001be4f58ff278ac61125a81a582a717d9c5d6554326c01b878297c6522b12282");
+			let bytes = hex::decode(
+				"f86880843b9aca0083b71b0094111111111111111111111111111111111111111182020080820a26a0\
+				8c69faf613b9f72dbb029bb5d5acf42742d214c79743507e75fdc8adecdee928a001be4f58ff278ac61\
+				125a81a582a717d9c5d6554326c01b878297c6522b12282")
+				.expect("Transaction bytes.");
 			let transaction = rlp::decode::<pallet_ethereum::Transaction>(&bytes[..]);
 			assert!(transaction.is_ok());
 			let converter = TransactionConverter;
