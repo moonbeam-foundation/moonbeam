@@ -60,8 +60,7 @@ fn purge_chain_purges_relay_and_para() {
 			.arg("-d")
 			.arg(base_path.path())
 			.arg("--chain")
-			.arg("local")
-			.arg("--")
+			.arg("moonbase-dev")
 			.spawn()
 			.unwrap();
 
@@ -84,39 +83,24 @@ fn purge_chain_purges_relay_and_para() {
 	{
 		let base_path = run_node_and_stop();
 
-		// Make sure both databases were created
-		assert!(base_path.path().join("chains/local_testnet/db").exists());
-		assert!(base_path
-			.path()
-			.join("polkadot/chains/rococo_local_testnet/db")
-			.exists());
+		// Make sure dev database was created
+		assert!(base_path.path().join("chains/moonbase_dev/db").exists());
 
 		// Run the purge chain command without further args which should delete both databases
 		let status = Command::new(cargo_bin("moonbeam"))
 			.args(&["purge-chain", "-d"])
 			.arg(base_path.path())
 			.arg("--chain")
-			.arg("local")
+			.arg("moonbase-dev")
 			.arg("-y")
 			.status()
 			.unwrap();
 		assert!(status.success());
 
 		// Make sure the parachain data directory exists
-		assert!(base_path.path().join("chains/local_testnet").exists());
+		assert!(base_path.path().join("chains/moonbase_dev").exists());
 		// Make sure its database is deleted
-		assert!(!base_path.path().join("chains/local_testnet/db").exists());
-
-		// Make sure the relay data directory exists
-		assert!(base_path
-			.path()
-			.join("polkadot/chains/rococo_local_testnet")
-			.exists());
-		// Make sure its chain is purged
-		assert!(!base_path
-			.path()
-			.join("polkadot/chains/rococo_local_testnet/db")
-			.exists());
+		assert!(!base_path.path().join("chains/moonbase_dev/db").exists()); // Make sure the relay data directory exists
 	}
 }
 
@@ -171,14 +155,14 @@ fn export_genesis_state() {
 	let output = Command::new(cargo_bin("moonbeam"))
 		.arg("export-genesis-state")
 		.arg("--chain")
-		.arg("alphanet")
+		.arg("moonshadow")
 		.output()
 		.unwrap();
 
 	let expected = "3078303030303030303030303030303030303030303030303030303030303030303030303\
-	03030303030303030303030303030303030303030303030303030303030303064323265393236306563386466626538\
-	66306530656261326561343434383431363763373165356462393061656630356436326137643864616365383266623\
-	73033313730613265373539376237623765336438346330353339316431333961363262313537653738373836643863\
+	03030303030303030303030303030303030303030303030303030303030303064346536663262393966636565343132\
+	39366330333734346265393032393631306466643661653539613233356565376666393332636138336332613436323\
+	23033313730613265373539376237623765336438346330353339316431333961363262313537653738373836643863\
 	30383266323964636634633131313331343030";
 
 	assert_eq!(expected, hex::encode(output.stdout.as_slice()))
@@ -200,15 +184,9 @@ fn export_current_state() {
 		let mut cmd = Command::new(cargo_bin("moonbeam"))
 			.arg("-d")
 			.arg(base_path.path())
-			.arg("--chain")
-			.arg("moonbase-local")
-			.arg("--dev-service")
+			.arg("--dev")
 			.arg("--sealing")
 			.arg("1000")
-			.arg("--collator")
-			.arg("--author-id")
-			.arg("0x6be02d1d3665660d22ff9624b7be0551ee1ac91b")
-			.arg("--")
 			.spawn()
 			.unwrap();
 
@@ -235,14 +213,16 @@ fn export_current_state() {
 		let output = Command::new(cargo_bin("moonbeam"))
 			.args(&["export-blocks", "-d"])
 			.arg(base_path.path())
-			.arg("--chain")
-			.arg("local")
+			.arg("--dev")
 			.arg("--from")
 			.arg("1")
 			.arg("--to")
 			.arg("1")
+			.arg("--pruning")
+			.arg("archive")
 			.output()
 			.unwrap();
+		println!("{:?}", output);
 
 		let block_1: serde_json::Value = serde_json::from_slice(output.stdout.as_slice()).unwrap();
 		assert_eq!(
