@@ -4738,6 +4738,7 @@ dependencies = [
  "parachain-staking",
  "parity-scale-codec",
  "precompiles",
+ "rlp",
  "serde",
  "sha3 0.9.1",
  "sp-api",

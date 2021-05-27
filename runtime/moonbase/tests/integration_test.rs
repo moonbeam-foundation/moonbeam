@@ -26,22 +26,32 @@ use frame_support::{
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
 use moonbase_runtime::{
-	currency::UNITS, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Event,
-	InflationInfo, ParachainStaking, Range, Runtime, System,
+	currency::UNITS, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards,
+	Ethereum, Event, Executive, FixedGasPrice, InflationInfo, ParachainStaking, Range, Runtime,
+	System, TransactionConverter, UncheckedExtrinsic,
 };
 use nimbus_primitives::NimbusId;
-use pallet_evm::PrecompileSet;
+use pallet_evm::{
+	Account as EVMAccount, AddressMapping, FeeCalculator, GenesisAccount, PrecompileSet,
+};
 use parachain_staking::Bond;
 use precompiles::MoonbeamPrecompiles;
-use sp_core::{Public, H160, U256};
+use sp_core::{Public, H160, H256, U256};
 use sp_runtime::{DispatchError, Perbill};
+
+use fp_rpc::runtime_decl_for_EthereumRuntimeRPCApi::EthereumRuntimeRPCApi;
+use fp_rpc::ConvertTransaction;
+use std::collections::BTreeMap;
+use std::str::FromStr;
 
 fn run_to_block(n: u32) {
 	while System::block_number() < n {
+		Ethereum::on_finalize(System::block_number());
 		AuthorInherent::on_finalize(System::block_number());
 		ParachainStaking::on_finalize(System::block_number());
 		System::set_block_number(System::block_number() + 1);
 		AuthorInherent::on_initialize(System::block_number());
+		Ethereum::on_initialize(System::block_number());
 	}
 }
 
@@ -60,6 +70,10 @@ struct ExtBuilder {
 	inflation: InflationInfo<Balance>,
 	// Crowdloan fund
 	crowdloan_fund: Balance,
+	// Chain id
+	chain_id: u64,
+	// EVM genesis accounts
+	evm_accounts: BTreeMap<H160, GenesisAccount>,
 }
 
 impl Default for ExtBuilder {
@@ -88,11 +102,18 @@ impl Default for ExtBuilder {
 				},
 			},
 			crowdloan_fund: 0,
+			chain_id: CHAIN_ID,
+			evm_accounts: BTreeMap::new(),
 		}
 	}
 }
 
 impl ExtBuilder {
+	fn with_evm_accounts(mut self, accounts: BTreeMap<H160, GenesisAccount>) -> Self {
+		self.evm_accounts = accounts;
+		self
+	}
+
 	fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
 		self.balances = balances;
 		self
@@ -159,17 +180,41 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
+		<pallet_ethereum_chain_id::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
+			&pallet_ethereum_chain_id::GenesisConfig {
+				chain_id: self.chain_id,
+			},
+			&mut t,
+		)
+		.unwrap();
+
+		<pallet_evm::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
+			&pallet_evm::GenesisConfig {
+				accounts: self.evm_accounts,
+			},
+			&mut t,
+		)
+		.unwrap();
+
+		pallet_ethereum::GenesisConfig::assimilate_storage::<Runtime>(
+			&pallet_ethereum::GenesisConfig {},
+			&mut t,
+		)
+		.unwrap();
+
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
 		ext
 	}
 }
 
+const CHAIN_ID: u64 = 1281;
 const ALICE: [u8; 20] = [4u8; 20];
 const ALICE_NIMBUS: [u8; 32] = [4u8; 32];
 const BOB: [u8; 20] = [5u8; 20];
 const CHARLIE: [u8; 20] = [6u8; 20];
 const DAVE: [u8; 20] = [7u8; 20];
+const EVM_CONTRACT: [u8; 20] = [8u8; 20];
 
 fn origin_of(account_id: AccountId) -> <Runtime as frame_system::Config>::Origin {
 	<Runtime as frame_system::Config>::Origin::signed(account_id)
@@ -1295,4 +1340,247 @@ fn min_nomination_via_precompile() {
 			expected_result
 		);
 	});
+}
+
+#[test]
+fn ethereum_runtime_rpc_api_chain_id() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(Runtime::chain_id(), CHAIN_ID);
+	});
+}
+
+#[test]
+fn ethereum_runtime_rpc_api_account_basic() {
+	ExtBuilder::default()
+		.with_balances(vec![(AccountId::from(ALICE), 2_000 * UNITS)])
+		.build()
+		.execute_with(|| {
+			assert_eq!(
+				Runtime::account_basic(H160::from(ALICE)),
+				EVMAccount {
+					balance: U256::from(2_000 * UNITS),
+					nonce: U256::zero()
+				}
+			);
+		});
+}
+
+#[test]
+fn ethereum_runtime_rpc_api_gas_price() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(Runtime::gas_price(), FixedGasPrice::min_gas_price());
+	});
+}
+
+#[test]
+fn ethereum_runtime_rpc_api_account_code_at() {
+	let address = H160::from(EVM_CONTRACT);
+	let code: Vec<u8> = vec![1, 2, 3, 4, 5];
+	ExtBuilder::default()
+		.with_evm_accounts({
+			let mut map = BTreeMap::new();
+			map.insert(
+				address,
+				GenesisAccount {
+					balance: U256::zero(),
+					code: code.clone(),
+					nonce: Default::default(),
+					storage: Default::default(),
+				},
+			);
+			map
+		})
+		.build()
+		.execute_with(|| {
+			assert_eq!(Runtime::account_code_at(address), code);
+		});
+}
+
+#[test]
+fn ethereum_runtime_rpc_api_author() {
+	ExtBuilder::default()
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNITS)])
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNITS),
+			(AccountId::from(BOB), 1_000 * UNITS),
+		])
+		.with_nominators(vec![(
+			AccountId::from(BOB),
+			AccountId::from(ALICE),
+			500 * UNITS,
+		)])
+		.build()
+		.execute_with(|| {
+			set_parachain_inherent_data();
+			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+			assert_eq!(Runtime::author(), H160::from(ALICE));
+		});
+}
+
+#[test]
+fn ethereum_runtime_rpc_api_storage_at() {
+	let address = H160::from(EVM_CONTRACT);
+	let mut key = [0u8; 32];
+	key[31..32].copy_from_slice(&[6u8][..]);
+	let mut value = [0u8; 32];
+	value[31..32].copy_from_slice(&[7u8][..]);
+	let item = H256::from_slice(&key[..]);
+	let mut storage: BTreeMap<H256, H256> = BTreeMap::new();
+	storage.insert(H256::from_slice(&key[..]), item);
+	ExtBuilder::default()
+		.with_evm_accounts({
+			let mut map = BTreeMap::new();
+			map.insert(
+				address,
+				GenesisAccount {
+					balance: U256::zero(),
+					code: Vec::new(),
+					nonce: Default::default(),
+					storage: storage.clone(),
+				},
+			);
+			map
+		})
+		.build()
+		.execute_with(|| {
+			assert_eq!(Runtime::storage_at(address, U256::from(6)), item);
+		});
+}
+
+#[test]
+fn ethereum_runtime_rpc_api_call() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNITS),
+			(AccountId::from(BOB), 2_000 * UNITS),
+		])
+		.build()
+		.execute_with(|| {
+			let execution_result = Runtime::call(
+				H160::from(ALICE),  // from
+				H160::from(BOB),    // to
+				Vec::new(),         // data
+				U256::from(1000),   // value
+				U256::from(100000), // gas_limit
+				None,               // gas_price
+				None,               // nonce
+				false,              // estimate
+			);
+			assert!(execution_result.is_ok());
+		});
+}
+
+#[test]
+fn ethereum_runtime_rpc_api_create() {
+	ExtBuilder::default()
+		.with_balances(vec![(AccountId::from(ALICE), 2_000 * UNITS)])
+		.build()
+		.execute_with(|| {
+			let execution_result = Runtime::create(
+				H160::from(ALICE),  // from
+				vec![0, 1, 1, 0],   // data
+				U256::zero(),       // value
+				U256::from(100000), // gas_limit
+				None,               // gas_price
+				None,               // nonce
+				false,              // estimate
+			);
+			assert!(execution_result.is_ok());
+		});
+}
+
+#[test]
+fn ethereum_runtime_rpc_api_current_transaction_statuses() {
+	let alith = <Runtime as pallet_evm::Config>::AddressMapping::into_account_id(
+		H160::from_str("6be02d1d3665660d22ff9624b7be0551ee1ac91b")
+			.expect("internal H160 is valid; qed"),
+	);
+	ExtBuilder::default()
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNITS)])
+		.with_balances(vec![
+			(alith, 2_000 * UNITS),
+			(AccountId::from(ALICE), 2_000 * UNITS),
+			(AccountId::from(BOB), 1_000 * UNITS),
+		])
+		.with_nominators(vec![(
+			AccountId::from(BOB),
+			AccountId::from(ALICE),
+			500 * UNITS,
+		)])
+		.build()
+		.execute_with(|| {
+			set_parachain_inherent_data();
+			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+			// {from: 0x6be02d1d3665660d22ff9624b7be0551ee1ac91b, .., gasPrice: "0x01"}
+			let bytes = hex_literal::hex!("f86880843b9aca0083b71b0094111111111111111111111111111111111111111182020080820a26a08c69faf613b9f72dbb029bb5d5acf42742d214c79743507e75fdc8adecdee928a001be4f58ff278ac61125a81a582a717d9c5d6554326c01b878297c6522b12282");
+			let transaction = rlp::decode::<pallet_ethereum::Transaction>(&bytes[..]);
+			assert!(transaction.is_ok());
+			let converter = TransactionConverter;
+			let uxt: UncheckedExtrinsic =
+				converter.convert_transaction(transaction.unwrap().clone());
+			let _result = Executive::apply_extrinsic(uxt);
+			run_to_block(2);
+			let statuses =
+				Runtime::current_transaction_statuses().expect("Transaction statuses result.");
+			assert_eq!(statuses.len(), 1);
+		});
+}
+
+#[test]
+fn ethereum_runtime_rpc_api_current_block() {
+	ExtBuilder::default()
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNITS)])
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNITS),
+			(AccountId::from(BOB), 1_000 * UNITS),
+		])
+		.with_nominators(vec![(
+			AccountId::from(BOB),
+			AccountId::from(ALICE),
+			500 * UNITS,
+		)])
+		.build()
+		.execute_with(|| {
+			set_parachain_inherent_data();
+			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+			run_to_block(2);
+			let block = Runtime::current_block().expect("Block result.");
+			assert_eq!(block.header.number, U256::from(1));
+		});
+}
+
+#[test]
+fn ethereum_runtime_rpc_api_current_receipts() {
+	let alith = <Runtime as pallet_evm::Config>::AddressMapping::into_account_id(
+		H160::from_str("6be02d1d3665660d22ff9624b7be0551ee1ac91b")
+			.expect("internal H160 is valid; qed"),
+	);
+	ExtBuilder::default()
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNITS)])
+		.with_balances(vec![
+			(alith, 2_000 * UNITS),
+			(AccountId::from(ALICE), 2_000 * UNITS),
+			(AccountId::from(BOB), 1_000 * UNITS),
+		])
+		.with_nominators(vec![(
+			AccountId::from(BOB),
+			AccountId::from(ALICE),
+			500 * UNITS,
+		)])
+		.build()
+		.execute_with(|| {
+			set_parachain_inherent_data();
+			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+			// {from: 0x6be02d1d3665660d22ff9624b7be0551ee1ac91b, .., gasPrice: "0x01"}
+			let bytes = hex_literal::hex!("f86880843b9aca0083b71b0094111111111111111111111111111111111111111182020080820a26a08c69faf613b9f72dbb029bb5d5acf42742d214c79743507e75fdc8adecdee928a001be4f58ff278ac61125a81a582a717d9c5d6554326c01b878297c6522b12282");
+			let transaction = rlp::decode::<pallet_ethereum::Transaction>(&bytes[..]);
+			assert!(transaction.is_ok());
+			let converter = TransactionConverter;
+			let uxt: UncheckedExtrinsic =
+				converter.convert_transaction(transaction.unwrap().clone());
+			let _result = Executive::apply_extrinsic(uxt);
+			run_to_block(2);
+			let receipts = Runtime::current_receipts().expect("Transaction statuses result.");
+			assert_eq!(receipts.len(), 1);
+		});
 }
