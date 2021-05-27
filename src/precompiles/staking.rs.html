@@ -387,6 +387,26 @@
 <span id="384">384</span>
 <span id="385">385</span>
 <span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -405,7 +425,7 @@
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="doccomment">//! Precompile to call parachain-staking runtime methods via the EVM</span>
-<span class="kw">use</span> <span class="ident">evm</span>::{<span class="ident">Context</span>, <span class="ident">ExitError</span>, <span class="ident">ExitSucceed</span>};
+<span class="kw">use</span> <span class="ident">evm</span>::{<span class="ident">executor</span>::<span class="ident">PrecompileOutput</span>, <span class="ident">Context</span>, <span class="ident">ExitError</span>, <span class="ident">ExitSucceed</span>};
 <span class="kw">use</span> <span class="ident">frame_support</span>::<span class="ident">dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>};
 <span class="kw">use</span> <span class="ident">frame_support</span>::<span class="ident">traits</span>::{<span class="ident">Currency</span>, <span class="ident">Get</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::<span class="ident">AddressMapping</span>;
@@ -444,7 +464,7 @@
 		<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="comment">//Reminder this is big-endian</span>
 		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">ExitSucceed</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">u64</span>), <span class="ident">ExitError</span><span class="op">&gt;</span> {
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
 		<span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>, <span class="string">&quot;In parachain staking wrapper&quot;</span>);
 
 		<span class="comment">// Basic sanity checking for length</span>
@@ -521,7 +541,12 @@
 				<span class="kw">let</span> <span class="ident">gas_used</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">GasWeightMapping</span>::<span class="ident">weight_to_gas</span>(
 					<span class="ident">post_info</span>.<span class="ident">actual_weight</span>.<span class="ident">unwrap_or</span>(<span class="ident">info</span>.<span class="ident">weight</span>),
 				);
-				<span class="prelude-val">Ok</span>((<span class="ident">ExitSucceed</span>::<span class="ident">Stopped</span>, <span class="ident">Default</span>::<span class="ident">default</span>(), <span class="ident">gas_used</span>))
+				<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
+					<span class="ident">exit_status</span>: <span class="ident">ExitSucceed</span>::<span class="ident">Stopped</span>,
+					<span class="ident">cost</span>: <span class="ident">gas_used</span>,
+					<span class="ident">output</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+					<span class="ident">logs</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+				})
 			}
 			<span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
 				<span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(
@@ -595,7 +620,7 @@
 {
 	<span class="comment">// The accessors are first. They directly return their result.</span>
 
-	<span class="kw">fn</span> <span class="ident">is_nominator</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">ExitSucceed</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">u64</span>), <span class="ident">ExitError</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">is_nominator</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
 		<span class="comment">// parse the address</span>
 		<span class="kw">let</span> <span class="ident">nominator</span> <span class="op">=</span> <span class="ident">H160</span>::<span class="ident">from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">12</span>..<span class="number">32</span>]);
 
@@ -622,10 +647,15 @@
 		<span class="comment">// TODO find gas cost of single storage read</span>
 		<span class="kw">let</span> <span class="ident">gas_consumed</span> <span class="op">=</span> <span class="number">0</span>;
 
-		<span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">ExitSucceed</span>::<span class="ident">Returned</span>, <span class="ident">result_bytes</span>.<span class="ident">to_vec</span>(), <span class="ident">gas_consumed</span>));
+		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
+			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed</span>::<span class="ident">Returned</span>,
+			<span class="ident">cost</span>: <span class="ident">gas_consumed</span>,
+			<span class="ident">output</span>: <span class="ident">result_bytes</span>.<span class="ident">to_vec</span>(),
+			<span class="ident">logs</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+		})
 	}
 
-	<span class="kw">fn</span> <span class="ident">is_candidate</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">ExitSucceed</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">u64</span>), <span class="ident">ExitError</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">is_candidate</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
 		<span class="comment">// parse the address</span>
 		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">H160</span>::<span class="ident">from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">12</span>..<span class="number">32</span>]);
 
@@ -652,10 +682,15 @@
 		<span class="comment">// TODO find gas cost of single storage read</span>
 		<span class="kw">let</span> <span class="ident">gas_consumed</span> <span class="op">=</span> <span class="number">0</span>;
 
-		<span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">ExitSucceed</span>::<span class="ident">Returned</span>, <span class="ident">result_bytes</span>.<span class="ident">to_vec</span>(), <span class="ident">gas_consumed</span>));
+		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
+			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed</span>::<span class="ident">Returned</span>,
+			<span class="ident">cost</span>: <span class="ident">gas_consumed</span>,
+			<span class="ident">output</span>: <span class="ident">result_bytes</span>.<span class="ident">to_vec</span>(),
+			<span class="ident">logs</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+		})
 	}
 
-	<span class="kw">fn</span> <span class="ident">min_nomination</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">ExitSucceed</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">u64</span>), <span class="ident">ExitError</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">min_nomination</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span> {
 		<span class="comment">// fetch data from pallet</span>
 		<span class="kw">let</span> <span class="ident">raw_min_nomination</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="op">&lt;</span>
 			<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">parachain_staking</span>::<span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">MinNomination</span>
@@ -673,7 +708,12 @@
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">32</span>];
 		<span class="ident">min_nomination</span>.<span class="ident">to_big_endian</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>);
 
-		<span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">ExitSucceed</span>::<span class="ident">Returned</span>, <span class="ident">buffer</span>.<span class="ident">to_vec</span>(), <span class="ident">gas_consumed</span>));
+		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
+			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed</span>::<span class="ident">Returned</span>,
+			<span class="ident">cost</span>: <span class="ident">gas_consumed</span>,
+			<span class="ident">output</span>: <span class="ident">buffer</span>.<span class="ident">to_vec</span>(),
+			<span class="ident">logs</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+		})
 	}
 
 	<span class="comment">// The dispatchable wrappers are next. They return a substrate inner Call ready for dispatch.</span>

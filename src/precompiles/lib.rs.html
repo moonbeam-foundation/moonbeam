@@ -132,7 +132,7 @@
 
 <span class="kw">mod</span> <span class="ident">staking</span>;
 <span class="kw">use</span> <span class="ident">codec</span>::<span class="ident">Decode</span>;
-<span class="kw">use</span> <span class="ident">evm</span>::{<span class="ident">Context</span>, <span class="ident">ExitError</span>, <span class="ident">ExitSucceed</span>};
+<span class="kw">use</span> <span class="ident">evm</span>::{<span class="ident">executor</span>::<span class="ident">PrecompileOutput</span>, <span class="ident">Context</span>, <span class="ident">ExitError</span>, <span class="ident">ExitSucceed</span>};
 <span class="kw">use</span> <span class="ident">frame_support</span>::<span class="ident">dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">Precompile</span>, <span class="ident">PrecompileSet</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_bn128</span>::{<span class="ident">Bn128Add</span>, <span class="ident">Bn128Mul</span>, <span class="ident">Bn128Pairing</span>};
@@ -196,7 +196,7 @@
 		<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
 		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">ExitSucceed</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">u64</span>), <span class="ident">ExitError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span>, <span class="ident">ExitError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
 		<span class="kw">match</span> <span class="ident">address</span> {
 			<span class="comment">// Ethereum precompiles :</span>
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">1</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ECRecover</span>::<span class="ident">execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
