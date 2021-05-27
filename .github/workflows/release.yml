@@ -389,7 +389,7 @@ jobs:
           overwrite: true
           asset_name: moonbase-v${{ steps.get-runtime-ver.outputs.runtime_moonbase_ver }}.wasm
       - name: Upload moonshadow wasm
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref }}
@@ -398,7 +398,7 @@ jobs:
           overwrite: true
           asset_name: moonshadow-v${{ steps.get-runtime-ver.outputs.runtime_moonshadow_ver }}.wasm
       - name: Upload moonriver wasm
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref }}
@@ -407,7 +407,7 @@ jobs:
           overwrite: true
           asset_name: moonriver-v${{ steps.get-runtime-ver.outputs.runtime_moonriver_ver }}.wasm
       - name: Upload moonbeam wasm
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref }}
