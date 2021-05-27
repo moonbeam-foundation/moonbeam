@@ -746,7 +746,7 @@ construct_runtime! {
 		ParachainBondTreasury:
 			pallet_treasury::<Instance2>::{Pallet, Storage, Config, Event<T>, Call},
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent},
-		AuthorFilter: pallet_author_slot_filter::{Pallet, Storage, Event, Config},
+		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config},
 		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>},
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
