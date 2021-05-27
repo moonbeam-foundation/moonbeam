@@ -1448,49 +1448,47 @@ pub mod pallet {
 			Ok(().into())
 		}
 		fn pay_stakers(next: RoundIndex) {
+			// payout is next - duration rounds ago => next - duration > 0 else return early
+			let duration = T::BondDuration::get();
+			if next <= duration {
+				return;
+			}
 			let mint = |amt: BalanceOf<T>, to: T::AccountId| {
-				if amt > T::Currency::minimum_balance() {
-					if let Ok(imb) = T::Currency::deposit_into_existing(&to, amt) {
-						Self::deposit_event(Event::Rewarded(to.clone(), imb.peek()));
-					}
+				if let Ok(imb) = T::Currency::deposit_into_existing(&to, amt) {
+					Self::deposit_event(Event::Rewarded(to.clone(), imb.peek()));
 				}
 			};
-			let duration = T::BondDuration::get();
 			let collator_fee = <CollatorCommission<T>>::get();
-			if next > duration {
-				let round_to_payout = next - duration;
-				let total = <Points<T>>::get(round_to_payout);
-				let total_staked = <Staked<T>>::get(round_to_payout);
-				let issuance = Self::compute_issuance(total_staked);
-				for (val, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
-					let pct_due = Perbill::from_rational(pts, total);
-					let mut amt_due = pct_due * issuance;
-					if amt_due <= T::Currency::minimum_balance() {
-						continue;
-					}
-					// Take the snapshot of block author and nominations
-					let state = <AtStake<T>>::take(round_to_payout, &val);
-					if state.nominators.is_empty() {
-						// solo collator with no nominators
-						mint(amt_due, val.clone());
+			let round_to_payout = next - duration;
+			let total = <Points<T>>::get(round_to_payout);
+			let total_staked = <Staked<T>>::get(round_to_payout);
+			let issuance = Self::compute_issuance(total_staked);
+			// TODO: optimize such that we only get every storage item maximum once every time
+			for (val, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
+				let pct_due = Perbill::from_rational(pts, total);
+				let mut amt_due = pct_due * issuance;
+				// Take the snapshot of block author and nominations
+				let state = <AtStake<T>>::take(round_to_payout, &val);
+				if state.nominators.is_empty() {
+					// solo collator with no nominators
+					mint(amt_due, val.clone());
+				} else {
+					// pay collator first; commission + due_portion
+					let val_pct = Perbill::from_rational(state.bond, state.total);
+					let commission = collator_fee * amt_due;
+					let val_due = if commission > T::Currency::minimum_balance() {
+						amt_due -= commission;
+						(val_pct * amt_due) + commission
 					} else {
-						// pay collator first; commission + due_portion
-						let val_pct = Perbill::from_rational(state.bond, state.total);
-						let commission = collator_fee * amt_due;
-						let val_due = if commission > T::Currency::minimum_balance() {
-							amt_due -= commission;
-							(val_pct * amt_due) + commission
-						} else {
-							// commission is negligible so not applied
-							val_pct * amt_due
-						};
-						mint(val_due, val.clone());
-						// pay nominators due portion
-						for Bond { owner, amount } in state.nominators {
-							let percent = Perbill::from_rational(amount, state.total);
-							let due = percent * amt_due;
-							mint(due, owner);
-						}
+						// commission is negligible so not applied
+						val_pct * amt_due
+					};
+					mint(val_due, val.clone());
+					// pay nominators due portion
+					for Bond { owner, amount } in state.nominators {
+						let percent = Perbill::from_rational(amount, state.total);
+						let due = percent * amt_due;
+						mint(due, owner);
 					}
 				}
 			}

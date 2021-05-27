@@ -452,122 +452,71 @@ benchmarks! {
 	// ON_INITIALIZE
 
 	on_initialize {
-		let (max_collators, max_nominators_per_collator) = (
-			Pallet::<T>::total_selected(),
-			<<T as Config>::MaxNominatorsPerCollator as Get<u32>>::get()
-		);
-		let x in 2..Pallet::<T>::total_selected();
-		let y in 0..(
-		Pallet::<T>::total_selected() * <<T as Config>::MaxNominatorsPerCollator as Get<u32>>::get()
-		);
-		// Initialize collator set
+		// TOTAL SELECTED COLLATORS PER ROUND
+		let x in 1..28;
+		// NOMINATIONS
+		let y in 0..(<<T as Config>::MaxNominatorsPerCollator as Get<u32>>::get() * 28);
+		let max_nominations = x * <<T as Config>::MaxNominatorsPerCollator as Get<u32>>::get();
+		let total_nominations: u32 = if max_nominations < y { max_nominations } else { y };
+		// INITIALIZE RUNTIME STATE
+		let high_inflation: Range<Perbill> = Range {
+			min: Perbill::one(),
+			ideal: Perbill::one(),
+			max: Perbill::one(),
+		};
+		Pallet::<T>::set_inflation(RawOrigin::Root.into(), high_inflation.clone())?;
+		Pallet::<T>::set_total_selected(RawOrigin::Root.into(), 28u32)?;
+		Pallet::<T>::set_max_collator_candidates(RawOrigin::Root.into(), 301u32)?;
+		// INITIALIZE COLLATOR STATE
 		let mut collators: Vec<T::AccountId> = Vec::new();
 		let mut collator_count = 1u32;
-		for i in 1..x {
+		for i in 0..x {
 			let seed = USER_SEED - i;
 			let collator = create_funded_collator::<T>(
 				"collator",
 				seed,
-				0u32.into(),
+				default_balance::<T>() * 1_000_000u32.into(),
 				collator_count
 			)?;
-			collator_count += 1u32;
 			collators.push(collator);
+			collator_count += 1u32;
 		}
-		let collator = create_funded_collator::<T>(
-			"collator",
-			USER_SEED,
-			0u32.into(),
-			collator_count
-		)?;
-		//collator_count += 1u32; // uncomment if collator_count is ever used again
-		collators.push(collator.clone());
-		// // create vector for collator balances now, before any rewards
-		// let mut balances: Vec<BalanceOf<T>> = Vec::new();
-		// for col in collators.clone() {
-		// 	balances.push(T::Currency::free_balance(&col));
-		// }
-		// Initialize nominator set
-		let mut collator_nomination_count: BTreeMap<T::AccountId, u32> = BTreeMap::new();
-		let mut nominators: Vec<T::AccountId> = Vec::new();
-		let mut remaining = if y > max_nominators_per_collator {
-			for j in 1..max_nominators_per_collator {
-				let seed = USER_SEED + j;
-				let nominator = create_funded_nominator::<T>(
-					"nominator",
-					seed,
-					0u32.into(),
-					collator.clone(),
-					nominators.len() as u32,
-				)?;
-				nominators.push(nominator);
-			}
-			y - max_nominators_per_collator
-		} else {
-			for j in 0..(max_nominators_per_collator - y) {
-				let seed = USER_SEED + j;
-				let nominator = create_funded_nominator::<T>(
-					"nominator",
-					seed,
-					0u32.into(),
-					collator.clone(),
-					nominators.len() as u32,
-				)?;
-				nominators.push(nominator);
-			}
-			0u32
-		};
-		collator_nomination_count.insert(collator.clone(), nominators.len() as u32);
-		let bond = <<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get();
-		// Make remaining nominations
-		if remaining > 0 {
-			for (col, nomination_count) in collator_nomination_count.iter_mut() {
-				if nomination_count < &mut (nominators.len() as u32) {
-					let mut open_spots = nominators.len() as u32 - *nomination_count;
-					while open_spots > 0 && remaining > 0 {
-						let caller = nominators[open_spots as usize].clone();
-						Pallet::<T>::nominate(RawOrigin::Signed(
-							caller.clone()).into(),
-							col.clone(),
-							bond,
-							*nomination_count,
-							collators.len() as u32, // overestimate
-						)?;
-						*nomination_count += 1;
-						open_spots -= 1;
-						remaining -= 1;
-					}
-				}
-				if remaining == 0 {
-					break;
-				}
-			}
-		}
-		// Verify reward payout to author
+		// STORE starting balances for all collators
+		let starting_balances: Vec<(
+			T::AccountId,
+			<<T as Config>::Currency as Currency<T::AccountId>>::Balance
+		)> = collators.iter().map(|x| (x.clone(), T::Currency::free_balance(&x))).collect();
 		let before_running_round_index = Pallet::<T>::round().current;
 		let round_length: T::BlockNumber = Pallet::<T>::round().length.into();
-		let reward_delay = <<T as Config>::BondDuration as Get<u32>>::get() + 1u32;
+		let reward_delay = <<T as Config>::BondDuration as Get<u32>>::get() + 2u32;
 		let mut now = <frame_system::Pallet<T>>::block_number();
+		let mut counter = 0usize;
 		let end = Pallet::<T>::round().first + (round_length * reward_delay.into());
-		let mock_author = collators[collators.len()-1usize].clone();
-		//println!("START AUTHORING: {}", now);
+		// SET collators as authors for blocks from now - end
 		while now < end {
-			Pallet::<T>::note_author(mock_author.clone());
-			//<pallet_balances::Pallet<T>>::on_finalize(start);
+			let author = collators[counter % collators.len()].clone();
+			Pallet::<T>::note_author(author);
 			<frame_system::Pallet<T>>::on_finalize(<frame_system::Pallet<T>>::block_number());
 			<frame_system::Pallet<T>>::set_block_number(
 				<frame_system::Pallet<T>>::block_number() + 1u32.into()
 			);
 			<frame_system::Pallet<T>>::on_initialize(<frame_system::Pallet<T>>::block_number());
-			//<pallet_balances::Pallet<T>>::on_initialize(start);
 			Pallet::<T>::on_initialize(<frame_system::Pallet<T>>::block_number());
 			now += 1u32.into();
+			counter += 1usize;
 		}
-		//println!("END AUTHORING: {}", end);
-	}: { Pallet::<T>::on_initialize(end); }
+		Pallet::<T>::note_author(collators[counter % collators.len()].clone());
+		<frame_system::Pallet<T>>::on_finalize(<frame_system::Pallet<T>>::block_number());
+		<frame_system::Pallet<T>>::set_block_number(
+			<frame_system::Pallet<T>>::block_number() + 1u32.into()
+		);
+		<frame_system::Pallet<T>>::on_initialize(<frame_system::Pallet<T>>::block_number());
+	}: { Pallet::<T>::on_initialize(<frame_system::Pallet<T>>::block_number()); }
 	verify {
-		// TODO: ensure that the authors have been paid
-		//assert!(T::Currency::free_balance(&mock_author) != balances[collators.len()-1usize]);
+		// Authors have been paid
+		for (col, initial) in starting_balances {
+			assert!(T::Currency::free_balance(&col) > initial);
+		}
 		assert_eq!(Pallet::<T>::round().current, before_running_round_index + reward_delay);
 	}
 }
