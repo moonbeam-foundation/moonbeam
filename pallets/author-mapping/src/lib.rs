@@ -37,7 +37,7 @@ mod tests;
 pub mod pallet {
 
 	use frame_support::pallet_prelude::*;
-	use frame_support::traits::{Currency, ReservableCurrency};
+	use frame_support::traits::{Currency, ReservableCurrency, PalletVersion};
 	use frame_system::pallet_prelude::*;
 	use nimbus_primitives::AccountLookup;
 
@@ -70,8 +70,27 @@ pub mod pallet {
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_runtime_upgrade() -> Weight {
-			//TODO should we consier versioning here?
-			// For example make a storage item to track the pallet version and only upgrade if necessary?
+			//TODO we should consider moving the migrations to a dedicated module.
+			// Here's an example from the Substrate repo.
+			// github.com/paritytech/substrate/tree/master/frame/elections-phragmen/src/migrations
+			// I'm not sure where / when these migrations are invoked though.
+
+			// Get the runtime version out of storage
+			let maybe_storage_version = <Self as GetPalletVersion>::storage_version();
+			log::info!(
+				target: "author-mapping-migration",
+				"Running migration for pallet-author-mapping with storage version {:?}",
+				maybe_storage_version,
+			);
+
+			// This is the first migration we've ever done, and also the first time we're putting any
+			// version into storage (unless frame does something implicitly)
+			// So we only do the migration if there is no version already set. For future migrations
+			// we should check this version and ensure it is less than the upcoming version
+			if maybe_storage_version.is_some(){
+				// Exit early because this migration is already applied.
+				return 0u32.into()
+			}
 
 			// The previous version of the runtime had a security deposit of 100 wei.
 			// The new runtime uses 100 Units (with 18 decimals). To migrate, we iterate each
@@ -83,9 +102,11 @@ pub mod pallet {
 
 			// Iterate the entire storage mapping
 			Mapping::<T>::translate(|_, account_id| {
+				// Try to reserve the additional amount
 				match T::DepositCurrency::reserve(&account_id, additional_deposit) {
-					// Return the same value to keep it in the map
+					// If they can afford it, return the same account_id to preserve the mapping
 					Ok(()) => Some(account_id),
+					// If they can't afford the additional deposit
 					Err(_) => {
 						// Refund the original deposit.
 						T::DepositCurrency::unreserve(&account_id, old_deposit);
@@ -95,6 +116,10 @@ pub mod pallet {
 					}
 				}
 			});
+
+			//TODO Write the new version to storage for testing in future upgrades.
+			// How am I supposed to do this?
+			PalletVersion::new(1, 0, 0).put_into_storage::<Self, Self>();
 
 			//TODO No idea what weight I should be returning.
 			10_000u32.into()
