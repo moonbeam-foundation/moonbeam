@@ -179,6 +179,8 @@ jobs:
           name: moonbeam
           path: build
       - name: Make moonbeam executable
+        run: |
+          chmod uog+x build/moonbeam
       - name: Generate specs
         run: |
           MOONBEAM_BINARY=build/moonbeam scripts/generate-parachain-specs.sh
