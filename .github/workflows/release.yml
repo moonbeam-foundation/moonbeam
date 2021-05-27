@@ -415,3 +415,12 @@ jobs:
           release_name: Moonbase ${{ github.ref }}
           overwrite: true
           asset_name: moonbeam-v${{ steps.get-runtime-ver.outputs.runtime_moonbeam_ver }}.wasm
+      - name: Upload moonbeam binary
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          file: build/moonbeam
+          release_name: Moonbase ${{ github.ref }}
+          overwrite: true
+          asset_name: moonbeam
