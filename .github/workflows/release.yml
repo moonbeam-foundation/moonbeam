@@ -360,12 +360,12 @@ jobs:
       #     ruby $GITHUB_WORKSPACE/moonbeam/scripts/github/generate_release_text.rb | tee release_text.md
       - name: Create draft release
         id: create-release
-        uses: actions/create-release@v1
+        uses: ncipollo/release-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Moonbase ${{ github.ref }}
+          tag: ${{ github.ref }}
+          name: Moonbase ${{ github.ref }}
           body: "TBD"
           draft: true
 
