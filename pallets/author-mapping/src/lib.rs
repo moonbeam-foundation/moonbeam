@@ -119,7 +119,7 @@ pub mod pallet {
 
 			//TODO Write the new version to storage for testing in future upgrades.
 			// How am I supposed to do this?
-			PalletVersion::new(1, 0, 0).put_into_storage::<Self, Self>();
+			// PalletVersion::new(1, 0, 0).put_into_storage::<Self, Self>();
 
 			//TODO No idea what weight I should be returning.
 			10_000u32.into()
