@@ -349,9 +349,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          path: moonbeam
       # - name: Set up Ruby 2.7
       #   uses: actions/setup-ruby@v1
       #   with:
