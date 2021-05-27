@@ -19,57 +19,6 @@
 //! The purpose of this crate is enable tracing the EVM opcode execution and will be used by
 //! both Dapp developers - to get a granular view on their transactions - and indexers to access
 //! the EVM callstack (internal transactions).
-//!
-//! This crate provide a Hook with 2 modes :
-//!
-//! - Raw : allows capturing the intermediate machine
-//!   state between opcode executions (stepping), resulting in either a granular per opcode
-//!   response:
-//!   ```json
-//!   {
-//!     "pc": 230,
-//!     "op": "SSTORE",
-//!     "gas": 62841,
-//!     "gasCost": 20000,
-//!     "depth": 1,
-//!     "stack": [
-//!       "00000000000000000000000000000000000000000000000000000000398f7223",
-//!     ],
-//!     "memory": [
-//!       "0000000000000000000000000000000000000000000000000000000000000000",
-//!     ],
-//!     "storage": {"0x":"0x"}
-//!   }
-//!   ```
-//! - Call list : overview of the internal transactions in a context type :
-//!   ```json
-//!   [
-//!    {
-//!      "type": "call",
-//!      "callType": "call",
-//!      "from": "0xfe2882ac0a337a976aa73023c2a2a917f57ba2ed",
-//!      "to": "0x3ca17a1c4995b95c600275e52da93d2e64dd591f",
-//!      "input": "0x",
-//!      "output": "0x",
-//!      "traceAddress": [],
-//!      "value": "0x0",
-//!      "gas": "0xf9be",
-//!      "gasUsed": "0xf9be"
-//!    },
-//!    {
-//!      "type": "call",
-//!      "callType": "call",
-//!      "from": "0x3ca17a1c4995b95c600275e52da93d2e64dd591f",
-//!      "to": "0x1416aa2a27db08ce3a81a01cdfc981417d28a6e6",
-//!      "input": "0xfd63983b0000000000000000000000000000000000000000000000000000000000000006",
-//!      "output": "0x000000000000000000000000000000000000000000000000000000000000000d",
-//!      "traceAddress": [0],
-//!      "value": "0x0",
-//!      "gas": "0x9b9b",
-//!      "gasUsed": "0x4f6d"
-//!    }
-//!   ]
-//!   ```
 
 #![cfg_attr(not(feature = "std"), no_std)]
 

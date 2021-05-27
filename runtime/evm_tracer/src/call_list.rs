@@ -23,6 +23,39 @@ use moonbeam_rpc_primitives_debug::{
 };
 use sp_std::collections::btree_map::BTreeMap;
 
+/// Listen to EVM events to provide a overview of the internal transactions.
+/// It can be used to implement `trace_filter`.
+///
+/// # Output example
+///
+/// ```json
+///   [
+///    {
+///      "type": "call",
+///      "callType": "call",
+///      "from": "0xfe2882ac0a337a976aa73023c2a2a917f57ba2ed",
+///      "to": "0x3ca17a1c4995b95c600275e52da93d2e64dd591f",
+///      "input": "0x",
+///      "output": "0x",
+///      "traceAddress": [],
+///      "value": "0x0",
+///      "gas": "0xf9be",
+///      "gasUsed": "0xf9be"
+///    },
+///    {
+///      "type": "call",
+///      "callType": "call",
+///      "from": "0x3ca17a1c4995b95c600275e52da93d2e64dd591f",
+///      "to": "0x1416aa2a27db08ce3a81a01cdfc981417d28a6e6",
+///      "input": "0xfd63983b0000000000000000000000000000000000000000000000000000000000000006",
+///      "output": "0x000000000000000000000000000000000000000000000000000000000000000d",
+///      "traceAddress": [0],
+///      "value": "0x0",
+///      "gas": "0x9b9b",
+///      "gasUsed": "0x4f6d"
+///    }
+///   ]
+///   ```
 #[derive(Debug)]
 pub struct CallListTracer {
 	// Transaction cost that must be added to the first context cost.
@@ -77,6 +110,10 @@ impl CallListTracer {
 		}
 	}
 
+	/// Setup event listeners and execute provided closure.
+	///
+	/// Consume the tracer and return it alongside the return value of
+	/// the closure.
 	pub fn trace<R, F: FnOnce() -> R>(self, f: F) -> (Self, R) {
 		let wrapped = Rc::new(RefCell::new(self));
 

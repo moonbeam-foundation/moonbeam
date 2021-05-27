@@ -21,6 +21,27 @@ use evm::{Capture, ExitReason};
 use moonbeam_rpc_primitives_debug::single::{RawStepLog, TransactionTrace};
 use sp_std::{collections::btree_map::BTreeMap, vec, vec::Vec};
 
+/// Listen to EVM events to provide the intermediate machine state between opcode executions
+/// (stepping), resulting in a granular per opcode output.
+///
+/// # Output example
+///
+/// ```json
+/// {
+///   "pc": 230,
+///   "op": "SSTORE",
+///   "gas": 62841,
+///   "gasCost": 20000,
+///   "depth": 1,
+///   "stack": [
+///     "00000000000000000000000000000000000000000000000000000000398f7223",
+///   ],
+///   "memory": [
+///     "0000000000000000000000000000000000000000000000000000000000000000",
+///   ],
+///   "storage": {"0x":"0x"}
+/// }
+/// ```
 #[derive(Debug)]
 pub struct RawTracer {
 	disable_storage: bool,
@@ -77,6 +98,10 @@ impl RawTracer {
 		}
 	}
 
+	/// Setup event listeners and execute provided closure.
+	///
+	/// Consume the tracer and return it alongside the return value of
+	/// the closure.
 	pub fn trace<R, F: FnOnce() -> R>(self, f: F) -> (Self, R) {
 		let wrapped = Rc::new(RefCell::new(self));
 
