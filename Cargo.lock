@@ -4713,7 +4713,7 @@ dependencies = [
  "hex-literal",
  "log",
  "moonbeam-core-primitives",
- "moonbeam-extensions-evm",
+ "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "nimbus-primitives",
@@ -4808,12 +4808,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "moonbeam-extensions-evm"
+name = "moonbeam-evm-tracer"
 version = "0.1.0"
 dependencies = [
  "ethereum-types",
  "evm",
- "evm-core",
+ "evm-gasometer",
+ "evm-runtime",
  "fp-evm",
  "moonbeam-rpc-primitives-debug",
  "pallet-evm",
@@ -4993,7 +4994,7 @@ dependencies = [
  "hex-literal",
  "log",
  "moonbeam-core-primitives",
- "moonbeam-extensions-evm",
+ "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "nimbus-primitives",
@@ -5178,7 +5179,7 @@ dependencies = [
  "hex-literal",
  "log",
  "moonbeam-core-primitives",
- "moonbeam-extensions-evm",
+ "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "nimbus-primitives",
@@ -5242,7 +5243,7 @@ dependencies = [
  "hex-literal",
  "log",
  "moonbeam-core-primitives",
- "moonbeam-extensions-evm",
+ "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "nimbus-primitives",
