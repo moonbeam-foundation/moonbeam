@@ -18,7 +18,7 @@
 
 mod staking;
 use codec::Decode;
-use evm::{Context, ExitError, ExitSucceed};
+use evm::{Context, ExitError, ExitSucceed, executor::PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::{Precompile, PrecompileSet};
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
@@ -82,7 +82,7 @@ where
 		input: &[u8],
 		target_gas: Option<u64>,
 		context: &Context,
-	) -> Option<Result<(ExitSucceed, Vec<u8>, u64), ExitError>> {
+	) -> Option<Result<PrecompileOutput, ExitError>> {
 		match address {
 			// Ethereum precompiles :
 			a if a == hash(1) => Some(ECRecover::execute(input, target_gas, context)),

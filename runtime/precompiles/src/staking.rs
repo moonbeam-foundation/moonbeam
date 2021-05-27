@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Precompile to call parachain-staking runtime methods via the EVM
-use evm::{Context, ExitError, ExitSucceed};
+use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
@@ -54,7 +54,7 @@ where
 		input: &[u8], //Reminder this is big-endian
 		target_gas: Option<u64>,
 		context: &Context,
-	) -> Result<(ExitSucceed, Vec<u8>, u64), ExitError> {
+	) -> Result<PrecompileOutput, ExitError> {
 		log::trace!(target: "staking-precompile", "In parachain staking wrapper");
 
 		// Basic sanity checking for length
@@ -131,7 +131,12 @@ where
 				let gas_used = Runtime::GasWeightMapping::weight_to_gas(
 					post_info.actual_weight.unwrap_or(info.weight),
 				);
-				Ok((ExitSucceed::Stopped, Default::default(), gas_used))
+				Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Stopped,
+					cost: gas_used,
+					output: Default::default(),
+					logs: Default::default(),
+				})
 			}
 			Err(e) => {
 				log::trace!(
@@ -205,7 +210,7 @@ where
 {
 	// The accessors are first. They directly return their result.
 
-	fn is_nominator(input: &[u8]) -> Result<(ExitSucceed, Vec<u8>, u64), ExitError> {
+	fn is_nominator(input: &[u8]) -> Result<PrecompileOutput, ExitError> {
 		// parse the address
 		let nominator = H160::from_slice(&input[12..32]);
 
@@ -232,10 +237,15 @@ where
 		// TODO find gas cost of single storage read
 		let gas_consumed = 0;
 
-		return Ok((ExitSucceed::Returned, result_bytes.to_vec(), gas_consumed));
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gas_consumed,
+			output: result_bytes.to_vec(),
+			logs: Default::default(),
+		})
 	}
 
-	fn is_candidate(input: &[u8]) -> Result<(ExitSucceed, Vec<u8>, u64), ExitError> {
+	fn is_candidate(input: &[u8]) -> Result<PrecompileOutput, ExitError> {
 		// parse the address
 		let candidate = H160::from_slice(&input[12..32]);
 
@@ -262,10 +272,15 @@ where
 		// TODO find gas cost of single storage read
 		let gas_consumed = 0;
 
-		return Ok((ExitSucceed::Returned, result_bytes.to_vec(), gas_consumed));
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gas_consumed,
+			output: result_bytes.to_vec(),
+			logs: Default::default(),
+		})
 	}
 
-	fn min_nomination() -> Result<(ExitSucceed, Vec<u8>, u64), ExitError> {
+	fn min_nomination() -> Result<PrecompileOutput, ExitError> {
 		// fetch data from pallet
 		let raw_min_nomination: u128 = <
 			<Runtime as parachain_staking::Config>::MinNomination
@@ -283,7 +298,12 @@ where
 		let mut buffer = [0u8; 32];
 		min_nomination.to_big_endian(&mut buffer);
 
-		return Ok((ExitSucceed::Returned, buffer.to_vec(), gas_consumed));
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gas_consumed,
+			output: buffer.to_vec(),
+			logs: Default::default(),
+		})
 	}
 
 	// The dispatchable wrappers are next. They return a substrate inner Call ready for dispatch.

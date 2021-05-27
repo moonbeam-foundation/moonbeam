@@ -49,11 +49,11 @@ pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", 
 
 frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.2" }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.2" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-v0.8" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "jeremy-evm-0.27" }
 pallet-utility = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.2" }
 
-pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "moonbeam-v0.8" }
-fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "moonbeam-v0.8" }
+pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "jeremy-evm-0.27" }
+fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "jeremy-evm-0.27" }
 
 pallet-democracy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.2" }
 pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.2" }
@@ -80,7 +80,7 @@ frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", d
 [dev-dependencies]
 cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus" }
 cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus" }
-evm = { version = "0.26.0", default-features = false, features = ["with-codec"] }
+evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }
 
 [build-dependencies]
 substrate-wasm-builder = { version = "4.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.2" }

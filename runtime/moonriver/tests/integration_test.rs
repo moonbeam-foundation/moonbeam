@@ -19,7 +19,7 @@
 #![cfg(test)]
 
 use cumulus_primitives_parachain_inherent::ParachainInherentData;
-use evm::{Context, ExitSucceed};
+use evm::{executor::PrecompileOutput, Context, ExitSucceed};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
@@ -1145,7 +1145,12 @@ fn is_nominator_via_precompile() {
 			// Expected result is an EVM boolean true which is 256 bits long.
 			let mut expected_bytes = Vec::from([0u8; 32]);
 			expected_bytes[31] = 1;
-			let expected_true_result = Some(Ok((ExitSucceed::Returned, expected_bytes, 0)));
+			let expected_true_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 0,
+				logs: Default::default(),
+			}));
 
 			// Assert precompile reports Bob is a nominator
 			assert_eq!(
@@ -1170,7 +1175,12 @@ fn is_nominator_via_precompile() {
 
 			// Expected result is an EVM boolean false which is 256 bits long.
 			expected_bytes = Vec::from([0u8; 32]);
-			let expected_false_result = Some(Ok((ExitSucceed::Returned, expected_bytes, 0)));
+			let expected_false_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 0,
+				logs: Default::default(),
+			}));
 
 			// Assert precompile also reports Charlie as not a nominator
 			assert_eq!(
@@ -1210,7 +1220,12 @@ fn is_candidate_via_precompile() {
 			// Expected result is an EVM boolean true which is 256 bits long.
 			let mut expected_bytes = Vec::from([0u8; 32]);
 			expected_bytes[31] = 1;
-			let expected_true_result = Some(Ok((ExitSucceed::Returned, expected_bytes, 0)));
+			let expected_true_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 0,
+				logs: Default::default(),
+			}));
 
 			// Assert precompile reports Alice is a collator candidate
 			assert_eq!(
@@ -1235,7 +1250,12 @@ fn is_candidate_via_precompile() {
 
 			// Expected result is an EVM boolean false which is 256 bits long.
 			expected_bytes = Vec::from([0u8; 32]);
-			let expected_false_result = Some(Ok((ExitSucceed::Returned, expected_bytes, 0)));
+			let expected_false_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 0,
+				logs: Default::default(),
+			}));
 
 			// Assert precompile also reports Bob as not a collator candidate
 			assert_eq!(
@@ -1267,7 +1287,12 @@ fn min_nomination_via_precompile() {
 		let expected_min: U256 = min_nomination.into();
 		let mut buffer = [0u8; 32];
 		expected_min.to_big_endian(&mut buffer);
-		let expected_result = Some(Ok((ExitSucceed::Returned, buffer.to_vec(), 0)));
+		let expected_result = Some(Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: buffer.to_vec(),
+			cost: 0,
+			logs: Default::default(),
+		}));
 
 		assert_eq!(
 			MoonbeamPrecompiles::<Runtime>::execute(
