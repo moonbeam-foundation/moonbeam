@@ -44,6 +44,10 @@ pub mod pallet {
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
 
+	type BalanceOf<T> = <<T as Config>::DepositCurrency as Currency<
+		<T as frame_system::Config>::AccountId,
+	>>::Balance;
+
 	/// Configuration trait of this pallet. We tightly couple to Parachain Staking in order to
 	/// ensure that only staked accounts can create registrations in the first place. This could be
 	/// generalized.
@@ -56,7 +60,7 @@ pub mod pallet {
 		/// Currency in which the security deposit will be taken.
 		type DepositCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 		/// The amount that should be taken as a security deposit when registering an AuthorId.
-		type DepositAmount: Get<<Self::DepositCurrency as Currency<Self::AccountId>>::Balance>;
+		type DepositAmount: Get<BalanceOf<Self>>;
 
 		/// A rough preliminary check to determine whether an account can make a new registration.
 		/// If you don't wish to do any such check, just return `true`.
@@ -64,7 +68,38 @@ pub mod pallet {
 	}
 
 	#[pallet::hooks]
-	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
+	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+		fn on_runtime_upgrade() -> Weight {
+			//TODO should we consier versioning here?
+			// For example make a storage item to track the pallet version and only upgrade if necessary?
+
+			// The previous version of the runtime had a security deposit of 100 wei.
+			// The new runtime uses 100 Units (with 18 decimals). To migrate, we iterate each
+			// registartion and reserve the additional required deposit. If an account does not have
+			// enough to cover the additional deposit, their registration is removed and their
+			// original deposit is refunded.
+			let old_deposit: BalanceOf<T> = 100u32.into();
+			let additional_deposit = T::DepositAmount::get() - old_deposit;
+
+			// Iterate the entire storage mapping
+			Mapping::<T>::translate(|_, account_id| {
+				match T::DepositCurrency::reserve(&account_id, additional_deposit) {
+					// Return the same value to keep it in the map
+					Ok(()) => Some(account_id),
+					Err(_) => {
+						// Refund the original deposit.
+						T::DepositCurrency::unreserve(&account_id, old_deposit);
+
+						// Return None to remove the registration from the map
+						None
+					}
+				}
+			});
+
+			//TODO No idea what weight I should be returning.
+			10_000u32.into()
+		}
+	}
 
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]
