@@ -82,7 +82,7 @@ use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 ///
 /// We mock a relay chain block number as follows:
 /// relay_block_number = offset + relay_blocks_per_para_block * current_para_block
-/// To simulate a parachai nthat starts in relay block 1000 and gets a block in every other relay
+/// To simulate a parachaint hat starts in relay block 1000 and gets a block in every other relay
 /// block, use 1000 and 2
 pub struct MockValidationDataInherentDataProvider {
 	/// The current block number of the local block chain (the parachain)
