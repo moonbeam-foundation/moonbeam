@@ -852,6 +852,8 @@ pub fn new_dev(
 				Therefore, a `LongestChainRule` is present. qed.",
 		);
 
+		let client_set_aside_for_cidp = client.clone();
+
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
 			run_manual_seal(ManualSealParams {
@@ -863,8 +865,7 @@ pub fn new_dev(
 				select_chain,
 				consensus_data_provider: None,
 				create_inherent_data_providers: move |block: H256, ()| {
-					let current_para_block = client
-						.clone()
+					let current_para_block = client_set_aside_for_cidp
 						.number(block)
 						.expect("Header lookup should succeed")
 						.expect("Header passed in as parent should be present in backend.");
