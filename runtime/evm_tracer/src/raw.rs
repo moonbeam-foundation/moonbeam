@@ -84,6 +84,9 @@ impl RawTracer {
 			let mut gasometer = ListenerProxy(Rc::clone(&wrapped));
 			let mut runtime = ListenerProxy(Rc::clone(&wrapped));
 
+			// Each line wraps the previous `f` into a `using` call.
+			// Listening to new events results in adding one new line.
+			// Order is irrelevant when registering listeners.
 			let f = || runtime_using(&mut runtime, f);
 			let f = || gasometer_using(&mut gasometer, f);
 			f()
