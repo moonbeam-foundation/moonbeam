@@ -2020,10 +2020,11 @@ checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
 
 [[package]]
 name = "evm"
-version = "0.26.0"
+version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1202e8dfa45bea73ee003c4be2f3549d60cb2e2ac5b0c1db563bd4653213efde"
+checksum = "f833b0e642bec8286b80f00ad6cc6a95e50210c77949b9cb484637e6a05ed596"
 dependencies = [
+ "environmental",
  "ethereum",
  "evm-core",
  "evm-gasometer",
@@ -2038,9 +2039,9 @@ dependencies = [
 
 [[package]]
 name = "evm-core"
-version = "0.26.0"
+version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9aeed00c943f6347108393c98907f432d8f2b82683725dfefbd734d335faace4"
+checksum = "0af034c92990bfa8715aa9b00850ca867112b81e98eb0ac32d0b6bfae04cf7c0"
 dependencies = [
  "funty",
  "parity-scale-codec",
@@ -2050,10 +2051,11 @@ dependencies = [
 
 [[package]]
 name = "evm-gasometer"
-version = "0.26.0"
+version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "463412356790c5e34e8a13cd23ba06284d9afa999e82e8c64497aed2ee625375"
+checksum = "4118f952ce320c11e1b7b8a575e477d70bc86a3b92ea23e427174d979cf1da26"
 dependencies = [
+ "environmental",
  "evm-core",
  "evm-runtime",
  "primitive-types",
@@ -2061,10 +2063,11 @@ dependencies = [
 
 [[package]]
 name = "evm-runtime"
-version = "0.26.0"
+version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c08f510e5535cee2352adb9b93ff24dc80f8ca1bad445a9aa1292ce144b45a1"
+checksum = "952296b416c3b334b26933ad1f9cfa9203e251691586fb317e411872886ca31b"
 dependencies = [
+ "environmental",
  "evm-core",
  "primitive-types",
  "sha3 0.8.2",
@@ -2135,7 +2138,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "1.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "async-trait",
  "derive_more",
@@ -2160,7 +2163,7 @@ dependencies = [
 [[package]]
 name = "fc-db"
 version = "1.0.0"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "kvdb",
  "kvdb-rocksdb",
@@ -2174,7 +2177,7 @@ dependencies = [
 [[package]]
 name = "fc-mapping-sync"
 version = "1.1.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "fc-consensus",
  "fc-db",
@@ -2192,7 +2195,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2233,7 +2236,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "1.1.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "ethereum-types",
  "jsonrpc-core 15.1.0",
@@ -2337,7 +2340,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "1.0.0"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "ethereum",
  "parity-scale-codec",
@@ -2351,7 +2354,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "1.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "evm",
  "impl-trait-for-tuples 0.1.3",
@@ -2364,7 +2367,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "1.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2380,7 +2383,7 @@ dependencies = [
 [[package]]
 name = "fp-storage"
 version = "1.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4710,7 +4713,7 @@ dependencies = [
  "hex-literal",
  "log",
  "moonbeam-core-primitives",
- "moonbeam-extensions-evm",
+ "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "nimbus-primitives",
@@ -4805,12 +4808,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "moonbeam-extensions-evm"
+name = "moonbeam-evm-tracer"
 version = "0.1.0"
 dependencies = [
  "ethereum-types",
  "evm",
- "evm-core",
+ "evm-gasometer",
+ "evm-runtime",
  "fp-evm",
  "moonbeam-rpc-primitives-debug",
  "pallet-evm",
@@ -4990,7 +4994,7 @@ dependencies = [
  "hex-literal",
  "log",
  "moonbeam-core-primitives",
- "moonbeam-extensions-evm",
+ "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "nimbus-primitives",
@@ -5175,7 +5179,7 @@ dependencies = [
  "hex-literal",
  "log",
  "moonbeam-core-primitives",
- "moonbeam-extensions-evm",
+ "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "nimbus-primitives",
@@ -5239,7 +5243,7 @@ dependencies = [
  "hex-literal",
  "log",
  "moonbeam-core-primitives",
- "moonbeam-extensions-evm",
+ "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "nimbus-primitives",
@@ -5926,7 +5930,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "1.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -5964,7 +5968,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "3.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "evm",
  "evm-gasometer",
@@ -5989,7 +5993,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-bn128"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "evm",
  "fp-evm",
@@ -6001,7 +6005,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "1.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "evm",
  "fp-evm",
@@ -6015,7 +6019,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "1.1.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "evm",
  "fp-evm",
@@ -6027,7 +6031,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "1.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "evm",
  "fp-evm",
@@ -6039,7 +6043,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "1.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "evm",
  "fp-evm",

@@ -64,7 +64,7 @@ pallet-treasury = { git = "https://github.com/paritytech/substrate", default-fea
 
 pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false, branch = "notlesh-update-deps-polkadot-v0.9.2" }
 
-moonbeam-extensions-evm = { path = "../extensions/evm", default-features = false }
+moonbeam-evm-tracer = { path = "../evm_tracer", default-features = false }
 moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug", default-features = false }
 moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool", default-features = false }
 
@@ -80,7 +80,7 @@ frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", d
 [dev-dependencies]
 cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus" }
 cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus" }
-evm = { version = "0.26.0", default-features = false, features = ["with-codec"] }
+evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }
 
 [build-dependencies]
 substrate-wasm-builder = { version = "4.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.2" }
@@ -123,7 +123,7 @@ std = [
 	"pallet-scheduler/std",
 	"pallet-collective/std",
 	"pallet-author-inherent/std",
-	"moonbeam-extensions-evm/std",
+	"moonbeam-evm-tracer/std",
 	"parachain-info/std",
 	"cumulus-pallet-parachain-system/std",
 	"cumulus-primitives-core/std",
