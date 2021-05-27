@@ -138,8 +138,6 @@ pub mod pallet {
 
 			ensure!(account_id == stored_account, Error::<T>::NotYourAssociation);
 
-			ensure!(T::can_register(&account_id), Error::<T>::CannotSetAuthor);
-
 			Mapping::<T>::insert(&new_author_id, &account_id);
 			Mapping::<T>::remove(&old_author_id);
 
