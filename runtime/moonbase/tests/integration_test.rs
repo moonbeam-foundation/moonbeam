@@ -41,6 +41,7 @@ use sp_runtime::{DispatchError, Perbill};
 
 use fp_rpc::runtime_decl_for_EthereumRuntimeRPCApi::EthereumRuntimeRPCApi;
 use fp_rpc::ConvertTransaction;
+use moonbeam_rpc_primitives_debug::runtime_decl_for_DebugRuntimeApi::DebugRuntimeApi;
 use moonbeam_rpc_primitives_txpool::runtime_decl_for_TxPoolRuntimeApi::TxPoolRuntimeApi;
 use std::collections::BTreeMap;
 use std::str::FromStr;
@@ -264,7 +265,7 @@ fn set_parachain_inherent_data() {
 	.dispatch(inherent_origin()));
 }
 
-fn uxt() -> UncheckedExtrinsic {
+fn ethereum_transaction() -> pallet_ethereum::Transaction {
 	// {from: 0x6be02d1d3665660d22ff9624b7be0551ee1ac91b, .., gasPrice: "0x01"}
 	let bytes = hex::decode(
 		"f86880843b9aca0083b71b0094111111111111111111111111111111111111111182020080820a26a0\
@@ -274,8 +275,12 @@ fn uxt() -> UncheckedExtrinsic {
 	.expect("Transaction bytes.");
 	let transaction = rlp::decode::<pallet_ethereum::Transaction>(&bytes[..]);
 	assert!(transaction.is_ok());
+	transaction.unwrap()
+}
+
+fn uxt() -> UncheckedExtrinsic {
 	let converter = TransactionConverter;
-	converter.convert_transaction(transaction.unwrap().clone())
+	converter.convert_transaction(ethereum_transaction())
 }
 
 #[test]
@@ -1599,18 +1604,76 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 
 #[test]
 fn txpool_runtime_api_extrinsic_filter() {
+	ExtBuilder::default().build().execute_with(|| {
+		let non_eth_uxt = UncheckedExtrinsic::new_unsigned(
+			pallet_balances::Call::<Runtime>::transfer(AccountId::from(BOB), 1 * UNITS).into(),
+		);
+		let eth_uxt = uxt();
+		let txpool = Runtime::extrinsic_filter(
+			vec![eth_uxt.clone(), non_eth_uxt.clone()],
+			vec![uxt(), non_eth_uxt],
+		);
+		assert_eq!(txpool.ready.len(), 1);
+		assert_eq!(txpool.future.len(), 1);
+	});
+}
+
+#[test]
+fn debug_runtime_api_trace_transaction() {
+	let alith = <Runtime as pallet_evm::Config>::AddressMapping::into_account_id(
+		H160::from_str("6be02d1d3665660d22ff9624b7be0551ee1ac91b")
+			.expect("internal H160 is valid; qed"),
+	);
 	ExtBuilder::default()
+		.with_balances(vec![
+			(alith, 2_000 * UNITS),
+			(AccountId::from(ALICE), 2_000 * UNITS),
+			(AccountId::from(BOB), 1_000 * UNITS),
+		])
+		.build()
+		.execute_with(|| {
+			let non_eth_uxt = UncheckedExtrinsic::new_unsigned(
+				pallet_balances::Call::<Runtime>::transfer(AccountId::from(BOB), 1 * UNITS).into(),
+			);
+			let transaction = ethereum_transaction();
+			let eth_uxt = uxt();
+			assert!(Runtime::trace_transaction(
+				vec![non_eth_uxt.clone(), eth_uxt, non_eth_uxt.clone()],
+				&transaction,
+				moonbeam_rpc_primitives_debug::single::TraceType::Raw {
+					disable_storage: true,
+					disable_memory: true,
+					disable_stack: true,
+				}
+			)
+			.is_ok());
+		});
+}
+
+#[test]
+fn debug_runtime_api_trace_block() {
+	let alith = <Runtime as pallet_evm::Config>::AddressMapping::into_account_id(
+		H160::from_str("6be02d1d3665660d22ff9624b7be0551ee1ac91b")
+			.expect("internal H160 is valid; qed"),
+	);
+	ExtBuilder::default()
+		.with_balances(vec![
+			(alith, 2_000 * UNITS),
+			(AccountId::from(ALICE), 2_000 * UNITS),
+			(AccountId::from(BOB), 1_000 * UNITS),
+		])
 		.build()
 		.execute_with(|| {
 			let non_eth_uxt = UncheckedExtrinsic::new_unsigned(
 				pallet_balances::Call::<Runtime>::transfer(AccountId::from(BOB), 1 * UNITS).into(),
 			);
 			let eth_uxt = uxt();
-			let txpool = Runtime::extrinsic_filter(
-				vec![eth_uxt.clone(), non_eth_uxt.clone()],
-				vec![uxt(), non_eth_uxt],
-			);
-			assert_eq!(txpool.ready.len(), 1);
-			assert_eq!(txpool.future.len(), 1);
+			assert!(Runtime::trace_block(vec![
+				non_eth_uxt.clone(),
+				eth_uxt.clone(),
+				non_eth_uxt,
+				eth_uxt
+			],)
+			.is_ok());
 		});
 }
