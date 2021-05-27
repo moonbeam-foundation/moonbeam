@@ -349,9 +349,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          path: moonbeam
       # - name: Set up Ruby 2.7
       #   uses: actions/setup-ruby@v1
       #   with:
@@ -363,27 +360,6 @@ jobs:
       #   run: |
       #     gem install changelogerator git toml
       #     ruby $GITHUB_WORKSPACE/moonbeam/scripts/github/generate_release_text.rb | tee release_text.md
-      - name: Create draft release
-        id: create-release
-        uses: ncipollo/release-action@v1
-        with:
-          tag: ${{ github.ref }}
-          name: Moonbase ${{ github.ref }}
-          body: "TBD"
-          draft: true
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-  publish-runtimes:
-    runs-on: ubuntu-latest
-    needs: ["publish-draft-release"]
-    # We want to store the binaries also when it is not a version release. This is used
-    # in case such as providing binaries when creating a new tutorial version.
-    if: |
-      github.event_name == 'push' &&
-      startsWith(github.ref, 'refs/tags/')
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
           name: moonbeam
@@ -395,50 +371,56 @@ jobs:
       - name: Get runtime version
         id: get-runtime-ver
         run: |
-          runtime_ver="$(ruby -e 'require "./scripts/github/lib.rb"; puts get_runtime("lib.rs")')"
-          echo "::set-output name=runtime_ver::$runtime_ver"
+          runtime_moonbase_ver="$(ruby -e 'require "./scripts/github/lib.rb"; puts get_runtime("moonbase")')"
+          echo "::set-output name=runtime_moonbase_ver::$runtime_moonbase_ver"
+          runtime_moonshadow_ver="$(ruby -e 'require "./scripts/github/lib.rb"; puts get_runtime("moonshadow")')"
+          echo "::set-output name=runtime_moonshadow_ver::$runtime_moonshadow_ver"
+          runtime_moonriver_ver="$(ruby -e 'require "./scripts/github/lib.rb"; puts get_runtime("moonriver")')"
+          echo "::set-output name=runtime_moonriver_ver::$runtime_moonriver_ver"
+          runtime_moonbeam_ver="$(ruby -e 'require "./scripts/github/lib.rb"; puts get_runtime("moonbeam")')"
+          echo "::set-output name=runtime_moonbeam_ver::$runtime_moonbeam_ver"
       - name: Upload moonbase wasm
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: svenstaro/upload-release-action@v2
         with:
-          upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
-          asset_path: build/runtimes/moonbase-runtime.wasm
-          asset_name: moonbase-v${{ steps.get-runtime-ver.outputs.runtime_ver }}.wasm
-          asset_content_type: application/wasm
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          file: build/runtimes/moonbase-runtime.wasm
+          release_name: Moonbase ${{ github.ref }}
+          overwrite: true
+          asset_name: moonbase-v${{ steps.get-runtime-ver.outputs.runtime_moonbase_ver }}.wasm
       - name: Upload moonshadow wasm
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: svenstaro/upload-release-action@v2
         with:
-          upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
-          asset_path: build/runtimes/moonshadow-runtime.wasm
-          asset_name: moonshadow-v${{ steps.get-runtime-ver.outputs.runtime_ver }}.wasm
-          asset_content_type: application/wasm
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          file: build/runtimes/moonshadow-runtime.wasm
+          release_name: Moonbase ${{ github.ref }}
+          overwrite: true
+          asset_name: moonshadow-v${{ steps.get-runtime-ver.outputs.runtime_moonshadow_ver }}.wasm
       - name: Upload moonriver wasm
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: svenstaro/upload-release-action@v2
         with:
-          upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
-          asset_path: build/runtimes/moonriver-runtime.wasm
-          asset_name: moonriver-v${{ steps.get-runtime-ver.outputs.runtime_ver }}.wasm
-          asset_content_type: application/wasm
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          file: build/runtimes/moonriver-runtime.wasm
+          release_name: moonriver ${{ github.ref }}
+          overwrite: true
+          asset_name: moonriver-v${{ steps.get-runtime-ver.outputs.runtime_moonriver_ver }}.wasm
       - name: Upload moonbeam wasm
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: svenstaro/upload-release-action@v2
         with:
-          upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
-          asset_path: build/runtimes/moonbeam-runtime.wasm
-          asset_name: moonbeam-v${{ steps.get-runtime-ver.outputs.runtime_ver }}.wasm
-          asset_content_type: application/wasm
-      - name: Upload binary
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          file: build/runtimes/moonbeam-runtime.wasm
+          release_name: Moonbase ${{ github.ref }}
+          overwrite: true
+          asset_name: moonbeam-v${{ steps.get-runtime-ver.outputs.runtime_moonbeam_ver }}.wasm
+      - name: Upload moonbeam binary
+        uses: svenstaro/upload-release-action@v2
         with:
-          upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
-          asset_path: build/moonbeam
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          file: build/moonbeam
+          release_name: Moonbase ${{ github.ref }}
+          overwrite: true
           asset_name: moonbeam
-          asset_content_type: application/octet-stream
