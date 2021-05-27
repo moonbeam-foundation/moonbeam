@@ -111,7 +111,7 @@
         "fundedAmount": 3000000000000000000000000
       },
       "palletAuthorMapping": {
-        "authorIds": [
+        "mappings": [
           [
             "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
             "0x5e583614f17d3ebe3bd72653f28e2c01d247419a"
