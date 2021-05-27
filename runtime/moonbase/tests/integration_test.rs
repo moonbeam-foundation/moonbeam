@@ -1588,7 +1588,7 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 				converter.convert_transaction(transaction.unwrap().clone());
 			let _result = Executive::apply_extrinsic(uxt);
 			run_to_block(2);
-			let receipts = Runtime::current_receipts().expect("Transaction statuses result.");
+			let receipts = Runtime::current_receipts().expect("Receipts result.");
 			assert_eq!(receipts.len(), 1);
 		});
 }
