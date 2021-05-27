@@ -178,10 +178,13 @@ jobs:
         with:
           name: moonbeam
           path: build
+      - name: Make moonbeam executable
       - name: Generate specs
         run: |
-          chmod uog+x build/moonbeam
           MOONBEAM_BINARY=build/moonbeam scripts/generate-parachain-specs.sh
+      - name: Generate runtimes
+        run: |
+          MOONBEAM_BINARY=build/moonbeam scripts/generate-runtimes.sh
       - name: Upload parachain specs
         uses: actions/upload-artifact@v2
         with:
@@ -361,13 +364,12 @@ jobs:
       - name: Create draft release
         id: create-release
         uses: ncipollo/release-action@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag: ${{ github.ref }}
           name: Moonbase ${{ github.ref }}
           body: "TBD"
           draft: true
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   publish-runtimes:
     runs-on: ubuntu-latest
@@ -393,14 +395,41 @@ jobs:
         run: |
           runtime_ver="$(ruby -e 'require "./scripts/github/lib.rb"; puts get_runtime("lib.rs")')"
           echo "::set-output name=runtime_ver::$runtime_ver"
-      - name: Upload wasm
+      - name: Upload moonbase wasm
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
-          asset_path: build/alphanet/parachain-runtime.wasm
-          asset_name: runtime-v${{ steps.get-runtime-ver.outputs.runtime_ver }}.wasm
+          asset_path: build/runtimes/moonbase-runtime.wasm
+          asset_name: moonbase-v${{ steps.get-runtime-ver.outputs.runtime_ver }}.wasm
+          asset_content_type: application/wasm
+      - name: Upload moonshadow wasm
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
+          asset_path: build/runtimes/moonshadow-runtime.wasm
+          asset_name: moonshadow-v${{ steps.get-runtime-ver.outputs.runtime_ver }}.wasm
+          asset_content_type: application/wasm
+      - name: Upload moonriver wasm
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
+          asset_path: build/runtimes/moonriver-runtime.wasm
+          asset_name: moonriver-v${{ steps.get-runtime-ver.outputs.runtime_ver }}.wasm
+          asset_content_type: application/wasm
+      - name: Upload moonbeam wasm
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
+          asset_path: build/runtimes/moonbeam-runtime.wasm
+          asset_name: moonbeam-v${{ steps.get-runtime-ver.outputs.runtime_ver }}.wasm
           asset_content_type: application/wasm
       - name: Upload binary
         uses: actions/upload-release-asset@v1
