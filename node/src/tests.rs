@@ -100,7 +100,7 @@ fn purge_chain_purges_relay_and_para() {
 		// Make sure the parachain data directory exists
 		assert!(base_path.path().join("chains/moonbase_dev").exists());
 		// Make sure its database is deleted
-		assert!(!base_path.path().join("chains/moonbase_dev/db").exists()); // Make sure the relay data directory exists
+		assert!(!base_path.path().join("chains/moonbase_dev/db").exists());
 	}
 }
 
@@ -179,8 +179,6 @@ fn export_current_state() {
 
 		let base_path = tempfile::tempdir().unwrap();
 
-		println!("{:?}", base_path);
-
 		let mut cmd = Command::new(cargo_bin("moonbeam"))
 			.arg("-d")
 			.arg(base_path.path())
@@ -222,7 +220,6 @@ fn export_current_state() {
 			.arg("archive")
 			.output()
 			.unwrap();
-		println!("{:?}", output);
 
 		let block_1: serde_json::Value = serde_json::from_slice(output.stdout.as_slice()).unwrap();
 		assert_eq!(
