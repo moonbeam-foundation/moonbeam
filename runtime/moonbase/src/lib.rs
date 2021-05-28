@@ -70,6 +70,8 @@ use nimbus_primitives::{CanAuthor, NimbusId};
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
+mod migrations;
+
 /// UNITS, the native token, uses 18 decimals of precision.
 pub mod currency {
 	use super::Balance;
@@ -114,7 +116,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 3,
-	spec_version: 42,
+	spec_version: 43,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -765,6 +767,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPallets,
+	migrations::MoonbaseMigrationStation,
 >;
 
 impl_runtime_apis! {
