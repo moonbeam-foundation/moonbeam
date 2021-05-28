@@ -79,7 +79,21 @@ use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 ///
 /// This is useful when running a node that is not actually backed by any relay chain.
 /// For example when running a local node, or running integration tests.
-pub struct MockValidationDataInherentDataProvider;
+///
+/// We mock a relay chain block number as follows:
+/// relay_block_number = offset + relay_blocks_per_para_block * current_para_block
+/// To simulate a parachain that starts in relay block 1000 and gets a block in every other relay
+/// block, use 1000 and 2
+pub struct MockValidationDataInherentDataProvider {
+	/// The current block number of the local block chain (the parachain)
+	pub current_para_block: u32,
+	/// The relay block in which this parachain appeared to start. This will be the relay block
+	/// number in para block #P1
+	pub relay_offset: u32,
+	/// The number of relay blocks that elapses between each parablock. Probably set this to 1 or 2
+	/// to simulate optimistic or realistic relay chain behavior.
+	pub relay_blocks_per_para_block: u32,
+}
 
 #[async_trait::async_trait]
 impl InherentDataProvider for MockValidationDataInherentDataProvider {
@@ -91,11 +105,15 @@ impl InherentDataProvider for MockValidationDataInherentDataProvider {
 		let (relay_storage_root, proof) =
 			RelayStateSproofBuilder::default().into_state_root_and_proof();
 
+		// Calculate the mocked relay block based on the current para block
+		let relay_parent_number =
+			self.relay_offset + self.relay_blocks_per_para_block * self.current_para_block;
+
 		let data = ParachainInherentData {
 			validation_data: PersistedValidationData {
 				parent_head: Default::default(),
 				relay_parent_storage_root: relay_storage_root,
-				relay_parent_number: Default::default(),
+				relay_parent_number,
 				max_pov_size: Default::default(),
 			},
 			downward_messages: Default::default(),
