@@ -403,6 +403,31 @@ pub mod pallet {
 		type MinNominatorStk: Get<BalanceOf<Self>>;
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
+
+		//Philosophy about this feature:
+		// An attacker who intends to skip slots can execute their attack whether with or without a
+		// preliminary check. The utility of this check is that it prevents stakers from
+		// accidentally forgetting to set their session keys. There is cost associated with this
+		// check. At minimum we call this function (which in moonbeam's case does a storage lookup)
+		// for the target number of candidates in every round. If some don't meet the prereqs, then
+		// we call it for even more.
+		//
+		// Because the election is for the good of the chain rather than triggered by any one account
+		// the cost of this election is born by the entire network in the form of less weight
+		// available in the block.
+		//
+		// So effectively this check protects collators who are not prepared to register their
+		// session keys from missed rewards (and in the future possibly slashes), at the expense of
+		// the entire network.
+		//
+		// I believe this is undesirable given our already-aligned economic incentives. Collators
+		// who don't do their elected duties (including their duty to register their session keys)
+		// are supposed to be punished and doing so incentives them to be more careful. If they
+		// continue to fail at their duties, they will lose nominations and naturally not be elected.
+
+		/// A means of checking external requirements before a candidate can be elected.
+		/// The intended usecase is ensuring that session keys are setup correctly.
+		fn prerequisites_met(candidate: &Self::AccountId) -> bool;
 	}
 
 	#[pallet::error]
@@ -1285,8 +1310,11 @@ pub mod pallet {
 			let mut collators = candidates
 				.into_iter()
 				.rev()
-				.take(top_n)
+				// There was previously a bug here. In order to ensure that we elect the right
+				// number of collators, the filters have to come before the take
 				.filter(|x| x.amount >= T::MinCollatorStk::get())
+				.filter(|x| T::prerequisites_met(&x.owner))
+				.take(top_n)
 				.map(|x| x.owner)
 				.collect::<Vec<T::AccountId>>();
 			// snapshot exposure for round for weighting reward distribution
