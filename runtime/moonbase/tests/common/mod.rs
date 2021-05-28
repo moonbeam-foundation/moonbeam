@@ -102,6 +102,11 @@ impl Default for ExtBuilder {
 }
 
 impl ExtBuilder {
+	pub fn with_evm_accounts(mut self, accounts: BTreeMap<H160, GenesisAccount>) -> Self {
+		self.evm_accounts = accounts;
+		self
+	}
+	
 	pub fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
 		self.balances = balances;
 		self

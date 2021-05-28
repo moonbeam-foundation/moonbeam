@@ -106,6 +106,10 @@ fn ethereum_runtime_rpc_api_account_code_at() {
 fn ethereum_runtime_rpc_api_author() {
 	ExtBuilder::default()
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNITS)])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
+		)])
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * UNITS),
 			(AccountId::from(BOB), 1_000 * UNITS),
@@ -203,6 +207,10 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 	);
 	ExtBuilder::default()
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNITS)])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
+		)])
 		.with_balances(vec![
 			(alith, 2_000 * UNITS),
 			(AccountId::from(ALICE), 2_000 * UNITS),
@@ -229,6 +237,10 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 fn ethereum_runtime_rpc_api_current_block() {
 	ExtBuilder::default()
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNITS)])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
+		)])
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * UNITS),
 			(AccountId::from(BOB), 1_000 * UNITS),
@@ -256,6 +268,10 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 	);
 	ExtBuilder::default()
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNITS)])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
+		)])
 		.with_balances(vec![
 			(alith, 2_000 * UNITS),
 			(AccountId::from(ALICE), 2_000 * UNITS),
