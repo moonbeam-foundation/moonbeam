@@ -15,7 +15,11 @@ impl OnRuntimeUpgrade for MoonbaseMigrationStation {
 
 		log::info!("🗺️ Running MoonbaseMigrationStation");
 
-		let previous_version: u32 = frame_system::LastRuntimeUpgrade::<Runtime>::get().map(|rv| rv.spec_version.into()).unwrap_or(0);
+        //TODO I'd like to detect the correct version that we ar emigrating _from_ here. This code
+        // seems to always give me the same version 43 from _this_ runtime though. Shawn's comments
+        // sound like that is expected.
+		// let previous_version: u32 = frame_system::LastRuntimeUpgrade::<Runtime>::get().map(|rv| rv.spec_version.into()).unwrap_or(0);
+        let previous_version = 40;
 
 		log::info!("🗺️ Previous version: {:?}", previous_version);
 		log::info!("🗺️ Upgrade version:  {:?}", crate::VERSION.spec_version);
