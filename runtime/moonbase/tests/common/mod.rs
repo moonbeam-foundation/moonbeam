@@ -58,6 +58,8 @@ pub struct ExtBuilder {
 	nominators: Vec<(AccountId, AccountId, Balance)>,
 	// per-round inflation config
 	inflation: InflationInfo<Balance>,
+	// AuthorId -> AccoutId mappings
+	mappings: Vec<(NimbusId, AccountId)>,
 	// Crowdloan fund
 	crowdloan_fund: Balance,
 	// Chain id
@@ -91,6 +93,7 @@ impl Default for ExtBuilder {
 					max: Perbill::from_percent(5),
 				},
 			},
+			mappings: vec![],
 			crowdloan_fund: 0,
 			chain_id: CHAIN_ID,
 			evm_accounts: BTreeMap::new(),
@@ -99,11 +102,6 @@ impl Default for ExtBuilder {
 }
 
 impl ExtBuilder {
-	pub fn with_evm_accounts(mut self, accounts: BTreeMap<H160, GenesisAccount>) -> Self {
-		self.evm_accounts = accounts;
-		self
-	}
-
 	pub fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
 		self.balances = balances;
 		self
@@ -124,6 +122,12 @@ impl ExtBuilder {
 		self
 	}
 
+	pub fn with_mappings(mut self, mappings: Vec<(NimbusId, AccountId)>) -> Self {
+		self.mappings = mappings;
+		self
+	}
+
+	#[allow(dead_code)]
 	pub fn with_inflation(mut self, inflation: InflationInfo<Balance>) -> Self {
 		self.inflation = inflation;
 		self
@@ -160,11 +164,8 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		// Here we map the author id ALICE_NIMBUS to the AccountId ALICE
-		// This is not (currently) configureable because it is enough for all of our tests
-		// It could bemade configureable.
 		pallet_author_mapping::GenesisConfig::<Runtime> {
-			author_ids: vec![(NimbusId::from_slice(&ALICE_NIMBUS), AccountId::from(ALICE))],
+			mappings: self.mappings,
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();

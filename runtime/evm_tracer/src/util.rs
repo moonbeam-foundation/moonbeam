@@ -14,12 +14,38 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use evm::Opcode;
-extern crate alloc;
-use alloc::string::ToString;
-use sp_std::vec::Vec;
+use ethereum_types::H256;
+pub use evm::tracing::{using as evm_using, Event as EvmEvent, EventListener as EvmListener};
+pub use evm::Opcode;
+pub use evm_gasometer::tracing::{
+	using as gasometer_using, Event as GasometerEvent, EventListener as GasometerListener,
+};
+pub use evm_runtime::tracing::{
+	using as runtime_using, Event as RuntimeEvent, EventListener as RuntimeListener,
+};
+use moonbeam_rpc_primitives_debug::CallType;
+pub use sp_std::{cell::RefCell, fmt::Debug, rc::Rc, vec, vec::Vec};
+pub struct ListenerProxy<T>(pub Rc<RefCell<T>>);
 
-pub fn opcodes(opcode: Opcode) -> Vec<u8> {
+impl<T: GasometerListener> GasometerListener for ListenerProxy<T> {
+	fn event(&mut self, event: GasometerEvent) {
+		self.0.borrow_mut().event(event);
+	}
+}
+
+impl<T: RuntimeListener> RuntimeListener for ListenerProxy<T> {
+	fn event(&mut self, event: RuntimeEvent) {
+		self.0.borrow_mut().event(event);
+	}
+}
+
+impl<T: EvmListener> EvmListener for ListenerProxy<T> {
+	fn event(&mut self, event: EvmEvent) {
+		self.0.borrow_mut().event(event);
+	}
+}
+
+pub fn opcodes_string(opcode: Opcode) -> Vec<u8> {
 	let out = match opcode {
 		Opcode(0) => "Stop",
 		Opcode(1) => "Add",
@@ -177,5 +203,44 @@ pub fn opcodes(opcode: Opcode) -> Vec<u8> {
 		Opcode(255) => "SelfDestruct",
 		_ => unreachable!("Unreachable Opcode identifier."),
 	};
-	out.to_string().as_bytes().to_vec()
+	out.as_bytes().to_vec()
+}
+
+#[derive(Debug)]
+pub enum ContextType {
+	Call(CallType),
+	Create,
+}
+
+impl ContextType {
+	pub fn from(opcode: Opcode) -> Option<Self> {
+		match opcode.0 {
+			0xF0 | 0xF5 => Some(ContextType::Create),
+			0xF1 => Some(ContextType::Call(CallType::Call)),
+			0xF2 => Some(ContextType::Call(CallType::CallCode)),
+			0xF4 => Some(ContextType::Call(CallType::DelegateCall)),
+			0xFA => Some(ContextType::Call(CallType::StaticCall)),
+			_ => None,
+		}
+	}
+}
+
+pub fn convert_memory(memory: Vec<u8>) -> Vec<H256> {
+	let size = 32;
+	memory
+		.chunks(size)
+		.map(|c| {
+			let mut msg = [0u8; 32];
+			let chunk = c.len();
+			if chunk < size {
+				let left = size - chunk;
+				let remainder = vec![0; left];
+				msg[0..left].copy_from_slice(&remainder[..]);
+				msg[left..size].copy_from_slice(c);
+			} else {
+				msg[0..size].copy_from_slice(c)
+			}
+			H256::from_slice(&msg[..])
+		})
+		.collect()
 }

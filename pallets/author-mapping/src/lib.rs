@@ -28,6 +28,11 @@ use frame_support::pallet;
 
 pub use pallet::*;
 
+#[cfg(test)]
+mod mock;
+#[cfg(test)]
+mod tests;
+
 #[pallet]
 pub mod pallet {
 
@@ -43,7 +48,7 @@ pub mod pallet {
 	/// ensure that only staked accounts can create registrations in the first place. This could be
 	/// generalized.
 	#[pallet::config]
-	pub trait Config: frame_system::Config + parachain_staking::Config {
+	pub trait Config: frame_system::Config {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The type of authority id that will be used at the conensus layer.
@@ -52,6 +57,10 @@ pub mod pallet {
 		type DepositCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 		/// The amount that should be taken as a security deposit when registering an AuthorId.
 		type DepositAmount: Get<<Self::DepositCurrency as Currency<Self::AccountId>>::Balance>;
+
+		/// A rough preliminary check to determine whether an account can make a new registration.
+		/// If you don't wish to do any such check, just return `true`.
+		fn can_register(account: &Self::AccountId) -> bool;
 	}
 
 	#[pallet::hooks]
@@ -64,10 +73,12 @@ pub mod pallet {
 		AssociationNotFound,
 		/// The association can't be cleared because it belongs to another account.
 		NotYourAssociation,
-		/// This account cannot set an author (because it is not staked)
+		/// This account cannot set an author because it fails the preliminary check
 		CannotSetAuthor,
 		/// This account cannot set an author because it cannon afford the security deposit
 		CannotAffordSecurityDeposit,
+		/// The AuthorId in question is already associated and cannot be overwritten
+		AlreadyAssociated,
 	}
 
 	#[pallet::event]
@@ -94,15 +105,14 @@ pub mod pallet {
 		pub fn add_association(origin: OriginFor<T>, author_id: T::AuthorId) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
 
+			ensure!(T::can_register(&account_id), Error::<T>::CannotSetAuthor);
+
 			ensure!(
-				parachain_staking::Pallet::<T>::is_candidate(&account_id),
-				Error::<T>::CannotSetAuthor
+				Mapping::<T>::get(&author_id).is_none(),
+				Error::<T>::AlreadyAssociated
 			);
 
-			T::DepositCurrency::reserve(&account_id, T::DepositAmount::get())
-				.map_err(|_| Error::<T>::CannotAffordSecurityDeposit)?;
-
-			Mapping::<T>::insert(&author_id, &account_id);
+			Self::enact_registration(&author_id, &account_id)?;
 
 			<Pallet<T>>::deposit_event(Event::AuthorRegistered(author_id, account_id));
 
@@ -121,15 +131,12 @@ pub mod pallet {
 		) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
 
+			ensure!(T::can_register(&account_id), Error::<T>::CannotSetAuthor);
+
 			let stored_account = Mapping::<T>::try_get(&old_author_id)
 				.map_err(|_| Error::<T>::AssociationNotFound)?;
 
 			ensure!(account_id == stored_account, Error::<T>::NotYourAssociation);
-
-			ensure!(
-				parachain_staking::Pallet::<T>::is_candidate(&account_id),
-				Error::<T>::CannotSetAuthor
-			);
 
 			Mapping::<T>::insert(&new_author_id, &account_id);
 			Mapping::<T>::remove(&old_author_id);
@@ -196,6 +203,20 @@ pub mod pallet {
 		// }
 	}
 
+	impl<T: Config> Pallet<T> {
+		pub fn enact_registration(
+			author_id: &T::AuthorId,
+			account_id: &T::AccountId,
+		) -> DispatchResult {
+			T::DepositCurrency::reserve(&account_id, T::DepositAmount::get())
+				.map_err(|_| Error::<T>::CannotAffordSecurityDeposit)?;
+
+			Mapping::<T>::insert(&author_id, &account_id);
+
+			Ok(())
+		}
+	}
+
 	#[pallet::storage]
 	#[pallet::getter(fn account_id_of)]
 	/// We maintain a mapping from the AuthorIds used in the consensus layer
@@ -206,21 +227,24 @@ pub mod pallet {
 	/// Genesis config for author mapping pallet
 	pub struct GenesisConfig<T: Config> {
 		/// The associations that should exist at chain genesis
-		pub author_ids: Vec<(T::AuthorId, T::AccountId)>,
+		pub mappings: Vec<(T::AuthorId, T::AccountId)>,
 	}
 
 	#[cfg(feature = "std")]
 	impl<T: Config> Default for GenesisConfig<T> {
 		fn default() -> Self {
-			Self { author_ids: vec![] }
+			Self { mappings: vec![] }
 		}
 	}
 
 	#[pallet::genesis_build]
 	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
-			for (author_id, account_id) in &self.author_ids {
-				Mapping::<T>::insert(author_id, account_id);
+			for (author_id, account_id) in &self.mappings {
+				match Pallet::<T>::enact_registration(author_id, account_id) {
+					Err(e) => log::warn!("Error with genesis registration: {:?}", e),
+					_ => (),
+				};
 			}
 		}
 	}
@@ -231,16 +255,3 @@ pub mod pallet {
 		}
 	}
 }
-
-//Test ideas:
-// Genesis config works
-// Staked account can register
-// Unstaked account cannot register
-// Staked account can double register
-// Registered account can clear
-// Unregistered account cannot clear
-// Registered account can rotate
-// unstaked account can be narced after period
-// unstaked account cannot be narced before period
-// staked account can be narced after period
-// staked account cannot be narced before period

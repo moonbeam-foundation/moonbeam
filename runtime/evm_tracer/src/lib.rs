@@ -14,5 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-pub mod util;
-pub mod wrapper;
+//! Substrate EVM tracing.
+//!
+//! The purpose of this crate is enable tracing the EVM opcode execution and will be used by
+//! both Dapp developers - to get a granular view on their transactions - and indexers to access
+//! the EVM callstack (internal transactions).
+
+#![cfg_attr(not(feature = "std"), no_std)]
+
+mod call_list;
+mod raw;
+mod util;
+
+pub use call_list::CallListTracer;
+pub use raw::RawTracer;
+pub use util::EvmListener;
