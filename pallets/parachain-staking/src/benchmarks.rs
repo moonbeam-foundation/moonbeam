@@ -456,7 +456,10 @@ benchmarks! {
 		let x in 1..28;
 		// NOMINATIONS
 		let y in 0..(<<T as Config>::MaxNominatorsPerCollator as Get<u32>>::get() * 28);
-		let max_nominations = x * <<T as Config>::MaxNominatorsPerCollator as Get<u32>>::get();
+		let max_nominators_per_collator =
+			<<T as Config>::MaxNominatorsPerCollator as Get<u32>>::get();
+		let max_nominations = x * max_nominators_per_collator;
+		// y should depend on x but cannot directly, we overwrite y here if necessary to bound it
 		let total_nominations: u32 = if max_nominations < y { max_nominations } else { y };
 		// INITIALIZE RUNTIME STATE
 		let high_inflation: Range<Perbill> = Range {
@@ -482,10 +485,76 @@ benchmarks! {
 			collator_count += 1u32;
 		}
 		// STORE starting balances for all collators
-		let starting_balances: Vec<(
+		let collator_starting_balances: Vec<(
 			T::AccountId,
 			<<T as Config>::Currency as Currency<T::AccountId>>::Balance
 		)> = collators.iter().map(|x| (x.clone(), T::Currency::free_balance(&x))).collect();
+		// INITIALIZE NOMINATIONS
+		let mut col_nom_count: BTreeMap<T::AccountId, u32> = BTreeMap::new();
+		collators.iter().for_each(|x| {
+			col_nom_count.insert(x.clone(), 0u32);
+		});
+		let mut nominators: Vec<T::AccountId> = Vec::new();
+		let mut remaining_nominations = if total_nominations > max_nominators_per_collator {
+			for j in 1..(max_nominators_per_collator + 1) {
+				let seed = USER_SEED + j;
+				let nominator = create_funded_nominator::<T>(
+					"nominator",
+					seed,
+					default_balance::<T>() * 1_000_000u32.into(),
+					collators[0].clone(),
+					nominators.len() as u32,
+				)?;
+				nominators.push(nominator);
+			}
+			total_nominations - max_nominators_per_collator
+		} else {
+			for j in 1..(max_nominators_per_collator + 1 - total_nominations) {
+				let seed = USER_SEED + j;
+				let nominator = create_funded_nominator::<T>(
+					"nominator",
+					seed,
+					default_balance::<T>() * 1_000_000u32.into(),
+					collators[0].clone(),
+					nominators.len() as u32,
+				)?;
+				nominators.push(nominator);
+			}
+			0u32
+		};
+		col_nom_count.insert(collators[0].clone(), nominators.len() as u32);
+		// FILL remaining nominations
+		if remaining_nominations > 0 {
+			for (col, n_count) in col_nom_count.iter_mut() {
+				if n_count < &mut (nominators.len() as u32) {
+					// assumes nominators.len() <= MaxNominatorsPerCollator
+					let mut open_spots = nominators.len() as u32 - *n_count;
+					while open_spots > 0 && remaining_nominations > 0 {
+						let caller = nominators[open_spots as usize - 1usize].clone();
+						if let Ok(_) = Pallet::<T>::nominate(RawOrigin::Signed(
+							caller.clone()).into(),
+							col.clone(),
+							<<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get(),
+							*n_count,
+							collators.len() as u32, // overestimate
+						) {
+							*n_count += 1;
+							remaining_nominations -= 1;
+						}
+						open_spots -= 1;
+					}
+				}
+				if remaining_nominations == 0 {
+					break;
+				}
+			}
+		}
+		// STORE starting balances for all nominators
+		let nominator_starting_balances: Vec<(
+			T::AccountId,
+			<<T as Config>::Currency as Currency<T::AccountId>>::Balance
+		)> = nominators.iter().map(|x| (x.clone(), T::Currency::free_balance(&x))).collect();
+		// PREPARE RUN_TO_BLOCK LOOP
 		let before_running_round_index = Pallet::<T>::round().current;
 		let round_length: T::BlockNumber = Pallet::<T>::round().length.into();
 		let reward_delay = <<T as Config>::BondDuration as Get<u32>>::get() + 2u32;
@@ -513,10 +582,15 @@ benchmarks! {
 		<frame_system::Pallet<T>>::on_initialize(<frame_system::Pallet<T>>::block_number());
 	}: { Pallet::<T>::on_initialize(<frame_system::Pallet<T>>::block_number()); }
 	verify {
-		// Authors have been paid
-		for (col, initial) in starting_balances {
+		// Collators have been paid
+		for (col, initial) in collator_starting_balances {
 			assert!(T::Currency::free_balance(&col) > initial);
 		}
+		// Nominators have been paid
+		for (col, initial) in nominator_starting_balances {
+			assert!(T::Currency::free_balance(&col) > initial);
+		}
+		// Round transitions
 		assert_eq!(Pallet::<T>::round().current, before_running_round_index + reward_delay);
 	}
 }

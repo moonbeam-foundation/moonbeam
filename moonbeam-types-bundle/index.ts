@@ -449,6 +449,10 @@ export const moonbeamDefinitions = {
           last_paid: "BlockNumber",
           free_claim_done: "bool",
         },
+        CollatorCount: {
+          candidate_count: "u32",
+          max_collator_candidates: "u32",
+        },
       },
     },
   ],
