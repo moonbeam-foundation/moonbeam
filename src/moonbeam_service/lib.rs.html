@@ -1025,6 +1025,20 @@
 <span id="1022">1022</span>
 <span id="1023">1023</span>
 <span id="1024">1024</span>
+<span id="1025">1025</span>
+<span id="1026">1026</span>
+<span id="1027">1027</span>
+<span id="1028">1028</span>
+<span id="1029">1029</span>
+<span id="1030">1030</span>
+<span id="1031">1031</span>
+<span id="1032">1032</span>
+<span id="1033">1033</span>
+<span id="1034">1034</span>
+<span id="1035">1035</span>
+<span id="1036">1036</span>
+<span id="1037">1037</span>
+<span id="1038">1038</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1089,6 +1103,7 @@
 	<span class="ident">TFullClient</span>, <span class="ident">TaskManager</span>,
 };
 <span class="kw">use</span> <span class="ident">sp_api</span>::<span class="ident">ConstructRuntimeApi</span>;
+<span class="kw">use</span> <span class="ident">sp_blockchain</span>::<span class="ident">HeaderBackend</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">client</span>::<span class="kw-2">*</span>;
@@ -1879,6 +1894,8 @@
 				Therefore, a `LongestChainRule` is present. qed.&quot;</span>,
 		);
 
+		<span class="kw">let</span> <span class="ident">client_set_aside_for_cidp</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">clone</span>();
+
 		<span class="ident">task_manager</span>.<span class="ident">spawn_essential_handle</span>().<span class="ident">spawn_blocking</span>(
 			<span class="string">&quot;authorship_task&quot;</span>,
 			<span class="ident">run_manual_seal</span>(<span class="ident">ManualSealParams</span> {
@@ -1889,17 +1906,28 @@
 				<span class="ident">commands_stream</span>,
 				<span class="ident">select_chain</span>,
 				<span class="ident">consensus_data_provider</span>: <span class="prelude-val">None</span>,
-				<span class="ident">create_inherent_data_providers</span>: <span class="kw">move</span> <span class="op">|</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">|</span> <span class="kw">async</span> <span class="kw">move</span> {
-					<span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">sp_timestamp</span>::<span class="ident">InherentDataProvider</span>::<span class="ident">from_system_time</span>();
+				<span class="ident">create_inherent_data_providers</span>: <span class="kw">move</span> <span class="op">|</span><span class="ident">block</span>: <span class="ident">H256</span>, ()<span class="op">|</span> {
+					<span class="kw">let</span> <span class="ident">current_para_block</span> <span class="op">=</span> <span class="ident">client_set_aside_for_cidp</span>
+						.<span class="ident">number</span>(<span class="ident">block</span>)
+						.<span class="ident">expect</span>(<span class="string">&quot;Header lookup should succeed&quot;</span>)
+						.<span class="ident">expect</span>(<span class="string">&quot;Header passed in as parent should be present in backend.&quot;</span>);
 
-					<span class="kw">let</span> <span class="ident">mocked_parachain</span> <span class="op">=</span> <span class="ident">inherents</span>::<span class="ident">MockValidationDataInherentDataProvider</span>;
+					<span class="kw">async</span> <span class="kw">move</span> {
+						<span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">sp_timestamp</span>::<span class="ident">InherentDataProvider</span>::<span class="ident">from_system_time</span>();
 
-					<span class="comment">//TODO I want to use the value from a variable above.</span>
-					<span class="kw">let</span> <span class="ident">author</span> <span class="op">=</span> <span class="ident">nimbus_primitives</span>::<span class="ident">InherentDataProvider</span>::<span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span>(
-						<span class="ident">chain_spec</span>::<span class="ident">get_from_seed</span>::<span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span>(<span class="string">&quot;Alice&quot;</span>),
-					);
+						<span class="kw">let</span> <span class="ident">mocked_parachain</span> <span class="op">=</span> <span class="ident">inherents</span>::<span class="ident">MockValidationDataInherentDataProvider</span> {
+							<span class="ident">current_para_block</span>,
+							<span class="ident">relay_offset</span>: <span class="number">1000</span>,
+							<span class="ident">relay_blocks_per_para_block</span>: <span class="number">2</span>,
+						};
 
-					<span class="prelude-val">Ok</span>((<span class="ident">time</span>, <span class="ident">mocked_parachain</span>, <span class="ident">author</span>))
+						<span class="comment">//TODO I want to use the value from a variable above.</span>
+						<span class="kw">let</span> <span class="ident">author</span> <span class="op">=</span> <span class="ident">nimbus_primitives</span>::<span class="ident">InherentDataProvider</span>::<span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span>(
+							<span class="ident">chain_spec</span>::<span class="ident">get_from_seed</span>::<span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span>(<span class="string">&quot;Alice&quot;</span>),
+						);
+
+						<span class="prelude-val">Ok</span>((<span class="ident">time</span>, <span class="ident">mocked_parachain</span>, <span class="ident">author</span>))
+					}
 				},
 			}),
 		);
