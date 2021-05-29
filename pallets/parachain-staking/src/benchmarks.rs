@@ -509,7 +509,7 @@ benchmarks! {
 			}
 			total_nominations - max_nominators_per_collator
 		} else {
-			for j in 1..(max_nominators_per_collator + 1 - total_nominations) {
+			for j in 1..(total_nominations + 1) {
 				let seed = USER_SEED + j;
 				let nominator = create_funded_nominator::<T>(
 					"nominator",

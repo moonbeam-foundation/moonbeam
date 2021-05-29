@@ -16,6 +16,7 @@ sp-std = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1"
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }
 substrate-fixed = { default-features = false, git = "https://github.com/encointer/substrate-fixed" }
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false, optional = true }
+log = "0.4"
 
 [dev-dependencies]
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1", default-features = false }

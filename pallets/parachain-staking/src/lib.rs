@@ -348,7 +348,6 @@ pub mod pallet {
 		}
 		/// Check if the round should be updated
 		pub fn should_update(&self, now: B) -> bool {
-			// TODO: patch edge case wherein now = 0 and self.first = 1
 			now - self.first >= self.length.into()
 		}
 		/// New round
@@ -1501,9 +1500,17 @@ pub mod pallet {
 					if x.amount > next {
 						Some(x)
 					} else {
-						// TODO: handle error path explicitly, log something at least
-						let _ = Self::collator_exit(x.owner.clone(), false, None, None);
-						None
+						if let Err(error) = Self::collator_exit(x.owner.clone(), false, None, None)
+						{
+							log::trace!(
+								target: "staking",
+								"Collator exit failed with error {:?}",
+								error
+							);
+							Some(x)
+						} else {
+							None
+						}
 					}
 				})
 				.collect::<Vec<Bond<T::AccountId, RoundIndex>>>();
