@@ -95,7 +95,6 @@ fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "moo
 
 # Cumulus dependencies
 cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v9.3" }
-cumulus-client-consensus-common = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v9.3" }
 cumulus-client-collator = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v9.3" }
 cumulus-client-network = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v9.3" }
 cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v9.3" }
