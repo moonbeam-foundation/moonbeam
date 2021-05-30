@@ -13,7 +13,6 @@ serde = { version = "1.0.101", default-features = false, optional = true, featur
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
 log = "0.4"
 hex-literal = "0.3.1"
-sha3 = { version = "0.9", default-features = false }
 
 pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
 precompiles = { path = "../precompiles/", default-features = false }
@@ -81,6 +80,8 @@ frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", d
 cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus" }
 cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus" }
 evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }
+rlp = "0.5"
+hex = "0.4"
 
 [build-dependencies]
 substrate-wasm-builder = { version = "4.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.2" }
@@ -90,7 +91,6 @@ default = ["std"]
 std = [
 	"parity-scale-codec/std",
 	"serde",
-	"sha3/std",
 	"sp-api/std",
 	"sp-std/std",
 	"sp-io/std",
