@@ -132,7 +132,7 @@
 
 <span class="kw">mod</span> <span class="ident">staking</span>;
 <span class="kw">use</span> <span class="ident">codec</span>::<span class="ident">Decode</span>;
-<span class="kw">use</span> <span class="ident">evm</span>::{<span class="ident">executor</span>::<span class="ident">PrecompileOutput</span>, <span class="ident">Context</span>, <span class="ident">ExitError</span>, <span class="ident">ExitSucceed</span>};
+<span class="kw">use</span> <span class="ident">evm</span>::{<span class="ident">executor</span>::<span class="ident">PrecompileOutput</span>, <span class="ident">Context</span>, <span class="ident">ExitError</span>};
 <span class="kw">use</span> <span class="ident">frame_support</span>::<span class="ident">dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">Precompile</span>, <span class="ident">PrecompileSet</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_bn128</span>::{<span class="ident">Bn128Add</span>, <span class="ident">Bn128Mul</span>, <span class="ident">Bn128Pairing</span>};
@@ -143,7 +143,7 @@
 <span class="kw">use</span> <span class="ident">sp_core</span>::<span class="ident">H160</span>;
 <span class="kw">use</span> <span class="ident">sp_std</span>::<span class="ident">convert</span>::<span class="ident">TryFrom</span>;
 <span class="kw">use</span> <span class="ident">sp_std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span>;
-<span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">marker</span>::<span class="ident">PhantomData</span>, <span class="ident">vec</span>::<span class="ident">Vec</span>};
+<span class="kw">use</span> <span class="ident">sp_std</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span>;
 <span class="kw">use</span> <span class="ident">staking</span>::<span class="ident">ParachainStakingWrapper</span>;
 
 <span class="kw">use</span> <span class="ident">frame_support</span>::<span class="ident">traits</span>::<span class="ident">Currency</span>;
