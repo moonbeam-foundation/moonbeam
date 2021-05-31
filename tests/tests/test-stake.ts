@@ -1,12 +1,17 @@
 import { expect } from "chai";
 
-import { DEFAULT_GENESIS_STAKING, GENESIS_ACCOUNT } from "../util/constants";
+import {
+  DEFAULT_GENESIS_MAPPING,
+  DEFAULT_GENESIS_STAKING,
+  GENESIS_ACCOUNT,
+} from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 
 describeDevMoonbeam("Staking - Genesis", (context) => {
   it("should match collator reserved bond reserved", async function () {
     const account = await context.polkadotApi.query.system.account(GENESIS_ACCOUNT);
-    expect(account.data.reserved.toString()).to.equal(DEFAULT_GENESIS_STAKING.toString());
+    const expectedReserved = DEFAULT_GENESIS_STAKING + DEFAULT_GENESIS_MAPPING;
+    expect(account.data.reserved.toString()).to.equal(expectedReserved.toString());
   });
 
   it("should include collator from the specs", async function () {

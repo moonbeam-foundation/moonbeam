@@ -824,8 +824,18 @@ where
 		let extrinsics = backend
 			.blockchain()
 			.body(substrate_block_id)
-			.unwrap()
-			.unwrap();
+			.map_err(|e| {
+				internal_err(format!(
+					"Blockchain error when fetching extrinsics of block {} : {:?}",
+					height, e
+				))
+			})?
+			.ok_or_else(|| {
+				internal_err(format!(
+					"Could not find block {} when fetching extrinsics.",
+					height
+				))
+			})?;
 
 		// Trace the block.
 		let mut traces: Vec<_> = api
@@ -849,7 +859,17 @@ where
 			trace.block_number = height;
 			trace.transaction_hash = eth_transactions
 				.get(trace.transaction_position as usize)
-				.expect("amount of eth transactions should match")
+				.ok_or_else(|| {
+					tracing::warn!(
+						"Bug: A transaction has been replayed while it shouldn't (in block {}).",
+						height
+					);
+
+					internal_err(format!(
+						"Bug: A transaction has been replayed while it shouldn't (in block {}).",
+						height
+					))
+				})?
 				.transaction_hash;
 
 			// Reformat error messages.

@@ -18,205 +18,21 @@
 
 #![cfg(test)]
 
-use cumulus_primitives_parachain_inherent::ParachainInherentData;
-use evm::{Context, ExitSucceed};
-use frame_support::{
-	assert_noop, assert_ok,
-	dispatch::Dispatchable,
-	traits::{GenesisBuild, OnFinalize, OnInitialize},
-};
+mod common;
+use common::*;
+
+use evm::{executor::PrecompileOutput, Context, ExitSucceed};
+use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable};
 use moonbeam_runtime::{
-	currency::GLMR, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Event,
-	InflationInfo, ParachainStaking, Range, Runtime, System,
+	currency::GLMR, AccountId, Balances, Call, CrowdloanRewards, Event, ParachainStaking, Runtime,
+	System,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use parachain_staking::Bond;
 use precompiles::MoonbeamPrecompiles;
 use sp_core::{Public, H160, U256};
-use sp_runtime::{DispatchError, Perbill};
-
-fn run_to_block(n: u32) {
-	while System::block_number() < n {
-		AuthorInherent::on_finalize(System::block_number());
-		ParachainStaking::on_finalize(System::block_number());
-		System::set_block_number(System::block_number() + 1);
-		AuthorInherent::on_initialize(System::block_number());
-	}
-}
-
-fn last_event() -> Event {
-	System::events().pop().expect("Event expected").event
-}
-
-struct ExtBuilder {
-	// endowed accounts with balances
-	balances: Vec<(AccountId, Balance)>,
-	// [collator, amount]
-	collators: Vec<(AccountId, Balance)>,
-	// [nominator, collator, nomination_amount]
-	nominators: Vec<(AccountId, AccountId, Balance)>,
-	// per-round inflation config
-	inflation: InflationInfo<Balance>,
-	// Crowdloan fund
-	crowdloan_fund: Balance,
-}
-
-impl Default for ExtBuilder {
-	fn default() -> ExtBuilder {
-		ExtBuilder {
-			balances: vec![],
-			nominators: vec![],
-			collators: vec![],
-			inflation: InflationInfo {
-				expect: Range {
-					min: 100_000 * GLMR,
-					ideal: 200_000 * GLMR,
-					max: 500_000 * GLMR,
-				},
-				// not used
-				annual: Range {
-					min: Perbill::from_percent(50),
-					ideal: Perbill::from_percent(50),
-					max: Perbill::from_percent(50),
-				},
-				// unrealistically high parameterization, only for testing
-				round: Range {
-					min: Perbill::from_percent(5),
-					ideal: Perbill::from_percent(5),
-					max: Perbill::from_percent(5),
-				},
-			},
-			crowdloan_fund: 0,
-		}
-	}
-}
-
-impl ExtBuilder {
-	fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
-		self.balances = balances;
-		self
-	}
-
-	fn with_collators(mut self, collators: Vec<(AccountId, Balance)>) -> Self {
-		self.collators = collators;
-		self
-	}
-
-	fn with_nominators(mut self, nominators: Vec<(AccountId, AccountId, Balance)>) -> Self {
-		self.nominators = nominators;
-		self
-	}
-
-	fn with_crowdloan_fund(mut self, crowdloan_fund: Balance) -> Self {
-		self.crowdloan_fund = crowdloan_fund;
-		self
-	}
-
-	#[allow(dead_code)]
-	fn with_inflation(mut self, inflation: InflationInfo<Balance>) -> Self {
-		self.inflation = inflation;
-		self
-	}
-
-	fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
-			.unwrap();
-
-		pallet_balances::GenesisConfig::<Runtime> {
-			balances: self.balances,
-		}
-		.assimilate_storage(&mut t)
-		.unwrap();
-
-		let mut stakers: Vec<(AccountId, Option<AccountId>, Balance)> = Vec::new();
-		for collator in self.collators {
-			stakers.push((collator.0, None, collator.1));
-		}
-		for nominator in self.nominators {
-			stakers.push((nominator.0, Some(nominator.1), nominator.2));
-		}
-		parachain_staking::GenesisConfig::<Runtime> {
-			stakers,
-			inflation_config: self.inflation,
-		}
-		.assimilate_storage(&mut t)
-		.unwrap();
-
-		pallet_crowdloan_rewards::GenesisConfig::<Runtime> {
-			funded_amount: self.crowdloan_fund,
-		}
-		.assimilate_storage(&mut t)
-		.unwrap();
-
-		// Here we map the author id ALICE_NIMBUS to the AccountId ALICE
-		// This is not (currently) configureable because it is enough for all of our tests
-		// It could bemade configureable.
-		pallet_author_mapping::GenesisConfig::<Runtime> {
-			author_ids: vec![(NimbusId::from_slice(&ALICE_NIMBUS), AccountId::from(ALICE))],
-		}
-		.assimilate_storage(&mut t)
-		.unwrap();
-
-		let mut ext = sp_io::TestExternalities::new(t);
-		ext.execute_with(|| System::set_block_number(1));
-		ext
-	}
-}
-
-const ALICE: [u8; 20] = [4u8; 20];
-const ALICE_NIMBUS: [u8; 32] = [4u8; 32];
-const BOB: [u8; 20] = [5u8; 20];
-const CHARLIE: [u8; 20] = [6u8; 20];
-const DAVE: [u8; 20] = [7u8; 20];
-
-fn origin_of(account_id: AccountId) -> <Runtime as frame_system::Config>::Origin {
-	<Runtime as frame_system::Config>::Origin::signed(account_id)
-}
-
-fn inherent_origin() -> <Runtime as frame_system::Config>::Origin {
-	<Runtime as frame_system::Config>::Origin::none()
-}
-
-fn root_origin() -> <Runtime as frame_system::Config>::Origin {
-	<Runtime as frame_system::Config>::Origin::root()
-}
-
-/// Mock the inherent that sets author in `author-inherent`
-fn set_author(a: NimbusId) {
-	assert_ok!(
-		Call::AuthorInherent(pallet_author_inherent::Call::<Runtime>::set_author(a))
-			.dispatch(inherent_origin())
-	);
-}
-
-/// Mock the inherent that sets validation data in ParachainSystem, which
-/// contains the `relay_chain_block_number`, which is used in `author-filter` as a
-/// source of randomness to filter valid authors at each block.
-fn set_parachain_inherent_data() {
-	use cumulus_primitives_core::PersistedValidationData;
-	use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
-	let (relay_parent_storage_root, relay_chain_state) =
-		RelayStateSproofBuilder::default().into_state_root_and_proof();
-	let vfp = PersistedValidationData {
-		relay_parent_number: 1u32,
-		relay_parent_storage_root,
-		..Default::default()
-	};
-	let parachain_inherent_data = ParachainInherentData {
-		validation_data: vfp,
-		relay_chain_state: relay_chain_state,
-		downward_messages: Default::default(),
-		horizontal_messages: Default::default(),
-	};
-	assert_ok!(Call::ParachainSystem(
-		cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data(
-			parachain_inherent_data
-		)
-	)
-	.dispatch(inherent_origin()));
-}
+use sp_runtime::DispatchError;
 
 #[test]
 fn join_collator_candidates() {
@@ -289,7 +105,7 @@ fn join_collator_candidates() {
 #[test]
 fn transfer_through_evm_to_stake() {
 	ExtBuilder::default()
-		.with_balances(vec![(AccountId::from(ALICE), 3_000 * GLMR)])
+		.with_balances(vec![(AccountId::from(ALICE), 2_000 * GLMR)])
 		.build()
 		.execute_with(|| {
 			// Charlie has no balance => fails to stake
@@ -304,18 +120,14 @@ fn transfer_through_evm_to_stake() {
 					message: Some("InsufficientBalance")
 				}
 			);
-			// Alice stakes to become a collator candidate
-			assert_ok!(ParachainStaking::join_candidates(
-				origin_of(AccountId::from(ALICE)),
-				1_000 * GLMR,
-			));
-			// Alice transfer from free balance 1000 GLMR to Bob
+			// Alice transfer from free balance 2000 GLMR to Bob
 			assert_ok!(Balances::transfer(
 				origin_of(AccountId::from(ALICE)),
 				AccountId::from(BOB),
 				2_000 * GLMR,
 			));
-			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 2_000 * GLMR,);
+			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 2_000 * GLMR);
+
 			let gas_limit = 100000u64;
 			let gas_price: U256 = 1_000_000_000.into();
 			// Bob transfers 1000 GLMR to Charlie via EVM
@@ -333,6 +145,7 @@ fn transfer_through_evm_to_stake() {
 				Balances::free_balance(AccountId::from(CHARLIE)),
 				1_000 * GLMR,
 			);
+
 			// Charlie can stake now
 			assert_ok!(ParachainStaking::join_candidates(
 				origin_of(AccountId::from(CHARLIE)),
@@ -341,13 +154,6 @@ fn transfer_through_evm_to_stake() {
 			let candidates = ParachainStaking::candidate_pool();
 			assert_eq!(
 				candidates.0[0],
-				Bond {
-					owner: AccountId::from(ALICE),
-					amount: 2_000 * GLMR
-				}
-			);
-			assert_eq!(
-				candidates.0[1],
 				Bond {
 					owner: AccountId::from(CHARLIE),
 					amount: 1_000 * GLMR
@@ -360,7 +166,8 @@ fn transfer_through_evm_to_stake() {
 fn reward_block_authors() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * GLMR),
+			// Alice gets 100 extra tokens for her mapping deposit
+			(AccountId::from(ALICE), 2_100 * GLMR),
 			(AccountId::from(BOB), 1_000 * GLMR),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
@@ -368,6 +175,10 @@ fn reward_block_authors() {
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			500 * GLMR,
+		)])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
 		)])
 		.build()
 		.execute_with(|| {
@@ -384,11 +195,11 @@ fn reward_block_authors() {
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				1109999999920000000000,
+				1113666666584000000000,
 			);
 			assert_eq!(
 				Balances::free_balance(AccountId::from(BOB)),
-				539999999960000000000,
+				541333333292000000000,
 			);
 		});
 }
@@ -401,6 +212,10 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			(AccountId::from(BOB), 1_000 * GLMR),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
+		)])
 		.with_crowdloan_fund(3_000_000 * GLMR)
 		.build()
 		.execute_with(|| {
@@ -1145,7 +960,12 @@ fn is_nominator_via_precompile() {
 			// Expected result is an EVM boolean true which is 256 bits long.
 			let mut expected_bytes = Vec::from([0u8; 32]);
 			expected_bytes[31] = 1;
-			let expected_true_result = Some(Ok((ExitSucceed::Returned, expected_bytes, 0)));
+			let expected_true_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 0,
+				logs: Default::default(),
+			}));
 
 			// Assert precompile reports Bob is a nominator
 			assert_eq!(
@@ -1170,7 +990,12 @@ fn is_nominator_via_precompile() {
 
 			// Expected result is an EVM boolean false which is 256 bits long.
 			expected_bytes = Vec::from([0u8; 32]);
-			let expected_false_result = Some(Ok((ExitSucceed::Returned, expected_bytes, 0)));
+			let expected_false_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 0,
+				logs: Default::default(),
+			}));
 
 			// Assert precompile also reports Charlie as not a nominator
 			assert_eq!(
@@ -1210,7 +1035,12 @@ fn is_candidate_via_precompile() {
 			// Expected result is an EVM boolean true which is 256 bits long.
 			let mut expected_bytes = Vec::from([0u8; 32]);
 			expected_bytes[31] = 1;
-			let expected_true_result = Some(Ok((ExitSucceed::Returned, expected_bytes, 0)));
+			let expected_true_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 0,
+				logs: Default::default(),
+			}));
 
 			// Assert precompile reports Alice is a collator candidate
 			assert_eq!(
@@ -1235,7 +1065,12 @@ fn is_candidate_via_precompile() {
 
 			// Expected result is an EVM boolean false which is 256 bits long.
 			expected_bytes = Vec::from([0u8; 32]);
-			let expected_false_result = Some(Ok((ExitSucceed::Returned, expected_bytes, 0)));
+			let expected_false_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 0,
+				logs: Default::default(),
+			}));
 
 			// Assert precompile also reports Bob as not a collator candidate
 			assert_eq!(
@@ -1267,7 +1102,12 @@ fn min_nomination_via_precompile() {
 		let expected_min: U256 = min_nomination.into();
 		let mut buffer = [0u8; 32];
 		expected_min.to_big_endian(&mut buffer);
-		let expected_result = Some(Ok((ExitSucceed::Returned, buffer.to_vec(), 0)));
+		let expected_result = Some(Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: buffer.to_vec(),
+			cost: 0,
+			logs: Default::default(),
+		}));
 
 		assert_eq!(
 			MoonbeamPrecompiles::<Runtime>::execute(
