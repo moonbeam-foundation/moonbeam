@@ -346,9 +346,10 @@ export const moonbeamDefinitions = {
       minmax: [37, undefined],
       types: {
         AccountId: "EthereumAccountId",
+        AccountId32: "H256",
         AccountInfo: "AccountInfoWithTripleRefCount",
         Address: "AccountId32",
-        AuthorId: "RelayChainAccountId",
+        AuthorId: "H256",
         Balance: "u128",
         LookupSource: "AccountId",
         Account: {
