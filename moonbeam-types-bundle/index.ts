@@ -347,7 +347,7 @@ export const moonbeamDefinitions = {
       types: {
         AccountId: "EthereumAccountId",
         AccountInfo: "AccountInfoWithTripleRefCount",
-        Address: "AccountId",
+        Address: "AccountId32",
         AuthorId: "RelayChainAccountId",
         Balance: "u128",
         LookupSource: "AccountId",
