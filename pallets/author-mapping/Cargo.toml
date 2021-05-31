@@ -6,6 +6,7 @@ edition = "2018"
 description = "Maps AuthorIds to AccountIds Useful for associating consensus authors with in-runtime accounts"
 
 [dependencies]
+log = { version = "0.4", default-features = false }
 nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.2", default-features = false }
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.2", default-features = false }
@@ -13,14 +14,17 @@ parity-scale-codec = { version = "2.0.0", default-features = false, features = [
 serde = { version = "1.0.101", optional = true }
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.2", default-features = false }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.2", default-features = false }
+parachain-staking = { path = "../parachain-staking", default-features = false }
 
-# [dev-dependencies]
-# sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.2", default-features = false }
-# sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.2", default-features = false }
+[dev-dependencies]
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.2", default-features = false }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.2", default-features = false }
+pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.2", default-features = false }
 
 [features]
 default = ["std"]
 std = [
+	"log/std",
 	"nimbus-primitives/std",
 	"frame-support/std",
 	"frame-system/std",
@@ -28,4 +32,5 @@ std = [
 	"serde",
 	"sp-std/std",
 	"sp-runtime/std",
+	"parachain-staking/std",
 ]

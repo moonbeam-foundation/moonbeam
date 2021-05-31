@@ -562,7 +562,7 @@ dependencies = [
  "cexpr",
  "cfg-if 0.1.10",
  "clang-sys",
- "clap",
+ "clap 2.33.3",
  "env_logger 0.7.1",
  "lazy_static",
  "lazycell",
@@ -1063,10 +1063,42 @@ dependencies = [
  "ansi_term 0.11.0",
  "atty",
  "bitflags",
- "strsim",
- "textwrap",
+ "strsim 0.8.0",
+ "textwrap 0.11.0",
  "unicode-width",
  "vec_map",
+]
+
+[[package]]
+name = "clap"
+version = "3.0.0-beta.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4bd1061998a501ee7d4b6d449020df3266ca3124b941ec56cf2005c3779ca142"
+dependencies = [
+ "atty",
+ "bitflags",
+ "clap_derive",
+ "indexmap",
+ "lazy_static",
+ "os_str_bytes",
+ "strsim 0.10.0",
+ "termcolor",
+ "textwrap 0.12.1",
+ "unicode-width",
+ "vec_map",
+]
+
+[[package]]
+name = "clap_derive"
+version = "3.0.0-beta.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "370f715b81112975b1b69db93e0b56ea4cd4e5002ac43b2da8474106a54096a1"
+dependencies = [
+ "heck",
+ "proc-macro-error",
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -1988,10 +2020,11 @@ checksum = "f7531096570974c3a9dcf9e4b8e1cede1ec26cf5046219fb3b9d897503b9be59"
 
 [[package]]
 name = "evm"
-version = "0.26.0"
+version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1202e8dfa45bea73ee003c4be2f3549d60cb2e2ac5b0c1db563bd4653213efde"
+checksum = "f833b0e642bec8286b80f00ad6cc6a95e50210c77949b9cb484637e6a05ed596"
 dependencies = [
+ "environmental",
  "ethereum",
  "evm-core",
  "evm-gasometer",
@@ -2006,9 +2039,9 @@ dependencies = [
 
 [[package]]
 name = "evm-core"
-version = "0.26.0"
+version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9aeed00c943f6347108393c98907f432d8f2b82683725dfefbd734d335faace4"
+checksum = "0af034c92990bfa8715aa9b00850ca867112b81e98eb0ac32d0b6bfae04cf7c0"
 dependencies = [
  "funty",
  "parity-scale-codec",
@@ -2018,10 +2051,11 @@ dependencies = [
 
 [[package]]
 name = "evm-gasometer"
-version = "0.26.0"
+version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "463412356790c5e34e8a13cd23ba06284d9afa999e82e8c64497aed2ee625375"
+checksum = "4118f952ce320c11e1b7b8a575e477d70bc86a3b92ea23e427174d979cf1da26"
 dependencies = [
+ "environmental",
  "evm-core",
  "evm-runtime",
  "primitive-types",
@@ -2029,10 +2063,11 @@ dependencies = [
 
 [[package]]
 name = "evm-runtime"
-version = "0.26.0"
+version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c08f510e5535cee2352adb9b93ff24dc80f8ca1bad445a9aa1292ce144b45a1"
+checksum = "952296b416c3b334b26933ad1f9cfa9203e251691586fb317e411872886ca31b"
 dependencies = [
+ "environmental",
  "evm-core",
  "primitive-types",
  "sha3 0.8.2",
@@ -2103,7 +2138,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "1.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "async-trait",
  "derive_more",
@@ -2128,7 +2163,7 @@ dependencies = [
 [[package]]
 name = "fc-db"
 version = "1.0.0"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "kvdb",
  "kvdb-rocksdb",
@@ -2142,7 +2177,7 @@ dependencies = [
 [[package]]
 name = "fc-mapping-sync"
 version = "1.1.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "fc-consensus",
  "fc-db",
@@ -2160,7 +2195,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2201,7 +2236,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "1.1.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "ethereum-types",
  "jsonrpc-core 15.1.0",
@@ -2305,7 +2340,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "1.0.0"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "ethereum",
  "parity-scale-codec",
@@ -2319,7 +2354,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "1.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "evm",
  "impl-trait-for-tuples 0.1.3",
@@ -2332,7 +2367,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "1.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2348,7 +2383,7 @@ dependencies = [
 [[package]]
 name = "fp-storage"
 version = "1.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4675,10 +4710,11 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
+ "hex",
  "hex-literal",
  "log",
  "moonbeam-core-primitives",
- "moonbeam-extensions-evm",
+ "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "nimbus-primitives",
@@ -4706,8 +4742,8 @@ dependencies = [
  "parachain-staking",
  "parity-scale-codec",
  "precompiles",
+ "rlp",
  "serde",
- "sha3 0.9.1",
  "sp-api",
  "sp-block-builder",
  "sp-core",
@@ -4726,9 +4762,15 @@ dependencies = [
 name = "moonbeam"
 version = "0.8.0-dev"
 dependencies = [
+ "assert_cmd",
  "futures 0.3.14",
+ "hex",
  "moonbeam-cli",
  "moonbeam-service",
+ "nix",
+ "serde",
+ "serde_json",
+ "tempfile",
 ]
 
 [[package]]
@@ -4773,12 +4815,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "moonbeam-extensions-evm"
+name = "moonbeam-evm-tracer"
 version = "0.1.0"
 dependencies = [
  "ethereum-types",
  "evm",
- "evm-core",
+ "evm-gasometer",
+ "evm-runtime",
  "fp-evm",
  "moonbeam-rpc-primitives-debug",
  "pallet-evm",
@@ -4955,10 +4998,11 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
+ "hex",
  "hex-literal",
  "log",
  "moonbeam-core-primitives",
- "moonbeam-extensions-evm",
+ "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "nimbus-primitives",
@@ -4986,8 +5030,8 @@ dependencies = [
  "parachain-staking",
  "parity-scale-codec",
  "precompiles",
+ "rlp",
  "serde",
- "sha3 0.9.1",
  "sp-api",
  "sp-block-builder",
  "sp-core",
@@ -5112,6 +5156,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "moonkey"
+version = "0.1.0"
+dependencies = [
+ "clap 3.0.0-beta.2",
+ "libsecp256k1",
+ "primitive-types",
+ "sha3 0.8.2",
+ "tiny-bip39 0.6.2",
+ "tiny-hderive",
+]
+
+[[package]]
 name = "moonriver-runtime"
 version = "0.8.0-dev"
 dependencies = [
@@ -5128,10 +5184,11 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
+ "hex",
  "hex-literal",
  "log",
  "moonbeam-core-primitives",
- "moonbeam-extensions-evm",
+ "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "nimbus-primitives",
@@ -5159,8 +5216,8 @@ dependencies = [
  "parachain-staking",
  "parity-scale-codec",
  "precompiles",
+ "rlp",
  "serde",
- "sha3 0.9.1",
  "sp-api",
  "sp-block-builder",
  "sp-core",
@@ -5192,10 +5249,11 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
+ "hex",
  "hex-literal",
  "log",
  "moonbeam-core-primitives",
- "moonbeam-extensions-evm",
+ "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "nimbus-primitives",
@@ -5223,8 +5281,8 @@ dependencies = [
  "parachain-staking",
  "parity-scale-codec",
  "precompiles",
+ "rlp",
  "serde",
- "sha3 0.9.1",
  "sp-api",
  "sp-block-builder",
  "sp-core",
@@ -5611,6 +5669,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "os_str_bytes"
+version = "2.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "afb2e1c3ee07430c2cf76151675e583e0f19985fa6efae47d6848a3e2c824f85"
+
+[[package]]
 name = "owning_ref"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5644,9 +5708,14 @@ version = "1.0.0"
 dependencies = [
  "frame-support",
  "frame-system",
+ "log",
  "nimbus-primitives",
+ "pallet-balances",
+ "parachain-staking",
  "parity-scale-codec",
  "serde",
+ "sp-core",
+ "sp-io",
  "sp-runtime",
  "sp-std",
 ]
@@ -5875,7 +5944,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "1.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -5913,7 +5982,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "3.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "evm",
  "evm-gasometer",
@@ -5938,7 +6007,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-bn128"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "evm",
  "fp-evm",
@@ -5950,7 +6019,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "1.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "evm",
  "fp-evm",
@@ -5964,7 +6033,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "1.1.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "evm",
  "fp-evm",
@@ -5976,7 +6045,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "1.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "evm",
  "fp-evm",
@@ -5988,7 +6057,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "1.0.1-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#f9c70193c11e3e913641c5448dd40f4acbda9c0a"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-v0.8#dd0716c433c1f97285d5997d5845e02a3217589c"
 dependencies = [
  "evm",
  "fp-evm",
@@ -11125,12 +11194,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ea5119cdb4c55b55d432abb513a0429384878c15dde60cc77b1c99de1a95a6a"
 
 [[package]]
+name = "strsim"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
+
+[[package]]
 name = "structopt"
 version = "0.3.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5277acd7ee46e63e5168a80734c9f6ee81b1367a7d8772a2d765df2a3705d28c"
 dependencies = [
- "clap",
+ "clap 2.33.3",
  "lazy_static",
  "structopt-derive",
 ]
@@ -11453,6 +11528,15 @@ name = "textwrap"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d326610f408c7a4eb6f51c37c330e496b08506c9457c9d34287ecc38809fb060"
+dependencies = [
+ "unicode-width",
+]
+
+[[package]]
+name = "textwrap"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "203008d98caf094106cfaba70acfed15e18ed3ddb7d94e49baec153a2b462789"
 dependencies = [
  "unicode-width",
 ]
@@ -12090,7 +12174,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04f8ab788026715fa63b31960869617cba39117e520eb415b0139543e325ab59"
 dependencies = [
  "cfg-if 0.1.10",
- "rand 0.6.5",
+ "rand 0.7.3",
  "static_assertions",
 ]
 
