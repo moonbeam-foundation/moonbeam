@@ -155,7 +155,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     const keyring = new Keyring({ type: "ethereum" });
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
   });
-  it("should make first claim after 5 blocks, after show me the money was called", async function () {
+  it("should make first claim 5 blocks after show me the money was called", async function () {
     await context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.crowdloanRewards.initializeRewardVec(
