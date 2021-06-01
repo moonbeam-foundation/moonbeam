@@ -171,4 +171,31 @@ describeDevMoonbeam("Pallet proxy", (context) => {
     // Check target balance didn't change.
     expect(balance_after).to.be.eq(balance_before);
   });
+
+  it("should accept on-time announced call", async function () {
+    const balance_before = await context.web3.eth.getBalance(CHARLETH_ADDRESS);
+
+    await context.createBlock();
+
+    // Proxy call
+    const unsub = await context.polkadotApi.tx.proxy
+      .proxyAnnounced(alith.address, baltathar.address, null, transfer_tx)
+      .signAndSend(baltathar, ({ events = [], status }) => {
+        if (status.isInBlock) {
+          events.forEach((value) => console.log(value.event.method));
+          // Check proxy call succeeded.
+          expect(events[1].event.method).to.be.eq("ExtrinsicFailed"); // should be ExtrinsicSucceed
+
+          unsub();
+        }
+      });
+
+    await context.createBlock();
+    await delay(500);
+
+    const balance_after = await context.web3.eth.getBalance(CHARLETH_ADDRESS);
+
+    // Check target balance didn't change.
+    expect(balance_after).to.be.eq(balance_before);
+  });
 });
