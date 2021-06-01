@@ -186,7 +186,7 @@ fn reward_block_authors() {
 			// no rewards doled out yet
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				1_000 * MOVR - 100,
+				1_000 * MOVR,
 			);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * MOVR,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
