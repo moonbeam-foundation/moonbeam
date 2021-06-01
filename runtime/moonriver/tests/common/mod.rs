@@ -211,6 +211,8 @@ pub const CHARLIE: [u8; 20] = [6u8; 20];
 pub const DAVE: [u8; 20] = [7u8; 20];
 pub const EVM_CONTRACT: [u8; 20] = [8u8; 20];
 
+pub const CROWDLOAN_PAYABLE_PER_BLOCK: u128 = 496_031_746_031_746_031;
+
 pub fn origin_of(account_id: AccountId) -> <Runtime as frame_system::Config>::Origin {
 	<Runtime as frame_system::Config>::Origin::signed(account_id)
 }
