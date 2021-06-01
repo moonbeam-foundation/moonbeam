@@ -292,27 +292,31 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			assert_ok!(CrowdloanRewards::show_me_the_money(origin_of(
 				AccountId::from(DAVE)
 			)));
+
+			let vesting_period = 4 * WEEKS as u128;
+			let per_block = (1_200_000 * UNITS) / vesting_period;
+
 			assert_eq!(
 				CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE))
 					.unwrap()
 					.claimed_reward,
-				(300_000 * UNITS) + CROWDLOAN_PAYABLE_PER_BLOCK
+				(300_000 * UNITS) + per_block
 			);
 			assert_eq!(
 				CrowdloanRewards::accounts_payable(&AccountId::from(DAVE))
 					.unwrap()
 					.claimed_reward,
-				(300_000 * UNITS) + CROWDLOAN_PAYABLE_PER_BLOCK
+				(300_000 * UNITS) + per_block
 			);
 			// The first call to `show_me_the_money` is free.
 			// The total claimed reward should be equal to the account balance at this point.
 			assert_eq!(
 				Balances::balance(&AccountId::from(CHARLIE)),
-				(300_000 * UNITS) + CROWDLOAN_PAYABLE_PER_BLOCK
+				(300_000 * UNITS) + per_block
 			);
 			assert_eq!(
 				Balances::balance(&AccountId::from(DAVE)),
-				(300_000 * UNITS) + CROWDLOAN_PAYABLE_PER_BLOCK
+				(300_000 * UNITS) + per_block
 			);
 			assert_noop!(
 				CrowdloanRewards::show_me_the_money(origin_of(AccountId::from(ALICE))),

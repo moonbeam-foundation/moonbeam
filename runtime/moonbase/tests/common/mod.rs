@@ -25,7 +25,7 @@ use frame_support::{
 pub use moonbase_runtime::{
 	currency::UNITS, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards,
 	Ethereum, Event, Executive, FixedGasPrice, InflationInfo, ParachainStaking, Range, Runtime,
-	System, TransactionConverter, UncheckedExtrinsic,
+	System, TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::GenesisAccount;
@@ -210,9 +210,6 @@ pub const BOB: [u8; 20] = [5u8; 20];
 pub const CHARLIE: [u8; 20] = [6u8; 20];
 pub const DAVE: [u8; 20] = [7u8; 20];
 pub const EVM_CONTRACT: [u8; 20] = [8u8; 20];
-
-/// Payable per block for a contributor receiving 1_500_000 * GLMR tokens
-pub const CROWDLOAN_PAYABLE_PER_BLOCK: u128 = 5_952_380_952_380_952_380;
 
 pub fn origin_of(account_id: AccountId) -> <Runtime as frame_system::Config>::Origin {
 	<Runtime as frame_system::Config>::Origin::signed(account_id)
