@@ -442,7 +442,7 @@ pub fn run() -> Result<()> {
 			}
 		}
 		None => {
-			let runner = cli.create_runner(&*cli.run)?;
+			let runner = cli.create_runner(&(*cli.run).normalize())?;
 			runner.run_node_until_exit(|config| async move {
 				let key = sp_core::Pair::generate().0;
 
