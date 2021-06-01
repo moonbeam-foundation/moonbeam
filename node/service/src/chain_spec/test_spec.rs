@@ -16,11 +16,12 @@
 
 //! Embedded specs for testing purposes, must be compiled with --features=test-spec
 use crate::chain_spec::moonbase::{moonbeam_inflation_config, testnet_genesis, ChainSpec};
-use crate::chain_spec::Extensions;
+use crate::chain_spec::{get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
 use moonbeam_runtime::{currency::GLMR, AccountId};
 use sc_service::ChainType;
 use std::str::FromStr;
+use nimbus_primitives::NimbusId;
 
 /// Generate testing chain_spec for staking integration tests with accounts initialized for
 /// collating and nominating.
@@ -37,15 +38,17 @@ pub fn staking_spec(para_id: ParaId) -> ChainSpec {
 				vec![
 					(
 						AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
-						None,
+						get_from_seed::<NimbusId>("Alice"),
 						1_000 * GLMR,
 					),
 					(
 						AccountId::from_str("C0F0f4ab324C46e55D02D0033343B4Be8A55532d").unwrap(),
-						None,
+						get_from_seed::<NimbusId>("Faith"),
 						1_000 * GLMR,
 					),
 				],
+				// Nominations
+				vec![],
 				// Inflation config
 				moonbeam_inflation_config(),
 				// Endowed accounts (each minted 1 << 80 balance)

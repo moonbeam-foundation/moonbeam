@@ -97,7 +97,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		move || {
 			testnet_genesis(
 				AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
-				// Collator Candidates 
+				// Collator Candidates
 				vec![
 					// Alice -> Alith
 					(
@@ -110,7 +110,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 						AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
 						get_from_seed::<NimbusId>("Bob"),
 						1_000 * UNITS,
-					)
+					),
 				],
 				// Nominations
 				vec![],
@@ -220,7 +220,11 @@ pub fn testnet_genesis(
 		pallet_democracy: DemocracyConfig {},
 		pallet_scheduler: SchedulerConfig {},
 		parachain_staking: ParachainStakingConfig {
-			candidates: candidates.iter().cloned().map(|(account, _, bond)| (account, bond)).collect(),
+			candidates: candidates
+				.iter()
+				.cloned()
+				.map(|(account, _, bond)| (account, bond))
+				.collect(),
 			nominations,
 			inflation_config,
 		},
