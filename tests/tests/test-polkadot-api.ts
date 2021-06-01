@@ -38,9 +38,9 @@ describeDevMoonbeam("Polkadot API - Transfers", (context) => {
     await context.createBlock();
   });
 
-  // it("should be stored on chain", async function () {
-  //   expect(await context.web3.eth.getBalance(testAccount)).to.equal("123");
-  // });
+  it("should be stored on chain", async function () {
+    expect(await context.web3.eth.getBalance(testAccount)).to.equal("123");
+  });
 
   it("should appear in extrinsics", async function () {
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
