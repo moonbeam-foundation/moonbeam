@@ -91,8 +91,9 @@ pub mod pallet {
 				MappingWithDeposit::<T>::insert(author_id, info);
 			}
 
-			10_000 // No idea about the real weight. Probably not worrying about because this wil
-			 // definitely fit in one of Moonbeam's almost-empty blocks.
+			// No idea about the real weight. Probably not worrying about because this will
+			// definitely fit in one of Moonbeam's almost-empty blocks.
+			10_000 
 		}
 	}
 
