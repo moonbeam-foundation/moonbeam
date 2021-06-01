@@ -41,6 +41,16 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use nimbus_primitives::AccountLookup;
 
+	type BalanceOf<T> = <<T as Config>::DepositCurrency as Currency<
+		<T as frame_system::Config>::AccountId,
+	>>::Balance;
+
+	#[derive(Encode, Decode, PartialEq, Eq)]
+	pub struct RegistrationInfo<AccountId, Balance> {
+		account: AccountId,
+		deposit: Balance,
+	}
+
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
 
@@ -64,7 +74,15 @@ pub mod pallet {
 	}
 
 	#[pallet::hooks]
-	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
+	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+		fn on_runtime_upgrade() -> Weight {
+			//TODO
+			// Mappings.iter()
+
+			10_000 // No idea about the real weight. Probably not worrying about because this wil
+			       // definitely fit in one of Moonbeam's almost-empty blocks.
+		}
+	}
 
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]
@@ -108,7 +126,7 @@ pub mod pallet {
 			ensure!(T::can_register(&account_id), Error::<T>::CannotSetAuthor);
 
 			ensure!(
-				Mapping::<T>::get(&author_id).is_none(),
+				MappingWithDeposit::<T>::get(&author_id).is_none(),
 				Error::<T>::AlreadyAssociated
 			);
 
@@ -133,15 +151,15 @@ pub mod pallet {
 
 			ensure!(T::can_register(&account_id), Error::<T>::CannotSetAuthor);
 
-			let stored_account = Mapping::<T>::try_get(&old_author_id)
+			let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
 				.map_err(|_| Error::<T>::AssociationNotFound)?;
 
-			ensure!(account_id == stored_account, Error::<T>::NotYourAssociation);
+			ensure!(account_id == stored_info.account, Error::<T>::NotYourAssociation);
 
-			Mapping::<T>::insert(&new_author_id, &account_id);
-			Mapping::<T>::remove(&old_author_id);
+			MappingWithDeposit::<T>::insert(&new_author_id, &stored_info);
+			MappingWithDeposit::<T>::remove(&old_author_id);
 
-			<Pallet<T>>::deposit_event(Event::AuthorRotated(new_author_id, account_id));
+			<Pallet<T>>::deposit_event(Event::AuthorRotated(new_author_id, stored_info.account));
 
 			Ok(())
 		}
@@ -157,14 +175,14 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let account_id = ensure_signed(origin)?;
 
-			let stored_account =
-				Mapping::<T>::try_get(&author_id).map_err(|_| Error::<T>::AssociationNotFound)?;
+			let stored_info =
+				MappingWithDeposit::<T>::try_get(&author_id).map_err(|_| Error::<T>::AssociationNotFound)?;
 
-			ensure!(account_id == stored_account, Error::<T>::NotYourAssociation);
+			ensure!(account_id == stored_info.account, Error::<T>::NotYourAssociation);
 
-			Mapping::<T>::remove(&author_id);
+			MappingWithDeposit::<T>::remove(&author_id);
 
-			T::DepositCurrency::unreserve(&account_id, T::DepositAmount::get());
+			T::DepositCurrency::unreserve(&account_id, stored_info.deposit);
 
 			<Pallet<T>>::deposit_event(Event::AuthorDeRegistered(author_id));
 
@@ -208,20 +226,33 @@ pub mod pallet {
 			author_id: &T::AuthorId,
 			account_id: &T::AccountId,
 		) -> DispatchResult {
+
+			let info = RegistrationInfo {
+				account: account_id.clone(),
+				deposit: T::DepositAmount::get(),
+			};
+
 			T::DepositCurrency::reserve(&account_id, T::DepositAmount::get())
 				.map_err(|_| Error::<T>::CannotAffordSecurityDeposit)?;
 
-			Mapping::<T>::insert(&author_id, &account_id);
+			MappingWithDeposit::<T>::insert(&author_id, &info);
 
 			Ok(())
 		}
 	}
 
 	#[pallet::storage]
-	#[pallet::getter(fn account_id_of)]
+	#[pallet::getter(fn old_account_id_of)]
+	// This is the old storage item used in the old versio nof the pallet. The type is being kept
+	// for now to enable easier migration of the data. This storage item should be removed from the
+	// code after oc-chain data has been migrated.
+	type Mapping<T: Config> = StorageMap<_, Twox64Concat, T::AuthorId, T::AccountId, OptionQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn account_and_deposit_of)]
 	/// We maintain a mapping from the AuthorIds used in the consensus layer
 	/// to the AccountIds runtime (including this staking pallet).
-	type Mapping<T: Config> = StorageMap<_, Twox64Concat, T::AuthorId, T::AccountId, OptionQuery>;
+	type MappingWithDeposit<T: Config> = StorageMap<_, Twox64Concat, T::AuthorId, RegistrationInfo<T::AccountId, BalanceOf<T>>, OptionQuery>;
 
 	#[pallet::genesis_config]
 	/// Genesis config for author mapping pallet
@@ -241,7 +272,7 @@ pub mod pallet {
 	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
 			for (author_id, account_id) in &self.mappings {
-				match Pallet::<T>::enact_registration(author_id, account_id) {
+				match Pallet::<T>::enact_registration(&author_id, &account_id) {
 					Err(e) => log::warn!("Error with genesis registration: {:?}", e),
 					_ => (),
 				};
@@ -252,6 +283,14 @@ pub mod pallet {
 	impl<T: Config> AccountLookup<T::AuthorId, T::AccountId> for Pallet<T> {
 		fn lookup_account(author: &T::AuthorId) -> Option<T::AccountId> {
 			Mapping::<T>::get(author)
+		}
+	}
+
+	impl<T: Config> Pallet<T> {
+		/// A helper function to lookup the account id associated with the given author id. This is
+		/// the primary lookup that this pallet is responsible for.
+		pub fn account_id_of(author_id: &T::AuthorId) -> Option<T::AccountId> {
+			Self::account_and_deposit_of(author_id).map(|info| info.account)
 		}
 	}
 }
