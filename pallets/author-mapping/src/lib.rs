@@ -76,14 +76,12 @@ pub mod pallet {
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_runtime_upgrade() -> Weight {
-
 			// This upgrade needs a value to use as the deposit for any registrations that were made
 			// before eposit amounts were tracked. The most 100% correct thing would be to add an
 			// associated type. But since we know this pallet on only used by moonbeam and we know
 			// the old deposit is the same for all accounts, I'll save us some headache by just
 			// defining it here.
 			let old_deposit_amount = 100u32;
-
 
 			for (author_id, account_id) in Mapping::<T>::drain() {
 				let info = RegistrationInfo {
@@ -94,7 +92,7 @@ pub mod pallet {
 			}
 
 			10_000 // No idea about the real weight. Probably not worrying about because this wil
-			       // definitely fit in one of Moonbeam's almost-empty blocks.
+			 // definitely fit in one of Moonbeam's almost-empty blocks.
 		}
 	}
 
@@ -168,7 +166,10 @@ pub mod pallet {
 			let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
 				.map_err(|_| Error::<T>::AssociationNotFound)?;
 
-			ensure!(account_id == stored_info.account, Error::<T>::NotYourAssociation);
+			ensure!(
+				account_id == stored_info.account,
+				Error::<T>::NotYourAssociation
+			);
 
 			MappingWithDeposit::<T>::insert(&new_author_id, &stored_info);
 			MappingWithDeposit::<T>::remove(&old_author_id);
@@ -189,10 +190,13 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let account_id = ensure_signed(origin)?;
 
-			let stored_info =
-				MappingWithDeposit::<T>::try_get(&author_id).map_err(|_| Error::<T>::AssociationNotFound)?;
+			let stored_info = MappingWithDeposit::<T>::try_get(&author_id)
+				.map_err(|_| Error::<T>::AssociationNotFound)?;
 
-			ensure!(account_id == stored_info.account, Error::<T>::NotYourAssociation);
+			ensure!(
+				account_id == stored_info.account,
+				Error::<T>::NotYourAssociation
+			);
 
 			MappingWithDeposit::<T>::remove(&author_id);
 
@@ -240,7 +244,6 @@ pub mod pallet {
 			author_id: &T::AuthorId,
 			account_id: &T::AccountId,
 		) -> DispatchResult {
-
 			let info = RegistrationInfo {
 				account: account_id.clone(),
 				deposit: T::DepositAmount::get(),
@@ -266,7 +269,13 @@ pub mod pallet {
 	#[pallet::getter(fn account_and_deposit_of)]
 	/// We maintain a mapping from the AuthorIds used in the consensus layer
 	/// to the AccountIds runtime (including this staking pallet).
-	type MappingWithDeposit<T: Config> = StorageMap<_, Twox64Concat, T::AuthorId, RegistrationInfo<T::AccountId, BalanceOf<T>>, OptionQuery>;
+	type MappingWithDeposit<T: Config> = StorageMap<
+		_,
+		Twox64Concat,
+		T::AuthorId,
+		RegistrationInfo<T::AccountId, BalanceOf<T>>,
+		OptionQuery,
+	>;
 
 	#[pallet::genesis_config]
 	/// Genesis config for author mapping pallet
