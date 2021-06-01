@@ -26,7 +26,7 @@ use sp_core::U256;
 use sp_std::convert::TryFrom;
 use sp_std::convert::TryInto;
 use sp_std::fmt::Debug;
-use sp_std::{marker::PhantomData};
+use sp_std::marker::PhantomData;
 
 type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as Currency<
 	<Runtime as frame_system::Config>::AccountId,

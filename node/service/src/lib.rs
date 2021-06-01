@@ -61,6 +61,7 @@ use sc_service::{
 	TFullClient, TaskManager,
 };
 use sp_api::ConstructRuntimeApi;
+use sp_blockchain::HeaderBackend;
 use std::sync::Arc;
 
 pub use client::*;
@@ -852,6 +853,8 @@ pub fn new_dev(
 				Therefore, a `LongestChainRule` is present. qed.",
 		);
 
+		let client_set_aside_for_cidp = client.clone();
+
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
 			run_manual_seal(ManualSealParams {
@@ -862,17 +865,28 @@ pub fn new_dev(
 				commands_stream,
 				select_chain,
 				consensus_data_provider: None,
-				create_inherent_data_providers: move |_, _| async move {
-					let time = sp_timestamp::InherentDataProvider::from_system_time();
+				create_inherent_data_providers: move |block: H256, ()| {
+					let current_para_block = client_set_aside_for_cidp
+						.number(block)
+						.expect("Header lookup should succeed")
+						.expect("Header passed in as parent should be present in backend.");
 
-					let mocked_parachain = inherents::MockValidationDataInherentDataProvider;
+					async move {
+						let time = sp_timestamp::InherentDataProvider::from_system_time();
 
-					//TODO I want to use the value from a variable above.
-					let author = nimbus_primitives::InherentDataProvider::<NimbusId>(
-						chain_spec::get_from_seed::<NimbusId>("Alice"),
-					);
+						let mocked_parachain = inherents::MockValidationDataInherentDataProvider {
+							current_para_block,
+							relay_offset: 1000,
+							relay_blocks_per_para_block: 2,
+						};
 
-					Ok((time, mocked_parachain, author))
+						//TODO I want to use the value from a variable above.
+						let author = nimbus_primitives::InherentDataProvider::<NimbusId>(
+							chain_spec::get_from_seed::<NimbusId>("Alice"),
+						);
+
+						Ok((time, mocked_parachain, author))
+					}
 				},
 			}),
 		);
