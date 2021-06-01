@@ -1134,7 +1134,7 @@
 			}
 		}
 		<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
-			<span class="kw">let</span> <span class="ident">runner</span> <span class="op">=</span> <span class="ident">cli</span>.<span class="ident">create_runner</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">cli</span>.<span class="ident">run</span>)<span class="question-mark">?</span>;
+			<span class="kw">let</span> <span class="ident">runner</span> <span class="op">=</span> <span class="ident">cli</span>.<span class="ident">create_runner</span>(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">cli</span>.<span class="ident">run</span>).<span class="ident">normalize</span>())<span class="question-mark">?</span>;
 			<span class="ident">runner</span>.<span class="ident">run_node_until_exit</span>(<span class="op">|</span><span class="ident">config</span><span class="op">|</span> <span class="kw">async</span> <span class="kw">move</span> {
 				<span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">sp_core</span>::<span class="ident">Pair</span>::<span class="ident">generate</span>().<span class="number">0</span>;
 
