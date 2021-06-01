@@ -149,15 +149,17 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		let mut stakers: Vec<(AccountId, Option<AccountId>, Balance)> = Vec::new();
+		let mut candidates: Vec<(AccountId, Balance)> = Vec::new();
+		let mut nominations: Vec<(AccountId, AccountId, Balance)> = Vec::new();
 		for collator in self.collators {
-			stakers.push((collator.0, None, collator.1));
+			candidates.push((collator.0, collator.1));
 		}
 		for nominator in self.nominators {
-			stakers.push((nominator.0, Some(nominator.1), nominator.2));
+			nominations.push((nominator.0, nominator.1, nominator.2));
 		}
 		parachain_staking::GenesisConfig::<Runtime> {
-			stakers,
+			candidates,
+			nominations,
 			inflation_config: self.inflation,
 		}
 		.assimilate_storage(&mut t)
