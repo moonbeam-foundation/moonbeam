@@ -25,7 +25,7 @@ use frame_support::{
 pub use moonriver_runtime::{
 	currency::MOVR, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Ethereum,
 	Event, Executive, FixedGasPrice, InflationInfo, ParachainStaking, Range, Runtime, System,
-	TransactionConverter, UncheckedExtrinsic,
+	TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::GenesisAccount;

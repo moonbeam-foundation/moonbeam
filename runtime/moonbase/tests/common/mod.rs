@@ -25,7 +25,7 @@ use frame_support::{
 pub use moonbase_runtime::{
 	currency::UNITS, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards,
 	Ethereum, Event, Executive, FixedGasPrice, InflationInfo, ParachainStaking, Range, Runtime,
-	System, TransactionConverter, UncheckedExtrinsic,
+	System, TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::GenesisAccount;
