@@ -38,8 +38,10 @@ init(
 const contractCompiled = compileSolidity(contractSource, "Loop");
 const contractBytecode = contractCompiled.bytecode;
 const contractAbi = contractCompiled.contract.abi;
-const deployer = importAccount("79b78465e13f3bf8472492c0b6068bfab0a24de8ddd76346f7b09d779f435b9b");
+const deployer = importAccount("99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342");
 const contractAddress = "0x" + web3.utils.sha3(rlp.encode([deployer.address, 0]) as any).substr(26);
+
+let nonce = 0;
 
 const printAddressInfo = async (address: string) => {
   const nonce = await web3.eth.getTransactionCount(address);
@@ -49,6 +51,8 @@ const printAddressInfo = async (address: string) => {
 
 const deployContract = async () => {
   // 1M gas contract call (big_loop)
+
+  printAddressInfo(deployer.address);
 
   const code = await customRequest("eth_getCode", [contractAddress]);
   if (code.result != "0x") {
@@ -61,9 +65,9 @@ const deployContract = async () => {
       from: deployer.address,
       data: contractBytecode,
       value: "0x00",
-      gasPrice: "0x00",
-      gas: 172663,
-      nonce: 0,
+      gasPrice: 1_000_000_000,
+      gas: 12_995_000,
+      nonce: nonce++,
     },
     deployer.privateKey
   );
@@ -93,17 +97,16 @@ const callContract = async (loopCount: number) => {
 
   const encoded = await contract.methods.big_loop(loopCount).encodeABI();
 
-  const freshAccount = web3.eth.accounts.create();
   const tx = await web3.eth.accounts.signTransaction(
     {
-      from: freshAccount.address,
+      from: deployer.address,
       to: contractAddress,
       data: encoded,
-      gasPrice: 0,
-      gas: 21829 + 381 * loopCount,
-      nonce: 0,
+      gasPrice: 1_000_000_000,
+      gas: 1_200_995_000,
+      nonce: nonce++,
     },
-    freshAccount.privateKey
+    deployer.privateKey
   );
 
   const result = await customRequest("eth_sendRawTransaction", [tx.rawTransaction]);

@@ -18,6 +18,7 @@ describeDevMoonbeam("Block Gas - Limit", (context) => {
 });
 
 describeDevMoonbeam("Block Gas - Limit", (context) => {
+  console.log("EXTRINSIC_GAS_LIMIT: "+ EXTRINSIC_GAS_LIMIT);
   it("should fail setting it over the max block gas", async function () {
     const { rawTx } = await createContract(context.web3, "TestContract", {
       gas: EXTRINSIC_GAS_LIMIT + 1,
