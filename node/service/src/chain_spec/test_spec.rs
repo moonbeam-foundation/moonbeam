@@ -19,9 +19,9 @@ use crate::chain_spec::moonbase::{moonbeam_inflation_config, testnet_genesis, Ch
 use crate::chain_spec::{get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
 use moonbeam_runtime::{currency::GLMR, AccountId};
+use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
 use std::str::FromStr;
-use nimbus_primitives::NimbusId;
 
 /// Generate testing chain_spec for staking integration tests with accounts initialized for
 /// collating and nominating.
