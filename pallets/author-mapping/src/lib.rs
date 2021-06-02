@@ -93,7 +93,7 @@ pub mod pallet {
 
 			// No idea about the real weight. Probably not worrying about because this will
 			// definitely fit in one of Moonbeam's almost-empty blocks.
-			10_000 
+			10_000
 		}
 	}
 
