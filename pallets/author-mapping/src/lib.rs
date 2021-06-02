@@ -306,7 +306,7 @@ pub mod pallet {
 
 	impl<T: Config> AccountLookup<T::AuthorId, T::AccountId> for Pallet<T> {
 		fn lookup_account(author: &T::AuthorId) -> Option<T::AccountId> {
-			Mapping::<T>::get(author)
+			Self::account_id_of(author)
 		}
 	}
 
