@@ -108,7 +108,7 @@ describeDevMoonbeam("Pallet proxy - should accept removed proxy", (context) => {
         alith,
         context.polkadotApi.tx.proxy.removeProxy(baltathar.address, "Any", 0),
         (events) => {
-          expect(events[1].event.method).to.be.eq("ExtrinsicSuccess");
+          expect(events[2].event.method).to.be.eq("ExtrinsicSuccess");
         }
       );
 
@@ -121,7 +121,7 @@ describeDevMoonbeam("Pallet proxy - should accept removed proxy", (context) => {
           context.polkadotApi.tx.balances.transfer(charleth.address, 100)
         ),
         (events) => {
-          expect(events[3].event.method).to.be.eq("ExtrinsicFailed");
+          expect(events[1].event.method).to.be.eq("ExtrinsicFailed");
         }
       );
     });
