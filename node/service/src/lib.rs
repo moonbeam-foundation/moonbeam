@@ -22,25 +22,20 @@
 //! Full Service: A complete parachain node including the pool, rpc, network, embedded relay chain
 //! Dev Service: A leaner service without the relay chain backing.
 
-use cli_opt::{EthApi as EthApiCmd, RpcConfig};
+use cli_opt::RpcConfig;
 use fc_consensus::FrontierBlockImport;
-use fc_mapping_sync::MappingSyncWorker;
-use fc_rpc::EthTask;
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use futures::StreamExt;
 pub use moonbase_runtime;
-use moonbeam_rpc_debug::DebugHandler;
 pub use moonbeam_runtime;
 pub use moonriver_runtime;
 pub use moonshadow_runtime;
-use sc_client_api::BlockchainEvents;
 use sc_service::BasePath;
 use std::{
 	collections::{BTreeMap, HashMap},
 	sync::Mutex,
 	time::Duration,
 };
-use tokio::sync::Semaphore;
 mod inherents;
 mod rpc;
 use cumulus_client_network::build_block_announce_validator;
@@ -481,32 +476,15 @@ where
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 
-	let permit_pool = Arc::new(Semaphore::new(rpc_config.ethapi_max_permits as usize));
-
-	let (trace_filter_task, trace_filter_requester) =
-		if rpc_config.ethapi.contains(&EthApiCmd::Trace) {
-			let (trace_filter_task, trace_filter_requester) = moonbeam_rpc_trace::CacheTask::create(
-				Arc::clone(&client),
-				Arc::clone(&backend),
-				Duration::from_secs(rpc_config.ethapi_trace_cache_duration),
-				Arc::clone(&permit_pool),
-			);
-			(Some(trace_filter_task), Some(trace_filter_requester))
-		} else {
-			(None, None)
-		};
-
-	let (debug_task, debug_requester) = if rpc_config.ethapi.contains(&EthApiCmd::Debug) {
-		let (debug_task, debug_requester) = DebugHandler::task(
-			Arc::clone(&client),
-			Arc::clone(&backend),
-			Arc::clone(&frontier_backend),
-			Arc::clone(&permit_pool),
-		);
-		(Some(debug_task), Some(debug_requester))
-	} else {
-		(None, None)
-	};
+	let spawned_requesters = rpc::spawn_tasks(
+		&rpc_config,
+		&task_manager,
+		client.clone(),
+		backend.clone(),
+		frontier_backend.clone(),
+		pending_transactions.clone(),
+		filter_pool.clone(),
+	);
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
@@ -547,8 +525,8 @@ where
 				command_sink: None,
 				frontier_backend: frontier_backend.clone(),
 				backend: backend.clone(),
-				debug_requester: debug_requester.clone(),
-				trace_filter_requester: trace_filter_requester.clone(),
+				debug_requester: spawned_requesters.debug.clone(),
+				trace_filter_requester: spawned_requesters.trace.clone(),
 				trace_filter_max_count: rpc_config.ethapi_trace_max_count,
 				max_past_logs,
 				transaction_converter,
@@ -557,17 +535,6 @@ where
 			rpc::create_full(deps, subscription_task_executor.clone())
 		})
 	};
-	task_manager.spawn_essential_handle().spawn(
-		"frontier-mapping-sync-worker",
-		MappingSyncWorker::new(
-			client.import_notification_stream(),
-			Duration::new(6, 0),
-			client.clone(),
-			backend.clone(),
-			frontier_backend.clone(),
-		)
-		.for_each(|()| futures::future::ready(())),
-	);
 
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		on_demand: None,
@@ -584,43 +551,6 @@ where
 		system_rpc_tx,
 		telemetry: telemetry.as_mut(),
 	})?;
-
-	// Spawn trace_filter cache task if enabled.
-	if let Some(trace_filter_task) = trace_filter_task {
-		task_manager
-			.spawn_essential_handle()
-			.spawn("trace-filter-cache", trace_filter_task);
-	}
-
-	// Spawn debug task if enabled.
-	if let Some(debug_task) = debug_task {
-		task_manager
-			.spawn_essential_handle()
-			.spawn("ethapi-debug", debug_task);
-	}
-
-	// Spawn Frontier EthFilterApi maintenance task.
-	if let Some(filter_pool) = filter_pool {
-		// Each filter is allowed to stay in the pool for 100 blocks.
-		const FILTER_RETAIN_THRESHOLD: u64 = 100;
-		task_manager.spawn_essential_handle().spawn(
-			"frontier-filter-pool",
-			EthTask::filter_pool_task(Arc::clone(&client), filter_pool, FILTER_RETAIN_THRESHOLD),
-		);
-	}
-
-	// Spawn Frontier pending transactions maintenance task (as essential, otherwise we leak).
-	if let Some(pending_transactions) = pending_transactions {
-		const TRANSACTION_RETAIN_THRESHOLD: u64 = 5;
-		task_manager.spawn_essential_handle().spawn(
-			"frontier-pending-transactions",
-			EthTask::pending_transaction_task(
-				Arc::clone(&client),
-				pending_transactions,
-				TRANSACTION_RETAIN_THRESHOLD,
-			),
-		);
-	}
 
 	let announce_block = {
 		let network = network.clone();
@@ -889,32 +819,15 @@ pub fn new_dev(
 		);
 	}
 
-	let permit_pool = Arc::new(Semaphore::new(rpc_config.ethapi_max_permits as usize));
-
-	let (trace_filter_task, trace_filter_requester) =
-		if rpc_config.ethapi.contains(&EthApiCmd::Trace) {
-			let (trace_filter_task, trace_filter_requester) = moonbeam_rpc_trace::CacheTask::create(
-				Arc::clone(&client),
-				Arc::clone(&backend),
-				Duration::from_secs(rpc_config.ethapi_trace_cache_duration),
-				Arc::clone(&permit_pool),
-			);
-			(Some(trace_filter_task), Some(trace_filter_requester))
-		} else {
-			(None, None)
-		};
-
-	let (debug_task, debug_requester) = if rpc_config.ethapi.contains(&EthApiCmd::Debug) {
-		let (debug_task, debug_requester) = DebugHandler::task(
-			Arc::clone(&client),
-			Arc::clone(&backend),
-			Arc::clone(&frontier_backend),
-			Arc::clone(&permit_pool),
-		);
-		(Some(debug_task), Some(debug_requester))
-	} else {
-		(None, None)
-	};
+	let spawned_requesters = rpc::spawn_tasks(
+		&rpc_config,
+		&task_manager,
+		client.clone(),
+		backend.clone(),
+		frontier_backend.clone(),
+		pending_transactions.clone(),
+		filter_pool.clone(),
+	);
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
@@ -955,8 +868,8 @@ pub fn new_dev(
 				command_sink: command_sink.clone(),
 				frontier_backend: frontier_backend.clone(),
 				backend: backend.clone(),
-				debug_requester: debug_requester.clone(),
-				trace_filter_requester: trace_filter_requester.clone(),
+				debug_requester: spawned_requesters.debug.clone(),
+				trace_filter_requester: spawned_requesters.trace.clone(),
 				trace_filter_max_count: rpc_config.ethapi_trace_max_count,
 				max_past_logs,
 				transaction_converter,
@@ -980,55 +893,6 @@ pub fn new_dev(
 		config,
 		telemetry: None,
 	})?;
-
-	task_manager.spawn_essential_handle().spawn(
-		"frontier-mapping-sync-worker",
-		MappingSyncWorker::new(
-			client.import_notification_stream(),
-			Duration::new(6, 0),
-			client.clone(),
-			backend,
-			frontier_backend.clone(),
-		)
-		.for_each(|()| futures::future::ready(())),
-	);
-
-	// Spawn trace_filter cache task if enabled.
-	if let Some(trace_filter_task) = trace_filter_task {
-		task_manager
-			.spawn_essential_handle()
-			.spawn("trace-filter-cache", trace_filter_task);
-	}
-
-	// Spawn debug task if enabled.
-	if let Some(debug_task) = debug_task {
-		task_manager
-			.spawn_essential_handle()
-			.spawn("ethapi-debug", debug_task);
-	}
-
-	// Spawn Frontier EthFilterApi maintenance task.
-	if let Some(filter_pool) = filter_pool {
-		// Each filter is allowed to stay in the pool for 100 blocks.
-		const FILTER_RETAIN_THRESHOLD: u64 = 100;
-		task_manager.spawn_essential_handle().spawn(
-			"frontier-filter-pool",
-			EthTask::filter_pool_task(Arc::clone(&client), filter_pool, FILTER_RETAIN_THRESHOLD),
-		);
-	}
-
-	// Spawn Frontier pending transactions maintenance task (as essential, otherwise we leak).
-	if let Some(pending_transactions) = pending_transactions {
-		const TRANSACTION_RETAIN_THRESHOLD: u64 = 5;
-		task_manager.spawn_essential_handle().spawn(
-			"frontier-pending-transactions",
-			EthTask::pending_transaction_task(
-				Arc::clone(&client),
-				pending_transactions,
-				TRANSACTION_RETAIN_THRESHOLD,
-			),
-		);
-	}
 
 	log::info!("Development Service Ready");
 
