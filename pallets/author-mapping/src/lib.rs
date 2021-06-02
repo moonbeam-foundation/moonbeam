@@ -77,7 +77,7 @@ pub mod pallet {
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_runtime_upgrade() -> Weight {
 			// This upgrade needs a value to use as the deposit for any registrations that were made
-			// before eposit amounts were tracked. The most 100% correct thing would be to add an
+			// before deposit amounts were tracked. The most 100% correct thing would be to add an
 			// associated type. But since we know this pallet on only used by moonbeam and we know
 			// the old deposit is the same for all accounts, I'll save us some headache by just
 			// defining it here.
@@ -261,7 +261,7 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn old_account_id_of)]
-	// This is the old storage item used in the old versio nof the pallet. The type is being kept
+	// This is the old storage item used in the old version of the pallet. The type is being kept
 	// for now to enable easier migration of the data. This storage item should be removed from the
 	// code after on-chain data has been migrated.
 	type Mapping<T: Config> = StorageMap<_, Twox64Concat, T::AuthorId, T::AccountId, OptionQuery>;
