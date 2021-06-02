@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! A collection of node-specific RPC methods.
+//! A collection of node-specific RPC extensions and related background tasks.
 
 use std::{sync::Arc, time::Duration};
 
@@ -236,6 +236,7 @@ where
 	io
 }
 
+/// Spawn the tasks that are required to run Moonbeam.
 pub fn spawn_tasks<B, C, BE>(
 	rpc_config: &RpcConfig,
 	task_manager: &TaskManager,
@@ -284,6 +285,8 @@ where
 		(None, None)
 	};
 
+	// Frontier offchain DB task. Essential.
+	// Maps emulated ethereum data to substrate native data.
 	task_manager.spawn_essential_handle().spawn(
 		"frontier-mapping-sync-worker",
 		MappingSyncWorker::new(
@@ -296,21 +299,24 @@ where
 		.for_each(|()| futures::future::ready(())),
 	);
 
-	// Spawn trace_filter cache task if enabled.
+	// `trace_filter` cache task. Essential.
+	// Proxies rpc requests to it's handler.
 	if let Some(trace_filter_task) = trace_filter_task {
 		task_manager
 			.spawn_essential_handle()
 			.spawn("trace-filter-cache", trace_filter_task);
 	}
 
-	// Spawn debug task if enabled.
+	// `debug` task if enabled. Essential.
+	// Proxies rpc requests to it's handler.
 	if let Some(debug_task) = debug_task {
 		task_manager
 			.spawn_essential_handle()
 			.spawn("ethapi-debug", debug_task);
 	}
 
-	// Spawn Frontier EthFilterApi maintenance task.
+	// Frontier `EthFilterApi` maintenance.
+	// Manages the pool of user-created Filters.
 	if let Some(filter_pool) = filter_pool {
 		// Each filter is allowed to stay in the pool for 100 blocks.
 		const FILTER_RETAIN_THRESHOLD: u64 = 100;
@@ -320,7 +326,8 @@ where
 		);
 	}
 
-	// Spawn Frontier pending transactions maintenance task (as essential, otherwise we leak).
+	// Frontier pending transactions task. Essential.
+	// Maintenance for the Frontier-specific pending transaction pool.
 	if let Some(pending_transactions) = pending_transactions {
 		const TRANSACTION_RETAIN_THRESHOLD: u64 = 5;
 		task_manager.spawn_essential_handle().spawn(
