@@ -236,15 +236,19 @@ where
 	io
 }
 
+pub struct SpawnTasksParams<'a, B: BlockT, C, BE> {
+	pub task_manager: &'a TaskManager,
+	pub client: Arc<C>,
+	pub substrate_backend: Arc<BE>,
+	pub frontier_backend: Arc<fc_db::Backend<B>>,
+	pub pending_transactions: PendingTransactions,
+	pub filter_pool: Option<FilterPool>,
+}
+
 /// Spawn the tasks that are required to run Moonbeam.
 pub fn spawn_tasks<B, C, BE>(
 	rpc_config: &RpcConfig,
-	task_manager: &TaskManager,
-	client: Arc<C>,
-	substrate_backend: Arc<BE>,
-	frontier_backend: Arc<fc_db::Backend<B>>,
-	pending_transactions: PendingTransactions,
-	filter_pool: Option<FilterPool>,
+	params: SpawnTasksParams<B, C, BE>,
 ) -> RpcRequesters
 where
 	C: ProvideRuntimeApi<B> + BlockOf,
@@ -263,8 +267,8 @@ where
 	let (trace_filter_task, trace_filter_requester) =
 		if rpc_config.ethapi.contains(&EthApiCmd::Trace) {
 			let (trace_filter_task, trace_filter_requester) = CacheTask::create(
-				Arc::clone(&client),
-				Arc::clone(&substrate_backend),
+				Arc::clone(&params.client),
+				Arc::clone(&params.substrate_backend),
 				Duration::from_secs(rpc_config.ethapi_trace_cache_duration),
 				Arc::clone(&permit_pool),
 			);
@@ -275,9 +279,9 @@ where
 
 	let (debug_task, debug_requester) = if rpc_config.ethapi.contains(&EthApiCmd::Debug) {
 		let (debug_task, debug_requester) = DebugHandler::task(
-			Arc::clone(&client),
-			Arc::clone(&substrate_backend),
-			Arc::clone(&frontier_backend),
+			Arc::clone(&params.client),
+			Arc::clone(&params.substrate_backend),
+			Arc::clone(&params.frontier_backend),
 			Arc::clone(&permit_pool),
 		);
 		(Some(debug_task), Some(debug_requester))
@@ -287,14 +291,14 @@ where
 
 	// Frontier offchain DB task. Essential.
 	// Maps emulated ethereum data to substrate native data.
-	task_manager.spawn_essential_handle().spawn(
+	params.task_manager.spawn_essential_handle().spawn(
 		"frontier-mapping-sync-worker",
 		MappingSyncWorker::new(
-			client.import_notification_stream(),
+			params.client.import_notification_stream(),
 			Duration::new(6, 0),
-			client.clone(),
-			substrate_backend.clone(),
-			frontier_backend.clone(),
+			params.client.clone(),
+			params.substrate_backend.clone(),
+			params.frontier_backend.clone(),
 		)
 		.for_each(|()| futures::future::ready(())),
 	);
@@ -302,7 +306,8 @@ where
 	// `trace_filter` cache task. Essential.
 	// Proxies rpc requests to it's handler.
 	if let Some(trace_filter_task) = trace_filter_task {
-		task_manager
+		params
+			.task_manager
 			.spawn_essential_handle()
 			.spawn("trace-filter-cache", trace_filter_task);
 	}
@@ -310,30 +315,35 @@ where
 	// `debug` task if enabled. Essential.
 	// Proxies rpc requests to it's handler.
 	if let Some(debug_task) = debug_task {
-		task_manager
+		params
+			.task_manager
 			.spawn_essential_handle()
 			.spawn("ethapi-debug", debug_task);
 	}
 
 	// Frontier `EthFilterApi` maintenance.
 	// Manages the pool of user-created Filters.
-	if let Some(filter_pool) = filter_pool {
+	if let Some(filter_pool) = params.filter_pool {
 		// Each filter is allowed to stay in the pool for 100 blocks.
 		const FILTER_RETAIN_THRESHOLD: u64 = 100;
-		task_manager.spawn_essential_handle().spawn(
+		params.task_manager.spawn_essential_handle().spawn(
 			"frontier-filter-pool",
-			EthTask::filter_pool_task(Arc::clone(&client), filter_pool, FILTER_RETAIN_THRESHOLD),
+			EthTask::filter_pool_task(
+				Arc::clone(&params.client),
+				filter_pool,
+				FILTER_RETAIN_THRESHOLD,
+			),
 		);
 	}
 
 	// Frontier pending transactions task. Essential.
 	// Maintenance for the Frontier-specific pending transaction pool.
-	if let Some(pending_transactions) = pending_transactions {
+	if let Some(pending_transactions) = params.pending_transactions {
 		const TRANSACTION_RETAIN_THRESHOLD: u64 = 5;
-		task_manager.spawn_essential_handle().spawn(
+		params.task_manager.spawn_essential_handle().spawn(
 			"frontier-pending-transactions",
 			EthTask::pending_transaction_task(
-				Arc::clone(&client),
+				Arc::clone(&params.client),
 				pending_transactions,
 				TRANSACTION_RETAIN_THRESHOLD,
 			),

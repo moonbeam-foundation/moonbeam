@@ -478,12 +478,14 @@ where
 
 	let spawned_requesters = rpc::spawn_tasks(
 		&rpc_config,
-		&task_manager,
-		client.clone(),
-		backend.clone(),
-		frontier_backend.clone(),
-		pending_transactions.clone(),
-		filter_pool.clone(),
+		rpc::SpawnTasksParams {
+			task_manager: &task_manager,
+			client: client.clone(),
+			substrate_backend: backend.clone(),
+			frontier_backend: frontier_backend.clone(),
+			pending_transactions: pending_transactions.clone(),
+			filter_pool: filter_pool.clone(),
+		},
 	);
 
 	let rpc_extensions_builder = {
@@ -821,12 +823,14 @@ pub fn new_dev(
 
 	let spawned_requesters = rpc::spawn_tasks(
 		&rpc_config,
-		&task_manager,
-		client.clone(),
-		backend.clone(),
-		frontier_backend.clone(),
-		pending_transactions.clone(),
-		filter_pool.clone(),
+		rpc::SpawnTasksParams {
+			task_manager: &task_manager,
+			client: client.clone(),
+			substrate_backend: backend.clone(),
+			frontier_backend: frontier_backend.clone(),
+			pending_transactions: pending_transactions.clone(),
+			filter_pool: filter_pool.clone(),
+		},
 	);
 
 	let rpc_extensions_builder = {
