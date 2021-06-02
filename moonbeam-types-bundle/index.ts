@@ -458,10 +458,7 @@ export const moonbeamDefinitions = {
 export const typesBundle = {
   spec: {
     moonbeam: moonbeamDefinitions,
-    "moonbase-alphanet": moonbeamDefinitions,
     moonbeamDefinitions,
-    "moonbeam-standalone": moonbeamDefinitions,
-    "node-moonbeam": moonbeamDefinitions,
     moonbase: moonbeamDefinitions,
     moonriver: moonbeamDefinitions,
     moonshadow: moonbeamDefinitions,
