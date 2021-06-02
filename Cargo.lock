@@ -4796,9 +4796,11 @@ dependencies = [
  "moonbeam-cli",
  "moonbeam-service",
  "nix",
+ "pallet-xcm",
  "serde",
  "serde_json",
  "tempfile",
+ "xcm-builder",
 ]
 
 [[package]]
@@ -5899,11 +5901,13 @@ dependencies = [
 [[package]]
 name = "pallet-crowdloan-rewards"
 version = "0.6.0"
-source = "git+https://github.com/purestake/crowdloan-rewards#cbe627ce0d8f81736a22fcac8d572f43070c183c"
+source = "git+https://github.com/purestake/crowdloan-rewards?branch=gorka-cb#59d9263595fab64f84a771fc4e2c1fa2b9d4aa8d"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
+ "ed25519-dalek",
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",
@@ -5916,6 +5920,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+ "sp-trie",
 ]
 
 [[package]]
