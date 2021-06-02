@@ -21,15 +21,6 @@ describeDevMoonbeam("Crowdloan", (context) => {
     const keyring = new Keyring({ type: "ethereum" });
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
   });
-  it("should be able to register the genesis account for reward", async function () {});
-});
-describeDevMoonbeam("Crowdloan", (context) => {
-  let genesisAccount: KeyringPair;
-  const relayChainAddress: string = "couldBeAnyString";
-  before("Setup genesis account for substrate", async () => {
-    const keyring = new Keyring({ type: "ethereum" });
-    genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
-  });
   it("should check initial state", async function () {
     // check that genesis has genesis balance
     expect(Number(await context.web3.eth.getBalance(GENESIS_ACCOUNT))).to.eq(
@@ -64,6 +55,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     expect(isInitialized.toHuman()).to.be.true;
   });
 });
+
 describeDevMoonbeam("Crowdloan", (context) => {
   let genesisAccount: KeyringPair;
   const relayChainAddress: string = "couldBeAnyString";
@@ -148,6 +140,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     expect((isPayable4.toHuman() as any).claimed_reward).to.equal("612.0238 kUnit");
   });
 });
+
 describeDevMoonbeam("Crowdloan", (context) => {
   let genesisAccount: KeyringPair;
   const relayChainAddress: string = "couldBeAnyString";
@@ -187,6 +180,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     expect((isPayable4.toHuman() as any).claimed_reward).to.equal("612.0238 kUnit");
   });
 });
+
 describeDevMoonbeam("Crowdloan", (context) => {
   let genesisAccount: KeyringPair;
   const relayChainAddress: string = "couldBeAnyString";
@@ -222,6 +216,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     ).to.equal(null);
   });
 });
+
 describeDevMoonbeam("Crowdloan", (context) => {
   let genesisAccount: KeyringPair;
   let alithAccount: KeyringPair;
@@ -256,6 +251,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     expect((isPayable4.toHuman() as any).claimed_reward).to.equal("611.9285 kUnit");
   });
 });
+
 describeDevMoonbeam("Crowdloan", (context) => {
   let genesisAccount: KeyringPair;
   const relayChainAddress: string = "couldBeAnyString";
