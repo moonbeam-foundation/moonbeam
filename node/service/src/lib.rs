@@ -22,7 +22,7 @@
 //! Full Service: A complete parachain node including the pool, rpc, network, embedded relay chain
 //! Dev Service: A leaner service without the relay chain backing.
 
-use cli_opt::{EthApi as EthApiCmd, RpcParams};
+use cli_opt::{EthApi as EthApiCmd, RpcConfig};
 use fc_consensus::FrontierBlockImport;
 use fc_mapping_sync::MappingSyncWorker;
 use fc_rpc::EthTask;
@@ -418,8 +418,7 @@ async fn start_node_impl<RuntimeApi, Executor>(
 	collator_key: CollatorPair,
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
-	ethapi: Vec<EthApiCmd>,
-	rpc_params: RpcParams,
+	rpc_config: RpcConfig,
 ) -> sc_service::error::Result<(TaskManager, Arc<TFullClient<Block, RuntimeApi, Executor>>)>
 where
 	RuntimeApi:
@@ -482,21 +481,22 @@ where
 	let subscription_task_executor =
 		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 
-	let permit_pool = Arc::new(Semaphore::new(rpc_params.ethapi_max_permits as usize));
+	let permit_pool = Arc::new(Semaphore::new(rpc_config.ethapi_max_permits as usize));
 
-	let (trace_filter_task, trace_filter_requester) = if ethapi.contains(&EthApiCmd::Trace) {
-		let (trace_filter_task, trace_filter_requester) = moonbeam_rpc_trace::CacheTask::create(
-			Arc::clone(&client),
-			Arc::clone(&backend),
-			Duration::from_secs(rpc_params.ethapi_trace_cache_duration),
-			Arc::clone(&permit_pool),
-		);
-		(Some(trace_filter_task), Some(trace_filter_requester))
-	} else {
-		(None, None)
-	};
+	let (trace_filter_task, trace_filter_requester) =
+		if rpc_config.ethapi.contains(&EthApiCmd::Trace) {
+			let (trace_filter_task, trace_filter_requester) = moonbeam_rpc_trace::CacheTask::create(
+				Arc::clone(&client),
+				Arc::clone(&backend),
+				Duration::from_secs(rpc_config.ethapi_trace_cache_duration),
+				Arc::clone(&permit_pool),
+			);
+			(Some(trace_filter_task), Some(trace_filter_requester))
+		} else {
+			(None, None)
+		};
 
-	let (debug_task, debug_requester) = if ethapi.contains(&EthApiCmd::Debug) {
+	let (debug_task, debug_requester) = if rpc_config.ethapi.contains(&EthApiCmd::Debug) {
 		let (debug_task, debug_requester) = DebugHandler::task(
 			Arc::clone(&client),
 			Arc::clone(&backend),
@@ -516,8 +516,8 @@ where
 		let filter_pool = filter_pool.clone();
 		let frontier_backend = frontier_backend.clone();
 		let backend = backend.clone();
-		let ethapi_cmd = ethapi.clone();
-		let max_past_logs = rpc_params.max_past_logs;
+		let ethapi_cmd = rpc_config.ethapi.clone();
+		let max_past_logs = rpc_config.max_past_logs;
 
 		let is_moonbeam = parachain_config.chain_spec.is_moonbeam();
 		let is_moonriver = parachain_config.chain_spec.is_moonriver();
@@ -549,7 +549,7 @@ where
 				backend: backend.clone(),
 				debug_requester: debug_requester.clone(),
 				trace_filter_requester: trace_filter_requester.clone(),
-				trace_filter_max_count: rpc_params.ethapi_trace_max_count,
+				trace_filter_max_count: rpc_config.ethapi_trace_max_count,
 				max_past_logs,
 				transaction_converter,
 			};
@@ -712,8 +712,7 @@ pub async fn start_node<RuntimeApi, Executor>(
 	collator_key: CollatorPair,
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
-	ethapi: Vec<EthApiCmd>,
-	rpc_params: RpcParams,
+	rpc_config: RpcConfig,
 ) -> sc_service::error::Result<(TaskManager, Arc<TFullClient<Block, RuntimeApi, Executor>>)>
 where
 	RuntimeApi:
@@ -727,8 +726,7 @@ where
 		collator_key,
 		polkadot_config,
 		id,
-		ethapi,
-		rpc_params,
+		rpc_config,
 	)
 	.await
 }
@@ -739,8 +737,7 @@ pub fn new_dev(
 	config: Configuration,
 	_author_id: Option<nimbus_primitives::NimbusId>,
 	sealing: cli_opt::Sealing,
-	ethapi: Vec<EthApiCmd>,
-	rpc_params: RpcParams,
+	rpc_config: RpcConfig,
 ) -> Result<TaskManager, ServiceError> {
 	use async_io::Timer;
 	use futures::Stream;
@@ -892,21 +889,22 @@ pub fn new_dev(
 		);
 	}
 
-	let permit_pool = Arc::new(Semaphore::new(rpc_params.ethapi_max_permits as usize));
+	let permit_pool = Arc::new(Semaphore::new(rpc_config.ethapi_max_permits as usize));
 
-	let (trace_filter_task, trace_filter_requester) = if ethapi.contains(&EthApiCmd::Trace) {
-		let (trace_filter_task, trace_filter_requester) = moonbeam_rpc_trace::CacheTask::create(
-			Arc::clone(&client),
-			Arc::clone(&backend),
-			Duration::from_secs(rpc_params.ethapi_trace_cache_duration),
-			Arc::clone(&permit_pool),
-		);
-		(Some(trace_filter_task), Some(trace_filter_requester))
-	} else {
-		(None, None)
-	};
+	let (trace_filter_task, trace_filter_requester) =
+		if rpc_config.ethapi.contains(&EthApiCmd::Trace) {
+			let (trace_filter_task, trace_filter_requester) = moonbeam_rpc_trace::CacheTask::create(
+				Arc::clone(&client),
+				Arc::clone(&backend),
+				Duration::from_secs(rpc_config.ethapi_trace_cache_duration),
+				Arc::clone(&permit_pool),
+			);
+			(Some(trace_filter_task), Some(trace_filter_requester))
+		} else {
+			(None, None)
+		};
 
-	let (debug_task, debug_requester) = if ethapi.contains(&EthApiCmd::Debug) {
+	let (debug_task, debug_requester) = if rpc_config.ethapi.contains(&EthApiCmd::Debug) {
 		let (debug_task, debug_requester) = DebugHandler::task(
 			Arc::clone(&client),
 			Arc::clone(&backend),
@@ -925,9 +923,9 @@ pub fn new_dev(
 		let network = network.clone();
 		let pending = pending_transactions.clone();
 		let filter_pool = filter_pool.clone();
-		let ethapi_cmd = ethapi.clone();
+		let ethapi_cmd = rpc_config.ethapi.clone();
 		let frontier_backend = frontier_backend.clone();
-		let max_past_logs = rpc_params.max_past_logs;
+		let max_past_logs = rpc_config.max_past_logs;
 
 		let is_moonbeam = config.chain_spec.is_moonbeam();
 		let is_moonriver = config.chain_spec.is_moonriver();
@@ -959,7 +957,7 @@ pub fn new_dev(
 				backend: backend.clone(),
 				debug_requester: debug_requester.clone(),
 				trace_filter_requester: trace_filter_requester.clone(),
-				trace_filter_max_count: rpc_params.ethapi_trace_max_count,
+				trace_filter_max_count: rpc_config.ethapi_trace_max_count,
 				max_past_logs,
 				transaction_converter,
 			};
