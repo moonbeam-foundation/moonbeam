@@ -346,9 +346,10 @@ export const moonbeamDefinitions = {
       minmax: [37, undefined],
       types: {
         AccountId: "EthereumAccountId",
+        AccountId32: "H256",
         AccountInfo: "AccountInfoWithTripleRefCount",
         Address: "AccountId",
-        AuthorId: "AccountId",
+        AuthorId: "H256",
         Balance: "u128",
         LookupSource: "AccountId",
         Account: {
@@ -437,7 +438,7 @@ export const moonbeamDefinitions = {
           downward_messages: "Vec<InboundDownwardMessage>",
           horizontal_messages: "BTreeMap<ParaId, Vec<InboundHrmpMessage>>",
         },
-        RelayChainAccountId: "H256",
+        RelayChainAccountId: "AccountId32",
         RewardInfo: {
           total_reward: "Balance",
           claimed_reward: "Balance",
