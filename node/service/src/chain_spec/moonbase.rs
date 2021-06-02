@@ -113,7 +113,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		None,
 		Some(serde_json::from_str("{\"tokenDecimals\": 18}").expect("Provided valid json map")),
 		Extensions {
-			relay_chain: "local_testnet".into(),
+			relay_chain: "westend_testnet".into(),
 			para_id: para_id.into(),
 		},
 	)
@@ -224,7 +224,7 @@ pub fn testnet_genesis(
 			// Pretty hacky. We just set the first staker to use alice's session keys.
 			// Maybe this is the moment we should finally make the `--alice` flags make sense.
 			// Which is to say, we should prefund the alice account. Actually, I think we already do that...
-			author_ids: stakers
+			mappings: stakers
 				.iter()
 				.take(1)
 				.map(|staker| {

@@ -1324,9 +1324,6 @@ pub mod pallet {
 		}
 	}
 
-	//TODO this is for coupling with the author slot filter.
-	// Nimbus should introduce its own trait for exhaustive sets
-	// and then use that here.
 	impl<T: Config> Get<Vec<T::AccountId>> for Pallet<T> {
 		fn get() -> Vec<T::AccountId> {
 			Self::selected_candidates()

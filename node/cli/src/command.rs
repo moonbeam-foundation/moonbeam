@@ -23,7 +23,7 @@ use cumulus_primitives_core::ParaId;
 use log::info;
 use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::AccountIdConversion;
-use polkadot_service::RococoChainSpec;
+use polkadot_service::WestendChainSpec;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
 	NetworkParams, Result, RuntimeVersion, SharedParams, SubstrateCli,
@@ -46,12 +46,7 @@ fn load_spec(
 		// Moonbase networks
 		"moonbase-alpha" | "alphanet" => {
 			Box::new(chain_spec::moonbase::ChainSpec::from_json_bytes(
-				&include_bytes!("../../../specs/alphanet/parachain-embedded-specs-v7.json")[..],
-			)?)
-		}
-		"moonbase-stage" | "stagenet" => {
-			Box::new(chain_spec::moonbase::ChainSpec::from_json_bytes(
-				&include_bytes!("../../../specs/stagenet/parachain-embedded-specs-v7.json")[..],
+				&include_bytes!("../../../specs/alphanet/parachain-embedded-specs-v8.json")[..],
 			)?)
 		}
 		"moonbase-local" => Box::new(chain_spec::moonbase::get_chain_spec(para_id)),
@@ -198,11 +193,8 @@ impl SubstrateCli for RelayChainCli {
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		match id {
-			"moonbase_alpha_relay" => Ok(Box::new(RococoChainSpec::from_json_bytes(
-				&include_bytes!("../../../specs/alphanet/rococo-embedded-specs-v7.json")[..],
-			)?)),
-			"moonbase_stage_relay" => Ok(Box::new(RococoChainSpec::from_json_bytes(
-				&include_bytes!("../../../specs/stagenet/rococo-embedded-specs-v7.json")[..],
+			"westend_moonbase_relay_testnet" => Ok(Box::new(WestendChainSpec::from_json_bytes(
+				&include_bytes!("../../../specs/alphanet/rococo-embedded-specs-v8.json")[..],
 			)?)),
 			// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the
 			// Polkadot service to interpret the id.
@@ -450,7 +442,7 @@ pub fn run() -> Result<()> {
 			}
 		}
 		None => {
-			let runner = cli.create_runner(&*cli.run)?;
+			let runner = cli.create_runner(&(*cli.run).normalize())?;
 			runner.run_node_until_exit(|config| async move {
 				let key = sp_core::Pair::generate().0;
 

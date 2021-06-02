@@ -61,6 +61,7 @@ use sc_service::{
 	TFullClient, TaskManager,
 };
 use sp_api::ConstructRuntimeApi;
+use sp_blockchain::HeaderBackend;
 use std::sync::Arc;
 
 pub use client::*;
@@ -443,7 +444,7 @@ where
 		frontier_backend,
 	) = params.other;
 
-	let polkadot_full_node = cumulus_client_service::build_polkadot_full_node(
+	let relay_chain_full_node = cumulus_client_service::build_polkadot_full_node(
 		polkadot_config,
 		collator_key.clone(),
 		telemetry_worker_handle,
@@ -456,24 +457,24 @@ where
 	let client = params.client.clone();
 	let backend = params.backend.clone();
 	let block_announce_validator = build_block_announce_validator(
-		polkadot_full_node.client.clone(),
+		relay_chain_full_node.client.clone(),
 		id,
-		Box::new(polkadot_full_node.network.clone()),
-		polkadot_full_node.backend.clone(),
+		Box::new(relay_chain_full_node.network.clone()),
+		relay_chain_full_node.backend.clone(),
 	);
 
 	let collator = parachain_config.role.is_authority();
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
 	let transaction_pool = params.transaction_pool.clone();
 	let mut task_manager = params.task_manager;
-	let import_queue = params.import_queue;
+	let import_queue = cumulus_client_service::SharedImportQueue::new(params.import_queue);
 	let (network, network_status_sinks, system_rpc_tx, start_network) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &parachain_config,
 			client: client.clone(),
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
-			import_queue,
+			import_queue: import_queue.clone(),
 			on_demand: None,
 			block_announce_validator_builder: Some(Box::new(|_| block_announce_validator)),
 		})?;
@@ -635,15 +636,15 @@ where
 			telemetry.as_ref().map(|t| t.handle()).clone(),
 		);
 
-		let relay_chain_backend = polkadot_full_node.backend.clone();
-		let relay_chain_client = polkadot_full_node.client.clone();
+		let relay_chain_backend = relay_chain_full_node.backend.clone();
+		let relay_chain_client = relay_chain_full_node.client.clone();
 
 		let parachain_consensus = build_nimbus_consensus(BuildNimbusConsensusParams {
 			para_id: id,
 			proposer_factory,
 			block_import,
-			relay_chain_client: polkadot_full_node.client.clone(),
-			relay_chain_backend: polkadot_full_node.backend.clone(),
+			relay_chain_client: relay_chain_full_node.client.clone(),
+			relay_chain_backend: relay_chain_full_node.backend.clone(),
 			parachain_client: client.clone(),
 			keystore: params.keystore_container.sync_keystore(),
 			create_inherent_data_providers: move |_, (relay_parent, validation_data, author_id)| {
@@ -682,8 +683,9 @@ where
 			task_manager: &mut task_manager,
 			collator_key,
 			spawner,
-			relay_chain_full_node: polkadot_full_node,
+			relay_chain_full_node,
 			parachain_consensus,
+			import_queue,
 		};
 
 		start_collator(params).await?;
@@ -693,7 +695,7 @@ where
 			announce_block,
 			task_manager: &mut task_manager,
 			para_id: id,
-			polkadot_full_node,
+			relay_chain_full_node,
 		};
 
 		start_full_node(params)?;
@@ -851,6 +853,8 @@ pub fn new_dev(
 				Therefore, a `LongestChainRule` is present. qed.",
 		);
 
+		let client_set_aside_for_cidp = client.clone();
+
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
 			run_manual_seal(ManualSealParams {
@@ -861,17 +865,28 @@ pub fn new_dev(
 				commands_stream,
 				select_chain,
 				consensus_data_provider: None,
-				create_inherent_data_providers: move |_, _| async move {
-					let time = sp_timestamp::InherentDataProvider::from_system_time();
+				create_inherent_data_providers: move |block: H256, ()| {
+					let current_para_block = client_set_aside_for_cidp
+						.number(block)
+						.expect("Header lookup should succeed")
+						.expect("Header passed in as parent should be present in backend.");
 
-					let mocked_parachain = inherents::MockValidationDataInherentDataProvider;
+					async move {
+						let time = sp_timestamp::InherentDataProvider::from_system_time();
 
-					//TODO I want to use the value from a variable above.
-					let author = nimbus_primitives::InherentDataProvider::<NimbusId>(
-						chain_spec::get_from_seed::<NimbusId>("Alice"),
-					);
+						let mocked_parachain = inherents::MockValidationDataInherentDataProvider {
+							current_para_block,
+							relay_offset: 1000,
+							relay_blocks_per_para_block: 2,
+						};
 
-					Ok((time, mocked_parachain, author))
+						//TODO I want to use the value from a variable above.
+						let author = nimbus_primitives::InherentDataProvider::<NimbusId>(
+							chain_spec::get_from_seed::<NimbusId>("Alice"),
+						);
+
+						Ok((time, mocked_parachain, author))
+					}
 				},
 			}),
 		);
