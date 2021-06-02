@@ -293,15 +293,6 @@
 <span id="290">290</span>
 <span id="291">291</span>
 <span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -333,14 +324,13 @@
 	<span class="ident">currency</span>::<span class="ident">MOVR</span>, <span class="ident">AccountId</span>, <span class="ident">AuthorFilterConfig</span>, <span class="ident">AuthorMappingConfig</span>, <span class="ident">Balance</span>, <span class="ident">BalancesConfig</span>,
 	<span class="ident">CouncilCollectiveConfig</span>, <span class="ident">CrowdloanRewardsConfig</span>, <span class="ident">DemocracyConfig</span>, <span class="ident">EVMConfig</span>,
 	<span class="ident">EthereumChainIdConfig</span>, <span class="ident">EthereumConfig</span>, <span class="ident">GenesisConfig</span>, <span class="ident">InflationInfo</span>, <span class="ident">ParachainInfoConfig</span>,
-	<span class="ident">ParachainStakingConfig</span>, <span class="ident">Range</span>, <span class="ident">SchedulerConfig</span>, <span class="ident">SudoConfig</span>, <span class="ident">SystemConfig</span>,
+	<span class="ident">ParachainStakingConfig</span>, <span class="ident">Precompiles</span>, <span class="ident">Range</span>, <span class="ident">SchedulerConfig</span>, <span class="ident">SudoConfig</span>, <span class="ident">SystemConfig</span>,
 	<span class="ident">TechComitteeCollectiveConfig</span>, <span class="ident">WASM_BINARY</span>,
 };
 <span class="kw">use</span> <span class="ident">nimbus_primitives</span>::<span class="ident">NimbusId</span>;
 <span class="kw">use</span> <span class="ident">sc_service</span>::<span class="ident">ChainType</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">use</span> <span class="ident">sp_core</span>::<span class="ident">ecdsa</span>;
-<span class="kw">use</span> <span class="ident">sp_core</span>::<span class="ident">H160</span>;
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::<span class="ident">Perbill</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">FromStr</span>;
 
@@ -478,10 +468,7 @@
 	<span class="comment">// within contracts. TODO We should have a test to ensure this is the right bytecode.</span>
 	<span class="comment">// (PUSH1 0x00 PUSH1 0x00 REVERT)</span>
 	<span class="kw">let</span> <span class="ident">revert_bytecode</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0xFD</span>];
-	<span class="comment">// TODO consider whether this should be imported from moonbeam precompiles</span>
-	<span class="kw">let</span> <span class="ident">precompile_addresses</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">1024</span>, <span class="number">1025</span>, <span class="number">2048</span>]
-		.<span class="ident">into_iter</span>()
-		.<span class="ident">map</span>(<span class="ident">H160</span>::<span class="ident">from_low_u64_be</span>);
+
 	<span class="ident">GenesisConfig</span> {
 		<span class="ident">frame_system</span>: <span class="ident">SystemConfig</span> {
 			<span class="ident">code</span>: <span class="ident">WASM_BINARY</span>
@@ -507,15 +494,10 @@
 		<span class="ident">pallet_evm</span>: <span class="ident">EVMConfig</span> {
 			<span class="comment">// We need _some_ code inserted at the precompile address so that</span>
 			<span class="comment">// the evm will actually call the address.</span>
-			<span class="comment">// TODO Cleanly fetch the addresses from</span>
-			<span class="comment">// the runtime/moonbeam precompiles and systematically fill them with code</span>
-			<span class="comment">// that will revert if it is called by accident (it shouldn&#39;t be because</span>
-			<span class="comment">// it is shadowed by the precompile).</span>
-			<span class="comment">// This one is for the parachain staking precompile wrappers</span>
-			<span class="ident">accounts</span>: <span class="ident">precompile_addresses</span>
-				.<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> {
+			<span class="ident">accounts</span>: <span class="ident">Precompiles</span>::<span class="ident">used_addresses</span>()
+				.<span class="ident">map</span>(<span class="op">|</span><span class="ident">addr</span><span class="op">|</span> {
 					(
-						<span class="ident">a</span>,
+						<span class="ident">addr</span>,
 						<span class="ident">GenesisAccount</span> {
 							<span class="ident">nonce</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
 							<span class="ident">balance</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),

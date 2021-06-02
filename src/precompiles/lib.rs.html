@@ -104,13 +104,6 @@
 <span id="101">101</span>
 <span id="102">102</span>
 <span id="103">103</span>
-<span id="104">104</span>
-<span id="105">105</span>
-<span id="106">106</span>
-<span id="107">107</span>
-<span id="108">108</span>
-<span id="109">109</span>
-<span id="110">110</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -151,9 +144,6 @@
 	<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system</span>::<span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">AccountId</span>,
 <span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">Balance</span>;
 
-<span class="comment">//TODO Maybe we don&#39;t need to / shouldn&#39;t be generic over the runtime.</span>
-<span class="comment">// Pros: Would simplify trait bounds and speed up compile time (maybe not noticeably).</span>
-<span class="comment">// Cons: Would proclude using this precompile set in mocked Runtimes.</span>
 <span class="doccomment">/// The PrecompileSet installed in the Moonbeam runtime.</span>
 <span class="doccomment">/// We include the nine Istanbul precompiles</span>
 <span class="doccomment">/// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)</span>
@@ -161,17 +151,13 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MoonbeamPrecompiles</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>);
 
-<span class="comment">// The idea here is that we won&#39;t have to list the addresses in this file and the chain spec.</span>
-<span class="comment">// Unfortunately we still have to type it twice in this file.</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">frame_system</span>::<span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">MoonbeamPrecompiles</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="ident">R</span>::<span class="ident">AccountId</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
 {
 	<span class="doccomment">/// Return all addresses that contain precompiles. This can be used to populate dummy code</span>
-	<span class="doccomment">/// under the precompile, and potentially in the future to prevent using accounts that have</span>
-	<span class="doccomment">/// precompiles at their addresses explicitly using something like SignedExtra.</span>
-	<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">used_addresses</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">R</span>::<span class="ident">AccountId</span><span class="op">&gt;</span> {
+	<span class="doccomment">/// under the precompile.</span>
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">used_addresses</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">R</span>::<span class="ident">AccountId</span><span class="op">&gt;</span> {
 		<span class="ident">sp_std</span>::<span class="macro">vec</span><span class="macro">!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">1024</span>, <span class="number">1025</span>, <span class="number">2048</span>]
 			.<span class="ident">into_iter</span>()
 			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">hash</span>(<span class="ident">x</span>).<span class="ident">into</span>())
