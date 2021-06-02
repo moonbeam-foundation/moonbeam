@@ -168,7 +168,6 @@ describeDevMoonbeam("Crowdloan", (context) => {
     await context.createBlock();
 
     // should show me the money after 5 blocks
-    // only works with a relaychain
     await context.createBlock();
     await context.createBlock();
     await context.createBlock();
