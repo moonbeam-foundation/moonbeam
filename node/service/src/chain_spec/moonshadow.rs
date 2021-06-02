@@ -28,14 +28,13 @@ use moonshadow_runtime::{
 	currency::MSHD, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig,
-	ParachainStakingConfig, Range, SchedulerConfig, SudoConfig, SystemConfig,
+	ParachainStakingConfig, Precompiles, Range, SchedulerConfig, SudoConfig, SystemConfig,
 	TechComitteeCollectiveConfig, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
 #[cfg(test)]
 use sp_core::ecdsa;
-use sp_core::H160;
 use sp_runtime::Perbill;
 use std::str::FromStr;
 
@@ -173,10 +172,7 @@ pub fn testnet_genesis(
 	// within contracts. TODO We should have a test to ensure this is the right bytecode.
 	// (PUSH1 0x00 PUSH1 0x00 REVERT)
 	let revert_bytecode = vec![0x60, 0x00, 0x60, 0x00, 0xFD];
-	// TODO consider whether this should be imported from moonbeam precompiles
-	let precompile_addresses = vec![1, 2, 3, 4, 5, 6, 7, 8, 1024, 1025, 2048]
-		.into_iter()
-		.map(H160::from_low_u64_be);
+
 	GenesisConfig {
 		frame_system: SystemConfig {
 			code: WASM_BINARY
@@ -202,15 +198,10 @@ pub fn testnet_genesis(
 		pallet_evm: EVMConfig {
 			// We need _some_ code inserted at the precompile address so that
 			// the evm will actually call the address.
-			// TODO Cleanly fetch the addresses from
-			// the runtime/moonbeam precompiles and systematically fill them with code
-			// that will revert if it is called by accident (it shouldn't be because
-			// it is shadowed by the precompile).
-			// This one is for the parachain staking precompile wrappers
-			accounts: precompile_addresses
-				.map(|a| {
+			accounts: Precompiles::used_addresses()
+				.map(|addr| {
 					(
-						a,
+						addr,
 						GenesisAccount {
 							nonce: Default::default(),
 							balance: Default::default(),

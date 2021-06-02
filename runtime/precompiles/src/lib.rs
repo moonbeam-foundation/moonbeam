@@ -37,9 +37,6 @@ type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as C
 	<Runtime as frame_system::Config>::AccountId,
 >>::Balance;
 
-//TODO Maybe we don't need to / shouldn't be generic over the runtime.
-// Pros: Would simplify trait bounds and speed up compile time (maybe not noticeably).
-// Cons: Would proclude using this precompile set in mocked Runtimes.
 /// The PrecompileSet installed in the Moonbeam runtime.
 /// We include the nine Istanbul precompiles
 /// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
@@ -47,17 +44,13 @@ type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as C
 #[derive(Debug, Clone, Copy)]
 pub struct MoonbeamPrecompiles<R>(PhantomData<R>);
 
-// The idea here is that we won't have to list the addresses in this file and the chain spec.
-// Unfortunately we still have to type it twice in this file.
 impl<R: frame_system::Config> MoonbeamPrecompiles<R>
 where
 	R::AccountId: From<H160>,
 {
 	/// Return all addresses that contain precompiles. This can be used to populate dummy code
-	/// under the precompile, and potentially in the future to prevent using accounts that have
-	/// precompiles at their addresses explicitly using something like SignedExtra.
-	#[allow(dead_code)]
-	fn used_addresses() -> impl Iterator<Item = R::AccountId> {
+	/// under the precompile.
+	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
 		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 1024, 1025, 2048]
 			.into_iter()
 			.map(|x| hash(x).into())
