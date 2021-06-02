@@ -76,6 +76,7 @@
 <span id="73">73</span>
 <span id="74">74</span>
 <span id="75">75</span>
+<span id="76">76</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -146,7 +147,8 @@
 	}
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RpcParams</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RpcConfig</span> {
+	<span class="kw">pub</span> <span class="ident">ethapi</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EthApi</span><span class="op">&gt;</span>,
 	<span class="kw">pub</span> <span class="ident">ethapi_max_permits</span>: <span class="ident">u32</span>,
 	<span class="kw">pub</span> <span class="ident">ethapi_trace_max_count</span>: <span class="ident">u32</span>,
 	<span class="kw">pub</span> <span class="ident">ethapi_trace_cache_duration</span>: <span class="ident">u64</span>,
