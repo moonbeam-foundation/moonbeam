@@ -43,7 +43,7 @@ fn join_collator_candidates() {
 			(AccountId::from(ALICE), 1_000 * MSHD),
 			(AccountId::from(BOB), 1_000 * MSHD),
 		])
-		.with_nominators(vec![
+		.with_nominations(vec![
 			(AccountId::from(CHARLIE), AccountId::from(ALICE), 50 * MSHD),
 			(AccountId::from(CHARLIE), AccountId::from(BOB), 50 * MSHD),
 		])
@@ -167,7 +167,7 @@ fn reward_block_authors() {
 			(AccountId::from(BOB), 1_000 * MSHD),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MSHD)])
-		.with_nominators(vec![(
+		.with_nominations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			500 * MSHD,
@@ -685,7 +685,7 @@ fn leave_nominators_via_precompile() {
 			(AccountId::from(ALICE), 1_000 * MSHD),
 			(AccountId::from(BOB), 1_000 * MSHD),
 		])
-		.with_nominators(vec![
+		.with_nominations(vec![
 			(AccountId::from(CHARLIE), AccountId::from(ALICE), 500 * MSHD),
 			(AccountId::from(CHARLIE), AccountId::from(BOB), 500 * MSHD),
 		])
@@ -770,7 +770,7 @@ fn revoke_nomination_via_precompile() {
 			(AccountId::from(ALICE), 1_000 * MSHD),
 			(AccountId::from(BOB), 1_000 * MSHD),
 		])
-		.with_nominators(vec![
+		.with_nominations(vec![
 			(AccountId::from(CHARLIE), AccountId::from(ALICE), 500 * MSHD),
 			(AccountId::from(CHARLIE), AccountId::from(BOB), 500 * MSHD),
 		])
@@ -838,7 +838,7 @@ fn nominator_bond_more_less_via_precompile() {
 			(AccountId::from(BOB), 1_500 * MSHD),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MSHD)])
-		.with_nominators(vec![(
+		.with_nominations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			500 * MSHD,
@@ -950,7 +950,7 @@ fn is_nominator_via_precompile() {
 			(AccountId::from(BOB), 1_500 * MSHD),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MSHD)])
-		.with_nominators(vec![(
+		.with_nominations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			500 * MSHD,

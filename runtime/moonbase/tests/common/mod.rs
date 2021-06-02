@@ -55,7 +55,7 @@ pub struct ExtBuilder {
 	// [collator, amount]
 	collators: Vec<(AccountId, Balance)>,
 	// [nominator, collator, nomination_amount]
-	nominators: Vec<(AccountId, AccountId, Balance)>,
+	nominations: Vec<(AccountId, AccountId, Balance)>,
 	// per-round inflation config
 	inflation: InflationInfo<Balance>,
 	// AuthorId -> AccoutId mappings
@@ -72,7 +72,7 @@ impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
 			balances: vec![],
-			nominators: vec![],
+			nominations: vec![],
 			collators: vec![],
 			inflation: InflationInfo {
 				expect: Range {
@@ -117,8 +117,8 @@ impl ExtBuilder {
 		self
 	}
 
-	pub fn with_nominators(mut self, nominators: Vec<(AccountId, AccountId, Balance)>) -> Self {
-		self.nominators = nominators;
+	pub fn with_nominations(mut self, nominations: Vec<(AccountId, AccountId, Balance)>) -> Self {
+		self.nominations = nominations;
 		self
 	}
 
@@ -149,17 +149,9 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		let mut candidates: Vec<(AccountId, Balance)> = Vec::new();
-		let mut nominations: Vec<(AccountId, AccountId, Balance)> = Vec::new();
-		for collator in self.collators {
-			candidates.push((collator.0, collator.1));
-		}
-		for nominator in self.nominators {
-			nominations.push((nominator.0, nominator.1, nominator.2));
-		}
 		parachain_staking::GenesisConfig::<Runtime> {
-			candidates,
-			nominations,
+			candidates: self.collators,
+			nominations: self.nominations,
 			inflation_config: self.inflation,
 		}
 		.assimilate_storage(&mut t)

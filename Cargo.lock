@@ -6580,7 +6580,6 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "log",
  "nimbus-primitives",
  "pallet-balances",
  "parity-scale-codec",
