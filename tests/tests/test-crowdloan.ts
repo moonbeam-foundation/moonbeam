@@ -21,7 +21,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     const keyring = new Keyring({ type: "ethereum" });
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
   });
-  it("should check initial state", async function () {
+  it.only("should check initial state", async function () {
     // check that genesis has genesis balance
     expect(Number(await context.web3.eth.getBalance(GENESIS_ACCOUNT))).to.eq(
       Number(GENESIS_ACCOUNT_BALANCE)
@@ -31,6 +31,10 @@ describeDevMoonbeam("Crowdloan", (context) => {
       GENESIS_ACCOUNT
     );
     expect(isPayable.toHuman()).to.equal(null);
+    // check vesting period
+    console.log(Object.keys(context.polkadotApi.consts));
+    const vestingPeriod = await context.polkadotApi.consts.crowdloanRewards.vestingPeriod;
+    console.log(vestingPeriod);
   });
   it("should be able to register the genesis account for reward", async function () {
     // should be able to register the genesis account for reward
