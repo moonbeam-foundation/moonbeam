@@ -36,6 +36,7 @@ use frame_support::{
 	PalletId,
 };
 use frame_system::{EnsureOneOf, EnsureRoot};
+use precompiles::MoonbeamPrecompiles;
 pub use moonbeam_core_primitives::{
 	AccountId, AccountIndex, Address, Balance, BlockNumber, DigestItem, Hash, Header, Index,
 	Signature,
@@ -68,6 +69,8 @@ use nimbus_primitives::{CanAuthor, NimbusId};
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
+
+pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 
 /// MOVR, the native token, uses 18 decimals of precision.
 pub mod currency {
@@ -312,7 +315,7 @@ impl pallet_evm::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type Precompiles = precompiles::MoonbeamPrecompiles<Self>;
+	type Precompiles = MoonbeamPrecompiles<Self>;
 	type ChainId = EthereumChainId;
 	type OnChargeTransaction = ();
 	type BlockGasLimit = BlockGasLimit;
