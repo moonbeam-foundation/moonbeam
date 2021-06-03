@@ -280,12 +280,8 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			));
 			assert_eq!(last_event(), expected_fail);
 			// Claim 1 block.
-			assert_ok!(CrowdloanRewards::show_me_the_money(origin_of(
-				AccountId::from(CHARLIE)
-			)));
-			assert_ok!(CrowdloanRewards::show_me_the_money(origin_of(
-				AccountId::from(DAVE)
-			)));
+			assert_ok!(CrowdloanRewards::claim(origin_of(AccountId::from(CHARLIE))));
+			assert_ok!(CrowdloanRewards::claim(origin_of(AccountId::from(DAVE))));
 
 			let vesting_period = 4 * WEEKS as u128;
 			let per_block = (1_200_000 * GLMR) / vesting_period;
@@ -302,7 +298,6 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 					.claimed_reward,
 				(300_000 * GLMR) + per_block
 			);
-			// The first call to `show_me_the_money` is free.
 			// The total claimed reward should be equal to the account balance at this point.
 			assert_eq!(
 				Balances::balance(&AccountId::from(CHARLIE)),
@@ -313,7 +308,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				(300_000 * GLMR) + per_block
 			);
 			assert_noop!(
-				CrowdloanRewards::show_me_the_money(origin_of(AccountId::from(ALICE))),
+				CrowdloanRewards::claim(origin_of(AccountId::from(ALICE))),
 				pallet_crowdloan_rewards::Error::<Runtime>::NoAssociatedClaim
 			);
 		});
