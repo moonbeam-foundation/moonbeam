@@ -43,7 +43,7 @@ fn join_collator_candidates() {
 			(AccountId::from(ALICE), 1_000 * MOVR),
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
-		.with_nominators(vec![
+		.with_nominations(vec![
 			(AccountId::from(CHARLIE), AccountId::from(ALICE), 50 * MOVR),
 			(AccountId::from(CHARLIE), AccountId::from(BOB), 50 * MOVR),
 		])
@@ -167,7 +167,7 @@ fn reward_block_authors() {
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
-		.with_nominators(vec![(
+		.with_nominations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			500 * MOVR,
@@ -276,12 +276,8 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			));
 			assert_eq!(last_event(), expected_fail);
 			// Claim 1 block.
-			assert_ok!(CrowdloanRewards::show_me_the_money(origin_of(
-				AccountId::from(CHARLIE)
-			)));
-			assert_ok!(CrowdloanRewards::show_me_the_money(origin_of(
-				AccountId::from(DAVE)
-			)));
+			assert_ok!(CrowdloanRewards::claim(origin_of(AccountId::from(CHARLIE))));
+			assert_ok!(CrowdloanRewards::claim(origin_of(AccountId::from(DAVE))));
 
 			let vesting_period = 48 * WEEKS as u128;
 			let per_block = (1_200_000 * MOVR) / vesting_period;
@@ -298,7 +294,6 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 					.claimed_reward,
 				(300_000 * MOVR) + per_block
 			);
-			// The first call to `show_me_the_money` is free.
 			// The total claimed reward should be equal to the account balance at this point.
 			assert_eq!(
 				Balances::balance(&AccountId::from(CHARLIE)),
@@ -309,7 +304,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				(300_000 * MOVR) + per_block
 			);
 			assert_noop!(
-				CrowdloanRewards::show_me_the_money(origin_of(AccountId::from(ALICE))),
+				CrowdloanRewards::claim(origin_of(AccountId::from(ALICE))),
 				pallet_crowdloan_rewards::Error::<Runtime>::NoAssociatedClaim
 			);
 		});
@@ -685,7 +680,7 @@ fn leave_nominators_via_precompile() {
 			(AccountId::from(ALICE), 1_000 * MOVR),
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
-		.with_nominators(vec![
+		.with_nominations(vec![
 			(AccountId::from(CHARLIE), AccountId::from(ALICE), 500 * MOVR),
 			(AccountId::from(CHARLIE), AccountId::from(BOB), 500 * MOVR),
 		])
@@ -770,7 +765,7 @@ fn revoke_nomination_via_precompile() {
 			(AccountId::from(ALICE), 1_000 * MOVR),
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
-		.with_nominators(vec![
+		.with_nominations(vec![
 			(AccountId::from(CHARLIE), AccountId::from(ALICE), 500 * MOVR),
 			(AccountId::from(CHARLIE), AccountId::from(BOB), 500 * MOVR),
 		])
@@ -838,7 +833,7 @@ fn nominator_bond_more_less_via_precompile() {
 			(AccountId::from(BOB), 1_500 * MOVR),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
-		.with_nominators(vec![(
+		.with_nominations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			500 * MOVR,
@@ -950,7 +945,7 @@ fn is_nominator_via_precompile() {
 			(AccountId::from(BOB), 1_500 * MOVR),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
-		.with_nominators(vec![(
+		.with_nominations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			500 * MOVR,
