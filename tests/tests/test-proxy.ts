@@ -127,3 +127,135 @@ describeDevMoonbeam("Pallet proxy - should accept removed proxy", (context) => {
     });
   });
 });
+
+describeDevMoonbeam("Pallet proxy - shouldn't accept instant for delayed proxy", (context) => {
+  it("shouldn't accept instant for delayed proxy", async () => {
+    await expectBalanceDifference(context, CHARLETH_ADDRESS, 0, async () => {
+      await substrateTransaction(
+        context,
+        alith,
+        context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Any", 2),
+        (events) => {
+          expect(events[4].event.method).to.be.eq("ExtrinsicSuccess");
+        }
+      );
+
+      await substrateTransaction(
+        context,
+        baltathar,
+        context.polkadotApi.tx.proxy.proxy(
+          alith.address,
+          null,
+          context.polkadotApi.tx.balances.transfer(charleth.address, 100)
+        ),
+        (events) => {
+          expect(events[1].event.method).to.be.eq("ExtrinsicFailed");
+        }
+      );
+    });
+  });
+});
+
+describeDevMoonbeam("Pallet proxy - shouldn't accept early delayed proxy", (context) => {
+  it("shouldn't accept early delayed proxy", async () => {
+    await expectBalanceDifference(context, CHARLETH_ADDRESS, 0, async () => {
+      await substrateTransaction(
+        context,
+        alith,
+        context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Any", 2),
+        (events) => {
+          expect(events[4].event.method).to.be.eq("ExtrinsicSuccess");
+        }
+      );
+
+      const transfer = context.polkadotApi.tx.balances.transfer(charleth.address, 100);
+
+      await substrateTransaction(
+        context,
+        baltathar,
+        context.polkadotApi.tx.proxy.announce(alith.address, transfer.hash),
+        (events) => {
+          expect(events[1].event.method).to.be.eq("Announced");
+          expect(events[3].event.method).to.be.eq("ExtrinsicSuccess");
+        }
+      );
+
+      // Too early.
+      await substrateTransaction(
+        context,
+        baltathar,
+        context.polkadotApi.tx.proxy.proxyAnnounced(
+          baltathar.address,
+          alith.address,
+          null,
+          transfer
+        ),
+        (events) => {
+          events.forEach((event) => console.log(`${event.event.method}(${event.event.data})`));
+          expect(events[1].event.method).to.be.eq("ExtrinsicFailed");
+        }
+      );
+    });
+  });
+});
+
+describeDevMoonbeam("Pallet proxy - should accept on-time delayed proxy", (context) => {
+  it("should accept on-time delayed proxy", async () => {
+    await expectBalanceDifference(context, CHARLETH_ADDRESS, 0, async () => {
+      await substrateTransaction(
+        context,
+        alith,
+        context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Any", 0),
+        (events) => {
+          expect(events[4].event.method).to.be.eq("ExtrinsicSuccess");
+        }
+      );
+
+      const transfer = context.polkadotApi.tx.balances.transfer(charleth.address, 100);
+      const transfer_hash = blake2AsU8a(transfer.data, 256);
+      console.log("data : ");
+      console.log(transfer.data);
+      console.log(transfer.toU8a());
+
+      console.log("hash : ");
+      console.log(transfer_hash);
+      console.log(transfer.hash);
+
+      await substrateTransaction(
+        context,
+        baltathar,
+        context.polkadotApi.tx.proxy.announce(alith.address, transfer_hash),
+        (events) => {
+          events.forEach((event) => console.log(`${event.event.method}(${event.event.data})`));
+
+          expect(events[1].event.method).to.be.eq("Announced");
+          expect(events[1].event.data[2]).to.be.deep.eq(transfer_hash);
+          expect(events[3].event.method).to.be.eq("ExtrinsicSuccess");
+        }
+      );
+
+      await context.createBlock();
+      await context.createBlock();
+      await context.createBlock();
+      await context.createBlock();
+      await context.createBlock();
+
+      // On time.
+      await substrateTransaction(
+        context,
+        baltathar,
+        context.polkadotApi.tx.proxy.proxyAnnounced(
+          baltathar.address,
+          alith.address,
+          null,
+          transfer
+        ),
+        (events) => {
+          console.log("------");
+          events.forEach((event) => console.log(`${event.event.method}(${event.event.data})`));
+          expect(events[1].event.method).not.to.be.eq("ExtrinsicFailed");
+        }
+      );
+    });
+  });
+});
