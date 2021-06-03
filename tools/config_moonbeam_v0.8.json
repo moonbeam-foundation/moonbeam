@@ -5,23 +5,18 @@
     "nodes": [
       {
         "name": "alice",
-        "wsPort": 9944,
-        "port": 30444
+        "wsPort": 39944,
+        "port": 39444
       },
       {
         "name": "bob",
-        "wsPort": 9955,
-        "port": 30555
-      },
-      {
-        "name": "charlie",
-        "wsPort": 9966,
-        "port": 30666
+        "wsPort": 39955,
+        "port": 39555
       },
       {
         "name": "dave",
-        "wsPort": 9977,
-        "port": 30777
+        "wsPort": 39966,
+        "port": 39666
       }
     ],
     "runtime_genesis_config": {
@@ -44,13 +39,13 @@
           "rpcPort": 36846,
           "wsPort": 36946,
           "port": 36335,
-          "flags": ["--", "--execution=wasm", "--alice"]
+          "flags": ["--alice", "--", "--execution=wasm"]
         },
         {
           "rpcPort": 36847,
           "wsPort": 36947,
           "port": 36336,
-          "flags": ["--", "--execution=wasm", "--bob"]
+          "flags": ["--bob", "--", "--execution=wasm"]
         }
       ]
     }
