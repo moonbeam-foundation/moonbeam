@@ -257,7 +257,7 @@ where
 }
 
 parameter_types! {
-	pub const TransactionByteFee: Balance = 10 * MILLICENTS;
+	pub const TransactionByteFee: Balance = currency::deposit(0, 1);
 }
 
 impl pallet_transaction_payment::Config for Runtime {
