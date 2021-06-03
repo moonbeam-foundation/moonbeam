@@ -81,8 +81,10 @@ pub mod currency {
 	pub const GRAND: Balance = MSHD * 1_000;
 	pub const MILLICENTS: Balance = CENTS / 1_000;
 
+	pub const BYTE_FEE: Balance = 10 * MILLICENTS;
+
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 100 * CENTS + (bytes as Balance) * 10 * MILLICENTS
+		items as Balance * 100 * CENTS + (bytes as Balance) * BYTE_FEE
 	}
 }
 
@@ -256,7 +258,7 @@ where
 }
 
 parameter_types! {
-	pub const TransactionByteFee: Balance = currency::deposit(0, 1);
+	pub const TransactionByteFee: Balance = currency::BYTE_FEE;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
