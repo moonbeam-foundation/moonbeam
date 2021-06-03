@@ -9,30 +9,30 @@ log = "0.4.8"
 structopt = "0.3.8"
 parity-scale-codec = '2.0.0'
 
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
-sc-cli = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
-sc-service = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
-sc-tracing = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
-sc-telemetry = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
-frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
-try-runtime-cli = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.3" }
+sc-cli = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.3" }
+sc-service = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.3" }
+sc-tracing = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.3" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.3" }
+sc-telemetry = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.3" }
+frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.3" }
+try-runtime-cli = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.3" }
 
-cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
-cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
-nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "nimbus" }
+cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v9.3" }
+cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v9.3" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v9.3" }
+nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v9.3" }
 
-polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1" }
-polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1" }
-polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1" }
-polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1" }
+polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.3" }
+polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.3" }
+polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.3" }
+polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.3" }
 
 service = { package = "moonbeam-service", path = "../service", default-features = false }
 cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt", default-features = false }
 
 [build-dependencies]
-substrate-build-script-utils = { git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+substrate-build-script-utils = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.3" }
 
 [features]
 default = [ "wasmtime" ]

@@ -116,7 +116,7 @@ pub struct ExportGenesisWasmCommand {
 #[derive(Debug, StructOpt)]
 pub struct RunCmd {
 	#[structopt(flatten)]
-	pub base: sc_cli::RunCmd,
+	pub base: cumulus_client_cli::RunCmd,
 
 	/// Id of the parachain this collator collates for.
 	#[structopt(long)]
@@ -179,7 +179,7 @@ pub struct RunCmd {
 }
 
 impl std::ops::Deref for RunCmd {
-	type Target = sc_cli::RunCmd;
+	type Target = cumulus_client_cli::RunCmd;
 
 	fn deref(&self) -> &Self::Target {
 		&self.base
@@ -198,12 +198,6 @@ pub struct Cli {
 
 	#[structopt(flatten)]
 	pub run: RunCmd,
-
-	/// Run node as collator.
-	///
-	/// Note that this is the same as running with `--validator`.
-	#[structopt(long, conflicts_with = "validator")]
-	pub collator: bool,
 
 	/// Relaychain arguments
 	#[structopt(raw = true)]

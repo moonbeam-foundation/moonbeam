@@ -31,17 +31,19 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Filter, Get, InstanceFilter, Randomness},
+	traits::{Filter, Get, Imbalance, InstanceFilter, OnUnbalanced},
 	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
+	PalletId,
 };
 use frame_system::{EnsureOneOf, EnsureRoot};
 pub use moonbeam_core_primitives::{
 	AccountId, AccountIndex, Address, Balance, BlockNumber, DigestItem, Hash, Header, Index,
 	Signature,
 };
-use moonbeam_extensions_evm::runner::stack::TraceRunner as TraceRunnerT;
+use moonbeam_rpc_primitives_txpool::TxPoolResponse;
+use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
-use pallet_ethereum::{Transaction as EthereumTransaction, TransactionAction};
+use pallet_ethereum::Transaction as EthereumTransaction;
 use pallet_evm::{
 	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator,
 	IdentityAddressMapping, Runner,
@@ -49,14 +51,14 @@ use pallet_evm::{
 use pallet_transaction_payment::CurrencyAdapter;
 pub use parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode};
-use sha3::{Digest, Keccak256};
+use precompiles::MoonbeamPrecompiles;
 use sp_api::impl_runtime_apis;
 use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentityLookup},
-	transaction_validity::{TransactionSource, TransactionValidity},
-	AccountId32, ApplyExtrinsicResult, Perbill,
+	transaction_validity::{InvalidTransaction, TransactionSource, TransactionValidity},
+	AccountId32, ApplyExtrinsicResult, Perbill, Permill,
 };
 use sp_std::{convert::TryFrom, prelude::*};
 #[cfg(feature = "std")]
@@ -67,6 +69,8 @@ use nimbus_primitives::{CanAuthor, NimbusId};
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
+
+pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 
 /// MOVR, the native token, uses 18 decimals of precision.
 pub mod currency {
@@ -103,7 +107,7 @@ pub mod opaque {
 
 	impl_opaque_keys! {
 		pub struct SessionKeys {
-			pub author_inherent: AuthorInherent,
+			pub nimbus: AuthorInherent,
 		}
 	}
 }
@@ -113,7 +117,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 38,
+	spec_version: 44,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -234,6 +238,24 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
+pub struct DealWithFees<R>(sp_std::marker::PhantomData<R>);
+impl<R> OnUnbalanced<NegativeImbalance<R>> for DealWithFees<R>
+where
+	R: pallet_balances::Config + pallet_treasury::Config<pallet_treasury::Instance1>,
+	pallet_treasury::Module<R, pallet_treasury::Instance1>: OnUnbalanced<NegativeImbalance<R>>,
+{
+	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
+		if let Some(fees) = fees_then_tips.next() {
+			// for fees, 80% are burned, 20% to the treasury
+			let (_, to_treasury) = fees.ration(80, 20);
+			// Balances module automatically burns dropped Negative Imbalances by decreasing
+			// total_supply accordingly
+			<pallet_treasury::Module<R, pallet_treasury::Instance1> as OnUnbalanced<_>>
+				::on_unbalanced(to_treasury);
+		}
+	}
+}
+
 parameter_types! {
 	pub const TransactionByteFee: Balance = 1;
 }
@@ -294,7 +316,7 @@ impl pallet_evm::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type Precompiles = precompiles::MoonbeamPrecompiles<Self>;
+	type Precompiles = MoonbeamPrecompiles<Self>;
 	type ChainId = EthereumChainId;
 	type OnChargeTransaction = ();
 	type BlockGasLimit = BlockGasLimit;
@@ -427,6 +449,56 @@ impl pallet_democracy::Config for Runtime {
 	type MaxProposals = MaxProposals;
 }
 
+parameter_types! {
+	pub const ProposalBond: Permill = Permill::from_percent(5);
+	pub const ProposalBondMinimum: Balance = 1 * currency::GLMR;
+	pub const SpendPeriod: BlockNumber = 6 * DAYS;
+	pub const CommunityTreasuryId: PalletId = PalletId(*b"pc/trsry");
+	pub const ParachainBondPalletId: PalletId = PalletId(*b"pb/trsry");
+	pub const MaxApprovals: u32 = 100;
+}
+
+type CommunityTreasuryInstance = pallet_treasury::Instance1;
+type ParachainBondTreasuryInstance = pallet_treasury::Instance2;
+
+impl pallet_treasury::Config<CommunityTreasuryInstance> for Runtime {
+	type PalletId = CommunityTreasuryId;
+	type Currency = Balances;
+	// Democracy dispatches Root
+	type ApproveOrigin = EnsureRoot<AccountId>;
+	// Democracy dispatches Root
+	type RejectOrigin = EnsureRoot<AccountId>;
+	type Event = Event;
+	// If spending proposal rejected, transfer proposer bond to treasury
+	type OnSlash = CommunityTreasury;
+	type ProposalBond = ProposalBond;
+	type ProposalBondMinimum = ProposalBondMinimum;
+	type SpendPeriod = SpendPeriod;
+	type Burn = ();
+	type BurnDestination = ();
+	type MaxApprovals = MaxApprovals;
+	type WeightInfo = ();
+	type SpendFunds = ();
+}
+
+impl pallet_treasury::Config<ParachainBondTreasuryInstance> for Runtime {
+	type PalletId = ParachainBondPalletId;
+	type Currency = Balances;
+	type ApproveOrigin = EnsureRoot<AccountId>;
+	type RejectOrigin = EnsureRoot<AccountId>;
+	type Event = Event;
+	// If spending proposal rejected, transfer proposer bond to treasury
+	type OnSlash = ParachainBondTreasury;
+	type ProposalBond = ProposalBond;
+	type ProposalBondMinimum = ProposalBondMinimum;
+	type SpendPeriod = SpendPeriod;
+	type Burn = ();
+	type BurnDestination = ();
+	type MaxApprovals = MaxApprovals;
+	type WeightInfo = ();
+	type SpendFunds = ();
+}
+
 pub struct TransactionConverter;
 
 impl fp_rpc::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
@@ -453,7 +525,7 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 
 impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
-	type FindAuthor = pallet_author_mapping::MappedFindAuthor<Self, AuthorInherent>;
+	type FindAuthor = AuthorInherent;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot;
 }
 
@@ -465,7 +537,8 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
 	type SelfParaId = ParachainInfo;
-	type DownwardMessageHandlers = ();
+	type DmpMessageHandler = ();
+	type ReservedDmpWeight = ();
 	type OutboundXcmpMessageSource = ();
 	type XcmpMessageHandler = ();
 	type ReservedXcmpWeight = ReservedXcmpWeight;
@@ -513,17 +586,12 @@ impl parachain_staking::Config for Runtime {
 impl pallet_author_inherent::Config for Runtime {
 	type AuthorId = NimbusId;
 	type SlotBeacon = pallet_author_inherent::RelayChainBeacon<Self>;
-	//TODO This is making me think the mapping should just happen in the author inherent pallet
-	// Or maybe the sessions pallet will interface really naturally with the author inherent pallet?
-	type EventHandler = pallet_author_mapping::MappedEventHandler<Self, ParachainStaking>;
-	type PreliminaryCanAuthor = pallet_author_mapping::MappedCanAuthor<Self, ParachainStaking>;
-	type FullCanAuthor = pallet_author_mapping::MappedCanAuthor<Self, AuthorFilter>;
+	type AccountLookup = AuthorMapping;
+	type EventHandler = ParachainStaking;
+	type CanAuthor = AuthorFilter;
 }
 
 impl pallet_author_slot_filter::Config for Runtime {
-	// All of our filtering is going to happen in the runtime's accountId type (same as staking.)
-	// Maybe I should remove this associated type entirely
-	type AuthorId = AccountId;
 	type Event = Event;
 	type RandomnessSource = RandomnessCollectiveFlip;
 	type PotentialAuthors = ParachainStaking;
@@ -546,10 +614,20 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type RelayChainAccountId = AccountId32;
 	type VestingPeriod = VestingPeriod;
 }
+
+parameter_types! {
+	pub const DepositAmount: Balance = 100 * currency::GLMR;
+}
 // This is a simple session key manager. It should probably either work with, or be replaced
 // entirely by pallet sessions
 impl pallet_author_mapping::Config for Runtime {
+	type Event = Event;
 	type AuthorId = NimbusId;
+	type DepositCurrency = Balances;
+	type DepositAmount = DepositAmount;
+	fn can_register(account: &AccountId) -> bool {
+		ParachainStaking::is_candidate(account)
+	}
 }
 
 parameter_types! {
@@ -667,12 +745,13 @@ construct_runtime! {
 			pallet_collective::<Instance1>::{Pallet, Call, Event<T>, Origin<T>, Config<T>},
 		TechComitteeCollective:
 			pallet_collective::<Instance2>::{Pallet, Call, Event<T>, Origin<T>, Config<T>},
-		// The order matters here. Inherents will be included in the order specified here.
-		// Concretely we need the author inherent to come after the parachain_system inherent.
+		CommunityTreasury: pallet_treasury::<Instance1>::{Pallet, Storage, Config, Event<T>, Call},
+		ParachainBondTreasury:
+			pallet_treasury::<Instance2>::{Pallet, Storage, Config, Event<T>, Call},
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent},
-		AuthorFilter: pallet_author_slot_filter::{Pallet, Storage, Event, Config},
+		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config},
 		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>},
-		AuthorMapping: pallet_author_mapping::{Pallet, Config<T>, Storage},
+		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
 	}
 }
@@ -750,10 +829,6 @@ impl_runtime_apis! {
 		) -> sp_inherents::CheckInherentsResult {
 			data.check_extrinsics(&block)
 		}
-
-		fn random_seed() -> <Block as BlockT>::Hash {
-			RandomnessCollectiveFlip::random_seed().0
-		}
 	}
 
 	impl sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block> for Runtime {
@@ -761,7 +836,23 @@ impl_runtime_apis! {
 			source: TransactionSource,
 			tx: <Block as BlockT>::Extrinsic,
 		) -> TransactionValidity {
-			Executive::validate_transaction(source, tx)
+			// filtered calls should never enter the tx pool so they never enter a block
+			let mut allowed = <Runtime as frame_system::Config>
+				::BaseCallFilter::filter(&tx.function);
+			// filtered calls are still allowed if source is sudo
+			if !allowed {
+				match &tx.signature {
+					Some((account, ..)) => if &Sudo::key() == account {
+						allowed = true;
+					},
+					_ => (),
+				}
+			}
+			if allowed {
+				Executive::validate_transaction(source, tx)
+			} else {
+				InvalidTransaction::Call.into()
+			}
 		}
 	}
 
@@ -788,6 +879,7 @@ impl_runtime_apis! {
 			System::account_nonce(account)
 		}
 	}
+
 	impl moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block> for Runtime {
 		fn trace_transaction(
 			extrinsics: Vec<<Block as BlockT>::Extrinsic>,
@@ -797,22 +889,8 @@ impl_runtime_apis! {
 			moonbeam_rpc_primitives_debug::single::TransactionTrace,
 			sp_runtime::DispatchError
 		> {
-			// Get the caller;
-			let mut sig = [0u8; 65];
-			let mut msg = [0u8; 32];
-			sig[0..32].copy_from_slice(&transaction.signature.r()[..]);
-			sig[32..64].copy_from_slice(&transaction.signature.s()[..]);
-			sig[64] = transaction.signature.standard_v();
-			msg.copy_from_slice(
-				&pallet_ethereum::TransactionMessage::from(transaction.clone()).hash()[..]
-			);
-
-			let from = match sp_io::crypto::secp256k1_ecdsa_recover(&sig, &msg) {
-				Ok(pk) => H160::from(
-					H256::from_slice(Keccak256::digest(&pk).as_slice())
-				),
-				_ => H160::default()
-			};
+			use moonbeam_rpc_primitives_debug::single::TraceType;
+			use moonbeam_evm_tracer::{RawTracer, CallListTracer};
 
 			// Apply the a subset of extrinsics: all the substrate-specific or ethereum transactions
 			// that preceded the requested transaction.
@@ -820,51 +898,40 @@ impl_runtime_apis! {
 				let _ = match &ext.function {
 					Call::Ethereum(transact(t)) => {
 						if t == transaction {
-							break;
+							return match trace_type {
+								TraceType::Raw {
+									disable_storage,
+									disable_memory,
+									disable_stack,
+								} => {
+									Ok(RawTracer::new(disable_storage,
+										disable_memory,
+										disable_stack,)
+										.trace(|| Executive::apply_extrinsic(ext))
+										.0
+										.into_tx_trace()
+									)
+								},
+								TraceType::CallList => {
+									Ok(CallListTracer::new()
+										.trace(|| Executive::apply_extrinsic(ext))
+										.0
+										.into_tx_trace()
+									)
+								}
+							}
+
+						} else {
+							Executive::apply_extrinsic(ext)
 						}
-						Executive::apply_extrinsic(ext)
 					},
 					_ => Executive::apply_extrinsic(ext)
 				};
 			}
 
-			let mut c = <Runtime as pallet_evm::Config>::config().clone();
-			c.estimate = true;
-			let config = Some(c);
-
-			// Use the runner extension to interface with our evm's trace executor and return the
-			// TraceExecutorResult.
-			match transaction.action {
-				TransactionAction::Call(to) => {
-					if let Ok(res) = <Runtime as pallet_evm::Config>::Runner::trace_call(
-						from,
-						to,
-						transaction.input.clone(),
-						transaction.value,
-						transaction.gas_limit.low_u64(),
-						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
-						trace_type,
-					) {
-						return Ok(res);
-					} else {
-						return Err(sp_runtime::DispatchError::Other("Evm error"));
-					}
-				},
-				TransactionAction::Create => {
-					if let Ok(res) = <Runtime as pallet_evm::Config>::Runner::trace_create(
-						from,
-						transaction.input.clone(),
-						transaction.value,
-						transaction.gas_limit.low_u64(),
-						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
-						trace_type,
-					) {
-						return Ok(res);
-					} else {
-						return Err(sp_runtime::DispatchError::Other("Evm error"));
-					}
-				}
-			}
+			Err(sp_runtime::DispatchError::Other(
+				"Failed to find Ethereum transaction among the extrinsics."
+			))
 		}
 
 		fn trace_block(
@@ -875,6 +942,7 @@ impl_runtime_apis! {
 				sp_runtime::DispatchError
 			> {
 			use moonbeam_rpc_primitives_debug::{single, block, CallResult, CreateResult, CreateType};
+			use moonbeam_evm_tracer::CallListTracer;
 
 			let mut config = <Runtime as pallet_evm::Config>::config().clone();
 			config.estimate = true;
@@ -885,51 +953,11 @@ impl_runtime_apis! {
 			// Apply all extrinsics. Ethereum extrinsics are traced.
 			for ext in extrinsics.into_iter() {
 				match &ext.function {
-					Call::Ethereum(transact(transaction)) => {
-						// Get the caller;
-						let mut sig = [0u8; 65];
-						let mut msg = [0u8; 32];
-						sig[0..32].copy_from_slice(&transaction.signature.r()[..]);
-						sig[32..64].copy_from_slice(&transaction.signature.s()[..]);
-						sig[64] = transaction.signature.standard_v();
-						msg.copy_from_slice(
-							&pallet_ethereum::TransactionMessage::from(transaction.clone())
-								.hash()[..]
-						);
-
-						let from = match sp_io::crypto::secp256k1_ecdsa_recover(&sig, &msg) {
-							Ok(pk) => H160::from(
-								H256::from_slice(Keccak256::digest(&pk).as_slice())
-							),
-							_ => H160::default()
-						};
-
-						// Use the runner extension to interface with our evm's trace executor and
-						// return the TraceExecutorResult.
-						let tx_traces = match transaction.action {
-							TransactionAction::Call(to) => {
-								<Runtime as pallet_evm::Config>::Runner::trace_call(
-									from,
-									to,
-									transaction.input.clone(),
-									transaction.value,
-									transaction.gas_limit.low_u64(),
-									&config,
-									single::TraceType::CallList,
-								).map_err(|_| sp_runtime::DispatchError::Other("Evm error"))?
-
-							},
-							TransactionAction::Create => {
-								<Runtime as pallet_evm::Config>::Runner::trace_create(
-									from,
-									transaction.input.clone(),
-									transaction.value,
-									transaction.gas_limit.low_u64(),
-									&config,
-									single::TraceType::CallList,
-								).map_err(|_| sp_runtime::DispatchError::Other("Evm error"))?
-							}
-						};
+					Call::Ethereum(transact(_transaction)) => {
+						let tx_traces = CallListTracer::new()
+							.trace(|| Executive::apply_extrinsic(ext))
+							.0
+							.into_tx_trace();
 
 						let tx_traces = match tx_traces {
 							single::TransactionTrace::CallList(t) => t,
@@ -1012,7 +1040,7 @@ impl_runtime_apis! {
 									refund_address
 								} => block::TransactionTrace {
 									action: block::TransactionTraceAction::Suicide {
-										address: from,
+										address: trace.from,
 										balance,
 										refund_address,
 									},
@@ -1047,12 +1075,19 @@ impl_runtime_apis! {
 
 	impl moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block> for Runtime {
 		fn extrinsic_filter(
-			xts: Vec<<Block as BlockT>::Extrinsic>
-		) -> Vec<pallet_ethereum::Transaction> {
-			xts.into_iter().filter_map(|xt| match xt.function {
-				Call::Ethereum(transact(t)) => Some(t),
-				_ => None
-			}).collect()
+			xts_ready: Vec<<Block as BlockT>::Extrinsic>,
+			xts_future: Vec<<Block as BlockT>::Extrinsic>
+		) -> TxPoolResponse {
+			TxPoolResponse {
+				ready: xts_ready.into_iter().filter_map(|xt| match xt.function {
+					Call::Ethereum(transact(t)) => Some(t),
+					_ => None
+				}).collect(),
+				future: xts_future.into_iter().filter_map(|xt| match xt.function {
+					Call::Ethereum(transact(t)) => Some(t),
+					_ => None
+				}).collect(),
+			}
 		}
 	}
 
@@ -1187,7 +1222,13 @@ impl_runtime_apis! {
 
 	impl nimbus_primitives::AuthorFilterAPI<Block, nimbus_primitives::NimbusId> for Runtime {
 		fn can_author(author: nimbus_primitives::NimbusId, slot: u32) -> bool {
-			<Runtime as pallet_author_inherent::Config>::FullCanAuthor::can_author(&author, &slot)
+			AuthorInherent::can_author(&author, &slot)
+		}
+	}
+
+	impl cumulus_primitives_core::CollectCollationInfo<Block> for Runtime {
+		fn collect_collation_info() -> cumulus_primitives_core::CollationInfo {
+			ParachainSystem::collect_collation_info()
 		}
 	}
 

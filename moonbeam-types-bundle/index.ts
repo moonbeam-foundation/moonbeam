@@ -1,3 +1,4 @@
+import { ACCOUNT_ID_PREFIX } from "@polkadot/types/ethereum/LookupSource";
 import {
   OverrideBundleDefinition,
   OverrideBundleType,
@@ -241,7 +242,7 @@ export const moonbeamDefinitions = {
       },
     },
     {
-      minmax: [36, undefined],
+      minmax: [36, 36],
       types: {
         AccountId: "EthereumAccountId",
         AccountInfo: "AccountInfoWithTripleRefCount",
@@ -343,12 +344,13 @@ export const moonbeamDefinitions = {
       },
     },
     {
-      minmax: [36, undefined],
+      minmax: [37, 42],
       types: {
         AccountId: "EthereumAccountId",
-        AccountInfo: "AccountInfoWithProviders",
+        AccountId32: "H256",
+        AccountInfo: "AccountInfoWithTripleRefCount",
         Address: "AccountId",
-        AuthorId: "AccountId",
+        AuthorId: "H256",
         Balance: "u128",
         LookupSource: "AccountId",
         Account: {
@@ -437,7 +439,7 @@ export const moonbeamDefinitions = {
           downward_messages: "Vec<InboundDownwardMessage>",
           horizontal_messages: "BTreeMap<ParaId, Vec<InboundHrmpMessage>>",
         },
-        RelayChainAccountId: "H256",
+        RelayChainAccountId: "AccountId32",
         RoundInfo: {
           current: "RoundIndex",
           first: "BlockNumber",
@@ -448,6 +450,120 @@ export const moonbeamDefinitions = {
           claimed_reward: "Balance",
           last_paid: "BlockNumber",
           free_claim_done: "bool",
+        },
+      },
+    },
+    {
+      minmax: [43, undefined],
+      types: {
+        AccountId: "EthereumAccountId",
+        AccountId32: "H256",
+        AccountInfo: "AccountInfoWithTripleRefCount",
+        Address: "AccountId",
+        AuthorId: "H256",
+        Balance: "u128",
+        LookupSource: "AccountId",
+        Account: {
+          nonce: "U256",
+          balance: "u128",
+        },
+        ExtrinsicSignature: "EthereumSignature",
+        RoundIndex: "u32",
+        Candidate: {
+          id: "AccountId",
+          fee: "Perbill",
+          bond: "Balance",
+          nominators: "Vec<Bond>",
+          total: "Balance",
+          state: "CollatorStatus",
+        },
+        Nominator: {
+          nominations: "Vec<Bond>",
+          total: "Balance",
+        },
+        Bond: {
+          owner: "AccountId",
+          amount: "Balance",
+        },
+        CollatorStatus: {
+          _enum: ["Active", "Idle", { Leaving: "RoundIndex" }],
+        },
+        TxPoolResultContent: {
+          pending: "HashMap<H160, HashMap<U256, PoolTransaction>>",
+          queued: "HashMap<H160, HashMap<U256, PoolTransaction>>",
+        },
+        TxPoolResultInspect: {
+          pending: "HashMap<H160, HashMap<U256, Summary>>",
+          queued: "HashMap<H160, HashMap<U256, Summary>>",
+        },
+        TxPoolResultStatus: {
+          pending: "U256",
+          queued: "U256",
+        },
+        Summary: "Bytes",
+        PoolTransaction: {
+          hash: "H256",
+          nonce: "U256",
+          block_hash: "Option<H256>",
+          block_number: "Option<U256>",
+          from: "H160",
+          to: "Option<H160>",
+          value: "U256",
+          gas_price: "U256",
+          gas: "U256",
+          input: "Bytes",
+        },
+        // Staking inflation
+        Range: "RangeBalance",
+        RangeBalance: {
+          min: "Balance",
+          ideal: "Balance",
+          max: "Balance",
+        },
+        RangePerbill: {
+          min: "Perbill",
+          ideal: "Perbill",
+          max: "Perbill",
+        },
+        InflationInfo: {
+          expect: "RangeBalance",
+          annual: "RangePerbill",
+          round: "RangePerbill",
+        },
+        OrderedSet: "Vec<Bond>",
+        Collator: {
+          id: "AccountId",
+          bond: "Balance",
+          nominators: "Vec<Bond>",
+          total: "Balance",
+          state: "CollatorStatus",
+        },
+        CollatorSnapshot: {
+          bond: "Balance",
+          nominators: "Vec<Bond>",
+          total: "Balance",
+        },
+        SystemInherentData: {
+          validation_data: "PersistedValidationData",
+          relay_chain_state: "StorageProof",
+          downward_messages: "Vec<InboundDownwardMessage>",
+          horizontal_messages: "BTreeMap<ParaId, Vec<InboundHrmpMessage>>",
+        },
+        RelayChainAccountId: "AccountId32",
+        RoundInfo: {
+          current: "RoundIndex",
+          first: "BlockNumber",
+          length: "u32",
+        },
+        RewardInfo: {
+          total_reward: "Balance",
+          claimed_reward: "Balance",
+          last_paid: "BlockNumber",
+          free_claim_done: "bool",
+        },
+        RegistrationInfo: {
+          account: "AccountId",
+          deposit: "Balance",
         },
       },
     },
