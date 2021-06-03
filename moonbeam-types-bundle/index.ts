@@ -556,8 +556,6 @@ export const moonbeamDefinitions = {
         RewardInfo: {
           total_reward: "Balance",
           claimed_reward: "Balance",
-          last_paid: "BlockNumber",
-          free_claim_done: "bool",
         },
         RegistrationInfo: {
           account: "AccountId",
