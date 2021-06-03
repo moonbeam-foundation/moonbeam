@@ -608,7 +608,8 @@ pub mod pallet {
 
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
-		pub stakers: Vec<(T::AccountId, Option<T::AccountId>, BalanceOf<T>)>,
+		pub candidates: Vec<(T::AccountId, BalanceOf<T>)>,
+		pub nominations: Vec<(T::AccountId, T::AccountId, BalanceOf<T>)>,
 		pub inflation_config: InflationInfo<BalanceOf<T>>,
 	}
 
@@ -616,7 +617,8 @@ pub mod pallet {
 	impl<T: Config> Default for GenesisConfig<T> {
 		fn default() -> Self {
 			Self {
-				stakers: vec![],
+				candidates: vec![],
+				nominations: vec![],
 				..Default::default()
 			}
 		}
@@ -626,23 +628,28 @@ pub mod pallet {
 	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
 			<InflationConfig<T>>::put(self.inflation_config.clone());
-			for &(ref actor, ref opt_val, balance) in &self.stakers {
+			// Initialize the candidates
+			for &(ref candidate, balance) in &self.candidates {
 				assert!(
-					T::Currency::free_balance(&actor) >= balance,
-					"Account does not have enough balance to bond."
+					T::Currency::free_balance(&candidate) >= balance,
+					"Account does not have enough balance to bond as a cadidate."
 				);
-				let _ = if let Some(nominated_val) = opt_val {
-					<Pallet<T>>::nominate(
-						T::Origin::from(Some(actor.clone()).into()),
-						nominated_val.clone(),
-						balance,
-					)
-				} else {
-					<Pallet<T>>::join_candidates(
-						T::Origin::from(Some(actor.clone()).into()),
-						balance,
-					)
-				};
+				let _ = <Pallet<T>>::join_candidates(
+					T::Origin::from(Some(candidate.clone()).into()),
+					balance,
+				);
+			}
+			// Initialize the nominations
+			for &(ref nominator, ref target, balance) in &self.nominations {
+				assert!(
+					T::Currency::free_balance(&nominator) >= balance,
+					"Account does not have enough balance to place nomination."
+				);
+				let _ = <Pallet<T>>::nominate(
+					T::Origin::from(Some(nominator.clone()).into()),
+					target.clone(),
+					balance,
+				);
 			}
 			// Set collator commission to default config
 			<CollatorCommission<T>>::put(T::DefaultCollatorCommission::get());
@@ -1324,9 +1331,6 @@ pub mod pallet {
 		}
 	}
 
-	//TODO this is for coupling with the author slot filter.
-	// Nimbus should introduce its own trait for exhaustive sets
-	// and then use that here.
 	impl<T: Config> Get<Vec<T::AccountId>> for Pallet<T> {
 		fn get() -> Vec<T::AccountId> {
 			Self::selected_candidates()

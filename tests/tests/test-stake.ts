@@ -1,24 +1,30 @@
 import { expect } from "chai";
 
-import { DEFAULT_GENESIS_STAKING, GENESIS_ACCOUNT } from "../util/constants";
+import {
+  DEFAULT_GENESIS_MAPPING,
+  DEFAULT_GENESIS_STAKING,
+  GENESIS_ACCOUNT,
+  COLLATOR_ACCOUNT,
+} from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 
 describeDevMoonbeam("Staking - Genesis", (context) => {
   it("should match collator reserved bond reserved", async function () {
-    const account = await context.polkadotApi.query.system.account(GENESIS_ACCOUNT);
-    expect(account.data.reserved.toString()).to.equal(DEFAULT_GENESIS_STAKING.toString());
+    const account = await context.polkadotApi.query.system.account(COLLATOR_ACCOUNT);
+    const expectedReserved = DEFAULT_GENESIS_STAKING + DEFAULT_GENESIS_MAPPING;
+    expect(account.data.reserved.toString()).to.equal(expectedReserved.toString());
   });
 
   it("should include collator from the specs", async function () {
     const collators = await context.polkadotApi.query.parachainStaking.selectedCandidates();
-    expect((collators[0] as Buffer).toString("hex").toLowerCase()).equal(GENESIS_ACCOUNT);
+    expect((collators[0] as Buffer).toString("hex").toLowerCase()).equal(COLLATOR_ACCOUNT);
   });
 
   it("should have collator state as defined in the specs", async function () {
     const candidates = await context.polkadotApi.query.parachainStaking.collatorState(
-      GENESIS_ACCOUNT
+      COLLATOR_ACCOUNT
     );
-    expect(candidates.toHuman()["id"].toLowerCase()).equal(GENESIS_ACCOUNT);
+    expect(candidates.toHuman()["id"].toLowerCase()).equal(COLLATOR_ACCOUNT);
     expect(candidates.toHuman()["state"]).equal("Active");
   });
 

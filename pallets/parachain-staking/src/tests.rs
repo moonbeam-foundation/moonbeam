@@ -38,7 +38,7 @@ fn geneses() {
 			(9, 4),
 		])
 		.with_collators(vec![(1, 500), (2, 200)])
-		.with_nominators(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
+		.with_nominations(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
 		.build()
 		.execute_with(|| {
 			assert!(System::events().is_empty());
@@ -80,7 +80,7 @@ fn geneses() {
 			(10, 100),
 		])
 		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
-		.with_nominators(vec![
+		.with_nominations(vec![
 			(6, 1, 10),
 			(7, 1, 10),
 			(8, 2, 10),
@@ -123,7 +123,7 @@ fn online_offline_works() {
 			(9, 4),
 		])
 		.with_collators(vec![(1, 500), (2, 200)])
-		.with_nominators(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
+		.with_nominations(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
 		.build()
 		.execute_with(|| {
 			roll_to(4);
@@ -193,7 +193,7 @@ fn join_collator_candidates() {
 			(9, 4),
 		])
 		.with_collators(vec![(1, 500), (2, 200)])
-		.with_nominators(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
+		.with_nominations(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
 		.build()
 		.execute_with(|| {
 			assert_noop!(
@@ -212,7 +212,8 @@ fn join_collator_candidates() {
 				Stake::join_candidates(Origin::signed(8), 10u128,),
 				DispatchError::Module {
 					index: 1,
-					error: 3,
+
+					error: 2,
 					message: Some("InsufficientBalance")
 				}
 			);
@@ -240,7 +241,7 @@ fn collator_exit_executes_after_delay() {
 			(9, 4),
 		])
 		.with_collators(vec![(1, 500), (2, 200)])
-		.with_nominators(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
+		.with_nominations(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
 		.build()
 		.execute_with(|| {
 			roll_to(4);
@@ -561,7 +562,7 @@ fn collator_commission() {
 			(6, 100),
 		])
 		.with_collators(vec![(1, 20)])
-		.with_nominators(vec![(2, 1, 10), (3, 1, 10)])
+		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
 		.build()
 		.execute_with(|| {
 			roll_to(8);
@@ -627,7 +628,7 @@ fn multiple_nominations() {
 			(10, 100),
 		])
 		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
-		.with_nominators(vec![
+		.with_nominations(vec![
 			(6, 1, 10),
 			(7, 1, 10),
 			(8, 2, 10),
@@ -688,7 +689,8 @@ fn multiple_nominations() {
 				Stake::nominate(Origin::signed(7), 3, 11),
 				DispatchError::Module {
 					index: 1,
-					error: 3,
+
+					error: 2,
 					message: Some("InsufficientBalance")
 				},
 			);
@@ -779,7 +781,7 @@ fn collators_bond() {
 			(10, 100),
 		])
 		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
-		.with_nominators(vec![
+		.with_nominations(vec![
 			(6, 1, 10),
 			(7, 1, 10),
 			(8, 2, 10),
@@ -798,7 +800,8 @@ fn collators_bond() {
 				Stake::candidate_bond_more(Origin::signed(1), 40),
 				DispatchError::Module {
 					index: 1,
-					error: 3,
+
+					error: 2,
 					message: Some("InsufficientBalance")
 				}
 			);
@@ -851,7 +854,7 @@ fn nominators_bond() {
 			(10, 100),
 		])
 		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
-		.with_nominators(vec![
+		.with_nominations(vec![
 			(6, 1, 10),
 			(7, 1, 10),
 			(8, 2, 10),
@@ -894,7 +897,8 @@ fn nominators_bond() {
 				Stake::nominator_bond_more(Origin::signed(6), 1, 81),
 				DispatchError::Module {
 					index: 1,
-					error: 3,
+
+					error: 2,
 					message: Some("InsufficientBalance")
 				}
 			);
@@ -924,7 +928,7 @@ fn revoke_nomination_or_leave_nominators() {
 			(10, 100),
 		])
 		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
-		.with_nominators(vec![
+		.with_nominations(vec![
 			(6, 1, 10),
 			(7, 1, 10),
 			(8, 2, 10),
@@ -981,7 +985,7 @@ fn payouts_follow_nomination_changes() {
 			(10, 100),
 		])
 		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
-		.with_nominators(vec![
+		.with_nominations(vec![
 			(6, 1, 10),
 			(7, 1, 10),
 			(8, 2, 10),
@@ -1152,7 +1156,7 @@ fn round_transitions() {
 			(6, 100),
 		])
 		.with_collators(vec![(1, 20)])
-		.with_nominators(vec![(2, 1, 10), (3, 1, 10)])
+		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
 		.build()
 		.execute_with(|| {
 			// Default round every 5 blocks, but MinBlocksPerRound is 3 and we set it to min 3 blocks
@@ -1190,7 +1194,7 @@ fn round_transitions() {
 			(6, 100),
 		])
 		.with_collators(vec![(1, 20)])
-		.with_nominators(vec![(2, 1, 10), (3, 1, 10)])
+		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
 		.build()
 		.execute_with(|| {
 			roll_to(9);
@@ -1226,7 +1230,7 @@ fn round_transitions() {
 			(6, 100),
 		])
 		.with_collators(vec![(1, 20)])
-		.with_nominators(vec![(2, 1, 10), (3, 1, 10)])
+		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
 		.build()
 		.execute_with(|| {
 			// Default round every 5 blocks, but MinBlocksPerRound is 3 and we set it to min 3 blocks

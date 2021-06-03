@@ -10,8 +10,8 @@
   "properties": {
     "tokenDecimals": 18
   },
-  "relay_chain": "moonbase_alpha_relay",
-  "para_id": 1000,
+  "relayChain": "moonbase_alpha_relay",
+  "paraId": 1000,
   "consensusEngine": null,
   "genesis": {
     "runtime": {
@@ -140,20 +140,15 @@
             "max": 5703
           }
         },
-        "stakers": [
+        "candidates": [
           [
             "0x4c5a56ed5a4ff7b09aa86560afd7d383f4831cce",
-            null,
             1000000000000000000000
           ],
-          [
-            "0x623c9e50647a049f92090fe55e22cc0509872fb6",
-            null,
-            1000000000000000000000
-          ]
-        ]
+          ["0x623c9e50647a049f92090fe55e22cc0509872fb6", 1000000000000000000000]
+        ],
+        "nominations": []
       },
-      "palletScheduler": {},
       "palletDemocracy": {},
       "palletCollectiveInstance1": {
         "phantom": null,
@@ -178,8 +173,11 @@
       "palletAuthorSlotFilter": {
         "eligibleRatio": 50
       },
+      "palletCrowdloanRewards": {
+        "fundedAmount": 3000000000000000000000000
+      },
       "palletAuthorMapping": {
-        "authorIds": [
+        "mappings": [
           [
             "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
             "0x4c5a56ed5a4ff7b09aa86560afd7d383f4831cce"
@@ -189,7 +187,10 @@
             "0x623c9e50647a049f92090fe55e22cc0509872fb6"
           ]
         ]
-      }
+      },
+      "palletTreasuryInstance1": {},
+      "palletTreasuryInstance2": {},
+      "palletScheduler": null
     }
   }
 }
