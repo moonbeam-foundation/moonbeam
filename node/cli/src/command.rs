@@ -17,7 +17,7 @@
 //! This module constructs and executes the appropriate service components for the given subcommand
 
 use crate::cli::{Cli, RelayChainCli, RunCmd, Subcommand};
-use cli_opt::RpcParams;
+use cli_opt::RpcConfig;
 use cumulus_client_service::genesis::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
 use log::info;
@@ -442,14 +442,15 @@ pub fn run() -> Result<()> {
 			}
 		}
 		None => {
-			let runner = cli.create_runner(&*cli.run)?;
+			let runner = cli.create_runner(&(*cli.run).normalize())?;
 			runner.run_node_until_exit(|config| async move {
 				let key = sp_core::Pair::generate().0;
 
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
 				let para_id = extension.map(|e| e.para_id);
 
-				let rpc_params = RpcParams {
+				let rpc_config = RpcConfig {
+					ethapi: cli.run.ethapi,
 					ethapi_max_permits: cli.run.ethapi_max_permits,
 					ethapi_trace_max_count: cli.run.ethapi_trace_max_count,
 					ethapi_trace_cache_duration: cli.run.ethapi_trace_cache_duration,
@@ -475,14 +476,8 @@ pub fn run() -> Result<()> {
 						"Alice",
 					));
 
-					return service::new_dev(
-						config,
-						author_id,
-						cli.run.sealing,
-						cli.run.ethapi,
-						rpc_params,
-					)
-					.map_err(Into::into);
+					return service::new_dev(config, author_id, cli.run.sealing, rpc_config)
+						.map_err(Into::into);
 				}
 
 				let polkadot_cli = RelayChainCli::new(
@@ -532,7 +527,7 @@ pub fn run() -> Result<()> {
 					service::start_node::<
 						service::moonbeam_runtime::RuntimeApi,
 						service::MoonbeamExecutor,
-					>(config, key, polkadot_config, id, cli.run.ethapi, rpc_params)
+					>(config, key, polkadot_config, id, rpc_config)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into)
@@ -540,7 +535,7 @@ pub fn run() -> Result<()> {
 					service::start_node::<
 						service::moonriver_runtime::RuntimeApi,
 						service::MoonriverExecutor,
-					>(config, key, polkadot_config, id, cli.run.ethapi, rpc_params)
+					>(config, key, polkadot_config, id, rpc_config)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into)
@@ -548,7 +543,7 @@ pub fn run() -> Result<()> {
 					service::start_node::<
 						service::moonshadow_runtime::RuntimeApi,
 						service::MoonshadowExecutor,
-					>(config, key, polkadot_config, id, cli.run.ethapi, rpc_params)
+					>(config, key, polkadot_config, id, rpc_config)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into)
@@ -556,7 +551,7 @@ pub fn run() -> Result<()> {
 					service::start_node::<
 						service::moonbase_runtime::RuntimeApi,
 						service::MoonbaseExecutor,
-					>(config, key, polkadot_config, id, cli.run.ethapi, rpc_params)
+					>(config, key, polkadot_config, id, rpc_config)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into)

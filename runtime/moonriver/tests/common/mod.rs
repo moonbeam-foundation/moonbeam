@@ -25,7 +25,7 @@ use frame_support::{
 pub use moonriver_runtime::{
 	currency::MOVR, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Ethereum,
 	Event, Executive, FixedGasPrice, InflationInfo, ParachainStaking, Range, Runtime, System,
-	TransactionConverter, UncheckedExtrinsic,
+	TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::GenesisAccount;
@@ -55,7 +55,7 @@ pub struct ExtBuilder {
 	// [collator, amount]
 	collators: Vec<(AccountId, Balance)>,
 	// [nominator, collator, nomination_amount]
-	nominators: Vec<(AccountId, AccountId, Balance)>,
+	nominations: Vec<(AccountId, AccountId, Balance)>,
 	// per-round inflation config
 	inflation: InflationInfo<Balance>,
 	// AuthorId -> AccoutId mappings
@@ -72,7 +72,7 @@ impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
 			balances: vec![],
-			nominators: vec![],
+			nominations: vec![],
 			collators: vec![],
 			inflation: InflationInfo {
 				expect: Range {
@@ -117,8 +117,8 @@ impl ExtBuilder {
 		self
 	}
 
-	pub fn with_nominators(mut self, nominators: Vec<(AccountId, AccountId, Balance)>) -> Self {
-		self.nominators = nominators;
+	pub fn with_nominations(mut self, nominations: Vec<(AccountId, AccountId, Balance)>) -> Self {
+		self.nominations = nominations;
 		self
 	}
 
@@ -149,15 +149,9 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		let mut stakers: Vec<(AccountId, Option<AccountId>, Balance)> = Vec::new();
-		for collator in self.collators {
-			stakers.push((collator.0, None, collator.1));
-		}
-		for nominator in self.nominators {
-			stakers.push((nominator.0, Some(nominator.1), nominator.2));
-		}
 		parachain_staking::GenesisConfig::<Runtime> {
-			stakers,
+			candidates: self.collators,
+			nominations: self.nominations,
 			inflation_config: self.inflation,
 		}
 		.assimilate_storage(&mut t)

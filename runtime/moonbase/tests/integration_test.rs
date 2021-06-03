@@ -21,7 +21,7 @@ use common::*;
 
 use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use evm::{executor::PrecompileOutput, Context, ExitSucceed};
-use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable};
+use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable, traits::fungible::Inspect};
 use moonbase_runtime::{
 	currency::UNITS, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Event,
 	InflationInfo, ParachainStaking, Range, Runtime, System,
@@ -46,7 +46,7 @@ fn join_collator_candidates() {
 			(AccountId::from(ALICE), 1_000 * UNITS),
 			(AccountId::from(BOB), 1_000 * UNITS),
 		])
-		.with_nominators(vec![
+		.with_nominations(vec![
 			(AccountId::from(CHARLIE), AccountId::from(ALICE), 50 * UNITS),
 			(AccountId::from(CHARLIE), AccountId::from(BOB), 50 * UNITS),
 		])
@@ -171,7 +171,7 @@ fn reward_block_authors() {
 			(AccountId::from(BOB), 1_000 * UNITS),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNITS)])
-		.with_nominators(vec![(
+		.with_nominations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			500 * UNITS,
@@ -256,6 +256,13 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				]))
 				.dispatch(root_origin())
 			);
+			// 20 percent initial payout
+			assert_eq!(
+				Balances::balance(&AccountId::from(CHARLIE)),
+				300_000 * UNITS
+			);
+			// 20 percent initial payout
+			assert_eq!(Balances::balance(&AccountId::from(DAVE)), 300_000 * UNITS);
 			let expected = Event::pallet_utility(pallet_utility::Event::BatchCompleted);
 			assert_eq!(last_event(), expected);
 			// This one should fail, as we already filled our data
@@ -273,34 +280,44 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				0,
 				DispatchError::Module {
 					index: 21,
-					error: 7,
+					error: 8,
 					message: None,
 				},
 			));
 			assert_eq!(last_event(), expected_fail);
-			assert_ok!(CrowdloanRewards::my_first_claim(origin_of(
+			// Claim 1 block.
+			assert_ok!(CrowdloanRewards::show_me_the_money(origin_of(
 				AccountId::from(CHARLIE)
 			)));
-			assert_noop!(
-				CrowdloanRewards::my_first_claim(origin_of(AccountId::from(CHARLIE))),
-				pallet_crowdloan_rewards::Error::<Runtime>::FirstClaimAlreadyDone
-			);
 			assert_ok!(CrowdloanRewards::show_me_the_money(origin_of(
 				AccountId::from(DAVE)
 			)));
+
+			let vesting_period = 4 * WEEKS as u128;
+			let per_block = (1_200_000 * UNITS) / vesting_period;
+
 			assert_eq!(
 				CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE))
 					.unwrap()
 					.claimed_reward,
-				300005952380952380952380
+				(300_000 * UNITS) + per_block
 			);
 			assert_eq!(
 				CrowdloanRewards::accounts_payable(&AccountId::from(DAVE))
 					.unwrap()
 					.claimed_reward,
-				300005952380952380952380
+				(300_000 * UNITS) + per_block
 			);
-
+			// The first call to `show_me_the_money` is free.
+			// The total claimed reward should be equal to the account balance at this point.
+			assert_eq!(
+				Balances::balance(&AccountId::from(CHARLIE)),
+				(300_000 * UNITS) + per_block
+			);
+			assert_eq!(
+				Balances::balance(&AccountId::from(DAVE)),
+				(300_000 * UNITS) + per_block
+			);
 			assert_noop!(
 				CrowdloanRewards::show_me_the_money(origin_of(AccountId::from(ALICE))),
 				pallet_crowdloan_rewards::Error::<Runtime>::NoAssociatedClaim
@@ -678,7 +695,7 @@ fn leave_nominators_via_precompile() {
 			(AccountId::from(ALICE), 1_000 * UNITS),
 			(AccountId::from(BOB), 1_000 * UNITS),
 		])
-		.with_nominators(vec![
+		.with_nominations(vec![
 			(
 				AccountId::from(CHARLIE),
 				AccountId::from(ALICE),
@@ -767,7 +784,7 @@ fn revoke_nomination_via_precompile() {
 			(AccountId::from(ALICE), 1_000 * UNITS),
 			(AccountId::from(BOB), 1_000 * UNITS),
 		])
-		.with_nominators(vec![
+		.with_nominations(vec![
 			(
 				AccountId::from(CHARLIE),
 				AccountId::from(ALICE),
@@ -839,7 +856,7 @@ fn nominator_bond_more_less_via_precompile() {
 			(AccountId::from(BOB), 1_500 * UNITS),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNITS)])
-		.with_nominators(vec![(
+		.with_nominations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			500 * UNITS,
@@ -951,7 +968,7 @@ fn is_nominator_via_precompile() {
 			(AccountId::from(BOB), 1_500 * UNITS),
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNITS)])
-		.with_nominators(vec![(
+		.with_nominations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
 			500 * UNITS,
