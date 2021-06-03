@@ -33,11 +33,12 @@ async function calculate_vested_amount(context, total_reward, initial_payment, n
 }
 
 describeDevMoonbeam("Crowdloan", (context) => {
-  let genesisAccount: KeyringPair;
+  let genesisAccount: KeyringPair, sudoAccount: KeyringPair;
   const relayChainAddress: string = "couldBeAnyString";
   before("Setup genesis account for substrate", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+    sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
   it("should check initial state", async function () {
     // check that genesis has genesis balance
@@ -64,7 +65,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
           1
         )
       )
-      .signAndSend(genesisAccount);
+      .signAndSend(sudoAccount);
     await context.createBlock();
     expect(
       (
@@ -79,11 +80,12 @@ describeDevMoonbeam("Crowdloan", (context) => {
 });
 
 describeDevMoonbeam("Crowdloan", (context) => {
-  let genesisAccount: KeyringPair;
+  let genesisAccount: KeyringPair, sudoAccount: KeyringPair;
   const relayChainAddress: string = "couldBeAnyString";
   before("Setup genesis account for substrate", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+    sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
   it("should be able to make a first claim", async function () {
     await context.polkadotApi.tx.sudo
@@ -94,7 +96,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
           1
         )
       )
-      .signAndSend(genesisAccount);
+      .signAndSend(sudoAccount);
     await context.createBlock();
 
     let reward_info = (
@@ -107,7 +109,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
       1
     );
     // construct a transaction
-    const transfer = context.polkadotApi.tx.crowdloanRewards.showMeTheMoney();
+    const transfer = context.polkadotApi.tx.crowdloanRewards.claim();
     await transfer.signAndSend(genesisAccount);
 
     await context.createBlock();
@@ -125,20 +127,21 @@ describeDevMoonbeam("Crowdloan", (context) => {
       (
         Number(await context.web3.eth.getBalance(GENESIS_ACCOUNT)) - Number(GENESIS_ACCOUNT_BALANCE)
       ).toString()
-    ).to.equal("6.0002380952380924e+23");
+    ).to.equal("6.000238095238095e+23");
     const account = await context.polkadotApi.query.system.account(GENESIS_ACCOUNT);
     expect(
       (Number(account.data.free.toString()) - Number(GENESIS_ACCOUNT_BALANCE)).toString()
-    ).to.equal("6.0002380952380924e+23");
+    ).to.equal("6.000238095238095e+23");
   });
 });
 
 describeDevMoonbeam("Crowdloan", (context) => {
-  let genesisAccount: KeyringPair;
+  let genesisAccount: KeyringPair, sudoAccount: KeyringPair;
   const relayChainAddress: string = "couldBeAnyString";
   before("Setup genesis account for substrate", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+    sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
   it("should show me the money after 5 blocks, after first claim was called", async function () {
     await context.polkadotApi.tx.sudo
@@ -149,7 +152,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
           1
         )
       )
-      .signAndSend(genesisAccount);
+      .signAndSend(sudoAccount);
     await context.createBlock();
 
     let reward_info = (
@@ -157,7 +160,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     ).toJSON() as any;
 
     // construct a transaction
-    const transfer = context.polkadotApi.tx.crowdloanRewards.showMeTheMoney();
+    const transfer = context.polkadotApi.tx.crowdloanRewards.claim();
     await transfer.signAndSend(genesisAccount);
 
     await context.createBlock();
@@ -175,7 +178,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
       5
     );
 
-    await context.polkadotApi.tx.crowdloanRewards.showMeTheMoney().signAndSend(genesisAccount);
+    await context.polkadotApi.tx.crowdloanRewards.claim().signAndSend(genesisAccount);
     await context.createBlock();
     const isPayable4 = await context.polkadotApi.query.crowdloanRewards.accountsPayable(
       GENESIS_ACCOUNT
@@ -185,11 +188,12 @@ describeDevMoonbeam("Crowdloan", (context) => {
 });
 
 describeDevMoonbeam("Crowdloan", (context) => {
-  let genesisAccount: KeyringPair;
+  let genesisAccount: KeyringPair, sudoAccount: KeyringPair;
   const relayChainAddress: string = "couldBeAnyString";
   before("Setup genesis account for substrate", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+    sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
   it("should make first claim 5 blocks after initialization called", async function () {
     await context.polkadotApi.tx.sudo
@@ -200,7 +204,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
           1
         )
       )
-      .signAndSend(genesisAccount);
+      .signAndSend(sudoAccount);
     await context.createBlock();
     let reward_info = (
       await context.polkadotApi.query.crowdloanRewards.accountsPayable(GENESIS_ACCOUNT)
@@ -218,7 +222,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
       5
     );
 
-    await context.polkadotApi.tx.crowdloanRewards.showMeTheMoney().signAndSend(genesisAccount);
+    await context.polkadotApi.tx.crowdloanRewards.claim().signAndSend(genesisAccount);
     await context.createBlock();
 
     const isPayable4 = await context.polkadotApi.query.crowdloanRewards.accountsPayable(
@@ -229,11 +233,12 @@ describeDevMoonbeam("Crowdloan", (context) => {
 });
 
 describeDevMoonbeam("Crowdloan", (context) => {
-  let genesisAccount: KeyringPair;
+  let genesisAccount: KeyringPair, sudoAccount: KeyringPair;
   const relayChainAddress: string = "couldBeAnyString";
   before("Setup genesis account for substrate", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+    sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
   it("should not be able to call initializeRewardVec another time", async function () {
     await context.polkadotApi.tx.sudo
@@ -244,7 +249,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
           1
         )
       )
-      .signAndSend(genesisAccount);
+      .signAndSend(sudoAccount);
     await context.createBlock();
 
     // should not be able to call initializeRewardVec another time
@@ -267,6 +272,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
 describeDevMoonbeam("Crowdloan", (context) => {
   let genesisAccount: KeyringPair;
   let alithAccount: KeyringPair;
+
   const relayChainAddress: string = "couldBeAnyString";
   before("Setup genesis account for substrate", async () => {
     const keyring = new Keyring({ type: "ethereum" });
@@ -284,7 +290,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
           1
         )
       )
-      .signAndSend(genesisAccount);
+      .signAndSend(alithAccount);
     await context.createBlock();
     expect(
       ((await context.polkadotApi.query.crowdloanRewards.accountsPayable(ALITH)).toHuman() as any)
@@ -300,8 +306,8 @@ describeDevMoonbeam("Crowdloan", (context) => {
       reward_info.claimed_reward,
       1
     );
-    // showMeTheMoney
-    await context.polkadotApi.tx.crowdloanRewards.showMeTheMoney().signAndSend(alithAccount);
+    // claim
+    await context.polkadotApi.tx.crowdloanRewards.claim().signAndSend(alithAccount);
     await context.createBlock();
 
     const isPayable4 = await context.polkadotApi.query.crowdloanRewards.accountsPayable(ALITH);
@@ -310,7 +316,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
 });
 
 describeDevMoonbeam("Crowdloan", (context) => {
-  let genesisAccount: KeyringPair;
+  let genesisAccount: KeyringPair, sudoAccount: KeyringPair;
   const relayChainAddress: string = "couldBeAnyString";
   const numberOfAccounts: number = 5000; // min 2
   let largInput: [string, string, bigint][];
@@ -318,6 +324,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
   before("Setup genesis account for substrate", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+    sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
 
   it("should be able to register many accounts : " + numberOfAccounts, async function () {
@@ -339,7 +346,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     // should be able to register many accounts
     await context.polkadotApi.tx.sudo
       .sudo(context.polkadotApi.tx.crowdloanRewards.initializeRewardVec(largInput, 0, largInput))
-      .signAndSend(genesisAccount);
+      .signAndSend(sudoAccount);
     await context.createBlock();
     await Promise.all(
       largInput.map(async (input) => {
@@ -356,7 +363,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
 });
 
 describeDevMoonbeam("Crowdloan", (context) => {
-  let genesisAccount: KeyringPair;
+  let genesisAccount: KeyringPair, sudoAccount: KeyringPair;
   const relayChainAddress: string = "couldBeAnyString";
   const numberOfAccounts: number = 5000; // min 2
   let largInput: [string, string, bigint][];
@@ -364,6 +371,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
   before("Setup genesis account for substrate", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+    sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
 
   it("should be able to register many accounts - batch : " + numberOfAccounts, async function () {
@@ -409,7 +417,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
           )
         ),
       ])
-      .signAndSend(genesisAccount);
+      .signAndSend(sudoAccount);
     await context.createBlock();
     await Promise.all(
       largInput.map(async (input) => {
