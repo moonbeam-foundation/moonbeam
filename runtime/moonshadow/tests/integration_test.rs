@@ -294,7 +294,6 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 					.claimed_reward,
 				(300_000 * MSHD) + per_block
 			);
-
 			// The total claimed reward should be equal to the account balance at this point.
 			assert_eq!(
 				Balances::balance(&AccountId::from(CHARLIE)),
