@@ -210,7 +210,7 @@ impl pallet_utility::Config for Runtime {
 }
 
 parameter_types! {
-	pub const MinimumPeriod: u64 = 1;
+	pub const MinimumPeriod: u64 = MILLISECS_PER_BLOCK / 2;
 }
 
 impl pallet_timestamp::Config for Runtime {
