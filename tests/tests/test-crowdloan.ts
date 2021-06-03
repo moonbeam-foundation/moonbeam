@@ -20,7 +20,8 @@ async function calculate_vested_amount(context, total_reward, initial_payment, n
   let amount_to_vest = BigInt(total_reward) - BigInt(initial_payment);
   let vested_per_block = amount_to_vest / BigInt(vesting);
 
-  // Relay advances faster than chain (double apparently)
+  // On average a parachain only gets a candidate into every other relay chain block.
+  // In the dev service, where the relay block number is mocked, we get exactly two relay blocks.
   let elapsed_relay_blocks = number_of_blocks * 2;
   let should_have_vested =
     BigInt(initial_payment) + vested_per_block * BigInt(elapsed_relay_blocks);
