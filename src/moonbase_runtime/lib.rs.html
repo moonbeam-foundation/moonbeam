@@ -1574,7 +1574,7 @@
 <span class="macro">parameter_types</span><span class="macro">!</span> {
 	<span class="doccomment">/// The maximum amount of time (in blocks) for council members to vote on motions.</span>
 	<span class="doccomment">/// Motions may end in fewer blocks if enough votes are cast to determine the result.</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CouncilMotionDuration</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">100</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CouncilMotionDuration</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">3</span> <span class="op">*</span> <span class="ident">DAYS</span>;
 	<span class="doccomment">/// The maximum number of Proposlas that can be open in the council at once.</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CouncilMaxProposals</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
 	<span class="doccomment">/// The maximum number of council members.</span>
@@ -1582,7 +1582,7 @@
 
 	<span class="doccomment">/// The maximum amount of time (in blocks) for technical committee members to vote on motions.</span>
 	<span class="doccomment">/// Motions may end in fewer blocks if enough votes are cast to determine the result.</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TechComitteeMotionDuration</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">100</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TechComitteeMotionDuration</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">3</span> <span class="op">*</span> <span class="ident">DAYS</span>;
 	<span class="doccomment">/// The maximum number of Proposlas that can be open in the technical committee at once.</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TechComitteeMaxProposals</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
 	<span class="doccomment">/// The maximum number of technical committee members.</span>
