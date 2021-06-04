@@ -28,15 +28,9 @@ async function getMappingInfo(
 
 describeDevMoonbeam("Author Mapping - simple association", (context) => {
   it("should match genesis state", async function () {
-    expect(
-      (await getMappingInfo(context,aliceAuthorId)).account
-    ).to.eq(ALITH);
-    expect(
-      (await getMappingInfo(context,aliceAuthorId)).deposit
-    ).to.eq('100.0000 Unit');
-    expect(
-      (await getMappingInfo(context,bobAuthorId))
-    ).to.eq(null);
+    expect((await getMappingInfo(context, aliceAuthorId)).account).to.eq(ALITH);
+    expect((await getMappingInfo(context, aliceAuthorId)).deposit).to.eq("100.0000 Unit");
+    expect(await getMappingInfo(context, bobAuthorId)).to.eq(null);
     expect((await context.polkadotApi.query.system.account(ALITH)).data.free.toHuman()).to.eq(
       "1.2078 MUnit"
     );
@@ -51,9 +45,7 @@ describeDevMoonbeam("Author Mapping - simple association", (context) => {
       .addAssociation(bobAuthorId)
       .signAndSend(genesisAccount);
     await context.createBlock();
-    expect(
-      (await getMappingInfo(context,bobAuthorId)).account
-    ).to.eq(ALITH);
+    expect((await getMappingInfo(context, bobAuthorId)).account).to.eq(ALITH);
     expect((await context.polkadotApi.query.system.account(ALITH)).data.free.toHuman()).to.eq(
       "1.2077 MUnit"
     );
@@ -118,9 +110,7 @@ describeDevMoonbeam("Author Mapping - Fail to reassociate alice", (context) => {
     expect(
       (await context.polkadotApi.query.system.account(BALTATHAR)).data.reserved.toHuman()
     ).to.eq("0");
-    expect(
-      (await getMappingInfo(context,aliceAuthorId)).account
-    ).to.eq(ALITH);
+    expect((await getMappingInfo(context, aliceAuthorId)).account).to.eq(ALITH);
   });
   it("should check events for failure", async function () {
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
@@ -179,9 +169,7 @@ describeDevMoonbeam("Author Mapping - Fail without deposit", (context) => {
       );
     }
     await context.createBlock();
-    expect(
-      (await getMappingInfo(context,bobAuthorId))
-    ).to.eq(null);
+    expect(await getMappingInfo(context, bobAuthorId)).to.eq(null);
   });
   it("should check events for failure", async function () {
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
@@ -233,9 +221,7 @@ describeDevMoonbeam("Author Mapping - double registration", (context) => {
       .addAssociation(bobAuthorId)
       .signAndSend(genesisAccount);
     await context.createBlock();
-    expect(
-      (await getMappingInfo(context,bobAuthorId)).account
-    ).to.eq(ALITH);
+    expect((await getMappingInfo(context, bobAuthorId)).account).to.eq(ALITH);
     expect((await context.polkadotApi.query.system.account(ALITH)).data.free.toHuman()).to.eq(
       "1.2077 MUnit"
     );
@@ -243,7 +229,7 @@ describeDevMoonbeam("Author Mapping - double registration", (context) => {
       "1.2000 kUnit"
     );
   });
-  it("should succeed in adding an association for charlie, although already associated with bob", async function () {
+  it("should associate with charlie, although already associated with bob", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     const genesisAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
     await context.polkadotApi.tx.authorMapping
@@ -251,12 +237,8 @@ describeDevMoonbeam("Author Mapping - double registration", (context) => {
       .signAndSend(genesisAccount);
     await context.createBlock();
     //check that both are registered
-    expect(
-      (await getMappingInfo(context,charlieAuthorId)).account
-    ).to.eq(ALITH);
-    expect(
-      (await getMappingInfo(context,bobAuthorId)).account
-    ).to.eq(ALITH);
+    expect((await getMappingInfo(context, charlieAuthorId)).account).to.eq(ALITH);
+    expect((await getMappingInfo(context, bobAuthorId)).account).to.eq(ALITH);
     expect((await context.polkadotApi.query.system.account(ALITH)).data.free.toHuman()).to.eq(
       "1.2076 MUnit"
     );
@@ -274,16 +256,12 @@ describeDevMoonbeam("Author Mapping - registered author can clear (de register)"
       .addAssociation(bobAuthorId)
       .signAndSend(genesisAccount);
     await context.createBlock();
-    expect(
-      (await getMappingInfo(context,bobAuthorId)).account
-    ).to.eq(ALITH);
+    expect((await getMappingInfo(context, bobAuthorId)).account).to.eq(ALITH);
     await context.polkadotApi.tx.authorMapping
       .clearAssociation(bobAuthorId)
       .signAndSend(genesisAccount);
     await context.createBlock();
-    expect(
-      (await getMappingInfo(context,bobAuthorId))
-    ).to.eq(null);
+    expect(await getMappingInfo(context, bobAuthorId)).to.eq(null);
   });
   it("should check events", async function () {
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
@@ -332,9 +310,7 @@ describeDevMoonbeam("Author Mapping - unregistered author cannot clear associati
   it("should not succeed in clearing an association for an unregistered author", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     const genesisAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-    expect(
-      (await getMappingInfo(context,bobAuthorId))
-    ).to.eq(null);
+    expect(await getMappingInfo(context, bobAuthorId)).to.eq(null);
     await context.polkadotApi.tx.authorMapping
       .clearAssociation(bobAuthorId)
       .signAndSend(genesisAccount);
@@ -392,9 +368,7 @@ describeDevMoonbeam("Author Mapping - non author clearing", (context) => {
       .addAssociation(bobAuthorId)
       .signAndSend(genesisAccount);
     await context.createBlock();
-    expect(
-      (await getMappingInfo(context,bobAuthorId)).account
-    ).to.eq(ALITH);
+    expect((await getMappingInfo(context, bobAuthorId)).account).to.eq(ALITH);
     await context.polkadotApi.tx.authorMapping.clearAssociation(bobAuthorId).signAndSend(baltathar);
 
     await context.createBlock();
@@ -448,19 +422,13 @@ describeDevMoonbeam("Author Mapping - registered can rotate", (context) => {
       .addAssociation(bobAuthorId)
       .signAndSend(genesisAccount);
     await context.createBlock();
-    expect(
-      (await getMappingInfo(context,bobAuthorId)).account
-    ).to.eq(ALITH);
+    expect((await getMappingInfo(context, bobAuthorId)).account).to.eq(ALITH);
     await context.polkadotApi.tx.authorMapping
       .updateAssociation(bobAuthorId, charlieAuthorId)
       .signAndSend(genesisAccount);
     await context.createBlock();
-    expect(
-      (await getMappingInfo(context,bobAuthorId))
-    ).to.eq(null);
-    expect(
-      (await getMappingInfo(context,charlieAuthorId)).account
-    ).to.eq(ALITH);
+    expect(await getMappingInfo(context, bobAuthorId)).to.eq(null);
+    expect((await getMappingInfo(context, charlieAuthorId)).account).to.eq(ALITH);
 
     await context.createBlock();
   });
@@ -475,12 +443,8 @@ describeDevMoonbeam("Author Mapping - unregistered cannot rotate", (context) => 
       .updateAssociation(bobAuthorId, charlieAuthorId)
       .signAndSend(genesisAccount);
     await context.createBlock();
-    expect(
-      (await getMappingInfo(context,bobAuthorId))
-    ).to.eq(null);
-    expect(
-      (await getMappingInfo(context,charlieAuthorId))
-    ).to.eq(null);
+    expect(await getMappingInfo(context, bobAuthorId)).to.eq(null);
+    expect(await getMappingInfo(context, charlieAuthorId)).to.eq(null);
 
     await context.createBlock();
   });
@@ -496,19 +460,13 @@ describeDevMoonbeam("Author Mapping - non-author cannot rotate", (context) => {
       .addAssociation(bobAuthorId)
       .signAndSend(genesisAccount);
     await context.createBlock();
-    expect(
-      (await getMappingInfo(context,bobAuthorId)).account
-    ).to.eq(ALITH);
+    expect((await getMappingInfo(context, bobAuthorId)).account).to.eq(ALITH);
     await context.polkadotApi.tx.authorMapping
       .updateAssociation(bobAuthorId, charlieAuthorId)
       .signAndSend(baltathar);
     await context.createBlock();
-    expect(
-      (await getMappingInfo(context,bobAuthorId)).account
-    ).to.eq(ALITH);
-    expect(
-      (await getMappingInfo(context,charlieAuthorId))
-    ).to.eq(null);
+    expect((await getMappingInfo(context, bobAuthorId)).account).to.eq(ALITH);
+    expect(await getMappingInfo(context, charlieAuthorId)).to.eq(null);
 
     await context.createBlock();
   });
