@@ -160,7 +160,7 @@ parameter_types! {
 	/// We allow for 5 MB blocks.
 	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
 		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
-	pub const SS58Prefix: u8 = 42;
+		pub const SS58Prefix: u8 = 1284;
 }
 
 impl frame_system::Config for Runtime {
