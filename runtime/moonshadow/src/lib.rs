@@ -390,7 +390,7 @@ parameter_types! {
 	pub const MinimumDeposit: Balance = 4 * currency::MSHD;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
-	pub const PreimageByteDeposit: Balance = currency::MSHD / 1_000;
+	pub const PreimageByteDeposit: Balance = currency::BYTE_FEE;
 	pub const InstantAllowed: bool = false;
 }
 
