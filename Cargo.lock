@@ -5220,9 +5220,9 @@ dependencies = [
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "nimbus-primitives",
+ "pallet-aura-style-filter",
  "pallet-author-inherent",
  "pallet-author-mapping",
- "pallet-author-slot-filter",
  "pallet-balances",
  "pallet-collective",
  "pallet-crowdloan-rewards",
@@ -5285,9 +5285,9 @@ dependencies = [
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "nimbus-primitives",
+ "pallet-aura-style-filter",
  "pallet-author-inherent",
  "pallet-author-mapping",
- "pallet-author-slot-filter",
  "pallet-balances",
  "pallet-collective",
  "pallet-crowdloan-rewards",
@@ -5758,24 +5758,6 @@ dependencies = [
  "serde",
  "sp-core",
  "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-author-slot-filter"
-version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v9.3#2bade0772106c37d2222dd78945c880edca98e15"
-dependencies = [
- "cumulus-pallet-parachain-system",
- "frame-support",
- "frame-system",
- "log",
- "nimbus-primitives",
- "pallet-author-inherent",
- "parity-scale-codec",
- "serde",
- "sp-core",
  "sp-runtime",
  "sp-std",
 ]

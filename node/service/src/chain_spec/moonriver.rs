@@ -25,7 +25,7 @@ use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
 use evm::GenesisAccount;
 use moonriver_runtime::{
-	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
+	currency::MOVR, AccountId, AuthorMappingConfig, Balance, BalancesConfig,
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig,
 	ParachainStakingConfig, Precompiles, Range, SchedulerConfig, SudoConfig, SystemConfig,
@@ -231,9 +231,6 @@ pub fn testnet_genesis(
 		pallet_collective_Instance2: TechComitteeCollectiveConfig {
 			phantom: Default::default(),
 			members: vec![], // TODO : Set members
-		},
-		pallet_author_slot_filter: AuthorFilterConfig {
-			eligible_ratio: sp_runtime::Percent::from_percent(50),
 		},
 		pallet_author_mapping: AuthorMappingConfig {
 			mappings: candidates
