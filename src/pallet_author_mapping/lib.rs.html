@@ -290,37 +290,6 @@
 <span id="287">287</span>
 <span id="288">288</span>
 <span id="289">289</span>
-<span id="290">290</span>
-<span id="291">291</span>
-<span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
-<span id="302">302</span>
-<span id="303">303</span>
-<span id="304">304</span>
-<span id="305">305</span>
-<span id="306">306</span>
-<span id="307">307</span>
-<span id="308">308</span>
-<span id="309">309</span>
-<span id="310">310</span>
-<span id="311">311</span>
-<span id="312">312</span>
-<span id="313">313</span>
-<span id="314">314</span>
-<span id="315">315</span>
-<span id="316">316</span>
-<span id="317">317</span>
-<span id="318">318</span>
-<span id="319">319</span>
-<span id="320">320</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -395,30 +364,6 @@
 		<span class="doccomment">/// A rough preliminary check to determine whether an account can make a new registration.</span>
 		<span class="doccomment">/// If you don&#39;t wish to do any such check, just return `true`.</span>
 		<span class="kw">fn</span> <span class="ident">can_register</span>(<span class="ident">account</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">AccountId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
-	}
-
-	<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">hooks</span>]</span>
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Hooks</span><span class="op">&lt;</span><span class="ident">BlockNumberFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
-			<span class="comment">// This upgrade needs a value to use as the deposit for any registrations that were made</span>
-			<span class="comment">// before deposit amounts were tracked. The most 100% correct thing would be to add an</span>
-			<span class="comment">// associated type. But since we know this pallet on only used by moonbeam and we know</span>
-			<span class="comment">// the old deposit is the same for all accounts, I&#39;ll save us some headache by just</span>
-			<span class="comment">// defining it here.</span>
-			<span class="kw">let</span> <span class="ident">old_deposit_amount</span> <span class="op">=</span> <span class="number">100u32</span>;
-
-			<span class="kw">for</span> (<span class="ident">author_id</span>, <span class="ident">account_id</span>) <span class="kw">in</span> <span class="ident">Mapping</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">drain</span>() {
-				<span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">RegistrationInfo</span> {
-					<span class="ident">account</span>: <span class="ident">account_id</span>,
-					<span class="ident">deposit</span>: <span class="ident">old_deposit_amount</span>.<span class="ident">into</span>(),
-				};
-				<span class="ident">MappingWithDeposit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">insert</span>(<span class="ident">author_id</span>, <span class="ident">info</span>);
-			}
-
-			<span class="comment">// No idea about the real weight. Probably not worrying about because this will</span>
-			<span class="comment">// definitely fit in one of Moonbeam&#39;s almost-empty blocks.</span>
-			<span class="number">10_000</span>
-		}
 	}
 
 	<span class="doccomment">/// An error that can occur while executing the mapping pallet&#39;s logic.</span>
@@ -582,13 +527,6 @@
 			<span class="prelude-val">Ok</span>(())
 		}
 	}
-
-	<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">storage</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">getter</span>(<span class="kw">fn</span> <span class="ident">old_account_id_of</span>)]</span>
-	<span class="comment">// This is the old storage item used in the old version of the pallet. The type is being kept</span>
-	<span class="comment">// for now to enable easier migration of the data. This storage item should be removed from the</span>
-	<span class="comment">// code after on-chain data has been migrated.</span>
-	<span class="kw">type</span> <span class="ident">Mapping</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Twox64Concat</span>, <span class="ident">T</span>::<span class="ident">AuthorId</span>, <span class="ident">T</span>::<span class="ident">AccountId</span>, <span class="ident">OptionQuery</span><span class="op">&gt;</span>;
 
 	<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">storage</span>]</span>
 	<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">getter</span>(<span class="kw">fn</span> <span class="ident">account_and_deposit_of</span>)]</span>
