@@ -350,7 +350,7 @@ export const moonbeamDefinitions = {
         AccountId32: "H256",
         AccountInfo: "AccountInfoWithTripleRefCount",
         Address: "AccountId",
-        AuthorId: "H256",
+        AuthorId: "AccountId32",
         Balance: "u128",
         LookupSource: "AccountId",
         Account: {
@@ -458,7 +458,7 @@ export const moonbeamDefinitions = {
         AccountId32: "H256",
         AccountInfo: "AccountInfoWithTripleRefCount",
         Address: "AccountId",
-        AuthorId: "H256",
+        AuthorId: "AccountId32",
         Balance: "u128",
         LookupSource: "AccountId",
         Account: {
