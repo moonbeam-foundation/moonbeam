@@ -253,10 +253,10 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				]))
 				.dispatch(root_origin())
 			);
-			// 20 percent initial payout
-			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 300_000 * GLMR);
-			// 20 percent initial payout
-			assert_eq!(Balances::balance(&AccountId::from(DAVE)), 300_000 * GLMR);
+			// 300 percent initial payout
+			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 450_000 * GLMR);
+			// 30 percent initial payout
+			assert_eq!(Balances::balance(&AccountId::from(DAVE)), 450_000 * GLMR);
 			let expected = Event::pallet_utility(pallet_utility::Event::BatchCompleted);
 			assert_eq!(last_event(), expected);
 			// This one should fail, as we already filled our data
@@ -284,28 +284,28 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			assert_ok!(CrowdloanRewards::claim(origin_of(AccountId::from(DAVE))));
 
 			let vesting_period = 4 * WEEKS as u128;
-			let per_block = (1_200_000 * GLMR) / vesting_period;
+			let per_block = (1_050_000 * GLMR) / vesting_period;
 
 			assert_eq!(
 				CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE))
 					.unwrap()
 					.claimed_reward,
-				(300_000 * GLMR) + per_block
+				(450_000 * GLMR) + per_block
 			);
 			assert_eq!(
 				CrowdloanRewards::accounts_payable(&AccountId::from(DAVE))
 					.unwrap()
 					.claimed_reward,
-				(300_000 * GLMR) + per_block
+				(450_000 * GLMR) + per_block
 			);
 			// The total claimed reward should be equal to the account balance at this point.
 			assert_eq!(
 				Balances::balance(&AccountId::from(CHARLIE)),
-				(300_000 * GLMR) + per_block
+				(450_000 * GLMR) + per_block
 			);
 			assert_eq!(
 				Balances::balance(&AccountId::from(DAVE)),
-				(300_000 * GLMR) + per_block
+				(450_000 * GLMR) + per_block
 			);
 			assert_noop!(
 				CrowdloanRewards::claim(origin_of(AccountId::from(ALICE))),
