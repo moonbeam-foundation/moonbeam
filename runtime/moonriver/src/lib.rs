@@ -342,7 +342,7 @@ impl pallet_scheduler::Config for Runtime {
 parameter_types! {
 	/// The maximum amount of time (in blocks) for council members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
-	pub const CouncilMotionDuration: BlockNumber = 100;
+	pub const CouncilMotionDuration: BlockNumber = 3 * DAYS;
 	/// The maximum number of Proposlas that can be open in the council at once.
 	pub const CouncilMaxProposals: u32 = 100;
 	/// The maximum number of council members.
@@ -350,7 +350,7 @@ parameter_types! {
 
 	/// The maximum amount of time (in blocks) for technical committee members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
-	pub const TechComitteeMotionDuration: BlockNumber = 100;
+	pub const TechComitteeMotionDuration: BlockNumber = 3 * DAYS;
 	/// The maximum number of Proposlas that can be open in the technical committee at once.
 	pub const TechComitteeMaxProposals: u32 = 100;
 	/// The maximum number of technical committee members.
