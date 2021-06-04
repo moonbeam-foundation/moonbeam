@@ -183,7 +183,7 @@ fn reward_block_authors() {
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			for x in 2..1201 {
+			for x in 2..601 {
 				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 				run_to_block(x);
 			}
@@ -194,7 +194,7 @@ fn reward_block_authors() {
 			);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * UNITS,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(1201);
+			run_to_block(601);
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
