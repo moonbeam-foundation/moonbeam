@@ -143,7 +143,6 @@ impl Filter<Call> for BaseFilter {
 		match c {
 			Call::Balances(_) => false,
 			Call::CrowdloanRewards(_) => false,
-			Call::Democracy(_) => false,
 			Call::Ethereum(_) => false,
 			Call::EVM(_) => false,
 			_ => true,
