@@ -575,12 +575,10 @@ impl pallet_author_inherent::Config for Runtime {
 	type SlotBeacon = pallet_author_inherent::RelayChainBeacon<Self>;
 	type AccountLookup = AuthorMapping;
 	type EventHandler = ParachainStaking;
-	type CanAuthor = AuthorFilter;
+	type CanAuthor = NimbusAura;
 }
 
-impl pallet_author_slot_filter::Config for Runtime {
-	type Event = Event;
-	type RandomnessSource = RandomnessCollectiveFlip;
+impl pallet_aura_style_filter::Config for Runtime {
 	type PotentialAuthors = ParachainStaking;
 }
 
@@ -736,7 +734,7 @@ construct_runtime! {
 		ParachainBondTreasury:
 			pallet_treasury::<Instance2>::{Pallet, Storage, Config, Event<T>, Call},
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent},
-		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config},
+		NimbusAura: pallet_aura_style_filter::{Pallet},
 		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>},
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},

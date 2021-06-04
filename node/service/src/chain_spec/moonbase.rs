@@ -10,7 +10,7 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-
+ 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -25,7 +25,7 @@ use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
 use evm::GenesisAccount;
 use moonbase_runtime::{
-	currency::UNITS, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
+	currency::UNITS, AccountId, AuthorMappingConfig, Balance, BalancesConfig,
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig,
 	ParachainStakingConfig, Precompiles, Range, SchedulerConfig, SudoConfig, SystemConfig,
@@ -232,9 +232,6 @@ pub fn testnet_genesis(
 		pallet_collective_Instance2: TechComitteeCollectiveConfig {
 			phantom: Default::default(),
 			members: vec![], // TODO : Set members
-		},
-		pallet_author_slot_filter: AuthorFilterConfig {
-			eligible_ratio: sp_runtime::Percent::from_percent(50),
 		},
 		pallet_author_mapping: AuthorMappingConfig {
 			mappings: candidates
