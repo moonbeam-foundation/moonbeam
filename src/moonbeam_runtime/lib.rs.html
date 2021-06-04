@@ -1272,6 +1272,10 @@
 <span id="1269">1269</span>
 <span id="1270">1270</span>
 <span id="1271">1271</span>
+<span id="1272">1272</span>
+<span id="1273">1273</span>
+<span id="1274">1274</span>
+<span id="1275">1275</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1911,11 +1915,15 @@
 <span class="macro">parameter_types</span><span class="macro">!</span> {
 	<span class="comment">// One storage item; key size 32, value size 8; .</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ProxyDepositBase</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency</span>::<span class="ident">deposit</span>(<span class="number">1</span>, <span class="number">8</span>);
-	<span class="comment">// Additional storage item size of 33 bytes.</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ProxyDepositFactor</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency</span>::<span class="ident">deposit</span>(<span class="number">0</span>, <span class="number">33</span>);
+	<span class="comment">// Additional storage item size of 21 bytes (20 bytes AccountId + 1 byte sizeof(ProxyType)).</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ProxyDepositFactor</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency</span>::<span class="ident">deposit</span>(<span class="number">0</span>, <span class="number">21</span>);
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxProxies</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="number">32</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AnnouncementDepositBase</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency</span>::<span class="ident">deposit</span>(<span class="number">1</span>, <span class="number">8</span>);
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AnnouncementDepositFactor</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency</span>::<span class="ident">deposit</span>(<span class="number">0</span>, <span class="number">66</span>);
+	<span class="comment">// Additional storage item size of 56 bytes:</span>
+	<span class="comment">// - 20 bytes AccountId</span>
+	<span class="comment">// - 32 bytes Hasher (Blake2256)</span>
+	<span class="comment">// - 4 bytes BlockNumber (u32)</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AnnouncementDepositFactor</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency</span>::<span class="ident">deposit</span>(<span class="number">0</span>, <span class="number">56</span>);
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxPending</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="number">32</span>;
 }
 
