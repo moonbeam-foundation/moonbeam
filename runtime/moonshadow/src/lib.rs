@@ -81,7 +81,7 @@ pub mod currency {
 	pub const GRAND: Balance = MSHD * 1_000;
 	pub const MILLICENTS: Balance = CENTS / 1_000;
 
-	pub const BYTE_FEE: Balance = 10 * MILLICENTS;
+	pub const BYTE_FEE: Balance = 1 * MILLICENTS;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
 		items as Balance * 100 * CENTS + (bytes as Balance) * BYTE_FEE
