@@ -1825,11 +1825,11 @@
 <span class="kw">impl</span> <span class="ident">parachain_info</span>::<span class="ident">Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {}
 
 <span class="macro">parameter_types</span><span class="macro">!</span> {
-	<span class="doccomment">/// Minimum round length is 2 minutes (20 * 6 second block times)</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinBlocksPerRound</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">20</span>;
-	<span class="doccomment">/// Default BlocksPerRound is every hour (600 * 6 second block times)</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DefaultBlocksPerRound</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">600</span>;
-	<span class="doccomment">/// Reward payments and collator exit requests are delayed by 2 hours (2 * 600 * block_time)</span>
+	<span class="doccomment">/// Minimum round length is 2 minutes (10 * 12 second block times)</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinBlocksPerRound</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">10</span>;
+	<span class="doccomment">/// Default BlocksPerRound is every hour (300 * 12 second block times)</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DefaultBlocksPerRound</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">300</span>;
+	<span class="doccomment">/// Reward payments and collator exit requests are delayed by 2 hours (2 * 300 * block_time)</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BondDuration</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
 	<span class="doccomment">/// Minimum 8 collators selected per round, default at genesis and minimum forever after</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinSelectedCandidates</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">8</span>;
