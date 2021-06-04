@@ -253,7 +253,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				]))
 				.dispatch(root_origin())
 			);
-			// 300 percent initial payout
+			// 30 percent initial payout
 			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 450_000 * GLMR);
 			// 30 percent initial payout
 			assert_eq!(Balances::balance(&AccountId::from(DAVE)), 450_000 * GLMR);
