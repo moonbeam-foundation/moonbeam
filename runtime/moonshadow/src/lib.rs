@@ -118,7 +118,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonshadow"),
 	impl_name: create_runtime_str!("moonshadow"),
 	authoring_version: 3,
-	spec_version: 45,
+	spec_version: 46,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -842,18 +842,10 @@ impl_runtime_apis! {
 			source: TransactionSource,
 			tx: <Block as BlockT>::Extrinsic,
 		) -> TransactionValidity {
-			// filtered calls should never enter the tx pool so they never enter a block
-			let mut allowed = <Runtime as frame_system::Config>
+			// Filtered calls should not enter the tx pool as they'll fail if inserted.
+			let allowed = <Runtime as frame_system::Config>
 				::BaseCallFilter::filter(&tx.function);
-			// filtered calls are still allowed if source is sudo
-			if !allowed {
-				match &tx.signature {
-					Some((account, ..)) => if &Sudo::key() == account {
-						allowed = true;
-					},
-					_ => (),
-				}
-			}
+
 			if allowed {
 				Executive::validate_transaction(source, tx)
 			} else {
