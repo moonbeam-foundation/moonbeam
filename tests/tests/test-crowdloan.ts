@@ -15,22 +15,17 @@ import {
 } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 
-async function calculate_vested_amount(context, total_reward, initial_payment, number_of_blocks) {
+async function calculate_vested_amount(context, totalReward, initialPayment, numberOfBlocks) {
   let vesting = (await context.polkadotApi.consts.crowdloanRewards.vestingPeriod).toString() as any;
-  let amount_to_vest = BigInt(total_reward) - BigInt(initial_payment);
-  let vested_per_block = amount_to_vest / BigInt(vesting);
+  let amountToVest = BigInt(totalReward) - BigInt(initialPayment);
+  let vestedPerBlock = amountToVest / BigInt(vesting);
 
   // On average a parachain only gets a candidate into every other relay chain block.
   // In the dev service, where the relay block number is mocked, we get exactly two relay blocks.
-  let elapsed_relay_blocks = number_of_blocks * 2;
-  let should_have_vested =
-    BigInt(initial_payment) + vested_per_block * BigInt(elapsed_relay_blocks);
-  let claimed_as_balance = formatBalance(
-    should_have_vested,
-    { withSi: true, withUnit: "Unit" },
-    18
-  );
-  return claimed_as_balance;
+  let elapsedRelayBlocks = numberOfBlocks * 2;
+  let shouldHaveVested = BigInt(initialPayment) + vestedPerBlock * BigInt(elapsedRelayBlocks);
+  let claimedAsBalance = formatBalance(shouldHaveVested, { withSi: true, withUnit: "Unit" }, 18);
+  return claimedAsBalance;
 }
 
 describeDevMoonbeam("Crowdloan", (context) => {
@@ -100,13 +95,13 @@ describeDevMoonbeam("Crowdloan", (context) => {
       .signAndSend(sudoAccount);
     await context.createBlock();
 
-    let reward_info = (
+    let rewardInfo = (
       await context.polkadotApi.query.crowdloanRewards.accountsPayable(GENESIS_ACCOUNT)
     ).toJSON() as any;
     let claimed = await calculate_vested_amount(
       context,
-      reward_info.total_reward,
-      reward_info.claimed_reward,
+      rewardInfo.total_reward,
+      rewardInfo.claimed_reward,
       1
     );
     // construct a transaction
@@ -156,7 +151,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
       .signAndSend(sudoAccount);
     await context.createBlock();
 
-    let reward_info = (
+    let rewardInfo = (
       await context.polkadotApi.query.crowdloanRewards.accountsPayable(GENESIS_ACCOUNT)
     ).toJSON() as any;
 
@@ -174,8 +169,8 @@ describeDevMoonbeam("Crowdloan", (context) => {
 
     let claimed = await calculate_vested_amount(
       context,
-      reward_info.total_reward,
-      reward_info.claimed_reward,
+      rewardInfo.total_reward,
+      rewardInfo.claimed_reward,
       5
     );
 
@@ -207,7 +202,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
       )
       .signAndSend(sudoAccount);
     await context.createBlock();
-    let reward_info = (
+    let rewardInfo = (
       await context.polkadotApi.query.crowdloanRewards.accountsPayable(GENESIS_ACCOUNT)
     ).toJSON() as any;
     await context.createBlock();
@@ -218,8 +213,8 @@ describeDevMoonbeam("Crowdloan", (context) => {
     await context.createBlock();
     let claimed = await calculate_vested_amount(
       context,
-      reward_info.total_reward,
-      reward_info.claimed_reward,
+      rewardInfo.total_reward,
+      rewardInfo.claimed_reward,
       5
     );
 
@@ -298,13 +293,13 @@ describeDevMoonbeam("Crowdloan", (context) => {
         .total_reward
     ).to.equal("3.0000 MUnit");
 
-    let reward_info = (
+    let rewardInfo = (
       await context.polkadotApi.query.crowdloanRewards.accountsPayable(ALITH)
     ).toJSON() as any;
     let claimed = await calculate_vested_amount(
       context,
-      reward_info.total_reward,
-      reward_info.claimed_reward,
+      rewardInfo.total_reward,
+      rewardInfo.claimed_reward,
       1
     );
     // claim
