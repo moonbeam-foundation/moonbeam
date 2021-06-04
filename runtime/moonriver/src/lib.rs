@@ -744,9 +744,9 @@ construct_runtime! {
 		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call},
 		Democracy: pallet_democracy::{Pallet, Storage, Config, Event<T>, Call},
 		CouncilCollective:
-			pallet_collective::<Instance1>::{Pallet, Call, Event<T>, Origin<T>, Config<T>},
+			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>},
 		TechComitteeCollective:
-			pallet_collective::<Instance2>::{Pallet, Call, Event<T>, Origin<T>, Config<T>},
+			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>},
 		CommunityTreasury: pallet_treasury::<Instance1>::{Pallet, Storage, Config, Event<T>, Call},
 		ParachainBondTreasury:
 			pallet_treasury::<Instance2>::{Pallet, Storage, Config, Event<T>, Call},
