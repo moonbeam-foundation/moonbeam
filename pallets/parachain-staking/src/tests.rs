@@ -1175,9 +1175,9 @@ fn round_transitions() {
 					5,
 					5,
 					3,
-					Perbill::from_parts(232),
-					Perbill::from_parts(232),
-					Perbill::from_parts(232)
+					Perbill::from_parts(463),
+					Perbill::from_parts(463),
+					Perbill::from_parts(463)
 				))
 			);
 			roll_to(9);
@@ -1211,9 +1211,9 @@ fn round_transitions() {
 					5,
 					5,
 					3,
-					Perbill::from_parts(232),
-					Perbill::from_parts(232),
-					Perbill::from_parts(232)
+					Perbill::from_parts(463),
+					Perbill::from_parts(463),
+					Perbill::from_parts(463)
 				))
 			);
 			roll_to(10);
@@ -1249,9 +1249,9 @@ fn round_transitions() {
 					5,
 					5,
 					3,
-					Perbill::from_parts(232),
-					Perbill::from_parts(232),
-					Perbill::from_parts(232)
+					Perbill::from_parts(463),
+					Perbill::from_parts(463),
+					Perbill::from_parts(463)
 				))
 			);
 			roll_to(8);
@@ -1262,9 +1262,9 @@ fn round_transitions() {
 					5,
 					5,
 					3,
-					Perbill::from_parts(232),
-					Perbill::from_parts(232),
-					Perbill::from_parts(232)
+					Perbill::from_parts(463),
+					Perbill::from_parts(463),
+					Perbill::from_parts(463)
 				))
 			);
 			roll_to(9);
