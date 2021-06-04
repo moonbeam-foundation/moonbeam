@@ -550,11 +550,11 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 impl parachain_info::Config for Runtime {}
 
 parameter_types! {
-	/// Minimum round length is 2 minutes (20 * 6 second block times)
-	pub const MinBlocksPerRound: u32 = 20;
-	/// Default BlocksPerRound is every hour (600 * 6 second block times)
-	pub const DefaultBlocksPerRound: u32 = 600;
-	/// Reward payments and collator exit requests are delayed by 2 hours (2 * 600 * block_time)
+	/// Minimum round length is 2 minutes (10 * 12 second block times)
+	pub const MinBlocksPerRound: u32 = 10;
+	/// Default BlocksPerRound is every hour (300 * 12 second block times)
+	pub const DefaultBlocksPerRound: u32 = 300;
+	/// Reward payments and collator exit requests are delayed by 2 hours (2 * 300 * block_time)
 	pub const BondDuration: u32 = 2;
 	/// Minimum 8 collators selected per round, default at genesis and minimum forever after
 	pub const MinSelectedCandidates: u32 = 8;
