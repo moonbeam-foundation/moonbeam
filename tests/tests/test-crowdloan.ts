@@ -123,11 +123,11 @@ describeDevMoonbeam("Crowdloan", (context) => {
       (
         Number(await context.web3.eth.getBalance(GENESIS_ACCOUNT)) - Number(GENESIS_ACCOUNT_BALANCE)
       ).toString()
-    ).to.equal("6.0002380012380946e+23");
+    ).to.equal("9.000208323933333e+23");
     const account = await context.polkadotApi.query.system.account(GENESIS_ACCOUNT);
     expect(
       (Number(account.data.free.toString()) - Number(GENESIS_ACCOUNT_BALANCE)).toString()
-    ).to.equal("6.0002380012380946e+23");
+    ).to.equal("9.000208323933333e+23");
   });
 });
 
