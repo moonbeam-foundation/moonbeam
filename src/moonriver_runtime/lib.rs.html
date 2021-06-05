@@ -1474,7 +1474,7 @@
 <span class="kw">impl</span> <span class="ident">pallet_utility</span>::<span class="ident">Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">Call</span> <span class="op">=</span> <span class="ident">Call</span>;
-	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> ();
+	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_utility</span>::<span class="ident">weights</span>::<span class="ident">SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
 <span class="macro">parameter_types</span><span class="macro">!</span> {
@@ -1486,7 +1486,7 @@
 	<span class="kw">type</span> <span class="ident">Moment</span> <span class="op">=</span> <span class="ident">u64</span>;
 	<span class="kw">type</span> <span class="ident">OnTimestampSet</span> <span class="op">=</span> ();
 	<span class="kw">type</span> <span class="ident">MinimumPeriod</span> <span class="op">=</span> <span class="ident">MinimumPeriod</span>;
-	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> ();
+	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_timestamp</span>::<span class="ident">weights</span>::<span class="ident">SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
 <span class="macro">parameter_types</span><span class="macro">!</span> {
@@ -1503,7 +1503,7 @@
 	<span class="kw">type</span> <span class="ident">DustRemoval</span> <span class="op">=</span> ();
 	<span class="kw">type</span> <span class="ident">ExistentialDeposit</span> <span class="op">=</span> <span class="ident">ExistentialDeposit</span>;
 	<span class="kw">type</span> <span class="ident">AccountStore</span> <span class="op">=</span> <span class="ident">System</span>;
-	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> ();
+	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_balances</span>::<span class="ident">weights</span>::<span class="ident">SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DealWithFees</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">sp_std</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>);
@@ -1529,7 +1529,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">pallet_transaction_payment</span>::<span class="ident">Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-	<span class="kw">type</span> <span class="ident">OnChargeTransaction</span> <span class="op">=</span> <span class="ident">CurrencyAdapter</span><span class="op">&lt;</span><span class="ident">Balances</span>, ()<span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">OnChargeTransaction</span> <span class="op">=</span> <span class="ident">CurrencyAdapter</span><span class="op">&lt;</span><span class="ident">Balances</span>, <span class="ident">DealWithFees</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">TransactionByteFee</span> <span class="op">=</span> <span class="ident">TransactionByteFee</span>;
 	<span class="kw">type</span> <span class="ident">WeightToFee</span> <span class="op">=</span> <span class="ident">IdentityFee</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">FeeMultiplierUpdate</span> <span class="op">=</span> ();
@@ -1591,7 +1591,7 @@
 }
 
 <span class="macro">parameter_types</span><span class="macro">!</span> {
-	<span class="kw">pub</span> <span class="ident">MaximumSchedulerWeight</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="ident">Perbill</span>::<span class="ident">from_percent</span>(<span class="number">80</span>) <span class="op">*</span> <span class="ident">BlockWeights</span>::<span class="ident">get</span>().<span class="ident">max_block</span>;
+	<span class="kw">pub</span> <span class="ident">MaximumSchedulerWeight</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="ident">NORMAL_DISPATCH_RATIO</span> <span class="op">*</span> <span class="ident">BlockWeights</span>::<span class="ident">get</span>().<span class="ident">max_block</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxScheduledPerBlock</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">50</span>;
 }
 
@@ -1603,7 +1603,7 @@
 	<span class="kw">type</span> <span class="ident">MaximumWeight</span> <span class="op">=</span> <span class="ident">MaximumSchedulerWeight</span>;
 	<span class="kw">type</span> <span class="ident">ScheduleOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">MaxScheduledPerBlock</span> <span class="op">=</span> <span class="ident">MaxScheduledPerBlock</span>;
-	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> ();
+	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_scheduler</span>::<span class="ident">weights</span>::<span class="ident">SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
 <span class="macro">parameter_types</span><span class="macro">!</span> {
@@ -1635,7 +1635,7 @@
 	<span class="kw">type</span> <span class="ident">MaxProposals</span> <span class="op">=</span> <span class="ident">CouncilMaxProposals</span>;
 	<span class="kw">type</span> <span class="ident">MaxMembers</span> <span class="op">=</span> <span class="ident">CouncilMaxMembers</span>;
 	<span class="kw">type</span> <span class="ident">DefaultVote</span> <span class="op">=</span> <span class="ident">pallet_collective</span>::<span class="ident">MoreThanMajorityThenPrimeDefaultVote</span>;
-	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> (); <span class="comment">// TODO : Better Weight Info ?</span>
+	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_collective</span>::<span class="ident">weights</span>::<span class="ident">SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">pallet_collective</span>::<span class="ident">Config</span><span class="op">&lt;</span><span class="ident">TechCommitteeInstance</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
@@ -1646,7 +1646,7 @@
 	<span class="kw">type</span> <span class="ident">MaxProposals</span> <span class="op">=</span> <span class="ident">TechComitteeMaxProposals</span>;
 	<span class="kw">type</span> <span class="ident">MaxMembers</span> <span class="op">=</span> <span class="ident">TechComitteeMaxMembers</span>;
 	<span class="kw">type</span> <span class="ident">DefaultVote</span> <span class="op">=</span> <span class="ident">pallet_collective</span>::<span class="ident">MoreThanMajorityThenPrimeDefaultVote</span>;
-	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> (); <span class="comment">// TODO : Better Weight Info ?</span>
+	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_collective</span>::<span class="ident">weights</span>::<span class="ident">SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
 <span class="macro">parameter_types</span><span class="macro">!</span> {
@@ -1658,7 +1658,7 @@
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinimumDeposit</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">4</span> <span class="op">*</span> <span class="ident">currency</span>::<span class="ident">MOVR</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxVotes</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxProposals</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PreimageByteDeposit</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency</span>::<span class="ident">MOVR</span> <span class="op">/</span> <span class="number">1_000</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PreimageByteDeposit</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency</span>::<span class="ident">BYTE_FEE</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">InstantAllowed</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="bool-val">false</span>;
 }
 
@@ -1714,7 +1714,7 @@
 	<span class="kw">type</span> <span class="ident">MaxVotes</span> <span class="op">=</span> <span class="ident">MaxVotes</span>;
 	<span class="kw">type</span> <span class="ident">OperationalPreimageOrigin</span> <span class="op">=</span> <span class="ident">pallet_collective</span>::<span class="ident">EnsureMember</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">CouncilInstance</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">PalletsOrigin</span> <span class="op">=</span> <span class="ident">OriginCaller</span>;
-	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> ();
+	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_democracy</span>::<span class="ident">weights</span>::<span class="ident">SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">MaxProposals</span> <span class="op">=</span> <span class="ident">MaxProposals</span>;
 }
 
@@ -1746,7 +1746,7 @@
 	<span class="kw">type</span> <span class="ident">Burn</span> <span class="op">=</span> ();
 	<span class="kw">type</span> <span class="ident">BurnDestination</span> <span class="op">=</span> ();
 	<span class="kw">type</span> <span class="ident">MaxApprovals</span> <span class="op">=</span> <span class="ident">MaxApprovals</span>;
-	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> ();
+	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_treasury</span>::<span class="ident">weights</span>::<span class="ident">SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">SpendFunds</span> <span class="op">=</span> ();
 }
 
@@ -1764,7 +1764,7 @@
 	<span class="kw">type</span> <span class="ident">Burn</span> <span class="op">=</span> ();
 	<span class="kw">type</span> <span class="ident">BurnDestination</span> <span class="op">=</span> ();
 	<span class="kw">type</span> <span class="ident">MaxApprovals</span> <span class="op">=</span> <span class="ident">MaxApprovals</span>;
-	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> ();
+	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_treasury</span>::<span class="ident">weights</span>::<span class="ident">SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">SpendFunds</span> <span class="op">=</span> ();
 }
 
@@ -1986,7 +1986,7 @@
 	<span class="kw">type</span> <span class="ident">ProxyDepositBase</span> <span class="op">=</span> <span class="ident">ProxyDepositBase</span>;
 	<span class="kw">type</span> <span class="ident">ProxyDepositFactor</span> <span class="op">=</span> <span class="ident">ProxyDepositFactor</span>;
 	<span class="kw">type</span> <span class="ident">MaxProxies</span> <span class="op">=</span> <span class="ident">MaxProxies</span>;
-	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> ();
+	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_proxy</span>::<span class="ident">weights</span>::<span class="ident">SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">MaxPending</span> <span class="op">=</span> <span class="ident">MaxPending</span>;
 	<span class="kw">type</span> <span class="ident">CallHasher</span> <span class="op">=</span> <span class="ident">BlakeTwo256</span>;
 	<span class="kw">type</span> <span class="ident">AnnouncementDepositBase</span> <span class="op">=</span> <span class="ident">AnnouncementDepositBase</span>;
