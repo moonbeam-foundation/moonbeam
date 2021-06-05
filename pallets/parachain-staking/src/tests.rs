@@ -1271,3 +1271,190 @@ fn round_transitions() {
 			assert_eq!(last_event(), MetaEvent::stake(Event::NewRound(8, 3, 1, 40)));
 		});
 }
+
+#[test]
+fn parachain_bond_reserve_works() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 100),
+			(2, 100),
+			(3, 100),
+			(4, 100),
+			(5, 100),
+			(6, 100),
+			(7, 100),
+			(8, 100),
+			(9, 100),
+			(10, 100),
+			(11, 1),
+		])
+		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
+		.with_nominations(vec![
+			(6, 1, 10),
+			(7, 1, 10),
+			(8, 2, 10),
+			(9, 2, 10),
+			(10, 1, 10),
+		])
+		.build()
+		.execute_with(|| {
+			assert_eq!(Balances::free_balance(&11), 1);
+			// set parachain bond account so reservations are triggered
+			assert_ok!(Stake::set_parachain_bond_account(Origin::root(), 11));
+			roll_to(8);
+			// chooses top TotalSelectedCandidates (5), in order
+			let mut expected = vec![
+				Event::ParachainBondAccountSet(0, 11),
+				Event::CollatorChosen(2, 1, 50),
+				Event::CollatorChosen(2, 2, 40),
+				Event::CollatorChosen(2, 4, 20),
+				Event::CollatorChosen(2, 3, 20),
+				Event::CollatorChosen(2, 5, 10),
+				Event::NewRound(5, 2, 5, 140),
+			];
+			assert_eq!(events(), expected);
+			assert_eq!(Balances::free_balance(&11), 1);
+			// ~ set block author as 1 for all blocks this round
+			set_author(2, 1, 100);
+			roll_to(16);
+			// distribute total issuance to collator 1 and its nominators 6, 7, 19
+			let mut new = vec![
+				Event::CollatorChosen(3, 1, 50),
+				Event::CollatorChosen(3, 2, 40),
+				Event::CollatorChosen(3, 4, 20),
+				Event::CollatorChosen(3, 3, 20),
+				Event::CollatorChosen(3, 5, 10),
+				Event::NewRound(10, 3, 5, 140),
+				Event::Rewarded(1, 19),
+				Event::Rewarded(6, 6),
+				Event::Rewarded(7, 6),
+				Event::Rewarded(10, 6),
+				Event::CollatorChosen(4, 1, 50),
+				Event::CollatorChosen(4, 2, 40),
+				Event::CollatorChosen(4, 4, 20),
+				Event::CollatorChosen(4, 3, 20),
+				Event::CollatorChosen(4, 5, 10),
+				Event::NewRound(15, 4, 5, 140),
+			];
+			expected.append(&mut new);
+			assert_eq!(events(), expected);
+			assert_eq!(Balances::free_balance(&11), 31);
+			// ~ set block author as 1 for all blocks this round
+			set_author(3, 1, 100);
+			set_author(4, 1, 100);
+			// 1. ensure nominators are paid for 2 rounds after they leave
+			assert_noop!(
+				Stake::leave_nominators(Origin::signed(66)),
+				Error::<Test>::NominatorDNE
+			);
+			assert_ok!(Stake::leave_nominators(Origin::signed(6)));
+			roll_to(21);
+			// keep paying 6 (note: inflation is in terms of total issuance so that's why 1 is 21)
+			let mut new2 = vec![
+				Event::NominatorLeftCollator(6, 1, 10, 40),
+				Event::NominatorLeft(6, 10),
+				Event::Rewarded(1, 19),
+				Event::Rewarded(6, 6),
+				Event::Rewarded(7, 6),
+				Event::Rewarded(10, 6),
+				Event::CollatorChosen(5, 2, 40),
+				Event::CollatorChosen(5, 1, 40),
+				Event::CollatorChosen(5, 4, 20),
+				Event::CollatorChosen(5, 3, 20),
+				Event::CollatorChosen(5, 5, 10),
+				Event::NewRound(20, 5, 5, 130),
+			];
+			expected.append(&mut new2);
+			assert_eq!(events(), expected);
+			assert_eq!(Balances::free_balance(&11), 47);
+			// 6 won't be paid for this round because they left already
+			set_author(5, 1, 100);
+			roll_to(26);
+			// keep paying 6
+			let mut new3 = vec![
+				Event::Rewarded(1, 20),
+				Event::Rewarded(6, 6),
+				Event::Rewarded(7, 6),
+				Event::Rewarded(10, 6),
+				Event::CollatorChosen(6, 2, 40),
+				Event::CollatorChosen(6, 1, 40),
+				Event::CollatorChosen(6, 4, 20),
+				Event::CollatorChosen(6, 3, 20),
+				Event::CollatorChosen(6, 5, 10),
+				Event::NewRound(25, 6, 5, 130),
+			];
+			expected.append(&mut new3);
+			assert_eq!(events(), expected);
+			assert_eq!(Balances::free_balance(&11), 64);
+			set_author(6, 1, 100);
+			roll_to(31);
+			// no more paying 6
+			let mut new4 = vec![
+				Event::Rewarded(1, 24),
+				Event::Rewarded(7, 8),
+				Event::Rewarded(10, 8),
+				Event::CollatorChosen(7, 2, 40),
+				Event::CollatorChosen(7, 1, 40),
+				Event::CollatorChosen(7, 4, 20),
+				Event::CollatorChosen(7, 3, 20),
+				Event::CollatorChosen(7, 5, 10),
+				Event::NewRound(30, 7, 5, 130),
+			];
+			expected.append(&mut new4);
+			assert_eq!(events(), expected);
+			assert_eq!(Balances::free_balance(&11), 82);
+			set_author(7, 1, 100);
+			assert_ok!(Stake::nominate(Origin::signed(8), 1, 10));
+			roll_to(36);
+			// new nomination is not rewarded yet
+			let mut new5 = vec![
+				Event::Nomination(8, 10, 1, 50),
+				Event::Rewarded(1, 26),
+				Event::Rewarded(7, 8),
+				Event::Rewarded(10, 8),
+				Event::CollatorChosen(8, 1, 50),
+				Event::CollatorChosen(8, 2, 40),
+				Event::CollatorChosen(8, 4, 20),
+				Event::CollatorChosen(8, 3, 20),
+				Event::CollatorChosen(8, 5, 10),
+				Event::NewRound(35, 8, 5, 140),
+			];
+			expected.append(&mut new5);
+			assert_eq!(events(), expected);
+			assert_eq!(Balances::free_balance(&11), 101);
+			set_author(8, 1, 100);
+			roll_to(41);
+			// new nomination is still not rewarded yet
+			let mut new6 = vec![
+				Event::Rewarded(1, 27),
+				Event::Rewarded(7, 9),
+				Event::Rewarded(10, 9),
+				Event::CollatorChosen(9, 1, 50),
+				Event::CollatorChosen(9, 2, 40),
+				Event::CollatorChosen(9, 4, 20),
+				Event::CollatorChosen(9, 3, 20),
+				Event::CollatorChosen(9, 5, 10),
+				Event::NewRound(40, 9, 5, 140),
+			];
+			expected.append(&mut new6);
+			assert_eq!(events(), expected);
+			assert_eq!(Balances::free_balance(&11), 120);
+			roll_to(46);
+			// new nomination is rewarded for first time, 2 rounds after joining (`BondDuration` = 2)
+			let mut new7 = vec![
+				Event::Rewarded(1, 25),
+				Event::Rewarded(7, 8),
+				Event::Rewarded(8, 8),
+				Event::Rewarded(10, 8),
+				Event::CollatorChosen(10, 1, 50),
+				Event::CollatorChosen(10, 2, 40),
+				Event::CollatorChosen(10, 4, 20),
+				Event::CollatorChosen(10, 3, 20),
+				Event::CollatorChosen(10, 5, 10),
+				Event::NewRound(45, 10, 5, 140),
+			];
+			expected.append(&mut new7);
+			assert_eq!(events(), expected);
+			assert_eq!(Balances::free_balance(&11), 140);
+		});
+}
