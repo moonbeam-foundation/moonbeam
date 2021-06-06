@@ -36,9 +36,9 @@ const parachains: { [name: string]: ParachainConfig } = {
     chain: "moonbase-local",
     docker: "purestake/moonbeam:v0.8.1",
   },
-  "moonriver-local": {
+  local: {
     relay: "kusama-v9030",
-    chain: "moonriver-local",
+    chain: "moonbase-local",
     binary: "../target/release/moonbeam",
   },
 };
@@ -57,7 +57,7 @@ const relays: { [name: string]: NetworkConfig } = {
     docker: "purestake/moonbase-relay-testnet:sha-aa386760",
     chain: "rococo-local",
   },
-  "rococo-local": {
+  local: {
     binary: "../../polkadot/target/release/polkadot",
     chain: "rococo-local",
   },
