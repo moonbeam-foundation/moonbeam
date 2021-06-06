@@ -88,7 +88,7 @@ describeDevMoonbeam("Author Mapping - simple association", (context) => {
             .true;
           expect(context.polkadotApi.events.system.NewAccount.is(events[2])).to.be.true;
           expect(context.polkadotApi.events.balances.Endowed.is(events[3])).to.be.true;
-          expect(context.polkadotApi.events.communityTreasury.Deposit.is(events[4])).to.be.true;
+          expect(context.polkadotApi.events.treasury.Deposit.is(events[4])).to.be.true;
           expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[5])).to.be.true;
           break;
         default:
@@ -144,7 +144,7 @@ describeDevMoonbeam("Author Mapping - Fail to reassociate alice", (context) => {
           expect(events.length === 4);
           expect(context.polkadotApi.events.system.NewAccount.is(events[0])).to.be.true;
           expect(context.polkadotApi.events.balances.Endowed.is(events[1])).to.be.true;
-          expect(context.polkadotApi.events.communityTreasury.Deposit.is(events[2])).to.be.true;
+          expect(context.polkadotApi.events.treasury.Deposit.is(events[2])).to.be.true;
           expect(context.polkadotApi.events.system.ExtrinsicFailed.is(events[3])).to.be.true;
           break;
         default:
@@ -203,7 +203,7 @@ describeDevMoonbeam("Author Mapping - Fail without deposit", (context) => {
           expect(events.length === 4);
           expect(context.polkadotApi.events.system.NewAccount.is(events[0])).to.be.true;
           expect(context.polkadotApi.events.balances.Endowed.is(events[1])).to.be.true;
-          expect(context.polkadotApi.events.communityTreasury.Deposit.is(events[2])).to.be.true;
+          expect(context.polkadotApi.events.treasury.Deposit.is(events[2])).to.be.true;
           expect(context.polkadotApi.events.system.ExtrinsicFailed.is(events[3])).to.be.true;
           break;
         default:
@@ -296,7 +296,7 @@ describeDevMoonbeam("Author Mapping - registered author can clear (de register)"
           expect(context.polkadotApi.events.balances.Unreserved.is(events[0])).to.be.true;
           expect(context.polkadotApi.events.authorMapping.AuthorDeRegistered.is(events[1])).to.be
             .true;
-          expect(context.polkadotApi.events.communityTreasury.Deposit.is(events[2])).to.be.true;
+          expect(context.polkadotApi.events.treasury.Deposit.is(events[2])).to.be.true;
           expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[3])).to.be.true;
           break;
         default:
@@ -348,7 +348,7 @@ describeDevMoonbeam("Author Mapping - unregistered author cannot clear associati
           expect(events.length === 4);
           expect(context.polkadotApi.events.system.NewAccount.is(events[0])).to.be.true;
           expect(context.polkadotApi.events.balances.Endowed.is(events[1])).to.be.true;
-          expect(context.polkadotApi.events.communityTreasury.Deposit.is(events[2])).to.be.true;
+          expect(context.polkadotApi.events.treasury.Deposit.is(events[2])).to.be.true;
           expect(context.polkadotApi.events.system.ExtrinsicFailed.is(events[3])).to.be.true;
           break;
         default:
@@ -403,7 +403,7 @@ describeDevMoonbeam("Author Mapping - non author clearing", (context) => {
         case 3:
           expect(section === "authorMapping" && method === "clearAssociation").to.be.true;
           expect(events.length === 2);
-          expect(context.polkadotApi.events.communityTreasury.Deposit.is(events[0])).to.be.true;
+          expect(context.polkadotApi.events.treasury.Deposit.is(events[0])).to.be.true;
           expect(context.polkadotApi.events.system.ExtrinsicFailed.is(events[1])).to.be.true;
           break;
         default:
