@@ -70,11 +70,10 @@ function start() {
   if (argv._.length != 1) {
     console.error(`Invalid arguments (expected: 1, got: ${argv._.length})`);
     console.error(
-      `Usage: ts-node launch.ts <${parachainNames.join(
-        "|"
-      )}> [--parachain-chain <moonbase-local|moonshadow-local|moonriver-local|moonbeam-local>] [--parachain-id 1000] [--relay <${relayNames.join(
-        "|"
-      )}>] [--relay-chain <rococo-local|kusama-local|westend-local|polkadot-local>]`
+      `Usage: ts-node launch.ts <${parachainNames.join("|")}>` +
+        ` [--parachain-chain <moonbase-local|moonshadow-local|moonriver-local|moonbeam-local>]` +
+        ` [--parachain-id 1000] [--relay <${relayNames.join("|")}>]` +
+        ` [--relay-chain <rococo-local|kusama-local|westend-local|polkadot-local>]`
     );
     return;
   }
