@@ -72,7 +72,9 @@ function start() {
     console.error(
       `Usage: ts-node launch.ts <${parachainNames.join(
         "|"
-      )}> [--parachain-id 1000] [--relay <${relayNames.join("|")}>]`
+      )}> [--parachain-runtime <moonbase-local|moonshadow-local|moonriver-local|moonbeam-local>] [--parachain-id 1000] [--relay <${relayNames.join(
+        "|"
+      )}>] [--relay-runtime <rococo-local|kusama-local|westend-local|polkadot-local>]`
     );
     return;
   }
@@ -84,6 +86,7 @@ function start() {
 
   const parachainName = argv._[0];
   const parachain = parachains[parachainName];
+  const parachainRuntime = argv["parachain-runtime"] || parachain.runtime;
 
   const relayName = argv.relay || parachain.relay;
 
@@ -94,9 +97,10 @@ function start() {
   }
 
   const relay = relays[relayName];
+  const relayRuntime = argv["relay-runtime"] || relay.runtime;
 
   console.log(
-    `🚀     Relay: ${relayName.padEnd(20)} - ${relay.docker || relay.binary} (${relay.runtime})`
+    `🚀     Relay: ${relayName.padEnd(20)} - ${relay.docker || relay.binary} (${relayRuntime})`
   );
 
   let parachainBinary;
@@ -120,9 +124,9 @@ function start() {
     }
   }
   console.log(
-    `🚀 Parachain: ${parachainName.padEnd(20)} - ${parachain.docker || parachain.binary} (${
-      parachain.runtime
-    })`
+    `🚀 Parachain: ${parachainName.padEnd(20)} - ${
+      parachain.docker || parachain.binary
+    } (${parachainRuntime})`
   );
 
   let relayBinary;
@@ -149,9 +153,9 @@ function start() {
 
   let launchConfig = launchTemplate;
   launchConfig.relaychain.bin = relayBinary;
-  launchConfig.relaychain.chain = relay.runtime;
+  launchConfig.relaychain.chain = relayRuntime;
   launchConfig.parachains[0].bin = parachainBinary;
-  launchConfig.parachains[0].chain = parachain.runtime;
+  launchConfig.parachains[0].chain = parachainRuntime;
 
   launchConfig.parachains[0].id = argv["parachain-id"] || 1000;
 
