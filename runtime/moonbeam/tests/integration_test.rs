@@ -205,6 +205,59 @@ fn reward_block_authors() {
 }
 
 #[test]
+fn reward_block_authors_with_parachain_bond_reserved() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			// Alice gets 100 extra tokens for her mapping deposit
+			(AccountId::from(ALICE), 2_100 * MSHD),
+			(AccountId::from(BOB), 1_000 * MSHD),
+			(AccountId::from(CHARLIE), MSHD),
+		])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MSHD)])
+		.with_nominations(vec![(
+			AccountId::from(BOB),
+			AccountId::from(ALICE),
+			500 * MSHD,
+		)])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
+		)])
+		.build()
+		.execute_with(|| {
+			set_parachain_inherent_data();
+			assert_ok!(ParachainStaking::set_parachain_bond_account(
+				root_origin(),
+				AccountId::from(CHARLIE),
+			),);
+			for x in 2..601 {
+				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+				run_to_block(x);
+			}
+			// no rewards doled out yet
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * MSHD,);
+			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * MSHD,);
+			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), MSHD,);
+			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+			run_to_block(601);
+			// rewards minted and distributed
+			assert_eq!(
+				Balances::free_balance(AccountId::from(ALICE)),
+				1079592333275448000000,
+			);
+			assert_eq!(
+				Balances::free_balance(AccountId::from(BOB)),
+				528942666637724000000,
+			);
+			// 30% reserved for parachain bond
+			assert_eq!(
+				Balances::free_balance(AccountId::from(CHARLIE)),
+				47515000000000000000,
+			);
+		});
+}
+
+#[test]
 fn initialize_crowdloan_addresses_with_batch_and_pay() {
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -273,7 +326,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			let expected_fail = Event::pallet_utility(pallet_utility::Event::BatchInterrupted(
 				0,
 				DispatchError::Module {
-					index: 21,
+					index: 20,
 					error: 8,
 					message: None,
 				},

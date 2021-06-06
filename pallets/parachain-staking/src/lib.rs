@@ -394,6 +394,7 @@ pub mod pallet {
 		/// Commission due to collators, set at genesis
 		type DefaultCollatorCommission: Get<Perbill>;
 		/// Percent of inflation set aside for parachain bond account
+		// TODO: change to default
 		type ParachainBondReserveRatio: Get<Percent>;
 		/// Minimum stake required for any account to be in `SelectedCandidates` for the round
 		type MinCollatorStk: Get<BalanceOf<Self>>;
