@@ -21,7 +21,7 @@ use crate::mock::{
 };
 use crate::{CollatorStatus, Error, Event};
 use frame_support::{assert_noop, assert_ok};
-use sp_runtime::{traits::Zero, DispatchError, Perbill};
+use sp_runtime::{traits::Zero, DispatchError, Perbill, Percent};
 
 #[test]
 fn geneses() {
@@ -1299,7 +1299,8 @@ fn parachain_bond_reserve_works() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(Balances::free_balance(&11), 1);
-			// set parachain bond account so reservations are triggered
+			// set parachain bond account so DefaultParachainBondReservePercent = 30% of inflation
+			// is allocated to this account hereafter
 			assert_ok!(Stake::set_parachain_bond_account(Origin::root(), 11));
 			roll_to(8);
 			// chooses top TotalSelectedCandidates (5), in order
@@ -1367,15 +1368,23 @@ fn parachain_bond_reserve_works() {
 			expected.append(&mut new2);
 			assert_eq!(events(), expected);
 			assert_eq!(Balances::free_balance(&11), 47);
+			assert_ok!(Stake::set_parachain_bond_reserve_percent(
+				Origin::root(),
+				Percent::from_percent(50)
+			));
 			// 6 won't be paid for this round because they left already
 			set_author(5, 1, 100);
 			roll_to(26);
 			// keep paying 6
 			let mut new3 = vec![
-				Event::Rewarded(1, 20),
-				Event::Rewarded(6, 6),
-				Event::Rewarded(7, 6),
-				Event::Rewarded(10, 6),
+				Event::ParachainBondReservePercentSet(
+					Percent::from_percent(30),
+					Percent::from_percent(50),
+				),
+				Event::Rewarded(1, 15),
+				Event::Rewarded(6, 4),
+				Event::Rewarded(7, 4),
+				Event::Rewarded(10, 4),
 				Event::CollatorChosen(6, 2, 40),
 				Event::CollatorChosen(6, 1, 40),
 				Event::CollatorChosen(6, 4, 20),
@@ -1385,14 +1394,14 @@ fn parachain_bond_reserve_works() {
 			];
 			expected.append(&mut new3);
 			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 64);
+			assert_eq!(Balances::free_balance(&11), 75);
 			set_author(6, 1, 100);
 			roll_to(31);
 			// no more paying 6
 			let mut new4 = vec![
-				Event::Rewarded(1, 24),
-				Event::Rewarded(7, 8),
-				Event::Rewarded(10, 8),
+				Event::Rewarded(1, 18),
+				Event::Rewarded(7, 6),
+				Event::Rewarded(10, 6),
 				Event::CollatorChosen(7, 2, 40),
 				Event::CollatorChosen(7, 1, 40),
 				Event::CollatorChosen(7, 4, 20),
@@ -1402,16 +1411,16 @@ fn parachain_bond_reserve_works() {
 			];
 			expected.append(&mut new4);
 			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 82);
+			assert_eq!(Balances::free_balance(&11), 104);
 			set_author(7, 1, 100);
 			assert_ok!(Stake::nominate(Origin::signed(8), 1, 10));
 			roll_to(36);
 			// new nomination is not rewarded yet
 			let mut new5 = vec![
 				Event::Nomination(8, 10, 1, 50),
-				Event::Rewarded(1, 26),
-				Event::Rewarded(7, 8),
-				Event::Rewarded(10, 8),
+				Event::Rewarded(1, 18),
+				Event::Rewarded(7, 6),
+				Event::Rewarded(10, 6),
 				Event::CollatorChosen(8, 1, 50),
 				Event::CollatorChosen(8, 2, 40),
 				Event::CollatorChosen(8, 4, 20),
@@ -1421,14 +1430,14 @@ fn parachain_bond_reserve_works() {
 			];
 			expected.append(&mut new5);
 			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 101);
+			assert_eq!(Balances::free_balance(&11), 135);
 			set_author(8, 1, 100);
 			roll_to(41);
 			// new nomination is still not rewarded yet
 			let mut new6 = vec![
-				Event::Rewarded(1, 27),
-				Event::Rewarded(7, 9),
-				Event::Rewarded(10, 9),
+				Event::Rewarded(1, 20),
+				Event::Rewarded(7, 6),
+				Event::Rewarded(10, 6),
 				Event::CollatorChosen(9, 1, 50),
 				Event::CollatorChosen(9, 2, 40),
 				Event::CollatorChosen(9, 4, 20),
@@ -1438,14 +1447,14 @@ fn parachain_bond_reserve_works() {
 			];
 			expected.append(&mut new6);
 			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 120);
+			assert_eq!(Balances::free_balance(&11), 167);
 			roll_to(46);
 			// new nomination is rewarded for first time, 2 rounds after joining (`BondDuration` = 2)
 			let mut new7 = vec![
-				Event::Rewarded(1, 25),
-				Event::Rewarded(7, 8),
-				Event::Rewarded(8, 8),
-				Event::Rewarded(10, 8),
+				Event::Rewarded(1, 18),
+				Event::Rewarded(7, 5),
+				Event::Rewarded(8, 5),
+				Event::Rewarded(10, 5),
 				Event::CollatorChosen(10, 1, 50),
 				Event::CollatorChosen(10, 2, 40),
 				Event::CollatorChosen(10, 4, 20),
@@ -1455,6 +1464,6 @@ fn parachain_bond_reserve_works() {
 			];
 			expected.append(&mut new7);
 			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 140);
+			assert_eq!(Balances::free_balance(&11), 201);
 		});
 }

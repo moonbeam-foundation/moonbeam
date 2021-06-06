@@ -684,7 +684,7 @@ pub mod pallet {
 			<CollatorCommission<T>>::put(T::DefaultCollatorCommission::get());
 			// Set parachain bond config to default config
 			<ParachainBondInfo<T>>::put(ParachainBondConfig {
-				// must be set immediately or the due inflation will not be sent anywhere
+				// must be set soon; if not => due inflation will be sent to collators/nominators
 				account: T::AccountId::default(),
 				percent: T::DefaultParachainBondReservePercent::get(),
 			});
