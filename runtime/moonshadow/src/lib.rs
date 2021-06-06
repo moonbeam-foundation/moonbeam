@@ -77,14 +77,15 @@ pub mod currency {
 	use super::Balance;
 
 	pub const MSHD: Balance = 1_000_000_000_000_000_000;
-	pub const CENTS: Balance = MSHD / 100;
-	pub const GRAND: Balance = MSHD * 1_000;
-	pub const MILLICENTS: Balance = CENTS / 1_000;
+	pub const KILOMSHDS: Balance = MSHD * 1_000;
+	pub const MILIMSHDS: Balance = MSHD / 1000;
+	pub const MICROMSHDS: Balance = MILIMSHDS / 1000;
+	pub const NANOMSHDS: Balance = MICROMSHDS / 1000;
 
 	pub const BYTE_FEE: Balance = 1 * MILLICENTS;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 100 * CENTS + (bytes as Balance) * BYTE_FEE
+		items as Balance * 1 * MSHD + (bytes as Balance) * BYTE_FEE
 	}
 }
 
@@ -304,7 +305,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		1_000_000_000.into()
+		1 * currency::NANOMSHDS.into()
 	}
 }
 
@@ -564,7 +565,7 @@ parameter_types! {
 	/// The fixed percent a collator takes off the top of due rewards is 20%
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
 	/// Minimum stake required to be reserved to be a collator is 1_000
-	pub const MinCollatorStk: u128 = 1_000 * currency::MSHD;
+	pub const MinCollatorStk: u128 = 1 * currency::KILOMSHDS;
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5 * currency::MSHD;
 }
