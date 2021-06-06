@@ -10,8 +10,8 @@ type NetworkConfig = {
   docker?: string;
   // To use instead of docker to run local binary
   binary?: string;
-  // What runtime to run
-  runtime: string;
+  // What chain to run
+  chain: string;
 };
 
 // Description of the parachain network
@@ -23,22 +23,22 @@ type ParachainConfig = NetworkConfig & {
 const parachains: { [name: string]: ParachainConfig } = {
   "moonriver-v47": {
     relay: "kusama-v9030",
-    runtime: "moonriver-local",
+    chain: "moonriver-local",
     docker: "purestake/moonbeam:moonriver-genesis",
   },
   "moonriver-v47-fast": {
     relay: "kusama-v9030-fast",
-    runtime: "moonriver-local",
+    chain: "moonriver-local",
     docker: "purestake/moonbase-parachain:moonriver-genesis-fast",
   },
   "alphanet-v8.1": {
     relay: "rococo-9003",
-    runtime: "moonbase-local",
+    chain: "moonbase-local",
     docker: "purestake/moonbeam:v0.8.1",
   },
   "moonriver-local": {
     relay: "kusama-v9030",
-    runtime: "moonriver-local",
+    chain: "moonriver-local",
     binary: "../target/release/moonbeam",
   },
 };
@@ -47,19 +47,19 @@ const parachainNames = Object.keys(parachains);
 const relays: { [name: string]: NetworkConfig } = {
   "kusama-v9030": {
     docker: "purestake/moonbase-relay-testnet:sha-aa386760",
-    runtime: "kusama-local",
+    chain: "kusama-local",
   },
   "kusama-v9030-fast": {
     docker: "purestake/moonbase-relay-testnet:kusama-v0.9.3-fast",
-    runtime: "kusama-local",
+    chain: "kusama-local",
   },
   "rococo-9003": {
     docker: "purestake/moonbase-relay-testnet:sha-aa386760",
-    runtime: "rococo-local",
+    chain: "rococo-local",
   },
   "rococo-local": {
     binary: "../../polkadot/target/release/polkadot",
-    runtime: "rococo-local",
+    chain: "rococo-local",
   },
 };
 const relayNames = Object.keys(relays);
@@ -72,9 +72,9 @@ function start() {
     console.error(
       `Usage: ts-node launch.ts <${parachainNames.join(
         "|"
-      )}> [--parachain-runtime <moonbase-local|moonshadow-local|moonriver-local|moonbeam-local>] [--parachain-id 1000] [--relay <${relayNames.join(
+      )}> [--parachain-chain <moonbase-local|moonshadow-local|moonriver-local|moonbeam-local>] [--parachain-id 1000] [--relay <${relayNames.join(
         "|"
-      )}>] [--relay-runtime <rococo-local|kusama-local|westend-local|polkadot-local>]`
+      )}>] [--relay-chain <rococo-local|kusama-local|westend-local|polkadot-local>]`
     );
     return;
   }
@@ -86,7 +86,7 @@ function start() {
 
   const parachainName = argv._[0];
   const parachain = parachains[parachainName];
-  const parachainRuntime = argv["parachain-runtime"] || parachain.runtime;
+  const parachainChain = argv["parachain-chain"] || parachain.chain;
 
   const relayName = argv.relay || parachain.relay;
 
@@ -97,10 +97,10 @@ function start() {
   }
 
   const relay = relays[relayName];
-  const relayRuntime = argv["relay-runtime"] || relay.runtime;
+  const relayChain = argv["relay-chain"] || relay.chain;
 
   console.log(
-    `🚀     Relay: ${relayName.padEnd(20)} - ${relay.docker || relay.binary} (${relayRuntime})`
+    `🚀     Relay: ${relayName.padEnd(20)} - ${relay.docker || relay.binary} (${relayChain})`
   );
 
   let parachainBinary;
@@ -126,7 +126,7 @@ function start() {
   console.log(
     `🚀 Parachain: ${parachainName.padEnd(20)} - ${
       parachain.docker || parachain.binary
-    } (${parachainRuntime})`
+    } (${parachainChain})`
   );
 
   let relayBinary;
@@ -153,9 +153,9 @@ function start() {
 
   let launchConfig = launchTemplate;
   launchConfig.relaychain.bin = relayBinary;
-  launchConfig.relaychain.chain = relayRuntime;
+  launchConfig.relaychain.chain = relayChain;
   launchConfig.parachains[0].bin = parachainBinary;
-  launchConfig.parachains[0].chain = parachainRuntime;
+  launchConfig.parachains[0].chain = parachainChain;
 
   launchConfig.parachains[0].id = argv["parachain-id"] || 1000;
 
