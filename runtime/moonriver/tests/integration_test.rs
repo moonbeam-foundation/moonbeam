@@ -205,15 +205,15 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			// Alice gets 100 extra tokens for her mapping deposit
-			(AccountId::from(ALICE), 2_100 * MSHD),
-			(AccountId::from(BOB), 1_000 * MSHD),
-			(AccountId::from(CHARLIE), MSHD),
+			(AccountId::from(ALICE), 2_100 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+			(AccountId::from(CHARLIE), MOVR),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MSHD)])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_nominations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
-			500 * MSHD,
+			500 * MOVR,
 		)])
 		.with_mappings(vec![(
 			NimbusId::from_slice(&ALICE_NIMBUS),
@@ -231,9 +231,9 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				run_to_block(x);
 			}
 			// no rewards doled out yet
-			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * MSHD,);
-			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * MSHD,);
-			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), MSHD,);
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * MOVR,);
+			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * MOVR,);
+			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), MOVR,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 			run_to_block(601);
 			// rewards minted and distributed

@@ -102,7 +102,7 @@ parameter_types! {
 	pub const MaxNominatorsPerCollator: u32 = 4;
 	pub const MaxCollatorsPerNominator: u32 = 4;
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
-	pub const ParachainBondReserveRatio: Percent = Percent::from_percent(30);
+	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	pub const MinCollatorStk: u128 = 10;
 	pub const MinNominatorStk: u128 = 5;
 	pub const MinNomination: u128 = 3;
@@ -117,7 +117,7 @@ impl Config for Test {
 	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
 	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
 	type DefaultCollatorCommission = DefaultCollatorCommission;
-	type ParachainBondReserveRatio = ParachainBondReserveRatio;
+	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	type MinCollatorStk = MinCollatorStk;
 	type MinCollatorCandidateStk = MinCollatorStk;
 	type MinNominatorStk = MinNominatorStk;

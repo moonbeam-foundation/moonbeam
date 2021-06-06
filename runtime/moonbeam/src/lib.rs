@@ -539,10 +539,10 @@ parameter_types! {
 	pub const MaxNominatorsPerCollator: u32 = 10;
 	/// Maximum 25 collators per nominator
 	pub const MaxCollatorsPerNominator: u32 = 25;
-	/// The fixed percent a collator takes off the top of due rewards is 20%
+	/// Default fixed percent a collator takes off the top of due rewards is 20%
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
-	/// The percent of inflation set aside for parachain bond every round
-	pub const ParachainBondReserveRatio: Percent = Percent::from_percent(30);
+	/// Default percent of inflation set aside for parachain bond every round
+	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	/// Minimum stake required to be reserved to be a collator is 1_000
 	pub const MinCollatorStk: u128 = 1_000 * currency::GLMR;
 	/// Minimum stake required to be reserved to be a nominator is 5
@@ -558,7 +558,7 @@ impl parachain_staking::Config for Runtime {
 	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
 	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
 	type DefaultCollatorCommission = DefaultCollatorCommission;
-	type ParachainBondReserveRatio = ParachainBondReserveRatio;
+	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	type MinCollatorStk = MinCollatorStk;
 	type MinCollatorCandidateStk = MinCollatorStk;
 	type MinNomination = MinNominatorStk;
