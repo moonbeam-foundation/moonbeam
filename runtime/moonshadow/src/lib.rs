@@ -78,11 +78,11 @@ pub mod currency {
 
 	pub const MSHD: Balance = 1_000_000_000_000_000_000;
 	pub const KILOMSHDS: Balance = MSHD * 1_000;
-	pub const MILIMSHDS: Balance = MSHD / 1000;
-	pub const MICROMSHDS: Balance = MILIMSHDS / 1000;
+	pub const MILLIMSHDS: Balance = MSHD / 1000;
+	pub const MICROMSHDS: Balance = MILLIMSHDS / 1000;
 	pub const NANOMSHDS: Balance = MICROMSHDS / 1000;
 
-	pub const BYTE_FEE: Balance = 1 * MILLICENTS;
+	pub const BYTE_FEE: Balance = 100 * MICROMSHDS;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
 		items as Balance * 1 * MSHD + (bytes as Balance) * BYTE_FEE
@@ -305,7 +305,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		1 * currency::NANOMSHDS.into()
+		(1 * currency::NANOMSHDS).into()
 	}
 }
 

@@ -78,8 +78,8 @@ pub mod currency {
 
 	pub const MOVR: Balance = 1_000_000_000_000_000_000;
 	pub const KILOMOVRS: Balance = MOVR * 1_000;
-	pub const MILIMOVRS: Balance = MOVR / 1000;
-	pub const MICROMOVRS: Balance = MILIMOVRS / 1000;
+	pub const MILLIMOVRS: Balance = MOVR / 1000;
+	pub const MICROMOVRS: Balance = MILLIMOVRS / 1000;
 	pub const NANOMOVRS: Balance = MICROMOVRS / 1000;
 
 	pub const BYTE_FEE: Balance = 100 * MICROMOVRS;
@@ -305,7 +305,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		1 * currency::NANOMOVRS.into()
+		(1 * currency::NANOMOVRS).into()
 	}
 }
 
@@ -392,7 +392,7 @@ parameter_types! {
 	pub const MinimumDeposit: Balance = 4 * currency::MOVR;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
-	pub const PreimageByteDeposit: Balance = 1 * currency::MILIMOVRS;
+	pub const PreimageByteDeposit: Balance = currency::BYTE_FEE;
 	pub const InstantAllowed: bool = false;
 }
 

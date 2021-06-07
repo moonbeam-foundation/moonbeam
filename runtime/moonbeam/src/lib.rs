@@ -78,8 +78,8 @@ pub mod currency {
 
 	pub const GLMR: Balance = 1_000_000_000_000_000_000;
 	pub const KILOGLMRS: Balance = GLMR * 1_000;
-	pub const MILIGLMRS: Balance = GLMR / 1000;
-	pub const MICROGLMRS: Balance = MILIGLMRS / 1000;
+	pub const MILLIGLMRS: Balance = GLMR / 1000;
+	pub const MICROGLMRS: Balance = MILLIGLMRS / 1000;
 	pub const NANOGLMRS: Balance = MICROGLMRS / 1000;
 
 	pub const BYTE_FEE: Balance = 100 * MICROGLMRS;
@@ -306,7 +306,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		1 * currency::NANOGLMRS.into()
+		(1 * currency::NANOGLMRS).into()
 	}
 }
 
@@ -393,7 +393,7 @@ parameter_types! {
 	pub const MinimumDeposit: Balance = 4 * currency::GLMR;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
-	pub const PreimageByteDeposit: Balance = 1 * currency::MILIGLMRS;
+	pub const PreimageByteDeposit: Balance = currency::BYTE_FEE;
 	pub const InstantAllowed: bool = false;
 }
 

@@ -77,8 +77,8 @@ pub mod currency {
 	use super::Balance;
 
 	pub const UNITS: Balance = 1_000_000_000_000_000_000;
-	pub const MILIUNITS: Balance = UNITS / 1000;
-	pub const MICROUNITS: Balance = MILIUNITS / 1000;
+	pub const MILLIUNITS: Balance = UNITS / 1000;
+	pub const MICROUNITS: Balance = MILLIUNITS / 1000;
 	pub const NANOUNITS: Balance = MICROUNITS / 1000;
 
 	pub const KILOUNITS: Balance = UNITS * 1_000;
@@ -292,7 +292,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		1 * currency::NANOUNITS.into()
+		(1 * currency::NANOUNITS).into()
 	}
 }
 
@@ -379,7 +379,7 @@ parameter_types! {
 	pub const MinimumDeposit: Balance = 4 * currency::UNITS;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
-	pub const PreimageByteDeposit: Balance = 1 * currency::MILIUNITS;
+	pub const PreimageByteDeposit: Balance = currency::BYTE_FEE;
 	pub const InstantAllowed: bool = false;
 }
 
