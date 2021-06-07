@@ -1294,9 +1294,6 @@ pub mod pallet {
 			for (val, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
 				let pct_due = Perbill::from_rational(pts, total);
 				let mut amt_due = pct_due * issuance;
-				if amt_due <= T::Currency::minimum_balance() {
-					continue;
-				}
 				// Take the snapshot of block author and nominations
 				let state = <AtStake<T>>::take(round_to_payout, &val);
 				if state.nominators.is_empty() {
@@ -1306,13 +1303,8 @@ pub mod pallet {
 					// pay collator first; commission + due_portion
 					let val_pct = Perbill::from_rational(state.bond, state.total);
 					let commission = collator_fee * amt_due;
-					let val_due = if commission > T::Currency::minimum_balance() {
-						amt_due -= commission;
-						(val_pct * amt_due) + commission
-					} else {
-						// commission is negligible so not applied
-						val_pct * amt_due
-					};
+					amt_due -= commission;
+					let val_due = (val_pct * amt_due) + commission;
 					mint(val_due, val.clone());
 					// pay nominators due portion
 					for Bond { owner, amount } in state.nominators {
