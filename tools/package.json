@@ -11,7 +11,7 @@
     "ethjs-provider-http": "^0.1.6",
     "minimist": ">=0.2.1",
     "pkg": "^4.4.9",
-    "polkadot-launch": "github:PureStake/polkadot-launch#crystalin-split-executable",
+    "polkadot-launch": "github:PureStake/polkadot-launch#crystalin-kusama-compatibility",
     "rlp": "^2.2.6",
     "solc": "^0.8.0",
     "truffle-privatekey-provider": "^1.5.0",

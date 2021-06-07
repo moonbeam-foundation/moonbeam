@@ -21,12 +21,12 @@ type ParachainConfig = NetworkConfig & {
 };
 
 const parachains: { [name: string]: ParachainConfig } = {
-  "moonriver-v47": {
+  "moonriver-genesis": {
     relay: "kusama-v9030",
     chain: "moonriver-local",
     docker: "purestake/moonbeam:moonriver-genesis",
   },
-  "moonriver-v47-fast": {
+  "moonriver-genesis-fast": {
     relay: "kusama-v9030-fast",
     chain: "moonriver-local",
     docker: "purestake/moonbase-parachain:moonriver-genesis-fast",
