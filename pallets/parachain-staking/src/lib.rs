@@ -285,15 +285,15 @@ pub mod pallet {
 			}
 		}
 		// Returns None if nomination not found
-		pub fn inc_nomination(&mut self, collator: AccountId, more: Balance) -> Option<Balance> {
+		pub fn inc_nomination(&mut self, collator: AccountId, more: Balance) -> bool {
 			for x in &mut self.nominations.0 {
 				if x.owner == collator {
 					x.amount += more;
 					self.total += more;
-					return Some(x.amount);
+					return true;
 				}
 			}
-			None
+			false
 		}
 		// Returns Some(Some(balance)) if successful
 		// None if nomination not found
@@ -666,10 +666,16 @@ pub mod pallet {
 					T::Currency::free_balance(&candidate) >= balance,
 					"Account does not have enough balance to bond as a cadidate."
 				);
-				let _ = <Pallet<T>>::join_candidates(
+				if let Err(error) = <Pallet<T>>::join_candidates(
 					T::Origin::from(Some(candidate.clone()).into()),
 					balance,
-				);
+				) {
+					log::trace!(
+						target: "staking",
+						"Join candidates failed in genesis with error {:?}",
+						error
+					);
+				}
 			}
 			// Initialize the nominations
 			for &(ref nominator, ref target, balance) in &self.nominations {
@@ -677,11 +683,17 @@ pub mod pallet {
 					T::Currency::free_balance(&nominator) >= balance,
 					"Account does not have enough balance to place nomination."
 				);
-				let _ = <Pallet<T>>::nominate(
+				if let Err(error) = <Pallet<T>>::nominate(
 					T::Origin::from(Some(nominator.clone()).into()),
 					target.clone(),
 					balance,
-				);
+				) {
+					log::trace!(
+						target: "staking",
+						"Join nominators failed in genesis with error {:?}",
+						error
+					);
+				}
 			}
 			// Set collator commission to default config
 			<CollatorCommission<T>>::put(T::DefaultCollatorCommission::get());
@@ -1092,9 +1104,10 @@ pub mod pallet {
 				<NominatorState<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
 			let mut collator =
 				<CollatorState<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
-			let _ = nominations
-				.inc_nomination(candidate.clone(), more)
-				.ok_or(Error::<T>::NominationDNE)?;
+			ensure!(
+				nominations.inc_nomination(candidate.clone(), more),
+				Error::<T>::NominationDNE
+			);
 			T::Currency::reserve(&nominator, more)?;
 			let before = collator.total;
 			collator.inc_nominator(nominator.clone(), more);
