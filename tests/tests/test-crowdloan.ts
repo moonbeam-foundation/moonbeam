@@ -120,14 +120,20 @@ describeDevMoonbeam("Crowdloan", (context) => {
 
     // check balances
     expect(
-      (
-        Number(await context.web3.eth.getBalance(GENESIS_ACCOUNT)) - Number(GENESIS_ACCOUNT_BALANCE)
-      ).toString()
-    ).to.equal("9.000208323933333e+23");
+      formatBalance(
+        BigInt(await context.web3.eth.getBalance(GENESIS_ACCOUNT)) - GENESIS_ACCOUNT_BALANCE,
+        { withSi: true, withUnit: "Unit" },
+        18
+      )
+    ).to.equal(claimed);
     const account = await context.polkadotApi.query.system.account(GENESIS_ACCOUNT);
     expect(
-      (Number(account.data.free.toString()) - Number(GENESIS_ACCOUNT_BALANCE)).toString()
-    ).to.equal("9.000208323933333e+23");
+      formatBalance(
+        account.data.free.toBigInt() - GENESIS_ACCOUNT_BALANCE,
+        { withSi: true, withUnit: "Unit" },
+        18
+      )
+    ).to.equal(claimed);
   });
 });
 

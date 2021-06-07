@@ -111,7 +111,7 @@ fn transfer_through_evm_to_stake() {
 					1_000 * MOVR,
 				),
 				DispatchError::Module {
-					index: 3,
+					index: 10,
 					error: 2,
 					message: Some("InsufficientBalance")
 				}
@@ -322,7 +322,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			let expected_fail = Event::pallet_utility(pallet_utility::Event::BatchInterrupted(
 				0,
 				DispatchError::Module {
-					index: 20,
+					index: 90,
 					error: 8,
 					message: None,
 				},

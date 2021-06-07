@@ -29,7 +29,7 @@ use sc_cli::{
 	NetworkParams, Result, RuntimeVersion, SharedParams, SubstrateCli,
 };
 use sc_service::config::{BasePath, PrometheusConfig};
-use service::{chain_spec, IdentifyVariant};
+use service::{chain_spec, frontier_database_dir, IdentifyVariant};
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::Block as _;
 use std::{io::Write, net::SocketAddr};
@@ -301,6 +301,13 @@ pub fn run() -> Result<()> {
 				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
 				let dev_service =
 					cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
+
+				// Remove Frontier offchain db
+				let frontier_database_config = sc_service::DatabaseConfig::RocksDb {
+					path: frontier_database_dir(&config),
+					cache_size: 0,
+				};
+				cmd.base.run(frontier_database_config)?;
 
 				if dev_service {
 					// base refers to the encapsulated "regular" sc_cli::PurgeChain command
