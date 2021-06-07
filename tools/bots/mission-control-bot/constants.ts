@@ -21,7 +21,7 @@ export const params = {
   ACCOUNT_KEY: process.env.ACCOUNT_KEY,
   WORKERS_MNEMONIC: process.env.WORKERS_MNEMONIC,
 
-  // Token distribution
+  // Token  distribution
   TOKEN_COUNT: BigInt(process.env.TOKEN_COUNT || 10), // DEV
   WORKERS_COUNT: parseInt(process.env.WORKERS_COUNT || "10"),
   WORKER_MIN_BALANCE: BigInt(process.env.WORKER_MIN_BALANCE || 200), // DEV
