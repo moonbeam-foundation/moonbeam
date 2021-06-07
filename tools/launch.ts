@@ -1,3 +1,15 @@
+/**
+ *  Script to launch 2 relay and 2 parachain nodes.
+ *  It contains pre-registered versions to allow easy run using Docker.
+ *
+ *  ports can be given using --port-prefix xx (default 34) using the following rule:
+ *  - relay 1 - p2p (p2p: XX000, rpcPort: XX001, wsPort: XX002)
+ *  - relay 2 - p2p (p2p: XX010, rpcPort: XX011, wsPort: XX012)
+ *  - para 1 - p2p (p2p: XX100, rpcPort: XX101, wsPort: XX102)
+ *  - para 2 - p2p (p2p: XX110, rpcPort: XX111, wsPort: XX112)
+ *
+ */
+
 import minimist from "minimist";
 import * as fs from "fs";
 import * as path from "path";
@@ -24,12 +36,12 @@ const parachains: { [name: string]: ParachainConfig } = {
   "moonriver-genesis": {
     relay: "kusama-v9030",
     chain: "moonriver-local",
-    docker: "purestake/moonbeam:moonriver-genesis",
+    docker: "purestake/moonbeam:sha-e45bda9e",
   },
   "moonriver-genesis-fast": {
-    relay: "kusama-v9030-fast",
+    relay: "rococo-9003",
     chain: "moonriver-local",
-    docker: "purestake/moonbase-parachain:moonriver-genesis-fast",
+    docker: "purestake/moonbeam:sha-153c4c4a",
   },
   "alphanet-v8.1": {
     relay: "rococo-9003",
@@ -50,7 +62,7 @@ const relays: { [name: string]: NetworkConfig } = {
     chain: "kusama-local",
   },
   "kusama-v9030-fast": {
-    docker: "purestake/moonbase-relay-testnet:kusama-v0.9.3-fast",
+    docker: "purestake/moonbase-relay-testnet:sha-832cc0af",
     chain: "kusama-local",
   },
   "rococo-9003": {
@@ -83,6 +95,8 @@ function start() {
     return;
   }
 
+  const portPrefix = argv["port-prefix"] || 34;
+  const startingPort = portPrefix * 1000;
   const parachainName = argv._[0];
   const parachain = parachains[parachainName];
   const parachainChain = argv["parachain-chain"] || parachain.chain;
@@ -158,6 +172,22 @@ function start() {
 
   launchConfig.parachains[0].id = argv["parachain-id"] || 1000;
 
+  launchConfig.relaychain.nodes[0].port = startingPort;
+  launchConfig.relaychain.nodes[0].rpcPort = startingPort + 1;
+  launchConfig.relaychain.nodes[0].wsPort = startingPort + 2;
+
+  launchConfig.relaychain.nodes[1].port = startingPort + 10;
+  launchConfig.relaychain.nodes[1].rpcPort = startingPort + 11;
+  launchConfig.relaychain.nodes[1].wsPort = startingPort + 12;
+
+  launchConfig.parachains[0].nodes[0].port = startingPort + 100;
+  launchConfig.parachains[0].nodes[0].rpcPort = startingPort + 101;
+  launchConfig.parachains[0].nodes[0].wsPort = startingPort + 102;
+
+  launchConfig.parachains[0].nodes[1].port = startingPort + 110;
+  launchConfig.parachains[0].nodes[1].rpcPort = startingPort + 111;
+  launchConfig.parachains[0].nodes[1].wsPort = startingPort + 112;
+
   // Kill all processes when exiting.
   process.on("exit", function () {
     killAll();
@@ -178,13 +208,15 @@ const launchTemplate = {
     nodes: [
       {
         name: "alice",
-        wsPort: 39944,
-        port: 39444,
+        port: 0,
+        rpcPort: 1,
+        wsPort: 2,
       },
       {
         name: "bob",
-        wsPort: 39955,
-        port: 39555,
+        port: 10,
+        rpcPort: 11,
+        wsPort: 12,
       },
     ],
     runtime_genesis_config: {
@@ -204,27 +236,25 @@ const launchTemplate = {
       chain: "...",
       nodes: [
         {
-          rpcPort: 36846,
-          wsPort: 36946,
-          port: 36336,
+          port: 100,
+          rpcPort: 101,
+          wsPort: 102,
+          name: "alice",
           flags: [
             "--log=info,rpc=trace,evm=trace,ethereum=trace",
-            "--rpc-port=36846",
             "--unsafe-rpc-external",
-            "--alice",
             "--rpc-cors=all",
             "--",
             "--execution=wasm",
           ],
         },
         {
-          rpcPort: 36847,
-          wsPort: 36947,
-          port: 36337,
+          port: 110,
+          rpcPort: 111,
+          wsPort: 112,
+          name: "bob",
           flags: [
             "--log=info,rpc=trace,evm=trace,ethereum=trace",
-            "--rpc-port=36847",
-            "--charlie",
             "--unsafe-rpc-external",
             "--rpc-cors=all",
             "--",
