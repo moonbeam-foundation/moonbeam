@@ -188,6 +188,18 @@ function start() {
   launchConfig.parachains[0].nodes[1].rpcPort = startingPort + 111;
   launchConfig.parachains[0].nodes[1].wsPort = startingPort + 112;
 
+  // To support compatibility with rococo
+  if (launchConfig.relaychain.chain.startsWith("rococo")) {
+    (launchConfig.relaychain.genesis.runtime as any).runtime_genesis_config = {
+      ...launchConfig.relaychain.genesis.runtime,
+    };
+    for (let key of Object.keys(launchConfig.relaychain.genesis.runtime)) {
+      if (key != "runtime_genesis_config") {
+        delete launchConfig.relaychain.genesis.runtime[key];
+      }
+    }
+  }
+
   // Kill all processes when exiting.
   process.on("exit", function () {
     killAll();
@@ -219,11 +231,13 @@ const launchTemplate = {
         wsPort: 12,
       },
     ],
-    runtime_genesis_config: {
-      parachainsConfiguration: {
-        config: {
-          validation_upgrade_frequency: 1,
-          validation_upgrade_delay: 1,
+    genesis: {
+      runtime: {
+        parachainsConfiguration: {
+          config: {
+            validation_upgrade_frequency: 1,
+            validation_upgrade_delay: 1,
+          },
         },
       },
     },
