@@ -737,7 +737,7 @@ fn collators_bond() {
 			assert_ok!(Stake::candidate_bond_less(Origin::signed(3), 10));
 			assert_noop!(
 				Stake::candidate_bond_less(Origin::signed(2), 11),
-				Error::<Test>::Underflow
+				Error::<Test>::CannotBondLessGEQTotalBond
 			);
 			assert_noop!(
 				Stake::candidate_bond_less(Origin::signed(2), 1),
@@ -795,7 +795,7 @@ fn nominators_bond() {
 			);
 			assert_noop!(
 				Stake::nominator_bond_less(Origin::signed(6), 1, 11),
-				Error::<Test>::Underflow
+				Error::<Test>::CannotBondLessGEQTotalBond
 			);
 			assert_noop!(
 				Stake::nominator_bond_less(Origin::signed(6), 1, 8),

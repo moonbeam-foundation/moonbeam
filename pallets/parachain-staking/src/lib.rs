@@ -177,7 +177,7 @@ pub mod pallet {
 			self.bond += more;
 			self.total += more;
 		}
-		// Returns None if underflow or less == self.bond (in which case collator should leave)
+		// Return None if less >= self.bond => collator must leave instead of bond less
 		pub fn bond_less(&mut self, less: B) -> Option<B> {
 			if self.bond > less {
 				self.bond -= less;
@@ -259,8 +259,8 @@ pub mod pallet {
 				false
 			}
 		}
-		// Returns Some(remaining balance), must be more than MinNominatorStk
-		// Returns None if nomination not found
+		// Return Some(remaining balance), must be more than MinNominatorStk
+		// Return None if nomination not found
 		pub fn rm_nomination(&mut self, collator: AccountId) -> Option<Balance> {
 			let mut amt: Option<Balance> = None;
 			let nominations = self
@@ -284,7 +284,7 @@ pub mod pallet {
 				None
 			}
 		}
-		// Returns None if nomination not found
+		// Return false if nomination not found
 		pub fn inc_nomination(&mut self, collator: AccountId, more: Balance) -> bool {
 			for x in &mut self.nominations.0 {
 				if x.owner == collator {
@@ -295,9 +295,9 @@ pub mod pallet {
 			}
 			false
 		}
-		// Returns Some(Some(balance)) if successful
-		// None if nomination not found
-		// Some(None) if underflow
+		// Return Some(Some(balance)) if successful
+		// Return None if nomination not found
+		// Return Some(None) if less >= nomination_total
 		pub fn dec_nomination(
 			&mut self,
 			collator: AccountId,
@@ -310,7 +310,7 @@ pub mod pallet {
 						self.total -= less;
 						return Some(Some(x.amount));
 					} else {
-						// underflow error; should rm entire nomination if x.amount == collator
+						// must rm entire nomination if x.amount <= less
 						return Some(None);
 					}
 				}
@@ -442,7 +442,7 @@ pub mod pallet {
 		ExceedMaxCollatorsPerNom,
 		AlreadyNominatedCollator,
 		NominationDNE,
-		Underflow,
+		CannotBondLessGEQTotalBond,
 		InvalidSchedule,
 		CannotSetBelowMin,
 		NoWritingSameValue,
@@ -998,7 +998,9 @@ pub mod pallet {
 			let mut state = <CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_leaving(), Error::<T>::CannotActivateIfLeaving);
 			let before = state.bond;
-			let after = state.bond_less(less).ok_or(Error::<T>::Underflow)?;
+			let after = state
+				.bond_less(less)
+				.ok_or(Error::<T>::CannotBondLessGEQTotalBond)?;
 			ensure!(
 				after >= T::MinCollatorCandidateStk::get(),
 				Error::<T>::ValBondBelowMin
@@ -1137,7 +1139,7 @@ pub mod pallet {
 			let remaining = nominations
 				.dec_nomination(candidate.clone(), less)
 				.ok_or(Error::<T>::NominationDNE)?
-				.ok_or(Error::<T>::Underflow)?;
+				.ok_or(Error::<T>::CannotBondLessGEQTotalBond)?;
 			ensure!(
 				remaining >= T::MinNomination::get(),
 				Error::<T>::NominationBelowMin
