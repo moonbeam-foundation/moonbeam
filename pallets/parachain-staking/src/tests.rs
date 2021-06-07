@@ -19,94 +19,11 @@ use crate::mock::{
 	events, last_event, roll_to, set_author, Balances, Event as MetaEvent, ExtBuilder, Origin,
 	Stake, System, Test,
 };
-use crate::{CollatorStatus, Error, Event};
+use crate::{CollatorStatus, Error, Event, Range};
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, Perbill, Percent};
 
-#[test]
-fn geneses() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 1000),
-			(2, 300),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-			(7, 100),
-			(8, 9),
-			(9, 4),
-		])
-		.with_collators(vec![(1, 500), (2, 200)])
-		.with_nominations(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
-		.build()
-		.execute_with(|| {
-			assert!(System::events().is_empty());
-			// collators
-			assert_eq!(Balances::reserved_balance(&1), 500);
-			assert_eq!(Balances::free_balance(&1), 500);
-			assert!(Stake::is_candidate(&1));
-			assert_eq!(Balances::reserved_balance(&2), 200);
-			assert_eq!(Balances::free_balance(&2), 100);
-			assert!(Stake::is_candidate(&2));
-			// nominators
-			for x in 3..7 {
-				assert!(Stake::is_nominator(&x));
-				assert_eq!(Balances::free_balance(&x), 0);
-				assert_eq!(Balances::reserved_balance(&x), 100);
-			}
-			// uninvolved
-			for x in 7..10 {
-				assert!(!Stake::is_nominator(&x));
-			}
-			assert_eq!(Balances::free_balance(&7), 100);
-			assert_eq!(Balances::reserved_balance(&7), 0);
-			assert_eq!(Balances::free_balance(&8), 9);
-			assert_eq!(Balances::reserved_balance(&8), 0);
-			assert_eq!(Balances::free_balance(&9), 4);
-			assert_eq!(Balances::reserved_balance(&9), 0);
-		});
-	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 100),
-			(2, 100),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-			(7, 100),
-			(8, 100),
-			(9, 100),
-			(10, 100),
-		])
-		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
-		.with_nominations(vec![
-			(6, 1, 10),
-			(7, 1, 10),
-			(8, 2, 10),
-			(9, 2, 10),
-			(10, 1, 10),
-		])
-		.build()
-		.execute_with(|| {
-			assert!(System::events().is_empty());
-			// collators
-			for x in 1..5 {
-				assert!(Stake::is_candidate(&x));
-				assert_eq!(Balances::free_balance(&x), 80);
-				assert_eq!(Balances::reserved_balance(&x), 20);
-			}
-			assert!(Stake::is_candidate(&5));
-			assert_eq!(Balances::free_balance(&5), 90);
-			assert_eq!(Balances::reserved_balance(&5), 10);
-			// nominators
-			for x in 6..11 {
-				assert!(Stake::is_nominator(&x));
-				assert_eq!(Balances::free_balance(&x), 90);
-				assert_eq!(Balances::reserved_balance(&x), 10);
-			}
-		});
-}
+// ~~ PUBLIC DISPATCHABLES ~~
 
 #[test]
 fn online_offline_works() {
@@ -1144,135 +1061,6 @@ fn payouts_follow_nomination_changes() {
 }
 
 #[test]
-fn round_transitions() {
-	// round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round
-	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 100),
-			(2, 100),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-		])
-		.with_collators(vec![(1, 20)])
-		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
-		.build()
-		.execute_with(|| {
-			// Default round every 5 blocks, but MinBlocksPerRound is 3 and we set it to min 3 blocks
-			roll_to(8);
-			// chooses top TotalSelectedCandidates (5), in order
-			let init = vec![
-				Event::CollatorChosen(2, 1, 40),
-				Event::NewRound(5, 2, 1, 40),
-			];
-			assert_eq!(events(), init);
-			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
-			assert_eq!(
-				last_event(),
-				MetaEvent::stake(Event::BlocksPerRoundSet(
-					2,
-					5,
-					5,
-					3,
-					Perbill::from_parts(463),
-					Perbill::from_parts(463),
-					Perbill::from_parts(463)
-				))
-			);
-			roll_to(9);
-			assert_eq!(last_event(), MetaEvent::stake(Event::NewRound(8, 3, 1, 40)));
-		});
-	// round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round
-	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 100),
-			(2, 100),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-		])
-		.with_collators(vec![(1, 20)])
-		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
-		.build()
-		.execute_with(|| {
-			roll_to(9);
-			let init = vec![
-				Event::CollatorChosen(2, 1, 40),
-				Event::NewRound(5, 2, 1, 40),
-			];
-			assert_eq!(events(), init);
-			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
-			assert_eq!(
-				last_event(),
-				MetaEvent::stake(Event::BlocksPerRoundSet(
-					2,
-					5,
-					5,
-					3,
-					Perbill::from_parts(463),
-					Perbill::from_parts(463),
-					Perbill::from_parts(463)
-				))
-			);
-			roll_to(10);
-			assert_eq!(last_event(), MetaEvent::stake(Event::NewRound(9, 3, 1, 40)));
-		});
-	// if current duration less than new blocks per round (bpr), round waits until new bpr passes
-	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 100),
-			(2, 100),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-		])
-		.with_collators(vec![(1, 20)])
-		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
-		.build()
-		.execute_with(|| {
-			// Default round every 5 blocks, but MinBlocksPerRound is 3 and we set it to min 3 blocks
-			roll_to(6);
-			// chooses top TotalSelectedCandidates (5), in order
-			let init = vec![
-				Event::CollatorChosen(2, 1, 40),
-				Event::NewRound(5, 2, 1, 40),
-			];
-			assert_eq!(events(), init);
-			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
-			assert_eq!(
-				last_event(),
-				MetaEvent::stake(Event::BlocksPerRoundSet(
-					2,
-					5,
-					5,
-					3,
-					Perbill::from_parts(463),
-					Perbill::from_parts(463),
-					Perbill::from_parts(463)
-				))
-			);
-			roll_to(8);
-			assert_eq!(
-				last_event(),
-				MetaEvent::stake(Event::BlocksPerRoundSet(
-					2,
-					5,
-					5,
-					3,
-					Perbill::from_parts(463),
-					Perbill::from_parts(463),
-					Perbill::from_parts(463)
-				))
-			);
-			roll_to(9);
-			assert_eq!(last_event(), MetaEvent::stake(Event::NewRound(8, 3, 1, 40)));
-		});
-}
-
-#[test]
 fn parachain_bond_reserve_works() {
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -1472,5 +1260,276 @@ fn parachain_bond_reserve_works() {
 			expected.append(&mut new7);
 			assert_eq!(events(), expected);
 			assert_eq!(Balances::free_balance(&11), 183);
+		});
+}
+
+// ~~ ROOT DISPATCHABLES ~~
+
+#[test]
+fn set_staking_expectations_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		// invalid call fails
+		assert_noop!(
+			Stake::set_staking_expectations(
+				Origin::root(),
+				Range {
+					min: 5u32.into(),
+					ideal: 4u32.into(),
+					max: 3u32.into()
+				}
+			),
+			Error::<Test>::InvalidSchedule
+		);
+		let (min, ideal, max): (u128, u128, u128) = (3u32.into(), 4u32.into(), 5u32.into());
+		// valid call succeeds
+		assert_ok!(Stake::set_staking_expectations(
+			Origin::root(),
+			Range { min, ideal, max }
+		),);
+		// verify event emission
+		assert_eq!(
+			last_event(),
+			MetaEvent::stake(Event::StakeExpectationsSet(min, ideal, max))
+		);
+		// verify storage change
+		let config = Stake::inflation_config();
+		assert_eq!(config.expect, Range { min, ideal, max });
+	});
+}
+
+#[test]
+fn set_inflation_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		// invalid call fails
+		assert_noop!(
+			Stake::set_inflation(
+				Origin::root(),
+				Range {
+					min: Perbill::from_percent(5),
+					ideal: Perbill::from_percent(4),
+					max: Perbill::from_percent(3)
+				}
+			),
+			Error::<Test>::InvalidSchedule
+		);
+		let (min, ideal, max): (Perbill, Perbill, Perbill) = (
+			Perbill::from_percent(3),
+			Perbill::from_percent(4),
+			Perbill::from_percent(5),
+		);
+		// valid call succeeds
+		assert_ok!(Stake::set_inflation(
+			Origin::root(),
+			Range { min, ideal, max }
+		),);
+		// verify event emission
+		assert_eq!(
+			last_event(),
+			MetaEvent::stake(Event::InflationSet(
+				Perbill::from_parts(30000000),
+				Perbill::from_parts(40000000),
+				Perbill::from_parts(50000000),
+				Perbill::from_parts(57),
+				Perbill::from_parts(75),
+				Perbill::from_parts(93)
+			))
+		);
+		// verify storage change
+		let config = Stake::inflation_config();
+		assert_eq!(config.annual, Range { min, ideal, max });
+		assert_eq!(
+			config.round,
+			Range {
+				min: Perbill::from_parts(57),
+				ideal: Perbill::from_parts(75),
+				max: Perbill::from_parts(93)
+			}
+		);
+		// invalid call fails
+		assert_noop!(
+			Stake::set_inflation(Origin::root(), Range { min, ideal, max }),
+			Error::<Test>::NoWritingSameValue
+		);
+	});
+}
+
+#[test]
+fn set_total_selected_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		// invalid call fails
+		assert_noop!(
+			Stake::set_total_selected(Origin::root(), 4u32),
+			Error::<Test>::CannotSetBelowMin
+		);
+		// valid call succeeds
+		assert_ok!(Stake::set_total_selected(Origin::root(), 6u32));
+		// verify event emission
+		assert_eq!(
+			last_event(),
+			MetaEvent::stake(Event::TotalSelectedSet(5u32, 6u32,))
+		);
+		// verify storage change
+		assert_eq!(Stake::total_selected(), 6u32);
+		// invalid call fails
+		assert_noop!(
+			Stake::set_total_selected(Origin::root(), 6u32),
+			Error::<Test>::NoWritingSameValue
+		);
+	});
+}
+
+#[test]
+fn set_collator_commission_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		// valid call succeeds
+		assert_ok!(Stake::set_collator_commission(
+			Origin::root(),
+			Perbill::from_percent(5)
+		));
+		// verify event emission
+		assert_eq!(
+			last_event(),
+			MetaEvent::stake(Event::CollatorCommissionSet(
+				Perbill::from_percent(20),
+				Perbill::from_percent(5),
+			))
+		);
+		// verify storage change
+		assert_eq!(Stake::collator_commission(), Perbill::from_percent(5));
+		// invalid call fails
+		assert_noop!(
+			Stake::set_collator_commission(Origin::root(), Perbill::from_percent(5)),
+			Error::<Test>::NoWritingSameValue
+		);
+	});
+}
+
+#[test]
+fn mutable_blocks_per_round() {
+	// round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 100),
+			(2, 100),
+			(3, 100),
+			(4, 100),
+			(5, 100),
+			(6, 100),
+		])
+		.with_collators(vec![(1, 20)])
+		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Stake::set_blocks_per_round(Origin::root(), 2u32),
+				Error::<Test>::CannotSetBelowMin
+			);
+			assert_noop!(
+				Stake::set_blocks_per_round(Origin::root(), 5u32),
+				Error::<Test>::NoWritingSameValue
+			);
+			// Default round every 5 blocks, but MinBlocksPerRound is 3 and we set it to min 3 blocks
+			roll_to(8);
+			// chooses top TotalSelectedCandidates (5), in order
+			let init = vec![
+				Event::CollatorChosen(2, 1, 40),
+				Event::NewRound(5, 2, 1, 40),
+			];
+			assert_eq!(events(), init);
+			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
+			assert_eq!(
+				last_event(),
+				MetaEvent::stake(Event::BlocksPerRoundSet(
+					2,
+					5,
+					5,
+					3,
+					Perbill::from_parts(463),
+					Perbill::from_parts(463),
+					Perbill::from_parts(463)
+				))
+			);
+			roll_to(12);
+			assert_eq!(
+				last_event(),
+				MetaEvent::stake(Event::NewRound(11, 4, 1, 40))
+			);
+		});
+	// round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 100),
+			(2, 100),
+			(3, 100),
+			(4, 100),
+			(5, 100),
+			(6, 100),
+		])
+		.with_collators(vec![(1, 20)])
+		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(9);
+			let init = vec![
+				Event::CollatorChosen(2, 1, 40),
+				Event::NewRound(5, 2, 1, 40),
+			];
+			assert_eq!(events(), init);
+			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
+			assert_eq!(
+				last_event(),
+				MetaEvent::stake(Event::BlocksPerRoundSet(
+					2,
+					5,
+					5,
+					3,
+					Perbill::from_parts(463),
+					Perbill::from_parts(463),
+					Perbill::from_parts(463)
+				))
+			);
+			roll_to(13);
+			assert_eq!(
+				last_event(),
+				MetaEvent::stake(Event::NewRound(12, 4, 1, 40))
+			);
+		});
+	// if current duration less than new blocks per round (bpr), round waits until new bpr passes
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 100),
+			(2, 100),
+			(3, 100),
+			(4, 100),
+			(5, 100),
+			(6, 100),
+		])
+		.with_collators(vec![(1, 20)])
+		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
+		.build()
+		.execute_with(|| {
+			// Default round every 5 blocks, but MinBlocksPerRound is 3 and we set it to min 3 blocks
+			roll_to(6);
+			// chooses top TotalSelectedCandidates (5), in order
+			let init = vec![
+				Event::CollatorChosen(2, 1, 40),
+				Event::NewRound(5, 2, 1, 40),
+			];
+			assert_eq!(events(), init);
+			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
+			assert_eq!(
+				last_event(),
+				MetaEvent::stake(Event::BlocksPerRoundSet(
+					2,
+					5,
+					5,
+					3,
+					Perbill::from_parts(463),
+					Perbill::from_parts(463),
+					Perbill::from_parts(463)
+				))
+			);
+			roll_to(9);
+			assert_eq!(last_event(), MetaEvent::stake(Event::NewRound(8, 3, 1, 40)));
 		});
 }

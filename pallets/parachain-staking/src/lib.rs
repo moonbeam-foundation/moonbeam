@@ -445,6 +445,7 @@ pub mod pallet {
 		Underflow,
 		InvalidSchedule,
 		CannotSetBelowMin,
+		NoWritingSameValue,
 	}
 
 	#[pallet::event]
@@ -721,6 +722,10 @@ pub mod pallet {
 			frame_system::ensure_root(origin)?;
 			ensure!(expectations.is_valid(), Error::<T>::InvalidSchedule);
 			let mut config = <InflationConfig<T>>::get();
+			ensure!(
+				config.expect != expectations,
+				Error::<T>::NoWritingSameValue
+			);
 			config.set_expectations(expectations);
 			Self::deposit_event(Event::StakeExpectationsSet(
 				config.expect.min,
@@ -739,6 +744,7 @@ pub mod pallet {
 			frame_system::ensure_root(origin)?;
 			ensure!(schedule.is_valid(), Error::<T>::InvalidSchedule);
 			let mut config = <InflationConfig<T>>::get();
+			ensure!(config.annual != schedule, Error::<T>::NoWritingSameValue);
 			config.annual = schedule;
 			config.set_round_from_annual::<T>(schedule);
 			Self::deposit_event(Event::InflationSet(
@@ -761,11 +767,12 @@ pub mod pallet {
 			frame_system::ensure_root(origin)?;
 			let ParachainBondConfig {
 				account: old,
-				percent: pct,
+				percent,
 			} = <ParachainBondInfo<T>>::get();
+			ensure!(old != new, Error::<T>::NoWritingSameValue);
 			<ParachainBondInfo<T>>::put(ParachainBondConfig {
 				account: new.clone(),
-				percent: pct,
+				percent,
 			});
 			Self::deposit_event(Event::ParachainBondAccountSet(old, new));
 			Ok(().into())
@@ -778,11 +785,12 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			frame_system::ensure_root(origin)?;
 			let ParachainBondConfig {
-				account: acc,
+				account,
 				percent: old,
 			} = <ParachainBondInfo<T>>::get();
+			ensure!(old != new, Error::<T>::NoWritingSameValue);
 			<ParachainBondInfo<T>>::put(ParachainBondConfig {
-				account: acc,
+				account,
 				percent: new,
 			});
 			Self::deposit_event(Event::ParachainBondReservePercentSet(old, new));
@@ -798,6 +806,7 @@ pub mod pallet {
 				Error::<T>::CannotSetBelowMin
 			);
 			let old = <TotalSelected<T>>::get();
+			ensure!(old != new, Error::<T>::NoWritingSameValue);
 			<TotalSelected<T>>::put(new);
 			Self::deposit_event(Event::TotalSelectedSet(old, new));
 			Ok(().into())
@@ -806,12 +815,13 @@ pub mod pallet {
 		/// Set the commission for all collators
 		pub fn set_collator_commission(
 			origin: OriginFor<T>,
-			pct: Perbill,
+			new: Perbill,
 		) -> DispatchResultWithPostInfo {
 			frame_system::ensure_root(origin)?;
 			let old = <CollatorCommission<T>>::get();
-			<CollatorCommission<T>>::put(pct);
-			Self::deposit_event(Event::CollatorCommissionSet(old, pct));
+			ensure!(old != new, Error::<T>::NoWritingSameValue);
+			<CollatorCommission<T>>::put(new);
+			Self::deposit_event(Event::CollatorCommissionSet(old, new));
 			Ok(().into())
 		}
 		#[pallet::weight(0)]
@@ -827,6 +837,7 @@ pub mod pallet {
 			);
 			let mut round = <Round<T>>::get();
 			let (now, first, old) = (round.current, round.first, round.length);
+			ensure!(old != new, Error::<T>::NoWritingSameValue);
 			round.length = new;
 			// update per-round inflation given new rounds per year
 			let mut inflation_config = <InflationConfig<T>>::get();

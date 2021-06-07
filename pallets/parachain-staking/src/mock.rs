@@ -249,3 +249,88 @@ pub(crate) fn set_author(round: u32, acc: u64, pts: u32) {
 	<Points<Test>>::mutate(round, |p| *p += pts);
 	<AwardedPts<Test>>::mutate(round, acc, |p| *p += pts);
 }
+
+#[test]
+fn geneses() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 1000),
+			(2, 300),
+			(3, 100),
+			(4, 100),
+			(5, 100),
+			(6, 100),
+			(7, 100),
+			(8, 9),
+			(9, 4),
+		])
+		.with_collators(vec![(1, 500), (2, 200)])
+		.with_nominations(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
+		.build()
+		.execute_with(|| {
+			assert!(System::events().is_empty());
+			// collators
+			assert_eq!(Balances::reserved_balance(&1), 500);
+			assert_eq!(Balances::free_balance(&1), 500);
+			assert!(Stake::is_candidate(&1));
+			assert_eq!(Balances::reserved_balance(&2), 200);
+			assert_eq!(Balances::free_balance(&2), 100);
+			assert!(Stake::is_candidate(&2));
+			// nominators
+			for x in 3..7 {
+				assert!(Stake::is_nominator(&x));
+				assert_eq!(Balances::free_balance(&x), 0);
+				assert_eq!(Balances::reserved_balance(&x), 100);
+			}
+			// uninvolved
+			for x in 7..10 {
+				assert!(!Stake::is_nominator(&x));
+			}
+			assert_eq!(Balances::free_balance(&7), 100);
+			assert_eq!(Balances::reserved_balance(&7), 0);
+			assert_eq!(Balances::free_balance(&8), 9);
+			assert_eq!(Balances::reserved_balance(&8), 0);
+			assert_eq!(Balances::free_balance(&9), 4);
+			assert_eq!(Balances::reserved_balance(&9), 0);
+		});
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 100),
+			(2, 100),
+			(3, 100),
+			(4, 100),
+			(5, 100),
+			(6, 100),
+			(7, 100),
+			(8, 100),
+			(9, 100),
+			(10, 100),
+		])
+		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
+		.with_nominations(vec![
+			(6, 1, 10),
+			(7, 1, 10),
+			(8, 2, 10),
+			(9, 2, 10),
+			(10, 1, 10),
+		])
+		.build()
+		.execute_with(|| {
+			assert!(System::events().is_empty());
+			// collators
+			for x in 1..5 {
+				assert!(Stake::is_candidate(&x));
+				assert_eq!(Balances::free_balance(&x), 80);
+				assert_eq!(Balances::reserved_balance(&x), 20);
+			}
+			assert!(Stake::is_candidate(&5));
+			assert_eq!(Balances::free_balance(&5), 90);
+			assert_eq!(Balances::reserved_balance(&5), 10);
+			// nominators
+			for x in 6..11 {
+				assert!(Stake::is_nominator(&x));
+				assert_eq!(Balances::free_balance(&x), 90);
+				assert_eq!(Balances::reserved_balance(&x), 10);
+			}
+		});
+}
