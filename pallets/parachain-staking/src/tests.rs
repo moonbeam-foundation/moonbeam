@@ -1320,7 +1320,6 @@ fn parachain_bond_reserve_works() {
 			roll_to(16);
 			// distribute total issuance to collator 1 and its nominators 6, 7, 19
 			let mut new = vec![
-				Event::ReservedForParachainBond(11, 15),
 				Event::CollatorChosen(3, 1, 50),
 				Event::CollatorChosen(3, 2, 40),
 				Event::CollatorChosen(3, 4, 20),
@@ -1328,7 +1327,7 @@ fn parachain_bond_reserve_works() {
 				Event::CollatorChosen(3, 5, 10),
 				Event::NewRound(10, 3, 5, 140),
 				Event::ReservedForParachainBond(11, 15),
-				Event::Rewarded(1, 19),
+				Event::Rewarded(1, 18),
 				Event::Rewarded(6, 6),
 				Event::Rewarded(7, 6),
 				Event::Rewarded(10, 6),
@@ -1341,7 +1340,7 @@ fn parachain_bond_reserve_works() {
 			];
 			expected.append(&mut new);
 			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 31);
+			assert_eq!(Balances::free_balance(&11), 16);
 			// ~ set block author as 1 for all blocks this round
 			set_author(3, 1, 100);
 			set_author(4, 1, 100);
@@ -1370,7 +1369,7 @@ fn parachain_bond_reserve_works() {
 			];
 			expected.append(&mut new2);
 			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 47);
+			assert_eq!(Balances::free_balance(&11), 32);
 			assert_ok!(Stake::set_parachain_bond_reserve_percent(
 				Origin::root(),
 				Percent::from_percent(50)
@@ -1384,7 +1383,7 @@ fn parachain_bond_reserve_works() {
 					Percent::from_percent(30),
 					Percent::from_percent(50),
 				),
-				Event::ReservedForParachainBond(11, 28),
+				Event::ReservedForParachainBond(11, 27),
 				Event::Rewarded(1, 15),
 				Event::Rewarded(6, 4),
 				Event::Rewarded(7, 4),
@@ -1398,13 +1397,13 @@ fn parachain_bond_reserve_works() {
 			];
 			expected.append(&mut new3);
 			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 75);
+			assert_eq!(Balances::free_balance(&11), 59);
 			set_author(6, 1, 100);
 			roll_to(31);
 			// no more paying 6
 			let mut new4 = vec![
 				Event::ReservedForParachainBond(11, 29),
-				Event::Rewarded(1, 18),
+				Event::Rewarded(1, 17),
 				Event::Rewarded(7, 6),
 				Event::Rewarded(10, 6),
 				Event::CollatorChosen(7, 2, 40),
@@ -1416,14 +1415,14 @@ fn parachain_bond_reserve_works() {
 			];
 			expected.append(&mut new4);
 			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 104);
+			assert_eq!(Balances::free_balance(&11), 88);
 			set_author(7, 1, 100);
 			assert_ok!(Stake::nominate(Origin::signed(8), 1, 10));
 			roll_to(36);
 			// new nomination is not rewarded yet
 			let mut new5 = vec![
 				Event::Nomination(8, 10, 1, 50),
-				Event::ReservedForParachainBond(11, 31),
+				Event::ReservedForParachainBond(11, 30),
 				Event::Rewarded(1, 18),
 				Event::Rewarded(7, 6),
 				Event::Rewarded(10, 6),
@@ -1436,13 +1435,13 @@ fn parachain_bond_reserve_works() {
 			];
 			expected.append(&mut new5);
 			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 135);
+			assert_eq!(Balances::free_balance(&11), 118);
 			set_author(8, 1, 100);
 			roll_to(41);
 			// new nomination is still not rewarded yet
 			let mut new6 = vec![
 				Event::ReservedForParachainBond(11, 32),
-				Event::Rewarded(1, 20),
+				Event::Rewarded(1, 19),
 				Event::Rewarded(7, 6),
 				Event::Rewarded(10, 6),
 				Event::CollatorChosen(9, 1, 50),
@@ -1454,11 +1453,11 @@ fn parachain_bond_reserve_works() {
 			];
 			expected.append(&mut new6);
 			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 167);
+			assert_eq!(Balances::free_balance(&11), 150);
 			roll_to(46);
 			// new nomination is rewarded for first time, 2 rounds after joining (`BondDuration` = 2)
 			let mut new7 = vec![
-				Event::ReservedForParachainBond(11, 34),
+				Event::ReservedForParachainBond(11, 33),
 				Event::Rewarded(1, 18),
 				Event::Rewarded(7, 5),
 				Event::Rewarded(8, 5),
@@ -1472,6 +1471,6 @@ fn parachain_bond_reserve_works() {
 			];
 			expected.append(&mut new7);
 			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 201);
+			assert_eq!(Balances::free_balance(&11), 183);
 		});
 }

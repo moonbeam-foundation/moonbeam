@@ -1277,6 +1277,10 @@ pub mod pallet {
 			if next > duration {
 				let round_to_payout = next - duration;
 				let total = <Points<T>>::get(round_to_payout);
+				if total.is_zero() {
+					// return early, no issuance
+					return;
+				}
 				let total_staked = <Staked<T>>::get(round_to_payout);
 				let mut issuance = Self::compute_issuance(total_staked);
 				// reserve portion of issuance for parachain bond account
