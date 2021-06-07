@@ -119,7 +119,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 47,
+	spec_version: 4700,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -383,11 +383,11 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 }
 
 parameter_types! {
-	pub const LaunchPeriod: BlockNumber = 1 * DAYS;
-	pub const VotingPeriod: BlockNumber = 5 * DAYS;
-	pub const FastTrackVotingPeriod: BlockNumber = 1 * DAYS;
-	pub const EnactmentPeriod: BlockNumber = 1 *DAYS;
-	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
+	pub const LaunchPeriod: BlockNumber = 1 * MINUTES;
+	pub const VotingPeriod: BlockNumber = 5 * MINUTES;
+	pub const FastTrackVotingPeriod: BlockNumber = 1 * MINUTES;
+	pub const EnactmentPeriod: BlockNumber = 1 *MINUTES;
+	pub const CooloffPeriod: BlockNumber = 7 * MINUTES;
 	pub const MinimumDeposit: Balance = 4 * currency::MOVR;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
