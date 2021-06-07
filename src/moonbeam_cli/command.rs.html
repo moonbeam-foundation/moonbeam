@@ -684,6 +684,13 @@
 <span id="681">681</span>
 <span id="682">682</span>
 <span id="683">683</span>
+<span id="684">684</span>
+<span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -716,7 +723,7 @@
 	<span class="ident">NetworkParams</span>, <span class="prelude-ty">Result</span>, <span class="ident">RuntimeVersion</span>, <span class="ident">SharedParams</span>, <span class="ident">SubstrateCli</span>,
 };
 <span class="kw">use</span> <span class="ident">sc_service</span>::<span class="ident">config</span>::{<span class="ident">BasePath</span>, <span class="ident">PrometheusConfig</span>};
-<span class="kw">use</span> <span class="ident">service</span>::{<span class="ident">chain_spec</span>, <span class="ident">IdentifyVariant</span>};
+<span class="kw">use</span> <span class="ident">service</span>::{<span class="ident">chain_spec</span>, <span class="ident">frontier_database_dir</span>, <span class="ident">IdentifyVariant</span>};
 <span class="kw">use</span> <span class="ident">sp_core</span>::<span class="ident">hexdisplay</span>::<span class="ident">HexDisplay</span>;
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::<span class="ident">traits</span>::<span class="ident">Block</span> <span class="kw">as</span> <span class="kw">_</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">io</span>::<span class="ident">Write</span>, <span class="ident">net</span>::<span class="ident">SocketAddr</span>};
@@ -988,6 +995,13 @@
 				<span class="kw">let</span> <span class="ident">relay_chain_id</span> <span class="op">=</span> <span class="ident">extension</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">relay_chain</span>.<span class="ident">clone</span>());
 				<span class="kw">let</span> <span class="ident">dev_service</span> <span class="op">=</span>
 					<span class="ident">cli</span>.<span class="ident">run</span>.<span class="ident">dev_service</span> <span class="op">|</span><span class="op">|</span> <span class="ident">relay_chain_id</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&quot;dev-service&quot;</span>.<span class="ident">to_string</span>());
+
+				<span class="comment">// Remove Frontier offchain db</span>
+				<span class="kw">let</span> <span class="ident">frontier_database_config</span> <span class="op">=</span> <span class="ident">sc_service</span>::<span class="ident">DatabaseConfig</span>::<span class="ident">RocksDb</span> {
+					<span class="ident">path</span>: <span class="ident">frontier_database_dir</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>),
+					<span class="ident">cache_size</span>: <span class="number">0</span>,
+				};
+				<span class="ident">cmd</span>.<span class="ident">base</span>.<span class="ident">run</span>(<span class="ident">frontier_database_config</span>)<span class="question-mark">?</span>;
 
 				<span class="kw">if</span> <span class="ident">dev_service</span> {
 					<span class="comment">// base refers to the encapsulated &quot;regular&quot; sc_cli::PurgeChain command</span>
