@@ -478,6 +478,8 @@ pub mod pallet {
 		NominatorLeftCollator(T::AccountId, T::AccountId, BalanceOf<T>, BalanceOf<T>),
 		/// Paid the account (nominator or collator) the balance as liquid rewards
 		Rewarded(T::AccountId, BalanceOf<T>),
+		/// Transferred to account which holds funds reserved for parachain bond
+		ReservedForParachainBond(T::AccountId, BalanceOf<T>),
 		/// Account (re)set for parachain bond treasury [old, new]
 		ParachainBondAccountSet(T::AccountId, T::AccountId),
 		/// Percent of inflation reserved for parachain bond (re)set [old, new]
@@ -1285,6 +1287,10 @@ pub mod pallet {
 				{
 					// update round issuance iff transfer succeeds
 					issuance -= imb.peek();
+					Self::deposit_event(Event::ReservedForParachainBond(
+						bond_config.account,
+						imb.peek(),
+					));
 				}
 				for (val, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
 					let pct_due = Perbill::from_rational(pts, total);

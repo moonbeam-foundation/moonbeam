@@ -1320,12 +1320,14 @@ fn parachain_bond_reserve_works() {
 			roll_to(16);
 			// distribute total issuance to collator 1 and its nominators 6, 7, 19
 			let mut new = vec![
+				Event::ReservedForParachainBond(11, 15),
 				Event::CollatorChosen(3, 1, 50),
 				Event::CollatorChosen(3, 2, 40),
 				Event::CollatorChosen(3, 4, 20),
 				Event::CollatorChosen(3, 3, 20),
 				Event::CollatorChosen(3, 5, 10),
 				Event::NewRound(10, 3, 5, 140),
+				Event::ReservedForParachainBond(11, 15),
 				Event::Rewarded(1, 19),
 				Event::Rewarded(6, 6),
 				Event::Rewarded(7, 6),
@@ -1354,6 +1356,7 @@ fn parachain_bond_reserve_works() {
 			let mut new2 = vec![
 				Event::NominatorLeftCollator(6, 1, 10, 40),
 				Event::NominatorLeft(6, 10),
+				Event::ReservedForParachainBond(11, 16),
 				Event::Rewarded(1, 19),
 				Event::Rewarded(6, 6),
 				Event::Rewarded(7, 6),
@@ -1381,6 +1384,7 @@ fn parachain_bond_reserve_works() {
 					Percent::from_percent(30),
 					Percent::from_percent(50),
 				),
+				Event::ReservedForParachainBond(11, 28),
 				Event::Rewarded(1, 15),
 				Event::Rewarded(6, 4),
 				Event::Rewarded(7, 4),
@@ -1399,6 +1403,7 @@ fn parachain_bond_reserve_works() {
 			roll_to(31);
 			// no more paying 6
 			let mut new4 = vec![
+				Event::ReservedForParachainBond(11, 29),
 				Event::Rewarded(1, 18),
 				Event::Rewarded(7, 6),
 				Event::Rewarded(10, 6),
@@ -1418,6 +1423,7 @@ fn parachain_bond_reserve_works() {
 			// new nomination is not rewarded yet
 			let mut new5 = vec![
 				Event::Nomination(8, 10, 1, 50),
+				Event::ReservedForParachainBond(11, 31),
 				Event::Rewarded(1, 18),
 				Event::Rewarded(7, 6),
 				Event::Rewarded(10, 6),
@@ -1435,6 +1441,7 @@ fn parachain_bond_reserve_works() {
 			roll_to(41);
 			// new nomination is still not rewarded yet
 			let mut new6 = vec![
+				Event::ReservedForParachainBond(11, 32),
 				Event::Rewarded(1, 20),
 				Event::Rewarded(7, 6),
 				Event::Rewarded(10, 6),
@@ -1451,6 +1458,7 @@ fn parachain_bond_reserve_works() {
 			roll_to(46);
 			// new nomination is rewarded for first time, 2 rounds after joining (`BondDuration` = 2)
 			let mut new7 = vec![
+				Event::ReservedForParachainBond(11, 34),
 				Event::Rewarded(1, 18),
 				Event::Rewarded(7, 5),
 				Event::Rewarded(8, 5),
