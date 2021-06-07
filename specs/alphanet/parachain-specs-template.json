@@ -188,8 +188,7 @@
           ]
         ]
       },
-      "palletTreasuryInstance1": {},
-      "palletTreasuryInstance2": {},
+      "palletTreasury": {},
       "palletScheduler": null
     }
   }
