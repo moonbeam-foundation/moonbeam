@@ -288,7 +288,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		(1 * currency::NANOUNITS).into()
+		(1 * currency::NANOS).into()
 	}
 }
 
@@ -548,7 +548,7 @@ parameter_types! {
 	/// The fixed percent a collator takes off the top of due rewards is 20%
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
 	/// Minimum stake required to be reserved to be a collator is 1_000
-	pub const MinCollatorStk: u128 = 1 * currency::KILOUNITS;
+	pub const MinCollatorStk: u128 = 1 * currency::KILOS;
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5 * currency::UNITS;
 }
