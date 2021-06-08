@@ -111,6 +111,10 @@ jobs:
       # 1. Asking git for a list of all modified files
       # 2. Using grep to reduce the list to only Cargo.lock files
       # 3. Counting the number of lines of output
+
+      #TODO make sure git diff-index actually works
+      #$ git diff-index --name-only HEAD
+      #fatal: not a git repository (or any of the parent directories): .git
       - name: Check Cargo Toml
         run: |
           FILECOUNT=$(git diff-index --name-only HEAD | grep Cargo.lock | wc -l)
