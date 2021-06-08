@@ -350,7 +350,7 @@ export const moonbeamDefinitions = {
         AccountId32: "H256",
         AccountInfo: "AccountInfoWithTripleRefCount",
         Address: "AccountId",
-        AuthorId: "H256",
+        AuthorId: "AccountId32",
         Balance: "u128",
         LookupSource: "AccountId",
         Account: {
@@ -440,16 +440,14 @@ export const moonbeamDefinitions = {
           horizontal_messages: "BTreeMap<ParaId, Vec<InboundHrmpMessage>>",
         },
         RelayChainAccountId: "AccountId32",
+        RewardInfo: {
+          total_reward: "Balance",
+          claimed_reward: "Balance",
+        },
         RoundInfo: {
           current: "RoundIndex",
           first: "BlockNumber",
           length: "u32",
-        },
-        RewardInfo: {
-          total_reward: "Balance",
-          claimed_reward: "Balance",
-          last_paid: "BlockNumber",
-          free_claim_done: "bool",
         },
       },
     },
@@ -460,7 +458,7 @@ export const moonbeamDefinitions = {
         AccountId32: "H256",
         AccountInfo: "AccountInfoWithTripleRefCount",
         Address: "AccountId",
-        AuthorId: "H256",
+        AuthorId: "AccountId32",
         Balance: "u128",
         LookupSource: "AccountId",
         Account: {
@@ -558,12 +556,14 @@ export const moonbeamDefinitions = {
         RewardInfo: {
           total_reward: "Balance",
           claimed_reward: "Balance",
-          last_paid: "BlockNumber",
-          free_claim_done: "bool",
         },
         RegistrationInfo: {
           account: "AccountId",
           deposit: "Balance",
+        },
+        ParachainBondConfig: {
+          account: "AccountId",
+          percent: "Percent",
         },
       },
     },
@@ -573,10 +573,7 @@ export const moonbeamDefinitions = {
 export const typesBundle = {
   spec: {
     moonbeam: moonbeamDefinitions,
-    "moonbase-alphanet": moonbeamDefinitions,
     moonbeamDefinitions,
-    "moonbeam-standalone": moonbeamDefinitions,
-    "node-moonbeam": moonbeamDefinitions,
     moonbase: moonbeamDefinitions,
     moonriver: moonbeamDefinitions,
     moonshadow: moonbeamDefinitions,

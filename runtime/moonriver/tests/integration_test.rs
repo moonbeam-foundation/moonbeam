@@ -111,7 +111,7 @@ fn transfer_through_evm_to_stake() {
 					1_000 * MOVR,
 				),
 				DispatchError::Module {
-					index: 3,
+					index: 10,
 					error: 2,
 					message: Some("InsufficientBalance")
 				}
@@ -179,7 +179,7 @@ fn reward_block_authors() {
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			for x in 2..1201 {
+			for x in 2..601 {
 				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 				run_to_block(x);
 			}
@@ -187,7 +187,7 @@ fn reward_block_authors() {
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * MOVR,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * MOVR,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(1201);
+			run_to_block(601);
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -196,6 +196,59 @@ fn reward_block_authors() {
 			assert_eq!(
 				Balances::free_balance(AccountId::from(BOB)),
 				541333333292000000000,
+			);
+		});
+}
+
+#[test]
+fn reward_block_authors_with_parachain_bond_reserved() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			// Alice gets 100 extra tokens for her mapping deposit
+			(AccountId::from(ALICE), 2_100 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+			(AccountId::from(CHARLIE), MOVR),
+		])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
+		.with_nominations(vec![(
+			AccountId::from(BOB),
+			AccountId::from(ALICE),
+			500 * MOVR,
+		)])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
+		)])
+		.build()
+		.execute_with(|| {
+			set_parachain_inherent_data();
+			assert_ok!(ParachainStaking::set_parachain_bond_account(
+				root_origin(),
+				AccountId::from(CHARLIE),
+			),);
+			for x in 2..601 {
+				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+				run_to_block(x);
+			}
+			// no rewards doled out yet
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * MOVR,);
+			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * MOVR,);
+			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), MOVR,);
+			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+			run_to_block(601);
+			// rewards minted and distributed
+			assert_eq!(
+				Balances::free_balance(AccountId::from(ALICE)),
+				1079592333275448000000,
+			);
+			assert_eq!(
+				Balances::free_balance(AccountId::from(BOB)),
+				528942666637724000000,
+			);
+			// 30% reserved for parachain bond
+			assert_eq!(
+				Balances::free_balance(AccountId::from(CHARLIE)),
+				47515000000000000000,
 			);
 		});
 }
@@ -249,10 +302,10 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				]))
 				.dispatch(root_origin())
 			);
-			// 20 percent initial payout
-			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 300_000 * MOVR);
-			// 20 percent initial payout
-			assert_eq!(Balances::balance(&AccountId::from(DAVE)), 300_000 * MOVR);
+			// 30 percent initial payout
+			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 450_000 * MOVR);
+			// 30 percent initial payout
+			assert_eq!(Balances::balance(&AccountId::from(DAVE)), 450_000 * MOVR);
 			let expected = Event::pallet_utility(pallet_utility::Event::BatchCompleted);
 			assert_eq!(last_event(), expected);
 			// This one should fail, as we already filled our data
@@ -269,47 +322,42 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			let expected_fail = Event::pallet_utility(pallet_utility::Event::BatchInterrupted(
 				0,
 				DispatchError::Module {
-					index: 21,
+					index: 90,
 					error: 8,
 					message: None,
 				},
 			));
 			assert_eq!(last_event(), expected_fail);
 			// Claim 1 block.
-			assert_ok!(CrowdloanRewards::show_me_the_money(origin_of(
-				AccountId::from(CHARLIE)
-			)));
-			assert_ok!(CrowdloanRewards::show_me_the_money(origin_of(
-				AccountId::from(DAVE)
-			)));
+			assert_ok!(CrowdloanRewards::claim(origin_of(AccountId::from(CHARLIE))));
+			assert_ok!(CrowdloanRewards::claim(origin_of(AccountId::from(DAVE))));
 
 			let vesting_period = 48 * WEEKS as u128;
-			let per_block = (1_200_000 * MOVR) / vesting_period;
+			let per_block = (1_050_000 * MOVR) / vesting_period;
 
 			assert_eq!(
 				CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE))
 					.unwrap()
 					.claimed_reward,
-				(300_000 * MOVR) + per_block
+				(450_000 * MOVR) + per_block
 			);
 			assert_eq!(
 				CrowdloanRewards::accounts_payable(&AccountId::from(DAVE))
 					.unwrap()
 					.claimed_reward,
-				(300_000 * MOVR) + per_block
+				(450_000 * MOVR) + per_block
 			);
-			// The first call to `show_me_the_money` is free.
 			// The total claimed reward should be equal to the account balance at this point.
 			assert_eq!(
 				Balances::balance(&AccountId::from(CHARLIE)),
-				(300_000 * MOVR) + per_block
+				(450_000 * MOVR) + per_block
 			);
 			assert_eq!(
 				Balances::balance(&AccountId::from(DAVE)),
-				(300_000 * MOVR) + per_block
+				(450_000 * MOVR) + per_block
 			);
 			assert_noop!(
-				CrowdloanRewards::show_me_the_money(origin_of(AccountId::from(ALICE))),
+				CrowdloanRewards::claim(origin_of(AccountId::from(ALICE))),
 				pallet_crowdloan_rewards::Error::<Runtime>::NoAssociatedClaim
 			);
 		});

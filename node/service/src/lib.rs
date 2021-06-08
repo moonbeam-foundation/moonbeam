@@ -138,9 +138,7 @@ impl IdentifyVariant for Box<dyn ChainSpec> {
 	}
 }
 
-// TODO This is copied from frontier. It should be imported instead after
-// https://github.com/paritytech/frontier/issues/333 is solved
-pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backend<Block>>, String> {
+pub fn frontier_database_dir(config: &Configuration) -> std::path::PathBuf {
 	let config_dir = config
 		.base_path
 		.as_ref()
@@ -148,12 +146,16 @@ pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backen
 		.unwrap_or_else(|| {
 			BasePath::from_project("", "", "moonbeam").config_dir(config.chain_spec.id())
 		});
-	let database_dir = config_dir.join("frontier").join("db");
+	config_dir.join("frontier").join("db")
+}
 
+// TODO This is copied from frontier. It should be imported instead after
+// https://github.com/paritytech/frontier/issues/333 is solved
+pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backend<Block>>, String> {
 	Ok(Arc::new(fc_db::Backend::<Block>::new(
 		&fc_db::DatabaseSettings {
 			source: fc_db::DatabaseSettingsSrc::RocksDb {
-				path: database_dir,
+				path: frontier_database_dir(&config),
 				cache_size: 0,
 			},
 		},

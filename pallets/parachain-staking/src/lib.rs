@@ -74,7 +74,7 @@ pub mod pallet {
 	use parity_scale_codec::{Decode, Encode};
 	use sp_runtime::{
 		traits::{AtLeast32BitUnsigned, Zero},
-		Perbill, RuntimeDebug,
+		Perbill, Percent, RuntimeDebug,
 	};
 	use sp_std::{cmp::Ordering, prelude::*};
 
@@ -367,6 +367,23 @@ pub mod pallet {
 		}
 	}
 
+	#[derive(Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
+	/// Reserve information { account, percent_of_inflation }
+	pub struct ParachainBondConfig<AccountId> {
+		/// Account which receives funds intended for parachain bond
+		pub account: AccountId,
+		/// Percent of inflation set aside for parachain bond account
+		pub percent: Percent,
+	}
+	impl<A: Default> Default for ParachainBondConfig<A> {
+		fn default() -> ParachainBondConfig<A> {
+			ParachainBondConfig {
+				account: A::default(),
+				percent: Percent::zero(),
+			}
+		}
+	}
+
 	type RoundIndex = u32;
 	type RewardPoint = u32;
 	pub type BalanceOf<T> =
@@ -391,8 +408,10 @@ pub mod pallet {
 		type MaxNominatorsPerCollator: Get<u32>;
 		/// Maximum collators per nominator
 		type MaxCollatorsPerNominator: Get<u32>;
-		/// Commission due to collators, set at genesis
+		/// Default commission due to collators, set at genesis
 		type DefaultCollatorCommission: Get<Perbill>;
+		/// Default percent of inflation set aside for parachain bond account
+		type DefaultParachainBondReservePercent: Get<Percent>;
 		/// Minimum stake required for any account to be in `SelectedCandidates` for the round
 		type MinCollatorStk: Get<BalanceOf<Self>>;
 		/// Minimum stake required for any account to be a collator candidate
@@ -459,6 +478,12 @@ pub mod pallet {
 		NominatorLeftCollator(T::AccountId, T::AccountId, BalanceOf<T>, BalanceOf<T>),
 		/// Paid the account (nominator or collator) the balance as liquid rewards
 		Rewarded(T::AccountId, BalanceOf<T>),
+		/// Transferred to account which holds funds reserved for parachain bond
+		ReservedForParachainBond(T::AccountId, BalanceOf<T>),
+		/// Account (re)set for parachain bond treasury [old, new]
+		ParachainBondAccountSet(T::AccountId, T::AccountId),
+		/// Percent of inflation reserved for parachain bond (re)set [old, new]
+		ParachainBondReservePercentSet(Percent, Percent),
 		/// Annual inflation input (first 3) was used to derive new per-round inflation (last 3)
 		InflationSet(Perbill, Perbill, Perbill, Perbill, Perbill, Perbill),
 		/// Staking expectations set
@@ -515,6 +540,12 @@ pub mod pallet {
 	#[pallet::getter(fn total_selected)]
 	/// The total candidates selected every round
 	type TotalSelected<T: Config> = StorageValue<_, u32, ValueQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn parachain_bond_info)]
+	/// Parachain bond config info { account, percent_of_inflation }
+	type ParachainBondInfo<T: Config> =
+		StorageValue<_, ParachainBondConfig<T::AccountId>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn round)]
@@ -653,6 +684,12 @@ pub mod pallet {
 			}
 			// Set collator commission to default config
 			<CollatorCommission<T>>::put(T::DefaultCollatorCommission::get());
+			// Set parachain bond config to default config
+			<ParachainBondInfo<T>>::put(ParachainBondConfig {
+				// must be set soon; if not => due inflation will be sent to collators/nominators
+				account: T::AccountId::default(),
+				percent: T::DefaultParachainBondReservePercent::get(),
+			});
 			// Set total selected candidates to minimum config
 			<TotalSelected<T>>::put(T::MinSelectedCandidates::get());
 			// Choose top TotalSelected collator candidates
@@ -713,6 +750,42 @@ pub mod pallet {
 				config.round.max,
 			));
 			<InflationConfig<T>>::put(config);
+			Ok(().into())
+		}
+		/// Set the account that will hold funds set aside for parachain bond
+		#[pallet::weight(0)]
+		pub fn set_parachain_bond_account(
+			origin: OriginFor<T>,
+			new: T::AccountId,
+		) -> DispatchResultWithPostInfo {
+			frame_system::ensure_root(origin)?;
+			let ParachainBondConfig {
+				account: old,
+				percent: pct,
+			} = <ParachainBondInfo<T>>::get();
+			<ParachainBondInfo<T>>::put(ParachainBondConfig {
+				account: new.clone(),
+				percent: pct,
+			});
+			Self::deposit_event(Event::ParachainBondAccountSet(old, new));
+			Ok(().into())
+		}
+		/// Set the percent of inflation set aside for parachain bond
+		#[pallet::weight(0)]
+		pub fn set_parachain_bond_reserve_percent(
+			origin: OriginFor<T>,
+			new: Percent,
+		) -> DispatchResultWithPostInfo {
+			frame_system::ensure_root(origin)?;
+			let ParachainBondConfig {
+				account: acc,
+				percent: old,
+			} = <ParachainBondInfo<T>>::get();
+			<ParachainBondInfo<T>>::put(ParachainBondConfig {
+				account: acc,
+				percent: new,
+			});
+			Self::deposit_event(Event::ParachainBondReservePercentSet(old, new));
 			Ok(().into())
 		}
 		#[pallet::weight(0)]
@@ -1204,8 +1277,25 @@ pub mod pallet {
 			if next > duration {
 				let round_to_payout = next - duration;
 				let total = <Points<T>>::get(round_to_payout);
+				if total.is_zero() {
+					// return early, no issuance
+					return;
+				}
 				let total_staked = <Staked<T>>::get(round_to_payout);
-				let issuance = Self::compute_issuance(total_staked);
+				let mut issuance = Self::compute_issuance(total_staked);
+				// reserve portion of issuance for parachain bond account
+				let bond_config = <ParachainBondInfo<T>>::get();
+				let parachain_bond_reserve = bond_config.percent * issuance;
+				if let Ok(imb) =
+					T::Currency::deposit_into_existing(&bond_config.account, parachain_bond_reserve)
+				{
+					// update round issuance iff transfer succeeds
+					issuance -= imb.peek();
+					Self::deposit_event(Event::ReservedForParachainBond(
+						bond_config.account,
+						imb.peek(),
+					));
+				}
 				for (val, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
 					let pct_due = Perbill::from_rational(pts, total);
 					let mut amt_due = pct_due * issuance;
