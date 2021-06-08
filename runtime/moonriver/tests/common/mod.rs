@@ -23,12 +23,13 @@ use frame_support::{
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
 pub use moonriver_runtime::{
-	currency::MOVR, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Ethereum,
-	Event, Executive, FixedGasPrice, InflationInfo, ParachainStaking, Range, Runtime, System,
+	AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Ethereum, Event,
+	Executive, FixedGasPrice, InflationInfo, ParachainStaking, Range, Runtime, System,
 	TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::GenesisAccount;
+pub use runtime_common::currency::UNITS;
 use sp_core::H160;
 use sp_runtime::Perbill;
 
@@ -76,9 +77,9 @@ impl Default for ExtBuilder {
 			collators: vec![],
 			inflation: InflationInfo {
 				expect: Range {
-					min: 100_000 * MOVR,
-					ideal: 200_000 * MOVR,
-					max: 500_000 * MOVR,
+					min: 100_000 * UNITS,
+					ideal: 200_000 * UNITS,
+					max: 500_000 * UNITS,
 				},
 				// not used
 				annual: Range {
