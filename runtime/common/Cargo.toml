@@ -1,5 +1,5 @@
 [package]
-name = "precompiles"
+name = "runtime-common"
 version = "0.6.0"
 authors = ["PureStake"]
 edition = "2018"
@@ -22,6 +22,10 @@ pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", 
 pallet-evm-precompile-sha3fips = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-v0.8.1" }
 parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
 frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.3" }
+moonbeam-core-primitives = { path = "../../core-primitives", default-features = false }
+
+[build-dependencies]
+substrate-wasm-builder = { version = "4.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.3" }
 
 [dev-dependencies]
 hex = "0.4"
@@ -41,4 +45,5 @@ std = [
 	"parachain-staking/std",
 	"frame-system/std",
 	"pallet-evm-precompile-sha3fips/std",
+	"moonbeam-core-primitives/std",
 ]

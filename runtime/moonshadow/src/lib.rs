@@ -51,7 +51,7 @@ use pallet_evm::{
 use pallet_transaction_payment::CurrencyAdapter;
 pub use parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode};
-use precompiles::MoonbeamPrecompiles;
+use runtime_common::{currency, precompiles::MoonbeamPrecompiles};
 use sp_api::impl_runtime_apis;
 use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
@@ -71,23 +71,6 @@ use nimbus_primitives::{CanAuthor, NimbusId};
 pub use sp_runtime::BuildStorage;
 
 pub type Precompiles = MoonbeamPrecompiles<Runtime>;
-
-/// MSHD, the native token, uses 18 decimals of precision.
-pub mod currency {
-	use super::Balance;
-
-	pub const MSHD: Balance = 1_000_000_000_000_000_000;
-	pub const KILOMSHDS: Balance = MSHD * 1_000;
-	pub const MILLIMSHDS: Balance = MSHD / 1000;
-	pub const MICROMSHDS: Balance = MILLIMSHDS / 1000;
-	pub const NANOMSHDS: Balance = MICROMSHDS / 1000;
-
-	pub const BYTE_FEE: Balance = 100 * MICROMSHDS;
-
-	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 1 * MSHD + (bytes as Balance) * BYTE_FEE
-	}
-}
 
 /// Maximum weight per block
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
@@ -305,7 +288,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		(1 * currency::NANOMSHDS).into()
+		(1 * currency::NANOUNITS).into()
 	}
 }
 
@@ -389,7 +372,7 @@ parameter_types! {
 	pub const FastTrackVotingPeriod: BlockNumber = 4 * HOURS;
 	pub const EnactmentPeriod: BlockNumber = 1 * DAYS;
 	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
-	pub const MinimumDeposit: Balance = 4 * currency::MSHD;
+	pub const MinimumDeposit: Balance = 4 * currency::UNITS;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
 	pub const PreimageByteDeposit: Balance = currency::BYTE_FEE;
@@ -454,7 +437,7 @@ impl pallet_democracy::Config for Runtime {
 
 parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
-	pub const ProposalBondMinimum: Balance = 1 * currency::MSHD;
+	pub const ProposalBondMinimum: Balance = 1 * currency::UNITS;
 	pub const SpendPeriod: BlockNumber = 6 * DAYS;
 	pub const CommunityTreasuryId: PalletId = PalletId(*b"pc/trsry");
 	pub const ParachainBondPalletId: PalletId = PalletId(*b"pb/trsry");
@@ -565,9 +548,9 @@ parameter_types! {
 	/// The fixed percent a collator takes off the top of due rewards is 20%
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
 	/// Minimum stake required to be reserved to be a collator is 1_000
-	pub const MinCollatorStk: u128 = 1 * currency::KILOMSHDS;
+	pub const MinCollatorStk: u128 = 1 * currency::KILOUNITS;
 	/// Minimum stake required to be reserved to be a nominator is 5
-	pub const MinNominatorStk: u128 = 5 * currency::MSHD;
+	pub const MinNominatorStk: u128 = 5 * currency::UNITS;
 }
 impl parachain_staking::Config for Runtime {
 	type Event = Event;
@@ -619,7 +602,7 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 }
 
 parameter_types! {
-	pub const DepositAmount: Balance = 100 * currency::MSHD;
+	pub const DepositAmount: Balance = 100 * currency::UNITS;
 }
 // This is a simple session key manager. It should probably either work with, or be replaced
 // entirely by pallet sessions

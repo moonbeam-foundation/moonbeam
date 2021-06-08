@@ -16,7 +16,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-mod staking;
+pub mod staking;
 use codec::Decode;
 use evm::{executor::PrecompileOutput, Context, ExitError};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};

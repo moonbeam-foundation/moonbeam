@@ -30,7 +30,7 @@ use moonbeam_runtime::{
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use parachain_staking::Bond;
-use precompiles::MoonbeamPrecompiles;
+use runtime_common::MoonbeamPrecompiles;
 use sp_core::{Public, H160, U256};
 use sp_runtime::DispatchError;
 
