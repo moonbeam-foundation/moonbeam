@@ -1,0 +1,11 @@
+[package]
+name = 'runtime-common'
+description = 'Common code shared between runtimes'
+homepage = 'https://moonbeam.network'
+license = 'GPL-3.0-only'
+version = '0.8.0-dev'
+authors = ["PureStake"]
+edition = '2018'
+
+[features]
+std = []

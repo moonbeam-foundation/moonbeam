@@ -4771,6 +4771,7 @@ dependencies = [
  "parity-scale-codec",
  "precompiles",
  "rlp",
+ "runtime-common",
  "serde",
  "sp-api",
  "sp-block-builder",
@@ -5059,6 +5060,7 @@ dependencies = [
  "parity-scale-codec",
  "precompiles",
  "rlp",
+ "runtime-common",
  "serde",
  "sp-api",
  "sp-block-builder",
@@ -5245,6 +5247,7 @@ dependencies = [
  "parity-scale-codec",
  "precompiles",
  "rlp",
+ "runtime-common",
  "serde",
  "sp-api",
  "sp-block-builder",
@@ -5310,6 +5313,7 @@ dependencies = [
  "parity-scale-codec",
  "precompiles",
  "rlp",
+ "runtime-common",
  "serde",
  "sp-api",
  "sp-block-builder",
@@ -5732,7 +5736,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-author-mapping"
-version = "2.0.0"
+version = "2.0.1"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8890,6 +8894,10 @@ dependencies = [
  "libc",
  "winapi 0.3.9",
 ]
+
+[[package]]
+name = "runtime-common"
+version = "0.8.0-dev"
 
 [[package]]
 name = "rust-argon2"
