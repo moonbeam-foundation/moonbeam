@@ -34,6 +34,7 @@ moonbeam-runtime = { path = "../../runtime/moonbeam" }
 moonriver-runtime = { path = "../../runtime/moonriver" }
 moonshadow-runtime = { path = "../../runtime/moonshadow" }
 moonbase-runtime = { path = "../../runtime/moonbase" }
+runtime-common = { path = "../../runtime/common/"}
 
 moonbeam-rpc-txpool = { path = "../../client/rpc/txpool" }
 moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool" }
