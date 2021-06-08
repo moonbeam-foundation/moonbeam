@@ -62,15 +62,13 @@ describeDevMoonbeam("Polkadot API - Transfers", (context) => {
           expect(message.substring(0, 33)).to.eq(`parachainSystem.setValidationData`);
           break;
         case 2:
-          expect(message).to.eq(
-            `authorInherent.setAuthor(0x6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b)`
-          );
+          expect(message.substring(0, 24)).to.eq(`authorInherent.setAuthor`);
           break;
         case 3:
           expect(message).to.eq(
             `balances.transfer(0x1111111111111111111111111111111111111111, 123)`
           );
-          expect(ex.signer.toString().toLocaleLowerCase()).to.eq(GENESIS_ACCOUNT);
+          expect(ex.signer.toString()).to.eq(GENESIS_ACCOUNT);
           break;
         default:
           throw new Error(`Unexpected extrinsic: ${message}`);
@@ -100,18 +98,20 @@ describeDevMoonbeam("Polkadot API - Transfers", (context) => {
         case 0:
         case 1:
         case 2:
-          expect(
-            events.length === 1 && context.polkadotApi.events.system.ExtrinsicSuccess.is(events[0])
-          ).to.be.true;
+          expect(events).to.be.of.length(1);
+          expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[0])).to.be.true;
           break;
         // Fourth event: balances.transfer:: system.NewAccount, balances.Endowed, balances.Transfer,
         // system.ExtrinsicSuccess
         case 3:
-          expect(events.length === 4);
+          expect(events).to.be.of.length(7);
           expect(context.polkadotApi.events.system.NewAccount.is(events[0])).to.be.true;
           expect(context.polkadotApi.events.balances.Endowed.is(events[1])).to.be.true;
           expect(context.polkadotApi.events.balances.Transfer.is(events[2])).to.be.true;
-          expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[3])).to.be.true;
+          expect(context.polkadotApi.events.system.NewAccount.is(events[3])).to.be.true;
+          expect(context.polkadotApi.events.balances.Endowed.is(events[4])).to.be.true;
+          expect(context.polkadotApi.events.techComitteeCollective.Proposed.is(events[5])).to.be;
+          expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[6])).to.be.true;
           break;
         default:
           throw new Error(`Unexpected extrinsic`);

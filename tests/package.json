@@ -35,13 +35,14 @@
     "watch": "npm-watch",
     "build": "cargo build --release",
     "non-ci-test": "mocha -r ts-node/register 'non_ci_tests/**/test-*.ts'",
-    "test-single": "mocha -r ts-node/register 'tests/test-balance.ts'"
+    "test-single": "mocha -r ts-node/register 'tests/test-crowdloan.ts'",
+    "lint": "npx prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@polkadot/api": "^4.6.2",
-    "@polkadot/types": "^4.6.2",
+    "@polkadot/api": "^4.12.1",
+    "@polkadot/types": "^4.12.1",
     "@types/chai": "^4.2.11",
     "@types/mocha": "^8.2.2",
     "chai": "^4.3.4",

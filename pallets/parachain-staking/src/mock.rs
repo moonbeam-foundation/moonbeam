@@ -27,7 +27,7 @@ use sp_io;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
-	Perbill,
+	Perbill, Percent,
 };
 
 pub type AccountId = u64;
@@ -102,6 +102,7 @@ parameter_types! {
 	pub const MaxNominatorsPerCollator: u32 = 4;
 	pub const MaxCollatorsPerNominator: u32 = 4;
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
+	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	pub const MinCollatorStk: u128 = 10;
 	pub const MinNominatorStk: u128 = 5;
 	pub const MinNomination: u128 = 3;
@@ -116,6 +117,7 @@ impl Config for Test {
 	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
 	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
 	type DefaultCollatorCommission = DefaultCollatorCommission;
+	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	type MinCollatorStk = MinCollatorStk;
 	type MinCollatorCandidateStk = MinCollatorStk;
 	type MinNominatorStk = MinNominatorStk;
@@ -129,7 +131,7 @@ pub(crate) struct ExtBuilder {
 	// [collator, amount]
 	collators: Vec<(AccountId, Balance)>,
 	// [nominator, collator, nomination_amount]
-	nominators: Vec<(AccountId, AccountId, Balance)>,
+	nominations: Vec<(AccountId, AccountId, Balance)>,
 	// inflation config
 	inflation: InflationInfo<Balance>,
 }
@@ -138,7 +140,7 @@ impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
 			balances: vec![],
-			nominators: vec![],
+			nominations: vec![],
 			collators: vec![],
 			inflation: InflationInfo {
 				expect: Range {
@@ -174,11 +176,11 @@ impl ExtBuilder {
 		self
 	}
 
-	pub(crate) fn with_nominators(
+	pub(crate) fn with_nominations(
 		mut self,
-		nominators: Vec<(AccountId, AccountId, Balance)>,
+		nominations: Vec<(AccountId, AccountId, Balance)>,
 	) -> Self {
-		self.nominators = nominators;
+		self.nominations = nominations;
 		self
 	}
 
@@ -198,16 +200,9 @@ impl ExtBuilder {
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");
-
-		let mut stakers: Vec<(AccountId, Option<AccountId>, Balance)> = Vec::new();
-		for collator in self.collators {
-			stakers.push((collator.0, None, collator.1));
-		}
-		for nominator in self.nominators {
-			stakers.push((nominator.0, Some(nominator.1), nominator.2));
-		}
 		stake::GenesisConfig::<Test> {
-			stakers,
+			candidates: self.collators,
+			nominations: self.nominations,
 			inflation_config: self.inflation,
 		}
 		.assimilate_storage(&mut t)

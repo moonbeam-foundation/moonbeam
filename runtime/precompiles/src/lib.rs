@@ -18,7 +18,7 @@
 
 mod staking;
 use codec::Decode;
-use evm::{Context, ExitError, ExitSucceed};
+use evm::{executor::PrecompileOutput, Context, ExitError};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::{Precompile, PrecompileSet};
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
@@ -29,7 +29,7 @@ use pallet_evm_precompile_simple::{ECRecover, Identity, Ripemd160, Sha256};
 use sp_core::H160;
 use sp_std::convert::TryFrom;
 use sp_std::fmt::Debug;
-use sp_std::{marker::PhantomData, vec::Vec};
+use sp_std::marker::PhantomData;
 use staking::ParachainStakingWrapper;
 
 use frame_support::traits::Currency;
@@ -37,9 +37,6 @@ type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as C
 	<Runtime as frame_system::Config>::AccountId,
 >>::Balance;
 
-//TODO Maybe we don't need to / shouldn't be generic over the runtime.
-// Pros: Would simplify trait bounds and speed up compile time (maybe not noticeably).
-// Cons: Would proclude using this precompile set in mocked Runtimes.
 /// The PrecompileSet installed in the Moonbeam runtime.
 /// We include the nine Istanbul precompiles
 /// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
@@ -47,17 +44,13 @@ type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as C
 #[derive(Debug, Clone, Copy)]
 pub struct MoonbeamPrecompiles<R>(PhantomData<R>);
 
-// The idea here is that we won't have to list the addresses in this file and the chain spec.
-// Unfortunately we still have to type it twice in this file.
 impl<R: frame_system::Config> MoonbeamPrecompiles<R>
 where
 	R::AccountId: From<H160>,
 {
 	/// Return all addresses that contain precompiles. This can be used to populate dummy code
-	/// under the precompile, and potentially in the future to prevent using accounts that have
-	/// precompiles at their addresses explicitly using something like SignedExtra.
-	#[allow(dead_code)]
-	fn used_addresses() -> impl Iterator<Item = R::AccountId> {
+	/// under the precompile.
+	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
 		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 1024, 1025, 2048]
 			.into_iter()
 			.map(|x| hash(x).into())
@@ -82,7 +75,7 @@ where
 		input: &[u8],
 		target_gas: Option<u64>,
 		context: &Context,
-	) -> Option<Result<(ExitSucceed, Vec<u8>, u64), ExitError>> {
+	) -> Option<Result<PrecompileOutput, ExitError>> {
 		match address {
 			// Ethereum precompiles :
 			a if a == hash(1) => Some(ECRecover::execute(input, target_gas, context)),
@@ -94,8 +87,8 @@ where
 			a if a == hash(7) => Some(Bn128Mul::execute(input, target_gas, context)),
 			a if a == hash(8) => Some(Bn128Pairing::execute(input, target_gas, context)),
 			// Non-Moonbeam specific nor Ethereum precompiles :
-			a if a == hash(1024) => Some(Dispatch::<R>::execute(input, target_gas, context)),
-			a if a == hash(1025) => Some(Sha3FIPS256::execute(input, target_gas, context)),
+			a if a == hash(1024) => Some(Sha3FIPS256::execute(input, target_gas, context)),
+			a if a == hash(1025) => Some(Dispatch::<R>::execute(input, target_gas, context)),
 			// Moonbeam specific precompiles :
 			a if a == hash(2048) => Some(ParachainStakingWrapper::<R>::execute(
 				input, target_gas, context,
