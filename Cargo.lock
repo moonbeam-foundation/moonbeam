@@ -6057,7 +6057,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-ethereum-chain-id"
-version = "0.6.0"
+version = "1.0.0"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6636,11 +6636,12 @@ dependencies = [
 
 [[package]]
 name = "parachain-staking"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "log",
  "nimbus-primitives",
  "pallet-balances",
  "parity-scale-codec",
