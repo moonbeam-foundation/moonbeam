@@ -15,7 +15,6 @@ sed -e "/\"<runtime_code>\"/{r $ALPHANET_PARACHAIN_SPEC_TMP" -e 'd;}'  $ALPHANET
   > $ALPHANET_PARACHAIN_SPEC_PLAIN	
 echo $ALPHANET_PARACHAIN_SPEC_PLAIN generated
 
-echo "building raw"
 $MOONBEAM_BINARY build-spec \
   --disable-default-bootnode \
   --raw \
