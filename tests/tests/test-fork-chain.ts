@@ -44,19 +44,12 @@ describeDevMoonbeam("Fork", (context) => {
 
     // Fork 4 blocks 0-1-2-3-4
     let parentHash = await context.polkadotApi.rpc.chain.getBlockHash(0);
-    parentHash = (await context.createBlock({ parentHash, finalize: false })).block.hash;
-    parentHash = (await context.createBlock({ parentHash, finalize: false })).block.hash;
-    // This next block defines a new best chain.
-    // Substrate will insert the retracted block's txs in the tx pool
-    parentHash = (await context.createBlock({ parentHash, finalize: false })).block.hash;
-    // All the transactions that were in the pool are now on-chain
-    parentHash = (await context.createBlock({ parentHash, finalize: true })).block.hash;
+    // Create enough blocks to ensure the TX is re-scheduled and that chain is new best
+    for (let i = 0; i < 10; i++) {
+      parentHash = (await context.createBlock({ parentHash, finalize: false })).block.hash;
+    }
     const finalTx = await context.web3.eth.getTransaction(insertedTx);
-    const currentHeight = await context.web3.eth.getBlockNumber();
-    // The Tx should have been inserted in the last block
-    expect(finalTx.blockNumber).to.equal(currentHeight);
-    // The Tx should have the hash of the latest canonical chain
-    expect(finalTx.blockHash).to.not.equal(retractedTx.blockHash);
-    expect(finalTx.blockHash).to.equal((await context.web3.eth.getBlock(currentHeight)).hash);
+    // The Tx should have been inserted in the new best chain
+    expect(finalTx.blockNumber).to.be.greaterThan(retractedTx.blockNumber);
   });
 });
