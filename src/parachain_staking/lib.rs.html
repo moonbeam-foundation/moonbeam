@@ -1418,18 +1418,6 @@
 <span id="1415">1415</span>
 <span id="1416">1416</span>
 <span id="1417">1417</span>
-<span id="1418">1418</span>
-<span id="1419">1419</span>
-<span id="1420">1420</span>
-<span id="1421">1421</span>
-<span id="1422">1422</span>
-<span id="1423">1423</span>
-<span id="1424">1424</span>
-<span id="1425">1425</span>
-<span id="1426">1426</span>
-<span id="1427">1427</span>
-<span id="1428">1428</span>
-<span id="1429">1429</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2020 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1610,7 +1598,7 @@
 			<span class="self">self</span>.<span class="ident">bond</span> <span class="op">+</span><span class="op">=</span> <span class="ident">more</span>;
 			<span class="self">self</span>.<span class="ident">total</span> <span class="op">+</span><span class="op">=</span> <span class="ident">more</span>;
 		}
-		<span class="comment">// Returns None if underflow or less == self.bond (in which case collator should leave)</span>
+		<span class="comment">// Return None if less &gt;= self.bond =&gt; collator must leave instead of bond less</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bond_less</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">less</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
 			<span class="kw">if</span> <span class="self">self</span>.<span class="ident">bond</span> <span class="op">&gt;</span> <span class="ident">less</span> {
 				<span class="self">self</span>.<span class="ident">bond</span> <span class="op">-</span><span class="op">=</span> <span class="ident">less</span>;
@@ -1692,8 +1680,8 @@
 				<span class="bool-val">false</span>
 			}
 		}
-		<span class="comment">// Returns Some(remaining balance), must be more than MinNominatorStk</span>
-		<span class="comment">// Returns None if nomination not found</span>
+		<span class="comment">// Return Some(remaining balance), must be more than MinNominatorStk</span>
+		<span class="comment">// Return None if nomination not found</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rm_nomination</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">collator</span>: <span class="ident">AccountId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> {
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">amt</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
 			<span class="kw">let</span> <span class="ident">nominations</span> <span class="op">=</span> <span class="self">self</span>
@@ -1717,20 +1705,20 @@
 				<span class="prelude-val">None</span>
 			}
 		}
-		<span class="comment">// Returns None if nomination not found</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inc_nomination</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">collator</span>: <span class="ident">AccountId</span>, <span class="ident">more</span>: <span class="ident">Balance</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> {
+		<span class="comment">// Return false if nomination not found</span>
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inc_nomination</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">collator</span>: <span class="ident">AccountId</span>, <span class="ident">more</span>: <span class="ident">Balance</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
 			<span class="kw">for</span> <span class="ident">x</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">nominations</span>.<span class="number">0</span> {
 				<span class="kw">if</span> <span class="ident">x</span>.<span class="ident">owner</span> <span class="op">=</span><span class="op">=</span> <span class="ident">collator</span> {
 					<span class="ident">x</span>.<span class="ident">amount</span> <span class="op">+</span><span class="op">=</span> <span class="ident">more</span>;
 					<span class="self">self</span>.<span class="ident">total</span> <span class="op">+</span><span class="op">=</span> <span class="ident">more</span>;
-					<span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>.<span class="ident">amount</span>);
+					<span class="kw">return</span> <span class="bool-val">true</span>;
 				}
 			}
-			<span class="prelude-val">None</span>
+			<span class="bool-val">false</span>
 		}
-		<span class="comment">// Returns Some(Some(balance)) if successful</span>
-		<span class="comment">// None if nomination not found</span>
-		<span class="comment">// Some(None) if underflow</span>
+		<span class="comment">// Return Some(Some(balance)) if successful</span>
+		<span class="comment">// Return None if nomination not found</span>
+		<span class="comment">// Return Some(None) if less &gt;= nomination_total</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dec_nomination</span>(
 			<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
 			<span class="ident">collator</span>: <span class="ident">AccountId</span>,
@@ -1743,7 +1731,7 @@
 						<span class="self">self</span>.<span class="ident">total</span> <span class="op">-</span><span class="op">=</span> <span class="ident">less</span>;
 						<span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="ident">x</span>.<span class="ident">amount</span>));
 					} <span class="kw">else</span> {
-						<span class="comment">// underflow error; should rm entire nomination if x.amount == collator</span>
+						<span class="comment">// must rm entire nomination if x.amount &lt;= less</span>
 						<span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">None</span>);
 					}
 				}
@@ -1796,7 +1784,7 @@
 		<span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">RoundInfo</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>
 	{
 		<span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RoundInfo</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
-			<span class="ident">RoundInfo</span>::<span class="ident">new</span>(<span class="number">1u32</span>, <span class="number">1u32</span>.<span class="ident">into</span>(), <span class="number">20u32</span>.<span class="ident">into</span>())
+			<span class="ident">RoundInfo</span>::<span class="ident">new</span>(<span class="number">1u32</span>, <span class="number">1u32</span>.<span class="ident">into</span>(), <span class="number">20u32</span>)
 		}
 	}
 
@@ -1875,9 +1863,10 @@
 		<span class="ident">ExceedMaxCollatorsPerNom</span>,
 		<span class="ident">AlreadyNominatedCollator</span>,
 		<span class="ident">NominationDNE</span>,
-		<span class="ident">Underflow</span>,
+		<span class="ident">CannotBondLessGEQTotalBond</span>,
 		<span class="ident">InvalidSchedule</span>,
 		<span class="ident">CannotSetBelowMin</span>,
+		<span class="ident">NoWritingSameValue</span>,
 	}
 
 	<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">event</span>]</span>
@@ -2098,10 +2087,16 @@
 					<span class="ident">T</span>::<span class="ident">Currency</span>::<span class="ident">free_balance</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>) <span class="op">&gt;</span><span class="op">=</span> <span class="ident">balance</span>,
 					<span class="string">&quot;Account does not have enough balance to bond as a cadidate.&quot;</span>
 				);
-				<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">join_candidates</span>(
+				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">join_candidates</span>(
 					<span class="ident">T</span>::<span class="ident">Origin</span>::<span class="ident">from</span>(<span class="prelude-val">Some</span>(<span class="ident">candidate</span>.<span class="ident">clone</span>()).<span class="ident">into</span>()),
 					<span class="ident">balance</span>,
-				);
+				) {
+					<span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(
+						<span class="ident">target</span>: <span class="string">&quot;staking&quot;</span>,
+						<span class="string">&quot;Join candidates failed in genesis with error {:?}&quot;</span>,
+						<span class="ident">error</span>
+					);
+				}
 			}
 			<span class="comment">// Initialize the nominations</span>
 			<span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="kw-2">ref</span> <span class="ident">nominator</span>, <span class="kw-2">ref</span> <span class="ident">target</span>, <span class="ident">balance</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">nominations</span> {
@@ -2109,11 +2104,17 @@
 					<span class="ident">T</span>::<span class="ident">Currency</span>::<span class="ident">free_balance</span>(<span class="kw-2">&amp;</span><span class="ident">nominator</span>) <span class="op">&gt;</span><span class="op">=</span> <span class="ident">balance</span>,
 					<span class="string">&quot;Account does not have enough balance to place nomination.&quot;</span>
 				);
-				<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">nominate</span>(
+				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">nominate</span>(
 					<span class="ident">T</span>::<span class="ident">Origin</span>::<span class="ident">from</span>(<span class="prelude-val">Some</span>(<span class="ident">nominator</span>.<span class="ident">clone</span>()).<span class="ident">into</span>()),
 					<span class="ident">target</span>.<span class="ident">clone</span>(),
 					<span class="ident">balance</span>,
-				);
+				) {
+					<span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(
+						<span class="ident">target</span>: <span class="string">&quot;staking&quot;</span>,
+						<span class="string">&quot;Join nominators failed in genesis with error {:?}&quot;</span>,
+						<span class="ident">error</span>
+					);
+				}
 			}
 			<span class="comment">// Set collator commission to default config</span>
 			<span class="op">&lt;</span><span class="ident">CollatorCommission</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">put</span>(<span class="ident">T</span>::<span class="ident">DefaultCollatorCommission</span>::<span class="ident">get</span>());
@@ -2154,6 +2155,10 @@
 			<span class="ident">frame_system</span>::<span class="ident">ensure_root</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="macro">ensure</span><span class="macro">!</span>(<span class="ident">expectations</span>.<span class="ident">is_valid</span>(), <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">InvalidSchedule</span>);
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">InflationConfig</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>();
+			<span class="macro">ensure</span><span class="macro">!</span>(
+				<span class="ident">config</span>.<span class="ident">expect</span> <span class="op">!</span><span class="op">=</span> <span class="ident">expectations</span>,
+				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">NoWritingSameValue</span>
+			);
 			<span class="ident">config</span>.<span class="ident">set_expectations</span>(<span class="ident">expectations</span>);
 			<span class="self">Self</span>::<span class="ident">deposit_event</span>(<span class="ident">Event</span>::<span class="ident">StakeExpectationsSet</span>(
 				<span class="ident">config</span>.<span class="ident">expect</span>.<span class="ident">min</span>,
@@ -2172,6 +2177,7 @@
 			<span class="ident">frame_system</span>::<span class="ident">ensure_root</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="macro">ensure</span><span class="macro">!</span>(<span class="ident">schedule</span>.<span class="ident">is_valid</span>(), <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">InvalidSchedule</span>);
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">InflationConfig</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>();
+			<span class="macro">ensure</span><span class="macro">!</span>(<span class="ident">config</span>.<span class="ident">annual</span> <span class="op">!</span><span class="op">=</span> <span class="ident">schedule</span>, <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">NoWritingSameValue</span>);
 			<span class="ident">config</span>.<span class="ident">annual</span> <span class="op">=</span> <span class="ident">schedule</span>;
 			<span class="ident">config</span>.<span class="ident">set_round_from_annual</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">schedule</span>);
 			<span class="self">Self</span>::<span class="ident">deposit_event</span>(<span class="ident">Event</span>::<span class="ident">InflationSet</span>(
@@ -2194,11 +2200,12 @@
 			<span class="ident">frame_system</span>::<span class="ident">ensure_root</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="ident">ParachainBondConfig</span> {
 				<span class="ident">account</span>: <span class="ident">old</span>,
-				<span class="ident">percent</span>: <span class="ident">pct</span>,
+				<span class="ident">percent</span>,
 			} <span class="op">=</span> <span class="op">&lt;</span><span class="ident">ParachainBondInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>();
+			<span class="macro">ensure</span><span class="macro">!</span>(<span class="ident">old</span> <span class="op">!</span><span class="op">=</span> <span class="ident">new</span>, <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">NoWritingSameValue</span>);
 			<span class="op">&lt;</span><span class="ident">ParachainBondInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">put</span>(<span class="ident">ParachainBondConfig</span> {
 				<span class="ident">account</span>: <span class="ident">new</span>.<span class="ident">clone</span>(),
-				<span class="ident">percent</span>: <span class="ident">pct</span>,
+				<span class="ident">percent</span>,
 			});
 			<span class="self">Self</span>::<span class="ident">deposit_event</span>(<span class="ident">Event</span>::<span class="ident">ParachainBondAccountSet</span>(<span class="ident">old</span>, <span class="ident">new</span>));
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
@@ -2211,11 +2218,12 @@
 		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="ident">frame_system</span>::<span class="ident">ensure_root</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="ident">ParachainBondConfig</span> {
-				<span class="ident">account</span>: <span class="ident">acc</span>,
+				<span class="ident">account</span>,
 				<span class="ident">percent</span>: <span class="ident">old</span>,
 			} <span class="op">=</span> <span class="op">&lt;</span><span class="ident">ParachainBondInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>();
+			<span class="macro">ensure</span><span class="macro">!</span>(<span class="ident">old</span> <span class="op">!</span><span class="op">=</span> <span class="ident">new</span>, <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">NoWritingSameValue</span>);
 			<span class="op">&lt;</span><span class="ident">ParachainBondInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">put</span>(<span class="ident">ParachainBondConfig</span> {
-				<span class="ident">account</span>: <span class="ident">acc</span>,
+				<span class="ident">account</span>,
 				<span class="ident">percent</span>: <span class="ident">new</span>,
 			});
 			<span class="self">Self</span>::<span class="ident">deposit_event</span>(<span class="ident">Event</span>::<span class="ident">ParachainBondReservePercentSet</span>(<span class="ident">old</span>, <span class="ident">new</span>));
@@ -2231,6 +2239,7 @@
 				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">CannotSetBelowMin</span>
 			);
 			<span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">TotalSelected</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>();
+			<span class="macro">ensure</span><span class="macro">!</span>(<span class="ident">old</span> <span class="op">!</span><span class="op">=</span> <span class="ident">new</span>, <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">NoWritingSameValue</span>);
 			<span class="op">&lt;</span><span class="ident">TotalSelected</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">put</span>(<span class="ident">new</span>);
 			<span class="self">Self</span>::<span class="ident">deposit_event</span>(<span class="ident">Event</span>::<span class="ident">TotalSelectedSet</span>(<span class="ident">old</span>, <span class="ident">new</span>));
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
@@ -2239,12 +2248,13 @@
 		<span class="doccomment">/// Set the commission for all collators</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_collator_commission</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-			<span class="ident">pct</span>: <span class="ident">Perbill</span>,
+			<span class="ident">new</span>: <span class="ident">Perbill</span>,
 		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="ident">frame_system</span>::<span class="ident">ensure_root</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CollatorCommission</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>();
-			<span class="op">&lt;</span><span class="ident">CollatorCommission</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">put</span>(<span class="ident">pct</span>);
-			<span class="self">Self</span>::<span class="ident">deposit_event</span>(<span class="ident">Event</span>::<span class="ident">CollatorCommissionSet</span>(<span class="ident">old</span>, <span class="ident">pct</span>));
+			<span class="macro">ensure</span><span class="macro">!</span>(<span class="ident">old</span> <span class="op">!</span><span class="op">=</span> <span class="ident">new</span>, <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">NoWritingSameValue</span>);
+			<span class="op">&lt;</span><span class="ident">CollatorCommission</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">put</span>(<span class="ident">new</span>);
+			<span class="self">Self</span>::<span class="ident">deposit_event</span>(<span class="ident">Event</span>::<span class="ident">CollatorCommissionSet</span>(<span class="ident">old</span>, <span class="ident">new</span>));
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
 		}
 		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="number">0</span>)]</span>
@@ -2260,6 +2270,7 @@
 			);
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">round</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Round</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>();
 			<span class="kw">let</span> (<span class="ident">now</span>, <span class="ident">first</span>, <span class="ident">old</span>) <span class="op">=</span> (<span class="ident">round</span>.<span class="ident">current</span>, <span class="ident">round</span>.<span class="ident">first</span>, <span class="ident">round</span>.<span class="ident">length</span>);
+			<span class="macro">ensure</span><span class="macro">!</span>(<span class="ident">old</span> <span class="op">!</span><span class="op">=</span> <span class="ident">new</span>, <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">NoWritingSameValue</span>);
 			<span class="ident">round</span>.<span class="ident">length</span> <span class="op">=</span> <span class="ident">new</span>;
 			<span class="comment">// update per-round inflation given new rounds per year</span>
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inflation_config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">InflationConfig</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>();
@@ -2408,7 +2419,9 @@
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CollatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">CandidateDNE</span>)<span class="question-mark">?</span>;
 			<span class="macro">ensure</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">state</span>.<span class="ident">is_leaving</span>(), <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">CannotActivateIfLeaving</span>);
 			<span class="kw">let</span> <span class="ident">before</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">bond</span>;
-			<span class="kw">let</span> <span class="ident">after</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">bond_less</span>(<span class="ident">less</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">Underflow</span>)<span class="question-mark">?</span>;
+			<span class="kw">let</span> <span class="ident">after</span> <span class="op">=</span> <span class="ident">state</span>
+				.<span class="ident">bond_less</span>(<span class="ident">less</span>)
+				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">CannotBondLessGEQTotalBond</span>)<span class="question-mark">?</span>;
 			<span class="macro">ensure</span><span class="macro">!</span>(
 				<span class="ident">after</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">T</span>::<span class="ident">MinCollatorCandidateStk</span>::<span class="ident">get</span>(),
 				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">ValBondBelowMin</span>
@@ -2430,82 +2443,56 @@
 			<span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">acc</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
-			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">nominator</span>) <span class="op">=</span> <span class="op">&lt;</span><span class="ident">NominatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">acc</span>) {
+			<span class="kw">let</span> <span class="ident">nominator</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">nom</span>) <span class="op">=</span> <span class="op">&lt;</span><span class="ident">NominatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">acc</span>) {
 				<span class="comment">// nomination after first</span>
 				<span class="macro">ensure</span><span class="macro">!</span>(
 					<span class="ident">amount</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">T</span>::<span class="ident">MinNomination</span>::<span class="ident">get</span>(),
 					<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">NominationBelowMin</span>
 				);
 				<span class="macro">ensure</span><span class="macro">!</span>(
-					(<span class="ident">nominator</span>.<span class="ident">nominations</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span> <span class="ident">T</span>::<span class="ident">MaxCollatorsPerNominator</span>::<span class="ident">get</span>(),
+					(<span class="ident">nom</span>.<span class="ident">nominations</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span> <span class="ident">T</span>::<span class="ident">MaxCollatorsPerNominator</span>::<span class="ident">get</span>(),
 					<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">ExceedMaxCollatorsPerNom</span>
 				);
-				<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span>
-					<span class="op">&lt;</span><span class="ident">CollatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">CandidateDNE</span>)<span class="question-mark">?</span>;
 				<span class="macro">ensure</span><span class="macro">!</span>(
-					<span class="ident">nominator</span>.<span class="ident">add_nomination</span>(<span class="ident">Bond</span> {
+					<span class="ident">nom</span>.<span class="ident">add_nomination</span>(<span class="ident">Bond</span> {
 						<span class="ident">owner</span>: <span class="ident">collator</span>.<span class="ident">clone</span>(),
 						<span class="ident">amount</span>
 					}),
 					<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">AlreadyNominatedCollator</span>
 				);
-				<span class="kw">let</span> <span class="ident">nomination</span> <span class="op">=</span> <span class="ident">Bond</span> {
-					<span class="ident">owner</span>: <span class="ident">acc</span>.<span class="ident">clone</span>(),
-					<span class="ident">amount</span>,
-				};
-				<span class="macro">ensure</span><span class="macro">!</span>(
-					(<span class="ident">state</span>.<span class="ident">nominators</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span> <span class="ident">T</span>::<span class="ident">MaxNominatorsPerCollator</span>::<span class="ident">get</span>(),
-					<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">TooManyNominators</span>
-				);
-				<span class="macro">ensure</span><span class="macro">!</span>(
-					<span class="ident">state</span>.<span class="ident">nominators</span>.<span class="ident">insert</span>(<span class="ident">nomination</span>),
-					<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">NominatorExists</span>
-				);
-				<span class="ident">T</span>::<span class="ident">Currency</span>::<span class="ident">reserve</span>(<span class="kw-2">&amp;</span><span class="ident">acc</span>, <span class="ident">amount</span>)<span class="question-mark">?</span>;
-				<span class="kw">let</span> <span class="ident">new_total</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">total</span> <span class="op">+</span> <span class="ident">amount</span>;
-				<span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_active</span>() {
-					<span class="self">Self</span>::<span class="ident">update_active</span>(<span class="ident">collator</span>.<span class="ident">clone</span>(), <span class="ident">new_total</span>);
-				}
-				<span class="kw">let</span> <span class="ident">new_total_locked</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Total</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>() <span class="op">+</span> <span class="ident">amount</span>;
-				<span class="op">&lt;</span><span class="ident">Total</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">put</span>(<span class="ident">new_total_locked</span>);
-				<span class="ident">state</span>.<span class="ident">total</span> <span class="op">=</span> <span class="ident">new_total</span>;
-				<span class="op">&lt;</span><span class="ident">CollatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>, <span class="ident">state</span>);
-				<span class="op">&lt;</span><span class="ident">NominatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="ident">acc</span>, <span class="ident">nominator</span>);
-				<span class="self">Self</span>::<span class="ident">deposit_event</span>(<span class="ident">Event</span>::<span class="ident">Nomination</span>(<span class="ident">acc</span>, <span class="ident">amount</span>, <span class="ident">collator</span>, <span class="ident">new_total</span>));
+				<span class="ident">nom</span>
 			} <span class="kw">else</span> {
 				<span class="comment">// first nomination</span>
 				<span class="macro">ensure</span><span class="macro">!</span>(
 					<span class="ident">amount</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">T</span>::<span class="ident">MinNominatorStk</span>::<span class="ident">get</span>(),
 					<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">NomBondBelowMin</span>
 				);
-				<span class="comment">// cannot be a collator candidate and nominator with same AccountId</span>
 				<span class="macro">ensure</span><span class="macro">!</span>(<span class="op">!</span><span class="self">Self</span>::<span class="ident">is_candidate</span>(<span class="kw-2">&amp;</span><span class="ident">acc</span>), <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">CandidateExists</span>);
-				<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span>
-					<span class="op">&lt;</span><span class="ident">CollatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">CandidateDNE</span>)<span class="question-mark">?</span>;
-				<span class="kw">let</span> <span class="ident">nomination</span> <span class="op">=</span> <span class="ident">Bond</span> {
+				<span class="ident">Nominator</span>::<span class="ident">new</span>(<span class="ident">collator</span>.<span class="ident">clone</span>(), <span class="ident">amount</span>)
+			};
+			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CollatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">CandidateDNE</span>)<span class="question-mark">?</span>;
+			<span class="macro">ensure</span><span class="macro">!</span>(
+				(<span class="ident">state</span>.<span class="ident">nominators</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span> <span class="ident">T</span>::<span class="ident">MaxNominatorsPerCollator</span>::<span class="ident">get</span>(),
+				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">TooManyNominators</span>
+			);
+			<span class="macro">ensure</span><span class="macro">!</span>(
+				<span class="ident">state</span>.<span class="ident">nominators</span>.<span class="ident">insert</span>(<span class="ident">Bond</span> {
 					<span class="ident">owner</span>: <span class="ident">acc</span>.<span class="ident">clone</span>(),
 					<span class="ident">amount</span>,
-				};
-				<span class="macro">ensure</span><span class="macro">!</span>(
-					<span class="ident">state</span>.<span class="ident">nominators</span>.<span class="ident">insert</span>(<span class="ident">nomination</span>),
-					<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">NominatorExists</span>
-				);
-				<span class="macro">ensure</span><span class="macro">!</span>(
-					(<span class="ident">state</span>.<span class="ident">nominators</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">=</span> <span class="ident">T</span>::<span class="ident">MaxNominatorsPerCollator</span>::<span class="ident">get</span>(),
-					<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">TooManyNominators</span>
-				);
-				<span class="ident">T</span>::<span class="ident">Currency</span>::<span class="ident">reserve</span>(<span class="kw-2">&amp;</span><span class="ident">acc</span>, <span class="ident">amount</span>)<span class="question-mark">?</span>;
-				<span class="kw">let</span> <span class="ident">new_total</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">total</span> <span class="op">+</span> <span class="ident">amount</span>;
-				<span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_active</span>() {
-					<span class="self">Self</span>::<span class="ident">update_active</span>(<span class="ident">collator</span>.<span class="ident">clone</span>(), <span class="ident">new_total</span>);
-				}
-				<span class="kw">let</span> <span class="ident">new_total_locked</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Total</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>() <span class="op">+</span> <span class="ident">amount</span>;
-				<span class="op">&lt;</span><span class="ident">Total</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">put</span>(<span class="ident">new_total_locked</span>);
-				<span class="ident">state</span>.<span class="ident">total</span> <span class="op">=</span> <span class="ident">new_total</span>;
-				<span class="op">&lt;</span><span class="ident">CollatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>, <span class="ident">state</span>);
-				<span class="op">&lt;</span><span class="ident">NominatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="ident">acc</span>, <span class="ident">Nominator</span>::<span class="ident">new</span>(<span class="ident">collator</span>.<span class="ident">clone</span>(), <span class="ident">amount</span>));
-				<span class="self">Self</span>::<span class="ident">deposit_event</span>(<span class="ident">Event</span>::<span class="ident">Nomination</span>(<span class="ident">acc</span>, <span class="ident">amount</span>, <span class="ident">collator</span>, <span class="ident">new_total</span>));
+				}),
+				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">NominatorExists</span>
+			);
+			<span class="ident">T</span>::<span class="ident">Currency</span>::<span class="ident">reserve</span>(<span class="kw-2">&amp;</span><span class="ident">acc</span>, <span class="ident">amount</span>)<span class="question-mark">?</span>;
+			<span class="kw">let</span> <span class="ident">new_total</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">total</span> <span class="op">+</span> <span class="ident">amount</span>;
+			<span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_active</span>() {
+				<span class="self">Self</span>::<span class="ident">update_active</span>(<span class="ident">collator</span>.<span class="ident">clone</span>(), <span class="ident">new_total</span>);
 			}
+			<span class="kw">let</span> <span class="ident">new_total_locked</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Total</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>() <span class="op">+</span> <span class="ident">amount</span>;
+			<span class="op">&lt;</span><span class="ident">Total</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">put</span>(<span class="ident">new_total_locked</span>);
+			<span class="ident">state</span>.<span class="ident">total</span> <span class="op">=</span> <span class="ident">new_total</span>;
+			<span class="op">&lt;</span><span class="ident">CollatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>, <span class="ident">state</span>);
+			<span class="op">&lt;</span><span class="ident">NominatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="ident">acc</span>, <span class="ident">nominator</span>);
+			<span class="self">Self</span>::<span class="ident">deposit_event</span>(<span class="ident">Event</span>::<span class="ident">Nomination</span>(<span class="ident">acc</span>, <span class="ident">amount</span>, <span class="ident">collator</span>, <span class="ident">new_total</span>));
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
 		}
 		<span class="doccomment">/// Leave the set of nominators and, by implication, revoke all ongoing nominations</span>
@@ -2540,9 +2527,10 @@
 				<span class="op">&lt;</span><span class="ident">NominatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">nominator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">NominatorDNE</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">collator</span> <span class="op">=</span>
 				<span class="op">&lt;</span><span class="ident">CollatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">CandidateDNE</span>)<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">nominations</span>
-				.<span class="ident">inc_nomination</span>(<span class="ident">candidate</span>.<span class="ident">clone</span>(), <span class="ident">more</span>)
-				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">NominationDNE</span>)<span class="question-mark">?</span>;
+			<span class="macro">ensure</span><span class="macro">!</span>(
+				<span class="ident">nominations</span>.<span class="ident">inc_nomination</span>(<span class="ident">candidate</span>.<span class="ident">clone</span>(), <span class="ident">more</span>),
+				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">NominationDNE</span>
+			);
 			<span class="ident">T</span>::<span class="ident">Currency</span>::<span class="ident">reserve</span>(<span class="kw-2">&amp;</span><span class="ident">nominator</span>, <span class="ident">more</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="ident">before</span> <span class="op">=</span> <span class="ident">collator</span>.<span class="ident">total</span>;
 			<span class="ident">collator</span>.<span class="ident">inc_nominator</span>(<span class="ident">nominator</span>.<span class="ident">clone</span>(), <span class="ident">more</span>);
@@ -2572,7 +2560,7 @@
 			<span class="kw">let</span> <span class="ident">remaining</span> <span class="op">=</span> <span class="ident">nominations</span>
 				.<span class="ident">dec_nomination</span>(<span class="ident">candidate</span>.<span class="ident">clone</span>(), <span class="ident">less</span>)
 				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">NominationDNE</span>)<span class="question-mark">?</span>
-				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">Underflow</span>)<span class="question-mark">?</span>;
+				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">CannotBondLessGEQTotalBond</span>)<span class="question-mark">?</span>;
 			<span class="macro">ensure</span><span class="macro">!</span>(
 				<span class="ident">remaining</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">T</span>::<span class="ident">MinNomination</span>::<span class="ident">get</span>(),
 				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">NominationBelowMin</span>
@@ -2621,16 +2609,13 @@
 		<span class="kw">fn</span> <span class="ident">compute_issuance</span>(<span class="ident">staked</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
 			<span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">InflationConfig</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>();
 			<span class="kw">let</span> <span class="ident">round_issuance</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">inflation</span>::<span class="ident">round_issuance_range</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">config</span>.<span class="ident">round</span>);
+			<span class="comment">// TODO: consider interpolation instead of bounded range</span>
 			<span class="kw">if</span> <span class="ident">staked</span> <span class="op">&lt;</span> <span class="ident">config</span>.<span class="ident">expect</span>.<span class="ident">min</span> {
-				<span class="kw">return</span> <span class="ident">round_issuance</span>.<span class="ident">min</span>;
+				<span class="ident">round_issuance</span>.<span class="ident">min</span>
 			} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">staked</span> <span class="op">&gt;</span> <span class="ident">config</span>.<span class="ident">expect</span>.<span class="ident">max</span> {
-				<span class="kw">return</span> <span class="ident">round_issuance</span>.<span class="ident">max</span>;
+				<span class="ident">round_issuance</span>.<span class="ident">max</span>
 			} <span class="kw">else</span> {
-				<span class="comment">// TODO: split up into 3 branches</span>
-				<span class="comment">// 1. min &lt; staked &lt; ideal</span>
-				<span class="comment">// 2. ideal &lt; staked &lt; max</span>
-				<span class="comment">// 3. staked == ideal</span>
-				<span class="kw">return</span> <span class="ident">round_issuance</span>.<span class="ident">ideal</span>;
+				<span class="ident">round_issuance</span>.<span class="ident">ideal</span>
 			}
 		}
 		<span class="kw">fn</span> <span class="ident">nominator_revokes_collator</span>(
@@ -2698,66 +2683,57 @@
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
 		}
 		<span class="kw">fn</span> <span class="ident">pay_stakers</span>(<span class="ident">next</span>: <span class="ident">RoundIndex</span>) {
+			<span class="comment">// payout is next - duration rounds ago =&gt; next - duration &gt; 0 else return early</span>
+			<span class="kw">let</span> <span class="ident">duration</span> <span class="op">=</span> <span class="ident">T</span>::<span class="ident">BondDuration</span>::<span class="ident">get</span>();
+			<span class="kw">if</span> <span class="ident">next</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">duration</span> {
+				<span class="kw">return</span>;
+			}
+			<span class="kw">let</span> <span class="ident">round_to_payout</span> <span class="op">=</span> <span class="ident">next</span> <span class="op">-</span> <span class="ident">duration</span>;
+			<span class="kw">let</span> <span class="ident">total</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Points</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>(<span class="ident">round_to_payout</span>);
+			<span class="kw">if</span> <span class="ident">total</span>.<span class="ident">is_zero</span>() {
+				<span class="kw">return</span>;
+			}
+			<span class="kw">let</span> <span class="ident">total_staked</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Staked</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>(<span class="ident">round_to_payout</span>);
+			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">issuance</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">compute_issuance</span>(<span class="ident">total_staked</span>);
+			<span class="comment">// reserve portion of issuance for parachain bond account</span>
+			<span class="kw">let</span> <span class="ident">bond_config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">ParachainBondInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>();
+			<span class="kw">let</span> <span class="ident">parachain_bond_reserve</span> <span class="op">=</span> <span class="ident">bond_config</span>.<span class="ident">percent</span> <span class="op">*</span> <span class="ident">issuance</span>;
+			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">imb</span>) <span class="op">=</span>
+				<span class="ident">T</span>::<span class="ident">Currency</span>::<span class="ident">deposit_into_existing</span>(<span class="kw-2">&amp;</span><span class="ident">bond_config</span>.<span class="ident">account</span>, <span class="ident">parachain_bond_reserve</span>)
+			{
+				<span class="comment">// update round issuance iff transfer succeeds</span>
+				<span class="ident">issuance</span> <span class="op">-</span><span class="op">=</span> <span class="ident">imb</span>.<span class="ident">peek</span>();
+				<span class="self">Self</span>::<span class="ident">deposit_event</span>(<span class="ident">Event</span>::<span class="ident">ReservedForParachainBond</span>(
+					<span class="ident">bond_config</span>.<span class="ident">account</span>,
+					<span class="ident">imb</span>.<span class="ident">peek</span>(),
+				));
+			}
 			<span class="kw">let</span> <span class="ident">mint</span> <span class="op">=</span> <span class="op">|</span><span class="ident">amt</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">to</span>: <span class="ident">T</span>::<span class="ident">AccountId</span><span class="op">|</span> {
-				<span class="kw">if</span> <span class="ident">amt</span> <span class="op">&gt;</span> <span class="ident">T</span>::<span class="ident">Currency</span>::<span class="ident">minimum_balance</span>() {
-					<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">imb</span>) <span class="op">=</span> <span class="ident">T</span>::<span class="ident">Currency</span>::<span class="ident">deposit_into_existing</span>(<span class="kw-2">&amp;</span><span class="ident">to</span>, <span class="ident">amt</span>) {
-						<span class="self">Self</span>::<span class="ident">deposit_event</span>(<span class="ident">Event</span>::<span class="ident">Rewarded</span>(<span class="ident">to</span>.<span class="ident">clone</span>(), <span class="ident">imb</span>.<span class="ident">peek</span>()));
-					}
+				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">imb</span>) <span class="op">=</span> <span class="ident">T</span>::<span class="ident">Currency</span>::<span class="ident">deposit_into_existing</span>(<span class="kw-2">&amp;</span><span class="ident">to</span>, <span class="ident">amt</span>) {
+					<span class="self">Self</span>::<span class="ident">deposit_event</span>(<span class="ident">Event</span>::<span class="ident">Rewarded</span>(<span class="ident">to</span>.<span class="ident">clone</span>(), <span class="ident">imb</span>.<span class="ident">peek</span>()));
 				}
 			};
-			<span class="kw">let</span> <span class="ident">duration</span> <span class="op">=</span> <span class="ident">T</span>::<span class="ident">BondDuration</span>::<span class="ident">get</span>();
 			<span class="kw">let</span> <span class="ident">collator_fee</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CollatorCommission</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>();
-			<span class="kw">if</span> <span class="ident">next</span> <span class="op">&gt;</span> <span class="ident">duration</span> {
-				<span class="kw">let</span> <span class="ident">round_to_payout</span> <span class="op">=</span> <span class="ident">next</span> <span class="op">-</span> <span class="ident">duration</span>;
-				<span class="kw">let</span> <span class="ident">total</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Points</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>(<span class="ident">round_to_payout</span>);
-				<span class="kw">if</span> <span class="ident">total</span>.<span class="ident">is_zero</span>() {
-					<span class="comment">// return early, no issuance</span>
-					<span class="kw">return</span>;
-				}
-				<span class="kw">let</span> <span class="ident">total_staked</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Staked</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>(<span class="ident">round_to_payout</span>);
-				<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">issuance</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">compute_issuance</span>(<span class="ident">total_staked</span>);
-				<span class="comment">// reserve portion of issuance for parachain bond account</span>
-				<span class="kw">let</span> <span class="ident">bond_config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">ParachainBondInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>();
-				<span class="kw">let</span> <span class="ident">parachain_bond_reserve</span> <span class="op">=</span> <span class="ident">bond_config</span>.<span class="ident">percent</span> <span class="op">*</span> <span class="ident">issuance</span>;
-				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">imb</span>) <span class="op">=</span>
-					<span class="ident">T</span>::<span class="ident">Currency</span>::<span class="ident">deposit_into_existing</span>(<span class="kw-2">&amp;</span><span class="ident">bond_config</span>.<span class="ident">account</span>, <span class="ident">parachain_bond_reserve</span>)
-				{
-					<span class="comment">// update round issuance iff transfer succeeds</span>
-					<span class="ident">issuance</span> <span class="op">-</span><span class="op">=</span> <span class="ident">imb</span>.<span class="ident">peek</span>();
-					<span class="self">Self</span>::<span class="ident">deposit_event</span>(<span class="ident">Event</span>::<span class="ident">ReservedForParachainBond</span>(
-						<span class="ident">bond_config</span>.<span class="ident">account</span>,
-						<span class="ident">imb</span>.<span class="ident">peek</span>(),
-					));
-				}
-				<span class="kw">for</span> (<span class="ident">val</span>, <span class="ident">pts</span>) <span class="kw">in</span> <span class="op">&lt;</span><span class="ident">AwardedPts</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">drain_prefix</span>(<span class="ident">round_to_payout</span>) {
-					<span class="kw">let</span> <span class="ident">pct_due</span> <span class="op">=</span> <span class="ident">Perbill</span>::<span class="ident">from_rational</span>(<span class="ident">pts</span>, <span class="ident">total</span>);
-					<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">amt_due</span> <span class="op">=</span> <span class="ident">pct_due</span> <span class="op">*</span> <span class="ident">issuance</span>;
-					<span class="kw">if</span> <span class="ident">amt_due</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">T</span>::<span class="ident">Currency</span>::<span class="ident">minimum_balance</span>() {
-						<span class="kw">continue</span>;
-					}
-					<span class="comment">// Take the snapshot of block author and nominations</span>
-					<span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">AtStake</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">take</span>(<span class="ident">round_to_payout</span>, <span class="kw-2">&amp;</span><span class="ident">val</span>);
-					<span class="kw">if</span> <span class="ident">state</span>.<span class="ident">nominators</span>.<span class="ident">is_empty</span>() {
-						<span class="comment">// solo collator with no nominators</span>
-						<span class="ident">mint</span>(<span class="ident">amt_due</span>, <span class="ident">val</span>.<span class="ident">clone</span>());
-					} <span class="kw">else</span> {
-						<span class="comment">// pay collator first; commission + due_portion</span>
-						<span class="kw">let</span> <span class="ident">val_pct</span> <span class="op">=</span> <span class="ident">Perbill</span>::<span class="ident">from_rational</span>(<span class="ident">state</span>.<span class="ident">bond</span>, <span class="ident">state</span>.<span class="ident">total</span>);
-						<span class="kw">let</span> <span class="ident">commission</span> <span class="op">=</span> <span class="ident">collator_fee</span> <span class="op">*</span> <span class="ident">amt_due</span>;
-						<span class="kw">let</span> <span class="ident">val_due</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">commission</span> <span class="op">&gt;</span> <span class="ident">T</span>::<span class="ident">Currency</span>::<span class="ident">minimum_balance</span>() {
-							<span class="ident">amt_due</span> <span class="op">-</span><span class="op">=</span> <span class="ident">commission</span>;
-							(<span class="ident">val_pct</span> <span class="op">*</span> <span class="ident">amt_due</span>) <span class="op">+</span> <span class="ident">commission</span>
-						} <span class="kw">else</span> {
-							<span class="comment">// commission is negligible so not applied</span>
-							<span class="ident">val_pct</span> <span class="op">*</span> <span class="ident">amt_due</span>
-						};
-						<span class="ident">mint</span>(<span class="ident">val_due</span>, <span class="ident">val</span>.<span class="ident">clone</span>());
-						<span class="comment">// pay nominators due portion</span>
-						<span class="kw">for</span> <span class="ident">Bond</span> { <span class="ident">owner</span>, <span class="ident">amount</span> } <span class="kw">in</span> <span class="ident">state</span>.<span class="ident">nominators</span> {
-							<span class="kw">let</span> <span class="ident">percent</span> <span class="op">=</span> <span class="ident">Perbill</span>::<span class="ident">from_rational</span>(<span class="ident">amount</span>, <span class="ident">state</span>.<span class="ident">total</span>);
-							<span class="kw">let</span> <span class="ident">due</span> <span class="op">=</span> <span class="ident">percent</span> <span class="op">*</span> <span class="ident">amt_due</span>;
-							<span class="ident">mint</span>(<span class="ident">due</span>, <span class="ident">owner</span>);
-						}
+			<span class="kw">for</span> (<span class="ident">val</span>, <span class="ident">pts</span>) <span class="kw">in</span> <span class="op">&lt;</span><span class="ident">AwardedPts</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">drain_prefix</span>(<span class="ident">round_to_payout</span>) {
+				<span class="kw">let</span> <span class="ident">pct_due</span> <span class="op">=</span> <span class="ident">Perbill</span>::<span class="ident">from_rational</span>(<span class="ident">pts</span>, <span class="ident">total</span>);
+				<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">amt_due</span> <span class="op">=</span> <span class="ident">pct_due</span> <span class="op">*</span> <span class="ident">issuance</span>;
+				<span class="comment">// Take the snapshot of block author and nominations</span>
+				<span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">AtStake</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">take</span>(<span class="ident">round_to_payout</span>, <span class="kw-2">&amp;</span><span class="ident">val</span>);
+				<span class="kw">if</span> <span class="ident">state</span>.<span class="ident">nominators</span>.<span class="ident">is_empty</span>() {
+					<span class="comment">// solo collator with no nominators</span>
+					<span class="ident">mint</span>(<span class="ident">amt_due</span>, <span class="ident">val</span>.<span class="ident">clone</span>());
+				} <span class="kw">else</span> {
+					<span class="comment">// pay collator first; commission + due_portion</span>
+					<span class="kw">let</span> <span class="ident">val_pct</span> <span class="op">=</span> <span class="ident">Perbill</span>::<span class="ident">from_rational</span>(<span class="ident">state</span>.<span class="ident">bond</span>, <span class="ident">state</span>.<span class="ident">total</span>);
+					<span class="kw">let</span> <span class="ident">commission</span> <span class="op">=</span> <span class="ident">collator_fee</span> <span class="op">*</span> <span class="ident">amt_due</span>;
+					<span class="ident">amt_due</span> <span class="op">-</span><span class="op">=</span> <span class="ident">commission</span>;
+					<span class="kw">let</span> <span class="ident">val_due</span> <span class="op">=</span> (<span class="ident">val_pct</span> <span class="op">*</span> <span class="ident">amt_due</span>) <span class="op">+</span> <span class="ident">commission</span>;
+					<span class="ident">mint</span>(<span class="ident">val_due</span>, <span class="ident">val</span>.<span class="ident">clone</span>());
+					<span class="comment">// pay nominators due portion</span>
+					<span class="kw">for</span> <span class="ident">Bond</span> { <span class="ident">owner</span>, <span class="ident">amount</span> } <span class="kw">in</span> <span class="ident">state</span>.<span class="ident">nominators</span> {
+						<span class="kw">let</span> <span class="ident">percent</span> <span class="op">=</span> <span class="ident">Perbill</span>::<span class="ident">from_rational</span>(<span class="ident">amount</span>, <span class="ident">state</span>.<span class="ident">total</span>);
+						<span class="kw">let</span> <span class="ident">due</span> <span class="op">=</span> <span class="ident">percent</span> <span class="op">*</span> <span class="ident">amt_due</span>;
+						<span class="ident">mint</span>(<span class="ident">due</span>, <span class="ident">owner</span>);
 					}
 				}
 			}
