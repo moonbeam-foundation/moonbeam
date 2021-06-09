@@ -66,7 +66,6 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 				)],
 				// Nominations
 				vec![],
-				moonbeam_inflation_config(),
 				accounts.clone(),
 				3_000_000 * MSHD,
 				Default::default(), // para_id
@@ -115,7 +114,6 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 				],
 				// Nominations
 				vec![],
-				moonbeam_inflation_config(),
 				vec![
 					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
 					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
@@ -161,7 +159,6 @@ pub fn testnet_genesis(
 	root_key: AccountId,
 	candidates: Vec<(AccountId, NimbusId, Balance)>,
 	nominations: Vec<(AccountId, AccountId, Balance)>,
-	inflation_config: InflationInfo<Balance>,
 	endowed_accounts: Vec<AccountId>,
 	crowdloan_fund_pot: Balance,
 	para_id: ParaId,
@@ -222,7 +219,7 @@ pub fn testnet_genesis(
 				.map(|(account, _, bond)| (account, bond))
 				.collect(),
 			nominations,
-			inflation_config,
+			inflation_config: moonbeam_inflation_config(),
 		},
 		pallet_collective_Instance1: CouncilCollectiveConfig {
 			phantom: Default::default(),
