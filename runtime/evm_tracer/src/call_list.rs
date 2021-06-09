@@ -96,6 +96,12 @@ struct Context {
 	to: H160,
 }
 
+impl Default for CallListTracer {
+	fn default() -> Self {
+		Self::new()
+	}
+}	
+
 impl CallListTracer {
 	pub fn new() -> Self {
 		Self {

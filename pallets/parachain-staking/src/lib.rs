@@ -363,7 +363,7 @@ pub mod pallet {
 		> Default for RoundInfo<B>
 	{
 		fn default() -> RoundInfo<B> {
-			RoundInfo::new(1u32, 1u32.into(), 20u32.into())
+			RoundInfo::new(1u32, 1u32.into(), 20u32)
 		}
 	}
 

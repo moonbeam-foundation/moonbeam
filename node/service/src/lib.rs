@@ -886,14 +886,14 @@ pub fn new_dev(
 
 	let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		network,
-		client: client.clone(),
+		client: client,
 		keystore: keystore_container.sync_keystore(),
 		task_manager: &mut task_manager,
-		transaction_pool: transaction_pool.clone(),
+		transaction_pool: transaction_pool,
 		rpc_extensions_builder,
 		on_demand: None,
 		remote_blockchain: None,
-		backend: backend.clone(),
+		backend,
 		network_status_sinks,
 		system_rpc_tx,
 		config,
