@@ -887,7 +887,7 @@ pub fn new_dev(
 
 	let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		network,
-		client: client,
+		client,
 		keystore: keystore_container.sync_keystore(),
 		task_manager: &mut task_manager,
 		transaction_pool,
