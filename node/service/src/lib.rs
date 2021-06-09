@@ -841,10 +841,8 @@ pub fn new_dev(
 		let pool = transaction_pool.clone();
 		let backend = backend.clone();
 		let network = network.clone();
-		let pending = pending_transactions.clone();
-		let filter_pool = filter_pool.clone();
+		let pending = pending_transactions;
 		let ethapi_cmd = rpc_config.ethapi.clone();
-		let frontier_backend = frontier_backend.clone();
 		let max_past_logs = rpc_config.max_past_logs;
 
 		let is_moonbeam = config.chain_spec.is_moonbeam();
