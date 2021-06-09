@@ -112,9 +112,6 @@ jobs:
       # 2. Using grep to reduce the list to only Cargo.lock files
       # 3. Counting the number of lines of output
 
-      - name: Intentionally break git to check CI (REMOVE THIS!!!)
-        run: rm -rf .git/
-
       - name: Check Cargo Toml
         run: |
           # Make sure git is working, and if not abort early. Whe ngit is not working it looks like:
