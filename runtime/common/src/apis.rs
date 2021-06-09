@@ -99,8 +99,8 @@ macro_rules! impl_runtime_apis_plus_common {
 					use moonbeam_evm_tracer::{CallListTracer, RawTracer};
 					use moonbeam_rpc_primitives_debug::single::TraceType;
 
-					// Apply the a subset of extrinsics: all the substrate-specific or ethereum transactions
-					// that preceded the requested transaction.
+					// Apply the a subset of extrinsics: all the substrate-specific or ethereum
+					// transactions that preceded the requested transaction.
 					for ext in extrinsics.into_iter() {
 						let _ = match &ext.function {
 							Call::Ethereum(transact(t)) => {
@@ -164,7 +164,9 @@ macro_rules! impl_runtime_apis_plus_common {
 
 								let tx_traces = match tx_traces {
 									single::TransactionTrace::CallList(t) => t,
-									_ => return Err(sp_runtime::DispatchError::Other("Runtime API error")),
+									_ => return Err(
+										sp_runtime::DispatchError::Other("Runtime API error")
+									),
 								};
 
 								// Convert traces from "single" format to "block" format.
@@ -423,7 +425,8 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 			}
 
-			impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance> for Runtime {
+			impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
+			for Runtime {
 				fn query_info(
 					uxt: <Block as BlockT>::Extrinsic,
 					len: u32,
