@@ -267,7 +267,7 @@ pub mod pallet {
 			for (author_id, account_id) in &self.mappings {
 				if let Err(e) = Pallet::<T>::enact_registration(&author_id, &account_id) {
 					log::warn!("Error with genesis author mapping registration: {:?}", e);
-				};
+				}
 			}
 		}
 	}
