@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["moonriver_runtime"] = [{"text":"impl BuildStorage for GenesisConfig","synthetic":false,"types":[]}];
+implementors["moonriver_runtime"] = [{"text":"impl <a class=\"trait\" href=\"moonriver_runtime/trait.BuildStorage.html\" title=\"trait moonriver_runtime::BuildStorage\">BuildStorage</a> for <a class=\"struct\" href=\"moonriver_runtime/struct.GenesisConfig.html\" title=\"struct moonriver_runtime::GenesisConfig\">GenesisConfig</a>","synthetic":false,"types":["moonriver_runtime::GenesisConfig"]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

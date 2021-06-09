@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["moonbeam_evm_tracer"] = [{"text":"impl EventListener for CallListTracer","synthetic":false,"types":[]},{"text":"impl EventListener for RawTracer","synthetic":false,"types":[]}];
+implementors["moonbeam_evm_tracer"] = [{"text":"impl EventListener for <a class=\"struct\" href=\"moonbeam_evm_tracer/struct.CallListTracer.html\" title=\"struct moonbeam_evm_tracer::CallListTracer\">CallListTracer</a>","synthetic":false,"types":["moonbeam_evm_tracer::call_list::CallListTracer"]},{"text":"impl EventListener for <a class=\"struct\" href=\"moonbeam_evm_tracer/struct.RawTracer.html\" title=\"struct moonbeam_evm_tracer::RawTracer\">RawTracer</a>","synthetic":false,"types":["moonbeam_evm_tracer::raw::RawTracer"]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

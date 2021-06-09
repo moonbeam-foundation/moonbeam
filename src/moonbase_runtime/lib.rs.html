@@ -1223,6 +1223,17 @@
 <span id="1220">1220</span>
 <span id="1221">1221</span>
 <span id="1222">1222</span>
+<span id="1223">1223</span>
+<span id="1224">1224</span>
+<span id="1225">1225</span>
+<span id="1226">1226</span>
+<span id="1227">1227</span>
+<span id="1228">1228</span>
+<span id="1229">1229</span>
+<span id="1230">1230</span>
+<span id="1231">1231</span>
+<span id="1232">1232</span>
+<span id="1233">1233</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1345,8 +1356,8 @@
 	<span class="ident">spec_name</span>: <span class="macro">create_runtime_str</span><span class="macro">!</span>(<span class="string">&quot;moonbase&quot;</span>),
 	<span class="ident">impl_name</span>: <span class="macro">create_runtime_str</span><span class="macro">!</span>(<span class="string">&quot;moonbase&quot;</span>),
 	<span class="ident">authoring_version</span>: <span class="number">3</span>,
-	<span class="ident">spec_version</span>: <span class="number">47</span>,
-	<span class="ident">impl_version</span>: <span class="number">2</span>,
+	<span class="ident">spec_version</span>: <span class="number">48</span>,
+	<span class="ident">impl_version</span>: <span class="number">1</span>,
 	<span class="ident">apis</span>: <span class="ident">RUNTIME_API_VERSIONS</span>,
 	<span class="ident">transaction_version</span>: <span class="number">2</span>,
 };
@@ -1840,7 +1851,18 @@
 }
 
 <span class="doccomment">/// The type used to represent the kinds of proxying allowed.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(
+	<span class="ident">Copy</span>,
+	<span class="ident">Clone</span>,
+	<span class="ident">Eq</span>,
+	<span class="ident">PartialEq</span>,
+	<span class="ident">Ord</span>,
+	<span class="ident">PartialOrd</span>,
+	<span class="ident">Encode</span>,
+	<span class="ident">Decode</span>,
+	<span class="ident">Debug</span>,
+	<span class="ident">max_encoded_len</span>::<span class="ident">MaxEncodedLen</span>,
+)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ProxyType</span> {
 	<span class="doccomment">/// All calls can be proxied. This is the trivial/most permissive filter.</span>
 	<span class="ident">Any</span>,
@@ -1938,7 +1960,7 @@
 		<span class="ident">Ethereum</span>: <span class="ident">pallet_ethereum</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span>, <span class="ident">Config</span>, <span class="ident">ValidateUnsigned</span>},
 		<span class="ident">ParachainStaking</span>: <span class="ident">parachain_staking</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
 		<span class="ident">Scheduler</span>: <span class="ident">pallet_scheduler</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Call</span>},
-		<span class="ident">Democracy</span>: <span class="ident">pallet_democracy</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Call</span>},
+		<span class="ident">Democracy</span>: <span class="ident">pallet_democracy</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Call</span>},
 		<span class="ident">CouncilCollective</span>:
 			<span class="ident">pallet_collective</span>::<span class="op">&lt;</span><span class="ident">Instance1</span><span class="op">&gt;</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Origin</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>},
 		<span class="ident">TechComitteeCollective</span>:
@@ -2447,4 +2469,5 @@
 	<span class="ident">pallet_author_inherent</span>::<span class="ident">BlockExecutor</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Executive</span><span class="op">&gt;</span>
 );
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "moonbase_runtime";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="moonbase_runtime"></div>
+    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["moonbeam_rpc_debug"] = [{"text":"impl Debug for Debug","synthetic":false,"types":[]}];
+implementors["moonbeam_rpc_debug"] = [{"text":"impl <a class=\"trait\" href=\"moonbeam_rpc_debug/trait.DebugServer.html\" title=\"trait moonbeam_rpc_debug::DebugServer\">Debug</a> for <a class=\"struct\" href=\"moonbeam_rpc_debug/struct.Debug.html\" title=\"struct moonbeam_rpc_debug::Debug\">Debug</a>","synthetic":false,"types":["moonbeam_rpc_debug::Debug"]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
