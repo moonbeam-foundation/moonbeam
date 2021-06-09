@@ -61,13 +61,6 @@
 <span id="58">58</span>
 <span id="59">59</span>
 <span id="60">60</span>
-<span id="61">61</span>
-<span id="62">62</span>
-<span id="63">63</span>
-<span id="64">64</span>
-<span id="65">65</span>
-<span id="66">66</span>
-<span id="67">67</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -97,7 +90,6 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pallet</span> {
 
 	<span class="kw">use</span> <span class="ident">frame_support</span>::<span class="ident">pallet_prelude</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident">frame_system</span>::<span class="ident">pallet_prelude</span>::<span class="kw-2">*</span>;
 
 	<span class="doccomment">/// The Ethereum Chain Id Pallet</span>
 	<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">pallet</span>]</span>
@@ -112,12 +104,6 @@
 			<span class="self">Self</span>::<span class="ident">chain_id</span>()
 		}
 	}
-
-	<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">hooks</span>]</span>
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Hooks</span><span class="op">&lt;</span><span class="ident">BlockNumberFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
-
-	<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">call</span>]</span>
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
 
 	<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">storage</span>]</span>
 	<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">getter</span>(<span class="kw">fn</span> <span class="ident">chain_id</span>)]</span>
