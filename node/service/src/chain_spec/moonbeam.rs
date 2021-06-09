@@ -44,9 +44,9 @@ pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
 /// Generate a chain spec for use with the development service.
 pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32>) -> ChainSpec {
 	// Default mnemonic if none was provided
-	let parent_mnemonic = mnemonic.unwrap_or_else(||
-		"bottom drive obey lake curtain smoke basket hold race lonely fit walk".to_string(),
-	);
+	let parent_mnemonic = mnemonic.unwrap_or_else(|| {
+		"bottom drive obey lake curtain smoke basket hold race lonely fit walk".to_string()
+	});
 	let mut accounts = generate_accounts(parent_mnemonic, num_accounts.unwrap_or(10));
 	// We add Gerald here
 	accounts.push(AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap());
