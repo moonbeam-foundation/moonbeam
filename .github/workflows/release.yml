@@ -114,7 +114,7 @@ jobs:
 
       - name: Check Cargo Toml
         run: |
-          # Make sure git is working, and if not abort early. Whe ngit is not working it looks like:
+          # Make sure git is working, and if not abort early. When git is not working it looks like:
           # $ git diff-index --name-only HEAD
           # fatal: not a git repository (or any of the parent directories): .git
           DIFF_INDEX=$(git diff-index --name-only HEAD)
