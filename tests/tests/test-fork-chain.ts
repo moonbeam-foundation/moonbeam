@@ -44,7 +44,7 @@ describeDevMoonbeam("Fork", (context) => {
 
     // Fork 4 blocks 0-1-2-3-4
     let parentHash = await context.polkadotApi.rpc.chain.getBlockHash(0);
-    // we are going to create enough blocks to ensure the TX is re-scheduled and that chain is new best
+    // Create enough blocks to ensure the TX is re-scheduled and that chain is new best
     for (let i = 0; i < 10; i++) {
       parentHash = (await context.createBlock({ parentHash, finalize: false })).block.hash;
     }
