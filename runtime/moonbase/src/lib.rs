@@ -58,7 +58,7 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentityLookup},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	AccountId32, ApplyExtrinsicResult, Perbill, Permill,
+	AccountId32, ApplyExtrinsicResult, Perbill, Percent, Permill,
 };
 use sp_std::{convert::TryFrom, prelude::*};
 #[cfg(feature = "std")]
@@ -102,7 +102,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 3,
-	spec_version: 46,
+	spec_version: 47,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -211,8 +211,8 @@ impl pallet_balances::Config for Runtime {
 pub struct DealWithFees<R>(sp_std::marker::PhantomData<R>);
 impl<R> OnUnbalanced<NegativeImbalance<R>> for DealWithFees<R>
 where
-	R: pallet_balances::Config + pallet_treasury::Config<pallet_treasury::Instance1>,
-	pallet_treasury::Module<R, pallet_treasury::Instance1>: OnUnbalanced<NegativeImbalance<R>>,
+	R: pallet_balances::Config + pallet_treasury::Config,
+	pallet_treasury::Module<R>: OnUnbalanced<NegativeImbalance<R>>,
 {
 	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
 		if let Some(fees) = fees_then_tips.next() {
@@ -220,8 +220,7 @@ where
 			let (_, to_treasury) = fees.ration(80, 20);
 			// Balances module automatically burns dropped Negative Imbalances by decreasing
 			// total_supply accordingly
-			<pallet_treasury::Module<R, pallet_treasury::Instance1> as OnUnbalanced<_>>
-				::on_unbalanced(to_treasury);
+			<pallet_treasury::Module<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
 		}
 	}
 }
@@ -424,16 +423,12 @@ parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
 	pub const ProposalBondMinimum: Balance = 1 * currency::UNITS;
 	pub const SpendPeriod: BlockNumber = 6 * DAYS;
-	pub const CommunityTreasuryId: PalletId = PalletId(*b"pc/trsry");
-	pub const ParachainBondPalletId: PalletId = PalletId(*b"pb/trsry");
+	pub const TreasuryId: PalletId = PalletId(*b"pc/trsry");
 	pub const MaxApprovals: u32 = 100;
 }
 
-type CommunityTreasuryInstance = pallet_treasury::Instance1;
-type ParachainBondTreasuryInstance = pallet_treasury::Instance2;
-
-impl pallet_treasury::Config<CommunityTreasuryInstance> for Runtime {
-	type PalletId = CommunityTreasuryId;
+impl pallet_treasury::Config for Runtime {
+	type PalletId = TreasuryId;
 	type Currency = Balances;
 	// Democracy dispatches Root
 	type ApproveOrigin = EnsureRoot<AccountId>;
@@ -441,25 +436,7 @@ impl pallet_treasury::Config<CommunityTreasuryInstance> for Runtime {
 	type RejectOrigin = EnsureRoot<AccountId>;
 	type Event = Event;
 	// If spending proposal rejected, transfer proposer bond to treasury
-	type OnSlash = CommunityTreasury;
-	type ProposalBond = ProposalBond;
-	type ProposalBondMinimum = ProposalBondMinimum;
-	type SpendPeriod = SpendPeriod;
-	type Burn = ();
-	type BurnDestination = ();
-	type MaxApprovals = MaxApprovals;
-	type WeightInfo = pallet_treasury::weights::SubstrateWeight<Runtime>;
-	type SpendFunds = ();
-}
-
-impl pallet_treasury::Config<ParachainBondTreasuryInstance> for Runtime {
-	type PalletId = ParachainBondPalletId;
-	type Currency = Balances;
-	type ApproveOrigin = EnsureRoot<AccountId>;
-	type RejectOrigin = EnsureRoot<AccountId>;
-	type Event = Event;
-	// If spending proposal rejected, transfer proposer bond to treasury
-	type OnSlash = ParachainBondTreasury;
+	type OnSlash = Treasury;
 	type ProposalBond = ProposalBond;
 	type ProposalBondMinimum = ProposalBondMinimum;
 	type SpendPeriod = SpendPeriod;
@@ -530,8 +507,10 @@ parameter_types! {
 	pub const MaxNominatorsPerCollator: u32 = 10;
 	/// Maximum 25 collators per nominator
 	pub const MaxCollatorsPerNominator: u32 = 25;
-	/// The fixed percent a collator takes off the top of due rewards is 20%
+	/// Default fixed percent a collator takes off the top of due rewards is 20%
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
+	/// Default percent of inflation set aside for parachain bond every round
+	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	/// Minimum stake required to be reserved to be a collator is 1_000
 	pub const MinCollatorStk: u128 = 1 * currency::KILOS;
 	/// Minimum stake required to be reserved to be a nominator is 5
@@ -547,6 +526,7 @@ impl parachain_staking::Config for Runtime {
 	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
 	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
 	type DefaultCollatorCommission = DefaultCollatorCommission;
+	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	type MinCollatorStk = MinCollatorStk;
 	type MinCollatorCandidateStk = MinCollatorStk;
 	type MinNomination = MinNominatorStk;
@@ -720,9 +700,7 @@ construct_runtime! {
 			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>},
 		TechComitteeCollective:
 			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>},
-		CommunityTreasury: pallet_treasury::<Instance1>::{Pallet, Storage, Config, Event<T>, Call},
-		ParachainBondTreasury:
-			pallet_treasury::<Instance2>::{Pallet, Storage, Config, Event<T>, Call},
+		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call},
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent},
 		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config},
 		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>},

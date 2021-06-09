@@ -32,7 +32,10 @@ use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Filter, Get, Imbalance, InstanceFilter, OnUnbalanced},
-	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
+	weights::{
+		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
+		IdentityFee, Weight,
+	},
 	PalletId,
 };
 use frame_system::{EnsureOneOf, EnsureRoot};
@@ -58,7 +61,7 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentityLookup},
 	transaction_validity::{InvalidTransaction, TransactionSource, TransactionValidity},
-	AccountId32, ApplyExtrinsicResult, Perbill, Permill,
+	AccountId32, ApplyExtrinsicResult, Perbill, Percent, Permill,
 };
 use sp_std::{convert::TryFrom, prelude::*};
 #[cfg(feature = "std")]
@@ -103,7 +106,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 47,
+	spec_version: 49,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -140,11 +143,14 @@ parameter_types! {
 	/// We allow for one half second of compute with a 6 second average block time.
 	/// These values are dictated by Polkadot for the parachain.
 	pub BlockWeights: frame_system::limits::BlockWeights = frame_system::limits::BlockWeights
-		::with_sensible_defaults(WEIGHT_PER_SECOND / 2, NORMAL_DISPATCH_RATIO);
+		::with_sensible_defaults(MAXIMUM_BLOCK_WEIGHT, NORMAL_DISPATCH_RATIO);
 	/// We allow for 5 MB blocks.
 	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
 		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
-	pub const SS58Prefix: u8 = 42;
+
+	/// TODO: Changes to 1285 once https://github.com/paritytech/substrate/pull/8955 is included
+	/// in our branch. 49 is currently not used and keys should be generated with -n substrate
+	pub const SS58Prefix: u8 = 49;
 }
 
 impl frame_system::Config for Runtime {
@@ -180,7 +186,7 @@ impl frame_system::Config for Runtime {
 	type AccountData = pallet_balances::AccountData<Balance>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
-	type DbWeight = ();
+	type DbWeight = RocksDbWeight;
 	type BaseCallFilter = BaseFilter;
 	type SystemWeightInfo = ();
 	/// This is used as an identifier of the chain. 42 is the generic substrate prefix.
@@ -226,8 +232,8 @@ impl pallet_balances::Config for Runtime {
 pub struct DealWithFees<R>(sp_std::marker::PhantomData<R>);
 impl<R> OnUnbalanced<NegativeImbalance<R>> for DealWithFees<R>
 where
-	R: pallet_balances::Config + pallet_treasury::Config<pallet_treasury::Instance1>,
-	pallet_treasury::Module<R, pallet_treasury::Instance1>: OnUnbalanced<NegativeImbalance<R>>,
+	R: pallet_balances::Config + pallet_treasury::Config,
+	pallet_treasury::Module<R>: OnUnbalanced<NegativeImbalance<R>>,
 {
 	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
 		if let Some(fees) = fees_then_tips.next() {
@@ -235,8 +241,7 @@ where
 			let (_, to_treasury) = fees.ration(80, 20);
 			// Balances module automatically burns dropped Negative Imbalances by decreasing
 			// total_supply accordingly
-			<pallet_treasury::Module<R, pallet_treasury::Instance1> as OnUnbalanced<_>>
-				::on_unbalanced(to_treasury);
+			<pallet_treasury::Module<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
 		}
 	}
 }
@@ -379,7 +384,6 @@ parameter_types! {
 	pub const InstantAllowed: bool = false;
 }
 
-// todo : ensure better origins
 impl pallet_democracy::Config for Runtime {
 	type Proposal = Call;
 	type Event = Event;
@@ -439,16 +443,12 @@ parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
 	pub const ProposalBondMinimum: Balance = 1 * currency::UNITS;
 	pub const SpendPeriod: BlockNumber = 6 * DAYS;
-	pub const CommunityTreasuryId: PalletId = PalletId(*b"pc/trsry");
-	pub const ParachainBondPalletId: PalletId = PalletId(*b"pb/trsry");
+	pub const TreasuryId: PalletId = PalletId(*b"py/trsry");
 	pub const MaxApprovals: u32 = 100;
 }
 
-type CommunityTreasuryInstance = pallet_treasury::Instance1;
-type ParachainBondTreasuryInstance = pallet_treasury::Instance2;
-
-impl pallet_treasury::Config<CommunityTreasuryInstance> for Runtime {
-	type PalletId = CommunityTreasuryId;
+impl pallet_treasury::Config for Runtime {
+	type PalletId = TreasuryId;
 	type Currency = Balances;
 	// Democracy dispatches Root
 	type ApproveOrigin = EnsureRoot<AccountId>;
@@ -456,25 +456,7 @@ impl pallet_treasury::Config<CommunityTreasuryInstance> for Runtime {
 	type RejectOrigin = EnsureRoot<AccountId>;
 	type Event = Event;
 	// If spending proposal rejected, transfer proposer bond to treasury
-	type OnSlash = CommunityTreasury;
-	type ProposalBond = ProposalBond;
-	type ProposalBondMinimum = ProposalBondMinimum;
-	type SpendPeriod = SpendPeriod;
-	type Burn = ();
-	type BurnDestination = ();
-	type MaxApprovals = MaxApprovals;
-	type WeightInfo = pallet_treasury::weights::SubstrateWeight<Runtime>;
-	type SpendFunds = ();
-}
-
-impl pallet_treasury::Config<ParachainBondTreasuryInstance> for Runtime {
-	type PalletId = ParachainBondPalletId;
-	type Currency = Balances;
-	type ApproveOrigin = EnsureRoot<AccountId>;
-	type RejectOrigin = EnsureRoot<AccountId>;
-	type Event = Event;
-	// If spending proposal rejected, transfer proposer bond to treasury
-	type OnSlash = ParachainBondTreasury;
+	type OnSlash = Treasury;
 	type ProposalBond = ProposalBond;
 	type ProposalBondMinimum = ProposalBondMinimum;
 	type SpendPeriod = SpendPeriod;
@@ -545,8 +527,10 @@ parameter_types! {
 	pub const MaxNominatorsPerCollator: u32 = 10;
 	/// Maximum 25 collators per nominator
 	pub const MaxCollatorsPerNominator: u32 = 25;
-	/// The fixed percent a collator takes off the top of due rewards is 20%
+	/// Default fixed percent a collator takes off the top of due rewards is 20%
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
+	/// Default percent of inflation set aside for parachain bond every round
+	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	/// Minimum stake required to be reserved to be a collator is 1_000
 	pub const MinCollatorStk: u128 = 1 * currency::KILOS;
 	/// Minimum stake required to be reserved to be a nominator is 5
@@ -562,6 +546,7 @@ impl parachain_staking::Config for Runtime {
 	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
 	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
 	type DefaultCollatorCommission = DefaultCollatorCommission;
+	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	type MinCollatorStk = MinCollatorStk;
 	type MinCollatorCandidateStk = MinCollatorStk;
 	type MinNomination = MinNominatorStk;
@@ -584,7 +569,6 @@ impl pallet_author_slot_filter::Config for Runtime {
 }
 
 parameter_types! {
-	// TODO to be revisited
 	pub const VestingPeriod: BlockNumber = 48 * WEEKS;
 	pub const MinimumReward: Balance = 0;
 	pub const Initialized: bool = false;
@@ -716,33 +700,50 @@ construct_runtime! {
 		NodeBlock = opaque::Block,
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
-		System: frame_system::{Pallet, Call, Storage, Config, Event<T>},
-		Utility: pallet_utility::{Pallet, Call, Event},
-		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Call, Storage},
-		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>},
-		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
-		ParachainInfo: parachain_info::{Pallet, Storage, Config},
-		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config},
-		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>},
-		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config, ValidateUnsigned},
-		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>},
-		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call},
-		Democracy: pallet_democracy::{Pallet, Storage, Config, Event<T>, Call},
+		// System support stuff.
+		System: frame_system::{Pallet, Call, Storage, Config, Event<T>} = 0,
+		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 1,
+		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Call, Storage} = 2,
+		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 3,
+		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 4,
+
+		// Monetary stuff.
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 10,
+		TransactionPayment: pallet_transaction_payment::{Pallet, Storage} = 11,
+
+		// Consensus support.
+		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 20,
+		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent} = 21,
+		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config} = 22,
+		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>} = 23,
+
+		// Handy utilities.
+		Utility: pallet_utility::{Pallet, Call, Event} = 30,
+		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 31,
+
+		// Sudo
+		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 40,
+
+		// Ethereum compatibility
+		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 50,
+		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 51,
+		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config, ValidateUnsigned} = 52,
+
+		// Governance stuff.
+		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call} = 60,
+		Democracy: pallet_democracy::{Pallet, Storage, Config, Event<T>, Call} = 61,
+
+		// Council stuff.
 		CouncilCollective:
-			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>},
+			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 70,
 		TechComitteeCollective:
-			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>},
-		CommunityTreasury: pallet_treasury::<Instance1>::{Pallet, Storage, Config, Event<T>, Call},
-		ParachainBondTreasury:
-			pallet_treasury::<Instance2>::{Pallet, Storage, Config, Event<T>, Call},
-		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent},
-		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config},
-		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>},
-		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>},
-		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
+			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 71,
+
+		// Treasury stuff.
+		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call} = 80,
+
+		// Crowdloan stuff.
+		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>} = 90,
 	}
 }
 

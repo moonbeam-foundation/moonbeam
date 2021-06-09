@@ -244,8 +244,7 @@ pub fn testnet_genesis(
 				.map(|(account_id, author_id, _)| (author_id, account_id))
 				.collect(),
 		},
-		pallet_treasury_Instance1: Default::default(),
-		pallet_treasury_Instance2: Default::default(),
+		pallet_treasury: Default::default(),
 	}
 }
 
