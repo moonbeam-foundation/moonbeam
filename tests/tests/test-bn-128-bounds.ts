@@ -56,12 +56,12 @@ describeDevMoonbeam("bn128 precompile bounds check", (context) => {
     const txResults = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
       tx.rawTransaction,
     ]);
+
+    // we expect that the node hasn't crashed by here. without a fix, the previous web3 request
+    // would have been sufficient to crash our node. now it fails with "ExhaustsResources". if
+    // we can create a block, we must not have crashed.
     await context.createBlock();
 
-    console.log("txResults: ", txResults);
-
-    const receipt = await context.web3.eth.getTransactionReceipt(txResults.result);
-    expect(receipt.status).to.be.false;
   });
 
   it("should fail gracefully (case 2)", async () => {
@@ -88,11 +88,10 @@ describeDevMoonbeam("bn128 precompile bounds check", (context) => {
     const txResults = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
       tx.rawTransaction,
     ]);
+
+    // we expect that the node hasn't crashed by here. without a fix, the previous web3 request
+    // would have been sufficient to crash our node. now it fails with "ExhaustsResources". if
+    // we can create a block, we must not have crashed.
     await context.createBlock();
-
-    console.log("txResults: ", txResults);
-
-    const receipt = await context.web3.eth.getTransactionReceipt(txResults.result);
-    expect(receipt.status).to.be.false;
   });
 });
