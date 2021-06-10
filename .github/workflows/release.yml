@@ -111,14 +111,24 @@ jobs:
       # 1. Asking git for a list of all modified files
       # 2. Using grep to reduce the list to only Cargo.lock files
       # 3. Counting the number of lines of output
+
       - name: Check Cargo Toml
         run: |
-          FILECOUNT=$(git diff-index --name-only HEAD | grep Cargo.lock | wc -l)
+          # Make sure git is working, and if not abort early. When git is not working it looks like:
+          # $ git diff-index --name-only HEAD
+          # fatal: not a git repository (or any of the parent directories): .git
+          DIFF_INDEX=$(git diff-index --name-only HEAD)
+          if [[ ${DIFF_INDEX:0:5} == "fatal" ]]; then
+            echo "There was an error with the git checkout. Can't check Cargo.lock file."
+            false
+          fi
+
+          FILECOUNT=$(echo $DIFF_INDEX | grep Cargo.lock | wc -l)
           if [[ $FILECOUNT -eq 0 ]]; then
             echo "All lock files are valid"
           else
             echo "The following Cargo.lock files have uncommitted changes"
-            git diff-index --name-only HEAD | grep Cargo.lock
+            echo $DIFF_INDEX | grep Cargo.lock
             false
           fi
       - name: Unit tests

@@ -123,7 +123,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 49,
+	spec_version: 50,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -633,7 +633,18 @@ parameter_types! {
 }
 
 /// The type used to represent the kinds of proxying allowed.
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug)]
+#[derive(
+	Copy,
+	Clone,
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	Debug,
+	max_encoded_len::MaxEncodedLen,
+)]
 pub enum ProxyType {
 	/// All calls can be proxied. This is the trivial/most permissive filter.
 	Any,
@@ -748,7 +759,7 @@ construct_runtime! {
 
 		// Governance stuff.
 		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call} = 60,
-		Democracy: pallet_democracy::{Pallet, Storage, Config, Event<T>, Call} = 61,
+		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 61,
 
 		// Council stuff.
 		CouncilCollective:
@@ -913,7 +924,7 @@ impl_runtime_apis! {
 									)
 								},
 								TraceType::CallList => {
-									Ok(CallListTracer::new()
+									Ok(CallListTracer::default()
 										.trace(|| Executive::apply_extrinsic(ext))
 										.0
 										.into_tx_trace()
@@ -954,7 +965,7 @@ impl_runtime_apis! {
 			for ext in extrinsics.into_iter() {
 				match &ext.function {
 					Call::Ethereum(transact(_transaction)) => {
-						let tx_traces = CallListTracer::new()
+						let tx_traces = CallListTracer::default()
 							.trace(|| Executive::apply_extrinsic(ext))
 							.0
 							.into_tx_trace();

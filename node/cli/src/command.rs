@@ -451,8 +451,6 @@ pub fn run() -> Result<()> {
 		None => {
 			let runner = cli.create_runner(&(*cli.run).normalize())?;
 			runner.run_node_until_exit(|config| async move {
-				let key = sp_core::Pair::generate().0;
-
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
 				let para_id = extension.map(|e| e.para_id);
 
@@ -534,7 +532,7 @@ pub fn run() -> Result<()> {
 					service::start_node::<
 						service::moonbeam_runtime::RuntimeApi,
 						service::MoonbeamExecutor,
-					>(config, key, polkadot_config, id, rpc_config)
+					>(config, polkadot_config, id, rpc_config)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into)
@@ -542,7 +540,7 @@ pub fn run() -> Result<()> {
 					service::start_node::<
 						service::moonriver_runtime::RuntimeApi,
 						service::MoonriverExecutor,
-					>(config, key, polkadot_config, id, rpc_config)
+					>(config, polkadot_config, id, rpc_config)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into)
@@ -550,7 +548,7 @@ pub fn run() -> Result<()> {
 					service::start_node::<
 						service::moonshadow_runtime::RuntimeApi,
 						service::MoonshadowExecutor,
-					>(config, key, polkadot_config, id, rpc_config)
+					>(config, polkadot_config, id, rpc_config)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into)
@@ -558,7 +556,7 @@ pub fn run() -> Result<()> {
 					service::start_node::<
 						service::moonbase_runtime::RuntimeApi,
 						service::MoonbaseExecutor,
-					>(config, key, polkadot_config, id, rpc_config)
+					>(config, polkadot_config, id, rpc_config)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into)

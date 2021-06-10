@@ -243,6 +243,6 @@ where
 					.map_err(|e| internal_err(format!("DispatchError: {:?}", e)));
 			}
 		}
-		return Err(internal_err("Runtime block call failed".to_string()));
+		Err(internal_err("Runtime block call failed".to_string()))
 	}
 }
