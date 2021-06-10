@@ -98,12 +98,6 @@ struct Context {
 
 impl Default for CallListTracer {
 	fn default() -> Self {
-		Self::new()
-	}
-}
-
-impl CallListTracer {
-	pub fn new() -> Self {
 		Self {
 			transaction_cost: 0,
 
@@ -115,7 +109,9 @@ impl CallListTracer {
 			call_type: None,
 		}
 	}
+}
 
+impl CallListTracer {
 	/// Setup event listeners and execute provided closure.
 	///
 	/// Consume the tracer and return it alongside the return value of
