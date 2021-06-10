@@ -73,7 +73,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::{Decode, Encode};
 	use sp_runtime::{
-		traits::{AtLeast32BitUnsigned, Zero},
+		traits::{AtLeast32BitUnsigned, Saturating, Zero},
 		Perbill, Percent, RuntimeDebug,
 	};
 	use sp_std::{cmp::Ordering, prelude::*};
@@ -890,10 +890,10 @@ pub mod pallet {
 			);
 			T::Currency::reserve(&acc, bond)?;
 			let candidate = Collator::new(acc.clone(), bond);
-			let new_total = <Total<T>>::get() + bond;
-			<Total<T>>::put(new_total);
 			<CollatorState<T>>::insert(&acc, candidate);
 			<CandidatePool<T>>::put(candidates);
+			let new_total = <Total<T>>::get().saturating_add(bond);
+			<Total<T>>::put(new_total);
 			Self::deposit_event(Event::JoinedCollatorCandidates(acc, bond, new_total));
 			Ok(().into())
 		}
@@ -985,6 +985,8 @@ pub mod pallet {
 				Self::update_active(collator.clone(), state.total);
 			}
 			<CollatorState<T>>::insert(&collator, state);
+			let new_total = <Total<T>>::get().saturating_add(more);
+			<Total<T>>::put(new_total);
 			Self::deposit_event(Event::CollatorBondedMore(collator, before, after));
 			Ok(().into())
 		}
@@ -1010,6 +1012,8 @@ pub mod pallet {
 				Self::update_active(collator.clone(), state.total);
 			}
 			<CollatorState<T>>::insert(&collator, state);
+			let new_total_staked = <Total<T>>::get().saturating_sub(less);
+			<Total<T>>::put(new_total_staked);
 			Self::deposit_event(Event::CollatorBondedLess(collator, before, after));
 			Ok(().into())
 		}
@@ -1119,6 +1123,8 @@ pub mod pallet {
 			}
 			<CollatorState<T>>::insert(&candidate, collator);
 			<NominatorState<T>>::insert(&nominator, nominations);
+			let new_total_staked = <Total<T>>::get().saturating_add(more);
+			<Total<T>>::put(new_total_staked);
 			Self::deposit_event(Event::NominationIncreased(
 				nominator, candidate, before, after,
 			));
@@ -1157,6 +1163,8 @@ pub mod pallet {
 			}
 			<CollatorState<T>>::insert(&candidate, collator);
 			<NominatorState<T>>::insert(&nominator, nominations);
+			let new_total_staked = <Total<T>>::get().saturating_sub(less);
+			<Total<T>>::put(new_total_staked);
 			Self::deposit_event(Event::NominationDecreased(
 				nominator, candidate, before, after,
 			));
@@ -1344,13 +1352,13 @@ pub mod pallet {
 							}
 							// return stake to collator
 							T::Currency::unreserve(&state.id, state.bond);
-							let new_total = <Total<T>>::get() - state.total;
-							<Total<T>>::put(new_total);
 							<CollatorState<T>>::remove(&x.owner);
+							let new_total_staked = <Total<T>>::get().saturating_sub(state.total);
+							<Total<T>>::put(new_total_staked);
 							Self::deposit_event(Event::CollatorLeft(
 								x.owner,
 								state.total,
-								new_total,
+								new_total_staked,
 							));
 						}
 						None
