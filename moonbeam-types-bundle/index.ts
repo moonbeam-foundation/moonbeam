@@ -561,6 +561,10 @@ export const moonbeamDefinitions = {
           account: "AccountId",
           deposit: "Balance",
         },
+        ParachainBondConfig: {
+          account: "AccountId",
+          percent: "Percent",
+        },
       },
     },
   ],
