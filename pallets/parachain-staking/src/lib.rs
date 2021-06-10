@@ -508,32 +508,26 @@ pub mod pallet {
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		// This upgrade fixes a bug that may have led to an inconsistency between the `Total` storage
-		// and the other storage items. To work around this we
+		// and the other storage items.
 		fn on_runtime_upgrade() -> Weight {
 			let old_total = Total::<T>::get();
-			let mut new_total: BalanceOf<T> = 0.into();
+			let mut new_total: BalanceOf<T> = 0u32.into();
 
 			for collator_state in CollatorState::<T>::iter_values() {
 				new_total += collator_state.total;
 			}
 
-			//Wait, actually I don't think we even need to iterate the nominators as long as the
-			// collator.total is not affected by the bug.
-			// for nominator_state in NominatorState::<T>::iter_values() {
-			// 	new_total += ...;
-			// }
-
 			Total::<T>::put(new_total);
 
-			log!(
-				"Finished migrating storage.\nOld Total : {}\nNew Total : {}\n---------------\nDifference:{}",
+			log::trace!(
+				target: "staking",
+				"Finished migrating storage.\nOld Total : {:?}\nNew Total : {:?}",
 				new_total,
 				old_total,
-				new_total - old_total,
 			);
 
 			10_000 // Same comment as always about the weight. I don't know how much this will weigh.
-			// Hopefully not very much :)
+			 // Hopefully not very much :)
 		}
 
 		fn on_finalize(n: T::BlockNumber) {
