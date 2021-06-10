@@ -644,13 +644,7 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
-	start_node_impl(
-		parachain_config,
-		polkadot_config,
-		id,
-		rpc_config,
-	)
-	.await
+	start_node_impl(parachain_config, polkadot_config, id, rpc_config).await
 }
 
 /// Builds a new development service. This service uses manual seal, and mocks
@@ -797,9 +791,7 @@ pub fn new_dev(
 							relay_blocks_per_para_block: 2,
 						};
 
-						let author = nimbus_primitives::InherentDataProvider::<NimbusId>(
-							author_id,
-						);
+						let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
 
 						Ok((time, mocked_parachain, author))
 					}
