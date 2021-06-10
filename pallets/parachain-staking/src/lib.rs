@@ -507,8 +507,7 @@ pub mod pallet {
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		// This upgrade fixes a bug that may have led to an inconsistency between the `Total` storage
-		// and the other storage items.
+		// This upgrade fixes a bug that may have led to an incorrect `Total` (total staked)
 		fn on_runtime_upgrade() -> Weight {
 			let old_total = Total::<T>::get();
 			let mut new_total: BalanceOf<T> = 0u32.into();
@@ -526,8 +525,7 @@ pub mod pallet {
 				old_total,
 			);
 
-			10_000 // Same comment as always about the weight. I don't know how much this will weigh.
-			 // Hopefully not very much :)
+			10_000
 		}
 
 		fn on_finalize(n: T::BlockNumber) {
