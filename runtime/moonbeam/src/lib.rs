@@ -77,14 +77,15 @@ pub mod currency {
 	use super::Balance;
 
 	pub const GLMR: Balance = 1_000_000_000_000_000_000;
-	pub const CENTS: Balance = GLMR / 100;
-	pub const GRAND: Balance = GLMR * 1_000;
-	pub const MILLICENTS: Balance = CENTS / 1_000;
+	pub const KILOGLMRS: Balance = GLMR * 1_000;
+	pub const MILLIGLMRS: Balance = GLMR / 1_000;
+	pub const MICROGLMRS: Balance = MILLIGLMRS / 1_000;
+	pub const NANOGLMRS: Balance = MICROGLMRS / 1_000;
 
-	pub const BYTE_FEE: Balance = 1 * MILLICENTS;
+	pub const BYTE_FEE: Balance = 100 * MICROGLMRS;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 100 * CENTS + (bytes as Balance) * BYTE_FEE
+		items as Balance * 1 * GLMR + (bytes as Balance) * BYTE_FEE
 	}
 }
 
@@ -304,7 +305,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		1_000_000_000.into()
+		(1 * currency::NANOGLMRS).into()
 	}
 }
 
@@ -544,7 +545,7 @@ parameter_types! {
 	/// Default percent of inflation set aside for parachain bond every round
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	/// Minimum stake required to be reserved to be a collator is 1_000
-	pub const MinCollatorStk: u128 = 1_000 * currency::GLMR;
+	pub const MinCollatorStk: u128 = 1 * currency::KILOGLMRS;
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5 * currency::GLMR;
 }
