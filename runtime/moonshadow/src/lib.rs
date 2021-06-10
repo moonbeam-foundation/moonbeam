@@ -78,9 +78,9 @@ pub mod currency {
 
 	pub const MSHD: Balance = 1_000_000_000_000_000_000;
 	pub const KILOMSHDS: Balance = MSHD * 1_000;
-	pub const MILLIMSHDS: Balance = MSHD / 1000;
-	pub const MICROMSHDS: Balance = MILLIMSHDS / 1000;
-	pub const NANOMSHDS: Balance = MICROMSHDS / 1000;
+	pub const MILLIMSHDS: Balance = MSHD / 1_000;
+	pub const MICROMSHDS: Balance = MILLIMSHDS / 1_000;
+	pub const NANOMSHDS: Balance = MICROMSHDS / 1_000;
 
 	pub const BYTE_FEE: Balance = 100 * MICROMSHDS;
 

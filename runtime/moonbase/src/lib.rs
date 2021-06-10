@@ -77,11 +77,10 @@ pub mod currency {
 	use super::Balance;
 
 	pub const UNITS: Balance = 1_000_000_000_000_000_000;
-	pub const MILLIUNITS: Balance = UNITS / 1000;
-	pub const MICROUNITS: Balance = MILLIUNITS / 1000;
-	pub const NANOUNITS: Balance = MICROUNITS / 1000;
-
 	pub const KILOUNITS: Balance = UNITS * 1_000;
+	pub const MILLIUNITS: Balance = UNITS / 1_000;
+	pub const MICROUNITS: Balance = MILLIUNITS / 1_000;
+	pub const NANOUNITS: Balance = MICROUNITS / 1_000;
 
 	pub const BYTE_FEE: Balance = 100 * MICROUNITS;
 

@@ -78,9 +78,9 @@ pub mod currency {
 
 	pub const GLMR: Balance = 1_000_000_000_000_000_000;
 	pub const KILOGLMRS: Balance = GLMR * 1_000;
-	pub const MILLIGLMRS: Balance = GLMR / 1000;
-	pub const MICROGLMRS: Balance = MILLIGLMRS / 1000;
-	pub const NANOGLMRS: Balance = MICROGLMRS / 1000;
+	pub const MILLIGLMRS: Balance = GLMR / 1_000;
+	pub const MICROGLMRS: Balance = MILLIGLMRS / 1_000;
+	pub const NANOGLMRS: Balance = MICROGLMRS / 1_000;
 
 	pub const BYTE_FEE: Balance = 100 * MICROGLMRS;
 
