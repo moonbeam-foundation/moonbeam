@@ -2161,7 +2161,7 @@
 									)
 								},
 								<span class="ident">TraceType</span>::<span class="ident">CallList</span> <span class="op">=</span><span class="op">&gt;</span> {
-									<span class="prelude-val">Ok</span>(<span class="ident">CallListTracer</span>::<span class="ident">new</span>()
+									<span class="prelude-val">Ok</span>(<span class="ident">CallListTracer</span>::<span class="ident">default</span>()
 										.<span class="ident">trace</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Executive</span>::<span class="ident">apply_extrinsic</span>(<span class="ident">ext</span>))
 										.<span class="number">0</span>
 										.<span class="ident">into_tx_trace</span>()
@@ -2202,7 +2202,7 @@
 			<span class="kw">for</span> <span class="ident">ext</span> <span class="kw">in</span> <span class="ident">extrinsics</span>.<span class="ident">into_iter</span>() {
 				<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">ext</span>.<span class="ident">function</span> {
 					<span class="ident">Call</span>::<span class="ident">Ethereum</span>(<span class="ident">transact</span>(<span class="ident">_transaction</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-						<span class="kw">let</span> <span class="ident">tx_traces</span> <span class="op">=</span> <span class="ident">CallListTracer</span>::<span class="ident">new</span>()
+						<span class="kw">let</span> <span class="ident">tx_traces</span> <span class="op">=</span> <span class="ident">CallListTracer</span>::<span class="ident">default</span>()
 							.<span class="ident">trace</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Executive</span>::<span class="ident">apply_extrinsic</span>(<span class="ident">ext</span>))
 							.<span class="number">0</span>
 							.<span class="ident">into_tx_trace</span>();

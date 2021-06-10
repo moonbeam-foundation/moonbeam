@@ -495,7 +495,7 @@
 					.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;DispatchError: {:?}&quot;</span>, <span class="ident">e</span>)));
 			}
 		}
-		<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="string">&quot;Runtime block call failed&quot;</span>.<span class="ident">to_string</span>()));
+		<span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="string">&quot;Runtime block call failed&quot;</span>.<span class="ident">to_string</span>()))
 	}
 }
 </pre></div>

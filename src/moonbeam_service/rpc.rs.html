@@ -536,7 +536,7 @@
 		<span class="ident">pending_transactions</span>,
 		<span class="ident">signers</span>,
 		<span class="ident">overrides</span>.<span class="ident">clone</span>(),
-		<span class="ident">frontier_backend</span>.<span class="ident">clone</span>(),
+		<span class="ident">frontier_backend</span>,
 		<span class="ident">is_authority</span>,
 		<span class="ident">max_past_logs</span>,
 	)));
@@ -544,8 +544,8 @@
 	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">filter_pool</span>) <span class="op">=</span> <span class="ident">filter_pool</span> {
 		<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">EthFilterApiServer</span>::<span class="ident">to_delegate</span>(<span class="ident">EthFilterApi</span>::<span class="ident">new</span>(
 			<span class="ident">client</span>.<span class="ident">clone</span>(),
-			<span class="ident">filter_pool</span>.<span class="ident">clone</span>(),
-			<span class="number">500</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="comment">// max stored filters</span>
+			<span class="ident">filter_pool</span>,
+			<span class="number">500_usize</span>, <span class="comment">// max stored filters</span>
 			<span class="ident">overrides</span>.<span class="ident">clone</span>(),
 			<span class="ident">max_past_logs</span>,
 		)));

@@ -380,6 +380,8 @@
 <span id="377">377</span>
 <span id="378">378</span>
 <span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -479,8 +481,8 @@
 	<span class="ident">to</span>: <span class="ident">H160</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">CallListTracer</span> {
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">CallListTracer</span> {
+	<span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
 		<span class="self">Self</span> {
 			<span class="ident">transaction_cost</span>: <span class="number">0</span>,
 
@@ -492,7 +494,9 @@
 			<span class="ident">call_type</span>: <span class="prelude-val">None</span>,
 		}
 	}
+}
 
+<span class="kw">impl</span> <span class="ident">CallListTracer</span> {
 	<span class="doccomment">/// Setup event listeners and execute provided closure.</span>
 	<span class="doccomment">///</span>
 	<span class="doccomment">/// Consume the tracer and return it alongside the return value of</span>
