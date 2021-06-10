@@ -234,10 +234,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				run_to_block(x);
 			}
 			// no rewards doled out yet
-			assert_eq!(
-				Balances::free_balance(AccountId::from(ALICE)),
-				1_000 * UNITS,
-			);
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * UNITS,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * UNITS,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), UNITS,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
