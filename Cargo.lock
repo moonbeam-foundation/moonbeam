@@ -4769,8 +4769,8 @@ dependencies = [
  "parachain-info",
  "parachain-staking",
  "parity-scale-codec",
+ "precompiles",
  "rlp",
- "runtime-common",
  "serde",
  "sp-api",
  "sp-block-builder",
@@ -5057,8 +5057,8 @@ dependencies = [
  "parachain-info",
  "parachain-staking",
  "parity-scale-codec",
+ "precompiles",
  "rlp",
- "runtime-common",
  "serde",
  "sp-api",
  "sp-block-builder",
@@ -5137,7 +5137,6 @@ dependencies = [
  "polkadot-test-runtime",
  "polkadot-test-service",
  "rand 0.7.3",
- "runtime-common",
  "sc-basic-authorship",
  "sc-chain-spec",
  "sc-cli",
@@ -5244,8 +5243,8 @@ dependencies = [
  "parachain-info",
  "parachain-staking",
  "parity-scale-codec",
+ "precompiles",
  "rlp",
- "runtime-common",
  "serde",
  "sp-api",
  "sp-block-builder",
@@ -5309,8 +5308,8 @@ dependencies = [
  "parachain-info",
  "parachain-staking",
  "parity-scale-codec",
+ "precompiles",
  "rlp",
- "runtime-common",
  "serde",
  "sp-api",
  "sp-block-builder",
@@ -8081,6 +8080,29 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ac74c624d6b2d21f425f752262f42188365d7b8ff1aff74c82e45136510a4857"
 
 [[package]]
+name = "precompiles"
+version = "0.6.0"
+dependencies = [
+ "evm",
+ "frame-support",
+ "frame-system",
+ "hex",
+ "log",
+ "pallet-evm",
+ "pallet-evm-precompile-bn128",
+ "pallet-evm-precompile-dispatch",
+ "pallet-evm-precompile-modexp",
+ "pallet-evm-precompile-sha3fips",
+ "pallet-evm-precompile-simple",
+ "parachain-staking",
+ "parity-scale-codec",
+ "rustc-hex",
+ "sp-core",
+ "sp-io",
+ "sp-std",
+]
+
+[[package]]
 name = "predicates"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8867,31 +8889,6 @@ checksum = "ffc936cf8a7ea60c58f030fd36a612a48f440610214dc54bc36431f9ea0c3efb"
 dependencies = [
  "libc",
  "winapi 0.3.9",
-]
-
-[[package]]
-name = "runtime-common"
-version = "0.6.0"
-dependencies = [
- "evm",
- "frame-support",
- "frame-system",
- "hex",
- "log",
- "moonbeam-core-primitives",
- "pallet-evm",
- "pallet-evm-precompile-bn128",
- "pallet-evm-precompile-dispatch",
- "pallet-evm-precompile-modexp",
- "pallet-evm-precompile-sha3fips",
- "pallet-evm-precompile-simple",
- "parachain-staking",
- "parity-scale-codec",
- "rustc-hex",
- "sp-core",
- "sp-io",
- "sp-std",
- "substrate-wasm-builder 4.0.0",
 ]
 
 [[package]]
