@@ -1234,6 +1234,7 @@
 <span id="1231">1231</span>
 <span id="1232">1232</span>
 <span id="1233">1233</span>
+<span id="1234">1234</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1314,14 +1315,15 @@
 	<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">Balance</span>;
 
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UNITS</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1_000_000_000_000_000_000</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CENTS</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">UNITS</span> <span class="op">/</span> <span class="number">100</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">GRAND</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">UNITS</span> <span class="op">*</span> <span class="number">1_000</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MILLICENTS</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">CENTS</span> <span class="op">/</span> <span class="number">1_000</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KILOUNITS</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">UNITS</span> <span class="op">*</span> <span class="number">1_000</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MILLIUNITS</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">UNITS</span> <span class="op">/</span> <span class="number">1_000</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MICROUNITS</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">MILLIUNITS</span> <span class="op">/</span> <span class="number">1_000</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NANOUNITS</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">MICROUNITS</span> <span class="op">/</span> <span class="number">1_000</span>;
 
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BYTE_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">MILLICENTS</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BYTE_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">100</span> <span class="op">*</span> <span class="ident">MICROUNITS</span>;
 
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">deposit</span>(<span class="ident">items</span>: <span class="ident">u32</span>, <span class="ident">bytes</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Balance</span> {
-		<span class="ident">items</span> <span class="kw">as</span> <span class="ident">Balance</span> <span class="op">*</span> <span class="number">100</span> <span class="op">*</span> <span class="ident">CENTS</span> <span class="op">+</span> (<span class="ident">bytes</span> <span class="kw">as</span> <span class="ident">Balance</span>) <span class="op">*</span> <span class="ident">BYTE_FEE</span>
+		<span class="ident">items</span> <span class="kw">as</span> <span class="ident">Balance</span> <span class="op">*</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">UNITS</span> <span class="op">+</span> (<span class="ident">bytes</span> <span class="kw">as</span> <span class="ident">Balance</span>) <span class="op">*</span> <span class="ident">BYTE_FEE</span>
 	}
 }
 
@@ -1526,7 +1528,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FixedGasPrice</span>;
 <span class="kw">impl</span> <span class="ident">FeeCalculator</span> <span class="kw">for</span> <span class="ident">FixedGasPrice</span> {
 	<span class="kw">fn</span> <span class="ident">min_gas_price</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U256</span> {
-		<span class="number">1_000_000_000</span>.<span class="ident">into</span>()
+		(<span class="number">1</span> <span class="op">*</span> <span class="ident">currency</span>::<span class="ident">NANOUNITS</span>).<span class="ident">into</span>()
 	}
 }
 
@@ -1766,7 +1768,7 @@
 	<span class="doccomment">/// Default percent of inflation set aside for parachain bond every round</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DefaultParachainBondReservePercent</span>: <span class="ident">Percent</span> <span class="op">=</span> <span class="ident">Percent</span>::<span class="ident">from_percent</span>(<span class="number">30</span>);
 	<span class="doccomment">/// Minimum stake required to be reserved to be a collator is 1_000</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinCollatorStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">1_000</span> <span class="op">*</span> <span class="ident">currency</span>::<span class="ident">UNITS</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinCollatorStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">currency</span>::<span class="ident">KILOUNITS</span>;
 	<span class="doccomment">/// Minimum stake required to be reserved to be a nominator is 5</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinNominatorStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">5</span> <span class="op">*</span> <span class="ident">currency</span>::<span class="ident">UNITS</span>;
 }
