@@ -23,13 +23,12 @@ use frame_support::{
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
 pub use moonbeam_runtime::{
-	AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Ethereum, Event,
-	Executive, FixedGasPrice, InflationInfo, ParachainStaking, Range, Runtime, System,
+	currency::GLMR, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Ethereum,
+	Event, Executive, FixedGasPrice, InflationInfo, ParachainStaking, Range, Runtime, System,
 	TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::GenesisAccount;
-pub use runtime_common::currency::UNITS;
 use sp_core::H160;
 use sp_runtime::Perbill;
 
@@ -77,9 +76,9 @@ impl Default for ExtBuilder {
 			collators: vec![],
 			inflation: InflationInfo {
 				expect: Range {
-					min: 100_000 * UNITS,
-					ideal: 200_000 * UNITS,
-					max: 500_000 * UNITS,
+					min: 100_000 * GLMR,
+					ideal: 200_000 * GLMR,
+					max: 500_000 * GLMR,
 				},
 				// not used
 				annual: Range {
