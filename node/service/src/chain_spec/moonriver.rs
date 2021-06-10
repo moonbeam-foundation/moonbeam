@@ -210,7 +210,7 @@ pub fn testnet_genesis(
 				.collect(),
 		},
 		pallet_ethereum: EthereumConfig {},
-		pallet_democracy: DemocracyConfig {},
+		pallet_democracy: DemocracyConfig::default(),
 		pallet_scheduler: SchedulerConfig {},
 		parachain_staking: ParachainStakingConfig {
 			candidates: candidates

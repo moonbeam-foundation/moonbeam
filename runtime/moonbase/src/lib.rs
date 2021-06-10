@@ -119,7 +119,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 3,
-	spec_version: 47,
+	spec_version: 48,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -614,7 +614,18 @@ parameter_types! {
 }
 
 /// The type used to represent the kinds of proxying allowed.
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug)]
+#[derive(
+	Copy,
+	Clone,
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	Debug,
+	max_encoded_len::MaxEncodedLen,
+)]
 pub enum ProxyType {
 	/// All calls can be proxied. This is the trivial/most permissive filter.
 	Any,
@@ -712,7 +723,7 @@ construct_runtime! {
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config, ValidateUnsigned},
 		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>},
 		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call},
-		Democracy: pallet_democracy::{Pallet, Storage, Config, Event<T>, Call},
+		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call},
 		CouncilCollective:
 			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>},
 		TechComitteeCollective:
