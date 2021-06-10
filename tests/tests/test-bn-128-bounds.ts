@@ -61,7 +61,6 @@ describeDevMoonbeam("bn128 precompile bounds check", (context) => {
     // would have been sufficient to crash our node. now it fails with "ExhaustsResources". if
     // we can create a block, we must not have crashed.
     await context.createBlock();
-
   });
 
   it("should fail gracefully (case 2)", async () => {
