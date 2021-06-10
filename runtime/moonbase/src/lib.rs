@@ -51,7 +51,7 @@ use pallet_evm::{
 use pallet_transaction_payment::CurrencyAdapter;
 pub use parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode};
-use runtime_common::{currency, precompiles::MoonbeamPrecompiles};
+use precompiles::MoonbeamPrecompiles;
 use sp_api::impl_runtime_apis;
 use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
@@ -66,10 +66,29 @@ use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
 use nimbus_primitives::{CanAuthor, NimbusId};
+
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
 pub type Precompiles = MoonbeamPrecompiles<Runtime>;
+
+/// UNITS, the native token, uses 18 decimals of precision.
+pub mod currency {
+	use super::Balance;
+
+	pub const UNITS: Balance = 1_000_000_000_000_000_000;
+	pub const MILLIUNITS: Balance = UNITS / 1000;
+	pub const MICROUNITS: Balance = MILLIUNITS / 1000;
+	pub const NANOUNITS: Balance = MICROUNITS / 1000;
+
+	pub const KILOUNITS: Balance = UNITS * 1_000;
+
+	pub const BYTE_FEE: Balance = 100 * MICROUNITS;
+
+	pub const fn deposit(items: u32, bytes: u32) -> Balance {
+		items as Balance * 1 * UNITS + (bytes as Balance) * BYTE_FEE
+	}
+}
 
 /// Maximum weight per block
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;

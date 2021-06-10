@@ -26,7 +26,7 @@ use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable, traits::fung
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use parachain_staking::Bond;
-use runtime_common::MoonbeamPrecompiles;
+use precompiles::MoonbeamPrecompiles;
 use sp_core::{Public, H160, U256};
 use sp_runtime::DispatchError;
 

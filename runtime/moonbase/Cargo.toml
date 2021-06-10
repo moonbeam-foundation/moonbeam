@@ -15,7 +15,7 @@ log = "0.4"
 hex-literal = "0.3.1"
 
 pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v9.3", default-features = false }
-runtime-common = { path = "../common/", default-features = false }
+precompiles = { path = "../precompiles/", default-features = false }
 account = { path = "../../primitives/account/", default-features = false }
 moonbeam-core-primitives = { path = "../../core-primitives", default-features = false }
 pallet-ethereum-chain-id = { path = "../../pallets/ethereum-chain-id", default-features = false }
@@ -138,7 +138,6 @@ std = [
 	"pallet-proxy/std",
 	"nimbus-primitives/std",
 	"pallet-author-mapping/std",
-	"runtime-common/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
