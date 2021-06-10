@@ -162,6 +162,7 @@ use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
 
 /// Builds a new object suitable for chain operations.
+#[allow(clippy::type_complexity)]
 pub fn new_chain_ops(
 	mut config: &mut Configuration,
 ) -> Result<
@@ -350,7 +351,7 @@ where
 				Ok((time,))
 			},
 			&task_manager.spawn_essential_handle(),
-			config.prometheus_registry().clone(),
+			config.prometheus_registry(),
 		)?
 	};
 
@@ -558,7 +559,7 @@ where
 			client.clone(),
 			transaction_pool,
 			prometheus_registry.as_ref(),
-			telemetry.as_ref().map(|t| t.handle()).clone(),
+			telemetry.as_ref().map(|t| t.handle()),
 		);
 
 		let relay_chain_backend = relay_chain_full_node.backend.clone();
@@ -817,10 +818,8 @@ pub fn new_dev(
 		let pool = transaction_pool.clone();
 		let backend = backend.clone();
 		let network = network.clone();
-		let pending = pending_transactions.clone();
-		let filter_pool = filter_pool.clone();
+		let pending = pending_transactions;
 		let ethapi_cmd = rpc_config.ethapi.clone();
-		let frontier_backend = frontier_backend.clone();
 		let max_past_logs = rpc_config.max_past_logs;
 
 		let is_moonbeam = config.chain_spec.is_moonbeam();
@@ -863,14 +862,14 @@ pub fn new_dev(
 
 	let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		network,
-		client: client.clone(),
+		client,
 		keystore: keystore_container.sync_keystore(),
 		task_manager: &mut task_manager,
-		transaction_pool: transaction_pool.clone(),
+		transaction_pool,
 		rpc_extensions_builder,
 		on_demand: None,
 		remote_blockchain: None,
-		backend: backend.clone(),
+		backend,
 		system_rpc_tx,
 		config,
 		telemetry: None,
