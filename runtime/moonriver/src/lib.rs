@@ -293,7 +293,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		(1 * currency::NANOS).into()
+		(1 * currency::NANOUNITS).into()
 	}
 }
 
@@ -532,7 +532,7 @@ parameter_types! {
 	/// Default percent of inflation set aside for parachain bond every round
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	/// Minimum stake required to be reserved to be a collator is 1_000
-	pub const MinCollatorStk: u128 = 1 * currency::KILOS;
+	pub const MinCollatorStk: u128 = 1 * currency::KILOUNITS;
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5 * currency::UNITS;
 }

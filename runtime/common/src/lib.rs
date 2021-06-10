@@ -24,13 +24,13 @@ pub mod currency {
 	use super::Balance;
 
 	pub const UNITS: Balance = 1_000_000_000_000_000_000;
-	pub const MILLIS: Balance = UNITS / 1000;
-	pub const MICROS: Balance = MILLIS / 1000;
-	pub const NANOS: Balance = MICROS / 1000;
+	pub const MILLIUNITS: Balance = UNITS / 1000;
+	pub const MICROUNITS: Balance = MILLIUNITS / 1000;
+	pub const NANOUNITS: Balance = MICROUNITS / 1000;
 
-	pub const KILOS: Balance = UNITS * 1_000;
+	pub const KILOUNITS: Balance = UNITS * 1_000;
 
-	pub const BYTE_FEE: Balance = 100 * MICROS;
+	pub const BYTE_FEE: Balance = 100 * MICROUNITS;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
 		items as Balance * 1 * UNITS + (bytes as Balance) * BYTE_FEE
