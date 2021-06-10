@@ -689,8 +689,6 @@
 <span id="686">686</span>
 <span id="687">687</span>
 <span id="688">688</span>
-<span id="689">689</span>
-<span id="690">690</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1145,8 +1143,6 @@
 		<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
 			<span class="kw">let</span> <span class="ident">runner</span> <span class="op">=</span> <span class="ident">cli</span>.<span class="ident">create_runner</span>(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">cli</span>.<span class="ident">run</span>).<span class="ident">normalize</span>())<span class="question-mark">?</span>;
 			<span class="ident">runner</span>.<span class="ident">run_node_until_exit</span>(<span class="op">|</span><span class="ident">config</span><span class="op">|</span> <span class="kw">async</span> <span class="kw">move</span> {
-				<span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">sp_core</span>::<span class="ident">Pair</span>::<span class="ident">generate</span>().<span class="number">0</span>;
-
 				<span class="kw">let</span> <span class="ident">extension</span> <span class="op">=</span> <span class="ident">chain_spec</span>::<span class="ident">Extensions</span>::<span class="ident">try_get</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span>.<span class="ident">chain_spec</span>);
 				<span class="kw">let</span> <span class="ident">para_id</span> <span class="op">=</span> <span class="ident">extension</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">para_id</span>);
 
@@ -1228,7 +1224,7 @@
 					<span class="ident">service</span>::<span class="ident">start_node</span>::<span class="op">&lt;</span>
 						<span class="ident">service</span>::<span class="ident">moonbeam_runtime</span>::<span class="ident">RuntimeApi</span>,
 						<span class="ident">service</span>::<span class="ident">MoonbeamExecutor</span>,
-					<span class="op">&gt;</span>(<span class="ident">config</span>, <span class="ident">key</span>, <span class="ident">polkadot_config</span>, <span class="ident">id</span>, <span class="ident">rpc_config</span>)
+					<span class="op">&gt;</span>(<span class="ident">config</span>, <span class="ident">polkadot_config</span>, <span class="ident">id</span>, <span class="ident">rpc_config</span>)
 					.<span class="kw">await</span>
 					.<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="number">0</span>)
 					.<span class="ident">map_err</span>(<span class="ident">Into</span>::<span class="ident">into</span>)
@@ -1236,7 +1232,7 @@
 					<span class="ident">service</span>::<span class="ident">start_node</span>::<span class="op">&lt;</span>
 						<span class="ident">service</span>::<span class="ident">moonriver_runtime</span>::<span class="ident">RuntimeApi</span>,
 						<span class="ident">service</span>::<span class="ident">MoonriverExecutor</span>,
-					<span class="op">&gt;</span>(<span class="ident">config</span>, <span class="ident">key</span>, <span class="ident">polkadot_config</span>, <span class="ident">id</span>, <span class="ident">rpc_config</span>)
+					<span class="op">&gt;</span>(<span class="ident">config</span>, <span class="ident">polkadot_config</span>, <span class="ident">id</span>, <span class="ident">rpc_config</span>)
 					.<span class="kw">await</span>
 					.<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="number">0</span>)
 					.<span class="ident">map_err</span>(<span class="ident">Into</span>::<span class="ident">into</span>)
@@ -1244,7 +1240,7 @@
 					<span class="ident">service</span>::<span class="ident">start_node</span>::<span class="op">&lt;</span>
 						<span class="ident">service</span>::<span class="ident">moonshadow_runtime</span>::<span class="ident">RuntimeApi</span>,
 						<span class="ident">service</span>::<span class="ident">MoonshadowExecutor</span>,
-					<span class="op">&gt;</span>(<span class="ident">config</span>, <span class="ident">key</span>, <span class="ident">polkadot_config</span>, <span class="ident">id</span>, <span class="ident">rpc_config</span>)
+					<span class="op">&gt;</span>(<span class="ident">config</span>, <span class="ident">polkadot_config</span>, <span class="ident">id</span>, <span class="ident">rpc_config</span>)
 					.<span class="kw">await</span>
 					.<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="number">0</span>)
 					.<span class="ident">map_err</span>(<span class="ident">Into</span>::<span class="ident">into</span>)
@@ -1252,7 +1248,7 @@
 					<span class="ident">service</span>::<span class="ident">start_node</span>::<span class="op">&lt;</span>
 						<span class="ident">service</span>::<span class="ident">moonbase_runtime</span>::<span class="ident">RuntimeApi</span>,
 						<span class="ident">service</span>::<span class="ident">MoonbaseExecutor</span>,
-					<span class="op">&gt;</span>(<span class="ident">config</span>, <span class="ident">key</span>, <span class="ident">polkadot_config</span>, <span class="ident">id</span>, <span class="ident">rpc_config</span>)
+					<span class="op">&gt;</span>(<span class="ident">config</span>, <span class="ident">polkadot_config</span>, <span class="ident">id</span>, <span class="ident">rpc_config</span>)
 					.<span class="kw">await</span>
 					.<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="number">0</span>)
 					.<span class="ident">map_err</span>(<span class="ident">Into</span>::<span class="ident">into</span>)

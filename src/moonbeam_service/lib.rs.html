@@ -884,22 +884,6 @@
 <span id="881">881</span>
 <span id="882">882</span>
 <span id="883">883</span>
-<span id="884">884</span>
-<span id="885">885</span>
-<span id="886">886</span>
-<span id="887">887</span>
-<span id="888">888</span>
-<span id="889">889</span>
-<span id="890">890</span>
-<span id="891">891</span>
-<span id="892">892</span>
-<span id="893">893</span>
-<span id="894">894</span>
-<span id="895">895</span>
-<span id="896">896</span>
-<span id="897">897</span>
-<span id="898">898</span>
-<span id="899">899</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -948,8 +932,6 @@
 <span class="kw">use</span> <span class="ident">nimbus_consensus</span>::{<span class="ident">build_nimbus_consensus</span>, <span class="ident">BuildNimbusConsensusParams</span>};
 <span class="kw">use</span> <span class="ident">nimbus_primitives</span>::<span class="ident">NimbusId</span>;
 
-<span class="comment">// use inherents::build_inherent_data_providers;</span>
-<span class="kw">use</span> <span class="ident">polkadot_primitives</span>::<span class="ident">v0</span>::<span class="ident">CollatorPair</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">sc_executor</span>::<span class="ident">NativeExecutor</span>;
 <span class="kw">use</span> <span class="ident">sc_executor</span>::{<span class="ident">native_executor_instance</span>, <span class="ident">NativeExecutionDispatch</span>};
 <span class="kw">use</span> <span class="ident">sc_service</span>::{
@@ -1313,7 +1295,6 @@
 <span class="doccomment">/// This is the actual implementation that is abstract over the executor and the runtime api.</span>
 <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">start_node_impl</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span>(
 	<span class="ident">parachain_config</span>: <span class="ident">Configuration</span>,
-	<span class="ident">collator_key</span>: <span class="ident">CollatorPair</span>,
 	<span class="ident">polkadot_config</span>: <span class="ident">Configuration</span>,
 	<span class="ident">id</span>: <span class="ident">polkadot_primitives</span>::<span class="ident">v0</span>::<span class="ident">Id</span>,
 	<span class="ident">rpc_config</span>: <span class="ident">RpcConfig</span>,
@@ -1539,7 +1520,6 @@
 <span class="doccomment">/// Start a normal parachain node.</span>
 <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">start_node</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span>(
 	<span class="ident">parachain_config</span>: <span class="ident">Configuration</span>,
-	<span class="ident">collator_key</span>: <span class="ident">CollatorPair</span>,
 	<span class="ident">polkadot_config</span>: <span class="ident">Configuration</span>,
 	<span class="ident">id</span>: <span class="ident">polkadot_primitives</span>::<span class="ident">v0</span>::<span class="ident">Id</span>,
 	<span class="ident">rpc_config</span>: <span class="ident">RpcConfig</span>,
@@ -1551,14 +1531,7 @@
 		<span class="ident">RuntimeApiCollection</span><span class="op">&lt;</span><span class="ident">StateBackend</span> <span class="op">=</span> <span class="ident">sc_client_api</span>::<span class="ident">StateBackendFor</span><span class="op">&lt;</span><span class="ident">FullBackend</span>, <span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	<span class="ident">Executor</span>: <span class="ident">NativeExecutionDispatch</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
-	<span class="ident">start_node_impl</span>(
-		<span class="ident">parachain_config</span>,
-		<span class="ident">collator_key</span>,
-		<span class="ident">polkadot_config</span>,
-		<span class="ident">id</span>,
-		<span class="ident">rpc_config</span>,
-	)
-	.<span class="kw">await</span>
+	<span class="ident">start_node_impl</span>(<span class="ident">parachain_config</span>, <span class="ident">polkadot_config</span>, <span class="ident">id</span>, <span class="ident">rpc_config</span>).<span class="kw">await</span>
 }
 
 <span class="doccomment">/// Builds a new development service. This service uses manual seal, and mocks</span>
@@ -1620,9 +1593,6 @@
 	<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">role</span>.<span class="ident">is_authority</span>();
 
 	<span class="kw">if</span> <span class="ident">collator</span> {
-		<span class="comment">//TODO Actually even tthe following TODO isn&#39;t relevant.</span>
-		<span class="comment">// I ran into some issues with ownership in the closure below,</span>
-		<span class="comment">// so this variabel isn&#39;t even used yet.</span>
 		<span class="comment">//TODO For now, all dev service nodes use Alith&#39;s nimbus id in their author inherent.</span>
 		<span class="comment">// This could and perhaps should be made more flexible. Here are some options:</span>
 		<span class="comment">// 1. a dedicated `--dev-author-id` flag that only works with the dev service</span>
@@ -1630,7 +1600,7 @@
 		<span class="comment">//    in the parachain context</span>
 		<span class="comment">// 3. check the keystore like we do in nimbus. Actually, maybe the keystore-checking could</span>
 		<span class="comment">//    be exported as a helper function from nimbus.</span>
-		<span class="comment">// let author_id = chain_spec::get_from_seed::&lt;NimbusId&gt;(&quot;Alice&quot;);</span>
+		<span class="kw">let</span> <span class="ident">author_id</span> <span class="op">=</span> <span class="ident">chain_spec</span>::<span class="ident">get_from_seed</span>::<span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span>(<span class="string">&quot;Alice&quot;</span>);
 
 		<span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">sc_basic_authorship</span>::<span class="ident">ProposerFactory</span>::<span class="ident">new</span>(
 			<span class="ident">task_manager</span>.<span class="ident">spawn_handle</span>(),
@@ -1697,6 +1667,7 @@
 						.<span class="ident">number</span>(<span class="ident">block</span>)
 						.<span class="ident">expect</span>(<span class="string">&quot;Header lookup should succeed&quot;</span>)
 						.<span class="ident">expect</span>(<span class="string">&quot;Header passed in as parent should be present in backend.&quot;</span>);
+					<span class="kw">let</span> <span class="ident">author_id</span> <span class="op">=</span> <span class="ident">author_id</span>.<span class="ident">clone</span>();
 
 					<span class="kw">async</span> <span class="kw">move</span> {
 						<span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">sp_timestamp</span>::<span class="ident">InherentDataProvider</span>::<span class="ident">from_system_time</span>();
@@ -1707,10 +1678,7 @@
 							<span class="ident">relay_blocks_per_para_block</span>: <span class="number">2</span>,
 						};
 
-						<span class="comment">//TODO I want to use the value from a variable above.</span>
-						<span class="kw">let</span> <span class="ident">author</span> <span class="op">=</span> <span class="ident">nimbus_primitives</span>::<span class="ident">InherentDataProvider</span>::<span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span>(
-							<span class="ident">chain_spec</span>::<span class="ident">get_from_seed</span>::<span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span>(<span class="string">&quot;Alice&quot;</span>),
-						);
+						<span class="kw">let</span> <span class="ident">author</span> <span class="op">=</span> <span class="ident">nimbus_primitives</span>::<span class="ident">InherentDataProvider</span>::<span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span>(<span class="ident">author_id</span>);
 
 						<span class="prelude-val">Ok</span>((<span class="ident">time</span>, <span class="ident">mocked_parachain</span>, <span class="ident">author</span>))
 					}
