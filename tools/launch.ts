@@ -34,22 +34,22 @@ type ParachainConfig = NetworkConfig & {
 
 const parachains: { [name: string]: ParachainConfig } = {
   "moonriver-genesis": {
-    relay: "kusama-v9030",
+    relay: "kusama-v9040",
     chain: "moonriver-local",
-    docker: "purestake/moonbeam:sha-e45bda9e",
+    docker: "purestake/moonbeam:moonriver-genesis",
   },
   "moonriver-genesis-fast": {
-    relay: "rococo-9003",
+    relay: "rococo-9004",
     chain: "moonriver-local",
     docker: "purestake/moonbeam:sha-153c4c4a",
   },
   "alphanet-v8.1": {
-    relay: "rococo-9003",
+    relay: "rococo-9004",
     chain: "moonbase-local",
     docker: "purestake/moonbeam:v0.8.1",
   },
   local: {
-    relay: "rococo-9003",
+    relay: "rococo-9004",
     chain: "moonbase-local",
     binary: "../target/release/moonbeam",
   },
@@ -61,12 +61,24 @@ const relays: { [name: string]: NetworkConfig } = {
     docker: "purestake/moonbase-relay-testnet:sha-aa386760",
     chain: "kusama-local",
   },
+  "kusama-v9040": {
+    docker: "purestake/moonbase-relay-testnet:sha-2f28561a",
+    chain: "kusama-local",
+  },
   "kusama-v9030-fast": {
     docker: "purestake/moonbase-relay-testnet:sha-832cc0af",
     chain: "kusama-local",
   },
+  "kusama-v9040-fast": {
+    docker: "purestake/moonbase-relay-testnet:sha-2239072e",
+    chain: "kusama-local",
+  },
   "rococo-9003": {
     docker: "purestake/moonbase-relay-testnet:sha-aa386760",
+    chain: "rococo-local",
+  },
+  "rococo-9004": {
+    docker: "purestake/moonbase-relay-testnet:sha-2f28561a",
     chain: "rococo-local",
   },
   local: {
@@ -83,9 +95,9 @@ function start() {
     console.error(`Invalid arguments (expected: 1, got: ${argv._.length})`);
     console.error(
       `Usage: ts-node launch.ts <${parachainNames.join("|")}>` +
-        ` [--parachain-chain <moonbase-local|moonshadow-local|moonriver-local|moonbeam-local>]` +
+        ` [--parachain-chain <moonbase-local|moonshadow-local|moonriver-local|moonbeam-local|...>]` +
         ` [--parachain-id 1000] [--relay <${relayNames.join("|")}>]` +
-        ` [--relay-chain <rococo-local|kusama-local|westend-local|polkadot-local>]`
+        ` [--relay-chain <rococo-local|kusama-local|westend-local|polkadot-local|...>]`
     );
     return;
   }
@@ -188,8 +200,15 @@ function start() {
   launchConfig.parachains[0].nodes[1].rpcPort = startingPort + 111;
   launchConfig.parachains[0].nodes[1].wsPort = startingPort + 112;
 
-  // To support compatibility with rococo
-  if (launchConfig.relaychain.chain.startsWith("rococo")) {
+  const knownRelayChains = ["kusama", "westend", "rococo", "polkadot"]
+    .map((network) => [`${network}`, `${network}-local`, `${network}-dev`])
+    .flat();
+
+  // In case the chain is a spec file
+  if (!knownRelayChains.includes(launchConfig.relaychain.chain)) {
+    delete launchConfig.relaychain.genesis;
+  } else if (launchConfig.relaychain.chain.startsWith("rococo")) {
+    // To support compatibility with rococo
     (launchConfig.relaychain.genesis.runtime as any).runtime_genesis_config = {
       ...launchConfig.relaychain.genesis.runtime,
     };
