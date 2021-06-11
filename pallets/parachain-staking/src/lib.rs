@@ -525,7 +525,7 @@ pub mod pallet {
 				new_total,
 			);
 
-			10_000
+			300_000_000_000 // Three fifths of the max block weight
 		}
 
 		fn on_finalize(n: T::BlockNumber) {
