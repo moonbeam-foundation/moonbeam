@@ -521,8 +521,8 @@ pub mod pallet {
 			log::trace!(
 				target: "staking",
 				"Finished migrating storage.\nOld Total : {:?}\nNew Total : {:?}",
-				new_total,
 				old_total,
+				new_total,
 			);
 
 			10_000
