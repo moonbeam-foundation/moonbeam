@@ -712,7 +712,10 @@ fn collators_bond() {
 				Stake::candidate_bond_more(Origin::signed(6), 50),
 				Error::<Test>::CandidateDNE
 			);
+			let mut total = Stake::total();
 			assert_ok!(Stake::candidate_bond_more(Origin::signed(1), 50));
+			total += 50;
+			assert_eq!(Stake::total(), total);
 			assert_noop!(
 				Stake::candidate_bond_more(Origin::signed(1), 40),
 				DispatchError::Module {
@@ -728,13 +731,21 @@ fn collators_bond() {
 				Error::<Test>::CannotActivateIfLeaving
 			);
 			roll_to(30);
+			total -= 100;
+			assert_eq!(Stake::total(), total);
 			assert_noop!(
 				Stake::candidate_bond_more(Origin::signed(1), 40),
 				Error::<Test>::CandidateDNE
 			);
 			assert_ok!(Stake::candidate_bond_more(Origin::signed(2), 80));
+			total += 80;
+			assert_eq!(Stake::total(), total);
 			assert_ok!(Stake::candidate_bond_less(Origin::signed(2), 90));
+			total -= 90;
+			assert_eq!(Stake::total(), total);
 			assert_ok!(Stake::candidate_bond_less(Origin::signed(3), 10));
+			total -= 10;
+			assert_eq!(Stake::total(), total);
 			assert_noop!(
 				Stake::candidate_bond_less(Origin::signed(2), 11),
 				Error::<Test>::CannotBondLessGEQTotalBond
@@ -752,6 +763,8 @@ fn collators_bond() {
 				Error::<Test>::ValBondBelowMin
 			);
 			assert_ok!(Stake::candidate_bond_less(Origin::signed(4), 10));
+			total -= 10;
+			assert_eq!(Stake::total(), total);
 		});
 }
 
@@ -781,6 +794,7 @@ fn nominators_bond() {
 		.build()
 		.execute_with(|| {
 			roll_to(4);
+			let mut total = Stake::total();
 			assert_noop!(
 				Stake::nominator_bond_more(Origin::signed(1), 2, 50),
 				Error::<Test>::NominatorDNE
@@ -806,6 +820,8 @@ fn nominators_bond() {
 				Error::<Test>::NomBondBelowMin
 			);
 			assert_ok!(Stake::nominator_bond_more(Origin::signed(6), 1, 10));
+			total += 10;
+			assert_eq!(Stake::total(), total);
 			assert_noop!(
 				Stake::nominator_bond_less(Origin::signed(6), 2, 5),
 				Error::<Test>::NominationDNE
@@ -822,7 +838,10 @@ fn nominators_bond() {
 			roll_to(9);
 			assert_eq!(Balances::reserved_balance(&6), 20);
 			assert_ok!(Stake::leave_candidates(Origin::signed(1)));
+			assert_eq!(Stake::total(), total);
 			roll_to(31);
+			total -= 60;
+			assert_eq!(Stake::total(), total);
 			assert!(!Stake::is_nominator(&6));
 			assert_eq!(Balances::reserved_balance(&6), 0);
 			assert_eq!(Balances::free_balance(&6), 100);
