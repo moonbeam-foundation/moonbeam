@@ -155,7 +155,7 @@ impl Filter<Call> for BaseFilter {
 }
 
 parameter_types! {
-	pub const BlockHashCount: BlockNumber = 250;
+	pub const BlockHashCount: BlockNumber = 256;
 	pub const Version: RuntimeVersion = VERSION;
 	/// We allow for one half second of compute with a 6 second average block time.
 	/// These values are dictated by Polkadot for the parachain.
