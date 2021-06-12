@@ -500,8 +500,8 @@ fn collator_commission() {
 			roll_to(11);
 			let mut new = vec![
 				Event::JoinedCollatorCandidates(4, 20, 60),
-				Event::Nomination(5, 10, 4, 30),
-				Event::Nomination(6, 10, 4, 40),
+				Event::Nomination(5, 10, 4, true, 30),
+				Event::Nomination(6, 10, 4, true, 40),
 				Event::CollatorChosen(3, 4, 40),
 				Event::CollatorChosen(3, 1, 40),
 				Event::NewRound(10, 3, 2, 80),
@@ -582,9 +582,9 @@ fn multiple_nominations() {
 			);
 			roll_to(16);
 			let mut new = vec![
-				Event::Nomination(6, 10, 2, 50),
-				Event::Nomination(6, 10, 3, 30),
-				Event::Nomination(6, 10, 4, 30),
+				Event::Nomination(6, 10, 2, true, 50),
+				Event::Nomination(6, 10, 3, true, 30),
+				Event::Nomination(6, 10, 4, true, 30),
 				Event::CollatorChosen(3, 2, 50),
 				Event::CollatorChosen(3, 1, 50),
 				Event::CollatorChosen(3, 4, 30),
@@ -611,10 +611,7 @@ fn multiple_nominations() {
 					message: Some("InsufficientBalance")
 				},
 			);
-			assert_noop!(
-				Stake::nominate(Origin::signed(10), 2, 10),
-				Error::<Test>::TooManyNominators
-			);
+			assert_ok!(Stake::nominate(Origin::signed(10), 2, 10),);
 			roll_to(26);
 			let mut new2 = vec![
 				Event::CollatorChosen(5, 2, 50),
@@ -623,7 +620,8 @@ fn multiple_nominations() {
 				Event::CollatorChosen(5, 3, 30),
 				Event::CollatorChosen(5, 5, 10),
 				Event::NewRound(20, 5, 5, 170),
-				Event::Nomination(7, 80, 2, 130),
+				Event::Nomination(7, 80, 2, true, 130),
+				Event::Nomination(10, 10, 2, false, 130),
 				Event::CollatorChosen(6, 2, 130),
 				Event::CollatorChosen(6, 1, 50),
 				Event::CollatorChosen(6, 4, 30),
@@ -1031,7 +1029,7 @@ fn payouts_follow_nomination_changes() {
 			roll_to(36);
 			// new nomination is not rewarded yet
 			let mut new5 = vec![
-				Event::Nomination(8, 10, 1, 50),
+				Event::Nomination(8, 10, 1, true, 50),
 				Event::Rewarded(1, 36),
 				Event::Rewarded(7, 12),
 				Event::Rewarded(10, 12),
@@ -1228,7 +1226,7 @@ fn parachain_bond_reserve_works() {
 			roll_to(36);
 			// new nomination is not rewarded yet
 			let mut new5 = vec![
-				Event::Nomination(8, 10, 1, 50),
+				Event::Nomination(8, 10, 1, true, 50),
 				Event::ReservedForParachainBond(11, 30),
 				Event::Rewarded(1, 18),
 				Event::Rewarded(7, 6),
