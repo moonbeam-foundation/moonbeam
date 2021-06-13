@@ -7,7 +7,7 @@ function capitalize(s) {
 
 function getCompareLink(packageName: string, previousTag: string, newTag: string) {
   const previousPackage = execSync(
-    `git show ${previousTag}:/Cargo.lock | grep ${packageName}? | head -1 | grep -o '".*"'`
+    `git show ${previousTag}:../Cargo.lock | grep ${packageName}? | head -1 | grep -o '".*"'`
   ).toString();
   const previosCommit = /#([0-9a-f]*)/g.exec(previousPackage)[1].slice(0, 8);
   const previousRepo = /(https:\/\/.*)\?/g.exec(previousPackage)[1];
@@ -34,13 +34,20 @@ function getRuntimeInfo(runtimeName: string) {
   return {
     name: runtimeName,
     version: /:\s?([0-9A-z\-]*)/.exec(specVersion)[1],
-    srtool: require(`./${runtimeName}_srtool_output.json`),
+    srtool: require(`../${runtimeName}_srtool_output.json`),
   };
 }
 
 const main = () => {
-  const previousTag = "v0.7.0";
-  const newTag = "v0.8.0";
+  const lastTags = execSync(
+    'git tag | grep "v[0-9]*.[0-9]*.[0-9]*$" | sort -t "." -k1,1n -k2,2n -k3,3n | tail -2'
+  )
+    .toString()
+    .split("\n");
+
+  const previousTag = lastTags[0];
+  const newTag = lastTags[1];
+
   const runtimes = ["moonbase", "moonshadow", "moonriver", "moonbeam"].map((runtimeName) =>
     getRuntimeInfo(runtimeName)
   );
@@ -54,7 +61,7 @@ const main = () => {
     .filter((l) => !!l);
 
   const template = `
-## Runtimes:
+## Runtimes
 
 ${runtimes
   .map(
