@@ -235,7 +235,6 @@ pub mod pallet {
 						self.bottom_nominators.insert(Bond { owner: acc, amount }),
 						Error::<T>::NominatorExists
 					);
-					// total is not increased because insertion is into a bottom position
 					Ok(None)
 				}
 			}
@@ -266,7 +265,8 @@ pub mod pallet {
 				// last element has largest amount as per ordering
 				if let Some(last) = self.bottom_nominators.0.pop() {
 					self.total -= s - last.amount;
-				// put the last element in bottom nominators in top
+					self.bottom_nominators = OrderedSet::from(self.bottom_nominators.0.clone());
+					let _ = self.top_nominators.insert(last);
 				} else {
 					self.total -= s;
 				}
