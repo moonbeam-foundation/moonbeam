@@ -118,7 +118,7 @@ macro_rules! impl_runtime_apis_plus_common {
 										.trace(|| Executive::apply_extrinsic(ext))
 										.0
 										.into_tx_trace()),
-										TraceType::CallList => Ok(CallListTracer::new()
+										TraceType::CallList => Ok(CallListTracer::default()
 											.trace(|| Executive::apply_extrinsic(ext))
 											.0
 											.into_tx_trace()),
@@ -157,7 +157,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					for ext in extrinsics.into_iter() {
 						match &ext.function {
 							Call::Ethereum(transact(_transaction)) => {
-								let tx_traces = CallListTracer::new()
+								let tx_traces = CallListTracer::default()
 									.trace(|| Executive::apply_extrinsic(ext))
 									.0
 									.into_tx_trace();
