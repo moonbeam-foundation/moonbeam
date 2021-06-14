@@ -21,6 +21,7 @@ use std::{sync::Arc, time::Duration};
 use fp_rpc::EthereumRuntimeRPCApi;
 use moonbeam_rpc_primitives_debug::DebugRuntimeApi;
 use ethereum::EthereumStorageSchema;
+use futures::StreamExt;
 use fc_rpc::{
 	EthApi, EthApiServer, EthFilterApi, EthFilterApiServer, EthPubSubApi, EthPubSubApiServer,
 	EthTask, HexEncodedIdProvider, NetApi, NetApiServer, OverrideHandle, RuntimeApiStorageOverride,
@@ -65,11 +66,13 @@ pub struct RpcRequesters {
 }
 
 /// Full client dependencies.
-pub struct FullDeps<C, P, BE> {
+pub struct FullDeps<C, P, A: ChainApi, BE> {
 	/// The client instance to use.
 	pub client: Arc<C>,
 	/// Transaction pool instance.
 	pub pool: Arc<P>,
+	/// Graph pool instance.
+	pub graph: Arc<Pool<A>>,
 	/// Whether to deny unsafe calls
 	pub deny_unsafe: DenyUnsafe,
 	/// The Node authority flag
@@ -99,8 +102,8 @@ pub struct FullDeps<C, P, BE> {
 }
 
 /// Instantiate all Full RPC extensions.
-pub fn create_full<C, P, BE>(
-	deps: FullDeps<C, P, BE>,
+pub fn create_full<C, P, A, BE>(
+	deps: FullDeps<C, P, A, BE>,
 	subscription_task_executor: SubscriptionTaskExecutor,
 ) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
 where
@@ -117,6 +120,7 @@ where
 	C::Api: fp_rpc::EthereumRuntimeRPCApi<Block>,
 	C::Api: moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>,
 	C::Api: moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>,
+	A: ChainApi<Block = Block> + 'static,
 	P: TransactionPool<Block = Block> + 'static,
 {
 	use fc_rpc::{
@@ -133,6 +137,7 @@ where
 	let FullDeps {
 		client,
 		pool,
+		graph,
 		deny_unsafe,
 		is_authority,
 		network,
@@ -189,7 +194,7 @@ where
 		io.extend_with(EthFilterApiServer::to_delegate(EthFilterApi::new(
 			client.clone(),
 			filter_pool.clone(),
-			500 as usize, // max stored filters
+			500_usize, // max stored filters
 			overrides.clone(),
 			max_past_logs,
 		)));
@@ -198,6 +203,7 @@ where
 	io.extend_with(NetApiServer::to_delegate(NetApi::new(
 		client.clone(),
 		network.clone(),
+		true,
 	)));
 	io.extend_with(Web3ApiServer::to_delegate(Web3Api::new(client.clone())));
 	io.extend_with(EthPubSubApiServer::to_delegate(EthPubSubApi::new(
@@ -213,7 +219,7 @@ where
 	if ethapi_cmd.contains(&EthApiCmd::Txpool) {
 		io.extend_with(TxPoolServer::to_delegate(TxPool::new(
 			Arc::clone(&client),
-			pool,
+			graph,
 		)));
 	}
 
