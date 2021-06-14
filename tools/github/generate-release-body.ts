@@ -1,4 +1,5 @@
 import { execSync } from "child_process";
+import { readFileSync } from "fs";
 
 function capitalize(s) {
   return s[0].toUpperCase() + s.slice(1);
@@ -33,7 +34,7 @@ function getRuntimeInfo(runtimeName: string) {
   return {
     name: runtimeName,
     version: /:\s?([0-9A-z\-]*)/.exec(specVersion)[1],
-    srtool: require(`../../${runtimeName}_srtool_output.json`),
+    srtool: JSON.parse(readFileSync(`../${runtimeName}_srtool_output.json`).toString()),
   };
 }
 
