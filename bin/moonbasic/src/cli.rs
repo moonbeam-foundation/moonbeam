@@ -24,6 +24,7 @@ use sp_core::H160;
 use std::path::PathBuf;
 use std::str::FromStr;
 use structopt::StructOpt;
+use cli_opt::{EthApi, Sealing};
 
 /// Sub-commands supported by the collator.
 #[derive(Debug, StructOpt)]
@@ -117,15 +118,12 @@ pub struct ExportGenesisWasmCommand {
 #[derive(Debug, StructOpt)]
 pub struct RunCmd {
 	#[structopt(flatten)]
-	pub base: sc_cli::RunCmd,
+	pub base: cumulus_client_cli::RunCmd,
 
+	//TODO can this be removed?
 	/// Id of the parachain this collator collates for.
 	#[structopt(long)]
 	pub parachain_id: Option<u32>,
-
-	/// Enable the development service to run without a backing relay chain
-	#[structopt(long)]
-	pub dev_service: bool,
 
 	/// When blocks should be sealed in the dev service.
 	///
@@ -174,7 +172,7 @@ fn parse_h160(input: &str) -> Result<H160, String> {
 }
 
 impl std::ops::Deref for RunCmd {
-	type Target = sc_cli::RunCmd;
+	type Target = cumulus_client_cli::RunCmd;
 
 	fn deref(&self) -> &Self::Target {
 		&self.base
@@ -199,92 +197,4 @@ pub struct Cli {
 	/// Note that this is the same as running with `--validator`.
 	#[structopt(long, conflicts_with = "validator")]
 	pub collator: bool,
-
-	/// Relaychain arguments
-	#[structopt(raw = true)]
-	pub relaychain_args: Vec<String>,
-}
-
-#[derive(Debug)]
-pub struct RelayChainCli {
-	/// The actual relay chain cli object.
-	pub base: polkadot_cli::RunCmd,
-
-	/// Optional chain id that should be passed to the relay chain.
-	pub chain_id: Option<String>,
-
-	/// The base path that should be used by the relay chain.
-	pub base_path: Option<PathBuf>,
-}
-
-impl RelayChainCli {
-	/// Parse the relay chain CLI parameters using the para chain `Configuration`.
-	pub fn new<'a>(
-		para_config: &sc_service::Configuration,
-		relay_chain_args: impl Iterator<Item = &'a String>,
-	) -> Self {
-		let extension = chain_spec::Extensions::try_get(&*para_config.chain_spec);
-		let chain_id = extension.map(|e| e.relay_chain.clone());
-		let base_path = para_config
-			.base_path
-			.as_ref()
-			.map(|x| x.path().join("polkadot"));
-		Self {
-			base_path,
-			chain_id,
-			base: polkadot_cli::RunCmd::from_iter(relay_chain_args),
-		}
-	}
-}
-
-/// Block authoring scheme to be used by the dev service.
-#[derive(Debug)]
-pub enum Sealing {
-	/// Author a block immediately upon receiving a transaction into the transaction pool
-	Instant,
-	/// Author a block upon receiving an RPC command
-	Manual,
-	/// Author blocks at a regular interval specified in milliseconds
-	Interval(u64),
-}
-
-impl FromStr for Sealing {
-	type Err = String;
-
-	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		Ok(match s {
-			"instant" => Self::Instant,
-			"manual" => Self::Manual,
-			s => {
-				let millis =
-					u64::from_str_radix(s, 10).map_err(|_| "couldn't decode sealing param")?;
-				Self::Interval(millis)
-			}
-		})
-	}
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum EthApi {
-	Txpool,
-	Debug,
-	Trace,
-}
-
-impl FromStr for EthApi {
-	type Err = String;
-
-	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		Ok(match s {
-			"txpool" => Self::Txpool,
-			"debug" => Self::Debug,
-			"trace" => Self::Trace,
-			_ => {
-				return Err(format!(
-					"`{}` is not recognized as a supported Ethereum Api",
-					s
-				))
-			}
-		})
-	}
 }

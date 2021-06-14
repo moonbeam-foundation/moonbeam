@@ -18,8 +18,9 @@
 
 use crate::{
 	chain_spec,
-	cli::{Cli, RelayChainCli, Subcommand},
+	cli::{Cli, Subcommand, RunCmd},
 };
+use cli_opt::RpcConfig;
 use cumulus_client_service::genesis::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
 use log::info;
@@ -62,7 +63,7 @@ impl SubstrateCli for Cli {
 	}
 
 	fn description() -> String {
-		"A simple instant seal node that runs the moonbase runtime with a mocked parachain inherent"
+		"A simple instant seal node that runs the moonbase runtime with a mocked parachain inherent".into()
 	}
 
 	fn author() -> String {
@@ -241,6 +242,13 @@ pub fn run() -> Result<()> {
 
 			runner
 				.run_node_until_exit(|config| async move {
+					let rpc_config = RpcConfig {
+						ethapi: cli.run.ethapi,
+						ethapi_max_permits: cli.run.ethapi_max_permits,
+						ethapi_trace_max_count: cli.run.ethapi_trace_max_count,
+						ethapi_trace_cache_duration: cli.run.ethapi_trace_cache_duration,
+						max_past_logs: cli.run.max_past_logs,
+					};
 
 					// When running the dev service, just use Alice's author inherent
 					//TODO maybe make the --alice etc flags work here, and consider bringing back

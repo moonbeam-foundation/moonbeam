@@ -22,9 +22,9 @@
 //! Full Service: A complete parachain node including the pool, rpc, network, embedded relay chain
 //! Dev Service: A leaner service without the relay chain backing.
 
-use crate::cli::EthApi as EthApiCmd;
 use crate::{
-	cli::{RunCmd, Sealing},
+	cli::RunCmd,
+	inherents, rpc,
 };
 use async_io::Timer;
 use fc_consensus::FrontierBlockImport;
@@ -50,6 +50,7 @@ use std::{
 	time::Duration,
 };
 use tokio::sync::Semaphore;
+use sp_blockchain::HeaderBackend;
 
 // Our native executor instance.
 native_executor_instance!(
@@ -243,7 +244,7 @@ pub fn new_dev(
 
 		let commands_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> =
 			match sealing {
-				Sealing::Instant => {
+				cli_opt::Sealing::Instant => {
 					Box::new(
 						// This bit cribbed from the implementation of instant seal.
 						transaction_pool
@@ -258,13 +259,13 @@ pub fn new_dev(
 							}),
 					)
 				}
-				Sealing::Manual => {
+				cli_opt::Sealing::Manual => {
 					let (sink, stream) = futures::channel::mpsc::channel(1000);
 					// Keep a reference to the other end of the channel. It goes to the RPC.
 					command_sink = Some(sink);
 					Box::new(stream)
 				}
-				Sealing::Interval(millis) => Box::new(StreamExt::map(
+				cli_opt::Sealing::Interval(millis) => Box::new(StreamExt::map(
 					Timer::interval(Duration::from_millis(millis)),
 					|_| EngineCommand::SealNewBlock {
 						create_empty: true,
@@ -292,7 +293,7 @@ pub fn new_dev(
 						.number(block)
 						.expect("Header lookup should succeed")
 						.expect("Header passed in as parent should be present in backend.");
-					let author_id = author_id.clone();
+					let author_id = author_id.clone().expect("Author id must be set whe nrunning in collator mode.");
 
 					async move {
 						let time = sp_timestamp::InherentDataProvider::from_system_time();

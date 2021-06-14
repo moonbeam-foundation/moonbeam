@@ -17,31 +17,52 @@
 //! A collection of node-specific RPC methods.
 
 use std::collections::BTreeMap;
-use std::sync::Arc;
-
-use crate::cli::EthApi as EthApiCmd;
+use std::{sync::Arc, time::Duration};
+use fp_rpc::EthereumRuntimeRPCApi;
+use moonbeam_rpc_primitives_debug::DebugRuntimeApi;
 use ethereum::EthereumStorageSchema;
-use fc_rpc::{OverrideHandle, RuntimeApiStorageOverride, SchemaV1Override, StorageOverride};
+use fc_rpc::{
+	EthApi, EthApiServer, EthFilterApi, EthFilterApiServer, EthPubSubApi, EthPubSubApiServer,
+	EthTask, HexEncodedIdProvider, NetApi, NetApiServer, OverrideHandle, RuntimeApiStorageOverride,
+	SchemaV1Override, StorageOverride, Web3Api, Web3ApiServer,
+};
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use jsonrpc_pubsub::manager::SubscriptionManager;
-use moonbeam_rpc_debug::DebugRequester;
-use moonbeam_rpc_trace::CacheRequester as TraceFilterCacheRequester;
-use moonbase_runtime::{opaque::Block, AccountId, Balance, Hash, Index};
+use moonbeam_core_primitives::{Block, Hash};
+use moonbeam_rpc_debug::DebugHandler;
+use moonbeam_rpc_debug::{Debug, DebugRequester, DebugServer};
+use moonbeam_rpc_trace::{
+	CacheRequester as TraceFilterCacheRequester, CacheTask, Trace, TraceServer,
+};
+use fc_mapping_sync::MappingSyncWorker;
+use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
+use moonbase_runtime::{AccountId, Balance, Index};
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
 	client::BlockchainEvents,
+	BlockOf,
 };
+use cli_opt::{EthApi as EthApiCmd, RpcConfig};
 use sc_consensus_manual_seal::rpc::{EngineCommand, ManualSeal, ManualSealApi};
 use sc_network::NetworkService;
 use sc_rpc::SubscriptionTaskExecutor;
 use sc_rpc_api::DenyUnsafe;
-use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
 };
-use sp_runtime::traits::BlakeTwo256;
+use sp_runtime::traits::{BlakeTwo256, Block as BlockT};
 use sp_transaction_pool::TransactionPool;
+use tokio::sync::Semaphore;
+use sc_service::TaskManager;
+use sc_transaction_graph::{ChainApi, Pool};
+use sp_api::{HeaderT, ProvideRuntimeApi};
+use sp_core::H256;
+
+pub struct RpcRequesters {
+	pub debug: Option<DebugRequester>,
+	pub trace: Option<TraceFilterCacheRequester>,
+}
 
 /// Full client dependencies.
 pub struct FullDeps<C, P, BE> {
@@ -217,4 +238,124 @@ where
 	}
 
 	io
+}
+
+pub struct SpawnTasksParams<'a, B: BlockT, C, BE> {
+	pub task_manager: &'a TaskManager,
+	pub client: Arc<C>,
+	pub substrate_backend: Arc<BE>,
+	pub frontier_backend: Arc<fc_db::Backend<B>>,
+	pub pending_transactions: PendingTransactions,
+	pub filter_pool: Option<FilterPool>,
+}
+
+/// Spawn the tasks that are required to run Moonbeam.
+pub fn spawn_tasks<B, C, BE>(
+	rpc_config: &RpcConfig,
+	params: SpawnTasksParams<B, C, BE>,
+) -> RpcRequesters
+where
+	C: ProvideRuntimeApi<B> + BlockOf,
+	C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError> + 'static,
+	C: BlockchainEvents<B>,
+	C: Send + Sync + 'static,
+	C::Api: EthereumRuntimeRPCApi<B> + DebugRuntimeApi<B> + DebugRuntimeApi<B>,
+	C::Api: BlockBuilder<B>,
+	B: BlockT<Hash = H256> + Send + Sync + 'static,
+	B::Header: HeaderT<Number = u32>,
+	BE: Backend<B> + 'static,
+	BE::State: StateBackend<BlakeTwo256>,
+{
+	let permit_pool = Arc::new(Semaphore::new(rpc_config.ethapi_max_permits as usize));
+
+	let (trace_filter_task, trace_filter_requester) =
+		if rpc_config.ethapi.contains(&EthApiCmd::Trace) {
+			let (trace_filter_task, trace_filter_requester) = CacheTask::create(
+				Arc::clone(&params.client),
+				Arc::clone(&params.substrate_backend),
+				Duration::from_secs(rpc_config.ethapi_trace_cache_duration),
+				Arc::clone(&permit_pool),
+			);
+			(Some(trace_filter_task), Some(trace_filter_requester))
+		} else {
+			(None, None)
+		};
+
+	let (debug_task, debug_requester) = if rpc_config.ethapi.contains(&EthApiCmd::Debug) {
+		let (debug_task, debug_requester) = DebugHandler::task(
+			Arc::clone(&params.client),
+			Arc::clone(&params.substrate_backend),
+			Arc::clone(&params.frontier_backend),
+			Arc::clone(&permit_pool),
+		);
+		(Some(debug_task), Some(debug_requester))
+	} else {
+		(None, None)
+	};
+
+	// Frontier offchain DB task. Essential.
+	// Maps emulated ethereum data to substrate native data.
+	params.task_manager.spawn_essential_handle().spawn(
+		"frontier-mapping-sync-worker",
+		MappingSyncWorker::new(
+			params.client.import_notification_stream(),
+			Duration::new(6, 0),
+			params.client.clone(),
+			params.substrate_backend.clone(),
+			params.frontier_backend.clone(),
+		)
+		.for_each(|()| futures::future::ready(())),
+	);
+
+	// `trace_filter` cache task. Essential.
+	// Proxies rpc requests to it's handler.
+	if let Some(trace_filter_task) = trace_filter_task {
+		params
+			.task_manager
+			.spawn_essential_handle()
+			.spawn("trace-filter-cache", trace_filter_task);
+	}
+
+	// `debug` task if enabled. Essential.
+	// Proxies rpc requests to it's handler.
+	if let Some(debug_task) = debug_task {
+		params
+			.task_manager
+			.spawn_essential_handle()
+			.spawn("ethapi-debug", debug_task);
+	}
+
+	// Frontier `EthFilterApi` maintenance.
+	// Manages the pool of user-created Filters.
+	if let Some(filter_pool) = params.filter_pool {
+		// Each filter is allowed to stay in the pool for 100 blocks.
+		const FILTER_RETAIN_THRESHOLD: u64 = 100;
+		params.task_manager.spawn_essential_handle().spawn(
+			"frontier-filter-pool",
+			EthTask::filter_pool_task(
+				Arc::clone(&params.client),
+				filter_pool,
+				FILTER_RETAIN_THRESHOLD,
+			),
+		);
+	}
+
+	// Frontier pending transactions task. Essential.
+	// Maintenance for the Frontier-specific pending transaction pool.
+	if let Some(pending_transactions) = params.pending_transactions {
+		const TRANSACTION_RETAIN_THRESHOLD: u64 = 5;
+		params.task_manager.spawn_essential_handle().spawn(
+			"frontier-pending-transactions",
+			EthTask::pending_transaction_task(
+				Arc::clone(&params.client),
+				pending_transactions,
+				TRANSACTION_RETAIN_THRESHOLD,
+			),
+		);
+	}
+
+	RpcRequesters {
+		debug: debug_requester,
+		trace: trace_filter_requester,
+	}
 }

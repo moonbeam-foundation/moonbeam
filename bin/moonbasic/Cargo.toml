@@ -41,6 +41,7 @@ moonbeam-rpc-debug = { path = "../../client/rpc/debug" }
 moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug" }
 moonbeam-rpc-trace = { path = "../../client/rpc/trace" }
 cli-opt = { package = "moonbeam-cli-opt", path = "../../node/cli-opt" }
+moonbeam-core-primitives = { path = "../../core-primitives" }
 
 # Substrate dependencies
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4" }
@@ -73,6 +74,7 @@ substrate-frame-rpc-system = { git = "https://github.com/paritytech/substrate", 
 pallet-transaction-payment-rpc = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4" }
 sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4" }
 sc-consensus-manual-seal = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4" }
+sc-transaction-graph = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4" }
 
 evm = { package = "pallet-evm", git = "https://github.com/purestake/frontier", branch = "moonbeam-v0.8.2" }
 ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "moonbeam-v0.8.2" }
