@@ -356,8 +356,7 @@ jobs:
     if: needs.set-tags.outputs.is_release == 'true'
     strategy:
       matrix:
-        # runtime: ["moonbase", "moonshadow", "moonriver", "moonbeam"]
-        runtime: ["moonbase"]
+        runtime: ["moonbase", "moonshadow", "moonriver", "moonbeam"]
     container:
       image: paritytech/srtool:nightly-2021-03-15
       volumes:
