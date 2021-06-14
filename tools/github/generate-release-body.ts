@@ -33,7 +33,7 @@ function getRuntimeInfo(runtimeName: string) {
   return {
     name: runtimeName,
     version: /:\s?([0-9A-z\-]*)/.exec(specVersion)[1],
-    srtool: require(`../${runtimeName}_srtool_output.json`),
+    srtool: require(`../../${runtimeName}_srtool_output.json`),
   };
 }
 
@@ -47,7 +47,8 @@ const main = () => {
   const previousTag = lastTags[0];
   const newTag = lastTags[1];
 
-  const runtimes = ["moonbase", "moonshadow", "moonriver", "moonbeam"].map((runtimeName) =>
+  const runtimes = ["moonbase"].map((runtimeName) =>
+    // const runtimes = ["moonbase", "moonshadow", "moonriver", "moonbeam"].map((runtimeName) =>
     getRuntimeInfo(runtimeName)
   );
   const moduleLinks = ["substrate", "polkadot", "cumulus", "frontier"].map((repoName) => ({

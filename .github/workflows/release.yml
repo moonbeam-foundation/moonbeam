@@ -356,7 +356,8 @@ jobs:
     if: needs.set-tags.outputs.is_release == 'true'
     strategy:
       matrix:
-        runtime: ["moonbase", "moonriver", "moonshadow", "moonbeam"]
+        # runtime: ["moonbase", "moonshadow", "moonriver", "moonbeam"]
+        runtime: ["moonbase"]
     container:
       image: paritytech/srtool:nightly-2021-03-15
       volumes:
@@ -423,36 +424,36 @@ jobs:
         with:
           name: moonbase-runtime
           path: moonbase-runtime.wasm
-      - name: Download moonriver srtool json output
-        uses: actions/download-artifact@v2
-        with:
-          name: moonriver-srtool-json
-          path: moonriver_srtool_output.json
-      - name: Download moonriver runtime
-        uses: actions/download-artifact@v2
-        with:
-          name: moonriver-runtime
-          path: moonriver-runtime.wasm
-      - name: Download moonshadow srtool json output
-        uses: actions/download-artifact@v2
-        with:
-          name: moonshadow-srtool-json
-          path: moonshadow_srtool_output.json
-      - name: Download moonshadow runtime
-        uses: actions/download-artifact@v2
-        with:
-          name: moonshadow-runtime
-          path: moonshadow-runtime.wasm
-      - name: Download moonbeam srtool json output
-        uses: actions/download-artifact@v2
-        with:
-          name: moonbeam-srtool-json
-          path: moonbeam_srtool_output.json
-      - name: Download moonbeam runtime
-        uses: actions/download-artifact@v2
-        with:
-          name: moonbeam-runtime
-          path: moonbeam-runtime.wasm
+      # - name: Download moonshadow srtool json output
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: moonshadow-srtool-json
+      #     path: moonshadow_srtool_output.json
+      # - name: Download moonshadow runtime
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: moonshadow-runtime
+      #     path: moonshadow-runtime.wasm
+      # - name: Download moonriver srtool json output
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: moonriver-srtool-json
+      #     path: moonriver_srtool_output.json
+      # - name: Download moonriver runtime
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: moonriver-runtime
+      #     path: moonriver-runtime.wasm
+      # - name: Download moonbeam srtool json output
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: moonbeam-srtool-json
+      #     path: moonbeam_srtool_output.json
+      # - name: Download moonbeam runtime
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: moonbeam-runtime
+      #     path: moonbeam-runtime.wasm
       - name: Use Node.js 14.x
         uses: actions/setup-node@v2
         with:
@@ -460,6 +461,7 @@ jobs:
       - name: Generate release body
         id: generate-release-body
         run: |
+          ls -la
           cd tools
           npm install
           node_modules/.bin/ts-node github/generate-release-body.ts > body.md
@@ -469,15 +471,15 @@ jobs:
           runtime_moonbase_ver="$(cat ./runtime/moonbase/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
           echo "::set-output name=runtime_moonbase_ver::$runtime_moonbase_ver"
           mv moonbase-runtime.wasm moonbase-runtime-${runtime_moonbase_ver}.wasm
-          runtime_moonshadow_ver="$(cat ./runtime/moonshadow/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
-          echo "::set-output name=runtime_moonshadow_ver::$runtime_moonshadow_ver"
-          mv moonshadow-runtime.wasm moonshadow-runtime-${runtime_moonshadow_ver}.wasm
-          runtime_moonriver_ver="$(cat ./runtime/moonriver/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
-          echo "::set-output name=runtime_moonriver_ver::$runtime_moonriver_ver"
-          mv moonriver-runtime.wasm moonriver-runtime-${runtime_moonriver_ver}.wasm
-          runtime_moonbeam_ver="$(cat ./runtime/moonbeam/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
-          echo "::set-output name=runtime_moonbeam_ver::$runtime_moonbeam_ver"
-          mv moonbeam-runtime.wasm moonbeam-runtime-${runtime_moonbeam_ver}.wasm
+          # runtime_moonshadow_ver="$(cat ./runtime/moonshadow/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
+          # echo "::set-output name=runtime_moonshadow_ver::$runtime_moonshadow_ver"
+          # mv moonshadow-runtime.wasm moonshadow-runtime-${runtime_moonshadow_ver}.wasm
+          # runtime_moonriver_ver="$(cat ./runtime/moonriver/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
+          # echo "::set-output name=runtime_moonriver_ver::$runtime_moonriver_ver"
+          # mv moonriver-runtime.wasm moonriver-runtime-${runtime_moonriver_ver}.wasm
+          # runtime_moonbeam_ver="$(cat ./runtime/moonbeam/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
+          # echo "::set-output name=runtime_moonbeam_ver::$runtime_moonbeam_ver"
+          # mv moonbeam-runtime.wasm moonbeam-runtime-${runtime_moonbeam_ver}.wasm
       - name: Create draft release
         id: create-release
         uses: actions/create-release@v1
@@ -497,33 +499,33 @@ jobs:
           asset_path: moonbase-runtime.wasm
           asset_name: moonbase-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbase_ver }}.wasm
           asset_content_type: application/octet-stream
-      - name: Upload moonshadow wasm
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: moonshadow-runtime.wasm
-          asset_name: moonshadow-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonshadow_ver }}.wasm
-          asset_content_type: application/octet-stream
-      - name: Upload moonriver wasm
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: moonriver-runtime.wasm
-          asset_name: moonriver-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonriver_ver }}.wasm
-          asset_content_type: application/octet-stream
-      - name: Upload moonbeam wasm
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: moonbeam-runtime.wasm
-          asset_name: moonbeam-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbeam_ver }}.wasm
-          asset_content_type: application/octet-stream
+      # - name: Upload moonshadow wasm
+      #   uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create-release.outputs.upload_url }}
+      #     asset_path: moonshadow-runtime.wasm
+      #     asset_name: moonshadow-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonshadow_ver }}.wasm
+      #     asset_content_type: application/octet-stream
+      # - name: Upload moonriver wasm
+      #   uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create-release.outputs.upload_url }}
+      #     asset_path: moonriver-runtime.wasm
+      #     asset_name: moonriver-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonriver_ver }}.wasm
+      #     asset_content_type: application/octet-stream
+      # - name: Upload moonbeam wasm
+      #   uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create-release.outputs.upload_url }}
+      #     asset_path: moonbeam-runtime.wasm
+      #     asset_name: moonbeam-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbeam_ver }}.wasm
+      #     asset_content_type: application/octet-stream
 
       - name: Upload moonbeam
         uses: actions/upload-release-asset@v1
