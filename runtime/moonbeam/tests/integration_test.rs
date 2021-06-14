@@ -708,6 +708,7 @@ fn nominate_via_precompile() {
 					AccountId::from(BOB),
 					1000 * GLMR,
 					AccountId::from(ALICE),
+					true,
 					2000 * GLMR,
 				)),
 				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(

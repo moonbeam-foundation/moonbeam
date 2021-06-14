@@ -243,10 +243,10 @@ pub mod pallet {
 				self.nominators.insert(acc.clone()),
 				Error::<T>::NominatorExists
 			);
+			self.total_backing += amount;
 			if (self.top_nominators.len() as u32) < T::MaxNominatorsPerCollator::get() {
 				self.add_top_nominator(Bond { owner: acc, amount });
 				self.total_counted += amount;
-				self.total_backing += amount;
 				Ok(Some(self.total_counted))
 			} else {
 				let last_nomination_in_top = self
@@ -254,9 +254,8 @@ pub mod pallet {
 					.pop()
 					.expect("self.top_nominators.len() >= T::Max exists >= 1 element in top");
 				if amount > last_nomination_in_top.amount {
-					// update total with positive difference
+					// update total_counted with positive difference
 					self.total_counted += amount - last_nomination_in_top.amount;
-					self.total_backing += amount - last_nomination_in_top.amount;
 					// last nomination already popped from top_nominators
 					// insert new nominator into top_nominators
 					self.add_top_nominator(Bond { owner: acc, amount });
@@ -266,7 +265,6 @@ pub mod pallet {
 					// push previously popped last nomination into top_nominators
 					self.top_nominators.push(last_nomination_in_top);
 					self.add_bottom_nominator(Bond { owner: acc, amount });
-					self.total_backing += amount;
 					Ok(None)
 				}
 			}
@@ -295,12 +293,11 @@ pub mod pallet {
 				// last element has largest amount as per ordering
 				if let Some(last) = self.bottom_nominators.pop() {
 					self.total_counted -= s - last.amount;
-					self.total_backing -= s - last.amount;
 					self.add_top_nominator(last);
 				} else {
 					self.total_counted -= s;
-					self.total_backing -= s;
 				}
+				self.total_backing -= s;
 				return Ok((true, s));
 			}
 			self.bottom_nominators = self
@@ -1330,7 +1327,7 @@ pub mod pallet {
 			let in_top = collator.inc_nominator(nominator.clone(), more);
 			let after = collator.total_counted;
 			if collator.is_active() && (before != after) {
-				Self::update_active(candidate.clone(), collator.total_counted);
+				Self::update_active(candidate.clone(), after);
 			}
 			<CollatorState<T>>::insert(&candidate, collator);
 			<NominatorState<T>>::insert(&nominator, nominations);
