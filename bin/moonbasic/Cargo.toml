@@ -136,6 +136,4 @@ substrate-test-runtime-client = { git = "https://github.com/paritytech/substrate
 [features]
 default = []
 
-test-spec = []
-
 runtime-benchmarks = ["moonbase-runtime/runtime-benchmarks"]

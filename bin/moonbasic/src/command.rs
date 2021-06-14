@@ -24,22 +24,17 @@ use cli_opt::RpcConfig;
 use cumulus_client_service::genesis::generate_genesis_block;
 use moonbase_runtime::Block;
 use parity_scale_codec::Encode;
-use sc_cli::{
-	ChainSpec,
-	Result, RuntimeVersion, SubstrateCli,
-};
-use sc_service::{
-	PartialComponents,
-};
+use sc_cli::{ChainSpec, Result, RuntimeVersion, SubstrateCli};
+use sc_service::PartialComponents;
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::Block as _;
 use std::io::Write;
 
-fn load_spec(
-	id: &str,
-) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
+fn load_spec(id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	match id {
-		"dev" | "development" | "local" | "" => Ok(Box::new(chain_spec::development_chain_spec(None, None))),
+		"dev" | "development" | "local" | "" => {
+			Ok(Box::new(chain_spec::development_chain_spec(None, None)))
+		}
 		path => Ok(Box::new(chain_spec::ChainSpec::from_json_file(
 			path.into(),
 		)?)),
@@ -56,7 +51,8 @@ impl SubstrateCli for Cli {
 	}
 
 	fn description() -> String {
-		"A simple instant seal node that runs the moonbase runtime with a mocked parachain inherent".into()
+		"A simple instant seal node that runs the moonbase runtime with a mocked parachain inherent"
+			.into()
 	}
 
 	fn author() -> String {
@@ -113,7 +109,6 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::CheckBlock(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|config| {
-
 				let PartialComponents {
 					client,
 					task_manager,
@@ -148,7 +143,6 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::ImportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|config| {
-
 				let PartialComponents {
 					client,
 					task_manager,
@@ -179,9 +173,8 @@ pub fn run() -> Result<()> {
 			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
 			let _ = builder.init();
 
-			let block: Block = generate_genesis_block(&load_spec(
-				&params.chain.clone().unwrap_or_default(),
-			)?)?;
+			let block: Block =
+				generate_genesis_block(&load_spec(&params.chain.clone().unwrap_or_default())?)?;
 			let raw_header = block.header().encode();
 			let output_buf = if params.raw {
 				raw_header
@@ -232,26 +225,25 @@ pub fn run() -> Result<()> {
 		None => {
 			let runner = cli.create_runner(&(*cli.run).normalize())?;
 
-			runner
-				.run_node_until_exit(|config| async move {
-					let rpc_config = RpcConfig {
-						ethapi: cli.run.ethapi,
-						ethapi_max_permits: cli.run.ethapi_max_permits,
-						ethapi_trace_max_count: cli.run.ethapi_trace_max_count,
-						ethapi_trace_cache_duration: cli.run.ethapi_trace_cache_duration,
-						max_past_logs: cli.run.max_past_logs,
-					};
+			runner.run_node_until_exit(|config| async move {
+				let rpc_config = RpcConfig {
+					ethapi: cli.run.ethapi,
+					ethapi_max_permits: cli.run.ethapi_max_permits,
+					ethapi_trace_max_count: cli.run.ethapi_trace_max_count,
+					ethapi_trace_cache_duration: cli.run.ethapi_trace_cache_duration,
+					max_past_logs: cli.run.max_past_logs,
+				};
 
-					// When running the dev service, just use Alice's author inherent
-					//TODO maybe make the --alice etc flags work here, and consider bringing back
-					// the author-id flag. For now, this will work.
-					let author_id = Some(crate::chain_spec::get_from_seed::<
-						nimbus_primitives::NimbusId,
-					>("Alice"));
+				// When running the dev service, just use Alice's author inherent
+				//TODO maybe make the --alice etc flags work here, and consider bringing back
+				// the author-id flag. For now, this will work.
+				let author_id = Some(crate::chain_spec::get_from_seed::<
+					nimbus_primitives::NimbusId,
+				>("Alice"));
 
-					crate::service::new_dev(config, author_id, cli.run.sealing, rpc_config)
+				crate::service::new_dev(config, author_id, cli.run.sealing, rpc_config)
 					.map_err(Into::into)
-				}
-				)}
+			})
+		}
 	}
 }

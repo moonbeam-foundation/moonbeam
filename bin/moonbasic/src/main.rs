@@ -20,8 +20,6 @@
 #![warn(unused_extern_crates)]
 
 mod chain_spec;
-#[cfg(feature = "test-spec")]
-mod test_spec;
 #[macro_use]
 mod service;
 mod cli;

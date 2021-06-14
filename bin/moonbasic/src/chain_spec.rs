@@ -24,11 +24,11 @@ use cumulus_primitives_core::ParaId;
 use evm::GenesisAccount;
 use log::debug;
 use moonbase_runtime::{
-	AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	CouncilCollectiveConfig, DemocracyConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig,
-	GenesisConfig, InflationInfo, ParachainInfoConfig, ParachainStakingConfig, Range,
-	SchedulerConfig, SudoConfig, SystemConfig, TechComitteeCollectiveConfig, currency::UNITS,
-	WASM_BINARY, CrowdloanRewardsConfig, Precompiles,
+	currency::UNITS, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
+	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
+	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig,
+	ParachainStakingConfig, Precompiles, Range, SchedulerConfig, SudoConfig, SystemConfig,
+	TechComitteeCollectiveConfig, WASM_BINARY,
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;

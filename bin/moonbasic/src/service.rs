@@ -22,9 +22,7 @@
 //! Full Service: A complete parachain node including the pool, rpc, network, embedded relay chain
 //! Dev Service: A leaner service without the relay chain backing.
 
-use crate::{
-	inherents, rpc,
-};
+use crate::{inherents, rpc};
 use async_io::Timer;
 use fc_consensus::FrontierBlockImport;
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
@@ -38,13 +36,13 @@ use sc_service::{
 	error::Error as ServiceError, BasePath, Configuration, PartialComponents, TFullBackend,
 	TFullClient, TaskManager,
 };
+use sp_blockchain::HeaderBackend;
 use sp_core::H256;
 use std::{
 	collections::{BTreeMap, HashMap},
 	sync::{Arc, Mutex},
 	time::Duration,
 };
-use sp_blockchain::HeaderBackend;
 
 // Our native executor instance.
 native_executor_instance!(
@@ -287,7 +285,9 @@ pub fn new_dev(
 						.number(block)
 						.expect("Header lookup should succeed")
 						.expect("Header passed in as parent should be present in backend.");
-					let author_id = author_id.clone().expect("Author id must be set whe nrunning in collator mode.");
+					let author_id = author_id
+						.clone()
+						.expect("Author id must be set whe nrunning in collator mode.");
 
 					async move {
 						let time = sp_timestamp::InherentDataProvider::from_system_time();
