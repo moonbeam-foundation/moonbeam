@@ -386,6 +386,7 @@ pub mod pallet {
 					self.add_bottom_nominator(lowest_top);
 					return false;
 				} else {
+					self.total_counted -= less;
 					return true;
 				}
 			}
