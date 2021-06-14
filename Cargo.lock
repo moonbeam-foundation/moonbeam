@@ -4845,9 +4845,11 @@ dependencies = [
  "moonbeam-cli",
  "moonbeam-service",
  "nix",
+ "pallet-xcm",
  "serde",
  "serde_json",
  "tempfile",
+ "xcm-builder",
 ]
 
 [[package]]
