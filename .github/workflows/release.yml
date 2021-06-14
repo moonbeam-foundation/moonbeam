@@ -418,42 +418,34 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: moonbase-srtool-json
-          path: moonbase_srtool_output.json
       - name: Download moonbase runtime
         uses: actions/download-artifact@v2
         with:
           name: moonbase-runtime
-          path: moonbase-runtime.wasm
       # - name: Download moonshadow srtool json output
       #   uses: actions/download-artifact@v2
       #   with:
       #     name: moonshadow-srtool-json
-      #     path: moonshadow_srtool_output.json
       # - name: Download moonshadow runtime
       #   uses: actions/download-artifact@v2
       #   with:
       #     name: moonshadow-runtime
-      #     path: moonshadow-runtime.wasm
       # - name: Download moonriver srtool json output
       #   uses: actions/download-artifact@v2
       #   with:
       #     name: moonriver-srtool-json
-      #     path: moonriver_srtool_output.json
       # - name: Download moonriver runtime
       #   uses: actions/download-artifact@v2
       #   with:
       #     name: moonriver-runtime
-      #     path: moonriver-runtime.wasm
       # - name: Download moonbeam srtool json output
       #   uses: actions/download-artifact@v2
       #   with:
       #     name: moonbeam-srtool-json
-      #     path: moonbeam_srtool_output.json
       # - name: Download moonbeam runtime
       #   uses: actions/download-artifact@v2
       #   with:
       #     name: moonbeam-runtime
-      #     path: moonbeam-runtime.wasm
       - name: Use Node.js 14.x
         uses: actions/setup-node@v2
         with:
