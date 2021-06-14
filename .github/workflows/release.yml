@@ -462,7 +462,7 @@ jobs:
         run: |
           cd tools
           npm install
-          node_modules/.bin.ts-node github/generate-release-body.ts > build/body.md
+          node_modules/.bin.ts-node github/generate-release-body.ts > body.md
       - name: Get runtime version
         id: get-runtime-ver
         run: |
@@ -486,7 +486,7 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: Moonbase ${{ github.ref }}
-          body_path: build/body.md
+          body_path: body.md
           draft: true
       - name: Upload moonbase wasm
         uses: actions/upload-release-asset@v1
