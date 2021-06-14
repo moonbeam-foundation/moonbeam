@@ -21,13 +21,10 @@ use crate::{
 	cli::{Cli, Subcommand},
 };
 use cli_opt::RpcConfig;
-use cumulus_client_service::genesis::generate_genesis_block;
 use moonbase_runtime::Block;
-use parity_scale_codec::Encode;
 use sc_cli::{ChainSpec, Result, RuntimeVersion, SubstrateCli};
 use sc_service::PartialComponents;
 use sp_core::hexdisplay::HexDisplay;
-use sp_runtime::traits::Block as _;
 use std::io::Write;
 
 fn load_spec(id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
@@ -168,26 +165,8 @@ pub fn run() -> Result<()> {
 				Ok((cmd.run(client, backend), task_manager))
 			})
 		}
-		Some(Subcommand::ExportGenesisState(params)) => {
-			let mut builder = sc_cli::LoggerBuilder::new("");
-			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
-			let _ = builder.init();
-
-			let block: Block =
-				generate_genesis_block(&load_spec(&params.chain.clone().unwrap_or_default())?)?;
-			let raw_header = block.header().encode();
-			let output_buf = if params.raw {
-				raw_header
-			} else {
-				format!("0x{:?}", HexDisplay::from(&block.header().encode())).into_bytes()
-			};
-
-			if let Some(output) = &params.output {
-				std::fs::write(output, output_buf)?;
-			} else {
-				std::io::stdout().write_all(&output_buf)?;
-			}
-
+		Some(Subcommand::ExportGenesisState(_params)) => {
+			//Not supported in moonbasic to remove dependency on cumulus-client-service crate
 			Ok(())
 		}
 		Some(Subcommand::ExportGenesisWasm(params)) => {

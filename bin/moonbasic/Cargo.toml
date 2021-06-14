@@ -89,26 +89,13 @@ fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "moo
 
 # Cumulus dependencies
 cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.4" }
-cumulus-client-consensus-common = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.4" }
-cumulus-client-collator = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.4" }
-cumulus-client-network = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.4" }
 cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.4" }
-cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.4" }
 cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.4" }
 cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.4" }
 
 # Nimbus dependencies
-nimbus-consensus = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.4" }
 pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.4" }
-# TODO we should be able to depend only on the primitives crate once we move the inherent data provider there.
 nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.4" }
-
-# Polkadot dependencies
-polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.4" }
-polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.4" }
-polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.4" }
-polkadot-test-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.4" }
-polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.4" }
 
 # benchmarking dependencies
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4" }
@@ -121,11 +108,6 @@ substrate-build-script-utils = { git = "https://github.com/paritytech/substrate"
 assert_cmd = "0.12"
 nix = "0.17"
 rand = "0.7.3"
-
-# Polkadot dev-dependencies
-polkadot-runtime-common = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.4" }
-polkadot-test-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.4" }
-polkadot-test-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.4" }
 
 # Substrate dev-dependencies
 pallet-sudo = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4" }
