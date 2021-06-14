@@ -265,10 +265,9 @@ pub mod pallet {
 	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
 			for (author_id, account_id) in &self.mappings {
-				match Pallet::<T>::enact_registration(&author_id, &account_id) {
-					Err(e) => log::warn!("Error with genesis registration: {:?}", e),
-					_ => (),
-				};
+				if let Err(e) = Pallet::<T>::enact_registration(&author_id, &account_id) {
+					log::warn!("Error with genesis author mapping registration: {:?}", e);
+				}
 			}
 		}
 	}
