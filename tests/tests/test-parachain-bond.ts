@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { Keyring } from "@polkadot/api";
 import { KeyringPair } from "@polkadot/keyring/types";
+import { Event } from "@polkadot/types/interfaces";
 import {
   DEFAULT_GENESIS_MAPPING,
   DEFAULT_GENESIS_STAKING,
@@ -20,9 +21,10 @@ describeDevMoonbeam("Staking - Parachain Bond - genesis and setParachainBondAcco
   });
   it("should have right parachain bond in genesis", async function () {
     const parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
-    console.log("parachainBondInfo", parachainBondInfo.toHuman());
-    // const expectedReserved = DEFAULT_GENESIS_STAKING + DEFAULT_GENESIS_MAPPING;
-    // expect(account.data.reserved.toString()).to.equal(expectedReserved.toString());
+    expect(parachainBondInfo.toHuman()["account"]).to.equal(
+      "0x0000000000000000000000000000000000000000"
+    );
+    expect(parachainBondInfo.toHuman()["percent"]).to.equal("30.00%");
   });
   it("should be able set the parachain bond with sudo", async function () {
     // should be able to register the genesis account for reward
@@ -31,7 +33,8 @@ describeDevMoonbeam("Staking - Parachain Bond - genesis and setParachainBondAcco
       .signAndSend(sudoAccount);
     await context.createBlock();
     const parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
-    console.log("parachainBondInfo", parachainBondInfo.toHuman());
+    expect(parachainBondInfo.toHuman()["account"]).to.equal(GENESIS_ACCOUNT);
+    expect(parachainBondInfo.toHuman()["percent"]).to.equal("30.00%");
   });
 });
 
@@ -49,6 +52,44 @@ describeDevMoonbeam("Staking - Parachain Bond - no sudo", (context) => {
       .signAndSend(genesisAccount);
     await context.createBlock();
     const parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
-    console.log("parachainBondInfo", parachainBondInfo.toHuman());
+    expect(parachainBondInfo.toHuman()["account"]).to.equal(
+      "0x0000000000000000000000000000000000000000"
+    );
+    expect(parachainBondInfo.toHuman()["percent"]).to.equal("30.00%");
+  });
+  it("should appear after transfer", async function () {
+    // const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(1);
+    const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
+    const allRecords = await context.polkadotApi.query.system.events.at(
+      signedBlock.block.header.hash
+    );
+
+    // map between the extrinsics and events
+    signedBlock.block.extrinsics.forEach(({ method: { method, section } }, index) => {
+      // filter the specific events based on the phase and then the
+      // index of our extrinsic in the block
+      const events: Event[] = allRecords
+        .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
+        .map(({ event }) => event);
+
+      switch (index) {
+        // First 3 events:
+        case 0:
+        case 1:
+        case 2:
+          break;
+        // Fourth event: parachainStaking.setParachainBondAccount
+        case 3:
+          expect(section === "parachainStaking" && method === "setParachainBondAccount").to.be.true;
+          expect(events.length === 4);
+          expect(context.polkadotApi.events.system.NewAccount.is(events[0])).to.be.true;
+          expect(context.polkadotApi.events.balances.Endowed.is(events[1])).to.be.true;
+          expect(context.polkadotApi.events.ethereum.Deposit.is(events[2])).to.be.true;
+          expect(context.polkadotApi.events.system.ExtrinsicFailed.is(events[3])).to.be.true;
+          break;
+        default:
+          throw new Error(`Unexpected extrinsic`);
+      }
+    });
   });
 });
