@@ -456,7 +456,7 @@ jobs:
           ls -la
           cd tools
           npm install
-          node_modules/.bin/ts-node github/generate-release-body.ts > body.md
+          node_modules/.bin/ts-node github/generate-release-body.ts > ../body.md
       - name: Get runtime version
         id: get-runtime-ver
         run: |
