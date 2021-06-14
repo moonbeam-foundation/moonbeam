@@ -18,32 +18,25 @@
 
 use crate::{
 	chain_spec,
-	cli::{Cli, Subcommand, RunCmd},
+	cli::{Cli, Subcommand},
 };
 use cli_opt::RpcConfig;
 use cumulus_client_service::genesis::generate_genesis_block;
-use cumulus_primitives_core::ParaId;
-use log::info;
-use moonbase_runtime::{AccountId, Block};
+use moonbase_runtime::Block;
 use parity_scale_codec::Encode;
-use polkadot_parachain::primitives::AccountIdConversion;
-use polkadot_service::RococoChainSpec;
 use sc_cli::{
-	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
-	NetworkParams, Result, RuntimeVersion, SharedParams, SubstrateCli,
+	ChainSpec,
+	Result, RuntimeVersion, SubstrateCli,
 };
 use sc_service::{
-	config::{BasePath, PrometheusConfig},
 	PartialComponents,
 };
 use sp_core::hexdisplay::HexDisplay;
-use sp_core::H160;
 use sp_runtime::traits::Block as _;
-use std::{io::Write, net::SocketAddr, str::FromStr};
+use std::io::Write;
 
 fn load_spec(
 	id: &str,
-	para_id: ParaId,
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	match id {
 		"dev" | "development" | "local" | "" => Ok(Box::new(chain_spec::development_chain_spec(None, None))),
@@ -79,7 +72,7 @@ impl SubstrateCli for Cli {
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-		load_spec(id, self.run.parachain_id.unwrap_or(1000).into())
+		load_spec(id)
 	}
 
 	fn native_runtime_version(_: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
@@ -188,7 +181,6 @@ pub fn run() -> Result<()> {
 
 			let block: Block = generate_genesis_block(&load_spec(
 				&params.chain.clone().unwrap_or_default(),
-				params.parachain_id.into(),
 			)?)?;
 			let raw_header = block.header().encode();
 			let output_buf = if params.raw {

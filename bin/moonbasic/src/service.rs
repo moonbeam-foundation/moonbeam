@@ -23,33 +23,27 @@
 //! Dev Service: A leaner service without the relay chain backing.
 
 use crate::{
-	cli::RunCmd,
 	inherents, rpc,
 };
 use async_io::Timer;
 use fc_consensus::FrontierBlockImport;
-use fc_rpc::EthTask;
 use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use futures::{Stream, StreamExt};
-use moonbeam_rpc_debug::DebugHandler;
 use moonbase_runtime::{opaque::Block, RuntimeApi};
 use nimbus_primitives::NimbusId;
-use sc_cli::SubstrateCli;
-use sc_client_api::BlockchainEvents;
 use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
 use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
 use sc_service::{
-	error::Error as ServiceError, BasePath, Configuration, PartialComponents, Role, TFullBackend,
+	error::Error as ServiceError, BasePath, Configuration, PartialComponents, TFullBackend,
 	TFullClient, TaskManager,
 };
-use sp_core::{H160, H256};
+use sp_core::H256;
 use std::{
 	collections::{BTreeMap, HashMap},
 	sync::{Arc, Mutex},
 	time::Duration,
 };
-use tokio::sync::Semaphore;
 use sp_blockchain::HeaderBackend;
 
 // Our native executor instance.

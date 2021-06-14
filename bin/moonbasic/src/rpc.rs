@@ -123,13 +123,6 @@ where
 	A: ChainApi<Block = Block> + 'static,
 	P: TransactionPool<Block = Block> + 'static,
 {
-	use fc_rpc::{
-		EthApi, EthApiServer, EthFilterApi, EthFilterApiServer, EthPubSubApi, EthPubSubApiServer,
-		HexEncodedIdProvider, NetApi, NetApiServer, Web3Api, Web3ApiServer,
-	};
-	use moonbeam_rpc_debug::{Debug, DebugServer};
-	use moonbeam_rpc_trace::{Trace, TraceServer};
-	use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
 	use substrate_frame_rpc_system::{FullSystem, SystemApi};
 

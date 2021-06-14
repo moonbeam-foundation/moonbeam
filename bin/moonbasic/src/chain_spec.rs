@@ -100,6 +100,7 @@ pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Pu
 		.public()
 }
 
+//TODO I think I can get rid of this extension entirely.
 /// The extensions for the [`ChainSpec`].
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
 #[serde(deny_unknown_fields)]
@@ -108,13 +109,6 @@ pub struct Extensions {
 	pub relay_chain: String,
 	/// The id of the Parachain.
 	pub para_id: u32,
-}
-
-impl Extensions {
-	/// Try to get the extension from the given `ChainSpec`.
-	pub fn try_get(chain_spec: &dyn sc_service::ChainSpec) -> Option<&Self> {
-		sc_chain_spec::get_extension(chain_spec.extensions())
-	}
 }
 
 /// Function to generate accounts given a mnemonic and a number of child accounts to be generated
@@ -143,7 +137,7 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 	let parent_mnemonic = mnemonic.unwrap_or(
 		"bottom drive obey lake curtain smoke basket hold race lonely fit walk".to_string(),
 	);
-	let mut accounts = generate_accounts(parent_mnemonic, num_accounts.unwrap_or(10));
+	let accounts = generate_accounts(parent_mnemonic, num_accounts.unwrap_or(10));
 	ChainSpec::from_genesis(
 		"Moonbase Development Testnet",
 		"development",
