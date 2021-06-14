@@ -929,6 +929,7 @@ fn nominator_bond_more_less_via_precompile() {
 					AccountId::from(BOB),
 					AccountId::from(ALICE),
 					1_500 * MSHD,
+					true,
 					2_000 * MSHD,
 				)),
 				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
@@ -972,6 +973,7 @@ fn nominator_bond_more_less_via_precompile() {
 					AccountId::from(BOB),
 					AccountId::from(ALICE),
 					2_000 * MSHD,
+					true,
 					1_500 * MSHD,
 				)),
 				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(

@@ -471,8 +471,11 @@ export const moonbeamDefinitions = {
           id: "AccountId",
           fee: "Perbill",
           bond: "Balance",
-          nominators: "Vec<Bond>",
-          total: "Balance",
+          nominators: "Vec<AccountId>",
+          top_nominators: "Vec<Bond>",
+          bottom_nominators: "Vec<Bond>",
+          total_counted: "Balance",
+          total_backing: "Balance",
           state: "CollatorStatus",
         },
         Nominator: {
