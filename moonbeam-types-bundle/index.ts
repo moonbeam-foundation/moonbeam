@@ -467,17 +467,6 @@ export const moonbeamDefinitions = {
         },
         ExtrinsicSignature: "EthereumSignature",
         RoundIndex: "u32",
-        Candidate: {
-          id: "AccountId",
-          fee: "Perbill",
-          bond: "Balance",
-          nominators: "Vec<AccountId>",
-          top_nominators: "Vec<Bond>",
-          bottom_nominators: "Vec<Bond>",
-          total_counted: "Balance",
-          total_backing: "Balance",
-          state: "CollatorStatus",
-        },
         Nominator: {
           nominations: "Vec<Bond>",
           total: "Balance",
@@ -535,8 +524,11 @@ export const moonbeamDefinitions = {
         Collator: {
           id: "AccountId",
           bond: "Balance",
-          nominators: "Vec<Bond>",
-          total: "Balance",
+          nominators: "Vec<AccountId>",
+          top_nominators: "Vec<Bond>",
+          bottom_nominators: "Vec<Bond>",
+          total_counted: "Balance",
+          total_backing: "Balance",
           state: "CollatorStatus",
         },
         CollatorSnapshot: {
