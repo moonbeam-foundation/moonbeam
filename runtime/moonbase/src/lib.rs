@@ -121,7 +121,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 3,
 	spec_version: 49,
-	impl_version: 1,
+	impl_version: 2,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
 };
@@ -766,6 +766,16 @@ pub type Executive = frame_executive::Executive<
 	AllPallets,
 >;
 
+// All of our runtimes share most of their Runtime API implementations.
+// We use a macro to implement this common part and add runtime-specific additional implementations.
+// This macro expands to :
+// ```
+// impl_runtime_apis! {
+//     // All impl blocks shared between all runtimes.
+//
+//     // Specific impls provided to the `impl_runtime_apis_plus_common!` macro.
+// }
+// ```
 runtime_common::impl_runtime_apis_plus_common! {
 	impl sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block> for Runtime {
 		fn validate_transaction(
