@@ -462,16 +462,16 @@ jobs:
         run: |
           runtime_moonbase_ver="$(cat ./runtime/moonbase/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
           echo "::set-output name=runtime_moonbase_ver::$runtime_moonbase_ver"
-          mv moonbase-runtime.wasm moonbase-runtime-${runtime_moonbase_ver}.wasm
+          mv moonbase_runtime.compact.wasm moonbase-runtime-${runtime_moonbase_ver}.wasm
           # runtime_moonshadow_ver="$(cat ./runtime/moonshadow/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
           # echo "::set-output name=runtime_moonshadow_ver::$runtime_moonshadow_ver"
-          # mv moonshadow-runtime.wasm moonshadow-runtime-${runtime_moonshadow_ver}.wasm
+          # mv moonshadow_runtime.compact.wasm moonshadow-runtime-${runtime_moonshadow_ver}.wasm
           # runtime_moonriver_ver="$(cat ./runtime/moonriver/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
           # echo "::set-output name=runtime_moonriver_ver::$runtime_moonriver_ver"
-          # mv moonriver-runtime.wasm moonriver-runtime-${runtime_moonriver_ver}.wasm
+          # mv moonriver_runtime.compact.wasm moonriver-runtime-${runtime_moonriver_ver}.wasm
           # runtime_moonbeam_ver="$(cat ./runtime/moonbeam/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
           # echo "::set-output name=runtime_moonbeam_ver::$runtime_moonbeam_ver"
-          # mv moonbeam-runtime.wasm moonbeam-runtime-${runtime_moonbeam_ver}.wasm
+          # mv moonbeam_runtime.compact.wasm moonbeam-runtime-${runtime_moonbeam_ver}.wasm
       - name: Create draft release
         id: create-release
         uses: actions/create-release@v1
@@ -488,7 +488,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: moonbase-runtime.wasm
+          asset_path: moonbase-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbase_ver }}.wasm
           asset_name: moonbase-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbase_ver }}.wasm
           asset_content_type: application/octet-stream
       # - name: Upload moonshadow wasm
@@ -497,7 +497,7 @@ jobs:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       #   with:
       #     upload_url: ${{ steps.create-release.outputs.upload_url }}
-      #     asset_path: moonshadow-runtime.wasm
+      #     asset_path: moonshadow-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonshadow_ver }}.wasm
       #     asset_name: moonshadow-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonshadow_ver }}.wasm
       #     asset_content_type: application/octet-stream
       # - name: Upload moonriver wasm
@@ -506,7 +506,7 @@ jobs:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       #   with:
       #     upload_url: ${{ steps.create-release.outputs.upload_url }}
-      #     asset_path: moonriver-runtime.wasm
+      #     asset_path: moonriver-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonriver_ver }}.wasm
       #     asset_name: moonriver-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonriver_ver }}.wasm
       #     asset_content_type: application/octet-stream
       # - name: Upload moonbeam wasm
@@ -515,7 +515,7 @@ jobs:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       #   with:
       #     upload_url: ${{ steps.create-release.outputs.upload_url }}
-      #     asset_path: moonbeam-runtime.wasm
+      #     asset_path: moonbeam-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbeam_ver }}.wasm
       #     asset_name: moonbeam-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbeam_ver }}.wasm
       #     asset_content_type: application/octet-stream
 
