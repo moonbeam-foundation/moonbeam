@@ -462,15 +462,15 @@ jobs:
           runtime_moonbase_ver="$(cat ./runtime/moonbase/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
           echo "::set-output name=runtime_moonbase_ver::$runtime_moonbase_ver"
           mv moonbase_runtime.compact.wasm moonbase-runtime-${runtime_moonbase_ver}.wasm
-          # runtime_moonshadow_ver="$(cat ./runtime/moonshadow/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
-          # echo "::set-output name=runtime_moonshadow_ver::$runtime_moonshadow_ver"
-          # mv moonshadow_runtime.compact.wasm moonshadow-runtime-${runtime_moonshadow_ver}.wasm
-          # runtime_moonriver_ver="$(cat ./runtime/moonriver/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
-          # echo "::set-output name=runtime_moonriver_ver::$runtime_moonriver_ver"
-          # mv moonriver_runtime.compact.wasm moonriver-runtime-${runtime_moonriver_ver}.wasm
-          # runtime_moonbeam_ver="$(cat ./runtime/moonbeam/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
-          # echo "::set-output name=runtime_moonbeam_ver::$runtime_moonbeam_ver"
-          # mv moonbeam_runtime.compact.wasm moonbeam-runtime-${runtime_moonbeam_ver}.wasm
+          runtime_moonshadow_ver="$(cat ./runtime/moonshadow/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
+          echo "::set-output name=runtime_moonshadow_ver::$runtime_moonshadow_ver"
+          mv moonshadow_runtime.compact.wasm moonshadow-runtime-${runtime_moonshadow_ver}.wasm
+          runtime_moonriver_ver="$(cat ./runtime/moonriver/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
+          echo "::set-output name=runtime_moonriver_ver::$runtime_moonriver_ver"
+          mv moonriver_runtime.compact.wasm moonriver-runtime-${runtime_moonriver_ver}.wasm
+          runtime_moonbeam_ver="$(cat ./runtime/moonbeam/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
+          echo "::set-output name=runtime_moonbeam_ver::$runtime_moonbeam_ver"
+          mv moonbeam_runtime.compact.wasm moonbeam-runtime-${runtime_moonbeam_ver}.wasm
       - name: Create draft release
         id: create-release
         uses: actions/create-release@v1
