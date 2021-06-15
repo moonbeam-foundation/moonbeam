@@ -146,7 +146,7 @@ For the default configuration, you can access through polkadotjs:
 - relay node 1: https://polkadot.js.org/apps/?rpc=ws://localhost:34002
 - parachain node 1: https://polkadot.js.org/apps/?rpc=ws://localhost:34102
 
-### Exemple of output:
+### Example of output:
 
 ```
 └────╼ npm run launch moonriver-genesis-fast
