@@ -83,9 +83,12 @@ where
 			[0x8f, 0x6d, 0x27, 0xc7] => {
 				return Self::is_selected_candidate(&input[SELECTOR_SIZE_BYTES..]);
 			}
-			// c9f593b2
 			[0xc9, 0xf5, 0x93, 0xb2] => {
+				//TODO Do we need to verify that there were no additional bytes passed in here?
 				return Self::min_nomination();
+			}
+			[0x97, 0x99, 0xb4, 0xe7] => {
+				return Self::points(&input[SELECTOR_SIZE_BYTES..]);
 			}
 
 			// If not an accessor, check for dispatchables. These calls ready for dispatch below.
@@ -176,6 +179,7 @@ fn parse_account(input: &[u8]) -> Result<H160, ExitError> {
 	))
 }
 
+//TODO refactor this function in terms of the next function.
 /// Parses an amount of ether from a 256 bit (32 byte) slice. The balance type is generic.
 fn parse_amount<Balance>(input: &[u8]) -> Result<Balance, ExitError>
 where
@@ -199,6 +203,26 @@ where
 		.try_into()
 		.map_err(|_| ExitError::Other("Amount is too large for provided balance type".into()))?;
 	Ok(amount)
+}
+
+
+/// Parses a uint256 value
+fn parse_uint256(input: &[u8]) -> Result<U256, ExitError> {
+	// In solidity all values are encoded to this width
+	const SIZE_BYTES: usize = 32;
+
+	if input.len() != SIZE_BYTES {
+		log::trace!(target: "staking-precompile",
+			"Unable to parse uint256. Got {} bytes, expected {}",
+			input.len(),
+			SIZE_BYTES,
+		);
+		return Err(ExitError::Other(
+			"Incorrect input length for amount parsing".into(),
+		));
+	}
+
+	Ok(U256::from_big_endian(&input[0..SIZE_BYTES]))
 }
 
 impl<Runtime> ParachainStakingWrapper<Runtime>
@@ -330,6 +354,31 @@ where
 			exit_status: ExitSucceed::Returned,
 			cost: gas_consumed,
 			output: buffer.to_vec(),
+			logs: Default::default(),
+		})
+	}
+
+	fn points(input: &[u8]) -> Result<PrecompileOutput, ExitError> {
+		let round_u256 = parse_uint256(input)?;
+
+		// Make sure the round number fits in a u32
+		if round_u256.leading_zeros() < 256 - 32 {
+			return Err(ExitError::Other("Round is too large. 32 bit maximum".into()));
+		}
+		let round: u32 = round_u256.low_u32();
+
+		// Read the point value and format it for Solidity
+		let points: u32 = parachain_staking::Pallet::<Runtime>::points(round);
+		let mut output = [0u8; 32];
+		U256::from(points).to_big_endian(&mut output);
+
+		// TODO find gas cost of single storage read
+		let gas_consumed = 0;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gas_consumed,
+			output: output.to_vec(),
 			logs: Default::default(),
 		})
 	}
