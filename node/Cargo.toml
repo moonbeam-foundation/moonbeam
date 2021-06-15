@@ -23,10 +23,17 @@ assert_cmd = "0.12"
 nix = "0.17"
 tempfile = "3.2.0"
 hex = "0.4.3"
+# required for benchmarking
+pallet-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.4" }
+xcm-builder = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.4" }
 
 [features]
 default = []
 
 test-spec = []
 
-runtime-benchmarks = ["moonbeam-cli/runtime-benchmarks"]
+runtime-benchmarks = [
+	"moonbeam-cli/runtime-benchmarks",
+	"pallet-xcm/runtime-benchmarks",
+	"xcm-builder/runtime-benchmarks",
+]
