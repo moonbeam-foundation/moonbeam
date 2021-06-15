@@ -16,6 +16,8 @@ from the given docker images.
 
 ### Installation
 
+(Docker is required for using network configurations other than "local")
+
 ```
 yarn install
 ```
