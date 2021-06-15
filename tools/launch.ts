@@ -10,7 +10,7 @@
  *
  */
 
-import minimist from "minimist";
+import yargs from "yargs";
 import * as fs from "fs";
 import * as path from "path";
 import * as child_process from "child_process";
@@ -34,7 +34,7 @@ type ParachainConfig = NetworkConfig & {
 
 const parachains: { [name: string]: ParachainConfig } = {
   "moonriver-genesis": {
-    relay: "kusama-v9040",
+    relay: "kusama-9040",
     chain: "moonriver-local",
     docker: "purestake/moonbeam:moonriver-genesis",
   },
@@ -43,12 +43,12 @@ const parachains: { [name: string]: ParachainConfig } = {
     chain: "moonriver-local",
     docker: "purestake/moonbeam:sha-153c4c4a",
   },
-  "alphanet-v8.1": {
+  "alphanet-8.1": {
     relay: "rococo-9004",
     chain: "moonbase-local",
     docker: "purestake/moonbeam:v0.8.1",
   },
-  "alphanet-v8.0": {
+  "alphanet-8.0": {
     relay: "rococo-9001",
     chain: "moonbase-local",
     docker: "purestake/moonbeam:v0.8.0",
@@ -62,19 +62,19 @@ const parachains: { [name: string]: ParachainConfig } = {
 const parachainNames = Object.keys(parachains);
 
 const relays: { [name: string]: NetworkConfig } = {
-  "kusama-v9030": {
+  "kusama-9030": {
     docker: "purestake/moonbase-relay-testnet:sha-aa386760",
     chain: "kusama-local",
   },
-  "kusama-v9040": {
+  "kusama-9040": {
     docker: "purestake/moonbase-relay-testnet:sha-2f28561a",
     chain: "kusama-local",
   },
-  "kusama-v9030-fast": {
+  "kusama-9030-fast": {
     docker: "purestake/moonbase-relay-testnet:sha-832cc0af",
     chain: "kusama-local",
   },
-  "kusama-v9040-fast": {
+  "kusama-9040-fast": {
     docker: "purestake/moonbase-relay-testnet:sha-2239072e",
     chain: "kusama-local",
   },
@@ -90,6 +90,14 @@ const relays: { [name: string]: NetworkConfig } = {
     docker: "purestake/moonbase-relay-testnet:sha-2f28561a",
     chain: "rococo-local",
   },
+  "westend-9030": {
+    docker: "purestake/moonbase-relay-testnet:sha-aa386760",
+    chain: "westend-local",
+  },
+  "westend-9040": {
+    docker: "purestake/moonbase-relay-testnet:sha-2f28561a",
+    chain: "westend-local",
+  },
   local: {
     binary: "../../polkadot/target/release/polkadot",
     chain: "rococo-local",
@@ -98,27 +106,62 @@ const relays: { [name: string]: NetworkConfig } = {
 const relayNames = Object.keys(relays);
 
 function start() {
-  const argv = minimist(process.argv.slice(2));
-
-  if (argv._.length != 1) {
-    console.error(`Invalid arguments (expected: 1, got: ${argv._.length})`);
-    console.error(
-      `Usage: ts-node launch.ts <${parachainNames.join("|")}>` +
-        ` [--parachain-chain <moonbase-local|moonriver-local|...>]` +
-        ` [--parachain-id 1000] [--relay <${relayNames.join("|")}>]` +
-        ` [--relay-chain <rococo-local|kusama-local|westend-local|...>]`
-    );
-    return;
-  }
-  if (!parachainNames.includes(argv._[0])) {
-    console.error(`Invalid parachain name: ${argv._[0]}`);
-    console.error(`Expected one of: ${parachainNames.join(", ")}`);
-    return;
-  }
+  const argv = yargs(process.argv.slice(2))
+    .usage("Usage: npm run launch [args]")
+    .version("1.0.0")
+    .options({
+      parachain: {
+        type: "string",
+        choices: Object.keys(parachains),
+        default: "local",
+        describe: "which parachain configuration to run",
+      },
+      "parachain-chain": {
+        type: "string",
+        choices: [
+          "moonbase",
+          "moonshadow",
+          "moonriver",
+          "moonbeam",
+          "moonbase-local",
+          "moonshadow-local",
+          "moonriver-local",
+          "moonbeam-local",
+        ],
+        describe: "overrides parachain chain/runtime",
+      },
+      "parachain-id": { type: "number", default: 1000, describe: "overrides parachain-id" },
+      relay: {
+        type: "string",
+        choices: Object.keys(relays),
+        describe: "overrides relay configuration",
+      },
+      "relay-chain": {
+        type: "string",
+        choices: [
+          "rococo",
+          "westend",
+          "kusama",
+          "polkadot",
+          "rococo-local",
+          "westend-local",
+          "kusama-local",
+          "polkadot-local",
+        ],
+        describe: "overrides relay chain/runtime",
+      },
+      "port-prefix": {
+        type: "number",
+        default: 34,
+        check: (port) => port >= 0 && port <= 64,
+        describe: "provides port prefix for nodes",
+      },
+    })
+    .help().argv;
 
   const portPrefix = argv["port-prefix"] || 34;
   const startingPort = portPrefix * 1000;
-  const parachainName = argv._[0];
+  const parachainName = argv.parachain.toString();
   const parachain = parachains[parachainName];
   const parachainChain = argv["parachain-chain"] || parachain.chain;
 
@@ -134,7 +177,7 @@ function start() {
   const relayChain = argv["relay-chain"] || relay.chain;
 
   console.log(
-    `🚀     Relay: ${relayName.padEnd(20)} - ${relay.docker || relay.binary} (${relayChain})`
+    `🚀 Relay:     ${relayName.padEnd(20)} - ${relay.docker || relay.binary} (${relayChain})`
   );
 
   let parachainBinary;
@@ -273,7 +316,7 @@ const launchTemplate = {
   parachains: [
     {
       bin: "...",
-      id: "...",
+      id: 1000,
       balance: "1000000000000000000000",
       chain: "...",
       nodes: [
