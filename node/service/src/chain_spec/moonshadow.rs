@@ -44,9 +44,9 @@ pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
 /// Generate a chain spec for use with the development service.
 pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32>) -> ChainSpec {
 	// Default mnemonic if none was provided
-	let parent_mnemonic = mnemonic.unwrap_or(
-		"bottom drive obey lake curtain smoke basket hold race lonely fit walk".to_string(),
-	);
+	let parent_mnemonic = mnemonic.unwrap_or_else(|| {
+		"bottom drive obey lake curtain smoke basket hold race lonely fit walk".to_string()
+	});
 	let mut accounts = generate_accounts(parent_mnemonic, num_accounts.unwrap_or(10));
 	// We add Gerald here
 	accounts.push(AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap());
@@ -66,7 +66,6 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 				)],
 				// Nominations
 				vec![],
-				moonbeam_inflation_config(),
 				accounts.clone(),
 				3_000_000 * MSHD,
 				Default::default(), // para_id
@@ -115,7 +114,6 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 				],
 				// Nominations
 				vec![],
-				moonbeam_inflation_config(),
 				vec![
 					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
 					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
@@ -161,7 +159,6 @@ pub fn testnet_genesis(
 	root_key: AccountId,
 	candidates: Vec<(AccountId, NimbusId, Balance)>,
 	nominations: Vec<(AccountId, AccountId, Balance)>,
-	inflation_config: InflationInfo<Balance>,
 	endowed_accounts: Vec<AccountId>,
 	crowdloan_fund_pot: Balance,
 	para_id: ParaId,
@@ -213,7 +210,7 @@ pub fn testnet_genesis(
 				.collect(),
 		},
 		pallet_ethereum: EthereumConfig {},
-		pallet_democracy: DemocracyConfig {},
+		pallet_democracy: DemocracyConfig::default(),
 		pallet_scheduler: SchedulerConfig {},
 		parachain_staking: ParachainStakingConfig {
 			candidates: candidates
@@ -222,7 +219,7 @@ pub fn testnet_genesis(
 				.map(|(account, _, bond)| (account, bond))
 				.collect(),
 			nominations,
-			inflation_config,
+			inflation_config: moonbeam_inflation_config(),
 		},
 		pallet_collective_Instance1: CouncilCollectiveConfig {
 			phantom: Default::default(),

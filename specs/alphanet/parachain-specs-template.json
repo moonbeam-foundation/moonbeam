@@ -149,7 +149,9 @@
         ],
         "nominations": []
       },
-      "palletDemocracy": {},
+      "palletDemocracy": {
+        "phantom": null
+      },
       "palletCollectiveInstance1": {
         "phantom": null,
         "members": [

@@ -80,14 +80,15 @@ pub mod currency {
 	use super::Balance;
 
 	pub const MOVR: Balance = 1_000_000_000_000_000_000;
-	pub const CENTS: Balance = MOVR / 100;
-	pub const GRAND: Balance = MOVR * 1_000;
-	pub const MILLICENTS: Balance = CENTS / 1_000;
+	pub const KILOMOVRS: Balance = MOVR * 1_000;
+	pub const MILLIMOVRS: Balance = MOVR / 1_000;
+	pub const MICROMOVRS: Balance = MILLIMOVRS / 1_000;
+	pub const NANOMOVRS: Balance = MICROMOVRS / 1_000;
 
-	pub const BYTE_FEE: Balance = 1 * MILLICENTS;
+	pub const BYTE_FEE: Balance = 100 * MICROMOVRS;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 100 * CENTS + (bytes as Balance) * BYTE_FEE
+		items as Balance * 1 * MOVR + (bytes as Balance) * BYTE_FEE
 	}
 }
 
@@ -122,7 +123,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 49,
+	spec_version: 51,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -154,7 +155,7 @@ impl Filter<Call> for BaseFilter {
 }
 
 parameter_types! {
-	pub const BlockHashCount: BlockNumber = 250;
+	pub const BlockHashCount: BlockNumber = 256;
 	pub const Version: RuntimeVersion = VERSION;
 	/// We allow for one half second of compute with a 6 second average block time.
 	/// These values are dictated by Polkadot for the parachain.
@@ -309,7 +310,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		1_000_000_000.into()
+		(1 * currency::NANOMOVRS).into()
 	}
 }
 
@@ -548,7 +549,7 @@ parameter_types! {
 	/// Default percent of inflation set aside for parachain bond every round
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	/// Minimum stake required to be reserved to be a collator is 1_000
-	pub const MinCollatorStk: u128 = 1_000 * currency::MOVR;
+	pub const MinCollatorStk: u128 = 1 * currency::KILOMOVRS;
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5 * currency::MOVR;
 }
@@ -632,7 +633,18 @@ parameter_types! {
 }
 
 /// The type used to represent the kinds of proxying allowed.
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug)]
+#[derive(
+	Copy,
+	Clone,
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	Debug,
+	max_encoded_len::MaxEncodedLen,
+)]
 pub enum ProxyType {
 	/// All calls can be proxied. This is the trivial/most permissive filter.
 	Any,
@@ -747,7 +759,7 @@ construct_runtime! {
 
 		// Governance stuff.
 		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call} = 60,
-		Democracy: pallet_democracy::{Pallet, Storage, Config, Event<T>, Call} = 61,
+		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 61,
 
 		// Council stuff.
 		CouncilCollective:
@@ -912,7 +924,7 @@ impl_runtime_apis! {
 									)
 								},
 								TraceType::CallList => {
-									Ok(CallListTracer::new()
+									Ok(CallListTracer::default()
 										.trace(|| Executive::apply_extrinsic(ext))
 										.0
 										.into_tx_trace()
@@ -953,7 +965,7 @@ impl_runtime_apis! {
 			for ext in extrinsics.into_iter() {
 				match &ext.function {
 					Call::Ethereum(transact(_transaction)) => {
-						let tx_traces = CallListTracer::new()
+						let tx_traces = CallListTracer::default()
 							.trace(|| Executive::apply_extrinsic(ext))
 							.0
 							.into_tx_trace();

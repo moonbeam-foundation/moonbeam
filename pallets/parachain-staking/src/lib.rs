@@ -73,7 +73,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::{Decode, Encode};
 	use sp_runtime::{
-		traits::{AtLeast32BitUnsigned, Zero},
+		traits::{AtLeast32BitUnsigned, Saturating, Zero},
 		Perbill, Percent, RuntimeDebug,
 	};
 	use sp_std::{cmp::Ordering, prelude::*};
@@ -177,7 +177,7 @@ pub mod pallet {
 			self.bond += more;
 			self.total += more;
 		}
-		// Returns None if underflow or less == self.bond (in which case collator should leave)
+		// Return None if less >= self.bond => collator must leave instead of bond less
 		pub fn bond_less(&mut self, less: B) -> Option<B> {
 			if self.bond > less {
 				self.bond -= less;
@@ -259,8 +259,8 @@ pub mod pallet {
 				false
 			}
 		}
-		// Returns Some(remaining balance), must be more than MinNominatorStk
-		// Returns None if nomination not found
+		// Return Some(remaining balance), must be more than MinNominatorStk
+		// Return None if nomination not found
 		pub fn rm_nomination(&mut self, collator: AccountId) -> Option<Balance> {
 			let mut amt: Option<Balance> = None;
 			let nominations = self
@@ -284,20 +284,20 @@ pub mod pallet {
 				None
 			}
 		}
-		// Returns None if nomination not found
-		pub fn inc_nomination(&mut self, collator: AccountId, more: Balance) -> Option<Balance> {
+		// Return false if nomination not found
+		pub fn inc_nomination(&mut self, collator: AccountId, more: Balance) -> bool {
 			for x in &mut self.nominations.0 {
 				if x.owner == collator {
 					x.amount += more;
 					self.total += more;
-					return Some(x.amount);
+					return true;
 				}
 			}
-			None
+			false
 		}
-		// Returns Some(Some(balance)) if successful
-		// None if nomination not found
-		// Some(None) if underflow
+		// Return Some(Some(balance)) if successful
+		// Return None if nomination not found
+		// Return Some(None) if less >= nomination_total
 		pub fn dec_nomination(
 			&mut self,
 			collator: AccountId,
@@ -310,7 +310,7 @@ pub mod pallet {
 						self.total -= less;
 						return Some(Some(x.amount));
 					} else {
-						// underflow error; should rm entire nomination if x.amount == collator
+						// must rm entire nomination if x.amount <= less
 						return Some(None);
 					}
 				}
@@ -363,7 +363,7 @@ pub mod pallet {
 		> Default for RoundInfo<B>
 	{
 		fn default() -> RoundInfo<B> {
-			RoundInfo::new(1u32, 1u32.into(), 20u32.into())
+			RoundInfo::new(1u32, 1u32.into(), 20u32)
 		}
 	}
 
@@ -442,9 +442,10 @@ pub mod pallet {
 		ExceedMaxCollatorsPerNom,
 		AlreadyNominatedCollator,
 		NominationDNE,
-		Underflow,
+		CannotBondLessGEQTotalBond,
 		InvalidSchedule,
 		CannotSetBelowMin,
+		NoWritingSameValue,
 	}
 
 	#[pallet::event]
@@ -506,6 +507,27 @@ pub mod pallet {
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+		// This upgrade fixes a bug that may have led to an incorrect `Total` (total staked)
+		fn on_runtime_upgrade() -> Weight {
+			let old_total = Total::<T>::get();
+			let mut new_total: BalanceOf<T> = 0u32.into();
+
+			for collator_state in CollatorState::<T>::iter_values() {
+				new_total += collator_state.total;
+			}
+
+			Total::<T>::put(new_total);
+
+			log::trace!(
+				target: "staking",
+				"Finished migrating storage.\nOld Total : {:?}\nNew Total : {:?}",
+				old_total,
+				new_total,
+			);
+
+			300_000_000_000 // Three fifths of the max block weight
+		}
+
 		fn on_finalize(n: T::BlockNumber) {
 			let mut round = <Round<T>>::get();
 			if round.should_update(n) {
@@ -665,10 +687,16 @@ pub mod pallet {
 					T::Currency::free_balance(&candidate) >= balance,
 					"Account does not have enough balance to bond as a cadidate."
 				);
-				let _ = <Pallet<T>>::join_candidates(
+				if let Err(error) = <Pallet<T>>::join_candidates(
 					T::Origin::from(Some(candidate.clone()).into()),
 					balance,
-				);
+				) {
+					log::trace!(
+						target: "staking",
+						"Join candidates failed in genesis with error {:?}",
+						error
+					);
+				}
 			}
 			// Initialize the nominations
 			for &(ref nominator, ref target, balance) in &self.nominations {
@@ -676,11 +704,17 @@ pub mod pallet {
 					T::Currency::free_balance(&nominator) >= balance,
 					"Account does not have enough balance to place nomination."
 				);
-				let _ = <Pallet<T>>::nominate(
+				if let Err(error) = <Pallet<T>>::nominate(
 					T::Origin::from(Some(nominator.clone()).into()),
 					target.clone(),
 					balance,
-				);
+				) {
+					log::trace!(
+						target: "staking",
+						"Join nominators failed in genesis with error {:?}",
+						error
+					);
+				}
 			}
 			// Set collator commission to default config
 			<CollatorCommission<T>>::put(T::DefaultCollatorCommission::get());
@@ -721,6 +755,10 @@ pub mod pallet {
 			frame_system::ensure_root(origin)?;
 			ensure!(expectations.is_valid(), Error::<T>::InvalidSchedule);
 			let mut config = <InflationConfig<T>>::get();
+			ensure!(
+				config.expect != expectations,
+				Error::<T>::NoWritingSameValue
+			);
 			config.set_expectations(expectations);
 			Self::deposit_event(Event::StakeExpectationsSet(
 				config.expect.min,
@@ -739,6 +777,7 @@ pub mod pallet {
 			frame_system::ensure_root(origin)?;
 			ensure!(schedule.is_valid(), Error::<T>::InvalidSchedule);
 			let mut config = <InflationConfig<T>>::get();
+			ensure!(config.annual != schedule, Error::<T>::NoWritingSameValue);
 			config.annual = schedule;
 			config.set_round_from_annual::<T>(schedule);
 			Self::deposit_event(Event::InflationSet(
@@ -761,11 +800,12 @@ pub mod pallet {
 			frame_system::ensure_root(origin)?;
 			let ParachainBondConfig {
 				account: old,
-				percent: pct,
+				percent,
 			} = <ParachainBondInfo<T>>::get();
+			ensure!(old != new, Error::<T>::NoWritingSameValue);
 			<ParachainBondInfo<T>>::put(ParachainBondConfig {
 				account: new.clone(),
-				percent: pct,
+				percent,
 			});
 			Self::deposit_event(Event::ParachainBondAccountSet(old, new));
 			Ok(().into())
@@ -778,11 +818,12 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			frame_system::ensure_root(origin)?;
 			let ParachainBondConfig {
-				account: acc,
+				account,
 				percent: old,
 			} = <ParachainBondInfo<T>>::get();
+			ensure!(old != new, Error::<T>::NoWritingSameValue);
 			<ParachainBondInfo<T>>::put(ParachainBondConfig {
-				account: acc,
+				account,
 				percent: new,
 			});
 			Self::deposit_event(Event::ParachainBondReservePercentSet(old, new));
@@ -798,6 +839,7 @@ pub mod pallet {
 				Error::<T>::CannotSetBelowMin
 			);
 			let old = <TotalSelected<T>>::get();
+			ensure!(old != new, Error::<T>::NoWritingSameValue);
 			<TotalSelected<T>>::put(new);
 			Self::deposit_event(Event::TotalSelectedSet(old, new));
 			Ok(().into())
@@ -806,12 +848,13 @@ pub mod pallet {
 		/// Set the commission for all collators
 		pub fn set_collator_commission(
 			origin: OriginFor<T>,
-			pct: Perbill,
+			new: Perbill,
 		) -> DispatchResultWithPostInfo {
 			frame_system::ensure_root(origin)?;
 			let old = <CollatorCommission<T>>::get();
-			<CollatorCommission<T>>::put(pct);
-			Self::deposit_event(Event::CollatorCommissionSet(old, pct));
+			ensure!(old != new, Error::<T>::NoWritingSameValue);
+			<CollatorCommission<T>>::put(new);
+			Self::deposit_event(Event::CollatorCommissionSet(old, new));
 			Ok(().into())
 		}
 		#[pallet::weight(0)]
@@ -827,6 +870,7 @@ pub mod pallet {
 			);
 			let mut round = <Round<T>>::get();
 			let (now, first, old) = (round.current, round.first, round.length);
+			ensure!(old != new, Error::<T>::NoWritingSameValue);
 			round.length = new;
 			// update per-round inflation given new rounds per year
 			let mut inflation_config = <InflationConfig<T>>::get();
@@ -867,10 +911,10 @@ pub mod pallet {
 			);
 			T::Currency::reserve(&acc, bond)?;
 			let candidate = Collator::new(acc.clone(), bond);
-			let new_total = <Total<T>>::get() + bond;
-			<Total<T>>::put(new_total);
 			<CollatorState<T>>::insert(&acc, candidate);
 			<CandidatePool<T>>::put(candidates);
+			let new_total = <Total<T>>::get().saturating_add(bond);
+			<Total<T>>::put(new_total);
 			Self::deposit_event(Event::JoinedCollatorCandidates(acc, bond, new_total));
 			Ok(().into())
 		}
@@ -962,6 +1006,8 @@ pub mod pallet {
 				Self::update_active(collator.clone(), state.total);
 			}
 			<CollatorState<T>>::insert(&collator, state);
+			let new_total = <Total<T>>::get().saturating_add(more);
+			<Total<T>>::put(new_total);
 			Self::deposit_event(Event::CollatorBondedMore(collator, before, after));
 			Ok(().into())
 		}
@@ -975,7 +1021,9 @@ pub mod pallet {
 			let mut state = <CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_leaving(), Error::<T>::CannotActivateIfLeaving);
 			let before = state.bond;
-			let after = state.bond_less(less).ok_or(Error::<T>::Underflow)?;
+			let after = state
+				.bond_less(less)
+				.ok_or(Error::<T>::CannotBondLessGEQTotalBond)?;
 			ensure!(
 				after >= T::MinCollatorCandidateStk::get(),
 				Error::<T>::ValBondBelowMin
@@ -985,6 +1033,8 @@ pub mod pallet {
 				Self::update_active(collator.clone(), state.total);
 			}
 			<CollatorState<T>>::insert(&collator, state);
+			let new_total_staked = <Total<T>>::get().saturating_sub(less);
+			<Total<T>>::put(new_total_staked);
 			Self::deposit_event(Event::CollatorBondedLess(collator, before, after));
 			Ok(().into())
 		}
@@ -997,82 +1047,56 @@ pub mod pallet {
 			amount: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
-			if let Some(mut nominator) = <NominatorState<T>>::get(&acc) {
+			let nominator = if let Some(mut nom) = <NominatorState<T>>::get(&acc) {
 				// nomination after first
 				ensure!(
 					amount >= T::MinNomination::get(),
 					Error::<T>::NominationBelowMin
 				);
 				ensure!(
-					(nominator.nominations.0.len() as u32) < T::MaxCollatorsPerNominator::get(),
+					(nom.nominations.0.len() as u32) < T::MaxCollatorsPerNominator::get(),
 					Error::<T>::ExceedMaxCollatorsPerNom
 				);
-				let mut state =
-					<CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 				ensure!(
-					nominator.add_nomination(Bond {
+					nom.add_nomination(Bond {
 						owner: collator.clone(),
 						amount
 					}),
 					Error::<T>::AlreadyNominatedCollator
 				);
-				let nomination = Bond {
-					owner: acc.clone(),
-					amount,
-				};
-				ensure!(
-					(state.nominators.0.len() as u32) < T::MaxNominatorsPerCollator::get(),
-					Error::<T>::TooManyNominators
-				);
-				ensure!(
-					state.nominators.insert(nomination),
-					Error::<T>::NominatorExists
-				);
-				T::Currency::reserve(&acc, amount)?;
-				let new_total = state.total + amount;
-				if state.is_active() {
-					Self::update_active(collator.clone(), new_total);
-				}
-				let new_total_locked = <Total<T>>::get() + amount;
-				<Total<T>>::put(new_total_locked);
-				state.total = new_total;
-				<CollatorState<T>>::insert(&collator, state);
-				<NominatorState<T>>::insert(&acc, nominator);
-				Self::deposit_event(Event::Nomination(acc, amount, collator, new_total));
+				nom
 			} else {
 				// first nomination
 				ensure!(
 					amount >= T::MinNominatorStk::get(),
 					Error::<T>::NomBondBelowMin
 				);
-				// cannot be a collator candidate and nominator with same AccountId
 				ensure!(!Self::is_candidate(&acc), Error::<T>::CandidateExists);
-				let mut state =
-					<CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
-				let nomination = Bond {
+				Nominator::new(collator.clone(), amount)
+			};
+			let mut state = <CollatorState<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
+			ensure!(
+				(state.nominators.0.len() as u32) < T::MaxNominatorsPerCollator::get(),
+				Error::<T>::TooManyNominators
+			);
+			ensure!(
+				state.nominators.insert(Bond {
 					owner: acc.clone(),
 					amount,
-				};
-				ensure!(
-					state.nominators.insert(nomination),
-					Error::<T>::NominatorExists
-				);
-				ensure!(
-					(state.nominators.0.len() as u32) <= T::MaxNominatorsPerCollator::get(),
-					Error::<T>::TooManyNominators
-				);
-				T::Currency::reserve(&acc, amount)?;
-				let new_total = state.total + amount;
-				if state.is_active() {
-					Self::update_active(collator.clone(), new_total);
-				}
-				let new_total_locked = <Total<T>>::get() + amount;
-				<Total<T>>::put(new_total_locked);
-				state.total = new_total;
-				<CollatorState<T>>::insert(&collator, state);
-				<NominatorState<T>>::insert(&acc, Nominator::new(collator.clone(), amount));
-				Self::deposit_event(Event::Nomination(acc, amount, collator, new_total));
+				}),
+				Error::<T>::NominatorExists
+			);
+			T::Currency::reserve(&acc, amount)?;
+			let new_total = state.total + amount;
+			if state.is_active() {
+				Self::update_active(collator.clone(), new_total);
 			}
+			let new_total_locked = <Total<T>>::get() + amount;
+			<Total<T>>::put(new_total_locked);
+			state.total = new_total;
+			<CollatorState<T>>::insert(&collator, state);
+			<NominatorState<T>>::insert(&acc, nominator);
+			Self::deposit_event(Event::Nomination(acc, amount, collator, new_total));
 			Ok(().into())
 		}
 		/// Leave the set of nominators and, by implication, revoke all ongoing nominations
@@ -1107,9 +1131,10 @@ pub mod pallet {
 				<NominatorState<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
 			let mut collator =
 				<CollatorState<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
-			let _ = nominations
-				.inc_nomination(candidate.clone(), more)
-				.ok_or(Error::<T>::NominationDNE)?;
+			ensure!(
+				nominations.inc_nomination(candidate.clone(), more),
+				Error::<T>::NominationDNE
+			);
 			T::Currency::reserve(&nominator, more)?;
 			let before = collator.total;
 			collator.inc_nominator(nominator.clone(), more);
@@ -1119,6 +1144,8 @@ pub mod pallet {
 			}
 			<CollatorState<T>>::insert(&candidate, collator);
 			<NominatorState<T>>::insert(&nominator, nominations);
+			let new_total_staked = <Total<T>>::get().saturating_add(more);
+			<Total<T>>::put(new_total_staked);
 			Self::deposit_event(Event::NominationIncreased(
 				nominator, candidate, before, after,
 			));
@@ -1139,7 +1166,7 @@ pub mod pallet {
 			let remaining = nominations
 				.dec_nomination(candidate.clone(), less)
 				.ok_or(Error::<T>::NominationDNE)?
-				.ok_or(Error::<T>::Underflow)?;
+				.ok_or(Error::<T>::CannotBondLessGEQTotalBond)?;
 			ensure!(
 				remaining >= T::MinNomination::get(),
 				Error::<T>::NominationBelowMin
@@ -1157,6 +1184,8 @@ pub mod pallet {
 			}
 			<CollatorState<T>>::insert(&candidate, collator);
 			<NominatorState<T>>::insert(&nominator, nominations);
+			let new_total_staked = <Total<T>>::get().saturating_sub(less);
+			<Total<T>>::put(new_total_staked);
 			Self::deposit_event(Event::NominationDecreased(
 				nominator, candidate, before, after,
 			));
@@ -1188,16 +1217,13 @@ pub mod pallet {
 		fn compute_issuance(staked: BalanceOf<T>) -> BalanceOf<T> {
 			let config = <InflationConfig<T>>::get();
 			let round_issuance = crate::inflation::round_issuance_range::<T>(config.round);
+			// TODO: consider interpolation instead of bounded range
 			if staked < config.expect.min {
-				return round_issuance.min;
+				round_issuance.min
 			} else if staked > config.expect.max {
-				return round_issuance.max;
+				round_issuance.max
 			} else {
-				// TODO: split up into 3 branches
-				// 1. min < staked < ideal
-				// 2. ideal < staked < max
-				// 3. staked == ideal
-				return round_issuance.ideal;
+				round_issuance.ideal
 			}
 		}
 		fn nominator_revokes_collator(
@@ -1265,66 +1291,57 @@ pub mod pallet {
 			Ok(().into())
 		}
 		fn pay_stakers(next: RoundIndex) {
+			// payout is next - duration rounds ago => next - duration > 0 else return early
+			let duration = T::BondDuration::get();
+			if next <= duration {
+				return;
+			}
+			let round_to_payout = next - duration;
+			let total = <Points<T>>::get(round_to_payout);
+			if total.is_zero() {
+				return;
+			}
+			let total_staked = <Staked<T>>::get(round_to_payout);
+			let mut issuance = Self::compute_issuance(total_staked);
+			// reserve portion of issuance for parachain bond account
+			let bond_config = <ParachainBondInfo<T>>::get();
+			let parachain_bond_reserve = bond_config.percent * issuance;
+			if let Ok(imb) =
+				T::Currency::deposit_into_existing(&bond_config.account, parachain_bond_reserve)
+			{
+				// update round issuance iff transfer succeeds
+				issuance -= imb.peek();
+				Self::deposit_event(Event::ReservedForParachainBond(
+					bond_config.account,
+					imb.peek(),
+				));
+			}
 			let mint = |amt: BalanceOf<T>, to: T::AccountId| {
-				if amt > T::Currency::minimum_balance() {
-					if let Ok(imb) = T::Currency::deposit_into_existing(&to, amt) {
-						Self::deposit_event(Event::Rewarded(to.clone(), imb.peek()));
-					}
+				if let Ok(imb) = T::Currency::deposit_into_existing(&to, amt) {
+					Self::deposit_event(Event::Rewarded(to.clone(), imb.peek()));
 				}
 			};
-			let duration = T::BondDuration::get();
 			let collator_fee = <CollatorCommission<T>>::get();
-			if next > duration {
-				let round_to_payout = next - duration;
-				let total = <Points<T>>::get(round_to_payout);
-				if total.is_zero() {
-					// return early, no issuance
-					return;
-				}
-				let total_staked = <Staked<T>>::get(round_to_payout);
-				let mut issuance = Self::compute_issuance(total_staked);
-				// reserve portion of issuance for parachain bond account
-				let bond_config = <ParachainBondInfo<T>>::get();
-				let parachain_bond_reserve = bond_config.percent * issuance;
-				if let Ok(imb) =
-					T::Currency::deposit_into_existing(&bond_config.account, parachain_bond_reserve)
-				{
-					// update round issuance iff transfer succeeds
-					issuance -= imb.peek();
-					Self::deposit_event(Event::ReservedForParachainBond(
-						bond_config.account,
-						imb.peek(),
-					));
-				}
-				for (val, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
-					let pct_due = Perbill::from_rational(pts, total);
-					let mut amt_due = pct_due * issuance;
-					if amt_due <= T::Currency::minimum_balance() {
-						continue;
-					}
-					// Take the snapshot of block author and nominations
-					let state = <AtStake<T>>::take(round_to_payout, &val);
-					if state.nominators.is_empty() {
-						// solo collator with no nominators
-						mint(amt_due, val.clone());
-					} else {
-						// pay collator first; commission + due_portion
-						let val_pct = Perbill::from_rational(state.bond, state.total);
-						let commission = collator_fee * amt_due;
-						let val_due = if commission > T::Currency::minimum_balance() {
-							amt_due -= commission;
-							(val_pct * amt_due) + commission
-						} else {
-							// commission is negligible so not applied
-							val_pct * amt_due
-						};
-						mint(val_due, val.clone());
-						// pay nominators due portion
-						for Bond { owner, amount } in state.nominators {
-							let percent = Perbill::from_rational(amount, state.total);
-							let due = percent * amt_due;
-							mint(due, owner);
-						}
+			for (val, pts) in <AwardedPts<T>>::drain_prefix(round_to_payout) {
+				let pct_due = Perbill::from_rational(pts, total);
+				let mut amt_due = pct_due * issuance;
+				// Take the snapshot of block author and nominations
+				let state = <AtStake<T>>::take(round_to_payout, &val);
+				if state.nominators.is_empty() {
+					// solo collator with no nominators
+					mint(amt_due, val.clone());
+				} else {
+					// pay collator first; commission + due_portion
+					let val_pct = Perbill::from_rational(state.bond, state.total);
+					let commission = collator_fee * amt_due;
+					amt_due -= commission;
+					let val_due = (val_pct * amt_due) + commission;
+					mint(val_due, val.clone());
+					// pay nominators due portion
+					for Bond { owner, amount } in state.nominators {
+						let percent = Perbill::from_rational(amount, state.total);
+						let due = percent * amt_due;
+						mint(due, owner);
 					}
 				}
 			}
@@ -1356,13 +1373,13 @@ pub mod pallet {
 							}
 							// return stake to collator
 							T::Currency::unreserve(&state.id, state.bond);
-							let new_total = <Total<T>>::get() - state.total;
-							<Total<T>>::put(new_total);
 							<CollatorState<T>>::remove(&x.owner);
+							let new_total_staked = <Total<T>>::get().saturating_sub(state.total);
+							<Total<T>>::put(new_total_staked);
 							Self::deposit_event(Event::CollatorLeft(
 								x.owner,
 								state.total,
-								new_total,
+								new_total_staked,
 							));
 						}
 						None

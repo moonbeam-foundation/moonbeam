@@ -42,13 +42,9 @@ use cumulus_client_network::build_block_announce_validator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
-use nimbus_consensus::{
-	build_filtering_consensus as build_nimbus_consensus, BuildNimbusConsensusParams,
-};
+use nimbus_consensus::{build_nimbus_consensus, BuildNimbusConsensusParams};
 use nimbus_primitives::NimbusId;
 
-// use inherents::build_inherent_data_providers;
-use polkadot_primitives::v0::CollatorPair;
 pub use sc_executor::NativeExecutor;
 use sc_executor::{native_executor_instance, NativeExecutionDispatch};
 use sc_service::{
@@ -166,6 +162,7 @@ use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
 
 /// Builds a new object suitable for chain operations.
+#[allow(clippy::type_complexity)]
 pub fn new_chain_ops(
 	mut config: &mut Configuration,
 ) -> Result<
@@ -354,7 +351,7 @@ where
 				Ok((time,))
 			},
 			&task_manager.spawn_essential_handle(),
-			config.prometheus_registry().clone(),
+			config.prometheus_registry(),
 		)?
 	};
 
@@ -412,7 +409,6 @@ impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::UncheckedExtrinsic>
 /// This is the actual implementation that is abstract over the executor and the runtime api.
 async fn start_node_impl<RuntimeApi, Executor>(
 	parachain_config: Configuration,
-	collator_key: CollatorPair,
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	rpc_config: RpcConfig,
@@ -440,15 +436,12 @@ where
 		frontier_backend,
 	) = params.other;
 
-	let relay_chain_full_node = cumulus_client_service::build_polkadot_full_node(
-		polkadot_config,
-		collator_key.clone(),
-		telemetry_worker_handle,
-	)
-	.map_err(|e| match e {
-		polkadot_service::Error::Sub(x) => x,
-		s => format!("{}", s).into(),
-	})?;
+	let relay_chain_full_node =
+		cumulus_client_service::build_polkadot_full_node(polkadot_config, telemetry_worker_handle)
+			.map_err(|e| match e {
+				polkadot_service::Error::Sub(x) => x,
+				s => format!("{}", s).into(),
+			})?;
 
 	let client = params.client.clone();
 	let backend = params.backend.clone();
@@ -464,7 +457,7 @@ where
 	let transaction_pool = params.transaction_pool.clone();
 	let mut task_manager = params.task_manager;
 	let import_queue = cumulus_client_service::SharedImportQueue::new(params.import_queue);
-	let (network, network_status_sinks, system_rpc_tx, start_network) =
+	let (network, system_rpc_tx, start_network) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &parachain_config,
 			client: client.clone(),
@@ -551,7 +544,6 @@ where
 		keystore: params.keystore_container.sync_keystore(),
 		backend: backend.clone(),
 		network: network.clone(),
-		network_status_sinks,
 		system_rpc_tx,
 		telemetry: telemetry.as_mut(),
 	})?;
@@ -567,7 +559,7 @@ where
 			client.clone(),
 			transaction_pool,
 			prometheus_registry.as_ref(),
-			telemetry.as_ref().map(|t| t.handle()).clone(),
+			telemetry.as_ref().map(|t| t.handle()),
 		);
 
 		let relay_chain_backend = relay_chain_full_node.backend.clone();
@@ -615,7 +607,6 @@ where
 			announce_block,
 			client: client.clone(),
 			task_manager: &mut task_manager,
-			collator_key,
 			spawner,
 			relay_chain_full_node,
 			parachain_consensus,
@@ -643,7 +634,6 @@ where
 /// Start a normal parachain node.
 pub async fn start_node<RuntimeApi, Executor>(
 	parachain_config: Configuration,
-	collator_key: CollatorPair,
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	rpc_config: RpcConfig,
@@ -655,14 +645,7 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
-	start_node_impl(
-		parachain_config,
-		collator_key,
-		polkadot_config,
-		id,
-		rpc_config,
-	)
-	.await
+	start_node_impl(parachain_config, polkadot_config, id, rpc_config).await
 }
 
 /// Builds a new development service. This service uses manual seal, and mocks
@@ -697,7 +680,7 @@ pub fn new_dev(
 			),
 	} = new_partial::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(&config, true)?;
 
-	let (network, network_status_sinks, system_rpc_tx, network_starter) =
+	let (network, system_rpc_tx, network_starter) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &config,
 			client: client.clone(),
@@ -724,9 +707,6 @@ pub fn new_dev(
 	let collator = config.role.is_authority();
 
 	if collator {
-		//TODO Actually even tthe following TODO isn't relevant.
-		// I ran into some issues with ownership in the closure below,
-		// so this variabel isn't even used yet.
 		//TODO For now, all dev service nodes use Alith's nimbus id in their author inherent.
 		// This could and perhaps should be made more flexible. Here are some options:
 		// 1. a dedicated `--dev-author-id` flag that only works with the dev service
@@ -734,7 +714,7 @@ pub fn new_dev(
 		//    in the parachain context
 		// 3. check the keystore like we do in nimbus. Actually, maybe the keystore-checking could
 		//    be exported as a helper function from nimbus.
-		// let author_id = chain_spec::get_from_seed::<NimbusId>("Alice");
+		let author_id = chain_spec::get_from_seed::<NimbusId>("Alice");
 
 		let env = sc_basic_authorship::ProposerFactory::new(
 			task_manager.spawn_handle(),
@@ -801,6 +781,7 @@ pub fn new_dev(
 						.number(block)
 						.expect("Header lookup should succeed")
 						.expect("Header passed in as parent should be present in backend.");
+					let author_id = author_id.clone();
 
 					async move {
 						let time = sp_timestamp::InherentDataProvider::from_system_time();
@@ -811,10 +792,7 @@ pub fn new_dev(
 							relay_blocks_per_para_block: 2,
 						};
 
-						//TODO I want to use the value from a variable above.
-						let author = nimbus_primitives::InherentDataProvider::<NimbusId>(
-							chain_spec::get_from_seed::<NimbusId>("Alice"),
-						);
+						let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
 
 						Ok((time, mocked_parachain, author))
 					}
@@ -840,10 +818,8 @@ pub fn new_dev(
 		let pool = transaction_pool.clone();
 		let backend = backend.clone();
 		let network = network.clone();
-		let pending = pending_transactions.clone();
-		let filter_pool = filter_pool.clone();
+		let pending = pending_transactions;
 		let ethapi_cmd = rpc_config.ethapi.clone();
-		let frontier_backend = frontier_backend.clone();
 		let max_past_logs = rpc_config.max_past_logs;
 
 		let is_moonbeam = config.chain_spec.is_moonbeam();
@@ -886,15 +862,14 @@ pub fn new_dev(
 
 	let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		network,
-		client: client.clone(),
+		client,
 		keystore: keystore_container.sync_keystore(),
 		task_manager: &mut task_manager,
-		transaction_pool: transaction_pool.clone(),
+		transaction_pool,
 		rpc_extensions_builder,
 		on_demand: None,
 		remote_blockchain: None,
-		backend: backend.clone(),
-		network_status_sinks,
+		backend,
 		system_rpc_tx,
 		config,
 		telemetry: None,
