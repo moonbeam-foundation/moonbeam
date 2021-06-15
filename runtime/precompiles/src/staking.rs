@@ -21,12 +21,11 @@ use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
 use pallet_evm::GasWeightMapping;
 use pallet_evm::Precompile;
-use sp_core::H160;
-use sp_core::U256;
-use sp_std::convert::TryFrom;
-use sp_std::convert::TryInto;
+use sp_core::{H160, U256};
+use sp_std::convert::{TryFrom, TryInto};
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
+use sp_std::vec::Vec;
 
 type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as Currency<
 	<Runtime as frame_system::Config>::AccountId,
@@ -80,6 +79,9 @@ where
 			}
 			[0x85, 0x45, 0xc8, 0x33] => {
 				return Self::is_candidate(&input[SELECTOR_SIZE_BYTES..]);
+			}
+			[0x8f, 0x6d, 0x27, 0xc7] => {
+				return Self::is_selected_candidate(&input[SELECTOR_SIZE_BYTES..]);
 			}
 			// c9f593b2
 			[0xc9, 0xf5, 0x93, 0xb2] => {
@@ -280,6 +282,32 @@ where
 		})
 	}
 
+	fn is_selected_candidate(input: &[u8]) -> Result<PrecompileOutput, ExitError> {
+		// parse the address
+		let candidate = H160::from_slice(&input[12..32]);
+
+		log::trace!(
+			target: "staking-precompile",
+			"Checking whether {:?} is a selected collator",
+			candidate
+		);
+
+		// fetch data from pallet
+		let is_selected = parachain_staking::Pallet::<Runtime>::is_selected_candidate(&candidate.into());
+
+		log::trace!(target: "staking-precompile", "Result from pallet is {:?}", is_selected);
+
+		// TODO find gas cost of single storage read
+		let gas_consumed = 0;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gas_consumed,
+			output: bool_to_solidity_bytes(is_selected),
+			logs: Default::default(),
+		})
+	}
+
 	fn min_nomination() -> Result<PrecompileOutput, ExitError> {
 		// fetch data from pallet
 		let raw_min_nomination: u128 = <
@@ -403,4 +431,17 @@ where
 			amount,
 		))
 	}
+}
+
+// Solidity's bool type is 256 bits as shown by these examples
+// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html
+// This utility function converts a Rust bool into the corresponding Solidity type
+fn bool_to_solidity_bytes(b: bool) -> Vec<u8> {
+		let mut result_bytes = [0u8; 32];
+
+		if b {
+			result_bytes[31] = 1;
+		}
+
+		result_bytes.to_vec()
 }
