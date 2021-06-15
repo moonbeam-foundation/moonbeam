@@ -189,6 +189,12 @@ function start() {
       return;
     }
   } else {
+    if (process.platform != "linux") {
+      console.log(
+        `docker binaries are only supported on linux. Use "local" config for compiled binaries`
+      );
+      return;
+    }
     parachainBinary = `build/${parachainName}/moonbeam`;
     const parachainPath = path.join(__dirname, `build/${parachainName}/moonbeam`);
     if (!fs.existsSync(parachainPath)) {
@@ -215,6 +221,12 @@ function start() {
       return;
     }
   } else {
+    if (process.platform != "linux") {
+      console.log(
+        `docker binaries are only supported on linux. Use "local" config for compiled binaries`
+      );
+      return;
+    }
     relayBinary = `build/${relayName}/polkadot`;
     const relayPath = path.join(__dirname, `build/${relayName}/polkadot`);
     if (!fs.existsSync(relayPath)) {

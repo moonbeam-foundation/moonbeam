@@ -11,7 +11,8 @@ network based on the different version of the runtimes
 As the moonbeam and relay runtimes evolved, more configurations will be added to the script.
 
 To make it easier and faster to run, it will detect and download the binaries
-from the given docker images.
+from the given docker images.  
+(This is only supported on Linux. Other OS must use local configuration, see further)
 
 ### Installation
 
