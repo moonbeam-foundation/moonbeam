@@ -132,7 +132,7 @@ jobs:
             false
           fi
       - name: Ensure benchmarking compiles
-        run: cargo build --release --features=runtime-benchmarks
+        run: cargo check --release --features=runtime-benchmarks
       - name: Unit tests
         run: cargo test --release --all
       - name: Stop sccache
