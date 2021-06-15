@@ -104,9 +104,9 @@ function start() {
     console.error(`Invalid arguments (expected: 1, got: ${argv._.length})`);
     console.error(
       `Usage: ts-node launch.ts <${parachainNames.join("|")}>` +
-        ` [--parachain-chain <moonbase-local|moonshadow-local|moonriver-local|moonbeam-local|...>]` +
+        ` [--parachain-chain <moonbase-local|moonriver-local|...>]` +
         ` [--parachain-id 1000] [--relay <${relayNames.join("|")}>]` +
-        ` [--relay-chain <rococo-local|kusama-local|westend-local|polkadot-local|...>]`
+        ` [--relay-chain <rococo-local|kusama-local|westend-local|...>]`
     );
     return;
   }
