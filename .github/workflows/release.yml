@@ -380,8 +380,6 @@ jobs:
           srtool_output_filename: ${{ matrix.runtime }}_srtool_output.json
         run: |
           cd /build
-          pwd
-          ls -la
           build --json | tee $srtool_output_filename
           cat $srtool_output_filename
           while IFS= read -r line; do
@@ -452,7 +450,6 @@ jobs:
       - name: Generate release body
         id: generate-release-body
         run: |
-          ls -la
           cd tools
           npm install
           node_modules/.bin/ts-node github/generate-release-body.ts > ../body.md
