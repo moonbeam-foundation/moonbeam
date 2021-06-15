@@ -1279,3 +1279,46 @@ fn min_nomination_via_precompile() {
 		);
 	});
 }
+
+#[test]
+fn points_precompile_zero() {
+	ExtBuilder::default().build().execute_with(|| {
+		let staking_precompile_address = H160::from_low_u64_be(2048);
+
+		// Construct the input data to check points so far this round
+		let mut input_data = Vec::<u8>::from([0u8; 36]);
+		input_data[0..4].copy_from_slice(&hex_literal::hex!("9799b4e7"));
+		U256::zero().to_big_endian(&mut input_data[16..36]);
+
+		// Expected result is zero points because nobody has authored yet.
+		let expected_bytes = Vec::from([0u8; 32]);
+		let expected_zero_result = Some(Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: expected_bytes,
+			cost: 0,
+			logs: Default::default(),
+		}));
+
+		// Assert precompile also reports Bob as not a collator candidate
+		assert_eq!(
+			MoonbeamPrecompiles::<Runtime>::execute(
+				staking_precompile_address,
+				&input_data,
+				None,
+				&Context {
+					// This context copied from Sacrifice tests, it's not great.
+					address: Default::default(),
+					caller: Default::default(),
+					apparent_value: From::from(0),
+				}
+			),
+			expected_zero_result
+		);
+	})
+}
+
+// #[test]
+// fn points_precompile_non_zero
+
+// #[test]
+// fn points_precompile_error
