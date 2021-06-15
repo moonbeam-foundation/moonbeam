@@ -1170,6 +1170,81 @@ fn is_candidate_via_precompile() {
 }
 
 #[test]
+fn is_selected_candidate_via_precompile() {
+	ExtBuilder::default()
+		.with_balances(vec![(AccountId::from(ALICE), 1_000 * UNITS)])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNITS)])
+		.build()
+		.execute_with(|| {
+			// Confirm Alice is selected directly
+			assert!(ParachainStaking::is_selected_candidate(&AccountId::from(ALICE)));
+
+			let staking_precompile_address = H160::from_low_u64_be(2048);
+
+			// Construct the input data to check if Alice is a candidate
+			let mut alice_input_data = Vec::<u8>::from([0u8; 36]);
+			alice_input_data[0..4].copy_from_slice(&hex_literal::hex!("8f6d27c7"));
+			alice_input_data[16..36].copy_from_slice(&ALICE);
+
+			// Expected result is an EVM boolean true which is 256 bits long.
+			let mut expected_bytes = Vec::from([0u8; 32]);
+			expected_bytes[31] = 1;
+			let expected_true_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 0,
+				logs: Default::default(),
+			}));
+
+			// Assert precompile reports Alice is a collator candidate
+			assert_eq!(
+				MoonbeamPrecompiles::<Runtime>::execute(
+					staking_precompile_address,
+					&alice_input_data,
+					None, // target_gas is not necessary right now because consumed none now
+					&Context {
+						// This context copied from Sacrifice tests, it's not great.
+						address: Default::default(),
+						caller: Default::default(),
+						apparent_value: From::from(0),
+					}
+				),
+				expected_true_result
+			);
+
+			// Construct the input data to check if Bob is a collator candidate
+			let mut bob_input_data = Vec::<u8>::from([0u8; 36]);
+			bob_input_data[0..4].copy_from_slice(&hex_literal::hex!("8f6d27c7"));
+			bob_input_data[16..36].copy_from_slice(&BOB);
+
+			// Expected result is an EVM boolean false which is 256 bits long.
+			expected_bytes = Vec::from([0u8; 32]);
+			let expected_false_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 0,
+				logs: Default::default(),
+			}));
+
+			// Assert precompile also reports Bob as not a collator candidate
+			assert_eq!(
+				MoonbeamPrecompiles::<Runtime>::execute(
+					staking_precompile_address,
+					&bob_input_data,
+					None,
+					&Context {
+						// This context copied from Sacrifice tests, it's not great.
+						address: Default::default(),
+						caller: Default::default(),
+						apparent_value: From::from(0),
+					}
+				),
+				expected_false_result
+			);
+		})
+}
+
+#[test]
 fn min_nomination_via_precompile() {
 	ExtBuilder::default().build().execute_with(|| {
 		let staking_precompile_address = H160::from_low_u64_be(2048);
