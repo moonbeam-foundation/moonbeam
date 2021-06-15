@@ -407,7 +407,7 @@ impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::UncheckedExtrinsic>
 /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
-#[sc_tracing::logging::prefix_logs_with("Parachain")]
+#[sc_tracing::logging::prefix_logs_with("")]
 async fn start_node_impl<RuntimeApi, Executor>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
