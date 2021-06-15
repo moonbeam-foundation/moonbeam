@@ -32,6 +32,8 @@ jobs:
     outputs:
       is_release: ${{ steps.check-tag.outputs.is_release }}
     steps:
+    # Determine whether this is a release based on the git tags that are applied.
+    # Some other CI tasks check this and only run on releases.
       - name: Check Tag
         id: check-tag
         run: |
