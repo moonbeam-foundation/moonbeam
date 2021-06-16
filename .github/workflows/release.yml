@@ -27,6 +27,21 @@ jobs:
             false
           fi
 
+  set-tags:
+    runs-on: ubuntu-latest
+    outputs:
+      is_release: ${{ steps.check-tag.outputs.is_release }}
+    steps:
+      # Determine whether this is a release based on the git tags that are applied.
+      # Some other CI tasks check this and only run on releases.
+      - name: Check Tag
+        id: check-tag
+        run: |
+          if [[ ${{ github.event.ref }} =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo ::set-output name=is_release::true
+            echo "is_release: true"
+          fi
+
   check-links:
     runs-on: ubuntu-latest
     steps:
@@ -131,6 +146,8 @@ jobs:
             echo $DIFF_INDEX | grep Cargo.lock
             false
           fi
+      - name: Ensure benchmarking compiles
+        run: cargo check --release --features=runtime-benchmarks
       - name: Unit tests
         run: cargo test --release --all
       - name: Stop sccache
@@ -347,90 +364,177 @@ jobs:
 
   ####### Prepare the release draft #######
 
+  build-srtool-runtimes:
+    runs-on: self-hosted
+    needs: ["set-tags"]
+    if: needs.set-tags.outputs.is_release == 'true'
+    strategy:
+      matrix:
+        runtime: ["moonbase", "moonshadow", "moonriver", "moonbeam"]
+    container:
+      image: paritytech/srtool:nightly-2021-03-15
+      volumes:
+        - ${{ github.workspace }}:/build
+      env:
+        PACKAGE: ${{ matrix.runtime }}-runtime
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache target dir
+        uses: actions/cache@v2
+        with:
+          path: "${{ github.workspace }}/runtime/${{ matrix.runtime }}/target"
+          key: srtool-target-${{ matrix.runtime }}-${{ github.sha }}
+          restore-keys: |
+            srtool-target-${{ matrix.runtime }}-
+            srtool-target-
+      - name: Build ${{ matrix.runtime }} runtime
+        id: build-runtime
+        shell: bash
+        env:
+          srtool_output_filename: ${{ matrix.runtime }}_srtool_output.json
+        run: |
+          cd /build
+          build --json | tee $srtool_output_filename
+          cat $srtool_output_filename
+          while IFS= read -r line; do
+            echo "::set-output name=$line::$(jq -r ".$line" < $srtool_output_filename)"
+          done <<< "$(jq -r 'keys[]' < $srtool_output_filename)"
+      - name: Upload ${{ matrix.runtime }} srtool json
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.runtime }}-srtool-json
+          path: ${{ matrix.runtime }}_srtool_output.json
+      - name: Upload ${{ matrix.runtime }} runtime
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.runtime }}-runtime
+          path: "${{ steps.build-runtime.outputs.wasm }}"
+
   publish-draft-release:
     runs-on: ubuntu-latest
-    needs: ["build", "generate-parachain-specs"]
-    if: |
-      github.event_name == 'push' &&
-      startsWith(github.ref, 'refs/tags/v')
+    needs:
+      ["set-tags", "build", "generate-parachain-specs", "build-srtool-runtimes"]
+    if: needs.set-tags.outputs.is_release == 'true'
     outputs:
       release_url: ${{ steps.create-release.outputs.html_url }}
       asset_upload_url: ${{ steps.create-release.outputs.upload_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      # - name: Set up Ruby 2.7
-      #   uses: actions/setup-ruby@v1
-      #   with:
-      #     ruby-version: 2.7
-      # - name: Generate release text
-      #   env:
-      #     RUSTC: ${{ needs.build.outputs.rustc }}
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   run: |
-      #     gem install changelogerator git toml
-      #     ruby $GITHUB_WORKSPACE/moonbeam/scripts/github/generate_release_text.rb | tee release_text.md
       - uses: actions/download-artifact@v2
         with:
           name: moonbeam
           path: build
-      - name: Set up Ruby 2.7
-        uses: actions/setup-ruby@v1
+      - name: Download moonbase srtool json output
+        uses: actions/download-artifact@v2
         with:
-          ruby-version: 2.7
+          name: moonbase-srtool-json
+      - name: Download moonbase runtime
+        uses: actions/download-artifact@v2
+        with:
+          name: moonbase-runtime
+      - name: Download moonshadow srtool json output
+        uses: actions/download-artifact@v2
+        with:
+          name: moonshadow-srtool-json
+      - name: Download moonshadow runtime
+        uses: actions/download-artifact@v2
+        with:
+          name: moonshadow-runtime
+      - name: Download moonriver srtool json output
+        uses: actions/download-artifact@v2
+        with:
+          name: moonriver-srtool-json
+      - name: Download moonriver runtime
+        uses: actions/download-artifact@v2
+        with:
+          name: moonriver-runtime
+      - name: Download moonbeam srtool json output
+        uses: actions/download-artifact@v2
+        with:
+          name: moonbeam-srtool-json
+      - name: Download moonbeam runtime
+        uses: actions/download-artifact@v2
+        with:
+          name: moonbeam-runtime
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
+      - name: Generate release body
+        id: generate-release-body
+        run: |
+          cd tools
+          npm install
+          node_modules/.bin/ts-node github/generate-release-body.ts > ../body.md
       - name: Get runtime version
         id: get-runtime-ver
         run: |
-          runtime_moonbase_ver="$(ruby -e 'require "./scripts/github/lib.rb"; puts get_runtime("moonbase")')"
+          runtime_moonbase_ver="$(cat ./runtime/moonbase/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
           echo "::set-output name=runtime_moonbase_ver::$runtime_moonbase_ver"
-          runtime_moonshadow_ver="$(ruby -e 'require "./scripts/github/lib.rb"; puts get_runtime("moonshadow")')"
+          mv moonbase_runtime.compact.wasm moonbase-runtime-${runtime_moonbase_ver}.wasm
+          runtime_moonshadow_ver="$(cat ./runtime/moonshadow/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
           echo "::set-output name=runtime_moonshadow_ver::$runtime_moonshadow_ver"
-          runtime_moonriver_ver="$(ruby -e 'require "./scripts/github/lib.rb"; puts get_runtime("moonriver")')"
+          mv moonshadow_runtime.compact.wasm moonshadow-runtime-${runtime_moonshadow_ver}.wasm
+          runtime_moonriver_ver="$(cat ./runtime/moonriver/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
           echo "::set-output name=runtime_moonriver_ver::$runtime_moonriver_ver"
-          runtime_moonbeam_ver="$(ruby -e 'require "./scripts/github/lib.rb"; puts get_runtime("moonbeam")')"
+          mv moonriver_runtime.compact.wasm moonriver-runtime-${runtime_moonriver_ver}.wasm
+          runtime_moonbeam_ver="$(cat ./runtime/moonbeam/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
           echo "::set-output name=runtime_moonbeam_ver::$runtime_moonbeam_ver"
+          mv moonbeam_runtime.compact.wasm moonbeam-runtime-${runtime_moonbeam_ver}.wasm
+      - name: Create draft release
+        id: create-release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Moonbase ${{ github.ref }}
+          body_path: body.md
+          draft: true
       - name: Upload moonbase wasm
-        uses: svenstaro/upload-release-action@v2
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.ref }}
-          file: build/runtimes/moonbase-runtime.wasm
-          release_name: Moonbase ${{ github.ref }}
-          overwrite: true
-          asset_name: moonbase-v${{ steps.get-runtime-ver.outputs.runtime_moonbase_ver }}.wasm
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: moonbase-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbase_ver }}.wasm
+          asset_name: moonbase-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbase_ver }}.wasm
+          asset_content_type: application/octet-stream
       - name: Upload moonshadow wasm
-        uses: svenstaro/upload-release-action@v2
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.ref }}
-          file: build/runtimes/moonshadow-runtime.wasm
-          release_name: Moonbase ${{ github.ref }}
-          overwrite: true
-          asset_name: moonshadow-v${{ steps.get-runtime-ver.outputs.runtime_moonshadow_ver }}.wasm
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: moonshadow-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonshadow_ver }}.wasm
+          asset_name: moonshadow-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonshadow_ver }}.wasm
+          asset_content_type: application/octet-stream
       - name: Upload moonriver wasm
-        uses: svenstaro/upload-release-action@v2
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.ref }}
-          file: build/runtimes/moonriver-runtime.wasm
-          release_name: moonriver ${{ github.ref }}
-          overwrite: true
-          asset_name: moonriver-v${{ steps.get-runtime-ver.outputs.runtime_moonriver_ver }}.wasm
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: moonriver-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonriver_ver }}.wasm
+          asset_name: moonriver-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonriver_ver }}.wasm
+          asset_content_type: application/octet-stream
       - name: Upload moonbeam wasm
-        uses: svenstaro/upload-release-action@v2
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.ref }}
-          file: build/runtimes/moonbeam-runtime.wasm
-          release_name: Moonbase ${{ github.ref }}
-          overwrite: true
-          asset_name: moonbeam-v${{ steps.get-runtime-ver.outputs.runtime_moonbeam_ver }}.wasm
-      - name: Upload moonbeam binary
-        uses: svenstaro/upload-release-action@v2
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: moonbeam-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbeam_ver }}.wasm
+          asset_name: moonbeam-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbeam_ver }}.wasm
+          asset_content_type: application/octet-stream
+
+      - name: Upload moonbeam
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.ref }}
-          file: build/moonbeam
-          release_name: Moonbase ${{ github.ref }}
-          overwrite: true
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: build/moonbeam
           asset_name: moonbeam
+          asset_content_type: application/octet-stream
