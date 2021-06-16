@@ -207,7 +207,7 @@ fn parse_uint256(input: &[u8]) -> Result<U256, ExitError> {
 
 impl<Runtime> ParachainStakingWrapper<Runtime>
 where
-	Runtime: parachain_staking::Config + pallet_evm::Config,
+	Runtime: parachain_staking::Config + pallet_evm::Config + frame_system::Config,
 	Runtime::AccountId: From<H160>,
 	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Debug,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
@@ -231,8 +231,9 @@ where
 
 		log::trace!(target: "staking-precompile", "Result from pallet is {:?}", is_nominator);
 
-		// TODO find gas cost of single storage read
-		let gas_consumed = 0;
+		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+			<Runtime as frame_system::Config>::DbWeight::get().read,
+		);
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -257,8 +258,9 @@ where
 
 		log::trace!(target: "staking-precompile", "Result from pallet is {:?}", is_candidate);
 
-		// TODO find gas cost of single storage read
-		let gas_consumed = 0;
+		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+			<Runtime as frame_system::Config>::DbWeight::get().read,
+		);
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -284,8 +286,9 @@ where
 
 		log::trace!(target: "staking-precompile", "Result from pallet is {:?}", is_selected);
 
-		// TODO find gas cost of single storage read
-		let gas_consumed = 0;
+		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+			<Runtime as frame_system::Config>::DbWeight::get().read,
+		);
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -307,8 +310,12 @@ where
 		let min_nomination: U256 = raw_min_nomination.into();
 
 		log::trace!(target: "staking-precompile", "Result from pallet is {:?}", min_nomination);
+
 		// TODO find cost of Config associated type read
-		let gas_consumed = 0;
+		// For now assume it is as bad as a storage read in the worst case
+		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+			<Runtime as frame_system::Config>::DbWeight::get().read,
+		);
 
 		let mut buffer = [0u8; 32];
 		min_nomination.to_big_endian(&mut buffer);
@@ -340,8 +347,9 @@ where
 		U256::from(points).to_big_endian(&mut output);
 		log::trace!(target: "staking-precompile", "🥩output is {:?}", output);
 
-		// TODO find gas cost of single storage read
-		let gas_consumed = 0;
+		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+			<Runtime as frame_system::Config>::DbWeight::get().read,
+		);
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
