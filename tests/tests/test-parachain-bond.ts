@@ -2,14 +2,7 @@ import { expect } from "chai";
 import { Keyring } from "@polkadot/api";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { Event } from "@polkadot/types/interfaces";
-import {
-  DEFAULT_GENESIS_MAPPING,
-  DEFAULT_GENESIS_STAKING,
-  GENESIS_ACCOUNT,
-  COLLATOR_ACCOUNT,
-  ALITH_PRIV_KEY,
-  GENESIS_ACCOUNT_PRIVATE_KEY,
-} from "../util/constants";
+import { GENESIS_ACCOUNT, ALITH_PRIV_KEY, GENESIS_ACCOUNT_PRIVATE_KEY } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 
 const TWENTY_PERCENT = 20;

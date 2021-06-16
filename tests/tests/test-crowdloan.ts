@@ -14,7 +14,6 @@ import {
   ALITH,
 } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
-import { hexValue } from "@ethersproject/bytes";
 const relayChainAddress: string =
   "0x1111111111111111111111111111111111111111111111111111111111111111";
 
