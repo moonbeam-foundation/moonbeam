@@ -250,22 +250,13 @@ where
 
 		log::trace!(target: "staking-precompile", "Result from pallet is {:?}", is_nominator);
 
-		// Solidity's bool type is 256 bits as shown by these examples
-		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html
-		let mut result_bytes = [0u8; 32];
-		if is_nominator {
-			result_bytes[31] = 1;
-		}
-
-		log::trace!(target: "staking-precompile", "Result bytes are {:?}", result_bytes);
-
 		// TODO find gas cost of single storage read
 		let gas_consumed = 0;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gas_consumed,
-			output: result_bytes.to_vec(),
+			output: bool_to_solidity_bytes(is_nominator),
 			logs: Default::default(),
 		})
 	}
@@ -285,22 +276,13 @@ where
 
 		log::trace!(target: "staking-precompile", "Result from pallet is {:?}", is_candidate);
 
-		// Solidity's bool type is 256 bits as shown by these examples
-		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html
-		let mut result_bytes = [0u8; 32];
-		if is_candidate {
-			result_bytes[31] = 1;
-		}
-
-		log::trace!(target: "staking-precompile", "Result bytes are {:?}", result_bytes);
-
 		// TODO find gas cost of single storage read
 		let gas_consumed = 0;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gas_consumed,
-			output: result_bytes.to_vec(),
+			output: bool_to_solidity_bytes(is_candidate),
 			logs: Default::default(),
 		})
 	}
