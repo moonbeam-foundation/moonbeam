@@ -49,6 +49,17 @@ pub fn last_event() -> Event {
 	System::events().pop().expect("Event expected").event
 }
 
+// Helper function to give a simple evm context suitable for tests.
+// this should probably go somewhere else. Maybe we should give it a
+// impl Default for Context upstream.
+pub fn evm_test_context() -> evm::Context {
+	evm::Context {
+		address: Default::default(),
+		caller: Default::default(),
+		apparent_value: From::from(0),
+	}
+}
+
 pub struct ExtBuilder {
 	// endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,

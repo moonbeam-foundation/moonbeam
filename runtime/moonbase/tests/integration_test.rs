@@ -19,7 +19,7 @@
 mod common;
 use common::*;
 
-use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
+use evm::{executor::PrecompileOutput, ExitError, ExitSucceed};
 use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable, traits::fungible::Inspect};
 use moonbase_runtime::{
 	currency::UNITS, AccountId, Balances, Call, CrowdloanRewards, Event, ParachainStaking, Runtime,
@@ -1051,12 +1051,7 @@ fn is_nominator_via_precompile() {
 					staking_precompile_address,
 					&bob_input_data,
 					None, // target_gas is not necessary right now because consumed none now
-					&Context {
-						// This context copied from Sacrifice tests, it's not great.
-						address: Default::default(),
-						caller: Default::default(),
-						apparent_value: From::from(0),
-					}
+					&evm_test_context(),
 				),
 				expected_true_result
 			);
@@ -1081,12 +1076,7 @@ fn is_nominator_via_precompile() {
 					staking_precompile_address,
 					&charlie_input_data,
 					None,
-					&Context {
-						// This context copied from Sacrifice tests, it's not great.
-						address: Default::default(),
-						caller: Default::default(),
-						apparent_value: From::from(0),
-					}
+					&evm_test_context(),
 				),
 				expected_false_result
 			);
@@ -1126,12 +1116,7 @@ fn is_candidate_via_precompile() {
 					staking_precompile_address,
 					&alice_input_data,
 					None, // target_gas is not necessary right now because consumed none now
-					&Context {
-						// This context copied from Sacrifice tests, it's not great.
-						address: Default::default(),
-						caller: Default::default(),
-						apparent_value: From::from(0),
-					}
+					&evm_test_context(),
 				),
 				expected_true_result
 			);
@@ -1156,12 +1141,7 @@ fn is_candidate_via_precompile() {
 					staking_precompile_address,
 					&bob_input_data,
 					None,
-					&Context {
-						// This context copied from Sacrifice tests, it's not great.
-						address: Default::default(),
-						caller: Default::default(),
-						apparent_value: From::from(0),
-					}
+					&evm_test_context(),
 				),
 				expected_false_result
 			);
@@ -1203,12 +1183,7 @@ fn is_selected_candidate_via_precompile() {
 					staking_precompile_address,
 					&alice_input_data,
 					None, // target_gas is not necessary right now because consumed none now
-					&Context {
-						// This context copied from Sacrifice tests, it's not great.
-						address: Default::default(),
-						caller: Default::default(),
-						apparent_value: From::from(0),
-					}
+					&evm_test_context(),
 				),
 				expected_true_result
 			);
@@ -1233,12 +1208,7 @@ fn is_selected_candidate_via_precompile() {
 					staking_precompile_address,
 					&bob_input_data,
 					None,
-					&Context {
-						// This context copied from Sacrifice tests, it's not great.
-						address: Default::default(),
-						caller: Default::default(),
-						apparent_value: From::from(0),
-					}
+					&evm_test_context(),
 				),
 				expected_false_result
 			);
@@ -1269,12 +1239,7 @@ fn min_nomination_via_precompile() {
 				staking_precompile_address,
 				&get_min_nom,
 				None,
-				&Context {
-					// This context copied from Sacrifice tests, it's not great.
-					address: Default::default(),
-					caller: Default::default(),
-					apparent_value: From::from(0),
-				}
+				&evm_test_context(),
 			),
 			expected_result
 		);
@@ -1307,12 +1272,7 @@ fn points_precompile_zero() {
 				staking_precompile_address,
 				&input_data,
 				None,
-				&Context {
-					// This context copied from Sacrifice tests, it's not great.
-					address: Default::default(),
-					caller: Default::default(),
-					apparent_value: From::from(0),
-				}
+				&evm_test_context(),
 			),
 			expected_zero_result
 		);
@@ -1360,12 +1320,7 @@ fn points_precompile_non_zero() {
 					staking_precompile_address,
 					&input_data,
 					None,
-					&Context {
-						// This context copied from Sacrifice tests, it's not great.
-						address: Default::default(),
-						caller: Default::default(),
-						apparent_value: From::from(0),
-					}
+					&evm_test_context(),
 				),
 				expected_result
 			);
@@ -1393,12 +1348,7 @@ fn points_precompile_round_too_big_error() {
 				staking_precompile_address,
 				&input_data,
 				None,
-				&Context {
-					// This context copied from Sacrifice tests, it's not great.
-					address: Default::default(),
-					caller: Default::default(),
-					apparent_value: From::from(0),
-				}
+				&evm_test_context(),
 			),
 			Some(Err(ExitError::Other(
 				"Round is too large. 32 bit maximum".into()
