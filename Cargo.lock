@@ -5769,6 +5769,7 @@ dependencies = [
  "evm-gasometer",
  "evm-runtime",
  "fp-evm",
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",

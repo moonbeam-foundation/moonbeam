@@ -1263,6 +1263,7 @@ impl_runtime_apis! {
 
 			use parachain_staking::Pallet as ParachainStakingBench;
 			//use pallet_crowdloan_rewards::Pallet as PalletCrowdloanRewardsBench;
+			use pallet_evm::Pallet as PalletEvmBench;
 			let whitelist: Vec<TrackedStorageKey> = vec![];
 
 			let mut batches = Vec::<BenchmarkBatch>::new();
@@ -1272,6 +1273,7 @@ impl_runtime_apis! {
 			// add_benchmark!(
 			// 	params, batches, pallet_crowdloan_rewards, PalletCrowdloanRewardsBench::<Runtime>
 			// );
+			add_benchmark!(params, batches, pallet_evm, PalletEvmBench::<Runtime>);
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
