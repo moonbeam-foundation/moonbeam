@@ -79,13 +79,16 @@ pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 pub mod currency {
 	use super::Balance;
 
+	pub const SED: Balance = 1;
+	pub const KILOSED: Balance = 1_000;
+	pub const MEGASED: Balance = 1_000_000;
+	pub const GIGASED: Balance = 1_000_000_000;
+	pub const MICROMOVR: Balance = 1_000_000_000_000;
+	pub const MILLIMOVR: Balance = 1_000_000_000_000_000;
 	pub const MOVR: Balance = 1_000_000_000_000_000_000;
-	pub const KILOMOVRS: Balance = MOVR * 1_000;
-	pub const MILLIMOVRS: Balance = MOVR / 1_000;
-	pub const MICROMOVRS: Balance = MILLIMOVRS / 1_000;
-	pub const NANOMOVRS: Balance = MICROMOVRS / 1_000;
+	pub const KILOMOVR: Balance = 1_000_000_000_000_000_000_000;
 
-	pub const BYTE_FEE: Balance = 100 * MICROMOVRS;
+	pub const BYTE_FEE: Balance = 100 * MICROMOVR;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
 		items as Balance * 1 * MOVR + (bytes as Balance) * BYTE_FEE
@@ -310,7 +313,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		(1 * currency::NANOMOVRS).into()
+		(1 * currency::GIGASED).into()
 	}
 }
 
@@ -549,7 +552,7 @@ parameter_types! {
 	/// Default percent of inflation set aside for parachain bond every round
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	/// Minimum stake required to be reserved to be a collator is 1_000
-	pub const MinCollatorStk: u128 = 1 * currency::KILOMOVRS;
+	pub const MinCollatorStk: u128 = 1 * currency::KILOMOVR;
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5 * currency::MOVR;
 }
