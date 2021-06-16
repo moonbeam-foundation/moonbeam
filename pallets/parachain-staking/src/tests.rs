@@ -172,7 +172,7 @@ fn collator_exit_executes_after_delay() {
 				last_event(),
 				MetaEvent::stake(Event::CollatorScheduledExit(3, 2, 5))
 			);
-			let info = Stake::collator_state(&2).unwrap();
+			let info = Stake::collator_state2(&2).unwrap();
 			assert_eq!(info.state, CollatorStatus::Leaving(5));
 			roll_to(21);
 			// we must exclude leaving collators from rewards while
