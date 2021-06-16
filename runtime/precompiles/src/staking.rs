@@ -179,30 +179,11 @@ fn parse_account(input: &[u8]) -> Result<H160, ExitError> {
 	))
 }
 
-//TODO refactor this function in terms of the next function.
 /// Parses an amount of ether from a 256 bit (32 byte) slice. The balance type is generic.
-fn parse_amount<Balance>(input: &[u8]) -> Result<Balance, ExitError>
-where
-	Balance: TryFrom<U256>,
-{
-	// In solidity all values are encoded to this width
-	const AMOUNT_SIZE_BYTES: usize = 32;
-
-	if input.len() != AMOUNT_SIZE_BYTES {
-		log::trace!(target: "staking-precompile",
-			"Unable to parse amount. Got {} bytes, expected {}",
-			input.len(),
-			AMOUNT_SIZE_BYTES,
-		);
-		return Err(ExitError::Other(
-			"Incorrect input length for amount parsing".into(),
-		));
-	}
-
-	let amount: Balance = U256::from_big_endian(&input[0..AMOUNT_SIZE_BYTES])
+fn parse_amount<Balance: TryFrom<U256>>(input: &[u8]) -> Result<Balance, ExitError> {
+	Ok(parse_uint256(input)?
 		.try_into()
-		.map_err(|_| ExitError::Other("Amount is too large for provided balance type".into()))?;
-	Ok(amount)
+		.map_err(|_| ExitError::Other("Amount is too large for provided balance type".into()))?)
 }
 
 /// Parses a uint256 value
@@ -217,7 +198,7 @@ fn parse_uint256(input: &[u8]) -> Result<U256, ExitError> {
 			SIZE_BYTES,
 		);
 		return Err(ExitError::Other(
-			"Incorrect input length for amount parsing".into(),
+			"Incorrect input length for uint256 parsing".into(),
 		));
 	}
 

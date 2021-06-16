@@ -1252,7 +1252,7 @@ fn points_precompile_zero() {
 		let staking_precompile_address = H160::from_low_u64_be(2048);
 
 		// Construct the input data to check points in round one
-			// Notice we start in round one, not round zero.
+		// Notice we start in round one, not round zero.
 		let mut input_data = Vec::<u8>::from([0u8; 36]);
 		input_data[0..4].copy_from_slice(&hex_literal::hex!("9799b4e7"));
 		U256::one().to_big_endian(&mut input_data[4..36]);
