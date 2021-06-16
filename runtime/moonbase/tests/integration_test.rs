@@ -1288,7 +1288,7 @@ fn points_precompile_zero() {
 		// Construct the input data to check points so far this round
 		let mut input_data = Vec::<u8>::from([0u8; 36]);
 		input_data[0..4].copy_from_slice(&hex_literal::hex!("9799b4e7"));
-		U256::zero().to_big_endian(&mut input_data[16..36]);
+		U256::zero().to_big_endian(&mut input_data[4..36]);
 
 		// Expected result is zero points because nobody has authored yet.
 		let expected_bytes = Vec::from([0u8; 32]);
@@ -1299,7 +1299,7 @@ fn points_precompile_zero() {
 			logs: Default::default(),
 		}));
 
-		// Assert precompile also reports Bob as not a collator candidate
+		// Assert that no points have been earned
 		assert_eq!(
 			MoonbeamPrecompiles::<Runtime>::execute(
 				staking_precompile_address,
