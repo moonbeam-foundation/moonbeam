@@ -86,6 +86,7 @@ pub mod currency {
 	pub const MICROMOVR: Balance = 1_000_000_000_000;
 	pub const MILLIMOVR: Balance = 1_000_000_000_000_000;
 	pub const MOVR: Balance = 1_000_000_000_000_000_000;
+	pub const KILOMOVR: Balance = 1_000_000_000_000_000_000_000;
 
 	pub const BYTE_FEE: Balance = 100 * MICROMOVR;
 
