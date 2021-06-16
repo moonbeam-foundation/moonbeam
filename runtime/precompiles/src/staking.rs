@@ -205,7 +205,6 @@ where
 	Ok(amount)
 }
 
-
 /// Parses a uint256 value
 fn parse_uint256(input: &[u8]) -> Result<U256, ExitError> {
 	// In solidity all values are encoded to this width
@@ -317,7 +316,8 @@ where
 		);
 
 		// fetch data from pallet
-		let is_selected = parachain_staking::Pallet::<Runtime>::is_selected_candidate(&candidate.into());
+		let is_selected =
+			parachain_staking::Pallet::<Runtime>::is_selected_candidate(&candidate.into());
 
 		log::trace!(target: "staking-precompile", "Result from pallet is {:?}", is_selected);
 
@@ -363,14 +363,19 @@ where
 
 		// Make sure the round number fits in a u32
 		if round_u256.leading_zeros() < 256 - 32 {
-			return Err(ExitError::Other("Round is too large. 32 bit maximum".into()));
+			return Err(ExitError::Other(
+				"Round is too large. 32 bit maximum".into(),
+			));
 		}
 		let round: u32 = round_u256.low_u32();
 
+		log::trace!(target: "staking-precompile", "🥩round is {}", round);
 		// Read the point value and format it for Solidity
 		let points: u32 = parachain_staking::Pallet::<Runtime>::points(round);
+		log::trace!(target: "staking-precompile", "🥩points is {}", points);
 		let mut output = [0u8; 32];
 		U256::from(points).to_big_endian(&mut output);
+		log::trace!(target: "staking-precompile", "🥩output is {:?}", output);
 
 		// TODO find gas cost of single storage read
 		let gas_consumed = 0;
@@ -486,11 +491,11 @@ where
 // https://docs.soliditylang.org/en/v0.8.0/abi-spec.html
 // This utility function converts a Rust bool into the corresponding Solidity type
 fn bool_to_solidity_bytes(b: bool) -> Vec<u8> {
-		let mut result_bytes = [0u8; 32];
+	let mut result_bytes = [0u8; 32];
 
-		if b {
-			result_bytes[31] = 1;
-		}
+	if b {
+		result_bytes[31] = 1;
+	}
 
-		result_bytes.to_vec()
+	result_bytes.to_vec()
 }
