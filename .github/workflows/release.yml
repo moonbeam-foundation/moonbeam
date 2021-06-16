@@ -168,7 +168,7 @@ jobs:
         run: cargo fmt -- --check
 
   typescript-tests:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: build
     steps:
       - name: Checkout
@@ -190,7 +190,7 @@ jobs:
           npm install
           cd ../tests
           npm install
-          node_modules/.bin/mocha -r ts-node/register 'tests/**/test-*.ts'
+          node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'tests/**/test-*.ts'
 
   ####### Prepare and Deploy Docker images #######
 
