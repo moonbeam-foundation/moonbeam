@@ -19,12 +19,11 @@
 mod common;
 use common::*;
 
-use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use evm::{executor::PrecompileOutput, Context, ExitSucceed};
 use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable, traits::fungible::Inspect};
 use moonbase_runtime::{
-	currency::UNITS, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Event,
-	InflationInfo, ParachainStaking, Range, Runtime, System,
+	currency::UNITS, AccountId, Balances, Call, CrowdloanRewards, Event,
+	ParachainStaking, Runtime, System,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
