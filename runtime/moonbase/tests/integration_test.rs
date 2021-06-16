@@ -19,7 +19,7 @@
 mod common;
 use common::*;
 
-use evm::{executor::PrecompileOutput, Context, ExitSucceed};
+use evm::{executor::PrecompileOutput, Context, ExitSucceed, ExitError};
 use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable, traits::fungible::Inspect};
 use moonbase_runtime::{
 	currency::UNITS, AccountId, Balances, Call, CrowdloanRewards, Event,
@@ -1319,5 +1319,35 @@ fn points_precompile_zero() {
 // #[test]
 // fn points_precompile_non_zero
 
-// #[test]
-// fn points_precompile_error
+#[test]
+fn points_precompile_round_too_big_error() {
+	ExtBuilder::default().build().execute_with(|| {
+		let staking_precompile_address = H160::from_low_u64_be(2048);
+
+		// We accept the round as a 256-bit integer for easy compatibility with
+		// solidity. But the underlying Rust type is `u32`. So here we test that
+		// the precompile fails gracefully when too large of a round is passed in.
+
+		// Construct the input data to check points so far this round
+		let mut input_data = Vec::<u8>::from([0u8; 36]);
+		input_data[0..4].copy_from_slice(&hex_literal::hex!("9799b4e7"));
+		U256::max_value().to_big_endian(&mut input_data[4..36]);
+
+		// TODO assert that we get an error here. I'm not sure what error it is yet.
+		// I'll let the test tell me.
+		assert_eq!(
+			MoonbeamPrecompiles::<Runtime>::execute(
+				staking_precompile_address,
+				&input_data,
+				None,
+				&Context {
+					// This context copied from Sacrifice tests, it's not great.
+					address: Default::default(),
+					caller: Default::default(),
+					apparent_value: From::from(0),
+				}
+			),
+			Some(Err(ExitError::Other("Round is too large. 32 bit maximum".into())))
+		);
+	})
+}
