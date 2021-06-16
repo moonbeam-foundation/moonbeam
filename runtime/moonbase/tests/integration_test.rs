@@ -19,11 +19,11 @@
 mod common;
 use common::*;
 
-use evm::{executor::PrecompileOutput, Context, ExitSucceed, ExitError};
+use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable, traits::fungible::Inspect};
 use moonbase_runtime::{
-	currency::UNITS, AccountId, Balances, Call, CrowdloanRewards, Event,
-	ParachainStaking, Runtime, System,
+	currency::UNITS, AccountId, Balances, Call, CrowdloanRewards, Event, ParachainStaking, Runtime,
+	System,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -1176,7 +1176,9 @@ fn is_selected_candidate_via_precompile() {
 		.build()
 		.execute_with(|| {
 			// Confirm Alice is selected directly
-			assert!(ParachainStaking::is_selected_candidate(&AccountId::from(ALICE)));
+			assert!(ParachainStaking::is_selected_candidate(&AccountId::from(
+				ALICE
+			)));
 
 			let staking_precompile_address = H160::from_low_u64_be(2048);
 
@@ -1284,10 +1286,11 @@ fn points_precompile_zero() {
 	ExtBuilder::default().build().execute_with(|| {
 		let staking_precompile_address = H160::from_low_u64_be(2048);
 
-		// Construct the input data to check points so far this round
+		// Construct the input data to check points in round one
+			// Notice we start in round one, not round zero.
 		let mut input_data = Vec::<u8>::from([0u8; 36]);
 		input_data[0..4].copy_from_slice(&hex_literal::hex!("9799b4e7"));
-		U256::zero().to_big_endian(&mut input_data[4..36]);
+		U256::one().to_big_endian(&mut input_data[4..36]);
 
 		// Expected result is zero points because nobody has authored yet.
 		let expected_bytes = Vec::from([0u8; 32]);
@@ -1316,8 +1319,58 @@ fn points_precompile_zero() {
 	})
 }
 
-// #[test]
-// fn points_precompile_non_zero
+#[test]
+fn points_precompile_non_zero() {
+	ExtBuilder::default()
+		.with_balances(vec![(AccountId::from(ALICE), 1_100 * UNITS)])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNITS)])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
+		)])
+		.build()
+		.execute_with(|| {
+			let staking_precompile_address = H160::from_low_u64_be(2048);
+
+			// Alice authors a block
+			set_parachain_inherent_data();
+			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+
+			// Construct the input data to check points in round one
+			// Notice we start in round one, not round zero.
+			let mut input_data = Vec::<u8>::from([0u8; 36]);
+			input_data[0..4].copy_from_slice(&hex_literal::hex!("9799b4e7"));
+			U256::one().to_big_endian(&mut input_data[4..36]);
+
+			// Expected result is 20 points because each block is one point.
+			// Pretty hacky way to make that data structure...
+			let mut expected_bytes = Vec::from([0u8; 32]);
+			expected_bytes[31] = 20;
+
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 0,
+				logs: Default::default(),
+			}));
+
+			// Assert that no points have been earned
+			assert_eq!(
+				MoonbeamPrecompiles::<Runtime>::execute(
+					staking_precompile_address,
+					&input_data,
+					None,
+					&Context {
+						// This context copied from Sacrifice tests, it's not great.
+						address: Default::default(),
+						caller: Default::default(),
+						apparent_value: From::from(0),
+					}
+				),
+				expected_result
+			);
+		})
+}
 
 #[test]
 fn points_precompile_round_too_big_error() {
@@ -1347,7 +1400,9 @@ fn points_precompile_round_too_big_error() {
 					apparent_value: From::from(0),
 				}
 			),
-			Some(Err(ExitError::Other("Round is too large. 32 bit maximum".into())))
+			Some(Err(ExitError::Other(
+				"Round is too large. 32 bit maximum".into()
+			)))
 		);
 	})
 }
