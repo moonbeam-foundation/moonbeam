@@ -1,4 +1,3 @@
-import { ACCOUNT_ID_PREFIX } from "@polkadot/types/ethereum/LookupSource";
 import {
   OverrideBundleDefinition,
   OverrideBundleType,

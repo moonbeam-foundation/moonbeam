@@ -25,7 +25,8 @@ describeDevMoonbeam("Sudo - Only sudo account", (context) => {
       .signAndSend(genesisAccount);
     await context.createBlock();
     const parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
-    console.log("parachainBondInfo", parachainBondInfo.toHuman());
+    expect(parachainBondInfo.toHuman()["account"]).to.equal(ZERO_ADDRESS);
+    expect(parachainBondInfo.toHuman()["percent"]).to.equal("30.00%");
   });
   it("should check events", async function () {
     // const testAddress = "0x1111111111111111111111111111111111111111";
@@ -41,38 +42,26 @@ describeDevMoonbeam("Sudo - Only sudo account", (context) => {
 
     // map between the extrinsics and events
     signedBlock.block.extrinsics.forEach(({ method: { method, section } }, index) => {
-      console.log("method, section", method, section);
       // filter the specific events based on the phase and then the
       // index of our extrinsic in the block
       const events: Event[] = allRecords
         .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
-        .map(({ event }) => {
-          console.log("event", event.toHuman());
-          return event;
-        });
+        .map(({ event }) => event);
 
       switch (index) {
-        // First 3 events:
-        // timestamp.set:: system.ExtrinsicSuccess
-        // parachainUpgrade.setValidationData:: system.ExtrinsicSuccess
-        // authorInherent.setAuthor:: system.ExtrinsicSuccess
+        // First 3 events are not interesting here
         case 0:
         case 1:
         case 2:
-          expect(
-            events.length === 1 && context.polkadotApi.events.system.ExtrinsicSuccess.is(events[0])
-          ).to.be.true;
           break;
-        // Fourth event: ethereum.transact:: system.NewAccount, balances.Endowed, (?),
-        // ethereum.Executed, system.ExtrinsicSuccess
+        // Fourth event
         case 3:
-          expect(section === "ethereum" && method === "transact").to.be.true;
+          expect(section === "parachainStaking" && method === "setParachainBondAccount").to.be.true;
           expect(events.length === 4);
           expect(context.polkadotApi.events.system.NewAccount.is(events[0])).to.be.true;
           expect(context.polkadotApi.events.balances.Endowed.is(events[1])).to.be.true;
-          // TODO: what event was inserted here?
-          expect(context.polkadotApi.events.ethereum.Executed.is(events[3])).to.be.true;
-          expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[4])).to.be.true;
+          expect(context.polkadotApi.events.treasury.Deposit.is(events[2])).to.be.true;
+          expect(context.polkadotApi.events.system.ExtrinsicFailed.is(events[3])).to.be.true;
           break;
         default:
           throw new Error(`Unexpected extrinsic`);
@@ -80,3 +69,6 @@ describeDevMoonbeam("Sudo - Only sudo account", (context) => {
     });
   });
 });
+function ZERO_ADDRESS(ZERO_ADDRESS: any) {
+  throw new Error("Function not implemented.");
+}
