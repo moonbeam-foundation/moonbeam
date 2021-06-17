@@ -811,7 +811,7 @@ runtime_common::impl_runtime_apis_plus_common! {
 	}
 }
 
-// Notice we're using Nimbus's Executive wrapper to pop (and in the future verify) the seal digest.
+// Nimbus's Executive wrapper allows relay validators to verify the seal digest
 cumulus_pallet_parachain_system::register_validate_block!(
 	Runtime,
 	pallet_author_inherent::BlockExecutor<Runtime, Executive>
