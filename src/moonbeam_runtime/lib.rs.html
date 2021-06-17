@@ -1633,7 +1633,7 @@
 	}
 }
 
-<span class="comment">// Notice we&#39;re using Nimbus&#39;s Executive wrapper to pop (and in the future verify) the seal digest.</span>
+<span class="comment">// Nimbus&#39;s Executive wrapper allows relay validators to verify the seal digest</span>
 <span class="ident">cumulus_pallet_parachain_system</span>::<span class="macro">register_validate_block</span><span class="macro">!</span>(
 	<span class="ident">Runtime</span>,
 	<span class="ident">pallet_author_inherent</span>::<span class="ident">BlockExecutor</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Executive</span><span class="op">&gt;</span>
