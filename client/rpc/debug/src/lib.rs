@@ -246,7 +246,6 @@ where
 							})?
 							.map_err(|e| internal_err(format!("DispatchError: {:?}", e)));
 					})
-					.0
 					.into_tx_trace());
 			}
 		}

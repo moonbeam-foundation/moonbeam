@@ -28,7 +28,7 @@ use serde::Serialize;
 
 use codec::{Decode, Encode};
 use ethereum_types::{H160, H256, U256};
-use sp_std::{cell::RefCell, collections::btree_map::BTreeMap, rc::Rc, vec::Vec};
+use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Encode, Decode)]
 pub enum TraceType {
@@ -173,23 +173,17 @@ impl Event {
 	}
 }
 
-pub fn using<R, F: FnOnce() -> R>(new: &mut (dyn Listener + 'static), f: F) -> R {
-	listener::using(new, f)
-}
-
-pub struct ListenerProxy<T>(pub Rc<RefCell<T>>);
-
-impl<T: Listener> Listener for ListenerProxy<T> {
-	fn event(&mut self, event: Event) {
-		self.0.borrow_mut().event(event);
-	}
-}
-
 #[derive(Debug)]
 pub struct RawProxy {
 	gas: U256,
 	return_value: Vec<u8>,
 	step_logs: Vec<RawStepLog>,
+}
+
+impl Default for RawProxy {
+	fn default() -> Self {
+		RawProxy::new()
+	}
 }
 
 impl RawProxy {
@@ -201,16 +195,9 @@ impl RawProxy {
 		}
 	}
 
-	pub fn proxy<R, F: FnOnce() -> R>(self, f: F) -> (Self, R) {
-		let wrapped = Rc::new(RefCell::new(self));
-
-		let result = {
-			let mut backend = ListenerProxy(Rc::clone(&wrapped));
-			let f = || using(&mut backend, f);
-			f()
-		};
-
-		(Rc::try_unwrap(wrapped).unwrap().into_inner(), result)
+	pub fn proxy<R, F: FnOnce() -> R>(&mut self, f: F) -> Self {
+		listener::using(self, f);
+		sp_std::mem::take(self)
 	}
 
 	pub fn into_tx_trace(self) -> TransactionTrace {
