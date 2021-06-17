@@ -30,6 +30,11 @@ use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
 use sp_std::vec::Vec;
 
+#[cfg(test)]
+mod mock;
+#[cfg(test)]
+mod tests;
+
 type BalanceOf<Runtime> = <<Runtime as pallet_democracy::Config>::Currency as Currency<
 	<Runtime as frame_system::Config>::AccountId,
 >>::Balance;

@@ -6007,12 +6007,16 @@ dependencies = [
  "frame-system",
  "hex",
  "log",
+ "pallet-balances",
  "pallet-democracy",
  "pallet-evm",
+ "pallet-scheduler",
+ "pallet-timestamp",
  "parity-scale-codec",
  "rustc-hex",
  "sp-core",
  "sp-io",
+ "sp-runtime",
  "sp-std",
 ]
 
