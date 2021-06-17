@@ -29,7 +29,7 @@ pub use moonbase_runtime::{
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::GenesisAccount;
-use sp_core::{Public, H160};
+use sp_core::H160;
 use sp_runtime::Perbill;
 
 use std::collections::BTreeMap;

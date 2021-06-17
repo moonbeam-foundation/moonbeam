@@ -13,6 +13,13 @@ interface ParachainStaking {
     /// Check whether the specified addess is currently a collator candidate
     function is_candidate(address collator) external view returns (bool);
 
+    /// Check whether the specifies address is currently a part of the active set
+    function is_selected_candidate(address collator) external view returns (bool);
+
+    /// Total points awarded to all collators in a particular round.
+    function points(uint256 round) external view returns (uint256);
+
+
     /// Get the minimum nomination amount
     function min_nomination() external view returns (uint256);
 
@@ -64,6 +71,7 @@ interface ParachainStaking {
 // 	"767e0450": "go_offline()",
 // 	"d2f73ceb": "go_online()",
 // 	"8545c833": "is_candidate(address)",
+// 	"8f6d27c7": "is_selected_candidate(address)",
 // 	"8e5080e7": "is_nominator(address)",
 // 	"ad76ed5a": "join_candidates(uint256)",
 // 	"b7694219": "leave_candidates()",
@@ -73,4 +81,5 @@ interface ParachainStaking {
 // 	"f6a52569": "nominator_bond_less(address,uint256)",
 // 	"971d44c8": "nominator_bond_more(address,uint256)",
 // 	"4b65c34b": "revoke_nomination(address)"
+// 	"9799b4e7": "points(uint256)"
 // }
