@@ -524,6 +524,13 @@ export const moonbeamDefinitions = {
         Collator: {
           id: "AccountId",
           bond: "Balance",
+          nominators: "Vec<Bond>",
+          total: "Balance",
+          state: "CollatorStatus",
+        },
+        Collator2: {
+          id: "AccountId",
+          bond: "Balance",
           nominators: "Vec<AccountId>",
           top_nominators: "Vec<Bond>",
           bottom_nominators: "Vec<Bond>",

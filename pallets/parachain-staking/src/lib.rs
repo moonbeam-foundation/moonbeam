@@ -1335,7 +1335,6 @@ pub mod pallet {
 			<Total<T>>::put(new_total_locked);
 			<CollatorState2<T>>::insert(&collator, state);
 			<NominatorState<T>>::insert(&acc, nominator);
-			// edit event to convey new information
 			Self::deposit_event(Event::Nomination(acc, amount, collator, in_top, new_total));
 			Ok(().into())
 		}
