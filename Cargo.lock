@@ -4902,11 +4902,25 @@ dependencies = [
  "evm-gasometer",
  "evm-runtime",
  "fp-evm",
+ "moonbeam-primitives-ext",
  "moonbeam-rpc-primitives-debug",
  "pallet-evm",
+ "parity-scale-codec",
  "sp-core",
  "sp-io",
  "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "moonbeam-primitives-ext"
+version = "0.1.0"
+dependencies = [
+ "ethereum-types",
+ "moonbeam-rpc-primitives-debug",
+ "parity-scale-codec",
+ "sp-externalities",
+ "sp-runtime-interface",
  "sp-std",
 ]
 
@@ -4982,6 +4996,7 @@ dependencies = [
 name = "moonbeam-rpc-primitives-debug"
 version = "0.1.0"
 dependencies = [
+ "environmental",
  "ethereum",
  "ethereum-types",
  "hex",
@@ -5162,6 +5177,7 @@ dependencies = [
  "moonbase-runtime",
  "moonbeam-cli-opt",
  "moonbeam-core-primitives",
+ "moonbeam-primitives-ext",
  "moonbeam-rpc-debug",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",

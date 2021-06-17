@@ -40,6 +40,7 @@ moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool" }
 moonbeam-rpc-debug = { path = "../../client/rpc/debug" }
 moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug" }
 moonbeam-rpc-trace = { path = "../../client/rpc/trace" }
+moonbeam-primitives-ext = { path = "../../primitives/ext" }
 
 moonbeam-core-primitives = { path = "../../core-primitives" }
 

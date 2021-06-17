@@ -236,11 +236,18 @@ where
 		if let Some(block) = reference_block {
 			let transactions = block.transactions;
 			if let Some(transaction) = transactions.get(index) {
-				return client
-					.runtime_api()
-					.trace_transaction(&parent_block_id, ext, &transaction, trace_type)
-					.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
-					.map_err(|e| internal_err(format!("DispatchError: {:?}", e)));
+				return Ok(single::RawProxy::new()
+					.proxy(|| {
+						return client
+							.runtime_api()
+							.trace_transaction(&parent_block_id, ext, &transaction, trace_type)
+							.map_err(|e| {
+								internal_err(format!("Runtime api access error: {:?}", e))
+							})?
+							.map_err(|e| internal_err(format!("DispatchError: {:?}", e)));
+					})
+					.0
+					.into_tx_trace());
 			}
 		}
 		Err(internal_err("Runtime block call failed".to_string()))

@@ -16,7 +16,8 @@
 
 use crate::util::*;
 
-use ethereum_types::{H160, H256};
+use codec::Encode;
+use ethereum_types::{H160, H256, U256};
 use evm::{Capture, ExitReason};
 use moonbeam_rpc_primitives_debug::single::{RawStepLog, TransactionTrace};
 use sp_std::{collections::btree_map::BTreeMap, vec, vec::Vec};
@@ -117,7 +118,16 @@ impl RawTracer {
 			f()
 		};
 
-		(Rc::try_unwrap(wrapped).unwrap().into_inner(), result)
+		let inner = Rc::try_unwrap(wrapped).unwrap().into_inner();
+
+		let gas: U256 = U256::from(inner.final_gas.clone());
+		let return_value = inner.return_value.clone();
+
+		moonbeam_primitives_ext::moonbeam_ext::raw_gas(gas.encode());
+		moonbeam_primitives_ext::moonbeam_ext::raw_return_value(return_value);
+
+		// TODO here we will just return the EVM result
+		(inner, result)
 	}
 
 	pub fn into_tx_trace(self) -> TransactionTrace {
@@ -239,7 +249,7 @@ impl RuntimeListener for RawTracer {
 							Some(context.storage_cache.clone())
 						};
 
-						self.step_logs.push(RawStepLog {
+						let raw_step_log = RawStepLog {
 							depth: depth.into(),
 							gas: gas.into(),
 							gas_cost: gas_cost.into(),
@@ -248,7 +258,9 @@ impl RuntimeListener for RawTracer {
 							pc: position.into(),
 							stack,
 							storage,
-						});
+						};
+
+						moonbeam_primitives_ext::moonbeam_ext::raw_step(raw_step_log.encode());
 					}
 				}
 

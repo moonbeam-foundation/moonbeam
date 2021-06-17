@@ -19,6 +19,8 @@
 //! Blockscout formatter. This "call list" is also used to build
 //! the whole block tracing output.
 
+environmental::environmental!(listener: dyn Listener + 'static);
+
 #[cfg(feature = "std")]
 use crate::serialization::*;
 #[cfg(feature = "std")]
@@ -26,7 +28,7 @@ use serde::Serialize;
 
 use codec::{Decode, Encode};
 use ethereum_types::{H160, H256, U256};
-use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
+use sp_std::{cell::RefCell, collections::btree_map::BTreeMap, rc::Rc, vec::Vec};
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Encode, Decode)]
 pub enum TraceType {
@@ -152,4 +154,80 @@ pub struct Call {
 	pub gas_used: U256,
 	#[cfg_attr(feature = "std", serde(flatten))]
 	pub inner: CallInner,
+}
+
+pub trait Listener {
+	fn event(&mut self, event: Event);
+}
+
+#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
+pub enum Event {
+	Step(RawStepLog),
+	Gas(U256),
+	ReturnValue(Vec<u8>),
+}
+
+impl Event {
+	pub fn emit(self) {
+		listener::with(|listener| listener.event(self));
+	}
+}
+
+pub fn using<R, F: FnOnce() -> R>(new: &mut (dyn Listener + 'static), f: F) -> R {
+	listener::using(new, f)
+}
+
+pub struct ListenerProxy<T>(pub Rc<RefCell<T>>);
+
+impl<T: Listener> Listener for ListenerProxy<T> {
+	fn event(&mut self, event: Event) {
+		self.0.borrow_mut().event(event);
+	}
+}
+
+#[derive(Debug)]
+pub struct RawProxy {
+	gas: U256,
+	return_value: Vec<u8>,
+	step_logs: Vec<RawStepLog>,
+}
+
+impl RawProxy {
+	pub fn new() -> Self {
+		Self {
+			gas: U256::zero(),
+			return_value: Vec::new(),
+			step_logs: Vec::new(),
+		}
+	}
+
+	pub fn proxy<R, F: FnOnce() -> R>(self, f: F) -> (Self, R) {
+		let wrapped = Rc::new(RefCell::new(self));
+
+		let result = {
+			let mut backend = ListenerProxy(Rc::clone(&wrapped));
+			let f = || using(&mut backend, f);
+			f()
+		};
+
+		(Rc::try_unwrap(wrapped).unwrap().into_inner(), result)
+	}
+
+	pub fn into_tx_trace(self) -> TransactionTrace {
+		TransactionTrace::Raw {
+			step_logs: self.step_logs,
+			gas: self.gas,
+			return_value: self.return_value,
+		}
+	}
+}
+
+impl Listener for RawProxy {
+	fn event(&mut self, event: Event) {
+		match event {
+			Event::Step(step) => self.step_logs.push(step),
+			Event::Gas(gas) => self.gas = gas,
+			Event::ReturnValue(value) => self.return_value = value,
+		};
+	}
 }
