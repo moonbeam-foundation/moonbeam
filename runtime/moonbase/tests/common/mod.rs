@@ -50,8 +50,8 @@ pub fn last_event() -> Event {
 }
 
 // Helper function to give a simple evm context suitable for tests.
-// this should probably go somewhere else. Maybe we should give it a
-// impl Default for Context upstream.
+// We can remove this once https://github.com/rust-blockchain/evm/pull/35
+// is in our dependency graph.
 pub fn evm_test_context() -> evm::Context {
 	evm::Context {
 		address: Default::default(),
