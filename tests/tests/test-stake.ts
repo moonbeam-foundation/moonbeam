@@ -21,7 +21,7 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
   });
 
   it("should have collator state as defined in the specs", async function () {
-    const candidates = await context.polkadotApi.query.parachainStaking.collatorState(
+    const candidates = await context.polkadotApi.query.parachainStaking.collatorState2(
       COLLATOR_ACCOUNT
     );
     expect(candidates.toHuman()["id"].toLowerCase()).equal(COLLATOR_ACCOUNT);
