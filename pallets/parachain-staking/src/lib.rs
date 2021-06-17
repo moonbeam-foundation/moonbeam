@@ -171,13 +171,8 @@ pub mod pallet {
 	}
 
 	impl<
-			A: Ord + Clone + std::fmt::Debug,
-			B: AtLeast32BitUnsigned
-				+ Ord
-				+ Copy
-				+ sp_std::ops::AddAssign
-				+ sp_std::ops::SubAssign
-				+ std::fmt::Debug,
+			A: Ord + Clone,
+			B: AtLeast32BitUnsigned + Ord + Copy + sp_std::ops::AddAssign + sp_std::ops::SubAssign,
 		> Collator2<A, B>
 	{
 		pub fn new(id: A, bond: B) -> Self {
@@ -268,7 +263,6 @@ pub mod pallet {
 					.top_nominators
 					.pop()
 					.expect("self.top_nominators.len() >= T::Max exists >= 1 element in top");
-				println!("TOP IS FULL\n {:?}\n", self);
 				if amount > last_nomination_in_top.amount {
 					// update total_counted with positive difference
 					self.total_counted += amount - last_nomination_in_top.amount;
@@ -308,7 +302,6 @@ pub mod pallet {
 			if let Some(s) = nominator_stake {
 				// last element has largest amount as per ordering
 				if let Some(last) = self.bottom_nominators.pop() {
-					println!("TOP POSITION HAS OPENED \n REMOVING BOND `{{` owner: {:?} amount: {:?} `}}`\n POPPING TOP BOTTOM NOMINATION TO THE TOP {:?}\n", nominator.clone(), s, last);
 					self.total_counted -= s - last.amount;
 					self.add_top_nominator(last);
 				} else {
@@ -360,7 +353,6 @@ pub mod pallet {
 				if x.owner == nominator {
 					x.amount += more;
 					self.total_backing += more;
-					println!("X: {:?}, LOWEST_TOP, {:?}\n", x, lowest_top);
 					move_2_top = x.amount > lowest_top.amount;
 					break;
 				}
