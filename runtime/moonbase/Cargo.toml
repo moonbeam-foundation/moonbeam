@@ -14,6 +14,8 @@ parity-scale-codec = { version = "2.0.0", default-features = false, features = [
 log = "0.4"
 hex-literal = "0.3.1"
 
+runtime-common =  { path = "../common", default-features = false }
+
 pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.4", default-features = false }
 account = { path = "../../primitives/account/", default-features = false }
 moonbeam-core-primitives = { path = "../../core-primitives", default-features = false }
@@ -97,6 +99,7 @@ substrate-wasm-builder = { version = "4.0.0", git = "https://github.com/parityte
 [features]
 default = ["std"]
 std = [
+	"runtime-common/std",
 	"parity-scale-codec/std",
 	"serde",
 	"sp-api/std",
