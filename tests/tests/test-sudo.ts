@@ -3,12 +3,10 @@ import { Keyring } from "@polkadot/api";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { Event } from "@polkadot/types/interfaces";
 import {
-  DEFAULT_GENESIS_MAPPING,
-  DEFAULT_GENESIS_STAKING,
   GENESIS_ACCOUNT,
-  COLLATOR_ACCOUNT,
   ALITH_PRIV_KEY,
   GENESIS_ACCOUNT_PRIVATE_KEY,
+  ZERO_ADDRESS,
 } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 
@@ -29,11 +27,6 @@ describeDevMoonbeam("Sudo - Only sudo account", (context) => {
     expect(parachainBondInfo.toHuman()["percent"]).to.equal("30.00%");
   });
   it("should check events", async function () {
-    // const testAddress = "0x1111111111111111111111111111111111111111";
-    // await context.createBlock({
-    //   transactions: [await createTransfer(context.web3, testAddress, 512)],
-    // });
-
     const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(1);
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock(blockHash);
     const allRecords = await context.polkadotApi.query.system.events.at(
@@ -56,7 +49,7 @@ describeDevMoonbeam("Sudo - Only sudo account", (context) => {
           break;
         // Fourth event
         case 3:
-          expect(section === "parachainStaking" && method === "setParachainBondAccount").to.be.true;
+          expect(section === "sudo" && method === "sudo").to.be.true;
           expect(events.length === 4);
           expect(context.polkadotApi.events.system.NewAccount.is(events[0])).to.be.true;
           expect(context.polkadotApi.events.balances.Endowed.is(events[1])).to.be.true;
@@ -69,6 +62,3 @@ describeDevMoonbeam("Sudo - Only sudo account", (context) => {
     });
   });
 });
-function ZERO_ADDRESS(ZERO_ADDRESS: any) {
-  throw new Error("Function not implemented.");
-}

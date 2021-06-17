@@ -2,12 +2,11 @@ import { expect } from "chai";
 import { Keyring } from "@polkadot/api";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { Event } from "@polkadot/types/interfaces";
-import { GENESIS_ACCOUNT, ALITH_PRIV_KEY, GENESIS_ACCOUNT_PRIVATE_KEY } from "../util/constants";
+import { GENESIS_ACCOUNT, ALITH_PRIV_KEY, GENESIS_ACCOUNT_PRIVATE_KEY, ZERO_ADDRESS } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 
 const TWENTY_PERCENT = 20;
 const TWENTY_PERCENT_STRING = "20.00%";
-const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 describeDevMoonbeam("Staking - Parachain Bond - genesis and setParachainBondAccount", (context) => {
   let sudoAccount: KeyringPair;
