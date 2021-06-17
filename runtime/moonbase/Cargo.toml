@@ -1,6 +1,7 @@
 [package]
 name = 'moonbase-runtime'
 description = 'Moonbase Runtime'
+
 homepage = 'https://moonbeam.network'
 license = 'GPL-3.0-only'
 version = '0.8.0-dev'
@@ -70,13 +71,22 @@ moonbeam-evm-tracer = { path = "../evm_tracer", default-features = false }
 moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug", default-features = false }
 moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool", default-features = false }
 
+xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.4" }
+xcm-builder = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.4" }
+xcm-executor = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.4" }
+pallet-xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.4" }
+polkadot-parachain = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.4" }
+
 # Cumulus dependencies
 cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.4" }
 cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.4" }
 parachain-info = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.4" }
-
+cumulus-pallet-xcmp-queue = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.4" }
+cumulus-pallet-dmp-queue = { git = "https://github.com/purestake/cumulus", default-features = false,  branch = "nimbus-polkadot-v0.9.4"}
+cumulus-pallet-xcm = { git = "https://github.com/purestake/cumulus", default-features = false,  branch = "nimbus-polkadot-v0.9.4" }
+cumulus-primitives-utility = { git = "https://github.com/purestake/cumulus", default-features = false,  branch = "nimbus-polkadot-v0.9.4" }
 # Benchmarking dependencies
-frame-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4", optional = true }
+frame-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4", optional = true, version = '3.0.0' }
 frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4", optional = true }
 
 [dev-dependencies]
@@ -112,7 +122,6 @@ std = [
 	"pallet-balances/std",
 	"pallet-randomness-collective-flip/std",
 	"pallet-timestamp/std",
-	"pallet-treasury/std",
 	"pallet-sudo/std",
 	"pallet-transaction-payment/std",
 	"pallet-utility/std",
@@ -142,7 +151,13 @@ std = [
 	"pallet-proxy/std",
 	"nimbus-primitives/std",
 	"pallet-author-mapping/std",
+	"pallet-treasury/std",
 	"max-encoded-len/std",
+	"cumulus-pallet-xcmp-queue/std",
+	"cumulus-pallet-xcm/std",
+	"xcm/std",
+	"xcm-builder/std",
+	"xcm-executor/std"
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
