@@ -195,9 +195,8 @@ impl RawProxy {
 		}
 	}
 
-	pub fn proxy<R, F: FnOnce() -> R>(&mut self, f: F) -> Self {
+	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) {
 		listener::using(self, f);
-		sp_std::mem::take(self)
 	}
 
 	pub fn into_tx_trace(self) -> TransactionTrace {
