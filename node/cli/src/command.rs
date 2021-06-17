@@ -56,14 +56,9 @@ fn load_spec(
 		#[cfg(feature = "test-spec")]
 		"staking" => Box::new(chain_spec::test_spec::staking_spec(para_id)),
 		// Moonriver networks
-		"moonriver" => {
-			return Err(
-				"You chosen the moonriver mainnet spec. This network is not yet available.".into(),
-			);
-			// Box::new(chain_spec::moonriver::ChainSpec::from_json_bytes(
-			// 	&include_bytes!("../../../specs/moonriver.json")[..],
-			// )?)
-		}
+		"moonriver" => Box::new(chain_spec::moonriver::ChainSpec::from_json_bytes(
+			&include_bytes!("../../../specs/moonriver/parachain-embedded-specs.json")[..],
+		)?),
 		"moonriver-dev" => Box::new(chain_spec::moonriver::development_chain_spec(None, None)),
 		"moonriver-local" => Box::new(chain_spec::moonriver::get_chain_spec(para_id)),
 
