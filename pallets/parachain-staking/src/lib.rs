@@ -171,8 +171,13 @@ pub mod pallet {
 	}
 
 	impl<
-			A: Ord + Clone,
-			B: AtLeast32BitUnsigned + Ord + Copy + sp_std::ops::AddAssign + sp_std::ops::SubAssign,
+			A: Ord + Clone + std::fmt::Debug,
+			B: AtLeast32BitUnsigned
+				+ Ord
+				+ Copy
+				+ sp_std::ops::AddAssign
+				+ sp_std::ops::SubAssign
+				+ std::fmt::Debug,
 		> Collator2<A, B>
 	{
 		pub fn new(id: A, bond: B) -> Self {
@@ -214,7 +219,7 @@ pub mod pallet {
 		pub fn add_top_nominator(&mut self, nominator: Bond<A, B>) {
 			match self
 				.top_nominators
-				.binary_search_by(|x| x.amount.cmp(&nominator.amount))
+				.binary_search_by(|x| nominator.amount.cmp(&x.amount))
 			{
 				Ok(i) => self.top_nominators.insert(i, nominator),
 				Err(i) => self.top_nominators.insert(i, nominator),
@@ -263,6 +268,7 @@ pub mod pallet {
 					.top_nominators
 					.pop()
 					.expect("self.top_nominators.len() >= T::Max exists >= 1 element in top");
+				println!("TOP IS FULL\n {:?}\n", self);
 				if amount > last_nomination_in_top.amount {
 					// update total_counted with positive difference
 					self.total_counted += amount - last_nomination_in_top.amount;
@@ -302,6 +308,7 @@ pub mod pallet {
 			if let Some(s) = nominator_stake {
 				// last element has largest amount as per ordering
 				if let Some(last) = self.bottom_nominators.pop() {
+					println!("TOP POSITION HAS OPENED \n REMOVING BOND `{{` owner: {:?} amount: {:?} `}}`\n POPPING TOP BOTTOM NOMINATION TO THE TOP {:?}\n", nominator.clone(), s, last);
 					self.total_counted -= s - last.amount;
 					self.add_top_nominator(last);
 				} else {
@@ -348,27 +355,29 @@ pub mod pallet {
 				.top_nominators
 				.pop()
 				.expect("any bottom nominators => exists T::Max top nominators");
+			let mut move_2_top = false;
 			for x in &mut self.bottom_nominators {
 				if x.owner == nominator {
 					x.amount += more;
 					self.total_backing += more;
-					if x.amount > lowest_top.amount {
-						self.total_counted += x.amount - lowest_top.amount;
-						let highest_bottom =
-							self.bottom_nominators.pop().expect("updated => exists");
-						self.add_top_nominator(highest_bottom);
-						self.add_bottom_nominator(lowest_top);
-						return true;
-					} else {
-						// reset top_nominators
-						self.top_nominators.push(lowest_top);
-						break;
-					}
+					println!("X: {:?}, LOWEST_TOP, {:?}\n", x, lowest_top);
+					move_2_top = x.amount > lowest_top.amount;
+					break;
 				}
 			}
-			// else => x.amount <= lowest_top.amount
-			self.sort_bottom_nominators();
-			false
+			if move_2_top {
+				self.sort_bottom_nominators();
+				let highest_bottom = self.bottom_nominators.pop().expect("updated => exists");
+				self.total_counted += highest_bottom.amount - lowest_top.amount;
+				self.add_top_nominator(highest_bottom);
+				self.add_bottom_nominator(lowest_top);
+				true
+			} else {
+				// reset top_nominators from earlier pop
+				self.top_nominators.push(lowest_top);
+				self.sort_bottom_nominators();
+				false
+			}
 		}
 		/// Return true if in_top after call
 		pub fn dec_nominator(&mut self, nominator: A, less: B) -> bool {
@@ -667,7 +676,6 @@ pub mod pallet {
 		AlreadyOffline,
 		AlreadyActive,
 		AlreadyLeaving,
-		TooManyNominators,
 		CannotActivateIfLeaving,
 		ExceedMaxCollatorsPerNom,
 		AlreadyNominatedCollator,

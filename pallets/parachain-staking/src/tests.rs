@@ -1078,6 +1078,201 @@ fn payouts_follow_nomination_changes() {
 }
 
 #[test]
+/// Verify that only the top T::MaxNominatorsPerCollator are in top
+/// and the bottom nominators set is unbounded
+/// - MaxNominatorsPerCollator = 4
+/// - MaxCollatorsPerNominator = 4
+fn collator_nominator_sets_behave() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 100),
+			(2, 100),
+			(3, 100),
+			(4, 100),
+			(5, 100),
+			(6, 100),
+			(7, 100),
+			(8, 100),
+			(9, 100),
+			(10, 100),
+		])
+		.with_collators(vec![(1, 20), (2, 20)])
+		.with_nominations(vec![
+			(3, 1, 11),
+			(4, 1, 12),
+			(5, 1, 13),
+			(6, 1, 14),
+			(7, 2, 15),
+			(8, 2, 16),
+			(9, 2, 17),
+			(10, 2, 18),
+		])
+		.build()
+		.execute_with(|| {
+			// sanity check that 3-10 are nominators immediately
+			for i in 3..11 {
+				assert!(Stake::is_nominator(&i));
+			}
+			// ~ COLLATOR 1 NominationQ tests ~
+			let collator1_state = Stake::collator_state2(1).unwrap();
+			// 11 + 12 + 13 + 14 + 20 = 70 (top 4 + self bond)
+			assert_eq!(collator1_state.total_counted, 70);
+			assert_eq!(collator1_state.total_counted, collator1_state.total_backing);
+			// Top Nominations are full and new highest nomination is made
+			assert_ok!(Stake::nominate(Origin::signed(7), 1, 15));
+			let collator1_state = Stake::collator_state2(1).unwrap();
+			// 12 + 13 + 14 + 15 + 20 = 70 (top 4 + self bond)
+			assert_eq!(collator1_state.total_counted, 74);
+			// 11 = 11 (in unbounded)
+			assert_eq!(
+				collator1_state.total_counted + 11,
+				collator1_state.total_backing
+			);
+			assert_ok!(Stake::nominate(Origin::signed(8), 1, 16));
+			let collator1_state = Stake::collator_state2(1).unwrap();
+			// 13 + 14 + 15 + 16 + 20 = 78 (top 4 + self bond)
+			assert_eq!(collator1_state.total_counted, 78);
+			// 11 + 12 = 23 (in unbounded)
+			assert_eq!(
+				collator1_state.total_counted + 23,
+				collator1_state.total_backing
+			);
+			assert_ok!(Stake::revoke_nomination(Origin::signed(5), 1));
+			let collator1_state = Stake::collator_state2(1).unwrap();
+			// 12 + 14 + 15 + 16 + 20 = 78 (top 4 + self bond)
+			assert_eq!(collator1_state.total_counted, 77);
+			// 11 = 11 (in unbounded)
+			assert_eq!(
+				collator1_state.total_counted + 11,
+				collator1_state.total_backing
+			);
+			assert_ok!(Stake::revoke_nomination(Origin::signed(8), 1));
+			let collator1_state = Stake::collator_state2(1).unwrap();
+			// 11 + 12 + 14 + 15 + 20 = 78 (top 4 + self bond)
+			assert_eq!(collator1_state.total_counted, 72);
+			assert_eq!(collator1_state.total_counted, collator1_state.total_backing);
+			// ~ COLLATOR 2 NominationQ tests ~
+			let collator2_state = Stake::collator_state2(2).unwrap();
+			// 15 + 16 + 17 + 18 + 20 = 86 (top 4 + self bond)
+			assert_eq!(collator2_state.total_counted, 86);
+			assert_eq!(collator2_state.total_counted, collator2_state.total_backing);
+			// Top Nominations are full and new nomination is made below all top nominations
+			assert_ok!(Stake::nominate(Origin::signed(3), 2, 11));
+			let collator2_state = Stake::collator_state2(2).unwrap();
+			// 15 + 16 + 17 + 18 + 20 = 86 (top 4 + self bond)
+			assert_eq!(collator2_state.total_counted, 86);
+			// 11 = 11 (in unbounded)
+			assert_eq!(
+				collator2_state.total_counted + 11,
+				collator2_state.total_backing
+			);
+			assert_ok!(Stake::nominate(Origin::signed(4), 2, 16));
+			let collator2_state = Stake::collator_state2(2).unwrap();
+			// 16 + 16 + 17 + 18 + 20 = 87 (top 4 + self bond)
+			assert_eq!(collator2_state.total_counted, 87);
+			// 11 + 15 = 26 (in unbounded)
+			assert_eq!(
+				collator2_state.total_counted + 26,
+				collator2_state.total_backing
+			);
+			assert_ok!(Stake::nominate(Origin::signed(5), 2, 19));
+			let collator2_state = Stake::collator_state2(2).unwrap();
+			// 16 + 17 + 18 + 19 + 20 = 90 (top 4 + self bond)
+			assert_eq!(collator2_state.total_counted, 90);
+			// 11 + 15 + 16 = 42 (in unbounded)
+			assert_eq!(
+				collator2_state.total_counted + 42,
+				collator2_state.total_backing
+			);
+			assert_ok!(Stake::nominate(Origin::signed(6), 2, 21));
+			let collator2_state = Stake::collator_state2(2).unwrap();
+			// 17 + 18 + 19 + 21 + 20 = 95 (top 4 + self bond)
+			assert_eq!(collator2_state.total_counted, 95);
+			// 11 + 15 + 16 + 16 = 58 (in unbounded)
+			assert_eq!(
+				collator2_state.total_counted + 58,
+				collator2_state.total_backing
+			);
+			assert_ok!(Stake::revoke_nomination(Origin::signed(5), 2));
+			let collator2_state = Stake::collator_state2(2).unwrap();
+			// 16 + 17 + 18 + 21 + 20 = 92 (top 4 + self bond)
+			assert_eq!(collator2_state.total_counted, 92);
+			// 11 + 15 + 16 = 42 (in unbounded)
+			assert_eq!(
+				collator2_state.total_counted + 42,
+				collator2_state.total_backing
+			);
+			assert_ok!(Stake::nominate(Origin::signed(5), 2, 17));
+			let collator2_state = Stake::collator_state2(2).unwrap();
+			// 17 + 17 + 18 + 21 + 20 = 93 (top 4 + self bond)
+			assert_eq!(collator2_state.total_counted, 93);
+			// 11 + 15 + 16 + 16 = 58 (in unbounded)
+			assert_eq!(
+				collator2_state.total_counted + 58,
+				collator2_state.total_backing
+			);
+			assert_ok!(Stake::nominator_bond_less(Origin::signed(5), 2, 2));
+			let collator2_state = Stake::collator_state2(2).unwrap();
+			// 16 + 17 + 18 + 21 + 20 = 92 (top 4 + self bond)
+			assert_eq!(collator2_state.total_counted, 92);
+			// 11 + 15 + 15 + 16 = 57 (in unbounded)
+			assert_eq!(
+				collator2_state.total_counted + 57,
+				collator2_state.total_backing
+			);
+			println!("BOND MORE NOT CALLED BY 3 \n");
+			assert_ok!(Stake::nominator_bond_more(Origin::signed(3), 2, 6));
+			let collator2_state = Stake::collator_state2(2).unwrap();
+			println!(
+				"BOND MORE WAS CALLED BY 3, new state is \n {:?}",
+				collator2_state
+			);
+			// 17 + 17 + 18 + 21 + 20 = 93 (top 4 + self bond)
+			assert_eq!(collator2_state.total_counted, 93);
+			// 15 + 15 + 16 + 16 = 62 (in unbounded)
+			assert_eq!(
+				collator2_state.total_counted + 62,
+				collator2_state.total_backing
+			);
+			// Remove all top nominations for Collator2
+			assert_ok!(Stake::revoke_nomination(Origin::signed(6), 2));
+			// removing 21 but apparently bumping 17???
+			let collator2_state = Stake::collator_state2(2).unwrap();
+			// 16 + 17 + 17 + 18 + 20 = 88 (top 4 + self bond)
+			assert_eq!(collator2_state.total_counted, 88);
+			// 15 + 15 + 16 = 46 (in unbounded)
+			assert_eq!(
+				collator2_state.total_counted + 46,
+				collator2_state.total_backing
+			);
+			assert_ok!(Stake::revoke_nomination(Origin::signed(10), 2));
+			let collator2_state = Stake::collator_state2(2).unwrap();
+			// 16 + 16 + 17 + 17 + 20 = 86 (top 4 + self bond)
+			assert_eq!(collator2_state.total_counted, 86);
+			// 15 + 15 = 30 (in unbounded)
+			assert_eq!(
+				collator2_state.total_counted + 30,
+				collator2_state.total_backing
+			);
+			assert_ok!(Stake::revoke_nomination(Origin::signed(3), 2));
+			let collator2_state = Stake::collator_state2(2).unwrap();
+			// 15 + 16 + 16 + 17 + 20 = 84 (top 4 + self bond)
+			assert_eq!(collator2_state.total_counted, 84);
+			// 15 = 15 (in unbounded)
+			assert_eq!(
+				collator2_state.total_counted + 15,
+				collator2_state.total_backing
+			);
+			assert_ok!(Stake::revoke_nomination(Origin::signed(7), 2));
+			let collator2_state = Stake::collator_state2(2).unwrap();
+			// 15 + 16 + 16 + 17 + 20 = 84 (top 4 + self bond)
+			assert_eq!(collator2_state.total_counted, 84);
+			assert_eq!(collator2_state.total_counted, collator2_state.total_backing);
+			assert!(false);
+		});
+}
+
+#[test]
 fn parachain_bond_reserve_works() {
 	ExtBuilder::default()
 		.with_balances(vec![
