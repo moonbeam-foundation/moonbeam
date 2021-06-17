@@ -883,6 +883,7 @@
 <span id="880">880</span>
 <span id="881">881</span>
 <span id="882">882</span>
+<span id="883">883</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1293,6 +1294,7 @@
 <span class="doccomment">/// Start a node with the given parachain `Configuration` and relay chain `Configuration`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This is the actual implementation that is abstract over the executor and the runtime api.</span>
+<span class="attribute">#[<span class="ident">sc_tracing</span>::<span class="ident">logging</span>::<span class="ident">prefix_logs_with</span>(<span class="string">&quot;🌗&quot;</span>)]</span>
 <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">start_node_impl</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span>(
 	<span class="ident">parachain_config</span>: <span class="ident">Configuration</span>,
 	<span class="ident">polkadot_config</span>: <span class="ident">Configuration</span>,
