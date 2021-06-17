@@ -4820,6 +4820,7 @@ dependencies = [
  "parity-scale-codec",
  "precompiles",
  "rlp",
+ "runtime-common",
  "serde",
  "sp-api",
  "sp-block-builder",
@@ -5111,6 +5112,7 @@ dependencies = [
  "parity-scale-codec",
  "precompiles",
  "rlp",
+ "runtime-common",
  "serde",
  "sp-api",
  "sp-block-builder",
@@ -5298,6 +5300,7 @@ dependencies = [
  "parity-scale-codec",
  "precompiles",
  "rlp",
+ "runtime-common",
  "serde",
  "sp-api",
  "sp-block-builder",
@@ -5364,6 +5367,7 @@ dependencies = [
  "parity-scale-codec",
  "precompiles",
  "rlp",
+ "runtime-common",
  "serde",
  "sp-api",
  "sp-block-builder",
@@ -8959,6 +8963,10 @@ dependencies = [
  "libc",
  "winapi 0.3.9",
 ]
+
+[[package]]
+name = "runtime-common"
+version = "0.8.0-dev"
 
 [[package]]
 name = "rust-argon2"
