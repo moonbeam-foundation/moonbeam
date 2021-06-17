@@ -1341,8 +1341,6 @@ fn points_precompile_round_too_big_error() {
 		input_data[0..4].copy_from_slice(&hex_literal::hex!("9799b4e7"));
 		U256::max_value().to_big_endian(&mut input_data[4..36]);
 
-		// TODO assert that we get an error here. I'm not sure what error it is yet.
-		// I'll let the test tell me.
 		assert_eq!(
 			MoonbeamPrecompiles::<Runtime>::execute(
 				staking_precompile_address,
