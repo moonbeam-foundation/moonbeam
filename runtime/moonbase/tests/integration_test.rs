@@ -22,8 +22,8 @@ use common::*;
 use evm::{executor::PrecompileOutput, ExitError, ExitSucceed};
 use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable, traits::fungible::Inspect};
 use moonbase_runtime::{
-	currency::UNITS, AccountId, Balances, Call, CrowdloanRewards, Event, ParachainStaking, Runtime,
-	System, Precompiles,
+	currency::UNITS, AccountId, Balances, Call, CrowdloanRewards, Event, ParachainStaking,
+	Precompiles, Runtime, System,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;

@@ -16,7 +16,6 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use parity_scale_codec::Decode;
 use evm::{executor::PrecompileOutput, Context, ExitError};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::{Precompile, PrecompileSet};
@@ -25,11 +24,12 @@ use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, Identity, Ripemd160, Sha256};
+use parachain_staking_precompiles::ParachainStakingWrapper;
+use parity_scale_codec::Decode;
 use sp_core::H160;
 use sp_std::convert::TryFrom;
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
-use parachain_staking_precompiles::ParachainStakingWrapper;
 
 use frame_support::traits::Currency;
 type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as Currency<
