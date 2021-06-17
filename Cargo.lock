@@ -5999,6 +5999,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-democracy-precompiles"
+version = "0.1.0"
+dependencies = [
+ "evm",
+ "frame-support",
+ "frame-system",
+ "hex",
+ "log",
+ "pallet-democracy",
+ "pallet-evm",
+ "parity-scale-codec",
+ "rustc-hex",
+ "sp-core",
+ "sp-io",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-election-provider-multi-phase"
 version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.4#1d04678e20555e623c974ee1127bc8a45abcf3d6"
