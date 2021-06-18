@@ -29,7 +29,7 @@ pub use moonbase_runtime::{
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::GenesisAccount;
-use sp_core::{Public, H160};
+use sp_core::H160;
 use sp_runtime::Perbill;
 
 use std::collections::BTreeMap;
@@ -47,6 +47,17 @@ pub fn run_to_block(n: u32) {
 
 pub fn last_event() -> Event {
 	System::events().pop().expect("Event expected").event
+}
+
+// Helper function to give a simple evm context suitable for tests.
+// We can remove this once https://github.com/rust-blockchain/evm/pull/35
+// is in our dependency graph.
+pub fn evm_test_context() -> evm::Context {
+	evm::Context {
+		address: Default::default(),
+		caller: Default::default(),
+		apparent_value: From::from(0),
+	}
 }
 
 pub struct ExtBuilder {

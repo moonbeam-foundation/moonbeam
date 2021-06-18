@@ -19,17 +19,15 @@
 mod common;
 use common::*;
 
-use cumulus_primitives_parachain_inherent::ParachainInherentData;
-use evm::{executor::PrecompileOutput, Context, ExitSucceed};
+use evm::{executor::PrecompileOutput, ExitError, ExitSucceed};
 use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable, traits::fungible::Inspect};
 use moonbase_runtime::{
-	currency::UNITS, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Event,
-	InflationInfo, ParachainStaking, Range, Runtime, System,
+	currency::UNITS, AccountId, Balances, Call, CrowdloanRewards, Event, ParachainStaking,
+	Precompiles, Runtime, System,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use parachain_staking::Bond;
-use precompiles::MoonbeamPrecompiles;
 use sp_core::{Public, H160, U256};
 use sp_runtime::DispatchError;
 
@@ -1042,22 +1040,17 @@ fn is_nominator_via_precompile() {
 			let expected_true_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
-				cost: 0,
+				cost: 0, //TODO moonbase runtime still uses DbWeight = ()
 				logs: Default::default(),
 			}));
 
 			// Assert precompile reports Bob is a nominator
 			assert_eq!(
-				MoonbeamPrecompiles::<Runtime>::execute(
+				Precompiles::execute(
 					staking_precompile_address,
 					&bob_input_data,
 					None, // target_gas is not necessary right now because consumed none now
-					&Context {
-						// This context copied from Sacrifice tests, it's not great.
-						address: Default::default(),
-						caller: Default::default(),
-						apparent_value: From::from(0),
-					}
+					&evm_test_context(),
 				),
 				expected_true_result
 			);
@@ -1078,16 +1071,11 @@ fn is_nominator_via_precompile() {
 
 			// Assert precompile also reports Charlie as not a nominator
 			assert_eq!(
-				MoonbeamPrecompiles::<Runtime>::execute(
+				Precompiles::execute(
 					staking_precompile_address,
 					&charlie_input_data,
 					None,
-					&Context {
-						// This context copied from Sacrifice tests, it's not great.
-						address: Default::default(),
-						caller: Default::default(),
-						apparent_value: From::from(0),
-					}
+					&evm_test_context(),
 				),
 				expected_false_result
 			);
@@ -1123,16 +1111,11 @@ fn is_candidate_via_precompile() {
 
 			// Assert precompile reports Alice is a collator candidate
 			assert_eq!(
-				MoonbeamPrecompiles::<Runtime>::execute(
+				Precompiles::execute(
 					staking_precompile_address,
 					&alice_input_data,
 					None, // target_gas is not necessary right now because consumed none now
-					&Context {
-						// This context copied from Sacrifice tests, it's not great.
-						address: Default::default(),
-						caller: Default::default(),
-						apparent_value: From::from(0),
-					}
+					&evm_test_context(),
 				),
 				expected_true_result
 			);
@@ -1153,16 +1136,78 @@ fn is_candidate_via_precompile() {
 
 			// Assert precompile also reports Bob as not a collator candidate
 			assert_eq!(
-				MoonbeamPrecompiles::<Runtime>::execute(
+				Precompiles::execute(
 					staking_precompile_address,
 					&bob_input_data,
 					None,
-					&Context {
-						// This context copied from Sacrifice tests, it's not great.
-						address: Default::default(),
-						caller: Default::default(),
-						apparent_value: From::from(0),
-					}
+					&evm_test_context(),
+				),
+				expected_false_result
+			);
+		})
+}
+
+#[test]
+fn is_selected_candidate_via_precompile() {
+	ExtBuilder::default()
+		.with_balances(vec![(AccountId::from(ALICE), 1_000 * UNITS)])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNITS)])
+		.build()
+		.execute_with(|| {
+			// Confirm Alice is selected directly
+			assert!(ParachainStaking::is_selected_candidate(&AccountId::from(
+				ALICE
+			)));
+
+			let staking_precompile_address = H160::from_low_u64_be(2048);
+
+			// Construct the input data to check if Alice is a candidate
+			let mut alice_input_data = Vec::<u8>::from([0u8; 36]);
+			alice_input_data[0..4].copy_from_slice(&hex_literal::hex!("8f6d27c7"));
+			alice_input_data[16..36].copy_from_slice(&ALICE);
+
+			// Expected result is an EVM boolean true which is 256 bits long.
+			let mut expected_bytes = Vec::from([0u8; 32]);
+			expected_bytes[31] = 1;
+			let expected_true_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 0,
+				logs: Default::default(),
+			}));
+
+			// Assert precompile reports Alice is a collator candidate
+			assert_eq!(
+				Precompiles::execute(
+					staking_precompile_address,
+					&alice_input_data,
+					None, // target_gas is not necessary right now because consumed none now
+					&evm_test_context(),
+				),
+				expected_true_result
+			);
+
+			// Construct the input data to check if Bob is a collator candidate
+			let mut bob_input_data = Vec::<u8>::from([0u8; 36]);
+			bob_input_data[0..4].copy_from_slice(&hex_literal::hex!("8f6d27c7"));
+			bob_input_data[16..36].copy_from_slice(&BOB);
+
+			// Expected result is an EVM boolean false which is 256 bits long.
+			expected_bytes = Vec::from([0u8; 32]);
+			let expected_false_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 0,
+				logs: Default::default(),
+			}));
+
+			// Assert precompile also reports Bob as not a collator candidate
+			assert_eq!(
+				Precompiles::execute(
+					staking_precompile_address,
+					&bob_input_data,
+					None,
+					&evm_test_context(),
 				),
 				expected_false_result
 			);
@@ -1189,18 +1234,122 @@ fn min_nomination_via_precompile() {
 		}));
 
 		assert_eq!(
-			MoonbeamPrecompiles::<Runtime>::execute(
+			Precompiles::execute(
 				staking_precompile_address,
 				&get_min_nom,
 				None,
-				&Context {
-					// This context copied from Sacrifice tests, it's not great.
-					address: Default::default(),
-					caller: Default::default(),
-					apparent_value: From::from(0),
-				}
+				&evm_test_context(),
 			),
 			expected_result
 		);
 	});
+}
+
+#[test]
+fn points_precompile_zero() {
+	ExtBuilder::default().build().execute_with(|| {
+		let staking_precompile_address = H160::from_low_u64_be(2048);
+
+		// Construct the input data to check points in round one
+		// Notice we start in round one, not round zero.
+		let mut input_data = Vec::<u8>::from([0u8; 36]);
+		input_data[0..4].copy_from_slice(&hex_literal::hex!("9799b4e7"));
+		U256::one().to_big_endian(&mut input_data[4..36]);
+
+		// Expected result is zero points because nobody has authored yet.
+		let expected_bytes = Vec::from([0u8; 32]);
+		let expected_zero_result = Some(Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: expected_bytes,
+			cost: 0,
+			logs: Default::default(),
+		}));
+
+		// Assert that no points have been earned
+		assert_eq!(
+			Precompiles::execute(
+				staking_precompile_address,
+				&input_data,
+				None,
+				&evm_test_context(),
+			),
+			expected_zero_result
+		);
+	})
+}
+
+#[test]
+fn points_precompile_non_zero() {
+	ExtBuilder::default()
+		.with_balances(vec![(AccountId::from(ALICE), 1_100 * UNITS)])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNITS)])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
+		)])
+		.build()
+		.execute_with(|| {
+			let staking_precompile_address = H160::from_low_u64_be(2048);
+
+			// Alice authors a block
+			set_parachain_inherent_data();
+			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+
+			// Construct the input data to check points in round one
+			// Notice we start in round one, not round zero.
+			let mut input_data = Vec::<u8>::from([0u8; 36]);
+			input_data[0..4].copy_from_slice(&hex_literal::hex!("9799b4e7"));
+			U256::one().to_big_endian(&mut input_data[4..36]);
+
+			// Expected result is 20 points because each block is one point.
+			// Pretty hacky way to make that data structure...
+			let mut expected_bytes = Vec::from([0u8; 32]);
+			expected_bytes[31] = 20;
+
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 0,
+				logs: Default::default(),
+			}));
+
+			// Assert that 20 points have been earned
+			assert_eq!(
+				Precompiles::execute(
+					staking_precompile_address,
+					&input_data,
+					None,
+					&evm_test_context(),
+				),
+				expected_result
+			);
+		})
+}
+
+#[test]
+fn points_precompile_round_too_big_error() {
+	ExtBuilder::default().build().execute_with(|| {
+		let staking_precompile_address = H160::from_low_u64_be(2048);
+
+		// We accept the round as a 256-bit integer for easy compatibility with
+		// solidity. But the underlying Rust type is `u32`. So here we test that
+		// the precompile fails gracefully when too large of a round is passed in.
+
+		// Construct the input data to check points so far this round
+		let mut input_data = Vec::<u8>::from([0u8; 36]);
+		input_data[0..4].copy_from_slice(&hex_literal::hex!("9799b4e7"));
+		U256::max_value().to_big_endian(&mut input_data[4..36]);
+
+		assert_eq!(
+			Precompiles::execute(
+				staking_precompile_address,
+				&input_data,
+				None,
+				&evm_test_context(),
+			),
+			Some(Err(ExitError::Other(
+				"Round is too large. 32 bit maximum".into()
+			)))
+		);
+	})
 }

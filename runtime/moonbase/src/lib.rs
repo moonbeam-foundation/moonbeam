@@ -32,7 +32,10 @@ use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Get, Imbalance, InstanceFilter, OnUnbalanced},
-	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
+	weights::{
+		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
+		IdentityFee, Weight,
+	},
 	PalletId,
 };
 use frame_system::{EnsureOneOf, EnsureRoot};
@@ -51,7 +54,6 @@ use pallet_evm::{
 use pallet_transaction_payment::CurrencyAdapter;
 pub use parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode};
-use precompiles::MoonbeamPrecompiles;
 use sp_api::impl_runtime_apis;
 use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
@@ -67,10 +69,13 @@ use sp_version::RuntimeVersion;
 
 use nimbus_primitives::{CanAuthor, NimbusId};
 
+mod precompiles;
+use precompiles::MoonbasePrecompiles;
+
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
-pub type Precompiles = MoonbeamPrecompiles<Runtime>;
+pub type Precompiles = MoonbasePrecompiles<Runtime>;
 
 /// UNITS, the native token, uses 18 decimals of precision.
 pub mod currency {
@@ -120,8 +125,8 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 3,
-	spec_version: 49,
-	impl_version: 2,
+	spec_version: 50,
+	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
 };
@@ -183,7 +188,7 @@ impl frame_system::Config for Runtime {
 	type AccountData = pallet_balances::AccountData<Balance>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
-	type DbWeight = ();
+	type DbWeight = RocksDbWeight;
 	type BaseCallFilter = ();
 	type SystemWeightInfo = ();
 	/// This is used as an identifier of the chain. 42 is the generic substrate prefix.
@@ -303,7 +308,7 @@ impl pallet_evm::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type Precompiles = MoonbeamPrecompiles<Self>;
+	type Precompiles = MoonbasePrecompiles<Self>;
 	type ChainId = EthereumChainId;
 	type OnChargeTransaction = ();
 	type BlockGasLimit = BlockGasLimit;
@@ -787,7 +792,7 @@ runtime_common::impl_runtime_apis_plus_common! {
 	}
 }
 
-// Notice we're using Nimbus's Executive wrapper to pop (and in the future verify) the seal digest.
+// Nimbus's Executive wrapper allows relay validators to verify the seal digest
 cumulus_pallet_parachain_system::register_validate_block!(
 	Runtime,
 	pallet_author_inherent::BlockExecutor<Runtime, Executive>

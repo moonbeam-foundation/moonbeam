@@ -32,7 +32,10 @@ use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Filter, Get, Imbalance, InstanceFilter, OnUnbalanced},
-	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
+	weights::{
+		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
+		IdentityFee, Weight,
+	},
 	PalletId,
 };
 use frame_system::{EnsureOneOf, EnsureRoot};
@@ -120,8 +123,8 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonshadow"),
 	impl_name: create_runtime_str!("moonshadow"),
 	authoring_version: 3,
-	spec_version: 50,
-	impl_version: 2,
+	spec_version: 51,
+	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
 };
@@ -197,7 +200,7 @@ impl frame_system::Config for Runtime {
 	type AccountData = pallet_balances::AccountData<Balance>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
-	type DbWeight = ();
+	type DbWeight = RocksDbWeight;
 	type BaseCallFilter = BaseFilter;
 	type SystemWeightInfo = ();
 	/// This is used as an identifier of the chain. 42 is the generic substrate prefix.
@@ -810,7 +813,7 @@ runtime_common::impl_runtime_apis_plus_common! {
 	}
 }
 
-// Notice we're using Nimbus's Executive wrapper to pop (and in the future verify) the seal digest.
+// Nimbus's Executive wrapper allows relay validators to verify the seal digest
 cumulus_pallet_parachain_system::register_validate_block!(
 	Runtime,
 	pallet_author_inherent::BlockExecutor<Runtime, Executive>
