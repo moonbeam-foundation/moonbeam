@@ -742,7 +742,7 @@ pub mod pallet {
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_runtime_upgrade() -> Weight {
 			// migrate from Collator -> Collator2
-			for (acc, collator_state) in CollatorState::<T>::iter() {
+			for (acc, collator_state) in CollatorState::<T>::drain() {
 				let state: Collator2<T::AccountId, BalanceOf<T>> = collator_state.into();
 				<CollatorState2<T>>::insert(acc, state);
 			}
