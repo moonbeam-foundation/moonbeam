@@ -143,7 +143,8 @@ pub mod pallet {
 	}
 
 	#[derive(Encode, Decode, RuntimeDebug)]
-	/// Collator state with commission fee, bonded stake, and nominations
+		/// DEPECATED: This is the old storage schema. It is retained for purposes of storage migration and should be removed in the future.
+		/// Collator state with commission fee, bonded stake, and nominations
 	pub struct Collator<AccountId, Balance> {
 		pub id: AccountId,
 		pub bond: Balance,
