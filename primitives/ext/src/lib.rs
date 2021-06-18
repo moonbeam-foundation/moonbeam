@@ -24,14 +24,12 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 use sp_runtime_interface::runtime_interface;
-#[cfg(feature = "std")]
-use sp_externalities::ExternalitiesExt;
 
 use codec::Decode;
 use sp_std::vec::Vec;
 
 use ethereum_types::U256;
-use moonbeam_rpc_primitives_debug::single::{RawEvent, RawStepLog, TransactionTrace};
+use moonbeam_rpc_primitives_debug::single::{RawEvent, RawStepLog};
 
 #[runtime_interface]
 pub trait MoonbeamExt {
