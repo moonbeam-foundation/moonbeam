@@ -1596,39 +1596,30 @@ pub mod pallet {
 						Some(x)
 					} else {
 						if let Some(state) = <CollatorState2<T>>::get(&x.owner) {
-							// return all top nominations
-							for bond in state.top_nominators {
-								// return stake to nominator
+							// return stake to nominator
+							let return_stake = |bond: Bond<T::AccountId, BalanceOf<T>>| {
 								T::Currency::unreserve(&bond.owner, bond.amount);
 								// remove nomination from nominator state
-								if let Some(mut nominator) = <NominatorState<T>>::get(&bond.owner) {
-									if let Some(remaining) =
-										nominator.rm_nomination(x.owner.clone())
-									{
-										if remaining.is_zero() {
-											<NominatorState<T>>::remove(&bond.owner);
-										} else {
-											<NominatorState<T>>::insert(&bond.owner, nominator);
-										}
+								let mut nominator = NominatorState::<T>::get(&bond.owner).expect(
+									"Collator state and nominator state are consistent. 
+										Collator state has a record of this nomination. Therefore, 
+										Nominator state also has a record. qed.",
+								);
+								if let Some(remaining) = nominator.rm_nomination(x.owner.clone()) {
+									if remaining.is_zero() {
+										<NominatorState<T>>::remove(&bond.owner);
+									} else {
+										<NominatorState<T>>::insert(&bond.owner, nominator);
 									}
 								}
+							};
+							// return all top nominations
+							for bond in state.top_nominators {
+								return_stake(bond);
 							}
 							// return all bottom nominations
 							for bond in state.bottom_nominators {
-								// return stake to nominator
-								T::Currency::unreserve(&bond.owner, bond.amount);
-								// remove nomination from nominator state
-								if let Some(mut nominator) = <NominatorState<T>>::get(&bond.owner) {
-									if let Some(remaining) =
-										nominator.rm_nomination(x.owner.clone())
-									{
-										if remaining.is_zero() {
-											<NominatorState<T>>::remove(&bond.owner);
-										} else {
-											<NominatorState<T>>::insert(&bond.owner, nominator);
-										}
-									}
-								}
+								return_stake(bond);
 							}
 							// return stake to collator
 							T::Currency::unreserve(&state.id, state.bond);
