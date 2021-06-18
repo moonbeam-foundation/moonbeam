@@ -157,17 +157,17 @@ pub struct Call {
 }
 
 pub trait Listener {
-	fn event(&mut self, event: Event);
+	fn event(&mut self, event: RawEvent);
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
-pub enum Event {
+pub enum RawEvent {
 	Step(RawStepLog),
 	Gas(U256),
 	ReturnValue(Vec<u8>),
 }
 
-impl Event {
+impl RawEvent {
 	pub fn emit(self) {
 		listener::with(|listener| listener.event(self));
 	}
@@ -178,12 +178,6 @@ pub struct RawProxy {
 	gas: U256,
 	return_value: Vec<u8>,
 	step_logs: Vec<RawStepLog>,
-}
-
-impl Default for RawProxy {
-	fn default() -> Self {
-		RawProxy::new()
-	}
 }
 
 impl RawProxy {
@@ -209,11 +203,11 @@ impl RawProxy {
 }
 
 impl Listener for RawProxy {
-	fn event(&mut self, event: Event) {
+	fn event(&mut self, event: RawEvent) {
 		match event {
-			Event::Step(step) => self.step_logs.push(step),
-			Event::Gas(gas) => self.gas = gas,
-			Event::ReturnValue(value) => self.return_value = value,
+			RawEvent::Step(step) => self.step_logs.push(step),
+			RawEvent::Gas(gas) => self.gas = gas,
+			RawEvent::ReturnValue(value) => self.return_value = value,
 		};
 	}
 }

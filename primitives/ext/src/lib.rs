@@ -31,7 +31,7 @@ use codec::Decode;
 use sp_std::vec::Vec;
 
 use ethereum_types::U256;
-use moonbeam_rpc_primitives_debug::single::{Event as RawEvent, RawStepLog, TransactionTrace};
+use moonbeam_rpc_primitives_debug::single::{RawEvent, RawStepLog, TransactionTrace};
 
 #[runtime_interface]
 pub trait MoonbeamExt {
