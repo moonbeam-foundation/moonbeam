@@ -685,11 +685,6 @@
 <span id="682">682</span>
 <span id="683">683</span>
 <span id="684">684</span>
-<span id="685">685</span>
-<span id="686">686</span>
-<span id="687">687</span>
-<span id="688">688</span>
-<span id="689">689</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -749,14 +744,9 @@
 		<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;test-spec&quot;</span>)]</span>
 		<span class="string">&quot;staking&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">chain_spec</span>::<span class="ident">test_spec</span>::<span class="ident">staking_spec</span>(<span class="ident">para_id</span>)),
 		<span class="comment">// Moonriver networks</span>
-		<span class="string">&quot;moonriver&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(
-				<span class="string">&quot;You chosen the moonriver mainnet spec. This network is not yet available.&quot;</span>.<span class="ident">into</span>(),
-			);
-			<span class="comment">// Box::new(chain_spec::moonriver::ChainSpec::from_json_bytes(</span>
-			<span class="comment">// 	&amp;include_bytes!(&quot;../../../specs/moonriver.json&quot;)[..],</span>
-			<span class="comment">// )?)</span>
-		}
+		<span class="string">&quot;moonriver&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">chain_spec</span>::<span class="ident">moonriver</span>::<span class="ident">ChainSpec</span>::<span class="ident">from_json_bytes</span>(
+			<span class="kw-2">&amp;</span><span class="macro">include_bytes</span><span class="macro">!</span>(<span class="string">&quot;../../../specs/moonriver/parachain-embedded-specs.json&quot;</span>)[..],
+		)<span class="question-mark">?</span>),
 		<span class="string">&quot;moonriver-dev&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">chain_spec</span>::<span class="ident">moonriver</span>::<span class="ident">development_chain_spec</span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>)),
 		<span class="string">&quot;moonriver-local&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">chain_spec</span>::<span class="ident">moonriver</span>::<span class="ident">get_chain_spec</span>(<span class="ident">para_id</span>)),
 
