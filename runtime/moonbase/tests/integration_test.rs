@@ -1313,7 +1313,7 @@ fn points_precompile_non_zero() {
 				logs: Default::default(),
 			}));
 
-			// Assert that no points have been earned
+			// Assert that 20 points have been earned
 			assert_eq!(
 				Precompiles::execute(
 					staking_precompile_address,
