@@ -158,6 +158,7 @@ pub mod pallet {
 	pub struct Collator2<AccountId, Balance> {
 		/// The account of this collator
 		pub id: AccountId,
+		/// This collator's self stake.
 		pub bond: Balance,
 		/// Set of all nominator AccountIds (to prevent >1 nomination per AccountId)
 		pub nominators: OrderedSet<AccountId>,
