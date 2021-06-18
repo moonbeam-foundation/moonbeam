@@ -1120,7 +1120,8 @@ fn collator_nominator_sets_behave() {
 			assert_eq!(collator1_state.total_counted, collator1_state.total_backing);
 			// Top Nominations are full and new highest nomination is made
 			assert_ok!(Stake::nominate(Origin::signed(7), 1, 15));
-			let mut expected = vec![Event::Nomination(7, 15, 1, true, 74)];
+			let mut expected_events = Vec::new();
+			expected_events.push(Event::Nomination(7, 15, 1, true, 74));
 			assert_eq!(events(), expected);
 			let collator1_state = Stake::collator_state2(1).unwrap();
 			// 12 + 13 + 14 + 15 + 20 = 70 (top 4 + self bond)
