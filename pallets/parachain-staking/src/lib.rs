@@ -156,6 +156,7 @@ pub mod pallet {
 	#[derive(Encode, Decode, RuntimeDebug)]
 	/// Collator state with commission fee, bonded stake, and nominations
 	pub struct Collator2<AccountId, Balance> {
+		/// The account of this collator
 		pub id: AccountId,
 		pub bond: Balance,
 		/// Set of all nominator AccountIds (to prevent >1 nomination per AccountId)
