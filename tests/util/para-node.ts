@@ -1,10 +1,7 @@
 import tcpPortUsed from "tcp-port-used";
-import { Tail } from "tail";
 import path from "path";
-import fs from "fs";
 import { killAll, run } from "polkadot-launch";
 import { BINARY_PATH, RELAY_BINARY_PATH, DISPLAY_LOG, SPAWNING_TIME } from "./constants";
-import { config } from "chai";
 const debug = require("debug")("test:para-node");
 
 export async function findAvailablePorts() {
@@ -129,7 +126,6 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
             flags: [
               `--no-telemetry`,
               `--no-prometheus`,
-              `--ethapi=txpool,debug,trace`,
               "--log=info,rpc=trace,evm=trace,ethereum=trace",
               "--unsafe-rpc-external",
               "--rpc-cors=all",
@@ -155,44 +151,7 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
   process.once("exit", onProcessExit);
   process.once("SIGINT", onProcessInterrupt);
 
-  run(path.join(__dirname, "../"), launchConfig);
-
-  const binaryLogs = [];
-  await new Promise<void>((resolve) => {
-    const timer = setTimeout(() => {
-      console.error(`\x1b[31m Failed to start Parachain Node.\x1b[0m`);
-      console.error(`see alice.log and ${ports[2].wsPort}.log for details`);
-      throw new Error("Failed to launch node");
-    }, 120000);
-
-    try {
-      // delete the file if already exists
-      fs.rmSync(`${ports[2].wsPort}.log`);
-    } catch (e) {}
-    const onFileReady = async () => {
-      console.log(`Tailing ${ports[2].wsPort}.log`);
-      const tail = new Tail(`${ports[2].wsPort}.log`);
-
-      tail.on("line", function (data) {
-        console.log(data);
-        if (/Local node identity/.test(data.toString())) {
-          tail.unwatch();
-          clearTimeout(timer);
-          // TODO: improve, but currently requires 6s
-          setTimeout(resolve, 6000);
-        }
-      });
-    };
-
-    const checkFile = () => {
-      if (fs.existsSync(`${ports[2].wsPort}.log`)) {
-        onFileReady();
-        return;
-      }
-      setTimeout(checkFile, 1000);
-    };
-    checkFile();
-  });
+  await run(path.join(__dirname, "../"), launchConfig);
 
   return {
     p2pPort: ports[2].p2pPort,
