@@ -149,7 +149,7 @@ jobs:
       - name: Ensure benchmarking compiles
         run: cargo check --release --features=runtime-benchmarks
       - name: Unit tests
-        run: cargo test --release --all
+        run: cargo test --release --all # Oh wow, this already has --all... I was gonna try to add that.
       - name: Stop sccache
         run: |
           ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --stop-server || true
