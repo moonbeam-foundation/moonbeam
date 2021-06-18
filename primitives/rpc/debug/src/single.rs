@@ -241,7 +241,7 @@ impl Listener for CallListProxy {
 		match event {
 			Event::CallListEntry((index, value)) => {
 				self.entries.insert(index, value);
-			},
+			}
 			_ => {}
 		};
 	}

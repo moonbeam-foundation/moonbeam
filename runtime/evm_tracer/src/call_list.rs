@@ -185,8 +185,6 @@ impl RuntimeListener for CallListTracer {
 						gas_used += self.transaction_cost;
 					}
 
-					
-
 					moonbeam_primitives_ext::moonbeam_ext::call_list_entry(
 						context.entries_index,
 						match context.context_type {
@@ -219,7 +217,8 @@ impl RuntimeListener for CallListTracer {
 										input: context.data,
 										res,
 									},
-								}.encode()
+								}
+								.encode()
 							}
 							ContextType::Create => {
 								let res = match &reason {
@@ -247,9 +246,10 @@ impl RuntimeListener for CallListTracer {
 										init: context.data,
 										res,
 									},
-								}.encode()
+								}
+								.encode()
 							}
-						}
+						},
 					);
 				}
 			}
@@ -352,7 +352,8 @@ impl EvmListener for CallListTracer {
 							refund_address: target,
 							balance,
 						},
-					}.encode(),
+					}
+					.encode(),
 				);
 
 				self.entries_next_index += 1;

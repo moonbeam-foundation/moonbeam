@@ -240,18 +240,16 @@ where
 					return client
 						.runtime_api()
 						.trace_transaction(&parent_block_id, ext, &transaction, trace_type)
-						.map_err(|e| {
-							internal_err(format!("Runtime api access error: {:?}", e))
-						})?
+						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
 						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)));
 				};
 				return Ok(match trace_type {
-					single::TraceType::Raw {..} => {
+					single::TraceType::Raw { .. } => {
 						let mut proxy = single::RawProxy::new();
 						proxy.using(f);
 						proxy.into_tx_trace()
-					},
-					single::TraceType::CallList {..} => {
+					}
+					single::TraceType::CallList { .. } => {
 						let mut proxy = single::CallListProxy::new();
 						proxy.using(f);
 						proxy.into_tx_trace()

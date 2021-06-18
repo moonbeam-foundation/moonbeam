@@ -33,19 +33,19 @@ use moonbeam_rpc_primitives_debug::single::{Call, Event, RawStepLog};
 
 #[runtime_interface]
 pub trait MoonbeamExt {
-    fn raw_step(&mut self, data: Vec<u8>) {
-        let data: RawStepLog = Decode::decode(&mut &data[..]).unwrap();
-        Event::RawStep(data).emit();
+	fn raw_step(&mut self, data: Vec<u8>) {
+		let data: RawStepLog = Decode::decode(&mut &data[..]).unwrap();
+		Event::RawStep(data).emit();
 	}
-    fn raw_gas(&mut self, data: Vec<u8>) {
-        let data: U256 = Decode::decode(&mut &data[..]).unwrap();
-        Event::RawGas(data).emit();
+	fn raw_gas(&mut self, data: Vec<u8>) {
+		let data: U256 = Decode::decode(&mut &data[..]).unwrap();
+		Event::RawGas(data).emit();
 	}
-    fn raw_return_value(&mut self, data: Vec<u8>) {
-        Event::RawReturnValue(data).emit();
+	fn raw_return_value(&mut self, data: Vec<u8>) {
+		Event::RawReturnValue(data).emit();
 	}
-    fn call_list_entry(&mut self, index: u32, value: Vec<u8>) {
-        let value: Call = Decode::decode(&mut &value[..]).unwrap();
-        Event::CallListEntry((index, value)).emit();
-    }
+	fn call_list_entry(&mut self, index: u32, value: Vec<u8>) {
+		let value: Call = Decode::decode(&mut &value[..]).unwrap();
+		Event::CallListEntry((index, value)).emit();
+	}
 }
