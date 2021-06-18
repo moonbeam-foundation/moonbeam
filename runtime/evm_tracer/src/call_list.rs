@@ -15,6 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::util::*;
+
+use codec::Encode;
 use ethereum_types::{H160, U256};
 use evm::{Capture, ExitError, ExitReason, ExitSucceed};
 use moonbeam_rpc_primitives_debug::{
@@ -183,7 +185,9 @@ impl RuntimeListener for CallListTracer {
 						gas_used += self.transaction_cost;
 					}
 
-					self.entries.insert(
+					
+
+					moonbeam_primitives_ext::moonbeam_ext::call_list_entry(
 						context.entries_index,
 						match context.context_type {
 							ContextType::Call(call_type) => {
@@ -215,7 +219,7 @@ impl RuntimeListener for CallListTracer {
 										input: context.data,
 										res,
 									},
-								}
+								}.encode()
 							}
 							ContextType::Create => {
 								let res = match &reason {
@@ -243,9 +247,9 @@ impl RuntimeListener for CallListTracer {
 										init: context.data,
 										res,
 									},
-								}
+								}.encode()
 							}
-						},
+						}
 					);
 				}
 			}
@@ -335,7 +339,7 @@ impl EvmListener for CallListTracer {
 				target,
 				balance,
 			} => {
-				self.entries.insert(
+				moonbeam_primitives_ext::moonbeam_ext::call_list_entry(
 					self.entries_next_index,
 					Call {
 						from: address, // this contract is self destructing
@@ -348,7 +352,7 @@ impl EvmListener for CallListTracer {
 							refund_address: target,
 							balance,
 						},
-					},
+					}.encode(),
 				);
 
 				self.entries_next_index += 1;

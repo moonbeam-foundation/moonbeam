@@ -157,22 +157,24 @@ pub struct Call {
 }
 
 pub trait Listener {
-	fn event(&mut self, event: RawEvent);
+	fn event(&mut self, event: Event);
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
-pub enum RawEvent {
-	Step(RawStepLog),
-	Gas(U256),
-	ReturnValue(Vec<u8>),
+pub enum Event {
+	RawStep(RawStepLog),
+	RawGas(U256),
+	RawReturnValue(Vec<u8>),
+	CallListEntry((u32, Call)),
 }
 
-impl RawEvent {
+impl Event {
 	pub fn emit(self) {
 		listener::with(|listener| listener.event(self));
 	}
 }
 
+// Raw
 #[derive(Debug)]
 pub struct RawProxy {
 	gas: U256,
@@ -203,11 +205,44 @@ impl RawProxy {
 }
 
 impl Listener for RawProxy {
-	fn event(&mut self, event: RawEvent) {
+	fn event(&mut self, event: Event) {
 		match event {
-			RawEvent::Step(step) => self.step_logs.push(step),
-			RawEvent::Gas(gas) => self.gas = gas,
-			RawEvent::ReturnValue(value) => self.return_value = value,
+			Event::RawStep(step) => self.step_logs.push(step),
+			Event::RawGas(gas) => self.gas = gas,
+			Event::RawReturnValue(value) => self.return_value = value,
+			_ => {}
+		};
+	}
+}
+
+// List
+#[derive(Debug)]
+pub struct CallListProxy {
+	entries: BTreeMap<u32, Call>,
+}
+
+impl CallListProxy {
+	pub fn new() -> Self {
+		Self {
+			entries: BTreeMap::new(),
+		}
+	}
+	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) {
+		listener::using(self, f);
+	}
+
+	pub fn into_tx_trace(self) -> TransactionTrace {
+		TransactionTrace::CallList(self.entries.into_iter().map(|(_, value)| value).collect())
+	}
+}
+
+impl Listener for CallListProxy {
+	fn event(&mut self, event: Event) {
+		match event {
+			Event::CallListEntry((index, value)) => {
+				self.entries.insert(index, value);
+			},
+			_ => {}
 		};
 	}
 }

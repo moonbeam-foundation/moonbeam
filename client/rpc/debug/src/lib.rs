@@ -236,8 +236,7 @@ where
 		if let Some(block) = reference_block {
 			let transactions = block.transactions;
 			if let Some(transaction) = transactions.get(index) {
-				let mut proxy = single::RawProxy::new();
-				proxy.using(|| {
+				let f = || {
 					return client
 						.runtime_api()
 						.trace_transaction(&parent_block_id, ext, &transaction, trace_type)
@@ -245,8 +244,19 @@ where
 							internal_err(format!("Runtime api access error: {:?}", e))
 						})?
 						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)));
+				};
+				return Ok(match trace_type {
+					single::TraceType::Raw {..} => {
+						let mut proxy = single::RawProxy::new();
+						proxy.using(f);
+						proxy.into_tx_trace()
+					},
+					single::TraceType::CallList {..} => {
+						let mut proxy = single::CallListProxy::new();
+						proxy.using(f);
+						proxy.into_tx_trace()
+					}
 				});
-				return Ok(proxy.into_tx_trace());
 			}
 		}
 		Err(internal_err("Runtime block call failed".to_string()))
