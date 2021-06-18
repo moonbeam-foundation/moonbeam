@@ -143,8 +143,8 @@ pub mod pallet {
 	}
 
 	#[derive(Encode, Decode, RuntimeDebug)]
-		/// DEPECATED: This is the old storage schema. It is retained for purposes of storage migration and should be removed in the future.
-		/// Collator state with commission fee, bonded stake, and nominations
+	/// DEPECATED: This is the old storage schema. It is retained for purposes of storage migration
+	/// and should be removed in the future.
 	pub struct Collator<AccountId, Balance> {
 		pub id: AccountId,
 		pub bond: Balance,
@@ -170,7 +170,16 @@ pub mod pallet {
 		pub total_counted: Balance,
 		/// Sum of all nominations + self.bond = (total_counted + uncounted)
 		pub total_backing: Balance,
+		/// Current status of the collator
 		pub state: CollatorStatus,
+	}
+
+	/// Convey relevant information describing if a nominator was added to the top or bottom
+	/// Nominations added to the top yield a new total
+	#[derive(Clone, Copy, PartialEq, Encode, Decode, RuntimeDebug)]
+	pub enum NominatorAdded<B> {
+		AddedToTop { new_total: B },
+		AddedToBottom,
 	}
 
 	impl<
@@ -237,12 +246,12 @@ pub mod pallet {
 		/// Sort top nominators from greatest to least
 		pub fn sort_top_nominators(&mut self) {
 			self.top_nominators
-				.sort_unstable_by(|a, b| b.amount.partial_cmp(&a.amount).unwrap());
+				.sort_unstable_by(|a, b| b.amount.cmp(&a.amount));
 		}
 		/// Sort bottom nominators from least to greatest
 		pub fn sort_bottom_nominators(&mut self) {
 			self.bottom_nominators
-				.sort_unstable_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
+				.sort_unstable_by(|a, b| a.amount.cmp(&b.amount));
 		}
 		/// Return Ok(Some(new_total)) if inserted into top
 		/// Return Ok(None) if inserted into bottom
@@ -251,7 +260,7 @@ pub mod pallet {
 			&mut self,
 			acc: A,
 			amount: B,
-		) -> Result<Option<B>, DispatchError> {
+		) -> Result<NominatorAdded<B>, DispatchError> {
 			ensure!(
 				self.nominators.insert(acc.clone()),
 				Error::<T>::NominatorExists
@@ -260,7 +269,9 @@ pub mod pallet {
 			if (self.top_nominators.len() as u32) < T::MaxNominatorsPerCollator::get() {
 				self.add_top_nominator(Bond { owner: acc, amount });
 				self.total_counted += amount;
-				Ok(Some(self.total_counted))
+				Ok(NominatorAdded::AddedToTop {
+					new_total: self.total_counted,
+				})
 			} else {
 				let last_nomination_in_top = self
 					.top_nominators
@@ -273,12 +284,14 @@ pub mod pallet {
 					// insert new nominator into top_nominators
 					self.add_top_nominator(Bond { owner: acc, amount });
 					self.add_bottom_nominator(last_nomination_in_top);
-					Ok(Some(self.total_counted))
+					Ok(NominatorAdded::AddedToTop {
+						new_total: self.total_counted,
+					})
 				} else {
 					// push previously popped last nomination into top_nominators
 					self.top_nominators.push(last_nomination_in_top);
 					self.add_bottom_nominator(Bond { owner: acc, amount });
-					Ok(None)
+					Ok(NominatorAdded::AddedToBottom)
 				}
 			}
 		}
@@ -430,7 +443,7 @@ pub mod pallet {
 			// nominator set from Collator was bounded to max size of top_nominators
 			let mut top_nominators = other.nominators.0.clone();
 			// order greatest to least
-			top_nominators.sort_unstable_by(|a, b| b.amount.partial_cmp(&a.amount).unwrap());
+			top_nominators.sort_unstable_by(|a, b| b.amount.cmp(&a.amount));
 			Collator2 {
 				id: other.id,
 				bond: other.bond,
@@ -706,8 +719,13 @@ pub mod pallet {
 		NominationDecreased(T::AccountId, T::AccountId, BalanceOf<T>, bool, BalanceOf<T>),
 		/// Nominator, Amount Unstaked
 		NominatorLeft(T::AccountId, BalanceOf<T>),
-		/// Nominator, Amount Locked, Collator, Counted in Top, Total Amt backing Collator
-		Nomination(T::AccountId, BalanceOf<T>, T::AccountId, bool, BalanceOf<T>),
+		/// Nominator, Amount Locked, Collator, Nominator Position with New Total Backing if in Top
+		Nomination(
+			T::AccountId,
+			BalanceOf<T>,
+			T::AccountId,
+			NominatorAdded<BalanceOf<T>>,
+		),
 		/// Nominator, Collator, Amount Unstaked, New Total Amt Staked for Collator
 		NominatorLeftCollator(T::AccountId, T::AccountId, BalanceOf<T>, BalanceOf<T>),
 		/// Paid the account (nominator or collator) the balance as liquid rewards
@@ -826,7 +844,8 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn collator_state)]
-	/// Get collator state associated with an account if account is collating else None
+	/// DEPECATED: This is the old storage item. It is retained for purposes of storage migration
+	/// and should be removed in the future.
 	type CollatorState<T: Config> = StorageMap<
 		_,
 		Twox64Concat,
@@ -1324,21 +1343,18 @@ pub mod pallet {
 				Nominator::new(collator.clone(), amount)
 			};
 			let mut state = <CollatorState2<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
-			let new_collator_total = state.add_nominator::<T>(acc.clone(), amount)?;
+			let nominator_position = state.add_nominator::<T>(acc.clone(), amount)?;
 			T::Currency::reserve(&acc, amount)?;
-			let (in_top, new_total) = if let Some(new) = new_collator_total {
+			if let NominatorAdded::AddedToTop { new_total } = nominator_position {
 				if state.is_active() {
-					Self::update_active(collator.clone(), new);
+					Self::update_active(collator.clone(), new_total);
 				}
-				(true, new)
-			} else {
-				(false, state.total_counted)
-			};
+			}
 			let new_total_locked = <Total<T>>::get() + amount;
 			<Total<T>>::put(new_total_locked);
 			<CollatorState2<T>>::insert(&collator, state);
 			<NominatorState<T>>::insert(&acc, nominator);
-			Self::deposit_event(Event::Nomination(acc, amount, collator, in_top, new_total));
+			Self::deposit_event(Event::Nomination(acc, amount, collator, nominator_position));
 			Ok(().into())
 		}
 		/// Leave the set of nominators and, by implication, revoke all ongoing nominations
@@ -1637,7 +1653,7 @@ pub mod pallet {
 			let (mut all_collators, mut total) = (0u32, BalanceOf::<T>::zero());
 			let mut candidates = <CandidatePool<T>>::get().0;
 			// order candidates by stake (least to greatest so requires `rev()`)
-			candidates.sort_unstable_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
+			candidates.sort_unstable_by(|a, b| a.amount.cmp(&b.amount));
 			let top_n = <TotalSelected<T>>::get() as usize;
 			// choose the top TotalSelected qualified candidates, ordered by stake
 			let mut collators = candidates

@@ -29,7 +29,7 @@ use moonbeam_runtime::{
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
-use parachain_staking::Bond;
+use parachain_staking::{Bond, NominatorAdded};
 use precompiles::MoonbeamPrecompiles;
 use sp_core::{Public, H160, U256};
 use sp_runtime::DispatchError;
@@ -708,8 +708,9 @@ fn nominate_via_precompile() {
 					AccountId::from(BOB),
 					1000 * GLMR,
 					AccountId::from(ALICE),
-					true,
-					2000 * GLMR,
+					NominatorAdded::AddedToTop {
+						new_total: 2000 * GLMR,
+					},
 				)),
 				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
