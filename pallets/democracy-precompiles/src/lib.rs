@@ -68,7 +68,7 @@ where
 		const SELECTOR_SIZE_BYTES: usize = 4;
 
 		//TODO test for this
-		if input.len() < 4 {
+		if input.len() < SELECTOR_SIZE_BYTES {
 			return Err(ExitError::Other("input length less than 4 bytes".into()));
 		}
 
