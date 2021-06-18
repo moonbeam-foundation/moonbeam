@@ -32,7 +32,10 @@ use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Get, Imbalance, InstanceFilter, OnUnbalanced},
-	weights::{constants::WEIGHT_PER_SECOND, IdentityFee, Weight},
+	weights::{
+		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
+		IdentityFee, Weight,
+	},
 	PalletId,
 };
 use frame_system::{EnsureOneOf, EnsureRoot};
@@ -183,7 +186,7 @@ impl frame_system::Config for Runtime {
 	type AccountData = pallet_balances::AccountData<Balance>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
-	type DbWeight = ();
+	type DbWeight = RocksDbWeight;
 	type BaseCallFilter = ();
 	type SystemWeightInfo = ();
 	/// This is used as an identifier of the chain. 42 is the generic substrate prefix.
