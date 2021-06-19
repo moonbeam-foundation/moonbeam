@@ -119,7 +119,7 @@ pub mod opaque {
 
 /// This runtime version.
 /// The spec_version is composed of 2x2 digits. The first 2 digits represent major changes
-/// that can't be skipped, such as data migration upgrades. The last 2 digits represent minor 
+/// that can't be skipped, such as data migration upgrades. The last 2 digits represent minor
 /// changes which can be skipped.
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
