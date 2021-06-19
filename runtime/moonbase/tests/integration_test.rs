@@ -1040,7 +1040,7 @@ fn is_nominator_via_precompile() {
 			let expected_true_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
-				cost: 1000, //TODO moonbase runtime still uses DbWeight = ()
+				cost: 1000,
 				logs: Default::default(),
 			}));
 
