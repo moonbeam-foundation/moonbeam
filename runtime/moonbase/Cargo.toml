@@ -14,15 +14,24 @@ parity-scale-codec = { version = "2.0.0", default-features = false, features = [
 log = "0.4"
 hex-literal = "0.3.1"
 
+runtime-common =  { path = "../common", default-features = false }
+
 pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.4", default-features = false }
-precompiles = { path = "../precompiles/", default-features = false }
 account = { path = "../../primitives/account/", default-features = false }
 moonbeam-core-primitives = { path = "../../core-primitives", default-features = false }
 pallet-ethereum-chain-id = { path = "../../pallets/ethereum-chain-id", default-features = false }
 parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
+parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", default-features = false }
 pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.4", default-features = false }
 nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.4", default-features = false }
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
+evm = { version="0.27.0", default-features=false, features=["with-codec"] }
+pallet-evm-precompile-bn128 = { git="https://github.com/purestake/frontier", default-features=false, branch="moonbeam-v0.8.2" }
+pallet-evm-precompile-dispatch = { git="https://github.com/purestake/frontier", default-features=false, branch="moonbeam-v0.8.2" }
+pallet-evm-precompile-modexp = { git="https://github.com/purestake/frontier", default-features=false, branch="moonbeam-v0.8.2" }
+pallet-evm-precompile-simple = { git="https://github.com/purestake/frontier", default-features=false, branch="moonbeam-v0.8.2" }
+pallet-evm-precompile-sha3fips = { git="https://github.com/purestake/frontier", default-features=false, branch="moonbeam-v0.8.2" }
+
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
@@ -90,6 +99,7 @@ substrate-wasm-builder = { version = "4.0.0", git = "https://github.com/parityte
 [features]
 default = ["std"]
 std = [
+	"runtime-common/std",
 	"parity-scale-codec/std",
 	"serde",
 	"sp-api/std",
@@ -132,6 +142,7 @@ std = [
 	"account/std",
 	"moonbeam-core-primitives/std",
 	"parachain-staking/std",
+	"parachain-staking-precompiles/std",
 	"pallet-author-slot-filter/std",
 	"pallet-crowdloan-rewards/std",
 	"frame-benchmarking/std",
@@ -140,6 +151,12 @@ std = [
 	"nimbus-primitives/std",
 	"pallet-author-mapping/std",
 	"max-encoded-len/std",
+	"evm/std",
+	"pallet-evm-precompile-bn128/std",
+	"pallet-evm-precompile-dispatch/std",
+	"pallet-evm-precompile-modexp/std",
+	"pallet-evm-precompile-simple/std",
+	"pallet-evm-precompile-sha3fips/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
