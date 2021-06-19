@@ -1021,7 +1021,7 @@ fn is_nominator_via_precompile() {
 			let expected_true_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
-				cost: 0,
+				cost: 1000,
 				logs: Default::default(),
 			}));
 
@@ -1051,7 +1051,7 @@ fn is_nominator_via_precompile() {
 			let expected_false_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
-				cost: 0,
+				cost: 1000,
 				logs: Default::default(),
 			}));
 
@@ -1096,7 +1096,7 @@ fn is_candidate_via_precompile() {
 			let expected_true_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
-				cost: 0,
+				cost: 1000,
 				logs: Default::default(),
 			}));
 

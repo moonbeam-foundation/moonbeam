@@ -1040,7 +1040,7 @@ fn is_nominator_via_precompile() {
 			let expected_true_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
-				cost: 0, //TODO moonbase runtime still uses DbWeight = ()
+				cost: 1000, //TODO moonbase runtime still uses DbWeight = ()
 				logs: Default::default(),
 			}));
 
@@ -1065,7 +1065,7 @@ fn is_nominator_via_precompile() {
 			let expected_false_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
-				cost: 0,
+				cost: 1000,
 				logs: Default::default(),
 			}));
 
@@ -1105,7 +1105,7 @@ fn is_candidate_via_precompile() {
 			let expected_true_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
-				cost: 0,
+				cost: 1000,
 				logs: Default::default(),
 			}));
 
@@ -1130,7 +1130,7 @@ fn is_candidate_via_precompile() {
 			let expected_false_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
-				cost: 0,
+				cost: 1000,
 				logs: Default::default(),
 			}));
 
@@ -1172,7 +1172,7 @@ fn is_selected_candidate_via_precompile() {
 			let expected_true_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
-				cost: 0,
+				cost: 1000,
 				logs: Default::default(),
 			}));
 
@@ -1197,7 +1197,7 @@ fn is_selected_candidate_via_precompile() {
 			let expected_false_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
-				cost: 0,
+				cost: 1000,
 				logs: Default::default(),
 			}));
 
