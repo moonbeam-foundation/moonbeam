@@ -76,7 +76,7 @@ pub mod pallet {
 		traits::{AtLeast32BitUnsigned, Saturating, Zero},
 		Perbill, Percent, RuntimeDebug,
 	};
-	use sp_std::{cmp::Ordering, prelude::*};
+	use sp_std::{cmp::Ordering, collections::btree_map::BTreeMap, prelude::*};
 
 	/// Pallet for parachain staking
 	#[pallet::pallet]
@@ -693,6 +693,7 @@ pub mod pallet {
 		InvalidSchedule,
 		CannotSetBelowMin,
 		NoWritingSameValue,
+		TooLowCandidateCountWeightHintJoinCandidates,
 	}
 
 	#[pallet::event]
@@ -700,8 +701,8 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// Starting Block, Round, Number of Collators Selected, Total Balance
 		NewRound(T::BlockNumber, RoundIndex, u32, BalanceOf<T>),
-		/// Account, Amount Locked, New Total Amt Locked
-		JoinedCollatorCandidates(T::AccountId, BalanceOf<T>, BalanceOf<T>),
+		/// Account, Amount Locked, New Total Amt Locked, New Candidate Count
+		JoinedCollatorCandidates(T::AccountId, BalanceOf<T>, BalanceOf<T>, u32),
 		/// Round, Collator Account, Total Exposed Amount (includes all nominations)
 		CollatorChosen(RoundIndex, T::AccountId, BalanceOf<T>),
 		/// Collator Account, Old Bond, New Bond
@@ -712,8 +713,8 @@ pub mod pallet {
 		CollatorBackOnline(RoundIndex, T::AccountId),
 		/// Round, Collator Account, Scheduled Exit
 		CollatorScheduledExit(RoundIndex, T::AccountId, RoundIndex),
-		/// Account, Amount Unlocked, New Total Amt Locked
-		CollatorLeft(T::AccountId, BalanceOf<T>, BalanceOf<T>),
+		/// Account, Amount Unlocked, New Total Amt Locked, New Candidate Count
+		CollatorLeft(T::AccountId, BalanceOf<T>, BalanceOf<T>, u32),
 		// Nominator, Collator, Old Nomination, Counted in Top, New Nomination
 		NominationIncreased(T::AccountId, T::AccountId, BalanceOf<T>, bool, BalanceOf<T>),
 		// Nominator, Collator, Old Nomination, Counted in Top, New Nomination
@@ -810,6 +811,11 @@ pub mod pallet {
 			}
 		}
 	}
+
+	#[pallet::storage]
+	#[pallet::getter(fn candidate_count)]
+	/// Total number of collator candidates
+	type CandidateCount<T: Config> = StorageValue<_, u32, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn collator_commission)]
@@ -951,29 +957,46 @@ pub mod pallet {
 	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
 			<InflationConfig<T>>::put(self.inflation_config.clone());
+			let mut candidate_count = 0u32;
 			// Initialize the candidates
 			for &(ref candidate, balance) in &self.candidates {
 				assert!(
 					T::Currency::free_balance(&candidate) >= balance,
 					"Account does not have enough balance to bond as a cadidate."
 				);
+				candidate_count += 1u32;
 				if let Err(error) = <Pallet<T>>::join_candidates(
 					T::Origin::from(Some(candidate.clone()).into()),
 					balance,
+					candidate_count,
 				) {
 					log::trace!(
 						target: "staking",
 						"Join candidates failed in genesis with error {:?}",
 						error
 					);
+				} else {
+					candidate_count += 1u32;
 				}
 			}
+			let mut col_nominator_count: BTreeMap<T::AccountId, u32> = BTreeMap::new();
+			let mut nom_nominator_count: BTreeMap<T::AccountId, u32> = BTreeMap::new();
 			// Initialize the nominations
 			for &(ref nominator, ref target, balance) in &self.nominations {
 				assert!(
 					T::Currency::free_balance(&nominator) >= balance,
 					"Account does not have enough balance to place nomination."
 				);
+				let cn_count = if let Some(x) = col_nominator_count.get(&target) {
+					*x
+				} else {
+					0u32
+				};
+				let nn_count = if let Some(x) = nom_nominator_count.get(&nominator) {
+					*x
+				} else {
+					0u32
+				};
 				if let Err(error) = <Pallet<T>>::nominate(
 					T::Origin::from(Some(nominator.clone()).into()),
 					target.clone(),
@@ -984,6 +1007,17 @@ pub mod pallet {
 						"Join nominators failed in genesis with error {:?}",
 						error
 					);
+				} else {
+					if let Some(x) = col_nominator_count.get_mut(&target) {
+						*x += 1u32;
+					} else {
+						col_nominator_count.insert(target.clone(), 1u32);
+					};
+					if let Some(x) = nom_nominator_count.get_mut(&nominator) {
+						*x += 1u32;
+					} else {
+						nom_nominator_count.insert(nominator.clone(), 1u32);
+					};
 				}
 			}
 			// Set collator commission to default config
@@ -1163,6 +1197,7 @@ pub mod pallet {
 		pub fn join_candidates(
 			origin: OriginFor<T>,
 			bond: BalanceOf<T>,
+			candidate_count: u32,
 		) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
 			ensure!(!Self::is_candidate(&acc), Error::<T>::CandidateExists);
@@ -1172,6 +1207,10 @@ pub mod pallet {
 				Error::<T>::ValBondBelowMin
 			);
 			let mut candidates = <CandidatePool<T>>::get();
+			ensure!(
+				candidate_count >= candidates.0.len() as u32,
+				Error::<T>::TooLowCandidateCountWeightHintJoinCandidates
+			);
 			ensure!(
 				candidates.insert(Bond {
 					owner: acc.clone(),
@@ -1185,7 +1224,12 @@ pub mod pallet {
 			<CandidatePool<T>>::put(candidates);
 			let new_total = <Total<T>>::get().saturating_add(bond);
 			<Total<T>>::put(new_total);
-			Self::deposit_event(Event::JoinedCollatorCandidates(acc, bond, new_total));
+			let old_count = <CandidateCount<T>>::get();
+			let new_count = old_count.saturating_add(1u32);
+			<CandidateCount<T>>::put(new_count);
+			Self::deposit_event(Event::JoinedCollatorCandidates(
+				acc, bond, new_total, new_count,
+			));
 			Ok(().into())
 		}
 		/// Request to leave the set of candidates. If successful, the account is immediately
@@ -1624,14 +1668,18 @@ pub mod pallet {
 							}
 							// return stake to collator
 							T::Currency::unreserve(&state.id, state.bond);
-							<CollatorState2<T>>::remove(&x.owner);
 							let new_total_staked =
 								<Total<T>>::get().saturating_sub(state.total_backing);
+							let new_candidate_count =
+								<CandidateCount<T>>::get().saturating_sub(1u32);
+							<CollatorState2<T>>::remove(&x.owner);
 							<Total<T>>::put(new_total_staked);
+							<CandidateCount<T>>::put(new_candidate_count);
 							Self::deposit_event(Event::CollatorLeft(
 								x.owner,
 								state.total_backing,
 								new_total_staked,
+								new_candidate_count,
 							));
 						}
 						None
