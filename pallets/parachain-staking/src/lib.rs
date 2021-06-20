@@ -143,7 +143,7 @@ pub mod pallet {
 	}
 
 	#[derive(Encode, Decode, RuntimeDebug)]
-	/// DEPECATED: This is the old storage schema. It is retained for purposes of storage migration
+	/// DEPRECATED: This is the old storage schema. It is retained for purposes of storage migration
 	/// and should be removed in the future.
 	pub struct Collator<AccountId, Balance> {
 		pub id: AccountId,
@@ -845,7 +845,7 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn collator_state)]
-	/// DEPECATED: This is the old storage item. It is retained for purposes of storage migration
+	/// DEPRECATED: This is the old storage item. It is retained for purposes of storage migration
 	/// and should be removed in the future.
 	type CollatorState<T: Config> = StorageMap<
 		_,
