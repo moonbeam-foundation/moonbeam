@@ -96,7 +96,76 @@ fn online_offline_works() {
 }
 
 #[test]
-fn join_collator_candidates() {
+fn can_join_candidates_with_valid_bond() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::join_candidates(Origin::signed(1), 10u128,));
+		});
+}
+
+#[test]
+fn cannot_join_candidates_twice() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000)])
+		.with_candidates(vec![(1, 500)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Stake::join_candidates(Origin::signed(1), 11u128,),
+				Error::<Test>::CandidateExists
+			);
+		});
+}
+
+#[test]
+fn cannot_join_candidates_if_nominator() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000), (2, 300)])
+		.with_candidates(vec![(1, 500)])
+		.with_nominations(vec![(2, 1, 100)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Stake::join_candidates(Origin::signed(2), 11u128,),
+				Error::<Test>::NominatorExists
+			);
+		});
+}
+
+#[test]
+fn cannot_join_candidates_without_min_bond() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Stake::join_candidates(Origin::signed(1), 9u128,),
+				Error::<Test>::ValBondBelowMin
+			);
+		});
+}
+
+#[test]
+fn cannot_join_candidates_with_more_than_available_balance() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 500)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Stake::join_candidates(Origin::signed(8), 501u128,),
+				DispatchError::Module {
+					index: 1,
+					error: 2,
+					message: Some("InsufficientBalance")
+				}
+			);
+		});
+}
+
+#[test]
+fn join_candidates_emits_correct_event() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(1, 1000),
@@ -113,28 +182,6 @@ fn join_collator_candidates() {
 		.with_nominations(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
 		.build()
 		.execute_with(|| {
-			assert_noop!(
-				Stake::join_candidates(Origin::signed(1), 11u128,),
-				Error::<Test>::CandidateExists
-			);
-			assert_noop!(
-				Stake::join_candidates(Origin::signed(3), 11u128,),
-				Error::<Test>::NominatorExists
-			);
-			assert_noop!(
-				Stake::join_candidates(Origin::signed(7), 9u128,),
-				Error::<Test>::ValBondBelowMin
-			);
-			assert_noop!(
-				Stake::join_candidates(Origin::signed(8), 10u128,),
-				DispatchError::Module {
-					index: 1,
-
-					error: 2,
-					message: Some("InsufficientBalance")
-				}
-			);
-			assert!(System::events().is_empty());
 			assert_ok!(Stake::join_candidates(Origin::signed(7), 10u128,));
 			assert_eq!(
 				last_event(),
