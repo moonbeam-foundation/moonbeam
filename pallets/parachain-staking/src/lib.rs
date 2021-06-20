@@ -183,13 +183,8 @@ pub mod pallet {
 	}
 
 	impl<
-			A: Ord + Clone + std::fmt::Debug,
-			B: AtLeast32BitUnsigned
-				+ Ord
-				+ Copy
-				+ sp_std::ops::AddAssign
-				+ sp_std::ops::SubAssign
-				+ std::fmt::Debug,
+			A: Ord + Clone,
+			B: AtLeast32BitUnsigned + Ord + Copy + sp_std::ops::AddAssign + sp_std::ops::SubAssign,
 		> Collator2<A, B>
 	{
 		pub fn new(id: A, bond: B) -> Self {
