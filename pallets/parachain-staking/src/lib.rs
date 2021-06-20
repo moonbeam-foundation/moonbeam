@@ -183,8 +183,13 @@ pub mod pallet {
 	}
 
 	impl<
-			A: Ord + Clone,
-			B: AtLeast32BitUnsigned + Ord + Copy + sp_std::ops::AddAssign + sp_std::ops::SubAssign,
+			A: Ord + Clone + std::fmt::Debug,
+			B: AtLeast32BitUnsigned
+				+ Ord
+				+ Copy
+				+ sp_std::ops::AddAssign
+				+ sp_std::ops::SubAssign
+				+ std::fmt::Debug,
 		> Collator2<A, B>
 	{
 		pub fn new(id: A, bond: B) -> Self {
@@ -394,6 +399,7 @@ pub mod pallet {
 			for x in &mut self.top_nominators {
 				if x.owner == nominator {
 					x.amount -= less;
+					self.total_counted -= less;
 					self.total_backing -= less;
 					if let Some(top_bottom) = self.bottom_nominators.pop() {
 						if top_bottom.amount > x.amount {
@@ -408,12 +414,12 @@ pub mod pallet {
 				self.sort_top_nominators();
 				if let Some(new) = new_top {
 					let lowest_top = self.top_nominators.pop().expect("just updated => exists");
-					self.total_counted -= new.amount - lowest_top.amount;
+					self.total_counted -= lowest_top.amount;
+					self.total_counted += new.amount;
 					self.add_top_nominator(new);
 					self.add_bottom_nominator(lowest_top);
 					return false;
 				} else {
-					self.total_counted -= less;
 					return true;
 				}
 			}
