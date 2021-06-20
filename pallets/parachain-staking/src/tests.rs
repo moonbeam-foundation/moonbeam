@@ -39,7 +39,7 @@ fn online_offline_works() {
 			(8, 9),
 			(9, 4),
 		])
-		.with_collators(vec![(1, 500), (2, 200)])
+		.with_candidates(vec![(1, 500), (2, 200)])
 		.with_nominations(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
 		.build()
 		.execute_with(|| {
@@ -109,7 +109,7 @@ fn join_collator_candidates() {
 			(8, 9),
 			(9, 4),
 		])
-		.with_collators(vec![(1, 500), (2, 200)])
+		.with_candidates(vec![(1, 500), (2, 200)])
 		.with_nominations(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
 		.build()
 		.execute_with(|| {
@@ -157,7 +157,7 @@ fn collator_exit_executes_after_delay() {
 			(8, 9),
 			(9, 4),
 		])
-		.with_collators(vec![(1, 500), (2, 200)])
+		.with_candidates(vec![(1, 500), (2, 200)])
 		.with_nominations(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
 		.build()
 		.execute_with(|| {
@@ -210,7 +210,7 @@ fn collator_selection_chooses_top_candidates() {
 			(8, 33),
 			(9, 33),
 		])
-		.with_collators(vec![(1, 100), (2, 90), (3, 80), (4, 70), (5, 60), (6, 50)])
+		.with_candidates(vec![(1, 100), (2, 90), (3, 80), (4, 70), (5, 60), (6, 50)])
 		.build()
 		.execute_with(|| {
 			roll_to(8);
@@ -290,7 +290,7 @@ fn exit_queue() {
 			(8, 33),
 			(9, 33),
 		])
-		.with_collators(vec![(1, 100), (2, 90), (3, 80), (4, 70), (5, 60), (6, 50)])
+		.with_candidates(vec![(1, 100), (2, 90), (3, 80), (4, 70), (5, 60), (6, 50)])
 		.build()
 		.execute_with(|| {
 			roll_to(8);
@@ -367,7 +367,7 @@ fn payout_distribution_to_solo_collators() {
 			(8, 33),
 			(9, 33),
 		])
-		.with_collators(vec![(1, 100), (2, 90), (3, 80), (4, 70), (5, 60), (6, 50)])
+		.with_candidates(vec![(1, 100), (2, 90), (3, 80), (4, 70), (5, 60), (6, 50)])
 		.build()
 		.execute_with(|| {
 			roll_to(8);
@@ -478,7 +478,7 @@ fn collator_commission() {
 			(5, 100),
 			(6, 100),
 		])
-		.with_collators(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
 		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
 		.build()
 		.execute_with(|| {
@@ -544,7 +544,7 @@ fn multiple_nominations() {
 			(9, 100),
 			(10, 100),
 		])
-		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
 		.with_nominations(vec![
 			(6, 1, 10),
 			(7, 1, 10),
@@ -697,7 +697,7 @@ fn collators_bond() {
 			(9, 100),
 			(10, 100),
 		])
-		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
 		.with_nominations(vec![
 			(6, 1, 10),
 			(7, 1, 10),
@@ -783,7 +783,7 @@ fn nominators_bond() {
 			(9, 100),
 			(10, 100),
 		])
-		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
 		.with_nominations(vec![
 			(6, 1, 10),
 			(7, 1, 10),
@@ -863,7 +863,7 @@ fn revoke_nomination_or_leave_nominators() {
 			(9, 100),
 			(10, 100),
 		])
-		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
 		.with_nominations(vec![
 			(6, 1, 10),
 			(7, 1, 10),
@@ -920,7 +920,7 @@ fn payouts_follow_nomination_changes() {
 			(9, 100),
 			(10, 100),
 		])
-		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
 		.with_nominations(vec![
 			(6, 1, 10),
 			(7, 1, 10),
@@ -1095,7 +1095,7 @@ fn parachain_bond_reserve_works() {
 			(10, 100),
 			(11, 1),
 		])
-		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
 		.with_nominations(vec![
 			(6, 1, 10),
 			(7, 1, 10),
@@ -1435,7 +1435,7 @@ fn mutable_blocks_per_round() {
 			(5, 100),
 			(6, 100),
 		])
-		.with_collators(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
 		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
 		.build()
 		.execute_with(|| {
@@ -1484,7 +1484,7 @@ fn mutable_blocks_per_round() {
 			(5, 100),
 			(6, 100),
 		])
-		.with_collators(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
 		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
 		.build()
 		.execute_with(|| {
@@ -1523,7 +1523,7 @@ fn mutable_blocks_per_round() {
 			(5, 100),
 			(6, 100),
 		])
-		.with_collators(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
 		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
 		.build()
 		.execute_with(|| {
