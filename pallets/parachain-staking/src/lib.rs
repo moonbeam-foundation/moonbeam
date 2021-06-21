@@ -652,7 +652,7 @@ pub mod pallet {
 		type BondDuration: Get<RoundIndex>;
 		/// Minimum number of selected candidates every round
 		type MinSelectedCandidates: Get<u32>;
-		/// Maximum nominators counted per collator (included in collator_state.total)
+		/// Maximum nominators counted per collator
 		type MaxNominatorsPerCollator: Get<u32>;
 		/// Maximum collators per nominator
 		type MaxCollatorsPerNominator: Get<u32>;
