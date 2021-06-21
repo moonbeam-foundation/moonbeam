@@ -67,7 +67,6 @@ where
 		// https://solidity-by-example.org/primitives/
 		const SELECTOR_SIZE_BYTES: usize = 4;
 
-		//TODO test for this
 		if input.len() < SELECTOR_SIZE_BYTES {
 			return Err(ExitError::Other("input length less than 4 bytes".into()));
 		}
@@ -90,7 +89,6 @@ where
 			// 	return Self::is_selected_candidate(&input[SELECTOR_SIZE_BYTES..]);
 			// }
 			// [0xc9, 0xf5, 0x93, 0xb2] => {
-			// 	//TODO Do we need to verify that there were no additional bytes passed in here?
 			// 	return Self::min_nomination();
 			// }
 			// [0x97, 0x99, 0xb4, 0xe7] => {
@@ -114,7 +112,6 @@ where
 					target: "democracy-precompile",
 					"Failed to match function selector in democracy precompile"
 				);
-				//TODO test for this
 				return Err(ExitError::Other(
 					"No democracy wrapper method at given selector".into(),
 				));

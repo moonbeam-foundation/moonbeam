@@ -21,8 +21,6 @@ use frame_support::{
 	traits::{OnFinalize, OnInitialize},
 };
 use frame_system::{EnsureRoot, EnsureSigned};
-//TODO should be necessary to ensure that precompile accessors return the right weight/
-// use frame_system::limits::BlockWeights;
 use sp_core::H256;
 use sp_io;
 use sp_runtime::{
