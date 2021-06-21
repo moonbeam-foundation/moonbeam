@@ -80,7 +80,7 @@ where
 		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html#function-selector
 		let inner_call = match input[0..SELECTOR_SIZE_BYTES] {
 			// Check for accessor methods first. These return results immediately
-			[0x78, 0x24, 0xe7, 0xd1] => {
+			[0x56, 0xfd, 0xf5, 0x47] => {
 				return Self::public_prop_count(&input[SELECTOR_SIZE_BYTES..]);
 			}
 			// [0x85, 0x45, 0xc8, 0x33] => {
@@ -98,7 +98,7 @@ where
 			// }
 
 			// If not an accessor, check for dispatchables. These calls ready for dispatch below.
-			[0x56, 0xfd, 0xf5, 0x47] => Self::propose(&input[SELECTOR_SIZE_BYTES..])?,
+			[0x78, 0x24, 0xe7, 0xd1] => Self::propose(&input[SELECTOR_SIZE_BYTES..])?,
 			// [0xb7, 0x69, 0x42, 0x19] => Self::leave_candidates()?,
 			// [0x76, 0x7e, 0x04, 0x50] => Self::go_offline()?,
 			// [0xd2, 0xf7, 0x3c, 0xeb] => Self::go_online()?,
