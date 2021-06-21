@@ -25,7 +25,7 @@ use evm::{executor::PrecompileOutput, Context, ExitSucceed};
 use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable, traits::fungible::Inspect};
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
-use parachain_staking::Bond;
+use parachain_staking::{Bond, NominatorAdded};
 use precompiles::MoonbeamPrecompiles;
 use sp_core::{Public, H160, U256};
 use sp_runtime::DispatchError;
@@ -704,7 +704,9 @@ fn nominate_via_precompile() {
 					AccountId::from(BOB),
 					1000 * MOVR,
 					AccountId::from(ALICE),
-					2000 * MOVR,
+					NominatorAdded::AddedToTop {
+						new_total: 2000 * MOVR,
+					},
 				)),
 				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
@@ -929,6 +931,7 @@ fn nominator_bond_more_less_via_precompile() {
 					AccountId::from(BOB),
 					AccountId::from(ALICE),
 					1_500 * MOVR,
+					true,
 					2_000 * MOVR,
 				)),
 				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
@@ -972,6 +975,7 @@ fn nominator_bond_more_less_via_precompile() {
 					AccountId::from(BOB),
 					AccountId::from(ALICE),
 					2_000 * MOVR,
+					true,
 					1_500 * MOVR,
 				)),
 				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
