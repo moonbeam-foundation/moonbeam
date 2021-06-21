@@ -17,7 +17,7 @@
 //! Test utilities
 use super::*;
 use frame_support::{
-	construct_runtime, parameter_types, assert_noop,
+	construct_runtime, parameter_types,
 	traits::{OnFinalize, OnInitialize},
 };
 use frame_system::{EnsureRoot, EnsureSigned};
@@ -36,7 +36,7 @@ pub type BlockNumber = u64;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
-use pallet_evm::{EnsureAddressRoot, EnsureAddressNever, AddressMapping, Precompile, PrecompileSet, ExitError};
+use pallet_evm::{EnsureAddressRoot, EnsureAddressNever, AddressMapping,};
 
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
@@ -113,10 +113,10 @@ impl TestMapping {
 }
 
 /// The democracy precompile is available at address zero in the mock runtime.
-fn precompile_address() -> H160 {
+pub fn precompile_address() -> H160 {
 	H160::from_low_u64_be(1)
 }
-type Precompiles = (DemocracyWrapper<Test>,);
+pub type Precompiles = (DemocracyWrapper<Test>,);
 
 impl pallet_evm::Config for Test {
 	type FeeCalculator = ();
@@ -274,113 +274,4 @@ pub fn evm_test_context() -> evm::Context {
 		caller: Default::default(),
 		apparent_value: From::from(0),
 	}
-}
-
-#[test]
-fn selector_less_than_four_bytes() {
-	ExtBuilder::default()
-		.build()
-		.execute_with(|| {
-			// This selector is only three bytes long when four are required.
-			let bogus_selector = vec![1u8, 2u8, 3u8];
-
-			// Expected result is an error stating there are too few bytes
-			let expected_result = Some(Err(ExitError::Other("input length less than 4 bytes".into())));
-
-			assert_eq!(
-				Precompiles::execute(
-					precompile_address(),
-					&bogus_selector,
-					None,
-					&evm_test_context(),
-				),
-				expected_result
-			);
-		});
-}
-
-#[test]
-fn no_selector_exists_but_length_is_right() {
-	ExtBuilder::default()
-		.build()
-		.execute_with(|| {
-			// This selector is only three bytes long when four are required.
-			let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
-
-			// Expected result is an error stating there are too few bytes
-			let expected_result = Some(Err(ExitError::Other("No democracy wrapper method at given selector".into())));
-
-			assert_eq!(
-				Precompiles::execute(
-					precompile_address(),
-					&bogus_selector,
-					None,
-					&evm_test_context(),
-				),
-				expected_result
-			);
-		});
-}
-
-#[test]
-fn prop_count_zero() {
-	ExtBuilder::default()
-		.build()
-		.execute_with(|| {
-			let selector = hex_literal::hex!("56fdf547");
-
-			// Construct data to read prop count
-			let mut input_data = Vec::<u8>::from([0u8; 4]);
-			input_data[0..4].copy_from_slice(&selector);
-
-			// Expected result is zero. because no props are open yet.
-			let expected_zero_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: Vec::from([0u8; 32]),
-				cost: Default::default(),
-				logs: Default::default(),
-			}));
-
-			// Assert that no props have been opened.
-			assert_eq!(
-				Precompiles::execute(
-					precompile_address(),
-					&input_data,
-					None,
-					&evm_test_context(),
-				),
-				expected_zero_result
-			);
-		});
-}
-
-// #[test]
-// fn prop_count_non_zero()
-
-#[test]
-fn prop_count_extra_data() {
-	ExtBuilder::default()
-		.build()
-		.execute_with(|| {
-			let selector = hex_literal::hex!("56fdf547");
-			
-			// Construct data to read prop count including a bogus extra byte
-			let mut input_data = Vec::<u8>::from([0u8; 5]);
-
-			// We still use the correct selector for prop_count
-			input_data[0..4].copy_from_slice(&selector);
-
-			// Expected result is an error stating there are too few bytes
-			let expected_result = Some(Err(ExitError::Other("Incorrect input length for public_prop_count.".into())));
-
-			assert_eq!(
-				Precompiles::execute(
-					precompile_address(),
-					&input_data,
-					None,
-					&evm_test_context(),
-				),
-				expected_result
-			);
-		});
 }
