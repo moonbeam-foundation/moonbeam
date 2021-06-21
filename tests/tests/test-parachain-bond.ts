@@ -117,7 +117,7 @@ describeDevMoonbeam(
       genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
       sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
     });
-    it("should NOT be able set the parachain bond without sudo", async function () {
+    it("should NOT be able set the parachain bond reserve percent without sudo", async function () {
       // should be able to register the genesis account for reward
       await context.polkadotApi.tx.parachainStaking
         .setParachainBondReservePercent(TWENTY_PERCENT)
