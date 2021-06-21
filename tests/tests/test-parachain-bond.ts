@@ -17,7 +17,6 @@ describeDevMoonbeam("Staking - Parachain Bond - genesis and setParachainBondAcco
   let sudoAccount: KeyringPair;
   before("Setup genesis account for substrate", async () => {
     const keyring = new Keyring({ type: "ethereum" });
-    // genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
   it("should have right parachain bond in genesis", async function () {
