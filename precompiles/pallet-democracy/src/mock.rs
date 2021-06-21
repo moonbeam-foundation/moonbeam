@@ -305,10 +305,27 @@ fn prop_count_zero() {
 		.build()
 		.execute_with(|| {
 			// Construct data to read prop count
+			let mut input_data = Vec::<u8>::from([0u8; 4]);
+			input_data[0..4].copy_from_slice(&hex_literal::hex!("56fdf547"));
 
-			// Execute call
+			// Expected result is zero. because no props are open yet.
+			let expected_zero_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: Vec::from([0u8; 32]),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
 
-			// Assert
+			// Assert that no props have been opened.
+			assert_eq!(
+				Precompiles::execute(
+					precompile_address(),
+					&input_data,
+					None,
+					&evm_test_context(),
+				),
+				expected_zero_result
+			);
 		});
 }
 
