@@ -106,7 +106,7 @@ fn can_join_candidates_with_valid_bond() {
 }
 
 #[test]
-fn cannot_join_candidates_twice() {
+fn cannot_join_candidates_if_candidate() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 1000)])
 		.with_candidates(vec![(1, 500)])
