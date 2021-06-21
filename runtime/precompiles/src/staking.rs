@@ -199,6 +199,27 @@ where
 	Ok(amount)
 }
 
+/// Parses Weight Hint: u32 from a 256 bit (32 byte) slice.
+fn parse_weight_hint(input: &[u8]) -> Result<u32, ExitError> {
+	const WEIGHT_HINT_SIZE_BYTES: usize = 32;
+
+	if input.len() != WEIGHT_HINT_SIZE_BYTES {
+		log::trace!(target: "staking-precompile",
+			"Unable to parse weight hint. Got {} bytes, expected {}",
+			input.len(),
+			WEIGHT_HINT_SIZE_BYTES,
+		);
+		return Err(ExitError::Other(
+			"Incorrect input length for weight hint parsing".into(),
+		));
+	}
+
+	let weight_hint: u32 = U256::from_big_endian(&input[0..WEIGHT_HINT_SIZE_BYTES])
+		.try_into()
+		.map_err(|_| ExitError::Other("Weight hint is too large for u32".into()))?;
+	Ok(weight_hint)
+}
+
 impl<Runtime> ParachainStakingWrapper<Runtime>
 where
 	Runtime: parachain_staking::Config + pallet_evm::Config,
@@ -309,11 +330,20 @@ where
 	// The dispatchable wrappers are next. They return a substrate inner Call ready for dispatch.
 
 	fn join_candidates(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		let amount = parse_amount::<BalanceOf<Runtime>>(input)?;
+		let amount = parse_amount::<BalanceOf<Runtime>>(&input[..32])?;
+		let collator_candidate_count = parse_weight_hint(&input[32..])?;
 
 		log::trace!(target: "staking-precompile", "Collator stake amount is {:?}", amount);
+		log::trace!(
+			target: "staking-precompile",
+			"Weight Hint: collator count is {:?}",
+			collator_candidate_count
+		);
 
-		Ok(parachain_staking::Call::<Runtime>::join_candidates(amount))
+		Ok(parachain_staking::Call::<Runtime>::join_candidates(
+			amount,
+			collator_candidate_count,
+		))
 	}
 
 	fn leave_candidates() -> Result<parachain_staking::Call<Runtime>, ExitError> {
