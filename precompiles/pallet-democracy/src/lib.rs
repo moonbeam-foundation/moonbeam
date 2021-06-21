@@ -50,7 +50,7 @@ pub struct DemocracyWrapper<Runtime>(PhantomData<Runtime>);
 impl<Runtime> Precompile for DemocracyWrapper<Runtime>
 where
 	Runtime: pallet_democracy::Config + pallet_evm::Config,
-	Runtime::AccountId: From<H160>,
+	// Runtime::AccountId: From<H160>,
 	BalanceOf<Runtime>: TryFrom<U256> + Debug,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
@@ -215,7 +215,7 @@ fn parse_uint256(input: &[u8]) -> Result<U256, ExitError> {
 impl<Runtime> DemocracyWrapper<Runtime>
 where
 	Runtime: pallet_democracy::Config + pallet_evm::Config + frame_system::Config,
-	Runtime::AccountId: From<H160>,
+	// Runtime::AccountId: From<H160>,
 	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Debug,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
