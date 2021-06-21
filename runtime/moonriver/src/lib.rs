@@ -79,13 +79,16 @@ pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 pub mod currency {
 	use super::Balance;
 
+	pub const SED: Balance = 1;
+	pub const KILOSED: Balance = 1_000;
+	pub const MEGASED: Balance = 1_000_000;
+	pub const GIGASED: Balance = 1_000_000_000;
+	pub const MICROMOVR: Balance = 1_000_000_000_000;
+	pub const MILLIMOVR: Balance = 1_000_000_000_000_000;
 	pub const MOVR: Balance = 1_000_000_000_000_000_000;
-	pub const KILOMOVRS: Balance = MOVR * 1_000;
-	pub const MILLIMOVRS: Balance = MOVR / 1_000;
-	pub const MICROMOVRS: Balance = MILLIMOVRS / 1_000;
-	pub const NANOMOVRS: Balance = MICROMOVRS / 1_000;
+	pub const KILOMOVR: Balance = 1_000_000_000_000_000_000_000;
 
-	pub const BYTE_FEE: Balance = 100 * MICROMOVRS;
+	pub const BYTE_FEE: Balance = 100 * MICROMOVR;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
 		items as Balance * 1 * MOVR + (bytes as Balance) * BYTE_FEE
@@ -124,7 +127,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
 	spec_version: 51,
-	impl_version: 1,
+	impl_version: 2,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
 };
@@ -310,7 +313,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		(1 * currency::NANOMOVRS).into()
+		(1 * currency::GIGASED).into()
 	}
 }
 
@@ -549,7 +552,7 @@ parameter_types! {
 	/// Default percent of inflation set aside for parachain bond every round
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	/// Minimum stake required to be reserved to be a collator is 1_000
-	pub const MinCollatorStk: u128 = 1 * currency::KILOMOVRS;
+	pub const MinCollatorStk: u128 = 1 * currency::KILOMOVR;
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5 * currency::MOVR;
 }
@@ -804,60 +807,24 @@ pub type Executive = frame_executive::Executive<
 	AllPallets,
 >;
 
-impl_runtime_apis! {
-	impl sp_api::Core<Block> for Runtime {
-		fn version() -> RuntimeVersion {
-			VERSION
-		}
-
-		fn execute_block(block: Block) {
-			Executive::execute_block(block)
-		}
-
-		fn initialize_block(header: &<Block as BlockT>::Header) {
-			Executive::initialize_block(header)
-		}
-	}
-
-	impl sp_api::Metadata<Block> for Runtime {
-		fn metadata() -> OpaqueMetadata {
-			Runtime::metadata().into()
-		}
-	}
-
-	impl sp_block_builder::BlockBuilder<Block> for Runtime {
-		fn apply_extrinsic(
-			extrinsic: <Block as BlockT>::Extrinsic,
-		) -> ApplyExtrinsicResult {
-			Executive::apply_extrinsic(extrinsic)
-		}
-
-		fn finalize_block() -> <Block as BlockT>::Header {
-			Executive::finalize_block()
-		}
-
-		fn inherent_extrinsics(
-			data: sp_inherents::InherentData
-		) -> Vec<<Block as BlockT>::Extrinsic> {
-			data.create_extrinsics()
-		}
-
-		fn check_inherents(
-			block: Block,
-			data: sp_inherents::InherentData,
-		) -> sp_inherents::CheckInherentsResult {
-			data.check_extrinsics(&block)
-		}
-	}
-
+// All of our runtimes share most of their Runtime API implementations.
+// We use a macro to implement this common part and add runtime-specific additional implementations.
+// This macro expands to :
+// ```
+// impl_runtime_apis! {
+//     // All impl blocks shared between all runtimes.
+//
+//     // Specific impls provided to the `impl_runtime_apis_plus_common!` macro.
+// }
+// ```
+runtime_common::impl_runtime_apis_plus_common! {
 	impl sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block> for Runtime {
 		fn validate_transaction(
 			source: TransactionSource,
 			tx: <Block as BlockT>::Extrinsic,
 		) -> TransactionValidity {
 			// Filtered calls should not enter the tx pool as they'll fail if inserted.
-			let allowed = <Runtime as frame_system::Config>
-				::BaseCallFilter::filter(&tx.function);
+			let allowed = <Runtime as frame_system::Config>::BaseCallFilter::filter(&tx.function);
 
 			if allowed {
 				Executive::validate_transaction(source, tx)
@@ -866,412 +833,9 @@ impl_runtime_apis! {
 			}
 		}
 	}
-
-	impl sp_offchain::OffchainWorkerApi<Block> for Runtime {
-		fn offchain_worker(header: &<Block as BlockT>::Header) {
-			Executive::offchain_worker(header)
-		}
-	}
-
-	impl sp_session::SessionKeys<Block> for Runtime {
-		fn decode_session_keys(
-			encoded: Vec<u8>,
-		) -> Option<Vec<(Vec<u8>, sp_core::crypto::KeyTypeId)>> {
-			opaque::SessionKeys::decode_into_raw_public_keys(&encoded)
-		}
-
-		fn generate_session_keys(seed: Option<Vec<u8>>) -> Vec<u8> {
-			opaque::SessionKeys::generate(seed)
-		}
-	}
-
-	impl frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Index> for Runtime {
-		fn account_nonce(account: AccountId) -> Index {
-			System::account_nonce(account)
-		}
-	}
-
-	impl moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block> for Runtime {
-		fn trace_transaction(
-			extrinsics: Vec<<Block as BlockT>::Extrinsic>,
-			transaction: &EthereumTransaction,
-			trace_type: moonbeam_rpc_primitives_debug::single::TraceType,
-		) -> Result<
-			moonbeam_rpc_primitives_debug::single::TransactionTrace,
-			sp_runtime::DispatchError
-		> {
-			use moonbeam_rpc_primitives_debug::single::TraceType;
-			use moonbeam_evm_tracer::{RawTracer, CallListTracer};
-
-			// Apply the a subset of extrinsics: all the substrate-specific or ethereum transactions
-			// that preceded the requested transaction.
-			for ext in extrinsics.into_iter() {
-				let _ = match &ext.function {
-					Call::Ethereum(transact(t)) => {
-						if t == transaction {
-							return match trace_type {
-								TraceType::Raw {
-									disable_storage,
-									disable_memory,
-									disable_stack,
-								} => {
-									Ok(RawTracer::new(disable_storage,
-										disable_memory,
-										disable_stack,)
-										.trace(|| Executive::apply_extrinsic(ext))
-										.0
-										.into_tx_trace()
-									)
-								},
-								TraceType::CallList => {
-									Ok(CallListTracer::default()
-										.trace(|| Executive::apply_extrinsic(ext))
-										.0
-										.into_tx_trace()
-									)
-								}
-							}
-
-						} else {
-							Executive::apply_extrinsic(ext)
-						}
-					},
-					_ => Executive::apply_extrinsic(ext)
-				};
-			}
-
-			Err(sp_runtime::DispatchError::Other(
-				"Failed to find Ethereum transaction among the extrinsics."
-			))
-		}
-
-		fn trace_block(
-			extrinsics: Vec<<Block as BlockT>::Extrinsic>,
-		) -> Result<
-			Vec<
-				moonbeam_rpc_primitives_debug::block::TransactionTrace>,
-				sp_runtime::DispatchError
-			> {
-			use moonbeam_rpc_primitives_debug::{single, block, CallResult, CreateResult, CreateType};
-			use moonbeam_evm_tracer::CallListTracer;
-
-			let mut config = <Runtime as pallet_evm::Config>::config().clone();
-			config.estimate = true;
-
-			let mut traces = vec![];
-			let mut eth_tx_index = 0;
-
-			// Apply all extrinsics. Ethereum extrinsics are traced.
-			for ext in extrinsics.into_iter() {
-				match &ext.function {
-					Call::Ethereum(transact(_transaction)) => {
-						let tx_traces = CallListTracer::default()
-							.trace(|| Executive::apply_extrinsic(ext))
-							.0
-							.into_tx_trace();
-
-						let tx_traces = match tx_traces {
-							single::TransactionTrace::CallList(t) => t,
-							_ => return Err(sp_runtime::DispatchError::Other("Runtime API error")),
-						};
-
-						// Convert traces from "single" format to "block" format.
-						let mut tx_traces: Vec<_> = tx_traces.into_iter().map(|trace|
-							match trace.inner {
-								single::CallInner::Call {
-									input, to, res, call_type
-								} => block::TransactionTrace {
-									action: block::TransactionTraceAction::Call {
-										call_type,
-										from: trace.from,
-										gas: trace.gas,
-										input,
-										to,
-										value: trace.value,
-									},
-									// Can't be known here, must be inserted upstream.
-									block_hash: H256::default(),
-									// Can't be known here, must be inserted upstream.
-									block_number: 0,
-									output: match res {
-										CallResult::Output(output) => {
-											block::TransactionTraceOutput::Result(
-												block::TransactionTraceResult::Call {
-													gas_used: trace.gas_used,
-													output
-												})
-										},
-										CallResult::Error(error) =>
-											block::TransactionTraceOutput::Error(error),
-									},
-									subtraces: trace.subtraces,
-									trace_address: trace.trace_address,
-									// Can't be known here, must be inserted upstream.
-									transaction_hash: H256::default(),
-									transaction_position: eth_tx_index,
-								},
-								single::CallInner::Create { init, res } => block::TransactionTrace {
-									action: block::TransactionTraceAction::Create {
-										creation_method: CreateType::Create,
-										from: trace.from,
-										gas: trace.gas,
-										init,
-										value: trace.value,
-									},
-									// Can't be known here, must be inserted upstream.
-									block_hash: H256::default(),
-									// Can't be known here, must be inserted upstream.
-									block_number: 0,
-									output: match res {
-										CreateResult::Success {
-											created_contract_address_hash,
-											created_contract_code
-										} => {
-											block::TransactionTraceOutput::Result(
-												block::TransactionTraceResult::Create {
-													gas_used: trace.gas_used,
-													code: created_contract_code,
-													address: created_contract_address_hash,
-												}
-											)
-										},
-										CreateResult::Error {
-											error
-										} => block::TransactionTraceOutput::Error(error),
-									},
-									subtraces: trace.subtraces,
-									trace_address: trace.trace_address,
-									// Can't be known here, must be inserted upstream.
-									transaction_hash: H256::default(),
-									transaction_position: eth_tx_index,
-
-								},
-								single::CallInner::SelfDestruct {
-									balance,
-									refund_address
-								} => block::TransactionTrace {
-									action: block::TransactionTraceAction::Suicide {
-										address: trace.from,
-										balance,
-										refund_address,
-									},
-									// Can't be known here, must be inserted upstream.
-									block_hash: H256::default(),
-									// Can't be known here, must be inserted upstream.
-									block_number: 0,
-									output: block::TransactionTraceOutput::Result(
-												block::TransactionTraceResult::Suicide
-											),
-									subtraces: trace.subtraces,
-									trace_address: trace.trace_address,
-									// Can't be known here, must be inserted upstream.
-									transaction_hash: H256::default(),
-									transaction_position: eth_tx_index,
-
-								},
-							}
-						).collect();
-
-						traces.append(&mut tx_traces);
-
-						eth_tx_index += 1;
-					},
-					_ => {let _ = Executive::apply_extrinsic(ext); }
-				};
-			}
-
-			Ok(traces)
-		}
-	}
-
-	impl moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block> for Runtime {
-		fn extrinsic_filter(
-			xts_ready: Vec<<Block as BlockT>::Extrinsic>,
-			xts_future: Vec<<Block as BlockT>::Extrinsic>
-		) -> TxPoolResponse {
-			TxPoolResponse {
-				ready: xts_ready.into_iter().filter_map(|xt| match xt.function {
-					Call::Ethereum(transact(t)) => Some(t),
-					_ => None
-				}).collect(),
-				future: xts_future.into_iter().filter_map(|xt| match xt.function {
-					Call::Ethereum(transact(t)) => Some(t),
-					_ => None
-				}).collect(),
-			}
-		}
-	}
-	impl fp_rpc::EthereumRuntimeRPCApi<Block> for Runtime {
-		fn chain_id() -> u64 {
-			<Runtime as pallet_evm::Config>::ChainId::get()
-		}
-
-		fn account_basic(address: H160) -> EVMAccount {
-			EVM::account_basic(&address)
-		}
-
-		fn gas_price() -> U256 {
-			<Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price()
-		}
-
-		fn account_code_at(address: H160) -> Vec<u8> {
-			EVM::account_codes(address)
-		}
-
-		fn author() -> H160 {
-			Ethereum::find_author()
-		}
-
-		fn storage_at(address: H160, index: U256) -> H256 {
-			let mut tmp = [0u8; 32];
-			index.to_big_endian(&mut tmp);
-			EVM::account_storages(address, H256::from_slice(&tmp[..]))
-		}
-
-		fn call(
-			from: H160,
-			to: H160,
-			data: Vec<u8>,
-			value: U256,
-			gas_limit: U256,
-			gas_price: Option<U256>,
-			nonce: Option<U256>,
-			estimate: bool,
-		) -> Result<pallet_evm::CallInfo, sp_runtime::DispatchError> {
-			let config = if estimate {
-				let mut config = <Runtime as pallet_evm::Config>::config().clone();
-				config.estimate = true;
-				Some(config)
-			} else {
-				None
-			};
-
-			<Runtime as pallet_evm::Config>::Runner::call(
-				from,
-				to,
-				data,
-				value,
-				gas_limit.low_u64(),
-				gas_price,
-				nonce,
-				config.as_ref().unwrap_or_else(|| <Runtime as pallet_evm::Config>::config()),
-			).map_err(|err| err.into())
-		}
-
-		fn create(
-			from: H160,
-			data: Vec<u8>,
-			value: U256,
-			gas_limit: U256,
-			gas_price: Option<U256>,
-			nonce: Option<U256>,
-			estimate: bool,
-		) -> Result<pallet_evm::CreateInfo, sp_runtime::DispatchError> {
-			let config = if estimate {
-				let mut config = <Runtime as pallet_evm::Config>::config().clone();
-				config.estimate = true;
-				Some(config)
-			} else {
-				None
-			};
-
-			#[allow(clippy::or_fun_call)] // suggestion not helpful here
-			<Runtime as pallet_evm::Config>::Runner::create(
-				from,
-				data,
-				value,
-				gas_limit.low_u64(),
-				gas_price,
-				nonce,
-				config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
-			).map_err(|err| err.into())
-		}
-
-		fn current_transaction_statuses() -> Option<Vec<TransactionStatus>> {
-			Ethereum::current_transaction_statuses()
-		}
-
-		fn current_block() -> Option<pallet_ethereum::Block> {
-			Ethereum::current_block()
-		}
-
-		fn current_receipts() -> Option<Vec<pallet_ethereum::Receipt>> {
-			Ethereum::current_receipts()
-		}
-
-		fn current_all() -> (
-			Option<pallet_ethereum::Block>,
-			Option<Vec<pallet_ethereum::Receipt>>,
-			Option<Vec<TransactionStatus>>
-		) {
-			(
-				Ethereum::current_block(),
-				Ethereum::current_receipts(),
-				Ethereum::current_transaction_statuses()
-			)
-		}
-	}
-
-	impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
-		for Runtime {
-
-		fn query_info(
-			uxt: <Block as BlockT>::Extrinsic,
-			len: u32,
-		) -> pallet_transaction_payment_rpc_runtime_api::RuntimeDispatchInfo<Balance> {
-			TransactionPayment::query_info(uxt, len)
-		}
-
-		fn query_fee_details(
-			uxt: <Block as BlockT>::Extrinsic,
-			len: u32,
-		) -> pallet_transaction_payment::FeeDetails<Balance> {
-			TransactionPayment::query_fee_details(uxt, len)
-		}
-	}
-
-	impl nimbus_primitives::AuthorFilterAPI<Block, nimbus_primitives::NimbusId> for Runtime {
-		fn can_author(author: nimbus_primitives::NimbusId, slot: u32) -> bool {
-			AuthorInherent::can_author(&author, &slot)
-		}
-	}
-
-	impl cumulus_primitives_core::CollectCollationInfo<Block> for Runtime {
-		fn collect_collation_info() -> cumulus_primitives_core::CollationInfo {
-			ParachainSystem::collect_collation_info()
-		}
-	}
-
-	#[cfg(feature = "runtime-benchmarks")]
-	impl frame_benchmarking::Benchmark<Block> for Runtime {
-		fn dispatch_benchmark(
-			config: frame_benchmarking::BenchmarkConfig
-			) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
-			use frame_benchmarking::{Benchmarking, BenchmarkBatch, add_benchmark, TrackedStorageKey};
-
-			use frame_system_benchmarking::Pallet as SystemBench;
-			impl frame_system_benchmarking::Config for Runtime {}
-
-			use parachain_staking::Pallet as ParachainStakingBench;
-			use pallet_crowdloan_rewards::Pallet as PalletCrowdloanRewardsBench;
-			let whitelist: Vec<TrackedStorageKey> = vec![];
-
-			let mut batches = Vec::<BenchmarkBatch>::new();
-			let params = (&config, &whitelist);
-
-			add_benchmark!(params, batches, parachain_staking, ParachainStakingBench::<Runtime>);
-			// add_benchmark!(
-			// 	params, batches, pallet_crowdloan_rewards, PalletCrowdloanRewardsBench::<Runtime>
-			// );
-			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
-
-			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
-			Ok(batches)
-		}
-	}
 }
 
-// Notice we're using Nimbus's Executive wrapper to pop (and in the future verify) the seal digest.
+// Nimbus's Executive wrapper allows relay validators to verify the seal digest
 cumulus_pallet_parachain_system::register_validate_block!(
 	Runtime,
 	pallet_author_inherent::BlockExecutor<Runtime, Executive>
