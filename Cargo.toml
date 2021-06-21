@@ -1,14 +1,30 @@
 [workspace]
 members = [
+    'bin/utils/moonkey',
+    'client/rpc/debug',
+    'client/rpc/trace',
+    'client/rpc/txpool',
+    'client/rpc-core/debug',
+    'client/rpc-core/trace',
+    'client/rpc-core/txpool',
+    'core-primitives',
     'runtime/moonbeam',
     'runtime/moonriver',
     'runtime/moonshadow',
     'runtime/moonbase',
+    'runtime/precompiles',
     'node',
     'node/cli',
+    'node/cli-opt',
     'node/service',
-    'bin/utils/moonkey',
+    'node/service',
     'pallets/author-mapping',
+    'pallets/ethereum-chain-id',
+    'pallets/parachain-staking',
+    'precompiles/parachain-staking',
+    'primitives/account',
+    'primitives/rpc/debug',
+    'primitives/rpc/txpool',
 ]
 exclude = ['bin/utils/moonkey']
 
