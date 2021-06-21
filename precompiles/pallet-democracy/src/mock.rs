@@ -21,7 +21,7 @@ use frame_support::{
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 	weights::Weight,
 };
-use frame_system::EnsureRoot;
+use frame_system::{EnsureRoot, EnsureSigned};
 use frame_system::limits::BlockWeights;
 use sp_core::H256;
 use sp_io;
@@ -143,6 +143,7 @@ parameter_types! {
 	pub const PreimageByteDeposit: Balance = 10;
 	pub const InstantAllowed: bool = false;
 }
+
 impl pallet_democracy::Config for Test {
 	type Proposal = Call;
 	type Event = Event;
@@ -160,14 +161,14 @@ impl pallet_democracy::Config for Test {
 	type CancellationOrigin = EnsureRoot<AccountId>;
 	type CancelProposalOrigin = EnsureRoot<AccountId>;
 	type BlacklistOrigin = EnsureRoot<AccountId>;
-	type VetoOrigin = EnsureRoot<AccountId>;
+	type VetoOrigin = EnsureSigned<AccountId>;
 	type CooloffPeriod = CooloffPeriod;
 	type PreimageByteDeposit = PreimageByteDeposit;
 	type Slash = ();
 	type InstantAllowed = InstantAllowed;
 	type Scheduler = Scheduler;
 	type MaxVotes = MaxVotes;
-	type OperationalPreimageOrigin = EnsureRoot<AccountId>;
+	type OperationalPreimageOrigin = EnsureSigned<AccountId>;
 	type PalletsOrigin = OriginCaller;
 	type WeightInfo = ();
 	type MaxProposals = MaxProposals;
@@ -227,6 +228,10 @@ pub(crate) fn roll_to(n: u64) {
 		System::set_block_number(System::block_number() + 1);
 		System::on_initialize(System::block_number());
 		Balances::on_initialize(System::block_number());
+		// Evm: pallet_evm::{Pallet, Config, Call, Storage, Event<T>},
+		// Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
+		// Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call},
+		// Scheduler: pallet_scheduler::{Pallet, Call, Storage, Config, Event<T>},
 	}
 }
 
