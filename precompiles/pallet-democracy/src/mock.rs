@@ -17,18 +17,17 @@
 //! Test utilities
 use super::*;
 use frame_support::{
-	construct_runtime, parameter_types,
-	traits::{GenesisBuild, OnFinalize, OnInitialize},
-	weights::Weight,
+	construct_runtime, parameter_types, assert_noop,
+	traits::{OnFinalize, OnInitialize},
 };
 use frame_system::{EnsureRoot, EnsureSigned};
-use frame_system::limits::BlockWeights;
+//TODO should be necessary to ensure that precompile accessors return the right weight/
+// use frame_system::limits::BlockWeights;
 use sp_core::H256;
 use sp_io;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
-	Perbill,
 };
 
 pub type AccountId = u64;
@@ -37,7 +36,7 @@ pub type BlockNumber = u64;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
-use pallet_evm::{EnsureAddressRoot, EnsureAddressNever, AddressMapping, Precompile};
+use pallet_evm::{EnsureAddressRoot, EnsureAddressNever, AddressMapping, Precompile, PrecompileSet, ExitError};
 
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
@@ -97,7 +96,8 @@ impl pallet_balances::Config for Test {
 	type WeightInfo = ();
 }
 
-/// A simple address mapping used for testing. Maps an address to its low byte
+/// A simple address mapping used for testing. Maps an address to its low byte.
+/// Also has a helper method for going the other way in order to make valid calls.
 /// TODO Check byte order.
 pub struct TestMapping;
 impl AddressMapping<u64> for TestMapping {
@@ -105,6 +105,18 @@ impl AddressMapping<u64> for TestMapping {
 		h160_account.as_bytes()[0] as u64
 	}
 }
+
+impl TestMapping {
+	fn account_id_to_h160(account_id: u64) -> H160 {
+		H160::from_low_u64_be(account_id)
+	}
+}
+
+/// The democracy precompile is available at address zero in the mock runtime.
+fn precompile_address() -> H160 {
+	H160::from_low_u64_be(1)
+}
+type Precompiles = (DemocracyWrapper<Test>,);
 
 impl pallet_evm::Config for Test {
 	type FeeCalculator = ();
@@ -115,7 +127,7 @@ impl pallet_evm::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type Precompiles = (DemocracyWrapper<Self>,);
+	type Precompiles = Precompiles;
 	type ChainId = ();
 	type OnChargeTransaction = ();
 	type BlockGasLimit = ();
@@ -253,8 +265,39 @@ pub(crate) fn roll_to(n: u64) {
 // 		.collect::<Vec<_>>()
 // }
 
-// #[test]
-// fn select_less_than_four_bytes
+// Helper function to give a simple evm context suitable for tests.
+// We can remove this once https://github.com/rust-blockchain/evm/pull/35
+// is in our dependency graph.
+pub fn evm_test_context() -> evm::Context {
+	evm::Context {
+		address: Default::default(),
+		caller: Default::default(),
+		apparent_value: From::from(0),
+	}
+}
+
+#[test]
+fn select_less_than_four_bytes() {
+	ExtBuilder::default()
+		.build()
+		.execute_with(|| {
+			// This selector is only three bytes long when four are required.
+			let bogus_selector = vec![1u8, 2u8, 3u8];
+
+			// Expected result is an error stating there are too few bytes
+			let expected_result = Some(Err(ExitError::Other("input length less than 4 bytes".into())));
+
+			assert_eq!(
+				Precompiles::execute(
+					precompile_address(),
+					&bogus_selector,
+					None,
+					&evm_test_context(),
+				),
+				expected_result
+			);
+		});
+}
 
 #[test]
 fn prop_count_zero() {
