@@ -536,6 +536,19 @@ export const moonbeamDefinitions = {
           total: "Balance",
           state: "CollatorStatus",
         },
+        Collator2: {
+          id: "AccountId",
+          bond: "Balance",
+          nominators: "Vec<AccountId>",
+          top_nominators: "Vec<Bond>",
+          bottom_nominators: "Vec<Bond>",
+          total_counted: "Balance",
+          total_backing: "Balance",
+          state: "CollatorStatus",
+        },
+        NominatorAdded: {
+          _enum: ["AddedToBottom", { AddedToTop: "Balance" }],
+        },
         CollatorSnapshot: {
           bond: "Balance",
           nominators: "Vec<Bond>",
