@@ -277,7 +277,7 @@ pub fn evm_test_context() -> evm::Context {
 }
 
 #[test]
-fn select_less_than_four_bytes() {
+fn selector_less_than_four_bytes() {
 	ExtBuilder::default()
 		.build()
 		.execute_with(|| {
@@ -286,6 +286,29 @@ fn select_less_than_four_bytes() {
 
 			// Expected result is an error stating there are too few bytes
 			let expected_result = Some(Err(ExitError::Other("input length less than 4 bytes".into())));
+
+			assert_eq!(
+				Precompiles::execute(
+					precompile_address(),
+					&bogus_selector,
+					None,
+					&evm_test_context(),
+				),
+				expected_result
+			);
+		});
+}
+
+#[test]
+fn no_selector_exists_but_length_is_right() {
+	ExtBuilder::default()
+		.build()
+		.execute_with(|| {
+			// This selector is only three bytes long when four are required.
+			let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
+
+			// Expected result is an error stating there are too few bytes
+			let expected_result = Some(Err(ExitError::Other("No democracy wrapper method at given selector".into())));
 
 			assert_eq!(
 				Precompiles::execute(
