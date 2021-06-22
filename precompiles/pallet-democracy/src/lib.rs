@@ -24,7 +24,7 @@ use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
 use pallet_evm::GasWeightMapping;
 use pallet_evm::Precompile;
-use sp_core::{H160, U256};
+use sp_core::{H160, H256, U256};
 use sp_std::convert::{TryFrom, TryInto};
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
@@ -55,6 +55,7 @@ where
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<pallet_democracy::Call<Runtime>>,
+	Runtime::Hash: From<H256>,
 {
 	fn execute(
 		input: &[u8], //Reminder this is big-endian
@@ -215,6 +216,7 @@ where
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<pallet_democracy::Call<Runtime>>,
+	Runtime::Hash: From<H256>,
 {
 	// The accessors are first. They directly return their result.
 
@@ -249,12 +251,17 @@ where
 	// The dispatchable wrappers are next. They return a substrate inner Call ready for dispatch.
 
 	fn propose(input: &[u8]) -> Result<pallet_democracy::Call<Runtime>, ExitError> {
-		todo!()
-		// let amount = parse_amount::<BalanceOf<Runtime>>(input)?;
+		const HASH_SIZE_BYTES: usize = 32;
 
-		// log::trace!(target: "democracy-precompile", "Collator stake amount is {:?}", amount);
+		let proposal_hash = H256::from_slice(&input[0..HASH_SIZE_BYTES]);
+		let amount = parse_amount::<BalanceOf<Runtime>>(&input[HASH_SIZE_BYTES..])?;
 
-		// Ok(parachain_staking::Call::<Runtime>::join_candidates(amount))
+		log::trace!(target: "democracy-precompile", "Proposing with hash {:?}, and amount {:?}", proposal_hash, amount);
+
+		Ok(pallet_democracy::Call::<Runtime>::propose(
+			proposal_hash.into(),
+			amount,
+		))
 	}
 }
 
