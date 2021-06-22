@@ -1,0 +1,52 @@
+[package]
+authors = ['PureStake']
+edition = '2018'
+homepage = 'https://moonbeam.network'
+license = 'GPL-3.0-only'
+name = 'account'
+repository = 'https://github.com/PureStake/moonbeam/'
+version = '0.1.1'
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
+parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
+log = "0.4"
+hex = { version = "0.4", default-features = false }
+sha3 = { version = "0.8", default-features = false }
+
+blake2-rfc = { version = "0.2.18", default-features = false, optional = true }
+sp-runtime-interface = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+
+sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-v0.8.2" }
+libsecp256k1 = { version = "0.3.2", default-features = false, features = ["hmac"] }
+
+[dev-dependencies]
+hex = "0.4.3"
+
+[features]
+default = ["std"]
+std = [
+	"parity-scale-codec/std",
+	"serde/std",
+	"hex/std",
+	"sha3/std",
+	"sp-core/std",
+	"sp-io/std",
+	"sp-runtime/std",
+	"sp-std/std",
+	"full_crypto",
+	"pallet-evm/std",
+	"libsecp256k1/std"
+]
+
+full_crypto = [
+	"blake2-rfc",
+	"sp-runtime-interface/disable_target_static_assertions",
+]

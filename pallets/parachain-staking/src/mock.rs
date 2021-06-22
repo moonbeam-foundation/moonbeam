@@ -27,7 +27,7 @@ use sp_io;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
-	Perbill,
+	Perbill, Percent,
 };
 
 pub type AccountId = u64;
@@ -80,6 +80,7 @@ impl frame_system::Config for Test {
 	type BlockWeights = ();
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
+	type OnSetCode = ();
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 1;
@@ -101,6 +102,7 @@ parameter_types! {
 	pub const MaxNominatorsPerCollator: u32 = 4;
 	pub const MaxCollatorsPerNominator: u32 = 4;
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
+	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	pub const MinCollatorStk: u128 = 10;
 	pub const MinNominatorStk: u128 = 5;
 	pub const MinNomination: u128 = 3;
@@ -115,138 +117,101 @@ impl Config for Test {
 	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
 	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
 	type DefaultCollatorCommission = DefaultCollatorCommission;
+	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	type MinCollatorStk = MinCollatorStk;
 	type MinCollatorCandidateStk = MinCollatorStk;
 	type MinNominatorStk = MinNominatorStk;
 	type MinNomination = MinNomination;
+	type WeightInfo = ();
 }
 
-fn genesis(
+pub(crate) struct ExtBuilder {
+	// endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
-	stakers: Vec<(AccountId, Option<AccountId>, Balance)>,
-) -> sp_io::TestExternalities {
-	let expect: Range<Balance> = Range {
-		min: 700,
-		ideal: 700,
-		max: 700,
-	};
-	// very unrealistic test parameterization, would be dumb to have per-round inflation this high
-	let round: Range<Perbill> = Range {
-		min: Perbill::from_percent(5),
-		ideal: Perbill::from_percent(5),
-		max: Perbill::from_percent(5),
-	};
-	let inflation_config: InflationInfo<Balance> = InflationInfo { expect, round };
-	let mut storage = frame_system::GenesisConfig::default()
-		.build_storage::<Test>()
-		.unwrap();
-	pallet_balances::GenesisConfig::<Test> { balances }
-		.assimilate_storage(&mut storage)
-		.unwrap();
-	stake::GenesisConfig::<Test> {
-		stakers,
-		inflation_config,
+	// [collator, amount]
+	collators: Vec<(AccountId, Balance)>,
+	// [nominator, collator, nomination_amount]
+	nominations: Vec<(AccountId, AccountId, Balance)>,
+	// inflation config
+	inflation: InflationInfo<Balance>,
+}
+
+impl Default for ExtBuilder {
+	fn default() -> ExtBuilder {
+		ExtBuilder {
+			balances: vec![],
+			nominations: vec![],
+			collators: vec![],
+			inflation: InflationInfo {
+				expect: Range {
+					min: 700,
+					ideal: 700,
+					max: 700,
+				},
+				// not used
+				annual: Range {
+					min: Perbill::from_percent(50),
+					ideal: Perbill::from_percent(50),
+					max: Perbill::from_percent(50),
+				},
+				// unrealistically high parameterization, only for testing
+				round: Range {
+					min: Perbill::from_percent(5),
+					ideal: Perbill::from_percent(5),
+					max: Perbill::from_percent(5),
+				},
+			},
+		}
 	}
-	.assimilate_storage(&mut storage)
-	.unwrap();
-	let mut ext = sp_io::TestExternalities::from(storage);
-	ext.execute_with(|| System::set_block_number(1));
-	ext
 }
 
-pub(crate) fn two_collators_four_nominators() -> sp_io::TestExternalities {
-	genesis(
-		vec![
-			(1, 1000),
-			(2, 300),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-			(7, 100),
-			(8, 9),
-			(9, 4),
-		],
-		vec![
-			// collators
-			(1, None, 500),
-			(2, None, 200),
-			// nominators
-			(3, Some(1), 100),
-			(4, Some(1), 100),
-			(5, Some(2), 100),
-			(6, Some(2), 100),
-		],
-	)
-}
+impl ExtBuilder {
+	pub(crate) fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
+		self.balances = balances;
+		self
+	}
 
-pub(crate) fn five_collators_no_nominators() -> sp_io::TestExternalities {
-	genesis(
-		vec![
-			(1, 1000),
-			(2, 1000),
-			(3, 1000),
-			(4, 1000),
-			(5, 1000),
-			(6, 1000),
-			(7, 33),
-			(8, 33),
-			(9, 33),
-		],
-		vec![
-			// collators
-			(1, None, 100),
-			(2, None, 90),
-			(3, None, 80),
-			(4, None, 70),
-			(5, None, 60),
-			(6, None, 50),
-		],
-	)
-}
+	pub(crate) fn with_collators(mut self, collators: Vec<(AccountId, Balance)>) -> Self {
+		self.collators = collators;
+		self
+	}
 
-pub(crate) fn five_collators_five_nominators() -> sp_io::TestExternalities {
-	genesis(
-		vec![
-			(1, 100),
-			(2, 100),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-			(7, 100),
-			(8, 100),
-			(9, 100),
-			(10, 100),
-		],
-		vec![
-			// collators
-			(1, None, 20),
-			(2, None, 20),
-			(3, None, 20),
-			(4, None, 20),
-			(5, None, 10),
-			// nominators
-			(6, Some(1), 10),
-			(7, Some(1), 10),
-			(8, Some(2), 10),
-			(9, Some(2), 10),
-			(10, Some(1), 10),
-		],
-	)
-}
+	pub(crate) fn with_nominations(
+		mut self,
+		nominations: Vec<(AccountId, AccountId, Balance)>,
+	) -> Self {
+		self.nominations = nominations;
+		self
+	}
 
-pub(crate) fn one_collator_two_nominators() -> sp_io::TestExternalities {
-	genesis(
-		vec![(1, 100), (2, 100), (3, 100), (4, 100), (5, 100), (6, 100)],
-		vec![
-			// collators
-			(1, None, 20),
-			// nominators
-			(2, Some(1), 10),
-			(3, Some(1), 10),
-		],
-	)
+	#[allow(dead_code)]
+	pub(crate) fn with_inflation(mut self, inflation: InflationInfo<Balance>) -> Self {
+		self.inflation = inflation;
+		self
+	}
+
+	pub(crate) fn build(self) -> sp_io::TestExternalities {
+		let mut t = frame_system::GenesisConfig::default()
+			.build_storage::<Test>()
+			.expect("Frame system builds valid default genesis config");
+
+		pallet_balances::GenesisConfig::<Test> {
+			balances: self.balances,
+		}
+		.assimilate_storage(&mut t)
+		.expect("Pallet balances storage can be assimilated");
+		stake::GenesisConfig::<Test> {
+			candidates: self.collators,
+			nominations: self.nominations,
+			inflation_config: self.inflation,
+		}
+		.assimilate_storage(&mut t)
+		.expect("Parachain Staking's storage can be assimilated");
+
+		let mut ext = sp_io::TestExternalities::new(t);
+		ext.execute_with(|| System::set_block_number(1));
+		ext
+	}
 }
 
 pub(crate) fn roll_to(n: u64) {
@@ -283,4 +248,89 @@ pub(crate) fn events() -> Vec<pallet::Event<Test>> {
 pub(crate) fn set_author(round: u32, acc: u64, pts: u32) {
 	<Points<Test>>::mutate(round, |p| *p += pts);
 	<AwardedPts<Test>>::mutate(round, acc, |p| *p += pts);
+}
+
+#[test]
+fn geneses() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 1000),
+			(2, 300),
+			(3, 100),
+			(4, 100),
+			(5, 100),
+			(6, 100),
+			(7, 100),
+			(8, 9),
+			(9, 4),
+		])
+		.with_collators(vec![(1, 500), (2, 200)])
+		.with_nominations(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
+		.build()
+		.execute_with(|| {
+			assert!(System::events().is_empty());
+			// collators
+			assert_eq!(Balances::reserved_balance(&1), 500);
+			assert_eq!(Balances::free_balance(&1), 500);
+			assert!(Stake::is_candidate(&1));
+			assert_eq!(Balances::reserved_balance(&2), 200);
+			assert_eq!(Balances::free_balance(&2), 100);
+			assert!(Stake::is_candidate(&2));
+			// nominators
+			for x in 3..7 {
+				assert!(Stake::is_nominator(&x));
+				assert_eq!(Balances::free_balance(&x), 0);
+				assert_eq!(Balances::reserved_balance(&x), 100);
+			}
+			// uninvolved
+			for x in 7..10 {
+				assert!(!Stake::is_nominator(&x));
+			}
+			assert_eq!(Balances::free_balance(&7), 100);
+			assert_eq!(Balances::reserved_balance(&7), 0);
+			assert_eq!(Balances::free_balance(&8), 9);
+			assert_eq!(Balances::reserved_balance(&8), 0);
+			assert_eq!(Balances::free_balance(&9), 4);
+			assert_eq!(Balances::reserved_balance(&9), 0);
+		});
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 100),
+			(2, 100),
+			(3, 100),
+			(4, 100),
+			(5, 100),
+			(6, 100),
+			(7, 100),
+			(8, 100),
+			(9, 100),
+			(10, 100),
+		])
+		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
+		.with_nominations(vec![
+			(6, 1, 10),
+			(7, 1, 10),
+			(8, 2, 10),
+			(9, 2, 10),
+			(10, 1, 10),
+		])
+		.build()
+		.execute_with(|| {
+			assert!(System::events().is_empty());
+			// collators
+			for x in 1..5 {
+				assert!(Stake::is_candidate(&x));
+				assert_eq!(Balances::free_balance(&x), 80);
+				assert_eq!(Balances::reserved_balance(&x), 20);
+			}
+			assert!(Stake::is_candidate(&5));
+			assert_eq!(Balances::free_balance(&5), 90);
+			assert_eq!(Balances::reserved_balance(&5), 10);
+			// nominators
+			for x in 6..11 {
+				assert!(Stake::is_nominator(&x));
+				assert_eq!(Balances::free_balance(&x), 90);
+				assert_eq!(Balances::reserved_balance(&x), 10);
+			}
+		});
 }
