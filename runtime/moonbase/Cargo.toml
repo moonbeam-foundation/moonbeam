@@ -31,7 +31,11 @@ pallet-evm-precompile-dispatch = { git="https://github.com/purestake/frontier", 
 pallet-evm-precompile-modexp = { git="https://github.com/purestake/frontier", default-features=false, branch="moonbeam-v0.8.2" }
 pallet-evm-precompile-simple = { git="https://github.com/purestake/frontier", default-features=false, branch="moonbeam-v0.8.2" }
 pallet-evm-precompile-sha3fips = { git="https://github.com/purestake/frontier", default-features=false, branch="moonbeam-v0.8.2" }
-
+xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.4" }
+xcm-builder = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.4" }
+xcm-executor = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.4" }
+pallet-xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.4" }
+polkadot-parachain = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.4" }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
@@ -81,6 +85,10 @@ moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool", default
 cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.4" }
 cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.4" }
 parachain-info = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.4" }
+cumulus-pallet-xcmp-queue = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.4" }
+cumulus-pallet-dmp-queue = { git = "https://github.com/purestake/cumulus", default-features = false,  branch = "nimbus-polkadot-v0.9.4"}
+cumulus-pallet-xcm = { git = "https://github.com/purestake/cumulus", default-features = false,  branch = "nimbus-polkadot-v0.9.4" }
+cumulus-primitives-utility = { git = "https://github.com/purestake/cumulus", default-features = false,  branch = "nimbus-polkadot-v0.9.4" }
 
 # Benchmarking dependencies
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4", optional = true }
@@ -157,6 +165,11 @@ std = [
 	"pallet-evm-precompile-modexp/std",
 	"pallet-evm-precompile-simple/std",
 	"pallet-evm-precompile-sha3fips/std",
+	"cumulus-pallet-xcmp-queue/std",
+	"cumulus-pallet-xcm/std",
+	"xcm/std",
+	"xcm-builder/std",
+	"xcm-executor/std"
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.

@@ -1604,6 +1604,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "cumulus-pallet-dmp-queue"
+version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.4#51adcf4d3def6d168423294e2f55f0221dfa9ace"
+dependencies = [
+ "cumulus-primitives-core",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "rand 0.8.3",
+ "rand_chacha 0.3.0",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-executor",
+]
+
+[[package]]
 name = "cumulus-pallet-parachain-system"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.4#51adcf4d3def6d168423294e2f55f0221dfa9ace"
@@ -1631,6 +1650,40 @@ dependencies = [
  "sp-version",
  "trie-db",
  "xcm",
+]
+
+[[package]]
+name = "cumulus-pallet-xcm"
+version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.4#51adcf4d3def6d168423294e2f55f0221dfa9ace"
+dependencies = [
+ "cumulus-primitives-core",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "serde",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+]
+
+[[package]]
+name = "cumulus-pallet-xcmp-queue"
+version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.4#51adcf4d3def6d168423294e2f55f0221dfa9ace"
+dependencies = [
+ "cumulus-primitives-core",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "rand 0.8.3",
+ "rand_chacha 0.3.0",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-executor",
 ]
 
 [[package]]
@@ -1669,6 +1722,24 @@ dependencies = [
  "sp-std",
  "sp-trie",
  "tracing",
+]
+
+[[package]]
+name = "cumulus-primitives-utility"
+version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.4#51adcf4d3def6d168423294e2f55f0221dfa9ace"
+dependencies = [
+ "cumulus-primitives-core",
+ "frame-support",
+ "impl-trait-for-tuples 0.2.1",
+ "parity-scale-codec",
+ "polkadot-core-primitives",
+ "polkadot-parachain",
+ "polkadot-primitives",
+ "sp-runtime",
+ "sp-std",
+ "sp-trie",
+ "xcm",
 ]
 
 [[package]]
@@ -4774,9 +4845,13 @@ name = "moonbase-runtime"
 version = "0.8.0-dev"
 dependencies = [
  "account",
+ "cumulus-pallet-dmp-queue",
  "cumulus-pallet-parachain-system",
+ "cumulus-pallet-xcm",
+ "cumulus-pallet-xcmp-queue",
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-utility",
  "cumulus-test-relay-sproof-builder",
  "evm",
  "fp-rpc",
@@ -4820,10 +4895,12 @@ dependencies = [
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
  "pallet-utility",
+ "pallet-xcm",
  "parachain-info",
  "parachain-staking",
  "parachain-staking-precompiles",
  "parity-scale-codec",
+ "polkadot-parachain",
  "rlp",
  "runtime-common",
  "serde",
@@ -4839,6 +4916,9 @@ dependencies = [
  "sp-transaction-pool",
  "sp-version",
  "substrate-wasm-builder 4.0.0",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
 ]
 
 [[package]]
@@ -12303,7 +12383,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04f8ab788026715fa63b31960869617cba39117e520eb415b0139543e325ab59"
 dependencies = [
  "cfg-if 0.1.10",
- "rand 0.7.3",
+ "rand 0.6.5",
  "static_assertions",
 ]
 
