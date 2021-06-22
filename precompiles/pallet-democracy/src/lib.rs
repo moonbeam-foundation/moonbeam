@@ -153,9 +153,7 @@ where
 					"Democracy call via evm failed {:?}",
 					e
 				);
-				Err(ExitError::Other(
-					"Democracy call via EVM failed".into(),
-				))
+				Err(ExitError::Other("Democracy call via EVM failed".into()))
 			}
 		}
 	}
@@ -270,5 +268,12 @@ fn bool_to_solidity_bytes(b: bool) -> Vec<u8> {
 		result_bytes[31] = 1;
 	}
 
+	result_bytes.to_vec()
+}
+
+// Solidity;s uint256 (aka uint) type is 32 bytes big endian
+fn u256_to_solidity_bytes(n: U256) -> Vec<u8> {
+	let mut result_bytes = [0u8; 32];
+	n.to_big_endian(&mut result_bytes);
 	result_bytes.to_vec()
 }

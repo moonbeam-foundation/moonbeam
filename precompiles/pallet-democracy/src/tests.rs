@@ -15,10 +15,13 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::mock::{
-	evm_test_context, precompile_address, Democracy, ExtBuilder, Origin, Precompiles,
+	evm_test_context, precompile_address, Call, Democracy, ExtBuilder, Origin, Precompiles,
 };
-use crate::PrecompileOutput;
+use crate::{u256_to_solidity_bytes, PrecompileOutput};
+use frame_support::{assert_ok, dispatch::Dispatchable};
+use pallet_democracy::Call as DemocracyCall;
 use pallet_evm::{ExitError, ExitSucceed, PrecompileSet};
+use sp_core::U256;
 
 #[test]
 fn selector_less_than_four_bytes() {
@@ -85,7 +88,7 @@ fn prop_count_zero() {
 
 		// Assert that no props have been opened.
 		assert_eq!(
-			Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context(),),
+			Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
 			expected_zero_result
 		);
 	});
@@ -93,34 +96,40 @@ fn prop_count_zero() {
 
 #[test]
 fn prop_count_non_zero() {
-	ExtBuilder::default().build().execute_with(|| {
-		let selector = hex_literal::hex!("56fdf547");
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000)])
+		.build()
+		.execute_with(|| {
+			let selector = hex_literal::hex!("56fdf547");
 
-		// There is no interesting genesis config for pallet democracy so we make the proposal here
+			// There is no interesting genesis config for pallet democracy so we make the proposal here
 
-		// This line doesn't compile becuase it says `propose` is a private function.
-		// Why is this a private function? It is defined as `pub(crate) fn propose`
-		// https://github.com/paritytech/substrate/blob/polkadot-v0.9.4/frame/democracy/src/lib.rs#L637
-		Democracy::propose(Origin::signed(1), Default::default(), 1000.into());
+			// This line doesn't compile becuase it says `propose` is a private function.
+			// Why is this a private function? It is defined as `pub(crate) fn propose`
+			// https://github.com/paritytech/substrate/blob/polkadot-v0.9.4/frame/democracy/src/lib.rs#L637
+			assert_ok!(
+				Call::Democracy(DemocracyCall::propose(Default::default(), 1000u128))
+					.dispatch(Origin::signed(1))
+			);
 
-		// Construct data to read prop count
-		// let mut input_data = Vec::<u8>::from([0u8; 4]);
-		// input_data[0..4].copy_from_slice(&selector);
+			// Construct data to read prop count
+			let mut input_data = Vec::<u8>::from([0u8; 4]);
+			input_data[0..4].copy_from_slice(&selector);
 
-		// Expected result is zero. because no props are open yet.
-		// let expected_zero_result = Some(Ok(PrecompileOutput {
-		// 	exit_status: ExitSucceed::Returned,
-		// 	output: Vec::from([0u8; 32]),
-		// 	cost: Default::default(),
-		// 	logs: Default::default(),
-		// }));
+			// Expected result is one
+			let expected_one_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: u256_to_solidity_bytes(U256::from(1)),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
 
-		// Assert that no props have been opened.
-		// assert_eq!(
-		// 	Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context(),),
-		// 	expected_zero_result
-		// );
-	});
+			// Assert that no props have been opened.
+			assert_eq!(
+				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				expected_one_result
+			);
+		});
 }
 
 #[test]
@@ -140,7 +149,7 @@ fn prop_count_extra_data() {
 		)));
 
 		assert_eq!(
-			Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context(),),
+			Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
 			expected_result
 		);
 	});
