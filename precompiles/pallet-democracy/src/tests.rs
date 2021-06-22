@@ -165,10 +165,10 @@ fn propose_works() {
 		.execute_with(|| {
 			let selector = hex_literal::hex!("7824e7d1");
 
-			// Construct data to propose empty hash with value 1000
+			// Construct data to propose empty hash with value
 			let mut input_data = Vec::<u8>::from([0u8; 68]);
 			input_data[0..4].copy_from_slice(&selector);
-			// Leave the hash (imput_data[4..36]) empty
+			// Leave the hash (input_data[4..36]) empty
 			let amount: U256 = (100).into();
 			amount.to_big_endian(&mut input_data[36..68]);
 

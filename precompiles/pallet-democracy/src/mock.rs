@@ -100,7 +100,7 @@ impl pallet_balances::Config for Test {
 pub struct TestMapping;
 impl AddressMapping<u64> for TestMapping {
 	fn into_account_id(h160_account: H160) -> u64 {
-		h160_account.as_bytes()[0] as u64
+		h160_account.as_bytes()[19] as u64
 	}
 }
 
@@ -269,5 +269,15 @@ pub fn evm_test_context() -> evm::Context {
 		address: Default::default(),
 		caller: Default::default(),
 		apparent_value: From::from(0),
+	}
+}
+
+#[test]
+fn hacky_account_id_mapping_works() {
+	for i in 0..10 {
+		assert_eq!(
+			i,
+			TestMapping::into_account_id(TestMapping::account_id_to_h160(i))
+		);
 	}
 }
