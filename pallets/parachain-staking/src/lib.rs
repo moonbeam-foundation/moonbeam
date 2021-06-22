@@ -713,8 +713,8 @@ pub mod pallet {
 		CollatorBackOnline(RoundIndex, T::AccountId),
 		/// Round, Collator Account, Scheduled Exit
 		CollatorScheduledExit(RoundIndex, T::AccountId, RoundIndex),
-		/// Account, Amount Unlocked, New Total Amt Locked, New Candidate Count
-		CollatorLeft(T::AccountId, BalanceOf<T>, BalanceOf<T>, u32),
+		/// Account, Amount Unlocked, New Total Amt Locked
+		CollatorLeft(T::AccountId, BalanceOf<T>, BalanceOf<T>),
 		// Nominator, Collator, Old Nomination, Counted in Top, New Nomination
 		NominationIncreased(T::AccountId, T::AccountId, BalanceOf<T>, bool, BalanceOf<T>),
 		// Nominator, Collator, Old Nomination, Counted in Top, New Nomination
@@ -811,11 +811,6 @@ pub mod pallet {
 			}
 		}
 	}
-
-	#[pallet::storage]
-	#[pallet::getter(fn candidate_count)]
-	/// Total number of collator candidates
-	type CandidateCount<T: Config> = StorageValue<_, u32, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn collator_commission)]
@@ -1051,7 +1046,7 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		/// Set the expectations for total staked. These expectations determine the issuance for
 		/// the round according to logic in `fn compute_issuance`
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
 		pub fn set_staking_expectations(
 			origin: OriginFor<T>,
 			expectations: Range<BalanceOf<T>>,
@@ -1096,7 +1091,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Set the account that will hold funds set aside for parachain bond
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::set_parachain_bond_account())]
 		pub fn set_parachain_bond_account(
 			origin: OriginFor<T>,
 			new: T::AccountId,
@@ -1115,7 +1110,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Set the percent of inflation set aside for parachain bond
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::set_parachain_bond_reserve_percent())]
 		pub fn set_parachain_bond_reserve_percent(
 			origin: OriginFor<T>,
 			new: Percent,
@@ -1133,7 +1128,7 @@ pub mod pallet {
 			Self::deposit_event(Event::ParachainBondReservePercentSet(old, new));
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::set_total_selected())]
 		/// Set the total number of collator candidates selected per round
 		/// - changes are not applied until the start of the next round
 		pub fn set_total_selected(origin: OriginFor<T>, new: u32) -> DispatchResultWithPostInfo {
@@ -1148,7 +1143,7 @@ pub mod pallet {
 			Self::deposit_event(Event::TotalSelectedSet(old, new));
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::set_collator_commission())]
 		/// Set the commission for all collators
 		pub fn set_collator_commission(
 			origin: OriginFor<T>,
@@ -1161,7 +1156,7 @@ pub mod pallet {
 			Self::deposit_event(Event::CollatorCommissionSet(old, new));
 			Ok(().into())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::set_blocks_per_round())]
 		/// Set blocks per round
 		/// - if called with `new` less than length of current round, will transition immediately
 		/// in the next block
@@ -1192,8 +1187,10 @@ pub mod pallet {
 			<InflationConfig<T>>::put(inflation_config);
 			Ok(().into())
 		}
+		// TODO: `kick_candidate` which will be used for returning cost of executed exits in
+		// `on_initialize`
 		/// Join the set of collator candidates
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::join_candidates(*candidate_count))]
 		pub fn join_candidates(
 			origin: OriginFor<T>,
 			bond: BalanceOf<T>,
@@ -1207,8 +1204,9 @@ pub mod pallet {
 				Error::<T>::ValBondBelowMin
 			);
 			let mut candidates = <CandidatePool<T>>::get();
+			let old_count = candidates.0.len() as u32;
 			ensure!(
-				candidate_count >= candidates.0.len() as u32,
+				candidate_count >= old_count,
 				Error::<T>::TooLowCandidateCountWeightHintJoinCandidates
 			);
 			ensure!(
@@ -1218,15 +1216,13 @@ pub mod pallet {
 				}),
 				Error::<T>::CandidateExists
 			);
+			let new_count = candidates.0.len() as u32;
 			T::Currency::reserve(&acc, bond)?;
 			let candidate = Collator2::new(acc.clone(), bond);
 			<CollatorState2<T>>::insert(&acc, candidate);
 			<CandidatePool<T>>::put(candidates);
 			let new_total = <Total<T>>::get().saturating_add(bond);
 			<Total<T>>::put(new_total);
-			let old_count = <CandidateCount<T>>::get();
-			let new_count = old_count.saturating_add(1u32);
-			<CandidateCount<T>>::put(new_count);
 			Self::deposit_event(Event::JoinedCollatorCandidates(
 				acc, bond, new_total, new_count,
 			));
@@ -1670,16 +1666,12 @@ pub mod pallet {
 							T::Currency::unreserve(&state.id, state.bond);
 							let new_total_staked =
 								<Total<T>>::get().saturating_sub(state.total_backing);
-							let new_candidate_count =
-								<CandidateCount<T>>::get().saturating_sub(1u32);
 							<CollatorState2<T>>::remove(&x.owner);
 							<Total<T>>::put(new_total_staked);
-							<CandidateCount<T>>::put(new_candidate_count);
 							Self::deposit_event(Event::CollatorLeft(
 								x.owner,
 								state.total_backing,
 								new_total_staked,
-								new_candidate_count,
 							));
 						}
 						None

@@ -22,7 +22,7 @@ use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize, ReservableCurrency};
 use frame_system::RawOrigin;
 use nimbus_primitives::EventHandler;
-use sp_runtime::Perbill;
+use sp_runtime::{Perbill, Percent};
 use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
 /// Default balance amount is minimum collator stake
@@ -107,6 +107,19 @@ benchmarks! {
 	}: _(RawOrigin::Root, inflation_range)
 	verify {}
 
+	set_parachain_bond_account {
+		let parachain_bond_account: T::AccountId = account("TEST", 0u32, USER_SEED);
+	}: _(RawOrigin::Root, parachain_bond_account.clone())
+	verify {
+		assert_eq!(Pallet::<T>::parachain_bond_info().account, parachain_bond_account);
+	}
+
+	set_parachain_bond_reserve_percent {
+	}: _(RawOrigin::Root, Percent::from_percent(33))
+	verify {
+		assert_eq!(Pallet::<T>::parachain_bond_info().percent, Percent::from_percent(33));
+	}
+
 	set_total_selected {}: _(RawOrigin::Root, 100u32)
 	verify {
 		assert_eq!(Pallet::<T>::total_selected(), 100u32);
@@ -170,6 +183,20 @@ mod tests {
 	fn bench_set_inflation() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(test_benchmark_set_inflation::<Test>());
+		});
+	}
+
+	#[test]
+	fn bench_set_parachain_bond_account() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(test_benchmark_set_parachain_bond_account::<Test>());
+		});
+	}
+
+	#[test]
+	fn bench_set_parachain_bond_reserve_percent() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(test_benchmark_set_parachain_bond_reserve_percent::<Test>());
 		});
 	}
 

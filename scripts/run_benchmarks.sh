@@ -14,5 +14,5 @@ export WASMTIME_BACKTRACE_DETAILS=1
     --steps 32 \
     --repeat 64 \
     --raw \
-    --template=./frame-weight-template.hbs \
+    --template=./benchmarking/frame-weight-template.hbs \
     --output /tmp/
