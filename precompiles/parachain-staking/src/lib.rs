@@ -452,7 +452,7 @@ where
 	}
 
 	fn leave_nominators() -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		Ok(parachain_staking::Call::<Runtime>::leave_nominators())
+		Ok(parachain_staking::Call::<Runtime>::leave_nominators(0u32))
 	}
 
 	fn revoke_nomination(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {

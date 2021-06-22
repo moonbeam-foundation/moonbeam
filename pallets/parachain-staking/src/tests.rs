@@ -1753,7 +1753,7 @@ fn mutable_blocks_per_round() {
 			roll_to(12);
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::NewRound(11, 4, 1, 40))
+				MetaEvent::stake(Event::NewRound(12, 4, 1, 40))
 			);
 		});
 	// round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round
@@ -1792,7 +1792,7 @@ fn mutable_blocks_per_round() {
 			roll_to(13);
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::NewRound(12, 4, 1, 40))
+				MetaEvent::stake(Event::NewRound(13, 4, 1, 40))
 			);
 		});
 	// if current duration less than new blocks per round (bpr), round waits until new bpr passes
