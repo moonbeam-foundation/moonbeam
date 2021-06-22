@@ -177,3 +177,24 @@ For the default configuration, you can access through polkadotjs:
 
 2021-06-06 04:28:52  Building chain spec
 ```
+
+## Listing dependency pull request by labels
+
+Using script [github/list-pr-labels.ts]:
+
+```
+npm run list-pull-request-labels -- --from polkadot-v0.9.4 --to polkadot-v0.9.5 --repo paritytech/substrate
+```
+
+### Parameters
+
+```
+Options:
+  --version     Show version number                                    [boolean]
+  --from        commit-sha/tag of range start                [string] [required]
+  --to          commit-sha/tag of range end                  [string] [required]
+  --repo        which repository to read                     [string] [required]
+                [choices: "paritytech/substrate", "paritytech/polkadot"]
+  --only-label  filter specific labels (using grep)                      [array]
+  --help        Show help                                              [boolean]
+```
