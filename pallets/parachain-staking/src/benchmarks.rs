@@ -45,26 +45,26 @@ fn create_funded_user<T: Config>(
 	user
 }
 
-// /// Create a funded nominator. Base balance is MinCollatorStk == default_balance
-// /// but the amount for the nomination is MinNominatorStk << MinCollatorStk => the rest + extra
-// /// is free balance for the returned account.
-// fn create_funded_nominator<T: Config>(
-// 	string: &'static str,
-// 	n: u32,
-// 	extra: BalanceOf<T>,
-// 	collator: T::AccountId,
-// 	collator_nominator_count: u32,
-// ) -> Result<T::AccountId, &'static str> {
-// 	let user = create_funded_user::<T>(string, n, extra);
-// 	Pallet::<T>::nominate(
-// 		RawOrigin::Signed(user.clone()).into(),
-// 		collator,
-// 		<<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get(),
-// 		collator_nominator_count,
-// 		0u32, // first nomination for all calls
-// 	)?;
-// 	Ok(user)
-// }
+/// Create a funded nominator. Base balance is MinCollatorStk == default_balance
+/// but the amount for the nomination is MinNominatorStk << MinCollatorStk => the rest + extra
+/// is free balance for the returned account.
+fn create_funded_nominator<T: Config>(
+	string: &'static str,
+	n: u32,
+	extra: BalanceOf<T>,
+	collator: T::AccountId,
+	collator_nominator_count: u32,
+) -> Result<T::AccountId, &'static str> {
+	let user = create_funded_user::<T>(string, n, extra);
+	Pallet::<T>::nominate(
+		RawOrigin::Signed(user.clone()).into(),
+		collator,
+		<<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get(),
+		collator_nominator_count,
+		0u32, // first nomination for all calls
+	)?;
+	Ok(user)
+}
 
 /// Create a funded collator. Base amount is MinCollatorStk == default_balance but the
 /// last parameter `extra` represents how much additional balance is minted to the collator.
@@ -72,13 +72,13 @@ fn create_funded_collator<T: Config>(
 	string: &'static str,
 	n: u32,
 	extra: BalanceOf<T>,
-	collator_count: u32,
+	candidate_count: u32,
 ) -> Result<T::AccountId, &'static str> {
 	let user = create_funded_user::<T>(string, n, extra);
 	Pallet::<T>::join_candidates(
 		RawOrigin::Signed(user.clone()).into(),
 		default_balance::<T>(),
-		collator_count,
+		candidate_count,
 	)?;
 	Ok(user)
 }
@@ -140,21 +140,271 @@ benchmarks! {
 	join_candidates {
 		let x in 3..1_000;
 		// Worst Case Complexity is insertion into an ordered list so \exists full list before call
-		let mut collator_count = 1u32;
+		let mut candidate_count = 1u32;
 		for i in 2..x {
 			let seed = USER_SEED - i;
 			let collator = create_funded_collator::<T>(
 				"collator",
 				seed,
 				0u32.into(),
-				collator_count
+				candidate_count
 			)?;
-			collator_count += 1u32;
+			candidate_count += 1u32;
 		}
 		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
-	}: _(RawOrigin::Signed(caller.clone()), default_balance::<T>(), collator_count)
+	}: _(RawOrigin::Signed(caller.clone()), default_balance::<T>(), candidate_count)
 	verify {
 		assert!(Pallet::<T>::is_candidate(&caller));
+	}
+
+	// This call schedules the collator's exit and removes them from the candidate pool
+	// -> it retains the self-bond and nominator bonds
+	leave_candidates {
+		let x in 3..1_000;
+		// Worst Case Complexity is removal from an ordered list so \exists full list before call
+		let mut candidate_count = 1u32;
+		for i in 2..x {
+			let seed = USER_SEED - i;
+			let collator = create_funded_collator::<T>(
+				"collator",
+				seed,
+				0u32.into(),
+				candidate_count
+			)?;
+			candidate_count += 1u32;
+		}
+		let caller: T::AccountId = create_funded_collator::<T>(
+			"caller",
+			USER_SEED,
+			0u32.into(),
+			candidate_count,
+		)?;
+		candidate_count += 1u32;
+	}: _(RawOrigin::Signed(caller.clone()), candidate_count)
+	verify {
+		assert!(Pallet::<T>::collator_state2(&caller).unwrap().is_leaving());
+	}
+
+	go_offline {
+		let caller: T::AccountId = create_funded_collator::<T>(
+			"collator",
+			USER_SEED,
+			0u32.into(),
+			1u32
+		)?;
+	}: _(RawOrigin::Signed(caller.clone()))
+	verify {
+		assert!(!Pallet::<T>::collator_state2(&caller).unwrap().is_active());
+	}
+
+	go_online {
+		let caller: T::AccountId = create_funded_collator::<T>(
+			"collator",
+			USER_SEED,
+			0u32.into(),
+			1u32
+		)?;
+		Pallet::<T>::go_offline(RawOrigin::Signed(caller.clone()).into())?;
+	}: _(RawOrigin::Signed(caller.clone()))
+	verify {
+		assert!(Pallet::<T>::collator_state2(&caller).unwrap().is_active());
+	}
+
+	candidate_bond_more {
+		let balance = default_balance::<T>();
+		let caller: T::AccountId = create_funded_collator::<T>(
+			"collator",
+			USER_SEED,
+			balance,
+			1u32,
+		)?;
+	}: _(RawOrigin::Signed(caller.clone()), balance)
+	verify {
+		let expected_bond = balance * 2u32.into();
+		assert_eq!(T::Currency::reserved_balance(&caller), expected_bond);
+	}
+
+	candidate_bond_less {
+		let balance = default_balance::<T>();
+		let caller: T::AccountId = create_funded_collator::<T>(
+			"collator",
+			USER_SEED,
+			balance,
+			1u32,
+		)?;
+		Pallet::<T>::candidate_bond_more(RawOrigin::Signed(caller.clone()).into(), balance)?;
+	}: _(RawOrigin::Signed(caller.clone()), balance)
+	verify {
+		assert_eq!(T::Currency::reserved_balance(&caller), balance);
+	}
+
+	nominate {
+		let max_nominations = <<T as Config>::MaxCollatorsPerNominator as Get<u32>>::get();
+		let max_nominators = <<T as Config>::MaxNominatorsPerCollator as Get<u32>>::get();
+		let x in 3..<<T as Config>::MaxCollatorsPerNominator as Get<u32>>::get();
+		let y in 2..<<T as Config>::MaxNominatorsPerCollator as Get<u32>>::get();
+		// Worst Case is full of nominations before calling `nominate`
+		let mut collators: Vec<T::AccountId> = Vec::new();
+		// Initialize MaxCollatorsPerNominator collator candidates
+		for i in 2..x {
+			let seed = USER_SEED - i;
+			let collator = create_funded_collator::<T>(
+				"collator",
+				seed,
+				0u32.into(),
+				collators.len() as u32 + 1u32,
+			)?;
+			collators.push(collator.clone());
+		}
+		let bond = <<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get();
+		let extra = if (bond * (collators.len() as u32 + 1u32).into()) > default_balance::<T>() {
+			(bond * (collators.len() as u32 + 1u32).into()) - default_balance::<T>()
+		} else {
+			0u32.into()
+		};
+		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, extra.into());
+		// Nomination count
+		let mut nom_nom_count = 0u32;
+		// Nominate MaxCollatorsPerNominators collator candidates
+		for col in collators.clone() {
+			Pallet::<T>::nominate(
+				RawOrigin::Signed(caller.clone()).into(), col, bond, 0u32, nom_nom_count
+			)?;
+			nom_nom_count += 1u32;
+		}
+		// Last collator to be nominated
+		let collator: T::AccountId = create_funded_collator::<T>(
+			"collator",
+			USER_SEED,
+			0u32.into(),
+			collators.len() as u32 + 1u32,
+		)?;
+		// Worst Case Complexity is insertion into an almost full collator
+		let mut col_nom_count = 0u32;
+		for i in 1..y {
+			let seed = USER_SEED + i;
+			let nominator = create_funded_nominator::<T>(
+				"nominator",
+				seed,
+				0u32.into(),
+				collator.clone(),
+				col_nom_count,
+			)?;
+			col_nom_count += 1u32;
+		}
+	}: _(RawOrigin::Signed(caller.clone()), collator, bond, col_nom_count, nom_nom_count)
+	verify {
+		assert!(Pallet::<T>::is_nominator(&caller));
+	}
+
+	leave_nominators {
+		let x in 2..<<T as Config>::MaxCollatorsPerNominator as Get<u32>>::get();
+		// Worst Case is full of nominations before exit
+		let mut collators: Vec<T::AccountId> = Vec::new();
+		// Initialize MaxCollatorsPerNominator collator candidates
+		for i in 1..x {
+			let seed = USER_SEED - i;
+			let collator = create_funded_collator::<T>(
+				"collator",
+				seed,
+				0u32.into(),
+				collators.len() as u32 + 1u32
+			)?;
+			collators.push(collator.clone());
+		}
+		let bond = <<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get();
+		let need = bond * (collators.len() as u32).into();
+		let default_minted = default_balance::<T>();
+		let need: BalanceOf<T> = if need > default_minted {
+			need - default_minted
+		} else {
+			0u32.into()
+		};
+		// Fund the nominator
+		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, need);
+		let nomination_count = collators.len() as u32;
+		// Nomination count
+		let mut nom_count = 0u32;
+		// Nominate MaxCollatorsPerNominators collator candidates
+		for col in collators {
+			Pallet::<T>::nominate(
+				RawOrigin::Signed(caller.clone()).into(),
+				col,
+				bond,
+				0u32,
+				nom_count
+			)?;
+			nom_count += 1u32;
+		}
+	}: _(RawOrigin::Signed(caller.clone()), nomination_count)
+	verify {
+		assert!(!Pallet::<T>::is_nominator(&caller));
+	}
+
+	revoke_nomination {
+		let collator: T::AccountId = create_funded_collator::<T>(
+			"collator",
+			USER_SEED,
+			0u32.into(),
+			1u32
+		)?;
+		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
+		let bond = <<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get();
+		Pallet::<T>::nominate(RawOrigin::Signed(
+			caller.clone()).into(),
+			collator.clone(),
+			bond,
+			0u32,
+			0u32
+		)?;
+	}: _(RawOrigin::Signed(caller.clone()), collator)
+	verify {
+		assert!(!Pallet::<T>::is_nominator(&caller));
+	}
+
+	nominator_bond_more {
+		let collator: T::AccountId = create_funded_collator::<T>(
+			"collator",
+			USER_SEED,
+			0u32.into(),
+			1u32
+		)?;
+		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
+		let bond = <<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get();
+		Pallet::<T>::nominate(
+			RawOrigin::Signed(caller.clone()).into(),
+			collator.clone(),
+			bond,
+			0u32,
+			0u32
+		)?;
+	}: _(RawOrigin::Signed(caller.clone()), collator, bond)
+	verify {
+		let expected_bond = bond * 2u32.into();
+		assert_eq!(T::Currency::reserved_balance(&caller), expected_bond);
+	}
+
+	nominator_bond_less {
+		let collator: T::AccountId = create_funded_collator::<T>(
+			"collator",
+			USER_SEED,
+			0u32.into(),
+			1u32
+		)?;
+		let caller: T::AccountId = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
+		let total = default_balance::<T>();
+		Pallet::<T>::nominate(RawOrigin::Signed(
+			caller.clone()).into(),
+			collator.clone(),
+			total,
+			0u32,
+			0u32
+		)?;
+		let bond_less = <<T as Config>::MinNominatorStk as Get<BalanceOf<T>>>::get();
+	}: _(RawOrigin::Signed(caller.clone()), collator, bond_less)
+	verify {
+		let expected = total - bond_less;
+		assert_eq!(T::Currency::reserved_balance(&caller), expected);
 	}
 }
 
@@ -225,6 +475,76 @@ mod tests {
 	fn bench_join_candidates() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(test_benchmark_join_candidates::<Test>());
+		});
+	}
+
+	#[test]
+	fn bench_leave_candidates() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(test_benchmark_leave_candidates::<Test>());
+		});
+	}
+
+	#[test]
+	fn bench_go_offline() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(test_benchmark_go_offline::<Test>());
+		});
+	}
+
+	#[test]
+	fn bench_go_online() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(test_benchmark_go_online::<Test>());
+		});
+	}
+
+	#[test]
+	fn bench_candidate_bond_more() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(test_benchmark_candidate_bond_more::<Test>());
+		});
+	}
+
+	#[test]
+	fn bench_candidate_bond_less() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(test_benchmark_candidate_bond_less::<Test>());
+		});
+	}
+
+	#[test]
+	fn bench_nominate() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(test_benchmark_nominate::<Test>());
+		});
+	}
+
+	#[test]
+	fn bench_leave_nominators() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(test_benchmark_leave_nominators::<Test>());
+		});
+	}
+
+	#[test]
+	fn bench_revoke_nomination() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(test_benchmark_revoke_nomination::<Test>());
+		});
+	}
+
+	#[test]
+	fn bench_nominator_bond_more() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(test_benchmark_nominator_bond_more::<Test>());
+		});
+	}
+
+	#[test]
+	fn bench_nominator_bond_less() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(test_benchmark_nominator_bond_less::<Test>());
 		});
 	}
 }

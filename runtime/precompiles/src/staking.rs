@@ -347,7 +347,7 @@ where
 	}
 
 	fn leave_candidates() -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		Ok(parachain_staking::Call::<Runtime>::leave_candidates())
+		Ok(parachain_staking::Call::<Runtime>::leave_candidates(0u32))
 	}
 
 	fn go_offline() -> Result<parachain_staking::Call<Runtime>, ExitError> {
@@ -390,6 +390,8 @@ where
 		Ok(parachain_staking::Call::<Runtime>::nominate(
 			collator.into(),
 			amount,
+			0u32,
+			0u32,
 		))
 	}
 

@@ -694,6 +694,10 @@ pub mod pallet {
 		CannotSetBelowMin,
 		NoWritingSameValue,
 		TooLowCandidateCountWeightHintJoinCandidates,
+		TooLowCollatorCandidateCountToLeaveCandidates,
+		TooLowNominationCountToNominate,
+		TooLowCollatorNominationCountToNominate,
+		TooLowNominationCountToLeaveNominators,
 	}
 
 	#[pallet::event]
@@ -996,6 +1000,8 @@ pub mod pallet {
 					T::Origin::from(Some(nominator.clone()).into()),
 					target.clone(),
 					balance,
+					cn_count,
+					nn_count,
 				) {
 					log::trace!(
 						target: "staking",
@@ -1231,8 +1237,11 @@ pub mod pallet {
 		/// Request to leave the set of candidates. If successful, the account is immediately
 		/// removed from the candidate pool to prevent selection as a collator, but unbonding is
 		/// executed with a delay of `BondDuration` rounds.
-		#[pallet::weight(0)]
-		pub fn leave_candidates(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+		#[pallet::weight(<T as Config>::WeightInfo::leave_candidates(*candidate_count))]
+		pub fn leave_candidates(
+			origin: OriginFor<T>,
+			candidate_count: u32,
+		) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CollatorState2<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_leaving(), Error::<T>::AlreadyLeaving);
@@ -1248,6 +1257,10 @@ pub mod pallet {
 			);
 			state.leave_candidates(when);
 			let mut candidates = <CandidatePool<T>>::get();
+			ensure!(
+				candidate_count >= candidates.0.len() as u32,
+				Error::<T>::TooLowCollatorCandidateCountToLeaveCandidates
+			);
 			if candidates.remove(&Bond::from_owner(collator.clone())) {
 				<CandidatePool<T>>::put(candidates);
 			}
@@ -1257,7 +1270,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Temporarily leave the set of collator candidates without unbonding
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::go_offline())]
 		pub fn go_offline(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CollatorState2<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
@@ -1275,7 +1288,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Rejoin the set of collator candidates if previously had called `go_offline`
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::go_online())]
 		pub fn go_online(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CollatorState2<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
@@ -1299,7 +1312,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Bond more for collator candidates
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::candidate_bond_more())]
 		pub fn candidate_bond_more(
 			origin: OriginFor<T>,
 			more: BalanceOf<T>,
@@ -1321,7 +1334,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Bond less for collator candidates
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::candidate_bond_less())]
 		pub fn candidate_bond_less(
 			origin: OriginFor<T>,
 			less: BalanceOf<T>,
@@ -1349,11 +1362,18 @@ pub mod pallet {
 		}
 		/// If caller is not a nominator, then join the set of nominators
 		/// If caller is a nominator, then makes nomination to change their nomination state
-		#[pallet::weight(0)]
+		#[pallet::weight(
+			<T as Config>::WeightInfo::nominate(
+				*collator_nominator_count,
+				*nomination_count
+			)
+		)]
 		pub fn nominate(
 			origin: OriginFor<T>,
 			collator: T::AccountId,
 			amount: BalanceOf<T>,
+			collator_nominator_count: u32,
+			nomination_count: u32,
 		) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
 			let nominator = if let Some(mut nom) = <NominatorState<T>>::get(&acc) {
@@ -1361,6 +1381,10 @@ pub mod pallet {
 				ensure!(
 					amount >= T::MinNomination::get(),
 					Error::<T>::NominationBelowMin
+				);
+				ensure!(
+					nomination_count >= nom.nominations.0.len() as u32,
+					Error::<T>::TooLowNominationCountToNominate
 				);
 				ensure!(
 					(nom.nominations.0.len() as u32) < T::MaxCollatorsPerNominator::get(),
@@ -1384,6 +1408,10 @@ pub mod pallet {
 				Nominator::new(collator.clone(), amount)
 			};
 			let mut state = <CollatorState2<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
+			ensure!(
+				collator_nominator_count >= state.nominators.0.len() as u32,
+				Error::<T>::TooLowCollatorNominationCountToNominate
+			);
 			let nominator_position = state.add_nominator::<T>(acc.clone(), amount)?;
 			T::Currency::reserve(&acc, amount)?;
 			if let NominatorAdded::AddedToTop { new_total } = nominator_position {
@@ -1399,10 +1427,17 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Leave the set of nominators and, by implication, revoke all ongoing nominations
-		#[pallet::weight(0)]
-		pub fn leave_nominators(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+		#[pallet::weight(<T as Config>::WeightInfo::leave_nominators(*nomination_count))]
+		pub fn leave_nominators(
+			origin: OriginFor<T>,
+			nomination_count: u32,
+		) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
 			let nominator = <NominatorState<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
+			ensure!(
+				nomination_count >= (nominator.nominations.0.len() as u32),
+				Error::<T>::TooLowNominationCountToLeaveNominators
+			);
 			for bond in nominator.nominations.0 {
 				Self::nominator_leaves_collator(acc.clone(), bond.owner.clone())?;
 			}
@@ -1411,7 +1446,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Revoke an existing nomination
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::revoke_nomination())]
 		pub fn revoke_nomination(
 			origin: OriginFor<T>,
 			collator: T::AccountId,
@@ -1419,7 +1454,7 @@ pub mod pallet {
 			Self::nominator_revokes_collator(ensure_signed(origin)?, collator)
 		}
 		/// Bond more for nominators with respect to a specific collator candidate
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::nominator_bond_more())]
 		pub fn nominator_bond_more(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
@@ -1451,7 +1486,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 		/// Bond less for nominators with respect to a specific nominator candidate
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::nominator_bond_less())]
 		pub fn nominator_bond_less(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
