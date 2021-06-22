@@ -105,7 +105,7 @@ impl AddressMapping<u64> for TestMapping {
 }
 
 impl TestMapping {
-	fn account_id_to_h160(account_id: u64) -> H160 {
+	pub(crate) fn account_id_to_h160(account_id: u64) -> H160 {
 		H160::from_low_u64_be(account_id)
 	}
 }
@@ -243,9 +243,9 @@ pub(crate) fn roll_to(n: u64) {
 	}
 }
 
-// pub(crate) fn last_event() -> Event {
-// 	System::events().pop().expect("Event expected").event
-// }
+pub(crate) fn last_event() -> Event {
+	System::events().pop().expect("Event expected").event
+}
 
 // pub(crate) fn events() -> Vec<pallet::Event<Test>> {
 // 	System::events()

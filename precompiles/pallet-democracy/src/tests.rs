@@ -15,11 +15,13 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::mock::{
-	evm_test_context, precompile_address, Call, Democracy, ExtBuilder, Origin, Precompiles,
+	evm_test_context, precompile_address, Call, ExtBuilder, Origin, Precompiles, System,
+	TestMapping,
 };
 use crate::{u256_to_solidity_bytes, PrecompileOutput};
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_democracy::Call as DemocracyCall;
+use pallet_evm::Call as EvmCall;
 use pallet_evm::{ExitError, ExitSucceed, PrecompileSet};
 use sp_core::U256;
 
@@ -154,3 +156,47 @@ fn prop_count_extra_data() {
 		);
 	});
 }
+
+#[test]
+fn propose_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000)])
+		.build()
+		.execute_with(|| {
+			let selector = hex_literal::hex!("7824e7d1");
+
+			// Construct data to propose empty hash with value 1000
+			let mut input_data = Vec::<u8>::from([0u8; 68]);
+			input_data[0..4].copy_from_slice(&selector);
+			// Leave the hash (imput_data[4..36]) empty
+			let amount: U256 = (100).into();
+			amount.to_big_endian(&mut input_data[36..68]);
+
+			// Make sure the call goes through successfully
+			let gas_limit = 100000u64;
+			let gas_price: U256 = 1.into();
+			assert_ok!(Call::Evm(EvmCall::call(
+				TestMapping::account_id_to_h160(1),
+				precompile_address(),
+				input_data,
+				U256::zero(), // No value sent in EVM
+				gas_limit,
+				gas_price,
+				None, // Use the next nonce
+			))
+			.dispatch(Origin::root()));
+
+			// Expected result is an error stating there are too few bytes
+			let expected_events = vec![];
+
+			assert_eq!(
+				System::events()
+					.into_iter()
+					.map(|e| e.event)
+					.collect::<Vec<_>>(),
+				expected_events
+			);
+		});
+}
+
+// propose_bad_length
