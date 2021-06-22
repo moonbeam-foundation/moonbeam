@@ -71,7 +71,7 @@ async function main() {
       },
       repo: {
         type: "string",
-        choices: ["paritytech/substrate", "paritytech/polkadot"],
+        choices: ["paritytech/substrate", "paritytech/polkadot", "paritytech/cumulus"],
         describe: "which repository to read",
       },
       "only-label": {
