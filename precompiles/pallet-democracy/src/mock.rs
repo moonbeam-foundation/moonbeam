@@ -34,7 +34,7 @@ pub type BlockNumber = u64;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
-use pallet_evm::{EnsureAddressRoot, EnsureAddressNever, AddressMapping,};
+use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot};
 
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
@@ -82,7 +82,7 @@ impl frame_system::Config for Test {
 	type OnSetCode = ();
 }
 parameter_types! {
-	pub const ExistentialDeposit: u128 = 1;
+	pub const ExistentialDeposit: u128 = 0;
 }
 impl pallet_balances::Config for Test {
 	type MaxLocks = ();
@@ -201,9 +201,7 @@ pub(crate) struct ExtBuilder {
 
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
-		ExtBuilder {
-			balances: vec![],
-		}
+		ExtBuilder { balances: vec![] }
 	}
 }
 
