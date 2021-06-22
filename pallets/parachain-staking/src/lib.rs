@@ -652,7 +652,7 @@ pub mod pallet {
 		type BondDuration: Get<RoundIndex>;
 		/// Minimum number of selected candidates every round
 		type MinSelectedCandidates: Get<u32>;
-		/// Maximum nominators counted per collator (included in collator_state.total)
+		/// Maximum nominators counted per collator
 		type MaxNominatorsPerCollator: Get<u32>;
 		/// Maximum collators per nominator
 		type MaxCollatorsPerNominator: Get<u32>;
@@ -1664,9 +1664,9 @@ pub mod pallet {
 							}
 							// return stake to collator
 							T::Currency::unreserve(&state.id, state.bond);
+							<CollatorState2<T>>::remove(&x.owner);
 							let new_total_staked =
 								<Total<T>>::get().saturating_sub(state.total_backing);
-							<CollatorState2<T>>::remove(&x.owner);
 							<Total<T>>::put(new_total_staked);
 							Self::deposit_event(Event::CollatorLeft(
 								x.owner,
