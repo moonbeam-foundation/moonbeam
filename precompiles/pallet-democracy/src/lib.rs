@@ -252,6 +252,13 @@ where
 
 	fn propose(input: &[u8]) -> Result<pallet_democracy::Call<Runtime>, ExitError> {
 		const HASH_SIZE_BYTES: usize = 32;
+		const AMOUNT_SIZE_BYTES: usize = 32;
+
+		if input.len() != HASH_SIZE_BYTES + AMOUNT_SIZE_BYTES {
+			return Err(ExitError::Other(
+				"Incorrect input length for propose.".into(),
+			));
+		}
 
 		let proposal_hash = H256::from_slice(&input[0..HASH_SIZE_BYTES]);
 		let amount = parse_amount::<BalanceOf<Runtime>>(&input[HASH_SIZE_BYTES..])?;
