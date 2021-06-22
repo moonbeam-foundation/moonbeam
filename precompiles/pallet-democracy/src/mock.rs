@@ -243,23 +243,12 @@ pub(crate) fn roll_to(n: u64) {
 	}
 }
 
-pub(crate) fn last_event() -> Event {
-	System::events().pop().expect("Event expected").event
+pub(crate) fn events() -> Vec<Event> {
+	System::events()
+		.into_iter()
+		.map(|r| r.event)
+		.collect::<Vec<_>>()
 }
-
-// pub(crate) fn events() -> Vec<pallet::Event<Test>> {
-// 	System::events()
-// 		.into_iter()
-// 		.map(|r| r.event)
-// 		.filter_map(|e| {
-// 			if let Event::stake(inner) = e {
-// 				Some(inner)
-// 			} else {
-// 				None
-// 			}
-// 		})
-// 		.collect::<Vec<_>>()
-// }
 
 // Helper function to give a simple evm context suitable for tests.
 // We can remove this once https://github.com/rust-blockchain/evm/pull/35

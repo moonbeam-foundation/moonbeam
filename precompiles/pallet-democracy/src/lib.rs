@@ -119,6 +119,8 @@ where
 			}
 		};
 
+		log::trace!(target: "democracy-precompile", "The inner call is {:?}", inner_call);
+
 		let outer_call: Runtime::Call = inner_call.into();
 		let info = outer_call.get_dispatch_info();
 
@@ -126,6 +128,10 @@ where
 		if let Some(gas_limit) = target_gas {
 			let required_gas = Runtime::GasWeightMapping::weight_to_gas(info.weight);
 			if required_gas > gas_limit {
+				log::trace!(target: "democracy-precompile",
+					"Precompile execution ran out of gas, Needed: {:?}, had: {:?}",
+					required_gas, gas_limit
+				);
 				return Err(ExitError::OutOfGas);
 			}
 		}
