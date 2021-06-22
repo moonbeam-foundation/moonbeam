@@ -198,3 +198,20 @@ Options:
   --only-label  filter specific labels (using grep)                      [array]
   --help        Show help                                              [boolean]
 ```
+
+### Expected output
+
+```
+> npm run list-pr-labels -- --from polkadot-v0.9.4 --to polkadot-v0.9.5 --repo paritytech/substrate --only-label runtime
+
+found 55 total commits in https://github.com/paritytech/substrate/compare/polkadot-v0.9.4...polkadot-v0.9.5
+===== E1-runtimemigration
+  (paritytech/substrate#9061) Migrate pallet-randomness-collective-flip to pallet attribute macro
+===== B7-runtimenoteworthy
+  (paritytech/substrate#7778) Named reserve
+  (paritytech/substrate#8955) update ss58 type to u16
+  (paritytech/substrate#8909) contracts: Add new `seal_call` that offers new features
+  (paritytech/substrate#9083) Migrate pallet-staking to pallet attribute macro
+  (paritytech/substrate#9085) Enforce pub calls in pallets
+  (paritytech/substrate#8912) staking/election: prolonged era and emergency mode for governance submission.
+```
