@@ -793,7 +793,7 @@ pub mod pallet {
 
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut round = <Round<T>>::get();
-			let (collator_count, nomination_count) = if round.should_update(n) {
+			if round.should_update(n) {
 				// mutate round
 				round.update(n);
 				// pay all stakers for T::BondDuration rounds ago
@@ -813,11 +813,12 @@ pub mod pallet {
 					collator_count,
 					total_staked,
 				));
-				(collator_count, nomination_count)
+				// active_on_initialize
+				T::WeightInfo::on_initialize(collator_count, nomination_count)
 			} else {
-				(0u32, 0u32)
-			};
-			T::WeightInfo::on_initialize(collator_count, nomination_count)
+				// passive_on_initialize
+				0u32.into() // TODO: cost of one read, 0 writes
+			}
 		}
 	}
 

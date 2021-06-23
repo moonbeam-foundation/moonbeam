@@ -409,7 +409,7 @@ benchmarks! {
 
 	// ON_INITIALIZE
 
-	on_initialize {
+	active_on_initialize {
 		// TOTAL SELECTED COLLATORS PER ROUND
 		let x in 1..28;
 		// NOMINATIONS
@@ -549,6 +549,27 @@ benchmarks! {
 		}
 		// Round transitions
 		assert_eq!(Pallet::<T>::round().current, before_running_round_index + reward_delay);
+	}
+
+	passive_on_initialize {
+		let collator: T::AccountId = create_funded_collator::<T>(
+			"collator",
+			USER_SEED,
+			0u32.into(),
+			1u32
+		)?;
+		let start = <frame_system::Pallet<T>>::block_number();
+		Pallet::<T>::note_author(collator.clone());
+		<frame_system::Pallet<T>>::on_finalize(start);
+		<frame_system::Pallet<T>>::set_block_number(
+			start + 1u32.into()
+		);
+		let end = <frame_system::Pallet<T>>::block_number();
+		<frame_system::Pallet<T>>::on_initialize(end);
+	}: { Pallet::<T>::on_initialize(end); }
+	verify {
+		// Round transitions
+		assert_eq!(start + 1u32.into(), end);
 	}
 }
 
@@ -693,9 +714,16 @@ mod tests {
 	}
 
 	#[test]
-	fn bench_on_initialize() {
+	fn bench_active_on_initialize() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_on_initialize::<Test>());
+			assert_ok!(test_benchmark_active_on_initialize::<Test>());
+		});
+	}
+
+	#[test]
+	fn bench_passive_on_initialize() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(test_benchmark_passive_on_initialize::<Test>());
 		});
 	}
 }
