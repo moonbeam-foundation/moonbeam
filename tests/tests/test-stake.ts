@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import Keyring from "@polkadot/keyring";
+import { Event } from "@polkadot/types/interfaces";
 import {
   DEFAULT_GENESIS_MAPPING,
   DEFAULT_GENESIS_STAKING,
@@ -135,68 +136,44 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
 });
 
 describeDevMoonbeam("Staking - Join Nominators", (context) => {
-  let genesis;
-  before("should succesfully call joinCandidates on GENESIS_ACCOUNT", async function () {
+  it("should succesfully call nominate on ALITH", async function () {
     const keyring = new Keyring({ type: "ethereum" });
-    genesis = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+    const ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
     await context.polkadotApi.tx.parachainStaking
-      .joinCandidates(MIN_GLMR_STAKING)
-      .signAndSend(genesis);
+      .nominate(ALITH, MIN_GLMR_NOMINATOR)
+      .signAndSend(ethan);
     await context.createBlock();
-    // let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-    // expect(
-    //   (candidatesAfter.toHuman() as { owner: string; amount: string }[]).length === 2
-    // ).to.equal(true, "new candidate should have been added");
-  });
-  it("should succesfully call nominate on GENESIS_ACCOUNT", async function () {
-    const keyringAlith = new Keyring({ type: "ethereum" });
-    const alith = await keyringAlith.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-    await context.polkadotApi.tx.parachainStaking
-      .nominate(GENESIS_ACCOUNT, MIN_GLMR_NOMINATOR)
-      .signAndSend(alith);
-    await context.createBlock();
-    const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState(ALITH);
-    console.log(nominatorsAfter.toHuman());
+
+    const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState(ETHAN);
     expect(
       (
         nominatorsAfter.toHuman() as {
           nominations: { owner: string; amount: string }[];
         }
-      ).nominations[0].owner.toLowerCase() === GENESIS_ACCOUNT
+      ).nominations[0].owner === ALITH
     ).to.equal(true, "nomination didnt go through");
   });
 });
 
 describeDevMoonbeam("Staking - Revoke Nomination", (context) => {
-  let alith, genesis;
-  before(
-    "should succesfully call joinCandidates && nominate on GENESIS_ACCOUNT",
-    async function () {
-      // joinCandidates
-      const keyring = new Keyring({ type: "ethereum" });
-      genesis = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
-      await context.polkadotApi.tx.parachainStaking
-        .joinCandidates(MIN_GLMR_STAKING)
-        .signAndSend(genesis);
-      await context.createBlock();
-
-      //nominate
-      const keyringAlith = new Keyring({ type: "ethereum" });
-      alith = await keyringAlith.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-      await context.polkadotApi.tx.parachainStaking
-        .nominate(GENESIS_ACCOUNT, MIN_GLMR_NOMINATOR)
-        .signAndSend(alith);
-      await context.createBlock();
-    }
-  );
-  it("should succesfully revoke nomination for GENESIS_ACCOUNT", async function () {
+  let ethan;
+  before("should succesfully call nominate on ALITH", async function () {
+    //nominate
+    const keyring = new Keyring({ type: "ethereum" });
+    ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
     await context.polkadotApi.tx.parachainStaking
-      .revokeNomination(GENESIS_ACCOUNT) //TODO: when converting to test add .leaveNominators()
+      .nominate(ALITH, MIN_GLMR_NOMINATOR)
+      .signAndSend(ethan);
+    await context.createBlock();
+  });
+  it("should succesfully revoke nomination for ALITH", async function () {
+    await context.polkadotApi.tx.parachainStaking
+      .revokeNomination(ALITH) //TODO: when converting to test add .leaveNominators()
       // that should produce the same behavior
-      .signAndSend(alith);
+      .signAndSend(ethan);
     await context.createBlock();
     const nominatorsAfterRevocation =
-      await context.polkadotApi.query.parachainStaking.nominatorState(ALITH);
+      await context.polkadotApi.query.parachainStaking.nominatorState(ETHAN);
     expect(nominatorsAfterRevocation.toHuman() === null).to.equal(
       true,
       "there should be no nominator"
