@@ -6647,7 +6647,7 @@ dependencies = [
 
 [[package]]
 name = "parachain-staking"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
