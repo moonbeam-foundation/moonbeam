@@ -138,7 +138,7 @@ fn join_collator_candidates() {
 			assert_ok!(Stake::join_candidates(Origin::signed(7), 10u128, 100u32));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::JoinedCollatorCandidates(7, 10u128, 1110u128, 3u32))
+				MetaEvent::stake(Event::JoinedCollatorCandidates(7, 10u128, 1110u128))
 			);
 		});
 }
@@ -233,7 +233,7 @@ fn collator_selection_chooses_top_candidates() {
 			assert_ok!(Stake::join_candidates(Origin::signed(6), 69u128, 100u32));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::JoinedCollatorCandidates(6, 69u128, 469u128, 6u32))
+				MetaEvent::stake(Event::JoinedCollatorCandidates(6, 69u128, 469u128))
 			);
 			roll_to(27);
 			// should choose top TotalSelectedCandidates (5), in order
@@ -264,7 +264,7 @@ fn collator_selection_chooses_top_candidates() {
 				Event::CollatorChosen(5, 4, 70),
 				Event::CollatorChosen(5, 5, 60),
 				Event::NewRound(20, 5, 5, 400),
-				Event::JoinedCollatorCandidates(6, 69, 469, 6),
+				Event::JoinedCollatorCandidates(6, 69, 469),
 				Event::CollatorChosen(6, 1, 100),
 				Event::CollatorChosen(6, 2, 90),
 				Event::CollatorChosen(6, 3, 80),
@@ -492,14 +492,14 @@ fn collator_commission() {
 			assert_ok!(Stake::join_candidates(Origin::signed(4), 20u128, 100u32));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::JoinedCollatorCandidates(4, 20u128, 60u128, 2u32))
+				MetaEvent::stake(Event::JoinedCollatorCandidates(4, 20u128, 60u128))
 			);
 			roll_to(9);
 			assert_ok!(Stake::nominate(Origin::signed(5), 4, 10, 10, 10));
 			assert_ok!(Stake::nominate(Origin::signed(6), 4, 10, 10, 10));
 			roll_to(11);
 			let mut new = vec![
-				Event::JoinedCollatorCandidates(4, 20, 60, 2u32),
+				Event::JoinedCollatorCandidates(4, 20, 60),
 				Event::Nomination(5, 10, 4, NominatorAdded::AddedToTop { new_total: 30 }),
 				Event::Nomination(6, 10, 4, NominatorAdded::AddedToTop { new_total: 40 }),
 				Event::CollatorChosen(3, 4, 40),

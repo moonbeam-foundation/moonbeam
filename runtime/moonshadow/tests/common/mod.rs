@@ -38,9 +38,9 @@ pub fn run_to_block(n: u32) {
 	while System::block_number() < n {
 		Ethereum::on_finalize(System::block_number());
 		AuthorInherent::on_finalize(System::block_number());
-		ParachainStaking::on_finalize(System::block_number());
 		System::set_block_number(System::block_number() + 1);
 		AuthorInherent::on_initialize(System::block_number());
+		ParachainStaking::on_finalize(System::block_number());
 		Ethereum::on_initialize(System::block_number());
 	}
 }

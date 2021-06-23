@@ -705,8 +705,8 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// Starting Block, Round, Number of Collators Selected, Total Balance
 		NewRound(T::BlockNumber, RoundIndex, u32, BalanceOf<T>),
-		/// Account, Amount Locked, New Total Amt Locked, New Candidate Count
-		JoinedCollatorCandidates(T::AccountId, BalanceOf<T>, BalanceOf<T>, u32),
+		/// Account, Amount Locked, New Total Amt Locked
+		JoinedCollatorCandidates(T::AccountId, BalanceOf<T>, BalanceOf<T>),
 		/// Round, Collator Account, Total Exposed Amount (includes all nominations)
 		CollatorChosen(RoundIndex, T::AccountId, BalanceOf<T>),
 		/// Collator Account, Old Bond, New Bond
@@ -1227,16 +1227,13 @@ pub mod pallet {
 				}),
 				Error::<T>::CandidateExists
 			);
-			let new_count = candidates.0.len() as u32;
 			T::Currency::reserve(&acc, bond)?;
 			let candidate = Collator2::new(acc.clone(), bond);
 			<CollatorState2<T>>::insert(&acc, candidate);
 			<CandidatePool<T>>::put(candidates);
 			let new_total = <Total<T>>::get().saturating_add(bond);
 			<Total<T>>::put(new_total);
-			Self::deposit_event(Event::JoinedCollatorCandidates(
-				acc, bond, new_total, new_count,
-			));
+			Self::deposit_event(Event::JoinedCollatorCandidates(acc, bond, new_total));
 			Ok(().into())
 		}
 		/// Request to leave the set of candidates. If successful, the account is immediately
