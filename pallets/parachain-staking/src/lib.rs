@@ -813,11 +813,9 @@ pub mod pallet {
 					collator_count,
 					total_staked,
 				));
-				// active_on_initialize
-				T::WeightInfo::on_initialize(collator_count, nomination_count)
+				T::WeightInfo::active_on_initialize(collator_count, nomination_count)
 			} else {
-				// passive_on_initialize
-				0u32.into() // TODO: cost of one read, 0 writes
+				T::WeightInfo::passive_on_initialize()
 			}
 		}
 	}
