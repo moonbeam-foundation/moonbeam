@@ -904,6 +904,184 @@ fn revoke_nomination_or_leave_nominators() {
 }
 
 #[test]
+fn insufficient_join_candidates_weight_hint_fails() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
+		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.build()
+		.execute_with(|| {
+			for i in 0..5 {
+				assert_noop!(
+					Stake::join_candidates(Origin::signed(6), 20, i),
+					Error::<Test>::TooLowCandidateCountWeightHintJoinCandidates
+				);
+			}
+		});
+}
+
+#[test]
+fn sufficient_join_candidates_weight_hint_succeeds() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 20),
+			(2, 20),
+			(3, 20),
+			(4, 20),
+			(5, 20),
+			(6, 20),
+			(7, 20),
+			(8, 20),
+			(9, 20),
+		])
+		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.build()
+		.execute_with(|| {
+			let mut count = 5u32;
+			for i in 6..10 {
+				assert_ok!(Stake::join_candidates(Origin::signed(i), 20, count));
+				count += 1u32;
+			}
+		});
+}
+
+#[test]
+fn insufficient_leave_candidates_weight_hint_fails() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.build()
+		.execute_with(|| {
+			for i in 1..6 {
+				assert_noop!(
+					Stake::leave_candidates(Origin::signed(i), 4u32),
+					Error::<Test>::TooLowCollatorCandidateCountToLeaveCandidates
+				);
+			}
+		});
+}
+
+#[test]
+fn sufficient_leave_candidates_weight_hint_succeeds() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.build()
+		.execute_with(|| {
+			let mut count = 5u32;
+			for i in 1..6 {
+				assert_ok!(Stake::leave_candidates(Origin::signed(i), count));
+				count -= 1u32;
+			}
+		});
+}
+
+#[test]
+fn sufficient_nominate_weight_hint_succeeds() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 20),
+			(2, 20),
+			(3, 20),
+			(4, 20),
+			(5, 20),
+			(6, 20),
+			(7, 20),
+			(8, 20),
+			(9, 20),
+			(10, 20),
+		])
+		.with_collators(vec![(1, 20), (2, 20)])
+		.with_nominations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
+		.build()
+		.execute_with(|| {
+			let mut count = 4u32;
+			for i in 7..11 {
+				assert_ok!(Stake::nominate(Origin::signed(i), 1, 10, count, 0u32));
+				count += 1u32;
+			}
+			let mut count = 0u32;
+			for i in 3..11 {
+				assert_ok!(Stake::nominate(Origin::signed(i), 2, 10, count, 1u32));
+				count += 1u32;
+			}
+		});
+}
+
+#[test]
+fn insufficient_nominate_weight_hint_fails() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 20),
+			(2, 20),
+			(3, 20),
+			(4, 20),
+			(5, 20),
+			(6, 20),
+			(7, 20),
+			(8, 20),
+			(9, 20),
+			(10, 20),
+		])
+		.with_collators(vec![(1, 20), (2, 20)])
+		.with_nominations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
+		.build()
+		.execute_with(|| {
+			let mut count = 3u32;
+			for i in 7..11 {
+				assert_noop!(
+					Stake::nominate(Origin::signed(i), 1, 10, count, 0u32),
+					Error::<Test>::TooLowCollatorNominationCountToNominate
+				);
+			}
+			// to set up for next error test
+			count = 4u32;
+			for i in 7..11 {
+				assert_ok!(Stake::nominate(Origin::signed(i), 1, 10, count, 0u32));
+				count += 1u32;
+			}
+			count = 0u32;
+			for i in 3..11 {
+				assert_noop!(
+					Stake::nominate(Origin::signed(i), 2, 10, count, 0u32),
+					Error::<Test>::TooLowNominationCountToNominate
+				);
+				count += 1u32;
+			}
+		});
+}
+
+#[test]
+fn insufficient_leave_nominators_weight_hint_fails() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
+		.with_collators(vec![(1, 20)])
+		.with_nominations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
+		.build()
+		.execute_with(|| {
+			for i in 3..7 {
+				assert_noop!(
+					Stake::leave_nominators(Origin::signed(i), 0u32),
+					Error::<Test>::TooLowNominationCountToLeaveNominators
+				);
+			}
+		});
+}
+
+#[test]
+fn sufficient_leave_nominators_weight_hint_succeeds() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
+		.with_collators(vec![(1, 20)])
+		.with_nominations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
+		.build()
+		.execute_with(|| {
+			for i in 3..7 {
+				assert_ok!(Stake::leave_nominators(Origin::signed(i), 1u32),);
+			}
+		});
+}
+
+#[test]
 fn payouts_follow_nomination_changes() {
 	ExtBuilder::default()
 		.with_balances(vec![
