@@ -19,11 +19,15 @@ export const BALTATHAR = "0x3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0";
 export const BALTATHAR_PRIV_KEY =
   "0x8075991ce870b93a8870eca0c0f91913d12f47948ca0fd25b49c6fa7cdbeee8b";
 export const RANDOM_PRIV_KEY = "0x66d8d3bdfc9d678c1ea6dc3e15a81cb98dcd4d456f5ce0519479df1fba70cc5e";
+export const ETHAN_PRIVKEY = "0x7dce9bc8babb68fec1409be38c8e1a52650206a7ed90ff956ae8a6d15eeaaef4";
+export const ETHAN = "0xFf64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB";
 export const RANDOM_ADDRESS = "0x39Cccb8cc2A821eB5cDADc656fF4229398AbA190";
 export const GLMR = 1_000_000_000_000_000_000n;
 export const DEFAULT_GENESIS_BALANCE = 2n ** 80n;
 export const DEFAULT_GENESIS_STAKING = 1_000n * GLMR;
 export const DEFAULT_GENESIS_MAPPING = 100n * GLMR;
+export const MIN_GLMR_STAKING = 1000n * GLMR;
+export const MIN_GLMR_NOMINATOR = 5n * GLMR;
 export const GENESIS_ACCOUNT_BALANCE = DEFAULT_GENESIS_BALANCE;
 
 // This is Alice
