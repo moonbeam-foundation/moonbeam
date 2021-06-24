@@ -38,6 +38,7 @@ use frame_support::{
 	},
 	PalletId,
 };
+use pallet_transaction_payment::{CurrencyAdapter, TargetedFeeAdjustment, Multiplier};
 use frame_system::{EnsureOneOf, EnsureRoot};
 pub use moonbeam_core_primitives::{
 	AccountId, AccountIndex, Address, Balance, BlockNumber, DigestItem, Hash, Header, Index,
@@ -51,14 +52,13 @@ use pallet_evm::{
 	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator,
 	IdentityAddressMapping, Runner,
 };
-use pallet_transaction_payment::CurrencyAdapter;
 pub use parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode};
 use precompiles::MoonbeamPrecompiles;
 use sp_api::impl_runtime_apis;
 use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
+	create_runtime_str, generic, impl_opaque_keys, Perquintill, FixedPointNumber,
 	traits::{BlakeTwo256, Block as BlockT, IdentityLookup},
 	transaction_validity::{InvalidTransaction, TransactionSource, TransactionValidity},
 	AccountId32, ApplyExtrinsicResult, Perbill, Percent, Permill,
@@ -268,7 +268,7 @@ impl pallet_transaction_payment::Config for Runtime {
 	type OnChargeTransaction = CurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type TransactionByteFee = TransactionByteFee;
 	type WeightToFee = IdentityFee<Balance>;
-	type FeeMultiplierUpdate = ();
+	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
 }
 
 impl pallet_sudo::Config for Runtime {
@@ -302,6 +302,16 @@ impl pallet_evm::GasWeightMapping for MoonbeamGasWeightMapping {
 parameter_types! {
 	pub BlockGasLimit: U256
 		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT / WEIGHT_PER_GAS);
+	/// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less
+	/// than this will decrease the weight and more will increase.
+	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
+	/// The adjustment variable of the runtime. Higher values will cause `TargetBlockFullness` to
+	/// change the fees more rapidly.
+	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(3, 100_000);
+	/// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure
+	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
+	/// See `multiplier_can_grow_from_zero`.
+	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000u128);
 }
 
 pub struct FixedGasPrice;
@@ -310,6 +320,15 @@ impl FeeCalculator for FixedGasPrice {
 		(1 * currency::NANOMSHDS).into()
 	}
 }
+
+/// Parameterized slow adjusting fee updated based on
+/// https://w3f-research.readthedocs.io/en/latest/polkadot/Token%20Economics.html#-2.-slow-adjusting-mechanism
+pub type SlowAdjustingFeeUpdate<R> = TargetedFeeAdjustment<
+    R,
+    TargetBlockFullness,
+    AdjustmentVariable,
+    MinimumMultiplier
+>;
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = FixedGasPrice;
@@ -818,3 +837,106 @@ cumulus_pallet_parachain_system::register_validate_block!(
 	Runtime,
 	pallet_author_inherent::BlockExecutor<Runtime, Executive>
 );
+
+#[cfg(test)]
+mod multiplier_tests {
+    use super::*;
+    use frame_support::{parameter_types, weights::{Weight, DispatchClass}};
+    use sp_core::H256;
+    use sp_runtime::{
+        testing::Header,
+        traits::{BlakeTwo256, IdentityLookup, Convert, One},
+        Perbill,
+    };
+
+    type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
+    type Block = frame_system::mocking::MockBlock<Runtime>;
+
+    frame_support::construct_runtime!(
+        pub enum Runtime where
+            Block = Block,
+            NodeBlock = Block,
+            UncheckedExtrinsic = UncheckedExtrinsic,
+        {
+            System: frame_system::{Pallet, Call, Config, Storage, Event<T>}
+        }
+    );
+
+    parameter_types! {
+        pub const BlockHashCount: u64 = 250;
+        pub const AvailableBlockRatio: Perbill = Perbill::one();
+        pub BlockLength: frame_system::limits::BlockLength =
+            frame_system::limits::BlockLength::max(2 * 1024);
+        pub BlockWeights: frame_system::limits::BlockWeights =
+            frame_system::limits::BlockWeights::simple_max(1024);
+    }
+
+    impl frame_system::Config for Runtime {
+        type BaseCallFilter = ();
+        type BlockWeights = BlockWeights;
+        type BlockLength = ();
+        type DbWeight = ();
+        type Origin = Origin;
+        type Index = u64;
+        type BlockNumber = u64;
+        type Call = Call;
+        type Hash = H256;
+        type Hashing = BlakeTwo256;
+        type AccountId = u64;
+        type Lookup = IdentityLookup<Self::AccountId>;
+        type Header = Header;
+        type Event = Event;
+        type BlockHashCount = BlockHashCount;
+        type Version = ();
+        type PalletInfo = PalletInfo;
+        type AccountData = ();
+        type OnNewAccount = ();
+        type OnKilledAccount = ();
+        type SystemWeightInfo = ();
+        type SS58Prefix = ();
+        type OnSetCode = ();
+    }
+
+    fn run_with_system_weight<F>(w: Weight, mut assertions: F) where F: FnMut() -> () {
+        let mut t: sp_io::TestExternalities =
+            frame_system::GenesisConfig::default().build_storage::<Runtime>().unwrap().into();
+        t.execute_with(|| {
+            System::set_block_consumed_resources(w, 0);
+			assertions()
+		});
+	}
+
+	#[test]
+	fn multiplier_can_grow_from_zero() {
+		let minimum_multiplier = MinimumMultiplier::get();
+		let target = TargetBlockFullness::get() *
+			BlockWeights::get().get(DispatchClass::Normal).max_total.unwrap();
+		// if the min is too small, then this will not change, and we are doomed forever.
+		// the weight is 1/100th bigger than target.
+		run_with_system_weight(target * 101 / 100, || {
+			let next = SlowAdjustingFeeUpdate::<Runtime>::convert(minimum_multiplier);
+			assert!(next > minimum_multiplier, "{:?} !>= {:?}", next, minimum_multiplier);
+		})
+	}
+
+	#[test]
+	fn multiplier_growth_simulator() {
+		// assume the multiplier is initially set to its minimum. We update it with values twice the
+		//target (target is 25%, thus 50%) and we see at which point it reaches 1.
+		let mut multiplier = MinimumMultiplier::get();
+		let block_weight = TargetBlockFullness::get()
+			* BlockWeights::get().get(DispatchClass::Normal).max_total.unwrap()
+			* 2;
+		let mut blocks = 0;
+		while multiplier <= Multiplier::one() {
+			run_with_system_weight(block_weight, || {
+				let next = SlowAdjustingFeeUpdate::<Runtime>::convert(multiplier);
+				// ensure that it is growing as well.
+				assert!(next > multiplier, "{:?} !>= {:?}", next, multiplier);
+				multiplier = next;
+			});
+			blocks += 1;
+			println!("block = {} multiplier {:?}", blocks, multiplier);
+		}
+	}
+}
