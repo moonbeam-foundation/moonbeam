@@ -20,11 +20,12 @@ jobs:
         with:
           node-version: 14.x
       - name: Generate version bump issue
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd tools
           yarn install
           yarn --silent run print-version-bump-info --from ${{ github.event.inputs.from }} --to ${{ github.event.inputs.to }} | tee ../version-bump.md
-
       - name: Create version bump issue
         uses: peter-evans/create-issue-from-file@v3
         with:
