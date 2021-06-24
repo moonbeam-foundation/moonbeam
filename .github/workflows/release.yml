@@ -266,7 +266,7 @@ jobs:
 
   docker-parachain:
     runs-on: ubuntu-latest
-    needs: ["build", "generate-parachain-specs"]
+    needs: ["build", "rust-tests", "generate-parachain-specs"]
     if: github.event_name == 'push'
     steps:
       - name: Checkout
@@ -337,7 +337,7 @@ jobs:
 
   docker-moonbeam:
     runs-on: ubuntu-latest
-    needs: ["build", "generate-parachain-specs"]
+    needs: ["build", "rust-tests", "generate-parachain-specs"]
     if: github.event_name == 'push'
     steps:
       - name: Checkout
@@ -457,7 +457,13 @@ jobs:
   publish-draft-release:
     runs-on: ubuntu-latest
     needs:
-      ["set-tags", "build", "generate-parachain-specs", "build-srtool-runtimes"]
+      [
+        "set-tags",
+        "build",
+        "rust-tests",
+        "generate-parachain-specs",
+        "build-srtool-runtimes",
+      ]
     if: needs.set-tags.outputs.is_release == 'true'
     outputs:
       release_url: ${{ steps.create-release.outputs.html_url }}
