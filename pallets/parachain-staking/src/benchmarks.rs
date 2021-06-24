@@ -95,7 +95,9 @@ benchmarks! {
 			max: 300u32.into(),
 		};
 	}: _(RawOrigin::Root, stake_range)
-	verify {}
+	verify {
+		assert_eq!(Pallet::<T>::inflation_config().expect, stake_range);
+	}
 
 	set_inflation {
 		let inflation_range: Range<Perbill> = Range {
@@ -105,7 +107,9 @@ benchmarks! {
 		};
 
 	}: _(RawOrigin::Root, inflation_range)
-	verify {}
+	verify {
+		assert_eq!(Pallet::<T>::inflation_config().annual, inflation_range);
+	}
 
 	set_parachain_bond_account {
 		let parachain_bond_account: T::AccountId = account("TEST", 0u32, USER_SEED);
