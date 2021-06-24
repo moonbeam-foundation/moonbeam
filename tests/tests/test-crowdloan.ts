@@ -14,6 +14,8 @@ import {
   ALITH,
 } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
+const relayChainAddress: string =
+  "0x1111111111111111111111111111111111111111111111111111111111111111";
 
 async function calculate_vested_amount(context, totalReward, initialPayment, numberOfBlocks) {
   let vesting = (await context.polkadotApi.consts.crowdloanRewards.vestingPeriod).toString() as any;
@@ -30,7 +32,7 @@ async function calculate_vested_amount(context, totalReward, initialPayment, num
 
 describeDevMoonbeam("Crowdloan", (context) => {
   let genesisAccount: KeyringPair, sudoAccount: KeyringPair;
-  const relayChainAddress: string = "couldBeAnyString";
+
   before("Setup genesis account for substrate", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
@@ -77,7 +79,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
 
 describeDevMoonbeam("Crowdloan", (context) => {
   let genesisAccount: KeyringPair, sudoAccount: KeyringPair;
-  const relayChainAddress: string = "couldBeAnyString";
+
   before("Setup genesis account for substrate", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
@@ -139,7 +141,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
 
 describeDevMoonbeam("Crowdloan", (context) => {
   let genesisAccount: KeyringPair, sudoAccount: KeyringPair;
-  const relayChainAddress: string = "couldBeAnyString";
+
   before("Setup genesis account for substrate", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
@@ -190,7 +192,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
 
 describeDevMoonbeam("Crowdloan", (context) => {
   let genesisAccount: KeyringPair, sudoAccount: KeyringPair;
-  const relayChainAddress: string = "couldBeAnyString";
+
   before("Setup genesis account for substrate", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
@@ -235,7 +237,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
 
 describeDevMoonbeam("Crowdloan", (context) => {
   let genesisAccount: KeyringPair, sudoAccount: KeyringPair;
-  const relayChainAddress: string = "couldBeAnyString";
+
   before("Setup genesis account for substrate", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
@@ -274,7 +276,6 @@ describeDevMoonbeam("Crowdloan", (context) => {
   let genesisAccount: KeyringPair;
   let alithAccount: KeyringPair;
 
-  const relayChainAddress: string = "couldBeAnyString";
   before("Setup genesis account for substrate", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
@@ -318,7 +319,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
 
 describeDevMoonbeam("Crowdloan", (context) => {
   let genesisAccount: KeyringPair, sudoAccount: KeyringPair;
-  const relayChainAddress: string = "couldBeAnyString";
+
   const numberOfAccounts: number = 5000; // min 2
   let largInput: [string, string, bigint][];
 
@@ -333,10 +334,10 @@ describeDevMoonbeam("Crowdloan", (context) => {
     this.timeout(30000);
     let web3 = new Web3();
     // We need to make sure the rewards match the account funds. 3M GLMR/ number of accounts
-    let accounts = new Array(numberOfAccounts).fill(0).map((_, i) => web3.eth.accounts.create());
+    let accounts = new Array(numberOfAccounts).fill(0).map((_) => web3.eth.accounts.create());
     largInput = accounts.map((acc: Account, i: number) => {
       return [
-        relayChainAddress + i.toString(),
+        acc.address + "111111111111111111111111",
         acc.address,
         (3_000_000n * GLMR) / BigInt(numberOfAccounts),
       ];
@@ -346,7 +347,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
 
     // should be able to register many accounts
     await context.polkadotApi.tx.sudo
-      .sudo(context.polkadotApi.tx.crowdloanRewards.initializeRewardVec(largInput, 0, largInput))
+      .sudo(context.polkadotApi.tx.crowdloanRewards.initializeRewardVec(largInput, 0, 1))
       .signAndSend(sudoAccount);
     await context.createBlock();
     await Promise.all(
@@ -365,7 +366,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
 
 describeDevMoonbeam("Crowdloan", (context) => {
   let genesisAccount: KeyringPair, sudoAccount: KeyringPair;
-  const relayChainAddress: string = "couldBeAnyString";
+
   const numberOfAccounts: number = 5000; // min 2
   let largInput: [string, string, bigint][];
 
@@ -382,7 +383,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     let accounts = new Array(numberOfAccounts).fill(0).map((_, i) => web3.eth.accounts.create());
     largInput = accounts.map((acc: Account, i: number) => {
       return [
-        relayChainAddress + i.toString(),
+        acc.address + "111111111111111111111111",
         acc.address,
         (3_000_000n * GLMR) / BigInt(numberOfAccounts),
       ];
