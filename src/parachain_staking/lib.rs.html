@@ -1699,6 +1699,85 @@
 <span id="1696">1696</span>
 <span id="1697">1697</span>
 <span id="1698">1698</span>
+<span id="1699">1699</span>
+<span id="1700">1700</span>
+<span id="1701">1701</span>
+<span id="1702">1702</span>
+<span id="1703">1703</span>
+<span id="1704">1704</span>
+<span id="1705">1705</span>
+<span id="1706">1706</span>
+<span id="1707">1707</span>
+<span id="1708">1708</span>
+<span id="1709">1709</span>
+<span id="1710">1710</span>
+<span id="1711">1711</span>
+<span id="1712">1712</span>
+<span id="1713">1713</span>
+<span id="1714">1714</span>
+<span id="1715">1715</span>
+<span id="1716">1716</span>
+<span id="1717">1717</span>
+<span id="1718">1718</span>
+<span id="1719">1719</span>
+<span id="1720">1720</span>
+<span id="1721">1721</span>
+<span id="1722">1722</span>
+<span id="1723">1723</span>
+<span id="1724">1724</span>
+<span id="1725">1725</span>
+<span id="1726">1726</span>
+<span id="1727">1727</span>
+<span id="1728">1728</span>
+<span id="1729">1729</span>
+<span id="1730">1730</span>
+<span id="1731">1731</span>
+<span id="1732">1732</span>
+<span id="1733">1733</span>
+<span id="1734">1734</span>
+<span id="1735">1735</span>
+<span id="1736">1736</span>
+<span id="1737">1737</span>
+<span id="1738">1738</span>
+<span id="1739">1739</span>
+<span id="1740">1740</span>
+<span id="1741">1741</span>
+<span id="1742">1742</span>
+<span id="1743">1743</span>
+<span id="1744">1744</span>
+<span id="1745">1745</span>
+<span id="1746">1746</span>
+<span id="1747">1747</span>
+<span id="1748">1748</span>
+<span id="1749">1749</span>
+<span id="1750">1750</span>
+<span id="1751">1751</span>
+<span id="1752">1752</span>
+<span id="1753">1753</span>
+<span id="1754">1754</span>
+<span id="1755">1755</span>
+<span id="1756">1756</span>
+<span id="1757">1757</span>
+<span id="1758">1758</span>
+<span id="1759">1759</span>
+<span id="1760">1760</span>
+<span id="1761">1761</span>
+<span id="1762">1762</span>
+<span id="1763">1763</span>
+<span id="1764">1764</span>
+<span id="1765">1765</span>
+<span id="1766">1766</span>
+<span id="1767">1767</span>
+<span id="1768">1768</span>
+<span id="1769">1769</span>
+<span id="1770">1770</span>
+<span id="1771">1771</span>
+<span id="1772">1772</span>
+<span id="1773">1773</span>
+<span id="1774">1774</span>
+<span id="1775">1775</span>
+<span id="1776">1776</span>
+<span id="1777">1777</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2020 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1778,7 +1857,7 @@
 		<span class="ident">traits</span>::{<span class="ident">AtLeast32BitUnsigned</span>, <span class="ident">Saturating</span>, <span class="ident">Zero</span>},
 		<span class="ident">Perbill</span>, <span class="ident">Percent</span>, <span class="ident">RuntimeDebug</span>,
 	};
-	<span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">cmp</span>::<span class="ident">Ordering</span>, <span class="ident">prelude</span>::<span class="kw-2">*</span>};
+	<span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">cmp</span>::<span class="ident">Ordering</span>, <span class="ident">collections</span>::<span class="ident">btree_map</span>::<span class="ident">BTreeMap</span>, <span class="ident">prelude</span>::<span class="kw-2">*</span>};
 
 	<span class="doccomment">/// Pallet for parachain staking</span>
 	<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">pallet</span>]</span>
@@ -2395,6 +2474,11 @@
 		<span class="ident">InvalidSchedule</span>,
 		<span class="ident">CannotSetBelowMin</span>,
 		<span class="ident">NoWritingSameValue</span>,
+		<span class="ident">TooLowCandidateCountWeightHintJoinCandidates</span>,
+		<span class="ident">TooLowCollatorCandidateCountToLeaveCandidates</span>,
+		<span class="ident">TooLowNominationCountToNominate</span>,
+		<span class="ident">TooLowCollatorNominationCountToNominate</span>,
+		<span class="ident">TooLowNominationCountToLeaveNominators</span>,
 	}
 
 	<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">event</span>]</span>
@@ -2488,7 +2572,7 @@
 			<span class="number">300_000_000_000</span> <span class="comment">// Three fifths of the max block weight</span>
 		}
 
-		<span class="kw">fn</span> <span class="ident">on_finalize</span>(<span class="ident">n</span>: <span class="ident">T</span>::<span class="ident">BlockNumber</span>) {
+		<span class="kw">fn</span> <span class="ident">on_initialize</span>(<span class="ident">n</span>: <span class="ident">T</span>::<span class="ident">BlockNumber</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">round</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Round</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>();
 			<span class="kw">if</span> <span class="ident">round</span>.<span class="ident">should_update</span>(<span class="ident">n</span>) {
 				<span class="comment">// mutate round</span>
@@ -2498,7 +2582,8 @@
 				<span class="comment">// execute all delayed collator exits</span>
 				<span class="self">Self</span>::<span class="ident">execute_delayed_collator_exits</span>(<span class="ident">round</span>.<span class="ident">current</span>);
 				<span class="comment">// select top collator candidates for next round</span>
-				<span class="kw">let</span> (<span class="ident">collator_count</span>, <span class="ident">total_staked</span>) <span class="op">=</span> <span class="self">Self</span>::<span class="ident">select_top_candidates</span>(<span class="ident">round</span>.<span class="ident">current</span>);
+				<span class="kw">let</span> (<span class="ident">collator_count</span>, <span class="ident">nomination_count</span>, <span class="ident">total_staked</span>) <span class="op">=</span>
+					<span class="self">Self</span>::<span class="ident">select_top_candidates</span>(<span class="ident">round</span>.<span class="ident">current</span>);
 				<span class="comment">// start next round</span>
 				<span class="op">&lt;</span><span class="ident">Round</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">put</span>(<span class="ident">round</span>);
 				<span class="comment">// snapshot total stake</span>
@@ -2509,6 +2594,9 @@
 					<span class="ident">collator_count</span>,
 					<span class="ident">total_staked</span>,
 				));
+				<span class="ident">T</span>::<span class="ident">WeightInfo</span>::<span class="ident">active_on_initialize</span>(<span class="ident">collator_count</span>, <span class="ident">nomination_count</span>)
+			} <span class="kw">else</span> {
+				<span class="ident">T</span>::<span class="ident">WeightInfo</span>::<span class="ident">passive_on_initialize</span>()
 			}
 		}
 	}
@@ -2653,39 +2741,69 @@
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">GenesisBuild</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">GenesisConfig</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
 		<span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
 			<span class="op">&lt;</span><span class="ident">InflationConfig</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">put</span>(<span class="self">self</span>.<span class="ident">inflation_config</span>.<span class="ident">clone</span>());
+			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">candidate_count</span> <span class="op">=</span> <span class="number">0u32</span>;
 			<span class="comment">// Initialize the candidates</span>
 			<span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="kw-2">ref</span> <span class="ident">candidate</span>, <span class="ident">balance</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">candidates</span> {
 				<span class="macro">assert</span><span class="macro">!</span>(
 					<span class="ident">T</span>::<span class="ident">Currency</span>::<span class="ident">free_balance</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>) <span class="op">&gt;</span><span class="op">=</span> <span class="ident">balance</span>,
 					<span class="string">&quot;Account does not have enough balance to bond as a cadidate.&quot;</span>
 				);
+				<span class="ident">candidate_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1u32</span>;
 				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">join_candidates</span>(
 					<span class="ident">T</span>::<span class="ident">Origin</span>::<span class="ident">from</span>(<span class="prelude-val">Some</span>(<span class="ident">candidate</span>.<span class="ident">clone</span>()).<span class="ident">into</span>()),
 					<span class="ident">balance</span>,
+					<span class="ident">candidate_count</span>,
 				) {
 					<span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(
 						<span class="ident">target</span>: <span class="string">&quot;staking&quot;</span>,
 						<span class="string">&quot;Join candidates failed in genesis with error {:?}&quot;</span>,
 						<span class="ident">error</span>
 					);
+				} <span class="kw">else</span> {
+					<span class="ident">candidate_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1u32</span>;
 				}
 			}
+			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">col_nominator_count</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">AccountId</span>, <span class="ident">u32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">BTreeMap</span>::<span class="ident">new</span>();
+			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">nom_nominator_count</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">AccountId</span>, <span class="ident">u32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">BTreeMap</span>::<span class="ident">new</span>();
 			<span class="comment">// Initialize the nominations</span>
 			<span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="kw-2">ref</span> <span class="ident">nominator</span>, <span class="kw-2">ref</span> <span class="ident">target</span>, <span class="ident">balance</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">nominations</span> {
 				<span class="macro">assert</span><span class="macro">!</span>(
 					<span class="ident">T</span>::<span class="ident">Currency</span>::<span class="ident">free_balance</span>(<span class="kw-2">&amp;</span><span class="ident">nominator</span>) <span class="op">&gt;</span><span class="op">=</span> <span class="ident">balance</span>,
 					<span class="string">&quot;Account does not have enough balance to place nomination.&quot;</span>
 				);
+				<span class="kw">let</span> <span class="ident">cn_count</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="ident">col_nominator_count</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">target</span>) {
+					<span class="kw-2">*</span><span class="ident">x</span>
+				} <span class="kw">else</span> {
+					<span class="number">0u32</span>
+				};
+				<span class="kw">let</span> <span class="ident">nn_count</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="ident">nom_nominator_count</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">nominator</span>) {
+					<span class="kw-2">*</span><span class="ident">x</span>
+				} <span class="kw">else</span> {
+					<span class="number">0u32</span>
+				};
 				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">nominate</span>(
 					<span class="ident">T</span>::<span class="ident">Origin</span>::<span class="ident">from</span>(<span class="prelude-val">Some</span>(<span class="ident">nominator</span>.<span class="ident">clone</span>()).<span class="ident">into</span>()),
 					<span class="ident">target</span>.<span class="ident">clone</span>(),
 					<span class="ident">balance</span>,
+					<span class="ident">cn_count</span>,
+					<span class="ident">nn_count</span>,
 				) {
 					<span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(
 						<span class="ident">target</span>: <span class="string">&quot;staking&quot;</span>,
 						<span class="string">&quot;Join nominators failed in genesis with error {:?}&quot;</span>,
 						<span class="ident">error</span>
 					);
+				} <span class="kw">else</span> {
+					<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="ident">col_nominator_count</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">target</span>) {
+						<span class="kw-2">*</span><span class="ident">x</span> <span class="op">+</span><span class="op">=</span> <span class="number">1u32</span>;
+					} <span class="kw">else</span> {
+						<span class="ident">col_nominator_count</span>.<span class="ident">insert</span>(<span class="ident">target</span>.<span class="ident">clone</span>(), <span class="number">1u32</span>);
+					};
+					<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="ident">nom_nominator_count</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">nominator</span>) {
+						<span class="kw-2">*</span><span class="ident">x</span> <span class="op">+</span><span class="op">=</span> <span class="number">1u32</span>;
+					} <span class="kw">else</span> {
+						<span class="ident">nom_nominator_count</span>.<span class="ident">insert</span>(<span class="ident">nominator</span>.<span class="ident">clone</span>(), <span class="number">1u32</span>);
+					};
 				}
 			}
 			<span class="comment">// Set collator commission to default config</span>
@@ -2699,7 +2817,7 @@
 			<span class="comment">// Set total selected candidates to minimum config</span>
 			<span class="op">&lt;</span><span class="ident">TotalSelected</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">put</span>(<span class="ident">T</span>::<span class="ident">MinSelectedCandidates</span>::<span class="ident">get</span>());
 			<span class="comment">// Choose top TotalSelected collator candidates</span>
-			<span class="kw">let</span> (<span class="ident">v_count</span>, <span class="ident">total_staked</span>) <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">select_top_candidates</span>(<span class="number">1u32</span>);
+			<span class="kw">let</span> (<span class="ident">v_count</span>, <span class="kw">_</span>, <span class="ident">total_staked</span>) <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">select_top_candidates</span>(<span class="number">1u32</span>);
 			<span class="comment">// Start Round 1 at Block 0</span>
 			<span class="kw">let</span> <span class="ident">round</span>: <span class="ident">RoundInfo</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BlockNumber</span><span class="op">&gt;</span> <span class="op">=</span>
 				<span class="ident">RoundInfo</span>::<span class="ident">new</span>(<span class="number">1u32</span>, <span class="number">0u32</span>.<span class="ident">into</span>(), <span class="ident">T</span>::<span class="ident">DefaultBlocksPerRound</span>::<span class="ident">get</span>());
@@ -2719,7 +2837,7 @@
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
 		<span class="doccomment">/// Set the expectations for total staked. These expectations determine the issuance for</span>
 		<span class="doccomment">/// the round according to logic in `fn compute_issuance`</span>
-		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="number">0</span>)]</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">WeightInfo</span>::<span class="ident">set_staking_expectations</span>())]</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_staking_expectations</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">expectations</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -2764,7 +2882,7 @@
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
 		}
 		<span class="doccomment">/// Set the account that will hold funds set aside for parachain bond</span>
-		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="number">0</span>)]</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">WeightInfo</span>::<span class="ident">set_parachain_bond_account</span>())]</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_parachain_bond_account</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">new</span>: <span class="ident">T</span>::<span class="ident">AccountId</span>,
@@ -2783,7 +2901,7 @@
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
 		}
 		<span class="doccomment">/// Set the percent of inflation set aside for parachain bond</span>
-		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="number">0</span>)]</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">WeightInfo</span>::<span class="ident">set_parachain_bond_reserve_percent</span>())]</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_parachain_bond_reserve_percent</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">new</span>: <span class="ident">Percent</span>,
@@ -2801,7 +2919,7 @@
 			<span class="self">Self</span>::<span class="ident">deposit_event</span>(<span class="ident">Event</span>::<span class="ident">ParachainBondReservePercentSet</span>(<span class="ident">old</span>, <span class="ident">new</span>));
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
 		}
-		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="number">0</span>)]</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">WeightInfo</span>::<span class="ident">set_total_selected</span>())]</span>
 		<span class="doccomment">/// Set the total number of collator candidates selected per round</span>
 		<span class="doccomment">/// - changes are not applied until the start of the next round</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_total_selected</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">new</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
@@ -2816,7 +2934,7 @@
 			<span class="self">Self</span>::<span class="ident">deposit_event</span>(<span class="ident">Event</span>::<span class="ident">TotalSelectedSet</span>(<span class="ident">old</span>, <span class="ident">new</span>));
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
 		}
-		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="number">0</span>)]</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">WeightInfo</span>::<span class="ident">set_collator_commission</span>())]</span>
 		<span class="doccomment">/// Set the commission for all collators</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_collator_commission</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
@@ -2829,7 +2947,7 @@
 			<span class="self">Self</span>::<span class="ident">deposit_event</span>(<span class="ident">Event</span>::<span class="ident">CollatorCommissionSet</span>(<span class="ident">old</span>, <span class="ident">new</span>));
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
 		}
-		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="number">0</span>)]</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">WeightInfo</span>::<span class="ident">set_blocks_per_round</span>())]</span>
 		<span class="doccomment">/// Set blocks per round</span>
 		<span class="doccomment">/// - if called with `new` less than length of current round, will transition immediately</span>
 		<span class="doccomment">/// in the next block</span>
@@ -2860,11 +2978,14 @@
 			<span class="op">&lt;</span><span class="ident">InflationConfig</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">put</span>(<span class="ident">inflation_config</span>);
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
 		}
+		<span class="comment">// TODO: `kick_candidate` which will be used for returning cost of executed exits in</span>
+		<span class="comment">// `on_initialize`</span>
 		<span class="doccomment">/// Join the set of collator candidates</span>
-		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="number">0</span>)]</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">WeightInfo</span>::<span class="ident">join_candidates</span>(<span class="kw-2">*</span><span class="ident">candidate_count</span>))]</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join_candidates</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">bond</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+			<span class="ident">candidate_count</span>: <span class="ident">u32</span>,
 		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">acc</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="macro">ensure</span><span class="macro">!</span>(<span class="op">!</span><span class="self">Self</span>::<span class="ident">is_candidate</span>(<span class="kw-2">&amp;</span><span class="ident">acc</span>), <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">CandidateExists</span>);
@@ -2874,6 +2995,11 @@
 				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">ValBondBelowMin</span>
 			);
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">candidates</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CandidatePool</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>();
+			<span class="kw">let</span> <span class="ident">old_count</span> <span class="op">=</span> <span class="ident">candidates</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
+			<span class="macro">ensure</span><span class="macro">!</span>(
+				<span class="ident">candidate_count</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">old_count</span>,
+				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">TooLowCandidateCountWeightHintJoinCandidates</span>
+			);
 			<span class="macro">ensure</span><span class="macro">!</span>(
 				<span class="ident">candidates</span>.<span class="ident">insert</span>(<span class="ident">Bond</span> {
 					<span class="ident">owner</span>: <span class="ident">acc</span>.<span class="ident">clone</span>(),
@@ -2893,8 +3019,11 @@
 		<span class="doccomment">/// Request to leave the set of candidates. If successful, the account is immediately</span>
 		<span class="doccomment">/// removed from the candidate pool to prevent selection as a collator, but unbonding is</span>
 		<span class="doccomment">/// executed with a delay of `BondDuration` rounds.</span>
-		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="number">0</span>)]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">leave_candidates</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">WeightInfo</span>::<span class="ident">leave_candidates</span>(<span class="kw-2">*</span><span class="ident">candidate_count</span>))]</span>
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">leave_candidates</span>(
+			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+			<span class="ident">candidate_count</span>: <span class="ident">u32</span>,
+		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CollatorState2</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">CandidateDNE</span>)<span class="question-mark">?</span>;
 			<span class="macro">ensure</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">state</span>.<span class="ident">is_leaving</span>(), <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">AlreadyLeaving</span>);
@@ -2910,6 +3039,10 @@
 			);
 			<span class="ident">state</span>.<span class="ident">leave_candidates</span>(<span class="ident">when</span>);
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">candidates</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CandidatePool</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>();
+			<span class="macro">ensure</span><span class="macro">!</span>(
+				<span class="ident">candidate_count</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">candidates</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
+				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">TooLowCollatorCandidateCountToLeaveCandidates</span>
+			);
 			<span class="kw">if</span> <span class="ident">candidates</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">Bond</span>::<span class="ident">from_owner</span>(<span class="ident">collator</span>.<span class="ident">clone</span>())) {
 				<span class="op">&lt;</span><span class="ident">CandidatePool</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">put</span>(<span class="ident">candidates</span>);
 			}
@@ -2919,7 +3052,7 @@
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
 		}
 		<span class="doccomment">/// Temporarily leave the set of collator candidates without unbonding</span>
-		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="number">0</span>)]</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">WeightInfo</span>::<span class="ident">go_offline</span>())]</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">go_offline</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CollatorState2</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">CandidateDNE</span>)<span class="question-mark">?</span>;
@@ -2937,7 +3070,7 @@
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
 		}
 		<span class="doccomment">/// Rejoin the set of collator candidates if previously had called `go_offline`</span>
-		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="number">0</span>)]</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">WeightInfo</span>::<span class="ident">go_online</span>())]</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">go_online</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CollatorState2</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">CandidateDNE</span>)<span class="question-mark">?</span>;
@@ -2961,7 +3094,7 @@
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
 		}
 		<span class="doccomment">/// Bond more for collator candidates</span>
-		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="number">0</span>)]</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">WeightInfo</span>::<span class="ident">candidate_bond_more</span>())]</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">candidate_bond_more</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">more</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
@@ -2983,7 +3116,7 @@
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
 		}
 		<span class="doccomment">/// Bond less for collator candidates</span>
-		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="number">0</span>)]</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">WeightInfo</span>::<span class="ident">candidate_bond_less</span>())]</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">candidate_bond_less</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">less</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
@@ -3011,11 +3144,18 @@
 		}
 		<span class="doccomment">/// If caller is not a nominator, then join the set of nominators</span>
 		<span class="doccomment">/// If caller is a nominator, then makes nomination to change their nomination state</span>
-		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="number">0</span>)]</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(
+			<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">WeightInfo</span>::<span class="ident">nominate</span>(
+				<span class="kw-2">*</span><span class="ident">collator_nominator_count</span>,
+				<span class="kw-2">*</span><span class="ident">nomination_count</span>
+			)
+		)]</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nominate</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">collator</span>: <span class="ident">T</span>::<span class="ident">AccountId</span>,
 			<span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+			<span class="ident">collator_nominator_count</span>: <span class="ident">u32</span>,
+			<span class="ident">nomination_count</span>: <span class="ident">u32</span>,
 		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">acc</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="ident">nominator</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">nom</span>) <span class="op">=</span> <span class="op">&lt;</span><span class="ident">NominatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">acc</span>) {
@@ -3023,6 +3163,10 @@
 				<span class="macro">ensure</span><span class="macro">!</span>(
 					<span class="ident">amount</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">T</span>::<span class="ident">MinNomination</span>::<span class="ident">get</span>(),
 					<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">NominationBelowMin</span>
+				);
+				<span class="macro">ensure</span><span class="macro">!</span>(
+					<span class="ident">nomination_count</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">nom</span>.<span class="ident">nominations</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
+					<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">TooLowNominationCountToNominate</span>
 				);
 				<span class="macro">ensure</span><span class="macro">!</span>(
 					(<span class="ident">nom</span>.<span class="ident">nominations</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span> <span class="ident">T</span>::<span class="ident">MaxCollatorsPerNominator</span>::<span class="ident">get</span>(),
@@ -3046,6 +3190,10 @@
 				<span class="ident">Nominator</span>::<span class="ident">new</span>(<span class="ident">collator</span>.<span class="ident">clone</span>(), <span class="ident">amount</span>)
 			};
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CollatorState2</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">CandidateDNE</span>)<span class="question-mark">?</span>;
+			<span class="macro">ensure</span><span class="macro">!</span>(
+				<span class="ident">collator_nominator_count</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">state</span>.<span class="ident">nominators</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
+				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">TooLowCollatorNominationCountToNominate</span>
+			);
 			<span class="kw">let</span> <span class="ident">nominator_position</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">add_nominator</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">acc</span>.<span class="ident">clone</span>(), <span class="ident">amount</span>)<span class="question-mark">?</span>;
 			<span class="ident">T</span>::<span class="ident">Currency</span>::<span class="ident">reserve</span>(<span class="kw-2">&amp;</span><span class="ident">acc</span>, <span class="ident">amount</span>)<span class="question-mark">?</span>;
 			<span class="kw">if</span> <span class="kw">let</span> <span class="ident">NominatorAdded</span>::<span class="ident">AddedToTop</span> { <span class="ident">new_total</span> } <span class="op">=</span> <span class="ident">nominator_position</span> {
@@ -3061,10 +3209,17 @@
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
 		}
 		<span class="doccomment">/// Leave the set of nominators and, by implication, revoke all ongoing nominations</span>
-		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="number">0</span>)]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">leave_nominators</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">WeightInfo</span>::<span class="ident">leave_nominators</span>(<span class="kw-2">*</span><span class="ident">nomination_count</span>))]</span>
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">leave_nominators</span>(
+			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+			<span class="ident">nomination_count</span>: <span class="ident">u32</span>,
+		) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">acc</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="ident">nominator</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">NominatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">acc</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">NominatorDNE</span>)<span class="question-mark">?</span>;
+			<span class="macro">ensure</span><span class="macro">!</span>(
+				<span class="ident">nomination_count</span> <span class="op">&gt;</span><span class="op">=</span> (<span class="ident">nominator</span>.<span class="ident">nominations</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>),
+				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">TooLowNominationCountToLeaveNominators</span>
+			);
 			<span class="kw">for</span> <span class="ident">bond</span> <span class="kw">in</span> <span class="ident">nominator</span>.<span class="ident">nominations</span>.<span class="number">0</span> {
 				<span class="self">Self</span>::<span class="ident">nominator_leaves_collator</span>(<span class="ident">acc</span>.<span class="ident">clone</span>(), <span class="ident">bond</span>.<span class="ident">owner</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
 			}
@@ -3073,7 +3228,7 @@
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
 		}
 		<span class="doccomment">/// Revoke an existing nomination</span>
-		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="number">0</span>)]</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">WeightInfo</span>::<span class="ident">revoke_nomination</span>())]</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">revoke_nomination</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">collator</span>: <span class="ident">T</span>::<span class="ident">AccountId</span>,
@@ -3081,7 +3236,7 @@
 			<span class="self">Self</span>::<span class="ident">nominator_revokes_collator</span>(<span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>, <span class="ident">collator</span>)
 		}
 		<span class="doccomment">/// Bond more for nominators with respect to a specific collator candidate</span>
-		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="number">0</span>)]</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">WeightInfo</span>::<span class="ident">nominator_bond_more</span>())]</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nominator_bond_more</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">candidate</span>: <span class="ident">T</span>::<span class="ident">AccountId</span>,
@@ -3113,7 +3268,7 @@
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
 		}
 		<span class="doccomment">/// Bond less for nominators with respect to a specific nominator candidate</span>
-		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="number">0</span>)]</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">WeightInfo</span>::<span class="ident">nominator_bond_less</span>())]</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nominator_bond_less</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">candidate</span>: <span class="ident">T</span>::<span class="ident">AccountId</span>,
@@ -3343,11 +3498,13 @@
 			<span class="op">&lt;</span><span class="ident">ExitQueue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">put</span>(<span class="ident">OrderedSet</span>::<span class="ident">from</span>(<span class="ident">remain_exits</span>));
 		}
 		<span class="doccomment">/// Best as in most cumulatively supported in terms of stake</span>
-		<span class="kw">fn</span> <span class="ident">select_top_candidates</span>(<span class="ident">next</span>: <span class="ident">RoundIndex</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">u32</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
-			<span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">all_collators</span>, <span class="kw-2">mut</span> <span class="ident">total</span>) <span class="op">=</span> (<span class="number">0u32</span>, <span class="ident">BalanceOf</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">zero</span>());
+		<span class="doccomment">/// Returns [collator_count, nomination_count, total staked]</span>
+		<span class="kw">fn</span> <span class="ident">select_top_candidates</span>(<span class="ident">next</span>: <span class="ident">RoundIndex</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">u32</span>, <span class="ident">u32</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
+			<span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">collator_count</span>, <span class="kw-2">mut</span> <span class="ident">nomination_count</span>, <span class="kw-2">mut</span> <span class="ident">total</span>) <span class="op">=</span>
+				(<span class="number">0u32</span>, <span class="number">0u32</span>, <span class="ident">BalanceOf</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">zero</span>());
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">candidates</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CandidatePool</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>().<span class="number">0</span>;
 			<span class="comment">// order candidates by stake (least to greatest so requires `rev()`)</span>
-			<span class="ident">candidates</span>.<span class="ident">sort_unstable_by</span>(<span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">amount</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>.<span class="ident">amount</span>));
+			<span class="ident">candidates</span>.<span class="ident">sort_unstable_by</span>(<span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">amount</span>.<span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>.<span class="ident">amount</span>).<span class="ident">unwrap</span>());
 			<span class="kw">let</span> <span class="ident">top_n</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">TotalSelected</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>() <span class="kw">as</span> <span class="ident">usize</span>;
 			<span class="comment">// choose the top TotalSelected qualified candidates, ordered by stake</span>
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">collators</span> <span class="op">=</span> <span class="ident">candidates</span>
@@ -3361,17 +3518,18 @@
 			<span class="kw">for</span> <span class="ident">account</span> <span class="kw">in</span> <span class="ident">collators</span>.<span class="ident">iter</span>() {
 				<span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CollatorState2</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">account</span>)
 					.<span class="ident">expect</span>(<span class="string">&quot;all members of CandidateQ must be candidates&quot;</span>);
+				<span class="ident">collator_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1u32</span>;
+				<span class="ident">nomination_count</span> <span class="op">+</span><span class="op">=</span> <span class="ident">state</span>.<span class="ident">nominators</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
 				<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">total_counted</span>;
+				<span class="ident">total</span> <span class="op">+</span><span class="op">=</span> <span class="ident">amount</span>;
 				<span class="kw">let</span> <span class="ident">exposure</span>: <span class="ident">CollatorSnapshot</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">into</span>();
 				<span class="op">&lt;</span><span class="ident">AtStake</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">insert</span>(<span class="ident">next</span>, <span class="ident">account</span>, <span class="ident">exposure</span>);
-				<span class="ident">all_collators</span> <span class="op">+</span><span class="op">=</span> <span class="number">1u32</span>;
-				<span class="ident">total</span> <span class="op">+</span><span class="op">=</span> <span class="ident">amount</span>;
 				<span class="self">Self</span>::<span class="ident">deposit_event</span>(<span class="ident">Event</span>::<span class="ident">CollatorChosen</span>(<span class="ident">next</span>, <span class="ident">account</span>.<span class="ident">clone</span>(), <span class="ident">amount</span>));
 			}
 			<span class="ident">collators</span>.<span class="ident">sort</span>();
 			<span class="comment">// insert canonical collator set</span>
 			<span class="op">&lt;</span><span class="ident">SelectedCandidates</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">put</span>(<span class="ident">collators</span>);
-			(<span class="ident">all_collators</span>, <span class="ident">total</span>)
+			(<span class="ident">collator_count</span>, <span class="ident">nomination_count</span>, <span class="ident">total</span>)
 		}
 	}
 
