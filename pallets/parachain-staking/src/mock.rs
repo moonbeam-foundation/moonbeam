@@ -86,6 +86,8 @@ parameter_types! {
 	pub const ExistentialDeposit: u128 = 1;
 }
 impl pallet_balances::Config for Test {
+	type MaxReserves = ();
+	type ReserveIdentifier = [u8; 4];
 	type MaxLocks = ();
 	type Balance = Balance;
 	type Event = Event;
@@ -235,7 +237,7 @@ pub(crate) fn events() -> Vec<pallet::Event<Test>> {
 		.into_iter()
 		.map(|r| r.event)
 		.filter_map(|e| {
-			if let Event::stake(inner) = e {
+			if let Event::Stake(inner) = e {
 				Some(inner)
 			} else {
 				None

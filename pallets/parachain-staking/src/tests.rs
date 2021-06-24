@@ -60,7 +60,7 @@ fn online_offline_works() {
 			assert_ok!(Stake::go_offline(Origin::signed(2)));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::CollatorWentOffline(3, 2))
+				MetaEvent::Stake(Event::CollatorWentOffline(3, 2))
 			);
 			roll_to(21);
 			let mut expected = vec![
@@ -84,7 +84,7 @@ fn online_offline_works() {
 			assert_ok!(Stake::go_online(Origin::signed(2)));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::CollatorBackOnline(5, 2))
+				MetaEvent::Stake(Event::CollatorBackOnline(5, 2))
 			);
 			expected.push(Event::CollatorBackOnline(5, 2));
 			roll_to(26);
@@ -138,7 +138,7 @@ fn join_collator_candidates() {
 			assert_ok!(Stake::join_candidates(Origin::signed(7), 10u128, 100u32));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::JoinedCollatorCandidates(7, 10u128, 1110u128))
+				MetaEvent::Stake(Event::JoinedCollatorCandidates(7, 10u128, 1110u128))
 			);
 		});
 }
@@ -170,7 +170,7 @@ fn collator_exit_executes_after_delay() {
 			assert_ok!(Stake::leave_candidates(Origin::signed(2), 2));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::CollatorScheduledExit(3, 2, 5))
+				MetaEvent::Stake(Event::CollatorScheduledExit(3, 2, 5))
 			);
 			let info = Stake::collator_state2(&2).unwrap();
 			assert_eq!(info.state, CollatorStatus::Leaving(5));
@@ -227,13 +227,13 @@ fn collator_selection_chooses_top_candidates() {
 			assert_ok!(Stake::leave_candidates(Origin::signed(6), 6));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::CollatorScheduledExit(2, 6, 4))
+				MetaEvent::Stake(Event::CollatorScheduledExit(2, 6, 4))
 			);
 			roll_to(21);
 			assert_ok!(Stake::join_candidates(Origin::signed(6), 69u128, 100u32));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::JoinedCollatorCandidates(6, 69u128, 469u128))
+				MetaEvent::Stake(Event::JoinedCollatorCandidates(6, 69u128, 469u128))
 			);
 			roll_to(27);
 			// should choose top TotalSelectedCandidates (5), in order
@@ -307,19 +307,19 @@ fn exit_queue() {
 			assert_ok!(Stake::leave_candidates(Origin::signed(6), 6));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::CollatorScheduledExit(2, 6, 4))
+				MetaEvent::Stake(Event::CollatorScheduledExit(2, 6, 4))
 			);
 			roll_to(11);
 			assert_ok!(Stake::leave_candidates(Origin::signed(5), 5));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::CollatorScheduledExit(3, 5, 5))
+				MetaEvent::Stake(Event::CollatorScheduledExit(3, 5, 5))
 			);
 			roll_to(16);
 			assert_ok!(Stake::leave_candidates(Origin::signed(4), 4));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::CollatorScheduledExit(4, 4, 6))
+				MetaEvent::Stake(Event::CollatorScheduledExit(4, 4, 6))
 			);
 			assert_noop!(
 				Stake::leave_candidates(Origin::signed(4), 3),
@@ -492,7 +492,7 @@ fn collator_commission() {
 			assert_ok!(Stake::join_candidates(Origin::signed(4), 20u128, 100u32));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::JoinedCollatorCandidates(4, 20u128, 60u128))
+				MetaEvent::Stake(Event::JoinedCollatorCandidates(4, 20u128, 60u128))
 			);
 			roll_to(9);
 			assert_ok!(Stake::nominate(Origin::signed(5), 4, 10, 10, 10));
@@ -634,7 +634,7 @@ fn multiple_nominations() {
 			assert_ok!(Stake::leave_candidates(Origin::signed(2), 5));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::CollatorScheduledExit(6, 2, 8))
+				MetaEvent::Stake(Event::CollatorScheduledExit(6, 2, 8))
 			);
 			roll_to(31);
 			let mut new3 = vec![
@@ -1768,7 +1768,7 @@ fn set_staking_expectations_works() {
 		// verify event emission
 		assert_eq!(
 			last_event(),
-			MetaEvent::stake(Event::StakeExpectationsSet(min, ideal, max))
+			MetaEvent::Stake(Event::StakeExpectationsSet(min, ideal, max))
 		);
 		// verify storage change
 		let config = Stake::inflation_config();
@@ -1804,7 +1804,7 @@ fn set_inflation_works() {
 		// verify event emission
 		assert_eq!(
 			last_event(),
-			MetaEvent::stake(Event::InflationSet(
+			MetaEvent::Stake(Event::InflationSet(
 				Perbill::from_parts(30000000),
 				Perbill::from_parts(40000000),
 				Perbill::from_parts(50000000),
@@ -1845,7 +1845,7 @@ fn set_total_selected_works() {
 		// verify event emission
 		assert_eq!(
 			last_event(),
-			MetaEvent::stake(Event::TotalSelectedSet(5u32, 6u32,))
+			MetaEvent::Stake(Event::TotalSelectedSet(5u32, 6u32,))
 		);
 		// verify storage change
 		assert_eq!(Stake::total_selected(), 6u32);
@@ -1868,7 +1868,7 @@ fn set_collator_commission_works() {
 		// verify event emission
 		assert_eq!(
 			last_event(),
-			MetaEvent::stake(Event::CollatorCommissionSet(
+			MetaEvent::Stake(Event::CollatorCommissionSet(
 				Perbill::from_percent(20),
 				Perbill::from_percent(5),
 			))
@@ -1918,7 +1918,7 @@ fn mutable_blocks_per_round() {
 			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::BlocksPerRoundSet(
+				MetaEvent::Stake(Event::BlocksPerRoundSet(
 					2,
 					5,
 					5,
@@ -1931,7 +1931,7 @@ fn mutable_blocks_per_round() {
 			roll_to(12);
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::NewRound(12, 4, 1, 40))
+				MetaEvent::Stake(Event::NewRound(12, 4, 1, 40))
 			);
 		});
 	// round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round
@@ -1957,7 +1957,7 @@ fn mutable_blocks_per_round() {
 			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::BlocksPerRoundSet(
+				MetaEvent::Stake(Event::BlocksPerRoundSet(
 					2,
 					5,
 					5,
@@ -1970,7 +1970,7 @@ fn mutable_blocks_per_round() {
 			roll_to(13);
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::NewRound(13, 4, 1, 40))
+				MetaEvent::Stake(Event::NewRound(13, 4, 1, 40))
 			);
 		});
 	// if current duration less than new blocks per round (bpr), round waits until new bpr passes
@@ -1998,7 +1998,7 @@ fn mutable_blocks_per_round() {
 			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::BlocksPerRoundSet(
+				MetaEvent::Stake(Event::BlocksPerRoundSet(
 					2,
 					5,
 					5,
@@ -2009,6 +2009,6 @@ fn mutable_blocks_per_round() {
 				))
 			);
 			roll_to(9);
-			assert_eq!(last_event(), MetaEvent::stake(Event::NewRound(8, 3, 1, 40)));
+			assert_eq!(last_event(), MetaEvent::Stake(Event::NewRound(8, 3, 1, 40)));
 		});
 }
