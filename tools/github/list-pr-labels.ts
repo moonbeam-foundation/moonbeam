@@ -23,7 +23,7 @@ async function listPrByLabels(
     }
     console.log(`===== ${labelName}`);
     for (const pr of prByLabels[labelName]) {
-      console.log(`  ${`(${repo}#${pr.number}) ${pr.title}`}`);
+      console.log(`  ${`(${owner}/${repo}#${pr.number}) ${pr.title}`}`);
     }
   }
 }
