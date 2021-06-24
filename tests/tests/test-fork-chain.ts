@@ -42,14 +42,15 @@ describeDevMoonbeam("Fork", (context) => {
     const retractedTx = await context.web3.eth.getTransaction(insertedTx);
     expect(retractedTx).to.not.be.null;
 
-    // Fork 4 blocks 0-1-2-3-4
+    // Fork from 0-1-2
+    //      to   0b-1b-2b-3b-4b-5b
     let parentHash = await context.polkadotApi.rpc.chain.getBlockHash(0);
     // Create enough blocks to ensure the TX is re-scheduled and that chain is new best
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 6; i++) {
       parentHash = (await context.createBlock({ parentHash, finalize: false })).block.hash;
     }
     const finalTx = await context.web3.eth.getTransaction(insertedTx);
     // The Tx should have been inserted in the new best chain
-    expect(finalTx.blockNumber).to.be.greaterThan(retractedTx.blockNumber);
+    expect(finalTx.blockHash).to.not.be.eq(retractedTx.blockHash);
   });
 });
