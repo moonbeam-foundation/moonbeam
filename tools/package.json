@@ -1,6 +1,7 @@
 {
   "name": "moonbeam-tools",
   "version": "0.0.1",
+  "license": "GPL-3.0",
   "dependencies": {
     "@polkadot/api": "^4.12.1",
     "@polkadot/util-crypto": "^6.6.1",
@@ -26,6 +27,7 @@
   "scripts": {
     "package-moon-key": "node_modules/.bin/tsc moon-key.ts; node_modules/.bin/pkg -t node14 moon-key.js; rm moon-key.js",
     "launch": "ts-node launch",
-    "list-pr-labels": "ts-node github/list-pr-labels.ts"
+    "list-pr-labels": "ts-node github/list-pr-labels.ts",
+    "print-version-bump-info": "ts-node github/print-version-bump-info.ts"
   }
 }
