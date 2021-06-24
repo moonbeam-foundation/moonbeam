@@ -49,18 +49,18 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     expect(response.result[0].action).to.include({
       creationMethod: "create",
       from: "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b",
-      gas: "0xb718d7",
+      gas: "0xb60b27",
       value: "0x0",
     });
     expect(response.result[0].result).to.include({
       address: "0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a",
-      gasUsed: "0x229",
+      gasUsed: "0x10fd9", // TODO : Compare with value from another (comparable) network.
     });
 
     expect(response.result[0]).to.include({
       blockNumber: 1,
       subtraces: 0,
-      transactionHash: "0x5301ed3a9a1be6001cf261f4197169fd6bc24804270be3c7de19fffdb63ad198",
+      transactionHash: "0x38543a19a4fdf101ff6607f712a2283e0056d849f7dbe36715b464c6b08e317e",
       transactionPosition: 0,
       type: "create",
     });
@@ -78,7 +78,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     expect(response.result.length).to.equal(1);
     expect(response.result[0].action.creationMethod).to.equal("create");
     expect(response.result[0].action.from).to.equal("0x6be02d1d3665660d22ff9624b7be0551ee1ac91b");
-    expect(response.result[0].action.gas).to.equal("0xb7198c");
+    expect(response.result[0].action.gas).to.equal("0xb60bd0");
     expect(response.result[0].action.init).to.be.a("string");
     expect(response.result[0].action.value).to.equal("0x0");
     expect(response.result[0].blockHash).to.be.a("string");
@@ -88,7 +88,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     expect(response.result[0].subtraces).to.equal(0);
     expect(response.result[0].traceAddress.length).to.equal(0);
     expect(response.result[0].transactionHash).to.equal(
-      "0x0ddcb527475b0d5e6a45ba6d9bb367c18a7142b5919247f5dd521c744fcd22a3"
+      "0xe910be3a7b2de6bde555be5ac30d79189b1e000cb09bf0591b05972f6d9052eb"
     );
     expect(response.result[0].transactionPosition).to.equal(0);
     expect(response.result[0].type).to.equal("create");

@@ -73,7 +73,7 @@ export async function botActionFaucetSend(
       .addField(
         "Remaining time",
         `You still need to wait ${nextAvailableToken(
-          discordUserReceivers[discordUserId],
+          reason === "address" ? addressReceivers[address] : discordUserReceivers[discordUserId],
           params.FAUCET_SEND_INTERVAL
         )} to receive more tokens`
       )

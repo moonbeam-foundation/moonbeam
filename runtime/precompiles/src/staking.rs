@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Precompile to call parachain-staking runtime methods via the EVM
-use evm::{Context, ExitError, ExitSucceed};
+use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
@@ -26,7 +26,7 @@ use sp_core::U256;
 use sp_std::convert::TryFrom;
 use sp_std::convert::TryInto;
 use sp_std::fmt::Debug;
-use sp_std::{marker::PhantomData, vec::Vec};
+use sp_std::marker::PhantomData;
 
 type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as Currency<
 	<Runtime as frame_system::Config>::AccountId,
@@ -54,7 +54,7 @@ where
 		input: &[u8], //Reminder this is big-endian
 		target_gas: Option<u64>,
 		context: &Context,
-	) -> Result<(ExitSucceed, Vec<u8>, u64), ExitError> {
+	) -> Result<PrecompileOutput, ExitError> {
 		log::trace!(target: "staking-precompile", "In parachain staking wrapper");
 
 		// Basic sanity checking for length
@@ -88,13 +88,13 @@ where
 
 			// If not an accessor, check for dispatchables. These calls ready for dispatch below.
 			[0xad, 0x76, 0xed, 0x5a] => Self::join_candidates(&input[SELECTOR_SIZE_BYTES..])?,
-			[0xb7, 0x69, 0x42, 0x19] => Self::leave_candidates()?,
+			[0xb7, 0x69, 0x42, 0x19] => Self::leave_candidates(&input[SELECTOR_SIZE_BYTES..])?,
 			[0x76, 0x7e, 0x04, 0x50] => Self::go_offline()?,
 			[0xd2, 0xf7, 0x3c, 0xeb] => Self::go_online()?,
 			[0x28, 0x9b, 0x6b, 0xa7] => Self::candidate_bond_less(&input[SELECTOR_SIZE_BYTES..])?,
 			[0xc5, 0x7b, 0xd3, 0xa8] => Self::candidate_bond_more(&input[SELECTOR_SIZE_BYTES..])?,
 			[0x82, 0xf2, 0xc8, 0xdf] => Self::nominate(&input[SELECTOR_SIZE_BYTES..])?,
-			[0xe8, 0xd6, 0x8a, 0x37] => Self::leave_nominators()?,
+			[0xe8, 0xd6, 0x8a, 0x37] => Self::leave_nominators(&input[SELECTOR_SIZE_BYTES..])?,
 			[0x4b, 0x65, 0xc3, 0x4b] => Self::revoke_nomination(&input[SELECTOR_SIZE_BYTES..])?,
 			[0xf6, 0xa5, 0x25, 0x69] => Self::nominator_bond_less(&input[SELECTOR_SIZE_BYTES..])?,
 			[0x97, 0x1d, 0x44, 0xc8] => Self::nominator_bond_more(&input[SELECTOR_SIZE_BYTES..])?,
@@ -131,7 +131,12 @@ where
 				let gas_used = Runtime::GasWeightMapping::weight_to_gas(
 					post_info.actual_weight.unwrap_or(info.weight),
 				);
-				Ok((ExitSucceed::Stopped, Default::default(), gas_used))
+				Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Stopped,
+					cost: gas_used,
+					output: Default::default(),
+					logs: Default::default(),
+				})
 			}
 			Err(e) => {
 				log::trace!(
@@ -194,6 +199,27 @@ where
 	Ok(amount)
 }
 
+/// Parses Weight Hint: u32 from a 256 bit (32 byte) slice.
+fn parse_weight_hint(input: &[u8]) -> Result<u32, ExitError> {
+	const WEIGHT_HINT_SIZE_BYTES: usize = 32;
+
+	if input.len() != WEIGHT_HINT_SIZE_BYTES {
+		log::trace!(target: "staking-precompile",
+			"Unable to parse weight hint. Got {} bytes, expected {}",
+			input.len(),
+			WEIGHT_HINT_SIZE_BYTES,
+		);
+		return Err(ExitError::Other(
+			"Incorrect input length for weight hint parsing".into(),
+		));
+	}
+
+	let weight_hint: u32 = U256::from_big_endian(&input[0..WEIGHT_HINT_SIZE_BYTES])
+		.try_into()
+		.map_err(|_| ExitError::Other("Weight hint is too large for u32".into()))?;
+	Ok(weight_hint)
+}
+
 impl<Runtime> ParachainStakingWrapper<Runtime>
 where
 	Runtime: parachain_staking::Config + pallet_evm::Config,
@@ -205,7 +231,7 @@ where
 {
 	// The accessors are first. They directly return their result.
 
-	fn is_nominator(input: &[u8]) -> Result<(ExitSucceed, Vec<u8>, u64), ExitError> {
+	fn is_nominator(input: &[u8]) -> Result<PrecompileOutput, ExitError> {
 		// parse the address
 		let nominator = H160::from_slice(&input[12..32]);
 
@@ -232,10 +258,15 @@ where
 		// TODO find gas cost of single storage read
 		let gas_consumed = 0;
 
-		return Ok((ExitSucceed::Returned, result_bytes.to_vec(), gas_consumed));
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gas_consumed,
+			output: result_bytes.to_vec(),
+			logs: Default::default(),
+		})
 	}
 
-	fn is_candidate(input: &[u8]) -> Result<(ExitSucceed, Vec<u8>, u64), ExitError> {
+	fn is_candidate(input: &[u8]) -> Result<PrecompileOutput, ExitError> {
 		// parse the address
 		let candidate = H160::from_slice(&input[12..32]);
 
@@ -262,10 +293,15 @@ where
 		// TODO find gas cost of single storage read
 		let gas_consumed = 0;
 
-		return Ok((ExitSucceed::Returned, result_bytes.to_vec(), gas_consumed));
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gas_consumed,
+			output: result_bytes.to_vec(),
+			logs: Default::default(),
+		})
 	}
 
-	fn min_nomination() -> Result<(ExitSucceed, Vec<u8>, u64), ExitError> {
+	fn min_nomination() -> Result<PrecompileOutput, ExitError> {
 		// fetch data from pallet
 		let raw_min_nomination: u128 = <
 			<Runtime as parachain_staking::Config>::MinNomination
@@ -283,21 +319,38 @@ where
 		let mut buffer = [0u8; 32];
 		min_nomination.to_big_endian(&mut buffer);
 
-		return Ok((ExitSucceed::Returned, buffer.to_vec(), gas_consumed));
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gas_consumed,
+			output: buffer.to_vec(),
+			logs: Default::default(),
+		})
 	}
 
 	// The dispatchable wrappers are next. They return a substrate inner Call ready for dispatch.
 
 	fn join_candidates(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		let amount = parse_amount::<BalanceOf<Runtime>>(input)?;
+		let amount = parse_amount::<BalanceOf<Runtime>>(&input[..32])?;
+		let collator_candidate_count = parse_weight_hint(&input[32..])?;
 
 		log::trace!(target: "staking-precompile", "Collator stake amount is {:?}", amount);
+		log::trace!(
+			target: "staking-precompile",
+			"Weight Hint: collator count is {:?}",
+			collator_candidate_count
+		);
 
-		Ok(parachain_staking::Call::<Runtime>::join_candidates(amount))
+		Ok(parachain_staking::Call::<Runtime>::join_candidates(
+			amount,
+			collator_candidate_count,
+		))
 	}
 
-	fn leave_candidates() -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		Ok(parachain_staking::Call::<Runtime>::leave_candidates())
+	fn leave_candidates(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
+		let collator_candidate_count = parse_weight_hint(input)?;
+		Ok(parachain_staking::Call::<Runtime>::leave_candidates(
+			collator_candidate_count,
+		))
 	}
 
 	fn go_offline() -> Result<parachain_staking::Call<Runtime>, ExitError> {
@@ -332,19 +385,36 @@ where
 		log::trace!(target: "staking-precompile", "In nominate dispatchable wrapper");
 		log::trace!(target: "staking-precompile", "input is {:?}", input);
 		let collator = parse_account(&input[..32])?;
-		let amount = parse_amount::<BalanceOf<Runtime>>(&input[32..])?;
+		let amount = parse_amount::<BalanceOf<Runtime>>(&input[32..64])?;
+		let collator_nomination_count = parse_weight_hint(&input[64..96])?;
+		let nominator_nomination_count = parse_weight_hint(&input[96..])?;
 
 		log::trace!(target: "staking-precompile", "Collator account is {:?}", collator);
 		log::trace!(target: "staking-precompile", "Nomination amount is {:?}", amount);
+		log::trace!(
+			target: "staking-precompile",
+			"Weight Hint: collator nominations count is {:?}",
+			collator_nomination_count
+		);
+		log::trace!(
+			target: "staking-precompile",
+			"Weight Hint: nominator nominations count is {:?}",
+			nominator_nomination_count
+		);
 
 		Ok(parachain_staking::Call::<Runtime>::nominate(
 			collator.into(),
 			amount,
+			collator_nomination_count,
+			nominator_nomination_count,
 		))
 	}
 
-	fn leave_nominators() -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		Ok(parachain_staking::Call::<Runtime>::leave_nominators())
+	fn leave_nominators(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
+		let nomination_count = parse_weight_hint(&input[..])?;
+		Ok(parachain_staking::Call::<Runtime>::leave_nominators(
+			nomination_count,
+		))
 	}
 
 	fn revoke_nomination(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {

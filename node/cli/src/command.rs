@@ -16,20 +16,20 @@
 
 //! This module constructs and executes the appropriate service components for the given subcommand
 
-use crate::cli::{Cli, RelayChainCli, Subcommand};
-use cli_opt::RpcParams;
+use crate::cli::{Cli, RelayChainCli, RunCmd, Subcommand};
+use cli_opt::RpcConfig;
 use cumulus_client_service::genesis::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
 use log::info;
 use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::AccountIdConversion;
-use polkadot_service::RococoChainSpec;
+use polkadot_service::WestendChainSpec;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
 	NetworkParams, Result, RuntimeVersion, SharedParams, SubstrateCli,
 };
 use sc_service::config::{BasePath, PrometheusConfig};
-use service::{chain_spec, IdentifyVariant};
+use service::{chain_spec, frontier_database_dir, IdentifyVariant};
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::Block as _;
 use std::{io::Write, net::SocketAddr};
@@ -37,6 +37,7 @@ use std::{io::Write, net::SocketAddr};
 fn load_spec(
 	id: &str,
 	para_id: ParaId,
+	run_cmd: &RunCmd,
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	if id.is_empty() {
 		return Err("Not specific which chain to run.".into());
@@ -45,12 +46,7 @@ fn load_spec(
 		// Moonbase networks
 		"moonbase-alpha" | "alphanet" => {
 			Box::new(chain_spec::moonbase::ChainSpec::from_json_bytes(
-				&include_bytes!("../../../specs/alphanet/parachain-embedded-specs-v7.json")[..],
-			)?)
-		}
-		"moonbase-stage" | "stagenet" => {
-			Box::new(chain_spec::moonbase::ChainSpec::from_json_bytes(
-				&include_bytes!("../../../specs/stagenet/parachain-embedded-specs-v7.json")[..],
+				&include_bytes!("../../../specs/alphanet/parachain-embedded-specs-v8.json")[..],
 			)?)
 		}
 		"moonbase-local" => Box::new(chain_spec::moonbase::get_chain_spec(para_id)),
@@ -60,26 +56,16 @@ fn load_spec(
 		#[cfg(feature = "test-spec")]
 		"staking" => Box::new(chain_spec::test_spec::staking_spec(para_id)),
 		// Moonriver networks
-		"moonriver" => {
-			return Err(
-				"You chosen the moonriver mainnet spec. This network is not yet available.".into(),
-			);
-			// Box::new(chain_spec::moonriver::ChainSpec::from_json_bytes(
-			// 	&include_bytes!("../../../specs/moonriver.json")[..],
-			// )?)
-		}
+		"moonriver" => Box::new(chain_spec::moonriver::ChainSpec::from_json_bytes(
+			&include_bytes!("../../../specs/moonriver/parachain-embedded-specs.json")[..],
+		)?),
 		"moonriver-dev" => Box::new(chain_spec::moonriver::development_chain_spec(None, None)),
 		"moonriver-local" => Box::new(chain_spec::moonriver::get_chain_spec(para_id)),
 
 		// Moonshadow networks
-		"moonshadow" => {
-			return Err(
-				"You chosen the moonshadow mainnet spec. This network is not yet available.".into(),
-			);
-			// Box::new(chain_spec::moonshadow::ChainSpec::from_json_bytes(
-			// 	&include_bytes!("../../../specs/moonshadow.json")[..],
-			// )?)
-		}
+		"moonshadow" => Box::new(chain_spec::moonbase::ChainSpec::from_json_bytes(
+			&include_bytes!("../../../specs/moonshadow/parachain-embedded-specs.json")[..],
+		)?),
 		"moonshadow-dev" => Box::new(chain_spec::moonshadow::development_chain_spec(None, None)),
 		"moonshadow-local" => Box::new(chain_spec::moonshadow::get_chain_spec(para_id)),
 
@@ -110,14 +96,14 @@ fn load_spec(
 					.unwrap_or(false)
 			};
 
-			if starts_with("moonbeam") {
-				Box::new(chain_spec::moonbeam::ChainSpec::from_json_file(path)?)
-			} else if starts_with("moonriver") {
+			if run_cmd.force_moonbase || starts_with("moonbase") {
+				Box::new(chain_spec::moonbase::ChainSpec::from_json_file(path)?)
+			} else if run_cmd.force_moonriver || starts_with("moonriver") {
 				Box::new(chain_spec::moonriver::ChainSpec::from_json_file(path)?)
-			} else if starts_with("moonshadow") {
+			} else if run_cmd.force_moonshadow || starts_with("moonshadow") {
 				Box::new(chain_spec::moonshadow::ChainSpec::from_json_file(path)?)
 			} else {
-				Box::new(chain_spec::moonbase::ChainSpec::from_json_file(path)?)
+				Box::new(chain_spec::moonbeam::ChainSpec::from_json_file(path)?)
 			}
 		}
 	})
@@ -155,7 +141,7 @@ impl SubstrateCli for Cli {
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-		load_spec(id, self.run.parachain_id.unwrap_or(1000).into())
+		load_spec(id, self.run.parachain_id.unwrap_or(1000).into(), &self.run)
 	}
 
 	fn native_runtime_version(spec: &Box<dyn sc_service::ChainSpec>) -> &'static RuntimeVersion {
@@ -202,11 +188,8 @@ impl SubstrateCli for RelayChainCli {
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		match id {
-			"moonbase_alpha_relay" => Ok(Box::new(RococoChainSpec::from_json_bytes(
-				&include_bytes!("../../../specs/alphanet/rococo-embedded-specs-v7.json")[..],
-			)?)),
-			"moonbase_stage_relay" => Ok(Box::new(RococoChainSpec::from_json_bytes(
-				&include_bytes!("../../../specs/stagenet/rococo-embedded-specs-v7.json")[..],
+			"westend_moonbase_relay_testnet" => Ok(Box::new(WestendChainSpec::from_json_bytes(
+				&include_bytes!("../../../specs/alphanet/rococo-embedded-specs-v8.json")[..],
 			)?)),
 			// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the
 			// Polkadot service to interpret the id.
@@ -313,6 +296,13 @@ pub fn run() -> Result<()> {
 				let relay_chain_id = extension.map(|e| e.relay_chain.clone());
 				let dev_service =
 					cli.run.dev_service || relay_chain_id == Some("dev-service".to_string());
+
+				// Remove Frontier offchain db
+				let frontier_database_config = sc_service::DatabaseConfig::RocksDb {
+					path: frontier_database_dir(&config),
+					cache_size: 0,
+				};
+				cmd.base.run(frontier_database_config)?;
 
 				if dev_service {
 					// base refers to the encapsulated "regular" sc_cli::PurgeChain command
@@ -453,17 +443,15 @@ pub fn run() -> Result<()> {
 					.into())
 			}
 		}
+		Some(Subcommand::Key(cmd)) => Ok(cmd.run(&cli)?),
 		None => {
-			let runner = cli.create_runner(&*cli.run)?;
+			let runner = cli.create_runner(&(*cli.run).normalize())?;
 			runner.run_node_until_exit(|config| async move {
-				let collator = cli.run.base.validator || cli.collator;
-
-				let key = sp_core::Pair::generate().0;
-
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
 				let para_id = extension.map(|e| e.para_id);
 
-				let rpc_params = RpcParams {
+				let rpc_config = RpcConfig {
+					ethapi: cli.run.ethapi,
 					ethapi_max_permits: cli.run.ethapi_max_permits,
 					ethapi_trace_max_count: cli.run.ethapi_trace_max_count,
 					ethapi_trace_cache_duration: cli.run.ethapi_trace_cache_duration,
@@ -489,15 +477,8 @@ pub fn run() -> Result<()> {
 						"Alice",
 					));
 
-					return service::new_dev(
-						config,
-						author_id,
-						true, // always collator on dev_service
-						cli.run.sealing,
-						cli.run.ethapi,
-						rpc_params,
-					)
-					.map_err(Into::into);
+					return service::new_dev(config, author_id, cli.run.sealing, rpc_config)
+						.map_err(Into::into);
 				}
 
 				let polkadot_cli = RelayChainCli::new(
@@ -542,21 +523,12 @@ pub fn run() -> Result<()> {
 				info!("Parachain id: {:?}", id);
 				info!("Parachain Account: {}", parachain_account);
 				info!("Parachain genesis state: {}", genesis_state);
-				info!("Is collating: {}", if collator { "yes" } else { "no" });
 
 				if config.chain_spec.is_moonbeam() {
 					service::start_node::<
 						service::moonbeam_runtime::RuntimeApi,
 						service::MoonbeamExecutor,
-					>(
-						config,
-						key,
-						polkadot_config,
-						id,
-						collator,
-						cli.run.ethapi,
-						rpc_params,
-					)
+					>(config, polkadot_config, id, rpc_config)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into)
@@ -564,15 +536,7 @@ pub fn run() -> Result<()> {
 					service::start_node::<
 						service::moonriver_runtime::RuntimeApi,
 						service::MoonriverExecutor,
-					>(
-						config,
-						key,
-						polkadot_config,
-						id,
-						collator,
-						cli.run.ethapi,
-						rpc_params,
-					)
+					>(config, polkadot_config, id, rpc_config)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into)
@@ -580,15 +544,7 @@ pub fn run() -> Result<()> {
 					service::start_node::<
 						service::moonshadow_runtime::RuntimeApi,
 						service::MoonshadowExecutor,
-					>(
-						config,
-						key,
-						polkadot_config,
-						id,
-						collator,
-						cli.run.ethapi,
-						rpc_params,
-					)
+					>(config, polkadot_config, id, rpc_config)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into)
@@ -596,15 +552,7 @@ pub fn run() -> Result<()> {
 					service::start_node::<
 						service::moonbase_runtime::RuntimeApi,
 						service::MoonbaseExecutor,
-					>(
-						config,
-						key,
-						polkadot_config,
-						id,
-						collator,
-						cli.run.ethapi,
-						rpc_params,
-					)
+					>(config, polkadot_config, id, rpc_config)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into)

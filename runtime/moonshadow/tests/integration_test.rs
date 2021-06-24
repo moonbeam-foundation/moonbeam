@@ -18,247 +18,65 @@
 
 #![cfg(test)]
 
-use cumulus_primitives_parachain_inherent::ParachainInherentData;
-use evm::{Context, ExitSucceed};
-use frame_support::{
-	assert_noop, assert_ok,
-	dispatch::Dispatchable,
-	traits::{GenesisBuild, OnFinalize, OnInitialize},
-};
-use moonshadow_runtime::{
-	AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Event, InflationInfo,
-	ParachainStaking, Range, Runtime, System, GLMR,
-};
+mod common;
+use common::*;
+
+use evm::{executor::PrecompileOutput, Context, ExitSucceed};
+use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable, traits::fungible::Inspect};
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
-use parachain_staking::Bond;
+use parachain_staking::{Bond, NominatorAdded};
 use precompiles::MoonbeamPrecompiles;
 use sp_core::{Public, H160, U256};
-use sp_runtime::{DispatchError, Perbill};
-
-fn run_to_block(n: u32) {
-	while System::block_number() < n {
-		AuthorInherent::on_finalize(System::block_number());
-		ParachainStaking::on_finalize(System::block_number());
-		System::set_block_number(System::block_number() + 1);
-		AuthorInherent::on_initialize(System::block_number());
-	}
-}
-
-fn last_event() -> Event {
-	System::events().pop().expect("Event expected").event
-}
-
-struct ExtBuilder {
-	// endowed accounts with balances
-	balances: Vec<(AccountId, Balance)>,
-	// [collator, amount]
-	collators: Vec<(AccountId, Balance)>,
-	// [nominator, collator, nomination_amount]
-	nominators: Vec<(AccountId, AccountId, Balance)>,
-	// per-round inflation config
-	inflation: InflationInfo<Balance>,
-	// Crowdloan fund
-	crowdloan_fund: Balance,
-}
-
-impl Default for ExtBuilder {
-	fn default() -> ExtBuilder {
-		ExtBuilder {
-			balances: vec![],
-			nominators: vec![],
-			collators: vec![],
-			inflation: InflationInfo {
-				expect: Range {
-					min: 100_000 * GLMR,
-					ideal: 200_000 * GLMR,
-					max: 500_000 * GLMR,
-				},
-				// not used
-				annual: Range {
-					min: Perbill::from_percent(50),
-					ideal: Perbill::from_percent(50),
-					max: Perbill::from_percent(50),
-				},
-				// unrealistically high parameterization, only for testing
-				round: Range {
-					min: Perbill::from_percent(5),
-					ideal: Perbill::from_percent(5),
-					max: Perbill::from_percent(5),
-				},
-			},
-			crowdloan_fund: 0,
-		}
-	}
-}
-
-impl ExtBuilder {
-	fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
-		self.balances = balances;
-		self
-	}
-
-	fn with_collators(mut self, collators: Vec<(AccountId, Balance)>) -> Self {
-		self.collators = collators;
-		self
-	}
-
-	fn with_nominators(mut self, nominators: Vec<(AccountId, AccountId, Balance)>) -> Self {
-		self.nominators = nominators;
-		self
-	}
-
-	fn with_crowdloan_fund(mut self, crowdloan_fund: Balance) -> Self {
-		self.crowdloan_fund = crowdloan_fund;
-		self
-	}
-
-	#[allow(dead_code)]
-	fn with_inflation(mut self, inflation: InflationInfo<Balance>) -> Self {
-		self.inflation = inflation;
-		self
-	}
-
-	fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
-			.unwrap();
-
-		pallet_balances::GenesisConfig::<Runtime> {
-			balances: self.balances,
-		}
-		.assimilate_storage(&mut t)
-		.unwrap();
-
-		let mut stakers: Vec<(AccountId, Option<AccountId>, Balance)> = Vec::new();
-		for collator in self.collators {
-			stakers.push((collator.0, None, collator.1));
-		}
-		for nominator in self.nominators {
-			stakers.push((nominator.0, Some(nominator.1), nominator.2));
-		}
-		parachain_staking::GenesisConfig::<Runtime> {
-			stakers,
-			inflation_config: self.inflation,
-		}
-		.assimilate_storage(&mut t)
-		.unwrap();
-
-		pallet_crowdloan_rewards::GenesisConfig::<Runtime> {
-			funded_amount: self.crowdloan_fund,
-		}
-		.assimilate_storage(&mut t)
-		.unwrap();
-
-		// Here we map the author id ALICE_NIMBUS to the AccountId ALICE
-		// This is not (currently) configureable because it is enough for all of our tests
-		// It could bemade configureable.
-		pallet_author_mapping::GenesisConfig::<Runtime> {
-			author_ids: vec![(NimbusId::from_slice(&ALICE_NIMBUS), AccountId::from(ALICE))],
-		}
-		.assimilate_storage(&mut t)
-		.unwrap();
-
-		let mut ext = sp_io::TestExternalities::new(t);
-		ext.execute_with(|| System::set_block_number(1));
-		ext
-	}
-}
-
-const ALICE: [u8; 20] = [4u8; 20];
-const ALICE_NIMBUS: [u8; 32] = [4u8; 32];
-const BOB: [u8; 20] = [5u8; 20];
-const CHARLIE: [u8; 20] = [6u8; 20];
-const DAVE: [u8; 20] = [7u8; 20];
-
-fn origin_of(account_id: AccountId) -> <Runtime as frame_system::Config>::Origin {
-	<Runtime as frame_system::Config>::Origin::signed(account_id)
-}
-
-fn inherent_origin() -> <Runtime as frame_system::Config>::Origin {
-	<Runtime as frame_system::Config>::Origin::none()
-}
-
-fn root_origin() -> <Runtime as frame_system::Config>::Origin {
-	<Runtime as frame_system::Config>::Origin::root()
-}
-
-/// Mock the inherent that sets author in `author-inherent`
-fn set_author(a: NimbusId) {
-	assert_ok!(
-		Call::AuthorInherent(pallet_author_inherent::Call::<Runtime>::set_author(a))
-			.dispatch(inherent_origin())
-	);
-}
-
-/// Mock the inherent that sets validation data in ParachainSystem, which
-/// contains the `relay_chain_block_number`, which is used in `author-filter` as a
-/// source of randomness to filter valid authors at each block.
-fn set_parachain_inherent_data() {
-	use cumulus_primitives_core::PersistedValidationData;
-	use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
-	let (relay_parent_storage_root, relay_chain_state) =
-		RelayStateSproofBuilder::default().into_state_root_and_proof();
-	let vfp = PersistedValidationData {
-		relay_parent_number: 1u32,
-		relay_parent_storage_root,
-		..Default::default()
-	};
-	let parachain_inherent_data = ParachainInherentData {
-		validation_data: vfp,
-		relay_chain_state: relay_chain_state,
-		downward_messages: Default::default(),
-		horizontal_messages: Default::default(),
-	};
-	assert_ok!(Call::ParachainSystem(
-		cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data(
-			parachain_inherent_data
-		)
-	)
-	.dispatch(inherent_origin()));
-}
+use sp_runtime::DispatchError;
 
 #[test]
 fn join_collator_candidates() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 2_000 * GLMR),
-			(AccountId::from(CHARLIE), 1_100 * GLMR),
-			(AccountId::from(DAVE), 1_000 * GLMR),
+			(AccountId::from(ALICE), 2_000 * MSHD),
+			(AccountId::from(BOB), 2_000 * MSHD),
+			(AccountId::from(CHARLIE), 1_100 * MSHD),
+			(AccountId::from(DAVE), 1_000 * MSHD),
 		])
 		.with_collators(vec![
-			(AccountId::from(ALICE), 1_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
+			(AccountId::from(ALICE), 1_000 * MSHD),
+			(AccountId::from(BOB), 1_000 * MSHD),
 		])
-		.with_nominators(vec![
-			(AccountId::from(CHARLIE), AccountId::from(ALICE), 50 * GLMR),
-			(AccountId::from(CHARLIE), AccountId::from(BOB), 50 * GLMR),
+		.with_nominations(vec![
+			(AccountId::from(CHARLIE), AccountId::from(ALICE), 50 * MSHD),
+			(AccountId::from(CHARLIE), AccountId::from(BOB), 50 * MSHD),
 		])
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::join_candidates(origin_of(AccountId::from(ALICE)), 1_000 * GLMR,),
+				ParachainStaking::join_candidates(
+					origin_of(AccountId::from(ALICE)),
+					1_000 * MSHD,
+					2u32
+				),
 				parachain_staking::Error::<Runtime>::CandidateExists
 			);
 			assert_noop!(
 				ParachainStaking::join_candidates(
 					origin_of(AccountId::from(CHARLIE)),
-					1_000 * GLMR
+					1_000 * MSHD,
+					2u32
 				),
 				parachain_staking::Error::<Runtime>::NominatorExists
 			);
 			assert!(System::events().is_empty());
 			assert_ok!(ParachainStaking::join_candidates(
 				origin_of(AccountId::from(DAVE)),
-				1_000 * GLMR,
+				1_000 * MSHD,
+				2u32
 			));
 			assert_eq!(
 				last_event(),
 				Event::parachain_staking(parachain_staking::Event::JoinedCollatorCandidates(
 					AccountId::from(DAVE),
-					1_000 * GLMR,
-					3_100 * GLMR
+					1_000 * MSHD,
+					3_100 * MSHD
 				))
 			);
 			let candidates = ParachainStaking::candidate_pool();
@@ -266,21 +84,21 @@ fn join_collator_candidates() {
 				candidates.0[0],
 				Bond {
 					owner: AccountId::from(ALICE),
-					amount: 1_050 * GLMR
+					amount: 1_050 * MSHD
 				}
 			);
 			assert_eq!(
 				candidates.0[1],
 				Bond {
 					owner: AccountId::from(BOB),
-					amount: 1_050 * GLMR
+					amount: 1_050 * MSHD
 				}
 			);
 			assert_eq!(
 				candidates.0[2],
 				Bond {
 					owner: AccountId::from(DAVE),
-					amount: 1_000 * GLMR
+					amount: 1_000 * MSHD
 				}
 			);
 		});
@@ -289,41 +107,38 @@ fn join_collator_candidates() {
 #[test]
 fn transfer_through_evm_to_stake() {
 	ExtBuilder::default()
-		.with_balances(vec![(AccountId::from(ALICE), 3_000 * GLMR)])
+		.with_balances(vec![(AccountId::from(ALICE), 2_000 * MSHD)])
 		.build()
 		.execute_with(|| {
 			// Charlie has no balance => fails to stake
 			assert_noop!(
 				ParachainStaking::join_candidates(
 					origin_of(AccountId::from(CHARLIE)),
-					1_000 * GLMR,
+					1_000 * MSHD,
+					0u32
 				),
 				DispatchError::Module {
 					index: 3,
-					error: 3,
+					error: 2,
 					message: Some("InsufficientBalance")
 				}
 			);
-			// Alice stakes to become a collator candidate
-			assert_ok!(ParachainStaking::join_candidates(
-				origin_of(AccountId::from(ALICE)),
-				1_000 * GLMR,
-			));
-			// Alice transfer from free balance 1000 GLMR to Bob
+			// Alice transfer from free balance 2000 MSHD to Bob
 			assert_ok!(Balances::transfer(
 				origin_of(AccountId::from(ALICE)),
 				AccountId::from(BOB),
-				2_000 * GLMR,
+				2_000 * MSHD,
 			));
-			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 2_000 * GLMR,);
+			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 2_000 * MSHD);
+
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
-			// Bob transfers 1000 GLMR to Charlie via EVM
+			let gas_price: U256 = 1_000_000_000.into();
+			// Bob transfers 1000 MSHD to Charlie via EVM
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(BOB),
 				AccountId::from(CHARLIE),
 				Vec::new(),
-				(1_000 * GLMR).into(),
+				(1_000 * MSHD).into(),
 				gas_limit,
 				gas_price,
 				None
@@ -331,26 +146,21 @@ fn transfer_through_evm_to_stake() {
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
 			assert_eq!(
 				Balances::free_balance(AccountId::from(CHARLIE)),
-				1_000 * GLMR,
+				1_000 * MSHD,
 			);
+
 			// Charlie can stake now
 			assert_ok!(ParachainStaking::join_candidates(
 				origin_of(AccountId::from(CHARLIE)),
-				1_000 * GLMR,
+				1_000 * MSHD,
+				0u32,
 			),);
 			let candidates = ParachainStaking::candidate_pool();
 			assert_eq!(
 				candidates.0[0],
 				Bond {
-					owner: AccountId::from(ALICE),
-					amount: 2_000 * GLMR
-				}
-			);
-			assert_eq!(
-				candidates.0[1],
-				Bond {
 					owner: AccountId::from(CHARLIE),
-					amount: 1_000 * GLMR
+					amount: 1_000 * MSHD
 				}
 			);
 		});
@@ -360,35 +170,93 @@ fn transfer_through_evm_to_stake() {
 fn reward_block_authors() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
+			// Alice gets 100 extra tokens for her mapping deposit
+			(AccountId::from(ALICE), 2_100 * MSHD),
+			(AccountId::from(BOB), 1_000 * MSHD),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
-		.with_nominators(vec![(
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MSHD)])
+		.with_nominations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
-			500 * GLMR,
+			500 * MSHD,
+		)])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
 		)])
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			for x in 2..1201 {
+			for x in 2..599 {
 				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 				run_to_block(x);
 			}
 			// no rewards doled out yet
-			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * GLMR,);
-			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * GLMR,);
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * MSHD,);
+			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * MSHD,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(1201);
+			run_to_block(600);
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				1109999999920000000000,
+				1113666666584000000000,
 			);
 			assert_eq!(
 				Balances::free_balance(AccountId::from(BOB)),
-				539999999960000000000,
+				541333333292000000000,
+			);
+		});
+}
+
+#[test]
+fn reward_block_authors_with_parachain_bond_reserved() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			// Alice gets 100 extra tokens for her mapping deposit
+			(AccountId::from(ALICE), 2_100 * MSHD),
+			(AccountId::from(BOB), 1_000 * MSHD),
+			(AccountId::from(CHARLIE), MSHD),
+		])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MSHD)])
+		.with_nominations(vec![(
+			AccountId::from(BOB),
+			AccountId::from(ALICE),
+			500 * MSHD,
+		)])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
+		)])
+		.build()
+		.execute_with(|| {
+			set_parachain_inherent_data();
+			assert_ok!(ParachainStaking::set_parachain_bond_account(
+				root_origin(),
+				AccountId::from(CHARLIE),
+			),);
+			for x in 2..599 {
+				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+				run_to_block(x);
+			}
+			// no rewards doled out yet
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * MSHD,);
+			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * MSHD,);
+			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), MSHD,);
+			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+			run_to_block(600);
+			// rewards minted and distributed
+			assert_eq!(
+				Balances::free_balance(AccountId::from(ALICE)),
+				1079592333275448000000,
+			);
+			assert_eq!(
+				Balances::free_balance(AccountId::from(BOB)),
+				528942666637724000000,
+			);
+			// 30% reserved for parachain bond
+			assert_eq!(
+				Balances::free_balance(AccountId::from(CHARLIE)),
+				47515000000000000000,
 			);
 		});
 }
@@ -397,11 +265,15 @@ fn reward_block_authors() {
 fn initialize_crowdloan_addresses_with_batch_and_pay() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
+			(AccountId::from(ALICE), 2_000 * MSHD),
+			(AccountId::from(BOB), 1_000 * MSHD),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
-		.with_crowdloan_fund(3_000_000 * GLMR)
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MSHD)])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
+		)])
+		.with_crowdloan_fund(3_000_000 * MSHD)
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
@@ -418,7 +290,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 							vec![(
 								[4u8; 32].into(),
 								Some(AccountId::from(CHARLIE)),
-								1_500_000 * GLMR
+								1_500_000 * MSHD
 							)],
 							0,
 							2
@@ -429,7 +301,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 							vec![(
 								[5u8; 32].into(),
 								Some(AccountId::from(DAVE)),
-								1_500_000 * GLMR
+								1_500_000 * MSHD
 							)],
 							1,
 							2
@@ -438,6 +310,10 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				]))
 				.dispatch(root_origin())
 			);
+			// 30 percent initial payout
+			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 450_000 * MSHD);
+			// 30 percent initial payout
+			assert_eq!(Balances::balance(&AccountId::from(DAVE)), 450_000 * MSHD);
 			let expected = Event::pallet_utility(pallet_utility::Event::BatchCompleted);
 			assert_eq!(last_event(), expected);
 			// This one should fail, as we already filled our data
@@ -454,37 +330,42 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			let expected_fail = Event::pallet_utility(pallet_utility::Event::BatchInterrupted(
 				0,
 				DispatchError::Module {
-					index: 19,
-					error: 7,
+					index: 20,
+					error: 8,
 					message: None,
 				},
 			));
 			assert_eq!(last_event(), expected_fail);
-			assert_ok!(CrowdloanRewards::my_first_claim(origin_of(
-				AccountId::from(CHARLIE)
-			)));
-			assert_noop!(
-				CrowdloanRewards::my_first_claim(origin_of(AccountId::from(CHARLIE))),
-				pallet_crowdloan_rewards::Error::<Runtime>::FirstClaimAlreadyDone
-			);
-			assert_ok!(CrowdloanRewards::show_me_the_money(origin_of(
-				AccountId::from(DAVE)
-			)));
+			// Claim 1 block.
+			assert_ok!(CrowdloanRewards::claim(origin_of(AccountId::from(CHARLIE))));
+			assert_ok!(CrowdloanRewards::claim(origin_of(AccountId::from(DAVE))));
+
+			let vesting_period = 48 * WEEKS as u128;
+			let per_block = (1_050_000 * MSHD) / vesting_period;
+
 			assert_eq!(
 				CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE))
 					.unwrap()
 					.claimed_reward,
-				300000248015873015873015
+				(450_000 * MSHD) + per_block
 			);
 			assert_eq!(
 				CrowdloanRewards::accounts_payable(&AccountId::from(DAVE))
 					.unwrap()
 					.claimed_reward,
-				300000248015873015873015
+				(450_000 * MSHD) + per_block
 			);
-
+			// The total claimed reward should be equal to the account balance at this point.
+			assert_eq!(
+				Balances::balance(&AccountId::from(CHARLIE)),
+				(450_000 * MSHD) + per_block
+			);
+			assert_eq!(
+				Balances::balance(&AccountId::from(DAVE)),
+				(450_000 * MSHD) + per_block
+			);
 			assert_noop!(
-				CrowdloanRewards::show_me_the_money(origin_of(AccountId::from(ALICE))),
+				CrowdloanRewards::claim(origin_of(AccountId::from(ALICE))),
 				pallet_crowdloan_rewards::Error::<Runtime>::NoAssociatedClaim
 			);
 		});
@@ -493,20 +374,22 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 #[test]
 fn join_candidates_via_precompile() {
 	ExtBuilder::default()
-		.with_balances(vec![(AccountId::from(ALICE), 3_000 * GLMR)])
+		.with_balances(vec![(AccountId::from(ALICE), 3_000 * MSHD)])
 		.build()
 		.execute_with(|| {
 			let staking_precompile_address = H160::from_low_u64_be(2048);
 
 			// Alice uses the staking precompile to join as a candidate through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
-			let amount: U256 = (1000 * GLMR).into();
+			let gas_price: U256 = 1_000_000_000.into();
+			let amount: U256 = (1000 * MSHD).into();
+			let candidate_count: U256 = U256::zero();
 
 			// Construct the call data (selector, amount)
-			let mut call_data = Vec::<u8>::from([0u8; 36]);
+			let mut call_data = Vec::<u8>::from([0u8; 68]);
 			call_data[0..4].copy_from_slice(&hex_literal::hex!("ad76ed5a"));
 			amount.to_big_endian(&mut call_data[4..36]);
+			candidate_count.to_big_endian(&mut call_data[36..]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(ALICE),
@@ -526,14 +409,14 @@ fn join_candidates_via_precompile() {
 			let expected_events = vec![
 				Event::pallet_balances(pallet_balances::Event::Reserved(
 					AccountId::from(ALICE),
-					1000 * GLMR,
+					1000 * MSHD,
 				)),
 				Event::parachain_staking(parachain_staking::Event::JoinedCollatorCandidates(
 					AccountId::from(ALICE),
-					1000 * GLMR,
-					1000 * GLMR,
+					1000 * MSHD,
+					1000 * MSHD,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -551,19 +434,21 @@ fn join_candidates_via_precompile() {
 #[test]
 fn leave_candidates_via_precompile() {
 	ExtBuilder::default()
-		.with_balances(vec![(AccountId::from(ALICE), 2_000 * GLMR)])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_balances(vec![(AccountId::from(ALICE), 2_000 * MSHD)])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MSHD)])
 		.build()
 		.execute_with(|| {
 			let staking_precompile_address = H160::from_low_u64_be(2048);
 
 			// Alice uses the staking precompile to leave_candidates
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
+			let collator_count: U256 = U256::one();
+			let gas_price: U256 = 1_000_000_000.into();
 
 			// Construct the leave_candidates call data
-			let mut call_data = Vec::<u8>::from([0u8; 4]);
+			let mut call_data = Vec::<u8>::from([0u8; 36]);
 			call_data[0..4].copy_from_slice(&hex_literal::hex!("b7694219"));
+			collator_count.to_big_endian(&mut call_data[4..]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(ALICE),
@@ -583,7 +468,7 @@ fn leave_candidates_via_precompile() {
 					AccountId::from(ALICE),
 					3,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -601,8 +486,8 @@ fn leave_candidates_via_precompile() {
 #[test]
 fn go_online_offline_via_precompile() {
 	ExtBuilder::default()
-		.with_balances(vec![(AccountId::from(ALICE), 2_000 * GLMR)])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_balances(vec![(AccountId::from(ALICE), 2_000 * MSHD)])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MSHD)])
 		.build()
 		.execute_with(|| {
 			// Alice is initialized as a candidate
@@ -611,7 +496,7 @@ fn go_online_offline_via_precompile() {
 
 			// Alice uses the staking precompile to go offline
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
+			let gas_price: U256 = 1_000_000_000.into();
 
 			// Construct the go_offline call data
 			let mut go_offline_call_data = Vec::<u8>::from([0u8; 4]);
@@ -634,7 +519,7 @@ fn go_online_offline_via_precompile() {
 					1,
 					AccountId::from(ALICE),
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -668,7 +553,7 @@ fn go_online_offline_via_precompile() {
 					1,
 					AccountId::from(ALICE),
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -687,8 +572,8 @@ fn go_online_offline_via_precompile() {
 #[test]
 fn candidate_bond_more_less_via_precompile() {
 	ExtBuilder::default()
-		.with_balances(vec![(AccountId::from(ALICE), 3_000 * GLMR)])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_balances(vec![(AccountId::from(ALICE), 3_000 * MSHD)])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MSHD)])
 		.build()
 		.execute_with(|| {
 			// Alice is initialized as a candidate
@@ -697,12 +582,12 @@ fn candidate_bond_more_less_via_precompile() {
 
 			// Alice uses the staking precompile to bond more
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
+			let gas_price: U256 = 1_000_000_000.into();
 
 			// Construct the candidate_bond_more call
 			let mut bond_more_call_data = Vec::<u8>::from([0u8; 36]);
 			bond_more_call_data[0..4].copy_from_slice(&hex_literal::hex!("c57bd3a8"));
-			let bond_more_amount: U256 = (1000 * GLMR).into();
+			let bond_more_amount: U256 = (1000 * MSHD).into();
 			bond_more_amount.to_big_endian(&mut bond_more_call_data[4..36]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
@@ -720,14 +605,14 @@ fn candidate_bond_more_less_via_precompile() {
 			let mut expected_events = vec![
 				Event::pallet_balances(pallet_balances::Event::Reserved(
 					AccountId::from(ALICE),
-					1_000 * GLMR,
+					1_000 * MSHD,
 				)),
 				Event::parachain_staking(parachain_staking::Event::CollatorBondedMore(
 					AccountId::from(ALICE),
-					1_000 * GLMR,
-					2_000 * GLMR,
+					1_000 * MSHD,
+					2_000 * MSHD,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -743,7 +628,7 @@ fn candidate_bond_more_less_via_precompile() {
 			// Construct the go_online call data
 			let mut bond_less_call_data = Vec::<u8>::from([0u8; 36]);
 			bond_less_call_data[0..4].copy_from_slice(&hex_literal::hex!("289b6ba7"));
-			let bond_less_amount: U256 = (500 * GLMR).into();
+			let bond_less_amount: U256 = (500 * MSHD).into();
 			bond_less_amount.to_big_endian(&mut bond_less_call_data[4..36]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
@@ -761,14 +646,14 @@ fn candidate_bond_more_less_via_precompile() {
 			let mut new_events = vec![
 				Event::pallet_balances(pallet_balances::Event::Unreserved(
 					AccountId::from(ALICE),
-					500 * GLMR,
+					500 * MSHD,
 				)),
 				Event::parachain_staking(parachain_staking::Event::CollatorBondedLess(
 					AccountId::from(ALICE),
-					2_000 * GLMR,
-					1_500 * GLMR,
+					2_000 * MSHD,
+					1_500 * MSHD,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -788,24 +673,28 @@ fn candidate_bond_more_less_via_precompile() {
 fn nominate_via_precompile() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 3_000 * GLMR),
-			(AccountId::from(BOB), 3_000 * GLMR),
+			(AccountId::from(ALICE), 3_000 * MSHD),
+			(AccountId::from(BOB), 3_000 * MSHD),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MSHD)])
 		.build()
 		.execute_with(|| {
 			let staking_precompile_address = H160::from_low_u64_be(2048);
 
 			// Bob uses the staking precompile to nominate Alice through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
-			let nomination_amount: U256 = (1000 * GLMR).into();
+			let gas_price: U256 = 1_000_000_000.into();
+			let nomination_amount: U256 = (1000 * MSHD).into();
+			let collator_nominator_count: U256 = U256::zero();
+			let nomination_count: U256 = U256::zero();
 
 			// Construct the call data (selector, collator, nomination amount)
-			let mut call_data = Vec::<u8>::from([0u8; 68]);
+			let mut call_data = Vec::<u8>::from([0u8; 132]);
 			call_data[0..4].copy_from_slice(&hex_literal::hex!("82f2c8df"));
 			call_data[16..36].copy_from_slice(&ALICE);
 			nomination_amount.to_big_endian(&mut call_data[36..68]);
+			collator_nominator_count.to_big_endian(&mut call_data[68..100]);
+			nomination_count.to_big_endian(&mut call_data[100..]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(BOB),
@@ -825,15 +714,17 @@ fn nominate_via_precompile() {
 			let expected_events = vec![
 				Event::pallet_balances(pallet_balances::Event::Reserved(
 					AccountId::from(BOB),
-					1000 * GLMR,
+					1000 * MSHD,
 				)),
 				Event::parachain_staking(parachain_staking::Event::Nomination(
 					AccountId::from(BOB),
-					1000 * GLMR,
+					1000 * MSHD,
 					AccountId::from(ALICE),
-					2000 * GLMR,
+					NominatorAdded::AddedToTop {
+						new_total: 2000 * MSHD,
+					},
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -852,17 +743,17 @@ fn nominate_via_precompile() {
 fn leave_nominators_via_precompile() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 1_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
-			(AccountId::from(CHARLIE), 1_500 * GLMR),
+			(AccountId::from(ALICE), 1_000 * MSHD),
+			(AccountId::from(BOB), 1_000 * MSHD),
+			(AccountId::from(CHARLIE), 1_500 * MSHD),
 		])
 		.with_collators(vec![
-			(AccountId::from(ALICE), 1_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
+			(AccountId::from(ALICE), 1_000 * MSHD),
+			(AccountId::from(BOB), 1_000 * MSHD),
 		])
-		.with_nominators(vec![
-			(AccountId::from(CHARLIE), AccountId::from(ALICE), 500 * GLMR),
-			(AccountId::from(CHARLIE), AccountId::from(BOB), 500 * GLMR),
+		.with_nominations(vec![
+			(AccountId::from(CHARLIE), AccountId::from(ALICE), 500 * MSHD),
+			(AccountId::from(CHARLIE), AccountId::from(BOB), 500 * MSHD),
 		])
 		.build()
 		.execute_with(|| {
@@ -872,11 +763,13 @@ fn leave_nominators_via_precompile() {
 
 			// Charlie uses staking precompile to leave nominator set
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
+			let nomination_count: U256 = 2.into();
+			let gas_price: U256 = 1_000_000_000.into();
 
 			// Construct leave_nominators call
-			let mut call_data = Vec::<u8>::from([0u8; 4]);
+			let mut call_data = Vec::<u8>::from([0u8; 36]);
 			call_data[0..4].copy_from_slice(&hex_literal::hex!("e8d68a37"));
+			nomination_count.to_big_endian(&mut call_data[4..]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(CHARLIE),
@@ -896,29 +789,29 @@ fn leave_nominators_via_precompile() {
 			let expected_events = vec![
 				Event::pallet_balances(pallet_balances::Event::Unreserved(
 					AccountId::from(CHARLIE),
-					500 * GLMR,
+					500 * MSHD,
 				)),
 				Event::parachain_staking(parachain_staking::Event::NominatorLeftCollator(
 					AccountId::from(CHARLIE),
 					AccountId::from(ALICE),
-					500 * GLMR,
-					1_000 * GLMR,
+					500 * MSHD,
+					1_000 * MSHD,
 				)),
 				Event::pallet_balances(pallet_balances::Event::Unreserved(
 					AccountId::from(CHARLIE),
-					500 * GLMR,
+					500 * MSHD,
 				)),
 				Event::parachain_staking(parachain_staking::Event::NominatorLeftCollator(
 					AccountId::from(CHARLIE),
 					AccountId::from(BOB),
-					500 * GLMR,
-					1_000 * GLMR,
+					500 * MSHD,
+					1_000 * MSHD,
 				)),
 				Event::parachain_staking(parachain_staking::Event::NominatorLeft(
 					AccountId::from(CHARLIE),
-					1_000 * GLMR,
+					1_000 * MSHD,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -937,17 +830,17 @@ fn leave_nominators_via_precompile() {
 fn revoke_nomination_via_precompile() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 1_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
-			(AccountId::from(CHARLIE), 1_500 * GLMR),
+			(AccountId::from(ALICE), 1_000 * MSHD),
+			(AccountId::from(BOB), 1_000 * MSHD),
+			(AccountId::from(CHARLIE), 1_500 * MSHD),
 		])
 		.with_collators(vec![
-			(AccountId::from(ALICE), 1_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
+			(AccountId::from(ALICE), 1_000 * MSHD),
+			(AccountId::from(BOB), 1_000 * MSHD),
 		])
-		.with_nominators(vec![
-			(AccountId::from(CHARLIE), AccountId::from(ALICE), 500 * GLMR),
-			(AccountId::from(CHARLIE), AccountId::from(BOB), 500 * GLMR),
+		.with_nominations(vec![
+			(AccountId::from(CHARLIE), AccountId::from(ALICE), 500 * MSHD),
+			(AccountId::from(CHARLIE), AccountId::from(BOB), 500 * MSHD),
 		])
 		.build()
 		.execute_with(|| {
@@ -957,7 +850,7 @@ fn revoke_nomination_via_precompile() {
 
 			// Charlie uses staking precompile to revoke nomination
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
+			let gas_price: U256 = 1_000_000_000.into();
 
 			// Construct revoke_nomination call
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
@@ -982,15 +875,15 @@ fn revoke_nomination_via_precompile() {
 			let expected_events = vec![
 				Event::pallet_balances(pallet_balances::Event::Unreserved(
 					AccountId::from(CHARLIE),
-					500 * GLMR,
+					500 * MSHD,
 				)),
 				Event::parachain_staking(parachain_staking::Event::NominatorLeftCollator(
 					AccountId::from(CHARLIE),
 					AccountId::from(ALICE),
-					500 * GLMR,
-					1_000 * GLMR,
+					500 * MSHD,
+					1_000 * MSHD,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -1009,14 +902,14 @@ fn revoke_nomination_via_precompile() {
 fn nominator_bond_more_less_via_precompile() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 1_000 * GLMR),
-			(AccountId::from(BOB), 1_500 * GLMR),
+			(AccountId::from(ALICE), 1_000 * MSHD),
+			(AccountId::from(BOB), 1_500 * MSHD),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
-		.with_nominators(vec![(
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MSHD)])
+		.with_nominations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
-			500 * GLMR,
+			500 * MSHD,
 		)])
 		.build()
 		.execute_with(|| {
@@ -1026,13 +919,13 @@ fn nominator_bond_more_less_via_precompile() {
 
 			// Alice uses the staking precompile to bond more
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1000.into();
+			let gas_price: U256 = 1_000_000_000.into();
 
 			// Construct the nominator_bond_more call
 			let mut bond_more_call_data = Vec::<u8>::from([0u8; 68]);
 			bond_more_call_data[0..4].copy_from_slice(&hex_literal::hex!("971d44c8"));
 			bond_more_call_data[16..36].copy_from_slice(&ALICE);
-			let bond_more_amount: U256 = (500 * GLMR).into();
+			let bond_more_amount: U256 = (500 * MSHD).into();
 			bond_more_amount.to_big_endian(&mut bond_more_call_data[36..68]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
@@ -1050,15 +943,16 @@ fn nominator_bond_more_less_via_precompile() {
 			let mut expected_events = vec![
 				Event::pallet_balances(pallet_balances::Event::Reserved(
 					AccountId::from(BOB),
-					500 * GLMR,
+					500 * MSHD,
 				)),
 				Event::parachain_staking(parachain_staking::Event::NominationIncreased(
 					AccountId::from(BOB),
 					AccountId::from(ALICE),
-					1_500 * GLMR,
-					2_000 * GLMR,
+					1_500 * MSHD,
+					true,
+					2_000 * MSHD,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -1075,7 +969,7 @@ fn nominator_bond_more_less_via_precompile() {
 			let mut bond_less_call_data = Vec::<u8>::from([0u8; 68]);
 			bond_less_call_data[0..4].copy_from_slice(&hex_literal::hex!("f6a52569"));
 			bond_less_call_data[16..36].copy_from_slice(&ALICE);
-			let bond_less_amount: U256 = (500 * GLMR).into();
+			let bond_less_amount: U256 = (500 * MSHD).into();
 			bond_less_amount.to_big_endian(&mut bond_less_call_data[36..68]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
@@ -1093,15 +987,16 @@ fn nominator_bond_more_less_via_precompile() {
 			let mut new_events = vec![
 				Event::pallet_balances(pallet_balances::Event::Unreserved(
 					AccountId::from(BOB),
-					500 * GLMR,
+					500 * MSHD,
 				)),
 				Event::parachain_staking(parachain_staking::Event::NominationDecreased(
 					AccountId::from(BOB),
 					AccountId::from(ALICE),
-					2_000 * GLMR,
-					1_500 * GLMR,
+					2_000 * MSHD,
+					true,
+					1_500 * MSHD,
 				)),
-				Event::pallet_evm(pallet_evm::RawEvent::<AccountId>::Executed(
+				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -1121,14 +1016,14 @@ fn nominator_bond_more_less_via_precompile() {
 fn is_nominator_via_precompile() {
 	ExtBuilder::default()
 		.with_balances(vec![
-			(AccountId::from(ALICE), 1_000 * GLMR),
-			(AccountId::from(BOB), 1_500 * GLMR),
+			(AccountId::from(ALICE), 1_000 * MSHD),
+			(AccountId::from(BOB), 1_500 * MSHD),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
-		.with_nominators(vec![(
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MSHD)])
+		.with_nominations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
-			500 * GLMR,
+			500 * MSHD,
 		)])
 		.build()
 		.execute_with(|| {
@@ -1145,7 +1040,12 @@ fn is_nominator_via_precompile() {
 			// Expected result is an EVM boolean true which is 256 bits long.
 			let mut expected_bytes = Vec::from([0u8; 32]);
 			expected_bytes[31] = 1;
-			let expected_true_result = Some(Ok((ExitSucceed::Returned, expected_bytes, 0)));
+			let expected_true_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 0,
+				logs: Default::default(),
+			}));
 
 			// Assert precompile reports Bob is a nominator
 			assert_eq!(
@@ -1170,7 +1070,12 @@ fn is_nominator_via_precompile() {
 
 			// Expected result is an EVM boolean false which is 256 bits long.
 			expected_bytes = Vec::from([0u8; 32]);
-			let expected_false_result = Some(Ok((ExitSucceed::Returned, expected_bytes, 0)));
+			let expected_false_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 0,
+				logs: Default::default(),
+			}));
 
 			// Assert precompile also reports Charlie as not a nominator
 			assert_eq!(
@@ -1193,8 +1098,8 @@ fn is_nominator_via_precompile() {
 #[test]
 fn is_candidate_via_precompile() {
 	ExtBuilder::default()
-		.with_balances(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_balances(vec![(AccountId::from(ALICE), 1_000 * MSHD)])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MSHD)])
 		.build()
 		.execute_with(|| {
 			// Confirm Alice is initialized as a candidate directly
@@ -1210,7 +1115,12 @@ fn is_candidate_via_precompile() {
 			// Expected result is an EVM boolean true which is 256 bits long.
 			let mut expected_bytes = Vec::from([0u8; 32]);
 			expected_bytes[31] = 1;
-			let expected_true_result = Some(Ok((ExitSucceed::Returned, expected_bytes, 0)));
+			let expected_true_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 0,
+				logs: Default::default(),
+			}));
 
 			// Assert precompile reports Alice is a collator candidate
 			assert_eq!(
@@ -1235,7 +1145,12 @@ fn is_candidate_via_precompile() {
 
 			// Expected result is an EVM boolean false which is 256 bits long.
 			expected_bytes = Vec::from([0u8; 32]);
-			let expected_false_result = Some(Ok((ExitSucceed::Returned, expected_bytes, 0)));
+			let expected_false_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 0,
+				logs: Default::default(),
+			}));
 
 			// Assert precompile also reports Bob as not a collator candidate
 			assert_eq!(
@@ -1263,11 +1178,16 @@ fn min_nomination_via_precompile() {
 		let mut get_min_nom = Vec::<u8>::from([0u8; 4]);
 		get_min_nom[0..4].copy_from_slice(&hex_literal::hex!("c9f593b2"));
 
-		let min_nomination = 5u128 * GLMR;
+		let min_nomination = 5u128 * MSHD;
 		let expected_min: U256 = min_nomination.into();
 		let mut buffer = [0u8; 32];
 		expected_min.to_big_endian(&mut buffer);
-		let expected_result = Some(Ok((ExitSucceed::Returned, buffer.to_vec(), 0)));
+		let expected_result = Some(Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: buffer.to_vec(),
+			cost: 0,
+			logs: Default::default(),
+		}));
 
 		assert_eq!(
 			MoonbeamPrecompiles::<Runtime>::execute(

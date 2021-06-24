@@ -18,7 +18,7 @@
 
 mod staking;
 use codec::Decode;
-use evm::{Context, ExitError, ExitSucceed};
+use evm::{executor::PrecompileOutput, Context, ExitError};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::{Precompile, PrecompileSet};
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
@@ -29,7 +29,7 @@ use pallet_evm_precompile_simple::{ECRecover, Identity, Ripemd160, Sha256};
 use sp_core::H160;
 use sp_std::convert::TryFrom;
 use sp_std::fmt::Debug;
-use sp_std::{marker::PhantomData, vec::Vec};
+use sp_std::marker::PhantomData;
 use staking::ParachainStakingWrapper;
 
 use frame_support::traits::Currency;
@@ -37,27 +37,21 @@ type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as C
 	<Runtime as frame_system::Config>::AccountId,
 >>::Balance;
 
-//TODO Maybe we don't need to / shouldn't be generic over the runtime.
-// Pros: Would simplify trait bounds and speed up compile time (maybe not noticeably).
-// Cons: Would proclude using this precompile set in mocked Runtimes.
-/// The PrecompileSet installed in the Moonbeam runtime.
-/// We include the nine Istanbul precompiles
-/// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
-/// as well as a special precompile for dispatching Substrate extrinsics
+/// The common PrecompileSet that was installed in all runtimes at the time of the runtime split.
+/// This should not be expanded or developed further. When any runtime wants to change their
+/// own precompiles.rs file as moonbase has aleady done.
+///
+/// When the last runtime stops using this, it should be removed entirely.
 #[derive(Debug, Clone, Copy)]
 pub struct MoonbeamPrecompiles<R>(PhantomData<R>);
 
-// The idea here is that we won't have to list the addresses in this file and the chain spec.
-// Unfortunately we still have to type it twice in this file.
 impl<R: frame_system::Config> MoonbeamPrecompiles<R>
 where
 	R::AccountId: From<H160>,
 {
 	/// Return all addresses that contain precompiles. This can be used to populate dummy code
-	/// under the precompile, and potentially in the future to prevent using accounts that have
-	/// precompiles at their addresses explicitly using something like SignedExtra.
-	#[allow(dead_code)]
-	fn used_addresses() -> impl Iterator<Item = R::AccountId> {
+	/// under the precompile.
+	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
 		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 1024, 1025, 2048]
 			.into_iter()
 			.map(|x| hash(x).into())
@@ -82,7 +76,7 @@ where
 		input: &[u8],
 		target_gas: Option<u64>,
 		context: &Context,
-	) -> Option<Result<(ExitSucceed, Vec<u8>, u64), ExitError>> {
+	) -> Option<Result<PrecompileOutput, ExitError>> {
 		match address {
 			// Ethereum precompiles :
 			a if a == hash(1) => Some(ECRecover::execute(input, target_gas, context)),

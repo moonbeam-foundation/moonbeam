@@ -13,82 +13,88 @@ serde = { version = "1.0.101", default-features = false, optional = true, featur
 parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
 log = "0.4"
 hex-literal = "0.3.1"
-sha3 = { version = "0.9", default-features = false }
 
-pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
+runtime-common =  { path = "../common", default-features = false }
+
+pallet-author-inherent = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.4", default-features = false }
 precompiles = { path = "../precompiles/", default-features = false }
 account = { path = "../../primitives/account/", default-features = false }
 moonbeam-core-primitives = { path = "../../core-primitives", default-features = false }
 pallet-ethereum-chain-id = { path = "../../pallets/ethereum-chain-id", default-features = false }
 parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
-pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
-nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "nimbus", default-features = false }
+pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.4", default-features = false }
+nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.4", default-features = false }
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 
 # Substrate dependencies
-sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-sp-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-sp-version = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-sp-session = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-sp-offchain = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-sp-block-builder = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-sp-transaction-pool = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-sp-inherents = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+sp-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+sp-version = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+sp-session = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+sp-offchain = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+sp-block-builder = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+sp-transaction-pool = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+sp-inherents = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+max-encoded-len = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4", features = [ "derive" ] }
 
-frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-frame-executive = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-pallet-balances = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-pallet-randomness-collective-flip = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-pallet-timestamp = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-pallet-sudo = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+frame-executive = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+pallet-balances = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+pallet-randomness-collective-flip = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+pallet-timestamp = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+pallet-sudo = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
 
-frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "joshy-substrate-2be8fcc4" }
-pallet-utility = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-v0.8.2" }
+pallet-utility = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
 
-pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
-fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "joshy-substrate-2be8fcc4" }
+pallet-ethereum = { default-features = false, git = "https://github.com/purestake/frontier", branch = "moonbeam-v0.8.2" }
+fp-rpc = { default-features = false, git = "https://github.com/purestake/frontier", branch = "moonbeam-v0.8.2" }
 
-pallet-democracy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-pallet-collective = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
-pallet-society = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1" }
+pallet-democracy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+pallet-collective = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+pallet-society = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+pallet-proxy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+pallet-treasury = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
 
-pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false, branch = "main" }
+pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false}
 
-moonbeam-extensions-evm = { path = "../extensions/evm", default-features = false }
+moonbeam-evm-tracer = { path = "../evm_tracer", default-features = false }
 moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug", default-features = false }
 moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool", default-features = false }
 
 # Cumulus dependencies
-cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus" }
-parachain-info = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus" }
+cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.4" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.4" }
+parachain-info = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.4" }
 
 # Benchmarking dependencies
-frame-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1", optional = true }
-frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "rococo-v1", optional = true }
+frame-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4", optional = true }
+frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4", optional = true }
 
 [dev-dependencies]
-cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus" }
-cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus" }
-evm = { version = "0.26.0", default-features = false, features = ["with-codec"] }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.4" }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "nimbus-polkadot-v0.9.4" }
+evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }
+rlp = "0.5"
+hex = "0.4"
 
 [build-dependencies]
-substrate-wasm-builder = { version = "4.0.0", git = "https://github.com/paritytech/substrate", branch = "rococo-v1" }
+substrate-wasm-builder = { version = "4.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4" }
 
 [features]
 default = ["std"]
 std = [
+	"runtime-common/std",
 	"parity-scale-codec/std",
 	"serde",
-	"sha3/std",
 	"sp-api/std",
 	"sp-std/std",
 	"sp-io/std",
@@ -121,7 +127,7 @@ std = [
 	"pallet-scheduler/std",
 	"pallet-collective/std",
 	"pallet-author-inherent/std",
-	"moonbeam-extensions-evm/std",
+	"moonbeam-evm-tracer/std",
 	"parachain-info/std",
 	"cumulus-pallet-parachain-system/std",
 	"cumulus-primitives-core/std",
@@ -132,8 +138,11 @@ std = [
 	"pallet-crowdloan-rewards/std",
 	"frame-benchmarking/std",
 	"pallet-society/std",
+	"pallet-proxy/std",
 	"nimbus-primitives/std",
 	"pallet-author-mapping/std",
+	"pallet-treasury/std",
+	"max-encoded-len/std"
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.

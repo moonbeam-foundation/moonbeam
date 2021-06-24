@@ -19,7 +19,7 @@ describeDevMoonbeam("Web3Api Information", (context) => {
     expect(hash.result).to.be.equal(localhash);
   });
 
-  it.skip("should report peer count in hex", async function () {
+  it("should report peer count in hex", async function () {
     // this tests that the "net_peerCount" response comes back in hex and not decimal.
     // this seems a bit inconsistent amongst Ethereum APIs, but hex seems to be most common.
 

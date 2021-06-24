@@ -59,6 +59,9 @@ pub enum Subcommand {
 	/// The custom benchmark subcommmand benchmarking runtime pallets.
 	#[structopt(name = "benchmark", about = "Benchmark runtime pallets.")]
 	Benchmark(frame_benchmarking_cli::BenchmarkCmd),
+
+	/// Key management cli utilities
+	Key(sc_cli::KeySubcommand),
 }
 
 #[derive(Debug, StructOpt)]
@@ -116,7 +119,7 @@ pub struct ExportGenesisWasmCommand {
 #[derive(Debug, StructOpt)]
 pub struct RunCmd {
 	#[structopt(flatten)]
-	pub base: sc_cli::RunCmd,
+	pub base: cumulus_client_cli::RunCmd,
 
 	/// Id of the parachain this collator collates for.
 	#[structopt(long)]
@@ -164,10 +167,22 @@ pub struct RunCmd {
 	/// Maximum number of logs in a query.
 	#[structopt(long, default_value = "10000")]
 	pub max_past_logs: u32,
+
+	/// Force using Moonbase native runtime.
+	#[structopt(long = "force-moonbase")]
+	pub force_moonbase: bool,
+
+	/// Force using Moonriver native runtime.
+	#[structopt(long = "force-moonriver")]
+	pub force_moonriver: bool,
+
+	/// Force using Moonshadow native runtime.
+	#[structopt(long = "force-moonshadow")]
+	pub force_moonshadow: bool,
 }
 
 impl std::ops::Deref for RunCmd {
-	type Target = sc_cli::RunCmd;
+	type Target = cumulus_client_cli::RunCmd;
 
 	fn deref(&self) -> &Self::Target {
 		&self.base
@@ -186,12 +201,6 @@ pub struct Cli {
 
 	#[structopt(flatten)]
 	pub run: RunCmd,
-
-	/// Run node as collator.
-	///
-	/// Note that this is the same as running with `--validator`.
-	#[structopt(long, conflicts_with = "validator")]
-	pub collator: bool,
 
 	/// Relaychain arguments
 	#[structopt(raw = true)]

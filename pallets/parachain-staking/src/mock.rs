@@ -27,7 +27,7 @@ use sp_io;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
-	Perbill,
+	Perbill, Percent,
 };
 
 pub type AccountId = u64;
@@ -102,6 +102,7 @@ parameter_types! {
 	pub const MaxNominatorsPerCollator: u32 = 4;
 	pub const MaxCollatorsPerNominator: u32 = 4;
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
+	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	pub const MinCollatorStk: u128 = 10;
 	pub const MinNominatorStk: u128 = 5;
 	pub const MinNomination: u128 = 3;
@@ -116,6 +117,7 @@ impl Config for Test {
 	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
 	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
 	type DefaultCollatorCommission = DefaultCollatorCommission;
+	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	type MinCollatorStk = MinCollatorStk;
 	type MinCollatorCandidateStk = MinCollatorStk;
 	type MinNominatorStk = MinNominatorStk;
@@ -129,7 +131,7 @@ pub(crate) struct ExtBuilder {
 	// [collator, amount]
 	collators: Vec<(AccountId, Balance)>,
 	// [nominator, collator, nomination_amount]
-	nominators: Vec<(AccountId, AccountId, Balance)>,
+	nominations: Vec<(AccountId, AccountId, Balance)>,
 	// inflation config
 	inflation: InflationInfo<Balance>,
 }
@@ -138,7 +140,7 @@ impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
 			balances: vec![],
-			nominators: vec![],
+			nominations: vec![],
 			collators: vec![],
 			inflation: InflationInfo {
 				expect: Range {
@@ -174,11 +176,11 @@ impl ExtBuilder {
 		self
 	}
 
-	pub(crate) fn with_nominators(
+	pub(crate) fn with_nominations(
 		mut self,
-		nominators: Vec<(AccountId, AccountId, Balance)>,
+		nominations: Vec<(AccountId, AccountId, Balance)>,
 	) -> Self {
-		self.nominators = nominators;
+		self.nominations = nominations;
 		self
 	}
 
@@ -198,16 +200,9 @@ impl ExtBuilder {
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");
-
-		let mut stakers: Vec<(AccountId, Option<AccountId>, Balance)> = Vec::new();
-		for collator in self.collators {
-			stakers.push((collator.0, None, collator.1));
-		}
-		for nominator in self.nominators {
-			stakers.push((nominator.0, Some(nominator.1), nominator.2));
-		}
 		stake::GenesisConfig::<Test> {
-			stakers,
+			candidates: self.collators,
+			nominations: self.nominations,
 			inflation_config: self.inflation,
 		}
 		.assimilate_storage(&mut t)
@@ -253,4 +248,89 @@ pub(crate) fn events() -> Vec<pallet::Event<Test>> {
 pub(crate) fn set_author(round: u32, acc: u64, pts: u32) {
 	<Points<Test>>::mutate(round, |p| *p += pts);
 	<AwardedPts<Test>>::mutate(round, acc, |p| *p += pts);
+}
+
+#[test]
+fn geneses() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 1000),
+			(2, 300),
+			(3, 100),
+			(4, 100),
+			(5, 100),
+			(6, 100),
+			(7, 100),
+			(8, 9),
+			(9, 4),
+		])
+		.with_collators(vec![(1, 500), (2, 200)])
+		.with_nominations(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
+		.build()
+		.execute_with(|| {
+			assert!(System::events().is_empty());
+			// collators
+			assert_eq!(Balances::reserved_balance(&1), 500);
+			assert_eq!(Balances::free_balance(&1), 500);
+			assert!(Stake::is_candidate(&1));
+			assert_eq!(Balances::reserved_balance(&2), 200);
+			assert_eq!(Balances::free_balance(&2), 100);
+			assert!(Stake::is_candidate(&2));
+			// nominators
+			for x in 3..7 {
+				assert!(Stake::is_nominator(&x));
+				assert_eq!(Balances::free_balance(&x), 0);
+				assert_eq!(Balances::reserved_balance(&x), 100);
+			}
+			// uninvolved
+			for x in 7..10 {
+				assert!(!Stake::is_nominator(&x));
+			}
+			assert_eq!(Balances::free_balance(&7), 100);
+			assert_eq!(Balances::reserved_balance(&7), 0);
+			assert_eq!(Balances::free_balance(&8), 9);
+			assert_eq!(Balances::reserved_balance(&8), 0);
+			assert_eq!(Balances::free_balance(&9), 4);
+			assert_eq!(Balances::reserved_balance(&9), 0);
+		});
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 100),
+			(2, 100),
+			(3, 100),
+			(4, 100),
+			(5, 100),
+			(6, 100),
+			(7, 100),
+			(8, 100),
+			(9, 100),
+			(10, 100),
+		])
+		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
+		.with_nominations(vec![
+			(6, 1, 10),
+			(7, 1, 10),
+			(8, 2, 10),
+			(9, 2, 10),
+			(10, 1, 10),
+		])
+		.build()
+		.execute_with(|| {
+			assert!(System::events().is_empty());
+			// collators
+			for x in 1..5 {
+				assert!(Stake::is_candidate(&x));
+				assert_eq!(Balances::free_balance(&x), 80);
+				assert_eq!(Balances::reserved_balance(&x), 20);
+			}
+			assert!(Stake::is_candidate(&5));
+			assert_eq!(Balances::free_balance(&5), 90);
+			assert_eq!(Balances::reserved_balance(&5), 10);
+			// nominators
+			for x in 6..11 {
+				assert!(Stake::is_nominator(&x));
+				assert_eq!(Balances::free_balance(&x), 90);
+				assert_eq!(Balances::reserved_balance(&x), 10);
+			}
+		});
 }

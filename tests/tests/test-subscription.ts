@@ -4,6 +4,7 @@ import { BlockHeader } from "web3-eth";
 
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createTransfer } from "../util/transactions";
+import { COLLATOR_ACCOUNT } from "../util/constants";
 
 describeDevMoonbeam("Subscription", (context) => {
   let web3Ws;
@@ -29,6 +30,9 @@ describeDevMoonbeam("Subscription - Block headers", (context) => {
   it("should send notification on new block", async function () {
     const subscription = web3Subscribe(web3Ws, "newBlockHeaders");
     await new Promise((resolve) => subscription.once("connected", resolve));
+    // TODO this should not be needed. test seems to fail when the block is created to quickly
+    // after the subscription
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     await context.createBlock({
       transactions: [
@@ -42,14 +46,14 @@ describeDevMoonbeam("Subscription - Block headers", (context) => {
     subscription.unsubscribe();
 
     expect(data).to.include({
-      author: "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b",
+      author: COLLATOR_ACCOUNT,
       difficulty: "0",
       extraData: "0x",
       logsBloom: `0x${"0".repeat(512)}`,
-      miner: "0x6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b",
+      miner: "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac",
       receiptsRoot: "0x3f9d4f18305cd0de20569ab8f7efb114f6374c65d0f02fbc80fd275317b1d375",
       sha3Uncles: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
-      transactionsRoot: "0xfe6c195567b1b64b0e1e48b79e75ee25fa56a23540b207f94d83c4dbb1835631",
+      transactionsRoot: "0xf04aada99f08ad276fb593633bcb320bbbaf4499e9bfa8d59a7385e1772c6bcd",
     });
     expect((data as any).sealFields).to.eql([
       "0x0000000000000000000000000000000000000000000000000000000000000000",
