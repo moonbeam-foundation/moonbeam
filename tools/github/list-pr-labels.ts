@@ -11,9 +11,21 @@ async function listPrByLabels(
   filters: string[],
   excludeList: string[]
 ) {
-  const { prByLabels } = await getCommitAndLabels(octokit, owner, repo, previousTag, newTag);
+  const { commits, prByLabels } = await getCommitAndLabels(
+    octokit,
+    owner,
+    repo,
+    previousTag,
+    newTag
+  );
   const filterRegs = filters && filters.map((f) => new RegExp(f));
   const excludeRegs = excludeList && excludeList.map((f) => new RegExp(f));
+
+  console.log(
+    `found ${commits.length} total commits in ` +
+      `https://github.com/${owner}/${repo}/compare/${previousTag}...${newTag}`
+  );
+
   for (const labelName of Object.keys(prByLabels).sort().reverse()) {
     if (filterRegs && !filterRegs.some((f) => f.test(labelName))) {
       continue;
