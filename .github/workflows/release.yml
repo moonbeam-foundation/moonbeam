@@ -80,7 +80,7 @@ jobs:
       - name: Check with Prettier
         run: npx prettier --check --ignore-path .gitignore '**/*.(yml|js|ts|json)'
 
-  ####### Building and Testing binaries #######
+  ####### Building binaries #######
 
   build:
     runs-on: self-hosted
@@ -148,8 +148,6 @@ jobs:
           fi
       - name: Ensure benchmarking compiles
         run: cargo check --release --features=runtime-benchmarks
-      - name: Unit tests
-        run: cargo test --release --all
       - name: Stop sccache
         run: |
           ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --stop-server || true
@@ -166,6 +164,52 @@ jobs:
         run: cargo clippy --release --workspace
       - name: Format code with rustfmt
         run: cargo fmt -- --check
+
+  ####### Testing binaries #######
+
+  rust-tests:
+    runs-on: self-hosted
+    env:
+      CARGO_SCCACHE_VERSION: 0.2.14-alpha.0-parity
+      RUSTFLAGS: "-C opt-level=3"
+      # MOONBEAM_LOG: info
+      # DEBUG: "test*"
+    outputs:
+      RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        # Install sccache
+      - uses: actions/cache@v2
+        with:
+          path: ${{ runner.tool_cache }}/cargo-sccache
+          key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_VERSION }}-v1
+
+      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
+      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
+      - name: Setup Rust toolchain
+        run: rustup show
+
+      - name: Install sccache
+        run: |
+          if [ ! -f ${{ runner.tool_cache }}/cargo-sccache/bin/sccache ]; then
+            cargo install sccache --git https://github.com/paritytech/sccache.git --no-default-features --features=dist-client --root ${{ runner.tool_cache }}/cargo-sccache
+          fi
+        shell: bash
+      - name: Start sccache
+        run: |
+          chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
+          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
+          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
+          echo "RUSTC_WRAPPER=${{ runner.tool_cache }}/cargo-sccache/bin/sccache" >> $GITHUB_ENV
+      - id: get-rust-versions
+        run: |
+          echo "::set-output name=rustc::$(rustc --version)"
+      - name: Unit tests
+        run: cargo test --release --all
+      - name: Stop sccache
+        run: |
+          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --stop-server || true
 
   typescript-tests:
     runs-on: self-hosted
