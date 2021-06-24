@@ -71,7 +71,7 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
     const keyring = new Keyring({ type: "ethereum" });
     const ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
     await context.polkadotApi.tx.parachainStaking
-      .joinCandidates(MIN_GLMR_STAKING, 0)
+      .joinCandidates(MIN_GLMR_STAKING, 1)
       .signAndSend(ethan);
     await context.createBlock();
 
@@ -95,7 +95,7 @@ describeDevMoonbeam("Staking - Candidate bond more", (context) => {
     const keyring = new Keyring({ type: "ethereum" });
     ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
     await context.polkadotApi.tx.parachainStaking
-      .joinCandidates(MIN_GLMR_STAKING, 0)
+      .joinCandidates(MIN_GLMR_STAKING, 1)
       .signAndSend(ethan);
     await context.createBlock();
   });
@@ -118,7 +118,7 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
     const keyring = new Keyring({ type: "ethereum" });
     ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
     await context.polkadotApi.tx.parachainStaking
-      .joinCandidates(MIN_GLMR_STAKING, 0)
+      .joinCandidates(MIN_GLMR_STAKING, 1)
       .signAndSend(ethan);
     await context.createBlock();
   });
