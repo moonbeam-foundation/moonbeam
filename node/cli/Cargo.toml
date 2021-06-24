@@ -18,10 +18,10 @@ sc-telemetry = { git = "https://github.com/paritytech/substrate", branch = "polk
 frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
 try-runtime-cli = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
 
-cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.6" }
-cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.6" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.6" }
-nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.6" }
+cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "crystalin-nimbus-v0.9.6-fix" }
+cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "crystalin-nimbus-v0.9.6-fix" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "crystalin-nimbus-v0.9.6-fix" }
+nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "crystalin-nimbus-v0.9.6-fix" }
 
 polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.6" }
 polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.6" }

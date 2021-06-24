@@ -1344,7 +1344,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-cli"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.6#c3e4f715f0ed320c5a036503540ebc03e3dd4048"
+source = "git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix#4ae9a79124aa983610bd3d5ce8649ff9d2630220"
 dependencies = [
  "sc-cli",
  "sc-service",
@@ -1354,11 +1354,11 @@ dependencies = [
 [[package]]
 name = "cumulus-client-collator"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.6#c3e4f715f0ed320c5a036503540ebc03e3dd4048"
+source = "git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix#4ae9a79124aa983610bd3d5ce8649ff9d2630220"
 dependencies = [
  "cumulus-client-consensus-common",
  "cumulus-client-network",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "futures 0.3.15",
  "parity-scale-codec",
  "parking_lot 0.10.2",
@@ -1378,7 +1378,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-common"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.6#c3e4f715f0ed320c5a036503540ebc03e3dd4048"
+source = "git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix#4ae9a79124aa983610bd3d5ce8649ff9d2630220"
 dependencies = [
  "async-trait",
  "dyn-clone",
@@ -1402,11 +1402,11 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-relay-chain"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.6#c3e4f715f0ed320c5a036503540ebc03e3dd4048"
+source = "git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix#4ae9a79124aa983610bd3d5ce8649ff9d2630220"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "futures 0.3.15",
  "parity-scale-codec",
  "parking_lot 0.10.2",
@@ -1426,7 +1426,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-network"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.6#c3e4f715f0ed320c5a036503540ebc03e3dd4048"
+source = "git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix#4ae9a79124aa983610bd3d5ce8649ff9d2630220"
 dependencies = [
  "derive_more",
  "futures 0.3.15",
@@ -1450,9 +1450,9 @@ dependencies = [
 [[package]]
 name = "cumulus-client-pov-recovery"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.6#c3e4f715f0ed320c5a036503540ebc03e3dd4048"
+source = "git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix#4ae9a79124aa983610bd3d5ce8649ff9d2630220"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "futures 0.3.15",
  "futures-timer 3.0.2",
  "parity-scale-codec",
@@ -1473,12 +1473,12 @@ dependencies = [
 [[package]]
 name = "cumulus-client-service"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.6#c3e4f715f0ed320c5a036503540ebc03e3dd4048"
+source = "git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix#4ae9a79124aa983610bd3d5ce8649ff9d2630220"
 dependencies = [
  "cumulus-client-collator",
  "cumulus-client-consensus-common",
  "cumulus-client-pov-recovery",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "parity-scale-codec",
  "parking_lot 0.10.2",
  "polkadot-overseer",
@@ -1501,11 +1501,39 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system"
 version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix#4ae9a79124aa983610bd3d5ce8649ff9d2630220"
+dependencies = [
+ "cumulus-pallet-parachain-system-proc-macro 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
+ "environmental",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-balances",
+ "parity-scale-codec",
+ "polkadot-parachain",
+ "serde",
+ "sp-core",
+ "sp-externalities",
+ "sp-inherents",
+ "sp-io",
+ "sp-runtime",
+ "sp-state-machine",
+ "sp-std",
+ "sp-trie",
+ "sp-version",
+ "xcm",
+]
+
+[[package]]
+name = "cumulus-pallet-parachain-system"
+version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.6#c3e4f715f0ed320c5a036503540ebc03e3dd4048"
 dependencies = [
- "cumulus-pallet-parachain-system-proc-macro",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-pallet-parachain-system-proc-macro 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.6)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.6)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.6)",
  "environmental",
  "frame-support",
  "frame-system",
@@ -1529,12 +1557,41 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system-proc-macro"
 version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix#4ae9a79124aa983610bd3d5ce8649ff9d2630220"
+dependencies = [
+ "proc-macro-crate 1.0.0",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "cumulus-pallet-parachain-system-proc-macro"
+version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.6#c3e4f715f0ed320c5a036503540ebc03e3dd4048"
 dependencies = [
  "proc-macro-crate 1.0.0",
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "cumulus-primitives-core"
+version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix#4ae9a79124aa983610bd3d5ce8649ff9d2630220"
+dependencies = [
+ "frame-support",
+ "impl-trait-for-tuples 0.2.1",
+ "parity-scale-codec",
+ "polkadot-core-primitives",
+ "polkadot-parachain",
+ "polkadot-primitives",
+ "sp-api",
+ "sp-runtime",
+ "sp-std",
+ "sp-trie",
+ "xcm",
 ]
 
 [[package]]
@@ -1558,10 +1615,30 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-parachain-inherent"
 version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix#4ae9a79124aa983610bd3d5ce8649ff9d2630220"
+dependencies = [
+ "async-trait",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
+ "parity-scale-codec",
+ "polkadot-client",
+ "sc-client-api",
+ "sp-api",
+ "sp-core",
+ "sp-inherents",
+ "sp-runtime",
+ "sp-state-machine",
+ "sp-std",
+ "sp-trie",
+ "tracing",
+]
+
+[[package]]
+name = "cumulus-primitives-parachain-inherent"
+version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.6#c3e4f715f0ed320c5a036503540ebc03e3dd4048"
 dependencies = [
  "async-trait",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.6)",
  "parity-scale-codec",
  "polkadot-client",
  "sc-client-api",
@@ -1578,9 +1655,9 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-timestamp"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.6#c3e4f715f0ed320c5a036503540ebc03e3dd4048"
+source = "git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix#4ae9a79124aa983610bd3d5ce8649ff9d2630220"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "sp-inherents",
  "sp-std",
  "sp-timestamp",
@@ -1589,9 +1666,9 @@ dependencies = [
 [[package]]
 name = "cumulus-test-relay-sproof-builder"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.6#c3e4f715f0ed320c5a036503540ebc03e3dd4048"
+source = "git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix#4ae9a79124aa983610bd3d5ce8649ff9d2630220"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "parity-scale-codec",
  "polkadot-primitives",
  "sp-runtime",
@@ -4632,9 +4709,9 @@ name = "moonbase-runtime"
 version = "0.8.0-dev"
 dependencies = [
  "account",
- "cumulus-pallet-parachain-system",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-pallet-parachain-system 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "cumulus-primitives-timestamp",
  "cumulus-test-relay-sproof-builder",
  "evm",
@@ -4653,7 +4730,7 @@ dependencies = [
  "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
- "nimbus-primitives",
+ "nimbus-primitives 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "pallet-author-inherent",
  "pallet-author-mapping",
  "pallet-author-slot-filter",
@@ -4723,12 +4800,12 @@ version = "0.8.0"
 dependencies = [
  "cumulus-client-cli",
  "cumulus-client-service",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "frame-benchmarking-cli",
  "log",
  "moonbeam-cli-opt",
  "moonbeam-service",
- "nimbus-primitives",
+ "nimbus-primitives 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "parity-scale-codec",
  "polkadot-cli",
  "polkadot-parachain",
@@ -4930,9 +5007,9 @@ name = "moonbeam-runtime"
 version = "0.8.0-dev"
 dependencies = [
  "account",
- "cumulus-pallet-parachain-system",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-pallet-parachain-system 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "cumulus-primitives-timestamp",
  "cumulus-test-relay-sproof-builder",
  "evm",
@@ -4951,7 +5028,7 @@ dependencies = [
  "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
- "nimbus-primitives",
+ "nimbus-primitives 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "pallet-author-inherent",
  "pallet-author-mapping",
  "pallet-author-slot-filter",
@@ -5006,8 +5083,8 @@ dependencies = [
  "cumulus-client-consensus-relay-chain",
  "cumulus-client-network",
  "cumulus-client-service",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "cumulus-test-relay-sproof-builder",
  "derive_more",
  "ethereum",
@@ -5038,7 +5115,7 @@ dependencies = [
  "moonriver-runtime",
  "moonshadow-runtime",
  "nimbus-consensus",
- "nimbus-primitives",
+ "nimbus-primitives 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "nix",
  "pallet-author-inherent",
  "pallet-ethereum",
@@ -5119,9 +5196,9 @@ name = "moonriver-runtime"
 version = "0.8.0-dev"
 dependencies = [
  "account",
- "cumulus-pallet-parachain-system",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-pallet-parachain-system 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "cumulus-primitives-timestamp",
  "cumulus-test-relay-sproof-builder",
  "evm",
@@ -5140,7 +5217,7 @@ dependencies = [
  "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
- "nimbus-primitives",
+ "nimbus-primitives 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "pallet-author-inherent",
  "pallet-author-mapping",
  "pallet-author-slot-filter",
@@ -5187,9 +5264,9 @@ name = "moonshadow-runtime"
 version = "0.8.0-dev"
 dependencies = [
  "account",
- "cumulus-pallet-parachain-system",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-pallet-parachain-system 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "cumulus-primitives-timestamp",
  "cumulus-test-relay-sproof-builder",
  "evm",
@@ -5208,7 +5285,7 @@ dependencies = [
  "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
- "nimbus-primitives",
+ "nimbus-primitives 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "pallet-author-inherent",
  "pallet-author-mapping",
  "pallet-author-slot-filter",
@@ -5369,15 +5446,15 @@ dependencies = [
 [[package]]
 name = "nimbus-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.6#c3e4f715f0ed320c5a036503540ebc03e3dd4048"
+source = "git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix#4ae9a79124aa983610bd3d5ce8649ff9d2630220"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "futures 0.3.15",
  "log",
- "nimbus-primitives",
+ "nimbus-primitives 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "parity-scale-codec",
  "parking_lot 0.9.0",
  "polkadot-service",
@@ -5393,6 +5470,22 @@ dependencies = [
  "sp-runtime",
  "substrate-prometheus-endpoint",
  "tracing",
+]
+
+[[package]]
+name = "nimbus-primitives"
+version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix#4ae9a79124aa983610bd3d5ce8649ff9d2630220"
+dependencies = [
+ "async-trait",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "sp-api",
+ "sp-application-crypto",
+ "sp-inherents",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -5645,13 +5738,13 @@ dependencies = [
 [[package]]
 name = "pallet-author-inherent"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.6#c3e4f715f0ed320c5a036503540ebc03e3dd4048"
+source = "git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix#4ae9a79124aa983610bd3d5ce8649ff9d2630220"
 dependencies = [
- "cumulus-pallet-parachain-system",
+ "cumulus-pallet-parachain-system 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "frame-support",
  "frame-system",
  "log",
- "nimbus-primitives",
+ "nimbus-primitives 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "parity-scale-codec",
  "sp-api",
  "sp-application-crypto",
@@ -5668,7 +5761,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
- "nimbus-primitives",
+ "nimbus-primitives 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "pallet-balances",
  "parity-scale-codec",
  "serde",
@@ -5681,13 +5774,13 @@ dependencies = [
 [[package]]
 name = "pallet-author-slot-filter"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.6#c3e4f715f0ed320c5a036503540ebc03e3dd4048"
+source = "git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix#4ae9a79124aa983610bd3d5ce8649ff9d2630220"
 dependencies = [
- "cumulus-pallet-parachain-system",
+ "cumulus-pallet-parachain-system 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "frame-support",
  "frame-system",
  "log",
- "nimbus-primitives",
+ "nimbus-primitives 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "pallet-author-inherent",
  "parity-scale-codec",
  "serde",
@@ -5812,13 +5905,13 @@ name = "pallet-crowdloan-rewards"
 version = "0.6.0"
 source = "git+https://github.com/purestake/crowdloan-rewards#16c0e661e5b0f001d6a14c5ba242ab4a271a1912"
 dependencies = [
- "cumulus-pallet-parachain-system",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-pallet-parachain-system 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.6)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.6)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.6)",
  "frame-support",
  "frame-system",
  "log",
- "nimbus-primitives",
+ "nimbus-primitives 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.6)",
  "pallet-balances",
  "pallet-utility",
  "parity-scale-codec",
@@ -6441,9 +6534,9 @@ dependencies = [
 [[package]]
 name = "parachain-info"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.6#c3e4f715f0ed320c5a036503540ebc03e3dd4048"
+source = "git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix#4ae9a79124aa983610bd3d5ce8649ff9d2630220"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -6458,7 +6551,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
- "nimbus-primitives",
+ "nimbus-primitives 0.1.0 (git+https://github.com/purestake/cumulus?branch=crystalin-nimbus-v0.9.6-fix)",
  "pallet-balances",
  "parity-scale-codec",
  "serde",
