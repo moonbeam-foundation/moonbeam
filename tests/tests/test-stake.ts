@@ -71,7 +71,7 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
     const keyring = new Keyring({ type: "ethereum" });
     const ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
     await context.polkadotApi.tx.parachainStaking
-      .joinCandidates(MIN_GLMR_STAKING)
+      .joinCandidates(MIN_GLMR_STAKING, 0)
       .signAndSend(ethan);
     await context.createBlock();
 
@@ -95,7 +95,7 @@ describeDevMoonbeam("Staking - Candidate bond more", (context) => {
     const keyring = new Keyring({ type: "ethereum" });
     ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
     await context.polkadotApi.tx.parachainStaking
-      .joinCandidates(MIN_GLMR_STAKING)
+      .joinCandidates(MIN_GLMR_STAKING, 0)
       .signAndSend(ethan);
     await context.createBlock();
   });
@@ -118,7 +118,7 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
     const keyring = new Keyring({ type: "ethereum" });
     ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
     await context.polkadotApi.tx.parachainStaking
-      .joinCandidates(MIN_GLMR_STAKING)
+      .joinCandidates(MIN_GLMR_STAKING, 0)
       .signAndSend(ethan);
     await context.createBlock();
   });
@@ -140,7 +140,7 @@ describeDevMoonbeam("Staking - Join Nominators", (context) => {
     const keyring = new Keyring({ type: "ethereum" });
     const ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
     await context.polkadotApi.tx.parachainStaking
-      .nominate(ALITH, MIN_GLMR_NOMINATOR)
+      .nominate(ALITH, MIN_GLMR_NOMINATOR, 0, 0)
       .signAndSend(ethan);
     await context.createBlock();
 
@@ -162,7 +162,7 @@ describeDevMoonbeam("Staking - Revoke Nomination", (context) => {
     const keyring = new Keyring({ type: "ethereum" });
     ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
     await context.polkadotApi.tx.parachainStaking
-      .nominate(ALITH, MIN_GLMR_NOMINATOR)
+      .nominate(ALITH, MIN_GLMR_NOMINATOR, 0, 0)
       .signAndSend(ethan);
     await context.createBlock();
   });
