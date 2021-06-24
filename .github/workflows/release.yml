@@ -183,6 +183,8 @@ jobs:
           name: moonbeam
           path: target/release
         # Install sccache
+      - name: Chmod moonbeam
+        run: chmod uog+x target/release/moonbeam
       - uses: actions/cache@v2
         with:
           path: ${{ runner.tool_cache }}/cargo-sccache
