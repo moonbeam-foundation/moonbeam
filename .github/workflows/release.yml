@@ -167,6 +167,7 @@ jobs:
 
   rust-tests:
     runs-on: self-hosted
+    needs: build
     env:
       CARGO_SCCACHE_VERSION: 0.2.14-alpha.0-parity
       RUSTFLAGS: "-C opt-level=3"
@@ -177,6 +178,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: moonbeam
+          path: target/release
         # Install sccache
       - uses: actions/cache@v2
         with:
