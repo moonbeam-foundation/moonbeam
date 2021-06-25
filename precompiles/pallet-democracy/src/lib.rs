@@ -21,6 +21,7 @@
 use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{Currency, Get};
+use pallet_democracy::Call as DemocracyCall;
 use pallet_evm::AddressMapping;
 use pallet_evm::GasWeightMapping;
 use pallet_evm::Precompile;
@@ -54,7 +55,7 @@ where
 	BalanceOf<Runtime>: TryFrom<U256> + Debug,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	Runtime::Call: From<pallet_democracy::Call<Runtime>>,
+	Runtime::Call: From<DemocracyCall<Runtime>>,
 	Runtime::Hash: From<H256>,
 {
 	fn execute(
@@ -98,16 +99,7 @@ where
 
 			// If not an accessor, check for dispatchables. These calls ready for dispatch below.
 			[0x78, 0x24, 0xe7, 0xd1] => Self::propose(&input[SELECTOR_SIZE_BYTES..])?,
-			// [0xb7, 0x69, 0x42, 0x19] => Self::leave_candidates()?,
-			// [0x76, 0x7e, 0x04, 0x50] => Self::go_offline()?,
-			// [0xd2, 0xf7, 0x3c, 0xeb] => Self::go_online()?,
-			// [0x28, 0x9b, 0x6b, 0xa7] => Self::candidate_bond_less(&input[SELECTOR_SIZE_BYTES..])?,
-			// [0xc5, 0x7b, 0xd3, 0xa8] => Self::candidate_bond_more(&input[SELECTOR_SIZE_BYTES..])?,
-			// [0x82, 0xf2, 0xc8, 0xdf] => Self::nominate(&input[SELECTOR_SIZE_BYTES..])?,
-			// [0xe8, 0xd6, 0x8a, 0x37] => Self::leave_nominators()?,
-			// [0x4b, 0x65, 0xc3, 0x4b] => Self::revoke_nomination(&input[SELECTOR_SIZE_BYTES..])?,
-			// [0xf6, 0xa5, 0x25, 0x69] => Self::nominator_bond_less(&input[SELECTOR_SIZE_BYTES..])?,
-			// [0x97, 0x1d, 0x44, 0xc8] => Self::nominator_bond_more(&input[SELECTOR_SIZE_BYTES..])?,
+			[0xc7, 0xa7, 0x66, 0x01] => Self::second(&input[SELECTOR_SIZE_BYTES..])?,
 			_ => {
 				log::trace!(
 					target: "democracy-precompile",
@@ -188,11 +180,11 @@ fn parse_account(input: &[u8]) -> Result<H160, ExitError> {
 	))
 }
 
-/// Parses an amount of ether from a 256 bit (32 byte) slice. The balance type is generic.
-fn parse_amount<Balance: TryFrom<U256>>(input: &[u8]) -> Result<Balance, ExitError> {
+/// Parses a numeric amount from a 256 bit (32 byte) slice. The numeric result type is generic.
+fn parse_amount<NumType: TryFrom<U256>>(input: &[u8]) -> Result<NumType, ExitError> {
 	Ok(parse_uint256(input)?
 		.try_into()
-		.map_err(|_| ExitError::Other("Amount is too large for provided balance type".into()))?)
+		.map_err(|_| ExitError::Other("Amount is too large for provided numeric type".into()))?)
 }
 
 /// Parses a uint256 value
@@ -221,7 +213,7 @@ where
 	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Debug,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	Runtime::Call: From<pallet_democracy::Call<Runtime>>,
+	Runtime::Call: From<DemocracyCall<Runtime>>,
 	Runtime::Hash: From<H256>,
 {
 	// The accessors are first. They directly return their result.
@@ -256,7 +248,7 @@ where
 
 	// The dispatchable wrappers are next. They return a substrate inner Call ready for dispatch.
 
-	fn propose(input: &[u8]) -> Result<pallet_democracy::Call<Runtime>, ExitError> {
+	fn propose(input: &[u8]) -> Result<DemocracyCall<Runtime>, ExitError> {
 		const HASH_SIZE_BYTES: usize = 32;
 		const AMOUNT_SIZE_BYTES: usize = 32;
 
@@ -271,9 +263,31 @@ where
 
 		log::trace!(target: "democracy-precompile", "Proposing with hash {:?}, and amount {:?}", proposal_hash, amount);
 
-		Ok(pallet_democracy::Call::<Runtime>::propose(
+		Ok(DemocracyCall::<Runtime>::propose(
 			proposal_hash.into(),
 			amount,
+		))
+	}
+
+	fn second(input: &[u8]) -> Result<DemocracyCall<Runtime>, ExitError> {
+		const PROPOSAL_SIZE_BYTES: usize = 32;
+		const BOUND_SIZE_BYTES: usize = 32;
+
+		if input.len() != PROPOSAL_SIZE_BYTES + BOUND_SIZE_BYTES {
+			return Err(ExitError::Other(
+				"Incorrect input length for second.".into(),
+			));
+		}
+
+		//TODO shouldn't we need type annotations here?
+		let proposal_index = parse_amount(&input[0..32])?;
+		let seconds_upper_bound = parse_amount(&input[32..])?;
+
+		log::trace!(target: "democracy-precompile", "Seconding proposal {:?}, with bound {:?}", proposal_index, seconds_upper_bound);
+
+		Ok(DemocracyCall::<Runtime>::second(
+			proposal_index,
+			seconds_upper_bound,
 		))
 	}
 }

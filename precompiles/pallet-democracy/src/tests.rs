@@ -197,4 +197,60 @@ fn propose_works() {
 		})
 }
 
+// TODO propose error cases
 // propose_bad_length
+// proposing fails when you don't have enough funds to cover the deposit
+
+#[test]
+fn second_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000)])
+		.build()
+		.execute_with(|| {
+			let selector = hex_literal::hex!("c7a76601");
+
+			// Before we can second anything, we have to have a proposal there to second.
+			assert_ok!(Call::Democracy(DemocracyCall::propose(
+				Default::default(), // Propose the default hash
+				100u128,            // bond of 100 tokens
+			))
+			.dispatch(Origin::signed(1)));
+
+			// Construct the call to second via a precompile
+			let mut input_data = Vec::<u8>::from([0u8; 68]);
+			input_data[0..4].copy_from_slice(&selector);
+			let index = U256::zero();
+			index.to_big_endian(&mut input_data[4..36]);
+			let amount: U256 = 100.into();
+			amount.to_big_endian(&mut input_data[36..68]);
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(EvmCall::call(
+				TestMapping::account_id_to_h160(1),
+				precompile_address(),
+				input_data,
+				U256::zero(), // No value sent in EVM
+				u64::max_value(),
+				0.into(),
+				None, // Use the next nonce
+			))
+			.dispatch(Origin::root()));
+
+			// Assert that the events are as expected
+			assert_eq!(
+				events(),
+				vec![
+					BalancesEvent::Reserved(1, 100).into(),
+					DemocracyEvent::Proposed(0, 100).into(),
+					// This 100 is reserved for the second.
+					// Pallet democracy does not ahve an event for seconding
+					BalancesEvent::Reserved(1, 100).into(),
+					EvmEvent::Executed(TestMapping::account_id_to_h160(1)).into(),
+				]
+			);
+		})
+}
+
+// TODO Second error cases
+// proposal doesn't exist
+// you can't afford it
