@@ -43,7 +43,7 @@ describeDevMoonbeam("Fork", (context) => {
     expect(retractedTx).to.not.be.null;
 
     // Fork from 0-1-2
-    //      to   0b-1b-2b-3b-4b-5b-6b
+    //      to   0-1b-2b-3b-4b-5b-6b
     let parentHash = await context.polkadotApi.rpc.chain.getBlockHash(0);
     // Create enough blocks to ensure the TX is re-scheduled and that chain is new best
     for (let i = 0; i < 7; i++) {

@@ -123,13 +123,13 @@ jobs:
         run: cargo build --release --all
       - name: Unit tests
         run: cargo test --release --all
+      - name: Format code with rustfmt
+        run: cargo fmt -- --check
 
       # We determine whether there are unmodified Cargo.lock files by:
       # 1. Asking git for a list of all modified files
       # 2. Using grep to reduce the list to only Cargo.lock files
       # 3. Counting the number of lines of output
-      - name: Format code with rustfmt
-        run: cargo fmt -- --check
       - name: Check Cargo Toml
         run: |
           # Make sure git is working, and if not abort early. When git is not working it looks like:
