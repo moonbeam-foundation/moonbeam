@@ -23,7 +23,7 @@ use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
-use pallet_evm_precompile_simple::{ECRecover, Identity, Ripemd160, Sha256};
+use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use parachain_staking_precompiles::ParachainStakingWrapper;
 use parity_scale_codec::Decode;
 use sp_core::H160;
@@ -88,6 +88,7 @@ where
 			// Non-Moonbeam specific nor Ethereum precompiles :
 			a if a == hash(1024) => Some(Sha3FIPS256::execute(input, target_gas, context)),
 			a if a == hash(1025) => Some(Dispatch::<R>::execute(input, target_gas, context)),
+			a if a == hash(1026) => Some(ECRecoverPublicKey::execute(input, target_gas, context)),
 			// Moonbeam specific precompiles :
 			a if a == hash(2048) => Some(ParachainStakingWrapper::<R>::execute(
 				input, target_gas, context,
