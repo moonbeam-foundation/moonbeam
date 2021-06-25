@@ -1,4 +1,3 @@
-import { ACCOUNT_ID_PREFIX } from "@polkadot/types/ethereum/LookupSource";
 import {
   OverrideBundleDefinition,
   OverrideBundleType,
@@ -535,6 +534,19 @@ export const moonbeamDefinitions = {
           nominators: "Vec<Bond>",
           total: "Balance",
           state: "CollatorStatus",
+        },
+        Collator2: {
+          id: "AccountId",
+          bond: "Balance",
+          nominators: "Vec<AccountId>",
+          top_nominators: "Vec<Bond>",
+          bottom_nominators: "Vec<Bond>",
+          total_counted: "Balance",
+          total_backing: "Balance",
+          state: "CollatorStatus",
+        },
+        NominatorAdded: {
+          _enum: ["AddedToBottom", { AddedToTop: "Balance" }],
         },
         CollatorSnapshot: {
           bond: "Balance",
