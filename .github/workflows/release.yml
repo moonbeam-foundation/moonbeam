@@ -116,11 +116,15 @@ jobs:
           echo "::set-output name=rustc::$(rustc --version)"
       - name: Build Node
         run: cargo build --release --all
+
       # We determine whether there are unmodified Cargo.lock files by:
       # 1. Asking git for a list of all modified files
       # 2. Using grep to reduce the list to only Cargo.lock files
       # 3. Counting the number of lines of output
 
+      - name: Format code with rustfmt
+        run: cargo fmt -- --check
+      - name: Unit tests
       - name: Check Cargo Toml
         run: |
           # Make sure git is working, and if not abort early. When git is not working it looks like:
@@ -140,6 +144,11 @@ jobs:
             echo $DIFF_INDEX | grep Cargo.lock
             false
           fi
+        run: cargo test --release --all
+      - name: Check with Clippy
+        run: cargo clippy --release --workspace
+      - name: Ensure benchmarking compiles
+        run: cargo check --release --features=runtime-benchmarks
       - name: Save parachain binary
         run: |
           mkdir -p build
@@ -149,125 +158,6 @@ jobs:
         with:
           name: moonbeam
           path: build
-      - name: Format code with rustfmt
-        run: cargo fmt -- --check
-
-  ####### Testing binaries #######
-
-  rust-tests:
-    runs-on: self-hosted
-    needs: build
-    env:
-      CARGO_SCCACHE_VERSION: 0.2.14-alpha.0-parity
-      RUSTFLAGS: "-C opt-level=3"
-      # MOONBEAM_LOG: info
-      # DEBUG: "test*"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - uses: actions/download-artifact@v2
-        with:
-          name: moonbeam
-          path: target/release
-      - name: Chmod moonbeam
-        run: chmod uog+x target/release/moonbeam
-      - uses: actions/cache@v2
-        with:
-          path: ${{ runner.tool_cache }}/cargo-sccache
-          key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_VERSION }}-v1
-      - name: Setup Rust toolchain
-        run: rustup show
-      - name: SCCache
-        run: |
-          if [ ! -f ${{ runner.tool_cache }}/cargo-sccache/bin/sccache ]; then
-            cargo install sccache --git https://github.com/paritytech/sccache.git --no-default-features --features=dist-client --root ${{ runner.tool_cache }}/cargo-sccache
-          fi
-          if [[ -z `pgrep sccache` ]]; then
-            chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
-            ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
-          fi
-          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
-          echo "RUSTC_WRAPPER=${{ runner.tool_cache }}/cargo-sccache/bin/sccache" >> $GITHUB_ENV
-      - name: Unit tests
-        run: cargo test --release --all
-
-  ####### Benchmarking binaries #######
-
-  check-benchmarking:
-    runs-on: self-hosted
-    needs: build
-    env:
-      CARGO_SCCACHE_VERSION: 0.2.14-alpha.0-parity
-      RUSTFLAGS: "-C opt-level=3"
-      # MOONBEAM_LOG: info
-      # DEBUG: "test*"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - uses: actions/download-artifact@v2
-        with:
-          name: moonbeam
-          path: target/release
-      - name: Chmod moonbeam
-        run: chmod uog+x target/release/moonbeam
-      - uses: actions/cache@v2
-        with:
-          path: ${{ runner.tool_cache }}/cargo-sccache
-          key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_VERSION }}-v1
-      - name: Setup Rust toolchain
-        run: rustup show
-      - name: SCCache
-        run: |
-          if [ ! -f ${{ runner.tool_cache }}/cargo-sccache/bin/sccache ]; then
-            cargo install sccache --git https://github.com/paritytech/sccache.git --no-default-features --features=dist-client --root ${{ runner.tool_cache }}/cargo-sccache
-          fi
-          if [[ -z `pgrep sccache` ]]; then
-            chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
-            ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
-          fi
-          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
-          echo "RUSTC_WRAPPER=${{ runner.tool_cache }}/cargo-sccache/bin/sccache" >> $GITHUB_ENV
-      - name: Ensure benchmarking compiles
-        run: cargo check --release --features=runtime-benchmarks
-
-  ####### Checking with Clippy #######
-
-  check-clippy:
-    runs-on: self-hosted
-    needs: build
-    env:
-      CARGO_SCCACHE_VERSION: 0.2.14-alpha.0-parity
-      RUSTFLAGS: "-C opt-level=3"
-      # MOONBEAM_LOG: info
-      # DEBUG: "test*"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - uses: actions/download-artifact@v2
-        with:
-          name: moonbeam
-          path: target/release
-      - name: Chmod moonbeam
-        run: chmod uog+x target/release/moonbeam
-      - uses: actions/cache@v2
-        with:
-          path: ${{ runner.tool_cache }}/cargo-sccache
-          key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_VERSION }}-v1
-      - name: Setup Rust toolchain
-        run: rustup show
-      - name: SCCache
-        run: |
-          if [ ! -f ${{ runner.tool_cache }}/cargo-sccache/bin/sccache ]; then
-            cargo install sccache --git https://github.com/paritytech/sccache.git --no-default-features --features=dist-client --root ${{ runner.tool_cache }}/cargo-sccache
-          fi
-          if [[ -z `pgrep sccache` ]]; then
-            chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
-            ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
-          fi
-          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
-          echo "RUSTC_WRAPPER=${{ runner.tool_cache }}/cargo-sccache/bin/sccache" >> $GITHUB_ENV
-      - name: Check with Clippy
-        run: cargo clippy --release --workspace
 
   typescript-tests:
     runs-on: self-hosted
