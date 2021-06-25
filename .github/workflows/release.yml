@@ -121,8 +121,15 @@ jobs:
       - id: get-rust-versions
         run: |
           echo "::set-output name=rustc::$(rustc --version)"
-      - name: Build Node
-        run: cargo build --release --all
+      - name: Build Node & Test
+        run: |
+          cargo build --release --all &
+          PBUILD=$!
+          sleep 60000 && cargo test --release --all &
+          PTEST=$!
+          wait $PBUILD $PTEST
+      - name: Unit tests
+        run:
       # We determine whether there are unmodified Cargo.lock files by:
       # 1. Asking git for a list of all modified files
       # 2. Using grep to reduce the list to only Cargo.lock files
@@ -162,58 +169,6 @@ jobs:
         run: cargo clippy --release --workspace
       - name: Format code with rustfmt
         run: cargo fmt -- --check
-
-  ####### Testing binaries #######
-
-  rust-tests:
-    runs-on: self-hosted
-    needs: build
-    env:
-      CARGO_SCCACHE_VERSION: 0.2.14-alpha.0-parity
-      RUSTFLAGS: "-C opt-level=3"
-      # MOONBEAM_LOG: info
-      # DEBUG: "test*"
-    outputs:
-      RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - uses: actions/download-artifact@v2
-        with:
-          name: moonbeam
-          path: target/release
-        # Install sccache
-      - name: Chmod moonbeam
-        run: chmod uog+x target/release/moonbeam
-      - uses: actions/cache@v2
-        with:
-          path: ${{ runner.tool_cache }}/cargo-sccache
-          key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_VERSION }}-v1
-
-      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
-      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
-      - name: Setup Rust toolchain
-        run: rustup show
-      - name: Install sccache
-        run: |
-          if [ ! -f ${{ runner.tool_cache }}/cargo-sccache/bin/sccache ]; then
-            cargo install sccache --git https://github.com/paritytech/sccache.git --no-default-features --features=dist-client --root ${{ runner.tool_cache }}/cargo-sccache
-          fi
-        shell: bash
-      - name: Start sccache
-        run: |
-          if [[ -z `pgrep sccache` ]]; then
-            chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
-            ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
-          fi
-          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
-          echo "RUSTC_WRAPPER=${{ runner.tool_cache }}/cargo-sccache/bin/sccache" >> $GITHUB_ENV
-      - id: get-rust-versions
-        run: |
-          echo "::set-output name=rustc::$(rustc --version)"
-      - name: Unit tests
-        run: cargo test --release --all
-
   typescript-tests:
     runs-on: self-hosted
     needs: build
@@ -269,7 +224,7 @@ jobs:
 
   docker-parachain:
     runs-on: ubuntu-latest
-    needs: ["build", "rust-tests", "generate-parachain-specs"]
+    needs: ["build", "generate-parachain-specs"]
     if: github.event_name == 'push'
     steps:
       - name: Checkout
@@ -340,7 +295,7 @@ jobs:
 
   docker-moonbeam:
     runs-on: ubuntu-latest
-    needs: ["build", "rust-tests", "generate-parachain-specs"]
+    needs: ["build", "generate-parachain-specs"]
     if: github.event_name == 'push'
     steps:
       - name: Checkout
@@ -460,13 +415,7 @@ jobs:
   publish-draft-release:
     runs-on: ubuntu-latest
     needs:
-      [
-        "set-tags",
-        "build",
-        "rust-tests",
-        "generate-parachain-specs",
-        "build-srtool-runtimes",
-      ]
+      ["set-tags", "build", "generate-parachain-specs", "build-srtool-runtimes"]
     if: needs.set-tags.outputs.is_release == 'true'
     outputs:
       release_url: ${{ steps.create-release.outputs.html_url }}
