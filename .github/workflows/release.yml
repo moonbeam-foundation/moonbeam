@@ -123,7 +123,8 @@ jobs:
           echo "::set-output name=rustc::$(rustc --version)"
       - name: Build Node & Test
         run: |
-          cargo build --release --all &
+          cargo build --release --all && cargo check --release --features=runtime-benchmarks && \
+            cargo clippy --release --workspace && cargo fmt -- --check &
           PBUILD=$!
           sleep 60 && cargo test --release --all &
           PTEST=$!
@@ -147,15 +148,6 @@ jobs:
             echo $DIFF_INDEX | grep Cargo.lock
             false
           fi
-      - name: Check benchmarking, clippy, rustfmt
-        run: |
-          cargo check --release --features=runtime-benchmarks &
-          PBENCH=$!
-          cargo clippy --release --workspace &
-          PCLIPPY=$!
-          cargo fmt -- --check &
-          PFMT=$!
-          wait $PBENCH $PCLIPPY $PFMT
       - name: Save parachain binary
         run: |
           mkdir -p build
