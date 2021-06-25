@@ -125,7 +125,7 @@ jobs:
         run: |
           cargo build --release --all &
           PBUILD=$!
-          sleep 60000 && cargo test --release --all &
+          sleep 60 && cargo test --release --all &
           PTEST=$!
           wait $PBUILD $PTEST
       - name: Check Cargo Toml
