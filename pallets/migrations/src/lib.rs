@@ -16,6 +16,8 @@
 
 //! # Migration Pallet
 
+#![allow(non_camel_case_types)]
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::pallet;
@@ -34,6 +36,7 @@ pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
+	#[allow(unused_imports)] // TODO: why does it detect this as unused?
 	use sp_std::prelude::*;
 
 	#[pallet::pallet]
@@ -59,7 +62,6 @@ pub mod pallet {
 	}
 
 	#[pallet::event]
-	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		// e.g. runtime upgrade started, completed, etc.
 	}
