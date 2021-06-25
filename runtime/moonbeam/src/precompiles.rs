@@ -36,14 +36,14 @@ type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as C
 	<Runtime as frame_system::Config>::AccountId,
 >>::Balance;
 
-/// The PrecompileSet installed in the Moonbase runtime.
+/// The PrecompileSet installed in the Moonbeam runtime.
 /// We include the nine Istanbul precompiles
 /// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
 /// as well as a special precompile for dispatching Substrate extrinsics
 #[derive(Debug, Clone, Copy)]
-pub struct MoonbasePrecompiles<R>(PhantomData<R>);
+pub struct MoonbeamPrecompiles<R>(PhantomData<R>);
 
-impl<R: frame_system::Config> MoonbasePrecompiles<R>
+impl<R: frame_system::Config> MoonbeamPrecompiles<R>
 where
 	R::AccountId: From<H160>,
 {
@@ -60,7 +60,7 @@ where
 /// 0-1023: Ethereum Mainnet Precompiles
 /// 1024-2047 Precompiles that are not in Ethereum Mainnet but are neither Moonbeam specific
 /// 2048-4095 Moonbeam specific precompiles
-impl<R> PrecompileSet for MoonbasePrecompiles<R>
+impl<R> PrecompileSet for MoonbeamPrecompiles<R>
 where
 	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
 	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
