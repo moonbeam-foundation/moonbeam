@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! # Migrations
+//! # Migration Pallet
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::pallet;
+pub mod migrations;
 
 #[pallet]
 pub mod pallet {
@@ -31,13 +32,19 @@ pub mod pallet {
 
 	#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
 	/// A Migration that must happen on-chain upon a runtime-upgrade
-	pub struct Migration {
+	pub trait Migration {
 		// TODO: this would involve some metadata about the migration as well as a means of calling
 		// the actual migration function
+
+		fn friendly_name() -> str;
 	}
 
 	/// Our list of migrations. Any ordering considerations can be specified here (?).
-	// const MIGRATIONS: // TODO: this would be a constant vec (or similar) of individual migrations
+	static MIGRATIONS: [Migration] = [
+		MM_001_AuthorMappingAddDeposit,
+		MM_002_StakingFixTotalBalance,
+		MM_003_StakingTransitionBoundedSet,
+	];
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
