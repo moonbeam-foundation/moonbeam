@@ -143,7 +143,7 @@ fn builds_specs_based_on_mnemonic() {
 	]);
 
 	assert_eq!(
-		chain_spec["genesis"]["runtime"]["palletBalances"]["balances"]
+		chain_spec["genesis"]["runtime"]["balances"]["balances"]
 			.as_array()
 			.expect("Failed to extract balances"),
 		expected.as_array().unwrap()
