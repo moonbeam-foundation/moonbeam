@@ -147,8 +147,15 @@ jobs:
             echo $DIFF_INDEX | grep Cargo.lock
             false
           fi
-      - name: Ensure benchmarking compiles
-        run: cargo check --release --features=runtime-benchmarks
+      - name: Check benchmarking, clippy, rustfmt
+        run: |
+          cargo check --release --features=runtime-benchmarks &
+          PBENCH=$!
+          cargo clippy --release --workspace &
+          PCLIPPY=$!
+          cargo fmt -- --check &
+          PFMT=$!
+          wait $PBENCH $PCLIPPY $PFMT
       - name: Save parachain binary
         run: |
           mkdir -p build
@@ -158,10 +165,7 @@ jobs:
         with:
           name: moonbeam
           path: build
-      - name: Check with Clippy
-        run: cargo clippy --release --workspace
-      - name: Format code with rustfmt
-        run: cargo fmt -- --check
+
   typescript-tests:
     runs-on: self-hosted
     needs: build
@@ -182,7 +186,7 @@ jobs:
         run: |
           chmod uog+x build/moonbeam
           cd moonbeam-types-bundle
-          npm install
+          npm install &
           cd ../tests
           npm install
           node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'tests/**/test-*.ts'
@@ -203,12 +207,13 @@ jobs:
       - name: Make moonbeam executable
         run: |
           chmod uog+x build/moonbeam
-      - name: Generate specs
+      - name: Generate specs & runtimes
         run: |
-          MOONBEAM_BINARY=build/moonbeam scripts/generate-parachain-specs.sh
-      - name: Generate runtimes
-        run: |
+          MOONBEAM_BINARY=build/moonbeam scripts/generate-parachain-specs.sh &
+          PSPEC=$!
           MOONBEAM_BINARY=build/moonbeam scripts/generate-runtimes.sh
+          PRUN=$!
+          wait $PSPEC $PRUN
       - name: Upload parachain specs
         uses: actions/upload-artifact@v2
         with:
