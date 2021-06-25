@@ -80,7 +80,7 @@ jobs:
       - name: Check with Prettier
         run: npx prettier --check --ignore-path .gitignore '**/*.(yml|js|ts|json)'
 
-  ####### Building binaries #######
+  ####### Building and Testing binaries #######
 
   build:
     runs-on: self-hosted
@@ -98,6 +98,9 @@ jobs:
         with:
           path: ${{ runner.tool_cache }}/cargo-sccache
           key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_VERSION }}-v1
+
+      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
+      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
       - name: Setup Rust toolchain
         run: rustup show
       - name: SCCache
@@ -116,16 +119,15 @@ jobs:
           echo "::set-output name=rustc::$(rustc --version)"
       - name: Build Node
         run: cargo build --release --all
+      - name: Unit tests
+        run: cargo test --release --all
 
       # We determine whether there are unmodified Cargo.lock files by:
       # 1. Asking git for a list of all modified files
       # 2. Using grep to reduce the list to only Cargo.lock files
       # 3. Counting the number of lines of output
-
       - name: Format code with rustfmt
         run: cargo fmt -- --check
-      - name: Unit tests
-        run: cargo test --release --all
       - name: Check Cargo Toml
         run: |
           # Make sure git is working, and if not abort early. When git is not working it looks like:
