@@ -128,13 +128,6 @@ jobs:
           sleep 60000 && cargo test --release --all &
           PTEST=$!
           wait $PBUILD $PTEST
-      - name: Unit tests
-        run:
-      # We determine whether there are unmodified Cargo.lock files by:
-      # 1. Asking git for a list of all modified files
-      # 2. Using grep to reduce the list to only Cargo.lock files
-      # 3. Counting the number of lines of output
-
       - name: Check Cargo Toml
         run: |
           # Make sure git is working, and if not abort early. When git is not working it looks like:
