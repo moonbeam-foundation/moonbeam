@@ -29,6 +29,8 @@ impl Migration for MM_001_AuthorMappingAddDeposit {
 	}
 	*/
 	fn apply() -> Weight {
+		/// reviewer note: this isn't meant to imply that migration code must live here. As noted
+		/// elsewhere, I would expect migration code to live close to the pallet it affects.
 		0u64.into()
 	}
 }
