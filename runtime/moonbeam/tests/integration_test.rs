@@ -24,8 +24,8 @@ use common::*;
 use evm::{executor::PrecompileOutput, Context, ExitSucceed};
 use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable, traits::fungible::Inspect};
 use moonbeam_runtime::{
-	currency::GLMR, AccountId, Balances, Call, CrowdloanRewards, Event, ParachainStaking, Runtime,
-	Precompiles, System,
+	currency::GLMR, AccountId, Balances, Call, CrowdloanRewards, Event, ParachainStaking,
+	Precompiles, Runtime, System,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
