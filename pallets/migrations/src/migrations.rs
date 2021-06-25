@@ -28,6 +28,9 @@ impl Migration for MM_001_AuthorMappingAddDeposit {
 		"AuthorMappingAddDeposit"
 	}
 	*/
+	fn apply() -> Weight {
+		0u64.into()
+	}
 }
 
 pub struct MM_002_StakingFixTotalBalance;
@@ -37,6 +40,9 @@ impl Migration for MM_002_StakingFixTotalBalance {
 		"StakingFixTotalBalance"
 	}
 	*/
+	fn apply() -> Weight {
+		0u64.into()
+	}
 }
 
 pub struct MM_003_StakingTransitionBoundedSet; // TODO: better name
@@ -46,4 +52,7 @@ impl Migration for MM_003_StakingTransitionBoundedSet {
 		"StakingTransitionBoundedSet"
 	}
 	*/
+	fn apply() -> Weight {
+		0u64.into()
+	}
 }

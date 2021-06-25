@@ -20,15 +20,18 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::pallet;
+use frame_support::{pallet, weights::Weight};
 pub mod migrations;
 
 /// A Migration that must happen on-chain upon a runtime-upgrade
 pub trait Migration {
-	// TODO: this would involve some metadata about the migration as well as a means of calling
-	// the actual migration function
+	/// A human-readable name for this migration. Also used as storage key.
+	fn friendly_name() -> &str;
 
-	// fn friendly_name() -> &str;
+	/// Apply this migration. Will be called exactly once for this migration.
+	/// TODO: refactor to support multi-block migrations (or, alternatively, allow each Migration
+	///       to specify whether it requires this support and provide a different path)
+	fn apply() -> Weight;
 }
 
 #[pallet]
@@ -76,6 +79,8 @@ pub mod pallet {
 		/// In the event that a migration is expected to take more than one block, ongoing migration
 		/// work could continue from block-to-block in this pallet's on_initialize function.
 		fn on_runtime_upgrade() -> Weight {
+			log::warn!("Performing on_runtime_upgrade");
+
 			// start by flagging that we are not fully upgraded
 			<FullyUpgraded<T>>::put(false);
 
@@ -95,10 +100,42 @@ pub mod pallet {
 	/// True if all required migrations have completed
 	type FullyUpgraded<T: Config> = StorageValue<_, bool, ValueQuery>;
 
-	fn process_runtime_upgrades() -> Weight {
-		// TODO: iterate over MIGRATIONS here and ensure that each one has been fully applied.
-		// additionally, write to storage about our progress if multi-block-update functionality
-		// is required.
-		0u64.into()
+	#[pallet::storage]
+	#[pallet::getter(fn migration_state)]
+	/// MigrationState tracks the status of each migration
+	type MigrationState<T: Config> = StorageMap<
+		_,
+		Twox64Concat,
+		str,
+		bool, // whether it's been applied or not -- TODO: use struct or enum
+		OptionQuery, // TODO: what is this...?
+	>;
+
+	fn process_runtime_upgrades<T: Config>() -> Weight {
+		log::info!("stepping runtime upgrade");
+
+		let weight: Weight = 0u64.into();
+
+		for migration in MIGRATIONS {
+
+			// let migration_name = migration.friendly_name();
+			let migration_name = "TODO"; // fix fn signature in trait...
+			log::trace!("evaluating migration {}", migration_name);
+
+			let migration_state = <MigrationState<T>>::get(migration_name);
+			if ! migration_state {
+
+
+				// Apply the migration. Here we assume that this can fit within our current block,
+				// but this could me modified to step through a migration across blocks until it
+				// is done.
+				weight += migration.apply();
+
+				<MigrationState<T>>::insert(migration_name, true);
+			}
+
+		}
+
+		weight
 	}
 }
