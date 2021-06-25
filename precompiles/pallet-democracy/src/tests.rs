@@ -16,7 +16,7 @@
 
 use crate::mock::{
 	events, evm_test_context, precompile_address, Call, ExtBuilder, Origin, Precompiles,
-	TestMapping,
+	TestAccount::Alice,
 };
 use crate::{u256_to_solidity_bytes, PrecompileOutput};
 use frame_support::{assert_ok, dispatch::Dispatchable};
@@ -100,7 +100,7 @@ fn prop_count_zero() {
 #[test]
 fn prop_count_non_zero() {
 	ExtBuilder::default()
-		.with_balances(vec![(1, 1000)])
+		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
 			let selector = hex_literal::hex!("56fdf547");
@@ -112,7 +112,7 @@ fn prop_count_non_zero() {
 			// https://github.com/paritytech/substrate/blob/polkadot-v0.9.4/frame/democracy/src/lib.rs#L637
 			assert_ok!(
 				Call::Democracy(DemocracyCall::propose(Default::default(), 1000u128))
-					.dispatch(Origin::signed(1))
+					.dispatch(Origin::signed(Alice))
 			);
 
 			// Construct data to read prop count
@@ -161,7 +161,7 @@ fn prop_count_extra_data() {
 #[test]
 fn propose_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(1, 1000)])
+		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
 			let selector = hex_literal::hex!("7824e7d1");
@@ -175,7 +175,7 @@ fn propose_works() {
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
-				TestMapping::account_id_to_h160(1),
+				Alice.to_h160(),
 				precompile_address(),
 				input_data,
 				U256::zero(), // No value sent in EVM
@@ -189,9 +189,9 @@ fn propose_works() {
 			assert_eq!(
 				events(),
 				vec![
-					BalancesEvent::Reserved(1, 100).into(),
+					BalancesEvent::Reserved(Alice, 100).into(),
 					DemocracyEvent::Proposed(0, 100).into(),
-					EvmEvent::Executed(TestMapping::account_id_to_h160(1)).into(),
+					EvmEvent::Executed(precompile_address()).into(),
 				]
 			);
 		})
@@ -204,7 +204,7 @@ fn propose_works() {
 #[test]
 fn second_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(1, 1000)])
+		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
 			let selector = hex_literal::hex!("c7a76601");
@@ -214,7 +214,7 @@ fn second_works() {
 				Default::default(), // Propose the default hash
 				100u128,            // bond of 100 tokens
 			))
-			.dispatch(Origin::signed(1)));
+			.dispatch(Origin::signed(Alice)));
 
 			// Construct the call to second via a precompile
 			let mut input_data = Vec::<u8>::from([0u8; 68]);
@@ -226,7 +226,7 @@ fn second_works() {
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
-				TestMapping::account_id_to_h160(1),
+				Alice.to_h160(),
 				precompile_address(),
 				input_data,
 				U256::zero(), // No value sent in EVM
@@ -240,12 +240,12 @@ fn second_works() {
 			assert_eq!(
 				events(),
 				vec![
-					BalancesEvent::Reserved(1, 100).into(),
+					BalancesEvent::Reserved(Alice, 100).into(),
 					DemocracyEvent::Proposed(0, 100).into(),
 					// This 100 is reserved for the second.
 					// Pallet democracy does not ahve an event for seconding
-					BalancesEvent::Reserved(1, 100).into(),
-					EvmEvent::Executed(TestMapping::account_id_to_h160(1)).into(),
+					BalancesEvent::Reserved(Alice, 100).into(),
+					EvmEvent::Executed(precompile_address()).into(),
 				]
 			);
 		})

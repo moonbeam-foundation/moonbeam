@@ -6007,12 +6007,14 @@ dependencies = [
 name = "pallet-democracy-precompiles"
 version = "0.1.0"
 dependencies = [
+ "derive_more",
  "evm",
  "frame-support",
  "frame-system",
  "hex",
  "hex-literal",
  "log",
+ "max-encoded-len",
  "pallet-balances",
  "pallet-democracy",
  "pallet-evm",
@@ -6020,6 +6022,7 @@ dependencies = [
  "pallet-timestamp",
  "parity-scale-codec",
  "rustc-hex",
+ "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",

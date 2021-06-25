@@ -16,11 +16,14 @@
 
 //! Test utilities
 use super::*;
+use codec::{Decode, Encode};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{OnFinalize, OnInitialize},
+	traits::{MaxEncodedLen, OnFinalize, OnInitialize},
 };
 use frame_system::{EnsureRoot, EnsureSigned};
+use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot};
+use serde::{Deserialize, Serialize};
 use sp_core::H256;
 use sp_io;
 use sp_runtime::{
@@ -28,13 +31,61 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 };
 
-pub type AccountId = u64;
+pub type AccountId = TestAccount;
 pub type Balance = u128;
 pub type BlockNumber = u64;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
-use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot};
+
+#[derive(
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Clone,
+	Encode,
+	Decode,
+	Debug,
+	MaxEncodedLen,
+	Serialize,
+	Deserialize,
+	derive_more::Display,
+)]
+pub enum TestAccount {
+	Alice,
+	Bob,
+	Charlie,
+	Bogus,
+}
+
+impl Default for TestAccount {
+	fn default() -> Self {
+		Self::Bogus
+	}
+}
+
+impl AddressMapping<TestAccount> for TestAccount {
+	fn into_account_id(h160_account: H160) -> TestAccount {
+		match h160_account {
+			a if a == H160::repeat_byte(0xAA) => Self::Alice,
+			a if a == H160::repeat_byte(0xBB) => Self::Bob,
+			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
+			_ => Self::Bogus,
+		}
+	}
+}
+
+impl TestAccount {
+	pub(crate) fn to_h160(&self) -> H160 {
+		match self {
+			Self::Alice => H160::repeat_byte(0xAA),
+			Self::Bob => H160::repeat_byte(0xBB),
+			Self::Charlie => H160::repeat_byte(0xCC),
+			Self::Bogus => Default::default(),
+		}
+	}
+}
 
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
@@ -65,7 +116,7 @@ impl frame_system::Config for Test {
 	type Call = Call;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
-	type AccountId = AccountId;
+	type AccountId = TestAccount;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = Header;
 	type Event = Event;
@@ -94,22 +145,6 @@ impl pallet_balances::Config for Test {
 	type WeightInfo = ();
 }
 
-/// A simple address mapping used for testing. Maps an address to its low byte.
-/// Also has a helper method for going the other way in order to make valid calls.
-/// TODO Check byte order.
-pub struct TestMapping;
-impl AddressMapping<u64> for TestMapping {
-	fn into_account_id(h160_account: H160) -> u64 {
-		h160_account.as_bytes()[19] as u64
-	}
-}
-
-impl TestMapping {
-	pub(crate) fn account_id_to_h160(account_id: u64) -> H160 {
-		H160::from_low_u64_be(account_id)
-	}
-}
-
 /// The democracy precompile is available at address zero in the mock runtime.
 pub fn precompile_address() -> H160 {
 	H160::from_low_u64_be(1)
@@ -119,9 +154,9 @@ pub type Precompiles = (DemocracyWrapper<Test>,);
 impl pallet_evm::Config for Test {
 	type FeeCalculator = ();
 	type GasWeightMapping = ();
-	type CallOrigin = EnsureAddressRoot<AccountId>;
-	type WithdrawOrigin = EnsureAddressNever<AccountId>;
-	type AddressMapping = TestMapping;
+	type CallOrigin = EnsureAddressRoot<TestAccount>;
+	type WithdrawOrigin = EnsureAddressNever<TestAccount>;
+	type AddressMapping = TestAccount;
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
@@ -189,7 +224,7 @@ impl pallet_scheduler::Config for Test {
 	type PalletsOrigin = OriginCaller;
 	type Call = Call;
 	type MaximumWeight = ();
-	type ScheduleOrigin = EnsureRoot<u64>;
+	type ScheduleOrigin = EnsureRoot<TestAccount>;
 	type MaxScheduledPerBlock = ();
 	type WeightInfo = ();
 }
@@ -262,11 +297,39 @@ pub fn evm_test_context() -> evm::Context {
 }
 
 #[test]
-fn hacky_account_id_mapping_works() {
-	for i in 0..10 {
-		assert_eq!(
-			i,
-			TestMapping::into_account_id(TestMapping::account_id_to_h160(i))
-		);
-	}
+fn test_account_id_mapping_works() {
+	// Bidirectional conversions for normal accounts
+	assert_eq!(
+		TestAccount::Alice,
+		TestAccount::into_account_id(TestAccount::Alice.to_h160())
+	);
+	assert_eq!(
+		TestAccount::Bob,
+		TestAccount::into_account_id(TestAccount::Bob.to_h160())
+	);
+	assert_eq!(
+		TestAccount::Charlie,
+		TestAccount::into_account_id(TestAccount::Charlie.to_h160())
+	);
+
+	// Bidirectional conversion between bogus and default H160
+	assert_eq!(
+		TestAccount::Bogus,
+		TestAccount::into_account_id(H160::default())
+	);
+	assert_eq!(H160::default(), TestAccount::Bogus.to_h160());
+
+	// All other H160s map to bogus
+	assert_eq!(
+		TestAccount::Bogus,
+		TestAccount::into_account_id(H160::zero())
+	);
+	assert_eq!(
+		TestAccount::Bogus,
+		TestAccount::into_account_id(H160::repeat_byte(0x12))
+	);
+	assert_eq!(
+		TestAccount::Bogus,
+		TestAccount::into_account_id(H160::repeat_byte(0xFF))
+	);
 }

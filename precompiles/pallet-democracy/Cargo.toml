@@ -26,6 +26,9 @@ sp-runtime = { git="https://github.com/paritytech/substrate", branch="polkadot-v
 pallet-balances = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.4" }
 pallet-timestamp = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.4" }
 pallet-scheduler = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.4" }
+max-encoded-len = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.4", features=["derive"] }
+serde = "1.0.100"
+derive_more = "0.99"
 
 [features]
 default = ["std"]
