@@ -120,8 +120,8 @@ fn builds_specs_based_on_mnemonic() {
 		.expect("Failed to start moonbeam");
 
 	// Gather output as json
-	let chain_spec: serde_json::Value = serde_json::from_slice(output.stdout.as_slice())
-		.expect("Failed to parse spec json file");
+	let chain_spec: serde_json::Value =
+		serde_json::from_slice(output.stdout.as_slice()).expect("Failed to parse spec json file");
 	let expected = json!([
 		[
 			json!("0x3d5bd6a54d5f5292b9fb914db40cd5f7c5540f80"),
