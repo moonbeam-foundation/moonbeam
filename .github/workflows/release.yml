@@ -125,6 +125,7 @@ jobs:
       - name: Format code with rustfmt
         run: cargo fmt -- --check
       - name: Unit tests
+        run: cargo test --release --all
       - name: Check Cargo Toml
         run: |
           # Make sure git is working, and if not abort early. When git is not working it looks like:
@@ -144,7 +145,6 @@ jobs:
             echo $DIFF_INDEX | grep Cargo.lock
             false
           fi
-        run: cargo test --release --all
       - name: Check with Clippy
         run: cargo clippy --release --workspace
       - name: Ensure benchmarking compiles
