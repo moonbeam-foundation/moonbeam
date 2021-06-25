@@ -7,7 +7,9 @@ name: Release
 
 # This is only allowing pushes on the moonbeam repo for pull requests.
 ####### DO NOT CHANGE THIS !! #######
-on: ["push"]
+on:
+  push:
+  workflow_dispatch:
 
 jobs:
   ####### Check files and formatting #######
