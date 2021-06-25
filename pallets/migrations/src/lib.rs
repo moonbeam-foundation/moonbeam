@@ -21,29 +21,29 @@
 use frame_support::pallet;
 pub mod migrations;
 
+/// A Migration that must happen on-chain upon a runtime-upgrade
+pub trait Migration {
+	// TODO: this would involve some metadata about the migration as well as a means of calling
+	// the actual migration function
+
+	// fn friendly_name() -> &str;
+}
+
 #[pallet]
 pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
+	use frame_system::pallet_prelude::*;
 	use sp_std::prelude::*;
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
 
-	#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
-	/// A Migration that must happen on-chain upon a runtime-upgrade
-	pub trait Migration {
-		// TODO: this would involve some metadata about the migration as well as a means of calling
-		// the actual migration function
-
-		fn friendly_name() -> str;
-	}
-
 	/// Our list of migrations. Any ordering considerations can be specified here (?).
-	static MIGRATIONS: [Migration] = [
-		MM_001_AuthorMappingAddDeposit,
-		MM_002_StakingFixTotalBalance,
-		MM_003_StakingTransitionBoundedSet,
+	const MIGRATIONS: [&dyn Migration; 3] = [
+		&migrations::MM_001_AuthorMappingAddDeposit {},
+		&migrations::MM_002_StakingFixTotalBalance {},
+		&migrations::MM_003_StakingTransitionBoundedSet {},
 	];
 
 	/// Configuration trait of this pallet.
@@ -51,8 +51,6 @@ pub mod pallet {
 	pub trait Config: frame_system::Config {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
-		/// Weight information for extrinsics in this pallet.
-		type WeightInfo: WeightInfo;
 	}
 
 	#[pallet::error]
@@ -79,15 +77,14 @@ pub mod pallet {
 			// start by flagging that we are not fully upgraded
 			<FullyUpgraded<T>>::put(false);
 
-			let weight: u32 = 0;
+			let mut weight: Weight = 0u64.into();
 
-			let info = process_runtime_upgrades();
-			weight += info.actual_weight.expect("Weight not provided");
+			weight += process_runtime_upgrades();
 
 			// now flag that we are done with our runtime upgrade
 			<FullyUpgraded<T>>::put(true);
 
-			weight
+			weight.into()
 		}
 	}
 
@@ -96,16 +93,10 @@ pub mod pallet {
 	/// True if all required migrations have completed
 	type FullyUpgraded<T: Config> = StorageValue<_, bool, ValueQuery>;
 
-	#[pallet::call]
-	impl<T: Config> Pallet<T> {
-
-		// TODO: this isn't a call, but it should forward weight info
-		#[pallet::weight(0)]
-		pub fn process_runtime_upgrades(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
-			frame_system::ensure_root(origin)?;
-			// TODO: iterate over MIGRATIONS here and ensure that each one has been fully applied.
-			// additionally, write to storage about our progress if multi-block-update functionality
-			// is required.
-		}
+	fn process_runtime_upgrades() -> Weight {
+		// TODO: iterate over MIGRATIONS here and ensure that each one has been fully applied.
+		// additionally, write to storage about our progress if multi-block-update functionality
+		// is required.
+		0u64.into()
 	}
 }

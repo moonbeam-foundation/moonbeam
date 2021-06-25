@@ -21,23 +21,29 @@ use crate::*;
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in this crate.
 
-struct MM_001_AuthorMappingAddDeposit;
+pub struct MM_001_AuthorMappingAddDeposit;
 impl Migration for MM_001_AuthorMappingAddDeposit {
-	fn friendly_name() -> str {
+	/*
+	fn friendly_name() -> &str {
 		"AuthorMappingAddDeposit"
 	}
+	*/
 }
 
-struct MM_002_StakingFixTotalBalance;
-impl Migration for StakingFixTotalBalance {
-	fn friendly_name() -> str {
+pub struct MM_002_StakingFixTotalBalance;
+impl Migration for MM_002_StakingFixTotalBalance {
+	/*
+	fn friendly_name() -> &str {
 		"StakingFixTotalBalance"
 	}
+	*/
 }
 
-struct MM_003_StakingTransitionBoundedSet; // TODO: better name
+pub struct MM_003_StakingTransitionBoundedSet; // TODO: better name
 impl Migration for MM_003_StakingTransitionBoundedSet {
-	fn friendly_name() -> str {
+	/*
+	fn friendly_name() -> &str {
 		"StakingTransitionBoundedSet"
 	}
+	*/
 }
