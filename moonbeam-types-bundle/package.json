@@ -24,8 +24,8 @@
     "url": "git+https://github.com/PureStake/moonbeam.git"
   },
   "dependencies": {
-    "@polkadot/keyring": "^6.6.1",
-    "@polkadot/types": "^4.12.1",
+    "@polkadot/keyring": "^6.8.1",
+    "@polkadot/types": "^4.14.1",
     "typescript": "^4.1.3"
   }
 }

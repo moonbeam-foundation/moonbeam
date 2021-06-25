@@ -7,7 +7,9 @@ name: Release
 
 # This is only allowing pushes on the moonbeam repo for pull requests.
 ####### DO NOT CHANGE THIS !! #######
-on: ["push"]
+on:
+  push:
+  workflow_dispatch:
 
 jobs:
   ####### Check files and formatting #######
@@ -94,7 +96,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        # Install sccache
       - uses: actions/cache@v2
         with:
           path: ${{ runner.tool_cache }}/cargo-sccache
@@ -104,17 +105,15 @@ jobs:
       # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
       - name: Setup Rust toolchain
         run: rustup show
-
-      - name: Install sccache
+      - name: SCCache
         run: |
           if [ ! -f ${{ runner.tool_cache }}/cargo-sccache/bin/sccache ]; then
             cargo install sccache --git https://github.com/paritytech/sccache.git --no-default-features --features=dist-client --root ${{ runner.tool_cache }}/cargo-sccache
           fi
-        shell: bash
-      - name: Start sccache
-        run: |
-          chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
-          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
+          if [[ -z `pgrep sccache` ]]; then
+            chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
+            ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
+          fi
           ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
           echo "RUSTC_WRAPPER=${{ runner.tool_cache }}/cargo-sccache/bin/sccache" >> $GITHUB_ENV
       - id: get-rust-versions
@@ -122,11 +121,15 @@ jobs:
           echo "::set-output name=rustc::$(rustc --version)"
       - name: Build Node
         run: cargo build --release --all
+      - name: Unit tests
+        run: cargo test --release --all
+      - name: Format code with rustfmt
+        run: cargo fmt -- --check
+
       # We determine whether there are unmodified Cargo.lock files by:
       # 1. Asking git for a list of all modified files
       # 2. Using grep to reduce the list to only Cargo.lock files
       # 3. Counting the number of lines of output
-
       - name: Check Cargo Toml
         run: |
           # Make sure git is working, and if not abort early. When git is not working it looks like:
@@ -146,13 +149,10 @@ jobs:
             echo $DIFF_INDEX | grep Cargo.lock
             false
           fi
+      - name: Check with Clippy
+        run: cargo clippy --release --workspace
       - name: Ensure benchmarking compiles
         run: cargo check --release --features=runtime-benchmarks
-      - name: Unit tests
-        run: cargo test --release --all
-      - name: Stop sccache
-        run: |
-          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --stop-server || true
       - name: Save parachain binary
         run: |
           mkdir -p build
@@ -162,10 +162,6 @@ jobs:
         with:
           name: moonbeam
           path: build
-      - name: Check with Clippy
-        run: cargo clippy --release --workspace
-      - name: Format code with rustfmt
-        run: cargo fmt -- --check
 
   typescript-tests:
     runs-on: self-hosted
