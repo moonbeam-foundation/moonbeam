@@ -27,6 +27,7 @@ jobs:
           SHA=sha-${COMMIT::8}
           TAGS="${DOCKER_IMAGE}:${VERSION}"
 
+          docker pull "${DOCKER_IMAGE}:${SHA}"
           docker image tag "${DOCKER_IMAGE}:${SHA}" "${DOCKER_IMAGE}:${VERSION}"
           docker push "${DOCKER_IMAGE}:${VERSION}"
 
