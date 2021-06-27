@@ -27,8 +27,8 @@ jobs:
         id: check-git-ref
         run: |
           if [[ -n "${{ github.event.inputs.pull_request }}" ]]; then
-            echo ::set-output name=git_ref::pull/${{ github.event.inputs.pull_request }}/head
-            echo "git_ref: pull/${{ github.event.inputs.pull_request }}/head"
+            echo ::set-output name=git_ref::refs/pull/${{ github.event.inputs.pull_request }}/head
+            echo "git_ref: refs/pull/${{ github.event.inputs.pull_request }}/head"
           fi
 
   check-copyright:
