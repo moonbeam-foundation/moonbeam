@@ -17,7 +17,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - run: |
-          DOCKER_IMAGE=purestake/moonbeam
+          DOCKER_IMAGE=crystalin/moonbeam-test
           VERSION=${{ github.event.inputs.tag }}
           COMMIT=`git rev-list -n 1 '${{ github.event.inputs.tag }} '`
           SHA=sha-${COMMIT::8}

@@ -250,7 +250,7 @@ jobs:
       - name: Prepare
         id: prep
         run: |
-          DOCKER_IMAGE=purestake/moonbase-parachain
+          DOCKER_IMAGE=crystalin/moonbase-parachain-test
           VERSION=noop
           if [ "${{ github.event_name }}" = "schedule" ]; then
             VERSION=nightly
@@ -317,7 +317,7 @@ jobs:
       - name: Prepare
         id: prep
         run: |
-          DOCKER_IMAGE=purestake/moonbeam
+          DOCKER_IMAGE=crystalin/moonbeam-test
           VERSION=noop
           if [ "${{ github.event_name }}" = "schedule" ]; then
             VERSION=nightly
