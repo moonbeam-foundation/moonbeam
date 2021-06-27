@@ -35,7 +35,7 @@
 //! the collator is removed from the pool of candidates so they cannot be selected for future
 //! collator sets, but they are not unstaked until `BondDuration` rounds later. The exit request is
 //! stored in the `ExitQueue` and processed `BondDuration` rounds later to unstake the collator
-//! and all of its nominators.
+//! and all of its nominations.
 //!
 //! To join the set of nominators, call `nominate` and pass in an account that is
 //! already a collator candidate and `bond >= MinNominatorStk`. Each nominator can nominate up to
