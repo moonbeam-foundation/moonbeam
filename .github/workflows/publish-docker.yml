@@ -22,22 +22,29 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - run: |
           DOCKER_IMAGE=purestake/moonbeam
-          VERSION=${{ github.event.inputs.tag }}
+          VERSION="${{ github.event.inputs.tag }}"
           COMMIT=`git rev-list -n 1 '${{ github.event.inputs.tag }}'`
           SHA=sha-${COMMIT::8}
-          TAGS="${DOCKER_IMAGE}:${VERSION}"
 
+          echo using "${DOCKER_IMAGE}:${SHA}"
           docker pull "${DOCKER_IMAGE}:${SHA}"
-          docker image tag "${DOCKER_IMAGE}:${SHA}" "${DOCKER_IMAGE}:${VERSION}"
+
+          echo tagging "${DOCKER_IMAGE}:${VERSION}"
+          docker tag "${DOCKER_IMAGE}:${SHA}" "${DOCKER_IMAGE}:${VERSION}"
           docker push "${DOCKER_IMAGE}:${VERSION}"
 
           if [[ $VERSION =~ ^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-            docker image tag "${DOCKER_IMAGE}:${SHA}" "${DOCKER_IMAGE}:${MINOR}"
+            MINOR=${VERSION%.*}
+            echo tagging "${DOCKER_IMAGE}:${MINOR}"
+            docker tag "${DOCKER_IMAGE}:${SHA}" "${DOCKER_IMAGE}:${MINOR}"
             docker push "${DOCKER_IMAGE}:${MINOR}"
 
-            docker image tag "${DOCKER_IMAGE}:${SHA}" "${DOCKER_IMAGE}:${MAJOR}"
+            MAJOR=${MINOR%.*}
+            echo tagging "${DOCKER_IMAGE}:${MAJOR}"
+            docker tag "${DOCKER_IMAGE}:${SHA}" "${DOCKER_IMAGE}:${MAJOR}"
             docker push "${DOCKER_IMAGE}:${MAJOR}"
 
-            docker image tag "${DOCKER_IMAGE}:${SHA}" "${DOCKER_IMAGE}:latest"
+            echo tagging "${DOCKER_IMAGE}:latest"
+            docker tag "${DOCKER_IMAGE}:${SHA}" "${DOCKER_IMAGE}:latest"
             docker push "${DOCKER_IMAGE}:latest"
           fi
