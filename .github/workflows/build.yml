@@ -8,6 +8,7 @@ name: Build
 # This is only allowing pushes on the moonbeam repo for pull requests.
 ####### DO NOT CHANGE THIS !! #######
 on:
+  push:
   workflow_dispatch:
     inputs:
       pull_request:
