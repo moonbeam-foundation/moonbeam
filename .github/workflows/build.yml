@@ -21,7 +21,7 @@ jobs:
   set-tags:
     runs-on: ubuntu-latest
     outputs:
-      git_ref: ${{ steps.check-input.git-ref.git_ref }}
+      git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
     steps:
       - name: Check git ref
         id: check-git-ref
