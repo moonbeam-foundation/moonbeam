@@ -222,11 +222,11 @@ jobs:
         with:
           node-version: 14.x
       - name: Generate release body
-        id: generate-release-body will be taken from the tag version, not master
+        id: generate-release-body
         run: |
           cd tools
           yarn
-          yarn -s run ts-node github/generate-release-body.ts --srtool-report-folder '../build/' > ../body.md will be taken from the tag version, not master
+          yarn -s run ts-node github/generate-release-body.ts --srtool-report-folder '../build/' > ../body.md
       - name: Get runtime version
         id: get-runtime-ver
         run: |
