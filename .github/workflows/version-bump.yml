@@ -1,0 +1,35 @@
+name: Create version bump ticket
+on:
+  workflow_dispatch:
+    inputs:
+      from:
+        description: "Polkadot version to bump from"
+        required: true
+      to:
+        description: "Polkadot version to bump to"
+        required: true
+
+jobs:
+  create_bump_ticket:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
+      - name: Generate version bump issue
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd tools
+          yarn install
+          yarn --silent run print-version-bump-info --from ${{ github.event.inputs.from }} --to ${{ github.event.inputs.to }} | tee ../version-bump.md
+      - name: Create version bump issue
+        uses: peter-evans/create-issue-from-file@v3
+        with:
+          title: Update substrate/polkadot/cumulus from ${{ github.event.inputs.from }} to ${{ github.event.inputs.to }}
+          content-filepath: ./version-bump.md
+          labels: |
+            automated issue

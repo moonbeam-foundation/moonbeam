@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 //! Unit testing
 use crate::mock::{
 	events, last_event, roll_to, set_author, Balances, Event as MetaEvent, ExtBuilder, Origin,
-	Stake, System, Test,
+	Stake, Test,
 };
 use crate::{CollatorStatus, Error, Event, NominatorAdded, Range};
 use frame_support::{assert_noop, assert_ok};
@@ -60,7 +60,7 @@ fn online_offline_works() {
 			assert_ok!(Stake::go_offline(Origin::signed(2)));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::CollatorWentOffline(3, 2))
+				MetaEvent::Stake(Event::CollatorWentOffline(3, 2))
 			);
 			roll_to(21);
 			let mut expected = vec![
@@ -84,7 +84,7 @@ fn online_offline_works() {
 			assert_ok!(Stake::go_online(Origin::signed(2)));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::CollatorBackOnline(5, 2))
+				MetaEvent::Stake(Event::CollatorBackOnline(5, 2))
 			);
 			expected.push(Event::CollatorBackOnline(5, 2));
 			roll_to(26);
@@ -101,7 +101,7 @@ fn can_join_candidates_with_valid_bond() {
 		.with_balances(vec![(1, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::join_candidates(Origin::signed(1), 10u128,));
+			assert_ok!(Stake::join_candidates(Origin::signed(1), 10u128, 100u32));
 		});
 }
 
@@ -113,7 +113,7 @@ fn cannot_join_candidates_if_candidate() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				Stake::join_candidates(Origin::signed(1), 11u128,),
+				Stake::join_candidates(Origin::signed(1), 11u128, 100u32),
 				Error::<Test>::CandidateExists
 			);
 		});
@@ -128,7 +128,7 @@ fn cannot_join_candidates_if_nominator() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				Stake::join_candidates(Origin::signed(2), 11u128,),
+				Stake::join_candidates(Origin::signed(2), 11u128, 100u32),
 				Error::<Test>::NominatorExists
 			);
 		});
@@ -141,7 +141,7 @@ fn cannot_join_candidates_without_min_bond() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				Stake::join_candidates(Origin::signed(1), 9u128,),
+				Stake::join_candidates(Origin::signed(1), 9u128, 100u32),
 				Error::<Test>::ValBondBelowMin
 			);
 		});
@@ -154,7 +154,7 @@ fn cannot_join_candidates_with_more_than_available_balance() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				Stake::join_candidates(Origin::signed(8), 501u128,),
+				Stake::join_candidates(Origin::signed(1), 501u128, 100u32),
 				DispatchError::Module {
 					index: 1,
 					error: 2,
@@ -182,10 +182,10 @@ fn join_candidates_emits_correct_event() {
 		.with_nominations(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::join_candidates(Origin::signed(7), 10u128,));
+			assert_ok!(Stake::join_candidates(Origin::signed(7), 10u128, 100u32));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::JoinedCollatorCandidates(7, 10u128, 1110u128))
+				MetaEvent::Stake(Event::JoinedCollatorCandidates(7, 10u128, 1110u128))
 			);
 		});
 }
@@ -210,14 +210,14 @@ fn collator_exit_executes_after_delay() {
 		.execute_with(|| {
 			roll_to(4);
 			assert_noop!(
-				Stake::leave_candidates(Origin::signed(3)),
+				Stake::leave_candidates(Origin::signed(3), 2),
 				Error::<Test>::CandidateDNE
 			);
 			roll_to(11);
-			assert_ok!(Stake::leave_candidates(Origin::signed(2)));
+			assert_ok!(Stake::leave_candidates(Origin::signed(2), 2));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::CollatorScheduledExit(3, 2, 5))
+				MetaEvent::Stake(Event::CollatorScheduledExit(3, 2, 5))
 			);
 			let info = Stake::collator_state2(&2).unwrap();
 			assert_eq!(info.state, CollatorStatus::Leaving(5));
@@ -271,16 +271,16 @@ fn collator_selection_chooses_top_candidates() {
 				Event::NewRound(5, 2, 5, 400),
 			];
 			assert_eq!(events(), expected);
-			assert_ok!(Stake::leave_candidates(Origin::signed(6)));
+			assert_ok!(Stake::leave_candidates(Origin::signed(6), 6));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::CollatorScheduledExit(2, 6, 4))
+				MetaEvent::Stake(Event::CollatorScheduledExit(2, 6, 4))
 			);
 			roll_to(21);
-			assert_ok!(Stake::join_candidates(Origin::signed(6), 69u128));
+			assert_ok!(Stake::join_candidates(Origin::signed(6), 69u128, 100u32));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::JoinedCollatorCandidates(6, 69u128, 469u128))
+				MetaEvent::Stake(Event::JoinedCollatorCandidates(6, 69u128, 469u128))
 			);
 			roll_to(27);
 			// should choose top TotalSelectedCandidates (5), in order
@@ -351,25 +351,25 @@ fn exit_queue() {
 				Event::NewRound(5, 2, 5, 400),
 			];
 			assert_eq!(events(), expected);
-			assert_ok!(Stake::leave_candidates(Origin::signed(6)));
+			assert_ok!(Stake::leave_candidates(Origin::signed(6), 6));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::CollatorScheduledExit(2, 6, 4))
+				MetaEvent::Stake(Event::CollatorScheduledExit(2, 6, 4))
 			);
 			roll_to(11);
-			assert_ok!(Stake::leave_candidates(Origin::signed(5)));
+			assert_ok!(Stake::leave_candidates(Origin::signed(5), 5));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::CollatorScheduledExit(3, 5, 5))
+				MetaEvent::Stake(Event::CollatorScheduledExit(3, 5, 5))
 			);
 			roll_to(16);
-			assert_ok!(Stake::leave_candidates(Origin::signed(4)));
+			assert_ok!(Stake::leave_candidates(Origin::signed(4), 4));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::CollatorScheduledExit(4, 4, 6))
+				MetaEvent::Stake(Event::CollatorScheduledExit(4, 4, 6))
 			);
 			assert_noop!(
-				Stake::leave_candidates(Origin::signed(4)),
+				Stake::leave_candidates(Origin::signed(4), 3),
 				Error::<Test>::AlreadyLeaving
 			);
 			roll_to(21);
@@ -536,14 +536,14 @@ fn collator_commission() {
 				Event::NewRound(5, 2, 1, 40),
 			];
 			assert_eq!(events(), expected);
-			assert_ok!(Stake::join_candidates(Origin::signed(4), 20u128));
+			assert_ok!(Stake::join_candidates(Origin::signed(4), 20u128, 100u32));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::JoinedCollatorCandidates(4, 20u128, 60u128))
+				MetaEvent::Stake(Event::JoinedCollatorCandidates(4, 20u128, 60u128))
 			);
 			roll_to(9);
-			assert_ok!(Stake::nominate(Origin::signed(5), 4, 10));
-			assert_ok!(Stake::nominate(Origin::signed(6), 4, 10));
+			assert_ok!(Stake::nominate(Origin::signed(5), 4, 10, 10, 10));
+			assert_ok!(Stake::nominate(Origin::signed(6), 4, 10, 10, 10));
 			roll_to(11);
 			let mut new = vec![
 				Event::JoinedCollatorCandidates(4, 20, 60),
@@ -613,18 +613,18 @@ fn multiple_nominations() {
 			];
 			assert_eq!(events(), expected);
 			assert_noop!(
-				Stake::nominate(Origin::signed(6), 1, 10),
+				Stake::nominate(Origin::signed(6), 1, 10, 10, 10),
 				Error::<Test>::AlreadyNominatedCollator,
 			);
 			assert_noop!(
-				Stake::nominate(Origin::signed(6), 2, 2),
+				Stake::nominate(Origin::signed(6), 2, 2, 10, 10),
 				Error::<Test>::NominationBelowMin,
 			);
-			assert_ok!(Stake::nominate(Origin::signed(6), 2, 10));
-			assert_ok!(Stake::nominate(Origin::signed(6), 3, 10));
-			assert_ok!(Stake::nominate(Origin::signed(6), 4, 10));
+			assert_ok!(Stake::nominate(Origin::signed(6), 2, 10, 10, 10));
+			assert_ok!(Stake::nominate(Origin::signed(6), 3, 10, 10, 10));
+			assert_ok!(Stake::nominate(Origin::signed(6), 4, 10, 10, 10));
 			assert_noop!(
-				Stake::nominate(Origin::signed(6), 5, 10),
+				Stake::nominate(Origin::signed(6), 5, 10, 10, 10),
 				Error::<Test>::ExceedMaxCollatorsPerNom,
 			);
 			roll_to(16);
@@ -648,9 +648,9 @@ fn multiple_nominations() {
 			expected.append(&mut new);
 			assert_eq!(events(), expected);
 			roll_to(21);
-			assert_ok!(Stake::nominate(Origin::signed(7), 2, 80));
+			assert_ok!(Stake::nominate(Origin::signed(7), 2, 80, 10, 10));
 			assert_noop!(
-				Stake::nominate(Origin::signed(7), 3, 11),
+				Stake::nominate(Origin::signed(7), 3, 11, 10, 10),
 				DispatchError::Module {
 					index: 1,
 
@@ -658,7 +658,7 @@ fn multiple_nominations() {
 					message: Some("InsufficientBalance")
 				},
 			);
-			assert_ok!(Stake::nominate(Origin::signed(10), 2, 10),);
+			assert_ok!(Stake::nominate(Origin::signed(10), 2, 10, 10, 10),);
 			roll_to(26);
 			let mut new2 = vec![
 				Event::CollatorChosen(5, 2, 50),
@@ -678,10 +678,10 @@ fn multiple_nominations() {
 			];
 			expected.append(&mut new2);
 			assert_eq!(events(), expected);
-			assert_ok!(Stake::leave_candidates(Origin::signed(2)));
+			assert_ok!(Stake::leave_candidates(Origin::signed(2), 5));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::CollatorScheduledExit(6, 2, 8))
+				MetaEvent::Stake(Event::CollatorScheduledExit(6, 2, 8))
 			);
 			roll_to(31);
 			let mut new3 = vec![
@@ -770,7 +770,7 @@ fn collators_bond() {
 					message: Some("InsufficientBalance")
 				}
 			);
-			assert_ok!(Stake::leave_candidates(Origin::signed(1)));
+			assert_ok!(Stake::leave_candidates(Origin::signed(1), 5));
 			assert_noop!(
 				Stake::candidate_bond_more(Origin::signed(1), 30),
 				Error::<Test>::CannotActivateIfLeaving
@@ -882,7 +882,7 @@ fn nominators_bond() {
 			);
 			roll_to(9);
 			assert_eq!(Balances::reserved_balance(&6), 20);
-			assert_ok!(Stake::leave_candidates(Origin::signed(1)));
+			assert_ok!(Stake::leave_candidates(Origin::signed(1), 5));
 			assert_eq!(Stake::total(), total);
 			roll_to(31);
 			total -= 60;
@@ -928,11 +928,11 @@ fn revoke_nomination_or_leave_nominators() {
 				Error::<Test>::NominationDNE
 			);
 			assert_noop!(
-				Stake::leave_nominators(Origin::signed(1)),
+				Stake::leave_nominators(Origin::signed(1), 10),
 				Error::<Test>::NominatorDNE
 			);
-			assert_ok!(Stake::nominate(Origin::signed(6), 2, 3));
-			assert_ok!(Stake::nominate(Origin::signed(6), 3, 3));
+			assert_ok!(Stake::nominate(Origin::signed(6), 2, 3, 10, 10));
+			assert_ok!(Stake::nominate(Origin::signed(6), 3, 3, 10, 10));
 			assert_ok!(Stake::revoke_nomination(Origin::signed(6), 1));
 			// cannot revoke nomination because would leave remaining total below MinNominatorStk
 			assert_noop!(
@@ -944,9 +944,187 @@ fn revoke_nomination_or_leave_nominators() {
 				Error::<Test>::NomBondBelowMin
 			);
 			// can revoke both remaining by calling leave nominators
-			assert_ok!(Stake::leave_nominators(Origin::signed(6)));
+			assert_ok!(Stake::leave_nominators(Origin::signed(6), 10));
 			// this leads to 8 leaving set of nominators
 			assert_ok!(Stake::revoke_nomination(Origin::signed(8), 2));
+		});
+}
+
+#[test]
+fn insufficient_join_candidates_weight_hint_fails() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.build()
+		.execute_with(|| {
+			for i in 0..5 {
+				assert_noop!(
+					Stake::join_candidates(Origin::signed(6), 20, i),
+					Error::<Test>::TooLowCandidateCountWeightHintJoinCandidates
+				);
+			}
+		});
+}
+
+#[test]
+fn sufficient_join_candidates_weight_hint_succeeds() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 20),
+			(2, 20),
+			(3, 20),
+			(4, 20),
+			(5, 20),
+			(6, 20),
+			(7, 20),
+			(8, 20),
+			(9, 20),
+		])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.build()
+		.execute_with(|| {
+			let mut count = 5u32;
+			for i in 6..10 {
+				assert_ok!(Stake::join_candidates(Origin::signed(i), 20, count));
+				count += 1u32;
+			}
+		});
+}
+
+#[test]
+fn insufficient_leave_candidates_weight_hint_fails() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.build()
+		.execute_with(|| {
+			for i in 1..6 {
+				assert_noop!(
+					Stake::leave_candidates(Origin::signed(i), 4u32),
+					Error::<Test>::TooLowCollatorCandidateCountToLeaveCandidates
+				);
+			}
+		});
+}
+
+#[test]
+fn sufficient_leave_candidates_weight_hint_succeeds() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.build()
+		.execute_with(|| {
+			let mut count = 5u32;
+			for i in 1..6 {
+				assert_ok!(Stake::leave_candidates(Origin::signed(i), count));
+				count -= 1u32;
+			}
+		});
+}
+
+#[test]
+fn sufficient_nominate_weight_hint_succeeds() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 20),
+			(2, 20),
+			(3, 20),
+			(4, 20),
+			(5, 20),
+			(6, 20),
+			(7, 20),
+			(8, 20),
+			(9, 20),
+			(10, 20),
+		])
+		.with_candidates(vec![(1, 20), (2, 20)])
+		.with_nominations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
+		.build()
+		.execute_with(|| {
+			let mut count = 4u32;
+			for i in 7..11 {
+				assert_ok!(Stake::nominate(Origin::signed(i), 1, 10, count, 0u32));
+				count += 1u32;
+			}
+			let mut count = 0u32;
+			for i in 3..11 {
+				assert_ok!(Stake::nominate(Origin::signed(i), 2, 10, count, 1u32));
+				count += 1u32;
+			}
+		});
+}
+
+#[test]
+fn insufficient_nominate_weight_hint_fails() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 20),
+			(2, 20),
+			(3, 20),
+			(4, 20),
+			(5, 20),
+			(6, 20),
+			(7, 20),
+			(8, 20),
+			(9, 20),
+			(10, 20),
+		])
+		.with_candidates(vec![(1, 20), (2, 20)])
+		.with_nominations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
+		.build()
+		.execute_with(|| {
+			let mut count = 3u32;
+			for i in 7..11 {
+				assert_noop!(
+					Stake::nominate(Origin::signed(i), 1, 10, count, 0u32),
+					Error::<Test>::TooLowCollatorNominationCountToNominate
+				);
+			}
+			// to set up for next error test
+			count = 4u32;
+			for i in 7..11 {
+				assert_ok!(Stake::nominate(Origin::signed(i), 1, 10, count, 0u32));
+				count += 1u32;
+			}
+			count = 0u32;
+			for i in 3..11 {
+				assert_noop!(
+					Stake::nominate(Origin::signed(i), 2, 10, count, 0u32),
+					Error::<Test>::TooLowNominationCountToNominate
+				);
+				count += 1u32;
+			}
+		});
+}
+
+#[test]
+fn insufficient_leave_nominators_weight_hint_fails() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
+		.with_candidates(vec![(1, 20)])
+		.with_nominations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
+		.build()
+		.execute_with(|| {
+			for i in 3..7 {
+				assert_noop!(
+					Stake::leave_nominators(Origin::signed(i), 0u32),
+					Error::<Test>::TooLowNominationCountToLeaveNominators
+				);
+			}
+		});
+}
+
+#[test]
+fn sufficient_leave_nominators_weight_hint_succeeds() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
+		.with_candidates(vec![(1, 20)])
+		.with_nominations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
+		.build()
+		.execute_with(|| {
+			for i in 3..7 {
+				assert_ok!(Stake::leave_nominators(Origin::signed(i), 1u32),);
+			}
 		});
 }
 
@@ -1015,10 +1193,10 @@ fn payouts_follow_nomination_changes() {
 			set_author(4, 1, 100);
 			// 1. ensure nominators are paid for 2 rounds after they leave
 			assert_noop!(
-				Stake::leave_nominators(Origin::signed(66)),
+				Stake::leave_nominators(Origin::signed(66), 10),
 				Error::<Test>::NominatorDNE
 			);
-			assert_ok!(Stake::leave_nominators(Origin::signed(6)));
+			assert_ok!(Stake::leave_nominators(Origin::signed(6), 10));
 			roll_to(21);
 			// keep paying 6 (note: inflation is in terms of total issuance so that's why 1 is 21)
 			let mut new2 = vec![
@@ -1072,7 +1250,7 @@ fn payouts_follow_nomination_changes() {
 			expected.append(&mut new4);
 			assert_eq!(events(), expected);
 			set_author(7, 1, 100);
-			assert_ok!(Stake::nominate(Origin::signed(8), 1, 10));
+			assert_ok!(Stake::nominate(Origin::signed(8), 1, 10, 10, 10));
 			roll_to(36);
 			// new nomination is not rewarded yet
 			let mut new5 = vec![
@@ -1129,7 +1307,7 @@ fn payouts_follow_nomination_changes() {
 fn bottom_nominations_are_empty_when_top_nominations_not_full() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 10), (3, 10), (4, 10), (5, 10)])
-		.with_collators(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
 		.build()
 		.execute_with(|| {
 			// no top nominators => no bottom nominators
@@ -1137,22 +1315,22 @@ fn bottom_nominations_are_empty_when_top_nominations_not_full() {
 			assert!(collator_state.top_nominators.is_empty());
 			assert!(collator_state.bottom_nominators.is_empty());
 			// 1 nominator => 1 top nominator, 0 bottom nominators
-			assert_ok!(Stake::nominate(Origin::signed(2), 1, 10));
+			assert_ok!(Stake::nominate(Origin::signed(2), 1, 10, 10, 10));
 			let collator_state = Stake::collator_state2(1).unwrap();
 			assert!(collator_state.top_nominators.len() == 1usize);
 			assert!(collator_state.bottom_nominators.is_empty());
 			// 2 nominators => 2 top nominators, 0 bottom nominators
-			assert_ok!(Stake::nominate(Origin::signed(3), 1, 10));
+			assert_ok!(Stake::nominate(Origin::signed(3), 1, 10, 10, 10));
 			let collator_state = Stake::collator_state2(1).unwrap();
 			assert!(collator_state.top_nominators.len() == 2usize);
 			assert!(collator_state.bottom_nominators.is_empty());
 			// 3 nominators => 3 top nominators, 0 bottom nominators
-			assert_ok!(Stake::nominate(Origin::signed(4), 1, 10));
+			assert_ok!(Stake::nominate(Origin::signed(4), 1, 10, 10, 10));
 			let collator_state = Stake::collator_state2(1).unwrap();
 			assert!(collator_state.top_nominators.len() == 3usize);
 			assert!(collator_state.bottom_nominators.is_empty());
 			// 4 nominators => 4 top nominators, 0 bottom nominators
-			assert_ok!(Stake::nominate(Origin::signed(5), 1, 10));
+			assert_ok!(Stake::nominate(Origin::signed(5), 1, 10, 10, 10));
 			let collator_state = Stake::collator_state2(1).unwrap();
 			assert!(collator_state.top_nominators.len() == 4usize);
 			assert!(collator_state.bottom_nominators.is_empty());
@@ -1174,7 +1352,7 @@ fn candidate_pool_updates_when_total_counted_changes() {
 			(9, 17),
 			(10, 18),
 		])
-		.with_collators(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
 		.with_nominations(vec![
 			(3, 1, 11),
 			(4, 1, 12),
@@ -1227,7 +1405,7 @@ fn only_top_collators_are_counted() {
 			(9, 17),
 			(10, 18),
 		])
-		.with_collators(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
 		.with_nominations(vec![
 			(3, 1, 11),
 			(4, 1, 12),
@@ -1319,7 +1497,7 @@ fn nomination_events_convey_correct_position() {
 			(9, 100),
 			(10, 100),
 		])
-		.with_collators(vec![(1, 20), (2, 20)])
+		.with_candidates(vec![(1, 20), (2, 20)])
 		.with_nominations(vec![(3, 1, 11), (4, 1, 12), (5, 1, 13), (6, 1, 14)])
 		.build()
 		.execute_with(|| {
@@ -1328,7 +1506,7 @@ fn nomination_events_convey_correct_position() {
 			assert_eq!(collator1_state.total_counted, 70);
 			assert_eq!(collator1_state.total_counted, collator1_state.total_backing);
 			// Top nominations are full, new highest nomination is made
-			assert_ok!(Stake::nominate(Origin::signed(7), 1, 15));
+			assert_ok!(Stake::nominate(Origin::signed(7), 1, 15, 10, 10));
 			let mut expected_events = Vec::new();
 			expected_events.push(Event::Nomination(
 				7,
@@ -1346,7 +1524,7 @@ fn nomination_events_convey_correct_position() {
 				collator1_state.total_backing
 			);
 			// New nomination is added to the bottom
-			assert_ok!(Stake::nominate(Origin::signed(8), 1, 10));
+			assert_ok!(Stake::nominate(Origin::signed(8), 1, 10, 10, 10));
 			expected_events.push(Event::Nomination(8, 10, 1, NominatorAdded::AddedToBottom));
 			assert_eq!(events(), expected_events);
 			let collator1_state = Stake::collator_state2(1).unwrap();
@@ -1482,10 +1660,10 @@ fn parachain_bond_reserve_works() {
 			set_author(4, 1, 100);
 			// 1. ensure nominators are paid for 2 rounds after they leave
 			assert_noop!(
-				Stake::leave_nominators(Origin::signed(66)),
+				Stake::leave_nominators(Origin::signed(66), 10),
 				Error::<Test>::NominatorDNE
 			);
-			assert_ok!(Stake::leave_nominators(Origin::signed(6)));
+			assert_ok!(Stake::leave_nominators(Origin::signed(6), 10));
 			roll_to(21);
 			// keep paying 6 (note: inflation is in terms of total issuance so that's why 1 is 21)
 			let mut new2 = vec![
@@ -1553,7 +1731,7 @@ fn parachain_bond_reserve_works() {
 			assert_eq!(events(), expected);
 			assert_eq!(Balances::free_balance(&11), 88);
 			set_author(7, 1, 100);
-			assert_ok!(Stake::nominate(Origin::signed(8), 1, 10));
+			assert_ok!(Stake::nominate(Origin::signed(8), 1, 10, 10, 10));
 			roll_to(36);
 			// new nomination is not rewarded yet
 			let mut new5 = vec![
@@ -1637,7 +1815,7 @@ fn set_staking_expectations_works() {
 		// verify event emission
 		assert_eq!(
 			last_event(),
-			MetaEvent::stake(Event::StakeExpectationsSet(min, ideal, max))
+			MetaEvent::Stake(Event::StakeExpectationsSet(min, ideal, max))
 		);
 		// verify storage change
 		let config = Stake::inflation_config();
@@ -1673,7 +1851,7 @@ fn set_inflation_works() {
 		// verify event emission
 		assert_eq!(
 			last_event(),
-			MetaEvent::stake(Event::InflationSet(
+			MetaEvent::Stake(Event::InflationSet(
 				Perbill::from_parts(30000000),
 				Perbill::from_parts(40000000),
 				Perbill::from_parts(50000000),
@@ -1714,7 +1892,7 @@ fn set_total_selected_works() {
 		// verify event emission
 		assert_eq!(
 			last_event(),
-			MetaEvent::stake(Event::TotalSelectedSet(5u32, 6u32,))
+			MetaEvent::Stake(Event::TotalSelectedSet(5u32, 6u32,))
 		);
 		// verify storage change
 		assert_eq!(Stake::total_selected(), 6u32);
@@ -1737,7 +1915,7 @@ fn set_collator_commission_works() {
 		// verify event emission
 		assert_eq!(
 			last_event(),
-			MetaEvent::stake(Event::CollatorCommissionSet(
+			MetaEvent::Stake(Event::CollatorCommissionSet(
 				Perbill::from_percent(20),
 				Perbill::from_percent(5),
 			))
@@ -1787,7 +1965,7 @@ fn mutable_blocks_per_round() {
 			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::BlocksPerRoundSet(
+				MetaEvent::Stake(Event::BlocksPerRoundSet(
 					2,
 					5,
 					5,
@@ -1800,7 +1978,7 @@ fn mutable_blocks_per_round() {
 			roll_to(12);
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::NewRound(11, 4, 1, 40))
+				MetaEvent::Stake(Event::NewRound(12, 4, 1, 40))
 			);
 		});
 	// round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round
@@ -1826,7 +2004,7 @@ fn mutable_blocks_per_round() {
 			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::BlocksPerRoundSet(
+				MetaEvent::Stake(Event::BlocksPerRoundSet(
 					2,
 					5,
 					5,
@@ -1839,7 +2017,7 @@ fn mutable_blocks_per_round() {
 			roll_to(13);
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::NewRound(12, 4, 1, 40))
+				MetaEvent::Stake(Event::NewRound(13, 4, 1, 40))
 			);
 		});
 	// if current duration less than new blocks per round (bpr), round waits until new bpr passes
@@ -1867,7 +2045,7 @@ fn mutable_blocks_per_round() {
 			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
 			assert_eq!(
 				last_event(),
-				MetaEvent::stake(Event::BlocksPerRoundSet(
+				MetaEvent::Stake(Event::BlocksPerRoundSet(
 					2,
 					5,
 					5,
@@ -1878,6 +2056,6 @@ fn mutable_blocks_per_round() {
 				))
 			);
 			roll_to(9);
-			assert_eq!(last_event(), MetaEvent::stake(Event::NewRound(8, 3, 1, 40)));
+			assert_eq!(last_event(), MetaEvent::Stake(Event::NewRound(8, 3, 1, 40)));
 		});
 }

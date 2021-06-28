@@ -1,0 +1,50 @@
+name: Publish Docker
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: tag (ex. v0.8.3) to publish on docker
+        required: true
+
+jobs:
+  tag-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - run: |
+          DOCKER_IMAGE=purestake/moonbeam
+          VERSION="${{ github.event.inputs.tag }}"
+          COMMIT=`git rev-list -n 1 '${{ github.event.inputs.tag }}'`
+          SHA=sha-${COMMIT::8}
+
+          echo using "${DOCKER_IMAGE}:${SHA}"
+          docker pull "${DOCKER_IMAGE}:${SHA}"
+
+          echo tagging "${DOCKER_IMAGE}:${VERSION}"
+          docker tag "${DOCKER_IMAGE}:${SHA}" "${DOCKER_IMAGE}:${VERSION}"
+          docker push "${DOCKER_IMAGE}:${VERSION}"
+
+          if [[ $VERSION =~ ^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+            MINOR=${VERSION%.*}
+            echo tagging "${DOCKER_IMAGE}:${MINOR}"
+            docker tag "${DOCKER_IMAGE}:${SHA}" "${DOCKER_IMAGE}:${MINOR}"
+            docker push "${DOCKER_IMAGE}:${MINOR}"
+
+            MAJOR=${MINOR%.*}
+            echo tagging "${DOCKER_IMAGE}:${MAJOR}"
+            docker tag "${DOCKER_IMAGE}:${SHA}" "${DOCKER_IMAGE}:${MAJOR}"
+            docker push "${DOCKER_IMAGE}:${MAJOR}"
+
+            echo tagging "${DOCKER_IMAGE}:latest"
+            docker tag "${DOCKER_IMAGE}:${SHA}" "${DOCKER_IMAGE}:latest"
+            docker push "${DOCKER_IMAGE}:latest"
+          fi

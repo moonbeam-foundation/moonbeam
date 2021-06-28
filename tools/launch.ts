@@ -43,6 +43,11 @@ const parachains: { [name: string]: ParachainConfig } = {
     chain: "moonriver-local",
     docker: "purestake/moonbeam:sha-153c4c4a",
   },
+  "alphanet-8.2": {
+    relay: "rococo-9004",
+    chain: "moonbase-local",
+    docker: "purestake/moonbeam:v0.8.2",
+  },
   "alphanet-8.1": {
     relay: "rococo-9004",
     chain: "moonbase-local",
