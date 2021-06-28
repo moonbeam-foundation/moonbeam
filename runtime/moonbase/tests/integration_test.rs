@@ -74,7 +74,7 @@ fn join_collator_candidates() {
 			));
 			assert_eq!(
 				last_event(),
-				Event::parachain_staking(parachain_staking::Event::JoinedCollatorCandidates(
+				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates(
 					AccountId::from(DAVE),
 					1_000 * UNITS,
 					3_100 * UNITS
@@ -325,7 +325,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			);
 			// 30 percent initial payout
 			assert_eq!(Balances::balance(&AccountId::from(DAVE)), 450_000 * UNITS);
-			let expected = Event::pallet_utility(pallet_utility::Event::BatchCompleted);
+			let expected = Event::Utility(pallet_utility::Event::BatchCompleted);
 			assert_eq!(last_event(), expected);
 			// This one should fail, as we already filled our data
 			assert_ok!(Call::Utility(pallet_utility::Call::<Runtime>::batch(vec![
@@ -338,7 +338,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				)
 			]))
 			.dispatch(root_origin()));
-			let expected_fail = Event::pallet_utility(pallet_utility::Event::BatchInterrupted(
+			let expected_fail = Event::Utility(pallet_utility::Event::BatchInterrupted(
 				0,
 				DispatchError::Module {
 					index: 20,
@@ -418,16 +418,16 @@ fn join_candidates_via_precompile() {
 
 			// Check for the right events.
 			let expected_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Reserved(
+				Event::Balances(pallet_balances::Event::Reserved(
 					AccountId::from(ALICE),
 					1000 * UNITS,
 				)),
-				Event::parachain_staking(parachain_staking::Event::JoinedCollatorCandidates(
+				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates(
 					AccountId::from(ALICE),
 					1000 * UNITS,
 					1000 * UNITS,
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -474,12 +474,12 @@ fn leave_candidates_via_precompile() {
 
 			// Check for the right events.
 			let expected_events = vec![
-				Event::parachain_staking(parachain_staking::Event::CollatorScheduledExit(
+				Event::ParachainStaking(parachain_staking::Event::CollatorScheduledExit(
 					1,
 					AccountId::from(ALICE),
 					3,
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -526,11 +526,11 @@ fn go_online_offline_via_precompile() {
 
 			// Check for the right events.
 			let mut expected_events = vec![
-				Event::parachain_staking(parachain_staking::Event::CollatorWentOffline(
+				Event::ParachainStaking(parachain_staking::Event::CollatorWentOffline(
 					1,
 					AccountId::from(ALICE),
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -560,11 +560,11 @@ fn go_online_offline_via_precompile() {
 
 			// Check for the right events.
 			let mut new_events = vec![
-				Event::parachain_staking(parachain_staking::Event::CollatorBackOnline(
+				Event::ParachainStaking(parachain_staking::Event::CollatorBackOnline(
 					1,
 					AccountId::from(ALICE),
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -614,16 +614,16 @@ fn candidate_bond_more_less_via_precompile() {
 
 			// Check for the right events.
 			let mut expected_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Reserved(
+				Event::Balances(pallet_balances::Event::Reserved(
 					AccountId::from(ALICE),
 					1_000 * UNITS,
 				)),
-				Event::parachain_staking(parachain_staking::Event::CollatorBondedMore(
+				Event::ParachainStaking(parachain_staking::Event::CollatorBondedMore(
 					AccountId::from(ALICE),
 					1_000 * UNITS,
 					2_000 * UNITS,
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -655,16 +655,16 @@ fn candidate_bond_more_less_via_precompile() {
 
 			// Check for the right events.
 			let mut new_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Unreserved(
+				Event::Balances(pallet_balances::Event::Unreserved(
 					AccountId::from(ALICE),
 					500 * UNITS,
 				)),
-				Event::parachain_staking(parachain_staking::Event::CollatorBondedLess(
+				Event::ParachainStaking(parachain_staking::Event::CollatorBondedLess(
 					AccountId::from(ALICE),
 					2_000 * UNITS,
 					1_500 * UNITS,
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -723,11 +723,11 @@ fn nominate_via_precompile() {
 
 			// Check for the right events.
 			let expected_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Reserved(
+				Event::Balances(pallet_balances::Event::Reserved(
 					AccountId::from(BOB),
 					1000 * UNITS,
 				)),
-				Event::parachain_staking(parachain_staking::Event::Nomination(
+				Event::ParachainStaking(parachain_staking::Event::Nomination(
 					AccountId::from(BOB),
 					1000 * UNITS,
 					AccountId::from(ALICE),
@@ -735,7 +735,7 @@ fn nominate_via_precompile() {
 						new_total: 2000 * UNITS,
 					},
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -802,31 +802,31 @@ fn leave_nominators_via_precompile() {
 
 			// Check for the right events.
 			let expected_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Unreserved(
+				Event::Balances(pallet_balances::Event::Unreserved(
 					AccountId::from(CHARLIE),
 					500 * UNITS,
 				)),
-				Event::parachain_staking(parachain_staking::Event::NominatorLeftCollator(
+				Event::ParachainStaking(parachain_staking::Event::NominatorLeftCollator(
 					AccountId::from(CHARLIE),
 					AccountId::from(ALICE),
 					500 * UNITS,
 					1_000 * UNITS,
 				)),
-				Event::pallet_balances(pallet_balances::Event::Unreserved(
+				Event::Balances(pallet_balances::Event::Unreserved(
 					AccountId::from(CHARLIE),
 					500 * UNITS,
 				)),
-				Event::parachain_staking(parachain_staking::Event::NominatorLeftCollator(
+				Event::ParachainStaking(parachain_staking::Event::NominatorLeftCollator(
 					AccountId::from(CHARLIE),
 					AccountId::from(BOB),
 					500 * UNITS,
 					1_000 * UNITS,
 				)),
-				Event::parachain_staking(parachain_staking::Event::NominatorLeft(
+				Event::ParachainStaking(parachain_staking::Event::NominatorLeft(
 					AccountId::from(CHARLIE),
 					1_000 * UNITS,
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -892,17 +892,17 @@ fn revoke_nomination_via_precompile() {
 
 			// Check for the right events.
 			let expected_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Unreserved(
+				Event::Balances(pallet_balances::Event::Unreserved(
 					AccountId::from(CHARLIE),
 					500 * UNITS,
 				)),
-				Event::parachain_staking(parachain_staking::Event::NominatorLeftCollator(
+				Event::ParachainStaking(parachain_staking::Event::NominatorLeftCollator(
 					AccountId::from(CHARLIE),
 					AccountId::from(ALICE),
 					500 * UNITS,
 					1_000 * UNITS,
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -960,18 +960,18 @@ fn nominator_bond_more_less_via_precompile() {
 
 			// Check for the right events.
 			let mut expected_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Reserved(
+				Event::Balances(pallet_balances::Event::Reserved(
 					AccountId::from(BOB),
 					500 * UNITS,
 				)),
-				Event::parachain_staking(parachain_staking::Event::NominationIncreased(
+				Event::ParachainStaking(parachain_staking::Event::NominationIncreased(
 					AccountId::from(BOB),
 					AccountId::from(ALICE),
 					1_500 * UNITS,
 					true,
 					2_000 * UNITS,
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -1004,18 +1004,18 @@ fn nominator_bond_more_less_via_precompile() {
 
 			// Check for the right events.
 			let mut new_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Unreserved(
+				Event::Balances(pallet_balances::Event::Unreserved(
 					AccountId::from(BOB),
 					500 * UNITS,
 				)),
-				Event::parachain_staking(parachain_staking::Event::NominationDecreased(
+				Event::ParachainStaking(parachain_staking::Event::NominationDecreased(
 					AccountId::from(BOB),
 					AccountId::from(ALICE),
 					2_000 * UNITS,
 					true,
 					1_500 * UNITS,
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
