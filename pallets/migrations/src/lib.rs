@@ -160,7 +160,9 @@ pub mod pallet {
 					done = false;
 				}
 
-				<MigrationState<T>>::insert(migration_name, updated_progress);
+				if migration_state != updated_progress {
+					<MigrationState<T>>::insert(migration_name, updated_progress);
+				}
 			}
 
 		}
