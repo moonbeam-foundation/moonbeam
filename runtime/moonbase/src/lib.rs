@@ -31,7 +31,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, match_type, parameter_types,
-	traits::{All, Get, Imbalance, InstanceFilter, OnUnbalanced, OriginTrait},
+	traits::{All, Get, Imbalance, InstanceFilter, OnUnbalanced, OriginTrait, tokens::fungibles},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
 		IdentityFee, Weight,
@@ -269,6 +269,59 @@ impl pallet_sudo::Config for Runtime {
 }
 
 impl pallet_ethereum_chain_id::Config for Runtime {}
+
+pub struct AccountIdToMultiLocation;
+impl sp_runtime::traits::Convert<AccountId, MultiLocation> for AccountIdToMultiLocation {
+	fn convert(account: AccountId) -> MultiLocation {
+		MultiLocation::X1(Junction::AccountKey20 {
+			network: NetworkId::Any,
+			key: account.into(),
+		})
+	}
+}
+
+use sp_std::{prelude::*, result, borrow::Borrow};
+use xcm_executor::traits::Convert as xcmConvert;
+
+pub struct AsPrefixedGeneralIndex<Prefix, AssetId, ConvertAssetId>(PhantomData<(Prefix, AssetId, ConvertAssetId)>);
+impl<
+	Prefix: Get<MultiLocation>,
+	AssetId: Clone,
+	ConvertAssetId: xcmConvert<u128, AssetId>,
+> xcmConvert<MultiLocation, AssetId> for AsPrefixedGeneralIndex<Prefix, AssetId, ConvertAssetId> {
+	fn convert_ref(id: impl Borrow<MultiLocation>) -> result::Result<AssetId, ()> {
+		let prefix = Prefix::get();
+		let id = id.borrow();
+		if !prefix.iter().enumerate().all(|(index, item)| id.at(index) == Some(item)) {
+			return Err(())
+		}
+		match id.at(prefix.len()) {
+			Some(Junction::GeneralIndex { id }) => ConvertAssetId::convert_ref(id),
+			_ => Err(()),
+		}
+	}
+	fn reverse_ref(what: impl Borrow<AssetId>) -> result::Result<MultiLocation, ()> {
+		let mut location = Prefix::get();
+		let id = ConvertAssetId::reverse_ref(what)?;
+		location.push(Junction::GeneralIndex { id }).map_err(|_| ())?;
+		Ok(location)
+	}
+}
+
+
+parameter_types! {
+	pub const RelayAssetId: u128 = 0;
+}
+
+impl liquid_staking::Config for Runtime {
+	type Event = Event;
+	type Assets = XcmAssets;
+	type AssetId = RelayAssetId;
+	type AccountIdToMultiLocation = AccountIdToMultiLocation;
+	type PalletId = CheckingAccount;
+	type XcmExecutor = XcmExecutor;
+	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
+}
 
 /// Current approximation of the gas/s consumption considering
 /// EVM execution over compiled WASM (on 4.4Ghz CPU).
@@ -875,6 +928,72 @@ impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 }
 
+use frame_support::traits::{Contains};
+use sp_runtime::traits::Zero;
+use sp_std::marker::PhantomData;
+use xcm_builder::{FungiblesAdapter};
+use xcm_executor::traits::JustTry;
+
+/// Allow checking in assets that have issuance > 0.
+pub struct CheckAsset<A>(PhantomData<A>);
+impl<A> Contains<<A as fungibles::Inspect<AccountId>>::AssetId> for CheckAsset<A>
+	where
+		A: fungibles::Inspect<AccountId>
+{
+	fn contains(id: &<A as fungibles::Inspect<AccountId>>::AssetId) -> bool {
+		!A::total_issuance(*id).is_zero()
+	}
+}
+
+parameter_types! {
+	pub CheckingAccount: PalletId = PalletId(*b"pc/lqdst");
+}
+
+pub type FungiblesTransactor = FungiblesAdapter<
+	// Use this fungibles implementation:
+	XcmAssets,
+	// Use this currency when it is a fungible asset matching the given location or name:
+	xcm_builder::IsConcrete<KsmLocation>,
+	// Do a simple punn to convert an AccountId32 MultiLocation into a native chain account ID:
+	LocationToAccountId,
+	// Our chain's account ID type (we can't get away without mentioning it explicitly):
+	AccountId,
+	// We only allow teleports of known assets.
+	CheckAsset<XcmAssets>,
+	CheckingAccount,
+>;
+/// Means for transacting assets on this chain.
+pub type AssetTransactors = FungiblesTransactor;
+
+
+parameter_types! {
+	// Dummy deposit amount. Since most operations will be performed
+	// by root it will not matter anyway.
+	// TODO : Set correct deposit for user actions.
+	pub AssetDeposit: Balance = 1;
+	pub MetadataDepositBase: Balance = 1;
+	pub MetadataDepositPerByte: Balance = 1;
+	pub ApprovalDeposit: Balance = 1;
+	pub StringLimit: u32 = 5;
+}
+// This assets pallet will be responsible to mint tokens corresponding to assets received from
+// XCM messages.
+impl pallet_assets::Config for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type AssetId = u128;
+	type Currency = Balances;
+	type ForceOrigin = EnsureRoot<AccountId>;
+	type AssetDeposit = AssetDeposit;
+	type MetadataDepositBase = MetadataDepositBase;
+	type MetadataDepositPerByte = MetadataDepositPerByte;
+	type ApprovalDeposit = ApprovalDeposit;
+	type StringLimit = StringLimit;
+	type Freezer = ();
+	type Extra = ();
+	type WeightInfo = ();
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -894,6 +1013,7 @@ construct_runtime! {
 		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>},
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config, ValidateUnsigned},
 		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>},
+		LiquidStaking: liquid_staking::{Pallet, Call, Event<T>},
 		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call},
 		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call},
 		CouncilCollective:
@@ -910,7 +1030,8 @@ construct_runtime! {
 		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>},
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin},
-		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>}
+		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>},
+		XcmAssets: pallet_assets::{Pallet, Storage, Event<T>, Call} = 105,
 	}
 }
 
