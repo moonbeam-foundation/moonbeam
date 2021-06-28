@@ -23,12 +23,10 @@ use crate::*;
 
 pub struct MM_001_AuthorMappingAddDeposit;
 impl Migration for MM_001_AuthorMappingAddDeposit {
-	/*
-	fn friendly_name() -> &str {
+	fn friendly_name(&self) -> &str {
 		"AuthorMappingAddDeposit"
 	}
-	*/
-	fn apply() -> Weight {
+	fn apply(&self) -> Weight {
 		/// reviewer note: this isn't meant to imply that migration code must live here. As noted
 		/// elsewhere, I would expect migration code to live close to the pallet it affects.
 		0u64.into()
@@ -37,24 +35,20 @@ impl Migration for MM_001_AuthorMappingAddDeposit {
 
 pub struct MM_002_StakingFixTotalBalance;
 impl Migration for MM_002_StakingFixTotalBalance {
-	/*
-	fn friendly_name() -> &str {
+	fn friendly_name(&self) -> &str {
 		"StakingFixTotalBalance"
 	}
-	*/
-	fn apply() -> Weight {
+	fn apply(&self) -> Weight {
 		0u64.into()
 	}
 }
 
 pub struct MM_003_StakingTransitionBoundedSet; // TODO: better name
 impl Migration for MM_003_StakingTransitionBoundedSet {
-	/*
-	fn friendly_name() -> &str {
+	fn friendly_name(&self) -> &str {
 		"StakingTransitionBoundedSet"
 	}
-	*/
-	fn apply() -> Weight {
+	fn apply(&self) -> Weight {
 		0u64.into()
 	}
 }

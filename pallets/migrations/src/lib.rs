@@ -26,13 +26,20 @@ pub mod migrations;
 /// A Migration that must happen on-chain upon a runtime-upgrade
 pub trait Migration {
 	/// A human-readable name for this migration. Also used as storage key.
-	fn friendly_name() -> &str;
+	fn friendly_name(&self) -> &str;
 
 	/// Apply this migration. Will be called exactly once for this migration.
 	/// TODO: refactor to support multi-block migrations (or, alternatively, allow each Migration
 	///       to specify whether it requires this support and provide a different path)
-	fn apply() -> Weight;
+	fn apply(&self) -> Weight;
 }
+
+/// Our list of migrations. Any ordering considerations can be specified here (?).
+const MIGRATIONS: [&dyn Migration; 3] = [
+	&migrations::MM_001_AuthorMappingAddDeposit {},
+	&migrations::MM_002_StakingFixTotalBalance {},
+	&migrations::MM_003_StakingTransitionBoundedSet {},
+];
 
 #[pallet]
 pub mod pallet {
@@ -44,13 +51,6 @@ pub mod pallet {
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
-
-	/// Our list of migrations. Any ordering considerations can be specified here (?).
-	const MIGRATIONS: [&dyn Migration; 3] = [
-		&migrations::MM_001_AuthorMappingAddDeposit {},
-		&migrations::MM_002_StakingFixTotalBalance {},
-		&migrations::MM_003_StakingTransitionBoundedSet {},
-	];
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
