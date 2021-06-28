@@ -1,6 +1,6 @@
 [package]
 name = "moonbeam-cli"
-version = "0.8.2"
+version = "0.8.4"
 authors = ["PureStake"]
 edition = "2018"
 
