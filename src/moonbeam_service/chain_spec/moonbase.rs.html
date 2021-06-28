@@ -465,28 +465,28 @@
 	<span class="kw">let</span> <span class="ident">revert_bytecode</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0xFD</span>];
 
 	<span class="ident">GenesisConfig</span> {
-		<span class="ident">frame_system</span>: <span class="ident">SystemConfig</span> {
+		<span class="ident">system</span>: <span class="ident">SystemConfig</span> {
 			<span class="ident">code</span>: <span class="ident">WASM_BINARY</span>
 				.<span class="ident">expect</span>(<span class="string">&quot;WASM binary was not build, please build it!&quot;</span>)
 				.<span class="ident">to_vec</span>(),
 			<span class="ident">changes_trie_config</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
 		},
-		<span class="ident">pallet_balances</span>: <span class="ident">BalancesConfig</span> {
+		<span class="ident">balances</span>: <span class="ident">BalancesConfig</span> {
 			<span class="ident">balances</span>: <span class="ident">endowed_accounts</span>
 				.<span class="ident">iter</span>()
 				.<span class="ident">cloned</span>()
 				.<span class="ident">map</span>(<span class="op">|</span><span class="ident">k</span><span class="op">|</span> (<span class="ident">k</span>, <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">80</span>))
 				.<span class="ident">collect</span>(),
 		},
-		<span class="ident">pallet_crowdloan_rewards</span>: <span class="ident">CrowdloanRewardsConfig</span> {
+		<span class="ident">crowdloan_rewards</span>: <span class="ident">CrowdloanRewardsConfig</span> {
 			<span class="ident">funded_amount</span>: <span class="ident">crowdloan_fund_pot</span>,
 		},
-		<span class="ident">pallet_sudo</span>: <span class="ident">SudoConfig</span> { <span class="ident">key</span>: <span class="ident">root_key</span> },
+		<span class="ident">sudo</span>: <span class="ident">SudoConfig</span> { <span class="ident">key</span>: <span class="ident">root_key</span> },
 		<span class="ident">parachain_info</span>: <span class="ident">ParachainInfoConfig</span> {
 			<span class="ident">parachain_id</span>: <span class="ident">para_id</span>,
 		},
-		<span class="ident">pallet_ethereum_chain_id</span>: <span class="ident">EthereumChainIdConfig</span> { <span class="ident">chain_id</span> },
-		<span class="ident">pallet_evm</span>: <span class="ident">EVMConfig</span> {
+		<span class="ident">ethereum_chain_id</span>: <span class="ident">EthereumChainIdConfig</span> { <span class="ident">chain_id</span> },
+		<span class="ident">evm</span>: <span class="ident">EVMConfig</span> {
 			<span class="comment">// We need _some_ code inserted at the precompile address so that</span>
 			<span class="comment">// the evm will actually call the address.</span>
 			<span class="ident">accounts</span>: <span class="ident">Precompiles</span>::<span class="ident">used_addresses</span>()
@@ -503,9 +503,9 @@
 				})
 				.<span class="ident">collect</span>(),
 		},
-		<span class="ident">pallet_ethereum</span>: <span class="ident">EthereumConfig</span> {},
-		<span class="ident">pallet_democracy</span>: <span class="ident">DemocracyConfig</span>::<span class="ident">default</span>(),
-		<span class="ident">pallet_scheduler</span>: <span class="ident">SchedulerConfig</span> {},
+		<span class="ident">ethereum</span>: <span class="ident">EthereumConfig</span> {},
+		<span class="ident">democracy</span>: <span class="ident">DemocracyConfig</span>::<span class="ident">default</span>(),
+		<span class="ident">scheduler</span>: <span class="ident">SchedulerConfig</span> {},
 		<span class="ident">parachain_staking</span>: <span class="ident">ParachainStakingConfig</span> {
 			<span class="ident">candidates</span>: <span class="ident">candidates</span>
 				.<span class="ident">iter</span>()
@@ -515,25 +515,25 @@
 			<span class="ident">nominations</span>,
 			<span class="ident">inflation_config</span>: <span class="ident">moonbeam_inflation_config</span>(),
 		},
-		<span class="ident">pallet_collective_Instance1</span>: <span class="ident">CouncilCollectiveConfig</span> {
+		<span class="ident">council_collective</span>: <span class="ident">CouncilCollectiveConfig</span> {
 			<span class="ident">phantom</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
 			<span class="ident">members</span>: <span class="macro">vec</span><span class="macro">!</span>[], <span class="comment">// TODO : Set members</span>
 		},
-		<span class="ident">pallet_collective_Instance2</span>: <span class="ident">TechComitteeCollectiveConfig</span> {
+		<span class="ident">tech_comittee_collective</span>: <span class="ident">TechComitteeCollectiveConfig</span> {
 			<span class="ident">phantom</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
 			<span class="ident">members</span>: <span class="macro">vec</span><span class="macro">!</span>[], <span class="comment">// TODO : Set members</span>
 		},
-		<span class="ident">pallet_author_slot_filter</span>: <span class="ident">AuthorFilterConfig</span> {
+		<span class="ident">author_filter</span>: <span class="ident">AuthorFilterConfig</span> {
 			<span class="ident">eligible_ratio</span>: <span class="ident">sp_runtime</span>::<span class="ident">Percent</span>::<span class="ident">from_percent</span>(<span class="number">50</span>),
 		},
-		<span class="ident">pallet_author_mapping</span>: <span class="ident">AuthorMappingConfig</span> {
+		<span class="ident">author_mapping</span>: <span class="ident">AuthorMappingConfig</span> {
 			<span class="ident">mappings</span>: <span class="ident">candidates</span>
 				.<span class="ident">iter</span>()
 				.<span class="ident">cloned</span>()
 				.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">account_id</span>, <span class="ident">author_id</span>, <span class="kw">_</span>)<span class="op">|</span> (<span class="ident">author_id</span>, <span class="ident">account_id</span>))
 				.<span class="ident">collect</span>(),
 		},
-		<span class="ident">pallet_treasury</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+		<span class="ident">treasury</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
 	}
 }
 

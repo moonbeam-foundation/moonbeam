@@ -822,6 +822,36 @@
 <span id="819">819</span>
 <span id="820">820</span>
 <span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -949,7 +979,7 @@
 	<span class="ident">spec_name</span>: <span class="macro">create_runtime_str</span><span class="macro">!</span>(<span class="string">&quot;moonbeam&quot;</span>),
 	<span class="ident">impl_name</span>: <span class="macro">create_runtime_str</span><span class="macro">!</span>(<span class="string">&quot;moonbeam&quot;</span>),
 	<span class="ident">authoring_version</span>: <span class="number">3</span>,
-	<span class="ident">spec_version</span>: <span class="number">53</span>,
+	<span class="ident">spec_version</span>: <span class="number">54</span>,
 	<span class="ident">impl_version</span>: <span class="number">0</span>,
 	<span class="ident">apis</span>: <span class="ident">RUNTIME_API_VERSIONS</span>,
 	<span class="ident">transaction_version</span>: <span class="number">2</span>,
@@ -1054,10 +1084,13 @@
 
 <span class="macro">parameter_types</span><span class="macro">!</span> {
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxLocks</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">50</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxReserves</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">50</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ExistentialDeposit</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">0</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">pallet_balances</span>::<span class="ident">Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
+	<span class="kw">type</span> <span class="ident">MaxReserves</span> <span class="op">=</span> <span class="ident">MaxReserves</span>;
+	<span class="kw">type</span> <span class="ident">ReserveIdentifier</span> <span class="op">=</span> [<span class="ident">u8</span>; <span class="number">4</span>];
 	<span class="kw">type</span> <span class="ident">MaxLocks</span> <span class="op">=</span> <span class="ident">MaxLocks</span>;
 	<span class="doccomment">/// The type for recording an account&#39;s balance.</span>
 	<span class="kw">type</span> <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">Balance</span>;
@@ -1103,6 +1136,8 @@
 }
 
 <span class="kw">impl</span> <span class="ident">pallet_ethereum_chain_id</span>::<span class="ident">Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {}
+
+<span class="kw">impl</span> <span class="ident">pallet_randomness_collective_flip</span>::<span class="ident">Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {}
 
 <span class="doccomment">/// Current approximation of the gas/s consumption considering</span>
 <span class="doccomment">/// EVM execution over compiled WASM (on 4.4Ghz CPU).</span>
@@ -1639,11 +1674,36 @@
 	}
 }
 
+<span class="comment">// Check the timestamp and parachain inherents</span>
+<span class="kw">struct</span> <span class="ident">CheckInherents</span>;
+
+<span class="kw">impl</span> <span class="ident">cumulus_pallet_parachain_system</span>::<span class="ident">CheckInherents</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CheckInherents</span> {
+	<span class="kw">fn</span> <span class="ident">check_inherents</span>(
+		<span class="ident">block</span>: <span class="kw-2">&amp;</span><span class="ident">Block</span>,
+		<span class="ident">relay_state_proof</span>: <span class="kw-2">&amp;</span><span class="ident">cumulus_pallet_parachain_system</span>::<span class="ident">RelayChainStateProof</span>,
+	) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sp_inherents</span>::<span class="ident">CheckInherentsResult</span> {
+		<span class="kw">let</span> <span class="ident">relay_chain_slot</span> <span class="op">=</span> <span class="ident">relay_state_proof</span>
+			.<span class="ident">read_slot</span>()
+			.<span class="ident">expect</span>(<span class="string">&quot;Could not read the relay chain slot from the proof&quot;</span>);
+
+		<span class="kw">let</span> <span class="ident">inherent_data</span> <span class="op">=</span>
+			<span class="ident">cumulus_primitives_timestamp</span>::<span class="ident">InherentDataProvider</span>::<span class="ident">from_relay_chain_slot_and_duration</span>(
+				<span class="ident">relay_chain_slot</span>,
+				<span class="ident">sp_std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>::<span class="ident">from_secs</span>(<span class="number">6</span>),
+			)
+			.<span class="ident">create_inherent_data</span>()
+			.<span class="ident">expect</span>(<span class="string">&quot;Could not create the timestamp inherent data&quot;</span>);
+
+		<span class="ident">inherent_data</span>.<span class="ident">check_extrinsics</span>(<span class="kw-2">&amp;</span><span class="ident">block</span>)
+	}
+}
+
 <span class="comment">// Nimbus&#39;s Executive wrapper allows relay validators to verify the seal digest</span>
-<span class="ident">cumulus_pallet_parachain_system</span>::<span class="macro">register_validate_block</span><span class="macro">!</span>(
-	<span class="ident">Runtime</span>,
-	<span class="ident">pallet_author_inherent</span>::<span class="ident">BlockExecutor</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Executive</span><span class="op">&gt;</span>
-);
+<span class="ident">cumulus_pallet_parachain_system</span>::<span class="macro">register_validate_block</span><span class="macro">!</span> {
+	<span class="ident">Runtime</span> <span class="op">=</span> <span class="ident">Runtime</span>,
+	<span class="ident">BlockExecutor</span> <span class="op">=</span> <span class="ident">pallet_author_inherent</span>::<span class="ident">BlockExecutor</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Executive</span><span class="op">&gt;</span>,
+	<span class="ident">CheckInherents</span> <span class="op">=</span> <span class="ident">CheckInherents</span>,
+}
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="moonbeam_runtime"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
