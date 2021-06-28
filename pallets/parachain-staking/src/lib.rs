@@ -143,17 +143,6 @@ pub mod pallet {
 	}
 
 	#[derive(Encode, Decode, RuntimeDebug)]
-	/// DEPRECATED: This is the old storage schema. It is retained for purposes of storage migration
-	/// and should be removed in the future.
-	pub struct Collator<AccountId, Balance> {
-		pub id: AccountId,
-		pub bond: Balance,
-		pub nominators: OrderedSet<Bond<AccountId, Balance>>,
-		pub total: Balance,
-		pub state: CollatorStatus,
-	}
-
-	#[derive(Encode, Decode, RuntimeDebug)]
 	/// Collator state with commission fee, bonded stake, and nominations
 	pub struct Collator2<AccountId, Balance> {
 		/// The account of this collator
@@ -436,31 +425,6 @@ pub mod pallet {
 		}
 		pub fn leave_candidates(&mut self, round: RoundIndex) {
 			self.state = CollatorStatus::Leaving(round);
-		}
-	}
-
-	impl<A: Clone + Ord, B: Ord + Copy> From<Collator<A, B>> for Collator2<A, B> {
-		fn from(other: Collator<A, B>) -> Collator2<A, B> {
-			// nominator set from Collator was bounded to max size of top_nominators
-			let mut top_nominators = other.nominators.0.clone();
-			// order greatest to least
-			top_nominators.sort_unstable_by(|a, b| b.amount.cmp(&a.amount));
-			Collator2 {
-				id: other.id,
-				bond: other.bond,
-				nominators: other
-					.nominators
-					.0
-					.iter()
-					.map(|Bond { owner, .. }| owner.clone())
-					.collect::<Vec<A>>()
-					.into(),
-				top_nominators,
-				bottom_nominators: Vec::new(),
-				total_counted: other.total,
-				total_backing: other.total,
-				state: other.state,
-			}
 		}
 	}
 
@@ -764,33 +728,6 @@ pub mod pallet {
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		fn on_runtime_upgrade() -> Weight {
-			// migrate from Collator -> Collator2
-			for (acc, collator_state) in CollatorState::<T>::drain() {
-				let state: Collator2<T::AccountId, BalanceOf<T>> = collator_state.into();
-				<CollatorState2<T>>::insert(acc, state);
-			}
-
-			// correct any incorrectly set `Total`
-			let old_total = Total::<T>::get();
-			let mut new_total: BalanceOf<T> = 0u32.into();
-
-			for collator_state in CollatorState2::<T>::iter_values() {
-				new_total += collator_state.total_backing;
-			}
-
-			Total::<T>::put(new_total);
-
-			log::trace!(
-				target: "staking",
-				"Finished migrating storage.\nOld Total : {:?}\nNew Total : {:?}",
-				old_total,
-				new_total,
-			);
-
-			300_000_000_000 // Three fifths of the max block weight
-		}
-
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut round = <Round<T>>::get();
 			if round.should_update(n) {
@@ -849,18 +786,6 @@ pub mod pallet {
 		Twox64Concat,
 		T::AccountId,
 		Nominator<T::AccountId, BalanceOf<T>>,
-		OptionQuery,
-	>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn collator_state)]
-	/// DEPRECATED: This is the old storage item. It is retained for purposes of storage migration
-	/// and should be removed in the future.
-	type CollatorState<T: Config> = StorageMap<
-		_,
-		Twox64Concat,
-		T::AccountId,
-		Collator<T::AccountId, BalanceOf<T>>,
 		OptionQuery,
 	>;
 
