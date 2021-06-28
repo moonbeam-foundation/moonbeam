@@ -21,6 +21,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::{pallet, weights::Weight};
+use sp_runtime::Perbill;
 pub mod migrations;
 
 /// A Migration that must happen on-chain upon a runtime-upgrade
@@ -28,10 +29,20 @@ pub trait Migration {
 	/// A human-readable name for this migration. Also used as storage key.
 	fn friendly_name(&self) -> &str;
 
-	/// Apply this migration. Will be called exactly once for this migration.
-	/// TODO: refactor to support multi-block migrations (or, alternatively, allow each Migration
-	///       to specify whether it requires this support and provide a different path)
-	fn apply(&self) -> Weight;
+	/// Step through this migration, taking up to `available_weight` of execution time and providing
+	/// a status on the progress as well as the consumed weight. This allows a migration to perform
+	/// its logic in small batches across as many blocks as needed. 
+	/// 
+	/// Implementations should perform as much migration work as possible and then leave their
+	/// pallet in a valid state from which another 'step' of migration work can be performed. In no
+	/// case should a step consume more than `available_weight`.
+	///
+	/// This should return a perbill indicating the aggregate progress of the migration. If
+	/// `Perbill::one()` is returned, the migration is considered complete and no further calls to
+	/// `step()` will be made. Any value less than `Perbill::one()` will result in another future
+	/// call to `step()`. Indeed, values < 1 are arbitrary, but the intent is to indicate progress
+	/// (so they should at least be monotonically increasing).
+	fn step(&self, previous_progress: Perbill, available_weight: Weight) -> (Perbill, Weight);
 }
 
 /// Our list of migrations. Any ordering considerations can be specified here (?).
@@ -102,37 +113,49 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn migration_state)]
-	/// MigrationState tracks the status of each migration
+	/// MigrationState tracks the progress of a migration. Migrations with progress < 1 
 	type MigrationState<T: Config> = StorageMap<
 		_,
 		Twox64Concat,
 		String,
-		bool, // whether it's been applied or not -- TODO: use struct or enum
+		Perbill,
 		OptionQuery, // TODO: what is this...?
 	>;
 
 	fn process_runtime_upgrades<T: Config>() -> Weight {
 		log::info!("stepping runtime upgrade");
 
+		// TODO: query proper value or make configurable
+		let available_weight = 500_000_000_000u64.into();
 		let mut weight: Weight = 0u64.into();
 
 		for migration in &MIGRATIONS {
 
 			// let migration_name = migration.friendly_name();
-			let migration_name = "TODO"; // fix fn signature in trait...
+			let migration_name = migration.friendly_name();
 			log::trace!("evaluating migration {}", migration_name);
 
 			let migration_state = <MigrationState<T>>::get(migration_name)
-				.unwrap_or(false);
-			if ! migration_state {
+				.unwrap_or(Perbill::zero());
 
+			if migration_state < Perbill::one() {
 
-				// Apply the migration. Here we assume that this can fit within our current block,
-				// but this could me modified to step through a migration across blocks until it
-				// is done.
-				weight += migration.apply();
+				let available_for_step = available_weight - weight;
 
-				<MigrationState<T>>::insert(migration_name, true);
+				// perform a step of this migration
+				let (updated_progress, consumed_weight)
+					= migration.step(migration_state, available_weight);
+
+				weight += consumed_weight;
+				if weight > available_weight {
+					// TODO: the intent here is to complain obnoxiously so that this is caught
+					// during development. In production, this should probably be tolerated because
+					// failing is catastrophic.
+					log::error!("Migration {} consumed more weight than it was given! ({} > {})",
+						migration_name, consumed_weight, available_for_step);
+				}
+
+				<MigrationState<T>>::insert(migration_name, updated_progress);
 			}
 
 		}
