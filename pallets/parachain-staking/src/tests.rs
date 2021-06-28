@@ -167,25 +167,13 @@ fn cannot_join_candidates_with_more_than_available_balance() {
 #[test]
 fn join_candidates_emits_correct_event() {
 	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 1000),
-			(2, 300),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-			(7, 100),
-			(8, 9),
-			(9, 4),
-		])
-		.with_candidates(vec![(1, 500), (2, 200)])
-		.with_nominations(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
+		.with_balances(vec![(1, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::join_candidates(Origin::signed(7), 10u128, 100u32));
+			assert_ok!(Stake::join_candidates(Origin::signed(1), 10u128, 100u32));
 			assert_eq!(
 				last_event(),
-				MetaEvent::Stake(Event::JoinedCollatorCandidates(7, 10u128, 1110u128))
+				MetaEvent::Stake(Event::JoinedCollatorCandidates(1, 10u128, 10u128))
 			);
 		});
 }
