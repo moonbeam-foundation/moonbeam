@@ -99,9 +99,6 @@ pub mod pallet {
 
 			weight += process_runtime_upgrades::<T>();
 
-			// now flag that we are done with our runtime upgrade
-			<FullyUpgraded<T>>::put(true);
-
 			weight.into()
 		}
 	}
@@ -113,7 +110,7 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn migration_state)]
-	/// MigrationState tracks the progress of a migration. Migrations with progress < 1 
+	/// MigrationState tracks the progress of a migration.
 	type MigrationState<T: Config> = StorageMap<
 		_,
 		Twox64Concat,
@@ -128,6 +125,7 @@ pub mod pallet {
 		// TODO: query proper value or make configurable
 		let available_weight = 500_000_000_000u64.into();
 		let mut weight: Weight = 0u64.into();
+		let mut done: bool = true;
 
 		for migration in &MIGRATIONS {
 
@@ -141,7 +139,7 @@ pub mod pallet {
 			if migration_state < Perbill::one() {
 
 				let available_for_step = available_weight - weight;
-				log::trace!("stepping migration {}, prev: {}, avail weight: {}",
+				log::trace!("stepping migration {}, prev: {:?}, avail weight: {}",
 					migration_name, migration_state, available_for_step);
 
 				// perform a step of this migration
@@ -157,9 +155,18 @@ pub mod pallet {
 						migration_name, consumed_weight, available_for_step);
 				}
 
+				// make note of any unfinished migrations
+				if updated_progress < Perbill::one() {
+					done = false;
+				}
+
 				<MigrationState<T>>::insert(migration_name, updated_progress);
 			}
 
+		}
+
+		if done {
+			<FullyUpgraded<T>>::put(true);
 		}
 
 		weight
