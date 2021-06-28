@@ -117,10 +117,11 @@ fn builds_specs_based_on_mnemonic() {
 		.arg("--accounts")
 		.arg("3")
 		.output()
-		.unwrap();
+		.expect("Failed to start moonbeam");
 
 	// Gather output as json
-	let chain_spec: serde_json::Value = serde_json::from_slice(output.stdout.as_slice()).unwrap();
+	let chain_spec: serde_json::Value =
+		serde_json::from_slice(output.stdout.as_slice()).expect("Failed to parse spec json file");
 	let expected = json!([
 		[
 			json!("0x3d5bd6a54d5f5292b9fb914db40cd5f7c5540f80"),
@@ -142,9 +143,9 @@ fn builds_specs_based_on_mnemonic() {
 	]);
 
 	assert_eq!(
-		chain_spec["genesis"]["runtime"]["palletBalances"]["balances"]
+		chain_spec["genesis"]["runtime"]["balances"]["balances"]
 			.as_array()
-			.unwrap(),
+			.expect("Failed to extract balances"),
 		expected.as_array().unwrap()
 	);
 }
