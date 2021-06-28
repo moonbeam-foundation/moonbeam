@@ -86,7 +86,7 @@ pub mod pallet {
 
 			let mut weight: Weight = 0u64.into();
 
-			weight += process_runtime_upgrades();
+			weight += process_runtime_upgrades::<T>();
 
 			// now flag that we are done with our runtime upgrade
 			<FullyUpgraded<T>>::put(true);
@@ -106,7 +106,7 @@ pub mod pallet {
 	type MigrationState<T: Config> = StorageMap<
 		_,
 		Twox64Concat,
-		str,
+		String,
 		bool, // whether it's been applied or not -- TODO: use struct or enum
 		OptionQuery, // TODO: what is this...?
 	>;
@@ -114,15 +114,16 @@ pub mod pallet {
 	fn process_runtime_upgrades<T: Config>() -> Weight {
 		log::info!("stepping runtime upgrade");
 
-		let weight: Weight = 0u64.into();
+		let mut weight: Weight = 0u64.into();
 
-		for migration in MIGRATIONS {
+		for migration in &MIGRATIONS {
 
 			// let migration_name = migration.friendly_name();
 			let migration_name = "TODO"; // fix fn signature in trait...
 			log::trace!("evaluating migration {}", migration_name);
 
-			let migration_state = <MigrationState<T>>::get(migration_name);
+			let migration_state = <MigrationState<T>>::get(migration_name)
+				.unwrap_or(false);
 			if ! migration_state {
 
 
