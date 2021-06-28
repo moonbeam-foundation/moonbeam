@@ -17,7 +17,7 @@
 //! Unit testing
 use crate::mock::{
 	events, last_event, roll_to, set_author, Balances, Event as MetaEvent, ExtBuilder, Origin,
-	Stake, System, Test,
+	Stake, Test,
 };
 use crate::{CollatorStatus, Error, Event, NominatorAdded, Range};
 use frame_support::{assert_noop, assert_ok};
@@ -39,7 +39,7 @@ fn online_offline_works() {
 			(8, 9),
 			(9, 4),
 		])
-		.with_collators(vec![(1, 500), (2, 200)])
+		.with_candidates(vec![(1, 500), (2, 200)])
 		.with_nominations(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
 		.build()
 		.execute_with(|| {
@@ -96,49 +96,84 @@ fn online_offline_works() {
 }
 
 #[test]
-fn join_collator_candidates() {
+fn can_join_candidates_with_valid_bond() {
 	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 1000),
-			(2, 300),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-			(7, 100),
-			(8, 9),
-			(9, 4),
-		])
-		.with_collators(vec![(1, 500), (2, 200)])
-		.with_nominations(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
+		.with_balances(vec![(1, 1000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::join_candidates(Origin::signed(1), 10u128, 100u32));
+		});
+}
+
+#[test]
+fn cannot_join_candidates_if_candidate() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000)])
+		.with_candidates(vec![(1, 500)])
 		.build()
 		.execute_with(|| {
 			assert_noop!(
 				Stake::join_candidates(Origin::signed(1), 11u128, 100u32),
 				Error::<Test>::CandidateExists
 			);
+		});
+}
+
+#[test]
+fn cannot_join_candidates_if_nominator() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000), (2, 300)])
+		.with_candidates(vec![(1, 500)])
+		.with_nominations(vec![(2, 1, 100)])
+		.build()
+		.execute_with(|| {
 			assert_noop!(
-				Stake::join_candidates(Origin::signed(3), 11u128, 100u32),
+				Stake::join_candidates(Origin::signed(2), 11u128, 100u32),
 				Error::<Test>::NominatorExists
 			);
+		});
+}
+
+#[test]
+fn cannot_join_candidates_without_min_bond() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000)])
+		.build()
+		.execute_with(|| {
 			assert_noop!(
-				Stake::join_candidates(Origin::signed(7), 9u128, 100u32),
+				Stake::join_candidates(Origin::signed(1), 9u128, 100u32),
 				Error::<Test>::ValBondBelowMin
 			);
+		});
+}
+
+#[test]
+fn cannot_join_candidates_with_more_than_available_balance() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 500)])
+		.build()
+		.execute_with(|| {
 			assert_noop!(
-				Stake::join_candidates(Origin::signed(8), 10u128, 100u32),
+				Stake::join_candidates(Origin::signed(1), 501u128, 100u32),
 				DispatchError::Module {
 					index: 1,
-
 					error: 2,
 					message: Some("InsufficientBalance")
 				}
 			);
-			assert!(System::events().is_empty());
-			assert_ok!(Stake::join_candidates(Origin::signed(7), 10u128, 100u32));
+		});
+}
+
+#[test]
+fn join_candidates_emits_correct_event() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::join_candidates(Origin::signed(1), 10u128, 100u32));
 			assert_eq!(
 				last_event(),
-				MetaEvent::Stake(Event::JoinedCollatorCandidates(7, 10u128, 1110u128))
+				MetaEvent::Stake(Event::JoinedCollatorCandidates(1, 10u128, 10u128))
 			);
 		});
 }
@@ -157,7 +192,7 @@ fn collator_exit_executes_after_delay() {
 			(8, 9),
 			(9, 4),
 		])
-		.with_collators(vec![(1, 500), (2, 200)])
+		.with_candidates(vec![(1, 500), (2, 200)])
 		.with_nominations(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
 		.build()
 		.execute_with(|| {
@@ -210,7 +245,7 @@ fn collator_selection_chooses_top_candidates() {
 			(8, 33),
 			(9, 33),
 		])
-		.with_collators(vec![(1, 100), (2, 90), (3, 80), (4, 70), (5, 60), (6, 50)])
+		.with_candidates(vec![(1, 100), (2, 90), (3, 80), (4, 70), (5, 60), (6, 50)])
 		.build()
 		.execute_with(|| {
 			roll_to(8);
@@ -290,7 +325,7 @@ fn exit_queue() {
 			(8, 33),
 			(9, 33),
 		])
-		.with_collators(vec![(1, 100), (2, 90), (3, 80), (4, 70), (5, 60), (6, 50)])
+		.with_candidates(vec![(1, 100), (2, 90), (3, 80), (4, 70), (5, 60), (6, 50)])
 		.build()
 		.execute_with(|| {
 			roll_to(8);
@@ -367,7 +402,7 @@ fn payout_distribution_to_solo_collators() {
 			(8, 33),
 			(9, 33),
 		])
-		.with_collators(vec![(1, 100), (2, 90), (3, 80), (4, 70), (5, 60), (6, 50)])
+		.with_candidates(vec![(1, 100), (2, 90), (3, 80), (4, 70), (5, 60), (6, 50)])
 		.build()
 		.execute_with(|| {
 			roll_to(8);
@@ -478,7 +513,7 @@ fn collator_commission() {
 			(5, 100),
 			(6, 100),
 		])
-		.with_collators(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
 		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
 		.build()
 		.execute_with(|| {
@@ -544,7 +579,7 @@ fn multiple_nominations() {
 			(9, 100),
 			(10, 100),
 		])
-		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
 		.with_nominations(vec![
 			(6, 1, 10),
 			(7, 1, 10),
@@ -695,7 +730,7 @@ fn collators_bond() {
 			(9, 100),
 			(10, 100),
 		])
-		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
 		.with_nominations(vec![
 			(6, 1, 10),
 			(7, 1, 10),
@@ -781,7 +816,7 @@ fn nominators_bond() {
 			(9, 100),
 			(10, 100),
 		])
-		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
 		.with_nominations(vec![
 			(6, 1, 10),
 			(7, 1, 10),
@@ -861,7 +896,7 @@ fn revoke_nomination_or_leave_nominators() {
 			(9, 100),
 			(10, 100),
 		])
-		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
 		.with_nominations(vec![
 			(6, 1, 10),
 			(7, 1, 10),
@@ -907,7 +942,7 @@ fn revoke_nomination_or_leave_nominators() {
 fn insufficient_join_candidates_weight_hint_fails() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
-		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
 		.build()
 		.execute_with(|| {
 			for i in 0..5 {
@@ -933,7 +968,7 @@ fn sufficient_join_candidates_weight_hint_succeeds() {
 			(8, 20),
 			(9, 20),
 		])
-		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
 		.build()
 		.execute_with(|| {
 			let mut count = 5u32;
@@ -948,7 +983,7 @@ fn sufficient_join_candidates_weight_hint_succeeds() {
 fn insufficient_leave_candidates_weight_hint_fails() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
-		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
 		.build()
 		.execute_with(|| {
 			for i in 1..6 {
@@ -964,7 +999,7 @@ fn insufficient_leave_candidates_weight_hint_fails() {
 fn sufficient_leave_candidates_weight_hint_succeeds() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
-		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
 		.build()
 		.execute_with(|| {
 			let mut count = 5u32;
@@ -990,7 +1025,7 @@ fn sufficient_nominate_weight_hint_succeeds() {
 			(9, 20),
 			(10, 20),
 		])
-		.with_collators(vec![(1, 20), (2, 20)])
+		.with_candidates(vec![(1, 20), (2, 20)])
 		.with_nominations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
 		.build()
 		.execute_with(|| {
@@ -1022,7 +1057,7 @@ fn insufficient_nominate_weight_hint_fails() {
 			(9, 20),
 			(10, 20),
 		])
-		.with_collators(vec![(1, 20), (2, 20)])
+		.with_candidates(vec![(1, 20), (2, 20)])
 		.with_nominations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
 		.build()
 		.execute_with(|| {
@@ -1054,7 +1089,7 @@ fn insufficient_nominate_weight_hint_fails() {
 fn insufficient_leave_nominators_weight_hint_fails() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
-		.with_collators(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
 		.with_nominations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
 		.build()
 		.execute_with(|| {
@@ -1071,7 +1106,7 @@ fn insufficient_leave_nominators_weight_hint_fails() {
 fn sufficient_leave_nominators_weight_hint_succeeds() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
-		.with_collators(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
 		.with_nominations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
 		.build()
 		.execute_with(|| {
@@ -1096,7 +1131,7 @@ fn payouts_follow_nomination_changes() {
 			(9, 100),
 			(10, 100),
 		])
-		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
 		.with_nominations(vec![
 			(6, 1, 10),
 			(7, 1, 10),
@@ -1260,7 +1295,7 @@ fn payouts_follow_nomination_changes() {
 fn bottom_nominations_are_empty_when_top_nominations_not_full() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 10), (3, 10), (4, 10), (5, 10)])
-		.with_collators(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
 		.build()
 		.execute_with(|| {
 			// no top nominators => no bottom nominators
@@ -1305,7 +1340,7 @@ fn candidate_pool_updates_when_total_counted_changes() {
 			(9, 17),
 			(10, 18),
 		])
-		.with_collators(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
 		.with_nominations(vec![
 			(3, 1, 11),
 			(4, 1, 12),
@@ -1358,7 +1393,7 @@ fn only_top_collators_are_counted() {
 			(9, 17),
 			(10, 18),
 		])
-		.with_collators(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
 		.with_nominations(vec![
 			(3, 1, 11),
 			(4, 1, 12),
@@ -1450,7 +1485,7 @@ fn nomination_events_convey_correct_position() {
 			(9, 100),
 			(10, 100),
 		])
-		.with_collators(vec![(1, 20), (2, 20)])
+		.with_candidates(vec![(1, 20), (2, 20)])
 		.with_nominations(vec![(3, 1, 11), (4, 1, 12), (5, 1, 13), (6, 1, 14)])
 		.build()
 		.execute_with(|| {
@@ -1555,7 +1590,7 @@ fn parachain_bond_reserve_works() {
 			(10, 100),
 			(11, 1),
 		])
-		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
 		.with_nominations(vec![
 			(6, 1, 10),
 			(7, 1, 10),
@@ -1895,7 +1930,7 @@ fn mutable_blocks_per_round() {
 			(5, 100),
 			(6, 100),
 		])
-		.with_collators(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
 		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
 		.build()
 		.execute_with(|| {
@@ -1944,7 +1979,7 @@ fn mutable_blocks_per_round() {
 			(5, 100),
 			(6, 100),
 		])
-		.with_collators(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
 		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
 		.build()
 		.execute_with(|| {
@@ -1983,7 +2018,7 @@ fn mutable_blocks_per_round() {
 			(5, 100),
 			(6, 100),
 		])
-		.with_collators(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
 		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
 		.build()
 		.execute_with(|| {
