@@ -141,10 +141,12 @@ pub mod pallet {
 			if migration_state < Perbill::one() {
 
 				let available_for_step = available_weight - weight;
+				log::trace!("stepping migration {}, prev: {}, avail weight: {}",
+					migration_name, migration_state, available_for_step);
 
 				// perform a step of this migration
 				let (updated_progress, consumed_weight)
-					= migration.step(migration_state, available_weight);
+					= migration.step(migration_state, available_for_step);
 
 				weight += consumed_weight;
 				if weight > available_weight {
