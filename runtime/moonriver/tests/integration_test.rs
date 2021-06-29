@@ -36,154 +36,45 @@ use sp_runtime::DispatchError;
 
 #[test]
 fn verify_pallet_indices() {
+	fn is_pallet_index<P: 'static>(index: usize) {
+		assert_eq!(
+			<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<P>(),
+			Some(index)
+		);
+	}
 	// System support
-	assert_eq!(
-		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonriver_runtime::System,
-		>(),
-		Some(0)
-	);
-	assert_eq!(
-		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonriver_runtime::ParachainSystem,
-		>(),
-		Some(1)
-	);
-	assert_eq!(
-		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonriver_runtime::RandomnessCollectiveFlip,
-		>(),
-		Some(2)
-	);
-	assert_eq!(
-		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonriver_runtime::Timestamp,
-		>(),
-		Some(3)
-	);
-	assert_eq!(
-		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonriver_runtime::ParachainInfo,
-		>(),
-		Some(4)
-	);
+	is_pallet_index::<moonriver_runtime::System>(0);
+	is_pallet_index::<moonriver_runtime::ParachainSystem>(1);
+	is_pallet_index::<moonriver_runtime::RandomnessCollectiveFlip>(2);
+	is_pallet_index::<moonriver_runtime::Timestamp>(3);
+	is_pallet_index::<moonriver_runtime::ParachainInfo>(4);
 	// Monetary
-	assert_eq!(
-		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonriver_runtime::Balances,
-		>(),
-		Some(10)
-	);
-	assert_eq!(
-		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonriver_runtime::TransactionPayment,
-		>(),
-		Some(11)
-	);
+	is_pallet_index::<moonriver_runtime::Balances>(10);
+	is_pallet_index::<moonriver_runtime::TransactionPayment>(11);
 	// Consensus support
-	assert_eq!(
-		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonriver_runtime::ParachainStaking,
-		>(),
-		Some(20)
-	);
-	assert_eq!(
-		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonriver_runtime::AuthorInherent,
-		>(),
-		Some(21)
-	);
-	assert_eq!(
-		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonriver_runtime::AuthorFilter,
-		>(),
-		Some(22)
-	);
-	assert_eq!(
-		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonriver_runtime::AuthorMapping,
-		>(),
-		Some(23)
-	);
+	is_pallet_index::<moonriver_runtime::ParachainStaking>(20);
+	is_pallet_index::<moonriver_runtime::AuthorInherent>(21);
+	is_pallet_index::<moonriver_runtime::AuthorFilter>(22);
+	is_pallet_index::<moonriver_runtime::AuthorMapping>(23);
 	// Handy utilities
-	assert_eq!(
-		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonriver_runtime::Utility,
-		>(),
-		Some(30)
-	);
-	assert_eq!(
-		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonriver_runtime::Proxy,
-		>(),
-		Some(31)
-	);
+	is_pallet_index::<moonriver_runtime::Utility>(30);
+	is_pallet_index::<moonriver_runtime::Proxy>(31);
 	// Sudo
-	assert_eq!(
-		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonriver_runtime::Sudo,
-		>(),
-		Some(40)
-	);
+	is_pallet_index::<moonriver_runtime::Sudo>(40);
 	// Ethereum compatibility
-	assert_eq!(
-		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonriver_runtime::EthereumChainId,
-		>(),
-		Some(50)
-	);
-	assert_eq!(
-		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonriver_runtime::EVM,
-		>(),
-		Some(51)
-	);
-	assert_eq!(
-		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonriver_runtime::Ethereum,
-		>(),
-		Some(52)
-	);
+	is_pallet_index::<moonriver_runtime::EthereumChainId>(50);
+	is_pallet_index::<moonriver_runtime::EVM>(51);
+	is_pallet_index::<moonriver_runtime::Ethereum>(52);
 	// Governance
-	assert_eq!(
-		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonriver_runtime::Scheduler,
-		>(),
-		Some(60)
-	);
-	assert_eq!(
-		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonriver_runtime::Democracy,
-		>(),
-		Some(61)
-	);
+	is_pallet_index::<moonriver_runtime::Scheduler>(60);
+	is_pallet_index::<moonriver_runtime::Democracy>(61);
 	// Council
-	assert_eq!(
-		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonriver_runtime::CouncilCollective,
-		>(),
-		Some(70)
-	);
-	assert_eq!(
-		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonriver_runtime::TechComitteeCollective,
-		>(),
-		Some(71)
-	);
+	is_pallet_index::<moonriver_runtime::CouncilCollective>(70);
+	is_pallet_index::<moonriver_runtime::TechComitteeCollective>(71);
 	// Treasury
-	assert_eq!(
-		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonriver_runtime::Treasury,
-		>(),
-		Some(80)
-	);
+	is_pallet_index::<moonriver_runtime::Treasury>(80);
 	// Crowdloan
-	assert_eq!(
-		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonriver_runtime::CrowdloanRewards,
-		>(),
-		Some(90)
-	);
+	is_pallet_index::<moonriver_runtime::CrowdloanRewards>(90);
 }
 
 #[test]

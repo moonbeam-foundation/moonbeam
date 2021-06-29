@@ -36,144 +36,35 @@ use sp_runtime::DispatchError;
 
 #[test]
 fn verify_pallet_indices() {
-	assert_eq!(
-		<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonshadow_runtime::System,
-		>(),
-		Some(0)
-	);
-	assert_eq!(
-		<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonshadow_runtime::Utility,
-		>(),
-		Some(1)
-	);
-	assert_eq!(
-		<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonshadow_runtime::Timestamp,
-		>(),
-		Some(2)
-	);
-	assert_eq!(
-		<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonshadow_runtime::Balances,
-		>(),
-		Some(3)
-	);
-	assert_eq!(
-		<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonshadow_runtime::Sudo,
-		>(),
-		Some(4)
-	);
-	assert_eq!(
-		<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonshadow_runtime::RandomnessCollectiveFlip,
-		>(),
-		Some(5)
-	);
-	assert_eq!(
-		<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonshadow_runtime::ParachainSystem,
-		>(),
-		Some(6)
-	);
-	assert_eq!(
-		<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonshadow_runtime::TransactionPayment,
-		>(),
-		Some(7)
-	);
-	assert_eq!(
-		<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonshadow_runtime::ParachainInfo,
-		>(),
-		Some(8)
-	);
-	assert_eq!(
-		<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonshadow_runtime::EthereumChainId,
-		>(),
-		Some(9)
-	);
-	assert_eq!(
-		<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonshadow_runtime::EVM,
-		>(),
-		Some(10)
-	);
-	assert_eq!(
-		<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonshadow_runtime::Ethereum,
-		>(),
-		Some(11)
-	);
-	assert_eq!(
-		<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonshadow_runtime::ParachainStaking,
-		>(),
-		Some(12)
-	);
-	assert_eq!(
-		<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonshadow_runtime::Scheduler,
-		>(),
-		Some(13)
-	);
-	assert_eq!(
-		<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonshadow_runtime::Democracy,
-		>(),
-		Some(14)
-	);
-	assert_eq!(
-		<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonshadow_runtime::CouncilCollective,
-		>(),
-		Some(15)
-	);
-	assert_eq!(
-		<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonshadow_runtime::TechComitteeCollective,
-		>(),
-		Some(16)
-	);
-	assert_eq!(
-		<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonshadow_runtime::Treasury,
-		>(),
-		Some(17)
-	);
-	assert_eq!(
-		<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonshadow_runtime::AuthorInherent,
-		>(),
-		Some(18)
-	);
-	assert_eq!(
-		<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonshadow_runtime::AuthorFilter,
-		>(),
-		Some(19)
-	);
-	assert_eq!(
-		<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonshadow_runtime::CrowdloanRewards,
-		>(),
-		Some(20)
-	);
-	assert_eq!(
-		<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonshadow_runtime::AuthorMapping,
-		>(),
-		Some(21)
-	);
-	assert_eq!(
-		<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-			moonshadow_runtime::Proxy,
-		>(),
-		Some(22)
-	);
+	fn is_pallet_index<P: 'static>(index: usize) {
+		assert_eq!(
+			<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<P>(),
+			Some(index)
+		);
+	}
+	is_pallet_index::<moonshadow_runtime::System>(0);
+	is_pallet_index::<moonshadow_runtime::Utility>(1);
+	is_pallet_index::<moonshadow_runtime::Timestamp>(2);
+	is_pallet_index::<moonshadow_runtime::Balances>(3);
+	is_pallet_index::<moonshadow_runtime::Sudo>(4);
+	is_pallet_index::<moonshadow_runtime::RandomnessCollectiveFlip>(5);
+	is_pallet_index::<moonshadow_runtime::ParachainSystem>(6);
+	is_pallet_index::<moonshadow_runtime::TransactionPayment>(7);
+	is_pallet_index::<moonshadow_runtime::ParachainInfo>(8);
+	is_pallet_index::<moonshadow_runtime::EthereumChainId>(9);
+	is_pallet_index::<moonshadow_runtime::EVM>(10);
+	is_pallet_index::<moonshadow_runtime::Ethereum>(11);
+	is_pallet_index::<moonshadow_runtime::ParachainStaking>(12);
+	is_pallet_index::<moonshadow_runtime::Scheduler>(13);
+	is_pallet_index::<moonshadow_runtime::Democracy>(14);
+	is_pallet_index::<moonshadow_runtime::CouncilCollective>(15);
+	is_pallet_index::<moonshadow_runtime::TechComitteeCollective>(16);
+	is_pallet_index::<moonshadow_runtime::Treasury>(17);
+	is_pallet_index::<moonshadow_runtime::AuthorInherent>(18);
+	is_pallet_index::<moonshadow_runtime::AuthorFilter>(19);
+	is_pallet_index::<moonshadow_runtime::CrowdloanRewards>(20);
+	is_pallet_index::<moonshadow_runtime::AuthorMapping>(21);
+	is_pallet_index::<moonshadow_runtime::Proxy>(22);
 }
 
 #[test]
