@@ -26,9 +26,9 @@ impl Migration for MM_001_AuthorMappingAddDeposit {
 	fn friendly_name(&self) -> &str {
 		"AuthorMappingAddDeposit"
 	}
-	fn step(&self, previous_progress: Perbill, available_weight: Weight) -> (Perbill, Weight) {
-		/// reviewer note: this isn't meant to imply that migration code must live here. As noted
-		/// elsewhere, I would expect migration code to live close to the pallet it affects.
+	fn step(&self, _previous_progress: Perbill, _available_weight: Weight) -> (Perbill, Weight) {
+		// reviewer note: this isn't meant to imply that migration code must live here. As noted
+		// elsewhere, I would expect migration code to live close to the pallet it affects.
 		(Perbill::one(), 0u64.into())
 	}
 }
@@ -38,7 +38,7 @@ impl Migration for MM_002_StakingFixTotalBalance {
 	fn friendly_name(&self) -> &str {
 		"StakingFixTotalBalance"
 	}
-	fn step(&self, previous_progress: Perbill, available_weight: Weight) -> (Perbill, Weight) {
+	fn step(&self, _previous_progress: Perbill, _available_weight: Weight) -> (Perbill, Weight) {
 		(Perbill::one(), 0u64.into())
 	}
 }
@@ -48,7 +48,7 @@ impl Migration for MM_003_StakingTransitionBoundedSet {
 	fn friendly_name(&self) -> &str {
 		"StakingTransitionBoundedSet"
 	}
-	fn step(&self, previous_progress: Perbill, available_weight: Weight) -> (Perbill, Weight) {
+	fn step(&self, _previous_progress: Perbill, _available_weight: Weight) -> (Perbill, Weight) {
 		(Perbill::one(), 0u64.into())
 	}
 }
