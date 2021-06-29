@@ -15,13 +15,17 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! A minimal runtime including the migrations pallet
+use super::*;
 use crate as pallet_migrations;
-use frame_support::{construct_runtime, parameter_types, weights::Weight};
+use frame_support::{
+	construct_runtime, parameter_types,
+	weights::Weight,
+};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
-	Perbill,
+	Perbill, Percent,
 };
 
 pub type AccountId = u64;
@@ -39,7 +43,7 @@ construct_runtime!(
 		UncheckedExtrinsic = UncheckedExtrinsic,
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Migrations: pallet_migrations::{Pallet, Storage, Config<T>, Event<T>},
+		Migrations: pallet_migrations::{Pallet, Call, Storage, Config<T>, Event<T>},
 	}
 );
 
@@ -48,6 +52,7 @@ parameter_types! {
 	pub const MaximumBlockWeight: Weight = 1024;
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
+	pub const SS58Prefix: u8 = 42;
 }
 impl frame_system::Config for Test {
 	type BaseCallFilter = ();
@@ -71,11 +76,11 @@ impl frame_system::Config for Test {
 	type SystemWeightInfo = ();
 	type BlockWeights = ();
 	type BlockLength = ();
-	type SS58Prefix = ();
+	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
 }
 impl Config for Test {
-	type Event: Event;
+	type Event = Event;
 }
 
 /*
