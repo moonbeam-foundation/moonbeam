@@ -23,7 +23,7 @@ use evm::{executor::PrecompileOutput, ExitError, ExitSucceed};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
-	traits::{fungible::Inspect, PalletInfo, PalletInfoAccess},
+	traits::{fungible::Inspect, PalletInfo},
 };
 use moonbase_runtime::{
 	currency::UNITS, AccountId, Balances, Call, CrowdloanRewards, Event, ParachainStaking,
@@ -36,32 +36,97 @@ use sp_core::{Public, H160, U256};
 use sp_runtime::DispatchError;
 
 #[test]
-fn verify_pallet_index() {
-	assert_eq!(System::index(), 0);
-	assert_eq!(moonbase_runtime::Utility::index(), 1);
-	assert_eq!(moonbase_runtime::Timestamp::index(), 2);
-	assert_eq!(Balances::index(), 3);
-	assert_eq!(moonbase_runtime::Sudo::index(), 4);
-	assert_eq!(moonbase_runtime::RandomnessCollectiveFlip::index(), 5);
-	assert_eq!(moonbase_runtime::ParachainSystem::index(), 6);
+fn verify_pallet_indices() {
+	assert_eq!(
+		<moonbase_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbase_runtime::System,
+		>(),
+		Some(0)
+	);
+	assert_eq!(
+		<moonbase_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbase_runtime::Utility,
+		>(),
+		Some(1)
+	);
+	assert_eq!(
+		<moonbase_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbase_runtime::Timestamp,
+		>(),
+		Some(2)
+	);
+	assert_eq!(
+		<moonbase_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbase_runtime::Balances,
+		>(),
+		Some(3)
+	);
+	assert_eq!(
+		<moonbase_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbase_runtime::Sudo,
+		>(),
+		Some(4)
+	);
+	assert_eq!(
+		<moonbase_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbase_runtime::RandomnessCollectiveFlip,
+		>(),
+		Some(5)
+	);
+	assert_eq!(
+		<moonbase_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbase_runtime::ParachainSystem,
+		>(),
+		Some(6)
+	);
 	assert_eq!(
 		<moonbase_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
 			moonbase_runtime::TransactionPayment,
 		>(),
 		Some(7)
 	);
-	assert_eq!(moonbase_runtime::ParachainInfo::index(), 8);
-	assert_eq!(moonbase_runtime::EthereumChainId::index(), 9);
-	assert_eq!(moonbase_runtime::EVM::index(), 10);
+	assert_eq!(
+		<moonbase_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbase_runtime::ParachainInfo,
+		>(),
+		Some(8)
+	);
+	assert_eq!(
+		<moonbase_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbase_runtime::EthereumChainId,
+		>(),
+		Some(9)
+	);
+	assert_eq!(
+		<moonbase_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbase_runtime::EVM,
+		>(),
+		Some(10)
+	);
 	assert_eq!(
 		<moonbase_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
 			moonbase_runtime::Ethereum,
 		>(),
 		Some(11)
 	);
-	assert_eq!(moonbase_runtime::ParachainStaking::index(), 12);
-	assert_eq!(moonbase_runtime::Scheduler::index(), 13);
-	assert_eq!(moonbase_runtime::Democracy::index(), 14);
+	assert_eq!(
+		<moonbase_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbase_runtime::ParachainStaking,
+		>(),
+		Some(12)
+	);
+	assert_eq!(
+		<moonbase_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbase_runtime::Scheduler,
+		>(),
+		Some(13)
+	);
+	assert_eq!(
+		<moonbase_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbase_runtime::Democracy,
+		>(),
+		Some(14)
+	);
 	assert_eq!(
 		<moonbase_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
 			moonbase_runtime::CouncilCollective,
@@ -80,11 +145,36 @@ fn verify_pallet_index() {
 		>(),
 		Some(17)
 	);
-	assert_eq!(moonbase_runtime::AuthorInherent::index(), 18);
-	assert_eq!(moonbase_runtime::AuthorFilter::index(), 19);
-	assert_eq!(CrowdloanRewards::index(), 20);
-	assert_eq!(moonbase_runtime::AuthorMapping::index(), 21);
-	assert_eq!(moonbase_runtime::Proxy::index(), 22);
+	assert_eq!(
+		<moonbase_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbase_runtime::AuthorInherent,
+		>(),
+		Some(18)
+	);
+	assert_eq!(
+		<moonbase_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbase_runtime::AuthorFilter,
+		>(),
+		Some(19)
+	);
+	assert_eq!(
+		<moonbase_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbase_runtime::CrowdloanRewards,
+		>(),
+		Some(20)
+	);
+	assert_eq!(
+		<moonbase_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbase_runtime::AuthorMapping,
+		>(),
+		Some(21)
+	);
+	assert_eq!(
+		<moonbase_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbase_runtime::Proxy,
+		>(),
+		Some(22)
+	);
 }
 
 #[test]

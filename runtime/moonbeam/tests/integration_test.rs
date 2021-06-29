@@ -25,7 +25,7 @@ use evm::{executor::PrecompileOutput, Context, ExitSucceed};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
-	traits::{fungible::Inspect, PalletInfo, PalletInfoAccess},
+	traits::{fungible::Inspect, PalletInfo},
 };
 use moonbeam_runtime::{
 	currency::GLMR, AccountId, Balances, Call, CrowdloanRewards, Event, ParachainStaking, Runtime,
@@ -39,32 +39,97 @@ use sp_core::{Public, H160, U256};
 use sp_runtime::DispatchError;
 
 #[test]
-fn verify_pallet_index() {
-	assert_eq!(System::index(), 0);
-	assert_eq!(moonbeam_runtime::Utility::index(), 1);
-	assert_eq!(moonbeam_runtime::Timestamp::index(), 2);
-	assert_eq!(Balances::index(), 3);
-	assert_eq!(moonbeam_runtime::Sudo::index(), 4);
-	assert_eq!(moonbeam_runtime::RandomnessCollectiveFlip::index(), 5);
-	assert_eq!(moonbeam_runtime::ParachainSystem::index(), 6);
+fn verify_pallet_indices() {
+	assert_eq!(
+		<moonbeam_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbeam_runtime::System,
+		>(),
+		Some(0)
+	);
+	assert_eq!(
+		<moonbeam_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbeam_runtime::Utility,
+		>(),
+		Some(1)
+	);
+	assert_eq!(
+		<moonbeam_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbeam_runtime::Timestamp,
+		>(),
+		Some(2)
+	);
+	assert_eq!(
+		<moonbeam_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbeam_runtime::Balances,
+		>(),
+		Some(3)
+	);
+	assert_eq!(
+		<moonbeam_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbeam_runtime::Sudo,
+		>(),
+		Some(4)
+	);
+	assert_eq!(
+		<moonbeam_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbeam_runtime::RandomnessCollectiveFlip,
+		>(),
+		Some(5)
+	);
+	assert_eq!(
+		<moonbeam_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbeam_runtime::ParachainSystem,
+		>(),
+		Some(6)
+	);
 	assert_eq!(
 		<moonbeam_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
 			moonbeam_runtime::TransactionPayment,
 		>(),
 		Some(7)
 	);
-	assert_eq!(moonbeam_runtime::ParachainInfo::index(), 8);
-	assert_eq!(moonbeam_runtime::EthereumChainId::index(), 9);
-	assert_eq!(moonbeam_runtime::EVM::index(), 10);
+	assert_eq!(
+		<moonbeam_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbeam_runtime::ParachainInfo,
+		>(),
+		Some(8)
+	);
+	assert_eq!(
+		<moonbeam_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbeam_runtime::EthereumChainId,
+		>(),
+		Some(9)
+	);
+	assert_eq!(
+		<moonbeam_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbeam_runtime::EVM,
+		>(),
+		Some(10)
+	);
 	assert_eq!(
 		<moonbeam_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
 			moonbeam_runtime::Ethereum,
 		>(),
 		Some(11)
 	);
-	assert_eq!(moonbeam_runtime::ParachainStaking::index(), 12);
-	assert_eq!(moonbeam_runtime::Scheduler::index(), 13);
-	assert_eq!(moonbeam_runtime::Democracy::index(), 14);
+	assert_eq!(
+		<moonbeam_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbeam_runtime::ParachainStaking,
+		>(),
+		Some(12)
+	);
+	assert_eq!(
+		<moonbeam_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbeam_runtime::Scheduler,
+		>(),
+		Some(13)
+	);
+	assert_eq!(
+		<moonbeam_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbeam_runtime::Democracy,
+		>(),
+		Some(14)
+	);
 	assert_eq!(
 		<moonbeam_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
 			moonbeam_runtime::CouncilCollective,
@@ -83,11 +148,36 @@ fn verify_pallet_index() {
 		>(),
 		Some(17)
 	);
-	assert_eq!(moonbeam_runtime::AuthorInherent::index(), 18);
-	assert_eq!(moonbeam_runtime::AuthorFilter::index(), 19);
-	assert_eq!(CrowdloanRewards::index(), 20);
-	assert_eq!(moonbeam_runtime::AuthorMapping::index(), 21);
-	assert_eq!(moonbeam_runtime::Proxy::index(), 22);
+	assert_eq!(
+		<moonbeam_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbeam_runtime::AuthorInherent,
+		>(),
+		Some(18)
+	);
+	assert_eq!(
+		<moonbeam_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbeam_runtime::AuthorFilter,
+		>(),
+		Some(19)
+	);
+	assert_eq!(
+		<moonbeam_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbeam_runtime::CrowdloanRewards,
+		>(),
+		Some(20)
+	);
+	assert_eq!(
+		<moonbeam_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbeam_runtime::AuthorMapping,
+		>(),
+		Some(21)
+	);
+	assert_eq!(
+		<moonbeam_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonbeam_runtime::Proxy,
+		>(),
+		Some(22)
+	);
 }
 
 #[test]
