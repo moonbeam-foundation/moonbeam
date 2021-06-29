@@ -20,9 +20,16 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(test)]
+mod mock;
+#[cfg(test)]
+mod tests;
+
 use frame_support::{pallet, weights::Weight};
 use sp_runtime::Perbill;
 pub mod migrations;
+
+pub use pallet::*;
 
 /// A Migration that must happen on-chain upon a runtime-upgrade
 pub trait Migration {
@@ -61,7 +68,7 @@ pub mod pallet {
 	use sp_std::prelude::*;
 
 	#[pallet::pallet]
-	pub struct Pallet<T>(PhantomData<T>);
+	pub struct Pallet<T>(_);
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
@@ -70,14 +77,14 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 	}
 
-	#[pallet::error]
-	pub enum Error<T> {
-		// errors in this pallet would be quite bad...
-	}
-
 	#[pallet::event]
 	pub enum Event<T: Config> {
 		// e.g. runtime upgrade started, completed, etc.
+		RuntimeUpgradeStarted,
+		RuntimeUpgradeCompleted,
+		MigrationStarted(String),
+		MigrationProgress(String, Perbill),
+		MigrationCompleted(String),
 	}
 
 	#[pallet::hooks]
@@ -118,6 +125,31 @@ pub mod pallet {
 		Perbill,
 		OptionQuery, // TODO: what is this...?
 	>;
+
+	#[pallet::genesis_config]
+	pub struct GenesisConfig<T: Config> {
+		pub completed_migrations: Vec<String>,
+		pub dummy: PhantomData<T> // TODO: 
+	}
+
+	#[cfg(feature = "std")]
+	impl<T: Config> Default for GenesisConfig<T> {
+		fn default() -> Self {
+			Self {
+				completed_migrations: vec![],
+				dummy: PhantomData,
+			}
+		}
+	}
+
+	#[pallet::genesis_build]
+	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
+		fn build(&self) {
+			for migration_name in &self.completed_migrations {
+				<MigrationState<T>>::insert(migration_name, Perbill::one());
+			}
+		}
+	}
 
 	fn process_runtime_upgrades<T: Config>() -> Weight {
 		log::info!("stepping runtime upgrade");
