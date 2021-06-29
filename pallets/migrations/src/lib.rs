@@ -29,8 +29,6 @@ use frame_support::{pallet, weights::Weight};
 use sp_runtime::Perbill;
 pub mod migrations;
 
-pub use pallet::*;
-
 /// A Migration that must happen on-chain upon a runtime-upgrade
 pub trait Migration {
 	/// A human-readable name for this migration. Also used as storage key.

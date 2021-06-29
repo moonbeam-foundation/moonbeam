@@ -16,8 +16,13 @@
 
 //! A minimal runtime including the migrations pallet
 use crate as pallet_migrations;
-use frame_support::{construct_runtime, parameter_types, traits::GenesisBuild, weights::Weight};
-use sp_runtime::{Perbill, {traits::IdentityLookup}};
+use frame_support::{construct_runtime, parameter_types, weights::Weight};
+use sp_core::H256;
+use sp_runtime::{
+	testing::Header,
+	traits::{BlakeTwo256, IdentityLookup},
+	Perbill,
+};
 
 pub type AccountId = u64;
 pub type Balance = u128;
@@ -51,11 +56,11 @@ impl frame_system::Config for Test {
 	type Index = u64;
 	type BlockNumber = BlockNumber;
 	type Call = Call;
-	type Hash = ();
-	type Hashing = ();
-	type AccountId = ();
+	type Hash = H256;
+	type Hashing = BlakeTwo256;
+	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = ();
+	type Header = Header;
 	type Event = Event;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -69,7 +74,8 @@ impl frame_system::Config for Test {
 	type SS58Prefix = ();
 	type OnSetCode = ();
 }
-impl pallet_migrations::Config for Test {
+impl Config for Test {
+	type Event: Event;
 }
 
 /*

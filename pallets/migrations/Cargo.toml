@@ -15,7 +15,7 @@ parity-scale-codec = { version = "2.0.0", default-features = false }
 
 [dev-dependencies]
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4", default-features = false }
-
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4", default-features = false }
 
 [features]
 default = ["std"]
@@ -25,4 +25,5 @@ std = [
 	"sp-std/std",
 	"sp-runtime/std",
 	"sp-io/std",
+	"sp-core/std",
 ]
