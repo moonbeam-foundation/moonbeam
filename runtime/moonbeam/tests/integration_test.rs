@@ -22,7 +22,11 @@ mod common;
 use common::*;
 
 use evm::{executor::PrecompileOutput, Context, ExitSucceed};
-use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable, traits::fungible::Inspect};
+use frame_support::{
+	assert_noop, assert_ok,
+	dispatch::Dispatchable,
+	traits::{fungible::Inspect, PalletInfoAccess},
+};
 use moonbeam_runtime::{
 	currency::GLMR, AccountId, Balances, Call, CrowdloanRewards, Event, ParachainStaking, Runtime,
 	System,
@@ -33,6 +37,33 @@ use parachain_staking::{Bond, NominatorAdded};
 use precompiles::MoonbeamPrecompiles;
 use sp_core::{Public, H160, U256};
 use sp_runtime::DispatchError;
+
+#[test]
+fn verify_pallet_index() {
+	assert_eq!(System::index(), 0);
+	assert_eq!(moonbeam_runtime::Utility::index(), 1);
+	assert_eq!(moonbeam_runtime::Timestamp::index(), 2);
+	assert_eq!(Balances::index(), 3);
+	assert_eq!(moonbeam_runtime::Sudo::index(), 4);
+	assert_eq!(moonbeam_runtime::RandomnessCollectiveFlip::index(), 5);
+	assert_eq!(moonbeam_runtime::ParachainSystem::index(), 6);
+	//assert_eq!(moonbeam_runtime::TransactionPayment::index(), 7);
+	assert_eq!(moonbeam_runtime::ParachainInfo::index(), 8);
+	assert_eq!(moonbeam_runtime::EthereumChainId::index(), 9);
+	assert_eq!(moonbeam_runtime::EVM::index(), 10);
+	//assert_eq!(moonbeam_runtime::Ethereum::index(), 11);
+	assert_eq!(moonbeam_runtime::ParachainStaking::index(), 12);
+	assert_eq!(moonbeam_runtime::Scheduler::index(), 13);
+	assert_eq!(moonbeam_runtime::Democracy::index(), 14);
+	//assert_eq!(moonbeam_runtime::CouncilCollective::index(), 15);
+	//assert_eq!(moonbeam_runtime::TechComitteeCollective::index(), 16);
+	//assert_eq!(moonbeam_runtime::Treasury::index(), 17);
+	assert_eq!(moonbeam_runtime::AuthorInherent::index(), 18);
+	assert_eq!(moonbeam_runtime::AuthorFilter::index(), 19);
+	assert_eq!(CrowdloanRewards::index(), 20);
+	assert_eq!(moonbeam_runtime::AuthorMapping::index(), 21);
+	assert_eq!(moonbeam_runtime::Proxy::index(), 22);
+}
 
 #[test]
 fn join_collator_candidates() {

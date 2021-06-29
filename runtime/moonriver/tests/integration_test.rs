@@ -22,13 +22,54 @@ mod common;
 use common::*;
 
 use evm::{executor::PrecompileOutput, Context, ExitSucceed};
-use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable, traits::fungible::Inspect};
+use frame_support::{
+	assert_noop, assert_ok,
+	dispatch::Dispatchable,
+	traits::{fungible::Inspect, PalletInfoAccess},
+};
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use parachain_staking::{Bond, NominatorAdded};
 use precompiles::MoonbeamPrecompiles;
 use sp_core::{Public, H160, U256};
 use sp_runtime::DispatchError;
+
+#[test]
+fn verify_pallet_index() {
+	// System support
+	assert_eq!(System::index(), 0);
+	assert_eq!(moonriver_runtime::ParachainSystem::index(), 1);
+	assert_eq!(moonriver_runtime::RandomnessCollectiveFlip::index(), 2);
+	assert_eq!(moonriver_runtime::Timestamp::index(), 3);
+	assert_eq!(moonriver_runtime::ParachainInfo::index(), 4);
+	// Monetary
+	assert_eq!(Balances::index(), 10);
+	//assert_eq!(moonriver_runtime::TransactionPayment::index(), 11);
+	// Consensus support
+	assert_eq!(moonriver_runtime::ParachainStaking::index(), 20);
+	assert_eq!(moonriver_runtime::AuthorInherent::index(), 21);
+	assert_eq!(moonriver_runtime::AuthorFilter::index(), 22);
+	assert_eq!(moonriver_runtime::AuthorMapping::index(), 23);
+	// Handy utilities
+	assert_eq!(moonriver_runtime::Utility::index(), 30);
+	assert_eq!(moonriver_runtime::Proxy::index(), 31);
+	// Sudo
+	assert_eq!(moonriver_runtime::Sudo::index(), 40);
+	// Ethereum compatibility
+	assert_eq!(moonriver_runtime::EthereumChainId::index(), 50);
+	assert_eq!(moonriver_runtime::EVM::index(), 51);
+	//assert_eq!(moonriver_runtime::Ethereum::index(), 52);
+	// Governance
+	assert_eq!(moonriver_runtime::Scheduler::index(), 60);
+	assert_eq!(moonriver_runtime::Democracy::index(), 61);
+	// Council
+	//assert_eq!(moonriver_runtime::CouncilCollective::index(), 70);
+	//assert_eq!(moonriver_runtime::TechComitteeCollective::index(), 71);
+	// Treasury
+	//assert_eq!(moonriver_runtime::Treasury::index(), 80);
+	// Crowdloan
+	assert_eq!(CrowdloanRewards::index(), 90);
+}
 
 #[test]
 fn join_collator_candidates() {
