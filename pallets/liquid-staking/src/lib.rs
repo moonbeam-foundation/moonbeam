@@ -38,13 +38,13 @@ mod tests;
 #[pallet]
 pub mod pallet {
 
+	use frame_support::traits::fungibles::Mutate;
 	use frame_support::{
 		pallet_prelude::*,
 		storage::{with_transaction, TransactionOutcome},
-		traits::{Currency, Get, ReservableCurrency, fungibles},
-		Parameter, PalletId,
+		traits::{fungibles, Currency, Get, ReservableCurrency},
+		PalletId, Parameter,
 	};
-	use frame_support::traits::fungibles::Mutate;
 	use frame_system::{ensure_signed, pallet_prelude::*};
 	use sp_runtime::{
 		traits::{AtLeast32BitUnsigned, Convert, MaybeSerializeDeserialize, Member, Zero},
@@ -55,14 +55,8 @@ pub mod pallet {
 	use xcm::v0::prelude::*;
 	use xcm_executor::traits::WeightBounds;
 
-
-	type BalanceOf<T> = <<T as Config>::Assets as frame_support::traits::fungibles::Inspect<
-		<T as frame_system::Config>::AccountId,
-	>>::Balance;
-
-	type AssetIdOf<T> = <<T as Config>::Assets as frame_support::traits::fungibles::Inspect
-	<<T as frame_system::Config>::AccountId>>::AssetId;
-
+	type BalanceOf<T> =
+		<<T as Config>::RelayCurrency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
@@ -73,11 +67,8 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
-		/// The units in which we record balances.
-		type Assets: fungibles::Mutate<Self::AccountId> + fungibles::Transfer<Self::AccountId>;
-
-		type AssetId: Get<<Self::Assets as frame_support::traits::fungibles::Inspect
-		<Self::AccountId>>::AssetId>;
+		/// The currency type for Relay balances
+		type RelayCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 		/// Convert `T::AccountId` to `MultiLocation`.
 		type AccountIdToMultiLocation: Convert<Self::AccountId, MultiLocation>;
 
@@ -112,10 +103,7 @@ pub mod pallet {
 			amount: BalanceOf<T>,
 			dest_weight: Weight,
 		) -> DispatchResult {
-
 			let who = ensure_signed(origin)?;
-			T::Assets::burn_from(T::AssetId::get().into(), &who, amount.into())
-				.map_err(|e| XcmError::FailedToTransactAsset(e.into())).unwrap();
 			Self::deposit_event(Event::<T>::Staked(who.clone(), amount.clone()));
 			Ok(())
 		}

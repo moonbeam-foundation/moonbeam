@@ -31,7 +31,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, match_type, parameter_types,
-	traits::{All, Get, Imbalance, InstanceFilter, OnUnbalanced, OriginTrait, tokens::fungibles},
+	traits::{tokens::fungibles, All, Get, Imbalance, InstanceFilter, OnUnbalanced, OriginTrait},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
 		IdentityFee, Weight,
@@ -235,6 +235,21 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
 }
 
+type KsmInstance = pallet_balances::Instance1;
+
+// Virtual-KSM balances.
+impl pallet_balances::Config<KsmInstance> for Runtime {
+	type MaxLocks = MaxLocks;
+	/// The type for recording an account's balance.
+	type Balance = Balance;
+	/// The ubiquitous event type.
+	type Event = Event;
+	type DustRemoval = ();
+	type ExistentialDeposit = ExistentialDeposit;
+	type AccountStore = System;
+	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
+}
+
 pub struct DealWithFees<R>(sp_std::marker::PhantomData<R>);
 impl<R> OnUnbalanced<NegativeImbalance<R>> for DealWithFees<R>
 where
@@ -280,20 +295,24 @@ impl sp_runtime::traits::Convert<AccountId, MultiLocation> for AccountIdToMultiL
 	}
 }
 
-use sp_std::{prelude::*, result, borrow::Borrow};
+use sp_std::{borrow::Borrow, prelude::*, result};
 use xcm_executor::traits::Convert as xcmConvert;
 
-pub struct AsPrefixedGeneralIndex<Prefix, AssetId, ConvertAssetId>(PhantomData<(Prefix, AssetId, ConvertAssetId)>);
-impl<
-	Prefix: Get<MultiLocation>,
-	AssetId: Clone,
-	ConvertAssetId: xcmConvert<u128, AssetId>,
-> xcmConvert<MultiLocation, AssetId> for AsPrefixedGeneralIndex<Prefix, AssetId, ConvertAssetId> {
+pub struct AsPrefixedGeneralIndex<Prefix, AssetId, ConvertAssetId>(
+	PhantomData<(Prefix, AssetId, ConvertAssetId)>,
+);
+impl<Prefix: Get<MultiLocation>, AssetId: Clone, ConvertAssetId: xcmConvert<u128, AssetId>>
+	xcmConvert<MultiLocation, AssetId> for AsPrefixedGeneralIndex<Prefix, AssetId, ConvertAssetId>
+{
 	fn convert_ref(id: impl Borrow<MultiLocation>) -> result::Result<AssetId, ()> {
 		let prefix = Prefix::get();
 		let id = id.borrow();
-		if !prefix.iter().enumerate().all(|(index, item)| id.at(index) == Some(item)) {
-			return Err(())
+		if !prefix
+			.iter()
+			.enumerate()
+			.all(|(index, item)| id.at(index) == Some(item))
+		{
+			return Err(());
 		}
 		match id.at(prefix.len()) {
 			Some(Junction::GeneralIndex { id }) => ConvertAssetId::convert_ref(id),
@@ -303,11 +322,12 @@ impl<
 	fn reverse_ref(what: impl Borrow<AssetId>) -> result::Result<MultiLocation, ()> {
 		let mut location = Prefix::get();
 		let id = ConvertAssetId::reverse_ref(what)?;
-		location.push(Junction::GeneralIndex { id }).map_err(|_| ())?;
+		location
+			.push(Junction::GeneralIndex { id })
+			.map_err(|_| ())?;
 		Ok(location)
 	}
 }
-
 
 parameter_types! {
 	pub const RelayAssetId: u128 = 0;
@@ -315,8 +335,7 @@ parameter_types! {
 
 impl liquid_staking::Config for Runtime {
 	type Event = Event;
-	type Assets = XcmAssets;
-	type AssetId = RelayAssetId;
+	type RelayCurrency = BalancesKsm;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
 	type PalletId = CheckingAccount;
 	type XcmExecutor = XcmExecutor;
@@ -928,17 +947,17 @@ impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 }
 
-use frame_support::traits::{Contains};
+use frame_support::traits::Contains;
 use sp_runtime::traits::Zero;
 use sp_std::marker::PhantomData;
-use xcm_builder::{FungiblesAdapter};
+use xcm_builder::FungiblesAdapter;
 use xcm_executor::traits::JustTry;
 
 /// Allow checking in assets that have issuance > 0.
 pub struct CheckAsset<A>(PhantomData<A>);
 impl<A> Contains<<A as fungibles::Inspect<AccountId>>::AssetId> for CheckAsset<A>
-	where
-		A: fungibles::Inspect<AccountId>
+where
+	A: fungibles::Inspect<AccountId>,
 {
 	fn contains(id: &<A as fungibles::Inspect<AccountId>>::AssetId) -> bool {
 		!A::total_issuance(*id).is_zero()
@@ -964,7 +983,6 @@ pub type FungiblesTransactor = FungiblesAdapter<
 >;
 /// Means for transacting assets on this chain.
 pub type AssetTransactors = FungiblesTransactor;
-
 
 parameter_types! {
 	// Dummy deposit amount. Since most operations will be performed
@@ -1004,6 +1022,7 @@ construct_runtime! {
 		Utility: pallet_utility::{Pallet, Call, Event},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
+		BalancesKsm: pallet_balances::<Instance1>::{Pallet, Call, Storage, Config<T>, Event<T>} = 12,
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
 		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Call, Storage},
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>},
