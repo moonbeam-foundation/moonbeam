@@ -25,7 +25,7 @@ use evm::{executor::PrecompileOutput, Context, ExitSucceed};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
-	traits::{fungible::Inspect, PalletInfoAccess},
+	traits::{fungible::Inspect, PalletInfo, PalletInfoAccess},
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -44,7 +44,12 @@ fn verify_pallet_index() {
 	assert_eq!(moonriver_runtime::ParachainInfo::index(), 4);
 	// Monetary
 	assert_eq!(Balances::index(), 10);
-	//assert_eq!(moonriver_runtime::TransactionPayment::index(), 11);
+	assert_eq!(
+		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonriver_runtime::TransactionPayment,
+		>(),
+		Some(11)
+	);
 	// Consensus support
 	assert_eq!(moonriver_runtime::ParachainStaking::index(), 20);
 	assert_eq!(moonriver_runtime::AuthorInherent::index(), 21);
@@ -58,15 +63,35 @@ fn verify_pallet_index() {
 	// Ethereum compatibility
 	assert_eq!(moonriver_runtime::EthereumChainId::index(), 50);
 	assert_eq!(moonriver_runtime::EVM::index(), 51);
-	//assert_eq!(moonriver_runtime::Ethereum::index(), 52);
+	assert_eq!(
+		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonriver_runtime::Ethereum,
+		>(),
+		Some(52)
+	);
 	// Governance
 	assert_eq!(moonriver_runtime::Scheduler::index(), 60);
 	assert_eq!(moonriver_runtime::Democracy::index(), 61);
 	// Council
-	//assert_eq!(moonriver_runtime::CouncilCollective::index(), 70);
-	//assert_eq!(moonriver_runtime::TechComitteeCollective::index(), 71);
+	assert_eq!(
+		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonriver_runtime::CouncilCollective,
+		>(),
+		Some(70)
+	);
+	assert_eq!(
+		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonriver_runtime::TechComitteeCollective,
+		>(),
+		Some(71)
+	);
 	// Treasury
-	//assert_eq!(moonriver_runtime::Treasury::index(), 80);
+	assert_eq!(
+		<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
+			moonriver_runtime::Treasury,
+		>(),
+		Some(80)
+	);
 	// Crowdloan
 	assert_eq!(CrowdloanRewards::index(), 90);
 }
