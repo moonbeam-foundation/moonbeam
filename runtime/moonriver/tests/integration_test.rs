@@ -35,7 +35,7 @@ use sp_core::{Public, H160, U256};
 use sp_runtime::DispatchError;
 
 #[test]
-fn verify_pallet_index() {
+fn verify_pallet_indices() {
 	// System support
 	assert_eq!(System::index(), 0);
 	assert_eq!(moonriver_runtime::ParachainSystem::index(), 1);
