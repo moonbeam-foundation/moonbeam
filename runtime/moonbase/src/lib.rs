@@ -120,12 +120,15 @@ pub mod opaque {
 }
 
 /// This runtime version.
+/// The spec_version is composed of 2x2 digits. The first 2 digits represent major changes
+/// that can't be skipped, such as data migration upgrades. The last 2 digits represent minor
+/// changes which can be skipped.
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 3,
-	spec_version: 53,
+	spec_version: 0153,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
