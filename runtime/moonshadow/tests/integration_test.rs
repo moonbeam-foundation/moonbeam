@@ -22,12 +22,12 @@ mod common;
 use common::*;
 
 use evm::{executor::PrecompileOutput, Context, ExitSucceed};
-use moonshadow_runtime::Precompiles;
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
 	traits::{fungible::Inspect, PalletInfo},
 };
+use moonshadow_runtime::Precompiles;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use parachain_staking::{Bond, NominatorAdded};
