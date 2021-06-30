@@ -86,7 +86,7 @@ impl Config for Test {
 
 /// Externality builder for pallet migration's mock runtime
 pub(crate) struct ExtBuilder {
-	completed_migrations: Vec<String>,
+	completed_migrations: Vec<Vec<u8>>,
 }
 
 impl Default for ExtBuilder {

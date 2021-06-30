@@ -84,9 +84,9 @@ pub mod pallet {
 		// e.g. runtime upgrade started, completed, etc.
 		RuntimeUpgradeStarted(),
 		RuntimeUpgradeCompleted(),
-		MigrationStarted(String),
-		MigrationProgress(String, Perbill),
-		MigrationCompleted(String),
+		MigrationStarted(Vec<u8>),
+		MigrationProgress(Vec<u8>, Perbill),
+		MigrationCompleted(Vec<u8>),
 	}
 
 	#[pallet::hooks]
@@ -121,17 +121,18 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn migration_state)]
 	/// MigrationState tracks the progress of a migration.
+	/// Maps name (Vec<u8>) -> migration progress (Perbill)
 	type MigrationState<T: Config> = StorageMap<
 		_,
 		Twox64Concat,
-		String,
+		Vec<u8>,
 		Perbill,
 		OptionQuery, // TODO: what is this...?
 	>;
 
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
-		pub completed_migrations: Vec<String>,
+		pub completed_migrations: Vec<Vec<u8>>,
 		pub dummy: PhantomData<T> // TODO: 
 	}
 
@@ -168,10 +169,14 @@ pub mod pallet {
 			let migration_name = migration.friendly_name();
 			log::trace!("evaluating migration {}", migration_name);
 
-			let migration_state = <MigrationState<T>>::get(migration_name)
+			let migration_state = <MigrationState<T>>::get(migration_name.as_bytes())
 				.unwrap_or(Perbill::zero());
 
 			if migration_state < Perbill::one() {
+
+				// TODO: we don't currently have a reliable way to know "started"
+				// TODO: multiple calls to as_bytes() or to_vec() may be expensive
+				<Pallet<T>>::deposit_event(Event::MigrationStarted(migration_name.as_bytes().to_vec()));
 
 				let available_for_step = available_weight - weight;
 				log::trace!("stepping migration {}, prev: {:?}, avail weight: {}",
@@ -196,7 +201,7 @@ pub mod pallet {
 				}
 
 				if migration_state != updated_progress {
-					<MigrationState<T>>::insert(migration_name, updated_progress);
+					<MigrationState<T>>::insert(migration_name.as_bytes(), updated_progress);
 				}
 			}
 
