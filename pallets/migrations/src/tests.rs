@@ -49,8 +49,8 @@ fn on_runtime_upgrade_emits_events() {
 			Migrations::on_runtime_upgrade();
 
 			let mut expected = vec![
-				Event::RuntimeUpgradeStarted,
-				Event::RuntimeUpgradeCompleted,
+				Event::RuntimeUpgradeStarted(),
+				Event::RuntimeUpgradeCompleted(),
 			];
 			assert_eq!(events(), expected);
 		});

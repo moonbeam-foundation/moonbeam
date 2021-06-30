@@ -79,10 +79,11 @@ pub mod pallet {
 	}
 
 	#[pallet::event]
+	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		// e.g. runtime upgrade started, completed, etc.
-		RuntimeUpgradeStarted,
-		RuntimeUpgradeCompleted,
+		RuntimeUpgradeStarted(),
+		RuntimeUpgradeCompleted(),
 		MigrationStarted(String),
 		MigrationProgress(String, Perbill),
 		MigrationCompleted(String),
@@ -102,6 +103,7 @@ pub mod pallet {
 
 			// start by flagging that we are not fully upgraded
 			<FullyUpgraded<T>>::put(false);
+			Self::deposit_event(Event::RuntimeUpgradeStarted());
 
 			let mut weight: Weight = 0u64.into();
 
@@ -201,6 +203,7 @@ pub mod pallet {
 		}
 
 		if done {
+			<Pallet<T>>::deposit_event(Event::RuntimeUpgradeCompleted());
 			<FullyUpgraded<T>>::put(true);
 		}
 
