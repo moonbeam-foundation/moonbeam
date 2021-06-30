@@ -4719,7 +4719,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli"
-version = "0.8.2"
+version = "0.8.4"
 dependencies = [
  "cumulus-client-cli",
  "cumulus-client-service",
