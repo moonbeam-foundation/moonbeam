@@ -22,13 +22,50 @@ mod common;
 use common::*;
 
 use evm::{executor::PrecompileOutput, Context, ExitSucceed};
-use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable, traits::fungible::Inspect};
+use frame_support::{
+	assert_noop, assert_ok,
+	dispatch::Dispatchable,
+	traits::{fungible::Inspect, PalletInfo},
+};
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use parachain_staking::{Bond, NominatorAdded};
 use precompiles::MoonbeamPrecompiles;
 use sp_core::{Public, H160, U256};
 use sp_runtime::DispatchError;
+
+#[test]
+fn verify_pallet_indices() {
+	fn is_pallet_index<P: 'static>(index: usize) {
+		assert_eq!(
+			<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<P>(),
+			Some(index)
+		);
+	}
+	is_pallet_index::<moonshadow_runtime::System>(0);
+	is_pallet_index::<moonshadow_runtime::Utility>(1);
+	is_pallet_index::<moonshadow_runtime::Timestamp>(2);
+	is_pallet_index::<moonshadow_runtime::Balances>(3);
+	is_pallet_index::<moonshadow_runtime::Sudo>(4);
+	is_pallet_index::<moonshadow_runtime::RandomnessCollectiveFlip>(5);
+	is_pallet_index::<moonshadow_runtime::ParachainSystem>(6);
+	is_pallet_index::<moonshadow_runtime::TransactionPayment>(7);
+	is_pallet_index::<moonshadow_runtime::ParachainInfo>(8);
+	is_pallet_index::<moonshadow_runtime::EthereumChainId>(9);
+	is_pallet_index::<moonshadow_runtime::EVM>(10);
+	is_pallet_index::<moonshadow_runtime::Ethereum>(11);
+	is_pallet_index::<moonshadow_runtime::ParachainStaking>(12);
+	is_pallet_index::<moonshadow_runtime::Scheduler>(13);
+	is_pallet_index::<moonshadow_runtime::Democracy>(14);
+	is_pallet_index::<moonshadow_runtime::CouncilCollective>(15);
+	is_pallet_index::<moonshadow_runtime::TechComitteeCollective>(16);
+	is_pallet_index::<moonshadow_runtime::Treasury>(17);
+	is_pallet_index::<moonshadow_runtime::AuthorInherent>(18);
+	is_pallet_index::<moonshadow_runtime::AuthorFilter>(19);
+	is_pallet_index::<moonshadow_runtime::CrowdloanRewards>(20);
+	is_pallet_index::<moonshadow_runtime::AuthorMapping>(21);
+	is_pallet_index::<moonshadow_runtime::Proxy>(22);
+}
 
 #[test]
 fn join_collator_candidates() {
