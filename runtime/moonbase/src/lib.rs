@@ -223,6 +223,22 @@ parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
 }
 
+/*pub struct KsmPrefix;
+
+impl frame_support::traits::StorageInstance for KsmPrefix {
+	const STORAGE_PREFIX: &'static str = "KsmBalances";
+
+	fn pallet_prefix() -> &'static str {
+		Self::STORAGE_PREFIX
+	}
+}
+type KsmStorageMap = frame_support::storage::types::StorageMap<
+	KsmPrefix,
+	frame_support::Twox64Concat,
+	AccountId,
+	Option<pallet_balances::AccountData<Balance>>,
+>;*/
+
 impl pallet_balances::Config for Runtime {
 	type MaxLocks = MaxLocks;
 	/// The type for recording an account's balance.
@@ -246,7 +262,14 @@ impl pallet_balances::Config<KsmInstance> for Runtime {
 	type Event = Event;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
-	type AccountStore = System;
+	// This uses the pallets internal storage
+	// TODO: explain this (Storedmap, etc..)
+	type AccountStore = frame_support::traits::StorageMapShim<
+		pallet_balances::Account<Runtime, KsmInstance>,
+		(),
+		AccountId,
+		pallet_balances::AccountData<Balance>,
+	>;
 	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
 }
 
@@ -1022,7 +1045,7 @@ construct_runtime! {
 		Utility: pallet_utility::{Pallet, Call, Event},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		BalancesKsm: pallet_balances::<Instance1>::{Pallet, Call, Storage, Config<T>, Event<T>} = 12,
+		BalancesKsm: pallet_balances::<Instance1>::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
 		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Call, Storage},
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>},
