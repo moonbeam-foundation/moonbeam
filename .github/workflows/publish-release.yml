@@ -137,7 +137,7 @@ jobs:
         run: |
           cd tools
           yarn
-          yarn -s run ts-node github/generate-release-body.ts --srtool-report-folder '../build/' > ../body.md
+          yarn -s run ts-node github/generate-release-body.ts --tag "${{ github.event.inputs.tag }}" --srtool-report-folder '../build/' > ../body.md
       - name: Get runtime version
         id: get-runtime-ver
         run: |
