@@ -22,13 +22,60 @@ mod common;
 use common::*;
 
 use evm::{executor::PrecompileOutput, Context, ExitSucceed};
-use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable, traits::fungible::Inspect};
 use moonriver_runtime::Precompiles;
+use frame_support::{
+	assert_noop, assert_ok,
+	dispatch::Dispatchable,
+	traits::{fungible::Inspect, PalletInfo},
+};
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use parachain_staking::{Bond, NominatorAdded};
 use sp_core::{Public, H160, U256};
 use sp_runtime::DispatchError;
+
+#[test]
+fn verify_pallet_indices() {
+	fn is_pallet_index<P: 'static>(index: usize) {
+		assert_eq!(
+			<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<P>(),
+			Some(index)
+		);
+	}
+	// System support
+	is_pallet_index::<moonriver_runtime::System>(0);
+	is_pallet_index::<moonriver_runtime::ParachainSystem>(1);
+	is_pallet_index::<moonriver_runtime::RandomnessCollectiveFlip>(2);
+	is_pallet_index::<moonriver_runtime::Timestamp>(3);
+	is_pallet_index::<moonriver_runtime::ParachainInfo>(4);
+	// Monetary
+	is_pallet_index::<moonriver_runtime::Balances>(10);
+	is_pallet_index::<moonriver_runtime::TransactionPayment>(11);
+	// Consensus support
+	is_pallet_index::<moonriver_runtime::ParachainStaking>(20);
+	is_pallet_index::<moonriver_runtime::AuthorInherent>(21);
+	is_pallet_index::<moonriver_runtime::AuthorFilter>(22);
+	is_pallet_index::<moonriver_runtime::AuthorMapping>(23);
+	// Handy utilities
+	is_pallet_index::<moonriver_runtime::Utility>(30);
+	is_pallet_index::<moonriver_runtime::Proxy>(31);
+	// Sudo
+	is_pallet_index::<moonriver_runtime::Sudo>(40);
+	// Ethereum compatibility
+	is_pallet_index::<moonriver_runtime::EthereumChainId>(50);
+	is_pallet_index::<moonriver_runtime::EVM>(51);
+	is_pallet_index::<moonriver_runtime::Ethereum>(52);
+	// Governance
+	is_pallet_index::<moonriver_runtime::Scheduler>(60);
+	is_pallet_index::<moonriver_runtime::Democracy>(61);
+	// Council
+	is_pallet_index::<moonriver_runtime::CouncilCollective>(70);
+	is_pallet_index::<moonriver_runtime::TechComitteeCollective>(71);
+	// Treasury
+	is_pallet_index::<moonriver_runtime::Treasury>(80);
+	// Crowdloan
+	is_pallet_index::<moonriver_runtime::CrowdloanRewards>(90);
+}
 
 #[test]
 fn join_collator_candidates() {

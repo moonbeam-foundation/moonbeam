@@ -22,7 +22,11 @@ mod common;
 use common::*;
 
 use evm::{executor::PrecompileOutput, Context, ExitSucceed};
-use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable, traits::fungible::Inspect};
+use frame_support::{
+	assert_noop, assert_ok,
+	dispatch::Dispatchable,
+	traits::{fungible::Inspect, PalletInfo},
+};
 use moonbeam_runtime::{
 	currency::GLMR, AccountId, Balances, Call, CrowdloanRewards, Event, ParachainStaking,
 	Precompiles, Runtime, System,
@@ -32,6 +36,39 @@ use pallet_evm::PrecompileSet;
 use parachain_staking::{Bond, NominatorAdded};
 use sp_core::{Public, H160, U256};
 use sp_runtime::DispatchError;
+
+#[test]
+fn verify_pallet_indices() {
+	fn is_pallet_index<P: 'static>(index: usize) {
+		assert_eq!(
+			<moonbeam_runtime::Runtime as frame_system::Config>::PalletInfo::index::<P>(),
+			Some(index)
+		);
+	}
+	is_pallet_index::<moonbeam_runtime::System>(0);
+	is_pallet_index::<moonbeam_runtime::Utility>(1);
+	is_pallet_index::<moonbeam_runtime::Timestamp>(2);
+	is_pallet_index::<moonbeam_runtime::Balances>(3);
+	is_pallet_index::<moonbeam_runtime::Sudo>(4);
+	is_pallet_index::<moonbeam_runtime::RandomnessCollectiveFlip>(5);
+	is_pallet_index::<moonbeam_runtime::ParachainSystem>(6);
+	is_pallet_index::<moonbeam_runtime::TransactionPayment>(7);
+	is_pallet_index::<moonbeam_runtime::ParachainInfo>(8);
+	is_pallet_index::<moonbeam_runtime::EthereumChainId>(9);
+	is_pallet_index::<moonbeam_runtime::EVM>(10);
+	is_pallet_index::<moonbeam_runtime::Ethereum>(11);
+	is_pallet_index::<moonbeam_runtime::ParachainStaking>(12);
+	is_pallet_index::<moonbeam_runtime::Scheduler>(13);
+	is_pallet_index::<moonbeam_runtime::Democracy>(14);
+	is_pallet_index::<moonbeam_runtime::CouncilCollective>(15);
+	is_pallet_index::<moonbeam_runtime::TechComitteeCollective>(16);
+	is_pallet_index::<moonbeam_runtime::Treasury>(17);
+	is_pallet_index::<moonbeam_runtime::AuthorInherent>(18);
+	is_pallet_index::<moonbeam_runtime::AuthorFilter>(19);
+	is_pallet_index::<moonbeam_runtime::CrowdloanRewards>(20);
+	is_pallet_index::<moonbeam_runtime::AuthorMapping>(21);
+	is_pallet_index::<moonbeam_runtime::Proxy>(22);
+}
 
 #[test]
 fn join_collator_candidates() {
