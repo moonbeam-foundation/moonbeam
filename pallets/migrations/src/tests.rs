@@ -16,7 +16,11 @@
 
 //! Unit testing
 use crate::mock::{
-	last_event, Migrations, Event as MetaEvent, ExtBuilder, Origin, System, Test,
+	last_event, events, Migrations, Event as MetaEvent, ExtBuilder, Origin, System, Test,
+};
+use crate::Event;
+use frame_support::{
+	traits::{OnRuntimeUpgrade},
 };
 
 #[test]
@@ -28,3 +32,26 @@ fn genesis_builder_works() {
 		})
 }
 
+#[test]
+fn on_runtime_upgrade_returns() {
+	ExtBuilder::default()
+		.build()
+		.execute_with(|| {
+			Migrations::on_runtime_upgrade();
+		})
+}
+
+#[test]
+fn on_runtime_upgrade_emits_events() {
+	ExtBuilder::default()
+		.build()
+		.execute_with(|| {
+			Migrations::on_runtime_upgrade();
+
+			let mut expected = vec![
+				Event::RuntimeUpgradeStarted,
+				Event::RuntimeUpgradeCompleted,
+			];
+			assert_eq!(events(), expected);
+		});
+}

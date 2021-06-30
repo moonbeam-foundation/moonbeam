@@ -19,7 +19,7 @@ use super::*;
 use crate as pallet_migrations;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{GenesisBuild},
+	traits::{GenesisBuild, OnRuntimeUpgrade},
 	weights::Weight,
 };
 use sp_core::H256;
@@ -115,6 +115,20 @@ impl ExtBuilder {
 		ext.execute_with(|| System::set_block_number(1));
 		ext
 	}
+}
+
+pub(crate) fn events() -> Vec<pallet_migrations::Event<Test>> {
+	System::events()
+		.into_iter()
+		.map(|r| r.event)
+		.filter_map(|e| {
+			if let Event::pallet_migrations(inner) = e {
+				Some(inner)
+			} else {
+				None
+			}
+		})
+		.collect::<Vec<_>>()
 }
 
 pub(crate) fn last_event() -> Event {
