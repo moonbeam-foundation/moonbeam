@@ -337,7 +337,7 @@ impl liquid_staking::Config for Runtime {
 	type Event = Event;
 	type RelayCurrency = BalancesKsm;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
-	type PalletId = CheckingAccount;
+	type XcmSender = XcmRouter;
 	type XcmExecutor = XcmExecutor;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
 }
@@ -808,7 +808,7 @@ pub type LocationToAccountId = (
 /// Means for transacting assets on this chain.
 pub type LocalAssetTransactor = xcm_builder::CurrencyAdapter<
 	// Use this currency:
-	Balances,
+	BalancesKsm,
 	// Use this currency when it is a fungible asset matching the given location or name:
 	xcm_builder::IsConcrete<KsmLocation>,
 	// Do a simple punn to convert an AccountId32 MultiLocation into a native chain account ID:
