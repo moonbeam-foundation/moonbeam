@@ -1,6 +1,6 @@
 [package]
 name = "moonbeam-cli"
-version = "0.8.4"
+version = "0.9.0"
 authors = ["PureStake"]
 edition = "2018"
 
@@ -18,10 +18,10 @@ sc-telemetry = { git = "https://github.com/paritytech/substrate", branch = "polk
 frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
 try-runtime-cli = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.6" }
 
-cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.6" }
-cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.6" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.6" }
-nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.6" }
+cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "nimbus-v0.9.6-without-compact-proof" }
+cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "nimbus-v0.9.6-without-compact-proof" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "nimbus-v0.9.6-without-compact-proof" }
+nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "nimbus-v0.9.6-without-compact-proof" }
 
 polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.6" }
 polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.6" }
