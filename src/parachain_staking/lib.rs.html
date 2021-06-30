@@ -1703,81 +1703,6 @@
 <span id="1700">1700</span>
 <span id="1701">1701</span>
 <span id="1702">1702</span>
-<span id="1703">1703</span>
-<span id="1704">1704</span>
-<span id="1705">1705</span>
-<span id="1706">1706</span>
-<span id="1707">1707</span>
-<span id="1708">1708</span>
-<span id="1709">1709</span>
-<span id="1710">1710</span>
-<span id="1711">1711</span>
-<span id="1712">1712</span>
-<span id="1713">1713</span>
-<span id="1714">1714</span>
-<span id="1715">1715</span>
-<span id="1716">1716</span>
-<span id="1717">1717</span>
-<span id="1718">1718</span>
-<span id="1719">1719</span>
-<span id="1720">1720</span>
-<span id="1721">1721</span>
-<span id="1722">1722</span>
-<span id="1723">1723</span>
-<span id="1724">1724</span>
-<span id="1725">1725</span>
-<span id="1726">1726</span>
-<span id="1727">1727</span>
-<span id="1728">1728</span>
-<span id="1729">1729</span>
-<span id="1730">1730</span>
-<span id="1731">1731</span>
-<span id="1732">1732</span>
-<span id="1733">1733</span>
-<span id="1734">1734</span>
-<span id="1735">1735</span>
-<span id="1736">1736</span>
-<span id="1737">1737</span>
-<span id="1738">1738</span>
-<span id="1739">1739</span>
-<span id="1740">1740</span>
-<span id="1741">1741</span>
-<span id="1742">1742</span>
-<span id="1743">1743</span>
-<span id="1744">1744</span>
-<span id="1745">1745</span>
-<span id="1746">1746</span>
-<span id="1747">1747</span>
-<span id="1748">1748</span>
-<span id="1749">1749</span>
-<span id="1750">1750</span>
-<span id="1751">1751</span>
-<span id="1752">1752</span>
-<span id="1753">1753</span>
-<span id="1754">1754</span>
-<span id="1755">1755</span>
-<span id="1756">1756</span>
-<span id="1757">1757</span>
-<span id="1758">1758</span>
-<span id="1759">1759</span>
-<span id="1760">1760</span>
-<span id="1761">1761</span>
-<span id="1762">1762</span>
-<span id="1763">1763</span>
-<span id="1764">1764</span>
-<span id="1765">1765</span>
-<span id="1766">1766</span>
-<span id="1767">1767</span>
-<span id="1768">1768</span>
-<span id="1769">1769</span>
-<span id="1770">1770</span>
-<span id="1771">1771</span>
-<span id="1772">1772</span>
-<span id="1773">1773</span>
-<span id="1774">1774</span>
-<span id="1775">1775</span>
-<span id="1776">1776</span>
-<span id="1777">1777</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1921,17 +1846,6 @@
 		<span class="kw">pub</span> <span class="ident">bond</span>: <span class="ident">Balance</span>,
 		<span class="kw">pub</span> <span class="ident">nominators</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 		<span class="kw">pub</span> <span class="ident">total</span>: <span class="ident">Balance</span>,
-	}
-
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>)]</span>
-	<span class="doccomment">/// DEPRECATED: This is the old storage schema. It is retained for purposes of storage migration</span>
-	<span class="doccomment">/// and should be removed in the future.</span>
-	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Collator</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span> {
-		<span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">AccountId</span>,
-		<span class="kw">pub</span> <span class="ident">bond</span>: <span class="ident">Balance</span>,
-		<span class="kw">pub</span> <span class="ident">nominators</span>: <span class="ident">OrderedSet</span><span class="op">&lt;</span><span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-		<span class="kw">pub</span> <span class="ident">total</span>: <span class="ident">Balance</span>,
-		<span class="kw">pub</span> <span class="ident">state</span>: <span class="ident">CollatorStatus</span>,
 	}
 
 	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>)]</span>
@@ -2217,31 +2131,6 @@
 		}
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">leave_candidates</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">round</span>: <span class="ident">RoundIndex</span>) {
 			<span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">CollatorStatus</span>::<span class="ident">Leaving</span>(<span class="ident">round</span>);
-		}
-	}
-
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Ord</span>, <span class="ident">B</span>: <span class="ident">Ord</span> <span class="op">+</span> <span class="ident">Copy</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Collator</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Collator2</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">other</span>: <span class="ident">Collator</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Collator2</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-			<span class="comment">// nominator set from Collator was bounded to max size of top_nominators</span>
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">top_nominators</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">nominators</span>.<span class="number">0</span>.<span class="ident">clone</span>();
-			<span class="comment">// order greatest to least</span>
-			<span class="ident">top_nominators</span>.<span class="ident">sort_unstable_by</span>(<span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">b</span>.<span class="ident">amount</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">amount</span>));
-			<span class="ident">Collator2</span> {
-				<span class="ident">id</span>: <span class="ident">other</span>.<span class="ident">id</span>,
-				<span class="ident">bond</span>: <span class="ident">other</span>.<span class="ident">bond</span>,
-				<span class="ident">nominators</span>: <span class="ident">other</span>
-					.<span class="ident">nominators</span>
-					.<span class="number">0</span>
-					.<span class="ident">iter</span>()
-					.<span class="ident">map</span>(<span class="op">|</span><span class="ident">Bond</span> { <span class="ident">owner</span>, .. }<span class="op">|</span> <span class="ident">owner</span>.<span class="ident">clone</span>())
-					.<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-					.<span class="ident">into</span>(),
-				<span class="ident">top_nominators</span>,
-				<span class="ident">bottom_nominators</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
-				<span class="ident">total_counted</span>: <span class="ident">other</span>.<span class="ident">total</span>,
-				<span class="ident">total_backing</span>: <span class="ident">other</span>.<span class="ident">total</span>,
-				<span class="ident">state</span>: <span class="ident">other</span>.<span class="ident">state</span>,
-			}
 		}
 	}
 
@@ -2545,33 +2434,6 @@
 
 	<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">hooks</span>]</span>
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Hooks</span><span class="op">&lt;</span><span class="ident">BlockNumberFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
-			<span class="comment">// migrate from Collator -&gt; Collator2</span>
-			<span class="kw">for</span> (<span class="ident">acc</span>, <span class="ident">collator_state</span>) <span class="kw">in</span> <span class="ident">CollatorState</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">drain</span>() {
-				<span class="kw">let</span> <span class="ident">state</span>: <span class="ident">Collator2</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">collator_state</span>.<span class="ident">into</span>();
-				<span class="op">&lt;</span><span class="ident">CollatorState2</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">insert</span>(<span class="ident">acc</span>, <span class="ident">state</span>);
-			}
-
-			<span class="comment">// correct any incorrectly set `Total`</span>
-			<span class="kw">let</span> <span class="ident">old_total</span> <span class="op">=</span> <span class="ident">Total</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">get</span>();
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_total</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="number">0u32</span>.<span class="ident">into</span>();
-
-			<span class="kw">for</span> <span class="ident">collator_state</span> <span class="kw">in</span> <span class="ident">CollatorState2</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">iter_values</span>() {
-				<span class="ident">new_total</span> <span class="op">+</span><span class="op">=</span> <span class="ident">collator_state</span>.<span class="ident">total_backing</span>;
-			}
-
-			<span class="ident">Total</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">put</span>(<span class="ident">new_total</span>);
-
-			<span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(
-				<span class="ident">target</span>: <span class="string">&quot;staking&quot;</span>,
-				<span class="string">&quot;Finished migrating storage.\nOld Total : {:?}\nNew Total : {:?}&quot;</span>,
-				<span class="ident">old_total</span>,
-				<span class="ident">new_total</span>,
-			);
-
-			<span class="number">300_000_000_000</span> <span class="comment">// Three fifths of the max block weight</span>
-		}
-
 		<span class="kw">fn</span> <span class="ident">on_initialize</span>(<span class="ident">n</span>: <span class="ident">T</span>::<span class="ident">BlockNumber</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Weight</span> {
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">round</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Round</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>();
 			<span class="kw">if</span> <span class="ident">round</span>.<span class="ident">should_update</span>(<span class="ident">n</span>) {
@@ -2630,18 +2492,6 @@
 		<span class="ident">Twox64Concat</span>,
 		<span class="ident">T</span>::<span class="ident">AccountId</span>,
 		<span class="ident">Nominator</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-		<span class="ident">OptionQuery</span>,
-	<span class="op">&gt;</span>;
-
-	<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">storage</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">getter</span>(<span class="kw">fn</span> <span class="ident">collator_state</span>)]</span>
-	<span class="doccomment">/// DEPRECATED: This is the old storage item. It is retained for purposes of storage migration</span>
-	<span class="doccomment">/// and should be removed in the future.</span>
-	<span class="kw">type</span> <span class="ident">CollatorState</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageMap</span><span class="op">&lt;</span>
-		<span class="kw">_</span>,
-		<span class="ident">Twox64Concat</span>,
-		<span class="ident">T</span>::<span class="ident">AccountId</span>,
-		<span class="ident">Collator</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 		<span class="ident">OptionQuery</span>,
 	<span class="op">&gt;</span>;
 
