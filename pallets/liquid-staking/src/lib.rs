@@ -38,6 +38,7 @@ mod tests;
 #[pallet]
 pub mod pallet {
 
+	use cumulus_primitives_core::relay_chain;
 	use frame_support::traits::fungibles::Mutate;
 	use frame_support::{
 		pallet_prelude::*,
@@ -46,10 +47,12 @@ pub mod pallet {
 		PalletId, Parameter,
 	};
 	use frame_system::{ensure_signed, pallet_prelude::*};
+	use sp_runtime::SaturatedConversion;
 	use sp_runtime::{
 		traits::{AtLeast32BitUnsigned, Convert, MaybeSerializeDeserialize, Member, Zero},
 		DispatchError,
 	};
+	use sp_std::convert::TryInto;
 	use sp_std::prelude::*;
 
 	use xcm::v0::prelude::*;
@@ -72,19 +75,26 @@ pub mod pallet {
 		/// Convert `T::AccountId` to `MultiLocation`.
 		type AccountIdToMultiLocation: Convert<Self::AccountId, MultiLocation>;
 
-		type PalletId: Get<PalletId>;
-
 		/// XCM executor.
 		type XcmExecutor: ExecuteXcm<Self::Call>;
+
+		/// XCM sender.
+		type XcmSender: SendXcm;
 
 		/// Means of measuring the weight consumed by an XCM message locally.
 		type Weigher: WeightBounds<Self::Call>;
 	}
 
+	#[pallet::storage]
+	#[pallet::getter(fn current_nomination)]
+	pub type Nominations<T: Config> = StorageValue<_, Vec<relay_chain::AccountId>, ValueQuery>;
+
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]
 	pub enum Error<T> {
 		MyError,
+		WrongConversionU128ToBalance,
+		SendFailure,
 	}
 
 	#[pallet::event]
@@ -93,6 +103,7 @@ pub mod pallet {
 		Staked(<T as frame_system::Config>::AccountId, BalanceOf<T>),
 		Unstaked(<T as frame_system::Config>::AccountId, BalanceOf<T>),
 		RatioSet(u32, BalanceOf<T>),
+		NominationsSet(Vec<relay_chain::AccountId>),
 	}
 
 	#[pallet::call]
@@ -104,6 +115,22 @@ pub mod pallet {
 			dest_weight: Weight,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
+
+			// Reserve balances
+			T::RelayCurrency::reserve(&who, amount)?;
+
+			// Stake bytes
+			let amount_as_u128 = amount.saturated_into::<u128>();
+			let stake_bytes: Vec<u8> = [19u8, 05u8].to_vec();
+
+			// Construct messages
+			let message = Self::transact(amount_as_u128, dest_weight, stake_bytes);
+
+			// Send xcm as root
+			Self::send_xcm(MultiLocation::Null, MultiLocation::X1(Parent), message)
+				.map_err(|_| Error::<T>::SendFailure)?;
+
+			// Deposit event
 			Self::deposit_event(Event::<T>::Staked(who.clone(), amount.clone()));
 			Ok(())
 		}
@@ -125,6 +152,58 @@ pub mod pallet {
 			Self::deposit_event(Event::<T>::RatioSet(dot, v_dot));
 
 			Ok(())
+		}
+
+		#[pallet::weight(0)]
+		pub fn set_nominations(
+			origin: OriginFor<T>,
+			nominations: Vec<relay_chain::AccountId>,
+		) -> DispatchResult {
+			ensure_root(origin)?;
+			<Nominations<T>>::put(nominations.clone());
+			Self::deposit_event(Event::<T>::NominationsSet(nominations));
+
+			Ok(())
+		}
+	}
+
+	impl<T: Config> Pallet<T> {
+		fn transact(amount: u128, dest_weight: Weight, call: Vec<u8>) -> Xcm<()> {
+			let buy_order = BuyExecution {
+				fees: All,
+				// Zero weight for additional XCM (since there are none to execute)
+				weight: 0,
+				debt: dest_weight,
+				halt_on_error: false,
+				xcm: vec![Transact {
+					origin_type: OriginKind::SovereignAccount,
+					require_weight_at_most: dest_weight,
+					call: call.into(),
+				}],
+			};
+
+			WithdrawAsset {
+				assets: vec![MultiAsset::ConcreteFungible {
+					id: MultiLocation::X1(Parent),
+					amount: amount,
+				}],
+				effects: vec![buy_order],
+			}
+		}
+
+		fn send_xcm(
+			interior: MultiLocation,
+			dest: MultiLocation,
+			message: Xcm<()>,
+		) -> Result<(), XcmError> {
+			let message = match interior {
+				MultiLocation::Null => message,
+				who => Xcm::<()>::RelayedFrom {
+					who,
+					message: Box::new(message),
+				},
+			};
+			T::XcmSender::send_xcm(dest, message)
 		}
 	}
 }
