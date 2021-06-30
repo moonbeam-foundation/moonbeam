@@ -12,20 +12,20 @@ name = 'moonbeam'
 path = 'src/main.rs'
 
 [dependencies]
-futures = { version="0.3.1", features=["compat"] }
-moonbeam-cli = { path="cli" }
-moonbeam-service = { path="service" }
+futures = { version = "0.3.1", features = ["compat"] }
+moonbeam-cli = { path = "cli" }
+moonbeam-service = { path = "service" }
 
 [dev-dependencies]
-serde = { version="1.0.101", features=["derive"] }
+serde = { version = "1.0.101", features = ["derive"] }
 serde_json = "1.0"
 assert_cmd = "0.12"
 nix = "0.17"
 tempfile = "3.2.0"
 hex = "0.4.3"
 # required for benchmarking
-pallet-xcm = { git="https://github.com/paritytech/polkadot", branch="release-v0.9.6" }
-xcm-builder = { git="https://github.com/paritytech/polkadot", branch="release-v0.9.6" }
+pallet-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.6" }
+xcm-builder = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.6" }
 
 [features]
 default = []
