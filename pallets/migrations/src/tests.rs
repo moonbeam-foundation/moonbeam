@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-/*
 //! Unit testing
 use crate::mock::{
 	last_event, Migrations, Event as MetaEvent, ExtBuilder, Origin, System, Test,
@@ -28,5 +27,4 @@ fn genesis_builder_works() {
 			assert!(System::events().is_empty());
 		})
 }
-*/
 

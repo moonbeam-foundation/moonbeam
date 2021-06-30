@@ -19,6 +19,7 @@ use super::*;
 use crate as pallet_migrations;
 use frame_support::{
 	construct_runtime, parameter_types,
+	traits::{GenesisBuild},
 	weights::Weight,
 };
 use sp_core::H256;
@@ -83,14 +84,16 @@ impl Config for Test {
 	type Event = Event;
 }
 
-/*
 /// Externality builder for pallet migration's mock runtime
 pub(crate) struct ExtBuilder {
+	completed_migrations: Vec<String>,
 }
 
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
-		ExtBuilder {}
+		ExtBuilder {
+			completed_migrations: vec![],
+		}
 	}
 }
 
@@ -102,6 +105,8 @@ impl ExtBuilder {
 			.expect("Frame system builds valid default genesis config");
 
 		pallet_migrations::GenesisConfig::<Test> {
+			completed_migrations: self.completed_migrations,
+			dummy: Default::default(),
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet migration's storage can be assimilated");
@@ -115,4 +120,3 @@ impl ExtBuilder {
 pub(crate) fn last_event() -> Event {
 	System::events().pop().expect("Event expected").event
 }
-*/
