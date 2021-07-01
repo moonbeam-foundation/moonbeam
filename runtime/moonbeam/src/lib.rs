@@ -75,17 +75,17 @@ pub use sp_runtime::BuildStorage;
 
 pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 
-/// MOVR, the native token, uses 18 decimals of precision.
+/// GLMR, the native token, uses 18 decimals of precision.
 pub mod currency {
 	use super::Balance;
 
 	pub const GLMR: Balance = 1_000_000_000_000_000_000;
-	pub const KILOGLMRS: Balance = GLMR * 1_000;
-	pub const MILLIGLMRS: Balance = GLMR / 1_000;
-	pub const MICROGLMRS: Balance = MILLIGLMRS / 1_000;
-	pub const NANOGLMRS: Balance = MICROGLMRS / 1_000;
+	pub const KILOGLMR: Balance = GLMR * 1_000;
+	pub const MILLIGLMR: Balance = GLMR / 1_000;
+	pub const MICROGLMR: Balance = MILLIGLMR / 1_000;
+	pub const NANOGLMR: Balance = MICROGLMR / 1_000;
 
-	pub const BYTE_FEE: Balance = 100 * MICROGLMRS;
+	pub const BYTE_FEE: Balance = 100 * MICROGLMR;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
 		items as Balance * 1 * GLMR + (bytes as Balance) * BYTE_FEE
@@ -316,7 +316,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		(1 * currency::NANOGLMRS).into()
+		(1 * currency::NANOGLMR).into()
 	}
 }
 

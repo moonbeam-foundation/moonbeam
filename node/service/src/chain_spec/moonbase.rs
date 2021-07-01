@@ -25,7 +25,7 @@ use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
 use evm::GenesisAccount;
 use moonbase_runtime::{
-	currency::UNITS, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
+	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig,
 	ParachainStakingConfig, Precompiles, Range, SchedulerConfig, SudoConfig, SystemConfig,
@@ -63,12 +63,12 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 				vec![(
 					accounts[0],
 					get_from_seed::<NimbusId>("Alice"),
-					1_000 * UNITS,
+					1_000 * UNIT,
 				)],
 				// Nominations
 				vec![],
 				accounts.clone(),
-				3_000_000 * UNITS,
+				3_000_000 * UNIT,
 				Default::default(), // para_id
 				1281,               //ChainId
 			)
@@ -104,13 +104,13 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 					(
 						AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
 						get_from_seed::<NimbusId>("Alice"),
-						1_000 * UNITS,
+						1_000 * UNIT,
 					),
 					// Bob -> Baltithar
 					(
 						AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
 						get_from_seed::<NimbusId>("Bob"),
-						1_000 * UNITS,
+						1_000 * UNIT,
 					),
 				],
 				// Nominations
@@ -119,7 +119,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
 					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
 				],
-				3_000_000 * UNITS,
+				3_000_000 * UNIT,
 				para_id,
 				1280, //ChainId
 			)
@@ -138,9 +138,9 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 	InflationInfo {
 		expect: Range {
-			min: 100_000 * UNITS,
-			ideal: 200_000 * UNITS,
-			max: 500_000 * UNITS,
+			min: 100_000 * UNIT,
+			ideal: 200_000 * UNIT,
+			max: 500_000 * UNIT,
 		},
 		annual: Range {
 			min: Perbill::from_percent(4),
