@@ -855,6 +855,8 @@
 <span id="852">852</span>
 <span id="853">853</span>
 <span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -912,7 +914,6 @@
 <span class="kw">use</span> <span class="ident">pallet_transaction_payment</span>::<span class="ident">CurrencyAdapter</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">parachain_staking</span>::{<span class="ident">InflationInfo</span>, <span class="ident">Range</span>};
 <span class="kw">use</span> <span class="ident">parity_scale_codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
-<span class="kw">use</span> <span class="ident">precompiles</span>::<span class="ident">MoonbeamPrecompiles</span>;
 <span class="kw">use</span> <span class="ident">sp_api</span>::<span class="ident">impl_runtime_apis</span>;
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">u32_trait</span>::<span class="kw-2">*</span>, <span class="ident">OpaqueMetadata</span>, <span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>};
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::{
@@ -927,6 +928,9 @@
 <span class="kw">use</span> <span class="ident">sp_version</span>::<span class="ident">RuntimeVersion</span>;
 
 <span class="kw">use</span> <span class="ident">nimbus_primitives</span>::{<span class="ident">CanAuthor</span>, <span class="ident">NimbusId</span>};
+
+<span class="kw">mod</span> <span class="ident">precompiles</span>;
+<span class="kw">use</span> <span class="ident">precompiles</span>::<span class="ident">MoonbeamPrecompiles</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">sp_runtime</span>::<span class="ident">BuildStorage</span>;

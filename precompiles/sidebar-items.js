@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["MoonbeamPrecompiles","The common PrecompileSet that was installed in all runtimes at the time of the runtime split. This should not be expanded or developed further. When any runtime wants to change their own precompiles.rs file as moonbase has aleady done."]]});
