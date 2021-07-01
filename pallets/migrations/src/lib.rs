@@ -17,7 +17,6 @@
 //! # Migration Pallet
 
 #![allow(non_camel_case_types)]
-
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[cfg(test)]
@@ -37,8 +36,8 @@ pub trait Migration {
 
 	/// Step through this migration, taking up to `available_weight` of execution time and providing
 	/// a status on the progress as well as the consumed weight. This allows a migration to perform
-	/// its logic in small batches across as many blocks as needed. 
-	/// 
+	/// its logic in small batches across as many blocks as needed.
+	///
 	/// Implementations should perform as much migration work as possible and then leave their
 	/// pallet in a valid state from which another 'step' of migration work can be performed. In no
 	/// case should a step consume more than `available_weight`.
@@ -85,11 +84,10 @@ pub mod pallet {
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-
 		/// on_runtime_upgrade is expected to be called exactly once after a runtime upgrade.
 		/// We use this as a chance to flag that we are now in upgrade-mode and begin our
 		/// migrations.
-		/// 
+		///
 		/// In the event that a migration is expected to take more than one block, ongoing migration
 		/// work could continue from block-to-block in this pallet's on_initialize function.
 		fn on_runtime_upgrade() -> Weight {
@@ -116,18 +114,12 @@ pub mod pallet {
 	#[pallet::getter(fn migration_state)]
 	/// MigrationState tracks the progress of a migration.
 	/// Maps name (Vec<u8>) -> migration progress (Perbill)
-	type MigrationState<T: Config> = StorageMap<
-		_,
-		Twox64Concat,
-		Vec<u8>,
-		Perbill,
-		OptionQuery,
-	>;
+	type MigrationState<T: Config> = StorageMap<_, Twox64Concat, Vec<u8>, Perbill, OptionQuery>;
 
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
 		pub completed_migrations: Vec<Vec<u8>>,
-		pub dummy: PhantomData<T> // TODO: 
+		pub dummy: PhantomData<T>, // TODO:
 	}
 
 	#[cfg(feature = "std")]
@@ -158,36 +150,44 @@ pub mod pallet {
 		let mut done: bool = true;
 
 		for migration in &T::MigrationsList::get() {
-
 			// let migration_name = migration.friendly_name();
 			let migration_name = migration.friendly_name();
 			log::trace!("evaluating migration {}", migration_name);
 
-			let migration_state = <MigrationState<T>>::get(migration_name.as_bytes())
-				.unwrap_or(Perbill::zero());
+			let migration_state =
+				<MigrationState<T>>::get(migration_name.as_bytes()).unwrap_or(Perbill::zero());
 
 			if migration_state < Perbill::one() {
-
 				// TODO: we don't currently have a reliable way to know "started"
 				// TODO: multiple calls to as_bytes() or to_vec() may be expensive
-				<Pallet<T>>::deposit_event(Event::MigrationStarted(migration_name.as_bytes().to_vec()));
+				<Pallet<T>>::deposit_event(Event::MigrationStarted(
+					migration_name.as_bytes().to_vec(),
+				));
 
 				let available_for_step = available_weight - weight;
-				log::trace!("stepping migration {}, prev: {:?}, avail weight: {}",
-					migration_name, migration_state, available_for_step);
+				log::trace!(
+					"stepping migration {}, prev: {:?}, avail weight: {}",
+					migration_name,
+					migration_state,
+					available_for_step
+				);
 
 				// perform a step of this migration
 				<Pallet<T>>::deposit_event(Event::MigrationStarted(migration_name.into()));
-				let (updated_progress, consumed_weight)
-					= migration.step(migration_state, available_for_step);
+				let (updated_progress, consumed_weight) =
+					migration.step(migration_state, available_for_step);
 
 				weight += consumed_weight;
 				if weight > available_weight {
 					// TODO: the intent here is to complain obnoxiously so that this is caught
 					// during development. In production, this should probably be tolerated because
 					// failing is catastrophic.
-					log::error!("Migration {} consumed more weight than it was given! ({} > {})",
-						migration_name, consumed_weight, available_for_step);
+					log::error!(
+						"Migration {} consumed more weight than it was given! ({} > {})",
+						migration_name,
+						consumed_weight,
+						available_for_step
+					);
 				}
 
 				// make note of any unfinished migrations
@@ -199,7 +199,6 @@ pub mod pallet {
 					<MigrationState<T>>::insert(migration_name.as_bytes(), updated_progress);
 				}
 			}
-
 		}
 
 		if done {

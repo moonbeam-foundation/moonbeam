@@ -18,10 +18,7 @@
 use super::*;
 use crate as pallet_migrations;
 use frame_support::{
-	pallet_prelude::*,
-	construct_runtime, parameter_types,
-	traits::GenesisBuild,
-	weights::Weight,
+	construct_runtime, pallet_prelude::*, parameter_types, traits::GenesisBuild, weights::Weight,
 };
 use sp_core::H256;
 use sp_runtime::{
@@ -84,8 +81,7 @@ impl frame_system::Config for Test {
 pub struct MockMigrations;
 impl Get<Vec<Box<dyn Migration>>> for MockMigrations {
 	fn get() -> Vec<Box<dyn Migration>> {
-		vec![
-		]
+		vec![]
 	}
 }
 
@@ -108,7 +104,6 @@ impl Default for ExtBuilder {
 }
 
 impl ExtBuilder {
-
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::default()
 			.build_storage::<Test>()
@@ -140,4 +135,3 @@ pub(crate) fn events() -> Vec<pallet_migrations::Event<Test>> {
 		})
 		.collect::<Vec<_>>()
 }
-

@@ -51,9 +51,9 @@ use pallet_evm::{
 	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator,
 	IdentityAddressMapping, Runner,
 };
+use pallet_migrations::*;
 use pallet_transaction_payment::CurrencyAdapter;
 pub use parachain_staking::{InflationInfo, Range};
-use pallet_migrations::*;
 use parity_scale_codec::{Decode, Encode};
 use sp_api::impl_runtime_apis;
 use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};

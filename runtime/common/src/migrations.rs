@@ -16,10 +16,7 @@
 
 //! # Migrations
 
-use frame_support::{
-	weights::Weight,
-	pallet_prelude::Get,
-};
+use frame_support::{pallet_prelude::Get, weights::Weight};
 use pallet_migrations::Migration;
 use sp_runtime::Perbill;
 use sp_std::prelude::*;
@@ -74,4 +71,3 @@ impl Get<Vec<Box<dyn Migration>>> for CommonMigrations {
 		]
 	}
 }
-

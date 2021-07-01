@@ -15,43 +15,33 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Unit testing
-use crate::mock::{
-	events, Migrations, ExtBuilder, System,
-};
+use crate::mock::{events, ExtBuilder, Migrations, System};
 use crate::Event;
-use frame_support::{
-	traits::{OnRuntimeUpgrade},
-};
+use frame_support::traits::OnRuntimeUpgrade;
 
 #[test]
 fn genesis_builder_works() {
-	ExtBuilder::default()
-		.build()
-		.execute_with(|| {
-			assert!(System::events().is_empty());
-		})
+	ExtBuilder::default().build().execute_with(|| {
+		assert!(System::events().is_empty());
+	})
 }
 
 #[test]
 fn on_runtime_upgrade_returns() {
-	ExtBuilder::default()
-		.build()
-		.execute_with(|| {
-			Migrations::on_runtime_upgrade();
-		})
+	ExtBuilder::default().build().execute_with(|| {
+		Migrations::on_runtime_upgrade();
+	})
 }
 
 #[test]
 fn on_runtime_upgrade_emits_events() {
-	ExtBuilder::default()
-		.build()
-		.execute_with(|| {
-			Migrations::on_runtime_upgrade();
+	ExtBuilder::default().build().execute_with(|| {
+		Migrations::on_runtime_upgrade();
 
-			let expected = vec![
-				Event::RuntimeUpgradeStarted(),
-				Event::RuntimeUpgradeCompleted(),
-			];
-			assert_eq!(events(), expected);
-		});
+		let expected = vec![
+			Event::RuntimeUpgradeStarted(),
+			Event::RuntimeUpgradeCompleted(),
+		];
+		assert_eq!(events(), expected);
+	});
 }
