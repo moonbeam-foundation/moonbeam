@@ -126,7 +126,10 @@ pub mod pallet {
 
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
-		pub completed_migrations: Vec<Vec<u8>>,
+		/// Any migrations that will never be relevant to this chain.
+		/// A new chain may launch from a pre-existing codebase. In this case the new chain should
+		/// include any migrations from the codebase's history before it was launched.
+		pub prehistoric_migrations: Vec<Vec<u8>>,
 		pub dummy: PhantomData<T>, // TODO:
 	}
 
@@ -134,7 +137,7 @@ pub mod pallet {
 	impl<T: Config> Default for GenesisConfig<T> {
 		fn default() -> Self {
 			Self {
-				completed_migrations: vec![],
+				prehistoric_migrations: vec![],
 				dummy: PhantomData,
 			}
 		}
@@ -143,11 +146,10 @@ pub mod pallet {
 	#[pallet::genesis_build]
 	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
-			//TODO Does it make sense to configure migrations at genesis? Would they even be run?
-			for migration_name in &self.completed_migrations {
+			for migration_name in &self.prehistoric_migrations {
 				<MigrationState<T>>::insert(migration_name, Perbill::one());
 			}
-			// When a new chain is launched, it starts im a fully migrated state.
+			// When a new chain is launched, it starts in a fully migrated state.
 			FullyUpgraded::<T>::put(true);
 		}
 	}

@@ -103,13 +103,13 @@ impl Config for Test {
 
 /// Externality builder for pallet migration's mock runtime
 pub(crate) struct ExtBuilder {
-	completed_migrations: Vec<Vec<u8>>,
+	prehistoric_migrations: Vec<Vec<u8>>,
 }
 
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
-			completed_migrations: vec![],
+			prehistoric_migrations: vec![],
 		}
 	}
 }
@@ -121,7 +121,7 @@ impl ExtBuilder {
 			.expect("Frame system builds valid default genesis config");
 
 		pallet_migrations::GenesisConfig::<Test> {
-			completed_migrations: self.completed_migrations,
+			prehistoric_migrations: self.prehistoric_migrations,
 			dummy: Default::default(),
 		}
 		.assimilate_storage(&mut t)
