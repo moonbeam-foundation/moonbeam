@@ -16,7 +16,7 @@
 
 //! Unit testing
 use crate::mock::{
-	last_event, events, Migrations, Event as MetaEvent, ExtBuilder, Origin, System, Test,
+	events, Migrations, ExtBuilder, System,
 };
 use crate::Event;
 use frame_support::{
@@ -48,7 +48,7 @@ fn on_runtime_upgrade_emits_events() {
 		.execute_with(|| {
 			Migrations::on_runtime_upgrade();
 
-			let mut expected = vec![
+			let expected = vec![
 				Event::RuntimeUpgradeStarted(),
 				Event::RuntimeUpgradeCompleted(),
 			];

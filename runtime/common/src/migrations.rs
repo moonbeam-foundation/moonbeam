@@ -27,6 +27,7 @@ use sp_std::prelude::*;
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
 
+#[allow(non_camel_case_types)]
 pub struct MM_001_AuthorMappingAddDeposit;
 impl Migration for MM_001_AuthorMappingAddDeposit {
 	fn friendly_name(&self) -> &str {
@@ -39,6 +40,7 @@ impl Migration for MM_001_AuthorMappingAddDeposit {
 	}
 }
 
+#[allow(non_camel_case_types)]
 pub struct MM_002_StakingFixTotalBalance;
 impl Migration for MM_002_StakingFixTotalBalance {
 	fn friendly_name(&self) -> &str {
@@ -49,6 +51,7 @@ impl Migration for MM_002_StakingFixTotalBalance {
 	}
 }
 
+#[allow(non_camel_case_types)]
 pub struct MM_003_StakingTransitionBoundedSet; // TODO: better name
 impl Migration for MM_003_StakingTransitionBoundedSet {
 	fn friendly_name(&self) -> &str {

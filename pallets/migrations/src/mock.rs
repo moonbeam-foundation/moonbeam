@@ -17,22 +17,20 @@
 //! A minimal runtime including the migrations pallet
 use super::*;
 use crate as pallet_migrations;
-use crate::migrations;
 use frame_support::{
 	pallet_prelude::*,
 	construct_runtime, parameter_types,
-	traits::{GenesisBuild, OnRuntimeUpgrade},
+	traits::GenesisBuild,
 	weights::Weight,
 };
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
-	Perbill, Percent,
+	Perbill,
 };
 
 pub type AccountId = u64;
-pub type Balance = u128;
 pub type BlockNumber = u64;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
@@ -87,9 +85,6 @@ pub struct MockMigrations;
 impl Get<Vec<Box<dyn Migration>>> for MockMigrations {
 	fn get() -> Vec<Box<dyn Migration>> {
 		vec![
-			Box::new(migrations::MM_001_AuthorMappingAddDeposit),
-			Box::new(migrations::MM_002_StakingFixTotalBalance),
-			Box::new(migrations::MM_003_StakingTransitionBoundedSet),
 		]
 	}
 }
@@ -146,6 +141,3 @@ pub(crate) fn events() -> Vec<pallet_migrations::Event<Test>> {
 		.collect::<Vec<_>>()
 }
 
-pub(crate) fn last_event() -> Event {
-	System::events().pop().expect("Event expected").event
-}
