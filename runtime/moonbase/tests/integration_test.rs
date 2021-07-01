@@ -231,10 +231,7 @@ fn reward_block_authors() {
 				run_to_block(x);
 			}
 			// no rewards doled out yet
-			assert_eq!(
-				Balances::free_balance(AccountId::from(ALICE)),
-				1_000 * UNIT,
-			);
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * UNIT,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * UNIT,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 			run_to_block(600);
@@ -281,10 +278,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				run_to_block(x);
 			}
 			// no rewards doled out yet
-			assert_eq!(
-				Balances::free_balance(AccountId::from(ALICE)),
-				1_000 * UNIT,
-			);
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * UNIT,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * UNIT,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), UNIT,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
@@ -356,10 +350,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				.dispatch(root_origin())
 			);
 			// 30 percent initial payout
-			assert_eq!(
-				Balances::balance(&AccountId::from(CHARLIE)),
-				450_000 * UNIT
-			);
+			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 450_000 * UNIT);
 			// 30 percent initial payout
 			assert_eq!(Balances::balance(&AccountId::from(DAVE)), 450_000 * UNIT);
 			let expected = Event::Utility(pallet_utility::Event::BatchCompleted);
@@ -800,11 +791,7 @@ fn leave_nominators_via_precompile() {
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
 		.with_nominations(vec![
-			(
-				AccountId::from(CHARLIE),
-				AccountId::from(ALICE),
-				500 * UNIT,
-			),
+			(AccountId::from(CHARLIE), AccountId::from(ALICE), 500 * UNIT),
 			(AccountId::from(CHARLIE), AccountId::from(BOB), 500 * UNIT),
 		])
 		.build()
@@ -891,11 +878,7 @@ fn revoke_nomination_via_precompile() {
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
 		.with_nominations(vec![
-			(
-				AccountId::from(CHARLIE),
-				AccountId::from(ALICE),
-				500 * UNIT,
-			),
+			(AccountId::from(CHARLIE), AccountId::from(ALICE), 500 * UNIT),
 			(AccountId::from(CHARLIE), AccountId::from(BOB), 500 * UNIT),
 		])
 		.build()
