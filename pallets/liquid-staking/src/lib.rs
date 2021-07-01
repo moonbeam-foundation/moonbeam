@@ -48,6 +48,7 @@ pub mod pallet {
 	use sp_runtime::SaturatedConversion;
 	use sp_std::prelude::*;
 
+	use substrate_fixed::types::U32F32;
 	use xcm::v0::prelude::*;
 	use xcm_executor::traits::WeightBounds;
 
@@ -99,6 +100,10 @@ pub mod pallet {
 	#[pallet::getter(fn current_nomination)]
 	pub type Nominations<T: Config> = StorageValue<_, Vec<relay_chain::AccountId>, ValueQuery>;
 
+	#[pallet::storage]
+	#[pallet::getter(fn current_ratio)]
+	pub type Ratio<T: Config> = StorageValue<_, U32F32, ValueQuery>;
+
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]
 	pub enum Error<T> {
@@ -112,7 +117,7 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		Staked(<T as frame_system::Config>::AccountId, BalanceOf<T>),
 		Unstaked(<T as frame_system::Config>::AccountId, BalanceOf<T>),
-		RatioSet(u32, BalanceOf<T>),
+		RatioSet(BalanceOf<T>, BalanceOf<T>),
 		NominationsSet(Vec<relay_chain::AccountId>),
 		XcmSent(MultiLocation, Xcm<()>),
 	}
@@ -166,8 +171,15 @@ pub mod pallet {
 		}
 
 		#[pallet::weight(0)]
-		pub fn set_ratio(origin: OriginFor<T>, dot: u32, v_dot: BalanceOf<T>) -> DispatchResult {
+		pub fn set_ratio(
+			origin: OriginFor<T>,
+			dot: BalanceOf<T>,
+			v_dot: BalanceOf<T>,
+		) -> DispatchResult {
 			ensure_root(origin)?;
+			let ratio = U32F32::from_num(v_dot.saturated_into::<u128>())
+				/ U32F32::from_num(v_dot.saturated_into::<u128>());
+			Ratio::<T>::put(ratio);
 			Self::deposit_event(Event::<T>::RatioSet(dot, v_dot));
 
 			Ok(())
