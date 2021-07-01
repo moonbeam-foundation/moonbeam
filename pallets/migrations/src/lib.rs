@@ -54,6 +54,7 @@ pub trait Migration {
 pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
+	use frame_support::traits::Filter;
 	use frame_system::pallet_prelude::*;
 	#[allow(unused_imports)] // TODO: why does it detect this as unused?
 	use sp_std::prelude::*;
@@ -69,6 +70,13 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The list of migrations that will be performed
 		type MigrationsList: Get<Vec<Box<dyn Migration>>>;
+		/// The base call filter to be used in normal operating mode
+		/// (When we aren't in the middle of a migration)
+		type NormalCallFilter: Filter<Self::Call>;
+		/// The base call filter to be used when we are in the middle of migrations
+		/// This should be very restrictive. Probably not allowing anything except possibly
+		/// something like sudo or other emergency processes
+		type MigrationCallFilter: Filter<Self::Call>;
 	}
 
 	#[pallet::event]
@@ -137,6 +145,16 @@ pub mod pallet {
 		fn build(&self) {
 			for migration_name in &self.completed_migrations {
 				<MigrationState<T>>::insert(migration_name, Perbill::one());
+			}
+		}
+	}
+
+	impl<T: Config> Filter<T::Call> for Pallet<T> {
+		fn filter(call: &T::Call) -> bool {
+			if FullyUpgraded::<T>::get() {
+				T::NormalCallFilter::filter(call)
+			} else {
+				T::MigrationCallFilter::filter(call)
 			}
 		}
 	}
