@@ -17,6 +17,8 @@
 //! A minimal runtime including the migrations pallet
 use super::*;
 use crate as pallet_migrations;
+use std::sync::{Arc, Mutex};
+use once_cell::sync::Lazy;
 use frame_support::{
 	construct_runtime, pallet_prelude::*, parameter_types, traits::GenesisBuild, weights::Weight,
 };
@@ -78,10 +80,43 @@ impl frame_system::Config for Test {
 	type OnSetCode = ();
 }
 
+type MigrationStepFn = fn (Perbill, Weight) -> (Perbill, Weight);
+
+#[derive(Clone)]
+pub struct MockMigration {
+	pub name: String,
+	pub callback: MigrationStepFn,
+}
+
+impl Migration for MockMigration {
+	fn friendly_name(&self) -> &str {
+		&self.name[..]
+	}
+	fn step(&self, previous_progress: Perbill, available_weight: Weight) -> (Perbill, Weight) {
+		let f = self.callback;
+		f(previous_progress, available_weight)
+	}
+}
+
+pub static MOCK_MIGRATIONS_LIST: Lazy<Mutex<Vec<MockMigration>>> = Lazy::new(|| {
+	Mutex::new(vec![])
+});
+pub fn replace_mock_migrations_list(new_vec: &mut Vec<MockMigration>) {
+	let mut list = MOCK_MIGRATIONS_LIST.lock().unwrap();
+	list.clear();
+	list.append(new_vec);
+}
+
 pub struct MockMigrations;
 impl Get<Vec<Box<dyn Migration>>> for MockMigrations {
 	fn get() -> Vec<Box<dyn Migration>> {
-		vec![]
+
+		let mut migrations_list: Vec<Box<dyn Migration>> = Vec::new();
+		for mock in &*MOCK_MIGRATIONS_LIST.lock().unwrap() {
+			migrations_list.push(Box::new(mock.clone()));
+		}
+
+		migrations_list
 	}
 }
 
