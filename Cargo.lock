@@ -4856,12 +4856,14 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli-opt"
-version = "0.8.2"
+version = "0.8.3"
 dependencies = [
+ "account",
  "libsecp256k1",
  "primitive-types",
  "sc-cli",
  "sha3 0.8.2",
+ "sp-runtime",
  "structopt",
  "tiny-bip39 0.6.2",
  "tiny-hderive",

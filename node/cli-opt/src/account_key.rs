@@ -17,7 +17,7 @@
 use bip39::{Language, Mnemonic, MnemonicType, Seed};
 use primitive_types::{H160, H256};
 use secp256k1::{PublicKey, SecretKey};
-use sha3::{Digest, Keccak256};
+use sp_runtime::traits::IdentifyAccount;
 use structopt::StructOpt;
 use tiny_hderive::bip32::ExtendedPrivKey;
 
@@ -61,10 +61,9 @@ impl GenerateAccountKey {
 		// Retrieves the public key
 		let public_key = PublicKey::from_secret_key(&private_key);
 
-		// Compresses to a H160 address
-		let mut res = [0u8; 64];
-		res.copy_from_slice(&public_key.serialize()[1..65]);
-		let address = H160::from(H256::from_slice(Keccak256::digest(&res).as_slice()));
+		// Convert into H160 address.
+		let signer: account::EthereumSigner = public_key.into();
+		let address: H160 = signer.into_account();
 
 		println!("Address:      {:?}", address);
 		println!("Mnemonic:     {}", mnemonic.phrase());
