@@ -39,22 +39,13 @@ mod tests;
 pub mod pallet {
 
 	use cumulus_primitives_core::relay_chain;
-	use frame_support::traits::fungibles::Mutate;
 	use frame_support::{
 		pallet_prelude::*,
-		storage::{with_transaction, TransactionOutcome},
-		traits::{fungibles, Currency, Get, ReservableCurrency},
-		PalletId, Parameter,
+		traits::{Currency, ReservableCurrency},
 	};
 	use frame_system::{ensure_signed, pallet_prelude::*};
-	use parity_scale_codec::Encode;
-	use polkadot_runtime_common::paras_registrar;
+	use sp_runtime::traits::Convert;
 	use sp_runtime::SaturatedConversion;
-	use sp_runtime::{
-		traits::{AtLeast32BitUnsigned, Convert, MaybeSerializeDeserialize, Member, Zero},
-		DispatchError,
-	};
-	use sp_std::convert::TryInto;
 	use sp_std::prelude::*;
 
 	use xcm::v0::prelude::*;
@@ -71,13 +62,8 @@ pub mod pallet {
 	/// Note this enum may be used in the context of both Source (as part of `encode-call`)
 	/// and Target chain (as part of `encode-message/send-message`).
 	#[derive(Debug, PartialEq, Eq)]
-	pub enum RelayCall {
-		/// A call to the specific Bridge Messages pallet to queue message to be sent over a bridge.
-		Reserve {},
-	}
-
 	pub enum AvailableCalls {
-		Reserve {},
+		Reserve,
 	}
 
 	pub trait EncodeCall {
@@ -128,6 +114,7 @@ pub mod pallet {
 		Unstaked(<T as frame_system::Config>::AccountId, BalanceOf<T>),
 		RatioSet(u32, BalanceOf<T>),
 		NominationsSet(Vec<relay_chain::AccountId>),
+		XcmSent(MultiLocation, Xcm<()>),
 	}
 
 	#[pallet::call]
@@ -146,14 +133,21 @@ pub mod pallet {
 			// Stake bytes
 			let amount_as_u128 = amount.saturated_into::<u128>();
 
-			let stake_bytes: Vec<u8> = [0x1].into();
+			let stake_bytes: Vec<u8> = T::CallEncoder::encode_call(AvailableCalls::Reserve);
 
 			// Construct messages
 			let message = Self::transact(amount_as_u128, dest_weight, stake_bytes);
 
 			// Send xcm as root
-			Self::send_xcm(MultiLocation::Null, MultiLocation::X1(Parent), message)
-				.map_err(|_| Error::<T>::SendFailure)?;
+			Self::send_xcm(
+				MultiLocation::Null,
+				MultiLocation::X1(Parent),
+				message.clone(),
+			)
+			.map_err(|_| Error::<T>::SendFailure)?;
+
+			// Deposit event
+			Self::deposit_event(Event::<T>::XcmSent(MultiLocation::Null, message));
 
 			// Deposit event
 			Self::deposit_event(Event::<T>::Staked(who.clone(), amount.clone()));
@@ -197,7 +191,7 @@ pub mod pallet {
 			let buy_order = BuyExecution {
 				fees: All,
 				// Zero weight for additional XCM (since there are none to execute)
-				weight: 0,
+				weight: dest_weight,
 				debt: dest_weight,
 				halt_on_error: false,
 				xcm: vec![Transact {
@@ -207,9 +201,10 @@ pub mod pallet {
 				}],
 			};
 
+			// We put Null here, as this will be interpreted by the sovereign account
 			WithdrawAsset {
 				assets: vec![MultiAsset::ConcreteFungible {
-					id: MultiLocation::X1(Parent),
+					id: MultiLocation::Null,
 					amount: amount,
 				}],
 				effects: vec![buy_order],

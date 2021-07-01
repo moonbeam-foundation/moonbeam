@@ -356,12 +356,29 @@ parameter_types! {
 	pub const RelayAssetId: u128 = 0;
 }
 
+// We want to avoid including the rococo-runtime here.
+// TODO: whenever a conclusion is taken from https://github.com/paritytech/substrate/issues/8158
+#[derive(Encode, Decode)]
+pub enum RelayCall {
+	#[codec(index = 25u8)]
+	// the index should match the position of the module in `construct_runtime!`
+	Registrar(RegistrarCall),
+}
+
+#[derive(Encode, Decode)]
+pub enum RegistrarCall {
+	#[codec(index = 5u8)]
+	// the index should match the position of the dispatchable in the target pallet
+	reserve,
+}
 pub struct RococoEncoder;
 
 impl liquid_staking::EncodeCall for RococoEncoder {
 	fn encode_call(call: liquid_staking::AvailableCalls) -> Vec<u8> {
 		match call {
-			liquid_staking::AvailableCalls::Reserve {} => [19, 05].into(),
+			liquid_staking::AvailableCalls::Reserve => {
+				RelayCall::Registrar(RegistrarCall::reserve).encode()
+			}
 			_ => panic!("SAd"),
 		}
 	}
