@@ -350,7 +350,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 						)])
 					),
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialiation(
+						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization(
 							end_block
 						)
 					)

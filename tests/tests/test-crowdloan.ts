@@ -66,7 +66,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     // Complete initialization
     await context.polkadotApi.tx.sudo
       .sudo(
-        context.polkadotApi.tx.crowdloanRewards.completeInitialiation(Number(initBlock) + vesting)
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(Number(initBlock) + vesting)
       )
       .signAndSend(sudoAccount);
     await context.createBlock();
@@ -106,7 +106,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     // Complete initialization
     await context.polkadotApi.tx.sudo
       .sudo(
-        context.polkadotApi.tx.crowdloanRewards.completeInitialiation(Number(initBlock) + vesting)
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(Number(initBlock) + vesting)
       )
       .signAndSend(sudoAccount);
     await context.createBlock();
@@ -176,7 +176,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     // Complete initialization
     await context.polkadotApi.tx.sudo
       .sudo(
-        context.polkadotApi.tx.crowdloanRewards.completeInitialiation(Number(initBlock) + vesting)
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(Number(initBlock) + vesting)
       )
       .signAndSend(sudoAccount);
     await context.createBlock();
@@ -234,7 +234,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     // Complete initialization
     await context.polkadotApi.tx.sudo
       .sudo(
-        context.polkadotApi.tx.crowdloanRewards.completeInitialiation(Number(initBlock) + vesting)
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(Number(initBlock) + vesting)
       )
       .signAndSend(sudoAccount);
     await context.createBlock();
@@ -287,7 +287,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     // Complete initialization
     await context.polkadotApi.tx.sudo
       .sudo(
-        context.polkadotApi.tx.crowdloanRewards.completeInitialiation(Number(initBlock) + vesting)
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(Number(initBlock) + vesting)
       )
       .signAndSend(sudoAccount);
     await context.createBlock();
@@ -333,7 +333,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     // Complete initialization
     await context.polkadotApi.tx.sudo
       .sudo(
-        context.polkadotApi.tx.crowdloanRewards.completeInitialiation(Number(initBlock) + vesting)
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(Number(initBlock) + vesting)
       )
       .signAndSend(alithAccount);
     await context.createBlock();
@@ -404,7 +404,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     // Complete initialization
     await context.polkadotApi.tx.sudo
       .sudo(
-        context.polkadotApi.tx.crowdloanRewards.completeInitialiation(Number(initBlock) + vesting)
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(Number(initBlock) + vesting)
       )
       .signAndSend(sudoAccount);
     await context.createBlock();
@@ -490,7 +490,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     // Complete initialization
     await context.polkadotApi.tx.sudo
       .sudo(
-        context.polkadotApi.tx.crowdloanRewards.completeInitialiation(Number(initBlock) + vesting)
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(Number(initBlock) + vesting)
       )
       .signAndSend(sudoAccount);
     await context.createBlock();
