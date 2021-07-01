@@ -52,6 +52,10 @@ export const rpcDefinitions: Record<string, Record<string, DefinitionRpc | Defin
 
 export const moonbeamDefinitions = {
   rpc: rpcDefinitions,
+  instances: {
+    council: ["councilCollective"],
+    technicalCommittee: ["techComitteeCollective"],
+  },
   types: [
     {
       minmax: [0, 4],
