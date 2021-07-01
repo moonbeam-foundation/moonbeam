@@ -1702,7 +1702,6 @@
 <span id="1699">1699</span>
 <span id="1700">1700</span>
 <span id="1701">1701</span>
-<span id="1702">1702</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1727,7 +1726,7 @@
 <span class="doccomment">//! This is different from `frame/pallet-staking` where you approval vote and then run Phragmen.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ### Rules</span>
-<span class="doccomment">//! There is a new round every `BlocksPerRound` blocks.</span>
+<span class="doccomment">//! There is a new round every `&lt;Round&lt;T&gt;&gt;::get().length` blocks.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! At the start of every round,</span>
 <span class="doccomment">//! * issuance is distributed to collators for `BondDuration` rounds ago</span>
@@ -1735,21 +1734,20 @@
 <span class="doccomment">//! * queued collator exits are executed</span>
 <span class="doccomment">//! * a new set of collators is chosen from the candidates</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! To join the set of candidates, an account must call `join_candidates` with</span>
-<span class="doccomment">//! stake &gt;= `MinCollatorCandidateStk` and fee &lt;= `MaxFee`. The fee is taken off the top</span>
-<span class="doccomment">//! of any rewards for the collator before the remaining rewards are distributed</span>
-<span class="doccomment">//! in proportion to stake to all nominators (including the collator, who always</span>
-<span class="doccomment">//! self-nominates).</span>
+<span class="doccomment">//! To join the set of candidates, call `join_candidates` with `bond &gt;= MinCollatorCandidateStk`.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! To leave the set of candidates, the collator calls `leave_candidates`. If the call succeeds,</span>
+<span class="doccomment">//! To leave the set of candidates, call `leave_candidates`. If the call succeeds,</span>
 <span class="doccomment">//! the collator is removed from the pool of candidates so they cannot be selected for future</span>
 <span class="doccomment">//! collator sets, but they are not unstaked until `BondDuration` rounds later. The exit request is</span>
 <span class="doccomment">//! stored in the `ExitQueue` and processed `BondDuration` rounds later to unstake the collator</span>
-<span class="doccomment">//! and all of its nominators.</span>
+<span class="doccomment">//! and all of its nominations.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! To join the set of nominators, an account must call `join_nominators` with</span>
-<span class="doccomment">//! stake &gt;= `MinNominatorStk`. There are also runtime methods for nominating additional collators</span>
-<span class="doccomment">//! and revoking nominations.</span>
+<span class="doccomment">//! To join the set of nominators, call `nominate` and pass in an account that is</span>
+<span class="doccomment">//! already a collator candidate and `bond &gt;= MinNominatorStk`. Each nominator can nominate up to</span>
+<span class="doccomment">//! `T::MaxCollatorsPerNominator` collator candidates by calling `nominate`.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! To revoke a nomination, call `revoke_nomination` with the collator candidate&#39;s account.</span>
+<span class="doccomment">//! To leave the set of nominators and revoke all nominations, call `leave_nominators`.</span>
 
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
 
