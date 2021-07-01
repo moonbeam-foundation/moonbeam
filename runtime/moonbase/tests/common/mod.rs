@@ -87,9 +87,9 @@ impl Default for ExtBuilder {
 			collators: vec![],
 			inflation: InflationInfo {
 				expect: Range {
-					min: 100_000 * UNITS,
-					ideal: 200_000 * UNITS,
-					max: 500_000 * UNITS,
+					min: 100_000 * UNIT,
+					ideal: 200_000 * UNIT,
+					max: 500_000 * UNIT,
 				},
 				// not used
 				annual: Range {
