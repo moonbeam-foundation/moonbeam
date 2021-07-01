@@ -121,7 +121,7 @@ pub mod pallet {
 		Twox64Concat,
 		Vec<u8>,
 		Perbill,
-		OptionQuery, // TODO: what is this...?
+		OptionQuery,
 	>;
 
 	#[pallet::genesis_config]
