@@ -17,6 +17,7 @@
 //! A minimal runtime including the migrations pallet
 use super::*;
 use crate as pallet_migrations;
+use frame_support::traits::Filter;
 use frame_support::{
 	construct_runtime, pallet_prelude::*, parameter_types, traits::GenesisBuild, weights::Weight,
 };
@@ -53,7 +54,7 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 42;
 }
 impl frame_system::Config for Test {
-	type BaseCallFilter = ();
+	type BaseCallFilter = Migrations;
 	type DbWeight = ();
 	type Origin = Origin;
 	type Index = u64;
@@ -85,9 +86,19 @@ impl Get<Vec<Box<dyn Migration>>> for MockMigrations {
 	}
 }
 
+/// During migrations we will not allow any calls.
+pub struct MigrationCallFilter;
+impl Filter<Call> for MigrationCallFilter {
+	fn filter(_: &Call) -> bool {
+		false
+	}
+}
+
 impl Config for Test {
 	type Event = Event;
 	type MigrationsList = MockMigrations;
+	type NormalCallFilter = ();
+	type MigrationCallFilter = MigrationCallFilter;
 }
 
 /// Externality builder for pallet migration's mock runtime
