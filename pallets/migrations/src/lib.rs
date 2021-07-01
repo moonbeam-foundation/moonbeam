@@ -27,7 +27,6 @@ mod tests;
 
 use frame_support::{pallet, weights::Weight};
 use sp_runtime::Perbill;
-pub mod migrations;
 
 pub use pallet::*;
 
@@ -52,13 +51,6 @@ pub trait Migration {
 	fn step(&self, previous_progress: Perbill, available_weight: Weight) -> (Perbill, Weight);
 }
 
-/// Our list of migrations. Any ordering considerations can be specified here (?).
-const MIGRATIONS: [&dyn Migration; 3] = [
-	&migrations::MM_001_AuthorMappingAddDeposit {},
-	&migrations::MM_002_StakingFixTotalBalance {},
-	&migrations::MM_003_StakingTransitionBoundedSet {},
-];
-
 #[pallet]
 pub mod pallet {
 	use super::*;
@@ -76,6 +68,8 @@ pub mod pallet {
 	pub trait Config: frame_system::Config {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		/// The list of migrations that will be performed
+		type MigrationsList: Get<Vec<Box<dyn Migration>>>;
 	}
 
 	#[pallet::event]
@@ -163,7 +157,7 @@ pub mod pallet {
 		let mut weight: Weight = 0u64.into();
 		let mut done: bool = true;
 
-		for migration in &MIGRATIONS {
+		for migration in &T::MigrationsList::get() {
 
 			// let migration_name = migration.friendly_name();
 			let migration_name = migration.friendly_name();
@@ -183,6 +177,7 @@ pub mod pallet {
 					migration_name, migration_state, available_for_step);
 
 				// perform a step of this migration
+				<Pallet<T>>::deposit_event(Event::MigrationStarted(migration_name.into()));
 				let (updated_progress, consumed_weight)
 					= migration.step(migration_state, available_for_step);
 

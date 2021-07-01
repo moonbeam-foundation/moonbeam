@@ -53,6 +53,7 @@ use pallet_evm::{
 };
 use pallet_transaction_payment::CurrencyAdapter;
 pub use parachain_staking::{InflationInfo, Range};
+use pallet_migrations::*;
 use parity_scale_codec::{Decode, Encode};
 use sp_api::impl_runtime_apis;
 use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
@@ -708,6 +709,11 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
+impl Config for Runtime {
+	type Event = Event;
+	type MigrationsList = runtime_common::migrations::CommonMigrations;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -739,6 +745,7 @@ construct_runtime! {
 		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>},
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
+		Migrations: pallet_migrations::{Pallet, Call, Storage, Config<T>, Event<T>},
 	}
 }
 

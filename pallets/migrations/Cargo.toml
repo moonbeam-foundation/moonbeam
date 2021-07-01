@@ -1,5 +1,5 @@
 [package]
-name = "migrations"
+name = "pallet-migrations"
 version = "0.1.0"
 authors = ["PureStake"]
 edition = "2018"

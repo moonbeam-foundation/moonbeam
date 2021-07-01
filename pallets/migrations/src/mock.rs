@@ -17,7 +17,9 @@
 //! A minimal runtime including the migrations pallet
 use super::*;
 use crate as pallet_migrations;
+use crate::migrations;
 use frame_support::{
+	pallet_prelude::*,
 	construct_runtime, parameter_types,
 	traits::{GenesisBuild, OnRuntimeUpgrade},
 	weights::Weight,
@@ -80,8 +82,21 @@ impl frame_system::Config for Test {
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
 }
+
+pub struct MockMigrations;
+impl Get<Vec<Box<dyn Migration>>> for MockMigrations {
+	fn get() -> Vec<Box<dyn Migration>> {
+		vec![
+			Box::new(migrations::MM_001_AuthorMappingAddDeposit),
+			Box::new(migrations::MM_002_StakingFixTotalBalance),
+			Box::new(migrations::MM_003_StakingTransitionBoundedSet),
+		]
+	}
+}
+
 impl Config for Test {
 	type Event = Event;
+	type MigrationsList = MockMigrations;
 }
 
 /// Externality builder for pallet migration's mock runtime

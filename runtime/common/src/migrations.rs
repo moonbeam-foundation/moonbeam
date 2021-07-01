@@ -16,10 +16,16 @@
 
 //! # Migrations
 
-use crate::*;
+use frame_support::{
+	weights::Weight,
+	pallet_prelude::Get,
+};
+use pallet_migrations::Migration;
+use sp_runtime::Perbill;
+use sp_std::prelude::*;
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
-/// the "Migration" trait declared in this crate.
+/// the "Migration" trait declared in the pallet-migrations crate.
 
 pub struct MM_001_AuthorMappingAddDeposit;
 impl Migration for MM_001_AuthorMappingAddDeposit {
@@ -52,3 +58,17 @@ impl Migration for MM_003_StakingTransitionBoundedSet {
 		(Perbill::one(), 0u64.into())
 	}
 }
+
+pub struct CommonMigrations;
+impl Get<Vec<Box<dyn Migration>>> for CommonMigrations {
+	fn get() -> Vec<Box<dyn Migration>> {
+		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
+		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
+		vec![
+			Box::new(MM_001_AuthorMappingAddDeposit),
+			// Box::new(migrations::MM_002_StakingFixTotalBalance),
+			// Box::new(migrations::MM_003_StakingTransitionBoundedSet),
+		]
+	}
+}
+
