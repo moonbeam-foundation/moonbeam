@@ -54,7 +54,7 @@ fn eligible_account_can_register() {
 
 			assert_eq!(
 				last_event(),
-				MetaEvent::pallet_author_mapping(Event::AuthorRegistered(TestAuthor::Bob, 2))
+				MetaEvent::AuthorMapping(Event::AuthorRegistered(TestAuthor::Bob, 2))
 			);
 		})
 }
@@ -109,7 +109,7 @@ fn double_registration_costs_twice_as_much() {
 
 			assert_eq!(
 				last_event(),
-				MetaEvent::pallet_author_mapping(Event::AuthorRegistered(TestAuthor::Bob, 2))
+				MetaEvent::AuthorMapping(Event::AuthorRegistered(TestAuthor::Bob, 2))
 			);
 
 			// Register again as Alice
@@ -124,7 +124,7 @@ fn double_registration_costs_twice_as_much() {
 
 			assert_eq!(
 				last_event(),
-				MetaEvent::pallet_author_mapping(Event::AuthorRegistered(TestAuthor::Alice, 2))
+				MetaEvent::AuthorMapping(Event::AuthorRegistered(TestAuthor::Alice, 2))
 			);
 
 			// Should still be registered as Bob as well
@@ -150,7 +150,7 @@ fn registered_account_can_clear() {
 
 			assert_eq!(
 				last_event(),
-				MetaEvent::pallet_author_mapping(Event::AuthorDeRegistered(TestAuthor::Alice))
+				MetaEvent::AuthorMapping(Event::AuthorDeRegistered(TestAuthor::Alice))
 			);
 		})
 }

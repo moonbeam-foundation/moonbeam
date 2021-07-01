@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 //! This is different from `frame/pallet-staking` where you approval vote and then run Phragmen.
 //!
 //! ### Rules
-//! There is a new round every `BlocksPerRound` blocks.
+//! There is a new round every `<Round<T>>::get().length` blocks.
 //!
 //! At the start of every round,
 //! * issuance is distributed to collators for `BondDuration` rounds ago
@@ -29,21 +29,20 @@
 //! * queued collator exits are executed
 //! * a new set of collators is chosen from the candidates
 //!
-//! To join the set of candidates, an account must call `join_candidates` with
-//! stake >= `MinCollatorCandidateStk` and fee <= `MaxFee`. The fee is taken off the top
-//! of any rewards for the collator before the remaining rewards are distributed
-//! in proportion to stake to all nominators (including the collator, who always
-//! self-nominates).
+//! To join the set of candidates, call `join_candidates` with `bond >= MinCollatorCandidateStk`.
 //!
-//! To leave the set of candidates, the collator calls `leave_candidates`. If the call succeeds,
+//! To leave the set of candidates, call `leave_candidates`. If the call succeeds,
 //! the collator is removed from the pool of candidates so they cannot be selected for future
 //! collator sets, but they are not unstaked until `BondDuration` rounds later. The exit request is
 //! stored in the `ExitQueue` and processed `BondDuration` rounds later to unstake the collator
-//! and all of its nominators.
+//! and all of its nominations.
 //!
-//! To join the set of nominators, an account must call `join_nominators` with
-//! stake >= `MinNominatorStk`. There are also runtime methods for nominating additional collators
-//! and revoking nominations.
+//! To join the set of nominators, call `nominate` and pass in an account that is
+//! already a collator candidate and `bond >= MinNominatorStk`. Each nominator can nominate up to
+//! `T::MaxCollatorsPerNominator` collator candidates by calling `nominate`.
+//!
+//! To revoke a nomination, call `revoke_nomination` with the collator candidate's account.
+//! To leave the set of nominators and revoke all nominations, call `leave_nominators`.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -140,17 +139,6 @@ pub mod pallet {
 		pub bond: Balance,
 		pub nominators: Vec<Bond<AccountId, Balance>>,
 		pub total: Balance,
-	}
-
-	#[derive(Encode, Decode, RuntimeDebug)]
-	/// DEPRECATED: This is the old storage schema. It is retained for purposes of storage migration
-	/// and should be removed in the future.
-	pub struct Collator<AccountId, Balance> {
-		pub id: AccountId,
-		pub bond: Balance,
-		pub nominators: OrderedSet<Bond<AccountId, Balance>>,
-		pub total: Balance,
-		pub state: CollatorStatus,
 	}
 
 	#[derive(Encode, Decode, RuntimeDebug)]
@@ -436,31 +424,6 @@ pub mod pallet {
 		}
 		pub fn leave_candidates(&mut self, round: RoundIndex) {
 			self.state = CollatorStatus::Leaving(round);
-		}
-	}
-
-	impl<A: Clone + Ord, B: Ord + Copy> From<Collator<A, B>> for Collator2<A, B> {
-		fn from(other: Collator<A, B>) -> Collator2<A, B> {
-			// nominator set from Collator was bounded to max size of top_nominators
-			let mut top_nominators = other.nominators.0.clone();
-			// order greatest to least
-			top_nominators.sort_unstable_by(|a, b| b.amount.cmp(&a.amount));
-			Collator2 {
-				id: other.id,
-				bond: other.bond,
-				nominators: other
-					.nominators
-					.0
-					.iter()
-					.map(|Bond { owner, .. }| owner.clone())
-					.collect::<Vec<A>>()
-					.into(),
-				top_nominators,
-				bottom_nominators: Vec::new(),
-				total_counted: other.total,
-				total_backing: other.total,
-				state: other.state,
-			}
 		}
 	}
 
@@ -764,33 +727,6 @@ pub mod pallet {
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		fn on_runtime_upgrade() -> Weight {
-			// migrate from Collator -> Collator2
-			for (acc, collator_state) in CollatorState::<T>::drain() {
-				let state: Collator2<T::AccountId, BalanceOf<T>> = collator_state.into();
-				<CollatorState2<T>>::insert(acc, state);
-			}
-
-			// correct any incorrectly set `Total`
-			let old_total = Total::<T>::get();
-			let mut new_total: BalanceOf<T> = 0u32.into();
-
-			for collator_state in CollatorState2::<T>::iter_values() {
-				new_total += collator_state.total_backing;
-			}
-
-			Total::<T>::put(new_total);
-
-			log::trace!(
-				target: "staking",
-				"Finished migrating storage.\nOld Total : {:?}\nNew Total : {:?}",
-				old_total,
-				new_total,
-			);
-
-			300_000_000_000 // Three fifths of the max block weight
-		}
-
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut round = <Round<T>>::get();
 			if round.should_update(n) {
@@ -849,18 +785,6 @@ pub mod pallet {
 		Twox64Concat,
 		T::AccountId,
 		Nominator<T::AccountId, BalanceOf<T>>,
-		OptionQuery,
-	>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn collator_state)]
-	/// DEPRECATED: This is the old storage item. It is retained for purposes of storage migration
-	/// and should be removed in the future.
-	type CollatorState<T: Config> = StorageMap<
-		_,
-		Twox64Concat,
-		T::AccountId,
-		Collator<T::AccountId, BalanceOf<T>>,
 		OptionQuery,
 	>;
 
