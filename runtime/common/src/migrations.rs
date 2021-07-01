@@ -52,10 +52,10 @@ impl Migration for MM_002_StakingFixTotalBalance {
 }
 
 #[allow(non_camel_case_types)]
-pub struct MM_003_StakingTransitionBoundedSet; // TODO: better name
-impl Migration for MM_003_StakingTransitionBoundedSet {
+pub struct MM_003_StakingUnboundedCollatorNominations;
+impl Migration for MM_003_StakingUnboundedCollatorNominations {
 	fn friendly_name(&self) -> &str {
-		"StakingTransitionBoundedSet"
+		"StakingUnboundedCollatorNominations"
 	}
 	fn step(&self, _previous_progress: Perbill, _available_weight: Weight) -> (Perbill, Weight) {
 		(Perbill::one(), 0u64.into())
@@ -69,8 +69,8 @@ impl Get<Vec<Box<dyn Migration>>> for CommonMigrations {
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
 		vec![
 			Box::new(MM_001_AuthorMappingAddDeposit),
-			// Box::new(migrations::MM_002_StakingFixTotalBalance),
-			// Box::new(migrations::MM_003_StakingTransitionBoundedSet),
+			Box::new(MM_002_StakingFixTotalBalance),
+			Box::new(MM_003_StakingUnboundedCollatorNominations),
 		]
 	}
 }
