@@ -15,9 +15,9 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Unit testing
-use crate::mock::{events, ExtBuilder, Migrations, System};
+use crate::mock::{events, Call, ExtBuilder, Migrations, Origin, System};
 use crate::Event;
-use frame_support::traits::OnRuntimeUpgrade;
+use frame_support::{assert_ok, dispatch::Dispatchable, traits::OnRuntimeUpgrade};
 
 #[test]
 fn genesis_builder_works() {
@@ -45,3 +45,17 @@ fn on_runtime_upgrade_emits_events() {
 		assert_eq!(events(), expected);
 	});
 }
+
+//TODO test for multi-block migration
+// we would need to make one take more than a block worth of weight for that.
+
+#[test]
+fn can_remark_when_not_migrating() {
+	ExtBuilder::default().build().execute_with(|| {
+		let call: Call = frame_system::Call::remark(vec![]).into();
+		assert_ok!(call.dispatch(Origin::signed(1)));
+	})
+}
+
+// TODO Once we have multiblock migration testing, test that calls are disabled during migrations
+// the flow would be: start a migration, try to dispatch, ensure the dispatch failed.
