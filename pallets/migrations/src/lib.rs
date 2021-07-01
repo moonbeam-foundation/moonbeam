@@ -143,9 +143,12 @@ pub mod pallet {
 	#[pallet::genesis_build]
 	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
+			//TODO Does it make sense to configure migrations at genesis? Would they even be run?
 			for migration_name in &self.completed_migrations {
 				<MigrationState<T>>::insert(migration_name, Perbill::one());
 			}
+			// When a new chain is launched, it starts im a fully migrated state.
+			FullyUpgraded::<T>::put(true);
 		}
 	}
 
