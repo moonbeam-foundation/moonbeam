@@ -154,11 +154,6 @@ std = [
 	"pallet-author-mapping/std",
 	"max-encoded-len/std",
 	"evm/std",
-	"pallet-evm-precompile-bn128/std",
-	"pallet-evm-precompile-dispatch/std",
-	"pallet-evm-precompile-modexp/std",
-	"pallet-evm-precompile-simple/std",
-	"pallet-evm-precompile-sha3fips/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.

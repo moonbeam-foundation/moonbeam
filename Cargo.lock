@@ -4962,6 +4962,11 @@ dependencies = [
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-evm",
+ "pallet-evm-precompile-bn128",
+ "pallet-evm-precompile-dispatch",
+ "pallet-evm-precompile-modexp",
+ "pallet-evm-precompile-sha3fips",
+ "pallet-evm-precompile-simple",
  "pallet-proxy",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
@@ -4974,8 +4979,8 @@ dependencies = [
  "pallet-utility",
  "parachain-info",
  "parachain-staking",
+ "parachain-staking-precompiles",
  "parity-scale-codec",
- "precompiles",
  "rlp",
  "runtime-common",
  "serde",
@@ -5151,6 +5156,11 @@ dependencies = [
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-evm",
+ "pallet-evm-precompile-bn128",
+ "pallet-evm-precompile-dispatch",
+ "pallet-evm-precompile-modexp",
+ "pallet-evm-precompile-sha3fips",
+ "pallet-evm-precompile-simple",
  "pallet-proxy",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
@@ -5163,8 +5173,8 @@ dependencies = [
  "pallet-utility",
  "parachain-info",
  "parachain-staking",
+ "parachain-staking-precompiles",
  "parity-scale-codec",
- "precompiles",
  "rlp",
  "runtime-common",
  "serde",
@@ -5219,6 +5229,11 @@ dependencies = [
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-evm",
+ "pallet-evm-precompile-bn128",
+ "pallet-evm-precompile-dispatch",
+ "pallet-evm-precompile-modexp",
+ "pallet-evm-precompile-sha3fips",
+ "pallet-evm-precompile-simple",
  "pallet-proxy",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
@@ -5231,8 +5246,8 @@ dependencies = [
  "pallet-utility",
  "parachain-info",
  "parachain-staking",
+ "parachain-staking-precompiles",
  "parity-scale-codec",
- "precompiles",
  "rlp",
  "runtime-common",
  "serde",
@@ -7989,29 +8004,6 @@ name = "ppv-lite86"
 version = "0.2.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ac74c624d6b2d21f425f752262f42188365d7b8ff1aff74c82e45136510a4857"
-
-[[package]]
-name = "precompiles"
-version = "0.6.0"
-dependencies = [
- "evm",
- "frame-support",
- "frame-system",
- "hex",
- "log",
- "pallet-evm",
- "pallet-evm-precompile-bn128",
- "pallet-evm-precompile-dispatch",
- "pallet-evm-precompile-modexp",
- "pallet-evm-precompile-sha3fips",
- "pallet-evm-precompile-simple",
- "parachain-staking",
- "parity-scale-codec",
- "rustc-hex",
- "sp-core",
- "sp-io",
- "sp-std",
-]
 
 [[package]]
 name = "predicates"
