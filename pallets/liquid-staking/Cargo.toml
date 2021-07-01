@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 serde = { version = "1.0.124", optional = true }
-codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
+parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4", default-features = false }
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4", default-features = false }
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4", default-features = false }
@@ -19,12 +19,14 @@ cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch
 xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.4", default-features = false }
 xcm-executor = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.4", default-features = false }
 xcm-builder = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.4", default-features = false }
+polkadot-runtime-common = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.4", default-features = false }
+
 
 [features]
 default = ["std"]
 std = [
 	"serde",
-	"codec/std",
+	"parity-scale-codec/std",
 	"sp-runtime/std",
 	"sp-std/std",
 	"sp-io/std",
@@ -33,5 +35,6 @@ std = [
 	"cumulus-primitives-core/std",
 	"xcm/std",
 	"xcm-executor/std",
+	"polkadot-runtime-common/std"
 ]
 

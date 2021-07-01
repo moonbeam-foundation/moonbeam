@@ -47,6 +47,8 @@ pub mod pallet {
 		PalletId, Parameter,
 	};
 	use frame_system::{ensure_signed, pallet_prelude::*};
+	use parity_scale_codec::Encode;
+	use polkadot_runtime_common::paras_registrar;
 	use sp_runtime::SaturatedConversion;
 	use sp_runtime::{
 		traits::{AtLeast32BitUnsigned, Convert, MaybeSerializeDeserialize, Member, Zero},
@@ -64,6 +66,25 @@ pub mod pallet {
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
 
+	/// All possible messages that may be delivered to generic Substrate chain.
+	///
+	/// Note this enum may be used in the context of both Source (as part of `encode-call`)
+	/// and Target chain (as part of `encode-message/send-message`).
+	#[derive(Debug, PartialEq, Eq)]
+	pub enum RelayCall {
+		/// A call to the specific Bridge Messages pallet to queue message to be sent over a bridge.
+		Reserve {},
+	}
+
+	pub enum AvailableCalls {
+		Reserve {},
+	}
+
+	pub trait EncodeCall {
+		/// Encode call from the relay.
+		fn encode_call(call: AvailableCalls) -> Vec<u8>;
+	}
+
 	/// Configuration trait of this pallet. We tightly couple to Parachain Staking in order to
 	/// ensure that only staked accounts can create registrations in the first place. This could be
 	/// generalized.
@@ -74,6 +95,9 @@ pub mod pallet {
 		type RelayCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 		/// Convert `T::AccountId` to `MultiLocation`.
 		type AccountIdToMultiLocation: Convert<Self::AccountId, MultiLocation>;
+
+		/// XCM executor.
+		type CallEncoder: EncodeCall;
 
 		/// XCM executor.
 		type XcmExecutor: ExecuteXcm<Self::Call>;
@@ -121,7 +145,8 @@ pub mod pallet {
 
 			// Stake bytes
 			let amount_as_u128 = amount.saturated_into::<u128>();
-			let stake_bytes: Vec<u8> = [19u8, 05u8].to_vec();
+
+			let stake_bytes: Vec<u8> = [0x1].into();
 
 			// Construct messages
 			let message = Self::transact(amount_as_u128, dest_weight, stake_bytes);

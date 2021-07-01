@@ -4516,6 +4516,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "parity-scale-codec",
+ "polkadot-runtime-common",
  "serde",
  "sp-io",
  "sp-runtime",

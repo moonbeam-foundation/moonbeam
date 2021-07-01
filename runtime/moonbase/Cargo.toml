@@ -91,7 +91,6 @@ cumulus-pallet-xcmp-queue = { git = "https://github.com/purestake/cumulus", defa
 cumulus-pallet-dmp-queue = { git = "https://github.com/purestake/cumulus", default-features = false,  branch = "nimbus-polkadot-v0.9.4"}
 cumulus-pallet-xcm = { git = "https://github.com/purestake/cumulus", default-features = false,  branch = "nimbus-polkadot-v0.9.4" }
 cumulus-primitives-utility = { git = "https://github.com/purestake/cumulus", default-features = false,  branch = "nimbus-polkadot-v0.9.4" }
-
 # Benchmarking dependencies
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4", optional = true }
 frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4", optional = true }

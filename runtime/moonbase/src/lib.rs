@@ -356,10 +356,22 @@ parameter_types! {
 	pub const RelayAssetId: u128 = 0;
 }
 
+pub struct RococoEncoder;
+
+impl liquid_staking::EncodeCall for RococoEncoder {
+	fn encode_call(call: liquid_staking::AvailableCalls) -> Vec<u8> {
+		match call {
+			liquid_staking::AvailableCalls::Reserve {} => [19, 05].into(),
+			_ => panic!("SAd"),
+		}
+	}
+}
+
 impl liquid_staking::Config for Runtime {
 	type Event = Event;
 	type RelayCurrency = BalancesKsm;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
+	type CallEncoder = RococoEncoder;
 	type XcmSender = XcmRouter;
 	type XcmExecutor = XcmExecutor;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
