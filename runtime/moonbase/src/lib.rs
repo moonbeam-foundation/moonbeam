@@ -845,10 +845,11 @@ impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
 }
 
 // Nimbus's Executive wrapper allows relay validators to verify the seal digest
-cumulus_pallet_parachain_system::register_validate_block! {
+cumulus_pallet_parachain_system::register_validate_block!(
 	Runtime = Runtime,
 	BlockExecutor = pallet_author_inherent::BlockExecutor::<Runtime, Executive>,
 	CheckInherents = CheckInherents,
+);
 
 #[cfg(test)]
 mod multiplier_tests {
