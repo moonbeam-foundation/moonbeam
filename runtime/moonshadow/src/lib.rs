@@ -573,7 +573,7 @@ impl parachain_staking::Config for Runtime {
 	type DefaultCollatorCommission = DefaultCollatorCommission;
 	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	type MinCollatorStk = MinCollatorStk;
-	type MinCollatorCandidateStk = MinCollatorStk;
+	type MinCollatorCandidateStk = MinCollatorCandidateStk;
 	type MinNomination = MinNominatorStk;
 	type MinNominatorStk = MinNominatorStk;
 	type WeightInfo = parachain_staking::weights::SubstrateWeight<Runtime>;

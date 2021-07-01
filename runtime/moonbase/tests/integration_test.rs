@@ -26,7 +26,7 @@ use frame_support::{
 	traits::{fungible::Inspect, PalletInfo},
 };
 use moonbase_runtime::{
-	currency::UNITS, AccountId, Balances, Call, CrowdloanRewards, Event, ParachainStaking,
+	currency::UNIT, AccountId, Balances, Call, CrowdloanRewards, Event, ParachainStaking,
 	Precompiles, Runtime, System,
 };
 use nimbus_primitives::NimbusId;
