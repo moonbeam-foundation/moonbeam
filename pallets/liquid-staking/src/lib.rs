@@ -30,13 +30,10 @@ use frame_support::pallet;
 
 pub use pallet::*;
 
-#[cfg(test)]
-mod mock;
-#[cfg(test)]
-mod tests;
-
 #[pallet]
 pub mod pallet {
+
+	use std::thread::current;
 
 	use cumulus_primitives_core::relay_chain;
 	use frame_support::{
@@ -46,8 +43,8 @@ pub mod pallet {
 	};
 	use frame_system::{ensure_signed, pallet_prelude::*};
 	use sp_runtime::traits::AccountIdConversion;
-	use sp_runtime::traits::CheckedAdd;
 	use sp_runtime::traits::Convert;
+	use sp_runtime::traits::{CheckedAdd, Saturating};
 	use sp_runtime::SaturatedConversion;
 	use sp_std::prelude::*;
 
@@ -61,6 +58,12 @@ pub mod pallet {
 	#[pallet::pallet]
 	pub struct Pallet<T>(PhantomData<T>);
 
+	/// Stores info about how many DOTS someone has staked and the relation with the ratio
+	#[derive(Default, Clone, Encode, Decode, RuntimeDebug)]
+	pub struct StakeInfo<T: Config> {
+		pub staked_without_ratio: BalanceOf<T>,
+		pub staked_with_ratio: BalanceOf<T>,
+	}
 	/// All possible messages that may be delivered to generic Substrate chain.
 	///
 	/// Note this enum may be used in the context of both Source (as part of `encode-call`)
@@ -116,8 +119,12 @@ pub mod pallet {
 	pub type TotalStaked<T: Config> = StorageValue<_, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::storage]
+	#[pallet::getter(fn total_staked_multiplier)]
+	pub type TotalStakedultiplier<T: Config> = StorageValue<_, BalanceOf<T>, ValueQuery>;
+
+	#[pallet::storage]
 	#[pallet::getter(fn staked_map)]
-	pub type StakedMap<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, BalanceOf<T>>;
+	pub type StakedMap<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, StakeInfo<T>>;
 
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]
@@ -126,6 +133,9 @@ pub mod pallet {
 		WrongConversionU128ToBalance,
 		SendFailure,
 		Overflow,
+		NothingStakedToSetRatio,
+		NoRewardsAvailable,
+		UnstakingMoreThanStaked,
 	}
 
 	#[pallet::event]
@@ -156,6 +166,7 @@ pub mod pallet {
 			let staked = StakedMap::<T>::get(who.clone());
 			// These is the total staked in V-DOT, without taking into account the ratio
 			let total_staked = TotalStaked::<T>::get();
+			let total_staked_multiplier = TotalStakedMultiplier::<T>::get();
 
 			// We get the current ratio
 			let current_ratio = Ratio::<T>::get();
@@ -163,21 +174,45 @@ pub mod pallet {
 			// This is the part where we need to take into account the ratio
 			// We monitor how many "L-DOTS" would someone be assigned, with respect to the current ratio
 			// This are just stored in a mapping, to later re-do the conversion
-			let to_monitor = U64F64::from_num(amount.saturated_into::<u128>()) * current_ratio;
+			// Example:
+			// 	1) I stake 6 V-DOT when the difference when the ratio is 1.2. This means that if we
+			// 	have staked 10, the sovereign account (due to that staking) has 12 now. In this case
+			//  we anotate "total = 6/1.2 =5".
+			// 	2) I later stake another 7-V-DOT, when the ratio is 1.4. total becomes 6+(7/1.4) = 10.
+			//  3) I want to withdraw at 1.6. We know total is 10, so we give away 10*1.6 = 16 V-DOT
+			//  back. I won 16-13 = 3V-DOT
+			//	Note that this is essentially the same as doing: 6*(1.6/1.2) + 7*(1.4/1.6)
+			// A S-C can take the opportunity to mint an additional Token  here.
+			let to_monitor = U64F64::from_num(amount.saturated_into::<u128>()) / current_ratio;
 			let balance_to_add = to_monitor.ceil().to_num::<u128>();
-			let total = if let Some(previously_staked) = staked {
-				previously_staked
+			// This aims to emulate "hoy many tokens would one receive", although nothing is minted
+			// However, this serves for us to make the correct change later back to V-DOT.
+			let stake_to_store = if let Some(previously_staked) = staked {
+				let new_total = previously_staked
+					.staked_with_ratio
 					.checked_add(&(balance_to_add.saturated_into::<BalanceOf<T>>()))
-					.ok_or(Error::<T>::Overflow)?
+					.ok_or(Error::<T>::Overflow)?;
+				StakeInfo {
+					staked_without_ratio: previously_staked.staked_without_ratio + amount,
+					staked_with_ratio: new_total,
+				}
 			} else {
-				balance_to_add.saturated_into::<BalanceOf<T>>()
+				StakeInfo {
+					staked_without_ratio: amount,
+					staked_with_ratio: balance_to_add.saturated_into::<BalanceOf<T>>(),
+				}
 			};
 
-			StakedMap::<T>::insert(who.clone(), total);
+			StakedMap::<T>::insert(who.clone(), stake_to_store);
 			let new_total_staked = total_staked
 				.checked_add(&amount)
 				.ok_or(Error::<T>::Overflow)?;
+			let new_total_staked_multiplier = total_staked_multiplier
+				.checked_add(&stake_to_store.staked_without_ratio)
+				.ok_or(Error::<T>::Overflow)?;
+
 			TotalStaked::<T>::put(new_total_staked);
+			TotalStakedMultiplier::<T>::put(new_total_staked_multiplier);
 
 			let stake_bytes: Vec<u8> = T::CallEncoder::encode_call(AvailableCalls::Reserve);
 
@@ -210,31 +245,118 @@ pub mod pallet {
 		}
 
 		#[pallet::weight(0)]
+		pub fn claim_vdot_rewards(origin: OriginFor<T>, amount: BalanceOf<T>) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
+			// We get the current ratio
+			let current_ratio = Ratio::<T>::get();
+
+			// We know how much a particular account has on rewards. Its the difference
+			// between whatever Let's calculate it.
+			let staked = StakedMap::<T>::get(who.clone()).ok_or(Error::<T>::NoRewardsAvailable)?;
+
+			let current_vdot =
+				(U64F64::from_num(staked.staked_with_ratio.saturated_into::<u128>())
+					* current_ratio)
+					.ceil()
+					.to_num::<u128>()
+					.saturated_into::<BalanceOf<T>>();
+
+			ensure!(
+				amount > current_vdot.saturating_sub(staked.staked_without_ratio),
+				Error::<T>::NoRewardsAvailable
+			);
+
+			// Mint rewards balances
+			T::RelayCurrency::deposit_into_existing(&who, amount)?;
+
+			Ok(())
+		}
+
+		#[pallet::weight(0)]
 		pub fn unstake_dot(
 			origin: OriginFor<T>,
 			amount: BalanceOf<T>,
 			dest_weight: Weight,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-			// Reserve balances
-			T::RelayCurrency::reserve(&who, amount)?;
-			Self::deposit_event(Event::<T>::Unstaked(who, amount));
+
+			// We get the current ratio
+			let current_ratio = Ratio::<T>::get();
+
+			// We know how much a particular account has on rewards. Its the difference
+			// between whatever Let's calculate it.
+			let staked = StakedMap::<T>::get(who.clone()).ok_or(Error::<T>::NoRewardsAvailable)?;
+			
+			// This is the current v_dot (staked + reward or penalties)
+			let current_vdot =
+				(U64F64::from_num(staked.staked_with_ratio.saturated_into::<u128>())
+					* current_ratio)
+					.ceil()
+					.to_num::<u128>()
+					.saturated_into::<BalanceOf<T>>();
+
+			// Do we need to burn or mint?
+			if current_vdot < amount {
+				ensure!(
+					amount > staked.staked_without_ratio,
+					Error::<T>::UnstakingMoreThanStaked
+				);
+			
+			} else {
+				if amount 
+					// We need to burn
+					let imbalance = T::RelayCurrency::burn(amount - current_vdot);
+					T::RelayCurrency::settle(
+						&T::PalletId::get().into_account(),
+						imbalance,
+						WithdrawReasons::TRANSFER,
+						KeepAlive,
+					);
+					if amount - current_vdot > 0u32.into() {
+						T::RelayCurrency::transfer(
+							&T::PalletId::get().into_account(),
+							&who,
+							amount - current_vdot,
+							AllowDeath,
+						)?;
+					}
+				// We need to mint
+				T::RelayCurrency::deposit_into_existing(&who, current_vdot - amount)?;
+				T::RelayCurrency::transfer(
+					&T::PalletId::get().into_account(),
+					&who,
+					amount,
+					AllowDeath,
+				)?;
+			}
+
+			let staked = StakedMap::<T>::get(who.clone()).ok_or(Error::<T>::NoRewardsAvailable)?;
+
 			Ok(())
 		}
 
 		#[pallet::weight(0)]
 		pub fn set_ratio(origin: OriginFor<T>, dot_in_sovereign: BalanceOf<T>) -> DispatchResult {
 			ensure_root(origin)?;
+			let total_staked = TotalStaked::<T>::get();
+
+			// Division by 0
+			ensure!(
+				total_staked != 0u32.into(),
+				Error::<T>::NothingStakedToSetRatio
+			);
 			let total_issuance: BalanceOf<T> = T::RelayCurrency::total_issuance();
 			// The ratio is: the total amount of dots in the sovereign, minus the total issuance of
 			// T::RelayCurrency. Those are essentially the dots that were sent to our sovereign but
 			// that were not minted in our parachain, i.e., the rewards.
 			// The ratio is that difference divided by the total staked
-			let difference = dot_in_sovereign - total_issuance;
+			let difference = dot_in_sovereign - (total_issuance);
+			// We should be using the total minted (with multiplier)
 			let ratio = U64F64::from_num(difference.saturated_into::<u128>())
-				/ U64F64::from_num(TotalStaked::<T>::get().saturated_into::<u128>());
+				/ U64F64::from_num(total_staked.saturated_into::<u128>());
 			Ratio::<T>::put(ratio);
-			Self::deposit_event(Event::<T>::RatioSet(difference, TotalStaked::<T>::get()));
+			Self::deposit_event(Event::<T>::RatioSet(difference, total_staked));
 
 			Ok(())
 		}
@@ -247,7 +369,6 @@ pub mod pallet {
 			ensure_root(origin)?;
 			<Nominations<T>>::put(nominations.clone());
 			Self::deposit_event(Event::<T>::NominationsSet(nominations));
-
 			Ok(())
 		}
 	}
