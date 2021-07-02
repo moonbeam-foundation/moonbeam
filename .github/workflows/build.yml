@@ -45,7 +45,8 @@ jobs:
       - name: Check existing docker image
         id: check-docker-image
         run: |
-          echo ::set-output name=image_exists::$(docker manifest inspect purestake/moonbeam:v0.9.1 > /dev/null && echo "true" || echo "false")
+          TAG=sha-${{ steps.get-sha.outputs.sha8 }}
+          echo ::set-output name=image_exists::$(docker manifest inspect purestake/moonbeam:$TAG > /dev/null && echo "true" || echo "false")
       - name: Display variables
         run: |
           echo git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
