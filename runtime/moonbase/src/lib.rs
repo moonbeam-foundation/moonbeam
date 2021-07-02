@@ -457,13 +457,25 @@ parameter_types! {
 	pub const MaxApprovals: u32 = 100;
 }
 
+type TreasuryApproveOrigin = EnsureOneOf<
+	AccountId,
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, CouncilInstance>,
+>;
+
+type TreasuryRejectOrigin = EnsureOneOf<
+	AccountId,
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
+>;
+
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryId;
 	type Currency = Balances;
-	// Democracy dispatches Root
-	type ApproveOrigin = EnsureRoot<AccountId>;
-	// Democracy dispatches Root
-	type RejectOrigin = EnsureRoot<AccountId>;
+	// At least three-fifths majority of the council is required (or root) to approve a proposal
+	type ApproveOrigin = TreasuryApproveOrigin;
+	// More than half of the council is required (or root) to reject a proposal
+	type RejectOrigin = TreasuryRejectOrigin;
 	type Event = Event;
 	// If spending proposal rejected, transfer proposer bond to treasury
 	type OnSlash = Treasury;
