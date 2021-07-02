@@ -166,6 +166,7 @@ jobs:
           if [[ -f ../target/release/moonbeam ]]; then ../target/release/moonbeam --version; fi
       - name: Build Node
         run: |
+          env
           SCCACHE_RECACHE=1 cargo build --release --all
       - name: Verify node version
         run: |
