@@ -8,7 +8,8 @@
   ],
   "protocolId": null,
   "properties": {
-    "tokenDecimals": 18
+    "tokenDecimals": 18,
+    "tokenSymbol": "UNIT"
   },
   "relayChain": "moonbase_alpha_relay",
   "paraId": 1000,

@@ -75,7 +75,10 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 		vec![],
 		None,
 		None,
-		Some(serde_json::from_str("{\"tokenDecimals\": 18}").expect("Provided valid json map")),
+		Some(
+			serde_json::from_str("{\"tokenDecimals\": 18, \"tokenSymbol\": \"GLMR\"}")
+				.expect("Provided valid json map"),
+		),
 		Extensions {
 			relay_chain: "dev-service".into(),
 			para_id: Default::default(),
@@ -126,7 +129,10 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		vec![],
 		None,
 		None,
-		Some(serde_json::from_str("{\"tokenDecimals\": 18}").expect("Provided valid json map")),
+		Some(
+			serde_json::from_str("{\"tokenDecimals\": 18, \"tokenSymbol\": \"GLMR\"}")
+				.expect("Provided valid json map"),
+		),
 		Extensions {
 			relay_chain: "polkadot-local".into(),
 			para_id: para_id.into(),
