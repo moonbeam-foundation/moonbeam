@@ -1032,7 +1032,7 @@
 	<span class="doccomment">/// We allow for 5 MB blocks.</span>
 	<span class="kw">pub</span> <span class="ident">BlockLength</span>: <span class="ident">frame_system</span>::<span class="ident">limits</span>::<span class="ident">BlockLength</span> <span class="op">=</span> <span class="ident">frame_system</span>::<span class="ident">limits</span>::<span class="ident">BlockLength</span>
 		::<span class="ident">max_with_normal_ratio</span>(<span class="number">5</span> <span class="op">*</span> <span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span>, <span class="ident">NORMAL_DISPATCH_RATIO</span>);
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SS58Prefix</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">42</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SS58Prefix</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="number">1284</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">frame_system</span>::<span class="ident">Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
