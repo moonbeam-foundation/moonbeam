@@ -38,7 +38,6 @@ use frame_support::{
 	},
 	PalletId,
 };
-use pallet_transaction_payment::{CurrencyAdapter, TargetedFeeAdjustment, Multiplier};
 use frame_system::{EnsureOneOf, EnsureRoot};
 pub use moonbeam_core_primitives::{
 	AccountId, AccountIndex, Address, Balance, BlockNumber, DigestItem, Hash, Header, Index,
@@ -52,15 +51,16 @@ use pallet_evm::{
 	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator,
 	IdentityAddressMapping, Runner,
 };
+use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
 pub use parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode};
 use sp_api::impl_runtime_apis;
 use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys, Perquintill, FixedPointNumber,
+	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentityLookup},
 	transaction_validity::{InvalidTransaction, TransactionSource, TransactionValidity},
-	AccountId32, ApplyExtrinsicResult, Perbill, Percent, Permill,
+	AccountId32, ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
 };
 use sp_std::{convert::TryFrom, prelude::*};
 #[cfg(feature = "std")]
@@ -340,12 +340,8 @@ impl FeeCalculator for FixedGasPrice {
 /// Parameterized slow adjusting fee updated based on
 /// https://w3f-research.readthedocs.io/en/latest/polkadot/
 ///                                              Token%20Economics.html#-2.-slow-adjusting-mechanism
-pub type SlowAdjustingFeeUpdate<R> = TargetedFeeAdjustment<
-	R,
-	TargetBlockFullness,
-	AdjustmentVariable,
-	MinimumMultiplier
->;
+pub type SlowAdjustingFeeUpdate<R> =
+	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = FixedGasPrice;
@@ -899,11 +895,14 @@ cumulus_pallet_parachain_system::register_validate_block!(
 #[cfg(test)]
 mod multiplier_tests {
 	use super::*;
-	use frame_support::{parameter_types, weights::{Weight, DispatchClass}};
+	use frame_support::{
+		parameter_types,
+		weights::{DispatchClass, Weight},
+	};
 	use sp_core::H256;
 	use sp_runtime::{
 		testing::Header,
-		traits::{BlakeTwo256, IdentityLookup, Convert, One},
+		traits::{BlakeTwo256, Convert, IdentityLookup, One},
 		Perbill,
 	};
 
@@ -955,9 +954,14 @@ mod multiplier_tests {
 		type OnSetCode = ();
 	}
 
-	fn run_with_system_weight<F>(w: Weight, mut assertions: F) where F: FnMut() -> () {
-		let mut t: sp_io::TestExternalities =
-			frame_system::GenesisConfig::default().build_storage::<Runtime>().unwrap().into();
+	fn run_with_system_weight<F>(w: Weight, mut assertions: F)
+	where
+		F: FnMut() -> (),
+	{
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
+			.build_storage::<Runtime>()
+			.unwrap()
+			.into();
 		t.execute_with(|| {
 			System::set_block_consumed_resources(w, 0);
 			assertions()
@@ -967,13 +971,21 @@ mod multiplier_tests {
 	#[test]
 	fn multiplier_can_grow_from_zero() {
 		let minimum_multiplier = MinimumMultiplier::get();
-		let target = TargetBlockFullness::get() *
-			BlockWeights::get().get(DispatchClass::Normal).max_total.unwrap();
+		let target = TargetBlockFullness::get()
+			* BlockWeights::get()
+				.get(DispatchClass::Normal)
+				.max_total
+				.unwrap();
 		// if the min is too small, then this will not change, and we are doomed forever.
 		// the weight is 1/100th bigger than target.
 		run_with_system_weight(target * 101 / 100, || {
 			let next = SlowAdjustingFeeUpdate::<Runtime>::convert(minimum_multiplier);
-			assert!(next > minimum_multiplier, "{:?} !>= {:?}", next, minimum_multiplier);
+			assert!(
+				next > minimum_multiplier,
+				"{:?} !>= {:?}",
+				next,
+				minimum_multiplier
+			);
 		})
 	}
 
@@ -983,8 +995,10 @@ mod multiplier_tests {
 		//target (target is 25%, thus 50%) and we see at which point it reaches 1.
 		let mut multiplier = MinimumMultiplier::get();
 		let block_weight = TargetBlockFullness::get()
-			* BlockWeights::get().get(DispatchClass::Normal).max_total.unwrap()
-			* 2;
+			* BlockWeights::get()
+				.get(DispatchClass::Normal)
+				.max_total
+				.unwrap() * 2;
 		let mut blocks = 0;
 		while multiplier <= Multiplier::one() {
 			run_with_system_weight(block_weight, || {
