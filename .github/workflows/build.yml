@@ -261,7 +261,7 @@ jobs:
   docker-parachain:
     runs-on: ubuntu-latest
     needs: ["set-tags", "build", "generate-parachain-specs"]
-    if: github.event_name == 'push' && ${{ steps.check-check-docker-image.outputs.image_exists }} == false
+    if: github.event_name == 'push' && ${{ needs.set-tags.outputs.image_exists }} == false
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -312,7 +312,7 @@ jobs:
   docker-moonbeam:
     runs-on: ubuntu-latest
     needs: ["set-tags", "build", "generate-parachain-specs"]
-    if: github.event_name == 'push' && ${{ steps.check-check-docker-image.outputs.image_exists }} == false
+    if: github.event_name == 'push' && ${{ needs.set-tags.outputs.image_exists }} == false
     steps:
       - name: Checkout
         uses: actions/checkout@v2
