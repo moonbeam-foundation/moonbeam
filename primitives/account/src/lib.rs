@@ -94,6 +94,15 @@ impl From<ecdsa::Public> for EthereumSigner {
 	}
 }
 
+impl From<secp256k1::PublicKey> for EthereumSigner {
+	fn from(x: secp256k1::PublicKey) -> Self {
+		let mut m = [0u8; 64];
+		m.copy_from_slice(&x.serialize()[1..65]);
+		let account = H160::from(H256::from_slice(Keccak256::digest(&m).as_slice()));
+		EthereumSigner(account.into())
+	}
+}
+
 #[cfg(feature = "std")]
 impl std::fmt::Display for EthereumSigner {
 	fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
