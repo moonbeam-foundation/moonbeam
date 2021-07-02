@@ -160,8 +160,10 @@ jobs:
         run: |
           echo "::set-output name=rustc::$(rustc --version)"
       - name: Build Node
+        run: cargo build --release --all
+      - name: Verify node version
         run: |
-          cargo build --release --all
+          git log -1 --format="%H"
           ./target/release/moonbeam --version
       - name: Unit tests
         run: cargo test --release --all
