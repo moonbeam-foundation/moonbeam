@@ -232,7 +232,7 @@ jobs:
   ####### Prepare and Deploy Docker images #######
   generate-parachain-specs:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push
+    if: github.event_name == 'push'
     needs: ["build", "typescript-tests"]
     steps:
       - name: Checkout
