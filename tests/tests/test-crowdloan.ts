@@ -26,7 +26,7 @@ async function calculate_vested_amount(context, totalReward, initialPayment, num
   // In the dev service, where the relay block number is mocked, we get exactly two relay blocks.
   let elapsedRelayBlocks = numberOfBlocks * 2;
   let shouldHaveVested = BigInt(initialPayment) + vestedPerBlock * BigInt(elapsedRelayBlocks);
-  let claimedAsBalance = formatBalance(shouldHaveVested, { withSi: true, withUnit: "Unit" }, 18);
+  let claimedAsBalance = formatBalance(shouldHaveVested, { withSi: true, withUnit: "UNIT" }, 18);
   return claimedAsBalance;
 }
 
@@ -71,7 +71,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
           await context.polkadotApi.query.crowdloanRewards.accountsPayable(GENESIS_ACCOUNT)
         ).toHuman() as any
       ).total_reward
-    ).to.equal("3.0000 MUnit");
+    ).to.equal("3.0000 MUNIT");
     let isInitialized = await context.polkadotApi.query.crowdloanRewards.initialized();
     expect(isInitialized.toHuman()).to.be.true;
   });
@@ -124,7 +124,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     expect(
       formatBalance(
         BigInt(await context.web3.eth.getBalance(GENESIS_ACCOUNT)) - GENESIS_ACCOUNT_BALANCE,
-        { withSi: true, withUnit: "Unit" },
+        { withSi: true, withUnit: "UNIT" },
         18
       )
     ).to.equal(claimed);
@@ -132,7 +132,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     expect(
       formatBalance(
         account.data.free.toBigInt() - GENESIS_ACCOUNT_BALANCE,
-        { withSi: true, withUnit: "Unit" },
+        { withSi: true, withUnit: "UNIT" },
         18
       )
     ).to.equal(claimed);
@@ -297,7 +297,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     expect(
       ((await context.polkadotApi.query.crowdloanRewards.accountsPayable(ALITH)).toHuman() as any)
         .total_reward
-    ).to.equal("3.0000 MUnit");
+    ).to.equal("3.0000 MUNIT");
 
     let rewardInfo = (
       await context.polkadotApi.query.crowdloanRewards.accountsPayable(ALITH)
@@ -358,7 +358,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
               await context.polkadotApi.query.crowdloanRewards.accountsPayable(input[1])
             ).toHuman() as any
           ).total_reward
-        ).to.equal("600.0000 Unit");
+        ).to.equal("600.0000 UNIT");
       })
     );
   });
@@ -429,7 +429,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
               await context.polkadotApi.query.crowdloanRewards.accountsPayable(input[1])
             ).toHuman() as any
           ).total_reward
-        ).to.equal("600.0000 Unit");
+        ).to.equal("600.0000 UNIT");
       })
     );
   });

@@ -40,9 +40,9 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
     const inflationInfo = await context.polkadotApi.query.parachainStaking.inflationConfig();
     // {
     //   expect: {
-    //     min: '100.0000 kUnit',
-    //     ideal: '200.0000 kUnit',
-    //     max: '500.0000 kUnit'
+    //     min: '100.0000 kUNIT',
+    //     ideal: '200.0000 kUNIT',
+    //     max: '500.0000 kUNIT'
     //   },
     //  annual: {
     //     min: '4.00%',
@@ -51,9 +51,9 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
     // },
     //   round: { min: '0.00%', ideal: '0.00%', max: '0.00%' }
     // }
-    expect(inflationInfo.toHuman()["expect"]["min"]).to.eq("100.0000 kUnit");
-    expect(inflationInfo.toHuman()["expect"]["ideal"]).to.eq("200.0000 kUnit");
-    expect(inflationInfo.toHuman()["expect"]["max"]).to.eq("500.0000 kUnit");
+    expect(inflationInfo.toHuman()["expect"]["min"]).to.eq("100.0000 kUNIT");
+    expect(inflationInfo.toHuman()["expect"]["ideal"]).to.eq("200.0000 kUNIT");
+    expect(inflationInfo.toHuman()["expect"]["max"]).to.eq("500.0000 kUNIT");
     expect(inflationInfo.toHuman()["annual"]["min"]).to.eq("4.00%");
     expect(inflationInfo.toHuman()["annual"]["ideal"]).to.eq("5.00%");
     expect(inflationInfo.toHuman()["annual"]["max"]).to.eq("5.00%");
@@ -84,7 +84,7 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
     ).to.equal(true, "new candidate ethan should have been added");
     expect(
       (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount ===
-        "1.0000 kUnit"
+        "1.0000 kUNIT"
     ).to.equal(true, "new candidate ethan should have been added (wrong amount)");
   });
 });
@@ -107,7 +107,7 @@ describeDevMoonbeam("Staking - Candidate bond more", (context) => {
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
     expect(
       (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount ===
-        "2.0000 kUnit"
+        "2.0000 kUNIT"
     ).to.equal(true, "bond should have increased");
   });
 });
@@ -130,7 +130,7 @@ describeDevMoonbeam("Staking - Candidate bond less", (context) => {
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
     expect(
       (candidatesAfter.toHuman() as { owner: string; amount: string }[])[1].amount ===
-        "1.0000 kUnit"
+        "1.0000 kUNIT"
     ).to.equal(true, "bond should have decreased");
   });
 });
