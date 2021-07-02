@@ -22,13 +22,34 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
+      image_exists: ${{ steps.check-check-docker-image.outputs.image_exists }}
+      sha: ${{ steps.get-sha.outputs.sha }}
+      sha8: ${{ steps.get-sha.outputs.sha8 }}
     steps:
       - name: Check git ref
         id: check-git-ref
         run: |
           if [[ -n "${{ github.event.inputs.pull_request }}" ]]; then
             echo ::set-output name=git_ref::refs/pull/${{ github.event.inputs.pull_request }}/head
-            echo "git_ref: refs/pull/${{ github.event.inputs.pull_request }}/head"
+          else 
+            echo ::set-output name=git_ref::$GITHUB_REF
+          fi
+      - name: Get Sha
+        id: get-sha
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ steps.check-git-ref.outputs.git_ref }}
+        run: |
+          echo ::set-output name=sha::$(git log -1 --format="%H")
+          echo ::set-output name=sha8::$(git log -1 --format="%H" | cut -c1-8)
+      - name: Check existing docker image
+        id: check-docker-image
+        run: |
+          docker manifest inspect purestake/moonbeam:sha-${{ steps.get-sha.outputs.sha8 }};
+          if [[ $? == 0 ]]; then
+            echo ::set-output name=image_exists::true
+          else
+            echo ::set-output name=image_exists::false
           fi
 
   check-copyright:
@@ -207,10 +228,11 @@ jobs:
           cd ../tests
           npm install
           node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'tests/**/test-*.ts'
+
   ####### Prepare and Deploy Docker images #######
   generate-parachain-specs:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: github.event_name == 'push
     needs: ["build", "typescript-tests"]
     steps:
       - name: Checkout
@@ -238,8 +260,8 @@ jobs:
 
   docker-parachain:
     runs-on: ubuntu-latest
-    needs: ["build", "generate-parachain-specs"]
-    if: github.event_name == 'push'
+    needs: ["set-tags", "build", "generate-parachain-specs"]
+    if: github.event_name == 'push' && ${{ steps.check-check-docker-image.outputs.image_exists }} == false
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -253,22 +275,7 @@ jobs:
         id: prep
         run: |
           DOCKER_IMAGE=purestake/moonbase-parachain
-          VERSION=noop
-          if [ "${{ github.event_name }}" = "schedule" ]; then
-            VERSION=nightly
-          elif [[ $GITHUB_REF == refs/heads/* ]]; then
-            VERSION=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g')
-            if [ "${{ github.event.repository.default_branch }}" = "$VERSION" ]; then
-              VERSION=edge
-            fi
-          elif [[ $GITHUB_REF == refs/pull/* ]]; then
-            VERSION=pr-${{ github.event.number }}
-          fi
-          TAGS="${DOCKER_IMAGE}:${VERSION}"
-          if [ "${{ github.event_name }}" = "push" ]; then
-            TAGS="$TAGS,${DOCKER_IMAGE}:sha-${GITHUB_SHA::8}"
-          fi
-          echo ::set-output name=version::${VERSION}
+          TAGS="${DOCKER_IMAGE}:sha-${{ needs.set-tags.outputs.sha8 }}"
           echo ::set-output name=tags::${TAGS}
           echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
       - name: Set up QEMU
@@ -298,7 +305,6 @@ jobs:
             org.opencontainers.image.description=${{ github.event.repository.description }}
             org.opencontainers.image.url=${{ github.event.repository.html_url }}
             org.opencontainers.image.source=${{ github.event.repository.clone_url }}
-            org.opencontainers.image.version=${{ steps.prep.outputs.version }}
             org.opencontainers.image.created=${{ steps.prep.outputs.created }}
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
@@ -306,7 +312,7 @@ jobs:
   docker-moonbeam:
     runs-on: ubuntu-latest
     needs: ["build", "generate-parachain-specs"]
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && ${{ steps.check-check-docker-image.outputs.image_exists }} == false
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -319,27 +325,12 @@ jobs:
       - name: Verify
         run: |
           chmod uog+x build/moonbeam
-          ./target/release/moonbeam --version
+          ./build/moonbeam --version
       - name: Prepare
         id: prep
         run: |
           DOCKER_IMAGE=purestake/moonbeam
-          VERSION=noop
-          if [ "${{ github.event_name }}" = "schedule" ]; then
-            VERSION=nightly
-          elif [[ $GITHUB_REF == refs/heads/* ]]; then
-            VERSION=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g')
-            if [ "${{ github.event.repository.default_branch }}" = "$VERSION" ]; then
-              VERSION=edge
-            fi
-          elif [[ $GITHUB_REF == refs/pull/* ]]; then
-            VERSION=pr-${{ github.event.number }}
-          fi
-          TAGS="${DOCKER_IMAGE}:${VERSION}"
-          if [ "${{ github.event_name }}" = "push" ]; then
-            TAGS="$TAGS,${DOCKER_IMAGE}:sha-${GITHUB_SHA::8}"
-          fi
-          echo ::set-output name=version::${VERSION}
+          TAGS="${DOCKER_IMAGE}:sha-${{ needs.set-tags.outputs.sha8 }}"
           echo ::set-output name=tags::${TAGS}
           echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
       - name: Set up QEMU
@@ -369,7 +360,6 @@ jobs:
             org.opencontainers.image.description=${{ github.event.repository.description }}
             org.opencontainers.image.url=${{ github.event.repository.html_url }}
             org.opencontainers.image.source=${{ github.event.repository.clone_url }}
-            org.opencontainers.image.version=${{ steps.prep.outputs.version }}
             org.opencontainers.image.created=${{ steps.prep.outputs.created }}
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
