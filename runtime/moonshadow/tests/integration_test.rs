@@ -35,6 +35,11 @@ use sp_core::{Public, H160, U256};
 use sp_runtime::DispatchError;
 
 #[test]
+fn fast_track_unavailable() {
+	assert!(!<moonshadow_runtime::Runtime as pallet_democracy::Config>::InstantAllowed::get());
+}
+
+#[test]
 fn verify_pallet_indices() {
 	fn is_pallet_index<P: 'static>(index: usize) {
 		assert_eq!(
