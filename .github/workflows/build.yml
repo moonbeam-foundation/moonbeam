@@ -46,6 +46,12 @@ jobs:
         id: check-docker-image
         run: |
           echo ::set-output name=image_exists::$(docker manifest inspect purestake/moonbeam:v0.9.1 > /dev/null && echo "true" || echo "false")
+      - name: Display variables
+        run: |
+          echo git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
+          echo sha: ${{ steps.get-sha.outputs.sha }}
+          echo sha8: ${{ steps.get-sha.outputs.sha8 }}
+          echo image_exists: ${{ steps.check-docker-image.outputs.image_exists }}
 
   check-copyright:
     runs-on: ubuntu-latest
