@@ -574,7 +574,7 @@ dependencies = [
  "cexpr",
  "cfg-if 0.1.10",
  "clang-sys",
- "clap 2.33.3",
+ "clap",
  "env_logger 0.7.1",
  "lazy_static",
  "lazycell",
@@ -967,42 +967,10 @@ dependencies = [
  "ansi_term 0.11.0",
  "atty",
  "bitflags",
- "strsim 0.8.0",
- "textwrap 0.11.0",
+ "strsim",
+ "textwrap",
  "unicode-width",
  "vec_map",
-]
-
-[[package]]
-name = "clap"
-version = "3.0.0-beta.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4bd1061998a501ee7d4b6d449020df3266ca3124b941ec56cf2005c3779ca142"
-dependencies = [
- "atty",
- "bitflags",
- "clap_derive",
- "indexmap",
- "lazy_static",
- "os_str_bytes",
- "strsim 0.10.0",
- "termcolor",
- "textwrap 0.12.1",
- "unicode-width",
- "vec_map",
-]
-
-[[package]]
-name = "clap_derive"
-version = "3.0.0-beta.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "370f715b81112975b1b69db93e0b56ea4cd4e5002ac43b2da8474106a54096a1"
-dependencies = [
- "heck",
- "proc-macro-error",
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]
@@ -4748,6 +4716,17 @@ dependencies = [
 [[package]]
 name = "moonbeam-cli-opt"
 version = "0.9.1"
+dependencies = [
+ "account",
+ "libsecp256k1",
+ "primitive-types",
+ "sc-cli",
+ "sha3 0.8.2",
+ "sp-runtime",
+ "structopt",
+ "tiny-bip39 0.6.2",
+ "tiny-hderive",
+]
 
 [[package]]
 name = "moonbeam-core-primitives"
@@ -4962,6 +4941,11 @@ dependencies = [
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-evm",
+ "pallet-evm-precompile-bn128",
+ "pallet-evm-precompile-dispatch",
+ "pallet-evm-precompile-modexp",
+ "pallet-evm-precompile-sha3fips",
+ "pallet-evm-precompile-simple",
  "pallet-proxy",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
@@ -4974,8 +4958,8 @@ dependencies = [
  "pallet-utility",
  "parachain-info",
  "parachain-staking",
+ "parachain-staking-precompiles",
  "parity-scale-codec",
- "precompiles",
  "rlp",
  "runtime-common",
  "serde",
@@ -5104,14 +5088,10 @@ dependencies = [
 
 [[package]]
 name = "moonkey"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
- "clap 3.0.0-beta.2",
- "libsecp256k1",
- "primitive-types",
- "sha3 0.8.2",
- "tiny-bip39 0.6.2",
- "tiny-hderive",
+ "moonbeam-cli-opt",
+ "structopt",
 ]
 
 [[package]]
@@ -5151,6 +5131,11 @@ dependencies = [
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-evm",
+ "pallet-evm-precompile-bn128",
+ "pallet-evm-precompile-dispatch",
+ "pallet-evm-precompile-modexp",
+ "pallet-evm-precompile-sha3fips",
+ "pallet-evm-precompile-simple",
  "pallet-proxy",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
@@ -5163,8 +5148,8 @@ dependencies = [
  "pallet-utility",
  "parachain-info",
  "parachain-staking",
+ "parachain-staking-precompiles",
  "parity-scale-codec",
- "precompiles",
  "rlp",
  "runtime-common",
  "serde",
@@ -5219,6 +5204,11 @@ dependencies = [
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-evm",
+ "pallet-evm-precompile-bn128",
+ "pallet-evm-precompile-dispatch",
+ "pallet-evm-precompile-modexp",
+ "pallet-evm-precompile-sha3fips",
+ "pallet-evm-precompile-simple",
  "pallet-proxy",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
@@ -5231,8 +5221,8 @@ dependencies = [
  "pallet-utility",
  "parachain-info",
  "parachain-staking",
+ "parachain-staking-precompiles",
  "parity-scale-codec",
- "precompiles",
  "rlp",
  "runtime-common",
  "serde",
@@ -5626,12 +5616,6 @@ checksum = "3305af35278dd29f46fcdd139e0b1fbfae2153f0e5928b39b035542dd31e37b7"
 dependencies = [
  "num-traits",
 ]
-
-[[package]]
-name = "os_str_bytes"
-version = "2.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "afb2e1c3ee07430c2cf76151675e583e0f19985fa6efae47d6848a3e2c824f85"
 
 [[package]]
 name = "owning_ref"
@@ -7989,29 +7973,6 @@ name = "ppv-lite86"
 version = "0.2.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ac74c624d6b2d21f425f752262f42188365d7b8ff1aff74c82e45136510a4857"
-
-[[package]]
-name = "precompiles"
-version = "0.6.0"
-dependencies = [
- "evm",
- "frame-support",
- "frame-system",
- "hex",
- "log",
- "pallet-evm",
- "pallet-evm-precompile-bn128",
- "pallet-evm-precompile-dispatch",
- "pallet-evm-precompile-modexp",
- "pallet-evm-precompile-sha3fips",
- "pallet-evm-precompile-simple",
- "parachain-staking",
- "parity-scale-codec",
- "rustc-hex",
- "sp-core",
- "sp-io",
- "sp-std",
-]
 
 [[package]]
 name = "predicates"
@@ -11138,18 +11099,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ea5119cdb4c55b55d432abb513a0429384878c15dde60cc77b1c99de1a95a6a"
 
 [[package]]
-name = "strsim"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
-
-[[package]]
 name = "structopt"
 version = "0.3.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5277acd7ee46e63e5168a80734c9f6ee81b1367a7d8772a2d765df2a3705d28c"
 dependencies = [
- "clap 2.33.3",
+ "clap",
  "lazy_static",
  "structopt-derive",
 ]
@@ -11472,15 +11427,6 @@ name = "textwrap"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d326610f408c7a4eb6f51c37c330e496b08506c9457c9d34287ecc38809fb060"
-dependencies = [
- "unicode-width",
-]
-
-[[package]]
-name = "textwrap"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "203008d98caf094106cfaba70acfed15e18ed3ddb7d94e49baec153a2b462789"
 dependencies = [
  "unicode-width",
 ]

@@ -15,6 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use std::str::FromStr;
 
+pub mod account_key;
+
 /// Block authoring scheme to be used by the dev service.
 #[derive(Debug)]
 pub enum Sealing {

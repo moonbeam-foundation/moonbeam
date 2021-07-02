@@ -28,13 +28,12 @@ use frame_support::{
 	traits::{fungible::Inspect, PalletInfo},
 };
 use moonbeam_runtime::{
-	currency::GLMR, AccountId, Balances, Call, CrowdloanRewards, Event, ParachainStaking, Runtime,
-	System,
+	currency::GLMR, AccountId, Balances, Call, CrowdloanRewards, Event, ParachainStaking,
+	Precompiles, Runtime, System,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use parachain_staking::{Bond, NominatorAdded};
-use precompiles::MoonbeamPrecompiles;
 use sp_core::{Public, H160, U256};
 use sp_runtime::DispatchError;
 
@@ -1084,13 +1083,13 @@ fn is_nominator_via_precompile() {
 			let expected_true_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
-				cost: 0,
+				cost: 1000,
 				logs: Default::default(),
 			}));
 
 			// Assert precompile reports Bob is a nominator
 			assert_eq!(
-				MoonbeamPrecompiles::<Runtime>::execute(
+				Precompiles::execute(
 					staking_precompile_address,
 					&bob_input_data,
 					None, // target_gas is not necessary right now because consumed none now
@@ -1114,13 +1113,13 @@ fn is_nominator_via_precompile() {
 			let expected_false_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
-				cost: 0,
+				cost: 1000,
 				logs: Default::default(),
 			}));
 
 			// Assert precompile also reports Charlie as not a nominator
 			assert_eq!(
-				MoonbeamPrecompiles::<Runtime>::execute(
+				Precompiles::execute(
 					staking_precompile_address,
 					&charlie_input_data,
 					None,
@@ -1159,13 +1158,13 @@ fn is_candidate_via_precompile() {
 			let expected_true_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
-				cost: 0,
+				cost: 1000,
 				logs: Default::default(),
 			}));
 
 			// Assert precompile reports Alice is a collator candidate
 			assert_eq!(
-				MoonbeamPrecompiles::<Runtime>::execute(
+				Precompiles::execute(
 					staking_precompile_address,
 					&alice_input_data,
 					None, // target_gas is not necessary right now because consumed none now
@@ -1189,13 +1188,13 @@ fn is_candidate_via_precompile() {
 			let expected_false_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
-				cost: 0,
+				cost: 1000,
 				logs: Default::default(),
 			}));
 
 			// Assert precompile also reports Bob as not a collator candidate
 			assert_eq!(
-				MoonbeamPrecompiles::<Runtime>::execute(
+				Precompiles::execute(
 					staking_precompile_address,
 					&bob_input_data,
 					None,
@@ -1226,12 +1225,12 @@ fn min_nomination_via_precompile() {
 		let expected_result = Some(Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			output: buffer.to_vec(),
-			cost: 0,
+			cost: 1000,
 			logs: Default::default(),
 		}));
 
 		assert_eq!(
-			MoonbeamPrecompiles::<Runtime>::execute(
+			Precompiles::execute(
 				staking_precompile_address,
 				&get_min_nom,
 				None,

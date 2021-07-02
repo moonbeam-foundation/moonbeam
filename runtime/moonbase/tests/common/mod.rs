@@ -23,9 +23,9 @@ use frame_support::{
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
 pub use moonbase_runtime::{
-	currency::UNITS, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards,
-	Ethereum, Event, Executive, FixedGasPrice, InflationInfo, ParachainStaking, Range, Runtime,
-	System, TransactionConverter, UncheckedExtrinsic, WEEKS,
+	currency::UNIT, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Ethereum,
+	Event, Executive, FixedGasPrice, InflationInfo, ParachainStaking, Range, Runtime, System,
+	TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::GenesisAccount;
@@ -87,9 +87,9 @@ impl Default for ExtBuilder {
 			collators: vec![],
 			inflation: InflationInfo {
 				expect: Range {
-					min: 100_000 * UNITS,
-					ideal: 200_000 * UNITS,
-					max: 500_000 * UNITS,
+					min: 100_000 * UNIT,
+					ideal: 200_000 * UNIT,
+					max: 500_000 * UNIT,
 				},
 				// not used
 				annual: Range {

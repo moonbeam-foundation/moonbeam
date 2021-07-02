@@ -54,7 +54,6 @@ use pallet_evm::{
 use pallet_transaction_payment::CurrencyAdapter;
 pub use parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode};
-use precompiles::MoonbeamPrecompiles;
 use sp_api::impl_runtime_apis;
 use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
@@ -70,22 +69,25 @@ use sp_version::RuntimeVersion;
 
 use nimbus_primitives::{CanAuthor, NimbusId};
 
+mod precompiles;
+use precompiles::MoonshadowPrecompiles;
+
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
-pub type Precompiles = MoonbeamPrecompiles<Runtime>;
+pub type Precompiles = MoonshadowPrecompiles<Runtime>;
 
 /// MSHD, the native token, uses 18 decimals of precision.
 pub mod currency {
 	use super::Balance;
 
 	pub const MSHD: Balance = 1_000_000_000_000_000_000;
-	pub const KILOMSHDS: Balance = MSHD * 1_000;
-	pub const MILLIMSHDS: Balance = MSHD / 1_000;
-	pub const MICROMSHDS: Balance = MILLIMSHDS / 1_000;
-	pub const NANOMSHDS: Balance = MICROMSHDS / 1_000;
+	pub const KILOMSHD: Balance = MSHD * 1_000;
+	pub const MILLIMSHD: Balance = MSHD / 1_000;
+	pub const MICROMSHD: Balance = MILLIMSHD / 1_000;
+	pub const NANOMSHD: Balance = MICROMSHD / 1_000;
 
-	pub const BYTE_FEE: Balance = 100 * MICROMSHDS;
+	pub const BYTE_FEE: Balance = 100 * MICROMSHD;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
 		items as Balance * 1 * MSHD + (bytes as Balance) * BYTE_FEE
@@ -315,7 +317,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		(1 * currency::NANOMSHDS).into()
+		(1 * currency::NANOMSHD).into()
 	}
 }
 
@@ -328,7 +330,7 @@ impl pallet_evm::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type Precompiles = MoonbeamPrecompiles<Self>;
+	type Precompiles = MoonshadowPrecompiles<Self>;
 	type ChainId = EthereumChainId;
 	type OnChargeTransaction = ();
 	type BlockGasLimit = BlockGasLimit;
@@ -554,8 +556,10 @@ parameter_types! {
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
 	/// Default percent of inflation set aside for parachain bond every round
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
-	/// Minimum stake required to be reserved to be a collator is 1_000
-	pub const MinCollatorStk: u128 = 1 * currency::KILOMSHDS;
+	/// Minimum stake required to become a collator is 1_000
+	pub const MinCollatorStk: u128 = 1 * currency::KILOMSHD;
+	/// Minimum stake required to be reserved to be a candidate is 1_000
+	pub const MinCollatorCandidateStk: u128 = 1 * currency::KILOMSHD;
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5 * currency::MSHD;
 }
@@ -571,7 +575,7 @@ impl parachain_staking::Config for Runtime {
 	type DefaultCollatorCommission = DefaultCollatorCommission;
 	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	type MinCollatorStk = MinCollatorStk;
-	type MinCollatorCandidateStk = MinCollatorStk;
+	type MinCollatorCandidateStk = MinCollatorCandidateStk;
 	type MinNomination = MinNominatorStk;
 	type MinNominatorStk = MinNominatorStk;
 	type WeightInfo = parachain_staking::weights::SubstrateWeight<Runtime>;
