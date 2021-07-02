@@ -878,6 +878,8 @@
 <span id="875">875</span>
 <span id="876">876</span>
 <span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1442,8 +1444,10 @@
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DefaultCollatorCommission</span>: <span class="ident">Perbill</span> <span class="op">=</span> <span class="ident">Perbill</span>::<span class="ident">from_percent</span>(<span class="number">20</span>);
 	<span class="doccomment">/// Default percent of inflation set aside for parachain bond every round</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DefaultParachainBondReservePercent</span>: <span class="ident">Percent</span> <span class="op">=</span> <span class="ident">Percent</span>::<span class="ident">from_percent</span>(<span class="number">30</span>);
-	<span class="doccomment">/// Minimum stake required to be reserved to be a collator is 1_000</span>
+	<span class="doccomment">/// Minimum stake required to become a collator is 1_000</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinCollatorStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">currency</span>::<span class="ident">KILOMOVR</span>;
+	<span class="doccomment">/// Minimum stake required to be reserved to be a candidate is 100</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinCollatorCandidateStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">100</span> <span class="op">*</span> <span class="ident">currency</span>::<span class="ident">MOVR</span>;
 	<span class="doccomment">/// Minimum stake required to be reserved to be a nominator is 5</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinNominatorStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">5</span> <span class="op">*</span> <span class="ident">currency</span>::<span class="ident">MOVR</span>;
 }
@@ -1459,7 +1463,7 @@
 	<span class="kw">type</span> <span class="ident">DefaultCollatorCommission</span> <span class="op">=</span> <span class="ident">DefaultCollatorCommission</span>;
 	<span class="kw">type</span> <span class="ident">DefaultParachainBondReservePercent</span> <span class="op">=</span> <span class="ident">DefaultParachainBondReservePercent</span>;
 	<span class="kw">type</span> <span class="ident">MinCollatorStk</span> <span class="op">=</span> <span class="ident">MinCollatorStk</span>;
-	<span class="kw">type</span> <span class="ident">MinCollatorCandidateStk</span> <span class="op">=</span> <span class="ident">MinCollatorStk</span>;
+	<span class="kw">type</span> <span class="ident">MinCollatorCandidateStk</span> <span class="op">=</span> <span class="ident">MinCollatorCandidateStk</span>;
 	<span class="kw">type</span> <span class="ident">MinNomination</span> <span class="op">=</span> <span class="ident">MinNominatorStk</span>;
 	<span class="kw">type</span> <span class="ident">MinNominatorStk</span> <span class="op">=</span> <span class="ident">MinNominatorStk</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">parachain_staking</span>::<span class="ident">weights</span>::<span class="ident">SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;

@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["BYTE_FEE",""],["KILOUNITS",""],["MICROUNITS",""],["MILLIUNITS",""],["NANOUNITS",""],["UNITS",""]],"fn":[["deposit",""]]});
+initSidebarItems({"constant":[["BYTE_FEE",""],["KILOUNIT",""],["MICROUNIT",""],["MILLIUNIT",""],["NANOUNIT",""],["UNIT",""]],"fn":[["deposit",""]]});
