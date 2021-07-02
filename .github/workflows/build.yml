@@ -45,12 +45,7 @@ jobs:
       - name: Check existing docker image
         id: check-docker-image
         run: |
-          docker manifest inspect purestake/moonbeam:sha-${{ steps.get-sha.outputs.sha8 }};
-          if [[ $? == 0 ]]; then
-            echo ::set-output name=image_exists::true
-          else
-            echo ::set-output name=image_exists::false
-          fi
+          echo ::set-output name=image_exists::$(docker manifest inspect purestake/moonbeam:v0.9.1 > /dev/null && echo "true" || echo "false")
 
   check-copyright:
     runs-on: ubuntu-latest
