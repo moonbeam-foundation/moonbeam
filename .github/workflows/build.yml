@@ -232,6 +232,7 @@ jobs:
           node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'tests/**/test-*.ts'
 
   ####### Prepare and Deploy Docker images #######
+
   generate-parachain-specs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
