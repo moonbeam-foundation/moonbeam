@@ -4521,6 +4521,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+ "substrate-fixed",
  "xcm",
  "xcm-builder",
  "xcm-executor",

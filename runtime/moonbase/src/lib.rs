@@ -353,7 +353,8 @@ impl<Prefix: Get<MultiLocation>, AssetId: Clone, ConvertAssetId: xcmConvert<u128
 }
 
 parameter_types! {
-	pub const RelayAssetId: u128 = 0;
+	pub const LiquidStakingId: PalletId = PalletId(*b"pc/lqstk");
+
 }
 
 // We want to avoid including the rococo-runtime here.
@@ -387,6 +388,7 @@ impl liquid_staking::EncodeCall for RococoEncoder {
 impl liquid_staking::Config for Runtime {
 	type Event = Event;
 	type RelayCurrency = BalancesKsm;
+	type PalletId = LiquidStakingId;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
 	type CallEncoder = RococoEncoder;
 	type XcmSender = XcmRouter;

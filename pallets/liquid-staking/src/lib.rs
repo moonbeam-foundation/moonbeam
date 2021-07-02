@@ -41,14 +41,17 @@ pub mod pallet {
 	use cumulus_primitives_core::relay_chain;
 	use frame_support::{
 		pallet_prelude::*,
-		traits::{Currency, ReservableCurrency},
+		traits::{Currency, ExistenceRequirement::AllowDeath, ReservableCurrency},
+		PalletId,
 	};
 	use frame_system::{ensure_signed, pallet_prelude::*};
+	use sp_runtime::traits::AccountIdConversion;
+	use sp_runtime::traits::CheckedAdd;
 	use sp_runtime::traits::Convert;
 	use sp_runtime::SaturatedConversion;
 	use sp_std::prelude::*;
 
-	use substrate_fixed::types::U32F32;
+	use substrate_fixed::types::{U32F32, U64F64};
 	use xcm::v0::prelude::*;
 	use xcm_executor::traits::WeightBounds;
 
@@ -80,6 +83,10 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The currency type for Relay balances
 		type RelayCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
+
+		/// The Pallets PalletId
+		type PalletId: Get<PalletId>;
+
 		/// Convert `T::AccountId` to `MultiLocation`.
 		type AccountIdToMultiLocation: Convert<Self::AccountId, MultiLocation>;
 
@@ -102,7 +109,15 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn current_ratio)]
-	pub type Ratio<T: Config> = StorageValue<_, U32F32, ValueQuery>;
+	pub type Ratio<T: Config> = StorageValue<_, U64F64, ValueQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn total_staked)]
+	pub type TotalStaked<T: Config> = StorageValue<_, BalanceOf<T>, ValueQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn staked_map)]
+	pub type StakedMap<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, BalanceOf<T>>;
 
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]
@@ -110,6 +125,7 @@ pub mod pallet {
 		MyError,
 		WrongConversionU128ToBalance,
 		SendFailure,
+		Overflow,
 	}
 
 	#[pallet::event]
@@ -132,11 +148,36 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			// Reserve balances
-			T::RelayCurrency::reserve(&who, amount)?;
-
 			// Stake bytes
 			let amount_as_u128 = amount.saturated_into::<u128>();
+
+			// We "work" as if we had a "currency", which in our case is just a mapping. We track
+			// how much each user should have in case of having minted a token
+			let staked = StakedMap::<T>::get(who.clone());
+			// These is the total staked in V-DOT, without taking into account the ratio
+			let total_staked = TotalStaked::<T>::get();
+
+			// We get the current ratio
+			let current_ratio = Ratio::<T>::get();
+
+			// This is the part where we need to take into account the ratio
+			// We monitor how many "L-DOTS" would someone be assigned, with respect to the current ratio
+			// This are just stored in a mapping, to later re-do the conversion
+			let to_monitor = U64F64::from_num(amount.saturated_into::<u128>()) * current_ratio;
+			let balance_to_add = to_monitor.ceil().to_num::<u128>();
+			let total = if let Some(previously_staked) = staked {
+				previously_staked
+					.checked_add(&(balance_to_add.saturated_into::<BalanceOf<T>>()))
+					.ok_or(Error::<T>::Overflow)?
+			} else {
+				balance_to_add.saturated_into::<BalanceOf<T>>()
+			};
+
+			StakedMap::<T>::insert(who.clone(), total);
+			let new_total_staked = total_staked
+				.checked_add(&amount)
+				.ok_or(Error::<T>::Overflow)?;
+			TotalStaked::<T>::put(new_total_staked);
 
 			let stake_bytes: Vec<u8> = T::CallEncoder::encode_call(AvailableCalls::Reserve);
 
@@ -156,6 +197,15 @@ pub mod pallet {
 
 			// Deposit event
 			Self::deposit_event(Event::<T>::Staked(who.clone(), amount.clone()));
+
+			// Reserve balances
+			T::RelayCurrency::transfer(
+				&who,
+				&T::PalletId::get().into_account(),
+				amount,
+				AllowDeath,
+			)?;
+
 			Ok(())
 		}
 
@@ -166,21 +216,25 @@ pub mod pallet {
 			dest_weight: Weight,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
+			// Reserve balances
+			T::RelayCurrency::reserve(&who, amount)?;
 			Self::deposit_event(Event::<T>::Unstaked(who, amount));
 			Ok(())
 		}
 
 		#[pallet::weight(0)]
-		pub fn set_ratio(
-			origin: OriginFor<T>,
-			dot: BalanceOf<T>,
-			v_dot: BalanceOf<T>,
-		) -> DispatchResult {
+		pub fn set_ratio(origin: OriginFor<T>, dot_in_sovereign: BalanceOf<T>) -> DispatchResult {
 			ensure_root(origin)?;
-			let ratio = U32F32::from_num(v_dot.saturated_into::<u128>())
-				/ U32F32::from_num(v_dot.saturated_into::<u128>());
+			let total_issuance: BalanceOf<T> = T::RelayCurrency::total_issuance();
+			// The ratio is: the total amount of dots in the sovereign, minus the total issuance of
+			// T::RelayCurrency. Those are essentially the dots that were sent to our sovereign but
+			// that were not minted in our parachain, i.e., the rewards.
+			// The ratio is that difference divided by the total staked
+			let difference = dot_in_sovereign - total_issuance;
+			let ratio = U64F64::from_num(difference.saturated_into::<u128>())
+				/ U64F64::from_num(TotalStaked::<T>::get().saturated_into::<u128>());
 			Ratio::<T>::put(ratio);
-			Self::deposit_event(Event::<T>::RatioSet(dot, v_dot));
+			Self::deposit_event(Event::<T>::RatioSet(difference, TotalStaked::<T>::get()));
 
 			Ok(())
 		}
