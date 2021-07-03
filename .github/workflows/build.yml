@@ -160,11 +160,6 @@ jobs:
       - id: get-rust-versions
         run: |
           echo "::set-output name=rustc::$(rustc --version)"
-      - name: Verify node version - prebuild
-        run: |
-          git log -1 --format="%H"
-          git rev-parse --short HEAD
-          if [[ -f ../target/release/moonbeam ]]; then ../target/release/moonbeam --version; fi
       - name: Build Node
         run: |
           env
