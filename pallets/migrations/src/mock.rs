@@ -111,7 +111,11 @@ impl MockMigrationManager {
 	}
 
 	fn generate_migrations_list(&self) -> Vec<Box<dyn Migration>> {
-		panic!("FIXME");
+		let mut migrations: Vec<Box<dyn Migration>> = Vec::new();
+		for i in 0..self.name_fn_callbacks.len() {
+			migrations.push(Box::new(MockMigration{index: i}));
+		}
+		migrations
 	}
 }
 
