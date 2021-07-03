@@ -35,8 +35,8 @@ use sp_core::{Public, H160, U256};
 use sp_runtime::DispatchError;
 
 #[test]
-fn fast_track_unavailable() {
-	assert!(!<moonriver_runtime::Runtime as pallet_democracy::Config>::InstantAllowed::get());
+fn fast_track_available() {
+	assert!(<moonriver_runtime::Runtime as pallet_democracy::Config>::InstantAllowed::get());
 }
 
 #[test]
