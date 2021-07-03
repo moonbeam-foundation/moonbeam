@@ -80,8 +80,68 @@ impl frame_system::Config for Test {
 	type OnSetCode = ();
 }
 
-type MigrationStepFn = fn (Perbill, Weight) -> (Perbill, Weight);
+type MigrationNameFn = dyn FnMut() -> &'static str + Send + Sync;
+type MigrationStepFn = dyn FnMut(Perbill, Weight) -> (Perbill, Weight) + Send + Sync;
 
+#[derive(Default)]
+pub struct MockMigrationManager {
+	name_fn_callbacks: Vec<Arc<Mutex<MigrationNameFn>>>,
+	step_fn_callbacks: Vec<Arc<Mutex<MigrationStepFn>>>,
+}
+
+impl MockMigrationManager {
+	fn registerCallback(&mut self, name_fn: &MigrationNameFn, step_fn: &MigrationStepFn) {
+		// self.name_fn_callbacks.push(Arc::new(name_fn));
+		// self.step_fn_callbacks.push(Arc::new(step_fn));
+	}
+
+	fn invoke_name_fn(&mut self, index: usize) -> &'static str {
+		// MigrationNameFn returns a String, we need a &str
+		let arc = self.name_fn_callbacks[index].clone();
+		let mut f = arc.lock().unwrap();
+		f()
+	}
+
+	fn invoke_step_fn(&mut self, index: usize, previous_progress: Perbill, available_weight: Weight)
+		-> (Perbill, Weight)
+	{
+		let arc = self.step_fn_callbacks[index].clone();
+		let mut f = arc.lock().unwrap();
+		f(previous_progress, available_weight)
+	}
+
+	fn generate_migrations_list(&self) -> Vec<Box<dyn Migration>> {
+		panic!("FIXME");
+	}
+}
+
+#[derive(Clone)]
+pub struct MockMigration {
+	pub index: usize,
+}
+
+impl Migration for MockMigration {
+	fn friendly_name(&self) -> &str {
+		MOCK_MIGRATIONS_LIST.lock().unwrap().invoke_name_fn(self.index)
+	}
+	fn step(&self, previous_progress: Perbill, available_weight: Weight) -> (Perbill, Weight) {
+		MOCK_MIGRATIONS_LIST.lock().unwrap()
+			.invoke_step_fn(self.index, previous_progress, available_weight)
+	}
+}
+
+pub static MOCK_MIGRATIONS_LIST: Lazy<Mutex<MockMigrationManager>> = Lazy::new(|| {
+	Default::default()
+});
+
+pub struct MockMigrations;
+impl Get<Vec<Box<dyn Migration>>> for MockMigrations {
+	fn get() -> Vec<Box<dyn Migration>> {
+		MOCK_MIGRATIONS_LIST.lock().unwrap().generate_migrations_list()
+	}
+}
+
+/*
 #[derive(Clone)]
 pub struct MockMigration {
 	pub name: String,
@@ -119,6 +179,7 @@ impl Get<Vec<Box<dyn Migration>>> for MockMigrations {
 		migrations_list
 	}
 }
+*/
 
 impl Config for Test {
 	type Event = Event;

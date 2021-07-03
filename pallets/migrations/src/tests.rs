@@ -16,7 +16,7 @@
 
 //! Unit testing
 use crate::mock::{
-	events, ExtBuilder, Migrations, System, MockMigration, replace_mock_migrations_list
+	events, ExtBuilder, Migrations, System, MockMigration
 };
 use crate::Event;
 use std::sync::{Arc, Mutex};
@@ -33,6 +33,7 @@ fn genesis_builder_works() {
 	})
 }
 
+/*
 #[test]
 fn mock_migrations_static_hack_works() {
 	let mut flip_me: bool = false;
@@ -52,6 +53,7 @@ fn mock_migrations_static_hack_works() {
 
 	assert_eq!(flip_me, true, "mock migration callback should work with closure");
 }
+*/
 
 #[test]
 fn on_runtime_upgrade_returns() {
