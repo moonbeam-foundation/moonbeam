@@ -80,25 +80,23 @@ impl frame_system::Config for Test {
 	type OnSetCode = ();
 }
 
-pub trait MigrationNameTrait: FnMut() -> &'static str + Send + Sync {}
-pub trait MigrationStepTrait: FnMut(Perbill, Weight) -> (Perbill, Weight) + Send + Sync {}
-type MigrationNameFn = dyn MigrationNameTrait;
-type MigrationStepFn = dyn MigrationStepTrait;
+type MigrationNameFn<'test> = dyn FnMut() -> &'static str + Send + Sync + 'test;
+type MigrationStepFn<'test> = dyn FnMut(Perbill, Weight) -> (Perbill, Weight) + Send + Sync + 'test;
 
 #[derive(Default)]
-pub struct MockMigrationManager {
-	name_fn_callbacks: Vec<Arc<Mutex<MigrationNameFn>>>,
-	step_fn_callbacks: Vec<Arc<Mutex<MigrationStepFn>>>,
+pub struct MockMigrationManager<'test> {
+	name_fn_callbacks: Vec<Arc<Mutex<&'test mut MigrationNameFn<'test>>>>,
+	step_fn_callbacks: Vec<Arc<Mutex<&'test mut MigrationStepFn<'test>>>>,
 }
 
-impl MockMigrationManager {
-	pub fn registerCallback<FN, FS>(&mut self, name_fn: &FN, step_fn: &FS)
+impl<'test> MockMigrationManager<'test> {
+	pub fn registerCallback<FN, FS>(&'test mut self, name_fn: &'test mut FN, step_fn: &'test mut FS)
 	where
-		FN: FnMut() -> &'static str + Send + Sync,
-		FS: FnMut(Perbill, Weight) -> (Perbill, Weight) + Send + Sync,
+		FN: 'test + FnMut() -> &'static str + Send + Sync,
+		FS: 'test + FnMut(Perbill, Weight) -> (Perbill, Weight) + Send + Sync,
 	{
-		// self.name_fn_callbacks.push(Arc::new(name_fn));
-		// self.step_fn_callbacks.push(Arc::new(step_fn));
+		self.name_fn_callbacks.push(Arc::new(Mutex::new(name_fn)));
+		self.step_fn_callbacks.push(Arc::new(Mutex::new(step_fn)));
 	}
 
 	fn invoke_name_fn(&mut self, index: usize) -> &'static str {

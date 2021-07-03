@@ -34,20 +34,23 @@ fn genesis_builder_works() {
 }
 
 #[test]
-fn mock_migrations_static_hack_works() {
+fn mock_migrations_static_hack_works<'test>() {
 	let mut name_fn_called: bool = false;
 	let mut step_fn_called: bool = false;
+
+	let mut mgr: crate::mock::MockMigrationManager = Default::default();
 
 	// works:
 	// let name_fn: &(FnMut() -> &'static str + Send + Sync) = &|| { "hi" };
 
-	crate::mock::MOCK_MIGRATIONS_LIST.lock().unwrap()
+	// crate::mock::MOCK_MIGRATIONS_LIST.lock().unwrap()
+	mgr
 		.registerCallback(
-			&|| {
+			&mut|| {
 				name_fn_called = true;
 				"hello, world"
 			},
-			&|_, _| -> (Perbill, Weight) {
+			&mut|_, _| -> (Perbill, Weight) {
 				step_fn_called = true;
 				(Perbill::zero(), 0u64.into())
 			}
