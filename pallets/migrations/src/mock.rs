@@ -80,8 +80,10 @@ impl frame_system::Config for Test {
 	type OnSetCode = ();
 }
 
-type MigrationNameFn = dyn FnMut() -> &'static str + Send + Sync;
-type MigrationStepFn = dyn FnMut(Perbill, Weight) -> (Perbill, Weight) + Send + Sync;
+pub trait MigrationNameTrait: FnMut() -> &'static str + Send + Sync {}
+pub trait MigrationStepTrait: FnMut(Perbill, Weight) -> (Perbill, Weight) + Send + Sync {}
+type MigrationNameFn = dyn MigrationNameTrait;
+type MigrationStepFn = dyn MigrationStepTrait;
 
 #[derive(Default)]
 pub struct MockMigrationManager {
@@ -90,7 +92,11 @@ pub struct MockMigrationManager {
 }
 
 impl MockMigrationManager {
-	fn registerCallback(&mut self, name_fn: &MigrationNameFn, step_fn: &MigrationStepFn) {
+	pub fn registerCallback<FN, FS>(&mut self, name_fn: &FN, step_fn: &FS)
+	where
+		FN: FnMut() -> &'static str + Send + Sync,
+		FS: FnMut(Perbill, Weight) -> (Perbill, Weight) + Send + Sync,
+	{
 		// self.name_fn_callbacks.push(Arc::new(name_fn));
 		// self.step_fn_callbacks.push(Arc::new(step_fn));
 	}
@@ -144,46 +150,6 @@ impl Get<Vec<Box<dyn Migration>>> for MockMigrations {
 		MOCK_MIGRATIONS_LIST.lock().unwrap().generate_migrations_list()
 	}
 }
-
-/*
-#[derive(Clone)]
-pub struct MockMigration {
-	pub name: String,
-	pub callback: MigrationStepFn,
-}
-
-impl Migration for MockMigration {
-	fn friendly_name(&self) -> &str {
-		&self.name[..]
-	}
-	fn step(&self, previous_progress: Perbill, available_weight: Weight) -> (Perbill, Weight) {
-		let f = self.callback;
-		f(previous_progress, available_weight)
-	}
-}
-
-pub static MOCK_MIGRATIONS_LIST: Lazy<Mutex<Vec<MockMigration>>> = Lazy::new(|| {
-	Mutex::new(vec![])
-});
-pub fn replace_mock_migrations_list(new_vec: &mut Vec<MockMigration>) {
-	let mut list = MOCK_MIGRATIONS_LIST.lock().unwrap();
-	list.clear();
-	list.append(new_vec);
-}
-
-pub struct MockMigrations;
-impl Get<Vec<Box<dyn Migration>>> for MockMigrations {
-	fn get() -> Vec<Box<dyn Migration>> {
-
-		let mut migrations_list: Vec<Box<dyn Migration>> = Vec::new();
-		for mock in &*MOCK_MIGRATIONS_LIST.lock().unwrap() {
-			migrations_list.push(Box::new(mock.clone()));
-		}
-
-		migrations_list
-	}
-}
-*/
 
 impl Config for Test {
 	type Event = Event;

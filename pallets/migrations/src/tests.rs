@@ -33,27 +33,33 @@ fn genesis_builder_works() {
 	})
 }
 
-/*
 #[test]
 fn mock_migrations_static_hack_works() {
-	let mut flip_me: bool = false;
-	replace_mock_migrations_list(&mut vec![
-		MockMigration {
-			name: "test".into(),
-			callback: |_: Perbill, _: Weight| -> (Perbill, Weight) {
-				flip_me = true;
-				(Perbill::one(), 0u64.into())
+	let mut name_fn_called: bool = false;
+	let mut step_fn_called: bool = false;
+
+	// works:
+	// let name_fn: &(FnMut() -> &'static str + Send + Sync) = &|| { "hi" };
+
+	crate::mock::MOCK_MIGRATIONS_LIST.lock().unwrap()
+		.registerCallback(
+			&|| {
+				name_fn_called = true;
+				"hello, world"
+			},
+			&|_, _| -> (Perbill, Weight) {
+				step_fn_called = true;
+				(Perbill::zero(), 0u64.into())
 			}
-		},
-	]);
+		);
 
 	ExtBuilder::default().build().execute_with(|| {
 		Migrations::on_runtime_upgrade();
 	});
 
-	assert_eq!(flip_me, true, "mock migration callback should work with closure");
+	assert_eq!(name_fn_called, true, "mock migration should call friendly_name()");
+	assert_eq!(step_fn_called, true, "mock migration should call step()");
 }
-*/
 
 #[test]
 fn on_runtime_upgrade_returns() {
