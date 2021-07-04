@@ -12,6 +12,4 @@
 
 ## Checklist
 
-- [ ] Does it require a purge of the network?
-- [ ] You bumped the runtime version if there are breaking changes in the **runtime** ?
 - [ ] Does it require changes in documentation/tutorials ?
