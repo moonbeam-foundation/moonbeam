@@ -1026,7 +1026,7 @@
 	<span class="doccomment">/// We allow for one half second of compute with a 6 second average block time.</span>
 	<span class="doccomment">/// These values are dictated by Polkadot for the parachain.</span>
 	<span class="kw">pub</span> <span class="ident">BlockWeights</span>: <span class="ident">frame_system</span>::<span class="ident">limits</span>::<span class="ident">BlockWeights</span> <span class="op">=</span> <span class="ident">frame_system</span>::<span class="ident">limits</span>::<span class="ident">BlockWeights</span>
-		::<span class="ident">with_sensible_defaults</span>(<span class="ident">WEIGHT_PER_SECOND</span> <span class="op">/</span> <span class="number">2</span>, <span class="ident">NORMAL_DISPATCH_RATIO</span>);
+		::<span class="ident">with_sensible_defaults</span>(<span class="ident">MAXIMUM_BLOCK_WEIGHT</span>, <span class="ident">NORMAL_DISPATCH_RATIO</span>);
 	<span class="doccomment">/// We allow for 5 MB blocks.</span>
 	<span class="kw">pub</span> <span class="ident">BlockLength</span>: <span class="ident">frame_system</span>::<span class="ident">limits</span>::<span class="ident">BlockLength</span> <span class="op">=</span> <span class="ident">frame_system</span>::<span class="ident">limits</span>::<span class="ident">BlockLength</span>
 		::<span class="ident">max_with_normal_ratio</span>(<span class="number">5</span> <span class="op">*</span> <span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span>, <span class="ident">NORMAL_DISPATCH_RATIO</span>);
