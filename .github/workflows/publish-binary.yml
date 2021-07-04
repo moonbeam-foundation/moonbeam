@@ -64,12 +64,12 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 14.x
-      - name: Generate runtimes body
-        id: generate-runtimes-body
+      - name: Generate release body
+        id: generate-release-body
         run: |
           cd tools
           yarn
-          yarn -s run ts-node github/generate-release-body.ts --from "${{ github.event.inputs.from }}" --to "${{ github.event.inputs.to }}" --srtool-report-folder '../build/' > ../body.md
+          yarn -s run ts-node github/generate-release-body.ts --fron "${{ github.event.inputs.from }}" --to "${{ github.event.inputs.to }}" --srtool-report-folder '../build/' > ../body.md
       - name: Create draft release
         id: create-release
         uses: actions/create-release@v1
