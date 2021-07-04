@@ -25,7 +25,8 @@ use evm::{executor::PrecompileOutput, Context, ExitSucceed};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
-	traits::{fungible::Inspect, PalletInfo},
+	traits::{fungible::Inspect, PalletInfo, StorageInfo, StorageInfoTrait},
+	StorageHasher, Twox128,
 };
 use moonshadow_runtime::Precompiles;
 use nimbus_primitives::NimbusId;
@@ -37,6 +38,59 @@ use sp_runtime::DispatchError;
 #[test]
 fn fast_track_unavailable() {
 	assert!(!<moonshadow_runtime::Runtime as pallet_democracy::Config>::InstantAllowed::get());
+}
+
+#[test]
+fn verify_pallet_prefixes() {
+	fn is_pallet_prefix<P: 'static>(name: &str) {
+		// Compares the unhashed pallet prefix from the `StorageInstance` implementation by every
+		// storage item in the pallet P. This pallet prefix is used in conjunction with the
+		// item name to get the unique storage key: hash(PalletPrefix) + hash(StorageName)
+		// https://github.com/paritytech/substrate/blob/master/frame/support/procedural/src/pallet/
+		// expand/storage.rs#L389-L401
+		assert_eq!(
+			<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::name::<P>(),
+			Some(name)
+		);
+	}
+	is_pallet_prefix::<moonshadow_runtime::System>("System");
+	is_pallet_prefix::<moonshadow_runtime::Utility>("Utility");
+	is_pallet_prefix::<moonshadow_runtime::Timestamp>("Timestamp");
+	is_pallet_prefix::<moonshadow_runtime::Balances>("Balances");
+	is_pallet_prefix::<moonshadow_runtime::Sudo>("Sudo");
+	is_pallet_prefix::<moonshadow_runtime::RandomnessCollectiveFlip>("RandomnessCollectiveFlip");
+	is_pallet_prefix::<moonshadow_runtime::ParachainSystem>("ParachainSystem");
+	is_pallet_prefix::<moonshadow_runtime::TransactionPayment>("TransactionPayment");
+	is_pallet_prefix::<moonshadow_runtime::ParachainInfo>("ParachainInfo");
+	is_pallet_prefix::<moonshadow_runtime::EthereumChainId>("EthereumChainId");
+	is_pallet_prefix::<moonshadow_runtime::EVM>("EVM");
+	is_pallet_prefix::<moonshadow_runtime::Ethereum>("Ethereum");
+	is_pallet_prefix::<moonshadow_runtime::ParachainStaking>("ParachainStaking");
+	is_pallet_prefix::<moonshadow_runtime::Scheduler>("Scheduler");
+	is_pallet_prefix::<moonshadow_runtime::Democracy>("Democracy");
+	is_pallet_prefix::<moonshadow_runtime::CouncilCollective>("CouncilCollective");
+	is_pallet_prefix::<moonshadow_runtime::TechComitteeCollective>("TechComitteeCollective");
+	is_pallet_prefix::<moonshadow_runtime::Treasury>("Treasury");
+	is_pallet_prefix::<moonshadow_runtime::AuthorInherent>("AuthorInherent");
+	is_pallet_prefix::<moonshadow_runtime::AuthorFilter>("AuthorFilter");
+	is_pallet_prefix::<moonshadow_runtime::CrowdloanRewards>("CrowdloanRewards");
+	is_pallet_prefix::<moonshadow_runtime::AuthorMapping>("AuthorMapping");
+	is_pallet_prefix::<moonshadow_runtime::Proxy>("Proxy");
+	// TODO: some pallet instances do not impl StorageInfoTrait i.e. System, Utility
+	let prefix = |pallet_name, storage_name| {
+		let mut res = [0u8; 32];
+		res[0..16].copy_from_slice(&Twox128::hash(pallet_name));
+		res[16..32].copy_from_slice(&Twox128::hash(storage_name));
+		res
+	};
+	assert_eq!(
+		<moonshadow_runtime::Sudo as StorageInfoTrait>::storage_info(),
+		vec![StorageInfo {
+			prefix: prefix(b"Sudo", b"Key"),
+			max_values: Some(1),
+			max_size: Some(20),
+		}]
+	);
 }
 
 #[test]
