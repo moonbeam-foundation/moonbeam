@@ -22,6 +22,9 @@ xcm-executor = { git = "https://github.com/paritytech/polkadot", branch = "relea
 xcm-builder = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.4", default-features = false }
 polkadot-runtime-common = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.4", default-features = false }
 
+[dev-dependencies]
+pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4", default-features = false }
+
 
 [features]
 default = ["std"]

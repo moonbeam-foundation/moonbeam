@@ -4515,6 +4515,7 @@ dependencies = [
  "cumulus-primitives-core",
  "frame-support",
  "frame-system",
+ "pallet-balances",
  "parity-scale-codec",
  "polkadot-runtime-common",
  "serde",
