@@ -877,6 +877,7 @@
 <span id="874">874</span>
 <span id="875">875</span>
 <span id="876">876</span>
+<span id="877">877</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1448,6 +1449,7 @@
 <span class="kw">impl</span> <span class="ident">parachain_staking</span>::<span class="ident">Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
+	<span class="kw">type</span> <span class="ident">MonetaryGovernanceOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">MinBlocksPerRound</span> <span class="op">=</span> <span class="ident">MinBlocksPerRound</span>;
 	<span class="kw">type</span> <span class="ident">DefaultBlocksPerRound</span> <span class="op">=</span> <span class="ident">DefaultBlocksPerRound</span>;
 	<span class="kw">type</span> <span class="ident">BondDuration</span> <span class="op">=</span> <span class="ident">BondDuration</span>;
