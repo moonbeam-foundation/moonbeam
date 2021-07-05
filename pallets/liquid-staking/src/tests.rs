@@ -23,7 +23,6 @@ const main_account: PalletId = PalletId(*b"pc/lqstk");
 use substrate_fixed::types::U64F64;
 
 #[test]
-#[ignore]
 fn set_ratio_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 1000)])
