@@ -11,7 +11,8 @@
   ],
   "protocolId": null,
   "properties": {
-    "tokenDecimals": 18
+    "tokenDecimals": 18,
+    "tokenSymbol": "MSHD"
   },
   "relayChain": "westend",
   "paraId": 2002,

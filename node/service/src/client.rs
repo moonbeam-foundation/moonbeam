@@ -194,6 +194,18 @@ impl sc_client_api::BlockBackend<Block> for Client {
 		}
 	}
 
+	fn block_indexed_body(
+		&self,
+		id: &BlockId<Block>,
+	) -> sp_blockchain::Result<Option<Vec<Vec<u8>>>> {
+		match self {
+			Self::Moonbeam(client) => client.block_indexed_body(id),
+			Self::Moonriver(client) => client.block_indexed_body(id),
+			Self::Moonshadow(client) => client.block_indexed_body(id),
+			Self::Moonbase(client) => client.block_indexed_body(id),
+		}
+	}
+
 	fn block(&self, id: &BlockId<Block>) -> sp_blockchain::Result<Option<SignedBlock<Block>>> {
 		match self {
 			Self::Moonbeam(client) => client.block(id),

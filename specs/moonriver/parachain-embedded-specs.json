@@ -13,7 +13,8 @@
   ],
   "protocolId": null,
   "properties": {
-    "tokenDecimals": 18
+    "tokenDecimals": 18,
+    "tokenSymbol": "MOVR"
   },
   "relayChain": "kusama",
   "paraId": 2023,

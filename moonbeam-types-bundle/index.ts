@@ -1,4 +1,3 @@
-import { ACCOUNT_ID_PREFIX } from "@polkadot/types/ethereum/LookupSource";
 import {
   OverrideBundleDefinition,
   OverrideBundleType,
@@ -53,6 +52,10 @@ export const rpcDefinitions: Record<string, Record<string, DefinitionRpc | Defin
 
 export const moonbeamDefinitions = {
   rpc: rpcDefinitions,
+  instances: {
+    council: ["councilCollective"],
+    technicalCommittee: ["techComitteeCollective"],
+  },
   types: [
     {
       minmax: [0, 4],
@@ -535,6 +538,19 @@ export const moonbeamDefinitions = {
           nominators: "Vec<Bond>",
           total: "Balance",
           state: "CollatorStatus",
+        },
+        Collator2: {
+          id: "AccountId",
+          bond: "Balance",
+          nominators: "Vec<AccountId>",
+          top_nominators: "Vec<Bond>",
+          bottom_nominators: "Vec<Bond>",
+          total_counted: "Balance",
+          total_backing: "Balance",
+          state: "CollatorStatus",
+        },
+        NominatorAdded: {
+          _enum: ["AddedToBottom", { AddedToTop: "Balance" }],
         },
         CollatorSnapshot: {
           bond: "Balance",

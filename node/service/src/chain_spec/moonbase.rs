@@ -25,7 +25,7 @@ use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
 use evm::GenesisAccount;
 use moonbase_runtime::{
-	currency::UNITS, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
+	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig,
 	ParachainStakingConfig, Precompiles, Range, SchedulerConfig, SudoConfig, SystemConfig,
@@ -63,12 +63,12 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 				vec![(
 					accounts[0],
 					get_from_seed::<NimbusId>("Alice"),
-					1_000 * UNITS,
+					1_000 * UNIT,
 				)],
 				// Nominations
 				vec![],
 				accounts.clone(),
-				3_000_000 * UNITS,
+				3_000_000 * UNIT,
 				Default::default(), // para_id
 				1281,               //ChainId
 			)
@@ -76,7 +76,10 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 		vec![],
 		None,
 		None,
-		Some(serde_json::from_str("{\"tokenDecimals\": 18}").expect("Provided valid json map")),
+		Some(
+			serde_json::from_str("{\"tokenDecimals\": 18, \"tokenSymbol\": \"UNIT\"}")
+				.expect("Provided valid json map"),
+		),
 		Extensions {
 			relay_chain: "dev-service".into(),
 			para_id: Default::default(),
@@ -104,13 +107,13 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 					(
 						AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
 						get_from_seed::<NimbusId>("Alice"),
-						1_000 * UNITS,
+						1_000 * UNIT,
 					),
 					// Bob -> Baltithar
 					(
 						AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
 						get_from_seed::<NimbusId>("Bob"),
-						1_000 * UNITS,
+						1_000 * UNIT,
 					),
 				],
 				// Nominations
@@ -119,7 +122,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
 					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
 				],
-				3_000_000 * UNITS,
+				3_000_000 * UNIT,
 				para_id,
 				1280, //ChainId
 			)
@@ -127,7 +130,10 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		vec![],
 		None,
 		None,
-		Some(serde_json::from_str("{\"tokenDecimals\": 18}").expect("Provided valid json map")),
+		Some(
+			serde_json::from_str("{\"tokenDecimals\": 18, \"tokenSymbol\": \"UNIT\"}")
+				.expect("Provided valid json map"),
+		),
 		Extensions {
 			relay_chain: "westend_testnet".into(),
 			para_id: para_id.into(),
@@ -138,9 +144,9 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 	InflationInfo {
 		expect: Range {
-			min: 100_000 * UNITS,
-			ideal: 200_000 * UNITS,
-			max: 500_000 * UNITS,
+			min: 100_000 * UNIT,
+			ideal: 200_000 * UNIT,
+			max: 500_000 * UNIT,
 		},
 		annual: Range {
 			min: Perbill::from_percent(4),
@@ -172,28 +178,28 @@ pub fn testnet_genesis(
 	let revert_bytecode = vec![0x60, 0x00, 0x60, 0x00, 0xFD];
 
 	GenesisConfig {
-		frame_system: SystemConfig {
+		system: SystemConfig {
 			code: WASM_BINARY
 				.expect("WASM binary was not build, please build it!")
 				.to_vec(),
 			changes_trie_config: Default::default(),
 		},
-		pallet_balances: BalancesConfig {
+		balances: BalancesConfig {
 			balances: endowed_accounts
 				.iter()
 				.cloned()
 				.map(|k| (k, 1 << 80))
 				.collect(),
 		},
-		pallet_crowdloan_rewards: CrowdloanRewardsConfig {
+		crowdloan_rewards: CrowdloanRewardsConfig {
 			funded_amount: crowdloan_fund_pot,
 		},
-		pallet_sudo: SudoConfig { key: root_key },
+		sudo: SudoConfig { key: root_key },
 		parachain_info: ParachainInfoConfig {
 			parachain_id: para_id,
 		},
-		pallet_ethereum_chain_id: EthereumChainIdConfig { chain_id },
-		pallet_evm: EVMConfig {
+		ethereum_chain_id: EthereumChainIdConfig { chain_id },
+		evm: EVMConfig {
 			// We need _some_ code inserted at the precompile address so that
 			// the evm will actually call the address.
 			accounts: Precompiles::used_addresses()
@@ -210,9 +216,9 @@ pub fn testnet_genesis(
 				})
 				.collect(),
 		},
-		pallet_ethereum: EthereumConfig {},
-		pallet_democracy: DemocracyConfig::default(),
-		pallet_scheduler: SchedulerConfig {},
+		ethereum: EthereumConfig {},
+		democracy: DemocracyConfig::default(),
+		scheduler: SchedulerConfig {},
 		parachain_staking: ParachainStakingConfig {
 			candidates: candidates
 				.iter()
@@ -222,25 +228,25 @@ pub fn testnet_genesis(
 			nominations,
 			inflation_config: moonbeam_inflation_config(),
 		},
-		pallet_collective_Instance1: CouncilCollectiveConfig {
+		council_collective: CouncilCollectiveConfig {
 			phantom: Default::default(),
 			members: vec![], // TODO : Set members
 		},
-		pallet_collective_Instance2: TechComitteeCollectiveConfig {
+		tech_comittee_collective: TechComitteeCollectiveConfig {
 			phantom: Default::default(),
 			members: vec![], // TODO : Set members
 		},
-		pallet_author_slot_filter: AuthorFilterConfig {
+		author_filter: AuthorFilterConfig {
 			eligible_ratio: sp_runtime::Percent::from_percent(50),
 		},
-		pallet_author_mapping: AuthorMappingConfig {
+		author_mapping: AuthorMappingConfig {
 			mappings: candidates
 				.iter()
 				.cloned()
 				.map(|(account_id, author_id, _)| (author_id, account_id))
 				.collect(),
 		},
-		pallet_treasury: Default::default(),
+		treasury: Default::default(),
 	}
 }
 
