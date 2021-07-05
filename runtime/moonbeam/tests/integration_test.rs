@@ -46,7 +46,7 @@ fn fast_track_unavailable() {
 #[test]
 fn verify_pallet_prefixes() {
 	fn is_pallet_prefix<P: 'static>(name: &str) {
-		// Compares the unhashed pallet prefix from the `StorageInstance` implementation by every
+		// Compares the unhashed pallet prefix in the `StorageInstance` implementation by every
 		// storage item in the pallet P. This pallet prefix is used in conjunction with the
 		// item name to get the unique storage key: hash(PalletPrefix) + hash(StorageName)
 		// https://github.com/paritytech/substrate/blob/master/frame/support/procedural/src/pallet/
@@ -56,11 +56,10 @@ fn verify_pallet_prefixes() {
 			Some(name)
 		);
 	}
+	// TODO: use PartialStorageInfoTrait once https://github.com/paritytech/substrate/pull/9246
+	// is pulled in substrate deps.
 	is_pallet_prefix::<moonbeam_runtime::System>("System");
 	is_pallet_prefix::<moonbeam_runtime::Utility>("Utility");
-	is_pallet_prefix::<moonbeam_runtime::Timestamp>("Timestamp");
-	is_pallet_prefix::<moonbeam_runtime::Balances>("Balances");
-	is_pallet_prefix::<moonbeam_runtime::Sudo>("Sudo");
 	is_pallet_prefix::<moonbeam_runtime::RandomnessCollectiveFlip>("RandomnessCollectiveFlip");
 	is_pallet_prefix::<moonbeam_runtime::ParachainSystem>("ParachainSystem");
 	is_pallet_prefix::<moonbeam_runtime::TransactionPayment>("TransactionPayment");
@@ -78,8 +77,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbeam_runtime::AuthorFilter>("AuthorFilter");
 	is_pallet_prefix::<moonbeam_runtime::CrowdloanRewards>("CrowdloanRewards");
 	is_pallet_prefix::<moonbeam_runtime::AuthorMapping>("AuthorMapping");
-	is_pallet_prefix::<moonbeam_runtime::Proxy>("Proxy");
-	// TODO: some pallet instances do not impl StorageInfoTrait i.e. System, Utility
 	let prefix = |pallet_name, storage_name| {
 		let mut res = [0u8; 32];
 		res[0..16].copy_from_slice(&Twox128::hash(pallet_name));
@@ -87,12 +84,72 @@ fn verify_pallet_prefixes() {
 		res
 	};
 	assert_eq!(
+		<moonbeam_runtime::Timestamp as StorageInfoTrait>::storage_info(),
+		vec![
+			StorageInfo {
+				prefix: prefix(b"Timestamp", b"Now"),
+				max_values: Some(1),
+				max_size: Some(8),
+			},
+			StorageInfo {
+				prefix: prefix(b"Timestamp", b"DidUpdate"),
+				max_values: Some(1),
+				max_size: Some(1),
+			}
+		]
+	);
+	assert_eq!(
+		<moonbeam_runtime::Balances as StorageInfoTrait>::storage_info(),
+		vec![
+			StorageInfo {
+				prefix: prefix(b"Balances", b"TotalIssuance"),
+				max_values: Some(1),
+				max_size: Some(16),
+			},
+			StorageInfo {
+				prefix: prefix(b"Balances", b"Account"),
+				max_values: Some(300_000),
+				max_size: Some(100),
+			},
+			StorageInfo {
+				prefix: prefix(b"Balances", b"Locks"),
+				max_values: Some(300_000),
+				max_size: Some(1287),
+			},
+			StorageInfo {
+				prefix: prefix(b"Balances", b"Reserves"),
+				max_values: None,
+				max_size: Some(1037),
+			},
+			StorageInfo {
+				prefix: prefix(b"Balances", b"StorageVersion"),
+				max_values: Some(1),
+				max_size: Some(1),
+			}
+		]
+	);
+	assert_eq!(
 		<moonbeam_runtime::Sudo as StorageInfoTrait>::storage_info(),
 		vec![StorageInfo {
 			prefix: prefix(b"Sudo", b"Key"),
 			max_values: Some(1),
 			max_size: Some(20),
 		}]
+	);
+	assert_eq!(
+		<moonbeam_runtime::Proxy as StorageInfoTrait>::storage_info(),
+		vec![
+			StorageInfo {
+				prefix: prefix(b"Proxy", b"Proxies"),
+				max_values: None,
+				max_size: Some(845),
+			},
+			StorageInfo {
+				prefix: prefix(b"Proxy", b"Announcements"),
+				max_values: None,
+				max_size: Some(1837),
+			}
+		]
 	);
 }
 
