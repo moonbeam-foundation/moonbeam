@@ -4597,7 +4597,7 @@ dependencies = [
 
 [[package]]
 name = "moonbase-runtime"
-version = "0.9.2"
+version = "0.8.4"
 dependencies = [
  "account",
  "cumulus-pallet-parachain-system",
@@ -4906,7 +4906,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-runtime"
-version = "0.9.2"
+version = "0.8.4"
 dependencies = [
  "account",
  "cumulus-pallet-parachain-system",
@@ -5096,7 +5096,7 @@ dependencies = [
 
 [[package]]
 name = "moonriver-runtime"
-version = "0.9.2"
+version = "0.8.4"
 dependencies = [
  "account",
  "cumulus-pallet-parachain-system",
@@ -5169,7 +5169,7 @@ dependencies = [
 
 [[package]]
 name = "moonshadow-runtime"
-version = "0.9.2"
+version = "0.8.4"
 dependencies = [
  "account",
  "cumulus-pallet-parachain-system",
