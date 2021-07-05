@@ -86,7 +86,7 @@ fn create_funded_collator<T: Config>(
 const USER_SEED: u32 = 999666;
 
 benchmarks! {
-	// ROOT DISPATCHABLES
+	// MONETARY ORIGIN DISPATCHABLES
 
 	set_staking_expectations {
 		let stake_range: Range<BalanceOf<T>> = Range {
@@ -123,6 +123,8 @@ benchmarks! {
 	verify {
 		assert_eq!(Pallet::<T>::parachain_bond_info().percent, Percent::from_percent(33));
 	}
+
+	// ROOT DISPATCHABLES
 
 	set_total_selected {}: _(RawOrigin::Root, 100u32)
 	verify {
