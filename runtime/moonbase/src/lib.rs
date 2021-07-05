@@ -551,6 +551,7 @@ parameter_types! {
 impl parachain_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
+	type MonetaryGovernanceOrigin = EnsureRoot<AccountId>;
 	type MinBlocksPerRound = MinBlocksPerRound;
 	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type BondDuration = BondDuration;
