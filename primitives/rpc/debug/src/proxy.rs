@@ -1,3 +1,30 @@
+// Copyright 2019-2021 PureStake Inc.
+// This file is part of Moonbeam.
+
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+
+//! A Proxy in this context is an environmental trait implementor meant to be used for capturing
+//! EVM trace results sent to a Host function from the Runtime. Works like:
+//! - Runtime Api call `using` environmental.
+//! - Runtime calls a Host function with some scale-encoded data.
+//! - Host function emits an event.
+//! - Proxy listens for the event and stores the decoded data.
+//!
+//! There are two proxy types: `Raw` and `CallList`.
+//! - `Raw` - used for opcode-level traces.
+//! - `CallList` - used for block tracing (stack of call stacks) and custom tracing outputs.
+
 environmental::environmental!(listener: dyn Listener + 'static);
 
 use crate::block::{
