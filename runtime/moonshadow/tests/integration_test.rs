@@ -25,7 +25,8 @@ use evm::{executor::PrecompileOutput, Context, ExitSucceed};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
-	traits::{fungible::Inspect, PalletInfo},
+	traits::{fungible::Inspect, PalletInfo, StorageInfo, StorageInfoTrait},
+	StorageHasher, Twox128,
 };
 use moonshadow_runtime::Precompiles;
 use nimbus_primitives::NimbusId;
@@ -37,6 +38,116 @@ use sp_runtime::DispatchError;
 #[test]
 fn fast_track_unavailable() {
 	assert!(!<moonshadow_runtime::Runtime as pallet_democracy::Config>::InstantAllowed::get());
+}
+
+#[test]
+fn verify_pallet_prefixes() {
+	fn is_pallet_prefix<P: 'static>(name: &str) {
+		// Compares the unhashed pallet prefix in the `StorageInstance` implementation by every
+		// storage item in the pallet P. This pallet prefix is used in conjunction with the
+		// item name to get the unique storage key: hash(PalletPrefix) + hash(StorageName)
+		// https://github.com/paritytech/substrate/blob/master/frame/support/procedural/src/pallet/
+		// expand/storage.rs#L389-L401
+		assert_eq!(
+			<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::name::<P>(),
+			Some(name)
+		);
+	}
+	// TODO: use StorageInfoTrait once https://github.com/paritytech/substrate/pull/9246
+	// is pulled in substrate deps.
+	is_pallet_prefix::<moonshadow_runtime::System>("System");
+	is_pallet_prefix::<moonshadow_runtime::Utility>("Utility");
+	is_pallet_prefix::<moonshadow_runtime::RandomnessCollectiveFlip>("RandomnessCollectiveFlip");
+	is_pallet_prefix::<moonshadow_runtime::ParachainSystem>("ParachainSystem");
+	is_pallet_prefix::<moonshadow_runtime::TransactionPayment>("TransactionPayment");
+	is_pallet_prefix::<moonshadow_runtime::ParachainInfo>("ParachainInfo");
+	is_pallet_prefix::<moonshadow_runtime::EthereumChainId>("EthereumChainId");
+	is_pallet_prefix::<moonshadow_runtime::EVM>("EVM");
+	is_pallet_prefix::<moonshadow_runtime::Ethereum>("Ethereum");
+	is_pallet_prefix::<moonshadow_runtime::ParachainStaking>("ParachainStaking");
+	is_pallet_prefix::<moonshadow_runtime::Scheduler>("Scheduler");
+	is_pallet_prefix::<moonshadow_runtime::Democracy>("Democracy");
+	is_pallet_prefix::<moonshadow_runtime::CouncilCollective>("CouncilCollective");
+	is_pallet_prefix::<moonshadow_runtime::TechComitteeCollective>("TechComitteeCollective");
+	is_pallet_prefix::<moonshadow_runtime::Treasury>("Treasury");
+	is_pallet_prefix::<moonshadow_runtime::AuthorInherent>("AuthorInherent");
+	is_pallet_prefix::<moonshadow_runtime::AuthorFilter>("AuthorFilter");
+	is_pallet_prefix::<moonshadow_runtime::CrowdloanRewards>("CrowdloanRewards");
+	is_pallet_prefix::<moonshadow_runtime::AuthorMapping>("AuthorMapping");
+	let prefix = |pallet_name, storage_name| {
+		let mut res = [0u8; 32];
+		res[0..16].copy_from_slice(&Twox128::hash(pallet_name));
+		res[16..32].copy_from_slice(&Twox128::hash(storage_name));
+		res
+	};
+	assert_eq!(
+		<moonshadow_runtime::Timestamp as StorageInfoTrait>::storage_info(),
+		vec![
+			StorageInfo {
+				prefix: prefix(b"Timestamp", b"Now"),
+				max_values: Some(1),
+				max_size: Some(8),
+			},
+			StorageInfo {
+				prefix: prefix(b"Timestamp", b"DidUpdate"),
+				max_values: Some(1),
+				max_size: Some(1),
+			}
+		]
+	);
+	assert_eq!(
+		<moonshadow_runtime::Balances as StorageInfoTrait>::storage_info(),
+		vec![
+			StorageInfo {
+				prefix: prefix(b"Balances", b"TotalIssuance"),
+				max_values: Some(1),
+				max_size: Some(16),
+			},
+			StorageInfo {
+				prefix: prefix(b"Balances", b"Account"),
+				max_values: Some(300_000),
+				max_size: Some(100),
+			},
+			StorageInfo {
+				prefix: prefix(b"Balances", b"Locks"),
+				max_values: Some(300_000),
+				max_size: Some(1287),
+			},
+			StorageInfo {
+				prefix: prefix(b"Balances", b"Reserves"),
+				max_values: None,
+				max_size: Some(1037),
+			},
+			StorageInfo {
+				prefix: prefix(b"Balances", b"StorageVersion"),
+				max_values: Some(1),
+				max_size: Some(1),
+			}
+		]
+	);
+	assert_eq!(
+		<moonshadow_runtime::Sudo as StorageInfoTrait>::storage_info(),
+		vec![StorageInfo {
+			prefix: prefix(b"Sudo", b"Key"),
+			max_values: Some(1),
+			max_size: Some(20),
+		}]
+	);
+	assert_eq!(
+		<moonshadow_runtime::Proxy as StorageInfoTrait>::storage_info(),
+		vec![
+			StorageInfo {
+				prefix: prefix(b"Proxy", b"Proxies"),
+				max_values: None,
+				max_size: Some(845),
+			},
+			StorageInfo {
+				prefix: prefix(b"Proxy", b"Announcements"),
+				max_values: None,
+				max_size: Some(1837),
+			}
+		]
+	);
 }
 
 #[test]
