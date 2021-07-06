@@ -16,6 +16,7 @@
 
 //! Test utilities
 use crate::{self as liquid_staking};
+use cumulus_primitives_core::ParaId;
 use frame_support::{
 	construct_runtime,
 	dispatch::Weight,
@@ -23,12 +24,16 @@ use frame_support::{
 	traits::{OnFinalize, OnInitialize},
 	PalletId,
 };
+use parity_scale_codec::{Decode, Encode};
+use sp_runtime::traits::AccountIdLookup;
+use sp_runtime::traits::StaticLookup;
+
 use sp_io;
 use sp_runtime::testing::H256;
 use sp_runtime::{
 	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup},
-	Perbill,
+	traits::{AccountIdConversion, BlakeTwo256, IdentityLookup},
+	AccountId32, Perbill,
 };
 use sp_std::convert::From;
 use xcm::v0::{Error as XcmError, Junction, MultiLocation, SendXcm, Xcm};
@@ -123,20 +128,12 @@ impl xcm_executor::Config for XcmExecutorConfig {
 
 type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
 
-pub struct RococoEncoder;
-impl liquid_staking::EncodeCall for RococoEncoder {
-	fn encode_call(call: liquid_staking::AvailableCalls) -> Vec<u8> {
-		match call {
-			liquid_staking::AvailableCalls::Reserve => [0x01].into(),
-			_ => panic!("SAd"),
-		}
-	}
-}
-
 parameter_types! {
 	pub const LiquidStakingId: PalletId = PalletId(*b"pc/lqstk");
 	pub Ancestry: MultiLocation = Junction::Parachain(1000u32.into()).into();
 	pub UnitWeightCost: Weight = 10;
+	pub SovereignAccount: AccountId32 = ParaId::from(1000u32).into_account();
+
 }
 
 pub struct HandleXcm;
@@ -146,15 +143,128 @@ impl SendXcm for HandleXcm {
 	}
 }
 
+#[derive(
+	Copy,
+	Clone,
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	Debug,
+	max_encoded_len::MaxEncodedLen,
+)]
+pub enum RelayProxyType {
+	Any,
+	NonTransfer,
+	Governance,
+	Staking,
+	IdentityJudgement,
+	CancelProxy,
+}
+impl Default for RelayProxyType {
+	fn default() -> Self {
+		Self::Any
+	}
+}
+
+// We want to avoid including the rococo-runtime here.
+// TODO: whenever a conclusion is taken from https://github.com/paritytech/substrate/issues/8158
+#[derive(Encode, Decode)]
+pub enum RelayCall {
+	#[codec(index = 30u8)]
+	// the index should match the position of the module in `construct_runtime!`
+	Proxy(AnonymousProxyCall),
+}
+
+#[derive(Encode, Decode)]
+pub enum RelayStakeCall {
+	#[codec(index = 6u8)]
+	Stake(StakeCall),
+}
+
+#[derive(Encode, Decode)]
+pub enum AnonymousProxyCall {
+	#[codec(index = 0u8)]
+	proxy(AccountId32, Option<RelayProxyType>, RelayStakeCall),
+
+	#[codec(index = 4u8)]
+	// the index should match the position of the dispatchable in the target pallet
+	anonymous(RelayProxyType, u32, u16),
+}
+
+#[derive(Encode, Decode)]
+pub enum StakeCall {
+	#[codec(index = 0u8)]
+	// the index should match the position of the dispatchable in the target pallet
+	bond(
+		<AccountIdLookup<AccountId32, ()> as StaticLookup>::Source,
+		#[codec(compact)] cumulus_primitives_core::relay_chain::Balance,
+		pallet_staking::RewardDestination<AccountId32>,
+	),
+	bondExtra,
+	cancelDeferredSlash,
+	Chill,
+	forceNewEra,
+	forceNoEras,
+	forceUnstake,
+	increaseValidator,
+	kick,
+	nominate,
+	payoutStakers,
+	reapStash,
+	rebond,
+	scaleValidator,
+	setController,
+	setHistory,
+	setInvulnerables,
+	setPayee,
+	setValidator,
+	unbond,
+	validate,
+	withdrawUnbonded,
+}
+
+pub struct TestEncoder;
+
+impl liquid_staking::EncodeCall<Test> for TestEncoder {
+	fn encode_call(call: liquid_staking::AvailableCalls<Test>) -> Vec<u8> {
+		match call {
+			liquid_staking::AvailableCalls::CreateAnonymusProxy(a, b, c) => {
+				RelayCall::Proxy(AnonymousProxyCall::anonymous(a, b, c)).encode()
+			}
+
+			liquid_staking::AvailableCalls::BondThroughAnonymousProxy(a, b) => {
+				RelayCall::Proxy(AnonymousProxyCall::proxy(
+					a.clone(),
+					None,
+					RelayStakeCall::Stake(StakeCall::bond(
+						a.into(),
+						b,
+						pallet_staking::RewardDestination::Controller,
+					)),
+				))
+				.encode()
+			}
+			_ => panic!("SAd"),
+		}
+	}
+}
+
 impl liquid_staking::Config for Test {
 	type Event = Event;
 	type RelayCurrency = Balances;
 	type PalletId = LiquidStakingId;
-	type CallEncoder = RococoEncoder;
+	type RelayChainProxyType = RelayProxyType;
+	type RelayChainAccountId = AccountId32;
+	type SovereignAccount = SovereignAccount;
+	type CallEncoder = TestEncoder;
 	type XcmSender = HandleXcm;
 	type XcmExecutor = XcmExecutor;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
 }
+
 pub(crate) struct ExtBuilder {
 	// endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,

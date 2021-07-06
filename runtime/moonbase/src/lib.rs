@@ -56,6 +56,9 @@ pub use parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode};
 use sp_api::impl_runtime_apis;
 use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
+use sp_runtime::traits::AccountIdConversion;
+use sp_runtime::traits::AccountIdLookup;
+use sp_runtime::traits::StaticLookup;
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, IdentityLookup},
@@ -66,6 +69,7 @@ use sp_std::{
 	convert::{TryFrom, TryInto},
 	prelude::*,
 };
+
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
@@ -223,21 +227,16 @@ parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
 }
 
-/*pub struct KsmPrefix;
-
-impl frame_support::traits::StorageInstance for KsmPrefix {
-	const STORAGE_PREFIX: &'static str = "KsmBalances";
-
-	fn pallet_prefix() -> &'static str {
-		Self::STORAGE_PREFIX
+pub struct RelayToNative;
+impl sp_runtime::traits::Convert<cumulus_primitives_core::relay_chain::Balance, Balance>
+	for RelayToNative
+{
+	fn convert(val: u128) -> Balance {
+		// native is 18
+		// relay is 12
+		val * 1_000_000
 	}
 }
-type KsmStorageMap = frame_support::storage::types::StorageMap<
-	KsmPrefix,
-	frame_support::Twox64Concat,
-	AccountId,
-	Option<pallet_balances::AccountData<Balance>>,
->;*/
 
 impl pallet_balances::Config for Runtime {
 	type MaxLocks = MaxLocks;
@@ -352,36 +351,107 @@ impl<Prefix: Get<MultiLocation>, AssetId: Clone, ConvertAssetId: xcmConvert<u128
 	}
 }
 
-parameter_types! {
-	pub const LiquidStakingId: PalletId = PalletId(*b"pc/lqstk");
-
-}
-
 // We want to avoid including the rococo-runtime here.
 // TODO: whenever a conclusion is taken from https://github.com/paritytech/substrate/issues/8158
 #[derive(Encode, Decode)]
 pub enum RelayCall {
-	#[codec(index = 25u8)]
+	#[codec(index = 30u8)]
 	// the index should match the position of the module in `construct_runtime!`
-	Registrar(RegistrarCall),
+	Proxy(AnonymousProxyCall),
 }
 
 #[derive(Encode, Decode)]
-pub enum RegistrarCall {
-	#[codec(index = 5u8)]
-	// the index should match the position of the dispatchable in the target pallet
-	reserve,
+pub enum RelayStakeCall {
+	#[codec(index = 6u8)]
+	Stake(StakeCall),
 }
-pub struct RococoEncoder;
 
-impl liquid_staking::EncodeCall for RococoEncoder {
-	fn encode_call(call: liquid_staking::AvailableCalls) -> Vec<u8> {
+#[derive(Encode, Decode)]
+pub enum AnonymousProxyCall {
+	#[codec(index = 0u8)]
+	proxy(AccountId32, Option<RelayProxyType>, RelayStakeCall),
+
+	#[codec(index = 4u8)]
+	// the index should match the position of the dispatchable in the target pallet
+	anonymous(RelayProxyType, u32, u16),
+}
+
+#[derive(Encode, Decode)]
+pub enum StakeCall {
+	#[codec(index = 0u16)]
+	// the index should match the position of the dispatchable in the target pallet
+	bond(
+		<AccountIdLookup<AccountId32, ()> as StaticLookup>::Source,
+		#[codec(compact)] cumulus_primitives_core::relay_chain::Balance,
+		pallet_staking::RewardDestination<AccountId32>,
+	),
+}
+
+parameter_types! {
+	pub const LiquidStakingId: PalletId = PalletId(*b"pc/lqstk");
+	pub SovereignAccount: AccountId32 = ParachainInfo::parachain_id().into_account();
+}
+
+#[derive(
+	Copy,
+	Clone,
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	Debug,
+	max_encoded_len::MaxEncodedLen,
+)]
+pub enum RelayProxyType {
+	Any,
+	NonTransfer,
+	Governance,
+	Staking,
+	IdentityJudgement,
+	CancelProxy,
+}
+impl Default for RelayProxyType {
+	fn default() -> Self {
+		Self::Any
+	}
+}
+
+pub struct KusamaEncoder;
+
+impl liquid_staking::EncodeCall<Runtime> for KusamaEncoder {
+	fn encode_call(call: liquid_staking::AvailableCalls<Runtime>) -> Vec<u8> {
 		match call {
-			liquid_staking::AvailableCalls::Reserve => {
-				RelayCall::Registrar(RegistrarCall::reserve).encode()
+			liquid_staking::AvailableCalls::CreateAnonymusProxy(a, b, c) => {
+				RelayCall::Proxy(AnonymousProxyCall::anonymous(a, b, c)).encode()
+			}
+
+			liquid_staking::AvailableCalls::BondThroughAnonymousProxy(a, b) => {
+				RelayCall::Proxy(AnonymousProxyCall::proxy(
+					a.clone(),
+					None,
+					RelayStakeCall::Stake(StakeCall::bond(
+						a.into(),
+						b,
+						pallet_staking::RewardDestination::Controller,
+					)),
+				))
+				.encode()
 			}
 			_ => panic!("SAd"),
 		}
+	}
+}
+
+pub struct NativeToRelay;
+impl sp_runtime::traits::Convert<Balance, cumulus_primitives_core::relay_chain::Balance>
+	for NativeToRelay
+{
+	fn convert(val: u128) -> cumulus_primitives_core::relay_chain::Balance {
+		// native is 18
+		// relay is 12
+		val / 1_000_000
 	}
 }
 
@@ -389,8 +459,11 @@ impl liquid_staking::Config for Runtime {
 	type Event = Event;
 	type RelayCurrency = BalancesKsm;
 	type PalletId = LiquidStakingId;
-	type AccountIdToMultiLocation = AccountIdToMultiLocation;
-	type CallEncoder = RococoEncoder;
+	type ToRelayChainBalance = NativeToRelay;
+	type RelayChainAccountId = AccountId32;
+	type RelayChainProxyType = RelayProxyType;
+	type SovereignAccount = SovereignAccount;
+	type CallEncoder = KusamaEncoder;
 	type XcmSender = XcmRouter;
 	type XcmExecutor = XcmExecutor;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
@@ -859,12 +932,34 @@ pub type LocationToAccountId = (
 	xcm_builder::AccountKey20Aliases<MoonbeamNetwork, AccountId>,
 );
 
+/// Matcher associated type for MultiCurrencyAdapter to convert assets into local types
+pub struct IsConcreteWithAdjustment<T, FromRelayChainBalance>(
+	PhantomData<(T, FromRelayChainBalance)>,
+);
+impl<T: Get<MultiLocation>, B, FromRelayChainBalance> xcm_executor::traits::MatchesFungible<B>
+	for IsConcreteWithAdjustment<T, FromRelayChainBalance>
+where
+	B: TryFrom<u128>,
+	FromRelayChainBalance: sp_runtime::traits::Convert<u128, u128>,
+{
+	fn matches_fungible(a: &MultiAsset) -> Option<B> {
+		if let MultiAsset::ConcreteFungible { id, amount } = a {
+			if id == &T::get() {
+				// Convert relay chain decimals to local chain
+				let local_amount = FromRelayChainBalance::convert(*amount);
+				return sp_runtime::traits::CheckedConversion::checked_from(local_amount);
+			}
+		}
+		None
+	}
+}
+
 /// Means for transacting assets on this chain.
 pub type LocalAssetTransactor = xcm_builder::CurrencyAdapter<
 	// Use this currency:
 	BalancesKsm,
 	// Use this currency when it is a fungible asset matching the given location or name:
-	xcm_builder::IsConcrete<KsmLocation>,
+	IsConcreteWithAdjustment<KsmLocation, RelayToNative>,
 	// Do a simple punn to convert an AccountId32 MultiLocation into a native chain account ID:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):

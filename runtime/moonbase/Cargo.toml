@@ -37,6 +37,8 @@ xcm-builder = { git = "https://github.com/paritytech/polkadot", default-features
 xcm-executor = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.4" }
 pallet-xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.4" }
 polkadot-parachain = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.4" }
+polkadot-core-primitives = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.4" }
+
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
@@ -50,6 +52,7 @@ sp-offchain = { git = "https://github.com/paritytech/substrate", default-feature
 sp-block-builder = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
 sp-transaction-pool = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
 sp-inherents = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+
 max-encoded-len = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4", features = [ "derive" ] }
 
 frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
@@ -76,6 +79,7 @@ pallet-collective = { git = "https://github.com/paritytech/substrate", default-f
 pallet-society = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
 pallet-proxy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
 pallet-treasury = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
+pallet-staking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4" }
 
 pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false}
 
@@ -171,7 +175,8 @@ std = [
 	"xcm/std",
 	"xcm-builder/std",
 	"xcm-executor/std",
-	"liquid-staking/std"
+	"liquid-staking/std",
+	"pallet-staking/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.

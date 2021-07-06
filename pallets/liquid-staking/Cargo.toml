@@ -10,9 +10,12 @@ parity-scale-codec = { version = "2.0.0", default-features = false, features = [
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4", default-features = false }
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4", default-features = false }
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4", default-features = false }
+pallet-staking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4", default-features = false }
+
 substrate-fixed = { default-features = false, git = "https://github.com/encointer/substrate-fixed" }
 
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4", default-features = false }
+pallet-proxy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4", default-features = false }
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4", default-features = false }
 
 cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.4", default-features = false }
@@ -24,7 +27,8 @@ polkadot-runtime-common = { git = "https://github.com/paritytech/polkadot", bran
 
 [dev-dependencies]
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.4", default-features = false }
-
+max-encoded-len = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.4", features = [ "derive" ] }
+hex-literal = "0.3.1"
 
 [features]
 default = ["std"]
@@ -39,6 +43,8 @@ std = [
 	"cumulus-primitives-core/std",
 	"xcm/std",
 	"xcm-executor/std",
-	"polkadot-runtime-common/std"
+	"polkadot-runtime-common/std",
+	"pallet-proxy/std",
+	"pallet-staking/std"
 ]
 

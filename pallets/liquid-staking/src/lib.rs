@@ -38,14 +38,18 @@ mod tests;
 pub mod pallet {
 
 	use cumulus_primitives_core::relay_chain;
+	use frame_support::dispatch::fmt::Debug;
 	use frame_support::{
 		pallet_prelude::*,
 		traits::{Currency, ExistenceRequirement::AllowDeath, ReservableCurrency},
 		PalletId,
 	};
 	use frame_system::{ensure_signed, pallet_prelude::*};
+	use sp_io::hashing::blake2_256;
 	use sp_runtime::traits::AccountIdConversion;
 	use sp_runtime::traits::CheckedAdd;
+	use sp_runtime::traits::Convert;
+	use sp_runtime::AccountId32;
 	use sp_runtime::SaturatedConversion;
 	use sp_std::prelude::*;
 
@@ -65,19 +69,6 @@ pub mod pallet {
 		pub staked_without_ratio: BalanceOf<T>,
 		pub staked_with_ratio: BalanceOf<T>,
 	}
-	/// All possible messages that may be delivered to generic Substrate chain.
-	///
-	/// Note this enum may be used in the context of both Source (as part of `encode-call`)
-	/// and Target chain (as part of `encode-message/send-message`).
-	#[derive(Debug, PartialEq, Eq)]
-	pub enum AvailableCalls {
-		Reserve,
-	}
-
-	pub trait EncodeCall {
-		/// Encode call from the relay.
-		fn encode_call(call: AvailableCalls) -> Vec<u8>;
-	}
 
 	/// Configuration trait of this pallet. We tightly couple to Parachain Staking in order to
 	/// ensure that only staked accounts can create registrations in the first place. This could be
@@ -88,11 +79,32 @@ pub mod pallet {
 		/// The currency type for Relay balances
 		type RelayCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 
+		/// Convert local balance into relay chain balance type
+		type ToRelayChainBalance: Convert<BalanceOf<Self>, relay_chain::Balance>;
+
 		/// The Pallets PalletId
 		type PalletId: Get<PalletId>;
 
+		type RelayChainAccountId: Parameter
+			+ Member
+			+ MaybeSerializeDeserialize
+			+ Ord
+			+ Default
+			+ Debug
+			+ Into<AccountId32>;
+
+		type SovereignAccount: Get<Self::RelayChainAccountId>;
+
 		/// XCM executor.
-		type CallEncoder: EncodeCall;
+		type CallEncoder: EncodeCall<Self>;
+
+		type RelayChainProxyType: Parameter
+			+ Member
+			+ Ord
+			+ PartialOrd
+			+ Default
+			+ Debug
+			+ MaxEncodedLen;
 
 		/// XCM executor.
 		type XcmExecutor: ExecuteXcm<Self::Call>;
@@ -102,6 +114,21 @@ pub mod pallet {
 
 		/// Means of measuring the weight consumed by an XCM message locally.
 		type Weigher: WeightBounds<Self::Call>;
+	}
+
+	/// All possible messages that may be delivered to generic Substrate chain.
+	///
+	/// Note this enum may be used in the context of both Source (as part of `encode-call`)
+	/// and Target chain (as part of `encode-message/send-message`).
+	#[derive(Debug, PartialEq, Eq)]
+	pub enum AvailableCalls<T: Config> {
+		CreateAnonymusProxy(T::RelayChainProxyType, relay_chain::BlockNumber, u16),
+		BondThroughAnonymousProxy(T::RelayChainAccountId, relay_chain::Balance),
+	}
+
+	pub trait EncodeCall<T: Config> {
+		/// Encode call from the relay.
+		fn encode_call(call: AvailableCalls<T>) -> Vec<u8>;
 	}
 
 	#[pallet::storage]
@@ -129,6 +156,11 @@ pub mod pallet {
 	#[pallet::getter(fn staked_map)]
 	pub type StakedMap<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, StakeInfo<T>>;
 
+	#[pallet::storage]
+	#[pallet::getter(fn proxies)]
+	pub type Proxies<T: Config> =
+		StorageMap<_, Blake2_128Concat, T::AccountId, T::RelayChainAccountId>;
+
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]
 	pub enum Error<T> {
@@ -139,24 +171,31 @@ pub mod pallet {
 		NothingStakedToSetRatio,
 		NoRewardsAvailable,
 		UnstakingMoreThanStaked,
+		ProxyAlreadyCreated,
 	}
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		Staked(<T as frame_system::Config>::AccountId, BalanceOf<T>),
+		Staked(
+			<T as frame_system::Config>::AccountId,
+			T::RelayChainAccountId,
+			BalanceOf<T>,
+		),
 		Unstaked(<T as frame_system::Config>::AccountId, BalanceOf<T>),
 		RatioSet(BalanceOf<T>, BalanceOf<T>),
 		NominationsSet(Vec<relay_chain::AccountId>),
 		XcmSent(MultiLocation, Xcm<()>),
+		ProxyCreated(T::AccountId, T::RelayChainAccountId),
 	}
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::weight(0)]
-		pub fn stake_dot(
+		pub fn bond(
 			origin: OriginFor<T>,
 			amount: BalanceOf<T>,
+			proxy: T::RelayChainAccountId,
 			dest_weight: Weight,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
@@ -164,63 +203,18 @@ pub mod pallet {
 			// Stake bytes
 			let amount_as_u128 = amount.saturated_into::<u128>();
 
-			// We "work" as if we had a "currency", which in our case is just a mapping. We track
-			// how much each user should have in case of having minted a token
-			let staked = StakedMap::<T>::get(who.clone());
-			// These is the total staked in V-DOT, without taking into account the ratio
-			let total_staked = TotalStaked::<T>::get();
-			let total_staked_multiplier = TotalStakedMultiplier::<T>::get();
-
-			// We get the current ratio
-			let current_ratio = Ratio::<T>::get();
-
-			// This is the part where we need to take into account the ratio
-			// We monitor how many "L-DOTS" would someone be assigned, with respect to the current ratio
-			// This are just stored in a mapping, to later re-do the conversion
-			// Example:
-			// 	1) I stake 6 V-DOT when the difference when the ratio is 1.2. This means that if we
-			// 	have staked 10, the sovereign account (due to that staking) has 12 now. In this case
-			//  we anotate "total = 6/1.2 =5".
-			// 	2) I later stake another 7-V-DOT, when the ratio is 1.4. total becomes 6+(7/1.4) = 10.
-			//  3) I want to withdraw at 1.6. We know total is 10, so we give away 10*1.6 = 16 V-DOT
-			//  back. I won 16-13 = 3V-DOT
-			//	Note that this is essentially the same as doing: 6*(1.6/1.2) + 7*(1.4/1.6)
-			// A S-C can take the opportunity to mint an additional Token  here.
-			let to_monitor = U64F64::from_num(amount.saturated_into::<u128>()) / current_ratio;
-			let balance_to_add = to_monitor.ceil().to_num::<u128>();
-			// This aims to emulate "hoy many tokens would one receive", although nothing is minted
-			// However, this serves for us to make the correct change later back to V-DOT.
-			let stake_to_store = if let Some(previously_staked) = staked {
-				let new_total = previously_staked
-					.staked_with_ratio
-					.checked_add(&(balance_to_add.saturated_into::<BalanceOf<T>>()))
-					.ok_or(Error::<T>::Overflow)?;
-				StakeInfo {
-					staked_without_ratio: previously_staked.staked_without_ratio + amount,
-					staked_with_ratio: new_total,
-				}
-			} else {
-				StakeInfo {
-					staked_without_ratio: amount,
-					staked_with_ratio: balance_to_add.saturated_into::<BalanceOf<T>>(),
-				}
-			};
-
-			StakedMap::<T>::insert(who.clone(), stake_to_store.clone());
-			let new_total_staked = total_staked
-				.checked_add(&amount)
-				.ok_or(Error::<T>::Overflow)?;
-			let new_total_staked_multiplier = total_staked_multiplier
-				.checked_add(&(balance_to_add.saturated_into::<BalanceOf<T>>()))
-				.ok_or(Error::<T>::Overflow)?;
-
-			TotalStaked::<T>::put(new_total_staked);
-			TotalStakedMultiplier::<T>::put(new_total_staked_multiplier);
-
-			let stake_bytes: Vec<u8> = T::CallEncoder::encode_call(AvailableCalls::Reserve);
+			let stake_bytes: Vec<u8> =
+				T::CallEncoder::encode_call(AvailableCalls::BondThroughAnonymousProxy(
+					proxy.clone(),
+					T::ToRelayChainBalance::convert(amount),
+				));
 
 			// Construct messages
-			let message = Self::transact(amount_as_u128, dest_weight, stake_bytes);
+			let message = Self::transact(
+				T::ToRelayChainBalance::convert(amount),
+				dest_weight,
+				stake_bytes,
+			);
 
 			// Send xcm as root
 			Self::send_xcm(
@@ -234,15 +228,48 @@ pub mod pallet {
 			Self::deposit_event(Event::<T>::XcmSent(MultiLocation::Null, message));
 
 			// Deposit event
-			Self::deposit_event(Event::<T>::Staked(who.clone(), amount.clone()));
+			Self::deposit_event(Event::<T>::Staked(who.clone(), proxy, amount.clone()));
 
-			// Reserve balances
-			T::RelayCurrency::transfer(
-				&who,
-				&T::PalletId::get().into_account(),
-				amount,
-				AllowDeath,
-			)?;
+			Ok(())
+		}
+
+		#[pallet::weight(0)]
+		pub fn create_proxy(
+			origin: OriginFor<T>,
+			proxy: T::RelayChainProxyType,
+			amount: BalanceOf<T>,
+			index: u16,
+			dest_weight: Weight,
+		) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+			let amount_as_u128 = amount.saturated_into::<u128>();
+
+			let stake_bytes: Vec<u8> =
+				T::CallEncoder::encode_call(AvailableCalls::CreateAnonymusProxy(proxy, 0, 0));
+
+			// Construct messages
+			let message = Self::transact(
+				T::ToRelayChainBalance::convert(amount),
+				dest_weight,
+				stake_bytes,
+			);
+
+			// Send xcm as root
+			Self::send_xcm(
+				MultiLocation::Null,
+				MultiLocation::X1(Parent),
+				message.clone(),
+			)
+			.map_err(|_| Error::<T>::SendFailure)?;
+
+			// Deposit event
+			Self::deposit_event(Event::<T>::XcmSent(MultiLocation::Null, message));
+
+			// Deposit event
+			Self::deposit_event(Event::<T>::ProxyCreated(
+				who.clone(),
+				T::SovereignAccount::get(),
+			));
 
 			Ok(())
 		}

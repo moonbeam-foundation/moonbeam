@@ -19,136 +19,94 @@ use crate::*;
 use frame_support::{assert_noop, assert_ok, PalletId};
 use mock::*;
 use sp_runtime::traits::AccountIdConversion;
+use sp_runtime::AccountId32;
 const main_account: PalletId = PalletId(*b"pc/lqstk");
+use cumulus_primitives_core::ParaId;
+use hex_literal::hex;
 use substrate_fixed::types::U64F64;
+use xcm::v0::prelude::*;
 
 #[test]
-fn set_ratio_works() {
+fn encode_proxy_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 1000)])
 		.build()
 		.execute_with(|| {
 			// Insert contributors
 			roll_to(4);
-			// 1000 in supply now, nothing staked, error
-			assert_noop!(
-				LiquidStaking::set_ratio(Origin::root(), 1000u32.into()),
-				Error::<Test>::NothingStakedToSetRatio
-			);
-			assert_ok!(LiquidStaking::stake_dot(
+
+			assert_ok!(LiquidStaking::create_proxy(
 				Origin::signed(1),
-				500u32.into(),
-				0
+				RelayProxyType::Any,
+				100u32.into(),
+				0u16,
+				200u32.into(),
 			));
 
-			assert_eq!(Balances::free_balance(&1), 500);
-			assert_eq!(Balances::free_balance(&main_account.into_account()), 500);
-
-			// Let's say now we have 1500 tokens in the sovereign account. The ratio we should get is 2:!
-			assert_ok!(LiquidStaking::set_ratio(Origin::root(), 1500u32.into()));
-
-			println!("{:?}", LiquidStaking::staked_map(&1));
-
-			assert_eq!(LiquidStaking::current_ratio(), U64F64::from_num(2));
-			// If I unstake now I shouls get double the money
-			assert_ok!(LiquidStaking::unstake_dot(Origin::signed(1), 500u32.into(),));
-			println!("{:?}", LiquidStaking::staked_map(&1));
-
-			assert_noop!(
-				LiquidStaking::unstake_dot(Origin::signed(1), 500u32.into(),),
-				Error::<Test>::NoRewardsAvailable
+			let events = events();
+			let myevent: &crate::Event<Test> = events.first().unwrap();
+			let expectedEvent = crate::Event::XcmSent::<Test>(
+				MultiLocation::Null,
+				Xcm::WithdrawAsset {
+					assets: vec![MultiAsset::ConcreteFungible {
+						id: MultiLocation::Null,
+						amount: 100,
+					}],
+					effects: vec![BuyExecution {
+						fees: All,
+						weight: 200,
+						debt: 200,
+						halt_on_error: false,
+						xcm: vec![Transact {
+							origin_type: OriginKind::SovereignAccount,
+							require_weight_at_most: 200,
+							call: hex!("1e0400000000000000").to_vec().into(),
+						}],
+					}],
+				},
 			);
-			assert_eq!(Balances::free_balance(&1), 1500);
+			assert_eq!(expectedEvent, *myevent);
 		});
 }
 
 #[test]
-fn stake_at_different_prices_works() {
+fn encode_staking_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 1000)])
 		.build()
 		.execute_with(|| {
 			// Insert contributors
 			roll_to(4);
-			assert_ok!(LiquidStaking::stake_dot(
+			let account: AccountId32 = [1u8; 32].into();
+			assert_ok!(LiquidStaking::bond(
 				Origin::signed(1),
-				500u32.into(),
-				0
+				100u32.into(),
+				account,
+				200u32.into(),
 			));
 
-			assert_eq!(Balances::free_balance(&1), 500);
-			assert_eq!(Balances::free_balance(&main_account.into_account()), 500);
-
-			// Let's say now we have 1500 tokens in the sovereign account. The ratio we should get is 2:!
-			assert_ok!(LiquidStaking::set_ratio(Origin::root(), 1500u32.into()));
-
-			assert_ok!(LiquidStaking::stake_dot(
-				Origin::signed(1),
-				300u32.into(),
-				0
-			));
-
-			println!("{:?}", LiquidStaking::staked_map(&1));
-
-			// Let's say now we have 2150 tokens in the sovereign account. The ratio we should get is 3:!
-			assert_ok!(LiquidStaking::set_ratio(Origin::root(), 2150u32.into()));
-
-			assert_eq!(LiquidStaking::current_ratio(), U64F64::from_num(3));
-			// If I unstake now I shouls get double the money
-			assert_ok!(LiquidStaking::unstake_dot(Origin::signed(1), 500u32.into(),));
-			assert_eq!(Balances::free_balance(&1), 1418);
-
-			assert_ok!(LiquidStaking::unstake_dot(Origin::signed(1), 300u32.into(),));
-
-			assert_noop!(
-				LiquidStaking::unstake_dot(Origin::signed(1), 800u32.into(),),
-				Error::<Test>::NoRewardsAvailable
+			let events = events();
+			let myevent: &crate::Event<Test> = events.first().unwrap();
+			let expectedEvent = crate::Event::XcmSent::<Test>(
+				MultiLocation::Null,
+				Xcm::WithdrawAsset {
+					assets: vec![MultiAsset::ConcreteFungible {
+						id: MultiLocation::Null,
+						amount: 100,
+					}],
+					effects: vec![BuyExecution {
+						fees: All,
+						weight: 200,
+						debt: 200,
+						halt_on_error: false,
+						xcm: vec![Transact {
+							origin_type: OriginKind::SovereignAccount,
+							require_weight_at_most: 200,
+							call: hex!("1e000101010101010101010101010101010101010101010101010101010101010101000600000101010101010101010101010101010101010101010101010101010101010101910102").to_vec().into(),
+						}],
+					}],
+				},
 			);
-			assert_eq!(Balances::free_balance(&1), 2150);
-		});
-}
-#[test]
-fn stake_price_drop_works() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 1000)])
-		.build()
-		.execute_with(|| {
-			// Insert contributors
-			roll_to(4);
-			assert_ok!(LiquidStaking::stake_dot(
-				Origin::signed(1),
-				500u32.into(),
-				0
-			));
-
-			assert_eq!(Balances::free_balance(&1), 500);
-			assert_eq!(Balances::free_balance(&main_account.into_account()), 500);
-
-			// Let's say now we have 1500 tokens in the sovereign account. The ratio we should get is 2:!
-			assert_ok!(LiquidStaking::set_ratio(Origin::root(), 1500u32.into()));
-
-			assert_ok!(LiquidStaking::stake_dot(
-				Origin::signed(1),
-				300u32.into(),
-				0
-			));
-
-			println!("{:?}", LiquidStaking::staked_map(&1));
-			// Let's say now we have 600 tokens in the sovereign account. The ratio we should get is 1:2!
-			assert_ok!(LiquidStaking::set_ratio(Origin::root(), 525u32.into()));
-
-			assert_eq!(LiquidStaking::current_ratio(), U64F64::from_num(0.5));
-			// If I unstake now I shouls get half the money
-			assert_ok!(LiquidStaking::unstake_dot(Origin::signed(1), 500u32.into(),));
-			assert_eq!(Balances::free_balance(&1), 403);
-
-			assert_ok!(LiquidStaking::unstake_dot(Origin::signed(1), 300u32.into(),));
-
-			assert_noop!(
-				LiquidStaking::unstake_dot(Origin::signed(1), 800u32.into(),),
-				Error::<Test>::NoRewardsAvailable
-			);
-			assert_eq!(Balances::free_balance(&1), 525);
-			assert_eq!(Balances::free_balance(&main_account.into_account()), 0);
+			assert_eq!(expectedEvent, *myevent);
 		});
 }
