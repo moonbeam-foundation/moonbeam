@@ -48,8 +48,8 @@ interface InternalDevTestContext extends DevTestContext {
 
 export function describeDevMoonbeam(title: string, cb: (context: DevTestContext) => void) {
   describe(title, function () {
-    // Set timeout to 5000 for all tests.
-    this.timeout(5000);
+    // Set timeout to 10 seconds for all tests.
+    this.timeout(10_000);
 
     // The context is initialized empty to allow passing a reference
     // and to be filled once the node information is retrieved
