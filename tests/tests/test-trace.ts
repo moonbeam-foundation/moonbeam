@@ -43,6 +43,41 @@ async function nested(context) {
 }
 
 describeDevMoonbeam("Trace", (context) => {
+  // This test proves that Raw traces are now stored outside the runtime. 
+  //
+  // Previously exhausted Wasm memory allocation:
+  // Thread 'tokio-runtime-worker' panicked at 'Failed to allocate memory:
+  // "Allocator ran out of space"'.
+  it("should not overflow Wasm memory", async function () {
+    this.timeout(15000);
+    const { contract, rawTx } = await createContract(context.web3, "OverflowingTrace", {}, [false]);
+    const { txResults } = await context.createBlock({
+      transactions: [rawTx],
+    });
+    let receipt = await context.web3.eth.getTransactionReceipt(txResults[0].result);
+    let nonce = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
+    // Produce a +58,000 step trace.
+    let callTx = await context.web3.eth.accounts.signTransaction(
+      {
+        from: GENESIS_ACCOUNT,
+        to: receipt.contractAddress,
+        gas: "0x100000",
+        value: "0x00",
+        nonce: nonce,
+        data: contract.methods.set_and_loop(10).encodeABI(),
+      },
+      GENESIS_ACCOUNT_PRIVATE_KEY
+    );
+    const data = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+      callTx.rawTransaction,
+    ]);
+    await context.createBlock();
+    let trace = await customWeb3Request(context.web3, "debug_traceTransaction", [
+      data.result,
+    ]);
+    expect(trace.result.stepLogs.length).to.equal(58219);
+  });
+
   it("should replay over an intermediate state", async function () {
     const { contract, rawTx } = await createContract(context.web3, "Incrementer", {}, [false]);
     const { txResults } = await context.createBlock({
@@ -60,8 +95,9 @@ describeDevMoonbeam("Trace", (context) => {
     const totalTxs = 10;
     let targets = [1, 2, 5, 8, 10];
     let txs = [];
+    let nonce = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
     // Create 10 transactions in a block.
-    for (let numTxs = 1; numTxs <= totalTxs; numTxs++) {
+    for (let numTxs = nonce; numTxs <= (nonce + totalTxs); numTxs++) {
       let callTx = await context.web3.eth.accounts.signTransaction(
         {
           from: GENESIS_ACCOUNT,
@@ -153,4 +189,4 @@ describeDevMoonbeam("Trace", (context) => {
     expect(resCallee.traceAddress.length).to.be.eq(1);
     expect(resCallee.traceAddress[0]).to.be.eq(0);
   });
-});
+}, true);
