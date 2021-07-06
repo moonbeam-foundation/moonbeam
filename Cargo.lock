@@ -6265,6 +6265,7 @@ dependencies = [
 name = "pallet-migrations"
 version = "0.1.0"
 dependencies = [
+ "environmental",
  "frame-support",
  "frame-system",
  "log",

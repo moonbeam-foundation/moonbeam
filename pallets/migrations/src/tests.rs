@@ -34,31 +34,33 @@ fn genesis_builder_works() {
 }
 
 #[test]
-fn mock_migrations_static_hack_works<'test>() {
+fn mock_migrations_static_hack_works() {
 	let mut name_fn_called: bool = false;
 	let mut step_fn_called: bool = false;
 
-	let mut mgr: crate::mock::MockMigrationManager = Default::default();
+	{
+		let mut mgr: crate::mock::MockMigrationManager = Default::default();
 
-	// works:
-	// let name_fn: &(FnMut() -> &'static str + Send + Sync) = &|| { "hi" };
-
-	// crate::mock::MOCK_MIGRATIONS_LIST.lock().unwrap()
-	mgr
-		.registerCallback(
-			&mut|| {
+		mgr.registerCallback(
+			|| {
 				name_fn_called = true;
 				"hello, world"
 			},
-			&mut|_, _| -> (Perbill, Weight) {
+			|_, _| -> (Perbill, Weight) {
 				step_fn_called = true;
 				(Perbill::zero(), 0u64.into())
 			}
 		);
 
-	ExtBuilder::default().build().execute_with(|| {
-		Migrations::on_runtime_upgrade();
-	});
+		mgr.invoke_name_fn(0);
+		mgr.invoke_step_fn(0, Perbill::zero(), 1u64.into());
+
+		/*
+		ExtBuilder::default().build().execute_with(|| {
+			Migrations::on_runtime_upgrade();
+		});
+		*/
+	}
 
 	assert_eq!(name_fn_called, true, "mock migration should call friendly_name()");
 	assert_eq!(step_fn_called, true, "mock migration should call step()");

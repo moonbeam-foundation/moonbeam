@@ -29,6 +29,10 @@ use sp_runtime::Perbill;
 
 pub use pallet::*;
 
+// TODO: compile error if this is in mock.rs:
+// "an `extern crate` loading macros must be at the crate root"
+#[macro_use] extern crate environmental;
+
 /// A Migration that must happen on-chain upon a runtime-upgrade
 pub trait Migration {
 	/// A human-readable name for this migration. Also used as storage key.
