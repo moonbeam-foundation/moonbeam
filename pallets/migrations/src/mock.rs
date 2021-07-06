@@ -80,13 +80,8 @@ impl frame_system::Config for Test {
 	type OnSetCode = ();
 }
 
-type MigrationNameFn = dyn FnMut() -> &'static str;
-type MigrationStepFn = dyn FnMut(Perbill, Weight) -> (Perbill, Weight);
-
 #[derive(Default)]
 pub struct MockMigrationManager<'test> {
-	// name_fn_callbacks: Vec<&'test mut MigrationNameFn>,
-	// step_fn_callbacks: Vec<&'test mut MigrationStepFn>,
 	name_fn_callbacks: Vec<Box<dyn 'test + FnMut() -> &'static str>>,
 	step_fn_callbacks: Vec<Box<dyn 'test + FnMut(Perbill, Weight) -> (Perbill, Weight)>>,
 }
@@ -119,7 +114,7 @@ impl<'test> MockMigrationManager<'test> {
 		migrations
 	}
 }
-// environmental!(MOCK_MIGRATIONS_LIST: MockMigrationManager<'static>);
+environmental!(MOCK_MIGRATIONS_LIST: MockMigrationManager<'static>);
 
 #[derive(Clone)]
 pub struct MockMigration {
@@ -128,13 +123,18 @@ pub struct MockMigration {
 
 impl Migration for MockMigration {
 	fn friendly_name(&self) -> &str {
-		panic!("fixme");
-		// MOCK_MIGRATIONS_LIST.lock().unwrap().invoke_name_fn(self.index)
+		let mut result: &str = "";
+		MOCK_MIGRATIONS_LIST::with(|mgr: &mut MockMigrationManager| {
+			result = mgr.invoke_name_fn(self.index);
+		});
+		result
 	}
 	fn step(&self, previous_progress: Perbill, available_weight: Weight) -> (Perbill, Weight) {
-		panic!("fixme");
-		// MOCK_MIGRATIONS_LIST.lock().unwrap()
-			// .invoke_step_fn(self.index, previous_progress, available_weight)
+		let mut result: (Perbill, Weight) = (Perbill::zero(), 0u64.into());
+		MOCK_MIGRATIONS_LIST::with(|mgr: &mut MockMigrationManager| {
+			result = mgr.invoke_step_fn(self.index, previous_progress, available_weight);
+		});
+		result
 	}
 }
 
@@ -142,8 +142,9 @@ pub struct MockMigrations;
 impl Get<Vec<Box<dyn Migration>>> for MockMigrations {
 	fn get() -> Vec<Box<dyn Migration>> {
 		let mut migrations: Vec<Box<dyn Migration>> = Vec::new();
-		// MOCK_MIGRATIONS_LIST::with(|m| { migrations = m.generate_migrations_list(); });
-		panic!("fixme");
+		MOCK_MIGRATIONS_LIST::with(|mgr: &mut MockMigrationManager| {
+			migrations = mgr.generate_migrations_list();
+		});
 		migrations
 	}
 }
