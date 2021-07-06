@@ -13,12 +13,12 @@ const main = () => {
     .options({
       from: {
         type: "string",
-        describe: "current tag to draft",
+        describe: "previous tag to retrieve commits from",
         required: true,
       },
       to: {
         type: "string",
-        describe: "current tag to draft",
+        describe: "current tag being drafted",
         required: true,
       },
     })
