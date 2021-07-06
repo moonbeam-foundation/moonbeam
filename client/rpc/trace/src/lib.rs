@@ -848,6 +848,11 @@ where
 					))
 				})?
 				.map_err(|e| {
+					tracing::warn!(
+						"Internal runtime error when replaying block {} : {:?}",
+						height,
+						e
+					);
 					internal_err(format!(
 						"Internal runtime error when replaying block {} : {:?}",
 						height, e
