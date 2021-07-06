@@ -368,7 +368,7 @@ export const contractSources: { [key: string]: string } = {
             emit Trace(2 << 250);
         }
     }`,
-    OverflowingTrace: `
+  OverflowingTrace: `
       pragma solidity >=0.8.0;
       contract OverflowingTrace {
           uint public a;
