@@ -56,7 +56,7 @@ fn verify_pallet_prefixes() {
 			Some(name)
 		);
 	}
-	// TODO: use PartialStorageInfoTrait once https://github.com/paritytech/substrate/pull/9246
+	// TODO: use StorageInfoTrait once https://github.com/paritytech/substrate/pull/9246
 	// is pulled in substrate deps.
 	is_pallet_prefix::<moonbeam_runtime::System>("System");
 	is_pallet_prefix::<moonbeam_runtime::Utility>("Utility");
