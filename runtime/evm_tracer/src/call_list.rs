@@ -20,10 +20,9 @@ use codec::Encode;
 use ethereum_types::{H160, U256};
 use evm::{Capture, ExitError, ExitReason, ExitSucceed};
 use moonbeam_rpc_primitives_debug::{
-	single::{Call, CallInner, TransactionTrace},
+	single::{Call, CallInner},
 	CallResult, CallType, CreateResult,
 };
-use sp_std::collections::btree_map::BTreeMap;
 
 /// Listen to EVM events to provide a overview of the internal transactions.
 /// It can be used to implement `trace_filter`.
@@ -63,8 +62,6 @@ pub struct CallListTracer {
 	// Transaction cost that must be added to the first context cost.
 	transaction_cost: u64,
 
-	// Final logs.
-	entries: BTreeMap<u32, Call>,
 	// Next index to use.
 	entries_next_index: u32,
 	// Stack of contexts with data to keep between events.
@@ -103,7 +100,6 @@ impl Default for CallListTracer {
 		Self {
 			transaction_cost: 0,
 
-			entries: BTreeMap::new(),
 			entries_next_index: 0,
 
 			context_stack: vec![],
@@ -118,28 +114,26 @@ impl CallListTracer {
 	///
 	/// Consume the tracer and return it alongside the return value of
 	/// the closure.
-	pub fn trace<R, F: FnOnce() -> R>(self, f: F) -> (Self, R) {
+	pub fn trace<R, F: FnOnce() -> R>(self, f: F) {
 		let wrapped = Rc::new(RefCell::new(self));
 
-		let result = {
-			let mut gasometer = ListenerProxy(Rc::clone(&wrapped));
-			let mut runtime = ListenerProxy(Rc::clone(&wrapped));
-			let mut evm = ListenerProxy(Rc::clone(&wrapped));
+		let mut gasometer = ListenerProxy(Rc::clone(&wrapped));
+		let mut runtime = ListenerProxy(Rc::clone(&wrapped));
+		let mut evm = ListenerProxy(Rc::clone(&wrapped));
 
-			// Each line wraps the previous `f` into a `using` call.
-			// Listening to new events results in adding one new line.
-			// Order is irrelevant when registering listeners.
-			let f = || runtime_using(&mut runtime, f);
-			let f = || gasometer_using(&mut gasometer, f);
-			let f = || evm_using(&mut evm, f);
-			f()
-		};
-
-		(Rc::try_unwrap(wrapped).unwrap().into_inner(), result)
+		// Each line wraps the previous `f` into a `using` call.
+		// Listening to new events results in adding one new line.
+		// Order is irrelevant when registering listeners.
+		let f = || runtime_using(&mut runtime, f);
+		let f = || gasometer_using(&mut gasometer, f);
+		let f = || evm_using(&mut evm, f);
+		f();
 	}
 
-	pub fn into_tx_trace(self) -> TransactionTrace {
-		TransactionTrace::CallList(self.entries.into_iter().map(|(_, value)| value).collect())
+	/// Each extrinsic represents a Call stack in the host and thus a block - a collection of
+	/// extrinsics - is a "stack of Call stacks" `Vec<BTree<u32, Call>>`.
+	pub fn emit_new() {
+		moonbeam_primitives_ext::moonbeam_ext::call_list_new();
 	}
 }
 

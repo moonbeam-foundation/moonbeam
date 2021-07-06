@@ -29,7 +29,10 @@ use codec::Decode;
 use sp_std::vec::Vec;
 
 use ethereum_types::U256;
-use moonbeam_rpc_primitives_debug::single::{Call, Event, RawStepLog};
+use moonbeam_rpc_primitives_debug::{
+	proxy::Event,
+	single::{Call, RawStepLog},
+};
 
 #[runtime_interface]
 pub trait MoonbeamExt {
@@ -47,5 +50,8 @@ pub trait MoonbeamExt {
 	fn call_list_entry(&mut self, index: u32, value: Vec<u8>) {
 		let value: Call = Decode::decode(&mut &value[..]).unwrap();
 		Event::CallListEntry((index, value)).emit();
+	}
+	fn call_list_new(&mut self) {
+		Event::CallListNew().emit();
 	}
 }

@@ -18,9 +18,6 @@
 //! Structure from "raw" debug_trace and a "call list" matching
 //! Blockscout formatter. This "call list" is also used to build
 //! the whole block tracing output.
-
-environmental::environmental!(listener: dyn Listener + 'static);
-
 #[cfg(feature = "std")]
 use crate::serialization::*;
 #[cfg(feature = "std")]
@@ -154,95 +151,4 @@ pub struct Call {
 	pub gas_used: U256,
 	#[cfg_attr(feature = "std", serde(flatten))]
 	pub inner: CallInner,
-}
-
-pub trait Listener {
-	fn event(&mut self, event: Event);
-}
-
-#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
-pub enum Event {
-	RawStep(RawStepLog),
-	RawGas(U256),
-	RawReturnValue(Vec<u8>),
-	CallListEntry((u32, Call)),
-}
-
-impl Event {
-	pub fn emit(self) {
-		listener::with(|listener| listener.event(self));
-	}
-}
-
-// Raw
-#[derive(Debug)]
-pub struct RawProxy {
-	gas: U256,
-	return_value: Vec<u8>,
-	step_logs: Vec<RawStepLog>,
-}
-
-impl RawProxy {
-	pub fn new() -> Self {
-		Self {
-			gas: U256::zero(),
-			return_value: Vec::new(),
-			step_logs: Vec::new(),
-		}
-	}
-
-	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) {
-		listener::using(self, f);
-	}
-
-	pub fn into_tx_trace(self) -> TransactionTrace {
-		TransactionTrace::Raw {
-			step_logs: self.step_logs,
-			gas: self.gas,
-			return_value: self.return_value,
-		}
-	}
-}
-
-impl Listener for RawProxy {
-	fn event(&mut self, event: Event) {
-		match event {
-			Event::RawStep(step) => self.step_logs.push(step),
-			Event::RawGas(gas) => self.gas = gas,
-			Event::RawReturnValue(value) => self.return_value = value,
-			_ => {}
-		};
-	}
-}
-
-// List
-#[derive(Debug)]
-pub struct CallListProxy {
-	entries: BTreeMap<u32, Call>,
-}
-
-impl CallListProxy {
-	pub fn new() -> Self {
-		Self {
-			entries: BTreeMap::new(),
-		}
-	}
-	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) {
-		listener::using(self, f);
-	}
-
-	pub fn into_tx_trace(self) -> TransactionTrace {
-		TransactionTrace::CallList(self.entries.into_iter().map(|(_, value)| value).collect())
-	}
-}
-
-impl Listener for CallListProxy {
-	fn event(&mut self, event: Event) {
-		match event {
-			Event::CallListEntry((index, value)) => {
-				self.entries.insert(index, value);
-			}
-			_ => {}
-		};
-	}
 }

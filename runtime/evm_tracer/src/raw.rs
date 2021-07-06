@@ -19,7 +19,7 @@ use crate::util::*;
 use codec::Encode;
 use ethereum_types::{H160, H256, U256};
 use evm::{Capture, ExitReason};
-use moonbeam_rpc_primitives_debug::single::{RawStepLog, TransactionTrace};
+use moonbeam_rpc_primitives_debug::single::RawStepLog;
 use sp_std::{collections::btree_map::BTreeMap, vec, vec::Vec};
 
 /// Listen to EVM events to provide the intermediate machine state between opcode executions
@@ -48,10 +48,6 @@ pub struct RawTracer {
 	disable_storage: bool,
 	disable_memory: bool,
 	disable_stack: bool,
-
-	step_logs: Vec<RawStepLog>,
-	return_value: Vec<u8>,
-	final_gas: u64,
 
 	new_context: bool,
 	context_stack: Vec<Context>,
@@ -90,10 +86,6 @@ impl RawTracer {
 			disable_memory,
 			disable_stack,
 
-			step_logs: vec![],
-			return_value: vec![],
-			final_gas: 0,
-
 			new_context: false,
 			context_stack: vec![],
 		}
@@ -103,39 +95,18 @@ impl RawTracer {
 	///
 	/// Consume the tracer and return it alongside the return value of
 	/// the closure.
-	pub fn trace<R, F: FnOnce() -> R>(self, f: F) -> (Self, R) {
+	pub fn trace<R, F: FnOnce() -> R>(self, f: F) {
 		let wrapped = Rc::new(RefCell::new(self));
 
-		let result = {
-			let mut gasometer = ListenerProxy(Rc::clone(&wrapped));
-			let mut runtime = ListenerProxy(Rc::clone(&wrapped));
+		let mut gasometer = ListenerProxy(Rc::clone(&wrapped));
+		let mut runtime = ListenerProxy(Rc::clone(&wrapped));
 
-			// Each line wraps the previous `f` into a `using` call.
-			// Listening to new events results in adding one new line.
-			// Order is irrelevant when registering listeners.
-			let f = || runtime_using(&mut runtime, f);
-			let f = || gasometer_using(&mut gasometer, f);
-			f()
-		};
-
-		let inner = Rc::try_unwrap(wrapped).unwrap().into_inner();
-
-		let gas: U256 = U256::from(inner.final_gas.clone());
-		let return_value = inner.return_value.clone();
-
-		moonbeam_primitives_ext::moonbeam_ext::raw_gas(gas.encode());
-		moonbeam_primitives_ext::moonbeam_ext::raw_return_value(return_value);
-
-		// TODO here we will just return the EVM result
-		(inner, result)
-	}
-
-	pub fn into_tx_trace(self) -> TransactionTrace {
-		TransactionTrace::Raw {
-			step_logs: self.step_logs,
-			gas: self.final_gas.into(),
-			return_value: self.return_value,
-		}
+		// Each line wraps the previous `f` into a `using` call.
+		// Listening to new events results in adding one new line.
+		// Order is irrelevant when registering listeners.
+		let f = || runtime_using(&mut runtime, f);
+		let f = || gasometer_using(&mut gasometer, f);
+		f();
 	}
 }
 
@@ -153,7 +124,8 @@ impl GasometerListener for RawTracer {
 					if let Some(step) = &mut context.current_step {
 						step.gas = snapshot.gas();
 						step.gas_cost = cost;
-						self.final_gas = step.gas;
+						let encoded_gas = U256::from(step.gas).encode();
+						moonbeam_primitives_ext::moonbeam_ext::raw_gas(encoded_gas);
 					}
 				}
 			}
@@ -165,7 +137,8 @@ impl GasometerListener for RawTracer {
 					if let Some(step) = &mut context.current_step {
 						step.gas = snapshot.gas();
 						step.gas_cost = gas_cost;
-						self.final_gas = step.gas;
+						let encoded_gas = U256::from(step.gas).encode();
+						moonbeam_primitives_ext::moonbeam_ext::raw_gas(encoded_gas);
 					}
 				}
 			}
@@ -271,7 +244,9 @@ impl RuntimeListener for RawTracer {
 						if let Some(mut context) = self.context_stack.pop() {
 							// If final context is exited, we store gas and return value.
 							if self.context_stack.is_empty() {
-								self.return_value = return_value.to_vec();
+								moonbeam_primitives_ext::moonbeam_ext::raw_return_value(
+									return_value.to_vec(),
+								);
 							}
 
 							// If the context exited without revert we must keep track of the

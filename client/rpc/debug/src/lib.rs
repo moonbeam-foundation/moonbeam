@@ -29,7 +29,7 @@ use tokio::{
 use ethereum_types::{H128, H256};
 use fc_rpc::{frontier_backend_client, internal_err};
 use fp_rpc::EthereumRuntimeRPCApi;
-use moonbeam_rpc_primitives_debug::{single, DebugRuntimeApi};
+use moonbeam_rpc_primitives_debug::{proxy, single, DebugRuntimeApi};
 use sc_client_api::backend::Backend;
 use sp_api::{BlockId, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
@@ -245,12 +245,12 @@ where
 				};
 				return Ok(match trace_type {
 					single::TraceType::Raw { .. } => {
-						let mut proxy = single::RawProxy::new();
+						let mut proxy = proxy::RawProxy::new();
 						proxy.using(f);
 						proxy.into_tx_trace()
 					}
 					single::TraceType::CallList { .. } => {
-						let mut proxy = single::CallListProxy::new();
+						let mut proxy = proxy::CallListProxy::new();
 						proxy.using(f);
 						proxy.into_tx_trace()
 					}
