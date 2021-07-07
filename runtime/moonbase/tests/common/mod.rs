@@ -197,7 +197,7 @@ impl ExtBuilder {
 	}
 }
 
-pub const CHAIN_ID: u64 = 1281;
+pub const CHAIN_ID: u64 = 1287;
 pub const ALICE: [u8; 20] = [4u8; 20];
 pub const ALICE_NIMBUS: [u8; 32] = [4u8; 32];
 pub const BOB: [u8; 20] = [5u8; 20];
