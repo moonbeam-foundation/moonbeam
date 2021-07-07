@@ -79,8 +79,10 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 		None,
 		None,
 		Some(
-			serde_json::from_str("{\"tokenDecimals\": 18, \"tokenSymbol\": \"UNIT\"}")
-				.expect("Provided valid json map"),
+			serde_json::from_str(
+				"{\"tokenDecimals\": 18, \"tokenSymbol\": \"UNIT\", \"SS58Prefix\": 1287}",
+			)
+			.expect("Provided valid json map"),
 		),
 		Extensions {
 			relay_chain: "dev-service".into(),
@@ -139,8 +141,10 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		None,
 		None,
 		Some(
-			serde_json::from_str("{\"tokenDecimals\": 18, \"tokenSymbol\": \"UNIT\"}")
-				.expect("Provided valid json map"),
+			serde_json::from_str(
+				"{\"tokenDecimals\": 18, \"tokenSymbol\": \"UNIT\", \"SS58Prefix\": 1287}",
+			)
+			.expect("Provided valid json map"),
 		),
 		Extensions {
 			relay_chain: "westend_testnet".into(),
