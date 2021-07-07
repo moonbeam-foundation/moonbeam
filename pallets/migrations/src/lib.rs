@@ -80,6 +80,7 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		// e.g. runtime upgrade started, completed, etc.
 		RuntimeUpgradeStarted(),
+		RuntimeUpgradeStepped(),
 		RuntimeUpgradeCompleted(),
 		MigrationStarted(Vec<u8>),
 		MigrationProgress(Vec<u8>, Perbill),
@@ -106,6 +107,22 @@ pub mod pallet {
 			weight += process_runtime_upgrades::<T>();
 
 			weight.into()
+		}
+
+		/// on_initialize implementation. Calls process_runtime_upgrades() if we are still in the
+		/// middle of a runtime upgrade.
+		/// TODO: use on_idle or some other hook?
+		fn on_initialize(_: T::BlockNumber) -> Weight {
+
+			// TODO: should account for the minimum one DB read
+			let mut weight: Weight = 0u64.into();
+
+			if ! <FullyUpgraded<T>>::get() {
+				Self::deposit_event(Event::RuntimeUpgradeStepped());
+				weight += process_runtime_upgrades::<T>();
+			}
+
+			weight
 		}
 	}
 

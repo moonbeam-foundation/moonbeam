@@ -124,8 +124,26 @@ where
 			callback(inner_mgr);
 		});
 
+		// mimic the calls that would occur from the time a runtime upgrade starts until the
+		// Migrations pallet indicates that all upgrades are complete
+
 		ExtBuilder::default().build().execute_with(|| {
+			let mut block_number = 1u64;
 			Migrations::on_runtime_upgrade();
+
+			while ! Migrations::is_fully_upgraded() {
+				System::set_block_number(block_number);
+				System::on_initialize(System::block_number());
+				Migrations::on_initialize(System::block_number());
+				Migrations::on_finalize(System::block_number());
+				System::on_finalize(System::block_number());
+
+				block_number += 1;
+
+				if block_number > 99999 {
+					panic!("Infinite loop?");
+				}
+			}
 		});
 	});
 }

@@ -39,28 +39,21 @@ fn mock_migrations_static_hack_works() {
 	let name_fn_called = Arc::new(Mutex::new(false));
 	let step_fn_called = Arc::new(Mutex::new(false));
 
-	println!("Calling execute_with_mock_migrations...");
 	crate::mock::execute_with_mock_migrations(&mut |mgr: &mut MockMigrationManager| {
-		println!("Inside execute_with_mock_migrations");
 		let name_fn_called = Arc::clone(&name_fn_called);
 		let step_fn_called = Arc::clone(&step_fn_called);
 
-		println!("Registering callbacks...");
 		mgr.registerCallback(
 			move || {
-				println!("inside name_fn callback!");
 				*name_fn_called.lock().unwrap() = true;
 				"hello, world"
 			},
 			move |_, _| -> (Perbill, Weight) {
-				println!("inside step_fn callback!");
 				*step_fn_called.lock().unwrap() = true;
-				(Perbill::zero(), 0u64.into())
+				(Perbill::one(), 0u64.into())
 			}
 		);
-		println!("Done registering callbacks.");
 	});
-	println!("Done with execute_with_mock_migrations");
 
 	assert_eq!(*name_fn_called.lock().unwrap(), true, "mock migration should call friendly_name()");
 	assert_eq!(*step_fn_called.lock().unwrap(), true, "mock migration should call step()");
@@ -84,4 +77,34 @@ fn on_runtime_upgrade_emits_events() {
 		];
 		assert_eq!(events(), expected);
 	});
+}
+
+#[test]
+fn step_called_until_done() {
+
+	let num_step_calls = Arc::new(Mutex::new(0usize));
+
+	println!("step_called_until_done()...");
+
+	crate::mock::execute_with_mock_migrations(&mut |mgr: &mut MockMigrationManager| {
+		let num_step_calls = Arc::clone(&num_step_calls);
+
+		mgr.registerCallback(
+			move || {
+				"migration1"
+			},
+			move |_, _| -> (Perbill, Weight) {
+				let mut num_step_calls = num_step_calls.lock().unwrap();
+				println!("step fn called, num times previously: {}", num_step_calls);
+				*num_step_calls += 1;
+				if *num_step_calls == 10 {
+					(Perbill::one(), 0u64.into())
+				} else {
+					(Perbill::zero(), 0u64.into())
+				}
+			}
+		);
+	});
+
+	assert_eq!(*num_step_calls.lock().unwrap(), 10, "migration step should be called until done");
 }
