@@ -73,8 +73,6 @@ pub struct ExtBuilder {
 	mappings: Vec<(NimbusId, AccountId)>,
 	// Crowdloan fund
 	crowdloan_fund: Balance,
-	// Chain id
-	chain_id: u64,
 	// EVM genesis accounts
 	evm_accounts: BTreeMap<H160, GenesisAccount>,
 }
@@ -106,7 +104,6 @@ impl Default for ExtBuilder {
 			},
 			mappings: vec![],
 			crowdloan_fund: 0,
-			chain_id: CHAIN_ID,
 			evm_accounts: BTreeMap::new(),
 		}
 	}
@@ -178,14 +175,6 @@ impl ExtBuilder {
 			mappings: self.mappings,
 		}
 		.assimilate_storage(&mut t)
-		.unwrap();
-
-		<pallet_ethereum_chain_id::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
-			&pallet_ethereum_chain_id::GenesisConfig {
-				chain_id: self.chain_id,
-			},
-			&mut t,
-		)
 		.unwrap();
 
 		<pallet_evm::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
