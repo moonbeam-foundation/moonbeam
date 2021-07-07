@@ -61,7 +61,7 @@ use sp_runtime::traits::AccountIdLookup;
 use sp_runtime::traits::StaticLookup;
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, IdentityLookup},
+	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	AccountId32, ApplyExtrinsicResult, Perbill, Percent, Permill,
 };
@@ -385,6 +385,9 @@ pub enum StakeCall {
 		#[codec(compact)] cumulus_primitives_core::relay_chain::Balance,
 		pallet_staking::RewardDestination<AccountId32>,
 	),
+	#[codec(index = 5u16)]
+	// the index should match the position of the dispatchable in the target pallet
+	nominate(Vec<<AccountIdLookup<AccountId32, ()> as StaticLookup>::Source>),
 }
 
 parameter_types! {
@@ -439,6 +442,17 @@ impl liquid_staking::EncodeCall<Runtime> for KusamaEncoder {
 				))
 				.encode()
 			}
+
+			liquid_staking::AvailableCalls::NominateThroughAnonymousProxy(a, b) => {
+				let nominated: Vec<<AccountIdLookup<AccountId32, ()> as StaticLookup>::Source> =
+					b.iter().map(|add| (*add).clone().into()).collect();
+				RelayCall::Proxy(AnonymousProxyCall::proxy(
+					a.clone(),
+					None,
+					RelayStakeCall::Stake(StakeCall::nominate(nominated)),
+				))
+				.encode()
+			}
 			_ => panic!("SAd"),
 		}
 	}
@@ -455,11 +469,27 @@ impl sp_runtime::traits::Convert<Balance, cumulus_primitives_core::relay_chain::
 	}
 }
 
+pub struct AccountKey20Convert;
+impl
+	sp_runtime::traits::Convert<
+		<<Signature as sp_runtime::traits::Verify>::Signer as IdentifyAccount>::AccountId,
+		[u8; 20],
+	> for AccountKey20Convert
+{
+	fn convert(
+		from: <<Signature as sp_runtime::traits::Verify>::Signer as IdentifyAccount>::AccountId,
+	) -> [u8; 20] {
+		from.into()
+	}
+}
+
 impl liquid_staking::Config for Runtime {
 	type Event = Event;
 	type RelayCurrency = BalancesKsm;
 	type PalletId = LiquidStakingId;
+	type AccountKey20Convert = AccountKey20Convert;
 	type ToRelayChainBalance = NativeToRelay;
+	type RelayChainNetworkId = RelayNetwork;
 	type RelayChainAccountId = AccountId32;
 	type RelayChainProxyType = RelayProxyType;
 	type SovereignAccount = SovereignAccount;

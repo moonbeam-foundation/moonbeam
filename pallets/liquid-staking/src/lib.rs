@@ -55,6 +55,8 @@ pub mod pallet {
 
 	use substrate_fixed::types::U64F64;
 	use xcm::v0::prelude::*;
+
+	use xcm::v0::Junction;
 	use xcm_executor::traits::WeightBounds;
 
 	type BalanceOf<T> =
@@ -98,6 +100,8 @@ pub mod pallet {
 		/// XCM executor.
 		type CallEncoder: EncodeCall<Self>;
 
+		type RelayChainNetworkId: Get<NetworkId>;
+
 		type RelayChainProxyType: Parameter
 			+ Member
 			+ Ord
@@ -108,6 +112,8 @@ pub mod pallet {
 
 		/// XCM executor.
 		type XcmExecutor: ExecuteXcm<Self::Call>;
+
+		type AccountKey20Convert: Convert<Self::AccountId, [u8; 20]>;
 
 		/// XCM sender.
 		type XcmSender: SendXcm;
@@ -124,6 +130,7 @@ pub mod pallet {
 	pub enum AvailableCalls<T: Config> {
 		CreateAnonymusProxy(T::RelayChainProxyType, relay_chain::BlockNumber, u16),
 		BondThroughAnonymousProxy(T::RelayChainAccountId, relay_chain::Balance),
+		NominateThroughAnonymousProxy(T::RelayChainAccountId, Vec<T::RelayChainAccountId>),
 	}
 
 	pub trait EncodeCall<T: Config> {
@@ -167,11 +174,13 @@ pub mod pallet {
 		MyError,
 		WrongConversionU128ToBalance,
 		SendFailure,
+		ExecuteFailure,
 		Overflow,
 		NothingStakedToSetRatio,
 		NoRewardsAvailable,
 		UnstakingMoreThanStaked,
 		ProxyAlreadyCreated,
+		UnweighableMessage,
 	}
 
 	#[pallet::event]
@@ -182,9 +191,15 @@ pub mod pallet {
 			T::RelayChainAccountId,
 			BalanceOf<T>,
 		),
+		Nominated(
+			<T as frame_system::Config>::AccountId,
+			Vec<T::RelayChainAccountId>,
+		),
 		Unstaked(<T as frame_system::Config>::AccountId, BalanceOf<T>),
 		RatioSet(BalanceOf<T>, BalanceOf<T>),
 		NominationsSet(Vec<relay_chain::AccountId>),
+		TransferFailed(XcmError),
+		Transferred(),
 		XcmSent(MultiLocation, Xcm<()>),
 		ProxyCreated(T::AccountId, T::RelayChainAccountId),
 	}
@@ -234,6 +249,47 @@ pub mod pallet {
 		}
 
 		#[pallet::weight(0)]
+		pub fn nominate(
+			origin: OriginFor<T>,
+			proxy: T::RelayChainAccountId,
+			amount: BalanceOf<T>,
+			targets: Vec<T::RelayChainAccountId>,
+			dest_weight: Weight,
+		) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
+			// Stake bytes
+			let amount_as_u128 = amount.saturated_into::<u128>();
+
+			let nominate_bytes: Vec<u8> = T::CallEncoder::encode_call(
+				AvailableCalls::NominateThroughAnonymousProxy(proxy.clone(), targets.clone()),
+			);
+
+			// Construct messages
+			let message = Self::transact(
+				T::ToRelayChainBalance::convert(amount),
+				dest_weight,
+				nominate_bytes,
+			);
+
+			// Send xcm as root
+			Self::send_xcm(
+				MultiLocation::Null,
+				MultiLocation::X1(Parent),
+				message.clone(),
+			)
+			.map_err(|_| Error::<T>::SendFailure)?;
+
+			// Deposit event
+			Self::deposit_event(Event::<T>::XcmSent(MultiLocation::Null, message));
+
+			// Deposit event
+			Self::deposit_event(Event::<T>::Nominated(who.clone(), targets));
+
+			Ok(())
+		}
+
+		#[pallet::weight(0)]
 		pub fn create_proxy(
 			origin: OriginFor<T>,
 			proxy: T::RelayChainProxyType,
@@ -270,6 +326,66 @@ pub mod pallet {
 				who.clone(),
 				T::SovereignAccount::get(),
 			));
+
+			Ok(())
+		}
+
+		#[pallet::weight(0)]
+		pub fn send_tokens_to_relay(
+			origin: OriginFor<T>,
+			dest: T::RelayChainAccountId,
+			amount: BalanceOf<T>,
+			dest_weight: Weight,
+		) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+			let relay: AccountId32 = dest.into();
+			let buy_order = BuyExecution {
+				fees: All,
+				// Zero weight for additional XCM (since there are none to execute)
+				weight: dest_weight,
+				debt: dest_weight,
+				halt_on_error: false,
+				xcm: vec![],
+			};
+			let mut xcm: Xcm<T::Call> = Xcm::WithdrawAsset {
+				assets: vec![MultiAsset::ConcreteFungible {
+					id: MultiLocation::X1(Parent),
+					amount: T::ToRelayChainBalance::convert(amount),
+				}],
+				effects: vec![Order::InitiateReserveWithdraw {
+					assets: vec![MultiAsset::All],
+					reserve: MultiLocation::X1(Parent),
+					effects: vec![
+						buy_order,
+						Order::DepositAsset {
+							assets: vec![MultiAsset::All],
+							dest: MultiLocation::X1(Junction::AccountId32 {
+								network: T::RelayChainNetworkId::get(),
+								id: *relay.as_ref(),
+							}),
+						},
+					],
+				}],
+			};
+
+			let weight =
+				T::Weigher::weight(&mut xcm).map_err(|()| Error::<T>::UnweighableMessage)?;
+			let executor = MultiLocation::X1(Junction::AccountKey20 {
+				network: NetworkId::Any,
+				key: T::AccountKey20Convert::convert(who).clone(),
+			});
+			let outcome = T::XcmExecutor::execute_xcm_in_credit(executor, xcm, weight, weight);
+
+			let maybe_xcm_err: Option<XcmError> = match outcome {
+				Outcome::Complete(_w) => Option::None,
+				Outcome::Incomplete(_w, err) => Some(err),
+				Outcome::Error(err) => Some(err),
+			};
+			if let Some(xcm_err) = maybe_xcm_err {
+				Self::deposit_event(Event::<T>::TransferFailed(xcm_err));
+			} else {
+				Self::deposit_event(Event::<T>::Transferred());
+			}
 
 			Ok(())
 		}
