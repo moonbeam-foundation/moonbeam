@@ -59,6 +59,8 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 			testnet_genesis(
 				// Alith is Sudo
 				accounts[0],
+				// Council members: Baltathar, Charleth and Dorothy
+				vec![accounts[1], accounts[2], accounts[3]],
 				// Collator Candidate: Alice -> Alith
 				vec![(
 					accounts[0],
@@ -77,8 +79,10 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 		None,
 		None,
 		Some(
-			serde_json::from_str("{\"tokenDecimals\": 18, \"tokenSymbol\": \"UNIT\"}")
-				.expect("Provided valid json map"),
+			serde_json::from_str(
+				"{\"tokenDecimals\": 18, \"tokenSymbol\": \"UNIT\", \"SS58Prefix\": 1287}",
+			)
+			.expect("Provided valid json map"),
 		),
 		Extensions {
 			relay_chain: "dev-service".into(),
@@ -101,6 +105,12 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 			testnet_genesis(
 				// Alith is Sudo
 				AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
+				// Council members: Baltathar, Charleth and Dorothy
+				vec![
+					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
+					AccountId::from_str("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc").unwrap(),
+					AccountId::from_str("773539d4Ac0e786233D90A233654ccEE26a613D9").unwrap(),
+				],
 				// Collator Candidates
 				vec![
 					// Alice -> Alith
@@ -131,8 +141,10 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		None,
 		None,
 		Some(
-			serde_json::from_str("{\"tokenDecimals\": 18, \"tokenSymbol\": \"UNIT\"}")
-				.expect("Provided valid json map"),
+			serde_json::from_str(
+				"{\"tokenDecimals\": 18, \"tokenSymbol\": \"UNIT\", \"SS58Prefix\": 1287}",
+			)
+			.expect("Provided valid json map"),
 		),
 		Extensions {
 			relay_chain: "westend_testnet".into(),
@@ -164,6 +176,7 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 
 pub fn testnet_genesis(
 	root_key: AccountId,
+	council_members: Vec<AccountId>,
 	candidates: Vec<(AccountId, NimbusId, Balance)>,
 	nominations: Vec<(AccountId, AccountId, Balance)>,
 	endowed_accounts: Vec<AccountId>,
@@ -230,7 +243,7 @@ pub fn testnet_genesis(
 		},
 		council_collective: CouncilCollectiveConfig {
 			phantom: Default::default(),
-			members: vec![], // TODO : Set members
+			members: council_members,
 		},
 		tech_comittee_collective: TechComitteeCollectiveConfig {
 			phantom: Default::default(),
