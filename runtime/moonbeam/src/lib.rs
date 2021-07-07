@@ -847,7 +847,7 @@ runtime_common::impl_runtime_apis_plus_common! {
 						let tip = match xt.signature {
 							None => 0,
 							Some((_, _, signed_extra)) => {
-								// Yuck, this depends on the index of the charge transaction in this runtime's Signed Extra
+								// Yuck, this depends on the index of charge transaction in Signed Extra
 								let charge_transaction = signed_extra.6;
 								charge_transaction.tip()
 							}
@@ -861,7 +861,10 @@ runtime_common::impl_runtime_apis_plus_common! {
 						).saturated_into();
 
 						// Calculate how much gas this effectively uses according to the existing mapping
-						let effective_gas = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(dispatch_info.weight);
+						let effective_gas =
+							<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+								dispatch_info.weight
+							);
 
 						// Here we calculate an ethereum-style effective gas price using the
 						// current fee of the transaction
