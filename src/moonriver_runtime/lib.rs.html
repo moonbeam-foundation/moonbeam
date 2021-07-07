@@ -878,6 +878,18 @@
 <span id="875">875</span>
 <span id="876">876</span>
 <span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1355,13 +1367,25 @@
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxApprovals</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
 }
 
+<span class="kw">type</span> <span class="ident">TreasuryApproveOrigin</span> <span class="op">=</span> <span class="ident">EnsureOneOf</span><span class="op">&lt;</span>
+	<span class="ident">AccountId</span>,
+	<span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
+	<span class="ident">pallet_collective</span>::<span class="ident">EnsureProportionAtLeast</span><span class="op">&lt;</span><span class="ident">_3</span>, <span class="ident">_5</span>, <span class="ident">AccountId</span>, <span class="ident">CouncilInstance</span><span class="op">&gt;</span>,
+<span class="op">&gt;</span>;
+
+<span class="kw">type</span> <span class="ident">TreasuryRejectOrigin</span> <span class="op">=</span> <span class="ident">EnsureOneOf</span><span class="op">&lt;</span>
+	<span class="ident">AccountId</span>,
+	<span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
+	<span class="ident">pallet_collective</span>::<span class="ident">EnsureProportionMoreThan</span><span class="op">&lt;</span><span class="ident">_1</span>, <span class="ident">_2</span>, <span class="ident">AccountId</span>, <span class="ident">CouncilInstance</span><span class="op">&gt;</span>,
+<span class="op">&gt;</span>;
+
 <span class="kw">impl</span> <span class="ident">pallet_treasury</span>::<span class="ident">Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">PalletId</span> <span class="op">=</span> <span class="ident">TreasuryId</span>;
 	<span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
-	<span class="comment">// Democracy dispatches Root</span>
-	<span class="kw">type</span> <span class="ident">ApproveOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
-	<span class="comment">// Democracy dispatches Root</span>
-	<span class="kw">type</span> <span class="ident">RejectOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
+	<span class="comment">// At least three-fifths majority of the council is required (or root) to approve a proposal</span>
+	<span class="kw">type</span> <span class="ident">ApproveOrigin</span> <span class="op">=</span> <span class="ident">TreasuryApproveOrigin</span>;
+	<span class="comment">// More than half of the council is required (or root) to reject a proposal</span>
+	<span class="kw">type</span> <span class="ident">RejectOrigin</span> <span class="op">=</span> <span class="ident">TreasuryRejectOrigin</span>;
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="comment">// If spending proposal rejected, transfer proposer bond to treasury</span>
 	<span class="kw">type</span> <span class="ident">OnSlash</span> <span class="op">=</span> <span class="ident">Treasury</span>;
