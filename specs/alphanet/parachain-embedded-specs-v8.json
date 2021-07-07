@@ -11,7 +11,8 @@
   ],
   "protocolId": null,
   "properties": {
-    "tokenDecimals": 18
+    "tokenDecimals": 18,
+    "tokenSymbol": "UNIT"
   },
   "relayChain": "westend_moonbase_relay_testnet",
   "paraId": 1000,

@@ -131,7 +131,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 0154,
+	spec_version: 0155,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -172,10 +172,7 @@ parameter_types! {
 	/// We allow for 5 MB blocks.
 	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
 		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
-
-	/// TODO: Changes to 1285 once https://github.com/paritytech/substrate/pull/8955 is included
-	/// in our branch. 49 is currently not used and keys should be generated with -n substrate
-	pub const SS58Prefix: u8 = 49;
+	pub const SS58Prefix: u16 = 1285;
 }
 
 impl frame_system::Config for Runtime {
@@ -411,7 +408,7 @@ parameter_types! {
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
 	pub const PreimageByteDeposit: Balance = currency::BYTE_FEE;
-	pub const InstantAllowed: bool = false;
+	pub const InstantAllowed: bool = true;
 }
 
 impl pallet_democracy::Config for Runtime {
@@ -561,14 +558,17 @@ parameter_types! {
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
 	/// Default percent of inflation set aside for parachain bond every round
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
-	/// Minimum stake required to be reserved to be a collator is 1_000
+	/// Minimum stake required to become a collator is 1_000
 	pub const MinCollatorStk: u128 = 1 * currency::KILOMOVR;
+	/// Minimum stake required to be reserved to be a candidate is 100
+	pub const MinCollatorCandidateStk: u128 = 100 * currency::MOVR;
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5 * currency::MOVR;
 }
 impl parachain_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
+	type MonetaryGovernanceOrigin = EnsureRoot<AccountId>;
 	type MinBlocksPerRound = MinBlocksPerRound;
 	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type BondDuration = BondDuration;
@@ -578,7 +578,7 @@ impl parachain_staking::Config for Runtime {
 	type DefaultCollatorCommission = DefaultCollatorCommission;
 	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	type MinCollatorStk = MinCollatorStk;
-	type MinCollatorCandidateStk = MinCollatorStk;
+	type MinCollatorCandidateStk = MinCollatorCandidateStk;
 	type MinNomination = MinNominatorStk;
 	type MinNominatorStk = MinNominatorStk;
 	type WeightInfo = parachain_staking::weights::SubstrateWeight<Runtime>;

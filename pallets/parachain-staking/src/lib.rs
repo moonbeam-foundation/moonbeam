@@ -21,7 +21,7 @@
 //! This is different from `frame/pallet-staking` where you approval vote and then run Phragmen.
 //!
 //! ### Rules
-//! There is a new round every `BlocksPerRound` blocks.
+//! There is a new round every `<Round<T>>::get().length` blocks.
 //!
 //! At the start of every round,
 //! * issuance is distributed to collators for `BondDuration` rounds ago
@@ -29,21 +29,20 @@
 //! * queued collator exits are executed
 //! * a new set of collators is chosen from the candidates
 //!
-//! To join the set of candidates, an account must call `join_candidates` with
-//! stake >= `MinCollatorCandidateStk` and fee <= `MaxFee`. The fee is taken off the top
-//! of any rewards for the collator before the remaining rewards are distributed
-//! in proportion to stake to all nominators (including the collator, who always
-//! self-nominates).
+//! To join the set of candidates, call `join_candidates` with `bond >= MinCollatorCandidateStk`.
 //!
-//! To leave the set of candidates, the collator calls `leave_candidates`. If the call succeeds,
+//! To leave the set of candidates, call `leave_candidates`. If the call succeeds,
 //! the collator is removed from the pool of candidates so they cannot be selected for future
 //! collator sets, but they are not unstaked until `BondDuration` rounds later. The exit request is
 //! stored in the `ExitQueue` and processed `BondDuration` rounds later to unstake the collator
-//! and all of its nominators.
+//! and all of its nominations.
 //!
-//! To join the set of nominators, an account must call `join_nominators` with
-//! stake >= `MinNominatorStk`. There are also runtime methods for nominating additional collators
-//! and revoking nominations.
+//! To join the set of nominators, call `nominate` and pass in an account that is
+//! already a collator candidate and `bond >= MinNominatorStk`. Each nominator can nominate up to
+//! `T::MaxCollatorsPerNominator` collator candidates by calling `nominate`.
+//!
+//! To revoke a nomination, call `revoke_nomination` with the collator candidate's account.
+//! To leave the set of nominators and revoke all nominations, call `leave_nominators`.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -608,6 +607,8 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The currency type
 		type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
+		/// The origin for monetary governance
+		type MonetaryGovernanceOrigin: EnsureOrigin<Self::Origin>;
 		/// Minimum number of blocks per round
 		type MinBlocksPerRound: Get<u32>;
 		/// Default number of blocks per round at genesis
@@ -986,7 +987,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			expectations: Range<BalanceOf<T>>,
 		) -> DispatchResultWithPostInfo {
-			frame_system::ensure_root(origin)?;
+			T::MonetaryGovernanceOrigin::ensure_origin(origin)?;
 			ensure!(expectations.is_valid(), Error::<T>::InvalidSchedule);
 			let mut config = <InflationConfig<T>>::get();
 			ensure!(
@@ -1008,7 +1009,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			schedule: Range<Perbill>,
 		) -> DispatchResultWithPostInfo {
-			frame_system::ensure_root(origin)?;
+			T::MonetaryGovernanceOrigin::ensure_origin(origin)?;
 			ensure!(schedule.is_valid(), Error::<T>::InvalidSchedule);
 			let mut config = <InflationConfig<T>>::get();
 			ensure!(config.annual != schedule, Error::<T>::NoWritingSameValue);
@@ -1031,7 +1032,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			new: T::AccountId,
 		) -> DispatchResultWithPostInfo {
-			frame_system::ensure_root(origin)?;
+			T::MonetaryGovernanceOrigin::ensure_origin(origin)?;
 			let ParachainBondConfig {
 				account: old,
 				percent,
@@ -1050,7 +1051,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			new: Percent,
 		) -> DispatchResultWithPostInfo {
-			frame_system::ensure_root(origin)?;
+			T::MonetaryGovernanceOrigin::ensure_origin(origin)?;
 			let ParachainBondConfig {
 				account,
 				percent: old,

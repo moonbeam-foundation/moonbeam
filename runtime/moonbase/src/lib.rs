@@ -77,20 +77,20 @@ pub use sp_runtime::BuildStorage;
 
 pub type Precompiles = MoonbasePrecompiles<Runtime>;
 
-/// UNITS, the native token, uses 18 decimals of precision.
+/// UNIT, the native token, uses 18 decimals of precision.
 pub mod currency {
 	use super::Balance;
 
-	pub const UNITS: Balance = 1_000_000_000_000_000_000;
-	pub const KILOUNITS: Balance = UNITS * 1_000;
-	pub const MILLIUNITS: Balance = UNITS / 1_000;
-	pub const MICROUNITS: Balance = MILLIUNITS / 1_000;
-	pub const NANOUNITS: Balance = MICROUNITS / 1_000;
+	pub const UNIT: Balance = 1_000_000_000_000_000_000;
+	pub const KILOUNIT: Balance = UNIT * 1_000;
+	pub const MILLIUNIT: Balance = UNIT / 1_000;
+	pub const MICROUNIT: Balance = MILLIUNIT / 1_000;
+	pub const NANOUNIT: Balance = MICROUNIT / 1_000;
 
-	pub const BYTE_FEE: Balance = 100 * MICROUNITS;
+	pub const BYTE_FEE: Balance = 100 * MICROUNIT;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 1 * UNITS + (bytes as Balance) * BYTE_FEE
+		items as Balance * 1 * UNIT + (bytes as Balance) * BYTE_FEE
 	}
 }
 
@@ -128,7 +128,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 3,
-	spec_version: 0153,
+	spec_version: 0155,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -151,11 +151,11 @@ parameter_types! {
 	/// We allow for one half second of compute with a 6 second average block time.
 	/// These values are dictated by Polkadot for the parachain.
 	pub BlockWeights: frame_system::limits::BlockWeights = frame_system::limits::BlockWeights
-		::with_sensible_defaults(WEIGHT_PER_SECOND / 2, NORMAL_DISPATCH_RATIO);
+		::with_sensible_defaults(MAXIMUM_BLOCK_WEIGHT, NORMAL_DISPATCH_RATIO);
 	/// We allow for 5 MB blocks.
 	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
 		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
-	pub const SS58Prefix: u8 = 42;
+	pub const SS58Prefix: u16 = 1287;
 }
 
 impl frame_system::Config for Runtime {
@@ -303,7 +303,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		(1 * currency::NANOUNITS).into()
+		(1 * currency::NANOUNIT).into()
 	}
 }
 
@@ -387,11 +387,11 @@ parameter_types! {
 	pub const FastTrackVotingPeriod: BlockNumber = 4 * HOURS;
 	pub const EnactmentPeriod: BlockNumber = 1 *DAYS;
 	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
-	pub const MinimumDeposit: Balance = 4 * currency::UNITS;
+	pub const MinimumDeposit: Balance = 4 * currency::UNIT;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
 	pub const PreimageByteDeposit: Balance = currency::BYTE_FEE;
-	pub const InstantAllowed: bool = false;
+	pub const InstantAllowed: bool = true;
 }
 
 impl pallet_democracy::Config for Runtime {
@@ -451,7 +451,7 @@ impl pallet_democracy::Config for Runtime {
 
 parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
-	pub const ProposalBondMinimum: Balance = 1 * currency::UNITS;
+	pub const ProposalBondMinimum: Balance = 1 * currency::UNIT;
 	pub const SpendPeriod: BlockNumber = 6 * DAYS;
 	pub const TreasuryId: PalletId = PalletId(*b"pc/trsry");
 	pub const MaxApprovals: u32 = 100;
@@ -541,14 +541,17 @@ parameter_types! {
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
 	/// Default percent of inflation set aside for parachain bond every round
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
-	/// Minimum stake required to be reserved to be a collator is 1_000
-	pub const MinCollatorStk: u128 = 1 * currency::KILOUNITS;
+	/// Minimum stake required to become a collator is 1_000
+	pub const MinCollatorStk: u128 = 1 * currency::KILOUNIT;
+	/// Minimum stake required to be reserved to be a candidate is 100
+	pub const MinCollatorCandidateStk: u128 = 100 * currency::UNIT;
 	/// Minimum stake required to be reserved to be a nominator is 5
-	pub const MinNominatorStk: u128 = 5 * currency::UNITS;
+	pub const MinNominatorStk: u128 = 5 * currency::UNIT;
 }
 impl parachain_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
+	type MonetaryGovernanceOrigin = EnsureRoot<AccountId>;
 	type MinBlocksPerRound = MinBlocksPerRound;
 	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type BondDuration = BondDuration;
@@ -558,7 +561,7 @@ impl parachain_staking::Config for Runtime {
 	type DefaultCollatorCommission = DefaultCollatorCommission;
 	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	type MinCollatorStk = MinCollatorStk;
-	type MinCollatorCandidateStk = MinCollatorStk;
+	type MinCollatorCandidateStk = MinCollatorCandidateStk;
 	type MinNomination = MinNominatorStk;
 	type MinNominatorStk = MinNominatorStk;
 	type WeightInfo = parachain_staking::weights::SubstrateWeight<Runtime>;
@@ -598,7 +601,7 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 }
 
 parameter_types! {
-	pub const DepositAmount: Balance = 100 * currency::UNITS;
+	pub const DepositAmount: Balance = 100 * currency::UNIT;
 }
 // This is a simple session key manager. It should probably either work with, or be replaced
 // entirely by pallet sessions
