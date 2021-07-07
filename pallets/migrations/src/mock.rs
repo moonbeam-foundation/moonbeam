@@ -78,6 +78,15 @@ impl frame_system::Config for Test {
 	type OnSetCode = ();
 }
 
+/// MockMigrationManager stores the test-side callbacks/closures used in the Migrations list glue.
+/// It is is expected to exist as a singleton, but only remain relevant within the scope of a test.
+/// 
+/// Tests should use execute_with_mock_migrations(), which will create a MockMigrationManager and
+/// provide it to the test.
+/// 
+/// A pair of callbacks provided to register_callback() will map directly to a single instance of
+/// Migration (done by the MockMigration glue below). Treat each pair of callbacks as though it were
+/// a custom implementation of the Migration trait just as a normal Pallet would.
 #[derive(Default)]
 pub struct MockMigrationManager<'test> {
 	name_fn_callbacks: Vec<Box<dyn 'test + FnMut() -> &'static str>>,
@@ -85,7 +94,7 @@ pub struct MockMigrationManager<'test> {
 }
 
 impl<'test> MockMigrationManager<'test> {
-	pub fn registerCallback<FN, FS>(&mut self, name_fn: FN, step_fn: FS)
+	pub fn register_callback<FN, FS>(&mut self, name_fn: FN, step_fn: FS)
 	where
 		FN: 'test + FnMut() -> &'static str,
 		FS: 'test + FnMut(Perbill, Weight) -> (Perbill, Weight),
@@ -112,8 +121,14 @@ impl<'test> MockMigrationManager<'test> {
 		migrations
 	}
 }
+
+// Our global Migrations list. Necessary because the Get impl must be fulfilled with nothing but
+// a static context.
 environmental!(MOCK_MIGRATIONS_LIST: MockMigrationManager<'static>);
 
+/// Utility method for tests to implement their logic with a pre-generated MockMigrationManager.
+/// This helps avoid lifetime issues between the implied 'static lifetime of MOCK_MIGRATIONS_LIST
+/// and the function-scoped lifetimes of closures used in tests.
 pub fn execute_with_mock_migrations<CB>(callback: &mut CB)
 where
 	CB: FnMut(&mut MockMigrationManager)
@@ -153,6 +168,9 @@ pub struct MockMigration {
 	pub index: usize,
 }
 
+/// The implementation of Migration for our glue: MockMigration contains nothing more than an index
+/// which is used inside of the callbacks at runtime to look up our global callbacks stored in
+/// MOCK_MIGRATIONS_LIST and invoke those.
 impl Migration for MockMigration {
 	fn friendly_name(&self) -> &str {
 		let mut result: &str = "";
@@ -170,6 +188,8 @@ impl Migration for MockMigration {
 	}
 }
 
+/// Implementation of Migrations. Generates a Vec of MockMigrations on the fly based on the current
+/// contents of MOCK_MIGRATIONS_LIST. 
 pub struct MockMigrations;
 impl Get<Vec<Box<dyn Migration>>> for MockMigrations {
 	fn get() -> Vec<Box<dyn Migration>> {

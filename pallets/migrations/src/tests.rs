@@ -43,7 +43,7 @@ fn mock_migrations_static_hack_works() {
 		let name_fn_called = Arc::clone(&name_fn_called);
 		let step_fn_called = Arc::clone(&step_fn_called);
 
-		mgr.registerCallback(
+		mgr.register_callback(
 			move || {
 				*name_fn_called.lock().unwrap() = true;
 				"hello, world"
@@ -89,7 +89,7 @@ fn step_called_until_done() {
 	crate::mock::execute_with_mock_migrations(&mut |mgr: &mut MockMigrationManager| {
 		let num_step_calls = Arc::clone(&num_step_calls);
 
-		mgr.registerCallback(
+		mgr.register_callback(
 			move || {
 				"migration1"
 			},
