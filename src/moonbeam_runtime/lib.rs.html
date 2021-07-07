@@ -860,6 +860,7 @@
 <span id="857">857</span>
 <span id="858">858</span>
 <span id="859">859</span>
+<span id="860">860</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1466,16 +1467,17 @@
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinimumReward</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">0</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">Initialized</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="bool-val">false</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">InitializationPayment</span>: <span class="ident">Perbill</span> <span class="op">=</span> <span class="ident">Perbill</span>::<span class="ident">from_percent</span>(<span class="number">30</span>);
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxInitContributorsBatchSizes</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1000</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">pallet_crowdloan_rewards</span>::<span class="ident">Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">Initialized</span> <span class="op">=</span> <span class="ident">Initialized</span>;
 	<span class="kw">type</span> <span class="ident">InitializationPayment</span> <span class="op">=</span> <span class="ident">InitializationPayment</span>;
+	<span class="kw">type</span> <span class="ident">MaxInitContributors</span> <span class="op">=</span> <span class="ident">MaxInitContributorsBatchSizes</span>;
 	<span class="kw">type</span> <span class="ident">MinimumReward</span> <span class="op">=</span> <span class="ident">MinimumReward</span>;
 	<span class="kw">type</span> <span class="ident">RewardCurrency</span> <span class="op">=</span> <span class="ident">Balances</span>;
 	<span class="kw">type</span> <span class="ident">RelayChainAccountId</span> <span class="op">=</span> <span class="ident">AccountId32</span>;
-	<span class="kw">type</span> <span class="ident">VestingPeriod</span> <span class="op">=</span> <span class="ident">VestingPeriod</span>;
 }
 
 <span class="macro">parameter_types</span><span class="macro">!</span> {
