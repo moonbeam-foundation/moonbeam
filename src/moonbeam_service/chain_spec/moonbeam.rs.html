@@ -295,6 +295,10 @@
 <span id="292">292</span>
 <span id="293">293</span>
 <span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -374,8 +378,10 @@
 		<span class="prelude-val">None</span>,
 		<span class="prelude-val">None</span>,
 		<span class="prelude-val">Some</span>(
-			<span class="ident">serde_json</span>::<span class="ident">from_str</span>(<span class="string">&quot;{\&quot;tokenDecimals\&quot;: 18, \&quot;tokenSymbol\&quot;: \&quot;GLMR\&quot;}&quot;</span>)
-				.<span class="ident">expect</span>(<span class="string">&quot;Provided valid json map&quot;</span>),
+			<span class="ident">serde_json</span>::<span class="ident">from_str</span>(
+				<span class="string">&quot;{\&quot;tokenDecimals\&quot;: 18, \&quot;tokenSymbol\&quot;: \&quot;GLMR\&quot;, \&quot;SS58Prefix\&quot;: 1284}&quot;</span>,
+			)
+			.<span class="ident">expect</span>(<span class="string">&quot;Provided valid json map&quot;</span>),
 		),
 		<span class="ident">Extensions</span> {
 			<span class="ident">relay_chain</span>: <span class="string">&quot;dev-service&quot;</span>.<span class="ident">into</span>(),
@@ -428,8 +434,10 @@
 		<span class="prelude-val">None</span>,
 		<span class="prelude-val">None</span>,
 		<span class="prelude-val">Some</span>(
-			<span class="ident">serde_json</span>::<span class="ident">from_str</span>(<span class="string">&quot;{\&quot;tokenDecimals\&quot;: 18, \&quot;tokenSymbol\&quot;: \&quot;GLMR\&quot;}&quot;</span>)
-				.<span class="ident">expect</span>(<span class="string">&quot;Provided valid json map&quot;</span>),
+			<span class="ident">serde_json</span>::<span class="ident">from_str</span>(
+				<span class="string">&quot;{\&quot;tokenDecimals\&quot;: 18, \&quot;tokenSymbol\&quot;: \&quot;GLMR\&quot;, \&quot;SS58Prefix\&quot;: 1284}&quot;</span>,
+			)
+			.<span class="ident">expect</span>(<span class="string">&quot;Provided valid json map&quot;</span>),
 		),
 		<span class="ident">Extensions</span> {
 			<span class="ident">relay_chain</span>: <span class="string">&quot;polkadot-local&quot;</span>.<span class="ident">into</span>(),

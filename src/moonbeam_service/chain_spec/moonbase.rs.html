@@ -305,6 +305,10 @@
 <span id="302">302</span>
 <span id="303">303</span>
 <span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -387,8 +391,10 @@
 		<span class="prelude-val">None</span>,
 		<span class="prelude-val">None</span>,
 		<span class="prelude-val">Some</span>(
-			<span class="ident">serde_json</span>::<span class="ident">from_str</span>(<span class="string">&quot;{\&quot;tokenDecimals\&quot;: 18, \&quot;tokenSymbol\&quot;: \&quot;UNIT\&quot;}&quot;</span>)
-				.<span class="ident">expect</span>(<span class="string">&quot;Provided valid json map&quot;</span>),
+			<span class="ident">serde_json</span>::<span class="ident">from_str</span>(
+				<span class="string">&quot;{\&quot;tokenDecimals\&quot;: 18, \&quot;tokenSymbol\&quot;: \&quot;UNIT\&quot;, \&quot;SS58Prefix\&quot;: 1287}&quot;</span>,
+			)
+			.<span class="ident">expect</span>(<span class="string">&quot;Provided valid json map&quot;</span>),
 		),
 		<span class="ident">Extensions</span> {
 			<span class="ident">relay_chain</span>: <span class="string">&quot;dev-service&quot;</span>.<span class="ident">into</span>(),
@@ -447,8 +453,10 @@
 		<span class="prelude-val">None</span>,
 		<span class="prelude-val">None</span>,
 		<span class="prelude-val">Some</span>(
-			<span class="ident">serde_json</span>::<span class="ident">from_str</span>(<span class="string">&quot;{\&quot;tokenDecimals\&quot;: 18, \&quot;tokenSymbol\&quot;: \&quot;UNIT\&quot;}&quot;</span>)
-				.<span class="ident">expect</span>(<span class="string">&quot;Provided valid json map&quot;</span>),
+			<span class="ident">serde_json</span>::<span class="ident">from_str</span>(
+				<span class="string">&quot;{\&quot;tokenDecimals\&quot;: 18, \&quot;tokenSymbol\&quot;: \&quot;UNIT\&quot;, \&quot;SS58Prefix\&quot;: 1287}&quot;</span>,
+			)
+			.<span class="ident">expect</span>(<span class="string">&quot;Provided valid json map&quot;</span>),
 		),
 		<span class="ident">Extensions</span> {
 			<span class="ident">relay_chain</span>: <span class="string">&quot;westend_testnet&quot;</span>.<span class="ident">into</span>(),
