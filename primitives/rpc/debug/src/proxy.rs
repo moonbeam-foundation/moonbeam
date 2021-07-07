@@ -37,26 +37,35 @@ use codec::{Decode, Encode};
 use ethereum_types::{H256, U256};
 use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
+/// Main trait to proxy emitted messages.
 pub trait Listener {
 	fn event(&mut self, event: Event);
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 pub enum Event {
+	/// Opcode-level trace event.
 	RawStep(RawStepLog),
+	/// Final gas used event.
 	RawGas(U256),
+	/// EVM execution return value.
 	RawReturnValue(Vec<u8>),
+	/// An internal EVM Call for a single call-stack.
 	CallListEntry((u32, Call)),
+	/// A new call-stack.
 	CallListNew(),
 }
 
 impl Event {
+	/// Access the global reference and call it's `event` method, passing the `Event` itself as
+	/// argument.
+	///
+	/// This only works if we are `using` a global reference to a `Listener` implementor.
 	pub fn emit(self) {
 		listener::with(|listener| listener.event(self));
 	}
 }
 
-// Raw
 #[derive(Debug)]
 pub struct RawProxy {
 	gas: U256,
@@ -72,11 +81,15 @@ impl RawProxy {
 			step_logs: Vec::new(),
 		}
 	}
-
+	/// In the RPC handler context, `F` wraps a Runtime Api call.
+	///
+	/// With `using`, the Runtime Api is called with thread safe/local access to the mutable
+	/// reference of `self`.
 	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) {
 		listener::using(self, f);
 	}
 
+	/// Format the RPC output.
 	pub fn into_tx_trace(self) -> SingleTrace {
 		SingleTrace::Raw {
 			step_logs: self.step_logs,
@@ -109,10 +122,15 @@ impl CallListProxy {
 			entries: Vec::new(),
 		}
 	}
+	/// In the RPC handler context, `F` wraps a Runtime Api call.
+	///
+	/// With `using`, the Runtime Api is called with thread safe/local access to the mutable
+	/// reference of `self`.
 	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) {
 		listener::using(self, f);
 	}
 
+	/// Format the RPC output of a single call-stack.
 	pub fn into_tx_trace(self) -> SingleTrace {
 		SingleTrace::CallList(
 			self.entries
@@ -124,6 +142,8 @@ impl CallListProxy {
 		)
 	}
 
+	/// Format the RPC output for multiple transactions. Each call-stack represents a single
+	/// transaction/EVM execution.
 	pub fn into_tx_traces(self) -> Vec<BlockTrace> {
 		let mut traces = Vec::new();
 		for (eth_tx_index, entry) in self.entries.iter().enumerate() {
