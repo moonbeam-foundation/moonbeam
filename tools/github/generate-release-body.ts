@@ -1,5 +1,7 @@
 import { execSync } from "child_process";
 import { readFileSync } from "fs";
+import yargs from "yargs";
+import path from "path";
 
 function capitalize(s) {
   return s[0].toUpperCase() + s.slice(1);
@@ -27,29 +29,54 @@ function getCompareLink(packageName: string, previousTag: string, newTag: string
   return diffLink;
 }
 
-function getRuntimeInfo(runtimeName: string) {
+function getRuntimeInfo(srtoolReportFolder: string, runtimeName: string) {
   const specVersion = execSync(
     `cat ../runtime/${runtimeName}/src/lib.rs | grep 'spec_version: [0-9]*' | tail -1`
   ).toString();
   return {
     name: runtimeName,
     version: /:\s?([0-9A-z\-]*)/.exec(specVersion)[1],
-    srtool: JSON.parse(readFileSync(`../${runtimeName}_srtool_output.json`).toString()),
+    srtool: JSON.parse(
+      readFileSync(path.join(srtoolReportFolder, `./${runtimeName}-srtool-digest.json`)).toString()
+    ),
   };
 }
 
 const main = () => {
-  const lastTags = execSync(
-    'git tag | grep "v[0-9]*.[0-9]*.[0-9]*$" | sort -t "." -k1,1n -k2,2n -k3,3n | tail -2'
-  )
-    .toString()
-    .split("\n");
+  const argv = yargs(process.argv.slice(2))
+    .usage("Usage: npm run ts-node github/generate-release-body.ts [args]")
+    .version("1.0.0")
+    .options({
+      "srtool-report-folder": {
+        type: "string",
+        describe: "folder which contains <runtime>-srtool-digest.json",
+        required: true,
+      },
+      tag: {
+        type: "string",
+        describe: "current tag to draft",
+        required: true,
+      },
+    })
+    .demandOption(["srtool-report-folder"])
+    .help().argv;
+
+  const command =
+    `git tag | grep "^v[0-9]*.[0-9]*.[0-9]*$" |` +
+    `sort -t "." -k1,1n -k2,2n -k3,3n | grep -B 1 "${argv.tag.replace(".", ".")}"`;
+
+  const lastTags = execSync(command).toString().split("\n");
 
   const previousTag = lastTags[0];
   const newTag = lastTags[1];
 
+  if (!previousTag || !newTag) {
+    console.log(`Couldn't retrieve tags from`, execSync(command).toString().replace(/\n/g, ", "));
+    process.exit(1);
+  }
+
   const runtimes = ["moonbase", "moonshadow", "moonriver", "moonbeam"].map((runtimeName) =>
-    getRuntimeInfo(runtimeName)
+    getRuntimeInfo(argv["srtool-report-folder"], runtimeName)
   );
   const moduleLinks = ["substrate", "polkadot", "cumulus", "frontier"].map((repoName) => ({
     name: repoName,
@@ -68,16 +95,16 @@ ${runtimes
     (runtime) => `### ${capitalize(runtime.name)}
 
 * spec_version: ${runtime.version}
-* sha256: ${runtime.srtool.sha256}
-* size: ${runtime.srtool.size}
-* proposal: ${runtime.srtool.prop}
+* sha256: ${runtime.srtool.runtimes.compact.sha256}
+* size: ${runtime.srtool.runtimes.compact.size}
+* proposal: ${runtime.srtool.runtimes.compact.prop}
 `
   )
   .join(`\n\n`)}
 
 ## Build information
 
-WASM runtime built using \`${runtimes[0].srtool.rustc}\`
+WASM runtime built using \`${runtimes[0]?.srtool.info.rustc}\`
 
 ## Changes
 

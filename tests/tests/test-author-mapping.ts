@@ -29,13 +29,13 @@ async function getMappingInfo(
 describeDevMoonbeam("Author Mapping - simple association", (context) => {
   it("should match genesis state", async function () {
     expect((await getMappingInfo(context, aliceAuthorId)).account).to.eq(ALITH);
-    expect((await getMappingInfo(context, aliceAuthorId)).deposit).to.eq("100.0000 Unit");
+    expect((await getMappingInfo(context, aliceAuthorId)).deposit).to.eq("100.0000 UNIT");
     expect(await getMappingInfo(context, bobAuthorId)).to.eq(null);
     expect((await context.polkadotApi.query.system.account(ALITH)).data.free.toHuman()).to.eq(
-      "1.2078 MUnit"
+      "1.2078 MUNIT"
     );
     expect((await context.polkadotApi.query.system.account(ALITH)).data.reserved.toHuman()).to.eq(
-      "1.1000 kUnit"
+      "1.1000 kUNIT"
     );
   });
   it("should succeed in adding an association", async function () {
@@ -47,10 +47,10 @@ describeDevMoonbeam("Author Mapping - simple association", (context) => {
     await context.createBlock();
     expect((await getMappingInfo(context, bobAuthorId)).account).to.eq(ALITH);
     expect((await context.polkadotApi.query.system.account(ALITH)).data.free.toHuman()).to.eq(
-      "1.2077 MUnit"
+      "1.2077 MUNIT"
     );
     expect((await context.polkadotApi.query.system.account(ALITH)).data.reserved.toHuman()).to.eq(
-      "1.2000 kUnit"
+      "1.2000 kUNIT"
     );
   });
   it("should check events", async function () {
@@ -105,7 +105,7 @@ describeDevMoonbeam("Author Mapping - Fail to reassociate alice", (context) => {
     await context.polkadotApi.tx.authorMapping.addAssociation(aliceAuthorId).signAndSend(baltathar);
     await context.createBlock();
     expect((await context.polkadotApi.query.system.account(BALTATHAR)).data.free.toHuman()).to.eq(
-      "1.2089 MUnit"
+      "1.2089 MUNIT"
     );
     expect(
       (await context.polkadotApi.query.system.account(BALTATHAR)).data.reserved.toHuman()
@@ -223,10 +223,10 @@ describeDevMoonbeam("Author Mapping - double registration", (context) => {
     await context.createBlock();
     expect((await getMappingInfo(context, bobAuthorId)).account).to.eq(ALITH);
     expect((await context.polkadotApi.query.system.account(ALITH)).data.free.toHuman()).to.eq(
-      "1.2077 MUnit"
+      "1.2077 MUNIT"
     );
     expect((await context.polkadotApi.query.system.account(ALITH)).data.reserved.toHuman()).to.eq(
-      "1.2000 kUnit"
+      "1.2000 kUNIT"
     );
   });
   it("should associate with charlie, although already associated with bob", async function () {
@@ -240,10 +240,10 @@ describeDevMoonbeam("Author Mapping - double registration", (context) => {
     expect((await getMappingInfo(context, charlieAuthorId)).account).to.eq(ALITH);
     expect((await getMappingInfo(context, bobAuthorId)).account).to.eq(ALITH);
     expect((await context.polkadotApi.query.system.account(ALITH)).data.free.toHuman()).to.eq(
-      "1.2076 MUnit"
+      "1.2076 MUNIT"
     );
     expect((await context.polkadotApi.query.system.account(ALITH)).data.reserved.toHuman()).to.eq(
-      "1.3000 kUnit"
+      "1.3000 kUNIT"
     );
   });
 });

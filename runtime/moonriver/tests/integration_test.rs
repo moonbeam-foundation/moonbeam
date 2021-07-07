@@ -22,13 +22,176 @@ mod common;
 use common::*;
 
 use evm::{executor::PrecompileOutput, Context, ExitSucceed};
-use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable, traits::fungible::Inspect};
+use frame_support::{
+	assert_noop, assert_ok,
+	dispatch::Dispatchable,
+	traits::{fungible::Inspect, PalletInfo, StorageInfo, StorageInfoTrait},
+	StorageHasher, Twox128,
+};
+use moonriver_runtime::Precompiles;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
-use parachain_staking::Bond;
-use precompiles::MoonbeamPrecompiles;
+use parachain_staking::{Bond, NominatorAdded};
 use sp_core::{Public, H160, U256};
 use sp_runtime::DispatchError;
+
+#[test]
+fn fast_track_available() {
+	assert!(<moonriver_runtime::Runtime as pallet_democracy::Config>::InstantAllowed::get());
+}
+
+#[test]
+fn verify_pallet_prefixes() {
+	fn is_pallet_prefix<P: 'static>(name: &str) {
+		// Compares the unhashed pallet prefix in the `StorageInstance` implementation by every
+		// storage item in the pallet P. This pallet prefix is used in conjunction with the
+		// item name to get the unique storage key: hash(PalletPrefix) + hash(StorageName)
+		// https://github.com/paritytech/substrate/blob/master/frame/support/procedural/src/pallet/
+		// expand/storage.rs#L389-L401
+		assert_eq!(
+			<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::name::<P>(),
+			Some(name)
+		);
+	}
+	// TODO: use StorageInfoTrait once https://github.com/paritytech/substrate/pull/9246
+	// is pulled in substrate deps.
+	is_pallet_prefix::<moonriver_runtime::System>("System");
+	is_pallet_prefix::<moonriver_runtime::Utility>("Utility");
+	is_pallet_prefix::<moonriver_runtime::RandomnessCollectiveFlip>("RandomnessCollectiveFlip");
+	is_pallet_prefix::<moonriver_runtime::ParachainSystem>("ParachainSystem");
+	is_pallet_prefix::<moonriver_runtime::TransactionPayment>("TransactionPayment");
+	is_pallet_prefix::<moonriver_runtime::ParachainInfo>("ParachainInfo");
+	is_pallet_prefix::<moonriver_runtime::EthereumChainId>("EthereumChainId");
+	is_pallet_prefix::<moonriver_runtime::EVM>("EVM");
+	is_pallet_prefix::<moonriver_runtime::Ethereum>("Ethereum");
+	is_pallet_prefix::<moonriver_runtime::ParachainStaking>("ParachainStaking");
+	is_pallet_prefix::<moonriver_runtime::Scheduler>("Scheduler");
+	is_pallet_prefix::<moonriver_runtime::Democracy>("Democracy");
+	is_pallet_prefix::<moonriver_runtime::CouncilCollective>("CouncilCollective");
+	is_pallet_prefix::<moonriver_runtime::TechComitteeCollective>("TechComitteeCollective");
+	is_pallet_prefix::<moonriver_runtime::Treasury>("Treasury");
+	is_pallet_prefix::<moonriver_runtime::AuthorInherent>("AuthorInherent");
+	is_pallet_prefix::<moonriver_runtime::AuthorFilter>("AuthorFilter");
+	is_pallet_prefix::<moonriver_runtime::CrowdloanRewards>("CrowdloanRewards");
+	is_pallet_prefix::<moonriver_runtime::AuthorMapping>("AuthorMapping");
+	let prefix = |pallet_name, storage_name| {
+		let mut res = [0u8; 32];
+		res[0..16].copy_from_slice(&Twox128::hash(pallet_name));
+		res[16..32].copy_from_slice(&Twox128::hash(storage_name));
+		res
+	};
+	assert_eq!(
+		<moonriver_runtime::Timestamp as StorageInfoTrait>::storage_info(),
+		vec![
+			StorageInfo {
+				prefix: prefix(b"Timestamp", b"Now"),
+				max_values: Some(1),
+				max_size: Some(8),
+			},
+			StorageInfo {
+				prefix: prefix(b"Timestamp", b"DidUpdate"),
+				max_values: Some(1),
+				max_size: Some(1),
+			}
+		]
+	);
+	assert_eq!(
+		<moonriver_runtime::Balances as StorageInfoTrait>::storage_info(),
+		vec![
+			StorageInfo {
+				prefix: prefix(b"Balances", b"TotalIssuance"),
+				max_values: Some(1),
+				max_size: Some(16),
+			},
+			StorageInfo {
+				prefix: prefix(b"Balances", b"Account"),
+				max_values: Some(300_000),
+				max_size: Some(100),
+			},
+			StorageInfo {
+				prefix: prefix(b"Balances", b"Locks"),
+				max_values: Some(300_000),
+				max_size: Some(1287),
+			},
+			StorageInfo {
+				prefix: prefix(b"Balances", b"Reserves"),
+				max_values: None,
+				max_size: Some(1037),
+			},
+			StorageInfo {
+				prefix: prefix(b"Balances", b"StorageVersion"),
+				max_values: Some(1),
+				max_size: Some(1),
+			}
+		]
+	);
+	assert_eq!(
+		<moonriver_runtime::Sudo as StorageInfoTrait>::storage_info(),
+		vec![StorageInfo {
+			prefix: prefix(b"Sudo", b"Key"),
+			max_values: Some(1),
+			max_size: Some(20),
+		}]
+	);
+	assert_eq!(
+		<moonriver_runtime::Proxy as StorageInfoTrait>::storage_info(),
+		vec![
+			StorageInfo {
+				prefix: prefix(b"Proxy", b"Proxies"),
+				max_values: None,
+				max_size: Some(845),
+			},
+			StorageInfo {
+				prefix: prefix(b"Proxy", b"Announcements"),
+				max_values: None,
+				max_size: Some(1837),
+			}
+		]
+	);
+}
+
+#[test]
+fn verify_pallet_indices() {
+	fn is_pallet_index<P: 'static>(index: usize) {
+		assert_eq!(
+			<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::index::<P>(),
+			Some(index)
+		);
+	}
+	// System support
+	is_pallet_index::<moonriver_runtime::System>(0);
+	is_pallet_index::<moonriver_runtime::ParachainSystem>(1);
+	is_pallet_index::<moonriver_runtime::RandomnessCollectiveFlip>(2);
+	is_pallet_index::<moonriver_runtime::Timestamp>(3);
+	is_pallet_index::<moonriver_runtime::ParachainInfo>(4);
+	// Monetary
+	is_pallet_index::<moonriver_runtime::Balances>(10);
+	is_pallet_index::<moonriver_runtime::TransactionPayment>(11);
+	// Consensus support
+	is_pallet_index::<moonriver_runtime::ParachainStaking>(20);
+	is_pallet_index::<moonriver_runtime::AuthorInherent>(21);
+	is_pallet_index::<moonriver_runtime::AuthorFilter>(22);
+	is_pallet_index::<moonriver_runtime::AuthorMapping>(23);
+	// Handy utilities
+	is_pallet_index::<moonriver_runtime::Utility>(30);
+	is_pallet_index::<moonriver_runtime::Proxy>(31);
+	// Sudo
+	is_pallet_index::<moonriver_runtime::Sudo>(40);
+	// Ethereum compatibility
+	is_pallet_index::<moonriver_runtime::EthereumChainId>(50);
+	is_pallet_index::<moonriver_runtime::EVM>(51);
+	is_pallet_index::<moonriver_runtime::Ethereum>(52);
+	// Governance
+	is_pallet_index::<moonriver_runtime::Scheduler>(60);
+	is_pallet_index::<moonriver_runtime::Democracy>(61);
+	// Council
+	is_pallet_index::<moonriver_runtime::CouncilCollective>(70);
+	is_pallet_index::<moonriver_runtime::TechComitteeCollective>(71);
+	// Treasury
+	is_pallet_index::<moonriver_runtime::Treasury>(80);
+	// Crowdloan
+	is_pallet_index::<moonriver_runtime::CrowdloanRewards>(90);
+}
 
 #[test]
 fn join_collator_candidates() {
@@ -50,13 +213,18 @@ fn join_collator_candidates() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::join_candidates(origin_of(AccountId::from(ALICE)), 1_000 * MOVR,),
+				ParachainStaking::join_candidates(
+					origin_of(AccountId::from(ALICE)),
+					1_000 * MOVR,
+					2u32
+				),
 				parachain_staking::Error::<Runtime>::CandidateExists
 			);
 			assert_noop!(
 				ParachainStaking::join_candidates(
 					origin_of(AccountId::from(CHARLIE)),
-					1_000 * MOVR
+					1_000 * MOVR,
+					2u32
 				),
 				parachain_staking::Error::<Runtime>::NominatorExists
 			);
@@ -64,10 +232,11 @@ fn join_collator_candidates() {
 			assert_ok!(ParachainStaking::join_candidates(
 				origin_of(AccountId::from(DAVE)),
 				1_000 * MOVR,
+				2u32
 			));
 			assert_eq!(
 				last_event(),
-				Event::parachain_staking(parachain_staking::Event::JoinedCollatorCandidates(
+				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates(
 					AccountId::from(DAVE),
 					1_000 * MOVR,
 					3_100 * MOVR
@@ -109,6 +278,7 @@ fn transfer_through_evm_to_stake() {
 				ParachainStaking::join_candidates(
 					origin_of(AccountId::from(CHARLIE)),
 					1_000 * MOVR,
+					2u32
 				),
 				DispatchError::Module {
 					index: 10,
@@ -146,6 +316,7 @@ fn transfer_through_evm_to_stake() {
 			assert_ok!(ParachainStaking::join_candidates(
 				origin_of(AccountId::from(CHARLIE)),
 				1_000 * MOVR,
+				2u32,
 			),);
 			let candidates = ParachainStaking::candidate_pool();
 			assert_eq!(
@@ -179,7 +350,7 @@ fn reward_block_authors() {
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			for x in 2..601 {
+			for x in 2..599 {
 				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 				run_to_block(x);
 			}
@@ -187,7 +358,7 @@ fn reward_block_authors() {
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * MOVR,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * MOVR,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(601);
+			run_to_block(600);
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -226,7 +397,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				root_origin(),
 				AccountId::from(CHARLIE),
 			),);
-			for x in 2..601 {
+			for x in 2..599 {
 				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 				run_to_block(x);
 			}
@@ -235,7 +406,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * MOVR,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), MOVR,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(601);
+			run_to_block(600);
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -274,29 +445,29 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			for x in 1..3 {
 				run_to_block(x);
 			}
+			let init_block = CrowdloanRewards::init_relay_block();
+			// This matches the previous vesting
+			let end_block = init_block + 48 * WEEKS;
 			// Batch calls always succeed. We just need to check the inner event
 			assert_ok!(
 				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
-							vec![(
-								[4u8; 32].into(),
-								Some(AccountId::from(CHARLIE)),
-								1_500_000 * MOVR
-							)],
-							0,
-							2
-						)
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
+							[4u8; 32].into(),
+							Some(AccountId::from(CHARLIE)),
+							1_500_000 * MOVR
+						)])
 					),
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
-							vec![(
-								[5u8; 32].into(),
-								Some(AccountId::from(DAVE)),
-								1_500_000 * MOVR
-							)],
-							1,
-							2
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
+							[5u8; 32].into(),
+							Some(AccountId::from(DAVE)),
+							1_500_000 * MOVR
+						)])
+					),
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization(
+							end_block
 						)
 					)
 				]))
@@ -306,20 +477,20 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 450_000 * MOVR);
 			// 30 percent initial payout
 			assert_eq!(Balances::balance(&AccountId::from(DAVE)), 450_000 * MOVR);
-			let expected = Event::pallet_utility(pallet_utility::Event::BatchCompleted);
+			let expected = Event::Utility(pallet_utility::Event::BatchCompleted);
 			assert_eq!(last_event(), expected);
 			// This one should fail, as we already filled our data
 			assert_ok!(Call::Utility(pallet_utility::Call::<Runtime>::batch(vec![
 				Call::CrowdloanRewards(
-					pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
-						vec![([4u8; 32].into(), Some(AccountId::from(ALICE)), 432000)],
-						0,
-						1
-					)
+					pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
+						[4u8; 32].into(),
+						Some(AccountId::from(ALICE)),
+						432000
+					)])
 				)
 			]))
 			.dispatch(root_origin()));
-			let expected_fail = Event::pallet_utility(pallet_utility::Event::BatchInterrupted(
+			let expected_fail = Event::Utility(pallet_utility::Event::BatchInterrupted(
 				0,
 				DispatchError::Module {
 					index: 90,
@@ -375,11 +546,13 @@ fn join_candidates_via_precompile() {
 			let gas_limit = 100000u64;
 			let gas_price: U256 = 1_000_000_000.into();
 			let amount: U256 = (1000 * MOVR).into();
+			let candidate_count: U256 = U256::zero();
 
 			// Construct the call data (selector, amount)
-			let mut call_data = Vec::<u8>::from([0u8; 36]);
+			let mut call_data = Vec::<u8>::from([0u8; 68]);
 			call_data[0..4].copy_from_slice(&hex_literal::hex!("ad76ed5a"));
 			amount.to_big_endian(&mut call_data[4..36]);
+			candidate_count.to_big_endian(&mut call_data[36..]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(ALICE),
@@ -397,16 +570,16 @@ fn join_candidates_via_precompile() {
 
 			// Check for the right events.
 			let expected_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Reserved(
+				Event::Balances(pallet_balances::Event::Reserved(
 					AccountId::from(ALICE),
 					1000 * MOVR,
 				)),
-				Event::parachain_staking(parachain_staking::Event::JoinedCollatorCandidates(
+				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates(
 					AccountId::from(ALICE),
 					1000 * MOVR,
 					1000 * MOVR,
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -432,11 +605,13 @@ fn leave_candidates_via_precompile() {
 
 			// Alice uses the staking precompile to leave_candidates
 			let gas_limit = 100000u64;
+			let collator_count: U256 = U256::one();
 			let gas_price: U256 = 1_000_000_000.into();
 
 			// Construct the leave_candidates call data
-			let mut call_data = Vec::<u8>::from([0u8; 4]);
+			let mut call_data = Vec::<u8>::from([0u8; 36]);
 			call_data[0..4].copy_from_slice(&hex_literal::hex!("b7694219"));
+			collator_count.to_big_endian(&mut call_data[4..]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(ALICE),
@@ -451,12 +626,12 @@ fn leave_candidates_via_precompile() {
 
 			// Check for the right events.
 			let expected_events = vec![
-				Event::parachain_staking(parachain_staking::Event::CollatorScheduledExit(
+				Event::ParachainStaking(parachain_staking::Event::CollatorScheduledExit(
 					1,
 					AccountId::from(ALICE),
 					3,
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -503,11 +678,11 @@ fn go_online_offline_via_precompile() {
 
 			// Check for the right events.
 			let mut expected_events = vec![
-				Event::parachain_staking(parachain_staking::Event::CollatorWentOffline(
+				Event::ParachainStaking(parachain_staking::Event::CollatorWentOffline(
 					1,
 					AccountId::from(ALICE),
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -537,11 +712,11 @@ fn go_online_offline_via_precompile() {
 
 			// Check for the right events.
 			let mut new_events = vec![
-				Event::parachain_staking(parachain_staking::Event::CollatorBackOnline(
+				Event::ParachainStaking(parachain_staking::Event::CollatorBackOnline(
 					1,
 					AccountId::from(ALICE),
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -591,16 +766,16 @@ fn candidate_bond_more_less_via_precompile() {
 
 			// Check for the right events.
 			let mut expected_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Reserved(
+				Event::Balances(pallet_balances::Event::Reserved(
 					AccountId::from(ALICE),
 					1_000 * MOVR,
 				)),
-				Event::parachain_staking(parachain_staking::Event::CollatorBondedMore(
+				Event::ParachainStaking(parachain_staking::Event::CollatorBondedMore(
 					AccountId::from(ALICE),
 					1_000 * MOVR,
 					2_000 * MOVR,
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -632,16 +807,16 @@ fn candidate_bond_more_less_via_precompile() {
 
 			// Check for the right events.
 			let mut new_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Unreserved(
+				Event::Balances(pallet_balances::Event::Unreserved(
 					AccountId::from(ALICE),
 					500 * MOVR,
 				)),
-				Event::parachain_staking(parachain_staking::Event::CollatorBondedLess(
+				Event::ParachainStaking(parachain_staking::Event::CollatorBondedLess(
 					AccountId::from(ALICE),
 					2_000 * MOVR,
 					1_500 * MOVR,
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -673,12 +848,16 @@ fn nominate_via_precompile() {
 			let gas_limit = 100000u64;
 			let gas_price: U256 = 1_000_000_000.into();
 			let nomination_amount: U256 = (1000 * MOVR).into();
+			let collator_nominator_count: U256 = U256::zero();
+			let nomination_count: U256 = U256::zero();
 
 			// Construct the call data (selector, collator, nomination amount)
-			let mut call_data = Vec::<u8>::from([0u8; 68]);
+			let mut call_data = Vec::<u8>::from([0u8; 132]);
 			call_data[0..4].copy_from_slice(&hex_literal::hex!("82f2c8df"));
 			call_data[16..36].copy_from_slice(&ALICE);
 			nomination_amount.to_big_endian(&mut call_data[36..68]);
+			collator_nominator_count.to_big_endian(&mut call_data[68..100]);
+			nomination_count.to_big_endian(&mut call_data[100..]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(BOB),
@@ -696,17 +875,19 @@ fn nominate_via_precompile() {
 
 			// Check for the right events.
 			let expected_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Reserved(
+				Event::Balances(pallet_balances::Event::Reserved(
 					AccountId::from(BOB),
 					1000 * MOVR,
 				)),
-				Event::parachain_staking(parachain_staking::Event::Nomination(
+				Event::ParachainStaking(parachain_staking::Event::Nomination(
 					AccountId::from(BOB),
 					1000 * MOVR,
 					AccountId::from(ALICE),
-					2000 * MOVR,
+					NominatorAdded::AddedToTop {
+						new_total: 2000 * MOVR,
+					},
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -745,11 +926,13 @@ fn leave_nominators_via_precompile() {
 
 			// Charlie uses staking precompile to leave nominator set
 			let gas_limit = 100000u64;
+			let nomination_count: U256 = 2.into();
 			let gas_price: U256 = 1_000_000_000.into();
 
 			// Construct leave_nominators call
-			let mut call_data = Vec::<u8>::from([0u8; 4]);
+			let mut call_data = Vec::<u8>::from([0u8; 36]);
 			call_data[0..4].copy_from_slice(&hex_literal::hex!("e8d68a37"));
+			nomination_count.to_big_endian(&mut call_data[4..]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(CHARLIE),
@@ -767,31 +950,31 @@ fn leave_nominators_via_precompile() {
 
 			// Check for the right events.
 			let expected_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Unreserved(
+				Event::Balances(pallet_balances::Event::Unreserved(
 					AccountId::from(CHARLIE),
 					500 * MOVR,
 				)),
-				Event::parachain_staking(parachain_staking::Event::NominatorLeftCollator(
+				Event::ParachainStaking(parachain_staking::Event::NominatorLeftCollator(
 					AccountId::from(CHARLIE),
 					AccountId::from(ALICE),
 					500 * MOVR,
 					1_000 * MOVR,
 				)),
-				Event::pallet_balances(pallet_balances::Event::Unreserved(
+				Event::Balances(pallet_balances::Event::Unreserved(
 					AccountId::from(CHARLIE),
 					500 * MOVR,
 				)),
-				Event::parachain_staking(parachain_staking::Event::NominatorLeftCollator(
+				Event::ParachainStaking(parachain_staking::Event::NominatorLeftCollator(
 					AccountId::from(CHARLIE),
 					AccountId::from(BOB),
 					500 * MOVR,
 					1_000 * MOVR,
 				)),
-				Event::parachain_staking(parachain_staking::Event::NominatorLeft(
+				Event::ParachainStaking(parachain_staking::Event::NominatorLeft(
 					AccountId::from(CHARLIE),
 					1_000 * MOVR,
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -853,17 +1036,17 @@ fn revoke_nomination_via_precompile() {
 
 			// Check for the right events.
 			let expected_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Unreserved(
+				Event::Balances(pallet_balances::Event::Unreserved(
 					AccountId::from(CHARLIE),
 					500 * MOVR,
 				)),
-				Event::parachain_staking(parachain_staking::Event::NominatorLeftCollator(
+				Event::ParachainStaking(parachain_staking::Event::NominatorLeftCollator(
 					AccountId::from(CHARLIE),
 					AccountId::from(ALICE),
 					500 * MOVR,
 					1_000 * MOVR,
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -921,17 +1104,18 @@ fn nominator_bond_more_less_via_precompile() {
 
 			// Check for the right events.
 			let mut expected_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Reserved(
+				Event::Balances(pallet_balances::Event::Reserved(
 					AccountId::from(BOB),
 					500 * MOVR,
 				)),
-				Event::parachain_staking(parachain_staking::Event::NominationIncreased(
+				Event::ParachainStaking(parachain_staking::Event::NominationIncreased(
 					AccountId::from(BOB),
 					AccountId::from(ALICE),
 					1_500 * MOVR,
+					true,
 					2_000 * MOVR,
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -964,17 +1148,18 @@ fn nominator_bond_more_less_via_precompile() {
 
 			// Check for the right events.
 			let mut new_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Unreserved(
+				Event::Balances(pallet_balances::Event::Unreserved(
 					AccountId::from(BOB),
 					500 * MOVR,
 				)),
-				Event::parachain_staking(parachain_staking::Event::NominationDecreased(
+				Event::ParachainStaking(parachain_staking::Event::NominationDecreased(
 					AccountId::from(BOB),
 					AccountId::from(ALICE),
 					2_000 * MOVR,
+					true,
 					1_500 * MOVR,
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -1021,13 +1206,13 @@ fn is_nominator_via_precompile() {
 			let expected_true_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
-				cost: 0,
+				cost: 1000,
 				logs: Default::default(),
 			}));
 
 			// Assert precompile reports Bob is a nominator
 			assert_eq!(
-				MoonbeamPrecompiles::<Runtime>::execute(
+				Precompiles::execute(
 					staking_precompile_address,
 					&bob_input_data,
 					None, // target_gas is not necessary right now because consumed none now
@@ -1051,13 +1236,13 @@ fn is_nominator_via_precompile() {
 			let expected_false_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
-				cost: 0,
+				cost: 1000,
 				logs: Default::default(),
 			}));
 
 			// Assert precompile also reports Charlie as not a nominator
 			assert_eq!(
-				MoonbeamPrecompiles::<Runtime>::execute(
+				Precompiles::execute(
 					staking_precompile_address,
 					&charlie_input_data,
 					None,
@@ -1096,13 +1281,13 @@ fn is_candidate_via_precompile() {
 			let expected_true_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
-				cost: 0,
+				cost: 1000,
 				logs: Default::default(),
 			}));
 
 			// Assert precompile reports Alice is a collator candidate
 			assert_eq!(
-				MoonbeamPrecompiles::<Runtime>::execute(
+				Precompiles::execute(
 					staking_precompile_address,
 					&alice_input_data,
 					None, // target_gas is not necessary right now because consumed none now
@@ -1126,13 +1311,13 @@ fn is_candidate_via_precompile() {
 			let expected_false_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
-				cost: 0,
+				cost: 1000,
 				logs: Default::default(),
 			}));
 
 			// Assert precompile also reports Bob as not a collator candidate
 			assert_eq!(
-				MoonbeamPrecompiles::<Runtime>::execute(
+				Precompiles::execute(
 					staking_precompile_address,
 					&bob_input_data,
 					None,
@@ -1163,12 +1348,12 @@ fn min_nomination_via_precompile() {
 		let expected_result = Some(Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			output: buffer.to_vec(),
-			cost: 0,
+			cost: 1000,
 			logs: Default::default(),
 		}));
 
 		assert_eq!(
-			MoonbeamPrecompiles::<Runtime>::execute(
+			Precompiles::execute(
 				staking_precompile_address,
 				&get_min_nom,
 				None,
