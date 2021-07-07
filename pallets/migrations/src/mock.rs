@@ -17,8 +17,6 @@
 //! A minimal runtime including the migrations pallet
 use super::*;
 use crate as pallet_migrations;
-use std::sync::{Arc, Mutex};
-use once_cell::sync::Lazy;
 use frame_support::{
 	construct_runtime, pallet_prelude::*, parameter_types, traits::GenesisBuild, weights::Weight,
 };
@@ -115,6 +113,22 @@ impl<'test> MockMigrationManager<'test> {
 	}
 }
 environmental!(MOCK_MIGRATIONS_LIST: MockMigrationManager<'static>);
+
+pub fn execute_with_mock_migrations<CB>(callback: &mut CB)
+where
+	CB: FnMut(&mut MockMigrationManager)
+{
+	let mut original_mgr: MockMigrationManager = Default::default();
+	MOCK_MIGRATIONS_LIST::using(&mut original_mgr, || {
+		MOCK_MIGRATIONS_LIST::with(|inner_mgr: &mut MockMigrationManager| {
+			callback(inner_mgr);
+		});
+
+		ExtBuilder::default().build().execute_with(|| {
+			Migrations::on_runtime_upgrade();
+		});
+	});
+}
 
 #[derive(Clone)]
 pub struct MockMigration {

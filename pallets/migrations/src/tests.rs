@@ -16,7 +16,7 @@
 
 //! Unit testing
 use crate::mock::{
-	events, ExtBuilder, Migrations, System, MockMigration
+	events, ExtBuilder, Migrations, System, MockMigrationManager,
 };
 use crate::Event;
 use std::sync::{Arc, Mutex};
@@ -35,35 +35,35 @@ fn genesis_builder_works() {
 
 #[test]
 fn mock_migrations_static_hack_works() {
-	let mut name_fn_called: bool = false;
-	let mut step_fn_called: bool = false;
 
-	{
-		let mut mgr: crate::mock::MockMigrationManager = Default::default();
+	let name_fn_called = Arc::new(Mutex::new(false));
+	let step_fn_called = Arc::new(Mutex::new(false));
 
+	println!("Calling execute_with_mock_migrations...");
+	crate::mock::execute_with_mock_migrations(&mut |mgr: &mut MockMigrationManager| {
+		println!("Inside execute_with_mock_migrations");
+		let name_fn_called = Arc::clone(&name_fn_called);
+		let step_fn_called = Arc::clone(&step_fn_called);
+
+		println!("Registering callbacks...");
 		mgr.registerCallback(
-			|| {
-				name_fn_called = true;
+			move || {
+				println!("inside name_fn callback!");
+				*name_fn_called.lock().unwrap() = true;
 				"hello, world"
 			},
-			|_, _| -> (Perbill, Weight) {
-				step_fn_called = true;
+			move |_, _| -> (Perbill, Weight) {
+				println!("inside step_fn callback!");
+				*step_fn_called.lock().unwrap() = true;
 				(Perbill::zero(), 0u64.into())
 			}
 		);
+		println!("Done registering callbacks.");
+	});
+	println!("Done with execute_with_mock_migrations");
 
-		mgr.invoke_name_fn(0);
-		mgr.invoke_step_fn(0, Perbill::zero(), 1u64.into());
-
-		/*
-		ExtBuilder::default().build().execute_with(|| {
-			Migrations::on_runtime_upgrade();
-		});
-		*/
-	}
-
-	assert_eq!(name_fn_called, true, "mock migration should call friendly_name()");
-	assert_eq!(step_fn_called, true, "mock migration should call step()");
+	assert_eq!(*name_fn_called.lock().unwrap(), true, "mock migration should call friendly_name()");
+	assert_eq!(*step_fn_called.lock().unwrap(), true, "mock migration should call step()");
 }
 
 #[test]

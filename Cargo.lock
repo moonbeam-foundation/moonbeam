@@ -6269,7 +6269,6 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
- "once_cell 1.8.0",
  "parity-scale-codec",
  "sp-core",
  "sp-io",
