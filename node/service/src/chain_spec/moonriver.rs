@@ -133,7 +133,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		None,
 		Some(
 			serde_json::from_str(
-				"{\"tokenDecimals\": 18, \"tokenSymbol\": \"MOVR\", , \"SS58Prefix\": 1285}",
+				"{\"tokenDecimals\": 18, \"tokenSymbol\": \"MOVR\", \"SS58Prefix\": 1285}",
 			)
 			.expect("Provided valid json map"),
 		),
