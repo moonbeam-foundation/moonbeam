@@ -23,6 +23,11 @@ use crate::{Error, Event};
 use frame_support::{assert_noop, assert_ok};
 
 #[test]
+fn always_fail() {
+	assert!(false);
+}
+
+#[test]
 fn genesis_builder_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 1000)])
