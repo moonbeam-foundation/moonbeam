@@ -34,7 +34,7 @@ use frame_support::{
 	traits::{Filter, Get, Imbalance, InstanceFilter, OnUnbalanced},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
-		IdentityFee, Weight, GetDispatchInfo,
+		GetDispatchInfo, IdentityFee, Weight,
 	},
 	PalletId,
 };
@@ -48,8 +48,8 @@ use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::Transaction as EthereumTransaction;
 use pallet_evm::{
-	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator,
-	IdentityAddressMapping, Runner, GasWeightMapping,
+	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator, GasWeightMapping,
+	IdentityAddressMapping, Runner,
 };
 use pallet_transaction_payment::CurrencyAdapter;
 pub use parachain_staking::{InflationInfo, Range};
@@ -849,7 +849,7 @@ runtime_common::impl_runtime_apis_plus_common! {
 			let allowed = <Runtime as frame_system::Config>::BaseCallFilter::filter(&xt.function);
 
 			if allowed {
-				
+
 				// This runtime uses Substrate's pallet transaction payment. This
 				// makes the chain feel like a standard Substrate chain when submitting
 				// frame transactions and using Substrate ecosystem tools. It has the downside that
@@ -874,14 +874,11 @@ runtime_common::impl_runtime_apis_plus_common! {
 					_ => {
 						let dispatch_info = xt.get_dispatch_info();
 
-						// Try to extract the tip starting from https://crates.parity.io/sp_runtime/generic/struct.UncheckedExtrinsic.html
 						let tip = match xt.signature {
 							None => 0,
 							Some((_, _, signed_extra)) => {
-								// Yuck, this depends on the index of the charge transaction in this runtime's Signed Extra
+								// Yuck, this depends on the index of charge transaction in Signed Extra
 								let charge_transaction = signed_extra.6;
-								// Getting the tip amount depends on https://github.com/paritytech/substrate/pull/9219
-								// Which will soon be available in Moonbeam, but is not in Frontier's older Substrate dependency
 								charge_transaction.tip()
 							}
 						};
@@ -894,7 +891,10 @@ runtime_common::impl_runtime_apis_plus_common! {
 						).saturated_into();
 
 						// Calculate how much gas this effectively uses according to the existing mapping
-						let effective_gas = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(dispatch_info.weight);
+						let effective_gas =
+							<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+								dispatch_info.weight
+							);
 
 						// Here we calculate an ethereum-style effective gas price using the
 						// current fee of the transaction
