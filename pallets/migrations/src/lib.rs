@@ -79,10 +79,10 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		// e.g. runtime upgrade started, completed, etc.
 		RuntimeUpgradeStarted(),
-		RuntimeUpgradeStepped(),
+		RuntimeUpgradeStepped(Weight),
 		RuntimeUpgradeCompleted(),
 		MigrationStarted(Vec<u8>),
-		MigrationProgress(Vec<u8>, Perbill),
+		MigrationStepped(Vec<u8>, Perbill, Weight),
 		MigrationCompleted(Vec<u8>),
 	}
 
@@ -117,7 +117,6 @@ pub mod pallet {
 			let mut weight: Weight = 0u64.into();
 
 			if ! <FullyUpgraded<T>>::get() {
-				Self::deposit_event(Event::RuntimeUpgradeStepped());
 				weight += process_runtime_upgrades::<T>();
 			}
 
@@ -165,24 +164,26 @@ pub mod pallet {
 		log::info!("stepping runtime upgrade");
 
 		// TODO: query proper value or make configurable
-		let available_weight = 500_000_000_000u64.into();
+		let available_weight: Weight = 500_000_000_000u64.into();
 		let mut weight: Weight = 0u64.into();
 		let mut done: bool = true;
 
 		for migration in &T::MigrationsList::get() {
 			// let migration_name = migration.friendly_name();
 			let migration_name = migration.friendly_name();
+			let migration_name_as_bytes = migration_name.as_bytes();
 			log::trace!("evaluating migration {}", migration_name);
 
 			let migration_state =
-				<MigrationState<T>>::get(migration_name.as_bytes()).unwrap_or(Perbill::zero());
+				<MigrationState<T>>::get(migration_name_as_bytes).unwrap_or(Perbill::zero());
 
 			if migration_state < Perbill::one() {
-				// TODO: we don't currently have a reliable way to know "started"
-				// TODO: multiple calls to as_bytes() or to_vec() may be expensive
-				<Pallet<T>>::deposit_event(Event::MigrationStarted(
-					migration_name.as_bytes().to_vec(),
-				));
+
+				if migration_state.is_zero() {
+					<Pallet<T>>::deposit_event(Event::MigrationStarted(
+						migration_name_as_bytes.into()
+					));
+				}
 
 				let available_for_step = available_weight - weight;
 				log::trace!(
@@ -193,9 +194,14 @@ pub mod pallet {
 				);
 
 				// perform a step of this migration
-				<Pallet<T>>::deposit_event(Event::MigrationStarted(migration_name.into()));
 				let (updated_progress, consumed_weight) =
 					migration.step(migration_state, available_for_step);
+				// TODO: error if progress == 0 still?
+				<Pallet<T>>::deposit_event(Event::MigrationStepped(
+					migration_name_as_bytes.into(),
+					updated_progress,
+					consumed_weight,
+				));
 
 				weight += consumed_weight;
 				if weight > available_weight {
@@ -213,6 +219,10 @@ pub mod pallet {
 				// make note of any unfinished migrations
 				if updated_progress < Perbill::one() {
 					done = false;
+				} else {
+					<Pallet<T>>::deposit_event(Event::MigrationCompleted(
+						migration_name_as_bytes.into()
+					));
 				}
 
 				if migration_state != updated_progress {
@@ -220,6 +230,8 @@ pub mod pallet {
 				}
 			}
 		}
+
+		<Pallet<T>>::deposit_event(Event::RuntimeUpgradeStepped(weight));
 
 		if done {
 			<Pallet<T>>::deposit_event(Event::RuntimeUpgradeCompleted());

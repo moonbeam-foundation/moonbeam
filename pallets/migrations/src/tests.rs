@@ -38,6 +38,7 @@ fn mock_migrations_static_hack_works() {
 
 	let name_fn_called = Arc::new(Mutex::new(false));
 	let step_fn_called = Arc::new(Mutex::new(false));
+	let ecb_fn_called = Arc::new(Mutex::new(false));
 
 	crate::mock::execute_with_mock_migrations(&mut |mgr: &mut MockMigrationManager| {
 		let name_fn_called = Arc::clone(&name_fn_called);
@@ -53,10 +54,14 @@ fn mock_migrations_static_hack_works() {
 				(Perbill::one(), 0u64.into())
 			}
 		);
+	},
+	&mut || {
+		*ecb_fn_called.lock().unwrap() = true;
 	});
 
 	assert_eq!(*name_fn_called.lock().unwrap(), true, "mock migration should call friendly_name()");
 	assert_eq!(*step_fn_called.lock().unwrap(), true, "mock migration should call step()");
+	assert_eq!(*ecb_fn_called.lock().unwrap(), true, "mock migration should call ECB callback");
 }
 
 #[test]
@@ -73,6 +78,7 @@ fn on_runtime_upgrade_emits_events() {
 
 		let expected = vec![
 			Event::RuntimeUpgradeStarted(),
+			Event::RuntimeUpgradeStepped(0u64.into()),
 			Event::RuntimeUpgradeCompleted(),
 		];
 		assert_eq!(events(), expected);
@@ -104,7 +110,62 @@ fn step_called_until_done() {
 				}
 			}
 		);
-	});
+	},
+	&mut || {} );
 
 	assert_eq!(*num_step_calls.lock().unwrap(), 10, "migration step should be called until done");
+}
+
+#[test]
+fn migration_progress_should_emit_events() {
+
+	let num_steps = Arc::new(Mutex::new(0usize));
+
+	crate::mock::execute_with_mock_migrations(&mut |mgr: &mut MockMigrationManager| {
+		let num_steps = Arc::clone(&num_steps);
+
+		mgr.register_callback(
+			move || {
+				"migration1"
+			},
+			move |_, _| -> (Perbill, Weight) {
+				let mut num_steps = num_steps.lock().unwrap();
+
+				let result: (Perbill, Weight) = match *num_steps {
+					0 => (Perbill::from_percent(50), 50),
+					1 => (Perbill::from_percent(60), 51),
+					2 => (Perbill::from_percent(70), 52),
+					3 => (Perbill::from_percent(80), 53),
+					4 => (Perbill::from_percent(100), 1),
+					_ => { unreachable!(); }
+				};
+
+				*num_steps += 1;
+				result
+			}
+		);
+	},
+	&mut || {
+
+		let expected = vec![
+			Event::RuntimeUpgradeStarted(),
+			Event::MigrationStarted("migration1".into()),
+			Event::MigrationStepped("migration1".into(), Perbill::from_percent(50), 50),
+			Event::RuntimeUpgradeStepped(50),
+			Event::MigrationStepped("migration1".into(), Perbill::from_percent(60), 51),
+			Event::RuntimeUpgradeStepped(51),
+			Event::MigrationStepped("migration1".into(), Perbill::from_percent(70), 52),
+			Event::RuntimeUpgradeStepped(52),
+			Event::MigrationStepped("migration1".into(), Perbill::from_percent(80), 53),
+			Event::RuntimeUpgradeStepped(53),
+			Event::MigrationStepped("migration1".into(), Perbill::from_percent(100), 1),
+			Event::MigrationCompleted("migration1".into()),
+			Event::RuntimeUpgradeStepped(1),
+			Event::RuntimeUpgradeCompleted(),
+		];
+		assert_eq!(events(), expected);
+	});
+
+	assert_eq!(*num_steps.lock().unwrap(), 5, "migration step should be called until done");
+
 }

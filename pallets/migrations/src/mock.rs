@@ -129,9 +129,10 @@ environmental!(MOCK_MIGRATIONS_LIST: MockMigrationManager<'static>);
 /// Utility method for tests to implement their logic with a pre-generated MockMigrationManager.
 /// This helps avoid lifetime issues between the implied 'static lifetime of MOCK_MIGRATIONS_LIST
 /// and the function-scoped lifetimes of closures used in tests.
-pub fn execute_with_mock_migrations<CB>(callback: &mut CB)
+pub fn execute_with_mock_migrations<CB, ECB>(callback: &mut CB, post_migration_callback: &mut ECB)
 where
-	CB: FnMut(&mut MockMigrationManager)
+	CB: FnMut(&mut MockMigrationManager),
+	ECB: FnMut(),
 {
 	let mut original_mgr: MockMigrationManager = Default::default();
 	MOCK_MIGRATIONS_LIST::using(&mut original_mgr, || {
@@ -159,6 +160,8 @@ where
 					panic!("Infinite loop?");
 				}
 			}
+
+			post_migration_callback();
 		});
 	});
 }
