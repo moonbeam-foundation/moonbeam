@@ -839,8 +839,7 @@ where
 
 		// Trace the block.
 		let f = || {
-			return api
-				.trace_block(&substrate_parent_id, extrinsics)
+			api.trace_block(&substrate_parent_id, extrinsics)
 				.map_err(|e| {
 					internal_err(format!(
 						"Blockchain error when replaying block {} : {:?}",
@@ -857,7 +856,7 @@ where
 						"Internal runtime error when replaying block {} : {:?}",
 						height, e
 					))
-				});
+				})
 		};
 
 		let mut proxy = proxy::CallListProxy::new();

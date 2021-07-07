@@ -237,11 +237,11 @@ where
 			let transactions = block.transactions;
 			if let Some(transaction) = transactions.get(index) {
 				let f = || {
-					return client
+					client
 						.runtime_api()
 						.trace_transaction(&parent_block_id, ext, &transaction, trace_type)
 						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
-						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)));
+						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))
 				};
 				return Ok(match trace_type {
 					single::TraceType::Raw { .. } => {
