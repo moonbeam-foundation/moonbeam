@@ -12,7 +12,6 @@ members = [
     'runtime/moonriver',
     'runtime/moonshadow',
     'runtime/moonbase',
-    'runtime/precompiles',
     'node',
     'node/cli',
     'node/cli-opt',
