@@ -25,7 +25,9 @@ members = [
     'primitives/rpc/debug',
     'primitives/rpc/txpool',
 ]
-exclude = ['bin/utils/moonkey']
+exclude = [
+    'bin/utils/moonkey'
+]
 
 [profile.release]
 panic = 'unwind'
