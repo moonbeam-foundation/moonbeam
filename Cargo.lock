@@ -1298,7 +1298,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-cli"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8#0cd4b13e3e7d7c2f0f3aadb0a6b427350cde1bf6"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#37dabdfed859bc98e28d9630f0284a7109eebd8d"
 dependencies = [
  "sc-cli",
  "sc-service",
@@ -1308,11 +1308,11 @@ dependencies = [
 [[package]]
 name = "cumulus-client-collator"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8#0cd4b13e3e7d7c2f0f3aadb0a6b427350cde1bf6"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#37dabdfed859bc98e28d9630f0284a7109eebd8d"
 dependencies = [
  "cumulus-client-consensus-common",
  "cumulus-client-network",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "futures 0.3.15",
  "parity-scale-codec",
  "parking_lot 0.10.2",
@@ -1332,7 +1332,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-common"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8#0cd4b13e3e7d7c2f0f3aadb0a6b427350cde1bf6"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#37dabdfed859bc98e28d9630f0284a7109eebd8d"
 dependencies = [
  "async-trait",
  "dyn-clone",
@@ -1356,11 +1356,11 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-relay-chain"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8#0cd4b13e3e7d7c2f0f3aadb0a6b427350cde1bf6"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#37dabdfed859bc98e28d9630f0284a7109eebd8d"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "futures 0.3.15",
  "parity-scale-codec",
  "parking_lot 0.10.2",
@@ -1380,7 +1380,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-network"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8#0cd4b13e3e7d7c2f0f3aadb0a6b427350cde1bf6"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#37dabdfed859bc98e28d9630f0284a7109eebd8d"
 dependencies = [
  "derive_more",
  "futures 0.3.15",
@@ -1404,9 +1404,9 @@ dependencies = [
 [[package]]
 name = "cumulus-client-pov-recovery"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8#0cd4b13e3e7d7c2f0f3aadb0a6b427350cde1bf6"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#37dabdfed859bc98e28d9630f0284a7109eebd8d"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "futures 0.3.15",
  "futures-timer 3.0.2",
  "parity-scale-codec",
@@ -1427,12 +1427,12 @@ dependencies = [
 [[package]]
 name = "cumulus-client-service"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8#0cd4b13e3e7d7c2f0f3aadb0a6b427350cde1bf6"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#37dabdfed859bc98e28d9630f0284a7109eebd8d"
 dependencies = [
  "cumulus-client-collator",
  "cumulus-client-consensus-common",
  "cumulus-client-pov-recovery",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "parity-scale-codec",
  "parking_lot 0.10.2",
  "polkadot-overseer",
@@ -1455,11 +1455,39 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system"
 version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#37dabdfed859bc98e28d9630f0284a7109eebd8d"
+dependencies = [
+ "cumulus-pallet-parachain-system-proc-macro 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "environmental",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-balances",
+ "parity-scale-codec",
+ "polkadot-parachain",
+ "serde",
+ "sp-core",
+ "sp-externalities",
+ "sp-inherents",
+ "sp-io",
+ "sp-runtime",
+ "sp-state-machine",
+ "sp-std",
+ "sp-trie",
+ "sp-version",
+ "xcm",
+]
+
+[[package]]
+name = "cumulus-pallet-parachain-system"
+version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8#0cd4b13e3e7d7c2f0f3aadb0a6b427350cde1bf6"
 dependencies = [
- "cumulus-pallet-parachain-system-proc-macro",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-pallet-parachain-system-proc-macro 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8)",
  "environmental",
  "frame-support",
  "frame-system",
@@ -1483,12 +1511,41 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system-proc-macro"
 version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#37dabdfed859bc98e28d9630f0284a7109eebd8d"
+dependencies = [
+ "proc-macro-crate 1.0.0",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "cumulus-pallet-parachain-system-proc-macro"
+version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8#0cd4b13e3e7d7c2f0f3aadb0a6b427350cde1bf6"
 dependencies = [
  "proc-macro-crate 1.0.0",
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "cumulus-primitives-core"
+version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#37dabdfed859bc98e28d9630f0284a7109eebd8d"
+dependencies = [
+ "frame-support",
+ "impl-trait-for-tuples 0.2.1",
+ "parity-scale-codec",
+ "polkadot-core-primitives",
+ "polkadot-parachain",
+ "polkadot-primitives",
+ "sp-api",
+ "sp-runtime",
+ "sp-std",
+ "sp-trie",
+ "xcm",
 ]
 
 [[package]]
@@ -1512,11 +1569,32 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-parachain-inherent"
 version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#37dabdfed859bc98e28d9630f0284a7109eebd8d"
+dependencies = [
+ "async-trait",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-test-relay-sproof-builder 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "parity-scale-codec",
+ "polkadot-client",
+ "sc-client-api",
+ "sp-api",
+ "sp-core",
+ "sp-inherents",
+ "sp-runtime",
+ "sp-state-machine",
+ "sp-std",
+ "sp-trie",
+ "tracing",
+]
+
+[[package]]
+name = "cumulus-primitives-parachain-inherent"
+version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8#0cd4b13e3e7d7c2f0f3aadb0a6b427350cde1bf6"
 dependencies = [
  "async-trait",
- "cumulus-primitives-core",
- "cumulus-test-relay-sproof-builder",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8)",
+ "cumulus-test-relay-sproof-builder 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8)",
  "parity-scale-codec",
  "polkadot-client",
  "sc-client-api",
@@ -1533,9 +1611,9 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-timestamp"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8#0cd4b13e3e7d7c2f0f3aadb0a6b427350cde1bf6"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#37dabdfed859bc98e28d9630f0284a7109eebd8d"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "sp-inherents",
  "sp-std",
  "sp-timestamp",
@@ -1544,9 +1622,22 @@ dependencies = [
 [[package]]
 name = "cumulus-test-relay-sproof-builder"
 version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#37dabdfed859bc98e28d9630f0284a7109eebd8d"
+dependencies = [
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "parity-scale-codec",
+ "polkadot-primitives",
+ "sp-runtime",
+ "sp-state-machine",
+ "sp-std",
+]
+
+[[package]]
+name = "cumulus-test-relay-sproof-builder"
+version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8#0cd4b13e3e7d7c2f0f3aadb0a6b427350cde1bf6"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8)",
  "parity-scale-codec",
  "polkadot-primitives",
  "sp-runtime",
@@ -4598,11 +4689,11 @@ name = "moonbase-runtime"
 version = "0.8.4"
 dependencies = [
  "account",
- "cumulus-pallet-parachain-system",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-pallet-parachain-system 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "cumulus-primitives-timestamp",
- "cumulus-test-relay-sproof-builder",
+ "cumulus-test-relay-sproof-builder 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "evm",
  "fp-rpc",
  "frame-benchmarking",
@@ -4619,7 +4710,7 @@ dependencies = [
  "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
- "nimbus-primitives",
+ "nimbus-primitives 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "pallet-author-inherent",
  "pallet-author-mapping",
  "pallet-author-slot-filter",
@@ -4689,12 +4780,12 @@ version = "0.9.2"
 dependencies = [
  "cumulus-client-cli",
  "cumulus-client-service",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "frame-benchmarking-cli",
  "log",
  "moonbeam-cli-opt",
  "moonbeam-service",
- "nimbus-primitives",
+ "nimbus-primitives 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "parity-scale-codec",
  "polkadot-cli",
  "polkadot-parachain",
@@ -4907,11 +4998,11 @@ name = "moonbeam-runtime"
 version = "0.8.4"
 dependencies = [
  "account",
- "cumulus-pallet-parachain-system",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-pallet-parachain-system 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "cumulus-primitives-timestamp",
- "cumulus-test-relay-sproof-builder",
+ "cumulus-test-relay-sproof-builder 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "evm",
  "fp-rpc",
  "frame-benchmarking",
@@ -4928,7 +5019,7 @@ dependencies = [
  "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
- "nimbus-primitives",
+ "nimbus-primitives 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "pallet-author-inherent",
  "pallet-author-mapping",
  "pallet-author-slot-filter",
@@ -4988,9 +5079,9 @@ dependencies = [
  "cumulus-client-consensus-relay-chain",
  "cumulus-client-network",
  "cumulus-client-service",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
- "cumulus-test-relay-sproof-builder",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-test-relay-sproof-builder 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "derive_more",
  "ethereum",
  "exit-future 0.1.4",
@@ -5020,7 +5111,7 @@ dependencies = [
  "moonriver-runtime",
  "moonshadow-runtime",
  "nimbus-consensus",
- "nimbus-primitives",
+ "nimbus-primitives 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "nix",
  "pallet-author-inherent",
  "pallet-ethereum",
@@ -5097,11 +5188,11 @@ name = "moonriver-runtime"
 version = "0.8.4"
 dependencies = [
  "account",
- "cumulus-pallet-parachain-system",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-pallet-parachain-system 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "cumulus-primitives-timestamp",
- "cumulus-test-relay-sproof-builder",
+ "cumulus-test-relay-sproof-builder 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "evm",
  "fp-rpc",
  "frame-benchmarking",
@@ -5118,7 +5209,7 @@ dependencies = [
  "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
- "nimbus-primitives",
+ "nimbus-primitives 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "pallet-author-inherent",
  "pallet-author-mapping",
  "pallet-author-slot-filter",
@@ -5170,11 +5261,11 @@ name = "moonshadow-runtime"
 version = "0.8.4"
 dependencies = [
  "account",
- "cumulus-pallet-parachain-system",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-pallet-parachain-system 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "cumulus-primitives-timestamp",
- "cumulus-test-relay-sproof-builder",
+ "cumulus-test-relay-sproof-builder 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "evm",
  "fp-rpc",
  "frame-benchmarking",
@@ -5191,7 +5282,7 @@ dependencies = [
  "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
- "nimbus-primitives",
+ "nimbus-primitives 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "pallet-author-inherent",
  "pallet-author-mapping",
  "pallet-author-slot-filter",
@@ -5358,15 +5449,15 @@ dependencies = [
 [[package]]
 name = "nimbus-consensus"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8#0cd4b13e3e7d7c2f0f3aadb0a6b427350cde1bf6"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#37dabdfed859bc98e28d9630f0284a7109eebd8d"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "futures 0.3.15",
  "log",
- "nimbus-primitives",
+ "nimbus-primitives 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "parity-scale-codec",
  "parking_lot 0.9.0",
  "polkadot-service",
@@ -5382,6 +5473,22 @@ dependencies = [
  "sp-runtime",
  "substrate-prometheus-endpoint",
  "tracing",
+]
+
+[[package]]
+name = "nimbus-primitives"
+version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#37dabdfed859bc98e28d9630f0284a7109eebd8d"
+dependencies = [
+ "async-trait",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "sp-api",
+ "sp-application-crypto",
+ "sp-inherents",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -5641,13 +5748,12 @@ dependencies = [
 [[package]]
 name = "pallet-author-inherent"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8#0cd4b13e3e7d7c2f0f3aadb0a6b427350cde1bf6"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#37dabdfed859bc98e28d9630f0284a7109eebd8d"
 dependencies = [
- "cumulus-pallet-parachain-system",
  "frame-support",
  "frame-system",
  "log",
- "nimbus-primitives",
+ "nimbus-primitives 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "parity-scale-codec",
  "sp-api",
  "sp-application-crypto",
@@ -5664,7 +5770,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
- "nimbus-primitives",
+ "nimbus-primitives 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "pallet-balances",
  "parity-scale-codec",
  "serde",
@@ -5677,13 +5783,13 @@ dependencies = [
 [[package]]
 name = "pallet-author-slot-filter"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8#0cd4b13e3e7d7c2f0f3aadb0a6b427350cde1bf6"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#37dabdfed859bc98e28d9630f0284a7109eebd8d"
 dependencies = [
- "cumulus-pallet-parachain-system",
+ "cumulus-pallet-parachain-system 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "frame-support",
  "frame-system",
  "log",
- "nimbus-primitives",
+ "nimbus-primitives 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "pallet-author-inherent",
  "parity-scale-codec",
  "serde",
@@ -5808,13 +5914,13 @@ name = "pallet-crowdloan-rewards"
 version = "0.6.0"
 source = "git+https://github.com/purestake/crowdloan-rewards#8fd8f06fe414721decef844f8ad29ae941ffb541"
 dependencies = [
- "cumulus-pallet-parachain-system",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-pallet-parachain-system 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8)",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8)",
  "frame-support",
  "frame-system",
  "log",
- "nimbus-primitives",
+ "nimbus-primitives 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8)",
  "pallet-balances",
  "pallet-utility",
  "parity-scale-codec",
@@ -6437,9 +6543,9 @@ dependencies = [
 [[package]]
 name = "parachain-info"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8#0cd4b13e3e7d7c2f0f3aadb0a6b427350cde1bf6"
+source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#37dabdfed859bc98e28d9630f0284a7109eebd8d"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -6454,7 +6560,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
- "nimbus-primitives",
+ "nimbus-primitives 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "pallet-balances",
  "parity-scale-codec",
  "serde",
