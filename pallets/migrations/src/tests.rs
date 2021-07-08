@@ -176,3 +176,71 @@ fn migration_progress_should_emit_events() {
 	assert_eq!(*num_steps.lock().unwrap(), 5, "migration step should be called until done");
 
 }
+
+#[test]
+fn migration_should_only_be_invoked_once() {
+
+	let num_name_fn_calls = Arc::new(Mutex::new(0usize));
+	let num_step_fn_calls = Arc::new(Mutex::new(0usize));
+
+	crate::mock::execute_with_mock_migrations(&mut |mgr: &mut MockMigrationManager| {
+		let num_name_fn_calls = Arc::clone(&num_name_fn_calls);
+		let num_step_fn_calls = Arc::clone(&num_step_fn_calls);
+
+		mgr.register_callback(
+			move || {
+				let mut num_name_fn_calls = num_name_fn_calls.lock().unwrap();
+				*num_name_fn_calls += 1;
+				"migration1"
+			},
+			move |_, _| -> (Perbill, Weight) {
+				let mut num_step_fn_calls = num_step_fn_calls.lock().unwrap();
+				*num_step_fn_calls += 1;
+				(Perbill::one(), 1) // immediately done
+			}
+		);
+	},
+	&mut || {
+		ExtBuilder::default().build().execute_with(|| {
+			// roll forward until upgraded, should happen before block even increments
+			crate::mock::roll_until_upgraded(true);
+
+			assert_eq!(System::block_number(), 1);
+			assert_eq!(*num_name_fn_calls.lock().unwrap(), 1, "migration name needed once");
+			assert_eq!(*num_step_fn_calls.lock().unwrap(), 1, "migration step needed once");
+			let mut expected = vec![
+				Event::RuntimeUpgradeStarted(),
+				Event::MigrationStarted("migration1".into()),
+				Event::MigrationStepped("migration1".into(), Perbill::one(), 1),
+				Event::MigrationCompleted("migration1".into()),
+				Event::RuntimeUpgradeStepped(1),
+				Event::RuntimeUpgradeCompleted(),
+			];
+			assert_eq!(events(), expected);
+			
+			// attempt to roll forward again, block should still not increment, and migration
+			// name fn should be called but pallet_migrations should immediately recognize that
+			// no work needs to be done (and not call step)
+			crate::mock::roll_until_upgraded(true);
+
+			assert_eq!(System::block_number(), 1);
+			assert_eq!(*num_name_fn_calls.lock().unwrap(), 2, "migration name needed twice");
+			assert_eq!(*num_step_fn_calls.lock().unwrap(), 1, "migration step not needed again");
+			expected.append(&mut vec![
+				Event::RuntimeUpgradeStarted(),
+				// TODO: it might be nice to see an event here about a migration being skipped
+				//       is there much overhead in emitting events?
+				Event::RuntimeUpgradeStepped(0),
+				Event::RuntimeUpgradeCompleted(),
+			]);
+			assert_eq!(events(), expected);
+
+			// roll forward a few blocks
+			crate::mock::roll_to(3, false);
+			assert_eq!(*num_name_fn_calls.lock().unwrap(), 2, "migration name not needed again");
+			assert_eq!(*num_step_fn_calls.lock().unwrap(), 1, "migration step not needed again");
+			// assert that no new events have been emitted
+			assert_eq!(events(), expected);
+		});
+	});
+}
