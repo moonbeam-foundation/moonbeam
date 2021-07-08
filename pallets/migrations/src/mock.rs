@@ -139,30 +139,7 @@ where
 		MOCK_MIGRATIONS_LIST::with(|inner_mgr: &mut MockMigrationManager| {
 			callback(inner_mgr);
 		});
-
-		// mimic the calls that would occur from the time a runtime upgrade starts until the
-		// Migrations pallet indicates that all upgrades are complete
-
-		ExtBuilder::default().build().execute_with(|| {
-			let mut block_number = 1u64;
-			Migrations::on_runtime_upgrade();
-
-			while ! Migrations::is_fully_upgraded() {
-				System::set_block_number(block_number);
-				System::on_initialize(System::block_number());
-				Migrations::on_initialize(System::block_number());
-				Migrations::on_finalize(System::block_number());
-				System::on_finalize(System::block_number());
-
-				block_number += 1;
-
-				if block_number > 99999 {
-					panic!("Infinite loop?");
-				}
-			}
-
-			post_migration_callback();
-		});
+		post_migration_callback();
 	});
 }
 
@@ -253,4 +230,38 @@ pub(crate) fn events() -> Vec<pallet_migrations::Event<Test>> {
 			}
 		})
 		.collect::<Vec<_>>()
+}
+
+pub(crate) fn roll_to(block_number: u64, invoke_on_runtime_upgrade_first: bool) {
+
+	if invoke_on_runtime_upgrade_first {
+		Migrations::on_runtime_upgrade();
+	}
+
+	while System::block_number() < block_number {
+		System::set_block_number(System::block_number() + 1);
+		System::on_initialize(System::block_number());
+		Migrations::on_initialize(System::block_number());
+		Migrations::on_finalize(System::block_number());
+		System::on_finalize(System::block_number());
+	}
+}
+
+pub(crate) fn roll_until_upgraded(invoke_on_runtime_upgrade_first: bool) {
+
+	if invoke_on_runtime_upgrade_first {
+		Migrations::on_runtime_upgrade();
+	}
+
+	while ! Migrations::is_fully_upgraded() {
+		System::set_block_number(System::block_number() + 1);
+		System::on_initialize(System::block_number());
+		Migrations::on_initialize(System::block_number());
+		Migrations::on_finalize(System::block_number());
+		System::on_finalize(System::block_number());
+
+		if System::block_number() > 99999 {
+			panic!("Infinite loop?");
+		}
+	}
 }
