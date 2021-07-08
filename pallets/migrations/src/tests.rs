@@ -228,8 +228,6 @@ fn migration_should_only_be_invoked_once() {
 			assert_eq!(*num_step_fn_calls.lock().unwrap(), 1, "migration step not needed again");
 			expected.append(&mut vec![
 				Event::RuntimeUpgradeStarted(),
-				// TODO: it might be nice to see an event here about a migration being skipped
-				//       is there much overhead in emitting events?
 				Event::RuntimeUpgradeStepped(0),
 				Event::RuntimeUpgradeCompleted(),
 			]);
