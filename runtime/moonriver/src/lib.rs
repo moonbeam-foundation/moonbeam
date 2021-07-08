@@ -845,12 +845,13 @@ runtime_common::impl_runtime_apis_plus_common! {
 		fn validate_transaction(
 			source: TransactionSource,
 			tx: <Block as BlockT>::Extrinsic,
+			block_hash: <Block as BlockT>::Hash,
 		) -> TransactionValidity {
 			// Filtered calls should not enter the tx pool as they'll fail if inserted.
 			let allowed = <Runtime as frame_system::Config>::BaseCallFilter::filter(&tx.function);
 
 			if allowed {
-				Executive::validate_transaction(source, tx)
+				Executive::validate_transaction(source, tx, block_hash)
 			} else {
 				InvalidTransaction::Call.into()
 			}
