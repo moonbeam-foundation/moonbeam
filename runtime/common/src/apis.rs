@@ -453,7 +453,15 @@ macro_rules! impl_runtime_apis_plus_common {
 			}
 
 			impl nimbus_primitives::AuthorFilterAPI<Block, nimbus_primitives::NimbusId> for Runtime {
-				fn can_author(author: nimbus_primitives::NimbusId, slot: u32) -> bool {
+				fn can_author(author: nimbus_primitives::NimbusId, slot: u32, parent_header: &<Block as BlockT>::Header) -> bool {
+					// The Moonbeam runtimes use an entropy source that is updated during block initialization.
+					// Therefore we need to initialize it to match the state it will be in when the
+					// next block is being executed.
+					use frame_support::traits::OnInitialize;
+					System::initialize(&(parent_header.number + 1), &parent_header.hash(), &parent_header.digest, frame_system::InitKind::Inspection);
+					RandomnessCollectiveFlip::on_initialize(System::block_number());
+
+					// And now the actual prediction call
 					AuthorInherent::can_author(&author, &slot)
 				}
 			}
