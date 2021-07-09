@@ -105,7 +105,8 @@ mod multiplier_tests {
 		// if the min is too small, then this will not change, and we are doomed forever.
 		// the weight is 1/100th bigger than target.
 		run_with_system_weight(target * 101 / 100, || {
-			let next = moonshadow_runtime::SlowAdjustingFeeUpdate::<Runtime>::convert(minimum_multiplier);
+			let next =
+				moonshadow_runtime::SlowAdjustingFeeUpdate::<Runtime>::convert(minimum_multiplier);
 			assert!(
 				next > minimum_multiplier,
 				"{:?} !>= {:?}",
@@ -129,7 +130,8 @@ mod multiplier_tests {
 		let mut blocks = 0;
 		while multiplier <= Multiplier::one() {
 			run_with_system_weight(block_weight, || {
-				let next = moonshadow_runtime::SlowAdjustingFeeUpdate::<Runtime>::convert(multiplier);
+				let next =
+					moonshadow_runtime::SlowAdjustingFeeUpdate::<Runtime>::convert(multiplier);
 				// ensure that it is growing as well.
 				assert!(next > multiplier, "{:?} !>= {:?}", next, multiplier);
 				multiplier = next;

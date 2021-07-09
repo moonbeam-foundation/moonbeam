@@ -105,7 +105,8 @@ mod multiplier_tests {
 		// if the min is too small, then this will not change, and we are doomed forever.
 		// the weight is 1/100th bigger than target.
 		run_with_system_weight(target * 101 / 100, || {
-			let next = moonbeam_runtime::SlowAdjustingFeeUpdate::<Runtime>::convert(minimum_multiplier);
+			let next =
+				moonbeam_runtime::SlowAdjustingFeeUpdate::<Runtime>::convert(minimum_multiplier);
 			assert!(
 				next > minimum_multiplier,
 				"{:?} !>= {:?}",
