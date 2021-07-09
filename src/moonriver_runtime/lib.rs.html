@@ -891,6 +891,32 @@
 <span id="888">888</span>
 <span id="889">889</span>
 <span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -945,7 +971,7 @@
 	<span class="ident">Account</span> <span class="kw">as</span> <span class="ident">EVMAccount</span>, <span class="ident">EnsureAddressNever</span>, <span class="ident">EnsureAddressRoot</span>, <span class="ident">FeeCalculator</span>,
 	<span class="ident">IdentityAddressMapping</span>, <span class="ident">Runner</span>,
 };
-<span class="kw">use</span> <span class="ident">pallet_transaction_payment</span>::<span class="ident">CurrencyAdapter</span>;
+<span class="kw">use</span> <span class="ident">pallet_transaction_payment</span>::{<span class="ident">CurrencyAdapter</span>, <span class="ident">Multiplier</span>, <span class="ident">TargetedFeeAdjustment</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">parachain_staking</span>::{<span class="ident">InflationInfo</span>, <span class="ident">Range</span>};
 <span class="kw">use</span> <span class="ident">parity_scale_codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
 <span class="kw">use</span> <span class="ident">sp_api</span>::<span class="ident">impl_runtime_apis</span>;
@@ -954,7 +980,7 @@
 	<span class="ident">create_runtime_str</span>, <span class="ident">generic</span>, <span class="ident">impl_opaque_keys</span>,
 	<span class="ident">traits</span>::{<span class="ident">BlakeTwo256</span>, <span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>, <span class="ident">IdentityLookup</span>},
 	<span class="ident">transaction_validity</span>::{<span class="ident">InvalidTransaction</span>, <span class="ident">TransactionSource</span>, <span class="ident">TransactionValidity</span>},
-	<span class="ident">AccountId32</span>, <span class="ident">ApplyExtrinsicResult</span>, <span class="ident">Perbill</span>, <span class="ident">Percent</span>, <span class="ident">Permill</span>,
+	<span class="ident">AccountId32</span>, <span class="ident">ApplyExtrinsicResult</span>, <span class="ident">FixedPointNumber</span>, <span class="ident">Perbill</span>, <span class="ident">Percent</span>, <span class="ident">Permill</span>, <span class="ident">Perquintill</span>,
 };
 <span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">convert</span>::<span class="ident">TryFrom</span>, <span class="ident">prelude</span>::<span class="kw-2">*</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
@@ -1173,7 +1199,7 @@
 	<span class="kw">type</span> <span class="ident">OnChargeTransaction</span> <span class="op">=</span> <span class="ident">CurrencyAdapter</span><span class="op">&lt;</span><span class="ident">Balances</span>, <span class="ident">DealWithFees</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">TransactionByteFee</span> <span class="op">=</span> <span class="ident">TransactionByteFee</span>;
 	<span class="kw">type</span> <span class="ident">WeightToFee</span> <span class="op">=</span> <span class="ident">IdentityFee</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">FeeMultiplierUpdate</span> <span class="op">=</span> ();
+	<span class="kw">type</span> <span class="ident">FeeMultiplierUpdate</span> <span class="op">=</span> <span class="ident">SlowAdjustingFeeUpdate</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">pallet_sudo</span>::<span class="ident">Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
@@ -1209,6 +1235,18 @@
 <span class="macro">parameter_types</span><span class="macro">!</span> {
 	<span class="kw">pub</span> <span class="ident">BlockGasLimit</span>: <span class="ident">U256</span>
 		<span class="op">=</span> <span class="ident">U256</span>::<span class="ident">from</span>(<span class="ident">NORMAL_DISPATCH_RATIO</span> <span class="op">*</span> <span class="ident">MAXIMUM_BLOCK_WEIGHT</span> <span class="op">/</span> <span class="ident">WEIGHT_PER_GAS</span>);
+	<span class="doccomment">/// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less</span>
+	<span class="doccomment">/// than this will decrease the weight and more will increase.</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TargetBlockFullness</span>: <span class="ident">Perquintill</span> <span class="op">=</span> <span class="ident">Perquintill</span>::<span class="ident">from_percent</span>(<span class="number">25</span>);
+	<span class="doccomment">/// The adjustment variable of the runtime. Higher values will cause `TargetBlockFullness` to</span>
+	<span class="doccomment">/// change the fees more rapidly. This low value causes changes to occur slowly over time.</span>
+	<span class="kw">pub</span> <span class="ident">AdjustmentVariable</span>: <span class="ident">Multiplier</span> <span class="op">=</span> <span class="ident">Multiplier</span>::<span class="ident">saturating_from_rational</span>(<span class="number">3</span>, <span class="number">100_000</span>);
+	<span class="doccomment">/// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure</span>
+	<span class="doccomment">/// that combined with `AdjustmentVariable`, we can recover from the minimum.</span>
+	<span class="doccomment">/// See `multiplier_can_grow_from_zero` in integration_tests.rs.</span>
+	<span class="doccomment">/// This value is currently only used by pallet-transaction-payment as an assertion that the</span>
+	<span class="doccomment">/// next multiplier is always &gt; min value.</span>
+	<span class="kw">pub</span> <span class="ident">MinimumMultiplier</span>: <span class="ident">Multiplier</span> <span class="op">=</span> <span class="ident">Multiplier</span>::<span class="ident">saturating_from_rational</span>(<span class="number">1</span>, <span class="number">1_000_000u128</span>);
 }
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FixedGasPrice</span>;
@@ -1217,6 +1255,20 @@
 		(<span class="number">1</span> <span class="op">*</span> <span class="ident">currency</span>::<span class="ident">GIGASED</span>).<span class="ident">into</span>()
 	}
 }
+
+<span class="doccomment">/// Parameterized slow adjusting fee updated based on</span>
+<span class="doccomment">/// https://w3f-research.readthedocs.io/en/latest/polkadot/overview/2-token-economics.html#-2.-slow-adjusting-mechanism // editorconfig-checker-disable-line</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// The adjustment algorithm boils down to:</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// diff = (previous_block_weight - target) / maximum_block_weight</span>
+<span class="doccomment">/// next_multiplier = prev_multiplier * (1 + (v * diff) + ((v * diff)^2 / 2))</span>
+<span class="doccomment">/// assert(next_multiplier &gt; min)</span>
+<span class="doccomment">///     where: v is AdjustmentVariable</span>
+<span class="doccomment">///            target is TargetBlockFullness</span>
+<span class="doccomment">///            min is MinimumMultiplier</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">SlowAdjustingFeeUpdate</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="op">=</span>
+	<span class="ident">TargetedFeeAdjustment</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">TargetBlockFullness</span>, <span class="ident">AdjustmentVariable</span>, <span class="ident">MinimumMultiplier</span><span class="op">&gt;</span>;
 
 <span class="kw">impl</span> <span class="ident">pallet_evm</span>::<span class="ident">Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">FeeCalculator</span> <span class="op">=</span> <span class="ident">FixedGasPrice</span>;
@@ -1777,11 +1829,11 @@
 }
 
 <span class="comment">// Nimbus&#39;s Executive wrapper allows relay validators to verify the seal digest</span>
-<span class="ident">cumulus_pallet_parachain_system</span>::<span class="macro">register_validate_block</span><span class="macro">!</span> {
+<span class="ident">cumulus_pallet_parachain_system</span>::<span class="macro">register_validate_block</span><span class="macro">!</span>(
 	<span class="ident">Runtime</span> <span class="op">=</span> <span class="ident">Runtime</span>,
 	<span class="ident">BlockExecutor</span> <span class="op">=</span> <span class="ident">pallet_author_inherent</span>::<span class="ident">BlockExecutor</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Executive</span><span class="op">&gt;</span>,
 	<span class="ident">CheckInherents</span> <span class="op">=</span> <span class="ident">CheckInherents</span>,
-}
+);
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="moonriver_runtime"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
