@@ -89,6 +89,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 			impl moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block> for Runtime {
 				fn trace_transaction(
+					header: &<Block as BlockT>::Header,
 					extrinsics: Vec<<Block as BlockT>::Extrinsic>,
 					transaction: &EthereumTransaction,
 					trace_type: moonbeam_rpc_primitives_debug::single::TraceType,
@@ -98,6 +99,10 @@ macro_rules! impl_runtime_apis_plus_common {
 				> {
 					use moonbeam_evm_tracer::{CallListTracer, RawTracer};
 					use moonbeam_rpc_primitives_debug::single::TraceType;
+
+					// Explicit initialize.
+					// Needed because https://github.com/paritytech/substrate/pull/8953
+					Executive::initialize_block(header);
 
 					// Apply the a subset of extrinsics: all the substrate-specific or ethereum
 					// transactions that preceded the requested transaction.
@@ -137,6 +142,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn trace_block(
+					header: &<Block as BlockT>::Header,
 					extrinsics: Vec<<Block as BlockT>::Extrinsic>,
 				) -> Result<
 					Vec<moonbeam_rpc_primitives_debug::block::TransactionTrace>,
@@ -146,6 +152,10 @@ macro_rules! impl_runtime_apis_plus_common {
 					use moonbeam_rpc_primitives_debug::{
 						block, single, CallResult, CreateResult, CreateType,
 					};
+
+					// Explicit initialize.
+					// Needed because https://github.com/paritytech/substrate/pull/8953
+					Executive::initialize_block(header);
 
 					let mut config = <Runtime as pallet_evm::Config>::config().clone();
 					config.estimate = true;
