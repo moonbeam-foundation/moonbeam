@@ -1,5 +1,5 @@
 #!/bin/bash
-# Generates the runtime wasm fro moonbase, moonshadow, moonriver and moonbeam
+# Generates the runtime wasm for moonbase, moonshadow, moonriver and moonbeam
 set -e
 source scripts/_init_var.sh
 

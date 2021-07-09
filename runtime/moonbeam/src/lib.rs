@@ -77,17 +77,17 @@ pub use sp_runtime::BuildStorage;
 
 pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 
-/// MOVR, the native token, uses 18 decimals of precision.
+/// GLMR, the native token, uses 18 decimals of precision.
 pub mod currency {
 	use super::Balance;
 
 	pub const GLMR: Balance = 1_000_000_000_000_000_000;
-	pub const KILOGLMRS: Balance = GLMR * 1_000;
-	pub const MILLIGLMRS: Balance = GLMR / 1_000;
-	pub const MICROGLMRS: Balance = MILLIGLMRS / 1_000;
-	pub const NANOGLMRS: Balance = MICROGLMRS / 1_000;
+	pub const KILOGLMR: Balance = GLMR * 1_000;
+	pub const MILLIGLMR: Balance = GLMR / 1_000;
+	pub const MICROGLMR: Balance = MILLIGLMR / 1_000;
+	pub const NANOGLMR: Balance = MICROGLMR / 1_000;
 
-	pub const BYTE_FEE: Balance = 100 * MICROGLMRS;
+	pub const BYTE_FEE: Balance = 100 * MICROGLMR;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
 		items as Balance * 1 * GLMR + (bytes as Balance) * BYTE_FEE
@@ -129,7 +129,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 0154,
+	spec_version: 0155,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -166,11 +166,11 @@ parameter_types! {
 	/// We allow for one half second of compute with a 6 second average block time.
 	/// These values are dictated by Polkadot for the parachain.
 	pub BlockWeights: frame_system::limits::BlockWeights = frame_system::limits::BlockWeights
-		::with_sensible_defaults(WEIGHT_PER_SECOND / 2, NORMAL_DISPATCH_RATIO);
+		::with_sensible_defaults(MAXIMUM_BLOCK_WEIGHT, NORMAL_DISPATCH_RATIO);
 	/// We allow for 5 MB blocks.
 	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
 		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
-	pub const SS58Prefix: u8 = 42;
+	pub const SS58Prefix: u16 = 1284;
 }
 
 impl frame_system::Config for Runtime {
@@ -330,7 +330,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		(1 * currency::NANOGLMRS).into()
+		(1 * currency::NANOGLMR).into()
 	}
 }
 
@@ -583,14 +583,17 @@ parameter_types! {
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
 	/// Default percent of inflation set aside for parachain bond every round
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
-	/// Minimum stake required to be reserved to be a collator is 1_000
-	pub const MinCollatorStk: u128 = 1 * currency::KILOGLMRS;
+	/// Minimum stake required to become a collator is 1_000
+	pub const MinCollatorStk: u128 = 1 * currency::KILOGLMR;
+	/// Minimum stake required to be reserved to be a candidate is 1_000
+	pub const MinCollatorCandidateStk: u128 = 1 * currency::KILOGLMR;
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5 * currency::GLMR;
 }
 impl parachain_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
+	type MonetaryGovernanceOrigin = EnsureRoot<AccountId>;
 	type MinBlocksPerRound = MinBlocksPerRound;
 	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type BondDuration = BondDuration;
@@ -600,7 +603,7 @@ impl parachain_staking::Config for Runtime {
 	type DefaultCollatorCommission = DefaultCollatorCommission;
 	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	type MinCollatorStk = MinCollatorStk;
-	type MinCollatorCandidateStk = MinCollatorStk;
+	type MinCollatorCandidateStk = MinCollatorCandidateStk;
 	type MinNomination = MinNominatorStk;
 	type MinNominatorStk = MinNominatorStk;
 	type WeightInfo = parachain_staking::weights::SubstrateWeight<Runtime>;
@@ -626,16 +629,17 @@ parameter_types! {
 	pub const MinimumReward: Balance = 0;
 	pub const Initialized: bool = false;
 	pub const InitializationPayment: Perbill = Perbill::from_percent(30);
+	pub const MaxInitContributorsBatchSizes: u32 = 1000;
 }
 
 impl pallet_crowdloan_rewards::Config for Runtime {
 	type Event = Event;
 	type Initialized = Initialized;
 	type InitializationPayment = InitializationPayment;
+	type MaxInitContributors = MaxInitContributorsBatchSizes;
 	type MinimumReward = MinimumReward;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = AccountId32;
-	type VestingPeriod = VestingPeriod;
 }
 
 parameter_types! {

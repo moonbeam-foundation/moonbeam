@@ -1574,6 +1574,143 @@ fn nomination_events_convey_correct_position() {
 		});
 }
 
+// ~~ MONETARY ORIGIN DISPATCHABLES ~~
+
+#[test]
+fn invalid_monetary_origin_fails() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			Stake::set_staking_expectations(
+				Origin::signed(45),
+				Range {
+					min: 3u32.into(),
+					ideal: 4u32.into(),
+					max: 5u32.into()
+				}
+			),
+			sp_runtime::DispatchError::BadOrigin
+		);
+		assert_noop!(
+			Stake::set_inflation(
+				Origin::signed(45),
+				Range {
+					min: Perbill::from_percent(3),
+					ideal: Perbill::from_percent(4),
+					max: Perbill::from_percent(5)
+				}
+			),
+			sp_runtime::DispatchError::BadOrigin
+		);
+		assert_noop!(
+			Stake::set_inflation(
+				Origin::signed(45),
+				Range {
+					min: Perbill::from_percent(3),
+					ideal: Perbill::from_percent(4),
+					max: Perbill::from_percent(5)
+				}
+			),
+			sp_runtime::DispatchError::BadOrigin
+		);
+		assert_noop!(
+			Stake::set_parachain_bond_account(Origin::signed(45), 11),
+			sp_runtime::DispatchError::BadOrigin
+		);
+		assert_noop!(
+			Stake::set_parachain_bond_reserve_percent(Origin::signed(45), Percent::from_percent(2)),
+			sp_runtime::DispatchError::BadOrigin
+		);
+	});
+}
+
+#[test]
+fn set_staking_expectations_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		// invalid call fails
+		assert_noop!(
+			Stake::set_staking_expectations(
+				Origin::root(),
+				Range {
+					min: 5u32.into(),
+					ideal: 4u32.into(),
+					max: 3u32.into()
+				}
+			),
+			Error::<Test>::InvalidSchedule
+		);
+		let (min, ideal, max): (u128, u128, u128) = (3u32.into(), 4u32.into(), 5u32.into());
+		// valid call succeeds
+		assert_ok!(Stake::set_staking_expectations(
+			Origin::root(),
+			Range { min, ideal, max }
+		),);
+		// verify event emission
+		assert_eq!(
+			last_event(),
+			MetaEvent::Stake(Event::StakeExpectationsSet(min, ideal, max))
+		);
+		// verify storage change
+		let config = Stake::inflation_config();
+		assert_eq!(config.expect, Range { min, ideal, max });
+	});
+}
+
+#[test]
+fn set_inflation_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		// invalid call fails
+		assert_noop!(
+			Stake::set_inflation(
+				Origin::root(),
+				Range {
+					min: Perbill::from_percent(5),
+					ideal: Perbill::from_percent(4),
+					max: Perbill::from_percent(3)
+				}
+			),
+			Error::<Test>::InvalidSchedule
+		);
+		let (min, ideal, max): (Perbill, Perbill, Perbill) = (
+			Perbill::from_percent(3),
+			Perbill::from_percent(4),
+			Perbill::from_percent(5),
+		);
+		// valid call succeeds
+		assert_ok!(Stake::set_inflation(
+			Origin::root(),
+			Range { min, ideal, max }
+		),);
+		// verify event emission
+		assert_eq!(
+			last_event(),
+			MetaEvent::Stake(Event::InflationSet(
+				Perbill::from_parts(30000000),
+				Perbill::from_parts(40000000),
+				Perbill::from_parts(50000000),
+				Perbill::from_parts(57),
+				Perbill::from_parts(75),
+				Perbill::from_parts(93)
+			))
+		);
+		// verify storage change
+		let config = Stake::inflation_config();
+		assert_eq!(config.annual, Range { min, ideal, max });
+		assert_eq!(
+			config.round,
+			Range {
+				min: Perbill::from_parts(57),
+				ideal: Perbill::from_parts(75),
+				max: Perbill::from_parts(93)
+			}
+		);
+		// invalid call fails
+		assert_noop!(
+			Stake::set_inflation(Origin::root(), Range { min, ideal, max }),
+			Error::<Test>::NoWritingSameValue
+		);
+	});
+}
+
 #[test]
 fn parachain_bond_reserve_works() {
 	ExtBuilder::default()
@@ -1780,89 +1917,19 @@ fn parachain_bond_reserve_works() {
 // ~~ ROOT DISPATCHABLES ~~
 
 #[test]
-fn set_staking_expectations_works() {
+fn invalid_root_origin_fails() {
 	ExtBuilder::default().build().execute_with(|| {
-		// invalid call fails
 		assert_noop!(
-			Stake::set_staking_expectations(
-				Origin::root(),
-				Range {
-					min: 5u32.into(),
-					ideal: 4u32.into(),
-					max: 3u32.into()
-				}
-			),
-			Error::<Test>::InvalidSchedule
+			Stake::set_total_selected(Origin::signed(45), 6u32),
+			sp_runtime::DispatchError::BadOrigin
 		);
-		let (min, ideal, max): (u128, u128, u128) = (3u32.into(), 4u32.into(), 5u32.into());
-		// valid call succeeds
-		assert_ok!(Stake::set_staking_expectations(
-			Origin::root(),
-			Range { min, ideal, max }
-		),);
-		// verify event emission
-		assert_eq!(
-			last_event(),
-			MetaEvent::Stake(Event::StakeExpectationsSet(min, ideal, max))
-		);
-		// verify storage change
-		let config = Stake::inflation_config();
-		assert_eq!(config.expect, Range { min, ideal, max });
-	});
-}
-
-#[test]
-fn set_inflation_works() {
-	ExtBuilder::default().build().execute_with(|| {
-		// invalid call fails
 		assert_noop!(
-			Stake::set_inflation(
-				Origin::root(),
-				Range {
-					min: Perbill::from_percent(5),
-					ideal: Perbill::from_percent(4),
-					max: Perbill::from_percent(3)
-				}
-			),
-			Error::<Test>::InvalidSchedule
+			Stake::set_collator_commission(Origin::signed(45), Perbill::from_percent(5)),
+			sp_runtime::DispatchError::BadOrigin
 		);
-		let (min, ideal, max): (Perbill, Perbill, Perbill) = (
-			Perbill::from_percent(3),
-			Perbill::from_percent(4),
-			Perbill::from_percent(5),
-		);
-		// valid call succeeds
-		assert_ok!(Stake::set_inflation(
-			Origin::root(),
-			Range { min, ideal, max }
-		),);
-		// verify event emission
-		assert_eq!(
-			last_event(),
-			MetaEvent::Stake(Event::InflationSet(
-				Perbill::from_parts(30000000),
-				Perbill::from_parts(40000000),
-				Perbill::from_parts(50000000),
-				Perbill::from_parts(57),
-				Perbill::from_parts(75),
-				Perbill::from_parts(93)
-			))
-		);
-		// verify storage change
-		let config = Stake::inflation_config();
-		assert_eq!(config.annual, Range { min, ideal, max });
-		assert_eq!(
-			config.round,
-			Range {
-				min: Perbill::from_parts(57),
-				ideal: Perbill::from_parts(75),
-				max: Perbill::from_parts(93)
-			}
-		);
-		// invalid call fails
 		assert_noop!(
-			Stake::set_inflation(Origin::root(), Range { min, ideal, max }),
-			Error::<Test>::NoWritingSameValue
+			Stake::set_blocks_per_round(Origin::signed(45), 3u32),
+			sp_runtime::DispatchError::BadOrigin
 		);
 	});
 }

@@ -607,6 +607,8 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The currency type
 		type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
+		/// The origin for monetary governance
+		type MonetaryGovernanceOrigin: EnsureOrigin<Self::Origin>;
 		/// Minimum number of blocks per round
 		type MinBlocksPerRound: Get<u32>;
 		/// Default number of blocks per round at genesis
@@ -985,7 +987,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			expectations: Range<BalanceOf<T>>,
 		) -> DispatchResultWithPostInfo {
-			frame_system::ensure_root(origin)?;
+			T::MonetaryGovernanceOrigin::ensure_origin(origin)?;
 			ensure!(expectations.is_valid(), Error::<T>::InvalidSchedule);
 			let mut config = <InflationConfig<T>>::get();
 			ensure!(
@@ -1007,7 +1009,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			schedule: Range<Perbill>,
 		) -> DispatchResultWithPostInfo {
-			frame_system::ensure_root(origin)?;
+			T::MonetaryGovernanceOrigin::ensure_origin(origin)?;
 			ensure!(schedule.is_valid(), Error::<T>::InvalidSchedule);
 			let mut config = <InflationConfig<T>>::get();
 			ensure!(config.annual != schedule, Error::<T>::NoWritingSameValue);
@@ -1030,7 +1032,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			new: T::AccountId,
 		) -> DispatchResultWithPostInfo {
-			frame_system::ensure_root(origin)?;
+			T::MonetaryGovernanceOrigin::ensure_origin(origin)?;
 			let ParachainBondConfig {
 				account: old,
 				percent,
@@ -1049,7 +1051,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			new: Percent,
 		) -> DispatchResultWithPostInfo {
-			frame_system::ensure_root(origin)?;
+			T::MonetaryGovernanceOrigin::ensure_origin(origin)?;
 			let ParachainBondConfig {
 				account,
 				percent: old,

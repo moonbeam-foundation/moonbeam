@@ -52,28 +52,26 @@ const main = () => {
         describe: "folder which contains <runtime>-srtool-digest.json",
         required: true,
       },
+      tag: {
+        type: "string",
+        describe: "current tag to draft",
+        required: true,
+      },
     })
     .demandOption(["srtool-report-folder"])
     .help().argv;
 
-  const lastTags = execSync(
-    'git tag | grep "^v[0-9]*.[0-9]*.[0-9]*$" | sort -t "." -k1,1n -k2,2n -k3,3n | tail -2'
-  )
-    .toString()
-    .split("\n");
+  const command =
+    `git tag | grep "^v[0-9]*.[0-9]*.[0-9]*$" |` +
+    `sort -t "." -k1,1n -k2,2n -k3,3n | grep -B 1 "${argv.tag.replace(".", ".")}"`;
+
+  const lastTags = execSync(command).toString().split("\n");
 
   const previousTag = lastTags[0];
   const newTag = lastTags[1];
 
   if (!previousTag || !newTag) {
-    console.log(
-      `Couldn't retrieve tags from`,
-      execSync(
-        'git tag | grep "^v[0-9]*.[0-9]*.[0-9]*$" | sort -t "." -k1,1n -k2,2n -k3,3n | tail -2'
-      )
-        .toString()
-        .replace(/\n/g, ", ")
-    );
+    console.log(`Couldn't retrieve tags from`, execSync(command).toString().replace(/\n/g, ", "));
     process.exit(1);
   }
 
@@ -106,7 +104,7 @@ ${runtimes
 
 ## Build information
 
-WASM runtime built using \`${runtimes[0].srtool.info.rustc}\`
+WASM runtime built using \`${runtimes[0]?.srtool.info.rustc}\`
 
 ## Changes
 
