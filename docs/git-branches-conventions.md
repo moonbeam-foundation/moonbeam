@@ -39,7 +39,8 @@ it is for example a bug in the `key` subcommand.
 4. Request an emergency one or more reviews of this PR.
 5. Merge this PR.
 6. Create a hotfix tag `v2.3.1` on the `hotfix-v2.3` branch.
-7. If relevant, create an issue to backport this hotfix into master.
+7. If relevant, create an issue to backport this hotfix into master. This backport should then be
+integrated into master via a development branch, as if it were a "classic" contribution.
 
 ### Non-first hotfix
 
@@ -57,3 +58,7 @@ Development branches must be merged into master and then deleted.
 If you have to leave your development for a long time, we invite you to push your branch on your
 fork and to remove it from the official repository, so that the latter is not polluted by
 too many branches.
+
+## Diagram
+
+![git-graph](https://user-images.githubusercontent.com/22670546/125071750-0194cd00-e0ba-11eb-8c49-cb54c9876553.png)
