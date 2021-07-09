@@ -26,8 +26,8 @@ use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
 	traits::{fungible::Inspect, PalletInfo, StorageInfo, StorageInfoTrait},
-	StorageHasher, Twox128,
 	weights::{DispatchClass, Weight},
+	StorageHasher, Twox128,
 };
 use moonbeam_runtime::{
 	currency::GLMR, AccountId, Balances, BlockWeights, Call, CrowdloanRewards, Event,
