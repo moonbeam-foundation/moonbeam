@@ -22,23 +22,23 @@ use common::*;
 use evm::{executor::PrecompileOutput, ExitError, ExitSucceed};
 use frame_support::{
 	assert_noop, assert_ok,
-	weights::{DispatchClass, Weight},
-	traits::{fungible::Inspect, PalletInfo},
 	dispatch::Dispatchable,
+	traits::{fungible::Inspect, PalletInfo},
+	weights::{DispatchClass, Weight},
 };
 use moonbase_runtime::{
-	currency::UNITS, AccountId, Balances, Call, CrowdloanRewards, Event, ParachainStaking,
-	Precompiles, Runtime, System, BlockWeights,
+	currency::UNITS, AccountId, Balances, BlockWeights, Call, CrowdloanRewards, Event,
+	ParachainStaking, Precompiles, Runtime, System,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
+use pallet_transaction_payment::Multiplier;
 use parachain_staking::{Bond, NominatorAdded};
 use sp_core::{Public, H160, U256};
 use sp_runtime::{
-	DispatchError,
 	traits::{Convert, One},
+	DispatchError,
 };
-use pallet_transaction_payment::Multiplier;
 
 #[test]
 fn verify_pallet_indices() {
@@ -1443,8 +1443,7 @@ fn multiplier_can_grow_from_zero() {
 	// if the min is too small, then this will not change, and we are doomed forever.
 	// the weight is 1/100th bigger than target.
 	run_with_system_weight(target * 101 / 100, || {
-		let next =
-			moonbase_runtime::SlowAdjustingFeeUpdate::<Runtime>::convert(minimum_multiplier);
+		let next = moonbase_runtime::SlowAdjustingFeeUpdate::<Runtime>::convert(minimum_multiplier);
 		assert!(
 			next > minimum_multiplier,
 			"{:?} !>= {:?}",
@@ -1464,7 +1463,8 @@ fn multiplier_growth_simulator() {
 		* BlockWeights::get()
 			.get(DispatchClass::Normal)
 			.max_total
-			.unwrap() * 2;
+			.unwrap()
+		* 2;
 	let mut blocks = 0;
 	while multiplier <= Multiplier::one() {
 		run_with_system_weight(block_weight, || {

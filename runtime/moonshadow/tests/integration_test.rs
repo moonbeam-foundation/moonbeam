@@ -24,20 +24,20 @@ use common::*;
 use evm::{executor::PrecompileOutput, Context, ExitSucceed};
 use frame_support::{
 	assert_noop, assert_ok,
-	weights::{DispatchClass, Weight},
-	traits::{fungible::Inspect, PalletInfo},
 	dispatch::Dispatchable,
+	traits::{fungible::Inspect, PalletInfo},
+	weights::{DispatchClass, Weight},
 };
-use moonshadow_runtime::{Precompiles, BlockWeights};
+use moonshadow_runtime::{BlockWeights, Precompiles};
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
+use pallet_transaction_payment::Multiplier;
 use parachain_staking::{Bond, NominatorAdded};
 use sp_core::{Public, H160, U256};
 use sp_runtime::{
-	DispatchError,
 	traits::{Convert, One},
+	DispatchError,
 };
-use pallet_transaction_payment::Multiplier;
 
 #[test]
 fn verify_pallet_indices() {
@@ -1294,7 +1294,8 @@ fn multiplier_growth_simulator() {
 		* BlockWeights::get()
 			.get(DispatchClass::Normal)
 			.max_total
-			.unwrap() * 2;
+			.unwrap()
+		* 2;
 	let mut blocks = 0;
 	while multiplier <= Multiplier::one() {
 		run_with_system_weight(block_weight, || {

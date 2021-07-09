@@ -323,7 +323,7 @@ impl FeeCalculator for FixedGasPrice {
 /// https://w3f-research.readthedocs.io/en/latest/polkadot/overview/2-token-economics.html#-2.-slow-adjusting-mechanism
 ///
 /// The adjustment algorithm boils down to:
-/// 
+///
 /// diff = (previous_block_weight - target) / maximum_block_weight
 /// next_multiplier = prev_multiplier * (1 + (v * diff) + ((v * diff)^2 / 2))
 /// assert(next_multiplier > min)
