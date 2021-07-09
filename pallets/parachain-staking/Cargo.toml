@@ -6,7 +6,7 @@ edition = "2018"
 description = "parachain staking pallet for collator selection and reward distribution"
 
 [dependencies]
-nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.8", default-features = false }
+nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098", default-features = false }
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
