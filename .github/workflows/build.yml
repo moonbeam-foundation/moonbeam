@@ -242,7 +242,7 @@ jobs:
   generate-parachain-specs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
-    needs: ["build", "typescript-tests"]
+    needs: ["build"]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
