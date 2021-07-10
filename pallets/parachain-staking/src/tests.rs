@@ -14,7 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Unit testing
+//! # Staking Pallet Unit Tests
+//! Many of the unit tests are organized by the dispatchable they test. The order matches the order
+//! of the dispatchables in the `lib.rs`. The first test for each dispatchable is the event emitted
+//! when it dispatches successfully.
+//! 1. Root Dispatchables
+//! 2. Monetary Governance Dispatchables
+//! 3. Public Dispatchables
+//! 4. Property-Based Tests
 use crate::mock::{
 	events, last_event, roll_to, set_author, Balances, Event as MetaEvent, ExtBuilder, Origin,
 	Stake, Test,
@@ -23,75 +30,566 @@ use crate::{CollatorStatus, Error, Event, NominatorAdded, Range};
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, Perbill, Percent};
 
-// ~~ PUBLIC DISPATCHABLES ~~
+// ~~ ROOT DISPATCHABLES ~~
 
 #[test]
-fn online_offline_works() {
+fn invalid_root_origin_fails() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			Stake::set_total_selected(Origin::signed(45), 6u32),
+			sp_runtime::DispatchError::BadOrigin
+		);
+		assert_noop!(
+			Stake::set_collator_commission(Origin::signed(45), Perbill::from_percent(5)),
+			sp_runtime::DispatchError::BadOrigin
+		);
+		assert_noop!(
+			Stake::set_blocks_per_round(Origin::signed(45), 3u32),
+			sp_runtime::DispatchError::BadOrigin
+		);
+	});
+}
+
+// SET TOTAL SELECTED
+
+// event
+
+#[test]
+fn set_total_selected_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		// invalid call fails
+		assert_noop!(
+			Stake::set_total_selected(Origin::root(), 4u32),
+			Error::<Test>::CannotSetBelowMin
+		);
+		// valid call succeeds
+		assert_ok!(Stake::set_total_selected(Origin::root(), 6u32));
+		// verify event emission
+		assert_eq!(
+			last_event(),
+			MetaEvent::Stake(Event::TotalSelectedSet(5u32, 6u32,))
+		);
+		// verify storage change
+		assert_eq!(Stake::total_selected(), 6u32);
+		// invalid call fails
+		assert_noop!(
+			Stake::set_total_selected(Origin::root(), 6u32),
+			Error::<Test>::NoWritingSameValue
+		);
+	});
+}
+
+#[test]
+fn set_collator_commission_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		// valid call succeeds
+		assert_ok!(Stake::set_collator_commission(
+			Origin::root(),
+			Perbill::from_percent(5)
+		));
+		// verify event emission
+		assert_eq!(
+			last_event(),
+			MetaEvent::Stake(Event::CollatorCommissionSet(
+				Perbill::from_percent(20),
+				Perbill::from_percent(5),
+			))
+		);
+		// verify storage change
+		assert_eq!(Stake::collator_commission(), Perbill::from_percent(5));
+		// invalid call fails
+		assert_noop!(
+			Stake::set_collator_commission(Origin::root(), Perbill::from_percent(5)),
+			Error::<Test>::NoWritingSameValue
+		);
+	});
+}
+
+#[test]
+fn mutable_blocks_per_round() {
+	// round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round
 	ExtBuilder::default()
 		.with_balances(vec![
-			(1, 1000),
-			(2, 300),
+			(1, 100),
+			(2, 100),
+			(3, 100),
+			(4, 100),
+			(5, 100),
+			(6, 100),
+		])
+		.with_candidates(vec![(1, 20)])
+		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Stake::set_blocks_per_round(Origin::root(), 2u32),
+				Error::<Test>::CannotSetBelowMin
+			);
+			assert_noop!(
+				Stake::set_blocks_per_round(Origin::root(), 5u32),
+				Error::<Test>::NoWritingSameValue
+			);
+			// Default round every 5 blocks, but MinBlocksPerRound is 3 and we set it to min 3 blocks
+			roll_to(8);
+			// chooses top TotalSelectedCandidates (5), in order
+			let init = vec![
+				Event::CollatorChosen(2, 1, 40),
+				Event::NewRound(5, 2, 1, 40),
+			];
+			assert_eq!(events(), init);
+			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::BlocksPerRoundSet(
+					2,
+					5,
+					5,
+					3,
+					Perbill::from_parts(463),
+					Perbill::from_parts(463),
+					Perbill::from_parts(463)
+				))
+			);
+			roll_to(12);
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::NewRound(12, 4, 1, 40))
+			);
+		});
+	// round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 100),
+			(2, 100),
+			(3, 100),
+			(4, 100),
+			(5, 100),
+			(6, 100),
+		])
+		.with_candidates(vec![(1, 20)])
+		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(9);
+			let init = vec![
+				Event::CollatorChosen(2, 1, 40),
+				Event::NewRound(5, 2, 1, 40),
+			];
+			assert_eq!(events(), init);
+			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::BlocksPerRoundSet(
+					2,
+					5,
+					5,
+					3,
+					Perbill::from_parts(463),
+					Perbill::from_parts(463),
+					Perbill::from_parts(463)
+				))
+			);
+			roll_to(13);
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::NewRound(13, 4, 1, 40))
+			);
+		});
+	// if current duration less than new blocks per round (bpr), round waits until new bpr passes
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 100),
+			(2, 100),
+			(3, 100),
+			(4, 100),
+			(5, 100),
+			(6, 100),
+		])
+		.with_candidates(vec![(1, 20)])
+		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
+		.build()
+		.execute_with(|| {
+			// Default round every 5 blocks, but MinBlocksPerRound is 3 and we set it to min 3 blocks
+			roll_to(6);
+			// chooses top TotalSelectedCandidates (5), in order
+			let init = vec![
+				Event::CollatorChosen(2, 1, 40),
+				Event::NewRound(5, 2, 1, 40),
+			];
+			assert_eq!(events(), init);
+			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::BlocksPerRoundSet(
+					2,
+					5,
+					5,
+					3,
+					Perbill::from_parts(463),
+					Perbill::from_parts(463),
+					Perbill::from_parts(463)
+				))
+			);
+			roll_to(9);
+			assert_eq!(last_event(), MetaEvent::Stake(Event::NewRound(8, 3, 1, 40)));
+		});
+}
+
+// ~~ MONETARY GOVERNANCE DISPATCHABLES ~~
+
+#[test]
+fn invalid_monetary_origin_fails() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			Stake::set_staking_expectations(
+				Origin::signed(45),
+				Range {
+					min: 3u32.into(),
+					ideal: 4u32.into(),
+					max: 5u32.into()
+				}
+			),
+			sp_runtime::DispatchError::BadOrigin
+		);
+		assert_noop!(
+			Stake::set_inflation(
+				Origin::signed(45),
+				Range {
+					min: Perbill::from_percent(3),
+					ideal: Perbill::from_percent(4),
+					max: Perbill::from_percent(5)
+				}
+			),
+			sp_runtime::DispatchError::BadOrigin
+		);
+		assert_noop!(
+			Stake::set_inflation(
+				Origin::signed(45),
+				Range {
+					min: Perbill::from_percent(3),
+					ideal: Perbill::from_percent(4),
+					max: Perbill::from_percent(5)
+				}
+			),
+			sp_runtime::DispatchError::BadOrigin
+		);
+		assert_noop!(
+			Stake::set_parachain_bond_account(Origin::signed(45), 11),
+			sp_runtime::DispatchError::BadOrigin
+		);
+		assert_noop!(
+			Stake::set_parachain_bond_reserve_percent(Origin::signed(45), Percent::from_percent(2)),
+			sp_runtime::DispatchError::BadOrigin
+		);
+	});
+}
+
+#[test]
+fn set_staking_expectations_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		// invalid call fails
+		assert_noop!(
+			Stake::set_staking_expectations(
+				Origin::root(),
+				Range {
+					min: 5u32.into(),
+					ideal: 4u32.into(),
+					max: 3u32.into()
+				}
+			),
+			Error::<Test>::InvalidSchedule
+		);
+		let (min, ideal, max): (u128, u128, u128) = (3u32.into(), 4u32.into(), 5u32.into());
+		// valid call succeeds
+		assert_ok!(Stake::set_staking_expectations(
+			Origin::root(),
+			Range { min, ideal, max }
+		),);
+		// verify event emission
+		assert_eq!(
+			last_event(),
+			MetaEvent::Stake(Event::StakeExpectationsSet(min, ideal, max))
+		);
+		// verify storage change
+		let config = Stake::inflation_config();
+		assert_eq!(config.expect, Range { min, ideal, max });
+	});
+}
+
+#[test]
+fn set_inflation_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		// invalid call fails
+		assert_noop!(
+			Stake::set_inflation(
+				Origin::root(),
+				Range {
+					min: Perbill::from_percent(5),
+					ideal: Perbill::from_percent(4),
+					max: Perbill::from_percent(3)
+				}
+			),
+			Error::<Test>::InvalidSchedule
+		);
+		let (min, ideal, max): (Perbill, Perbill, Perbill) = (
+			Perbill::from_percent(3),
+			Perbill::from_percent(4),
+			Perbill::from_percent(5),
+		);
+		// valid call succeeds
+		assert_ok!(Stake::set_inflation(
+			Origin::root(),
+			Range { min, ideal, max }
+		),);
+		// verify event emission
+		assert_eq!(
+			last_event(),
+			MetaEvent::Stake(Event::InflationSet(
+				Perbill::from_parts(30000000),
+				Perbill::from_parts(40000000),
+				Perbill::from_parts(50000000),
+				Perbill::from_parts(57),
+				Perbill::from_parts(75),
+				Perbill::from_parts(93)
+			))
+		);
+		// verify storage change
+		let config = Stake::inflation_config();
+		assert_eq!(config.annual, Range { min, ideal, max });
+		assert_eq!(
+			config.round,
+			Range {
+				min: Perbill::from_parts(57),
+				ideal: Perbill::from_parts(75),
+				max: Perbill::from_parts(93)
+			}
+		);
+		// invalid call fails
+		assert_noop!(
+			Stake::set_inflation(Origin::root(), Range { min, ideal, max }),
+			Error::<Test>::NoWritingSameValue
+		);
+	});
+}
+
+#[test]
+fn parachain_bond_reserve_works() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 100),
+			(2, 100),
 			(3, 100),
 			(4, 100),
 			(5, 100),
 			(6, 100),
 			(7, 100),
-			(8, 9),
-			(9, 4),
+			(8, 100),
+			(9, 100),
+			(10, 100),
+			(11, 1),
 		])
-		.with_candidates(vec![(1, 500), (2, 200)])
-		.with_nominations(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
+		.with_nominations(vec![
+			(6, 1, 10),
+			(7, 1, 10),
+			(8, 2, 10),
+			(9, 2, 10),
+			(10, 1, 10),
+		])
 		.build()
 		.execute_with(|| {
-			roll_to(4);
-			assert_noop!(
-				Stake::go_offline(Origin::signed(3)),
-				Error::<Test>::CandidateDNE
-			);
-			roll_to(11);
-			assert_noop!(
-				Stake::go_online(Origin::signed(3)),
-				Error::<Test>::CandidateDNE
-			);
-			assert_noop!(
-				Stake::go_online(Origin::signed(2)),
-				Error::<Test>::AlreadyActive
-			);
-			assert_ok!(Stake::go_offline(Origin::signed(2)));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::CollatorWentOffline(3, 2))
-			);
-			roll_to(21);
+			assert_eq!(Balances::free_balance(&11), 1);
+			// set parachain bond account so DefaultParachainBondReservePercent = 30% of inflation
+			// is allocated to this account hereafter
+			assert_ok!(Stake::set_parachain_bond_account(Origin::root(), 11));
+			roll_to(8);
+			// chooses top TotalSelectedCandidates (5), in order
 			let mut expected = vec![
-				Event::CollatorChosen(2, 1, 700),
-				Event::CollatorChosen(2, 2, 400),
-				Event::NewRound(5, 2, 2, 1100),
-				Event::CollatorChosen(3, 1, 700),
-				Event::CollatorChosen(3, 2, 400),
-				Event::NewRound(10, 3, 2, 1100),
-				Event::CollatorWentOffline(3, 2),
-				Event::CollatorChosen(4, 1, 700),
-				Event::NewRound(15, 4, 1, 700),
-				Event::CollatorChosen(5, 1, 700),
-				Event::NewRound(20, 5, 1, 700),
+				Event::ParachainBondAccountSet(0, 11),
+				Event::CollatorChosen(2, 1, 50),
+				Event::CollatorChosen(2, 2, 40),
+				Event::CollatorChosen(2, 4, 20),
+				Event::CollatorChosen(2, 3, 20),
+				Event::CollatorChosen(2, 5, 10),
+				Event::NewRound(5, 2, 5, 140),
 			];
 			assert_eq!(events(), expected);
+			assert_eq!(Balances::free_balance(&11), 1);
+			// ~ set block author as 1 for all blocks this round
+			set_author(2, 1, 100);
+			roll_to(16);
+			// distribute total issuance to collator 1 and its nominators 6, 7, 19
+			let mut new = vec![
+				Event::CollatorChosen(3, 1, 50),
+				Event::CollatorChosen(3, 2, 40),
+				Event::CollatorChosen(3, 4, 20),
+				Event::CollatorChosen(3, 3, 20),
+				Event::CollatorChosen(3, 5, 10),
+				Event::NewRound(10, 3, 5, 140),
+				Event::ReservedForParachainBond(11, 15),
+				Event::Rewarded(1, 18),
+				Event::Rewarded(7, 6),
+				Event::Rewarded(10, 6),
+				Event::Rewarded(6, 6),
+				Event::CollatorChosen(4, 1, 50),
+				Event::CollatorChosen(4, 2, 40),
+				Event::CollatorChosen(4, 4, 20),
+				Event::CollatorChosen(4, 3, 20),
+				Event::CollatorChosen(4, 5, 10),
+				Event::NewRound(15, 4, 5, 140),
+			];
+			expected.append(&mut new);
+			assert_eq!(events(), expected);
+			assert_eq!(Balances::free_balance(&11), 16);
+			// ~ set block author as 1 for all blocks this round
+			set_author(3, 1, 100);
+			set_author(4, 1, 100);
+			// 1. ensure nominators are paid for 2 rounds after they leave
 			assert_noop!(
-				Stake::go_offline(Origin::signed(2)),
-				Error::<Test>::AlreadyOffline
+				Stake::leave_nominators(Origin::signed(66), 10),
+				Error::<Test>::NominatorDNE
 			);
-			assert_ok!(Stake::go_online(Origin::signed(2)));
+			assert_ok!(Stake::leave_nominators(Origin::signed(6), 10));
+			roll_to(21);
+			// keep paying 6 (note: inflation is in terms of total issuance so that's why 1 is 21)
+			let mut new2 = vec![
+				Event::NominatorLeftCollator(6, 1, 10, 40),
+				Event::NominatorLeft(6, 10),
+				Event::ReservedForParachainBond(11, 16),
+				Event::Rewarded(1, 19),
+				Event::Rewarded(7, 6),
+				Event::Rewarded(10, 6),
+				Event::Rewarded(6, 6),
+				Event::CollatorChosen(5, 2, 40),
+				Event::CollatorChosen(5, 1, 40),
+				Event::CollatorChosen(5, 4, 20),
+				Event::CollatorChosen(5, 3, 20),
+				Event::CollatorChosen(5, 5, 10),
+				Event::NewRound(20, 5, 5, 130),
+			];
+			expected.append(&mut new2);
+			assert_eq!(events(), expected);
+			assert_eq!(Balances::free_balance(&11), 32);
+			assert_ok!(Stake::set_parachain_bond_reserve_percent(
+				Origin::root(),
+				Percent::from_percent(50)
+			));
+			// 6 won't be paid for this round because they left already
+			set_author(5, 1, 100);
+			roll_to(26);
+			// keep paying 6
+			let mut new3 = vec![
+				Event::ParachainBondReservePercentSet(
+					Percent::from_percent(30),
+					Percent::from_percent(50),
+				),
+				Event::ReservedForParachainBond(11, 27),
+				Event::Rewarded(1, 15),
+				Event::Rewarded(7, 4),
+				Event::Rewarded(10, 4),
+				Event::Rewarded(6, 4),
+				Event::CollatorChosen(6, 2, 40),
+				Event::CollatorChosen(6, 1, 40),
+				Event::CollatorChosen(6, 4, 20),
+				Event::CollatorChosen(6, 3, 20),
+				Event::CollatorChosen(6, 5, 10),
+				Event::NewRound(25, 6, 5, 130),
+			];
+			expected.append(&mut new3);
+			assert_eq!(events(), expected);
+			assert_eq!(Balances::free_balance(&11), 59);
+			set_author(6, 1, 100);
+			roll_to(31);
+			// no more paying 6
+			let mut new4 = vec![
+				Event::ReservedForParachainBond(11, 29),
+				Event::Rewarded(1, 17),
+				Event::Rewarded(7, 6),
+				Event::Rewarded(10, 6),
+				Event::CollatorChosen(7, 2, 40),
+				Event::CollatorChosen(7, 1, 40),
+				Event::CollatorChosen(7, 4, 20),
+				Event::CollatorChosen(7, 3, 20),
+				Event::CollatorChosen(7, 5, 10),
+				Event::NewRound(30, 7, 5, 130),
+			];
+			expected.append(&mut new4);
+			assert_eq!(events(), expected);
+			assert_eq!(Balances::free_balance(&11), 88);
+			set_author(7, 1, 100);
+			assert_ok!(Stake::nominate(Origin::signed(8), 1, 10, 10, 10));
+			roll_to(36);
+			// new nomination is not rewarded yet
+			let mut new5 = vec![
+				Event::Nomination(8, 10, 1, NominatorAdded::AddedToTop { new_total: 50 }),
+				Event::ReservedForParachainBond(11, 30),
+				Event::Rewarded(1, 18),
+				Event::Rewarded(7, 6),
+				Event::Rewarded(10, 6),
+				Event::CollatorChosen(8, 1, 50),
+				Event::CollatorChosen(8, 2, 40),
+				Event::CollatorChosen(8, 4, 20),
+				Event::CollatorChosen(8, 3, 20),
+				Event::CollatorChosen(8, 5, 10),
+				Event::NewRound(35, 8, 5, 140),
+			];
+			expected.append(&mut new5);
+			assert_eq!(events(), expected);
+			assert_eq!(Balances::free_balance(&11), 118);
+			set_author(8, 1, 100);
+			roll_to(41);
+			// new nomination is still not rewarded yet
+			let mut new6 = vec![
+				Event::ReservedForParachainBond(11, 32),
+				Event::Rewarded(1, 19),
+				Event::Rewarded(7, 6),
+				Event::Rewarded(10, 6),
+				Event::CollatorChosen(9, 1, 50),
+				Event::CollatorChosen(9, 2, 40),
+				Event::CollatorChosen(9, 4, 20),
+				Event::CollatorChosen(9, 3, 20),
+				Event::CollatorChosen(9, 5, 10),
+				Event::NewRound(40, 9, 5, 140),
+			];
+			expected.append(&mut new6);
+			assert_eq!(events(), expected);
+			assert_eq!(Balances::free_balance(&11), 150);
+			roll_to(46);
+			// new nomination is rewarded for first time, 2 rounds after joining (`BondDuration` = 2)
+			let mut new7 = vec![
+				Event::ReservedForParachainBond(11, 33),
+				Event::Rewarded(1, 18),
+				Event::Rewarded(7, 5),
+				Event::Rewarded(8, 5),
+				Event::Rewarded(10, 5),
+				Event::CollatorChosen(10, 1, 50),
+				Event::CollatorChosen(10, 2, 40),
+				Event::CollatorChosen(10, 4, 20),
+				Event::CollatorChosen(10, 3, 20),
+				Event::CollatorChosen(10, 5, 10),
+				Event::NewRound(45, 10, 5, 140),
+			];
+			expected.append(&mut new7);
+			assert_eq!(events(), expected);
+			assert_eq!(Balances::free_balance(&11), 183);
+		});
+}
+
+// ~~ PUBLIC DISPATCHABLES ~~
+
+// JOIN CANDIDATE TESTS
+
+#[test]
+fn join_candidates_event_emits_correctly() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::join_candidates(Origin::signed(1), 10u128, 100u32));
 			assert_eq!(
 				last_event(),
-				MetaEvent::Stake(Event::CollatorBackOnline(5, 2))
+				MetaEvent::Stake(Event::JoinedCollatorCandidates(1, 10u128, 10u128))
 			);
-			expected.push(Event::CollatorBackOnline(5, 2));
-			roll_to(26);
-			expected.push(Event::CollatorChosen(6, 1, 700));
-			expected.push(Event::CollatorChosen(6, 2, 400));
-			expected.push(Event::NewRound(25, 6, 2, 1100));
-			assert_eq!(events(), expected);
 		});
 }
 
@@ -165,18 +663,439 @@ fn cannot_join_candidates_with_more_than_available_balance() {
 }
 
 #[test]
-fn join_candidates_emits_correct_event() {
+fn insufficient_join_candidates_weight_hint_fails() {
 	ExtBuilder::default()
-		.with_balances(vec![(1, 1000)])
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::join_candidates(Origin::signed(1), 10u128, 100u32));
+			for i in 0..5 {
+				assert_noop!(
+					Stake::join_candidates(Origin::signed(6), 20, i),
+					Error::<Test>::TooLowCandidateCountWeightHintJoinCandidates
+				);
+			}
+		});
+}
+
+#[test]
+fn sufficient_join_candidates_weight_hint_succeeds() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 20),
+			(2, 20),
+			(3, 20),
+			(4, 20),
+			(5, 20),
+			(6, 20),
+			(7, 20),
+			(8, 20),
+			(9, 20),
+		])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.build()
+		.execute_with(|| {
+			let mut count = 5u32;
+			for i in 6..10 {
+				assert_ok!(Stake::join_candidates(Origin::signed(i), 20, count));
+				count += 1u32;
+			}
+		});
+}
+
+// LEAVE CANDIDATES TESTS
+
+// TODO event emission test
+
+#[test]
+fn insufficient_leave_candidates_weight_hint_fails() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.build()
+		.execute_with(|| {
+			for i in 1..6 {
+				assert_noop!(
+					Stake::leave_candidates(Origin::signed(i), 4u32),
+					Error::<Test>::TooLowCollatorCandidateCountToLeaveCandidates
+				);
+			}
+		});
+}
+
+#[test]
+fn sufficient_leave_candidates_weight_hint_succeeds() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.build()
+		.execute_with(|| {
+			let mut count = 5u32;
+			for i in 1..6 {
+				assert_ok!(Stake::leave_candidates(Origin::signed(i), count));
+				count -= 1u32;
+			}
+		});
+}
+
+// TODO: rest of leave candidates
+
+// GO OFFLINE TESTS
+
+#[test]
+fn go_offline_event_emits_correctly() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::go_offline(Origin::signed(1)));
 			assert_eq!(
 				last_event(),
-				MetaEvent::Stake(Event::JoinedCollatorCandidates(1, 10u128, 10u128))
+				MetaEvent::Stake(Event::CollatorWentOffline(1, 1))
 			);
 		});
 }
+
+#[test]
+fn cannot_go_offline_if_not_candidate() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			Stake::go_offline(Origin::signed(3)),
+			Error::<Test>::CandidateDNE
+		);
+	});
+}
+
+#[test]
+fn cannot_go_offline_if_already_offline() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::go_offline(Origin::signed(1)));
+			assert_noop!(
+				Stake::go_offline(Origin::signed(1)),
+				Error::<Test>::AlreadyOffline
+			);
+		});
+}
+
+// GO ONLINE TESTS
+
+#[test]
+fn go_online_event_emits_correctly() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::go_offline(Origin::signed(1)));
+			assert_ok!(Stake::go_online(Origin::signed(1)));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::CollatorBackOnline(1, 1))
+			);
+		});
+}
+
+#[test]
+fn cannot_go_online_if_not_candidate() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			Stake::go_online(Origin::signed(3)),
+			Error::<Test>::CandidateDNE
+		);
+	});
+}
+
+#[test]
+fn cannot_go_online_if_already_online() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Stake::go_online(Origin::signed(1)),
+				Error::<Test>::AlreadyActive
+			);
+		});
+}
+
+// CANDIDATE BOND MORE TESTS
+
+#[test]
+fn candidate_bond_more_event_emits_correctly() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 50)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::candidate_bond_more(Origin::signed(1), 30));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::CollatorBondedMore(1, 20, 50))
+			);
+		});
+}
+
+#[test]
+fn cannot_candidate_bond_more_if_not_candidate() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			Stake::candidate_bond_more(Origin::signed(6), 50),
+			Error::<Test>::CandidateDNE
+		);
+	});
+}
+
+#[test]
+fn cannot_candidate_bond_more_if_insufficient_balance() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30)])
+		.with_candidates(vec![(1, 30)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Stake::candidate_bond_more(Origin::signed(1), 1),
+				DispatchError::Module {
+					index: 1,
+					error: 2,
+					message: Some("InsufficientBalance")
+				}
+			);
+		});
+}
+
+// #[test]
+// fn candidate_bond_more_increases_candidate_pool_bond() {
+// 	todo!()
+// }
+
+#[test]
+fn candidate_bond_more_increases_total_staked() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 50)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			let mut total = Stake::total();
+			assert_ok!(Stake::candidate_bond_more(Origin::signed(1), 30));
+			total += 30;
+			assert_eq!(Stake::total(), total);
+		});
+}
+
+#[test]
+fn cannot_candidate_bond_more_if_leaving_candidates() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 50)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
+			assert_noop!(
+				Stake::candidate_bond_more(Origin::signed(1), 30),
+				Error::<Test>::CannotActivateIfLeaving
+			);
+		});
+}
+
+#[test]
+fn cannot_candidate_bond_more_if_exited_candidates() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 50)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			roll_to(4);
+			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
+			roll_to(30);
+			assert_noop!(
+				Stake::candidate_bond_more(Origin::signed(1), 30),
+				Error::<Test>::CandidateDNE
+			);
+		});
+}
+
+// #[test]
+// fn can_candidate_bond_more_if_offline() {
+// 	todo!()
+// }
+
+// CANDIDATE BOND LESS TESTS
+
+#[test]
+fn cannot_bond_less_if_not_candidate() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			Stake::candidate_bond_less(Origin::signed(6), 50),
+			Error::<Test>::CandidateDNE
+		);
+	});
+}
+
+#[test]
+fn cannot_candidate_bond_less_if_new_total_below_min_candidate_stk() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30)])
+		.with_candidates(vec![(1, 30)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Stake::candidate_bond_less(Origin::signed(1), 21),
+				Error::<Test>::ValBondBelowMin
+			);
+		});
+}
+
+#[test]
+fn candidate_bond_less_decreases_total_staked() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30)])
+		.with_candidates(vec![(1, 30)])
+		.build()
+		.execute_with(|| {
+			let mut total = Stake::total();
+			assert_ok!(Stake::candidate_bond_less(Origin::signed(1), 10));
+			total -= 10;
+			assert_eq!(Stake::total(), total);
+		});
+}
+
+#[test]
+fn cannot_candidate_bond_less_if_leaving_candidates() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30)])
+		.with_candidates(vec![(1, 30)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
+			assert_noop!(
+				Stake::candidate_bond_less(Origin::signed(1), 10),
+				Error::<Test>::CannotActivateIfLeaving
+			);
+		});
+}
+
+#[test]
+fn cannot_candidate_bond_less_if_exited_candidates() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30)])
+		.with_candidates(vec![(1, 30)])
+		.build()
+		.execute_with(|| {
+			roll_to(4);
+			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
+			roll_to(30);
+			assert_noop!(
+				Stake::candidate_bond_less(Origin::signed(1), 10),
+				Error::<Test>::CandidateDNE
+			);
+		});
+}
+
+// correct event emission
+
+#[test]
+fn collators_bond() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 100),
+			(2, 100),
+			(3, 100),
+			(4, 100),
+			(5, 100),
+			(6, 100),
+			(7, 100),
+			(8, 100),
+			(9, 100),
+			(10, 100),
+		])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
+		.with_nominations(vec![
+			(6, 1, 10),
+			(7, 1, 10),
+			(8, 2, 10),
+			(9, 2, 10),
+			(10, 1, 10),
+		])
+		.build()
+		.execute_with(|| {
+			roll_to(4);
+			assert_noop!(
+				Stake::candidate_bond_more(Origin::signed(6), 50),
+				Error::<Test>::CandidateDNE
+			);
+			let mut total = Stake::total();
+			assert_ok!(Stake::candidate_bond_more(Origin::signed(1), 50));
+			total += 50;
+			assert_eq!(Stake::total(), total);
+			assert_noop!(
+				Stake::candidate_bond_more(Origin::signed(1), 40),
+				DispatchError::Module {
+					index: 1,
+
+					error: 2,
+					message: Some("InsufficientBalance")
+				}
+			);
+			assert_ok!(Stake::leave_candidates(Origin::signed(1), 5));
+			assert_noop!(
+				Stake::candidate_bond_more(Origin::signed(1), 30),
+				Error::<Test>::CannotActivateIfLeaving
+			);
+			roll_to(30);
+			total -= 100;
+			assert_eq!(Stake::total(), total);
+			assert_noop!(
+				Stake::candidate_bond_more(Origin::signed(1), 40),
+				Error::<Test>::CandidateDNE
+			);
+			assert_ok!(Stake::candidate_bond_more(Origin::signed(2), 80));
+			total += 80;
+			assert_eq!(Stake::total(), total);
+			assert_ok!(Stake::candidate_bond_less(Origin::signed(2), 90));
+			total -= 90;
+			assert_eq!(Stake::total(), total);
+			assert_ok!(Stake::candidate_bond_less(Origin::signed(3), 10));
+			total -= 10;
+			assert_eq!(Stake::total(), total);
+			assert_noop!(
+				Stake::candidate_bond_less(Origin::signed(2), 11),
+				Error::<Test>::CannotBondLessGEQTotalBond
+			);
+			assert_noop!(
+				Stake::candidate_bond_less(Origin::signed(2), 1),
+				Error::<Test>::ValBondBelowMin
+			);
+			assert_noop!(
+				Stake::candidate_bond_less(Origin::signed(3), 1),
+				Error::<Test>::ValBondBelowMin
+			);
+			assert_noop!(
+				Stake::candidate_bond_less(Origin::signed(4), 11),
+				Error::<Test>::ValBondBelowMin
+			);
+			assert_ok!(Stake::candidate_bond_less(Origin::signed(4), 10));
+			total -= 10;
+			assert_eq!(Stake::total(), total);
+		});
+}
+
+// NOMINATE TESTS
+
+// REVOKE_NOMINATION TESTS
+
+// LEAVE_NOMINATORS TESTS
+
+// NOMINATOR BOND MORE TESTS
+
+// NOMINATOR BOND LESS TESTS
+
+// ~~ PROPERTY-BASED TESTS ~~
 
 #[test]
 fn collator_exit_executes_after_delay() {
@@ -312,7 +1231,7 @@ fn collator_selection_chooses_top_candidates() {
 }
 
 #[test]
-fn exit_queue() {
+fn exit_queue_executes_in_order() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(1, 1000),
@@ -503,7 +1422,7 @@ fn payout_distribution_to_solo_collators() {
 }
 
 #[test]
-fn collator_commission() {
+fn collator_commission_matches_config() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(1, 100),
@@ -716,92 +1635,6 @@ fn multiple_nominations() {
 }
 
 #[test]
-fn collators_bond() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 100),
-			(2, 100),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-			(7, 100),
-			(8, 100),
-			(9, 100),
-			(10, 100),
-		])
-		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
-		.with_nominations(vec![
-			(6, 1, 10),
-			(7, 1, 10),
-			(8, 2, 10),
-			(9, 2, 10),
-			(10, 1, 10),
-		])
-		.build()
-		.execute_with(|| {
-			roll_to(4);
-			assert_noop!(
-				Stake::candidate_bond_more(Origin::signed(6), 50),
-				Error::<Test>::CandidateDNE
-			);
-			let mut total = Stake::total();
-			assert_ok!(Stake::candidate_bond_more(Origin::signed(1), 50));
-			total += 50;
-			assert_eq!(Stake::total(), total);
-			assert_noop!(
-				Stake::candidate_bond_more(Origin::signed(1), 40),
-				DispatchError::Module {
-					index: 1,
-
-					error: 2,
-					message: Some("InsufficientBalance")
-				}
-			);
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 5));
-			assert_noop!(
-				Stake::candidate_bond_more(Origin::signed(1), 30),
-				Error::<Test>::CannotActivateIfLeaving
-			);
-			roll_to(30);
-			total -= 100;
-			assert_eq!(Stake::total(), total);
-			assert_noop!(
-				Stake::candidate_bond_more(Origin::signed(1), 40),
-				Error::<Test>::CandidateDNE
-			);
-			assert_ok!(Stake::candidate_bond_more(Origin::signed(2), 80));
-			total += 80;
-			assert_eq!(Stake::total(), total);
-			assert_ok!(Stake::candidate_bond_less(Origin::signed(2), 90));
-			total -= 90;
-			assert_eq!(Stake::total(), total);
-			assert_ok!(Stake::candidate_bond_less(Origin::signed(3), 10));
-			total -= 10;
-			assert_eq!(Stake::total(), total);
-			assert_noop!(
-				Stake::candidate_bond_less(Origin::signed(2), 11),
-				Error::<Test>::CannotBondLessGEQTotalBond
-			);
-			assert_noop!(
-				Stake::candidate_bond_less(Origin::signed(2), 1),
-				Error::<Test>::ValBondBelowMin
-			);
-			assert_noop!(
-				Stake::candidate_bond_less(Origin::signed(3), 1),
-				Error::<Test>::ValBondBelowMin
-			);
-			assert_noop!(
-				Stake::candidate_bond_less(Origin::signed(4), 11),
-				Error::<Test>::ValBondBelowMin
-			);
-			assert_ok!(Stake::candidate_bond_less(Origin::signed(4), 10));
-			total -= 10;
-			assert_eq!(Stake::total(), total);
-		});
-}
-
-#[test]
 fn nominators_bond() {
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -935,78 +1768,6 @@ fn revoke_nomination_or_leave_nominators() {
 			assert_ok!(Stake::leave_nominators(Origin::signed(6), 10));
 			// this leads to 8 leaving set of nominators
 			assert_ok!(Stake::revoke_nomination(Origin::signed(8), 2));
-		});
-}
-
-#[test]
-fn insufficient_join_candidates_weight_hint_fails() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
-		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
-		.build()
-		.execute_with(|| {
-			for i in 0..5 {
-				assert_noop!(
-					Stake::join_candidates(Origin::signed(6), 20, i),
-					Error::<Test>::TooLowCandidateCountWeightHintJoinCandidates
-				);
-			}
-		});
-}
-
-#[test]
-fn sufficient_join_candidates_weight_hint_succeeds() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 20),
-			(2, 20),
-			(3, 20),
-			(4, 20),
-			(5, 20),
-			(6, 20),
-			(7, 20),
-			(8, 20),
-			(9, 20),
-		])
-		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
-		.build()
-		.execute_with(|| {
-			let mut count = 5u32;
-			for i in 6..10 {
-				assert_ok!(Stake::join_candidates(Origin::signed(i), 20, count));
-				count += 1u32;
-			}
-		});
-}
-
-#[test]
-fn insufficient_leave_candidates_weight_hint_fails() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
-		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
-		.build()
-		.execute_with(|| {
-			for i in 1..6 {
-				assert_noop!(
-					Stake::leave_candidates(Origin::signed(i), 4u32),
-					Error::<Test>::TooLowCollatorCandidateCountToLeaveCandidates
-				);
-			}
-		});
-}
-
-#[test]
-fn sufficient_leave_candidates_weight_hint_succeeds() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
-		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
-		.build()
-		.execute_with(|| {
-			let mut count = 5u32;
-			for i in 1..6 {
-				assert_ok!(Stake::leave_candidates(Origin::signed(i), count));
-				count -= 1u32;
-			}
 		});
 }
 
@@ -1571,546 +2332,5 @@ fn nomination_events_convey_correct_position() {
 				collator1_state.total_counted + 23,
 				collator1_state.total_backing
 			);
-		});
-}
-
-// ~~ MONETARY ORIGIN DISPATCHABLES ~~
-
-#[test]
-fn invalid_monetary_origin_fails() {
-	ExtBuilder::default().build().execute_with(|| {
-		assert_noop!(
-			Stake::set_staking_expectations(
-				Origin::signed(45),
-				Range {
-					min: 3u32.into(),
-					ideal: 4u32.into(),
-					max: 5u32.into()
-				}
-			),
-			sp_runtime::DispatchError::BadOrigin
-		);
-		assert_noop!(
-			Stake::set_inflation(
-				Origin::signed(45),
-				Range {
-					min: Perbill::from_percent(3),
-					ideal: Perbill::from_percent(4),
-					max: Perbill::from_percent(5)
-				}
-			),
-			sp_runtime::DispatchError::BadOrigin
-		);
-		assert_noop!(
-			Stake::set_inflation(
-				Origin::signed(45),
-				Range {
-					min: Perbill::from_percent(3),
-					ideal: Perbill::from_percent(4),
-					max: Perbill::from_percent(5)
-				}
-			),
-			sp_runtime::DispatchError::BadOrigin
-		);
-		assert_noop!(
-			Stake::set_parachain_bond_account(Origin::signed(45), 11),
-			sp_runtime::DispatchError::BadOrigin
-		);
-		assert_noop!(
-			Stake::set_parachain_bond_reserve_percent(Origin::signed(45), Percent::from_percent(2)),
-			sp_runtime::DispatchError::BadOrigin
-		);
-	});
-}
-
-#[test]
-fn set_staking_expectations_works() {
-	ExtBuilder::default().build().execute_with(|| {
-		// invalid call fails
-		assert_noop!(
-			Stake::set_staking_expectations(
-				Origin::root(),
-				Range {
-					min: 5u32.into(),
-					ideal: 4u32.into(),
-					max: 3u32.into()
-				}
-			),
-			Error::<Test>::InvalidSchedule
-		);
-		let (min, ideal, max): (u128, u128, u128) = (3u32.into(), 4u32.into(), 5u32.into());
-		// valid call succeeds
-		assert_ok!(Stake::set_staking_expectations(
-			Origin::root(),
-			Range { min, ideal, max }
-		),);
-		// verify event emission
-		assert_eq!(
-			last_event(),
-			MetaEvent::Stake(Event::StakeExpectationsSet(min, ideal, max))
-		);
-		// verify storage change
-		let config = Stake::inflation_config();
-		assert_eq!(config.expect, Range { min, ideal, max });
-	});
-}
-
-#[test]
-fn set_inflation_works() {
-	ExtBuilder::default().build().execute_with(|| {
-		// invalid call fails
-		assert_noop!(
-			Stake::set_inflation(
-				Origin::root(),
-				Range {
-					min: Perbill::from_percent(5),
-					ideal: Perbill::from_percent(4),
-					max: Perbill::from_percent(3)
-				}
-			),
-			Error::<Test>::InvalidSchedule
-		);
-		let (min, ideal, max): (Perbill, Perbill, Perbill) = (
-			Perbill::from_percent(3),
-			Perbill::from_percent(4),
-			Perbill::from_percent(5),
-		);
-		// valid call succeeds
-		assert_ok!(Stake::set_inflation(
-			Origin::root(),
-			Range { min, ideal, max }
-		),);
-		// verify event emission
-		assert_eq!(
-			last_event(),
-			MetaEvent::Stake(Event::InflationSet(
-				Perbill::from_parts(30000000),
-				Perbill::from_parts(40000000),
-				Perbill::from_parts(50000000),
-				Perbill::from_parts(57),
-				Perbill::from_parts(75),
-				Perbill::from_parts(93)
-			))
-		);
-		// verify storage change
-		let config = Stake::inflation_config();
-		assert_eq!(config.annual, Range { min, ideal, max });
-		assert_eq!(
-			config.round,
-			Range {
-				min: Perbill::from_parts(57),
-				ideal: Perbill::from_parts(75),
-				max: Perbill::from_parts(93)
-			}
-		);
-		// invalid call fails
-		assert_noop!(
-			Stake::set_inflation(Origin::root(), Range { min, ideal, max }),
-			Error::<Test>::NoWritingSameValue
-		);
-	});
-}
-
-#[test]
-fn parachain_bond_reserve_works() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 100),
-			(2, 100),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-			(7, 100),
-			(8, 100),
-			(9, 100),
-			(10, 100),
-			(11, 1),
-		])
-		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
-		.with_nominations(vec![
-			(6, 1, 10),
-			(7, 1, 10),
-			(8, 2, 10),
-			(9, 2, 10),
-			(10, 1, 10),
-		])
-		.build()
-		.execute_with(|| {
-			assert_eq!(Balances::free_balance(&11), 1);
-			// set parachain bond account so DefaultParachainBondReservePercent = 30% of inflation
-			// is allocated to this account hereafter
-			assert_ok!(Stake::set_parachain_bond_account(Origin::root(), 11));
-			roll_to(8);
-			// chooses top TotalSelectedCandidates (5), in order
-			let mut expected = vec![
-				Event::ParachainBondAccountSet(0, 11),
-				Event::CollatorChosen(2, 1, 50),
-				Event::CollatorChosen(2, 2, 40),
-				Event::CollatorChosen(2, 4, 20),
-				Event::CollatorChosen(2, 3, 20),
-				Event::CollatorChosen(2, 5, 10),
-				Event::NewRound(5, 2, 5, 140),
-			];
-			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 1);
-			// ~ set block author as 1 for all blocks this round
-			set_author(2, 1, 100);
-			roll_to(16);
-			// distribute total issuance to collator 1 and its nominators 6, 7, 19
-			let mut new = vec![
-				Event::CollatorChosen(3, 1, 50),
-				Event::CollatorChosen(3, 2, 40),
-				Event::CollatorChosen(3, 4, 20),
-				Event::CollatorChosen(3, 3, 20),
-				Event::CollatorChosen(3, 5, 10),
-				Event::NewRound(10, 3, 5, 140),
-				Event::ReservedForParachainBond(11, 15),
-				Event::Rewarded(1, 18),
-				Event::Rewarded(7, 6),
-				Event::Rewarded(10, 6),
-				Event::Rewarded(6, 6),
-				Event::CollatorChosen(4, 1, 50),
-				Event::CollatorChosen(4, 2, 40),
-				Event::CollatorChosen(4, 4, 20),
-				Event::CollatorChosen(4, 3, 20),
-				Event::CollatorChosen(4, 5, 10),
-				Event::NewRound(15, 4, 5, 140),
-			];
-			expected.append(&mut new);
-			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 16);
-			// ~ set block author as 1 for all blocks this round
-			set_author(3, 1, 100);
-			set_author(4, 1, 100);
-			// 1. ensure nominators are paid for 2 rounds after they leave
-			assert_noop!(
-				Stake::leave_nominators(Origin::signed(66), 10),
-				Error::<Test>::NominatorDNE
-			);
-			assert_ok!(Stake::leave_nominators(Origin::signed(6), 10));
-			roll_to(21);
-			// keep paying 6 (note: inflation is in terms of total issuance so that's why 1 is 21)
-			let mut new2 = vec![
-				Event::NominatorLeftCollator(6, 1, 10, 40),
-				Event::NominatorLeft(6, 10),
-				Event::ReservedForParachainBond(11, 16),
-				Event::Rewarded(1, 19),
-				Event::Rewarded(7, 6),
-				Event::Rewarded(10, 6),
-				Event::Rewarded(6, 6),
-				Event::CollatorChosen(5, 2, 40),
-				Event::CollatorChosen(5, 1, 40),
-				Event::CollatorChosen(5, 4, 20),
-				Event::CollatorChosen(5, 3, 20),
-				Event::CollatorChosen(5, 5, 10),
-				Event::NewRound(20, 5, 5, 130),
-			];
-			expected.append(&mut new2);
-			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 32);
-			assert_ok!(Stake::set_parachain_bond_reserve_percent(
-				Origin::root(),
-				Percent::from_percent(50)
-			));
-			// 6 won't be paid for this round because they left already
-			set_author(5, 1, 100);
-			roll_to(26);
-			// keep paying 6
-			let mut new3 = vec![
-				Event::ParachainBondReservePercentSet(
-					Percent::from_percent(30),
-					Percent::from_percent(50),
-				),
-				Event::ReservedForParachainBond(11, 27),
-				Event::Rewarded(1, 15),
-				Event::Rewarded(7, 4),
-				Event::Rewarded(10, 4),
-				Event::Rewarded(6, 4),
-				Event::CollatorChosen(6, 2, 40),
-				Event::CollatorChosen(6, 1, 40),
-				Event::CollatorChosen(6, 4, 20),
-				Event::CollatorChosen(6, 3, 20),
-				Event::CollatorChosen(6, 5, 10),
-				Event::NewRound(25, 6, 5, 130),
-			];
-			expected.append(&mut new3);
-			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 59);
-			set_author(6, 1, 100);
-			roll_to(31);
-			// no more paying 6
-			let mut new4 = vec![
-				Event::ReservedForParachainBond(11, 29),
-				Event::Rewarded(1, 17),
-				Event::Rewarded(7, 6),
-				Event::Rewarded(10, 6),
-				Event::CollatorChosen(7, 2, 40),
-				Event::CollatorChosen(7, 1, 40),
-				Event::CollatorChosen(7, 4, 20),
-				Event::CollatorChosen(7, 3, 20),
-				Event::CollatorChosen(7, 5, 10),
-				Event::NewRound(30, 7, 5, 130),
-			];
-			expected.append(&mut new4);
-			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 88);
-			set_author(7, 1, 100);
-			assert_ok!(Stake::nominate(Origin::signed(8), 1, 10, 10, 10));
-			roll_to(36);
-			// new nomination is not rewarded yet
-			let mut new5 = vec![
-				Event::Nomination(8, 10, 1, NominatorAdded::AddedToTop { new_total: 50 }),
-				Event::ReservedForParachainBond(11, 30),
-				Event::Rewarded(1, 18),
-				Event::Rewarded(7, 6),
-				Event::Rewarded(10, 6),
-				Event::CollatorChosen(8, 1, 50),
-				Event::CollatorChosen(8, 2, 40),
-				Event::CollatorChosen(8, 4, 20),
-				Event::CollatorChosen(8, 3, 20),
-				Event::CollatorChosen(8, 5, 10),
-				Event::NewRound(35, 8, 5, 140),
-			];
-			expected.append(&mut new5);
-			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 118);
-			set_author(8, 1, 100);
-			roll_to(41);
-			// new nomination is still not rewarded yet
-			let mut new6 = vec![
-				Event::ReservedForParachainBond(11, 32),
-				Event::Rewarded(1, 19),
-				Event::Rewarded(7, 6),
-				Event::Rewarded(10, 6),
-				Event::CollatorChosen(9, 1, 50),
-				Event::CollatorChosen(9, 2, 40),
-				Event::CollatorChosen(9, 4, 20),
-				Event::CollatorChosen(9, 3, 20),
-				Event::CollatorChosen(9, 5, 10),
-				Event::NewRound(40, 9, 5, 140),
-			];
-			expected.append(&mut new6);
-			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 150);
-			roll_to(46);
-			// new nomination is rewarded for first time, 2 rounds after joining (`BondDuration` = 2)
-			let mut new7 = vec![
-				Event::ReservedForParachainBond(11, 33),
-				Event::Rewarded(1, 18),
-				Event::Rewarded(7, 5),
-				Event::Rewarded(8, 5),
-				Event::Rewarded(10, 5),
-				Event::CollatorChosen(10, 1, 50),
-				Event::CollatorChosen(10, 2, 40),
-				Event::CollatorChosen(10, 4, 20),
-				Event::CollatorChosen(10, 3, 20),
-				Event::CollatorChosen(10, 5, 10),
-				Event::NewRound(45, 10, 5, 140),
-			];
-			expected.append(&mut new7);
-			assert_eq!(events(), expected);
-			assert_eq!(Balances::free_balance(&11), 183);
-		});
-}
-
-// ~~ ROOT DISPATCHABLES ~~
-
-#[test]
-fn invalid_root_origin_fails() {
-	ExtBuilder::default().build().execute_with(|| {
-		assert_noop!(
-			Stake::set_total_selected(Origin::signed(45), 6u32),
-			sp_runtime::DispatchError::BadOrigin
-		);
-		assert_noop!(
-			Stake::set_collator_commission(Origin::signed(45), Perbill::from_percent(5)),
-			sp_runtime::DispatchError::BadOrigin
-		);
-		assert_noop!(
-			Stake::set_blocks_per_round(Origin::signed(45), 3u32),
-			sp_runtime::DispatchError::BadOrigin
-		);
-	});
-}
-
-#[test]
-fn set_total_selected_works() {
-	ExtBuilder::default().build().execute_with(|| {
-		// invalid call fails
-		assert_noop!(
-			Stake::set_total_selected(Origin::root(), 4u32),
-			Error::<Test>::CannotSetBelowMin
-		);
-		// valid call succeeds
-		assert_ok!(Stake::set_total_selected(Origin::root(), 6u32));
-		// verify event emission
-		assert_eq!(
-			last_event(),
-			MetaEvent::Stake(Event::TotalSelectedSet(5u32, 6u32,))
-		);
-		// verify storage change
-		assert_eq!(Stake::total_selected(), 6u32);
-		// invalid call fails
-		assert_noop!(
-			Stake::set_total_selected(Origin::root(), 6u32),
-			Error::<Test>::NoWritingSameValue
-		);
-	});
-}
-
-#[test]
-fn set_collator_commission_works() {
-	ExtBuilder::default().build().execute_with(|| {
-		// valid call succeeds
-		assert_ok!(Stake::set_collator_commission(
-			Origin::root(),
-			Perbill::from_percent(5)
-		));
-		// verify event emission
-		assert_eq!(
-			last_event(),
-			MetaEvent::Stake(Event::CollatorCommissionSet(
-				Perbill::from_percent(20),
-				Perbill::from_percent(5),
-			))
-		);
-		// verify storage change
-		assert_eq!(Stake::collator_commission(), Perbill::from_percent(5));
-		// invalid call fails
-		assert_noop!(
-			Stake::set_collator_commission(Origin::root(), Perbill::from_percent(5)),
-			Error::<Test>::NoWritingSameValue
-		);
-	});
-}
-
-#[test]
-fn mutable_blocks_per_round() {
-	// round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round
-	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 100),
-			(2, 100),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-		])
-		.with_candidates(vec![(1, 20)])
-		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
-		.build()
-		.execute_with(|| {
-			assert_noop!(
-				Stake::set_blocks_per_round(Origin::root(), 2u32),
-				Error::<Test>::CannotSetBelowMin
-			);
-			assert_noop!(
-				Stake::set_blocks_per_round(Origin::root(), 5u32),
-				Error::<Test>::NoWritingSameValue
-			);
-			// Default round every 5 blocks, but MinBlocksPerRound is 3 and we set it to min 3 blocks
-			roll_to(8);
-			// chooses top TotalSelectedCandidates (5), in order
-			let init = vec![
-				Event::CollatorChosen(2, 1, 40),
-				Event::NewRound(5, 2, 1, 40),
-			];
-			assert_eq!(events(), init);
-			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::BlocksPerRoundSet(
-					2,
-					5,
-					5,
-					3,
-					Perbill::from_parts(463),
-					Perbill::from_parts(463),
-					Perbill::from_parts(463)
-				))
-			);
-			roll_to(12);
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::NewRound(12, 4, 1, 40))
-			);
-		});
-	// round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round
-	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 100),
-			(2, 100),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-		])
-		.with_candidates(vec![(1, 20)])
-		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
-		.build()
-		.execute_with(|| {
-			roll_to(9);
-			let init = vec![
-				Event::CollatorChosen(2, 1, 40),
-				Event::NewRound(5, 2, 1, 40),
-			];
-			assert_eq!(events(), init);
-			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::BlocksPerRoundSet(
-					2,
-					5,
-					5,
-					3,
-					Perbill::from_parts(463),
-					Perbill::from_parts(463),
-					Perbill::from_parts(463)
-				))
-			);
-			roll_to(13);
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::NewRound(13, 4, 1, 40))
-			);
-		});
-	// if current duration less than new blocks per round (bpr), round waits until new bpr passes
-	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 100),
-			(2, 100),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-		])
-		.with_candidates(vec![(1, 20)])
-		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
-		.build()
-		.execute_with(|| {
-			// Default round every 5 blocks, but MinBlocksPerRound is 3 and we set it to min 3 blocks
-			roll_to(6);
-			// chooses top TotalSelectedCandidates (5), in order
-			let init = vec![
-				Event::CollatorChosen(2, 1, 40),
-				Event::NewRound(5, 2, 1, 40),
-			];
-			assert_eq!(events(), init);
-			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::BlocksPerRoundSet(
-					2,
-					5,
-					5,
-					3,
-					Perbill::from_parts(463),
-					Perbill::from_parts(463),
-					Perbill::from_parts(463)
-				))
-			);
-			roll_to(9);
-			assert_eq!(last_event(), MetaEvent::Stake(Event::NewRound(8, 3, 1, 40)));
 		});
 }
