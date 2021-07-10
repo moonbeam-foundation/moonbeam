@@ -21,7 +21,7 @@
 //! 1. Root Dispatchables
 //! 2. Monetary Governance Dispatchables
 //! 3. Public Dispatchables
-//! 4. Property-Based Tests
+//! 4. Miscellaneous Property-Based Tests
 use crate::mock::{
 	events, last_event, roll_to, set_author, Balances, Event as MetaEvent, ExtBuilder, Origin,
 	Stake, Test,
@@ -52,42 +52,54 @@ fn invalid_root_origin_fails() {
 
 // SET TOTAL SELECTED
 
-// event
-
 #[test]
-fn set_total_selected_works() {
+fn set_total_selected_event_emits_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
-		// invalid call fails
-		assert_noop!(
-			Stake::set_total_selected(Origin::root(), 4u32),
-			Error::<Test>::CannotSetBelowMin
-		);
-		// valid call succeeds
 		assert_ok!(Stake::set_total_selected(Origin::root(), 6u32));
-		// verify event emission
 		assert_eq!(
 			last_event(),
 			MetaEvent::Stake(Event::TotalSelectedSet(5u32, 6u32,))
 		);
-		// verify storage change
+	});
+}
+
+#[test]
+fn set_total_selected_storage_updates_correctly() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(Stake::set_total_selected(Origin::root(), 6u32));
 		assert_eq!(Stake::total_selected(), 6u32);
-		// invalid call fails
+	});
+}
+
+#[test]
+fn cannot_set_total_selected_to_current_total_selected() {
+	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			Stake::set_total_selected(Origin::root(), 6u32),
+			Stake::set_total_selected(Origin::root(), 5u32),
 			Error::<Test>::NoWritingSameValue
 		);
 	});
 }
 
 #[test]
-fn set_collator_commission_works() {
+fn cannot_set_total_selected_below_module_min() {
 	ExtBuilder::default().build().execute_with(|| {
-		// valid call succeeds
+		assert_noop!(
+			Stake::set_total_selected(Origin::root(), 4u32),
+			Error::<Test>::CannotSetBelowMin
+		);
+	});
+}
+
+// SET COLLATOR COMMISSION
+
+#[test]
+fn set_collator_commission_event_emits_correctly() {
+	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(Stake::set_collator_commission(
 			Origin::root(),
 			Perbill::from_percent(5)
 		));
-		// verify event emission
 		assert_eq!(
 			last_event(),
 			MetaEvent::Stake(Event::CollatorCommissionSet(
@@ -95,149 +107,91 @@ fn set_collator_commission_works() {
 				Perbill::from_percent(5),
 			))
 		);
-		// verify storage change
+	});
+}
+
+#[test]
+fn set_collator_commission_storage_updates_correctly() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(Stake::set_collator_commission(
+			Origin::root(),
+			Perbill::from_percent(5)
+		));
 		assert_eq!(Stake::collator_commission(), Perbill::from_percent(5));
-		// invalid call fails
+	});
+}
+
+#[test]
+fn cannot_set_collator_commission_to_current_collator_commission() {
+	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			Stake::set_collator_commission(Origin::root(), Perbill::from_percent(5)),
+			Stake::set_collator_commission(Origin::root(), Perbill::from_percent(20)),
+			Error::<Test>::NoWritingSameValue
+		);
+	});
+}
+
+// SET BLOCKS PER ROUND
+
+#[test]
+fn set_blocks_per_round_event_emits_correctly() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
+		assert_eq!(
+			last_event(),
+			MetaEvent::Stake(Event::BlocksPerRoundSet(
+				1,
+				0,
+				5,
+				3,
+				Perbill::from_parts(463),
+				Perbill::from_parts(463),
+				Perbill::from_parts(463)
+			))
+		);
+	});
+}
+
+#[test]
+fn cannot_set_blocks_per_round_below_module_min() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			Stake::set_blocks_per_round(Origin::root(), 2u32),
+			Error::<Test>::CannotSetBelowMin
+		);
+	});
+}
+
+#[test]
+fn cannot_set_blocks_per_round_to_current_blocks_per_round() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			Stake::set_blocks_per_round(Origin::root(), 5u32),
 			Error::<Test>::NoWritingSameValue
 		);
 	});
 }
 
 #[test]
-fn mutable_blocks_per_round() {
-	// round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round
+fn round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round() {
 	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 100),
-			(2, 100),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-		])
+		.with_balances(vec![(1, 20)])
 		.with_candidates(vec![(1, 20)])
-		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_noop!(
-				Stake::set_blocks_per_round(Origin::root(), 2u32),
-				Error::<Test>::CannotSetBelowMin
-			);
-			assert_noop!(
-				Stake::set_blocks_per_round(Origin::root(), 5u32),
-				Error::<Test>::NoWritingSameValue
-			);
-			// Default round every 5 blocks, but MinBlocksPerRound is 3 and we set it to min 3 blocks
+			// default round every 5 blocks
 			roll_to(8);
-			// chooses top TotalSelectedCandidates (5), in order
-			let init = vec![
-				Event::CollatorChosen(2, 1, 40),
-				Event::NewRound(5, 2, 1, 40),
-			];
-			assert_eq!(events(), init);
+			assert_eq!(last_event(), MetaEvent::Stake(Event::NewRound(5, 2, 1, 20)));
 			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::BlocksPerRoundSet(
-					2,
-					5,
-					5,
-					3,
-					Perbill::from_parts(463),
-					Perbill::from_parts(463),
-					Perbill::from_parts(463)
-				))
-			);
-			roll_to(12);
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::NewRound(12, 4, 1, 40))
-			);
-		});
-	// round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round
-	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 100),
-			(2, 100),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-		])
-		.with_candidates(vec![(1, 20)])
-		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
-		.build()
-		.execute_with(|| {
 			roll_to(9);
-			let init = vec![
-				Event::CollatorChosen(2, 1, 40),
-				Event::NewRound(5, 2, 1, 40),
-			];
-			assert_eq!(events(), init);
-			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::BlocksPerRoundSet(
-					2,
-					5,
-					5,
-					3,
-					Perbill::from_parts(463),
-					Perbill::from_parts(463),
-					Perbill::from_parts(463)
-				))
-			);
-			roll_to(13);
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::NewRound(13, 4, 1, 40))
-			);
-		});
-	// if current duration less than new blocks per round (bpr), round waits until new bpr passes
-	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 100),
-			(2, 100),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-		])
-		.with_candidates(vec![(1, 20)])
-		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
-		.build()
-		.execute_with(|| {
-			// Default round every 5 blocks, but MinBlocksPerRound is 3 and we set it to min 3 blocks
-			roll_to(6);
-			// chooses top TotalSelectedCandidates (5), in order
-			let init = vec![
-				Event::CollatorChosen(2, 1, 40),
-				Event::NewRound(5, 2, 1, 40),
-			];
-			assert_eq!(events(), init);
-			assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::BlocksPerRoundSet(
-					2,
-					5,
-					5,
-					3,
-					Perbill::from_parts(463),
-					Perbill::from_parts(463),
-					Perbill::from_parts(463)
-				))
-			);
-			roll_to(9);
-			assert_eq!(last_event(), MetaEvent::Stake(Event::NewRound(8, 3, 1, 40)));
+			assert_eq!(last_event(), MetaEvent::Stake(Event::NewRound(9, 3, 1, 20)));
 		});
 }
 
 // ~~ MONETARY GOVERNANCE DISPATCHABLES ~~
 
 #[test]
+// TODO: create different mock for benchmarking so we can test this origin independent of root
 fn invalid_monetary_origin_fails() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
@@ -284,37 +238,93 @@ fn invalid_monetary_origin_fails() {
 	});
 }
 
+// SET STAKING EXPECTATIONS
+
 #[test]
-fn set_staking_expectations_works() {
+fn set_staking_event_emits_event_correctly() {
+	ExtBuilder::default().build().execute_with(|| {
+		// valid call succeeds
+		assert_ok!(Stake::set_staking_expectations(
+			Origin::root(),
+			Range {
+				min: 3u128,
+				ideal: 4u128,
+				max: 5u128,
+			}
+		));
+		assert_eq!(
+			last_event(),
+			MetaEvent::Stake(Event::StakeExpectationsSet(3u128, 4u128, 5u128))
+		);
+	});
+}
+
+#[test]
+fn set_staking_updates_storage_correctly() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(Stake::set_staking_expectations(
+			Origin::root(),
+			Range {
+				min: 3u128,
+				ideal: 4u128,
+				max: 5u128,
+			}
+		));
+		assert_eq!(
+			Stake::inflation_config().expect,
+			Range {
+				min: 3u128,
+				ideal: 4u128,
+				max: 5u128
+			}
+		);
+	});
+}
+
+#[test]
+fn cannot_set_invalid_staking_expectations() {
 	ExtBuilder::default().build().execute_with(|| {
 		// invalid call fails
 		assert_noop!(
 			Stake::set_staking_expectations(
 				Origin::root(),
 				Range {
-					min: 5u32.into(),
-					ideal: 4u32.into(),
-					max: 3u32.into()
+					min: 5u128,
+					ideal: 4u128,
+					max: 3u128
 				}
 			),
 			Error::<Test>::InvalidSchedule
 		);
-		let (min, ideal, max): (u128, u128, u128) = (3u32.into(), 4u32.into(), 5u32.into());
-		// valid call succeeds
-		assert_ok!(Stake::set_staking_expectations(
-			Origin::root(),
-			Range { min, ideal, max }
-		),);
-		// verify event emission
-		assert_eq!(
-			last_event(),
-			MetaEvent::Stake(Event::StakeExpectationsSet(min, ideal, max))
-		);
-		// verify storage change
-		let config = Stake::inflation_config();
-		assert_eq!(config.expect, Range { min, ideal, max });
 	});
 }
+
+#[test]
+fn cannot_set_same_staking_expectations() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(Stake::set_staking_expectations(
+			Origin::root(),
+			Range {
+				min: 3u128,
+				ideal: 4u128,
+				max: 5u128
+			}
+		));
+		assert_noop!(
+			Stake::set_staking_expectations(
+				Origin::root(),
+				Range {
+					min: 3u128,
+					ideal: 4u128,
+					max: 5u128
+				}
+			),
+			Error::<Test>::NoWritingSameValue
+		);
+	});
+}
+
+// SET INFLATION
 
 #[test]
 fn set_inflation_works() {
