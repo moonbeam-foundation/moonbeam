@@ -15,22 +15,21 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! # Staking Pallet Unit Tests
-//! Many of the unit tests are organized by the dispatchable they test. The order matches the order
-//! of the dispatchables in the `lib.rs`. The first test for each dispatchable is the event emitted
-//! when it dispatches successfully.
-//! 1. Root Dispatchables
-//! 2. Monetary Governance Dispatchables
-//! 3. Public Dispatchables
+//! The unit tests are organized by the call they test. The order matches the order
+//! of the calls in the `lib.rs`.
+//! 1. Root
+//! 2. Monetary Governance
+//! 3. Public
 //! 4. Miscellaneous Property-Based Tests
 use crate::mock::{
 	events, last_event, roll_to, set_author, Balances, Event as MetaEvent, ExtBuilder, Origin,
 	Stake, Test,
 };
-use crate::{CollatorStatus, Error, Event, NominatorAdded, Range};
+use crate::{Bond, CollatorStatus, Error, Event, NominatorAdded, Range};
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, Perbill, Percent};
 
-// ~~ ROOT DISPATCHABLES ~~
+// ~~ ROOT ~~
 
 #[test]
 fn invalid_root_origin_fails() {
@@ -153,6 +152,14 @@ fn set_blocks_per_round_event_emits_correctly() {
 }
 
 #[test]
+fn set_blocks_per_round_storage_updates_correctly() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(Stake::set_blocks_per_round(Origin::root(), 3u32));
+		assert_eq!(Stake::round().length, 3);
+	});
+}
+
+#[test]
 fn cannot_set_blocks_per_round_below_module_min() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
@@ -188,7 +195,7 @@ fn round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round() {
 		});
 }
 
-// ~~ MONETARY GOVERNANCE DISPATCHABLES ~~
+// ~~ MONETARY GOVERNANCE ~~
 
 #[test]
 // TODO: create different mock for benchmarking so we can test this origin independent of root
@@ -327,9 +334,59 @@ fn cannot_set_same_staking_expectations() {
 // SET INFLATION
 
 #[test]
-fn set_inflation_works() {
+fn set_inflation_event_emits_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
-		// invalid call fails
+		let (min, ideal, max): (Perbill, Perbill, Perbill) = (
+			Perbill::from_percent(3),
+			Perbill::from_percent(4),
+			Perbill::from_percent(5),
+		);
+		assert_ok!(Stake::set_inflation(
+			Origin::root(),
+			Range { min, ideal, max }
+		));
+		assert_eq!(
+			last_event(),
+			MetaEvent::Stake(Event::InflationSet(
+				min,
+				ideal,
+				max,
+				Perbill::from_parts(57),
+				Perbill::from_parts(75),
+				Perbill::from_parts(93)
+			))
+		);
+	});
+}
+
+#[test]
+fn set_inflation_storage_updates_correctly() {
+	ExtBuilder::default().build().execute_with(|| {
+		let (min, ideal, max): (Perbill, Perbill, Perbill) = (
+			Perbill::from_percent(3),
+			Perbill::from_percent(4),
+			Perbill::from_percent(5),
+		);
+		assert_ok!(Stake::set_inflation(
+			Origin::root(),
+			Range { min, ideal, max }
+		),);
+		let config = Stake::inflation_config();
+		assert_eq!(config.annual, Range { min, ideal, max });
+		assert_eq!(
+			config.round,
+			Range {
+				min: Perbill::from_parts(57),
+				ideal: Perbill::from_parts(75),
+				max: Perbill::from_parts(93)
+			}
+		);
+	});
+}
+
+#[test]
+fn cannot_set_invalid_inflation() {
+	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
 			Stake::set_inflation(
 				Origin::root(),
@@ -341,40 +398,21 @@ fn set_inflation_works() {
 			),
 			Error::<Test>::InvalidSchedule
 		);
+	});
+}
+
+#[test]
+fn cannot_set_same_inflation() {
+	ExtBuilder::default().build().execute_with(|| {
 		let (min, ideal, max): (Perbill, Perbill, Perbill) = (
 			Perbill::from_percent(3),
 			Perbill::from_percent(4),
 			Perbill::from_percent(5),
 		);
-		// valid call succeeds
 		assert_ok!(Stake::set_inflation(
 			Origin::root(),
 			Range { min, ideal, max }
 		),);
-		// verify event emission
-		assert_eq!(
-			last_event(),
-			MetaEvent::Stake(Event::InflationSet(
-				Perbill::from_parts(30000000),
-				Perbill::from_parts(40000000),
-				Perbill::from_parts(50000000),
-				Perbill::from_parts(57),
-				Perbill::from_parts(75),
-				Perbill::from_parts(93)
-			))
-		);
-		// verify storage change
-		let config = Stake::inflation_config();
-		assert_eq!(config.annual, Range { min, ideal, max });
-		assert_eq!(
-			config.round,
-			Range {
-				min: Perbill::from_parts(57),
-				ideal: Perbill::from_parts(75),
-				max: Perbill::from_parts(93)
-			}
-		);
-		// invalid call fails
 		assert_noop!(
 			Stake::set_inflation(Origin::root(), Range { min, ideal, max }),
 			Error::<Test>::NoWritingSameValue
@@ -382,8 +420,63 @@ fn set_inflation_works() {
 	});
 }
 
+// SET PARACHAIN BOND ACCOUNT
+
 #[test]
-fn parachain_bond_reserve_works() {
+fn set_parachain_bond_account_event_emits_correctly() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(Stake::set_parachain_bond_account(Origin::root(), 11));
+		assert_eq!(
+			last_event(),
+			MetaEvent::Stake(Event::ParachainBondAccountSet(0, 11))
+		);
+	});
+}
+
+#[test]
+fn set_parachain_bond_account_storage_updates_correctly() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(Stake::parachain_bond_info().account, 0);
+		assert_ok!(Stake::set_parachain_bond_account(Origin::root(), 11));
+		assert_eq!(Stake::parachain_bond_info().account, 11);
+	});
+}
+
+// SET PARACHAIN BOND RESERVE PERCENT
+
+#[test]
+fn set_parachain_bond_reserve_percent_event_emits_correctly() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(Stake::set_parachain_bond_reserve_percent(
+			Origin::root(),
+			Percent::from_percent(50)
+		));
+		assert_eq!(
+			last_event(),
+			MetaEvent::Stake(Event::ParachainBondReservePercentSet(
+				Percent::from_percent(30),
+				Percent::from_percent(50)
+			))
+		);
+	});
+}
+
+#[test]
+fn set_parachain_bond_reserve_percent_storage_updates_correctly() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(Stake::set_parachain_bond_reserve_percent(
+			Origin::root(),
+			Percent::from_percent(50)
+		));
+		assert_eq!(
+			Stake::parachain_bond_info().percent,
+			Percent::from_percent(50)
+		);
+	});
+}
+
+#[test]
+fn parachain_bond_inflation_reserve_matches_config() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(1, 100),
@@ -565,7 +658,7 @@ fn parachain_bond_reserve_works() {
 			assert_eq!(events(), expected);
 			assert_eq!(Balances::free_balance(&11), 150);
 			roll_to(46);
-			// new nomination is rewarded for first time, 2 rounds after joining (`BondDuration` = 2)
+			// new nomination is rewarded, 2 rounds after joining (`BondDuration` is 2)
 			let mut new7 = vec![
 				Event::ReservedForParachainBond(11, 33),
 				Event::Rewarded(1, 18),
@@ -585,17 +678,17 @@ fn parachain_bond_reserve_works() {
 		});
 }
 
-// ~~ PUBLIC DISPATCHABLES ~~
+// ~~ PUBLIC ~~
 
-// JOIN CANDIDATE TESTS
+// JOIN CANDIDATES
 
 #[test]
 fn join_candidates_event_emits_correctly() {
 	ExtBuilder::default()
-		.with_balances(vec![(1, 1000)])
+		.with_balances(vec![(1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::join_candidates(Origin::signed(1), 10u128, 100u32));
+			assert_ok!(Stake::join_candidates(Origin::signed(1), 10u128, 0u32));
 			assert_eq!(
 				last_event(),
 				MetaEvent::Stake(Event::JoinedCollatorCandidates(1, 10u128, 10u128))
@@ -604,12 +697,32 @@ fn join_candidates_event_emits_correctly() {
 }
 
 #[test]
-fn can_join_candidates_with_valid_bond() {
+fn join_candidates_creates_candidate_state() {
 	ExtBuilder::default()
-		.with_balances(vec![(1, 1000)])
+		.with_balances(vec![(1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Stake::join_candidates(Origin::signed(1), 10u128, 100u32));
+			assert_ok!(Stake::join_candidates(Origin::signed(1), 10u128, 0u32));
+			let candidate_state = Stake::collator_state2(1).expect("just joined => exists");
+			assert_eq!(candidate_state.bond, 10u128);
+		});
+}
+
+#[test]
+fn join_candidates_adds_to_candidate_pool() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::join_candidates(Origin::signed(1), 10u128, 0u32));
+			let candidate_pool = Stake::candidate_pool();
+			assert_eq!(
+				candidate_pool.0[0],
+				Bond {
+					owner: 1,
+					amount: 10u128
+				}
+			);
 		});
 }
 
@@ -713,9 +826,76 @@ fn sufficient_join_candidates_weight_hint_succeeds() {
 		});
 }
 
-// LEAVE CANDIDATES TESTS
+// LEAVE CANDIDATES
 
-// TODO event emission test
+#[test]
+fn leave_candidates_event_emits_correctly() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 10)])
+		.with_candidates(vec![(1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::CollatorScheduledExit(1, 1, 3))
+			);
+		});
+}
+
+#[test]
+fn leave_candidates_removes_candidate_from_candidate_pool() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 10)])
+		.with_candidates(vec![(1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
+			assert!(Stake::candidate_pool().0.is_empty());
+		});
+}
+
+#[test]
+fn leave_candidates_removes_candidate_state_after_exit() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 10)])
+		.with_candidates(vec![(1, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(1);
+			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
+			// candidate state is not immediately removed
+			let candidate_state = Stake::collator_state2(1).expect("just left => still exists");
+			assert_eq!(candidate_state.bond, 10u128);
+			roll_to(30);
+			assert!(Stake::collator_state2(1).is_none());
+		});
+}
+
+#[test]
+fn cannot_leave_candidates_if_not_candidate() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			Stake::leave_candidates(Origin::signed(1), 1u32),
+			Error::<Test>::CandidateDNE
+		);
+	});
+}
+
+#[test]
+fn cannot_leave_candidates_if_already_leaving_candidates() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 10)])
+		.with_candidates(vec![(1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
+			assert_noop!(
+				Stake::leave_candidates(Origin::signed(1), 1u32),
+				Error::<Test>::AlreadyLeaving
+			);
+		});
+}
 
 #[test]
 fn insufficient_leave_candidates_weight_hint_fails() {
@@ -748,9 +928,7 @@ fn sufficient_leave_candidates_weight_hint_succeeds() {
 		});
 }
 
-// TODO: rest of leave candidates
-
-// GO OFFLINE TESTS
+// GO OFFLINE
 
 #[test]
 fn go_offline_event_emits_correctly() {
@@ -764,6 +942,31 @@ fn go_offline_event_emits_correctly() {
 				last_event(),
 				MetaEvent::Stake(Event::CollatorWentOffline(1, 1))
 			);
+		});
+}
+
+#[test]
+fn go_offline_removes_candidate_from_candidate_pool() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::go_offline(Origin::signed(1)));
+			assert!(Stake::candidate_pool().0.is_empty());
+		});
+}
+
+#[test]
+fn go_offline_updates_candidate_state_to_idle() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::go_offline(Origin::signed(1)));
+			let candidate_state = Stake::collator_state2(1).expect("is candidate, just offline");
+			assert_eq!(candidate_state.state, CollatorStatus::Idle);
 		});
 }
 
@@ -792,7 +995,7 @@ fn cannot_go_offline_if_already_offline() {
 		});
 }
 
-// GO ONLINE TESTS
+// GO ONLINE
 
 #[test]
 fn go_online_event_emits_correctly() {
@@ -807,6 +1010,42 @@ fn go_online_event_emits_correctly() {
 				last_event(),
 				MetaEvent::Stake(Event::CollatorBackOnline(1, 1))
 			);
+		});
+}
+
+#[test]
+fn go_online_adds_to_candidate_pool() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::go_offline(Origin::signed(1)));
+			assert!(Stake::candidate_pool().0.is_empty());
+			assert_ok!(Stake::go_online(Origin::signed(1)));
+			assert_eq!(
+				Stake::candidate_pool().0[0],
+				Bond {
+					owner: 1,
+					amount: 20
+				}
+			);
+		});
+}
+
+#[test]
+fn go_online_storage_updates_candidate_state() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::go_offline(Origin::signed(1)));
+			let candidate_state = Stake::collator_state2(1).expect("offline still exists");
+			assert_eq!(candidate_state.state, CollatorStatus::Idle);
+			assert_ok!(Stake::go_online(Origin::signed(1)));
+			let candidate_state = Stake::collator_state2(1).expect("online so exists");
+			assert!(candidate_state.is_active());
 		});
 }
 
@@ -834,7 +1073,7 @@ fn cannot_go_online_if_already_online() {
 		});
 }
 
-// CANDIDATE BOND MORE TESTS
+// CANDIDATE BOND MORE
 
 #[test]
 fn candidate_bond_more_event_emits_correctly() {
@@ -847,6 +1086,60 @@ fn candidate_bond_more_event_emits_correctly() {
 			assert_eq!(
 				last_event(),
 				MetaEvent::Stake(Event::CollatorBondedMore(1, 20, 50))
+			);
+		});
+}
+
+#[test]
+fn candidate_bond_more_increases_total_staked() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 50)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			let mut total = Stake::total();
+			assert_ok!(Stake::candidate_bond_more(Origin::signed(1), 30));
+			total += 30;
+			assert_eq!(Stake::total(), total);
+		});
+}
+
+#[test]
+fn candidate_bond_more_updates_candidate_state() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 50)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			let candidate_state = Stake::collator_state2(1).expect("updated => exists");
+			assert_eq!(candidate_state.bond, 20);
+			assert_ok!(Stake::candidate_bond_more(Origin::signed(1), 30));
+			let candidate_state = Stake::collator_state2(1).expect("updated => exists");
+			assert_eq!(candidate_state.bond, 50);
+		});
+}
+
+#[test]
+fn candidate_bond_more_updates_candidate_pool() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 50)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			assert_eq!(
+				Stake::candidate_pool().0[0],
+				Bond {
+					owner: 1,
+					amount: 20
+				}
+			);
+			assert_ok!(Stake::candidate_bond_more(Origin::signed(1), 30));
+			assert_eq!(
+				Stake::candidate_pool().0[0],
+				Bond {
+					owner: 1,
+					amount: 50
+				}
 			);
 		});
 }
@@ -876,25 +1169,6 @@ fn cannot_candidate_bond_more_if_insufficient_balance() {
 					message: Some("InsufficientBalance")
 				}
 			);
-		});
-}
-
-// #[test]
-// fn candidate_bond_more_increases_candidate_pool_bond() {
-// 	todo!()
-// }
-
-#[test]
-fn candidate_bond_more_increases_total_staked() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 50)])
-		.with_candidates(vec![(1, 20)])
-		.build()
-		.execute_with(|| {
-			let mut total = Stake::total();
-			assert_ok!(Stake::candidate_bond_more(Origin::signed(1), 30));
-			total += 30;
-			assert_eq!(Stake::total(), total);
 		});
 }
 
@@ -930,12 +1204,76 @@ fn cannot_candidate_bond_more_if_exited_candidates() {
 		});
 }
 
-// #[test]
-// fn can_candidate_bond_more_if_offline() {
-// 	todo!()
-// }
+// CANDIDATE BOND LESS
 
-// CANDIDATE BOND LESS TESTS
+#[test]
+fn candidate_bond_less_event_emits_correctly() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30)])
+		.with_candidates(vec![(1, 30)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::candidate_bond_less(Origin::signed(1), 10));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::CollatorBondedLess(1, 30, 20))
+			);
+		});
+}
+
+#[test]
+fn candidate_bond_less_decreases_total_staked() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30)])
+		.with_candidates(vec![(1, 30)])
+		.build()
+		.execute_with(|| {
+			let mut total = Stake::total();
+			assert_ok!(Stake::candidate_bond_less(Origin::signed(1), 10));
+			total -= 10;
+			assert_eq!(Stake::total(), total);
+		});
+}
+
+#[test]
+fn candidate_bond_less_updates_candidate_state() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30)])
+		.with_candidates(vec![(1, 30)])
+		.build()
+		.execute_with(|| {
+			let candidate_state = Stake::collator_state2(1).expect("updated => exists");
+			assert_eq!(candidate_state.bond, 30);
+			assert_ok!(Stake::candidate_bond_less(Origin::signed(1), 10));
+			let candidate_state = Stake::collator_state2(1).expect("updated => exists");
+			assert_eq!(candidate_state.bond, 20);
+		});
+}
+
+#[test]
+fn candidate_bond_less_updates_candidate_pool() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30)])
+		.with_candidates(vec![(1, 30)])
+		.build()
+		.execute_with(|| {
+			assert_eq!(
+				Stake::candidate_pool().0[0],
+				Bond {
+					owner: 1,
+					amount: 30
+				}
+			);
+			assert_ok!(Stake::candidate_bond_less(Origin::signed(1), 10));
+			assert_eq!(
+				Stake::candidate_pool().0[0],
+				Bond {
+					owner: 1,
+					amount: 20
+				}
+			);
+		});
+}
 
 #[test]
 fn cannot_bond_less_if_not_candidate() {
@@ -958,20 +1296,6 @@ fn cannot_candidate_bond_less_if_new_total_below_min_candidate_stk() {
 				Stake::candidate_bond_less(Origin::signed(1), 21),
 				Error::<Test>::ValBondBelowMin
 			);
-		});
-}
-
-#[test]
-fn candidate_bond_less_decreases_total_staked() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 30)])
-		.with_candidates(vec![(1, 30)])
-		.build()
-		.execute_with(|| {
-			let mut total = Stake::total();
-			assert_ok!(Stake::candidate_bond_less(Origin::signed(1), 10));
-			total -= 10;
-			assert_eq!(Stake::total(), total);
 		});
 }
 
@@ -1007,94 +1331,6 @@ fn cannot_candidate_bond_less_if_exited_candidates() {
 		});
 }
 
-// correct event emission
-
-#[test]
-fn collators_bond() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 100),
-			(2, 100),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-			(7, 100),
-			(8, 100),
-			(9, 100),
-			(10, 100),
-		])
-		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
-		.with_nominations(vec![
-			(6, 1, 10),
-			(7, 1, 10),
-			(8, 2, 10),
-			(9, 2, 10),
-			(10, 1, 10),
-		])
-		.build()
-		.execute_with(|| {
-			roll_to(4);
-			assert_noop!(
-				Stake::candidate_bond_more(Origin::signed(6), 50),
-				Error::<Test>::CandidateDNE
-			);
-			let mut total = Stake::total();
-			assert_ok!(Stake::candidate_bond_more(Origin::signed(1), 50));
-			total += 50;
-			assert_eq!(Stake::total(), total);
-			assert_noop!(
-				Stake::candidate_bond_more(Origin::signed(1), 40),
-				DispatchError::Module {
-					index: 1,
-
-					error: 2,
-					message: Some("InsufficientBalance")
-				}
-			);
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 5));
-			assert_noop!(
-				Stake::candidate_bond_more(Origin::signed(1), 30),
-				Error::<Test>::CannotActivateIfLeaving
-			);
-			roll_to(30);
-			total -= 100;
-			assert_eq!(Stake::total(), total);
-			assert_noop!(
-				Stake::candidate_bond_more(Origin::signed(1), 40),
-				Error::<Test>::CandidateDNE
-			);
-			assert_ok!(Stake::candidate_bond_more(Origin::signed(2), 80));
-			total += 80;
-			assert_eq!(Stake::total(), total);
-			assert_ok!(Stake::candidate_bond_less(Origin::signed(2), 90));
-			total -= 90;
-			assert_eq!(Stake::total(), total);
-			assert_ok!(Stake::candidate_bond_less(Origin::signed(3), 10));
-			total -= 10;
-			assert_eq!(Stake::total(), total);
-			assert_noop!(
-				Stake::candidate_bond_less(Origin::signed(2), 11),
-				Error::<Test>::CannotBondLessGEQTotalBond
-			);
-			assert_noop!(
-				Stake::candidate_bond_less(Origin::signed(2), 1),
-				Error::<Test>::ValBondBelowMin
-			);
-			assert_noop!(
-				Stake::candidate_bond_less(Origin::signed(3), 1),
-				Error::<Test>::ValBondBelowMin
-			);
-			assert_noop!(
-				Stake::candidate_bond_less(Origin::signed(4), 11),
-				Error::<Test>::ValBondBelowMin
-			);
-			assert_ok!(Stake::candidate_bond_less(Origin::signed(4), 10));
-			total -= 10;
-			assert_eq!(Stake::total(), total);
-		});
-}
-
 // NOMINATE TESTS
 
 // REVOKE_NOMINATION TESTS
@@ -1106,6 +1342,68 @@ fn collators_bond() {
 // NOMINATOR BOND LESS TESTS
 
 // ~~ PROPERTY-BASED TESTS ~~
+
+#[test]
+fn paid_collator_commission_matches_config() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 100),
+			(2, 100),
+			(3, 100),
+			(4, 100),
+			(5, 100),
+			(6, 100),
+		])
+		.with_candidates(vec![(1, 20)])
+		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(8);
+			// chooses top TotalSelectedCandidates (5), in order
+			let mut expected = vec![
+				Event::CollatorChosen(2, 1, 40),
+				Event::NewRound(5, 2, 1, 40),
+			];
+			assert_eq!(events(), expected);
+			assert_ok!(Stake::join_candidates(Origin::signed(4), 20u128, 100u32));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::JoinedCollatorCandidates(4, 20u128, 60u128))
+			);
+			roll_to(9);
+			assert_ok!(Stake::nominate(Origin::signed(5), 4, 10, 10, 10));
+			assert_ok!(Stake::nominate(Origin::signed(6), 4, 10, 10, 10));
+			roll_to(11);
+			let mut new = vec![
+				Event::JoinedCollatorCandidates(4, 20, 60),
+				Event::Nomination(5, 10, 4, NominatorAdded::AddedToTop { new_total: 30 }),
+				Event::Nomination(6, 10, 4, NominatorAdded::AddedToTop { new_total: 40 }),
+				Event::CollatorChosen(3, 4, 40),
+				Event::CollatorChosen(3, 1, 40),
+				Event::NewRound(10, 3, 2, 80),
+			];
+			expected.append(&mut new);
+			assert_eq!(events(), expected);
+			// only reward author with id 4
+			set_author(3, 4, 100);
+			roll_to(21);
+			// 20% of 10 is commission + due_portion (4) = 2 + 4 = 6
+			// all nominator payouts are 10-2 = 8 * stake_pct
+			let mut new2 = vec![
+				Event::CollatorChosen(4, 4, 40),
+				Event::CollatorChosen(4, 1, 40),
+				Event::NewRound(15, 4, 2, 80),
+				Event::Rewarded(4, 18),
+				Event::Rewarded(6, 6),
+				Event::Rewarded(5, 6),
+				Event::CollatorChosen(5, 4, 40),
+				Event::CollatorChosen(5, 1, 40),
+				Event::NewRound(20, 5, 2, 80),
+			];
+			expected.append(&mut new2);
+			assert_eq!(events(), expected);
+		});
+}
 
 #[test]
 fn collator_exit_executes_after_delay() {
@@ -1432,68 +1730,6 @@ fn payout_distribution_to_solo_collators() {
 }
 
 #[test]
-fn collator_commission_matches_config() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 100),
-			(2, 100),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-		])
-		.with_candidates(vec![(1, 20)])
-		.with_nominations(vec![(2, 1, 10), (3, 1, 10)])
-		.build()
-		.execute_with(|| {
-			roll_to(8);
-			// chooses top TotalSelectedCandidates (5), in order
-			let mut expected = vec![
-				Event::CollatorChosen(2, 1, 40),
-				Event::NewRound(5, 2, 1, 40),
-			];
-			assert_eq!(events(), expected);
-			assert_ok!(Stake::join_candidates(Origin::signed(4), 20u128, 100u32));
-			assert_eq!(
-				last_event(),
-				MetaEvent::Stake(Event::JoinedCollatorCandidates(4, 20u128, 60u128))
-			);
-			roll_to(9);
-			assert_ok!(Stake::nominate(Origin::signed(5), 4, 10, 10, 10));
-			assert_ok!(Stake::nominate(Origin::signed(6), 4, 10, 10, 10));
-			roll_to(11);
-			let mut new = vec![
-				Event::JoinedCollatorCandidates(4, 20, 60),
-				Event::Nomination(5, 10, 4, NominatorAdded::AddedToTop { new_total: 30 }),
-				Event::Nomination(6, 10, 4, NominatorAdded::AddedToTop { new_total: 40 }),
-				Event::CollatorChosen(3, 4, 40),
-				Event::CollatorChosen(3, 1, 40),
-				Event::NewRound(10, 3, 2, 80),
-			];
-			expected.append(&mut new);
-			assert_eq!(events(), expected);
-			// only reward author with id 4
-			set_author(3, 4, 100);
-			roll_to(21);
-			// 20% of 10 is commission + due_portion (4) = 2 + 4 = 6
-			// all nominator payouts are 10-2 = 8 * stake_pct
-			let mut new2 = vec![
-				Event::CollatorChosen(4, 4, 40),
-				Event::CollatorChosen(4, 1, 40),
-				Event::NewRound(15, 4, 2, 80),
-				Event::Rewarded(4, 18),
-				Event::Rewarded(6, 6),
-				Event::Rewarded(5, 6),
-				Event::CollatorChosen(5, 4, 40),
-				Event::CollatorChosen(5, 1, 40),
-				Event::NewRound(20, 5, 2, 80),
-			];
-			expected.append(&mut new2);
-			assert_eq!(events(), expected);
-		});
-}
-
-#[test]
 fn multiple_nominations() {
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -1685,7 +1921,7 @@ fn nominators_bond() {
 			);
 			assert_noop!(
 				Stake::nominator_bond_less(Origin::signed(6), 1, 11),
-				Error::<Test>::CannotBondLessGEQTotalBond
+				Error::<Test>::NomBondBelowMin
 			);
 			assert_noop!(
 				Stake::nominator_bond_less(Origin::signed(6), 1, 8),
@@ -2076,22 +2312,22 @@ fn bottom_nominations_are_empty_when_top_nominations_not_full() {
 			// 1 nominator => 1 top nominator, 0 bottom nominators
 			assert_ok!(Stake::nominate(Origin::signed(2), 1, 10, 10, 10));
 			let collator_state = Stake::collator_state2(1).unwrap();
-			assert!(collator_state.top_nominators.len() == 1usize);
+			assert_eq!(collator_state.top_nominators.len(), 1usize);
 			assert!(collator_state.bottom_nominators.is_empty());
 			// 2 nominators => 2 top nominators, 0 bottom nominators
 			assert_ok!(Stake::nominate(Origin::signed(3), 1, 10, 10, 10));
 			let collator_state = Stake::collator_state2(1).unwrap();
-			assert!(collator_state.top_nominators.len() == 2usize);
+			assert_eq!(collator_state.top_nominators.len(), 2usize);
 			assert!(collator_state.bottom_nominators.is_empty());
 			// 3 nominators => 3 top nominators, 0 bottom nominators
 			assert_ok!(Stake::nominate(Origin::signed(4), 1, 10, 10, 10));
 			let collator_state = Stake::collator_state2(1).unwrap();
-			assert!(collator_state.top_nominators.len() == 3usize);
+			assert_eq!(collator_state.top_nominators.len(), 3usize);
 			assert!(collator_state.bottom_nominators.is_empty());
 			// 4 nominators => 4 top nominators, 0 bottom nominators
 			assert_ok!(Stake::nominate(Origin::signed(5), 1, 10, 10, 10));
 			let collator_state = Stake::collator_state2(1).unwrap();
-			assert!(collator_state.top_nominators.len() == 4usize);
+			assert_eq!(collator_state.top_nominators.len(), 4usize);
 			assert!(collator_state.bottom_nominators.is_empty());
 		});
 }

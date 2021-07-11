@@ -654,7 +654,6 @@ pub mod pallet {
 		ExceedMaxCollatorsPerNom,
 		AlreadyNominatedCollator,
 		NominationDNE,
-		CannotBondLessGEQTotalBond,
 		InvalidSchedule,
 		CannotSetBelowMin,
 		NoWritingSameValue,
@@ -1270,9 +1269,7 @@ pub mod pallet {
 			let mut state = <CollatorState2<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_leaving(), Error::<T>::CannotActivateIfLeaving);
 			let before = state.bond;
-			let after = state
-				.bond_less(less)
-				.ok_or(Error::<T>::CannotBondLessGEQTotalBond)?;
+			let after = state.bond_less(less).ok_or(Error::<T>::ValBondBelowMin)?;
 			ensure!(
 				after >= T::MinCollatorCandidateStk::get(),
 				Error::<T>::ValBondBelowMin
@@ -1427,7 +1424,7 @@ pub mod pallet {
 			let remaining = nominations
 				.dec_nomination(candidate.clone(), less)
 				.ok_or(Error::<T>::NominationDNE)?
-				.ok_or(Error::<T>::CannotBondLessGEQTotalBond)?;
+				.ok_or(Error::<T>::NomBondBelowMin)?;
 			ensure!(
 				remaining >= T::MinNomination::get(),
 				Error::<T>::NominationBelowMin
