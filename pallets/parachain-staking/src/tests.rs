@@ -19,7 +19,7 @@
 //! of the calls in the `lib.rs`.
 //! 1. Root
 //! 2. Monetary Governance
-//! 3. Public
+//! 3. Public (Collator, Nominator)
 //! 4. Miscellaneous Property-Based Tests
 use crate::mock::{
 	events, last_event, roll_to, set_author, Balances, Event as MetaEvent, ExtBuilder, Origin,
@@ -198,7 +198,6 @@ fn round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round() {
 // ~~ MONETARY GOVERNANCE ~~
 
 #[test]
-// TODO: create different mock for benchmarking so we can test this origin independent of root
 fn invalid_monetary_origin_fails() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
@@ -743,13 +742,13 @@ fn cannot_join_candidates_if_candidate() {
 #[test]
 fn cannot_join_candidates_if_nominator() {
 	ExtBuilder::default()
-		.with_balances(vec![(1, 1000), (2, 300)])
-		.with_candidates(vec![(1, 500)])
-		.with_nominations(vec![(2, 1, 100)])
+		.with_balances(vec![(1, 50), (2, 20)])
+		.with_candidates(vec![(1, 50)])
+		.with_nominations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				Stake::join_candidates(Origin::signed(2), 11u128, 100u32),
+				Stake::join_candidates(Origin::signed(2), 10u128, 1u32),
 				Error::<Test>::NominatorExists
 			);
 		});
@@ -1091,7 +1090,7 @@ fn candidate_bond_more_event_emits_correctly() {
 }
 
 #[test]
-fn candidate_bond_more_increases_total_staked() {
+fn candidate_bond_more_increases_total() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 50)])
 		.with_candidates(vec![(1, 20)])
@@ -1222,7 +1221,7 @@ fn candidate_bond_less_event_emits_correctly() {
 }
 
 #[test]
-fn candidate_bond_less_decreases_total_staked() {
+fn candidate_bond_less_decreases_total() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30)])
 		.with_candidates(vec![(1, 30)])
@@ -1331,15 +1330,690 @@ fn cannot_candidate_bond_less_if_exited_candidates() {
 		});
 }
 
-// NOMINATE TESTS
+// NOMINATE
 
-// REVOKE_NOMINATION TESTS
+#[test]
+fn nominate_event_emits_correctly() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::nominate(Origin::signed(2), 1, 10, 0, 0));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::Nomination(
+					2,
+					10,
+					1,
+					NominatorAdded::AddedToTop { new_total: 40 }
+				)),
+			);
+		});
+}
 
-// LEAVE_NOMINATORS TESTS
+#[test]
+fn nominate_updates_nominator_state() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::nominate(Origin::signed(2), 1, 10, 0, 0));
+			let nominator_state = Stake::nominator_state(2).expect("just nominated => exists");
+			assert_eq!(nominator_state.total, 10);
+			assert_eq!(
+				nominator_state.nominations.0[0],
+				Bond {
+					owner: 1,
+					amount: 10
+				}
+			);
+		});
+}
 
-// NOMINATOR BOND MORE TESTS
+#[test]
+fn nominate_updates_collator_state() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::nominate(Origin::signed(2), 1, 10, 0, 0));
+			let candidate_state = Stake::collator_state2(1).expect("just nominated => exists");
+			assert_eq!(candidate_state.total_backing, 40);
+			assert_eq!(candidate_state.total_counted, 40);
+			assert_eq!(
+				candidate_state.top_nominators[0],
+				Bond {
+					owner: 2,
+					amount: 10
+				}
+			);
+		});
+}
 
-// NOMINATOR BOND LESS TESTS
+#[test]
+fn can_nominate_immediately_after_other_join_candidates() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::join_candidates(Origin::signed(1), 20, 0));
+			assert_ok!(Stake::nominate(Origin::signed(2), 1, 20, 0, 0));
+		});
+}
+
+#[test]
+fn cannot_nominate_if_candidate() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20)])
+		.with_candidates(vec![(1, 20), (2, 20)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Stake::nominate(Origin::signed(2), 1, 10, 0, 0),
+				Error::<Test>::CandidateExists
+			);
+		});
+}
+
+#[test]
+fn cannot_nominate_if_already_nominator() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20)])
+		.with_candidates(vec![(1, 20), (2, 20)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Stake::nominate(Origin::signed(2), 1, 10, 0, 0),
+				Error::<Test>::CandidateExists
+			);
+		});
+}
+
+#[test]
+fn sufficient_nominate_weight_hint_succeeds() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 20),
+			(2, 20),
+			(3, 20),
+			(4, 20),
+			(5, 20),
+			(6, 20),
+			(7, 20),
+			(8, 20),
+			(9, 20),
+			(10, 20),
+		])
+		.with_candidates(vec![(1, 20), (2, 20)])
+		.with_nominations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
+		.build()
+		.execute_with(|| {
+			let mut count = 4u32;
+			for i in 7..11 {
+				assert_ok!(Stake::nominate(Origin::signed(i), 1, 10, count, 0u32));
+				count += 1u32;
+			}
+			let mut count = 0u32;
+			for i in 3..11 {
+				assert_ok!(Stake::nominate(Origin::signed(i), 2, 10, count, 1u32));
+				count += 1u32;
+			}
+		});
+}
+
+#[test]
+fn insufficient_nominate_weight_hint_fails() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 20),
+			(2, 20),
+			(3, 20),
+			(4, 20),
+			(5, 20),
+			(6, 20),
+			(7, 20),
+			(8, 20),
+			(9, 20),
+			(10, 20),
+		])
+		.with_candidates(vec![(1, 20), (2, 20)])
+		.with_nominations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
+		.build()
+		.execute_with(|| {
+			let mut count = 3u32;
+			for i in 7..11 {
+				assert_noop!(
+					Stake::nominate(Origin::signed(i), 1, 10, count, 0u32),
+					Error::<Test>::TooLowCollatorNominationCountToNominate
+				);
+			}
+			// to set up for next error test
+			count = 4u32;
+			for i in 7..11 {
+				assert_ok!(Stake::nominate(Origin::signed(i), 1, 10, count, 0u32));
+				count += 1u32;
+			}
+			count = 0u32;
+			for i in 3..11 {
+				assert_noop!(
+					Stake::nominate(Origin::signed(i), 2, 10, count, 0u32),
+					Error::<Test>::TooLowNominationCountToNominate
+				);
+				count += 1u32;
+			}
+		});
+}
+
+// LEAVE_NOMINATORS
+
+#[test]
+fn leave_nominators_event_emits_correctly() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::leave_nominators(Origin::signed(2), 1));
+			assert_eq!(last_event(), MetaEvent::Stake(Event::NominatorLeft(2, 10,)),);
+		});
+}
+
+#[test]
+fn leave_nominators_removes_nominator_state() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::leave_nominators(Origin::signed(2), 1));
+			assert!(Stake::nominator_state(2).is_none());
+		});
+}
+
+#[test]
+fn leave_nominators_removes_nominations_from_collator_state() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 100), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.with_candidates(vec![(2, 20), (3, 20), (4, 20), (5, 20)])
+		.with_nominations(vec![(1, 2, 10), (1, 3, 10), (1, 4, 10), (1, 5, 10)])
+		.build()
+		.execute_with(|| {
+			for i in 2..6 {
+				let candidate_state =
+					Stake::collator_state2(i).expect("initialized in ext builder");
+				assert_eq!(
+					candidate_state.top_nominators[0],
+					Bond {
+						owner: 1,
+						amount: 10
+					}
+				);
+				assert_eq!(candidate_state.nominators.0[0], 1);
+				assert_eq!(candidate_state.total_backing, 30);
+			}
+			assert_eq!(
+				Stake::nominator_state(1).unwrap().nominations.0.len(),
+				4usize
+			);
+			assert_ok!(Stake::leave_nominators(Origin::signed(1), 10));
+			for i in 2..6 {
+				let candidate_state =
+					Stake::collator_state2(i).expect("initialized in ext builder");
+				assert!(candidate_state.top_nominators.is_empty());
+				assert!(candidate_state.nominators.0.is_empty());
+				assert_eq!(candidate_state.total_backing, 20);
+			}
+		});
+}
+
+#[test]
+fn cannot_leave_nominators_if_not_nominator() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Stake::leave_nominators(Origin::signed(2), 1),
+				Error::<Test>::NominatorDNE
+			);
+		});
+}
+
+#[test]
+fn insufficient_leave_nominators_weight_hint_fails() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
+		.with_candidates(vec![(1, 20)])
+		.with_nominations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
+		.build()
+		.execute_with(|| {
+			for i in 3..7 {
+				assert_noop!(
+					Stake::leave_nominators(Origin::signed(i), 0u32),
+					Error::<Test>::TooLowNominationCountToLeaveNominators
+				);
+			}
+		});
+}
+
+#[test]
+fn sufficient_leave_nominators_weight_hint_succeeds() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
+		.with_candidates(vec![(1, 20)])
+		.with_nominations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
+		.build()
+		.execute_with(|| {
+			for i in 3..7 {
+				assert_ok!(Stake::leave_nominators(Origin::signed(i), 1u32),);
+			}
+		});
+}
+
+// REVOKE_NOMINATION
+
+#[test]
+fn revoke_nomination_event_emits_correctly() {
+	// last nomination is revocation
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 1));
+			assert_eq!(
+				events(),
+				vec![
+					Event::NominatorLeftCollator(2, 1, 10, 30),
+					Event::NominatorLeft(2, 10,),
+				]
+			);
+		});
+	// more nominations remaining after revocation
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 20), (3, 30)])
+		.with_candidates(vec![(1, 30), (3, 30)])
+		.with_nominations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 1));
+			assert_eq!(events(), vec![Event::NominatorLeftCollator(2, 1, 10, 30)]);
+		});
+}
+
+#[test]
+fn revoke_nomination_for_last_nomination_removes_nominator_state() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert!(Stake::nominator_state(2).is_some());
+			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 1));
+			assert!(Stake::nominator_state(2).is_none());
+		});
+}
+
+#[test]
+fn revoke_nomination_removes_nomination_from_candidate_state() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_eq!(
+				Stake::collator_state2(1)
+					.expect("exists")
+					.nominators
+					.0
+					.len(),
+				1usize
+			);
+			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 1));
+			assert!(Stake::collator_state2(1)
+				.expect("exists")
+				.nominators
+				.0
+				.is_empty());
+		});
+}
+
+#[test]
+fn cannot_revoke_nomination_if_not_nominator() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			Stake::revoke_nomination(Origin::signed(2), 1),
+			Error::<Test>::NominatorDNE
+		);
+	});
+}
+
+#[test]
+fn cannot_revoke_nomination_that_dne() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Stake::revoke_nomination(Origin::signed(2), 3),
+				Error::<Test>::NominationDNE
+			);
+		});
+}
+
+#[test]
+fn cannot_revoke_nomination_leaving_nominator_below_min_nominator_stake() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 8), (3, 20)])
+		.with_candidates(vec![(1, 20), (3, 20)])
+		.with_nominations(vec![(2, 1, 5), (2, 3, 3)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Stake::revoke_nomination(Origin::signed(2), 1),
+				Error::<Test>::NomBondBelowMin
+			);
+		});
+}
+
+// NOMINATOR BOND MORE
+
+#[test]
+fn nominator_bond_more_event_emits_correctly() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 15)])
+		.with_candidates(vec![(1, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::nominator_bond_more(Origin::signed(2), 1, 5));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::NominationIncreased(2, 1, 40, true, 45))
+			);
+		});
+}
+
+#[test]
+fn nominator_bond_more_updates_nominator_state() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 15)])
+		.with_candidates(vec![(1, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_eq!(Stake::nominator_state(2).expect("exists").total, 10);
+			assert_ok!(Stake::nominator_bond_more(Origin::signed(2), 1, 5));
+			assert_eq!(Stake::nominator_state(2).expect("exists").total, 15);
+		});
+}
+
+#[test]
+fn nominator_bond_more_updates_candidate_state() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 15)])
+		.with_candidates(vec![(1, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_eq!(
+				Stake::collator_state2(1).expect("exists").top_nominators[0],
+				Bond {
+					owner: 2,
+					amount: 10
+				}
+			);
+			assert_ok!(Stake::nominator_bond_more(Origin::signed(2), 1, 5));
+			assert_eq!(
+				Stake::collator_state2(1).expect("exists").top_nominators[0],
+				Bond {
+					owner: 2,
+					amount: 15
+				}
+			);
+		});
+}
+
+#[test]
+fn nominator_bond_more_increases_total() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 15)])
+		.with_candidates(vec![(1, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_eq!(Stake::total(), 40);
+			assert_ok!(Stake::nominator_bond_more(Origin::signed(2), 1, 5));
+			assert_eq!(Stake::total(), 45);
+		});
+}
+
+#[test]
+fn cannot_nominator_bond_more_if_not_nominator() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			Stake::nominator_bond_more(Origin::signed(2), 1, 5),
+			Error::<Test>::NominatorDNE
+		);
+	});
+}
+
+#[test]
+fn cannot_nominator_bond_more_if_candidate_dne() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Stake::nominator_bond_more(Origin::signed(2), 3, 5),
+				Error::<Test>::CandidateDNE
+			);
+		});
+}
+
+#[test]
+fn cannot_nominator_bond_more_if_nomination_dne() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10), (3, 30)])
+		.with_candidates(vec![(1, 30), (3, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Stake::nominator_bond_more(Origin::signed(2), 3, 5),
+				Error::<Test>::NominationDNE
+			);
+		});
+}
+
+#[test]
+fn cannot_nominator_bond_more_if_insufficient_balance() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Stake::nominator_bond_more(Origin::signed(2), 1, 5),
+				DispatchError::Module {
+					index: 1,
+					error: 2,
+					message: Some("InsufficientBalance")
+				}
+			);
+		});
+}
+
+// NOMINATOR BOND LESS
+
+#[test]
+fn nominator_bond_less_event_emits_correctly() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::nominator_bond_less(Origin::signed(2), 1, 5));
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::NominationDecreased(2, 1, 40, true, 35))
+			);
+		});
+}
+
+#[test]
+fn nominator_bond_less_updates_nominator_state() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 15)])
+		.with_candidates(vec![(1, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_eq!(Stake::nominator_state(2).expect("exists").total, 10);
+			assert_ok!(Stake::nominator_bond_less(Origin::signed(2), 1, 5));
+			assert_eq!(Stake::nominator_state(2).expect("exists").total, 5);
+		});
+}
+
+#[test]
+fn nominator_bond_less_updates_candidate_state() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 15)])
+		.with_candidates(vec![(1, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_eq!(
+				Stake::collator_state2(1).expect("exists").top_nominators[0],
+				Bond {
+					owner: 2,
+					amount: 10
+				}
+			);
+			assert_ok!(Stake::nominator_bond_less(Origin::signed(2), 1, 5));
+			assert_eq!(
+				Stake::collator_state2(1).expect("exists").top_nominators[0],
+				Bond {
+					owner: 2,
+					amount: 5
+				}
+			);
+		});
+}
+
+#[test]
+fn nominator_bond_less_decreases_total() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 15)])
+		.with_candidates(vec![(1, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_eq!(Stake::total(), 40);
+			assert_ok!(Stake::nominator_bond_less(Origin::signed(2), 1, 5));
+			assert_eq!(Stake::total(), 35);
+		});
+}
+
+#[test]
+fn cannot_nominator_bond_less_if_not_nominator() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			Stake::nominator_bond_less(Origin::signed(2), 1, 5),
+			Error::<Test>::NominatorDNE
+		);
+	});
+}
+
+#[test]
+fn cannot_nominator_bond_less_if_candidate_dne() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Stake::nominator_bond_less(Origin::signed(2), 3, 5),
+				Error::<Test>::CandidateDNE
+			);
+		});
+}
+
+#[test]
+fn cannot_nominator_bond_less_if_nomination_dne() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10), (3, 30)])
+		.with_candidates(vec![(1, 30), (3, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Stake::nominator_bond_less(Origin::signed(2), 3, 5),
+				Error::<Test>::NominationDNE
+			);
+		});
+}
+
+#[test]
+fn cannot_nominator_bond_less_below_min_collator_stk() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Stake::nominator_bond_less(Origin::signed(2), 1, 6),
+				Error::<Test>::NomBondBelowMin
+			);
+		});
+}
+
+#[test]
+fn cannot_nominator_bond_less_more_than_total_nomination() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 10)])
+		.with_candidates(vec![(1, 30)])
+		.with_nominations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Stake::nominator_bond_less(Origin::signed(2), 1, 11),
+				Error::<Test>::NomBondBelowMin
+			);
+		});
+}
+
+#[test]
+fn cannot_nominator_bond_less_below_min_nomination() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 20), (3, 30)])
+		.with_candidates(vec![(1, 30), (3, 30)])
+		.with_nominations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Stake::nominator_bond_less(Origin::signed(2), 1, 8),
+				Error::<Test>::NominationBelowMin
+			);
+		});
+}
 
 // ~~ PROPERTY-BASED TESTS ~~
 
@@ -1877,249 +2551,6 @@ fn multiple_nominations() {
 			assert_eq!(Balances::reserved_balance(&7), 10);
 			assert_eq!(Balances::free_balance(&6), 70);
 			assert_eq!(Balances::free_balance(&7), 90);
-		});
-}
-
-#[test]
-fn nominators_bond() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 100),
-			(2, 100),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-			(7, 100),
-			(8, 100),
-			(9, 100),
-			(10, 100),
-		])
-		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
-		.with_nominations(vec![
-			(6, 1, 10),
-			(7, 1, 10),
-			(8, 2, 10),
-			(9, 2, 10),
-			(10, 1, 10),
-		])
-		.build()
-		.execute_with(|| {
-			roll_to(4);
-			let mut total = Stake::total();
-			assert_noop!(
-				Stake::nominator_bond_more(Origin::signed(1), 2, 50),
-				Error::<Test>::NominatorDNE
-			);
-			assert_noop!(
-				Stake::nominator_bond_more(Origin::signed(6), 2, 50),
-				Error::<Test>::NominationDNE
-			);
-			assert_noop!(
-				Stake::nominator_bond_more(Origin::signed(7), 6, 50),
-				Error::<Test>::CandidateDNE
-			);
-			assert_noop!(
-				Stake::nominator_bond_less(Origin::signed(6), 1, 11),
-				Error::<Test>::NomBondBelowMin
-			);
-			assert_noop!(
-				Stake::nominator_bond_less(Origin::signed(6), 1, 8),
-				Error::<Test>::NominationBelowMin
-			);
-			assert_noop!(
-				Stake::nominator_bond_less(Origin::signed(6), 1, 6),
-				Error::<Test>::NomBondBelowMin
-			);
-			assert_ok!(Stake::nominator_bond_more(Origin::signed(6), 1, 10));
-			total += 10;
-			assert_eq!(Stake::total(), total);
-			assert_noop!(
-				Stake::nominator_bond_less(Origin::signed(6), 2, 5),
-				Error::<Test>::NominationDNE
-			);
-			assert_noop!(
-				Stake::nominator_bond_more(Origin::signed(6), 1, 81),
-				DispatchError::Module {
-					index: 1,
-
-					error: 2,
-					message: Some("InsufficientBalance")
-				}
-			);
-			roll_to(9);
-			assert_eq!(Balances::reserved_balance(&6), 20);
-			assert_ok!(Stake::leave_candidates(Origin::signed(1), 5));
-			assert_eq!(Stake::total(), total);
-			roll_to(31);
-			total -= 60;
-			assert_eq!(Stake::total(), total);
-			assert!(!Stake::is_nominator(&6));
-			assert_eq!(Balances::reserved_balance(&6), 0);
-			assert_eq!(Balances::free_balance(&6), 100);
-		});
-}
-
-#[test]
-fn revoke_nomination_or_leave_nominators() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 100),
-			(2, 100),
-			(3, 100),
-			(4, 100),
-			(5, 100),
-			(6, 100),
-			(7, 100),
-			(8, 100),
-			(9, 100),
-			(10, 100),
-		])
-		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
-		.with_nominations(vec![
-			(6, 1, 10),
-			(7, 1, 10),
-			(8, 2, 10),
-			(9, 2, 10),
-			(10, 1, 10),
-		])
-		.build()
-		.execute_with(|| {
-			roll_to(4);
-			assert_noop!(
-				Stake::revoke_nomination(Origin::signed(1), 2),
-				Error::<Test>::NominatorDNE
-			);
-			assert_noop!(
-				Stake::revoke_nomination(Origin::signed(6), 2),
-				Error::<Test>::NominationDNE
-			);
-			assert_noop!(
-				Stake::leave_nominators(Origin::signed(1), 10),
-				Error::<Test>::NominatorDNE
-			);
-			assert_ok!(Stake::nominate(Origin::signed(6), 2, 3, 10, 10));
-			assert_ok!(Stake::nominate(Origin::signed(6), 3, 3, 10, 10));
-			assert_ok!(Stake::revoke_nomination(Origin::signed(6), 1));
-			// cannot revoke nomination because would leave remaining total below MinNominatorStk
-			assert_noop!(
-				Stake::revoke_nomination(Origin::signed(6), 2),
-				Error::<Test>::NomBondBelowMin
-			);
-			assert_noop!(
-				Stake::revoke_nomination(Origin::signed(6), 3),
-				Error::<Test>::NomBondBelowMin
-			);
-			// can revoke both remaining by calling leave nominators
-			assert_ok!(Stake::leave_nominators(Origin::signed(6), 10));
-			// this leads to 8 leaving set of nominators
-			assert_ok!(Stake::revoke_nomination(Origin::signed(8), 2));
-		});
-}
-
-#[test]
-fn sufficient_nominate_weight_hint_succeeds() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 20),
-			(2, 20),
-			(3, 20),
-			(4, 20),
-			(5, 20),
-			(6, 20),
-			(7, 20),
-			(8, 20),
-			(9, 20),
-			(10, 20),
-		])
-		.with_candidates(vec![(1, 20), (2, 20)])
-		.with_nominations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
-		.build()
-		.execute_with(|| {
-			let mut count = 4u32;
-			for i in 7..11 {
-				assert_ok!(Stake::nominate(Origin::signed(i), 1, 10, count, 0u32));
-				count += 1u32;
-			}
-			let mut count = 0u32;
-			for i in 3..11 {
-				assert_ok!(Stake::nominate(Origin::signed(i), 2, 10, count, 1u32));
-				count += 1u32;
-			}
-		});
-}
-
-#[test]
-fn insufficient_nominate_weight_hint_fails() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(1, 20),
-			(2, 20),
-			(3, 20),
-			(4, 20),
-			(5, 20),
-			(6, 20),
-			(7, 20),
-			(8, 20),
-			(9, 20),
-			(10, 20),
-		])
-		.with_candidates(vec![(1, 20), (2, 20)])
-		.with_nominations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
-		.build()
-		.execute_with(|| {
-			let mut count = 3u32;
-			for i in 7..11 {
-				assert_noop!(
-					Stake::nominate(Origin::signed(i), 1, 10, count, 0u32),
-					Error::<Test>::TooLowCollatorNominationCountToNominate
-				);
-			}
-			// to set up for next error test
-			count = 4u32;
-			for i in 7..11 {
-				assert_ok!(Stake::nominate(Origin::signed(i), 1, 10, count, 0u32));
-				count += 1u32;
-			}
-			count = 0u32;
-			for i in 3..11 {
-				assert_noop!(
-					Stake::nominate(Origin::signed(i), 2, 10, count, 0u32),
-					Error::<Test>::TooLowNominationCountToNominate
-				);
-				count += 1u32;
-			}
-		});
-}
-
-#[test]
-fn insufficient_leave_nominators_weight_hint_fails() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
-		.with_candidates(vec![(1, 20)])
-		.with_nominations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
-		.build()
-		.execute_with(|| {
-			for i in 3..7 {
-				assert_noop!(
-					Stake::leave_nominators(Origin::signed(i), 0u32),
-					Error::<Test>::TooLowNominationCountToLeaveNominators
-				);
-			}
-		});
-}
-
-#[test]
-fn sufficient_leave_nominators_weight_hint_succeeds() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
-		.with_candidates(vec![(1, 20)])
-		.with_nominations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
-		.build()
-		.execute_with(|| {
-			for i in 3..7 {
-				assert_ok!(Stake::leave_nominators(Origin::signed(i), 1u32),);
-			}
 		});
 }
 

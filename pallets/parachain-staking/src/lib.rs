@@ -890,7 +890,7 @@ pub mod pallet {
 			for &(ref candidate, balance) in &self.candidates {
 				assert!(
 					T::Currency::free_balance(&candidate) >= balance,
-					"Account does not have enough balance to bond as a cadidate."
+					"Account does not have enough balance to bond as a candidate."
 				);
 				candidate_count += 1u32;
 				if let Err(error) = <Pallet<T>>::join_candidates(
@@ -1122,8 +1122,6 @@ pub mod pallet {
 			<InflationConfig<T>>::put(inflation_config);
 			Ok(().into())
 		}
-		// TODO: `kick_candidate` which will be used for returning cost of executed exits in
-		// `on_initialize`
 		/// Join the set of collator candidates
 		#[pallet::weight(<T as Config>::WeightInfo::join_candidates(*candidate_count))]
 		pub fn join_candidates(
