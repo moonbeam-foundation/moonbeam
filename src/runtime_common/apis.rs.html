@@ -383,6 +383,33 @@
 <span id="380">380</span>
 <span id="381">381</span>
 <span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -475,6 +502,7 @@
 
 			<span class="kw">impl</span> <span class="ident">moonbeam_rpc_primitives_debug</span>::<span class="ident">DebugRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 				<span class="kw">fn</span> <span class="ident">trace_transaction</span>(
+					<span class="ident">header</span>: <span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span>::<span class="ident">Header</span>,
 					<span class="ident">extrinsics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span>::<span class="ident">Extrinsic</span><span class="op">&gt;</span>,
 					<span class="ident">transaction</span>: <span class="kw-2">&amp;</span><span class="ident">EthereumTransaction</span>,
 					<span class="ident">trace_type</span>: <span class="ident">moonbeam_rpc_primitives_debug</span>::<span class="ident">single</span>::<span class="ident">TraceType</span>,
@@ -484,6 +512,10 @@
 				<span class="op">&gt;</span> {
 					<span class="kw">use</span> <span class="ident">moonbeam_evm_tracer</span>::{<span class="ident">CallListTracer</span>, <span class="ident">RawTracer</span>};
 					<span class="kw">use</span> <span class="ident">moonbeam_rpc_primitives_debug</span>::<span class="ident">single</span>::<span class="ident">TraceType</span>;
+
+					<span class="comment">// Explicit initialize.</span>
+					<span class="comment">// Needed because https://github.com/paritytech/substrate/pull/8953</span>
+					<span class="ident">Executive</span>::<span class="ident">initialize_block</span>(<span class="ident">header</span>);
 
 					<span class="comment">// Apply the a subset of extrinsics: all the substrate-specific or ethereum</span>
 					<span class="comment">// transactions that preceded the requested transaction.</span>
@@ -523,6 +555,7 @@
 				}
 
 				<span class="kw">fn</span> <span class="ident">trace_block</span>(
+					<span class="ident">header</span>: <span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span>::<span class="ident">Header</span>,
 					<span class="ident">extrinsics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span>::<span class="ident">Extrinsic</span><span class="op">&gt;</span>,
 				) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>
 					(),
@@ -532,6 +565,10 @@
 					<span class="kw">use</span> <span class="ident">moonbeam_rpc_primitives_debug</span>::{
 						<span class="ident">block</span>, <span class="ident">single</span>, <span class="ident">CallResult</span>, <span class="ident">CreateResult</span>, <span class="ident">CreateType</span>,
 					};
+
+					<span class="comment">// Explicit initialize.</span>
+					<span class="comment">// Needed because https://github.com/paritytech/substrate/pull/8953</span>
+					<span class="ident">Executive</span>::<span class="ident">initialize_block</span>(<span class="ident">header</span>);
 
 					<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm</span>::<span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">config</span>().<span class="ident">clone</span>();
 					<span class="ident">config</span>.<span class="ident">estimate</span> <span class="op">=</span> <span class="bool-val">true</span>;
@@ -713,7 +750,24 @@
 			}
 
 			<span class="kw">impl</span> <span class="ident">nimbus_primitives</span>::<span class="ident">AuthorFilterAPI</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">nimbus_primitives</span>::<span class="ident">NimbusId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">can_author</span>(<span class="ident">author</span>: <span class="ident">nimbus_primitives</span>::<span class="ident">NimbusId</span>, <span class="ident">slot</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+				<span class="kw">fn</span> <span class="ident">can_author</span>(
+					<span class="ident">author</span>: <span class="ident">nimbus_primitives</span>::<span class="ident">NimbusId</span>,
+					<span class="ident">slot</span>: <span class="ident">u32</span>,
+					<span class="ident">parent_header</span>: <span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span>::<span class="ident">Header</span>
+				) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+					<span class="comment">// The Moonbeam runtimes use an entropy source that needs to do some accounting</span>
+					<span class="comment">// work during block initialization. Therefore we initialize it here to match</span>
+					<span class="comment">// the state it will be in when the next block is being executed.</span>
+					<span class="kw">use</span> <span class="ident">frame_support</span>::<span class="ident">traits</span>::<span class="ident">OnInitialize</span>;
+					<span class="ident">System</span>::<span class="ident">initialize</span>(
+						<span class="kw-2">&amp;</span>(<span class="ident">parent_header</span>.<span class="ident">number</span> <span class="op">+</span> <span class="number">1</span>),
+						<span class="kw-2">&amp;</span><span class="ident">parent_header</span>.<span class="ident">hash</span>(),
+						<span class="kw-2">&amp;</span><span class="ident">parent_header</span>.<span class="ident">digest</span>,
+						<span class="ident">frame_system</span>::<span class="ident">InitKind</span>::<span class="ident">Inspection</span>
+					);
+					<span class="ident">RandomnessCollectiveFlip</span>::<span class="ident">on_initialize</span>(<span class="ident">System</span>::<span class="ident">block_number</span>());
+
+					<span class="comment">// And now the actual prediction call</span>
 					<span class="ident">AuthorInherent</span>::<span class="ident">can_author</span>(<span class="kw-2">&amp;</span><span class="ident">author</span>, <span class="kw-2">&amp;</span><span class="ident">slot</span>)
 				}
 			}

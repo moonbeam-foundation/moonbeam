@@ -1738,7 +1738,7 @@
 
 		<span class="comment">// Trace the block.</span>
 		<span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> {
-			<span class="ident">api</span>.<span class="ident">trace_block</span>(<span class="kw-2">&amp;</span><span class="ident">substrate_parent_id</span>, <span class="ident">extrinsics</span>)
+			<span class="ident">api</span>.<span class="ident">trace_block</span>(<span class="kw-2">&amp;</span><span class="ident">substrate_parent_id</span>, <span class="kw-2">&amp;</span><span class="ident">block_header</span>, <span class="ident">extrinsics</span>)
 				.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
 					<span class="ident">internal_err</span>(<span class="macro">format</span><span class="macro">!</span>(
 						<span class="string">&quot;Blockchain error when replaying block {} : {:?}&quot;</span>,

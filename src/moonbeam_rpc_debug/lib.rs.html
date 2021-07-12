@@ -505,7 +505,7 @@
 				<span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> {
 					<span class="ident">client</span>
 						.<span class="ident">runtime_api</span>()
-						.<span class="ident">trace_transaction</span>(<span class="kw-2">&amp;</span><span class="ident">parent_block_id</span>, <span class="ident">ext</span>, <span class="kw-2">&amp;</span><span class="ident">transaction</span>, <span class="ident">trace_type</span>)
+						.<span class="ident">trace_transaction</span>(<span class="kw-2">&amp;</span><span class="ident">parent_block_id</span>, <span class="kw-2">&amp;</span><span class="ident">header</span>, <span class="ident">ext</span>, <span class="kw-2">&amp;</span><span class="ident">transaction</span>, <span class="ident">trace_type</span>)
 						.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Runtime api access error: {:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>
 						.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;DispatchError: {:?}&quot;</span>, <span class="ident">e</span>)))
 				};
