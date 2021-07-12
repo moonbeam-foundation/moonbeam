@@ -17,7 +17,7 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 //! Benchmarking
-use crate::{pallet::BalanceOf, Call, Config, Pallet};
+use crate::{BalanceOf, Call, Config, Pallet};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::{
 	assert_ok,
@@ -64,7 +64,10 @@ benchmarks! {
 		let caller = create_funded_user::<T>("account id", 0u32, 0u32.into());
 		let first_id = author_id::<T>(1u8);
 		let second_id = author_id::<T>(2u8);
-		assert_ok!(Pallet::<T>::add_association(RawOrigin::Signed(caller.clone()).into(), first_id.clone()));
+		assert_ok!(Pallet::<T>::add_association(
+			RawOrigin::Signed(caller.clone()).into(),
+			first_id.clone())
+		);
 	}: _(RawOrigin::Signed(caller.clone()), first_id.clone(), second_id.clone())
 	verify {
 		assert_eq!(Pallet::<T>::account_id_of(&first_id), None);
@@ -74,7 +77,10 @@ benchmarks! {
 	clear_association {
 		let caller = create_funded_user::<T>("account id", 0u32, 0u32.into());
 		let first_id = author_id::<T>(1u8);
-		assert_ok!(Pallet::<T>::add_association(RawOrigin::Signed(caller.clone()).into(), first_id.clone()));
+		assert_ok!(Pallet::<T>::add_association(
+			RawOrigin::Signed(caller.clone()).into(),
+			first_id.clone())
+		);
 	}: _(RawOrigin::Signed(caller.clone()), first_id.clone())
 	verify {
 		assert_eq!(Pallet::<T>::account_id_of(&first_id), None);
