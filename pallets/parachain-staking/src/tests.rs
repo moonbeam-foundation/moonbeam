@@ -1522,15 +1522,16 @@ fn cannot_nominate_if_candidate() {
 }
 
 #[test]
-fn cannot_nominate_if_already_nominator() {
+fn cannot_nominate_if_already_nominated() {
 	ExtBuilder::default()
-		.with_balances(vec![(1, 20), (2, 20)])
-		.with_candidates(vec![(1, 20), (2, 20)])
+		.with_balances(vec![(1, 20), (2, 30)])
+		.with_candidates(vec![(1, 20)])
+		.with_nominations(vec![(2, 1, 20)])
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				Stake::nominate(Origin::signed(2), 1, 10, 0, 0),
-				Error::<Test>::CandidateExists
+				Stake::nominate(Origin::signed(2), 1, 10, 1, 1),
+				Error::<Test>::AlreadyNominatedCollator
 			);
 		});
 }
