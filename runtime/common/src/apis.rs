@@ -506,12 +506,12 @@ macro_rules! impl_runtime_apis_plus_common {
 						parachain_staking,
 						ParachainStakingBench::<Runtime>
 					);
-					// add_benchmark!(
-					// 	params,
-					// 	batches,
-					// 	pallet_crowdloan_rewards,
-					// 	PalletCrowdloanRewardsBench::<Runtime>
-					// );
+					add_benchmark!(
+						params,
+					 	batches,
+					 	pallet_crowdloan_rewards,
+					 	PalletCrowdloanRewardsBench::<Runtime>
+					);
 					add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 
 					if batches.is_empty() {
