@@ -147,11 +147,9 @@ jobs:
         run: rustup show
       - name: SCCache
         run: |
-          # Must use purestake version to support SUBSTRATE_ env (for binary version matching git hash)
-          # if [ ! -f ${{ runner.tool_cache }}/cargo-sccache/bin/sccache ]; then
-          #   cargo install sccache --git https://github.com/purestake/sccache.git --force --no-default-features --features=dist-client --root ${{ runner.tool_cache }}/cargo-sccache
-          # fi
-          cargo install sccache --git https://github.com/paritytech/sccache.git --force --no-default-features --features=dist-client --root ${{ runner.tool_cache }}/cargo-sccache
+          if [ ! -f ${{ runner.tool_cache }}/cargo-sccache/bin/sccache ]; then
+            cargo install sccache --git https://github.com/paritytech/sccache.git --force --no-default-features --features=dist-client --root ${{ runner.tool_cache }}/cargo-sccache
+          fi
           ls -la ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
           if [[ -z `pgrep sccache` ]]; then
             chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
