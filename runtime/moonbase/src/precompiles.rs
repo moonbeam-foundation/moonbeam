@@ -18,6 +18,7 @@
 
 use evm::{executor::PrecompileOutput, Context, ExitError};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
+use pallet_balances_erc20_precompile::Erc20BalancesWrapper;
 use pallet_evm::{Precompile, PrecompileSet};
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
@@ -64,10 +65,11 @@ impl<R> PrecompileSet for MoonbasePrecompiles<R>
 where
 	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
 	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
-	R: parachain_staking::Config + pallet_evm::Config,
+	R: parachain_staking::Config + pallet_evm::Config + pallet_balances::Config,
 	R::AccountId: From<H160>,
 	BalanceOf<R>: TryFrom<sp_core::U256> + Debug,
 	R::Call: From<parachain_staking::Call<R>>,
+	R::Call: From<pallet_balances::Call<R>>,
 {
 	fn execute(
 		address: H160,
@@ -91,6 +93,9 @@ where
 			a if a == hash(1026) => Some(ECRecoverPublicKey::execute(input, target_gas, context)),
 			// Moonbeam specific precompiles :
 			a if a == hash(2048) => Some(ParachainStakingWrapper::<R>::execute(
+				input, target_gas, context,
+			)),
+			a if a == hash(2049) => Some(Erc20BalancesWrapper::<R>::execute(
 				input, target_gas, context,
 			)),
 			_ => None,

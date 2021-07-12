@@ -31,7 +31,7 @@ pallet-evm-precompile-dispatch = { git = "https://github.com/purestake/frontier"
 pallet-evm-precompile-modexp = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.6" }
 pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.6" }
 pallet-evm-precompile-sha3fips = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.6" }
-
+pallet-balances-erc20-precompile = { path = "../../precompiles/balances-erc20", default-features = false}
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.6" }
@@ -154,6 +154,7 @@ std = [
 	"pallet-author-mapping/std",
 	"max-encoded-len/std",
 	"evm/std",
+	"pallet-balances-erc20-precompile/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.

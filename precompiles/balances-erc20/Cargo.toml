@@ -1,0 +1,34 @@
+[package]
+name = "pallet-balances-erc20-precompile"
+version = "0.1.0"
+authors = ["PureStake"]
+edition = "2018"
+description = "A Precompile to expose a Balances pallet throught an ERC20-compliant precompile."
+
+[dependencies]
+log = "0.4"
+
+sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.6" }
+sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.6" }
+sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.6" }
+codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
+frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.6" }
+frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.6" }
+
+pallet-balances = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.6" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.6" }
+evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }
+
+[features]
+default = ["std"]
+std = [
+    "codec/std",
+    "sp-std/std",
+    "sp-core/std",
+    "sp-io/std",
+    "frame-support/std",
+    "frame-system/std",
+    "pallet-evm/std",
+    "pallet-balances/std",
+    "evm/std",
+]
