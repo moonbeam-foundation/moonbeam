@@ -5663,6 +5663,7 @@ dependencies = [
 name = "pallet-author-mapping"
 version = "2.0.1"
 dependencies = [
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",

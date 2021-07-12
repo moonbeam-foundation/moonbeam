@@ -28,6 +28,8 @@ use frame_support::pallet;
 
 pub use pallet::*;
 
+#[cfg(any(test, feature = "runtime-benchmarks"))]
+mod benchmarks;
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
@@ -41,7 +43,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use nimbus_primitives::AccountLookup;
 
-	type BalanceOf<T> = <<T as Config>::DepositCurrency as Currency<
+	pub type BalanceOf<T> = <<T as Config>::DepositCurrency as Currency<
 		<T as frame_system::Config>::AccountId,
 	>>::Balance;
 
@@ -61,8 +63,8 @@ pub mod pallet {
 	pub trait Config: frame_system::Config {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
-		/// The type of authority id that will be used at the conensus layer.
-		type AuthorId: Member + Parameter + MaybeSerializeDeserialize;
+		/// The type of authority id that will be used at the consensus layer.
+		type AuthorId: Member + Parameter + MaybeSerializeDeserialize + Default;
 		/// Currency in which the security deposit will be taken.
 		type DepositCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 		/// The amount that should be taken as a security deposit when registering an AuthorId.
@@ -221,13 +223,15 @@ pub mod pallet {
 			author_id: &T::AuthorId,
 			account_id: &T::AccountId,
 		) -> DispatchResult {
+			let deposit = T::DepositAmount::get();
+
+			T::DepositCurrency::reserve(&account_id, deposit)
+				.map_err(|_| Error::<T>::CannotAffordSecurityDeposit)?;
+
 			let info = RegistrationInfo {
 				account: account_id.clone(),
-				deposit: T::DepositAmount::get(),
+				deposit,
 			};
-
-			T::DepositCurrency::reserve(&account_id, T::DepositAmount::get())
-				.map_err(|_| Error::<T>::CannotAffordSecurityDeposit)?;
 
 			MappingWithDeposit::<T>::insert(&author_id, &info);
 

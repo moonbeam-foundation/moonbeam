@@ -37,6 +37,11 @@ pub enum TestAuthor {
 	Dave,
 	Eve,
 }
+impl Default for TestAuthor {
+	fn default() -> TestAuthor {
+		TestAuthor::Alice
+	}
+}
 pub type AccountId = u64;
 pub type Balance = u128;
 pub type BlockNumber = u64;
