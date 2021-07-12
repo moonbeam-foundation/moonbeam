@@ -381,7 +381,6 @@
 <span id="378">378</span>
 <span id="379">379</span>
 <span id="380">380</span>
-<span id="381">381</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -400,13 +399,14 @@
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">util</span>::<span class="kw-2">*</span>;
+
+<span class="kw">use</span> <span class="ident">codec</span>::<span class="ident">Encode</span>;
 <span class="kw">use</span> <span class="ident">ethereum_types</span>::{<span class="ident">H160</span>, <span class="ident">U256</span>};
 <span class="kw">use</span> <span class="ident">evm</span>::{<span class="ident">Capture</span>, <span class="ident">ExitError</span>, <span class="ident">ExitReason</span>, <span class="ident">ExitSucceed</span>};
 <span class="kw">use</span> <span class="ident">moonbeam_rpc_primitives_debug</span>::{
-	<span class="ident">single</span>::{<span class="ident">Call</span>, <span class="ident">CallInner</span>, <span class="ident">TransactionTrace</span>},
+	<span class="ident">single</span>::{<span class="ident">Call</span>, <span class="ident">CallInner</span>},
 	<span class="ident">CallResult</span>, <span class="ident">CallType</span>, <span class="ident">CreateResult</span>,
 };
-<span class="kw">use</span> <span class="ident">sp_std</span>::<span class="ident">collections</span>::<span class="ident">btree_map</span>::<span class="ident">BTreeMap</span>;
 
 <span class="doccomment">/// Listen to EVM events to provide a overview of the internal transactions.</span>
 <span class="doccomment">/// It can be used to implement `trace_filter`.</span>
@@ -446,8 +446,6 @@
 	<span class="comment">// Transaction cost that must be added to the first context cost.</span>
 	<span class="ident">transaction_cost</span>: <span class="ident">u64</span>,
 
-	<span class="comment">// Final logs.</span>
-	<span class="ident">entries</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">Call</span><span class="op">&gt;</span>,
 	<span class="comment">// Next index to use.</span>
 	<span class="ident">entries_next_index</span>: <span class="ident">u32</span>,
 	<span class="comment">// Stack of contexts with data to keep between events.</span>
@@ -486,7 +484,6 @@
 		<span class="self">Self</span> {
 			<span class="ident">transaction_cost</span>: <span class="number">0</span>,
 
-			<span class="ident">entries</span>: <span class="ident">BTreeMap</span>::<span class="ident">new</span>(),
 			<span class="ident">entries_next_index</span>: <span class="number">0</span>,
 
 			<span class="ident">context_stack</span>: <span class="macro">vec</span><span class="macro">!</span>[],
@@ -501,28 +498,26 @@
 	<span class="doccomment">///</span>
 	<span class="doccomment">/// Consume the tracer and return it alongside the return value of</span>
 	<span class="doccomment">/// the closure.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trace</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="self">Self</span>, <span class="ident">R</span>) {
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trace</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) {
 		<span class="kw">let</span> <span class="ident">wrapped</span> <span class="op">=</span> <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="self">self</span>));
 
-		<span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> {
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">ListenerProxy</span>(<span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="ident">wrapped</span>));
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">runtime</span> <span class="op">=</span> <span class="ident">ListenerProxy</span>(<span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="ident">wrapped</span>));
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">evm</span> <span class="op">=</span> <span class="ident">ListenerProxy</span>(<span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="ident">wrapped</span>));
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">ListenerProxy</span>(<span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="ident">wrapped</span>));
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">runtime</span> <span class="op">=</span> <span class="ident">ListenerProxy</span>(<span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="ident">wrapped</span>));
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">evm</span> <span class="op">=</span> <span class="ident">ListenerProxy</span>(<span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="ident">wrapped</span>));
 
-			<span class="comment">// Each line wraps the previous `f` into a `using` call.</span>
-			<span class="comment">// Listening to new events results in adding one new line.</span>
-			<span class="comment">// Order is irrelevant when registering listeners.</span>
-			<span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> <span class="ident">runtime_using</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">runtime</span>, <span class="ident">f</span>);
-			<span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> <span class="ident">gasometer_using</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">gasometer</span>, <span class="ident">f</span>);
-			<span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> <span class="ident">evm_using</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">evm</span>, <span class="ident">f</span>);
-			<span class="ident">f</span>()
-		};
-
-		(<span class="ident">Rc</span>::<span class="ident">try_unwrap</span>(<span class="ident">wrapped</span>).<span class="ident">unwrap</span>().<span class="ident">into_inner</span>(), <span class="ident">result</span>)
+		<span class="comment">// Each line wraps the previous `f` into a `using` call.</span>
+		<span class="comment">// Listening to new events results in adding one new line.</span>
+		<span class="comment">// Order is irrelevant when registering listeners.</span>
+		<span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> <span class="ident">runtime_using</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">runtime</span>, <span class="ident">f</span>);
+		<span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> <span class="ident">gasometer_using</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">gasometer</span>, <span class="ident">f</span>);
+		<span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> <span class="ident">evm_using</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">evm</span>, <span class="ident">f</span>);
+		<span class="ident">f</span>();
 	}
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_tx_trace</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TransactionTrace</span> {
-		<span class="ident">TransactionTrace</span>::<span class="ident">CallList</span>(<span class="self">self</span>.<span class="ident">entries</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">value</span>)<span class="op">|</span> <span class="ident">value</span>).<span class="ident">collect</span>())
+	<span class="doccomment">/// Each extrinsic represents a Call stack in the host and thus a block - a collection of</span>
+	<span class="doccomment">/// extrinsics - is a &quot;stack of Call stacks&quot; `Vec&lt;BTree&lt;u32, Call&gt;&gt;`.</span>
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">emit_new</span>() {
+		<span class="ident">moonbeam_primitives_ext</span>::<span class="ident">moonbeam_ext</span>::<span class="ident">call_list_new</span>();
 	}
 }
 
@@ -568,7 +563,7 @@
 						<span class="ident">gas_used</span> <span class="op">+</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">transaction_cost</span>;
 					}
 
-					<span class="self">self</span>.<span class="ident">entries</span>.<span class="ident">insert</span>(
+					<span class="ident">moonbeam_primitives_ext</span>::<span class="ident">moonbeam_ext</span>::<span class="ident">call_list_entry</span>(
 						<span class="ident">context</span>.<span class="ident">entries_index</span>,
 						<span class="kw">match</span> <span class="ident">context</span>.<span class="ident">context_type</span> {
 							<span class="ident">ContextType</span>::<span class="ident">Call</span>(<span class="ident">call_type</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -601,6 +596,7 @@
 										<span class="ident">res</span>,
 									},
 								}
+								.<span class="ident">encode</span>()
 							}
 							<span class="ident">ContextType</span>::<span class="ident">Create</span> <span class="op">=</span><span class="op">&gt;</span> {
 								<span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">reason</span> {
@@ -629,6 +625,7 @@
 										<span class="ident">res</span>,
 									},
 								}
+								.<span class="ident">encode</span>()
 							}
 						},
 					);
@@ -720,7 +717,7 @@
 				<span class="ident">target</span>,
 				<span class="ident">balance</span>,
 			} <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="self">self</span>.<span class="ident">entries</span>.<span class="ident">insert</span>(
+				<span class="ident">moonbeam_primitives_ext</span>::<span class="ident">moonbeam_ext</span>::<span class="ident">call_list_entry</span>(
 					<span class="self">self</span>.<span class="ident">entries_next_index</span>,
 					<span class="ident">Call</span> {
 						<span class="ident">from</span>: <span class="ident">address</span>, <span class="comment">// this contract is self destructing</span>
@@ -733,7 +730,8 @@
 							<span class="ident">refund_address</span>: <span class="ident">target</span>,
 							<span class="ident">balance</span>,
 						},
-					},
+					}
+					.<span class="ident">encode</span>(),
 				);
 
 				<span class="self">self</span>.<span class="ident">entries_next_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;

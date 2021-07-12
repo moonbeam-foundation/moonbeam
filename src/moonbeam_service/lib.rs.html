@@ -884,6 +884,18 @@
 <span id="881">881</span>
 <span id="882">882</span>
 <span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -956,28 +968,40 @@
 	<span class="kw">pub</span> <span class="ident">MoonbeamExecutor</span>,
 	<span class="ident">moonbeam_runtime</span>::<span class="ident">api</span>::<span class="ident">dispatch</span>,
 	<span class="ident">moonbeam_runtime</span>::<span class="ident">native_version</span>,
-	<span class="ident">frame_benchmarking</span>::<span class="ident">benchmarking</span>::<span class="ident">HostFunctions</span>,
+	(
+		<span class="ident">frame_benchmarking</span>::<span class="ident">benchmarking</span>::<span class="ident">HostFunctions</span>,
+		<span class="ident">moonbeam_primitives_ext</span>::<span class="ident">moonbeam_ext</span>::<span class="ident">HostFunctions</span>
+	),
 );
 
 <span class="macro">native_executor_instance</span><span class="macro">!</span>(
 	<span class="kw">pub</span> <span class="ident">MoonriverExecutor</span>,
 	<span class="ident">moonriver_runtime</span>::<span class="ident">api</span>::<span class="ident">dispatch</span>,
 	<span class="ident">moonriver_runtime</span>::<span class="ident">native_version</span>,
-	<span class="ident">frame_benchmarking</span>::<span class="ident">benchmarking</span>::<span class="ident">HostFunctions</span>,
+	(
+		<span class="ident">frame_benchmarking</span>::<span class="ident">benchmarking</span>::<span class="ident">HostFunctions</span>,
+		<span class="ident">moonbeam_primitives_ext</span>::<span class="ident">moonbeam_ext</span>::<span class="ident">HostFunctions</span>
+	),
 );
 
 <span class="macro">native_executor_instance</span><span class="macro">!</span>(
 	<span class="kw">pub</span> <span class="ident">MoonshadowExecutor</span>,
 	<span class="ident">moonshadow_runtime</span>::<span class="ident">api</span>::<span class="ident">dispatch</span>,
 	<span class="ident">moonshadow_runtime</span>::<span class="ident">native_version</span>,
-	<span class="ident">frame_benchmarking</span>::<span class="ident">benchmarking</span>::<span class="ident">HostFunctions</span>,
+	(
+		<span class="ident">frame_benchmarking</span>::<span class="ident">benchmarking</span>::<span class="ident">HostFunctions</span>,
+		<span class="ident">moonbeam_primitives_ext</span>::<span class="ident">moonbeam_ext</span>::<span class="ident">HostFunctions</span>
+	),
 );
 
 <span class="macro">native_executor_instance</span><span class="macro">!</span>(
 	<span class="kw">pub</span> <span class="ident">MoonbaseExecutor</span>,
 	<span class="ident">moonbase_runtime</span>::<span class="ident">api</span>::<span class="ident">dispatch</span>,
 	<span class="ident">moonbase_runtime</span>::<span class="ident">native_version</span>,
-	<span class="ident">frame_benchmarking</span>::<span class="ident">benchmarking</span>::<span class="ident">HostFunctions</span>,
+	(
+		<span class="ident">frame_benchmarking</span>::<span class="ident">benchmarking</span>::<span class="ident">HostFunctions</span>,
+		<span class="ident">moonbeam_primitives_ext</span>::<span class="ident">moonbeam_ext</span>::<span class="ident">HostFunctions</span>
+	),
 );
 
 <span class="doccomment">/// Can be called for a `Configuration` to check if it is a configuration for</span>
