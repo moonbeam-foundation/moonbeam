@@ -912,11 +912,6 @@
 <span id="909">909</span>
 <span id="910">910</span>
 <span id="911">911</span>
-<span id="912">912</span>
-<span id="913">913</span>
-<span id="914">914</span>
-<span id="915">915</span>
-<span id="916">916</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1640,26 +1635,21 @@
 	<span class="kw">fn</span> <span class="ident">filter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">c</span>: <span class="kw-2">&amp;</span><span class="ident">Call</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="ident">ProxyType</span>::<span class="ident">Any</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-			<span class="ident">ProxyType</span>::<span class="ident">NonTransfer</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">matches</span><span class="macro">!</span>(
-				<span class="ident">c</span>,
-				<span class="ident">Call</span>::<span class="ident">System</span>(..) <span class="op">|</span>
-				<span class="ident">Call</span>::<span class="ident">Timestamp</span>(..) <span class="op">|</span>
-				<span class="ident">Call</span>::<span class="ident">ParachainStaking</span>(..) <span class="op">|</span>
-				<span class="comment">// Call::Session(..) |</span>
-				<span class="ident">Call</span>::<span class="ident">Democracy</span>(..) <span class="op">|</span>
-				<span class="ident">Call</span>::<span class="ident">CouncilCollective</span>(..) <span class="op">|</span>
-				<span class="ident">Call</span>::<span class="ident">TechComitteeCollective</span>(..) <span class="op">|</span>
-				<span class="comment">// Call::Treasury(..) |</span>
-				<span class="ident">Call</span>::<span class="ident">Utility</span>(..) <span class="op">|</span>
-				<span class="ident">Call</span>::<span class="ident">Scheduler</span>(..) <span class="op">|</span>
-				<span class="ident">Call</span>::<span class="ident">Proxy</span>(..)
-			),
+			<span class="ident">ProxyType</span>::<span class="ident">NonTransfer</span> <span class="op">=</span><span class="op">&gt;</span> {
+				<span class="macro">matches</span><span class="macro">!</span>(
+					<span class="ident">c</span>,
+					<span class="ident">Call</span>::<span class="ident">System</span>(..)
+						<span class="op">|</span> <span class="ident">Call</span>::<span class="ident">Timestamp</span>(..) <span class="op">|</span> <span class="ident">Call</span>::<span class="ident">ParachainStaking</span>(..)
+						<span class="op">|</span> <span class="ident">Call</span>::<span class="ident">Democracy</span>(..) <span class="op">|</span> <span class="ident">Call</span>::<span class="ident">CouncilCollective</span>(..)
+						<span class="op">|</span> <span class="ident">Call</span>::<span class="ident">TechComitteeCollective</span>(..)
+						<span class="op">|</span> <span class="ident">Call</span>::<span class="ident">Utility</span>(..) <span class="op">|</span> <span class="ident">Call</span>::<span class="ident">Proxy</span>(..)
+				)
+			}
 			<span class="ident">ProxyType</span>::<span class="ident">Governance</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">matches</span><span class="macro">!</span>(
 				<span class="ident">c</span>,
 				<span class="ident">Call</span>::<span class="ident">Democracy</span>(..)
 					<span class="op">|</span> <span class="ident">Call</span>::<span class="ident">CouncilCollective</span>(..)
 					<span class="op">|</span> <span class="ident">Call</span>::<span class="ident">TechComitteeCollective</span>(..)
-					<span class="comment">// | Call::Treasury(..) </span>
 					<span class="op">|</span> <span class="ident">Call</span>::<span class="ident">Utility</span>(..)
 			),
 			<span class="ident">ProxyType</span>::<span class="ident">Staking</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">matches</span><span class="macro">!</span>(<span class="ident">c</span>, <span class="ident">Call</span>::<span class="ident">ParachainStaking</span>(..) <span class="op">|</span> <span class="ident">Call</span>::<span class="ident">Utility</span>(..)),
