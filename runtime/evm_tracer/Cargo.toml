@@ -8,8 +8,8 @@ license = 'GPL-3.0-only'
 repository = 'https://github.com/PureStake/moonbeam/'
 
 [dependencies]
-fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.8" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.8" }
+fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.8-best-worker" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.8-best-worker" }
 evm = { version = "0.27.0", default-features = false, features = ["with-codec", "tracing"] }
 evm-runtime = { version = "0.27.0", default-features = false, features = ["tracing"] }
 evm-gasometer = { version = "0.27.0", default-features = false, features = ["tracing"] }
