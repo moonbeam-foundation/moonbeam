@@ -167,8 +167,10 @@ jobs:
           cargo build --release --all
       - name: Verify node version
         run: |
-          git log -1 --format="%H"
-          ./target/release/moonbeam --version
+          GIT_COMMIT=`git log -1 --format="%H" | cut -c1-7`
+          MB_VERSION=`./target/release/moonbeam --version`
+          echo "Checking $MB_VERSION contains $GIT_COMMIT"
+          echo "$MB_VERSION" | grep $GIT_COMMIT
       - name: Unit tests
         run: cargo test --release --all
       - name: Format code with rustfmt
