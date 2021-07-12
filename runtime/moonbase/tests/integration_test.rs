@@ -24,17 +24,22 @@ use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
 	traits::{fungible::Inspect, PalletInfo, StorageInfo, StorageInfoTrait},
+	weights::{DispatchClass, Weight},
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
-	currency::UNIT, AccountId, Balances, Call, CrowdloanRewards, Event, ParachainStaking,
-	Precompiles, Runtime, System,
+	currency::UNIT, AccountId, Balances, BlockWeights, Call, CrowdloanRewards, Event,
+	ParachainStaking, Precompiles, Runtime, System,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
+use pallet_transaction_payment::Multiplier;
 use parachain_staking::{Bond, NominatorAdded};
 use sp_core::{Public, H160, U256};
-use sp_runtime::DispatchError;
+use sp_runtime::{
+	traits::{Convert, One},
+	DispatchError,
+};
 
 #[test]
 fn fast_track_available() {
@@ -1510,4 +1515,64 @@ fn points_precompile_round_too_big_error() {
 			)))
 		);
 	})
+}
+
+fn run_with_system_weight<F>(w: Weight, mut assertions: F)
+where
+	F: FnMut() -> (),
+{
+	let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
+		.build_storage::<Runtime>()
+		.unwrap()
+		.into();
+	t.execute_with(|| {
+		System::set_block_consumed_resources(w, 0);
+		assertions()
+	});
+}
+
+#[test]
+fn multiplier_can_grow_from_zero() {
+	let minimum_multiplier = moonbase_runtime::MinimumMultiplier::get();
+	let target = moonbase_runtime::TargetBlockFullness::get()
+		* BlockWeights::get()
+			.get(DispatchClass::Normal)
+			.max_total
+			.unwrap();
+	// if the min is too small, then this will not change, and we are doomed forever.
+	// the weight is 1/100th bigger than target.
+	run_with_system_weight(target * 101 / 100, || {
+		let next = moonbase_runtime::SlowAdjustingFeeUpdate::<Runtime>::convert(minimum_multiplier);
+		assert!(
+			next > minimum_multiplier,
+			"{:?} !>= {:?}",
+			next,
+			minimum_multiplier
+		);
+	})
+}
+
+#[test]
+#[ignore] // test runs for a very long time
+fn multiplier_growth_simulator() {
+	// assume the multiplier is initially set to its minimum. We update it with values twice the
+	//target (target is 25%, thus 50%) and we see at which point it reaches 1.
+	let mut multiplier = moonbase_runtime::MinimumMultiplier::get();
+	let block_weight = moonbase_runtime::TargetBlockFullness::get()
+		* BlockWeights::get()
+			.get(DispatchClass::Normal)
+			.max_total
+			.unwrap()
+		* 2;
+	let mut blocks = 0;
+	while multiplier <= Multiplier::one() {
+		run_with_system_weight(block_weight, || {
+			let next = moonbase_runtime::SlowAdjustingFeeUpdate::<Runtime>::convert(multiplier);
+			// ensure that it is growing as well.
+			assert!(next > multiplier, "{:?} !>= {:?}", next, multiplier);
+			multiplier = next;
+		});
+		blocks += 1;
+		println!("block = {} multiplier {:?}", blocks, multiplier);
+	}
 }
