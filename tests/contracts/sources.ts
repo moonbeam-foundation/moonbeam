@@ -368,4 +368,35 @@ export const contractSources: { [key: string]: string } = {
             emit Trace(2 << 250);
         }
     }`,
+  OverflowingTrace: `
+      pragma solidity >=0.8.0;
+      contract OverflowingTrace {
+          uint public a;
+          uint public b;
+          uint public c;
+          uint public d;
+          uint public e;
+          uint public f;
+          uint public g;
+          uint public h;
+          uint public i;
+          uint public j;
+          function set_and_loop(uint loops) public returns (uint result) {
+              a = 1;
+              b = 1;
+              c = 1;
+              d = 1;
+              e = 1;
+              f = 1;
+              g = 1;
+              h = 1;
+              i = 1;
+              j = 1;
+              uint count = 0;
+              while (i < loops) {
+                count += 1;
+              }
+              return 1;
+          }
+      }`,
 };

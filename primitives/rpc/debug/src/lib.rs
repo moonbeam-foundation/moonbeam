@@ -31,12 +31,12 @@ sp_api::decl_runtime_apis! {
 			extrinsics: Vec<Block::Extrinsic>,
 			transaction: &Transaction,
 			trace_type: single::TraceType,
-		) -> Result<single::TransactionTrace, sp_runtime::DispatchError>;
+		) -> Result<(), sp_runtime::DispatchError>;
 
 		fn trace_block(
 			header: &Block::Header,
 			extrinsics: Vec<Block::Extrinsic>,
-		) -> Result<Vec<block::TransactionTrace>, sp_runtime::DispatchError>;
+		) -> Result<(), sp_runtime::DispatchError>;
 	}
 }
 
@@ -47,6 +47,7 @@ pub mod serialization;
 use crate::serialization::*;
 
 pub mod block;
+pub mod proxy;
 pub mod single;
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
