@@ -116,6 +116,7 @@ impl pallet_author_mapping::Config for Test {
 	type AuthorId = TestAuthor;
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
+	type WeightInfo = ();
 
 	// For this mock runtime, we'll only allow even accounts to register.
 	fn can_register(account: &AccountId) -> bool {

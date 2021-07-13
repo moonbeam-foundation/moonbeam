@@ -653,6 +653,7 @@ impl pallet_author_mapping::Config for Runtime {
 	type AuthorId = NimbusId;
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
+	type WeightInfo = pallet_author_mapping::weights::SubstrateWeight<Runtime>;
 	fn can_register(account: &AccountId) -> bool {
 		ParachainStaking::is_candidate(account)
 	}

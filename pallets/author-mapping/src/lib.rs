@@ -40,7 +40,7 @@ pub mod pallet {
 
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, ReservableCurrency};
-	use frame_system::pallet_prelude::*;
+	use frame_system::{pallet_prelude::*, WeightInfo};
 	use nimbus_primitives::AccountLookup;
 
 	pub type BalanceOf<T> = <<T as Config>::DepositCurrency as Currency<
@@ -69,6 +69,8 @@ pub mod pallet {
 		type DepositCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 		/// The amount that should be taken as a security deposit when registering an AuthorId.
 		type DepositAmount: Get<<Self::DepositCurrency as Currency<Self::AccountId>>::Balance>;
+		/// Weight information for extrinsics in this pallet.
+		type WeightInfo: WeightInfo;
 
 		/// A rough preliminary check to determine whether an account can make a new registration.
 		/// If you don't wish to do any such check, just return `true`.
