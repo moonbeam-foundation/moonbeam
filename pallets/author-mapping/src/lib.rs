@@ -28,6 +28,8 @@ use frame_support::pallet;
 
 pub use pallet::*;
 
+pub mod weights;
+use weights::WeightInfo;
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 mod benchmarks;
 #[cfg(test)]
@@ -37,10 +39,10 @@ mod tests;
 
 #[pallet]
 pub mod pallet {
-
+	use crate::WeightInfo;
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, ReservableCurrency};
-	use frame_system::{pallet_prelude::*, WeightInfo};
+	use frame_system::pallet_prelude::*;
 	use nimbus_primitives::AccountLookup;
 
 	pub type BalanceOf<T> = <<T as Config>::DepositCurrency as Currency<
