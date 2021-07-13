@@ -63,6 +63,9 @@ use sp_runtime::{
 	transaction_validity::{TransactionSource, TransactionValidity},
 	AccountId32, ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
 };
+use xcm::v0::{Junction, MultiAsset, MultiLocation, NetworkId, Xcm};
+use xcm_executor::traits::Convert as xcmConvert;
+
 use sp_std::{convert::TryFrom, prelude::*};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
@@ -235,6 +238,28 @@ impl pallet_balances::Config for Runtime {
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
+	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
+}
+
+type KsmInstance = pallet_balances::Instance1;
+
+// Virtual-KSM balances.
+impl pallet_balances::Config<KsmInstance> for Runtime {
+	type MaxLocks = MaxLocks;
+	/// The type for recording an account's balance.
+	type Balance = Balance;
+	/// The ubiquitous event type.
+	type Event = Event;
+	type DustRemoval = ();
+	type ExistentialDeposit = ExistentialDeposit;
+	// This uses the pallets internal storage
+	// TODO: explain this (Storedmap, etc..)
+	type AccountStore = frame_support::traits::StorageMapShim<
+		pallet_balances::Account<Runtime, KsmInstance>,
+		(),
+		AccountId,
+		pallet_balances::AccountData<Balance>,
+	>;
 	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
 }
 
@@ -754,6 +779,244 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
+parameter_types! {
+	pub const KsmLocation: MultiLocation = MultiLocation::X1(Junction::Parent);
+	pub const RelayNetwork: NetworkId = NetworkId::Kusama;
+	pub MoonbeamNetwork: NetworkId = NetworkId::Named("moon".into());
+	pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
+	pub Ancestry: MultiLocation = Junction::Parachain(ParachainInfo::parachain_id().into()).into();
+}
+
+parameter_types! {
+	pub const XcmWrapperId: PalletId = PalletId(*b"pc/xcmwrapper");
+	pub SovereignAccount: AccountId32 = ParachainInfo::parachain_id().into_account();
+}
+pub struct NativeToRelay;
+impl sp_runtime::traits::Convert<Balance, cumulus_primitives_core::relay_chain::Balance>
+	for NativeToRelay
+{
+	fn convert(val: u128) -> cumulus_primitives_core::relay_chain::Balance {
+		// native is 18
+		// relay is 12
+		val / 1_000_000
+	}
+}
+
+pub struct RelayToNative;
+impl sp_runtime::traits::Convert<cumulus_primitives_core::relay_chain::Balance, Balance>
+	for RelayToNative
+{
+	fn convert(val: u128) -> Balance {
+		// native is 18
+		// relay is 12
+		val * 1_000_000
+	}
+}
+
+/// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
+/// when determining ownership of accounts for asset transacting and when attempting to use XCM
+/// `Transact` in order to determine the dispatch Origin.
+pub type LocationToAccountId = (
+	// The parent (Relay-chain) origin converts to the default `AccountId`.
+	xcm_builder::ParentIsDefault<AccountId>,
+	// Sibling parachain origins convert to AccountId via the `ParaId::into`.
+	xcm_builder::SiblingParachainConvertsVia<polkadot_parachain::primitives::Sibling, AccountId>,
+	xcm_builder::AccountKey20Aliases<MoonbeamNetwork, AccountId>,
+);
+
+/// Matcher associated type for MultiCurrencyAdapter to convert assets into local types
+pub struct IsConcreteWithAdjustment<T, FromRelayChainBalance>(
+	PhantomData<(T, FromRelayChainBalance)>,
+);
+impl<T: Get<MultiLocation>, B, FromRelayChainBalance> xcm_executor::traits::MatchesFungible<B>
+	for IsConcreteWithAdjustment<T, FromRelayChainBalance>
+where
+	B: TryFrom<u128>,
+	FromRelayChainBalance: sp_runtime::traits::Convert<u128, u128>,
+{
+	fn matches_fungible(a: &MultiAsset) -> Option<B> {
+		if let MultiAsset::ConcreteFungible { id, amount } = a {
+			if id == &T::get() {
+				// Convert relay chain decimals to local chain
+				let local_amount = FromRelayChainBalance::convert(*amount);
+				return sp_runtime::traits::CheckedConversion::checked_from(local_amount);
+			}
+		}
+		None
+	}
+}
+
+/// Means for transacting assets on this chain.
+pub type LocalAssetTransactor = xcm_builder::CurrencyAdapter<
+	// Use this currency:
+	BalancesKsm,
+	// Use this currency when it is a fungible asset matching the given location or name:
+	IsConcreteWithAdjustment<KsmLocation, RelayToNative>,
+	// Do a simple punn to convert an AccountId32 MultiLocation into a native chain account ID:
+	LocationToAccountId,
+	// Our chain's account ID type (we can't get away without mentioning it explicitly):
+	AccountId,
+	// We don't track any teleports.
+	(),
+>;
+
+/// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
+/// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
+/// biases the kind of local `Origin` it will become.
+pub type XcmOriginToTransactDispatchOrigin = (
+	// Sovereign account converter; this attempts to derive an `AccountId` from the origin location
+	// using `LocationToAccountId` and then turn that into the usual `Signed` origin. Useful for
+	// foreign chains who want to have a local sovereign account on this chain which they control.
+	xcm_builder::SovereignSignedViaLocation<LocationToAccountId, Origin>,
+	// Native converter for Relay-chain (Parent) location; will converts to a `Relay` origin when
+	// recognised.
+	xcm_builder::RelayChainAsNative<RelayChainOrigin, Origin>,
+	// Native converter for sibling Parachains; will convert to a `SiblingPara` origin when
+	// recognised.
+	xcm_builder::SiblingParachainAsNative<cumulus_pallet_xcm::Origin, Origin>,
+	// Superuser converter for the Relay-chain (Parent) location. This will allow it to issue a
+	// transaction from the Root origin.
+	xcm_builder::ParentAsSuperuser<Origin>,
+	// Xcm origins can be represented natively under the Xcm pallet's Xcm origin.
+	pallet_xcm::XcmPassthrough<Origin>,
+	xcm_builder::SignedAccountKey20AsNative<MoonbeamNetwork, Origin>,
+);
+
+parameter_types! {
+	// One XCM operation is 1_000_000_000 weight - almost certainly a conservative estimate.
+	pub UnitWeightCost: Weight = 1_000_000_000;
+}
+
+match_type! {
+	pub type ParentOrParentsExecutivePlurality: impl Contains<MultiLocation> = {
+		MultiLocation::X1(Junction::Parent) |
+		MultiLocation::X2(Junction::Parent, Junction::Plurality { id: xcm::v0::BodyId::Executive, .. })
+	};
+}
+
+pub type XcmBarrier = (
+	xcm_builder::TakeWeightCredit,
+	xcm_builder::AllowTopLevelPaidExecutionFrom<All<MultiLocation>>,
+	xcm_builder::AllowUnpaidExecutionFrom<ParentOrParentsExecutivePlurality>,
+	// ^^^ Parent and its exec plurality get free execution
+);
+
+pub struct XcmExecutorConfig;
+impl xcm_executor::Config for XcmExecutorConfig {
+	type Call = Call;
+	type XcmSender = XcmRouter;
+	// How to withdraw and deposit an asset.
+	type AssetTransactor = LocalAssetTransactor;
+	type OriginConverter = XcmOriginToTransactDispatchOrigin;
+	type IsReserve = xcm_builder::NativeAsset;
+	type IsTeleporter = xcm_builder::NativeAsset; // <- should be enough to allow teleportation of KSM
+	type LocationInverter = xcm_builder::LocationInverter<Ancestry>;
+	type Barrier = XcmBarrier;
+	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
+	type Trader =
+		xcm_builder::UsingComponents<IdentityFee<Balance>, KsmLocation, AccountId, Balances, ()>;
+	type ResponseHandler = (); // Don't handle responses for now.
+}
+
+type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
+
+parameter_types! {
+	pub const MaxDownwardMessageWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 10;
+}
+
+pub struct SignedToAccountId20<Origin, AccountId, Network>(
+	sp_std::marker::PhantomData<(Origin, AccountId, Network)>,
+);
+impl<Origin: OriginTrait + Clone, AccountId: Into<[u8; 20]>, Network: Get<NetworkId>>
+	xcm_executor::traits::Convert<Origin, MultiLocation>
+	for SignedToAccountId20<Origin, AccountId, Network>
+where
+	Origin::PalletsOrigin: From<frame_system::RawOrigin<AccountId>>
+		+ TryInto<frame_system::RawOrigin<AccountId>, Error = Origin::PalletsOrigin>,
+{
+	fn convert(o: Origin) -> Result<MultiLocation, Origin> {
+		o.try_with_caller(|caller| match caller.try_into() {
+			Ok(frame_system::RawOrigin::Signed(who)) => Ok(Junction::AccountKey20 {
+				key: who.into(),
+				network: Network::get(),
+			}
+			.into()),
+			Ok(other) => Err(other.into()),
+			Err(other) => Err(other),
+		})
+	}
+}
+
+/// No local origins on this chain are allowed to dispatch XCM sends/executions.
+pub type LocalOriginToLocation = SignedToAccountId20<Origin, AccountId, RelayNetwork>;
+
+/// The means for routing XCM messages which are not for local execution into the right message
+/// queues.
+pub type XcmRouter = (
+	// Two routers - use UMP to communicate with the relay chain:
+	cumulus_primitives_utility::ParentAsUmp<ParachainSystem>,
+	// ..and XCMP to communicate with the sibling chains.
+	XcmpQueue,
+);
+
+impl pallet_xcm::Config for Runtime {
+	type Event = Event;
+	type SendXcmOrigin = xcm_builder::EnsureXcmOrigin<Origin, LocalOriginToLocation>;
+	type XcmRouter = XcmRouter;
+	type ExecuteXcmOrigin = xcm_builder::EnsureXcmOrigin<Origin, LocalOriginToLocation>;
+	type XcmExecuteFilter = All<(MultiLocation, Xcm<Call>)>;
+	type XcmExecutor = XcmExecutor;
+	type XcmTeleportFilter = All<(MultiLocation, Vec<MultiAsset>)>;
+	type XcmReserveTransferFilter = All<(MultiLocation, Vec<MultiAsset>)>;
+	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
+}
+
+impl cumulus_pallet_xcm::Config for Runtime {
+	type Event = Event;
+	type XcmExecutor = XcmExecutor;
+}
+
+impl cumulus_pallet_xcmp_queue::Config for Runtime {
+	type Event = Event;
+	type XcmExecutor = XcmExecutor;
+	type ChannelInfo = ParachainSystem;
+}
+
+impl cumulus_pallet_dmp_queue::Config for Runtime {
+	type Event = Event;
+	type XcmExecutor = XcmExecutor;
+	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
+}
+
+pub struct AccountKey20Convert;
+impl
+	sp_runtime::traits::Convert<
+		<<Signature as sp_runtime::traits::Verify>::Signer as IdentifyAccount>::AccountId,
+		[u8; 20],
+	> for AccountKey20Convert
+{
+	fn convert(
+		from: <<Signature as sp_runtime::traits::Verify>::Signer as IdentifyAccount>::AccountId,
+	) -> [u8; 20] {
+		from.into()
+	}
+}
+impl xcm_wrapper::Config for Runtime {
+	type Event = Event;
+	type RelayCurrency = BalancesKsm;
+	type PalletId = XcmWrapperId;
+	type AccountKey20Convert = AccountKey20Convert;
+	type ToRelayChainBalance = NativeToRelay;
+	type RelayChainNetworkId = RelayNetwork;
+	type RelayChainAccountId = AccountId32;
+	type RelayChainProxyType = RelayProxyType;
+	type SovereignAccount = SovereignAccount;
+	type CallEncoder = KusamaEncoder;
+	type XcmSender = XcmRouter;
+	type XcmExecutor = XcmExecutor;
+	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -763,6 +1026,7 @@ construct_runtime! {
 		System: frame_system::{Pallet, Call, Storage, Config, Event<T>},
 		Utility: pallet_utility::{Pallet, Call, Event},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
+		BalancesKsm: pallet_balances::<Instance1>::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
 		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage},
@@ -785,6 +1049,10 @@ construct_runtime! {
 		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>},
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
+		XcmWrapper: xcm_wrapper::{Pallet, Call, Storage, Event<T>},
+		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>},
+		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin},
+		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>},
 	}
 }
 
