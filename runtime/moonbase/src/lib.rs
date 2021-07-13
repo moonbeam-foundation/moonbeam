@@ -649,8 +649,9 @@ impl pallet_author_mapping::Config for Runtime {
 	type AuthorId = NimbusId;
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
-	fn can_register(account: &AccountId) -> bool {
-		ParachainStaking::is_candidate(account)
+	fn can_register(_account: &AccountId) -> bool {
+		// ParachainStaking::is_candidate(account)
+		true // to benchmark author mapping, which cannot register candidates in staking
 	}
 }
 
