@@ -147,9 +147,10 @@ jobs:
         run: rustup show
       - name: SCCache
         run: |
-          if [ ! -f ${{ runner.tool_cache }}/cargo-sccache/bin/sccache ]; then
-            cargo install sccache --git https://github.com/paritytech/sccache.git --force --no-default-features --features=dist-client --root ${{ runner.tool_cache }}/cargo-sccache
-          fi
+          # if [ ! -f ${{ runner.tool_cache }}/cargo-sccache/bin/sccache ]; then
+          #   cargo install sccache --git https://github.com/paritytech/sccache.git --force --no-default-features --features=dist-client --root ${{ runner.tool_cache }}/cargo-sccache
+          # fi
+          cargo install sccache --git https://github.com/paritytech/sccache.git --rev f199fa6d3ed156138555a9733de8000ca8a84e31 --force --no-default-features --features=dist-client --root ${{ runner.tool_cache }}/cargo-sccache
           ls -la ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
           if [[ -z `pgrep sccache` ]]; then
             chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
