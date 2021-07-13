@@ -595,6 +595,40 @@ pub mod pallet {
 		}
 	}
 
+	#[derive(Encode, Decode, RuntimeDebug, Default)]
+	/// Store and process all delayed exits by collators and nominators
+	pub struct ExitQ<AccountId> {
+		pub candidates: OrderedSet<AccountId>,
+		pub nominators: OrderedSet<AccountId>,
+		pub candidate_schedule: Vec<(AccountId, RoundIndex)>,
+		pub nominator_schedule: Vec<(AccountId, AccountId, RoundIndex)>,
+	}
+
+	impl<A: Ord + Clone> ExitQ<A> {
+		pub fn schedule_candidate_exit<T: Config>(
+			&mut self,
+			candidate: A,
+			exit_round: RoundIndex
+		) -> DispatchResult {
+			ensure!(self.candidates.insert(candidate.clone()), Error::<T>::CandidateAlreadyLeaving);
+			self.candidate_schedule.push((candidate, exit_round));
+			Ok(())
+		}
+		pub fn schedule_nominator_exit<T: Config>(
+			&mut self,
+			nominator: A,
+			candidate: A,
+			exit_round: RoundIndex,
+		) -> DispatchResult {
+			// if a nominator tries to leave, but the collator is already scheduled to leave,
+			// they must wait to exit with the collator
+			ensure!(self.candidates.contains(&candidate), Error::<T>::CandidateAlreadyLeaving);
+			ensure!(self.nominators.insert(nominator.clone()), Error::<T>::NominatorAlreadyLeaving);
+			self.nominator_schedule.push((nominator, candidate, exit_round));
+			Ok(())
+		}
+	}
+
 	type RoundIndex = u32;
 	type RewardPoint = u32;
 	pub type BalanceOf<T> =
@@ -642,6 +676,7 @@ pub mod pallet {
 		// Nominator Does Not Exist
 		NominatorDNE,
 		CandidateDNE,
+		NominationDNE,
 		NominatorExists,
 		CandidateExists,
 		ValBondBelowMin,
@@ -649,11 +684,12 @@ pub mod pallet {
 		NominationBelowMin,
 		AlreadyOffline,
 		AlreadyActive,
-		AlreadyLeaving,
+		CandidateAlreadyScheduledToLeave,
+		NominatorAlreadyLeaving,
+		CandidateAlreadyLeaving,
 		CannotActivateIfLeaving,
 		ExceedMaxCollatorsPerNom,
 		AlreadyNominatedCollator,
-		NominationDNE,
 		InvalidSchedule,
 		CannotSetBelowMin,
 		NoWritingSameValue,
@@ -1168,7 +1204,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CollatorState2<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
-			ensure!(!state.is_leaving(), Error::<T>::AlreadyLeaving);
+			ensure!(!state.is_leaving(), Error::<T>::CandidateAlreadyLeaving);
 			let mut exits = <ExitQueue<T>>::get();
 			let now = <Round<T>>::get().current;
 			let when = now + T::BondDuration::get();
@@ -1177,7 +1213,7 @@ pub mod pallet {
 					owner: collator.clone(),
 					amount: when
 				}),
-				Error::<T>::AlreadyLeaving
+				Error::<T>::CandidateAlreadyLeaving
 			);
 			state.leave_candidates(when);
 			let mut candidates = <CandidatePool<T>>::get();
@@ -1360,6 +1396,7 @@ pub mod pallet {
 				nomination_count >= (nominator.nominations.0.len() as u32),
 				Error::<T>::TooLowNominationCountToLeaveNominators
 			);
+			// execute_nominator_exit
 			for bond in nominator.nominations.0 {
 				Self::nominator_leaves_collator(acc.clone(), bond.owner.clone())?;
 			}
