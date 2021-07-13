@@ -1699,11 +1699,6 @@
 <span id="1696">1696</span>
 <span id="1697">1697</span>
 <span id="1698">1698</span>
-<span id="1699">1699</span>
-<span id="1700">1700</span>
-<span id="1701">1701</span>
-<span id="1702">1702</span>
-<span id="1703">1703</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -2361,7 +2356,6 @@
 		<span class="ident">ExceedMaxCollatorsPerNom</span>,
 		<span class="ident">AlreadyNominatedCollator</span>,
 		<span class="ident">NominationDNE</span>,
-		<span class="ident">CannotBondLessGEQTotalBond</span>,
 		<span class="ident">InvalidSchedule</span>,
 		<span class="ident">CannotSetBelowMin</span>,
 		<span class="ident">NoWritingSameValue</span>,
@@ -2598,7 +2592,7 @@
 			<span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="kw-2">ref</span> <span class="ident">candidate</span>, <span class="ident">balance</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">candidates</span> {
 				<span class="macro">assert</span><span class="macro">!</span>(
 					<span class="ident">T</span>::<span class="ident">Currency</span>::<span class="ident">free_balance</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>) <span class="op">&gt;</span><span class="op">=</span> <span class="ident">balance</span>,
-					<span class="string">&quot;Account does not have enough balance to bond as a cadidate.&quot;</span>
+					<span class="string">&quot;Account does not have enough balance to bond as a candidate.&quot;</span>
 				);
 				<span class="ident">candidate_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1u32</span>;
 				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">join_candidates</span>(
@@ -2830,8 +2824,6 @@
 			<span class="op">&lt;</span><span class="ident">InflationConfig</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">put</span>(<span class="ident">inflation_config</span>);
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
 		}
-		<span class="comment">// TODO: `kick_candidate` which will be used for returning cost of executed exits in</span>
-		<span class="comment">// `on_initialize`</span>
 		<span class="doccomment">/// Join the set of collator candidates</span>
 		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">WeightInfo</span>::<span class="ident">join_candidates</span>(<span class="kw-2">*</span><span class="ident">candidate_count</span>))]</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join_candidates</span>(
@@ -2977,9 +2969,7 @@
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CollatorState2</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">CandidateDNE</span>)<span class="question-mark">?</span>;
 			<span class="macro">ensure</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">state</span>.<span class="ident">is_leaving</span>(), <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">CannotActivateIfLeaving</span>);
 			<span class="kw">let</span> <span class="ident">before</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">bond</span>;
-			<span class="kw">let</span> <span class="ident">after</span> <span class="op">=</span> <span class="ident">state</span>
-				.<span class="ident">bond_less</span>(<span class="ident">less</span>)
-				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">CannotBondLessGEQTotalBond</span>)<span class="question-mark">?</span>;
+			<span class="kw">let</span> <span class="ident">after</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">bond_less</span>(<span class="ident">less</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">ValBondBelowMin</span>)<span class="question-mark">?</span>;
 			<span class="macro">ensure</span><span class="macro">!</span>(
 				<span class="ident">after</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">T</span>::<span class="ident">MinCollatorCandidateStk</span>::<span class="ident">get</span>(),
 				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">ValBondBelowMin</span>
@@ -3134,7 +3124,7 @@
 			<span class="kw">let</span> <span class="ident">remaining</span> <span class="op">=</span> <span class="ident">nominations</span>
 				.<span class="ident">dec_nomination</span>(<span class="ident">candidate</span>.<span class="ident">clone</span>(), <span class="ident">less</span>)
 				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">NominationDNE</span>)<span class="question-mark">?</span>
-				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">CannotBondLessGEQTotalBond</span>)<span class="question-mark">?</span>;
+				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">NomBondBelowMin</span>)<span class="question-mark">?</span>;
 			<span class="macro">ensure</span><span class="macro">!</span>(
 				<span class="ident">remaining</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">T</span>::<span class="ident">MinNomination</span>::<span class="ident">get</span>(),
 				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">NominationBelowMin</span>
