@@ -16,11 +16,12 @@ parity-scale-codec = { version = "2.0.0", default-features = false, features = [
 log = "0.4"
 hex = { version = "0.4", default-features = false }
 sha3 = { version = "0.8", default-features = false }
-max-encoded-len = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.6", features = ["derive"] }
-sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.6" }
-pallet-staking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.6" }
+max-encoded-len = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8", features = ["derive"] }
+sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
+pallet-staking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
+sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "nimbus-polkadot-v0.9.6" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features=false, branch = "joshy-np098" }
 
 [dev-dependencies]
 hex = "0.4.3"
@@ -28,6 +29,7 @@ hex = "0.4.3"
 [features]
 default = ["std"]
 std = [
+	"sp-std/std",
 	"log/std",
 	"parity-scale-codec/std",
 	"serde/std",
@@ -35,4 +37,6 @@ std = [
 	"sha3/std",
 	"cumulus-primitives-core/std",
 	"max-encoded-len/std",
+	"pallet-staking/std",
+	"sp-runtime/std"
 ]

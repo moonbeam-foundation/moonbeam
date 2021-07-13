@@ -1,8 +1,22 @@
+#![cfg_attr(not(feature = "std"), no_std)]
+
 use cumulus_primitives_core::relay_chain;
 use parity_scale_codec::{Decode, Encode};
+use sp_std::vec::Vec;
 
 /// The type used to represent the kinds of proxying allowed.
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug, max_encoded_len::MaxEncodedLen)]
+#[derive(
+	Copy,
+	Clone,
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	Debug,
+	max_encoded_len::MaxEncodedLen,
+)]
 pub enum RelayChainProxyType {
 	Any,
 	NonTransfer,
@@ -16,16 +30,16 @@ pub enum RelayChainProxyType {
 ///
 /// Note this enum may be used in the context of both Source (as part of `encode-call`)
 /// and Target chain (as part of `encode-message/send-message`).
-	
+
 #[derive(Debug, PartialEq, Eq)]
-  pub enum AvailableCalls {
+pub enum AvailableCalls {
 	CreateAnonymusProxy(RelayChainProxyType, relay_chain::BlockNumber, u16),
-	Proxy(
+	Proxy(relay_chain::AccountId, Option<RelayChainProxyType>, Vec<u8>),
+	Bond(
 		relay_chain::AccountId,
-		Option<RelayChainProxyType>,
-		Vec<u8>,
+		relay_chain::Balance,
+		pallet_staking::RewardDestination<relay_chain::AccountId>,
 	),
-	Bond(relay_chain::AccountId, relay_chain::Balance, pallet_staking::RewardDestination<relay_chain::AccountId>),
 	BondExtra(relay_chain::Balance),
 	Unbond(relay_chain::Balance),
 	WithdrawUnbonded(u32),

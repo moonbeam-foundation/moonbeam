@@ -18,10 +18,7 @@ pub enum RelayCall {
 #[derive(Encode, Decode)]
 pub enum AnonymousProxyCall {
 	#[codec(index = 0u8)]
-	Proxy(
-		AccountId32,
-		Option<relay_encoder::RelayChainProxyType>,
-	),
+	Proxy(AccountId32, Option<relay_encoder::RelayChainProxyType>),
 
 	#[codec(index = 4u8)]
 	// the index should match the position of the dispatchable in the target pallet
@@ -67,19 +64,16 @@ impl relay_encoder::EncodeCall for PolkadotEncoder {
 			}
 
 			relay_encoder::AvailableCalls::Proxy(a, b, c) => {
-				let mut call = RelayCall::Proxy(AnonymousProxyCall::Proxy(a.clone(), b.clone()))
-					.encode();
+				let mut call =
+					RelayCall::Proxy(AnonymousProxyCall::Proxy(a.clone(), b.clone())).encode();
 				// If we encode directly we inject the call length, so we just append the inner call after encoding the outer
 				call.append(&mut c.clone());
 				call
 			}
 
-			relay_encoder::AvailableCalls::Bond(a, b, c) => RelayCall::Stake(StakeCall::Bond(
-				a.into(),
-				b,
-				c,
-			))
-			.encode(),
+			relay_encoder::AvailableCalls::Bond(a, b, c) => {
+				RelayCall::Stake(StakeCall::Bond(a.into(), b, c)).encode()
+			}
 
 			relay_encoder::AvailableCalls::BondExtra(a) => {
 				RelayCall::Stake(StakeCall::BondExtra(a)).encode()
@@ -234,16 +228,12 @@ mod tests {
 		.unwrap() as u8;
 		expected_encoded.push(index);
 
-		let mut expected = pallet_staking::Call::<polkadot_runtime::Runtime>::bond_extra(
-			100u32.into(),
-		)
-		.encode();
+		let mut expected =
+			pallet_staking::Call::<polkadot_runtime::Runtime>::bond_extra(100u32.into()).encode();
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::BondExtra(
-				100u32.into(),
-			)),
+			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::BondExtra(100u32.into(),)),
 			expected_encoded
 		);
 	}
@@ -257,16 +247,12 @@ mod tests {
 		.unwrap() as u8;
 		expected_encoded.push(index);
 
-		let mut expected = pallet_staking::Call::<polkadot_runtime::Runtime>::unbond(
-			100u32.into(),
-		)
-		.encode();
+		let mut expected =
+			pallet_staking::Call::<polkadot_runtime::Runtime>::unbond(100u32.into()).encode();
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::Unbond(
-				100u32.into(),
-			)),
+			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::Unbond(100u32.into(),)),
 			expected_encoded
 		);
 	}
@@ -280,16 +266,12 @@ mod tests {
 		.unwrap() as u8;
 		expected_encoded.push(index);
 
-		let mut expected = pallet_staking::Call::<polkadot_runtime::Runtime>::withdraw_unbonded(
-			100u32,
-		)
-		.encode();
+		let mut expected =
+			pallet_staking::Call::<polkadot_runtime::Runtime>::withdraw_unbonded(100u32).encode();
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::WithdrawUnbonded(
-				100u32,
-			)),
+			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::WithdrawUnbonded(100u32,)),
 			expected_encoded
 		);
 	}
@@ -305,17 +287,16 @@ mod tests {
 
 		let validator_prefs = pallet_staking::ValidatorPrefs {
 			commission: Perbill::from_percent(5),
-			blocked: true
+			blocked: true,
 		};
 
-		let mut expected = pallet_staking::Call::<polkadot_runtime::Runtime>::validate(validator_prefs.clone())
-		.encode();
+		let mut expected =
+			pallet_staking::Call::<polkadot_runtime::Runtime>::validate(validator_prefs.clone())
+				.encode();
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::Validate(
-				validator_prefs
-			)),
+			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::Validate(validator_prefs)),
 			expected_encoded
 		);
 	}
@@ -330,14 +311,17 @@ mod tests {
 		.unwrap() as u8;
 		expected_encoded.push(index);
 
-		let mut expected = pallet_staking::Call::<polkadot_runtime::Runtime>::nominate(vec![relay_account.clone().into()])
-		.encode();
+		let mut expected =
+			pallet_staking::Call::<polkadot_runtime::Runtime>::nominate(vec![relay_account
+				.clone()
+				.into()])
+			.encode();
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::Nominate(
-				vec![relay_account.into()]
-			)),
+			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::Nominate(vec![
+				relay_account.into()
+			])),
 			expected_encoded
 		);
 	}
@@ -351,8 +335,7 @@ mod tests {
 		.unwrap() as u8;
 		expected_encoded.push(index);
 
-		let mut expected = pallet_staking::Call::<polkadot_runtime::Runtime>::chill()
-		.encode();
+		let mut expected = pallet_staking::Call::<polkadot_runtime::Runtime>::chill().encode();
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
@@ -372,7 +355,7 @@ mod tests {
 		expected_encoded.push(index);
 
 		let mut expected = pallet_staking::Call::<polkadot_runtime::Runtime>::set_payee(
-			pallet_staking::RewardDestination::Controller
+			pallet_staking::RewardDestination::Controller,
 		)
 		.encode();
 		expected_encoded.append(&mut expected);
@@ -397,7 +380,7 @@ mod tests {
 		expected_encoded.push(index);
 
 		let mut expected = pallet_staking::Call::<polkadot_runtime::Runtime>::set_controller(
-			relay_account.clone().into()
+			relay_account.clone().into(),
 		)
 		.encode();
 		expected_encoded.append(&mut expected);
@@ -419,16 +402,12 @@ mod tests {
 		.unwrap() as u8;
 		expected_encoded.push(index);
 
-		let mut expected = pallet_staking::Call::<polkadot_runtime::Runtime>::rebond(
-			100u32.into()
-		)
-		.encode();
+		let mut expected =
+			pallet_staking::Call::<polkadot_runtime::Runtime>::rebond(100u32.into()).encode();
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::Rebond(
-				100u32.into()
-			)),
+			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::Rebond(100u32.into())),
 			expected_encoded
 		);
 	}

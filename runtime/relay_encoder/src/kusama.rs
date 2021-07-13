@@ -40,7 +40,7 @@ impl relay_encoder::EncodeCall for PolkadotEncoder {
 			relay_encoder::AvailableCalls::Proxy(a, b, c) => {
 				RelayCall::Proxy(AnonymousProxyCall::Proxy(a, b, c)).encode()
 			}
-			_ => panic!("Unimplemented")
+			_ => panic!("Unimplemented"),
 		}
 	}
 }
