@@ -5805,11 +5805,12 @@ dependencies = [
 [[package]]
 name = "pallet-crowdloan-rewards"
 version = "0.6.0"
-source = "git+https://github.com/purestake/crowdloan-rewards?branch=gorka-cb#076b16145f7c962e19211d8bafdabeab533b8a79"
+source = "git+https://github.com/purestake/crowdloan-rewards?branch=gorka-cb#88bcd7ac94d1205d379c18ed86cc53e721c5e4a9"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
+ "ed25519-dalek",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
@@ -5823,6 +5824,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+ "sp-trie",
 ]
 
 [[package]]
