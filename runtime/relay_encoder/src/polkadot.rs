@@ -56,56 +56,64 @@ pub enum StakeCall {
 
 pub struct PolkadotEncoder;
 
-impl relay_encoder::EncodeCall for PolkadotEncoder {
-	fn encode_call(call: relay_encoder::AvailableCalls) -> Vec<u8> {
+impl relay_encoder::ProxyEncodeCall for PolkadotEncoder {
+	fn encode_call(call: relay_encoder::AvailableProxyCalls) -> Vec<u8> {
 		match call {
-			relay_encoder::AvailableCalls::CreateAnonymusProxy(a, b, c) => {
+			relay_encoder::AvailableProxyCalls::CreateAnonymusProxy(a, b, c) => {
 				RelayCall::Proxy(AnonymousProxyCall::Anonymous(a, b, c)).encode()
 			}
 
-			relay_encoder::AvailableCalls::Proxy(a, b, c) => {
+			relay_encoder::AvailableProxyCalls::Proxy(a, b, c) => {
 				let mut call =
 					RelayCall::Proxy(AnonymousProxyCall::Proxy(a.clone(), b.clone())).encode();
 				// If we encode directly we inject the call length, so we just append the inner call after encoding the outer
 				call.append(&mut c.clone());
 				call
 			}
+		}
+	}
+}
 
-			relay_encoder::AvailableCalls::Bond(a, b, c) => {
+impl relay_encoder::StakeEncodeCall for PolkadotEncoder {
+	fn encode_call(call: relay_encoder::AvailableStakeCalls) -> Vec<u8> {
+		match call {
+			relay_encoder::AvailableStakeCalls::Bond(a, b, c) => {
 				RelayCall::Stake(StakeCall::Bond(a.into(), b, c)).encode()
 			}
 
-			relay_encoder::AvailableCalls::BondExtra(a) => {
+			relay_encoder::AvailableStakeCalls::BondExtra(a) => {
 				RelayCall::Stake(StakeCall::BondExtra(a)).encode()
 			}
 
-			relay_encoder::AvailableCalls::Unbond(a) => {
+			relay_encoder::AvailableStakeCalls::Unbond(a) => {
 				RelayCall::Stake(StakeCall::Unbond(a)).encode()
 			}
 
-			relay_encoder::AvailableCalls::WithdrawUnbonded(a) => {
+			relay_encoder::AvailableStakeCalls::WithdrawUnbonded(a) => {
 				RelayCall::Stake(StakeCall::WithdrawUnbonded(a)).encode()
 			}
 
-			relay_encoder::AvailableCalls::Validate(a) => {
+			relay_encoder::AvailableStakeCalls::Validate(a) => {
 				RelayCall::Stake(StakeCall::Validate(a)).encode()
 			}
 
-			relay_encoder::AvailableCalls::Chill => RelayCall::Stake(StakeCall::Chill).encode(),
+			relay_encoder::AvailableStakeCalls::Chill => {
+				RelayCall::Stake(StakeCall::Chill).encode()
+			}
 
-			relay_encoder::AvailableCalls::SetPayee(a) => {
+			relay_encoder::AvailableStakeCalls::SetPayee(a) => {
 				RelayCall::Stake(StakeCall::SetPayee(a.into())).encode()
 			}
 
-			relay_encoder::AvailableCalls::SetController(a) => {
+			relay_encoder::AvailableStakeCalls::SetController(a) => {
 				RelayCall::Stake(StakeCall::SetController(a.into())).encode()
 			}
 
-			relay_encoder::AvailableCalls::Rebond(a) => {
+			relay_encoder::AvailableStakeCalls::Rebond(a) => {
 				RelayCall::Stake(StakeCall::Rebond(a.into())).encode()
 			}
 
-			relay_encoder::AvailableCalls::Nominate(a) => {
+			relay_encoder::AvailableStakeCalls::Nominate(a) => {
 				let nominated: Vec<<AccountIdLookup<AccountId32, ()> as StaticLookup>::Source> =
 					a.iter().map(|add| (*add).clone().into()).collect();
 
@@ -120,7 +128,7 @@ mod tests {
 	use super::*;
 	use crate::polkadot::PolkadotEncoder;
 	use frame_support::traits::PalletInfo;
-	use relay_encoder::EncodeCall;
+	use relay_encoder::{ProxyEncodeCall, StakeEncodeCall};
 	use sp_runtime::Perbill;
 
 	#[test]
@@ -141,11 +149,13 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::CreateAnonymusProxy(
-				relay_encoder::RelayChainProxyType::Any,
-				0,
-				0
-			)),
+			<PolkadotEncoder as ProxyEncodeCall>::encode_call(
+				relay_encoder::AvailableProxyCalls::CreateAnonymusProxy(
+					relay_encoder::RelayChainProxyType::Any,
+					0,
+					0
+				)
+			),
 			expected_encoded
 		);
 	}
@@ -174,19 +184,18 @@ mod tests {
 		.encode();
 		expected_encoded.append(&mut expected);
 
-		let call_bytes =
-			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::CreateAnonymusProxy(
+		let call_bytes = <PolkadotEncoder as ProxyEncodeCall>::encode_call(
+			relay_encoder::AvailableProxyCalls::CreateAnonymusProxy(
 				relay_encoder::RelayChainProxyType::Any,
 				0,
 				0,
-			));
+			),
+		);
 
 		assert_eq!(
-			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::Proxy(
-				relay_account,
-				None,
-				call_bytes.into()
-			)),
+			<PolkadotEncoder as ProxyEncodeCall>::encode_call(
+				relay_encoder::AvailableProxyCalls::Proxy(relay_account, None, call_bytes.into())
+			),
 			expected_encoded
 		);
 	}
@@ -210,11 +219,13 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::Bond(
-				relay_account.into(),
-				100u32.into(),
-				pallet_staking::RewardDestination::Controller
-			)),
+			<PolkadotEncoder as StakeEncodeCall>::encode_call(
+				relay_encoder::AvailableStakeCalls::Bond(
+					relay_account.into(),
+					100u32.into(),
+					pallet_staking::RewardDestination::Controller
+				)
+			),
 			expected_encoded
 		);
 	}
@@ -233,7 +244,9 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::BondExtra(100u32.into(),)),
+			<PolkadotEncoder as StakeEncodeCall>::encode_call(
+				relay_encoder::AvailableStakeCalls::BondExtra(100u32.into(),)
+			),
 			expected_encoded
 		);
 	}
@@ -252,7 +265,9 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::Unbond(100u32.into(),)),
+			<PolkadotEncoder as StakeEncodeCall>::encode_call(
+				relay_encoder::AvailableStakeCalls::Unbond(100u32.into(),)
+			),
 			expected_encoded
 		);
 	}
@@ -271,7 +286,9 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::WithdrawUnbonded(100u32,)),
+			<PolkadotEncoder as StakeEncodeCall>::encode_call(
+				relay_encoder::AvailableStakeCalls::WithdrawUnbonded(100u32,)
+			),
 			expected_encoded
 		);
 	}
@@ -296,7 +313,9 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::Validate(validator_prefs)),
+			<PolkadotEncoder as StakeEncodeCall>::encode_call(
+				relay_encoder::AvailableStakeCalls::Validate(validator_prefs)
+			),
 			expected_encoded
 		);
 	}
@@ -319,9 +338,9 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::Nominate(vec![
-				relay_account.into()
-			])),
+			<PolkadotEncoder as StakeEncodeCall>::encode_call(
+				relay_encoder::AvailableStakeCalls::Nominate(vec![relay_account.into()])
+			),
 			expected_encoded
 		);
 	}
@@ -339,7 +358,9 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::Chill),
+			<PolkadotEncoder as StakeEncodeCall>::encode_call(
+				relay_encoder::AvailableStakeCalls::Chill
+			),
 			expected_encoded
 		);
 	}
@@ -361,9 +382,11 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::SetPayee(
-				pallet_staking::RewardDestination::Controller
-			)),
+			<PolkadotEncoder as StakeEncodeCall>::encode_call(
+				relay_encoder::AvailableStakeCalls::SetPayee(
+					pallet_staking::RewardDestination::Controller
+				)
+			),
 			expected_encoded
 		);
 	}
@@ -386,9 +409,9 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::SetController(
-				relay_account.clone().into()
-			)),
+			<PolkadotEncoder as StakeEncodeCall>::encode_call(
+				relay_encoder::AvailableStakeCalls::SetController(relay_account.clone().into())
+			),
 			expected_encoded
 		);
 	}
@@ -407,7 +430,9 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			PolkadotEncoder::encode_call(relay_encoder::AvailableCalls::Rebond(100u32.into())),
+			<PolkadotEncoder as StakeEncodeCall>::encode_call(
+				relay_encoder::AvailableStakeCalls::Rebond(100u32.into())
+			),
 			expected_encoded
 		);
 	}

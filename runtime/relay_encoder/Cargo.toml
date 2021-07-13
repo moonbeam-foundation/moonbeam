@@ -17,9 +17,12 @@ frame-system = { git = "https://github.com/paritytech/substrate", default-featur
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 
 [dev-dependencies]
-polkadot-runtime = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.8" }
-pallet-proxy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
-frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
+polkadot-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
+kusama-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
+westend-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
+rococo-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
+pallet-proxy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
+frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
 
 [features]
 default = ["std"]
@@ -31,7 +34,5 @@ std = [
     "cumulus-primitives-core/std",
     "sp-runtime/std",
     "parity-scale-codec/std",
-    "polkadot-runtime/std",
     "frame-system/std",
-    "frame-support/std",
 ]
