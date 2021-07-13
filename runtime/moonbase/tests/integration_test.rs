@@ -27,7 +27,7 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
-	currency::UNIT, AccountId, Balances, Call, CrowdloanRewards, Event, ParachainStaking,
+	currency::UNIT, AccountId, Balances, Democracy, Proxy, ProxyType, Call, CrowdloanRewards, Event, ParachainStaking,
 	Precompiles, Runtime, System,
 };
 use nimbus_primitives::NimbusId;
@@ -35,6 +35,52 @@ use pallet_evm::PrecompileSet;
 use parachain_staking::{Bond, NominatorAdded};
 use sp_core::{Public, H160, U256};
 use sp_runtime::DispatchError;
+
+
+#[test]
+fn proxy_account_does_not_pay_vote_fees() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(BOB), 2_000 * UNIT),
+			(AccountId::from(CHARLIE), 1_100 * UNIT),
+			(AccountId::from(DAVE), 1_000 * UNIT),
+		])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Proxy::add_proxy(
+				origin_of(AccountId::from(ALICE)),
+				AccountId::from(BOB),
+				ProxyType::Any,
+				0u32
+			));
+			// assert_ok!(Proxy::proxy(
+			// 	origin_of(AccountId::from(BOB)),
+			// 	AccountId::from(ALICE),
+			// 	None,
+			// 	sp_std::boxed::Box::new()
+			// ));
+			assert_ok!(Democracy::propose(
+				origin_of(AccountId::from(ALICE)),
+				sp_core::H256::default(),
+				4 * UNIT
+			));
+			use pallet_democracy::{AccountVote, Vote, Conviction};
+			assert_ok!(
+				Democracy::vote(
+					origin_of(AccountId::from(ALICE)),
+					1u32,
+					AccountVote::Standard {
+						vote: Vote {
+							aye: true,
+							conviction: Conviction::None
+						},
+						balance: 10 * UNIT
+					}
+				)
+			);
+		});
+}
 
 #[test]
 fn fast_track_available() {
