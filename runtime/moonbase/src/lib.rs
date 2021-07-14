@@ -31,8 +31,8 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 use frame_support::{
-	construct_runtime, parameter_types,
-	traits::{Get, Imbalance, InstanceFilter, OnUnbalanced},
+	construct_runtime, match_type, parameter_types,
+	traits::{All, Get, Imbalance, InstanceFilter, OnUnbalanced, OriginTrait},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
 		IdentityFee, Weight,
@@ -59,14 +59,17 @@ use sp_api::impl_runtime_apis;
 use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, IdentityLookup},
+	traits::{AccountIdConversion, BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	AccountId32, ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
 };
+use sp_std::marker::PhantomData;
 use xcm::v0::{Junction, MultiAsset, MultiLocation, NetworkId, Xcm};
-use xcm_executor::traits::Convert as xcmConvert;
 
-use sp_std::{convert::TryFrom, prelude::*};
+use sp_std::{
+	convert::{TryFrom, TryInto},
+	prelude::*,
+};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
@@ -90,11 +93,16 @@ pub mod currency {
 	pub const MILLIUNIT: Balance = UNIT / 1_000;
 	pub const MICROUNIT: Balance = MILLIUNIT / 1_000;
 	pub const NANOUNIT: Balance = MICROUNIT / 1_000;
-
+	pub const CENTS: Balance = UNIT / 30_000;
+	pub const MILLICENTS: Balance = CENTS / 1_000;
 	pub const BYTE_FEE: Balance = 100 * MICROUNIT;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
 		items as Balance * 1 * UNIT + (bytes as Balance) * BYTE_FEE
+	}
+
+	pub const fn relay_deposit(items: u32, bytes: u32) -> Balance {
+		items as Balance * 2_000 * CENTS + (bytes as Balance) * 100 * MILLICENTS
 	}
 }
 
@@ -246,6 +254,8 @@ type KsmInstance = pallet_balances::Instance1;
 // Virtual-KSM balances.
 impl pallet_balances::Config<KsmInstance> for Runtime {
 	type MaxLocks = MaxLocks;
+	type ReserveIdentifier = [u8; 4];
+	type MaxReserves = MaxReserves;
 	/// The type for recording an account's balance.
 	type Balance = Balance;
 	/// The ubiquitous event type.
@@ -573,16 +583,17 @@ impl pallet_ethereum::Config for Runtime {
 
 parameter_types! {
 	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 4;
+	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 4;
 }
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
-	type SelfParaId = ParachainInfo;
-	type DmpMessageHandler = ();
-	type ReservedDmpWeight = ();
-	type OutboundXcmpMessageSource = ();
-	type XcmpMessageHandler = ();
+	type SelfParaId = parachain_info::Pallet<Runtime>;
+	type DmpMessageHandler = DmpQueue;
+	type ReservedDmpWeight = ReservedDmpWeight;
+	type OutboundXcmpMessageSource = XcmpQueue;
+	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 }
 
@@ -788,8 +799,9 @@ parameter_types! {
 }
 
 parameter_types! {
-	pub const XcmWrapperId: PalletId = PalletId(*b"pc/xcmwrapper");
+	pub const XcmWrapperId: PalletId = PalletId(*b"pc/xcmwr");
 	pub SovereignAccount: AccountId32 = ParachainInfo::parachain_id().into_account();
+	pub ProxyDepositAmount: Balance =  currency::relay_deposit(1, 8) + currency::relay_deposit(0, 33);
 }
 pub struct NativeToRelay;
 impl sp_runtime::traits::Convert<Balance, cumulus_primitives_core::relay_chain::Balance>
@@ -897,7 +909,7 @@ match_type! {
 pub type XcmBarrier = (
 	xcm_builder::TakeWeightCredit,
 	xcm_builder::AllowTopLevelPaidExecutionFrom<All<MultiLocation>>,
-	xcm_builder::AllowUnpaidExecutionFrom<ParentOrParentsExecutivePlurality>,
+	//xcm_builder::AllowUnpaidExecutionFrom<ParentOrParentsExecutivePlurality>,
 	// ^^^ Parent and its exec plurality get free execution
 );
 
@@ -1009,11 +1021,12 @@ impl xcm_wrapper::Config for Runtime {
 	type ToRelayChainBalance = NativeToRelay;
 	type RelayChainNetworkId = RelayNetwork;
 	type RelayChainAccountId = AccountId32;
-	type RelayChainProxyType = RelayProxyType;
+	type RelayChainProxyType = relay_encoder::RelayChainProxyType;
 	type SovereignAccount = SovereignAccount;
-	type CallEncoder = KusamaEncoder;
-	type XcmSender = XcmRouter;
+	type CallEncoder = moonbeam_relay_encoder::kusama::KusamaEncoder;
 	type XcmExecutor = XcmExecutor;
+	type OwnLocation = Ancestry;
+	type CreateProxyDeposit = ProxyDepositAmount;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
 }
 
@@ -1053,7 +1066,8 @@ construct_runtime! {
 		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>},
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin},
 		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>},
-	}
+		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
+		}
 }
 
 /// Block type as expected by this runtime.

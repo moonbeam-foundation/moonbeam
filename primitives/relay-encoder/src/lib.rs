@@ -26,6 +26,12 @@ pub enum RelayChainProxyType {
 	CancelProxy,
 }
 
+impl Default for RelayChainProxyType {
+	fn default() -> RelayChainProxyType {
+		RelayChainProxyType::Any
+	}
+}
+
 /// All possible messages that may be delivered to generic Substrate chain.
 ///
 /// Note this enum may be used in the context of both Source (as part of `encode-call`)

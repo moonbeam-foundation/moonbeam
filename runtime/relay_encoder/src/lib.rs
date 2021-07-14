@@ -22,7 +22,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-mod kusama;
-mod polkadot;
-mod rococo;
-mod westend;
+pub mod kusama;
+pub mod polkadot;
+pub mod rococo;
+pub mod westend;

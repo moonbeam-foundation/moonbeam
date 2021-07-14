@@ -41,17 +41,13 @@ pub mod pallet {
 	use frame_support::dispatch::fmt::Debug;
 	use frame_support::{
 		pallet_prelude::*,
-		traits::{Currency, ExistenceRequirement::AllowDeath, ReservableCurrency},
+		traits::{Currency, ReservableCurrency},
 		PalletId,
 	};
 	use frame_system::{ensure_signed, pallet_prelude::*};
 	use relay_encoder::ProxyEncodeCall;
-	use sp_io::hashing::blake2_256;
-	use sp_runtime::traits::AccountIdConversion;
-	use sp_runtime::traits::CheckedAdd;
 	use sp_runtime::traits::Convert;
 	use sp_runtime::AccountId32;
-	use sp_runtime::SaturatedConversion;
 	use sp_std::prelude::*;
 
 	use substrate_fixed::types::U64F64;
@@ -199,7 +195,7 @@ pub mod pallet {
 		TransferFailed(XcmError),
 		Transferred(),
 		XcmSent(MultiLocation, Xcm<()>),
-		ProxyCreated(T::AccountId, T::RelayChainAccountId),
+		ProxyCreated(T::AccountId, T::RelayChainAccountId, BalanceOf<T>),
 	}
 
 	#[pallet::call]
@@ -262,8 +258,12 @@ pub mod pallet {
 				relay_encoder::AvailableProxyCalls::CreateAnonymusProxy(proxy, 0, index),
 			);
 
-			let mut xcm: Xcm<T::Call> =
-				Self::transact(T::CreateProxyDeposit::get() + fee, dest_weight, proxy_bytes);
+			let mut xcm: Xcm<T::Call> = Self::transact(
+				who.clone(),
+				T::CreateProxyDeposit::get() + fee,
+				dest_weight,
+				proxy_bytes,
+			);
 
 			let weight =
 				T::Weigher::weight(&mut xcm).map_err(|()| Error::<T>::UnweighableMessage)?;
@@ -288,6 +288,7 @@ pub mod pallet {
 			Self::deposit_event(Event::<T>::ProxyCreated(
 				who.clone(),
 				T::SovereignAccount::get(),
+				T::CreateProxyDeposit::get(),
 			));
 
 			Ok(())
@@ -345,7 +346,10 @@ pub mod pallet {
 					effects: vec![
 						buy_order,
 						Order::DepositAsset {
-							assets: vec![MultiAsset::All],
+							assets: vec![MultiAsset::ConcreteFungible {
+								id: MultiLocation::Null,
+								amount: T::ToRelayChainBalance::convert(amount),
+							}],
 							dest: MultiLocation::X1(Junction::AccountId32 {
 								network: T::RelayChainNetworkId::get(),
 								id: *relay.as_ref(),
@@ -380,7 +384,34 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
-		fn transact(amount: BalanceOf<T>, dest_weight: Weight, call: Vec<u8>) -> Xcm<T::Call> {
+		fn transact(
+			who: T::AccountId,
+			amount: BalanceOf<T>,
+			dest_weight: Weight,
+			call: Vec<u8>,
+		) -> Xcm<T::Call> {
+			let return_fees = Order::DepositReserveAsset {
+				assets: vec![MultiAsset::All],
+				dest: T::OwnLocation::get(),
+				effects: vec![
+					BuyExecution {
+						fees: All,
+						// Zero weight for additional XCM (since there are none to execute)
+						weight: 0,
+						debt: dest_weight,
+						halt_on_error: false,
+						xcm: vec![],
+					},
+					DepositAsset {
+						assets: vec![All],
+						dest: MultiLocation::X1(Junction::AccountKey20 {
+							network: NetworkId::Any,
+							key: T::AccountKey20Convert::convert(who.clone()).clone(),
+						}),
+					},
+				],
+			};
+
 			let buy_order = BuyExecution {
 				fees: All,
 				// Zero weight for additional XCM (since there are none to execute)
@@ -401,8 +432,32 @@ pub mod pallet {
 				effects: vec![Order::InitiateReserveWithdraw {
 					assets: vec![MultiAsset::All],
 					reserve: MultiLocation::X1(Parent),
-					effects: vec![buy_order],
+					effects: vec![buy_order, return_fees],
 				}],
+			}
+		}
+
+		fn fee_return(who: T::AccountId, dest_weight: Weight) -> Order<()> {
+			Order::DepositReserveAsset {
+				assets: vec![MultiAsset::All],
+				dest: T::OwnLocation::get(),
+				effects: vec![
+					BuyExecution {
+						fees: All,
+						// Zero weight for additional XCM (since there are none to execute)
+						weight: 0,
+						debt: dest_weight,
+						halt_on_error: false,
+						xcm: vec![],
+					},
+					DepositAsset {
+						assets: vec![All],
+						dest: MultiLocation::X1(Junction::AccountKey20 {
+							network: NetworkId::Any,
+							key: T::AccountKey20Convert::convert(who.clone()).clone(),
+						}),
+					},
+				],
 			}
 		}
 	}

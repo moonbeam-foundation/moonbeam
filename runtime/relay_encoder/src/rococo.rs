@@ -2,9 +2,7 @@
 // TODO: whenever a conclusion is taken from https://github.com/paritytech/substrate/issues/8158
 
 use parity_scale_codec::{Decode, Encode};
-use sp_runtime::traits::{AccountIdLookup, StaticLookup};
 use sp_runtime::AccountId32;
-use sp_runtime::Perbill;
 use sp_std::vec::Vec;
 
 #[derive(Encode, Decode)]
@@ -50,7 +48,6 @@ mod tests {
 	use crate::rococo::RococoEncoder;
 	use frame_support::traits::PalletInfo;
 	use relay_encoder::ProxyEncodeCall;
-	use sp_runtime::Perbill;
 
 	#[test]
 	fn test_proxy_anonymous() {
