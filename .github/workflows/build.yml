@@ -136,10 +136,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      # - uses: actions/cache@v2
-      #   with:
-      #     path: ${{ runner.tool_cache }}/cargo-sccache
-      #     key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_VERSION }}-v1
 
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
       # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
@@ -152,10 +148,6 @@ jobs:
           fi
           ls -la ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
           ps aux | grep sccache
-          # if [[ ! -z `pgrep sccache` ]]; then
-          #   chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
-          #   ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --stop-server
-          # fi
           if [[ -z `pgrep sccache` ]]; then
             chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
             ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
