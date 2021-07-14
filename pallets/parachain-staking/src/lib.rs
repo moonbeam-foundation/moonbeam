@@ -598,10 +598,14 @@ pub mod pallet {
 	#[derive(Encode, Decode, RuntimeDebug, Default)]
 	/// Store and process all delayed exits by collators and nominators
 	pub struct ExitQ<AccountId> {
+		/// Candidate exit set
 		pub candidates: OrderedSet<AccountId>,
+		/// Nominator exit set
 		pub nominators: OrderedSet<AccountId>,
+		/// [Candidate, Round to Exit]
 		pub candidate_schedule: Vec<(AccountId, RoundIndex)>,
-		pub nominator_schedule: Vec<(AccountId, AccountId, RoundIndex)>,
+		/// [Nominator, Some(ValidatorId) || None => All Nominations, Round To Exit]
+		pub nominator_schedule: Vec<(AccountId, Option<AccountId>, RoundIndex)>,
 	}
 
 	impl<A: Ord + Clone> ExitQ<A> {
@@ -617,24 +621,24 @@ pub mod pallet {
 			self.candidate_schedule.push((candidate, exit_round));
 			Ok(())
 		}
-		pub fn schedule_nominator_exit<T: Config>(
+		pub fn schedule_nominator_single_exit<T: Config>(
 			&mut self,
 			nominator: A,
-			candidate: A,
+			candidate: Option<A>,
 			exit_round: RoundIndex,
 		) -> DispatchResult {
-			// if a nominator tries to leave, but the collator is already scheduled to leave,
+			// if a nominator tries to leave, but their nominated collator is scheduled to exit,
 			// they must wait to exit with the collator
 			ensure!(
-				self.candidates.contains(&candidate),
-				Error::<T>::CandidateAlreadyLeaving
+				!self.candidates.contains(&candidate),
+				Error::<T>::CandidateAlreadyLeavingSoNominatorMustWait
 			);
 			ensure!(
 				self.nominators.insert(nominator.clone()),
 				Error::<T>::NominatorAlreadyLeaving
 			);
 			self.nominator_schedule
-				.push((nominator, candidate, exit_round));
+				.push((nominator, Some(candidate), exit_round));
 			Ok(())
 		}
 	}
@@ -698,6 +702,7 @@ pub mod pallet {
 		NominatorAlreadyLeaving,
 		CandidateAlreadyLeaving,
 		CannotActivateIfLeaving,
+		CandidateAlreadyLeavingSoNominatorMustWait,
 		ExceedMaxCollatorsPerNom,
 		AlreadyNominatedCollator,
 		InvalidSchedule,
@@ -782,7 +787,7 @@ pub mod pallet {
 				// pay all stakers for T::BondDuration rounds ago
 				Self::pay_stakers(round.current);
 				// execute all delayed collator exits
-				Self::execute_delayed_collator_exits(round.current);
+				Self::execute_collator_exits(round.current);
 				// select top collator candidates for next round
 				let (collator_count, nomination_count, total_staked) =
 					Self::select_top_candidates(round.current);
@@ -1399,12 +1404,8 @@ pub mod pallet {
 				nomination_count >= (nominator.nominations.0.len() as u32),
 				Error::<T>::TooLowNominationCountToLeaveNominators
 			);
-			// execute_nominator_exit
-			for bond in nominator.nominations.0 {
-				Self::nominator_leaves_collator(acc.clone(), bond.owner.clone())?;
-			}
-			<NominatorState<T>>::remove(&acc);
-			Self::deposit_event(Event::NominatorLeft(acc, nominator.total));
+			// TODO: NominatorScheduledExit
+
 			Ok(().into())
 		}
 		/// Revoke an existing nomination
@@ -1625,15 +1626,23 @@ pub mod pallet {
 				}
 			}
 		}
-		fn execute_delayed_collator_exits(next: RoundIndex) {
+		/// Executes all collator exits scheduled for when <= now
+		fn execute_collator_exits(now: RoundIndex) {
 			let mut exit_queue = <ExitQueue<T>>::get();
 			let remaining_exits = exit_queue
 				.candidate_schedule
-				.iter()
+				.clone()
+				.into_iter()
 				.filter_map(|(who, when)| {
-					if when > next {
+					if when > now {
 						Some((who, when))
 					} else {
+						if !exit_queue.candidates.remove(&who) {
+							log::trace!(
+								target: "staking",
+								"Candidates set removal failed, CollatorState had inconsistency!",
+							);
+						}
 						if let Some(state) = <CollatorState2<T>>::get(&who) {
 							// return stake to nominator
 							let return_stake = |bond: Bond<T::AccountId, BalanceOf<T>>| {
@@ -1677,6 +1686,38 @@ pub mod pallet {
 				})
 				.collect::<Vec<(T::AccountId, RoundIndex)>>();
 			exit_queue.candidate_schedule = remaining_exits;
+			<ExitQueue<T>>::put(exit_queue);
+		}
+		/// Executes all nominator exits for when <= now
+		fn execute_nominator_exits(now: RoundIndex) {
+			let mut exit_queue = <ExitQueue<T>>::get();
+			let remaining_exits = exit_queue
+				.nominator_schedule
+				.clone()
+				.into_iter()
+				.filter_map(|(who, validator, when)| {
+					// validator should be an option
+					if when > now {
+						Some((who, when))
+					} else {
+						if !exit_queue.nominators.remove(&who) {
+							log::trace!(
+								target: "staking",
+								"Nominators set removal failed, NominatorState had inconsistency!",
+							);
+						}
+						if let Some(nominator) = <NominatorState<T>>::get(who) {
+							for bond in nominator.nominations.0 {
+								Self::nominator_leaves_collator(who.clone(), bond.owner.clone())?;
+							}
+							<NominatorState<T>>::remove(&who);
+							Self::deposit_event(Event::NominatorLeft(who, nominator.total));
+						}
+						None
+					}
+				})
+				.collect::<Vec<(T::AccountId, Option<T::AccountId>, RoundIndex)>>();
+			exit_queue.nominator_schedule = remaining_exits;
 			<ExitQueue<T>>::put(exit_queue);
 		}
 		/// Best as in most cumulatively supported in terms of stake

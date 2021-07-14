@@ -789,7 +789,7 @@ fn cannot_leave_candidates_if_already_leaving_candidates() {
 			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1u32));
 			assert_noop!(
 				Stake::leave_candidates(Origin::signed(1), 1u32),
-				Error::<Test>::AlreadyLeaving
+				Error::<Test>::CandidateAlreadyLeaving
 			);
 		});
 }
