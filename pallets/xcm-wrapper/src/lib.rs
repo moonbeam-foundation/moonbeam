@@ -37,6 +37,7 @@ mod tests;
 #[pallet]
 pub mod pallet {
 
+	use xcm_executor::traits::Convert as XConvert;
 	use cumulus_primitives_core::relay_chain;
 	use frame_support::dispatch::fmt::Debug;
 	use frame_support::{
@@ -112,7 +113,7 @@ pub mod pallet {
 		/// XCM executor.
 		type XcmExecutor: ExecuteXcm<Self::Call>;
 
-		type AccountKey20Convert: Convert<Self::AccountId, [u8; 20]>;
+		type OriginToMultiLocation: XConvert<OriginFor<Self>, MultiLocation>;
 
 		/// Means of measuring the weight consumed by an XCM message locally.
 		type Weigher: WeightBounds<Self::Call>;
@@ -175,6 +176,7 @@ pub mod pallet {
 		UnstakingMoreThanStaked,
 		ProxyAlreadyCreated,
 		UnweighableMessage,
+		WrongAccountToMUltiLocationConversion,
 	}
 
 	#[pallet::event]
@@ -252,14 +254,15 @@ pub mod pallet {
 			index: u16,
 			dest_weight: Weight,
 		) -> DispatchResult {
-			let who = ensure_signed(origin)?;
+			let who = ensure_signed(origin.clone())?;
 
 			let proxy_bytes: Vec<u8> = T::CallEncoder::encode_call(
 				relay_encoder::AvailableProxyCalls::CreateAnonymusProxy(proxy, 0, index),
 			);
 
+			let origin_as_mult = T::OriginToMultiLocation::convert(origin).map_err(|_e| Error::<T>::WrongAccountToMUltiLocationConversion)?;
 			let mut xcm: Xcm<T::Call> = Self::transact(
-				who.clone(),
+				origin_as_mult.clone(),
 				T::CreateProxyDeposit::get() + fee,
 				dest_weight,
 				proxy_bytes,
@@ -267,11 +270,7 @@ pub mod pallet {
 
 			let weight =
 				T::Weigher::weight(&mut xcm).map_err(|()| Error::<T>::UnweighableMessage)?;
-			let executor = MultiLocation::X1(Junction::AccountKey20 {
-				network: NetworkId::Any,
-				key: T::AccountKey20Convert::convert(who.clone()).clone(),
-			});
-			let outcome = T::XcmExecutor::execute_xcm_in_credit(executor, xcm, weight, weight);
+			let outcome = T::XcmExecutor::execute_xcm_in_credit(origin_as_mult, xcm, weight, weight);
 
 			let maybe_xcm_err: Option<XcmError> = match outcome {
 				Outcome::Complete(_w) => Option::None,
@@ -302,7 +301,9 @@ pub mod pallet {
 			fee: BalanceOf<T>,
 			dest_weight: Weight,
 		) -> DispatchResult {
-			let who = ensure_signed(origin)?;
+			let who = ensure_signed(origin.clone())?;
+			let origin_as_mult = T::OriginToMultiLocation::convert(origin).map_err(|_e| Error::<T>::WrongAccountToMUltiLocationConversion)?;
+
 			let relay: AccountId32 = dest.into();
 			let buy_order = BuyExecution {
 				fees: All,
@@ -327,10 +328,7 @@ pub mod pallet {
 					},
 					DepositAsset {
 						assets: vec![All],
-						dest: MultiLocation::X1(Junction::AccountKey20 {
-							network: NetworkId::Any,
-							key: T::AccountKey20Convert::convert(who.clone()).clone(),
-						}),
+						dest: origin_as_mult.clone(),
 					},
 				],
 			};
@@ -362,11 +360,7 @@ pub mod pallet {
 
 			let weight =
 				T::Weigher::weight(&mut xcm).map_err(|()| Error::<T>::UnweighableMessage)?;
-			let executor = MultiLocation::X1(Junction::AccountKey20 {
-				network: NetworkId::Any,
-				key: T::AccountKey20Convert::convert(who).clone(),
-			});
-			let outcome = T::XcmExecutor::execute_xcm_in_credit(executor, xcm, weight, weight);
+			let outcome = T::XcmExecutor::execute_xcm_in_credit(origin_as_mult, xcm, weight, weight);
 
 			let maybe_xcm_err: Option<XcmError> = match outcome {
 				Outcome::Complete(_w) => Option::None,
@@ -385,7 +379,7 @@ pub mod pallet {
 
 	impl<T: Config> Pallet<T> {
 		fn transact(
-			who: T::AccountId,
+			origin_as_mult: MultiLocation,
 			amount: BalanceOf<T>,
 			dest_weight: Weight,
 			call: Vec<u8>,
@@ -404,10 +398,7 @@ pub mod pallet {
 					},
 					DepositAsset {
 						assets: vec![All],
-						dest: MultiLocation::X1(Junction::AccountKey20 {
-							network: NetworkId::Any,
-							key: T::AccountKey20Convert::convert(who.clone()).clone(),
-						}),
+						dest: origin_as_mult
 					},
 				],
 			};
@@ -437,7 +428,7 @@ pub mod pallet {
 			}
 		}
 
-		fn fee_return(who: T::AccountId, dest_weight: Weight) -> Order<()> {
+		fn fee_return(who: MultiLocation, dest_weight: Weight) -> Order<()> {
 			Order::DepositReserveAsset {
 				assets: vec![MultiAsset::All],
 				dest: T::OwnLocation::get(),
@@ -452,10 +443,7 @@ pub mod pallet {
 					},
 					DepositAsset {
 						assets: vec![All],
-						dest: MultiLocation::X1(Junction::AccountKey20 {
-							network: NetworkId::Any,
-							key: T::AccountKey20Convert::convert(who.clone()).clone(),
-						}),
+						dest: who,
 					},
 				],
 			}
