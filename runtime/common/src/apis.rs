@@ -379,6 +379,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 					use pallet_crowdloan_rewards::Pallet as PalletCrowdloanRewardsBench;
 					use parachain_staking::Pallet as ParachainStakingBench;
+					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
 					let whitelist: Vec<TrackedStorageKey> = vec![];
 
 					let mut batches = Vec::<BenchmarkBatch>::new();
@@ -396,6 +397,12 @@ macro_rules! impl_runtime_apis_plus_common {
 					// 	pallet_crowdloan_rewards,
 					// 	PalletCrowdloanRewardsBench::<Runtime>
 					// );
+					add_benchmark!(
+						params,
+						batches,
+						pallet_author_mapping,
+						PalletAuthorMappingBench::<Runtime>
+					);
 					add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 
 					if batches.is_empty() {
