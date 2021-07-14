@@ -548,7 +548,7 @@ fn join_candidates_via_precompile() {
 
 			// Construct the call data (selector, amount)
 			let mut call_data = Vec::<u8>::from([0u8; 68]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("ad76ed5a"));
+			call_data[0..4].copy_from_slice(&hex_literal::hex!("0a1bff60"));
 			amount.to_big_endian(&mut call_data[4..36]);
 			candidate_count.to_big_endian(&mut call_data[36..]);
 
@@ -608,7 +608,7 @@ fn leave_candidates_via_precompile() {
 
 			// Construct the leave_candidates call data
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("b7694219"));
+			call_data[0..4].copy_from_slice(&hex_literal::hex!("72b02a31"));
 			collator_count.to_big_endian(&mut call_data[4..]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
@@ -851,7 +851,7 @@ fn nominate_via_precompile() {
 
 			// Construct the call data (selector, collator, nomination amount)
 			let mut call_data = Vec::<u8>::from([0u8; 132]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("82f2c8df"));
+			call_data[0..4].copy_from_slice(&hex_literal::hex!("49df6eb3"));
 			call_data[16..36].copy_from_slice(&ALICE);
 			nomination_amount.to_big_endian(&mut call_data[36..68]);
 			collator_nominator_count.to_big_endian(&mut call_data[68..100]);
@@ -929,7 +929,7 @@ fn leave_nominators_via_precompile() {
 
 			// Construct leave_nominators call
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("e8d68a37"));
+			call_data[0..4].copy_from_slice(&hex_literal::hex!("b71d2153"));
 			nomination_count.to_big_endian(&mut call_data[4..]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
