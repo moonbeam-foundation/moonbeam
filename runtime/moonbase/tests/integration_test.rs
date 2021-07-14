@@ -35,6 +35,7 @@ use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_transaction_payment::Multiplier;
 use parachain_staking::{Bond, NominatorAdded};
+use sha3::{Digest, Keccak256};
 use sp_core::{Public, H160, U256};
 use sp_runtime::{
 	traits::{Convert, One},
@@ -547,7 +548,8 @@ fn join_candidates_via_precompile() {
 
 			// Construct the call data (selector, amount)
 			let mut call_data = Vec::<u8>::from([0u8; 68]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("0a1bff60"));
+			call_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"join_candidates(uint256,uint256)")[0..4]);
 			amount.to_big_endian(&mut call_data[4..36]);
 			candidate_count.to_big_endian(&mut call_data[36..]);
 
@@ -607,7 +609,7 @@ fn leave_candidates_via_precompile() {
 
 			// Construct the leave_candidates call data
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("72b02a31"));
+			call_data[0..4].copy_from_slice(&Keccak256::digest(b"leave_candidates(uint256)")[0..4]);
 			collator_count.to_big_endian(&mut call_data[4..]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
@@ -850,7 +852,9 @@ fn nominate_via_precompile() {
 
 			// Construct the call data (selector, collator, nomination amount)
 			let mut call_data = Vec::<u8>::from([0u8; 132]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("49df6eb3"));
+			call_data[0..4].copy_from_slice(
+				&Keccak256::digest(b"nominate(address,uint256,uint256,uint256)")[0..4],
+			);
 			call_data[16..36].copy_from_slice(&ALICE);
 			nomination_amount.to_big_endian(&mut call_data[36..68]);
 			collator_nominator_count.to_big_endian(&mut call_data[68..100]);
@@ -928,7 +932,7 @@ fn leave_nominators_via_precompile() {
 
 			// Construct leave_nominators call
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("b71d2153"));
+			call_data[0..4].copy_from_slice(&Keccak256::digest(b"leave_nominators(uint256)")[0..4]);
 			nomination_count.to_big_endian(&mut call_data[4..]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(

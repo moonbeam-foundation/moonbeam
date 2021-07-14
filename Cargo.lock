@@ -4650,6 +4650,7 @@ dependencies = [
  "rlp",
  "runtime-common",
  "serde",
+ "sha3 0.8.2",
  "sp-api",
  "sp-block-builder",
  "sp-core",
