@@ -152,10 +152,10 @@ jobs:
           fi
           ls -la ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
           ps aux | grep sccache
-          if [[ ! -z `pgrep sccache` ]]; then
-            chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
-            ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --stop-server
-          fi
+          # if [[ ! -z `pgrep sccache` ]]; then
+          #   chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
+          #   ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --stop-server
+          # fi
           if [[ -z `pgrep sccache` ]]; then
             chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
             ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
