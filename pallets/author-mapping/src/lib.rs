@@ -28,6 +28,10 @@ use frame_support::pallet;
 
 pub use pallet::*;
 
+pub mod weights;
+use weights::WeightInfo;
+#[cfg(any(test, feature = "runtime-benchmarks"))]
+mod benchmarks;
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
@@ -35,13 +39,13 @@ mod tests;
 
 #[pallet]
 pub mod pallet {
-
+	use crate::WeightInfo;
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, ReservableCurrency};
 	use frame_system::pallet_prelude::*;
 	use nimbus_primitives::AccountLookup;
 
-	type BalanceOf<T> = <<T as Config>::DepositCurrency as Currency<
+	pub type BalanceOf<T> = <<T as Config>::DepositCurrency as Currency<
 		<T as frame_system::Config>::AccountId,
 	>>::Balance;
 
@@ -61,12 +65,14 @@ pub mod pallet {
 	pub trait Config: frame_system::Config {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
-		/// The type of authority id that will be used at the conensus layer.
-		type AuthorId: Member + Parameter + MaybeSerializeDeserialize;
+		/// The type of authority id that will be used at the consensus layer.
+		type AuthorId: Member + Parameter + MaybeSerializeDeserialize + Default;
 		/// Currency in which the security deposit will be taken.
 		type DepositCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 		/// The amount that should be taken as a security deposit when registering an AuthorId.
 		type DepositAmount: Get<<Self::DepositCurrency as Currency<Self::AccountId>>::Balance>;
+		/// Weight information for extrinsics in this pallet.
+		type WeightInfo: WeightInfo;
 	}
 
 	/// An error that can occur while executing the mapping pallet's logic.
@@ -102,7 +108,7 @@ pub mod pallet {
 		///
 		/// Users who have been (or will soon be) elected active collators in staking,
 		/// should submit this extrinsic to have their blocks accepted and earn rewards.
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::add_association())]
 		pub fn add_association(origin: OriginFor<T>, author_id: T::AuthorId) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
 
@@ -122,7 +128,7 @@ pub mod pallet {
 		///
 		/// This is useful for normal key rotation or for when switching from one physical collator
 		/// machine to another. No new security deposit is required.
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::update_association())]
 		pub fn update_association(
 			origin: OriginFor<T>,
 			old_author_id: T::AuthorId,
@@ -150,7 +156,7 @@ pub mod pallet {
 		///
 		/// This is useful when you are no longer an author and would like to re-claim your security
 		/// deposit.
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::clear_association())]
 		pub fn clear_association(
 			origin: OriginFor<T>,
 			author_id: T::AuthorId,
@@ -211,13 +217,15 @@ pub mod pallet {
 			author_id: &T::AuthorId,
 			account_id: &T::AccountId,
 		) -> DispatchResult {
+			let deposit = T::DepositAmount::get();
+
+			T::DepositCurrency::reserve(&account_id, deposit)
+				.map_err(|_| Error::<T>::CannotAffordSecurityDeposit)?;
+
 			let info = RegistrationInfo {
 				account: account_id.clone(),
-				deposit: T::DepositAmount::get(),
+				deposit,
 			};
-
-			T::DepositCurrency::reserve(&account_id, T::DepositAmount::get())
-				.map_err(|_| Error::<T>::CannotAffordSecurityDeposit)?;
 
 			MappingWithDeposit::<T>::insert(&author_id, &info);
 
