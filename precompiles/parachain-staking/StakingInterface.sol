@@ -14,11 +14,13 @@ interface ParachainStaking {
     function is_candidate(address collator) external view returns (bool);
 
     /// Check whether the specifies address is currently a part of the active set
-    function is_selected_candidate(address collator) external view returns (bool);
+    function is_selected_candidate(address collator)
+        external
+        view
+        returns (bool);
 
     /// Total points awarded to all collators in a particular round.
     function points(uint256 round) external view returns (uint256);
-
 
     /// Get the minimum nomination amount
     function min_nomination() external view returns (uint256);
@@ -26,12 +28,12 @@ interface ParachainStaking {
     // Now the dispatchables
 
     /// Join the set of collator candidates
-    function join_candidates(uint256 amount) external;
+    function join_candidates(uint256 amount, uint256 candidateCount) external;
 
     /// Request to leave the set of candidates. If successful, the account is immediately
     /// removed from the candidate pool to prevent selection as a collator, but unbonding is
     /// executed with a delay of `BondDuration` rounds.
-    function leave_candidates() external;
+    function leave_candidates(uint256 amount, uint256 candidateCount) external;
 
     /// Temporarily leave the set of collator candidates without unbonding
     function go_offline() external;
@@ -47,10 +49,15 @@ interface ParachainStaking {
 
     /// If caller is not a nominator, then join the set of nominators
     /// If caller is a nominator, then makes nomination to change their nomination state
-    function nominate(address collator, uint256 amount) external;
+    function nominate(
+        address collator,
+        uint256 amount,
+        uint256 collatorNominationCount,
+        uint256 nominatorNominationCount
+    ) external;
 
     /// Leave the set of nominators and, by implication, revoke all ongoing nominations
-    function leave_nominators() external;
+    function leave_nominators(uint256 nominatorNominationCount) external;
 
     /// Revoke an existing nomination
     function revoke_nomination(address collator) external;
@@ -73,11 +80,11 @@ interface ParachainStaking {
 // 	"8545c833": "is_candidate(address)",
 // 	"8f6d27c7": "is_selected_candidate(address)",
 // 	"8e5080e7": "is_nominator(address)",
-// 	"ad76ed5a": "join_candidates(uint256)",
-// 	"b7694219": "leave_candidates()",
-// 	"e8d68a37": "leave_nominators()",
+// 	"0a1bff60": "join_candidates(uint256,uint256)",
+// 	"72b02a31": "leave_candidates(uint256)",
+// 	"b71d2153": "leave_nominators(uint256)",
 // 	"c9f593b2": "min_nomination()",
-// 	"82f2c8df": "nominate(address,uint256)",
+// 	"49df6eb3": "nominate(address,uint256,uint256,uint256)",
 // 	"f6a52569": "nominator_bond_less(address,uint256)",
 // 	"971d44c8": "nominator_bond_more(address,uint256)",
 // 	"4b65c34b": "revoke_nomination(address)"
