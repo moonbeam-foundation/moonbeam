@@ -117,11 +117,6 @@ impl pallet_author_mapping::Config for Test {
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
 	type WeightInfo = ();
-
-	// For this mock runtime, we'll only allow even accounts to register.
-	fn can_register(account: &AccountId) -> bool {
-		account % 2 == 0
-	}
 }
 
 /// Externality builder for pallet author mapping's mock runtime

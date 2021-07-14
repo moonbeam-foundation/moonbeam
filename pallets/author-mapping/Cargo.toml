@@ -1,6 +1,6 @@
 [package]
 name = "pallet-author-mapping"
-version = "2.0.1"
+version = "2.0.2"
 authors = ["PureStake"]
 edition = "2018"
 description = "Maps AuthorIds to AccountIds Useful for associating consensus authors with in-runtime accounts"

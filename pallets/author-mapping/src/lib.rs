@@ -73,10 +73,6 @@ pub mod pallet {
 		type DepositAmount: Get<<Self::DepositCurrency as Currency<Self::AccountId>>::Balance>;
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
-
-		/// A rough preliminary check to determine whether an account can make a new registration.
-		/// If you don't wish to do any such check, just return `true`.
-		fn can_register(account: &Self::AccountId) -> bool;
 	}
 
 	/// An error that can occur while executing the mapping pallet's logic.
@@ -86,8 +82,6 @@ pub mod pallet {
 		AssociationNotFound,
 		/// The association can't be cleared because it belongs to another account.
 		NotYourAssociation,
-		/// This account cannot set an author because it fails the preliminary check
-		CannotSetAuthor,
 		/// This account cannot set an author because it cannon afford the security deposit
 		CannotAffordSecurityDeposit,
 		/// The AuthorId in question is already associated and cannot be overwritten
@@ -118,8 +112,6 @@ pub mod pallet {
 		pub fn add_association(origin: OriginFor<T>, author_id: T::AuthorId) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
 
-			ensure!(T::can_register(&account_id), Error::<T>::CannotSetAuthor);
-
 			ensure!(
 				MappingWithDeposit::<T>::get(&author_id).is_none(),
 				Error::<T>::AlreadyAssociated
@@ -143,8 +135,6 @@ pub mod pallet {
 			new_author_id: T::AuthorId,
 		) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
-
-			ensure!(T::can_register(&account_id), Error::<T>::CannotSetAuthor);
 
 			let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
 				.map_err(|_| Error::<T>::AssociationNotFound)?;

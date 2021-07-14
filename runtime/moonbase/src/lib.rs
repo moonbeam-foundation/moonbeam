@@ -650,10 +650,6 @@ impl pallet_author_mapping::Config for Runtime {
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
 	type WeightInfo = pallet_author_mapping::weights::SubstrateWeight<Runtime>;
-	fn can_register(_account: &AccountId) -> bool {
-		// to benchmark author mapping, which cannot register candidates in staking
-		true
-	}
 }
 
 parameter_types! {
