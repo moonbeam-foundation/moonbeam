@@ -608,9 +608,12 @@ pub mod pallet {
 		pub fn schedule_candidate_exit<T: Config>(
 			&mut self,
 			candidate: A,
-			exit_round: RoundIndex
+			exit_round: RoundIndex,
 		) -> DispatchResult {
-			ensure!(self.candidates.insert(candidate.clone()), Error::<T>::CandidateAlreadyLeaving);
+			ensure!(
+				self.candidates.insert(candidate.clone()),
+				Error::<T>::CandidateAlreadyLeaving
+			);
 			self.candidate_schedule.push((candidate, exit_round));
 			Ok(())
 		}
@@ -622,9 +625,16 @@ pub mod pallet {
 		) -> DispatchResult {
 			// if a nominator tries to leave, but the collator is already scheduled to leave,
 			// they must wait to exit with the collator
-			ensure!(self.candidates.contains(&candidate), Error::<T>::CandidateAlreadyLeaving);
-			ensure!(self.nominators.insert(nominator.clone()), Error::<T>::NominatorAlreadyLeaving);
-			self.nominator_schedule.push((nominator, candidate, exit_round));
+			ensure!(
+				self.candidates.contains(&candidate),
+				Error::<T>::CandidateAlreadyLeaving
+			);
+			ensure!(
+				self.nominators.insert(nominator.clone()),
+				Error::<T>::NominatorAlreadyLeaving
+			);
+			self.nominator_schedule
+				.push((nominator, candidate, exit_round));
 			Ok(())
 		}
 	}
@@ -854,9 +864,8 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn exit_queue)]
-	/// A queue of collators awaiting exit `BondDuration` delay after request
-	type ExitQueue<T: Config> =
-		StorageValue<_, OrderedSet<Bond<T::AccountId, RoundIndex>>, ValueQuery>;
+	/// A queue of collators and nominators awaiting exit `BondDuration` delay after request
+	type ExitQueue<T: Config> = StorageValue<_, ExitQ<T::AccountId>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn at_stake)]
@@ -1208,13 +1217,7 @@ pub mod pallet {
 			let mut exits = <ExitQueue<T>>::get();
 			let now = <Round<T>>::get().current;
 			let when = now + T::BondDuration::get();
-			ensure!(
-				exits.insert(Bond {
-					owner: collator.clone(),
-					amount: when
-				}),
-				Error::<T>::CandidateAlreadyLeaving
-			);
+			exits.schedule_candidate_exit::<T>(collator.clone(), when)?;
 			state.leave_candidates(when);
 			let mut candidates = <CandidatePool<T>>::get();
 			ensure!(
@@ -1623,14 +1626,15 @@ pub mod pallet {
 			}
 		}
 		fn execute_delayed_collator_exits(next: RoundIndex) {
-			let remain_exits = <ExitQueue<T>>::get()
-				.0
-				.into_iter()
-				.filter_map(|x| {
-					if x.amount > next {
-						Some(x)
+			let mut exit_queue = <ExitQueue<T>>::get();
+			let remaining_exits = exit_queue
+				.candidate_schedule
+				.iter()
+				.filter_map(|(who, when)| {
+					if when > next {
+						Some((who, when))
 					} else {
-						if let Some(state) = <CollatorState2<T>>::get(&x.owner) {
+						if let Some(state) = <CollatorState2<T>>::get(&who) {
 							// return stake to nominator
 							let return_stake = |bond: Bond<T::AccountId, BalanceOf<T>>| {
 								T::Currency::unreserve(&bond.owner, bond.amount);
@@ -1640,7 +1644,7 @@ pub mod pallet {
 										Collator state has a record of this nomination. Therefore, 
 										Nominator state also has a record. qed.",
 								);
-								if let Some(remaining) = nominator.rm_nomination(x.owner.clone()) {
+								if let Some(remaining) = nominator.rm_nomination(who.clone()) {
 									if remaining.is_zero() {
 										<NominatorState<T>>::remove(&bond.owner);
 									} else {
@@ -1658,12 +1662,12 @@ pub mod pallet {
 							}
 							// return stake to collator
 							T::Currency::unreserve(&state.id, state.bond);
-							<CollatorState2<T>>::remove(&x.owner);
+							<CollatorState2<T>>::remove(&who);
 							let new_total_staked =
 								<Total<T>>::get().saturating_sub(state.total_backing);
 							<Total<T>>::put(new_total_staked);
 							Self::deposit_event(Event::CollatorLeft(
-								x.owner,
+								who,
 								state.total_backing,
 								new_total_staked,
 							));
@@ -1671,8 +1675,9 @@ pub mod pallet {
 						None
 					}
 				})
-				.collect::<Vec<Bond<T::AccountId, RoundIndex>>>();
-			<ExitQueue<T>>::put(OrderedSet::from(remain_exits));
+				.collect::<Vec<(T::AccountId, RoundIndex)>>();
+			exit_queue.candidate_schedule = remaining_exits;
+			<ExitQueue<T>>::put(exit_queue);
 		}
 		/// Best as in most cumulatively supported in terms of stake
 		/// Returns [collator_count, nomination_count, total staked]
