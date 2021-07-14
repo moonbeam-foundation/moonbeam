@@ -26,22 +26,14 @@ use frame_support::{
 use frame_system::RawOrigin;
 use parity_scale_codec::Decode;
 
-/// Default balance amount is the amount required
-fn default_balance<T: Config>() -> BalanceOf<T> {
-	<<T as Config>::DepositAmount as Get<BalanceOf<T>>>::get()
-}
-
 /// Create a funded user.
-fn create_funded_user<T: Config>(
-	string: &'static str,
-	index: u32,
-	extra: BalanceOf<T>,
-) -> T::AccountId {
-	let user = account(string, index, 0u32);
-	let default_balance = default_balance::<T>();
-	let total = default_balance + extra;
-	T::DepositCurrency::make_free_balance_be(&user, total);
-	T::DepositCurrency::issue(total);
+fn create_funded_user<T: Config>() -> T::AccountId {
+	let user = account("account id", 0u32, 0u32);
+	T::DepositCurrency::make_free_balance_be(
+		&user,
+		<<T as Config>::DepositAmount as Get<BalanceOf<T>>>::get(),
+	);
+	T::DepositCurrency::issue(<<T as Config>::DepositAmount as Get<BalanceOf<T>>>::get());
 	user
 }
 
@@ -53,7 +45,7 @@ pub fn author_id<T: Config>(seed: u8) -> T::AuthorId {
 
 benchmarks! {
 	add_association {
-		let caller = create_funded_user::<T>("account id", 0u32, 0u32.into());
+		let caller = create_funded_user::<T>();
 		let id = author_id::<T>(1u8);
 	}: _(RawOrigin::Signed(caller.clone()), id.clone())
 	verify {
@@ -61,7 +53,7 @@ benchmarks! {
 	}
 
 	update_association {
-		let caller = create_funded_user::<T>("account id", 0u32, 0u32.into());
+		let caller = create_funded_user::<T>();
 		let first_id = author_id::<T>(1u8);
 		let second_id = author_id::<T>(2u8);
 		assert_ok!(Pallet::<T>::add_association(
@@ -75,7 +67,7 @@ benchmarks! {
 	}
 
 	clear_association {
-		let caller = create_funded_user::<T>("account id", 0u32, 0u32.into());
+		let caller = create_funded_user::<T>();
 		let first_id = author_id::<T>(1u8);
 		assert_ok!(Pallet::<T>::add_association(
 			RawOrigin::Signed(caller.clone()).into(),
