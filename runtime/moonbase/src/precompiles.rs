@@ -18,7 +18,7 @@
 
 use evm::{executor::PrecompileOutput, Context, ExitError};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use pallet_balances_erc20_precompile::Erc20BalancesWrapper;
+use pallet_balances_erc20_precompile::{BalanceOf as Erc20BalanceOf, Erc20BalancesWrapper};
 use pallet_evm::{Precompile, PrecompileSet};
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
@@ -27,7 +27,7 @@ use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use parachain_staking_precompiles::ParachainStakingWrapper;
 use parity_scale_codec::Decode;
-use sp_core::H160;
+use sp_core::{H160, U256};
 use sp_std::convert::TryFrom;
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
@@ -51,7 +51,7 @@ where
 	/// Return all addresses that contain precompiles. This can be used to populate dummy code
 	/// under the precompile.
 	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
-		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 1024, 1025, 1026, 2048]
+		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 1024, 1025, 1026, 2048, 2049]
 			.into_iter()
 			.map(|x| hash(x).into())
 	}
@@ -70,6 +70,7 @@ where
 	BalanceOf<R>: TryFrom<sp_core::U256> + Debug,
 	R::Call: From<parachain_staking::Call<R>>,
 	R::Call: From<pallet_balances::Call<R>>,
+	U256: From<Erc20BalanceOf<R>>,
 {
 	fn execute(
 		address: H160,

@@ -20,7 +20,7 @@ use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	storage::types::StorageDoubleMap,
-	traits::StorageInstance,
+	traits::{Get, StorageInstance, StoredMap},
 	Blake2_128Concat,
 };
 use pallet_balances::pallet::{
@@ -28,7 +28,7 @@ use pallet_balances::pallet::{
 	Instance2, Instance3, Instance4, Instance5, Instance6, Instance7, Instance8, Instance9,
 };
 use pallet_evm::{AddressMapping, GasWeightMapping, Precompile};
-use sp_core::H160;
+use sp_core::{H160, U256};
 use sp_std::marker::PhantomData;
 
 pub trait InstanceToPrefix {
@@ -71,6 +71,10 @@ impl_prefix!(ApprovesPrefix14, Instance14, "Erc20Instance14Balances");
 impl_prefix!(ApprovesPrefix15, Instance15, "Erc20Instance15Balances");
 impl_prefix!(ApprovesPrefix16, Instance16, "Erc20Instance16Balances");
 
+pub type BalanceOf<Runtime, Instance = ()> =
+	<Runtime as pallet_balances::Config<Instance>>::Balance;
+
+/// (Owner => Allowed => Amount)
 pub type ApprovesStorage<Runtime, Instance> = StorageDoubleMap<
 	<Instance as InstanceToPrefix>::ApprovesPrefix,
 	Blake2_128Concat,
@@ -84,13 +88,13 @@ pub struct Erc20BalancesWrapper<Runtime, Instance: 'static = ()>(PhantomData<(Ru
 
 impl<Runtime, Instance> Precompile for Erc20BalancesWrapper<Runtime, Instance>
 where
-	// Runtime: Config<Instance>,
 	Runtime: pallet_balances::Config<Instance> + pallet_evm::Config,
 	Runtime::AccountId: From<H160>,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::Call: From<pallet_balances::Call<Runtime, Instance>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Instance: InstanceToPrefix + 'static,
+	U256: From<BalanceOf<Runtime, Instance>>,
 {
 	fn execute(
 		input: &[u8], //Reminder this is big-endian
@@ -164,19 +168,40 @@ where
 
 impl<Runtime, Instance> Erc20BalancesWrapper<Runtime, Instance>
 where
-	// Runtime: Config<Instance> + 'static,
 	Runtime: pallet_balances::Config<Instance> + pallet_evm::Config,
 	Runtime::AccountId: From<H160>,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Instance: InstanceToPrefix + 'static,
+	U256: From<BalanceOf<Runtime, Instance>>,
 {
 	fn total_supply(_input: &[u8]) -> Result<PrecompileOutput, ExitError> {
 		todo!()
 	}
 
-	fn balance_of(_input: &[u8]) -> Result<PrecompileOutput, ExitError> {
-		todo!()
+	fn balance_of(input: &[u8]) -> Result<PrecompileOutput, ExitError> {
+		if input.len() != 32 {
+			return Err(ExitError::Other("Incorrect input lenght".into()));
+		}
+
+		let address = H160::from_slice(&input[12..32]);
+
+		let amount =
+			<Runtime as pallet_balances::Config<Instance>>::AccountStore::get(&address.into()).free;
+
+		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+			<Runtime as frame_system::Config>::DbWeight::get().read,
+		);
+
+		let mut output = [0u8; 32];
+		U256::from(amount).to_big_endian(&mut output);
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gas_consumed,
+			output: output.to_vec(),
+			logs: Default::default(),
+		})
 	}
 
 	fn allowance(_input: &[u8]) -> Result<PrecompileOutput, ExitError> {
