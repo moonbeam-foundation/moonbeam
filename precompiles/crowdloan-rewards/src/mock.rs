@@ -17,11 +17,19 @@
 //! Test utilities
 use super::*;
 use codec::{Decode, Encode};
+use cumulus_primitives_core::relay_chain::BlockNumber as RelayChainBlockNumber;
+use cumulus_primitives_core::PersistedValidationData;
+use cumulus_primitives_parachain_inherent::ParachainInherentData;
+use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
+use frame_support::inherent::{InherentData, ProvideInherent};
+use frame_support::traits::GenesisBuild;
 use frame_support::{
-	construct_runtime, parameter_types,
+	construct_runtime,
+	dispatch::UnfilteredDispatchable,
+	parameter_types,
 	traits::{MaxEncodedLen, OnFinalize, OnInitialize},
 };
-use frame_system::{EnsureRoot, EnsureSigned};
+use frame_system::RawOrigin;
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
 use serde::{Deserialize, Serialize};
 use sp_core::H256;
@@ -50,7 +58,7 @@ construct_runtime!(
 		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>},
-		Crowdloan: pallet_crowdloan_rewards::{Pallet, Call, Storage, Event<T>, Config<T>},
+		Crowdloan: pallet_crowdloan_rewards::{Pallet, Call, Storage, Event<T>},
 	}
 );
 
@@ -247,11 +255,15 @@ impl pallet_crowdloan_rewards::Config for Test {
 pub(crate) struct ExtBuilder {
 	// endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
+	crowdloan_pot: Balance,
 }
 
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
-		ExtBuilder { balances: vec![] }
+		ExtBuilder {
+			balances: vec![],
+			crowdloan_pot: 0u32.into(),
+		}
 	}
 }
 
@@ -260,7 +272,10 @@ impl ExtBuilder {
 		self.balances = balances;
 		self
 	}
-
+	pub(crate) fn with_crowdloan_pot(mut self, pot: Balance) -> Self {
+		self.crowdloan_pot = pot;
+		self
+	}
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::default()
 			.build_storage::<Test>()
@@ -268,6 +283,12 @@ impl ExtBuilder {
 
 		pallet_balances::GenesisConfig::<Test> {
 			balances: self.balances,
+		}
+		.assimilate_storage(&mut t)
+		.expect("Pallet balances storage can be assimilated");
+
+		pallet_crowdloan_rewards::GenesisConfig::<Test> {
+			funded_amount: self.crowdloan_pot,
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");
@@ -281,6 +302,39 @@ impl ExtBuilder {
 //TODO Add pallets here if necessary
 pub(crate) fn roll_to(n: u64) {
 	while System::block_number() < n {
+		// Relay chain Stuff. I might actually set this to a number different than N
+		let sproof_builder = RelayStateSproofBuilder::default();
+		let (relay_parent_storage_root, relay_chain_state) =
+			sproof_builder.into_state_root_and_proof();
+		let vfp = PersistedValidationData {
+			relay_parent_number: (System::block_number() + 1u64) as RelayChainBlockNumber,
+			relay_parent_storage_root,
+			..Default::default()
+		};
+		let inherent_data = {
+			let mut inherent_data = InherentData::default();
+			let system_inherent_data = ParachainInherentData {
+				validation_data: vfp.clone(),
+				relay_chain_state,
+				downward_messages: Default::default(),
+				horizontal_messages: Default::default(),
+			};
+			inherent_data
+				.put_data(
+					cumulus_primitives_parachain_inherent::INHERENT_IDENTIFIER,
+					&system_inherent_data,
+				)
+				.expect("failed to put VFP inherent");
+			inherent_data
+		};
+
+		ParachainSystem::on_initialize(System::block_number());
+		ParachainSystem::create_inherent(&inherent_data)
+			.expect("got an inherent")
+			.dispatch_bypass_filter(RawOrigin::None.into())
+			.expect("dispatch succeeded");
+		ParachainSystem::on_finalize(System::block_number());
+
 		Balances::on_finalize(System::block_number());
 		System::on_finalize(System::block_number());
 		System::set_block_number(System::block_number() + 1);

@@ -21,6 +21,7 @@
 use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::Currency;
+use frame_support::traits::Get;
 use pallet_evm::AddressMapping;
 use pallet_evm::GasWeightMapping;
 use pallet_evm::Precompile;
@@ -81,6 +82,10 @@ where
 		// according to the solidity specification
 		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html#function-selector
 		let inner_call = match input[0..SELECTOR_SIZE_BYTES] {
+			// Check for accessor methods first. These return results immediatelyç
+			[0x53, 0x44, 0x0c, 0x90] => {
+				return Self::is_contributor(&input[SELECTOR_SIZE_BYTES..]);
+			}
 			[0x4e, 0x71, 0xd9, 0x2d] => Self::claim()?,
 			_ => {
 				log::trace!(
@@ -146,8 +151,49 @@ where
 	Runtime::Call: From<pallet_crowdloan_rewards::Call<Runtime>>,
 {
 	// The accessors are first. They directly return their result.
+	fn is_contributor(input: &[u8]) -> Result<PrecompileOutput, ExitError> {
+		// parse the address
+		let contributor = H160::from_slice(&input[12..32]);
+
+		log::trace!(
+			target: "crowdloan-rewards-precompile",
+			"Checking whether {:?} is a contributor",
+			contributor
+		);
+
+		let account: Runtime::AccountId = contributor.into();
+		// fetch data from pallet
+		let is_contributor =
+			pallet_crowdloan_rewards::Pallet::<Runtime>::accounts_payable(account).is_some();
+
+		log::trace!(target: "crowldoan-rewards-precompile", "Result from pallet is {:?}", is_contributor);
+
+		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+			<Runtime as frame_system::Config>::DbWeight::get().read,
+		);
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gas_consumed,
+			output: bool_to_solidity_bytes(is_contributor),
+			logs: Default::default(),
+		})
+	}
 
 	fn claim() -> Result<pallet_crowdloan_rewards::Call<Runtime>, ExitError> {
 		Ok(pallet_crowdloan_rewards::Call::<Runtime>::claim())
 	}
+}
+
+// Solidity's bool type is 256 bits as shown by these examples
+// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html
+// This utility function converts a Rust bool into the corresponding Solidity type
+fn bool_to_solidity_bytes(b: bool) -> Vec<u8> {
+	let mut result_bytes = [0u8; 32];
+
+	if b {
+		result_bytes[31] = 1;
+	}
+
+	result_bytes.to_vec()
 }
