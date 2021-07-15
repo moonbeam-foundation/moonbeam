@@ -4953,6 +4953,7 @@ name = "moonbeam-runtime"
 version = "0.8.4"
 dependencies = [
  "account",
+ "crowdloan-rewards-precompiles",
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
@@ -5144,6 +5145,7 @@ name = "moonriver-runtime"
 version = "0.8.4"
 dependencies = [
  "account",
+ "crowdloan-rewards-precompiles",
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
@@ -5217,6 +5219,7 @@ name = "moonshadow-runtime"
 version = "0.8.4"
 dependencies = [
  "account",
+ "crowdloan-rewards-precompiles",
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
