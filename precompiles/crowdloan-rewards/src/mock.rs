@@ -17,27 +17,27 @@
 //! Test utilities
 use super::*;
 use codec::{Decode, Encode};
-use cumulus_primitives_core::relay_chain::BlockNumber as RelayChainBlockNumber;
-use cumulus_primitives_core::PersistedValidationData;
+use cumulus_primitives_core::{
+	relay_chain::BlockNumber as RelayChainBlockNumber, PersistedValidationData,
+};
 use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
-use frame_support::inherent::{InherentData, ProvideInherent};
-use frame_support::traits::GenesisBuild;
 use frame_support::{
 	construct_runtime,
 	dispatch::UnfilteredDispatchable,
+	inherent::{InherentData, ProvideInherent},
 	parameter_types,
-	traits::{MaxEncodedLen, OnFinalize, OnInitialize},
+	traits::{GenesisBuild, MaxEncodedLen, OnFinalize, OnInitialize},
 };
 use frame_system::RawOrigin;
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
 use serde::{Deserialize, Serialize};
 use sp_core::H256;
 use sp_io;
-use sp_runtime::Perbill;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
+	Perbill,
 };
 pub type AccountId = TestAccount;
 pub type Balance = u128;

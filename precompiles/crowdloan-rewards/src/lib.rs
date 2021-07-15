@@ -14,22 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Precompile to call parachain-staking runtime methods via the EVM
+//! Precompile to call pallet-crowdloan-rewards runtime methods via the EVM
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
-use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use frame_support::traits::Currency;
-use frame_support::traits::Get;
-use pallet_evm::AddressMapping;
-use pallet_evm::GasWeightMapping;
-use pallet_evm::Precompile;
+use frame_support::{
+	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	traits::{Currency, Get},
+};
+use pallet_evm::{AddressMapping, GasWeightMapping, Precompile};
 use sp_core::{H160, U256};
-use sp_std::convert::{TryFrom, TryInto};
-use sp_std::fmt::Debug;
-use sp_std::marker::PhantomData;
-use sp_std::vec::Vec;
+use sp_std::{
+	convert::{TryFrom, TryInto},
+	fmt::Debug,
+	marker::PhantomData,
+	vec::Vec,
+};
 
 #[cfg(test)]
 mod mock;
