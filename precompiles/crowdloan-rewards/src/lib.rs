@@ -29,6 +29,11 @@ use sp_std::convert::{TryFrom, TryInto};
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
 
+#[cfg(test)]
+mod mock;
+#[cfg(test)]
+mod tests;
+
 type BalanceOf<Runtime> = <<Runtime as pallet_crowdloan_rewards::Config>::RewardCurrency as Currency<
 	<Runtime as frame_system::Config>::AccountId,
 >>::Balance;
