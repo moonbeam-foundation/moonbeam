@@ -942,11 +942,8 @@ pub mod pallet {
 					balance,
 					candidate_count,
 				) {
-					log::trace!(
-						target: "staking",
-						"Join candidates failed in genesis with error {:?}",
-						error
-					);
+					log::warn!("Join candidates failed in genesis with error {:?}", error);
+					drop(error);
 				} else {
 					candidate_count += 1u32;
 				}
@@ -976,11 +973,8 @@ pub mod pallet {
 					cn_count,
 					nn_count,
 				) {
-					log::trace!(
-						target: "staking",
-						"Join nominators failed in genesis with error {:?}",
-						error
-					);
+					log::warn!("Join nominators failed in genesis with error {:?}", error);
+					drop(error);
 				} else {
 					if let Some(x) = col_nominator_count.get_mut(&target) {
 						*x += 1u32;
@@ -1398,8 +1392,11 @@ pub mod pallet {
 				nomination_count >= (nominator.nominations.0.len() as u32),
 				Error::<T>::TooLowNominationCountToLeaveNominators
 			);
-			// TODO: NominatorScheduledExit
-
+			for bond in nominator.nominations.0 {
+				Self::nominator_leaves_collator(acc.clone(), bond.owner.clone())?;
+			}
+			<NominatorState<T>>::remove(&acc);
+			Self::deposit_event(Event::NominatorLeft(acc, nominator.total));
 			Ok(().into())
 		}
 		/// Revoke an existing nomination
@@ -1408,7 +1405,26 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			collator: T::AccountId,
 		) -> DispatchResultWithPostInfo {
-			Self::nominator_revokes_collator(ensure_signed(origin)?, collator)
+			let acc = ensure_signed(origin)?;
+			let mut nominator = <NominatorState<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
+			let old_total = nominator.total;
+			let remaining = nominator
+				.rm_nomination(collator.clone())
+				.ok_or(Error::<T>::NominationDNE)?;
+			if nominator.nominations.0.is_empty() {
+				// leave the set of nominators if no nominations left
+				Self::nominator_leaves_collator(acc.clone(), collator)?;
+				<NominatorState<T>>::remove(&acc);
+				Self::deposit_event(Event::NominatorLeft(acc, old_total));
+			} else {
+				ensure!(
+					remaining >= T::MinNominatorStk::get(),
+					Error::<T>::NomBondBelowMin
+				);
+				Self::nominator_leaves_collator(acc.clone(), collator)?;
+				<NominatorState<T>>::insert(&acc, nominator);
+			}
+			Ok(().into())
 		}
 		/// Bond more for nominators with respect to a specific collator candidate
 		#[pallet::weight(<T as Config>::WeightInfo::nominator_bond_more())]
@@ -1517,31 +1533,6 @@ pub mod pallet {
 				round_issuance.ideal
 			}
 		}
-		fn nominator_revokes_collator(
-			acc: T::AccountId,
-			collator: T::AccountId,
-		) -> DispatchResultWithPostInfo {
-			let mut nominator = <NominatorState<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
-			let old_total = nominator.total;
-			let remaining = nominator
-				.rm_nomination(collator.clone())
-				.ok_or(Error::<T>::NominationDNE)?;
-			// edge case; if no nominations remaining, leave set of nominators
-			if nominator.nominations.0.len().is_zero() {
-				// leave the set of nominators because no nominations left
-				Self::nominator_leaves_collator(acc.clone(), collator)?;
-				<NominatorState<T>>::remove(&acc);
-				Self::deposit_event(Event::NominatorLeft(acc, old_total));
-				return Ok(().into());
-			}
-			ensure!(
-				remaining >= T::MinNominatorStk::get(),
-				Error::<T>::NomBondBelowMin
-			);
-			Self::nominator_leaves_collator(acc.clone(), collator)?;
-			<NominatorState<T>>::insert(&acc, nominator);
-			Ok(().into())
-		}
 		fn nominator_leaves_collator(
 			nominator: T::AccountId,
 			collator: T::AccountId,
@@ -1632,8 +1623,7 @@ pub mod pallet {
 						Some((who, when))
 					} else {
 						if !exit_queue.candidates.remove(&who) {
-							log::trace!(
-								target: "staking",
+							log::warn!(
 								"Candidates set removal failed, CollatorState had inconsistency!",
 							);
 						}
@@ -1689,20 +1679,26 @@ pub mod pallet {
 				.nominator_schedule
 				.clone()
 				.into_iter()
-				.filter_map(|(who, validator, when)| {
-					// validator should be an option
+				.filter_map(|(who, collator, when)| {
 					if when > now {
-						Some((who, when))
+						Some((who, collator, when))
 					} else {
 						if !exit_queue.nominators.remove(&who) {
-							log::trace!(
-								target: "staking",
+							log::warn!(
 								"Nominators set removal failed, NominatorState had inconsistency!",
 							);
 						}
-						if let Some(nominator) = <NominatorState<T>>::get(who) {
+						if let Some(nominator) = <NominatorState<T>>::get(&who) {
 							for bond in nominator.nominations.0 {
-								Self::nominator_leaves_collator(who.clone(), bond.owner.clone())?;
+								if let Err(error) =
+									Self::nominator_leaves_collator(who.clone(), bond.owner.clone())
+								{
+									log::warn!(
+										"Nominator leaves collator failed with error: {:?}",
+										error
+									);
+									drop(error);
+								}
 							}
 							<NominatorState<T>>::remove(&who);
 							Self::deposit_event(Event::NominatorLeft(who, nominator.total));
