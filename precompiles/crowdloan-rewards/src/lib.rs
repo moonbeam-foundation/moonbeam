@@ -71,29 +71,10 @@ where
 		log::trace!(target: "crowdloan-rewards-precompile", "context.caller is {:?}", context.caller);
 
 		// Parse the function selector
-		// These are the four-byte function selectors calculated from the StakingInterface.sol
+		// These are the four-byte function selectors calculated from the CrowdloanInterface.sol
 		// according to the solidity specification
 		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html#function-selector
 		let inner_call = match input[0..SELECTOR_SIZE_BYTES] {
-			// Check for accessor methods first. These return results immediately
-	/* 		[0x8e, 0x50, 0x80, 0xe7] => {
-				return Self::is_nominator(&input[SELECTOR_SIZE_BYTES..]);
-			}
-			[0x85, 0x45, 0xc8, 0x33] => {
-				return Self::is_candidate(&input[SELECTOR_SIZE_BYTES..]);
-			}
-			[0x8f, 0x6d, 0x27, 0xc7] => {
-				return Self::is_selected_candidate(&input[SELECTOR_SIZE_BYTES..]);
-			}
-			[0xc9, 0xf5, 0x93, 0xb2] => {
-				//TODO Do we need to verify that there were no additional bytes passed in here?
-				return Self::min_nomination();
-			}
-			[0x97, 0x99, 0xb4, 0xe7] => {
-				return Self::points(&input[SELECTOR_SIZE_BYTES..]);
-			}*/
-
-			// If not an accessor, check for dispatchables. These calls ready for dispatch below.
 			[0x4e, 0x71, 0xd9, 0x2d] =>  Self::claim()?,
 			_ => {
 				log::trace!(
