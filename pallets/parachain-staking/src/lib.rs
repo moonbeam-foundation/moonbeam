@@ -661,35 +661,6 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(Clone, Copy, PartialEq, Eq, Encode, Decode, RuntimeDebug)]
-	#[non_exhaustive]
-	/// All ongoing migrations
-	pub enum Migration {
-		AddNominatorStatus,
-		ClearOldPointTotals,
-		RenameCollatorState2ToCandidateState,
-	}
-
-	fn migration_executed<T: Config>(migration: Migration) -> bool {
-		match migration {
-			Migration::AddNominatorStatus => {
-				// migrate from Nominator -> Nominator2
-				for (acc, nominator_state) in NominatorState::<T>::drain() {
-					let state: Nominator2<T::AccountId, BalanceOf<T>> = nominator_state.into();
-					<NominatorState2<T>>::insert(acc, state);
-				}
-				Pallet::<T>::deposit_event(Event::MigrationExecuted(Migration::AddNominatorStatus));
-				true
-			}
-			Migration::ClearOldPointTotals => {
-				todo!()
-			}
-			RenameCollatorState2ToCandidateState => {
-				todo!()
-			}
-		}
-	}
-
 	type RoundIndex = u32;
 	type RewardPoint = u32;
 	pub type BalanceOf<T> =
@@ -822,23 +793,20 @@ pub mod pallet {
 			Perbill,
 			Perbill,
 		),
-		/// Migration event indicates a migration was executed
-		MigrationExecuted(Migration),
+		/// Migration from NominatorState -> NominatorState2 has been executed
+		AddNominatorStatusMigrationExecuted,
 	}
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_runtime_upgrade() -> Weight {
-			let migrations = <Migrations<T>>::get();
-			if migrations.is_empty() {
-				return 0; // TODO: return cost of one storage get
+			// migrate from Nominator -> Nominator2
+			for (acc, nominator_state) in NominatorState::<T>::drain() {
+				let state: Nominator2<T::AccountId, BalanceOf<T>> = nominator_state.into();
+				<NominatorState2<T>>::insert(acc, state);
 			}
-			let unexecuted_migrations = migrations
-				.into_iter()
-				.filter(|x| !migration_executed::<T>(*x))
-				.collect::<Vec<Migration>>();
-			<Migrations<T>>::put(unexecuted_migrations);
-
+			<AddNominatorStatusMigration<T>>::put(true);
+			Self::deposit_event(Event::AddNominatorStatusMigrationExecuted);
 			300_000_000_000 // Three fifths of the max block weight
 		}
 		fn on_initialize(n: T::BlockNumber) -> Weight {
@@ -871,9 +839,9 @@ pub mod pallet {
 	}
 
 	#[pallet::storage]
-	#[pallet::getter(fn migrations)]
-	/// Storage migrations that have not been executed yet
-	type Migrations<T: Config> = StorageValue<_, Vec<Migration>, ValueQuery>;
+	#[pallet::getter(fn add_nominator_status_migration)]
+	/// True if executed, false by default
+	type AddNominatorStatusMigration<T: Config> = StorageValue<_, bool, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn collator_commission)]
