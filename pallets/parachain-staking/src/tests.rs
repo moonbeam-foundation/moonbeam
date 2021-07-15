@@ -1305,9 +1305,9 @@ fn nominate_updates_nominator_state() {
 		.with_candidates(vec![(1, 30)])
 		.build()
 		.execute_with(|| {
-			assert!(Stake::nominator_state(2).is_none());
+			assert!(Stake::nominator_state2(2).is_none());
 			assert_ok!(Stake::nominate(Origin::signed(2), 1, 10, 0, 0));
-			let nominator_state = Stake::nominator_state(2).expect("just nominated => exists");
+			let nominator_state = Stake::nominator_state2(2).expect("just nominated => exists");
 			assert_eq!(nominator_state.total, 10);
 			assert_eq!(
 				nominator_state.nominations.0[0],
@@ -1527,9 +1527,9 @@ fn leave_nominators_removes_nominator_state() {
 		.with_nominations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert!(Stake::nominator_state(2).is_some());
+			assert!(Stake::nominator_state2(2).is_some());
 			assert_ok!(Stake::leave_nominators(Origin::signed(2), 1));
-			assert!(Stake::nominator_state(2).is_none());
+			assert!(Stake::nominator_state2(2).is_none());
 		});
 }
 
@@ -1555,7 +1555,7 @@ fn leave_nominators_removes_nominations_from_collator_state() {
 				assert_eq!(candidate_state.total_backing, 30);
 			}
 			assert_eq!(
-				Stake::nominator_state(1).unwrap().nominations.0.len(),
+				Stake::nominator_state2(1).unwrap().nominations.0.len(),
 				4usize
 			);
 			assert_ok!(Stake::leave_nominators(Origin::signed(1), 10));
@@ -1684,9 +1684,9 @@ fn revoke_nomination_for_last_nomination_removes_nominator_state() {
 		.with_nominations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert!(Stake::nominator_state(2).is_some());
+			assert!(Stake::nominator_state2(2).is_some());
 			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 1));
-			assert!(Stake::nominator_state(2).is_none());
+			assert!(Stake::nominator_state2(2).is_none());
 		});
 }
 
@@ -1811,9 +1811,9 @@ fn nominator_bond_more_updates_nominator_state() {
 		.with_nominations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_eq!(Stake::nominator_state(2).expect("exists").total, 10);
+			assert_eq!(Stake::nominator_state2(2).expect("exists").total, 10);
 			assert_ok!(Stake::nominator_bond_more(Origin::signed(2), 1, 5));
-			assert_eq!(Stake::nominator_state(2).expect("exists").total, 15);
+			assert_eq!(Stake::nominator_state2(2).expect("exists").total, 15);
 		});
 }
 
@@ -1972,9 +1972,9 @@ fn nominator_bond_less_updates_nominator_state() {
 		.with_nominations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_eq!(Stake::nominator_state(2).expect("exists").total, 10);
+			assert_eq!(Stake::nominator_state2(2).expect("exists").total, 10);
 			assert_ok!(Stake::nominator_bond_less(Origin::signed(2), 1, 5));
-			assert_eq!(Stake::nominator_state(2).expect("exists").total, 5);
+			assert_eq!(Stake::nominator_state2(2).expect("exists").total, 5);
 		});
 }
 
@@ -2779,14 +2779,14 @@ fn multiple_nominations() {
 			expected.append(&mut new3);
 			assert_eq!(events(), expected);
 			// verify that nominations are removed after collator leaves, not before
-			assert_eq!(Stake::nominator_state(7).unwrap().total, 90);
+			assert_eq!(Stake::nominator_state2(7).unwrap().total, 90);
 			assert_eq!(
-				Stake::nominator_state(7).unwrap().nominations.0.len(),
+				Stake::nominator_state2(7).unwrap().nominations.0.len(),
 				2usize
 			);
-			assert_eq!(Stake::nominator_state(6).unwrap().total, 40);
+			assert_eq!(Stake::nominator_state2(6).unwrap().total, 40);
 			assert_eq!(
-				Stake::nominator_state(6).unwrap().nominations.0.len(),
+				Stake::nominator_state2(6).unwrap().nominations.0.len(),
 				4usize
 			);
 			assert_eq!(Balances::reserved_balance(&6), 40);
@@ -2794,14 +2794,14 @@ fn multiple_nominations() {
 			assert_eq!(Balances::free_balance(&6), 60);
 			assert_eq!(Balances::free_balance(&7), 10);
 			roll_to(40);
-			assert_eq!(Stake::nominator_state(7).unwrap().total, 10);
-			assert_eq!(Stake::nominator_state(6).unwrap().total, 30);
+			assert_eq!(Stake::nominator_state2(7).unwrap().total, 10);
+			assert_eq!(Stake::nominator_state2(6).unwrap().total, 30);
 			assert_eq!(
-				Stake::nominator_state(7).unwrap().nominations.0.len(),
+				Stake::nominator_state2(7).unwrap().nominations.0.len(),
 				1usize
 			);
 			assert_eq!(
-				Stake::nominator_state(6).unwrap().nominations.0.len(),
+				Stake::nominator_state2(6).unwrap().nominations.0.len(),
 				3usize
 			);
 			assert_eq!(Balances::reserved_balance(&6), 30);
