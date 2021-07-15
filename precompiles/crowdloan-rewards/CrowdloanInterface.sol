@@ -6,7 +6,8 @@ pragma solidity >=0.8.0;
 /// wraps the pallet
 interface CrowdloanRewards {
     // First some simple accessors
-
+    function is_contributor(address contributor) external view returns (bool);
+    function reward_info(address contributor) external view returns (uint256, uint256);
     // Now the dispatchables
 
 
@@ -23,5 +24,6 @@ interface CrowdloanRewards {
 
 { 
     "53440c90": "is_contributor(address)"
+    "76f70249": "reward_info(address)"
     "4e71d92d": "claim()" 
 }

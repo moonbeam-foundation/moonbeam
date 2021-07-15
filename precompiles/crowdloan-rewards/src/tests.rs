@@ -195,3 +195,55 @@ fn claim_works() {
 			assert!(events().contains(&expected));
 		});
 }
+
+#[test]
+fn reward_info_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.with_crowdloan_pot(100u32.into())
+		.build()
+		.execute_with(|| {
+			pub const VESTING: u32 = 8;
+			// The init relay block gets inserted
+			roll_to(2);
+
+			let init_block = Crowdloan::init_relay_block();
+			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec(vec![
+				([1u8; 32].into(), Some(Alice), 50u32.into()),
+				([2u8; 32].into(), Some(Bob), 50u32.into()),
+			]))
+			.dispatch(Origin::root()));
+
+			assert_ok!(Crowdloan::complete_initialization(
+				Origin::root(),
+				init_block + VESTING
+			));
+
+			roll_to(5);
+
+			let selector = hex_literal::hex!("76f70249");
+
+			// Construct data to read prop count
+			let mut input_data = Vec::<u8>::from([0u8; 36]);
+			input_data[0..4].copy_from_slice(&selector);
+			input_data[16..36].copy_from_slice(&Alice.to_h160().0);
+
+			let mut expected_buffer = [0u8; 64];
+			U256::from(50u128).to_big_endian(&mut expected_buffer[0..32]);
+			U256::from(10u128).to_big_endian(&mut expected_buffer[32..64]);
+
+			// Expected result
+			let expected_buffer_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_buffer.to_vec(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+
+			// Assert that no props have been opened.
+			assert_eq!(
+				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				expected_buffer_result
+			);
+		});
+}

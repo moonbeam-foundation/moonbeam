@@ -86,6 +86,9 @@ where
 			[0x53, 0x44, 0x0c, 0x90] => {
 				return Self::is_contributor(&input[SELECTOR_SIZE_BYTES..]);
 			}
+			[0x76, 0xf7, 0x02, 0x49] => {
+				return Self::reward_info(&input[SELECTOR_SIZE_BYTES..]);
+			}
 			[0x4e, 0x71, 0xd9, 0x2d] => Self::claim()?,
 			_ => {
 				log::trace!(
@@ -176,6 +179,49 @@ where
 			exit_status: ExitSucceed::Returned,
 			cost: gas_consumed,
 			output: bool_to_solidity_bytes(is_contributor),
+			logs: Default::default(),
+		})
+	}
+
+	fn reward_info(input: &[u8]) -> Result<PrecompileOutput, ExitError> {
+		// parse the address
+		let contributor = H160::from_slice(&input[12..32]);
+
+		log::trace!(
+			target: "crowdloan-rewards-precompile",
+			"Checking reward info for {:?}",
+			contributor
+		);
+
+		let account: Runtime::AccountId = contributor.into();
+		// fetch data from pallet
+		let reward_info = pallet_crowdloan_rewards::Pallet::<Runtime>::accounts_payable(account);
+
+		let (total, claimed): (U256, U256) = if let Some(reward_info) = reward_info {
+			let total_reward: u128 = reward_info.total_reward.try_into().map_err(|_| {
+				ExitError::Other("Amount is too large for provided balance type".into())
+			})?;
+			let claimed_reward: u128 = reward_info.claimed_reward.try_into().map_err(|_| {
+				ExitError::Other("Amount is too large for provided balance type".into())
+			})?;
+
+			(total_reward.into(), claimed_reward.into())
+		} else {
+			(0u128.into(), 0u128.into())
+		};
+
+		log::trace!(target: "crowldoan-rewards-precompile", "Result from pallet is {:?}  {:?}", total, claimed);
+
+		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+			<Runtime as frame_system::Config>::DbWeight::get().read,
+		);
+		let mut buffer = [0u8; 64];
+		total.to_big_endian(&mut buffer[0..32]);
+		claimed.to_big_endian(&mut buffer[32..64]);
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gas_consumed,
+			output: buffer.to_vec(),
 			logs: Default::default(),
 		})
 	}
