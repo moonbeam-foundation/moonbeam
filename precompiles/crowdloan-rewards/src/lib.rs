@@ -34,9 +34,10 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-type BalanceOf<Runtime> = <<Runtime as pallet_crowdloan_rewards::Config>::RewardCurrency as Currency<
-	<Runtime as frame_system::Config>::AccountId,
->>::Balance;
+type BalanceOf<Runtime> =
+	<<Runtime as pallet_crowdloan_rewards::Config>::RewardCurrency as Currency<
+		<Runtime as frame_system::Config>::AccountId,
+	>>::Balance;
 
 /// A precompile to wrap the functionality from pallet_crowdloan_rewards.
 ///
@@ -80,14 +81,14 @@ where
 		// according to the solidity specification
 		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html#function-selector
 		let inner_call = match input[0..SELECTOR_SIZE_BYTES] {
-			[0x4e, 0x71, 0xd9, 0x2d] =>  Self::claim()?,
+			[0x4e, 0x71, 0xd9, 0x2d] => Self::claim()?,
 			_ => {
 				log::trace!(
 					target: "crowdloan-rewards-precompile",
 					"Failed to match function selector in crowdloan rewards precompile"
 				);
 				return Err(ExitError::Other(
-					"No crowdloan rewards wrapper method at selector given selector".into(),
+					"No crowdloan rewards wrapper method at given selector".into(),
 				));
 			}
 		};
