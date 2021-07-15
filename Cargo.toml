@@ -8,7 +8,6 @@ members = [
     'node/cli',
     'node/service',
     'bin/utils/moonkey',
-    'precompiles/crowdloan-rewards'
 ]
 exclude = [
     'bin/utils/moonkey'

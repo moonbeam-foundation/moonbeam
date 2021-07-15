@@ -212,9 +212,9 @@ where
 		};
 
 		log::trace!(
-            target: "crowldoan-rewards-precompile", "Result from pallet is {:?}  {:?}", 
-            total, claimed
-        );
+			target: "crowldoan-rewards-precompile", "Result from pallet is {:?}  {:?}",
+			total, claimed
+		);
 
 		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
 			<Runtime as frame_system::Config>::DbWeight::get().read,
