@@ -29,6 +29,7 @@ use sp_core::{H160, U256};
 use sp_std::convert::{TryFrom, TryInto};
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
+use sp_std::vec::Vec;
 
 #[cfg(test)]
 mod mock;
@@ -210,7 +211,10 @@ where
 			(0u128.into(), 0u128.into())
 		};
 
-		log::trace!(target: "crowldoan-rewards-precompile", "Result from pallet is {:?}  {:?}", total, claimed);
+		log::trace!(
+            target: "crowldoan-rewards-precompile", "Result from pallet is {:?}  {:?}", 
+            total, claimed
+        );
 
 		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
 			<Runtime as frame_system::Config>::DbWeight::get().read,
