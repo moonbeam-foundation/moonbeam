@@ -175,8 +175,26 @@ where
 	Instance: InstanceToPrefix + 'static,
 	U256: From<BalanceOf<Runtime, Instance>>,
 {
-	fn total_supply(_input: &[u8]) -> Result<PrecompileOutput, ExitError> {
-		todo!()
+	fn total_supply(input: &[u8]) -> Result<PrecompileOutput, ExitError> {
+		if !input.is_empty() {
+			return Err(ExitError::Other("Incorrect input lenght".into()));
+		}
+
+		let amount = pallet_balances::Pallet::<Runtime, Instance>::total_issuance();
+
+		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+			<Runtime as frame_system::Config>::DbWeight::get().read,
+		);
+
+		let mut output = [0u8; 32];
+		U256::from(amount).to_big_endian(&mut output);
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gas_consumed,
+			output: output.to_vec(),
+			logs: Default::default(),
+		})
 	}
 
 	fn balance_of(input: &[u8]) -> Result<PrecompileOutput, ExitError> {
@@ -186,8 +204,7 @@ where
 
 		let address = H160::from_slice(&input[12..32]);
 
-		let amount =
-			<Runtime as pallet_balances::Config<Instance>>::AccountStore::get(&address.into()).free;
+		let amount = pallet_balances::Pallet::<Runtime, Instance>::usable_balance(&address.into());
 
 		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
 			<Runtime as frame_system::Config>::DbWeight::get().read,

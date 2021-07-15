@@ -5,7 +5,7 @@ import { GENESIS_ACCOUNT, ALITH } from "../util/constants";
 
 describeDevMoonbeam("Precompiles - ERC20", (context) => {
   it("ERC20 Native currency - getBalance", async function () {
-    let selector = `70a08231`;
+    let selector = `70a08231`; // balanceOf
     let address = ALITH.slice(2).padStart(64, "0");
 
     const tx_call = await customWeb3Request(context.web3, "eth_call", [
@@ -24,5 +24,25 @@ describeDevMoonbeam("Precompiles - ERC20", (context) => {
     let amount = "0x" + account.data.free.toHex().slice(2).padStart(64, "0");
 
     expect(tx_call.result).equals(amount);
+  });
+
+  it("ERC20 Native currency - total issuance", async function () {
+    let selector = `7c80aa9f`; // totalSupply
+
+    const tx_call = await customWeb3Request(context.web3, "eth_call", [
+      {
+        from: GENESIS_ACCOUNT,
+        value: "0x0",
+        gas: "0x10000",
+        gasPrice: context.web3.utils.numberToHex(1_000_000_000),
+        to: "0x0000000000000000000000000000000000000801",
+        data: `0x${selector}`,
+      },
+    ]);
+
+    let amount = await context.polkadotApi.query.balances.totalIssuance();
+    let amount_hex = "0x" + amount.toHex().slice(2).padStart(64, "0");
+
+    expect(tx_call.result).equals(amount_hex);
   });
 });
