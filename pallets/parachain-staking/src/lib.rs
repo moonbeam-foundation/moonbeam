@@ -627,18 +627,12 @@ pub mod pallet {
 			candidate: Option<A>,
 			exit_round: RoundIndex,
 		) -> DispatchResult {
-			// if a nominator tries to leave, but their nominated collator is scheduled to exit,
-			// they must wait to exit with the collator
-			ensure!(
-				!self.candidates.contains(&candidate),
-				Error::<T>::CandidateAlreadyLeavingSoNominatorMustWait
-			);
 			ensure!(
 				self.nominators.insert(nominator.clone()),
 				Error::<T>::NominatorAlreadyLeaving
 			);
 			self.nominator_schedule
-				.push((nominator, Some(candidate), exit_round));
+				.push((nominator, candidate, exit_round));
 			Ok(())
 		}
 	}
