@@ -590,11 +590,9 @@ fn claim_via_precompile() {
 
 			let crowdloan_precompile_address = H160::from_low_u64_be(2049);
 
-			// Alice uses the staking precompile to join as a candidate through the EVM
+			// Alice uses the crowdloan precompile to claim through the EVM
 			let gas_limit = 100000u64;
 			let gas_price: U256 = 1_000_000_000.into();
-			let amount: U256 = (1000 * UNIT).into();
-			let candidate_count: U256 = U256::zero();
 
 			// Construct the call data (selector, amount)
 			let mut call_data = Vec::<u8>::from([0u8; 4]);
