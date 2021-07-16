@@ -89,7 +89,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 			impl moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block> for Runtime {
 				fn trace_transaction(
-					header: &<Block as BlockT>::Header,
+					_header: &<Block as BlockT>::Header,
 					extrinsics: Vec<<Block as BlockT>::Extrinsic>,
 					transaction: &EthereumTransaction,
 					trace_type: moonbeam_rpc_primitives_debug::single::TraceType,
@@ -99,10 +99,6 @@ macro_rules! impl_runtime_apis_plus_common {
 				> {
 					use moonbeam_evm_tracer::{CallListTracer, RawTracer};
 					use moonbeam_rpc_primitives_debug::single::TraceType;
-
-					// Explicit initialize.
-					// Needed because https://github.com/paritytech/substrate/pull/8953
-					Executive::initialize_block(header);
 
 					// Apply the a subset of extrinsics: all the substrate-specific or ethereum
 					// transactions that preceded the requested transaction.
@@ -142,7 +138,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn trace_block(
-					header: &<Block as BlockT>::Header,
+					_header: &<Block as BlockT>::Header,
 					extrinsics: Vec<<Block as BlockT>::Extrinsic>,
 				) -> Result<
 					(),
@@ -152,10 +148,6 @@ macro_rules! impl_runtime_apis_plus_common {
 					use moonbeam_rpc_primitives_debug::{
 						block, single, CallResult, CreateResult, CreateType,
 					};
-
-					// Explicit initialize.
-					// Needed because https://github.com/paritytech/substrate/pull/8953
-					Executive::initialize_block(header);
 
 					let mut config = <Runtime as pallet_evm::Config>::config().clone();
 					config.estimate = true;
@@ -337,24 +329,7 @@ macro_rules! impl_runtime_apis_plus_common {
 			}
 
 			impl nimbus_primitives::AuthorFilterAPI<Block, nimbus_primitives::NimbusId> for Runtime {
-				fn can_author(
-					author: nimbus_primitives::NimbusId,
-					slot: u32,
-					parent_header: &<Block as BlockT>::Header
-				) -> bool {
-					// The Moonbeam runtimes use an entropy source that needs to do some accounting
-					// work during block initialization. Therefore we initialize it here to match
-					// the state it will be in when the next block is being executed.
-					use frame_support::traits::OnInitialize;
-					System::initialize(
-						&(parent_header.number + 1),
-						&parent_header.hash(),
-						&parent_header.digest,
-						frame_system::InitKind::Inspection
-					);
-					RandomnessCollectiveFlip::on_initialize(System::block_number());
-
-					// And now the actual prediction call
+				fn can_author(author: nimbus_primitives::NimbusId, slot: u32) -> bool {
 					AuthorInherent::can_author(&author, &slot)
 				}
 			}
