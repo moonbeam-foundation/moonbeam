@@ -27,7 +27,6 @@
   "dependencies": {
     "@polkadot/keyring": "^7.0.1",
     "@polkadot/types": "^5.0.1",
-    "rxjs": "^7.2.0",
     "typescript": "^4.3.5"
   }
 }
