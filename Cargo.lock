@@ -4610,7 +4610,6 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "hex",
- "hex-literal",
  "log",
  "max-encoded-len",
  "moonbeam-core-primitives",
@@ -4650,6 +4649,7 @@ dependencies = [
  "rlp",
  "runtime-common",
  "serde",
+ "sha3 0.8.2",
  "sp-api",
  "sp-block-builder",
  "sp-core",
@@ -4934,7 +4934,6 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "hex",
- "hex-literal",
  "log",
  "max-encoded-len",
  "moonbeam-core-primitives",
@@ -4974,6 +4973,7 @@ dependencies = [
  "rlp",
  "runtime-common",
  "serde",
+ "sha3 0.8.2",
  "sp-api",
  "sp-block-builder",
  "sp-core",
@@ -5125,7 +5125,6 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "hex",
- "hex-literal",
  "log",
  "max-encoded-len",
  "moonbeam-core-primitives",
@@ -5165,6 +5164,7 @@ dependencies = [
  "rlp",
  "runtime-common",
  "serde",
+ "sha3 0.8.2",
  "sp-api",
  "sp-block-builder",
  "sp-core",
@@ -5198,7 +5198,6 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "hex",
- "hex-literal",
  "log",
  "max-encoded-len",
  "moonbeam-core-primitives",
@@ -5238,6 +5237,7 @@ dependencies = [
  "rlp",
  "runtime-common",
  "serde",
+ "sha3 0.8.2",
  "sp-api",
  "sp-block-builder",
  "sp-core",
@@ -6481,7 +6481,7 @@ dependencies = [
 
 [[package]]
 name = "parachain-staking-precompiles"
-version = "0.6.0"
+version = "1.0.0"
 dependencies = [
  "evm",
  "frame-support",

@@ -95,14 +95,14 @@ where
 			}
 
 			// If not an accessor, check for dispatchables. These calls ready for dispatch below.
-			[0xad, 0x76, 0xed, 0x5a] => Self::join_candidates(&input[SELECTOR_SIZE_BYTES..])?,
-			[0xb7, 0x69, 0x42, 0x19] => Self::leave_candidates(&input[SELECTOR_SIZE_BYTES..])?,
+			[0x0a, 0x1b, 0xff, 0x60] => Self::join_candidates(&input[SELECTOR_SIZE_BYTES..])?,
+			[0x72, 0xb0, 0x2a, 0x31] => Self::leave_candidates(&input[SELECTOR_SIZE_BYTES..])?,
 			[0x76, 0x7e, 0x04, 0x50] => Self::go_offline()?,
 			[0xd2, 0xf7, 0x3c, 0xeb] => Self::go_online()?,
 			[0x28, 0x9b, 0x6b, 0xa7] => Self::candidate_bond_less(&input[SELECTOR_SIZE_BYTES..])?,
 			[0xc5, 0x7b, 0xd3, 0xa8] => Self::candidate_bond_more(&input[SELECTOR_SIZE_BYTES..])?,
-			[0x82, 0xf2, 0xc8, 0xdf] => Self::nominate(&input[SELECTOR_SIZE_BYTES..])?,
-			[0xe8, 0xd6, 0x8a, 0x37] => Self::leave_nominators(&input[SELECTOR_SIZE_BYTES..])?,
+			[0x49, 0xdf, 0x6e, 0xb3] => Self::nominate(&input[SELECTOR_SIZE_BYTES..])?,
+			[0xb7, 0x1d, 0x21, 0x53] => Self::leave_nominators(&input[SELECTOR_SIZE_BYTES..])?,
 			[0x4b, 0x65, 0xc3, 0x4b] => Self::revoke_nomination(&input[SELECTOR_SIZE_BYTES..])?,
 			[0xf6, 0xa5, 0x25, 0x69] => Self::nominator_bond_less(&input[SELECTOR_SIZE_BYTES..])?,
 			[0x97, 0x1d, 0x44, 0xc8] => Self::nominator_bond_more(&input[SELECTOR_SIZE_BYTES..])?,
