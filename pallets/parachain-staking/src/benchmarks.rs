@@ -344,7 +344,7 @@ benchmarks! {
 		}
 	}: _(RawOrigin::Signed(caller.clone()), nomination_count)
 	verify {
-		assert!(!Pallet::<T>::is_nominator(&caller));
+		assert!(Pallet::<T>::nominator_state2(&caller).unwrap().is_leaving());
 	}
 
 	revoke_nomination {
