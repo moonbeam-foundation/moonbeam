@@ -29,8 +29,7 @@ use crate::{Bond, CollatorStatus, Error, Event, NominatorAdded, Range};
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, Perbill, Percent};
 
-/// Prints the diff if assert_eq fails
-/// - should only be used for debugging purposes
+/// Prints the diff iff assert_eq fails, should only be used for debugging purposes
 #[macro_export]
 macro_rules! asserts_eq {
 	($left:expr, $right:expr) => {
@@ -1110,7 +1109,7 @@ fn cannot_candidate_bond_more_if_leaving_candidates() {
 			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
 			assert_noop!(
 				Stake::candidate_bond_more(Origin::signed(1), 30),
-				Error::<Test>::CannotActivateIfLeaving
+				Error::<Test>::CannotActBecauseLeaving
 			);
 		});
 }
@@ -1252,7 +1251,7 @@ fn cannot_candidate_bond_less_if_leaving_candidates() {
 			assert_ok!(Stake::leave_candidates(Origin::signed(1), 1));
 			assert_noop!(
 				Stake::candidate_bond_less(Origin::signed(1), 10),
-				Error::<Test>::CannotActivateIfLeaving
+				Error::<Test>::CannotActBecauseLeaving
 			);
 		});
 }
@@ -1501,7 +1500,7 @@ fn leave_nominators_event_emits_correctly() {
 			assert_ok!(Stake::leave_nominators(Origin::signed(2), 1));
 			assert_eq!(
 				last_event(),
-				MetaEvent::Stake(Event::NominatorScheduledExit(1, 2, 3))
+				MetaEvent::Stake(Event::NominatorExitScheduled(1, 2, 3))
 			);
 			roll_to(10);
 			assert!(events().contains(&Event::NominatorLeft(2, 10)));
@@ -1644,7 +1643,7 @@ fn sufficient_leave_nominators_weight_hint_succeeds() {
 // REVOKE_NOMINATION
 
 #[test]
-fn revoke_nomination_event_emits_correctly() {
+fn revoke_nomination_event_emits_exit_scheduled_if_no_nominations_left() {
 	// last nomination is revocation
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10)])
@@ -1652,24 +1651,34 @@ fn revoke_nomination_event_emits_correctly() {
 		.with_nominations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
+			roll_to(1);
 			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 1));
 			assert_eq!(
-				events(),
-				vec![
-					Event::NominatorLeftCollator(2, 1, 10, 30),
-					Event::NominatorLeft(2, 10,),
-				]
+				last_event(),
+				MetaEvent::Stake(Event::NominatorExitScheduled(1, 2, 3))
 			);
+			roll_to(10);
+			assert!(events().contains(&Event::NominatorLeftCollator(2, 1, 10, 30)));
+			assert!(events().contains(&Event::NominatorLeft(2, 10)));
 		});
-	// more nominations remaining after revocation
+}
+
+#[test]
+fn revoke_nomination_event_emits_correctly() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 20), (3, 30)])
 		.with_candidates(vec![(1, 30), (3, 30)])
 		.with_nominations(vec![(2, 1, 10), (2, 3, 10)])
 		.build()
 		.execute_with(|| {
+			roll_to(1);
 			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 1));
-			assert_eq!(events(), vec![Event::NominatorLeftCollator(2, 1, 10, 30)]);
+			assert_eq!(
+				last_event(),
+				MetaEvent::Stake(Event::NominationRevocationScheduled(1, 2, 1, 3))
+			);
+			roll_to(10);
+			assert!(events().contains(&Event::NominatorLeftCollator(2, 1, 10, 30)));
 		});
 }
 
@@ -1681,9 +1690,11 @@ fn revoke_nomination_unreserves_balance() {
 		.with_nominations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
+			roll_to(1);
 			assert_eq!(Balances::reserved_balance(&2), 10);
 			assert_eq!(Balances::free_balance(&2), 0);
 			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 1));
+			roll_to(10);
 			assert_eq!(Balances::reserved_balance(&2), 0);
 			assert_eq!(Balances::free_balance(&2), 10);
 		});
@@ -1697,8 +1708,10 @@ fn revoke_nomination_decreases_total_staked() {
 		.with_nominations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
+			roll_to(1);
 			assert_eq!(Stake::total(), 40);
 			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 1));
+			roll_to(10);
 			assert_eq!(Stake::total(), 30);
 		});
 }
@@ -1711,8 +1724,10 @@ fn revoke_nomination_for_last_nomination_removes_nominator_state() {
 		.with_nominations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
+			roll_to(1);
 			assert!(Stake::nominator_state2(2).is_some());
 			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 1));
+			roll_to(10);
 			assert!(Stake::nominator_state2(2).is_none());
 		});
 }
@@ -1725,6 +1740,7 @@ fn revoke_nomination_removes_nomination_from_candidate_state() {
 		.with_nominations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
+			roll_to(1);
 			assert_eq!(
 				Stake::collator_state2(1)
 					.expect("exists")
@@ -1734,6 +1750,7 @@ fn revoke_nomination_removes_nomination_from_candidate_state() {
 				1usize
 			);
 			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 1));
+			roll_to(10);
 			assert!(Stake::collator_state2(1)
 				.expect("exists")
 				.nominators
@@ -2214,7 +2231,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			// fast forward to block in which nominator 6 exit executes
 			roll_to(25);
 			let mut new2 = vec![
-				Event::NominatorScheduledExit(4, 6, 6),
+				Event::NominatorExitScheduled(4, 6, 6),
 				Event::ReservedForParachainBond(11, 16),
 				Event::Rewarded(1, 19),
 				Event::Rewarded(7, 6),
@@ -2925,7 +2942,7 @@ fn payouts_follow_nomination_changes() {
 			roll_to(25);
 			// keep paying 6 (note: inflation is in terms of total issuance so that's why 1 is 21)
 			let mut new2 = vec![
-				Event::NominatorScheduledExit(4, 6, 6),
+				Event::NominatorExitScheduled(4, 6, 6),
 				Event::Rewarded(1, 27),
 				Event::Rewarded(7, 8),
 				Event::Rewarded(10, 8),

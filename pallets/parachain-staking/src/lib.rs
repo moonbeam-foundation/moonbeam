@@ -437,30 +437,45 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(Clone, Copy, PartialEq, Encode, Decode, RuntimeDebug)]
+	#[derive(Clone, PartialEq, Encode, Decode, RuntimeDebug)]
 	pub enum NominatorStatus {
+		/// Active with no scheduled exit
 		Active,
+		/// Schedule exit to revoke all ongoing nominations
 		Leaving(RoundIndex),
 	}
 
 	#[derive(Encode, Decode, RuntimeDebug)]
+	/// Nominator state
 	pub struct Nominator2<AccountId, Balance> {
+		/// All current nominations
 		pub nominations: OrderedSet<Bond<AccountId, Balance>>,
+		/// Nominations scheduled to be revoked
+		pub revocations: OrderedSet<AccountId>,
+		/// Total balance locked for this nominator
 		pub total: Balance,
+		/// Total amount to be unbonded once revocations are executed
+		pub scheduled_revocations_total: Balance,
+		/// Status for this nominator
 		pub status: NominatorStatus,
 	}
 
 	#[derive(Encode, Decode, RuntimeDebug)]
+	/// DEPRECATED nominator state
 	pub struct Nominator<AccountId, Balance> {
 		pub nominations: OrderedSet<Bond<AccountId, Balance>>,
 		pub total: Balance,
 	}
 
-	impl<AccountId, Balance> From<Nominator<AccountId, Balance>> for Nominator2<AccountId, Balance> {
+	impl<AccountId: Ord, Balance: Zero> From<Nominator<AccountId, Balance>>
+		for Nominator2<AccountId, Balance>
+	{
 		fn from(other: Nominator<AccountId, Balance>) -> Nominator2<AccountId, Balance> {
 			Nominator2 {
 				nominations: other.nominations,
+				revocations: OrderedSet::new(),
 				total: other.total,
+				scheduled_revocations_total: Zero::zero(),
 				status: NominatorStatus::Active,
 			}
 		}
@@ -472,7 +487,8 @@ pub mod pallet {
 				+ sp_std::ops::AddAssign
 				+ sp_std::ops::Add<Output = Balance>
 				+ sp_std::ops::SubAssign
-				+ PartialOrd,
+				+ PartialOrd
+				+ Zero,
 		> Nominator2<AccountId, Balance>
 	{
 		pub fn new(collator: AccountId, amount: Balance) -> Self {
@@ -481,7 +497,9 @@ pub mod pallet {
 					owner: collator,
 					amount,
 				}]),
+				revocations: OrderedSet::new(),
 				total: amount,
+				scheduled_revocations_total: Zero::zero(),
 				status: NominatorStatus::Active,
 			}
 		}
@@ -634,8 +652,8 @@ pub mod pallet {
 	pub struct ExitQ<AccountId> {
 		/// Candidate exit set
 		pub candidates: OrderedSet<AccountId>,
-		/// Nominator exit set
-		pub nominators: OrderedSet<AccountId>,
+		/// Nominator exit set (does not include nominators that made `revoke` requests)
+		pub nominators_leaving: OrderedSet<AccountId>,
 		/// [Candidate, Round to Exit]
 		pub candidate_schedule: Vec<(AccountId, RoundIndex)>,
 		/// [Nominator, Some(ValidatorId) || None => All Nominations, Round To Exit]
@@ -643,6 +661,7 @@ pub mod pallet {
 	}
 
 	impl<A: Ord + Clone> ExitQ<A> {
+		/// Schedule to leave the set of candidates and return all ongoing nominations
 		pub fn schedule_candidate_exit<T: Config>(
 			&mut self,
 			candidate: A,
@@ -655,18 +674,28 @@ pub mod pallet {
 			self.candidate_schedule.push((candidate, exit_round));
 			Ok(())
 		}
+		/// Schedule to leave the set of nominators and revoke all ongoing nominations
 		pub fn schedule_nominator_exit<T: Config>(
 			&mut self,
 			nominator: A,
-			candidate: Option<A>,
 			exit_round: RoundIndex,
 		) -> DispatchResult {
 			ensure!(
-				self.nominators.insert(nominator.clone()),
+				self.nominators_leaving.insert(nominator.clone()),
 				Error::<T>::NominatorAlreadyLeaving
 			);
+			self.nominator_schedule.push((nominator, None, exit_round));
+			Ok(())
+		}
+		/// Schedule to revoke a single nomination
+		pub fn schedule_nomination_revocation<T: Config>(
+			&mut self,
+			nominator: A,
+			collator: A,
+			exit_round: RoundIndex,
+		) -> DispatchResult {
 			self.nominator_schedule
-				.push((nominator, candidate, exit_round));
+				.push((nominator, Some(collator), exit_round));
 			Ok(())
 		}
 	}
@@ -728,8 +757,9 @@ pub mod pallet {
 		AlreadyActive,
 		CandidateAlreadyScheduledToLeave,
 		NominatorAlreadyLeaving,
+		NominationAlreadyRevoked,
 		CandidateAlreadyLeaving,
-		CannotActivateIfLeaving,
+		CannotActBecauseLeaving,
 		CandidateAlreadyLeavingSoNominatorMustWait,
 		ExceedMaxCollatorsPerNom,
 		AlreadyNominatedCollator,
@@ -766,8 +796,10 @@ pub mod pallet {
 		NominationIncreased(T::AccountId, T::AccountId, BalanceOf<T>, bool, BalanceOf<T>),
 		// Nominator, Collator, Old Nomination, Counted in Top, New Nomination
 		NominationDecreased(T::AccountId, T::AccountId, BalanceOf<T>, bool, BalanceOf<T>),
-		/// Round, Collator Account, Scheduled Exit
-		NominatorScheduledExit(RoundIndex, T::AccountId, RoundIndex),
+		/// Round, Nominator, Scheduled Exit
+		NominatorExitScheduled(RoundIndex, T::AccountId, RoundIndex),
+		/// Round, Nominator, Collator, Scheduled Exit
+		NominationRevocationScheduled(RoundIndex, T::AccountId, T::AccountId, RoundIndex),
 		/// Nominator, Amount Unstaked
 		NominatorLeft(T::AccountId, BalanceOf<T>),
 		/// Nominator, Amount Locked, Collator, Nominator Position with New Total Backing if in Top
@@ -1321,7 +1353,7 @@ pub mod pallet {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CollatorState2<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_active(), Error::<T>::AlreadyActive);
-			ensure!(!state.is_leaving(), Error::<T>::CannotActivateIfLeaving);
+			ensure!(!state.is_leaving(), Error::<T>::CannotActBecauseLeaving);
 			state.go_online();
 			let mut candidates = <CandidatePool<T>>::get();
 			ensure!(
@@ -1347,7 +1379,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CollatorState2<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
-			ensure!(!state.is_leaving(), Error::<T>::CannotActivateIfLeaving);
+			ensure!(!state.is_leaving(), Error::<T>::CannotActBecauseLeaving);
 			T::Currency::reserve(&collator, more)?;
 			let before = state.bond;
 			state.bond_more(more);
@@ -1369,7 +1401,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CollatorState2<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
-			ensure!(!state.is_leaving(), Error::<T>::CannotActivateIfLeaving);
+			ensure!(!state.is_leaving(), Error::<T>::CannotActBecauseLeaving);
 			let before = state.bond;
 			let after = state.bond_less(less).ok_or(Error::<T>::ValBondBelowMin)?;
 			ensure!(
@@ -1403,7 +1435,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
 			let nominator = if let Some(mut state) = <NominatorState2<T>>::get(&acc) {
-				ensure!(state.is_active(), Error::<T>::NominatorAlreadyLeaving);
+				ensure!(state.is_active(), Error::<T>::CannotActBecauseLeaving);
 				// nomination after first
 				ensure!(
 					amount >= T::MinNomination::get(),
@@ -1463,7 +1495,6 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
 			let mut state = <NominatorState2<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
-			// TODO: check in all other nominator methods
 			ensure!(!state.is_leaving(), Error::<T>::NominatorAlreadyLeaving);
 			ensure!(
 				nomination_count >= (state.nominations.0.len() as u32),
@@ -1471,21 +1502,22 @@ pub mod pallet {
 			);
 			let mut exits = <ExitQueue<T>>::get();
 			let now = <Round<T>>::get().current;
-			// TODO: split BondDuration into 4 constants
+			// TODO: split BondDuration into 4 different constants
 			// NominatorSingleNominationDelay
 			// LeaveNominatorsDelay
 			// LeaveCandidatesDelay
 			// RewardPaymentDelay
 			let when = now + T::BondDuration::get();
-			exits.schedule_nominator_exit::<T>(acc.clone(), None, when)?;
+			exits.schedule_nominator_exit::<T>(acc.clone(), when)?;
 			state.leave(when);
+			state.scheduled_revocations_total = state.total;
 			<ExitQueue<T>>::put(exits);
 			<NominatorState2<T>>::insert(&acc, state);
-			Self::deposit_event(Event::NominatorScheduledExit(now, acc, when));
+			Self::deposit_event(Event::NominatorExitScheduled(now, acc, when));
 			Ok(().into())
 		}
-		/// Revoke an existing nomination
-		/// TODO: delay this as well
+		/// Request to revoke an existing nomination. If successful, the nomination is scheduled
+		/// to exit
 		#[pallet::weight(<T as Config>::WeightInfo::revoke_nomination())]
 		pub fn revoke_nomination(
 			origin: OriginFor<T>,
@@ -1494,23 +1526,56 @@ pub mod pallet {
 			let nominator = ensure_signed(origin)?;
 			let mut state =
 				<NominatorState2<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
-			ensure!(state.is_active(), Error::<T>::NominatorAlreadyLeaving);
-			let old_total = state.total;
-			let remaining = state
-				.rm_nomination(collator.clone())
-				.ok_or(Error::<T>::NominationDNE)?;
-			if state.nominations.0.is_empty() {
-				// leave the set of nominators if no nominations left
-				Self::nominator_leaves_collator(nominator.clone(), collator)?;
-				<NominatorState2<T>>::remove(&nominator);
-				Self::deposit_event(Event::NominatorLeft(nominator, old_total));
+			ensure!(state.is_active(), Error::<T>::CannotActBecauseLeaving);
+			// TODO: prevent nominator_bond_more_less if revoking
+			ensure!(
+				state.revocations.insert(collator.clone()),
+				Error::<T>::NominationAlreadyRevoked
+			);
+			let mut nomination_amount: Option<BalanceOf<T>> = None;
+			for Bond { owner, amount } in state.nominations.0.iter() {
+				if owner == &collator {
+					nomination_amount = Some(*amount);
+					break;
+				}
+			}
+			// Ensure that the collator exists in the nominations
+			let amount = nomination_amount.ok_or(Error::<T>::NominationDNE)?;
+			let remaining = state.total - state.scheduled_revocations_total - amount;
+			let leaving = if state.nominations.0.len() == 1 {
+				true
 			} else {
 				ensure!(
 					remaining >= T::MinNominatorStk::get(),
 					Error::<T>::NomBondBelowMin
 				);
-				Self::nominator_leaves_collator(nominator.clone(), collator)?;
+				false
+			};
+			let mut exits = <ExitQueue<T>>::get();
+			let now = <Round<T>>::get().current;
+			let when = now + T::BondDuration::get();
+			if leaving {
+				// schedule to leave the set of nominators if this is the only nomination
+				exits.schedule_nominator_exit::<T>(nominator.clone(), when)?;
+				state.leave(when);
+				state.scheduled_revocations_total = state.total;
+				<ExitQueue<T>>::put(exits);
 				<NominatorState2<T>>::insert(&nominator, state);
+				Self::deposit_event(Event::NominatorExitScheduled(now, nominator, when));
+			} else {
+				// schedule to revoke this nomination
+				exits.schedule_nomination_revocation::<T>(
+					nominator.clone(),
+					collator.clone(),
+					when,
+				)?;
+				// TODO: must be decreased when this is executed
+				state.scheduled_revocations_total += amount;
+				<ExitQueue<T>>::put(exits);
+				<NominatorState2<T>>::insert(&nominator, state);
+				Self::deposit_event(Event::NominationRevocationScheduled(
+					now, nominator, collator, when,
+				));
 			}
 			Ok(().into())
 		}
@@ -1524,7 +1589,7 @@ pub mod pallet {
 			let nominator = ensure_signed(origin)?;
 			let mut state =
 				<NominatorState2<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
-			ensure!(state.is_active(), Error::<T>::NominatorAlreadyLeaving);
+			ensure!(state.is_active(), Error::<T>::CannotActBecauseLeaving);
 			let mut collator =
 				<CollatorState2<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(
@@ -1557,7 +1622,7 @@ pub mod pallet {
 			let nominator = ensure_signed(origin)?;
 			let mut state =
 				<NominatorState2<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
-			ensure!(state.is_active(), Error::<T>::NominatorAlreadyLeaving);
+			ensure!(state.is_active(), Error::<T>::CannotActBecauseLeaving);
 			let mut collator =
 				<CollatorState2<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
 			let remaining = state
@@ -1769,28 +1834,56 @@ pub mod pallet {
 				.nominator_schedule
 				.clone()
 				.into_iter()
-				.filter_map(|(who, collator, when)| {
+				.filter_map(|(nominator, maybe_collator, when)| {
 					if when > now {
-						Some((who, collator, when))
+						Some((nominator, maybe_collator, when))
 					} else {
-						if !exit_queue.nominators.remove(&who) {
-							log::warn!(
-								"Nominators set removal failed, NominatorState had inconsistency!",
-							);
-						}
-						if let Some(nominator) = <NominatorState2<T>>::get(&who) {
-							for bond in nominator.nominations.0 {
-								if let Err(error) =
-									Self::nominator_leaves_collator(who.clone(), bond.owner.clone())
-								{
-									log::warn!(
-										"Nominator leaves collator failed with error: {:?}",
-										error
+						if let Some(collator) = maybe_collator {
+							// single revocation needs to be executed
+							if let Some(mut state) = <NominatorState2<T>>::get(&nominator) {
+								let pre_total = state.total;
+								if let Some(remaining) = state.rm_nomination(collator.clone()) {
+									let amount = pre_total - remaining;
+									state.scheduled_revocations_total -= amount;
+									let _ = Self::nominator_leaves_collator(
+										nominator.clone(),
+										collator,
 									);
+									<NominatorState2<T>>::insert(&nominator, state);
 								}
+							} else {
+								log::warn!(
+									"Nominator State for Nominator {:?} Not Found During Revocation of Support for Collator {:?}",
+									nominator,
+									collator,
+								);
 							}
-							<NominatorState2<T>>::remove(&who);
-							Self::deposit_event(Event::NominatorLeft(who, nominator.total));
+						} else {
+							if !exit_queue.nominators_leaving.remove(&nominator) {
+								log::warn!(
+									"Nominators set removal failed, NominatorState had inconsistency!",
+								);
+							}
+							if let Some(state) = <NominatorState2<T>>::get(&nominator) {
+								for bond in state.nominations.0 {
+									if let Err(error) = Self::nominator_leaves_collator(
+										nominator.clone(),
+										bond.owner.clone(),
+									) {
+										log::warn!(
+											"Nominator leaves collator failed with error: {:?}",
+											error
+										);
+									}
+								}
+								<NominatorState2<T>>::remove(&nominator);
+								Self::deposit_event(Event::NominatorLeft(nominator, state.total));
+							} else {
+								log::warn!(
+									"Nominator State Not Found During Exit for Nominator {:?}",
+									nominator
+								);
+							}
 						}
 						None
 					}

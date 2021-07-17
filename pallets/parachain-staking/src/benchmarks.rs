@@ -363,9 +363,12 @@ benchmarks! {
 			0u32,
 			0u32
 		)?;
-	}: _(RawOrigin::Signed(caller.clone()), collator)
+	}: _(RawOrigin::Signed(caller.clone()), collator.clone())
 	verify {
-		assert!(!Pallet::<T>::is_nominator(&caller));
+		assert_eq!(
+			Pallet::<T>::nominator_state2(&caller).unwrap().revocations.0[0],
+			collator
+		);
 	}
 
 	nominator_bond_more {
