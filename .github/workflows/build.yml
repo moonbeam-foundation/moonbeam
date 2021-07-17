@@ -135,38 +135,6 @@ jobs:
       - name: Format code with rustfmt
         run: cargo fmt -- --check
 
-  check-clippy:
-    name: "Check with clippy"
-    runs-on: self-hosted
-    needs: ["set-tags"]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ needs.set-tags.outputs.git_ref }}
-      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
-      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
-      - name: Setup Rust toolchain
-        run: rustup show
-      - name: Check with Clippy
-        run: cargo clippy --release --workspace
-
-  check-benchmark-compilation:
-    name: "Check benchmark compilation"
-    runs-on: self-hosted
-    needs: ["set-tags"]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ needs.set-tags.outputs.git_ref }}
-      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
-      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
-      - name: Setup Rust toolchain
-        run: rustup show
-      - name: Ensure benchmarking compiles
-        run: cargo check --release --features=runtime-benchmarks
-
   ####### Building and Testing binaries #######
 
   build:
@@ -176,7 +144,7 @@ jobs:
       CARGO_SCCACHE_COMMIT: 90e1dc81
       RUSTFLAGS: "-C opt-level=3"
       # MOONBEAM_LOG: debug
-      # DEBUG: "test*"
+      # DEBUG: "info"
     outputs:
       RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
     steps:
@@ -247,6 +215,10 @@ jobs:
             echo $DIFF_INDEX | grep Cargo.lock
             false
           fi
+      - name: Check with Clippy
+        run: cargo clippy --release --workspace
+      - name: Ensure benchmarking compiles
+        run: cargo check --release --features=runtime-benchmarks
       - name: Save parachain binary
         run: |
           mkdir -p build
