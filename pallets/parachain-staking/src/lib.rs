@@ -760,6 +760,7 @@ pub mod pallet {
 		NominationAlreadyRevoked,
 		CandidateAlreadyLeaving,
 		CannotActBecauseLeaving,
+		CannotActBecauseRevoking,
 		CandidateAlreadyLeavingSoNominatorMustWait,
 		ExceedMaxCollatorsPerNom,
 		AlreadyNominatedCollator,
@@ -1527,7 +1528,6 @@ pub mod pallet {
 			let mut state =
 				<NominatorState2<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
 			ensure!(state.is_active(), Error::<T>::CannotActBecauseLeaving);
-			// TODO: prevent nominator_bond_more_less if revoking
 			ensure!(
 				state.revocations.insert(collator.clone()),
 				Error::<T>::NominationAlreadyRevoked
@@ -1569,7 +1569,6 @@ pub mod pallet {
 					collator.clone(),
 					when,
 				)?;
-				// TODO: must be decreased when this is executed
 				state.scheduled_revocations_total += amount;
 				<ExitQueue<T>>::put(exits);
 				<NominatorState2<T>>::insert(&nominator, state);
@@ -1590,6 +1589,10 @@ pub mod pallet {
 			let mut state =
 				<NominatorState2<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
 			ensure!(state.is_active(), Error::<T>::CannotActBecauseLeaving);
+			ensure!(
+				!state.revocations.contains(&candidate),
+				Error::<T>::CannotActBecauseRevoking
+			);
 			let mut collator =
 				<CollatorState2<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(
@@ -1623,6 +1626,10 @@ pub mod pallet {
 			let mut state =
 				<NominatorState2<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
 			ensure!(state.is_active(), Error::<T>::CannotActBecauseLeaving);
+			ensure!(
+				!state.revocations.contains(&candidate),
+				Error::<T>::CannotActBecauseRevoking
+			);
 			let mut collator =
 				<CollatorState2<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
 			let remaining = state
