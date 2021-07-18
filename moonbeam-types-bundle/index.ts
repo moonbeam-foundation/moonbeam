@@ -617,10 +617,10 @@ export const moonbeamDefinitions = {
         },
         Nominator2: {
           nominations: "Vec<Bond>",
-          total: "Balance",
           revocations: "Vec<AccountId>",
-          scheduled_revocations_total: "Balance",
+          total: "Balance",
           scheduled_revocations_count: "u32",
+          scheduled_revocations_total: "Balance",
           status: "NominatorStatus",
         },
         Bond: {
@@ -691,7 +691,7 @@ export const moonbeamDefinitions = {
           state: "CollatorStatus",
         },
         NominatorAdded: {
-          _enum: ["AddedToBottom", { AddedToTop: "Balance" }],
+          _enum: [{ AddedToTop: "Balance" }, "AddedToBottom"],
         },
         CollatorSnapshot: {
           bond: "Balance",
@@ -726,6 +726,12 @@ export const moonbeamDefinitions = {
           r: "H256",
           s: "H256",
           v: "U8",
+        },
+        ExitQ: {
+          candidates: "Vec<AccountId>",
+          nominators_leaving: "Vec<AccountId>",
+          candidate_schedule: "Vec<(AccountId, RoundIndex)>",
+          nominator_schedule: "Vec<(AccountId, Option<AccountId>, RoundIndex)>",
         },
       },
     },

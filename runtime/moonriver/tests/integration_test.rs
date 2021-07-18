@@ -952,45 +952,6 @@ fn leave_nominators_via_precompile() {
 			run_to_block(600);
 			// Charlie is no longer a nominator
 			assert!(!ParachainStaking::is_nominator(&AccountId::from(CHARLIE)));
-
-			// Check for the right events.
-			let expected_events = vec![
-				Event::Balances(pallet_balances::Event::Unreserved(
-					AccountId::from(CHARLIE),
-					500 * MOVR,
-				)),
-				Event::ParachainStaking(parachain_staking::Event::NominatorLeftCollator(
-					AccountId::from(CHARLIE),
-					AccountId::from(ALICE),
-					500 * MOVR,
-					1_000 * MOVR,
-				)),
-				Event::Balances(pallet_balances::Event::Unreserved(
-					AccountId::from(CHARLIE),
-					500 * MOVR,
-				)),
-				Event::ParachainStaking(parachain_staking::Event::NominatorLeftCollator(
-					AccountId::from(CHARLIE),
-					AccountId::from(BOB),
-					500 * MOVR,
-					1_000 * MOVR,
-				)),
-				Event::ParachainStaking(parachain_staking::Event::NominatorLeft(
-					AccountId::from(CHARLIE),
-					1_000 * MOVR,
-				)),
-				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
-					staking_precompile_address,
-				)),
-			];
-
-			assert_eq!(
-				System::events()
-					.into_iter()
-					.map(|e| e.event)
-					.collect::<Vec<_>>(),
-				expected_events
-			);
 		});
 }
 

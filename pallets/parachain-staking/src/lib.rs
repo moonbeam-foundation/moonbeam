@@ -847,27 +847,39 @@ pub mod pallet {
 			Perbill,
 			Perbill,
 		),
-		/// Migrated NominatorState -> NominatorState2
-		AddNominatorStatusMigrationExecuted,
+		/// Migrated NominatorState -> NominatorState2, ExitQueue -> ExitQueue2
+		DelayNominationExitsMigrationExecuted,
 	}
 
-	/// Storage migration from NominatorState -> NominatorState2
-	fn add_nominator_status_migration_execution<T: Config>() {
-		if !<AddNominatorStatusMigration<T>>::get() {
+	/// Storage migration for delaying nomination exits and revocations
+	fn delay_nomination_exits_migration_execution<T: Config>() {
+		if !<DelayNominationExitsMigration<T>>::get() {
 			// migrate from Nominator -> Nominator2
 			for (acc, nominator_state) in NominatorState::<T>::drain() {
 				let state: Nominator2<T::AccountId, BalanceOf<T>> = nominator_state.into();
 				<NominatorState2<T>>::insert(acc, state);
 			}
-			<AddNominatorStatusMigration<T>>::put(true);
-			Pallet::<T>::deposit_event(Event::AddNominatorStatusMigrationExecuted);
+			// migrate from ExitQueue -> ExitQueue2
+			let just_collators_exit_queue = <ExitQueue<T>>::take();
+			let mut candidates: Vec<T::AccountId> = Vec::new();
+			for (acc, _) in just_collators_exit_queue.clone().into_iter() {
+				candidates.push(acc);
+			}
+			<ExitQueue2<T>>::put(ExitQ {
+				candidates: candidates.into(),
+				nominators_leaving: OrderedSet::new(),
+				candidate_schedule: just_collators_exit_queue,
+				nominator_schedule: Vec::new(),
+			});
+			<DelayNominationExitsMigration<T>>::put(true);
+			Pallet::<T>::deposit_event(Event::DelayNominationExitsMigrationExecuted);
 		}
 	}
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_runtime_upgrade() -> Weight {
-			add_nominator_status_migration_execution::<T>();
+			delay_nomination_exits_migration_execution::<T>();
 			300_000_000_000 // Three fifths of the max block weight
 		}
 		fn on_initialize(n: T::BlockNumber) -> Weight {
@@ -904,7 +916,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn add_nominator_status_migration)]
 	/// True if executed, false by default
-	type AddNominatorStatusMigration<T: Config> = StorageValue<_, bool, ValueQuery>;
+	type DelayNominationExitsMigration<T: Config> = StorageValue<_, bool, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn collator_commission)]
@@ -929,7 +941,7 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn nominator_state)]
-	/// DEPRECATED AFTER `AddNominatorStatus` migration is executed
+	/// DEPRECATED AFTER `DelayNominationExitsMigration` migration is executed
 	/// Get nominator state associated with an account if account is nominating else None
 	type NominatorState<T: Config> = StorageMap<
 		_,
@@ -979,8 +991,14 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn exit_queue)]
+	/// DEPRECATED
+	/// A queue of collators awaiting exit
+	type ExitQueue<T: Config> = StorageValue<_, Vec<(T::AccountId, RoundIndex)>, ValueQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn exit_queue2)]
 	/// A queue of collators and nominators awaiting exit
-	type ExitQueue<T: Config> = StorageValue<_, ExitQ<T::AccountId>, ValueQuery>;
+	type ExitQueue2<T: Config> = StorageValue<_, ExitQ<T::AccountId>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn at_stake)]
@@ -1321,7 +1339,7 @@ pub mod pallet {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CollatorState2<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_leaving(), Error::<T>::CandidateAlreadyLeaving);
-			let mut exits = <ExitQueue<T>>::get();
+			let mut exits = <ExitQueue2<T>>::get();
 			let now = <Round<T>>::get().current;
 			let when = now + T::LeaveCandidatesDelay::get();
 			exits.schedule_candidate_exit::<T>(collator.clone(), when)?;
@@ -1334,7 +1352,7 @@ pub mod pallet {
 			if candidates.remove(&Bond::from_owner(collator.clone())) {
 				<CandidatePool<T>>::put(candidates);
 			}
-			<ExitQueue<T>>::put(exits);
+			<ExitQueue2<T>>::put(exits);
 			<CollatorState2<T>>::insert(&collator, state);
 			Self::deposit_event(Event::CollatorScheduledExit(now, collator, when));
 			Ok(().into())
@@ -1510,14 +1528,14 @@ pub mod pallet {
 				nomination_count >= (state.nominations.0.len() as u32),
 				Error::<T>::TooLowNominationCountToLeaveNominators
 			);
-			let mut exits = <ExitQueue<T>>::get();
+			let mut exits = <ExitQueue2<T>>::get();
 			let now = <Round<T>>::get().current;
 			let when = now + T::LeaveNominatorsDelay::get();
 			exits.schedule_nominator_exit::<T>(acc.clone(), when)?;
 			state.leave(when);
 			state.scheduled_revocations_total = state.total;
 			state.scheduled_revocations_count = state.nominations.0.len() as u32;
-			<ExitQueue<T>>::put(exits);
+			<ExitQueue2<T>>::put(exits);
 			<NominatorState2<T>>::insert(&acc, state);
 			Self::deposit_event(Event::NominatorExitScheduled(now, acc, when));
 			Ok(().into())
@@ -1557,7 +1575,7 @@ pub mod pallet {
 					);
 					false
 				};
-			let mut exits = <ExitQueue<T>>::get();
+			let mut exits = <ExitQueue2<T>>::get();
 			let now = <Round<T>>::get().current;
 			let when = now + T::RevokeNominationDelay::get();
 			if leaving {
@@ -1566,7 +1584,7 @@ pub mod pallet {
 				state.leave(when);
 				state.scheduled_revocations_total = state.total;
 				state.scheduled_revocations_count = state.nominations.0.len() as u32;
-				<ExitQueue<T>>::put(exits);
+				<ExitQueue2<T>>::put(exits);
 				<NominatorState2<T>>::insert(&nominator, state);
 				Self::deposit_event(Event::NominatorExitScheduled(now, nominator, when));
 			} else {
@@ -1578,7 +1596,7 @@ pub mod pallet {
 				)?;
 				state.scheduled_revocations_total += amount;
 				state.scheduled_revocations_count += 1u32;
-				<ExitQueue<T>>::put(exits);
+				<ExitQueue2<T>>::put(exits);
 				<NominatorState2<T>>::insert(&nominator, state);
 				Self::deposit_event(Event::NominationRevocationScheduled(
 					now, nominator, collator, when,
@@ -1783,7 +1801,7 @@ pub mod pallet {
 		}
 		/// Executes all collator exits scheduled for when <= now
 		fn execute_collator_exits(now: RoundIndex) {
-			let mut exit_queue = <ExitQueue<T>>::get();
+			let mut exit_queue = <ExitQueue2<T>>::get();
 			let remaining_exits = exit_queue
 				.candidate_schedule
 				.clone()
@@ -1840,11 +1858,11 @@ pub mod pallet {
 				})
 				.collect::<Vec<(T::AccountId, RoundIndex)>>();
 			exit_queue.candidate_schedule = remaining_exits;
-			<ExitQueue<T>>::put(exit_queue);
+			<ExitQueue2<T>>::put(exit_queue);
 		}
 		/// Executes all nominator exits for when <= now
 		fn execute_nominator_exits(now: RoundIndex) {
-			let mut exit_queue = <ExitQueue<T>>::get();
+			let mut exit_queue = <ExitQueue2<T>>::get();
 			let remaining_exits = exit_queue
 				.nominator_schedule
 				.clone()
@@ -1909,7 +1927,7 @@ pub mod pallet {
 				})
 				.collect::<Vec<(T::AccountId, Option<T::AccountId>, RoundIndex)>>();
 			exit_queue.nominator_schedule = remaining_exits;
-			<ExitQueue<T>>::put(exit_queue);
+			<ExitQueue2<T>>::put(exit_queue);
 		}
 		/// Best as in most cumulatively supported in terms of stake
 		/// Returns [collator_count, nomination_count, total staked]
