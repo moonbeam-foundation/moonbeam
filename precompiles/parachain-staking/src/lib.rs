@@ -15,18 +15,20 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Precompile to call parachain-staking runtime methods via the EVM
+
+#![cfg_attr(not(feature = "std"), no_std)]
+
 use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
 use pallet_evm::GasWeightMapping;
 use pallet_evm::Precompile;
-use sp_core::H160;
-use sp_core::U256;
-use sp_std::convert::TryFrom;
-use sp_std::convert::TryInto;
+use sp_core::{H160, U256};
+use sp_std::convert::{TryFrom, TryInto};
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
+use sp_std::vec::Vec;
 
 type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as Currency<
 	<Runtime as frame_system::Config>::AccountId,
@@ -81,20 +83,26 @@ where
 			[0x85, 0x45, 0xc8, 0x33] => {
 				return Self::is_candidate(&input[SELECTOR_SIZE_BYTES..]);
 			}
-			// c9f593b2
+			[0x8f, 0x6d, 0x27, 0xc7] => {
+				return Self::is_selected_candidate(&input[SELECTOR_SIZE_BYTES..]);
+			}
 			[0xc9, 0xf5, 0x93, 0xb2] => {
+				//TODO Do we need to verify that there were no additional bytes passed in here?
 				return Self::min_nomination();
+			}
+			[0x97, 0x99, 0xb4, 0xe7] => {
+				return Self::points(&input[SELECTOR_SIZE_BYTES..]);
 			}
 
 			// If not an accessor, check for dispatchables. These calls ready for dispatch below.
-			[0xad, 0x76, 0xed, 0x5a] => Self::join_candidates(&input[SELECTOR_SIZE_BYTES..])?,
-			[0xb7, 0x69, 0x42, 0x19] => Self::leave_candidates()?,
+			[0x0a, 0x1b, 0xff, 0x60] => Self::join_candidates(&input[SELECTOR_SIZE_BYTES..])?,
+			[0x72, 0xb0, 0x2a, 0x31] => Self::leave_candidates(&input[SELECTOR_SIZE_BYTES..])?,
 			[0x76, 0x7e, 0x04, 0x50] => Self::go_offline()?,
 			[0xd2, 0xf7, 0x3c, 0xeb] => Self::go_online()?,
 			[0x28, 0x9b, 0x6b, 0xa7] => Self::candidate_bond_less(&input[SELECTOR_SIZE_BYTES..])?,
 			[0xc5, 0x7b, 0xd3, 0xa8] => Self::candidate_bond_more(&input[SELECTOR_SIZE_BYTES..])?,
-			[0x82, 0xf2, 0xc8, 0xdf] => Self::nominate(&input[SELECTOR_SIZE_BYTES..])?,
-			[0xe8, 0xd6, 0x8a, 0x37] => Self::leave_nominators()?,
+			[0x49, 0xdf, 0x6e, 0xb3] => Self::nominate(&input[SELECTOR_SIZE_BYTES..])?,
+			[0xb7, 0x1d, 0x21, 0x53] => Self::leave_nominators(&input[SELECTOR_SIZE_BYTES..])?,
 			[0x4b, 0x65, 0xc3, 0x4b] => Self::revoke_nomination(&input[SELECTOR_SIZE_BYTES..])?,
 			[0xf6, 0xa5, 0x25, 0x69] => Self::nominator_bond_less(&input[SELECTOR_SIZE_BYTES..])?,
 			[0x97, 0x1d, 0x44, 0xc8] => Self::nominator_bond_more(&input[SELECTOR_SIZE_BYTES..])?,
@@ -175,33 +183,55 @@ fn parse_account(input: &[u8]) -> Result<H160, ExitError> {
 }
 
 /// Parses an amount of ether from a 256 bit (32 byte) slice. The balance type is generic.
-fn parse_amount<Balance>(input: &[u8]) -> Result<Balance, ExitError>
-where
-	Balance: TryFrom<U256>,
-{
-	// In solidity all values are encoded to this width
-	const AMOUNT_SIZE_BYTES: usize = 32;
+fn parse_amount<Balance: TryFrom<U256>>(input: &[u8]) -> Result<Balance, ExitError> {
+	Ok(parse_uint256(input)?
+		.try_into()
+		.map_err(|_| ExitError::Other("Amount is too large for provided balance type".into()))?)
+}
 
-	if input.len() != AMOUNT_SIZE_BYTES {
+/// Parses a uint256 value
+fn parse_uint256(input: &[u8]) -> Result<U256, ExitError> {
+	// In solidity all values are encoded to this width
+	const SIZE_BYTES: usize = 32;
+
+	if input.len() != SIZE_BYTES {
 		log::trace!(target: "staking-precompile",
-			"Unable to parse amount. Got {} bytes, expected {}",
+			"Unable to parse uint256. Got {} bytes, expected {}",
 			input.len(),
-			AMOUNT_SIZE_BYTES,
+			SIZE_BYTES,
 		);
 		return Err(ExitError::Other(
-			"Incorrect input length for amount parsing".into(),
+			"Incorrect input length for uint256 parsing".into(),
 		));
 	}
 
-	let amount: Balance = U256::from_big_endian(&input[0..AMOUNT_SIZE_BYTES])
+	Ok(U256::from_big_endian(&input[0..SIZE_BYTES]))
+}
+
+/// Parses Weight Hint: u32 from a 256 bit (32 byte) slice.
+fn parse_weight_hint(input: &[u8]) -> Result<u32, ExitError> {
+	const WEIGHT_HINT_SIZE_BYTES: usize = 32;
+
+	if input.len() != WEIGHT_HINT_SIZE_BYTES {
+		log::trace!(target: "staking-precompile",
+			"Unable to parse weight hint. Got {} bytes, expected {}",
+			input.len(),
+			WEIGHT_HINT_SIZE_BYTES,
+		);
+		return Err(ExitError::Other(
+			"Incorrect input length for weight hint parsing".into(),
+		));
+	}
+
+	let weight_hint: u32 = U256::from_big_endian(&input[0..WEIGHT_HINT_SIZE_BYTES])
 		.try_into()
-		.map_err(|_| ExitError::Other("Amount is too large for provided balance type".into()))?;
-	Ok(amount)
+		.map_err(|_| ExitError::Other("Weight hint is too large for u32".into()))?;
+	Ok(weight_hint)
 }
 
 impl<Runtime> ParachainStakingWrapper<Runtime>
 where
-	Runtime: parachain_staking::Config + pallet_evm::Config,
+	Runtime: parachain_staking::Config + pallet_evm::Config + frame_system::Config,
 	Runtime::AccountId: From<H160>,
 	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Debug,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
@@ -225,22 +255,14 @@ where
 
 		log::trace!(target: "staking-precompile", "Result from pallet is {:?}", is_nominator);
 
-		// Solidity's bool type is 256 bits as shown by these examples
-		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html
-		let mut result_bytes = [0u8; 32];
-		if is_nominator {
-			result_bytes[31] = 1;
-		}
-
-		log::trace!(target: "staking-precompile", "Result bytes are {:?}", result_bytes);
-
-		// TODO find gas cost of single storage read
-		let gas_consumed = 0;
+		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+			<Runtime as frame_system::Config>::DbWeight::get().read,
+		);
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gas_consumed,
-			output: result_bytes.to_vec(),
+			output: bool_to_solidity_bytes(is_nominator),
 			logs: Default::default(),
 		})
 	}
@@ -260,22 +282,42 @@ where
 
 		log::trace!(target: "staking-precompile", "Result from pallet is {:?}", is_candidate);
 
-		// Solidity's bool type is 256 bits as shown by these examples
-		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html
-		let mut result_bytes = [0u8; 32];
-		if is_candidate {
-			result_bytes[31] = 1;
-		}
-
-		log::trace!(target: "staking-precompile", "Result bytes are {:?}", result_bytes);
-
-		// TODO find gas cost of single storage read
-		let gas_consumed = 0;
+		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+			<Runtime as frame_system::Config>::DbWeight::get().read,
+		);
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gas_consumed,
-			output: result_bytes.to_vec(),
+			output: bool_to_solidity_bytes(is_candidate),
+			logs: Default::default(),
+		})
+	}
+
+	fn is_selected_candidate(input: &[u8]) -> Result<PrecompileOutput, ExitError> {
+		// parse the address
+		let candidate = H160::from_slice(&input[12..32]);
+
+		log::trace!(
+			target: "staking-precompile",
+			"Checking whether {:?} is a selected collator",
+			candidate
+		);
+
+		// fetch data from pallet
+		let is_selected =
+			parachain_staking::Pallet::<Runtime>::is_selected_candidate(&candidate.into());
+
+		log::trace!(target: "staking-precompile", "Result from pallet is {:?}", is_selected);
+
+		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+			<Runtime as frame_system::Config>::DbWeight::get().read,
+		);
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gas_consumed,
+			output: bool_to_solidity_bytes(is_selected),
 			logs: Default::default(),
 		})
 	}
@@ -292,8 +334,12 @@ where
 		let min_nomination: U256 = raw_min_nomination.into();
 
 		log::trace!(target: "staking-precompile", "Result from pallet is {:?}", min_nomination);
+
 		// TODO find cost of Config associated type read
-		let gas_consumed = 0;
+		// For now assume it is as bad as a storage read in the worst case
+		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+			<Runtime as frame_system::Config>::DbWeight::get().read,
+		);
 
 		let mut buffer = [0u8; 32];
 		min_nomination.to_big_endian(&mut buffer);
@@ -306,18 +352,61 @@ where
 		})
 	}
 
+	fn points(input: &[u8]) -> Result<PrecompileOutput, ExitError> {
+		let round_u256 = parse_uint256(input)?;
+
+		// Make sure the round number fits in a u32
+		if round_u256.leading_zeros() < 256 - 32 {
+			return Err(ExitError::Other(
+				"Round is too large. 32 bit maximum".into(),
+			));
+		}
+		let round: u32 = round_u256.low_u32();
+
+		log::trace!(target: "staking-precompile", "🥩round is {}", round);
+		// Read the point value and format it for Solidity
+		let points: u32 = parachain_staking::Pallet::<Runtime>::points(round);
+		log::trace!(target: "staking-precompile", "🥩points is {}", points);
+		let mut output = [0u8; 32];
+		U256::from(points).to_big_endian(&mut output);
+		log::trace!(target: "staking-precompile", "🥩output is {:?}", output);
+
+		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+			<Runtime as frame_system::Config>::DbWeight::get().read,
+		);
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gas_consumed,
+			output: output.to_vec(),
+			logs: Default::default(),
+		})
+	}
+
 	// The dispatchable wrappers are next. They return a substrate inner Call ready for dispatch.
 
 	fn join_candidates(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		let amount = parse_amount::<BalanceOf<Runtime>>(input)?;
+		let amount = parse_amount::<BalanceOf<Runtime>>(&input[..32])?;
+		let collator_candidate_count = parse_weight_hint(&input[32..])?;
 
 		log::trace!(target: "staking-precompile", "Collator stake amount is {:?}", amount);
+		log::trace!(
+			target: "staking-precompile",
+			"Weight Hint: collator candidate count is {:?}",
+			collator_candidate_count
+		);
 
-		Ok(parachain_staking::Call::<Runtime>::join_candidates(amount))
+		Ok(parachain_staking::Call::<Runtime>::join_candidates(
+			amount,
+			collator_candidate_count,
+		))
 	}
 
-	fn leave_candidates() -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		Ok(parachain_staking::Call::<Runtime>::leave_candidates())
+	fn leave_candidates(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
+		let collator_candidate_count = parse_weight_hint(input)?;
+		Ok(parachain_staking::Call::<Runtime>::leave_candidates(
+			collator_candidate_count,
+		))
 	}
 
 	fn go_offline() -> Result<parachain_staking::Call<Runtime>, ExitError> {
@@ -352,19 +441,36 @@ where
 		log::trace!(target: "staking-precompile", "In nominate dispatchable wrapper");
 		log::trace!(target: "staking-precompile", "input is {:?}", input);
 		let collator = parse_account(&input[..32])?;
-		let amount = parse_amount::<BalanceOf<Runtime>>(&input[32..])?;
+		let amount = parse_amount::<BalanceOf<Runtime>>(&input[32..64])?;
+		let collator_nomination_count = parse_weight_hint(&input[64..96])?;
+		let nominator_nomination_count = parse_weight_hint(&input[96..])?;
 
 		log::trace!(target: "staking-precompile", "Collator account is {:?}", collator);
 		log::trace!(target: "staking-precompile", "Nomination amount is {:?}", amount);
+		log::trace!(
+			target: "staking-precompile",
+			"Weight Hint: collator nominations count is {:?}",
+			collator_nomination_count
+		);
+		log::trace!(
+			target: "staking-precompile",
+			"Weight Hint: nominator nominations count is {:?}",
+			nominator_nomination_count
+		);
 
 		Ok(parachain_staking::Call::<Runtime>::nominate(
 			collator.into(),
 			amount,
+			collator_nomination_count,
+			nominator_nomination_count,
 		))
 	}
 
-	fn leave_nominators() -> Result<parachain_staking::Call<Runtime>, ExitError> {
-		Ok(parachain_staking::Call::<Runtime>::leave_nominators())
+	fn leave_nominators(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
+		let nomination_count = parse_weight_hint(&input[..])?;
+		Ok(parachain_staking::Call::<Runtime>::leave_nominators(
+			nomination_count,
+		))
 	}
 
 	fn revoke_nomination(input: &[u8]) -> Result<parachain_staking::Call<Runtime>, ExitError> {
@@ -403,4 +509,17 @@ where
 			amount,
 		))
 	}
+}
+
+// Solidity's bool type is 256 bits as shown by these examples
+// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html
+// This utility function converts a Rust bool into the corresponding Solidity type
+fn bool_to_solidity_bytes(b: bool) -> Vec<u8> {
+	let mut result_bytes = [0u8; 32];
+
+	if b {
+		result_bytes[31] = 1;
+	}
+
+	result_bytes.to_vec()
 }

@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -27,14 +27,16 @@ use serde::Serialize;
 sp_api::decl_runtime_apis! {
 	pub trait DebugRuntimeApi {
 		fn trace_transaction(
+			header: &Block::Header,
 			extrinsics: Vec<Block::Extrinsic>,
 			transaction: &Transaction,
 			trace_type: single::TraceType,
-		) -> Result<single::TransactionTrace, sp_runtime::DispatchError>;
+		) -> Result<(), sp_runtime::DispatchError>;
 
 		fn trace_block(
+			header: &Block::Header,
 			extrinsics: Vec<Block::Extrinsic>,
-		) -> Result<Vec<block::TransactionTrace>, sp_runtime::DispatchError>;
+		) -> Result<(), sp_runtime::DispatchError>;
 	}
 }
 
@@ -45,6 +47,7 @@ pub mod serialization;
 use crate::serialization::*;
 
 pub mod block;
+pub mod proxy;
 pub mod single;
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]

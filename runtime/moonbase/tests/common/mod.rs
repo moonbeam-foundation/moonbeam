@@ -23,13 +23,13 @@ use frame_support::{
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
 pub use moonbase_runtime::{
-	currency::UNITS, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards,
-	Ethereum, Event, Executive, FixedGasPrice, InflationInfo, ParachainStaking, Range, Runtime,
-	System, TransactionConverter, UncheckedExtrinsic, WEEKS,
+	currency::UNIT, AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Ethereum,
+	Event, Executive, FixedGasPrice, InflationInfo, ParachainStaking, Range, Runtime, System,
+	TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::GenesisAccount;
-use sp_core::{Public, H160};
+use sp_core::H160;
 use sp_runtime::Perbill;
 
 use std::collections::BTreeMap;
@@ -38,15 +38,26 @@ pub fn run_to_block(n: u32) {
 	while System::block_number() < n {
 		Ethereum::on_finalize(System::block_number());
 		AuthorInherent::on_finalize(System::block_number());
-		ParachainStaking::on_finalize(System::block_number());
 		System::set_block_number(System::block_number() + 1);
 		AuthorInherent::on_initialize(System::block_number());
+		ParachainStaking::on_initialize(System::block_number());
 		Ethereum::on_initialize(System::block_number());
 	}
 }
 
 pub fn last_event() -> Event {
 	System::events().pop().expect("Event expected").event
+}
+
+// Helper function to give a simple evm context suitable for tests.
+// We can remove this once https://github.com/rust-blockchain/evm/pull/35
+// is in our dependency graph.
+pub fn evm_test_context() -> evm::Context {
+	evm::Context {
+		address: Default::default(),
+		caller: Default::default(),
+		apparent_value: From::from(0),
+	}
 }
 
 pub struct ExtBuilder {
@@ -76,9 +87,9 @@ impl Default for ExtBuilder {
 			collators: vec![],
 			inflation: InflationInfo {
 				expect: Range {
-					min: 100_000 * UNITS,
-					ideal: 200_000 * UNITS,
-					max: 500_000 * UNITS,
+					min: 100_000 * UNIT,
+					ideal: 200_000 * UNIT,
+					max: 500_000 * UNIT,
 				},
 				// not used
 				annual: Range {

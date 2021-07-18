@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -29,7 +29,7 @@ use tokio::{
 use ethereum_types::{H128, H256};
 use fc_rpc::{frontier_backend_client, internal_err};
 use fp_rpc::EthereumRuntimeRPCApi;
-use moonbeam_rpc_primitives_debug::{single, DebugRuntimeApi};
+use moonbeam_rpc_primitives_debug::{proxy, single, DebugRuntimeApi};
 use sc_client_api::backend::Backend;
 use sp_api::{BlockId, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
@@ -236,11 +236,25 @@ where
 		if let Some(block) = reference_block {
 			let transactions = block.transactions;
 			if let Some(transaction) = transactions.get(index) {
-				return client
-					.runtime_api()
-					.trace_transaction(&parent_block_id, ext, &transaction, trace_type)
-					.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
-					.map_err(|e| internal_err(format!("DispatchError: {:?}", e)));
+				let f = || {
+					client
+						.runtime_api()
+						.trace_transaction(&parent_block_id, &header, ext, &transaction, trace_type)
+						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
+						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))
+				};
+				return Ok(match trace_type {
+					single::TraceType::Raw { .. } => {
+						let mut proxy = proxy::RawProxy::new();
+						proxy.using(f);
+						proxy.into_tx_trace()
+					}
+					single::TraceType::CallList { .. } => {
+						let mut proxy = proxy::CallListProxy::new();
+						proxy.using(f);
+						proxy.into_tx_trace()
+					}
+				});
 			}
 		}
 		Err(internal_err("Runtime block call failed".to_string()))

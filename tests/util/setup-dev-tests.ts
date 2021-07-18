@@ -46,7 +46,11 @@ interface InternalDevTestContext extends DevTestContext {
   _web3Providers: HttpProvider[];
 }
 
-export function describeDevMoonbeam(title: string, cb: (context: DevTestContext) => void) {
+export function describeDevMoonbeam(
+  title: string,
+  cb: (context: DevTestContext) => void,
+  withWasm?: boolean
+) {
   describe(title, function () {
     // Set timeout to 5000 for all tests.
     this.timeout(5000);
@@ -62,7 +66,7 @@ export function describeDevMoonbeam(title: string, cb: (context: DevTestContext)
     before("Starting Moonbeam Test Node", async function () {
       this.timeout(SPAWNING_TIME);
       const init = !DEBUG_MODE
-        ? await startMoonbeamDevNode()
+        ? await startMoonbeamDevNode(withWasm)
         : {
             runningNode: null,
             p2pPort: 19931,
