@@ -612,6 +612,17 @@ export const moonbeamDefinitions = {
           nominations: "Vec<Bond>",
           total: "Balance",
         },
+        NominatorStatus: {
+          _enum: ["Active", "Idle", { Leaving: "RoundIndex" }],
+        },
+        Nominator2: {
+          nominations: "Vec<Bond>",
+          total: "Balance",
+          revocations: "Vec<AccountId>",
+          scheduled_revocations_total: "Balance",
+          scheduled_revocations_count: "u32",
+          status: "NominatorStatus",
+        },
         Bond: {
           owner: "AccountId",
           amount: "Balance",
