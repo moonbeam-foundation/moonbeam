@@ -453,6 +453,8 @@ pub mod pallet {
 		pub revocations: OrderedSet<AccountId>,
 		/// Total balance locked for this nominator
 		pub total: Balance,
+		/// Total number of revocations scheduled to be executed
+		pub scheduled_revocations_count: u32,
 		/// Total amount to be unbonded once revocations are executed
 		pub scheduled_revocations_total: Balance,
 		/// Status for this nominator
@@ -474,6 +476,7 @@ pub mod pallet {
 				nominations: other.nominations,
 				revocations: OrderedSet::new(),
 				total: other.total,
+				scheduled_revocations_count: 0u32,
 				scheduled_revocations_total: Zero::zero(),
 				status: NominatorStatus::Active,
 			}
@@ -498,6 +501,7 @@ pub mod pallet {
 				}]),
 				revocations: OrderedSet::new(),
 				total: amount,
+				scheduled_revocations_count: 0u32,
 				scheduled_revocations_total: Zero::zero(),
 				status: NominatorStatus::Active,
 			}
@@ -1512,6 +1516,7 @@ pub mod pallet {
 			exits.schedule_nominator_exit::<T>(acc.clone(), when)?;
 			state.leave(when);
 			state.scheduled_revocations_total = state.total;
+			state.scheduled_revocations_count = state.nominations.0.len() as u32;
 			<ExitQueue<T>>::put(exits);
 			<NominatorState2<T>>::insert(&acc, state);
 			Self::deposit_event(Event::NominatorExitScheduled(now, acc, when));
@@ -1542,15 +1547,16 @@ pub mod pallet {
 			// Ensure that the collator exists in the nominations
 			let amount = nomination_amount.ok_or(Error::<T>::NominationDNE)?;
 			let remaining = state.total - state.scheduled_revocations_total - amount;
-			let leaving = if state.nominations.0.len() == 1 {
-				true
-			} else {
-				ensure!(
-					remaining >= T::MinNominatorStk::get(),
-					Error::<T>::NomBondBelowMin
-				);
-				false
-			};
+			let leaving =
+				if state.nominations.0.len() as u32 - state.scheduled_revocations_count < 2 {
+					true
+				} else {
+					ensure!(
+						remaining >= T::MinNominatorStk::get(),
+						Error::<T>::NomBondBelowMin
+					);
+					false
+				};
 			let mut exits = <ExitQueue<T>>::get();
 			let now = <Round<T>>::get().current;
 			let when = now + T::RevokeNominationDelay::get();
@@ -1559,6 +1565,7 @@ pub mod pallet {
 				exits.schedule_nominator_exit::<T>(nominator.clone(), when)?;
 				state.leave(when);
 				state.scheduled_revocations_total = state.total;
+				state.scheduled_revocations_count = state.nominations.0.len() as u32;
 				<ExitQueue<T>>::put(exits);
 				<NominatorState2<T>>::insert(&nominator, state);
 				Self::deposit_event(Event::NominatorExitScheduled(now, nominator, when));
@@ -1570,6 +1577,7 @@ pub mod pallet {
 					when,
 				)?;
 				state.scheduled_revocations_total += amount;
+				state.scheduled_revocations_count += 1u32;
 				<ExitQueue<T>>::put(exits);
 				<NominatorState2<T>>::insert(&nominator, state);
 				Self::deposit_event(Event::NominationRevocationScheduled(
@@ -1852,6 +1860,8 @@ pub mod pallet {
 								if let Some(remaining) = state.rm_nomination(collator.clone()) {
 									let amount = pre_total - remaining;
 									state.scheduled_revocations_total -= amount;
+									state.scheduled_revocations_count -= 1u32;
+									state.revocations.remove(&collator);
 									let _ = Self::nominator_leaves_collator(
 										nominator.clone(),
 										collator,
@@ -1860,7 +1870,8 @@ pub mod pallet {
 								}
 							} else {
 								log::warn!(
-									"Nominator State for Nominator {:?} Not Found During Revocation of Support for Collator {:?}",
+									"Nominator State for Nominator {:?} Not Found During Revocation 
+									of Support for Collator {:?}",
 									nominator,
 									collator,
 								);
@@ -1868,7 +1879,8 @@ pub mod pallet {
 						} else {
 							if !exit_queue.nominators_leaving.remove(&nominator) {
 								log::warn!(
-									"Nominators set removal failed, NominatorState had inconsistency!",
+									"Nominators set removal failed,
+									NominatorState had inconsistency!",
 								);
 							}
 							if let Some(state) = <NominatorState2<T>>::get(&nominator) {

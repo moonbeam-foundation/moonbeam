@@ -928,7 +928,7 @@ fn leave_nominators_via_precompile() {
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
 			call_data[0..4].copy_from_slice(&hex_literal::hex!("e8d68a37"));
 			nomination_count.to_big_endian(&mut call_data[4..]);
-
+			run_to_block(1);
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(CHARLIE),
 				staking_precompile_address,
@@ -939,48 +939,9 @@ fn leave_nominators_via_precompile() {
 				None, // Use the next nonce
 			))
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
-
+			run_to_block(600);
 			// Charlie is no longer a nominator
 			assert!(!ParachainStaking::is_nominator(&AccountId::from(CHARLIE)));
-
-			// Check for the right events.
-			let expected_events = vec![
-				Event::Balances(pallet_balances::Event::Unreserved(
-					AccountId::from(CHARLIE),
-					500 * MSHD,
-				)),
-				Event::ParachainStaking(parachain_staking::Event::NominatorLeftCollator(
-					AccountId::from(CHARLIE),
-					AccountId::from(ALICE),
-					500 * MSHD,
-					1_000 * MSHD,
-				)),
-				Event::Balances(pallet_balances::Event::Unreserved(
-					AccountId::from(CHARLIE),
-					500 * MSHD,
-				)),
-				Event::ParachainStaking(parachain_staking::Event::NominatorLeftCollator(
-					AccountId::from(CHARLIE),
-					AccountId::from(BOB),
-					500 * MSHD,
-					1_000 * MSHD,
-				)),
-				Event::ParachainStaking(parachain_staking::Event::NominatorLeft(
-					AccountId::from(CHARLIE),
-					1_000 * MSHD,
-				)),
-				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
-					staking_precompile_address,
-				)),
-			];
-
-			assert_eq!(
-				System::events()
-					.into_iter()
-					.map(|e| e.event)
-					.collect::<Vec<_>>(),
-				expected_events
-			);
 		});
 }
 
@@ -1014,7 +975,7 @@ fn revoke_nomination_via_precompile() {
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
 			call_data[0..4].copy_from_slice(&hex_literal::hex!("4b65c34b"));
 			call_data[16..36].copy_from_slice(&ALICE);
-
+			run_to_block(1);
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(CHARLIE),
 				staking_precompile_address,
@@ -1025,34 +986,9 @@ fn revoke_nomination_via_precompile() {
 				None, // Use the next nonce
 			))
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
-
+			run_to_block(600);
 			// Charlie is still a nominator because only nomination to Alice was revoked
 			assert!(ParachainStaking::is_nominator(&AccountId::from(CHARLIE)));
-
-			// Check for the right events.
-			let expected_events = vec![
-				Event::Balances(pallet_balances::Event::Unreserved(
-					AccountId::from(CHARLIE),
-					500 * MSHD,
-				)),
-				Event::ParachainStaking(parachain_staking::Event::NominatorLeftCollator(
-					AccountId::from(CHARLIE),
-					AccountId::from(ALICE),
-					500 * MSHD,
-					1_000 * MSHD,
-				)),
-				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
-					staking_precompile_address,
-				)),
-			];
-
-			assert_eq!(
-				System::events()
-					.into_iter()
-					.map(|e| e.event)
-					.collect::<Vec<_>>(),
-				expected_events
-			);
 		});
 }
 

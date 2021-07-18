@@ -1625,6 +1625,23 @@ fn leave_nominators_removes_nominations_from_collator_state() {
 }
 
 #[test]
+fn cannot_leave_nominators_if_leaving_through_revoking_last_nomination() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 20), (3, 20)])
+		.with_candidates(vec![(1, 30), (3, 20)])
+		.with_nominations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 1));
+			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 3));
+			assert_noop!(
+				Stake::leave_nominators(Origin::signed(2), 2),
+				Error::<Test>::NominatorAlreadyLeaving
+			);
+		});
+}
+
+#[test]
 fn cannot_leave_nominators_if_already_leaving() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10)])
@@ -1746,6 +1763,46 @@ fn revoke_nomination_unreserves_balance() {
 }
 
 #[test]
+fn revoke_nomination_adds_revocation_to_nominator_state() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 20), (3, 20)])
+		.with_candidates(vec![(1, 30), (3, 20)])
+		.with_nominations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			assert!(Stake::nominator_state2(2)
+				.expect("exists")
+				.revocations
+				.0
+				.is_empty());
+			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 1));
+			assert_eq!(
+				Stake::nominator_state2(2).expect("exists").revocations.0[0],
+				1
+			);
+		});
+}
+
+#[test]
+fn revoke_nomination_removes_revocation_from_nominator_state_upon_execution() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 20), (3, 20)])
+		.with_candidates(vec![(1, 30), (3, 20)])
+		.with_nominations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			roll_to(1);
+			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 1));
+			roll_to(10);
+			assert!(Stake::nominator_state2(2)
+				.expect("exists")
+				.revocations
+				.0
+				.is_empty());
+		});
+}
+
+#[test]
 fn revoke_nomination_decreases_total_staked() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10)])
@@ -1805,7 +1862,20 @@ fn revoke_nomination_removes_nomination_from_candidate_state() {
 }
 
 #[test]
-fn cannot_leave_nominators_if_leaving() {
+fn can_revoke_nomination_if_revoking_another_nomination() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 20), (3, 20)])
+		.with_candidates(vec![(1, 30), (3, 20)])
+		.with_nominations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 1));
+			assert_ok!(Stake::revoke_nomination(Origin::signed(2), 3));
+		});
+}
+
+#[test]
+fn cannot_revoke_if_leaving() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 20), (3, 20)])
 		.with_candidates(vec![(1, 30)])

@@ -938,7 +938,7 @@ fn leave_nominators_via_precompile() {
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
 			call_data[0..4].copy_from_slice(&hex_literal::hex!("e8d68a37"));
 			nomination_count.to_big_endian(&mut call_data[4..]);
-
+			run_to_block(1);
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(CHARLIE),
 				staking_precompile_address,
@@ -949,7 +949,7 @@ fn leave_nominators_via_precompile() {
 				None, // Use the next nonce
 			))
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
-
+			run_to_block(600);
 			// Charlie is no longer a nominator
 			assert!(!ParachainStaking::is_nominator(&AccountId::from(CHARLIE)));
 
