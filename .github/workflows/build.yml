@@ -148,10 +148,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - name: Build Node
-        run: |
-          env
-          cargo build --release --all
       - name: Check & build polkadot docker image
         run: |
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
