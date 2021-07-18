@@ -2512,7 +2512,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			assert_eq!(events(), expected);
 			assert_eq!(Balances::free_balance(&11), 172);
 			roll_to(50);
-			// new nomination is rewarded, 2 rounds after joining (`BondDuration` is 2)
+			// new nomination is rewarded, 2 rounds after joining (`RewardPaymentDelay` is 2)
 			let mut new7 = vec![
 				Event::ReservedForParachainBond(11, 35),
 				Event::Rewarded(1, 18),
@@ -3204,7 +3204,7 @@ fn payouts_follow_nomination_changes() {
 			expected.append(&mut new6);
 			assert_eq!(events(), expected);
 			roll_to(50);
-			// new nomination is rewarded for first time, 2 rounds after joining (`BondDuration` = 2)
+			// new nomination is rewarded for first time, 2 rounds after joining (`RewardPaymentDelay` = 2)
 			let mut new7 = vec![
 				Event::Rewarded(1, 36),
 				Event::Rewarded(7, 11),

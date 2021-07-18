@@ -24,18 +24,18 @@
 //! There is a new round every `<Round<T>>::get().length` blocks.
 //!
 //! At the start of every round,
-//! * issuance is distributed to collators for `BondDuration` rounds ago
-//! in proportion to the points they received in that round (for authoring blocks)
-//! * queued collator exits are executed
+//! * issuance is distributed to collators (and their nominators) for block authoring
+//! `T::RewardPaymentDelay` rounds ago
+//! * queued collator and nominator exits are executed
 //! * a new set of collators is chosen from the candidates
 //!
 //! To join the set of candidates, call `join_candidates` with `bond >= MinCollatorCandidateStk`.
 //!
 //! To leave the set of candidates, call `leave_candidates`. If the call succeeds,
 //! the collator is removed from the pool of candidates so they cannot be selected for future
-//! collator sets, but they are not unstaked until `BondDuration` rounds later. The exit request is
-//! stored in the `ExitQueue` and processed `BondDuration` rounds later to unstake the collator
-//! and all of its nominations.
+//! collator sets, but they are not unstaked until `T::LeaveCandidatesDelay` rounds later.
+//! The exit request is stored in the `ExitQueue` and processed `T::LeaveCandidatesDelay` rounds
+//! later to unstake the collator and all of its nominations.
 //!
 //! To join the set of nominators, call `nominate` and pass in an account that is
 //! already a collator candidate and `bond >= MinNominatorStk`. Each nominator can nominate up to
@@ -65,8 +65,7 @@ pub use pallet::*;
 
 #[pallet]
 pub mod pallet {
-	use super::*;
-	use crate::set::OrderedSet;
+	use crate::{set::OrderedSet, InflationInfo, Range, WeightInfo};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, Get, Imbalance, ReservableCurrency};
 	use frame_system::pallet_prelude::*;
@@ -719,7 +718,13 @@ pub mod pallet {
 		/// Default number of blocks per round at genesis
 		type DefaultBlocksPerRound: Get<u32>;
 		/// Number of rounds that collators remain bonded before exit request is executed
-		type BondDuration: Get<RoundIndex>;
+		type LeaveCandidatesDelay: Get<RoundIndex>;
+		/// Number of rounds that nominators remain bonded before exit request is executed
+		type LeaveNominatorsDelay: Get<RoundIndex>;
+		/// Number of rounds that nominations remain bonded before revocation request is executed
+		type RevokeNominationDelay: Get<RoundIndex>;
+		/// Number of rounds after which block authors are rewarded
+		type RewardPaymentDelay: Get<RoundIndex>;
 		/// Minimum number of selected candidates every round
 		type MinSelectedCandidates: Get<u32>;
 		/// Maximum nominators counted per collator
@@ -866,7 +871,7 @@ pub mod pallet {
 			if round.should_update(n) {
 				// mutate round
 				round.update(n);
-				// pay all stakers for T::BondDuration rounds ago
+				// pay all stakers for T::RewardPaymentDelay rounds ago
 				Self::pay_stakers(round.current);
 				// execute all delayed collator exits
 				Self::execute_collator_exits(round.current);
@@ -970,7 +975,7 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn exit_queue)]
-	/// A queue of collators and nominators awaiting exit `BondDuration` delay after request
+	/// A queue of collators and nominators awaiting exit
 	type ExitQueue<T: Config> = StorageValue<_, ExitQ<T::AccountId>, ValueQuery>;
 
 	#[pallet::storage]
@@ -1303,7 +1308,7 @@ pub mod pallet {
 		}
 		/// Request to leave the set of candidates. If successful, the account is immediately
 		/// removed from the candidate pool to prevent selection as a collator, but unbonding is
-		/// executed with a delay of `BondDuration` rounds.
+		/// executed with a delay of `T::LeaveCandidates` rounds.
 		#[pallet::weight(<T as Config>::WeightInfo::leave_candidates(*candidate_count))]
 		pub fn leave_candidates(
 			origin: OriginFor<T>,
@@ -1314,7 +1319,7 @@ pub mod pallet {
 			ensure!(!state.is_leaving(), Error::<T>::CandidateAlreadyLeaving);
 			let mut exits = <ExitQueue<T>>::get();
 			let now = <Round<T>>::get().current;
-			let when = now + T::BondDuration::get();
+			let when = now + T::LeaveCandidatesDelay::get();
 			exits.schedule_candidate_exit::<T>(collator.clone(), when)?;
 			state.leave(when);
 			let mut candidates = <CandidatePool<T>>::get();
@@ -1503,12 +1508,7 @@ pub mod pallet {
 			);
 			let mut exits = <ExitQueue<T>>::get();
 			let now = <Round<T>>::get().current;
-			// TODO: split BondDuration into 4 different constants
-			// NominatorSingleNominationDelay
-			// LeaveNominatorsDelay
-			// LeaveCandidatesDelay
-			// RewardPaymentDelay
-			let when = now + T::BondDuration::get();
+			let when = now + T::LeaveNominatorsDelay::get();
 			exits.schedule_nominator_exit::<T>(acc.clone(), when)?;
 			state.leave(when);
 			state.scheduled_revocations_total = state.total;
@@ -1553,7 +1553,7 @@ pub mod pallet {
 			};
 			let mut exits = <ExitQueue<T>>::get();
 			let now = <Round<T>>::get().current;
-			let when = now + T::BondDuration::get();
+			let when = now + T::RevokeNominationDelay::get();
 			if leaving {
 				// schedule to leave the set of nominators if this is the only nomination
 				exits.schedule_nominator_exit::<T>(nominator.clone(), when)?;
@@ -1719,7 +1719,7 @@ pub mod pallet {
 		}
 		fn pay_stakers(next: RoundIndex) {
 			// payout is next - duration rounds ago => next - duration > 0 else return early
-			let duration = T::BondDuration::get();
+			let duration = T::RewardPaymentDelay::get();
 			if next <= duration {
 				return;
 			}

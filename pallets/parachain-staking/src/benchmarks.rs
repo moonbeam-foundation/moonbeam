@@ -523,7 +523,7 @@ benchmarks! {
 		// PREPARE RUN_TO_BLOCK LOOP
 		let before_running_round_index = Pallet::<T>::round().current;
 		let round_length: T::BlockNumber = Pallet::<T>::round().length.into();
-		let reward_delay = <<T as Config>::BondDuration as Get<u32>>::get() + 2u32;
+		let reward_delay = <<T as Config>::RewardPaymentDelay as Get<u32>>::get() + 2u32;
 		let mut now = <frame_system::Pallet<T>>::block_number();
 		let mut counter = 0usize;
 		let end = Pallet::<T>::round().first + (round_length * reward_delay.into());
@@ -584,7 +584,7 @@ benchmarks! {
 
 #[cfg(test)]
 mod tests {
-	use super::*;
+	use crate::benchmarks::*;
 	use crate::mock::Test;
 	use frame_support::assert_ok;
 	use sp_io::TestExternalities;
