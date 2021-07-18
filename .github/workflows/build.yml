@@ -152,7 +152,7 @@ jobs:
         run: |
           env
           cargo build --release --all
-      - name: Verify node version
+      - name: Check & build polkadot docker image
         run: |
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
@@ -298,6 +298,7 @@ jobs:
           name: moonbeam
           path: build
       - name: Retrieve polkadot
+        run: |
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
           docker create -ti --name dummy $DOCKER_TAG bash
