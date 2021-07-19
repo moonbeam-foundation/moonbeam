@@ -172,7 +172,7 @@ describeDevMoonbeam("Staking - Revoke Nomination", (context) => {
     const nominatorsAfterRevocation =
       await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN);
     expect(
-      (nominatorsAfterRevocation.toHuman().revocations[0] === ALITH).to.equal(
+      (nominatorsAfterRevocation.revocations[0] === ALITH).to.equal(
         true,
         "revocation didnt go through"
       )
