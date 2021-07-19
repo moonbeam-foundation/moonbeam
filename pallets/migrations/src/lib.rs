@@ -77,7 +77,6 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		// e.g. runtime upgrade started, completed, etc.
 		RuntimeUpgradeStarted(),
 		RuntimeUpgradeStepped(Weight),
 		RuntimeUpgradeCompleted(),
@@ -110,7 +109,6 @@ pub mod pallet {
 
 		/// on_initialize implementation. Calls process_runtime_upgrades() if we are still in the
 		/// middle of a runtime upgrade.
-		/// TODO: use on_idle or some other hook?
 		fn on_initialize(_: T::BlockNumber) -> Weight {
 
 			// TODO: should account for the minimum one DB read
@@ -138,7 +136,7 @@ pub mod pallet {
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
 		pub completed_migrations: Vec<Vec<u8>>,
-		pub dummy: PhantomData<T>, // TODO:
+		pub dummy: PhantomData<T>,
 	}
 
 	#[cfg(feature = "std")]
