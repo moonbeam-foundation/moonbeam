@@ -31,7 +31,7 @@ use fc_rpc::{frontier_backend_client, internal_err};
 use fp_rpc::EthereumRuntimeRPCApi;
 use moonbeam_rpc_primitives_debug::{proxy, single, DebugRuntimeApi};
 use sc_client_api::backend::Backend;
-use sp_api::{BlockId, HeaderT, ProvideRuntimeApi};
+use sp_api::{ApiExt, BlockId, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
@@ -193,6 +193,16 @@ where
 		let header = client.header(reference_id).unwrap().unwrap();
 		// Get parent blockid.
 		let parent_block_id = BlockId::Hash(*header.parent_hash());
+		// Get `DebugRuntimeApi` version.
+		let api_version = api
+			.api_version::<dyn DebugRuntimeApi<B>>(&parent_block_id)
+			.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
+			.ok_or_else(|| {
+				internal_err(format!(
+					"Could not find `DebugRuntimeApi` at {:?}.",
+					parent_block_id
+				))
+			})?;
 
 		// Get the extrinsics.
 		let ext = blockchain.body(reference_id).unwrap().unwrap();
@@ -237,11 +247,27 @@ where
 			let transactions = block.transactions;
 			if let Some(transaction) = transactions.get(index) {
 				let f = || {
-					client
-						.runtime_api()
-						.trace_transaction(&parent_block_id, &header, ext, &transaction, trace_type)
+					if api_version >= 2 {
+						api.trace_transaction(
+							&parent_block_id,
+							&header,
+							ext,
+							&transaction,
+							trace_type,
+						)
 						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
 						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))
+					} else {
+						#[allow(deprecated)]
+						api.trace_transaction_before_version_2(
+							&parent_block_id,
+							ext,
+							&transaction,
+							trace_type,
+						)
+						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
+						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))
+					}
 				};
 				return Ok(match trace_type {
 					single::TraceType::Raw { .. } => {
