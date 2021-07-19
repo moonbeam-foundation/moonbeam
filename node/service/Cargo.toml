@@ -112,8 +112,8 @@ nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "jo
 
 # Polkadot dependencies
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
-polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8", features = ["kusama-native"] }
-polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8", features = ["kusama-native"] }
+polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
+polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
 polkadot-test-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
 polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
 
