@@ -7,6 +7,7 @@ description = "A Precompile to expose a Balances pallet throught an ERC20-compli
 
 [dependencies]
 log = "0.4"
+slices = "0.2.0"
 
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.6" }
 sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.6" }
@@ -18,6 +19,7 @@ frame-system = { git = "https://github.com/paritytech/substrate", default-featur
 pallet-balances = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.6" }
 pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.6" }
 evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }
+# ethereum = { version = "0.7", default-features = false }
 
 [features]
 default = ["std"]
@@ -31,4 +33,5 @@ std = [
     "pallet-evm/std",
     "pallet-balances/std",
     "evm/std",
+    # "ethereum/std",
 ]

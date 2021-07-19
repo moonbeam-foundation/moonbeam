@@ -20,19 +20,28 @@ use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	storage::types::StorageDoubleMap,
-	traits::{Get, StorageInstance, StoredMap},
+	traits::{Get, StorageInstance},
 	Blake2_128Concat,
 };
 use pallet_balances::pallet::{
 	Instance1, Instance10, Instance11, Instance12, Instance13, Instance14, Instance15, Instance16,
 	Instance2, Instance3, Instance4, Instance5, Instance6, Instance7, Instance8, Instance9,
 };
-use pallet_evm::{AddressMapping, GasWeightMapping, Precompile};
+use pallet_evm::{AddressMapping, GasWeightMapping, Log, Precompile};
+use slices::u8_slice;
 use sp_core::{H160, U256};
-use sp_std::marker::PhantomData;
+use sp_std::{convert::TryInto, marker::PhantomData, vec};
+
+/// Solidity selector of the Transfer log, which is the Keccak of the Log signature.
+const SELECTOR_LOG_TRANSFER: &[u8; 32] =
+	u8_slice!("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef");
+
+/// Solidity selector of the Approval log, which is the Keccak of the Log signature.
+const SELECTOR_LOG_APPROVAL: &[u8; 32] =
+	u8_slice!("0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925");
 
 pub trait InstanceToPrefix {
-	type ApprovesPrefix;
+	type ApprovesPrefix: StorageInstance;
 }
 
 macro_rules! impl_prefix {
@@ -94,7 +103,7 @@ where
 	Runtime::Call: From<pallet_balances::Call<Runtime, Instance>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Instance: InstanceToPrefix + 'static,
-	U256: From<BalanceOf<Runtime, Instance>>,
+	U256: From<BalanceOf<Runtime, Instance>> + TryInto<BalanceOf<Runtime, Instance>>,
 {
 	fn execute(
 		input: &[u8], //Reminder this is big-endian
@@ -113,7 +122,9 @@ where
 			[0x70, 0xa0, 0x82, 0x31] => return Self::balance_of(&input[SELECTOR_SIZE_BYTES..]),
 			[0xdd, 0x62, 0xed, 0x3e] => return Self::allowance(&input[SELECTOR_SIZE_BYTES..]),
 			// Only affect this Precompile storage.
-			[0x09, 0x5e, 0xa7, 0xb3] => return Self::approve(&input[SELECTOR_SIZE_BYTES..]),
+			[0x09, 0x5e, 0xa7, 0xb3] => {
+				return Self::approve(context, &input[SELECTOR_SIZE_BYTES..])
+			}
 			// Results in a Substrate call
 			[0xa9, 0x05, 0x9c, 0xbb] => Self::transfer(&input[SELECTOR_SIZE_BYTES..])?,
 			[0x0c, 0x41, 0xb0, 0x33] => Self::transfer_from(&input[SELECTOR_SIZE_BYTES..])?,
@@ -173,7 +184,7 @@ where
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Instance: InstanceToPrefix + 'static,
-	U256: From<BalanceOf<Runtime, Instance>>,
+	U256: From<BalanceOf<Runtime, Instance>> + TryInto<BalanceOf<Runtime, Instance>>,
 {
 	fn total_supply(input: &[u8]) -> Result<PrecompileOutput, ExitError> {
 		if !input.is_empty() {
@@ -225,8 +236,37 @@ where
 		todo!()
 	}
 
-	fn approve(_input: &[u8]) -> Result<PrecompileOutput, ExitError> {
-		todo!()
+	fn approve(context: &Context, input: &[u8]) -> Result<PrecompileOutput, ExitError> {
+		if input.len() != 64 {
+			return Err(ExitError::Other("Incorrect input lenght".into()));
+		}
+
+		let spender = H160::from_slice(&input[12..32]);
+		let amount = Self::parse_amount(&input[32..64])?;
+
+		let caller_id: Runtime::AccountId = context.caller.into();
+		let spender_id: Runtime::AccountId = spender.into();
+
+		ApprovesStorage::<Runtime, Instance>::insert(caller_id, spender_id, amount);
+
+		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+			<Runtime as frame_system::Config>::DbWeight::get().write,
+		);
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gas_consumed,
+			output: vec![],
+			logs: vec![Log {
+				address: context.address,
+				data: input[32..64].to_vec(),
+				topics: vec![
+					SELECTOR_LOG_APPROVAL.into(),
+					context.caller.into(),
+					spender.into(),
+				],
+			}],
+		})
 	}
 
 	fn transfer(_input: &[u8]) -> Result<pallet_balances::Call<Runtime, Instance>, ExitError> {
@@ -235,5 +275,26 @@ where
 
 	fn transfer_from(_input: &[u8]) -> Result<pallet_balances::Call<Runtime, Instance>, ExitError> {
 		todo!()
+	}
+
+	/// Parses an amount of ether from a 256 bit (32 byte) slice. The balance type is generic.
+	fn parse_amount(input: &[u8]) -> Result<BalanceOf<Runtime, Instance>, ExitError> {
+		Self::parse_uint256(input)?
+			.try_into()
+			.map_err(|_| ExitError::Other("Amount is too large for provided balance type".into()))
+	}
+
+	/// Parses a uint256 value
+	fn parse_uint256(input: &[u8]) -> Result<U256, ExitError> {
+		// In solidity all values are encoded to this width
+		const SIZE_BYTES: usize = 32;
+
+		if input.len() != SIZE_BYTES {
+			return Err(ExitError::Other(
+				"Incorrect input length for uint256 parsing".into(),
+			));
+		}
+
+		Ok(U256::from_big_endian(&input[0..SIZE_BYTES]))
 	}
 }

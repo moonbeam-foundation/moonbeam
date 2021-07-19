@@ -28,7 +28,7 @@ use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripe
 use parachain_staking_precompiles::ParachainStakingWrapper;
 use parity_scale_codec::Decode;
 use sp_core::{H160, U256};
-use sp_std::convert::TryFrom;
+use sp_std::convert::{TryFrom, TryInto};
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
 
@@ -70,7 +70,7 @@ where
 	BalanceOf<R>: TryFrom<sp_core::U256> + Debug,
 	R::Call: From<parachain_staking::Call<R>>,
 	R::Call: From<pallet_balances::Call<R>>,
-	U256: From<Erc20BalanceOf<R>>,
+	U256: From<Erc20BalanceOf<R>> + TryInto<Erc20BalanceOf<R>>,
 {
 	fn execute(
 		address: H160,
