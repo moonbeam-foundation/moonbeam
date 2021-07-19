@@ -144,7 +144,7 @@ describeDevMoonbeam("Staking - Join Nominators", (context) => {
       .signAndSend(ethan);
     await context.createBlock();
 
-    const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState(ETHAN);
+    const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN);
     expect(
       (
         nominatorsAfter.toHuman() as {
