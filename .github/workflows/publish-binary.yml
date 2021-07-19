@@ -65,7 +65,7 @@ jobs:
         with:
           node-version: 14.x
       - name: Generate release body
-        id: generate-release-body
+        id: generate-runtimes-body
         run: |
           cd tools
           yarn
