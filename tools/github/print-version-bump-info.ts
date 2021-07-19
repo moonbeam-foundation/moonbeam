@@ -95,8 +95,6 @@ async function printInfo(octokit: Octokit, previousVersion: string, nextVersion:
   console.log(`https://github.com/apopiak/substrate-migrations#frame-migrations`);
   console.log(`\nThis repository contains a list of FRAME-related migrations which might be`);
   console.log(`relevant to Moonbeam.`);
-
-
 }
 
 async function main() {
