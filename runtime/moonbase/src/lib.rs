@@ -764,7 +764,7 @@ impl pallet_proxy::Config for Runtime {
 
 impl Config for Runtime {
 	type Event = Event;
-	type MigrationsList = runtime_common::migrations::CommonMigrations;
+	type MigrationsList = runtime_common::migrations::CommonMigrations<Runtime>;
 }
 
 construct_runtime! {

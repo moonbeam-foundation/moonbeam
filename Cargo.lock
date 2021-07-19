@@ -9069,6 +9069,7 @@ version = "0.8.0-dev"
 dependencies = [
  "frame-support",
  "pallet-migrations",
+ "parachain-staking",
  "sp-runtime",
  "sp-std",
 ]
