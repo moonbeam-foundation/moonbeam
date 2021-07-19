@@ -96,23 +96,23 @@ pub mod pallet {
 		fn on_runtime_upgrade() -> Weight {
 			log::warn!("Performing on_runtime_upgrade");
 
+			let mut weight: Weight = 0u64.into();
+
 			// start by flagging that we are not fully upgraded
 			<FullyUpgraded<T>>::put(false);
+			weight += T::DbWeight::get().writes(1);
 			Self::deposit_event(Event::RuntimeUpgradeStarted());
-
-			let mut weight: Weight = 0u64.into();
 
 			weight += process_runtime_upgrades::<T>();
 
-			weight.into()
+			weight
 		}
 
 		/// on_initialize implementation. Calls process_runtime_upgrades() if we are still in the
 		/// middle of a runtime upgrade.
 		fn on_initialize(_: T::BlockNumber) -> Weight {
 
-			// TODO: should account for the minimum one DB read
-			let mut weight: Weight = 0u64.into();
+			let mut weight: Weight = T::DbWeight::get().reads(1 as Weight);
 
 			if ! <FullyUpgraded<T>>::get() {
 				weight += process_runtime_upgrades::<T>();
@@ -234,6 +234,7 @@ pub mod pallet {
 		if done {
 			<Pallet<T>>::deposit_event(Event::RuntimeUpgradeCompleted());
 			<FullyUpgraded<T>>::put(true);
+			weight += T::DbWeight::get().writes(1);
 		}
 
 		weight

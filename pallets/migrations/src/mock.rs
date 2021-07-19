@@ -18,7 +18,8 @@
 use super::*;
 use crate as pallet_migrations;
 use frame_support::{
-	construct_runtime, pallet_prelude::*, parameter_types, traits::GenesisBuild, weights::Weight,
+	construct_runtime, pallet_prelude::*, parameter_types, traits::GenesisBuild,
+	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_core::H256;
 use sp_runtime::{
@@ -54,7 +55,7 @@ parameter_types! {
 }
 impl frame_system::Config for Test {
 	type BaseCallFilter = ();
-	type DbWeight = ();
+	type DbWeight = RocksDbWeight;
 	type Origin = Origin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;

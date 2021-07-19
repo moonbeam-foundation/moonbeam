@@ -21,8 +21,8 @@ use crate::mock::{
 use crate::Event;
 use std::sync::{Arc, Mutex};
 use frame_support::{
-	traits::OnRuntimeUpgrade,
-	weights::Weight,
+	traits::{OnRuntimeUpgrade, OnInitialize},
+	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_runtime::Perbill;
 
@@ -241,4 +241,31 @@ fn migration_should_only_be_invoked_once() {
 			assert_eq!(events(), expected);
 		});
 	});
+}
+
+#[test]
+fn on_initialize_should_charge_at_least_one_db_read() {
+
+	ExtBuilder::default().build().execute_with(|| {
+		// first call to on_runtime_upgrade should flag FullyUpgraded as true
+		Migrations::on_runtime_upgrade();
+		assert_eq!(Migrations::is_fully_upgraded(), true);
+
+		// and subsequent call to on_initialize should do nothing but read this value and return
+		let weight = <Migrations as OnInitialize<u64>>::on_initialize(1);
+		assert_eq!(weight, RocksDbWeight::get().reads(1));
+	})
+}
+
+#[test]
+fn on_runtime_upgrade_charges_minimum_two_db_writes() {
+
+	ExtBuilder::default().build().execute_with(|| {
+		let mut weight = Migrations::on_runtime_upgrade();
+
+		// substrate seems to add a write to this call, so substract one for our logic
+		weight -= RocksDbWeight::get().writes(1);
+
+		assert_eq!(weight, RocksDbWeight::get().writes(2));
+	})
 }
