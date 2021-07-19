@@ -9,7 +9,7 @@ export function getCompareLink(packageName: string, previousTag: string, newTag:
   const previousPackage = execSync(
     `git show ${previousTag}:../Cargo.lock | grep ${packageName}? | head -1 | grep -o '".*"'`
   ).toString();
-  const previosCommit = /#([0-9a-f]*)/g.exec(previousPackage)[1].slice(0, 8);
+  const previousCommit = /#([0-9a-f]*)/g.exec(previousPackage)[1].slice(0, 8);
   const previousRepo = /(https:\/\/.*)\?/g.exec(previousPackage)[1];
 
   const newPackage = execSync(
