@@ -10,6 +10,7 @@
     "ethereumjs-wallet": "^1.0.0",
     "ethjs-provider-http": "^0.1.6",
     "octokit": "^1.0.6",
+    "p-map": "^4.0.0",
     "pkg": "^4.4.9",
     "polkadot-launch": "^1.6.1",
     "rlp": "^2.2.6",
