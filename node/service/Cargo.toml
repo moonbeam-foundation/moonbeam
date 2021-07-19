@@ -112,8 +112,8 @@ nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "jo
 
 # Polkadot dependencies
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
-polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
-polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
+polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8", features = ["kusama-native"] }
+polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8", features = ["kusama-native"] }
 polkadot-test-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
 polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
 
@@ -141,7 +141,10 @@ substrate-test-runtime-client = { git = "https://github.com/paritytech/substrate
 
 
 [features]
-default = []
+default = [ "kusama-native", "westend-native", "rococo-native" ]
+kusama-native = [ "polkadot-service/kusama-native", "polkadot-cli/kusama-native" ]
+westend-native = [ "polkadot-service/westend-native", "polkadot-cli/westend-native" ]
+rococo-native = [ "polkadot-service/rococo-native", "polkadot-cli/rococo-native" ]
 
 test-spec = []
 
