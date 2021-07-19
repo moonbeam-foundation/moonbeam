@@ -542,8 +542,6 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 #[ignore]
 #[test]
 fn claim_via_precompile() {
-	tracing_subscriber::fmt::init();
-
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * MOVR),
