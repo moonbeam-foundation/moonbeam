@@ -69,28 +69,40 @@ native_executor_instance!(
 	pub MoonbeamExecutor,
 	moonbeam_runtime::api::dispatch,
 	moonbeam_runtime::native_version,
-	frame_benchmarking::benchmarking::HostFunctions,
+	(
+		frame_benchmarking::benchmarking::HostFunctions,
+		moonbeam_primitives_ext::moonbeam_ext::HostFunctions
+	),
 );
 
 native_executor_instance!(
 	pub MoonriverExecutor,
 	moonriver_runtime::api::dispatch,
 	moonriver_runtime::native_version,
-	frame_benchmarking::benchmarking::HostFunctions,
+	(
+		frame_benchmarking::benchmarking::HostFunctions,
+		moonbeam_primitives_ext::moonbeam_ext::HostFunctions
+	),
 );
 
 native_executor_instance!(
 	pub MoonshadowExecutor,
 	moonshadow_runtime::api::dispatch,
 	moonshadow_runtime::native_version,
-	frame_benchmarking::benchmarking::HostFunctions,
+	(
+		frame_benchmarking::benchmarking::HostFunctions,
+		moonbeam_primitives_ext::moonbeam_ext::HostFunctions
+	),
 );
 
 native_executor_instance!(
 	pub MoonbaseExecutor,
 	moonbase_runtime::api::dispatch,
 	moonbase_runtime::native_version,
-	frame_benchmarking::benchmarking::HostFunctions,
+	(
+		frame_benchmarking::benchmarking::HostFunctions,
+		moonbeam_primitives_ext::moonbeam_ext::HostFunctions
+	),
 );
 
 /// Can be called for a `Configuration` to check if it is a configuration for
@@ -319,7 +331,7 @@ where
 		config.transaction_pool.clone(),
 		config.role.is_authority().into(),
 		config.prometheus_registry(),
-		task_manager.spawn_handle(),
+		task_manager.spawn_essential_handle(),
 		client.clone(),
 	);
 

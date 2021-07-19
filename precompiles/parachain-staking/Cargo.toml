@@ -1,23 +1,23 @@
 [package]
 name = "parachain-staking-precompiles"
-version = "0.6.0"
+version = "1.0.0"
 authors = ["PureStake"]
 edition = "2018"
 description = "A Precompile to make parachain staking accessible to pallet-evm"
 
 [dependencies]
 log = "0.4"
-rustc-hex = { version="2.0.1", default-features=false }
+rustc-hex = { version = "2.0.1", default-features = false }
 
-codec = { package="parity-scale-codec", version="2.0.0", default-features=false }
-frame-support = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.4", default-features=false }
-evm = { version="0.27.0", default-features=false, features=["with-codec"] }
-sp-std = { git="https://github.com/paritytech/substrate", default-features=false, branch="polkadot-v0.9.4" }
-sp-core = { git="https://github.com/paritytech/substrate", default-features=false, branch="polkadot-v0.9.4" }
-sp-io = { git="https://github.com/paritytech/substrate", default-features=false, branch="polkadot-v0.9.4" }
-pallet-evm = { git="https://github.com/purestake/frontier", default-features=false, branch="moonbeam-v0.8.2" }
-parachain-staking = { path="../../pallets/parachain-staking", default-features=false }
-frame-system = { git="https://github.com/paritytech/substrate", default-features=false, branch="polkadot-v0.9.4" }
+codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
+frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
+evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }
+sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
+sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
+sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.8" }
+parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
+frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 
 [dev-dependencies]
 hex = "0.4"
