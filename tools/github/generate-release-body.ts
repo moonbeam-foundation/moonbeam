@@ -39,12 +39,19 @@ async function main() {
     link: getCompareLink(repoName, previousTag, newTag),
   }));
 
-  const { prByLabels } = await getCommitAndLabels(octokit, "PureStake", "moonbeam", previousTag, newTag);
+  const { prByLabels } = await getCommitAndLabels(
+    octokit,
+    "PureStake",
+    "moonbeam",
+    previousTag,
+    newTag
+  );
+  const filteredPr = prByLabels[BINARY_CHANGES_LABEL] || [];
 
   const template = `
 ## Changes
 
-${prByLabels[BINARY_CHANGES_LABEL].map((pr) => `* ${pr.title} (#${pr.number})`).join("\n")}
+${filteredPr.map((pr) => `* ${pr.title} (#${pr.number})`).join("\n")}
 
 ## Dependency changes
 
@@ -52,6 +59,6 @@ Moonbeam: https://github.com/PureStake/moonbeam/compare/${previousTag}...${newTa
 ${moduleLinks.map((modules) => `${capitalize(modules.name)}: ${modules.link}`).join("\n")}
 `;
   console.log(template);
-};
+}
 
 main();
