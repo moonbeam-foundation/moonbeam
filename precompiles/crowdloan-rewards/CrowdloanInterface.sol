@@ -1,19 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.0;
 
-/// The interface through which solidity contracts will interact with Parachain Staking
+/// The interface through which solidity contracts will interact with Crowdloan Rewards
 /// We follow this same interface including four-byte function selectors, in the precompile that
 /// wraps the pallet
 interface CrowdloanRewards {
     // First some simple accessors
+    /// Checks whether the address is a contributor
     function is_contributor(address contributor) external view returns (bool);
+    /// Retrieve total reward and claimed reward for an address
     function reward_info(address contributor) external view returns (uint256, uint256);
+
     // Now the dispatchables
-
-
-    /// Request to leave the set of candidates. If successful, the account is immediately
-    /// removed from the candidate pool to prevent selection as a collator, but unbonding is
-    /// executed with a delay of `BondDuration` rounds.
+    /// Claim crowdloan rewards
     function claim() external;
 
 }

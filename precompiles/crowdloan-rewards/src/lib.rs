@@ -86,10 +86,10 @@ where
 		let inner_call = match input[0..SELECTOR_SIZE_BYTES] {
 			// Check for accessor methods first. These return results immediatelyç
 			[0x53, 0x44, 0x0c, 0x90] => {
-				return Self::is_contributor(&input[SELECTOR_SIZE_BYTES..]);
+				return Self::is_contributor(&input[SELECTOR_SIZE_BYTES..], target_gas);
 			}
 			[0x76, 0xf7, 0x02, 0x49] => {
-				return Self::reward_info(&input[SELECTOR_SIZE_BYTES..]);
+				return Self::reward_info(&input[SELECTOR_SIZE_BYTES..], target_gas);
 			}
 			[0x4e, 0x71, 0xd9, 0x2d] => Self::claim()?,
 			_ => {
@@ -156,7 +156,10 @@ where
 	Runtime::Call: From<pallet_crowdloan_rewards::Call<Runtime>>,
 {
 	// The accessors are first. They directly return their result.
-	fn is_contributor(input: &[u8]) -> Result<PrecompileOutput, ExitError> {
+	fn is_contributor(
+		input: &[u8],
+		target_gas: Option<u64>,
+	) -> Result<PrecompileOutput, ExitError> {
 		// parse the address
 		let contributor = H160::from_slice(&input[12..32]);
 
@@ -165,6 +168,17 @@ where
 			"Checking whether {:?} is a contributor",
 			contributor
 		);
+
+		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+			<Runtime as frame_system::Config>::DbWeight::get().read,
+		);
+
+		// Make sure enough gas
+		if let Some(gas_limit) = target_gas {
+			if gas_consumed > gas_limit {
+				return Err(ExitError::OutOfGas);
+			}
+		}
 
 		let account: Runtime::AccountId = contributor.into();
 		// fetch data from pallet
@@ -185,7 +199,7 @@ where
 		})
 	}
 
-	fn reward_info(input: &[u8]) -> Result<PrecompileOutput, ExitError> {
+	fn reward_info(input: &[u8], target_gas: Option<u64>) -> Result<PrecompileOutput, ExitError> {
 		// parse the address
 		let contributor = H160::from_slice(&input[12..32]);
 
@@ -196,6 +210,18 @@ where
 		);
 
 		let account: Runtime::AccountId = contributor.into();
+
+		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+			<Runtime as frame_system::Config>::DbWeight::get().read,
+		);
+
+		// Make sure enough gas
+		if let Some(gas_limit) = target_gas {
+			if gas_consumed > gas_limit {
+				return Err(ExitError::OutOfGas);
+			}
+		}
+
 		// fetch data from pallet
 		let reward_info = pallet_crowdloan_rewards::Pallet::<Runtime>::accounts_payable(account);
 
@@ -217,9 +243,6 @@ where
 			total, claimed
 		);
 
-		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-			<Runtime as frame_system::Config>::DbWeight::get().read,
-		);
 		let mut buffer = [0u8; 64];
 		total.to_big_endian(&mut buffer[0..32]);
 		claimed.to_big_endian(&mut buffer[32..64]);
