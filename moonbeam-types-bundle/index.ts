@@ -613,7 +613,7 @@ export const moonbeamDefinitions = {
           total: "Balance",
         },
         NominatorStatus: {
-          _enum: ["Active", "Idle", { Leaving: "RoundIndex" }],
+          _enum: ["Active", { Leaving: "RoundIndex" }],
         },
         Nominator2: {
           nominations: "Vec<Bond>",
