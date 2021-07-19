@@ -260,7 +260,7 @@ pub fn testnet_genesis(
 				.collect(),
 		},
 		treasury: Default::default(),
-		pallet_migrations: Default::default(),
+		migrations: Default::default(),
 	}
 }
 

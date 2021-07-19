@@ -41,7 +41,7 @@ construct_runtime!(
 		UncheckedExtrinsic = UncheckedExtrinsic,
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Migrations: pallet_migrations::{Pallet, Call, Storage, Config<T>, Event<T>},
+		Migrations: pallet_migrations::{Pallet, Storage, Config<T>, Event<T>},
 	}
 );
 
@@ -223,7 +223,7 @@ pub(crate) fn events() -> Vec<pallet_migrations::Event<Test>> {
 		.into_iter()
 		.map(|r| r.event)
 		.filter_map(|e| {
-			if let Event::pallet_migrations(inner) = e {
+			if let Event::Migrations(inner) = e {
 				Some(inner)
 			} else {
 				None
