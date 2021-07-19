@@ -47,6 +47,7 @@ const queryRange = async (web3: Web3, startBlock, range, tag) => {
       fromBlock: web3.utils.numberToHex(startBlock),
       toBlock: web3.utils.numberToHex(startBlock + range - 1),
       topics: [],
+      // address: "0x9b400d3a8a8d920d1ef4674095c354c9c3f929a8",
     },
   ]);
   const end = Date.now();
@@ -61,7 +62,7 @@ const queryRange = async (web3: Web3, startBlock, range, tag) => {
 const main = async () => {
   const startBlock = 280_000;
   const range = 2000;
-  const concurrent = 20;
+  const concurrent = 4;
   const totalReq = 140;
 
   const httpProviderUrl = process.argv[process.argv.length - 1].startsWith("http")
