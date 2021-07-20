@@ -878,7 +878,7 @@ pub mod pallet {
 			Pallet::<T>::deposit_event(Event::DelayNominationExitsMigrationExecuted);
 			(reads, writes)
 		} else {
-			(0u64, 0u64)
+			(1u64, 0u64)
 		}
 	}
 
