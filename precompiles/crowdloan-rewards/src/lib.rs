@@ -24,7 +24,9 @@ use frame_support::{
 	traits::{Currency, Get},
 };
 use pallet_evm::{AddressMapping, GasWeightMapping, Precompile};
+use precompiles_utils::input_parsers::parse_account;
 use precompiles_utils::solidity_conversions::{bool_to_solidity_bytes, u256_to_solidity_bytes};
+
 use sp_core::{H160, U256};
 use sp_std::{
 	convert::{TryFrom, TryInto},
@@ -92,6 +94,8 @@ where
 				return Self::reward_info(&input[SELECTOR_SIZE_BYTES..], target_gas);
 			}
 			[0x4e, 0x71, 0xd9, 0x2d] => Self::claim()?,
+
+			[0xaa, 0xac, 0x61, 0xd6] => Self::update_reward_address(&input[SELECTOR_SIZE_BYTES..])?,
 			_ => {
 				log::trace!(
 					target: "crowdloan-rewards-precompile",
@@ -257,5 +261,17 @@ where
 
 	fn claim() -> Result<pallet_crowdloan_rewards::Call<Runtime>, ExitError> {
 		Ok(pallet_crowdloan_rewards::Call::<Runtime>::claim())
+	}
+
+	fn update_reward_address(
+		input: &[u8],
+	) -> Result<pallet_crowdloan_rewards::Call<Runtime>, ExitError> {
+		log::trace!(target: "crowdloan-rewards-precompile", "In update_reward_address dispatchable wrapper");
+		log::trace!(target: "crowdloan-rewards-precompile", "input is {:?}", input);
+		let new_address = parse_account(&input[..32])?;
+
+		log::trace!(target: "crowdloan-rewards-precompile", "New account is {:?}", new_address);
+
+		Ok(pallet_crowdloan_rewards::Call::<Runtime>::update_reward_address(new_address.into()))
 	}
 }

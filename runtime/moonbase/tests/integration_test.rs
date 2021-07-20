@@ -597,7 +597,7 @@ fn claim_via_precompile() {
 
 			// Construct the call data (selector, amount)
 			let mut call_data = Vec::<u8>::from([0u8; 4]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("4e71d92d"));
+			call_data[0..4].copy_from_slice(&Keccak256::digest(b"claim()")[0..4]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(CHARLIE),
@@ -676,7 +676,8 @@ fn is_contributor_via_precompile() {
 
 			// Construct the input data to check if Bob is a contributor
 			let mut bob_input_data = Vec::<u8>::from([0u8; 36]);
-			bob_input_data[0..4].copy_from_slice(&hex_literal::hex!("53440c90"));
+			bob_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"is_contributor(address)")[0..4]);
 			bob_input_data[16..36].copy_from_slice(&BOB);
 
 			// Expected result is an EVM boolean false which is 256 bits long.
@@ -702,7 +703,8 @@ fn is_contributor_via_precompile() {
 
 			// Construct the input data to check if Charlie is a contributor
 			let mut charlie_input_data = Vec::<u8>::from([0u8; 36]);
-			charlie_input_data[0..4].copy_from_slice(&hex_literal::hex!("53440c90"));
+			charlie_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"is_contributor(address)")[0..4]);
 			charlie_input_data[16..36].copy_from_slice(&CHARLIE);
 
 			// Expected result is an EVM boolean true which is 256 bits long.
@@ -782,7 +784,8 @@ fn reward_info_via_precompile() {
 
 			// Construct the input data to check if Bob is a contributor
 			let mut charlie_input_data = Vec::<u8>::from([0u8; 36]);
-			charlie_input_data[0..4].copy_from_slice(&hex_literal::hex!("76f70249"));
+			charlie_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"reward_info(address)")[0..4]);
 			charlie_input_data[16..36].copy_from_slice(&CHARLIE);
 
 			let expected_total: U256 = (1_500_000 * UNIT).into();
@@ -808,6 +811,89 @@ fn reward_info_via_precompile() {
 					&evm_test_context(),
 				),
 				expected_result
+			);
+		})
+}
+
+#[test]
+fn update_reward_address_via_precompile() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(BOB), 1_000 * UNIT),
+		])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
+		)])
+		.with_crowdloan_fund(3_000_000 * UNIT)
+		.build()
+		.execute_with(|| {
+			// set parachain inherent data
+			set_parachain_inherent_data();
+			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+			for x in 1..3 {
+				run_to_block(x);
+			}
+			let init_block = CrowdloanRewards::init_relay_block();
+			// This matches the previous vesting
+			let end_block = init_block + 4 * WEEKS;
+			// Batch calls always succeed. We just need to check the inner event
+			assert_ok!(
+				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
+							[4u8; 32].into(),
+							Some(AccountId::from(CHARLIE)),
+							1_500_000 * UNIT
+						)])
+					),
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
+							[5u8; 32].into(),
+							Some(AccountId::from(DAVE)),
+							1_500_000 * UNIT
+						)])
+					),
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization(
+							end_block
+						)
+					)
+				]))
+				.dispatch(root_origin())
+			);
+
+			let crowdloan_precompile_address = H160::from_low_u64_be(2049);
+
+			// Charlie uses the crowdloan precompile to update address through the EVM
+			let gas_limit = 100000u64;
+			let gas_price: U256 = 1_000_000_000.into();
+
+			// Construct the input data to check if Bob is a contributor
+			let mut call_data = Vec::<u8>::from([0u8; 36]);
+			call_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"update_reward_address(address)")[0..4]);
+			call_data[16..36].copy_from_slice(&ALICE);
+
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
+				AccountId::from(CHARLIE),
+				crowdloan_precompile_address,
+				call_data,
+				U256::zero(), // No value sent in EVM
+				gas_limit,
+				gas_price,
+				None, // Use the next nonce
+			))
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+
+			assert!(CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE)).is_none());
+			assert_eq!(
+				CrowdloanRewards::accounts_payable(&AccountId::from(ALICE))
+					.unwrap()
+					.claimed_reward,
+				(450_000 * UNIT)
 			);
 		})
 }

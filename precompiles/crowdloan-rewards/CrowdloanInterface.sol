@@ -14,6 +14,8 @@ interface CrowdloanRewards {
     // Now the dispatchables
     /// Claim crowdloan rewards
     function claim() external;
+    /// Update reward address for crowdloan rewards
+    function update_reward_address(address) external;
 
 }
 
@@ -25,4 +27,5 @@ interface CrowdloanRewards {
     "53440c90": "is_contributor(address)"
     "76f70249": "reward_info(address)"
     "4e71d92d": "claim()" 
+    "aaac61d6": "update_reward_address(address)"
 }

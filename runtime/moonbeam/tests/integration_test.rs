@@ -597,7 +597,7 @@ fn claim_via_precompile() {
 
 			// Construct the call data (selector, amount)
 			let mut call_data = Vec::<u8>::from([0u8; 4]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("4e71d92d"));
+			call_data[0..4].copy_from_slice(&Keccak256::digest(b"claim()")[0..4]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(CHARLIE),
@@ -676,7 +676,8 @@ fn is_contributor_via_precompile() {
 
 			// Construct the input data to check if Bob is a contributor
 			let mut bob_input_data = Vec::<u8>::from([0u8; 36]);
-			bob_input_data[0..4].copy_from_slice(&hex_literal::hex!("53440c90"));
+			bob_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"is_contributor(address)")[0..4]);
 			bob_input_data[16..36].copy_from_slice(&BOB);
 
 			// Expected result is an EVM boolean false which is 256 bits long.
@@ -707,7 +708,8 @@ fn is_contributor_via_precompile() {
 
 			// Construct the input data to check if Charlie is a contributor
 			let mut charlie_input_data = Vec::<u8>::from([0u8; 36]);
-			charlie_input_data[0..4].copy_from_slice(&hex_literal::hex!("53440c90"));
+			charlie_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"is_contributor(address)")[0..4]);
 			charlie_input_data[16..36].copy_from_slice(&CHARLIE);
 
 			// Expected result is an EVM boolean true which is 256 bits long.
@@ -792,7 +794,8 @@ fn reward_info_via_precompile() {
 
 			// Construct the input data to check if Bob is a contributor
 			let mut charlie_input_data = Vec::<u8>::from([0u8; 36]);
-			charlie_input_data[0..4].copy_from_slice(&hex_literal::hex!("76f70249"));
+			charlie_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"reward_info(address)")[0..4]);
 			charlie_input_data[16..36].copy_from_slice(&CHARLIE);
 
 			let expected_total: U256 = (1_500_000 * GLMR).into();

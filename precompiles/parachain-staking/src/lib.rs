@@ -24,6 +24,7 @@ use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
 use pallet_evm::GasWeightMapping;
 use pallet_evm::Precompile;
+use precompiles_utils::input_parsers::parse_account;
 use precompiles_utils::solidity_conversions::{bool_to_solidity_bytes, u256_to_solidity_bytes};
 use sp_core::{H160, U256};
 use sp_std::convert::{TryFrom, TryInto};
@@ -159,28 +160,6 @@ where
 			}
 		}
 	}
-}
-
-/// Parses an H160 account address from a 256 bit (32 byte) buffer. Only the last 20 bytes are used.
-fn parse_account(input: &[u8]) -> Result<H160, ExitError> {
-	const PADDING_SIZE_BYTES: usize = 12;
-	const ACCOUNT_SIZE_BYTES: usize = 20;
-	const TOTAL_SIZE_BYTES: usize = PADDING_SIZE_BYTES + ACCOUNT_SIZE_BYTES;
-
-	if input.len() != TOTAL_SIZE_BYTES {
-		log::trace!(target: "staking-precompile",
-			"Unable to parse address. Got {} bytes, expected {}",
-			input.len(),
-			TOTAL_SIZE_BYTES,
-		);
-		return Err(ExitError::Other(
-			"Incorrect input length for account parsing".into(),
-		));
-	}
-
-	Ok(H160::from_slice(
-		&input[PADDING_SIZE_BYTES..TOTAL_SIZE_BYTES],
-	))
 }
 
 /// Parses an amount of ether from a 256 bit (32 byte) slice. The balance type is generic.
@@ -367,7 +346,7 @@ where
 		// Read the point value and format it for Solidity
 		let points: u32 = parachain_staking::Pallet::<Runtime>::points(round);
 		log::trace!(target: "staking-precompile", "🥩points is {}", points);
-		let output = u256_to_solidity_bytes(precompiles - utils);
+		let output = u256_to_solidity_bytes(U256::from(points));
 		log::trace!(target: "staking-precompile", "🥩output is {:?}", output);
 
 		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(

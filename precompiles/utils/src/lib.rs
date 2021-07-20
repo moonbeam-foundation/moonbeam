@@ -16,4 +16,5 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+pub mod input_parsers;
 pub mod solidity_conversions;

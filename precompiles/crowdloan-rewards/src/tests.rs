@@ -17,7 +17,7 @@
 use crate::mock::Crowdloan;
 use crate::mock::{
 	events, evm_test_context, precompile_address, roll_to, Call, ExtBuilder, Origin, Precompiles,
-	TestAccount::Alice, TestAccount::Bob,
+	TestAccount::Alice, TestAccount::Bob, TestAccount::Charlie,
 };
 use crate::PrecompileOutput;
 use frame_support::{assert_ok, dispatch::Dispatchable};
@@ -246,5 +246,59 @@ fn reward_info_works() {
 				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
 				expected_buffer_result
 			);
+		});
+}
+
+#[test]
+fn update_reward_address_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.with_crowdloan_pot(100u32.into())
+		.build()
+		.execute_with(|| {
+			pub const VESTING: u32 = 8;
+			// The init relay block gets inserted
+			roll_to(2);
+
+			let init_block = Crowdloan::init_relay_block();
+			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec(vec![
+				([1u8; 32].into(), Some(Alice), 50u32.into()),
+				([2u8; 32].into(), Some(Bob), 50u32.into()),
+			]))
+			.dispatch(Origin::root()));
+
+			assert_ok!(Crowdloan::complete_initialization(
+				Origin::root(),
+				init_block + VESTING
+			));
+
+			roll_to(5);
+
+			let selector = hex_literal::hex!("aaac61d6");
+
+			// Construct data to read prop count
+			let mut input_data = Vec::<u8>::from([0u8; 36]);
+			input_data[0..4].copy_from_slice(&selector);
+			input_data[16..36].copy_from_slice(&Charlie.to_h160().0);
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(EvmCall::call(
+				Alice.to_h160(),
+				precompile_address(),
+				input_data,
+				U256::zero(), // No value sent in EVM
+				u64::max_value(),
+				0.into(),
+				None, // Use the next nonce
+			))
+			.dispatch(Origin::root()));
+
+			let expected: crate::mock::Event =
+				CrowdloanEvent::RewardAddressUpdated(Alice, Charlie).into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+			// Assert storage is correctly moved
+			assert!(Crowdloan::accounts_payable(Alice).is_none());
+			assert!(Crowdloan::accounts_payable(Charlie).is_some());
 		});
 }

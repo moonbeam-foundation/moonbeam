@@ -14,24 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use sp_core::U256;
-use sp_std::vec::Vec;
+use evm::ExitError;
+use sp_core::H160;
 
-// Solidity's bool type is 256 bits as shown by these examples
-// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html
-// This utility function converts a Rust bool into the corresponding Solidity type
-pub fn bool_to_solidity_bytes(b: bool) -> Vec<u8> {
-	let mut result_bytes = [0u8; 32];
+/// Parses an H160 account address from a 256 bit (32 byte) buffer. Only the last 20 bytes are used.
+pub fn parse_account(input: &[u8]) -> Result<H160, ExitError> {
+	const PADDING_SIZE_BYTES: usize = 12;
+	const ACCOUNT_SIZE_BYTES: usize = 20;
+	const TOTAL_SIZE_BYTES: usize = PADDING_SIZE_BYTES + ACCOUNT_SIZE_BYTES;
 
-	if b {
-		result_bytes[31] = 1;
+	if input.len() != TOTAL_SIZE_BYTES {
+		log::trace!(target: "staking-precompile",
+			"Unable to parse address. Got {} bytes, expected {}",
+			input.len(),
+			TOTAL_SIZE_BYTES,
+		);
+		return Err(ExitError::Other(
+			"Incorrect input length for account parsing".into(),
+		));
 	}
 
-	result_bytes.to_vec()
-}
-
-pub fn u256_to_solidity_bytes(u: U256) -> Vec<u8> {
-	let mut result_bytes = [0u8; 32];
-	u.to_big_endian(&mut result_bytes);
-	result_bytes.to_vec()
+	Ok(H160::from_slice(
+		&input[PADDING_SIZE_BYTES..TOTAL_SIZE_BYTES],
+	))
 }

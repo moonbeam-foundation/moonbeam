@@ -9,6 +9,8 @@ description = "A Precompile to make parachain staking accessible to pallet-evm"
 
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
+log = "0.4"
+evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }
 
 [dev-dependencies]
 hex = "0.4"
@@ -18,4 +20,6 @@ default = ["std"]
 std = [
     "sp-std/std",
     "sp-core/std",
+    "evm/std",
+    "log/std"
 ]

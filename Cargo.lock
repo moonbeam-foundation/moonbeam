@@ -8285,7 +8285,9 @@ checksum = "ac74c624d6b2d21f425f752262f42188365d7b8ff1aff74c82e45136510a4857"
 name = "precompiles-utils"
 version = "0.6.0"
 dependencies = [
+ "evm",
  "hex",
+ "log",
  "sp-core",
  "sp-std",
 ]
