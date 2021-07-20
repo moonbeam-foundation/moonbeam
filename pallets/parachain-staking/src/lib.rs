@@ -850,12 +850,15 @@ pub mod pallet {
 	}
 
 	/// Storage migration for delaying nomination exits and revocations
-	fn delay_nomination_exits_migration_execution<T: Config>() {
+	fn delay_nomination_exits_migration_execution<T: Config>() -> (u64, u64) {
 		if !<DelayNominationExitsMigration<T>>::get() {
 			// migrate from Nominator -> Nominator2
+			let (mut reads, mut writes) = (0u64, 0u64);
 			for (acc, nominator_state) in NominatorState::<T>::drain() {
 				let state: Nominator2<T::AccountId, BalanceOf<T>> = nominator_state.into();
 				<NominatorState2<T>>::insert(acc, state);
+				reads += 1u64;
+				writes += 1u64;
 			}
 			// migrate from ExitQueue -> ExitQueue2
 			let just_collators_exit_queue = <ExitQueue<T>>::take();
@@ -863,6 +866,8 @@ pub mod pallet {
 			for (acc, _) in just_collators_exit_queue.clone().into_iter() {
 				candidates.push(acc);
 			}
+			reads += 1u64;
+			writes += 1u64;
 			<ExitQueue2<T>>::put(ExitQ {
 				candidates: candidates.into(),
 				nominators_leaving: OrderedSet::new(),
@@ -871,14 +876,19 @@ pub mod pallet {
 			});
 			<DelayNominationExitsMigration<T>>::put(true);
 			Pallet::<T>::deposit_event(Event::DelayNominationExitsMigrationExecuted);
+			(reads, writes)
+		} else {
+			(0u64, 0u64)
 		}
 	}
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_runtime_upgrade() -> Weight {
-			delay_nomination_exits_migration_execution::<T>();
-			300_000_000_000 // Three fifths of the max block weight
+			let (reads, writes) = delay_nomination_exits_migration_execution::<T>();
+			<T as frame_system::Config>::DbWeight::get().reads(reads)
+				+ <T as frame_system::Config>::DbWeight::get().writes(writes)
+				+ 5_000_000_000 // 1% of the max block weight, to account for computation
 		}
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut round = <Round<T>>::get();
