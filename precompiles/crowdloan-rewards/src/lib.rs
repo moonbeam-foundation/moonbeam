@@ -266,7 +266,10 @@ where
 	fn update_reward_address(
 		input: &[u8],
 	) -> Result<pallet_crowdloan_rewards::Call<Runtime>, ExitError> {
-		log::trace!(target: "crowdloan-rewards-precompile", "In update_reward_address dispatchable wrapper");
+		log::trace!(
+			target: "crowdloan-rewards-precompile",
+			"In update_reward_address dispatchable wrapper"
+		);
 		log::trace!(target: "crowdloan-rewards-precompile", "input is {:?}", input);
 		let new_address = parse_account(&input[..32])?;
 
