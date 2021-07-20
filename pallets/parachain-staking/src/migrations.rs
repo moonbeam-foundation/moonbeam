@@ -16,7 +16,10 @@
 
 //! # Parachain Staking Migrations
 use crate::{pallet::*, Config, RoundIndex};
-use frame_support::weights::Weight;
+use frame_support::{
+	traits::Get,
+	weights::Weight,
+};
 use sp_runtime::Perbill;
 use sp_std::prelude::*;
 
@@ -52,20 +55,27 @@ mod deprecated {
 pub fn delay_nominator_exits_migration<T: Config>() -> (Perbill, Weight) {
 	use frame_support::migration::{put_storage_value, take_storage_value, StorageIterator};
 
+	let mut reads = 0u64;
+	let mut writes = 0u64;
+
 	// Migrate from old Nominator struct to our new one, which adds a few fields.
 
+	reads += 1;
 	for (key, old_nominator) in StorageIterator::<
 		deprecated::OldNominator<T::AccountId, BalanceOf<T>>,
 	>::new(b"ParachainStaking", b"NominatorState")
 	.drain()
 	{
+		reads += 1;
 		let new_nominator: Nominator<T::AccountId, BalanceOf<T>> = old_nominator.into();
 		put_storage_value(b"ParachainStaking", b"NominatorState", &key, &new_nominator);
+		writes += 1;
 	}
 
 	// Migrate from exit queue's Vec type to ExitQ
 
 	// TODO: will this work for querying a standalone (non-map) storage item?
+	reads += 1;
 	if let Some(old_queue) = take_storage_value::<Vec<(T::AccountId, RoundIndex)>>(
 		b"ParachainStaking",
 		b"ExitQueue",
@@ -83,10 +93,14 @@ pub fn delay_nominator_exits_migration<T: Config>() -> (Perbill, Weight) {
 			nominator_schedule: Vec::new(),
 		};
 		put_storage_value(b"ParachainStaking", b"ExitQueue", b"", &new_queue);
+		writes += 1;
 	} else {
 		// TODO (would we ever hit this case?)
 	}
 
-	// TODO: weight
-	(Perbill::one(), 0u64.into())
+	let weight: Weight = 0u64
+		.saturating_add( (reads as Weight).saturating_mul(T::DbWeight::get().reads(reads)))
+		.saturating_add( (writes as Weight).saturating_mul(T::DbWeight::get().writes(writes)));
+
+	(Perbill::one(), weight)
 }
