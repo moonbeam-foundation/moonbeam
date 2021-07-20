@@ -14,7 +14,8 @@
   "protocolId": null,
   "properties": {
     "tokenDecimals": 18,
-    "tokenSymbol": "MOVR"
+    "tokenSymbol": "MOVR",
+    "SS58Prefix": 1285
   },
   "relayChain": "kusama",
   "paraId": 2023,

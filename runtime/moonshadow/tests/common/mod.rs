@@ -49,6 +49,17 @@ pub fn last_event() -> Event {
 	System::events().pop().expect("Event expected").event
 }
 
+// Helper function to give a simple evm context suitable for tests.
+// We can remove this once https://github.com/rust-blockchain/evm/pull/35
+// is in our dependency graph.
+pub fn evm_test_context() -> evm::Context {
+	evm::Context {
+		address: Default::default(),
+		caller: Default::default(),
+		apparent_value: From::from(0),
+	}
+}
+
 pub struct ExtBuilder {
 	// endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,

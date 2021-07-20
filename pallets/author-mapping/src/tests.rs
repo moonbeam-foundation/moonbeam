@@ -60,22 +60,6 @@ fn eligible_account_can_register() {
 }
 
 #[test]
-fn ineligible_account_cannot_register() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 1000)])
-		.build()
-		.execute_with(|| {
-			assert_noop!(
-				AuthorMapping::add_association(Origin::signed(1), TestAuthor::Alice),
-				Error::<Test>::CannotSetAuthor
-			);
-
-			assert_eq!(Balances::free_balance(&1), 1000);
-			assert_eq!(AuthorMapping::account_id_of(&TestAuthor::Alice), None);
-		})
-}
-
-#[test]
 fn cannot_register_without_deposit() {
 	ExtBuilder::default()
 		.with_balances(vec![(2, 10)])
@@ -244,31 +228,6 @@ fn registered_author_cannot_be_rotated_by_non_owner() {
 				),
 				Error::<Test>::NotYourAssociation
 			);
-		})
-}
-
-// The notion of eligible accounts may change as runtimes are upgraded. If an account previously
-// registered when it was eligible and has ince become ineleigible, we don't want them to rotate
-// anymore as this takes compute that is not useful. This mechanism interacts well with the narc
-// extrinsic if we ever bring it back.
-#[test]
-fn no_longer_eligible_account_cannot_rotate() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 1000)])
-		.with_mappings(vec![(TestAuthor::Alice, 1)])
-		.build()
-		.execute_with(|| {
-			assert_noop!(
-				AuthorMapping::update_association(
-					Origin::signed(1),
-					TestAuthor::Alice,
-					TestAuthor::Bob
-				),
-				Error::<Test>::CannotSetAuthor
-			);
-
-			assert_eq!(Balances::free_balance(&1), 900);
-			assert_eq!(AuthorMapping::account_id_of(&TestAuthor::Alice), Some(1));
 		})
 }
 

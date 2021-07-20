@@ -36,13 +36,14 @@
     "build": "cargo build --release",
     "non-ci-test": "mocha -r ts-node/register 'non_ci_tests/**/test-*.ts'",
     "test-single": "mocha -r ts-node/register 'tests/test-stake.ts'",
+    "current-test": "mocha -r ts-node/register",
     "lint": "npx prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@polkadot/api": "^4.14.1",
-    "@polkadot/types": "^4.14.1",
+    "@polkadot/api": "^4.17.1",
+    "@polkadot/types": "^4.17.1",
     "@types/chai": "^4.2.11",
     "@types/mocha": "^8.2.2",
     "chai": "^4.3.4",

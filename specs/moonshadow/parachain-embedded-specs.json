@@ -12,7 +12,8 @@
   "protocolId": null,
   "properties": {
     "tokenDecimals": 18,
-    "tokenSymbol": "MSHD"
+    "tokenSymbol": "MSHD",
+    "SS58Prefix": 1288
   },
   "relayChain": "westend",
   "paraId": 2002,

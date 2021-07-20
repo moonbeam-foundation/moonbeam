@@ -23,21 +23,138 @@ use evm::{executor::PrecompileOutput, ExitError, ExitSucceed};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
-	traits::{fungible::Inspect, PalletInfo},
+	traits::{fungible::Inspect, PalletInfo, StorageInfo, StorageInfoTrait},
+	weights::{DispatchClass, Weight},
+	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
-	currency::UNIT, AccountId, Balances, Call, CrowdloanRewards, Event, ParachainStaking,
-	Precompiles, Runtime, System,
+	currency::UNIT, AccountId, Balances, BlockWeights, Call, CrowdloanRewards, Event,
+	ParachainStaking, Precompiles, Runtime, System,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
+use pallet_transaction_payment::Multiplier;
 use parachain_staking::{Bond, NominatorAdded};
+use sha3::{Digest, Keccak256};
 use sp_core::{Public, H160, U256};
-use sp_runtime::DispatchError;
+use sp_runtime::{
+	traits::{Convert, One},
+	DispatchError,
+};
 
 #[test]
 fn fast_track_available() {
 	assert!(<moonbase_runtime::Runtime as pallet_democracy::Config>::InstantAllowed::get());
+}
+
+#[test]
+fn verify_pallet_prefixes() {
+	fn is_pallet_prefix<P: 'static>(name: &str) {
+		// Compares the unhashed pallet prefix in the `StorageInstance` implementation by every
+		// storage item in the pallet P. This pallet prefix is used in conjunction with the
+		// item name to get the unique storage key: hash(PalletPrefix) + hash(StorageName)
+		// https://github.com/paritytech/substrate/blob/master/frame/support/procedural/src/pallet/
+		// expand/storage.rs#L389-L401
+		assert_eq!(
+			<moonbase_runtime::Runtime as frame_system::Config>::PalletInfo::name::<P>(),
+			Some(name)
+		);
+	}
+	// TODO: use StorageInfoTrait once https://github.com/paritytech/substrate/pull/9246
+	// is pulled in substrate deps.
+	is_pallet_prefix::<moonbase_runtime::System>("System");
+	is_pallet_prefix::<moonbase_runtime::Utility>("Utility");
+	is_pallet_prefix::<moonbase_runtime::RandomnessCollectiveFlip>("RandomnessCollectiveFlip");
+	is_pallet_prefix::<moonbase_runtime::ParachainSystem>("ParachainSystem");
+	is_pallet_prefix::<moonbase_runtime::TransactionPayment>("TransactionPayment");
+	is_pallet_prefix::<moonbase_runtime::ParachainInfo>("ParachainInfo");
+	is_pallet_prefix::<moonbase_runtime::EthereumChainId>("EthereumChainId");
+	is_pallet_prefix::<moonbase_runtime::EVM>("EVM");
+	is_pallet_prefix::<moonbase_runtime::Ethereum>("Ethereum");
+	is_pallet_prefix::<moonbase_runtime::ParachainStaking>("ParachainStaking");
+	is_pallet_prefix::<moonbase_runtime::Scheduler>("Scheduler");
+	is_pallet_prefix::<moonbase_runtime::Democracy>("Democracy");
+	is_pallet_prefix::<moonbase_runtime::CouncilCollective>("CouncilCollective");
+	is_pallet_prefix::<moonbase_runtime::TechComitteeCollective>("TechComitteeCollective");
+	is_pallet_prefix::<moonbase_runtime::Treasury>("Treasury");
+	is_pallet_prefix::<moonbase_runtime::AuthorInherent>("AuthorInherent");
+	is_pallet_prefix::<moonbase_runtime::AuthorFilter>("AuthorFilter");
+	is_pallet_prefix::<moonbase_runtime::CrowdloanRewards>("CrowdloanRewards");
+	is_pallet_prefix::<moonbase_runtime::AuthorMapping>("AuthorMapping");
+	let prefix = |pallet_name, storage_name| {
+		let mut res = [0u8; 32];
+		res[0..16].copy_from_slice(&Twox128::hash(pallet_name));
+		res[16..32].copy_from_slice(&Twox128::hash(storage_name));
+		res
+	};
+	assert_eq!(
+		<moonbase_runtime::Timestamp as StorageInfoTrait>::storage_info(),
+		vec![
+			StorageInfo {
+				prefix: prefix(b"Timestamp", b"Now"),
+				max_values: Some(1),
+				max_size: Some(8),
+			},
+			StorageInfo {
+				prefix: prefix(b"Timestamp", b"DidUpdate"),
+				max_values: Some(1),
+				max_size: Some(1),
+			}
+		]
+	);
+	assert_eq!(
+		<moonbase_runtime::Balances as StorageInfoTrait>::storage_info(),
+		vec![
+			StorageInfo {
+				prefix: prefix(b"Balances", b"TotalIssuance"),
+				max_values: Some(1),
+				max_size: Some(16),
+			},
+			StorageInfo {
+				prefix: prefix(b"Balances", b"Account"),
+				max_values: Some(300_000),
+				max_size: Some(100),
+			},
+			StorageInfo {
+				prefix: prefix(b"Balances", b"Locks"),
+				max_values: Some(300_000),
+				max_size: Some(1287),
+			},
+			StorageInfo {
+				prefix: prefix(b"Balances", b"Reserves"),
+				max_values: None,
+				max_size: Some(1037),
+			},
+			StorageInfo {
+				prefix: prefix(b"Balances", b"StorageVersion"),
+				max_values: Some(1),
+				max_size: Some(1),
+			}
+		]
+	);
+	assert_eq!(
+		<moonbase_runtime::Sudo as StorageInfoTrait>::storage_info(),
+		vec![StorageInfo {
+			prefix: prefix(b"Sudo", b"Key"),
+			max_values: Some(1),
+			max_size: Some(20),
+		}]
+	);
+	assert_eq!(
+		<moonbase_runtime::Proxy as StorageInfoTrait>::storage_info(),
+		vec![
+			StorageInfo {
+				prefix: prefix(b"Proxy", b"Proxies"),
+				max_values: None,
+				max_size: Some(845),
+			},
+			StorageInfo {
+				prefix: prefix(b"Proxy", b"Announcements"),
+				max_values: None,
+				max_size: Some(1837),
+			}
+		]
+	);
 }
 
 #[test]
@@ -326,29 +443,29 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			for x in 1..3 {
 				run_to_block(x);
 			}
+			let init_block = CrowdloanRewards::init_relay_block();
+			// This matches the previous vesting
+			let end_block = init_block + 4 * WEEKS;
 			// Batch calls always succeed. We just need to check the inner event
 			assert_ok!(
 				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
-							vec![(
-								[4u8; 32].into(),
-								Some(AccountId::from(CHARLIE)),
-								1_500_000 * UNIT
-							)],
-							0,
-							2
-						)
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
+							[4u8; 32].into(),
+							Some(AccountId::from(CHARLIE)),
+							1_500_000 * UNIT
+						)])
 					),
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
-							vec![(
-								[5u8; 32].into(),
-								Some(AccountId::from(DAVE)),
-								1_500_000 * UNIT
-							)],
-							1,
-							2
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
+							[5u8; 32].into(),
+							Some(AccountId::from(DAVE)),
+							1_500_000 * UNIT
+						)])
+					),
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization(
+							end_block
 						)
 					)
 				]))
@@ -363,11 +480,11 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			// This one should fail, as we already filled our data
 			assert_ok!(Call::Utility(pallet_utility::Call::<Runtime>::batch(vec![
 				Call::CrowdloanRewards(
-					pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
-						vec![([4u8; 32].into(), Some(AccountId::from(ALICE)), 432000)],
-						0,
-						1
-					)
+					pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
+						[4u8; 32].into(),
+						Some(AccountId::from(ALICE)),
+						432000
+					)])
 				)
 			]))
 			.dispatch(root_origin()));
@@ -431,7 +548,8 @@ fn join_candidates_via_precompile() {
 
 			// Construct the call data (selector, amount)
 			let mut call_data = Vec::<u8>::from([0u8; 68]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("ad76ed5a"));
+			call_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"join_candidates(uint256,uint256)")[0..4]);
 			amount.to_big_endian(&mut call_data[4..36]);
 			candidate_count.to_big_endian(&mut call_data[36..]);
 
@@ -491,7 +609,7 @@ fn leave_candidates_via_precompile() {
 
 			// Construct the leave_candidates call data
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("b7694219"));
+			call_data[0..4].copy_from_slice(&Keccak256::digest(b"leave_candidates(uint256)")[0..4]);
 			collator_count.to_big_endian(&mut call_data[4..]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
@@ -544,7 +662,7 @@ fn go_online_offline_via_precompile() {
 
 			// Construct the go_offline call data
 			let mut go_offline_call_data = Vec::<u8>::from([0u8; 4]);
-			go_offline_call_data[0..4].copy_from_slice(&hex_literal::hex!("767e0450"));
+			go_offline_call_data[0..4].copy_from_slice(&Keccak256::digest(b"go_offline()")[0..4]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(ALICE),
@@ -578,7 +696,7 @@ fn go_online_offline_via_precompile() {
 
 			// Construct the go_online call data
 			let mut go_online_call_data = Vec::<u8>::from([0u8; 4]);
-			go_online_call_data[0..4].copy_from_slice(&hex_literal::hex!("d2f73ceb"));
+			go_online_call_data[0..4].copy_from_slice(&Keccak256::digest(b"go_online()")[0..4]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(ALICE),
@@ -630,7 +748,8 @@ fn candidate_bond_more_less_via_precompile() {
 
 			// Construct the candidate_bond_more call
 			let mut bond_more_call_data = Vec::<u8>::from([0u8; 36]);
-			bond_more_call_data[0..4].copy_from_slice(&hex_literal::hex!("c57bd3a8"));
+			bond_more_call_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"candidate_bond_more(uint256)")[0..4]);
 			let bond_more_amount: U256 = (1000 * UNIT).into();
 			bond_more_amount.to_big_endian(&mut bond_more_call_data[4..36]);
 
@@ -671,7 +790,8 @@ fn candidate_bond_more_less_via_precompile() {
 
 			// Construct the go_online call data
 			let mut bond_less_call_data = Vec::<u8>::from([0u8; 36]);
-			bond_less_call_data[0..4].copy_from_slice(&hex_literal::hex!("289b6ba7"));
+			bond_less_call_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"candidate_bond_less(uint256)")[0..4]);
 			let bond_less_amount: U256 = (500 * UNIT).into();
 			bond_less_amount.to_big_endian(&mut bond_less_call_data[4..36]);
 
@@ -734,7 +854,9 @@ fn nominate_via_precompile() {
 
 			// Construct the call data (selector, collator, nomination amount)
 			let mut call_data = Vec::<u8>::from([0u8; 132]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("82f2c8df"));
+			call_data[0..4].copy_from_slice(
+				&Keccak256::digest(b"nominate(address,uint256,uint256,uint256)")[0..4],
+			);
 			call_data[16..36].copy_from_slice(&ALICE);
 			nomination_amount.to_big_endian(&mut call_data[36..68]);
 			collator_nominator_count.to_big_endian(&mut call_data[68..100]);
@@ -812,7 +934,7 @@ fn leave_nominators_via_precompile() {
 
 			// Construct leave_nominators call
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("e8d68a37"));
+			call_data[0..4].copy_from_slice(&Keccak256::digest(b"leave_nominators(uint256)")[0..4]);
 			nomination_count.to_big_endian(&mut call_data[4..]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
@@ -898,7 +1020,8 @@ fn revoke_nomination_via_precompile() {
 
 			// Construct revoke_nomination call
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("4b65c34b"));
+			call_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"revoke_nomination(address)")[0..4]);
 			call_data[16..36].copy_from_slice(&ALICE);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
@@ -967,7 +1090,8 @@ fn nominator_bond_more_less_via_precompile() {
 
 			// Construct the nominator_bond_more call
 			let mut bond_more_call_data = Vec::<u8>::from([0u8; 68]);
-			bond_more_call_data[0..4].copy_from_slice(&hex_literal::hex!("971d44c8"));
+			bond_more_call_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"nominator_bond_more(address,uint256)")[0..4]);
 			bond_more_call_data[16..36].copy_from_slice(&ALICE);
 			let bond_more_amount: U256 = (500 * UNIT).into();
 			bond_more_amount.to_big_endian(&mut bond_more_call_data[36..68]);
@@ -1011,7 +1135,8 @@ fn nominator_bond_more_less_via_precompile() {
 
 			// Construct the go_online call data
 			let mut bond_less_call_data = Vec::<u8>::from([0u8; 68]);
-			bond_less_call_data[0..4].copy_from_slice(&hex_literal::hex!("f6a52569"));
+			bond_less_call_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"nominator_bond_less(address,uint256)")[0..4]);
 			bond_less_call_data[16..36].copy_from_slice(&ALICE);
 			let bond_less_amount: U256 = (500 * UNIT).into();
 			bond_less_amount.to_big_endian(&mut bond_less_call_data[36..68]);
@@ -1078,7 +1203,8 @@ fn is_nominator_via_precompile() {
 
 			// Construct the input data to check if Bob is a nominator
 			let mut bob_input_data = Vec::<u8>::from([0u8; 36]);
-			bob_input_data[0..4].copy_from_slice(&hex_literal::hex!("8e5080e7"));
+			bob_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"is_nominator(address)")[0..4]);
 			bob_input_data[16..36].copy_from_slice(&BOB);
 
 			// Expected result is an EVM boolean true which is 256 bits long.
@@ -1104,7 +1230,8 @@ fn is_nominator_via_precompile() {
 
 			// Construct the input data to check if Charlie is a nominator
 			let mut charlie_input_data = Vec::<u8>::from([0u8; 36]);
-			charlie_input_data[0..4].copy_from_slice(&hex_literal::hex!("8e5080e7"));
+			charlie_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"is_nominator(address)")[0..4]);
 			charlie_input_data[16..36].copy_from_slice(&CHARLIE);
 
 			// Expected result is an EVM boolean false which is 256 bits long.
@@ -1143,7 +1270,8 @@ fn is_candidate_via_precompile() {
 
 			// Construct the input data to check if Alice is a candidate
 			let mut alice_input_data = Vec::<u8>::from([0u8; 36]);
-			alice_input_data[0..4].copy_from_slice(&hex_literal::hex!("8545c833"));
+			alice_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"is_candidate(address)")[0..4]);
 			alice_input_data[16..36].copy_from_slice(&ALICE);
 
 			// Expected result is an EVM boolean true which is 256 bits long.
@@ -1169,7 +1297,8 @@ fn is_candidate_via_precompile() {
 
 			// Construct the input data to check if Bob is a collator candidate
 			let mut bob_input_data = Vec::<u8>::from([0u8; 36]);
-			bob_input_data[0..4].copy_from_slice(&hex_literal::hex!("8545c833"));
+			bob_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"is_candidate(address)")[0..4]);
 			bob_input_data[16..36].copy_from_slice(&CHARLIE);
 
 			// Expected result is an EVM boolean false which is 256 bits long.
@@ -1208,9 +1337,10 @@ fn is_selected_candidate_via_precompile() {
 
 			let staking_precompile_address = H160::from_low_u64_be(2048);
 
-			// Construct the input data to check if Alice is a candidate
+			// Construct the input data to check if Alice is a selected candidate
 			let mut alice_input_data = Vec::<u8>::from([0u8; 36]);
-			alice_input_data[0..4].copy_from_slice(&hex_literal::hex!("8f6d27c7"));
+			alice_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"is_selected_candidate(address)")[0..4]);
 			alice_input_data[16..36].copy_from_slice(&ALICE);
 
 			// Expected result is an EVM boolean true which is 256 bits long.
@@ -1236,7 +1366,8 @@ fn is_selected_candidate_via_precompile() {
 
 			// Construct the input data to check if Bob is a collator candidate
 			let mut bob_input_data = Vec::<u8>::from([0u8; 36]);
-			bob_input_data[0..4].copy_from_slice(&hex_literal::hex!("8f6d27c7"));
+			bob_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"is_selected_candidate(address)")[0..4]);
 			bob_input_data[16..36].copy_from_slice(&BOB);
 
 			// Expected result is an EVM boolean false which is 256 bits long.
@@ -1267,7 +1398,7 @@ fn min_nomination_via_precompile() {
 		let staking_precompile_address = H160::from_low_u64_be(2048);
 
 		let mut get_min_nom = Vec::<u8>::from([0u8; 4]);
-		get_min_nom[0..4].copy_from_slice(&hex_literal::hex!("c9f593b2"));
+		get_min_nom[0..4].copy_from_slice(&Keccak256::digest(b"min_nomination()")[0..4]);
 
 		let min_nomination = 5u128 * UNIT;
 		let expected_min: U256 = min_nomination.into();
@@ -1300,7 +1431,7 @@ fn points_precompile_zero() {
 		// Construct the input data to check points in round one
 		// Notice we start in round one, not round zero.
 		let mut input_data = Vec::<u8>::from([0u8; 36]);
-		input_data[0..4].copy_from_slice(&hex_literal::hex!("9799b4e7"));
+		input_data[0..4].copy_from_slice(&Keccak256::digest(b"points(uint256)")[0..4]);
 		U256::one().to_big_endian(&mut input_data[4..36]);
 
 		// Expected result is zero points because nobody has authored yet.
@@ -1345,7 +1476,7 @@ fn points_precompile_non_zero() {
 			// Construct the input data to check points in round one
 			// Notice we start in round one, not round zero.
 			let mut input_data = Vec::<u8>::from([0u8; 36]);
-			input_data[0..4].copy_from_slice(&hex_literal::hex!("9799b4e7"));
+			input_data[0..4].copy_from_slice(&Keccak256::digest(b"points(uint256)")[0..4]);
 			U256::one().to_big_endian(&mut input_data[4..36]);
 
 			// Expected result is 20 points because each block is one point.
@@ -1384,7 +1515,7 @@ fn points_precompile_round_too_big_error() {
 
 		// Construct the input data to check points so far this round
 		let mut input_data = Vec::<u8>::from([0u8; 36]);
-		input_data[0..4].copy_from_slice(&hex_literal::hex!("9799b4e7"));
+		input_data[0..4].copy_from_slice(&Keccak256::digest(b"points(uint256)")[0..4]);
 		U256::max_value().to_big_endian(&mut input_data[4..36]);
 
 		assert_eq!(
@@ -1399,4 +1530,64 @@ fn points_precompile_round_too_big_error() {
 			)))
 		);
 	})
+}
+
+fn run_with_system_weight<F>(w: Weight, mut assertions: F)
+where
+	F: FnMut() -> (),
+{
+	let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
+		.build_storage::<Runtime>()
+		.unwrap()
+		.into();
+	t.execute_with(|| {
+		System::set_block_consumed_resources(w, 0);
+		assertions()
+	});
+}
+
+#[test]
+fn multiplier_can_grow_from_zero() {
+	let minimum_multiplier = moonbase_runtime::MinimumMultiplier::get();
+	let target = moonbase_runtime::TargetBlockFullness::get()
+		* BlockWeights::get()
+			.get(DispatchClass::Normal)
+			.max_total
+			.unwrap();
+	// if the min is too small, then this will not change, and we are doomed forever.
+	// the weight is 1/100th bigger than target.
+	run_with_system_weight(target * 101 / 100, || {
+		let next = moonbase_runtime::SlowAdjustingFeeUpdate::<Runtime>::convert(minimum_multiplier);
+		assert!(
+			next > minimum_multiplier,
+			"{:?} !>= {:?}",
+			next,
+			minimum_multiplier
+		);
+	})
+}
+
+#[test]
+#[ignore] // test runs for a very long time
+fn multiplier_growth_simulator() {
+	// assume the multiplier is initially set to its minimum. We update it with values twice the
+	//target (target is 25%, thus 50%) and we see at which point it reaches 1.
+	let mut multiplier = moonbase_runtime::MinimumMultiplier::get();
+	let block_weight = moonbase_runtime::TargetBlockFullness::get()
+		* BlockWeights::get()
+			.get(DispatchClass::Normal)
+			.max_total
+			.unwrap()
+		* 2;
+	let mut blocks = 0;
+	while multiplier <= Multiplier::one() {
+		run_with_system_weight(block_weight, || {
+			let next = moonbase_runtime::SlowAdjustingFeeUpdate::<Runtime>::convert(multiplier);
+			// ensure that it is growing as well.
+			assert!(next > multiplier, "{:?} !>= {:?}", next, multiplier);
+			multiplier = next;
+		});
+		blocks += 1;
+		println!("block = {} multiplier {:?}", blocks, multiplier);
+	}
 }

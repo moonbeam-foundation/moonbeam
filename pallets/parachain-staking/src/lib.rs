@@ -607,6 +607,8 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The currency type
 		type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
+		/// The origin for monetary governance
+		type MonetaryGovernanceOrigin: EnsureOrigin<Self::Origin>;
 		/// Minimum number of blocks per round
 		type MinBlocksPerRound: Get<u32>;
 		/// Default number of blocks per round at genesis
@@ -652,7 +654,6 @@ pub mod pallet {
 		ExceedMaxCollatorsPerNom,
 		AlreadyNominatedCollator,
 		NominationDNE,
-		CannotBondLessGEQTotalBond,
 		InvalidSchedule,
 		CannotSetBelowMin,
 		NoWritingSameValue,
@@ -889,7 +890,7 @@ pub mod pallet {
 			for &(ref candidate, balance) in &self.candidates {
 				assert!(
 					T::Currency::free_balance(&candidate) >= balance,
-					"Account does not have enough balance to bond as a cadidate."
+					"Account does not have enough balance to bond as a candidate."
 				);
 				candidate_count += 1u32;
 				if let Err(error) = <Pallet<T>>::join_candidates(
@@ -985,7 +986,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			expectations: Range<BalanceOf<T>>,
 		) -> DispatchResultWithPostInfo {
-			frame_system::ensure_root(origin)?;
+			T::MonetaryGovernanceOrigin::ensure_origin(origin)?;
 			ensure!(expectations.is_valid(), Error::<T>::InvalidSchedule);
 			let mut config = <InflationConfig<T>>::get();
 			ensure!(
@@ -1007,7 +1008,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			schedule: Range<Perbill>,
 		) -> DispatchResultWithPostInfo {
-			frame_system::ensure_root(origin)?;
+			T::MonetaryGovernanceOrigin::ensure_origin(origin)?;
 			ensure!(schedule.is_valid(), Error::<T>::InvalidSchedule);
 			let mut config = <InflationConfig<T>>::get();
 			ensure!(config.annual != schedule, Error::<T>::NoWritingSameValue);
@@ -1030,7 +1031,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			new: T::AccountId,
 		) -> DispatchResultWithPostInfo {
-			frame_system::ensure_root(origin)?;
+			T::MonetaryGovernanceOrigin::ensure_origin(origin)?;
 			let ParachainBondConfig {
 				account: old,
 				percent,
@@ -1049,7 +1050,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			new: Percent,
 		) -> DispatchResultWithPostInfo {
-			frame_system::ensure_root(origin)?;
+			T::MonetaryGovernanceOrigin::ensure_origin(origin)?;
 			let ParachainBondConfig {
 				account,
 				percent: old,
@@ -1121,8 +1122,6 @@ pub mod pallet {
 			<InflationConfig<T>>::put(inflation_config);
 			Ok(().into())
 		}
-		// TODO: `kick_candidate` which will be used for returning cost of executed exits in
-		// `on_initialize`
 		/// Join the set of collator candidates
 		#[pallet::weight(<T as Config>::WeightInfo::join_candidates(*candidate_count))]
 		pub fn join_candidates(
@@ -1268,9 +1267,7 @@ pub mod pallet {
 			let mut state = <CollatorState2<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_leaving(), Error::<T>::CannotActivateIfLeaving);
 			let before = state.bond;
-			let after = state
-				.bond_less(less)
-				.ok_or(Error::<T>::CannotBondLessGEQTotalBond)?;
+			let after = state.bond_less(less).ok_or(Error::<T>::ValBondBelowMin)?;
 			ensure!(
 				after >= T::MinCollatorCandidateStk::get(),
 				Error::<T>::ValBondBelowMin
@@ -1425,7 +1422,7 @@ pub mod pallet {
 			let remaining = nominations
 				.dec_nomination(candidate.clone(), less)
 				.ok_or(Error::<T>::NominationDNE)?
-				.ok_or(Error::<T>::CannotBondLessGEQTotalBond)?;
+				.ok_or(Error::<T>::NomBondBelowMin)?;
 			ensure!(
 				remaining >= T::MinNomination::get(),
 				Error::<T>::NominationBelowMin
