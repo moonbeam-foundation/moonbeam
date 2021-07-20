@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::bool_to_solidity_bytes;
 use crate::mock::Crowdloan;
 use crate::mock::{
 	events, evm_test_context, precompile_address, roll_to, Call, ExtBuilder, Origin, Precompiles,
@@ -25,6 +24,7 @@ use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_crowdloan_rewards::{Call as CrowdloanCall, Event as CrowdloanEvent};
 use pallet_evm::Call as EvmCall;
 use pallet_evm::{ExitError, ExitSucceed, PrecompileSet};
+use precompiles_utils::solidity_conversions::{bool_to_solidity_bytes, u256_to_solidity_bytes};
 use sp_core::U256;
 
 #[test]
@@ -229,9 +229,10 @@ fn reward_info_works() {
 			input_data[16..36].copy_from_slice(&Alice.to_h160().0);
 
 			let mut expected_buffer = [0u8; 64];
-			U256::from(50u128).to_big_endian(&mut expected_buffer[0..32]);
-			U256::from(10u128).to_big_endian(&mut expected_buffer[32..64]);
-
+			expected_buffer[0..32]
+				.clone_from_slice(u256_to_solidity_bytes(U256::from(50u128)).as_slice());
+			expected_buffer[32..64]
+				.clone_from_slice(u256_to_solidity_bytes(U256::from(10u128)).as_slice());
 			// Expected result
 			let expected_buffer_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,

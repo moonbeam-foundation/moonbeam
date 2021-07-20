@@ -24,12 +24,12 @@ use frame_support::{
 	traits::{Currency, Get},
 };
 use pallet_evm::{AddressMapping, GasWeightMapping, Precompile};
+use precompiles_utils::solidity_conversions::{bool_to_solidity_bytes, u256_to_solidity_bytes};
 use sp_core::{H160, U256};
 use sp_std::{
 	convert::{TryFrom, TryInto},
 	fmt::Debug,
 	marker::PhantomData,
-	vec::Vec,
 };
 
 #[cfg(test)]
@@ -244,8 +244,9 @@ where
 		);
 
 		let mut buffer = [0u8; 64];
-		total.to_big_endian(&mut buffer[0..32]);
-		claimed.to_big_endian(&mut buffer[32..64]);
+		buffer[0..32].clone_from_slice(u256_to_solidity_bytes(total).as_slice());
+		buffer[32..64].clone_from_slice(u256_to_solidity_bytes(claimed).as_slice());
+
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gas_consumed,
@@ -257,17 +258,4 @@ where
 	fn claim() -> Result<pallet_crowdloan_rewards::Call<Runtime>, ExitError> {
 		Ok(pallet_crowdloan_rewards::Call::<Runtime>::claim())
 	}
-}
-
-// Solidity's bool type is 256 bits as shown by these examples
-// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html
-// This utility function converts a Rust bool into the corresponding Solidity type
-fn bool_to_solidity_bytes(b: bool) -> Vec<u8> {
-	let mut result_bytes = [0u8; 32];
-
-	if b {
-		result_bytes[31] = 1;
-	}
-
-	result_bytes.to_vec()
 }

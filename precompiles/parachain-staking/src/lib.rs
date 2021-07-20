@@ -24,6 +24,7 @@ use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
 use pallet_evm::GasWeightMapping;
 use pallet_evm::Precompile;
+use precompiles_utils::solidity_conversions::{bool_to_solidity_bytes, u256_to_solidity_bytes};
 use sp_core::{H160, U256};
 use sp_std::convert::{TryFrom, TryInto};
 use sp_std::fmt::Debug;
@@ -341,13 +342,12 @@ where
 			<Runtime as frame_system::Config>::DbWeight::get().read,
 		);
 
-		let mut buffer = [0u8; 32];
-		min_nomination.to_big_endian(&mut buffer);
+		let buffer = u256_to_solidity_bytes(min_nomination);
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gas_consumed,
-			output: buffer.to_vec(),
+			output: buffer,
 			logs: Default::default(),
 		})
 	}
@@ -367,8 +367,7 @@ where
 		// Read the point value and format it for Solidity
 		let points: u32 = parachain_staking::Pallet::<Runtime>::points(round);
 		log::trace!(target: "staking-precompile", "🥩points is {}", points);
-		let mut output = [0u8; 32];
-		U256::from(points).to_big_endian(&mut output);
+		let output = u256_to_solidity_bytes(precompiles - utils);
 		log::trace!(target: "staking-precompile", "🥩output is {:?}", output);
 
 		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
@@ -378,7 +377,7 @@ where
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gas_consumed,
-			output: output.to_vec(),
+			output: output,
 			logs: Default::default(),
 		})
 	}
@@ -509,17 +508,4 @@ where
 			amount,
 		))
 	}
-}
-
-// Solidity's bool type is 256 bits as shown by these examples
-// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html
-// This utility function converts a Rust bool into the corresponding Solidity type
-fn bool_to_solidity_bytes(b: bool) -> Vec<u8> {
-	let mut result_bytes = [0u8; 32];
-
-	if b {
-		result_bytes[31] = 1;
-	}
-
-	result_bytes.to_vec()
 }
