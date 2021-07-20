@@ -16,9 +16,8 @@
 
 //! # Parachain Staking Migrations
 use crate::{pallet::*, Config, RoundIndex};
-use frame_support::pallet;
 use frame_support::weights::Weight;
-use sp_runtime::{traits::Zero, Perbill};
+use sp_runtime::Perbill;
 use sp_std::prelude::*;
 
 mod deprecated {
@@ -66,7 +65,6 @@ pub fn delay_nominator_exits_migration<T: Config>() -> (Perbill, Weight) {
 
 	// Migrate from exit queue's Vec type to ExitQ
 
-	/// DEPRECATED exit queue value type
 	// TODO: will this work for querying a standalone (non-map) storage item?
 	if let Some(old_queue) = take_storage_value::<Vec<(T::AccountId, RoundIndex)>>(
 		b"ParachainStaking",
