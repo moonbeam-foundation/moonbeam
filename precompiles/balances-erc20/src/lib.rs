@@ -19,9 +19,10 @@
 use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	sp_runtime::traits::{CheckedSub, StaticLookup},
 	storage::types::StorageDoubleMap,
 	traits::{Get, StorageInstance},
-	Blake2_128Concat,
+	transactional, Blake2_128Concat,
 };
 use pallet_balances::pallet::{
 	Instance1, Instance10, Instance11, Instance12, Instance13, Instance14, Instance15, Instance16,
@@ -116,28 +117,44 @@ where
 			return Err(ExitError::Other("input length less than 4 bytes".into()));
 		}
 
-		let inner_call = match input[0..SELECTOR_SIZE_BYTES] {
+		match input[0..SELECTOR_SIZE_BYTES] {
 			// Views
-			[0x7c, 0x80, 0xaa, 0x9f] => return Self::total_supply(&input[SELECTOR_SIZE_BYTES..]),
-			[0x70, 0xa0, 0x82, 0x31] => return Self::balance_of(&input[SELECTOR_SIZE_BYTES..]),
-			[0xdd, 0x62, 0xed, 0x3e] => return Self::allowance(&input[SELECTOR_SIZE_BYTES..]),
+			[0x7c, 0x80, 0xaa, 0x9f] => Self::total_supply(&input[SELECTOR_SIZE_BYTES..]),
+			[0x70, 0xa0, 0x82, 0x31] => Self::balance_of(&input[SELECTOR_SIZE_BYTES..]),
+			[0xdd, 0x62, 0xed, 0x3e] => Self::allowance(&input[SELECTOR_SIZE_BYTES..]),
 			// Only affect this Precompile storage.
-			[0x09, 0x5e, 0xa7, 0xb3] => {
-				return Self::approve(context, &input[SELECTOR_SIZE_BYTES..])
-			}
+			[0x09, 0x5e, 0xa7, 0xb3] => Self::approve(context, &input[SELECTOR_SIZE_BYTES..]),
 			// Results in a Substrate call
-			[0xa9, 0x05, 0x9c, 0xbb] => Self::transfer(&input[SELECTOR_SIZE_BYTES..])?,
-			[0x0c, 0x41, 0xb0, 0x33] => Self::transfer_from(&input[SELECTOR_SIZE_BYTES..])?,
-			// Fallback
-			_ => {
-				return Err(ExitError::Other(
-					"No staking wrapper method at selector given selector".into(),
-				))
+			[0xa9, 0x05, 0x9c, 0xbb] => {
+				Self::transfer(context, &input[SELECTOR_SIZE_BYTES..], target_gas)
 			}
-		};
+			[0x0c, 0x41, 0xb0, 0x33] => {
+				Self::transfer_from(context, &input[SELECTOR_SIZE_BYTES..], target_gas)
+			}
+			// Fallback
+			_ => Err(ExitError::Other(
+				"No staking wrapper method at selector given selector".into(),
+			)),
+		}
+	}
+}
 
-		let outer_call: Runtime::Call = inner_call.into();
-		let info = outer_call.get_dispatch_info();
+impl<Runtime, Instance> Erc20BalancesWrapper<Runtime, Instance>
+where
+	Runtime: pallet_balances::Config<Instance> + pallet_evm::Config,
+	Runtime::AccountId: From<H160>,
+	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	Runtime::Call: From<pallet_balances::Call<Runtime, Instance>>,
+	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
+	Instance: InstanceToPrefix + 'static,
+	U256: From<BalanceOf<Runtime, Instance>> + TryInto<BalanceOf<Runtime, Instance>>,
+{
+	fn dispatch_call(
+		origin: <Runtime::Call as Dispatchable>::Origin,
+		call: Runtime::Call,
+		target_gas: Option<u64>,
+	) -> Result<PrecompileOutput, ExitError> {
+		let info = call.get_dispatch_info();
 
 		// Make sure enough gas
 		if let Some(gas_limit) = target_gas {
@@ -146,14 +163,9 @@ where
 				return Err(ExitError::OutOfGas);
 			}
 		}
-		// log::trace!(target: "staking-precompile", "Made it past gas check");
 
-		// Dispatch that call
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-
-		// log::trace!(target: "staking-precompile", "Gonna call with origin {:?}", origin);
-
-		match outer_call.dispatch(Some(origin).into()) {
+		// Dispatch that call.
+		match call.dispatch(origin) {
 			Ok(post_info) => {
 				let gas_used = Runtime::GasWeightMapping::weight_to_gas(
 					post_info.actual_weight.unwrap_or(info.weight),
@@ -165,27 +177,10 @@ where
 					logs: Default::default(),
 				})
 			}
-			Err(_) => {
-				// log::trace!(
-				// 	target: "staking-precompile",
-				// 	"Parachain staking call via evm failed {:?}",
-				// 	e
-				// );
-				Err(ExitError::Other("ERC20 wrapper call via EVM failed".into()))
-			}
+			Err(_) => Err(ExitError::Other("ERC20 wrapper call via EVM failed".into())),
 		}
 	}
-}
 
-impl<Runtime, Instance> Erc20BalancesWrapper<Runtime, Instance>
-where
-	Runtime: pallet_balances::Config<Instance> + pallet_evm::Config,
-	Runtime::AccountId: From<H160>,
-	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	Instance: InstanceToPrefix + 'static,
-	U256: From<BalanceOf<Runtime, Instance>> + TryInto<BalanceOf<Runtime, Instance>>,
-{
 	fn total_supply(input: &[u8]) -> Result<PrecompileOutput, ExitError> {
 		if !input.is_empty() {
 			return Err(ExitError::Other("Incorrect input lenght".into()));
@@ -232,8 +227,33 @@ where
 		})
 	}
 
-	fn allowance(_input: &[u8]) -> Result<PrecompileOutput, ExitError> {
-		todo!()
+	fn allowance(input: &[u8]) -> Result<PrecompileOutput, ExitError> {
+		if input.len() != 64 {
+			return Err(ExitError::Other("Incorrect input lenght".into()));
+		}
+
+		let owner = H160::from_slice(&input[12..32]);
+		let spender = H160::from_slice(&input[44..64]);
+
+		let owner_id: Runtime::AccountId = owner.into();
+		let spender_id: Runtime::AccountId = spender.into();
+
+		let amount =
+			ApprovesStorage::<Runtime, Instance>::get(owner_id, spender_id).unwrap_or_default();
+
+		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+			<Runtime as frame_system::Config>::DbWeight::get().read,
+		);
+
+		let mut output = [0u8; 32];
+		U256::from(amount).to_big_endian(&mut output);
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gas_consumed,
+			output: output.to_vec(),
+			logs: Default::default(),
+		})
 	}
 
 	fn approve(context: &Context, input: &[u8]) -> Result<PrecompileOutput, ExitError> {
@@ -269,12 +289,103 @@ where
 		})
 	}
 
-	fn transfer(_input: &[u8]) -> Result<pallet_balances::Call<Runtime, Instance>, ExitError> {
-		todo!()
+	fn transfer(
+		context: &Context,
+		input: &[u8],
+		target_gas: Option<u64>,
+	) -> Result<PrecompileOutput, ExitError> {
+		// Parse arguments.
+		if input.len() != 64 {
+			return Err(ExitError::Other("Incorrect input lenght".into()));
+		}
+
+		let to = H160::from_slice(&input[12..32]);
+		let amount = Self::parse_amount(&input[32..64])?;
+
+		// Build call with origin.
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = pallet_balances::Call::<Runtime, Instance>::transfer(
+			Runtime::Lookup::unlookup(to.into()),
+			amount,
+		);
+
+		// Dispatch call (if enough gas).
+		let mut output = Self::dispatch_call(Some(origin).into(), call.into(), target_gas)?;
+
+		// Add transfer log.
+		output.logs.push(Log {
+			address: context.address,
+			data: input[32..64].to_vec(),
+			topics: vec![
+				SELECTOR_LOG_TRANSFER.into(),
+				context.caller.into(),
+				to.into(),
+			],
+		});
+
+		Ok(output)
 	}
 
-	fn transfer_from(_input: &[u8]) -> Result<pallet_balances::Call<Runtime, Instance>, ExitError> {
-		todo!()
+	// This function is annotated with transactional.
+	// This is to ensure that if the substrate call fails, the change in allowance is reverted.
+	#[transactional]
+	fn transfer_from(
+		context: &Context,
+		input: &[u8],
+		target_gas: Option<u64>,
+	) -> Result<PrecompileOutput, ExitError> {
+		// Parse arguments.
+		if input.len() != 96 {
+			return Err(ExitError::Other("Incorrect input lenght".into()));
+		}
+
+		let from = H160::from_slice(&input[12..32]);
+		let to = H160::from_slice(&input[44..64]);
+		let amount = Self::parse_amount(&input[64..96])?;
+
+		// If caller is "from", it can spend as much as it wants.
+		if context.caller != from {
+			let owner_id: Runtime::AccountId = from.into();
+			let spender_id: Runtime::AccountId = context.caller.into();
+
+			ApprovesStorage::<Runtime, Instance>::mutate(owner_id, spender_id, |entry| {
+				// Get current value, exit if None.
+				let value = entry.ok_or(ExitError::Other("Not allowed".into()))?;
+
+				// Remove "amount" from allowed, exit if underflow.
+				let new_value = value.checked_sub(&amount).ok_or_else(|| {
+					ExitError::Other("Requesting to spend more than allowed".into())
+				})?;
+
+				// Update value.
+				*entry = Some(new_value);
+
+				Ok(())
+			})?;
+		}
+
+		// Build call with origin. Here origin is the "from" field.
+		let origin = Runtime::AddressMapping::into_account_id(from);
+		let call = pallet_balances::Call::<Runtime, Instance>::transfer(
+			Runtime::Lookup::unlookup(to.into()),
+			amount,
+		);
+
+		// Dispatch call (if enough gas).
+		let mut output = Self::dispatch_call(Some(origin).into(), call.into(), target_gas)?;
+
+		// Add transfer log.
+		output.logs.push(Log {
+			address: context.address,
+			data: input[32..64].to_vec(),
+			topics: vec![
+				SELECTOR_LOG_TRANSFER.into(),
+				context.caller.into(),
+				to.into(),
+			],
+		});
+
+		Ok(output)
 	}
 
 	/// Parses an amount of ether from a 256 bit (32 byte) slice. The balance type is generic.
