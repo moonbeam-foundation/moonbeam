@@ -16,10 +16,7 @@
 
 //! # Parachain Staking Migrations
 use crate::{pallet::*, Config, RoundIndex};
-use frame_support::{
-	traits::Get,
-	weights::Weight,
-};
+use frame_support::{traits::Get, weights::Weight};
 use sp_runtime::Perbill;
 use sp_std::prelude::*;
 
@@ -99,8 +96,8 @@ pub fn delay_nominator_exits_migration<T: Config>() -> (Perbill, Weight) {
 	}
 
 	let weight: Weight = 0u64
-		.saturating_add( (reads as Weight).saturating_mul(T::DbWeight::get().reads(reads)))
-		.saturating_add( (writes as Weight).saturating_mul(T::DbWeight::get().writes(writes)));
+		.saturating_add((reads as Weight).saturating_mul(T::DbWeight::get().reads(reads)))
+		.saturating_add((writes as Weight).saturating_mul(T::DbWeight::get().writes(writes)));
 
 	(Perbill::one(), weight)
 }
