@@ -15,22 +15,16 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! # Parachain Staking Migrations
-use crate::{
-	Config,
-	pallet::*,
-};
-use sp_runtime::{Perbill, traits::Zero};
-use frame_support::weights::Weight;
-use sp_std::prelude::*;
+use crate::{pallet::*, Config};
 use frame_support::pallet;
+use frame_support::weights::Weight;
+use sp_runtime::{traits::Zero, Perbill};
+use sp_std::prelude::*;
 
 mod deprecated {
-	use crate::{
-		pallet::*,
-		set::OrderedSet,
-	};
+	use crate::{pallet::*, set::OrderedSet};
 	use parity_scale_codec::{Decode, Encode};
-	use sp_runtime::{traits::Zero};
+	use sp_runtime::traits::Zero;
 
 	#[derive(Encode, Decode)]
 	/// DEPRECATED nominator state
@@ -57,14 +51,17 @@ mod deprecated {
 
 /// Storage migration for delaying nomination exits and revocations
 pub fn delay_nominator_exits_migration<T: Config>() -> (Perbill, Weight) {
-	use frame_support::migration::{StorageIterator, put_storage_value};
+	use frame_support::migration::{put_storage_value, StorageIterator};
 
 	// Migrate from old Nominator struct to our new one, which adds a few fields.
 
 	let pallet_name = b"ParachainStaking";
 	let storage_name = b"NominatorState";
 
-	for (key, old_nominator) in StorageIterator::<deprecated::OldNominator<T::AccountId, BalanceOf<T>>>::new(pallet_name, storage_name).drain()
+	for (key, old_nominator) in StorageIterator::<
+		deprecated::OldNominator<T::AccountId, BalanceOf<T>>,
+	>::new(pallet_name, storage_name)
+	.drain()
 	{
 		let new_nominator: Nominator<T::AccountId, BalanceOf<T>> = old_nominator.into();
 		put_storage_value(pallet_name, storage_name, &key, &new_nominator);

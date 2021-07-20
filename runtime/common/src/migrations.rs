@@ -18,12 +18,9 @@
 
 use frame_support::{pallet_prelude::Get, weights::Weight};
 use pallet_migrations::Migration;
-use sp_runtime::Perbill;
-use sp_std::{
-	marker::PhantomData,
-	prelude::*,
-};
 use parachain_staking::migrations::delay_nominator_exits_migration;
+use sp_runtime::Perbill;
+use sp_std::{marker::PhantomData, prelude::*};
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
@@ -48,12 +45,12 @@ where
 	Runtime: parachain_staking::Config,
 {
 	fn get() -> Vec<Box<dyn Migration>> {
-		let mm_001 = MM_001_StakingDelayNominatorExitsMigration::<Runtime>{0: Default::default()};
+		let mm_001 = MM_001_StakingDelayNominatorExitsMigration::<Runtime> {
+			0: Default::default(),
+		};
 
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
-		vec![
-			Box::new(mm_001),
-		]
+		vec![Box::new(mm_001)]
 	}
 }

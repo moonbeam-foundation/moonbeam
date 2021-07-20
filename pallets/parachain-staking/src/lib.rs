@@ -952,7 +952,8 @@ pub mod pallet {
 	#[pallet::getter(fn exit_queue)]
 	/// DEPRECATED
 	/// A queue of collators awaiting exit
-	pub(crate) type ExitQueue<T: Config> = StorageValue<_, Vec<(T::AccountId, RoundIndex)>, ValueQuery>;
+	pub(crate) type ExitQueue<T: Config> =
+		StorageValue<_, Vec<(T::AccountId, RoundIndex)>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn exit_queue2)]
@@ -1507,8 +1508,7 @@ pub mod pallet {
 			collator: T::AccountId,
 		) -> DispatchResultWithPostInfo {
 			let nominator = ensure_signed(origin)?;
-			let mut state =
-				<NominatorState<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
+			let mut state = <NominatorState<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
 			ensure!(state.is_active(), Error::<T>::CannotActBecauseLeaving);
 			ensure!(
 				state.revocations.insert(collator.clone()),
@@ -1571,8 +1571,7 @@ pub mod pallet {
 			more: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let nominator = ensure_signed(origin)?;
-			let mut state =
-				<NominatorState<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
+			let mut state = <NominatorState<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
 			ensure!(state.is_active(), Error::<T>::CannotActBecauseLeaving);
 			ensure!(
 				!state.revocations.contains(&candidate),
@@ -1608,8 +1607,7 @@ pub mod pallet {
 			less: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let nominator = ensure_signed(origin)?;
-			let mut state =
-				<NominatorState<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
+			let mut state = <NominatorState<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
 			ensure!(state.is_active(), Error::<T>::CannotActBecauseLeaving);
 			ensure!(
 				!state.revocations.contains(&candidate),
