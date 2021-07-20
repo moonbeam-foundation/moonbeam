@@ -18,6 +18,24 @@
         "reveal": "always",
         "panel": "new"
       }
+    },
+    {
+      "label": "Run current test file in debug mode",
+      "type": "shell",
+      "command": "cd tests && DEBUG_MODE=true npm run current-test -- '${fileDirname}/${fileBasename}'",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Run current test file",
+      "type": "shell",
+      "command": "cd tests && npm run current-test -- '${fileDirname}/${fileBasename}'",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
     }
   ]
 }

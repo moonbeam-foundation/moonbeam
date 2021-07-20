@@ -8,7 +8,9 @@
   ],
   "protocolId": null,
   "properties": {
-    "tokenDecimals": 18
+    "tokenDecimals": 18,
+    "tokenSymbol": "UNIT",
+    "SS58Prefix": 1287
   },
   "relayChain": "moonbase_alpha_relay",
   "paraId": 1000,
@@ -108,6 +110,12 @@
             "code": [96, 0, 96, 0, 253]
           },
           "0x0000000000000000000000000000000000000401": {
+            "nonce": "0x0",
+            "balance": "0x0",
+            "storage": {},
+            "code": [96, 0, 96, 0, 253]
+          },
+          "0x0000000000000000000000000000000000000402": {
             "nonce": "0x0",
             "balance": "0x0",
             "storage": {},

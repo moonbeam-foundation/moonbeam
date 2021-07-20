@@ -112,6 +112,7 @@ parameter_types! {
 impl Config for Test {
 	type Event = Event;
 	type Currency = Balances;
+	type MonetaryGovernanceOrigin = frame_system::EnsureRoot<AccountId>;
 	type MinBlocksPerRound = MinBlocksPerRound;
 	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type BondDuration = BondDuration;
@@ -173,7 +174,7 @@ impl ExtBuilder {
 		self
 	}
 
-	pub(crate) fn with_collators(mut self, collators: Vec<(AccountId, Balance)>) -> Self {
+	pub(crate) fn with_candidates(mut self, collators: Vec<(AccountId, Balance)>) -> Self {
 		self.collators = collators;
 		self
 	}
@@ -266,7 +267,7 @@ fn geneses() {
 			(8, 9),
 			(9, 4),
 		])
-		.with_collators(vec![(1, 500), (2, 200)])
+		.with_candidates(vec![(1, 500), (2, 200)])
 		.with_nominations(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
 		.build()
 		.execute_with(|| {
@@ -308,7 +309,7 @@ fn geneses() {
 			(9, 100),
 			(10, 100),
 		])
-		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
 		.with_nominations(vec![
 			(6, 1, 10),
 			(7, 1, 10),
