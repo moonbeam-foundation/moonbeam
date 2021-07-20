@@ -18,7 +18,10 @@
 use super::*;
 use crate as pallet_migrations;
 use frame_support::{
-	construct_runtime, pallet_prelude::*, parameter_types, traits::GenesisBuild,
+	construct_runtime,
+	pallet_prelude::*,
+	parameter_types,
+	traits::GenesisBuild,
 	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_core::H256;
@@ -81,10 +84,10 @@ impl frame_system::Config for Test {
 
 /// MockMigrationManager stores the test-side callbacks/closures used in the Migrations list glue.
 /// It is is expected to exist as a singleton, but only remain relevant within the scope of a test.
-/// 
+///
 /// Tests should use execute_with_mock_migrations(), which will create a MockMigrationManager and
 /// provide it to the test.
-/// 
+///
 /// A pair of callbacks provided to register_callback() will map directly to a single instance of
 /// Migration (done by the MockMigration glue below). Treat each pair of callbacks as though it were
 /// a custom implementation of the Migration trait just as a normal Pallet would.
@@ -108,16 +111,19 @@ impl<'test> MockMigrationManager<'test> {
 		self.name_fn_callbacks[index]()
 	}
 
-	pub(crate) fn invoke_step_fn(&mut self, index: usize, previous_progress: Perbill, available_weight: Weight)
-		-> (Perbill, Weight)
-	{
+	pub(crate) fn invoke_step_fn(
+		&mut self,
+		index: usize,
+		previous_progress: Perbill,
+		available_weight: Weight,
+	) -> (Perbill, Weight) {
 		self.step_fn_callbacks[index](previous_progress, available_weight)
 	}
 
 	fn generate_migrations_list(&self) -> Vec<Box<dyn Migration>> {
 		let mut migrations: Vec<Box<dyn Migration>> = Vec::new();
 		for i in 0..self.name_fn_callbacks.len() {
-			migrations.push(Box::new(MockMigration{index: i}));
+			migrations.push(Box::new(MockMigration { index: i }));
 		}
 		migrations
 	}
@@ -170,7 +176,7 @@ impl Migration for MockMigration {
 }
 
 /// Implementation of Migrations. Generates a Vec of MockMigrations on the fly based on the current
-/// contents of MOCK_MIGRATIONS_LIST. 
+/// contents of MOCK_MIGRATIONS_LIST.
 pub struct MockMigrations;
 impl Get<Vec<Box<dyn Migration>>> for MockMigrations {
 	fn get() -> Vec<Box<dyn Migration>> {
@@ -234,7 +240,6 @@ pub(crate) fn events() -> Vec<pallet_migrations::Event<Test>> {
 }
 
 pub(crate) fn roll_to(block_number: u64, invoke_on_runtime_upgrade_first: bool) {
-
 	if invoke_on_runtime_upgrade_first {
 		Migrations::on_runtime_upgrade();
 	}
@@ -249,12 +254,11 @@ pub(crate) fn roll_to(block_number: u64, invoke_on_runtime_upgrade_first: bool) 
 }
 
 pub(crate) fn roll_until_upgraded(invoke_on_runtime_upgrade_first: bool) {
-
 	if invoke_on_runtime_upgrade_first {
 		Migrations::on_runtime_upgrade();
 	}
 
-	while ! Migrations::is_fully_upgraded() {
+	while !Migrations::is_fully_upgraded() {
 		System::set_block_number(System::block_number() + 1);
 		System::on_initialize(System::block_number());
 		Migrations::on_initialize(System::block_number());
