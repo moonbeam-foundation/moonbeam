@@ -144,7 +144,7 @@ describeDevMoonbeam("Staking - Join Nominators", (context) => {
       .signAndSend(ethan);
     await context.createBlock();
 
-    const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN);
+    const nominatorsAfter = await context.polkadotApi.query.parachainStaking.nominatorState(ETHAN);
     expect(
       (
         nominatorsAfter.toHuman() as {
@@ -171,7 +171,7 @@ describeDevMoonbeam("Staking - Join Nominators", (context) => {
 //     await context.polkadotApi.tx.parachainStaking.revokeNomination(ALITH).signAndSend(ethan);
 //     await context.createBlock();
 //     const nominatorsAfterRevocation =
-//       await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN);
+//       await context.polkadotApi.query.parachainStaking.nominatorState(ETHAN);
 //     expect(
 //       (nominatorsAfterRevocation.revocations[0] === ALITH).to.equal(
 //         true,
