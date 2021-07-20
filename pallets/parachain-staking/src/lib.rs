@@ -448,7 +448,7 @@ pub mod pallet {
 
 	#[derive(Encode, Decode, RuntimeDebug)]
 	/// Nominator state
-	pub struct Nominator2<AccountId, Balance> {
+	pub struct Nominator<AccountId, Balance> {
 		/// All current nominations
 		pub nominations: OrderedSet<Bond<AccountId, Balance>>,
 		/// Nominations scheduled to be revoked
@@ -471,10 +471,10 @@ pub mod pallet {
 				+ sp_std::ops::SubAssign
 				+ PartialOrd
 				+ Zero,
-		> Nominator2<AccountId, Balance>
+		> Nominator<AccountId, Balance>
 	{
 		pub fn new(collator: AccountId, amount: Balance) -> Self {
-			Nominator2 {
+			Nominator {
 				nominations: OrderedSet::from(vec![Bond {
 					owner: collator,
 					amount,
@@ -829,7 +829,7 @@ pub mod pallet {
 		),
 		/*
 		 * this is mostly (TODO: entirely?) redundant with events emitted from pallet-migrations
-		/// Migrated NominatorState -> NominatorState2, ExitQueue -> ExitQueue2
+		/// Migrated NominatorState -> NominatorState, ExitQueue -> ExitQueue2
 		DelayNominationExitsMigrationExecuted,
 		*/
 	}
@@ -913,11 +913,11 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn nominator_state2)]
 	/// Get nominator state associated with an account if account is nominating else None
-	pub(crate) type NominatorState2<T: Config> = StorageMap<
+	pub(crate) type NominatorState<T: Config> = StorageMap<
 		_,
 		Twox64Concat,
 		T::AccountId,
-		Nominator2<T::AccountId, BalanceOf<T>>,
+		Nominator<T::AccountId, BalanceOf<T>>,
 		OptionQuery,
 	>;
 
@@ -1421,7 +1421,7 @@ pub mod pallet {
 			nomination_count: u32,
 		) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
-			let nominator = if let Some(mut state) = <NominatorState2<T>>::get(&acc) {
+			let nominator = if let Some(mut state) = <NominatorState<T>>::get(&acc) {
 				ensure!(state.is_active(), Error::<T>::CannotActBecauseLeaving);
 				// nomination after first
 				ensure!(
@@ -1452,7 +1452,7 @@ pub mod pallet {
 					Error::<T>::NomBondBelowMin
 				);
 				ensure!(!Self::is_candidate(&acc), Error::<T>::CandidateExists);
-				Nominator2::new(collator.clone(), amount)
+				Nominator::new(collator.clone(), amount)
 			};
 			let mut state = <CollatorState2<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(
@@ -1469,7 +1469,7 @@ pub mod pallet {
 			let new_total_locked = <Total<T>>::get() + amount;
 			<Total<T>>::put(new_total_locked);
 			<CollatorState2<T>>::insert(&collator, state);
-			<NominatorState2<T>>::insert(&acc, nominator);
+			<NominatorState<T>>::insert(&acc, nominator);
 			Self::deposit_event(Event::Nomination(acc, amount, collator, nominator_position));
 			Ok(().into())
 		}
@@ -1481,7 +1481,7 @@ pub mod pallet {
 			nomination_count: u32,
 		) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
-			let mut state = <NominatorState2<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
+			let mut state = <NominatorState<T>>::get(&acc).ok_or(Error::<T>::NominatorDNE)?;
 			ensure!(!state.is_leaving(), Error::<T>::NominatorAlreadyLeaving);
 			ensure!(
 				nomination_count >= (state.nominations.0.len() as u32),
@@ -1495,7 +1495,7 @@ pub mod pallet {
 			state.scheduled_revocations_total = state.total;
 			state.scheduled_revocations_count = state.nominations.0.len() as u32;
 			<ExitQueue2<T>>::put(exits);
-			<NominatorState2<T>>::insert(&acc, state);
+			<NominatorState<T>>::insert(&acc, state);
 			Self::deposit_event(Event::NominatorExitScheduled(now, acc, when));
 			Ok(().into())
 		}
@@ -1508,7 +1508,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let nominator = ensure_signed(origin)?;
 			let mut state =
-				<NominatorState2<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
+				<NominatorState<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
 			ensure!(state.is_active(), Error::<T>::CannotActBecauseLeaving);
 			ensure!(
 				state.revocations.insert(collator.clone()),
@@ -1544,7 +1544,7 @@ pub mod pallet {
 				state.scheduled_revocations_total = state.total;
 				state.scheduled_revocations_count = state.nominations.0.len() as u32;
 				<ExitQueue2<T>>::put(exits);
-				<NominatorState2<T>>::insert(&nominator, state);
+				<NominatorState<T>>::insert(&nominator, state);
 				Self::deposit_event(Event::NominatorExitScheduled(now, nominator, when));
 			} else {
 				// schedule to revoke this nomination
@@ -1556,7 +1556,7 @@ pub mod pallet {
 				state.scheduled_revocations_total += amount;
 				state.scheduled_revocations_count += 1u32;
 				<ExitQueue2<T>>::put(exits);
-				<NominatorState2<T>>::insert(&nominator, state);
+				<NominatorState<T>>::insert(&nominator, state);
 				Self::deposit_event(Event::NominationRevocationScheduled(
 					now, nominator, collator, when,
 				));
@@ -1572,7 +1572,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let nominator = ensure_signed(origin)?;
 			let mut state =
-				<NominatorState2<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
+				<NominatorState<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
 			ensure!(state.is_active(), Error::<T>::CannotActBecauseLeaving);
 			ensure!(
 				!state.revocations.contains(&candidate),
@@ -1592,7 +1592,7 @@ pub mod pallet {
 				Self::update_active(candidate.clone(), after);
 			}
 			<CollatorState2<T>>::insert(&candidate, collator);
-			<NominatorState2<T>>::insert(&nominator, state);
+			<NominatorState<T>>::insert(&nominator, state);
 			let new_total_staked = <Total<T>>::get().saturating_add(more);
 			<Total<T>>::put(new_total_staked);
 			Self::deposit_event(Event::NominationIncreased(
@@ -1609,7 +1609,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let nominator = ensure_signed(origin)?;
 			let mut state =
-				<NominatorState2<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
+				<NominatorState<T>>::get(&nominator).ok_or(Error::<T>::NominatorDNE)?;
 			ensure!(state.is_active(), Error::<T>::CannotActBecauseLeaving);
 			ensure!(
 				!state.revocations.contains(&candidate),
@@ -1637,7 +1637,7 @@ pub mod pallet {
 				Self::update_active(candidate.clone(), after);
 			}
 			<CollatorState2<T>>::insert(&candidate, collator);
-			<NominatorState2<T>>::insert(&nominator, state);
+			<NominatorState<T>>::insert(&nominator, state);
 			let new_total_staked = <Total<T>>::get().saturating_sub(less);
 			<Total<T>>::put(new_total_staked);
 			Self::deposit_event(Event::NominationDecreased(
@@ -1649,7 +1649,7 @@ pub mod pallet {
 
 	impl<T: Config> Pallet<T> {
 		pub fn is_nominator(acc: &T::AccountId) -> bool {
-			<NominatorState2<T>>::get(acc).is_some()
+			<NominatorState<T>>::get(acc).is_some()
 		}
 		pub fn is_candidate(acc: &T::AccountId) -> bool {
 			<CollatorState2<T>>::get(acc).is_some()
@@ -1779,16 +1779,16 @@ pub mod pallet {
 							let return_stake = |bond: Bond<T::AccountId, BalanceOf<T>>| {
 								T::Currency::unreserve(&bond.owner, bond.amount);
 								// remove nomination from nominator state
-								let mut nominator = NominatorState2::<T>::get(&bond.owner).expect(
+								let mut nominator = NominatorState::<T>::get(&bond.owner).expect(
 									"Collator state and nominator state are consistent. 
 										Collator state has a record of this nomination. Therefore, 
 										Nominator state also has a record. qed.",
 								);
 								if let Some(remaining) = nominator.rm_nomination(who.clone()) {
 									if remaining.is_zero() {
-										<NominatorState2<T>>::remove(&bond.owner);
+										<NominatorState<T>>::remove(&bond.owner);
 									} else {
-										<NominatorState2<T>>::insert(&bond.owner, nominator);
+										<NominatorState<T>>::insert(&bond.owner, nominator);
 									}
 								}
 							};
@@ -1832,7 +1832,7 @@ pub mod pallet {
 					} else {
 						if let Some(collator) = maybe_collator {
 							// single revocation needs to be executed
-							if let Some(mut state) = <NominatorState2<T>>::get(&nominator) {
+							if let Some(mut state) = <NominatorState<T>>::get(&nominator) {
 								let pre_total = state.total;
 								if let Some(remaining) = state.rm_nomination(collator.clone()) {
 									let amount = pre_total - remaining;
@@ -1843,7 +1843,7 @@ pub mod pallet {
 										nominator.clone(),
 										collator,
 									);
-									<NominatorState2<T>>::insert(&nominator, state);
+									<NominatorState<T>>::insert(&nominator, state);
 								}
 							} else {
 								log::warn!(
@@ -1860,7 +1860,7 @@ pub mod pallet {
 									NominatorState had inconsistency!",
 								);
 							}
-							if let Some(state) = <NominatorState2<T>>::get(&nominator) {
+							if let Some(state) = <NominatorState<T>>::get(&nominator) {
 								for bond in state.nominations.0 {
 									if let Err(error) = Self::nominator_leaves_collator(
 										nominator.clone(),
@@ -1872,7 +1872,7 @@ pub mod pallet {
 										);
 									}
 								}
-								<NominatorState2<T>>::remove(&nominator);
+								<NominatorState<T>>::remove(&nominator);
 								Self::deposit_event(Event::NominatorLeft(nominator, state.total));
 							} else {
 								log::warn!(

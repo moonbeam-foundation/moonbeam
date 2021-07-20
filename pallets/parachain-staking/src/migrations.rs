@@ -40,10 +40,10 @@ mod deprecated {
 	}
 
 	impl<AccountId: Ord, Balance: Zero> From<OldNominator<AccountId, Balance>>
-		for Nominator2<AccountId, Balance>
+		for Nominator<AccountId, Balance>
 	{
-		fn from(other: OldNominator<AccountId, Balance>) -> Nominator2<AccountId, Balance> {
-			Nominator2 {
+		fn from(other: OldNominator<AccountId, Balance>) -> Nominator<AccountId, Balance> {
+			Nominator {
 				nominations: other.nominations,
 				revocations: OrderedSet::new(),
 				total: other.total,
@@ -66,7 +66,7 @@ pub fn delay_nominator_exits_migration<T: Config>() -> (Perbill, Weight) {
 
 	for (key, old_nominator) in StorageIterator::<deprecated::OldNominator<T::AccountId, BalanceOf<T>>>::new(pallet_name, storage_name).drain()
 	{
-		let new_nominator: Nominator2<T::AccountId, BalanceOf<T>> = old_nominator.into();
+		let new_nominator: Nominator<T::AccountId, BalanceOf<T>> = old_nominator.into();
 		put_storage_value(pallet_name, storage_name, &key, &new_nominator);
 	}
 
