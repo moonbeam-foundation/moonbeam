@@ -30,7 +30,8 @@ use sp_runtime::Perbill;
 pub use pallet::*;
 
 #[cfg(test)]
-#[macro_use] extern crate environmental;
+#[macro_use]
+extern crate environmental;
 
 /// A Migration that must happen on-chain upon a runtime-upgrade
 pub trait Migration {
@@ -111,10 +112,9 @@ pub mod pallet {
 		/// on_initialize implementation. Calls process_runtime_upgrades() if we are still in the
 		/// middle of a runtime upgrade.
 		fn on_initialize(_: T::BlockNumber) -> Weight {
-
 			let mut weight: Weight = T::DbWeight::get().reads(1 as Weight);
 
-			if ! <FullyUpgraded<T>>::get() {
+			if !<FullyUpgraded<T>>::get() {
 				weight += process_runtime_upgrades::<T>();
 			}
 
@@ -176,10 +176,9 @@ pub mod pallet {
 				<MigrationState<T>>::get(migration_name_as_bytes).unwrap_or(Perbill::zero());
 
 			if migration_state < Perbill::one() {
-
 				if migration_state.is_zero() {
 					<Pallet<T>>::deposit_event(Event::MigrationStarted(
-						migration_name_as_bytes.into()
+						migration_name_as_bytes.into(),
 					));
 				}
 
@@ -219,7 +218,7 @@ pub mod pallet {
 					done = false;
 				} else {
 					<Pallet<T>>::deposit_event(Event::MigrationCompleted(
-						migration_name_as_bytes.into()
+						migration_name_as_bytes.into(),
 					));
 				}
 
