@@ -21,8 +21,8 @@ export function getCompareLink(packageName: string, previousTag: string, newTag:
 
   const diffLink =
     previousRepo !== newRepo
-      ? `${previousRepo}/compare/${previosCommit}...${newRepoOrganization}:${newCommit}`
-      : `${previousRepo}/compare/${previosCommit}...${newCommit}`;
+      ? `${previousRepo}/compare/${previousCommit}...${newRepoOrganization}:${newCommit}`
+      : `${previousRepo}/compare/${previousCommit}...${newCommit}`;
 
   return diffLink;
 }
