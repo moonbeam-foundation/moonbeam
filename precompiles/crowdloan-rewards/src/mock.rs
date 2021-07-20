@@ -177,7 +177,7 @@ impl pallet_balances::Config for Test {
 	type WeightInfo = ();
 }
 
-/// The crowdloan precompile is available at address zero in the mock runtime.
+/// The crowdloan precompile is available at address one in the mock runtime.
 pub fn precompile_address() -> H160 {
 	H160::from_low_u64_be(1)
 }
@@ -340,10 +340,6 @@ pub(crate) fn roll_to(n: u64) {
 		System::set_block_number(System::block_number() + 1);
 		System::on_initialize(System::block_number());
 		Balances::on_initialize(System::block_number());
-		// Evm: pallet_evm::{Pallet, Config, Call, Storage, Event<T>},
-		// Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		// Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call},
-		// Scheduler: pallet_scheduler::{Pallet, Call, Storage, Config, Event<T>},
 	}
 }
 

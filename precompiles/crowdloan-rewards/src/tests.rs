@@ -25,6 +25,7 @@ use pallet_crowdloan_rewards::{Call as CrowdloanCall, Event as CrowdloanEvent};
 use pallet_evm::Call as EvmCall;
 use pallet_evm::{ExitError, ExitSucceed, PrecompileSet};
 use precompiles_utils::solidity_conversions::{bool_to_solidity_bytes, u256_to_solidity_bytes};
+use sha3::{Digest, Keccak256};
 use sp_core::U256;
 
 #[test]
@@ -53,10 +54,9 @@ fn selector_less_than_four_bytes() {
 #[test]
 fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
-		// This selector is only three bytes long when four are required.
 		let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
 
-		// Expected result is an error stating there are too few bytes
+		// Expected result is an error stating there are such a selector does not exist
 		let expected_result = Some(Err(ExitError::Other(
 			"No crowdloan rewards wrapper method at given selector".into(),
 		)));
@@ -79,7 +79,7 @@ fn is_contributor_returns_false() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let selector = hex_literal::hex!("53440c90");
+			let selector = &Keccak256::digest(b"is_contributor(address)")[0..4];
 
 			// Construct data to read prop count
 			let mut input_data = Vec::<u8>::from([0u8; 36]);
@@ -124,7 +124,7 @@ fn is_contributor_returns_true() {
 				Origin::root(),
 				init_block + VESTING
 			));
-			let selector = hex_literal::hex!("53440c90");
+			let selector = &Keccak256::digest(b"is_contributor(address)")[0..4];
 
 			// Construct data to read prop count
 			let mut input_data = Vec::<u8>::from([0u8; 36]);
@@ -172,7 +172,7 @@ fn claim_works() {
 
 			roll_to(5);
 
-			let selector = hex_literal::hex!("4e71d92d");
+			let selector = &Keccak256::digest(b"claim()")[0..4];
 
 			// Construct data to read prop count
 			let mut input_data = Vec::<u8>::from([0u8; 4]);
@@ -221,7 +221,7 @@ fn reward_info_works() {
 
 			roll_to(5);
 
-			let selector = hex_literal::hex!("76f70249");
+			let selector = &Keccak256::digest(b"reward_info(address)")[0..4];
 
 			// Construct data to read prop count
 			let mut input_data = Vec::<u8>::from([0u8; 36]);
@@ -274,7 +274,7 @@ fn update_reward_address_works() {
 
 			roll_to(5);
 
-			let selector = hex_literal::hex!("aaac61d6");
+			let selector = &Keccak256::digest(b"update_reward_address(address)")[0..4];
 
 			// Construct data to read prop count
 			let mut input_data = Vec::<u8>::from([0u8; 36]);

@@ -45,12 +45,6 @@ type BalanceOf<Runtime> =
 	>>::Balance;
 
 /// A precompile to wrap the functionality from pallet_crowdloan_rewards.
-///
-/// EXAMPLE USECASE:
-/// A simple example usecase is a contract that allows donors to donate, and stakes all the funds
-/// toward one fixed address chosen by the deployer.
-/// Such a contract could be deployed by a collator candidate, and the deploy address distributed to
-/// supporters who want to donate toward a perpetual nomination fund.
 pub struct CrowdloanRewardsWrapper<Runtime>(PhantomData<Runtime>);
 
 impl<Runtime> Precompile for CrowdloanRewardsWrapper<Runtime>
@@ -86,7 +80,7 @@ where
 		// according to the solidity specification
 		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html#function-selector
 		let inner_call = match input[0..SELECTOR_SIZE_BYTES] {
-			// Check for accessor methods first. These return results immediatelyç
+			// Check for accessor methods first. These return results immediately
 			[0x53, 0x44, 0x0c, 0x90] => {
 				return Self::is_contributor(&input[SELECTOR_SIZE_BYTES..], target_gas);
 			}

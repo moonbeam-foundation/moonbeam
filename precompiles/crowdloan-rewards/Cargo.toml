@@ -19,6 +19,7 @@ frame-system = { git = "https://github.com/paritytech/substrate", default-featur
 precompiles-utils = { path = "../utils", default-features = false }
 
 [dev-dependencies]
+sha3 = "0.9"
 sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
 hex-literal = "0.3.1"

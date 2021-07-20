@@ -471,7 +471,6 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				]))
 				.dispatch(root_origin())
 			);
-
 			// 30 percent initial payout
 			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 450_000 * UNIT);
 			// 30 percent initial payout
@@ -498,7 +497,6 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				},
 			));
 			assert_eq!(last_event(), expected_fail);
-
 			// Claim 1 block.
 			assert_ok!(CrowdloanRewards::claim(origin_of(AccountId::from(CHARLIE))));
 			assert_ok!(CrowdloanRewards::claim(origin_of(AccountId::from(DAVE))));
