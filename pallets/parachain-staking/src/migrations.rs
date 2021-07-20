@@ -17,46 +17,59 @@
 //! # Parachain Staking Migrations
 use crate::{
 	Config,
-	pallet::{
-		NominatorState, Nominator2, BalanceOf, NominatorState2, ExitQueue, ExitQueue2, ExitQ,
-		OrderedSet,
-	},
+	pallet::*,
 };
-use sp_runtime::Perbill;
+use sp_runtime::{Perbill, traits::Zero};
 use frame_support::weights::Weight;
 use sp_std::prelude::*;
+use frame_support::pallet;
+
+mod deprecated {
+	use crate::{
+		pallet::*,
+		set::OrderedSet,
+	};
+	use parity_scale_codec::{Decode, Encode};
+	use sp_runtime::{traits::Zero};
+
+	#[derive(Encode, Decode)]
+	/// DEPRECATED nominator state
+	pub struct OldNominator<AccountId, Balance> {
+		pub nominations: OrderedSet<Bond<AccountId, Balance>>,
+		pub total: Balance,
+	}
+
+	impl<AccountId: Ord, Balance: Zero> From<OldNominator<AccountId, Balance>>
+		for Nominator2<AccountId, Balance>
+	{
+		fn from(other: OldNominator<AccountId, Balance>) -> Nominator2<AccountId, Balance> {
+			Nominator2 {
+				nominations: other.nominations,
+				revocations: OrderedSet::new(),
+				total: other.total,
+				scheduled_revocations_count: 0u32,
+				scheduled_revocations_total: Zero::zero(),
+				status: NominatorStatus::Active,
+			}
+		}
+	}
+}
 
 /// Storage migration for delaying nomination exits and revocations
 pub fn delay_nominator_exits_migration<T: Config>() -> (Perbill, Weight) {
+	use frame_support::migration::{StorageIterator, put_storage_value};
 
-	// note on using pallet_migrations: migrations are not expected to be idempotent but the pallet
-	// itself will ensure that they are called only once.
+	// Migrate from old Nominator struct to our new one, which adds a few fields.
 
-	let weight: Weight = 0_u64.into();
+	let pallet_name = b"ParachainStaking";
+	let storage_name = b"NominatorState";
 
-	// migrate from Nominator -> Nominator2
-	for (acc, nominator_state) in NominatorState::<T>::drain() {
-		let state: Nominator2<T::AccountId, BalanceOf<T>> = nominator_state.into();
-		<NominatorState2<T>>::insert(acc, state);
-
-		// TODO: weight += (1 read + 1 write)
+	for (key, old_nominator) in StorageIterator::<deprecated::OldNominator<T::AccountId, BalanceOf<T>>>::new(pallet_name, storage_name).drain()
+	{
+		let new_nominator: Nominator2<T::AccountId, BalanceOf<T>> = old_nominator.into();
+		put_storage_value(pallet_name, storage_name, &key, &new_nominator);
 	}
-	// migrate from ExitQueue -> ExitQueue2
-	let just_collators_exit_queue = <ExitQueue<T>>::take();
-	let mut candidates: Vec<T::AccountId> = Vec::new();
-	for (acc, _) in just_collators_exit_queue.clone().into_iter() {
-		candidates.push(acc);
-		// TODO: weight += (1 read + 1 write) or so
-	}
-	<ExitQueue2<T>>::put(ExitQ {
-		candidates: candidates.into(),
-		nominators_leaving: OrderedSet::new(),
-		candidate_schedule: just_collators_exit_queue,
-		nominator_schedule: Vec::new(),
-	});
 
-	// elaborating to illustrate the purpose of the Perbill
-	let progress: Perbill = Perbill::one(); // anything < 1.0 indicates not done
-
-	(progress, weight)
+	// TODO: weight
+	(Perbill::one(), 0u64.into())
 }

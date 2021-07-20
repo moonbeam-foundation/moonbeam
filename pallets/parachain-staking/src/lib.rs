@@ -463,28 +463,6 @@ pub mod pallet {
 		pub status: NominatorStatus,
 	}
 
-	#[derive(Encode, Decode, RuntimeDebug)]
-	/// DEPRECATED nominator state
-	pub struct Nominator<AccountId, Balance> {
-		pub nominations: OrderedSet<Bond<AccountId, Balance>>,
-		pub total: Balance,
-	}
-
-	impl<AccountId: Ord, Balance: Zero> From<Nominator<AccountId, Balance>>
-		for Nominator2<AccountId, Balance>
-	{
-		fn from(other: Nominator<AccountId, Balance>) -> Nominator2<AccountId, Balance> {
-			Nominator2 {
-				nominations: other.nominations,
-				revocations: OrderedSet::new(),
-				total: other.total,
-				scheduled_revocations_count: 0u32,
-				scheduled_revocations_total: Zero::zero(),
-				status: NominatorStatus::Active,
-			}
-		}
-	}
-
 	impl<
 			AccountId: Ord + Clone,
 			Balance: Copy
@@ -931,18 +909,6 @@ pub mod pallet {
 	#[pallet::getter(fn round)]
 	/// Current round index and next round scheduled transition
 	type Round<T: Config> = StorageValue<_, RoundInfo<T::BlockNumber>, ValueQuery>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn nominator_state)]
-	/// DEPRECATED AFTER `DelayNominationExitsMigration` migration is executed
-	/// Get nominator state associated with an account if account is nominating else None
-	pub(crate) type NominatorState<T: Config> = StorageMap<
-		_,
-		Twox64Concat,
-		T::AccountId,
-		Nominator<T::AccountId, BalanceOf<T>>,
-		OptionQuery,
-	>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn nominator_state2)]
