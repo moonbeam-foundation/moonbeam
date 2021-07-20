@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! # Parachain Staking Migrations
-use crate::{pallet::*, Config};
+use crate::{pallet::*, Config, RoundIndex};
 use frame_support::pallet;
 use frame_support::weights::Weight;
 use sp_runtime::{traits::Zero, Perbill};
@@ -51,20 +51,40 @@ mod deprecated {
 
 /// Storage migration for delaying nomination exits and revocations
 pub fn delay_nominator_exits_migration<T: Config>() -> (Perbill, Weight) {
-	use frame_support::migration::{put_storage_value, StorageIterator};
+	use frame_support::migration::{take_storage_value, put_storage_value, StorageIterator};
 
 	// Migrate from old Nominator struct to our new one, which adds a few fields.
 
-	let pallet_name = b"ParachainStaking";
-	let storage_name = b"NominatorState";
-
 	for (key, old_nominator) in StorageIterator::<
 		deprecated::OldNominator<T::AccountId, BalanceOf<T>>,
-	>::new(pallet_name, storage_name)
+	>::new(b"ParachainStaking", b"NominatorState")
 	.drain()
 	{
 		let new_nominator: Nominator<T::AccountId, BalanceOf<T>> = old_nominator.into();
-		put_storage_value(pallet_name, storage_name, &key, &new_nominator);
+		put_storage_value(b"ParachainStaking", b"NominatorState", &key, &new_nominator);
+	}
+
+	// Migrate from exit queue's Vec type to ExitQ
+
+
+	/// DEPRECATED exit queue value type
+	// TODO: will this work for querying a standalone (non-map) storage item?
+	if let Some(old_queue) = take_storage_value::<Vec<(T::AccountId, RoundIndex)>>(b"ParachainStaking", b"ExitQueue", b"") {
+
+		let mut candidates: Vec<T::AccountId> = Vec::new();
+		for (acc, _) in old_queue.clone().into_iter() {
+			candidates.push(acc);
+		}
+
+		let new_queue = ExitQ {
+			candidates: candidates.into(),
+			nominators_leaving: OrderedSet::new(),
+			candidate_schedule: old_queue,
+			nominator_schedule: Vec::new(),
+		};
+		put_storage_value(b"ParachainStaking", b"ExitQueue", b"", &new_queue);
+	} else {
+		// TODO (would we ever hit this case?)
 	}
 
 	// TODO: weight

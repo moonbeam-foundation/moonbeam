@@ -683,7 +683,7 @@ pub mod pallet {
 		}
 	}
 
-	type RoundIndex = u32;
+	pub type RoundIndex = u32;
 	type RewardPoint = u32;
 	pub type BalanceOf<T> =
 		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
@@ -832,39 +832,6 @@ pub mod pallet {
 		*/
 	}
 
-	/// Storage migration for delaying nomination exits and revocations
-	fn delay_nomination_exits_migration_execution<T: Config>() -> (u64, u64) {
-		if !<DelayNominationExitsMigration<T>>::get() {
-			// migrate from Nominator -> Nominator2
-			let (mut reads, mut writes) = (0u64, 0u64);
-			for (acc, nominator_state) in NominatorState::<T>::drain() {
-				let state: Nominator2<T::AccountId, BalanceOf<T>> = nominator_state.into();
-				<NominatorState2<T>>::insert(acc, state);
-				reads += 1u64;
-				writes += 1u64;
-			}
-			// migrate from ExitQueue -> ExitQueue2
-			let just_collators_exit_queue = <ExitQueue<T>>::take();
-			let mut candidates: Vec<T::AccountId> = Vec::new();
-			for (acc, _) in just_collators_exit_queue.clone().into_iter() {
-				candidates.push(acc);
-			}
-			reads += 1u64;
-			writes += 1u64;
-			<ExitQueue2<T>>::put(ExitQ {
-				candidates: candidates.into(),
-				nominators_leaving: OrderedSet::new(),
-				candidate_schedule: just_collators_exit_queue,
-				nominator_schedule: Vec::new(),
-			});
-			<DelayNominationExitsMigration<T>>::put(true);
-			Pallet::<T>::deposit_event(Event::DelayNominationExitsMigrationExecuted);
-			(reads, writes)
-		} else {
-			(1u64, 0u64)
-		}
-	}
-
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		/*
@@ -982,16 +949,9 @@ pub mod pallet {
 		StorageValue<_, OrderedSet<Bond<T::AccountId, BalanceOf<T>>>, ValueQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn exit_queue)]
-	/// DEPRECATED
-	/// A queue of collators awaiting exit
-	pub(crate) type ExitQueue<T: Config> =
-		StorageValue<_, Vec<(T::AccountId, RoundIndex)>, ValueQuery>;
-
-	#[pallet::storage]
 	#[pallet::getter(fn exit_queue2)]
 	/// A queue of collators and nominators awaiting exit
-	pub(crate) type ExitQueue2<T: Config> = StorageValue<_, ExitQ<T::AccountId>, ValueQuery>;
+	pub(crate) type ExitQueue<T: Config> = StorageValue<_, ExitQ<T::AccountId>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn at_stake)]
@@ -1332,7 +1292,7 @@ pub mod pallet {
 			let collator = ensure_signed(origin)?;
 			let mut state = <CollatorState2<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
 			ensure!(!state.is_leaving(), Error::<T>::CandidateAlreadyLeaving);
-			let mut exits = <ExitQueue2<T>>::get();
+			let mut exits = <ExitQueue<T>>::get();
 			let now = <Round<T>>::get().current;
 			let when = now + T::LeaveCandidatesDelay::get();
 			exits.schedule_candidate_exit::<T>(collator.clone(), when)?;
@@ -1345,7 +1305,7 @@ pub mod pallet {
 			if candidates.remove(&Bond::from_owner(collator.clone())) {
 				<CandidatePool<T>>::put(candidates);
 			}
-			<ExitQueue2<T>>::put(exits);
+			<ExitQueue<T>>::put(exits);
 			<CollatorState2<T>>::insert(&collator, state);
 			Self::deposit_event(Event::CollatorScheduledExit(now, collator, when));
 			Ok(().into())
@@ -1521,14 +1481,14 @@ pub mod pallet {
 				nomination_count >= (state.nominations.0.len() as u32),
 				Error::<T>::TooLowNominationCountToLeaveNominators
 			);
-			let mut exits = <ExitQueue2<T>>::get();
+			let mut exits = <ExitQueue<T>>::get();
 			let now = <Round<T>>::get().current;
 			let when = now + T::LeaveNominatorsDelay::get();
 			exits.schedule_nominator_exit::<T>(acc.clone(), when)?;
 			state.leave(when);
 			state.scheduled_revocations_total = state.total;
 			state.scheduled_revocations_count = state.nominations.0.len() as u32;
-			<ExitQueue2<T>>::put(exits);
+			<ExitQueue<T>>::put(exits);
 			<NominatorState<T>>::insert(&acc, state);
 			Self::deposit_event(Event::NominatorExitScheduled(now, acc, when));
 			Ok(().into())
@@ -1567,7 +1527,7 @@ pub mod pallet {
 					);
 					false
 				};
-			let mut exits = <ExitQueue2<T>>::get();
+			let mut exits = <ExitQueue<T>>::get();
 			let now = <Round<T>>::get().current;
 			let when = now + T::RevokeNominationDelay::get();
 			if leaving {
@@ -1576,7 +1536,7 @@ pub mod pallet {
 				state.leave(when);
 				state.scheduled_revocations_total = state.total;
 				state.scheduled_revocations_count = state.nominations.0.len() as u32;
-				<ExitQueue2<T>>::put(exits);
+				<ExitQueue<T>>::put(exits);
 				<NominatorState<T>>::insert(&nominator, state);
 				Self::deposit_event(Event::NominatorExitScheduled(now, nominator, when));
 			} else {
@@ -1588,7 +1548,7 @@ pub mod pallet {
 				)?;
 				state.scheduled_revocations_total += amount;
 				state.scheduled_revocations_count += 1u32;
-				<ExitQueue2<T>>::put(exits);
+				<ExitQueue<T>>::put(exits);
 				<NominatorState<T>>::insert(&nominator, state);
 				Self::deposit_event(Event::NominationRevocationScheduled(
 					now, nominator, collator, when,
@@ -1791,7 +1751,7 @@ pub mod pallet {
 		}
 		/// Executes all collator exits scheduled for when <= now
 		fn execute_collator_exits(now: RoundIndex) {
-			let mut exit_queue = <ExitQueue2<T>>::get();
+			let mut exit_queue = <ExitQueue<T>>::get();
 			let remaining_exits = exit_queue
 				.candidate_schedule
 				.clone()
@@ -1848,11 +1808,11 @@ pub mod pallet {
 				})
 				.collect::<Vec<(T::AccountId, RoundIndex)>>();
 			exit_queue.candidate_schedule = remaining_exits;
-			<ExitQueue2<T>>::put(exit_queue);
+			<ExitQueue<T>>::put(exit_queue);
 		}
 		/// Executes all nominator exits for when <= now
 		fn execute_nominator_exits(now: RoundIndex) {
-			let mut exit_queue = <ExitQueue2<T>>::get();
+			let mut exit_queue = <ExitQueue<T>>::get();
 			let remaining_exits = exit_queue
 				.nominator_schedule
 				.clone()
@@ -1917,7 +1877,7 @@ pub mod pallet {
 				})
 				.collect::<Vec<(T::AccountId, Option<T::AccountId>, RoundIndex)>>();
 			exit_queue.nominator_schedule = remaining_exits;
-			<ExitQueue2<T>>::put(exit_queue);
+			<ExitQueue<T>>::put(exit_queue);
 		}
 		/// Best as in most cumulatively supported in terms of stake
 		/// Returns [collator_count, nomination_count, total staked]
