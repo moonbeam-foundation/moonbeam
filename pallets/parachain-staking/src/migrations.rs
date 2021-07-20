@@ -51,7 +51,7 @@ mod deprecated {
 
 /// Storage migration for delaying nomination exits and revocations
 pub fn delay_nominator_exits_migration<T: Config>() -> (Perbill, Weight) {
-	use frame_support::migration::{take_storage_value, put_storage_value, StorageIterator};
+	use frame_support::migration::{put_storage_value, take_storage_value, StorageIterator};
 
 	// Migrate from old Nominator struct to our new one, which adds a few fields.
 
@@ -66,11 +66,13 @@ pub fn delay_nominator_exits_migration<T: Config>() -> (Perbill, Weight) {
 
 	// Migrate from exit queue's Vec type to ExitQ
 
-
 	/// DEPRECATED exit queue value type
 	// TODO: will this work for querying a standalone (non-map) storage item?
-	if let Some(old_queue) = take_storage_value::<Vec<(T::AccountId, RoundIndex)>>(b"ParachainStaking", b"ExitQueue", b"") {
-
+	if let Some(old_queue) = take_storage_value::<Vec<(T::AccountId, RoundIndex)>>(
+		b"ParachainStaking",
+		b"ExitQueue",
+		b"",
+	) {
 		let mut candidates: Vec<T::AccountId> = Vec::new();
 		for (acc, _) in old_queue.clone().into_iter() {
 			candidates.push(acc);
