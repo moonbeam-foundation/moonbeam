@@ -191,4 +191,4 @@ The following pallets are stored in `pallets/`. They are designed for Moonbeam's
 Moonbeam is open source under the terms of the GPL3. We welcome contributions. Please review our
 [CONTRIBUTIONS.md](CONTRIBUTIONS.md) document for more information.
 
-Exemple of version bumping PR (runtime and node): #601
+Exemple of version bumping PR (runtime and node): https://github.com/PureStake/moonbeam/pull/601/files
