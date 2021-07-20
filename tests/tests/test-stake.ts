@@ -155,6 +155,7 @@ describeDevMoonbeam("Staking - Join Nominators", (context) => {
   });
 });
 
+// // TODO: bring back when we figure out how to get `NominatorState2.revocations`
 // describeDevMoonbeam("Staking - Revoke Nomination", (context) => {
 //   let ethan;
 //   before("should succesfully call nominate on ALITH", async function () {
@@ -171,9 +172,11 @@ describeDevMoonbeam("Staking - Join Nominators", (context) => {
 //     await context.createBlock();
 //     const nominatorsAfterRevocation =
 //       await context.polkadotApi.query.parachainStaking.nominatorState2(ETHAN);
-//     expect(nominatorsAfterRevocation.toHuman()["revocations"][0] === ALITH).to.equal(
-//       true,
-//       "there should be no nominator"
+//     expect(
+//       (nominatorsAfterRevocation.revocations[0] === ALITH).to.equal(
+//         true,
+//         "revocation didnt go through"
+//       )
 //     );
 //   });
 // });
