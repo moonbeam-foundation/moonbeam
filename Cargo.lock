@@ -1362,7 +1362,6 @@ dependencies = [
  "evm",
  "frame-support",
  "frame-system",
- "hex-literal",
  "log",
  "max-encoded-len",
  "pallet-balances",

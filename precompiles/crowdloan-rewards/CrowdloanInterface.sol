@@ -1,21 +1,31 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.0;
 
-/// The interface through which solidity contracts will interact with Crowdloan Rewards
+/// @author The Moonbeam Team
+/// @title The interface through which solidity contracts will interact with Crowdloan Rewards
 /// We follow this same interface including four-byte function selectors, in the precompile that
 /// wraps the pallet
 interface CrowdloanRewards {
     // First some simple accessors
-    /// Checks whether the address is a contributor
+
+    /// @dev Checks whether the address is a contributor
+    /// @param contributor the address that we want to confirm is a contributor
+    /// @return A boolean confirming whether the address is a contributor
     function is_contributor(address contributor) external view returns (bool);
-    /// Retrieve total reward and claimed reward for an address
+
+    /// @dev Retrieve total reward and claimed reward for an address
+    /// @param contributor the address for which we want to retrieve the information
+    /// @return A u256 tuple, reflecting (total_rewards, claimed_rewards)
     function reward_info(address contributor) external view returns (uint256, uint256);
 
     // Now the dispatchables
-    /// Claim crowdloan rewards
+
+    /// @dev Claim the vested amount from the crowdloan rewards
     function claim() external;
-    /// Update reward address for crowdloan rewards
-    function update_reward_address(address) external;
+    
+    /// @dev Update reward address to receive crowdloan rewards
+    /// @param new_address, the new_address where to receive the rewards from now on
+    function update_reward_address(address new_address) external;
 
 }
 
@@ -23,9 +33,9 @@ interface CrowdloanRewards {
 // https://ethereum.stackexchange.com/a/73405/9963
 // Eventually we will probably want a better way of generating these and copying them to Rust
 
-{ 
-    "53440c90": "is_contributor(address)"
-    "76f70249": "reward_info(address)"
-    "4e71d92d": "claim()" 
-    "aaac61d6": "update_reward_address(address)"
-}
+//{ 
+//    "53440c90": "is_contributor(address)"
+//    "76f70249": "reward_info(address)"
+//    "4e71d92d": "claim()" 
+//    "aaac61d6": "update_reward_address(address)"
+//}
