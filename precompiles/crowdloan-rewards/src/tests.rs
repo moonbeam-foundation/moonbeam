@@ -302,3 +302,29 @@ fn update_reward_address_works() {
 			assert!(Crowdloan::accounts_payable(Charlie).is_some());
 		});
 }
+
+#[test]
+fn test_bound_checks_for_address_parsing() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.with_crowdloan_pot(100u32.into())
+		.build()
+		.execute_with(|| {
+			let selector = &Keccak256::digest(b"update_reward_address(address)")[0..4];
+
+			// Construct data to read prop count
+			let mut input_data = Vec::<u8>::from([0u8; 20]);
+			input_data[0..4].copy_from_slice(&selector);
+			input_data[16..20].copy_from_slice(&[1u8; 4]);
+
+			// Expected result is an error stating there are too few bytes
+			let expected_result = Some(Err(ExitError::Other(
+				"Incorrect input length for update_reward_address".into(),
+			)));
+
+			assert_eq!(
+				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context(),),
+				expected_result
+			);
+		})
+}

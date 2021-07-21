@@ -61,8 +61,6 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Result<PrecompileOutput, ExitError> {
-		log::trace!(target: "crowdloan-rewards-precompile", "In crowdloan rewards wrapper");
-
 		// Basic sanity checking for length
 		// https://solidity-by-example.org/primitives/
 
@@ -71,9 +69,6 @@ where
 		if input.len() < 4 {
 			return Err(ExitError::Other("input length less than 4 bytes".into()));
 		}
-
-		log::trace!(target: "crowdloan-rewards-precompile", "Made it past preliminary length check");
-		log::trace!(target: "crowdloan-rewards-precompile", "context.caller is {:?}", context.caller);
 
 		// Parse the function selector
 		// These are the four-byte function selectors calculated from the CrowdloanInterface.sol
@@ -158,8 +153,20 @@ where
 		input: &[u8],
 		target_gas: Option<u64>,
 	) -> Result<PrecompileOutput, ExitError> {
+		// Bound check
+		if input.len() < 32 {
+			log::trace!(target: "crowdloan-rewards-precompile",
+				"Unable to parse address. Got {} bytes, expected {}",
+				input.len(),
+				32,
+			);
+			return Err(ExitError::Other(
+				"Incorrect input length for is_contributor".into(),
+			));
+		}
+
 		// parse the address
-		let contributor = H160::from_slice(&input[12..32]);
+		let contributor = parse_account(&input[..32])?;
 
 		log::trace!(
 			target: "crowdloan-rewards-precompile",
@@ -198,8 +205,20 @@ where
 	}
 
 	fn reward_info(input: &[u8], target_gas: Option<u64>) -> Result<PrecompileOutput, ExitError> {
+		// Bound check
+		if input.len() < 32 {
+			log::trace!(target: "crowdloan-rewards-precompile",
+				"Unable to parse address. Got {} bytes, expected {}",
+				input.len(),
+				32,
+			);
+			return Err(ExitError::Other(
+				"Incorrect input length for reward_info".into(),
+			));
+		}
+
 		// parse the address
-		let contributor = H160::from_slice(&input[12..32]);
+		let contributor = parse_account(&input[..32])?;
 
 		log::trace!(
 			target: "crowdloan-rewards-precompile",
@@ -264,7 +283,20 @@ where
 			target: "crowdloan-rewards-precompile",
 			"In update_reward_address dispatchable wrapper"
 		);
-		log::trace!(target: "crowdloan-rewards-precompile", "input is {:?}", input);
+
+		// Bound check
+		if input.len() < 32 {
+			log::trace!(target: "crowdloan-rewards-precompile",
+				"Unable to parse address. Got {} bytes, expected {}",
+				input.len(),
+				32,
+			);
+			return Err(ExitError::Other(
+				"Incorrect input length for update_reward_address".into(),
+			));
+		}
+
+		// Input bounds are checked in 'parse_account'
 		let new_address = parse_account(&input[..32])?;
 
 		log::trace!(target: "crowdloan-rewards-precompile", "New account is {:?}", new_address);
