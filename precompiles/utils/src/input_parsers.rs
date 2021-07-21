@@ -24,11 +24,6 @@ pub fn parse_account(input: &[u8]) -> Result<H160, ExitError> {
 	const TOTAL_SIZE_BYTES: usize = PADDING_SIZE_BYTES + ACCOUNT_SIZE_BYTES;
 
 	if input.len() != TOTAL_SIZE_BYTES {
-		log::trace!(target: "precompile-utils",
-			"Unable to parse address. Got {} bytes, expected {}",
-			input.len(),
-			TOTAL_SIZE_BYTES,
-		);
 		return Err(ExitError::Other(
 			"Incorrect input length for account parsing".into(),
 		));
