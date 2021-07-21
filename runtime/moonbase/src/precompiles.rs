@@ -18,8 +18,8 @@
 
 use evm::{executor::PrecompileOutput, Context, ExitError};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use pallet_evm_precompile_balances_erc20::{BalanceOf as Erc20BalanceOf, Erc20BalancesPrecompile};
 use pallet_evm::{Precompile, PrecompileSet};
+use pallet_evm_precompile_balances_erc20::{BalanceOf as Erc20BalanceOf, Erc20BalancesPrecompile};
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
