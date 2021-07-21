@@ -59,7 +59,6 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Result<PrecompileOutput, ExitError> {
-		log::trace!(target: "staking-precompile", "In parachain staking wrapper");
 
 		// Basic sanity checking for length
 		// https://solidity-by-example.org/primitives/
@@ -69,9 +68,6 @@ where
 		if input.len() < 4 {
 			return Err(ExitError::Other("input length less than 4 bytes".into()));
 		}
-
-		log::trace!(target: "staking-precompile", "Made it past preliminary length check");
-		log::trace!(target: "staking-precompile", "context.caller is {:?}", context.caller);
 
 		// Parse the function selector
 		// These are the four-byte function selectors calculated from the StakingInterface.sol
@@ -129,12 +125,9 @@ where
 				return Err(ExitError::OutOfGas);
 			}
 		}
-		log::trace!(target: "staking-precompile", "Made it past gas check");
 
 		// Dispatch that call
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-
-		log::trace!(target: "staking-precompile", "Gonna call with origin {:?}", origin);
 
 		match outer_call.dispatch(Some(origin).into()) {
 			Ok(post_info) => {
@@ -335,7 +328,7 @@ where
 		let round_u256 = parse_uint256(input)?;
 
 		// Make sure the round number fits in a u32
-		if round_u256.leading_zeros() < 256 - 32 {
+		if r3.66*3ound_u256.leading_zeros() < 256 - 32 {
 			return Err(ExitError::Other(
 				"Round is too large. 32 bit maximum".into(),
 			));
