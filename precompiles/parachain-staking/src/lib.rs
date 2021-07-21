@@ -87,11 +87,19 @@ where
 				return Self::is_selected_candidate(&input[SELECTOR_SIZE_BYTES..]);
 			}
 			[0xc9, 0xf5, 0x93, 0xb2] => {
-				//TODO Do we need to verify that there were no additional bytes passed in here?
 				return Self::min_nomination();
 			}
 			[0x97, 0x99, 0xb4, 0xe7] => {
 				return Self::points(&input[SELECTOR_SIZE_BYTES..]);
+			}
+			[0x4b, 0x1c, 0x4c, 0x29] => {
+				return Self::candidate_count();
+			}
+			[0x0a, 0xd6, 0xa7, 0xbe] => {
+				return Self::collator_nomination_count(&input[SELECTOR_SIZE_BYTES..]);
+			}
+			[0xda, 0xe5, 0x65, 0x9b] => {
+				return Self::nominator_nomination_count(&input[SELECTOR_SIZE_BYTES..]);
 			}
 
 			// If not an accessor, check for dispatchables. These calls ready for dispatch below.
@@ -379,6 +387,97 @@ where
 			exit_status: ExitSucceed::Returned,
 			cost: gas_consumed,
 			output: output.to_vec(),
+			logs: Default::default(),
+		})
+	}
+
+	fn candidate_count() -> Result<PrecompileOutput, ExitError> {
+		// fetch data from pallet
+		let raw_candidate_count: u32 = <parachain_staking::Pallet<Runtime>>::candidate_pool()
+			.0
+			.len() as u32;
+		let candidate_count: U256 = raw_candidate_count.into();
+
+		log::trace!(target: "staking-precompile", "Result from pallet is {:?}", candidate_count);
+
+		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+			<Runtime as frame_system::Config>::DbWeight::get().read,
+		);
+
+		let mut buffer = [0u8; 32];
+		candidate_count.to_big_endian(&mut buffer);
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gas_consumed,
+			output: buffer.to_vec(),
+			logs: Default::default(),
+		})
+	}
+
+	fn collator_nomination_count(input: &[u8]) -> Result<PrecompileOutput, ExitError> {
+		// TODO: check length and same for all of the others, can panic if len < 32
+		let collator: Runtime::AccountId = parse_account(&input[..32])?.into();
+		let mut buffer = [0u8; 32];
+		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+			<Runtime as frame_system::Config>::DbWeight::get().read,
+		);
+		if let Some(state) = <parachain_staking::Pallet<Runtime>>::collator_state2(&collator) {
+			let raw_collator_nomination_count: u32 = state.nominators.0.len() as u32;
+			let collator_nomination_count: U256 = raw_collator_nomination_count.into();
+
+			log::trace!(
+				target: "staking-precompile",
+				"Result from pallet is {:?}",
+				raw_collator_nomination_count
+			);
+
+			collator_nomination_count.to_big_endian(&mut buffer);
+		} else {
+			log::trace!(
+				target: "staking-precompile",
+				"Collator {:?} not found, so nomination count is 0",
+				collator
+			);
+		}
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gas_consumed,
+			output: buffer.to_vec(),
+			logs: Default::default(),
+		})
+	}
+
+	fn nominator_nomination_count(input: &[u8]) -> Result<PrecompileOutput, ExitError> {
+		let nominator: Runtime::AccountId = parse_account(&input[..32])?.into();
+		let mut buffer = [0u8; 32];
+		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+			<Runtime as frame_system::Config>::DbWeight::get().read,
+		);
+		if let Some(state) = <parachain_staking::Pallet<Runtime>>::nominator_state(&nominator) {
+			let raw_nominator_nomination_count: u32 = state.nominations.0.len() as u32;
+			let nominator_nomination_count: U256 = raw_nominator_nomination_count.into();
+
+			log::trace!(
+				target: "staking-precompile",
+				"Result from pallet is {:?}",
+				raw_nominator_nomination_count
+			);
+
+			nominator_nomination_count.to_big_endian(&mut buffer);
+		} else {
+			log::trace!(
+				target: "staking-precompile",
+				"Nominator {:?} not found, so nomination count is 0",
+				nominator
+			);
+		}
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gas_consumed,
+			output: buffer.to_vec(),
 			logs: Default::default(),
 		})
 	}

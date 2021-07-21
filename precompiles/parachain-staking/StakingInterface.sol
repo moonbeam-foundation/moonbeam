@@ -25,6 +25,21 @@ interface ParachainStaking {
     /// Get the minimum nomination amount
     function min_nomination() external view returns (uint256);
 
+    /// Get the CandidateCount weight hint
+    function candidate_count() external view returns (uint256);
+
+    /// Get the CollatorNominationCount weight hint
+    function collator_nomination_count(address collator)
+        external
+        view
+        returns (uint256);
+
+    /// Get the NominatorNominationCount weight hint
+    function nominator_nomination_count(address nominator)
+        external
+        view
+        returns (uint256);
+
     // Now the dispatchables
 
     /// Join the set of collator candidates
@@ -88,5 +103,8 @@ interface ParachainStaking {
 // 	"f6a52569": "nominator_bond_less(address,uint256)",
 // 	"971d44c8": "nominator_bond_more(address,uint256)",
 // 	"4b65c34b": "revoke_nomination(address)"
-// 	"9799b4e7": "points(uint256)"
+// 	"9799b4e7": "points(uint256)",
+//  "4b1c4c29": "candidate_count()",
+//  "0ad6a7be": "collator_nomination_count(address)",
+//  "dae5659b": "nominator_nomination_count(address)",
 // }
