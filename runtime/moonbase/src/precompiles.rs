@@ -18,7 +18,7 @@
 
 use evm::{executor::PrecompileOutput, Context, ExitError};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use pallet_balances_erc20_precompile::{BalanceOf as Erc20BalanceOf, Erc20BalancesWrapper};
+use pallet_balances_erc20_precompile::{BalanceOf as Erc20BalanceOf, Erc20BalancesPrecompile};
 use pallet_evm::{Precompile, PrecompileSet};
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
@@ -96,7 +96,7 @@ where
 			a if a == hash(2048) => Some(ParachainStakingWrapper::<R>::execute(
 				input, target_gas, context,
 			)),
-			a if a == hash(2049) => Some(Erc20BalancesWrapper::<R>::execute(
+			a if a == hash(2049) => Some(Erc20BalancesPrecompile::<R>::execute(
 				input, target_gas, context,
 			)),
 			_ => None,

@@ -41,10 +41,14 @@ const SELECTOR_LOG_TRANSFER: &[u8; 32] =
 const SELECTOR_LOG_APPROVAL: &[u8; 32] =
 	u8_slice!("0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925");
 
+/// Associates pallet Instance to a prefix used for the Approves storage.
+/// This trait is implemented for () and the 16 substrate Instance.
 pub trait InstanceToPrefix {
+	/// Prefix used for the Approves storage.
 	type ApprovesPrefix: StorageInstance;
 }
 
+// We use a macro to implement the trait for () and the 16 substrate Instance.
 macro_rules! impl_prefix {
 	($prefix:ident, $instance:ty, $name:literal) => {
 		pub struct $prefix;
@@ -81,9 +85,11 @@ impl_prefix!(ApprovesPrefix14, Instance14, "Erc20Instance14Balances");
 impl_prefix!(ApprovesPrefix15, Instance15, "Erc20Instance15Balances");
 impl_prefix!(ApprovesPrefix16, Instance16, "Erc20Instance16Balances");
 
+/// Alias for the Balance type for the provided Runtime and Instance.
 pub type BalanceOf<Runtime, Instance = ()> =
 	<Runtime as pallet_balances::Config<Instance>>::Balance;
 
+/// Storage type used to store approvals.
 /// (Owner => Allowed => Amount)
 pub type ApprovesStorage<Runtime, Instance> = StorageDoubleMap<
 	<Instance as InstanceToPrefix>::ApprovesPrefix,
@@ -94,9 +100,14 @@ pub type ApprovesStorage<Runtime, Instance> = StorageDoubleMap<
 	<Runtime as pallet_balances::Config<Instance>>::Balance,
 >;
 
-pub struct Erc20BalancesWrapper<Runtime, Instance: 'static = ()>(PhantomData<(Runtime, Instance)>);
+/// Precompile exposing a pallet_balance as an ERC20.
+/// Multiple precompiles can support instances of pallet_balance.
+/// The precompile used an additional storage to store approvals.
+pub struct Erc20BalancesPrecompile<Runtime, Instance: 'static = ()>(
+	PhantomData<(Runtime, Instance)>,
+);
 
-impl<Runtime, Instance> Precompile for Erc20BalancesWrapper<Runtime, Instance>
+impl<Runtime, Instance> Precompile for Erc20BalancesPrecompile<Runtime, Instance>
 where
 	Runtime: pallet_balances::Config<Instance> + pallet_evm::Config,
 	Runtime::AccountId: From<H160>,
@@ -118,20 +129,16 @@ where
 		}
 
 		match input[0..SELECTOR_SIZE_BYTES] {
-			// Views
 			[0x7c, 0x80, 0xaa, 0x9f] => Self::total_supply(&input[SELECTOR_SIZE_BYTES..]),
 			[0x70, 0xa0, 0x82, 0x31] => Self::balance_of(&input[SELECTOR_SIZE_BYTES..]),
 			[0xdd, 0x62, 0xed, 0x3e] => Self::allowance(&input[SELECTOR_SIZE_BYTES..]),
-			// Only affect this Precompile storage.
 			[0x09, 0x5e, 0xa7, 0xb3] => Self::approve(context, &input[SELECTOR_SIZE_BYTES..]),
-			// Results in a Substrate call
 			[0xa9, 0x05, 0x9c, 0xbb] => {
 				Self::transfer(context, &input[SELECTOR_SIZE_BYTES..], target_gas)
 			}
 			[0x0c, 0x41, 0xb0, 0x33] => {
 				Self::transfer_from(context, &input[SELECTOR_SIZE_BYTES..], target_gas)
 			}
-			// Fallback
 			_ => Err(ExitError::Other(
 				"No staking wrapper method at selector given selector".into(),
 			)),
@@ -139,7 +146,7 @@ where
 	}
 }
 
-impl<Runtime, Instance> Erc20BalancesWrapper<Runtime, Instance>
+impl<Runtime, Instance> Erc20BalancesPrecompile<Runtime, Instance>
 where
 	Runtime: pallet_balances::Config<Instance> + pallet_evm::Config,
 	Runtime::AccountId: From<H160>,
@@ -149,6 +156,8 @@ where
 	Instance: InstanceToPrefix + 'static,
 	U256: From<BalanceOf<Runtime, Instance>> + TryInto<BalanceOf<Runtime, Instance>>,
 {
+	/// Dispatch a call from provided origin.
+	/// Will make sure the call will not consume more than the target gas.
 	fn dispatch_call(
 		origin: <Runtime::Call as Dispatchable>::Origin,
 		call: Runtime::Call,
