@@ -377,12 +377,8 @@ where
 		// Add transfer log.
 		output.logs.push(Log {
 			address: context.address,
-			data: input[32..64].to_vec(),
-			topics: vec![
-				SELECTOR_LOG_TRANSFER.into(),
-				context.caller.into(),
-				to.into(),
-			],
+			data: input[64..96].to_vec(), // amount
+			topics: vec![SELECTOR_LOG_TRANSFER.into(), from.into(), to.into()],
 		});
 
 		Ok(output)
