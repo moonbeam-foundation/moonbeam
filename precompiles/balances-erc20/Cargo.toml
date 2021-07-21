@@ -21,7 +21,7 @@ pallet-evm = { git = "https://github.com/purestake/frontier", default-features =
 evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }
 # ethereum = { version = "0.7", default-features = false }
 
-precompile-utils = { path = "../util", default-features = false }
+precompile-utils = { path = "../utils", default-features = false }
 
 [features]
 default = ["std"]
