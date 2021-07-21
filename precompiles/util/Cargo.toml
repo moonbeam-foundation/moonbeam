@@ -1,9 +1,9 @@
 [package]
-name = "pallet-evm-precompile-balances-erc20"
+name = "precompile-utils"
 version = "0.1.0"
 authors = ["PureStake"]
 edition = "2018"
-description = "A Precompile to expose a Balances pallet throught an ERC20-compliant precompile."
+description = "Utils to write EVM precompiles."
 
 [dependencies]
 log = "0.4"
@@ -16,12 +16,8 @@ codec = { package = "parity-scale-codec", version = "2.0.0", default-features = 
 frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 
-pallet-balances = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.8" }
 evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }
-# ethereum = { version = "0.7", default-features = false }
-
-precompile-utils = { path = "../util", default-features = false }
 
 [features]
 default = ["std"]
@@ -33,7 +29,5 @@ std = [
     "frame-support/std",
     "frame-system/std",
     "pallet-evm/std",
-    "pallet-balances/std",
     "evm/std",
-    "precompile-utils/std",
 ]
