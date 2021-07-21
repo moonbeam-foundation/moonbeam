@@ -310,3 +310,54 @@ fn on_runtime_upgrade_charges_minimum_two_db_writes() {
 		assert_eq!(weight, RocksDbWeight::get().writes(2));
 	})
 }
+
+#[test]
+fn only_one_outstanding_test_at_a_time() {
+	let num_migration1_calls = Arc::new(Mutex::new(0usize));
+	let num_migration2_calls = Arc::new(Mutex::new(0usize));
+
+	// create two migrations. the first will return < Perbill::one(), which should cause
+	// pallet-migrations to not call the second in the first step. We only step once.
+
+	crate::mock::execute_with_mock_migrations(
+		&mut |mgr: &mut MockMigrationManager| {
+			let num_migration1_calls = Arc::clone(&num_migration1_calls);
+			let num_migration2_calls = Arc::clone(&num_migration2_calls);
+
+			mgr.register_callback(
+				move || "migration1",
+				move |_, _| -> (Perbill, Weight) {
+					let mut num_migration1_calls = num_migration1_calls.lock().unwrap();
+					*num_migration1_calls += 1;
+					(Perbill::zero(), 0u64.into())
+				},
+			);
+
+			mgr.register_callback(
+				move || "migration2",
+				move |_, _| -> (Perbill, Weight) {
+					let mut num_migration2_calls = num_migration2_calls.lock().unwrap();
+					*num_migration2_calls += 1;
+					(Perbill::zero(), 0u64.into())
+				},
+			);
+		},
+		&mut || {
+			ExtBuilder::default().build().execute_with(|| {
+				Migrations::on_runtime_upgrade();
+			});
+		},
+	);
+
+	assert_eq!(
+		*num_migration1_calls.lock().unwrap(),
+		1,
+		"mock migration should call friendly_name()"
+	);
+
+	assert_eq!(
+		*num_migration2_calls.lock().unwrap(),
+		0,
+		"mock migration should call friendly_name()"
+	);
+}
