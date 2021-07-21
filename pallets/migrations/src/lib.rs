@@ -213,17 +213,18 @@ pub mod pallet {
 					);
 				}
 
+				if migration_state != updated_progress {
+					<MigrationState<T>>::insert(migration_name.as_bytes(), updated_progress);
+				}
+
 				// make note of any unfinished migrations
 				if updated_progress < Perbill::one() {
 					done = false;
+					break;
 				} else {
 					<Pallet<T>>::deposit_event(Event::MigrationCompleted(
 						migration_name_as_bytes.into(),
 					));
-				}
-
-				if migration_state != updated_progress {
-					<MigrationState<T>>::insert(migration_name.as_bytes(), updated_progress);
 				}
 			}
 		}

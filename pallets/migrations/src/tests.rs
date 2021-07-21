@@ -316,8 +316,8 @@ fn only_one_outstanding_test_at_a_time() {
 	let num_migration1_calls = Arc::new(Mutex::new(0usize));
 	let num_migration2_calls = Arc::new(Mutex::new(0usize));
 
-	// create two migrations. the first will return < Perbill::one(), which should cause
-	// pallet-migrations to not call the second in the first step. We only step once.
+	// create two migrations. the first will return < Perbill::one() until its 3rd step, which
+	// should prevent the second from running. Once it s done, the second should execute.
 
 	crate::mock::execute_with_mock_migrations(
 		&mut |mgr: &mut MockMigrationManager| {
@@ -329,7 +329,13 @@ fn only_one_outstanding_test_at_a_time() {
 				move |_, _| -> (Perbill, Weight) {
 					let mut num_migration1_calls = num_migration1_calls.lock().unwrap();
 					*num_migration1_calls += 1;
-					(Perbill::zero(), 0u64.into())
+
+					// this migration is done on its 3rd step
+					if *num_migration1_calls < 3 {
+						(Perbill::zero(), 0u64.into())
+					} else {
+						(Perbill::one(), 0u64.into())
+					}
 				},
 			);
 
@@ -338,26 +344,31 @@ fn only_one_outstanding_test_at_a_time() {
 				move |_, _| -> (Perbill, Weight) {
 					let mut num_migration2_calls = num_migration2_calls.lock().unwrap();
 					*num_migration2_calls += 1;
-					(Perbill::zero(), 0u64.into())
+					(Perbill::one(), 0u64.into())
 				},
 			);
 		},
 		&mut || {
 			ExtBuilder::default().build().execute_with(|| {
+
+				// first pass should invoke migration1 once and not move on to migration2
 				Migrations::on_runtime_upgrade();
+				assert_eq!(*num_migration1_calls.lock().unwrap(), 1);
+				assert_eq!(*num_migration2_calls.lock().unwrap(), 0);
+
+				// second pass should do the same
+				crate::mock::roll_to(2, false);
+				assert_eq!(*num_migration1_calls.lock().unwrap(), 2);
+				assert_eq!(*num_migration2_calls.lock().unwrap(), 0);
+
+				// third pass should invoke both
+				crate::mock::roll_to(3, false);
+				assert_eq!(*num_migration1_calls.lock().unwrap(), 3);
+				assert_eq!(*num_migration2_calls.lock().unwrap(), 1);
+
+				// and both should be done now
+				assert_eq!(Migrations::is_fully_upgraded(), true);
 			});
 		},
-	);
-
-	assert_eq!(
-		*num_migration1_calls.lock().unwrap(),
-		1,
-		"mock migration should call friendly_name()"
-	);
-
-	assert_eq!(
-		*num_migration2_calls.lock().unwrap(),
-		0,
-		"mock migration should call friendly_name()"
 	);
 }
