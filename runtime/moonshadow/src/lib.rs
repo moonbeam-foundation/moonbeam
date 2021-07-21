@@ -88,10 +88,11 @@ pub mod currency {
 	pub const MICROMSHD: Balance = MILLIMSHD / 1_000;
 	pub const NANOMSHD: Balance = MICROMSHD / 1_000;
 
-	pub const BYTE_FEE: Balance = 100 * MICROMSHD;
+	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROMSHD;
+	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROMSHD;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 1 * MSHD + (bytes as Balance) * BYTE_FEE
+		items as Balance * 1 * MSHD + (bytes as Balance) * STORAGE_BYTE_FEE
 	}
 }
 
@@ -270,7 +271,7 @@ where
 }
 
 parameter_types! {
-	pub const TransactionByteFee: Balance = currency::BYTE_FEE;
+	pub const TransactionByteFee: Balance = currency::TRANSACTION_BYTE_FEE;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
@@ -431,7 +432,7 @@ parameter_types! {
 	pub const MinimumDeposit: Balance = 4 * currency::MSHD;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
-	pub const PreimageByteDeposit: Balance = currency::BYTE_FEE;
+	pub const PreimageByteDeposit: Balance = currency::STORAGE_BYTE_FEE;
 	pub const InstantAllowed: bool = false;
 }
 
