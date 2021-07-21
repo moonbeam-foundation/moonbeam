@@ -882,6 +882,7 @@
 <span id="879">879</span>
 <span id="880">880</span>
 <span id="881">881</span>
+<span id="882">882</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -973,10 +974,11 @@
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MICROGLMR</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">MILLIGLMR</span> <span class="op">/</span> <span class="number">1_000</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NANOGLMR</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">MICROGLMR</span> <span class="op">/</span> <span class="number">1_000</span>;
 
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BYTE_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">100</span> <span class="op">*</span> <span class="ident">MICROGLMR</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TRANSACTION_BYTE_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">10</span> <span class="op">*</span> <span class="ident">MICROGLMR</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STORAGE_BYTE_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">100</span> <span class="op">*</span> <span class="ident">MICROGLMR</span>;
 
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">deposit</span>(<span class="ident">items</span>: <span class="ident">u32</span>, <span class="ident">bytes</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Balance</span> {
-		<span class="ident">items</span> <span class="kw">as</span> <span class="ident">Balance</span> <span class="op">*</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">+</span> (<span class="ident">bytes</span> <span class="kw">as</span> <span class="ident">Balance</span>) <span class="op">*</span> <span class="ident">BYTE_FEE</span>
+		<span class="ident">items</span> <span class="kw">as</span> <span class="ident">Balance</span> <span class="op">*</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">+</span> (<span class="ident">bytes</span> <span class="kw">as</span> <span class="ident">Balance</span>) <span class="op">*</span> <span class="ident">STORAGE_BYTE_FEE</span>
 	}
 }
 
@@ -1015,7 +1017,7 @@
 	<span class="ident">spec_name</span>: <span class="macro">create_runtime_str</span><span class="macro">!</span>(<span class="string">&quot;moonbeam&quot;</span>),
 	<span class="ident">impl_name</span>: <span class="macro">create_runtime_str</span><span class="macro">!</span>(<span class="string">&quot;moonbeam&quot;</span>),
 	<span class="ident">authoring_version</span>: <span class="number">3</span>,
-	<span class="ident">spec_version</span>: <span class="number">0158</span>,
+	<span class="ident">spec_version</span>: <span class="number">0159</span>,
 	<span class="ident">impl_version</span>: <span class="number">0</span>,
 	<span class="ident">apis</span>: <span class="ident">RUNTIME_API_VERSIONS</span>,
 	<span class="ident">transaction_version</span>: <span class="number">2</span>,
@@ -1156,7 +1158,7 @@
 }
 
 <span class="macro">parameter_types</span><span class="macro">!</span> {
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TransactionByteFee</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency</span>::<span class="ident">BYTE_FEE</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TransactionByteFee</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency</span>::<span class="ident">TRANSACTION_BYTE_FEE</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">pallet_transaction_payment</span>::<span class="ident">Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
@@ -1317,7 +1319,7 @@
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinimumDeposit</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">4</span> <span class="op">*</span> <span class="ident">currency</span>::<span class="ident">GLMR</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxVotes</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxProposals</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PreimageByteDeposit</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency</span>::<span class="ident">BYTE_FEE</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PreimageByteDeposit</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency</span>::<span class="ident">STORAGE_BYTE_FEE</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">InstantAllowed</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="bool-val">false</span>;
 }
 
