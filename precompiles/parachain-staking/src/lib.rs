@@ -59,7 +59,6 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Result<PrecompileOutput, ExitError> {
-
 		// Basic sanity checking for length
 		// https://solidity-by-example.org/primitives/
 
@@ -328,7 +327,7 @@ where
 		let round_u256 = parse_uint256(input)?;
 
 		// Make sure the round number fits in a u32
-		if r3.66*3ound_u256.leading_zeros() < 256 - 32 {
+		if round_u256.leading_zeros() < 256 - 32 {
 			return Err(ExitError::Other(
 				"Round is too large. 32 bit maximum".into(),
 			));
