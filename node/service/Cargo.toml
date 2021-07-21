@@ -151,3 +151,6 @@ runtime-benchmarks = [
 	"moonbeam-runtime/runtime-benchmarks",
 	"moonbase-runtime/runtime-benchmarks",
 ]
+try-runtime = [
+	"moonbase-runtime/try-runtime",
+]
