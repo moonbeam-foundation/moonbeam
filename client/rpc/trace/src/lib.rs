@@ -40,7 +40,7 @@ use tracing::{instrument, Instrument};
 
 use jsonrpc_core::Result;
 use sc_client_api::backend::Backend;
-use sp_api::{BlockId, HeaderT, ProvideRuntimeApi};
+use sp_api::{ApiExt, BlockId, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
@@ -55,7 +55,7 @@ use fp_rpc::EthereumRuntimeRPCApi;
 pub use moonbeam_rpc_core_trace::{
 	FilterRequest, RequestBlockId, RequestBlockTag, Trace as TraceT, TraceServer, TransactionTrace,
 };
-use moonbeam_rpc_primitives_debug::{block, DebugRuntimeApi};
+use moonbeam_rpc_primitives_debug::{block, proxy, DebugRuntimeApi};
 
 /// RPC handler. Will communicate with a `CacheTask` through a `CacheRequester`.
 pub struct Trace<B, C> {
@@ -798,6 +798,17 @@ where
 		let height = *block_header.number();
 		let substrate_parent_id = BlockId::<B>::Hash(*block_header.parent_hash());
 
+		// Get `DebugRuntimeApi` version.
+		let api_version = api
+			.api_version::<dyn DebugRuntimeApi<B>>(&substrate_parent_id)
+			.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
+			.ok_or_else(|| {
+				internal_err(format!(
+					"Could not find `DebugRuntimeApi` at {:?}.",
+					substrate_parent_id
+				))
+			})?;
+
 		// Get Ethereum block data.
 		let (eth_block, _, eth_transactions) = api
 			.current_all(&BlockId::Hash(substrate_hash))
@@ -838,20 +849,52 @@ where
 			})?;
 
 		// Trace the block.
-		let mut traces: Vec<_> = api
-			.trace_block(&substrate_parent_id, extrinsics)
-			.map_err(|e| {
-				internal_err(format!(
-					"Blockchain error when replaying block {} : {:?}",
-					height, e
-				))
-			})?
-			.map_err(|e| {
-				internal_err(format!(
-					"Internal runtime error when replaying block {} : {:?}",
-					height, e
-				))
-			})?;
+		let f = || {
+			if api_version >= 2 {
+				api.trace_block(&substrate_parent_id, &block_header, extrinsics)
+					.map_err(|e| {
+						internal_err(format!(
+							"Blockchain error when replaying block {} : {:?}",
+							height, e
+						))
+					})?
+					.map_err(|e| {
+						tracing::warn!(
+							"Internal runtime error when replaying block {} : {:?}",
+							height,
+							e
+						);
+						internal_err(format!(
+							"Internal runtime error when replaying block {} : {:?}",
+							height, e
+						))
+					})
+			} else {
+				#[allow(deprecated)]
+				api.trace_block_before_version_2(&substrate_parent_id, extrinsics)
+					.map_err(|e| {
+						internal_err(format!(
+							"Blockchain error when replaying block {} : {:?}",
+							height, e
+						))
+					})?
+					.map_err(|e| {
+						tracing::warn!(
+							"Internal runtime error when replaying block {} : {:?}",
+							height,
+							e
+						);
+						internal_err(format!(
+							"Internal runtime error when replaying block {} : {:?}",
+							height, e
+						))
+					})
+			}
+		};
+
+		let mut proxy = proxy::CallListProxy::new();
+		proxy.using(f);
+		let mut traces: Vec<_> = proxy.into_tx_traces();
 
 		// Fill missing data.
 		for trace in traces.iter_mut() {

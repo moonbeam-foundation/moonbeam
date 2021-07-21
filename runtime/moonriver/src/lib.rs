@@ -28,6 +28,7 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, parameter_types,
@@ -131,7 +132,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 0155,
+	spec_version: 0157,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -427,7 +428,7 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 parameter_types! {
 	pub const LaunchPeriod: BlockNumber = 1 * DAYS;
 	pub const VotingPeriod: BlockNumber = 5 * DAYS;
-	pub const FastTrackVotingPeriod: BlockNumber = 1 * DAYS;
+	pub const FastTrackVotingPeriod: BlockNumber = 3 * HOURS;
 	pub const EnactmentPeriod: BlockNumber = 1 *DAYS;
 	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
 	pub const MinimumDeposit: Balance = 4 * currency::MOVR;
@@ -624,7 +625,7 @@ impl parachain_staking::Config for Runtime {
 
 impl pallet_author_inherent::Config for Runtime {
 	type AuthorId = NimbusId;
-	type SlotBeacon = pallet_author_inherent::RelayChainBeacon<Self>;
+	type SlotBeacon = RelaychainBlockNumberProvider<Self>;
 	type AccountLookup = AuthorMapping;
 	type EventHandler = ParachainStaking;
 	type CanAuthor = AuthorFilter;
@@ -664,9 +665,7 @@ impl pallet_author_mapping::Config for Runtime {
 	type AuthorId = NimbusId;
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
-	fn can_register(account: &AccountId) -> bool {
-		ParachainStaking::is_candidate(account)
-	}
+	type WeightInfo = pallet_author_mapping::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -778,7 +777,7 @@ construct_runtime! {
 		// System support stuff.
 		System: frame_system::{Pallet, Call, Storage, Config, Event<T>} = 0,
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 1,
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Call, Storage} = 2,
+		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = 2,
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 3,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 4,
 
@@ -866,12 +865,13 @@ runtime_common::impl_runtime_apis_plus_common! {
 		fn validate_transaction(
 			source: TransactionSource,
 			tx: <Block as BlockT>::Extrinsic,
+			block_hash: <Block as BlockT>::Hash,
 		) -> TransactionValidity {
 			// Filtered calls should not enter the tx pool as they'll fail if inserted.
 			let allowed = <Runtime as frame_system::Config>::BaseCallFilter::filter(&tx.function);
 
 			if allowed {
-				Executive::validate_transaction(source, tx)
+				Executive::validate_transaction(source, tx, block_hash)
 			} else {
 				InvalidTransaction::Call.into()
 			}

@@ -21,7 +21,7 @@
 mod common;
 use common::*;
 
-use evm::{executor::PrecompileOutput, Context, ExitSucceed};
+use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
@@ -34,6 +34,7 @@ use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_transaction_payment::Multiplier;
 use parachain_staking::{Bond, NominatorAdded};
+use sha3::{Digest, Keccak256};
 use sp_core::{Public, H160, U256};
 use sp_runtime::{
 	traits::{Convert, One},
@@ -555,7 +556,8 @@ fn join_candidates_via_precompile() {
 
 			// Construct the call data (selector, amount)
 			let mut call_data = Vec::<u8>::from([0u8; 68]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("ad76ed5a"));
+			call_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"join_candidates(uint256,uint256)")[0..4]);
 			amount.to_big_endian(&mut call_data[4..36]);
 			candidate_count.to_big_endian(&mut call_data[36..]);
 
@@ -615,7 +617,7 @@ fn leave_candidates_via_precompile() {
 
 			// Construct the leave_candidates call data
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("b7694219"));
+			call_data[0..4].copy_from_slice(&Keccak256::digest(b"leave_candidates(uint256)")[0..4]);
 			collator_count.to_big_endian(&mut call_data[4..]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
@@ -668,7 +670,7 @@ fn go_online_offline_via_precompile() {
 
 			// Construct the go_offline call data
 			let mut go_offline_call_data = Vec::<u8>::from([0u8; 4]);
-			go_offline_call_data[0..4].copy_from_slice(&hex_literal::hex!("767e0450"));
+			go_offline_call_data[0..4].copy_from_slice(&Keccak256::digest(b"go_offline()")[0..4]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(ALICE),
@@ -702,7 +704,7 @@ fn go_online_offline_via_precompile() {
 
 			// Construct the go_online call data
 			let mut go_online_call_data = Vec::<u8>::from([0u8; 4]);
-			go_online_call_data[0..4].copy_from_slice(&hex_literal::hex!("d2f73ceb"));
+			go_online_call_data[0..4].copy_from_slice(&Keccak256::digest(b"go_online()")[0..4]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(ALICE),
@@ -754,7 +756,8 @@ fn candidate_bond_more_less_via_precompile() {
 
 			// Construct the candidate_bond_more call
 			let mut bond_more_call_data = Vec::<u8>::from([0u8; 36]);
-			bond_more_call_data[0..4].copy_from_slice(&hex_literal::hex!("c57bd3a8"));
+			bond_more_call_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"candidate_bond_more(uint256)")[0..4]);
 			let bond_more_amount: U256 = (1000 * MOVR).into();
 			bond_more_amount.to_big_endian(&mut bond_more_call_data[4..36]);
 
@@ -795,7 +798,8 @@ fn candidate_bond_more_less_via_precompile() {
 
 			// Construct the go_online call data
 			let mut bond_less_call_data = Vec::<u8>::from([0u8; 36]);
-			bond_less_call_data[0..4].copy_from_slice(&hex_literal::hex!("289b6ba7"));
+			bond_less_call_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"candidate_bond_less(uint256)")[0..4]);
 			let bond_less_amount: U256 = (500 * MOVR).into();
 			bond_less_amount.to_big_endian(&mut bond_less_call_data[4..36]);
 
@@ -858,7 +862,9 @@ fn nominate_via_precompile() {
 
 			// Construct the call data (selector, collator, nomination amount)
 			let mut call_data = Vec::<u8>::from([0u8; 132]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("82f2c8df"));
+			call_data[0..4].copy_from_slice(
+				&Keccak256::digest(b"nominate(address,uint256,uint256,uint256)")[0..4],
+			);
 			call_data[16..36].copy_from_slice(&ALICE);
 			nomination_amount.to_big_endian(&mut call_data[36..68]);
 			collator_nominator_count.to_big_endian(&mut call_data[68..100]);
@@ -936,7 +942,7 @@ fn leave_nominators_via_precompile() {
 
 			// Construct leave_nominators call
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("e8d68a37"));
+			call_data[0..4].copy_from_slice(&Keccak256::digest(b"leave_nominators(uint256)")[0..4]);
 			nomination_count.to_big_endian(&mut call_data[4..]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
@@ -1022,7 +1028,8 @@ fn revoke_nomination_via_precompile() {
 
 			// Construct revoke_nomination call
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("4b65c34b"));
+			call_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"revoke_nomination(address)")[0..4]);
 			call_data[16..36].copy_from_slice(&ALICE);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
@@ -1091,7 +1098,8 @@ fn nominator_bond_more_less_via_precompile() {
 
 			// Construct the nominator_bond_more call
 			let mut bond_more_call_data = Vec::<u8>::from([0u8; 68]);
-			bond_more_call_data[0..4].copy_from_slice(&hex_literal::hex!("971d44c8"));
+			bond_more_call_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"nominator_bond_more(address,uint256)")[0..4]);
 			bond_more_call_data[16..36].copy_from_slice(&ALICE);
 			let bond_more_amount: U256 = (500 * MOVR).into();
 			bond_more_amount.to_big_endian(&mut bond_more_call_data[36..68]);
@@ -1135,7 +1143,8 @@ fn nominator_bond_more_less_via_precompile() {
 
 			// Construct the go_online call data
 			let mut bond_less_call_data = Vec::<u8>::from([0u8; 68]);
-			bond_less_call_data[0..4].copy_from_slice(&hex_literal::hex!("f6a52569"));
+			bond_less_call_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"nominator_bond_less(address,uint256)")[0..4]);
 			bond_less_call_data[16..36].copy_from_slice(&ALICE);
 			let bond_less_amount: U256 = (500 * MOVR).into();
 			bond_less_amount.to_big_endian(&mut bond_less_call_data[36..68]);
@@ -1202,7 +1211,8 @@ fn is_nominator_via_precompile() {
 
 			// Construct the input data to check if Bob is a nominator
 			let mut bob_input_data = Vec::<u8>::from([0u8; 36]);
-			bob_input_data[0..4].copy_from_slice(&hex_literal::hex!("8e5080e7"));
+			bob_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"is_nominator(address)")[0..4]);
 			bob_input_data[16..36].copy_from_slice(&BOB);
 
 			// Expected result is an EVM boolean true which is 256 bits long.
@@ -1233,7 +1243,8 @@ fn is_nominator_via_precompile() {
 
 			// Construct the input data to check if Charlie is a nominator
 			let mut charlie_input_data = Vec::<u8>::from([0u8; 36]);
-			charlie_input_data[0..4].copy_from_slice(&hex_literal::hex!("8e5080e7"));
+			charlie_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"is_nominator(address)")[0..4]);
 			charlie_input_data[16..36].copy_from_slice(&CHARLIE);
 
 			// Expected result is an EVM boolean false which is 256 bits long.
@@ -1277,7 +1288,8 @@ fn is_candidate_via_precompile() {
 
 			// Construct the input data to check if Alice is a candidate
 			let mut alice_input_data = Vec::<u8>::from([0u8; 36]);
-			alice_input_data[0..4].copy_from_slice(&hex_literal::hex!("8545c833"));
+			alice_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"is_candidate(address)")[0..4]);
 			alice_input_data[16..36].copy_from_slice(&ALICE);
 
 			// Expected result is an EVM boolean true which is 256 bits long.
@@ -1308,7 +1320,8 @@ fn is_candidate_via_precompile() {
 
 			// Construct the input data to check if Bob is a collator candidate
 			let mut bob_input_data = Vec::<u8>::from([0u8; 36]);
-			bob_input_data[0..4].copy_from_slice(&hex_literal::hex!("8545c833"));
+			bob_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"is_candidate(address)")[0..4]);
 			bob_input_data[16..36].copy_from_slice(&CHARLIE);
 
 			// Expected result is an EVM boolean false which is 256 bits long.
@@ -1339,12 +1352,81 @@ fn is_candidate_via_precompile() {
 }
 
 #[test]
+fn is_selected_candidate_via_precompile() {
+	ExtBuilder::default()
+		.with_balances(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
+		.build()
+		.execute_with(|| {
+			// Confirm Alice is selected directly
+			assert!(ParachainStaking::is_selected_candidate(&AccountId::from(
+				ALICE
+			)));
+
+			let staking_precompile_address = H160::from_low_u64_be(2048);
+
+			// Construct the input data to check if Alice is a selected candidate
+			let mut alice_input_data = Vec::<u8>::from([0u8; 36]);
+			alice_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"is_selected_candidate(address)")[0..4]);
+			alice_input_data[16..36].copy_from_slice(&ALICE);
+
+			// Expected result is an EVM boolean true which is 256 bits long.
+			let mut expected_bytes = Vec::from([0u8; 32]);
+			expected_bytes[31] = 1;
+			let expected_true_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 1000,
+				logs: Default::default(),
+			}));
+
+			// Assert precompile reports Alice is a collator candidate
+			assert_eq!(
+				Precompiles::execute(
+					staking_precompile_address,
+					&alice_input_data,
+					None, // target_gas is not necessary right now because consumed none now
+					&evm_test_context(),
+				),
+				expected_true_result
+			);
+
+			// Construct the input data to check if Bob is a collator candidate
+			let mut bob_input_data = Vec::<u8>::from([0u8; 36]);
+			bob_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"is_selected_candidate(address)")[0..4]);
+			bob_input_data[16..36].copy_from_slice(&BOB);
+
+			// Expected result is an EVM boolean false which is 256 bits long.
+			expected_bytes = Vec::from([0u8; 32]);
+			let expected_false_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 1000,
+				logs: Default::default(),
+			}));
+
+			// Assert precompile also reports Bob as not a collator candidate
+			assert_eq!(
+				Precompiles::execute(
+					staking_precompile_address,
+					&bob_input_data,
+					None,
+					&evm_test_context(),
+				),
+				expected_false_result
+			);
+		})
+}
+
+#[test]
 fn min_nomination_via_precompile() {
 	ExtBuilder::default().build().execute_with(|| {
 		let staking_precompile_address = H160::from_low_u64_be(2048);
 
 		let mut get_min_nom = Vec::<u8>::from([0u8; 4]);
-		get_min_nom[0..4].copy_from_slice(&hex_literal::hex!("c9f593b2"));
+		get_min_nom[0..4].copy_from_slice(&Keccak256::digest(b"min_nomination()")[0..4]);
 
 		let min_nomination = 5u128 * MOVR;
 		let expected_min: U256 = min_nomination.into();
@@ -1372,6 +1454,115 @@ fn min_nomination_via_precompile() {
 			expected_result
 		);
 	});
+}
+
+#[test]
+fn points_precompile_zero() {
+	ExtBuilder::default().build().execute_with(|| {
+		let staking_precompile_address = H160::from_low_u64_be(2048);
+
+		// Construct the input data to check points in round one
+		// Notice we start in round one, not round zero.
+		let mut input_data = Vec::<u8>::from([0u8; 36]);
+		input_data[0..4].copy_from_slice(&Keccak256::digest(b"points(uint256)")[0..4]);
+		U256::one().to_big_endian(&mut input_data[4..36]);
+
+		// Expected result is zero points because nobody has authored yet.
+		let expected_bytes = Vec::from([0u8; 32]);
+		let expected_zero_result = Some(Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: expected_bytes,
+			cost: 1000,
+			logs: Default::default(),
+		}));
+
+		// Assert that no points have been earned
+		assert_eq!(
+			Precompiles::execute(
+				staking_precompile_address,
+				&input_data,
+				None,
+				&evm_test_context(),
+			),
+			expected_zero_result
+		);
+	})
+}
+
+#[test]
+fn points_precompile_non_zero() {
+	ExtBuilder::default()
+		.with_balances(vec![(AccountId::from(ALICE), 1_100 * MOVR)])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
+		)])
+		.build()
+		.execute_with(|| {
+			let staking_precompile_address = H160::from_low_u64_be(2048);
+
+			// Alice authors a block
+			set_parachain_inherent_data();
+			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+
+			// Construct the input data to check points in round one
+			// Notice we start in round one, not round zero.
+			let mut input_data = Vec::<u8>::from([0u8; 36]);
+			input_data[0..4].copy_from_slice(&Keccak256::digest(b"points(uint256)")[0..4]);
+			U256::one().to_big_endian(&mut input_data[4..36]);
+
+			// Expected result is 20 points because each block is one point.
+			// Pretty hacky way to make that data structure...
+			let mut expected_bytes = Vec::from([0u8; 32]);
+			expected_bytes[31] = 20;
+
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 1000,
+				logs: Default::default(),
+			}));
+
+			// Assert that 20 points have been earned
+			assert_eq!(
+				Precompiles::execute(
+					staking_precompile_address,
+					&input_data,
+					None,
+					&evm_test_context(),
+				),
+				expected_result
+			);
+		})
+}
+
+#[test]
+fn points_precompile_round_too_big_error() {
+	ExtBuilder::default().build().execute_with(|| {
+		let staking_precompile_address = H160::from_low_u64_be(2048);
+
+		// We accept the round as a 256-bit integer for easy compatibility with
+		// solidity. But the underlying Rust type is `u32`. So here we test that
+		// the precompile fails gracefully when too large of a round is passed in.
+
+		// Construct the input data to check points so far this round
+		let mut input_data = Vec::<u8>::from([0u8; 36]);
+		input_data[0..4].copy_from_slice(&Keccak256::digest(b"points(uint256)")[0..4]);
+		U256::max_value().to_big_endian(&mut input_data[4..36]);
+
+		assert_eq!(
+			Precompiles::execute(
+				staking_precompile_address,
+				&input_data,
+				None,
+				&evm_test_context(),
+			),
+			Some(Err(ExitError::Other(
+				"Round is too large. 32 bit maximum".into()
+			)))
+		);
+	})
 }
 
 fn run_with_system_weight<F>(w: Weight, mut assertions: F)

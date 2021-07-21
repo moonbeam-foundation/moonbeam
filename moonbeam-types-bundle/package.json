@@ -1,12 +1,13 @@
 {
   "name": "moonbeam-types-bundle",
-  "version": "1.1.23",
+  "version": "1.1.25",
   "description": "Bundled types to instantiate the Polkadot JS api with a Moonbeam network",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "prepublish": "tsc",
   "scripts": {
     "build": "tsc",
+    "publish": "tsc && npm publish",
     "lint": "npx prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'"
   },
   "keywords": [

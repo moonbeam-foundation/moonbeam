@@ -14,7 +14,7 @@ jobs:
   build:
     runs-on: self-hosted
     env:
-      CARGO_SCCACHE_VERSION: 0.2.14-alpha.0-parity
+      CARGO_SCCACHE_COMMIT: 49ab6cb5f216a6529f7273de4322e0a9194e6951
       RUSTFLAGS: "-C opt-level=3"
     outputs:
       RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
@@ -25,8 +25,8 @@ jobs:
           ref: ${{ github.event.inputs.tag }}
       - uses: actions/cache@v2
         with:
-          path: ${{ runner.tool_cache }}/cargo-sccache
-          key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_VERSION }}-v1
+          path: ${{ runner.tool_cache }}/cargo-sccache-${CARGO_SCCACHE_COMMIT}
+          key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_COMMIT }}-v1
 
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
       # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
@@ -34,15 +34,20 @@ jobs:
         run: rustup show
       - name: SCCache
         run: |
-          if [ ! -f ${{ runner.tool_cache }}/cargo-sccache/bin/sccache ]; then
-            cargo install sccache --git https://github.com/paritytech/sccache.git --no-default-features --features=dist-client --root ${{ runner.tool_cache }}/cargo-sccache
+          # We altered the path to avoid old actions to overwrite it
+          SCCACHE_PATH=${{ runner.tool_cache }}/cargo-sccache-${CARGO_SCCACHE_COMMIT}
+          SCCACHE_BIN=${SCCACHE_PATH}/bin/sccache
+          if [ ! -f $SCCACHE_BIN ]; then
+            cargo install sccache --git https://github.com/paritytech/sccache.git --rev $CARGO_SCCACHE_COMMIT --force --no-default-features --features=dist-client --root $SCCACHE_PATH
           fi
+          ls -la $SCCACHE_BIN
+          ps aux | grep sccache
           if [[ -z `pgrep sccache` ]]; then
-            chmod +x ${{ runner.tool_cache }}/cargo-sccache/bin/sccache
-            ${{ runner.tool_cache }}/cargo-sccache/bin/sccache --start-server
+            chmod +x $SCCACHE_BIN
+            $SCCACHE_BIN --start-server
           fi
-          ${{ runner.tool_cache }}/cargo-sccache/bin/sccache -s
-          echo "RUSTC_WRAPPER=${{ runner.tool_cache }}/cargo-sccache/bin/sccache" >> $GITHUB_ENV
+          $SCCACHE_BIN -s
+          echo "RUSTC_WRAPPER=$SCCACHE_BIN" >> $GITHUB_ENV
       - id: get-rust-versions
         run: |
           echo "::set-output name=rustc::$(rustc --version)"

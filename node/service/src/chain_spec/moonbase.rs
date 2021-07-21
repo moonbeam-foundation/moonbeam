@@ -147,7 +147,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 			.expect("Provided valid json map"),
 		),
 		Extensions {
-			relay_chain: "westend_testnet".into(),
+			relay_chain: "westend-local".into(),
 			para_id: para_id.into(),
 		},
 	)
