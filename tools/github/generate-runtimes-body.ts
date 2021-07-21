@@ -66,7 +66,7 @@ async function main() {
 
   const { prByLabels } = await getCommitAndLabels(
     octokit,
-    "crystalin",
+    "purestake",
     "moonbeam",
     previousTag,
     newTag
