@@ -35,7 +35,7 @@ pub fn error(text: &'static str) -> ExitError {
 
 /// Wrapper around an EVM input slice, helping to parse it.
 /// Provide functions to parse common types.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct InputReader<'a> {
 	input: &'a [u8],
 	cursor: usize,
@@ -98,6 +98,7 @@ impl<'a> InputReader<'a> {
 }
 
 /// Help build an EVM output data.
+#[derive(Clone, Debug)]
 pub struct OutputBuilder {
 	data: Vec<u8>,
 }
@@ -120,6 +121,16 @@ impl OutputBuilder {
 		self.data.extend_from_slice(&buffer);
 		self
 	}
+
+	/// Push a U256 to the output.
+	pub fn write_bool<T: Into<bool>>(mut self, value: T) -> Self {
+		let mut buffer = [0u8; 32];
+		if value.into() {
+			buffer[31] = 1;
+		}
+		self.data.extend_from_slice(&buffer);
+		self
+	}
 }
 
 impl Default for OutputBuilder {
@@ -129,6 +140,7 @@ impl Default for OutputBuilder {
 }
 
 /// Builder for PrecompileOutput.
+#[derive(Clone, Debug)]
 pub struct LogsBuilder {
 	address: H160,
 	logs: Vec<Log>,
@@ -234,6 +246,7 @@ impl LogsBuilder {
 
 /// Helper functions requiring a Runtime.
 /// This runtime must of course implement `pallet_evm::Config`.
+#[derive(Clone, Copy, Debug)]
 pub struct RuntimeHelper<Runtime>(PhantomData<Runtime>);
 
 impl<Runtime> RuntimeHelper<Runtime>
@@ -287,5 +300,52 @@ where
 		<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
 			<Runtime as frame_system::Config>::DbWeight::get().read,
 		)
+	}
+}
+
+/// Custom Gasometer to record costs in precompiles.
+#[derive(Clone, Copy, Debug)]
+pub struct Gasometer {
+	target_gas: Option<u64>,
+	used_gas: u64,
+}
+
+impl Gasometer {
+	/// Create a new Gasometer with provided gas limit.
+	/// None is no limit.
+	pub fn new(target_gas: Option<u64>) -> Self {
+		Self {
+			target_gas,
+			used_gas: 0,
+		}
+	}
+
+	/// Get used gas.
+	pub fn used_gas(&self) -> u64 {
+		self.used_gas
+	}
+
+	/// Record cost, and return error if it goes out of gas.
+	pub fn record_cost(&mut self, cost: u64) -> EvmResult {
+		self.used_gas += cost;
+
+		match self.target_gas {
+			Some(gas_limit) if self.used_gas > gas_limit => Err(ExitError::OutOfGas),
+			_ => Ok(()),
+		}
+	}
+
+	/// Compute remaining gas.
+	/// Returns error if out of gas.
+	/// Returns None if no gas limit.
+	pub fn remaining_gas(&self) -> EvmResult<Option<u64>> {
+		Ok(match self.target_gas {
+			None => None,
+			Some(gas_limit) => Some(
+				gas_limit
+					.checked_sub(self.used_gas)
+					.ok_or(ExitError::OutOfGas)?,
+			),
+		})
 	}
 }
