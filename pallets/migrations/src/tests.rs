@@ -439,6 +439,8 @@ fn overweight_migrations_tolerated() {
 				move || { "migration1" },
 				move |_, _| -> (Perbill, Weight) {
 					*num_migration1_calls.lock().unwrap() += 1;
+					// TODO: this is brittle because it assumes it is larger than the value used at
+					// the top of process_runtime_upgrades()
 					(Perbill::one(), 1_000_000_000_000u64.into())
 				},
 			);

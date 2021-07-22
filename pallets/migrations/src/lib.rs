@@ -198,7 +198,25 @@ pub mod pallet {
 					));
 				}
 
-				let available_for_step = available_weight - weight;
+				// TODO: here we allow migrations to go overweight because that's "safer" than not
+				// doing so in the case of MultiBlockMigrationsSupported == false. In this case, any
+				// migrations not handled in this pass will not occur at all, which will leave
+				// pallets unmigrated.
+				//
+				// Options for handling this more gracefully:
+				// 1) make this particular logic (whether or not we tolerate this) configurable
+				// 2) only follow this logic when MultiBlockMigrationsSupported == false
+				let available_for_step = if available_weight > weight {
+					available_weight - weight
+				} else {
+					log::warn!("previous migration went overweight;
+						ignoring and providing migration {} 0 weight.",
+						migration_name,
+					);
+
+					0u64.into()
+				};
+
 				log::trace!(
 					"stepping migration {}, prev: {:?}, avail weight: {}",
 					migration_name,
