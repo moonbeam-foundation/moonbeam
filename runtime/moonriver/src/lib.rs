@@ -91,10 +91,11 @@ pub mod currency {
 	pub const MOVR: Balance = 1_000_000_000_000_000_000;
 	pub const KILOMOVR: Balance = 1_000_000_000_000_000_000_000;
 
-	pub const BYTE_FEE: Balance = 100 * MICROMOVR;
+	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROMOVR;
+	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROMOVR;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 1 * MOVR + (bytes as Balance) * BYTE_FEE
+		items as Balance * 1 * MOVR + (bytes as Balance) * STORAGE_BYTE_FEE
 	}
 }
 
@@ -132,7 +133,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 0156,
+	spec_version: 0159,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -273,7 +274,7 @@ where
 }
 
 parameter_types! {
-	pub const TransactionByteFee: Balance = currency::BYTE_FEE;
+	pub const TransactionByteFee: Balance = currency::TRANSACTION_BYTE_FEE;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
@@ -434,7 +435,7 @@ parameter_types! {
 	pub const MinimumDeposit: Balance = 4 * currency::MOVR;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
-	pub const PreimageByteDeposit: Balance = currency::BYTE_FEE;
+	pub const PreimageByteDeposit: Balance = currency::STORAGE_BYTE_FEE;
 	pub const InstantAllowed: bool = true;
 }
 
