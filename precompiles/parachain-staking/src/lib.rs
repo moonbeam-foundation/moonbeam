@@ -160,6 +160,28 @@ where
 	}
 }
 
+/// Parses an H160 account address from a 256 bit (32 byte) buffer. Only the last 20 bytes are used.
+fn parse_account(input: &[u8]) -> Result<H160, ExitError> {
+	const PADDING_SIZE_BYTES: usize = 12;
+	const ACCOUNT_SIZE_BYTES: usize = 20;
+	const TOTAL_SIZE_BYTES: usize = PADDING_SIZE_BYTES + ACCOUNT_SIZE_BYTES;
+
+	if input.len() != TOTAL_SIZE_BYTES {
+		log::trace!(target: "staking-precompile",
+			"Unable to parse address. Got {} bytes, expected {}",
+			input.len(),
+			TOTAL_SIZE_BYTES,
+		);
+		return Err(ExitError::Other(
+			"Incorrect input length for account parsing".into(),
+		));
+	}
+
+	Ok(H160::from_slice(
+		&input[PADDING_SIZE_BYTES..TOTAL_SIZE_BYTES],
+	))
+}
+
 /// Parses an amount of ether from a 256 bit (32 byte) slice. The balance type is generic.
 fn parse_amount<Balance: TryFrom<U256>>(input: &[u8]) -> Result<Balance, ExitError> {
 	Ok(parse_uint256(input)?
@@ -319,12 +341,13 @@ where
 			<Runtime as frame_system::Config>::DbWeight::get().read,
 		);
 
-		let buffer = u256_to_solidity_bytes(min_nomination);
+		let mut buffer = [0u8; 32];
+		min_nomination.to_big_endian(&mut buffer);
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gas_consumed,
-			output: buffer,
+			output: buffer.to_vec(),
 			logs: Default::default(),
 		})
 	}
@@ -344,7 +367,8 @@ where
 		// Read the point value and format it for Solidity
 		let points: u32 = parachain_staking::Pallet::<Runtime>::points(round);
 		log::trace!(target: "staking-precompile", "🥩points is {}", points);
-		let output = u256_to_solidity_bytes(U256::from(points));
+		let mut output = [0u8; 32];
+		U256::from(points).to_big_endian(&mut output);
 		log::trace!(target: "staking-precompile", "🥩output is {:?}", output);
 
 		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
@@ -354,7 +378,7 @@ where
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gas_consumed,
-			output: output,
+			output: output.to_vec(),
 			logs: Default::default(),
 		})
 	}
@@ -485,4 +509,17 @@ where
 			amount,
 		))
 	}
+}
+
+// Solidity's bool type is 256 bits as shown by these examples
+// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html
+// This utility function converts a Rust bool into the corresponding Solidity type
+fn bool_to_solidity_bytes(b: bool) -> Vec<u8> {
+	let mut result_bytes = [0u8; 32];
+
+	if b {
+		result_bytes[31] = 1;
+	}
+
+	result_bytes.to_vec()
 }
