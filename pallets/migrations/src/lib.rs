@@ -100,6 +100,10 @@ pub mod pallet {
 			let mut weight: Weight = 0u64.into();
 
 			// start by flagging that we are not fully upgraded
+			// TODO: case where this is already false (e.g. we started an upgrade while one was
+			// already in progress)
+			//		notably, we might have started an individual migration and the list of
+			//		migrations might change on our next on_runtime_upgrade()
 			<FullyUpgraded<T>>::put(false);
 			weight += T::DbWeight::get().writes(1);
 			Self::deposit_event(Event::RuntimeUpgradeStarted());
@@ -114,6 +118,7 @@ pub mod pallet {
 		fn on_initialize(_: T::BlockNumber) -> Weight {
 			let mut weight: Weight = T::DbWeight::get().reads(1 as Weight);
 
+			// TODO: don't support this now, it's dangerous!
 			if !<FullyUpgraded<T>>::get() {
 				weight += process_runtime_upgrades::<T>();
 			}
