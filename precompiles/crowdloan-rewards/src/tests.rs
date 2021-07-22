@@ -24,7 +24,7 @@ use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_crowdloan_rewards::{Call as CrowdloanCall, Event as CrowdloanEvent};
 use pallet_evm::Call as EvmCall;
 use pallet_evm::{ExitError, ExitSucceed, PrecompileSet};
-use precompile_utils::{error, EvmResult, InputReader, LogsBuilder, OutputBuilder, RuntimeHelper};
+use precompile_utils::OutputBuilder;
 use sha3::{Digest, Keccak256};
 use sp_core::U256;
 

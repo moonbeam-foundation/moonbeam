@@ -24,7 +24,7 @@ use frame_support::{
 	traits::{Currency, Get},
 };
 use pallet_evm::{AddressMapping, GasWeightMapping, Precompile};
-use precompile_utils::{error, EvmResult, InputReader, LogsBuilder, OutputBuilder, RuntimeHelper};
+use precompile_utils::{error, InputReader, OutputBuilder};
 
 use sp_core::{H160, U256};
 use sp_std::{
@@ -82,7 +82,7 @@ where
 					target: "crowdloan-rewards-precompile",
 					"Failed to match function selector in crowdloan rewards precompile"
 				);
-				return Err(ExitError::Other(
+				return Err(error(
 					"No crowdloan rewards wrapper method at given selector".into(),
 				));
 			}
