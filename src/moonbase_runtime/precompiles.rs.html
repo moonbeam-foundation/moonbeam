@@ -104,6 +104,16 @@
 <span id="101">101</span>
 <span id="102">102</span>
 <span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -123,6 +133,7 @@
 
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
 
+<span class="kw">use</span> <span class="ident">crowdloan_rewards_precompiles</span>::<span class="ident">CrowdloanRewardsWrapper</span>;
 <span class="kw">use</span> <span class="ident">evm</span>::{<span class="ident">executor</span>::<span class="ident">PrecompileOutput</span>, <span class="ident">Context</span>, <span class="ident">ExitError</span>};
 <span class="kw">use</span> <span class="ident">frame_support</span>::<span class="ident">dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">Precompile</span>, <span class="ident">PrecompileSet</span>};
@@ -143,6 +154,11 @@
 	<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system</span>::<span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">AccountId</span>,
 <span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">Balance</span>;
 
+<span class="kw">type</span> <span class="ident">RewardBalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span>
+	<span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_crowdloan_rewards</span>::<span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">RewardCurrency</span> <span class="kw">as</span> <span class="ident">Currency</span><span class="op">&lt;</span>
+		<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system</span>::<span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">AccountId</span>,
+	<span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">Balance</span>;
+
 <span class="doccomment">/// The PrecompileSet installed in the Moonbase runtime.</span>
 <span class="doccomment">/// We include the nine Istanbul precompiles</span>
 <span class="doccomment">/// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)</span>
@@ -157,7 +173,7 @@
 	<span class="doccomment">/// Return all addresses that contain precompiles. This can be used to populate dummy code</span>
 	<span class="doccomment">/// under the precompile.</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">used_addresses</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">R</span>::<span class="ident">AccountId</span><span class="op">&gt;</span> {
-		<span class="ident">sp_std</span>::<span class="macro">vec</span><span class="macro">!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">1024</span>, <span class="number">1025</span>, <span class="number">1026</span>, <span class="number">2048</span>]
+		<span class="ident">sp_std</span>::<span class="macro">vec</span><span class="macro">!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">1024</span>, <span class="number">1025</span>, <span class="number">1026</span>, <span class="number">2048</span>, <span class="number">2049</span>]
 			.<span class="ident">into_iter</span>()
 			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">hash</span>(<span class="ident">x</span>).<span class="ident">into</span>())
 	}
@@ -171,10 +187,11 @@
 <span class="kw">where</span>
 	<span class="ident">R</span>::<span class="ident">Call</span>: <span class="ident">Dispatchable</span><span class="op">&lt;</span><span class="ident">PostInfo</span> <span class="op">=</span> <span class="ident">PostDispatchInfo</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">GetDispatchInfo</span> <span class="op">+</span> <span class="ident">Decode</span>,
 	<span class="op">&lt;</span><span class="ident">R</span>::<span class="ident">Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span>::<span class="ident">Origin</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">R</span>::<span class="ident">AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">R</span>: <span class="ident">parachain_staking</span>::<span class="ident">Config</span> <span class="op">+</span> <span class="ident">pallet_evm</span>::<span class="ident">Config</span>,
+	<span class="ident">R</span>: <span class="ident">parachain_staking</span>::<span class="ident">Config</span> <span class="op">+</span> <span class="ident">pallet_evm</span>::<span class="ident">Config</span> <span class="op">+</span> <span class="ident">pallet_crowdloan_rewards</span>::<span class="ident">Config</span>,
 	<span class="ident">R</span>::<span class="ident">AccountId</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
 	<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">sp_core</span>::<span class="ident">U256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Debug</span>,
-	<span class="ident">R</span>::<span class="ident">Call</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">parachain_staking</span>::<span class="ident">Call</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+	<span class="ident">RewardBalanceOf</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">sp_core</span>::<span class="ident">U256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Debug</span>,
+	<span class="ident">R</span>::<span class="ident">Call</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">parachain_staking</span>::<span class="ident">Call</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">pallet_crowdloan_rewards</span>::<span class="ident">Call</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 {
 	<span class="kw">fn</span> <span class="ident">execute</span>(
 		<span class="ident">address</span>: <span class="ident">H160</span>,
@@ -198,6 +215,9 @@
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">1026</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ECRecoverPublicKey</span>::<span class="ident">execute</span>(<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>)),
 			<span class="comment">// Moonbeam specific precompiles :</span>
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">2048</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ParachainStakingWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>::<span class="ident">execute</span>(
+				<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>,
+			)),
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash</span>(<span class="number">2049</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CrowdloanRewardsWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>::<span class="ident">execute</span>(
 				<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>,
 			)),
 			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
