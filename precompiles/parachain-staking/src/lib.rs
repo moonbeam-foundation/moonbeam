@@ -24,8 +24,6 @@ use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
 use pallet_evm::GasWeightMapping;
 use pallet_evm::Precompile;
-use precompiles_utils::input_parsers::parse_account;
-use precompiles_utils::solidity_conversions::{bool_to_solidity_bytes, u256_to_solidity_bytes};
 use sp_core::{H160, U256};
 use sp_std::convert::{TryFrom, TryInto};
 use sp_std::fmt::Debug;
@@ -59,6 +57,8 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Result<PrecompileOutput, ExitError> {
+		log::trace!(target: "staking-precompile", "In parachain staking wrapper");
+
 		// Basic sanity checking for length
 		// https://solidity-by-example.org/primitives/
 
@@ -67,6 +67,9 @@ where
 		if input.len() < 4 {
 			return Err(ExitError::Other("input length less than 4 bytes".into()));
 		}
+
+		log::trace!(target: "staking-precompile", "Made it past preliminary length check");
+		log::trace!(target: "staking-precompile", "context.caller is {:?}", context.caller);
 
 		// Parse the function selector
 		// These are the four-byte function selectors calculated from the StakingInterface.sol
@@ -124,9 +127,12 @@ where
 				return Err(ExitError::OutOfGas);
 			}
 		}
+		log::trace!(target: "staking-precompile", "Made it past gas check");
 
 		// Dispatch that call
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+
+		log::trace!(target: "staking-precompile", "Gonna call with origin {:?}", origin);
 
 		match outer_call.dispatch(Some(origin).into()) {
 			Ok(post_info) => {
