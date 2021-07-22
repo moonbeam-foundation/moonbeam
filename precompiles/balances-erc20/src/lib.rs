@@ -29,7 +29,9 @@ use pallet_balances::pallet::{
 	Instance2, Instance3, Instance4, Instance5, Instance6, Instance7, Instance8, Instance9,
 };
 use pallet_evm::{AddressMapping, Precompile};
-use precompile_utils::{error, EvmResult, InputReader, LogsBuilder, OutputBuilder, RuntimeHelper};
+use precompile_utils::{
+	error, EvmResult, Gasometer, InputReader, LogsBuilder, OutputBuilder, RuntimeHelper,
+};
 use slices::u8_slice;
 use sp_core::{H160, U256};
 use sp_std::{convert::TryInto, marker::PhantomData, vec};
@@ -127,12 +129,12 @@ where
 		let input = InputReader::new(input)?;
 
 		match input.selector() {
-			[0x7c, 0x80, 0xaa, 0x9f] => Self::total_supply(input),
-			[0x70, 0xa0, 0x82, 0x31] => Self::balance_of(input),
-			[0xdd, 0x62, 0xed, 0x3e] => Self::allowance(input),
-			[0x09, 0x5e, 0xa7, 0xb3] => Self::approve(input, context),
-			[0xa9, 0x05, 0x9c, 0xbb] => Self::transfer(input, context, target_gas),
-			[0x0c, 0x41, 0xb0, 0x33] => Self::transfer_from(input, context, target_gas),
+			[0x7c, 0x80, 0xaa, 0x9f] => Self::total_supply(input, target_gas),
+			[0x70, 0xa0, 0x82, 0x31] => Self::balance_of(input, target_gas),
+			[0xdd, 0x62, 0xed, 0x3e] => Self::allowance(input, target_gas),
+			[0x09, 0x5e, 0xa7, 0xb3] => Self::approve(input, target_gas, context),
+			[0xa9, 0x05, 0x9c, 0xbb] => Self::transfer(input, target_gas, context),
+			[0x0c, 0x41, 0xb0, 0x33] => Self::transfer_from(input, target_gas, context),
 			_ => Err(error("unknown selector")),
 		}
 	}
@@ -148,41 +150,49 @@ where
 	Instance: InstanceToPrefix + 'static,
 	U256: From<BalanceOf<Runtime, Instance>> + TryInto<BalanceOf<Runtime, Instance>>,
 {
-	fn total_supply(input: InputReader) -> EvmResult<PrecompileOutput> {
+	fn total_supply(input: InputReader, target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+
 		// Parse input.
 		input.expect_arguments(0)?;
 
 		// Fetch info.
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let amount = pallet_balances::Pallet::<Runtime, Instance>::total_issuance();
 
 		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: RuntimeHelper::<Runtime>::db_read_gas_cost(),
+			cost: gasometer.used_gas(),
 			output: OutputBuilder::new().write_u256(amount).build(),
 			logs: vec![],
 		})
 	}
 
-	fn balance_of(mut input: InputReader) -> EvmResult<PrecompileOutput> {
+	fn balance_of(mut input: InputReader, target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+
 		// Read input.
 		input.expect_arguments(1)?;
 
 		let address = input.read_address()?;
 
 		// Fetch info.
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let amount = pallet_balances::Pallet::<Runtime, Instance>::usable_balance(&address.into());
 
 		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: RuntimeHelper::<Runtime>::db_read_gas_cost(),
+			cost: gasometer.used_gas(),
 			output: OutputBuilder::new().write_u256(amount).build(),
 			logs: vec![],
 		})
 	}
 
-	fn allowance(mut input: InputReader) -> EvmResult<PrecompileOutput> {
+	fn allowance(mut input: InputReader, target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+
 		// Read input.
 		input.expect_arguments(2)?;
 
@@ -190,19 +200,26 @@ where
 		let spender_id: Runtime::AccountId = input.read_address()?.into();
 
 		// Fetch info.
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let amount =
 			ApprovesStorage::<Runtime, Instance>::get(owner_id, spender_id).unwrap_or_default();
 
 		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: RuntimeHelper::<Runtime>::db_read_gas_cost(),
+			cost: gasometer.used_gas(),
 			output: OutputBuilder::new().write_u256(amount).build(),
 			logs: vec![],
 		})
 	}
 
-	fn approve(mut input: InputReader, context: &Context) -> EvmResult<PrecompileOutput> {
+	fn approve(
+		mut input: InputReader,
+		target_gas: Option<u64>,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+
 		// Parse input.
 		input.expect_arguments(2)?;
 
@@ -213,12 +230,13 @@ where
 		let caller_id: Runtime::AccountId = context.caller.into();
 
 		// Write into storage.
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_write_gas_cost())?;
 		ApprovesStorage::<Runtime, Instance>::insert(caller_id, spender_id, amount);
 
 		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: RuntimeHelper::<Runtime>::db_read_gas_cost(),
+			cost: gasometer.used_gas(),
 			output: vec![],
 			logs: LogsBuilder::new(context.address)
 				.log3(
@@ -233,9 +251,11 @@ where
 
 	fn transfer(
 		mut input: InputReader,
-		context: &Context,
 		target_gas: Option<u64>,
+		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+
 		// Parse input.
 		input.expect_arguments(2)?;
 
@@ -250,13 +270,17 @@ where
 		);
 
 		// Dispatch call (if enough gas).
-		let used_gas =
-			RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, target_gas)?;
+		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+			Some(origin).into(),
+			call,
+			gasometer.remaining_gas()?,
+		)?;
+		gasometer.record_cost(used_gas)?;
 
 		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: used_gas,
+			cost: gasometer.used_gas(),
 			output: vec![],
 			logs: LogsBuilder::new(context.address)
 				.log3(
@@ -274,12 +298,13 @@ where
 	#[transactional]
 	fn transfer_from(
 		mut input: InputReader,
-		context: &Context,
 		target_gas: Option<u64>,
+		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+
 		// Parse input.
 		input.expect_arguments(3)?;
-
 		let from = input.read_address()?;
 		let to = input.read_address()?;
 		let amount = Self::u256_to_amount(input.read_u256()?)?;
@@ -288,6 +313,9 @@ where
 		if context.caller != from {
 			let owner_id: Runtime::AccountId = from.into();
 			let spender_id: Runtime::AccountId = context.caller.into();
+
+			gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+			gasometer.record_cost(RuntimeHelper::<Runtime>::db_write_gas_cost())?;
 
 			ApprovesStorage::<Runtime, Instance>::mutate(owner_id, spender_id, |entry| {
 				// Get current value, exit if None.
@@ -313,13 +341,17 @@ where
 		);
 
 		// Dispatch call (if enough gas).
-		let used_gas =
-			RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, target_gas)?;
+		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+			Some(origin).into(),
+			call,
+			gasometer.remaining_gas()?,
+		)?;
+		gasometer.record_cost(used_gas)?;
 
 		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: used_gas,
+			cost: gasometer.used_gas(),
 			output: vec![],
 			logs: LogsBuilder::new(context.address)
 				.log3(
