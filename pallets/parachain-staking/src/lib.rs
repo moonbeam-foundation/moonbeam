@@ -610,28 +610,40 @@ pub mod pallet {
 		/// The origin for monetary governance
 		type MonetaryGovernanceOrigin: EnsureOrigin<Self::Origin>;
 		/// Minimum number of blocks per round
+		#[pallet::constant]
 		type MinBlocksPerRound: Get<u32>;
 		/// Default number of blocks per round at genesis
+		#[pallet::constant]
 		type DefaultBlocksPerRound: Get<u32>;
 		/// Number of rounds that collators remain bonded before exit request is executed
+		#[pallet::constant]
 		type BondDuration: Get<RoundIndex>;
 		/// Minimum number of selected candidates every round
+		#[pallet::constant]
 		type MinSelectedCandidates: Get<u32>;
 		/// Maximum nominators counted per collator
+		#[pallet::constant]
 		type MaxNominatorsPerCollator: Get<u32>;
 		/// Maximum collators per nominator
+		#[pallet::constant]
 		type MaxCollatorsPerNominator: Get<u32>;
 		/// Default commission due to collators, set at genesis
+		#[pallet::constant]
 		type DefaultCollatorCommission: Get<Perbill>;
 		/// Default percent of inflation set aside for parachain bond account
+		#[pallet::constant]
 		type DefaultParachainBondReservePercent: Get<Percent>;
 		/// Minimum stake required for any account to be in `SelectedCandidates` for the round
+		#[pallet::constant]
 		type MinCollatorStk: Get<BalanceOf<Self>>;
 		/// Minimum stake required for any account to be a collator candidate
+		#[pallet::constant]
 		type MinCollatorCandidateStk: Get<BalanceOf<Self>>;
 		/// Minimum stake for any registered on-chain account to nominate
+		#[pallet::constant]
 		type MinNomination: Get<BalanceOf<Self>>;
 		/// Minimum stake for any registered on-chain account to become a nominator
+		#[pallet::constant]
 		type MinNominatorStk: Get<BalanceOf<Self>>;
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
