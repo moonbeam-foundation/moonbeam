@@ -1,25 +1,33 @@
 [package]
-name = "precompiles-utils"
-version = "0.6.0"
+name = "precompile-utils"
+version = "0.1.0"
 authors = ["PureStake"]
 edition = "2018"
-description = "A Precompile to make parachain staking accessible to pallet-evm"
+description = "Utils to write EVM precompiles."
 
 [dependencies]
+log = "0.4"
+slices = "0.2.0"
 
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
-log = "0.4"
-evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }
+sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
+codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
+frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
+frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 
-[dev-dependencies]
-hex = "0.4"
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.8" }
+evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }
 
 [features]
 default = ["std"]
 std = [
+    "codec/std",
     "sp-std/std",
     "sp-core/std",
+    "sp-io/std",
+    "frame-support/std",
+    "frame-system/std",
+    "pallet-evm/std",
     "evm/std",
-    "log/std"
 ]

@@ -24,7 +24,7 @@ use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_crowdloan_rewards::{Call as CrowdloanCall, Event as CrowdloanEvent};
 use pallet_evm::Call as EvmCall;
 use pallet_evm::{ExitError, ExitSucceed, PrecompileSet};
-use precompiles_utils::solidity_conversions::{bool_to_solidity_bytes, u256_to_solidity_bytes};
+use precompile_utils::{error, EvmResult, InputReader, LogsBuilder, OutputBuilder, RuntimeHelper};
 use sha3::{Digest, Keccak256};
 use sp_core::U256;
 
@@ -36,7 +36,7 @@ fn selector_less_than_four_bytes() {
 
 		// Expected result is an error stating there are too few bytes
 		let expected_result = Some(Err(ExitError::Other(
-			"input length less than 4 bytes".into(),
+			"input must at least contain a selector".into(),
 		)));
 
 		assert_eq!(
@@ -89,7 +89,7 @@ fn is_contributor_returns_false() {
 			// Expected result is one
 			let expected_one_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: bool_to_solidity_bytes(false),
+				output: OutputBuilder::new().write_bool(false).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
@@ -134,7 +134,7 @@ fn is_contributor_returns_true() {
 			// Expected result is one
 			let expected_one_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: bool_to_solidity_bytes(true),
+				output: OutputBuilder::new().write_bool(true).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
@@ -228,15 +228,11 @@ fn reward_info_works() {
 			input_data[0..4].copy_from_slice(&selector);
 			input_data[16..36].copy_from_slice(&Alice.to_h160().0);
 
-			let mut expected_buffer = [0u8; 64];
-			expected_buffer[0..32]
-				.clone_from_slice(u256_to_solidity_bytes(U256::from(50u128)).as_slice());
-			expected_buffer[32..64]
-				.clone_from_slice(u256_to_solidity_bytes(U256::from(10u128)).as_slice());
-			// Expected result
+			let mut output = OutputBuilder::new().write_u256(50u64).build();
+			output.extend(OutputBuilder::new().write_u256(10u64).build()); // Expected result
 			let expected_buffer_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: expected_buffer.to_vec(),
+				output: output,
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
@@ -319,7 +315,7 @@ fn test_bound_checks_for_address_parsing() {
 
 			// Expected result is an error stating there are too few bytes
 			let expected_result = Some(Err(ExitError::Other(
-				"Incorrect input length for update_reward_address".into(),
+				"input doesn't match expected length".into(),
 			)));
 
 			assert_eq!(

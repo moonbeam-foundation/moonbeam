@@ -24,8 +24,7 @@ use frame_support::{
 	traits::{Currency, Get},
 };
 use pallet_evm::{AddressMapping, GasWeightMapping, Precompile};
-use precompiles_utils::input_parsers::parse_account;
-use precompiles_utils::solidity_conversions::{bool_to_solidity_bytes, u256_to_solidity_bytes};
+use precompile_utils::{error, EvmResult, InputReader, LogsBuilder, OutputBuilder, RuntimeHelper};
 
 use sp_core::{H160, U256};
 use sp_std::{
@@ -61,30 +60,23 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Result<PrecompileOutput, ExitError> {
-		// Basic sanity checking for length
-		// https://solidity-by-example.org/primitives/
-
-		const SELECTOR_SIZE_BYTES: usize = 4;
-
-		if input.len() < 4 {
-			return Err(ExitError::Other("input length less than 4 bytes".into()));
-		}
+		let input = InputReader::new(input)?;
 
 		// Parse the function selector
 		// These are the four-byte function selectors calculated from the CrowdloanInterface.sol
 		// according to the solidity specification
 		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html#function-selector
-		let inner_call = match input[0..SELECTOR_SIZE_BYTES] {
+		let inner_call = match input.selector() {
 			// Check for accessor methods first. These return results immediately
 			[0x53, 0x44, 0x0c, 0x90] => {
-				return Self::is_contributor(&input[SELECTOR_SIZE_BYTES..], target_gas);
+				return Self::is_contributor(input, target_gas);
 			}
 			[0x76, 0xf7, 0x02, 0x49] => {
-				return Self::reward_info(&input[SELECTOR_SIZE_BYTES..], target_gas);
+				return Self::reward_info(input, target_gas);
 			}
 			[0x4e, 0x71, 0xd9, 0x2d] => Self::claim()?,
 
-			[0xaa, 0xac, 0x61, 0xd6] => Self::update_reward_address(&input[SELECTOR_SIZE_BYTES..])?,
+			[0xaa, 0xac, 0x61, 0xd6] => Self::update_reward_address(input)?,
 			_ => {
 				log::trace!(
 					target: "crowdloan-rewards-precompile",
@@ -150,23 +142,14 @@ where
 {
 	// The accessors are first. They directly return their result.
 	fn is_contributor(
-		input: &[u8],
+		mut input: InputReader,
 		target_gas: Option<u64>,
 	) -> Result<PrecompileOutput, ExitError> {
 		// Bound check
-		if input.len() < 32 {
-			log::trace!(target: "crowdloan-rewards-precompile",
-				"Unable to parse address. Got {} bytes, expected {}",
-				input.len(),
-				32,
-			);
-			return Err(ExitError::Other(
-				"Incorrect input length for is_contributor".into(),
-			));
-		}
+		input.expect_arguments(1)?;
 
 		// parse the address
-		let contributor = parse_account(&input[..32])?;
+		let contributor = input.read_address()?;
 
 		log::trace!(
 			target: "crowdloan-rewards-precompile",
@@ -199,26 +182,20 @@ where
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gas_consumed,
-			output: bool_to_solidity_bytes(is_contributor),
+			output: OutputBuilder::new().write_bool(is_contributor).build(),
 			logs: Default::default(),
 		})
 	}
 
-	fn reward_info(input: &[u8], target_gas: Option<u64>) -> Result<PrecompileOutput, ExitError> {
+	fn reward_info(
+		mut input: InputReader,
+		target_gas: Option<u64>,
+	) -> Result<PrecompileOutput, ExitError> {
 		// Bound check
-		if input.len() < 32 {
-			log::trace!(target: "crowdloan-rewards-precompile",
-				"Unable to parse address. Got {} bytes, expected {}",
-				input.len(),
-				32,
-			);
-			return Err(ExitError::Other(
-				"Incorrect input length for reward_info".into(),
-			));
-		}
+		input.expect_arguments(1)?;
 
 		// parse the address
-		let contributor = parse_account(&input[..32])?;
+		let contributor = input.read_address()?;
 
 		log::trace!(
 			target: "crowdloan-rewards-precompile",
@@ -260,14 +237,13 @@ where
 			total, claimed
 		);
 
-		let mut buffer = [0u8; 64];
-		buffer[0..32].clone_from_slice(u256_to_solidity_bytes(total).as_slice());
-		buffer[32..64].clone_from_slice(u256_to_solidity_bytes(claimed).as_slice());
+		let mut output = OutputBuilder::new().write_u256(total).build();
+		output.extend(OutputBuilder::new().write_u256(claimed).build());
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gas_consumed,
-			output: buffer.to_vec(),
+			output: output,
 			logs: Default::default(),
 		})
 	}
@@ -277,7 +253,7 @@ where
 	}
 
 	fn update_reward_address(
-		input: &[u8],
+		mut input: InputReader,
 	) -> Result<pallet_crowdloan_rewards::Call<Runtime>, ExitError> {
 		log::trace!(
 			target: "crowdloan-rewards-precompile",
@@ -285,19 +261,10 @@ where
 		);
 
 		// Bound check
-		if input.len() < 32 {
-			log::trace!(target: "crowdloan-rewards-precompile",
-				"Unable to parse address. Got {} bytes, expected {}",
-				input.len(),
-				32,
-			);
-			return Err(ExitError::Other(
-				"Incorrect input length for update_reward_address".into(),
-			));
-		}
+		input.expect_arguments(1)?;
 
-		// Input bounds are checked in 'parse_account'
-		let new_address = parse_account(&input[..32])?;
+		// parse the address
+		let new_address = input.read_address()?;
 
 		log::trace!(target: "crowdloan-rewards-precompile", "New account is {:?}", new_address);
 

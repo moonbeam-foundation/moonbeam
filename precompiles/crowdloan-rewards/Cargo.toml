@@ -16,7 +16,7 @@ sp-core = { git = "https://github.com/paritytech/substrate", default-features = 
 pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.8" }
 pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false, branch = "main" }
 frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
-precompiles-utils = { path = "../utils", default-features = false }
+precompile-utils = { path = "../utils", default-features = false }
 
 [dev-dependencies]
 sha3 = "0.9"
@@ -43,6 +43,6 @@ std = [
     "sp-core/std",
     "pallet-crowdloan-rewards/std",
     "frame-system/std",
-    "precompiles-utils/std",
+    "precompile-utils/std",
     "pallet-evm/std",
 ]
