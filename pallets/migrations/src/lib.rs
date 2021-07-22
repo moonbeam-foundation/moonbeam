@@ -113,10 +113,12 @@ pub mod pallet {
 			weight += process_runtime_upgrades::<T>();
 
 			// at least emit a warning if we aren't going to end up finishing our migrations...
-			if ! T::MultiBlockMigrationsSupported::get() {
-				if ! <FullyUpgraded<T>>::get() {
-					log::warn!("migrations weren't completed in on_runtime_upgrade(), but we're not
-					configured for multi-block migrations; state is potentially inconsistent!");
+			if !T::MultiBlockMigrationsSupported::get() {
+				if !<FullyUpgraded<T>>::get() {
+					log::warn!(
+						"migrations weren't completed in on_runtime_upgrade(), but we're not
+					configured for multi-block migrations; state is potentially inconsistent!"
+					);
 				}
 			}
 
@@ -209,7 +211,8 @@ pub mod pallet {
 				let available_for_step = if available_weight > weight {
 					available_weight - weight
 				} else {
-					log::warn!("previous migration went overweight;
+					log::warn!(
+						"previous migration went overweight;
 						ignoring and providing migration {} 0 weight.",
 						migration_name,
 					);

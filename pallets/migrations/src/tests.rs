@@ -350,7 +350,6 @@ fn only_one_outstanding_test_at_a_time() {
 		},
 		&mut || {
 			ExtBuilder::default().build().execute_with(|| {
-
 				// first pass should invoke migration1 once and not move on to migration2
 				Migrations::on_runtime_upgrade();
 				assert_eq!(*num_migration1_calls.lock().unwrap(), 1);
@@ -387,9 +386,7 @@ fn multi_block_migration_flag_works() {
 			mgr.is_multi_block = false;
 
 			mgr.register_callback(
-				move || {
-					"migration1"
-				},
+				move || "migration1",
 				move |_, _| -> (Perbill, Weight) {
 					*num_migration_calls.lock().unwrap() += 1;
 					(Perbill::zero(), 0u64.into())
@@ -409,7 +406,6 @@ fn multi_block_migration_flag_works() {
 
 #[test]
 fn overweight_migrations_tolerated() {
-
 	// pallet-migrations currently tolerates a migration going over-weight. not only does it
 	// tolerate it, but it continues on to the next migration even if it's already overweight.
 	//
@@ -436,7 +432,7 @@ fn overweight_migrations_tolerated() {
 			mgr.is_multi_block = false;
 
 			mgr.register_callback(
-				move || { "migration1" },
+				move || "migration1",
 				move |_, _| -> (Perbill, Weight) {
 					*num_migration1_calls.lock().unwrap() += 1;
 					// TODO: this is brittle because it assumes it is larger than the value used at
@@ -446,7 +442,7 @@ fn overweight_migrations_tolerated() {
 			);
 
 			mgr.register_callback(
-				move || { "migration2" },
+				move || "migration2",
 				move |_, _| -> (Perbill, Weight) {
 					*num_migration2_calls.lock().unwrap() += 1;
 					(Perbill::one(), 1_000_000_000_000u64.into())
@@ -454,7 +450,7 @@ fn overweight_migrations_tolerated() {
 			);
 
 			mgr.register_callback(
-				move || { "migration3" },
+				move || "migration3",
 				move |_, _| -> (Perbill, Weight) {
 					*num_migration3_calls.lock().unwrap() += 1;
 					(Perbill::one(), 1_000_000_000_000u64.into())
