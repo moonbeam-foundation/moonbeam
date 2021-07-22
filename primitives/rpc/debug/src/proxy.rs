@@ -131,15 +131,15 @@ impl CallListProxy {
 	}
 
 	/// Format the RPC output of a single call-stack.
-	pub fn into_tx_trace(self) -> SingleTrace {
-		SingleTrace::CallList(
-			self.entries
-				.last()
-				.unwrap()
-				.into_iter()
-				.map(|(_, value)| value.clone())
-				.collect(),
-		)
+	pub fn into_tx_trace(self) -> Option<SingleTrace> {
+		if let Some(entry) = self.entries.last() {
+			return Some(SingleTrace::CallList(
+				entry.into_iter()
+					.map(|(_, value)| value.clone())
+					.collect(),
+			));
+		}
+		None
 	}
 
 	/// Format the RPC output for multiple transactions. Each call-stack represents a single

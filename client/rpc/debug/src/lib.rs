@@ -283,6 +283,8 @@ where
 						let mut proxy = proxy::CallListProxy::new();
 						proxy.using(f)?;
 						proxy.into_tx_trace()
+							.ok_or("Trace result is empty.")
+							.map_err(|e| internal_err(format!("{:?}", e)))?
 					}
 				});
 			}
