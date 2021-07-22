@@ -302,6 +302,56 @@
 <span id="299">299</span>
 <span id="300">300</span>
 <span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -340,7 +390,7 @@
 
 <span class="doccomment">/// Wrapper around an EVM input slice, helping to parse it.</span>
 <span class="doccomment">/// Provide functions to parse common types.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">InputReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
 	<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>],
 	<span class="ident">cursor</span>: <span class="ident">usize</span>,
@@ -403,6 +453,7 @@
 }
 
 <span class="doccomment">/// Help build an EVM output data.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OutputBuilder</span> {
 	<span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
 }
@@ -444,6 +495,7 @@
 }
 
 <span class="doccomment">/// Builder for PrecompileOutput.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LogsBuilder</span> {
 	<span class="ident">address</span>: <span class="ident">H160</span>,
 	<span class="ident">logs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Log</span><span class="op">&gt;</span>,
@@ -549,6 +601,7 @@
 
 <span class="doccomment">/// Helper functions requiring a Runtime.</span>
 <span class="doccomment">/// This runtime must of course implement `pallet_evm::Config`.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RuntimeHelper</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">RuntimeHelper</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
@@ -602,6 +655,53 @@
 		<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm</span>::<span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">GasWeightMapping</span>::<span class="ident">weight_to_gas</span>(
 			<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system</span>::<span class="ident">Config</span><span class="op">&gt;</span>::<span class="ident">DbWeight</span>::<span class="ident">get</span>().<span class="ident">read</span>,
 		)
+	}
+}
+
+<span class="doccomment">/// Custom Gasometer to record costs in precompiles.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Gasometer</span> {
+	<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
+	<span class="ident">used_gas</span>: <span class="ident">u64</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">Gasometer</span> {
+	<span class="doccomment">/// Create a new Gasometer with provided gas limit.</span>
+	<span class="doccomment">/// None is no limit.</span>
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+		<span class="self">Self</span> {
+			<span class="ident">target_gas</span>,
+			<span class="ident">used_gas</span>: <span class="number">0</span>,
+		}
+	}
+
+	<span class="doccomment">/// Get used gas.</span>
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">used_gas</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+		<span class="self">self</span>.<span class="ident">used_gas</span>
+	}
+
+	<span class="doccomment">/// Record cost, and return error if it goes out of gas.</span>
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">record_cost</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cost</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span> {
+		<span class="self">self</span>.<span class="ident">used_gas</span> <span class="op">+</span><span class="op">=</span> <span class="ident">cost</span>;
+
+		<span class="kw">match</span> <span class="self">self</span>.<span class="ident">target_gas</span> {
+			<span class="prelude-val">Some</span>(<span class="ident">gas_limit</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">used_gas</span> <span class="op">&gt;</span> <span class="ident">gas_limit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ExitError</span>::<span class="ident">OutOfGas</span>),
+			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(()),
+		}
+	}
+
+	<span class="doccomment">/// Compute remaining gas.</span>
+	<span class="doccomment">/// Returns error if out of gas.</span>
+	<span class="doccomment">/// Returns None if no gas limit.</span>
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remaining_gas</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+		<span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="self">self</span>.<span class="ident">target_gas</span> {
+			<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+			<span class="prelude-val">Some</span>(<span class="ident">gas_limit</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(
+				<span class="ident">gas_limit</span>
+					.<span class="ident">checked_sub</span>(<span class="self">self</span>.<span class="ident">used_gas</span>)
+					.<span class="ident">ok_or</span>(<span class="ident">ExitError</span>::<span class="ident">OutOfGas</span>)<span class="question-mark">?</span>,
+			),
+		})
 	}
 }
 </pre></div>
