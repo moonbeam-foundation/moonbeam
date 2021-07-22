@@ -406,3 +406,68 @@ fn multi_block_migration_flag_works() {
 		},
 	);
 }
+
+#[test]
+fn overweight_migrations_tolerated() {
+
+	// pallet-migrations currently tolerates a migration going over-weight. not only does it
+	// tolerate it, but it continues on to the next migration even if it's already overweight.
+	//
+	// Now that the pallet can be configured to not support multi-block migrations, this is sort of
+	// a feature and not really a bug -- this test case exists to explicitly acknowledge/protect
+	// that.
+	//
+	// The logic behind this is that we would rather go over-weight and risk a block taking too long
+	// (which *might* be "catastrophic") than outright prevent migrations from proceeding (which is
+	// certainly "catastrophic").
+	//
+	// maybe_catastrophic > certainly_catastrophic
+
+	let num_migration1_calls = Arc::new(Mutex::new(0u32));
+	let num_migration2_calls = Arc::new(Mutex::new(0u32));
+	let num_migration3_calls = Arc::new(Mutex::new(0u32));
+
+	crate::mock::execute_with_mock_migrations(
+		&mut |mgr: &mut MockMigrationManager| {
+			let num_migration1_calls = Arc::clone(&num_migration1_calls);
+			let num_migration2_calls = Arc::clone(&num_migration2_calls);
+			let num_migration3_calls = Arc::clone(&num_migration3_calls);
+
+			mgr.is_multi_block = false;
+
+			mgr.register_callback(
+				move || { "migration1" },
+				move |_, _| -> (Perbill, Weight) {
+					*num_migration1_calls.lock().unwrap() += 1;
+					(Perbill::one(), 1_000_000_000_000u64.into())
+				},
+			);
+
+			mgr.register_callback(
+				move || { "migration2" },
+				move |_, _| -> (Perbill, Weight) {
+					*num_migration2_calls.lock().unwrap() += 1;
+					(Perbill::one(), 1_000_000_000_000u64.into())
+				},
+			);
+
+			mgr.register_callback(
+				move || { "migration3" },
+				move |_, _| -> (Perbill, Weight) {
+					*num_migration3_calls.lock().unwrap() += 1;
+					(Perbill::one(), 1_000_000_000_000u64.into())
+				},
+			);
+		},
+		&mut || {
+			ExtBuilder::default().build().execute_with(|| {
+				Migrations::on_runtime_upgrade();
+
+				assert_eq!(*num_migration1_calls.lock().unwrap(), 1);
+				assert_eq!(*num_migration2_calls.lock().unwrap(), 1);
+				assert_eq!(*num_migration3_calls.lock().unwrap(), 1);
+				assert_eq!(Migrations::is_fully_upgraded(), true);
+			});
+		},
+	);
+}
