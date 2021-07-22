@@ -40,7 +40,7 @@ use tracing::{instrument, Instrument};
 
 use jsonrpc_core::Result;
 use sc_client_api::backend::Backend;
-use sp_api::{ApiExt, BlockId, HeaderT, ProvideRuntimeApi};
+use sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
@@ -870,6 +870,10 @@ where
 						))
 					})
 			} else {
+				// For versions < 2 block needs to be manually initialized.
+				api.initialize_block(&substrate_parent_id, &block_header)
+					.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
+
 				#[allow(deprecated)]
 				api.trace_block_before_version_2(&substrate_parent_id, extrinsics)
 					.map_err(|e| {

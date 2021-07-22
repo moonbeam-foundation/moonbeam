@@ -31,7 +31,7 @@ use fc_rpc::{frontier_backend_client, internal_err};
 use fp_rpc::EthereumRuntimeRPCApi;
 use moonbeam_rpc_primitives_debug::{proxy, single, DebugRuntimeApi};
 use sc_client_api::backend::Backend;
-use sp_api::{ApiExt, BlockId, HeaderT, ProvideRuntimeApi};
+use sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
@@ -258,6 +258,10 @@ where
 						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
 						.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))
 					} else {
+						// For versions < 2 block needs to be manually initialized.
+						api.initialize_block(&parent_block_id, &header)
+							.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
+
 						#[allow(deprecated)]
 						api.trace_transaction_before_version_2(
 							&parent_block_id,
