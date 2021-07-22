@@ -897,7 +897,7 @@ where
 		};
 
 		let mut proxy = proxy::CallListProxy::new();
-		proxy.using(f);
+		proxy.using(f)?;
 		let mut traces: Vec<_> = proxy.into_tx_traces();
 
 		// Fill missing data.

@@ -85,8 +85,8 @@ impl RawProxy {
 	///
 	/// With `using`, the Runtime Api is called with thread safe/local access to the mutable
 	/// reference of `self`.
-	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) {
-		listener::using(self, f);
+	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) -> R {
+		listener::using(self, f)
 	}
 
 	/// Format the RPC output.
@@ -126,8 +126,8 @@ impl CallListProxy {
 	///
 	/// With `using`, the Runtime Api is called with thread safe/local access to the mutable
 	/// reference of `self`.
-	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) {
-		listener::using(self, f);
+	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) -> R {
+		listener::using(self, f)
 	}
 
 	/// Format the RPC output of a single call-stack.

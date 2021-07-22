@@ -276,12 +276,12 @@ where
 				return Ok(match trace_type {
 					single::TraceType::Raw { .. } => {
 						let mut proxy = proxy::RawProxy::new();
-						proxy.using(f);
+						proxy.using(f)?;
 						proxy.into_tx_trace()
 					}
 					single::TraceType::CallList { .. } => {
 						let mut proxy = proxy::CallListProxy::new();
-						proxy.using(f);
+						proxy.using(f)?;
 						proxy.into_tx_trace()
 					}
 				});
