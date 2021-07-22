@@ -73,6 +73,8 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The list of migrations that will be performed
 		type MigrationsList: Get<Vec<Box<dyn Migration>>>;
+		/// Whether or not multi-block migrations are supported
+		type MultiBlockMigrationsSupported: Get<bool>;
 	}
 
 	#[pallet::event]
@@ -110,6 +112,14 @@ pub mod pallet {
 
 			weight += process_runtime_upgrades::<T>();
 
+			// at least emit a warning if we aren't going to end up finishing our migrations...
+			if ! T::MultiBlockMigrationsSupported::get() {
+				if ! <FullyUpgraded<T>>::get() {
+					log::warn!("migrations weren't completed in on_runtime_upgrade(), but we're not
+					configured for multi-block migrations; state is potentially inconsistent!");
+				}
+			}
+
 			weight
 		}
 
@@ -118,9 +128,10 @@ pub mod pallet {
 		fn on_initialize(_: T::BlockNumber) -> Weight {
 			let mut weight: Weight = T::DbWeight::get().reads(1 as Weight);
 
-			// TODO: don't support this now, it's dangerous!
-			if !<FullyUpgraded<T>>::get() {
-				weight += process_runtime_upgrades::<T>();
+			if T::MultiBlockMigrationsSupported::get() {
+				if !<FullyUpgraded<T>>::get() {
+					weight += process_runtime_upgrades::<T>();
+				}
 			}
 
 			weight

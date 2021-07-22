@@ -91,10 +91,20 @@ impl frame_system::Config for Test {
 /// A pair of callbacks provided to register_callback() will map directly to a single instance of
 /// Migration (done by the MockMigration glue below). Treat each pair of callbacks as though it were
 /// a custom implementation of the Migration trait just as a normal Pallet would.
-#[derive(Default)]
 pub struct MockMigrationManager<'test> {
 	name_fn_callbacks: Vec<Box<dyn 'test + FnMut() -> &'static str>>,
 	step_fn_callbacks: Vec<Box<dyn 'test + FnMut(Perbill, Weight) -> (Perbill, Weight)>>,
+	pub is_multi_block: bool, // corresponds to MultiBlockMigrationsSupported. defaults to true.
+}
+
+impl Default for MockMigrationManager<'_> {
+	fn default() -> Self {
+		Self {
+			name_fn_callbacks: Default::default(),
+			step_fn_callbacks: Default::default(),
+			is_multi_block: true,
+		}
+	}
 }
 
 impl<'test> MockMigrationManager<'test> {
@@ -188,9 +198,22 @@ impl Get<Vec<Box<dyn Migration>>> for MockMigrations {
 	}
 }
 
+/// Similar to the impl for Get<Vec<Box<dyn Migration>>> but we return a value suitable for
+/// MultiBlockMigrationsSupported
+impl Get<bool> for MockMigrations {
+	fn get() -> bool {
+		let mut supported = false;
+		MOCK_MIGRATIONS_LIST::with(|mgr: &mut MockMigrationManager| {
+			supported = mgr.is_multi_block;
+		});
+		supported
+	}
+}
+
 impl Config for Test {
 	type Event = Event;
 	type MigrationsList = MockMigrations;
+	type MultiBlockMigrationsSupported = MockMigrations;
 }
 
 /// Externality builder for pallet migration's mock runtime

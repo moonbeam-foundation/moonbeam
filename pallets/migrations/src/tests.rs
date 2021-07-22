@@ -372,3 +372,37 @@ fn only_one_outstanding_test_at_a_time() {
 		},
 	);
 }
+
+#[test]
+fn multi_block_migration_flag_works() {
+	let num_migration_calls = Arc::new(Mutex::new(0u32));
+
+	// we create a single migration that wants to take more than one block and ensure that it's only
+	// called once
+
+	crate::mock::execute_with_mock_migrations(
+		&mut |mgr: &mut MockMigrationManager| {
+			let num_migration_calls = Arc::clone(&num_migration_calls);
+
+			mgr.is_multi_block = false;
+
+			mgr.register_callback(
+				move || {
+					"migration1"
+				},
+				move |_, _| -> (Perbill, Weight) {
+					*num_migration_calls.lock().unwrap() += 1;
+					(Perbill::zero(), 0u64.into())
+				},
+			);
+		},
+		&mut || {
+			ExtBuilder::default().build().execute_with(|| {
+				crate::mock::roll_to(5, true);
+
+				assert_eq!(*num_migration_calls.lock().unwrap(), 1);
+				assert_eq!(Migrations::is_fully_upgraded(), false);
+			});
+		},
+	);
+}
