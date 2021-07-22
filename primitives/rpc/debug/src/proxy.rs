@@ -134,9 +134,7 @@ impl CallListProxy {
 	pub fn into_tx_trace(self) -> Option<SingleTrace> {
 		if let Some(entry) = self.entries.last() {
 			return Some(SingleTrace::CallList(
-				entry.into_iter()
-					.map(|(_, value)| value.clone())
-					.collect(),
+				entry.into_iter().map(|(_, value)| value.clone()).collect(),
 			));
 		}
 		None

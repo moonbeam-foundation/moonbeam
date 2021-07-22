@@ -260,7 +260,9 @@ where
 					} else {
 						// For versions < 2 block needs to be manually initialized.
 						api.initialize_block(&parent_block_id, &header)
-							.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
+							.map_err(|e| {
+								internal_err(format!("Runtime api access error: {:?}", e))
+							})?;
 
 						#[allow(deprecated)]
 						api.trace_transaction_before_version_2(
@@ -282,7 +284,8 @@ where
 					single::TraceType::CallList { .. } => {
 						let mut proxy = proxy::CallListProxy::new();
 						proxy.using(f)?;
-						proxy.into_tx_trace()
+						proxy
+							.into_tx_trace()
 							.ok_or("Trace result is empty.")
 							.map_err(|e| internal_err(format!("{:?}", e)))?
 					}
