@@ -25,31 +25,14 @@ describeDevMoonbeam("Estimate Gas - Multiply", (context) => {
     ).to.equal(21994);
   });
 
-  it("should work with gas limit", async function () {
+  // Since the binary search has been activated, the gas indicated in the request is not taken into
+  // account by the estimation:
+  // https://github.com/PureStake/frontier/blob/moonbeam-polkadot-v0.9.8/client/rpc/src/eth.rs#L907
+  it("should work with gas limit too low", async function () {
     expect(
       await multContract.methods.multiply(3).estimateGas({
-        gas: 21994,
+        gas: 0,
       })
     ).to.equal(21994);
-  });
-
-  it("should ignore from balance (?)", async function () {
-    expect(
-      await multContract.methods.multiply(3).estimateGas({
-        gas: 21994,
-      })
-    ).to.equal(21994);
-  });
-
-  it("should fail with a lower gas limit", async function () {
-    await multContract.methods
-      .multiply(3)
-      .estimateGas({
-        gas: 21993,
-      })
-      .then(() => {
-        return Promise.reject({ message: "Execution succeeded but should have failed" });
-      })
-      .catch((err) => expect(err.message).to.equal(`Returned error: out of gas`));
   });
 });
