@@ -21,14 +21,15 @@ use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	sp_runtime::traits::{CheckedSub, StaticLookup},
 	storage::types::StorageDoubleMap,
-	traits::{Get, StorageInstance},
+	traits::StorageInstance,
 	transactional, Blake2_128Concat,
 };
 use pallet_balances::pallet::{
 	Instance1, Instance10, Instance11, Instance12, Instance13, Instance14, Instance15, Instance16,
 	Instance2, Instance3, Instance4, Instance5, Instance6, Instance7, Instance8, Instance9,
 };
-use pallet_evm::{AddressMapping, GasWeightMapping, Log, Precompile};
+use pallet_evm::{AddressMapping, Precompile};
+use precompile_utils::{error, EvmResult, InputReader, LogsBuilder, OutputBuilder, RuntimeHelper};
 use slices::u8_slice;
 use sp_core::{H160, U256};
 use sp_std::{convert::TryInto, marker::PhantomData, vec};
@@ -89,7 +90,8 @@ impl_prefix!(ApprovesPrefix16, Instance16, "Erc20Instance16Balances");
 pub type BalanceOf<Runtime, Instance = ()> =
 	<Runtime as pallet_balances::Config<Instance>>::Balance;
 
-/// Storage type used to store approvals.
+/// Storage type used to store approvals, since `pallet_balances` doesn't
+/// handle this behavior.
 /// (Owner => Allowed => Amount)
 pub type ApprovesStorage<Runtime, Instance> = StorageDoubleMap<
 	<Instance as InstanceToPrefix>::ApprovesPrefix,
@@ -122,26 +124,16 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Result<PrecompileOutput, ExitError> {
-		const SELECTOR_SIZE_BYTES: usize = 4;
+		let input = InputReader::new(input)?;
 
-		if input.len() < 4 {
-			return Err(ExitError::Other("input length less than 4 bytes".into()));
-		}
-
-		match input[0..SELECTOR_SIZE_BYTES] {
-			[0x7c, 0x80, 0xaa, 0x9f] => Self::total_supply(&input[SELECTOR_SIZE_BYTES..]),
-			[0x70, 0xa0, 0x82, 0x31] => Self::balance_of(&input[SELECTOR_SIZE_BYTES..]),
-			[0xdd, 0x62, 0xed, 0x3e] => Self::allowance(&input[SELECTOR_SIZE_BYTES..]),
-			[0x09, 0x5e, 0xa7, 0xb3] => Self::approve(context, &input[SELECTOR_SIZE_BYTES..]),
-			[0xa9, 0x05, 0x9c, 0xbb] => {
-				Self::transfer(context, &input[SELECTOR_SIZE_BYTES..], target_gas)
-			}
-			[0x0c, 0x41, 0xb0, 0x33] => {
-				Self::transfer_from(context, &input[SELECTOR_SIZE_BYTES..], target_gas)
-			}
-			_ => Err(ExitError::Other(
-				"No staking wrapper method at selector given selector".into(),
-			)),
+		match input.selector() {
+			[0x7c, 0x80, 0xaa, 0x9f] => Self::total_supply(input),
+			[0x70, 0xa0, 0x82, 0x31] => Self::balance_of(input),
+			[0xdd, 0x62, 0xed, 0x3e] => Self::allowance(input),
+			[0x09, 0x5e, 0xa7, 0xb3] => Self::approve(input, context),
+			[0xa9, 0x05, 0x9c, 0xbb] => Self::transfer(input, context, target_gas),
+			[0x0c, 0x41, 0xb0, 0x33] => Self::transfer_from(input, context, target_gas),
+			_ => Err(error("unknown selector")),
 		}
 	}
 }
@@ -156,160 +148,99 @@ where
 	Instance: InstanceToPrefix + 'static,
 	U256: From<BalanceOf<Runtime, Instance>> + TryInto<BalanceOf<Runtime, Instance>>,
 {
-	/// Dispatch a call from provided origin.
-	/// Will make sure the call will not consume more than the target gas.
-	fn dispatch_call(
-		origin: <Runtime::Call as Dispatchable>::Origin,
-		call: Runtime::Call,
-		target_gas: Option<u64>,
-	) -> Result<PrecompileOutput, ExitError> {
-		let info = call.get_dispatch_info();
+	fn total_supply(input: InputReader) -> EvmResult<PrecompileOutput> {
+		// Parse input.
+		input.expect_arguments(0)?;
 
-		// Make sure enough gas
-		if let Some(gas_limit) = target_gas {
-			let required_gas = Runtime::GasWeightMapping::weight_to_gas(info.weight);
-			if required_gas > gas_limit {
-				return Err(ExitError::OutOfGas);
-			}
-		}
-
-		// Dispatch that call.
-		match call.dispatch(origin) {
-			Ok(post_info) => {
-				let gas_used = Runtime::GasWeightMapping::weight_to_gas(
-					post_info.actual_weight.unwrap_or(info.weight),
-				);
-				Ok(PrecompileOutput {
-					exit_status: ExitSucceed::Stopped,
-					cost: gas_used,
-					output: Default::default(),
-					logs: Default::default(),
-				})
-			}
-			Err(_) => Err(ExitError::Other("ERC20 wrapper call via EVM failed".into())),
-		}
-	}
-
-	fn total_supply(input: &[u8]) -> Result<PrecompileOutput, ExitError> {
-		if !input.is_empty() {
-			return Err(ExitError::Other("Incorrect input lenght".into()));
-		}
-
+		// Fetch info.
 		let amount = pallet_balances::Pallet::<Runtime, Instance>::total_issuance();
 
-		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-			<Runtime as frame_system::Config>::DbWeight::get().read,
-		);
-
-		let mut output = [0u8; 32];
-		U256::from(amount).to_big_endian(&mut output);
-
+		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: gas_consumed,
-			output: output.to_vec(),
-			logs: Default::default(),
+			cost: RuntimeHelper::<Runtime>::db_read_gas_cost(),
+			output: OutputBuilder::new().write_u256(amount).build(),
+			logs: vec![],
 		})
 	}
 
-	fn balance_of(input: &[u8]) -> Result<PrecompileOutput, ExitError> {
-		if input.len() != 32 {
-			return Err(ExitError::Other("Incorrect input lenght".into()));
-		}
+	fn balance_of(mut input: InputReader) -> EvmResult<PrecompileOutput> {
+		// Read input.
+		input.expect_arguments(1)?;
 
-		let address = H160::from_slice(&input[12..32]);
+		let address = input.read_address()?;
 
+		// Fetch info.
 		let amount = pallet_balances::Pallet::<Runtime, Instance>::usable_balance(&address.into());
 
-		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-			<Runtime as frame_system::Config>::DbWeight::get().read,
-		);
-
-		let mut output = [0u8; 32];
-		U256::from(amount).to_big_endian(&mut output);
-
+		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: gas_consumed,
-			output: output.to_vec(),
-			logs: Default::default(),
+			cost: RuntimeHelper::<Runtime>::db_read_gas_cost(),
+			output: OutputBuilder::new().write_u256(amount).build(),
+			logs: vec![],
 		})
 	}
 
-	fn allowance(input: &[u8]) -> Result<PrecompileOutput, ExitError> {
-		if input.len() != 64 {
-			return Err(ExitError::Other("Incorrect input lenght".into()));
-		}
+	fn allowance(mut input: InputReader) -> EvmResult<PrecompileOutput> {
+		// Read input.
+		input.expect_arguments(2)?;
 
-		let owner = H160::from_slice(&input[12..32]);
-		let spender = H160::from_slice(&input[44..64]);
+		let owner_id: Runtime::AccountId = input.read_address()?.into();
+		let spender_id: Runtime::AccountId = input.read_address()?.into();
 
-		let owner_id: Runtime::AccountId = owner.into();
-		let spender_id: Runtime::AccountId = spender.into();
-
+		// Fetch info.
 		let amount =
 			ApprovesStorage::<Runtime, Instance>::get(owner_id, spender_id).unwrap_or_default();
 
-		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-			<Runtime as frame_system::Config>::DbWeight::get().read,
-		);
-
-		let mut output = [0u8; 32];
-		U256::from(amount).to_big_endian(&mut output);
-
+		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: gas_consumed,
-			output: output.to_vec(),
-			logs: Default::default(),
+			cost: RuntimeHelper::<Runtime>::db_read_gas_cost(),
+			output: OutputBuilder::new().write_u256(amount).build(),
+			logs: vec![],
 		})
 	}
 
-	fn approve(context: &Context, input: &[u8]) -> Result<PrecompileOutput, ExitError> {
-		if input.len() != 64 {
-			return Err(ExitError::Other("Incorrect input lenght".into()));
-		}
+	fn approve(mut input: InputReader, context: &Context) -> EvmResult<PrecompileOutput> {
+		// Parse input.
+		input.expect_arguments(2)?;
 
-		let spender = H160::from_slice(&input[12..32]);
-		let amount = Self::parse_amount(&input[32..64])?;
+		let spender = input.read_address()?;
+		let amount = Self::u256_to_amount(input.read_u256()?)?;
 
-		let caller_id: Runtime::AccountId = context.caller.into();
 		let spender_id: Runtime::AccountId = spender.into();
+		let caller_id: Runtime::AccountId = context.caller.into();
 
+		// Write into storage.
 		ApprovesStorage::<Runtime, Instance>::insert(caller_id, spender_id, amount);
 
-		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-			<Runtime as frame_system::Config>::DbWeight::get().write,
-		);
-
+		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: gas_consumed,
+			cost: RuntimeHelper::<Runtime>::db_read_gas_cost(),
 			output: vec![],
-			logs: vec![Log {
-				address: context.address,
-				data: input[32..64].to_vec(),
-				topics: vec![
-					SELECTOR_LOG_APPROVAL.into(),
-					context.caller.into(),
-					spender.into(),
-				],
-			}],
+			logs: LogsBuilder::new(context.address)
+				.log3(
+					SELECTOR_LOG_APPROVAL,
+					context.caller,
+					spender,
+					OutputBuilder::new().write_u256(amount).build(),
+				)
+				.build(),
 		})
 	}
 
 	fn transfer(
+		mut input: InputReader,
 		context: &Context,
-		input: &[u8],
 		target_gas: Option<u64>,
-	) -> Result<PrecompileOutput, ExitError> {
-		// Parse arguments.
-		if input.len() != 64 {
-			return Err(ExitError::Other("Incorrect input lenght".into()));
-		}
+	) -> EvmResult<PrecompileOutput> {
+		// Parse input.
+		input.expect_arguments(2)?;
 
-		let to = H160::from_slice(&input[12..32]);
-		let amount = Self::parse_amount(&input[32..64])?;
+		let to = input.read_address()?;
+		let amount = Self::u256_to_amount(input.read_u256()?)?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
@@ -319,38 +250,39 @@ where
 		);
 
 		// Dispatch call (if enough gas).
-		let mut output = Self::dispatch_call(Some(origin).into(), call.into(), target_gas)?;
+		let used_gas =
+			RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, target_gas)?;
 
-		// Add transfer log.
-		output.logs.push(Log {
-			address: context.address,
-			data: input[32..64].to_vec(),
-			topics: vec![
-				SELECTOR_LOG_TRANSFER.into(),
-				context.caller.into(),
-				to.into(),
-			],
-		});
-
-		Ok(output)
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: used_gas,
+			output: vec![],
+			logs: LogsBuilder::new(context.address)
+				.log3(
+					SELECTOR_LOG_TRANSFER,
+					context.caller,
+					to,
+					OutputBuilder::new().write_u256(amount).build(),
+				)
+				.build(),
+		})
 	}
 
 	// This function is annotated with transactional.
 	// This is to ensure that if the substrate call fails, the change in allowance is reverted.
 	#[transactional]
 	fn transfer_from(
+		mut input: InputReader,
 		context: &Context,
-		input: &[u8],
 		target_gas: Option<u64>,
-	) -> Result<PrecompileOutput, ExitError> {
-		// Parse arguments.
-		if input.len() != 96 {
-			return Err(ExitError::Other("Incorrect input lenght".into()));
-		}
+	) -> EvmResult<PrecompileOutput> {
+		// Parse input.
+		input.expect_arguments(3)?;
 
-		let from = H160::from_slice(&input[12..32]);
-		let to = H160::from_slice(&input[44..64]);
-		let amount = Self::parse_amount(&input[64..96])?;
+		let from = input.read_address()?;
+		let to = input.read_address()?;
+		let amount = Self::u256_to_amount(input.read_u256()?)?;
 
 		// If caller is "from", it can spend as much as it wants.
 		if context.caller != from {
@@ -359,12 +291,12 @@ where
 
 			ApprovesStorage::<Runtime, Instance>::mutate(owner_id, spender_id, |entry| {
 				// Get current value, exit if None.
-				let value = entry.ok_or(ExitError::Other("Not allowed".into()))?;
+				let value = entry.ok_or(error("spender not allowed"))?;
 
 				// Remove "amount" from allowed, exit if underflow.
-				let new_value = value.checked_sub(&amount).ok_or_else(|| {
-					ExitError::Other("Requesting to spend more than allowed".into())
-				})?;
+				let new_value = value
+					.checked_sub(&amount)
+					.ok_or_else(|| error("trying to spend more than allowed"))?;
 
 				// Update value.
 				*entry = Some(new_value);
@@ -381,36 +313,28 @@ where
 		);
 
 		// Dispatch call (if enough gas).
-		let mut output = Self::dispatch_call(Some(origin).into(), call.into(), target_gas)?;
+		let used_gas =
+			RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, target_gas)?;
 
-		// Add transfer log.
-		output.logs.push(Log {
-			address: context.address,
-			data: input[64..96].to_vec(), // amount
-			topics: vec![SELECTOR_LOG_TRANSFER.into(), from.into(), to.into()],
-		});
-
-		Ok(output)
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: used_gas,
+			output: vec![],
+			logs: LogsBuilder::new(context.address)
+				.log3(
+					SELECTOR_LOG_TRANSFER,
+					from,
+					to,
+					OutputBuilder::new().write_u256(amount).build(),
+				)
+				.build(),
+		})
 	}
 
-	/// Parses an amount of ether from a 256 bit (32 byte) slice. The balance type is generic.
-	fn parse_amount(input: &[u8]) -> Result<BalanceOf<Runtime, Instance>, ExitError> {
-		Self::parse_uint256(input)?
+	fn u256_to_amount(value: U256) -> EvmResult<BalanceOf<Runtime, Instance>> {
+		value
 			.try_into()
-			.map_err(|_| ExitError::Other("Amount is too large for provided balance type".into()))
-	}
-
-	/// Parses a uint256 value
-	fn parse_uint256(input: &[u8]) -> Result<U256, ExitError> {
-		// In solidity all values are encoded to this width
-		const SIZE_BYTES: usize = 32;
-
-		if input.len() != SIZE_BYTES {
-			return Err(ExitError::Other(
-				"Incorrect input length for uint256 parsing".into(),
-			));
-		}
-
-		Ok(U256::from_big_endian(&input[0..SIZE_BYTES]))
+			.map_err(|_| error("amount is too large for provided balance type"))
 	}
 }

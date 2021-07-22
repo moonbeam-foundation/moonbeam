@@ -6184,6 +6184,7 @@ dependencies = [
  "pallet-balances",
  "pallet-evm",
  "parity-scale-codec",
+ "precompile-utils",
  "slices",
  "sp-core",
  "sp-io",
@@ -8269,6 +8270,22 @@ name = "ppv-lite86"
 version = "0.2.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ac74c624d6b2d21f425f752262f42188365d7b8ff1aff74c82e45136510a4857"
+
+[[package]]
+name = "precompile-utils"
+version = "0.1.0"
+dependencies = [
+ "evm",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-evm",
+ "parity-scale-codec",
+ "slices",
+ "sp-core",
+ "sp-io",
+ "sp-std",
+]
 
 [[package]]
 name = "predicates"
