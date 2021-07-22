@@ -80,10 +80,6 @@ impl<'a> InputReader<'a> {
 		Ok(U256::from_big_endian(data))
 	}
 
-	pub fn read_amount<Runtime>(&mut self) -> EvmResult<()> {
-		todo!()
-	}
-
 	/// Parse an address value.
 	/// Returns an error if trying to parse out of bound.
 	/// Ignores the 12 higher bytes.
