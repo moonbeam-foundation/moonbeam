@@ -922,7 +922,7 @@ pub mod pallet {
 	}
 
 	#[pallet::storage]
-	#[pallet::getter(fn add_nominator_status_migration)]
+	#[pallet::getter(fn delay_nomination_exits_migration)]
 	/// True if executed, false by default
 	type DelayNominationExitsMigration<T: Config> = StorageValue<_, bool, ValueQuery>;
 
