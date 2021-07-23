@@ -1,7 +1,7 @@
 ## Starting the node
 
 ```
-yarn run launch --parachain local --port-prefix 56 --parachain-chain alphanet-9.2-raw-specs.json
+yarn run launch --parachain local --port-prefix 58 --parachain-chain alphanet-9.2-raw-specs.json
 ```
 
 ## Debugging
