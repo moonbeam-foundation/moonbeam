@@ -883,6 +883,15 @@
 <span id="880">880</span>
 <span id="881">881</span>
 <span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -1459,8 +1468,14 @@
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinBlocksPerRound</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">10</span>;
 	<span class="doccomment">/// Default BlocksPerRound is every hour (300 * 12 second block times)</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DefaultBlocksPerRound</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">300</span>;
-	<span class="doccomment">/// Reward payments and collator exit requests are delayed by 2 hours (2 * 300 * block_time)</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BondDuration</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
+	<span class="doccomment">/// Collator candidate exits are delayed by 2 hours (2 * 300 * block_time)</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LeaveCandidatesDelay</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
+	<span class="doccomment">/// Nominator exits are delayed by 2 hours (2 * 300 * block_time)</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LeaveNominatorsDelay</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
+	<span class="doccomment">/// Nomination revocations are delayed by 2 hours (2 * 300 * block_time)</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RevokeNominationDelay</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
+	<span class="doccomment">/// Reward payments are delayed by 2 hours (2 * 300 * block_time)</span>
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RewardPaymentDelay</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
 	<span class="doccomment">/// Minimum 8 collators selected per round, default at genesis and minimum forever after</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinSelectedCandidates</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">8</span>;
 	<span class="doccomment">/// Maximum 10 nominators per collator</span>
@@ -1484,7 +1499,10 @@
 	<span class="kw">type</span> <span class="ident">MonetaryGovernanceOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">MinBlocksPerRound</span> <span class="op">=</span> <span class="ident">MinBlocksPerRound</span>;
 	<span class="kw">type</span> <span class="ident">DefaultBlocksPerRound</span> <span class="op">=</span> <span class="ident">DefaultBlocksPerRound</span>;
-	<span class="kw">type</span> <span class="ident">BondDuration</span> <span class="op">=</span> <span class="ident">BondDuration</span>;
+	<span class="kw">type</span> <span class="ident">LeaveCandidatesDelay</span> <span class="op">=</span> <span class="ident">LeaveCandidatesDelay</span>;
+	<span class="kw">type</span> <span class="ident">LeaveNominatorsDelay</span> <span class="op">=</span> <span class="ident">LeaveNominatorsDelay</span>;
+	<span class="kw">type</span> <span class="ident">RevokeNominationDelay</span> <span class="op">=</span> <span class="ident">RevokeNominationDelay</span>;
+	<span class="kw">type</span> <span class="ident">RewardPaymentDelay</span> <span class="op">=</span> <span class="ident">RewardPaymentDelay</span>;
 	<span class="kw">type</span> <span class="ident">MinSelectedCandidates</span> <span class="op">=</span> <span class="ident">MinSelectedCandidates</span>;
 	<span class="kw">type</span> <span class="ident">MaxNominatorsPerCollator</span> <span class="op">=</span> <span class="ident">MaxNominatorsPerCollator</span>;
 	<span class="kw">type</span> <span class="ident">MaxCollatorsPerNominator</span> <span class="op">=</span> <span class="ident">MaxCollatorsPerNominator</span>;
