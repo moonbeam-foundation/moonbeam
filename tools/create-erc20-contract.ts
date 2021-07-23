@@ -1,12 +1,12 @@
-import { gerald, web3, ERC20_BYTECODE, init } from "./init-web3";
+import { alice, web3, ERC20_BYTECODE, init } from "./init-web3";
 init();
 
 const main = async () => {
-  console.log(`\nCreating contract using Eth RPC "sendTransaction" from gerald`);
-  const createTransaction = await gerald.signTransaction({
+  console.log(`\nCreating contract using Eth RPC "sendTransaction" from alice`);
+  const createTransaction = await alice.signTransaction({
     data: ERC20_BYTECODE,
     value: "0x00",
-    gasPrice: "0x00",
+    gasPrice: web3.utils.toWei("1", "Gwei"),
     gas: "0x100000",
   });
   console.log("Transaction", {

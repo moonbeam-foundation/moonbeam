@@ -49,6 +49,34 @@
       "sourceMap": {
         "/rustc/*": "${dbgconfig:rustc_path}"
       }
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug Launch moonbase-0.9.2 (Linux)",
+      "preLaunchTask": "Build Moonbeam (debug symbols)",
+      "program": "${workspaceFolder}/target/release/moonbeam",
+      "args": [
+        "--no-telemetry",
+        "--no-prometheus",
+        "--chain=tools/alphanet-9.2-raw-specs.json",
+        "--ethapi=txpool,debug,trace",
+        "-linfo",
+        "--port=${dbgconfig:port_p2p}",
+        "--rpc-port=${dbgconfig:port_rpc}",
+        "--ws-port=${dbgconfig:port_ws}",
+        "--unsafe-ws-external",
+        "--rpc-methods=unsafe",
+        "--tmp",
+        "--",
+        "--chain=tools/rococo-local-raw.json",
+        "--execution=wasm"
+      ],
+      "cwd": "${workspaceFolder}",
+      "sourceLanguages": ["rust"],
+      "sourceMap": {
+        "/rustc/*": "${dbgconfig:rustc_path}"
+      }
     }
   ]
 }

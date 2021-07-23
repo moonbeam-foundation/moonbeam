@@ -101,10 +101,13 @@ export const ERC20_BYTECODE =
   "6f6c63430005110032";
 export const GERALD_PRIVATE_KEY =
   "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
+export const ALICE_PRIVATE_KEY =
+  "0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133";
 export const STORAGE_SLOT = "0";
 
 export let web3: Web3;
 export let gerald: Account & { storageKey: string };
+export let alice: Account & { storageKey: string };
 
 export const contractAddress = (makerAddress: string, nonce: number) => {
   if (!web3) {
@@ -185,5 +188,6 @@ export async function customRequest(method: string, params: any[]) {
 export const init = (url = "http://localhost:9933") => {
   web3 = new Web3(url);
   gerald = importAccount(GERALD_PRIVATE_KEY);
+  alice = importAccount(ALICE_PRIVATE_KEY);
   return web3;
 };
