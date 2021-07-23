@@ -1999,6 +1999,21 @@
 <span id="1996">1996</span>
 <span id="1997">1997</span>
 <span id="1998">1998</span>
+<span id="1999">1999</span>
+<span id="2000">2000</span>
+<span id="2001">2001</span>
+<span id="2002">2002</span>
+<span id="2003">2003</span>
+<span id="2004">2004</span>
+<span id="2005">2005</span>
+<span id="2006">2006</span>
+<span id="2007">2007</span>
+<span id="2008">2008</span>
+<span id="2009">2009</span>
+<span id="2010">2010</span>
+<span id="2011">2011</span>
+<span id="2012">2012</span>
+<span id="2013">2013</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -2720,34 +2735,49 @@
 		<span class="doccomment">/// The origin for monetary governance</span>
 		<span class="kw">type</span> <span class="ident">MonetaryGovernanceOrigin</span>: <span class="ident">EnsureOrigin</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Origin</span><span class="op">&gt;</span>;
 		<span class="doccomment">/// Minimum number of blocks per round</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">constant</span>]</span>
 		<span class="kw">type</span> <span class="ident">MinBlocksPerRound</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>;
 		<span class="doccomment">/// Default number of blocks per round at genesis</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">constant</span>]</span>
 		<span class="kw">type</span> <span class="ident">DefaultBlocksPerRound</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>;
 		<span class="doccomment">/// Number of rounds that collators remain bonded before exit request is executed</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">constant</span>]</span>
 		<span class="kw">type</span> <span class="ident">LeaveCandidatesDelay</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">RoundIndex</span><span class="op">&gt;</span>;
 		<span class="doccomment">/// Number of rounds that nominators remain bonded before exit request is executed</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">constant</span>]</span>
 		<span class="kw">type</span> <span class="ident">LeaveNominatorsDelay</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">RoundIndex</span><span class="op">&gt;</span>;
 		<span class="doccomment">/// Number of rounds that nominations remain bonded before revocation request is executed</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">constant</span>]</span>
 		<span class="kw">type</span> <span class="ident">RevokeNominationDelay</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">RoundIndex</span><span class="op">&gt;</span>;
 		<span class="doccomment">/// Number of rounds after which block authors are rewarded</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">constant</span>]</span>
 		<span class="kw">type</span> <span class="ident">RewardPaymentDelay</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">RoundIndex</span><span class="op">&gt;</span>;
 		<span class="doccomment">/// Minimum number of selected candidates every round</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">constant</span>]</span>
 		<span class="kw">type</span> <span class="ident">MinSelectedCandidates</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>;
 		<span class="doccomment">/// Maximum nominators counted per collator</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">constant</span>]</span>
 		<span class="kw">type</span> <span class="ident">MaxNominatorsPerCollator</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>;
 		<span class="doccomment">/// Maximum collators per nominator</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">constant</span>]</span>
 		<span class="kw">type</span> <span class="ident">MaxCollatorsPerNominator</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>;
 		<span class="doccomment">/// Default commission due to collators, set at genesis</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">constant</span>]</span>
 		<span class="kw">type</span> <span class="ident">DefaultCollatorCommission</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span>;
 		<span class="doccomment">/// Default percent of inflation set aside for parachain bond account</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">constant</span>]</span>
 		<span class="kw">type</span> <span class="ident">DefaultParachainBondReservePercent</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">Percent</span><span class="op">&gt;</span>;
 		<span class="doccomment">/// Minimum stake required for any account to be in `SelectedCandidates` for the round</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">constant</span>]</span>
 		<span class="kw">type</span> <span class="ident">MinCollatorStk</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 		<span class="doccomment">/// Minimum stake required for any account to be a collator candidate</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">constant</span>]</span>
 		<span class="kw">type</span> <span class="ident">MinCollatorCandidateStk</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 		<span class="doccomment">/// Minimum stake for any registered on-chain account to nominate</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">constant</span>]</span>
 		<span class="kw">type</span> <span class="ident">MinNomination</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 		<span class="doccomment">/// Minimum stake for any registered on-chain account to become a nominator</span>
+		<span class="attribute">#[<span class="ident">pallet</span>::<span class="ident">constant</span>]</span>
 		<span class="kw">type</span> <span class="ident">MinNominatorStk</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 		<span class="doccomment">/// Weight information for extrinsics in this pallet.</span>
 		<span class="kw">type</span> <span class="ident">WeightInfo</span>: <span class="ident">WeightInfo</span>;
