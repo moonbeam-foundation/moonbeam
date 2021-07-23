@@ -121,6 +121,16 @@ impl OutputBuilder {
 		self.data.extend_from_slice(&buffer);
 		self
 	}
+
+	/// Push a U256 to the output.
+	pub fn write_bool<T: Into<bool>>(mut self, value: T) -> Self {
+		let mut buffer = [0u8; 32];
+		if value.into() {
+			buffer[31] = 1;
+		}
+		self.data.extend_from_slice(&buffer);
+		self
+	}
 }
 
 impl Default for OutputBuilder {

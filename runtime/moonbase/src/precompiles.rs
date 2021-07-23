@@ -16,6 +16,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use evm::{executor::PrecompileOutput, Context, ExitError};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::{Precompile, PrecompileSet};
@@ -37,6 +38,11 @@ type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as C
 	<Runtime as frame_system::Config>::AccountId,
 >>::Balance;
 
+type RewardBalanceOf<Runtime> =
+	<<Runtime as pallet_crowdloan_rewards::Config>::RewardCurrency as Currency<
+		<Runtime as frame_system::Config>::AccountId,
+	>>::Balance;
+
 /// The PrecompileSet installed in the Moonbase runtime.
 /// We include the nine Istanbul precompiles
 /// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
@@ -51,7 +57,7 @@ where
 	/// Return all addresses that contain precompiles. This can be used to populate dummy code
 	/// under the precompile.
 	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
-		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 1024, 1025, 1026, 2048, 2049]
+		sp_std::vec![1, 2, 3, 4, 5, 6, 7, 8, 1024, 1025, 1026, 2048, 2049, 2050]
 			.into_iter()
 			.map(|x| hash(x).into())
 	}
@@ -66,10 +72,15 @@ where
 	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
 	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
 	R: parachain_staking::Config + pallet_evm::Config + pallet_balances::Config,
+	R: pallet_evm::Config,
+	R: pallet_balances::Config,
+	R: pallet_crowdloan_rewards::Config,
 	R::AccountId: From<H160>,
-	BalanceOf<R>: TryFrom<sp_core::U256> + Debug,
 	R::Call: From<parachain_staking::Call<R>>,
 	R::Call: From<pallet_balances::Call<R>>,
+	R::Call: From<pallet_crowdloan_rewards::Call<R>>,
+	BalanceOf<R>: TryFrom<sp_core::U256> + Debug,
+	RewardBalanceOf<R>: TryFrom<sp_core::U256> + Debug,
 	U256: From<Erc20BalanceOf<R>> + TryInto<Erc20BalanceOf<R>>,
 {
 	fn execute(
@@ -96,7 +107,10 @@ where
 			a if a == hash(2048) => Some(ParachainStakingWrapper::<R>::execute(
 				input, target_gas, context,
 			)),
-			a if a == hash(2049) => Some(Erc20BalancesPrecompile::<R>::execute(
+			a if a == hash(2049) => Some(CrowdloanRewardsWrapper::<R>::execute(
+				input, target_gas, context,
+			)),
+			a if a == hash(2050) => Some(Erc20BalancesPrecompile::<R>::execute(
 				input, target_gas, context,
 			)),
 			_ => None,
