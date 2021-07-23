@@ -3600,8 +3600,7 @@ dependencies = [
 [[package]]
 name = "jsonrpc-core"
 version = "15.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0745a6379e3edc893c84ec203589790774e4247420033e71a76d3ab4687991fa"
+source = "git+https://github.com/purestake/jsonrpc?branch=crystalin-testing-logs#c7adeea08e26a555507f57244f3c1ae930174196"
 dependencies = [
  "futures 0.1.31",
  "log",
