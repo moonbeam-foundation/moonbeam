@@ -11,7 +11,7 @@ import {
 } from "../util/constants";
 import { createTransaction } from "../util/transactions";
 
-const ADDRESS_ERC20 = "0x0000000000000000000000000000000000000801";
+const ADDRESS_ERC20 = "0x0000000000000000000000000000000000000802";
 const SELECTORS = {
   balanceOf: "70a08231",
   totalSupply: "7c80aa9f",
