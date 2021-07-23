@@ -34,7 +34,11 @@ use precompile_utils::{
 };
 use slices::u8_slice;
 use sp_core::{H160, U256};
-use sp_std::{convert::TryInto, marker::PhantomData, vec};
+use sp_std::{
+	convert::{TryFrom, TryInto},
+	marker::PhantomData,
+	vec,
+};
 
 /// Solidity selector of the Transfer log, which is the Keccak of the Log signature.
 const SELECTOR_LOG_TRANSFER: &[u8; 32] =
@@ -113,13 +117,13 @@ pub struct Erc20BalancesPrecompile<Runtime, Instance: 'static = ()>(
 
 impl<Runtime, Instance> Precompile for Erc20BalancesPrecompile<Runtime, Instance>
 where
+	Instance: InstanceToPrefix + 'static,
 	Runtime: pallet_balances::Config<Instance> + pallet_evm::Config,
 	Runtime::AccountId: From<H160>,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::Call: From<pallet_balances::Call<Runtime, Instance>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	Instance: InstanceToPrefix + 'static,
-	U256: From<BalanceOf<Runtime, Instance>> + TryInto<BalanceOf<Runtime, Instance>>,
+	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256>,
 {
 	fn execute(
 		input: &[u8], //Reminder this is big-endian
@@ -142,13 +146,13 @@ where
 
 impl<Runtime, Instance> Erc20BalancesPrecompile<Runtime, Instance>
 where
+	Instance: InstanceToPrefix + 'static,
 	Runtime: pallet_balances::Config<Instance> + pallet_evm::Config,
 	Runtime::AccountId: From<H160>,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::Call: From<pallet_balances::Call<Runtime, Instance>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	Instance: InstanceToPrefix + 'static,
-	U256: From<BalanceOf<Runtime, Instance>> + TryInto<BalanceOf<Runtime, Instance>>,
+	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256>,
 {
 	fn total_supply(input: InputReader, target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);

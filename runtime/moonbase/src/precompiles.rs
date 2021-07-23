@@ -28,12 +28,11 @@ use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use parachain_staking_precompiles::ParachainStakingWrapper;
 use parity_scale_codec::Decode;
-use sp_core::{H160, U256};
-use sp_std::convert::{TryFrom, TryInto};
-use sp_std::fmt::Debug;
-use sp_std::marker::PhantomData;
+use sp_core::H160;
+use sp_std::{convert::TryFrom, fmt::Debug, marker::PhantomData};
 
 use frame_support::traits::Currency;
+
 type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as Currency<
 	<Runtime as frame_system::Config>::AccountId,
 >>::Balance;
@@ -69,19 +68,19 @@ where
 /// 2048-4095 Moonbeam specific precompiles
 impl<R> PrecompileSet for MoonbasePrecompiles<R>
 where
-	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
-	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
-	R: parachain_staking::Config + pallet_evm::Config + pallet_balances::Config,
+	R: parachain_staking::Config,
 	R: pallet_evm::Config,
 	R: pallet_balances::Config,
 	R: pallet_crowdloan_rewards::Config,
 	R::AccountId: From<H160>,
+	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
+	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
 	R::Call: From<parachain_staking::Call<R>>,
 	R::Call: From<pallet_balances::Call<R>>,
 	R::Call: From<pallet_crowdloan_rewards::Call<R>>,
 	BalanceOf<R>: TryFrom<sp_core::U256> + Debug,
 	RewardBalanceOf<R>: TryFrom<sp_core::U256> + Debug,
-	U256: From<Erc20BalanceOf<R>> + TryInto<Erc20BalanceOf<R>>,
+	Erc20BalanceOf<R>: TryFrom<sp_core::U256> + Into<sp_core::U256> + Debug,
 {
 	fn execute(
 		address: H160,
