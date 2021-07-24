@@ -83,7 +83,7 @@ impl<'a> InputReader<'a> {
 	/// Parse an address value.
 	/// Returns an error if trying to parse out of bound.
 	/// Ignores the 12 higher bytes.
-	pub fn read_address(&mut self) -> EvmResult<H160> {
+	pub fn read_address<AccountId: From<H160>>(&mut self) -> EvmResult<AccountId> {
 		let range_end = self.cursor + 32;
 
 		let data = self
@@ -93,7 +93,7 @@ impl<'a> InputReader<'a> {
 
 		self.cursor += 32;
 
-		Ok(H160::from_slice(&data[12..32]))
+		Ok(H160::from_slice(&data[12..32]).into())
 	}
 }
 
@@ -256,7 +256,7 @@ where
 {
 	/// Try to dispatch a Substrate call.
 	/// Return an error if there are not enough gas, or if the call fails.
-	/// If succesful returns the used gas using the Runtime GasWeightMapping.
+	/// If successful returns the used gas using the Runtime GasWeightMapping.
 	pub fn try_dispatch<Call>(
 		origin: <Runtime::Call as Dispatchable>::Origin,
 		call: Call,

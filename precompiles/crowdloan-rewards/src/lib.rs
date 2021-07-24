@@ -149,7 +149,7 @@ where
 		input.expect_arguments(1)?;
 
 		// parse the address
-		let contributor = input.read_address()?;
+		let contributor = input.read_address::<Runtime::AccountId>()?;
 
 		log::trace!(
 			target: "crowdloan-rewards-precompile",
@@ -168,10 +168,9 @@ where
 			}
 		}
 
-		let account: Runtime::AccountId = contributor.into();
 		// fetch data from pallet
 		let is_contributor =
-			pallet_crowdloan_rewards::Pallet::<Runtime>::accounts_payable(account).is_some();
+			pallet_crowdloan_rewards::Pallet::<Runtime>::accounts_payable(contributor).is_some();
 
 		log::trace!(target: "crowldoan-rewards-precompile", "Result from pallet is {:?}", is_contributor);
 
@@ -195,7 +194,7 @@ where
 		input.expect_arguments(1)?;
 
 		// parse the address
-		let contributor = input.read_address()?;
+		let contributor = input.read_address::<Runtime::AccountId>()?;
 
 		log::trace!(
 			target: "crowdloan-rewards-precompile",
@@ -264,7 +263,7 @@ where
 		input.expect_arguments(1)?;
 
 		// parse the address
-		let new_address = input.read_address()?;
+		let new_address = input.read_address::<Runtime::AccountId>()?;
 
 		log::trace!(target: "crowdloan-rewards-precompile", "New account is {:?}", new_address);
 
