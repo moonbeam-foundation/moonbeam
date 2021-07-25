@@ -15,6 +15,7 @@ sp-io = { git = "https://github.com/paritytech/substrate", default-features = fa
 codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
 frame-support = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-np098" }
 
 pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.8" }
 evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }
@@ -22,6 +23,7 @@ evm = { version = "0.27.0", default-features = false, features = ["with-codec"] 
 [features]
 default = ["std"]
 std = [
+    "cumulus-primitives-core/std",
     "codec/std",
     "sp-std/std",
     "sp-core/std",

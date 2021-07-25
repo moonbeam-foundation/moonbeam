@@ -16,6 +16,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use cumulus_primitives_core::relay_chain;
 use evm::ExitError;
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
@@ -65,11 +66,19 @@ impl<'a> InputReader<'a> {
 		}
 	}
 
+	/// Check the input has the correct amount of arguments (32 bytes values).
+	pub fn expect_minimum_arguments(&self, args: usize) -> EvmResult {
+		if self.input.len() >= 4 + args * 32 {
+			Ok(())
+		} else {
+			Err(error("input doesn't match expected length"))
+		}
+	}
+
 	/// Parse a U256 value.
 	/// Returns an error if trying to parse out of bound.
 	pub fn read_u256(&mut self) -> EvmResult<U256> {
 		let range_end = self.cursor + 32;
-
 		let data = self
 			.input
 			.get(self.cursor..range_end)
@@ -78,6 +87,37 @@ impl<'a> InputReader<'a> {
 		self.cursor += 32;
 
 		Ok(U256::from_big_endian(data))
+	}
+
+	/// Parse a u32 value.
+	/// Returns an error if trying to parse out of bound.
+	pub fn read_u32(&mut self) -> EvmResult<u32> {
+		let range_end = self.cursor + 32;
+
+		let data = self
+			.input
+			.get(self.cursor..range_end)
+			.ok_or_else(|| error("tried to parse out of bound"))?;
+
+		self.cursor += 32;
+		let mut output: [u8; 4] = [0u8; 4];
+		output.copy_from_slice(&data[28..32]);
+		Ok(u32::from_be_bytes(output))
+	}
+
+	/// Parse a u32 value.
+	/// Returns an error if trying to parse out of bound.
+	pub fn read_bool(&mut self) -> EvmResult<bool> {
+		let range_end = self.cursor + 32;
+
+		let data = self
+			.input
+			.get(self.cursor..range_end)
+			.ok_or_else(|| error("tried to parse out of bound"))?;
+
+		self.cursor += 32;
+		let value = if data[31] == 0 { false } else { true };
+		Ok(value)
 	}
 
 	/// Parse an address value.
@@ -94,6 +134,24 @@ impl<'a> InputReader<'a> {
 		self.cursor += 32;
 
 		Ok(H160::from_slice(&data[12..32]))
+	}
+
+	/// Parse a relay address value.
+	/// Returns an error if trying to parse out of bound.
+	pub fn read_relay_address(&mut self) -> EvmResult<relay_chain::AccountId> {
+		let range_end = self.cursor + 32;
+
+		let data = self
+			.input
+			.get(self.cursor..range_end)
+			.ok_or_else(|| error("tried to parse out of bound"))?;
+
+		self.cursor += 32;
+
+		let mut output: [u8; 32] = [0u8; 32];
+		output.copy_from_slice(&data[0..32]);
+
+		Ok(relay_chain::AccountId::from(output))
 	}
 }
 
@@ -128,6 +186,30 @@ impl OutputBuilder {
 			buffer[31] = 1;
 		}
 		self.data.extend_from_slice(&buffer);
+		self
+	}
+
+	/// Write bytes
+	/// For now we assume this is gonna be the only output
+	/// https://rinkeby.etherscan.io/tx/0xd7426d39a1ee7a59e94d0546023cbeec5cfd362ffca66b7e524ca06bc52814d0
+	/// Bytes should be encoded as:
+	// uint256 offset at which the data for the bytes start.
+	// Length of bytes
+	// Bytes
+	pub fn write_bytes<T: Into<Vec<u8>>>(mut self, value: T) -> Self {
+		let data = value.into();
+		let length = data.len();
+		let mut cursor = 0;
+		while cursor < length {
+			let mut buffer = [0u8; 32];
+			if cursor + 32 > length {
+				buffer[0..length - cursor].copy_from_slice(&data[cursor..]);
+			} else {
+				buffer.copy_from_slice(&data[cursor..cursor + 32]);
+			}
+			self.data.extend_from_slice(&buffer);
+			cursor += 32;
+		}
 		self
 	}
 }
