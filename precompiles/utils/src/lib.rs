@@ -190,11 +190,8 @@ impl OutputBuilder {
 	}
 
 	/// Write bytes
-	/// For now we assume this is gonna be the only output
-	/// https://rinkeby.etherscan.io/tx/0xd7426d39a1ee7a59e94d0546023cbeec5cfd362ffca66b7e524ca06bc52814d0
-	/// Bytes should be encoded as:
-	// uint256 offset at which the data for the bytes start.
-	// Length of bytes
+	/// https://rinkeby.etherscan.io/tx/
+	///	0xd7426d39a1ee7a59e94d0546023cbeec5cfd362ffca66b7e524ca06bc52814d0
 	// Bytes
 	pub fn write_bytes<T: Into<Vec<u8>>>(mut self, value: T) -> Self {
 		let data = value.into();
