@@ -60,14 +60,18 @@ where
 		let input = InputReader::new(input)?;
 
 		match input.selector() {
-			[0x8e, 0x50, 0x80, 0xe7] => Self::is_nominator(input, target_gas),
-			[0x85, 0x45, 0xc8, 0x33] => Self::is_candidate(input, target_gas),
-			[0x8f, 0x6d, 0x27, 0xc7] => Self::is_selected_candidate(input, target_gas),
+			// constants
 			[0xc9, 0xf5, 0x93, 0xb2] => Self::min_nomination(target_gas),
+			// storage getters
 			[0x97, 0x99, 0xb4, 0xe7] => Self::points(input, target_gas),
 			[0x4b, 0x1c, 0x4c, 0x29] => Self::candidate_count(target_gas),
 			[0x0a, 0xd6, 0xa7, 0xbe] => Self::collator_nomination_count(input, target_gas),
 			[0xda, 0xe5, 0x65, 0x9b] => Self::nominator_nomination_count(input, target_gas),
+			// role verifiers
+			[0x8e, 0x50, 0x80, 0xe7] => Self::is_nominator(input, target_gas),
+			[0x85, 0x45, 0xc8, 0x33] => Self::is_candidate(input, target_gas),
+			[0x8f, 0x6d, 0x27, 0xc7] => Self::is_selected_candidate(input, target_gas),
+			// runtime methods (setters)
 			[0x0a, 0x1b, 0xff, 0x60] => Self::join_candidates(input, target_gas, context),
 			[0x72, 0xb0, 0x2a, 0x31] => Self::leave_candidates(input, target_gas, context),
 			[0x76, 0x7e, 0x04, 0x50] => Self::go_offline(target_gas, context),
@@ -93,8 +97,156 @@ where
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<parachain_staking::Call<Runtime>>,
 {
-	// TODO: reorder
-	// constants, storage getters, role verifiers, setters
+	// Constants
+
+	fn min_nomination(target_gas: Option<u64>) -> Result<PrecompileOutput, ExitError> {
+		let mut gasometer = Gasometer::new(target_gas);
+
+		// Fetch info.
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let min_nomination: u128 = <<Runtime as parachain_staking::Config>::MinNomination as Get<
+			BalanceOf<Runtime>,
+		>>::get()
+		.try_into()
+		.map_err(|_| ExitError::Other("Amount is too large for provided balance type".into()))?;
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: OutputBuilder::new().write_u256(min_nomination).build(),
+			logs: vec![],
+		})
+	}
+
+	// Storage Getters
+
+	fn points(
+		mut input: InputReader,
+		target_gas: Option<u64>,
+	) -> Result<PrecompileOutput, ExitError> {
+		let mut gasometer = Gasometer::new(target_gas);
+
+		// Read input.
+		input.expect_arguments(1)?;
+
+		let round = input.read_u32()?;
+
+		// Fetch info.
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let points: u32 = parachain_staking::Pallet::<Runtime>::points(round);
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: OutputBuilder::new().write_u256(points).build(),
+			logs: vec![],
+		})
+	}
+
+	fn candidate_count(target_gas: Option<u64>) -> Result<PrecompileOutput, ExitError> {
+		let mut gasometer = Gasometer::new(target_gas);
+
+		// Fetch info.
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let candidate_count: u32 = <parachain_staking::Pallet<Runtime>>::candidate_pool()
+			.0
+			.len() as u32;
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: OutputBuilder::new().write_u256(candidate_count).build(),
+			logs: vec![],
+		})
+	}
+
+	fn collator_nomination_count(
+		mut input: InputReader,
+		target_gas: Option<u64>,
+	) -> Result<PrecompileOutput, ExitError> {
+		let mut gasometer = Gasometer::new(target_gas);
+
+		// Read input.
+		input.expect_arguments(1)?;
+
+		let address = input.read_address::<Runtime::AccountId>()?;
+
+		// Fetch info.
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let result: U256 =
+			if let Some(state) = <parachain_staking::Pallet<Runtime>>::collator_state2(&address) {
+				let collator_nomination_count: u32 = state.nominators.0.len() as u32;
+
+				log::trace!(
+					target: "staking-precompile",
+					"Result from pallet is {:?}",
+					collator_nomination_count
+				);
+				collator_nomination_count.into()
+			} else {
+				log::trace!(
+					target: "staking-precompile",
+					"Collator {:?} not found, so nomination count is 0",
+					address
+				);
+				U256::zero()
+			};
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: OutputBuilder::new().write_u256(result).build(),
+			logs: vec![],
+		})
+	}
+
+	fn nominator_nomination_count(
+		mut input: InputReader,
+		target_gas: Option<u64>,
+	) -> Result<PrecompileOutput, ExitError> {
+		let mut gasometer = Gasometer::new(target_gas);
+
+		// Read input.
+		input.expect_arguments(1)?;
+
+		let address = input.read_address::<Runtime::AccountId>()?;
+
+		// Fetch info.
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let result: U256 =
+			if let Some(state) = <parachain_staking::Pallet<Runtime>>::nominator_state(&address) {
+				let nominator_nomination_count: u32 = state.nominations.0.len() as u32;
+
+				log::trace!(
+					target: "staking-precompile",
+					"Result from pallet is {:?}",
+					nominator_nomination_count
+				);
+
+				nominator_nomination_count.into()
+			} else {
+				log::trace!(
+					target: "staking-precompile",
+					"Nominator {:?} not found, so nomination count is 0",
+					address
+				);
+				U256::zero()
+			};
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: OutputBuilder::new().write_u256(result).build(),
+			logs: vec![],
+		})
+	}
+
+	// Role Verifiers
 
 	fn is_nominator(
 		mut input: InputReader,
@@ -169,169 +321,7 @@ where
 		})
 	}
 
-	fn min_nomination(target_gas: Option<u64>) -> Result<PrecompileOutput, ExitError> {
-		let mut gasometer = Gasometer::new(target_gas);
-
-		// Fetch info.
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let raw_min_nomination: u128 = <
-			<Runtime as parachain_staking::Config>::MinNomination
-				as Get<BalanceOf<Runtime>>
-			>::get().try_into()
-				.map_err(|_|
-					ExitError::Other("Amount is too large for provided balance type".into())
-				)?;
-		let min_nomination: U256 = raw_min_nomination.into();
-
-		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			// TODO: can use raw_min_nomination
-			output: OutputBuilder::new().write_u256(min_nomination).build(),
-			logs: vec![],
-		})
-	}
-
-	fn points(
-		mut input: InputReader,
-		target_gas: Option<u64>,
-	) -> Result<PrecompileOutput, ExitError> {
-		let mut gasometer = Gasometer::new(target_gas);
-
-		// Read input.
-		input.expect_arguments(1)?;
-
-		let round = input.read_u32()?;
-
-		// Fetch info.
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let points: u32 = parachain_staking::Pallet::<Runtime>::points(round);
-
-		// TODO: is this necessary
-		// Make sure the round number fits in a u32
-		// if round_u256.leading_zeros() < 256 - 32 {
-		// 	return Err(ExitError::Other(
-		// 		"Round is too large. 32 bit maximum".into(),
-		// 	));
-		// }
-		// let round: u32 = round_u256.low_u32();
-
-		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: OutputBuilder::new().write_u256(points).build(),
-			logs: vec![],
-		})
-	}
-
-	fn candidate_count(target_gas: Option<u64>) -> Result<PrecompileOutput, ExitError> {
-		let mut gasometer = Gasometer::new(target_gas);
-
-		// Fetch info.
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let raw_candidate_count: u32 = <parachain_staking::Pallet<Runtime>>::candidate_pool()
-			.0
-			.len() as u32;
-		let candidate_count: U256 = raw_candidate_count.into();
-
-		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			// TODO: can use raw
-			output: OutputBuilder::new().write_u256(candidate_count).build(),
-			logs: vec![],
-		})
-	}
-
-	fn collator_nomination_count(
-		mut input: InputReader,
-		target_gas: Option<u64>,
-	) -> Result<PrecompileOutput, ExitError> {
-		let mut gasometer = Gasometer::new(target_gas);
-
-		// Read input.
-		input.expect_arguments(1)?;
-
-		let address = input.read_address::<Runtime::AccountId>()?;
-
-		// Fetch info.
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let result: U256 =
-			if let Some(state) = <parachain_staking::Pallet<Runtime>>::collator_state2(&address) {
-				let collator_nomination_count: u32 = state.nominators.0.len() as u32;
-
-				log::trace!(
-					target: "staking-precompile",
-					"Result from pallet is {:?}",
-					collator_nomination_count
-				);
-				collator_nomination_count.into()
-			} else {
-				log::trace!(
-					target: "staking-precompile",
-					"Collator {:?} not found, so nomination count is 0",
-					address
-				);
-				U256::zero()
-			};
-
-		// TODO: check length and same for all of the others, can panic if len < 32
-
-		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: OutputBuilder::new().write_u256(result).build(),
-			logs: vec![],
-		})
-	}
-
-	fn nominator_nomination_count(
-		mut input: InputReader,
-		target_gas: Option<u64>,
-	) -> Result<PrecompileOutput, ExitError> {
-		let mut gasometer = Gasometer::new(target_gas);
-
-		// Read input.
-		input.expect_arguments(1)?;
-
-		let address = input.read_address::<Runtime::AccountId>()?;
-
-		// Fetch info.
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let result: U256 =
-			if let Some(state) = <parachain_staking::Pallet<Runtime>>::nominator_state(&address) {
-				let nominator_nomination_count: u32 = state.nominations.0.len() as u32;
-
-				log::trace!(
-					target: "staking-precompile",
-					"Result from pallet is {:?}",
-					nominator_nomination_count
-				);
-
-				nominator_nomination_count.into()
-			} else {
-				log::trace!(
-					target: "staking-precompile",
-					"Nominator {:?} not found, so nomination count is 0",
-					address
-				);
-				U256::zero()
-			};
-
-		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: OutputBuilder::new().write_u256(result).build(),
-			logs: vec![],
-		})
-	}
-
-	// The dispatchable wrappers are next. They return a substrate inner Call ready for dispatch.
+	// Runtime Methods (setters)
 
 	fn join_candidates(
 		mut input: InputReader,
@@ -366,7 +356,6 @@ where
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: vec![],
-			// TODO: log amount bonded
 			logs: vec![],
 		})
 	}
@@ -400,7 +389,6 @@ where
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: vec![],
-			// TODO: log amount bonded
 			logs: vec![],
 		})
 	}
@@ -488,7 +476,6 @@ where
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: vec![],
-			// TODO: log amount bonded
 			logs: vec![],
 		})
 	}
@@ -522,7 +509,6 @@ where
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: vec![],
-			// TODO: log amount bonded
 			logs: vec![],
 		})
 	}
@@ -564,7 +550,6 @@ where
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: vec![],
-			// TODO: log amount bonded
 			logs: vec![],
 		})
 	}
@@ -598,7 +583,6 @@ where
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: vec![],
-			// TODO: log amount bonded
 			logs: vec![],
 		})
 	}
@@ -632,7 +616,6 @@ where
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: vec![],
-			// TODO: log amount bonded
 			logs: vec![],
 		})
 	}
@@ -667,7 +650,6 @@ where
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: vec![],
-			// TODO: log amount bonded
 			logs: vec![],
 		})
 	}
@@ -702,7 +684,6 @@ where
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: vec![],
-			// TODO: log amount bonded
 			logs: vec![],
 		})
 	}

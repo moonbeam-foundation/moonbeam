@@ -1937,6 +1937,155 @@ fn points_precompile_round_too_big_error() {
 	})
 }
 
+#[test]
+fn candidate_count_via_precompile() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 1_100 * GLMR),
+			(AccountId::from(BOB), 1_100 * GLMR),
+			(AccountId::from(CHARLIE), 1_100 * GLMR),
+			(AccountId::from(DAVE), 1_100 * GLMR),
+		])
+		.with_collators(vec![
+			(AccountId::from(ALICE), 1_000 * GLMR),
+			(AccountId::from(BOB), 1_000 * GLMR),
+			(AccountId::from(CHARLIE), 1_000 * GLMR),
+			(AccountId::from(DAVE), 1_000 * GLMR),
+		])
+		.build()
+		.execute_with(|| {
+			let staking_precompile_address = H160::from_low_u64_be(2048);
+
+			// Construct the input data to check number of candidates
+			let mut input_data = Vec::<u8>::from([0u8; 4]);
+			input_data[0..4].copy_from_slice(&Keccak256::digest(b"candidate_count()")[0..4]);
+
+			// Expected result is 4 candidates because 4 candidates initialized in genesis
+			let mut expected_bytes = Vec::from([0u8; 32]);
+			expected_bytes[31] = 4;
+
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 1000,
+				logs: Default::default(),
+			}));
+
+			// Assert that candidate_count == 4
+			assert_eq!(
+				Precompiles::execute(
+					staking_precompile_address,
+					&input_data,
+					None,
+					&evm_test_context(),
+				),
+				expected_result
+			);
+		})
+}
+
+#[test]
+fn collator_nomination_count_via_precompile() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 1_100 * GLMR),
+			(AccountId::from(BOB), 100 * GLMR),
+			(AccountId::from(CHARLIE), 100 * GLMR),
+			(AccountId::from(DAVE), 100 * GLMR),
+		])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_nominations(vec![
+			(AccountId::from(BOB), AccountId::from(ALICE), 100 * GLMR),
+			(AccountId::from(CHARLIE), AccountId::from(ALICE), 100 * GLMR),
+			(AccountId::from(DAVE), AccountId::from(ALICE), 100 * GLMR),
+		])
+		.build()
+		.execute_with(|| {
+			let staking_precompile_address = H160::from_low_u64_be(2048);
+
+			// Construct the input data to check number of nominations for a candidate
+			let mut input_data = Vec::<u8>::from([0u8; 36]);
+			input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"collator_nomination_count(address)")[0..4]);
+			input_data[16..36].copy_from_slice(&ALICE);
+
+			// Expected result is 3 because 3 nominations initialized at genesis
+			let mut expected_bytes = Vec::from([0u8; 32]);
+			expected_bytes[31] = 3;
+
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 1000,
+				logs: Default::default(),
+			}));
+
+			// Assert that collator_nomination_count == 3
+			assert_eq!(
+				Precompiles::execute(
+					staking_precompile_address,
+					&input_data,
+					None,
+					&evm_test_context(),
+				),
+				expected_result
+			);
+		})
+}
+
+#[test]
+fn nominator_nomination_count_via_precompile() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 1_000 * GLMR),
+			(AccountId::from(BOB), 1_000 * GLMR),
+			(AccountId::from(CHARLIE), 1_000 * GLMR),
+			(AccountId::from(DAVE), 400 * GLMR),
+		])
+		.with_collators(vec![
+			(AccountId::from(ALICE), 1_000 * GLMR),
+			(AccountId::from(BOB), 1_000 * GLMR),
+			(AccountId::from(CHARLIE), 1_000 * GLMR),
+		])
+		.with_nominations(vec![
+			(AccountId::from(DAVE), AccountId::from(ALICE), 100 * GLMR),
+			(AccountId::from(DAVE), AccountId::from(BOB), 100 * GLMR),
+			(AccountId::from(DAVE), AccountId::from(CHARLIE), 100 * GLMR),
+		])
+		.build()
+		.execute_with(|| {
+			let staking_precompile_address = H160::from_low_u64_be(2048);
+
+			// Construct the input data to check number of nominations for a nominator
+			let mut input_data = Vec::<u8>::from([0u8; 36]);
+			input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"nominator_nomination_count(address)")[0..4]);
+			input_data[16..36].copy_from_slice(&DAVE);
+
+			// Expected result is 3 because 3 nominations initialized at genesis
+			let mut expected_bytes = Vec::from([0u8; 32]);
+			expected_bytes[31] = 3;
+
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 1000,
+				logs: Default::default(),
+			}));
+
+			// Assert that nominator_nomination_count == 3
+			assert_eq!(
+				Precompiles::execute(
+					staking_precompile_address,
+					&input_data,
+					None,
+					&evm_test_context(),
+				),
+				expected_result
+			);
+		})
+}
+
 fn run_with_system_weight<F>(w: Weight, mut assertions: F)
 where
 	F: FnMut() -> (),
