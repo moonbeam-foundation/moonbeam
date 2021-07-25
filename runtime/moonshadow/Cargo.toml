@@ -21,6 +21,7 @@ moonbeam-core-primitives = { path = "../../core-primitives", default-features = 
 pallet-ethereum-chain-id = { path = "../../pallets/ethereum-chain-id", default-features = false }
 parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
 parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", default-features = false }
+relay-encoder-precompiles =  { path = "../../precompiles/relay-encoder", default-features = false }
 pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098", default-features = false }
 nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098", default-features = false }
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
@@ -75,6 +76,7 @@ crowdloan-rewards-precompiles = { path = "../../precompiles/crowdloan-rewards", 
 moonbeam-evm-tracer = { path = "../evm_tracer", default-features = false }
 moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug", default-features = false }
 moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool", default-features = false }
+moonbeam-relay-encoder = {path = "../relay-encoder", default-features = false }
 
 # Cumulus dependencies
 cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-np098" }
@@ -155,6 +157,8 @@ std = [
 	"pallet-treasury/std",
 	"max-encoded-len/std",
 	"evm/std",
+	"moonbeam-relay-encoder/std",
+	"relay-encoder-precompiles/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.

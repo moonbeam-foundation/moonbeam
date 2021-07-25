@@ -19,6 +19,7 @@
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use evm::{executor::PrecompileOutput, Context, ExitError};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
+use moonbeam_relay_encoder::polkadot::PolkadotEncoder;
 use pallet_evm::{Precompile, PrecompileSet};
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
@@ -27,6 +28,7 @@ use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use parachain_staking_precompiles::ParachainStakingWrapper;
 use parity_scale_codec::Decode;
+use relay_encoder_precompiles::RelayEncoderWrapper;
 use sp_core::H160;
 use sp_std::convert::TryFrom;
 use sp_std::fmt::Debug;
@@ -101,6 +103,9 @@ where
 				input, target_gas, context,
 			)),
 			a if a == hash(2049) => Some(CrowdloanRewardsWrapper::<R>::execute(
+				input, target_gas, context,
+			)),
+			a if a == hash(2050) => Some(RelayEncoderWrapper::<R, PolkadotEncoder>::execute(
 				input, target_gas, context,
 			)),
 			_ => None,
