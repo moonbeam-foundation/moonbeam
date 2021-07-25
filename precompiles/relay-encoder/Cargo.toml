@@ -1,0 +1,49 @@
+[package]
+name = "relay-encoder-precompiles"
+version = "0.1.0"
+authors = ["PureStake"]
+edition = "2018"
+description = "A Precompile to make crowdloan rewards accessible to pallet-evm"
+
+[dependencies]
+sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
+log = "0.4"
+rustc-hex = { version = "2.0.1", default-features = false }
+evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.8" }
+frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-np098" }
+
+parity-scale-codec = { version = "2.0.0", default-features = false, features = ["derive"] }
+sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
+pallet-staking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
+frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
+sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
+precompile-utils = { path = "../utils", default-features = false }
+
+[dev-dependencies]
+sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
+sha3 = "0.9"
+pallet-balances = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.8" }
+pallet-timestamp = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.8" }
+cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098" }
+max-encoded-len = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.8", features=["derive"] }
+derive_more = "0.99"
+serde = "1.0.100"
+hex-literal = "0.3.3"
+
+[features]
+default = ["std"]
+std = [
+    "precompile-utils/std",
+    "evm/std",
+    "pallet-evm/std",
+    "frame-support/std",
+    "sp-std/std",
+    "parity-scale-codec/std",
+    "pallet-staking/std",
+    "cumulus-primitives-core/std",
+    "sp-runtime/std",
+    "parity-scale-codec/std",
+    "frame-system/std",
+]
