@@ -23,7 +23,12 @@ use frame_support::{
 };
 use pallet_evm::{GasWeightMapping, Log};
 use sp_core::{H160, H256, U256};
-use sp_std::{marker::PhantomData, vec, vec::Vec};
+use sp_std::{
+	convert::{TryFrom, TryInto},
+	marker::PhantomData,
+	vec,
+	vec::Vec,
+};
 
 /// Alias for Result returning an EVM precompile error.
 pub type EvmResult<T = ()> = Result<T, ExitError>;
@@ -80,6 +85,15 @@ impl<'a> InputReader<'a> {
 		Ok(U256::from_big_endian(data))
 	}
 
+	/// Parse a u32 value.
+	/// Returns an error if trying to parse out of bound.
+	pub fn read_u32(&mut self) -> EvmResult<u32> {
+		Ok(self
+			.read_u256()?
+			.try_into()
+			.map_err(|_| ExitError::Other("Too large for u32".into()))?)
+	}
+
 	/// Parse an address value.
 	/// Returns an error if trying to parse out of bound.
 	/// Ignores the 12 higher bytes.
@@ -94,6 +108,14 @@ impl<'a> InputReader<'a> {
 		self.cursor += 32;
 
 		Ok(H160::from_slice(&data[12..32]).into())
+	}
+
+	/// Parse a balance value.
+	/// Returns an error if trying to parse out of bound.
+	pub fn read_balance<Balance: TryFrom<U256>>(&mut self) -> EvmResult<Balance> {
+		Ok(self.read_u256()?.try_into().map_err(|_| {
+			ExitError::Other("Amount is too large for provided balance type".into())
+		})?)
 	}
 }
 

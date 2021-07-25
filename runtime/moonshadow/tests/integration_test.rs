@@ -1929,9 +1929,7 @@ fn points_precompile_round_too_big_error() {
 				None,
 				&evm_test_context(),
 			),
-			Some(Err(ExitError::Other(
-				"Round is too large. 32 bit maximum".into()
-			)))
+			Some(Err(ExitError::Other("Too large for u32".into())))
 		);
 	})
 }

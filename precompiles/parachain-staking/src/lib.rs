@@ -22,16 +22,13 @@ use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
-use pallet_evm::GasWeightMapping;
 use pallet_evm::Precompile;
-use precompile_utils::{
-	error, EvmResult, Gasometer, InputReader, LogsBuilder, OutputBuilder, RuntimeHelper,
-};
+use precompile_utils::{error, Gasometer, InputReader, OutputBuilder, RuntimeHelper};
 use sp_core::{H160, U256};
 use sp_std::convert::{TryFrom, TryInto};
 use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
-use sp_std::{vec, vec::Vec};
+use sp_std::vec;
 
 type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as Currency<
 	<Runtime as frame_system::Config>::AccountId,
@@ -85,44 +82,6 @@ where
 			_ => Err(error("no selector found")),
 		}
 	}
-}
-
-/// Parses an H160 account address from a 256 bit (32 byte) buffer. Only the last 20 bytes are used.
-fn parse_account(input: &[u8]) -> Result<H160, ExitError> {
-	const PADDING_SIZE_BYTES: usize = 12;
-	const ACCOUNT_SIZE_BYTES: usize = 20;
-	const TOTAL_SIZE_BYTES: usize = PADDING_SIZE_BYTES + ACCOUNT_SIZE_BYTES;
-
-	if input.len() != TOTAL_SIZE_BYTES {
-		log::trace!(target: "staking-precompile",
-			"Unable to parse address. Got {} bytes, expected {}",
-			input.len(),
-			TOTAL_SIZE_BYTES,
-		);
-		return Err(ExitError::Other(
-			"Incorrect input length for account parsing".into(),
-		));
-	}
-
-	Ok(H160::from_slice(
-		&input[PADDING_SIZE_BYTES..TOTAL_SIZE_BYTES],
-	))
-}
-
-/// Parses an amount of ether from a 256 bit (32 byte) slice. The balance type is generic.
-/// TODO: move to precompile-utils
-fn u256_to_amount<Balance: TryFrom<U256>>(input: U256) -> Result<Balance, ExitError> {
-	Ok(input
-		.try_into()
-		.map_err(|_| ExitError::Other("Amount is too large for provided balance type".into()))?)
-}
-
-/// Parses Weight Hint: u32 from a U256
-/// TODO: move to precompile-utils
-fn u256_to_u32(input: U256) -> Result<u32, ExitError> {
-	Ok(input
-		.try_into()
-		.map_err(|_| ExitError::Other("Too large for u32".into()))?)
 }
 
 impl<Runtime> ParachainStakingWrapper<Runtime>
@@ -243,7 +202,7 @@ where
 		// Read input.
 		input.expect_arguments(1)?;
 
-		let round = u256_to_u32(input.read_u256()?)?;
+		let round = input.read_u32()?;
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -384,8 +343,8 @@ where
 		// Read input.
 		input.expect_arguments(2)?;
 
-		let amount = u256_to_amount::<BalanceOf<Runtime>>(input.read_u256()?)?;
-		let collator_candidate_count = u256_to_u32(input.read_u256()?)?;
+		let amount = input.read_balance::<BalanceOf<Runtime>>()?;
+		let collator_candidate_count = input.read_u32()?;
 		// let amount = parse_amount::<BalanceOf<Runtime>>(&input[..32])?;
 		// let collator_candidate_count = parse_weight_hint(&input[32..])?;
 
@@ -422,7 +381,7 @@ where
 		// Read input.
 		input.expect_arguments(1)?;
 
-		let collator_candidate_count = u256_to_u32(input.read_u256()?)?;
+		let collator_candidate_count = input.read_u32()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
@@ -510,7 +469,7 @@ where
 		// Read input.
 		input.expect_arguments(1)?;
 
-		let amount = u256_to_amount(input.read_u256()?)?;
+		let amount = input.read_balance::<BalanceOf<Runtime>>()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
@@ -544,7 +503,7 @@ where
 		// Read input.
 		input.expect_arguments(1)?;
 
-		let amount = u256_to_amount(input.read_u256()?)?;
+		let amount = input.read_balance::<BalanceOf<Runtime>>()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
@@ -579,9 +538,9 @@ where
 		input.expect_arguments(4)?;
 
 		let collator = input.read_address::<Runtime::AccountId>()?;
-		let amount = u256_to_amount::<BalanceOf<Runtime>>(input.read_u256()?)?;
-		let collator_nomination_count = u256_to_u32(input.read_u256()?)?;
-		let nominator_nomination_count = u256_to_u32(input.read_u256()?)?;
+		let amount = input.read_balance::<BalanceOf<Runtime>>()?;
+		let collator_nomination_count = input.read_u32()?;
+		let nominator_nomination_count = input.read_u32()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
@@ -620,7 +579,7 @@ where
 		// Read input.
 		input.expect_arguments(1)?;
 
-		let nomination_count = u256_to_u32(input.read_u256()?)?;
+		let nomination_count = input.read_u32()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
@@ -689,7 +648,7 @@ where
 		input.expect_arguments(2)?;
 
 		let collator = input.read_address::<Runtime::AccountId>()?;
-		let amount = u256_to_amount(input.read_u256()?)?;
+		let amount = input.read_balance::<BalanceOf<Runtime>>()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
@@ -724,7 +683,7 @@ where
 		input.expect_arguments(2)?;
 
 		let collator = input.read_address::<Runtime::AccountId>()?;
-		let amount = u256_to_amount(input.read_u256()?)?;
+		let amount = input.read_balance::<BalanceOf<Runtime>>()?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
