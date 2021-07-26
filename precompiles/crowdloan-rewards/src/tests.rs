@@ -24,7 +24,7 @@ use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_crowdloan_rewards::{Call as CrowdloanCall, Event as CrowdloanEvent};
 use pallet_evm::Call as EvmCall;
 use pallet_evm::{ExitError, ExitSucceed, PrecompileSet};
-use precompile_utils::OutputBuilder;
+use precompile_utils::EvmDataWriter;
 use sha3::{Digest, Keccak256};
 use sp_core::U256;
 
@@ -89,7 +89,7 @@ fn is_contributor_returns_false() {
 			// Expected result is one
 			let expected_one_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: OutputBuilder::new().write_bool(false).build(),
+				output: EvmDataWriter::new().write_bool(false).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
@@ -134,7 +134,7 @@ fn is_contributor_returns_true() {
 			// Expected result is one
 			let expected_one_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: OutputBuilder::new().write_bool(true).build(),
+				output: EvmDataWriter::new().write_bool(true).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
@@ -228,8 +228,8 @@ fn reward_info_works() {
 			input_data[0..4].copy_from_slice(&selector);
 			input_data[16..36].copy_from_slice(&Alice.to_h160().0);
 
-			let mut output = OutputBuilder::new().write_u256(50u64).build();
-			output.extend(OutputBuilder::new().write_u256(10u64).build()); // Expected result
+			let mut output = EvmDataWriter::new().write_u256(50u64).build();
+			output.extend(EvmDataWriter::new().write_u256(10u64).build()); // Expected result
 			let expected_buffer_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: output,

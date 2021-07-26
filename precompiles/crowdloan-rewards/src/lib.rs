@@ -24,7 +24,7 @@ use frame_support::{
 	traits::{Currency, Get},
 };
 use pallet_evm::{AddressMapping, GasWeightMapping, Precompile};
-use precompile_utils::{error, InputReader, OutputBuilder};
+use precompile_utils::{error, EvmDataReader, EvmDataWriter};
 
 use sp_core::{H160, U256};
 use sp_std::{
@@ -60,13 +60,13 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Result<PrecompileOutput, ExitError> {
-		let input = InputReader::new(input)?;
+		let mut input = EvmDataReader::new(input);
 
 		// Parse the function selector
 		// These are the four-byte function selectors calculated from the CrowdloanInterface.sol
 		// according to the solidity specification
 		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html#function-selector
-		let inner_call = match input.selector() {
+		let inner_call = match &input.read_selector()? {
 			// Check for accessor methods first. These return results immediately
 			[0x53, 0x44, 0x0c, 0x90] => {
 				return Self::is_contributor(input, target_gas);
@@ -83,7 +83,8 @@ where
 					"Failed to match function selector in crowdloan rewards precompile"
 				);
 				return Err(error(
-					"No crowdloan rewards wrapper method at given selector".into(),
+					"No crowdloan rewards wrapper method at given selector"
+					,
 				));
 			}
 		};
@@ -142,7 +143,7 @@ where
 {
 	// The accessors are first. They directly return their result.
 	fn is_contributor(
-		mut input: InputReader,
+		mut input: EvmDataReader,
 		target_gas: Option<u64>,
 	) -> Result<PrecompileOutput, ExitError> {
 		// Bound check
@@ -182,13 +183,13 @@ where
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gas_consumed,
-			output: OutputBuilder::new().write_bool(is_contributor).build(),
+			output: EvmDataWriter::new().write_bool(is_contributor).build(),
 			logs: Default::default(),
 		})
 	}
 
 	fn reward_info(
-		mut input: InputReader,
+		mut input: EvmDataReader,
 		target_gas: Option<u64>,
 	) -> Result<PrecompileOutput, ExitError> {
 		// Bound check
@@ -237,8 +238,8 @@ where
 			total, claimed
 		);
 
-		let mut output = OutputBuilder::new().write_u256(total).build();
-		output.extend(OutputBuilder::new().write_u256(claimed).build());
+		let mut output = EvmDataWriter::new().write_u256(total).build();
+		output.extend(EvmDataWriter::new().write_u256(claimed).build());
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -253,7 +254,7 @@ where
 	}
 
 	fn update_reward_address(
-		mut input: InputReader,
+		mut input: EvmDataReader,
 	) -> Result<pallet_crowdloan_rewards::Call<Runtime>, ExitError> {
 		log::trace!(
 			target: "crowdloan-rewards-precompile",

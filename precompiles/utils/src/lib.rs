@@ -36,33 +36,39 @@ pub fn error(text: &'static str) -> ExitError {
 /// Wrapper around an EVM input slice, helping to parse it.
 /// Provide functions to parse common types.
 #[derive(Clone, Copy, Debug)]
-pub struct InputReader<'a> {
+pub struct EvmDataReader<'a> {
 	input: &'a [u8],
 	cursor: usize,
 }
 
-impl<'a> InputReader<'a> {
+impl<'a> EvmDataReader<'a> {
 	/// Create a new input parser.
-	pub fn new(input: &'a [u8]) -> EvmResult<Self> {
-		if input.len() >= 4 {
-			Ok(Self { input, cursor: 4 })
-		} else {
-			Err(error("input must at least contain a selector"))
-		}
-	}
-
-	/// Extract selector from input.
-	pub fn selector(&self) -> &[u8] {
-		&self.input[0..4]
+	pub fn new(input: &'a [u8]) -> Self {
+		Self { input, cursor: 0 }
 	}
 
 	/// Check the input has the correct amount of arguments (32 bytes values).
 	pub fn expect_arguments(&self, args: usize) -> EvmResult {
-		if self.input.len() == 4 + args * 32 {
+		if self.input.len() == self.cursor + args * 32 {
 			Ok(())
 		} else {
 			Err(error("input doesn't match expected length"))
 		}
+	}
+
+	/// Parse (4 bytes) selector.
+	/// Returns an error if trying to parse out of bounds.
+	pub fn read_selector(&mut self) -> EvmResult<&[u8]> {
+		let range_end = self.cursor + 4;
+
+		let data = self
+			.input
+			.get(self.cursor..range_end)
+			.ok_or_else(|| error("tried to parse selector out of bound"))?;
+
+		self.cursor += 4;
+
+		Ok(data)
 	}
 
 	/// Parse a U256 value.
@@ -73,7 +79,7 @@ impl<'a> InputReader<'a> {
 		let data = self
 			.input
 			.get(self.cursor..range_end)
-			.ok_or_else(|| error("tried to parse out of bound"))?;
+			.ok_or_else(|| error("tried to parse u256 out of bound"))?;
 
 		self.cursor += 32;
 
@@ -89,7 +95,7 @@ impl<'a> InputReader<'a> {
 		let data = self
 			.input
 			.get(self.cursor..range_end)
-			.ok_or_else(|| error("tried to parse out of bound"))?;
+			.ok_or_else(|| error("tried to parse address out of bound"))?;
 
 		self.cursor += 32;
 
@@ -97,13 +103,13 @@ impl<'a> InputReader<'a> {
 	}
 }
 
-/// Help build an EVM output data.
+/// Help build an EVM input/output data.
 #[derive(Clone, Debug)]
-pub struct OutputBuilder {
+pub struct EvmDataWriter {
 	data: Vec<u8>,
 }
 
-impl OutputBuilder {
+impl EvmDataWriter {
 	/// Creates a new empty output builder.
 	pub fn new() -> Self {
 		Self { data: vec![] }
@@ -112,6 +118,12 @@ impl OutputBuilder {
 	/// Return the built data.
 	pub fn build(self) -> Vec<u8> {
 		self.data
+	}
+
+	/// Write arbitrary bytes.
+	pub fn write_bytes(mut self, value: &[u8]) -> Self {
+		self.data.extend_from_slice(value);
+		self
 	}
 
 	/// Push a U256 to the output.
@@ -133,7 +145,7 @@ impl OutputBuilder {
 	}
 }
 
-impl Default for OutputBuilder {
+impl Default for EvmDataWriter {
 	fn default() -> Self {
 		Self::new()
 	}
