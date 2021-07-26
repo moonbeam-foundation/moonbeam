@@ -238,7 +238,7 @@ impl ExtBuilder {
 
 		pallet_migrations::GenesisConfig::<Test> {
 			completed_migrations: self.completed_migrations,
-			dummy: Default::default(),
+			phantom: Default::default(),
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet migration's storage can be assimilated");

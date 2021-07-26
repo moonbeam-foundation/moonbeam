@@ -199,7 +199,11 @@
         ]
       },
       "treasury": {},
-      "scheduler": null
+      "scheduler": null,
+      "migrations": {
+        "phantom": null,
+        "completedMigrations": []
+      }
     }
   }
 }

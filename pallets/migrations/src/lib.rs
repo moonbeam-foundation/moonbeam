@@ -159,7 +159,7 @@ pub mod pallet {
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
 		pub completed_migrations: Vec<Vec<u8>>,
-		pub dummy: PhantomData<T>,
+		pub phantom: PhantomData<T>,
 	}
 
 	#[cfg(feature = "std")]
@@ -167,7 +167,7 @@ pub mod pallet {
 		fn default() -> Self {
 			Self {
 				completed_migrations: vec![],
-				dummy: PhantomData,
+				phantom: PhantomData,
 			}
 		}
 	}
