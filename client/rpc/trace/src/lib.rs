@@ -869,7 +869,7 @@ where
 							"Internal runtime error when replaying block {} : {:?}",
 							height, e
 						))
-					});
+					})?;
 				Ok(proxy::Result::V2(proxy::ResultV2::Block))
 			} else {
 				// For versions < 2 block needs to be manually initialized.

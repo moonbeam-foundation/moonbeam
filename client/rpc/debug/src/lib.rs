@@ -259,7 +259,7 @@ where
 							.map_err(|e| {
 								internal_err(format!("Runtime api access error: {:?}", e))
 							})?
-							.map_err(|e| internal_err(format!("DispatchError: {:?}", e)));
+							.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
 
 						Ok(proxy::Result::V2(proxy::ResultV2::Single))
 					} else {
