@@ -21,7 +21,13 @@ frame-system = { git = "https://github.com/paritytech/substrate", default-featur
 precompile-utils = { path = "../utils", default-features = false }
 
 [dev-dependencies]
-hex = "0.4"
+sha3 = "0.9"
+max-encoded-len = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.8", features=["derive"] }
+serde = "1.0.100"
+derive_more = "0.99"
+pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
+pallet-timestamp = { git="https://github.com/paritytech/substrate", branch="polkadot-v0.9.8", default-features = false }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
 
 [features]
 default = ["std"]

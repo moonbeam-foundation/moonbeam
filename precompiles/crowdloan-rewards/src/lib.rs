@@ -202,8 +202,6 @@ where
 			contributor
 		);
 
-		let account: Runtime::AccountId = contributor.into();
-
 		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
 			<Runtime as frame_system::Config>::DbWeight::get().read,
 		);
@@ -216,7 +214,8 @@ where
 		}
 
 		// fetch data from pallet
-		let reward_info = pallet_crowdloan_rewards::Pallet::<Runtime>::accounts_payable(account);
+		let reward_info =
+			pallet_crowdloan_rewards::Pallet::<Runtime>::accounts_payable(contributor);
 
 		let (total, claimed): (U256, U256) = if let Some(reward_info) = reward_info {
 			let total_reward: u128 = reward_info.total_reward.try_into().map_err(|_| {
@@ -267,6 +266,6 @@ where
 
 		log::trace!(target: "crowdloan-rewards-precompile", "New account is {:?}", new_address);
 
-		Ok(pallet_crowdloan_rewards::Call::<Runtime>::update_reward_address(new_address.into()))
+		Ok(pallet_crowdloan_rewards::Call::<Runtime>::update_reward_address(new_address))
 	}
 }

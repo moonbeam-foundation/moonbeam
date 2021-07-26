@@ -14,13 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Precompile to call parachain-staking runtime methods via the EVM
+//! Precompile to access parachain-staking pallet via the EVM
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(test)]
+mod mock;
+#[cfg(test)]
+mod tests;
+
 use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use frame_support::traits::{Currency, Get};
+use frame_support::traits::{Currency, Get, MaxEncodedLen};
 use pallet_evm::AddressMapping;
 use pallet_evm::Precompile;
 use precompile_utils::{error, Gasometer, InputReader, OutputBuilder, RuntimeHelper};
@@ -83,7 +88,9 @@ where
 			[0x4b, 0x65, 0xc3, 0x4b] => Self::revoke_nomination(input, target_gas, context),
 			[0xf6, 0xa5, 0x25, 0x69] => Self::nominator_bond_less(input, target_gas, context),
 			[0x97, 0x1d, 0x44, 0xc8] => Self::nominator_bond_more(input, target_gas, context),
-			_ => Err(error("no selector found")),
+			_ => Err(error(
+				"No parachain-staking wrapper method at given selector",
+			)),
 		}
 	}
 }
