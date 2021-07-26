@@ -86,7 +86,8 @@ impl frame_system::Config for Test {
 /// It is is expected to exist as a singleton, but only remain relevant within the scope of a test.
 ///
 /// Tests should use execute_with_mock_migrations(), which will create a MockMigrationManager and
-/// provide it to the test.
+/// provide it to the test, ensuring that the MockMigrationManager remains valid for the duration of
+/// the callback.
 ///
 /// A pair of callbacks provided to register_callback() will map directly to a single instance of
 /// Migration (done by the MockMigration glue below). Treat each pair of callbacks as though it were

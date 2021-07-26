@@ -43,8 +43,9 @@ pub trait Migration {
 	/// its logic in small batches across as many blocks as needed.
 	///
 	/// Implementations should perform as much migration work as possible and then leave their
-	/// pallet in a valid state from which another 'step' of migration work can be performed. In no
-	/// case should a step consume more than `available_weight`.
+	/// pallet in a valid state from which another 'step' of migration work can be performed.
+	/// Consuming more weight than `available_weight` is dangerous and can lead to invalid blocks
+	/// for parachains.
 	///
 	/// This should return a perbill indicating the aggregate progress of the migration. If
 	/// `Perbill::one()` is returned, the migration is considered complete and no further calls to
@@ -59,7 +60,6 @@ pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
-	#[allow(unused_imports)] // TODO: why does it detect this as unused?
 	use sp_std::prelude::*;
 
 	/// Pallet for migrations
@@ -230,7 +230,6 @@ pub mod pallet {
 				// perform a step of this migration
 				let (updated_progress, consumed_weight) =
 					migration.step(migration_state, available_for_step);
-				// TODO: error if progress == 0 still?
 				<Pallet<T>>::deposit_event(Event::MigrationStepped(
 					migration_name_as_bytes.into(),
 					updated_progress,
@@ -239,9 +238,6 @@ pub mod pallet {
 
 				weight += consumed_weight;
 				if weight > available_weight {
-					// TODO: the intent here is to complain obnoxiously so that this is caught
-					// during development. In production, this should probably be tolerated because
-					// failing is catastrophic.
 					log::error!(
 						"Migration {} consumed more weight than it was given! ({} > {})",
 						migration_name,
@@ -254,7 +250,7 @@ pub mod pallet {
 					<MigrationState<T>>::insert(migration_name.as_bytes(), updated_progress);
 				}
 
-				// make note of any unfinished migrations
+				// if we encounter any migrations which are incomplete, we're done for this block
 				if updated_progress < Perbill::one() {
 					done = false;
 					break;
