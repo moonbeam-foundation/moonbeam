@@ -30,7 +30,7 @@ use pallet_balances::pallet::{
 };
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	error, EvmResult, Gasometer, InputReader, LogsBuilder, OutputBuilder, RuntimeHelper,
+	error, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, LogsBuilder, RuntimeHelper,
 };
 use slices::u8_slice;
 use sp_core::{H160, U256};
@@ -39,6 +39,11 @@ use sp_std::{
 	marker::PhantomData,
 	vec,
 };
+
+#[cfg(test)]
+mod mock;
+#[cfg(test)]
+mod tests;
 
 /// Solidity selector of the Transfer log, which is the Keccak of the Log signature.
 const SELECTOR_LOG_TRANSFER: &[u8; 32] =
@@ -130,9 +135,9 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Result<PrecompileOutput, ExitError> {
-		let input = InputReader::new(input)?;
+		let mut input = EvmDataReader::new(input);
 
-		match input.selector() {
+		match &input.read_selector()? {
 			[0x7c, 0x80, 0xaa, 0x9f] => Self::total_supply(input, target_gas),
 			[0x70, 0xa0, 0x82, 0x31] => Self::balance_of(input, target_gas),
 			[0xdd, 0x62, 0xed, 0x3e] => Self::allowance(input, target_gas),
@@ -154,7 +159,7 @@ where
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256>,
 {
-	fn total_supply(input: InputReader, target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
+	fn total_supply(input: EvmDataReader, target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
 
 		// Parse input.
@@ -168,12 +173,15 @@ where
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
-			output: OutputBuilder::new().write_u256(amount).build(),
+			output: EvmDataWriter::new().write_u256(amount).build(),
 			logs: vec![],
 		})
 	}
 
-	fn balance_of(mut input: InputReader, target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
+	fn balance_of(
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
 
 		// Read input.
@@ -189,12 +197,12 @@ where
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
-			output: OutputBuilder::new().write_u256(amount).build(),
+			output: EvmDataWriter::new().write_u256(amount).build(),
 			logs: vec![],
 		})
 	}
 
-	fn allowance(mut input: InputReader, target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
+	fn allowance(mut input: EvmDataReader, target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
 
 		// Read input.
@@ -212,13 +220,13 @@ where
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
-			output: OutputBuilder::new().write_u256(amount).build(),
+			output: EvmDataWriter::new().write_u256(amount).build(),
 			logs: vec![],
 		})
 	}
 
 	fn approve(
-		mut input: InputReader,
+		mut input: EvmDataReader,
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
@@ -247,14 +255,14 @@ where
 					SELECTOR_LOG_APPROVAL,
 					context.caller,
 					spender,
-					OutputBuilder::new().write_u256(amount).build(),
+					EvmDataWriter::new().write_u256(amount).build(),
 				)
 				.build(),
 		})
 	}
 
 	fn transfer(
-		mut input: InputReader,
+		mut input: EvmDataReader,
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
@@ -291,7 +299,7 @@ where
 					SELECTOR_LOG_TRANSFER,
 					context.caller,
 					to,
-					OutputBuilder::new().write_u256(amount).build(),
+					EvmDataWriter::new().write_u256(amount).build(),
 				)
 				.build(),
 		})
@@ -301,7 +309,7 @@ where
 	// This is to ensure that if the substrate call fails, the change in allowance is reverted.
 	#[transactional]
 	fn transfer_from(
-		mut input: InputReader,
+		mut input: EvmDataReader,
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
@@ -362,7 +370,7 @@ where
 					SELECTOR_LOG_TRANSFER,
 					from,
 					to,
-					OutputBuilder::new().write_u256(amount).build(),
+					EvmDataWriter::new().write_u256(amount).build(),
 				)
 				.build(),
 		})

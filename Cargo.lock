@@ -6231,17 +6231,22 @@ dependencies = [
 name = "pallet-evm-precompile-balances-erc20"
 version = "0.1.0"
 dependencies = [
+ "derive_more",
  "evm",
  "frame-support",
  "frame-system",
  "log",
+ "max-encoded-len",
  "pallet-balances",
  "pallet-evm",
+ "pallet-timestamp",
  "parity-scale-codec",
  "precompile-utils",
+ "serde",
  "slices",
  "sp-core",
  "sp-io",
+ "sp-runtime",
  "sp-std",
 ]
 
