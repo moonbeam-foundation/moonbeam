@@ -250,6 +250,7 @@ pub fn testnet_genesis(
 				.collect(),
 		},
 		treasury: Default::default(),
+		migrations: Default::default(),
 	}
 }
 

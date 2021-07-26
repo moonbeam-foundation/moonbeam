@@ -52,6 +52,7 @@ use pallet_evm::{
 	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator,
 	IdentityAddressMapping, Runner,
 };
+use pallet_migrations::*;
 use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
 pub use parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode};
@@ -778,6 +779,17 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
+parameter_types! {
+	// Our runtime dosen't support multi-block migrations currently
+	pub const MultiBlockMigrationsNotSupported: bool = false;
+}
+
+impl Config for Runtime {
+	type Event = Event;
+	type MigrationsList = runtime_common::migrations::CommonMigrations;
+	type MultiBlockMigrationsSupported = MultiBlockMigrationsNotSupported;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -828,6 +840,7 @@ construct_runtime! {
 
 		// Crowdloan stuff.
 		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>} = 90,
+		Migrations: pallet_migrations::{Pallet, Storage, Config<T>, Event<T>},
 	}
 }
 
