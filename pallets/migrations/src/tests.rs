@@ -42,9 +42,8 @@ fn mock_migrations_static_hack_works() {
 	// invoke execute_with_mock_migrations(), which will set up the MockMigrationManager properly
 	// and provide a valid reference to it in the callbacks we create.
 	crate::mock::execute_with_mock_migrations(
-
 		// This callback receives a mutable ref to the mock which we can use to set up the
-		// migrations we wish to mock. 
+		// migrations we wish to mock.
 		&mut |mgr: &mut MockMigrationManager| {
 			let name_fn_called = Arc::clone(&name_fn_called);
 			let step_fn_called = Arc::clone(&step_fn_called);
@@ -52,13 +51,11 @@ fn mock_migrations_static_hack_works() {
 			// For each migration we wish to mock, we should call register_callback(). The
 			// callbacks we provide map to pallet-migration's Migration trait functions.
 			mgr.register_callback(
-
 				// mock Migration::friendly_name()
 				move || {
 					*name_fn_called.lock().unwrap() = true;
 					"hello, world"
 				},
-
 				// mock Migration::step()
 				move |_, _| -> (Perbill, Weight) {
 					*step_fn_called.lock().unwrap() = true;
@@ -66,7 +63,6 @@ fn mock_migrations_static_hack_works() {
 				},
 			);
 		},
-
 		// This callback provides no parameters, but ensures that the MockMigrationManager
 		// "singleton" is still valid. Interactions with the pallet should occur here since they
 		// will implicitly require MockMigrationManager to be in a valid state.
