@@ -64,7 +64,7 @@ impl<'a> EvmDataReader<'a> {
 		let data = self
 			.input
 			.get(self.cursor..range_end)
-			.ok_or_else(|| error("tried to parse selector out of bound"))?;
+			.ok_or_else(|| error("tried to parse selector out of bounds"))?;
 
 		self.cursor += 4;
 
@@ -79,11 +79,26 @@ impl<'a> EvmDataReader<'a> {
 		let data = self
 			.input
 			.get(self.cursor..range_end)
-			.ok_or_else(|| error("tried to parse u256 out of bound"))?;
+			.ok_or_else(|| error("tried to parse u256 out of bounds"))?;
 
 		self.cursor += 32;
 
 		Ok(U256::from_big_endian(data))
+	}
+
+	/// Parse a H256 value.
+	/// Returns an error if trying to parse out of bound.
+	pub fn read_h256(&mut self) -> EvmResult<H256> {
+		let range_end = self.cursor + 32;
+
+		let data = self
+			.input
+			.get(self.cursor..range_end)
+			.ok_or_else(|| error("tried to parse address out of bounds"))?;
+
+		self.cursor += 32;
+
+		Ok(H256::from_slice(data))
 	}
 
 	/// Parse an address value.
@@ -95,7 +110,7 @@ impl<'a> EvmDataReader<'a> {
 		let data = self
 			.input
 			.get(self.cursor..range_end)
-			.ok_or_else(|| error("tried to parse address out of bound"))?;
+			.ok_or_else(|| error("tried to parse address out of bounds"))?;
 
 		self.cursor += 32;
 
@@ -126,7 +141,14 @@ impl EvmDataWriter {
 		self
 	}
 
-	/// Push a U256 to the output.
+	/// Write an H256 (or something that can be converted into it) to the output.
+	pub fn write_h256<T: Into<H256>>(mut self, value: T) -> Self {
+		let value: H256 = value.into();
+		self.data.extend_from_slice(&value.as_bytes());
+		self
+	}
+
+	/// Write an U256 (or something that can be converted into it) to the output.
 	pub fn write_u256<T: Into<U256>>(mut self, value: T) -> Self {
 		let mut buffer = [0u8; 32];
 		value.into().to_big_endian(&mut buffer);
@@ -134,7 +156,7 @@ impl EvmDataWriter {
 		self
 	}
 
-	/// Push a U256 to the output.
+	/// Write an bool (or something that can be converted into it) to the output.
 	pub fn write_bool<T: Into<bool>>(mut self, value: T) -> Self {
 		let mut buffer = [0u8; 32];
 		if value.into() {

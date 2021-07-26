@@ -83,8 +83,7 @@ where
 					"Failed to match function selector in crowdloan rewards precompile"
 				);
 				return Err(error(
-					"No crowdloan rewards wrapper method at given selector"
-					,
+					"No crowdloan rewards wrapper method at given selector",
 				));
 			}
 		};
@@ -124,9 +123,7 @@ where
 					"Crowdloan rewards call via evm failed {:?}",
 					e
 				);
-				Err(ExitError::Other(
-					"Crowdloan rewards call via EVM failed".into(),
-				))
+				Err(error("Crowdloan rewards call via EVM failed"))
 			}
 		}
 	}
@@ -221,12 +218,14 @@ where
 		let reward_info = pallet_crowdloan_rewards::Pallet::<Runtime>::accounts_payable(account);
 
 		let (total, claimed): (U256, U256) = if let Some(reward_info) = reward_info {
-			let total_reward: u128 = reward_info.total_reward.try_into().map_err(|_| {
-				ExitError::Other("Amount is too large for provided balance type".into())
-			})?;
-			let claimed_reward: u128 = reward_info.claimed_reward.try_into().map_err(|_| {
-				ExitError::Other("Amount is too large for provided balance type".into())
-			})?;
+			let total_reward: u128 = reward_info
+				.total_reward
+				.try_into()
+				.map_err(|_| error("Amount is too large for provided balance type"))?;
+			let claimed_reward: u128 = reward_info
+				.claimed_reward
+				.try_into()
+				.map_err(|_| error("Amount is too large for provided balance type"))?;
 
 			(total_reward.into(), claimed_reward.into())
 		} else {
@@ -238,13 +237,13 @@ where
 			total, claimed
 		);
 
-		let mut output = EvmDataWriter::new().write_u256(total).build();
-		output.extend(EvmDataWriter::new().write_u256(claimed).build());
-
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gas_consumed,
-			output: output,
+			output: EvmDataWriter::new()
+				.write_u256(total)
+				.write_u256(claimed)
+				.build(),
 			logs: Default::default(),
 		})
 	}
