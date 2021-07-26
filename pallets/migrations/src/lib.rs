@@ -100,6 +100,8 @@ pub mod pallet {
 			log::warn!("Performing on_runtime_upgrade");
 
 			let mut weight: Weight = 0u64.into();
+			// TODO: derive a suitable value here, which is probably something < max_block
+			let available_weight: Weight = T::BlockWeights::get().max_block;
 
 			// start by flagging that we are not fully upgraded
 			// TODO: case where this is already false (e.g. we started an upgrade while one was
@@ -110,7 +112,7 @@ pub mod pallet {
 			weight += T::DbWeight::get().writes(1);
 			Self::deposit_event(Event::RuntimeUpgradeStarted());
 
-			weight += process_runtime_upgrades::<T>();
+			weight += process_runtime_upgrades::<T>(available_weight - weight);
 
 			// at least emit a warning if we aren't going to end up finishing our migrations...
 			if !T::MultiBlockMigrationsSupported::get() {
@@ -130,9 +132,12 @@ pub mod pallet {
 		fn on_initialize(_: T::BlockNumber) -> Weight {
 			let mut weight: Weight = T::DbWeight::get().reads(1 as Weight);
 
+			// TODO: derive a suitable value here, which is probably something < max_block
+			let available_weight: Weight = T::BlockWeights::get().max_block;
+
 			if T::MultiBlockMigrationsSupported::get() {
 				if !<FullyUpgraded<T>>::get() {
-					weight += process_runtime_upgrades::<T>();
+					weight += process_runtime_upgrades::<T>(available_weight);
 				}
 			}
 
@@ -176,11 +181,9 @@ pub mod pallet {
 		}
 	}
 
-	fn process_runtime_upgrades<T: Config>() -> Weight {
+	fn process_runtime_upgrades<T: Config>(available_weight: Weight) -> Weight {
 		log::info!("stepping runtime upgrade");
 
-		// TODO: query proper value or make configurable
-		let available_weight: Weight = 500_000_000_000u64.into();
 		let mut weight: Weight = 0u64.into();
 		let mut done: bool = true;
 
