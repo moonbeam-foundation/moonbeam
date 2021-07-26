@@ -79,8 +79,7 @@ fn test_encode_bond() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let selector =
-				&Keccak256::digest(b"encode_bond(uint256,uint256,uint256,uint256)")[0..4];
+			let selector = &Keccak256::digest(b"encode_bond(uint256,uint256,uint8,uint256)")[0..4];
 
 			// Construct data to read prop count
 			let mut input_data = Vec::<u8>::from([0u8; 132]);
@@ -116,18 +115,16 @@ fn test_encode_bond() {
 			total.append(buffer.to_vec().as_mut());
 			total.append(expected_bytes.to_vec().as_mut());
 
-			// Expected result is one
-			let expected_one_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: OutputBuilder::new().write_bytes(total).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
 
-			// Assert that no props have been opened.
 			assert_eq!(
 				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
-				expected_one_result
+				expected_result
 			);
 		});
 }
@@ -138,7 +135,7 @@ fn test_encode_bond_more() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"encode_bond_more(uint256)")[0..4];
+			let selector = &Keccak256::digest(b"encode_bond_extra(uint256)")[0..4];
 
 			// Construct data to read prop count
 			let mut input_data = Vec::<u8>::from([0u8; 36]);
@@ -162,18 +159,16 @@ fn test_encode_bond_more() {
 			total.append(buffer.to_vec().as_mut());
 			total.append(expected_bytes.to_vec().as_mut());
 
-			// Expected result is one
-			let expected_one_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: OutputBuilder::new().write_bytes(total).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
 
-			// Assert that no props have been opened.
 			assert_eq!(
 				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
-				expected_one_result
+				expected_result
 			);
 		});
 }
@@ -203,18 +198,16 @@ fn test_encode_chill() {
 			total.append(buffer.to_vec().as_mut());
 			total.append(expected_bytes.to_vec().as_mut());
 
-			// Expected result is one
-			let expected_one_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: OutputBuilder::new().write_bytes(total).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
 
-			// Assert that no props have been opened.
 			assert_eq!(
 				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
-				expected_one_result
+				expected_result
 			);
 		});
 }
@@ -268,18 +261,16 @@ fn test_encode_nominate() {
 			total.append(buffer.to_vec().as_mut());
 			total.append(expected_bytes.to_vec().as_mut());
 
-			// Expected result is one
-			let expected_one_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: OutputBuilder::new().write_bytes(total).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
 
-			// Assert that no props have been opened.
 			assert_eq!(
 				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
-				expected_one_result
+				expected_result
 			);
 		});
 }
@@ -301,17 +292,6 @@ fn test_encode_rebond() {
 			amount.to_big_endian(&mut buffer);
 			input_data[4..36].copy_from_slice(&buffer);
 
-			// The output should be
-			// This is the offset of the block in which the output info starts
-			// 0000000000000000000000000000000000000000000000000000000000000020
-
-			// This is the length of the byte array. This should 69 bytes.
-			// 0000000000000000000000000000000000000000000000000000000000000008
-			// The call -> 01050800
-			// Account1 -> 0101010101010101010101010101010101010101010101010101010101010101
-			// 00
-			// Account2 -> 0202020202020202020202020202020202020202020202020202020202020202
-
 			// Ethereum style
 			let expected_bytes = TestEncoder::encode_call(AvailableStakeCalls::Rebond(100u128));
 			let expected = hex_literal::hex!(
@@ -326,18 +306,16 @@ fn test_encode_rebond() {
 			total.append(buffer.to_vec().as_mut());
 			total.append(expected_bytes.to_vec().as_mut());
 
-			// Expected result is one
-			let expected_one_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: OutputBuilder::new().write_bytes(total).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
 
-			// Assert that no props have been opened.
 			assert_eq!(
 				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
-				expected_one_result
+				expected_result
 			);
 		});
 }
@@ -371,18 +349,16 @@ fn test_encode_set_controller() {
 			total.append(buffer.to_vec().as_mut());
 			total.append(expected_bytes.to_vec().as_mut());
 
-			// Expected result is one
-			let expected_one_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: OutputBuilder::new().write_bytes(total).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
 
-			// Assert that no props have been opened.
 			assert_eq!(
 				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
-				expected_one_result
+				expected_result
 			);
 		});
 }
@@ -393,7 +369,7 @@ fn test_encode_set_payee() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let selector = &Keccak256::digest(b"encode_set_payee(uint256,uint256)")[0..4];
+			let selector = &Keccak256::digest(b"encode_set_payee(uint8,uint256)")[0..4];
 
 			// Construct data to read prop count
 			let mut input_data = Vec::<u8>::from([0u8; 68]);
@@ -422,18 +398,16 @@ fn test_encode_set_payee() {
 			total.append(buffer.to_vec().as_mut());
 			total.append(expected_bytes.to_vec().as_mut());
 
-			// Expected result is one
-			let expected_one_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: OutputBuilder::new().write_bytes(total).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
 
-			// Assert that no props have been opened.
 			assert_eq!(
 				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
-				expected_one_result
+				expected_result
 			);
 		});
 }
@@ -471,7 +445,7 @@ fn test_encode_unbond() {
 			total.append(expected_bytes.to_vec().as_mut());
 
 			// Expected result is one
-			let expected_one_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: OutputBuilder::new().write_bytes(total).build(),
 				cost: Default::default(),
@@ -481,7 +455,7 @@ fn test_encode_unbond() {
 			// Assert that no props have been opened.
 			assert_eq!(
 				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
-				expected_one_result
+				expected_result
 			);
 		});
 }
@@ -527,7 +501,7 @@ fn test_encode_validate() {
 			total.append(expected_bytes.to_vec().as_mut());
 
 			// Expected result is one
-			let expected_one_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: OutputBuilder::new().write_bytes(total).build(),
 				cost: Default::default(),
@@ -537,7 +511,7 @@ fn test_encode_validate() {
 			// Assert that no props have been opened.
 			assert_eq!(
 				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
-				expected_one_result
+				expected_result
 			);
 		});
 }
@@ -574,18 +548,16 @@ fn test_encode_withdraw_unbonded() {
 			total.append(buffer.to_vec().as_mut());
 			total.append(expected_bytes.to_vec().as_mut());
 
-			// Expected result is one
-			let expected_one_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: OutputBuilder::new().write_bytes(total).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
 
-			// Assert that no props have been opened.
 			assert_eq!(
 				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
-				expected_one_result
+				expected_result
 			);
 		});
 }

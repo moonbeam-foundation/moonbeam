@@ -82,11 +82,11 @@ where
 
 		match input.selector() {
 			// Check for accessor methods first. These return results immediately
-			[0xf4, 0xb9, 0x13, 0xdd] => {
+			[0xbe, 0x3e, 0x04, 0x00] => {
 				return Self::encode_bond(input, target_gas);
 			}
-			[0xea, 0x02, 0x9c, 0xbb] => {
-				return Self::encode_bond_more(input, target_gas);
+			[0x49, 0xde, 0xf3, 0x26] => {
+				return Self::encode_bond_extra(input, target_gas);
 			}
 			[0xbc, 0x4b, 0x21, 0x87] => {
 				return Self::encode_chill(input, target_gas);
@@ -100,7 +100,7 @@ where
 			[0x7a, 0x8f, 0x48, 0xc2] => {
 				return Self::encode_set_controller(input, target_gas);
 			}
-			[0x7c, 0x85, 0x56, 0x9d] => {
+			[0x3d, 0xa4, 0x87, 0x67] => {
 				return Self::encode_set_payee(input, target_gas);
 			}
 			[0x2c, 0xd6, 0x12, 0x17] => {
@@ -170,7 +170,7 @@ where
 		})
 	}
 
-	fn encode_bond_more(
+	fn encode_bond_extra(
 		mut input: InputReader,
 		target_gas: Option<u64>,
 	) -> Result<PrecompileOutput, ExitError> {

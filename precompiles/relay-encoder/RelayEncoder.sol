@@ -6,26 +6,73 @@ pragma solidity >=0.8.0;
 /// We follow this same interface including four-byte function selectors, in the precompile that
 /// wraps the pallet
 interface RelayEncoder {
+    
+    /* enum RewardDestination {
+        /// Pay into the stash account, increasing the amount at stake accordingly.
+    	Staked,
+	    /// Pay into the stash account, not increasing the amount at stake.
+	    Stash,
+	    /// Pay into the controller account.
+	    Controller,
+	    /// Pay into a specified account.
+	    Account(AccountId),
+	    /// Receive no reward.
+	    None,
+    }*/
+    
+    // dev Encode 'bond' relay call
+    // @param controller_address: Address of the controller
+    // @param amount: The amount to bond
+    // @param reward_destination: uint8 selecting one of RewardDestination
+    // @param specified_account: In case 'Account' is chosen in the previous parameter, this is the address of such account. Else can be 0
+    // @returns The bytes associated with the encoded call
+    function encode_bond(uint256 controller_address, uint256 amount, uint8 reward_destination, uint256 specified_account) external view returns (bytes memory result);
 
-    function encode_bond(uint256 relay_address, uint256 amount, uint256 reward_destination, uint256 relay_reward_destination) external view returns (bytes memory result);
+    // dev Encode 'bond_extra' relay call
+    // @param amount: The extra amount to bond
+    // @returns The bytes associated with the encoded call
+    function encode_bond_extra(uint256 amount) external view returns (bytes memory result);
 
-
-    function encode_bond_more(uint256 amount) external view returns (bytes memory result);
-
+    // dev Encode 'unbond' relay call
+    // @param amount: The amount to unbond
+    // @returns The bytes associated with the encoded call
     function encode_unbond(uint256 amount) external view returns (bytes memory result);
 
+    // dev Encode 'withdraw_unbonded' relay call
+    // @param slashes: Weight hint, number of slashing spans
+    // @returns The bytes associated with the encoded call
     function encode_withdraw_unbonded(uint32 slashes) external view returns (bytes memory result);
 
-    function encode_validate(uint256 parts_per_billion, bool blocked) external view returns (bytes memory result);
+    // dev Encode 'validate' relay call
+    // @param comission: Comission of the validator as parts_per_billion
+    // @param blocked: Whether or not the validator is accepting more nominations
+    // @returns The bytes associated with the encoded call
+    function encode_validate(uint256 comission, bool blocked) external view returns (bytes memory result);
 
+    // dev Encode 'nominate' relay call
+    // @param nominees: An array of AccountIds corresponding to the accounts we will nominate
+    // @param blocked: Whether or not the validator is accepting more nominations
+    // @returns The bytes associated with the encoded call
     function encode_nominate(uint256 [] memory nominees) external view returns (bytes memory result);
 
+    // dev Encode 'chill' relay call
+    // @returns The bytes associated with the encoded call
     function encode_chill() external view returns (bytes memory result);
 
-    function encode_set_payee(uint256 reward_destination, uint256 reward_address) external view returns (bytes memory result);
+    // dev Encode 'set_payee' relay call
+    // @param reward_destination: uint8 selecting one of RewardDestination
+    // @param specified_account: In case 'Account' is chosen in the previous parameter, this is the address of such account. Else can be 0
+    // @returns The bytes associated with the encoded call
+    function encode_set_payee(uint8 reward_destination, uint256 reward_address) external view returns (bytes memory result);
 
+    // dev Encode 'set_controller' relay call
+    // @param controller: The controller address
+    // @returns The bytes associated with the encoded call
     function encode_set_controller(uint256 controller) external view returns (bytes memory result);
 
+    // dev Encode 'rebond' relay call
+    // @param amount: The amount to rebond
+    // @returns The bytes associated with the encoded call
     function encode_rebond(uint256 amount) external view returns (bytes memory result);
 
 }
@@ -34,15 +81,15 @@ interface RelayEncoder {
 // https://ethereum.stackexchange.com/a/73405/9963
 // Eventually we will probably want a better way of generating these and copying them to Rust
 
-//{ 
-//    "f4b913dd": "encode_bond(uint256,uint256,uint256,uint256)",
-//    "ea029cbb": "encode_bond_more(uint256)",
-//    "bc4b2187": "encode_chill()",
-//    "a7cb124b": "encode_nominate(uint256[])",
-//    "add6b3bf": "encode_rebond(uint256)",
-//    "7a8f48c2": "encode_set_controller(uint256)",
-//    "7c85569d": "encode_set_payee(uint256,uint256)",
-//    "2cd61217": "encode_unbond(uint256)",
-//    "3a0d803a": "encode_validate(uint256,bool)",
-//    "2d220331": "encode_withdraw_unbonded(uint32)"
+//{
+//	"be3e0400": "encode_bond(uint256,uint256,uint8,uint256)",
+//	"49def326": "encode_bond_extra(uint256)",
+//	"bc4b2187": "encode_chill()",
+//	"a7cb124b": "encode_nominate(uint256[])",
+//	"add6b3bf": "encode_rebond(uint256)",
+//	"7a8f48c2": "encode_set_controller(uint256)",
+//	"3da48767": "encode_set_payee(uint8,uint256)",
+//	"2cd61217": "encode_unbond(uint256)",
+//	"3a0d803a": "encode_validate(uint256,bool)",
+//	"2d220331": "encode_withdraw_unbonded(uint32)"
 //}
