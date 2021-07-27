@@ -19,7 +19,7 @@ use super::*;
 use codec::{Decode, Encode};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{GenesisBuild, OnFinalize, OnInitialize},
+	traits::{GenesisBuild, MaxEncodedLen},
 	weights::Weight,
 };
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
@@ -341,17 +341,6 @@ impl ExtBuilder {
 pub(crate) fn set_points(round: u32, acc: TestAccount, pts: u32) {
 	<parachain_staking::Points<Test>>::mutate(round, |p| *p += pts);
 	<parachain_staking::AwardedPts<Test>>::mutate(round, acc, |p| *p += pts);
-}
-
-pub(crate) fn roll_to(n: u64) {
-	while System::block_number() < n {
-		Balances::on_finalize(System::block_number());
-		System::on_finalize(System::block_number());
-		System::set_block_number(System::block_number() + 1);
-		ParachainStaking::on_initialize(System::block_number());
-		System::on_initialize(System::block_number());
-		Balances::on_initialize(System::block_number());
-	}
 }
 
 pub(crate) fn events() -> Vec<Event> {

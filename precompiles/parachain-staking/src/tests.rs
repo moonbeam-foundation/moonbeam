@@ -15,14 +15,14 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::mock::{
-	events, evm_test_context, precompile_address, roll_to, set_points, Call, ExtBuilder, Origin,
+	events, evm_test_context, precompile_address, set_points, Call, ExtBuilder, Origin,
 	ParachainStaking, Precompiles, TestAccount,
 };
 use crate::PrecompileOutput;
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::Call as EvmCall;
 use pallet_evm::{ExitError, ExitSucceed, PrecompileSet};
-use parachain_staking::{Call as StakingCall, Event as StakingEvent};
+use parachain_staking::Event as StakingEvent;
 use precompile_utils::OutputBuilder;
 use sha3::{Digest, Keccak256};
 use sp_core::U256;
@@ -423,8 +423,6 @@ fn join_candidates_works() {
 		.execute_with(|| {
 			let selector = &Keccak256::digest(b"join_candidates(uint256,uint256)")[0..4];
 
-			let candidate_count: U256 = U256::zero();
-
 			// Construct data to read is_selected_candidate
 			let mut input_data = Vec::<u8>::from([0u8; 68]);
 			input_data[0..4].copy_from_slice(&selector);
@@ -587,32 +585,237 @@ fn candidate_bond_more_works() {
 		});
 }
 
-// #[test]
-// fn candidate_bond_less_works() {
-// 	todo!()
-// }
+#[test]
+fn candidate_bond_less_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.build()
+		.execute_with(|| {
+			let selector = &Keccak256::digest(b"candidate_bond_less(uint256)")[0..4];
 
-// #[test]
-// fn nominate_works() {
-// 	todo!()
-// }
+			// Construct selector for candidate_bond_less
+			let mut input_data = Vec::<u8>::from([0u8; 36]);
+			input_data[0..4].copy_from_slice(&selector);
+			let bond_less_amount: U256 = 500.into();
+			bond_less_amount.to_big_endian(&mut input_data[4..36]);
 
-// #[test]
-// fn leave_nominators_works() {
-// 	todo!()
-// }
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(EvmCall::call(
+				TestAccount::Alice.to_h160(),
+				precompile_address(),
+				input_data,
+				U256::zero(), // No value sent in EVM
+				u64::max_value(),
+				0.into(),
+				None, // Use the next nonce
+			))
+			.dispatch(Origin::root()));
 
-// #[test]
-// fn revoke_nomination_works() {
-// 	todo!()
-// }
+			let expected: crate::mock::Event =
+				StakingEvent::CollatorBondedLess(TestAccount::Alice, 1_000, 500).into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
 
-// #[test]
-// fn nominator_bond_more_works() {
-// 	todo!()
-// }
+#[test]
+fn nominate_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_000)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.build()
+		.execute_with(|| {
+			let selector = &Keccak256::digest(b"nominate(address,uint256,uint256,uint256)")[0..4];
 
-// #[test]
-// fn nominator_bond_less_works() {
-// 	todo!()
-// }
+			// Construct selector for nominate
+			let mut input_data = Vec::<u8>::from([0u8; 132]);
+			input_data[0..4].copy_from_slice(&selector);
+			input_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
+			let nomination_amount: U256 = 1_000.into();
+			nomination_amount.to_big_endian(&mut input_data[36..68]);
+			let collator_nominator_count = U256::zero();
+			collator_nominator_count.to_big_endian(&mut input_data[68..100]);
+			let nomination_count = U256::zero();
+			nomination_count.to_big_endian(&mut input_data[100..]);
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(EvmCall::call(
+				TestAccount::Bob.to_h160(),
+				precompile_address(),
+				input_data,
+				U256::zero(), // No value sent in EVM
+				u64::max_value(),
+				0.into(),
+				None, // Use the next nonce
+			))
+			.dispatch(Origin::root()));
+
+			assert!(ParachainStaking::is_nominator(&TestAccount::Bob));
+
+			let expected: crate::mock::Event = StakingEvent::Nomination(
+				TestAccount::Bob,
+				1_000,
+				TestAccount::Alice,
+				parachain_staking::NominatorAdded::AddedToTop { new_total: 2_000 },
+			)
+			.into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
+
+#[test]
+fn leave_nominators_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_000)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_nominations(vec![(TestAccount::Bob, TestAccount::Alice, 1_000)])
+		.build()
+		.execute_with(|| {
+			let selector = &Keccak256::digest(b"leave_nominators(uint256)")[0..4];
+
+			// Construct selector for leave_nominators
+			let mut input_data = Vec::<u8>::from([0u8; 36]);
+			input_data[0..4].copy_from_slice(&selector);
+			let nomination_count = U256::one();
+			nomination_count.to_big_endian(&mut input_data[4..]);
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(EvmCall::call(
+				TestAccount::Bob.to_h160(),
+				precompile_address(),
+				input_data,
+				U256::zero(), // No value sent in EVM
+				u64::max_value(),
+				0.into(),
+				None, // Use the next nonce
+			))
+			.dispatch(Origin::root()));
+
+			assert!(!ParachainStaking::is_nominator(&TestAccount::Bob));
+
+			let expected: crate::mock::Event =
+				StakingEvent::NominatorLeft(TestAccount::Bob, 1_000).into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
+
+#[test]
+fn revoke_nomination_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_000)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_nominations(vec![(TestAccount::Bob, TestAccount::Alice, 1_000)])
+		.build()
+		.execute_with(|| {
+			let selector = &Keccak256::digest(b"revoke_nomination(address)")[0..4];
+
+			// Construct selector for revoke_nomination
+			let mut input_data = Vec::<u8>::from([0u8; 36]);
+			input_data[0..4].copy_from_slice(&selector);
+			input_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(EvmCall::call(
+				TestAccount::Bob.to_h160(),
+				precompile_address(),
+				input_data,
+				U256::zero(), // No value sent in EVM
+				u64::max_value(),
+				0.into(),
+				None, // Use the next nonce
+			))
+			.dispatch(Origin::root()));
+
+			assert!(!ParachainStaking::is_nominator(&TestAccount::Bob));
+
+			let expected: crate::mock::Event =
+				StakingEvent::NominatorLeft(TestAccount::Bob, 1_000).into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
+
+#[test]
+fn nominator_bond_more_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_500)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_nominations(vec![(TestAccount::Bob, TestAccount::Alice, 500)])
+		.build()
+		.execute_with(|| {
+			// Construct the nominator_bond_more call
+			let mut bond_more_call_data = Vec::<u8>::from([0u8; 68]);
+			bond_more_call_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"nominator_bond_more(address,uint256)")[0..4]);
+			bond_more_call_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
+			let bond_more_amount: U256 = 500.into();
+			bond_more_amount.to_big_endian(&mut bond_more_call_data[36..68]);
+
+			assert_ok!(Call::Evm(EvmCall::call(
+				TestAccount::Bob.to_h160(),
+				precompile_address(),
+				bond_more_call_data,
+				U256::zero(), // No value sent in EVM
+				u64::max_value(),
+				0.into(),
+				None, // Use the next nonce
+			))
+			.dispatch(Origin::root()));
+
+			// Check for the right events.
+			let expected_event: crate::mock::Event = StakingEvent::NominationIncreased(
+				TestAccount::Bob,
+				TestAccount::Alice,
+				1_500,
+				true,
+				2_000,
+			)
+			.into();
+
+			assert!(events().contains(&expected_event));
+		});
+}
+
+#[test]
+fn nominator_bond_less_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000), (TestAccount::Bob, 1_500)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_nominations(vec![(TestAccount::Bob, TestAccount::Alice, 1_500)])
+		.build()
+		.execute_with(|| {
+			// Construct the nominator_bond_less call
+			let mut bond_less_call_data = Vec::<u8>::from([0u8; 68]);
+			bond_less_call_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"nominator_bond_less(address,uint256)")[0..4]);
+			bond_less_call_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
+			let bond_less_amount: U256 = 500.into();
+			bond_less_amount.to_big_endian(&mut bond_less_call_data[36..68]);
+
+			assert_ok!(Call::Evm(EvmCall::call(
+				TestAccount::Bob.to_h160(),
+				precompile_address(),
+				bond_less_call_data,
+				U256::zero(), // No value sent in EVM
+				u64::max_value(),
+				0.into(),
+				None, // Use the next nonce
+			))
+			.dispatch(Origin::root()));
+
+			// Check for the right events.
+			let expected_event: crate::mock::Event = StakingEvent::NominationDecreased(
+				TestAccount::Bob,
+				TestAccount::Alice,
+				2_500,
+				true,
+				2_000,
+			)
+			.into();
+
+			assert!(events().contains(&expected_event));
+		});
+}

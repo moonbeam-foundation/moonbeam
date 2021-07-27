@@ -88,10 +88,9 @@ impl<'a> InputReader<'a> {
 	/// Parse a u32 value.
 	/// Returns an error if trying to parse out of bound.
 	pub fn read_u32(&mut self) -> EvmResult<u32> {
-		Ok(self
-			.read_u256()?
+		self.read_u256()?
 			.try_into()
-			.map_err(|_| ExitError::Other("Too large for u32".into()))?)
+			.map_err(|_| ExitError::Other("Too large for u32".into()))
 	}
 
 	/// Parse an address value.
@@ -113,9 +112,9 @@ impl<'a> InputReader<'a> {
 	/// Parse a balance value.
 	/// Returns an error if trying to parse out of bound.
 	pub fn read_balance<Balance: TryFrom<U256>>(&mut self) -> EvmResult<Balance> {
-		Ok(self.read_u256()?.try_into().map_err(|_| {
-			ExitError::Other("Amount is too large for provided balance type".into())
-		})?)
+		self.read_u256()?
+			.try_into()
+			.map_err(|_| ExitError::Other("Amount is too large for provided balance type".into()))
 	}
 }
 

@@ -25,7 +25,7 @@ mod tests;
 
 use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use frame_support::traits::{Currency, Get, MaxEncodedLen};
+use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
 use pallet_evm::Precompile;
 use precompile_utils::{error, Gasometer, InputReader, OutputBuilder, RuntimeHelper};
@@ -268,7 +268,7 @@ where
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let is_nominator = parachain_staking::Pallet::<Runtime>::is_nominator(&address.into());
+		let is_nominator = parachain_staking::Pallet::<Runtime>::is_nominator(&address);
 
 		// Build output.
 		Ok(PrecompileOutput {
@@ -292,7 +292,7 @@ where
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let is_candidate = parachain_staking::Pallet::<Runtime>::is_candidate(&address.into());
+		let is_candidate = parachain_staking::Pallet::<Runtime>::is_candidate(&address);
 
 		// Build output.
 		Ok(PrecompileOutput {
@@ -316,8 +316,7 @@ where
 
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let is_selected =
-			parachain_staking::Pallet::<Runtime>::is_selected_candidate(&address.into());
+		let is_selected = parachain_staking::Pallet::<Runtime>::is_selected_candidate(&address);
 
 		// Build output.
 		Ok(PrecompileOutput {
@@ -538,7 +537,7 @@ where
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = parachain_staking::Call::<Runtime>::nominate(
-			collator.into(),
+			collator,
 			amount,
 			collator_nomination_count,
 			nominator_nomination_count,
@@ -608,7 +607,7 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::revoke_nomination(collator.into());
+		let call = parachain_staking::Call::<Runtime>::revoke_nomination(collator);
 
 		// Dispatch call (if enough gas).
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
@@ -642,7 +641,7 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::nominator_bond_more(collator.into(), amount);
+		let call = parachain_staking::Call::<Runtime>::nominator_bond_more(collator, amount);
 
 		// Dispatch call (if enough gas).
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
@@ -676,7 +675,7 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::nominator_bond_less(collator.into(), amount);
+		let call = parachain_staking::Call::<Runtime>::nominator_bond_less(collator, amount);
 
 		// Dispatch call (if enough gas).
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
