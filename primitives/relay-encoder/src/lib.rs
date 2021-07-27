@@ -38,9 +38,8 @@ impl Default for RelayChainProxyType {
 /// and Target chain (as part of `encode-message/send-message`).
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum AvailableProxyCalls {
-	CreateAnonymusProxy(RelayChainProxyType, relay_chain::BlockNumber, u16),
-	Proxy(relay_chain::AccountId, Option<RelayChainProxyType>, Vec<u8>),
+pub enum AvailableUtilityCalls {
+	AsDerivative(u16, Vec<u8>),
 }
 
 pub enum AvailableStakeCalls {
@@ -60,9 +59,9 @@ pub enum AvailableStakeCalls {
 	Rebond(relay_chain::Balance),
 }
 
-pub trait ProxyEncodeCall {
+pub trait UtilityEncodeCall {
 	/// Encode call from the relay.
-	fn encode_call(call: AvailableProxyCalls) -> Vec<u8>;
+	fn encode_call(call: AvailableUtilityCalls) -> Vec<u8>;
 }
 
 pub trait StakeEncodeCall {

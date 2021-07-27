@@ -909,7 +909,7 @@ match_type! {
 pub type XcmBarrier = (
 	xcm_builder::TakeWeightCredit,
 	xcm_builder::AllowTopLevelPaidExecutionFrom<All<MultiLocation>>,
-	//xcm_builder::AllowUnpaidExecutionFrom<ParentOrParentsExecutivePlurality>,
+	xcm_builder::AllowUnpaidExecutionFrom<ParentOrParentsExecutivePlurality>,
 	// ^^^ Parent and its exec plurality get free execution
 );
 
@@ -960,7 +960,7 @@ where
 }
 
 /// No local origins on this chain are allowed to dispatch XCM sends/executions.
-pub type LocalOriginToLocation = SignedToAccountId20<Origin, AccountId, RelayNetwork>;
+pub type LocalOriginToLocation = SignedToAccountId20<Origin, AccountId, MoonbeamNetwork>;
 
 /// The means for routing XCM messages which are not for local execution into the right message
 /// queues.
@@ -1017,7 +1017,6 @@ impl xcm_wrapper::Config for Runtime {
 	type Event = Event;
 	type RelayCurrency = BalancesKsm;
 	type PalletId = XcmWrapperId;
-	type AccountKey20Convert = AccountKey20Convert;
 	type ToRelayChainBalance = NativeToRelay;
 	type RelayChainNetworkId = RelayNetwork;
 	type RelayChainAccountId = AccountId32;
@@ -1028,6 +1027,7 @@ impl xcm_wrapper::Config for Runtime {
 	type OwnLocation = Ancestry;
 	type CreateProxyDeposit = ProxyDepositAmount;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
+	type OriginToMultiLocation = LocalOriginToLocation;
 }
 
 construct_runtime! {

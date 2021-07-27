@@ -7,35 +7,26 @@ use sp_std::vec::Vec;
 
 #[derive(Encode, Decode)]
 pub enum RelayCall {
-	#[codec(index = 91u8)]
+	#[codec(index = 90u8)]
 	// the index should match the position of the module in `construct_runtime!`
-	Proxy(AnonymousProxyCall),
+	Utility(UtilityCall),
 }
 
 #[derive(Encode, Decode)]
-pub enum AnonymousProxyCall {
-	#[codec(index = 0u8)]
-	Proxy(AccountId32, Option<relay_encoder::RelayChainProxyType>),
-
-	#[codec(index = 4u8)]
-	// the index should match the position of the dispatchable in the target pallet
-	Anonymous(relay_encoder::RelayChainProxyType, u32, u16),
+pub enum UtilityCall {
+	#[codec(index = 1u8)]
+	AsDerivative(u16),
 }
 
 pub struct RococoEncoder;
 
-impl relay_encoder::ProxyEncodeCall for RococoEncoder {
-	fn encode_call(call: relay_encoder::AvailableProxyCalls) -> Vec<u8> {
+impl relay_encoder::UtilityEncodeCall for RococoEncoder {
+	fn encode_call(call: relay_encoder::AvailableUtilityCalls) -> Vec<u8> {
 		match call {
-			relay_encoder::AvailableProxyCalls::CreateAnonymusProxy(a, b, c) => {
-				RelayCall::Proxy(AnonymousProxyCall::Anonymous(a, b, c)).encode()
-			}
-
-			relay_encoder::AvailableProxyCalls::Proxy(a, b, c) => {
-				let mut call =
-					RelayCall::Proxy(AnonymousProxyCall::Proxy(a.clone(), b.clone())).encode();
+			relay_encoder::AvailableUtilityCalls::AsDerivative(a, b) => {
+				let mut call = RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
 				// If we encode directly we inject the call length, so we just append the inner call after encoding the outer
-				call.append(&mut c.clone());
+				call.append(&mut b.clone());
 				call
 			}
 		}

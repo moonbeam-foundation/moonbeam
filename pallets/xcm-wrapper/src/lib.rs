@@ -37,19 +37,21 @@ mod tests;
 #[pallet]
 pub mod pallet {
 
-	use xcm_executor::traits::Convert as XConvert;
 	use cumulus_primitives_core::relay_chain;
 	use frame_support::dispatch::fmt::Debug;
+	use frame_support::traits::OnGenesis;
 	use frame_support::{
 		pallet_prelude::*,
 		traits::{Currency, ReservableCurrency},
 		PalletId,
 	};
 	use frame_system::{ensure_signed, pallet_prelude::*};
-	use relay_encoder::ProxyEncodeCall;
+	use relay_encoder::UtilityEncodeCall;
+	use sp_io::hashing::blake2_256;
 	use sp_runtime::traits::Convert;
 	use sp_runtime::AccountId32;
 	use sp_std::prelude::*;
+	use xcm_executor::traits::Convert as XConvert;
 
 	use substrate_fixed::types::U64F64;
 	use xcm::v0::prelude::*;
@@ -65,9 +67,9 @@ pub mod pallet {
 
 	/// Stores info about how many DOTS someone has staked and the relation with the ratio
 	#[derive(Default, Clone, Encode, Decode, RuntimeDebug)]
-	pub struct StakeInfo<T: Config> {
-		pub staked_without_ratio: BalanceOf<T>,
-		pub staked_with_ratio: BalanceOf<T>,
+	pub struct DerivativeInfo<T: Config> {
+		pub index: u16,
+		pub account: T::AccountId,
 	}
 
 	/// Configuration trait of this pallet. We tightly couple to Parachain Staking in order to
@@ -96,7 +98,7 @@ pub mod pallet {
 		type SovereignAccount: Get<Self::RelayChainAccountId>;
 
 		/// XCM executor.
-		type CallEncoder: relay_encoder::ProxyEncodeCall;
+		type CallEncoder: relay_encoder::UtilityEncodeCall;
 
 		type RelayChainNetworkId: Get<NetworkId>;
 
@@ -138,30 +140,17 @@ pub mod pallet {
 	}
 
 	#[pallet::storage]
-	#[pallet::getter(fn current_nomination)]
-	pub type Nominations<T: Config> = StorageValue<_, Vec<relay_chain::AccountId>, ValueQuery>;
-
-	#[pallet::type_value]
-	pub fn RatioDefaultValue<T: Config>() -> U64F64 {
-		U64F64::from_num(1)
-	}
+	#[pallet::getter(fn current_index)]
+	pub type CurrentIndex<T: Config> = StorageValue<_, u16, ValueQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn total_staked)]
-	pub type TotalStaked<T: Config> = StorageValue<_, BalanceOf<T>, ValueQuery>;
+	#[pallet::getter(fn derivatives)]
+	pub type Derivatives<T: Config> =
+		StorageMap<_, Blake2_128Concat, T::RelayChainAccountId, DerivativeInfo<T>>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn total_staked_multiplier)]
-	pub type TotalStakedMultiplier<T: Config> = StorageValue<_, BalanceOf<T>, ValueQuery>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn staked_map)]
-	pub type StakedMap<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, StakeInfo<T>>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn proxies)]
-	pub type Proxies<T: Config> =
-		StorageMap<_, Blake2_128Concat, T::RelayChainAccountId, T::AccountId>;
+	#[pallet::getter(fn queries)]
+	pub type Queries<T: Config> = StorageMap<_, Blake2_128Concat, u64, T::AccountId>;
 
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]
@@ -177,6 +166,9 @@ pub mod pallet {
 		ProxyAlreadyCreated,
 		UnweighableMessage,
 		WrongAccountToMUltiLocationConversion,
+		IndexInUse,
+		AddressListExhausted,
+		InvalidRelayAddress,
 	}
 
 	#[pallet::event]
@@ -188,89 +180,80 @@ pub mod pallet {
 			BalanceOf<T>,
 		),
 		Nominated(
-			<T as frame_system::Config>::AccountId,
 			Vec<T::RelayChainAccountId>,
+			<T as frame_system::Config>::AccountId,
 		),
 		Unstaked(<T as frame_system::Config>::AccountId, BalanceOf<T>),
 		RatioSet(BalanceOf<T>, BalanceOf<T>),
 		NominationsSet(Vec<relay_chain::AccountId>),
 		TransferFailed(XcmError),
 		Transferred(),
-		XcmSent(MultiLocation, Xcm<()>),
+		XcmSent(MultiLocation, Xcm<T::Call>),
 		ProxyCreated(T::AccountId, T::RelayChainAccountId, BalanceOf<T>),
+		RegisterdDerivative(T::AccountId, T::RelayChainAccountId, u16),
 	}
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::weight(0)]
-		pub fn transact_relay(
-			origin: OriginFor<T>,
-			proxy: T::RelayChainAccountId,
-			fee: BalanceOf<T>,
-			targets: Vec<T::RelayChainAccountId>,
-			dest_weight: Weight,
-		) -> DispatchResult {
-			/* 			let who = ensure_signed(origin)?;
+		pub fn register(origin: OriginFor<T>) -> DispatchResult {
+			let who = ensure_signed(origin.clone())?;
 
-			let nominate_bytes: Vec<u8> = T::CallEncoder::encode_call(
-				relay_encoder::AvailableProxyCalls::NominateThroughAnonymousProxy(
-					proxy.clone(),
-					targets.clone(),
-				),
+			let index = CurrentIndex::<T>::get();
+
+			let derivative = Self::derivative_account_id(index);
+			Derivatives::<T>::insert(
+				derivative.clone(),
+				DerivativeInfo {
+					index: index,
+					account: who.clone(),
+				},
 			);
+			let next_index = index
+				.checked_add(1)
+				.ok_or(Error::<T>::AddressListExhausted)?;
 
-			let mut xcm: Xcm<T::Call> = Self::transact(fee, dest_weight, nominate_bytes);
-
-			let weight =
-				T::Weigher::weight(&mut xcm).map_err(|()| Error::<T>::UnweighableMessage)?;
-			let executor = MultiLocation::X1(Junction::AccountKey20 {
-				network: NetworkId::Any,
-				key: T::AccountKey20Convert::convert(who.clone()).clone(),
-			});
-			let outcome = T::XcmExecutor::execute_xcm_in_credit(executor, xcm, weight, weight);
-
-			let maybe_xcm_err: Option<XcmError> = match outcome {
-				Outcome::Complete(_w) => Option::None,
-				Outcome::Incomplete(_w, err) => Some(err),
-				Outcome::Error(err) => Some(err),
-			};
-			if let Some(xcm_err) = maybe_xcm_err {
-				Self::deposit_event(Event::<T>::TransferFailed(xcm_err));
-			} else {
-				Self::deposit_event(Event::<T>::Transferred());
-			}
+			CurrentIndex::<T>::put(next_index);
 
 			// Deposit event
-			Self::deposit_event(Event::<T>::Nominated(who.clone(), targets));*/
+			Self::deposit_event(Event::<T>::RegisterdDerivative(who, derivative, index));
 
 			Ok(())
 		}
 
 		#[pallet::weight(0)]
-		pub fn create_proxy(
+		pub fn transact_through_derivative(
 			origin: OriginFor<T>,
-			proxy: relay_encoder::RelayChainProxyType,
+			relay_address: T::RelayChainAccountId,
 			fee: BalanceOf<T>,
-			index: u16,
 			dest_weight: Weight,
+			call: Vec<u8>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin.clone())?;
+			ensure!(
+				Derivatives::<T>::get(relay_address.clone()).is_some(),
+				Error::<T>::InvalidRelayAddress
+			);
+			let info = Derivatives::<T>::get(relay_address).unwrap();
+			ensure!(info.account == who, Error::<T>::InvalidRelayAddress);
 
-			let proxy_bytes: Vec<u8> = T::CallEncoder::encode_call(
-				relay_encoder::AvailableProxyCalls::CreateAnonymusProxy(proxy, 0, index),
+			let call_bytes: Vec<u8> = T::CallEncoder::encode_call(
+				relay_encoder::AvailableUtilityCalls::AsDerivative(info.index, call),
 			);
 
-			let origin_as_mult = T::OriginToMultiLocation::convert(origin).map_err(|_e| Error::<T>::WrongAccountToMUltiLocationConversion)?;
+			let origin_as_mult = T::OriginToMultiLocation::convert(origin)
+				.map_err(|_e| Error::<T>::WrongAccountToMUltiLocationConversion)?;
 			let mut xcm: Xcm<T::Call> = Self::transact(
 				origin_as_mult.clone(),
 				T::CreateProxyDeposit::get() + fee,
 				dest_weight,
-				proxy_bytes,
+				call_bytes,
 			);
-
+			Self::deposit_event(Event::<T>::XcmSent(origin_as_mult.clone(), xcm.clone()));
 			let weight =
 				T::Weigher::weight(&mut xcm).map_err(|()| Error::<T>::UnweighableMessage)?;
-			let outcome = T::XcmExecutor::execute_xcm_in_credit(origin_as_mult, xcm, weight, weight);
+			let outcome =
+				T::XcmExecutor::execute_xcm_in_credit(origin_as_mult, xcm, weight, weight);
 
 			let maybe_xcm_err: Option<XcmError> = match outcome {
 				Outcome::Complete(_w) => Option::None,
@@ -302,7 +285,8 @@ pub mod pallet {
 			dest_weight: Weight,
 		) -> DispatchResult {
 			let who = ensure_signed(origin.clone())?;
-			let origin_as_mult = T::OriginToMultiLocation::convert(origin).map_err(|_e| Error::<T>::WrongAccountToMUltiLocationConversion)?;
+			let origin_as_mult = T::OriginToMultiLocation::convert(origin)
+				.map_err(|_e| Error::<T>::WrongAccountToMUltiLocationConversion)?;
 
 			let relay: AccountId32 = dest.into();
 			let buy_order = BuyExecution {
@@ -360,7 +344,8 @@ pub mod pallet {
 
 			let weight =
 				T::Weigher::weight(&mut xcm).map_err(|()| Error::<T>::UnweighableMessage)?;
-			let outcome = T::XcmExecutor::execute_xcm_in_credit(origin_as_mult, xcm, weight, weight);
+			let outcome =
+				T::XcmExecutor::execute_xcm_in_credit(origin_as_mult, xcm, weight, weight);
 
 			let maybe_xcm_err: Option<XcmError> = match outcome {
 				Outcome::Complete(_w) => Option::None,
@@ -398,7 +383,7 @@ pub mod pallet {
 					},
 					DepositAsset {
 						assets: vec![All],
-						dest: origin_as_mult
+						dest: origin_as_mult,
 					},
 				],
 			};
@@ -415,6 +400,8 @@ pub mod pallet {
 					call: call.into(),
 				}],
 			};
+			let mut effects: Vec<Order<()>> = vec![buy_order, return_fees];
+
 			Xcm::WithdrawAsset {
 				assets: vec![MultiAsset::ConcreteFungible {
 					id: MultiLocation::X1(Parent),
@@ -423,7 +410,7 @@ pub mod pallet {
 				effects: vec![Order::InitiateReserveWithdraw {
 					assets: vec![MultiAsset::All],
 					reserve: MultiLocation::X1(Parent),
-					effects: vec![buy_order, return_fees],
+					effects: effects,
 				}],
 			}
 		}
@@ -447,6 +434,12 @@ pub mod pallet {
 					},
 				],
 			}
+		}
+
+		pub fn derivative_account_id(index: u16) -> T::RelayChainAccountId {
+			let entropy =
+				(b"modlpy/utilisuba", T::SovereignAccount::get(), index).using_encoded(blake2_256);
+			T::RelayChainAccountId::decode(&mut &entropy[..]).unwrap_or_default()
 		}
 	}
 }
