@@ -16,7 +16,25 @@
 
 use super::{error, EvmResult};
 use sp_core::{H160, H256, U256};
-use sp_std::{vec, vec::Vec};
+use sp_std::{convert::TryInto, vec, vec::Vec};
+
+/// The `address` type of Solidity.
+/// H160 could represent 2 types of data (bytes20 and address) that are not encoded the same way.
+/// To avoid issues writing H160 is thus not supported.
+#[derive(Clone, Copy, Debug)]
+pub struct Address(pub H160);
+
+impl From<H160> for Address {
+	fn from(a: H160) -> Address {
+		Address(a)
+	}
+}
+
+impl From<Address> for H160 {
+	fn from(a: Address) -> H160 {
+		a.0
+	}
+}
 
 /// Wrapper around an EVM input slice, helping to parse it.
 /// Provide functions to parse common types.
@@ -90,17 +108,51 @@ impl<'a> EvmDataReader<'a> {
 #[derive(Clone, Debug)]
 pub struct EvmDataWriter {
 	data: Vec<u8>,
+	arrays: Vec<Array>,
+}
+
+#[derive(Clone, Debug)]
+struct Array {
+	offset_position: usize,
+	data: Vec<u8>,
+	inner_arrays: Vec<Array>,
 }
 
 impl EvmDataWriter {
 	/// Creates a new empty output builder.
 	pub fn new() -> Self {
-		Self { data: vec![] }
+		Self {
+			data: vec![],
+			arrays: vec![],
+		}
 	}
 
 	/// Return the built data.
-	pub fn build(self) -> Vec<u8> {
+	pub fn build(mut self) -> Vec<u8> {
+		Self::build_arrays(&mut self.data, self.arrays, 0);
+
 		self.data
+	}
+
+	/// Build the array into data.
+	/// `global_offset` represents the start of the frame we are modifying.
+	/// While the main data will have a `global_offset` of 0, inner arrays will have a
+	/// `global_offset` corresponding to the start its parent array size data.
+	fn build_arrays(output: &mut Vec<u8>, arrays: Vec<Array>, global_offset: usize) {
+		for mut array in arrays {
+			let offset_position = array.offset_position + global_offset;
+			let offset_position_end = offset_position + 32;
+			let free_space_offset = output.len();
+
+			U256::from(free_space_offset)
+				.to_big_endian(&mut output[offset_position..offset_position_end]);
+
+			// Build inner arrays if any.
+			Self::build_arrays(&mut array.data, array.inner_arrays, free_space_offset);
+
+			// Append this data at the end of the current output.
+			output.append(&mut array.data);
+		}
 	}
 
 	/// Write arbitrary bytes.
@@ -148,7 +200,7 @@ impl EvmData for H256 {
 	}
 }
 
-impl EvmData for H160 {
+impl EvmData for Address {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
 		let range_end = reader.cursor + 32;
 
@@ -160,11 +212,11 @@ impl EvmData for H160 {
 		reader.cursor += 32;
 		reader.update_max_read_position(reader.cursor);
 
-		Ok(H160::from_slice(&data[12..32]))
+		Ok(H160::from_slice(&data[12..32]).into())
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
-		H256::write(writer, value.into());
+		H256::write(writer, value.0.into());
 	}
 }
 
@@ -204,5 +256,63 @@ impl EvmData for bool {
 		}
 
 		writer.data.extend_from_slice(&buffer);
+	}
+}
+
+impl<T: EvmData> EvmData for Vec<T> {
+	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+		let array_start: usize = reader
+			.read::<U256>()
+			.map_err(|_| error("tried to parse array offset out of bounds"))?
+			.try_into()
+			.map_err(|_| error("array offset is too large"))?;
+
+		// We temporarly move the cursor to the offset, we'll set it back afterward.
+		let original_cursor = reader.cursor;
+		reader.cursor = array_start;
+
+		let array_size: usize = reader
+			.read::<U256>()
+			.map_err(|_| error("tried to parse array length out of bounds"))?
+			.try_into()
+			.map_err(|_| error("array length is too large"))?;
+
+		let mut array = vec![];
+
+		for _ in 0..array_size {
+			array.push(reader.read()?);
+		}
+
+		// We update the max read position. This will allow `check_complete` to know up to which
+		// offset has actually been read.
+		reader.update_max_read_position(reader.cursor);
+
+		// We set back the cursor.
+		reader.cursor = original_cursor;
+
+		Ok(array)
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		let offset_position = writer.data.len();
+		U256::write(writer, value.len().into());
+
+		let mut inner_writer = EvmDataWriter::new();
+
+		// Write length.
+		inner_writer = inner_writer.write(U256::from(value.len()));
+
+		// Write elements of array.
+		for inner in value {
+			inner_writer = inner_writer.write(inner);
+		}
+
+		let array = Array {
+			offset_position,
+			data: inner_writer.data,
+			inner_arrays: inner_writer.arrays,
+		};
+
+		writer.arrays.push(array);
 	}
 }

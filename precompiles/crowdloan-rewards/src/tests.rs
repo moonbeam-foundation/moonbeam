@@ -22,7 +22,7 @@ use crate::PrecompileOutput;
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_crowdloan_rewards::{Call as CrowdloanCall, Event as CrowdloanEvent};
 use pallet_evm::{Call as EvmCall, ExitSucceed, PrecompileSet};
-use precompile_utils::{error, EvmDataWriter};
+use precompile_utils::{error, Address, EvmDataWriter};
 use sha3::{Digest, Keccak256};
 use sp_core::{H160, U256};
 
@@ -76,7 +76,7 @@ fn is_contributor_returns_false() {
 			let selector = &Keccak256::digest(b"is_contributor(address)")[0..4];
 			let input = EvmDataWriter::new()
 				.write_raw_bytes(selector)
-				.write(H160::from(Alice))
+				.write(Address(H160::from(Alice)))
 				.build();
 
 			// Expected result is one
@@ -121,7 +121,7 @@ fn is_contributor_returns_true() {
 			let selector = &Keccak256::digest(b"is_contributor(address)")[0..4];
 			let input = EvmDataWriter::new()
 				.write_raw_bytes(selector)
-				.write(H160::from(Alice))
+				.write(Address(H160::from(Alice)))
 				.build();
 
 			// Assert that no props have been opened.
@@ -211,7 +211,7 @@ fn reward_info_works() {
 			let selector = &Keccak256::digest(b"reward_info(address)")[0..4];
 			let input = EvmDataWriter::new()
 				.write_raw_bytes(selector)
-				.write(H160::from(Alice))
+				.write(Address(H160::from(Alice)))
 				.build();
 
 			// Assert that no props have been opened.
@@ -258,7 +258,7 @@ fn update_reward_address_works() {
 			let selector = &Keccak256::digest(b"update_reward_address(address)")[0..4];
 			let input = EvmDataWriter::new()
 				.write_raw_bytes(selector)
-				.write(H160::from(Charlie))
+				.write(Address(H160::from(Charlie)))
 				.build();
 
 			// Make sure the call goes through successfully

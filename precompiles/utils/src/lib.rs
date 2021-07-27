@@ -26,7 +26,10 @@ use sp_core::{H160, H256};
 use sp_std::{marker::PhantomData, vec, vec::Vec};
 
 mod data;
-pub use data::{EvmData, EvmDataReader, EvmDataWriter};
+pub use data::{Address, EvmData, EvmDataReader, EvmDataWriter};
+
+#[cfg(test)]
+mod tests;
 
 /// Alias for Result returning an EVM precompile error.
 pub type EvmResult<T = ()> = Result<T, ExitError>;

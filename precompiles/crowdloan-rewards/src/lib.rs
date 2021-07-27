@@ -24,7 +24,9 @@ use frame_support::{
 	traits::Currency,
 };
 use pallet_evm::{AddressMapping, Precompile};
-use precompile_utils::{error, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper};
+use precompile_utils::{
+	error, Address, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
+};
 
 use sp_core::{H160, U256};
 use sp_std::{
@@ -99,7 +101,7 @@ where
 		input.expect_arguments(1)?;
 
 		// parse the address
-		let contributor: H160 = input.read()?;
+		let contributor: H160 = input.read::<Address>()?.into();
 
 		let account: Runtime::AccountId = contributor.into();
 
@@ -134,7 +136,7 @@ where
 		input.expect_arguments(1)?;
 
 		// parse the address
-		let contributor: H160 = input.read()?;
+		let contributor: H160 = input.read::<Address>()?.into();
 
 		let account: Runtime::AccountId = contributor.into();
 
@@ -214,7 +216,7 @@ where
 		input.expect_arguments(1)?;
 
 		// parse the address
-		let new_address: H160 = input.read()?;
+		let new_address: H160 = input.read::<Address>()?.into();
 
 		log::trace!(target: "crowdloan-rewards-precompile", "New account is {:?}", new_address);
 
