@@ -67,7 +67,6 @@ where
 			[0x53, 0x44, 0x0c, 0x90] => Self::is_contributor(input, target_gas),
 			[0x76, 0xf7, 0x02, 0x49] => Self::reward_info(input, target_gas),
 			[0x4e, 0x71, 0xd9, 0x2d] => Self::claim(target_gas, context),
-
 			[0xaa, 0xac, 0x61, 0xd6] => Self::update_reward_address(input, target_gas, context),
 			_ => {
 				log::trace!(
@@ -100,7 +99,7 @@ where
 		input.expect_arguments(1)?;
 
 		// parse the address
-		let contributor = input.read_address()?;
+		let contributor: H160 = input.read()?;
 
 		let account: Runtime::AccountId = contributor.into();
 
@@ -112,7 +111,7 @@ where
 
 		// fetch data from pallet
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let is_contributor =
+		let is_contributor: bool =
 			pallet_crowdloan_rewards::Pallet::<Runtime>::accounts_payable(account).is_some();
 
 		log::trace!(target: "crowldoan-rewards-precompile", "Result from pallet is {:?}", is_contributor);
@@ -120,7 +119,7 @@ where
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write_bool(is_contributor).build(),
+			output: EvmDataWriter::new().write(is_contributor).build(),
 			logs: Default::default(),
 		})
 	}
@@ -135,7 +134,7 @@ where
 		input.expect_arguments(1)?;
 
 		// parse the address
-		let contributor = input.read_address()?;
+		let contributor: H160 = input.read()?;
 
 		let account: Runtime::AccountId = contributor.into();
 
@@ -172,10 +171,7 @@ where
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new()
-				.write_u256(total)
-				.write_u256(claimed)
-				.build(),
+			output: EvmDataWriter::new().write(total).write(claimed).build(),
 			logs: Default::default(),
 		})
 	}
@@ -218,7 +214,7 @@ where
 		input.expect_arguments(1)?;
 
 		// parse the address
-		let new_address = input.read_address()?;
+		let new_address: H160 = input.read()?;
 
 		log::trace!(target: "crowdloan-rewards-precompile", "New account is {:?}", new_address);
 

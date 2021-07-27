@@ -14,19 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::mock::Crowdloan;
 use crate::mock::{
-	events, evm_test_context, precompile_address, roll_to, Call, ExtBuilder, Origin, Precompiles,
-	TestAccount::Alice, TestAccount::Bob, TestAccount::Charlie,
+	events, evm_test_context, precompile_address, roll_to, Call, Crowdloan, ExtBuilder, Origin,
+	Precompiles, TestAccount::Alice, TestAccount::Bob, TestAccount::Charlie,
 };
 use crate::PrecompileOutput;
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_crowdloan_rewards::{Call as CrowdloanCall, Event as CrowdloanEvent};
-use pallet_evm::Call as EvmCall;
-use pallet_evm::{ExitError, ExitSucceed, PrecompileSet};
+use pallet_evm::{Call as EvmCall, ExitSucceed, PrecompileSet};
 use precompile_utils::{error, EvmDataWriter};
 use sha3::{Digest, Keccak256};
-use sp_core::U256;
+use sp_core::{H160, U256};
 
 #[test]
 fn selector_less_than_four_bytes() {
@@ -77,14 +75,14 @@ fn is_contributor_returns_false() {
 		.execute_with(|| {
 			let selector = &Keccak256::digest(b"is_contributor(address)")[0..4];
 			let input = EvmDataWriter::new()
-				.write_bytes(selector)
-				.write_h256(Alice.to_h160())
+				.write_raw_bytes(selector)
+				.write(H160::from(Alice))
 				.build();
 
 			// Expected result is one
 			let expected_one_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write_bool(false).build(),
+				output: EvmDataWriter::new().write(false).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
@@ -122,8 +120,8 @@ fn is_contributor_returns_true() {
 
 			let selector = &Keccak256::digest(b"is_contributor(address)")[0..4];
 			let input = EvmDataWriter::new()
-				.write_bytes(selector)
-				.write_h256(Alice.to_h160())
+				.write_raw_bytes(selector)
+				.write(H160::from(Alice))
 				.build();
 
 			// Assert that no props have been opened.
@@ -131,7 +129,7 @@ fn is_contributor_returns_true() {
 				Precompiles::execute(precompile_address(), &input, None, &evm_test_context()),
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
-					output: EvmDataWriter::new().write_bool(true).build(),
+					output: EvmDataWriter::new().write(true).build(),
 					cost: Default::default(),
 					logs: Default::default(),
 				}))
@@ -165,11 +163,11 @@ fn claim_works() {
 			roll_to(5);
 
 			let selector = &Keccak256::digest(b"claim()")[0..4];
-			let input = EvmDataWriter::new().write_bytes(selector).build();
+			let input = EvmDataWriter::new().write_raw_bytes(selector).build();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
-				Alice.to_h160(),
+				Alice.into(),
 				precompile_address(),
 				input,
 				U256::zero(), // No value sent in EVM
@@ -212,8 +210,8 @@ fn reward_info_works() {
 
 			let selector = &Keccak256::digest(b"reward_info(address)")[0..4];
 			let input = EvmDataWriter::new()
-				.write_bytes(selector)
-				.write_h256(Alice.to_h160())
+				.write_raw_bytes(selector)
+				.write(H160::from(Alice))
 				.build();
 
 			// Assert that no props have been opened.
@@ -222,8 +220,8 @@ fn reward_info_works() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new()
-						.write_u256(50u64)
-						.write_u256(10u64)
+						.write(U256::from(50u64))
+						.write(U256::from(10u64))
 						.build(),
 					cost: Default::default(),
 					logs: Default::default(),
@@ -259,13 +257,13 @@ fn update_reward_address_works() {
 
 			let selector = &Keccak256::digest(b"update_reward_address(address)")[0..4];
 			let input = EvmDataWriter::new()
-				.write_bytes(selector)
-				.write_h256(Charlie.to_h160())
+				.write_raw_bytes(selector)
+				.write(H160::from(Charlie))
 				.build();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
-				Alice.to_h160(),
+				Alice.into(),
 				precompile_address(),
 				input,
 				U256::zero(), // No value sent in EVM
@@ -294,8 +292,8 @@ fn test_bound_checks_for_address_parsing() {
 		.execute_with(|| {
 			let selector = &Keccak256::digest(b"update_reward_address(address)")[0..4];
 			let input = EvmDataWriter::new()
-				.write_bytes(&selector)
-				.write_bytes(&[1u8; 4]) // incomplete data
+				.write_raw_bytes(&selector)
+				.write_raw_bytes(&[1u8; 4]) // incomplete data
 				.build();
 
 			assert_eq!(
