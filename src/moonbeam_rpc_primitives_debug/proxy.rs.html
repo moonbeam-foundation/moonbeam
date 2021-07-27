@@ -264,6 +264,29 @@
 <span id="261">261</span>
 <span id="262">262</span>
 <span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -331,6 +354,29 @@
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">emit</span>(<span class="self">self</span>) {
 		<span class="ident">listener</span>::<span class="ident">with</span>(<span class="op">|</span><span class="ident">listener</span><span class="op">|</span> <span class="ident">listener</span>.<span class="ident">event</span>(<span class="self">self</span>));
 	}
+}
+
+<span class="doccomment">/// DebugRuntimeApi V1 result. Trace response is stored in runtime memory and returned as part of</span>
+<span class="doccomment">/// the runtime api call.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ResultV1</span> {
+	<span class="ident">Single</span>(<span class="ident">SingleTrace</span>),
+	<span class="ident">Block</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BlockTrace</span><span class="op">&gt;</span>),
+}
+
+<span class="doccomment">/// DebugRuntimeApi V2 result. Trace response is stored in client and runtime api call response is</span>
+<span class="doccomment">/// empty.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ResultV2</span> {
+	<span class="ident">Single</span>,
+	<span class="ident">Block</span>,
+}
+
+<span class="doccomment">/// Runtime api closure result.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="prelude-ty">Result</span> {
+	<span class="ident">V1</span>(<span class="ident">ResultV1</span>),
+	<span class="ident">V2</span>(<span class="ident">ResultV2</span>),
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>

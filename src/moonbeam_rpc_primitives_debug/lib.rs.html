@@ -147,12 +147,12 @@
 			<span class="ident">extrinsics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Block</span>::<span class="ident">Extrinsic</span><span class="op">&gt;</span>,
 			<span class="ident">transaction</span>: <span class="kw-2">&amp;</span><span class="ident">Transaction</span>,
 			<span class="ident">trace_type</span>: <span class="ident">single</span>::<span class="ident">TraceType</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">sp_runtime</span>::<span class="ident">DispatchError</span><span class="op">&gt;</span>;
+		) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">single</span>::<span class="ident">TransactionTrace</span>, <span class="ident">sp_runtime</span>::<span class="ident">DispatchError</span><span class="op">&gt;</span>;
 
 		<span class="attribute">#[<span class="ident">changed_in</span>(<span class="number">2</span>)]</span>
 		<span class="kw">fn</span> <span class="ident">trace_block</span>(
 			<span class="ident">extrinsics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Block</span>::<span class="ident">Extrinsic</span><span class="op">&gt;</span>,
-		) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">sp_runtime</span>::<span class="ident">DispatchError</span><span class="op">&gt;</span>;
+		) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">block</span>::<span class="ident">TransactionTrace</span><span class="op">&gt;</span>, <span class="ident">sp_runtime</span>::<span class="ident">DispatchError</span><span class="op">&gt;</span>;
 
 		<span class="kw">fn</span> <span class="ident">trace_transaction</span>(
 			<span class="ident">header</span>: <span class="kw-2">&amp;</span><span class="ident">Block</span>::<span class="ident">Header</span>,
