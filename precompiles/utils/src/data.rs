@@ -21,7 +21,7 @@ use sp_std::{convert::TryInto, vec, vec::Vec};
 /// The `address` type of Solidity.
 /// H160 could represent 2 types of data (bytes20 and address) that are not encoded the same way.
 /// To avoid issues writing H160 is thus not supported.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Address(pub H160);
 
 impl From<H160> for Address {
@@ -140,10 +140,11 @@ impl EvmDataWriter {
 	/// `global_offset` corresponding to the start its parent array size data.
 	fn build_arrays(output: &mut Vec<u8>, arrays: Vec<Array>, global_offset: usize) {
 		for mut array in arrays {
-			let offset_position = array.offset_position + global_offset;
+			let offset_position = array.offset_position;
 			let offset_position_end = offset_position + 32;
-			let free_space_offset = output.len();
+			let free_space_offset = output.len() + global_offset;
 
+			// Override dummy offset to the offset it will be in the final output.
 			U256::from(free_space_offset)
 				.to_big_endian(&mut output[offset_position..offset_position_end]);
 
@@ -295,7 +296,8 @@ impl<T: EvmData> EvmData for Vec<T> {
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
 		let offset_position = writer.data.len();
-		U256::write(writer, value.len().into());
+		H256::write(writer, H256::repeat_byte(0xff));
+		// 0xff = When debugging it makes spoting offset values easier.
 
 		let mut inner_writer = EvmDataWriter::new();
 
