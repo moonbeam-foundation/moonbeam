@@ -112,7 +112,7 @@ pub mod pallet {
 			weight += T::DbWeight::get().writes(1);
 			Self::deposit_event(Event::RuntimeUpgradeStarted());
 
-			weight += process_runtime_upgrades::<T>(available_weight - weight);
+			weight += process_runtime_upgrades::<T>(available_weight.saturating_sub(weight));
 
 			// at least emit a warning if we aren't going to end up finishing our migrations...
 			if !T::MultiBlockMigrationsSupported::get() {
