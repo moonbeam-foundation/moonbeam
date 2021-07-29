@@ -18,6 +18,8 @@ import {
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 const relayChainAddress: string =
   "0x1111111111111111111111111111111111111111111111111111111111111111";
+const relayChainAddress_2: string =
+  "0x2222222222222222222222222222222222222222222222222222222222222222";
 
 // 5 blocks per minute, 4 weeks
 const vesting = 201600;
@@ -530,7 +532,8 @@ describeDevMoonbeam("Crowdloan", (context) => {
     // We are gonna put the initialization and completion in a batch_all utility call
     calls.push(
       context.polkadotApi.tx.crowdloanRewards.initializeRewardVec([
-        [relayChainAddress, GENESIS_ACCOUNT, 3_000_000n * GLMR],
+        [relayChainAddress, GENESIS_ACCOUNT, 1_500_000n * GLMR],
+        [relayChainAddress_2, null, 1_500_000n * GLMR],
       ])
     );
 
@@ -547,16 +550,14 @@ describeDevMoonbeam("Crowdloan", (context) => {
     let encodedHash = blake2AsHex(encodedProposal);
 
     // Submit the pre-image
-    await context.polkadotApi.tx.democracy
-      .notePreimage(encodedProposal)
-      .signAndSend(genesisAccount);
+    await context.polkadotApi.tx.democracy.notePreimage(encodedProposal).signAndSend(sudoAccount);
 
     await context.createBlock();
 
     // Propose
     await context.polkadotApi.tx.democracy
       .propose(encodedHash, 1000n * GLMR)
-      .signAndSend(genesisAccount);
+      .signAndSend(sudoAccount);
 
     await context.createBlock();
     const publicPropCount = await context.polkadotApi.query.democracy.publicPropCount();
@@ -572,6 +573,38 @@ describeDevMoonbeam("Crowdloan", (context) => {
     await context.createBlock();
 
     let isInitialized = await context.polkadotApi.query.crowdloanRewards.initialized();
+
     expect(isInitialized.toHuman()).to.be.true;
+
+    // Get reward info of associated
+    let reward_info_associated = (
+      await context.polkadotApi.query.crowdloanRewards.accountsPayable(GENESIS_ACCOUNT)
+    ).toHuman() as any;
+
+    // Get reward info of unassociated
+    let reward_info_unassociated = (
+      await context.polkadotApi.query.crowdloanRewards.unassociatedContributions(
+        relayChainAddress_2
+      )
+    ).toHuman() as any;
+
+    // Check payments
+    expect(reward_info_associated.total_reward).to.equal("1.5000 MUNIT");
+
+    expect(reward_info_associated.claimed_reward).to.equal("450.0000 kUNIT");
+
+    expect(reward_info_unassociated.total_reward).to.equal("1.5000 MUNIT");
+
+    expect(reward_info_unassociated.claimed_reward).to.equal("0");
+
+    // check balances
+    const account = await context.polkadotApi.query.system.account(GENESIS_ACCOUNT);
+    expect(
+      formatBalance(
+        account.data.free.toBigInt() - GENESIS_ACCOUNT_BALANCE,
+        { withSi: true, withUnit: "UNIT" },
+        18
+      )
+    ).to.equal(reward_info_associated.claimed_reward);
   });
 });
