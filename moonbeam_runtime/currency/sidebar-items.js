@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["GLMR",""],["KILOGLMR",""],["MICROGLMR",""],["MILLIGLMR",""],["NANOGLMR",""],["STORAGE_BYTE_FEE",""],["TRANSACTION_BYTE_FEE",""]],"fn":[["deposit",""]]});
+initSidebarItems({"constant":[["GLMR",""],["KILOGLMR",""],["MICROGLMR",""],["MILLIGLMR",""],["NANOGLMR",""],["STORAGE_BYTE_FEE",""],["TRANSACTION_BYTE_FEE",""],["WEI",""]],"fn":[["deposit",""]]});
