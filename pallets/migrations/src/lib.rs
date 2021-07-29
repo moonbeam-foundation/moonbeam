@@ -117,7 +117,7 @@ pub mod pallet {
 			// at least emit a warning if we aren't going to end up finishing our migrations...
 			if !T::MultiBlockMigrationsSupported::get() {
 				if !<FullyUpgraded<T>>::get() {
-					log::warn!(
+					log::error!(
 						"migrations weren't completed in on_runtime_upgrade(), but we're not
 					configured for multi-block migrations; state is potentially inconsistent!"
 					);
