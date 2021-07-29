@@ -25,6 +25,6 @@ sourcesIndex["pallet_author_mapping"] = {"name":"","files":["lib.rs","weights.rs
 sourcesIndex["pallet_ethereum_chain_id"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["parachain_staking"] = {"name":"","files":["inflation.rs","lib.rs","set.rs","weights.rs"]};
 sourcesIndex["parachain_staking_precompiles"] = {"name":"","files":["lib.rs"]};
-sourcesIndex["precompile_utils"] = {"name":"","files":["lib.rs"]};
+sourcesIndex["precompile_utils"] = {"name":"","files":["data.rs","lib.rs"]};
 sourcesIndex["runtime_common"] = {"name":"","files":["apis.rs","lib.rs"]};
 createSourceSidebar();
