@@ -14,6 +14,8 @@ import { describeDevMoonbeam } from "../util/setup-dev-tests";
 
 describeDevMoonbeam("Proxing governance", (context) => {
   it("should be able to vote on behalf of the delegate account", async function () {
+    // Because we have to produce a lot (3600 at time or writing) of blocks
+    // to exhaust the LaunchPeriod
     this.timeout(40_000);
 
     const keyring = new Keyring({ type: "ethereum" });
