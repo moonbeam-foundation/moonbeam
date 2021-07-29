@@ -267,10 +267,10 @@ impl pallet_transaction_payment::Config for Runtime {
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
 }
 
-impl pallet_sudo::Config for Runtime {
-	type Call = Call;
-	type Event = Event;
-}
+// impl pallet_sudo::Config for Runtime {
+// 	type Call = Call;
+// 	type Event = Event;
+// }
 
 impl pallet_ethereum_chain_id::Config for Runtime {}
 
@@ -768,31 +768,31 @@ construct_runtime! {
 		NodeBlock = opaque::Block,
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
-		System: frame_system::{Pallet, Call, Storage, Config, Event<T>},
-		Utility: pallet_utility::{Pallet, Call, Event},
-		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage},
-		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>},
-		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
-		ParachainInfo: parachain_info::{Pallet, Storage, Config},
-		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config},
-		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>},
-		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config, ValidateUnsigned},
-		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>},
-		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call},
-		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call},
+		System: frame_system::{Pallet, Call, Storage, Config, Event<T>} = 1,
+		Utility: pallet_utility::{Pallet, Call, Event} = 2,
+		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 3,
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 4,
+		// Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 5,
+		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = 6,
+		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 7,
+		TransactionPayment: pallet_transaction_payment::{Pallet, Storage} = 8,
+		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 9,
+		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 10,
+		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 11,
+		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config, ValidateUnsigned} = 12,
+		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 13,
+		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call} = 14,
+		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 15,
 		CouncilCollective:
-			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>},
+			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 17,
 		TechComitteeCollective:
-			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>},
-		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call},
-		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent},
-		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config},
-		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>},
-		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>},
-		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
+			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 18,
+		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call} = 19,
+		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent} = 20,
+		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config} = 21,
+		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>} = 22,
+		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>} = 23,
+		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 24,
 	}
 }
 
