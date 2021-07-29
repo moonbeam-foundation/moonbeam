@@ -6094,7 +6094,7 @@ dependencies = [
 [[package]]
 name = "pallet-crowdloan-rewards"
 version = "0.6.0"
-source = "git+https://github.com/purestake/crowdloan-rewards?branch=main#8d5e20d088f9e3427f749cee795303c18e713873"
+source = "git+https://github.com/purestake/crowdloan-rewards?branch=main#86387dcb23e86c24c6b58fc9dc86b7986836f298"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",

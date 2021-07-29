@@ -608,3 +608,44 @@ describeDevMoonbeam("Crowdloan", (context) => {
     ).to.equal(reward_info_associated.claimed_reward);
   });
 });
+
+describeDevMoonbeam("Crowdloan", (context) => {
+  let genesisAccount: KeyringPair, sudoAccount: KeyringPair;
+
+  before("Setup genesis account for substrate", async () => {
+    const keyring = new Keyring({ type: "ethereum" });
+    genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+    sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+  });
+  it("should be able to burn the dust", async function () {
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.crowdloanRewards.initializeRewardVec([
+          [relayChainAddress, GENESIS_ACCOUNT, 1_500_000n * GLMR],
+          [relayChainAddress_2, null, 1_499_999_999_999_999_999_999_999n],
+        ])
+      )
+      .signAndSend(sudoAccount);
+    await context.createBlock();
+
+    let initBlock = (await context.polkadotApi.query.crowdloanRewards.initRelayBlock()) as any;
+    let previousIssuance = (await context.polkadotApi.query.balances.totalIssuance()) as any;
+
+    // Complete initialization
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(Number(initBlock) + vesting)
+      )
+      .signAndSend(sudoAccount);
+    await context.createBlock();
+
+    let issuance = (await context.polkadotApi.query.balances.totalIssuance()) as any;
+
+    let isInitialized = await context.polkadotApi.query.crowdloanRewards.initialized();
+
+    expect(isInitialized.toHuman()).to.be.true;
+
+    // We should have burnt 1
+    expect(issuance.toString()).to.eq((BigInt(previousIssuance) - BigInt(1)).toString());
+  });
+});
