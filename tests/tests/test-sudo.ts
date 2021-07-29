@@ -17,7 +17,7 @@ describeDevMoonbeam("Sudo - Only sudo account", (context) => {
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
-  it("should NOT be able to call sudo with another account than sudo account", async function () {
+  it.skip("should NOT be able to call sudo with another account than sudo account", async function () {
     await context.polkadotApi.tx.sudo
       .sudo(context.polkadotApi.tx.parachainStaking.setParachainBondAccount(GENESIS_ACCOUNT))
       .signAndSend(genesisAccount);
@@ -26,7 +26,7 @@ describeDevMoonbeam("Sudo - Only sudo account", (context) => {
     expect(parachainBondInfo.toHuman()["account"]).to.equal(ZERO_ADDRESS);
     expect(parachainBondInfo.toHuman()["percent"]).to.equal("30.00%");
   });
-  it("should check events", async function () {
+  it.skip("should check events", async function () {
     const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(1);
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock(blockHash);
     const allRecords = await context.polkadotApi.query.system.events.at(
