@@ -96,6 +96,7 @@ where
 		target_gas: Option<u64>,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?; // accounts_payable
 
 		// Bound check
 		input.expect_arguments(1)?;
@@ -112,7 +113,6 @@ where
 		);
 
 		// fetch data from pallet
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let is_contributor: bool =
 			pallet_crowdloan_rewards::Pallet::<Runtime>::accounts_payable(account).is_some();
 
@@ -131,6 +131,7 @@ where
 		target_gas: Option<u64>,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?; // accounts_payable
 
 		// Bound check
 		input.expect_arguments(1)?;
@@ -147,7 +148,6 @@ where
 		);
 
 		// fetch data from pallet
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let reward_info = pallet_crowdloan_rewards::Pallet::<Runtime>::accounts_payable(account);
 
 		let (total, claimed): (U256, U256) = if let Some(reward_info) = reward_info {

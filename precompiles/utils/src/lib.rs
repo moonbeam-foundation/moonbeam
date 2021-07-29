@@ -177,6 +177,10 @@ where
 		}
 
 		// Dispatch call.
+		// It may be possible to not record gas cost if the call returnes Pays::No.
+		// However while Substrate handle checking weight while not making the sender pay for it,
+		// the EVM doesn't. It seems this safer to always record the costs to avoid unmetered
+		// computations.
 		let used_weight = call
 			.dispatch(origin)
 			.map_err(|_| error("dispatched call failed"))?
@@ -204,6 +208,8 @@ where
 }
 
 /// Custom Gasometer to record costs in precompiles.
+/// It is advised to record known costs as early as possible to
+/// avoid unecessary computations if there is an Out of Gas.
 #[derive(Clone, Copy, Debug)]
 pub struct Gasometer {
 	target_gas: Option<u64>,
@@ -233,6 +239,29 @@ impl Gasometer {
 			Some(gas_limit) if self.used_gas > gas_limit => Err(ExitError::OutOfGas),
 			_ => Ok(()),
 		}
+	}
+
+	/// Record cost of a log manualy.
+	/// This can be useful to record log costs early when their content have static size.
+	pub fn record_log_costs_manual(&mut self, topics: usize, data_len: usize) -> EvmResult {
+		const G_LOG: u64 = 375;
+		const G_LOGDATA: u64 = 8;
+		const G_LOGTOPIC: u64 = 375;
+
+		self.record_cost(G_LOG)?;
+		self.record_cost(G_LOGDATA * topics as u64)?;
+		self.record_cost(G_LOGTOPIC * data_len as u64)?;
+
+		Ok(())
+	}
+
+	/// Record cost of logs.
+	pub fn record_log_costs(&mut self, logs: &[Log]) -> EvmResult {
+		for log in logs {
+			self.record_log_costs_manual(log.topics.len(), log.data.len())?;
+		}
+
+		Ok(())
 	}
 
 	/// Compute remaining gas.

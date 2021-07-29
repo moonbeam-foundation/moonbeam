@@ -55,12 +55,12 @@ impl<'a> EvmDataReader<'a> {
 		}
 	}
 
-	/// Check the input has the correct amount of arguments before end (32 bytes values).
+	/// Check the input has at least the correct amount of arguments before end (32 bytes values).
 	/// This cannot be used if the arguments contains arrays as array parsing is context dependent.
 	/// If at least one argument is an array, parse it first, then call `validate` after parsing
 	/// the entire input.
 	pub fn expect_arguments(&self, args: usize) -> EvmResult {
-		if self.input.len() == self.cursor + args * 32 {
+		if self.input.len() >= self.cursor + args * 32 {
 			Ok(())
 		} else {
 			Err(error("input doesn't match expected length"))
@@ -68,6 +68,8 @@ impl<'a> EvmDataReader<'a> {
 	}
 
 	/// Check the input has been completely read.
+	/// It is not really an issue that the caller provided more non used data, so this
+	/// should only be used in tests to check data is encoded as expected.
 	pub fn check_complete(&self) -> EvmResult {
 		if self.max_read_position == self.input.len() {
 			Ok(())
@@ -81,22 +83,35 @@ impl<'a> EvmDataReader<'a> {
 		T::read(self)
 	}
 
-	/// Parse (4 bytes) selector.
+	/// Read raw bytes from the input.
+	/// Doesn't handle any alignement checks, prefer using `read` instead of possible.
 	/// Returns an error if trying to parse out of bounds.
-	pub fn read_selector(&mut self) -> EvmResult<&[u8]> {
-		let range_end = self.cursor + 4;
+	pub fn read_raw_bytes(&mut self, len: usize) -> EvmResult<&[u8]> {
+		let range_end = self.cursor + len;
 
 		let data = self
 			.input
 			.get(self.cursor..range_end)
-			.ok_or_else(|| error("tried to parse selector out of bounds"))?;
+			.ok_or_else(|| error("tried to parse raw bytes out of bounds"))?;
 
-		self.cursor += 4;
+		self.cursor += len;
 		self.update_max_read_position(self.cursor);
 
 		Ok(data)
 	}
 
+	/// Parse (4 bytes) selector.
+	/// Returns an error if trying to parse out of bounds.
+	pub fn read_selector(&mut self) -> EvmResult<&[u8]> {
+		self.read_raw_bytes(4)
+			.map_err(|_| error("tried to parse selector out of bounds"))
+	}
+
+	/// We need to keep track up to which offset we have actually read.
+	/// This allow to call `check_complete` and check there is no unused data.
+	/// This doesn't allow to check that there is unused data in between used data ranges
+	/// (can occur when dealing with offsets). But since `check_complete` is only expected to be
+	/// used in tests, this shouldn't happend in them.
 	fn update_max_read_position(&mut self, local_max: usize) {
 		if self.max_read_position < local_max {
 			self.max_read_position = local_max;
@@ -157,6 +172,7 @@ impl EvmDataWriter {
 	}
 
 	/// Write arbitrary bytes.
+	/// Doesn't handle any alignement checks, prefer using `write` instead of possible.
 	pub fn write_raw_bytes(mut self, value: &[u8]) -> Self {
 		self.data.extend_from_slice(value);
 		self
@@ -268,7 +284,7 @@ impl<T: EvmData> EvmData for Vec<T> {
 			.try_into()
 			.map_err(|_| error("array offset is too large"))?;
 
-		// We temporarly move the cursor to the offset, we'll set it back afterward.
+		// We temporarily move the cursor to the offset, we'll set it back afterward.
 		let original_cursor = reader.cursor;
 		reader.cursor = array_start;
 
