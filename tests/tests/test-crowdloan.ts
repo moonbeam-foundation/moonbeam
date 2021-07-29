@@ -4,6 +4,8 @@ import { expect } from "chai";
 import Web3 from "web3";
 import { Account } from "web3-core";
 import { formatBalance } from "@polkadot/util";
+import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
+import { blake2AsHex } from "@polkadot/util-crypto";
 
 import {
   GENESIS_ACCOUNT,
@@ -512,5 +514,64 @@ describeDevMoonbeam("Crowdloan", (context) => {
         ).to.equal(rewardPerContributor);
       })
     );
+  });
+});
+
+describeDevMoonbeam("Crowdloan", (context) => {
+  let genesisAccount: KeyringPair, sudoAccount: KeyringPair;
+
+  before("Setup genesis account for substrate", async () => {
+    const keyring = new Keyring({ type: "ethereum" });
+    genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+    sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+  });
+  it("should be able to initialize through democracy", async function () {
+    let calls = [];
+    // We are gonna put the initialization and completion in a batch_all utility call
+    calls.push(
+      context.polkadotApi.tx.crowdloanRewards.initializeRewardVec([
+        [relayChainAddress, GENESIS_ACCOUNT, 3_000_000n * GLMR],
+      ])
+    );
+
+    let initBlock = (await context.polkadotApi.query.crowdloanRewards.initRelayBlock()) as any;
+    calls.push(
+      context.polkadotApi.tx.crowdloanRewards.completeInitialization(Number(initBlock) + vesting)
+    );
+
+    // Here we build the utility call
+    const proposal = context.polkadotApi.tx.utility.batchAll(calls);
+
+    // We encode the proposal
+    let encodedProposal = (proposal as SubmittableExtrinsic)?.method.toHex() || "";
+    let encodedHash = blake2AsHex(encodedProposal);
+
+    // Submit the pre-image
+    await context.polkadotApi.tx.democracy
+      .notePreimage(encodedProposal)
+      .signAndSend(genesisAccount);
+
+    await context.createBlock();
+
+    // Propose
+    await context.polkadotApi.tx.democracy
+      .propose(encodedHash, 1000n * GLMR)
+      .signAndSend(genesisAccount);
+
+    await context.createBlock();
+    const publicPropCount = await context.polkadotApi.query.democracy.publicPropCount();
+
+    // we only use sudo to enact the proposal
+    await context.polkadotApi.tx.sudo
+      .sudoUncheckedWeight(
+        context.polkadotApi.tx.democracy.enactProposal(encodedHash, publicPropCount),
+        1
+      )
+      .signAndSend(sudoAccount);
+
+    await context.createBlock();
+
+    let isInitialized = await context.polkadotApi.query.crowdloanRewards.initialized();
+    expect(isInitialized.toHuman()).to.be.true;
   });
 });
