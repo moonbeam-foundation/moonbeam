@@ -15,6 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::{error, EvmResult};
+use core::ops::Range;
 use sp_core::{H160, H256, U256};
 use sp_std::{convert::TryInto, vec, vec::Vec};
 
@@ -42,36 +43,17 @@ impl From<Address> for H160 {
 pub struct EvmDataReader<'a> {
 	input: &'a [u8],
 	cursor: usize,
-	max_read_position: usize,
 }
 
 impl<'a> EvmDataReader<'a> {
 	/// Create a new input parser.
 	pub fn new(input: &'a [u8]) -> Self {
-		Self {
-			input,
-			cursor: 0,
-			max_read_position: 0,
-		}
+		Self { input, cursor: 0 }
 	}
 
-	/// Check the input has at least the correct amount of arguments before end (32 bytes values).
-	/// This cannot be used if the arguments contains arrays as array parsing is context dependent.
-	/// If at least one argument is an array, parse it first, then call `validate` after parsing
-	/// the entire input.
+	/// Check the input has at least the correct amount of arguments before the end (32 bytes values).
 	pub fn expect_arguments(&self, args: usize) -> EvmResult {
 		if self.input.len() >= self.cursor + args * 32 {
-			Ok(())
-		} else {
-			Err(error("input doesn't match expected length"))
-		}
-	}
-
-	/// Check the input has been completely read.
-	/// It is not really an issue that the caller provided more non used data, so this
-	/// should only be used in tests to check data is encoded as expected.
-	pub fn check_complete(&self) -> EvmResult {
-		if self.max_read_position == self.input.len() {
 			Ok(())
 		} else {
 			Err(error("input doesn't match expected length"))
@@ -87,15 +69,12 @@ impl<'a> EvmDataReader<'a> {
 	/// Doesn't handle any alignement checks, prefer using `read` instead of possible.
 	/// Returns an error if trying to parse out of bounds.
 	pub fn read_raw_bytes(&mut self, len: usize) -> EvmResult<&[u8]> {
-		let range_end = self.cursor + len;
+		let range = self.move_cursor(len)?;
 
 		let data = self
 			.input
-			.get(self.cursor..range_end)
+			.get(range)
 			.ok_or_else(|| error("tried to parse raw bytes out of bounds"))?;
-
-		self.cursor += len;
-		self.update_max_read_position(self.cursor);
 
 		Ok(data)
 	}
@@ -107,15 +86,19 @@ impl<'a> EvmDataReader<'a> {
 			.map_err(|_| error("tried to parse selector out of bounds"))
 	}
 
-	/// We need to keep track up to which offset we have actually read.
-	/// This allow to call `check_complete` and check there is no unused data.
-	/// This doesn't allow to check that there is unused data in between used data ranges
-	/// (can occur when dealing with offsets). But since `check_complete` is only expected to be
-	/// used in tests, this shouldn't happend in them.
-	fn update_max_read_position(&mut self, local_max: usize) {
-		if self.max_read_position < local_max {
-			self.max_read_position = local_max;
-		}
+	/// Move the reading cursor with provided length, and return a range from the previous cursor
+	/// location to the new one.
+	/// Checks cursor overflows.
+	fn move_cursor(&mut self, len: usize) -> EvmResult<Range<usize>> {
+		let start = self.cursor;
+		let end = self
+			.cursor
+			.checked_add(len)
+			.ok_or_else(|| error("data reading cursor overflow"))?;
+
+		self.cursor = end;
+
+		Ok(start..end)
 	}
 }
 
@@ -199,15 +182,12 @@ pub trait EvmData: Sized {
 
 impl EvmData for H256 {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let range_end = reader.cursor + 32;
+		let range = reader.move_cursor(32)?;
 
 		let data = reader
 			.input
-			.get(reader.cursor..range_end)
+			.get(range)
 			.ok_or_else(|| error("tried to parse H256 out of bounds"))?;
-
-		reader.cursor += 32;
-		reader.update_max_read_position(reader.cursor);
 
 		Ok(H256::from_slice(data))
 	}
@@ -219,15 +199,12 @@ impl EvmData for H256 {
 
 impl EvmData for Address {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let range_end = reader.cursor + 32;
+		let range = reader.move_cursor(32)?;
 
 		let data = reader
 			.input
-			.get(reader.cursor..range_end)
+			.get(range)
 			.ok_or_else(|| error("tried to parse H160 out of bounds"))?;
-
-		reader.cursor += 32;
-		reader.update_max_read_position(reader.cursor);
 
 		Ok(H160::from_slice(&data[12..32]).into())
 	}
@@ -239,15 +216,12 @@ impl EvmData for Address {
 
 impl EvmData for U256 {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let range_end = reader.cursor + 32;
+		let range = reader.move_cursor(32)?;
 
 		let data = reader
 			.input
-			.get(reader.cursor..range_end)
+			.get(range)
 			.ok_or_else(|| error("tried to parse U256 out of bounds"))?;
-
-		reader.cursor += 32;
-		reader.update_max_read_position(reader.cursor);
 
 		Ok(U256::from_big_endian(data))
 	}
@@ -300,11 +274,7 @@ impl<T: EvmData> EvmData for Vec<T> {
 			array.push(reader.read()?);
 		}
 
-		// We update the max read position. This will allow `check_complete` to know up to which
-		// offset has actually been read.
-		reader.update_max_read_position(reader.cursor);
-
-		// We set back the cursor.
+		// We set back the cursor to its original location.
 		reader.cursor = original_cursor;
 
 		Ok(array)

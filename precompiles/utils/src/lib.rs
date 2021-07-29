@@ -233,7 +233,7 @@ impl Gasometer {
 
 	/// Record cost, and return error if it goes out of gas.
 	pub fn record_cost(&mut self, cost: u64) -> EvmResult {
-		self.used_gas += cost;
+		self.used_gas.checked_add(cost).ok_or(ExitError::OutOfGas)?;
 
 		match self.target_gas {
 			Some(gas_limit) if self.used_gas > gas_limit => Err(ExitError::OutOfGas),
@@ -244,13 +244,24 @@ impl Gasometer {
 	/// Record cost of a log manualy.
 	/// This can be useful to record log costs early when their content have static size.
 	pub fn record_log_costs_manual(&mut self, topics: usize, data_len: usize) -> EvmResult {
+		// Cost calculation is copied from EVM code that is not publicly exposed by the crates.
+		// https://github.com/rust-blockchain/evm/blob/master/gasometer/src/costs.rs#L148
+
 		const G_LOG: u64 = 375;
 		const G_LOGDATA: u64 = 8;
 		const G_LOGTOPIC: u64 = 375;
 
+		let topic_cost = G_LOGTOPIC
+			.checked_mul(topics as u64)
+			.ok_or(ExitError::OutOfGas)?;
+
+		let data_cost = G_LOGDATA
+			.checked_mul(data_len as u64)
+			.ok_or(ExitError::OutOfGas)?;
+
 		self.record_cost(G_LOG)?;
-		self.record_cost(G_LOGDATA * topics as u64)?;
-		self.record_cost(G_LOGTOPIC * data_len as u64)?;
+		self.record_cost(topic_cost)?;
+		self.record_cost(data_cost)?;
 
 		Ok(())
 	}
