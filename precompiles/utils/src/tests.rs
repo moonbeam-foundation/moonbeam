@@ -24,15 +24,39 @@ fn u256_repeat_byte(byte: u8) -> U256 {
 }
 
 #[test]
+fn write_bool() {
+	let value = true;
+
+	let writer_output = EvmDataWriter::new().write(value).build();
+
+	let mut expected_output = [0u8; 32];
+	expected_output[31] = 1;
+
+	assert_eq!(writer_output, expected_output);
+}
+
+#[test]
+fn read_bool() {
+	let value = true;
+
+	let writer_output = EvmDataWriter::new().write(value).build();
+
+	let mut reader = EvmDataReader::new(&writer_output);
+	let parsed: bool = reader.read().expect("to correctly parse bool");
+
+	assert_eq!(value, parsed);
+}
+
+#[test]
 fn write_u256() {
 	let value = U256::from(42);
 
-	let output = EvmDataWriter::new().write(value).build();
+	let writer_output = EvmDataWriter::new().write(value).build();
 
 	let mut expected_output = [0u8; 32];
 	value.to_big_endian(&mut expected_output);
 
-	assert_eq!(output, expected_output);
+	assert_eq!(writer_output, expected_output);
 }
 
 #[test]
