@@ -233,7 +233,7 @@ impl Gasometer {
 
 	/// Record cost, and return error if it goes out of gas.
 	pub fn record_cost(&mut self, cost: u64) -> EvmResult {
-		self.used_gas.checked_add(cost).ok_or(ExitError::OutOfGas)?;
+		self.used_gas = self.used_gas.checked_add(cost).ok_or(ExitError::OutOfGas)?;
 
 		match self.target_gas {
 			Some(gas_limit) if self.used_gas > gas_limit => Err(ExitError::OutOfGas),
