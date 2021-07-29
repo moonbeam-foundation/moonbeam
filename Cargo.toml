@@ -15,3 +15,6 @@ exclude = [
 
 [profile.release]
 panic = 'unwind'
+
+[patch.'https://github.com/paritytech/substrate']
+sc-rpc-server = { git = 'https://github.com/PureStake/substrate', branch = 'elois-custom-rpc-middleware' }
