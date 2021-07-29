@@ -51,7 +51,6 @@ pub struct CrowdloanRewardsWrapper<Runtime>(PhantomData<Runtime>);
 impl<Runtime> Precompile for CrowdloanRewardsWrapper<Runtime>
 where
 	Runtime: pallet_crowdloan_rewards::Config + pallet_evm::Config,
-	Runtime::AccountId: From<H160>,
 	BalanceOf<Runtime>: TryFrom<U256> + Debug,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
@@ -84,7 +83,6 @@ where
 impl<Runtime> CrowdloanRewardsWrapper<Runtime>
 where
 	Runtime: pallet_crowdloan_rewards::Config + pallet_evm::Config + frame_system::Config,
-	Runtime::AccountId: From<H160>,
 	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Debug,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
@@ -104,7 +102,7 @@ where
 		// parse the address
 		let contributor: H160 = input.read::<Address>()?.into();
 
-		let account: Runtime::AccountId = contributor.into();
+		let account = Runtime::AddressMapping::into_account_id(contributor);
 
 		log::trace!(
 			target: "crowdloan-rewards-precompile",
@@ -139,7 +137,7 @@ where
 		// parse the address
 		let contributor: H160 = input.read::<Address>()?.into();
 
-		let account: Runtime::AccountId = contributor.into();
+		let account = Runtime::AddressMapping::into_account_id(contributor);
 
 		log::trace!(
 			target: "crowdloan-rewards-precompile",
@@ -218,11 +216,13 @@ where
 		// parse the address
 		let new_address: H160 = input.read::<Address>()?.into();
 
+		let new_address_account = Runtime::AddressMapping::into_account_id(new_address);
+
 		log::trace!(target: "crowdloan-rewards-precompile", "New account is {:?}", new_address);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call =
-			pallet_crowdloan_rewards::Call::<Runtime>::update_reward_address(new_address.into());
+			pallet_crowdloan_rewards::Call::<Runtime>::update_reward_address(new_address_account);
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
