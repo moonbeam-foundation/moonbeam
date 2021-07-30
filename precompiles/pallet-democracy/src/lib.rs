@@ -158,54 +158,6 @@ where
 	}
 }
 
-/// Parses an H160 account address from a 256 bit (32 byte) buffer. Only the last 20 bytes are used.
-fn parse_account(input: &[u8]) -> Result<H160, ExitError> {
-	const PADDING_SIZE_BYTES: usize = 12;
-	const ACCOUNT_SIZE_BYTES: usize = 20;
-	const TOTAL_SIZE_BYTES: usize = PADDING_SIZE_BYTES + ACCOUNT_SIZE_BYTES;
-
-	if input.len() != TOTAL_SIZE_BYTES {
-		log::trace!(target: "democracy-precompile",
-			"Unable to parse address. Got {} bytes, expected {}",
-			input.len(),
-			TOTAL_SIZE_BYTES,
-		);
-		return Err(ExitError::Other(
-			"Incorrect input length for account parsing".into(),
-		));
-	}
-
-	Ok(H160::from_slice(
-		&input[PADDING_SIZE_BYTES..TOTAL_SIZE_BYTES],
-	))
-}
-
-/// Parses a numeric amount from a 256 bit (32 byte) slice. The numeric result type is generic.
-fn parse_amount<NumType: TryFrom<U256>>(input: &[u8]) -> Result<NumType, ExitError> {
-	Ok(parse_uint256(input)?
-		.try_into()
-		.map_err(|_| ExitError::Other("Amount is too large for provided numeric type".into()))?)
-}
-
-/// Parses a uint256 value
-fn parse_uint256(input: &[u8]) -> Result<U256, ExitError> {
-	// In solidity all values are encoded to this width
-	const SIZE_BYTES: usize = 32;
-
-	if input.len() != SIZE_BYTES {
-		log::trace!(target: "democracy-precompile",
-			"Unable to parse uint256. Got {} bytes, expected {}",
-			input.len(),
-			SIZE_BYTES,
-		);
-		return Err(ExitError::Other(
-			"Incorrect input length for uint256 parsing".into(),
-		));
-	}
-
-	Ok(U256::from_big_endian(&input[0..SIZE_BYTES]))
-}
-
 impl<Runtime> DemocracyWrapper<Runtime>
 where
 	Runtime: pallet_democracy::Config + pallet_evm::Config + frame_system::Config,
@@ -290,24 +242,4 @@ where
 			seconds_upper_bound,
 		))
 	}
-}
-
-// Solidity's bool type is 256 bits as shown by these examples
-// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html
-// This utility function converts a Rust bool into the corresponding Solidity type
-fn bool_to_solidity_bytes(b: bool) -> Vec<u8> {
-	let mut result_bytes = [0u8; 32];
-
-	if b {
-		result_bytes[31] = 1;
-	}
-
-	result_bytes.to_vec()
-}
-
-// Solidity;s uint256 (aka uint) type is 32 bytes big endian
-fn u256_to_solidity_bytes(n: U256) -> Vec<u8> {
-	let mut result_bytes = [0u8; 32];
-	n.to_big_endian(&mut result_bytes);
-	result_bytes.to_vec()
 }
