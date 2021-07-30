@@ -161,7 +161,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
-  it.skip("should show me the money after 5 blocks, after first claim was called", async function () {
+  it.skip("should show the money after 5 blocks, after first claim was called", async function () {
     await context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.crowdloanRewards.initializeRewardVec([
