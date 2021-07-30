@@ -76,7 +76,7 @@ where
 		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html#function-selector
 		match &input.read_selector()? {
 			// Check for accessor methods first. These return results immediately
-			[0x56, 0xfd, 0xf5, 0x47] => Self::public_prop_count(input, target_gas),
+			[0x56, 0xfd, 0xf5, 0x47] => Self::public_prop_count(target_gas),
 			// Now the dispatchables
 			[0x78, 0x24, 0xe7, 0xd1] => Self::propose(input, target_gas, context),
 			[0xc7, 0xa7, 0x66, 0x01] => Self::second(input, target_gas, context),
@@ -103,7 +103,6 @@ where
 	// The accessors are first. They directly return their result.
 
 	fn public_prop_count(
-		mut input: EvmDataReader,
 		target_gas: Option<u64>,
 	) -> EvmResult<PrecompileOutput> {
 		// TODO Ensure there is no additional input passed
