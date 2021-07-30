@@ -3,7 +3,7 @@ name = 'moonbeam'
 description = 'Moonbeam Collator'
 homepage = 'https://moonbeam.network'
 license = 'GPL-3.0-only'
-version = '0.8.0-dev'
+version = '0.9.6'
 authors = ["PureStake"]
 edition = '2018'
 
@@ -24,8 +24,8 @@ nix = "0.17"
 tempfile = "3.2.0"
 hex = "0.4.3"
 # required for benchmarking
-pallet-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.4" }
-xcm-builder = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.4" }
+pallet-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
+xcm-builder = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.8" }
 
 [features]
 default = []

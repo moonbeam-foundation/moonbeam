@@ -21,14 +21,173 @@
 mod common;
 use common::*;
 
-use evm::{executor::PrecompileOutput, Context, ExitSucceed};
-use frame_support::{assert_noop, assert_ok, dispatch::Dispatchable, traits::fungible::Inspect};
+use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
+use frame_support::{
+	assert_noop, assert_ok,
+	dispatch::Dispatchable,
+	traits::{fungible::Inspect, PalletInfo, StorageInfo, StorageInfoTrait},
+	weights::{DispatchClass, Weight},
+	StorageHasher, Twox128,
+};
+use moonshadow_runtime::{BlockWeights, Precompiles};
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
-use parachain_staking::Bond;
-use precompiles::MoonbeamPrecompiles;
+use pallet_transaction_payment::Multiplier;
+use parachain_staking::{Bond, NominatorAdded};
+use sha3::{Digest, Keccak256};
 use sp_core::{Public, H160, U256};
-use sp_runtime::DispatchError;
+use sp_runtime::{
+	traits::{Convert, One},
+	DispatchError,
+};
+
+#[test]
+fn fast_track_unavailable() {
+	assert!(!<moonshadow_runtime::Runtime as pallet_democracy::Config>::InstantAllowed::get());
+}
+
+#[test]
+fn verify_pallet_prefixes() {
+	fn is_pallet_prefix<P: 'static>(name: &str) {
+		// Compares the unhashed pallet prefix in the `StorageInstance` implementation by every
+		// storage item in the pallet P. This pallet prefix is used in conjunction with the
+		// item name to get the unique storage key: hash(PalletPrefix) + hash(StorageName)
+		// https://github.com/paritytech/substrate/blob/master/frame/support/procedural/src/pallet/
+		// expand/storage.rs#L389-L401
+		assert_eq!(
+			<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::name::<P>(),
+			Some(name)
+		);
+	}
+	// TODO: use StorageInfoTrait once https://github.com/paritytech/substrate/pull/9246
+	// is pulled in substrate deps.
+	is_pallet_prefix::<moonshadow_runtime::System>("System");
+	is_pallet_prefix::<moonshadow_runtime::Utility>("Utility");
+	is_pallet_prefix::<moonshadow_runtime::RandomnessCollectiveFlip>("RandomnessCollectiveFlip");
+	is_pallet_prefix::<moonshadow_runtime::ParachainSystem>("ParachainSystem");
+	is_pallet_prefix::<moonshadow_runtime::TransactionPayment>("TransactionPayment");
+	is_pallet_prefix::<moonshadow_runtime::ParachainInfo>("ParachainInfo");
+	is_pallet_prefix::<moonshadow_runtime::EthereumChainId>("EthereumChainId");
+	is_pallet_prefix::<moonshadow_runtime::EVM>("EVM");
+	is_pallet_prefix::<moonshadow_runtime::Ethereum>("Ethereum");
+	is_pallet_prefix::<moonshadow_runtime::ParachainStaking>("ParachainStaking");
+	is_pallet_prefix::<moonshadow_runtime::Scheduler>("Scheduler");
+	is_pallet_prefix::<moonshadow_runtime::Democracy>("Democracy");
+	is_pallet_prefix::<moonshadow_runtime::CouncilCollective>("CouncilCollective");
+	is_pallet_prefix::<moonshadow_runtime::TechComitteeCollective>("TechComitteeCollective");
+	is_pallet_prefix::<moonshadow_runtime::Treasury>("Treasury");
+	is_pallet_prefix::<moonshadow_runtime::AuthorInherent>("AuthorInherent");
+	is_pallet_prefix::<moonshadow_runtime::AuthorFilter>("AuthorFilter");
+	is_pallet_prefix::<moonshadow_runtime::CrowdloanRewards>("CrowdloanRewards");
+	is_pallet_prefix::<moonshadow_runtime::AuthorMapping>("AuthorMapping");
+	let prefix = |pallet_name, storage_name| {
+		let mut res = [0u8; 32];
+		res[0..16].copy_from_slice(&Twox128::hash(pallet_name));
+		res[16..32].copy_from_slice(&Twox128::hash(storage_name));
+		res
+	};
+	assert_eq!(
+		<moonshadow_runtime::Timestamp as StorageInfoTrait>::storage_info(),
+		vec![
+			StorageInfo {
+				prefix: prefix(b"Timestamp", b"Now"),
+				max_values: Some(1),
+				max_size: Some(8),
+			},
+			StorageInfo {
+				prefix: prefix(b"Timestamp", b"DidUpdate"),
+				max_values: Some(1),
+				max_size: Some(1),
+			}
+		]
+	);
+	assert_eq!(
+		<moonshadow_runtime::Balances as StorageInfoTrait>::storage_info(),
+		vec![
+			StorageInfo {
+				prefix: prefix(b"Balances", b"TotalIssuance"),
+				max_values: Some(1),
+				max_size: Some(16),
+			},
+			StorageInfo {
+				prefix: prefix(b"Balances", b"Account"),
+				max_values: Some(300_000),
+				max_size: Some(100),
+			},
+			StorageInfo {
+				prefix: prefix(b"Balances", b"Locks"),
+				max_values: Some(300_000),
+				max_size: Some(1287),
+			},
+			StorageInfo {
+				prefix: prefix(b"Balances", b"Reserves"),
+				max_values: None,
+				max_size: Some(1037),
+			},
+			StorageInfo {
+				prefix: prefix(b"Balances", b"StorageVersion"),
+				max_values: Some(1),
+				max_size: Some(1),
+			}
+		]
+	);
+	assert_eq!(
+		<moonshadow_runtime::Sudo as StorageInfoTrait>::storage_info(),
+		vec![StorageInfo {
+			prefix: prefix(b"Sudo", b"Key"),
+			max_values: Some(1),
+			max_size: Some(20),
+		}]
+	);
+	assert_eq!(
+		<moonshadow_runtime::Proxy as StorageInfoTrait>::storage_info(),
+		vec![
+			StorageInfo {
+				prefix: prefix(b"Proxy", b"Proxies"),
+				max_values: None,
+				max_size: Some(845),
+			},
+			StorageInfo {
+				prefix: prefix(b"Proxy", b"Announcements"),
+				max_values: None,
+				max_size: Some(1837),
+			}
+		]
+	);
+}
+
+#[test]
+fn verify_pallet_indices() {
+	fn is_pallet_index<P: 'static>(index: usize) {
+		assert_eq!(
+			<moonshadow_runtime::Runtime as frame_system::Config>::PalletInfo::index::<P>(),
+			Some(index)
+		);
+	}
+	is_pallet_index::<moonshadow_runtime::System>(0);
+	is_pallet_index::<moonshadow_runtime::Utility>(1);
+	is_pallet_index::<moonshadow_runtime::Timestamp>(2);
+	is_pallet_index::<moonshadow_runtime::Balances>(3);
+	is_pallet_index::<moonshadow_runtime::Sudo>(4);
+	is_pallet_index::<moonshadow_runtime::RandomnessCollectiveFlip>(5);
+	is_pallet_index::<moonshadow_runtime::ParachainSystem>(6);
+	is_pallet_index::<moonshadow_runtime::TransactionPayment>(7);
+	is_pallet_index::<moonshadow_runtime::ParachainInfo>(8);
+	is_pallet_index::<moonshadow_runtime::EthereumChainId>(9);
+	is_pallet_index::<moonshadow_runtime::EVM>(10);
+	is_pallet_index::<moonshadow_runtime::Ethereum>(11);
+	is_pallet_index::<moonshadow_runtime::ParachainStaking>(12);
+	is_pallet_index::<moonshadow_runtime::Scheduler>(13);
+	is_pallet_index::<moonshadow_runtime::Democracy>(14);
+	is_pallet_index::<moonshadow_runtime::CouncilCollective>(15);
+	is_pallet_index::<moonshadow_runtime::TechComitteeCollective>(16);
+	is_pallet_index::<moonshadow_runtime::Treasury>(17);
+	is_pallet_index::<moonshadow_runtime::AuthorInherent>(18);
+	is_pallet_index::<moonshadow_runtime::AuthorFilter>(19);
+	is_pallet_index::<moonshadow_runtime::CrowdloanRewards>(20);
+	is_pallet_index::<moonshadow_runtime::AuthorMapping>(21);
+	is_pallet_index::<moonshadow_runtime::Proxy>(22);
+}
 
 #[test]
 fn join_collator_candidates() {
@@ -50,13 +209,18 @@ fn join_collator_candidates() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::join_candidates(origin_of(AccountId::from(ALICE)), 1_000 * MSHD,),
+				ParachainStaking::join_candidates(
+					origin_of(AccountId::from(ALICE)),
+					1_000 * MSHD,
+					2u32
+				),
 				parachain_staking::Error::<Runtime>::CandidateExists
 			);
 			assert_noop!(
 				ParachainStaking::join_candidates(
 					origin_of(AccountId::from(CHARLIE)),
-					1_000 * MSHD
+					1_000 * MSHD,
+					2u32
 				),
 				parachain_staking::Error::<Runtime>::NominatorExists
 			);
@@ -64,10 +228,11 @@ fn join_collator_candidates() {
 			assert_ok!(ParachainStaking::join_candidates(
 				origin_of(AccountId::from(DAVE)),
 				1_000 * MSHD,
+				2u32
 			));
 			assert_eq!(
 				last_event(),
-				Event::parachain_staking(parachain_staking::Event::JoinedCollatorCandidates(
+				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates(
 					AccountId::from(DAVE),
 					1_000 * MSHD,
 					3_100 * MSHD
@@ -109,6 +274,7 @@ fn transfer_through_evm_to_stake() {
 				ParachainStaking::join_candidates(
 					origin_of(AccountId::from(CHARLIE)),
 					1_000 * MSHD,
+					0u32
 				),
 				DispatchError::Module {
 					index: 3,
@@ -146,6 +312,7 @@ fn transfer_through_evm_to_stake() {
 			assert_ok!(ParachainStaking::join_candidates(
 				origin_of(AccountId::from(CHARLIE)),
 				1_000 * MSHD,
+				0u32,
 			),);
 			let candidates = ParachainStaking::candidate_pool();
 			assert_eq!(
@@ -179,7 +346,7 @@ fn reward_block_authors() {
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			for x in 2..601 {
+			for x in 2..599 {
 				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 				run_to_block(x);
 			}
@@ -187,7 +354,7 @@ fn reward_block_authors() {
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * MSHD,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * MSHD,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(601);
+			run_to_block(600);
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -226,7 +393,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				root_origin(),
 				AccountId::from(CHARLIE),
 			),);
-			for x in 2..601 {
+			for x in 2..599 {
 				set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 				run_to_block(x);
 			}
@@ -235,7 +402,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * MSHD,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), MSHD,);
 			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(601);
+			run_to_block(600);
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -274,29 +441,29 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			for x in 1..3 {
 				run_to_block(x);
 			}
+			let init_block = CrowdloanRewards::init_relay_block();
+			// This matches the previous vesting
+			let end_block = init_block + 48 * WEEKS;
 			// Batch calls always succeed. We just need to check the inner event
 			assert_ok!(
 				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
-							vec![(
-								[4u8; 32].into(),
-								Some(AccountId::from(CHARLIE)),
-								1_500_000 * MSHD
-							)],
-							0,
-							2
-						)
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
+							[4u8; 32].into(),
+							Some(AccountId::from(CHARLIE)),
+							1_500_000 * MSHD
+						)])
 					),
 					Call::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
-							vec![(
-								[5u8; 32].into(),
-								Some(AccountId::from(DAVE)),
-								1_500_000 * MSHD
-							)],
-							1,
-							2
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
+							[5u8; 32].into(),
+							Some(AccountId::from(DAVE)),
+							1_500_000 * MSHD
+						)])
+					),
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization(
+							end_block
 						)
 					)
 				]))
@@ -306,20 +473,20 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 450_000 * MSHD);
 			// 30 percent initial payout
 			assert_eq!(Balances::balance(&AccountId::from(DAVE)), 450_000 * MSHD);
-			let expected = Event::pallet_utility(pallet_utility::Event::BatchCompleted);
+			let expected = Event::Utility(pallet_utility::Event::BatchCompleted);
 			assert_eq!(last_event(), expected);
 			// This one should fail, as we already filled our data
 			assert_ok!(Call::Utility(pallet_utility::Call::<Runtime>::batch(vec![
 				Call::CrowdloanRewards(
-					pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(
-						vec![([4u8; 32].into(), Some(AccountId::from(ALICE)), 432000)],
-						0,
-						1
-					)
+					pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
+						[4u8; 32].into(),
+						Some(AccountId::from(ALICE)),
+						432000
+					)])
 				)
 			]))
 			.dispatch(root_origin()));
-			let expected_fail = Event::pallet_utility(pallet_utility::Event::BatchInterrupted(
+			let expected_fail = Event::Utility(pallet_utility::Event::BatchInterrupted(
 				0,
 				DispatchError::Module {
 					index: 20,
@@ -363,6 +530,387 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 		});
 }
 
+#[ignore]
+#[test]
+fn claim_via_precompile() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MSHD),
+			(AccountId::from(BOB), 1_000 * MSHD),
+		])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MSHD)])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
+		)])
+		.with_crowdloan_fund(3_000_000 * MSHD)
+		.build()
+		.execute_with(|| {
+			// set parachain inherent data
+			set_parachain_inherent_data();
+			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+			for x in 1..3 {
+				run_to_block(x);
+			}
+			let init_block = CrowdloanRewards::init_relay_block();
+			// This matches the previous vesting
+			let end_block = init_block + 4 * WEEKS;
+			// Batch calls always succeed. We just need to check the inner event
+			assert_ok!(
+				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
+							[4u8; 32].into(),
+							Some(AccountId::from(CHARLIE)),
+							1_500_000 * MSHD
+						)])
+					),
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
+							[5u8; 32].into(),
+							Some(AccountId::from(DAVE)),
+							1_500_000 * MSHD
+						)])
+					),
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization(
+							end_block
+						)
+					)
+				]))
+				.dispatch(root_origin())
+			);
+
+			// 30 percent initial payout
+			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 450_000 * MSHD);
+			// 30 percent initial payout
+			assert_eq!(Balances::balance(&AccountId::from(DAVE)), 450_000 * MSHD);
+
+			let crowdloan_precompile_address = H160::from_low_u64_be(2049);
+
+			// Alice uses the crowdloan precompile to claim through the EVM
+			let gas_limit = 100000u64;
+			let gas_price: U256 = 1_000_000_000.into();
+
+			// Construct the call data (selector, amount)
+			let mut call_data = Vec::<u8>::from([0u8; 4]);
+			call_data[0..4].copy_from_slice(&Keccak256::digest(b"claim()")[0..4]);
+
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
+				AccountId::from(CHARLIE),
+				crowdloan_precompile_address,
+				call_data,
+				U256::zero(), // No value sent in EVM
+				gas_limit,
+				gas_price,
+				None, // Use the next nonce
+			))
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+
+			let vesting_period = 4 * WEEKS as u128;
+			let per_block = (1_050_000 * MSHD) / vesting_period;
+
+			assert_eq!(
+				CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE))
+					.unwrap()
+					.claimed_reward,
+				(450_000 * MSHD) + per_block
+			);
+		})
+}
+
+#[test]
+fn is_contributor_via_precompile() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MSHD),
+			(AccountId::from(BOB), 1_000 * MSHD),
+		])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MSHD)])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
+		)])
+		.with_crowdloan_fund(3_000_000 * MSHD)
+		.build()
+		.execute_with(|| {
+			// set parachain inherent data
+			set_parachain_inherent_data();
+			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+			for x in 1..3 {
+				run_to_block(x);
+			}
+			let init_block = CrowdloanRewards::init_relay_block();
+			// This matches the previous vesting
+			let end_block = init_block + 4 * WEEKS;
+			// Batch calls always succeed. We just need to check the inner event
+			assert_ok!(
+				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
+							[4u8; 32].into(),
+							Some(AccountId::from(CHARLIE)),
+							1_500_000 * MSHD
+						)])
+					),
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
+							[5u8; 32].into(),
+							Some(AccountId::from(DAVE)),
+							1_500_000 * MSHD
+						)])
+					),
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization(
+							end_block
+						)
+					)
+				]))
+				.dispatch(root_origin())
+			);
+
+			let crowdloan_precompile_address = H160::from_low_u64_be(2049);
+
+			// Construct the input data to check if Bob is a contributor
+			let mut bob_input_data = Vec::<u8>::from([0u8; 36]);
+			bob_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"is_contributor(address)")[0..4]);
+			bob_input_data[16..36].copy_from_slice(&BOB);
+
+			// Expected result is an EVM boolean false which is 256 bits long.
+			let mut expected_bytes = Vec::from([0u8; 32]);
+			expected_bytes[31] = 0;
+			let expected_false_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 1000,
+				logs: Default::default(),
+			}));
+
+			// Assert precompile reports Bob is not a contributor
+			assert_eq!(
+				Precompiles::execute(
+					crowdloan_precompile_address,
+					&bob_input_data,
+					None, // target_gas is not necessary right now because consumed none now
+					&Context {
+						// This context copied from Sacrifice tests, it's not great.
+						address: Default::default(),
+						caller: Default::default(),
+						apparent_value: From::from(0),
+					},
+				),
+				expected_false_result
+			);
+
+			// Construct the input data to check if Charlie is a contributor
+			let mut charlie_input_data = Vec::<u8>::from([0u8; 36]);
+			charlie_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"is_contributor(address)")[0..4]);
+			charlie_input_data[16..36].copy_from_slice(&CHARLIE);
+
+			// Expected result is an EVM boolean true which is 256 bits long.
+			let mut expected_bytes = Vec::from([0u8; 32]);
+			expected_bytes[31] = 1;
+			let expected_true_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 1000,
+				logs: Default::default(),
+			}));
+
+			// Assert precompile reports Bob is a nominator
+			assert_eq!(
+				Precompiles::execute(
+					crowdloan_precompile_address,
+					&charlie_input_data,
+					None, // target_gas is not necessary right now because consumed none now
+					&Context {
+						// This context copied from Sacrifice tests, it's not great.
+						address: Default::default(),
+						caller: Default::default(),
+						apparent_value: From::from(0),
+					},
+				),
+				expected_true_result
+			);
+		})
+}
+
+#[test]
+fn reward_info_via_precompile() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MSHD),
+			(AccountId::from(BOB), 1_000 * MSHD),
+		])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MSHD)])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
+		)])
+		.with_crowdloan_fund(3_000_000 * MSHD)
+		.build()
+		.execute_with(|| {
+			// set parachain inherent data
+			set_parachain_inherent_data();
+			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+			for x in 1..3 {
+				run_to_block(x);
+			}
+			let init_block = CrowdloanRewards::init_relay_block();
+			// This matches the previous vesting
+			let end_block = init_block + 4 * WEEKS;
+			// Batch calls always succeed. We just need to check the inner event
+			assert_ok!(
+				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
+							[4u8; 32].into(),
+							Some(AccountId::from(CHARLIE)),
+							1_500_000 * MSHD
+						)])
+					),
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
+							[5u8; 32].into(),
+							Some(AccountId::from(DAVE)),
+							1_500_000 * MSHD
+						)])
+					),
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization(
+							end_block
+						)
+					)
+				]))
+				.dispatch(root_origin())
+			);
+
+			let crowdloan_precompile_address = H160::from_low_u64_be(2049);
+
+			// Construct the input data to check if Bob is a contributor
+			let mut charlie_input_data = Vec::<u8>::from([0u8; 36]);
+			charlie_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"reward_info(address)")[0..4]);
+			charlie_input_data[16..36].copy_from_slice(&CHARLIE);
+
+			let expected_total: U256 = (1_500_000 * MSHD).into();
+			let expected_claimed: U256 = (450_000 * MSHD).into();
+
+			// Expected result is two EVM u256 false which are 256 bits long.
+			let mut expected_bytes = Vec::from([0u8; 64]);
+			expected_total.to_big_endian(&mut expected_bytes[0..32]);
+			expected_claimed.to_big_endian(&mut expected_bytes[32..64]);
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 1000,
+				logs: Default::default(),
+			}));
+
+			// Assert precompile reports Bob is not a contributor
+			assert_eq!(
+				Precompiles::execute(
+					crowdloan_precompile_address,
+					&charlie_input_data,
+					None, // target_gas is not necessary right now because consumed none now
+					&Context {
+						// This context copied from Sacrifice tests, it's not great.
+						address: Default::default(),
+						caller: Default::default(),
+						apparent_value: From::from(0),
+					},
+				),
+				expected_result
+			);
+		})
+}
+
+#[ignore]
+#[test]
+fn update_reward_address_via_precompile() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MSHD),
+			(AccountId::from(BOB), 1_000 * MSHD),
+		])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MSHD)])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
+		)])
+		.with_crowdloan_fund(3_000_000 * MSHD)
+		.build()
+		.execute_with(|| {
+			// set parachain inherent data
+			set_parachain_inherent_data();
+			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+			for x in 1..3 {
+				run_to_block(x);
+			}
+			let init_block = CrowdloanRewards::init_relay_block();
+			// This matches the previous vesting
+			let end_block = init_block + 4 * WEEKS;
+			// Batch calls always succeed. We just need to check the inner event
+			assert_ok!(
+				Call::Utility(pallet_utility::Call::<Runtime>::batch_all(vec![
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
+							[4u8; 32].into(),
+							Some(AccountId::from(CHARLIE)),
+							1_500_000 * MSHD
+						)])
+					),
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec(vec![(
+							[5u8; 32].into(),
+							Some(AccountId::from(DAVE)),
+							1_500_000 * MSHD
+						)])
+					),
+					Call::CrowdloanRewards(
+						pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization(
+							end_block
+						)
+					)
+				]))
+				.dispatch(root_origin())
+			);
+
+			let crowdloan_precompile_address = H160::from_low_u64_be(2049);
+
+			// Charlie uses the crowdloan precompile to update address through the EVM
+			let gas_limit = 100000u64;
+			let gas_price: U256 = 1_000_000_000.into();
+
+			// Construct the input data to check if Bob is a contributor
+			let mut call_data = Vec::<u8>::from([0u8; 36]);
+			call_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"update_reward_address(address)")[0..4]);
+			call_data[16..36].copy_from_slice(&ALICE);
+
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
+				AccountId::from(CHARLIE),
+				crowdloan_precompile_address,
+				call_data,
+				U256::zero(), // No value sent in EVM
+				gas_limit,
+				gas_price,
+				None, // Use the next nonce
+			))
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+
+			assert!(CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE)).is_none());
+			assert_eq!(
+				CrowdloanRewards::accounts_payable(&AccountId::from(ALICE))
+					.unwrap()
+					.claimed_reward,
+				(450_000 * MSHD)
+			);
+		})
+}
+
 #[test]
 fn join_candidates_via_precompile() {
 	ExtBuilder::default()
@@ -375,11 +923,14 @@ fn join_candidates_via_precompile() {
 			let gas_limit = 100000u64;
 			let gas_price: U256 = 1_000_000_000.into();
 			let amount: U256 = (1000 * MSHD).into();
+			let candidate_count: U256 = U256::zero();
 
 			// Construct the call data (selector, amount)
-			let mut call_data = Vec::<u8>::from([0u8; 36]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("ad76ed5a"));
+			let mut call_data = Vec::<u8>::from([0u8; 68]);
+			call_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"join_candidates(uint256,uint256)")[0..4]);
 			amount.to_big_endian(&mut call_data[4..36]);
+			candidate_count.to_big_endian(&mut call_data[36..]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(ALICE),
@@ -397,16 +948,16 @@ fn join_candidates_via_precompile() {
 
 			// Check for the right events.
 			let expected_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Reserved(
+				Event::Balances(pallet_balances::Event::Reserved(
 					AccountId::from(ALICE),
 					1000 * MSHD,
 				)),
-				Event::parachain_staking(parachain_staking::Event::JoinedCollatorCandidates(
+				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates(
 					AccountId::from(ALICE),
 					1000 * MSHD,
 					1000 * MSHD,
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -432,11 +983,13 @@ fn leave_candidates_via_precompile() {
 
 			// Alice uses the staking precompile to leave_candidates
 			let gas_limit = 100000u64;
+			let collator_count: U256 = U256::one();
 			let gas_price: U256 = 1_000_000_000.into();
 
 			// Construct the leave_candidates call data
-			let mut call_data = Vec::<u8>::from([0u8; 4]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("b7694219"));
+			let mut call_data = Vec::<u8>::from([0u8; 36]);
+			call_data[0..4].copy_from_slice(&Keccak256::digest(b"leave_candidates(uint256)")[0..4]);
+			collator_count.to_big_endian(&mut call_data[4..]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(ALICE),
@@ -451,12 +1004,12 @@ fn leave_candidates_via_precompile() {
 
 			// Check for the right events.
 			let expected_events = vec![
-				Event::parachain_staking(parachain_staking::Event::CollatorScheduledExit(
+				Event::ParachainStaking(parachain_staking::Event::CollatorScheduledExit(
 					1,
 					AccountId::from(ALICE),
 					3,
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -488,7 +1041,7 @@ fn go_online_offline_via_precompile() {
 
 			// Construct the go_offline call data
 			let mut go_offline_call_data = Vec::<u8>::from([0u8; 4]);
-			go_offline_call_data[0..4].copy_from_slice(&hex_literal::hex!("767e0450"));
+			go_offline_call_data[0..4].copy_from_slice(&Keccak256::digest(b"go_offline()")[0..4]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(ALICE),
@@ -503,11 +1056,11 @@ fn go_online_offline_via_precompile() {
 
 			// Check for the right events.
 			let mut expected_events = vec![
-				Event::parachain_staking(parachain_staking::Event::CollatorWentOffline(
+				Event::ParachainStaking(parachain_staking::Event::CollatorWentOffline(
 					1,
 					AccountId::from(ALICE),
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -522,7 +1075,7 @@ fn go_online_offline_via_precompile() {
 
 			// Construct the go_online call data
 			let mut go_online_call_data = Vec::<u8>::from([0u8; 4]);
-			go_online_call_data[0..4].copy_from_slice(&hex_literal::hex!("d2f73ceb"));
+			go_online_call_data[0..4].copy_from_slice(&Keccak256::digest(b"go_online()")[0..4]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(ALICE),
@@ -537,11 +1090,11 @@ fn go_online_offline_via_precompile() {
 
 			// Check for the right events.
 			let mut new_events = vec![
-				Event::parachain_staking(parachain_staking::Event::CollatorBackOnline(
+				Event::ParachainStaking(parachain_staking::Event::CollatorBackOnline(
 					1,
 					AccountId::from(ALICE),
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -574,7 +1127,8 @@ fn candidate_bond_more_less_via_precompile() {
 
 			// Construct the candidate_bond_more call
 			let mut bond_more_call_data = Vec::<u8>::from([0u8; 36]);
-			bond_more_call_data[0..4].copy_from_slice(&hex_literal::hex!("c57bd3a8"));
+			bond_more_call_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"candidate_bond_more(uint256)")[0..4]);
 			let bond_more_amount: U256 = (1000 * MSHD).into();
 			bond_more_amount.to_big_endian(&mut bond_more_call_data[4..36]);
 
@@ -591,16 +1145,16 @@ fn candidate_bond_more_less_via_precompile() {
 
 			// Check for the right events.
 			let mut expected_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Reserved(
+				Event::Balances(pallet_balances::Event::Reserved(
 					AccountId::from(ALICE),
 					1_000 * MSHD,
 				)),
-				Event::parachain_staking(parachain_staking::Event::CollatorBondedMore(
+				Event::ParachainStaking(parachain_staking::Event::CollatorBondedMore(
 					AccountId::from(ALICE),
 					1_000 * MSHD,
 					2_000 * MSHD,
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -615,7 +1169,8 @@ fn candidate_bond_more_less_via_precompile() {
 
 			// Construct the go_online call data
 			let mut bond_less_call_data = Vec::<u8>::from([0u8; 36]);
-			bond_less_call_data[0..4].copy_from_slice(&hex_literal::hex!("289b6ba7"));
+			bond_less_call_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"candidate_bond_less(uint256)")[0..4]);
 			let bond_less_amount: U256 = (500 * MSHD).into();
 			bond_less_amount.to_big_endian(&mut bond_less_call_data[4..36]);
 
@@ -632,16 +1187,16 @@ fn candidate_bond_more_less_via_precompile() {
 
 			// Check for the right events.
 			let mut new_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Unreserved(
+				Event::Balances(pallet_balances::Event::Unreserved(
 					AccountId::from(ALICE),
 					500 * MSHD,
 				)),
-				Event::parachain_staking(parachain_staking::Event::CollatorBondedLess(
+				Event::ParachainStaking(parachain_staking::Event::CollatorBondedLess(
 					AccountId::from(ALICE),
 					2_000 * MSHD,
 					1_500 * MSHD,
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -673,12 +1228,18 @@ fn nominate_via_precompile() {
 			let gas_limit = 100000u64;
 			let gas_price: U256 = 1_000_000_000.into();
 			let nomination_amount: U256 = (1000 * MSHD).into();
+			let collator_nominator_count: U256 = U256::zero();
+			let nomination_count: U256 = U256::zero();
 
 			// Construct the call data (selector, collator, nomination amount)
-			let mut call_data = Vec::<u8>::from([0u8; 68]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("82f2c8df"));
+			let mut call_data = Vec::<u8>::from([0u8; 132]);
+			call_data[0..4].copy_from_slice(
+				&Keccak256::digest(b"nominate(address,uint256,uint256,uint256)")[0..4],
+			);
 			call_data[16..36].copy_from_slice(&ALICE);
 			nomination_amount.to_big_endian(&mut call_data[36..68]);
+			collator_nominator_count.to_big_endian(&mut call_data[68..100]);
+			nomination_count.to_big_endian(&mut call_data[100..]);
 
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(BOB),
@@ -696,17 +1257,19 @@ fn nominate_via_precompile() {
 
 			// Check for the right events.
 			let expected_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Reserved(
+				Event::Balances(pallet_balances::Event::Reserved(
 					AccountId::from(BOB),
 					1000 * MSHD,
 				)),
-				Event::parachain_staking(parachain_staking::Event::Nomination(
+				Event::ParachainStaking(parachain_staking::Event::Nomination(
 					AccountId::from(BOB),
 					1000 * MSHD,
 					AccountId::from(ALICE),
-					2000 * MSHD,
+					NominatorAdded::AddedToTop {
+						new_total: 2000 * MSHD,
+					},
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -745,12 +1308,14 @@ fn leave_nominators_via_precompile() {
 
 			// Charlie uses staking precompile to leave nominator set
 			let gas_limit = 100000u64;
+			let nomination_count: U256 = 2.into();
 			let gas_price: U256 = 1_000_000_000.into();
 
 			// Construct leave_nominators call
-			let mut call_data = Vec::<u8>::from([0u8; 4]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("e8d68a37"));
-
+			let mut call_data = Vec::<u8>::from([0u8; 36]);
+			call_data[0..4].copy_from_slice(&Keccak256::digest(b"leave_nominators(uint256)")[0..4]);
+			nomination_count.to_big_endian(&mut call_data[4..]);
+			run_to_block(1);
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(CHARLIE),
 				staking_precompile_address,
@@ -761,48 +1326,9 @@ fn leave_nominators_via_precompile() {
 				None, // Use the next nonce
 			))
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
-
+			run_to_block(600);
 			// Charlie is no longer a nominator
 			assert!(!ParachainStaking::is_nominator(&AccountId::from(CHARLIE)));
-
-			// Check for the right events.
-			let expected_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Unreserved(
-					AccountId::from(CHARLIE),
-					500 * MSHD,
-				)),
-				Event::parachain_staking(parachain_staking::Event::NominatorLeftCollator(
-					AccountId::from(CHARLIE),
-					AccountId::from(ALICE),
-					500 * MSHD,
-					1_000 * MSHD,
-				)),
-				Event::pallet_balances(pallet_balances::Event::Unreserved(
-					AccountId::from(CHARLIE),
-					500 * MSHD,
-				)),
-				Event::parachain_staking(parachain_staking::Event::NominatorLeftCollator(
-					AccountId::from(CHARLIE),
-					AccountId::from(BOB),
-					500 * MSHD,
-					1_000 * MSHD,
-				)),
-				Event::parachain_staking(parachain_staking::Event::NominatorLeft(
-					AccountId::from(CHARLIE),
-					1_000 * MSHD,
-				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
-					staking_precompile_address,
-				)),
-			];
-
-			assert_eq!(
-				System::events()
-					.into_iter()
-					.map(|e| e.event)
-					.collect::<Vec<_>>(),
-				expected_events
-			);
 		});
 }
 
@@ -834,9 +1360,10 @@ fn revoke_nomination_via_precompile() {
 
 			// Construct revoke_nomination call
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
-			call_data[0..4].copy_from_slice(&hex_literal::hex!("4b65c34b"));
+			call_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"revoke_nomination(address)")[0..4]);
 			call_data[16..36].copy_from_slice(&ALICE);
-
+			run_to_block(1);
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call(
 				AccountId::from(CHARLIE),
 				staking_precompile_address,
@@ -847,34 +1374,9 @@ fn revoke_nomination_via_precompile() {
 				None, // Use the next nonce
 			))
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
-
+			run_to_block(600);
 			// Charlie is still a nominator because only nomination to Alice was revoked
 			assert!(ParachainStaking::is_nominator(&AccountId::from(CHARLIE)));
-
-			// Check for the right events.
-			let expected_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Unreserved(
-					AccountId::from(CHARLIE),
-					500 * MSHD,
-				)),
-				Event::parachain_staking(parachain_staking::Event::NominatorLeftCollator(
-					AccountId::from(CHARLIE),
-					AccountId::from(ALICE),
-					500 * MSHD,
-					1_000 * MSHD,
-				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
-					staking_precompile_address,
-				)),
-			];
-
-			assert_eq!(
-				System::events()
-					.into_iter()
-					.map(|e| e.event)
-					.collect::<Vec<_>>(),
-				expected_events
-			);
 		});
 }
 
@@ -903,7 +1405,8 @@ fn nominator_bond_more_less_via_precompile() {
 
 			// Construct the nominator_bond_more call
 			let mut bond_more_call_data = Vec::<u8>::from([0u8; 68]);
-			bond_more_call_data[0..4].copy_from_slice(&hex_literal::hex!("971d44c8"));
+			bond_more_call_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"nominator_bond_more(address,uint256)")[0..4]);
 			bond_more_call_data[16..36].copy_from_slice(&ALICE);
 			let bond_more_amount: U256 = (500 * MSHD).into();
 			bond_more_amount.to_big_endian(&mut bond_more_call_data[36..68]);
@@ -921,17 +1424,18 @@ fn nominator_bond_more_less_via_precompile() {
 
 			// Check for the right events.
 			let mut expected_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Reserved(
+				Event::Balances(pallet_balances::Event::Reserved(
 					AccountId::from(BOB),
 					500 * MSHD,
 				)),
-				Event::parachain_staking(parachain_staking::Event::NominationIncreased(
+				Event::ParachainStaking(parachain_staking::Event::NominationIncreased(
 					AccountId::from(BOB),
 					AccountId::from(ALICE),
 					1_500 * MSHD,
+					true,
 					2_000 * MSHD,
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -946,7 +1450,8 @@ fn nominator_bond_more_less_via_precompile() {
 
 			// Construct the go_online call data
 			let mut bond_less_call_data = Vec::<u8>::from([0u8; 68]);
-			bond_less_call_data[0..4].copy_from_slice(&hex_literal::hex!("f6a52569"));
+			bond_less_call_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"nominator_bond_less(address,uint256)")[0..4]);
 			bond_less_call_data[16..36].copy_from_slice(&ALICE);
 			let bond_less_amount: U256 = (500 * MSHD).into();
 			bond_less_amount.to_big_endian(&mut bond_less_call_data[36..68]);
@@ -964,17 +1469,18 @@ fn nominator_bond_more_less_via_precompile() {
 
 			// Check for the right events.
 			let mut new_events = vec![
-				Event::pallet_balances(pallet_balances::Event::Unreserved(
+				Event::Balances(pallet_balances::Event::Unreserved(
 					AccountId::from(BOB),
 					500 * MSHD,
 				)),
-				Event::parachain_staking(parachain_staking::Event::NominationDecreased(
+				Event::ParachainStaking(parachain_staking::Event::NominationDecreased(
 					AccountId::from(BOB),
 					AccountId::from(ALICE),
 					2_000 * MSHD,
+					true,
 					1_500 * MSHD,
 				)),
-				Event::pallet_evm(pallet_evm::Event::<Runtime>::Executed(
+				Event::EVM(pallet_evm::Event::<Runtime>::Executed(
 					staking_precompile_address,
 				)),
 			];
@@ -1012,7 +1518,8 @@ fn is_nominator_via_precompile() {
 
 			// Construct the input data to check if Bob is a nominator
 			let mut bob_input_data = Vec::<u8>::from([0u8; 36]);
-			bob_input_data[0..4].copy_from_slice(&hex_literal::hex!("8e5080e7"));
+			bob_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"is_nominator(address)")[0..4]);
 			bob_input_data[16..36].copy_from_slice(&BOB);
 
 			// Expected result is an EVM boolean true which is 256 bits long.
@@ -1021,13 +1528,13 @@ fn is_nominator_via_precompile() {
 			let expected_true_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
-				cost: 0,
+				cost: 1000,
 				logs: Default::default(),
 			}));
 
 			// Assert precompile reports Bob is a nominator
 			assert_eq!(
-				MoonbeamPrecompiles::<Runtime>::execute(
+				Precompiles::execute(
 					staking_precompile_address,
 					&bob_input_data,
 					None, // target_gas is not necessary right now because consumed none now
@@ -1043,7 +1550,8 @@ fn is_nominator_via_precompile() {
 
 			// Construct the input data to check if Charlie is a nominator
 			let mut charlie_input_data = Vec::<u8>::from([0u8; 36]);
-			charlie_input_data[0..4].copy_from_slice(&hex_literal::hex!("8e5080e7"));
+			charlie_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"is_nominator(address)")[0..4]);
 			charlie_input_data[16..36].copy_from_slice(&CHARLIE);
 
 			// Expected result is an EVM boolean false which is 256 bits long.
@@ -1051,13 +1559,13 @@ fn is_nominator_via_precompile() {
 			let expected_false_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
-				cost: 0,
+				cost: 1000,
 				logs: Default::default(),
 			}));
 
 			// Assert precompile also reports Charlie as not a nominator
 			assert_eq!(
-				MoonbeamPrecompiles::<Runtime>::execute(
+				Precompiles::execute(
 					staking_precompile_address,
 					&charlie_input_data,
 					None,
@@ -1087,7 +1595,8 @@ fn is_candidate_via_precompile() {
 
 			// Construct the input data to check if Alice is a candidate
 			let mut alice_input_data = Vec::<u8>::from([0u8; 36]);
-			alice_input_data[0..4].copy_from_slice(&hex_literal::hex!("8545c833"));
+			alice_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"is_candidate(address)")[0..4]);
 			alice_input_data[16..36].copy_from_slice(&ALICE);
 
 			// Expected result is an EVM boolean true which is 256 bits long.
@@ -1096,13 +1605,13 @@ fn is_candidate_via_precompile() {
 			let expected_true_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
-				cost: 0,
+				cost: 1000,
 				logs: Default::default(),
 			}));
 
 			// Assert precompile reports Alice is a collator candidate
 			assert_eq!(
-				MoonbeamPrecompiles::<Runtime>::execute(
+				Precompiles::execute(
 					staking_precompile_address,
 					&alice_input_data,
 					None, // target_gas is not necessary right now because consumed none now
@@ -1118,7 +1627,8 @@ fn is_candidate_via_precompile() {
 
 			// Construct the input data to check if Bob is a collator candidate
 			let mut bob_input_data = Vec::<u8>::from([0u8; 36]);
-			bob_input_data[0..4].copy_from_slice(&hex_literal::hex!("8545c833"));
+			bob_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"is_candidate(address)")[0..4]);
 			bob_input_data[16..36].copy_from_slice(&CHARLIE);
 
 			// Expected result is an EVM boolean false which is 256 bits long.
@@ -1126,13 +1636,13 @@ fn is_candidate_via_precompile() {
 			let expected_false_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
-				cost: 0,
+				cost: 1000,
 				logs: Default::default(),
 			}));
 
 			// Assert precompile also reports Bob as not a collator candidate
 			assert_eq!(
-				MoonbeamPrecompiles::<Runtime>::execute(
+				Precompiles::execute(
 					staking_precompile_address,
 					&bob_input_data,
 					None,
@@ -1149,12 +1659,81 @@ fn is_candidate_via_precompile() {
 }
 
 #[test]
+fn is_selected_candidate_via_precompile() {
+	ExtBuilder::default()
+		.with_balances(vec![(AccountId::from(ALICE), 1_000 * MSHD)])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MSHD)])
+		.build()
+		.execute_with(|| {
+			// Confirm Alice is selected directly
+			assert!(ParachainStaking::is_selected_candidate(&AccountId::from(
+				ALICE
+			)));
+
+			let staking_precompile_address = H160::from_low_u64_be(2048);
+
+			// Construct the input data to check if Alice is a selected candidate
+			let mut alice_input_data = Vec::<u8>::from([0u8; 36]);
+			alice_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"is_selected_candidate(address)")[0..4]);
+			alice_input_data[16..36].copy_from_slice(&ALICE);
+
+			// Expected result is an EVM boolean true which is 256 bits long.
+			let mut expected_bytes = Vec::from([0u8; 32]);
+			expected_bytes[31] = 1;
+			let expected_true_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 1000,
+				logs: Default::default(),
+			}));
+
+			// Assert precompile reports Alice is a collator candidate
+			assert_eq!(
+				Precompiles::execute(
+					staking_precompile_address,
+					&alice_input_data,
+					None, // target_gas is not necessary right now because consumed none now
+					&evm_test_context(),
+				),
+				expected_true_result
+			);
+
+			// Construct the input data to check if Bob is a collator candidate
+			let mut bob_input_data = Vec::<u8>::from([0u8; 36]);
+			bob_input_data[0..4]
+				.copy_from_slice(&Keccak256::digest(b"is_selected_candidate(address)")[0..4]);
+			bob_input_data[16..36].copy_from_slice(&BOB);
+
+			// Expected result is an EVM boolean false which is 256 bits long.
+			expected_bytes = Vec::from([0u8; 32]);
+			let expected_false_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 1000,
+				logs: Default::default(),
+			}));
+
+			// Assert precompile also reports Bob as not a collator candidate
+			assert_eq!(
+				Precompiles::execute(
+					staking_precompile_address,
+					&bob_input_data,
+					None,
+					&evm_test_context(),
+				),
+				expected_false_result
+			);
+		})
+}
+
+#[test]
 fn min_nomination_via_precompile() {
 	ExtBuilder::default().build().execute_with(|| {
 		let staking_precompile_address = H160::from_low_u64_be(2048);
 
 		let mut get_min_nom = Vec::<u8>::from([0u8; 4]);
-		get_min_nom[0..4].copy_from_slice(&hex_literal::hex!("c9f593b2"));
+		get_min_nom[0..4].copy_from_slice(&Keccak256::digest(b"min_nomination()")[0..4]);
 
 		let min_nomination = 5u128 * MSHD;
 		let expected_min: U256 = min_nomination.into();
@@ -1163,12 +1742,12 @@ fn min_nomination_via_precompile() {
 		let expected_result = Some(Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			output: buffer.to_vec(),
-			cost: 0,
+			cost: 1000,
 			logs: Default::default(),
 		}));
 
 		assert_eq!(
-			MoonbeamPrecompiles::<Runtime>::execute(
+			Precompiles::execute(
 				staking_precompile_address,
 				&get_min_nom,
 				None,
@@ -1182,4 +1761,174 @@ fn min_nomination_via_precompile() {
 			expected_result
 		);
 	});
+}
+
+#[test]
+fn points_precompile_zero() {
+	ExtBuilder::default().build().execute_with(|| {
+		let staking_precompile_address = H160::from_low_u64_be(2048);
+
+		// Construct the input data to check points in round one
+		// Notice we start in round one, not round zero.
+		let mut input_data = Vec::<u8>::from([0u8; 36]);
+		input_data[0..4].copy_from_slice(&Keccak256::digest(b"points(uint256)")[0..4]);
+		U256::one().to_big_endian(&mut input_data[4..36]);
+
+		// Expected result is zero points because nobody has authored yet.
+		let expected_bytes = Vec::from([0u8; 32]);
+		let expected_zero_result = Some(Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: expected_bytes,
+			cost: 1000,
+			logs: Default::default(),
+		}));
+
+		// Assert that no points have been earned
+		assert_eq!(
+			Precompiles::execute(
+				staking_precompile_address,
+				&input_data,
+				None,
+				&evm_test_context(),
+			),
+			expected_zero_result
+		);
+	})
+}
+
+#[test]
+fn points_precompile_non_zero() {
+	ExtBuilder::default()
+		.with_balances(vec![(AccountId::from(ALICE), 1_100 * MSHD)])
+		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MSHD)])
+		.with_mappings(vec![(
+			NimbusId::from_slice(&ALICE_NIMBUS),
+			AccountId::from(ALICE),
+		)])
+		.build()
+		.execute_with(|| {
+			let staking_precompile_address = H160::from_low_u64_be(2048);
+
+			// Alice authors a block
+			set_parachain_inherent_data();
+			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+
+			// Construct the input data to check points in round one
+			// Notice we start in round one, not round zero.
+			let mut input_data = Vec::<u8>::from([0u8; 36]);
+			input_data[0..4].copy_from_slice(&Keccak256::digest(b"points(uint256)")[0..4]);
+			U256::one().to_big_endian(&mut input_data[4..36]);
+
+			// Expected result is 20 points because each block is one point.
+			// Pretty hacky way to make that data structure...
+			let mut expected_bytes = Vec::from([0u8; 32]);
+			expected_bytes[31] = 20;
+
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: expected_bytes,
+				cost: 1000,
+				logs: Default::default(),
+			}));
+
+			// Assert that 20 points have been earned
+			assert_eq!(
+				Precompiles::execute(
+					staking_precompile_address,
+					&input_data,
+					None,
+					&evm_test_context(),
+				),
+				expected_result
+			);
+		})
+}
+
+#[test]
+fn points_precompile_round_too_big_error() {
+	ExtBuilder::default().build().execute_with(|| {
+		let staking_precompile_address = H160::from_low_u64_be(2048);
+
+		// We accept the round as a 256-bit integer for easy compatibility with
+		// solidity. But the underlying Rust type is `u32`. So here we test that
+		// the precompile fails gracefully when too large of a round is passed in.
+
+		// Construct the input data to check points so far this round
+		let mut input_data = Vec::<u8>::from([0u8; 36]);
+		input_data[0..4].copy_from_slice(&Keccak256::digest(b"points(uint256)")[0..4]);
+		U256::max_value().to_big_endian(&mut input_data[4..36]);
+
+		assert_eq!(
+			Precompiles::execute(
+				staking_precompile_address,
+				&input_data,
+				None,
+				&evm_test_context(),
+			),
+			Some(Err(ExitError::Other(
+				"Round is too large. 32 bit maximum".into()
+			)))
+		);
+	})
+}
+
+fn run_with_system_weight<F>(w: Weight, mut assertions: F)
+where
+	F: FnMut() -> (),
+{
+	let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
+		.build_storage::<Runtime>()
+		.unwrap()
+		.into();
+	t.execute_with(|| {
+		System::set_block_consumed_resources(w, 0);
+		assertions()
+	});
+}
+
+#[test]
+fn multiplier_can_grow_from_zero() {
+	let minimum_multiplier = moonshadow_runtime::MinimumMultiplier::get();
+	let target = moonshadow_runtime::TargetBlockFullness::get()
+		* BlockWeights::get()
+			.get(DispatchClass::Normal)
+			.max_total
+			.unwrap();
+	// if the min is too small, then this will not change, and we are doomed forever.
+	// the weight is 1/100th bigger than target.
+	run_with_system_weight(target * 101 / 100, || {
+		let next =
+			moonshadow_runtime::SlowAdjustingFeeUpdate::<Runtime>::convert(minimum_multiplier);
+		assert!(
+			next > minimum_multiplier,
+			"{:?} !>= {:?}",
+			next,
+			minimum_multiplier
+		);
+	})
+}
+
+#[test]
+#[ignore] // test runs for a very long time
+fn multiplier_growth_simulator() {
+	// assume the multiplier is initially set to its minimum. We update it with values twice the
+	//target (target is 25%, thus 50%) and we see at which point it reaches 1.
+	let mut multiplier = moonshadow_runtime::MinimumMultiplier::get();
+	let block_weight = moonshadow_runtime::TargetBlockFullness::get()
+		* BlockWeights::get()
+			.get(DispatchClass::Normal)
+			.max_total
+			.unwrap()
+		* 2;
+	let mut blocks = 0;
+	while multiplier <= Multiplier::one() {
+		run_with_system_weight(block_weight, || {
+			let next = moonshadow_runtime::SlowAdjustingFeeUpdate::<Runtime>::convert(multiplier);
+			// ensure that it is growing as well.
+			assert!(next > multiplier, "{:?} !>= {:?}", next, multiplier);
+			multiplier = next;
+		});
+		blocks += 1;
+		println!("block = {} multiplier {:?}", blocks, multiplier);
+	}
 }

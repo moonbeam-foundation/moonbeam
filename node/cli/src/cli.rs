@@ -19,7 +19,8 @@
 //! This module defines the Moonbeam node's Command Line Interface (CLI)
 //! It is built using structopt and inherits behavior from Substrate's sc_cli crate.
 
-use cli_opt::{EthApi, Sealing};
+use cli_opt::{account_key::GenerateAccountKey, EthApi, Sealing};
+use sc_cli::{Error as CliError, SubstrateCli};
 use service::chain_spec;
 use std::path::PathBuf;
 use structopt::StructOpt;
@@ -61,7 +62,7 @@ pub enum Subcommand {
 	Benchmark(frame_benchmarking_cli::BenchmarkCmd),
 
 	/// Key management cli utilities
-	Key(sc_cli::KeySubcommand),
+	Key(KeyCmd),
 }
 
 #[derive(Debug, StructOpt)]
@@ -120,10 +121,6 @@ pub struct ExportGenesisWasmCommand {
 pub struct RunCmd {
 	#[structopt(flatten)]
 	pub base: cumulus_client_cli::RunCmd,
-
-	/// Id of the parachain this collator collates for.
-	#[structopt(long)]
-	pub parachain_id: Option<u32>,
 
 	/// Enable the development service to run without a backing relay chain
 	#[structopt(long)]
@@ -186,6 +183,27 @@ impl std::ops::Deref for RunCmd {
 
 	fn deref(&self) -> &Self::Target {
 		&self.base
+	}
+}
+
+#[derive(Debug, StructOpt)]
+pub enum KeyCmd {
+	#[structopt(flatten)]
+	BaseCli(sc_cli::KeySubcommand),
+	/// Generate an Ethereum account.
+	GenerateAccountKey(GenerateAccountKey),
+}
+
+impl KeyCmd {
+	/// run the key subcommands
+	pub fn run<C: SubstrateCli>(&self, cli: &C) -> Result<(), CliError> {
+		match self {
+			KeyCmd::BaseCli(cmd) => cmd.run(cli),
+			KeyCmd::GenerateAccountKey(cmd) => {
+				cmd.run();
+				Ok(())
+			}
+		}
 	}
 }
 

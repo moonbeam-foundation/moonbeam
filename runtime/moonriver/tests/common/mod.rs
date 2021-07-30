@@ -38,15 +38,26 @@ pub fn run_to_block(n: u32) {
 	while System::block_number() < n {
 		Ethereum::on_finalize(System::block_number());
 		AuthorInherent::on_finalize(System::block_number());
-		ParachainStaking::on_finalize(System::block_number());
 		System::set_block_number(System::block_number() + 1);
 		AuthorInherent::on_initialize(System::block_number());
+		ParachainStaking::on_initialize(System::block_number());
 		Ethereum::on_initialize(System::block_number());
 	}
 }
 
 pub fn last_event() -> Event {
 	System::events().pop().expect("Event expected").event
+}
+
+// Helper function to give a simple evm context suitable for tests.
+// We can remove this once https://github.com/rust-blockchain/evm/pull/35
+// is in our dependency graph.
+pub fn evm_test_context() -> evm::Context {
+	evm::Context {
+		address: Default::default(),
+		caller: Default::default(),
+		apparent_value: From::from(0),
+	}
 }
 
 pub struct ExtBuilder {

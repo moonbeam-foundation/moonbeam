@@ -8,18 +8,20 @@
   ],
   "protocolId": null,
   "properties": {
-    "tokenDecimals": 18
+    "tokenDecimals": 18,
+    "tokenSymbol": "UNIT",
+    "SS58Prefix": 1287
   },
   "relayChain": "moonbase_alpha_relay",
   "paraId": 1000,
   "consensusEngine": null,
   "genesis": {
     "runtime": {
-      "frameSystem": {
+      "system": {
         "changesTrieConfig": null,
         "code": "<runtime_code>"
       },
-      "palletBalances": {
+      "balances": {
         "balances": [
           [
             "0x5a7869f6aEfC93F45b30514023324B8D38e2a11c",
@@ -37,21 +39,21 @@
           ["0x5FdCf221e987966b296714953fb6952AfC24aeFE", 50000000000000000000],
           [
             "0x4c5a56ed5a4ff7b09aa86560afd7d383f4831cce",
-            1000000000000000000000
+            1100000000000000000000
           ],
-          ["0x623c9e50647a049f92090fe55e22cc0509872fb6", 1000000000000000000000]
+          ["0x623c9e50647a049f92090fe55e22cc0509872fb6", 1100000000000000000000]
         ]
       },
-      "palletSudo": {
+      "sudo": {
         "key": "0x5a7869f6aEfC93F45b30514023324B8D38e2a11c"
       },
       "parachainInfo": {
         "parachainId": 1000
       },
-      "palletEthereumChainId": {
+      "ethereumChainId": {
         "chainId": 1287
       },
-      "palletEvm": {
+      "evm": {
         "accounts": {
           "0x0000000000000000000000000000000000000001": {
             "nonce": "0x0",
@@ -113,6 +115,12 @@
             "storage": {},
             "code": [96, 0, 96, 0, 253]
           },
+          "0x0000000000000000000000000000000000000402": {
+            "nonce": "0x0",
+            "balance": "0x0",
+            "storage": {},
+            "code": [96, 0, 96, 0, 253]
+          },
           "0x0000000000000000000000000000000000000800": {
             "nonce": "0x0",
             "balance": "0x0",
@@ -121,7 +129,7 @@
           }
         }
       },
-      "palletEthereum": {},
+      "ethereum": {},
       "parachainStaking": {
         "inflationConfig": {
           "expect": {
@@ -149,17 +157,17 @@
         ],
         "nominations": []
       },
-      "palletDemocracy": {
+      "democracy": {
         "phantom": null
       },
-      "palletCollectiveInstance1": {
+      "councilCollective": {
         "phantom": null,
         "members": [
           "0x7dE18882C6d576287349C70A02b8A2feB46F413A",
           "0x9886A0F62C0EdF9802E53c65A9b23066d9E60312"
         ]
       },
-      "palletCollectiveInstance2": {
+      "techComitteeCollective": {
         "phantom": null,
         "members": [
           "0xb019741Ba429C324D0E26AC0CaB55596Af077a8b",
@@ -172,13 +180,13 @@
           "0xd9465f9bdF362802F2954a15698E3aF0515961f7"
         ]
       },
-      "palletAuthorSlotFilter": {
+      "authorFilter": {
         "eligibleRatio": 50
       },
-      "palletCrowdloanRewards": {
+      "crowdloanRewards": {
         "fundedAmount": 3000000000000000000000000
       },
-      "palletAuthorMapping": {
+      "authorMapping": {
         "mappings": [
           [
             "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
@@ -190,8 +198,8 @@
           ]
         ]
       },
-      "palletTreasury": {},
-      "palletScheduler": null
+      "treasury": {},
+      "scheduler": null
     }
   }
 }

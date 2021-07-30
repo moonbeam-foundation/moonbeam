@@ -15,8 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Test utilities
-use super::*;
 use crate as stake;
+use crate::{pallet, AwardedPts, Config, InflationInfo, Points, Range};
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
@@ -86,6 +86,8 @@ parameter_types! {
 	pub const ExistentialDeposit: u128 = 1;
 }
 impl pallet_balances::Config for Test {
+	type MaxReserves = ();
+	type ReserveIdentifier = [u8; 4];
 	type MaxLocks = ();
 	type Balance = Balance;
 	type Event = Event;
@@ -97,7 +99,10 @@ impl pallet_balances::Config for Test {
 parameter_types! {
 	pub const MinBlocksPerRound: u32 = 3;
 	pub const DefaultBlocksPerRound: u32 = 5;
-	pub const BondDuration: u32 = 2;
+	pub const LeaveCandidatesDelay: u32 = 2;
+	pub const LeaveNominatorsDelay: u32 = 2;
+	pub const RevokeNominationDelay: u32 = 2;
+	pub const RewardPaymentDelay: u32 = 2;
 	pub const MinSelectedCandidates: u32 = 5;
 	pub const MaxNominatorsPerCollator: u32 = 4;
 	pub const MaxCollatorsPerNominator: u32 = 4;
@@ -110,9 +115,13 @@ parameter_types! {
 impl Config for Test {
 	type Event = Event;
 	type Currency = Balances;
+	type MonetaryGovernanceOrigin = frame_system::EnsureRoot<AccountId>;
 	type MinBlocksPerRound = MinBlocksPerRound;
 	type DefaultBlocksPerRound = DefaultBlocksPerRound;
-	type BondDuration = BondDuration;
+	type LeaveCandidatesDelay = LeaveCandidatesDelay;
+	type LeaveNominatorsDelay = LeaveNominatorsDelay;
+	type RevokeNominationDelay = RevokeNominationDelay;
+	type RewardPaymentDelay = RewardPaymentDelay;
 	type MinSelectedCandidates = MinSelectedCandidates;
 	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
 	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
@@ -171,7 +180,7 @@ impl ExtBuilder {
 		self
 	}
 
-	pub(crate) fn with_collators(mut self, collators: Vec<(AccountId, Balance)>) -> Self {
+	pub(crate) fn with_candidates(mut self, collators: Vec<(AccountId, Balance)>) -> Self {
 		self.collators = collators;
 		self
 	}
@@ -235,7 +244,7 @@ pub(crate) fn events() -> Vec<pallet::Event<Test>> {
 		.into_iter()
 		.map(|r| r.event)
 		.filter_map(|e| {
-			if let Event::stake(inner) = e {
+			if let Event::Stake(inner) = e {
 				Some(inner)
 			} else {
 				None
@@ -264,7 +273,7 @@ fn geneses() {
 			(8, 9),
 			(9, 4),
 		])
-		.with_collators(vec![(1, 500), (2, 200)])
+		.with_candidates(vec![(1, 500), (2, 200)])
 		.with_nominations(vec![(3, 1, 100), (4, 1, 100), (5, 2, 100), (6, 2, 100)])
 		.build()
 		.execute_with(|| {
@@ -306,7 +315,7 @@ fn geneses() {
 			(9, 100),
 			(10, 100),
 		])
-		.with_collators(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
 		.with_nominations(vec![
 			(6, 1, 10),
 			(7, 1, 10),

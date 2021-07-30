@@ -1,6 +1,6 @@
 # Functional testing for Moonbeam
 
-This folder contains a set of functional tests desgined for Moonbeam network.
+This folder contains a set of functional tests designed for Moonbeam network.
 
 It is written in typescript, using Mocha/Chai as Test framework.
 

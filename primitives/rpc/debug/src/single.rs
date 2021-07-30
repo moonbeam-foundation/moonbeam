@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2021 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -18,7 +18,6 @@
 //! Structure from "raw" debug_trace and a "call list" matching
 //! Blockscout formatter. This "call list" is also used to build
 //! the whole block tracing output.
-
 #[cfg(feature = "std")]
 use crate::serialization::*;
 #[cfg(feature = "std")]

@@ -28,7 +28,7 @@ use moonriver_runtime::{
 	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig,
-	ParachainStakingConfig, Precompiles, Range, SchedulerConfig, SudoConfig, SystemConfig,
+	ParachainStakingConfig, Precompiles, Range, SchedulerConfig, SystemConfig,
 	TechComitteeCollectiveConfig, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
@@ -56,8 +56,6 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 		ChainType::Development,
 		move || {
 			testnet_genesis(
-				// Alith is Sudo
-				accounts[0],
 				// Collator Candidate: Alice -> Alith
 				vec![(
 					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
@@ -75,7 +73,12 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 		vec![],
 		None,
 		None,
-		Some(serde_json::from_str("{\"tokenDecimals\": 18}").expect("Provided valid json map")),
+		Some(
+			serde_json::from_str(
+				"{\"tokenDecimals\": 18, \"tokenSymbol\": \"MOVR\", \"SS58Prefix\": 1285}",
+			)
+			.expect("Provided valid json map"),
+		),
 		Extensions {
 			relay_chain: "dev-service".into(),
 			para_id: Default::default(),
@@ -95,8 +98,6 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		ChainType::Local,
 		move || {
 			testnet_genesis(
-				// Alith is sudo
-				AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
 				// Collator Candidates
 				vec![
 					// Alice -> Alith
@@ -126,7 +127,12 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		vec![],
 		None,
 		None,
-		Some(serde_json::from_str("{\"tokenDecimals\": 18}").expect("Provided valid json map")),
+		Some(
+			serde_json::from_str(
+				"{\"tokenDecimals\": 18, \"tokenSymbol\": \"MOVR\", \"SS58Prefix\": 1285}",
+			)
+			.expect("Provided valid json map"),
+		),
 		Extensions {
 			relay_chain: "kusama-local".into(),
 			para_id: para_id.into(),
@@ -156,7 +162,6 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 }
 
 pub fn testnet_genesis(
-	root_key: AccountId,
 	candidates: Vec<(AccountId, NimbusId, Balance)>,
 	nominations: Vec<(AccountId, AccountId, Balance)>,
 	endowed_accounts: Vec<AccountId>,
@@ -171,28 +176,27 @@ pub fn testnet_genesis(
 	let revert_bytecode = vec![0x60, 0x00, 0x60, 0x00, 0xFD];
 
 	GenesisConfig {
-		frame_system: SystemConfig {
+		system: SystemConfig {
 			code: WASM_BINARY
 				.expect("WASM binary was not build, please build it!")
 				.to_vec(),
 			changes_trie_config: Default::default(),
 		},
-		pallet_balances: BalancesConfig {
+		balances: BalancesConfig {
 			balances: endowed_accounts
 				.iter()
 				.cloned()
 				.map(|k| (k, 1 << 80))
 				.collect(),
 		},
-		pallet_crowdloan_rewards: CrowdloanRewardsConfig {
+		crowdloan_rewards: CrowdloanRewardsConfig {
 			funded_amount: crowdloan_fund_pot,
 		},
-		pallet_sudo: SudoConfig { key: root_key },
 		parachain_info: ParachainInfoConfig {
 			parachain_id: para_id,
 		},
-		pallet_ethereum_chain_id: EthereumChainIdConfig { chain_id },
-		pallet_evm: EVMConfig {
+		ethereum_chain_id: EthereumChainIdConfig { chain_id },
+		evm: EVMConfig {
 			// We need _some_ code inserted at the precompile address so that
 			// the evm will actually call the address.
 			accounts: Precompiles::used_addresses()
@@ -209,9 +213,9 @@ pub fn testnet_genesis(
 				})
 				.collect(),
 		},
-		pallet_ethereum: EthereumConfig {},
-		pallet_democracy: DemocracyConfig::default(),
-		pallet_scheduler: SchedulerConfig {},
+		ethereum: EthereumConfig {},
+		democracy: DemocracyConfig::default(),
+		scheduler: SchedulerConfig {},
 		parachain_staking: ParachainStakingConfig {
 			candidates: candidates
 				.iter()
@@ -221,25 +225,25 @@ pub fn testnet_genesis(
 			nominations,
 			inflation_config: moonbeam_inflation_config(),
 		},
-		pallet_collective_Instance1: CouncilCollectiveConfig {
+		council_collective: CouncilCollectiveConfig {
 			phantom: Default::default(),
 			members: vec![], // TODO : Set members
 		},
-		pallet_collective_Instance2: TechComitteeCollectiveConfig {
+		tech_comittee_collective: TechComitteeCollectiveConfig {
 			phantom: Default::default(),
 			members: vec![], // TODO : Set members
 		},
-		pallet_author_slot_filter: AuthorFilterConfig {
+		author_filter: AuthorFilterConfig {
 			eligible_ratio: sp_runtime::Percent::from_percent(50),
 		},
-		pallet_author_mapping: AuthorMappingConfig {
+		author_mapping: AuthorMappingConfig {
 			mappings: candidates
 				.iter()
 				.cloned()
 				.map(|(account_id, author_id, _)| (author_id, account_id))
 				.collect(),
 		},
-		pallet_treasury: Default::default(),
+		treasury: Default::default(),
 	}
 }
 
