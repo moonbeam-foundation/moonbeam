@@ -132,6 +132,14 @@ fn verify_pallet_prefixes() {
 		]
 	);
 	assert_eq!(
+		<moonriver_runtime::Sudo as StorageInfoTrait>::storage_info(),
+		vec![StorageInfo {
+			prefix: prefix(b"Sudo", b"Key"),
+			max_values: Some(1),
+			max_size: Some(20),
+		}]
+	);
+	assert_eq!(
 		<moonriver_runtime::Proxy as StorageInfoTrait>::storage_info(),
 		vec![
 			StorageInfo {
@@ -173,7 +181,8 @@ fn verify_pallet_indices() {
 	// Handy utilities
 	is_pallet_index::<moonriver_runtime::Utility>(30);
 	is_pallet_index::<moonriver_runtime::Proxy>(31);
-	// Sudo was previously index 40
+	// Sudo
+	is_pallet_index::<moonriver_runtime::Sudo>(40);
 	// Ethereum compatibility
 	is_pallet_index::<moonriver_runtime::EthereumChainId>(50);
 	is_pallet_index::<moonriver_runtime::EVM>(51);

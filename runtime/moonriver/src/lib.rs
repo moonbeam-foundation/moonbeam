@@ -284,6 +284,11 @@ impl pallet_transaction_payment::Config for Runtime {
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
 }
 
+impl pallet_sudo::Config for Runtime {
+	type Call = Call;
+	type Event = Event;
+}
+
 impl pallet_ethereum_chain_id::Config for Runtime {}
 
 impl pallet_randomness_collective_flip::Config for Runtime {}
@@ -800,7 +805,8 @@ construct_runtime! {
 		Utility: pallet_utility::{Pallet, Call, Event} = 30,
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 31,
 
-		// Sudo was previously index 40
+		// Sudo
+		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 40,
 
 		// Ethereum compatibility
 		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 50,
