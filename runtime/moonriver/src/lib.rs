@@ -82,10 +82,10 @@ pub type Precompiles = MoonriverPrecompiles<Runtime>;
 pub mod currency {
 	use super::Balance;
 
-	pub const SED: Balance = 1;
-	pub const KILOSED: Balance = 1_000;
-	pub const MEGASED: Balance = 1_000_000;
-	pub const GIGASED: Balance = 1_000_000_000;
+	pub const WEI: Balance = 1;
+	pub const KILOWEI: Balance = 1_000;
+	pub const MEGAWEI: Balance = 1_000_000;
+	pub const GIGAWEI: Balance = 1_000_000_000;
 	pub const MICROMOVR: Balance = 1_000_000_000_000;
 	pub const MILLIMOVR: Balance = 1_000_000_000_000_000;
 	pub const MOVR: Balance = 1_000_000_000_000_000_000;
@@ -334,7 +334,7 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> U256 {
-		(1 * currency::GIGASED).into()
+		(1 * currency::GIGAWEI).into()
 	}
 }
 

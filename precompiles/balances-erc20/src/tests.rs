@@ -29,9 +29,6 @@ fn selector_less_than_four_bytes() {
 		// This selector is only three bytes long when four are required.
 		let bogus_selector = vec![1u8, 2u8, 3u8];
 
-		// Expected result is an error stating there are too few bytes
-		let expected_result = Some(Err(error("input must at least contain a selector")));
-
 		assert_eq!(
 			Precompiles::<Runtime>::execute(
 				Account::Precompile.into(),
@@ -43,7 +40,7 @@ fn selector_less_than_four_bytes() {
 					apparent_value: From::from(0),
 				},
 			),
-			expected_result
+			Some(Err(error("tried to parse selector out of bounds")))
 		);
 	});
 }
@@ -53,9 +50,6 @@ fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
 
-		// Expected result is an error stating there are such a selector does not exist
-		let expected_result = Some(Err(error("unknown selector")));
-
 		assert_eq!(
 			Precompiles::<Runtime>::execute(
 				Account::Precompile.into(),
@@ -67,34 +61,7 @@ fn no_selector_exists_but_length_is_right() {
 					apparent_value: From::from(0),
 				},
 			),
-			expected_result
-		);
-	});
-}
-
-#[test]
-fn total_supply_bad_input() {
-	ExtBuilder::default().build().execute_with(|| {
-		let data = EvmDataWriter::new()
-			.write_bytes(SELECTOR_TOTAL_SUPPLY)
-			.write_bool(true)
-			.build(); // extra argument
-
-		// Expected result is an error stating there are such a selector does not exist
-		let expected_result = Some(Err(error("input doesn't match expected length")));
-
-		assert_eq!(
-			Precompiles::<Runtime>::execute(
-				Account::Precompile.into(),
-				&data,
-				None,
-				&evm::Context {
-					address: Account::Precompile.into(),
-					caller: Account::Alice.into(),
-					apparent_value: From::from(0),
-				},
-			),
-			expected_result
+			Some(Err(error("unknown selector")))
 		);
 	});
 }

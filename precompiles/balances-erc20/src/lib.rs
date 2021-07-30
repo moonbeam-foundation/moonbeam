@@ -30,7 +30,7 @@ use pallet_balances::pallet::{
 };
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	error, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, LogsBuilder, RuntimeHelper,
+	error, Address, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, LogsBuilder, RuntimeHelper,
 };
 use slices::u8_slice;
 use sp_core::{H160, U256};
@@ -124,7 +124,6 @@ impl<Runtime, Instance> Precompile for Erc20BalancesPrecompile<Runtime, Instance
 where
 	Instance: InstanceToPrefix + 'static,
 	Runtime: pallet_balances::Config<Instance> + pallet_evm::Config,
-	Runtime::AccountId: From<H160>,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::Call: From<pallet_balances::Call<Runtime, Instance>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
@@ -153,7 +152,6 @@ impl<Runtime, Instance> Erc20BalancesPrecompile<Runtime, Instance>
 where
 	Instance: InstanceToPrefix + 'static,
 	Runtime: pallet_balances::Config<Instance> + pallet_evm::Config,
-	Runtime::AccountId: From<H160>,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::Call: From<pallet_balances::Call<Runtime, Instance>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
@@ -161,19 +159,19 @@ where
 {
 	fn total_supply(input: EvmDataReader, target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Parse input.
 		input.expect_arguments(0)?;
 
 		// Fetch info.
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let amount = pallet_balances::Pallet::<Runtime, Instance>::total_issuance();
+		let amount: U256 = pallet_balances::Pallet::<Runtime, Instance>::total_issuance().into();
 
 		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write_u256(amount).build(),
+			output: EvmDataWriter::new().write(amount).build(),
 			logs: vec![],
 		})
 	}
@@ -183,44 +181,53 @@ where
 		target_gas: Option<u64>,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Read input.
 		input.expect_arguments(1)?;
 
-		let address = input.read_address()?;
+		let owner: H160 = input.read::<Address>()?.into();
 
 		// Fetch info.
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let amount = pallet_balances::Pallet::<Runtime, Instance>::usable_balance(&address.into());
+		let amount: U256 = {
+			let owner: Runtime::AccountId = Runtime::AddressMapping::into_account_id(owner);
+			pallet_balances::Pallet::<Runtime, Instance>::usable_balance(&owner).into()
+		};
 
 		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write_u256(amount).build(),
+			output: EvmDataWriter::new().write(amount).build(),
 			logs: vec![],
 		})
 	}
 
 	fn allowance(mut input: EvmDataReader, target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Read input.
 		input.expect_arguments(2)?;
 
-		let owner_id: Runtime::AccountId = input.read_address()?.into();
-		let spender_id: Runtime::AccountId = input.read_address()?.into();
+		let owner: H160 = input.read::<Address>()?.into();
+		let spender: H160 = input.read::<Address>()?.into();
 
 		// Fetch info.
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let amount =
-			ApprovesStorage::<Runtime, Instance>::get(owner_id, spender_id).unwrap_or_default();
+		let amount: U256 = {
+			let owner: Runtime::AccountId = Runtime::AddressMapping::into_account_id(owner);
+			let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
+
+			ApprovesStorage::<Runtime, Instance>::get(owner, spender)
+				.unwrap_or_default()
+				.into()
+		};
 
 		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write_u256(amount).build(),
+			output: EvmDataWriter::new().write(amount).build(),
 			logs: vec![],
 		})
 	}
@@ -231,19 +238,24 @@ where
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_write_gas_cost())?;
+		gasometer.record_log_costs_manual(3, 32)?;
 
 		// Parse input.
 		input.expect_arguments(2)?;
 
-		let spender = input.read_address()?;
-		let amount = Self::u256_to_amount(input.read_u256()?)?;
-
-		let spender_id: Runtime::AccountId = spender.into();
-		let caller_id: Runtime::AccountId = context.caller.into();
+		let spender: H160 = input.read::<Address>()?.into();
+		let amount: U256 = input.read()?;
 
 		// Write into storage.
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_write_gas_cost())?;
-		ApprovesStorage::<Runtime, Instance>::insert(caller_id, spender_id, amount);
+		{
+			let caller: Runtime::AccountId =
+				Runtime::AddressMapping::into_account_id(context.caller);
+			let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
+			let amount = Self::u256_to_amount(amount)?;
+
+			ApprovesStorage::<Runtime, Instance>::insert(caller, spender, amount);
+		}
 
 		// Build output.
 		Ok(PrecompileOutput {
@@ -255,7 +267,7 @@ where
 					SELECTOR_LOG_APPROVAL,
 					context.caller,
 					spender,
-					EvmDataWriter::new().write_u256(amount).build(),
+					EvmDataWriter::new().write(amount).build(),
 				)
 				.build(),
 		})
@@ -267,27 +279,31 @@ where
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_log_costs_manual(3, 32)?;
 
 		// Parse input.
 		input.expect_arguments(2)?;
 
-		let to = input.read_address()?;
-		let amount = Self::u256_to_amount(input.read_u256()?)?;
+		let to: H160 = input.read::<Address>()?.into();
+		let amount: U256 = input.read()?;
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = pallet_balances::Call::<Runtime, Instance>::transfer(
-			Runtime::Lookup::unlookup(to.into()),
-			amount,
-		);
+		{
+			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+			let to = Runtime::AddressMapping::into_account_id(to);
+			let amount = Self::u256_to_amount(amount)?;
 
-		// Dispatch call (if enough gas).
-		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
-			Some(origin).into(),
-			call,
-			gasometer.remaining_gas()?,
-		)?;
-		gasometer.record_cost(used_gas)?;
+			// Dispatch call (if enough gas).
+			let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+				Some(origin).into(),
+				pallet_balances::Call::<Runtime, Instance>::transfer(
+					Runtime::Lookup::unlookup(to),
+					amount,
+				),
+				gasometer.remaining_gas()?,
+			)?;
+			gasometer.record_cost(used_gas)?;
+		}
 
 		// Build output.
 		Ok(PrecompileOutput {
@@ -299,7 +315,7 @@ where
 					SELECTOR_LOG_TRANSFER,
 					context.caller,
 					to,
-					EvmDataWriter::new().write_u256(amount).build(),
+					EvmDataWriter::new().write(amount).build(),
 				)
 				.build(),
 		})
@@ -314,51 +330,53 @@ where
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_write_gas_cost())?;
+		gasometer.record_log_costs_manual(3, 32)?;
 
 		// Parse input.
 		input.expect_arguments(3)?;
-		let from = input.read_address()?;
-		let to = input.read_address()?;
-		let amount = Self::u256_to_amount(input.read_u256()?)?;
+		let from: H160 = input.read::<Address>()?.into();
+		let to: H160 = input.read::<Address>()?.into();
+		let amount: U256 = input.read()?;
 
-		// If caller is "from", it can spend as much as it wants.
-		if context.caller != from {
-			let owner_id: Runtime::AccountId = from.into();
-			let spender_id: Runtime::AccountId = context.caller.into();
+		{
+			let caller: Runtime::AccountId =
+				Runtime::AddressMapping::into_account_id(context.caller);
+			let from: Runtime::AccountId = Runtime::AddressMapping::into_account_id(from.clone());
+			let to: Runtime::AccountId = Runtime::AddressMapping::into_account_id(to);
+			let amount = Self::u256_to_amount(amount)?;
 
-			gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-			gasometer.record_cost(RuntimeHelper::<Runtime>::db_write_gas_cost())?;
+			// If caller is "from", it can spend as much as it wants.
+			if caller != from {
+				ApprovesStorage::<Runtime, Instance>::mutate(from.clone(), caller, |entry| {
+					// Get current value, exit if None.
+					let value = entry.ok_or(error("spender not allowed"))?;
 
-			ApprovesStorage::<Runtime, Instance>::mutate(owner_id, spender_id, |entry| {
-				// Get current value, exit if None.
-				let value = entry.ok_or(error("spender not allowed"))?;
+					// Remove "amount" from allowed, exit if underflow.
+					let new_value = value
+						.checked_sub(&amount)
+						.ok_or_else(|| error("trying to spend more than allowed"))?;
 
-				// Remove "amount" from allowed, exit if underflow.
-				let new_value = value
-					.checked_sub(&amount)
-					.ok_or_else(|| error("trying to spend more than allowed"))?;
+					// Update value.
+					*entry = Some(new_value);
 
-				// Update value.
-				*entry = Some(new_value);
+					Ok(())
+				})?;
+			}
 
-				Ok(())
-			})?;
+			// Build call with origin. Here origin is the "from"/owner field.
+			// Dispatch call (if enough gas).
+			let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+				Some(from).into(),
+				pallet_balances::Call::<Runtime, Instance>::transfer(
+					Runtime::Lookup::unlookup(to),
+					amount,
+				),
+				gasometer.remaining_gas()?,
+			)?;
+			gasometer.record_cost(used_gas)?;
 		}
-
-		// Build call with origin. Here origin is the "from" field.
-		let origin = Runtime::AddressMapping::into_account_id(from);
-		let call = pallet_balances::Call::<Runtime, Instance>::transfer(
-			Runtime::Lookup::unlookup(to.into()),
-			amount,
-		);
-
-		// Dispatch call (if enough gas).
-		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
-			Some(origin).into(),
-			call,
-			gasometer.remaining_gas()?,
-		)?;
-		gasometer.record_cost(used_gas)?;
 
 		// Build output.
 		Ok(PrecompileOutput {
@@ -370,7 +388,7 @@ where
 					SELECTOR_LOG_TRANSFER,
 					from,
 					to,
-					EvmDataWriter::new().write_u256(amount).build(),
+					EvmDataWriter::new().write(amount).build(),
 				)
 				.build(),
 		})

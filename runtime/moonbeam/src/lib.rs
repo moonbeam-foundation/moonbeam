@@ -87,6 +87,7 @@ pub mod currency {
 	pub const MILLIGLMR: Balance = GLMR / 1_000;
 	pub const MICROGLMR: Balance = MILLIGLMR / 1_000;
 	pub const NANOGLMR: Balance = MICROGLMR / 1_000;
+	pub const WEI: Balance = 1;
 
 	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROGLMR;
 	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROGLMR;

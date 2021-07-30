@@ -87,6 +87,7 @@ pub mod currency {
 	pub const MILLIMSHD: Balance = MSHD / 1_000;
 	pub const MICROMSHD: Balance = MILLIMSHD / 1_000;
 	pub const NANOMSHD: Balance = MICROMSHD / 1_000;
+	pub const WEI: Balance = 1;
 
 	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROMSHD;
 	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROMSHD;

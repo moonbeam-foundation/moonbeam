@@ -87,6 +87,7 @@ pub mod currency {
 	pub const MILLIUNIT: Balance = UNIT / 1_000;
 	pub const MICROUNIT: Balance = MILLIUNIT / 1_000;
 	pub const NANOUNIT: Balance = MICROUNIT / 1_000;
+	pub const WEI: Balance = 1;
 
 	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROUNIT;
 	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROUNIT;

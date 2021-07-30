@@ -14,19 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::mock::Crowdloan;
 use crate::mock::{
-	events, evm_test_context, precompile_address, roll_to, Call, ExtBuilder, Origin, Precompiles,
-	TestAccount::Alice, TestAccount::Bob, TestAccount::Charlie,
+	events, evm_test_context, precompile_address, roll_to, Call, Crowdloan, ExtBuilder, Origin,
+	Precompiles, TestAccount::Alice, TestAccount::Bob, TestAccount::Charlie,
 };
 use crate::PrecompileOutput;
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_crowdloan_rewards::{Call as CrowdloanCall, Event as CrowdloanEvent};
-use pallet_evm::Call as EvmCall;
-use pallet_evm::{ExitError, ExitSucceed, PrecompileSet};
-use precompile_utils::EvmDataWriter;
+use pallet_evm::{Call as EvmCall, ExitSucceed, PrecompileSet};
+use precompile_utils::{error, Address, EvmDataWriter};
 use sha3::{Digest, Keccak256};
-use sp_core::U256;
+use sp_core::{H160, U256};
 
 #[test]
 fn selector_less_than_four_bytes() {
@@ -35,9 +33,7 @@ fn selector_less_than_four_bytes() {
 		let bogus_selector = vec![1u8, 2u8, 3u8];
 
 		// Expected result is an error stating there are too few bytes
-		let expected_result = Some(Err(ExitError::Other(
-			"input must at least contain a selector".into(),
-		)));
+		let expected_result = Some(Err(error("tried to parse selector out of bounds")));
 
 		assert_eq!(
 			Precompiles::execute(
@@ -57,9 +53,7 @@ fn no_selector_exists_but_length_is_right() {
 		let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
 
 		// Expected result is an error stating there are such a selector does not exist
-		let expected_result = Some(Err(ExitError::Other(
-			"No crowdloan rewards wrapper method at given selector".into(),
-		)));
+		let expected_result = Some(Err(error("unknown selector")));
 
 		assert_eq!(
 			Precompiles::execute(
@@ -80,23 +74,22 @@ fn is_contributor_returns_false() {
 		.build()
 		.execute_with(|| {
 			let selector = &Keccak256::digest(b"is_contributor(address)")[0..4];
-
-			// Construct data to read prop count
-			let mut input_data = Vec::<u8>::from([0u8; 36]);
-			input_data[0..4].copy_from_slice(&selector);
-			input_data[16..36].copy_from_slice(&Alice.to_h160().0);
+			let input = EvmDataWriter::new()
+				.write_raw_bytes(selector)
+				.write(Address(H160::from(Alice)))
+				.build();
 
 			// Expected result is one
 			let expected_one_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write_bool(false).build(),
+				output: EvmDataWriter::new().write(false).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
 
 			// Assert that no props have been opened.
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				Precompiles::execute(precompile_address(), &input, None, &evm_test_context()),
 				expected_one_result
 			);
 		});
@@ -115,8 +108,8 @@ fn is_contributor_returns_true() {
 
 			let init_block = Crowdloan::init_relay_block();
 			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec(vec![
-				([1u8; 32].into(), Some(Alice), 50u32.into()),
-				([2u8; 32].into(), Some(Bob), 50u32.into()),
+				([1u8; 32], Some(Alice), 50u32.into()),
+				([2u8; 32], Some(Bob), 50u32.into()),
 			]))
 			.dispatch(Origin::root()));
 
@@ -124,25 +117,22 @@ fn is_contributor_returns_true() {
 				Origin::root(),
 				init_block + VESTING
 			));
+
 			let selector = &Keccak256::digest(b"is_contributor(address)")[0..4];
-
-			// Construct data to read prop count
-			let mut input_data = Vec::<u8>::from([0u8; 36]);
-			input_data[0..4].copy_from_slice(&selector);
-			input_data[16..36].copy_from_slice(&Alice.to_h160().0);
-
-			// Expected result is one
-			let expected_one_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write_bool(true).build(),
-				cost: Default::default(),
-				logs: Default::default(),
-			}));
+			let input = EvmDataWriter::new()
+				.write_raw_bytes(selector)
+				.write(Address(H160::from(Alice)))
+				.build();
 
 			// Assert that no props have been opened.
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
-				expected_one_result
+				Precompiles::execute(precompile_address(), &input, None, &evm_test_context()),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(true).build(),
+					cost: Default::default(),
+					logs: Default::default(),
+				}))
 			);
 		});
 }
@@ -173,16 +163,13 @@ fn claim_works() {
 			roll_to(5);
 
 			let selector = &Keccak256::digest(b"claim()")[0..4];
-
-			// Construct data to read prop count
-			let mut input_data = Vec::<u8>::from([0u8; 4]);
-			input_data[0..4].copy_from_slice(&selector);
+			let input = EvmDataWriter::new().write_raw_bytes(selector).build();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
-				Alice.to_h160(),
+				Alice.into(),
 				precompile_address(),
-				input_data,
+				input,
 				U256::zero(), // No value sent in EVM
 				u64::max_value(),
 				0.into(),
@@ -222,25 +209,23 @@ fn reward_info_works() {
 			roll_to(5);
 
 			let selector = &Keccak256::digest(b"reward_info(address)")[0..4];
-
-			// Construct data to read prop count
-			let mut input_data = Vec::<u8>::from([0u8; 36]);
-			input_data[0..4].copy_from_slice(&selector);
-			input_data[16..36].copy_from_slice(&Alice.to_h160().0);
-
-			let mut output = EvmDataWriter::new().write_u256(50u64).build();
-			output.extend(EvmDataWriter::new().write_u256(10u64).build()); // Expected result
-			let expected_buffer_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: output,
-				cost: Default::default(),
-				logs: Default::default(),
-			}));
+			let input = EvmDataWriter::new()
+				.write_raw_bytes(selector)
+				.write(Address(H160::from(Alice)))
+				.build();
 
 			// Assert that no props have been opened.
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
-				expected_buffer_result
+				Precompiles::execute(precompile_address(), &input, None, &evm_test_context()),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new()
+						.write(U256::from(50u64))
+						.write(U256::from(10u64))
+						.build(),
+					cost: Default::default(),
+					logs: Default::default(),
+				}))
 			);
 		});
 }
@@ -271,17 +256,16 @@ fn update_reward_address_works() {
 			roll_to(5);
 
 			let selector = &Keccak256::digest(b"update_reward_address(address)")[0..4];
-
-			// Construct data to read prop count
-			let mut input_data = Vec::<u8>::from([0u8; 36]);
-			input_data[0..4].copy_from_slice(&selector);
-			input_data[16..36].copy_from_slice(&Charlie.to_h160().0);
+			let input = EvmDataWriter::new()
+				.write_raw_bytes(selector)
+				.write(Address(H160::from(Charlie)))
+				.build();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
-				Alice.to_h160(),
+				Alice.into(),
 				precompile_address(),
-				input_data,
+				input,
 				U256::zero(), // No value sent in EVM
 				u64::max_value(),
 				0.into(),
@@ -307,20 +291,14 @@ fn test_bound_checks_for_address_parsing() {
 		.build()
 		.execute_with(|| {
 			let selector = &Keccak256::digest(b"update_reward_address(address)")[0..4];
-
-			// Construct data to read prop count
-			let mut input_data = Vec::<u8>::from([0u8; 20]);
-			input_data[0..4].copy_from_slice(&selector);
-			input_data[16..20].copy_from_slice(&[1u8; 4]);
-
-			// Expected result is an error stating there are too few bytes
-			let expected_result = Some(Err(ExitError::Other(
-				"input doesn't match expected length".into(),
-			)));
+			let input = EvmDataWriter::new()
+				.write_raw_bytes(&selector)
+				.write_raw_bytes(&[1u8; 4]) // incomplete data
+				.build();
 
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context(),),
-				expected_result
+				Precompiles::execute(precompile_address(), &input, None, &evm_test_context(),),
+				Some(Err(error("input doesn't match expected length",)))
 			);
 		})
 }

@@ -21,10 +21,12 @@
 use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
-	traits::{Currency, Get},
+	traits::Currency,
 };
-use pallet_evm::{AddressMapping, GasWeightMapping, Precompile};
-use precompile_utils::{error, EvmDataReader, EvmDataWriter};
+use pallet_evm::{AddressMapping, Precompile};
+use precompile_utils::{
+	error, Address, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
+};
 
 use sp_core::{H160, U256};
 use sp_std::{
@@ -38,7 +40,7 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-type BalanceOf<Runtime> =
+pub type BalanceOf<Runtime> =
 	<<Runtime as pallet_crowdloan_rewards::Config>::RewardCurrency as Currency<
 		<Runtime as frame_system::Config>::AccountId,
 	>>::Balance;
@@ -49,7 +51,6 @@ pub struct CrowdloanRewardsWrapper<Runtime>(PhantomData<Runtime>);
 impl<Runtime> Precompile for CrowdloanRewardsWrapper<Runtime>
 where
 	Runtime: pallet_crowdloan_rewards::Config + pallet_evm::Config,
-	Runtime::AccountId: From<H160>,
 	BalanceOf<Runtime>: TryFrom<U256> + Debug,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
@@ -62,71 +63,18 @@ where
 	) -> Result<PrecompileOutput, ExitError> {
 		let mut input = EvmDataReader::new(input);
 
-		// Parse the function selector
-		// These are the four-byte function selectors calculated from the CrowdloanInterface.sol
-		// according to the solidity specification
-		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html#function-selector
-		let inner_call = match &input.read_selector()? {
+		match &input.read_selector()? {
 			// Check for accessor methods first. These return results immediately
-			[0x53, 0x44, 0x0c, 0x90] => {
-				return Self::is_contributor(input, target_gas);
-			}
-			[0x76, 0xf7, 0x02, 0x49] => {
-				return Self::reward_info(input, target_gas);
-			}
-			[0x4e, 0x71, 0xd9, 0x2d] => Self::claim()?,
-
-			[0xaa, 0xac, 0x61, 0xd6] => Self::update_reward_address(input)?,
+			[0x53, 0x44, 0x0c, 0x90] => Self::is_contributor(input, target_gas),
+			[0x76, 0xf7, 0x02, 0x49] => Self::reward_info(input, target_gas),
+			[0x4e, 0x71, 0xd9, 0x2d] => Self::claim(target_gas, context),
+			[0xaa, 0xac, 0x61, 0xd6] => Self::update_reward_address(input, target_gas, context),
 			_ => {
 				log::trace!(
 					target: "crowdloan-rewards-precompile",
 					"Failed to match function selector in crowdloan rewards precompile"
 				);
-				return Err(error(
-					"No crowdloan rewards wrapper method at given selector"
-					,
-				));
-			}
-		};
-
-		let outer_call: Runtime::Call = inner_call.into();
-		let info = outer_call.get_dispatch_info();
-
-		// Make sure enough gas
-		if let Some(gas_limit) = target_gas {
-			let required_gas = Runtime::GasWeightMapping::weight_to_gas(info.weight);
-			if required_gas > gas_limit {
-				return Err(ExitError::OutOfGas);
-			}
-		}
-		log::trace!(target: "crowdloan-rewards-precompile", "Made it past gas check");
-
-		// Dispatch that call
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-
-		log::trace!(target: "crowdloan-rewards-precompile", "Gonna call with origin {:?}", origin);
-
-		match outer_call.dispatch(Some(origin).into()) {
-			Ok(post_info) => {
-				let gas_used = Runtime::GasWeightMapping::weight_to_gas(
-					post_info.actual_weight.unwrap_or(info.weight),
-				);
-				Ok(PrecompileOutput {
-					exit_status: ExitSucceed::Stopped,
-					cost: gas_used,
-					output: Default::default(),
-					logs: Default::default(),
-				})
-			}
-			Err(e) => {
-				log::trace!(
-					target: "crowdloan-rewards-precompile",
-					"Crowdloan rewards call via evm failed {:?}",
-					e
-				);
-				Err(ExitError::Other(
-					"Crowdloan rewards call via EVM failed".into(),
-				))
+				Err(error("unknown selector"))
 			}
 		}
 	}
@@ -135,7 +83,6 @@ where
 impl<Runtime> CrowdloanRewardsWrapper<Runtime>
 where
 	Runtime: pallet_crowdloan_rewards::Config + pallet_evm::Config + frame_system::Config,
-	Runtime::AccountId: From<H160>,
 	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Debug,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
@@ -145,12 +92,17 @@ where
 	fn is_contributor(
 		mut input: EvmDataReader,
 		target_gas: Option<u64>,
-	) -> Result<PrecompileOutput, ExitError> {
+	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?; // accounts_payable
+
 		// Bound check
 		input.expect_arguments(1)?;
 
 		// parse the address
-		let contributor = input.read_address()?;
+		let contributor: H160 = input.read::<Address>()?.into();
+
+		let account = Runtime::AddressMapping::into_account_id(contributor);
 
 		log::trace!(
 			target: "crowdloan-rewards-precompile",
@@ -158,32 +110,16 @@ where
 			contributor
 		);
 
-		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-			<Runtime as frame_system::Config>::DbWeight::get().read,
-		);
-
-		// Make sure enough gas
-		if let Some(gas_limit) = target_gas {
-			if gas_consumed > gas_limit {
-				return Err(ExitError::OutOfGas);
-			}
-		}
-
-		let account: Runtime::AccountId = contributor.into();
 		// fetch data from pallet
-		let is_contributor =
+		let is_contributor: bool =
 			pallet_crowdloan_rewards::Pallet::<Runtime>::accounts_payable(account).is_some();
 
 		log::trace!(target: "crowldoan-rewards-precompile", "Result from pallet is {:?}", is_contributor);
 
-		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-			<Runtime as frame_system::Config>::DbWeight::get().read,
-		);
-
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: gas_consumed,
-			output: EvmDataWriter::new().write_bool(is_contributor).build(),
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(is_contributor).build(),
 			logs: Default::default(),
 		})
 	}
@@ -191,12 +127,17 @@ where
 	fn reward_info(
 		mut input: EvmDataReader,
 		target_gas: Option<u64>,
-	) -> Result<PrecompileOutput, ExitError> {
+	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?; // accounts_payable
+
 		// Bound check
 		input.expect_arguments(1)?;
 
 		// parse the address
-		let contributor = input.read_address()?;
+		let contributor: H160 = input.read::<Address>()?.into();
+
+		let account = Runtime::AddressMapping::into_account_id(contributor);
 
 		log::trace!(
 			target: "crowdloan-rewards-precompile",
@@ -204,29 +145,18 @@ where
 			contributor
 		);
 
-		let account: Runtime::AccountId = contributor.into();
-
-		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-			<Runtime as frame_system::Config>::DbWeight::get().read,
-		);
-
-		// Make sure enough gas
-		if let Some(gas_limit) = target_gas {
-			if gas_consumed > gas_limit {
-				return Err(ExitError::OutOfGas);
-			}
-		}
-
 		// fetch data from pallet
 		let reward_info = pallet_crowdloan_rewards::Pallet::<Runtime>::accounts_payable(account);
 
 		let (total, claimed): (U256, U256) = if let Some(reward_info) = reward_info {
-			let total_reward: u128 = reward_info.total_reward.try_into().map_err(|_| {
-				ExitError::Other("Amount is too large for provided balance type".into())
-			})?;
-			let claimed_reward: u128 = reward_info.claimed_reward.try_into().map_err(|_| {
-				ExitError::Other("Amount is too large for provided balance type".into())
-			})?;
+			let total_reward: u128 = reward_info
+				.total_reward
+				.try_into()
+				.map_err(|_| error("Amount is too large for provided balance type"))?;
+			let claimed_reward: u128 = reward_info
+				.claimed_reward
+				.try_into()
+				.map_err(|_| error("Amount is too large for provided balance type"))?;
 
 			(total_reward.into(), claimed_reward.into())
 		} else {
@@ -238,24 +168,43 @@ where
 			total, claimed
 		);
 
-		let mut output = EvmDataWriter::new().write_u256(total).build();
-		output.extend(EvmDataWriter::new().write_u256(claimed).build());
-
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: gas_consumed,
-			output: output,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(total).write(claimed).build(),
 			logs: Default::default(),
 		})
 	}
 
-	fn claim() -> Result<pallet_crowdloan_rewards::Call<Runtime>, ExitError> {
-		Ok(pallet_crowdloan_rewards::Call::<Runtime>::claim())
+	fn claim(target_gas: Option<u64>, context: &Context) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = pallet_crowdloan_rewards::Call::<Runtime>::claim();
+
+		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+			Some(origin).into(),
+			call,
+			gasometer.remaining_gas()?,
+		)?;
+
+		gasometer.record_cost(used_gas)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Stopped,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: Default::default(),
+		})
 	}
 
 	fn update_reward_address(
 		mut input: EvmDataReader,
-	) -> Result<pallet_crowdloan_rewards::Call<Runtime>, ExitError> {
+		target_gas: Option<u64>,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+
 		log::trace!(
 			target: "crowdloan-rewards-precompile",
 			"In update_reward_address dispatchable wrapper"
@@ -265,10 +214,29 @@ where
 		input.expect_arguments(1)?;
 
 		// parse the address
-		let new_address = input.read_address()?;
+		let new_address: H160 = input.read::<Address>()?.into();
+
+		let new_address_account = Runtime::AddressMapping::into_account_id(new_address);
 
 		log::trace!(target: "crowdloan-rewards-precompile", "New account is {:?}", new_address);
 
-		Ok(pallet_crowdloan_rewards::Call::<Runtime>::update_reward_address(new_address.into()))
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call =
+			pallet_crowdloan_rewards::Call::<Runtime>::update_reward_address(new_address_account);
+
+		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+			Some(origin).into(),
+			call,
+			gasometer.remaining_gas()?,
+		)?;
+
+		gasometer.record_cost(used_gas)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Stopped,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: Default::default(),
+		})
 	}
 }
