@@ -293,12 +293,6 @@
 <span id="290">290</span>
 <span id="291">291</span>
 <span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -330,7 +324,7 @@
 	<span class="ident">currency</span>::<span class="ident">MOVR</span>, <span class="ident">AccountId</span>, <span class="ident">AuthorFilterConfig</span>, <span class="ident">AuthorMappingConfig</span>, <span class="ident">Balance</span>, <span class="ident">BalancesConfig</span>,
 	<span class="ident">CouncilCollectiveConfig</span>, <span class="ident">CrowdloanRewardsConfig</span>, <span class="ident">DemocracyConfig</span>, <span class="ident">EVMConfig</span>,
 	<span class="ident">EthereumChainIdConfig</span>, <span class="ident">EthereumConfig</span>, <span class="ident">GenesisConfig</span>, <span class="ident">InflationInfo</span>, <span class="ident">ParachainInfoConfig</span>,
-	<span class="ident">ParachainStakingConfig</span>, <span class="ident">Precompiles</span>, <span class="ident">Range</span>, <span class="ident">SchedulerConfig</span>, <span class="ident">SudoConfig</span>, <span class="ident">SystemConfig</span>,
+	<span class="ident">ParachainStakingConfig</span>, <span class="ident">Precompiles</span>, <span class="ident">Range</span>, <span class="ident">SchedulerConfig</span>, <span class="ident">SystemConfig</span>,
 	<span class="ident">TechComitteeCollectiveConfig</span>, <span class="ident">WASM_BINARY</span>,
 };
 <span class="kw">use</span> <span class="ident">nimbus_primitives</span>::<span class="ident">NimbusId</span>;
@@ -358,8 +352,6 @@
 		<span class="ident">ChainType</span>::<span class="ident">Development</span>,
 		<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
 			<span class="ident">testnet_genesis</span>(
-				<span class="comment">// Alith is Sudo</span>
-				<span class="ident">accounts</span>[<span class="number">0</span>],
 				<span class="comment">// Collator Candidate: Alice -&gt; Alith</span>
 				<span class="macro">vec</span><span class="macro">!</span>[(
 					<span class="ident">AccountId</span>::<span class="ident">from_str</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>).<span class="ident">unwrap</span>(),
@@ -402,8 +394,6 @@
 		<span class="ident">ChainType</span>::<span class="ident">Local</span>,
 		<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
 			<span class="ident">testnet_genesis</span>(
-				<span class="comment">// Alith is sudo</span>
-				<span class="ident">AccountId</span>::<span class="ident">from_str</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>).<span class="ident">unwrap</span>(),
 				<span class="comment">// Collator Candidates</span>
 				<span class="macro">vec</span><span class="macro">!</span>[
 					<span class="comment">// Alice -&gt; Alith</span>
@@ -468,7 +458,6 @@
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">testnet_genesis</span>(
-	<span class="ident">root_key</span>: <span class="ident">AccountId</span>,
 	<span class="ident">candidates</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">AccountId</span>, <span class="ident">NimbusId</span>, <span class="ident">Balance</span>)<span class="op">&gt;</span>,
 	<span class="ident">nominations</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">AccountId</span>, <span class="ident">AccountId</span>, <span class="ident">Balance</span>)<span class="op">&gt;</span>,
 	<span class="ident">endowed_accounts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
@@ -499,7 +488,6 @@
 		<span class="ident">crowdloan_rewards</span>: <span class="ident">CrowdloanRewardsConfig</span> {
 			<span class="ident">funded_amount</span>: <span class="ident">crowdloan_fund_pot</span>,
 		},
-		<span class="ident">sudo</span>: <span class="ident">SudoConfig</span> { <span class="ident">key</span>: <span class="ident">root_key</span> },
 		<span class="ident">parachain_info</span>: <span class="ident">ParachainInfoConfig</span> {
 			<span class="ident">parachain_id</span>: <span class="ident">para_id</span>,
 		},
