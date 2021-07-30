@@ -20,11 +20,13 @@
 
 use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use frame_support::traits::{Currency, Get};
+use frame_support::traits::Currency;
 use pallet_democracy::Call as DemocracyCall;
 use pallet_evm::AddressMapping;
-use pallet_evm::GasWeightMapping;
 use pallet_evm::Precompile;
+use precompile_utils::{
+	error, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper, EvmData,
+};
 use sp_core::{H160, H256, U256};
 use sp_std::convert::{TryFrom, TryInto};
 use sp_std::fmt::Debug;
@@ -40,6 +42,8 @@ type BalanceOf<Runtime> = <<Runtime as pallet_democracy::Config>::Currency as Cu
 	<Runtime as frame_system::Config>::AccountId,
 >>::Balance;
 
+type DemocracyOf<Runtime> = pallet_democracy::Pallet<Runtime>;
+
 /// A precompile to wrap the functionality from pallet democracy.
 ///
 /// Grants evm-based DAOs the right to vote making them first-class citizens.
@@ -51,8 +55,7 @@ pub struct DemocracyWrapper<Runtime>(PhantomData<Runtime>);
 impl<Runtime> Precompile for DemocracyWrapper<Runtime>
 where
 	Runtime: pallet_democracy::Config + pallet_evm::Config,
-	// Runtime::AccountId: From<H160>,
-	BalanceOf<Runtime>: TryFrom<U256> + Debug,
+	BalanceOf<Runtime>: TryFrom<U256> + Debug + EvmData,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<DemocracyCall<Runtime>>,
@@ -65,94 +68,24 @@ where
 	) -> Result<PrecompileOutput, ExitError> {
 		log::trace!(target: "democracy-precompile", "In democracy wrapper");
 
-		// Basic sanity checking for length
-		// https://solidity-by-example.org/primitives/
-		const SELECTOR_SIZE_BYTES: usize = 4;
-
-		if input.len() < SELECTOR_SIZE_BYTES {
-			return Err(ExitError::Other("input length less than 4 bytes".into()));
-		}
-
-		log::trace!(target: "democracy-precompile", "Made it past preliminary length check");
+		let mut input = EvmDataReader::new(input);
 
 		// Parse the function selector
 		// These are the four-byte function selectors calculated from the DemocracyInterface.sol
 		// according to the solidity specification
 		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html#function-selector
-		let inner_call = match input[0..SELECTOR_SIZE_BYTES] {
+		match &input.read_selector()? {
 			// Check for accessor methods first. These return results immediately
-			[0x56, 0xfd, 0xf5, 0x47] => {
-				return Self::public_prop_count(&input[SELECTOR_SIZE_BYTES..]);
-			}
-			// [0x85, 0x45, 0xc8, 0x33] => {
-			// 	return Self::is_candidate(&input[SELECTOR_SIZE_BYTES..]);
-			// }
-			// [0x8f, 0x6d, 0x27, 0xc7] => {
-			// 	return Self::is_selected_candidate(&input[SELECTOR_SIZE_BYTES..]);
-			// }
-			// [0xc9, 0xf5, 0x93, 0xb2] => {
-			// 	return Self::min_nomination();
-			// }
-			// [0x97, 0x99, 0xb4, 0xe7] => {
-			// 	return Self::points(&input[SELECTOR_SIZE_BYTES..]);
-			// }
-
-			// If not an accessor, check for dispatchables. These calls ready for dispatch below.
-			[0x78, 0x24, 0xe7, 0xd1] => Self::propose(&input[SELECTOR_SIZE_BYTES..])?,
-			[0xc7, 0xa7, 0x66, 0x01] => Self::second(&input[SELECTOR_SIZE_BYTES..])?,
+			[0x56, 0xfd, 0xf5, 0x47] => Self::public_prop_count(input, target_gas),
+			// Now the dispatchables
+			[0x78, 0x24, 0xe7, 0xd1] => Self::propose(input, target_gas, context),
+			[0xc7, 0xa7, 0x66, 0x01] => Self::second(input, target_gas, context),
 			_ => {
 				log::trace!(
 					target: "democracy-precompile",
 					"Failed to match function selector in democracy precompile"
 				);
-				return Err(ExitError::Other(
-					"No democracy wrapper method at given selector".into(),
-				));
-			}
-		};
-
-		log::trace!(target: "democracy-precompile", "The inner call is {:?}", inner_call);
-
-		let outer_call: Runtime::Call = inner_call.into();
-		let info = outer_call.get_dispatch_info();
-
-		// Make sure enough gas
-		if let Some(gas_limit) = target_gas {
-			let required_gas = Runtime::GasWeightMapping::weight_to_gas(info.weight);
-			if required_gas > gas_limit {
-				log::trace!(target: "democracy-precompile",
-					"Precompile execution ran out of gas, Needed: {:?}, had: {:?}",
-					required_gas, gas_limit
-				);
-				return Err(ExitError::OutOfGas);
-			}
-		}
-		log::trace!(target: "democracy-precompile", "Made it past gas check");
-
-		// Dispatch that call
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-
-		log::trace!(target: "democracy-precompile", "Gonna call with origin {:?}", origin);
-
-		match outer_call.dispatch(Some(origin).into()) {
-			Ok(post_info) => {
-				let gas_used = Runtime::GasWeightMapping::weight_to_gas(
-					post_info.actual_weight.unwrap_or(info.weight),
-				);
-				Ok(PrecompileOutput {
-					exit_status: ExitSucceed::Stopped,
-					cost: gas_used,
-					output: Default::default(),
-					logs: Default::default(),
-				})
-			}
-			Err(e) => {
-				log::trace!(
-					target: "democracy-precompile",
-					"Democracy call via evm failed {:?}",
-					e
-				);
-				Err(ExitError::Other("Democracy call via EVM failed".into()))
+				Err(error("No democracy wrapper method at given selector"))
 			}
 		}
 	}
@@ -161,8 +94,7 @@ where
 impl<Runtime> DemocracyWrapper<Runtime>
 where
 	Runtime: pallet_democracy::Config + pallet_evm::Config + frame_system::Config,
-	// Runtime::AccountId: From<H160>,
-	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Debug,
+	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Debug + EvmData,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<DemocracyCall<Runtime>>,
@@ -170,76 +102,101 @@ where
 {
 	// The accessors are first. They directly return their result.
 
-	fn public_prop_count(input: &[u8]) -> Result<PrecompileOutput, ExitError> {
-		// Ensure there is no additional input passed
-		if input.len() != 0 {
-			return Err(ExitError::Other(
-				"Incorrect input length for public_prop_count.".into(),
-			));
-		}
+	fn public_prop_count(
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+	) -> EvmResult<PrecompileOutput> {
+		// TODO Ensure there is no additional input passed
+		
+		let mut gasometer = Gasometer::new(target_gas);
 
 		// Fetch data from pallet
-		let count = pallet_democracy::Pallet::<Runtime>::public_prop_count();
-		log::trace!(target: "democracy-precompile", "Result from pallet is {:?}", count);
-
-		let mut output_buffer = [0u8; 32];
-		U256::from(count).to_big_endian(&mut output_buffer);
-
-		// Weight of one database read
-		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-			<Runtime as frame_system::Config>::DbWeight::get().read,
-		);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let prop_count = DemocracyOf::<Runtime>::public_prop_count();
+		log::trace!(target: "democracy-precompile", "Result from pallet is {:?}", prop_count);
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: gas_consumed,
-			output: output_buffer.to_vec(),
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(prop_count).build(),
 			logs: Default::default(),
 		})
 	}
 
 	// The dispatchable wrappers are next. They return a substrate inner Call ready for dispatch.
 
-	fn propose(input: &[u8]) -> Result<DemocracyCall<Runtime>, ExitError> {
-		const HASH_SIZE_BYTES: usize = 32;
-		const AMOUNT_SIZE_BYTES: usize = 32;
+	fn propose(
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
 
-		if input.len() != HASH_SIZE_BYTES + AMOUNT_SIZE_BYTES {
-			return Err(ExitError::Other(
-				"Incorrect input length for propose.".into(),
-			));
-		}
+		// Bound check
+		input.expect_arguments(2)?;
 
-		let proposal_hash = H256::from_slice(&input[0..HASH_SIZE_BYTES]);
-		let amount = parse_amount::<BalanceOf<Runtime>>(&input[HASH_SIZE_BYTES..])?;
+		let proposal_hash = input.read::<H256>()?;
+		let amount = input.read::<BalanceOf<Runtime>>()?;
 
 		log::trace!(target: "democracy-precompile", "Proposing with hash {:?}, and amount {:?}", proposal_hash, amount);
-
-		Ok(DemocracyCall::<Runtime>::propose(
+		
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = DemocracyCall::<Runtime>::propose(
 			proposal_hash.into(),
 			amount,
-		))
+		);
+
+		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+			Some(origin).into(),
+			call,
+			gasometer.remaining_gas()?,
+		)?;
+
+		gasometer.record_cost(used_gas)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Stopped,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: Default::default(),
+		})
 	}
 
-	fn second(input: &[u8]) -> Result<DemocracyCall<Runtime>, ExitError> {
-		const PROPOSAL_SIZE_BYTES: usize = 32;
-		const BOUND_SIZE_BYTES: usize = 32;
+	fn second(
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
 
-		if input.len() != PROPOSAL_SIZE_BYTES + BOUND_SIZE_BYTES {
-			return Err(ExitError::Other(
-				"Incorrect input length for second.".into(),
-			));
-		}
+		// Bound check
+		input.expect_arguments(2)?;
 
-		//TODO shouldn't we need type annotations here?
-		let proposal_index = parse_amount(&input[0..32])?;
-		let seconds_upper_bound = parse_amount(&input[32..])?;
+		// Woah! I do't even need type annotations!
+		let proposal_index = input.read()?;
+		let seconds_upper_bound = input.read()?;
 
 		log::trace!(target: "democracy-precompile", "Seconding proposal {:?}, with bound {:?}", proposal_index, seconds_upper_bound);
 
-		Ok(DemocracyCall::<Runtime>::second(
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = DemocracyCall::<Runtime>::second(
 			proposal_index,
 			seconds_upper_bound,
-		))
+		);
+
+		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+			Some(origin).into(),
+			call,
+			gasometer.remaining_gas()?,
+		)?;
+
+		gasometer.record_cost(used_gas)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Stopped,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: Default::default(),
+		})
 	}
 }
