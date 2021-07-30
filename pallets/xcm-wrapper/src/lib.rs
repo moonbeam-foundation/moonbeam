@@ -247,7 +247,54 @@ pub mod pallet {
 				origin_as_mult.clone(),
 				T::CreateProxyDeposit::get() + fee,
 				dest_weight,
+				OriginKind::SovereignAccount,
 				call_bytes,
+			);
+			Self::deposit_event(Event::<T>::XcmSent(origin_as_mult.clone(), xcm.clone()));
+			let weight =
+				T::Weigher::weight(&mut xcm).map_err(|()| Error::<T>::UnweighableMessage)?;
+			let outcome =
+				T::XcmExecutor::execute_xcm_in_credit(origin_as_mult, xcm, weight, weight);
+
+			let maybe_xcm_err: Option<XcmError> = match outcome {
+				Outcome::Complete(_w) => Option::None,
+				Outcome::Incomplete(_w, err) => Some(err),
+				Outcome::Error(err) => Some(err),
+			};
+			if let Some(xcm_err) = maybe_xcm_err {
+				Self::deposit_event(Event::<T>::TransferFailed(xcm_err));
+			} else {
+				Self::deposit_event(Event::<T>::Transferred());
+			}
+
+			// Deposit event
+			Self::deposit_event(Event::<T>::ProxyCreated(
+				who.clone(),
+				T::SovereignAccount::get(),
+				T::CreateProxyDeposit::get(),
+			));
+
+			Ok(())
+		}
+
+		#[pallet::weight(0)]
+		pub fn transact_plain(
+			origin: OriginFor<T>,
+			fee: BalanceOf<T>,
+			origin_kind: OriginKind,
+			dest_weight: Weight,
+			call: Vec<u8>,
+		) -> DispatchResult {
+			let who = ensure_signed(origin.clone())?;
+
+			let origin_as_mult = T::OriginToMultiLocation::convert(origin)
+				.map_err(|_e| Error::<T>::WrongAccountToMUltiLocationConversion)?;
+			let mut xcm: Xcm<T::Call> = Self::transact(
+				origin_as_mult.clone(),
+				T::CreateProxyDeposit::get() + fee,
+				dest_weight,
+				origin_kind,
+				call,
 			);
 			Self::deposit_event(Event::<T>::XcmSent(origin_as_mult.clone(), xcm.clone()));
 			let weight =
@@ -367,6 +414,7 @@ pub mod pallet {
 			origin_as_mult: MultiLocation,
 			amount: BalanceOf<T>,
 			dest_weight: Weight,
+			origin_kind: OriginKind,
 			call: Vec<u8>,
 		) -> Xcm<T::Call> {
 			let return_fees = Order::DepositReserveAsset {
@@ -395,7 +443,7 @@ pub mod pallet {
 				debt: dest_weight,
 				halt_on_error: false,
 				xcm: vec![Transact {
-					origin_type: OriginKind::SovereignAccount,
+					origin_type: origin_kind,
 					require_weight_at_most: dest_weight,
 					call: call.into(),
 				}],
