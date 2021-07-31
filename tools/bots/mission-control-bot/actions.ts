@@ -90,8 +90,8 @@ export async function botActionFaucetSend(
     discordUser: msg?.author?.username,
     discordChannel: msg.channel,
     address: address,
-    prevTimestampAddress: addressReceivers[address],
-    prevTimestampUser: discordUserReceivers[discordUserId],
+    prevTimestampAddress: JSON.parse(JSON.stringify(addressReceivers[address])),
+    prevTimestampUser: JSON.parse(JSON.stringify(discordUserReceivers[discordUserId])),
   };
 
   // update the last time user/address requested funds
@@ -147,6 +147,7 @@ export async function botActionBalance(web3Api: Web3, msg: Message, messageConte
 export async function balanceMonitorCheck(web3Api: Web3, workers: WorkerAccount[]) {
   const alertThreshold = params.BALANCE_ALERT_THRESHOLD * 10n ** TOKEN_DECIMAL;
   const workerMinBalance = params.WORKER_MIN_BALANCE * 10n ** TOKEN_DECIMAL;
+  const overBalance = 5n * params.TOKEN_COUNT * 10n ** TOKEN_DECIMAL;
 
   while (true) {
     let start = Date.now();
@@ -159,19 +160,30 @@ export async function balanceMonitorCheck(web3Api: Web3, workers: WorkerAccount[
 
         // If the balance is below the threslhold, fund it with main account
         if (difference > 0n) {
-          await web3Api.eth.sendSignedTransaction(
-            (
-              await web3Api.eth.accounts.signTransaction(
-                {
-                  value: difference.toString(),
-                  gasPrice: params.GAS_PRICE.toString(),
-                  gas: "21000",
-                  to: worker.address,
-                },
-                params.ACCOUNT_KEY
+          let waitConfirmation = new Promise(async (resolve) => {
+            await web3Api.eth
+              .sendSignedTransaction(
+                (
+                  await web3Api.eth.accounts.signTransaction(
+                    {
+                      value: (difference + overBalance).toString(),
+                      gasPrice: params.GAS_PRICE.toString(),
+                      gas: "21000",
+                      to: worker.address,
+                    },
+                    params.ACCOUNT_KEY
+                  )
+                ).rawTransaction
               )
-            ).rawTransaction
-          );
+              .on("confirmation", (nbrOfBlocks, receipt) => {
+                // wait for 1 block confirmation to avoid Low Priority failure on next transaction
+                if (nbrOfBlocks >= 1) {
+                  resolve(receipt);
+                }
+              });
+          });
+
+          await waitConfirmation;
         }
       }
     } catch (error) {
@@ -287,23 +299,32 @@ async function resolveFundsRequests(
     // if the fr is undefined, it means that the queue is empty
     if (!fundsRequest) continue;
 
-    const tx = web3Api.eth.sendSignedTransaction(
-      (
-        await web3Api.eth.accounts.signTransaction(
-          {
-            value: `${params.TOKEN_COUNT * 10n ** TOKEN_DECIMAL}`,
-            gasPrice: params.GAS_PRICE.toString(),
-            gas: "21000",
-            to: fundsRequest.address,
-          },
-          worker.privateKey
+    let waitForReceipt = new Promise(async (resolve) => {
+      await web3Api.eth
+        .sendSignedTransaction(
+          (
+            await web3Api.eth.accounts.signTransaction(
+              {
+                value: `${params.TOKEN_COUNT * 10n ** TOKEN_DECIMAL}`,
+                gasPrice: params.GAS_PRICE.toString(),
+                gas: "21000",
+                to: fundsRequest.address,
+              },
+              worker.privateKey
+            )
+          ).rawTransaction
         )
-      ).rawTransaction
-    );
+        .on("confirmation", (nbrOfBlocks, receipt) => {
+          // wait for 1 block confirmation to avoid Low Priority failure on next transaction
+          if (nbrOfBlocks >= 1) {
+            resolve(receipt);
+          }
+        });
+    });
 
     transferReceipts.push({
       request: fundsRequest,
-      receiptPromise: tx,
+      receiptPromise: waitForReceipt,
     });
   }
 
@@ -335,7 +356,7 @@ async function resolveFundsRequests(
         .setTitle("Could not submit the transaction")
         .setFooter(
           "The transaction of funds could not be submitted. " +
-            "Please, try requesting funds again."
+            "Please, try requesting funds again or contact an admin."
         );
 
       // send message
