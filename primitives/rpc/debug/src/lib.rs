@@ -33,12 +33,12 @@ sp_api::decl_runtime_apis! {
 			extrinsics: Vec<Block::Extrinsic>,
 			transaction: &Transaction,
 			trace_type: single::TraceType,
-		) -> Result<(), sp_runtime::DispatchError>;
+		) -> Result<single::TransactionTrace, sp_runtime::DispatchError>;
 
 		#[changed_in(2)]
 		fn trace_block(
 			extrinsics: Vec<Block::Extrinsic>,
-		) -> Result<(), sp_runtime::DispatchError>;
+		) -> Result<Vec<block::TransactionTrace>, sp_runtime::DispatchError>;
 
 		fn trace_transaction(
 			header: &Block::Header,
