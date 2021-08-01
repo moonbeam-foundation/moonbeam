@@ -14,6 +14,7 @@ import {
   GLMR,
   ALITH_PRIV_KEY,
   ALITH,
+  VOTE_AMOUNT
 } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 const relayChainAddress: string =
@@ -532,7 +533,8 @@ describeDevMoonbeam("Crowdloan", (context) => {
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
-  it.skip("should be able to initialize through democracy", async function () {
+  it("should be able to initialize through democracy", async function () {
+    this.timeout(1_000_000);
     let calls = [];
     // We are gonna put the initialization and completion in a batch_all utility call
     calls.push(
@@ -567,13 +569,44 @@ describeDevMoonbeam("Crowdloan", (context) => {
     await context.createBlock();
     const publicPropCount = await context.polkadotApi.query.democracy.publicPropCount();
 
-    // we only use sudo to enact the proposal
-    await context.polkadotApi.tx.sudo
-      .sudoUncheckedWeight(
-        context.polkadotApi.tx.democracy.enactProposal(encodedHash, publicPropCount),
-        1
-      )
-      .signAndSend(sudoAccount);
+    /// Wait launchPeriod elapsed
+    let launchPeriod = await context.polkadotApi.consts.democracy.launchPeriod;
+    for (let i = 0; i < Number(launchPeriod); i++) {
+      await context.createBlock();
+    
+    }
+    // genesis account vote
+    await context.polkadotApi.tx.democracy.vote(0, {
+      Standard: { balance: VOTE_AMOUNT, vote: { aye: true, conviction: 1 } },
+    }).signAndSend(sudoAccount);
+
+    await context.createBlock();
+
+    const referendumInfoOf = await context.polkadotApi.query.democracy.referendumInfoOf(0);
+    expect((referendumInfoOf.toHuman() as any).Ongoing.proposalHash).to.equal(encodedHash);
+    expect((referendumInfoOf.toHuman() as any).Ongoing.tally.ayes).to.equal("10.0000 UNIT");
+    expect((referendumInfoOf.toHuman() as any).Ongoing.tally.turnout).to.equal("10.0000 UNIT");
+
+    // Verify that one referundum is triggered
+    let referendumCount = await context.polkadotApi.query.democracy.referendumCount();
+    expect(referendumCount.toHuman()).to.equal("1");
+ 
+    /// Wait launchPeriod elapsed
+    let enactmentPeriod = await context.polkadotApi.consts.democracy.enactmentPeriod;
+
+    let votingPeriod = await context.polkadotApi.consts.democracy.votingPeriod;
+    /// Wait launchPeriod elapsed
+    for (let i = 0; i < (Number(enactmentPeriod) + Number(votingPeriod)); i++) {
+      await context.createBlock();
+    }
+
+    const block = await context.web3.eth.getBlock("latest");
+    console.log(enactmentPeriod)
+    console.log(votingPeriod)
+    console.log(block.number)
+    const referendumInfoOf_2 = await context.polkadotApi.query.democracy.referendumInfoOf(0);
+
+    console.log(referendumInfoOf.toHuman() as any)
 
     await context.createBlock();
 
