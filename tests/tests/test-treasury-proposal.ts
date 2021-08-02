@@ -109,7 +109,7 @@ describeDevMoonbeam("Treasury proposal #4", (context) => {
 });
 
 describeDevMoonbeam("Treasury proposal #5", (context) => {
-  it("should be approvable by root", async function () {
+  it.skip("should be approvable by root", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
     const ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
@@ -135,7 +135,7 @@ describeDevMoonbeam("Treasury proposal #5", (context) => {
 });
 
 describeDevMoonbeam("Treasury proposal #6", (context) => {
-  it("should be rejectable by root", async function () {
+  it.skip("should be rejectable by root", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
     const ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");

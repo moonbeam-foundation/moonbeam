@@ -66,6 +66,29 @@ impl Event {
 	}
 }
 
+/// DebugRuntimeApi V1 result. Trace response is stored in runtime memory and returned as part of
+/// the runtime api call.
+#[derive(Debug)]
+pub enum ResultV1 {
+	Single(SingleTrace),
+	Block(Vec<BlockTrace>),
+}
+
+/// DebugRuntimeApi V2 result. Trace response is stored in client and runtime api call response is
+/// empty.
+#[derive(Debug)]
+pub enum ResultV2 {
+	Single,
+	Block,
+}
+
+/// Runtime api closure result.
+#[derive(Debug)]
+pub enum Result {
+	V1(ResultV1),
+	V2(ResultV2),
+}
+
 #[derive(Debug)]
 pub struct RawProxy {
 	gas: U256,
@@ -85,8 +108,8 @@ impl RawProxy {
 	///
 	/// With `using`, the Runtime Api is called with thread safe/local access to the mutable
 	/// reference of `self`.
-	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) {
-		listener::using(self, f);
+	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) -> R {
+		listener::using(self, f)
 	}
 
 	/// Format the RPC output.
@@ -126,20 +149,18 @@ impl CallListProxy {
 	///
 	/// With `using`, the Runtime Api is called with thread safe/local access to the mutable
 	/// reference of `self`.
-	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) {
-		listener::using(self, f);
+	pub fn using<R, F: FnOnce() -> R>(&mut self, f: F) -> R {
+		listener::using(self, f)
 	}
 
 	/// Format the RPC output of a single call-stack.
-	pub fn into_tx_trace(self) -> SingleTrace {
-		SingleTrace::CallList(
-			self.entries
-				.last()
-				.unwrap()
-				.into_iter()
-				.map(|(_, value)| value.clone())
-				.collect(),
-		)
+	pub fn into_tx_trace(self) -> Option<SingleTrace> {
+		if let Some(entry) = self.entries.last() {
+			return Some(SingleTrace::CallList(
+				entry.into_iter().map(|(_, value)| value.clone()).collect(),
+			));
+		}
+		None
 	}
 
 	/// Format the RPC output for multiple transactions. Each call-stack represents a single
