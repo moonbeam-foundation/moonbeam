@@ -6,6 +6,7 @@
   "types": "dist/index.d.ts",
   "prepublish": "tsc",
   "scripts": {
+    "compare": "rm -fr dist && tsc && npx ts-node check.ts",
     "build": "tsc",
     "publish": "tsc && npm publish",
     "lint": "npx prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'"
@@ -27,6 +28,8 @@
   "dependencies": {
     "@polkadot/keyring": "^7.0.1",
     "@polkadot/types": "^5.0.1",
-    "typescript": "^4.3.5"
+    "@types/underscore": "^1.11.3",
+    "typescript": "^4.3.5",
+    "underscore": "^1.13.1"
   }
 }
