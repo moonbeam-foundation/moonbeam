@@ -102,6 +102,7 @@ impl AddressMapping<TestAccount> for TestAccount {
 	}
 }
 
+//TODO Why is this impl necessary? I don't see it required anywhere...
 impl From<H160> for TestAccount {
 	fn from(x: H160) -> TestAccount {
 		TestAccount::into_account_id(x)

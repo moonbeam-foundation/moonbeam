@@ -25,7 +25,7 @@ use pallet_balances::Event as BalancesEvent;
 use pallet_democracy::{Call as DemocracyCall, Event as DemocracyEvent};
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
 use pallet_evm::{ExitError, ExitSucceed, PrecompileSet};
-use precompile_utils::{error, Address, EvmDataWriter};
+use precompile_utils::{error, EvmDataWriter};
 use sp_core::U256;
 use sha3::{Digest, Keccak256};
 
@@ -36,9 +36,7 @@ fn selector_less_than_four_bytes() {
 		let bogus_selector = vec![1u8, 2u8, 3u8];
 
 		// Expected result is an error stating there are too few bytes
-		let expected_result = Some(Err(ExitError::Other(
-			"input length less than 4 bytes".into(),
-		)));
+		let expected_result = Some(Err(error("tried to parse selector out of bounds")));
 
 		assert_eq!(
 			Precompiles::execute(
@@ -127,7 +125,7 @@ fn prop_count_non_zero() {
 			// Expected result is one
 			let expected_one_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write(1).build(),
+				output: EvmDataWriter::new().write(1u32).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
@@ -180,7 +178,7 @@ fn propose_works() {
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
-				Alice.to_h160(),
+				Alice.into(),
 				precompile_address(),
 				input_data,
 				U256::zero(), // No value sent in EVM
@@ -231,7 +229,7 @@ fn second_works() {
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
-				Alice.to_h160(),
+				Alice.into(),
 				precompile_address(),
 				input_data,
 				U256::zero(), // No value sent in EVM

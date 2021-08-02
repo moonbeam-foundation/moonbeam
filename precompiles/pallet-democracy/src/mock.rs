@@ -76,13 +76,13 @@ impl AddressMapping<TestAccount> for TestAccount {
 	}
 }
 
-impl TestAccount {
-	pub(crate) fn to_h160(&self) -> H160 {
-		match self {
-			Self::Alice => H160::repeat_byte(0xAA),
-			Self::Bob => H160::repeat_byte(0xBB),
-			Self::Charlie => H160::repeat_byte(0xCC),
-			Self::Bogus => Default::default(),
+impl From<TestAccount> for H160 {
+	fn from(value: TestAccount) -> H160 {
+		match value {
+			TestAccount::Alice => H160::repeat_byte(0xAA),
+			TestAccount::Bob => H160::repeat_byte(0xBB),
+			TestAccount::Charlie => H160::repeat_byte(0xCC),
+			TestAccount::Bogus => Default::default(),
 		}
 	}
 }
@@ -147,7 +147,7 @@ impl pallet_balances::Config for Test {
 	type WeightInfo = ();
 }
 
-/// The democracy precompile is available at address zero in the mock runtime.
+/// The democracy precompile is available at address 1 in the mock runtime.
 pub fn precompile_address() -> H160 {
 	H160::from_low_u64_be(1)
 }
@@ -303,15 +303,15 @@ fn test_account_id_mapping_works() {
 	// Bidirectional conversions for normal accounts
 	assert_eq!(
 		TestAccount::Alice,
-		TestAccount::into_account_id(TestAccount::Alice.to_h160())
+		TestAccount::into_account_id(TestAccount::Alice.into())
 	);
 	assert_eq!(
 		TestAccount::Bob,
-		TestAccount::into_account_id(TestAccount::Bob.to_h160())
+		TestAccount::into_account_id(TestAccount::Bob.into())
 	);
 	assert_eq!(
 		TestAccount::Charlie,
-		TestAccount::into_account_id(TestAccount::Charlie.to_h160())
+		TestAccount::into_account_id(TestAccount::Charlie.into())
 	);
 
 	// Bidirectional conversion between bogus and default H160
@@ -319,7 +319,7 @@ fn test_account_id_mapping_works() {
 		TestAccount::Bogus,
 		TestAccount::into_account_id(H160::default())
 	);
-	assert_eq!(H160::default(), TestAccount::Bogus.to_h160());
+	assert_eq!(H160::default(), TestAccount::Bogus.into());
 
 	// All other H160s map to bogus
 	assert_eq!(

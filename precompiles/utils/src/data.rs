@@ -214,6 +214,24 @@ impl EvmData for Address {
 	}
 }
 
+//TODO @nanocryk I thought I could change this to a blanket impl like
+// impl<T: TryFrom<U256>> EvmData for T
+//
+// But the compiler gives me this error
+//
+// error[E0119]: conflicting implementations of trait `data::EvmData` for type `sp_core::H256`:
+//    --> precompiles/utils/src/data.rs:217:1
+//     |
+// 183 | impl EvmData for H256 {
+//     | --------------------- first implementation here
+// ...
+// 217 | impl<T: TryFrom<U256>> EvmData for T {
+//     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ conflicting implementation for `sp_core::H256`
+//     |
+//     = note: upstream crates may add a new impl of trait `std::convert::From<sp_core::U256>` for type `sp_core::H256` in future versions
+//
+// Why should I care what they add in future versions? I should just be able to modify my code when I update the library?
+// Anyway, I needed an impl for u32 and u128. The code is very repetitive. Is this how you would have proceeded?
 impl EvmData for U256 {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
 		let range = reader.move_cursor(32)?;
@@ -233,27 +251,29 @@ impl EvmData for U256 {
 	}
 }
 
-//TODO @nanocryk I thought I could change this to a blanket impl like
-// impl<T: TryFrom<U256>> EvmData for T
-//
-// But the compiler gives me this error
-//
-// error[E0119]: conflicting implementations of trait `data::EvmData` for type `sp_core::H256`:
-//    --> precompiles/utils/src/data.rs:217:1
-//     |
-// 183 | impl EvmData for H256 {
-//     | --------------------- first implementation here
-// ...
-// 217 | impl<T: TryFrom<U256>> EvmData for T {
-//     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ conflicting implementation for `sp_core::H256`
-//     |
-//     = note: upstream crates may add a new impl of trait `std::convert::From<sp_core::U256>` for type `sp_core::H256` in future versions
-//
-// Why should I care what they add in future versions? I should just be able to modify my code when I update the library?
-// Anyway, it this the way you would hve proceeded for a u32?
-//
-// Also, TODO tests for this.
+// TODO tests for this.
 impl EvmData for u32 {
+	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+		let range = reader.move_cursor(32)?;
+
+		let data = reader
+			.input
+			.get(range)
+			.ok_or_else(|| error("tried to parse U256 out of bounds"))?;
+
+		U256::from_big_endian(data).try_into().map_err(|_| error("Value is too large for u32"))
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		let mut buffer = [0u8; 32];
+		let u256_value : U256 = value.into();
+		u256_value.to_big_endian(&mut buffer);
+		writer.data.extend_from_slice(&buffer);
+	}
+}
+
+// TODO tests for this.
+impl EvmData for u128 {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
 		let range = reader.move_cursor(32)?;
 
