@@ -27,7 +27,7 @@ describeDevMoonbeam("Estimate Gas - Multiply", (context) => {
 
   // Since the binary search has been activated, the gas indicated in the request is not taken into
   // account by the estimation:
-  // https://github.com/PureStake/frontier/blob/moonbeam-polkadot-v0.9.8/client/rpc/src/eth.rs#L907
+  // https://github.com/PureStake/frontier/blob/moonbeam-polkadot-v0.9.8-binary-search/client/rpc/src/eth.rs#L907
   it("should work with gas limit too low", async function () {
     expect(
       await multContract.methods.multiply(3).estimateGas({

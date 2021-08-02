@@ -9,8 +9,8 @@ repository = 'https://github.com/PureStake/moonbeam/'
 
 [dependencies]
 codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
-fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.8" }
-pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.8" }
+fp-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.8-binary-search" }
+pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-v0.9.8-binary-search" }
 evm = { version = "0.27.0", default-features = false, features = ["with-codec", "tracing"] }
 evm-runtime = { version = "0.27.0", default-features = false, features = ["tracing"] }
 evm-gasometer = { version = "0.27.0", default-features = false, features = ["tracing"] }
