@@ -16,7 +16,6 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use cumulus_primitives_core::relay_chain;
 use evm::ExitError;
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
@@ -27,7 +26,7 @@ use sp_core::{H160, H256};
 use sp_std::{marker::PhantomData, vec, vec::Vec};
 
 mod data;
-pub use data::{Address, EvmData, EvmDataReader, EvmDataWriter};
+pub use data::{Address, Bytes, EvmData, EvmDataReader, EvmDataWriter};
 
 #[cfg(test)]
 mod tests;

@@ -20,13 +20,14 @@
 
 use cumulus_primitives_core::relay_chain;
 use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
-use frame_support::{
-	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
-	traits::Get,
-};
-use pallet_evm::{GasWeightMapping, Precompile};
+use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
+use pallet_evm::Precompile;
 use pallet_staking::RewardDestination;
-use precompile_utils::{error, InputReader, OutputBuilder, RuntimeHelper};
+use precompile_utils::{
+	error, Bytes, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
+};
+use sp_core::{H256, U256};
+use sp_runtime::AccountId32;
 use sp_runtime::Perbill;
 use sp_std::vec::Vec;
 use sp_std::{convert::TryInto, marker::PhantomData};
@@ -73,14 +74,13 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> Result<PrecompileOutput, ExitError> {
-		let input = InputReader::new(input)?;
-
+		let mut input = EvmDataReader::new(input);
 		// Parse the function selector
 		// These are the four-byte function selectors calculated from the CrowdloanInterface.sol
 		// according to the solidity specification
 		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html#function-selector
 
-		match input.selector() {
+		match &input.read_selector()? {
 			// Check for accessor methods first. These return results immediately
 			[0xbe, 0x3e, 0x04, 0x00] => {
 				return Self::encode_bond(input, target_gas);
@@ -131,392 +131,261 @@ where
 {
 	// The accessors are first. They directly return their result.
 	fn encode_bond(
-		mut input: InputReader,
+		mut input: EvmDataReader,
 		target_gas: Option<u64>,
-	) -> Result<PrecompileOutput, ExitError> {
+	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
 		input.expect_arguments(4)?;
 
-		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-			<Runtime as frame_system::Config>::DbWeight::get().read,
-		);
+		let address: [u8; 32] = input.read::<H256>()?.into();
+		let amount: U256 = input.read()?;
+		let relay_amount = u256_to_relay_amount(amount)?;
 
-		// Make sure enough gas
-		if let Some(gas_limit) = target_gas {
-			if gas_consumed > gas_limit {
-				return Err(ExitError::OutOfGas);
-			}
-		}
+		let option: u8 = input.read()?;
+		let reward_address: [u8; 32] = input.read::<H256>()?.into();
 
-		let address = input.read_relay_address()?;
-		let amount = parse_relay_amount(&mut input)?;
-		let reward_destination = parse_reward_destination(&mut input)?;
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Bond(
-			address,
-			amount,
+		let reward_destination = parse_reward_destination(option, reward_address.into())?;
+		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Bond(
+			address.into(),
+			relay_amount,
 			reward_destination,
-		));
-
-		let gas_consumed = RuntimeHelper::<Runtime>::db_read_gas_cost();
-
-		let mut output = OutputBuilder::new().write_u256(32u32).build();
-		output.extend(OutputBuilder::new().write_u256(encoded.len()).build());
-		output.extend(OutputBuilder::new().write_bytes(encoded).build());
+		))
+		.into();
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: gas_consumed,
-			output: output,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(encoded).build(),
 			logs: Default::default(),
 		})
 	}
 
 	fn encode_bond_extra(
-		mut input: InputReader,
+		mut input: EvmDataReader,
 		target_gas: Option<u64>,
 	) -> Result<PrecompileOutput, ExitError> {
-		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-			<Runtime as frame_system::Config>::DbWeight::get().read,
-		);
-
-		// Make sure enough gas
-		if let Some(gas_limit) = target_gas {
-			if gas_consumed > gas_limit {
-				return Err(ExitError::OutOfGas);
-			}
-		}
+		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		input.expect_arguments(1)?;
-		let amount = parse_relay_amount(&mut input)?;
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::BondExtra(amount));
-
-		let mut output = OutputBuilder::new().write_u256(32u32).build();
-		output.extend(OutputBuilder::new().write_u256(encoded.len()).build());
-		output.extend(OutputBuilder::new().write_bytes(encoded).build());
-
-		let gas_consumed = RuntimeHelper::<Runtime>::db_read_gas_cost();
+		let amount: U256 = input.read()?;
+		let relay_amount = u256_to_relay_amount(amount)?;
+		let encoded: Bytes =
+			RelayRuntime::encode_call(AvailableStakeCalls::BondExtra(relay_amount)).into();
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: gas_consumed,
-			output: output,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(encoded).build(),
 			logs: Default::default(),
 		})
 	}
 
 	fn encode_unbond(
-		mut input: InputReader,
+		mut input: EvmDataReader,
 		target_gas: Option<u64>,
 	) -> Result<PrecompileOutput, ExitError> {
+		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
 		input.expect_arguments(1)?;
 
-		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-			<Runtime as frame_system::Config>::DbWeight::get().read,
-		);
+		let amount: U256 = input.read()?;
+		let relay_amount = u256_to_relay_amount(amount)?;
 
-		// Make sure enough gas
-		if let Some(gas_limit) = target_gas {
-			if gas_consumed > gas_limit {
-				return Err(ExitError::OutOfGas);
-			}
-		}
-
-		let amount = parse_relay_amount(&mut input)?;
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Unbond(amount));
-
-		let mut output = OutputBuilder::new().write_u256(32u32).build();
-		output.extend(OutputBuilder::new().write_u256(encoded.len()).build());
-		output.extend(OutputBuilder::new().write_bytes(encoded).build());
-
-		let gas_consumed = RuntimeHelper::<Runtime>::db_read_gas_cost();
+		let encoded: Bytes =
+			RelayRuntime::encode_call(AvailableStakeCalls::Unbond(relay_amount)).into();
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: gas_consumed,
-			output: output,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(encoded).build(),
 			logs: Default::default(),
 		})
 	}
 
 	fn encode_withdraw_unbonded(
-		mut input: InputReader,
+		mut input: EvmDataReader,
 		target_gas: Option<u64>,
 	) -> Result<PrecompileOutput, ExitError> {
+		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
 		input.expect_arguments(1)?;
 
-		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-			<Runtime as frame_system::Config>::DbWeight::get().read,
-		);
-
-		// Make sure enough gas
-		if let Some(gas_limit) = target_gas {
-			if gas_consumed > gas_limit {
-				return Err(ExitError::OutOfGas);
-			}
-		}
-
-		let num_slashing_spans = input.read_u32()?;
-		let encoded =
-			RelayRuntime::encode_call(AvailableStakeCalls::WithdrawUnbonded(num_slashing_spans));
-
-		let mut output = OutputBuilder::new().write_u256(32u32).build();
-		output.extend(OutputBuilder::new().write_u256(encoded.len()).build());
-		output.extend(OutputBuilder::new().write_bytes(encoded).build());
-
-		let gas_consumed = RuntimeHelper::<Runtime>::db_read_gas_cost();
+		let num_slashing_spans: u32 = input.read()?;
+		let encoded: Bytes =
+			RelayRuntime::encode_call(AvailableStakeCalls::WithdrawUnbonded(num_slashing_spans))
+				.into();
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: gas_consumed,
-			output: output,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(encoded).build(),
 			logs: Default::default(),
 		})
 	}
 
 	fn encode_validate(
-		mut input: InputReader,
+		mut input: EvmDataReader,
 		target_gas: Option<u64>,
 	) -> Result<PrecompileOutput, ExitError> {
+		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
 		input.expect_arguments(2)?;
 
-		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-			<Runtime as frame_system::Config>::DbWeight::get().read,
-		);
-
-		// Make sure enough gas
-		if let Some(gas_limit) = target_gas {
-			if gas_consumed > gas_limit {
-				return Err(ExitError::OutOfGas);
-			}
-		}
-
-		let parst_per_billion = input.read_u32()?;
-		let blocked = input.read_bool()?;
+		let parst_per_billion: u32 = input.read()?;
+		let blocked: bool = input.read()?;
 		let fraction = Perbill::from_parts(parst_per_billion);
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Validate(
+		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Validate(
 			pallet_staking::ValidatorPrefs {
 				commission: fraction,
 				blocked: blocked,
 			},
-		));
-
-		let mut output = OutputBuilder::new().write_u256(32u32).build();
-		output.extend(OutputBuilder::new().write_u256(encoded.len()).build());
-		output.extend(OutputBuilder::new().write_bytes(encoded).build());
-
-		let gas_consumed = RuntimeHelper::<Runtime>::db_read_gas_cost();
+		))
+		.into();
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: gas_consumed,
-			output: output,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(encoded).build(),
 			logs: Default::default(),
 		})
 	}
 
 	fn encode_nominate(
-		mut input: InputReader,
+		mut input: EvmDataReader,
 		target_gas: Option<u64>,
 	) -> Result<PrecompileOutput, ExitError> {
-		input.expect_minimum_arguments(2)?;
+		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-			<Runtime as frame_system::Config>::DbWeight::get().read,
-		);
+		let nominated_as_h256: Vec<H256> = input.read()?;
 
-		// Make sure enough gas
-		if let Some(gas_limit) = target_gas {
-			if gas_consumed > gas_limit {
-				return Err(ExitError::OutOfGas);
-			}
-		}
-
-		// This points to the offset at which the vector starts. In this case, should be immediate.
-		let _ = input.read_u256()?;
-
-		// The next thing is to read the length of the vector
-		let length = input.read_u32()?;
-
-		input.expect_arguments(2 + length as usize)?;
-
-		let mut nominated = Vec::new();
-
-		for _ in 0u32..length {
-			nominated.push(input.read_relay_address()?)
-		}
-
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Nominate(nominated));
-
-		let mut output = OutputBuilder::new().write_u256(32u32).build();
-		output.extend(OutputBuilder::new().write_u256(encoded.len()).build());
-		output.extend(OutputBuilder::new().write_bytes(encoded).build());
-
-		let gas_consumed = RuntimeHelper::<Runtime>::db_read_gas_cost();
+		let nominated: Vec<AccountId32> = nominated_as_h256
+			.iter()
+			.map(|&add| {
+				let as_bytes: [u8; 32] = add.into();
+				as_bytes.into()
+			})
+			.collect();
+		let encoded: Bytes =
+			RelayRuntime::encode_call(AvailableStakeCalls::Nominate(nominated)).into();
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: gas_consumed,
-			output: output,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(encoded).build(),
 			logs: Default::default(),
 		})
 	}
 
 	fn encode_chill(
-		input: InputReader,
+		input: EvmDataReader,
 		target_gas: Option<u64>,
 	) -> Result<PrecompileOutput, ExitError> {
+		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
 		input.expect_arguments(0)?;
 
-		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-			<Runtime as frame_system::Config>::DbWeight::get().read,
-		);
-
-		// Make sure enough gas
-		if let Some(gas_limit) = target_gas {
-			if gas_consumed > gas_limit {
-				return Err(ExitError::OutOfGas);
-			}
-		}
-
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Chill);
-
-		let gas_consumed = RuntimeHelper::<Runtime>::db_read_gas_cost();
-
-		let mut output = OutputBuilder::new().write_u256(32u32).build();
-		output.extend(OutputBuilder::new().write_u256(encoded.len()).build());
-		output.extend(OutputBuilder::new().write_bytes(encoded).build());
+		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Chill).into();
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: gas_consumed,
-			output: output,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(encoded).build(),
 			logs: Default::default(),
 		})
 	}
 
 	fn encode_set_payee(
-		mut input: InputReader,
+		mut input: EvmDataReader,
 		target_gas: Option<u64>,
 	) -> Result<PrecompileOutput, ExitError> {
+		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
 		input.expect_arguments(2)?;
-		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-			<Runtime as frame_system::Config>::DbWeight::get().read,
-		);
 
-		// Make sure enough gas
-		if let Some(gas_limit) = target_gas {
-			if gas_consumed > gas_limit {
-				return Err(ExitError::OutOfGas);
-			}
-		}
+		let option: u8 = input.read()?;
+		let reward_address: [u8; 32] = input.read::<H256>()?.into();
 
-		let reward_destination = parse_reward_destination(&mut input)?;
+		let reward_destination = parse_reward_destination(option, reward_address.into())?;
 
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::SetPayee(reward_destination));
-
-		let mut output = OutputBuilder::new().write_u256(32u32).build();
-		output.extend(OutputBuilder::new().write_u256(encoded.len()).build());
-		output.extend(OutputBuilder::new().write_bytes(encoded).build());
-
-		let gas_consumed = RuntimeHelper::<Runtime>::db_read_gas_cost();
+		let encoded: Bytes =
+			RelayRuntime::encode_call(AvailableStakeCalls::SetPayee(reward_destination)).into();
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: gas_consumed,
-			output: output,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(encoded).build(),
 			logs: Default::default(),
 		})
 	}
 
 	fn encode_set_controller(
-		mut input: InputReader,
+		mut input: EvmDataReader,
 		target_gas: Option<u64>,
 	) -> Result<PrecompileOutput, ExitError> {
-		input.expect_arguments(1)?;
-		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-			<Runtime as frame_system::Config>::DbWeight::get().read,
-		);
+		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		// Make sure enough gas
-		if let Some(gas_limit) = target_gas {
-			if gas_consumed > gas_limit {
-				return Err(ExitError::OutOfGas);
-			}
-		}
+		let controller: [u8; 32] = input.read::<H256>()?.into();
 
-		let controller = input.read_relay_address()?;
-
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::SetController(controller));
-
-		let mut output = OutputBuilder::new().write_u256(32u32).build();
-		output.extend(OutputBuilder::new().write_u256(encoded.len()).build());
-		output.extend(OutputBuilder::new().write_bytes(encoded).build());
-
-		let gas_consumed = RuntimeHelper::<Runtime>::db_read_gas_cost();
+		let encoded: Bytes =
+			RelayRuntime::encode_call(AvailableStakeCalls::SetController(controller.into())).into();
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: gas_consumed,
-			output: output,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(encoded).build(),
 			logs: Default::default(),
 		})
 	}
 
 	fn encode_rebond(
-		mut input: InputReader,
+		mut input: EvmDataReader,
 		target_gas: Option<u64>,
 	) -> Result<PrecompileOutput, ExitError> {
+		let mut gasometer = Gasometer::new(target_gas);
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
 		input.expect_arguments(1)?;
-		let gas_consumed = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-			<Runtime as frame_system::Config>::DbWeight::get().read,
-		);
 
-		// Make sure enough gas
-		if let Some(gas_limit) = target_gas {
-			if gas_consumed > gas_limit {
-				return Err(ExitError::OutOfGas);
-			}
-		}
-
-		let amount = parse_relay_amount(&mut input)?;
-
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Rebond(amount));
-
-		let mut output = OutputBuilder::new().write_u256(32u32).build();
-		output.extend(OutputBuilder::new().write_u256(encoded.len()).build());
-		output.extend(OutputBuilder::new().write_bytes(encoded).build());
-
-		let gas_consumed = RuntimeHelper::<Runtime>::db_read_gas_cost();
+		let amount: U256 = input.read()?;
+		let relay_amount = u256_to_relay_amount(amount)?;
+		let encoded: Bytes =
+			RelayRuntime::encode_call(AvailableStakeCalls::Rebond(relay_amount)).into();
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: gas_consumed,
-			output: output,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(encoded).build(),
 			logs: Default::default(),
 		})
 	}
 }
 
-pub fn parse_relay_amount(input: &mut InputReader) -> Result<relay_chain::Balance, ExitError> {
-	let a = input.read_u256()?;
-	TryInto::<relay_chain::Balance>::try_into(a)
-		.map_err(|_| ExitError::Other("Amount is too large for provided balance type".into()))
+pub fn u256_to_relay_amount(value: U256) -> EvmResult<relay_chain::Balance> {
+	value
+		.try_into()
+		.map_err(|_| error("amount is too large for provided balance type"))
 }
 
 pub fn parse_reward_destination(
-	input: &mut InputReader,
+	option: u8,
+	address: AccountId32,
 ) -> Result<pallet_staking::RewardDestination<relay_chain::AccountId>, ExitError> {
-	let option: u128 = input
-		.read_u256()?
-		.try_into()
-		.map_err(|_| ExitError::Other("Amount is too large for provided balance type".into()))?;
-	let address = input.read_relay_address()?;
-
 	match option {
-		0u128 => Ok(RewardDestination::Staked),
-		1u128 => Ok(RewardDestination::Stash),
-		2u128 => Ok(RewardDestination::Controller),
-		3u128 => Ok(RewardDestination::Account(address)),
-		4u128 => Ok(RewardDestination::None),
+		0u8 => Ok(RewardDestination::Staked),
+		1u8 => Ok(RewardDestination::Stash),
+		2u8 => Ok(RewardDestination::Controller),
+		3u8 => Ok(RewardDestination::Account(address)),
+		4u8 => Ok(RewardDestination::None),
 		_ => Err(error("Not available enum")),
 	}
 }

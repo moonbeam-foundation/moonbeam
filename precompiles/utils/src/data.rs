@@ -280,10 +280,31 @@ impl EvmData for u8 {
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
-		let mut buffer = [0u8; 32];
-		buffer[31] = value;
+		let value_as_u256 = U256::from(value);
+		U256::write(writer, value_as_u256);
+	}
+}
 
-		writer.data.extend_from_slice(&buffer);
+impl EvmData for u32 {
+	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+		let range = reader.move_cursor(32)?;
+
+		let data = reader
+			.input
+			.get(range)
+			.ok_or_else(|| error("tried to parse u8 out of bounds"))?;
+
+		let myvalue = u32::from_be_bytes(
+			data[28..32]
+				.try_into()
+				.map_err(|_e| error("tried to parse u8 out of bounds"))?,
+		);
+		Ok(myvalue)
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		let value_as_u256 = U256::from(value);
+		U256::write(writer, value_as_u256);
 	}
 }
 

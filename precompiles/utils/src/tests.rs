@@ -134,6 +134,48 @@ fn write_address() {
 }
 
 #[test]
+fn read_u32() {
+	let value: u32 = 1000u32;
+	let writer_output = EvmDataWriter::new().write(value).build();
+
+	let mut reader = EvmDataReader::new(&writer_output);
+	let parsed: u32 = reader.read().expect("to correctly parse u32");
+
+	assert_eq!(value, parsed);
+}
+
+#[test]
+fn write_u32() {
+	let value: u32 = 1000u32;
+
+	let output = EvmDataWriter::new().write(value).build();
+
+	assert_eq!(output.len(), 32);
+	assert_eq!(&output[28..32], value.to_be_bytes());
+}
+
+#[test]
+fn read_u8() {
+	let value = 100u8;
+	let writer_output = EvmDataWriter::new().write(value).build();
+
+	let mut reader = EvmDataReader::new(&writer_output);
+	let parsed: u8 = reader.read().expect("to correctly parse u8");
+
+	assert_eq!(value, parsed);
+}
+
+#[test]
+fn write_u8() {
+	let value = 100u8;
+
+	let output = EvmDataWriter::new().write(value).build();
+
+	assert_eq!(output.len(), 32);
+	assert_eq!(output[31], value);
+}
+
+#[test]
 fn read_address() {
 	let value = H160::repeat_byte(0xAA);
 	let writer_output = EvmDataWriter::new().write(Address(value)).build();
