@@ -309,6 +309,14 @@
 <span id="306">306</span>
 <span id="307">307</span>
 <span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -373,6 +381,8 @@
 				<span class="comment">// accounts[0],</span>
 				<span class="comment">// Council members: Baltathar, Charleth and Dorothy</span>
 				<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">accounts</span>[<span class="number">1</span>], <span class="ident">accounts</span>[<span class="number">2</span>], <span class="ident">accounts</span>[<span class="number">3</span>]],
+				<span class="comment">// Tech comitee members: Alith and Baltathar</span>
+				<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">accounts</span>[<span class="number">0</span>], <span class="ident">accounts</span>[<span class="number">1</span>]],
 				<span class="comment">// Collator Candidate: Alice -&gt; Alith</span>
 				<span class="macro">vec</span><span class="macro">!</span>[(
 					<span class="ident">accounts</span>[<span class="number">0</span>],
@@ -422,6 +432,11 @@
 					<span class="ident">AccountId</span>::<span class="ident">from_str</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>).<span class="ident">unwrap</span>(),
 					<span class="ident">AccountId</span>::<span class="ident">from_str</span>(<span class="string">&quot;798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc&quot;</span>).<span class="ident">unwrap</span>(),
 					<span class="ident">AccountId</span>::<span class="ident">from_str</span>(<span class="string">&quot;773539d4Ac0e786233D90A233654ccEE26a613D9&quot;</span>).<span class="ident">unwrap</span>(),
+				],
+				<span class="comment">// Tech comitee members: Alith and Baltathar</span>
+				<span class="macro">vec</span><span class="macro">!</span>[
+					<span class="ident">AccountId</span>::<span class="ident">from_str</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>).<span class="ident">unwrap</span>(),
+					<span class="ident">AccountId</span>::<span class="ident">from_str</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>).<span class="ident">unwrap</span>(),
 				],
 				<span class="comment">// Collator Candidates</span>
 				<span class="macro">vec</span><span class="macro">!</span>[
@@ -489,6 +504,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">testnet_genesis</span>(
 	<span class="comment">// root_key: AccountId,</span>
 	<span class="ident">council_members</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
+	<span class="ident">tech_comittee_members</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
 	<span class="ident">candidates</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">AccountId</span>, <span class="ident">NimbusId</span>, <span class="ident">Balance</span>)<span class="op">&gt;</span>,
 	<span class="ident">nominations</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">AccountId</span>, <span class="ident">AccountId</span>, <span class="ident">Balance</span>)<span class="op">&gt;</span>,
 	<span class="ident">endowed_accounts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
@@ -559,7 +575,7 @@
 		},
 		<span class="ident">tech_comittee_collective</span>: <span class="ident">TechComitteeCollectiveConfig</span> {
 			<span class="ident">phantom</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-			<span class="ident">members</span>: <span class="macro">vec</span><span class="macro">!</span>[], <span class="comment">// TODO : Set members</span>
+			<span class="ident">members</span>: <span class="ident">tech_comittee_members</span>,
 		},
 		<span class="ident">author_filter</span>: <span class="ident">AuthorFilterConfig</span> {
 			<span class="ident">eligible_ratio</span>: <span class="ident">sp_runtime</span>::<span class="ident">Percent</span>::<span class="ident">from_percent</span>(<span class="number">50</span>),
