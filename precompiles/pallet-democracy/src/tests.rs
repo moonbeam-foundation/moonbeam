@@ -234,3 +234,53 @@ fn second_works() {
 // TODO Second error cases
 // proposal doesn't exist
 // you can't afford it
+
+#[test]
+fn standard_vote_works() {
+	todo!()
+}
+
+//TODO Standard vote error cases
+// can't afford it
+// invalid conviction
+// referendum doesn't exist
+
+#[test]
+fn remove_vote_works() {
+	todo!()
+}
+
+#[test]
+fn remove_vote_dne() {
+	todo!()
+}
+
+#[test]
+fn delegate_works() {
+	todo!()
+}
+
+//TODO Delecate error cases
+// invalid conviction
+
+#[test]
+fn undelegate_works() {
+	todo!()
+}
+
+
+#[test]
+fn undelegate_dne() {
+	todo!()
+}
+
+#[test]
+fn unlock_with_nothing_locked() {
+	todo!()
+}
+
+#[test]
+fn unlock_works() {
+	// This one will be hard because we have to get some tokens locked first.
+	todo!()
+}

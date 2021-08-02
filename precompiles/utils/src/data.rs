@@ -252,6 +252,27 @@ impl EvmData for U256 {
 }
 
 // TODO tests for this.
+impl EvmData for u8 {
+	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+		let range = reader.move_cursor(32)?;
+
+		let data = reader
+			.input
+			.get(range)
+			.ok_or_else(|| error("tried to parse U256 out of bounds"))?;
+
+		U256::from_big_endian(data).try_into().map_err(|_| error("Value is too large for u32"))
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		let mut buffer = [0u8; 32];
+		let u256_value : U256 = value.into();
+		u256_value.to_big_endian(&mut buffer);
+		writer.data.extend_from_slice(&buffer);
+	}
+}
+
+// TODO tests for this.
 impl EvmData for u32 {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
 		let range = reader.move_cursor(32)?;

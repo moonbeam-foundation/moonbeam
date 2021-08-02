@@ -21,7 +21,7 @@
 use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::Currency;
-use pallet_democracy::Call as DemocracyCall;
+use pallet_democracy::{Call as DemocracyCall, Vote, AccountVote};
 use pallet_evm::AddressMapping;
 use pallet_evm::Precompile;
 use precompile_utils::{
@@ -80,6 +80,11 @@ where
 			// Now the dispatchables
 			[0x78, 0x24, 0xe7, 0xd1] => Self::propose(input, target_gas, context),
 			[0xc7, 0xa7, 0x66, 0x01] => Self::second(input, target_gas, context),
+			[0x35, 0xcd, 0xe7, 0xae] => Self::standard_vote(input, target_gas, context),
+			[0x20, 0x42, 0xf5, 0x0b] => Self::remove_vote(input, target_gas, context),
+			[0x01, 0x85, 0x92, 0x1e] => Self::delegate(input, target_gas, context),
+			[0xcb, 0x37, 0xb8, 0xea] => Self::un_delegate(input, target_gas, context),
+			[0x2f, 0x6c, 0x49, 0x3c] => Self::unlock(input, target_gas, context),
 			_ => {
 				log::trace!(
 					target: "democracy-precompile",
@@ -150,7 +155,6 @@ where
 			call,
 			gasometer.remaining_gas()?,
 		)?;
-
 		gasometer.record_cost(used_gas)?;
 
 		Ok(PrecompileOutput {
@@ -188,7 +192,6 @@ where
 			call,
 			gasometer.remaining_gas()?,
 		)?;
-
 		gasometer.record_cost(used_gas)?;
 
 		Ok(PrecompileOutput {
@@ -197,5 +200,104 @@ where
 			output: Default::default(),
 			logs: Default::default(),
 		})
+	}
+
+	fn standard_vote(
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+
+		// Bound check
+		input.expect_arguments(4)?;
+
+		let ref_index = input.read()?;
+		let aye = input.read()?;
+		let balance = input.read()?;
+		let conviction = input.read::<u8>()?.try_into().map_err(|_| error("Conviction must be an integer in the range 0-6"))?;
+		let account_vote = AccountVote::Standard {
+			vote: Vote { aye, conviction},
+			balance,
+		};
+
+		log::trace!(target: "democracy-precompile", "Voting {:?} on referendum #{:?}, with conviction {:?}", aye, ref_index, conviction);
+
+		//TODO Would be slightly nicer to just pass the context here. Does it contain other useful info?
+		// like maybe whether to pay fees?
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = DemocracyCall::<Runtime>::vote(
+			ref_index,
+			account_vote,
+		);
+
+		//TODO would be slightly ncer to pass a mutable gasometer.
+		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+			Some(origin).into(),
+			call,
+			gasometer.remaining_gas()?,
+		)?;
+		gasometer.record_cost(used_gas)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Stopped,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: Default::default(),
+		})
+	}
+
+	fn remove_vote(
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+
+		// Bound check
+		input.expect_arguments(3)?;
+
+		todo!()
+	}
+
+	fn delegate(
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+
+		// Bound check
+		input.expect_arguments(3)?;
+
+		//to, conviction, balance
+
+		todo!()
+	}
+
+	fn un_delegate(
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+
+		// Bound check
+		input.expect_arguments(2)?;
+
+		todo!()
+	}
+
+	fn unlock(
+		mut input: EvmDataReader,
+		target_gas: Option<u64>,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		let mut gasometer = Gasometer::new(target_gas);
+
+		// Bound check
+		input.expect_arguments(2)?;
+
+		todo!()
 	}
 }
