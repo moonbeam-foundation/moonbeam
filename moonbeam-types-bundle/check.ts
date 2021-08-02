@@ -1,6 +1,8 @@
+// Script to make sure types are accurate
+
 import _ from "underscore";
 import { moonbeamDefinitions } from ".";
-import { moonbeamDefinitions_old } from "./index_old";
+// import { moonbeamDefinitions_old } from "./index_old";
 
 function logDif(obj1: any, obj2: any) {
   console.log("+different objects+");
@@ -87,9 +89,12 @@ function compare(obj1: any, obj2: any) {
 //   moonbeamDefinitions.types ? moonbeamDefinitions.types[7].types : {},
 //   moonbeamDefinitions_old.types ? moonbeamDefinitions_old.types[7].types : {}
 // );
-[0, 1, 2, 3, 4, 5, 6, 7].forEach((i) => {
-  deepEqual(
-    moonbeamDefinitions.types ? moonbeamDefinitions.types[i].types : {},
-    moonbeamDefinitions_old.types ? moonbeamDefinitions_old.types[i].types : {}
-  );
-});
+
+// Uncomment to compare different versions
+
+// [0, 1, 2, 3, 4, 5, 6, 7].forEach((i) => {
+//   deepEqual(
+//     moonbeamDefinitions.types ? moonbeamDefinitions.types[i].types : {},
+//     moonbeamDefinitions_old.types ? moonbeamDefinitions_old.types[i].types : {}
+//   );
+// });
