@@ -62,7 +62,7 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 				// Council members: Baltathar, Charleth and Dorothy
 				vec![accounts[1], accounts[2], accounts[3]],
 				// Tech comitee members: Alith and Baltathar
-				vec![accounts[1], accounts[2]],
+				vec![accounts[0], accounts[1]],
 				// Collator Candidate: Alice -> Alith
 				vec![(
 					accounts[0],
