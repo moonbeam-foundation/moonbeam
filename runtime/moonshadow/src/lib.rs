@@ -87,6 +87,7 @@ pub mod currency {
 	pub const MILLIMSHD: Balance = MSHD / 1_000;
 	pub const MICROMSHD: Balance = MILLIMSHD / 1_000;
 	pub const NANOMSHD: Balance = MICROMSHD / 1_000;
+	pub const WEI: Balance = 1;
 
 	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROMSHD;
 	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROMSHD;
@@ -130,7 +131,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonshadow"),
 	impl_name: create_runtime_str!("moonshadow"),
 	authoring_version: 3,
-	spec_version: 0159,
+	spec_version: 0200,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,

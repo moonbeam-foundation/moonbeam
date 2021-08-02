@@ -33,7 +33,7 @@ pub fn staking_spec(para_id: ParaId) -> ChainSpec {
 		move || {
 			testnet_genesis(
 				// Root
-				AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
+				// AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
 				// Council members: Baltathar, Charleth and Dorothy
 				vec![
 					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
