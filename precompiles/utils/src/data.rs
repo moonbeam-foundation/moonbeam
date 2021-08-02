@@ -17,7 +17,11 @@
 use super::{error, EvmResult};
 use core::ops::Range;
 use sp_core::{H160, H256, U256};
-use sp_std::{convert::{TryFrom, TryInto}, vec, vec::Vec};
+use sp_std::{
+	convert::{TryFrom, TryInto},
+	vec,
+	vec::Vec,
+};
 
 /// The `address` type of Solidity.
 /// H160 could represent 2 types of data (bytes20 and address) that are not encoded the same way.
@@ -161,6 +165,14 @@ impl EvmDataWriter {
 		self
 	}
 
+	//TODO is this a good idea?
+	// Write a solidity-style four-byte function selector for the given signature
+	pub fn write_selector(&mut self, signature: &str) {
+		// let selector = &Keccak256::digest(signature)[0..4];
+		// I was going to call write_raw_bytes here as a helper.
+		// But why do some of these methods take ownership and others not?
+	}
+
 	/// Write data of requested type.
 	pub fn write<T: EvmData>(mut self, value: T) -> Self {
 		T::write(&mut self, value);
@@ -261,12 +273,14 @@ impl EvmData for u8 {
 			.get(range)
 			.ok_or_else(|| error("tried to parse U256 out of bounds"))?;
 
-		U256::from_big_endian(data).try_into().map_err(|_| error("Value is too large for u32"))
+		U256::from_big_endian(data)
+			.try_into()
+			.map_err(|_| error("Value is too large for u32"))
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
 		let mut buffer = [0u8; 32];
-		let u256_value : U256 = value.into();
+		let u256_value: U256 = value.into();
 		u256_value.to_big_endian(&mut buffer);
 		writer.data.extend_from_slice(&buffer);
 	}
@@ -282,12 +296,14 @@ impl EvmData for u32 {
 			.get(range)
 			.ok_or_else(|| error("tried to parse U256 out of bounds"))?;
 
-		U256::from_big_endian(data).try_into().map_err(|_| error("Value is too large for u32"))
+		U256::from_big_endian(data)
+			.try_into()
+			.map_err(|_| error("Value is too large for u32"))
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
 		let mut buffer = [0u8; 32];
-		let u256_value : U256 = value.into();
+		let u256_value: U256 = value.into();
 		u256_value.to_big_endian(&mut buffer);
 		writer.data.extend_from_slice(&buffer);
 	}
@@ -303,12 +319,14 @@ impl EvmData for u128 {
 			.get(range)
 			.ok_or_else(|| error("tried to parse U256 out of bounds"))?;
 
-		U256::from_big_endian(data).try_into().map_err(|_| error("Value is too large for u32"))
+		U256::from_big_endian(data)
+			.try_into()
+			.map_err(|_| error("Value is too large for u32"))
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
 		let mut buffer = [0u8; 32];
-		let u256_value : U256 = value.into();
+		let u256_value: U256 = value.into();
 		u256_value.to_big_endian(&mut buffer);
 		writer.data.extend_from_slice(&buffer);
 	}
