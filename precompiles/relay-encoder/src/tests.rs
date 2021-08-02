@@ -23,9 +23,9 @@ use crate::{AvailableStakeCalls, PrecompileOutput};
 use pallet_evm::{ExitError, ExitSucceed, PrecompileSet};
 use pallet_staking::RewardDestination;
 use pallet_staking::ValidatorPrefs;
-use precompile_utils::OutputBuilder;
+use precompile_utils::{Bytes, EvmDataWriter};
 use sha3::{Digest, Keccak256};
-use sp_core::U256;
+use sp_core::{H256, U256};
 use sp_runtime::Perbill;
 
 #[test]
@@ -36,7 +36,7 @@ fn selector_less_than_four_bytes() {
 
 		// Expected result is an error stating there are too few bytes
 		let expected_result = Some(Err(ExitError::Other(
-			"input must at least contain a selector".into(),
+			"tried to parse selector out of bounds".into(),
 		)));
 
 		assert_eq!(
@@ -98,26 +98,16 @@ fn test_encode_bond() {
 
 			input_data[100..132].copy_from_slice(&[0u8; 32]);
 
-			let expected_bytes = TestEncoder::encode_call(AvailableStakeCalls::Bond(
+			let expected_bytes: Bytes = TestEncoder::encode_call(AvailableStakeCalls::Bond(
 				[1u8; 32].into(),
 				100u32.into(),
 				RewardDestination::Controller,
-			));
-			let expected = hex_literal::hex!(
-				"0000000000000000000000000000000000000000000000000000000000000020"
-			);
-			let mut buffer = [0u8; 32];
-			let length: U256 = expected_bytes.len().into();
-			length.to_big_endian(&mut buffer);
-
-			let mut total: Vec<u8> = Vec::new();
-			total.append(expected.to_vec().as_mut());
-			total.append(buffer.to_vec().as_mut());
-			total.append(expected_bytes.to_vec().as_mut());
+			))
+			.into();
 
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: OutputBuilder::new().write_bytes(total).build(),
+				output: EvmDataWriter::new().write(expected_bytes).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
@@ -145,23 +135,12 @@ fn test_encode_bond_more() {
 			amount.to_big_endian(&mut buffer);
 			input_data[4..36].copy_from_slice(&buffer);
 
-			let expected_bytes =
-				TestEncoder::encode_call(AvailableStakeCalls::BondExtra(100u32.into()));
-			let expected = hex_literal::hex!(
-				"0000000000000000000000000000000000000000000000000000000000000020"
-			);
-			let mut buffer = [0u8; 32];
-			let length: U256 = expected_bytes.len().into();
-			length.to_big_endian(&mut buffer);
-
-			let mut total: Vec<u8> = Vec::new();
-			total.append(expected.to_vec().as_mut());
-			total.append(buffer.to_vec().as_mut());
-			total.append(expected_bytes.to_vec().as_mut());
+			let expected_bytes: Bytes =
+				TestEncoder::encode_call(AvailableStakeCalls::BondExtra(100u32.into())).into();
 
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: OutputBuilder::new().write_bytes(total).build(),
+				output: EvmDataWriter::new().write(expected_bytes).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
@@ -185,22 +164,11 @@ fn test_encode_chill() {
 			let mut input_data = Vec::<u8>::from([0u8; 4]);
 			input_data[0..4].copy_from_slice(&selector);
 
-			let expected_bytes = TestEncoder::encode_call(AvailableStakeCalls::Chill);
-			let expected = hex_literal::hex!(
-				"0000000000000000000000000000000000000000000000000000000000000020"
-			);
-			let mut buffer = [0u8; 32];
-			let length: U256 = expected_bytes.len().into();
-			length.to_big_endian(&mut buffer);
-
-			let mut total: Vec<u8> = Vec::new();
-			total.append(expected.to_vec().as_mut());
-			total.append(buffer.to_vec().as_mut());
-			total.append(expected_bytes.to_vec().as_mut());
+			let expected_bytes: Bytes = TestEncoder::encode_call(AvailableStakeCalls::Chill).into();
 
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: OutputBuilder::new().write_bytes(total).build(),
+				output: EvmDataWriter::new().write(expected_bytes).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
@@ -220,50 +188,24 @@ fn test_encode_nominate() {
 		.execute_with(|| {
 			let selector = &Keccak256::digest(b"encode_nominate(uint256[])")[0..4];
 
-			// Construct data to read prop count
-			let mut input_data = Vec::<u8>::from([0u8; 132]);
+			let array: Vec<H256> = vec![[1u8; 32].into(), [2u8; 32].into()];
+			let input = EvmDataWriter::new().write(array.clone()).build();
+
+			let mut input_data = Vec::<u8>::from([0u8; 4]);
 			input_data[0..4].copy_from_slice(&selector);
 
-			// Construct data. 2 vector items, so
-			// 0000000000000000000000000000000000000000000000000000000000000020
-			// 0000000000000000000000000000000000000000000000000000000000000002
-			// Account1
-			// Account2
-			let mut input_data = Vec::<u8>::from([0u8; 132]);
-			input_data[0..4].copy_from_slice(&selector);
+			input_data.extend_from_slice(input.as_ref());
 
-			let offset: U256 = 32u32.into();
-			let mut buffer = [0u8; 32];
-			offset.to_big_endian(&mut buffer);
-			input_data[4..36].copy_from_slice(&buffer);
-
-			let length: U256 = 2u32.into();
-			buffer = [0u8; 32];
-			length.to_big_endian(&mut buffer);
-			input_data[36..68].copy_from_slice(&buffer);
-
-			input_data[68..100].copy_from_slice(&[1u8; 32]);
-			input_data[100..132].copy_from_slice(&[2u8; 32]);
-
-			let expected_bytes = TestEncoder::encode_call(AvailableStakeCalls::Nominate(vec![
-				[1u8; 32].into(),
-				[2u8; 32].into(),
-			]));
-			let expected = hex_literal::hex!(
-				"0000000000000000000000000000000000000000000000000000000000000020"
-			);
-			let mut buffer = [0u8; 32];
-			let length: U256 = expected_bytes.len().into();
-			length.to_big_endian(&mut buffer);
-
-			let mut total: Vec<u8> = Vec::new();
-			total.append(expected.to_vec().as_mut());
-			total.append(buffer.to_vec().as_mut());
-			total.append(expected_bytes.to_vec().as_mut());
+			let expected_bytes: Bytes =
+				TestEncoder::encode_call(AvailableStakeCalls::Nominate(vec![
+					[1u8; 32].into(),
+					[2u8; 32].into(),
+				]))
+				.into();
 
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: OutputBuilder::new().write_bytes(total).build(),
+				output: EvmDataWriter::new().write(expected_bytes).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
@@ -293,22 +235,12 @@ fn test_encode_rebond() {
 			input_data[4..36].copy_from_slice(&buffer);
 
 			// Ethereum style
-			let expected_bytes = TestEncoder::encode_call(AvailableStakeCalls::Rebond(100u128));
-			let expected = hex_literal::hex!(
-				"0000000000000000000000000000000000000000000000000000000000000020"
-			);
-			let mut buffer = [0u8; 32];
-			let length: U256 = expected_bytes.len().into();
-			length.to_big_endian(&mut buffer);
-
-			let mut total: Vec<u8> = Vec::new();
-			total.append(expected.to_vec().as_mut());
-			total.append(buffer.to_vec().as_mut());
-			total.append(expected_bytes.to_vec().as_mut());
+			let expected_bytes: Bytes =
+				TestEncoder::encode_call(AvailableStakeCalls::Rebond(100u128)).into();
 
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: OutputBuilder::new().write_bytes(total).build(),
+				output: EvmDataWriter::new().write(expected_bytes).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
@@ -335,23 +267,13 @@ fn test_encode_set_controller() {
 			input_data[4..36].copy_from_slice(&[1u8; 32]);
 
 			// Ethereum style
-			let expected_bytes =
-				TestEncoder::encode_call(AvailableStakeCalls::SetController([1u8; 32].into()));
-			let expected = hex_literal::hex!(
-				"0000000000000000000000000000000000000000000000000000000000000020"
-			);
-			let mut buffer = [0u8; 32];
-			let length: U256 = expected_bytes.len().into();
-			length.to_big_endian(&mut buffer);
-
-			let mut total: Vec<u8> = Vec::new();
-			total.append(expected.to_vec().as_mut());
-			total.append(buffer.to_vec().as_mut());
-			total.append(expected_bytes.to_vec().as_mut());
+			let expected_bytes: Bytes =
+				TestEncoder::encode_call(AvailableStakeCalls::SetController([1u8; 32].into()))
+					.into();
 
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: OutputBuilder::new().write_bytes(total).build(),
+				output: EvmDataWriter::new().write(expected_bytes).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
@@ -383,24 +305,14 @@ fn test_encode_set_payee() {
 			input_data[36..68].copy_from_slice(&[0u8; 32]);
 
 			// Ethereum style
-			let expected_bytes = TestEncoder::encode_call(AvailableStakeCalls::SetPayee(
+			let expected_bytes: Bytes = TestEncoder::encode_call(AvailableStakeCalls::SetPayee(
 				RewardDestination::Controller,
-			));
-			let expected = hex_literal::hex!(
-				"0000000000000000000000000000000000000000000000000000000000000020"
-			);
-			let mut buffer = [0u8; 32];
-			let length: U256 = expected_bytes.len().into();
-			length.to_big_endian(&mut buffer);
-
-			let mut total: Vec<u8> = Vec::new();
-			total.append(expected.to_vec().as_mut());
-			total.append(buffer.to_vec().as_mut());
-			total.append(expected_bytes.to_vec().as_mut());
+			))
+			.into();
 
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: OutputBuilder::new().write_bytes(total).build(),
+				output: EvmDataWriter::new().write(expected_bytes).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
@@ -430,24 +342,13 @@ fn test_encode_unbond() {
 			input_data[4..36].copy_from_slice(&buffer);
 
 			// Ethereum style
-			let expected_bytes =
-				TestEncoder::encode_call(AvailableStakeCalls::Unbond(100u32.into()));
-			let expected = hex_literal::hex!(
-				"0000000000000000000000000000000000000000000000000000000000000020"
-			);
-			let mut buffer = [0u8; 32];
-			let length: U256 = expected_bytes.len().into();
-			length.to_big_endian(&mut buffer);
-
-			let mut total: Vec<u8> = Vec::new();
-			total.append(expected.to_vec().as_mut());
-			total.append(buffer.to_vec().as_mut());
-			total.append(expected_bytes.to_vec().as_mut());
+			let expected_bytes: Bytes =
+				TestEncoder::encode_call(AvailableStakeCalls::Unbond(100u32.into())).into();
 
 			// Expected result is one
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: OutputBuilder::new().write_bytes(total).build(),
+				output: EvmDataWriter::new().write(expected_bytes).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
@@ -483,27 +384,17 @@ fn test_encode_validate() {
 			input_data[36..68].copy_from_slice(&buffer);
 
 			// Ethereum style
-			let expected_bytes =
+			let expected_bytes: Bytes =
 				TestEncoder::encode_call(AvailableStakeCalls::Validate(ValidatorPrefs {
 					commission: Perbill::from_parts(100u32.into()),
 					blocked: true,
-				}));
-			let expected = hex_literal::hex!(
-				"0000000000000000000000000000000000000000000000000000000000000020"
-			);
-			let mut buffer = [0u8; 32];
-			let length: U256 = expected_bytes.len().into();
-			length.to_big_endian(&mut buffer);
-
-			let mut total: Vec<u8> = Vec::new();
-			total.append(expected.to_vec().as_mut());
-			total.append(buffer.to_vec().as_mut());
-			total.append(expected_bytes.to_vec().as_mut());
+				}))
+				.into();
 
 			// Expected result is one
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: OutputBuilder::new().write_bytes(total).build(),
+				output: EvmDataWriter::new().write(expected_bytes).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
@@ -534,23 +425,13 @@ fn test_encode_withdraw_unbonded() {
 			input_data[4..36].copy_from_slice(&buffer);
 
 			// Ethereum style
-			let expected_bytes =
-				TestEncoder::encode_call(AvailableStakeCalls::WithdrawUnbonded(100u32.into()));
-			let expected = hex_literal::hex!(
-				"0000000000000000000000000000000000000000000000000000000000000020"
-			);
-			let mut buffer = [0u8; 32];
-			let length: U256 = expected_bytes.len().into();
-			length.to_big_endian(&mut buffer);
-
-			let mut total: Vec<u8> = Vec::new();
-			total.append(expected.to_vec().as_mut());
-			total.append(buffer.to_vec().as_mut());
-			total.append(expected_bytes.to_vec().as_mut());
+			let expected_bytes: Bytes =
+				TestEncoder::encode_call(AvailableStakeCalls::WithdrawUnbonded(100u32.into()))
+					.into();
 
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: OutputBuilder::new().write_bytes(total).build(),
+				output: EvmDataWriter::new().write(expected_bytes).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));

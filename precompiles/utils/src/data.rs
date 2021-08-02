@@ -98,8 +98,14 @@ impl<'a> EvmDataReader<'a> {
 	/// Parse (4 bytes) selector.
 	/// Returns an error if trying to parse out of bounds.
 	pub fn read_selector(&mut self) -> EvmResult<&[u8]> {
-		self.read_raw_bytes(4)
-			.map_err(|_| error("tried to parse selector out of bounds"))
+		if 4 > self.input.len() {
+			return Err(error("tried to parse selector out of bounds"));
+		}
+		// This panics if we dont control the length, thus the previous lines
+		let (selector, data) = self.input.split_at(4);
+		// Now the data should have the appropriate offsets
+		self.input = data;
+		Ok(selector)
 	}
 
 	/// Move the reading cursor with provided length, and return a range from the previous cursor
@@ -113,7 +119,6 @@ impl<'a> EvmDataReader<'a> {
 			.ok_or_else(|| error("data reading cursor overflow"))?;
 
 		self.cursor = end;
-
 		Ok(start..end)
 	}
 }
