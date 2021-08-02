@@ -93,7 +93,7 @@ cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cu
 evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }
 rlp = "0.5"
 hex = "0.4"
-sha3 = "0.8"
+sha3 = "0.9"
 
 [build-dependencies]
 substrate-wasm-builder = { version = "4.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
