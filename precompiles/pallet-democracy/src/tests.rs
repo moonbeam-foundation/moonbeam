@@ -18,13 +18,16 @@ use crate::mock::{
 	events, evm_test_context, precompile_address, Call, ExtBuilder, Origin, Precompiles,
 	TestAccount::Alice,
 };
-use crate::{u256_to_solidity_bytes, PrecompileOutput};
+//TODO Can PrecompileOutput come from somewhere better?
+use crate::PrecompileOutput;
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_balances::Event as BalancesEvent;
 use pallet_democracy::{Call as DemocracyCall, Event as DemocracyEvent};
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
 use pallet_evm::{ExitError, ExitSucceed, PrecompileSet};
+use precompile_utils::{error, Address, EvmDataWriter};
 use sp_core::U256;
+use sha3::{Digest, Keccak256};
 
 #[test]
 fn selector_less_than_four_bytes() {
@@ -103,10 +106,11 @@ fn prop_count_non_zero() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let selector = hex_literal::hex!("56fdf547");
+			let selector = &Keccak256::digest(b"public_prop_count()")[0..4];
 
 			// There is no interesting genesis config for pallet democracy so we make the proposal here
 
+			//TODO is this comment about not compiling still relevant?
 			// This line doesn't compile becuase it says `propose` is a private function.
 			// Why is this a private function? It is defined as `pub(crate) fn propose`
 			// https://github.com/paritytech/substrate/blob/polkadot-v0.9.4/frame/democracy/src/lib.rs#L637
@@ -116,20 +120,21 @@ fn prop_count_non_zero() {
 			);
 
 			// Construct data to read prop count
-			let mut input_data = Vec::<u8>::from([0u8; 4]);
-			input_data[0..4].copy_from_slice(&selector);
+			let input = EvmDataWriter::new()
+				.write_raw_bytes(selector)
+				.build();
 
 			// Expected result is one
 			let expected_one_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output: u256_to_solidity_bytes(U256::from(1)),
+				output: EvmDataWriter::new().write(1).build(),
 				cost: Default::default(),
 				logs: Default::default(),
 			}));
 
 			// Assert that no props have been opened.
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				Precompiles::execute(precompile_address(), &input, None, &evm_test_context()),
 				expected_one_result
 			);
 		});

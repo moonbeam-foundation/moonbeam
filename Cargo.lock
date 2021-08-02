@@ -6147,6 +6147,7 @@ dependencies = [
  "precompile-utils",
  "rustc-hex",
  "serde",
+ "sha3 0.9.1",
  "sp-core",
  "sp-io",
  "sp-runtime",

@@ -136,6 +136,8 @@ parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
 }
 impl pallet_balances::Config for Test {
+	type MaxReserves = ();
+	type ReserveIdentifier = ();
 	type MaxLocks = ();
 	type Balance = Balance;
 	type Event = Event;
