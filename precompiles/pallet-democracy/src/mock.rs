@@ -265,18 +265,23 @@ impl ExtBuilder {
 	}
 }
 
-//TODO Add pallets here if necessary
 pub(crate) fn roll_to(n: u64) {
 	while System::block_number() < n {
+		Scheduler::on_finalize(System::block_number());
+		Democracy::on_finalize(System::block_number());
+		// Timestamp::on_finalize(System::block_number());
+		Evm::on_finalize(System::block_number());
 		Balances::on_finalize(System::block_number());
 		System::on_finalize(System::block_number());
+
 		System::set_block_number(System::block_number() + 1);
+
 		System::on_initialize(System::block_number());
 		Balances::on_initialize(System::block_number());
-		// Evm: pallet_evm::{Pallet, Config, Call, Storage, Event<T>},
-		// Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		// Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call},
-		// Scheduler: pallet_scheduler::{Pallet, Call, Storage, Config, Event<T>},
+		Evm::on_initialize(System::block_number());
+		// Timestamp::on_initialize(System::block_number());
+		Democracy::on_initialize(System::block_number());
+		Scheduler::on_initialize(System::block_number());
 	}
 }
 

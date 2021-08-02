@@ -21,11 +21,11 @@
 use evm::{executor::PrecompileOutput, Context, ExitError, ExitSucceed};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::Currency;
-use pallet_democracy::{Call as DemocracyCall, Vote, AccountVote};
+use pallet_democracy::{AccountVote, Call as DemocracyCall, Vote};
 use pallet_evm::AddressMapping;
 use pallet_evm::Precompile;
 use precompile_utils::{
-	error, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper, EvmData,
+	error, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
 };
 // TODO there is a warning about H160 not being used. But when I remove it I get errors.
 use sp_core::{H160, H256, U256};
@@ -86,8 +86,7 @@ where
 			[0xcb, 0x37, 0xb8, 0xea] => Self::un_delegate(input, target_gas, context),
 			[0x2f, 0x6c, 0x49, 0x3c] => Self::unlock(input, target_gas, context),
 			_ => {
-				log::trace!(
-					target: "democracy-precompile",
+				println!(
 					"Failed to match function selector in democracy precompile"
 				);
 				Err(error("No democracy wrapper method at given selector"))
@@ -107,11 +106,9 @@ where
 {
 	// The accessors are first. They directly return their result.
 
-	fn public_prop_count(
-		target_gas: Option<u64>,
-	) -> EvmResult<PrecompileOutput> {
+	fn public_prop_count(target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
 		// TODO Ensure there is no additional input passed
-		
+
 		let mut gasometer = Gasometer::new(target_gas);
 
 		// Fetch data from pallet
@@ -143,12 +140,9 @@ where
 		let amount = input.read::<BalanceOf<Runtime>>()?;
 
 		log::trace!(target: "democracy-precompile", "Proposing with hash {:?}, and amount {:?}", proposal_hash, amount);
-		
+
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = DemocracyCall::<Runtime>::propose(
-			proposal_hash.into(),
-			amount,
-		);
+		let call = DemocracyCall::<Runtime>::propose(proposal_hash.into(), amount);
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
@@ -170,6 +164,7 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
+		println!("in second");
 		let mut gasometer = Gasometer::new(target_gas);
 
 		// Bound check
@@ -182,10 +177,7 @@ where
 		log::trace!(target: "democracy-precompile", "Seconding proposal {:?}, with bound {:?}", proposal_index, seconds_upper_bound);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = DemocracyCall::<Runtime>::second(
-			proposal_index,
-			seconds_upper_bound,
-		);
+		let call = DemocracyCall::<Runtime>::second(proposal_index, seconds_upper_bound);
 
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
@@ -207,6 +199,8 @@ where
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
+		// TODO Why arethese not printing??
+		println!("in standard vote");
 		let mut gasometer = Gasometer::new(target_gas);
 
 		// Bound check
@@ -215,21 +209,21 @@ where
 		let ref_index = input.read()?;
 		let aye = input.read()?;
 		let balance = input.read()?;
-		let conviction = input.read::<u8>()?.try_into().map_err(|_| error("Conviction must be an integer in the range 0-6"))?;
+		let conviction = input
+			.read::<u8>()?
+			.try_into()
+			.map_err(|_| error("Conviction must be an integer in the range 0-6"))?;
 		let account_vote = AccountVote::Standard {
-			vote: Vote { aye, conviction},
+			vote: Vote { aye, conviction },
 			balance,
 		};
 
-		log::trace!(target: "democracy-precompile", "Voting {:?} on referendum #{:?}, with conviction {:?}", aye, ref_index, conviction);
+		println!("Voting {:?} on referendum #{:?}, with conviction {:?}", aye, ref_index, conviction);
 
 		//TODO Would be slightly nicer to just pass the context here. Does it contain other useful info?
 		// like maybe whether to pay fees?
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = DemocracyCall::<Runtime>::vote(
-			ref_index,
-			account_vote,
-		);
+		let call = DemocracyCall::<Runtime>::vote(ref_index, account_vote);
 
 		//TODO would be slightly ncer to pass a mutable gasometer.
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
