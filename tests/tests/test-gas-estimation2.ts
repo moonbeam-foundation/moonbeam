@@ -13,6 +13,6 @@ describeDevMoonbeam("Estimate Gas - infinite loop", (context) => {
       await contract.methods.infinite().estimateGas({
         gas: null,
       })
-    ).to.equal(1_000_000_000);
+    ).to.equal(15_000_000);
   });
 });
