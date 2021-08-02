@@ -139,29 +139,6 @@ fn prop_count_non_zero() {
 }
 
 #[test]
-fn prop_count_extra_data() {
-	ExtBuilder::default().build().execute_with(|| {
-		let selector = hex_literal::hex!("56fdf547");
-
-		// Construct data to read prop count including a bogus extra byte
-		let mut input_data = Vec::<u8>::from([0u8; 5]);
-
-		// We still use the correct selector for prop_count
-		input_data[0..4].copy_from_slice(&selector);
-
-		// Expected result is an error stating there are too few bytes
-		let expected_result = Some(Err(ExitError::Other(
-			"Incorrect input length for public_prop_count.".into(),
-		)));
-
-		assert_eq!(
-			Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
-			expected_result
-		);
-	});
-}
-
-#[test]
 fn propose_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])
