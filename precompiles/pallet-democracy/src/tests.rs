@@ -118,9 +118,7 @@ fn prop_count_non_zero() {
 			);
 
 			// Construct data to read prop count
-			let input = EvmDataWriter::new()
-				.write_raw_bytes(selector)
-				.build();
+			let input = EvmDataWriter::new().write_raw_bytes(selector).build();
 
 			// Expected result is one
 			let expected_one_result = Some(Ok(PrecompileOutput {
@@ -144,7 +142,7 @@ fn propose_works() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let selector = hex_literal::hex!("7824e7d1");
+			let selector = &Keccak256::digest(b"propose(bytes32,uint256)")[0..4];
 
 			// Construct data to propose empty hash with value 100
 			let mut input_data = Vec::<u8>::from([0u8; 68]);
@@ -187,7 +185,7 @@ fn second_works() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let selector = hex_literal::hex!("c7a76601");
+			let selector = &Keccak256::digest(b"second(uint256,uint256)")[0..4];
 
 			// Before we can second anything, we have to have a proposal there to second.
 			assert_ok!(Call::Democracy(DemocracyCall::propose(
