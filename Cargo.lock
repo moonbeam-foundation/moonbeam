@@ -87,7 +87,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "43bb833f0bf979d8475d38fbf09ed3b8a55e1885fe93ad3f93239fc6a4f17b98"
 dependencies = [
  "getrandom 0.2.3",
- "once_cell 1.8.0",
+ "once_cell",
  "version_check",
 ]
 
@@ -223,7 +223,7 @@ dependencies = [
  "concurrent-queue",
  "fastrand",
  "futures-lite",
- "once_cell 1.8.0",
+ "once_cell",
  "slab",
 ]
 
@@ -240,7 +240,7 @@ dependencies = [
  "blocking",
  "futures-lite",
  "num_cpus",
- "once_cell 1.8.0",
+ "once_cell",
 ]
 
 [[package]]
@@ -253,7 +253,7 @@ dependencies = [
  "futures-lite",
  "libc",
  "log",
- "once_cell 1.8.0",
+ "once_cell",
  "parking",
  "polling",
  "slab",
@@ -292,7 +292,7 @@ dependencies = [
  "event-listener",
  "futures-lite",
  "libc",
- "once_cell 1.8.0",
+ "once_cell",
  "signal-hook",
  "winapi 0.3.9",
 ]
@@ -319,7 +319,7 @@ dependencies = [
  "log",
  "memchr",
  "num_cpus",
- "once_cell 1.8.0",
+ "once_cell",
  "pin-project-lite 0.2.7",
  "pin-utils",
  "slab",
@@ -715,7 +715,7 @@ dependencies = [
  "atomic-waker",
  "fastrand",
  "futures-lite",
- "once_cell 1.8.0",
+ "once_cell",
 ]
 
 [[package]]
@@ -2198,7 +2198,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "44bb3f795fe1b9d34f089c7fab034c2b757998d65361d95ef008045b57665262"
 dependencies = [
  "log",
- "once_cell 1.8.0",
+ "once_cell",
  "serde",
  "serde_json",
 ]
@@ -2734,7 +2734,7 @@ dependencies = [
  "frame-support-procedural 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.10)",
  "impl-trait-for-tuples 0.2.1",
  "log",
- "once_cell 1.8.0",
+ "once_cell",
  "parity-scale-codec",
  "paste",
  "serde",
@@ -2760,7 +2760,7 @@ dependencies = [
  "frame-support-procedural 4.0.0-dev (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.9)",
  "impl-trait-for-tuples 0.2.1",
  "log",
- "once_cell 1.8.0",
+ "once_cell",
  "parity-scale-codec",
  "paste",
  "serde",
@@ -3288,16 +3288,6 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
-version = "0.1.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3bae29b6653b3412c2e71e9d486db9f9df5d701941d86683005efb9f2d28e3da"
-dependencies = [
- "byteorder",
- "scopeguard 0.3.3",
-]
-
-[[package]]
-name = "hashbrown"
 version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ab5ef0d4909ef3724cc8cce6ccc8572c5c817592e9285f5464f8e86f8bd3726e"
@@ -3694,7 +3684,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bc633605454125dec4b66843673f01c7df2b89479b32e0ed634e43a91cff62a5"
 dependencies = [
  "autocfg 1.0.1",
- "hashbrown 0.11.2",
+ "hashbrown",
  "serde",
 ]
 
@@ -4856,7 +4846,7 @@ version = "0.6.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7ea2d928b485416e8908cff2d97d621db22b27f7b3b6729e438bcf42c671ba91"
 dependencies = [
- "hashbrown 0.11.2",
+ "hashbrown",
 ]
 
 [[package]]
@@ -4959,7 +4949,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "de006e09d04fc301a5f7e817b75aa49801c4479a8af753764416b085337ddcc5"
 dependencies = [
  "hash-db",
- "hashbrown 0.11.2",
+ "hashbrown",
  "parity-util-mem",
 ]
 
@@ -5197,7 +5187,7 @@ dependencies = [
  "rlp",
  "runtime-common",
  "serde",
- "sha3 0.8.2",
+ "sha3 0.9.1",
  "sp-api 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.10)",
  "sp-block-builder",
  "sp-core 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.10)",
@@ -5267,12 +5257,12 @@ name = "moonbeam-cli-opt"
 version = "0.12.3"
 dependencies = [
  "account",
- "libsecp256k1 0.3.5",
+ "libsecp256k1 0.6.0",
  "primitive-types",
- "sha3 0.8.2",
+ "sha3 0.9.1",
  "sp-runtime 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.10)",
  "structopt",
- "tiny-bip39 0.6.2",
+ "tiny-bip39",
  "tiny-hderive",
 ]
 
@@ -5435,7 +5425,7 @@ dependencies = [
  "sc-client-api",
  "sc-network",
  "serde",
- "sha3 0.8.2",
+ "sha3 0.9.1",
  "sp-api 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.10)",
  "sp-block-builder",
  "sp-blockchain",
@@ -5462,7 +5452,7 @@ dependencies = [
  "sc-transaction-pool",
  "sc-transaction-pool-api",
  "serde",
- "sha3 0.8.2",
+ "sha3 0.9.1",
  "sp-api 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.10)",
  "sp-blockchain",
  "sp-io 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.10)",
@@ -5531,7 +5521,7 @@ dependencies = [
  "rlp",
  "runtime-common",
  "serde",
- "sha3 0.8.2",
+ "sha3 0.9.1",
  "sp-api 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.10)",
  "sp-block-builder",
  "sp-core 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.10)",
@@ -5627,7 +5617,7 @@ dependencies = [
  "sc-transaction-pool-api",
  "serde",
  "serde_json",
- "sha3 0.8.2",
+ "sha3 0.9.1",
  "sp-api 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.10)",
  "sp-block-builder",
  "sp-blockchain",
@@ -5647,7 +5637,7 @@ dependencies = [
  "substrate-frame-rpc-system",
  "substrate-test-client",
  "substrate-test-runtime-client",
- "tiny-bip39 0.6.2",
+ "tiny-bip39",
  "tiny-hderive",
  "tokio 0.2.25",
  "trie-root 0.15.2",
@@ -5722,7 +5712,7 @@ dependencies = [
  "rlp",
  "runtime-common",
  "serde",
- "sha3 0.8.2",
+ "sha3 0.9.1",
  "sp-api 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.10)",
  "sp-block-builder",
  "sp-core 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.10)",
@@ -6136,15 +6126,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a38f2be3697a57b4060074ff41b44c16870d916ad7877c17696e063257482bc7"
 dependencies = [
  "memchr",
-]
-
-[[package]]
-name = "once_cell"
-version = "0.1.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "532c29a261168a45ce28948f9537ddd7a5dd272cc513b3017b1e82a88f962c37"
-dependencies = [
- "parking_lot 0.7.1",
 ]
 
 [[package]]
@@ -7398,7 +7379,7 @@ checksum = "7ad6f1acec69b95caf435bbd158d486e5a0a44fcf51531e84922c59ff09e8457"
 dependencies = [
  "cfg-if 1.0.0",
  "ethereum-types",
- "hashbrown 0.11.2",
+ "hashbrown",
  "impl-trait-for-tuples 0.2.1",
  "lru",
  "parity-util-mem-derive",
@@ -9602,7 +9583,7 @@ checksum = "3053cf52e236a3ed746dfc745aa9cacf1b791d846bdaf412f60a8d7d6e17c8fc"
 dependencies = [
  "cc",
  "libc",
- "once_cell 1.8.0",
+ "once_cell",
  "spin",
  "untrusted",
  "web-sys",
@@ -10020,7 +10001,7 @@ dependencies = [
  "sp-version 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.10)",
  "structopt",
  "thiserror",
- "tiny-bip39 0.8.0",
+ "tiny-bip39",
  "tokio 0.2.25",
 ]
 
@@ -10810,7 +10791,7 @@ dependencies = [
  "erased-serde",
  "lazy_static",
  "log",
- "once_cell 1.8.0",
+ "once_cell",
  "parking_lot 0.11.1",
  "regex",
  "rustc-hash",
@@ -11692,7 +11673,7 @@ dependencies = [
  "sp-storage 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.10)",
  "substrate-bip39",
  "thiserror",
- "tiny-bip39 0.8.0",
+ "tiny-bip39",
  "tiny-keccak",
  "twox-hash",
  "wasmi",
@@ -11736,7 +11717,7 @@ dependencies = [
  "sp-storage 4.0.0-dev (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.9)",
  "substrate-bip39",
  "thiserror",
- "tiny-bip39 0.8.0",
+ "tiny-bip39",
  "tiny-keccak",
  "twox-hash",
  "wasmi",
@@ -12878,7 +12859,7 @@ version = "1.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8018d24e04c95ac8790716a5987d0fec4f8b27249ffa0f7d33f1369bdfb88cbd"
 dependencies = [
- "once_cell 1.8.0",
+ "once_cell",
 ]
 
 [[package]]
@@ -12916,28 +12897,13 @@ dependencies = [
 
 [[package]]
 name = "tiny-bip39"
-version = "0.6.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1c5676413eaeb1ea35300a0224416f57abc3bd251657e0fafc12c47ff98c060"
-dependencies = [
- "failure",
- "hashbrown 0.1.8",
- "hmac 0.7.1",
- "once_cell 0.1.8",
- "pbkdf2 0.3.0",
- "rand 0.6.5",
- "sha2 0.8.2",
-]
-
-[[package]]
-name = "tiny-bip39"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d9e44c4759bae7f1032e286a7ef990bd9ed23fe831b7eeba0beb97484c2e59b8"
 dependencies = [
  "anyhow",
  "hmac 0.8.1",
- "once_cell 1.8.0",
+ "once_cell",
  "pbkdf2 0.4.0",
  "rand 0.7.3",
  "rustc-hash",
@@ -13396,7 +13362,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9eac131e334e81b6b3be07399482042838adcd7957aa0010231d0813e39e02fa"
 dependencies = [
  "hash-db",
- "hashbrown 0.11.2",
+ "hashbrown",
  "log",
  "rustc-hex",
  "smallvec 1.6.1",
