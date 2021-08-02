@@ -6,7 +6,6 @@ import { createContract } from "../util/transactions";
 
 describeDevMoonbeam("Estimate Gas - infinite loop", (context) => {
   it("Should be able to estimate gas of infinite loop call", async function () {
-    this.timeout(60_000);
     const { contract, rawTx } = await createContract(context.web3, "InfiniteContract");
     await context.createBlock({ transactions: [rawTx] });
 
