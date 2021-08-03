@@ -126,6 +126,8 @@ impl<'a> EvmDataReader<'a> {
 /// Help build an EVM input/output data.
 #[derive(Clone, Debug)]
 pub struct EvmDataWriter {
+	// The selector cannot be part of the data we use to construct the offset
+	selector: Vec<u8>,
 	data: Vec<u8>,
 	arrays: Vec<Array>,
 }
@@ -142,6 +144,7 @@ impl EvmDataWriter {
 	/// Creates a new empty output builder.
 	pub fn new() -> Self {
 		Self {
+			selector: vec![],
 			data: vec![],
 			arrays: vec![],
 		}
@@ -149,9 +152,13 @@ impl EvmDataWriter {
 
 	/// Return the built data.
 	pub fn build(mut self) -> Vec<u8> {
+		let mut data: Vec<u8> = vec![];
+		// We construct offsets without taking into account selector
 		Self::build_arrays(&mut self.data, self.arrays, 0);
 
-		self.data
+		data.extend(self.selector);
+		data.extend(self.data);
+		data
 	}
 
 	/// Build the array into data.
@@ -180,6 +187,13 @@ impl EvmDataWriter {
 	/// Doesn't handle any alignement checks, prefer using `write` instead of possible.
 	pub fn write_raw_bytes(&mut self, value: &[u8]) -> Self {
 		self.data.extend_from_slice(value);
+		self.clone()
+	}
+
+	/// Write selector bytes.
+	/// Doesn't handle any alignement checks, prefer using `write` instead of possible.
+	pub fn write_selector(&mut self, value: &[u8]) -> Self {
+		self.selector.extend_from_slice(&value);
 		self.clone()
 	}
 

@@ -80,23 +80,18 @@ fn test_encode_bond() {
 		.build()
 		.execute_with(|| {
 			let selector = &Keccak256::digest(b"encode_bond(uint256,uint256,uint8,uint256)")[0..4];
-
-			// Construct data to read prop count
-			let mut input_data = Vec::<u8>::from([0u8; 132]);
-			input_data[0..4].copy_from_slice(&selector);
-			input_data[4..36].copy_from_slice(&[1u8; 32]);
-
+			let controller_address: H256 = [1u8; 32].into();
 			let amount: U256 = 100u32.into();
-			let mut buffer = [0u8; 32];
-			amount.to_big_endian(&mut buffer);
-			input_data[36..68].copy_from_slice(&buffer);
+			let reward_dest = 2u8;
+			let reward_dest_address: H256 = [0u8; 32].into();
 
-			let reward_dest: U256 = 2u32.into();
-			let mut buffer2 = [0u8; 32];
-			reward_dest.to_big_endian(&mut buffer2);
-			input_data[68..100].copy_from_slice(&buffer2);
-
-			input_data[100..132].copy_from_slice(&[0u8; 32]);
+			let input_data = EvmDataWriter::new()
+				.write_selector(selector)
+				.write(controller_address)
+				.write(amount)
+				.write(reward_dest)
+				.write(reward_dest_address)
+				.build();
 
 			let expected_bytes: Bytes = TestEncoder::encode_call(AvailableStakeCalls::Bond(
 				[1u8; 32].into(),
@@ -126,14 +121,11 @@ fn test_encode_bond_more() {
 		.build()
 		.execute_with(|| {
 			let selector = &Keccak256::digest(b"encode_bond_extra(uint256)")[0..4];
-
-			// Construct data to read prop count
-			let mut input_data = Vec::<u8>::from([0u8; 36]);
-			input_data[0..4].copy_from_slice(&selector);
 			let amount: U256 = 100u32.into();
-			let mut buffer = [0u8; 32];
-			amount.to_big_endian(&mut buffer);
-			input_data[4..36].copy_from_slice(&buffer);
+			let input_data = EvmDataWriter::new()
+				.write_selector(selector)
+				.write(amount)
+				.build();
 
 			let expected_bytes: Bytes =
 				TestEncoder::encode_call(AvailableStakeCalls::BondExtra(100u32.into())).into();
@@ -160,9 +152,7 @@ fn test_encode_chill() {
 		.execute_with(|| {
 			let selector = &Keccak256::digest(b"encode_chill()")[0..4];
 
-			// Construct data to read prop count
-			let mut input_data = Vec::<u8>::from([0u8; 4]);
-			input_data[0..4].copy_from_slice(&selector);
+			let input_data = EvmDataWriter::new().write_selector(selector).build();
 
 			let expected_bytes: Bytes = TestEncoder::encode_call(AvailableStakeCalls::Chill).into();
 
@@ -187,15 +177,14 @@ fn test_encode_nominate() {
 		.build()
 		.execute_with(|| {
 			let selector = &Keccak256::digest(b"encode_nominate(uint256[])")[0..4];
-
 			let array: Vec<H256> = vec![[1u8; 32].into(), [2u8; 32].into()];
-			let input = EvmDataWriter::new().write(array.clone()).build();
 
-			let mut input_data = Vec::<u8>::from([0u8; 4]);
-			input_data[0..4].copy_from_slice(&selector);
+			let input_data = EvmDataWriter::new()
+				.write_selector(selector)
+				.write(array)
+				.build();
 
-			input_data.extend_from_slice(input.as_ref());
-
+			println!("{:?}", input_data);
 			let expected_bytes: Bytes =
 				TestEncoder::encode_call(AvailableStakeCalls::Nominate(vec![
 					[1u8; 32].into(),
@@ -224,17 +213,13 @@ fn test_encode_rebond() {
 		.build()
 		.execute_with(|| {
 			let selector = &Keccak256::digest(b"encode_rebond(uint256)")[0..4];
-
-			// Construct data to read prop count
-			let mut input_data = Vec::<u8>::from([0u8; 36]);
-			input_data[0..4].copy_from_slice(&selector);
-
 			let amount: U256 = 100u32.into();
-			let mut buffer = [0u8; 32];
-			amount.to_big_endian(&mut buffer);
-			input_data[4..36].copy_from_slice(&buffer);
 
-			// Ethereum style
+			let input_data = EvmDataWriter::new()
+				.write_selector(selector)
+				.write(amount)
+				.build();
+
 			let expected_bytes: Bytes =
 				TestEncoder::encode_call(AvailableStakeCalls::Rebond(100u128)).into();
 
@@ -259,14 +244,13 @@ fn test_encode_set_controller() {
 		.build()
 		.execute_with(|| {
 			let selector = &Keccak256::digest(b"encode_set_controller(uint256)")[0..4];
+			let controller: H256 = [1u8; 32].into();
 
-			// Construct data to read prop count
-			let mut input_data = Vec::<u8>::from([0u8; 36]);
-			input_data[0..4].copy_from_slice(&selector);
+			let input_data = EvmDataWriter::new()
+				.write_selector(selector)
+				.write(controller)
+				.build();
 
-			input_data[4..36].copy_from_slice(&[1u8; 32]);
-
-			// Ethereum style
 			let expected_bytes: Bytes =
 				TestEncoder::encode_call(AvailableStakeCalls::SetController([1u8; 32].into()))
 					.into();
@@ -292,19 +276,15 @@ fn test_encode_set_payee() {
 		.build()
 		.execute_with(|| {
 			let selector = &Keccak256::digest(b"encode_set_payee(uint8,uint256)")[0..4];
+			let reward_dest = 2u8;
+			let reward_dest_address: H256 = [0u8; 32].into();
 
-			// Construct data to read prop count
-			let mut input_data = Vec::<u8>::from([0u8; 68]);
-			input_data[0..4].copy_from_slice(&selector);
+			let input_data = EvmDataWriter::new()
+				.write_selector(selector)
+				.write(reward_dest)
+				.write(reward_dest_address)
+				.build();
 
-			let reward_dest: U256 = 2u32.into();
-			let mut buffer = [0u8; 32];
-			reward_dest.to_big_endian(&mut buffer);
-			input_data[4..36].copy_from_slice(&buffer);
-
-			input_data[36..68].copy_from_slice(&[0u8; 32]);
-
-			// Ethereum style
 			let expected_bytes: Bytes = TestEncoder::encode_call(AvailableStakeCalls::SetPayee(
 				RewardDestination::Controller,
 			))
@@ -331,17 +311,13 @@ fn test_encode_unbond() {
 		.build()
 		.execute_with(|| {
 			let selector = &Keccak256::digest(b"encode_unbond(uint256)")[0..4];
-
-			// Construct data to read prop count
-			let mut input_data = Vec::<u8>::from([0u8; 36]);
-			input_data[0..4].copy_from_slice(&selector);
-
 			let amount: U256 = 100u32.into();
-			let mut buffer = [0u8; 32];
-			amount.to_big_endian(&mut buffer);
-			input_data[4..36].copy_from_slice(&buffer);
 
-			// Ethereum style
+			let input_data = EvmDataWriter::new()
+				.write_selector(selector)
+				.write(amount)
+				.build();
+
 			let expected_bytes: Bytes =
 				TestEncoder::encode_call(AvailableStakeCalls::Unbond(100u32.into())).into();
 
@@ -368,22 +344,15 @@ fn test_encode_validate() {
 		.build()
 		.execute_with(|| {
 			let selector = &Keccak256::digest(b"encode_validate(uint256,bool)")[0..4];
+			let amount: U256 = 100u32.into();
+			let blocked = true;
 
-			// Construct data to read prop count
-			let mut input_data = Vec::<u8>::from([0u8; 68]);
-			input_data[0..4].copy_from_slice(&selector);
+			let input_data = EvmDataWriter::new()
+				.write_selector(selector)
+				.write(amount)
+				.write(blocked)
+				.build();
 
-			let per_bill: U256 = 100u32.into();
-			let mut buffer = [0u8; 32];
-			per_bill.to_big_endian(&mut buffer);
-			input_data[4..36].copy_from_slice(&buffer);
-
-			let blocked: U256 = 1u32.into();
-			buffer = [0u8; 32];
-			blocked.to_big_endian(&mut buffer);
-			input_data[36..68].copy_from_slice(&buffer);
-
-			// Ethereum style
 			let expected_bytes: Bytes =
 				TestEncoder::encode_call(AvailableStakeCalls::Validate(ValidatorPrefs {
 					commission: Perbill::from_parts(100u32.into()),
@@ -414,15 +383,12 @@ fn test_encode_withdraw_unbonded() {
 		.build()
 		.execute_with(|| {
 			let selector = &Keccak256::digest(b"encode_withdraw_unbonded(uint32)")[0..4];
-
-			// Construct data to read prop count
-			let mut input_data = Vec::<u8>::from([0u8; 36]);
-			input_data[0..4].copy_from_slice(&selector);
-
 			let amount: U256 = 100u32.into();
-			let mut buffer = [0u8; 32];
-			amount.to_big_endian(&mut buffer);
-			input_data[4..36].copy_from_slice(&buffer);
+
+			let input_data = EvmDataWriter::new()
+				.write_selector(selector)
+				.write(amount)
+				.build();
 
 			// Ethereum style
 			let expected_bytes: Bytes =
