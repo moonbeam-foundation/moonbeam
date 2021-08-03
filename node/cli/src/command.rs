@@ -62,13 +62,6 @@ fn load_spec(
 		"moonriver-dev" => Box::new(chain_spec::moonriver::development_chain_spec(None, None)),
 		"moonriver-local" => Box::new(chain_spec::moonriver::get_chain_spec(para_id)),
 
-		// Moonshadow networks
-		"moonshadow" => Box::new(chain_spec::moonbase::ChainSpec::from_json_bytes(
-			&include_bytes!("../../../specs/moonshadow/parachain-embedded-specs.json")[..],
-		)?),
-		"moonshadow-dev" => Box::new(chain_spec::moonshadow::development_chain_spec(None, None)),
-		"moonshadow-local" => Box::new(chain_spec::moonshadow::get_chain_spec(para_id)),
-
 		// Moonbeam networks
 		"moonbeam" => {
 			return Err(
@@ -100,8 +93,6 @@ fn load_spec(
 				Box::new(chain_spec::moonbase::ChainSpec::from_json_file(path)?)
 			} else if run_cmd.force_moonriver || starts_with("moonriver") {
 				Box::new(chain_spec::moonriver::ChainSpec::from_json_file(path)?)
-			} else if run_cmd.force_moonshadow || starts_with("moonshadow") {
-				Box::new(chain_spec::moonshadow::ChainSpec::from_json_file(path)?)
 			} else {
 				Box::new(chain_spec::moonbeam::ChainSpec::from_json_file(path)?)
 			}
@@ -149,8 +140,6 @@ impl SubstrateCli for Cli {
 			return &service::moonbase_runtime::VERSION;
 		} else if spec.is_moonriver() {
 			return &service::moonriver_runtime::VERSION;
-		} else if spec.is_moonshadow() {
-			return &service::moonshadow_runtime::VERSION;
 		} else {
 			return &service::moonbeam_runtime::VERSION;
 		}
@@ -232,14 +221,6 @@ pub fn run() -> Result<()> {
 					} else if config.chain_spec.is_moonriver() {
 						params.base.run(
 							Box::new(chain_spec::moonriver::development_chain_spec(
-								params.mnemonic.clone(),
-								params.accounts,
-							)),
-							config.network,
-						)
-					} else if config.chain_spec.is_moonshadow() {
-						params.base.run(
-							Box::new(chain_spec::moonshadow::development_chain_spec(
 								params.mnemonic.clone(),
 								params.accounts,
 							)),
@@ -358,16 +339,6 @@ pub fn run() -> Result<()> {
 					format!("0x{:?}", HexDisplay::from(&block.header().encode())).into_bytes()
 				};
 				output_buf
-			} else if chain_spec.is_moonshadow() {
-				let block: service::moonshadow_runtime::Block =
-					generate_genesis_block(&chain_spec)?;
-				let raw_header = block.header().encode();
-				let output_buf = if params.raw {
-					raw_header
-				} else {
-					format!("0x{:?}", HexDisplay::from(&block.header().encode())).into_bytes()
-				};
-				output_buf
 			} else {
 				let block: service::moonbase_runtime::Block = generate_genesis_block(&chain_spec)?;
 				let raw_header = block.header().encode();
@@ -421,12 +392,6 @@ pub fn run() -> Result<()> {
 				} else if chain_spec.is_moonriver() {
 					return runner.sync_run(|config| {
 						cmd.run::<service::moonriver_runtime::Block, service::MoonriverExecutor>(
-							config,
-						)
-					});
-				} else if chain_spec.is_moonshadow() {
-					return runner.sync_run(|config| {
-						cmd.run::<service::moonshadow_runtime::Block, service::MoonshadowExecutor>(
 							config,
 						)
 					});
@@ -502,11 +467,6 @@ pub fn run() -> Result<()> {
 						generate_genesis_block(&config.chain_spec)
 							.map_err(|e| format!("{:?}", e))?;
 					format!("0x{:?}", HexDisplay::from(&block.header().encode()))
-				} else if config.chain_spec.is_moonshadow() {
-					let block: service::moonshadow_runtime::Block =
-						generate_genesis_block(&config.chain_spec)
-							.map_err(|e| format!("{:?}", e))?;
-					format!("0x{:?}", HexDisplay::from(&block.header().encode()))
 				} else {
 					let block: service::moonbase_runtime::Block =
 						generate_genesis_block(&config.chain_spec)
@@ -535,14 +495,6 @@ pub fn run() -> Result<()> {
 					service::start_node::<
 						service::moonriver_runtime::RuntimeApi,
 						service::MoonriverExecutor,
-					>(config, polkadot_config, id, rpc_config)
-					.await
-					.map(|r| r.0)
-					.map_err(Into::into)
-				} else if config.chain_spec.is_moonshadow() {
-					service::start_node::<
-						service::moonshadow_runtime::RuntimeApi,
-						service::MoonshadowExecutor,
 					>(config, polkadot_config, id, rpc_config)
 					.await
 					.map(|r| r.0)

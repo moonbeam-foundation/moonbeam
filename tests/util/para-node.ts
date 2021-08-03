@@ -40,11 +40,9 @@ let nodeStarted = false;
 export type ParachainOptions = {
   chain:
     | "moonbase-local"
-    | "moonshadow-local"
     | "moonriver-local"
     | "moonbeam-local"
     | "moonbase"
-    | "moonshadow"
     | "moonriver"
     | "moonbeam";
   relaychain?: "rococo-local" | "westend-local" | "kusama-local" | "polkadot-local";

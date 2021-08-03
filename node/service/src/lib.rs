@@ -29,7 +29,6 @@ use futures::StreamExt;
 pub use moonbase_runtime;
 pub use moonbeam_runtime;
 pub use moonriver_runtime;
-pub use moonshadow_runtime;
 use sc_service::BasePath;
 use std::{
 	collections::{BTreeMap, HashMap},
@@ -86,16 +85,6 @@ native_executor_instance!(
 );
 
 native_executor_instance!(
-	pub MoonshadowExecutor,
-	moonshadow_runtime::api::dispatch,
-	moonshadow_runtime::native_version,
-	(
-		frame_benchmarking::benchmarking::HostFunctions,
-		moonbeam_primitives_ext::moonbeam_ext::HostFunctions
-	),
-);
-
-native_executor_instance!(
 	pub MoonbaseExecutor,
 	moonbase_runtime::api::dispatch,
 	moonbase_runtime::native_version,
@@ -117,9 +106,6 @@ pub trait IdentifyVariant {
 	/// Returns `true` if this is a configuration for the `Moonriver` network.
 	fn is_moonriver(&self) -> bool;
 
-	/// Returns `true` if this is a configuration for the `Moonshadow` network.
-	fn is_moonshadow(&self) -> bool;
-
 	/// Returns `true` if this is a configuration for a dev network.
 	fn is_dev(&self) -> bool;
 }
@@ -135,10 +121,6 @@ impl IdentifyVariant for Box<dyn ChainSpec> {
 
 	fn is_moonriver(&self) -> bool {
 		self.id().starts_with("moonriver")
-	}
-
-	fn is_moonshadow(&self) -> bool {
-		self.id().starts_with("moonshadow")
 	}
 
 	fn is_dev(&self) -> bool {
@@ -217,23 +199,6 @@ pub fn new_chain_ops(
 		)?;
 		Ok((
 			Arc::new(Client::Moonriver(client)),
-			backend,
-			import_queue,
-			task_manager,
-		))
-	} else if config.chain_spec.is_moonshadow() {
-		let PartialComponents {
-			client,
-			backend,
-			import_queue,
-			task_manager,
-			..
-		} = new_partial::<moonshadow_runtime::RuntimeApi, MoonshadowExecutor>(
-			config,
-			config.chain_spec.is_dev(),
-		)?;
-		Ok((
-			Arc::new(Client::Moonshadow(client)),
 			backend,
 			import_queue,
 			task_manager,
@@ -397,7 +362,6 @@ pub enum TransactionConverters {
 	Moonbeam(moonbeam_runtime::TransactionConverter),
 	Moonbase(moonbase_runtime::TransactionConverter),
 	Moonriver(moonriver_runtime::TransactionConverter),
-	Moonshadow(moonshadow_runtime::TransactionConverter),
 }
 
 impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::UncheckedExtrinsic>
@@ -410,7 +374,6 @@ impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::UncheckedExtrinsic>
 		match &self {
 			Self::Moonbeam(inner) => inner.convert_transaction(transaction),
 			Self::Moonriver(inner) => inner.convert_transaction(transaction),
-			Self::Moonshadow(inner) => inner.convert_transaction(transaction),
 			Self::Moonbase(inner) => inner.convert_transaction(transaction),
 		}
 	}
@@ -509,15 +472,12 @@ where
 
 		let is_moonbeam = parachain_config.chain_spec.is_moonbeam();
 		let is_moonriver = parachain_config.chain_spec.is_moonriver();
-		let is_moonshadow = parachain_config.chain_spec.is_moonshadow();
 
 		Box::new(move |deny_unsafe, _| {
 			let transaction_converter: TransactionConverters = if is_moonbeam {
 				TransactionConverters::Moonbeam(moonbeam_runtime::TransactionConverter)
 			} else if is_moonriver {
 				TransactionConverters::Moonriver(moonriver_runtime::TransactionConverter)
-			} else if is_moonshadow {
-				TransactionConverters::Moonshadow(moonshadow_runtime::TransactionConverter)
 			} else {
 				TransactionConverters::Moonbase(moonbase_runtime::TransactionConverter)
 			};
@@ -837,15 +797,12 @@ pub fn new_dev(
 
 		let is_moonbeam = config.chain_spec.is_moonbeam();
 		let is_moonriver = config.chain_spec.is_moonriver();
-		let is_moonshadow = config.chain_spec.is_moonshadow();
 
 		Box::new(move |deny_unsafe, _| {
 			let transaction_converter: TransactionConverters = if is_moonbeam {
 				TransactionConverters::Moonbeam(moonbeam_runtime::TransactionConverter)
 			} else if is_moonriver {
 				TransactionConverters::Moonriver(moonriver_runtime::TransactionConverter)
-			} else if is_moonshadow {
-				TransactionConverters::Moonshadow(moonshadow_runtime::TransactionConverter)
 			} else {
 				TransactionConverters::Moonbase(moonbase_runtime::TransactionConverter)
 			};
