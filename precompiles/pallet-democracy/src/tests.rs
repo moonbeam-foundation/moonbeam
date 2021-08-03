@@ -15,19 +15,20 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::mock::{
-	events, evm_test_context, precompile_address, Call, ExtBuilder, Origin, Precompiles,
-	TestAccount::Alice, roll_to,
+	events, evm_test_context, precompile_address, roll_to, Call, Democracy, ExtBuilder, Origin,
+	Precompiles, Test, TestAccount::Alice,
 };
 //TODO Can PrecompileOutput come from somewhere better?
 use crate::PrecompileOutput;
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_balances::Event as BalancesEvent;
-use pallet_democracy::{Call as DemocracyCall, Event as DemocracyEvent};
+use pallet_democracy::{AccountVote, Call as DemocracyCall, Event as DemocracyEvent, Vote, Voting};
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
 use pallet_evm::{ExitError, ExitSucceed, PrecompileSet};
 use precompile_utils::{error, EvmDataWriter};
 use sha3::{Digest, Keccak256};
 use sp_core::U256;
+use std::convert::TryInto;
 
 #[test]
 fn selector_less_than_four_bytes() {
@@ -236,11 +237,11 @@ fn second_works() {
 #[test]
 fn standard_vote_aye_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice, 1000_000)])
 		.build()
 		.execute_with(|| {
 			// Before we can vote on anything, we have to have a referendum there to vote on.
-
+			// This will be nicer after https://github.com/paritytech/substrate/pull/9484
 			// Make a proposal
 			assert_ok!(Call::Democracy(DemocracyCall::propose(
 				Default::default(), // Propose the default hash
@@ -250,17 +251,17 @@ fn standard_vote_aye_works() {
 
 			// Wait until it becomes a referendum (10 block launch period)
 			roll_to(11);
-			
-			// Construct input data
+
+			// Construct input data to vote aye
 			let selector = &Keccak256::digest(b"stardard_vote(uint256,bool,uint256,uint256)")[0..4];
 			let input = EvmDataWriter::new()
 				.write_raw_bytes(selector)
 				.write(0u32) // Referendum index 0
 				.write(true) // Aye
-				.write(1u128)// 1 token
-				.write(0u8)  // No conviction
+				.write(100_000u128) // 100_000 tokens
+				.write(0u8) // No conviction
 				.build();
-			
+
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call(
 				Alice.into(),
@@ -281,36 +282,119 @@ fn standard_vote_aye_works() {
 					BalancesEvent::Reserved(Alice, 100).into(),
 					DemocracyEvent::Proposed(0, 100).into(),
 					// Proposal -> Referendum
-					BalancesEvent::Unreserved(Alice, 100),
-					DemocracyEvent::Tabled(0, 100, vec![Alice]),
-					DemocracyEvent::Started(0, VoteThreshold::SuperMajorityApprove),
-					EvmEvent::Executed(0x0000000000000000000000000000000000000001),
+					BalancesEvent::Unreserved(Alice, 100).into(),
+					DemocracyEvent::Tabled(0, 100, vec![Alice]).into(),
+					DemocracyEvent::Started(
+						0,
+						pallet_democracy::VoteThreshold::SuperMajorityApprove
+					)
+					.into(),
+					EvmEvent::Executed(precompile_address()).into(),
 				]
 			);
 
-			//TODO assert that state has vote aye recorded
+			// Assert that the vote was recorded in storage
+			// Should check ReferendumInfoOf too, but can't because of private fields etc
+			assert_eq!(
+				pallet_democracy::VotingOf::<Test>::get(Alice),
+				Voting::Direct {
+					votes: vec![(
+						0,
+						AccountVote::Standard {
+							vote: Vote {
+								aye: true,
+								conviction: 0u8.try_into().unwrap()
+							},
+							balance: 100_000,
+						}
+					)],
+					delegations: Default::default(),
+					prior: Default::default(),
+				},
+			);
 		})
 }
 
-// #[test]
-// fn standard_vote_nay_conviction_works() {
-// 	ExtBuilder::default()
-// 		.with_balances(vec![(Alice, 1000)])
-// 		.build()
-// 		.execute_with(|| {
-// 			let selector = &Keccak256::digest(b"propose(bytes32,uint256)")[0..4];
+#[test]
+fn standard_vote_nay_conviction_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000_000)])
+		.build()
+		.execute_with(|| {
+			// Before we can vote on anything, we have to have a referendum there to vote on.
+			// This will be nicer after https://github.com/paritytech/substrate/pull/9484
+			// Make a proposal
+			assert_ok!(Call::Democracy(DemocracyCall::propose(
+				Default::default(), // Propose the default hash
+				100u128,            // bond of 100 tokens
+			))
+			.dispatch(Origin::signed(Alice)));
 
-// 			// Before we can vote on anything, we have to have a proposal there to vote on.
-// 			assert_ok!(Call::Democracy(DemocracyCall::propose(
-// 				Default::default(), // Propose the default hash
-// 				100u128,            // bond of 100 tokens
-// 			))
-// 			.dispatch(Origin::signed(Alice)));
+			// Wait until it becomes a referendum (10 block launch period)
+			roll_to(11);
 
-// TODO same as previous test, but assert that state has nay vote with conviction recorded
+			// Construct input data to vote aye
+			let selector = &Keccak256::digest(b"stardard_vote(uint256,bool,uint256,uint256)")[0..4];
+			let input = EvmDataWriter::new()
+				.write_raw_bytes(selector)
+				.write(0u32) // Referendum index 0
+				.write(false) // Nay
+				.write(100_000u128) // 100_000 tokens
+				.write(3u8) // 3X conviction
+				.build();
 
-// 		})
-// }
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(EvmCall::call(
+				Alice.into(),
+				precompile_address(),
+				input,
+				U256::zero(), // No value sent in EVM
+				u64::max_value(),
+				0.into(),
+				None, // Use the next nonce
+			))
+			.dispatch(Origin::root()));
+
+			// Assert that the events are as expected
+			assert_eq!(
+				events(),
+				vec![
+					// Making proposal
+					BalancesEvent::Reserved(Alice, 100).into(),
+					DemocracyEvent::Proposed(0, 100).into(),
+					// Proposal -> Referendum
+					BalancesEvent::Unreserved(Alice, 100).into(),
+					DemocracyEvent::Tabled(0, 100, vec![Alice]).into(),
+					DemocracyEvent::Started(
+						0,
+						pallet_democracy::VoteThreshold::SuperMajorityApprove
+					)
+					.into(),
+					EvmEvent::Executed(precompile_address()).into(),
+				]
+			);
+
+			// Assert that the vote was recorded in storage
+			// Should check ReferendumInfoOf too, but can't because of private fields etc
+			assert_eq!(
+				pallet_democracy::VotingOf::<Test>::get(Alice),
+				Voting::Direct {
+					votes: vec![(
+						0,
+						AccountVote::Standard {
+							vote: Vote {
+								aye: false,
+								conviction: 3u8.try_into().unwrap()
+							},
+							balance: 100_000,
+						}
+					)],
+					delegations: Default::default(),
+					prior: Default::default(),
+				},
+			);
+		})
+}
 
 //TODO Standard vote error cases
 // can't afford it

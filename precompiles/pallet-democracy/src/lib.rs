@@ -86,9 +86,7 @@ where
 			[0xcb, 0x37, 0xb8, 0xea] => Self::un_delegate(input, target_gas, context),
 			[0x2f, 0x6c, 0x49, 0x3c] => Self::unlock(input, target_gas, context),
 			_ => {
-				println!(
-					"Failed to match function selector in democracy precompile"
-				);
+				println!("Failed to match function selector in democracy precompile");
 				Err(error("No democracy wrapper method at given selector"))
 			}
 		}
@@ -218,10 +216,14 @@ where
 			balance,
 		};
 
-		println!("Voting {:?} on referendum #{:?}, with conviction {:?}", aye, ref_index, conviction);
+		println!(
+			"Voting {:?} on referendum #{:?}, with conviction {:?}",
+			aye, ref_index, conviction
+		);
 
-		//TODO Would be slightly nicer to just pass the context here. Does it contain other useful info?
-		// like maybe whether to pay fees?
+		//TODO Could be nicer to just pass the context here. It contains caller, this
+		// contract's address, and the eth value being passed.
+		// https://github.com/rust-blockchain/evm/blob/23f5d4a4717f7f995025200ed0c14a36a9e3aac8/runtime/src/context.rs#L39
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = DemocracyCall::<Runtime>::vote(ref_index, account_vote);
 
@@ -249,8 +251,11 @@ where
 		let mut gasometer = Gasometer::new(target_gas);
 
 		// Bound check
-		input.expect_arguments(3)?;
+		input.expect_arguments(1)?;
 
+		// let ref_index = input.read();
+
+		// println!("Removing vote from referendum {:?}", ref_index);
 		todo!()
 	}
 

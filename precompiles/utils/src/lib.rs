@@ -183,7 +183,10 @@ where
 		// computations.
 		let used_weight = call
 			.dispatch(origin)
-			.map_err(|_| error("dispatched call failed"))?
+			.map_err(|original| {
+				println!("{:?}", original);
+				error("dispatched call failed")
+			})?
 			.actual_weight;
 
 		// Return used weight by converting weight to gas.
