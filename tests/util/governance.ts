@@ -71,11 +71,6 @@ export const execFromTwoThirdsOfTechCommittee = async <
   return await createBlockWithExtrinsic(
     context,
     baltathar,
-    context.polkadotApi.tx.techComitteeCollective.close(
-      proposalHash,
-      0,
-      1_000_000_000,
-      lengthBound
-    )
+    context.polkadotApi.tx.techComitteeCollective.close(proposalHash, 0, 1_000_000_000, lengthBound)
   );
 };

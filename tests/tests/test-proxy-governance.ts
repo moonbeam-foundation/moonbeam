@@ -6,47 +6,42 @@ import {
   DOROTHY_PRIV_KEY,
   ETHAN,
   ETHAN_PRIVKEY,
-  GENESIS_ACCOUNT_BALANCE,
-  PROPOSAL_AMOUNT,
   VOTE_AMOUNT,
 } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { execFromTwoThirdsOfCouncil, execFromTwoThirdsOfTechCommittee } from "../util/governance";
+
+const keyring = new Keyring({ type: "ethereum" });
+const proposalHash = "0xf3d039875302d49d52fb1af6877a2c46bc55b004afb8130f94dd9d0489ca3185";
+
+let alith;
+let dorothy;
+let ethan;
 
 describeDevMoonbeam("Proxing governance", (context) => {
+  before("Create accounts and fast-tracking referundum", async () => {
+    alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+    dorothy = await keyring.addFromUri(DOROTHY_PRIV_KEY, null, "ethereum");
+    ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
+
+    await execFromTwoThirdsOfCouncil(
+      context,
+      context.polkadotApi.tx.democracy.externalProposeMajority(proposalHash)
+    );
+    let { events } = await execFromTwoThirdsOfTechCommittee(
+      context,
+      context.polkadotApi.tx.democracy.fastTrack(proposalHash, 5, 0)
+    );
+  });
+
   it("should be able to vote on behalf of the delegate account", async function () {
-    // Because we have to produce a lot (3600 at time or writing) of blocks
-    // to exhaust the LaunchPeriod
-    this.timeout(40_000);
-
-    const keyring = new Keyring({ type: "ethereum" });
-
-    const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-    const dorothy = await keyring.addFromUri(DOROTHY_PRIV_KEY, null, "ethereum");
-    const ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
-
-    // Dorothy add proxy rigth to ethan for governance only
-    await context.polkadotApi.tx.proxy.addProxy(ETHAN, "Governance", 0).signAndSend(dorothy);
-
-    // Alith submit a proposal
-    let proposalHash = "0xf3d039875302d49d52fb1af6877a2c46bc55b004afb8130f94dd9d0489ca3185";
-    await context.polkadotApi.tx.democracy
-      .propose(proposalHash, PROPOSAL_AMOUNT)
-      .signAndSend(alith);
-    await context.createBlock();
-
-    // Verify that Alith proposal is registered
-    const publicPropCount = await context.polkadotApi.query.democracy.publicPropCount();
-    expect(publicPropCount.toHuman()).to.equal("1");
-
-    /// Wait launchPeriod elapsed
-    let launchPeriod = await context.polkadotApi.consts.democracy.launchPeriod;
-    for (let i = 0; i < Number(launchPeriod); i++) {
-      await context.createBlock();
-    }
-
     // Verify that one referundum is triggered
     let referendumCount = await context.polkadotApi.query.democracy.referendumCount();
     expect(referendumCount.toHuman()).to.equal("1");
+
+    // Dorothy add proxy rigth to ethan for governance only
+    await context.polkadotApi.tx.proxy.addProxy(ETHAN, "Governance", 0).signAndSend(dorothy);
+    await context.createBlock();
 
     // Ethan vote as Dorothy
     let voteCall = context.polkadotApi.tx.democracy.vote(0, {
