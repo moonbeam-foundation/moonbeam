@@ -1,9 +1,6 @@
 import { expect } from "chai";
 import Keyring from "@polkadot/keyring";
-import {
-  ALITH_PRIV_KEY,
-  PROPOSAL_AMOUNT,
-} from "../util/constants";
+import { ALITH_PRIV_KEY, PROPOSAL_AMOUNT } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { execFromTwoThirdsOfCouncil, execFromAllMembersOfTechCommittee } from "../util/governance";
 
