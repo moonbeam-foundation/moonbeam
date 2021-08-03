@@ -249,7 +249,7 @@ impl ExtBuilder {
 	}
 
 	//TODO after https://github.com/paritytech/substrate/pull/9484 lands
-	pub(crate) fn with_referenda(mut self, referenda: Vec<(/*TODO*/)>) -> Self {
+	pub(crate) fn with_referenda(mut self, referenda: Vec<()>) -> Self {
 		todo!()
 	}
 

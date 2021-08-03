@@ -402,7 +402,7 @@ fn standard_vote_nay_conviction_works() {
 // referendum doesn't exist
 
 #[test]
-fn remove_vote_works() {	
+fn remove_vote_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])
 		.build()
@@ -424,7 +424,10 @@ fn remove_vote_works() {
 			assert_ok!(Call::Democracy(DemocracyCall::vote(
 				0, // Propose the default hash
 				AccountVote::Standard {
-					vote: Vote { aye: true, conviction: 0u8.try_into().unwrap() },
+					vote: Vote {
+						aye: true,
+						conviction: 0u8.try_into().unwrap()
+					},
 					balance: 100,
 				},
 			))
@@ -484,43 +487,38 @@ fn remove_vote_works() {
 #[test]
 fn remove_vote_dne() {
 	ExtBuilder::default()
-	.with_balances(vec![(Alice, 1000)])
-	.build()
-	.execute_with(|| {
-		// Before we can vote on anything, we have to have a referendum there to vote on.
-		// This will be nicer after https://github.com/paritytech/substrate/pull/9484
-		// Make a proposal
-		assert_ok!(Call::Democracy(DemocracyCall::propose(
-			Default::default(), // Propose the default hash
-			100u128,            // bond of 100 tokens
-		))
-		.dispatch(Origin::signed(Alice)));
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			// Before we can vote on anything, we have to have a referendum there to vote on.
+			// This will be nicer after https://github.com/paritytech/substrate/pull/9484
+			// Make a proposal
+			assert_ok!(Call::Democracy(DemocracyCall::propose(
+				Default::default(), // Propose the default hash
+				100u128,            // bond of 100 tokens
+			))
+			.dispatch(Origin::signed(Alice)));
 
-		// Wait until it becomes a referendum (10 block launch period)
-		roll_to(11);
+			// Wait until it becomes a referendum (10 block launch period)
+			roll_to(11);
 
-		// Construct input data to remove a non-existant vote
-		let selector = &Keccak256::digest(b"remove_vote(uint256)")[0..4];
-		let input = EvmDataWriter::new()
-			.write_raw_bytes(selector)
-			.write(0u32) // Referendum index 0
-			.build();
+			// Construct input data to remove a non-existant vote
+			let selector = &Keccak256::digest(b"remove_vote(uint256)")[0..4];
+			let input = EvmDataWriter::new()
+				.write_raw_bytes(selector)
+				.write(0u32) // Referendum index 0
+				.build();
 
-		// TODO one weakness of try_dispatch is that it doesn't propogate the error
-		// I can't assert that this actually failed for the reason I expected.
-		// Expected result is an error stating there are too few bytes
-		let expected_result = Some(Err(error("dispatched call failed")));
+			// TODO one weakness of try_dispatch is that it doesn't propogate the error
+			// I can't assert that this actually failed for the reason I expected.
+			// Expected result is an error stating there are too few bytes
+			let expected_result = Some(Err(error("dispatched call failed")));
 
-		assert_eq!(
-			Precompiles::execute(
-				precompile_address(),
-				&input,
-				None,
-				&evm_test_context(),
-			),
-			expected_result
-		);
-	})
+			assert_eq!(
+				Precompiles::execute(precompile_address(), &input, None, &evm_test_context(),),
+				expected_result
+			);
+		})
 }
 
 #[test]

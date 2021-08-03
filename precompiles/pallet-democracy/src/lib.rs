@@ -25,7 +25,7 @@ use pallet_democracy::{AccountVote, Call as DemocracyCall, Vote};
 use pallet_evm::AddressMapping;
 use pallet_evm::Precompile;
 use precompile_utils::{
-	error, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
+	error, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper, Address,
 };
 // TODO there is a warning about H160 not being used. But when I remove it I get errors.
 use sp_core::{H160, H256, U256};
@@ -256,7 +256,7 @@ where
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = DemocracyCall::<Runtime>::remove_vote(ref_index);
-		
+
 		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
 			Some(origin).into(),
 			call,
@@ -282,9 +282,32 @@ where
 		// Bound check
 		input.expect_arguments(3)?;
 
-		//to, conviction, balance
+		let to_address: H160 = input.read::<Address>()?.into();
+		let to_account = Runtime::AddressMapping::into_account_id(to_address);
+		let conviction = input
+			.read::<u8>()?
+			.try_into()
+			.map_err(|_| error("Conviction must be an integer in the range 0-6"))?;
+		let balance = input.read()?;
 
-		todo!()
+		println!("Delegating vote to {:?} with balance {:?} and {:?}", to_account, conviction, balance);
+
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = DemocracyCall::<Runtime>::delegate(to_account, conviction, balance);
+
+		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+			Some(origin).into(),
+			call,
+			gasometer.remaining_gas()?,
+		)?;
+		gasometer.record_cost(used_gas)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Stopped,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: Default::default(),
+		})
 	}
 
 	fn un_delegate(
