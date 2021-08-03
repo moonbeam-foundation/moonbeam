@@ -2,5 +2,4 @@
 implementors["moonbase_runtime"] = [{"text":"impl MaxEncodedLen for <a class=\"enum\" href=\"moonbase_runtime/enum.ProxyType.html\" title=\"enum moonbase_runtime::ProxyType\">ProxyType</a>","synthetic":false,"types":["moonbase_runtime::ProxyType"]}];
 implementors["moonbeam_runtime"] = [{"text":"impl MaxEncodedLen for <a class=\"enum\" href=\"moonbeam_runtime/enum.ProxyType.html\" title=\"enum moonbeam_runtime::ProxyType\">ProxyType</a>","synthetic":false,"types":["moonbeam_runtime::ProxyType"]}];
 implementors["moonriver_runtime"] = [{"text":"impl MaxEncodedLen for <a class=\"enum\" href=\"moonriver_runtime/enum.ProxyType.html\" title=\"enum moonriver_runtime::ProxyType\">ProxyType</a>","synthetic":false,"types":["moonriver_runtime::ProxyType"]}];
-implementors["moonshadow_runtime"] = [{"text":"impl MaxEncodedLen for <a class=\"enum\" href=\"moonshadow_runtime/enum.ProxyType.html\" title=\"enum moonshadow_runtime::ProxyType\">ProxyType</a>","synthetic":false,"types":["moonshadow_runtime::ProxyType"]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

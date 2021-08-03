@@ -431,34 +431,6 @@
 <span id="428">428</span>
 <span id="429">429</span>
 <span id="430">430</span>
-<span id="431">431</span>
-<span id="432">432</span>
-<span id="433">433</span>
-<span id="434">434</span>
-<span id="435">435</span>
-<span id="436">436</span>
-<span id="437">437</span>
-<span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
-<span id="443">443</span>
-<span id="444">444</span>
-<span id="445">445</span>
-<span id="446">446</span>
-<span id="447">447</span>
-<span id="448">448</span>
-<span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
-<span id="452">452</span>
-<span id="453">453</span>
-<span id="454">454</span>
-<span id="455">455</span>
-<span id="456">456</span>
-<span id="457">457</span>
-<span id="458">458</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -609,7 +581,6 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Client</span> {
 	<span class="ident">Moonbeam</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">crate</span>::<span class="ident">FullClient</span><span class="op">&lt;</span><span class="ident">moonbeam_runtime</span>::<span class="ident">RuntimeApi</span>, <span class="kw">crate</span>::<span class="ident">MoonbeamExecutor</span><span class="op">&gt;</span><span class="op">&gt;</span>),
 	<span class="ident">Moonriver</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">crate</span>::<span class="ident">FullClient</span><span class="op">&lt;</span><span class="ident">moonriver_runtime</span>::<span class="ident">RuntimeApi</span>, <span class="kw">crate</span>::<span class="ident">MoonriverExecutor</span><span class="op">&gt;</span><span class="op">&gt;</span>),
-	<span class="ident">Moonshadow</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">crate</span>::<span class="ident">FullClient</span><span class="op">&lt;</span><span class="ident">moonshadow_runtime</span>::<span class="ident">RuntimeApi</span>, <span class="kw">crate</span>::<span class="ident">MoonshadowExecutor</span><span class="op">&gt;</span><span class="op">&gt;</span>),
 	<span class="ident">Moonbase</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">crate</span>::<span class="ident">FullClient</span><span class="op">&lt;</span><span class="ident">moonbase_runtime</span>::<span class="ident">RuntimeApi</span>, <span class="kw">crate</span>::<span class="ident">MoonbaseExecutor</span><span class="op">&gt;</span><span class="op">&gt;</span>),
 }
 
@@ -620,9 +591,6 @@
 				<span class="ident">T</span>::<span class="ident">execute_with_client</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">crate</span>::<span class="ident">FullBackend</span><span class="op">&gt;</span>(<span class="ident">t</span>, <span class="ident">client</span>.<span class="ident">clone</span>())
 			}
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="ident">T</span>::<span class="ident">execute_with_client</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">crate</span>::<span class="ident">FullBackend</span><span class="op">&gt;</span>(<span class="ident">t</span>, <span class="ident">client</span>.<span class="ident">clone</span>())
-			}
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> {
 				<span class="ident">T</span>::<span class="ident">execute_with_client</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">crate</span>::<span class="ident">FullBackend</span><span class="op">&gt;</span>(<span class="ident">t</span>, <span class="ident">client</span>.<span class="ident">clone</span>())
 			}
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -637,7 +605,6 @@
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="self">Self</span>::<span class="ident">Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">usage_info</span>(),
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">usage_info</span>(),
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">usage_info</span>(),
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">usage_info</span>(),
 		}
 	}
@@ -651,7 +618,6 @@
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="self">Self</span>::<span class="ident">Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_body</span>(<span class="ident">id</span>),
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_body</span>(<span class="ident">id</span>),
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_body</span>(<span class="ident">id</span>),
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_body</span>(<span class="ident">id</span>),
 		}
 	}
@@ -663,7 +629,6 @@
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="self">Self</span>::<span class="ident">Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_indexed_body</span>(<span class="ident">id</span>),
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_indexed_body</span>(<span class="ident">id</span>),
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_indexed_body</span>(<span class="ident">id</span>),
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_indexed_body</span>(<span class="ident">id</span>),
 		}
 	}
@@ -672,7 +637,6 @@
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="self">Self</span>::<span class="ident">Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block</span>(<span class="ident">id</span>),
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block</span>(<span class="ident">id</span>),
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block</span>(<span class="ident">id</span>),
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block</span>(<span class="ident">id</span>),
 		}
 	}
@@ -681,7 +645,6 @@
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="self">Self</span>::<span class="ident">Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_status</span>(<span class="ident">id</span>),
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_status</span>(<span class="ident">id</span>),
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_status</span>(<span class="ident">id</span>),
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_status</span>(<span class="ident">id</span>),
 		}
 	}
@@ -690,7 +653,6 @@
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="self">Self</span>::<span class="ident">Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">justifications</span>(<span class="ident">id</span>),
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">justifications</span>(<span class="ident">id</span>),
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">justifications</span>(<span class="ident">id</span>),
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">justifications</span>(<span class="ident">id</span>),
 		}
 	}
@@ -702,7 +664,6 @@
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="self">Self</span>::<span class="ident">Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_hash</span>(<span class="ident">number</span>),
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_hash</span>(<span class="ident">number</span>),
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_hash</span>(<span class="ident">number</span>),
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">block_hash</span>(<span class="ident">number</span>),
 		}
 	}
@@ -714,7 +675,6 @@
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="self">Self</span>::<span class="ident">Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">indexed_transaction</span>(<span class="ident">hash</span>),
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">indexed_transaction</span>(<span class="ident">hash</span>),
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">indexed_transaction</span>(<span class="ident">hash</span>),
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">indexed_transaction</span>(<span class="ident">hash</span>),
 		}
 	}
@@ -726,7 +686,6 @@
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="self">Self</span>::<span class="ident">Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">has_indexed_transaction</span>(<span class="ident">hash</span>),
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">has_indexed_transaction</span>(<span class="ident">hash</span>),
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">has_indexed_transaction</span>(<span class="ident">hash</span>),
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">has_indexed_transaction</span>(<span class="ident">hash</span>),
 		}
 	}
@@ -741,7 +700,6 @@
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="self">Self</span>::<span class="ident">Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage</span>(<span class="ident">id</span>, <span class="ident">key</span>),
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage</span>(<span class="ident">id</span>, <span class="ident">key</span>),
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage</span>(<span class="ident">id</span>, <span class="ident">key</span>),
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage</span>(<span class="ident">id</span>, <span class="ident">key</span>),
 		}
 	}
@@ -754,7 +712,6 @@
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="self">Self</span>::<span class="ident">Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_keys</span>(<span class="ident">id</span>, <span class="ident">key_prefix</span>),
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_keys</span>(<span class="ident">id</span>, <span class="ident">key_prefix</span>),
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_keys</span>(<span class="ident">id</span>, <span class="ident">key_prefix</span>),
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_keys</span>(<span class="ident">id</span>, <span class="ident">key_prefix</span>),
 		}
 	}
@@ -767,7 +724,6 @@
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="self">Self</span>::<span class="ident">Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_hash</span>(<span class="ident">id</span>, <span class="ident">key</span>),
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_hash</span>(<span class="ident">id</span>, <span class="ident">key</span>),
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_hash</span>(<span class="ident">id</span>, <span class="ident">key</span>),
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_hash</span>(<span class="ident">id</span>, <span class="ident">key</span>),
 		}
 	}
@@ -780,7 +736,6 @@
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="self">Self</span>::<span class="ident">Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_pairs</span>(<span class="ident">id</span>, <span class="ident">key_prefix</span>),
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_pairs</span>(<span class="ident">id</span>, <span class="ident">key_prefix</span>),
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_pairs</span>(<span class="ident">id</span>, <span class="ident">key_prefix</span>),
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_pairs</span>(<span class="ident">id</span>, <span class="ident">key_prefix</span>),
 		}
 	}
@@ -796,7 +751,6 @@
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="self">Self</span>::<span class="ident">Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_keys_iter</span>(<span class="ident">id</span>, <span class="ident">prefix</span>, <span class="ident">start_key</span>),
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_keys_iter</span>(<span class="ident">id</span>, <span class="ident">prefix</span>, <span class="ident">start_key</span>),
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_keys_iter</span>(<span class="ident">id</span>, <span class="ident">prefix</span>, <span class="ident">start_key</span>),
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">storage_keys_iter</span>(<span class="ident">id</span>, <span class="ident">prefix</span>, <span class="ident">start_key</span>),
 		}
 	}
@@ -810,7 +764,6 @@
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="self">Self</span>::<span class="ident">Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">child_storage</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">key</span>),
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">child_storage</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">key</span>),
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">child_storage</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">key</span>),
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">child_storage</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">key</span>),
 		}
 	}
@@ -824,7 +777,6 @@
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="self">Self</span>::<span class="ident">Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">child_storage_keys</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">key_prefix</span>),
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">child_storage_keys</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">key_prefix</span>),
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">child_storage_keys</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">key_prefix</span>),
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">child_storage_keys</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">key_prefix</span>),
 		}
 	}
@@ -838,7 +790,6 @@
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="self">Self</span>::<span class="ident">Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">child_storage_hash</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">key</span>),
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">child_storage_hash</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">key</span>),
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">child_storage_hash</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">key</span>),
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">child_storage_hash</span>(<span class="ident">id</span>, <span class="ident">child_info</span>, <span class="ident">key</span>),
 		}
 	}
@@ -851,7 +802,6 @@
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="self">Self</span>::<span class="ident">Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">max_key_changes_range</span>(<span class="ident">first</span>, <span class="ident">last</span>),
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">max_key_changes_range</span>(<span class="ident">first</span>, <span class="ident">last</span>),
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">max_key_changes_range</span>(<span class="ident">first</span>, <span class="ident">last</span>),
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">max_key_changes_range</span>(<span class="ident">first</span>, <span class="ident">last</span>),
 		}
 	}
@@ -866,7 +816,6 @@
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="self">Self</span>::<span class="ident">Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">key_changes</span>(<span class="ident">first</span>, <span class="ident">last</span>, <span class="ident">storage_key</span>, <span class="ident">key</span>),
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">key_changes</span>(<span class="ident">first</span>, <span class="ident">last</span>, <span class="ident">storage_key</span>, <span class="ident">key</span>),
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">key_changes</span>(<span class="ident">first</span>, <span class="ident">last</span>, <span class="ident">storage_key</span>, <span class="ident">key</span>),
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">key_changes</span>(<span class="ident">first</span>, <span class="ident">last</span>, <span class="ident">storage_key</span>, <span class="ident">key</span>),
 		}
 	}
@@ -877,7 +826,6 @@
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="self">Self</span>::<span class="ident">Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">header</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>),
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">header</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>),
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">header</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>),
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">header</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>),
 		}
 	}
@@ -886,7 +834,6 @@
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="self">Self</span>::<span class="ident">Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">info</span>(),
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">info</span>(),
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">info</span>(),
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">info</span>(),
 		}
 	}
@@ -895,7 +842,6 @@
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="self">Self</span>::<span class="ident">Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">status</span>(<span class="ident">id</span>),
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">status</span>(<span class="ident">id</span>),
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">status</span>(<span class="ident">id</span>),
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">status</span>(<span class="ident">id</span>),
 		}
 	}
@@ -904,7 +850,6 @@
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="self">Self</span>::<span class="ident">Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">number</span>(<span class="ident">hash</span>),
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">number</span>(<span class="ident">hash</span>),
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">number</span>(<span class="ident">hash</span>),
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">number</span>(<span class="ident">hash</span>),
 		}
 	}
@@ -913,7 +858,6 @@
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="self">Self</span>::<span class="ident">Moonbeam</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">hash</span>(<span class="ident">number</span>),
 			<span class="self">Self</span>::<span class="ident">Moonriver</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">hash</span>(<span class="ident">number</span>),
-			<span class="self">Self</span>::<span class="ident">Moonshadow</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">hash</span>(<span class="ident">number</span>),
 			<span class="self">Self</span>::<span class="ident">Moonbase</span>(<span class="ident">client</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">client</span>.<span class="ident">hash</span>(<span class="ident">number</span>),
 		}
 	}

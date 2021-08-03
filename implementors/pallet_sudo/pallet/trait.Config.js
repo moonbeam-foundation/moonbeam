@@ -1,4 +1,3 @@
 (function() {var implementors = {};
 implementors["moonbeam_runtime"] = [{"text":"impl Config for <a class=\"struct\" href=\"moonbeam_runtime/struct.Runtime.html\" title=\"struct moonbeam_runtime::Runtime\">Runtime</a>","synthetic":false,"types":["moonbeam_runtime::Runtime"]}];
-implementors["moonshadow_runtime"] = [{"text":"impl Config for <a class=\"struct\" href=\"moonshadow_runtime/struct.Runtime.html\" title=\"struct moonshadow_runtime::Runtime\">Runtime</a>","synthetic":false,"types":["moonshadow_runtime::Runtime"]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
