@@ -2,12 +2,7 @@ import { expect } from "chai";
 import Keyring from "@polkadot/keyring";
 import {
   ALITH_PRIV_KEY,
-  DOROTHY,
-  DOROTHY_PRIV_KEY,
-  ETHAN,
-  ETHAN_PRIVKEY,
   PROPOSAL_AMOUNT,
-  VOTE_AMOUNT,
 } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { execFromTwoThirdsOfCouncil, execFromAllMembersOfTechCommittee } from "../util/governance";
@@ -15,14 +10,10 @@ import { execFromTwoThirdsOfCouncil, execFromAllMembersOfTechCommittee } from ".
 const keyring = new Keyring({ type: "ethereum" });
 
 let alith;
-let dorothy;
-let ethan;
 
 describeDevMoonbeam("Governance", (context) => {
   before("Create accounts", async () => {
     alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-    dorothy = await keyring.addFromUri(DOROTHY_PRIV_KEY, null, "ethereum");
-    ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
   });
 
   it("should be able to submit a proposal", async function () {

@@ -34,7 +34,7 @@ export const execFromTwoThirdsOfCouncil = async <
   // Dorothy vote for this proposal and close it
   await context.polkadotApi.tx.councilCollective.vote(proposalHash, 0, true).signAndSend(dorothy);
   await context.createBlock();
-  await context.createBlock();
+
   return await createBlockWithExtrinsic(
     context,
     dorothy,
