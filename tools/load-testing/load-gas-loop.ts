@@ -148,8 +148,7 @@ const main = async () => {
   let loopCount = 32768;
   while (loopCount > 0) {
     console.log("Press key to call contract");
-    const key = await keypress();
-    console.log(`Key: ${key}`);
+    await keypress();
     await callContract(loopCount);
   }
 };
