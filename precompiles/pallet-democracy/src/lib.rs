@@ -250,10 +250,26 @@ where
 		// Bound check
 		input.expect_arguments(1)?;
 
-		// let ref_index = input.read();
+		let ref_index = input.read()?;
 
-		// println!("Removing vote from referendum {:?}", ref_index);
-		todo!()
+		println!("Removing vote from referendum {:?}", ref_index);
+
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = DemocracyCall::<Runtime>::remove_vote(ref_index);
+		
+		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+			Some(origin).into(),
+			call,
+			gasometer.remaining_gas()?,
+		)?;
+		gasometer.record_cost(used_gas)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Stopped,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: Default::default(),
+		})
 	}
 
 	fn delegate(
