@@ -527,7 +527,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
-  it.skip("should be able to initialize through democracy", async function () {
+  it("should be able to initialize through democracy", async function () {
     let calls = [];
     // We are gonna put the initialization and completion in a batch_all utility call
     calls.push(
@@ -617,7 +617,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
-  it.skip("should be able to burn the dust", async function () {
+  it("should be able to burn the dust", async function () {
     await context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.crowdloanRewards.initializeRewardVec([
