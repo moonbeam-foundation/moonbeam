@@ -32,7 +32,6 @@ cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt" }
 # Runtimes
 moonbeam-runtime = { path = "../../runtime/moonbeam" }
 moonriver-runtime = { path = "../../runtime/moonriver" }
-moonshadow-runtime = { path = "../../runtime/moonshadow" }
 moonbase-runtime = { path = "../../runtime/moonbase" }
 
 moonbeam-rpc-txpool = { path = "../../client/rpc/txpool" }
