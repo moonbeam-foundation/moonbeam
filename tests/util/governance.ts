@@ -42,7 +42,7 @@ export const execFromTwoThirdsOfCouncil = async <
   );
 };
 
-export const execFromTwoThirdsOfTechCommittee = async <
+export const execFromAllMembersOfTechCommittee = async <
   Call extends SubmittableExtrinsic<ApiType>,
   ApiType extends ApiTypes
 >(

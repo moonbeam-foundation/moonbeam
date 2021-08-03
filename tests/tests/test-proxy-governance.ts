@@ -9,7 +9,7 @@ import {
   VOTE_AMOUNT,
 } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
-import { execFromTwoThirdsOfCouncil, execFromTwoThirdsOfTechCommittee } from "../util/governance";
+import { execFromTwoThirdsOfCouncil, execFromAllMembersOfTechCommittee } from "../util/governance";
 
 const keyring = new Keyring({ type: "ethereum" });
 const proposalHash = "0xf3d039875302d49d52fb1af6877a2c46bc55b004afb8130f94dd9d0489ca3185";
@@ -28,7 +28,7 @@ describeDevMoonbeam("Proxing governance", (context) => {
       context,
       context.polkadotApi.tx.democracy.externalProposeMajority(proposalHash)
     );
-    let { events } = await execFromTwoThirdsOfTechCommittee(
+    let { events } = await execFromAllMembersOfTechCommittee(
       context,
       context.polkadotApi.tx.democracy.fastTrack(proposalHash, 5, 0)
     );
