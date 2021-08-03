@@ -221,9 +221,6 @@ where
 			aye, ref_index, conviction
 		);
 
-		//TODO Could be nicer to just pass the context here. It contains caller, this
-		// contract's address, and the eth value being passed.
-		// https://github.com/rust-blockchain/evm/blob/23f5d4a4717f7f995025200ed0c14a36a9e3aac8/runtime/src/context.rs#L39
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = DemocracyCall::<Runtime>::vote(ref_index, account_vote);
 
