@@ -874,11 +874,6 @@ pub mod pallet {
 	}
 
 	#[pallet::storage]
-	#[pallet::getter(fn delay_nomination_exits_migration)]
-	/// True if executed, false by default
-	type DelayNominationExitsMigration<T: Config> = StorageValue<_, bool, ValueQuery>;
-
-	#[pallet::storage]
 	#[pallet::getter(fn collator_commission)]
 	/// Commission percent taken off of rewards for all collators
 	type CollatorCommission<T: Config> = StorageValue<_, Perbill, ValueQuery>;
