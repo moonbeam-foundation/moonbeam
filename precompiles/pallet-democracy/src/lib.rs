@@ -83,7 +83,7 @@ where
 			[0x35, 0xcd, 0xe7, 0xae] => Self::standard_vote(input, target_gas, context),
 			[0x20, 0x42, 0xf5, 0x0b] => Self::remove_vote(input, target_gas, context),
 			[0x01, 0x85, 0x92, 0x1e] => Self::delegate(input, target_gas, context),
-			[0xcb, 0x37, 0xb8, 0xea] => Self::un_delegate(input, target_gas, context),
+			[0xcb, 0x37, 0xb8, 0xea] => Self::un_delegate(target_gas, context),
 			[0x2f, 0x6c, 0x49, 0x3c] => Self::unlock(input, target_gas, context),
 			_ => {
 				println!("Failed to match function selector in democracy precompile");
@@ -311,16 +311,29 @@ where
 	}
 
 	fn un_delegate(
-		mut input: EvmDataReader,
 		target_gas: Option<u64>,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		let mut gasometer = Gasometer::new(target_gas);
 
-		// Bound check
-		input.expect_arguments(2)?;
+		println!("Undelegating vote");
 
-		todo!()
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = DemocracyCall::<Runtime>::undelegate();
+
+		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+			Some(origin).into(),
+			call,
+			gasometer.remaining_gas()?,
+		)?;
+		gasometer.record_cost(used_gas)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Stopped,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: Default::default(),
+		})
 	}
 
 	fn unlock(
@@ -331,8 +344,28 @@ where
 		let mut gasometer = Gasometer::new(target_gas);
 
 		// Bound check
-		input.expect_arguments(2)?;
+		input.expect_arguments(1)?;
 
-		todo!()
+		let target_address: H160 = input.read::<Address>()?.into();
+		let target_account = Runtime::AddressMapping::into_account_id(target_address);
+
+		println!("Unlocking democracy tokens for {:?}", target_account);
+
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let call = DemocracyCall::<Runtime>::unlock(target_account);
+
+		let used_gas = RuntimeHelper::<Runtime>::try_dispatch(
+			Some(origin).into(),
+			call,
+			gasometer.remaining_gas()?,
+		)?;
+		gasometer.record_cost(used_gas)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Stopped,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: Default::default(),
+		})
 	}
 }
