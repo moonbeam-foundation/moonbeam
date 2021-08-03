@@ -132,7 +132,6 @@ pub struct EvmDataWriter {
 	arrays: Vec<Array>,
 }
 
-// An array of T where each T element should be encoded in a 256 bit item
 #[derive(Clone, Debug)]
 struct Array {
 	offset_position: usize,
@@ -184,10 +183,9 @@ impl EvmDataWriter {
 	}
 
 	/// Write arbitrary bytes.
-	/// Doesn't handle any alignement checks, prefer using `write` instead of possible.
-	pub fn write_raw_bytes(&mut self, value: &[u8]) -> Self {
+	pub fn write_raw_bytes(mut self, value: &[u8]) -> Self {
 		self.data.extend_from_slice(value);
-		self.clone()
+		self
 	}
 
 	/// Write selector bytes.
@@ -433,7 +431,7 @@ impl EvmData for Bytes {
 			} else {
 				buffer.copy_from_slice(&data[cursor..cursor + 32]);
 			}
-			inner_writer.write_raw_bytes(buffer.as_ref());
+			inner_writer = inner_writer.write_raw_bytes(&buffer);
 			cursor += 32;
 		}
 		let array = Array {
