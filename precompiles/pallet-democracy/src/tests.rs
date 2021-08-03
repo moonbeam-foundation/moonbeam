@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::mock::{
-	events, evm_test_context, precompile_address, roll_to, Call, Democracy, ExtBuilder, Origin,
+	events, evm_test_context, precompile_address, roll_to, Call, ExtBuilder, Origin,
 	Precompiles, Test, TestAccount::Alice,
 };
 //TODO Can PrecompileOutput come from somewhere better?

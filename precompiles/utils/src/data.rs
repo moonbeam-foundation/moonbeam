@@ -18,7 +18,7 @@ use super::{error, EvmResult};
 use core::ops::Range;
 use sp_core::{H160, H256, U256};
 use sp_std::{
-	convert::{TryFrom, TryInto},
+	convert::TryInto,
 	vec,
 	vec::Vec,
 };
@@ -167,11 +167,11 @@ impl EvmDataWriter {
 
 	//TODO is this a good idea?
 	// Write a solidity-style four-byte function selector for the given signature
-	pub fn write_selector(&mut self, signature: &str) {
-		// let selector = &Keccak256::digest(signature)[0..4];
-		// I was going to call write_raw_bytes here as a helper.
-		// But why do some of these methods take ownership and others not?
-	}
+	// pub fn write_selector(&mut self, signature: &str) {
+	// 	let selector = &Keccak256::digest(signature)[0..4];
+	// 	I was going to call write_raw_bytes here as a helper.
+	// 	But why do some of these methods take ownership and others not?
+	// }
 
 	/// Write data of requested type.
 	pub fn write<T: EvmData>(mut self, value: T) -> Self {

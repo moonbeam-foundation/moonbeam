@@ -249,9 +249,9 @@ impl ExtBuilder {
 	}
 
 	//TODO after https://github.com/paritytech/substrate/pull/9484 lands
-	pub(crate) fn with_referenda(mut self, referenda: Vec<()>) -> Self {
-		todo!()
-	}
+	// pub(crate) fn with_referenda(mut self, referenda: Vec<()>) -> Self {
+	// 	todo!()
+	// }
 
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::default()
