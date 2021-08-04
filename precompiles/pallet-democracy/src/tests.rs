@@ -16,11 +16,11 @@
 
 use crate::mock::{
 	events, evm_test_context, precompile_address, roll_to, Call, ExtBuilder, Origin,
-	Precompiles, Test, TestAccount::{Alice, Bob}, Democracy,
+	Precompiles, Test, TestAccount::{self, Alice, Bob}, Democracy, Balances,
 };
 //TODO Can PrecompileOutput come from somewhere better?
 use crate::PrecompileOutput;
-use frame_support::{assert_ok, dispatch::Dispatchable};
+use frame_support::{assert_ok, dispatch::Dispatchable, traits::Currency};
 use pallet_balances::Event as BalancesEvent;
 use pallet_democracy::{AccountVote, Call as DemocracyCall, Event as DemocracyEvent, Vote, Voting, VoteThreshold};
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
@@ -589,7 +589,6 @@ fn undelegate_works() {
 #[test]
 fn undelegate_dne() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
 			// Construct input data to un-delegate Alice
@@ -611,8 +610,68 @@ fn undelegate_dne() {
 }
 
 #[test]
-fn unlock_with_nothing_locked() {
-	todo!()
+fn unlock_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.with_referenda(vec![(Default::default(), VoteThreshold::SimpleMajority, 10)])
+		.build()
+		.execute_with(|| {
+
+			// Alice votes to get some tokens locked
+			assert_ok!(Democracy::vote(Origin::signed(Alice), 0, AccountVote::Standard {
+				vote: Vote {
+					aye: true,
+					conviction: 1u8.try_into().unwrap()
+				},
+				balance: 100,
+			}));
+
+			// Let time elapse until she wins the vote and gets her tokens locked
+			roll_to(11);
+			// Let time elapse until her tokens no longer need to be locked
+			// NOTE: This is  bogus hash with no preimage, so no actual outcome
+			// will be successfully dispatched. Nonetheless, she should still have her
+			// tokens locked.
+			roll_to(21);
+
+			// Assert they are locked
+			//WTF, why are they not locked?
+			assert_eq!(<Balances as Currency<TestAccount>>::free_balance(&Alice), 900);
+
+
+			// Construct input data to un-lock tokens for Alice
+			let selector = &Keccak256::digest(b"unlock(address)")[0..4];
+			let input = EvmDataWriter::new()
+				.write_raw_bytes(selector)
+				.write::<Address>(H160::from(Alice).into())
+				.build();
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(EvmCall::call(
+				Alice.into(),
+				precompile_address(),
+				input,
+				U256::zero(), // No value sent in EVM
+				u64::max_value(),
+				0.into(),
+				None, // Use the next nonce
+			))
+			.dispatch(Origin::root()));
+
+			// Assert that the events are as expected
+			assert_eq!(
+				events(),
+				vec![
+					DemocracyEvent::Started(
+						0,
+						pallet_democracy::VoteThreshold::SimpleMajority
+					)
+					.into(),
+					DemocracyEvent::Passed(0).into(),
+					EvmEvent::Executed(precompile_address()).into(),
+				]
+			);
+		})
 }
 
 #[test]
