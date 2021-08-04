@@ -616,7 +616,36 @@ fn unlock_with_nothing_locked() {
 }
 
 #[test]
-fn unlock_works() {
-	// This one will be hard because we have to get some tokens locked first.
-	todo!()
+fn unlock_with_nothing_locked() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)]) // So that she already has an account existing.
+		.build()
+		.execute_with(|| {
+			// Construct input data to un-lock tokens for Alice
+			let selector = &Keccak256::digest(b"unlock(address)")[0..4];
+			let input = EvmDataWriter::new()
+				.write_raw_bytes(selector)
+				.write::<Address>(H160::from(Alice).into())
+				.build();
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(EvmCall::call(
+				Alice.into(),
+				precompile_address(),
+				input,
+				U256::zero(), // No value sent in EVM
+				u64::max_value(),
+				0.into(),
+				None, // Use the next nonce
+			))
+			.dispatch(Origin::root()));
+
+			// Assert that the events are as expected
+			assert_eq!(
+				events(),
+				vec![
+					EvmEvent::Executed(precompile_address()).into(),
+				]
+			);
+		})
 }
