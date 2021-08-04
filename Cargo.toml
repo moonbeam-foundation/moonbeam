@@ -7,6 +7,8 @@ members = [
     'node/cli',
     'node/service',
     'bin/utils/moonkey',
+    'client/rpc-core/benchmark',
+    'client/rpc/benchmark',
 ]
 exclude = [
     'bin/utils/moonkey'

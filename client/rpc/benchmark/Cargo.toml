@@ -1,0 +1,35 @@
+[package]
+name = "moonbeam-rpc-benchmark"
+version = '0.1.0'
+authors = ['PureStake']
+edition = '2018'
+homepage = 'https://moonbeam.network'
+license = 'GPL-3.0-only'
+repository = 'https://github.com/PureStake/moonbeam/'
+
+[dependencies]
+tokio = { version = "0.2.21", features = ["sync", "time"] }
+futures = { version = "0.3", features = ["compat"] }
+jsonrpc-core = "15.0.0"
+log = "0.4.8"
+rlp = "0.5"
+sha3 = "0.8"
+
+ethereum = { version = "0.7.1", default-features = false, features = ["with-codec"] }
+ethereum-types = "0.11.0"
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
+sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
+sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
+sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
+sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
+sp-utils = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
+
+moonbeam-rpc-core-benchmark = { path = "../../rpc-core/benchmark" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.8" }
+fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.8" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.8" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.8" }
+fc-rpc-core = { git="https://github.com/purestake/frontier", default-features=false, branch="moonbeam-polkadot-v0.9.8" }
+pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.8" }
