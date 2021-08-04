@@ -26,7 +26,7 @@ use cumulus_primitives_core::ParaId;
 use evm::GenesisAccount;
 use moonbase_runtime::{
 	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
+	BalancesKsmConfig, CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig,
 	ParachainStakingConfig, Precompiles, Range, SchedulerConfig, /*SudoConfig,*/ SystemConfig,
 	TechComitteeCollectiveConfig, WASM_BINARY,
@@ -204,6 +204,7 @@ pub fn testnet_genesis(
 				.map(|k| (k, 1 << 80))
 				.collect(),
 		},
+		balances_ksm: BalancesKsmConfig { balances: vec![] },
 		crowdloan_rewards: CrowdloanRewardsConfig {
 			funded_amount: crowdloan_fund_pot,
 		},

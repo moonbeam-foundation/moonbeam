@@ -69,6 +69,7 @@ pallet-collective = { git = "https://github.com/paritytech/substrate", default-f
 pallet-society = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 pallet-proxy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 pallet-treasury = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
+pallet-assets = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 
 pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false, branch = "main" }
 crowdloan-rewards-precompiles = { path = "../../precompiles/crowdloan-rewards", default-features = false }
@@ -82,6 +83,19 @@ cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus"
 cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-np098" }
 parachain-info = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-np098" }
 cumulus-primitives-timestamp = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-np098" }
+
+cumulus-pallet-xcmp-queue = { git = "https://github.com/purestake/cumulus", default-features = false, branch = "joshy-np098" }
+cumulus-pallet-dmp-queue = { git = "https://github.com/purestake/cumulus", default-features = false,  branch = "joshy-np098"}
+cumulus-pallet-xcm = { git = "https://github.com/purestake/cumulus", default-features = false,  branch = "joshy-np098" }
+cumulus-primitives-utility = { git = "https://github.com/purestake/cumulus", default-features = false,  branch = "joshy-np098" }
+
+# xcmp 
+xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.8" }
+xcm-builder = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.8" }
+xcm-executor = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.8" }
+pallet-xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.8" }
+polkadot-parachain = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.8" }
+polkadot-core-primitives = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.8" }
 
 # Benchmarking dependencies
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8", optional = true }
@@ -156,6 +170,13 @@ std = [
 	"pallet-author-mapping/std",
 	"max-encoded-len/std",
 	"evm/std",
+	"xcm/std",
+	"xcm-builder/std",
+	"xcm-executor/std",
+	"cumulus-pallet-xcmp-queue/std",
+	"cumulus-pallet-xcm/std",
+	"cumulus-pallet-dmp-queue/std",
+	"pallet-assets/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
