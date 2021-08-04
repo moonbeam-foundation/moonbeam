@@ -220,7 +220,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn author() -> H160 {
-					Ethereum::find_author()
+					<pallet_evm::Module<Runtime>>::find_author()
 				}
 
 				fn storage_at(address: H160, index: U256) -> H256 {
@@ -316,6 +316,15 @@ macro_rules! impl_runtime_apis_plus_common {
 						Ethereum::current_receipts(),
 						Ethereum::current_transaction_statuses(),
 					)
+				}
+
+				fn extrinsic_filter(
+					xts: Vec<<Block as BlockT>::Extrinsic>,
+				) -> Vec<EthereumTransaction> {
+					xts.into_iter().filter_map(|xt| match xt.function {
+						Call::Ethereum(transact(t)) => Some(t),
+						_ => None
+					}).collect::<Vec<EthereumTransaction>>()
 				}
 			}
 
