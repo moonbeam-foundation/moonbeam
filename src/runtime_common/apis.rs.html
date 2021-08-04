@@ -417,6 +417,15 @@
 <span id="414">414</span>
 <span id="415">415</span>
 <span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -640,7 +649,7 @@
 				}
 
 				<span class="kw">fn</span> <span class="ident">author</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">H160</span> {
-					<span class="ident">Ethereum</span>::<span class="ident">find_author</span>()
+					<span class="op">&lt;</span><span class="ident">pallet_evm</span>::<span class="ident">Module</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">find_author</span>()
 				}
 
 				<span class="kw">fn</span> <span class="ident">storage_at</span>(<span class="ident">address</span>: <span class="ident">H160</span>, <span class="ident">index</span>: <span class="ident">U256</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">H256</span> {
@@ -736,6 +745,15 @@
 						<span class="ident">Ethereum</span>::<span class="ident">current_receipts</span>(),
 						<span class="ident">Ethereum</span>::<span class="ident">current_transaction_statuses</span>(),
 					)
+				}
+
+				<span class="kw">fn</span> <span class="ident">extrinsic_filter</span>(
+					<span class="ident">xts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span>::<span class="ident">Extrinsic</span><span class="op">&gt;</span>,
+				) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EthereumTransaction</span><span class="op">&gt;</span> {
+					<span class="ident">xts</span>.<span class="ident">into_iter</span>().<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">xt</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">xt</span>.<span class="ident">function</span> {
+						<span class="ident">Call</span>::<span class="ident">Ethereum</span>(<span class="ident">transact</span>(<span class="ident">t</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>),
+						<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>
+					}).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EthereumTransaction</span><span class="op">&gt;</span><span class="op">&gt;</span>()
 				}
 			}
 
