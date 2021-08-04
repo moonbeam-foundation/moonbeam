@@ -354,7 +354,10 @@ where
 
 	params.task_manager.spawn_essential_handle().spawn(
 		"frontier-schema-cache-task",
-		EthTask::ethereum_schema_cache_task(Arc::clone(&params.client), Arc::clone(&params.frontier_backend)),
+		EthTask::ethereum_schema_cache_task(
+			Arc::clone(&params.client),
+			Arc::clone(&params.frontier_backend),
+		),
 	);
 
 	RpcRequesters {
