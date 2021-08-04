@@ -25,7 +25,7 @@ use sp_block_builder::BlockBuilder;
 use crate::{client::RuntimeApiCollection, TransactionConverters};
 use cli_opt::{EthApi as EthApiCmd, RpcConfig};
 use ethereum::EthereumStorageSchema;
-use fc_mapping_sync::MappingSyncWorker;
+use fc_mapping_sync::{MappingSyncWorker, SyncStrategy};
 use fc_rpc::{
 	EthApi, EthApiServer, EthFilterApi, EthFilterApiServer, EthPubSubApi, EthPubSubApiServer,
 	EthTask, HexEncodedIdProvider, NetApi, NetApiServer, OverrideHandle, RuntimeApiStorageOverride,
@@ -300,6 +300,7 @@ where
 			params.client.clone(),
 			params.substrate_backend.clone(),
 			params.frontier_backend.clone(),
+			SyncStrategy::Parachain,
 		)
 		.for_each(|()| futures::future::ready(())),
 	);
