@@ -13,6 +13,57 @@ interface Democracy {
     /// Get the total number of public proposals past and present
     function public_prop_count() external view returns (uint256);
 
+    // Get details about all public porposals. The return values are the
+    // prop index, the proposal hash (it there a better solidity type?), and the proposer
+    //TODO This is supposed to be a vec. Let's save this one for later.
+    // function public_props()
+    //     external
+    //     view
+    //     returns (
+    //         uint256,
+    //         uint256,
+    //         address
+    //     );
+
+    /// Get the total amount locked behind a proposal. Unlike the underlying Rust function
+    /// this one only returns the value, and not the copmlete list of backers.
+    function deposit_of(uint256 index) external view returns (uint256);
+
+    /// Get the lowest referendum index representing an unbaked referendum.
+    function lowest_unbaked() external view returns (uint256);
+
+    /// Get the details about an ongoing referendum. This, along with `finished_referendum_info`,
+    /// wraps the pallet's `referendum_info` function. It is necessary to split it into two here
+    /// because Solidity only has simple c-style enums. The return values are the
+    /// * The block in which the referendum ended
+    /// * The proposal hash (is there a better type than uint256?)
+    /// * The baising mechanism 0-SuperMajorityApprove, 1-SuperMajorityAgainst, 3-SimpleMajority
+    /// * The delay between passing and launching
+    /// * The total ayevote (including conviction)
+    /// * The total nay vote (including conviction)
+    /// * The total turnout (not including conviction)
+    function ongoing_referendum_info(uint256 ref_index)
+        external
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256,
+            uint256,
+            uint256,
+            uint256,
+            uint256
+        );
+
+    /// Get the details about a finished referendum. This, along with `fongoing_referendum_info`,
+    /// wraps the pallet's `referendum_info` function. It is necessary to split it into two here
+    /// because Solidity only has simple c-style enums. The return values are the
+    /// whether the referendum passed, and the block number at which the referendum finished.
+    function finished_referendum_info(uint256 ref_index)
+        external
+        view
+        returns (bool, uint256);
+
     // Now the dispatchables
 
     /// Make a new proposal with the given hash locking the given value
@@ -63,12 +114,17 @@ interface Democracy {
 // https://ethereum.stackexchange.com/a/73405/9963
 // Eventually we will probably want a better way of generating these and copying them to Rust
 // {
-//     "0185921e": "delegate(address,uint256,uint256)",
-//     "7824e7d1": "propose(bytes32,uint256)",
-//     "56fdf547": "public_prop_count()",
-//     "2042f50b": "remove_vote(uint256)",
-//     "c7a76601": "second(uint256,uint256)",
-//     "35cde7ae": "stardard_vote(uint256,bool,uint256,uint256)",
-//     "cb37b8ea": "un_delegate()",
-//     "2f6c493c": "unlock(address)"
+// 	"0185921e": "delegate(address,uint256,uint256)",
+// 	"a30305e9": "deposit_of(uint256)",
+// 	"b1fd383f": "finished_referendum_info(uint256)",
+// 	"0388f282": "lowest_unbaked()",
+// 	"8b93d11a": "ongoing_referendum_info(uint256)",
+// 	"7824e7d1": "propose(bytes32,uint256)",
+// 	"56fdf547": "public_prop_count()",
+// 	"b089f202": "public_props()",
+// 	"2042f50b": "remove_vote(uint256)",
+// 	"c7a76601": "second(uint256,uint256)",
+// 	"35cde7ae": "stardard_vote(uint256,bool,uint256,uint256)",
+// 	"cb37b8ea": "un_delegate()",
+// 	"2f6c493c": "unlock(address)"
 // }

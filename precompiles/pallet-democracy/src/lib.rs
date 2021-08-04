@@ -77,6 +77,12 @@ where
 		match &input.read_selector()? {
 			// Check for accessor methods first. These return results immediately
 			[0x56, 0xfd, 0xf5, 0x47] => Self::public_prop_count(target_gas),
+			// [0xb0, 0x89, 0xf2, 0x02] => Self::public_props(target_gas),
+			[0xa3, 0x03, 0x05, 0xe9] => Self::deposit_of(input, target_gas),
+			[0x03, 0x88, 0xf2, 0x82] => Self::lowest_unbaked(target_gas),
+			[0x8b, 0x93, 0xd1, 0x1a] => Self::ongoing_referendum_info(input, target_gas),
+			[0xb1, 0xfd, 0x38, 0x37] => Self::finished_referendum_info(input, target_gas),
+			
 			// Now the dispatchables
 			[0x78, 0x24, 0xe7, 0xd1] => Self::propose(input, target_gas, context),
 			[0xc7, 0xa7, 0x66, 0x01] => Self::second(input, target_gas, context),
@@ -120,6 +126,26 @@ where
 			output: EvmDataWriter::new().write(prop_count).build(),
 			logs: Default::default(),
 		})
+	}
+
+	fn public_props(_target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
+		todo!()
+	}
+
+	fn deposit_of(mut input: EvmDataReader, target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
+		todo!()
+	}
+
+	fn lowest_unbaked(target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
+		todo!()
+	}
+
+	fn ongoing_referendum_info(mut input: EvmDataReader, target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
+		todo!()
+	}
+
+	fn finished_referendum_info(mut input: EvmDataReader, target_gas: Option<u64>) -> EvmResult<PrecompileOutput> {
+		todo!()
 	}
 
 	// The dispatchable wrappers are next. They return a substrate inner Call ready for dispatch.
