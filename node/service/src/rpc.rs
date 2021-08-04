@@ -175,7 +175,7 @@ where
 		pending_transactions,
 		signers,
 		overrides.clone(),
-		frontier_backend,
+		frontier_backend.clone(),
 		is_authority,
 		max_past_logs,
 	)));
@@ -183,6 +183,7 @@ where
 	if let Some(filter_pool) = filter_pool {
 		io.extend_with(EthFilterApiServer::to_delegate(EthFilterApi::new(
 			client.clone(),
+			frontier_backend,
 			filter_pool,
 			500_usize, // max stored filters
 			overrides.clone(),
