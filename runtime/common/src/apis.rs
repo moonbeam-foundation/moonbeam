@@ -317,6 +317,15 @@ macro_rules! impl_runtime_apis_plus_common {
 						Ethereum::current_transaction_statuses(),
 					)
 				}
+
+				fn extrinsic_filter(
+					xts: Vec<<Block as BlockT>::Extrinsic>,
+				) -> Vec<EthereumTransaction> {
+					xts.into_iter().filter_map(|xt| match xt.function {
+						Call::Ethereum(transact(t)) => Some(t),
+						_ => None
+					}).collect::<Vec<EthereumTransaction>>()
+				}
 			}
 
 			impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
