@@ -53,18 +53,19 @@ use pallet_evm::{
 	IdentityAddressMapping, Runner,
 };
 use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
-use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
 pub use parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode};
 use sp_api::impl_runtime_apis;
 use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
-use sp_runtime::traits::Zero;
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, IdentityLookup},
+	traits::{AccountIdConversion, BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	AccountId32, ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
 };
+use sp_std::marker::PhantomData;
+use xcm::v0::{Junction, MultiAsset, MultiLocation, NetworkId, Xcm};
+
 use sp_std::{
 	convert::{TryFrom, TryInto},
 	prelude::*,
@@ -77,9 +78,6 @@ use nimbus_primitives::{CanAuthor, NimbusId};
 
 mod precompiles;
 use precompiles::MoonbasePrecompiles;
-
-use sp_std::marker::PhantomData;
-use xcm::v0::{BodyId, Junction, MultiAsset, MultiLocation, NetworkId, Xcm};
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
@@ -95,13 +93,16 @@ pub mod currency {
 	pub const MILLIUNIT: Balance = UNIT / 1_000;
 	pub const MICROUNIT: Balance = MILLIUNIT / 1_000;
 	pub const NANOUNIT: Balance = MICROUNIT / 1_000;
-	pub const WEI: Balance = 1;
-
-	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROUNIT;
-	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROUNIT;
+	pub const CENTS: Balance = UNIT / 30_000;
+	pub const MILLICENTS: Balance = CENTS / 1_000;
+	pub const BYTE_FEE: Balance = 100 * MICROUNIT;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 1 * UNIT + (bytes as Balance) * STORAGE_BYTE_FEE
+		items as Balance * 1 * UNIT + (bytes as Balance) * BYTE_FEE
+	}
+
+	pub const fn relay_deposit(items: u32, bytes: u32) -> Balance {
+		items as Balance * 2_000 * CENTS + (bytes as Balance) * 100 * MILLICENTS
 	}
 }
 
@@ -139,7 +140,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 3,
-	spec_version: 0200,
+	spec_version: 0155,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -290,7 +291,7 @@ where
 }
 
 parameter_types! {
-	pub const TransactionByteFee: Balance = currency::TRANSACTION_BYTE_FEE;
+	pub const TransactionByteFee: Balance = currency::BYTE_FEE;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
@@ -300,10 +301,6 @@ impl pallet_transaction_payment::Config for Runtime {
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
 }
 
-// impl pallet_sudo::Config for Runtime {
-// 	type Call = Call;
-// 	type Event = Event;
-// }
 
 impl pallet_ethereum_chain_id::Config for Runtime {}
 
@@ -451,7 +448,7 @@ parameter_types! {
 	pub const MinimumDeposit: Balance = 4 * currency::UNIT;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
-	pub const PreimageByteDeposit: Balance = currency::STORAGE_BYTE_FEE;
+	pub const PreimageByteDeposit: Balance = currency::BYTE_FEE;
 	pub const InstantAllowed: bool = true;
 }
 
@@ -582,16 +579,17 @@ impl pallet_ethereum::Config for Runtime {
 
 parameter_types! {
 	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 4;
+	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 4;
 }
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
-	type SelfParaId = ParachainInfo;
-	type DmpMessageHandler = ();
-	type ReservedDmpWeight = ();
-	type OutboundXcmpMessageSource = ();
-	type XcmpMessageHandler = ();
+	type SelfParaId = parachain_info::Pallet<Runtime>;
+	type DmpMessageHandler = DmpQueue;
+	type ReservedDmpWeight = ReservedDmpWeight;
+	type OutboundXcmpMessageSource = XcmpQueue;
+	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 }
 
@@ -627,6 +625,7 @@ parameter_types! {
 	/// Minimum stake required to be reserved to be a nominator is 5
 	pub const MinNominatorStk: u128 = 5 * currency::UNIT;
 }
+
 impl parachain_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
@@ -801,10 +800,13 @@ parameter_types! {
 	pub MoonbeamNetwork: NetworkId = NetworkId::Named("moon".into());
 	pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub Ancestry: MultiLocation = Junction::Parachain(ParachainInfo::parachain_id().into()).into();
-	pub const Local: MultiLocation = MultiLocation::Null;
-	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
 }
 
+parameter_types! {
+	pub const XcmWrapperId: PalletId = PalletId(*b"pc/xcmwr");
+	pub SovereignAccount: AccountId32 = ParachainInfo::parachain_id().into_account();
+	pub ProxyDepositAmount: Balance =  currency::relay_deposit(1, 8) + currency::relay_deposit(0, 33);
+}
 pub struct NativeToRelay;
 impl sp_runtime::traits::Convert<Balance, cumulus_primitives_core::relay_chain::Balance>
 	for NativeToRelay
@@ -860,44 +862,8 @@ where
 	}
 }
 
-use frame_support::traits::{fungibles, Contains};
-use xcm_builder::{AsPrefixedGeneralIndex, FungiblesAdapter};
-use xcm_executor::traits::JustTry;
-
-/// Allow checking in assets that have issuance > 0.
-pub struct CheckAsset<A>(PhantomData<A>);
-impl<A> Contains<<A as fungibles::Inspect<AccountId>>::AssetId> for CheckAsset<A>
-where
-	A: fungibles::Inspect<AccountId>,
-{
-	fn contains(id: &<A as fungibles::Inspect<AccountId>>::AssetId) -> bool {
-		!A::total_issuance(*id).is_zero()
-	}
-}
-
-pub type FungiblesTransactor = FungiblesAdapter<
-	// Use this fungibles implementation:
-	Assets,
-	// Use this currency when it is a fungible asset matching the given location or name:
-	(
-		xcm_builder::ConvertedConcreteAssetId<
-			u32,
-			Balance,
-			AsPrefixedGeneralIndex<Local, u32, JustTry>,
-			JustTry,
-		>,
-	),
-	// Do a simple punn to convert an AccountId32 MultiLocation into a native chain account ID:
-	LocationToAccountId,
-	// Our chain's account ID type (we can't get away without mentioning it explicitly):
-	AccountId,
-	// We only allow teleports of known assets. This can be changed
-	CheckAsset<Assets>,
-	CheckingAccount,
->;
-
 /// Means for transacting assets on this chain.
-pub type KsmTransactor = xcm_builder::CurrencyAdapter<
+pub type LocalAssetTransactor = xcm_builder::CurrencyAdapter<
 	// Use this currency:
 	BalancesKsm,
 	// Use this currency when it is a fungible asset matching the given location or name:
@@ -909,8 +875,6 @@ pub type KsmTransactor = xcm_builder::CurrencyAdapter<
 	// We don't track any teleports.
 	(),
 >;
-
-pub type AssetTransactors = (KsmTransactor, FungiblesTransactor);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
@@ -958,7 +922,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type Call = Call;
 	type XcmSender = XcmRouter;
 	// How to withdraw and deposit an asset.
-	type AssetTransactor = KsmTransactor;
+	type AssetTransactor = LocalAssetTransactor;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
 	type IsReserve = xcm_builder::NativeAsset;
 	type IsTeleporter = xcm_builder::NativeAsset; // <- should be enough to allow teleportation of KSM
@@ -1023,7 +987,6 @@ impl pallet_xcm::Config for Runtime {
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
 }
 
-// xcm cumulus
 impl cumulus_pallet_xcm::Config for Runtime {
 	type Event = Event;
 	type XcmExecutor = XcmExecutor;
@@ -1041,38 +1004,18 @@ impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 }
 
-parameter_types! {
-	pub const AssetDeposit: Balance = 100 * currency::UNIT; // 100 UNIT deposit to create asset
-	pub const ApprovalDeposit: Balance = 0;
-	pub const AssetsStringLimit: u32 = 50;
-	/// Key = 32 bytes, Value = 36 bytes (32+1+1+1+1)
-	// https://github.com/paritytech/substrate/blob/069917b/frame/assets/src/lib.rs#L257L271
-	pub const MetadataDepositBase: Balance = currency::deposit(1, 68);
-	pub const MetadataDepositPerByte: Balance = currency::deposit(0, 1);
-	pub const ExecutiveBody: BodyId = BodyId::Executive;
-}
-
-/// We allow root and the Relay Chain council to execute privileged asset operations.
-pub type AssetsForceOrigin = EnsureOneOf<
-	AccountId,
-	EnsureRoot<AccountId>,
-	EnsureXcm<IsMajorityOfBody<KsmLocation, ExecutiveBody>>,
->;
-
-impl pallet_assets::Config for Runtime {
-	type Event = Event;
-	type Balance = Balance;
-	type AssetId = u32;
-	type Currency = Balances;
-	type ForceOrigin = AssetsForceOrigin;
-	type AssetDeposit = AssetDeposit;
-	type MetadataDepositBase = MetadataDepositBase;
-	type MetadataDepositPerByte = MetadataDepositPerByte;
-	type ApprovalDeposit = ApprovalDeposit;
-	type StringLimit = AssetsStringLimit;
-	type Freezer = ();
-	type Extra = ();
-	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
+pub struct AccountKey20Convert;
+impl
+	sp_runtime::traits::Convert<
+		<<Signature as sp_runtime::traits::Verify>::Signer as IdentifyAccount>::AccountId,
+		[u8; 20],
+	> for AccountKey20Convert
+{
+	fn convert(
+		from: <<Signature as sp_runtime::traits::Verify>::Signer as IdentifyAccount>::AccountId,
+	) -> [u8; 20] {
+		from.into()
+	}
 }
 
 construct_runtime! {
@@ -1081,38 +1024,36 @@ construct_runtime! {
 		NodeBlock = opaque::Block,
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
-		System: frame_system::{Pallet, Call, Storage, Config, Event<T>} = 0,
-		Utility: pallet_utility::{Pallet, Call, Event} = 1,
-		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 2,
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 3,
+		System: frame_system::{Pallet, Call, Storage, Config, Event<T>},
+		Utility: pallet_utility::{Pallet, Call, Event},
+		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 		BalancesKsm: pallet_balances::<Instance1>::{Pallet, Call, Storage, Config<T>, Event<T>},
-		// Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 4,
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = 5,
-		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 6,
-		TransactionPayment: pallet_transaction_payment::{Pallet, Storage} = 7,
-		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 8,
-		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 9,
-		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 10,
-		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config, ValidateUnsigned} = 11,
-		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 12,
-		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call} = 13,
-		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 14,
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
+		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage},
+		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>},
+		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
+		ParachainInfo: parachain_info::{Pallet, Storage, Config},
+		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config},
+		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>},
+		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config, ValidateUnsigned},
+		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>},
+		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call},
+		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call},
 		CouncilCollective:
-			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 15,
+			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>},
 		TechComitteeCollective:
-			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 16,
-		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call} = 17,
-		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent} = 18,
-		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config} = 19,
-		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>} = 20,
-		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>} = 21,
-		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 22,
+			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>},
+		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call},
+		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent},
+		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config},
+		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>},
+		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>},
+		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
 		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>},
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin},
 		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>},
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
-		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>},
-	}
+		}
 }
 
 /// Block type as expected by this runtime.
