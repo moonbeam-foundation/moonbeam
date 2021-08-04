@@ -627,9 +627,12 @@ fn unlock_works() {
 				balance: 100,
 			}));
 
-			// Tokens are locked in `try_vote` when a lock is placed. Why is that not
+			// Tokens are locked in `try_vote` when a vote is cast. Why is that not
 			// reflected here?
 			// https://github.com/paritytech/substrate/blob/master/frame/democracy/src/lib.rs#L1405
+			// One possible way to look further: I just noticed there is a `Locks` storage item in
+			// the pallet.
+			// And also, maybe write a test in the pallet to ensure the locks work as expected.
 			assert_eq!(<Balances as Currency<TestAccount>>::free_balance(&Alice), 900);
 
 			// Let time elapse until she wins the vote and gets her tokens locked
