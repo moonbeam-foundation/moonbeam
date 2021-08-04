@@ -24,5 +24,5 @@ pub fn calculate_fn_selector_for(input: TokenStream) -> TokenStream {
 		}
 	};
 
-    TokenStream::from(expanded)
+	TokenStream::from(expanded)
 }
