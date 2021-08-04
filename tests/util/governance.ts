@@ -23,7 +23,7 @@ export const execFromTwoThirdsOfCouncil = async <
   const dorothy = await keyring.addFromUri(DOROTHY_PRIV_KEY, null, "ethereum");
 
   // Charleth submit the proposal to the council (and therefore implicitly votes for)
-  let lengthBound = 1_000;
+  let lengthBound = polkadotCall.encodedLength;
   const { events: proposalEvents } = await createBlockWithExtrinsic(
     context,
     charleth,
@@ -54,7 +54,7 @@ export const execFromAllMembersOfTechCommittee = async <
   const baltathar = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
   // Alith submit the proposal to the council (and therefore implicitly votes for)
-  let lengthBound = 1_000;
+  let lengthBound = polkadotCall.encodedLength;
   const { events: proposalEvents } = await createBlockWithExtrinsic(
     context,
     alith,
