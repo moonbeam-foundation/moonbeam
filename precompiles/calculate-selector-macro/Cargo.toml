@@ -1,0 +1,21 @@
+[package]
+name = "calculate-selector-macro"
+version = "0.1.0"
+authors = ["PureStake"]
+edition = "2018"
+description = ""
+
+[lib]
+proc-macro = true
+
+[[test]]
+name = "tests"
+path = "tests/progress.rs"
+
+[dev-dependencies]
+trybuild = { version = "1.0", features = ["diff"] }
+
+[dependencies]
+quote = "1.0"
+sha3 = "0.8"
+syn = "1.0"
