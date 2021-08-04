@@ -16,7 +16,7 @@
 
 use crate::mock::{
 	events, evm_test_context, precompile_address, roll_to, Call, ExtBuilder, Origin,
-	Precompiles, Test, TestAccount::Alice, Democracy,
+	Precompiles, Test, TestAccount::{Alice, Bob}, Democracy,
 };
 //TODO Can PrecompileOutput come from somewhere better?
 use crate::PrecompileOutput;
@@ -25,9 +25,9 @@ use pallet_balances::Event as BalancesEvent;
 use pallet_democracy::{AccountVote, Call as DemocracyCall, Event as DemocracyEvent, Vote, Voting, VoteThreshold};
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
 use pallet_evm::{ExitError, ExitSucceed, PrecompileSet};
-use precompile_utils::{error, EvmDataWriter};
+use precompile_utils::{error, EvmDataWriter, Address};
 use sha3::{Digest, Keccak256};
-use sp_core::U256;
+use sp_core::{H160, U256};
 use std::convert::TryInto;
 
 #[test]
@@ -471,7 +471,65 @@ fn remove_vote_dne() {
 
 #[test]
 fn delegate_works() {
-	todo!()
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			// Construct input data to delegate Alice -> Bob
+			let selector = &Keccak256::digest(b"delegate(address,uint256,uint256)")[0..4];
+			let input = EvmDataWriter::new()
+				.write_raw_bytes(selector)
+				.write::<Address>(H160::from(Bob).into()) // Delegate to //TODO this needs to be an address somehow
+				.write(2u8) // 2X conviction
+				.write(100u128) // 100 tokens
+				.build();
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(EvmCall::call(
+				Alice.into(),
+				precompile_address(),
+				input,
+				U256::zero(), // No value sent in EVM
+				u64::max_value(),
+				0.into(),
+				None, // Use the next nonce
+			))
+			.dispatch(Origin::root()));
+
+			// Assert that the events are as expected
+			assert_eq!(
+				events(),
+				vec![
+					DemocracyEvent::Delegated(Alice, Bob).into(),
+					EvmEvent::Executed(precompile_address()).into(),
+				]
+			);
+
+			// Check that storage is correct
+			assert_eq!(
+				pallet_democracy::VotingOf::<Test>::get(Alice),
+				Voting::Delegating {
+					balance: 100,
+					target: Bob,
+					conviction: 2u8.try_into().unwrap(),
+					delegations: Default::default(),
+					prior: Default::default(),
+				}
+			);
+			// Would be nice to check that it shows up for Bob too, but  can't because of
+			// private fields. At elast I can see it works manually when uncommenting this.
+			// assert_eq!(
+			// 	pallet_democracy::VotingOf::<Test>::get(Bob),
+			// 	Voting::Direct {
+			// 		votes: Default::default(),
+			// 		delegations: pallet_democracy::Delegations {
+			// 			votes: 200, //because of 2x conviction
+			// 			capital: 100,
+			// 		},
+			// 		prior: Default::default(),
+			// 	}
+			// );
+		})
 }
 
 //TODO Delecate error cases
