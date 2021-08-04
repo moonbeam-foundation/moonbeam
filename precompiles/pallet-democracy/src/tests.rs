@@ -537,12 +537,77 @@ fn delegate_works() {
 
 #[test]
 fn undelegate_works() {
-	todo!()
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			// Before we can undelegate there has to be a delegation.
+			// There's no a genesis config or helper function available, so I'll make one here.
+			assert_ok!(Democracy::delegate(Origin::signed(Alice), Bob, 1u8.try_into().unwrap(), 100));
+
+			// Construct input data to un-delegate Alice
+			let selector = &Keccak256::digest(b"un_delegate()")[0..4];
+			let input = EvmDataWriter::new()
+				.write_raw_bytes(selector)
+				.build();
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(EvmCall::call(
+				Alice.into(),
+				precompile_address(),
+				input,
+				U256::zero(), // No value sent in EVM
+				u64::max_value(),
+				0.into(),
+				None, // Use the next nonce
+			))
+			.dispatch(Origin::root()));
+
+			// Assert that the events are as expected
+			assert_eq!(
+				events(),
+				vec![
+					DemocracyEvent::Delegated(Alice, Bob).into(),
+					DemocracyEvent::Undelegated(Alice).into(),
+					EvmEvent::Executed(precompile_address()).into(),
+				]
+			);
+
+			// Would be nice to check storage too, but I can't express PriorLock because
+			// it is private.
+			// assert_eq!(
+			// 	pallet_democracy::VotingOf::<Test>::get(Alice),
+			// 	Voting::Direct{
+			// 		votes: Default::default(),
+			// 		delegations: Default::default(),
+			// 		prior: pallet_democracy::vote::PriorLock(11, 100),
+			// 	}
+			// );
+		})
 }
 
 #[test]
 fn undelegate_dne() {
-	todo!()
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			// Construct input data to un-delegate Alice
+			let selector = &Keccak256::digest(b"un_delegate()")[0..4];
+			let input = EvmDataWriter::new()
+				.write_raw_bytes(selector)
+				.build();
+
+			// TODO one weakness of try_dispatch is that it doesn't propogate the error
+			// I can't assert that this actually failed for the reason I expected.
+			// Expected result is an error stating there are too few bytes
+			let expected_result = Some(Err(error("dispatched call failed")));
+
+			assert_eq!(
+				Precompiles::execute(precompile_address(), &input, None, &evm_test_context(),),
+				expected_result
+			);
+		})
 }
 
 #[test]
