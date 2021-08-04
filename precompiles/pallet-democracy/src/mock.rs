@@ -23,6 +23,7 @@ use frame_support::{
 };
 use frame_system::{EnsureRoot, EnsureSigned};
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot};
+use pallet_democracy::VoteThreshold;
 use serde::{Deserialize, Serialize};
 use sp_core::H256;
 use sp_io;
@@ -231,41 +232,58 @@ impl pallet_scheduler::Config for Test {
 	type WeightInfo = ();
 }
 
+/// Build test externalities, prepopulated with data for testing democracy precompiles
 pub(crate) struct ExtBuilder {
-	// endowed accounts with balances
+	/// Endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
+	/// Referenda that already exist (don't need a proposal and launch period delay)
+	referenda: Vec<(H256, VoteThreshold, BlockNumber)>,
 }
 
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
-		ExtBuilder { balances: vec![] }
+		ExtBuilder {
+			balances: vec![],
+			referenda: vec![],
+		}
 	}
 }
 
 impl ExtBuilder {
+	/// Fund some accounts before starting the test
 	pub(crate) fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
 		self.balances = balances;
 		self
 	}
 
-	//TODO after https://github.com/paritytech/substrate/pull/9484 lands
-	// pub(crate) fn with_referenda(mut self, referenda: Vec<()>) -> Self {
-	// 	todo!()
-	// }
+	/// Put some referenda into storage before starting the test
+	pub(crate) fn with_referenda(mut self, referenda: Vec<(H256, VoteThreshold, BlockNumber)>) -> Self {
+		self.referenda = referenda;
+		self
+	}
 
+	/// Build the test externalities for use in tests
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::default()
 			.build_storage::<Test>()
 			.expect("Frame system builds valid default genesis config");
 
 		pallet_balances::GenesisConfig::<Test> {
-			balances: self.balances,
+			balances: self.balances.clone(),
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");
 
 		let mut ext = sp_io::TestExternalities::new(t);
-		ext.execute_with(|| System::set_block_number(1));
+		ext.execute_with(|| {
+			System::set_block_number(1);
+
+			// Pallet democracy doesn't have a meaningful genesis config, so we use
+			// its helper method to initialize the referenda
+			for (hash, thresh, delay) in self.referenda {
+				Democracy::internal_start_referendum(hash, thresh, delay);
+			}
+		});
 		ext
 	}
 }

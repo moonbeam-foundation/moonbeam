@@ -16,13 +16,13 @@
 
 use crate::mock::{
 	events, evm_test_context, precompile_address, roll_to, Call, ExtBuilder, Origin,
-	Precompiles, Test, TestAccount::Alice,
+	Precompiles, Test, TestAccount::Alice, Democracy,
 };
 //TODO Can PrecompileOutput come from somewhere better?
 use crate::PrecompileOutput;
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_balances::Event as BalancesEvent;
-use pallet_democracy::{AccountVote, Call as DemocracyCall, Event as DemocracyEvent, Vote, Voting};
+use pallet_democracy::{AccountVote, Call as DemocracyCall, Event as DemocracyEvent, Vote, Voting, VoteThreshold};
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
 use pallet_evm::{ExitError, ExitSucceed, PrecompileSet};
 use precompile_utils::{error, EvmDataWriter};
@@ -238,20 +238,9 @@ fn second_works() {
 fn standard_vote_aye_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000_000)])
+		.with_referenda(vec![(Default::default(), VoteThreshold::SimpleMajority, 10)])
 		.build()
 		.execute_with(|| {
-			// Before we can vote on anything, we have to have a referendum there to vote on.
-			// This will be nicer after https://github.com/paritytech/substrate/pull/9484
-			// Make a proposal
-			assert_ok!(Call::Democracy(DemocracyCall::propose(
-				Default::default(), // Propose the default hash
-				100u128,            // bond of 100 tokens
-			))
-			.dispatch(Origin::signed(Alice)));
-
-			// Wait until it becomes a referendum (10 block launch period)
-			roll_to(11);
-
 			// Construct input data to vote aye
 			let selector = &Keccak256::digest(b"stardard_vote(uint256,bool,uint256,uint256)")[0..4];
 			let input = EvmDataWriter::new()
@@ -278,15 +267,9 @@ fn standard_vote_aye_works() {
 			assert_eq!(
 				events(),
 				vec![
-					// Making proposal
-					BalancesEvent::Reserved(Alice, 100).into(),
-					DemocracyEvent::Proposed(0, 100).into(),
-					// Proposal -> Referendum
-					BalancesEvent::Unreserved(Alice, 100).into(),
-					DemocracyEvent::Tabled(0, 100, vec![Alice]).into(),
 					DemocracyEvent::Started(
 						0,
-						pallet_democracy::VoteThreshold::SuperMajorityApprove
+						pallet_democracy::VoteThreshold::SimpleMajority
 					)
 					.into(),
 					EvmEvent::Executed(precompile_address()).into(),
@@ -319,20 +302,9 @@ fn standard_vote_aye_works() {
 fn standard_vote_nay_conviction_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000_000)])
+		.with_referenda(vec![(Default::default(), VoteThreshold::SimpleMajority, 10)])
 		.build()
 		.execute_with(|| {
-			// Before we can vote on anything, we have to have a referendum there to vote on.
-			// This will be nicer after https://github.com/paritytech/substrate/pull/9484
-			// Make a proposal
-			assert_ok!(Call::Democracy(DemocracyCall::propose(
-				Default::default(), // Propose the default hash
-				100u128,            // bond of 100 tokens
-			))
-			.dispatch(Origin::signed(Alice)));
-
-			// Wait until it becomes a referendum (10 block launch period)
-			roll_to(11);
-
 			// Construct input data to vote aye
 			let selector = &Keccak256::digest(b"stardard_vote(uint256,bool,uint256,uint256)")[0..4];
 			let input = EvmDataWriter::new()
@@ -359,15 +331,9 @@ fn standard_vote_nay_conviction_works() {
 			assert_eq!(
 				events(),
 				vec![
-					// Making proposal
-					BalancesEvent::Reserved(Alice, 100).into(),
-					DemocracyEvent::Proposed(0, 100).into(),
-					// Proposal -> Referendum
-					BalancesEvent::Unreserved(Alice, 100).into(),
-					DemocracyEvent::Tabled(0, 100, vec![Alice]).into(),
 					DemocracyEvent::Started(
 						0,
-						pallet_democracy::VoteThreshold::SuperMajorityApprove
+						pallet_democracy::VoteThreshold::SimpleMajority
 					)
 					.into(),
 					EvmEvent::Executed(precompile_address()).into(),
@@ -405,23 +371,12 @@ fn standard_vote_nay_conviction_works() {
 fn remove_vote_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])
+		.with_referenda(vec![(Default::default(), VoteThreshold::SimpleMajority, 10)])
 		.build()
 		.execute_with(|| {
-			// Before we can vote on anything, we have to have a referendum there to vote on.
-			// This will be nicer after https://github.com/paritytech/substrate/pull/9484
-			// Make a proposal
-			assert_ok!(Call::Democracy(DemocracyCall::propose(
-				Default::default(), // Propose the default hash
-				100u128,            // bond of 100 tokens
-			))
-			.dispatch(Origin::signed(Alice)));
-
-			// Wait until it becomes a referendum (10 block launch period)
-			roll_to(11);
-
 			// Vote on it
-			//TODO Can I call this directly now? I thought they are all public?
-			assert_ok!(Call::Democracy(DemocracyCall::vote(
+			assert_ok!(Democracy::vote(
+				Origin::signed(Alice),
 				0, // Propose the default hash
 				AccountVote::Standard {
 					vote: Vote {
@@ -430,8 +385,7 @@ fn remove_vote_works() {
 					},
 					balance: 100,
 				},
-			))
-			.dispatch(Origin::signed(Alice)));
+			));
 
 			// Construct input data to remove the vote
 			let selector = &Keccak256::digest(b"remove_vote(uint256)")[0..4];
@@ -456,15 +410,9 @@ fn remove_vote_works() {
 			assert_eq!(
 				events(),
 				vec![
-					// Making proposal
-					BalancesEvent::Reserved(Alice, 100).into(),
-					DemocracyEvent::Proposed(0, 100).into(),
-					// Proposal -> Referendum
-					BalancesEvent::Unreserved(Alice, 100).into(),
-					DemocracyEvent::Tabled(0, 100, vec![Alice]).into(),
 					DemocracyEvent::Started(
 						0,
-						pallet_democracy::VoteThreshold::SuperMajorityApprove
+						pallet_democracy::VoteThreshold::SimpleMajority
 					)
 					.into(),
 					EvmEvent::Executed(precompile_address()).into(),
