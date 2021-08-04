@@ -90,8 +90,8 @@ Options:
                       "alphanet-8.1", "alphanet-8.0", "local"] [default: "local"]
 
   --parachain-chain  overrides parachain chain/runtime                  [string]
-                     [choices: "moonbase", "moonshadow", "moonriver", "moonbeam",
-                      "moonbase-local", "moonshadow-local", "moonriver-local",
+                     [choices: "moonbase", "moonriver", "moonbeam",
+                      "moonbase-local", "moonriver-local",
                       "moonbeam-local"]
 
   --parachain-id     overrides parachain-id             [number] [default: 1000]

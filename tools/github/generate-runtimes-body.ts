@@ -55,7 +55,7 @@ async function main() {
   const previousTag = argv.from;
   const newTag = argv.to;
 
-  const runtimes = ["moonbase", "moonshadow", "moonriver", "moonbeam"].map((runtimeName) =>
+  const runtimes = ["moonbase", "moonriver", "moonbeam"].map((runtimeName) =>
     getRuntimeInfo(argv["srtool-report-folder"], runtimeName)
   );
 
