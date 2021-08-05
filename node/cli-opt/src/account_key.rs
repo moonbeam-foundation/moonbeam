@@ -16,7 +16,7 @@
 
 use bip39::{Language, Mnemonic, MnemonicType, Seed};
 use primitive_types::{H160, H256};
-use secp256k1::{PublicKey, SecretKey};
+use libsecp256k1::{PublicKey, SecretKey};
 use sp_runtime::traits::IdentifyAccount;
 use structopt::StructOpt;
 use tiny_hderive::bip32::ExtendedPrivKey;
