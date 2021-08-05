@@ -88,7 +88,7 @@ ethereum-primitives = { package = "ethereum", version = "0.7.1", default-feature
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-pre" }
 fp-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-pre" }
 fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-pre" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-pre" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-pre", features = ["rpc_binary_search_estimate"] }
 fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-pre" }
 fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-pre" }
 fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-pre" }
