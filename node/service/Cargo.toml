@@ -32,7 +32,6 @@ cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt" }
 # Runtimes
 moonbeam-runtime = { path = "../../runtime/moonbeam" }
 moonriver-runtime = { path = "../../runtime/moonriver" }
-moonshadow-runtime = { path = "../../runtime/moonshadow" }
 moonbase-runtime = { path = "../../runtime/moonbase" }
 
 moonbeam-rpc-txpool = { path = "../../client/rpc/txpool" }
@@ -82,17 +81,17 @@ sc-consensus-manual-seal = { git = "https://github.com/paritytech/substrate", br
 frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
 
-evm = { package = "pallet-evm", git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.8" }
-ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.8" }
+evm = { package = "pallet-evm", git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-pre" }
+ethereum = { package = "pallet-ethereum", git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-pre" }
 ethereum-primitives = { package = "ethereum", version = "0.7.1", default-features = false, features = ["with-codec"] }
 
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.8" }
-fp-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.8" }
-fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.8" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.8" }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.8" }
-fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.8" }
-fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.8" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-pre" }
+fp-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-pre" }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-pre" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-pre" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-pre" }
+fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-pre" }
+fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-pre" }
 
 # Cumulus dependencies
 cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098" }
