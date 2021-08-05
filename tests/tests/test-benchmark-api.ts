@@ -25,7 +25,7 @@ describeDevMoonbeam("Benchmark API", (context) => {
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
 
-    const txn = await customWeb3Request(context.web3, "debug_benchmarkRawTransaction", [callTx.rawTransaction]);
+    const txn = await customWeb3Request(context.web3, "benchmark_sendRawTransaction", [callTx.rawTransaction]);
     console.log("txn: ", txn);
   });
 });

@@ -36,6 +36,7 @@ moonbase-runtime = { path = "../../runtime/moonbase" }
 
 moonbeam-rpc-txpool = { path = "../../client/rpc/txpool" }
 moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool" }
+moonbeam-rpc-benchmark = { path = "../../client/rpc/benchmark" }
 moonbeam-rpc-debug = { path = "../../client/rpc/debug" }
 moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug" }
 moonbeam-rpc-trace = { path = "../../client/rpc/trace" }

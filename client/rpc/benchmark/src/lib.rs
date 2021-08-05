@@ -17,7 +17,7 @@ use std::{time::Instant, marker::PhantomData, sync::Arc};
 use jsonrpc_core::{
 	Result as RpcResult,
 };
-use moonbeam_rpc_core_benchmark::{Benchmark as BenchmarkT, BenchmarkResults};
+pub use moonbeam_rpc_core_benchmark::{Benchmark as BenchmarkT, BenchmarkResults, BenchmarkServer};
 
 use sp_api::{BlockId, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderMetadata, HeaderBackend};
@@ -55,9 +55,6 @@ where
 	/// Handler for `debug_benchmarkRawTransaction` request. Times the execution of the provided raw
 	/// transaction and discards the results.
 	fn benchmark_raw_transaction(&self, bytes: Bytes) -> RpcResult<BenchmarkResults> {
-
-		log::warn!("benchmark_raw_transaction()");
-
 		let transaction = match rlp::decode::<ethereum::Transaction>(&bytes.0[..]) {
 			Ok(transaction) => transaction,
 			Err(_) => return Err(internal_err("decode transaction failed"))
@@ -96,15 +93,14 @@ where
 	}
 
 	fn benchmark_call(&self, request: CallRequest) -> RpcResult<BenchmarkResults> {
-
 		let hash = self.client.info().best_hash;
 		let runtime_api = self.client.runtime_api();
-		// TODO: timing
 
 		// use given gas limit or query current block's limit
 		let gas_limit = match request.gas {
 			Some(amount) => amount,
 			None => {
+				log::warn!("querying gas limit...");
 				let block = self.client.runtime_api().current_block(&BlockId::Hash(hash))
 					.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?;
 				if let Some(block) = block {
@@ -139,7 +135,7 @@ where
 
 				Ok(BenchmarkResults {
 					gas_used: info.used_gas,
-					evm_execution_time_us: elapsed.as_micros(),
+					evm_execution_time_us: elapsed.as_micros() as u64,
 					// TODO: not sure request time is worth the effort, extra code, etc.
 					request_execution_time_us: 0,
 					result: None, // TODO: Bytes vs Vec<u8> is quite annoying...

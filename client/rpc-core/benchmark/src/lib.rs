@@ -19,18 +19,20 @@ use jsonrpc_derive::rpc;
 use serde::Serialize;
 use fc_rpc_core::types::{Bytes, CallRequest};
 
+pub use rpc_impl_Benchmark::gen_server::Benchmark as BenchmarkServer;
+
 #[derive(Default, Clone, Eq, PartialEq, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BenchmarkResults {
 	pub gas_used: U256,
-	pub evm_execution_time_us: u128,
-	pub request_execution_time_us: u128,
+	pub evm_execution_time_us: u64,
+	pub request_execution_time_us: u64,
 	pub result: Option<Bytes>,
 }
 
 #[rpc(server)]
 pub trait Benchmark {
-	#[rpc(name = "benchmark_rawTransaction")]
+	#[rpc(name = "benchmark_sendRawTransaction")]
 	fn benchmark_raw_transaction(&self, _: Bytes) -> RpcResult<BenchmarkResults>;
 
 	#[rpc(name = "benchmark_call")]

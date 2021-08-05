@@ -35,6 +35,7 @@ use fc_rpc_core::types::{FilterPool, PendingTransactions};
 use futures::StreamExt;
 use jsonrpc_pubsub::manager::SubscriptionManager;
 use moonbeam_core_primitives::{Block, Hash};
+use moonbeam_rpc_benchmark::{Benchmark, BenchmarkServer};
 use moonbeam_rpc_debug::DebugHandler;
 use moonbeam_rpc_debug::{Debug, DebugRequester, DebugServer};
 use moonbeam_rpc_trace::{
@@ -210,6 +211,11 @@ where
 		io.extend_with(TxPoolServer::to_delegate(TxPool::new(
 			Arc::clone(&client),
 			graph,
+		)));
+	}
+	if ethapi_cmd.contains(&EthApiCmd::Benchmark) {
+		io.extend_with(BenchmarkServer::to_delegate(Benchmark::new(
+			Arc::clone(&client),
 		)));
 	}
 
