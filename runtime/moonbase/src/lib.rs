@@ -268,10 +268,10 @@ impl pallet_transaction_payment::Config for Runtime {
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
 }
 
-// impl pallet_sudo::Config for Runtime {
-// 	type Call = Call;
-// 	type Event = Event;
-// }
+impl pallet_sudo::Config for Runtime {
+	type Call = Call;
+	type Event = Event;
+}
 
 impl pallet_ethereum_chain_id::Config for Runtime {}
 
@@ -774,7 +774,7 @@ construct_runtime! {
 		Utility: pallet_utility::{Pallet, Call, Event} = 1,
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 2,
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 3,
-		// Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 4,
+		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 4,
 		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = 5,
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 6,
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage} = 7,
