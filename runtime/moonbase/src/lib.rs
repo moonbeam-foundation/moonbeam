@@ -301,7 +301,6 @@ impl pallet_transaction_payment::Config for Runtime {
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
 }
 
-
 impl pallet_ethereum_chain_id::Config for Runtime {}
 
 impl pallet_randomness_collective_flip::Config for Runtime {}
@@ -878,16 +877,16 @@ pub type KsmAssetTransactor = xcm_builder::CurrencyAdapter<
 	(),
 >;
 
-use frame_support::traits::{Contains, fungibles};
+use frame_support::traits::{fungibles, Contains};
 use sp_runtime::traits::Zero;
-use xcm_builder::{FungiblesAdapter, ConvertedConcreteAssetId, AsPrefixedGeneralIndex};
+use xcm_builder::{AsPrefixedGeneralIndex, ConvertedConcreteAssetId, FungiblesAdapter};
 use xcm_executor::traits::JustTry;
 
 /// Allow checking in assets that have issuance > 0.
 pub struct CheckAsset<A>(PhantomData<A>);
 impl<A> Contains<<A as fungibles::Inspect<AccountId>>::AssetId> for CheckAsset<A>
 where
-	A: fungibles::Inspect<AccountId>
+	A: fungibles::Inspect<AccountId>,
 {
 	fn contains(id: &<A as fungibles::Inspect<AccountId>>::AssetId) -> bool {
 		!A::total_issuance(*id).is_zero()
@@ -899,15 +898,21 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	Assets,
 	// Use this currency when it is a fungible asset matching the given location or name:
 	(
-		ConvertedConcreteAssetId<u32, Balance, AsPrefixedGeneralIndex<Local, u32, JustTry>, JustTry>,
+		ConvertedConcreteAssetId<
+			u32,
+			Balance,
+			AsPrefixedGeneralIndex<Local, u32, JustTry>,
+			JustTry,
+		>,
 	),
 	// Do a simple punn to convert an AccountId32 MultiLocation into a native chain account ID:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
 	// We only allow teleports of known assets.
-	CheckAsset<Assets>,
-	CheckingAccount,
+	(),
+	// We dont track any teleports
+	(),
 >;
 /// Means for transacting assets on this chain.
 pub type AssetTransactors = (KsmAssetTransactor, FungiblesTransactor);
@@ -1091,6 +1096,20 @@ impl pallet_assets::Config for Runtime {
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 }
 
+impl xcm_transfers::Config for Runtime {
+	type Event = Event;
+	type RelayCurrency = BalancesKsm;
+	type PalletId = XcmWrapperId;
+	type ToRelayChainBalance = NativeToRelay;
+	type RelayChainNetworkId = RelayNetwork;
+	type RelayChainAccountId = AccountId32;
+	type XcmExecutor = XcmExecutor;
+	type OwnLocation = Ancestry;
+	type CreateProxyDeposit = ProxyDepositAmount;
+	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
+	type OriginToMultiLocation = LocalOriginToLocation;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -1127,6 +1146,8 @@ construct_runtime! {
 		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>},
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>},
+		XcmTransfers: xcm_transfers::{Pallet, Call, Storage, Event<T>},
+
 		}
 }
 

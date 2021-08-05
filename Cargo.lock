@@ -1369,7 +1369,7 @@ name = "crowdloan-rewards-precompiles"
 version = "0.6.0"
 dependencies = [
  "cumulus-pallet-parachain-system",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "cumulus-primitives-parachain-inherent",
  "cumulus-test-relay-sproof-builder",
  "derive_more",
@@ -1467,7 +1467,7 @@ source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6
 dependencies = [
  "cumulus-client-consensus-common",
  "cumulus-client-network",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "futures 0.3.15",
  "parity-scale-codec",
  "parking_lot 0.10.2",
@@ -1515,7 +1515,7 @@ source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "futures 0.3.15",
  "parity-scale-codec",
  "parking_lot 0.10.2",
@@ -1561,7 +1561,7 @@ name = "cumulus-client-pov-recovery"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "futures 0.3.15",
  "futures-timer 3.0.2",
  "parity-scale-codec",
@@ -1587,7 +1587,7 @@ dependencies = [
  "cumulus-client-collator",
  "cumulus-client-consensus-common",
  "cumulus-client-pov-recovery",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "parity-scale-codec",
  "parking_lot 0.10.2",
  "polkadot-overseer",
@@ -1612,7 +1612,7 @@ name = "cumulus-pallet-dmp-queue"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "frame-support",
  "frame-system",
  "log",
@@ -1632,7 +1632,7 @@ version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
 dependencies = [
  "cumulus-pallet-parachain-system-proc-macro",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "cumulus-primitives-parachain-inherent",
  "environmental",
  "frame-support",
@@ -1670,7 +1670,7 @@ name = "cumulus-pallet-xcm"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -1686,7 +1686,7 @@ name = "cumulus-pallet-xcmp-queue"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "frame-support",
  "frame-system",
  "log",
@@ -1718,12 +1718,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "cumulus-primitives-core"
+version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8#0cd4b13e3e7d7c2f0f3aadb0a6b427350cde1bf6"
+dependencies = [
+ "frame-support",
+ "impl-trait-for-tuples 0.2.1",
+ "parity-scale-codec",
+ "polkadot-core-primitives",
+ "polkadot-parachain",
+ "polkadot-primitives",
+ "sp-api",
+ "sp-runtime",
+ "sp-std",
+ "sp-trie",
+ "xcm",
+]
+
+[[package]]
 name = "cumulus-primitives-parachain-inherent"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
 dependencies = [
  "async-trait",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "cumulus-test-relay-sproof-builder",
  "parity-scale-codec",
  "polkadot-client",
@@ -1743,7 +1761,7 @@ name = "cumulus-primitives-timestamp"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "sp-inherents",
  "sp-std",
  "sp-timestamp",
@@ -1754,7 +1772,7 @@ name = "cumulus-primitives-utility"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "frame-support",
  "impl-trait-for-tuples 0.2.1",
  "parity-scale-codec",
@@ -1772,7 +1790,7 @@ name = "cumulus-test-relay-sproof-builder"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "parity-scale-codec",
  "polkadot-primitives",
  "sp-runtime",
@@ -4921,7 +4939,7 @@ dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-pallet-xcm",
  "cumulus-pallet-xcmp-queue",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "cumulus-primitives-parachain-inherent",
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
@@ -4993,6 +5011,7 @@ dependencies = [
  "xcm",
  "xcm-builder",
  "xcm-executor",
+ "xcm-transfers",
 ]
 
 [[package]]
@@ -5018,7 +5037,7 @@ version = "0.9.6"
 dependencies = [
  "cumulus-client-cli",
  "cumulus-client-service",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "frame-benchmarking-cli",
  "log",
  "moonbeam-cli-opt",
@@ -5253,7 +5272,7 @@ dependencies = [
  "account",
  "crowdloan-rewards-precompiles",
  "cumulus-pallet-parachain-system",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "cumulus-primitives-parachain-inherent",
  "cumulus-primitives-timestamp",
  "cumulus-test-relay-sproof-builder",
@@ -5333,7 +5352,7 @@ dependencies = [
  "cumulus-client-consensus-relay-chain",
  "cumulus-client-network",
  "cumulus-client-service",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "cumulus-primitives-parachain-inherent",
  "cumulus-test-relay-sproof-builder",
  "derive_more",
@@ -5444,7 +5463,7 @@ dependencies = [
  "account",
  "crowdloan-rewards-precompiles",
  "cumulus-pallet-parachain-system",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "cumulus-primitives-parachain-inherent",
  "cumulus-primitives-timestamp",
  "cumulus-test-relay-sproof-builder",
@@ -5634,7 +5653,7 @@ source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "cumulus-primitives-parachain-inherent",
  "futures 0.3.15",
  "log",
@@ -6116,7 +6135,7 @@ version = "0.6.0"
 source = "git+https://github.com/purestake/crowdloan-rewards?branch=main#86387dcb23e86c24c6b58fc9dc86b7986836f298"
 dependencies = [
  "cumulus-pallet-parachain-system",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "cumulus-primitives-parachain-inherent",
  "frame-support",
  "frame-system",
@@ -6783,7 +6802,7 @@ name = "parachain-info"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -13360,6 +13379,28 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "xcm",
+]
+
+[[package]]
+name = "xcm-transfers"
+version = "0.1.0"
+dependencies = [
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8)",
+ "frame-support",
+ "frame-system",
+ "hex-literal",
+ "max-encoded-len",
+ "pallet-balances",
+ "parity-scale-codec",
+ "polkadot-runtime-common",
+ "serde",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "substrate-fixed",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
 ]
 
 [[package]]
