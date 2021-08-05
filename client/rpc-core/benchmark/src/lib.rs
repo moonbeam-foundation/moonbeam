@@ -23,8 +23,8 @@ use fc_rpc_core::types::{Bytes, CallRequest};
 #[serde(rename_all = "camelCase")]
 pub struct BenchmarkResults {
 	pub gas_used: U256,
-	pub evm_execution_time_us: u64,
-	pub request_execution_time_us: u64,
+	pub evm_execution_time_us: u128,
+	pub request_execution_time_us: u128,
 	pub result: Option<Bytes>,
 }
 
