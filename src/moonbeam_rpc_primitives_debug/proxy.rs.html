@@ -1,7 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `primitives/rpc/debug/src/proxy.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>proxy.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
-<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../moonbeam_rpc_primitives_debug/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `primitives&#x2F;rpc&#x2F;debug&#x2F;src&#x2F;proxy.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>proxy.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../moonbeam_rpc_primitives_debug/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -287,7 +284,7 @@
 <span id="284">284</span>
 <span id="285">285</span>
 <span id="286">286</span>
-</pre><div class="example-wrap"><pre class="rust ">
+</pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -315,17 +312,17 @@
 <span class="doccomment">//! - `Raw` - used for opcode-level traces.</span>
 <span class="doccomment">//! - `CallList` - used for block tracing (stack of call stacks) and custom tracing outputs.</span>
 
-<span class="ident">environmental</span>::<span class="macro">environmental</span><span class="macro">!</span>(<span class="ident">listener</span>: <span class="kw">dyn</span> <span class="ident">Listener</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>);
+<span class="macro">environmental::environmental!</span>(<span class="ident">listener</span>: <span class="kw">dyn</span> <span class="ident">Listener</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>);
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">block</span>::{
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::block</span>::{
 	<span class="ident">TransactionTrace</span> <span class="kw">as</span> <span class="ident">BlockTrace</span>, <span class="ident">TransactionTraceAction</span>, <span class="ident">TransactionTraceOutput</span>,
 	<span class="ident">TransactionTraceResult</span>,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">single</span>::{<span class="ident">Call</span>, <span class="ident">CallInner</span>, <span class="ident">RawStepLog</span>, <span class="ident">TransactionTrace</span> <span class="kw">as</span> <span class="ident">SingleTrace</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::single</span>::{<span class="ident">Call</span>, <span class="ident">CallInner</span>, <span class="ident">RawStepLog</span>, <span class="ident">TransactionTrace</span> <span class="kw">as</span> <span class="ident">SingleTrace</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">CallResult</span>, <span class="ident">CreateResult</span>, <span class="ident">CreateType</span>};
 <span class="kw">use</span> <span class="ident">codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
 <span class="kw">use</span> <span class="ident">ethereum_types</span>::{<span class="ident">H256</span>, <span class="ident">U256</span>};
-<span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">collections</span>::<span class="ident">btree_map</span>::<span class="ident">BTreeMap</span>, <span class="ident">vec</span>::<span class="ident">Vec</span>};
+<span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">collections::btree_map::BTreeMap</span>, <span class="ident">vec::Vec</span>};
 
 <span class="doccomment">/// Main trait to proxy emitted messages.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Listener</span> {
@@ -352,7 +349,7 @@
 	<span class="doccomment">///</span>
 	<span class="doccomment">/// This only works if we are `using` a global reference to a `Listener` implementor.</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">emit</span>(<span class="self">self</span>) {
-		<span class="ident">listener</span>::<span class="ident">with</span>(<span class="op">|</span><span class="ident">listener</span><span class="op">|</span> <span class="ident">listener</span>.<span class="ident">event</span>(<span class="self">self</span>));
+		<span class="ident">listener::with</span>(<span class="op">|</span><span class="ident">listener</span><span class="op">|</span> <span class="ident">listener</span>.<span class="ident">event</span>(<span class="self">self</span>));
 	}
 }
 
@@ -389,9 +386,9 @@
 <span class="kw">impl</span> <span class="ident">RawProxy</span> {
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
 		<span class="self">Self</span> {
-			<span class="ident">gas</span>: <span class="ident">U256</span>::<span class="ident">zero</span>(),
-			<span class="ident">return_value</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
-			<span class="ident">step_logs</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
+			<span class="ident">gas</span>: <span class="ident">U256::zero</span>(),
+			<span class="ident">return_value</span>: <span class="ident">Vec::new</span>(),
+			<span class="ident">step_logs</span>: <span class="ident">Vec::new</span>(),
 		}
 	}
 	<span class="doccomment">/// In the RPC handler context, `F` wraps a Runtime Api call.</span>
@@ -399,12 +396,12 @@
 	<span class="doccomment">/// With `using`, the Runtime Api is called with thread safe/local access to the mutable</span>
 	<span class="doccomment">/// reference of `self`.</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">using</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> {
-		<span class="ident">listener</span>::<span class="ident">using</span>(<span class="self">self</span>, <span class="ident">f</span>)
+		<span class="ident">listener::using</span>(<span class="self">self</span>, <span class="ident">f</span>)
 	}
 
 	<span class="doccomment">/// Format the RPC output.</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_tx_trace</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SingleTrace</span> {
-		<span class="ident">SingleTrace</span>::<span class="ident">Raw</span> {
+		<span class="ident">SingleTrace::Raw</span> {
 			<span class="ident">step_logs</span>: <span class="self">self</span>.<span class="ident">step_logs</span>,
 			<span class="ident">gas</span>: <span class="self">self</span>.<span class="ident">gas</span>,
 			<span class="ident">return_value</span>: <span class="self">self</span>.<span class="ident">return_value</span>,
@@ -415,9 +412,9 @@
 <span class="kw">impl</span> <span class="ident">Listener</span> <span class="kw">for</span> <span class="ident">RawProxy</span> {
 	<span class="kw">fn</span> <span class="ident">event</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">event</span>: <span class="ident">Event</span>) {
 		<span class="kw">match</span> <span class="ident">event</span> {
-			<span class="ident">Event</span>::<span class="ident">RawStep</span>(<span class="ident">step</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">step_logs</span>.<span class="ident">push</span>(<span class="ident">step</span>),
-			<span class="ident">Event</span>::<span class="ident">RawGas</span>(<span class="ident">gas</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">gas</span> <span class="op">=</span> <span class="ident">gas</span>,
-			<span class="ident">Event</span>::<span class="ident">RawReturnValue</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">return_value</span> <span class="op">=</span> <span class="ident">value</span>,
+			<span class="ident">Event::RawStep</span>(<span class="ident">step</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">step_logs</span>.<span class="ident">push</span>(<span class="ident">step</span>),
+			<span class="ident">Event::RawGas</span>(<span class="ident">gas</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">gas</span> <span class="op">=</span> <span class="ident">gas</span>,
+			<span class="ident">Event::RawReturnValue</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">return_value</span> <span class="op">=</span> <span class="ident">value</span>,
 			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
 		};
 	}
@@ -432,7 +429,7 @@
 <span class="kw">impl</span> <span class="ident">CallListProxy</span> {
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
 		<span class="self">Self</span> {
-			<span class="ident">entries</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
+			<span class="ident">entries</span>: <span class="ident">Vec::new</span>(),
 		}
 	}
 	<span class="doccomment">/// In the RPC handler context, `F` wraps a Runtime Api call.</span>
@@ -440,13 +437,13 @@
 	<span class="doccomment">/// With `using`, the Runtime Api is called with thread safe/local access to the mutable</span>
 	<span class="doccomment">/// reference of `self`.</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">using</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> {
-		<span class="ident">listener</span>::<span class="ident">using</span>(<span class="self">self</span>, <span class="ident">f</span>)
+		<span class="ident">listener::using</span>(<span class="self">self</span>, <span class="ident">f</span>)
 	}
 
 	<span class="doccomment">/// Format the RPC output of a single call-stack.</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_tx_trace</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SingleTrace</span><span class="op">&gt;</span> {
 		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">entry</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">entries</span>.<span class="ident">last</span>() {
-			<span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">SingleTrace</span>::<span class="ident">CallList</span>(
+			<span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">SingleTrace::CallList</span>(
 				<span class="ident">entry</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">value</span>)<span class="op">|</span> <span class="ident">value</span>.<span class="ident">clone</span>()).<span class="ident">collect</span>(),
 			));
 		}
@@ -456,18 +453,18 @@
 	<span class="doccomment">/// Format the RPC output for multiple transactions. Each call-stack represents a single</span>
 	<span class="doccomment">/// transaction/EVM execution.</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_tx_traces</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BlockTrace</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">traces</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">traces</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 		<span class="kw">for</span> (<span class="ident">eth_tx_index</span>, <span class="ident">entry</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">entries</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tx_traces</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">entry</span>
 				.<span class="ident">into_iter</span>()
 				.<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">trace</span>)<span class="op">|</span> <span class="kw">match</span> <span class="ident">trace</span>.<span class="ident">inner</span>.<span class="ident">clone</span>() {
-					<span class="ident">CallInner</span>::<span class="ident">Call</span> {
+					<span class="ident">CallInner::Call</span> {
 						<span class="ident">input</span>,
 						<span class="ident">to</span>,
 						<span class="ident">res</span>,
 						<span class="ident">call_type</span>,
 					} <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BlockTrace</span> {
-						<span class="ident">action</span>: <span class="ident">TransactionTraceAction</span>::<span class="ident">Call</span> {
+						<span class="ident">action</span>: <span class="ident">TransactionTraceAction::Call</span> {
 							<span class="ident">call_type</span>,
 							<span class="ident">from</span>: <span class="ident">trace</span>.<span class="ident">from</span>,
 							<span class="ident">gas</span>: <span class="ident">trace</span>.<span class="ident">gas</span>,
@@ -476,77 +473,77 @@
 							<span class="ident">value</span>: <span class="ident">trace</span>.<span class="ident">value</span>,
 						},
 						<span class="comment">// Can&#39;t be known here, must be inserted upstream.</span>
-						<span class="ident">block_hash</span>: <span class="ident">H256</span>::<span class="ident">default</span>(),
+						<span class="ident">block_hash</span>: <span class="ident">H256::default</span>(),
 						<span class="comment">// Can&#39;t be known here, must be inserted upstream.</span>
 						<span class="ident">block_number</span>: <span class="number">0</span>,
 						<span class="ident">output</span>: <span class="kw">match</span> <span class="ident">res</span> {
-							<span class="ident">CallResult</span>::<span class="ident">Output</span>(<span class="ident">output</span>) <span class="op">=</span><span class="op">&gt;</span> {
-								<span class="ident">TransactionTraceOutput</span>::<span class="prelude-ty">Result</span>(<span class="ident">TransactionTraceResult</span>::<span class="ident">Call</span> {
+							<span class="ident">CallResult::Output</span>(<span class="ident">output</span>) <span class="op">=</span><span class="op">&gt;</span> {
+								<span class="ident">TransactionTraceOutput::Result</span>(<span class="ident">TransactionTraceResult::Call</span> {
 									<span class="ident">gas_used</span>: <span class="ident">trace</span>.<span class="ident">gas_used</span>,
 									<span class="ident">output</span>,
 								})
 							}
-							<span class="kw">crate</span>::<span class="ident">CallResult</span>::<span class="ident">Error</span>(<span class="ident">error</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TransactionTraceOutput</span>::<span class="ident">Error</span>(<span class="ident">error</span>),
+							<span class="kw">crate</span><span class="ident">::CallResult::Error</span>(<span class="ident">error</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TransactionTraceOutput::Error</span>(<span class="ident">error</span>),
 						},
 						<span class="ident">subtraces</span>: <span class="ident">trace</span>.<span class="ident">subtraces</span>,
 						<span class="ident">trace_address</span>: <span class="ident">trace</span>.<span class="ident">trace_address</span>.<span class="ident">clone</span>(),
 						<span class="comment">// Can&#39;t be known here, must be inserted upstream.</span>
-						<span class="ident">transaction_hash</span>: <span class="ident">H256</span>::<span class="ident">default</span>(),
+						<span class="ident">transaction_hash</span>: <span class="ident">H256::default</span>(),
 						<span class="ident">transaction_position</span>: <span class="ident">eth_tx_index</span> <span class="kw">as</span> <span class="ident">u32</span>,
 					},
-					<span class="ident">CallInner</span>::<span class="ident">Create</span> { <span class="ident">init</span>, <span class="ident">res</span> } <span class="op">=</span><span class="op">&gt;</span> {
+					<span class="ident">CallInner::Create</span> { <span class="ident">init</span>, <span class="ident">res</span> } <span class="op">=</span><span class="op">&gt;</span> {
 						<span class="ident">BlockTrace</span> {
-							<span class="ident">action</span>: <span class="ident">TransactionTraceAction</span>::<span class="ident">Create</span> {
-								<span class="ident">creation_method</span>: <span class="ident">CreateType</span>::<span class="ident">Create</span>,
+							<span class="ident">action</span>: <span class="ident">TransactionTraceAction::Create</span> {
+								<span class="ident">creation_method</span>: <span class="ident">CreateType::Create</span>,
 								<span class="ident">from</span>: <span class="ident">trace</span>.<span class="ident">from</span>,
 								<span class="ident">gas</span>: <span class="ident">trace</span>.<span class="ident">gas</span>,
 								<span class="ident">init</span>,
 								<span class="ident">value</span>: <span class="ident">trace</span>.<span class="ident">value</span>,
 							},
 							<span class="comment">// Can&#39;t be known here, must be inserted upstream.</span>
-							<span class="ident">block_hash</span>: <span class="ident">H256</span>::<span class="ident">default</span>(),
+							<span class="ident">block_hash</span>: <span class="ident">H256::default</span>(),
 							<span class="comment">// Can&#39;t be known here, must be inserted upstream.</span>
 							<span class="ident">block_number</span>: <span class="number">0</span>,
 							<span class="ident">output</span>: <span class="kw">match</span> <span class="ident">res</span> {
-								<span class="ident">CreateResult</span>::<span class="ident">Success</span> {
+								<span class="ident">CreateResult::Success</span> {
 									<span class="ident">created_contract_address_hash</span>,
 									<span class="ident">created_contract_code</span>,
 								} <span class="op">=</span><span class="op">&gt;</span> {
-									<span class="ident">TransactionTraceOutput</span>::<span class="prelude-ty">Result</span>(<span class="ident">TransactionTraceResult</span>::<span class="ident">Create</span> {
+									<span class="ident">TransactionTraceOutput::Result</span>(<span class="ident">TransactionTraceResult::Create</span> {
 										<span class="ident">gas_used</span>: <span class="ident">trace</span>.<span class="ident">gas_used</span>,
 										<span class="ident">code</span>: <span class="ident">created_contract_code</span>,
 										<span class="ident">address</span>: <span class="ident">created_contract_address_hash</span>,
 									})
 								}
-								<span class="kw">crate</span>::<span class="ident">CreateResult</span>::<span class="ident">Error</span> { <span class="ident">error</span> } <span class="op">=</span><span class="op">&gt;</span> {
-									<span class="ident">TransactionTraceOutput</span>::<span class="ident">Error</span>(<span class="ident">error</span>)
+								<span class="kw">crate</span><span class="ident">::CreateResult::Error</span> { <span class="ident">error</span> } <span class="op">=</span><span class="op">&gt;</span> {
+									<span class="ident">TransactionTraceOutput::Error</span>(<span class="ident">error</span>)
 								}
 							},
 							<span class="ident">subtraces</span>: <span class="ident">trace</span>.<span class="ident">subtraces</span>,
 							<span class="ident">trace_address</span>: <span class="ident">trace</span>.<span class="ident">trace_address</span>.<span class="ident">clone</span>(),
 							<span class="comment">// Can&#39;t be known here, must be inserted upstream.</span>
-							<span class="ident">transaction_hash</span>: <span class="ident">H256</span>::<span class="ident">default</span>(),
+							<span class="ident">transaction_hash</span>: <span class="ident">H256::default</span>(),
 							<span class="ident">transaction_position</span>: <span class="ident">eth_tx_index</span> <span class="kw">as</span> <span class="ident">u32</span>,
 						}
 					}
-					<span class="ident">CallInner</span>::<span class="ident">SelfDestruct</span> {
+					<span class="ident">CallInner::SelfDestruct</span> {
 						<span class="ident">balance</span>,
 						<span class="ident">refund_address</span>,
 					} <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BlockTrace</span> {
-						<span class="ident">action</span>: <span class="ident">TransactionTraceAction</span>::<span class="ident">Suicide</span> {
+						<span class="ident">action</span>: <span class="ident">TransactionTraceAction::Suicide</span> {
 							<span class="ident">address</span>: <span class="ident">trace</span>.<span class="ident">from</span>,
 							<span class="ident">balance</span>,
 							<span class="ident">refund_address</span>,
 						},
 						<span class="comment">// Can&#39;t be known here, must be inserted upstream.</span>
-						<span class="ident">block_hash</span>: <span class="ident">H256</span>::<span class="ident">default</span>(),
+						<span class="ident">block_hash</span>: <span class="ident">H256::default</span>(),
 						<span class="comment">// Can&#39;t be known here, must be inserted upstream.</span>
 						<span class="ident">block_number</span>: <span class="number">0</span>,
-						<span class="ident">output</span>: <span class="ident">TransactionTraceOutput</span>::<span class="prelude-ty">Result</span>(<span class="ident">TransactionTraceResult</span>::<span class="ident">Suicide</span>),
+						<span class="ident">output</span>: <span class="ident">TransactionTraceOutput::Result</span>(<span class="ident">TransactionTraceResult::Suicide</span>),
 						<span class="ident">subtraces</span>: <span class="ident">trace</span>.<span class="ident">subtraces</span>,
 						<span class="ident">trace_address</span>: <span class="ident">trace</span>.<span class="ident">trace_address</span>.<span class="ident">clone</span>(),
 						<span class="comment">// Can&#39;t be known here, must be inserted upstream.</span>
-						<span class="ident">transaction_hash</span>: <span class="ident">H256</span>::<span class="ident">default</span>(),
+						<span class="ident">transaction_hash</span>: <span class="ident">H256::default</span>(),
 						<span class="ident">transaction_position</span>: <span class="ident">eth_tx_index</span> <span class="kw">as</span> <span class="ident">u32</span>,
 					},
 				})
@@ -561,12 +558,12 @@
 <span class="kw">impl</span> <span class="ident">Listener</span> <span class="kw">for</span> <span class="ident">CallListProxy</span> {
 	<span class="kw">fn</span> <span class="ident">event</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">event</span>: <span class="ident">Event</span>) {
 		<span class="kw">match</span> <span class="ident">event</span> {
-			<span class="ident">Event</span>::<span class="ident">CallListNew</span>() <span class="op">=</span><span class="op">&gt;</span> {
-				<span class="self">self</span>.<span class="ident">entries</span>.<span class="ident">push</span>(<span class="ident">BTreeMap</span>::<span class="ident">new</span>());
+			<span class="ident">Event::CallListNew</span>() <span class="op">=</span><span class="op">&gt;</span> {
+				<span class="self">self</span>.<span class="ident">entries</span>.<span class="ident">push</span>(<span class="ident">BTreeMap::new</span>());
 			}
-			<span class="ident">Event</span>::<span class="ident">CallListEntry</span>((<span class="ident">index</span>, <span class="ident">value</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+			<span class="ident">Event::CallListEntry</span>((<span class="ident">index</span>, <span class="ident">value</span>)) <span class="op">=</span><span class="op">&gt;</span> {
 				<span class="kw">if</span> <span class="self">self</span>.<span class="ident">entries</span>.<span class="ident">is_empty</span>() {
-					<span class="self">self</span>.<span class="ident">entries</span>.<span class="ident">push</span>(<span class="ident">BTreeMap</span>::<span class="ident">new</span>());
+					<span class="self">self</span>.<span class="ident">entries</span>.<span class="ident">push</span>(<span class="ident">BTreeMap::new</span>());
 				}
 				<span class="self">self</span>.<span class="ident">entries</span>.<span class="ident">last_mut</span>().<span class="ident">unwrap</span>().<span class="ident">insert</span>(<span class="ident">index</span>, <span class="ident">value</span>);
 			}
@@ -575,5 +572,6 @@
 	}
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="moonbeam_rpc_primitives_debug"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="moonbeam_rpc_primitives_debug" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
+    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
+</body></html>

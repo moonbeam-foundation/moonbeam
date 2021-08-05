@@ -1,7 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/cli/src/cli.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cli.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
-<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../moonbeam_cli/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node&#x2F;cli&#x2F;src&#x2F;cli.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cli.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../moonbeam_cli/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -255,7 +252,7 @@
 <span id="252">252</span>
 <span id="253">253</span>
 <span id="254">254</span>
-</pre><div class="example-wrap"><pre class="rust ">
+</pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -277,11 +274,11 @@
 <span class="doccomment">//! This module defines the Moonbeam node&#39;s Command Line Interface (CLI)</span>
 <span class="doccomment">//! It is built using structopt and inherits behavior from Substrate&#39;s sc_cli crate.</span>
 
-<span class="kw">use</span> <span class="ident">cli_opt</span>::{<span class="ident">account_key</span>::<span class="ident">GenerateAccountKey</span>, <span class="ident">EthApi</span>, <span class="ident">Sealing</span>};
+<span class="kw">use</span> <span class="ident">cli_opt</span>::{<span class="ident">account_key::GenerateAccountKey</span>, <span class="ident">EthApi</span>, <span class="ident">Sealing</span>};
 <span class="kw">use</span> <span class="ident">sc_cli</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">CliError</span>, <span class="ident">SubstrateCli</span>};
-<span class="kw">use</span> <span class="ident">service</span>::<span class="ident">chain_spec</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
-<span class="kw">use</span> <span class="ident">structopt</span>::<span class="ident">StructOpt</span>;
+<span class="kw">use</span> <span class="ident">service::chain_spec</span>;
+<span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
+<span class="kw">use</span> <span class="ident">structopt::StructOpt</span>;
 
 <span class="doccomment">/// Sub-commands supported by the collator.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">StructOpt</span>)]</span>
@@ -298,26 +295,26 @@
 	<span class="ident">BuildSpec</span>(<span class="ident">BuildSpecCommand</span>),
 
 	<span class="doccomment">/// Validate blocks.</span>
-	<span class="ident">CheckBlock</span>(<span class="ident">sc_cli</span>::<span class="ident">CheckBlockCmd</span>),
+	<span class="ident">CheckBlock</span>(<span class="ident">sc_cli::CheckBlockCmd</span>),
 
 	<span class="doccomment">/// Export blocks.</span>
-	<span class="ident">ExportBlocks</span>(<span class="ident">sc_cli</span>::<span class="ident">ExportBlocksCmd</span>),
+	<span class="ident">ExportBlocks</span>(<span class="ident">sc_cli::ExportBlocksCmd</span>),
 
 	<span class="doccomment">/// Export the state of a given block into a chain spec.</span>
-	<span class="ident">ExportState</span>(<span class="ident">sc_cli</span>::<span class="ident">ExportStateCmd</span>),
+	<span class="ident">ExportState</span>(<span class="ident">sc_cli::ExportStateCmd</span>),
 
 	<span class="doccomment">/// Import blocks.</span>
-	<span class="ident">ImportBlocks</span>(<span class="ident">sc_cli</span>::<span class="ident">ImportBlocksCmd</span>),
+	<span class="ident">ImportBlocks</span>(<span class="ident">sc_cli::ImportBlocksCmd</span>),
 
 	<span class="doccomment">/// Remove the whole chain.</span>
-	<span class="ident">PurgeChain</span>(<span class="ident">cumulus_client_cli</span>::<span class="ident">PurgeChainCmd</span>),
+	<span class="ident">PurgeChain</span>(<span class="ident">cumulus_client_cli::PurgeChainCmd</span>),
 
 	<span class="doccomment">/// Revert the chain to a previous state.</span>
-	<span class="ident">Revert</span>(<span class="ident">sc_cli</span>::<span class="ident">RevertCmd</span>),
+	<span class="ident">Revert</span>(<span class="ident">sc_cli::RevertCmd</span>),
 
 	<span class="doccomment">/// The custom benchmark subcommmand benchmarking runtime pallets.</span>
 	<span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;benchmark&quot;</span>, <span class="ident">about</span> <span class="op">=</span> <span class="string">&quot;Benchmark runtime pallets.&quot;</span>)]</span>
-	<span class="ident">Benchmark</span>(<span class="ident">frame_benchmarking_cli</span>::<span class="ident">BenchmarkCmd</span>),
+	<span class="ident">Benchmark</span>(<span class="ident">frame_benchmarking_cli::BenchmarkCmd</span>),
 
 	<span class="doccomment">/// Key management cli utilities</span>
 	<span class="ident">Key</span>(<span class="ident">KeyCmd</span>),
@@ -326,7 +323,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">StructOpt</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BuildSpecCommand</span> {
 	<span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">flatten</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">base</span>: <span class="ident">sc_cli</span>::<span class="ident">BuildSpecCmd</span>,
+	<span class="kw">pub</span> <span class="ident">base</span>: <span class="ident">sc_cli::BuildSpecCmd</span>,
 
 	<span class="doccomment">/// Number of accounts to be funded in the genesis</span>
 	<span class="doccomment">/// Warning: This flag implies a development spec and overrides any explicitly supplied spec</span>
@@ -378,7 +375,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">StructOpt</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RunCmd</span> {
 	<span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">flatten</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">base</span>: <span class="ident">cumulus_client_cli</span>::<span class="ident">RunCmd</span>,
+	<span class="kw">pub</span> <span class="ident">base</span>: <span class="ident">cumulus_client_cli::RunCmd</span>,
 
 	<span class="doccomment">/// Enable the development service to run without a backing relay chain</span>
 	<span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">long</span>)]</span>
@@ -432,10 +429,10 @@
 	<span class="kw">pub</span> <span class="ident">force_moonriver</span>: <span class="ident">bool</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">RunCmd</span> {
-	<span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">cumulus_client_cli</span>::<span class="ident">RunCmd</span>;
+<span class="kw">impl</span> <span class="ident">std::ops::Deref</span> <span class="kw">for</span> <span class="ident">RunCmd</span> {
+	<span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">cumulus_client_cli::RunCmd</span>;
 
-	<span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Target</span> {
+	<span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span><span class="ident">::Target</span> {
 		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>
 	}
 }
@@ -443,7 +440,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">StructOpt</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">KeyCmd</span> {
 	<span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">flatten</span>)]</span>
-	<span class="ident">BaseCli</span>(<span class="ident">sc_cli</span>::<span class="ident">KeySubcommand</span>),
+	<span class="ident">BaseCli</span>(<span class="ident">sc_cli::KeySubcommand</span>),
 	<span class="doccomment">/// Generate an Ethereum account.</span>
 	<span class="ident">GenerateAccountKey</span>(<span class="ident">GenerateAccountKey</span>),
 }
@@ -452,8 +449,8 @@
 	<span class="doccomment">/// run the key subcommands</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span><span class="op">&lt;</span><span class="ident">C</span>: <span class="ident">SubstrateCli</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cli</span>: <span class="kw-2">&amp;</span><span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CliError</span><span class="op">&gt;</span> {
 		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="ident">KeyCmd</span>::<span class="ident">BaseCli</span>(<span class="ident">cmd</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">cmd</span>.<span class="ident">run</span>(<span class="ident">cli</span>),
-			<span class="ident">KeyCmd</span>::<span class="ident">GenerateAccountKey</span>(<span class="ident">cmd</span>) <span class="op">=</span><span class="op">&gt;</span> {
+			<span class="ident">KeyCmd::BaseCli</span>(<span class="ident">cmd</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">cmd</span>.<span class="ident">run</span>(<span class="ident">cli</span>),
+			<span class="ident">KeyCmd::GenerateAccountKey</span>(<span class="ident">cmd</span>) <span class="op">=</span><span class="op">&gt;</span> {
 				<span class="ident">cmd</span>.<span class="ident">run</span>();
 				<span class="prelude-val">Ok</span>(())
 			}
@@ -463,9 +460,9 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">StructOpt</span>)]</span>
 <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">settings</span> <span class="op">=</span> <span class="kw-2">&amp;</span>[
-	<span class="ident">structopt</span>::<span class="ident">clap</span>::<span class="ident">AppSettings</span>::<span class="ident">GlobalVersion</span>,
-	<span class="ident">structopt</span>::<span class="ident">clap</span>::<span class="ident">AppSettings</span>::<span class="ident">ArgsNegateSubcommands</span>,
-	<span class="ident">structopt</span>::<span class="ident">clap</span>::<span class="ident">AppSettings</span>::<span class="ident">SubcommandsNegateReqs</span>,
+	<span class="ident">structopt::clap::AppSettings::GlobalVersion</span>,
+	<span class="ident">structopt::clap::AppSettings::ArgsNegateSubcommands</span>,
+	<span class="ident">structopt::clap::AppSettings::SubcommandsNegateReqs</span>,
 ]</span>)]
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Cli</span> {
 	<span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">subcommand</span>)]</span>
@@ -482,7 +479,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RelayChainCli</span> {
 	<span class="doccomment">/// The actual relay chain cli object.</span>
-	<span class="kw">pub</span> <span class="ident">base</span>: <span class="ident">polkadot_cli</span>::<span class="ident">RunCmd</span>,
+	<span class="kw">pub</span> <span class="ident">base</span>: <span class="ident">polkadot_cli::RunCmd</span>,
 
 	<span class="doccomment">/// Optional chain id that should be passed to the relay chain.</span>
 	<span class="kw">pub</span> <span class="ident">chain_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
@@ -494,10 +491,10 @@
 <span class="kw">impl</span> <span class="ident">RelayChainCli</span> {
 	<span class="doccomment">/// Parse the relay chain CLI parameters using the para chain `Configuration`.</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-		<span class="ident">para_config</span>: <span class="kw-2">&amp;</span><span class="ident">sc_service</span>::<span class="ident">Configuration</span>,
+		<span class="ident">para_config</span>: <span class="kw-2">&amp;</span><span class="ident">sc_service::Configuration</span>,
 		<span class="ident">relay_chain_args</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">String</span><span class="op">&gt;</span>,
 	) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-		<span class="kw">let</span> <span class="ident">extension</span> <span class="op">=</span> <span class="ident">chain_spec</span>::<span class="ident">Extensions</span>::<span class="ident">try_get</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">para_config</span>.<span class="ident">chain_spec</span>);
+		<span class="kw">let</span> <span class="ident">extension</span> <span class="op">=</span> <span class="ident">chain_spec::Extensions::try_get</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">para_config</span>.<span class="ident">chain_spec</span>);
 		<span class="kw">let</span> <span class="ident">chain_id</span> <span class="op">=</span> <span class="ident">extension</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">relay_chain</span>.<span class="ident">clone</span>());
 		<span class="kw">let</span> <span class="ident">base_path</span> <span class="op">=</span> <span class="ident">para_config</span>
 			.<span class="ident">base_path</span>
@@ -506,10 +503,11 @@
 		<span class="self">Self</span> {
 			<span class="ident">base_path</span>,
 			<span class="ident">chain_id</span>,
-			<span class="ident">base</span>: <span class="ident">polkadot_cli</span>::<span class="ident">RunCmd</span>::<span class="ident">from_iter</span>(<span class="ident">relay_chain_args</span>),
+			<span class="ident">base</span>: <span class="ident">polkadot_cli::RunCmd::from_iter</span>(<span class="ident">relay_chain_args</span>),
 		}
 	}
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="moonbeam_cli"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="moonbeam_cli" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
+    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
+</body></html>
