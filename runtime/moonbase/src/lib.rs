@@ -1076,7 +1076,7 @@ use pallet_xcm::IsMajorityOfBody;
 /// We allow root and the Relay Chain council to execute privileged asset operations.
 pub type AssetsForceOrigin = EnsureOneOf<
 	AccountId,
-	EnsureRoot<AccountId>,
+	EnsureRoot<AccountId>,KsmLocation
 	EnsureXcm<IsMajorityOfBody<KsmLocation, ExecutiveBody>>,
 >;
 
