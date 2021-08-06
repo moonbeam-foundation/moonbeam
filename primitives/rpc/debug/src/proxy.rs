@@ -219,51 +219,53 @@ impl CallListProxy {
 				// 		[1] -> pop() and added to []
 				// 		[] -> list length == 1, out
 
-				// Sort by `trace_address.len`
-				result.sort_by(|a, b| match (a, b) {
-					(
-						Call::GethCallTrace {
-							trace_address: Some(a),
-							..
-						},
-						Call::GethCallTrace {
-							trace_address: Some(b),
-							..
-						},
-					) => a.len().cmp(&b.len()),
-					_ => unreachable!(),
-				});
-				// Stack pop-and-push.
-				while result.len() > 1 {
-					let mut last = result.pop().unwrap();
-					// Find the parent index.
-					if let Some(index) =
-						result
-							.iter()
-							.position(|current| match (last.clone(), current) {
-								(
-									Call::GethCallTrace {
-										trace_address: Some(a),
-										..
-									},
-									Call::GethCallTrace {
-										trace_address: Some(b),
-										..
-									},
-								) => &b[..] == &a[0..a.len() - 1],
-								_ => unreachable!(),
-							}) {
-						// Remove `trace_address` from result.
-						if let Call::GethCallTrace {
-							ref mut trace_address,
-							..
-						} = last
-						{
-							*trace_address = None;
-						}
-						// Push the children to parent.
-						if let Some(Call::GethCallTrace { calls, .. }) = result.get_mut(index) {
-							calls.push(last);
+				if result.len() > 1 {
+					// Sort by `trace_address.len`
+					result.sort_by(|a, b| match (a, b) {
+						(
+							Call::GethCallTrace {
+								trace_address: Some(a),
+								..
+							},
+							Call::GethCallTrace {
+								trace_address: Some(b),
+								..
+							},
+						) => a.len().cmp(&b.len()),
+						_ => unreachable!(),
+					});
+					// Stack pop-and-push.
+					while result.len() > 1 {
+						let mut last = result.pop().unwrap();
+						// Find the parent index.
+						if let Some(index) =
+							result
+								.iter()
+								.position(|current| match (last.clone(), current) {
+									(
+										Call::GethCallTrace {
+											trace_address: Some(a),
+											..
+										},
+										Call::GethCallTrace {
+											trace_address: Some(b),
+											..
+										},
+									) => &b[..] == &a[0..a.len() - 1],
+									_ => unreachable!(),
+								}) {
+							// Remove `trace_address` from result.
+							if let Call::GethCallTrace {
+								ref mut trace_address,
+								..
+							} = last
+							{
+								*trace_address = None;
+							}
+							// Push the children to parent.
+							if let Some(Call::GethCallTrace { calls, .. }) = result.get_mut(index) {
+								calls.push(last);
+							}
 						}
 					}
 				}
