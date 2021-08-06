@@ -119,7 +119,7 @@ impl<'a> EvmDataReader<'a> {
 /// Help build an EVM input/output data.
 #[derive(Clone, Debug)]
 pub struct EvmDataWriter {
-	data: Vec<u8>,
+	pub(crate) data: Vec<u8>,
 	arrays: Vec<Array>,
 }
 

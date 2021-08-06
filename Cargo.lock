@@ -8324,6 +8324,8 @@ dependencies = [
  "num_enum",
  "pallet-evm",
  "parity-scale-codec",
+ "precompile-utils-macro",
+ "sha3 0.9.1",
  "slices",
  "sp-core",
  "sp-io",
