@@ -461,28 +461,6 @@ pub mod pallet {
 		pub status: NominatorStatus,
 	}
 
-	#[derive(Encode, Decode, RuntimeDebug)]
-	/// DEPRECATED nominator state
-	pub struct Nominator<AccountId, Balance> {
-		pub nominations: OrderedSet<Bond<AccountId, Balance>>,
-		pub total: Balance,
-	}
-
-	impl<AccountId: Ord, Balance: Zero> From<Nominator<AccountId, Balance>>
-		for Nominator2<AccountId, Balance>
-	{
-		fn from(other: Nominator<AccountId, Balance>) -> Nominator2<AccountId, Balance> {
-			Nominator2 {
-				nominations: other.nominations,
-				revocations: OrderedSet::new(),
-				total: other.total,
-				scheduled_revocations_count: 0u32,
-				scheduled_revocations_total: Zero::zero(),
-				status: NominatorStatus::Active,
-			}
-		}
-	}
-
 	impl<
 			AccountId: Ord + Clone,
 			Balance: Copy
@@ -860,50 +838,13 @@ pub mod pallet {
 			Perbill,
 			Perbill,
 		),
-		/// Migrated NominatorState -> NominatorState2, ExitQueue -> ExitQueue2
-		DelayNominationExitsMigrationExecuted,
-	}
-
-	/// Storage migration for delaying nomination exits and revocations
-	fn delay_nomination_exits_migration_execution<T: Config>() -> (u64, u64) {
-		if !<DelayNominationExitsMigration<T>>::get() {
-			// migrate from Nominator -> Nominator2
-			let (mut reads, mut writes) = (0u64, 0u64);
-			for (acc, nominator_state) in NominatorState::<T>::drain() {
-				let state: Nominator2<T::AccountId, BalanceOf<T>> = nominator_state.into();
-				<NominatorState2<T>>::insert(acc, state);
-				reads += 1u64;
-				writes += 1u64;
-			}
-			// migrate from ExitQueue -> ExitQueue2
-			let just_collators_exit_queue = <ExitQueue<T>>::take();
-			let mut candidates: Vec<T::AccountId> = Vec::new();
-			for (acc, _) in just_collators_exit_queue.clone().into_iter() {
-				candidates.push(acc);
-			}
-			reads += 1u64;
-			writes += 1u64;
-			<ExitQueue2<T>>::put(ExitQ {
-				candidates: candidates.into(),
-				nominators_leaving: OrderedSet::new(),
-				candidate_schedule: just_collators_exit_queue,
-				nominator_schedule: Vec::new(),
-			});
-			<DelayNominationExitsMigration<T>>::put(true);
-			Pallet::<T>::deposit_event(Event::DelayNominationExitsMigrationExecuted);
-			(reads, writes)
-		} else {
-			(1u64, 0u64)
-		}
 	}
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_runtime_upgrade() -> Weight {
-			let (reads, writes) = delay_nomination_exits_migration_execution::<T>();
-			<T as frame_system::Config>::DbWeight::get().reads(reads)
-				+ <T as frame_system::Config>::DbWeight::get().writes(writes)
-				+ 5_000_000_000 // 1% of the max block weight, to account for computation
+			<DelayNominationExitsMigration<T>>::kill();
+			0
 		}
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut round = <Round<T>>::get();
@@ -938,7 +879,7 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn delay_nomination_exits_migration)]
-	/// True if executed, false by default
+	/// DEPRECATED
 	type DelayNominationExitsMigration<T: Config> = StorageValue<_, bool, ValueQuery>;
 
 	#[pallet::storage]
@@ -961,18 +902,6 @@ pub mod pallet {
 	#[pallet::getter(fn round)]
 	/// Current round index and next round scheduled transition
 	type Round<T: Config> = StorageValue<_, RoundInfo<T::BlockNumber>, ValueQuery>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn nominator_state)]
-	/// DEPRECATED AFTER `DelayNominationExitsMigration` migration is executed
-	/// Get nominator state associated with an account if account is nominating else None
-	type NominatorState<T: Config> = StorageMap<
-		_,
-		Twox64Concat,
-		T::AccountId,
-		Nominator<T::AccountId, BalanceOf<T>>,
-		OptionQuery,
-	>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn nominator_state2)]
@@ -1011,12 +940,6 @@ pub mod pallet {
 	/// The pool of collator candidates, each with their total backing stake
 	type CandidatePool<T: Config> =
 		StorageValue<_, OrderedSet<Bond<T::AccountId, BalanceOf<T>>>, ValueQuery>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn exit_queue)]
-	/// DEPRECATED
-	/// A queue of collators awaiting exit
-	type ExitQueue<T: Config> = StorageValue<_, Vec<(T::AccountId, RoundIndex)>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn exit_queue2)]
