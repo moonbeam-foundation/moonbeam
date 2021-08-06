@@ -17,6 +17,8 @@ pallet-evm = { git = "https://github.com/purestake/frontier", default-features =
 pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", default-features = false, branch = "main" }
 frame-system = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 precompile-utils = { path = "../utils", default-features = false }
+precompile-utils-macro = { path = "../utils-macro" }
+num_enum = { version = "0.5.3", default-features = false }
 
 [dev-dependencies]
 sha3 = "0.9"
