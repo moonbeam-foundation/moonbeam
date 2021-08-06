@@ -20,7 +20,6 @@ account = { path = "../../primitives/account/", default-features = false }
 moonbeam-core-primitives = { path = "../../core-primitives", default-features = false }
 pallet-ethereum-chain-id = { path = "../../pallets/ethereum-chain-id", default-features = false }
 parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
-xcm-transfers = { path = "../../pallets/xcm-transfers", default-features = false }
 parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", default-features = false }
 pallet-author-slot-filter = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098", default-features = false }
 nimbus-primitives = { git = "https://github.com/purestake/cumulus", branch = "joshy-np098", default-features = false }
@@ -97,6 +96,7 @@ xcm-executor = { git = "https://github.com/paritytech/polkadot", default-feature
 pallet-xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.8" }
 polkadot-parachain = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.8" }
 polkadot-core-primitives = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.8" }
+orml-xtokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", default-features = false }
 
 # Benchmarking dependencies
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8", optional = true }
@@ -178,7 +178,7 @@ std = [
 	"cumulus-pallet-xcm/std",
 	"cumulus-pallet-dmp-queue/std",
 	"pallet-assets/std",
-	"xcm-transfers/std",
+	"orml-xtokens/std",
 ]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.

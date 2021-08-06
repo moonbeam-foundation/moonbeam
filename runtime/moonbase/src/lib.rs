@@ -893,18 +893,31 @@ where
 	}
 }
 
+/// Converter struct implementing `AssetIdConversion` converting a numeric asset ID (must be `TryFrom/TryInto<u128>`) into
+/// a `GeneralIndex` junction, prefixed by some `MultiLocation` value. The `MultiLocation` value will typically be a
+/// `PalletInstance` junction.
+use sp_std::borrow::Borrow;
+pub struct AsParachainId<AssetId, ConvertAssetId>(PhantomData<(AssetId, ConvertAssetId)>);
+impl<AssetId: Clone, ConvertAssetId: xcm_executor::traits::Convert<u32, AssetId>>
+	xcm_executor::traits::Convert<MultiLocation, AssetId> for AsParachainId<AssetId, ConvertAssetId>
+{
+	fn convert_ref(id: impl Borrow<MultiLocation>) -> Result<AssetId, ()> {
+		match id.borrow() {
+			MultiLocation::X1(Junction::Parachain(id)) => ConvertAssetId::convert_ref(id),
+			_ => Err(()),
+		}
+	}
+	fn reverse_ref(what: impl Borrow<AssetId>) -> Result<MultiLocation, ()> {
+		let id = ConvertAssetId::reverse_ref(what)?;
+		Ok(MultiLocation::X1(Junction::Parachain(id)))
+	}
+}
+
 pub type FungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	Assets,
 	// Use this currency when it is a fungible asset matching the given location or name:
-	(
-		ConvertedConcreteAssetId<
-			u32,
-			Balance,
-			AsPrefixedGeneralIndex<Local, u32, JustTry>,
-			JustTry,
-		>,
-	),
+	(ConvertedConcreteAssetId<u32, Balance, AsParachainId<u32, JustTry>, JustTry>,),
 	// Do a simple punn to convert an AccountId32 MultiLocation into a native chain account ID:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
@@ -915,8 +928,9 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	(),
 >;
 /// Means for transacting assets on this chain.
-pub type AssetTransactors = (KsmAssetTransactor, FungiblesTransactor);
+// pub type AssetTransactors = (KsmAssetTransactor, FungiblesTransactor);
 
+pub type AssetTransactors = FungiblesTransactor;
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
 /// biases the kind of local `Origin` it will become.
@@ -1076,14 +1090,15 @@ use pallet_xcm::IsMajorityOfBody;
 /// We allow root and the Relay Chain council to execute privileged asset operations.
 pub type AssetsForceOrigin = EnsureOneOf<
 	AccountId,
-	EnsureRoot<AccountId>,KsmLocation
+	EnsureRoot<AccountId>,
 	EnsureXcm<IsMajorityOfBody<KsmLocation, ExecutiveBody>>,
 >;
 
+pub type AssetId = u32;
 impl pallet_assets::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
-	type AssetId = u32;
+	type AssetId = AssetId;
 	type Currency = Balances;
 	type ForceOrigin = AssetsForceOrigin;
 	type AssetDeposit = AssetDeposit;
@@ -1096,18 +1111,40 @@ impl pallet_assets::Config for Runtime {
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 }
 
-impl xcm_transfers::Config for Runtime {
+pub struct AssetIdtoMultiLocation<AssetXConverter>(sp_std::marker::PhantomData<AssetXConverter>);
+impl<AssetXConverter> sp_runtime::traits::Convert<AssetId, Option<MultiLocation>>
+	for AssetIdtoMultiLocation<AssetXConverter>
+where
+	AssetXConverter: xcm_executor::traits::Convert<MultiLocation, AssetId>,
+{
+	fn convert(asset: AssetId) -> Option<MultiLocation> {
+		AssetXConverter::reverse_ref(asset).ok()
+	}
+}
+parameter_types! {
+	pub const BaseXcmWeight: Weight = 100_000_000;
+}
+
+pub struct AccountIdToMultiLocation;
+impl sp_runtime::traits::Convert<AccountId, MultiLocation> for AccountIdToMultiLocation {
+	fn convert(account: AccountId) -> MultiLocation {
+		MultiLocation::X1(Junction::AccountKey20 {
+			network: NetworkId::Any,
+			key: account.into(),
+		})
+	}
+}
+
+impl orml_xtokens::Config for Runtime {
 	type Event = Event;
-	type RelayCurrency = BalancesKsm;
-	type PalletId = XcmWrapperId;
-	type ToRelayChainBalance = NativeToRelay;
-	type RelayChainNetworkId = RelayNetwork;
-	type RelayChainAccountId = AccountId32;
+	type Balance = Balance;
+	type CurrencyId = AssetId;
+	type AccountIdToMultiLocation = AccountIdToMultiLocation;
+	type CurrencyIdConvert = AssetIdtoMultiLocation<AsParachainId<AssetId, JustTry>>;
 	type XcmExecutor = XcmExecutor;
-	type OwnLocation = Ancestry;
-	type CreateProxyDeposit = ProxyDepositAmount;
+	type SelfLocation = Ancestry;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
-	type OriginToMultiLocation = LocalOriginToLocation;
+	type BaseXcmWeight = BaseXcmWeight;
 }
 
 construct_runtime! {
@@ -1146,7 +1183,7 @@ construct_runtime! {
 		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>},
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>},
-		XcmTransfers: xcm_transfers::{Pallet, Call, Storage, Event<T>},
+		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
 
 		}
 }
