@@ -31,8 +31,8 @@ use crate::block::{
 	TransactionTrace as BlockTrace, TransactionTraceAction, TransactionTraceOutput,
 	TransactionTraceResult,
 };
-use crate::single::{Call, CallInner, RawStepLog, TransactionTrace as SingleTrace};
-use crate::{CallResult, CreateResult, CreateType};
+use crate::single::{Call, CallInner, GethCallInner, RawStepLog, TransactionTrace as SingleTrace};
+use crate::{CallResult, CreateResult, CreateType, TracerInput};
 use codec::{Decode, Encode};
 use ethereum_types::{H256, U256};
 use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
@@ -154,11 +154,128 @@ impl CallListProxy {
 	}
 
 	/// Format the RPC output of a single call-stack.
-	pub fn into_tx_trace(self) -> Option<SingleTrace> {
+	pub fn into_tx_trace(self, tracer: TracerInput) -> Option<SingleTrace> {
 		if let Some(entry) = self.entries.last() {
-			return Some(SingleTrace::CallList(
-				entry.into_iter().map(|(_, value)| value.clone()).collect(),
-			));
+			let mut result: Vec<Call> = entry
+				.into_iter()
+				.filter_map(|(_, value)| match (value, tracer) {
+					(Call::Blockscout { .. }, TracerInput::Blockscout) => Some(value.clone()),
+					(
+						Call::Blockscout {
+							from,
+							trace_address,
+							value,
+							gas,
+							gas_used,
+							inner,
+							..
+						},
+						TracerInput::GethCallTrace,
+					) => Some(Call::GethCallTrace {
+						from: *from,
+						gas: *gas,
+						gas_used: *gas_used,
+						trace_address: Some(trace_address.clone()),
+						inner: match inner.clone() {
+							CallInner::Call { input, to, res, .. } => GethCallInner::Call {
+								to,
+								input,
+								res,
+								value: Some(*value),
+							},
+							CallInner::Create { res, .. } => {
+								GethCallInner::Create { res, value: *value }
+							}
+							CallInner::SelfDestruct {
+								balance,
+								refund_address,
+							} => GethCallInner::SelfDestruct {
+								value: balance,
+								to: refund_address,
+							},
+						},
+						calls: Vec::new(),
+					}),
+					_ => None,
+				})
+				.map(|x| x)
+				.collect();
+			if tracer == TracerInput::GethCallTrace {
+				// Geth's `callTracer` expects a tree of nested calls and we have a stack.
+				//
+				// We iterate over the stack sorted by `T`'s length, and push each children to it's
+				// parent (the item which's `trace_address` matches &T[0..T.len()-1]) until there
+				// is a single item on the list.
+				//
+				// The last remaining item is the context call with all it's descendants. I.e.
+				//
+				// 		[0,0,0] -> pop() and added to [0,0]
+				// 		[1,0,0] -> pop() and added to [1,0]
+				// 		[1,0,1] -> pop() and added to [1,0]
+				// 		[0,0] -> pop() and added to [0]
+				// 		[0,1] -> pop() and added to [0]
+				// 		[1,0] -> pop() and added to [1]
+				// 		[0] -> pop() and added to []
+				// 		[1] -> pop() and added to []
+				// 		[] -> list length == 1, out
+
+				// Sort by `trace_address.len`
+				result.sort_by(|a, b| match (a, b) {
+					(
+						Call::GethCallTrace {
+							trace_address: Some(a),
+							..
+						},
+						Call::GethCallTrace {
+							trace_address: Some(b),
+							..
+						},
+					) => a.len().cmp(&b.len()),
+					_ => unreachable!(),
+				});
+				// Stack pop-and-push.
+				while result.len() > 1 {
+					let mut last = result.pop().unwrap();
+					// Find the parent index.
+					if let Some(index) =
+						result
+							.iter()
+							.position(|current| match (last.clone(), current) {
+								(
+									Call::GethCallTrace {
+										trace_address: Some(a),
+										..
+									},
+									Call::GethCallTrace {
+										trace_address: Some(b),
+										..
+									},
+								) => &b[..] == &a[0..a.len() - 1],
+								_ => unreachable!(),
+							}) {
+						// Remove `trace_address` from result.
+						if let Call::GethCallTrace {
+							ref mut trace_address,
+							..
+						} = last
+						{
+							*trace_address = None;
+						}
+						// Push the children to parent.
+						if let Some(Call::GethCallTrace { calls, .. }) = result.get_mut(index) {
+							calls.push(last);
+						}
+					}
+				}
+				// Remove `trace_address` from result.
+				if let Some(Call::GethCallTrace { trace_address, .. }) = result.get_mut(0) {
+					*trace_address = None;
+				}
+				if result.len() == 1 {
+					return Some(SingleTrace::CallListNested(result.pop().unwrap()));
+				}
+			}
+			return Some(SingleTrace::CallList(result));
 		}
 		None
 	}
@@ -170,96 +287,114 @@ impl CallListProxy {
 		for (eth_tx_index, entry) in self.entries.iter().enumerate() {
 			let mut tx_traces: Vec<_> = entry
 				.into_iter()
-				.map(|(_, trace)| match trace.inner.clone() {
-					CallInner::Call {
-						input,
-						to,
-						res,
-						call_type,
-					} => BlockTrace {
-						action: TransactionTraceAction::Call {
-							call_type,
-							from: trace.from,
-							gas: trace.gas,
-							input,
-							to,
-							value: trace.value,
-						},
-						// Can't be known here, must be inserted upstream.
-						block_hash: H256::default(),
-						// Can't be known here, must be inserted upstream.
-						block_number: 0,
-						output: match res {
-							CallResult::Output(output) => {
-								TransactionTraceOutput::Result(TransactionTraceResult::Call {
-									gas_used: trace.gas_used,
-									output,
+				.filter_map(|(_, trace)| {
+					match trace {
+						Call::Blockscout {
+							from,
+							trace_address,
+							subtraces,
+							value,
+							gas,
+							gas_used,
+							inner,
+						} => match inner.clone() {
+							CallInner::Call {
+								input,
+								to,
+								res,
+								call_type,
+							} => Some(BlockTrace {
+								action: TransactionTraceAction::Call {
+									call_type,
+									from: *from,
+									gas: *gas,
+									input,
+									to,
+									value: *value,
+								},
+								// Can't be known here, must be inserted upstream.
+								block_hash: H256::default(),
+								// Can't be known here, must be inserted upstream.
+								block_number: 0,
+								output: match res {
+									CallResult::Output(output) => TransactionTraceOutput::Result(
+										TransactionTraceResult::Call {
+											gas_used: *gas_used,
+											output,
+										},
+									),
+									crate::CallResult::Error(error) => {
+										TransactionTraceOutput::Error(error)
+									}
+								},
+								subtraces: *subtraces,
+								trace_address: trace_address.clone(),
+								// Can't be known here, must be inserted upstream.
+								transaction_hash: H256::default(),
+								transaction_position: eth_tx_index as u32,
+							}),
+							CallInner::Create { init, res } => {
+								Some(BlockTrace {
+									action: TransactionTraceAction::Create {
+										creation_method: CreateType::Create,
+										from: *from,
+										gas: *gas,
+										init,
+										value: *value,
+									},
+									// Can't be known here, must be inserted upstream.
+									block_hash: H256::default(),
+									// Can't be known here, must be inserted upstream.
+									block_number: 0,
+									output: match res {
+										CreateResult::Success {
+											created_contract_address_hash,
+											created_contract_code,
+										} => TransactionTraceOutput::Result(
+											TransactionTraceResult::Create {
+												gas_used: *gas_used,
+												code: created_contract_code,
+												address: created_contract_address_hash,
+											},
+										),
+										crate::CreateResult::Error { error } => {
+											TransactionTraceOutput::Error(error)
+										}
+									},
+									subtraces: *subtraces,
+									trace_address: trace_address.clone(),
+									// Can't be known here, must be inserted upstream.
+									transaction_hash: H256::default(),
+									transaction_position: eth_tx_index as u32,
 								})
 							}
-							crate::CallResult::Error(error) => TransactionTraceOutput::Error(error),
+							CallInner::SelfDestruct {
+								balance,
+								refund_address,
+							} => Some(BlockTrace {
+								action: TransactionTraceAction::Suicide {
+									address: *from,
+									balance,
+									refund_address,
+								},
+								// Can't be known here, must be inserted upstream.
+								block_hash: H256::default(),
+								// Can't be known here, must be inserted upstream.
+								block_number: 0,
+								output: TransactionTraceOutput::Result(
+									TransactionTraceResult::Suicide,
+								),
+								subtraces: *subtraces,
+								trace_address: trace_address.clone(),
+								// Can't be known here, must be inserted upstream.
+								transaction_hash: H256::default(),
+								transaction_position: eth_tx_index as u32,
+							}),
 						},
-						subtraces: trace.subtraces,
-						trace_address: trace.trace_address.clone(),
-						// Can't be known here, must be inserted upstream.
-						transaction_hash: H256::default(),
-						transaction_position: eth_tx_index as u32,
-					},
-					CallInner::Create { init, res } => {
-						BlockTrace {
-							action: TransactionTraceAction::Create {
-								creation_method: CreateType::Create,
-								from: trace.from,
-								gas: trace.gas,
-								init,
-								value: trace.value,
-							},
-							// Can't be known here, must be inserted upstream.
-							block_hash: H256::default(),
-							// Can't be known here, must be inserted upstream.
-							block_number: 0,
-							output: match res {
-								CreateResult::Success {
-									created_contract_address_hash,
-									created_contract_code,
-								} => {
-									TransactionTraceOutput::Result(TransactionTraceResult::Create {
-										gas_used: trace.gas_used,
-										code: created_contract_code,
-										address: created_contract_address_hash,
-									})
-								}
-								crate::CreateResult::Error { error } => {
-									TransactionTraceOutput::Error(error)
-								}
-							},
-							subtraces: trace.subtraces,
-							trace_address: trace.trace_address.clone(),
-							// Can't be known here, must be inserted upstream.
-							transaction_hash: H256::default(),
-							transaction_position: eth_tx_index as u32,
-						}
+						_ => None,
 					}
-					CallInner::SelfDestruct {
-						balance,
-						refund_address,
-					} => BlockTrace {
-						action: TransactionTraceAction::Suicide {
-							address: trace.from,
-							balance,
-							refund_address,
-						},
-						// Can't be known here, must be inserted upstream.
-						block_hash: H256::default(),
-						// Can't be known here, must be inserted upstream.
-						block_number: 0,
-						output: TransactionTraceOutput::Result(TransactionTraceResult::Suicide),
-						subtraces: trace.subtraces,
-						trace_address: trace.trace_address.clone(),
-						// Can't be known here, must be inserted upstream.
-						transaction_hash: H256::default(),
-						transaction_position: eth_tx_index as u32,
-					},
 				})
+				.map(|x| x)
 				.collect();
 
 			traces.append(&mut tx_traces);

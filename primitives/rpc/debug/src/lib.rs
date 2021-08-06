@@ -108,3 +108,10 @@ pub enum CallType {
 pub enum CreateType {
 	Create,
 }
+
+#[derive(Clone, Copy, Eq, PartialEq, Debug, Encode, Decode)]
+pub enum TracerInput {
+	None,
+	Blockscout,
+	GethCallTrace,
+}

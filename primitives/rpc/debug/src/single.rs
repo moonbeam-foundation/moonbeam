@@ -55,6 +55,7 @@ pub enum TransactionTrace {
 	/// Matches the formatter used by Blockscout.
 	/// Is also used to built output of OpenEthereum's `trace_filter`.
 	CallList(Vec<Call>),
+	CallListNested(Call),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
@@ -133,22 +134,73 @@ pub enum CallInner {
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(Serialize))]
-#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
-pub struct Call {
-	pub from: H160,
-	/// Indices of parent calls.
-	pub trace_address: Vec<u32>,
-	/// Number of children calls.
-	/// Not needed for Blockscout, but needed for `crate::block`
-	/// types that are build from this type.
-	#[cfg_attr(feature = "std", serde(skip))]
-	pub subtraces: u32,
-	/// Sends funds to the (payable) function
-	pub value: U256,
-	/// Remaining gas in the runtime.
-	pub gas: U256,
-	/// Gas used by this context.
-	pub gas_used: U256,
-	#[cfg_attr(feature = "std", serde(flatten))]
-	pub inner: CallInner,
+#[cfg_attr(feature = "std", serde(rename_all = "camelCase", tag = "type"))]
+pub enum GethCallInner {
+	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
+	Call {
+		to: H160,
+		#[cfg_attr(feature = "std", serde(serialize_with = "bytes_0x_serialize"))]
+		input: Vec<u8>,
+		/// "output" or "error" field
+		#[cfg_attr(feature = "std", serde(flatten))]
+		res: crate::CallResult,
+
+		#[cfg_attr(feature = "std", serde(skip_serializing_if = "Option::is_none"))]
+		value: Option<U256>,
+	},
+
+	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
+	Create {
+		#[cfg_attr(feature = "std", serde(flatten))]
+		res: crate::CreateResult,
+		value: U256,
+	},
+	// Revert,
+	SelfDestruct {
+		#[cfg_attr(feature = "std", serde(skip))]
+		to: H160,
+		value: U256,
+	},
+}
+
+#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
+#[cfg_attr(feature = "std", derive(Serialize))]
+#[cfg_attr(feature = "std", serde(rename_all = "camelCase", untagged))]
+pub enum Call {
+	Blockscout {
+		from: H160,
+		/// Indices of parent calls.
+		trace_address: Vec<u32>,
+		/// Number of children calls.
+		/// Not needed for Blockscout, but needed for `crate::block`
+		/// types that are build from this type.
+		#[cfg_attr(feature = "std", serde(skip))]
+		subtraces: u32,
+		/// Sends funds to the (payable) function
+		value: U256,
+		/// Remaining gas in the runtime.
+		gas: U256,
+		/// Gas used by this context.
+		gas_used: U256,
+		#[cfg_attr(feature = "std", serde(flatten))]
+		inner: CallInner,
+	},
+	GethCallTrace {
+		from: H160,
+
+		/// Indices of parent calls.
+		#[cfg_attr(feature = "std", serde(skip_serializing_if = "Option::is_none"))]
+		trace_address: Option<Vec<u32>>,
+
+		/// Remaining gas in the runtime.
+		gas: U256,
+		/// Gas used by this context.
+		gas_used: U256,
+
+		#[cfg_attr(feature = "std", serde(flatten))]
+		inner: GethCallInner,
+
+		#[cfg_attr(feature = "std", serde(skip_serializing_if = "Vec::is_empty"))]
+		calls: Vec<Call>,
+	},
 }

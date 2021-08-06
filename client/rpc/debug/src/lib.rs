@@ -29,7 +29,7 @@ use tokio::{
 use ethereum_types::{H128, H256};
 use fc_rpc::{frontier_backend_client, internal_err};
 use fp_rpc::EthereumRuntimeRPCApi;
-use moonbeam_rpc_primitives_debug::{proxy, single, DebugRuntimeApi};
+use moonbeam_rpc_primitives_debug::{proxy, single, DebugRuntimeApi, TracerInput};
 use sc_client_api::backend::Backend;
 use sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
@@ -214,15 +214,22 @@ where
 		};
 
 		// Set trace type
-		let trace_type = match params {
+		let (tracer_input, trace_type) = match params {
 			Some(TraceParams {
 				tracer: Some(tracer),
 				..
 			}) => {
 				let hash: H128 = sp_io::hashing::twox_128(&tracer.as_bytes()).into();
 				let blockscout_hash = H128::from_str("0x94d9f08796f91eb13a2e82a6066882f7").unwrap();
-				if hash == blockscout_hash {
-					single::TraceType::CallList
+				let tracer = if hash == blockscout_hash {
+					Some(TracerInput::Blockscout)
+				} else if tracer == "callTrace" {
+					Some(TracerInput::GethCallTrace)
+				} else {
+					None
+				};
+				if let Some(tracer) = tracer {
+					(tracer, single::TraceType::CallList)
 				} else {
 					return Err(internal_err(format!(
 						"javascript based tracing is not available (hash :{:?})",
@@ -230,16 +237,22 @@ where
 					)));
 				}
 			}
-			Some(params) => single::TraceType::Raw {
-				disable_storage: params.disable_storage.unwrap_or(false),
-				disable_memory: params.disable_memory.unwrap_or(false),
-				disable_stack: params.disable_stack.unwrap_or(false),
-			},
-			_ => single::TraceType::Raw {
-				disable_storage: false,
-				disable_memory: false,
-				disable_stack: false,
-			},
+			Some(params) => (
+				TracerInput::None,
+				single::TraceType::Raw {
+					disable_storage: params.disable_storage.unwrap_or(false),
+					disable_memory: params.disable_memory.unwrap_or(false),
+					disable_stack: params.disable_stack.unwrap_or(false),
+				},
+			),
+			_ => (
+				TracerInput::None,
+				single::TraceType::Raw {
+					disable_storage: false,
+					disable_memory: false,
+					disable_stack: false,
+				},
+			),
 		};
 
 		// Get the actual ethereum transaction.
@@ -305,7 +318,7 @@ where
 						if api_version >= 2 {
 							proxy.using(f)?;
 							proxy
-								.into_tx_trace()
+								.into_tx_trace(tracer_input)
 								.ok_or("Trace result is empty.")
 								.map_err(|e| internal_err(format!("{:?}", e)))
 						} else {

@@ -198,7 +198,7 @@ impl RuntimeListener for CallListTracer {
 									ExitReason::Fatal(_) => CallResult::Error(vec![]),
 								};
 
-								Call {
+								Call::Blockscout {
 									from: context.from,
 									trace_address: context.trace_address,
 									subtraces: context.subtraces,
@@ -229,7 +229,7 @@ impl RuntimeListener for CallListTracer {
 									ExitReason::Fatal(_) => CreateResult::Error { error: vec![] },
 								};
 
-								Call {
+								Call::Blockscout {
 									value: context.value,
 									trace_address: context.trace_address,
 									subtraces: context.subtraces,
@@ -335,7 +335,7 @@ impl EvmListener for CallListTracer {
 			} => {
 				moonbeam_primitives_ext::moonbeam_ext::call_list_entry(
 					self.entries_next_index,
-					Call {
+					Call::Blockscout {
 						from: address, // this contract is self destructing
 						trace_address,
 						subtraces: 0,
