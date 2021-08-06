@@ -133,9 +133,14 @@ where
 
 				let elapsed = start_time.elapsed();
 
+				let gas_per_sec: f64 = info.used_gas.as_u64() as f64 / elapsed.as_secs_f64();
+				let mil_gas_per_sec: f64 = gas_per_sec / 1_000_000f64;
+
 				Ok(BenchmarkResults {
 					gas_used: info.used_gas,
 					evm_execution_time_us: elapsed.as_micros() as u64,
+					evm_gas_per_sec: gas_per_sec,
+					evm_mil_gas_per_sec: mil_gas_per_sec,
 					// TODO: not sure request time is worth the effort, extra code, etc.
 					request_execution_time_us: 0,
 					result: None, // TODO: Bytes vs Vec<u8> is quite annoying...

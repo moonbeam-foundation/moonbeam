@@ -21,11 +21,13 @@ use fc_rpc_core::types::{Bytes, CallRequest};
 
 pub use rpc_impl_Benchmark::gen_server::Benchmark as BenchmarkServer;
 
-#[derive(Default, Clone, Eq, PartialEq, Debug, Serialize)]
+#[derive(Default, Clone, PartialEq, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BenchmarkResults {
 	pub gas_used: U256,
 	pub evm_execution_time_us: u64,
+	pub evm_gas_per_sec: f64,
+	pub evm_mil_gas_per_sec: f64,
 	pub request_execution_time_us: u64,
 	pub result: Option<Bytes>,
 }
