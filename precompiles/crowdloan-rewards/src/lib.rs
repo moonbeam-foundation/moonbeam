@@ -75,8 +75,8 @@ where
 		match &input.read_selector()? {
 			// Check for accessor methods first. These return results immediately
 			Action::IsContributor => Self::is_contributor(input, target_gas),
-			Action::Claim => Self::reward_info(input, target_gas),
-			Action::RewardInfo => Self::claim(target_gas, context),
+			Action::RewardInfo => Self::reward_info(input, target_gas),
+			Action::Claim => Self::claim(target_gas, context),
 			Action::UpdateRewardAddress => Self::update_reward_address(input, target_gas, context),
 		}
 	}
