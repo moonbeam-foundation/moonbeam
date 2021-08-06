@@ -912,16 +912,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "631ae5198c9be5e753e5cc215e1bd73c2b466a3565173db433f52bb9d3e66dba"
 
 [[package]]
-name = "calculate-selector-macro"
-version = "0.1.0"
-dependencies = [
- "quote",
- "sha3 0.8.2",
- "syn",
- "trybuild",
-]
-
-[[package]]
 name = "camino"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8314,6 +8304,17 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-std",
+]
+
+[[package]]
+name = "precompile-utils-macro"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "sha3 0.8.2",
+ "syn",
+ "trybuild",
 ]
 
 [[package]]
