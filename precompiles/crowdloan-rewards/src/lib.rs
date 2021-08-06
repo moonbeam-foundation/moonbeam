@@ -46,7 +46,7 @@ pub type BalanceOf<Runtime> =
 	>>::Balance;
 
 #[precompile_utils_macro::generate_function_selector]
-#[derive(num_enum::TryFromPrimitive)]
+#[derive(Debug, PartialEq, num_enum::TryFromPrimitive)]
 pub enum Action {
 	IsContributor = "is_contributor(address)",
 	RewardInfo = "reward_info(address)",
