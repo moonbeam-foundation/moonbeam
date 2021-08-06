@@ -77,13 +77,16 @@ fn read_selector() {
 	#[precompile_utils_macro::generate_function_selector]
 	#[derive(Debug, PartialEq, num_enum::TryFromPrimitive)]
 	enum FakeAction {
-		Action1 = "action1()"
+		Action1 = "action1()",
 	}
 
 	let selector = &Keccak256::digest(b"action1()")[0..4];
 	let mut reader = EvmDataReader::new(selector);
 
-	assert_eq!(reader.read_selector::<FakeAction>().unwrap(), FakeAction::Action1)
+	assert_eq!(
+		reader.read_selector::<FakeAction>().unwrap(),
+		FakeAction::Action1
+	)
 }
 
 #[test]
