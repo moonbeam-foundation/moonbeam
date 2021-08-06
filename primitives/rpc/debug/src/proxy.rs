@@ -276,6 +276,7 @@ impl CallListProxy {
 				if result.len() == 1 {
 					return Some(SingleTrace::CallListNested(result.pop().unwrap()));
 				}
+				return None;
 			}
 			return Some(SingleTrace::CallList(result));
 		}
