@@ -1378,6 +1378,7 @@ dependencies = [
  "frame-system",
  "log",
  "max-encoded-len",
+ "num_enum",
  "pallet-balances",
  "pallet-crowdloan-rewards",
  "pallet-evm",
@@ -1385,6 +1386,7 @@ dependencies = [
  "pallet-timestamp",
  "parity-scale-codec",
  "precompile-utils",
+ "precompile-utils-macro",
  "rustc-hex",
  "serde",
  "sha3 0.9.1",
@@ -5814,6 +5816,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "num_enum"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ee2c8fd66061a707503d515639b8af10fd3807a5b5ee6959f7ff1bd303634bd5"
+dependencies = [
+ "derivative",
+ "num_enum_derive",
+]
+
+[[package]]
+name = "num_enum_derive"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "474fd1d096da3ad17084694eebed40ba09c4a36c5255cd772bd8b98859cc562e"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "object"
 version = "0.24.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8298,6 +8321,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
+ "num_enum",
  "pallet-evm",
  "parity-scale-codec",
  "slices",
