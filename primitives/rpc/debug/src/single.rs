@@ -167,6 +167,7 @@ pub enum GethCallInner {
 #[cfg_attr(feature = "std", derive(Serialize))]
 #[cfg_attr(feature = "std", serde(rename_all = "camelCase", untagged))]
 pub enum Call {
+	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 	Blockscout {
 		from: H160,
 		/// Indices of parent calls.
@@ -185,6 +186,7 @@ pub enum Call {
 		#[cfg_attr(feature = "std", serde(flatten))]
 		inner: CallInner,
 	},
+	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 	GethCallTrace {
 		from: H160,
 
