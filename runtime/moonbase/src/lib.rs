@@ -66,7 +66,7 @@ use sp_runtime::{
 	AccountId32, ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
 };
 use sp_std::marker::PhantomData;
-use xcm::v0::{BodyId, Junction, MultiAsset, MultiLocation, NetworkId, Xcm};
+use xcm::v0::{Junction, MultiAsset, MultiLocation, NetworkId, Xcm};
 
 use sp_std::{
 	convert::{TryFrom, TryInto},
@@ -786,27 +786,6 @@ parameter_types! {
 	pub SovereignAccount: AccountId32 = ParachainInfo::parachain_id().into_account();
 	pub ProxyDepositAmount: Balance =  currency::relay_deposit(1, 8) + currency::relay_deposit(0, 33);
 }
-pub struct NativeToRelay;
-impl sp_runtime::traits::Convert<Balance, cumulus_primitives_core::relay_chain::Balance>
-	for NativeToRelay
-{
-	fn convert(val: u128) -> cumulus_primitives_core::relay_chain::Balance {
-		// native is 18
-		// relay is 12
-		val / 1_000_000
-	}
-}
-
-pub struct RelayToNative;
-impl sp_runtime::traits::Convert<cumulus_primitives_core::relay_chain::Balance, Balance>
-	for RelayToNative
-{
-	fn convert(val: u128) -> Balance {
-		// native is 18
-		// relay is 12
-		val * 1_000_000
-	}
-}
 
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
 /// when determining ownership of accounts for asset transacting and when attempting to use XCM
@@ -819,62 +798,6 @@ pub type LocationToAccountId = (
 	xcm_builder::AccountKey20Aliases<MoonbeamNetwork, AccountId>,
 );
 
-/// Matcher associated type for MultiCurrencyAdapter to convert assets into local types
-pub struct IsConcreteWithAdjustment<T, FromRelayChainBalance>(
-	PhantomData<(T, FromRelayChainBalance)>,
-);
-impl<T: Get<MultiLocation>, B, FromRelayChainBalance> xcm_executor::traits::MatchesFungible<B>
-	for IsConcreteWithAdjustment<T, FromRelayChainBalance>
-where
-	B: TryFrom<u128>,
-	FromRelayChainBalance: sp_runtime::traits::Convert<u128, u128>,
-{
-	fn matches_fungible(a: &MultiAsset) -> Option<B> {
-		if let MultiAsset::ConcreteFungible { id, amount } = a {
-			if id == &T::get() {
-				// Convert relay chain decimals to local chain
-				let local_amount = FromRelayChainBalance::convert(*amount);
-				return sp_runtime::traits::CheckedConversion::checked_from(local_amount);
-			}
-		}
-		None
-	}
-}
-
-/// Means for transacting assets on this chain.
-pub type KsmAssetTransactor = xcm_builder::CurrencyAdapter<
-	// Use this currency:
-	BalancesKsm,
-	// Use this currency when it is a fungible asset matching the given location or name:
-	IsConcreteWithAdjustment<KsmLocation, RelayToNative>,
-	// Do a simple punn to convert an AccountId32 MultiLocation into a native chain account ID:
-	LocationToAccountId,
-	// Our chain's account ID type (we can't get away without mentioning it explicitly):
-	AccountId,
-	// We don't track any teleports.
-	(),
->;
-
-use frame_support::traits::{fungibles, Contains};
-use sp_runtime::traits::Zero;
-use xcm_builder::{AsPrefixedGeneralIndex, ConvertedConcreteAssetId, FungiblesAdapter};
-use xcm_executor::traits::JustTry;
-
-/// Allow checking in assets that have issuance > 0.
-pub struct CheckAsset<A>(PhantomData<A>);
-impl<A> Contains<<A as fungibles::Inspect<AccountId>>::AssetId> for CheckAsset<A>
-where
-	A: fungibles::Inspect<AccountId>,
-{
-	fn contains(id: &<A as fungibles::Inspect<AccountId>>::AssetId) -> bool {
-		!A::total_issuance(*id).is_zero()
-	}
-}
-
-/// Converter struct implementing `AssetIdConversion` converting a numeric asset ID (must be `TryFrom/TryInto<u128>`) into
-/// a `GeneralIndex` junction, prefixed by some `MultiLocation` value. The `MultiLocation` value will typically be a
-/// `PalletInstance` junction.
-use sp_std::borrow::Borrow;
 pub struct AsCurrencyId;
 
 impl sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>> for AsCurrencyId {
@@ -917,8 +840,6 @@ pub type LocalAssetTransactor = MultiCurrencyAdapter<
 >;
 
 /// Means for transacting assets on this chain.
-// pub type AssetTransactors = (KsmAssetTransactor, FungiblesTransactor);
-
 pub type AssetTransactors = LocalAssetTransactor;
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
@@ -1101,7 +1022,6 @@ impl sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>> for Currency
 			CurrencyId::Token(symbol) => match symbol {
 				TokenSymbol::KSM => Some(MultiLocation::X1(Junction::Parent)),
 			},
-			_ => None,
 		}
 	}
 }
