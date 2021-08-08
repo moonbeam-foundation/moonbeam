@@ -898,25 +898,44 @@ where
 /// a `GeneralIndex` junction, prefixed by some `MultiLocation` value. The `MultiLocation` value will typically be a
 /// `PalletInstance` junction.
 use sp_std::borrow::Borrow;
-pub struct AsCurrencyId<AssetId>(PhantomData<(AssetId)>);
-impl<AssetId: Clone + From<u32>> xcm_executor::traits::Convert<MultiLocation, AssetId>
-	for AsCurrencyId<AssetId>
-{
-	fn convert_ref(id: impl Borrow<MultiLocation>) -> Result<AssetId, ()> {
-		match id.borrow() {
-			MultiLocation::X1(Junction::Parent) => Ok(1u32.into()),
+pub struct AsCurrencyId;
 
-			//	MultiLocation::X1(Junction::Parachain(id)) => ConvertAssetId::convert_ref(id),
-			_ => Err(()),
+impl sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>> for AsCurrencyId {
+	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
+		match currency {
+			CurrencyId::Token(symbol) => match symbol {
+				TokenSymbol::KSM => Some(MultiLocation::X1(Junction::Parent)),
+			},
+			_ => None,
 		}
 	}
-	fn reverse_ref(what: impl Borrow<AssetId>) -> Result<MultiLocation, ()> {
-		let parent: AssetId = 1u32.into();
-		match what.borrow() {
-			&parent => Ok(MultiLocation::X1(Junction::Parent)),
-			//	MultiLocation::X1(Junction::Parachain(id)) => ConvertAssetId::convert_ref(id),
-			_ => Err(()),
+}
+impl sp_runtime::traits::Convert<MultiLocation, Option<CurrencyId>> for AsCurrencyId {
+	fn convert(location: MultiLocation) -> Option<CurrencyId> {
+		match location {
+			MultiLocation::X1(Junction::Parent) => Some(CurrencyId::Token(TokenSymbol::KSM)),
+			_ => None,
 		}
+	}
+}
+
+impl xcm_executor::traits::Convert<MultiLocation, CurrencyId> for AsCurrencyId
+where
+	AsCurrencyId: sp_runtime::traits::Convert<MultiLocation, Option<currencies::CurrencyId>>
+		+ sp_runtime::traits::Convert<currencies::CurrencyId, Option<MultiLocation>>,
+{
+	fn convert_ref(id: impl Borrow<MultiLocation>) -> Result<CurrencyId, ()> {
+		<Self as sp_runtime::traits::Convert<MultiLocation, Option<CurrencyId>>>::convert(
+			id.borrow().clone(),
+		)
+		.ok_or(())
+	}
+	fn reverse_ref(what: impl Borrow<CurrencyId>) -> Result<MultiLocation, ()> {
+		let location: Option<MultiLocation> = <Self as sp_runtime::traits::Convert<
+			CurrencyId,
+			Option<MultiLocation>,
+		>>::convert(what.borrow().clone());
+		location.ok_or(())
 	}
 }
 
@@ -924,14 +943,7 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	Tokens,
 	// Use this currency when it is a fungible asset matching the given location or name:
-	(
-		ConvertedConcreteAssetId<
-			CurrencyId,
-			Balance,
-			MultiLocationtoCurrencyId<CurrencyId>,
-			JustTry,
-		>,
-	),
+	(ConvertedConcreteAssetId<CurrencyId, Balance, AsCurrencyId, JustTry>,),
 	// Do a simple punn to convert an AccountId32 MultiLocation into a native chain account ID:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
