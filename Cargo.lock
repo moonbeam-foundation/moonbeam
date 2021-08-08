@@ -5053,6 +5053,7 @@ dependencies = [
  "nimbus-primitives",
  "orml-tokens",
  "orml-traits",
+ "orml-xcm-support",
  "orml-xtokens",
  "pallet-assets",
  "pallet-author-inherent",

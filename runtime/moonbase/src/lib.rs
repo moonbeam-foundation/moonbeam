@@ -46,6 +46,7 @@ pub use moonbeam_core_primitives::{
 	Signature,
 };
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
+use orml_xcm_support::{IsNativeConcrete, MultiCurrencyAdapter};
 use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::Transaction as EthereumTransaction;
@@ -247,30 +248,6 @@ impl pallet_balances::Config for Runtime {
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
-	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
-}
-
-type KsmInstance = pallet_balances::Instance1;
-
-// Virtual-KSM balances.
-impl pallet_balances::Config<KsmInstance> for Runtime {
-	type MaxLocks = MaxLocks;
-	type ReserveIdentifier = [u8; 4];
-	type MaxReserves = MaxReserves;
-	/// The type for recording an account's balance.
-	type Balance = Balance;
-	/// The ubiquitous event type.
-	type Event = Event;
-	type DustRemoval = ();
-	type ExistentialDeposit = ExistentialDeposit;
-	// This uses the pallets internal storage
-	// TODO: explain this (Storedmap, etc..)
-	type AccountStore = frame_support::traits::StorageMapShim<
-		pallet_balances::Account<Runtime, KsmInstance>,
-		(),
-		AccountId,
-		pallet_balances::AccountData<Balance>,
-	>;
 	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
 }
 
@@ -919,44 +896,30 @@ impl sp_runtime::traits::Convert<MultiLocation, Option<CurrencyId>> for AsCurren
 	}
 }
 
-impl xcm_executor::traits::Convert<MultiLocation, CurrencyId> for AsCurrencyId
-where
-	AsCurrencyId: sp_runtime::traits::Convert<MultiLocation, Option<currencies::CurrencyId>>
-		+ sp_runtime::traits::Convert<currencies::CurrencyId, Option<MultiLocation>>,
-{
-	fn convert_ref(id: impl Borrow<MultiLocation>) -> Result<CurrencyId, ()> {
-		<Self as sp_runtime::traits::Convert<MultiLocation, Option<CurrencyId>>>::convert(
-			id.borrow().clone(),
-		)
-		.ok_or(())
-	}
-	fn reverse_ref(what: impl Borrow<CurrencyId>) -> Result<MultiLocation, ()> {
-		let location: Option<MultiLocation> = <Self as sp_runtime::traits::Convert<
-			CurrencyId,
-			Option<MultiLocation>,
-		>>::convert(what.borrow().clone());
-		location.ok_or(())
+impl sp_runtime::traits::Convert<MultiAsset, Option<CurrencyId>> for AsCurrencyId {
+	fn convert(asset: MultiAsset) -> Option<CurrencyId> {
+		if let MultiAsset::ConcreteFungible { id, amount: _ } = asset {
+			Self::convert(id)
+		} else {
+			None
+		}
 	}
 }
 
-pub type FungiblesTransactor = FungiblesAdapter<
-	// Use this fungibles implementation:
+pub type LocalAssetTransactor = MultiCurrencyAdapter<
 	Tokens,
-	// Use this currency when it is a fungible asset matching the given location or name:
-	(ConvertedConcreteAssetId<CurrencyId, Balance, AsCurrencyId, JustTry>,),
-	// Do a simple punn to convert an AccountId32 MultiLocation into a native chain account ID:
-	LocationToAccountId,
-	// Our chain's account ID type (we can't get away without mentioning it explicitly):
+	(),
+	IsNativeConcrete<CurrencyId, AsCurrencyId>,
 	AccountId,
-	// We only allow teleports of known assets.
-	(),
-	// We dont track any teleports
-	(),
+	LocationToAccountId,
+	CurrencyId,
+	AsCurrencyId,
 >;
+
 /// Means for transacting assets on this chain.
 // pub type AssetTransactors = (KsmAssetTransactor, FungiblesTransactor);
 
-pub type AssetTransactors = FungiblesTransactor;
+pub type AssetTransactors = LocalAssetTransactor;
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
 /// biases the kind of local `Origin` it will become.
@@ -1183,7 +1146,6 @@ construct_runtime! {
 		System: frame_system::{Pallet, Call, Storage, Config, Event<T>},
 		Utility: pallet_utility::{Pallet, Call, Event},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		BalancesKsm: pallet_balances::<Instance1>::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage},
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>},

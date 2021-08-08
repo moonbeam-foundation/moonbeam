@@ -101,7 +101,7 @@ polkadot-core-primitives = { git = "https://github.com/paritytech/polkadot", def
 orml-xtokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", default-features = false }
 orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", default-features = false }
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", default-features = false }
-
+orml-xcm-support = { git = "https://github.com/open-web3-stack/open-runtime-module-library", default-features = false }
 # Benchmarking dependencies
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8", optional = true }
 frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8", optional = true }
@@ -185,6 +185,7 @@ std = [
 	"orml-xtokens/std",
 	"orml-tokens/std",
 	"orml-traits/std",
+	"orml-xcm-support/std",
 	"currencies/std",
 ]
 

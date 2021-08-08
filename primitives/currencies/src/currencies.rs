@@ -1,4 +1,3 @@
- 
 // This file is part of Acala.
 
 // Copyright (C) 2020-2021 Acala Foundation.
@@ -109,7 +108,6 @@ impl CurrencyId {
 	pub fn is_token_currency_id(&self) -> bool {
 		matches!(self, CurrencyId::Token(_))
 	}
-	
 }
 
 impl TryFrom<[u8; 32]> for CurrencyId {
