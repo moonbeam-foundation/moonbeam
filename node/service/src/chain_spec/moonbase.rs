@@ -29,7 +29,7 @@ use moonbase_runtime::{
 	BalancesKsmConfig, CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig,
 	ParachainStakingConfig, Precompiles, Range, SchedulerConfig, /*SudoConfig,*/ SystemConfig,
-	TechComitteeCollectiveConfig, WASM_BINARY,
+	TechComitteeCollectiveConfig, TokensConfig, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
@@ -269,6 +269,7 @@ pub fn testnet_genesis(
 				.collect(),
 		},
 		treasury: Default::default(),
+		tokens: TokensConfig { balances: vec![] },
 	}
 }
 

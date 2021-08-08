@@ -29,6 +29,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
+use currencies::TokenSymbol;
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime, match_type, parameter_types,
@@ -897,27 +898,40 @@ where
 /// a `GeneralIndex` junction, prefixed by some `MultiLocation` value. The `MultiLocation` value will typically be a
 /// `PalletInstance` junction.
 use sp_std::borrow::Borrow;
-pub struct AsParachainId<AssetId, ConvertAssetId>(PhantomData<(AssetId, ConvertAssetId)>);
-impl<AssetId: Clone, ConvertAssetId: xcm_executor::traits::Convert<u32, AssetId>>
-	xcm_executor::traits::Convert<MultiLocation, AssetId> for AsParachainId<AssetId, ConvertAssetId>
+pub struct AsCurrencyId<AssetId>(PhantomData<(AssetId)>);
+impl<AssetId: Clone + From<u32>> xcm_executor::traits::Convert<MultiLocation, AssetId>
+	for AsCurrencyId<AssetId>
 {
 	fn convert_ref(id: impl Borrow<MultiLocation>) -> Result<AssetId, ()> {
 		match id.borrow() {
-			MultiLocation::X1(Junction::Parachain(id)) => ConvertAssetId::convert_ref(id),
+			MultiLocation::X1(Junction::Parent) => Ok(1u32.into()),
+
+			//	MultiLocation::X1(Junction::Parachain(id)) => ConvertAssetId::convert_ref(id),
 			_ => Err(()),
 		}
 	}
 	fn reverse_ref(what: impl Borrow<AssetId>) -> Result<MultiLocation, ()> {
-		let id = ConvertAssetId::reverse_ref(what)?;
-		Ok(MultiLocation::X1(Junction::Parachain(id)))
+		let parent: AssetId = 1u32.into();
+		match what.borrow() {
+			&parent => Ok(MultiLocation::X1(Junction::Parent)),
+			//	MultiLocation::X1(Junction::Parachain(id)) => ConvertAssetId::convert_ref(id),
+			_ => Err(()),
+		}
 	}
 }
 
 pub type FungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
-	Assets,
+	Tokens,
 	// Use this currency when it is a fungible asset matching the given location or name:
-	(ConvertedConcreteAssetId<u32, Balance, AsParachainId<u32, JustTry>, JustTry>,),
+	(
+		ConvertedConcreteAssetId<
+			CurrencyId,
+			Balance,
+			MultiLocationtoCurrencyId<CurrencyId>,
+			JustTry,
+		>,
+	),
 	// Do a simple punn to convert an AccountId32 MultiLocation into a native chain account ID:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
@@ -1073,56 +1087,57 @@ impl
 	}
 }
 
+pub type CurrencyId = currencies::CurrencyId;
+
 parameter_types! {
-	pub const AssetDeposit: Balance = 100 * currency::UNIT; // 100 DOLLARS deposit to create asset
-	pub const ApprovalDeposit: Balance = 0;
-	pub const AssetsStringLimit: u32 = 50;
-	/// Key = 32 bytes, Value = 36 bytes (32+1+1+1+1)
-	// https://github.com/paritytech/substrate/blob/069917b/frame/assets/src/lib.rs#L257L271
-	pub const MetadataDepositBase: Balance = currency::deposit(1, 68);
-	pub const MetadataDepositPerByte: Balance = currency::deposit(0, 1);
-	pub const ExecutiveBody: BodyId = BodyId::Executive;
+	pub KaruraTreasuryAccount: AccountId = TreasuryId::get().into_account();
 }
 
-use pallet_xcm::EnsureXcm;
-use pallet_xcm::IsMajorityOfBody;
+use orml_traits::parameter_type_with_key;
+parameter_type_with_key! {
+	pub ExistentialDeposits: |currency_id: CurrencyId| -> Balance {
+		match currency_id {
+			CurrencyId::Token(symbol) => match symbol {
+				currencies::TokenSymbol::KSM => 0u32.into(),
+			}
+		}
+	};
+}
 
-/// We allow root and the Relay Chain council to execute privileged asset operations.
-pub type AssetsForceOrigin = EnsureOneOf<
-	AccountId,
-	EnsureRoot<AccountId>,
-	EnsureXcm<IsMajorityOfBody<KsmLocation, ExecutiveBody>>,
->;
-
-pub type AssetId = u32;
-impl pallet_assets::Config for Runtime {
+impl orml_tokens::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
-	type AssetId = AssetId;
-	type Currency = Balances;
-	type ForceOrigin = AssetsForceOrigin;
-	type AssetDeposit = AssetDeposit;
-	type MetadataDepositBase = MetadataDepositBase;
-	type MetadataDepositPerByte = MetadataDepositPerByte;
-	type ApprovalDeposit = ApprovalDeposit;
-	type StringLimit = AssetsStringLimit;
-	type Freezer = ();
-	type Extra = ();
-	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
+	type Amount = i128;
+	type CurrencyId = CurrencyId;
+	type WeightInfo = ();
+	type ExistentialDeposits = ExistentialDeposits;
+	type OnDust = orml_tokens::TransferDust<Runtime, KaruraTreasuryAccount>;
+	type MaxLocks = MaxLocks;
 }
 
-pub struct AssetIdtoMultiLocation<AssetXConverter>(sp_std::marker::PhantomData<AssetXConverter>);
-impl<AssetXConverter> sp_runtime::traits::Convert<AssetId, Option<MultiLocation>>
-	for AssetIdtoMultiLocation<AssetXConverter>
-where
-	AssetXConverter: xcm_executor::traits::Convert<MultiLocation, AssetId>,
-{
-	fn convert(asset: AssetId) -> Option<MultiLocation> {
-		AssetXConverter::reverse_ref(asset).ok()
-	}
-}
 parameter_types! {
 	pub const BaseXcmWeight: Weight = 100_000_000;
+}
+
+pub struct CurrencyIdtoMultiLocation;
+impl sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>> for CurrencyIdtoMultiLocation {
+	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
+		match currency {
+			CurrencyId::Token(symbol) => match symbol {
+				TokenSymbol::KSM => Some(MultiLocation::X1(Junction::Parent)),
+			},
+			_ => None,
+		}
+	}
+}
+pub struct MultiLocationtoCurrencyId;
+impl sp_runtime::traits::Convert<MultiLocation, Option<CurrencyId>> for MultiLocationtoCurrencyId {
+	fn convert(location: MultiLocation) -> Option<CurrencyId> {
+		match location {
+			MultiLocation::X1(Junction::Parent) => Some(CurrencyId::Token(TokenSymbol::KSM)),
+			_ => None,
+		}
+	}
 }
 
 pub struct AccountIdToMultiLocation;
@@ -1138,9 +1153,9 @@ impl sp_runtime::traits::Convert<AccountId, MultiLocation> for AccountIdToMultiL
 impl orml_xtokens::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
-	type CurrencyId = AssetId;
+	type CurrencyId = CurrencyId;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
-	type CurrencyIdConvert = AssetIdtoMultiLocation<AsParachainId<AssetId, JustTry>>;
+	type CurrencyIdConvert = CurrencyIdtoMultiLocation;
 	type XcmExecutor = XcmExecutor;
 	type SelfLocation = Ancestry;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
@@ -1182,9 +1197,8 @@ construct_runtime! {
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin},
 		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>},
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
-		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>},
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
-
+		Tokens: orml_tokens::{Pallet, Storage, Event<T>, Config<T>},
 		}
 }
 
