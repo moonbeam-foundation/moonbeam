@@ -263,6 +263,7 @@ macro_rules! impl_evmdata_for_uints {
 }
 impl_evmdata_for_uints!(u16, u32, u64, u128,);
 
+// The implementation for u8 is specific, for performance reasons.
 impl EvmData for u8 {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
 		let range = reader.move_cursor(32)?;
