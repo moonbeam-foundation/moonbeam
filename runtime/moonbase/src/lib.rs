@@ -783,14 +783,6 @@ parameter_types! {
 	pub MoonbeamNetwork: NetworkId = NetworkId::Named("moon".into());
 	pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub Ancestry: MultiLocation = Junction::Parachain(ParachainInfo::parachain_id().into()).into();
-	pub const Local: MultiLocation = MultiLocation::Null;
-	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
-}
-
-parameter_types! {
-	pub const XcmWrapperId: PalletId = PalletId(*b"pc/xcmwr");
-	pub SovereignAccount: AccountId32 = ParachainInfo::parachain_id().into_account();
-	pub ProxyDepositAmount: Balance =  currency::relay_deposit(1, 8) + currency::relay_deposit(0, 33);
 }
 
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
@@ -900,8 +892,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type LocationInverter = xcm_builder::LocationInverter<Ancestry>;
 	type Barrier = XcmBarrier;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
-	type Trader =
-		xcm_builder::UsingComponents<IdentityFee<Balance>, KsmLocation, AccountId, Balances, ()>;
+	type Trader = ();
 	type ResponseHandler = (); // Don't handle responses for now.
 }
 
@@ -975,24 +966,10 @@ impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 }
 
-pub struct AccountKey20Convert;
-impl
-	sp_runtime::traits::Convert<
-		<<Signature as sp_runtime::traits::Verify>::Signer as IdentifyAccount>::AccountId,
-		[u8; 20],
-	> for AccountKey20Convert
-{
-	fn convert(
-		from: <<Signature as sp_runtime::traits::Verify>::Signer as IdentifyAccount>::AccountId,
-	) -> [u8; 20] {
-		from.into()
-	}
-}
-
 pub type CurrencyId = currencies::CurrencyId;
 
 parameter_types! {
-	pub KaruraTreasuryAccount: AccountId = TreasuryId::get().into_account();
+	pub MoonbeamTreasuryAccount: AccountId = TreasuryId::get().into_account();
 }
 
 use orml_traits::parameter_type_with_key;
@@ -1013,7 +990,7 @@ impl orml_tokens::Config for Runtime {
 	type CurrencyId = CurrencyId;
 	type WeightInfo = ();
 	type ExistentialDeposits = ExistentialDeposits;
-	type OnDust = orml_tokens::TransferDust<Runtime, KaruraTreasuryAccount>;
+	type OnDust = orml_tokens::TransferDust<Runtime, MoonbeamTreasuryAccount>;
 	type MaxLocks = MaxLocks;
 }
 
@@ -1028,15 +1005,6 @@ impl sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>> for Currency
 			CurrencyId::Token(symbol) => match symbol {
 				TokenSymbol::KSM => Some(MultiLocation::X1(Junction::Parent)),
 			},
-		}
-	}
-}
-pub struct MultiLocationtoCurrencyId;
-impl sp_runtime::traits::Convert<MultiLocation, Option<CurrencyId>> for MultiLocationtoCurrencyId {
-	fn convert(location: MultiLocation) -> Option<CurrencyId> {
-		match location {
-			MultiLocation::X1(Junction::Parent) => Some(CurrencyId::Token(TokenSymbol::KSM)),
-			_ => None,
 		}
 	}
 }
