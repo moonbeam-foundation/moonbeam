@@ -243,7 +243,9 @@ macro_rules! impl_evmdata_for_uints {
 					let data = reader
 						.input
 						.get(range)
-						.ok_or_else(|| error(alloc::format!("tried to parse {} out of bounds", core::any::type_name::<Self>())))?;
+						.ok_or_else(|| error(alloc::format!(
+							"tried to parse {} out of bounds", core::any::type_name::<Self>()
+						)))?;
 
 					let mut buffer = [0u8; core::mem::size_of::<Self>()];
 					buffer.copy_from_slice(&data[..core::mem::size_of::<Self>()]);
