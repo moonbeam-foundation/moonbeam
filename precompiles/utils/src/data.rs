@@ -233,6 +233,57 @@ impl EvmData for U256 {
 	}
 }
 
+macro_rules! impl_evmdata_for_uints {
+	($($uint:ty, )*) => {
+		$(
+			impl EvmData for $uint {
+				fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+					let range = reader.move_cursor(32)?;
+
+					let data = reader
+						.input
+						.get(range)
+						.ok_or_else(|| error(alloc::format!(
+							"tried to parse {} out of bounds", core::any::type_name::<Self>()
+						)))?;
+
+					let mut buffer = [0u8; core::mem::size_of::<Self>()];
+					buffer.copy_from_slice(&data[..core::mem::size_of::<Self>()]);
+					Ok(Self::from_be_bytes(buffer))
+				}
+
+				fn write(writer: &mut EvmDataWriter, value: Self) {
+					let mut buffer = [0u8; 32];
+					buffer[..core::mem::size_of::<Self>()].copy_from_slice(&value.to_be_bytes());
+					writer.data.extend_from_slice(&buffer);
+				}
+			}
+		)*
+	};
+}
+impl_evmdata_for_uints!(u16, u32, u64, u128,);
+
+// The implementation for u8 is specific, for performance reasons.
+impl EvmData for u8 {
+	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+		let range = reader.move_cursor(32)?;
+
+		let data = reader
+			.input
+			.get(range)
+			.ok_or_else(|| error("tried to parse u64 out of bounds"))?;
+
+		Ok(data[0])
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		let mut buffer = [0u8; 32];
+		buffer[0] = value;
+
+		writer.data.extend_from_slice(&buffer);
+	}
+}
+
 impl EvmData for bool {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
 		let h256 = H256::read(reader).map_err(|_| error("tried to parse bool out of bounds"))?;
