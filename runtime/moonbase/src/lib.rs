@@ -95,16 +95,13 @@ pub mod currency {
 	pub const MILLIUNIT: Balance = UNIT / 1_000;
 	pub const MICROUNIT: Balance = MILLIUNIT / 1_000;
 	pub const NANOUNIT: Balance = MICROUNIT / 1_000;
-	pub const CENTS: Balance = UNIT / 30_000;
-	pub const MILLICENTS: Balance = CENTS / 1_000;
-	pub const BYTE_FEE: Balance = 100 * MICROUNIT;
+	pub const WEI: Balance = 1;
+
+	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROUNIT;
+	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROUNIT;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 1 * UNIT + (bytes as Balance) * BYTE_FEE
-	}
-
-	pub const fn relay_deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 2_000 * CENTS + (bytes as Balance) * 100 * MILLICENTS
+		items as Balance * 1 * UNIT + (bytes as Balance) * STORAGE_BYTE_FEE
 	}
 }
 
@@ -269,7 +266,7 @@ where
 }
 
 parameter_types! {
-	pub const TransactionByteFee: Balance = currency::BYTE_FEE;
+	pub const TransactionByteFee: Balance = currency::TRANSACTION_BYTE_FEE;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
@@ -432,7 +429,7 @@ parameter_types! {
 	pub const MinimumDeposit: Balance = 4 * currency::UNIT;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
-	pub const PreimageByteDeposit: Balance = currency::BYTE_FEE;
+	pub const PreimageByteDeposit: Balance = currency::STORAGE_BYTE_FEE;
 	pub const InstantAllowed: bool = true;
 }
 
@@ -568,7 +565,7 @@ parameter_types! {
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
-	type SelfParaId = parachain_info::Pallet<Runtime>;
+	type SelfParaId = ParachainInfo;
 	type DmpMessageHandler = DmpQueue;
 	type ReservedDmpWeight = ReservedDmpWeight;
 	type OutboundXcmpMessageSource = XcmpQueue;
@@ -1068,7 +1065,7 @@ construct_runtime! {
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin} = 26,
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 27,
 		Tokens: orml_tokens::{Pallet, Storage, Event<T>, Config<T>} = 28,
-		}
+	}
 }
 
 /// Block type as expected by this runtime.
