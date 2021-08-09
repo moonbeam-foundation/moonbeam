@@ -20,9 +20,10 @@ frame-system = { git = "https://github.com/paritytech/substrate", default-featur
 pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-pre" }
 evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }
 
+precompile-utils-macro = { path = "macro" }
+
 [dev-dependencies]
 sha3 = "0.9"
-precompile-utils-macro = { path = "../utils-macro" }
 
 [features]
 default = ["std"]

@@ -1,5 +1,0 @@
-error: expected one of `!` or `::`, found `(`
-  --> $DIR/02-parse-invalid-enum.rs:16:2
-   |
-16 |     Toto,
-   |     ^^^^ expected one of `!` or `::`

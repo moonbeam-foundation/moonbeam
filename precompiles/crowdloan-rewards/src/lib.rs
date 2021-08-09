@@ -45,9 +45,9 @@ pub type BalanceOf<Runtime> =
 		<Runtime as frame_system::Config>::AccountId,
 	>>::Balance;
 
-#[precompile_utils_macro::generate_function_selector]
+#[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq, num_enum::TryFromPrimitive)]
-pub enum Action {
+enum Action {
 	IsContributor = "is_contributor(address)",
 	RewardInfo = "reward_info(address)",
 	Claim = "claim()",
