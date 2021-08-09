@@ -134,10 +134,15 @@ pub enum CallInner {
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(Serialize))]
-#[cfg_attr(feature = "std", serde(rename_all = "camelCase", tag = "type"))]
+#[cfg_attr(feature = "std", serde(rename_all = "camelCase", untagged))]
 pub enum GethCallInner {
 	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 	Call {
+		#[cfg_attr(
+			feature = "std",
+			serde(rename = "type", serialize_with = "opcode_serialize")
+		)]
+		call_type: Vec<u8>,
 		to: H160,
 		#[cfg_attr(feature = "std", serde(serialize_with = "bytes_0x_serialize"))]
 		input: Vec<u8>,
@@ -151,12 +156,22 @@ pub enum GethCallInner {
 
 	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
 	Create {
+		#[cfg_attr(
+			feature = "std",
+			serde(rename = "type", serialize_with = "opcode_serialize")
+		)]
+		call_type: Vec<u8>,
 		#[cfg_attr(feature = "std", serde(flatten))]
 		res: crate::CreateResult,
 		value: U256,
 	},
 	// Revert,
 	SelfDestruct {
+		#[cfg_attr(
+			feature = "std",
+			serde(rename = "type", serialize_with = "opcode_serialize")
+		)]
+		call_type: Vec<u8>,
 		#[cfg_attr(feature = "std", serde(skip))]
 		to: H160,
 		value: U256,

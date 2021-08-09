@@ -177,21 +177,37 @@ impl CallListProxy {
 						gas_used: *gas_used,
 						trace_address: Some(trace_address.clone()),
 						inner: match inner.clone() {
-							CallInner::Call { input, to, res, .. } => GethCallInner::Call {
+							CallInner::Call {
+								input,
+								to,
+								res,
+								call_type,
+							} => GethCallInner::Call {
+								call_type: match call_type {
+									crate::CallType::Call => "CALL".as_bytes().to_vec(),
+									crate::CallType::CallCode => "CALLCODE".as_bytes().to_vec(),
+									crate::CallType::DelegateCall => {
+										"DELEGATECALL".as_bytes().to_vec()
+									}
+									crate::CallType::StaticCall => "STATICCALL".as_bytes().to_vec(),
+								},
 								to,
 								input,
 								res,
 								value: Some(*value),
 							},
-							CallInner::Create { res, .. } => {
-								GethCallInner::Create { res, value: *value }
-							}
+							CallInner::Create { res, .. } => GethCallInner::Create {
+								res,
+								value: *value,
+								call_type: "CREATE".as_bytes().to_vec(),
+							},
 							CallInner::SelfDestruct {
 								balance,
 								refund_address,
 							} => GethCallInner::SelfDestruct {
 								value: balance,
 								to: refund_address,
+								call_type: "SELFDESTRUCT".as_bytes().to_vec(),
 							},
 						},
 						calls: Vec::new(),
