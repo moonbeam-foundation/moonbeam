@@ -191,6 +191,28 @@ describeDevMoonbeam(
       expect(resCallee.traceAddress.length).to.be.eq(1);
       expect(resCallee.traceAddress[0]).to.be.eq(0);
     });
+
+    it("should format as request (Geth's callTrace)", async function () {
+      const send = await nested(context);
+      await context.createBlock();
+      let traceTx = await customWeb3Request(context.web3, "debug_traceTransaction", [
+        send.result,
+        { tracer: "callTrace" },
+      ]);
+      let res = traceTx.result;
+      // Fields
+      expect(Object.keys(res)).to.deep.equal(
+        ["calls","from","gas","gasUsed","input","output","to","type","value"]
+      );
+      // Type
+      expect(res.type).to.be.equal("CALL");
+      // Nested calls
+      let calls = res.calls;
+      expect(calls.length).to.be.eq(1);
+      let nested_call = calls[0];
+      expect(res.to).to.be.equal(nested_call.from);
+      expect(nested_call.type).to.be.equal("CALL");
+    });
   },
   true
 );
