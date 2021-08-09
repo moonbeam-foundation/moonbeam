@@ -16,6 +16,8 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+extern crate alloc;
+
 use evm::ExitError;
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
@@ -35,7 +37,7 @@ mod tests;
 pub type EvmResult<T = ()> = Result<T, ExitError>;
 
 /// Return an error with provided (static) text.
-pub fn error(text: &'static str) -> ExitError {
+pub fn error<T: Into<alloc::borrow::Cow<'static, str>>>(text: T) -> ExitError {
 	ExitError::Other(text.into())
 }
 
