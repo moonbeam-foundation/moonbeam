@@ -307,7 +307,7 @@ fn txpool_runtime_api_extrinsic_filter() {
 			pallet_balances::Call::<Runtime>::transfer(AccountId::from(BOB), 1 * MOVR).into(),
 		);
 		let eth_uxt = uxt();
-		let txpool = Runtime::extrinsic_filter(
+		let txpool = <Runtime as TxPoolRuntimeApi<moonriver_runtime::Block>>::extrinsic_filter(
 			vec![eth_uxt.clone(), non_eth_uxt.clone()],
 			vec![uxt(), non_eth_uxt],
 		);

@@ -10,16 +10,14 @@ import {
 } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 
-describeDevMoonbeam("Sudo - Sudo Calls", (context) => {
+describeDevMoonbeam("Sudo - Only sudo account", (context) => {
   let genesisAccount: KeyringPair, sudoAccount: KeyringPair;
-
   before("Setup genesis account for substrate", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
-
-  it.skip("should be restricted to sudo account", async function () {
+  it("should NOT be able to call sudo with another account than sudo account", async function () {
     await context.polkadotApi.tx.sudo
       .sudo(context.polkadotApi.tx.parachainStaking.setParachainBondAccount(GENESIS_ACCOUNT))
       .signAndSend(genesisAccount);
@@ -28,8 +26,7 @@ describeDevMoonbeam("Sudo - Sudo Calls", (context) => {
     expect(parachainBondInfo.toHuman()["account"]).to.equal(ZERO_ADDRESS);
     expect(parachainBondInfo.toHuman()["percent"]).to.equal("30.00%");
   });
-
-  it.skip("should generate events with sudo section/method", async function () {
+  it("should check events", async function () {
     const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(1);
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock(blockHash);
     const allRecords = await context.polkadotApi.query.system.events.at(
