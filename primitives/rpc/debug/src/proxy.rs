@@ -24,7 +24,7 @@
 //! There are two proxy types: `Raw` and `CallList`.
 //! - `Raw` - used for opcode-level traces.
 //! - `CallList` - used for block tracing (stack of call stacks) and custom tracing outputs.
-
+extern crate alloc;
 environmental::environmental!(listener: dyn Listener + 'static);
 
 use crate::block::{
@@ -33,10 +33,10 @@ use crate::block::{
 };
 use crate::single::{Call, CallInner, GethCallInner, RawStepLog, TransactionTrace as SingleTrace};
 use crate::{CallResult, CreateResult, CreateType, TracerInput};
+use alloc::string::{String, ToString};
 use codec::{Decode, Encode};
 use ethereum_types::{H256, U256};
-use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
-
+use sp_std::{cmp::Ordering, collections::btree_map::BTreeMap, vec::Vec};
 /// Main trait to proxy emitted messages.
 pub trait Listener {
 	fn event(&mut self, event: Event);
@@ -203,7 +203,7 @@ impl CallListProxy {
 			if tracer == TracerInput::GethCallTrace {
 				// Geth's `callTracer` expects a tree of nested calls and we have a stack.
 				//
-				// We iterate over the stack sorted by `T`'s length, and push each children to it's
+				// We iterate over the sorted stack, and push each children to it's
 				// parent (the item which's `trace_address` matches &T[0..T.len()-1]) until there
 				// is a single item on the list.
 				//
@@ -220,7 +220,14 @@ impl CallListProxy {
 				// 		[] -> list length == 1, out
 
 				if result.len() > 1 {
-					// Sort by `trace_address.len`
+					// Sort the stack. Assume there is no `Ordering::Equal`, as we are
+					// sorting by index.
+					//
+					// We consider an item to be `Ordering::Less` when:
+					// 	- Is closer to the root.
+					//	- The concatenated numerical representation of it's indexes is
+					//	greater than it's siblings. This allows to later pop (and push) the indexes
+					//	sorted ASC.
 					result.sort_by(|a, b| match (a, b) {
 						(
 							Call::GethCallTrace {
@@ -231,7 +238,23 @@ impl CallListProxy {
 								trace_address: Some(b),
 								..
 							},
-						) => a.len().cmp(&b.len()),
+						) => {
+							let a_len = a.len();
+							let b_len = b.len();
+							// Concat a Vec to u32.
+							let f = |idxs: &Vec<u32>| -> u32 {
+								idxs.iter()
+									.map(ToString::to_string)
+									.collect::<String>()
+									.parse::<u32>()
+									.unwrap_or(0)
+							};
+							if b_len > a_len || (a_len == b_len && (f(&b) < f(&a))) {
+								Ordering::Less
+							} else {
+								Ordering::Greater
+							}
+						}
 						_ => unreachable!(),
 					});
 					// Stack pop-and-push.
