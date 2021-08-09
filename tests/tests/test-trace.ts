@@ -201,9 +201,17 @@ describeDevMoonbeam(
       ]);
       let res = traceTx.result;
       // Fields
-      expect(Object.keys(res)).to.deep.equal(
-        ["calls","from","gas","gasUsed","input","output","to","type","value"]
-      );
+      expect(Object.keys(res)).to.deep.equal([
+        "calls",
+        "from",
+        "gas",
+        "gasUsed",
+        "input",
+        "output",
+        "to",
+        "type",
+        "value",
+      ]);
       // Type
       expect(res.type).to.be.equal("CALL");
       // Nested calls
