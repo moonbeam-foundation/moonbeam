@@ -41,7 +41,7 @@ macro_rules! create_currency_id {
         	fn try_from(v: u8) -> Result<Self, Self::Error> {
             	match v {
                 	$($val => Ok(TokenSymbol::$symbol),)*
-                	=> Err(()),
+                	_ => Err(()),
             	}
         	}
     	}
@@ -51,7 +51,7 @@ macro_rules! create_currency_id {
 			fn try_from(v: Vec<u8>) -> Result<CurrencyId, ()> {
 				match v.as_slice() {
 					$(bstringify!($symbol) => Ok(CurrencyId::Token(TokenSymbol::$symbol)),)*
-					=> Err(()),
+					_ => Err(()),
 				}
 			}
 		}
@@ -75,7 +75,7 @@ macro_rules! create_currency_id {
 				]
 			}
 		}
-	}
+}
 }
 
 create_currency_id! {
