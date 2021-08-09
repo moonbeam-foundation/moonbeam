@@ -5198,13 +5198,13 @@ dependencies = [
 name = "moonbeam-rpc-txpool"
 version = "0.6.0"
 dependencies = [
- "ethereum",
  "ethereum-types",
  "fc-rpc",
  "frame-system",
  "jsonrpc-core 15.1.0",
  "moonbeam-rpc-core-txpool",
  "moonbeam-rpc-primitives-txpool",
+ "rlp",
  "sc-transaction-graph",
  "serde",
  "sha3 0.8.2",
