@@ -26,32 +26,32 @@ use sp_std::{
 use serde::{Deserialize, Serialize};
 
 macro_rules! create_currency_id {
-    ($(#[$meta:meta])*
+	($(#[$meta:meta])*
 	$vis:vis enum TokenSymbol {
-        $($(#[$vmeta:meta])* $symbol:ident($name:expr, $deci:literal) = $val:literal,)*
-    }) => {
-        $(#[$meta])*
-        $vis enum TokenSymbol {
-            $($(#[$vmeta])* $symbol = $val,)*
-        }
+    	$($(#[$vmeta:meta])* $symbol:ident($name:expr, $deci:literal) = $val:literal,)*
+	}) => {
+    	$(#[$meta])*
+    	$vis enum TokenSymbol {
+        	$($(#[$vmeta])* $symbol = $val,)*
+    	}
 
-        impl TryFrom<u8> for TokenSymbol {
-            type Error = ();
+    	impl TryFrom<u8> for TokenSymbol {
+        	type Error = ();
 
-            fn try_from(v: u8) -> Result<Self, Self::Error> {
-                match v {
-                    $($val => Ok(TokenSymbol::$symbol),)*
-                    _ => Err(()),
-                }
-            }
-        }
+        	fn try_from(v: u8) -> Result<Self, Self::Error> {
+            	match v {
+                	$($val => Ok(TokenSymbol::$symbol),)*
+                	=> Err(()),
+            	}
+        	}
+    	}
 
 		impl TryFrom<Vec<u8>> for CurrencyId {
 			type Error = ();
 			fn try_from(v: Vec<u8>) -> Result<CurrencyId, ()> {
 				match v.as_slice() {
 					$(bstringify!($symbol) => Ok(CurrencyId::Token(TokenSymbol::$symbol)),)*
-					_ => Err(()),
+					=> Err(()),
 				}
 			}
 		}
@@ -75,7 +75,7 @@ macro_rules! create_currency_id {
 				]
 			}
 		}
-    }
+	}
 }
 
 create_currency_id! {
