@@ -1633,25 +1633,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cumulus-pallet-dmp-queue"
-version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#ed6ba5dfb2c112c29505e856e8971da3420ce6d0"
-dependencies = [
- "cumulus-primitives-core 0.1.0 (git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8)",
- "frame-support",
- "frame-system",
- "log",
- "parity-scale-codec",
- "rand 0.8.4",
- "rand_chacha 0.3.1",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "xcm",
- "xcm-executor",
-]
-
-[[package]]
 name = "cumulus-pallet-parachain-system"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
@@ -1707,22 +1688,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cumulus-pallet-xcm"
-version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#ed6ba5dfb2c112c29505e856e8971da3420ce6d0"
-dependencies = [
- "cumulus-primitives-core 0.1.0 (git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8)",
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "serde",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "xcm",
-]
-
-[[package]]
 name = "cumulus-pallet-xcmp-queue"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
@@ -1741,45 +1706,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "cumulus-pallet-xcmp-queue"
-version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#ed6ba5dfb2c112c29505e856e8971da3420ce6d0"
-dependencies = [
- "cumulus-primitives-core 0.1.0 (git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8)",
- "frame-support",
- "frame-system",
- "log",
- "parity-scale-codec",
- "rand 0.8.4",
- "rand_chacha 0.3.1",
- "sp-runtime",
- "sp-std",
- "xcm",
- "xcm-executor",
-]
-
-[[package]]
 name = "cumulus-primitives-core"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
-dependencies = [
- "frame-support",
- "impl-trait-for-tuples 0.2.1",
- "parity-scale-codec",
- "polkadot-core-primitives",
- "polkadot-parachain",
- "polkadot-primitives",
- "sp-api",
- "sp-runtime",
- "sp-std",
- "sp-trie",
- "xcm",
-]
-
-[[package]]
-name = "cumulus-primitives-core"
-version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8#0cd4b13e3e7d7c2f0f3aadb0a6b427350cde1bf6"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples 0.2.1",
@@ -5025,10 +4954,10 @@ version = "0.8.4"
 dependencies = [
  "account",
  "crowdloan-rewards-precompiles",
- "cumulus-pallet-dmp-queue 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-pallet-dmp-queue",
  "cumulus-pallet-parachain-system",
- "cumulus-pallet-xcm 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
- "cumulus-pallet-xcmp-queue 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "cumulus-pallet-xcm",
+ "cumulus-pallet-xcmp-queue",
  "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
  "cumulus-primitives-parachain-inherent",
  "cumulus-primitives-timestamp",
@@ -5055,7 +4984,6 @@ dependencies = [
  "orml-traits",
  "orml-xcm-support",
  "orml-xtokens",
- "pallet-assets",
  "pallet-author-inherent",
  "pallet-author-mapping",
  "pallet-author-slot-filter",
@@ -5081,7 +5009,7 @@ dependencies = [
  "pallet-treasury",
  "pallet-utility",
  "pallet-xcm",
- "parachain-info 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "parachain-info",
  "parachain-staking",
  "parachain-staking-precompiles",
  "parity-scale-codec",
@@ -5411,7 +5339,7 @@ dependencies = [
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
  "pallet-utility",
- "parachain-info 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "parachain-info",
  "parachain-staking",
  "parachain-staking-precompiles",
  "parity-scale-codec",
@@ -5601,7 +5529,7 @@ dependencies = [
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
  "pallet-utility",
- "parachain-info 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
+ "parachain-info",
  "parachain-staking",
  "parachain-staking-precompiles",
  "parity-scale-codec",
@@ -6099,20 +6027,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6ff55baddef9e4ad00f88b6c743a2a8062d4c6ade126c2a528644b8e444d52ce"
 dependencies = [
  "stable_deref_trait",
-]
-
-[[package]]
-name = "pallet-assets"
-version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.8#74101dc21cfffb4c2d014fcc28edc166d5ca1b16"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "max-encoded-len",
- "parity-scale-codec",
- "sp-runtime",
- "sp-std",
 ]
 
 [[package]]
@@ -6975,18 +6889,6 @@ version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=joshy-np098#07944252c6a9cf0a2cd5f7d61f04cad1dd3926ef"
 dependencies = [
  "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=joshy-np098)",
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "serde",
-]
-
-[[package]]
-name = "parachain-info"
-version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#ed6ba5dfb2c112c29505e856e8971da3420ce6d0"
-dependencies = [
- "cumulus-primitives-core 0.1.0 (git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8)",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -13563,57 +13465,6 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "xcm",
-]
-
-[[package]]
-name = "xcm-simulator"
-version = "0.1.0"
-source = "git+https://github.com/shaunxw/xcm-simulator.git?branch=polkadot-v0.9.8#4418c19b6a61119ca076c29695e066f57573787d"
-dependencies = [
- "cumulus-pallet-dmp-queue 0.1.0 (git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8)",
- "cumulus-pallet-xcmp-queue 0.1.0 (git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8)",
- "cumulus-primitives-core 0.1.0 (git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8)",
- "frame-support",
- "parity-scale-codec",
- "paste",
- "polkadot-runtime-parachains",
- "sp-io",
- "sp-std",
- "xcm",
- "xcm-executor",
-]
-
-[[package]]
-name = "xcm-transfers"
-version = "0.1.0"
-dependencies = [
- "cumulus-pallet-dmp-queue 0.1.0 (git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8)",
- "cumulus-pallet-xcm 0.1.0 (git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8)",
- "cumulus-pallet-xcmp-queue 0.1.0 (git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8)",
- "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=nimbus-polkadot-v0.9.8)",
- "frame-support",
- "frame-system",
- "hex-literal",
- "max-encoded-len",
- "moonbeam-core-primitives",
- "pallet-assets",
- "pallet-balances",
- "pallet-xcm",
- "parachain-info 0.1.0 (git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8)",
- "parity-scale-codec",
- "polkadot-parachain",
- "polkadot-runtime-common",
- "polkadot-runtime-parachains",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "substrate-fixed",
- "xcm",
- "xcm-builder",
- "xcm-executor",
- "xcm-simulator",
 ]
 
 [[package]]
