@@ -885,7 +885,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
 	type IsReserve = xcm_builder::NativeAsset;
-	type IsTeleporter = xcm_builder::NativeAsset; // <- should be enough to allow teleportation of KSM
+	type IsTeleporter = (); // <- No teleport
 	type LocationInverter = xcm_builder::LocationInverter<Ancestry>;
 	type Barrier = XcmBarrier;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
