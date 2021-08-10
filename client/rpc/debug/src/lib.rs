@@ -223,7 +223,7 @@ where
 				let blockscout_hash = H128::from_str("0x94d9f08796f91eb13a2e82a6066882f7").unwrap();
 				let tracer = if hash == blockscout_hash {
 					Some(TracerInput::Blockscout)
-				} else if tracer == "callTrace" {
+				} else if tracer == "callTracer" {
 					Some(TracerInput::GethCallTrace)
 				} else {
 					None

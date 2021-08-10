@@ -197,7 +197,7 @@ describeDevMoonbeam(
       await context.createBlock();
       let traceTx = await customWeb3Request(context.web3, "debug_traceTransaction", [
         send.result,
-        { tracer: "callTrace" },
+        { tracer: "callTracer" },
       ]);
       let res = traceTx.result;
       // Fields
@@ -237,7 +237,7 @@ describeDevMoonbeam(
       let createTxHash = txResults[0].result;
       let traceTx = await customWeb3Request(context.web3, "debug_traceTransaction", [
         createTxHash,
-        { tracer: "callTrace" },
+        { tracer: "callTracer" },
       ]);
 
       let res = traceTx.result;
