@@ -20,6 +20,30 @@ use sha3::{Digest, Keccak256};
 use std::convert::TryInto;
 use syn::{parse_macro_input, spanned::Spanned, Expr, ExprLit, Ident, ItemEnum, Lit};
 
+/// This macro allows to associate to each variant of an enumeration a discriminant (of type u32
+/// whose value corresponds to the first 4 bytes of the Hash Keccak256 of the character string
+///indicated by the user of this macro.
+///
+/// Usage:
+///
+/// ```ignore
+/// #[generate_function_selector]
+/// enum Action {
+/// 	Toto = "toto()",
+/// 	Tata = "tata()",
+/// }
+/// ```
+///
+/// Extanded to:
+///
+/// ```rust
+/// #[repr(u32)]
+/// enum Action {
+/// 	Toto = 119097542u32,
+/// 	Tata = 1414311903u32,
+/// }
+/// ```
+///
 #[proc_macro_attribute]
 pub fn generate_function_selector(_: TokenStream, input: TokenStream) -> TokenStream {
 	let item = parse_macro_input!(input as ItemEnum);
