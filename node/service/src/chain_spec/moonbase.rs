@@ -82,7 +82,8 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 		None,
 		Some(
 			serde_json::from_str(
-				"{\"tokenDecimals\": 18, \"tokenSymbol\": \"UNIT\", \"SS58Prefix\": 1287}",
+				"{\"tokenDecimals\": 18, \"tokenSymbol\": \"UNIT\", \"SS58Prefix\": 1287},
+				 {\"tokenDecimals\": 12, \"tokenSymbol\": \"KSM\", \"SS58Prefix\": 1287}",
 			)
 			.expect("Provided valid json map"),
 		),
