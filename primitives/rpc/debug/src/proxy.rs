@@ -196,8 +196,26 @@ impl CallListProxy {
 								res,
 								value: Some(*value),
 							},
-							CallInner::Create { res, .. } => GethCallInner::Create {
-								res,
+							CallInner::Create { init, res } => GethCallInner::Create {
+								input: init,
+								error: match res {
+									CreateResult::Success { .. } => None,
+									crate::CreateResult::Error { ref error } => Some(error.clone()),
+								},
+								to: match res {
+									CreateResult::Success {
+										created_contract_address_hash,
+										..
+									} => Some(created_contract_address_hash),
+									crate::CreateResult::Error { .. } => None,
+								},
+								output: match res {
+									CreateResult::Success {
+										created_contract_code,
+										..
+									} => Some(created_contract_code),
+									crate::CreateResult::Error { .. } => None,
+								},
 								value: *value,
 								call_type: "CREATE".as_bytes().to_vec(),
 							},

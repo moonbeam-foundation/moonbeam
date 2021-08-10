@@ -161,8 +161,26 @@ pub enum GethCallInner {
 			serde(rename = "type", serialize_with = "opcode_serialize")
 		)]
 		call_type: Vec<u8>,
-		#[cfg_attr(feature = "std", serde(flatten))]
-		res: crate::CreateResult,
+		#[cfg_attr(feature = "std", serde(serialize_with = "bytes_0x_serialize"))]
+		input: Vec<u8>,
+		#[cfg_attr(feature = "std", serde(skip_serializing_if = "Option::is_none"))]
+		to: Option<H160>,
+		#[cfg_attr(
+			feature = "std",
+			serde(
+				skip_serializing_if = "Option::is_none",
+				serialize_with = "option_bytes_0x_serialize"
+			)
+		)]
+		output: Option<Vec<u8>>,
+		#[cfg_attr(
+			feature = "std",
+			serde(
+				skip_serializing_if = "Option::is_none",
+				serialize_with = "option_string_serialize"
+			)
+		)]
+		error: Option<Vec<u8>>,
 		value: U256,
 	},
 	// Revert,
