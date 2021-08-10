@@ -110,5 +110,5 @@ interface ParachainStaking {
 // 	"f6a52569": "nominator_bond_less(address,uint256)",
 // 	"971d44c8": "nominator_bond_more(address,uint256)",
 // 	"4b65c34b": "revoke_nomination(address)"
-// 	"9799b4e7": "points(uint256)",
+// 	"9799b4e7": "points(uint256)"
 // }
