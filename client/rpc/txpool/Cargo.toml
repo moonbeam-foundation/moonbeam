@@ -8,10 +8,10 @@ license = 'GPL-3.0-only'
 repository = 'https://github.com/PureStake/moonbeam/'
 
 [dependencies]
+rlp = "0.5"
 sha3 = "0.8"
 jsonrpc-core = "15.0.0"
 ethereum-types = "0.11.0"
-ethereum = { version = "0.7.1", default-features = false, features = ["with-codec"] }
 moonbeam-rpc-core-txpool = { path = "../../rpc-core/txpool" }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
 sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
