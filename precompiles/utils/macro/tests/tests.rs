@@ -11,9 +11,23 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
+use sha3::{Digest, Keccak256};
+
+#[precompile_utils_macro::generate_function_selector]
+pub enum Action {
+	Toto = "toto()",
+	Tata = "tata()",
+}
+
 #[test]
 fn tests() {
-	let t = trybuild::TestCases::new();
-	t.pass("tests/01-parse-valid-enum.rs");
-	//t.compile_fail("tests/02-parse-invalid-enum.rs");
+	assert_eq!(
+		&(Action::Toto as u32).to_be_bytes()[..],
+		&Keccak256::digest(b"toto()")[0..4],
+	);
+	assert_eq!(
+		&(Action::Tata as u32).to_be_bytes()[..],
+		&Keccak256::digest(b"tata()")[0..4],
+	);
+	assert_ne!(Action::Toto as u32, Action::Tata as u32);
 }
