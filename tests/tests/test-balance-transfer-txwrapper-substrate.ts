@@ -14,19 +14,6 @@ import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_BALANCE } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createTransfer, rpcToLocalNode } from "../util/transactions";
 
-describeDevMoonbeam("Balance transfer cost", (context) => {
-  it("should cost 21000 * 1_000_000_000", async function () {
-    const testAccount = "0x1111111111111111111111111111111111111111";
-    await context.createBlock({
-      transactions: [await createTransfer(context.web3, testAccount, 0)],
-    });
-
-    expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT, 1)).to.equal(
-      (GENESIS_ACCOUNT_BALANCE - 21000n * 1_000_000_000n).toString()
-    );
-  });
-});
-
 describeDevMoonbeam("Balance transfer", (context) => {
   const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
   before("Create block with transfer to test account of 512", async () => {
