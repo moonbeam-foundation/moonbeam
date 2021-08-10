@@ -63,12 +63,14 @@ describeDevMoonbeam("TxPool - Ethereum Contract Call", (context) => {
     testContract = contract;
     await context.createBlock({ transactions: [rawTx] });
 
-    txHash = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
-      await createContractExecution(context.web3, {
-        contract,
-        contractCall: contract.methods.multiply(5),
-      }),
-    ]);
+    txHash = (
+      await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+        await createContractExecution(context.web3, {
+          contract,
+          contractCall: contract.methods.multiply(5),
+        }),
+      ])
+    ).result;
   });
 
   it("should appear in the txpool inspection", async function () {
