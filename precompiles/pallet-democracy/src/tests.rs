@@ -138,6 +138,61 @@ fn prop_count_non_zero() {
 }
 
 #[test]
+fn deposit_of_zero() {
+	todo!()
+}
+
+#[test]
+fn deposit_of_non_zero() {
+	todo!()
+}
+
+#[test]
+fn deposit_of_bad_index() {
+	todo!()
+}
+
+#[test]
+fn lowest_unbaked_zero() {
+	todo!()
+}
+
+#[test]
+fn lowest_unbaked_non_zero() {
+	todo!()
+}
+
+#[test]
+fn ongoing_ref_info_works() {
+	todo!()
+}
+
+#[test]
+fn ongoing_ref_info_bad_index() {
+	todo!()
+}
+
+#[test]
+fn ongoing_ref_info_is_not_ongoing() {
+	todo!()
+}
+
+#[test]
+fn finished_ref_info_works() {
+	todo!()
+}
+
+#[test]
+fn finished_ref_info_bad_index() {
+	todo!()
+}
+
+#[test]
+fn finished_ref_info_is_not_finished() {
+	todo!()
+}
+
+#[test]
 fn propose_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])
