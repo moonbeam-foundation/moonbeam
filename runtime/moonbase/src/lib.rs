@@ -29,6 +29,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
+use currencies::TokenSymbol;
 use fp_rpc::TransactionStatus;
 use frame_support::traits::Filter;
 use frame_support::{
@@ -85,6 +86,7 @@ use precompiles::MoonbasePrecompiles;
 pub use sp_runtime::BuildStorage;
 
 pub type Precompiles = MoonbasePrecompiles<Runtime>;
+pub type AssetId = u32;
 
 /// UNIT, the native token, uses 18 decimals of precision.
 pub mod currency {
@@ -901,19 +903,19 @@ use xcm_executor::traits::JustTry;
 /// a `GeneralIndex` junction, prefixed by some `MultiLocation` value. The `MultiLocation` value will typically be a
 /// `PalletInstance` junction.
 use sp_std::borrow::Borrow;
-pub struct AsParachainId<AssetId, ConvertAssetId>(PhantomData<(AssetId, ConvertAssetId)>);
-impl<AssetId: Clone, ConvertAssetId: xcm_executor::traits::Convert<u32, AssetId>>
-	xcm_executor::traits::Convert<MultiLocation, AssetId> for AsParachainId<AssetId, ConvertAssetId>
-{
+pub struct AsCurrencyId;
+impl xcm_executor::traits::Convert<MultiLocation, AssetId> for AsCurrencyId {
 	fn convert_ref(id: impl Borrow<MultiLocation>) -> Result<AssetId, ()> {
 		match id.borrow() {
-			MultiLocation::X1(Junction::Parachain(id)) => ConvertAssetId::convert_ref(id),
+			MultiLocation::X1(Junction::Parent) => Ok(1u32.into()),
 			_ => Err(()),
 		}
 	}
 	fn reverse_ref(what: impl Borrow<AssetId>) -> Result<MultiLocation, ()> {
-		let id = ConvertAssetId::reverse_ref(what)?;
-		Ok(MultiLocation::X1(Junction::Parachain(id)))
+		match what.borrow() {
+			1u32 => Ok(MultiLocation::X1(Junction::Parent)),
+			_ => Err(()),
+		}
 	}
 }
 
@@ -921,7 +923,7 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	Assets,
 	// Use this currency when it is a fungible asset matching the given location or name:
-	(ConvertedConcreteAssetId<u32, Balance, AsParachainId<u32, JustTry>, JustTry>,),
+	(ConvertedConcreteAssetId<AssetId, Balance, AsCurrencyId, JustTry>,),
 	// Do a simple punn to convert an AccountId32 MultiLocation into a native chain account ID:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
@@ -1098,7 +1100,6 @@ pub type AssetsForceOrigin = EnsureOneOf<
 	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
 >;
 
-pub type AssetId = u32;
 impl pallet_assets::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
@@ -1144,7 +1145,7 @@ impl orml_xtokens::Config for Runtime {
 	type Balance = Balance;
 	type CurrencyId = AssetId;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
-	type CurrencyIdConvert = AssetIdtoMultiLocation<AsParachainId<AssetId, JustTry>>;
+	type CurrencyIdConvert = AssetIdtoMultiLocation<AsCurrencyId>;
 	type XcmExecutor = XcmExecutor;
 	type SelfLocation = Ancestry;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;

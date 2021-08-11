@@ -850,6 +850,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "bstringify"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd769563b4ea2953e2825c9e6b7470a5f55f67e0be00030bf3e390a2a6071f64"
+
+[[package]]
 name = "build-helper"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1795,6 +1801,20 @@ dependencies = [
  "polkadot-primitives",
  "sp-runtime",
  "sp-state-machine",
+ "sp-std",
+]
+
+[[package]]
+name = "currencies"
+version = "0.1.0"
+dependencies = [
+ "bstringify",
+ "max-encoded-len",
+ "parity-scale-codec",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
  "sp-std",
 ]
 
@@ -4944,6 +4964,7 @@ dependencies = [
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
  "cumulus-test-relay-sproof-builder",
+ "currencies",
  "evm",
  "fp-rpc",
  "frame-benchmarking",
@@ -12606,7 +12627,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04f8ab788026715fa63b31960869617cba39117e520eb415b0139543e325ab59"
 dependencies = [
  "cfg-if 0.1.10",
- "rand 0.3.23",
+ "rand 0.7.3",
  "static_assertions",
 ]
 
