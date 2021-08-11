@@ -226,18 +226,7 @@ impl EvmData for Address {
 	}
 }
 
-/// A local marker trait for types that are TryFrom<U256> so we can have a blanket implementation.
-/// This is necessary to avoid duplicate trait implementation errors.
-/// See https://github.com/PureStake/moonbeam/pull/518#discussion_r682493750 for details
-pub trait EvmDataTryFromU256Marker: TryFrom<U256> + Into<U256> {}
-impl EvmDataTryFromU256Marker for u8 {}
-impl EvmDataTryFromU256Marker for u16 {}
-impl EvmDataTryFromU256Marker for u32 {}
-impl EvmDataTryFromU256Marker for u64 {}
-impl EvmDataTryFromU256Marker for u128 {}
-impl EvmDataTryFromU256Marker for U256 {}
-
-impl<T: EvmDataTryFromU256Marker> EvmData for T {
+impl EvmData for U256 {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
 		let range = reader.move_cursor(32)?;
 
@@ -246,15 +235,12 @@ impl<T: EvmDataTryFromU256Marker> EvmData for T {
 			.get(range)
 			.ok_or_else(|| error("tried to parse U256 out of bounds"))?;
 
-		U256::from_big_endian(data)
-			.try_into()
-			.map_err(|_| error("Value is too large for provided type"))
+		Ok(U256::from_big_endian(data))
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
 		let mut buffer = [0u8; 32];
-		let u256_value: U256 = value.into();
-		u256_value.to_big_endian(&mut buffer);
+		value.to_big_endian(&mut buffer);
 		writer.data.extend_from_slice(&buffer);
 	}
 }
