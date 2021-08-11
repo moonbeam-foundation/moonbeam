@@ -226,8 +226,8 @@ impl EvmData for Address {
 	}
 }
 
-/// A local marker trait for types that are TryFrom<U256> so we can have a blanket impl
-/// This is necessary to avoide duplicate trait implementation errors.
+/// A local marker trait for types that are TryFrom<U256> so we can have a blanket implementation.
+/// This is necessary to avoid duplicate trait implementation errors.
 /// See https://github.com/PureStake/moonbeam/pull/518#discussion_r682493750 for details
 pub trait EvmDataTryFromU256Marker: TryFrom<U256> + Into<U256> {}
 impl EvmDataTryFromU256Marker for u8 {}

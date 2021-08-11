@@ -14,8 +14,9 @@ interface Democracy {
     function public_prop_count() external view returns (uint256);
 
     // Get details about all public porposals. The return values are the
-    // prop index, the proposal hash (it there a better solidity type?), and the proposer
-    //TODO This is supposed to be a vec. Let's save this one for later.
+    // prop index, the proposal hash, and the proposer
+    // TODO The best type for the hash is bytes32. https://ethereum.stackexchange.com/a/92124/9963
+    // TODO This is supposed to be a vec. Let's save this one for later.
     // function public_props()
     //     external
     //     view
