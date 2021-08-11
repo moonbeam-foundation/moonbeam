@@ -116,8 +116,6 @@ interface Democracy {
 
     //TODO should we have an alternative `simple_second` where the upper bound is read from storage?
 
-    //TODO in the future we could consider using a solidity struct here for AccountVote
-    // like they do in the Rust code. For now I'll just accept each param individually.
     /**
      * Vote in a referendum.
      *
