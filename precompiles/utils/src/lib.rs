@@ -185,24 +185,12 @@ where
 		// computations.
 		let used_weight = call
 			.dispatch(origin)
-			.map_err(|original| {
-				println!("{:?}", original);
-				error("dispatched call failed")
+			.map_err(|e| {
+				let error_message = format!("Dispatched call failed: {:?}", e);
+				println!("{:?}", error_message);
+				error(error_message)
 			})?
 			.actual_weight;
-		
-		// @librelois @nanocryk, how can I actually forward the error message here?
-		// I tried the following match statementa and a similar thing using map_err
-		// but I always get `error[E0716]: temporary value dropped while borrowed`
-		// let used_weight: Option<u64> = match call.dispatch(origin) {
-		// 	Err(e) => {
-		// 		return Err(error(&sp_std::fmt::format(format_args!(
-		// 			"Dispatched call failed: {:?}",
-		// 			e
-		// 		))));
-		// 	}
-		// 	Ok(post_info) => post_info.actual_weight,
-		// };
 
 		// Return used weight by converting weight to gas.
 		Ok(Runtime::GasWeightMapping::weight_to_gas(
