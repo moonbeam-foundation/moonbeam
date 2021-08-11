@@ -239,7 +239,7 @@ pub mod pallet {
 	/// to the AccountIds runtime (including this staking pallet).
 	type MappingWithDeposit<T: Config> = StorageMap<
 		_,
-		Twox64Concat,
+		Blake2_128Concat,
 		T::AuthorId,
 		RegistrationInfo<T::AccountId, BalanceOf<T>>,
 		OptionQuery,
@@ -281,6 +281,17 @@ pub mod pallet {
 		/// the primary lookup that this pallet is responsible for.
 		pub fn account_id_of(author_id: &T::AuthorId) -> Option<T::AccountId> {
 			Self::account_and_deposit_of(author_id).map(|info| info.account)
+		}
+	}
+
+	#[pallet::hooks]
+	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+		fn on_runtime_upgrade() -> Weight {
+			// https://crates.parity.io/frame_support/storage/migration/fn.move_prefix.html
+			move_prefix(from_prefix: &[u8], to_prefix: &[u8])
+
+			//TODO now remove the old ones
+			// https://crates.parity.io/frame_support/storage/migration/fn.remove_storage_prefix.html ??
 		}
 	}
 }
