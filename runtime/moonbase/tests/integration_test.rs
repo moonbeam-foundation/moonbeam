@@ -133,6 +133,14 @@ fn verify_pallet_prefixes() {
 		]
 	);
 	assert_eq!(
+		<moonbase_runtime::Sudo as StorageInfoTrait>::storage_info(),
+		vec![StorageInfo {
+			prefix: prefix(b"Sudo", b"Key"),
+			max_values: Some(1),
+			max_size: Some(20),
+		}]
+	);
+	assert_eq!(
 		<moonbase_runtime::Proxy as StorageInfoTrait>::storage_info(),
 		vec![
 			StorageInfo {
@@ -161,7 +169,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbase_runtime::Utility>(1);
 	is_pallet_index::<moonbase_runtime::Timestamp>(2);
 	is_pallet_index::<moonbase_runtime::Balances>(3);
-	// Sudo was previously index 4
+	is_pallet_index::<moonbase_runtime::Sudo>(4);
 	is_pallet_index::<moonbase_runtime::RandomnessCollectiveFlip>(5);
 	is_pallet_index::<moonbase_runtime::ParachainSystem>(6);
 	is_pallet_index::<moonbase_runtime::TransactionPayment>(7);

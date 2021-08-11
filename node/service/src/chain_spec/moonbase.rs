@@ -28,7 +28,7 @@ use moonbase_runtime::{
 	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	BalancesKsmConfig, CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig,
-	ParachainStakingConfig, Precompiles, Range, SchedulerConfig, /*SudoConfig,*/ SystemConfig,
+	ParachainStakingConfig, Precompiles, Range, SchedulerConfig, SudoConfig, SystemConfig,
 	TechComitteeCollectiveConfig, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
@@ -58,7 +58,7 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 		move || {
 			testnet_genesis(
 				// Alith is Sudo
-				// accounts[0],
+				accounts[0],
 				// Council members: Baltathar, Charleth and Dorothy
 				vec![accounts[1], accounts[2], accounts[3]],
 				// Tech comitee members: Alith and Baltathar
@@ -106,7 +106,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		move || {
 			testnet_genesis(
 				// Alith is Sudo
-				// AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
+				AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
 				// Council members: Baltathar, Charleth and Dorothy
 				vec![
 					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
@@ -182,7 +182,7 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 }
 
 pub fn testnet_genesis(
-	// root_key: AccountId,
+	root_key: AccountId,
 	council_members: Vec<AccountId>,
 	tech_comittee_members: Vec<AccountId>,
 	candidates: Vec<(AccountId, NimbusId, Balance)>,
@@ -216,7 +216,7 @@ pub fn testnet_genesis(
 		crowdloan_rewards: CrowdloanRewardsConfig {
 			funded_amount: crowdloan_fund_pot,
 		},
-		// sudo: SudoConfig { key: root_key },
+		sudo: SudoConfig { key: root_key },
 		parachain_info: ParachainInfoConfig {
 			parachain_id: para_id,
 		},
