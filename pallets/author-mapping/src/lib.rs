@@ -113,7 +113,7 @@ pub mod pallet {
 			let account_id = ensure_signed(origin)?;
 
 			ensure!(
-				MappingWithDeposit::<T>::get(&author_id).is_none(),
+				Mapping::<T>::get(&author_id).is_none(),
 				Error::<T>::AlreadyAssociated
 			);
 
@@ -136,7 +136,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
 
-			let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
+			let stored_info = Mapping::<T>::try_get(&old_author_id)
 				.map_err(|_| Error::<T>::AssociationNotFound)?;
 
 			ensure!(
@@ -144,8 +144,8 @@ pub mod pallet {
 				Error::<T>::NotYourAssociation
 			);
 
-			MappingWithDeposit::<T>::insert(&new_author_id, &stored_info);
-			MappingWithDeposit::<T>::remove(&old_author_id);
+			Mapping::<T>::insert(&new_author_id, &stored_info);
+			Mapping::<T>::remove(&old_author_id);
 
 			<Pallet<T>>::deposit_event(Event::AuthorRotated(new_author_id, stored_info.account));
 
@@ -163,7 +163,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let account_id = ensure_signed(origin)?;
 
-			let stored_info = MappingWithDeposit::<T>::try_get(&author_id)
+			let stored_info = Mapping::<T>::try_get(&author_id)
 				.map_err(|_| Error::<T>::AssociationNotFound)?;
 
 			ensure!(
@@ -171,7 +171,7 @@ pub mod pallet {
 				Error::<T>::NotYourAssociation
 			);
 
-			MappingWithDeposit::<T>::remove(&author_id);
+			Mapping::<T>::remove(&author_id);
 
 			T::DepositCurrency::unreserve(&account_id, stored_info.deposit);
 
@@ -227,7 +227,7 @@ pub mod pallet {
 				deposit,
 			};
 
-			MappingWithDeposit::<T>::insert(&author_id, &info);
+			Mapping::<T>::insert(&author_id, &info);
 
 			Ok(())
 		}
@@ -236,8 +236,8 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn account_and_deposit_of)]
 	/// We maintain a mapping from the AuthorIds used in the consensus layer
-	/// to the AccountIds runtime (including this staking pallet).
-	type MappingWithDeposit<T: Config> = StorageMap<
+	/// to the AccountIds runtime (including the parachain staking pallet).
+	type Mapping<T: Config> = StorageMap<
 		_,
 		Blake2_128Concat,
 		T::AuthorId,
@@ -287,11 +287,25 @@ pub mod pallet {
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_runtime_upgrade() -> Weight {
-			// https://crates.parity.io/frame_support/storage/migration/fn.move_prefix.html
-			move_prefix(from_prefix: &[u8], to_prefix: &[u8])
+			let pallet_prefix: &[u8] = b"AuthorMapping";
+			let old_storage_item_prefix: &[u8] = b"MappingWithDeposit";
 
-			//TODO now remove the old ones
-			// https://crates.parity.io/frame_support/storage/migration/fn.remove_storage_prefix.html ??
+			let mut migrated_entries: Weight = 0;
+
+			// Move the mappings to the new storage location
+			// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html
+			for (author_id, account_id) in frame_support::storage::migration::storage_key_iter::<T::AuthorId, RegistrationInfo<T::AccountId, BalanceOf<T>>, Twox64Concat>(pallet_prefix, old_storage_item_prefix) {
+				Mapping::<T>::insert(author_id, account_id);
+				migrated_entries += 1;
+			}
+
+			// Now remove the old storage
+			// https://crates.parity.io/frame_support/storage/migration/fn.remove_storage_prefix.html
+			frame_support::storage::migration::remove_storage_prefix(pallet_prefix, old_storage_item_prefix, &[]);
+
+			// Return the weight used.
+			let db_weights = T::DbWeight::get();
+			migrated_entries.saturating_add(2 * db_weights.write).saturating_add(db_weights.read)
 		}
 	}
 }

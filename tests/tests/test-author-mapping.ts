@@ -20,7 +20,7 @@ async function getMappingInfo(
   context,
   authorId: string
 ): Promise<{ account: string; deposit: string }> {
-  return (await context.polkadotApi.query.authorMapping.mappingWithDeposit(authorId)).toHuman() as {
+  return (await context.polkadotApi.query.authorMapping.mapping(authorId)).toHuman() as {
     account: string;
     deposit: string;
   };
