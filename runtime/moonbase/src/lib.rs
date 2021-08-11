@@ -30,6 +30,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
+use frame_support::traits::Filter;
 use frame_support::{
 	construct_runtime, match_type, parameter_types,
 	traits::{All, Get, Imbalance, InstanceFilter, OnUnbalanced, OriginTrait},
@@ -39,6 +40,7 @@ use frame_support::{
 	},
 	PalletId,
 };
+
 use frame_system::{EnsureOneOf, EnsureRoot};
 pub use moonbeam_core_primitives::{
 	AccountId, AccountIndex, Address, Balance, BlockNumber, DigestItem, Hash, Header, Index,
@@ -204,11 +206,24 @@ impl frame_system::Config for Runtime {
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 	type DbWeight = RocksDbWeight;
-	type BaseCallFilter = ();
+	type BaseCallFilter = BaseFilter;
 	type SystemWeightInfo = ();
 	/// This is used as an identifier of the chain. 42 is the generic substrate prefix.
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
+}
+
+pub struct BaseFilter;
+impl Filter<Call> for BaseFilter {
+	fn filter(c: &Call) -> bool {
+		match c {
+			Call::Assets(method) => match method {
+				pallet_assets::Call::force_create(..) => true,
+				_ => false,
+			},
+			_ => true,
+		}
+	}
 }
 
 impl pallet_utility::Config for Runtime {
@@ -882,17 +897,6 @@ use sp_runtime::traits::Zero;
 use xcm_builder::{AsPrefixedGeneralIndex, ConvertedConcreteAssetId, FungiblesAdapter};
 use xcm_executor::traits::JustTry;
 
-/// Allow checking in assets that have issuance > 0.
-pub struct CheckAsset<A>(PhantomData<A>);
-impl<A> Contains<<A as fungibles::Inspect<AccountId>>::AssetId> for CheckAsset<A>
-where
-	A: fungibles::Inspect<AccountId>,
-{
-	fn contains(id: &<A as fungibles::Inspect<AccountId>>::AssetId) -> bool {
-		!A::total_issuance(*id).is_zero()
-	}
-}
-
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID (must be `TryFrom/TryInto<u128>`) into
 /// a `GeneralIndex` junction, prefixed by some `MultiLocation` value. The `MultiLocation` value will typically be a
 /// `PalletInstance` junction.
@@ -1091,7 +1095,7 @@ use pallet_xcm::IsMajorityOfBody;
 pub type AssetsForceOrigin = EnsureOneOf<
 	AccountId,
 	EnsureRoot<AccountId>,
-	EnsureXcm<IsMajorityOfBody<KsmLocation, ExecutiveBody>>,
+	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
 >;
 
 pub type AssetId = u32;
