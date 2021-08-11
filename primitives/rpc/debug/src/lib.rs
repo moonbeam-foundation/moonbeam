@@ -61,6 +61,8 @@ pub mod serialization;
 use crate::serialization::*;
 
 pub mod block;
+pub mod blockscout;
+pub mod etherscan;
 pub mod proxy;
 pub mod single;
 
@@ -113,5 +115,5 @@ pub enum CreateType {
 pub enum TracerInput {
 	None,
 	Blockscout,
-	GethCallTrace,
+	Etherscan,
 }

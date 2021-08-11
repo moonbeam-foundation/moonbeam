@@ -224,7 +224,7 @@ where
 				let tracer = if hash == blockscout_hash {
 					Some(TracerInput::Blockscout)
 				} else if tracer == "callTracer" {
-					Some(TracerInput::GethCallTrace)
+					Some(TracerInput::Etherscan)
 				} else {
 					None
 				};

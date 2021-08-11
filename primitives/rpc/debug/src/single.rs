@@ -23,8 +23,11 @@ use crate::serialization::*;
 #[cfg(feature = "std")]
 use serde::Serialize;
 
+pub use crate::blockscout::{Call as BlockscoutCall, CallInner as BlockscoutInner};
+pub use crate::etherscan::{Call as EtherscanCall, CallInner as EtherscanInner};
+
 use codec::{Decode, Encode};
-use ethereum_types::{H160, H256, U256};
+use ethereum_types::{H256, U256};
 use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Encode, Decode)]
@@ -102,140 +105,8 @@ pub struct RawStepLog {
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(Serialize))]
-#[cfg_attr(feature = "std", serde(rename_all = "camelCase", tag = "type"))]
-pub enum CallInner {
-	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
-	Call {
-		/// Type of call.
-		call_type: crate::CallType,
-		to: H160,
-		#[cfg_attr(feature = "std", serde(serialize_with = "bytes_0x_serialize"))]
-		input: Vec<u8>,
-		/// "output" or "error" field
-		#[cfg_attr(feature = "std", serde(flatten))]
-		res: crate::CallResult,
-	},
-
-	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
-	Create {
-		#[cfg_attr(feature = "std", serde(serialize_with = "bytes_0x_serialize"))]
-		init: Vec<u8>,
-		#[cfg_attr(feature = "std", serde(flatten))]
-		res: crate::CreateResult,
-	},
-	// Revert,
-	SelfDestruct {
-		#[cfg_attr(feature = "std", serde(skip))]
-		balance: U256,
-		#[cfg_attr(feature = "std", serde(skip))]
-		refund_address: H160,
-	},
-}
-
-#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
-#[cfg_attr(feature = "std", derive(Serialize))]
-#[cfg_attr(feature = "std", serde(rename_all = "camelCase", untagged))]
-pub enum GethCallInner {
-	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
-	Call {
-		#[cfg_attr(
-			feature = "std",
-			serde(rename = "type", serialize_with = "opcode_serialize")
-		)]
-		call_type: Vec<u8>,
-		to: H160,
-		#[cfg_attr(feature = "std", serde(serialize_with = "bytes_0x_serialize"))]
-		input: Vec<u8>,
-		/// "output" or "error" field
-		#[cfg_attr(feature = "std", serde(flatten))]
-		res: crate::CallResult,
-
-		#[cfg_attr(feature = "std", serde(skip_serializing_if = "Option::is_none"))]
-		value: Option<U256>,
-	},
-
-	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
-	Create {
-		#[cfg_attr(
-			feature = "std",
-			serde(rename = "type", serialize_with = "opcode_serialize")
-		)]
-		call_type: Vec<u8>,
-		#[cfg_attr(feature = "std", serde(serialize_with = "bytes_0x_serialize"))]
-		input: Vec<u8>,
-		#[cfg_attr(feature = "std", serde(skip_serializing_if = "Option::is_none"))]
-		to: Option<H160>,
-		#[cfg_attr(
-			feature = "std",
-			serde(
-				skip_serializing_if = "Option::is_none",
-				serialize_with = "option_bytes_0x_serialize"
-			)
-		)]
-		output: Option<Vec<u8>>,
-		#[cfg_attr(
-			feature = "std",
-			serde(
-				skip_serializing_if = "Option::is_none",
-				serialize_with = "option_string_serialize"
-			)
-		)]
-		error: Option<Vec<u8>>,
-		value: U256,
-	},
-	// Revert,
-	SelfDestruct {
-		#[cfg_attr(
-			feature = "std",
-			serde(rename = "type", serialize_with = "opcode_serialize")
-		)]
-		call_type: Vec<u8>,
-		#[cfg_attr(feature = "std", serde(skip))]
-		to: H160,
-		value: U256,
-	},
-}
-
-#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode)]
-#[cfg_attr(feature = "std", derive(Serialize))]
 #[cfg_attr(feature = "std", serde(rename_all = "camelCase", untagged))]
 pub enum Call {
-	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
-	Blockscout {
-		from: H160,
-		/// Indices of parent calls.
-		trace_address: Vec<u32>,
-		/// Number of children calls.
-		/// Not needed for Blockscout, but needed for `crate::block`
-		/// types that are build from this type.
-		#[cfg_attr(feature = "std", serde(skip))]
-		subtraces: u32,
-		/// Sends funds to the (payable) function
-		value: U256,
-		/// Remaining gas in the runtime.
-		gas: U256,
-		/// Gas used by this context.
-		gas_used: U256,
-		#[cfg_attr(feature = "std", serde(flatten))]
-		inner: CallInner,
-	},
-	#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
-	GethCallTrace {
-		from: H160,
-
-		/// Indices of parent calls.
-		#[cfg_attr(feature = "std", serde(skip_serializing_if = "Option::is_none"))]
-		trace_address: Option<Vec<u32>>,
-
-		/// Remaining gas in the runtime.
-		gas: U256,
-		/// Gas used by this context.
-		gas_used: U256,
-
-		#[cfg_attr(feature = "std", serde(flatten))]
-		inner: GethCallInner,
-
-		#[cfg_attr(feature = "std", serde(skip_serializing_if = "Vec::is_empty"))]
-		calls: Vec<Call>,
-	},
+	Blockscout(BlockscoutCall),
+	Etherscan(EtherscanCall),
 }

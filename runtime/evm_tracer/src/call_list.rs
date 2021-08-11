@@ -20,7 +20,7 @@ use codec::Encode;
 use ethereum_types::{H160, U256};
 use evm::{Capture, ExitError, ExitReason, ExitSucceed};
 use moonbeam_rpc_primitives_debug::{
-	single::{Call, CallInner},
+	single::{BlockscoutCall, BlockscoutInner, Call},
 	CallResult, CallType, CreateResult,
 };
 
@@ -198,20 +198,20 @@ impl RuntimeListener for CallListTracer {
 									ExitReason::Fatal(_) => CallResult::Error(vec![]),
 								};
 
-								Call::Blockscout {
+								Call::Blockscout(BlockscoutCall {
 									from: context.from,
 									trace_address: context.trace_address,
 									subtraces: context.subtraces,
 									value: context.value,
 									gas: context.gas.into(),
 									gas_used: gas_used.into(),
-									inner: CallInner::Call {
+									inner: BlockscoutInner::Call {
 										call_type,
 										to: context.to,
 										input: context.data,
 										res,
 									},
-								}
+								})
 								.encode()
 							}
 							ContextType::Create => {
@@ -229,18 +229,18 @@ impl RuntimeListener for CallListTracer {
 									ExitReason::Fatal(_) => CreateResult::Error { error: vec![] },
 								};
 
-								Call::Blockscout {
+								Call::Blockscout(BlockscoutCall {
 									value: context.value,
 									trace_address: context.trace_address,
 									subtraces: context.subtraces,
 									gas: context.gas.into(),
 									gas_used: gas_used.into(),
 									from: context.from,
-									inner: CallInner::Create {
+									inner: BlockscoutInner::Create {
 										init: context.data,
 										res,
 									},
-								}
+								})
 								.encode()
 							}
 						},
@@ -335,18 +335,18 @@ impl EvmListener for CallListTracer {
 			} => {
 				moonbeam_primitives_ext::moonbeam_ext::call_list_entry(
 					self.entries_next_index,
-					Call::Blockscout {
+					Call::Blockscout(BlockscoutCall {
 						from: address, // this contract is self destructing
 						trace_address,
 						subtraces: 0,
 						value: 0.into(),
 						gas: 0.into(),
 						gas_used: 0.into(),
-						inner: CallInner::SelfDestruct {
+						inner: BlockscoutInner::SelfDestruct {
 							refund_address: target,
 							balance,
 						},
-					}
+					})
 					.encode(),
 				);
 
