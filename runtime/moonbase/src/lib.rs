@@ -889,7 +889,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type LocationInverter = xcm_builder::LocationInverter<Ancestry>;
 	type Barrier = XcmBarrier;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call>;
-	type Trader = ();
+	type Trader = xcm_builder::UsingComponents<IdentityFee<Balance>, KsmLocation, AccountId, Balances, ()>;;
 	type ResponseHandler = (); // Don't handle responses for now.
 }
 
