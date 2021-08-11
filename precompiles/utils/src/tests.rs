@@ -48,6 +48,52 @@ fn read_bool() {
 }
 
 #[test]
+fn write_u64() {
+	let value = 42u64;
+
+	let writer_output = EvmDataWriter::new().write(value).build();
+
+	let mut expected_output = [0u8; 32];
+	expected_output[..8].copy_from_slice(&value.to_be_bytes());
+
+	assert_eq!(writer_output, expected_output);
+}
+
+#[test]
+fn read_u64() {
+	let value = 42u64;
+	let writer_output = EvmDataWriter::new().write(value).build();
+
+	let mut reader = EvmDataReader::new(&writer_output);
+	let parsed: u64 = reader.read().expect("to correctly parse u64");
+
+	assert_eq!(value, parsed);
+}
+
+#[test]
+fn write_u128() {
+	let value = 42u128;
+
+	let writer_output = EvmDataWriter::new().write(value).build();
+
+	let mut expected_output = [0u8; 32];
+	expected_output[..16].copy_from_slice(&value.to_be_bytes());
+
+	assert_eq!(writer_output, expected_output);
+}
+
+#[test]
+fn read_u128() {
+	let value = 42u128;
+	let writer_output = EvmDataWriter::new().write(value).build();
+
+	let mut reader = EvmDataReader::new(&writer_output);
+	let parsed: u128 = reader.read().expect("to correctly parse u128");
+
+	assert_eq!(value, parsed);
+}
+
+#[test]
 fn write_u256() {
 	let value = U256::from(42);
 
@@ -92,6 +138,12 @@ fn write_h256() {
 	let output = EvmDataWriter::new().write(value).build();
 
 	assert_eq!(&output, &raw);
+}
+
+#[test]
+fn tmp() {
+	let u = U256::from(1_000_000_000);
+	println!("U256={:?}", u.0);
 }
 
 #[test]

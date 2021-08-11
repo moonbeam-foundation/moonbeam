@@ -43,7 +43,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
-  it.skip("should check initial state", async function () {
+  it("should check initial state", async function () {
     // check that genesis has genesis balance
     expect(Number(await context.web3.eth.getBalance(GENESIS_ACCOUNT))).to.eq(
       Number(GENESIS_ACCOUNT_BALANCE)
@@ -54,7 +54,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     );
     expect(isPayable.toHuman()).to.equal(null);
   });
-  it.skip("should be able to register the genesis account for reward", async function () {
+  it("should be able to register the genesis account for reward", async function () {
     // should be able to register the genesis account for reward
     await context.polkadotApi.tx.sudo
       .sudo(
@@ -95,7 +95,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
-  it.skip("should be able to make a first claim", async function () {
+  it("should be able to make a first claim", async function () {
     await context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.crowdloanRewards.initializeRewardVec([
@@ -165,7 +165,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
-  it.skip("should show the money after 5 blocks, after first claim was called", async function () {
+  it("should show me the money after 5 blocks, after first claim was called", async function () {
     await context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.crowdloanRewards.initializeRewardVec([
@@ -223,7 +223,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
-  it.skip("should make first claim 5 blocks after initialization called", async function () {
+  it("should make first claim 5 blocks after initialization called", async function () {
     await context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.crowdloanRewards.initializeRewardVec([
@@ -276,7 +276,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
-  it.skip("should not be able to call initializeRewardVec another time", async function () {
+  it("should not be able to call initializeRewardVec another time", async function () {
     await context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.crowdloanRewards.initializeRewardVec([
@@ -321,7 +321,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     alithAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
 
-  it.skip("should be able to register the genesis account - with small amount", async function () {
+  it("should be able to register the genesis account - with small amount", async function () {
     // initializeRewardVec
     await context.polkadotApi.tx.sudo
       .sudo(
@@ -380,7 +380,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
 
-  it.skip("should be able to register many accounts : " + numberOfAccounts, async function () {
+  it("should be able to register many accounts : " + numberOfAccounts, async function () {
     // should create a bunch of test eth accounts
     this.timeout(30000);
     let web3 = new Web3();
@@ -449,79 +449,74 @@ describeDevMoonbeam("Crowdloan", (context) => {
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
 
-  it.skip(
-    "should be able to register many accounts - batch : " + numberOfAccounts,
-    async function () {
-      // should create a bunch of test eth accounts
-      this.timeout(20000);
-      let web3 = new Web3();
-      let accounts = new Array(numberOfAccounts).fill(0).map((_, i) => web3.eth.accounts.create());
-      largInput = accounts.map((acc: Account, i: number) => {
-        return [
-          acc.address + "111111111111111111111111",
-          acc.address,
-          (3_000_000n * GLMR) / BigInt(numberOfAccounts),
-        ];
-      });
-      expect(largInput.length).to.eq(numberOfAccounts);
-      expect(largInput[0][1] !== largInput[numberOfAccounts - 1][1]).to.eq(true);
-
-      // should be able to register many accounts
-      await context.polkadotApi.tx.utility
-        .batch([
-          await context.polkadotApi.tx.sudo.sudo(
-            context.polkadotApi.tx.crowdloanRewards.initializeRewardVec(
-              largInput.slice(0, Math.floor(numberOfAccounts / 3))
-            )
-          ),
-          await context.polkadotApi.tx.sudo.sudo(
-            context.polkadotApi.tx.crowdloanRewards.initializeRewardVec(
-              largInput.slice(
-                Math.floor(numberOfAccounts / 3),
-                Math.floor((numberOfAccounts * 2) / 3)
-              )
-            )
-          ),
-          await context.polkadotApi.tx.sudo.sudo(
-            context.polkadotApi.tx.crowdloanRewards.initializeRewardVec(
-              largInput.slice(Math.floor((numberOfAccounts * 2) / 3), numberOfAccounts)
-            )
-          ),
-        ])
-        .signAndSend(sudoAccount);
-      await context.createBlock();
-
-      let initBlock = (await context.polkadotApi.query.crowdloanRewards.initRelayBlock()) as any;
-
-      // Complete initialization
-      await context.polkadotApi.tx.sudo
-        .sudo(
-          context.polkadotApi.tx.crowdloanRewards.completeInitialization(
-            Number(initBlock) + vesting
-          )
-        )
-        .signAndSend(sudoAccount);
-      await context.createBlock();
-
-      const rewardPerContributor = formatBalance(
+  it("should be able to register many accounts - batch : " + numberOfAccounts, async function () {
+    // should create a bunch of test eth accounts
+    this.timeout(20000);
+    let web3 = new Web3();
+    let accounts = new Array(numberOfAccounts).fill(0).map((_, i) => web3.eth.accounts.create());
+    largInput = accounts.map((acc: Account, i: number) => {
+      return [
+        acc.address + "111111111111111111111111",
+        acc.address,
         (3_000_000n * GLMR) / BigInt(numberOfAccounts),
-        { withSi: true, withUnit: "UNIT" },
-        18
-      );
+      ];
+    });
+    expect(largInput.length).to.eq(numberOfAccounts);
+    expect(largInput[0][1] !== largInput[numberOfAccounts - 1][1]).to.eq(true);
 
-      await Promise.all(
-        largInput.map(async (input) => {
-          expect(
+    // should be able to register many accounts
+    await context.polkadotApi.tx.utility
+      .batch([
+        await context.polkadotApi.tx.sudo.sudo(
+          context.polkadotApi.tx.crowdloanRewards.initializeRewardVec(
+            largInput.slice(0, Math.floor(numberOfAccounts / 3))
+          )
+        ),
+        await context.polkadotApi.tx.sudo.sudo(
+          context.polkadotApi.tx.crowdloanRewards.initializeRewardVec(
+            largInput.slice(
+              Math.floor(numberOfAccounts / 3),
+              Math.floor((numberOfAccounts * 2) / 3)
+            )
+          )
+        ),
+        await context.polkadotApi.tx.sudo.sudo(
+          context.polkadotApi.tx.crowdloanRewards.initializeRewardVec(
+            largInput.slice(Math.floor((numberOfAccounts * 2) / 3), numberOfAccounts)
+          )
+        ),
+      ])
+      .signAndSend(sudoAccount);
+    await context.createBlock();
+
+    let initBlock = (await context.polkadotApi.query.crowdloanRewards.initRelayBlock()) as any;
+
+    // Complete initialization
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(Number(initBlock) + vesting)
+      )
+      .signAndSend(sudoAccount);
+    await context.createBlock();
+
+    const rewardPerContributor = formatBalance(
+      (3_000_000n * GLMR) / BigInt(numberOfAccounts),
+      { withSi: true, withUnit: "UNIT" },
+      18
+    );
+
+    await Promise.all(
+      largInput.map(async (input) => {
+        expect(
+          (
             (
-              (
-                await context.polkadotApi.query.crowdloanRewards.accountsPayable(input[1])
-              ).toHuman() as any
-            ).total_reward
-          ).to.equal(rewardPerContributor);
-        })
-      );
-    }
-  );
+              await context.polkadotApi.query.crowdloanRewards.accountsPayable(input[1])
+            ).toHuman() as any
+          ).total_reward
+        ).to.equal(rewardPerContributor);
+      })
+    );
+  });
 });
 
 describeDevMoonbeam("Crowdloan", (context) => {

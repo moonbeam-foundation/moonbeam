@@ -226,6 +226,8 @@ impl pallet_evm::Config for Test {
 	type ChainId = ();
 	type OnChargeTransaction = ();
 	type BlockGasLimit = ();
+	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
+	type FindAuthor = ();
 }
 
 parameter_types! {

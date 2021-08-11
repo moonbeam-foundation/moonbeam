@@ -172,10 +172,6 @@ pub struct RunCmd {
 	/// Force using Moonriver native runtime.
 	#[structopt(long = "force-moonriver")]
 	pub force_moonriver: bool,
-
-	/// Force using Moonshadow native runtime.
-	#[structopt(long = "force-moonshadow")]
-	pub force_moonshadow: bool,
 }
 
 impl std::ops::Deref for RunCmd {
