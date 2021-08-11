@@ -163,8 +163,8 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let account_id = ensure_signed(origin)?;
 
-			let stored_info = Mapping::<T>::try_get(&author_id)
-				.map_err(|_| Error::<T>::AssociationNotFound)?;
+			let stored_info =
+				Mapping::<T>::try_get(&author_id).map_err(|_| Error::<T>::AssociationNotFound)?;
 
 			ensure!(
 				account_id == stored_info.account,
@@ -294,18 +294,29 @@ pub mod pallet {
 
 			// Move the mappings to the new storage location
 			// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html
-			for (author_id, account_id) in frame_support::storage::migration::storage_key_iter::<T::AuthorId, RegistrationInfo<T::AccountId, BalanceOf<T>>, Twox64Concat>(pallet_prefix, old_storage_item_prefix) {
+			for (author_id, account_id) in frame_support::storage::migration::storage_key_iter::<
+				T::AuthorId,
+				RegistrationInfo<T::AccountId, BalanceOf<T>>,
+				Twox64Concat,
+			>(pallet_prefix, old_storage_item_prefix)
+			{
 				Mapping::<T>::insert(author_id, account_id);
 				migrated_entries += 1;
 			}
 
 			// Now remove the old storage
 			// https://crates.parity.io/frame_support/storage/migration/fn.remove_storage_prefix.html
-			frame_support::storage::migration::remove_storage_prefix(pallet_prefix, old_storage_item_prefix, &[]);
+			frame_support::storage::migration::remove_storage_prefix(
+				pallet_prefix,
+				old_storage_item_prefix,
+				&[],
+			);
 
 			// Return the weight used.
 			let db_weights = T::DbWeight::get();
-			migrated_entries.saturating_add(2 * db_weights.write).saturating_add(db_weights.read)
+			migrated_entries
+				.saturating_add(2 * db_weights.write)
+				.saturating_add(db_weights.read)
 		}
 	}
 }
