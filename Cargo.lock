@@ -20,7 +20,6 @@ dependencies = [
  "hex",
  "libsecp256k1 0.3.5",
  "log",
- "pallet-evm",
  "parity-scale-codec",
  "serde",
  "sha3 0.8.2",
@@ -2211,12 +2210,6 @@ name = "fallible-iterator"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4443176a9f2c162692bd3d352d745ef9413eec5782a80d8fd6f8a1ac692a07f7"
-
-[[package]]
-name = "faster-hex"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b02a61fea82de8484f9d7ce99b698b0e190ef8de71035690a961a43d7b18a2ad"
 
 [[package]]
 name = "fastrand"
@@ -5017,7 +5010,6 @@ dependencies = [
  "account",
  "libsecp256k1 0.3.5",
  "primitive-types",
- "sc-cli",
  "sha3 0.8.2",
  "sp-runtime",
  "structopt",
@@ -8295,7 +8287,6 @@ dependencies = [
  "log",
  "pallet-evm",
  "parity-scale-codec",
- "slices",
  "sp-core",
  "sp-io",
  "sp-std",
@@ -10603,18 +10594,6 @@ name = "slab"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f173ac3d1a7e3b28003f40de0b5ce7fe2710f9b9dc3fc38664cebee46b3b6527"
-
-[[package]]
-name = "slices"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f2086e458a369cdca838e9f6ed04b4cc2e3ce636d99abb80c9e2eada107749cf"
-dependencies = [
- "faster-hex",
- "proc-macro2",
- "quote",
- "syn",
-]
 
 [[package]]
 name = "slog"
