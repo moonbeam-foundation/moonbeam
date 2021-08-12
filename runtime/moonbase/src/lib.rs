@@ -64,7 +64,7 @@ use sp_api::impl_runtime_apis;
 use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{AccountIdConversion, BlakeTwo256, Block as BlockT, IdentityLookup},
+	traits::{BlakeTwo256, Block as BlockT, IdentityLookup},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	AccountId32, ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
 };
@@ -803,12 +803,6 @@ parameter_types! {
 	pub Ancestry: MultiLocation = Junction::Parachain(ParachainInfo::parachain_id().into()).into();
 }
 
-parameter_types! {
-	pub const XcmWrapperId: PalletId = PalletId(*b"pc/xcmwr");
-	pub SovereignAccount: AccountId32 = ParachainInfo::parachain_id().into_account();
-	pub ProxyDepositAmount: Balance =  currency::relay_deposit(1, 8) + currency::relay_deposit(0, 33);
-}
-
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
 /// when determining ownership of accounts for asset transacting and when attempting to use XCM
 /// `Transact` in order to determine the dispatch Origin.
@@ -821,8 +815,7 @@ pub type LocationToAccountId = (
 );
 
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID (must be `TryFrom/TryInto<u128>`) into
-/// a `GeneralIndex` junction, prefixed by some `MultiLocation` value. The `MultiLocation` value will typically be a
-/// `PalletInstance` junction.
+/// a Parachain junction, prefixed by some `MultiLocation` value.
 use sp_std::borrow::Borrow;
 pub struct AsParachainId;
 impl xcm_executor::traits::Convert<MultiLocation, AssetId> for AsParachainId {
@@ -850,7 +843,7 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
-	// We only allow teleports of known assets.
+	// We dont allow teleports.
 	(),
 	// We dont track any teleports
 	(),
@@ -887,7 +880,6 @@ parameter_types! {
 pub type XcmBarrier = (
 	xcm_builder::TakeWeightCredit,
 	xcm_builder::AllowTopLevelPaidExecutionFrom<All<MultiLocation>>,
-	// ^^^ Parent and its exec plurality get free execution
 );
 
 pub struct XcmExecutorConfig;
@@ -913,6 +905,7 @@ parameter_types! {
 	pub const MaxDownwardMessageWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 10;
 }
 
+// Convert an AccountId20 to a Multilocation
 pub struct SignedToAccountId20<Origin, AccountId, Network>(
 	sp_std::marker::PhantomData<(Origin, AccountId, Network)>,
 );
@@ -936,7 +929,6 @@ where
 	}
 }
 
-/// No local origins on this chain are allowed to dispatch XCM sends/executions.
 pub type LocalOriginToLocation = SignedToAccountId20<Origin, AccountId, MoonbeamNetwork>;
 
 /// The means for routing XCM messages which are not for local execution into the right message
@@ -986,7 +978,7 @@ parameter_types! {
 	pub const ExecutiveBody: BodyId = BodyId::Executive;
 }
 
-/// We allow root and the Relay Chain council to execute privileged asset operations.
+/// We allow root and Chain council to execute privileged asset operations.
 pub type AssetsForceOrigin = EnsureOneOf<
 	AccountId,
 	EnsureRoot<AccountId>,
@@ -1009,6 +1001,7 @@ impl pallet_assets::Config for Runtime {
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 }
 
+// Instruct how to convert Asset Ids into MultiLocation with xConvert
 pub struct AssetIdtoMultiLocation<AssetXConverter>(sp_std::marker::PhantomData<AssetXConverter>);
 impl<AssetXConverter> sp_runtime::traits::Convert<AssetId, Option<MultiLocation>>
 	for AssetIdtoMultiLocation<AssetXConverter>
