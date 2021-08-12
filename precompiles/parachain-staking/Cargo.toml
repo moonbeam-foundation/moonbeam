@@ -8,7 +8,7 @@ description = "A Precompile to make parachain staking accessible to pallet-evm"
 [dependencies]
 log = "0.4"
 rustc-hex = { version = "2.0.1", default-features = false }
-
+num_enum = { version = "0.5.3", default-features = false }
 codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8", default-features = false }
 evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }

@@ -6799,6 +6799,7 @@ dependencies = [
  "frame-system",
  "hex",
  "log",
+ "num_enum",
  "pallet-evm",
  "parachain-staking",
  "parity-scale-codec",
