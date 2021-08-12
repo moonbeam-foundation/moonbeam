@@ -291,6 +291,8 @@
 <span id="291">291</span>
 <span id="292">292</span>
 <span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
@@ -322,7 +324,9 @@
 <span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">marker::PhantomData</span>, <span class="ident">vec</span>, <span class="ident">vec::Vec</span>};
 
 <span class="kw">mod</span> <span class="ident">data</span>;
+
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">data</span>::{<span class="ident">Address</span>, <span class="ident">EvmData</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">precompile_utils_macro::generate_function_selector</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
