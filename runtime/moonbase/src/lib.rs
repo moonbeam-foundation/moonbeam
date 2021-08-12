@@ -1073,7 +1073,7 @@ construct_runtime! {
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin} = 26,
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 27,
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 28,
-		}
+	}
 }
 
 /// Block type as expected by this runtime.
