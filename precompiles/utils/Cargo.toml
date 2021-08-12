@@ -7,6 +7,7 @@ description = "Utils to write EVM precompiles."
 
 [dependencies]
 log = "0.4"
+num_enum = { version = "0.5.3", default-features = false }
 
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
@@ -17,6 +18,11 @@ frame-system = { git = "https://github.com/paritytech/substrate", default-featur
 
 pallet-evm = { git = "https://github.com/purestake/frontier", default-features = false, branch = "moonbeam-polkadot-pre" }
 evm = { version = "0.27.0", default-features = false, features = ["with-codec"] }
+
+precompile-utils-macro = { path = "macro" }
+
+[dev-dependencies]
+sha3 = "0.9"
 
 [features]
 default = ["std"]
