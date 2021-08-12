@@ -8,7 +8,6 @@ description = "Utils to write EVM precompiles."
 [dependencies]
 log = "0.4"
 num_enum = { version = "0.5.3", default-features = false }
-slices = "0.2.0"
 
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
 sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.8" }
